@@ -1,11 +1,13 @@
-# SYX 并发（已合并）
+# SYX concurrency (merged)
 
-本文件曾是独立的并发 MVP 说明（与 `9_UsageGuide.md` 编号冲突）。
+[简体中文](./zh/9_ConcurrencyMVP.zh-CN.md)
 
-**请改读：**
+This file used to be a standalone concurrency MVP note (numbering collided with `9_UsageGuide.md`).
 
-- 用户指南并发节：[9_UsageGuide.md](./9_UsageGuide.md)（「并发控制」）
-- 语言教程：[books/language-guide/18-concurrency.md](../books/language-guide/18-concurrency.md)
-- 架构决议：[adr/architecture-decisions.md](./adr/architecture-decisions.md)
+**Read instead:**
 
-历史全文见 Git。
+- Usage guide — concurrency section: [9_UsageGuide.md](./9_UsageGuide.md)
+- Language tutorial: [books/language-guide/18-concurrency.md](../books/language-guide/18-concurrency.md)
+- Architecture decisions: [adr/architecture-decisions.md](./adr/architecture-decisions.md)
+
+Historical full text lives in Git history.

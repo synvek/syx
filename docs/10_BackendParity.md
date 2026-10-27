@@ -1,10 +1,12 @@
-> **SYX 117.0（Phase 139）** — VM · MIR · LLVM · WASM 后端 parity。ManagedHeap + ObjectRef；WASM SIMD guest-v22；Native **LLVM sole**。见 [architecture-decisions.md](adr/architecture-decisions.md) · [implementation-status](../books/shared/implementation-status.md)。
+> **SYX 117.0 (Phase 139)** — VM · MIR · LLVM · WASM backend parity. ManagedHeap + ObjectRef; WASM SIMD guest-v22; native **LLVM sole**. See [architecture-decisions.md](adr/architecture-decisions.md) · [implementation-status](../books/shared/implementation-status.md).
 
-# SYX 后端 Parity（VM · MIR/WASM · LLVM）
+# SYX backend parity (VM · MIR/WASM · LLVM)
 
-后端特性 parity 的**文档入口**（行为以 `crates/syx-driver/tests` 与 CI 为准）。
+[简体中文](./zh/10_BackendParity.zh-CN.md)
 
-主 CI（`.github/workflows/ci.yml`）大致运行：
+Documentation entry for backend feature parity (behavior is defined by `crates/syx-driver/tests` and CI).
+
+Main CI (`.github/workflows/ci.yml`) roughly runs:
 
 ```bash
 cargo test -p syx-driver \
@@ -12,35 +14,35 @@ cargo test -p syx-driver \
   --test observability --test security --test backends \
   -- --test-threads=1
 cargo test -p syx-lsp
-# + capability freshness / tip-leak gates（见 workflow）
+# + capability freshness / tip-leak gates (see workflow)
 ```
 
-Evergreen 内含 `parity_native` 等；历史独立 `parity_vm` / `parity_wasm` 套件名以仓库当前 `tests/` 布局为准。
+Evergreen includes `parity_native` and related checks; historical standalone `parity_vm` / `parity_wasm` suite names follow the current `tests/` layout.
 
-## 三后端矩阵
+## Three-backend matrix
 
-| 维度 | VM（`syx-vm`） | WASM（`syx-wasm-run`） | Native LLVM（`syx-llvm` + `syx-rt`） |
-|------|----------------|------------------------|--------------------------------------|
-| 入口 | `syx run` | `syx run --wasm` / `syx build --wasm` | `syx build --native` |
-| 角色 | 语义基准 / 日常开发 | 沙箱部署（CLI 近完整 stdlib） | **唯一**原生 AOT |
-| 中端 | 统一 MIR | 统一 MIR | 统一 MIR |
+| Dimension | VM (`syx-vm`) | WASM (`syx-wasm-run`) | Native LLVM (`syx-llvm` + `syx-rt`) |
+|-----------|---------------|------------------------|-------------------------------------|
+| Entry | `syx run` | `syx run --wasm` / `syx build --wasm` | `syx build --native` |
+| Role | Semantic baseline / day-to-day | Sandbox deploy (CLI near-full stdlib) | **Sole** native AOT |
+| Mid-end | Unified MIR | Unified MIR | Unified MIR |
 
-## Native 后端（LLVM only）
+## Native backend (LLVM only)
 
-- `syx build --native` → LLVM AOT；**无** Cranelift AOT（`syx-cranelift` 已退役）。
-- 实验 JIT：`syx-cranelift-jit` + `SYX_JIT_TIER2=1`（Suite-1；默认关；≠ 生产默认）。
-- Object / 链接：`--object`、`--release`、`full-native` 见 [9_UsageGuide.md](9_UsageGuide.md)。
-- ObjectRef / Host / 插件边界见 [`docs/adr/architecture-decisions.md`](adr/architecture-decisions.md)。
+- `syx build --native` → LLVM AOT; **no** Cranelift AOT (`syx-cranelift` retired).
+- Experimental JIT: `syx-cranelift-jit` + `SYX_JIT_TIER2=1` (Suite-1; off by default; ≠ production default).
+- Object / link flags: `--object`, `--release`, `full-native` — see [9_UsageGuide.md](9_UsageGuide.md).
+- ObjectRef / host / plugin boundaries: [`docs/adr/architecture-decisions.md`](adr/architecture-decisions.md).
 
-## 审计与 fixture 策略
+## Audit and fixtures
 
-- 行为套件：`crates/syx-driver/tests/{lang,stdlib,native,concurrency,evergreen,backends,…}`
-- 共享 fixture：`crates/syx-driver/tests/fixtures/`（若存在）
-- 能力表：[`books/shared/capabilities-generated.md`](../books/shared/capabilities-generated.md)
+- Behavioral suites: `crates/syx-driver/tests/{lang,stdlib,native,concurrency,evergreen,backends,…}`
+- Shared fixtures: `crates/syx-driver/tests/fixtures/` (when present)
+- Capability table: [`books/shared/capabilities-generated.md`](../books/shared/capabilities-generated.md)
 
-## 相关文档
+## Related docs
 
-- [架构决议](adr/architecture-decisions.md)
-- [后端调试指南](12_BackendDebuggingGuide.md)
-- [完整技术文档](5_CompleteTechnicalDocumentation.md)
-- [使用指南 · 编译与后端](9_UsageGuide.md)
+- [Architecture decisions](adr/architecture-decisions.md)
+- [Backend debugging guide](12_BackendDebuggingGuide.md)
+- [Complete technical documentation](5_CompleteTechnicalDocumentation.md)
+- [Usage guide — compile & backends](9_UsageGuide.md)

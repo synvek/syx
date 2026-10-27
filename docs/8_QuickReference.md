@@ -1,104 +1,106 @@
-# SYX 语言快速参考
+# SYX Language Quick Reference
 
-面向 **`.sy` 源码作者** 的语法与标准库速查。与 `syx-parser` / `syx-semantic` 当前能力对齐；工具链见 [9_UsageGuide.md](./9_UsageGuide.md)。
+[简体中文](./zh/8_QuickReference.zh-CN.md)
 
-> **版本：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../LICENSE)  
-> **原生 AOT：** 仅 LLVM · **Host 全局：** [`packages/core/builtins/special/globals.sy`](../packages/core/builtins/special/globals.sy)（`print` / `readLine` / `reflect`）  
-> **实现状态 SSOT：** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
-> 历史 Phase 条幅已移除；细节以 status / ADR 为准。
+Syntax and standard-library cheat sheet for **`.sy` source authors**. Aligned with current `syx-parser` / `syx-semantic` capabilities; toolchain usage in [9_UsageGuide.md](./9_UsageGuide.md).
+
+> **Version:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
+> **Native AOT:** LLVM only · **Host globals:** [`packages/core/builtins/special/globals.sy`](../packages/core/builtins/special/globals.sy) (`print` / `readLine` / `reflect`)  
+> **Implementation SSOT:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
+> Legacy Phase banners removed; details follow status / ADRs.
 
 ---
 
-## 目录
+## Table of contents
 
-1. [类型系统](#类型系统)
-2. [变量与入口](#变量与入口)
-3. [控制流](#控制流)
-4. [函数与访问控制](#函数与访问控制)
-5. [模块](#模块)
-6. [字符串](#字符串)
-7. [数组](#数组)
-8. [错误处理 try/catch](#错误处理-trycatch)
-9. [Optional 空安全](#optional-空安全)
-10. [Data Class](#data-class)
+1. [Type system](#type-system)
+2. [Variables and entry point](#variables-and-entry-point)
+3. [Control flow](#control-flow)
+4. [Functions and access control](#functions-and-access-control)
+5. [Modules](#modules)
+6. [Strings](#strings)
+7. [Arrays](#arrays)
+8. [Error handling try/catch](#error-handling-trycatch)
+9. [Optional null safety](#optional-null-safety)
+10. [Data class](#data-class)
 11. [Extension](#extension)
-12. [Sealed Class 与 Switch](#sealed-class-与-switch)
-13. [Effects 效果注解](#effects-效果注解)
-14. [标准库 File / Directory / HTTP](#标准库-file--directory--http)
-15. [Async / Await（MVP）](#async--awaitmvp)
-16. [借用与宏（Phase 7）](#借用与宏phase-7)
-17. [CLI 速查](#cli-速查)
-18. [诊断代码](#诊断代码)
+12. [Sealed class and switch](#sealed-class-and-switch)
+13. [Effects annotations](#effects-annotations)
+14. [Standard library File / Directory / HTTP](#standard-library-file--directory--http)
+15. [Async / await (MVP)](#async--await-mvp)
+16. [Borrowing and macros (Phase 7)](#borrowing-and-macros-phase-7)
+17. [CLI cheat sheet](#cli-cheat-sheet)
+18. [Diagnostic codes](#diagnostic-codes)
 
 ---
 
-## 类型系统
+## Type system
 
-### 数值类型
+### Numeric types
 
-| 类型 | 示例 | 说明 |
+| Type | Examples | Notes |
 |------|------|------|
-| `Int8` … `Int64` | `42i8`, `1000i64` | 固定宽度有符号整数 |
-| `Int128` | `42i128` | 128 位有符号整数（Phase 38） |
-| `UInt8` … `UInt64` | `255u8` | 固定宽度无符号整数 |
-| `UInt128` | `0xFFu128` | 128 位无符号整数（Phase 38） |
-| `SIMD4<Int32>` 等 | `SIMD4.fromArray([1,2,3,4])` | 固定宽度 SIMD 向量（Phase 38） |
-| **`Int`** | `42` | **平台字长**有符号整数（64 位 host → `Int64`，32 位 → `Int32`） |
-| **`UInt`** | `100u` | **平台字长**无符号整数 |
-| `Float32` / `Float` | `3.14f32` | 32 位浮点 |
-| `Float64` / `Double` | `3.14` | 64 位浮点（无后缀浮点默认 `Double`） |
+| `Int8` … `Int64` | `42i8`, `1000i64` | Fixed-width signed integers |
+| `Int128` | `42i128` | 128-bit signed integer (Phase 38) |
+| `UInt8` … `UInt64` | `255u8` | Fixed-width unsigned integers |
+| `UInt128` | `0xFFu128` | 128-bit unsigned integer (Phase 38) |
+| `SIMD4<Int32>`, etc. | `SIMD4.fromArray([1,2,3,4])` | Fixed-width SIMD vectors (Phase 38) |
+| **`Int`** | `42` | **Platform word** signed integer (64-bit host → `Int64`, 32-bit → `Int32`) |
+| **`UInt`** | `100u` | **Platform word** unsigned integer |
+| `Float32` / `Float` | `3.14f32` | 32-bit float |
+| `Float64` / `Double` | `3.14` | 64-bit float (unsuffixed float literals default to `Double`) |
 
-无后缀整数字面量默认类型为平台 **`Int`**。显式后缀（如 `42i8`）选择固定宽度类型。
+Unsuffixed integer literals default to platform **`Int`**. Explicit suffixes (e.g. `42i8`) pick fixed-width types.
 
-### 基础与集合类型
+### Basic and collection types
 
-| 类型 | 示例 | 说明 |
+| Type | Examples | Notes |
 |------|------|------|
-| `Bool` | `true` / `false` | 布尔 |
-| `String` | `"hello"` | 字符串 |
-| `Array<T>` | `[1, 2, 3]` | 动态数组 |
-| `Set<T>` | `Set<Int>`、`[1,2,3]` 赋值给 `Set` | 去重集合 |
-| `[K: V]` / `Dictionary<K,V>` | `["a": 1]`、`[String: Int]` | 静态字典（MVP 键须 `String`） |
-| `Object` | `let o: Object = { "k": v }` | 动态异质袋（须标注；未标注字典→`Dictionary`） |
-| `T?` | `nil` / `42` | 可空类型 |
-| `Void` | — | 无返回值 |
+| `Bool` | `true` / `false` | Boolean |
+| `String` | `"hello"` | String |
+| `Array<T>` | `[1, 2, 3]` | Dynamic array |
+| `Set<T>` | `Set<Int>`, assign `[1,2,3]` to `Set` | Deduped set |
+| `[K: V]` / `Dictionary<K,V>` | `["a": 1]`, `[String: Int]` | Static dictionary (MVP keys must be `String`) |
+| `Object` | `let o: Object = { "k": v }` | Dynamic heterogeneous bag (annotation required; unannotated dict → `Dictionary`) |
+| `T?` | `nil` / `42` | Optional type |
+| `Void` | — | No return value |
 
-**类型标注：** `let x: Int = 10`、`let m: [String: Int] = ["a": 1]`、`let s: Set<Int> = [1, 2, 3]`
+**Type annotations:** `let x: Int = 10`, `let m: [String: Int] = ["a": 1]`, `let s: Set<Int> = [1, 2, 3]`
 
-> **注意：** SYX 使用 `func` 关键字与 `print()` 内置输出；**不是** Swift 的 `func`/`print` 全兼容子集。`class` / `struct` / `protocol` 可解析，运行时支持有限；日常推荐 `data class` + `extension`。
+> **Note:** SYX uses the `func` keyword and built-in `print()`; it is **not** a fully Swift-compatible `func`/`print` subset. `class` / `struct` / `protocol` parse, but runtime support is limited; prefer `data class` + `extension` for day-to-day code.
 
 ---
 
-## 变量与入口
+## Variables and entry point
 
 ```syx
-var count = 0      // 可变
-let name = "SYX"   // 不可变
-var x: Int = 10    // 显式类型
+var count = 0      // mutable
+let name = "SYX"   // immutable
+var x: Int = 10    // explicit type
 
-func main() {      // 程序入口
+func main() {      // program entry
     print("Hello")
 }
 ```
 
 ---
 
-## 控制流
+## Control flow
 
 ```syx
-// if — 条件需括号
+// if — condition in parentheses
 if (x > 0) {
     print("positive")
 } else {
     print("non-positive")
 }
 
-// while — 条件需括号
+// while — condition in parentheses
 while (x > 0) {
     x = x - 1
 }
 
-// for-in — Array / String / readLines 结果
+// for-in — Array / String / readLines results
 for item in [1, 2, 3] {
     print(item)
 }
@@ -106,7 +108,7 @@ for ch in "abc" {
     print(ch)
 }
 
-// switch — case 后冒号；支持范围与 variant
+// switch — colon after case; ranges and variants supported
 switch value {
 case 1:
     print("one")
@@ -117,16 +119,16 @@ default:
 }
 ```
 
-| 构造 | 语法要点 |
+| Construct | Syntax |
 |------|----------|
-| `if` / `while` | 条件必须 `(expr)` |
-| `for-in` | `for name in iterable { }`，无括号 |
-| `switch` | `case pat:` 或 `default:`，花括号包裹整体 |
-| `break` / `continue` | 支持 |
+| `if` / `while` | Condition must be `(expr)` |
+| `for-in` | `for name in iterable { }`, no parentheses |
+| `switch` | `case pat:` or `default:`; whole construct in `{ }` |
+| `break` / `continue` | Supported |
 
 ---
 
-## 函数与访问控制
+## Functions and access control
 
 ```syx
 func add(a: Int, b: Int) -> Int {
@@ -146,17 +148,17 @@ private func hidden() -> Int {
 }
 ```
 
-| 修饰符 | 可见性 |
+| Modifier | Visibility |
 |--------|--------|
-| `public` | 跨模块可 import |
-| `internal` | 模块内（默认） |
-| `private` | 文件/模块内私有 |
+| `public` | Importable across modules |
+| `internal` | Within module (default) |
+| `private` | File/module private |
 
-**参数：** `func f(a: Int, b: Int)` — 调用 `f(a: 1, b: 2)`。无 Swift 式 `_` 省略标签语法。
+**Parameters:** `func f(a: Int, b: Int)` — call `f(a: 1, b: 2)`. No Swift-style `_` label elision.
 
 ---
 
-## 模块
+## Modules
 
 ```syx
 // Math.sy
@@ -172,20 +174,20 @@ func main() {
 }
 ```
 
-| 规则 | 说明 |
+| Rule | Notes |
 |------|------|
-| 导入 | `import moduleName`（模块名对应 `.sy` 文件或 `syx.toml` 依赖键） |
-| 导出 | 仅 `public func` 可被其他模块调用 |
-| 跨模块 internal | 编译错误 **S005** |
-| 项目依赖 | `syx.toml` 中 `[dependencies]` + `syx add` / `syx update` |
+| Import | `import moduleName` (name maps to `.sy` file or `syx.toml` dependency key) |
+| Export | Only `public func` callable from other modules |
+| Cross-module `internal` | Compile error **S005** |
+| Project deps | `[dependencies]` in `syx.toml` + `syx add` / `syx update` |
 
 ---
 
-## 字符串
+## Strings
 
 ```syx
 let name = "World"
-print("Hello, \(name)!")                    // 插值
+print("Hello, \(name)!")                    // interpolation
 
 "a,b,c".split(",")                          // → Array
 "  hi  ".trim()
@@ -193,19 +195,19 @@ print("Hello, \(name)!")                    // 插值
 "file.txt".hasPrefix("file")
 "hello".substring(0, 3)                     // [start, end)
 "foo".replacingOccurrences("bar", "foo")    // (new, old)
-"abc123".matches("\\d+")                    // 正则 → Array
-"text".count                               // 字符数
+"abc123".matches("\\d+")                    // regex → Array
+"text".count                               // character count
 ```
 
-| 方法 | 返回 |
+| Method | Returns |
 |------|------|
 | `.split(sep)` | `Array` |
-| `.matches(pattern)` | `Array`（匹配串） |
+| `.matches(pattern)` | `Array` (match strings) |
 | `.replacingOccurrences(with, of)` | `String` |
 
 ---
 
-## 数组
+## Arrays
 
 ```syx
 let nums = [10, 20, 30]
@@ -217,34 +219,34 @@ for x in nums {
 }
 ```
 
-| 方法 | 说明 |
+| Method | Notes |
 |------|------|
 | `.count` | `Int` |
 | `.contains(item)` | `Bool` |
-| `.sorted()` | `Array`（升序） |
+| `.sorted()` | `Array` (ascending) |
 | `.reverse()` | `Array` |
 | `.joined(sep)` | `String` |
-| `.map` / `.filter` / `.reduce` | ✅ 支持闭包（见 `p4_hof.sy`） |
+| `.map` / `.filter` / `.reduce` | ✅ Closures supported (see `p4_hof.sy`) |
 
-### Set 与 Dictionary
+### Set and Dictionary
 
 ```syx
 let scores: [String: Int] = { "a": 1, "b": 2 }
 print(scores.count)          // 2
 
 var tags: Set<Int> = [1, 2, 2, 3]
-print(tags.count)            // 3（去重）
-print(tags.insert(4))        // true（ADR-224 write-back）
+print(tags.count)            // 3 (deduped)
+print(tags.insert(4))        // true (ADR-224 write-back)
 print(tags.contains(4))      // true
 print(scores.containsKey("a")) // true
 ```
 
-| 类型 | 方法 | 返回 |
+| Type | Methods | Returns |
 |------|------|------|
-| `Set` | `.count` / `.contains` / `.insert` / `.remove`（mutation 钉 ADR-224）；`.union` / `.intersection` | Bool / Int |
-| `[String: V]` | `.count` / `.containsKey` / `.remove` / `.keys` / `.values` | 见 stdlib |
+| `Set` | `.count` / `.contains` / `.insert` / `.remove` (mutations ADR-224); `.union` / `.intersection` | Bool / Int |
+| `[String: V]` | `.count` / `.containsKey` / `.remove` / `.keys` / `.values` | See stdlib |
 
-### 范围与 readLine
+### Ranges and readLine
 
 ```syx
 print((1..<10).contains(5))
@@ -253,12 +255,12 @@ let line = readLine()
 
 ---
 
-## 错误处理 try/catch
+## Error handling try/catch
 
-SYX 使用 **`try { } catch (name) { }`**，不是 Swift 的 `do-catch` / `throws`。
+SYX uses **`try { } catch (name) { }`**, not Swift `do-catch` / `throws`.
 
 ```syx
-// 语句块
+// statement block
 try {
     File.write("/tmp/x.txt", "data")
     let content = File.read("/tmp/x.txt")
@@ -267,64 +269,64 @@ try {
     print("failed")
 }
 
-// 表达式级 try（失败走运行时错误路径）
+// expression-level try (failure → runtime error path)
 let text = try File.read(path)
 ```
 
-Host 函数（File、HTTP 等）失败时抛入 VM 异常，由 `catch` 捕获。
+Host functions (File, HTTP, etc.) raise VM exceptions on failure; `catch` handles them.
 
 ---
 
-## Optional 空安全
+## Optional null safety
 
 ```syx
 let a: Int? = nil
-print(a ?? 99)              // nil 合并
+print(a ?? 99)              // nil coalescing
 
 let b: Int? = 7
-print(b!)                   // 强制解包；nil → R007
+print(b!)                   // force unwrap; nil → R007
 
 let s: String? = "hello"
-print(s?.hasPrefix("he"))   // 可选链；nil 短路
+print(s?.hasPrefix("he"))   // optional chain; nil short-circuits
 
-if let y = b {               // 绑定非 nil
+if let y = b {               // bind when non-nil
     print(y)
 }
 
-guard let z = b else {       // 失败走 else 分支
+guard let z = b else {       // failure → else branch
     return
 }
 print(z)
 ```
 
-| 运算符 | 含义 |
+| Operator | Meaning |
 |--------|------|
-| `T?` | 可空类型 |
-| `nil` | 空值 |
-| `??` | 左非 nil 取左，否则取右 |
-| `!` | 强制解包 |
-| `?.` | 可选链式成员调用 |
+| `T?` | Optional type |
+| `nil` | Null value |
+| `??` | Left if non-nil, else right |
+| `!` | Force unwrap |
+| `?.` | Optional member chain |
 
 ---
 
-## 协议与相等性（Equatable / Hashable）
+## Protocols and equality (Equatable / Hashable)
 
-内置类型自动实现 `Equatable`、`Hashable`、`CustomStringConvertible`、`CustomDebugStringConvertible`（数值、Bool、String、Array、Set、Dictionary、Object）。
+Built-in types automatically implement `Equatable`, `Hashable`, `CustomStringConvertible`, and `CustomDebugStringConvertible` (numeric types, Bool, String, Array, Set, Dictionary, Object).
 
-| 运算符 / 成员 | 含义 |
+| Operator / member | Meaning |
 |---------------|------|
-| `==` / `!=` | 结构相等（数值用 promotion；集合深度相等） |
-| `===` / `!==` | 引用标识相等（class 实例比 `__object_id`；值类型同 `==`） |
-| `.description` | 用户可读字符串 |
-| `.debugDescription` | 调试字符串（含类型前缀） |
-| `hash(into:)` | 内置 witness，经 `Hasher` host 组合 |
+| `==` / `!=` | Structural equality (numeric promotion; deep collection equality) |
+| `===` / `!==` | Identity equality (class instances compare `__object_id`; value types same as `==`) |
+| `.description` | User-facing string |
+| `.debugDescription` | Debug string (with type prefix) |
+| `hash(into:)` | Built-in witness via `Hasher` host |
 
-| 类型 | 说明 |
+| Type | Notes |
 |------|------|
 | `Hasher` | `Hasher.newHasher()` / `Hasher.combine` / `Hasher.finalize` |
 | `ObjectIdentifier` | `Hasher.objectId(obj)` |
 
-不可 `Equatable` 的类型使用 `==` 会报 **S016**。
+Using `==` on types that are not `Equatable` → **S016**.
 
 ---
 
@@ -340,12 +342,12 @@ func main() {
 }
 ```
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
-| 构造 `Type(a, b)` | ✅ |
-| 字段访问 `p.x` | ✅ |
+| Construct `Type(a, b)` | ✅ |
+| Field access `p.x` | ✅ |
 | `.description()` | ✅ |
-| 自动 `copy` / `==` / `hash(into:)` | ✅ 编译器合成（`{Type}_copy` / 结构相等 / `hash(into:)`） |
+| Auto `copy` / `==` / `hash(into:)` | ✅ Compiler-synthesized (`{Type}_copy` / structural eq / `hash(into:)`) |
 
 ---
 
@@ -365,7 +367,7 @@ func main() {
 
 ---
 
-## Sealed Class 与 Switch
+## Sealed class and switch
 
 ```syx
 sealed class Result {
@@ -383,17 +385,17 @@ func describe(r: Result) {
 }
 ```
 
-变体定义**无** `case` 关键字；`switch` 的 `case` 分支使用 `.variant(let binding)` 等形式（见 [2_SyntaxAnalysis.md](2_SyntaxAnalysis.md) §5.5）。
+Variant definitions **omit** the `case` keyword; `switch` arms use `.variant(let binding)` forms (see [2_SyntaxAnalysis.md](2_SyntaxAnalysis.md) §5.5).
 
-| 模式 | 示例 |
+| Pattern | Example |
 |------|------|
-| 整型 | `case 42:` |
-| 半开范围 | `case 0..<13:` |
+| Integer | `case 42:` |
+| Half-open range | `case 0..<13:` |
 | Variant | `case .ok(let x):` |
 
 ---
 
-## 扩展语法（§11 已实现）
+## Extended syntax (§11 implemented)
 
 ```syx
 enum Result {
@@ -417,7 +419,7 @@ actor Counter {
     func increment() { self.value = self.value + 1 }
 }
 
-func id<T>(x: Int) -> Int { return x }  // 单态化为 id_Int
+func id<T>(x: Int) -> Int { return x }  // monomorphized to id_Int
 
 @available(iOS 13)
 @Main
@@ -427,20 +429,20 @@ let evens = [1,2,3].filter({ |x| x % 2 == 0 })
 let sum = [1,2,3].reduce({ |a, b| a + b })
 
 let base = 10
-let mapped = [1].map({ |x| x + base })  // 闭包捕获
+let mapped = [1].map({ |x| x + base })  // closure capture
 
 throw "failed"
 repeat { print(1) } while (false)
 x += 1
 ```
 
-详见 [2_SyntaxAnalysis.md](2_SyntaxAnalysis.md) §5 / §11。
+See [2_SyntaxAnalysis.md](2_SyntaxAnalysis.md) §5 / §11.
 
 ---
 
-## Effects 效果注解
+## Effects annotations
 
-函数声明可在返回类型后附加 **`requires Pure`** 或 **`requires IO`**；Pure 函数内禁止 I/O（含 `print`、File/HTTP）。
+Function declarations may append **`requires Pure`** or **`requires IO`** after the return type; Pure functions must not perform I/O (including `print`, File/HTTP).
 
 ```syx
 func compute(x: Int) -> Int requires Pure {
@@ -452,64 +454,64 @@ func loadConfig() -> String requires IO {
 }
 ```
 
-违反 Pure 约束 → 编译期错误（`syx-meta`）。
+Violating Pure → compile-time error (`syx-meta`).
 
 ---
 
-## 标准库 File / Directory / HTTP
+## Standard library File / Directory / HTTP
 
-通过 **类型静态方法** 与 **实例方法** 调用（Host Functions 实现）。
+Invoked via **static type methods** and **instance methods** (Host Functions).
 
 ### File
 
-| 方法 | 说明 |
+| Method | Notes |
 |------|------|
-| `File.read(path)` | 读全文 → `String` |
-| `File.readLines(path)` | 按行 → `Array` |
-| `File.write(path, content)` | 写入 |
-| `File.append(path, content)` | 追加 |
+| `File.read(path)` | Read entire file → `String` |
+| `File.readLines(path)` | By line → `Array` |
+| `File.write(path, content)` | Write |
+| `File.append(path, content)` | Append |
 | `File.exists(path)` | → `Bool` |
-| `File.delete(path)` | 删除 |
-| `File.copy(from, to)` | 复制 |
-| `File.move(from, to)` | 移动 |
+| `File.delete(path)` | Delete |
+| `File.copy(from, to)` | Copy |
+| `File.move(from, to)` | Move |
 
 ### Directory
 
-| 方法 | 说明 |
+| Method | Notes |
 |------|------|
-| `Directory.create(path)` | 创建目录 |
-| `Directory.list(path)` | 列出内容 → `Array` |
+| `Directory.create(path)` | Create directory |
+| `Directory.list(path)` | List entries → `Array` |
 | `Directory.exists(path)` | → `Bool` |
 
 ### HTTP
 
-客户端基于 `reqwest`（blocking + rustls），支持 HTTPS。详见 [11_NetworkStdlib.md](11_NetworkStdlib.md)。
+Client uses `reqwest` (blocking + rustls) with HTTPS. See [11_NetworkStdlib.md](11_NetworkStdlib.md).
 
-| 方法 | 说明 |
+| Method | Notes |
 |------|------|
-| `HTTP.fetch(url, options)` | 通用请求（method / headers / body / query / timeout_ms） |
-| `HTTP.get(url)` | GET → 响应对象 |
-| `HTTP.post(url, body)` | POST；body 为 `String` 或字典 |
-| `HTTP.put/patch/delete(url, body?)` | 对应 HTTP 方法 |
-| `HTTP.serve(addr, port, handler)` | blocking HTTP 服务端（handler 函数名） |
-| `HTTP.response(status, body)` | 构建服务端响应对象 |
+| `HTTP.fetch(url, options)` | Generic request (method / headers / body / query / timeout_ms) |
+| `HTTP.get(url)` | GET → response object |
+| `HTTP.post(url, body)` | POST; body `String` or dictionary |
+| `HTTP.put/patch/delete(url, body?)` | Matching HTTP verbs |
+| `HTTP.serve(addr, port, handler)` | Blocking HTTP server (handler function name) |
+| `HTTP.response(status, body)` | Build server response object |
 
-| Response 方法 | 说明 |
+| Response method | Notes |
 |---------------|------|
-| `status()` | HTTP 状态码 |
+| `status()` | HTTP status code |
 | `ok()` | 2xx → `true` |
-| `text()` / `body()` | 响应体字符串 |
-| `json()` | 解析 JSON → 对象 |
-| `header(name)` | 单个响应头 |
-| `headers()` | 全部响应头 |
+| `text()` / `body()` | Response body string |
+| `json()` | Parse JSON → object |
+| `header(name)` | Single response header |
+| `headers()` | All response headers |
 
 ### URL
 
-| 方法 | 说明 |
+| Method | Notes |
 |------|------|
-| `URL.parse(text)` | 解析 → `{ href, protocol, host, port, path, query }` |
-| `URL.encodeQuery(dict)` | 字典 → query string |
-| `URL.build(base, path, query)` | 拼接 URL |
+| `URL.parse(text)` | Parse → `{ href, protocol, host, port, path, query }` |
+| `URL.encodeQuery(dict)` | Dictionary → query string |
+| `URL.build(base, path, query)` | Build URL |
 
 ```syx
 import HTTP
@@ -524,18 +526,18 @@ try {
 }
 ```
 
-### 全局
+### Globals
 
-| 名称 | 说明 |
+| Name | Notes |
 |------|------|
-| `print(expr)` | 输出到 stdout |
+| `print(expr)` | Write to stdout |
 
-> **已提供：** `readLine()` 从标准输入读取一行。  
-> **未提供：** `exit()`、`assert()` 等全局函数。
+> **Available:** `readLine()` reads one line from stdin.  
+> **Not available:** `exit()`, `assert()`, and similar globals.
 
 ---
 
-## Async / Await（MVP）
+## Async / await (MVP)
 
 ```syx
 async func fetch() -> String {
@@ -543,52 +545,52 @@ async func fetch() -> String {
     return "ok"
 }
 
-// 结构化 Task（当前线程池 spawn）
+// Structured Task (thread-pool spawn today)
 let t = Task {
     work()
 }
 __syx_task_join(t)
 
-// 显式并行
+// Explicit parallelism
 Task.detached {
     __syx_task_sleep(50)
 }
 
-// 带参 detach（Concurrency 或 host）
+// Detach with args (Concurrency or host)
 __syx_task_detach("worker", [42])
 ```
 
-`syx.toml` 严格模式：
+`syx.toml` strict mode:
 
 ```toml
 [concurrency]
-strict = true   # 启用 C001–C003 等静态检查
+strict = true   # enable C001–C003 static checks
 ```
 
-| Host / API | 说明 |
+| Host / API | Notes |
 |------------|------|
-| `__syx_task_detach(name)` / `Concurrency.detach(name)` | 线程池 detached 任务 |
-| `__syx_task_detach(name, args)` | 带参 spawn |
-| `__syx_task_join` / `cancel` / `sleep` | 任务 join / 取消 / 睡眠 |
-| `__syx_task_group_*` | TaskGroup 创建 / add / wait（按 group id 隔离） |
-| `__syx_channel_create/send/recv` | Phase 8 async channel MVP（VM host） |
-| `__syx_channel_try_recv` | Phase 15 非阻塞 recv（nil = 空）（`p15_channel_try_recv.sy`） |
-| `__syx_channel_create(cap)` / `__syx_channel_try_send` | 有界 channel + 背压（ADR-267 / `m3_a04_backpressure`；满缓冲 trySend→false） |
-| `__syx_channel_select([...])` | 多臂 select + RR 公平（ADR-268 / `m3_a04_fairness`；`select-fair-v1:round-robin`；叶子收口 ADR-269） |
-| `Task { }` / `Task.detached { }` | 语法糖（生成 `__task_body_N`） |
+| `__syx_task_detach(name)` / `Concurrency.detach(name)` | Thread-pool detached task |
+| `__syx_task_detach(name, args)` | Spawn with arguments |
+| `__syx_task_join` / `cancel` / `sleep` | Join / cancel / sleep |
+| `__syx_task_group_*` | TaskGroup create / add / wait (isolated by group id) |
+| `__syx_channel_create/send/recv` | Phase 8 async channel MVP (VM host) |
+| `__syx_channel_try_recv` | Phase 15 non-blocking recv (nil = empty) (`p15_channel_try_recv.sy`) |
+| `__syx_channel_create(cap)` / `__syx_channel_try_send` | Bounded channel + backpressure (ADR-267 / `m3_a04_backpressure`; full buffer trySend→false) |
+| `__syx_channel_select([...])` | Multi-arm select + RR fairness (ADR-268 / `m3_a04_fairness`; `select-fair-v1:round-robin`; leaf ADR-269) |
+| `Task { }` / `Task.detached { }` | Syntax sugar (generates `__task_body_N`) |
 
-| 限制 | 说明 |
+| Limit | Notes |
 |------|------|
-| await 状态机 | 多 await 函数插入 `__syx_async_state`；`await __syx_task_sleep` 在 async 内 lowering |
-| `async let` | `async let x = f()` → detach + 后续 await join（`p7_async_let.sy`） |
-| 作用域 | `await` 仅允许在 `async func` 内 |
-| Lint | async 函数无 await → **L005** |
+| await state machine | Multi-await functions insert `__syx_async_state`; `await __syx_task_sleep` lowered inside async |
+| `async let` | `async let x = f()` → detach + later await join (`p7_async_let.sy`) |
+| Scope | `await` only inside `async func` |
+| Lint | async function with no await → **L005** |
 
 ---
 
-## 借用与宏（Phase 7）
+## Borrowing and macros (Phase 7)
 
-### 借用
+### Borrowing
 
 ```syx
 func bump(x: &mut Int) {
@@ -600,14 +602,14 @@ func read_only(x: &Int) -> Int {
 }
 ```
 
-| 规则 | 诊断 |
+| Rule | Diagnostic |
 |------|------|
-| 同一作用域仅允许一个活跃 `&mut T` | **S011** |
-| move 后 use | **S011**（moved value） |
+| At most one active `&mut T` per scope | **S011** |
+| Use after move | **S011** (moved value) |
 
-Fixture：`p6_borrow_*`、`p7_borrow_mut.sy`、`p7_borrow_mut_fail.sy`。
+Fixtures: `p6_borrow_*`, `p7_borrow_mut.sy`, `p7_borrow_mut_fail.sy`.
 
-### 宏
+### Macros
 
 ```syx
 #if(DEBUG, print("debug on"))
@@ -619,173 +621,172 @@ let s = #stringify(1 + 1)
 data class P(x: Int, y: Int)
 ```
 
-由 `syx-macro::expand_module` 展开；深度超限 → **E002**。详见 [books/language-guide/19-macros.md](../books/language-guide/19-macros.md)。
+Expanded by `syx-macro::expand_module`; depth exceeded → **E002**. See [books/language-guide/19-macros.md](../books/language-guide/19-macros.md).
 
 ---
 
-## CLI 速查
+## CLI cheat sheet
 
 ```bash
-cargo build --release              # 构建 syx
-syx run file.sy                   # 编译并 VM 执行（完整标准库）
-syx run .                          # 项目（syx.toml）
-syx check .                        # 仅类型检查
-syx build --native .               # MIR → app（LLVM sole；--object 仅 .o）
-syx build --native --backend=llvm .  # MIR → app（实验性 LLVM）
-syx build --wasm .                 # MIR → main.wasm（实验）
-syx emit file.sy --format syxbc   # VM 字节码文本 → file.syxbc
-syx emit . --format all -o emit/ # 六种 IR/字节码写入 emit/
-syx run file.sy                   # MIR 单路径（Phase 12 默认）
+cargo build --release              # build syx
+syx run file.sy                   # compile and run on VM (full stdlib)
+syx run .                          # project (syx.toml)
+syx check .                        # type-check only
+syx build --native .               # MIR → app (LLVM sole; --object for .o only)
+syx build --wasm .                 # MIR → main.wasm (experimental)
+syx emit file.sy --format syxbc   # VM bytecode text → file.syxbc
+syx emit . --format all -o emit/ # write six IR/bytecode artifacts to emit/
+syx run file.sy                   # single MIR path (Phase 12 default)
 syx format . / syx lint . / syx doc .
-syx test .                         # 运行 tests/**/*.sy
+syx test .                         # run tests/**/*.sy
 syx repl
 ```
 
 ---
 
-## 诊断代码
+## Diagnostic codes
 
-### 词法 / 语法
+### Lexer / parser
 
-| 代码 | 说明 |
+| Code | Meaning |
 |------|------|
-| L001 | 未闭合字符串 / 无效字符（lexer） |
-| P001 | 意外 token / 语法错误 |
+| L001 | Unclosed string / invalid character (lexer) |
+| P001 | Unexpected token / syntax error |
 
-### 语义（编译期）
+### Semantic (compile time)
 
-| 代码 | 说明 |
+| Code | Meaning |
 |------|------|
-| S001 | 未定义类型 |
-| S002 | 未定义标识符 |
-| S003 | 类型不匹配 |
-| S004 | 重复声明 |
-| S005 | 无效访问级别（跨模块 internal） |
-| S006 | 协议未满足（如 Iterator 缺 `next()`） |
-| S007 | enum switch 非穷尽（按 case 名集合） |
-| S008 | 跨 actor 直接访问实例字段 |
-| S009 | where 子句未知协议约束 |
-| S010 | 泛型实参不满足 where 协议约束 |
-| S011 | 借用冲突 / use-after-move |
+| S001 | Undefined type |
+| S002 | Undefined identifier |
+| S003 | Type mismatch |
+| S004 | Duplicate declaration |
+| S005 | Invalid access level (cross-module internal) |
+| S006 | Protocol not satisfied (e.g. Iterator missing `next()`) |
+| S007 | Non-exhaustive enum switch (by case name set) |
+| S008 | Cross-actor direct instance field access |
+| S009 | Unknown protocol constraint in where clause |
+| S010 | Generic argument fails where protocol constraint |
+| S011 | Borrow conflict / use-after-move |
 
-### 并发（strict 或 `@concurrent` 上下文）
+### Concurrency (strict or `@concurrent` context)
 
-| 代码 | 说明 |
+| Code | Meaning |
 |------|------|
-| C001 | 非 MainActor 上下文调用 `@MainActor` 函数（`main` 隐式 MainActor） |
-| C002 | 跨 actor 同步方法调用 |
-| C003 | Task.detached / detach 捕获非 Sendable 类型（strict 或模块含 `class`） |
-| C004 | Task 已取消 |
-| C005 | Task 通道关闭 |
-| C006 | Actor mailbox 关闭 |
-| C009 | Actor 同步同实例 reentrancy 拒绝（serial-no-reenter） |
-| C010 | Channel 已关闭（post-close send） |
+| C001 | Call `@MainActor` function outside MainActor (`main` is implicit MainActor) |
+| C002 | Cross-actor synchronous method call |
+| C003 | Task.detached / detach captures non-Sendable type (strict or module has `class`) |
+| C004 | Task cancelled |
+| C005 | Task channel closed |
+| C006 | Actor mailbox closed |
+| C009 | Actor sync same-instance reentrancy rejected (serial-no-reenter) |
+| C010 | Channel closed (send after close) |
 
-### 运行时
+### Runtime
 
-| 代码 | 说明 |
+| Code | Meaning |
 |------|------|
-| R001 | 文件读取失败 / registry semver 版本冲突 |
-| R002 | 文件/目录写操作失败 |
-| R003 | HTTP 请求失败 |
-| R004 | HTTP POST 失败 |
-| R005 | JSON 解析失败 |
-| R006 | 无效正则 |
-| R007 | 强制解包 nil |
-| R011 | HTTP 请求超时 |
-| R012 | HTTP serve 绑定失败 |
-| R013 | URL 解析失败 |
+| R001 | File read failure / registry semver conflict |
+| R002 | File/directory write failure |
+| R003 | HTTP request failure |
+| R004 | HTTP POST failure |
+| R005 | JSON parse failure |
+| R006 | Invalid regex |
+| R007 | Force unwrap nil |
+| R011 | HTTP request timeout |
+| R012 | HTTP serve bind failure |
+| R013 | URL parse failure |
 
-### Lint（syx lint）
+### Lint (`syx lint`)
 
-| 代码 | 规则摘要 |
+| Code | Rule summary |
 |------|----------|
-| L001–L012 | 命名、空函数、public 返回类型、async/await、行宽等 |
+| L001–L012 | Naming, empty bodies, public return types, async/await, line width, etc. |
 
 ---
 
-## 与 Swift 的主要差异（速记）
+## Main differences from Swift (cheat sheet)
 
 | Swift | SYX |
 |-------|-----|
 | `do { try } catch` | `try { } catch (err) { }` |
 | `if cond {` | `if (cond) {` |
-| `struct` 数据载体 | `data class Name(f: T)` |
-| `import Module` | `import Math`（PascalCase 嵌入标准库模块名） |
+| `struct` as data carrier | `data class Name(f: T)` |
+| `import Module` | `import Math` (PascalCase embedded stdlib module names) |
 | `print(_:separator:)` | `print(expr)` |
 | `@main` | `func main()` |
-| `throws` 函数 | Host 错误 + try/catch |
+| `throws` functions | Host errors + try/catch |
 
 ---
 
-## 生态与 IDE（Phase 11 / SYX 4.5）
+## Ecosystem and IDE (Phase 11 / SYX 4.5)
 
-- **MIR 单路径**：用户模块始终走 MIR（Phase 12；`SYX_USE_MIR` 已移除）
-- **LSP v4**：code actions、semantic tokens、inlay hints
-- **Embed**：`compile_and_run_embedded`（见 ADR-003）
+- **Single MIR path:** user modules always go through MIR (Phase 12; `SYX_USE_MIR` removed)
+- **LSP v4:** code actions, semantic tokens, inlay hints
+- **Embed:** `compile_and_run_embedded` (see ADR-003)
 
-| 环境变量 / 路径 | 说明 |
+| Env var / path | Notes |
 |-----------------|------|
-| `SYX_REGISTRY` | 生产 registry 默认 URL（`https://packages.sy.dev`）；覆盖 `[registry].default` |
-| `SYX_REGISTRY_STAGING` | 无 `[registry].default` 时使用的 staging registry URL |
-| `SYX_PUBLISHER_SIGNING_KEY` | 发布：32-byte Ed25519 seed（64 hex）；`syx publish` → `syx1:ed25519:<pk>:<sig>`（C-05） |
-| `SYX_REGISTRY_VERIFY_KEY` | 安装：与发布者 verifying key 一致的 64 hex pin；嵌入 pk 必须匹配（C-02）；失配 `P011` |
-| `SYX_REGISTRY_REQUIRE_SIGNATURE=1` | install 强制 ed25519 签名；Phase 5 拒绝 `syx1:stub` |
-| `SYX_REGISTRY_ALLOW_STUB=1` | 测试专用：签名强制下仍接受 `syx1:stub` |
-| `SYX_EMBED_DENY_UNKNOWN=1` | Embed v8：拒绝 `SYX_EMBED_CAPABILITIES` 中未知 capability（默认开） |
-| `SYX_EMBED_CAPABILITIES` | Embed capability 白名单（`wasmtime,print,inprocess`） |
-| `SYX_WASI=1` | 启用 wasmtime WASI preview1（`path_open` + 真 `fd_read`/`fd_write` 映射临时目录） |
-| `SYX_WASI_GC_PHASE22=1` | WASI GC Phase 22：`syx_gc.alloc` 使用 noop arena host hook |
-| `SYX_WASI_GC_PHASE23=1` | WASI GC Phase 23：bump arena + mark 清除 smoke |
-| `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6：staging signed URL install |
-| `SYX_EMBED_SECCOMP=1` | Embed v9：seccomp/Job Object MVP 硬化 |
-| `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 模板（`{type}:{name}`） |
-| `SYX_LLVM_RELEASE_BLOCKER=1` | LLVM strict parity 可选 PR release blocker（ADR-019） |
-| `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 晋升计数（≥4 周绿可 promotion） |
-| `SYX_LLVM_PARITY_GATE=strict` | LLVM Top-300 运行时 parity + 符号 strict gate（CI Phase 34） |
-| `SYX_LLVM_AOT_PHASE9=0` | 禁用 LLVM AOT Phase 9 IR 路径（三后端统一 remembered set GC 直出 / ADR-044 gate） |
-| `SYX_LLVM_AOT_PHASE8=0` | 禁用 LLVM AOT Phase 8 IR 路径（VM/native remembered set GC 直出 / ADR-042 gate） |
-| `SYX_LLVM_AOT_PHASE7=0` | 禁用 LLVM AOT Phase 7 IR 路径（WASM/native GC intrinsics 全直出 / ADR-040 gate） |
-| `SYX_LLVM_AOT_PHASE6=0` | 禁用 LLVM AOT Phase 6 IR 路径（GC intrinsics / guest heap / exec_op → 0% gate） |
-| `SYX_LLVM_AOT_PHASE5=0` | 禁用 LLVM AOT Phase 5 IR 路径（CallHost/JSON / exec_op < 1% gate） |
-| `SYX_LLVM_AOT_PHASE4=0` | 禁用 LLVM AOT Phase 4 IR 路径（ADR-028 Phase 4 / exec_op < 5% gate） |
-| `SYX_LLVM_AOT_PHASE3=0` | 禁用 LLVM AOT Phase 3 IR 路径（ADR-028 Phase 3 / exec_op gate） |
-| `SYX_LLVM_AOT_PHASE2=0` | 禁用 LLVM AOT Phase 2 IR 路径（ADR-028 Phase 2） |
-| `SYX_REGISTRY_CDN_PHASE9=1` | Registry CDN Phase 9：failover 重试 + health probe |
-| `SYX_REGISTRY_CDN_PHASE8=1` | Registry CDN Phase 8：多区域 URL + failover |
-| `SYX_UNIFIED_GC_LTS=1` | 统一三后端 generational GC prod（VM + WASM + native 联动；ADR-045） |
-| `SYX_UNIFIED_GC_LTS_PROD=1` | Unified GC LTS prod default：三后端 remembered set + promotion 默认 on |
-| `SYX_WASI_GC_PHASE33=1` | WASI GC Phase 33：guest remembered set prod **默认 on** + VM `--run` 联动（ADR-043） |
-| `SYX_WASI_GC_PHASE33_PROD=1` | WASI GC Phase 33 prod default：guest + VM/native generational 默认 on |
-| `SYX_VM_NATIVE_GC_PHASE33=1` | VM/native generational GC prod（`syx run` + native codegen；ADR-043） |
-| `SYX_VM_NATIVE_GC_PHASE33_PROD=1` | VM/native GC Phase 33 prod default：remembered set prod 默认 on |
-| `SYX_WASI_GC_PHASE32=1` | WASI GC Phase 32：guest remembered set full generational GC prod 默认 on（ADR-041） |
-| `SYX_WASI_GC_PHASE32_PROD=1` | WASI GC Phase 32 prod default：remembered set guest 默认 on |
-| `SYX_WASI_GC_PHASE31=1` | WASI GC Phase 31：guest generational relocating GC prod 默认 on（ADR-039） |
-| `SYX_WASI_GC_PHASE31_PROD=1` | WASI GC Phase 31 prod default：generational guest 默认 on |
-| `SYX_WASI_GC_PHASE30=1` | WASI GC Phase 30：guest relocating GC prod 默认 on（ADR-037） |
-| `SYX_WASI_GC_PHASE29=1` | WASI GC Phase 29：guest relocating GC MVP prod 默认 on（ADR-035） |
-| `SYX_INKWELL_SPIKE=0` | 显式禁用 inkwell 路径，回退 clang text IR（Phase 34 ADR-044 prod default on 时 opt-out） |
-| `SYX_INKWELL_SPIKE=1` | LLVM inkwell hello IR 编译（Phase 32 opt-in；Phase 33+ ADR-042/044 默认 GA 后非必需） |
-| `SYX_BORROW_COQ_LEAN_PROOF_PROD=1` | borrow Coq/Lean **机器检验证明 prod**（obligation replay + 外部工具 hook；Phase 34） |
-| `SYX_BORROW_COQ_LEAN_EXPORT=1` | borrow Coq/Lean 外部证明 scaffold（`.v`/`.lean` 导出 + replay；Phase 33） |
-| `SYX_REGISTRY_CDN_PHASE15=1` | Registry CDN Phase 15：全球 CDN 多活写 + 边缘验签 E2E |
-| `SYX_REGISTRY_CDN_PHASE14=1` | Registry CDN Phase 14：边缘缓存 + offline install 验签 E2E |
-| `SYX_DIST_ACTOR_WIN_PIPE_PROD=1` | 分布式 Actor Windows Named Pipe 真 API（Phase 32 `CreateNamedPipe`/`ConnectNamedPipe`） |
-| `SYX_DIST_ACTOR_RUSTLS_CRATE=1` | 分布式 Actor rustls crate 证书链 / pin E2E（Phase 32） |
-| `SYX_BORROW_MACHINE_PROOF=1` | borrow region 图机器证明 harness（Phase 32 proof obligation 导出） |
-| `SYX_DIST_ACTOR_WIN_PIPE_NAMED_IO=1` | 分布式 Actor Windows Named Pipe 真 I/O（Phase 31 ER2；Phase 32 真 API 见上） |
-| `SYX_WASI_GC_PHASE28=1` | WASI GC Phase 28：guest 统一堆 prod 默认 on |
-| `SYX_WASI_GC_PHASE27=1` | WASI GC Phase 27：guest 统一堆接线（评估 gate） |
-| `SYX_WASI_GC_PHASE27_EVAL=1` | WASI GC Phase 27 默认 on **评估** scaffold |
-| `SYX_NET_STREAM_TLS=1` | Net stream 背压 + TLS 分层（ADR-032） |
-| `SYX_NET_TCP_STREAM=1` | Net `stream()` 全双工 MVP（ADR-030） |
-| `editors/vscode-syx/` | VS Code 扩展：LSP + `type: "syx"` DAP 调试；安装与断点调试见 [12_BackendDebuggingGuide.md](12_BackendDebuggingGuide.md) |
+| `SYX_REGISTRY` | Production registry default URL (`https://packages.sy.dev`); overrides `[registry].default` |
+| `SYX_REGISTRY_STAGING` | Staging registry URL when no `[registry].default` |
+| `SYX_PUBLISHER_SIGNING_KEY` | Publish: 32-byte Ed25519 seed (64 hex); `syx publish` → `syx1:ed25519:<pk>:<sig>` (C-05) |
+| `SYX_REGISTRY_VERIFY_KEY` | Install: 64 hex pin matching publisher verifying key; embedded pk must match (C-02); mismatch `P011` |
+| `SYX_REGISTRY_REQUIRE_SIGNATURE=1` | Install requires ed25519 signature; Phase 5 rejects `syx1:stub` |
+| `SYX_REGISTRY_ALLOW_STUB=1` | Tests only: accept `syx1:stub` even when signatures required |
+| `SYX_EMBED_DENY_UNKNOWN=1` | Embed v8: reject unknown capabilities in `SYX_EMBED_CAPABILITIES` (default on) |
+| `SYX_EMBED_CAPABILITIES` | Embed capability allowlist (`wasmtime,print,inprocess`) |
+| `SYX_WASI=1` | Enable wasmtime WASI preview1 (`path_open` + real `fd_read`/`fd_write` temp dir mapping) |
+| `SYX_WASI_GC_PHASE22=1` | WASI GC Phase 22: `syx_gc.alloc` noop arena host hook |
+| `SYX_WASI_GC_PHASE23=1` | WASI GC Phase 23: bump arena + mark-clear smoke |
+| `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6: staging signed URL install |
+| `SYX_EMBED_SECCOMP=1` | Embed v9: seccomp/Job Object MVP hardening |
+| `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 templates (`{type}:{name}`) |
+| `SYX_LLVM_RELEASE_BLOCKER=1` | Optional LLVM strict parity PR release blocker (ADR-019) |
+| `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 promotion counter (≥4 green weeks for promotion) |
+| `SYX_LLVM_PARITY_GATE=strict` | LLVM Top-300 runtime parity + symbol strict gate (CI Phase 34) |
+| `SYX_LLVM_AOT_PHASE9=0` | Disable LLVM AOT Phase 9 IR path (unified remembered-set GC IR / ADR-044 gate) |
+| `SYX_LLVM_AOT_PHASE8=0` | Disable LLVM AOT Phase 8 IR path (VM/native remembered-set GC IR / ADR-042 gate) |
+| `SYX_LLVM_AOT_PHASE7=0` | Disable LLVM AOT Phase 7 IR path (WASM/native GC intrinsics IR / ADR-040 gate) |
+| `SYX_LLVM_AOT_PHASE6=0` | Disable LLVM AOT Phase 6 IR path (GC intrinsics / guest heap / exec_op → 0% gate) |
+| `SYX_LLVM_AOT_PHASE5=0` | Disable LLVM AOT Phase 5 IR path (CallHost/JSON / exec_op < 1% gate) |
+| `SYX_LLVM_AOT_PHASE4=0` | Disable LLVM AOT Phase 4 IR path (ADR-028 Phase 4 / exec_op < 5% gate) |
+| `SYX_LLVM_AOT_PHASE3=0` | Disable LLVM AOT Phase 3 IR path (ADR-028 Phase 3 / exec_op gate) |
+| `SYX_LLVM_AOT_PHASE2=0` | Disable LLVM AOT Phase 2 IR path (ADR-028 Phase 2) |
+| `SYX_REGISTRY_CDN_PHASE9=1` | Registry CDN Phase 9: failover retries + health probe |
+| `SYX_REGISTRY_CDN_PHASE8=1` | Registry CDN Phase 8: multi-region URLs + failover |
+| `SYX_UNIFIED_GC_LTS=1` | Unified generational GC prod across three backends (VM + WASM + native; ADR-045) |
+| `SYX_UNIFIED_GC_LTS_PROD=1` | Unified GC LTS prod default: remembered set + promotion on all backends |
+| `SYX_WASI_GC_PHASE33=1` | WASI GC Phase 33: guest remembered set prod **default on** + VM `--run` linkage (ADR-043) |
+| `SYX_WASI_GC_PHASE33_PROD=1` | WASI GC Phase 33 prod default: guest + VM/native generational default on |
+| `SYX_VM_NATIVE_GC_PHASE33=1` | VM/native generational GC prod (`syx run` + native codegen; ADR-043) |
+| `SYX_VM_NATIVE_GC_PHASE33_PROD=1` | VM/native GC Phase 33 prod default: remembered set prod default on |
+| `SYX_WASI_GC_PHASE32=1` | WASI GC Phase 32: guest remembered set full generational GC prod default on (ADR-041) |
+| `SYX_WASI_GC_PHASE32_PROD=1` | WASI GC Phase 32 prod default: remembered set guest default on |
+| `SYX_WASI_GC_PHASE31=1` | WASI GC Phase 31: guest generational relocating GC prod default on (ADR-039) |
+| `SYX_WASI_GC_PHASE31_PROD=1` | WASI GC Phase 31 prod default: generational guest default on |
+| `SYX_WASI_GC_PHASE30=1` | WASI GC Phase 30: guest relocating GC prod default on (ADR-037) |
+| `SYX_WASI_GC_PHASE29=1` | WASI GC Phase 29: guest relocating GC MVP prod default on (ADR-035) |
+| `SYX_INKWELL_SPIKE=0` | Explicitly disable inkwell path, fall back to clang text IR (opt-out when Phase 34 ADR-044 prod default on) |
+| `SYX_INKWELL_SPIKE=1` | LLVM inkwell hello IR compile (Phase 32 opt-in; optional after Phase 33+ ADR-042/044 default GA) |
+| `SYX_BORROW_COQ_LEAN_PROOF_PROD=1` | Borrow Coq/Lean **machine-checked proof prod** (obligation replay + external tool hook; Phase 34) |
+| `SYX_BORROW_COQ_LEAN_EXPORT=1` | Borrow Coq/Lean external proof scaffold (`.v`/`.lean` export + replay; Phase 33) |
+| `SYX_REGISTRY_CDN_PHASE15=1` | Registry CDN Phase 15: global CDN multi-active write + edge signature E2E |
+| `SYX_REGISTRY_CDN_PHASE14=1` | Registry CDN Phase 14: edge cache + offline install signature E2E |
+| `SYX_DIST_ACTOR_WIN_PIPE_PROD=1` | Distributed Actor Windows Named Pipe real API (Phase 32 `CreateNamedPipe`/`ConnectNamedPipe`) |
+| `SYX_DIST_ACTOR_RUSTLS_CRATE=1` | Distributed Actor rustls crate cert chain / pin E2E (Phase 32) |
+| `SYX_BORROW_MACHINE_PROOF=1` | Borrow region graph machine proof harness (Phase 32 obligation export) |
+| `SYX_DIST_ACTOR_WIN_PIPE_NAMED_IO=1` | Distributed Actor Windows Named Pipe real I/O (Phase 31 ER2; Phase 32 real API above) |
+| `SYX_WASI_GC_PHASE28=1` | WASI GC Phase 28: guest unified heap prod default on |
+| `SYX_WASI_GC_PHASE27=1` | WASI GC Phase 27: guest unified heap wiring (evaluation gate) |
+| `SYX_WASI_GC_PHASE27_EVAL=1` | WASI GC Phase 27 default-on **evaluation** scaffold |
+| `SYX_NET_STREAM_TLS=1` | Net stream backpressure + TLS layering (ADR-032) |
+| `SYX_NET_TCP_STREAM=1` | Net `stream()` full-duplex MVP (ADR-030) |
+| `editors/vscode-syx/` | VS Code extension: LSP + `type: "syx"` DAP debug; install/breakpoints in [12_BackendDebuggingGuide.md](12_BackendDebuggingGuide.md) |
 
 ---
 
-## 相关文档
+## Related documentation
 
-- [9_UsageGuide.md](./9_UsageGuide.md) — 完整使用指南
-- [7_FeatureImplementationPriority.md](./7_FeatureImplementationPriority.md) — 功能优先级与实现状态
-- 示例：`examples/p0_demo.sy`、`crates/syx-driver/tests/`
+- [9_UsageGuide.md](./9_UsageGuide.md) — full usage guide
+- [7_FeatureImplementationPriority.md](./7_FeatureImplementationPriority.md) — feature priority and implementation status
+- Examples: `examples/p0_demo.sy`, `crates/syx-driver/tests/`

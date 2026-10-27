@@ -1,85 +1,89 @@
-# SYX 编译器技术文档
+# SYX compiler technical documentation
 
-面向 **Rust 实现的 SYX 编译器工具链**（`crates/`）。用户安装/CLI/标准库请优先读 [9_UsageGuide.md](./9_UsageGuide.md) 与 [books/](../books/)。
+[简体中文](./zh/README.zh-CN.md)
 
-> **当前版本：** SYX **117.0** · Phase **139** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · 许可证 [Apache-2.0](../LICENSE)  
-> **原生 AOT：** LLVM sole · **实现状态 SSOT：** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
-> **架构决议 SSOT：** [adr/architecture-decisions.md](./adr/architecture-decisions.md)
+Docs for the **Rust SYX compiler toolchain** (`crates/`). For install / CLI / stdlib, prefer [9_UsageGuide.md](./9_UsageGuide.md) and [books/](../books/).
 
-## 文档地图
+> **Current version:** SYX **117.0** · Phase **139** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · license [Apache-2.0](../LICENSE)  
+> **Native AOT:** LLVM sole · **Implementation status SSOT:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
+> **Architecture SSOT:** [adr/architecture-decisions.md](./adr/architecture-decisions.md)
 
-### 用户
+Numbered pipeline docs below are **English by default**; Chinese copies live under [`zh/`](./zh/) as `*.zh-CN.md`.
 
-| 文档 | 说明 |
-|------|------|
-| [9_UsageGuide.md](./9_UsageGuide.md) | 安装、CLI、emit、项目配置、Native/WASM、并发控制面 |
-| [8_QuickReference.md](./8_QuickReference.md) | 语法速查 |
-| [books/language-guide/](../books/language-guide/) | 叙事式语言指南 |
-| [books/language-reference/](../books/language-reference/) | 形式化语言参考 |
-| [books/README.md](../books/README.md) | 电子书索引与构建 |
+## Doc map
 
-### 编译器流水线
+### Users
 
-| # | 文档 | 说明 |
-|---|------|------|
+| Doc | Description |
+|-----|-------------|
+| [9_UsageGuide.md](./9_UsageGuide.md) | Install, CLI, emit, projects, native/WASM, concurrency |
+| [8_QuickReference.md](./8_QuickReference.md) | Syntax cheat sheet |
+| [books/language-guide/](../books/language-guide/) | Narrative language guide |
+| [books/language-reference/](../books/language-reference/) | Formal language reference |
+| [books/README.md](../books/README.md) | Books index and build |
+
+### Compiler pipeline
+
+| # | Doc | Description |
+|---|-----|-------------|
 | 1 | [1_LexicalAnalysis.md](./1_LexicalAnalysis.md) | `syx-lexer` |
 | 2 | [2_SyntaxAnalysis.md](./2_SyntaxAnalysis.md) | `syx-parser` + `syx-ast` |
 | 3 | [3_SemanticAnalysis.md](./3_SemanticAnalysis.md) | `syx-semantic` + `syx-stdlib` |
 | 4 | [4_InstructionSet.md](./4_InstructionSet.md) | `syx-codegen` + `syx-vm` |
-| 5 | [5_CompleteTechnicalDocumentation.md](./5_CompleteTechnicalDocumentation.md) | crate 总览与四条流水线 |
+| 5 | [5_CompleteTechnicalDocumentation.md](./5_CompleteTechnicalDocumentation.md) | Crate overview and pipelines |
 | 10 | [10_BackendParity.md](./10_BackendParity.md) | VM / MIR / LLVM / WASM |
-| 11 | [11_NetworkStdlib.md](./11_NetworkStdlib.md) | 网络标准库 |
-| 12 | [12_BackendDebuggingGuide.md](./12_BackendDebuggingGuide.md) | 后端调试 |
+| 11 | [11_NetworkStdlib.md](./11_NetworkStdlib.md) | Networking stdlib |
+| 12 | [12_BackendDebuggingGuide.md](./12_BackendDebuggingGuide.md) | Backend debugging |
 
-### 参考
+### Reference
 
-| 文档 | 说明 |
-|------|------|
-| [env-registry.md](./env-registry.md) | 环境变量登记 |
-| [syx-mir-text-v1.md](./syx-mir-text-v1.md) | MIR 文本格式 |
-| [syxbc-text-v1.md](./syxbc-text-v1.md) | SYXBC 文本格式 |
-| [wasm_native_opcode_matrix.md](./wasm_native_opcode_matrix.md) | WASM/native opcode 矩阵 |
-| [capability-manifest-v0.md](./capability-manifest-v0.md) · [ir-capability-manifest-v0.md](./ir-capability-manifest-v0.md) · [capability-sandbox-policy-v0.md](./capability-sandbox-policy-v0.md) | capability |
-| [adr/README.md](./adr/README.md) | 架构决议入口（仅 `architecture-decisions.md`） |
-| [differential/](./differential/) | oracle / differential 说明 |
-| [test-buckets.md](./test-buckets.md) | 测试分桶 |
+| Doc | Description |
+|-----|-------------|
+| [env-registry.md](./env-registry.md) | Environment variable registry |
+| [syx-mir-text-v1.md](./syx-mir-text-v1.md) | MIR text format |
+| [syxbc-text-v1.md](./syxbc-text-v1.md) | SYXBC text format |
+| [wasm_native_opcode_matrix.md](./wasm_native_opcode_matrix.md) | WASM/native opcode matrix |
+| [capability-manifest-v0.md](./capability-manifest-v0.md) · [ir-capability-manifest-v0.md](./ir-capability-manifest-v0.md) · [capability-sandbox-policy-v0.md](./capability-sandbox-policy-v0.md) | Capability |
+| [adr/README.md](./adr/README.md) | ADR entry (`architecture-decisions.md`) |
+| [differential/](./differential/) | Oracle / differential notes |
+| [test-buckets.md](./test-buckets.md) | Test buckets |
 
-### 分析（历史叙述；现状以 status 为准）
+### Analysis (historical; trust status for current truth)
 
-| 文档 | 说明 |
-|------|------|
-| [6_ComprehensiveAnalysisReport.md](./6_ComprehensiveAnalysisReport.md) | 竞争力分析（条幅可能过期） |
-| [7_FeatureImplementationPriority.md](./7_FeatureImplementationPriority.md) | 功能优先级（请交叉核对 status） |
+| Doc | Description |
+|-----|-------------|
+| [6_ComprehensiveAnalysisReport.md](./6_ComprehensiveAnalysisReport.md) | Competitiveness analysis (banners may lag) |
+| [7_FeatureImplementationPriority.md](./7_FeatureImplementationPriority.md) | Feature priority (cross-check status) |
 
-并发专题已并入 UsageGuide / [18-concurrency](../books/language-guide/18-concurrency.md)；旧 [9_ConcurrencyMVP.md](./9_ConcurrencyMVP.md) 仅为重定向 stub。
+Concurrency content lives in the UsageGuide and [18-concurrency](../books/language-guide/18-concurrency.md); [9_ConcurrencyMVP.md](./9_ConcurrencyMVP.md) is a redirect stub.
 
 ---
 
-## 阅读路径
+## Reading paths
 
-- **学语言：** books/language-guide → UsageGuide → QuickReference  
-- **读编译器：** 1 → 2 → 3 → 4 → 5 → BackendParity  
-- **查决议/状态：** architecture-decisions · implementation-status  
+- **Learn the language:** books/language-guide → UsageGuide → QuickReference  
+- **Read the compiler:** 1 → 2 → 3 → 4 → 5 → BackendParity  
+- **Decisions / status:** architecture-decisions · implementation-status  
 
-## 仓库布局（摘要）
+## Repo layout (summary)
 
 ```
-crates/              # 编译器 / 运行时 / LSP / 工具
-packages/            # 标准库与内部清单
-docs/                # 本目录
-books/               # 用户电子书
-plan/                # 状态分析与改进清单（SSOT）；topics / archive
-examples/            # 示例程序
+crates/              # compiler / runtime / LSP / tools
+packages/            # stdlib and internal manifests
+docs/                # this directory
+books/               # user-facing books
+plan/                # maintainer status and roadmap (SSOT)
+examples/            # sample programs
 ```
 
-## 工具
+## Tools
 
 - Rust 1.85+ · Cargo workspace · macOS / Linux / Windows
 
-## 当前版本（SYX 117.0）
+## Current version (SYX 117.0)
 
-- **语言 / phase：** 117.0 / **139** · MIR cache `syx-cache-v1`
-- **架构决议：** [adr/architecture-decisions.md](./adr/architecture-decisions.md)
-- **Native：** LLVM only
-- **Audit：** driver ≥2600 · LSP ≥3050（见 `scripts/audit_behavioral_tests.sh`）
-- **实现状态：** [books/shared/implementation-status.md](../books/shared/implementation-status.md)
+- **Language / phase:** 117.0 / **139** · MIR cache `syx-cache-v1`
+- **Architecture decisions:** [adr/architecture-decisions.md](./adr/architecture-decisions.md)
+- **Native:** LLVM only
+- **Audit:** driver ≥2600 · LSP ≥3050 (see `scripts/audit_behavioral_tests.sh`)
+- **Implementation status:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)

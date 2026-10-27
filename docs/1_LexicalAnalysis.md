@@ -1,67 +1,69 @@
-# SYX 编译器 - 词法分析文档
+# SYX Compiler — Lexical Analysis
 
-> **现状对齐：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../LICENSE)  
-> 实现状态 SSOT：[books/shared/implementation-status.md](../books/shared/implementation-status.md) · 文档索引：[README.md](./README.md)
+[简体中文](./zh/1_LexicalAnalysis.zh-CN.md)
 
-## 1. 概述
+> **Current alignment:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
+> Implementation status SSOT: [books/shared/implementation-status.md](../books/shared/implementation-status.md) · Doc index: [README.md](./README.md)
 
-词法分析器（Lexer）是 SYX 编译器流水线的第一阶段，负责将 `.sy` 源代码文本转换为 `Token` 序列，供 `syx-parser` 进行语法分析。
+## 1. Overview
 
-当前实现位于 **`crates/syx-lexer/`**，采用单遍扫描器设计：
+The lexer is the first stage of the SYX compiler pipeline. It turns `.sy` source text into a `Token` stream for `syx-parser` to parse.
 
-- 入口：`Lexer::new(source)` 或 `Lexer::from_str(name, contents)`
-- 输出：`SyxResult<Vec<Token>>`，通过 `scan_all()` 完成全文件扫描
-- 依赖：`syx-diagnostics`（`SourceFile`、`Span`、`SyxDiagnostic`）、`smol_str`（紧凑字符串）
+The current implementation lives in **`crates/syx-lexer/`** as a single-pass scanner:
 
-Token 类型定义在 `crates/syx-lexer/src/token.rs`，扫描逻辑在 `crates/syx-lexer/src/lib.rs`。
+- Entry: `Lexer::new(source)` or `Lexer::from_str(name, contents)`
+- Output: `SyxResult<Vec<Token>>` via `scan_all()` for a full-file scan
+- Dependencies: `syx-diagnostics` (`SourceFile`, `Span`, `SyxDiagnostic`), `smol_str` (compact strings)
 
-## 2. 架构
+Token types are defined in `crates/syx-lexer/src/token.rs`; scanning logic is in `crates/syx-lexer/src/lib.rs`.
 
-### 2.1 数据流
+## 2. Architecture
+
+### 2.1 Data flow
 
 ```mermaid
 flowchart LR
-    A[".sy 源文件"] --> B["SourceFile"]
+    A[".sy source file"] --> B["SourceFile"]
     B --> C["Lexer::scan_all()"]
     C --> D["Vec&lt;Token&gt;"]
     D --> E["syx-parser"]
 ```
 
-### 2.2 Lexer 结构体
+### 2.2 Lexer struct
 
 ```rust
 // crates/syx-lexer/src/lib.rs
 pub struct Lexer {
-    source: SourceFile,       // 源文件（含路径与内容）
-    chars: Vec<char>,         // 预展开的 Unicode 字符缓冲
-    current: usize,           // 当前扫描位置
-    start: usize,             // 当前 Token 起始位置
-    line: usize,              // 当前行号（从 1 开始）
-    column: usize,            // 当前列号
-    tokens: Vec<Token>,       // 已收集的 Token 列表
-    last_sig: Option<TokenKind>, // 上一个"有意义" Token（用于正则字面量消歧）
+    source: SourceFile,       // Source file (path + contents)
+    chars: Vec<char>,         // Pre-expanded Unicode character buffer
+    current: usize,           // Current scan position
+    start: usize,             // Start of current token
+    line: usize,              // Current line (1-based)
+    column: usize,            // Current column
+    tokens: Vec<Token>,       // Collected tokens
+    last_sig: Option<TokenKind>, // Last "significant" token (regex literal disambiguation)
 }
 ```
 
-`last_sig` 记录最近一个非 `Newline`、非 `Eof` 的 Token，供 `/` 字符判断是除法运算符还是正则字面量起始符。
+`last_sig` holds the most recent token that is not `Newline` or `Eof`, so `/` can be classified as division or the start of a regex literal.
 
-### 2.3 Token 结构
+### 2.3 Token struct
 
 ```rust
 // crates/syx-lexer/src/token.rs
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
-    pub lexeme: SmolStr,   // 原始文本切片
-    pub span: Span,        // 字节偏移与长度
+    pub lexeme: SmolStr,   // Raw text slice
+    pub span: Span,        // Byte offset and length
     pub line: usize,
     pub column: usize,
 }
 ```
 
-每个 Token 在 `add_token()` 中生成：`lexeme` 取自 `chars[start..current]`，`line`/`column` 由 `SourceFile::line_col(start)` 计算。
+Each token is produced in `add_token()`: `lexeme` is `chars[start..current]`, and `line`/`column` come from `SourceFile::line_col(start)`.
 
-### 2.4 主扫描流程
+### 2.4 Main scan loop
 
 ```
 scan_all():
@@ -76,23 +78,23 @@ scan_all():
 scan_token():
     ch = advance()
     match ch:
-        单字符分隔符 → 直接 add_token
-        '/'          → 行注释 | 块注释 | 正则 | Slash
+        single-char delimiters → add_token directly
+        '/'          → line comment | block comment | regex | Slash
         '"'          → string()
-        数字         → number()
-        标识符起始   → identifier()
-        空白符       → 跳过
-        '\n'         → Newline + 更新行号
-        其他         → L001 错误
+        digit        → number()
+        ident start  → identifier()
+        whitespace   → skip
+        '\n'         → Newline + update line
+        other        → L001 error
 ```
 
-## 3. TokenKind 分类
+## 3. TokenKind categories
 
-`TokenKind` 枚举定义于 `crates/syx-lexer/src/token.rs`，按语义分组如下。
+The `TokenKind` enum is defined in `crates/syx-lexer/src/token.rs`, grouped by semantics below.
 
-### 3.1 声明关键字
+### 3.1 Declaration keywords
 
-| TokenKind | 词素 | 示例 |
+| TokenKind | Lexeme | Example |
 |-----------|------|------|
 | `Class` | `class` | `class Foo {}` |
 | `Struct` | `struct` | `struct Point {}` |
@@ -106,20 +108,20 @@ scan_token():
 | `Data` | `data` | `data class User(...)` |
 | `Sealed` | `sealed` | `sealed class Result {}` |
 | `Actor` | `actor` | `actor Counter {}` |
-| `Service` | `Service` | 服务声明 |
-| `Macro` | `macro` | 宏声明 |
-| `Type` | `type` | 类型别名 |
+| `Service` | `Service` | Service declaration |
+| `Macro` | `macro` | Macro declaration |
+| `Type` | `type` | Type alias |
 
-### 3.2 变量声明
+### 3.2 Variable declarations
 
-| TokenKind | 词素 | 示例 |
+| TokenKind | Lexeme | Example |
 |-----------|------|------|
 | `Var` | `var` | `var x = 5` |
 | `Let` | `let` | `let y = 10` |
 
-### 3.3 控制流关键字
+### 3.3 Control-flow keywords
 
-| TokenKind | 词素 | 示例 |
+| TokenKind | Lexeme | Example |
 |-----------|------|------|
 | `If` / `Else` | `if` / `else` | `if (x > 0) {} else {}` |
 | `Guard` | `guard` | `guard let x = opt else {}` |
@@ -127,85 +129,85 @@ scan_token():
 | `For` / `In` | `for` / `in` | `for i in items {}` |
 | `While` | `while` | `while (cond) {}` |
 | `Repeat` | `repeat` | `repeat {} while cond` |
-| `Break` / `Continue` | `break` / `continue` | 控制转移 |
+| `Break` / `Continue` | `break` / `continue` | Control transfer |
 | `Return` | `return` | `return value` |
 | `Async` / `Await` | `async` / `await` | `async func f() { await g() }` |
 
-### 3.4 错误处理
+### 3.4 Error handling
 
-| TokenKind | 词素 | 示例 |
+| TokenKind | Lexeme | Example |
 |-----------|------|------|
-| `Try` | `try` | `try expr` 或 `try { } catch {}` |
+| `Try` | `try` | `try expr` or `try { } catch {}` |
 | `Throw` | `throw` | `throw error` |
 | `Throws` | `throws` | `func f() throws {}` |
 | `Catch` | `catch` | `catch (e) {}` |
 
-### 3.5 访问控制与修饰符
+### 3.5 Access control and modifiers
 
-| TokenKind | 词素 | 说明 |
+| TokenKind | Lexeme | Notes |
 |-----------|------|------|
-| `Public` | `public` | 公开访问 |
-| `Internal` | `internal` | 内部访问（默认） |
-| `Private` | `private` | 私有 |
-| `Static` | `static` | 静态成员 |
-| `Weak` | `weak` | 弱引用 |
-| `Unowned` | `unowned` | 无主引用 |
-| `Mutating` | `mutating` | 可变异方法 |
+| `Public` | `public` | Public access |
+| `Internal` | `internal` | Internal access (default) |
+| `Private` | `private` | Private |
+| `Static` | `static` | Static member |
+| `Weak` | `weak` | Weak reference |
+| `Unowned` | `unowned` | Unowned reference |
+| `Mutating` | `mutating` | Mutating method |
 
-### 3.6 类型与约束关键字
+### 3.6 Type and constraint keywords
 
-| TokenKind | 词素 | 说明 |
+| TokenKind | Lexeme | Notes |
 |-----------|------|------|
-| `SelfKw` | `self` | 实例引用 |
-| `SelfType` | `Self` | 类型 Self |
-| `ProtocolKw` | `Protocol` | 协议类型 |
-| `Where` | `where` | 泛型约束 |
-| `Requires` | `requires` | 函数效果约束 |
-| `Pure` | `Pure` | 纯函数效果 |
-| `Io` | `IO` | IO 效果 |
+| `SelfKw` | `self` | Instance reference |
+| `SelfType` | `Self` | Type Self |
+| `ProtocolKw` | `Protocol` | Protocol type |
+| `Where` | `where` | Generic constraints |
+| `Requires` | `requires` | Function effect constraints |
+| `Pure` | `Pure` | Pure function effect |
+| `Io` | `IO` | IO effect |
 
-> 注：`TokenKind::CompileTime` 已在枚举中预留，但 `keyword()` 尚未映射对应词素。
+> Note: `TokenKind::CompileTime` is reserved in the enum, but `keyword()` does not yet map a lexeme to it.
 
-### 3.7 字面量
+### 3.7 Literals
 
-| TokenKind | 说明 | 示例 |
+| TokenKind | Description | Example |
 |-----------|------|------|
-| `Integer(i64)` | 整数字面量 | `42`, `-7` |
-| `Double(f64)` | 浮点字面量 | `3.14` |
-| `String(String)` | 普通字符串 | `"hello"` |
-| `InterpolatedString(Vec<InterpPart>)` | 插值字符串 | `"x=\(x)"` |
-| `Regex(String)` | 正则字面量 | `/pattern/` |
-| `Bool(bool)` | 布尔字面量 | `true`, `false` |
-| `Nil` | 空值 | `nil` |
+| `Integer(i64)` | Integer literal | `42`, `-7` |
+| `Double(f64)` | Floating-point literal | `3.14` |
+| `String(String)` | Plain string | `"hello"` |
+| `InterpolatedString(Vec<InterpPart>)` | Interpolated string | `"x=\(x)"` |
+| `Regex(String)` | Regex literal | `/pattern/` |
+| `Bool(bool)` | Boolean literal | `true`, `false` |
+| `Nil` | Null value | `nil` |
 
-### 3.8 运算符与分隔符
+### 3.8 Operators and delimiters
 
-| 类别 | TokenKind | 符号 |
+| Category | TokenKind | Symbols |
 |------|-----------|------|
-| 算术 | `Plus`, `Minus`, `Star`, `Slash`, `Percent` | `+` `-` `*` `/` `%` |
-| 比较 | `EqualEqual`, `NotEqual`, `Less`, `LessEqual`, `Greater`, `GreaterEqual` | `==` `!=` `<` `<=` `>` `>=` |
-| 逻辑 | `AndAnd`, `OrOr`, `Bang` | `&&` `\|\|` `!` |
-| 赋值 | `Assign` | `=` |
-| 可选 | `Question`, `NilCoalesce` | `?` `??` |
-| 范围 | `Dot`, `DotDotDot`, `DotDotLess`, `Range` | `.` `...` `..<` `..` |
-| 箭头 | `Arrow`, `FatArrow` | `->` `=>` |
-| 分隔符 | `LParen`…`RBracket`, `Comma`, `Colon`, `Semicolon` | `()` `{}` `[]` `,` `:` `;` |
-| 特殊 | `At`, `Hash`, `Newline`, `Eof` | `@` `#` 换行 文件结束 |
+| Arithmetic | `Plus`, `Minus`, `Star`, `Slash`, `Percent` | `+` `-` `*` `/` `%` |
+| Comparison | `EqualEqual`, `NotEqual`, `Less`, `LessEqual`, `Greater`, `GreaterEqual` | `==` `!=` `<` `<=` `>` `>=` |
+| Logical | `AndAnd`, `OrOr`, `Bang` | `&&` `\|\|` `!` |
+| Assignment | `Assign` | `=` |
+| Optional | `Question`, `NilCoalesce` | `?` `??` |
+| Range | `Dot`, `DotDotDot`, `DotDotLess`, `Range` | `.` `...` `..<` `..` |
+| Arrow | `Arrow`, `FatArrow` | `->` `=>` |
+| Delimiters | `LParen`…`RBracket`, `Comma`, `Colon`, `Semicolon` | `()` `{}` `[]` `,` `:` `;` |
+| Special | `At`, `Hash`, `Newline`, `Eof` | `@` `#` newline end-of-file |
 
-### 3.9 标识符
+### 3.9 Identifiers
 
-未匹配关键字的标识符记为 `Identifier(SmolStr)`。标识符规则（ADR-229 / `M2-S2-04`）：
+Identifiers that do not match a keyword become `Identifier(SmolStr)`. Rules (ADR-229 / `M2-S2-04`):
 
-- 首字符：`_` 或 Unicode **XID_Start**（`unicode-xid`；`is_ident_start`）
-- 后续字符：`_` 或 Unicode **XID_Continue**（`is_ident_part`）
-- 存储为源码 UTF-8 拼写原样；**不**对标识符做 NFC；**不**做 UTS #39 confusables
-- 非 XID_Start（如 emoji `😀`）→ 词法错误
+- First character: `_` or Unicode **XID_Start** (`unicode-xid`; `is_ident_start`)
+- Following characters: `_` or Unicode **XID_Continue** (`is_ident_part`)
+- Stored as the source UTF-8 spelling; **no** NFC on identifiers; **no** UTS #39 confusables
+- Non–XID_Start (e.g. emoji `😀`) → lexical error
 
-## 4. 详细设计
+## 4. Detailed design
 
-### 4.1 关键字表 `keyword()`
+### 4.1 Keyword table `keyword()`
 
-关键字通过 `keyword(text: &str) -> Option<TokenKind>` 函数查找，定义于 `crates/syx-lexer/src/token.rs`：
+Keywords are resolved by `keyword(text: &str) -> Option<TokenKind>` in `crates/syx-lexer/src/token.rs`:
 
 ```rust
 pub fn keyword(text: &str) -> Option<TokenKind> {
@@ -268,114 +270,114 @@ pub fn keyword(text: &str) -> Option<TokenKind> {
 }
 ```
 
-`identifier()` 在扫描完标识符文本后调用 `keyword()`；返回 `None` 时生成 `Identifier`。
+`identifier()` calls `keyword()` after scanning the identifier text; if it returns `None`, an `Identifier` token is emitted.
 
-### 4.2 注释处理
+### 4.2 Comments
 
-#### 单行注释
+#### Line comments
 
-遇到 `//` 时，跳过至行尾（不含换行符），不产生 Token：
+On `//`, skip to end of line (excluding the newline); no token is produced:
 
 ```syx
-let x = 1  // 这是注释
+let x = 1  // comment
 ```
 
-#### 块注释（支持嵌套）
+#### Block comments (nested)
 
-遇到 `/*` 时进入 `block_comment()`，用深度计数器处理嵌套：
+On `/*`, enter `block_comment()` with a nesting depth counter:
 
 ```
-/* 外层
-   /* 内层 */
-   继续
+/* outer
+   /* inner */
+   continue
 */
 ```
 
-未闭合时报告 **L001** 错误：`"Unterminated block comment"`。
+If unclosed, report **L001**: `"Unterminated block comment"`.
 
-空白字符（空格、`\t`、`\r`）在 `scan_token()` 中直接跳过，不产生 Token。
+Whitespace (space, `\t`, `\r`) is skipped in `scan_token()` with no token emitted.
 
-### 4.3 数字字面量
+### 4.3 Numeric literals
 
-`number()` 扫描连续数字；若 `.` 后紧跟数字则解析为浮点：
+`number()` scans consecutive digits; if `.` is followed by a digit, parse as floating-point:
 
 ```rust
-// 整数 → TokenKind::Integer(i64)
-// 浮点 → TokenKind::Double(f64)
-// 文本: chars[start..current]
+// Integer → TokenKind::Integer(i64)
+// Float → TokenKind::Double(f64)
+// Text: chars[start..current]
 ```
 
-注意：单独的 `.` 不会作为浮点的一部分（例如 `3.` 仅产出 `Integer(3)` 和 `Dot`）。
+Note: a lone `.` is not part of a float (e.g. `3.` yields `Integer(3)` and `Dot`).
 
-### 4.4 字符串字面量
+### 4.4 String literals
 
-#### 普通字符串
+#### Plain strings
 
-`string()` 处理双引号字符串，支持转义：
+`string()` handles double-quoted strings with escapes:
 
-| 转义 | 含义 |
+| Escape | Meaning |
 |------|------|
-| `\n` | 换行 |
-| `\t` | 制表符 |
-| `\\` | 反斜杠 |
-| `\"` | 双引号 |
-| 其他 | 保留 `\` + 字符 |
+| `\n` | Newline |
+| `\t` | Tab |
+| `\\` | Backslash |
+| `\"` | Double quote |
+| Other | Keep `\` + character |
 
-字符串内不允许裸换行；未闭合报告 L001。
+Raw newlines inside strings are invalid; unclosed strings report L001.
 
-#### 插值字符串
+#### Interpolated strings
 
-遇到 `\(` 时进入插值模式，用括号深度匹配表达式边界：
+On `\(`, enter interpolation mode and match expression boundaries with parenthesis depth:
 
 ```rust
 #[derive(Debug, Clone, PartialEq)]
 pub enum InterpPart {
-    Text(String),   // 静态文本段
-    Expr(String),   // 原始表达式文本（由 parser 二次解析）
+    Text(String),   // Static text segment
+    Expr(String),   // Raw expression text (re-parsed by parser)
 }
 ```
 
-- 仅含一段纯文本 → `TokenKind::String`
-- 含插值段 → `TokenKind::InterpolatedString(parts)`
-- 空字符串 → `TokenKind::String("")`
+- Single pure-text segment → `TokenKind::String`
+- With interpolation segments → `TokenKind::InterpolatedString(parts)`
+- Empty string → `TokenKind::String("")`
 
-示例：
+Example:
 
 ```syx
 let msg = "Hello, \(name)!"
 // → InterpolatedString([Text("Hello, "), Expr("name"), Text("!")])
 ```
 
-### 4.5 正则字面量
+### 4.5 Regex literals
 
-`/` 字符的消歧逻辑：
+Disambiguation for `/`:
 
 ```
-'/' 后接 '/'  → 单行注释
-'/' 后接 '*'  → 块注释
+'/' followed by '/'  → line comment
+'/' followed by '*'  → block comment
 can_start_regex() == true → regex_literal()
-否则          → TokenKind::Slash
+otherwise          → TokenKind::Slash
 ```
 
-`can_start_regex()` 在以下"前一个有意义 Token"时返回 `true`：
+`can_start_regex()` returns `true` when the previous significant token is:
 
-- 文件起始（`last_sig == None`）
-- 左括号、左方括号、逗号、冒号、分号
-- 赋值、算术/比较/逻辑运算符
-- `return`、`in`、`try`、箭头运算符
+- Start of file (`last_sig == None`)
+- Left paren, left bracket, comma, colon, semicolon
+- Assignment, arithmetic/comparison/logical operators
+- `return`, `in`, `try`, arrow operators
 
-`regex_literal()` 扫描至闭合 `/`，支持 `\"` 式转义，产出 `TokenKind::Regex(pattern)`。
+`regex_literal()` scans to closing `/`, supports `\"`-style escapes, emits `TokenKind::Regex(pattern)`.
 
 ```syx
 let re = /[a-z]+/
-// 前一个 Token 为 Assign，触发正则模式
+// Previous token is Assign → regex mode
 ```
 
-### 4.6 运算符扫描
+### 4.6 Operator scanning
 
-多字符运算符通过 `match_char()` 前瞻合并：
+Multi-character operators are merged via `match_char()` lookahead:
 
-| 首字符 | 前瞻 | TokenKind |
+| First | Lookahead | TokenKind |
 |--------|------|-----------|
 | `!` | `=` | `NotEqual` |
 | `!` | — | `Bang` |
@@ -396,17 +398,17 @@ let re = /[a-z]+/
 | `.` | `.` | `Range` |
 | `.` | — | `Dot` |
 
-单独的 `&` 或 `|`（非 `&&`/`||`）报告 L001：`"Unexpected character '&'"` / `"Unexpected character '|'"`。
+Lone `&` or `|` (not `&&`/`||`) report L001: `"Unexpected character '&'"` / `"Unexpected character '|'"`.
 
-### 4.7 换行符
+### 4.7 Newlines
 
-`\n` 产出 `TokenKind::Newline`，并递增 `line`、重置 `column`。换行符是有意义的 Token，供 parser 处理语句分隔；parser 通过 `skip_newlines()` 和 `peek_index()` 跳过换行。
+`\n` emits `TokenKind::Newline` and increments `line`, resets `column`. Newlines are significant tokens for statement separation; the parser skips them via `skip_newlines()` and `peek_index()`.
 
-### 4.8 运算符优先级（供 parser 参考）
+### 4.8 Operator precedence (for the parser)
 
-词法阶段仅产出运算符 Token；优先级在 `syx-parser` 的 `infix_op()` 中定义：
+The lexer only emits operator tokens; precedence is defined in `syx-parser`'s `infix_op()`:
 
-| 优先级 | 运算符 | TokenKind |
+| Precedence | Operator | TokenKind |
 |--------|--------|-----------|
 | 1 | `\|\|` | `OrOr` |
 | 2 | `&&` | `AndAnd` |
@@ -416,9 +418,9 @@ let re = /[a-z]+/
 | 6 | `*` `/` `%` | `Star` `Slash` `Percent` |
 | 7 | `??` | `NilCoalesce` |
 
-## 5. 错误处理
+## 5. Error handling
 
-词法错误统一使用诊断码 **L001**，通过 `SyxDiagnostic` 返回：
+Lexical errors use diagnostic code **L001** via `SyxDiagnostic`:
 
 ```rust
 fn error(&self, message: impl Into<String>) -> SyxResult<()> {
@@ -428,22 +430,22 @@ fn error(&self, message: impl Into<String>) -> SyxResult<()> {
 }
 ```
 
-常见 L001 错误消息：
+Common L001 messages:
 
-| 场景 | 消息 |
+| Scenario | Message |
 |------|------|
-| 非法字符 | `Unexpected character '…'` |
-| 未闭合字符串 | `Unterminated string literal` |
-| 未闭合插值 | `Unterminated string interpolation` |
-| 未闭合块注释 | `Unterminated block comment` |
-| 未闭合正则 | `Unterminated regex literal` |
-| 单独 `&` / `\|` | `Unexpected character '&'` / `'|'` |
+| Illegal character | `Unexpected character '…'` |
+| Unclosed string | `Unterminated string literal` |
+| Unclosed interpolation | `Unterminated string interpolation` |
+| Unclosed block comment | `Unterminated block comment` |
+| Unclosed regex | `Unterminated regex literal` |
+| Lone `&` / `\|` | `Unexpected character '&'` / `'|'` |
 
-`scan_all()` 在遇到第一个 L001 错误时立即返回 `Err`，不继续扫描。
+`scan_all()` returns `Err` on the first L001 and does not continue scanning.
 
-## 6. 使用示例
+## 6. Usage examples
 
-### 6.1 基本用法
+### 6.1 Basic usage
 
 ```rust
 use syx_diagnostics::SourceFile;
@@ -457,9 +459,9 @@ for token in &tokens {
 }
 ```
 
-### 6.2 输入与输出
+### 6.2 Input and output
 
-**输入：**
+**Input:**
 
 ```syx
 func add(a: Int, b: Int) -> Int {
@@ -467,7 +469,7 @@ func add(a: Int, b: Int) -> Int {
 }
 ```
 
-**Token 序列（节选）：**
+**Token stream (excerpt):**
 
 ```
 Func          "func"       @ 1:1
@@ -494,28 +496,28 @@ RBrace        "}"          @ 3:1
 Eof           ""           @ 3:2
 ```
 
-## 7. 测试
+## 7. Tests
 
-单元测试位于 `crates/syx-lexer/src/lib.rs` 的 `#[cfg(test)]` 模块：
+Unit tests are in the `#[cfg(test)]` module of `crates/syx-lexer/src/lib.rs`:
 
-| 测试 | 验证内容 |
+| Test | Validates |
 |------|----------|
-| `lexes_let_binding` | `let x = 42` 产出 `Let`、`Identifier`、`Assign`、`Integer(42)` |
-| `lexes_keywords_and_string` | `func` 关键字与 `String("hi")` 字面量 |
-| `skips_nested_block_comments` | 嵌套 `/* */` 注释不影响后续 Token |
+| `lexes_let_binding` | `let x = 42` → `Let`, `Identifier`, `Assign`, `Integer(42)` |
+| `lexes_keywords_and_string` | `func` keyword and `String("hi")` literal |
+| `skips_nested_block_comments` | Nested `/* */` does not affect following tokens |
 
-运行测试：
+Run tests:
 
 ```bash
 cargo test -p syx-lexer
 ```
 
-## 8. Crate 依赖关系
+## 8. Crate dependencies
 
 ```
 syx-lexer
 ├── syx-diagnostics   (SourceFile, Span, SyxDiagnostic, SyxResult)
-└── smol_str          (SmolStr — Token.lexeme 与 Identifier)
+└── smol_str          (SmolStr — Token.lexeme and Identifier)
 ```
 
-下游消费者：`syx-parser` 在 `Parser::parse()` 中调用 `Lexer::new(source).scan_all()?` 获取 Token 流。
+Downstream: `syx-parser` calls `Lexer::new(source).scan_all()?` in `Parser::parse()` for the token stream.

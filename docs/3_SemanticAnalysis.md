@@ -1,14 +1,16 @@
-# SYX 编译器 - 语义分析文档
+# SYX Compiler — Semantic Analysis
 
-> **现状对齐：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../LICENSE)  
-> 内置类型权威面：[`packages/core/builtins/`](../packages/core/builtins/)（数值由 [`_templates/`](../packages/core/builtins/_templates/) 生成）  
-> 实现状态 SSOT：[books/shared/implementation-status.md](../books/shared/implementation-status.md) · 文档索引：[README.md](./README.md)
+[简体中文](./zh/3_SemanticAnalysis.zh-CN.md)
 
-## 1. 概述
+> **Current alignment:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
+> Built-in types SSOT: [`packages/core/builtins/`](../packages/core/builtins/) (numeric types generated from [`_templates/`](../packages/core/builtins/_templates/))  
+> Implementation status SSOT: [books/shared/implementation-status.md](../books/shared/implementation-status.md) · Doc index: [README.md](./README.md)
 
-语义分析是 SYX 编译流水线的第三阶段，位于 `crates/syx-semantic/`。该 crate 对 `syx_ast::Module` 进行类型推断、符号解析、作用域管理与跨模块可见性检查，为后续 MIR 与代码生成提供类型信息。
+## 1. Overview
 
-入口 API：
+Semantic analysis is the third stage of the SYX compile pipeline, in `crates/syx-semantic/`. This crate type-checks `syx_ast::Module`: type inference, symbol resolution, scope management, and cross-module visibility, supplying type information for MIR and code generation.
+
+Entry API:
 
 ```rust
 // crates/syx-semantic/src/lib.rs
@@ -19,11 +21,11 @@ pub fn analyze_with_imports(
 ) -> SyxResult<SemanticAnalyzer>
 ```
 
-驱动层 `crates/syx-driver/src/lib.rs` 在编译每个模块时调用 `analyze_with_imports`，将依赖模块的 `public` 导出符号注入分析器。
+The driver `crates/syx-driver/src/lib.rs` calls `analyze_with_imports` per module and injects `public` exports from dependency modules into the analyzer.
 
 ---
 
-## 2. 核心数据结构
+## 2. Core data structures
 
 ### 2.1 SemanticAnalyzer
 
@@ -31,12 +33,12 @@ pub fn analyze_with_imports(
 // crates/syx-semantic/src/lib.rs
 #[derive(Debug, Default)]
 pub struct SemanticAnalyzer {
-    pub globals: IndexMap<SmolStr, Symbol>,           // 全局符号表
-    pub scope: Scope,                                  // 当前作用域链
-    pub exports: IndexMap<SmolStr, TypeId>,             // 本模块导出（预留）
-    pub imported_modules: Vec<SmolStr>,                // import 语句记录的模块名
-    pub import_exports: IndexMap<SmolStr, IndexMap<SmolStr, TypeId>>, // 依赖模块导出
-    pub errors: Vec<SyxDiagnostic>,                    // 累积诊断（当前遇首错即返回）
+    pub globals: IndexMap<SmolStr, Symbol>,           // Global symbol table
+    pub scope: Scope,                                  // Current scope chain
+    pub exports: IndexMap<SmolStr, TypeId>,             // Module exports (reserved)
+    pub imported_modules: Vec<SmolStr>,                // Module names from import statements
+    pub import_exports: IndexMap<SmolStr, IndexMap<SmolStr, TypeId>>, // Dependency exports
+    pub errors: Vec<SyxDiagnostic>,                    // Accumulated diagnostics (currently fail on first error)
 }
 ```
 
@@ -48,11 +50,11 @@ pub struct Symbol {
     pub name: SmolStr,
     pub ty: TypeId,
     pub mutable: bool,
-    pub access: AccessLevel,   // 来自 syx_ast::AccessLevel
+    pub access: AccessLevel,   // From syx_ast::AccessLevel
 }
 ```
 
-与 Swift 版不同，Rust 实现将符号简化为单一 `Symbol` 结构，不再区分 `SymbolKind` / `TypeSymbol` 等层次类型。
+Unlike the Swift implementation, the Rust code uses a single `Symbol` struct rather than layered `SymbolKind` / `TypeSymbol` types.
 
 ### 2.3 Scope
 
@@ -69,7 +71,7 @@ impl Scope {
 }
 ```
 
-作用域通过 `parent` 指针链实现嵌套查找；函数体、块语句、`try` 的 `catch` 参数等都会压入新作用域。
+Scopes nest via `parent` for lookup; function bodies, blocks, `try` catch parameters, etc. push new scopes.
 
 ### 2.4 TypeId
 
@@ -77,7 +79,7 @@ impl Scope {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TypeId {
     Void,
-    Numeric(NumericKind),   // Int8…Int64, UInt*, Int/UInt(平台), Float32/64
+    Numeric(NumericKind),   // Int8…Int64, UInt*, Int/UInt (platform), Float32/64
     Bool,
     String,
     Optional(Box<TypeId>),
@@ -89,31 +91,31 @@ pub enum TypeId {
 }
 ```
 
-`NumericKind` 与平台 `Int`/`UInt` 定义于 `crates/syx-stdlib/src/numeric.rs`：由编译 host 的 `target_pointer_width` 决定（32 位 → `Int32`/`UInt32`，64 位 → `Int64`/`UInt64`）。
+`NumericKind` and platform `Int`/`UInt` are defined in `crates/syx-stdlib/src/numeric.rs`: driven by compile-host `target_pointer_width` (32-bit → `Int32`/`UInt32`, 64-bit → `Int64`/`UInt64`).
 
-类型转换辅助函数：
+Type helpers:
 
-| 函数 | 位置 | 用途 |
+| Function | Location | Purpose |
 |------|------|------|
-| `type_name_to_id(name: &str)` | `syx-semantic` | 将字符串类型名（含标准库与数值别名）映射为 `TypeId` |
-| `type_expr_to_id(ty: &TypeExpr)` | `syx-semantic` | 将 AST 类型表达式映射为 `TypeId` |
-| `type_id_to_name(ty: &TypeId)` | `syx-semantic` | 类型 → 可读字符串 |
-| `expr_types: IndexMap<u32, TypeId>` | `SemanticAnalyzer` | 表达式 span → 类型，供 codegen/MIR 使用 |
+| `type_name_to_id(name: &str)` | `syx-semantic` | Map string type names (stdlib + numeric aliases) to `TypeId` |
+| `type_expr_to_id(ty: &TypeExpr)` | `syx-semantic` | Map AST type expressions to `TypeId` |
+| `type_id_to_name(ty: &TypeId)` | `syx-semantic` | Type → readable string |
+| `expr_types: IndexMap<u32, TypeId>` | `SemanticAnalyzer` | Expression span → type for codegen/MIR |
 
 ---
 
-## 3. 分析流程
+## 3. Analysis flow
 
 ### 3.1 analyze_with_imports
 
 ```rust
 pub fn analyze_with_imports(module, imports) -> SyxResult<Self> {
     let mut analyzer = Self::default();
-    analyzer.register_builtins();              // 注册标准库类型与 Host 函数
-    // 注入依赖模块导出符号
+    analyzer.register_builtins();              // Register stdlib types and Host functions
+    // Inject dependency module exports
     for (module_name, symbols) in imports { ... }
-    analyzer.collect_decls(&module.decls)?;     // 第一遍：收集顶层符号
-    analyzer.analyze_decls(&module.decls)?;     // 第二遍：分析函数体/语句
+    analyzer.collect_decls(&module.decls)?;     // Pass 1: collect top-level symbols
+    analyzer.analyze_decls(&module.decls)?;     // Pass 2: analyze bodies/statements
     if let Some(err) = analyzer.errors.first() {
         return Err(err.clone());
     }
@@ -121,26 +123,26 @@ pub fn analyze_with_imports(module, imports) -> SyxResult<Self> {
 }
 ```
 
-### 3.2 两遍扫描
+### 3.2 Two-pass scan
 
-**第一遍 `collect_decls`**：遍历 `Decl`，向 `globals` 注册符号，不进入函数体。
+**Pass 1 `collect_decls`**: Walk `Decl`, register symbols in `globals`, do not enter function bodies.
 
-| 声明类型 | 注册行为 |
+| Decl kind | Registration |
 |----------|----------|
-| `Decl::Import` | 记录 `imported_modules` |
-| `Decl::Function` | 全局函数，`ty = Void`（返回类型在调用处推断） |
-| `Decl::VarGlobal` | 全局变量，带类型注解或 `Unknown` |
+| `Decl::Import` | Record `imported_modules` |
+| `Decl::Function` | Global function, `ty = Void` (return type inferred at use sites) |
+| `Decl::VarGlobal` | Global variable with annotation or `Unknown` |
 | `Decl::Class/Struct/DataClass/SealedClass/Actor` | `TypeId::Named(name)` |
-| `Decl::Extension` | 扩展方法作为全局函数符号 |
-| `Decl::Protocol` | `TypeId::Named(name)`，`access = Internal` |
+| `Decl::Extension` | Extension methods as global function symbols |
+| `Decl::Protocol` | `TypeId::Named(name)`, `access = Internal` |
 
-**第二遍 `analyze_decls`**：分析函数体、全局变量初始化、协议约束等。
+**Pass 2 `analyze_decls`**: Analyze function bodies, global initializers, protocol constraints, etc.
 
 ---
 
-## 4. 标准库集成（syx-stdlib）
+## 4. Standard library integration (syx-stdlib)
 
-语义分析通过 `crates/syx-stdlib/` 获取内置类型、Host 函数与方法表。
+Semantic analysis uses `crates/syx-stdlib/` for built-in types, Host functions, and method tables.
 
 ### 4.1 register_builtins
 
@@ -154,12 +156,12 @@ pub struct StdlibEntry {
 }
 ```
 
-`BUILTIN_TYPES` 包含全部固定宽度数值类型、`Int`/`UInt`（平台别名）、`Float`/`Double`、`Bool`、`String`、`Array`、`Set`、`Dictionary`、`Object`、`Void`，以及 `File`、`Directory`、`HTTP`、`HTTPResponse`、`print`、`Iterator`。
+`BUILTIN_TYPES` includes all fixed-width numeric types, `Int`/`UInt` (platform aliases), `Float`/`Double`, `Bool`, `String`, `Array`, `Set`, `Dictionary`, `Object`, `Void`, plus `File`, `Directory`, `HTTP`, `HTTPResponse`, `print`, `Iterator`.
 
-`SemanticAnalyzer::register_builtins` 会：
+`SemanticAnalyzer::register_builtins`:
 
-1. 遍历 `register_builtins()`，将每个条目写入 `globals`
-2. 遍历 `HostFnId::all()`，以 `host_fn_return_type` 推断返回类型并注册
+1. Iterates `register_builtins()` and writes each entry to `globals`
+2. Iterates `HostFnId::all()`, infers return types via `host_fn_return_type`, and registers
 
 ### 4.2 HostFnId
 
@@ -174,16 +176,16 @@ pub enum HostFnId {
 }
 ```
 
-Host 函数在 VM 中以 `CallHost(idx)` 调用，索引由 `host_fn_index(id)` 决定。
+Host functions run in the VM as `CallHost(idx)`; index from `host_fn_index(id)`.
 
-### 4.3 TYPE_METHODS 与成员推断
+### 4.3 TYPE_METHODS and member inference
 
 ```rust
 pub struct TypeMethod {
     pub type_name: &'static str,
     pub method: &'static str,
-    pub host: Option<HostFnId>,      // 静态类型方法 → Host 调用
-    pub instance: Option<MethodId>,  // 实例方法 → MethodCall
+    pub host: Option<HostFnId>,      // Static type method → Host call
+    pub instance: Option<MethodId>,  // Instance method → MethodCall
 }
 
 pub static TYPE_METHODS: LazyLock<Vec<TypeMethod>>;
@@ -191,80 +193,80 @@ pub static STRING_METHODS: LazyLock<IndexMap<&'static str, MethodId>>;
 pub static ARRAY_METHODS: LazyLock<IndexMap<&'static str, MethodId>>;
 ```
 
-`infer_member_type` 根据接收者类型查找方法返回类型：
+`infer_member_type` resolves method return types from receiver type:
 
 ```rust
 fn infer_member_type(&self, object_ty: &TypeId, method: &str) -> TypeId {
-    // String 实例方法 → lookup_string_method
-    // Named 类型 → lookup_type_method → host_fn_return_type / method_return_type
-    // 特殊：method == "json" → Object
-    // 否则 → Unknown
+    // String instance methods → lookup_string_method
+    // Named types → lookup_type_method → host_fn_return_type / method_return_type
+    // Special: method == "json" → Object
+    // Otherwise → Unknown
 }
 ```
 
 ---
 
-## 5. 表达式与语句分析
+## 5. Expression and statement analysis
 
-### 5.1 表达式 `analyze_expr`
+### 5.1 Expressions `analyze_expr`
 
-| 表达式 | 推断类型 |
+| Expression | Inferred type |
 |--------|----------|
-| 整数字面量（无后缀） | 平台 `Int` |
-| 整数字面量 + 后缀 | 对应 `NumericKind`（如 `42i8` → `Int8`） |
-| 浮点字面量（无后缀） | `Float64` / `Double` |
-| 浮点 + 后缀 | `Float32` 等 |
-| 字符串 / 布尔 / nil | `String` / `Bool` / 可空 |
-| 数组字面量 | `Array<元素统一类型>` |
-| 字典字面量 | 默认 `Dictionary<K,V>`（同质）；显式标注 `Object` 时为异质袋 |
-| 二元算术 | 数值变宽；浮点参与 → `Float64`；signed/unsigned 混用 → **S013** |
-| 显式窄化 | 须显式 cast，否则 **S012** |
-| 字面量超范围 | **S011** |
-| 集合元素不一致 | **S014** |
-| Set 元素非 Hashable | **S015** |
-| 比较 / 逻辑 | `Bool` |
-| `??` | 右操作数类型 |
-| 标识符 | 作用域或 `globals` 查找，失败 → **S002** |
-| 成员访问 | `infer_member_type` |
-| 赋值 | 检查可变性 → **S003**，类型兼容 → **S004** |
+| Integer literal (no suffix) | Platform `Int` |
+| Integer literal + suffix | Corresponding `NumericKind` (e.g. `42i8` → `Int8`) |
+| Float literal (no suffix) | `Float64` / `Double` |
+| Float + suffix | `Float32`, etc. |
+| String / bool / nil | `String` / `Bool` / nullable |
+| Array literal | `Array<unified element type>` |
+| Dict literal | Default `Dictionary<K,V>` (homogeneous); heterogeneous bag when annotated `Object` |
+| Binary arithmetic | Numeric widening; float involved → `Float64`; signed/unsigned mix → **S013** |
+| Explicit narrowing | Requires explicit cast, else **S012** |
+| Literal out of range | **S011** |
+| Inconsistent collection elements | **S014** |
+| Set element not Hashable | **S015** |
+| Comparison / logic | `Bool` |
+| `??` | Right operand type |
+| Identifier | Scope or `globals` lookup; failure → **S002** |
+| Member access | `infer_member_type` |
+| Assignment | Mutability check → **S003**, compatibility → **S004** |
 
-### 5.2 跨模块访问
+### 5.2 Cross-module access
 
-`analyze_call` 在处理 `module.symbol(...)` 时，若 `import_exports` 中不存在该符号，报错 **S005**：
+In `analyze_call`, for `module.symbol(...)`, if the symbol is missing from `import_exports`, report **S005**:
 
 ```
 Cannot access internal symbol '{module}.{name}'
 ```
 
-仅 `public func` 会被驱动层 `export_symbols` 导出到依赖模块。
+Only `public func` is exported to dependents via driver `export_symbols`.
 
-### 5.3 类型兼容性 `is_compatible`
+### 5.3 Type compatibility `is_compatible`
 
-当前支持的隐式转换：
+Supported implicit conversions:
 
-| 期望 | 实际 | 结果 |
+| Expected | Actual | Result |
 |------|------|------|
-| 任意 `Numeric` | 更宽 `Numeric` | 隐式变宽 |
-| `Set<T>` | `Array<T>`（元素兼容） | 兼容（数组字面量赋给 Set） |
-| `Double` / `Float64` | 整数 Numeric | 兼容（变宽到浮点） |
-| `Optional(T)` | `T` | 兼容 |
-| `Optional(_)` | `Unknown` | 兼容 |
-| `Optional(_)` | `Optional(Unknown)` | 兼容 |
+| Any `Numeric` | Wider `Numeric` | Implicit widen |
+| `Set<T>` | `Array<T>` (compatible elements) | Compatible (array literal to Set) |
+| `Double` / `Float64` | Integer Numeric | Compatible (widen to float) |
+| `Optional(T)` | `T` | Compatible |
+| `Optional(_)` | `Unknown` | Compatible |
+| `Optional(_)` | `Optional(Unknown)` | Compatible |
 
-不兼容时通过 `check_assignable` 抛出 **S004**。
+Incompatible assignments throw **S004** via `check_assignable`.
 
-### 5.4 语句要点
+### 5.4 Statement notes
 
-- `for-in`：循环变量类型固定为 `Int`（MVP）
-- `try/catch`：`catch` 参数类型为 `String`
-- `if let` / `guard let`：绑定变量类型为 `Unknown`
-- `Decl::Protocol`：必须声明 `func next()`，否则 **S006**
+- `for-in`: loop variable type is fixed to `Int` (MVP)
+- `try/catch`: catch parameter type is `String`
+- `if let` / `guard let`: bound variable type is `Unknown`
+- `Decl::Protocol`: must declare `func next()`, else **S006**
 
 ---
 
-## 6. 访问控制（AccessLevel）
+## 6. Access control (AccessLevel)
 
-定义于 `crates/syx-ast/src/lib.rs`：
+Defined in `crates/syx-ast/src/lib.rs`:
 
 ```rust
 pub enum AccessLevel {
@@ -274,92 +276,92 @@ pub enum AccessLevel {
 }
 ```
 
-| 级别 | 语义 |
+| Level | Semantics |
 |------|------|
-| `Public` | 可被其他模块 import 并调用（当前仅 `public func` 参与导出） |
-| `Internal` | 模块内可见；跨模块访问非导出符号触发 **S005** |
-| `Private` | 解析器可标注，语义层尚未做细粒度校验 |
+| `Public` | Importable and callable from other modules (currently only `public func` is exported) |
+| `Internal` | Module-visible; cross-module use of non-exported symbols → **S005** |
+| `Private` | Parser may annotate; semantic layer does not yet enforce fine-grained checks |
 
-顶层声明默认 `Internal`（除非源码写 `public`）。内置符号与 Host 函数一律 `Public`。
+Top-level declarations default to `Internal` unless `public` is written. Built-ins and Host functions are always `Public`.
 
 ---
 
-## 7. 语义错误码 S001–S015
+## 7. Semantic error codes S001–S015
 
-| 代码 | 触发条件 | 示例消息 |
+| Code | Condition | Example message |
 |------|----------|----------|
-| **S001** | 同一作用域重复定义符号 | `Symbol 'x' already defined in this scope` |
-| **S002** | 未定义标识符 | `Undefined identifier 'foo'` |
-| **S003** | 对不可变变量赋值 | `Cannot assign to immutable 'x'` |
-| **S004** | 类型不匹配 | `Type mismatch for 'x': expected Int, found String` |
-| **S005** | 访问未导出的模块符号 | `Cannot access internal symbol 'mod.fn'` |
-| **S006** | 协议缺少 `next()` | `Protocol 'Iter' must declare func next()` |
-| **S011** | 字面量超出目标数值类型范围 | `Literal out of range for Int8` |
-| **S012** | 非法窄化转换 | `Narrowing conversion requires explicit cast` |
-| **S013** | signed/unsigned 数值混用 | `Mixed signed and unsigned arithmetic` |
-| **S014** | 集合字面量元素类型不一致 | `Array elements have inconsistent types` |
-| **S015** | Set 元素不满足 Hashable | `Set element type does not satisfy Hashable` |
+| **S001** | Duplicate symbol in same scope | `Symbol 'x' already defined in this scope` |
+| **S002** | Undefined identifier | `Undefined identifier 'foo'` |
+| **S003** | Assign to immutable variable | `Cannot assign to immutable 'x'` |
+| **S004** | Type mismatch | `Type mismatch for 'x': expected Int, found String` |
+| **S005** | Access non-exported module symbol | `Cannot access internal symbol 'mod.fn'` |
+| **S006** | Protocol missing `next()` | `Protocol 'Iter' must declare func next()` |
+| **S011** | Literal out of target numeric range | `Literal out of range for Int8` |
+| **S012** | Illegal narrowing conversion | `Narrowing conversion requires explicit cast` |
+| **S013** | Mixed signed/unsigned arithmetic | `Mixed signed and unsigned arithmetic` |
+| **S014** | Inconsistent collection literal element types | `Array elements have inconsistent types` |
+| **S015** | Set element not Hashable | `Set element type does not satisfy Hashable` |
 
-错误通过 `syx_diagnostics::SyxDiagnostic::with_code("S00x")` 附加代码，由 `analyze_with_imports` 在首错处返回 `Err`。
-
----
-
-## 8. 作用域层次示例
-
-```
-globals（内置 + 顶层声明 + import 导出）
-└── 函数 foo 作用域
-    ├── 参数 a, b
-    └── 块作用域
-        └── 局部变量 x
-```
-
-函数进入时：`Scope { parent: Some(当前 scope), .. }`，退出时恢复 `parent`。
+Errors attach codes via `syx_diagnostics::SyxDiagnostic::with_code("S00x")`; `analyze_with_imports` returns `Err` on the first error.
 
 ---
 
-## 9. 与下游 crate 的关系
+## 8. Scope hierarchy example
+
+```
+globals (built-ins + top-level decls + import exports)
+└── function foo scope
+    ├── parameters a, b
+    └── block scope
+        └── local x
+```
+
+On function entry: `Scope { parent: Some(current scope), .. }`; on exit, restore `parent`.
+
+---
+
+## 9. Downstream crates
 
 ```
 syx_ast::Module
     → syx-semantic::SemanticAnalyzer::analyze_with_imports
-    → syx-codegen::CodeGenerator::compile（类型推断较浅，主要依赖 codegen 自身 var_types）
-    → syx-vm::VmInstance::run_program（类型别名 `WasmVM`）
+    → syx-codegen::CodeGenerator::compile (shallow inference; codegen relies mainly on its own var_types)
+    → syx-vm::VmInstance::run_program (type alias `WasmVM`)
 ```
 
-语义分析当前为 **MVP**：不做循环引用检测、未使用声明警告、类属性初始化检查等高级分析；这些在 Swift 版文档中存在，Rust 版尚未实现。
+Semantic analysis is currently **MVP**: no cycle detection, unused-declaration warnings, or class property initialization checks; those exist in Swift docs but not yet in Rust.
 
 ---
 
-## 10. 协议 Conformance（Equatable / Hashable）
+## 10. Protocol conformance (Equatable / Hashable)
 
-`syx-stdlib::protocols` 维护内置类型的协议表；`type_satisfies_protocol` 与 `type_id_satisfies_protocol` 供语义与 codegen 共用。
+`syx-stdlib::protocols` maintains built-in protocol tables; `type_satisfies_protocol` and `type_id_satisfies_protocol` are shared by semantic and codegen.
 
-| 协议 | 成员 / 行为 |
+| Protocol | Members / behavior |
 |------|-------------|
-| `Equatable` | `==` / `!=`；两侧须可 Equatable（**S016**） |
-| `Hashable` | `hash(into:)`（MVP：Host witness） |
+| `Equatable` | `==` / `!=`; both sides must be Equatable (**S016**) |
+| `Hashable` | `hash(into:)` (MVP: Host witness) |
 | `CustomStringConvertible` | `.description` → `String` |
 | `CustomDebugStringConvertible` | `.debugDescription` → `String` |
 
-`===` / `!==` 结果类型为 `Bool`；值类型与 `==` 等价，class / Object 比较实例标识。
+`===` / `!==` result type is `Bool`; value types match `==`; class / Object compare instance identity.
 
 ---
 
-## 11. 使用示例
+## 11. Usage example
 
 ```rust
 use syx_ast::Module;
 use syx_semantic::SemanticAnalyzer;
 
-let module: Module = /* 解析得到 */;
+let module: Module = /* from parser */;
 let analyzer = SemanticAnalyzer::analyze(&module)?;
 
-// 多模块编译
+// Multi-module compile
 let imports = vec![
     ("utils".into(), exported_symbols_from_utils),
 ];
 let analyzer = SemanticAnalyzer::analyze_with_imports(&module, &imports)?;
 ```
 
-单元测试见 `crates/syx-semantic/src/lib.rs` 模块 `tests::analyzes_simple_main`。
+Unit tests: `crates/syx-semantic/src/lib.rs` module `tests::analyzes_simple_main`.
