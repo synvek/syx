@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build CLI
@@ -35,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Native HTTP parity (network, ignored)
@@ -44,6 +50,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Package git resolver
@@ -53,6 +62,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Compile bench (±20% warn / ±30% fail vs baseline)
@@ -64,6 +76,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: LSP workspace tests
@@ -73,6 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: WASM AOT strict matrix (≥99%)
@@ -86,6 +104,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build compiler.wasm artifact
@@ -102,6 +123,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Browser compiler E2E
@@ -127,6 +151,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Registry lock v8 mandatory sign E2E
@@ -138,6 +165,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Windows .dll host plugin CI
@@ -148,6 +178,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Standalone plugins/faerlin cdylib load + F64LE mul/solve + HANDLE hmul/hsolve/hfrom/hto/hdrop

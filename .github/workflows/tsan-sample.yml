@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v2
         with:

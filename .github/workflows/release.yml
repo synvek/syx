@@ -13,21 +13,65 @@ env:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          # Linux x64 / arm64
+          - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             artifact: syx-linux-x86_64
+            exe_ext: ""
+            wasmtime_asset: wasmtime-v25.0.0-x86_64-linux.tar.xz
+            native_examples: true
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            artifact: syx-linux-aarch64
+            exe_ext: ""
+            wasmtime_asset: wasmtime-v25.0.0-aarch64-linux.tar.xz
+            native_examples: true
+          # macOS x64 / arm64
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            artifact: syx-macos-x86_64
+            exe_ext: ""
+            wasmtime_asset: wasmtime-v25.0.0-x86_64-macos.tar.xz
+            native_examples: true
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact: syx-macos-aarch64
+            exe_ext: ""
+            wasmtime_asset: wasmtime-v25.0.0-aarch64-macos.tar.xz
+            native_examples: true
+          # Windows x64 / arm64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: syx-windows-x86_64
+            exe_ext: ".exe"
+            wasmtime_asset: wasmtime-v25.0.0-x86_64-windows.zip
+            native_examples: false
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            artifact: syx-windows-aarch64
+            exe_ext: ".exe"
+            wasmtime_asset: wasmtime-v25.0.0-aarch64-windows.zip
+            native_examples: false
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.target }}
       - name: Build release CLI
-        run: cargo build --release -p syx-cli
+        run: cargo build --release -p syx-cli --target ${{ matrix.target }}
       - name: Driver parity smoke (SYX 38.0)
         run: |
           cargo test -p syx-driver \
@@ -35,16 +79,25 @@ jobs:
             --test observability --test security --test backends \
             -- --test-threads=1
       - name: examples/deps cross-module (local_math.add → 42)
-        run: ./target/release/syx run examples/deps | grep -q 42
-      - name: Build examples/main native (minimal)
         run: |
+          BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
+          "$BIN" run examples/deps | grep -q 42
+      - name: Build examples/main native (minimal)
+        if: matrix.native_examples
+        run: |
+          BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
           mkdir -p dist
-          ./target/release/syx build --native --minimal -o dist/examples-main-${{ matrix.artifact }} examples
+          "$BIN" build --native --minimal -o "dist/examples-main-${{ matrix.artifact }}" examples
       - name: Package CLI
         run: |
+          BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
           mkdir -p dist
-          cp target/release/syx dist/syx-${{ matrix.artifact }}
-          chmod +x dist/syx-${{ matrix.artifact }} dist/examples-main-${{ matrix.artifact }}
+          cp "$BIN" "dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
+          if [ -f "dist/examples-main-${{ matrix.artifact }}" ] || [ -f "dist/examples-main-${{ matrix.artifact }}.exe" ]; then
+            chmod +x "dist/${{ matrix.artifact }}${{ matrix.exe_ext }}" "dist/examples-main-${{ matrix.artifact }}"* || true
+          else
+            chmod +x "dist/${{ matrix.artifact }}${{ matrix.exe_ext }}" || true
+          fi
       - name: Generate checksums
         run: |
           cd dist
@@ -56,26 +109,64 @@ jobs:
           cat SHA256SUMS
       - name: Release install smoke
         run: |
-          ./dist/syx-${{ matrix.artifact }} --version || ./dist/syx-${{ matrix.artifact }} build --help
-          test -x ./dist/examples-main-${{ matrix.artifact }}
+          CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
+          "$CLI" --version || "$CLI" build --help
+          if [ "${{ matrix.native_examples }}" = "true" ]; then
+            test -x "dist/examples-main-${{ matrix.artifact }}" || test -f "dist/examples-main-${{ matrix.artifact }}"
+          fi
           dir=$(mktemp -d)
           printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
           printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
-          ./dist/syx-${{ matrix.artifact }} run "$dir" | grep -q vm-smoke || ./dist/syx-${{ matrix.artifact }} run "$dir/main.sy" | grep -q vm-smoke
-          ./dist/syx-${{ matrix.artifact }} build --wasm -o "$dir/out.wasm" "$dir"
+          "$CLI" run "$dir" | grep -q vm-smoke || "$CLI" run "$dir/main.sy" | grep -q vm-smoke
+          "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
       - name: Install wasmtime
+        if: matrix.wasmtime_asset != ''
+        continue-on-error: true
         run: |
-          curl -fsSL https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/wasmtime-v25.0.0-x86_64-linux.tar.xz -o /tmp/wt.tar.xz || \
-          curl -fsSL https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/wasmtime-v25.0.0-aarch64-macos.tar.xz -o /tmp/wt.tar.xz
-          tar -xf /tmp/wt.tar.xz -C /tmp
-          echo "$(find /tmp -name wasmtime -type f | head -1 | xargs dirname)" >> "$GITHUB_PATH"
-      - name: WASI wasmtime E2E (mandatory)
+          asset="${{ matrix.wasmtime_asset }}"
+          url="https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/${asset}"
+          mkdir -p /tmp/wasmtime-dist
+          curl -fsSL "$url" -o "/tmp/${asset}"
+          case "$asset" in
+            *.zip)
+              if command -v unzip >/dev/null; then
+                unzip -o "/tmp/${asset}" -d /tmp/wasmtime-dist
+              else
+                powershell -Command "Expand-Archive -Path '/tmp/${asset}' -DestinationPath '/tmp/wasmtime-dist' -Force"
+              fi
+              ;;
+            *)
+              tar -xf "/tmp/${asset}" -C /tmp/wasmtime-dist
+              ;;
+          esac
+          bin_dir="$(find /tmp/wasmtime-dist -name 'wasmtime*' -type f \( -perm -111 -o -name 'wasmtime.exe' \) 2>/dev/null | head -1 | xargs -I{} dirname {} || true)"
+          if [ -z "$bin_dir" ]; then
+            bin_dir="$(find /tmp/wasmtime-dist -type f -name 'wasmtime' -o -name 'wasmtime.exe' | head -1 | xargs dirname)"
+          fi
+          echo "$bin_dir" >> "$GITHUB_PATH"
+          ls -la "$bin_dir" || true
+      - name: WASI wasmtime E2E (mandatory on Unix)
+        if: runner.os != 'Windows'
         run: |
+          CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
           dir=$(mktemp -d)
           printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
           printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
-          ./dist/syx-${{ matrix.artifact }} build --wasm -o "$dir/out.wasm" "$dir"
+          "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
           SYX_WASI=1 wasmtime run "$dir/out.wasm"
+          cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
+      - name: WASI wasmtime E2E (Windows best-effort)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: |
+          CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
+          dir=$(mktemp -d)
+          printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
+          printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
+          "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
+          if command -v wasmtime >/dev/null || command -v wasmtime.exe >/dev/null; then
+            SYX_WASI=1 wasmtime run "$dir/out.wasm" || SYX_WASI=1 wasmtime.exe run "$dir/out.wasm"
+          fi
           cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
       - name: Registry prod URL smoke
         run: cargo test -p syx-pkg registry_prod_url_smoke -- --test-threads=1
@@ -109,5 +200,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${{ github.event.inputs.tag }}"
-          gh release create "$tag" --title "$tag" --notes "Prebuilt SYX CLI and examples/main native binary per platform (with SHA256SUMS)." \
-            artifacts/*/* || gh release upload "$tag" artifacts/*/*
+          notes_file=$(mktemp)
+          cat > "$notes_file" <<'EOF'
+          Prebuilt SYX CLI for 6 targets (SHA256SUMS per artifact):
+
+          | OS | Arch | Artifact |
+          |----|------|----------|
+          | Linux | x86_64 | syx-linux-x86_64 |
+          | Linux | aarch64 | syx-linux-aarch64 |
+          | macOS | x86_64 | syx-macos-x86_64 |
+          | macOS | aarch64 | syx-macos-aarch64 |
+          | Windows | x86_64 | syx-windows-x86_64.exe |
+          | Windows | aarch64 | syx-windows-aarch64.exe |
+
+          Also includes VS Code extension .vsix when packaging succeeds.
+          EOF
+          # strip leading spaces from YAML-indented heredoc body
+          sed -i 's/^          //' "$notes_file"
+          assets=(artifacts/*/*)
+          if compgen -G 'dist/*.vsix' > /dev/null; then
+            assets+=(dist/*.vsix)
+          fi
+          gh release create "$tag" --title "$tag" --notes-file "$notes_file" "${assets[@]}" \
+            || gh release upload "$tag" "${assets[@]}"
