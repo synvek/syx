@@ -1,8 +1,8 @@
-# 并发
+# Concurrency
 
-**实现状态：** `async` / `await` / `async let` / `Task` / `Task.detached` / `TaskGroup` / `actor` / `GlobalActor` / `Channel` / `select` / `Sendable` **已实现**；structured concurrency MVP；distributed actor **partial**；Actor mailbox 有界 + shared pool **Phase 138 MVP**
+**Implementation status:** `async` / `await` / `async let` / `Task` / `Task.detached` / `TaskGroup` / `actor` / `GlobalActor` / `Channel` / `select` / `Sendable` **Implemented**; structured concurrency MVP; distributed actor **partial**; bounded actor mailbox + shared pool **Phase 138 MVP**
 
-SYX 并发模型基于 **协程 + actor**，与 Swift Concurrency 风格一致。本章覆盖 `async` / `await` 基础、`Task`、`actor` 隔离、`Channel`、`GlobalActor`、Sendable 与 distributed actor 雏形。
+The SYX concurrency model is based on **coroutines + actors**, consistent with Swift Concurrency. This chapter covers the `async` / `await` basics, `Task`, actor isolation, `Channel`, `GlobalActor`, Sendable, and the beginnings of distributed actors.
 
 ## async / await
 
@@ -19,54 +19,54 @@ async func main() {
 }
 ```
 
-- `async` 函数可暂停 / 恢复（生成器状态机）
-- `await` 暂停当前任务，等待异步操作完成
-- 多 `await` 状态机 **已实现**（测试 `runtime/async_native.rs`）
+- An `async` function may suspend / resume (generator state machine)
+- `await` suspends the current task and waits for the asynchronous operation to finish
+- Multiple-`await` state machines are **Implemented** (test `runtime/async_native.rs`)
 
-> **关键限制：** `await` 仅在 `async` 函数体内合法；非 `async` 函数使用 `await` → 编译错误 **S020**。
+> **Key limit:** `await` is legal only inside an `async` function body; using `await` in a non-`async` function → compile error **S020**.
 
 ## async let
 
-并行启动多个子任务：
+Start multiple subtasks in parallel:
 
 ```syx
 async func parallelFetch() -> (String, String) {
-    async let a = fetchA()                 // 立即启动子任务
-    async let b = fetchB()                 // 立即启动子任务
-    let x = await a                        // 等待 a
-    let y = await b                        // 等待 b
+    async let a = fetchA()                 // Start the subtask immediately
+    async let b = fetchB()                 // Start the subtask immediately
+    let x = await a                        // Wait for a
+    let y = await b                        // Wait for b
     return (x, y)
 }
 ```
 
-> **语义：** `async let name = expr` desugar 为 detach + join（**SYX 132 行为冻结**）。`a` 是 `AsyncValue<T>`；`await a` 阻塞直到子任务完成。
+> **Semantics:** `async let name = expr` desugars to detach + join (**behavior frozen in SYX 132**). `a` is an `AsyncValue<T>`; `await a` blocks until the subtask completes.
 
 ## Task
 
-`Task { }` 启动一个**非结构化**子任务：
+`Task { }` starts an **unstructured** subtask:
 
 ```syx
 let t = Task {
     print("in task")
 }
-await t.join()                             // 等待完成
+await t.join()                             // Wait for completion
 
 Task.detached {
     print("detached")
 }
 ```
 
-| 形式 | 行为 |
+| Form | Behavior |
 |------|------|
-| `Task { … }` | 在当前 actor 上下文启动（受 actor 隔离约束） |
-| `Task.detached { … }` | 不继承当前上下文，独立 actor 上下文 |
-| `t.join()` | 等待任务完成（返回 `()`） |
-| `t.cancel()` | 取消任务（**部分实现**） |
-| `t.value` | 等待并返回 `Result<T, Error>` |
+| `Task { … }` | Starts in the current actor context (subject to actor isolation) |
+| `Task.detached { … }` | Does not inherit the current context; a separate actor context |
+| `t.join()` | Waits for the task to finish (returns `()`) |
+| `t.cancel()` | Cancels the task (**Partially implemented**) |
+| `t.value` | Waits for and returns `Result<T, Error>` |
 
 ## TaskGroup
 
-结构化并发任务组：
+A structured concurrency task group:
 
 ```syx
 async func fetchAll(urls: Array<String>) -> Array<String> {
@@ -80,11 +80,11 @@ async func fetchAll(urls: Array<String>) -> Array<String> {
 }
 ```
 
-> **状态：** `TaskGroup` **已实现**（M3 风格；非完整 Swift `withTaskGroup` API）。基础 `add` / `waitAll` / 取消传播 **已实现**。产品面 `taskGroupCancel`（ADR-260）+ `liveTaskCount`（ADR-261）；**A01 叶子 ADR-272 已签**（≠ EC-M3-2）。`setDeadlineMs`（ADR-262）+ `taskLocalSet`/`taskLocalGet`（ADR-263）；**A02 叶子 ADR-273 已签**（≠ `@TaskLocal` / ≠ EC-M3）。`actorReentrancyPolicy`（ADR-264/265：`serial-no-reenter;await-hold`）；**A03 叶子 ADR-274 已签**（≠ Swift await-reentrancy GA / ≠ EC-M3）。
+> **Status:** `TaskGroup` is **Implemented** (M3 style; not the full Swift `withTaskGroup` API). Basic `add` / `waitAll` / cancellation propagation are **Implemented**. Product surface `taskGroupCancel` (ADR-260) + `liveTaskCount` (ADR-261); the **A01 leaf ADR-272 is signed** (≠ EC-M3-2). `setDeadlineMs` (ADR-262) + `taskLocalSet`/`taskLocalGet` (ADR-263); the **A02 leaf ADR-273 is signed** (≠ `@TaskLocal` / ≠ EC-M3). `actorReentrancyPolicy` (ADR-264/265: `serial-no-reenter;await-hold`); the **A03 leaf ADR-274 is signed** (≠ Swift await-reentrancy GA / ≠ EC-M3).
 
-## actor 隔离
+## Actor Isolation
 
-`actor` 保护内部状态，外部访问须 `await`：
+An `actor` protects its internal state; external access requires `await`:
 
 ```syx
 actor Counter {
@@ -94,23 +94,23 @@ actor Counter {
 }
 
 let c = Counter()
-await c.increment()                        // 跨隔离必须 await
+await c.increment()                        // Crossing isolation requires await
 print(await c.current())                   // 1
 ```
 
-| 规则 | 说明 |
+| Rule | Description |
 |------|------|
-| 内部方法 | 自动在 actor 隔离区 |
-| 外部访问 | 必须 `await`（隔离违规 → **A002**） |
-| 同步同实例重入 | **禁止**（ADR-264）：mailbox handler 内再同步调用同实例 → **C009**（`serial-no-reenter`） |
-| handler 内 await/sleep | **await-hold**（ADR-265）：不中途处理同 mailbox 其他消息；**非** Swift await-reentrancy GA |
-| `nonisolated func` | 显式标记非隔离（**部分实现**） |
-| `actor` 不可继承 | 顶层 `class` 不可继承 `actor` |
-| `Sendable` 字段 | actor 持有的 `Sendable` 值可安全跨任务 |
+| Internal methods | Automatically inside the actor isolation domain |
+| External access | Must use `await` (isolation violation → **A002**) |
+| Synchronous reentrancy on the same instance | **Forbidden** (ADR-264): re-entering the same instance synchronously inside a mailbox handler → **C009** (`serial-no-reenter`) |
+| `await`/`sleep` inside a handler | **await-hold** (ADR-265): other messages in the same mailbox are not processed midway; **not** Swift await-reentrancy GA |
+| `nonisolated func` | Explicit non-isolated marker (**Partially implemented**) |
+| `actor` cannot be inherited | A top-level `class` cannot inherit an `actor` |
+| `Sendable` fields | `Sendable` values held by an actor can safely cross tasks |
 
 ### Sendable
 
-跨隔离传递的类型须 `Sendable`：
+Types passed across isolation must be `Sendable`:
 
 ```syx
 @Sendable
@@ -124,61 +124,61 @@ actor Cache {
 
 let cache = Cache()
 let u = User(name: "Alice", age: 30)
-await cache.put(u)                         // 跨隔离传 Sendable 值
-let arr = await cache.get()                // 接收 Sendable 值数组
+await cache.put(u)                         // Passing a Sendable value across isolation
+let arr = await cache.get()                // Receiving an array of Sendable values
 ```
 
-| 注解 | 说明 |
+| Annotation | Description |
 |------|------|
-| `@Sendable` | 标记类型可安全跨隔离传递 |
-| `@unchecked Sendable` | 抑制检查，自担数据竞争风险（**部分实现**） |
-| 内置 `Sendable` | `Int` / `String` / `Array<T: Sendable>` 等自动 |
+| `@Sendable` | Marks a type as safe to pass across isolation |
+| `@unchecked Sendable` | Suppresses checking and accepts the data-race risk (**Partially implemented**) |
+| Built-in `Sendable` | `Int` / `String` / `Array<T: Sendable>` and others are automatic |
 
-> **Phase 60 严格模式：** `Sendable` 检查在 `strict` 模式下为编译错误 **S019** / **C003** E2E。
+> **Phase 60 strict mode:** `Sendable` checking is a compile error **S019** / **C003** E2E in `strict` mode.
 
 ## GlobalActor / @MainActor
 
-将一组声明绑定到全局 actor：
+Bind a group of declarations to a global actor:
 
 ```syx
-global actor MainActor { }                 // 全局 actor 定义
+global actor MainActor { }                 // Global actor definition
 
 @MainActor
 func updateUI() {
-    // 跑在 MainActor 上
+    // Runs on MainActor
 }
 
 @MainActor
 class ViewModel {
     var title: String = ""
-    func setTitle(_ s: String) { title = s } // 隔离在 MainActor
+    func setTitle(_ s: String) { title = s } // Isolated on MainActor
 }
 ```
 
-- 全局 actor 跨平台：UI 线程、GPU 线程等
-- Phase 34 `GlobalActor v14` 支持全球多活 CDN 路由与跨区域健康探针
-- 跨 GlobalActor 调用须 `await`
+- Global actors are cross-platform abstractions: the UI thread, the GPU thread, and so on
+- Phase 34 `GlobalActor v14` supports global multi-active CDN routing and cross-region health probes
+- Calls across GlobalActors require `await`
 
 ## Channel
 
-跨任务通信。产品面在 `import Sync` 的 `Channel` 类（非 `__syx_channel_*`）：
+Cross-task communication. The product surface is the `Channel` class from `import Sync` (not `__syx_channel_*`):
 
-| 写法 | 含义 |
+| Form | Meaning |
 |------|------|
-| `Channel()` | 默认 `init`：无界通道（capacity `0`） |
-| `Channel.create(n)` | 工厂方法：`n > 0` 有界，`n == 0` 无界；返回类型为 **`Channel`**（不是裸 `Object`） |
+| `Channel()` | Default `init`: an unbounded channel (capacity `0`) |
+| `Channel.create(n)` | Factory method: bounded when `n > 0`, unbounded when `n == 0`; the return type is **`Channel`** (not a bare `Object`) |
 
-`Channel()` 与 `Channel.create(n)` 的区别：前者是类的默认构造；后者是带容量参数的工厂，语义上等价于「带参构造」，因当前 `init()` / `init(capacity:)` 重载会误解析，有界通道请用 `create`。
+The difference between `Channel()` and `Channel.create(n)`: the former is the class's default constructor; the latter is a factory that takes a capacity. Semantically it is equivalent to "a constructor with arguments", but since the current `init()` / `init(capacity:)` overload would be mis-parsed, use `create` for bounded channels.
 
-实例方法：`send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` / `capacity()`。静态工厂仅保留 `Channel.create(n)`。
+Instance methods: `send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` / `capacity()`. Only `Channel.create(n)` remains as a static factory.
 
-> 教程里的 `Channel<Int>` 泛型语法为规划形态；当前 MVP 载荷为 `Object`，类型由调用约定约束。
+> The `Channel<Int>` generic syntax shown in tutorials is the planned form; the current MVP payload is `Object`, and types are constrained by calling convention.
 
 ```syx
 import Sync
 
 let ch = Channel.create(2)
-ch.send(1)                                 // 默认同步
+ch.send(1)                                 // Synchronous by default
 ch.send(2)
 ch.close()
 ```
@@ -208,20 +208,20 @@ async func main() {
 }
 ```
 
-| 操作 | 同步 / 异步 | 说明 |
+| Operation | Sync / async | Description |
 |------|------------|------|
-| `ch.send(v)` | 阻塞 / `await` | 发送 |
-| `ch.receive()` | 返回 `T?` | 接收；`nil` 表示已关闭 |
-| `ch.close()` | 标记关闭 | **ADR-266**：真断开 sender；接收完缓冲后返回 `nil`；再 send → **C010**；**非** backpressure/fairness 满勾 |
-| `ch.trySend(v)` | 非阻塞 | **ADR-267**：有界缓冲满 → **false**；`count`/`capacity` 可观测；**非** fairness 满勾 / **非** A04 满勾 |
-| `for x in ch` | 异步迭代 | 等同 `while let x = ch.receive()` |
-| `ch.count()` / `ch.capacity()` | 方法 | 当前长度 / 容量（ADR-267 背压钉） |
+| `ch.send(v)` | Blocking / `await` | Send |
+| `ch.receive()` | Returns `T?` | Receive; `nil` means closed |
+| `ch.close()` | Marks closed | **ADR-266**: really disconnects the sender; after the buffer drains it returns `nil`; further sends → **C010**; **not** a full backpressure/fairness hook |
+| `ch.trySend(v)` | Non-blocking | **ADR-267**: when the bounded buffer is full → **false**; `count`/`capacity` are observable; **not** a full fairness hook / **not** the A04 hook |
+| `for x in ch` | Async iteration | Equivalent to `while let x = ch.receive()` |
+| `ch.count()` / `ch.capacity()` | Methods | Current length / capacity (ADR-267 backpressure pin) |
 
-来源：`fixtures/parity/stdlib/channel_send.sy`
+Source: `fixtures/parity/stdlib/channel_send.sy`
 
 ## select
 
-多 channel 监听：
+Listening on multiple channels:
 
 ```syx
 select {
@@ -231,14 +231,14 @@ case chC.send(42) { print("sent to C") }
 }
 ```
 
-> **状态：** `select` **已实现**（`fixtures/runtime/select_await_case_order.sy`）；N 路 case + default 上下文。
+> **Status:** `select` is **Implemented** (`fixtures/runtime/select_await_case_order.sy`); N-way cases plus a default context.
 
-| 合同 | 说明 |
+| Contract | Description |
 |------|------|
-| 多臂同时 ready | **ADR-268**：thread-local round-robin（指纹 `select-fair-v1:round-robin`）；产品钉 `m3_a04_fairness`；**非**跨线程/全局 cursor GA |
-| A04 叶子 | **ADR-269**：close / backpressure / fairness 三轴收口（`m3_a04_closeout`）；**非**跨线程 RR GA / **非** EC-M3 |
+| Several arms ready at once | **ADR-268**: thread-local round-robin (fingerprint `select-fair-v1:round-robin`); product pin `m3_a04_fairness`; **not** cross-thread/global cursor GA |
+| A04 leaf | **ADR-269**: closes out the three axes close / backpressure / fairness (`m3_a04_closeout`); **not** cross-thread RR GA / **not** EC-M3 |
 
-## distributed actor（部分实现）
+## distributed actor (Partially Implemented)
 
 ```syx
 distributed actor ClusterNode {
@@ -251,40 +251,40 @@ distributed actor ClusterNode {
 }
 ```
 
-- 跨进程 / 跨机的 actor（**MVP spike**）
-- `distributed func` 可远程调用
-- 完整 distributed actor → 后续 Phase
+- Actors spanning processes / machines (**MVP spike**)
+- A `distributed func` may be called remotely
+- Complete distributed actors → later Phases
 
-## 取消
+## Cancellation
 
 ```syx
 let t = Task {
     for i in 0..<1000 {
-        if (Task.isCancelled) { return }  // 检查
+        if (Task.isCancelled) { return }  // Check
         await doWork(i)
     }
 }
 
-// 外部
+// From outside
 t.cancel()
 ```
 
-> **协作式取消：** 任务须显式检查 `Task.isCancelled`；库代码可在 `await` 处自动响应。
+> **Cooperative cancellation:** a task must explicitly check `Task.isCancelled`; library code may respond automatically at `await` points.
 
-## 应用并发（主业务 API）
+## Application Concurrency (Main Business API)
 
-日常业务代码优先使用结构化并发与消息面，而不是直接调线程池旋钮：
+Everyday business code should prefer structured concurrency and messaging surfaces over direct thread-pool knobs:
 
-| 表面 | 用途 |
+| Surface | Use |
 |------|------|
-| `Task` / `TaskGroup` / `async`/`await` / `async let` | 结构化任务树（M3-A01 leaf：cancel / liveTaskCount；ADR-272） |
-| `setDeadlineMs` / `taskLocalSet`/`Get` | 截止与 task-local（M3-A02 leaf；ADR-273） |
-| `actor` / `actorReentrancyPolicy` | Actor 隔离与重入合同（M3-A03 leaf；ADR-274） |
-| `Channel` / `select` | 有界通道、close / backpressure / fairness（M3-A04） |
+| `Task` / `TaskGroup` / `async`/`await` / `async let` | Structured task tree (M3-A01 leaf: cancel / liveTaskCount; ADR-272) |
+| `setDeadlineMs` / `taskLocalSet`/`Get` | Deadlines and task-locals (M3-A02 leaf; ADR-273) |
+| `actor` / `actorReentrancyPolicy` | Actor isolation and reentrancy contracts (M3-A03 leaf; ADR-274) |
+| `Channel` / `select` | Bounded channels, close / backpressure / fairness (M3-A04) |
 
-## 高级运行时调优（部署/运维）
+## Advanced Runtime Tuning (Deploy/Ops)
 
-> **ADR-270 / ADR-271 / M3-A05 leaf：** 下列 `Concurrency.*` 池与 Actor 容量旋钮是**高级运行时配置**，**不是**普通应用首选并发 API。优先用上一节结构化并发 + 有界 Channel/mailbox。A05 叶子已签（≠ EC-M3 / ≠ 删池 API）。
+> **ADR-270 / ADR-271 / M3-A05 leaf:** the `Concurrency.*` pools and actor capacity knobs below are **advanced runtime configuration**, **not** the preferred concurrency API for ordinary applications. Prefer the structured concurrency + bounded Channel/mailbox described above. The A05 leaf is signed (≠ EC-M3 / ≠ removing the pool API).
 
 ```syx
 import Concurrency
@@ -300,51 +300,51 @@ Concurrency.setMaxActors(64)
 Concurrency.setMailboxCapacity(256)
 ```
 
-> **状态：** worker / maxActors / mailbox **Phase 133 partial GA**；queue / reject / core-max-keepAlive **Phase 134–136 partial GA**；Actor shared pool **Phase 138 partial GA**。**非** Java `ThreadPoolExecutor` 全集兼容 → **139+**；**非** EC-M3；A05 叶子 **ADR-271** 已签。
+> **Status:** worker / maxActors / mailbox **Phase 133 partial GA**; queue / reject / core-max-keepAlive **Phase 134–136 partial GA**; actor shared pool **Phase 138 partial GA**. **Not** the full Java `ThreadPoolExecutor` compatibility set → **139+**; **not** EC-M3; the A05 leaf **ADR-271** is signed.
 
-### Task 池 vs blocking 池（ADR-275 / ADR-276 / M3-B01）
+### Task Pool vs. Blocking Pool (ADR-275 / ADR-276 / M3-B01)
 
-`Concurrency.blockingSleep` 走独立 `blocking_pool`（指纹 `task-pool+blocking-pool-v1-sized`）；`Concurrency.setBlockingPoolSize` / `blockingPoolSize` 可调固定容量（core=max=n）。现有 `Concurrency.sleep` / `__syx_task_sleep` 仍在调用 Task worker 上阻塞。HTTP/File 等 HostFn **未**改道。B01 叶子 **ADR-277** 已签。**非** epoll/kqueue reactor GA；**非** EC-M3。
+`Concurrency.blockingSleep` goes to a separate `blocking_pool` (fingerprint `task-pool+blocking-pool-v1-sized`); `Concurrency.setBlockingPoolSize` / `blockingPoolSize` set a fixed capacity (core=max=n). The existing `Concurrency.sleep` / `__syx_task_sleep` still block on the calling task worker. HostFns such as HTTP/File have **not** been rerouted. The B01 leaf **ADR-277** is signed. **Not** epoll/kqueue reactor GA; **not** EC-M3.
 
-`File.readAsync`（ADR-278）与 `TcpStream.readAsync`（ADR-279）走 `blocking_pool` pending+await（指纹见 `Concurrency.ioAdapterPolicy`，现为 `v1-tcp`）；同步 `File.read` / `Http.get` / `TcpStream.read` **未**改道。B02 叶子 **ADR-280** 已签。**非** TcpWrite/Connect async；**非** reactor GA；**非** EC-M3。
+`File.readAsync` (ADR-278) and `TcpStream.readAsync` (ADR-279) go through `blocking_pool` pending+await (fingerprint in `Concurrency.ioAdapterPolicy`, currently `v1-tcp`); the synchronous `File.read` / `Http.get` / `TcpStream.read` are **not** rerouted. The B02 leaf **ADR-280** is signed. **Not** TcpWrite/Connect async; **not** reactor GA; **not** EC-M3.
 
-### Mutex RAII / blocking（ADR-281 / ADR-282 / ADR-283 / M3-C01）
+### Mutex RAII / Blocking (ADR-281 / ADR-282 / ADR-283 / M3-C01)
 
-`Mutex.lockGuard` 返回 `MutexGuard`；作用域退出时 `deinit` 调用 `__syx_mutex_unlock_quiet`。产品 `Mutex.lock` / `lockGuard` 走 `__syx_mutex_lock_wait`（held 时 Condvar wait；ADR-282）。既有 `__syx_mutex_lock` 仍为 try-lock（Bool）。指纹见 `Concurrency.syncPolicy`（`mutex-raii-guard-v1-blocking`）。C01 叶子 **ADR-283** 已签。**非** RWLock；**非** 产品 Condvar；**非** EC-M3。
+`Mutex.lockGuard` returns a `MutexGuard`; when the scope exits, `deinit` calls `__syx_mutex_unlock_quiet`. The product `Mutex.lock` / `lockGuard` go through `__syx_mutex_lock_wait` (Condvar wait while held; ADR-282). The existing `__syx_mutex_lock` remains a try-lock (Bool). The fingerprint is in `Concurrency.syncPolicy` (`mutex-raii-guard-v1-blocking`). The C01 leaf **ADR-283** is signed. **Not** RWLock; **not** a product Condvar; **not** EC-M3.
 
-### Semaphore（ADR-284 / M3-C02）
+### Semaphore (ADR-284 / M3-C02)
 
-`Semaphore.create(permits)` / `wait` / `tryWait` / `signal`（计数信号量；独立表）；ADR-285：`SemaphoreGuard` / `waitGuard`（作用域退出 quiet signal）。指纹见 `Concurrency.semaphorePolicy`（`semaphore-v1-raii`）。ADR-286：C02 叶子已签收（Semaphore 切片）。**非** RWLock；**非** 产品 Condvar；**非** EC-M3。
+`Semaphore.create(permits)` / `wait` / `tryWait` / `signal` (a counting semaphore; a separate table); ADR-285: `SemaphoreGuard` / `waitGuard` (quiet signal on scope exit). The fingerprint is in `Concurrency.semaphorePolicy` (`semaphore-v1-raii`). ADR-286: the C02 leaf is signed (Semaphore slice). **Not** RWLock; **not** a product Condvar; **not** EC-M3.
 
-### 内存序 / Atomic（诚实边界）（ADR-287 / ADR-288 / M3-C03）
+### Memory Ordering / Atomics (Honest Boundaries) (ADR-287 / ADR-288 / M3-C03)
 
-跨 Task / Actor **共享可变状态**须经 `Mutex` / `Semaphore` / `Channel`（或 Actor 隔离）；这些同步操作在切片定义下建立 **happens-before**。本切片**不**提供语言级 `Atomic*` / `memory_order`（SeqCst/Acquire/Release）产品面；**不**交付 `AtomicInt` / CAS / fetchAdd stdlib API。`__syx_wasm_atomic_add_i32` 已登记但 capability **unsupported**（≠ Wasm atomics 产品 GA）。对齐 Memory Model v1（ADR-137）与 Concurrency Model v1（ADR-139 / Sendable）。ADR-288：C03 叶子已签收（docs 切片）。**非** EC-M3。
+**Shared mutable state** across Tasks / Actors must go through `Mutex` / `Semaphore` / `Channel` (or actor isolation); these synchronization operations establish **happens-before** within the slice definition. This slice does **not** offer a language-level `Atomic*` / `memory_order` (SeqCst/Acquire/Release) product surface; it does **not** deliver an `AtomicInt` / CAS / fetchAdd stdlib API. `__syx_wasm_atomic_add_i32` is registered but its capability is **unsupported** (≠ Wasm atomics product GA). Aligned with Memory Model v1 (ADR-137) and Concurrency Model v1 (ADR-139 / Sendable). ADR-288: the C03 leaf is signed (docs slice). **Not** EC-M3.
 
-### race/stress/chaos CI 抽样（ADR-289 / ADR-290 / ADR-291 / M3-C04）
+### race/stress/chaos CI Sampling (ADR-289 / ADR-290 / ADR-291 / M3-C04)
 
-可复现并发 stress 样例库见 `packages/internal/race_stress_samples.toml`（`kind=stress`：Mutex/Semaphore 争用 + C04 抽样冒烟；`kind=chaos`：TaskGroup cancel 中断 + C04 自有 `m3_c04_chaos`）。CI 接线 `m3_c04_race_stress` / `m3_c04_chaos` / `m3_c04_closeout`。叶子已收口（ADR-291）。诚实释义：regression gate corpus；chaos = 协作式取消/中断抽样。**非** TSAN/loom GA；**非** 杀进程/网络分区 chaos 农场；**非** EC-M3-1 高并发压测总勾。
+Reproducible concurrency stress samples live in `packages/internal/race_stress_samples.toml` (`kind=stress`: Mutex/Semaphore contention + C04 sampling smoke; `kind=chaos`: TaskGroup cancellation interruption + C04's own `m3_c04_chaos`). CI wiring: `m3_c04_race_stress` / `m3_c04_chaos` / `m3_c04_closeout`. The leaf is closed out (ADR-291). Honest interpretation: a regression gate corpus; chaos = cooperative cancellation/interruption sampling. **Not** TSAN/loom GA; **not** a kill-process/network-partition chaos farm; **not** the full EC-M3-1 high-concurrency stress hook.
 
-## 与 Swift 差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `actor` 隔离 | **已实现** |
-| `async` / `await` | **已实现**（多 await 状态机 GA） |
-| `Task { }` | **已实现** |
-| `Task.detached` | **已实现** |
-| `TaskGroup` | **已实现**（基础 add / waitAll） |
-| `async let` | **已实现**（desugar detach+join） |
-| Structured Concurrency | **MVP**（非完整 Swift 全集） |
-| `GlobalActor` / `@MainActor` | **已实现** |
-| `Sendable` | **已实现**（strict 模式 C003 E2E） |
-| `Channel` | **已实现** |
-| `select` | **已实现** |
-| `AsyncSequence` `for await in` | **已实现** |
+| `actor` isolation | **Implemented** |
+| `async` / `await` | **Implemented** (multiple-await state machine GA) |
+| `Task { }` | **Implemented** |
+| `Task.detached` | **Implemented** |
+| `TaskGroup` | **Implemented** (basic add / waitAll) |
+| `async let` | **Implemented** (desugars to detach+join) |
+| Structured Concurrency | **MVP** (not the full Swift set) |
+| `GlobalActor` / `@MainActor` | **Implemented** |
+| `Sendable` | **Implemented** (strict mode C003 E2E) |
+| `Channel` | **Implemented** |
+| `select` | **Implemented** |
+| `AsyncSequence` `for await in` | **Implemented** |
 | `distributed actor` | **partial** MVP spike |
-| `Cancellation` | **协作式**（部分实现） |
-| Java `ThreadPoolExecutor` 全集 | **未实现**（**139+**） |
+| `Cancellation` | **Cooperative** (partially implemented) |
+| Full Java `ThreadPoolExecutor` set | **Not implemented** (**139+**) |
 
-## 完整示例
+## Complete Example
 
 ```syx
 import Net
@@ -377,18 +377,18 @@ async func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S020** | 非 `async` 函数使用 `await` | 加 `async` |
-| **A002** | 跨 actor 访问未 `await` | 加 `await` |
-| **C001** | actor 隔离违规 | 移到 actor 隔离区 |
-| **C003** | 跨隔离传非 `Sendable` | 加 `@Sendable` / `@unchecked Sendable` |
-| **R007** | `await ch.receive()` 解包 nil | 检查 `for-in` 或 `while let` |
+| **S020** | Using `await` in a non-`async` function | Add `async` |
+| **A002** | Cross-actor access without `await` | Add `await` |
+| **C001** | Actor isolation violation | Move into the actor isolation domain |
+| **C003** | Passing a non-`Sendable` value across isolation | Add `@Sendable` / `@unchecked Sendable` |
+| **R007** | Unwrapping nil from `await ch.receive()` | Check with `for-in` or `while let` |
 
 ---
 
-**下一章** → [宏](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Macros](19-macros.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [UsageGuide 并发控制](../../docs/9_UsageGuide.md) · [错误处理](17-error-handling.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [UsageGuide Concurrency Control](../../docs/9_UsageGuide.md) · [Error Handling](17-error-handling.md)

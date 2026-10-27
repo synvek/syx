@@ -1,26 +1,26 @@
-# 嵌套类型
+# Nested Types
 
-**实现状态：** 顶层类型 **已实现**；类型内嵌套 `class` / `struct` / `enum` / `final class` **MVP GA**（Phase 139）；`Outer.Inner` 限定路径 **MVP GA**；嵌套可见性 / 继承 / 外层实例访问 **未完整**
+**Implementation status:** top-level types **Implemented**; `class` / `struct` / `enum` / `final class` nested inside a type **MVP GA** (Phase 139); the `Outer.Inner` qualified path **MVP GA**; nested visibility / inheritance / outer-instance access **incomplete**
 
-Swift 允许在类型内嵌套 `struct` / `enum` / `class` / `protocol`。SYX **Phase 139 MVP** 支持常见嵌套声明与 `Outer.Inner` 路径引用；本章说明当前能力、诚实边界与推荐写法。
+Swift allows nesting `struct` / `enum` / `class` / `protocol` inside a type. SYX **Phase 139 MVP** supports common nested declarations and `Outer.Inner` path references; this chapter describes the current capabilities, the honest boundaries, and recommended usage.
 
-## 当前状态
+## Current Status
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
-| 顶层 `class` / `struct` / `enum` / `actor` | **已实现** |
-| 顶层 `protocol` | **已实现** |
-| 类型内 `class` / `struct` / `enum` / `final class` | **MVP GA**（Phase 139） |
-| 嵌套 `protocol` | **部分实现** |
-| `Outer.Inner` 引用语法（类型与构造） | **MVP GA** |
-| 外部类型引用嵌套类型（常见 case） | **MVP GA** |
-| 多层路径 `Outer.Middle.Inner` | **MVP GA** |
-| 嵌套类型继承 / 外层实例访问 | **未实现** |
-| `private` 嵌套可见性 | **未实现**（按文件作用域） |
+| Top-level `class` / `struct` / `enum` / `actor` | **Implemented** |
+| Top-level `protocol` | **Implemented** |
+| `class` / `struct` / `enum` / `final class` inside a type | **MVP GA** (Phase 139) |
+| Nested `protocol` | **Partially implemented** |
+| `Outer.Inner` reference syntax (type and construction) | **MVP GA** |
+| Referring to a nested type from an outer type (common case) | **MVP GA** |
+| Multi-level paths `Outer.Middle.Inner` | **MVP GA** |
+| Nested type inheritance / outer instance access | **Not implemented** |
+| `private` nested visibility | **Not implemented** (file scope applies) |
 
-> **诚实边界：** 内部仍用 `Outer_Inner` 名字修饰；源码中写 `Outer.Inner`，parser/semantic 解析为稳定路径。不是完整 Swift 嵌套作用域规则。
+> **Honest boundary:** internally the name is still mangled as `Outer_Inner`; you write `Outer.Inner` in source and parser/semantic resolve it to a stable path. This is not the complete Swift nested-scope rule set.
 
-## 基本语法
+## Basic Syntax
 
 ```syx
 class Outer {
@@ -35,13 +35,13 @@ func main() {
 }
 ```
 
-类型注解同样使用点路径（内部映射为 `Outer_Inner`）：
+Type annotations use the dotted path as well (mapped internally to `Outer_Inner`):
 
 ```syx
 var x: Outer.Inner = Outer.Inner()
 ```
 
-## 多层嵌套
+## Multiple Levels of Nesting
 
 ```syx
 class Outer {
@@ -58,9 +58,9 @@ func main() {
 }
 ```
 
-## 外部引用（常见 case）
+## External References (Common Case)
 
-嵌套类型可被外层同级类型持有或作为参数：
+A nested type may be held by an outer sibling type or used as a parameter:
 
 ```syx
 class Outer {
@@ -85,9 +85,9 @@ func main() {
 }
 ```
 
-跨模块：导出方用 `public class Outer { public class Inner { ... } }`，导入模块可写 `Outer.Inner()`（见 `nested_cross_module` fixture）。
+Across modules: the exporting side writes `public class Outer { public class Inner { ... } }`, and the importing module may write `Outer.Inner()` (see the `nested_cross_module` fixture).
 
-## extension 内嵌套（部分）
+## Nesting Inside Extensions (Partial)
 
 ```syx
 struct Point {
@@ -109,21 +109,21 @@ extension Point {
 }
 ```
 
-> **extension 内嵌套：** 部分支持；访问通常通过外层实例方法。
+> **Nesting inside extensions:** partially supported; access usually goes through an outer instance method.
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 类型嵌套 | **MVP GA**（常见 case） |
-| `Outer.Inner` 路径访问 | **MVP GA** |
-| 嵌套类型继承 | **未实现** |
-| 嵌套类型访问外层实例 | **未实现** |
-| `private` 嵌套 | **未实现** |
+| Type nesting | **MVP GA** (common cases) |
+| `Outer.Inner` path access | **MVP GA** |
+| Nested type inheritance | **Not implemented** |
+| Nested types accessing the outer instance | **Not implemented** |
+| `private` nesting | **Not implemented** |
 
-## flat 命名（仍可用）
+## Flat Naming (Still Usable)
 
-历史 flat 风格仍兼容，等价于手动名字修饰：
+The historical flat style remains compatible and is equivalent to manual name mangling:
 
 ```syx
 class OuterMarker_Inner {
@@ -131,17 +131,17 @@ class OuterMarker_Inner {
 }
 ```
 
-新代码优先 `Outer.Inner` 点路径。
+New code should prefer the `Outer.Inner` dotted path.
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **P001** | 嵌套语法解析失败 | 检查嵌套 decl 语法 |
-| **S002** | 未知类型 / 未解析路径 | 确认外层类型名与嵌套成员存在 |
+| **P001** | Nested syntax parse failure | Check the nested decl syntax |
+| **S002** | Unknown type / unresolved path | Confirm the outer type name and nested member exist |
 
 ---
 
-**下一章** → [扩展](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Extensions](22-extensions.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [第 10 章 结构体和类](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Chapter 10, Structures and Classes](10-structures-and-classes.md)

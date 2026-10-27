@@ -1,22 +1,22 @@
-# 内存管理与垃圾回收
+# Memory Management and Garbage Collection
 
-**实现状态：** **ARC** for class（Phase 73 · class `ObjectRef` retain/release · VM + WASM tier-2D + Native LLVM 直发）；**ManagedHeap v4 分代追踪 GC** 统一 VM / WASM / Native（Phase 75）；Inkwell LLVM default on（Phase 77）；`syx-rt` 直发 tier-3（Phase 77）；Borrow 借用检查（Phase 74 · SE-0461 + async/actor 子集）
+**Implementation status:** **ARC** for class (Phase 73 · class `ObjectRef` retain/release · VM + WASM tier-2D + Native LLVM direct emit); **ManagedHeap v4 generational tracing GC** unified across VM / WASM / Native (Phase 75); Inkwell LLVM default on (Phase 77); `syx-rt` direct emit tier-3 (Phase 77); Borrow checking (Phase 74 · SE-0461 + async/actor subset)
 
-SYX 内存模型是 **ARC + ManagedHeap 分代追踪 GC** 双轨：class 走 ARC 引用计数（与 Swift 类似的语义，但底层由 host 桥层管理），其余堆对象（Array / String / Dictionary / 闭包等）走 **统一分代追踪 GC**。本章讲清三后端（VM / WASM / Native）的内存协作、`gc` 与 `deinit` 的关系、borrow 借用检查、生命周期标注。
+The SYX memory model is a dual track of **ARC + ManagedHeap generational tracing GC**: classes go through ARC reference counting (semantics similar to Swift, but managed underneath by the host bridge layer), while the remaining heap objects (Array / String / Dictionary / closures, …) go through a **unified generational tracing GC**. This chapter explains the memory cooperation of the three back ends (VM / WASM / Native), the relationship between `gc` and `deinit`, borrow checking, and lifetime annotations.
 
-## 内存模型总览
+## Memory Model Overview
 
-| 后端 | class 引用 | 堆对象（Array/String/Dict/闭包） | 释放模型 |
+| Back end | class references | Heap objects (Array/String/Dict/closures) | Reclamation model |
 |------|------------|-----------------------------------|----------|
-| **VM** | ARC（class `ObjectRef` retain/release） | ManagedHeap v4 分代 GC | 强引用归零 → `deinit`；堆对象 → GC |
-| **WASM** | ARC（tier-2D） | ManagedHeap v4 分代 GC（**Phase 75 统一**） | 同上 |
-| **Native (LLVM)** | ARC（tier-3 直发） | ManagedHeap v4 分代 GC（统一屏障） | 同上 |
+| **VM** | ARC (class `ObjectRef` retain/release) | ManagedHeap v4 generational GC | Strong refcount zero → `deinit`; heap objects → GC |
+| **WASM** | ARC (tier-2D) | ManagedHeap v4 generational GC (**unified in Phase 75**) | Same as above |
+| **Native (LLVM)** | ARC (tier-3 direct emit) | ManagedHeap v4 generational GC (unified barriers) | Same as above |
 
-> **统一 GC LTS（Phase 75）：** VM、WASM、Native 三后端共享 ManagedHeap v4 compact + HeapSlot Array/String 统一实现；mark-sweep + slide compact。
+> **Unified GC LTS (Phase 75):** the VM, WASM and Native back ends share ManagedHeap v4 compact + the unified HeapSlot Array/String implementation; mark-sweep + slide compact.
 
-## ARC（class 引用语义）
+## ARC (class Reference Semantics)
 
-class 实例是 **堆分配 + 引用计数**。`ObjectRef` 跟踪 retain / release：
+A class instance is **heap allocated + reference counted**. `ObjectRef` tracks retain / release:
 
 ```syx
 class User {
@@ -34,65 +34,65 @@ func main() {
 }                                            // release → deinit
 ```
 
-> **deinit 触发：** refcount 归零时调用 `Type_deinit`（class 显式 deinit）。详见 [第 16 章 析构过程](../../docs/adr/architecture-decisions.md)。
+> **deinit trigger:** `Type_deinit` is called when the refcount reaches zero (an explicit class deinit). See [Chapter 16, Deinitialization](16-deinitialization.md).
 
-| 特性 | 状态 |
+| Feature | Status |
 |------|------|
-| class `ObjectRef` | **已实现**（Phase 73） |
-| retain / release | **已实现** |
-| ARC 归零 → deinit | **已实现**（Phase 102/103 MVP） |
-| `weak var` 完整 | **部分实现**（词法保留，归零判定演进中） |
-| `unowned var` | **部分实现** |
+| class `ObjectRef` | **Implemented** (Phase 73) |
+| retain / release | **Implemented** |
+| ARC zeroing → deinit | **Implemented** (Phase 102/103 MVP) |
+| Complete `weak var` | **Partially implemented** (lexically reserved; zeroing judgment still evolving) |
+| `unowned var` | **Partially implemented** |
 
-## ManagedHeap 分代追踪 GC
+## ManagedHeap Generational Tracing GC
 
-非 class 堆对象（`Array<T>` / `String` / `Dictionary<K,V>` / 闭包）走 **分代追踪 GC**：
+Non-class heap objects (`Array<T>` / `String` / `Dictionary<K,V>` / closures) go through a **generational tracing GC**:
 
-| 机制 | 状态 |
+| Mechanism | Status |
 |------|------|
-| Mark-sweep | **已实现**（Phase 73） |
-| 分代 young/old | **已实现**（Phase 75 统一） |
-| Promotion | **已实现** |
-| Remembered set / card table | **已实现**（三后端联动） |
-| Slide compact | **已实现**（Phase 75 v4） |
-| Relocating GC | **已实现**（Phase 37 ADR-037） |
-| Write barrier | **已实现**（跨代写入触发 remember update） |
+| Mark-sweep | **Implemented** (Phase 73) |
+| Generational young/old | **Implemented** (unified in Phase 75) |
+| Promotion | **Implemented** |
+| Remembered set / card table | **Implemented** (three-back-end linkage) |
+| Slide compact | **Implemented** (Phase 75 v4) |
+| Relocating GC | **Implemented** (Phase 37 ADR-037) |
+| Write barrier | **Implemented** (a cross-generation write triggers a remember update) |
 
-> **三后端联动：** ADR-045（Phase 34）将 VM / WASM / Native 的 GC 屏障统一；MIR v23 LICM 统一三后端屏障放置。
+> **Three-back-end linkage:** ADR-045 (Phase 34) unified the GC barriers of VM / WASM / Native; MIR v23 LICM unified barrier placement across the three back ends.
 
 ```syx
 func makeLargeArray() -> Array<Int> {
     var arr: Array<Int> = []
     for i in 0..<10_000 { arr.append(i) }
-    return arr                              // young gen 分配；出作用域由 GC 回收
+    return arr                              // young gen allocation; reclaimed by GC when it leaves scope
 }
 ```
 
-### GC 配置（环境变量）
+### GC Configuration (Environment Variables)
 
-| 变量 | 效果 |
+| Variable | Effect |
 |------|------|
-| `SYX_UNIFIED_GC_LTS=1` | 启用 Unified GC LTS（默认 prod） |
-| `SYX_UNIFIED_GC_LTS_PROD=1` | 强制 prod 模式 |
-| `SYX_WASI_GC_PHASE33=1` | 启用 WASI 分代 GC（Phase 33） |
-| `SYX_VM_NATIVE_GC_PHASE33=1` | 启用 VM/native 分代 GC（Phase 33） |
-| `SYX_GC_NURSERY=1048576` | nursery 大小（字节，默认 1 MB） |
+| `SYX_UNIFIED_GC_LTS=1` | Enables Unified GC LTS (prod by default) |
+| `SYX_UNIFIED_GC_LTS_PROD=1` | Forces prod mode |
+| `SYX_WASI_GC_PHASE33=1` | Enables WASI generational GC (Phase 33) |
+| `SYX_VM_NATIVE_GC_PHASE33=1` | Enables VM/native generational GC (Phase 33) |
+| `SYX_GC_NURSERY=1048576` | Nursery size (bytes, default 1 MB) |
 
-### 何时触发 GC
+### When GC Triggers
 
-- **自动：** 分配速率 / 堆占用阈值 / nursery 满
-- **手动：** `import Runtime; Runtime.gc()` 强制回收（**部分实现**）
-- **作用域退出：** ARC 归零立即触发 `deinit`；堆对象延迟 GC
+- **Automatic:** allocation rate / heap occupancy threshold / nursery full
+- **Manual:** `import Runtime; Runtime.gc()` forces collection (**Partially implemented**)
+- **Scope exit:** ARC zeroing triggers `deinit` immediately; heap objects are collected by GC later
 
-## `deinit` 与 GC
+## `deinit` and GC
 
-| 类型 | 释放模型 | `deinit` 时机 |
+| Type | Reclamation model | `deinit` timing |
 |------|----------|---------------|
-| `class` | ARC | refcount 归零 |
-| `actor` | ARC + 隔离 | refcount 归零 + actor 关闭 |
-| `struct` | 栈 | 无（值类型） |
-| `enum` | 视 case | 视 case |
-| `Array<T>` 等 | GC | GC 回收时（不确定时机） |
+| `class` | ARC | Refcount reaches zero |
+| `actor` | ARC + isolation | Refcount reaches zero + actor shutdown |
+| `struct` | Stack | None (value type) |
+| `enum` | Depends on the case | Depends on the case |
+| `Array<T>` and others | GC | When GC reclaims (nondeterministic timing) |
 
 ```syx
 class Resource {
@@ -113,13 +113,13 @@ func main() {
 }                                            // c: ARC -1 → deinit → c.res: ARC -1 → deinit
 ```
 
-## 借用 &T / &mut T
+## Borrowing &T / &mut T
 
-借用是编译期**引用安全**机制（不涉及运行时）：
+Borrowing is a compile-time **reference safety** mechanism (it does not involve the runtime):
 
 ```syx
-func read(x: &Int) -> Int { return x }      // 不可变借用
-func write(x: &mut Int) { x = x + 1 }        // 可变借用
+func read(x: &Int) -> Int { return x }      // Immutable borrow
+func write(x: &mut Int) { x = x + 1 }        // Mutable borrow
 
 func main() {
     var n = 10
@@ -129,70 +129,70 @@ func main() {
 }
 ```
 
-| 形式 | 含义 |
+| Form | Meaning |
 |------|------|
-| `&T` | 不可变借用（可同时多个） |
-| `&mut T` | 可变借用（同时只能一个） |
-| `&'a T` | 带生命周期标注（**部分实现**） |
+| `&T` | Immutable borrow (several at once) |
+| `&mut T` | Mutable borrow (only one at a time) |
+| `&'a T` | With a lifetime annotation (**Partially implemented**) |
 
-> **借用规则：** 同一时刻不能同时有可变借用与任何其他借用。违反 → **S011** 编译错误。
+> **Borrow rules:** a mutable borrow cannot coexist with any other borrow at the same time. A violation → **S011** compile error.
 
 ```syx
 var n = 10
 let r1 = &mut n
-// let r2 = &n                              // ❌ S011：cannot borrow as immutable while mutably borrowed
-// print(n)                                 // ❌ S011：cannot access through mutable borrow
+// let r2 = &n                              // ❌ S011: cannot borrow as immutable while mutably borrowed
+// print(n)                                 // ❌ S011: cannot access through mutable borrow
 r1 = &mut n
 ```
 
-**诊断：** S011（借用/变异违规）
+**Diagnostic:** S011 (borrow/mutation violation)
 
-## 生命周期 'a
+## Lifetimes 'a
 
 ```syx
 func id<'a>(x: &'a String) -> &'a String { return x }
 ```
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
-| 生命周期标注 | **部分实现**（S017） |
-| NLL（Non-Lexical Lifetimes） | **已实现** |
-| 跨 await 借用 | **部分实现** |
-| 高阶生命周期 | **未实现** |
+| Lifetime annotations | **Partially implemented** (S017) |
+| NLL (Non-Lexical Lifetimes) | **Implemented** |
+| Borrows across `await` | **Partially implemented** |
+| Higher-ranked lifetimes | **Not implemented** |
 
-测试：`p15_lifetime_a_*.sy` · `p17_lifetime_await_*.sy`
+Tests: `p15_lifetime_a_*.sy` · `p17_lifetime_await_*.sy`
 
-## Native / LLVM 后端
+## Native / LLVM Back End
 
-Phase 75 起 **Inkwell Prod GA**（[ADR-044](../../docs/adr/architecture-decisions.md)）将真 inkwell crate IR builder 设为默认 native 编译路径：
+Since Phase 75, **Inkwell Prod GA** ([ADR-044](../../docs/adr/architecture-decisions.md)) has made the real inkwell crate IR builder the default native compilation path:
 
-- 统一分代 GC barriers 直出 native
-- ARC class retain/release 走 `__syx_object_*` 直发
-- `syx-rt` 静态库提供 host 桥层
+- Unified generational GC barriers emitted directly to native
+- ARC class retain/release goes through `__syx_object_*` direct emit
+- The `syx-rt` static library provides the host bridge layer
 
-**Phase 77 增强：**
+**Phase 77 enhancements:**
 
-- `materialize_array` / `materialize_dict` 走 HeapSlot
-- `rt_direct_exec` 栈操作直发
-- `reflect_specialization` 泛型特化反射 MVP
-- obligation 导出（borrow 机器证明）
+- `materialize_array` / `materialize_dict` go through HeapSlot
+- `rt_direct_exec` stack operations emitted directly
+- `reflect_specialization` generic specialization reflection MVP
+- obligation export (borrow machine proofs)
 
-## 工具链缓存
+## Toolchain Cache
 
-- `target/cache/` MIR 增量编译（`syx-cache-v110`）
-- 编译期行为异常时删除缓存后重试
+- `target/cache/` MIR incremental compilation (`syx-cache-v110`)
+- If compile-time behavior looks wrong, delete the cache and retry
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift ARC | SYX |
 |-----------|-----|
-| 引用归零即 deinit | **部分实现**（scope-exit + ARC 归零 MVP） |
-| `weak` / `unowned` 完整 | **部分实现**（词法保留，归零判定演进） |
-| `autoreleasepool` | **未实现**（用 GC 替代） |
-| 完整 `move` 语义 | **部分实现**（borrow regions v8） |
-| Swift 6 严格并发 | **部分实现**（Sendable / actor / `@MainActor`） |
+| Refcount zeroing means immediate deinit | **Partially implemented** (scope-exit + ARC zeroing MVP) |
+| Complete `weak` / `unowned` | **Partially implemented** (lexically reserved; zeroing judgment still evolving) |
+| `autoreleasepool` | **Not implemented** (GC replaces it) |
+| Complete `move` semantics | **Partially implemented** (borrow regions v8) |
+| Swift 6 strict concurrency | **Partially implemented** (Sendable / actor / `@MainActor`) |
 
-## 完整示例
+## Complete Example
 
 ```syx
 class Buffer {
@@ -209,36 +209,36 @@ func process(b: &Buffer) {
 
 func main() {
     let b = Buffer(size: 10)                // ARC +1
-    process(b: &b)                           // 不可变借用
+    process(b: &b)                           // Immutable borrow
 
-    // Array 元素修改走 GC write barrier
+    // Array element modification goes through the GC write barrier
     for i in 0..<b.data.count {
         b.data[i] = b.data[i] + 1
     }
-    // 局部变量出作用域 → ARC -1 → deinit
+    // The local variable leaves scope → ARC -1 → deinit
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S003** | 对 `let` 借用再赋值 | 改 `var` |
-| **S011** | 同时可变 + 不可变借用 | 调整作用域 |
-| **S017** | 生命周期违规 | 显式标注或重组代码 |
-| **R011** | 整数溢出 | 检查边界 |
-| **R016** | 必填字段未初始化 | 完整 init |
+| **S003** | Reassigning a borrowed `let` | Change it to `var` |
+| **S011** | Mutable + immutable borrow at the same time | Restructure the scopes |
+| **S017** | Lifetime violation | Annotate explicitly or restructure the code |
+| **R011** | Integer overflow | Check the bounds |
+| **R016** | Required field not initialized | Complete the init |
 
-## 进一步阅读
+## Further Reading
 
-- [第 27 章 内存安全](../../docs/adr/architecture-decisions.md) — 借用机器证明 / Sendable
-- [第 16 章 析构过程](../../docs/adr/architecture-decisions.md) — deinit 触发
-- [第 18 章 并发](../../docs/adr/architecture-decisions.md) — actor 隔离 / Sendable
-- [docs/10_BackendParity.md](../../docs/10_BackendParity.md) — VM / MIR / LLVM / WASM 内存对齐
-- [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md) — ADR-045（统一 GC LTS）等
+- [Chapter 27, Memory Safety](27-memory-safety.md) — borrow machine proofs / Sendable
+- [Chapter 16, Deinitialization](16-deinitialization.md) — deinit triggering
+- [Chapter 18, Concurrency](18-concurrency.md) — actor isolation / Sendable
+- [docs/10_BackendParity.md](../../docs/10_BackendParity.md) — VM / MIR / LLVM / WASM memory alignment
+- [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md) — ADR-045 (unified GC LTS) and others
 
 ---
 
-**下一章** → [内存安全](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Memory Safety](27-memory-safety.md)
 
-**参见** → [第 16 章 析构过程](../../docs/adr/architecture-decisions.md) · [第 18 章 并发](../../docs/adr/architecture-decisions.md) · [docs/10_BackendParity.md](../../docs/10_BackendParity.md) · [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md)
+**See also** → [Chapter 16, Deinitialization](16-deinitialization.md) · [Chapter 18, Concurrency](18-concurrency.md) · [docs/10_BackendParity.md](../../docs/10_BackendParity.md) · [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md)

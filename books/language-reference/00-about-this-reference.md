@@ -1,100 +1,100 @@
-# 关于本参考
+# About This Reference
 
-本参考描述 **SYX 语言** 的词法、语法、类型、表达式、语句、声明、特性（Attributes）、模式、泛型与协议的形式化规则，面向需要精确查阅语言形式的读者（编译器贡献者、SDK 维护者、深度语言用户）。
+This reference describes the formal rules of the **SYX language** — lexical structure, grammar, types, expressions, statements, declarations, attributes, patterns, generics and protocols — for readers who need to look things up precisely (compiler contributors, SDK maintainers, advanced language users).
 
-> **当前版本：** SYX **117.0**（Phase **139**）· `syx-cache-v1` · 许可证 [Apache-2.0](../../LICENSE) · 文档同步 2026-10-27
+> **Current version:** SYX **117.0** (Phase **139**) · `syx-cache-v1` · license [Apache-2.0](../../LICENSE) · documentation last synced 2026-10-27
 >
-> 完整状态见 [shared/implementation-status.md](../shared/implementation-status.md)；架构决议见 [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md)；能力摘要见 [docs/adr/capabilities-summary.md](../../docs/adr/capabilities-summary.md)。
+> For the full status matrix, see [shared/implementation-status.md](../shared/implementation-status.md); for architecture decisions, see [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md); for the capabilities summary, see [docs/adr/capabilities-summary.md](../../docs/adr/capabilities-summary.md).
 
-## 与《语言指南》的关系
+## Relationship to the *Language Guide*
 
-| 本参考 | 《语言指南》 |
+| This Reference | The *Language Guide* |
 |--------|--------------|
-| 形式化定义、语法表、诊断码 | 叙事讲解、完整范例、学习路径 |
-| 「`if` 语句的语法是什么？」 | 「如何用 `if` 写分支逻辑？」 |
+| Formal definitions, grammar tables, diagnostic codes | Narrative explanations, complete examples, learning path |
+| "What is the grammar of an `if` statement?" | "How do I write branching logic with `if`?" |
 
-每章末尾「**用法示例**」链接到指南对应章节；指南每章末尾「**参见**」回链到参考。
+The "**Usage examples**" at the end of each chapter link to the corresponding guide chapter; the "**See also**" at the end of each guide chapter links back to this reference.
 
-## 章节结构
+## Chapter Structure
 
-| # | 章节 | 内容 |
+| # | Chapter | Contents |
 |---|------|------|
-| 1 | [词法结构](../../docs/adr/architecture-decisions.md) | Token、关键字、字面量、注释、转义 |
-| 2 | [类型](../../docs/adr/architecture-decisions.md) | 类型表达式、数值、String、集合、引用、不透明、SIMD |
-| 3 | [表达式](../../docs/adr/architecture-decisions.md) | 表达式分类、优先级表 |
-| 4 | [语句](../../docs/adr/architecture-decisions.md) | 变量声明、控制流、异常 |
-| 5 | [声明](../../docs/adr/architecture-decisions.md) | import / func / class / struct / enum / actor / protocol / extension |
-| 6 | [特性（Attributes）](../../docs/adr/architecture-decisions.md) | `@attached` / `@Service` / `@Around` / `@resultBuilder` / `@Equatable` 等 |
-| 7 | [模式](../../docs/adr/architecture-decisions.md) | 变体、元组、switch / if case 模式 |
-| 8 | [泛型形参和实参](../../docs/adr/architecture-decisions.md) | `<T>` / where / 协议约束 / 单态化 |
-| 9 | [协议与一致性](../../docs/adr/architecture-decisions.md) | 协议声明、一致性、witness、存在类型 |
-| 10 | [语法摘要](../../docs/adr/architecture-decisions.md) | EBNF / 模块 / 函数 / 类型 / 表达式 |
-| A | [附录：实现状态矩阵](appendix-implementation-matrix.md) | 指向实现状态总表 |
+| 1 | [Lexical Structure](01-lexical-structure.md) | Tokens, keywords, literals, comments, escapes |
+| 2 | [Types](02-types.md) | Type expressions, numerics, String, collections, references, opaque types, SIMD |
+| 3 | [Expressions](03-expressions.md) | Expression classification, precedence table |
+| 4 | [Statements](04-statements.md) | Variable declarations, control flow, exceptions |
+| 5 | [Declarations](05-declarations.md) | import / func / class / struct / enum / actor / protocol / extension |
+| 6 | [Attributes](06-attributes.md) | `@attached` / `@Service` / `@Around` / `@resultBuilder` / `@Equatable` and more |
+| 7 | [Patterns](07-patterns.md) | Variants, tuples, switch / if case patterns |
+| 8 | [Generic Parameters and Arguments](08-generic-parameters-and-arguments.md) | `<T>` / where / protocol constraints / monomorphization |
+| 9 | [Protocols and Conformances](09-protocols-and-conformances.md) | Protocol declarations, conformances, witnesses, existential types |
+| 10 | [Grammar Summary](10-grammar-summary.md) | EBNF / modules / functions / types / expressions |
+| A | [Appendix: Implementation Status Matrix](appendix-implementation-matrix.md) | Points at the implementation status master table |
 
-## 记号约定
+## Notation Conventions
 
-| 记号 | 含义 |
+| Notation | Meaning |
 |------|------|
-| `…` | 语法元素 |
-| `\|` | 择一 |
-| `?` | 可选 |
-| `*` | 零次或多次 |
-| `+` | 一次或多次 |
-| `[x]` | 可选分组 |
-| `{x}` | 零或多重复 |
-| `(x \| y)` | 分组 |
-| `terminal` | 终结符（关键字 / 标点） |
-| `nonterm` | 非终结符 |
+| `…` | Grammar element |
+| `\|` | Alternative |
+| `?` | Optional |
+| `*` | Zero or more times |
+| `+` | One or more times |
+| `[x]` | Optional group |
+| `{x}` | Zero or more repetitions |
+| `(x \| y)` | Grouping |
+| `terminal` | Terminal (keyword / punctuation) |
+| `nonterm` | Nonterminal |
 
-## 实现状态
+## Implementation Status
 
-每条规则或特性标注四档之一（详见 [shared/implementation-status.md](../shared/implementation-status.md)）：
+Every rule or feature is marked with one of five tiers (see [shared/implementation-status.md](../shared/implementation-status.md)):
 
-| 档位 | 含义 |
+| Tier | Meaning |
 |------|------|
-| **已实现** / **GA** | `syx run` 或 parity / 硬闸可验证 |
-| **部分实现** / **partial GA** | 可解析/编译但语义不完整 |
-| **计划中** | roadmap 有记录，实现未完成 |
-| **未实现** | 无对应 AST/语义 |
-| **拒绝** | 有意 fail-closed（编译器会报错） |
+| **Implemented** / **GA** | Verifiable with `syx run`, parity, or hard gates |
+| **Partially implemented** / **partial GA** | Parses/compiles but semantics are incomplete |
+| **Planned** | Recorded on the roadmap, implementation unfinished |
+| **Not implemented** | No corresponding AST/semantics |
+| **Rejected** | Deliberately fail-closed (the compiler reports an error) |
 
-## 诊断代码前缀
+## Diagnostic Code Prefixes
 
-| 前缀 | 阶段 | 范围 | 示例 |
+| Prefix | Phase | Scope | Example |
 |------|------|------|------|
-| L | 词法 / Lint | 词法单元、命名规范 | L001 未闭合字符串 / L001 函数名应小写 |
-| P | 解析 | 语法错误 | P001 parse error |
-| S | 语义 | 符号、类型、借用 | S002 未定义标识符 |
-| A | Actor | 隔离违规 | A002 cross-actor access |
-| C | 并发 | 跨隔离、Sendable | C003 非 Sendable |
-| R | 运行时 | panic / trap | R007 force unwrap nil |
-| H | Host 插件 | dlopen / 验签 | H001 插件未加载 |
-| E | 宏 | 展开错误 | E002 宏展开深度超限 |
-| W | 警告 | 编译期警告 | W001 #warning |
+| L | Lexical / Lint | Tokens, naming conventions | L001 unterminated string / L001 function names should be lowercase |
+| P | Parsing | Syntax errors | P001 parse error |
+| S | Semantic | Symbols, types, borrowing | S002 undefined identifier |
+| A | Actor | Isolation violations | A002 cross-actor access |
+| C | Concurrency | Cross-isolation, Sendable | C003 not Sendable |
+| R | Runtime | panic / trap | R007 force unwrap nil |
+| H | Host plugin | dlopen / signature verification | H001 plugin not loaded |
+| E | Macro | Expansion errors | E002 macro expansion depth exceeded |
+| W | Warning | Compile-time warnings | W001 #warning |
 
-完整索引见 [语言指南附录 B 诊断代码索引](../language-guide/appendix-b-diagnostic-index.md)。
+The full index lives in [Language Guide Appendix B: Diagnostic Code Index](../language-guide/appendix-b-diagnostic-index.md).
 
-## 与编译器实现的关系
+## Relationship to the Compiler Implementation
 
-| 本参考 | 编译器源码 |
+| This Reference | Compiler source |
 |--------|------------|
-| 词法 | `crates/syx-lexer/src/` |
-| 语法（AST） | `crates/syx-ast/src/lib.rs` |
-| 解析 | `crates/syx-parser/src/` |
-| 语义 | `crates/syx-semantic/src/` |
-| 宏展开 | `crates/syx-macro/src/` |
+| Lexical | `crates/syx-lexer/src/` |
+| Syntax (AST) | `crates/syx-ast/src/lib.rs` |
+| Parsing | `crates/syx-parser/src/` |
+| Semantics | `crates/syx-semantic/src/` |
+| Macro expansion | `crates/syx-macro/src/` |
 | MIR | `crates/syx-mir/src/` |
 | Codegen | `crates/syx-codegen/src/` / `crates/syx-llvm/src/` / `crates/syx-wasm-emit/src/` |
 | VM | `crates/syx-vm/src/` |
 
-完整 BNF 与 parser 同步更新于 [docs/2_SyntaxAnalysis.md](../../docs/2_SyntaxAnalysis.md)。
+The complete BNF is kept in sync with the parser in [docs/2_SyntaxAnalysis.md](../../docs/2_SyntaxAnalysis.md).
 
-## 工具链
+## Toolchain
 
-- 安装 / CLI / 项目配置：[docs/9_UsageGuide.md](../../docs/9_UsageGuide.md)
-- 语法速查：[docs/8_QuickReference.md](../../docs/8_QuickReference.md)
-- 编译器技术文档：[docs/README.md](../../docs/README.md)
+- Installation / CLI / project configuration: [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md)
+- Syntax cheat sheet: [docs/8_QuickReference.md](../../docs/8_QuickReference.md)
+- Compiler technical documentation: [docs/README.md](../../docs/README.md)
 
 ---
 
-**用法示例** → [语言指南](../language-guide/00-preface.md)
+**Usage examples** → [Language Guide](../language-guide/00-preface.md)

@@ -1,10 +1,10 @@
-# 枚举
+# Enumerations
 
-**实现状态：** 简单枚举 / 关联值 / 泛型枚举 / `switch` exhaustiveness / `if case` **全部已实现**；raw value 自动 Int **部分实现**；`indirect enum` **未实现**
+**Implementation status:** simple enums / associated values / generic enums / `switch` exhaustiveness / `if case` are **all Implemented**; automatic `Int` raw values **Partially implemented**; `indirect enum` **Not implemented**
 
-枚举定义一组相关值。SYX 枚举是 Swift 风格「**代数数据类型**（ADT）」：每个 case 可以是简单标识，也可以携带关联值。
+An enumeration defines a group of related values. SYX enums are Swift-style "**algebraic data types** (ADT)": each case may be a simple identifier or may carry associated values.
 
-## 简单枚举
+## Simple Enumerations
 
 ```syx
 enum Status {
@@ -14,14 +14,14 @@ enum Status {
 }
 
 let s = Status.ok
-print(s.tag)                              // 0（内部 tag）
+print(s.tag)                              // 0 (internal tag)
 ```
 
-> **关键字 `case`：** SYX 简单枚举 **必须** 写 `case`（与 Swift 1.x 早期风格一致；`enum Status { ok, err, pending }` 不合法）。
+> **The `case` keyword:** SYX simple enums **must** write `case` (consistent with early Swift 1.x style; `enum Status { ok, err, pending }` is not legal).
 
-来源：`crates/syx-driver/tests/fixtures/lang/enum_associated.sy`
+Source: `crates/syx-driver/tests/fixtures/lang/enum_associated.sy`
 
-## 关联值（associated values）
+## Associated Values
 
 ```syx
 enum NetworkResult {
@@ -33,13 +33,13 @@ let r1 = NetworkResult.success("OK")
 let r2 = NetworkResult.failure(code: 404, message: "Not Found")
 ```
 
-- 关联值可命名（`code:`, `message:`）或匿名（位置）
-- 一个枚举可有多种 case 形态（discriminated union）
-- `Result<T, E>` 标准库定义见 `packages/core/builtins/result.sy`
+- Associated values may be named (`code:`, `message:`) or anonymous (positional)
+- One enum may have several case shapes (discriminated union)
+- The standard library `Result<T, E>` is defined in `packages/core/builtins/result.sy`
 
-来源：`crates/syx-driver/tests/fixtures/lang/enum_associated.sy`
+Source: `crates/syx-driver/tests/fixtures/lang/enum_associated.sy`
 
-## switch 匹配
+## switch Matching
 
 ```syx
 func describe(_ r: NetworkResult) -> String {
@@ -50,31 +50,31 @@ func describe(_ r: NetworkResult) -> String {
     case .failure(code: let c, message: let m) {
         return "fail code=\(c) msg=\(m)"
     }
-    default {                              // enum 可缺 default；非封闭域需
+    default {                              // An enum may omit default; an open domain needs one
         return "?"
     }
     }
 }
 ```
 
-> **花括号：** SYX `case` **必须** 跟 `{ }` 块。详见 [第 6 章 控制流](06-control-flow.md#switch)。
+> **Braces:** a SYX `case` **must** be followed by a `{ }` block. See [Chapter 6, Control Flow](06-control-flow.md).
 
-### 命名关联值的解构
+### Destructuring Named Associated Values
 
 ```syx
-case .failure(code: let c, message: let m) { … }    // 命名
-case .failure(let c, let m) { … }                  // 位置
-case let .success(data) { … }                       // 单参数简写
+case .failure(code: let c, message: let m) { … }    // Named
+case .failure(let c, let m) { … }                  // Positional
+case let .success(data) { … }                       // Single-parameter shorthand
 ```
 
-### `where` 守卫
+### `where` Guards
 
 ```syx
 case .success(let data) where (data.count > 0) { … }
 case .failure(let m) where (m.hasPrefix("5")) { … }
 ```
 
-详见 [第 6 章 控制流](06-control-flow.md#守卫-where)。
+See [Chapter 6, Control Flow](06-control-flow.md).
 
 ## if case
 
@@ -86,9 +86,9 @@ if case .success(let data) = result {
 }
 ```
 
-`if case` 是 `switch` 单分支的便捷形式。`case` 后模式与 `switch` case 一致。
+`if case` is a convenient single-branch form of `switch`. The patterns after `case` are the same as in a `switch` case.
 
-## 泛型枚举
+## Generic Enumerations
 
 ```syx
 enum Optional<T> {
@@ -102,13 +102,13 @@ enum Result<T, E> {
 }
 ```
 
-- 泛型参数在枚举名后
-- 单态化生成 `Optional<Int>` / `Optional<String>` 等具体实例
-- 标准 `Optional` 与 `Result` 是预声明的（不用自己写）
+- Generic parameters come after the enum name
+- Monomorphization generates concrete instances such as `Optional<Int>` / `Optional<String>`
+- The standard `Optional` and `Result` are pre-declared (you need not write them yourself)
 
-**已实现**（`fixtures/lang/enum_associated.sy`）
+**Implemented** (`fixtures/lang/enum_associated.sy`)
 
-## 嵌套类型
+## Nested Types
 
 ```syx
 enum Tree {
@@ -117,9 +117,9 @@ enum Tree {
 }
 ```
 
-> **递归嵌套：** 单层递归编译为对象引用；深层递归需要 `indirect enum`（**未实现**，规划中）。当前用 `class` 包装替代。
+> **Recursive nesting:** a single level of recursion compiles to an object reference; deep recursion needs `indirect enum` (**Not implemented**, planned). Wrap it in a `class` for now.
 
-## Raw value（部分实现）
+## Raw Values (Partially Implemented)
 
 ```syx
 enum Direction: Int {
@@ -130,15 +130,15 @@ enum Direction: Int {
 }
 ```
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
-| `: Int` raw value | **部分实现**（Phase 50 基础） |
-| `: String` raw value | **未实现** |
-| 隐式 raw value | **未实现**（必须显式赋值） |
+| `: Int` raw value | **Partially implemented** (Phase 50 basics) |
+| `: String` raw value | **Not implemented** |
+| Implicit raw values | **Not implemented** (assignment must be explicit) |
 
-> **替代：** 简单枚举可用普通 case + 显式 `Int` 转换。完整 raw value → 后续 Phase。
+> **Alternative:** a simple enum can use ordinary cases plus an explicit `Int` conversion. Full raw value support → later Phases.
 
-## 枚举的方法
+## Enum Methods
 
 ```syx
 enum Status {
@@ -165,11 +165,11 @@ print(Status.ok.isFinal())                 // true
 print(Status.pending.description())        // "..."
 ```
 
-> **`self`：** 在枚举方法内 `self` 是当前 case（已绑定 case + 关联值）。
+> **`self`:** inside an enum method, `self` is the current case (already bound to the case plus its associated values).
 
-## 枚举与协议
+## Enums and Protocols
 
-枚举可实现协议（`Equatable` / `Hashable` / `Codable` 等）：
+Enums may adopt protocols (`Equatable` / `Hashable` / `Codable` and others):
 
 ```syx
 @Equatable
@@ -182,13 +182,13 @@ enum Status {
 print(Status.ok == Status.err)            // false
 ```
 
-> **手动实现：** 关联值枚举的 `==` 由编译器按 case + 关联值生成（**已实现**，`Equatable` 合成）。
+> **Manual implementation:** `==` for an associated-value enum is generated by the compiler from case + associated values (**Implemented**, `Equatable` synthesis).
 
-`@Hashable` / `@Codable` 详见 [第 19 章 宏](19-macros.md#证明宏l1-ga--l2-partialphase-5052119)。
+For `@Hashable` / `@Codable`, see [Chapter 19, Macros](19-macros.md).
 
-## Codable L2（关联值 enum）
+## Codable L2 (Associated-Value Enums)
 
-Phase 129 起，带关联值的 enum **全自动** 合成 `encode` / `decode`（指纹 `macro-codable-l2:associated-enum-auto`）：
+Since Phase 129, enums with associated values get `encode` / `decode` **fully automatically** (fingerprint `macro-codable-l2:associated-enum-auto`):
 
 ```syx
 @Codable
@@ -204,11 +204,11 @@ func main() {
 }
 ```
 
-限制：泛型关联值全集 / 任意嵌套 / 自定义 coding keys → 后续 Phase。
+Limits: the full set of generic associated values / arbitrary nesting / custom coding keys → later Phases.
 
-## exhaustiveness
+## Exhaustiveness
 
-枚举与 `final class` 封闭域在 `switch` 中自动做穷尽检查；未覆盖全部 case → **S007**。
+Enums and `final class` closed domains get automatic exhaustiveness checking in `switch`; incomplete case coverage → **S007**.
 
 ```syx
 enum Color { case red, green, blue }
@@ -218,29 +218,29 @@ func describe(_ c: Color) -> String {
     case .red { return "red" }
     case .green { return "green" }
     case .blue { return "blue" }
-    }                                       // ✅ 全覆盖
+    }                                       // ✅ Fully covered
 }
 
 func incomplete(_ c: Color) -> String {
     switch (c) {
     case .red { return "red" }
-    }                                       // ❌ S007：missing cases
+    }                                       // ❌ S007: missing cases
 }
 ```
 
-## 与 `final class` 的取舍
+## Choosing Between Enums and `final class`
 
-| 需求 | 选 |
+| Need | Choose |
 |------|-----|
-| 单 case 共享结构、模式匹配 | `enum` |
-| 含字段的方法或继承 | `class` / `final class` |
-| 跨进程 / 反序列化 | `enum`（更小、更纯） |
-| 关联值有命名参数 | `enum case`（`case failure(code:, message:)`） |
-| 变体需要附加方法或共享基类 | `class`（多态）或 `final class`（封闭） |
+| One shared case structure, pattern matching | `enum` |
+| Methods with fields, or inheritance | `class` / `final class` |
+| Cross-process / deserialization | `enum` (smaller, purer) |
+| Associated values with named parameters | `enum case` (`case failure(code:, message:)`) |
+| Variants need extra methods or a shared base class | `class` (polymorphic) or `final class` (closed) |
 
-> **注意：** lexer **无** `sealed` 关键字；ADT 用 `enum`，禁止子类化用 `final class`。
+> **Note:** the lexer has **no** `sealed` keyword; use `enum` for ADTs and `final class` to forbid subclassing.
 
-## 完整示例
+## Complete Example
 
 ```syx
 import JSON
@@ -279,27 +279,27 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S007** | `switch` 非穷尽（未覆盖所有 case） | 加缺失 case 或 `default` |
-| **S010** | 关联值解构不匹配 | 检查 enum 定义 |
-| **P001** | `case` 缺少花括号块 | 加 `{ }` |
+| **S007** | Non-exhaustive `switch` (not all cases covered) | Add the missing cases or a `default` |
+| **S010** | Associated-value destructuring mismatch | Check the enum definition |
+| **P001** | `case` missing its brace block | Add `{ }` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `case ok, err`（无 `case` 关键字） | **必须** `case ok` / `case err` |
-| `indirect enum` 递归 | **未实现**（用 class 包装） |
-| `String` / 字符 raw value | **未实现**（仅 Int 部分） |
-| `CustomStringConvertible` 默认实现 | 需显式 `func description() -> String` |
-| `@Codable` 关联值枚举 | **部分 GA**（L2 全自动 Phase 129） |
-| `if case let` | `if case .variant(let x) = expr`（语法稍异） |
+| `case ok, err` (without the `case` keyword) | **Must** write `case ok` / `case err` |
+| Recursive `indirect enum` | **Not implemented** (wrap in a class) |
+| `String` / character raw values | **Not implemented** (only Int, partially) |
+| Default `CustomStringConvertible` implementation | An explicit `func description() -> String` is needed |
+| `@Codable` associated-value enums | **Partial GA** (L2 fully automatic, Phase 129) |
+| `if case let` | `if case .variant(let x) = expr` (slightly different syntax) |
 
 ---
 
-**下一章** → [结构体和类](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Structures and Classes](10-structures-and-classes.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [第 6 章 控制流](../../docs/adr/architecture-decisions.md) · [第 19 章 宏](../../docs/adr/architecture-decisions.md) · [第 10 章 结构体和类](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Chapter 6, Control Flow](06-control-flow.md) · [Chapter 19, Macros](19-macros.md) · [Chapter 10, Structures and Classes](10-structures-and-classes.md)

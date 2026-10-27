@@ -1,10 +1,10 @@
-# 属性
+# Properties
 
-**实现状态：** **部分 GA**（Phase 138 Class Properties v6 MVP）
+**Implementation status:** **Partial GA** (Phase 138 Class Properties v6 MVP)
 
-属性是与类型或实例关联的存储值。
+A property is a stored value associated with a type or an instance.
 
-## 存储属性
+## Stored Properties
 
 ```syx
 class Person {
@@ -17,12 +17,12 @@ class Person {
 }
 ```
 
-| 关键字 | 成员 |
+| Keyword | Member |
 |--------|------|
-| `var` | 可变 |
-| `let` | 不可变 |
+| `var` | Mutable |
+| `let` | Immutable |
 
-## 全局与静态
+## Global and Static Properties
 
 ```syx
 let globalVersion = 1
@@ -33,8 +33,8 @@ class Config {
 }
 ```
 
-**部分 GA** — Phase 134 起 class 内 `static var` / `static let` MVP（类型级存储槽）。
-**Phase 138 GA** — class `static var` 上的 `willSet` / `didSet` MVP（`lang-props-v6:static-observers-mvp`；`oldValue` / `newValue` 绑定；**非** struct / 全局观察器全集）。
+**Partial GA** — since Phase 134, `static var` / `static let` MVP inside a class (type-level storage slots).
+**Phase 138 GA** — `willSet` / `didSet` MVP on a class `static var` (`lang-props-v6:static-observers-mvp`; with `oldValue` / `newValue` bindings; **not** the full set of struct / global observers).
 
 ```syx
 class Counter {
@@ -46,9 +46,9 @@ class Counter {
 // Counter.value = 7 → willSet(7), didSet(0)
 ```
 
-## 计算属性
+## Computed Properties
 
-**部分 GA** — class 与 extension 内 Swift 式 computed MVP：
+**Partial GA** — Swift-style computed MVP inside classes and extensions:
 
 ```syx
 class Box {
@@ -71,48 +71,48 @@ extension Box {
 }
 ```
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
 | class `var x: T { get { … } }` get-only | **Phase 134 GA** |
-| class `var x: T { get set }`（`newValue`） | **Phase 135 GA** |
-| 子类 `override var` computed（多态读/写） | **Phase 135 GA** |
-| extension `var x: T { get }` / `{ get set }` | **Phase 136 GA**（`lang-props-v4:extension-computed-mvp`） |
-| `@Published` on class stored `var` | **Phase 137 GA**（`lang-props-v5:published-mvp`；赋值前 `willSet` 窄通知 `print("published:<name>")`；非完整 Combine） |
-| class `static var` + `willSet` / `didSet` | **Phase 138 GA**（`lang-props-v6:static-observers-mvp`） |
-| lazy thread-safety / struct `@Published` / 全局观察器全集 | **139+** |
+| class `var x: T { get set }` (`newValue`) | **Phase 135 GA** |
+| Subclass `override var` computed (polymorphic read/write) | **Phase 135 GA** |
+| extension `var x: T { get }` / `{ get set }` | **Phase 136 GA** (`lang-props-v4:extension-computed-mvp`) |
+| `@Published` on a class stored `var` | **Phase 137 GA** (`lang-props-v5:published-mvp`; a narrow `willSet` notification `print("published:<name>")` before assignment; not full Combine) |
+| class `static var` + `willSet` / `didSet` | **Phase 138 GA** (`lang-props-v6:static-observers-mvp`) |
+| lazy thread safety / struct `@Published` / the full set of global observers | **139+** |
 
-指纹：`lang-props-v6:docs-honesty` — 完整 Swift 属性模型 → **139+**。
+Fingerprint: `lang-props-v6:docs-honesty` — the complete Swift property model → **139+**.
 
-## 属性观察器
+## Property Observers
 
-`willSet` / `didSet`：**部分 GA**（Phase 65 起存储属性直接赋值可触发；Phase 134 加深）：
+`willSet` / `didSet`: **Partial GA** (since Phase 65 direct assignment to stored properties can trigger them; deepened in Phase 134):
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
-| 存储属性 `willSet` / `didSet` | **部分 GA** |
-| `oldValue` / `newValue` 绑定 | **GA** |
-| **继承**：子类实例写父类字段触发父类观察器 | **Phase 134 GA** |
-| **`init` 内抑制**：`self.field = …` 不触发观察器 | **Phase 134 GA**（对齐 Swift） |
+| Stored property `willSet` / `didSet` | **Partial GA** |
+| `oldValue` / `newValue` bindings | **GA** |
+| **Inheritance**: a subclass instance writing an inherited field triggers the superclass observer | **Phase 134 GA** |
+| **Suppressed inside `init`**: `self.field = …` does not trigger observers | **Phase 134 GA** (aligned with Swift) |
 | class **`static var`** `willSet` / `didSet` | **Phase 138 GA** |
-| 计算属性观察器 | **拒绝**（S056） |
-| `@Published`、全局观察器运行时 | **部分 GA**（`@Published` → Phase 137；全局观察器全集 → **139+**） |
+| Observers on computed properties | **Rejected** (S056) |
+| `@Published`, global observer runtime | **Partial GA** (`@Published` → Phase 137; the full set of global observers → **139+**) |
 
 ```syx
 class Animal {
     var name: String
         willSet { print("will") }
         didSet { print("did") }
-    init(name: String) { self.name = name }  // init 赋值不打印
+    init(name: String) { self.name = name }  // Assignment inside init does not print
 }
 class Dog: Animal {
     init(name: String) { super.init(name: name) }
 }
-// Dog 实例写 name → 触发 Animal 的 willSet/didSet
+// Writing name through a Dog instance triggers Animal's willSet/didSet
 ```
 
-## 属性 override
+## Property Override
 
-子类可 `override var` 覆盖父类 computed 属性；基类引用读写走子类 getter/setter（vtable 多态）：
+A subclass may `override var` to replace a superclass computed property; reading and writing through a base reference goes through the subclass getter/setter (vtable polymorphism):
 
 ```syx
 class Base {
@@ -126,9 +126,9 @@ class Derived: Base {
 // let b: Base = Derived(); b.label → "derived"
 ```
 
-## 惰性属性
+## Lazy Properties
 
-`lazy var`：**Phase 134 GA**（class only；首次读触发初始化；**非**线程安全 MVP → **139+** 完整语义）。
+`lazy var`: **Phase 134 GA** (class only; initialization triggers on first read; **not** thread-safe MVP → full semantics in **139+**).
 
 ```syx
 class Box {
@@ -137,18 +137,18 @@ class Box {
 }
 ```
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 计算属性 + 观察器全集 | 存储为主；computed get/set + override + extension computed + static observers MVP GA |
-| `lazy var` 线程安全 | MVP 非线程安全 |
-| `@Published` 等 | **Phase 137 MVP**（class stored；完整 Combine → **139+**） |
-| static observers | **Phase 138 MVP**（class `static var` only；完整 Swift static/lazy/global → **139+**） |
-| struct 属性语法统一 / wrapper+observer 排序全集 | **139+** |
+| Computed properties + the full set of observers | Mainly stored; computed get/set + override + extension computed + static observers MVP GA |
+| `lazy var` thread safety | MVP is not thread-safe |
+| `@Published` and friends | **Phase 137 MVP** (class stored; full Combine → **139+**) |
+| static observers | **Phase 138 MVP** (class `static var` only; full Swift static/lazy/global → **139+**) |
+| Unified struct property syntax / the full wrapper+observer ordering set | **139+** |
 
 ---
 
-**下一章** → [方法](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Methods](12-methods.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md)

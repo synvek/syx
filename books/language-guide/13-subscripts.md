@@ -1,10 +1,10 @@
-# 下标
+# Subscripts
 
-**实现状态：** 内置集合 / `String` 下标 **已实现**；自定义 `subscript` 声明 **部分实现**（Phase 40/41 get/set MVP）；KeyPath 数组 / Optional 路径 **已实现**（Phase 46–48）
+**Implementation status:** built-in collection / `String` subscripts **Implemented**; custom `subscript` declarations **Partially implemented** (Phase 40/41 get/set MVP); KeyPath arrays / Optional paths **Implemented** (Phase 46–48)
 
-下标是访问集合元素的语法糖 `obj[i]`。SYX 同时支持 **内置类型下标**（如 `Array`、`String`、`Dictionary`）与 **自定义 `subscript` 声明**（get/set）。
+A subscript is the syntactic sugar `obj[i]` for accessing collection elements. SYX supports both **built-in type subscripts** (such as `Array`, `String`, `Dictionary`) and **custom `subscript` declarations** (get/set).
 
-## 数组下标
+## Array Subscripts
 
 ```syx
 let items = [10, 20, 30]
@@ -13,20 +13,20 @@ items[1] = 99
 print(items)                               // [10, 99, 30]
 ```
 
-| 操作 | 状态 |
+| Operation | Status |
 |------|------|
-| `arr[i]` 读取 | **已实现** |
-| `arr[i] = v` 写入 | **已实现** |
-| 越界 | 运行时 **R003**（含负下标；≠ `nil` / 静默） |
-| 负索引 | **R003**（与越界同一路径） |
+| `arr[i]` read | **Implemented** |
+| `arr[i] = v` write | **Implemented** |
+| Out of bounds | Runtime **R003** (including negative indices; ≠ `nil` / silent) |
+| Negative index | **R003** (same path as out of bounds) |
 
-来源：`crates/syx-driver/tests/fixtures/differential/suite1/array_index.sy`
+Source: `crates/syx-driver/tests/fixtures/differential/suite1/array_index.sy`
 
-## 字典 / Object 下标
+## Dictionary / Object Subscripts
 
 ```syx
 let m = ["a": 1, "b": 2]
-print(m["a"])                              // 1（Optional<Int>）
+print(m["a"])                              // 1 (Optional<Int>)
 m["c"] = 3
 print(m.count)                            // 3
 
@@ -34,29 +34,29 @@ let obj = { "name": "SYX", "version": 110 }
 print(obj["name"])                         // "SYX"
 ```
 
-> **Optional 返回：** `dict[k]` 始终返回 `Optional<V>`，因为「键不存在」与「值为 nil」运行时无法区分。
+> **Optional return:** `dict[k]` always returns `Optional<V>`, because at runtime "the key does not exist" cannot be distinguished from "the value is nil".
 
-## 字符串下标
+## String Subscripts
 
 ```syx
 let s = "abc"
-print(s[0])                                // "a"（grapheme Character）
+print(s[0])                                // "a" (grapheme Character)
 print(s[1])                                // "b"
 ```
 
-| 索引语义 | **Int grapheme offset**（Phase 84；ADR-227） |
+| Index semantics | **Int grapheme offset** (Phase 84; ADR-227) |
 |---------|---------------------------------------------|
-| 复杂度 | **单次随机访问 O(n)**（`.nth` 字素迭代；≠ Swift opaque Index） |
-| 返回类型 | grapheme `Character` |
-| 越界 | **R003**（含负下标；≠ 空 Character） |
+| Complexity | **O(n) for a single random access** (`.nth` grapheme iteration; ≠ Swift's opaque Index) |
+| Return type | grapheme `Character` |
+| Out of bounds | **R003** (including negative indices; ≠ an empty Character) |
 
-> **历史：** Phase 84 之前按 Unicode 标量索引；组合 emoji 可能拆分。Phase 84+ 字素簇对齐；ADR-227 钉死 O(n) Int offset 诚实（**非** opaque Index GA）。
+> **History:** before Phase 84 indexing counted Unicode scalars, so combined emoji could be split. Phase 84+ aligns with grapheme clusters; ADR-227 pins the honest O(n) Int offset (**not** opaque Index GA).
 
-完整 String 字符语义见 [第 4 章 字符串和字符](../../docs/adr/architecture-decisions.md)。
+For complete String character semantics, see [Chapter 4, Strings and Characters](04-strings-and-characters.md).
 
-## 自定义 subscript 声明
+## Custom subscript Declarations
 
-类型内可声明 `subscript`（Phase 40/41 起 MVP，get/set 完整）：
+A type may declare a `subscript` (MVP since Phase 40/41, with complete get/set):
 
 ```syx
 class Matrix {
@@ -84,16 +84,16 @@ print(m[0, 0])                             // 1
 print(m[1, 1])                             // 4
 ```
 
-| 元素 | 说明 |
+| Element | Description |
 |------|------|
-| `subscript(params) -> T` | 下标声明 |
-| `get { … }` | 读取（**Phase 40 GA**） |
-| `set { … }` | 写入（**Phase 41 MVP**） |
-| `newValue` | `set` 块内的隐式参数 |
+| `subscript(params) -> T` | Subscript declaration |
+| `get { … }` | Read (**Phase 40 GA**) |
+| `set { … }` | Write (**Phase 41 MVP**) |
+| `newValue` | Implicit parameter inside the `set` block |
 
-> **状态：** `subscript` 自定义声明 **部分实现**（Phase 40/41）；推荐用法是「**get 必填，set 选填**」。
+> **Status:** custom `subscript` declarations are **Partially implemented** (Phase 40/41); the recommended usage is "**get required, set optional**".
 
-### 单参数下标
+### Single-Parameter Subscripts
 
 ```syx
 class Grid {
@@ -110,19 +110,19 @@ g[0] = "x"
 print(g[0])                                // "x"
 ```
 
-## KeyPath 下标（Phase 46–48）
+## KeyPath Subscripts (Phase 46–48)
 
-KeyPath 是类型安全的对象引用路径：
+A KeyPath is a type-safe object reference path:
 
 ```syx
 let arr = [1, 2, 3]
 
-// 数组下标 KeyPath
+// Array subscript KeyPath
 let kp = \Array<Int>.[0]
 print(kp(arr))                             // 1
 ```
 
-### 属性 KeyPath
+### Property KeyPaths
 
 ```syx
 class Person {
@@ -135,7 +135,7 @@ let nameKp = \Person.name
 print(nameKp(p))                           // "Alice"
 ```
 
-### Optional KeyPath（Phase 46）
+### Optional KeyPaths (Phase 46)
 
 ```syx
 class Box {
@@ -144,29 +144,29 @@ class Box {
 }
 
 let b = Box(value: 42)
-let vKp = \Box.value?.description          // Optional 路径
+let vKp = \Box.value?.description          // Optional path
 print(vKp(b))                              // "42"
 ```
 
-### KeyPath 数组下标
+### KeyPath Array Subscripts
 
 ```syx
 let arr = [1, 2, 3]
 print((\Array<Int>.[0])(arr))              // 1
 ```
 
-测试：`lang/array_subscript_check.rs`
+Test: `lang/array_subscript_check.rs`
 
-## 下标与方法对比
+## Subscripts vs. Methods
 
-| 需求 | 选 |
+| Need | Choose |
 |------|-----|
-| 数组 / 字典 / Object 元素访问 | 内置下标 |
-| 自定义类型的索引访问 | 自定义 `subscript` |
-| 类型安全引用路径 | KeyPath |
-| 动态字符串字段访问 | `Object["key"]` |
+| Array / Dictionary / Object element access | Built-in subscript |
+| Indexed access on a custom type | Custom `subscript` |
+| Type-safe reference paths | KeyPath |
+| Dynamic string field access | `Object["key"]` |
 
-## 完整示例
+## Complete Example
 
 ```syx
 class SafeArray {
@@ -201,29 +201,29 @@ print(a[10])                                // nil
 print(a[safe: 10, default: -1])             // -1
 ```
 
-> **多标签参数：** 下标支持多参数（`subscript(row: Int, col: Int)`），也可多 label（`subscript(safe i: Int, default d: Int)`）。
+> **Multi-label parameters:** subscripts support multiple parameters (`subscript(row: Int, col: Int)`) and multiple labels (`subscript(safe i: Int, default d: Int)`).
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S004** | 下标形参 / 返回类型不匹配 | 修正 |
-| **P001** | subscript 语法错误 | 检查 get/set 块 |
-| **R003** | Array / String 下标越界 | 检查索引范围 |
+| **S004** | Subscript parameter / return type mismatch | Fix it |
+| **P001** | subscript syntax error | Check the get/set blocks |
+| **R003** | Array / String subscript out of bounds | Check the index range |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 字素簇下标 | **已实现**（Phase 84 起） |
-| 自定义 `subscript` get/set | **部分实现**（Phase 40/41） |
-| KeyPath 完整表面 | **部分实现**（`\Type.prop` / `\Type.[i]` / `\Type?.prop` 已支持；dynamic member lookup 未实现） |
-| `subscript(dynamicMember:)` | **未实现** |
-| 协议下标要求 | **部分实现** |
-| subscript 标签 / 多 label | **已实现** |
+| Grapheme-cluster subscripts | **Implemented** (since Phase 84) |
+| Custom `subscript` get/set | **Partially implemented** (Phase 40/41) |
+| Full KeyPath surface | **Partially implemented** (`\Type.prop` / `\Type.[i]` / `\Type?.prop` are supported; dynamic member lookup is not implemented) |
+| `subscript(dynamicMember:)` | **Not implemented** |
+| Protocol subscript requirements | **Partially implemented** |
+| subscript labels / multiple labels | **Implemented** |
 
 ---
 
-**下一章** → [继承](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Inheritance](14-inheritance.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [语言参考：表达式](../language-reference/03-expressions.md#下标) · [第 4 章 字符串和字符](../../docs/adr/architecture-decisions.md) · [第 11 章 属性](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Language Reference: Expressions](../language-reference/03-expressions.md) · [Chapter 4, Strings and Characters](04-strings-and-characters.md) · [Chapter 11, Properties](11-properties.md)

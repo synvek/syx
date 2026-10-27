@@ -1,36 +1,36 @@
-# 表达式
+# Expressions
 
-**实现状态：** **已实现**（`Expr` 枚举，完整优先级表）；自定义运算符 `operator func` **GA**（三后端 parity）；Optional 链 / 空合并 / 强制解包 **已实现**
+**Implementation status:** **Implemented** (`Expr` enum, complete precedence table); custom operators via `operator func` **GA** (three-back-end parity); optional chaining / nil coalescing / force unwrap **Implemented**
 
-表达式产生值。下表按**优先级从高到低**排列（与 parser 爬升一致）。
+Expressions produce values. The table below is ordered **from highest to lowest precedence** (matching how the parser climbs).
 
 ---
 
-## 优先级（完整表）
+## Precedence (Complete Table)
 
-| 级别 | 优先级 | 形式 | 运算符 / 说明 |
+| Level | Precedence | Form | Operator / description |
 |------|--------|------|----------------|
-| 1（最高） | — | **后缀** | `.` `[]` `()` `?.` `!`（后缀） `await`（后缀） |
-| 2 | — | **一元前缀** | `-` `!` `~` `try` `&`（借用）`await`（前缀） |
-| 3 | 100 | 乘除 | `*` `/` `%` `<<` `>>`（位移混合此级） |
-| 4 | 90 | 加减 | `+` `-` |
-| 5 | 80 | 位移 | `<<` `>>`（部分实现） |
-| 6 | 70 | 范围 | `..<` `...` |
-| 7 | 70 | 有序比较 | `<` `<=` `>` `>=` |
-| 8 | 60 | 相等 | `==` `!=` `===` `!==` |
-| 9 | 50 | 按位与 | `&` |
-| 10 | 40 | 按位异或 | `^` |
-| 11 | 30 | 按位或 | `\|` |
-| 12 | 20 | 逻辑与 | `&&` |
-| 13 | 10 | 逻辑或 | `\|\|` |
-| 14 | 5 | 空合并 | `??` |
-| 15 | 10 | 复合赋值 | `+=` `-=` `*=` `/=` `%=` |
-| 16（最低） | 5 | 赋值 | `=` |
+| 1 (highest) | — | **Postfix** | `.` `[]` `()` `?.` `!` (postfix) `await` (postfix) |
+| 2 | — | **Unary prefix** | `-` `!` `~` `try` `&` (borrow) `await` (prefix) |
+| 3 | 100 | Multiplicative | `*` `/` `%` `<<` `>>` (shifts mix into this level) |
+| 4 | 90 | Additive | `+` `-` |
+| 5 | 80 | Bit shift | `<<` `>>` (Partially implemented) |
+| 6 | 70 | Range | `..<` `...` |
+| 7 | 70 | Ordered comparison | `<` `<=` `>` `>=` |
+| 8 | 60 | Equality | `==` `!=` `===` `!==` |
+| 9 | 50 | Bitwise AND | `&` |
+| 10 | 40 | Bitwise XOR | `^` |
+| 11 | 30 | Bitwise OR | `\|` |
+| 12 | 20 | Logical AND | `&&` |
+| 13 | 10 | Logical OR | `\|\|` |
+| 14 | 5 | Nil coalescing | `??` |
+| 15 | 10 | Compound assignment | `+=` `-=` `*=` `/=` `%=` |
+| 16 (lowest) | 5 | Assignment | `=` |
 
-> **括号优先：** 任意位置可加 `()` 强制优先级，无副作用。
-> **赋值表达式** 返回 `Void` 语义（不链式依赖）。
+> **Parentheses win:** `()` may be added anywhere to force precedence, with no side effects.
+> **Assignment expressions** have `Void` semantics (do not depend on chaining).
 
-## 字面量表达式
+## Literal Expressions
 
 ```
 literal ::= int-literal | float-literal | string-literal | bool-literal | nil-literal
@@ -49,7 +49,7 @@ nil
 /\d+/
 ```
 
-## 标识符
+## Identifiers
 
 ```
 identifier-expr ::= identifier
@@ -58,28 +58,28 @@ identifier-expr ::= identifier
 ```syx
 count
 MyType
-self                                        // 当前实例
-super                                       // 父类
+self                                        // Current instance
+super                                       // Superclass
 ```
 
-## 元组表达式
+## Tuple Expressions
 
 ```
 tuple-expr ::= '(' expr (',' expr)+ ')'
-            |  '(' expr ',' ')'              // 单元素元组
+            |  '(' expr ',' ')'              // One-element tuple
 ```
 
 ```syx
 let t = (1, "a", true)                      // (Int, String, Bool)
-let (x, y) = (1, 2)                         // 解构
+let (x, y) = (1, 2)                         // Destructuring
 ```
 
-## 一元与二元
+## Unary and Binary
 
 ```syx
--a                                          // 一元负
-!flag                                       // 逻辑非
-~bits                                       // 按位取反
+-a                                          // Unary minus
+!flag                                       // Logical NOT
+~bits                                       // Bitwise NOT
 a + b
 a * b
 a % b
@@ -87,10 +87,10 @@ a == b
 a < b
 a && b
 a || b
-expr?                                       // try 链：错误转 nil/传播
+expr?                                       // try chain: convert error to nil / propagate
 ```
 
-## 调用
+## Calls
 
 ```
 call-expr ::= expr '(' arg-list? ')'
@@ -99,14 +99,14 @@ arg-list  ::= (label ':')? expr (',' (label ':')? expr)*
 
 ```syx
 foo()
-foo(x: 1, y: 2)                             // 命名参数
+foo(x: 1, y: 2)                             // Named arguments
 obj.method(arg)
-arr.map { x in x * 2 }                      // 尾随闭包
+arr.map { x in x * 2 }                      // Trailing closure
 ```
 
-> **命名参数：** 调用时**必须** 写 `label: value`（无 `_` 省略语法）。
+> **Named arguments:** the caller **must** write `label: value` (there is no `_` elision syntax).
 
-## 成员访问
+## Member Access
 
 ```
 member-expr ::= expr '.' identifier
@@ -119,7 +119,7 @@ arr.map
 self.name
 ```
 
-## 下标
+## Subscripts
 
 ```
 index-expr ::= expr '[' expr ']'
@@ -129,17 +129,17 @@ index-expr ::= expr '[' expr ']'
 ```syx
 arr[i]
 dict["key"]                                 // Dictionary
-s[0]                                        // String（单标量）
-m[0, 1]                                     // Matrix 多参数
-obj["field"]                                // Object 动态
+s[0]                                        // String (single scalar)
+m[0, 1]                                     // Matrix multi-parameter
+obj["field"]                                // Dynamic Object
 ```
 
-**实现状态：**
-- `arr[i]` / `dict["key"]` / `s[i]` **已实现**
-- `s[0..<3]` 切片 **未实现**（用 `substring`）
-- 自定义 `subscript` **部分实现**（Phase 40/41）
+**Implementation status:**
+- `arr[i]` / `dict["key"]` / `s[i]` **Implemented**
+- `s[0..<3]` slicing **Not implemented** (use `substring`)
+- Custom `subscript` **Partially implemented** (Phase 40/41)
 
-## 可选链与强制解包
+## Optional Chaining and Force Unwrap
 
 ```
 optional-chain ::= expr '?' '.' identifier
@@ -149,12 +149,12 @@ force-unwrap   ::= expr '!'
 ```
 
 ```syx
-maybe?.length                               // Optional 链
+maybe?.length                               // Optional chain
 maybe?.foo(1, 2)
-maybe!                                       // 强制解包（nil → R007）
+maybe!                                       // Force unwrap (nil → R007)
 ```
 
-**诊断：** R007（运行时 nil 强制解包）
+**Diagnostic:** R007 (runtime nil force unwrap)
 
 ## await
 
@@ -164,12 +164,12 @@ await-expr ::= 'await' expr
 
 ```syx
 await asyncFunc()
-await ch.receive()                          // 异步接收
+await ch.receive()                          // Asynchronous receive
 ```
 
-> 仅 `async` 函数体内合法；非 `async` 内 `await` → **S020**。
+> Legal only inside an `async` function body; `await` outside `async` → **S020**.
 
-## 闭包表达式
+## Closure Expressions
 
 ```
 closure-expr ::= '{' closure-params? closure-body? '}'
@@ -179,14 +179,14 @@ closure-body ::= 'in' expr | 'in' block
 ```
 
 ```syx
-{ x in x + 1 }                              // 单表达式
-{ (a, b) in a + b }                         // 多参数
-{ print("hi") }                             // 无参数
-{ (x: Int) -> Int in x * 2 }               // 显式类型
-{ |x| x + x }                               // 管道参数（**部分支持**）
+{ x in x + 1 }                              // Single expression
+{ (a, b) in a + b }                         // Multiple parameters
+{ print("hi") }                             // No parameters
+{ (x: Int) -> Int in x * 2 }               // Explicit types
+{ |x| x + x }                               // Pipe parameters (**partially supported**)
 ```
 
-## 数组字面量
+## Array Literals
 
 ```
 array-literal ::= '[' (expr (',' expr)*)? ']'
@@ -194,11 +194,11 @@ array-literal ::= '[' (expr (',' expr)*)? ']'
 
 ```syx
 [10, 20, 30]
-[]                                          // 空数组（需类型标注）
-[1, 2, 3].map { $0 * 2 }                    // 立即调用
+[]                                          // Empty array (needs a type annotation)
+[1, 2, 3].map { $0 * 2 }                    // Immediate call
 ```
 
-## 字典字面量
+## Dictionary Literals
 
 ```
 dict-literal ::= '[' dict-entry (',' dict-entry)* ']'
@@ -212,7 +212,7 @@ object-entry  ::= string-literal ':' expr
 { "name": "SYX", "version": 110 }           // Object
 ```
 
-## Task 块
+## Task Blocks
 
 ```
 task-expr ::= 'Task' ('.' 'detached')? closure-expr
@@ -223,7 +223,7 @@ Task { … }
 Task.detached { … }
 ```
 
-## 借用表达式
+## Borrow Expressions
 
 ```
 borrow-expr ::= '&' 'mut'? expr
@@ -234,7 +234,7 @@ borrow-expr ::= '&' 'mut'? expr
 &mut counter
 ```
 
-## 范围（半开 / 闭区间）
+## Ranges (Half-Open / Closed)
 
 ```
 range-expr ::= expr '..<' expr
@@ -244,13 +244,13 @@ range-expr ::= expr '..<' expr
 ```
 
 ```syx
-0..<10                                      // 半开
-1...5                                       // 闭区间（**部分实现**）
+0..<10                                      // Half-open
+1...5                                       // Closed range (**Partially implemented**)
 ```
 
-> 用于 `for-in` 与 `Range` 类型上下文。
+> Used in `for-in` and `Range` type contexts.
 
-## 模式表达式（switch / if case）
+## Pattern Expressions (switch / if case)
 
 ```
 pattern-expr ::= pattern '=' expr
@@ -266,9 +266,9 @@ default { … }
 }
 ```
 
-见 [模式](../../docs/adr/architecture-decisions.md)。
+See [Patterns](07-patterns.md).
 
-## 赋值表达式
+## Assignment Expressions
 
 ```
 assign-expr ::= lvalue '=' expr
@@ -282,9 +282,9 @@ obj.field = v
 arr[i] = v
 ```
 
-> **赋值表达式** 结果为 `Void` 语义（不链式依赖）。`a = b = c` **未实现**。
+> **Assignment expressions** have `Void` semantics (do not depend on chaining). `a = b = c` is **Not implemented**.
 
-## 自定义运算符
+## Custom Operators
 
 ```
 operator-decl ::= 'prefix'|'infix'|'postfix' 'operator' identifier
@@ -296,43 +296,43 @@ infix operator |> { precedence: 50, associativity: left }
 func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
 ```
 
-完整语法见 [第 30 章 高级运算符](../language-guide/30-advanced-operators.md)。
+The complete grammar is in [Chapter 30, Advanced Operators](../language-guide/30-advanced-operators.md).
 
-## 表达式分类
+## Expression Classification
 
-| 类别 | 例子 |
+| Category | Example |
 |------|------|
-| 字面量 | `42`, `"x"`, `[1,2,3]` |
-| 标识符 | `count`, `self`, `super` |
-| 路径 | `obj.field`, `arr[i]` |
-| 调用 | `f()`, `obj.method(x)` |
-| 一元 | `-x`, `!flag`, `&mut x` |
-| 二元 | `a + b`, `a < b` |
-| 范围 | `0..<n`, `1...5` |
-| 可选 | `opt?.x`, `opt!` |
-| 闭包 | `{ x in x + 1 }` |
-| 异步 | `await future` |
+| Literal | `42`, `"x"`, `[1,2,3]` |
+| Identifier | `count`, `self`, `super` |
+| Path | `obj.field`, `arr[i]` |
+| Call | `f()`, `obj.method(x)` |
+| Unary | `-x`, `!flag`, `&mut x` |
+| Binary | `a + b`, `a < b` |
+| Range | `0..<n`, `1...5` |
+| Optional | `opt?.x`, `opt!` |
+| Closure | `{ x in x + 1 }` |
+| Async | `await future` |
 | try | `try? risky()` |
-| 控制流表达式 | `if (x) { a } else { b }` |
-| 关键字 | `nil`, `true`, `false` |
-| 字符串插值 | `"\(name)"` |
+| Control-flow expression | `if (x) { a } else { b }` |
+| Keyword | `nil`, `true`, `false` |
+| String interpolation | `"\(name)"` |
 
-## 表达式类型检查
+## Expression Type Checking
 
-| 规则 | 说明 |
+| Rule | Description |
 |------|------|
-| 两侧类型一致 | 算术、比较要求（**S004** 不兼容） |
-| 整数 + 浮点 | widening（Int → Double） |
-| 有符号 + 无符号 | **S014** 拒绝 |
-| Optional + T | `T?` 提供 nil 合并 / 链 / 强解 |
-| 函数 + 函数 | 调用 / HOF |
-| 元组 + 元组 | 元素类型分别匹配 |
-| nil 字面量 | 推断为 `T?` |
+| Both sides same type | Required for arithmetic and comparison (**S004** if incompatible) |
+| Integer + float | widening (Int → Double) |
+| Signed + unsigned | rejected with **S014** |
+| Optional + T | `T?` offers nil coalescing / chaining / force unwrap |
+| Function + function | Calls / HOF |
+| Tuple + tuple | Element types matched individually |
+| `nil` literal | Inferred as `T?` |
 
 ---
 
-**诊断：** S004 / S008 / S010 / S014 / S020 / R007
+**Diagnostics:** S004 / S008 / S010 / S014 / S020 / R007
 
-**用法示例** → [语言指南：运算符](../language-guide/03-basic-operators.md) · [高级运算符](../language-guide/30-advanced-operators.md)
+**Usage examples** → [Language Guide: Operators](../language-guide/03-basic-operators.md) · [Advanced Operators](../language-guide/30-advanced-operators.md)
 
-**参见** → [语句](../../docs/adr/architecture-decisions.md) · [类型](../../docs/adr/architecture-decisions.md) · [模式](../../docs/adr/architecture-decisions.md) · [语法摘要](../../docs/adr/architecture-decisions.md)
+**See also** → [Statements](04-statements.md) · [Types](02-types.md) · [Patterns](07-patterns.md) · [Grammar Summary](10-grammar-summary.md)

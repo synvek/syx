@@ -1,8 +1,8 @@
 [book]
-title = "SYX 标准库指南"
-description = "嵌入包（import Linalg / Os / Log / IO …）的用户面指南"
-authors = ["SYX 核心团队"]
-language = "zh"
+title = "SYX Standard Library Guide"
+description = "User-facing guide to embedded packages (import Linalg / Os / Log / IO …)"
+authors = ["SYX Core Team"]
+language = "en"
 src = "."
 
 [output.html]

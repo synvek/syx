@@ -1,31 +1,31 @@
-# 基础
+# The Basics
 
-**实现状态：** **已实现**（包括 `Int128` / `UInt128` Phase 38、平台 `Int`/`UInt`、类型嵌套 MVP、`typealias` GA Phase 40）
+**Implementation status:** **Implemented** (including `Int128` / `UInt128` Phase 38, platform `Int`/`UInt`, type nesting MVP, `typealias` GA Phase 40)
 
-本章介绍常量、变量、类型注解、注释、数值字面量与类型推断。掌握这些是写任何 SYX 程序的前提。
+This chapter covers constants, variables, type annotations, comments, numeric literals and type inference. Mastering these is a prerequisite for writing any SYX program.
 
-## 变量与常量
+## Variables and Constants
 
 ```syx
 var mutable = 10
 mutable = 20          // ✅
 
 let immutable = 42
-// immutable = 43     // ❌ 编译错误 S003（cannot assign to let binding）
+// immutable = 43     // ❌ Compile error S003 (cannot assign to let binding)
 ```
 
-| 关键字 | 含义 | 重新赋值 | 重新声明同作用域 |
+| Keyword | Meaning | Reassignment | Redeclaration in the same scope |
 |--------|------|----------|------------------|
-| `let` | 不可变绑定 | ❌ S003 | ❌ S001 |
-| `var` | 可变绑定 | ✅ | ❌ S001 |
+| `let` | Immutable binding | ❌ S003 | ❌ S001 |
+| `var` | Mutable binding | ✅ | ❌ S001 |
 
-> **作用域：** 块作用域 `{ … }`；`for` / `while` / `func` 都引入新作用域。子作用域可重名「shadow」外层 `let`/`var`（不推荐；易引起阅读混淆）。
+> **Scope:** block scope `{ … }`; `for` / `while` / `func` each introduce a new scope. An inner scope may reuse an outer `let`/`var` name to "shadow" it (not recommended; it easily confuses readers).
 
-**诊断：** S003（对 `let` 赋值）、S001（重复定义）、S002（未定义标识符）。
+**Diagnostics:** S003 (assignment to `let`), S001 (duplicate definition), S002 (undefined identifier).
 
-## 类型注解
+## Type Annotations
 
-显式类型用于让读者一眼看清「这是什么类型」，或在推断有歧义时强制指定：
+Explicit types let readers see at a glance "what type this is", and force a choice when inference is ambiguous:
 
 ```syx
 let x: Int = 10
@@ -35,83 +35,83 @@ let scores: [String: Int] = ["a": 1, "b": 2]
 let maybe: Int? = nil
 ```
 
-| 标注位置 | 语法 | 备注 |
+| Annotation position | Syntax | Notes |
 |---------|------|------|
-| 局部变量 | `let x: T = expr` | 推断失败时需要显式标注 |
-| 顶层变量 | `var count: Int = 0` | 通常有默认值 |
-| 函数形参 | `func f(x: Int)` | 必填（无类型推断） |
-| 函数返回 | `-> T` | 缺省 `Void`（即 `()`） |
-| 属性 | `var name: String` | 必须显式标注或给初值 |
+| Local variable | `let x: T = expr` | Required explicitly when inference fails |
+| Top-level variable | `var count: Int = 0` | Usually has a default value |
+| Function parameter | `func f(x: Int)` | Mandatory (no type inference) |
+| Function return | `-> T` | Defaults to `Void` (i.e. `()`) |
+| Property | `var name: String` | Must be explicitly annotated or given an initial value |
 
-**类型推断：** 首次赋值后 `let` 绑定的类型被**冻结**。后续赋值若不兼容 → **S004**。
+**Type inference:** after its first assignment, the type of a `let` binding is **frozen**. A later incompatible assignment → **S004**.
 
 ```syx
 let n = 10       // n: Int
-// n = "hello"   // ❌ S004：cannot assign String to Int
+// n = "hello"   // ❌ S004: cannot assign String to Int
 ```
 
-## 注释
+## Comments
 
 ```syx
-// 单行注释
+// Single-line comment
 
-/* 块注释
-   /* 可嵌套 */
-   任意行
+/* Block comment
+   /* may nest */
+   any line
 */
 
-/// 文档注释（`syx doc` 提取为 API 文档）
-/// 多行：以 `///` 开头
+/// Documentation comment (extracted into API docs by `syx doc`)
+/// Multiple lines: each starting with `///`
 func add(a: Int, b: Int) -> Int { return a + b }
 ```
 
-| 形式 | 用途 |
+| Form | Use |
 |------|------|
-| `//` | 单行（行尾或整行） |
-| `/* … */` | 块注释；**支持嵌套**（与 Rust 相同） |
-| `///` | 文档注释；`syx doc .` 生成 `docs/api.md` |
+| `//` | Single line (to end of line or whole line) |
+| `/* … */` | Block comment; **nesting supported** (same as Rust) |
+| `///` | Documentation comment; `syx doc .` generates `docs/api.md` |
 
-## 数值类型与字面量
+## Numeric Types and Literals
 
-SYX 提供 **平台字长** 与 **固定宽度** 两套整数，外加 128 位与 SIMD 向量（详见 [第 31 章 SIMD](../../docs/adr/architecture-decisions.md)）。
+SYX offers both **platform word size** and **fixed width** integers, plus 128-bit and SIMD vectors (see [Chapter 31, SIMD](31-simd.md)).
 
-| 类型 | 大小 | 范围 / 说明 |
+| Type | Size | Range / notes |
 |------|------|-------------|
-| `Int8` | 8 位有符号 | -128 … 127 |
-| `Int16` | 16 位有符号 | -32 768 … 32 767 |
-| `Int32` | 32 位有符号 | -2³¹ … 2³¹-1 |
-| `Int64` | 64 位有符号 | -2⁶³ … 2⁶³-1 |
-| **`Int128`** | 128 位有符号 | Phase 38；字面量后缀 `i128` |
-| **`Int`** | 平台字长 | 64 位 host → `Int64`；32 位 host → `Int32` |
-| `UInt8` / `UInt16` / `UInt32` / `UInt64` | 固定宽度无符号 | |
-| **`UInt128`** | 128 位无符号 | Phase 38；字面量后缀 `u128` |
-| **`UInt`** | 平台字长无符号 | 64 位 host → `UInt64` |
-| `Float32` / `Float` | 32 位浮点（IEEE 754） | |
-| `Float64` / `Double` | 64 位浮点 | 无后缀浮点默认 `Double` |
+| `Int8` | 8-bit signed | -128 … 127 |
+| `Int16` | 16-bit signed | -32,768 … 32,767 |
+| `Int32` | 32-bit signed | -2³¹ … 2³¹-1 |
+| `Int64` | 64-bit signed | -2⁶³ … 2⁶³-1 |
+| **`Int128`** | 128-bit signed | Phase 38; literal suffix `i128` |
+| **`Int`** | Platform word size | 64-bit host → `Int64`; 32-bit host → `Int32` |
+| `UInt8` / `UInt16` / `UInt32` / `UInt64` | Fixed-width unsigned | |
+| **`UInt128`** | 128-bit unsigned | Phase 38; literal suffix `u128` |
+| **`UInt`** | Platform word size, unsigned | 64-bit host → `UInt64` |
+| `Float32` / `Float` | 32-bit floating point (IEEE 754) | |
+| `Float64` / `Double` | 64-bit floating point | Unsuffixed floats default to `Double` |
 
-字面量语法：
+Literal syntax:
 
 ```syx
-let a = 42         // Int（平台字长）
+let a = 42         // Int (platform word size)
 let b = 100i8      // Int8
 let c = 1000i64    // Int64
-let d = 0xFFu8     // UInt8，十六进制
-let e = 0b1010u16  // UInt16，二进制
-let f = 0o17u32    // UInt32，八进制
-let g = 1_000_000i64  // 下划线分隔（可读性，编译期去掉）
+let d = 0xFFu8     // UInt8, hexadecimal
+let e = 0b1010u16  // UInt16, binary
+let f = 0o17u32    // UInt32, octal
+let g = 1_000_000i64  // Underscore separators (readability, removed at compile time)
 let h = 42i128     // Int128
 let i = 3.14f32    // Float32
-let j = 3.14       // Double（默认）
-let k = -2.5e10    // Double 科学计数法
+let j = 3.14       // Double (default)
+let k = -2.5e10    // Double, scientific notation
 ```
 
-> **下划线**（`_`）可在数字字面量任意位置分隔，编译期被忽略（例：`1_000_000` = `1000000`）。
+> **Underscores** (`_`) may separate digits anywhere in a numeric literal and are ignored at compile time (e.g. `1_000_000` = `1000000`).
 >
-> **后缀大小写：** `i8`/`I8`、`u8`/`U8`、`f32`/`F32` 等均接受；推荐小写以与 Swift 风格一致。
+> **Suffix case:** `i8`/`I8`, `u8`/`U8`, `f32`/`F32` and so on are all accepted; lowercase is recommended for consistency with the Swift style.
 
-**有符号 vs 无符号：** 混合运算可能触发 **S014**（避免静默 wrap）。显式转换见 [第 20 章 类型转换](../../docs/adr/architecture-decisions.md)。
+**Signed vs. unsigned:** mixed arithmetic may trigger **S014** (avoiding silent wrapping). For explicit conversion, see [Chapter 20, Type Casting](20-type-casting.md).
 
-## 布尔与空
+## Booleans and Nil
 
 ```syx
 let ok: Bool = true
@@ -120,14 +120,14 @@ let empty: String? = nil
 let present: String? = "hi"
 ```
 
-| 字面量 | 类型 |
+| Literal | Type |
 |--------|------|
 | `true` / `false` | `Bool` |
-| `nil` | 任意 `T?`（nil literal，类型从上下文推断） |
+| `nil` | Any `T?` (nil literal, type inferred from context) |
 
-## 类型别名 `typealias`
+## Type Aliases (`typealias`)
 
-为长类型名取短名（**Phase 40 GA**）：
+Give a short name to a long type (**Phase 40 GA**):
 
 ```syx
 typealias Handle = UInt64
@@ -137,37 +137,37 @@ func register(h: Handle) { … }
 let f: Handler = { n in "id=\(n)" }
 ```
 
-- `typealias` **不创建**新类型，只是同义词
-- 不支持 `where` 子句；泛型参数必须 1:1 复制
-- 等价于 Swift `typealias`，但不能用 `associatedtype` 替代
+- `typealias` does **not** create a new type; it is only a synonym
+- No `where` clause is supported; generic parameters must be copied 1:1
+- Equivalent to Swift's `typealias`, but it cannot replace `associatedtype`
 
-**诊断：** 循环定义 → S004（type recursion detected）
+**Diagnostic:** a cyclic definition → S004 (type recursion detected)
 
-## 类型嵌套
+## Type Nesting
 
-类型内嵌套子类型是 Swift 的核心模式。SYX **有限支持**：
+Nesting sub-types inside a type is a core Swift pattern. SYX supports it **in a limited way**:
 
 ```syx
 class Outer {
     var name: String
     init(name: String) { self.name = name }
 
-    class Inner {           // ⚠️ 部分实现
+    class Inner {           // ⚠️ Partially implemented
         var value: Int = 0
     }
 }
 
 let o = Outer(name: "x")
-let i = Outer.Inner()      // 可能需要 flatten（见下）
+let i = Outer.Inner()      // Flattening may be needed (see below)
 ```
 
-**当前状态：**
+**Current status:**
 
-- 顶层 `class` / `struct` / `enum`：**已实现**
-- 类型内嵌套另一类型声明：**部分实现**（parser 能力有限）
-- 嵌套类型外部可见性：**未完整**
+- Top-level `class` / `struct` / `enum`: **Implemented**
+- Declaring another type inside a type: **Partially implemented** (limited parser capability)
+- Outside visibility of nested types: **incomplete**
 
-**替代做法**（推荐，与 Swift module 风格一致）：
+**Alternative** (recommended, consistent with the Swift module style):
 
 ```syx
 struct OuterMarker { }
@@ -176,60 +176,60 @@ struct OuterMarker_Inner {
 }
 ```
 
-详见 [第 21 章 嵌套类型](../../docs/adr/architecture-decisions.md)。
+See [Chapter 21, Nested Types](21-nested-types.md).
 
-## `nil` 与可选类型预览
+## `nil` and a Preview of Optionals
 
 ```syx
 let empty: String? = nil
 let present: String? = "hi"
 let length: Int? = present?.count    // 4
-let safe: Int = empty?.count ?? 0   // 0（空合并）
-let crash: Int = present!.count     // 4（强制解包）
+let safe: Int = empty?.count ?? 0   // 0 (nil coalescing)
+let crash: Int = present!.count     // 4 (force unwrap)
 ```
 
-三种解包方式：
+Three ways to unwrap:
 
-| 形式 | 失败时 | 适用 |
+| Form | On failure | Best for |
 |------|--------|------|
-| `?.` 可选链 | 表达式整体为 `nil` | 多级访问，避免嵌套 if |
-| `!` 强制解包 | 运行时错误 **R007** | 100% 确定非 nil |
-| `??` 空合并 | 走默认值 | 提供回退 |
+| `?.` optional chaining | The whole expression is `nil` | Multi-level access, avoiding nested ifs |
+| `!` force unwrap | Runtime error **R007** | When you are 100% sure it is non-nil |
+| `??` nil coalescing | Falls back to the default | Providing a fallback |
 
-完整用法见 [第 30 章 高级运算符](../../docs/adr/architecture-decisions.md)。
+See [Chapter 30, Advanced Operators](30-advanced-operators.md) for complete usage.
 
-## 命名规范
+## Naming Conventions
 
-SYX 社区惯例（不强制；`syx lint` 给出 L001–L012 警告）：
+Community conventions in SYX (not enforced; `syx lint` reports L001–L012 warnings):
 
-| 类别 | 命名 | 示例 |
+| Category | Naming | Example |
 |------|------|------|
-| 类型 | `UpperCamelCase` | `Greeter`, `MyType` |
-| 函数 / 变量 / 属性 | `lowerCamelCase` | `greet`, `firstName` |
-| 常量 | `lowerCamelCase` | `defaultPort`（**不** 用全大写） |
-| 枚举 case | `lowerCamelCase` | `case success`, `case failure` |
-| 协议 | `UpperCamelCase`（常以 `able`/`ible`/`Convertible` 结尾） | `Iterator`, `CustomStringConvertible` |
-| 文件 | `kebab-case.sy` 或 `snake_case.sy` | `main.sy`, `local_math.sy` |
+| Types | `UpperCamelCase` | `Greeter`, `MyType` |
+| Functions / variables / properties | `lowerCamelCase` | `greet`, `firstName` |
+| Constants | `lowerCamelCase` | `defaultPort` (**not** ALL CAPS) |
+| Enum cases | `lowerCamelCase` | `case success`, `case failure` |
+| Protocols | `UpperCamelCase` (often ending in `able`/`ible`/`Convertible`) | `Iterator`, `CustomStringConvertible` |
+| Files | `kebab-case.sy` or `snake_case.sy` | `main.sy`, `local_math.sy` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
-| 点 | SYX |
+| Point | SYX |
 |----|-----|
-| `Int` 字长 | 平台字长（64 位 host → `Int64`）；Swift Apple 平台固定 64 位 |
-| `Int128` / `UInt128` | Phase 38 GA（Swift 仍无原生 128 位） |
-| `typealias` | **已实现**（Phase 40 GA） |
-| 多行字符串 `"""` | **MVP GA**（Phase 139）；可含裸换行与 `\(expr)` 插值 | 非 Swift raw/`#"""` 定界全集 |
-| 元组语法 | **MVP GA**（Phase 139）：`(T, U)` 类型与字面量、命名元素 `(x: 1, y: 2)`、`let (x, y) = t` 解构、`.0`/`.x` 成员 | 非任意元数协议 / 完整 Swift 元组特性 |
-| 数字字面量下划线 | ✅ 支持（与 Swift 一致） |
-| 前缀 `0x` / `0o` / `0b` | ✅ 支持 |
+| `Int` width | Platform word size (64-bit host → `Int64`); Swift fixes it at 64 bits on Apple platforms |
+| `Int128` / `UInt128` | Phase 38 GA (Swift still has no native 128-bit integers) |
+| `typealias` | **Implemented** (Phase 40 GA) |
+| Multiline strings `"""` | **MVP GA** (Phase 139); may contain raw newlines and `\(expr)` interpolation — not the full Swift raw/`#"""` delimiter set |
+| Tuple syntax | **MVP GA** (Phase 139): `(T, U)` types and literals, named elements `(x: 1, y: 2)`, `let (x, y) = t` destructuring, `.0`/`.x` members — not arbitrary arity protocols / the full Swift tuple feature set |
+| Underscores in numeric literals | ✅ Supported (same as Swift) |
+| `0x` / `0o` / `0b` prefixes | ✅ Supported |
 
-## 实现状态与限制
+## Implementation Status and Limits
 
-- 显式 `typealias`：**GA**（Phase 40；`fixtures/parity/generics.sy`）
-- `Int128` / `UInt128`：**GA**（Phase 38）
-- 类型嵌套：**部分实现**；建议用 flatten 命名
-- 多行字符串字面量 `"""`：**MVP GA**（`fixtures/lang/string_multiline.sy`）
-- 元组类型/字面量/命名元素：**MVP GA**（`fixtures/lang/tuple.sy`）
+- Explicit `typealias`: **GA** (Phase 40; `fixtures/parity/generics.sy`)
+- `Int128` / `UInt128`: **GA** (Phase 38)
+- Type nesting: **Partially implemented**; flattening into names is recommended
+- Multiline string literals `"""` : **MVP GA** (`fixtures/lang/string_multiline.sy`)
+- Tuple types / literals / named elements: **MVP GA** (`fixtures/lang/tuple.sy`)
 
 ```syx
 let pair: (Int, String) = (1, "a")
@@ -239,9 +239,8 @@ print(named.x)
 let (a, b) = (3, 4)
 ```
 
-
 ---
 
-**下一章** → [基本运算符](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Basic Operators](03-basic-operators.md)
 
-**参见** → [语言参考：词法](../language-reference/01-lexical-structure.md) · [语言参考：类型](../language-reference/02-types.md) · [第 3 章 基本运算符](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Lexical Structure](../language-reference/01-lexical-structure.md) · [Language Reference: Types](../language-reference/02-types.md) · [Chapter 3, Basic Operators](03-basic-operators.md)

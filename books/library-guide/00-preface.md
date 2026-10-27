@@ -1,22 +1,22 @@
-# 前言
+# Preface
 
-欢迎阅读 **《SYX 标准库指南》**。语言语法见 [语言指南](../language-guide/SUMMARY.md)；形式化规则见 [语言参考](../language-reference/SUMMARY.md)。本书只讲 **可 `import` 的嵌入包**：路径、诚实边界、以及仓库里能对照的范例。
+Welcome to the ***SYX Standard Library Guide***. For language syntax, see the [Language Guide](../language-guide/SUMMARY.md); for the formal rules, see the [Language Reference](../language-reference/SUMMARY.md). This book covers only the **embeddable packages you can `import`**: their paths, their honest boundaries, and the runnable examples in this repository that you can check them against.
 
-> **本版对应：** SYX **117.0** / Phase **139** · HostFn ≈ **630** · 嵌入清单见 [`packages/internal/manifest.json`](../../packages/internal/manifest.json) · 包概览 [`packages/README.md`](../../packages/README.md)
+> **This edition covers:** SYX **117.0** / Phase **139** · HostFn ≈ **630** · embedded manifest [`packages/internal/manifest.json`](../../packages/internal/manifest.json) · package overview [`packages/README.md`](../../packages/README.md)
 
-## 和语言指南的分工
+## How This Book Divides the Work with the Language Guide
 
-| 你要… | 去哪 |
+| If you want… | Go to |
 |------|------|
-| `func` / `class` / `import` 语法 | [语言指南](../language-guide/01-getting-started.md) |
-| Host 插件 / `dlopen` | [语言指南 · 运行时扩展](../language-guide/33-runtime-extensions.md) |
-| `import Linalg` / `Os` / `Log` / `IO` | **本书** |
-| CLI、`syx.toml` | [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) |
+| `func` / `class` / `import` syntax | [Language Guide](../language-guide/01-getting-started.md) |
+| Host plugins / `dlopen` | [Language Guide · Runtime Extensions](../language-guide/33-runtime-extensions.md) |
+| `import Linalg` / `Os` / `Log` / `IO` | **This book** |
+| CLI, `syx.toml` | [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) |
 
-## 诚实约定
+## Honesty Conventions
 
-- **已实现**：烟测或 Host 可跑的表面。
-- **部分实现**：可编译但语义不完整（Process 若干路径仍 `partial`）。
-- **未宣称**：产品 `Mat` GA、E-00、`A[i,j]`、faer `add`/`sub` host、P-SURF `[x]`。
+- **Implemented**: surfaces exercised by smoke tests or runnable through Host.
+- **Partially implemented**: compiles, but the semantics are incomplete (several `Process` paths remain `partial`).
+- **Not claimed**: product `Mat` GA, E-00, `A[i,j]`, faer `add`/`sub` host, P-SURF `[x]`.
 
-嵌入包源码在 [`packages/`](../../packages/README.md)。**不要**把 `Mat` 并进 `packages/core/math.sy`。
+The embedded package sources live in [`packages/`](../../packages/README.md). Do **not** merge `Mat` into `packages/core/math.sy`.

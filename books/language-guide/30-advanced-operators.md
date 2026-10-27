@@ -1,23 +1,23 @@
-# 高级运算符
+# Advanced Operators
 
-**实现状态：** 半开范围 / 可选链 / 强制解包 / 空合并 / 模式匹配 / 自定义运算符 **GA**（`operator func` + 三后端 parity）；位运算 / Overflow 行为 **已实现**；前缀 / 后缀 / 中缀自定义 **已实现**；优先级 / 结合性声明 **已实现**
+**Implementation status:** half-open ranges / optional chaining / force unwrap / nil coalescing / pattern matching / custom operators **GA** (`operator func` + three-back-end parity); bitwise operations / overflow behavior **Implemented**; custom prefix / postfix / infix **Implemented**; precedence / associativity declarations **Implemented**
 
-运算符是「**特殊语法**」的函数。SYX 与 Swift 类似：内置运算符是**语言面**（编译器硬编码 + Core Host 桥），用户可声明**自定义运算符**（`infix` / `prefix` / `postfix`），并指定优先级 / 结合性。
+An operator is a function with "**special syntax**". SYX is like Swift: built-in operators are part of the **language surface** (compiler hard-coded + Core Host bridge), and users may declare **custom operators** (`infix` / `prefix` / `postfix`) with precedence / associativity.
 
-## 内置运算符速查
+## Built-in Operator Cheat Sheet
 
-完整列表见 [第 3 章 基本运算符](../../docs/adr/architecture-decisions.md)。本节补「高级」子集：
+For the complete list, see [Chapter 3, Basic Operators](03-basic-operators.md). This section adds the "advanced" subset:
 
-### 位运算（整数）
+### Bitwise Operations (Integers)
 
-| 运算符 | 含义 | 类型 |
+| Operator | Meaning | Type |
 |--------|------|------|
-| `&` | 按位与 | 整数 |
-| `\|` | 按位或 | 整数 |
-| `^` | 按位异或 | 整数 |
-| `~` | 按位取反（一元） | 整数 |
-| `<<` | 左移 | 整数 |
-| `>>` | 右移（算术） | 整数 |
+| `&` | Bitwise AND | Integer |
+| `\|` | Bitwise OR | Integer |
+| `^` | Bitwise XOR | Integer |
+| `~` | Bitwise NOT (unary) | Integer |
+| `<<` | Left shift | Integer |
+| `>>` | Right shift (arithmetic) | Integer |
 
 ```syx
 let a: Int = 0b1100                        // 12
@@ -30,21 +30,21 @@ print(a << 2)                               // 48
 print(a >> 1)                               // 6
 ```
 
-> **优先级：** 位运算在比较 `==` 之后、逻辑 `&&` 之前。`a == b & c` 解释为 `a == (b & c)`。
+> **Precedence:** bitwise operations come after comparison `==` and before logical `&&`. `a == b & c` means `a == (b & c)`.
 
-### 自定义前缀 / 后缀 / 中缀运算符
+### Custom Prefix / Postfix / Infix Operators
 
 ```syx
-// 前缀
+// Prefix
 prefix operator !
 func !<T>(value: Optional<T>) -> Bool {
     return value == nil
 }
 
 let x: Int? = nil
-print(!x)                                   // true（自定义）
+print(!x)                                   // true (custom)
 
-// 后缀
+// Postfix
 postfix operator **
 func **<T>(value: T) -> T where T: Numeric {
     return value * value
@@ -52,7 +52,7 @@ func **<T>(value: T) -> T where T: Numeric {
 
 print(3**)                                  // 9
 
-// 中缀
+// Infix
 infix operator |> { precedence: 50, associativity: left }
 func |> <T>(value: T, f: (T) -> T) -> T {
     return f(value)
@@ -61,25 +61,25 @@ func |> <T>(value: T, f: (T) -> T) -> T {
 print(5 |> { $0 * 2 })                      // 10
 ```
 
-### 优先级 / 结合性
+### Precedence / Associativity
 
 ```syx
 infix operator ^^ { precedence: 100, associativity: right }
 func ^^<T>(a: T, b: T) -> T where T: Numeric {
-    // 右结合的「幂」运算符
+    // A right-associative "power" operator
     return a * a
 }
 ```
 
-| 字段 | 取值 | 含义 |
+| Field | Value | Meaning |
 |------|------|------|
-| `precedence` | 整数（0–200） | 数值越高越紧 |
-| `associativity` | `left` / `right` / `none` | 同优先级结合方向 |
-| `higherThan` / `lowerThan` | 运算符名 | 相对位置 |
+| `precedence` | Integer (0–200) | Higher binds tighter |
+| `associativity` | `left` / `right` / `none` | Same-precedence combining direction |
+| `higherThan` / `lowerThan` | Operator name | Relative position |
 
-> **预定义优先级（部分）：** `*` `/` `%` 为 100；`+` `-` 为 90；`<<` `>>` 为 80；`<` `>` 等为 70；`==` `!=` 为 60；`&` 为 50；`^` 为 40；`\|` 为 30；`&&` 为 20；`||` 为 10。
+> **Predefined precedences (partial):** `*` `/` `%` are 100; `+` `-` are 90; `<<` `>>` are 80; `<` `>` and friends are 70; `==` `!=` are 60; `&` is 50; `^` is 40; `\|` is 30; `&&` is 20; `||` is 10.
 
-### 运算符函数与协议约束
+### Operator Functions and Protocol Constraints
 
 ```syx
 infix operator <*> { precedence: 60 }
@@ -94,9 +94,9 @@ func <*> <T: Numeric>(a: Array<T>, b: Array<T>) -> Array<T> {
 let r = [1, 2, 3] <*> [4, 5, 6]            // [4, 10, 18]
 ```
 
-> **状态：** `operator func` **GA**（Phase 41+），三后端（VM / 统一 MIR / WASM）parity。
+> **Status:** `operator func` is **GA** (Phase 41+), with parity across the three back ends (VM / unified MIR / WASM).
 
-## 半开范围
+## Half-Open Ranges
 
 ```syx
 for i in 0..<10 {                           // [0, 10)
@@ -109,13 +109,13 @@ print(r.contains(11))                       // false
 print(r.contains(0))                        // true
 ```
 
-| 形式 | 状态 | 含义 |
+| Form | Status | Meaning |
 |------|------|------|
-| `a..<b` | **已实现** | 半开 [a, b) |
-| `a...b` | **部分实现** | 闭区间 [a, b] |
-| `a..<` / `..<b` | **未实现** | 单边无限 |
+| `a..<b` | **Implemented** | Half-open [a, b) |
+| `a...b` | **Partially implemented** | Closed [a, b] |
+| `a..<` / `..<b` | **Not implemented** | One-sided infinite |
 
-## 可选链 ?.
+## Optional Chaining ?.
 
 ```syx
 let maybe: String? = "hello"
@@ -123,7 +123,7 @@ let len = maybe?.count                    // Optional(5)
 let bad = (nil as String?)?.count         // nil
 ```
 
-链式任意长：
+Chains may be arbitrarily long:
 
 ```syx
 class A { let b: B? = B() }
@@ -135,29 +135,29 @@ print(a?.b?.c?.name)                        // Optional("x")
 print(a?.b?.c?.name?.count)                // Optional(1)
 ```
 
-> **`?.` 语义：** 链路任一环节为 `nil` → 整体 `nil`。
+> **`?.` semantics:** if any link in the chain is `nil` → the whole thing is `nil`.
 
-## 强制解包 !
+## Force Unwrap !
 
 ```syx
 let present: String? = "hello"
-let s = present!                            // "hello"（运行时确定非 nil）
+let s = present!                            // "hello" (known non-nil at runtime)
 
 let empty: String? = nil
 let x = empty!                              // ❌ R007
 ```
 
-> **三选一：** `?.` 链 / `??` 默认 / `!` 强解。
+> **Choose one of three:** `?.` chaining / `??` default / `!` force unwrap.
 
-## 空合并 ??
+## Nil Coalescing ??
 
 ```syx
 let opt: Int? = nil
 let v = opt ?? 0                            // 0
-let v2 = opt ?? (1 + 2)                    // 3（右侧是表达式）
+let v2 = opt ?? (1 + 2)                    // 3 (the right side is an expression)
 ```
 
-> **`??` 优先级：** 低于比较与逻辑；推荐加括号：
+> **`??` precedence:** lower than comparison and logical; parentheses are recommended:
 > ```syx
 > let r = (a ?? 0) + 1
 > ```
@@ -172,23 +172,23 @@ if let x = optional {
     print("nil")
 }
 
-// guard let（必须早退）
+// guard let (must exit early)
 guard let y = optional else {
     return
 }
-print(y)                                    // 此处 y 非 Optional
+print(y)                                    // Here y is not Optional
 ```
 
-> **`else` 必须退出：** `guard let` 的 `else` 块若不 `return` / `throw` / `break` / `continue` → 编译错误 **S020**。
+> **`else` must exit:** if a `guard let`'s `else` block does not `return` / `throw` / `break` / `continue` → compile error **S020**.
 
 ## try ?
 
 ```syx
-let v = risky()?                            // String?（失败 nil）
-let v2 = try! risky()                       // String（失败 panic）
+let v = risky()?                            // String? (nil on failure)
+let v2 = try! risky()                       // String (panics on failure)
 ```
 
-## 模式匹配
+## Pattern Matching
 
 ```syx
 switch (result) {
@@ -206,23 +206,23 @@ if case .err(let e) = result {
 }
 ```
 
-详见 [第 6 章 控制流](../../docs/adr/architecture-decisions.md) 与 [第 9 章 枚举](../../docs/adr/architecture-decisions.md)。
+See [Chapter 6, Control Flow](06-control-flow.md) and [Chapter 9, Enumerations](09-enumerations.md).
 
-## 恒等 === / !==
+## Identity === / !==
 
-引用或类型敏感相等子集：
+Reference- or type-sensitive equality subset:
 
 ```syx
 let a = "hi"
 let b = "hi"
-print(a === b)                              // false（不同对象）
+print(a === b)                              // false (different objects)
 let c = a
-print(a === c)                              // true（同一引用）
+print(a === c)                              // true (same reference)
 ```
 
-> **状态：** `===` MVP 子集；常用于 `class` / `Object` 引用比较。
+> **Status:** `===` MVP subset; commonly used for `class` / `Object` reference comparison.
 
-## 自定义 Equatable / Comparable
+## Custom Equatable / Comparable
 
 ```syx
 struct Point: Equatable {
@@ -241,23 +241,23 @@ struct Score: Comparable {
 }
 ```
 
-> **@Equatable / @Hashable / @Codable 宏：** 自动合成 `==` / `hash` / `encode` / `decode`（详见 [第 19 章 宏](../../docs/adr/architecture-decisions.md)）。
+> **@Equatable / @Hashable / @Codable macros:** synthesize `==` / `hash` / `encode` / `decode` automatically (see [Chapter 19, Macros](19-macros.md)).
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 自定义运算符 | **已实现**（infix / prefix / postfix） |
-| 优先级 / 结合性 | **已实现**（precedence 0–200） |
-| 半开 `..<` / 闭区间 `...` | 半开 **已实现**；闭区间 **部分实现** |
-| 可选链 `?.` | **已实现** |
-| 强制解包 `!` | **已实现** |
-| 空合并 `??` | **已实现** |
-| `===` | **MVP 子集** |
-| `#available` | **未实现** |
-| 溢出行为 | 恒二补回绕（≠ Swift 默认 overflow trap；≠ 已交付的 debug **R011** panic） |
+| Custom operators | **Implemented** (infix / prefix / postfix) |
+| Precedence / associativity | **Implemented** (precedence 0–200) |
+| Half-open `..<` / closed `...` | Half-open **Implemented**; closed **Partially implemented** |
+| Optional chaining `?.` | **Implemented** |
+| Force unwrap `!` | **Implemented** |
+| Nil coalescing `??` | **Implemented** |
+| `===` | **MVP subset** |
+| `#available` | **Not implemented** |
+| Overflow behavior | Always two's-complement wrapping (≠ Swift's default overflow trap; ≠ the delivered debug **R011** panic) |
 
-## 完整示例
+## Complete Example
 
 ```syx
 infix operator |> { precedence: 50, associativity: left }
@@ -283,17 +283,17 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S004** | 运算符两侧类型不匹配 | 修正类型 |
-| **S008** | 窄化（如 `Int64 → Int8`） | 检查范围 |
-| **S020** | `guard let` `else` 未退出 | 加 return / throw |
-| **R007** | `!` 解包 nil | 用 `?.` / `??` |
+| **S004** | Operand types mismatch on both sides | Fix the types |
+| **S008** | Narrowing (e.g. `Int64 → Int8`) | Check the range |
+| **S020** | `guard let` `else` does not exit | Add return / throw |
+| **R007** | `!` unwrapping nil | Use `?.` / `??` |
 
 ---
 
-**下一章** → [SIMD](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [SIMD](31-simd.md)
 
-**参见** → [语言参考：表达式](../language-reference/03-expressions.md) · [第 3 章 基本运算符](../../docs/adr/architecture-decisions.md) · [第 9 章 枚举](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Expressions](../language-reference/03-expressions.md) · [Chapter 3, Basic Operators](03-basic-operators.md) · [Chapter 9, Enumerations](09-enumerations.md)

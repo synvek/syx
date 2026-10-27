@@ -1,15 +1,15 @@
-# 不透明类型和封装协议类型
+# Opaque Types and Boxed Protocol Types
 
-**实现状态：** `some P`（不透明返回类型）**已实现**（Phase 11 GA、`fixtures/format/opaque_some_mvp` / `fixtures/parity/protocol_witness.sy`）；`any P`（存在类型）**已实现**（witness 表动态分派）
+**Implementation status:** `some P` (opaque result types) **Implemented** (Phase 11 GA, `fixtures/format/opaque_some_mvp` / `fixtures/parity/protocol_witness.sy`); `any P` (existential types) **Implemented** (witness-table dynamic dispatch)
 
-SYX 提供两种「隐藏具体类型」的方式：
+SYX offers two ways of "hiding the concrete type":
 
-- `some P` — **不透明返回类型**：编译期隐藏，调用方只能按 `P` 使用
-- `any P` — **存在类型**：运行时通过 witness 表分派，调用方拿到的是「某种 `P`」
+- `some P` — **opaque result type**: hidden at compile time; callers can only use it as `P`
+- `any P` — **existential type**: dispatched at runtime through a witness table; the caller gets "some kind of `P`"
 
-## some — 不透明返回类型
+## some — Opaque Result Types
 
-`some` 隐藏具体类型信息，但保留编译期类型推导：
+`some` hides concrete type information while preserving compile-time type inference:
 
 ```syx
 protocol Shape {
@@ -28,42 +28,42 @@ class Circle: Shape {
     func area() -> Double { return 3.14159 * r * r }
 }
 
-func makeShape() -> some Shape {            // 返回类型：某个 Shape（编译期已知）
-    return Square(s: 2.0)                   // 实际是 Square
+func makeShape() -> some Shape {            // Return type: some Shape (known at compile time)
+    return Square(s: 2.0)                   // Actually a Square
 }
 
 func main() {
     let shape = makeShape()
-    print(shape.area())                     // 4.0（按 Shape 接口）
+    print(shape.area())                     // 4.0 (through the Shape interface)
 }
 ```
 
-| 行为 | 说明 |
+| Behavior | Description |
 |------|------|
-| 调用方 | 看到的是 `some Shape`（满足 `Shape` 协议） |
-| 内部 | 实际是 `Square`，编译期具体 |
-| 实现变更 | `Square` → `Circle` 不破坏调用方（API 稳定） |
-| 性能 | 零虚调度（编译期静态） |
+| Caller | Sees `some Shape` (satisfies the Shape protocol) |
+| Internally | Actually a `Square`, concrete at compile time |
+| Implementation changes | `Square` → `Circle` does not break callers (API stability) |
+| Performance | Zero virtual dispatch (static at compile time) |
 
-> **限制：** 同一函数的所有返回路径必须返回**同一具体类型**。`if cond { return A() } else { return B() }` 编译错误。
+> **Limit:** all return paths of the same function must return **the same concrete type**. `if cond { return A() } else { return B() }` is a compile error.
 
-测试：`fixtures/format/opaque_some_mvp` · `fixtures/parity/protocol_witness.sy`
+Tests: `fixtures/format/opaque_some_mvp` · `fixtures/parity/protocol_witness.sy`
 
-## any — 存在类型
+## any — Existential Types
 
-`any` 是「某种 `P`」的容器；运行时用 witness 表动态分派：
+`any` is a container for "some kind of `P`"; dispatch at runtime goes through a witness table:
 
 ```syx
 let s: any Shape = Circle(r: 2.0)
 print(s.area())                             // 12.56636
 ```
 
-| 行为 | 说明 |
+| Behavior | Description |
 |------|------|
-| 调用方 | 看到的是 `any Shape`（存在类型） |
-| 内部 | 实际是 `Circle`，运行时用 witness 表分派 |
-| 多具体类型 | 同一变量可持有 `Square` / `Circle` 等不同实现 |
-| 性能 | 间接调度（witness table） |
+| Caller | Sees `any Shape` (existential type) |
+| Internally | Actually a `Circle`, dispatched at runtime through a witness table |
+| Multiple concrete types | The same variable may hold different implementations such as `Square` / `Circle` |
+| Performance | Indirect dispatch (witness table) |
 
 ```syx
 let shapes: Array<any Shape> = [
@@ -75,39 +75,39 @@ for s in shapes {
 }
 ```
 
-测试：`fixtures/parity/protocol_witness.sy`
+Test: `fixtures/parity/protocol_witness.sy`
 
-## some vs any 对比
+## some vs any
 
-| 维度 | `some P` | `any P` |
+| Dimension | `some P` | `any P` |
 |------|----------|---------|
-| 编译期类型 | **保留**（具体类型） | **擦除**（仅 `P`） |
-| 运行时调度 | **静态**（无 witness） | **动态**（witness 表） |
-| 多类型值 | ❌（一个函数必须返回同一类型） | ✅（`Array<any P>` 可混合） |
-| 性能 | 零虚调度 | 间接调用 |
-| 反射 | 可见 | 仅 `P` 接口 |
+| Compile-time type | **Preserved** (concrete type) | **Erased** (only `P`) |
+| Runtime dispatch | **Static** (no witness) | **Dynamic** (witness table) |
+| Multiple type values | ❌ (a function must return one type) | ✅ (`Array<any P>` may mix) |
+| Performance | Zero virtual dispatch | Indirect call |
+| Reflection | Visible | Only the `P` interface |
 
-## 使用场景
+## Usage Scenarios
 
-| 场景 | 选 |
+| Scenario | Choose |
 |------|-----|
-| 函数返回单一具体类型，只暴露协议 | `some P` |
-| 存储多种符合 `P` 的类型 | `any P` |
-| API 稳定 + 性能敏感 | `some P` |
-| 多态集合 / 工厂 | `any P` |
+| A function returns a single concrete type, exposing only the protocol | `some P` |
+| Storing multiple types conforming to `P` | `any P` |
+| API stability + performance sensitive | `some P` |
+| Polymorphic collections / factories | `any P` |
 
 ```syx
-// 工厂：返回多种实现 → 闭包返回 `any P`
+// Factory: returns multiple implementations → the closure returns `any P`
 func makeShape(kind: String) -> any Shape {
     if (kind == "circle") { return Circle(r: 1.0) }
     return Square(s: 1.0)
 }
 
-// API：返回单一实现 → 函数返回 `some P`
+// API: returns a single implementation → the function returns `some P`
 func defaultShape() -> some Shape { return Square(s: 1.0) }
 ```
 
-## `any P` 的 cast
+## Casting `any P`
 
 ```syx
 let s: any Shape = Circle(r: 2.0)
@@ -116,13 +116,13 @@ if let c = s as? Circle {
 }
 ```
 
-> **状态：** `as?` / `as!` 运行时 cast 已实现（详见 [第 20 章](../../docs/adr/architecture-decisions.md)）。
+> **Status:** runtime `as?` / `as!` casting is **Implemented** (see [Chapter 20](20-type-casting.md)).
 
-## `some P` 的约束
+## Constraints on `some P`
 
 ```syx
-func make() -> some Equatable {             // 满足 Equatable 即可
-    return 42                                // 实际是 Int
+func make() -> some Equatable {             // Satisfying Equatable is enough
+    return 42                                // Actually an Int
 }
 
 func makeBox<T: Equatable>(_ v: T) -> some Equatable {
@@ -130,7 +130,7 @@ func makeBox<T: Equatable>(_ v: T) -> some Equatable {
 }
 ```
 
-## `any P` 集合的常用模式
+## Common Patterns with `any P` Collections
 
 ```syx
 protocol Drawable {
@@ -148,30 +148,31 @@ let ui: Array<any Drawable> = [
 for el in ui { el.draw() }
 ```
 
-## 与泛型结合
+## Combining with Generics
 
 ```syx
 func makePair<T: Equatable>(_ a: T, _ b: T) -> some Equatable {
-    return (a, b)                            // 元组 (T, T)
+    return (a, b)                            // Tuple (T, T)
 }
 ```
 
-## 协议存在类型的实现细节
+## Implementation Details of Existential Types
 
-`any P` 在运行时存储：
-- 值本体（实际类型）
-- witness 表（每个 `P` 方法的函数指针）
+At runtime `any P` stores:
+
+- The value itself (concrete type)
+- A witness table (a function pointer for each `P` method)
 
 ```syx
 let p: any Named = User(name: "Alice")
-// 内存布局：
+// Memory layout:
 //   [ value | witness table ptr ]
-// 调度：p.name() → witness_table.name(value)
+// Dispatch: p.name() → witness_table.name(value)
 ```
 
-> **代码生成：** `CallWitness` 指令走 witness 表；详见 `syx-codegen`。
+> **Code generation:** the `CallWitness` instruction goes through the witness table; see `syx-codegen`.
 
-## 完整示例
+## Complete Example
 
 ```syx
 protocol Logger {
@@ -188,13 +189,13 @@ class FileLogger: Logger {
     func log(_ msg: String) { File.write(path, "\(msg)\n") }
 }
 
-// 工厂：返回 any P（多种实现）
+// Factory: returns any P (multiple implementations)
 func makeLogger(kind: String) -> any Logger {
     if (kind == "file") { return FileLogger(path: "/tmp/log") }
     return ConsoleLogger()
 }
 
-// API：返回 some P（固定一种）
+// API: returns some P (a single fixed one)
 func defaultLogger() -> some Logger {
     return ConsoleLogger()
 }
@@ -207,28 +208,28 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S004** | `some P` 返回多类型 | 统一为同一具体类型 |
-| **S010** | 协议不符合 | 加一致性 |
-| **P001** | 语法错误 | 检查 `some` / `any` |
+| **S004** | `some P` returning multiple types | Unify into one concrete type |
+| **S010** | Does not conform to the protocol | Add conformance |
+| **P001** | Syntax error | Check `some` / `any` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `some P` 不透明返回 | **已实现** |
-| `any P` 存在类型 | **已实现** |
-| `some P` 在参数位置 | **未实现**（规划中） |
-| `any P` 在返回位置 | **已实现** |
-| `some Collection<Element>` 关联类型 | **部分实现** |
-| 完整 existential self-conformance | **部分实现**（基础 witness） |
-| 性能 | `some P` 零虚调度；`any P` 间接 |
+| `some P` opaque return | **Implemented** |
+| `any P` existential type | **Implemented** |
+| `some P` in parameter position | **Not implemented** (planned) |
+| `any P` in return position | **Implemented** |
+| `some Collection<Element>` associated types | **Partially implemented** |
+| Full existential self-conformance | **Partially implemented** (basic witness) |
+| Performance | `some P` zero virtual dispatch; `any P` indirect |
 
 ---
 
-**下一章** → [内存管理与垃圾回收](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Memory Management and Garbage Collection](26-memory-management.md)
 
-**参见** → [语言参考：类型](../language-reference/02-types.md) · [第 20 章 类型转换](../../docs/adr/architecture-decisions.md) · [第 23 章 协议](../../docs/adr/architecture-decisions.md) · [第 24 章 泛型](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Types](../language-reference/02-types.md) · [Chapter 20, Type Casting](20-type-casting.md) · [Chapter 23, Protocols](23-protocols.md) · [Chapter 24, Generics](24-generics.md)

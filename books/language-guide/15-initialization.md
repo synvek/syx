@@ -1,10 +1,10 @@
-# 构造过程
+# Initialization
 
-**实现状态：** `init` / 默认构造 / `init?` 失败构造 **已实现**；两段式构造 **已实现**（Phase 51+ 链式校验）；`required init` / `convenience init` **部分实现** / **未实现**；`throws init` **部分实现**
+**Implementation status:** `init` / default initialization / `init?` failable initialization **Implemented**; two-phase initialization **Implemented** (Phase 51+ chain checking); `required init` / `convenience init` **Partially implemented** / **Not implemented**; `throws init` **Partially implemented**
 
-构造器在创建实例时初始化所有 stored 属性。SYX 构造器分两类：**指定构造器**（designated init，初始化所有 stored 字段）和 **便利构造器**（convenience init，调用其他 init）。本章覆盖语法、链式校验、失败构造与继承。
+An initializer initializes all stored properties when an instance is created. SYX has two kinds of initializer: **designated initializers** (initializing all stored fields) and **convenience initializers** (calling another `init`). This chapter covers syntax, chain checking, failable initialization, and inheritance.
 
-## init 基础
+## init Basics
 
 ```syx
 class Greeter {
@@ -19,16 +19,16 @@ let g = Greeter(name: "SYX")
 print(g.name)                              // "SYX"
 ```
 
-| 关键字 | 说明 |
+| Keyword | Description |
 |--------|------|
-| `init(params)` | 指定构造器 |
-| `self.field = value` | 给 stored 属性赋值 |
-| `super.init(...)` | 调父类构造器（class 继承时） |
-| `convenience init(...)` | **未实现** |
+| `init(params)` | Designated initializer |
+| `self.field = value` | Assigning to a stored property |
+| `super.init(...)` | Calling the superclass initializer (with class inheritance) |
+| `convenience init(...)` | **Not implemented** |
 
-> **`class` / `actor` 成员内 `init` 生成 `TypeName_init` 调用**（VM 内部约定）。
+> **Inside a `class` / `actor` member, `init` generates a `TypeName_init` call** (internal VM convention).
 
-## struct / data class 构造
+## struct / data class Initialization
 
 ```syx
 struct Point {
@@ -36,14 +36,14 @@ struct Point {
     var y: Int
 }
 
-let p = Point(x: 1, y: 2)                 // 字段顺序构造
+let p = Point(x: 1, y: 2)                 // Field-order initialization
 print(p.x)                                 // 1
 ```
 
-- `struct` 字段顺序构造（编译器合成）
-- `data class` 字段顺序构造 + 自动 `description()` + 证明宏合成
+- `struct` field-order initialization (synthesized by the compiler)
+- `data class` field-order initialization + automatic `description()` + synthesis by the proof macros
 
-## 默认值
+## Default Values
 
 ```syx
 class Counter {
@@ -52,17 +52,17 @@ class Counter {
 
     init(name: String) {
         self.name = name
-        // value 已有默认值 0，无需赋值
+        // value already has the default 0, so no assignment is needed
     }
 }
 ```
 
-- 带默认值的字段可在 `init` 中省略赋值
-- `let` 字段必须在 `init` 结束前赋值（默认值或显式）
+- Fields with default values may skip assignment inside `init`
+- A `let` field must be assigned by the end of `init` (default value or explicit)
 
-## 继承与 init 链（两段式）
+## Inheritance and init Chains (Two-Phase)
 
-子类 `init` **必须** 在 `super.init` 之前完成所有 stored 属性初始化（两段式）：
+A subclass `init` **must** finish initializing all its stored properties before `super.init` (two-phase):
 
 ```syx
 class Animal {
@@ -74,21 +74,21 @@ class Dog: Animal {
     var breed: String
 
     init(name: String, breed: String) {
-        self.breed = breed                  // 阶段 1：self 属性
-        super.init(name: name)              // 阶段 2：super 链
+        self.breed = breed                  // Phase 1: this class's own properties
+        super.init(name: name)              // Phase 2: the super chain
     }
 }
 ```
 
-| 阶段 | 操作 |
+| Phase | Operation |
 |------|------|
-| 阶段 1 | 初始化子类自己的 stored 属性（`self.breed = …`） |
-| 阶段 2 | 调用 `super.init(...)` |
-| 阶段 3 | （可选）继续修改继承属性（观察器被 init 抑制，详见 [第 11 章](11-properties.md#属性观察器)） |
+| Phase 1 | Initialize the subclass's own stored properties (`self.breed = …`) |
+| Phase 2 | Call `super.init(...)` |
+| Phase 3 | (Optional) Continue modifying inherited properties (observers are suppressed inside `init`, see [Chapter 11](11-properties.md)) |
 
-> **顺序错误**（在 `super.init` 之前读 `self` 或未初始化字段）→ **S020** 编译错误。
+> **Wrong order** (reading `self` before `super.init`, or reading an uninitialized field) → **S020** compile error.
 
-### super.init 可省（当父类有默认构造）
+### super.init May Be Omitted (When the Superclass Has a Default Initializer)
 
 ```syx
 class Animal {
@@ -100,16 +100,16 @@ class Dog: Animal {
 
     init(breed: String) {
         self.breed = breed
-        // super.init() 隐式调用（Animal 有默认构造）
+        // super.init() is called implicitly (Animal has a default initializer)
     }
 }
 ```
 
-> **隐式 super.init：** 父类所有 stored 属性有默认值时，子类可省略 `super.init`（编译器自动插入）。
+> **Implicit super.init:** when all superclass stored properties have default values, the subclass may omit `super.init` (the compiler inserts it).
 
-## 失败构造 init?
+## Failable Initialization `init?`
 
-`init?` 返回 `Optional<Self>`，可返回 `nil`：
+`init?` returns `Optional<Self>` and may return `nil`:
 
 ```syx
 class Port {
@@ -131,11 +131,11 @@ if let p = p1 {
 }
 ```
 
-| 形式 | 状态 | 说明 |
+| Form | Status | Description |
 |------|------|------|
-| `init?` | **已实现** | 失败返回 `nil` |
-| `init!` | **未实现** | 隐式 unwrap 失败构造 |
-| `throws init` | **部分实现** | `init throws` 抛出错误 |
+| `init?` | **Implemented** | Returns `nil` on failure |
+| `init!` | **Not implemented** | Implicitly unwrapping failable initializer |
+| `throws init` | **Partially implemented** | `init throws` throws an error |
 
 ## throws init
 
@@ -155,9 +155,9 @@ let p = try? Parser(source: "")            // nil
 let p2 = try? Parser(source: "x")          // Parser?
 ```
 
-详见 [第 17 章 错误处理](../../docs/adr/architecture-decisions.md)。
+See [Chapter 17, Error Handling](17-error-handling.md).
 
-## init 参数默认值
+## init Parameter Defaults
 
 ```syx
 class Server {
@@ -176,9 +176,9 @@ let s1 = Server(host: "localhost")
 let s2 = Server(host: "x.com", port: 9000, timeout: 60)
 ```
 
-## init 与属性包装
+## init and Property Wrappers
 
-`@propertyWrapper` 字段的 `init` 需初始化 wrapper 而非 stored value：
+The `init` of an `@propertyWrapper` field must initialize the wrapper rather than the stored value:
 
 ```syx
 @propertyWrapper
@@ -191,18 +191,18 @@ class User {
     @Clamped var age: Int
 
     init(age: Int) {
-        self.age = age                     // 实际调用 Clamped_init
+        self.age = age                     // Actually calls Clamped_init
     }
 }
 ```
 
-详见 [第 19 章 宏](19-macros.md#propertywrapperphase-40-ga)。
+See [Chapter 19, Macros](19-macros.md).
 
-## `self` 在 init 中
+## `self` Inside init
 
-- `self` 在所有 stored 属性初始化完毕前**不可用**（除 `self.field = …` 赋值）
-- `self` 在 `super.init` 之前**不可读**（仅可写）
-- 闭包捕获 `self` 须等 init 结束（避免半构造对象）
+- `self` is **unavailable** until all stored properties are initialized (except for `self.field = …` assignments)
+- `self` is **not readable** before `super.init` (write-only)
+- A closure capturing `self` must wait until `init` finishes (avoiding half-constructed objects)
 
 ```syx
 class Foo {
@@ -211,19 +211,19 @@ class Foo {
 
     init(name: String) {
         self.name = name
-        // ❌ self.printer 之前不能读
-        // self.printer = { print(self.name) }  // 错误
+        // ❌ Cannot read self.printer before it is set
+        // self.printer = { print(self.name) }  // Error
 
-        self.printer = { [self] in          // 显式捕获（部分实现）
+        self.printer = { [self] in          // Explicit capture (partially implemented)
             print(self.name)
         }
     }
 }
 ```
 
-> **状态：** 显式捕获列表 `[self]` / `[weak self]` 部分实现；推荐先完成 init 再赋值闭包。
+> **Status:** explicit capture lists `[self]` / `[weak self]` are partially implemented; finish `init` first, then assign the closure.
 
-## 多 init 与重载
+## Multiple inits and Overloading
 
 ```syx
 class User {
@@ -231,7 +231,7 @@ class User {
     let age: Int
 
     init(name: String) {
-        self.init(name: name, age: 0)       // 委托（未实现 convenience）
+        self.init(name: name, age: 0)       // Delegation (convenience is not implemented)
     }
 
     init(name: String, age: Int) {
@@ -241,9 +241,9 @@ class User {
 }
 ```
 
-> **convenience init：** **未实现**（Phase 49 之后挂起；后续 Phase 计划）。当前用「指定 init 内调用其它 init」模拟（但缺 `convenience` 关键字）。
+> **convenience init:** **Not implemented** (suspended after Phase 49; planned for later Phases). For now, simulate it by "calling another init from a designated init" (without the `convenience` keyword).
 
-## enum 的 init
+## enum Initialization
 
 ```syx
 enum Port {
@@ -259,7 +259,7 @@ enum Port {
 }
 ```
 
-## actor 的 init
+## actor Initialization
 
 ```syx
 actor Counter {
@@ -270,10 +270,10 @@ actor Counter {
     func increment() { value = value + 1 }
 }
 
-let c = await Counter(value: 0)            // actor init 也可 await
+let c = await Counter(value: 0)            // An actor init may be awaited too
 ```
 
-## 完整示例
+## Complete Example
 
 ```syx
 class Vehicle {
@@ -313,32 +313,32 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S004** | init 形参 / 字段类型不匹配 | 修正 |
-| **S020** | `super.init` 之前读 `self` | 调整顺序 |
-| **S054** | 继承 `init` 签名不匹配 | 修正 |
-| **R007** | `init?` 返回类型 `!` 解包 nil | 用 `if let` |
-| **R016** | 必填字段未初始化 | 在 init 中赋值 |
+| **S004** | init parameter / field type mismatch | Fix it |
+| **S020** | Reading `self` before `super.init` | Reorder |
+| **S054** | Inherited `init` signature mismatch | Fix it |
+| **R007** | `!` unwrapping a nil `init?` result | Use `if let` |
+| **R016** | Required field not initialized | Assign it inside `init` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `init` 命名参数 | **已实现**（必填 `label: value`） |
-| 两段式构造 | **已实现**（Phase 51 链式校验） |
-| `convenience init` | **未实现**（规划中） |
-| `required init` | **未实现** |
-| `init?` / `init!` | `init?` **已实现**；`init!` 未实现 |
-| `throws init` | **部分实现** |
-| `defer` in init | **未实现** |
-| `self.init` 委托 | 合法（无 `convenience` 标记） |
-| `init` 中闭包捕获 `self` | 部分支持 |
+| `init` named parameters | **Implemented** (`label: value` required) |
+| Two-phase initialization | **Implemented** (Phase 51 chain checking) |
+| `convenience init` | **Not implemented** (planned) |
+| `required init` | **Not implemented** |
+| `init?` / `init!` | `init?` **Implemented**; `init!` not implemented |
+| `throws init` | **Partially implemented** |
+| `defer` in init | **Not implemented** |
+| `self.init` delegation | Legal (without the `convenience` marker) |
+| Closures capturing `self` in `init` | Partially supported |
 
 ---
 
-**下一章** → [析构过程](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Deinitialization](16-deinitialization.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [第 11 章 属性](../../docs/adr/architecture-decisions.md) · [第 14 章 继承](../../docs/adr/architecture-decisions.md) · [第 16 章 析构过程](../../docs/adr/architecture-decisions.md) · [第 17 章 错误处理](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Chapter 11, Properties](11-properties.md) · [Chapter 14, Inheritance](14-inheritance.md) · [Chapter 16, Deinitialization](16-deinitialization.md) · [Chapter 17, Error Handling](17-error-handling.md)

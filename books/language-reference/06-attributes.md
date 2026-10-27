@@ -1,12 +1,12 @@
-# 特性（Attributes）
+# Attributes
 
-**实现状态：** **M28 + Service DI v19（SYX 116.0）** — 完整章节基于 Phase 138；M28 multi-token decl rewrite MVP + `@Pointcut("within(*Type)")` 类型通配 + DI v19 GA；Phase 132 声明位 `#macro` 卫生 MVP + `@Before`/`@After` pointcut 字符串绑定 MVP；Phase 131 声明位参数替换 MVP + `execution(* T.m(..))` 名/`*` 模式 MVP；Phase 130 token 表达式位 `#macro` MVP + `@Pointcut("Type.method")` 方法名 MVP；Phase 129 `@Codable` L2 associated-enum 全自动 + `@Bean` 参数 `@Autowired`/类型解析 MVP；Phase 128 `@Lazy` + 环依赖懒代理；Phase 127 advice proceed + `@Configuration`/`@Bean`；见 [ADR-130](../../docs/adr/architecture-decisions.md) · 文档指纹 `macro-docs-v20:m28-service-v19-honesty`
+**Implementation status:** **M28 + Service DI v19 (SYX 116.0)** — the full chapter is based on Phase 138; M28 multi-token decl rewrite MVP + `@Pointcut("within(*Type)")` type wildcards + DI v19 GA; Phase 132 declaration-position `#macro` hygiene MVP + `@Before`/`@After` pointcut string binding MVP; Phase 131 declaration-position parameter substitution MVP + `execution(* T.m(..))` name/`*` pattern MVP; Phase 130 token expression-position `#macro` MVP + `@Pointcut("Type.method")` method name MVP; Phase 129 `@Codable` L2 fully automatic associated enums + `@Bean` parameter `@Autowired`/type resolution MVP; Phase 128 `@Lazy` + lazy proxies for cyclic dependencies; Phase 127 advice proceed + `@Configuration`/`@Bean`; see [ADR-130](../../docs/adr/architecture-decisions.md) · documentation fingerprint `macro-docs-v20:m28-service-v19-honesty`
 
-特性以 `@` 前缀标注声明，在编译早期由 `syx-macro::expand_module` 固定点展开或登记（含 **resultBuilder** 第六 pass）。
+Attributes are written with an `@` prefix on declarations, and are expanded or registered by `syx-macro::expand_module` at a fixed point early in compilation (including the sixth pass for **resultBuilder**).
 
 ---
 
-## 语法
+## Syntax
 
 ```syx
 @attached(peer, names: prefixed(_))
@@ -23,45 +23,45 @@ attribute-arg  ::= identifier (':' expr | 'as' type)?
                 |  ('as' type)            -- type cast
 ```
 
-`Attribute { name, args }` 附着于函数、`data class`、`class` 等声明。
+`Attribute { name, args }` is attached to functions, `data class`, `class` and other declarations.
 
 ## @attached
 
-**实现状态：** **部分实现**（Phase 50 真 AST `body:` 展开；Phase 119 conformance no-silent-drop）
+**Implementation status:** **Partially implemented** (Phase 50 real AST `body:` expansion; Phase 119 conformance no-silent-drop)
 
-生成 extension 方法或 peer 声明；`body:` 字符串经 `parse_fragment` 解析为语句/声明。
+Generates extension methods or peer declarations; the `body:` string is parsed by `parse_fragment` into statements/declarations.
 
-角色（role）：`member`、`peer`、`custom`、`accessor`、`extension`、`deinit`。`@freestanding(expression|statement|declaration)` 附着点错位 → **E003**。
+Roles: `member`, `peer`, `custom`, `accessor`, `extension`, `deinit`. `@freestanding(expression|statement|declaration)` attached at the wrong position → **E003**.
 
 ```syx
 @attached(member, named, greet, "print(\"hi:{name}\")")
 data class Greeter(name: String)
 ```
 
-参见 ADR-010、016、018、020；测试 `fixtures/macros/attached_wrapper.sy`、`fixtures/macros/attached_conformance_dispatch.sy`。
+See ADR-010, 016, 018, 020; tests `fixtures/macros/attached_wrapper.sy`, `fixtures/macros/attached_conformance_dispatch.sy`.
 
-### @attached 角色（Phase 53+）
+### @attached Roles (Phase 53+)
 
-| 角色 | 附着点 | 示例 |
+| Role | Attachment point | Example |
 |------|--------|------|
-| `member` / `peer` / `custom` | 类型 | `@attached(member, named, greet, "...")` |
-| `accessor` | 属性（extension 方法） | `@attached(extension, named, readValue, "func readValue() ...")` |
+| `member` / `peer` / `custom` | Type | `@attached(member, named, greet, "...")` |
+| `accessor` | Property (extension method) | `@attached(extension, named, readValue, "func readValue() ...")` |
 | `deinit` | class | `@attached(deinit, named, cleanup, "print(...)")` |
-| `extension` | 类型 | `@attached(extension, named, label, "func label() ...")` |
+| `extension` | Type | `@attached(extension, named, label, "func label() ...")` |
 
-JSON 协议 `role` 字段：`member` | `accessor` | `deinit` | `extension`。
+JSON protocol `role` field: `member` | `accessor` | `deinit` | `extension`.
 
 ## @Equatable / @Hashable / @Codable
 
-**实现状态：** **L1 GA · L2 partial**（builtin 证明宏）
+**Implementation status:** **L1 GA · L2 partial** (built-in proof macros)
 
-| 特性 | 说明 |
+| Attribute | Description |
 |------|------|
-| `@Equatable` | 为 `data class` 合成 `==`（Phase 50）— **GA** |
-| `@Hashable` | 合成 `hash(into:)`（Phase 51–52）— **GA** |
-| `@Codable` | 合成 `encode()` / `static decode(text:)` JSON（Phase 52 L1；Phase 129 L2 enum + generic **partial GA**） |
+| `@Equatable` | Synthesizes `==` for a `data class` (Phase 50) — **GA** |
+| `@Hashable` | Synthesizes `hash(into:)` (Phase 51–52) — **GA** |
+| `@Codable` | Synthesizes `encode()` / `static decode(text:)` JSON (Phase 52 L1; Phase 129 L2 enum + generics **partial GA**) |
 
-L1：仅 stored 属性的 `data class`。未知 `attached(conformance)` 协议不得静默忽略（Phase 119）。见 [语言指南：宏](../language-guide/19-macros.md) · [ADR-112](../../docs/adr/architecture-decisions.md)。
+L1: `data class` with stored properties only. An unknown `attached(conformance)` protocol must not be silently dropped (Phase 119). See [Language Guide: Macros](../language-guide/19-macros.md) · [ADR-112](../../docs/adr/architecture-decisions.md).
 
 ```syx
 @Equatable
@@ -78,30 +78,30 @@ enum WireStatus {
 
 ## @Service / @Component / @Inject / @Autowired / @Scope / @PreDestroy / @Qualifier / @Primary / @Profile / @Around / @Before / @After / @Pointcut
 
-**实现状态：** **GA + partial MVP**（Phase 138 Service DI v19 — `@Pointcut("within(*Type)")` 通配 MVP + multi-token decl rewrite MVP；Phase 137 `!within` 否定 MVP；Phase 136 `within || args` compose MVP；Phase 135 `within && args` compose MVP；Phase 134 `args(Type)` 首参类型名 MVP；Phase 133 `within(Type)` 类型名 MVP + stmt-token subst MVP；Phase 132 `@Before`/`@After` pointcut 字符串绑定 MVP；Phase 131 `execution(* T.m(..))` 名模式 MVP；Phase 130 `@Pointcut` 方法名 MVP；Phase 129 `@Bean` 参数注入 MVP；Phase 128 `@Lazy` + 环依赖懒代理 MVP；Phase 127 `@Around` proceed + `@Configuration`/`@Bean` MVP；M16 协议 witness + advice 链；M15 基类型多态 + 字段 Qualifier；M14 Qualifier/Primary/Profile + `Di.withRequest` 继承）
+**Implementation status:** **GA + partial MVP** (Phase 138 Service DI v19 — `@Pointcut("within(*Type)")` wildcard MVP + multi-token decl rewrite MVP; Phase 137 `!within` negation MVP; Phase 136 `within || args` compose MVP; Phase 135 `within && args` compose MVP; Phase 134 `args(Type)` first-parameter type name MVP; Phase 133 `within(Type)` type name MVP + stmt-token subst MVP; Phase 132 `@Before`/`@After` pointcut string binding MVP; Phase 131 `execution(* T.m(..))` name pattern MVP; Phase 130 `@Pointcut` method name MVP; Phase 129 `@Bean` parameter injection MVP; Phase 128 `@Lazy` + lazy proxy for cyclic dependencies MVP; Phase 127 `@Around` proceed + `@Configuration`/`@Bean` MVP; M16 protocol witness + advice chains; M15 base-type polymorphism + field Qualifier; M14 Qualifier/Primary/Profile + `Di.withRequest` inheritance)
 
-| 特性 | 说明 |
+| Attribute | Description |
 |------|------|
-| `@Service` / `@Component` | 标记可注册类型；**多包**扫描（仅 `resolved_packages`）+ registry；superclass/protocol 作 binding alias；非类型附着 → **E006** |
-| `@Inject` | **构造参数** 注入；基类型/协议名亦可作依赖键；缺依赖 / 环依赖 fail-closed |
-| `@Autowired` | 字段注入 MVP（stored property，构造后赋值）；可叠 `@Qualifier("…")` 跨包保留元数据 |
-| `@Scope("prototype")` | 每次 `resolve` 新实例；默认 singleton |
-| `@Scope("request")` | 请求帧内单例、跨帧新实例；优先 `Di.withRequest` |
-| `@Qualifier("name")` | 多绑定消歧别名（类型级或字段级） |
-| `@Primary` | 无 Qualifier 时的默认实现 |
-| `@Profile("name")` | 条件注册；`Di.setProfile` / `SYX_DI_PROFILE` |
-| `@PostConstruct` / `@PreDestroy` | 构造后 / teardown·request end 钩子 |
-| `@Pointcut("Type.method")` | **部分 GA（Phase 130 · DI v11）** — 窄字符串方法名模式注册；指纹 `macro-service-v11:pointcut-name-mvp` |
-| `@Pointcut("execution(* T.m(..))")` | **部分 GA（Phase 131 · DI v12）** — 方法名/`*` 窄 execution 模式；指纹 `macro-service-v12:pointcut-execution-name-mvp` |
-| `@Pointcut("within(Type)")` | **部分 GA（Phase 133 · DI v14）** — 窄类型名模式注册；指纹 `macro-service-v14:pointcut-within-name-mvp` |
-| `@Pointcut("within(*Type)")` / `within(T*)` | **部分 GA（Phase 138 · DI v19）** — 类型名通配；指纹 `macro-service-v19:pointcut-within-wildcard-mvp` |
-| `@Pointcut("args(Type)")` | **部分 GA（Phase 134 · DI v15）** — 窄首参类型名模式；指纹 `macro-service-v15:pointcut-args-name-mvp` |
-| `@Pointcut("within(T) && args(U)")` | **部分 GA（Phase 135 · DI v16）** — `&&` 窄组合 |
-| `@Pointcut("within(T) \|\| args(U)")` | **部分 GA（Phase 136 · DI v17）** — `\|\|` 窄组合；指纹 `macro-service-v17:pointcut-or-compose-mvp` |
-| `@Pointcut("!within(Type)")` | **部分 GA（Phase 137 · DI v18）** — 否定；指纹 `macro-service-v18:pointcut-not-within-mvp` |
-| `@Around` / `@Around("…")` | **部分 GA** — **仅** `@Service`/`@Component` **实例方法**；有序多 interceptor 链；字符串形式绑定已注册 `@Pointcut` / execution 模式；**非**完整 AspectJ AOP |
-| `@Before("…")` / `@After("…")` | **部分 GA（Phase 132 · DI v13）** — 绑定已注册 `@Pointcut` / execution 名模式；指纹 `macro-service-v13:before-after-pointcut-bind-mvp` |
-| `@Before` / `@After`（无字符串） | **MVP** — 同 `@Around` 作用域；声明序自包装 |
+| `@Service` / `@Component` | Marks a registrable type; **multi-package** scanning (only `resolved_packages`) + registry; superclass/protocol act as binding aliases; attaching to a non-type → **E006** |
+| `@Inject` | **Constructor parameter** injection; base types/protocol names may also serve as dependency keys; missing or cyclic dependencies fail-closed |
+| `@Autowired` | Field injection MVP (stored property, assigned after construction); may be combined with `@Qualifier("…")` so metadata survives across packages |
+| `@Scope("prototype")` | A new instance per `resolve`; singleton by default |
+| `@Scope("request")` | Singleton within a request frame, new instance across frames; prefer `Di.withRequest` |
+| `@Qualifier("name")` | Disambiguating alias for multiple bindings (type level or field level) |
+| `@Primary` | The default implementation when no Qualifier is given |
+| `@Profile("name")` | Conditional registration; `Di.setProfile` / `SYX_DI_PROFILE` |
+| `@PostConstruct` / `@PreDestroy` | Hooks after construction / at teardown · request end |
+| `@Pointcut("Type.method")` | **partial GA (Phase 130 · DI v11)** — narrow string method-name pattern registration; fingerprint `macro-service-v11:pointcut-name-mvp` |
+| `@Pointcut("execution(* T.m(..))")` | **partial GA (Phase 131 · DI v12)** — narrow method-name/`*` execution pattern; fingerprint `macro-service-v12:pointcut-execution-name-mvp` |
+| `@Pointcut("within(Type)")` | **partial GA (Phase 133 · DI v14)** — narrow type-name pattern registration; fingerprint `macro-service-v14:pointcut-within-name-mvp` |
+| `@Pointcut("within(*Type)")` / `within(T*)` | **partial GA (Phase 138 · DI v19)** — type-name wildcards; fingerprint `macro-service-v19:pointcut-within-wildcard-mvp` |
+| `@Pointcut("args(Type)")` | **partial GA (Phase 134 · DI v15)** — narrow first-parameter type-name pattern; fingerprint `macro-service-v15:pointcut-args-name-mvp` |
+| `@Pointcut("within(T) && args(U)")` | **partial GA (Phase 135 · DI v16)** — narrow `&&` composition |
+| `@Pointcut("within(T) \|\| args(U)")` | **partial GA (Phase 136 · DI v17)** — narrow `\|\|` composition; fingerprint `macro-service-v17:pointcut-or-compose-mvp` |
+| `@Pointcut("!within(Type)")` | **partial GA (Phase 137 · DI v18)** — negation; fingerprint `macro-service-v18:pointcut-not-within-mvp` |
+| `@Around` / `@Around("…")` | **partial GA** — **only** for **instance methods** of `@Service`/`@Component`; ordered multi-interceptor chains; the string form binds a registered `@Pointcut` / execution pattern; **not** full AspectJ AOP |
+| `@Before("…")` / `@After("…")` | **partial GA (Phase 132 · DI v13)** — binds a registered `@Pointcut` / execution name pattern; fingerprint `macro-service-v13:before-after-pointcut-bind-mvp` |
+| `@Before` / `@After` (no string) | **MVP** — same scope as `@Around`; self-wrapping in declaration order |
 
 ```syx
 import Di
@@ -154,13 +154,13 @@ func main() {
 }
 ```
 
-> 完整 AspectJ AOP / 完整 token 语法宏 / 完整 Spring → **139+**。见 [19-macros.md](../language-guide/19-macros.md) · [ADR-130](../../docs/adr/architecture-decisions.md)。
+> Full AspectJ AOP / a complete token syntax macro / full Spring → **139+**. See [19-macros.md](../language-guide/19-macros.md) · [ADR-130](../../docs/adr/architecture-decisions.md).
 
 ## @Lazy
 
-**实现状态：** **部分 GA（Phase 128 · Service DI v9）**
+**Implementation status:** **partial GA (Phase 128 · Service DI v9)**
 
-标记 `@Service` / `@Component` / `@Bean` 延迟实例化：工厂在首次 `Di.resolve` / 注入点物化时才运行。含 `@Lazy` 边的环依赖插入懒代理句柄；无 `@Lazy` 环仍 **E007**。指纹 `macro-service-v9:lazy-cycle-proxy-mvp`。**非**任意类型代理 / CGLIB / 作用域代理全集。
+Marks `@Service` / `@Component` / `@Bean` for lazy instantiation: the factory runs only when the materialization point — the first `Di.resolve` / injection site — is reached. A dependency cycle containing a `@Lazy` edge gets a lazy proxy handle inserted; a cycle without `@Lazy` still fails with **E007**. Fingerprint `macro-service-v9:lazy-cycle-proxy-mvp`. **Not** arbitrary type proxies / CGLIB / the full set of scoped proxies.
 
 ```syx
 @Lazy
@@ -170,11 +170,11 @@ class Expensive {
 }
 ```
 
-## @Bean 参数注入
+## @Bean Parameter Injection
 
-**实现状态：** **部分 GA（Phase 129 · Service DI v10）**
+**Implementation status:** **partial GA (Phase 129 · Service DI v10)**
 
-`@Configuration` 内 `@Bean` 方法参数按类型 / `@Autowired`（可选 `@Qualifier`）从已注册 `@Service`/`@Bean` 图注入。指纹 `macro-service-v10:bean-param-autowire-mvp`。
+`@Bean` method parameters inside a `@Configuration` are injected by type / `@Autowired` (optionally `@Qualifier`) from the graph of registered `@Service`/`@Bean`s. Fingerprint `macro-service-v10:bean-param-autowire-mvp`.
 
 ```syx
 @Configuration
@@ -189,9 +189,9 @@ class AppConfig {
 
 ## @Pointcut
 
-**实现状态：** **部分 GA（Phase 138 · Service DI v19）**
+**Implementation status:** **partial GA (Phase 138 · Service DI v19)**
 
-`@Pointcut("Type.method")` 或 `@Pointcut("execution(* Type.method(..))")` / `execution(* Type.*(..))` 或 `@Pointcut("within(Type)")` / `within(*Type)` / `within(T*)` 或 `@Pointcut("args(Type)")` 或 `@Pointcut("within(T) && args(U)")` / `within(T) || args(U)` / `!within(T)` 在 `@Service`/`@Component` 方法上注册窄名/类型模式；`@Around("…")` / `@Before("…")` / `@After("…")` 绑定 proceed / hook 链。完整 AspectJ → **139+**。
+`@Pointcut("Type.method")`, `@Pointcut("execution(* Type.method(..))")` / `execution(* Type.*(..))`, `@Pointcut("within(Type)")` / `within(*Type)` / `within(T*)`, `@Pointcut("args(Type)")`, or `@Pointcut("within(T) && args(U)")` / `within(T) || args(U)` / `!within(T)` register a narrow name/type pattern on a `@Service`/`@Component` method; `@Around("…")` / `@Before("…")` / `@After("…")` bind proceed / hook chains. Full AspectJ → **139+**.
 
 ```syx
 @Service
@@ -205,51 +205,51 @@ class Greeter {
 }
 ```
 
-## Token 表达式位 `#macro` MVP
+## Token Expression-Position `#macro` MVP
 
-**实现状态：** **部分 GA（Phase 134 · M21+）**
+**Implementation status:** **partial GA (Phase 134 · M21+)**
 
-表达式位 `#macro` 对 ident/literal 参数做文本替换；Phase 134 表达式树 walk 加深。指纹 `macro-token-v1:expr-token-mvp` · `macro-token-v5:expr-token-subst-mvp`。**非**完整 token 语法宏。见 [19-macros.md](../language-guide/19-macros.md)。
+An expression-position `#macro` performs textual substitution of ident/literal parameters; Phase 134 deepens the expression-tree walk. Fingerprints `macro-token-v1:expr-token-mvp` · `macro-token-v5:expr-token-subst-mvp`. **Not** a complete token syntax macro. See [19-macros.md](../language-guide/19-macros.md).
 
-## 语句位 `#macro` token subst MVP
+## Statement-Position `#macro` token subst MVP
 
-**实现状态：** **部分 GA（Phase 133 · M23）**
+**Implementation status:** **partial GA (Phase 133 · M23)**
 
-语句位 freestanding `#macro` 对 ident/literal 参数做文本替换。指纹 `macro-token-v4:stmt-token-subst-mvp`。**非**完整 token 语法宏 / token-stream API → **139+**。见 [19-macros.md](../language-guide/19-macros.md) · `examples/stmt_token_macro/`。
+A statement-position freestanding `#macro` performs textual substitution of ident/literal parameters. Fingerprint `macro-token-v4:stmt-token-subst-mvp`. **Not** a complete token syntax macro / token-stream API → **139+**. See [19-macros.md](../language-guide/19-macros.md) · `examples/stmt_token_macro/`.
 
-## 声明位 `#macro` 参数替换 MVP
+## Declaration-Position `#macro` Parameter Substitution MVP
 
-**实现状态：** **部分 GA（Phase 131 · M21）**
+**Implementation status:** **partial GA (Phase 131 · M21)**
 
-声明位 freestanding `#macro` 对参数做文本替换。指纹 `macro-token-v2:decl-param-subst-mvp`。**非**完整 token 语法宏 → **139+**。
+A declaration-position freestanding `#macro` performs textual substitution of its parameters. Fingerprint `macro-token-v2:decl-param-subst-mvp`. **Not** a complete token syntax macro → **139+**.
 
-## 声明位 `#macro` 卫生 MVP
+## Declaration-Position `#macro` Hygiene MVP
 
-**实现状态：** **部分 GA（Phase 132 · M22）**
+**Implementation status:** **partial GA (Phase 132 · M22)**
 
-声明位 freestanding `#macro` 卫生 + linked `run_file` / `compile_linked` 收口。指纹 `macro-token-v3:decl-hygiene-mvp`。**非**完整 token 语法宏 / token-stream API → **139+**。
+Declaration-position freestanding `#macro` hygiene, plus closure of linked `run_file` / `compile_linked`. Fingerprint `macro-token-v3:decl-hygiene-mvp`. **Not** a complete token syntax macro / token-stream API → **139+**.
 
-## 声明位 `#macro` decl-expand MVP
+## Declaration-Position `#macro` decl-expand MVP
 
-**实现状态：** **部分 GA（Phase 137 · M27）**
+**Implementation status:** **partial GA (Phase 137 · M27)**
 
-声明位单 `Ident` token 可 expand 为 rename/wrap 函数 decl。指纹 `macro-token-v8:decl-expand-mvp`。**非**完整 token-stream / 用户 SYX 展开 → **138+**。
+A single declaration-position `Ident` token can expand into a rename/wrap function decl. Fingerprint `macro-token-v8:decl-expand-mvp`. **Not** a full token stream / user SYX expansion → **138+**.
 
-## 声明位 `#macro` multi-token decl rewrite MVP
+## Declaration-Position `#macro` Multi-Token decl rewrite MVP
 
-**实现状态：** **部分 GA（Phase 138 · M28）**
+**Implementation status:** **partial GA (Phase 138 · M28)**
 
-声明位 `Ident` + `Punct` + `Group` token 流可 rewrite 为 rename/wrap 函数 decl。指纹 `macro-token-v9:token-rewrite-mvp`。**非**完整 token-stream / 用户 SYX 展开 → **139+**。
+The declaration-position `Ident` + `Punct` + `Group` token stream can be rewritten into a rename/wrap function decl. Fingerprint `macro-token-v9:token-rewrite-mvp`. **Not** a full token stream / user SYX expansion → **139+**.
 
-## @Codable（L2 associated-enum）
+## @Codable (L2 associated enums)
 
-**实现状态：** **部分 GA（Phase 129 · M19）**
+**Implementation status:** **partial GA (Phase 129 · M19)**
 
-带关联值的 `enum` 自动合成 `encode`/`decode` JSON 往返。指纹 `macro-codable-l2:associated-enum-auto`。**非**泛型关联值全集 / 任意嵌套 / 自定义 coding keys。
+An `enum` with associated values automatically synthesizes `encode`/`decode` JSON round-tripping. Fingerprint `macro-codable-l2:associated-enum-auto`. **Not** the full set of generic associated values / arbitrary nesting / custom coding keys.
 
 ## @propertyWrapper
 
-**实现状态：** **已实现**（Phase 40 GA，**deprecated W001**；请迁移 `@attached(wrapper)`）
+**Implementation status:** **Implemented** (Phase 40 GA, **deprecated W001**; migrate to `@attached(wrapper)`)
 
 ```syx
 @propertyWrapper
@@ -259,57 +259,57 @@ class Clamped {
 }
 ```
 
-CLI：`--no-property-wrapper` 关闭。
+CLI: `--no-property-wrapper` turns it off.
 
 ## @resultBuilder
 
-**实现状态：** **GA**（Phase 119：`syx-macro` engine 固定点管线第六 pass；`buildOptional` + multi-stmt + literal+for-in+HostCall+closure 混用可编译运行 Phase 123）
+**Implementation status:** **GA** (Phase 119: sixth pass of the `syx-macro` engine fixed-point pipeline; `buildOptional` + multi-statement + literal+for-in+HostCall+closure mixtures compile and run as of Phase 123)
 
-语句块 desugar 为容器构建（如 `Array`）。此前 driver-only `desugar_result_builders` 已迁入 engine。
+A statement block is desugared into container construction (e.g. `Array`). The earlier driver-only `desugar_result_builders` has moved into the engine.
 
 ## @unchecked Sendable
 
-**实现状态：** **部分实现**
+**Implementation status:** **Partially implemented**
 
-抑制部分 Sendable 检查；滥用可能导致数据竞争。**C003** 在 strict 模式 E2E。
+Suppresses part of the Sendable checking; misuse may cause data races. **C003** in strict mode E2E.
 
 ## requires Pure / IO
 
-函数效果注解（非 `@` 特性，但属声明修饰）：
+Function effect annotations (not `@` attributes, but declaration modifiers):
 
 ```syx
 func calc(x: Int) -> Int requires Pure { … }
 func load() -> String requires IO { … }
 ```
 
-**实现状态：** **部分实现**（`syx-meta` MVP）
+**Implementation status:** **Partially implemented** (`syx-meta` MVP)
 
-## 编译期宏（`#` 前缀，非 `@`）
+## Compile-Time Macros (`#` prefix, not `@`)
 
-Freestanding 宏在语句或表达式位置调用：
+Freestanding macros are invoked in statement or expression position:
 
-| 宏 | 说明 |
+| Macro | Description |
 |----|------|
-| `#assert` / `#assert_eq` / `#assert_ne` | 断言 |
-| `#if` | 条件编译 |
-| `#while` / `#for` | 循环展开 |
-| `#stringify(expr)` | 表达式 → 字符串字面量（Phase 50） |
+| `#assert` / `#assert_eq` / `#assert_ne` | Assertions |
+| `#if` | Conditional compilation |
+| `#while` / `#for` | Loop unrolling |
+| `#stringify(expr)` | Expression → string literal (Phase 50) |
 | `#warning` / `#error` | W001 / E001 |
-| `#compileTime` | 常量求值子集 |
-| `#macro name(params) { … }` | 用户 freestanding 宏 |
+| `#compileTime` | Constant-evaluation subset |
+| `#macro name(params) { … }` | User freestanding macro |
 
-外部宏声明（Phase 51+）：
+External macro declarations (Phase 51+):
 
 ```syx
 macro MyMacro = #externalMacro(module: "Pkg", type: "MyMacro")
 ```
 
-未知 `#name`（非已注册宏）→ 编译错误。展开深度超限 → **E002**。
+An unknown `#name` (not a registered macro) → compile error. Exceeding the expansion depth → **E002**.
 
 ---
 
-**诊断：** E002 / E003 / E004 / E006 / E007 / E008 / E010 / W001
+**Diagnostics:** E002 / E003 / E004 / E006 / E007 / E008 / E010 / W001
 
-**用法示例** → [语言指南：宏](../language-guide/19-macros.md)
+**Usage examples** → [Language Guide: Macros](../language-guide/19-macros.md)
 
-**参见** → [shared/implementation-status.md](../shared/implementation-status.md) · [ADR-130](../../docs/adr/architecture-decisions.md)
+**See also** → [shared/implementation-status.md](../shared/implementation-status.md) · [ADR-130](../../docs/adr/architecture-decisions.md)

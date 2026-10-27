@@ -1,10 +1,10 @@
-# 方法
+# Methods
 
-**实现状态：** 实例方法 / 静态方法 / `override` / 协议默认实现 / `mutating` **已实现**；`@objc` / KVO / `inout` 形参 **未实现**
+**Implementation status:** instance methods / static methods / `override` / protocol default implementations / `mutating` **Implemented**; `@objc` / KVO / `inout` parameters **Not implemented**
 
-方法是与类型关联的函数。SYX 方法分四类：实例方法、静态方法、构造方法（init，见 [第 15 章](../../docs/adr/architecture-decisions.md)）、析构方法（deinit，见 [第 16 章](../../docs/adr/architecture-decisions.md)）。本章覆盖前两类与重写。
+A method is a function associated with a type. SYX has four kinds of method: instance methods, static methods, initializers (`init`, see [Chapter 15](15-initialization.md)), and deinitializers (`deinit`, see [Chapter 16](16-deinitialization.md)). This chapter covers the first two plus overriding.
 
-## 实例方法
+## Instance Methods
 
 ```syx
 class Counter {
@@ -20,10 +20,10 @@ c.increment(by: 5)
 print(c.describe())                        // "Counter(6)"
 ```
 
-- 隐式 `self` 可省略（不歧义时）；歧义场景需 `self.x` 显式
-- 命名参数与函数一致：`label: value` 必填
+- The implicit `self` may be omitted (when unambiguous); ambiguous cases need an explicit `self.x`
+- Named parameters work as in functions: `label: value` is required
 
-## 静态方法（static func）
+## Static Methods (`static func`)
 
 ```syx
 class Factory {
@@ -35,38 +35,38 @@ let f = Factory.create()
 print(Factory.defaultName)
 ```
 
-| 调用 | 形式 |
+| Call | Form |
 |------|------|
 | `Type.method()` | `static func` / `static var` |
-| `instance.method()` | 实例方法 |
+| `instance.method()` | Instance method |
 
-> **static 限制：** `static func` 中无 `self` 引用实例；只能访问其它 `static` 成员。
+> **static limits:** `static func` has no `self` referring to an instance; it can access only other `static` members.
 
-## 协议默认实现
+## Protocol Default Implementations
 
-协议内可提供方法默认实现，用户类型继承默认：
+A protocol may provide a default method implementation, and adopting types inherit the default:
 
 ```syx
 protocol Greetable {
     func greet() -> String
-    func greet() -> String { return "Hello" }   // 默认实现
+    func greet() -> String { return "Hello" }   // Default implementation
 }
 
 class User: Greetable {
-    // 不实现 greet()，继承协议默认 → "Hello"
+    // Not implementing greet() inherits the protocol default → "Hello"
 }
 
 class Loud: Greetable {
-    func greet() -> String { return "HI!" }    // 覆盖默认
+    func greet() -> String { return "HI!" }    // Overrides the default
 }
 
 print(User().greet())                        // "Hello"
 print(Loud().greet())                        // "HI!"
 ```
 
-## override 重写
+## Overriding
 
-子类重写父类方法（详见 [第 14 章 继承](../../docs/adr/architecture-decisions.md)）：
+A subclass overrides a superclass method (see [Chapter 14, Inheritance](14-inheritance.md)):
 
 ```syx
 class Animal {
@@ -80,13 +80,13 @@ class Dog: Animal {
 }
 ```
 
-- 必须写 `override` 关键字
-- 缺 `override` → **S051**
-- 父类未声明 → **S052**
+- The `override` keyword is mandatory
+- A missing `override` → **S051**
+- A method not declared in the superclass → **S052**
 
-## mutating 方法（struct / enum）
+## mutating Methods (struct / enum)
 
-`mutating func` 标记会修改 `self` 的方法：
+`mutating func` marks methods that modify `self`:
 
 ```syx
 struct Counter {
@@ -99,13 +99,13 @@ c.increment()
 print(c.value)                             // 1
 
 let c2 = Counter()
-// c2.increment()                          // ❌ S020：cannot mutate immutable
+// c2.increment()                          // ❌ S020: cannot mutate immutable
 ```
 
-- 必须在 `var` 绑定上调用
-- 无 `mutating` 标记但函数体修改 `self` → 编译错误
+- It must be called on a `var` binding
+- A method body that modifies `self` without the `mutating` marker → compile error
 
-## 方法作为值
+## Methods as Values
 
 ```syx
 class Helper {
@@ -113,19 +113,19 @@ class Helper {
 }
 
 let h = Helper()
-let f = h.shout                              // 绑定方法
+let f = h.shout                              // Bound method
 f("hello")                                   // !!! hello !!!
 
 let arr: Array<(String) -> Void> = [h.shout]
 arr[0]("world")                              // !!! world !!!
 ```
 
-- 绑定方法时不写 `()`，类型为 `(P) -> R` 函数
-- `f` 持有 `h` 的强引用（注意循环引用）
+- When binding a method you write no `()`; its type is the function type `(P) -> R`
+- `f` holds a strong reference to `h` (watch out for reference cycles)
 
-## extension 方法
+## Extension Methods
 
-`extension` 为已有类型扩展方法（详见 [第 22 章 扩展](../../docs/adr/architecture-decisions.md)）：
+`extension` adds methods to an existing type (see [Chapter 22, Extensions](22-extensions.md)):
 
 ```syx
 extension Int {
@@ -135,9 +135,9 @@ extension Int {
 print(3.doubled())                           // 6
 ```
 
-## 下标方法（subscript）
+## Subscript Methods
 
-`subscript` 在类型内声明下标（详见 [第 13 章 下标](../../docs/adr/architecture-decisions.md)）：
+`subscript` declares a subscript inside a type (see [Chapter 13, Subscripts](13-subscripts.md)):
 
 ```syx
 class Matrix {
@@ -152,9 +152,9 @@ let m = Matrix()
 print(m[0, 1])                               // 2
 ```
 
-## 静态存储
+## Static Storage
 
-`static var` 是类型级存储（class 跨实例共享）：
+`static var` is type-level storage (shared across instances of a class):
 
 ```syx
 class Counter {
@@ -167,23 +167,23 @@ Counter()
 print(Counter.totalInstances)                // 2
 ```
 
-> **状态：** `static var` **已实现**（Phase 134+）；`static var` 上的 willSet/didSet **Phase 138 GA**（class only；详见 [第 11 章](11-properties.md#全局与静态)）。
+> **Status:** `static var` is **Implemented** (Phase 134+); `willSet`/`didSet` on a `static var` is **Phase 138 GA** (class only; see [Chapter 11](11-properties.md)).
 
-## 方法与 actor 隔离
+## Methods and Actor Isolation
 
-`actor` 方法自动隔离：
+`actor` methods are isolated automatically:
 
 ```syx
 actor Counter {
     var value: Int = 0
-    func increment() { value = value + 1 }   // 隔离区内可改 value
+    func increment() { value = value + 1 }   // Inside the isolation domain, value may be modified
 }
 
 let c = Counter()
-await c.increment()                          // 跨隔离必须 await
+await c.increment()                          // Crossing isolation requires await
 ```
 
-## 完整示例
+## Complete Example
 
 ```syx
 @Equatable
@@ -224,31 +224,31 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S001** | 方法名与字段冲突 | 改名 |
-| **S004** | 形参 / 返回类型不匹配 | 修正 |
-| **S020** | `mutating` 调用于 `let` | 改 `var` |
-| **S051** | override 缺关键字 | 加 `override` |
-| **S052** | override 父类未声明 | 删 `override` |
-| **A002** | 跨 actor 调用未 await | 加 `await` |
+| **S001** | Method name conflicts with a field | Rename it |
+| **S004** | Parameter / return type mismatch | Fix it |
+| **S020** | `mutating` called on a `let` | Change it to `var` |
+| **S051** | Missing `override` keyword | Add `override` |
+| **S052** | Overriding something not declared in the superclass | Remove `override` |
+| **A002** | Cross-actor call without await | Add `await` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `@objc` / `@nonobjc` | **未实现** |
-| `inout` 形参 | **未实现**；用 `&mut T` 借用 |
-| `final func` 禁止 override | **未实现**（用 `final class`） |
-| `mutating func` | **已实现** |
-| `@MainActor func` | **已实现**（详见 [第 18 章](../../docs/adr/architecture-decisions.md)） |
-| `throws` 方法 | **已实现**（`throws func` 完整支持） |
-| `async` 方法 | **已实现**（`async func`） |
+| `@objc` / `@nonobjc` | **Not implemented** |
+| `inout` parameters | **Not implemented**; borrow with `&mut T` |
+| `final func` forbidding override | **Not implemented** (use `final class`) |
+| `mutating func` | **Implemented** |
+| `@MainActor func` | **Implemented** (see [Chapter 18](18-concurrency.md)) |
+| `throws` methods | **Implemented** (`throws func` fully supported) |
+| `async` methods | **Implemented** (`async func`) |
 
 ---
 
-**下一章** → [下标](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Subscripts](13-subscripts.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [第 11 章 属性](../../docs/adr/architecture-decisions.md) · [第 14 章 继承](../../docs/adr/architecture-decisions.md) · [第 22 章 扩展](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Chapter 11, Properties](11-properties.md) · [Chapter 14, Inheritance](14-inheritance.md) · [Chapter 22, Extensions](22-extensions.md)

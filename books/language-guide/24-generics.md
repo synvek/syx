@@ -1,10 +1,10 @@
-# 泛型
+# Generics
 
-**实现状态：** 函数 / 类型 / where 子句 / 协议约束 / 关联类型 / 单态化 **已实现**；泛型特化（运行时） **未实现**；泛型反射 **部分实现**（`reflect_specialization` Phase 77）
+**Implementation status:** functions / types / where clauses / protocol constraints / associated types / monomorphization **Implemented**; runtime generic specialization **Not implemented**; generic reflection **Partially implemented** (`reflect_specialization` Phase 77)
 
-泛型编写类型安全的复用代码。SYX 采用 **单态化**（monomorphization）：编译器为每个具体类型参数组合生成专用代码。优点是运行时无虚调度；缺点是代码体积可能膨胀。
+Generics write type-safe reusable code. SYX uses **monomorphization**: the compiler generates specialized code for each concrete type-argument combination. The advantage is no virtual dispatch at runtime; the disadvantage is possible code-size bloat.
 
-## 泛型函数
+## Generic Functions
 
 ```syx
 func id<T>(x: T) -> T { return x }
@@ -15,16 +15,16 @@ let s = id(x: "hi")                        // String
 let (x, y) = swap(a: 1, b: 2)              // (Int, Int)
 ```
 
-| 元素 | 说明 |
+| Element | Description |
 |------|------|
-| `<T>` | 类型参数列表 |
-| `<T, U>` | 多类型参数 |
-| `<T: Equatable>` | 协议约束 |
-| `<T where T: Comparable>` | where 子句 |
+| `<T>` | Type parameter list |
+| `<T, U>` | Multiple type parameters |
+| `<T: Equatable>` | Protocol constraint |
+| `<T where T: Comparable>` | where clause |
 
-测试：`fixtures/parity/generics.sy` · `fixtures/parity/generics.sy`
+Tests: `fixtures/parity/generics.sy` · `fixtures/parity/generics.sy`
 
-## 泛型类型
+## Generic Types
 
 ```syx
 struct Box<T> {
@@ -40,11 +40,11 @@ enum Optional<T> {
 data class Pair<A, B>(first: A, second: B)
 ```
 
-- 泛型参数在类型名后
-- 类型体内可使用 `T` 作任何类型位置
-- 构造器可使用类型参数
+- Generic parameters come after the type name
+- Inside the type body, `T` may be used in any type position
+- Constructors may use type parameters
 
-## where 子句
+## where Clauses
 
 ```syx
 func eq<T>(a: T, b: T) -> Bool where T: Equatable {
@@ -61,17 +61,17 @@ func allEqual<T: Equatable>(_ items: Array<T>) -> Bool {
 }
 ```
 
-| where 形式 | 状态 |
+| where form | Status |
 |------------|------|
-| `where T: P` 单约束 | **已实现** |
-| `where T: P1, T: P2` 多约束 | **已实现** |
-| `where T: P<U>` 关联类型约束 | **部分实现** |
-| `where T == U` 同类型约束 | **已实现** |
-| `where T: P where U: Q` 嵌套 | **部分实现** |
+| `where T: P` single constraint | **Implemented** |
+| `where T: P1, T: P2` multiple constraints | **Implemented** |
+| `where T: P<U>` associated-type constraint | **Partially implemented** |
+| `where T == U` same-type constraint | **Implemented** |
+| `where T: P where U: Q` nesting | **Partially implemented** |
 
-失败测试：`fixtures/parity/generics.sy`
+Failure test: `fixtures/parity/generics.sy`
 
-## 协议约束
+## Protocol Constraints
 
 ```syx
 func printAll<T>(items: Array<T>) where T: CustomStringConvertible {
@@ -81,12 +81,12 @@ func printAll<T>(items: Array<T>) where T: CustomStringConvertible {
 }
 
 printAll(items: [1, 2, 3])                  // 1 2 3
-// printAll(items: [User()])                // S004：User not CustomStringConvertible
+// printAll(items: [User()])                // S004: User is not CustomStringConvertible
 ```
 
-测试：`fixtures/macros/generic_witness_constraint.sy`
+Test: `fixtures/macros/generic_witness_constraint.sy`
 
-## 关联类型
+## Associated Types
 
 ```syx
 protocol Container {
@@ -103,9 +103,9 @@ class IntStack: Container {
 }
 ```
 
-> **自动推断：** 当 `add` / `get` 签名唯一确定 `Item` 时，可省略 `typealias Item`。
+> **Automatic inference:** when the `add` / `get` signatures uniquely determine `Item`, `typealias Item` may be omitted.
 
-## 协议作为类型参数约束
+## Protocols as Type-Parameter Constraints
 
 ```syx
 func map<T, U>(items: Array<T>, f: (T) -> U) -> Array<U> {
@@ -117,24 +117,24 @@ func map<T, U>(items: Array<T>, f: (T) -> U) -> Array<U> {
 let doubled = map(items: [1, 2, 3], f: { x in x * 2 })   // [2, 4, 6]
 ```
 
-## 单态化
+## Monomorphization
 
 ```syx
 func id<T>(x: T) -> T { return x }
 
-id(x: 42)                                  // 生成 id_int
-id(x: "hi")                                // 生成 id_str
+id(x: 42)                                  // Generates id_int
+id(x: "hi")                                // Generates id_str
 ```
 
-> **过程：** `syx-mono` 收集所有具体类型实例化，生成专用函数代码。每个实例有独立符号，运行时**无虚调用**。
+> **Process:** `syx-mono` collects all concrete type instantiations and generates specialized function code. Each instance has an independent symbol and there are **no virtual calls** at runtime.
 
-| 优点 | 缺点 |
+| Advantages | Disadvantages |
 |------|------|
-| 运行时零开销（无虚调度） | 代码体积膨胀 |
-| 内联优化友好 | 编译时间增长 |
-| 调试易（每实例独立栈） | 跨模块特化暴露内部细节 |
+| Zero runtime overhead (no virtual dispatch) | Code size bloat |
+| Inlining-friendly | Longer compile times |
+| Easier debugging (independent stack per instance) | Cross-module specialization exposes internals |
 
-## 泛型与集合
+## Generics and Collections
 
 ```syx
 let arr: Array<Int> = [1, 2, 3]
@@ -147,10 +147,10 @@ func first<T>(_ arr: Array<T>) -> T? {
 }
 
 let firstInt = first(arr)                   // Int?
-let firstString = first([1.0, 2.0])         // Double?（推断）
+let firstString = first([1.0, 2.0])         // Double? (inferred)
 ```
 
-## 泛型与函数
+## Generics and Functions
 
 ```syx
 func compose<A, B, C>(f: (B) -> C, g: (A) -> B) -> (A) -> C {
@@ -161,7 +161,7 @@ let f = compose(f: { x in x + 1 }, g: { x in x * 2 })
 print(f(3))                                 // 7
 ```
 
-## 泛型 extension
+## Generic Extensions
 
 ```syx
 extension Array where Element: Equatable {
@@ -177,9 +177,9 @@ extension Array where Element: Equatable {
 [1, 2, 2, 3].unique()                      // [1, 2, 3]
 ```
 
-详见 [第 22 章 扩展](../../docs/adr/architecture-decisions.md)。
+See [Chapter 22, Extensions](22-extensions.md).
 
-## 泛型与 actor
+## Generics and Actors
 
 ```syx
 actor Holder<T> {
@@ -194,7 +194,7 @@ await h.put(42)
 let n = await h.get()                       // 42
 ```
 
-## 泛型与协议组合
+## Generics and Protocol Composition
 
 ```syx
 protocol A { func a() }
@@ -206,21 +206,21 @@ func both<T>(x: T) where T: A, T: B {
 }
 ```
 
-## 泛型默认值（部分实现）
+## Generic Default Values (Partially Implemented)
 
 ```syx
-class Holder<T = Int> {                     // ⚠️ 部分实现
+class Holder<T = Int> {                     // ⚠️ Partially implemented
     var value: T
     init(v: T) { self.value = v }
 }
 
 let h1 = Holder<Int>(v: 1)
-let h2 = Holder(v: 2)                       // 推断为 Holder<Int>
+let h2 = Holder(v: 2)                       // Inferred as Holder<Int>
 ```
 
-> **状态：** 泛型类型参数默认值 **部分实现**（`fixtures/macros/generic_witness_constraint.sy`）；推荐显式标注。
+> **Status:** default values for generic type parameters are **Partially implemented** (`fixtures/macros/generic_witness_constraint.sy`); explicit annotation is recommended.
 
-## 完整示例
+## Complete Example
 
 ```syx
 func zipMap<A, B, C>(_ a: Array<A>, _ b: Array<B>, _ f: (A, B) -> C) -> Array<C> {
@@ -238,29 +238,29 @@ let r = zipMap([1, 2, 3], ["a", "b", "c"]) { n, s in
 print(r)                                    // ["1-a", "2-b", "3-c"]
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S004** | 类型不匹配 | 检查泛型实参 |
-| **S010** | 协议约束不满足 | 实现所需方法 |
-| **S012** | 关联类型错误 | 加 `typealias` / 修正 |
-| **P001** | 泛型语法错误 | 检查 `<T>` 语法 |
+| **S004** | Type mismatch | Check the generic arguments |
+| **S010** | Protocol constraint not satisfied | Implement the required methods |
+| **S012** | Associated type error | Add a `typealias` / fix it |
+| **P001** | Generic syntax error | Check the `<T>` syntax |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 泛型函数 / 类型 | **已实现**（单态化） |
-| where 子句 | **已实现** |
-| 关联类型 | **已实现** |
-| 泛型默认值 | **部分实现** |
-| 类型级编程（HKT） | **未实现** |
-| 运行时泛型特化反射 | **未实现**（MVP `reflect_specialization` Phase 77） |
-| Swift 部分特化 | **未实现**（仅全量单态化） |
+| Generic functions / types | **Implemented** (monomorphization) |
+| where clauses | **Implemented** |
+| Associated types | **Implemented** |
+| Generic default values | **Partially implemented** |
+| Type-level programming (HKT) | **Not implemented** |
+| Runtime generic specialization reflection | **Not implemented** (MVP `reflect_specialization` Phase 77) |
+| Swift partial specialization | **Not implemented** (only full monomorphization) |
 
 ---
 
-**下一章** → [不透明类型和封装协议类型](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Opaque Types and Boxed Protocol Types](25-opaque-types.md)
 
-**参见** → [语言参考：泛型形参和实参](../language-reference/08-generic-parameters-and-arguments.md) · [第 22 章 扩展](../../docs/adr/architecture-decisions.md) · [第 23 章 协议](../../docs/adr/architecture-decisions.md) · [第 25 章 不透明类型](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Generic Parameters and Arguments](../language-reference/08-generic-parameters-and-arguments.md) · [Chapter 22, Extensions](22-extensions.md) · [Chapter 23, Protocols](23-protocols.md) · [Chapter 25, Opaque Types](25-opaque-types.md)

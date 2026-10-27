@@ -1,10 +1,10 @@
 # SIMD
 
-**实现状态：** `SIMD2<T>` / `SIMD4<T>` / `SIMD8<T>` / `SIMD16<T>` 语言面 **GA**；WASM guest `SIMD128` 直发 **GA**；Native LLVM SIMD16 增强（Phase 133–138）：i8x16 add/sub/neg/abs/umin/umax/load/store/shuffle/sat/compare/extract-replace/avgr_u/popcnt/ge/le/ne/bitmask **MVP partial GA**
+**Implementation status:** `SIMD2<T>` / `SIMD4<T>` / `SIMD8<T>` / `SIMD16<T>` language surface **GA**; WASM guest `SIMD128` direct emit **GA**; Native LLVM SIMD16 enhancements (Phase 133–138): i8x16 add/sub/neg/abs/umin/umax/load/store/shuffle/sat/compare/extract-replace/avgr_u/popcnt/ge/le/ne/bitmask **MVP partial GA**
 
-SYX 提供 **固定宽度 SIMD 值类型** `SIMD2<T>` / `SIMD4<T>` / `SIMD8<T>` / `SIMD16<T>`，元素 `T` 为固定宽度数值（`Int8/16/32/64` / `UInt8/16/32/64` / `Float32/64`）。本章覆盖语言面、归约、配置、跨后端实现与 WASM 加速路径。
+SYX provides **fixed-width SIMD value types** `SIMD2<T>` / `SIMD4<T>` / `SIMD8<T>` / `SIMD16<T>`, where the element `T` is a fixed-width numeric (`Int8/16/32/64` / `UInt8/16/32/64` / `Float32/64`). This chapter covers the language surface, reductions, configuration, cross-back-end implementation, and the WASM acceleration path.
 
-## 类型与字面量
+## Types and Literals
 
 ```syx
 let v4: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
@@ -13,25 +13,25 @@ let v16: SIMD16<UInt8> = SIMD16.fromArray([0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u
                                           8u8, 9u8, 10u8, 11u8, 12u8, 13u8, 14u8, 15u8])
 ```
 
-| 形式 | 说明 |
+| Form | Description |
 |------|------|
-| `SIMD2<T>` | 2 元素 |
-| `SIMD4<T>` | 4 元素（最常用；x86 SSE / ARM NEON） |
-| `SIMD8<T>` | 8 元素（AVX2 / NEON 2×） |
-| `SIMD16<T>` | 16 元素（AVX-512 / WASM SIMD128） |
+| `SIMD2<T>` | 2 elements |
+| `SIMD4<T>` | 4 elements (most common; x86 SSE / ARM NEON) |
+| `SIMD8<T>` | 8 elements (AVX2 / NEON 2×) |
+| `SIMD16<T>` | 16 elements (AVX-512 / WASM SIMD128) |
 
-| 字面量构造 | 说明 |
+| Literal construction | Description |
 |------------|------|
-| `SIMD4.fromArray([…])` | 从 `Array<T>` 构造（长度必须匹配） |
-| `SIMD4.zero` | 全 0 |
-| `SIMD4.splat(x)` | 所有 lane = x |
-| `SIMD4(value0, value1, value2, value3)` | 直接构造（**部分实现**） |
+| `SIMD4.fromArray([…])` | Construct from `Array<T>` (the length must match) |
+| `SIMD4.zero` | All zeros |
+| `SIMD4.splat(x)` | Every lane = x |
+| `SIMD4(value0, value1, value2, value3)` | Direct construction (**Partially implemented**) |
 
-> **强类型：** `T` 必须是固定宽度数值；不允许 `Int`（平台字长）。
+> **Strong typing:** `T` must be a fixed-width numeric; platform-word `Int` is not allowed.
 
-## 元素运算（逐 lane）
+## Element-Wise Operations (per lane)
 
-支持 `+` / `-` / `*` / `/` / `%` / `==` / `<` / `>` / `&` / `|` / `^` 等：
+Supports `+` / `-` / `*` / `/` / `%` / `==` / `<` / `>` / `&` / `|` / `^` and more:
 
 ```syx
 let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
@@ -43,9 +43,9 @@ let eq = v == w                             // [false, false, false, false]
 let lt = v < w                              // [true, true, true, true]
 ```
 
-## 归约（reduce）
+## Reductions (reduce)
 
-把整个 SIMD 归约为单值：
+Reducing the whole SIMD to a single value:
 
 ```syx
 let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
@@ -56,16 +56,16 @@ let max = SIMD4.reduceMax(v)                // 4
 let any = SIMD4.reduceAny(v < SIMD4.fromArray([2i32, 2i32, 2i32, 2i32]))   // true
 ```
 
-| 归约 | 含义 |
+| Reduction | Meaning |
 |------|------|
-| `reduceAdd` | 求和 |
-| `reduceMin` | 最小 |
-| `reduceMax` | 最大 |
-| `reduceAny` | 任一 lane 为 `true` |
-| `reduceAll` | 全部 lane 为 `true` |
-| `reduceBitAnd` / `reduceBitOr` / `reduceBitXor` | 位归约 |
+| `reduceAdd` | Sum |
+| `reduceMin` | Minimum |
+| `reduceMax` | Maximum |
+| `reduceAny` | Any lane is `true` |
+| `reduceAll` | All lanes are `true` |
+| `reduceBitAnd` / `reduceBitOr` / `reduceBitXor` | Bit reduction |
 
-## 单 lane 访问
+## Single-Lane Access
 
 ```syx
 let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
@@ -73,7 +73,7 @@ let first = v[0]                            // 1
 let last = v[3]                             // 4
 ```
 
-## 跨宽度
+## Cross-Width
 
 ```syx
 let v4: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
@@ -82,20 +82,20 @@ let lo: SIMD4<Int32> = v8.lowHalf()          // [1, 2, 3, 4]
 let hi: SIMD4<Int32> = v8.highHalf()         // [0, 0, 0, 0]
 ```
 
-> **状态：** `extended` / `lowHalf` / `highHalf` **部分实现**；与 WASM `i32x4.extend_*` 对齐。
+> **Status:** `extended` / `lowHalf` / `highHalf` are **Partially implemented**; aligned with WASM `i32x4.extend_*`.
 
-## SIMD16 增强（Phase 133–138）
+## SIMD16 Enhancements (Phase 133–138)
 
-WASM guest-v16 起，SIMD16 i8x16 操作逐步加齐：
+Since WASM guest-v16, SIMD16 i8x16 operations have been added progressively:
 
-| 操作 | Phase | 指纹 |
+| Operation | Phase | Fingerprint |
 |------|-------|------|
-| add / sub | 继承 | — |
-| `mul` (i16x8) | 继承 | — |
+| add / sub | inherited | — |
+| `mul` (i16x8) | inherited | — |
 | `neg` | **131** | `lang-simd16-v1:neg-mvp` |
 | `abs` | **131** | `lang-simd16-v2:abs-mvp` |
 | `umin` / `umax` | **130** | `lang-simd16-v3:umin-umax-mvp` |
-| `smin` / `smax` | 继承 | — |
+| `smin` / `smax` | inherited | — |
 | `load` / `store` | 129 | `lang-simd16-v4:load-store-mvp` |
 | `shuffle` | 130 | `lang-simd16-v5:shuffle-mvp` |
 | `sat` (saturating add) | 131 | `lang-simd16-v6:sat-mvp` |
@@ -105,53 +105,53 @@ WASM guest-v16 起，SIMD16 i8x16 操作逐步加齐：
 | `popcnt` | **137** | `wasm-simd16-guest-v19` |
 | `bitmask` | **138** | `wasm-simd16-guest-v21` |
 
-> **全集状态：** SIMD16 **部分 GA**；全指令集覆盖 → **139+**。
+> **Full-set status:** SIMD16 is **partially GA**; full instruction-set coverage → **139+**.
 
-## 配置
+## Configuration
 
-CLI 禁用 SIMD：
+Disabling SIMD from the CLI:
 
 ```bash
-syx run --no-simd program.sy               # 编译期 S022
+syx run --no-simd program.sy               # Compile-time S022
 ```
 
-`syx.toml` 配置：
+`syx.toml` configuration:
 
 ```toml
 [features]
-simd = false                                # 禁用 SIMD
+simd = false                                # Disable SIMD
 ```
 
 ```syx
 import Runtime
 
-Runtime.enableSimd(true)                    // 程序内切换
+Runtime.enableSimd(true)                    // Switch inside the program
 print(Runtime.simdEnabled())
 ```
 
-## 后端支持
+## Back-End Support
 
-| 后端 | SIMD 状态 |
+| Back end | SIMD status |
 |------|----------|
-| **VM 解释器** | 原生 lane 算术（每个 lane 走 VM 指令） |
+| **VM interpreter** | Native lane arithmetic (each lane goes through VM instructions) |
 | **Native (LLVM)** | MIR `SIMD_*` opcode → LLVM vector intrinsics |
-| **WASM (guest-v16)** | 直发 `i8x16_*` / `i32x4_*` / `f32x4_*` SIMD128 指令 |
-| **Cranelift** | **已移除**（Phase 77 GA LLVM sole backend） |
+| **WASM (guest-v16)** | Direct emit of `i8x16_*` / `i32x4_*` / `f32x4_*` SIMD128 instructions |
+| **Cranelift** | **Removed** (Phase 77 GA, LLVM sole backend) |
 
-> **WASM 路径：** SYX WASM 走 **MIR 直编译**（`syx-wasm-emit`）；SIMD 指令直接编码到 `.wasm` 字节码，**不** 走 host `syx.mir_exec` spill。
+> **WASM path:** SYX WASM goes through **direct MIR compilation** (`syx-wasm-emit`); SIMD instructions are encoded directly into the `.wasm` bytecode, **not** through a host `syx.mir_exec` spill.
 
-## 性能对比
+## Performance Comparison
 
-| 操作 | 普通标量循环 | SIMD4 (Float32) | 加速比 |
+| Operation | Plain scalar loop | SIMD4 (Float32) | Speedup |
 |------|--------------|-----------------|--------|
-| `+` 1024 个 | ~50 µs | ~12 µs | ~4× |
-| `*` 1024 个 | ~50 µs | ~12 µs | ~4× |
+| `+` 1024 elements | ~50 µs | ~12 µs | ~4× |
+| `*` 1024 elements | ~50 µs | ~12 µs | ~4× |
 | reduceAdd | ~30 µs | ~5 µs | ~6× |
-| 跨平台 WASM | 同上 | native SIMD128 | ~3-4× |
+| Cross-platform WASM | same as above | native SIMD128 | ~3-4× |
 
-> **实测：** `p_simd.sy` 测试（`crates/syx-driver/tests/`）。
+> **Measured:** the `p_simd.sy` test (`crates/syx-driver/tests/`).
 
-## 完整示例
+## Complete Example
 
 ```syx
 func sumArray(_ arr: Array<Int32>) -> Int32 {
@@ -169,7 +169,7 @@ func sumArraySimd(_ arr: Array<Int32>) -> Int32 {
         i = i + 4
     }
     var total = SIMD4.reduceAdd(acc)
-    while (i < arr.count) {                  // 处理剩余
+    while (i < arr.count) {                  // Handle the remainder
         total = total + arr[i]
         i = i + 1
     }
@@ -183,33 +183,33 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S022** | SIMD 在禁用模式下使用 | 启用 SIMD / 改标量 |
-| **S004** | SIMD 元素类型不匹配 | 检查 `T` 一致 |
+| **S022** | Using SIMD while it is disabled | Enable SIMD / switch to scalar |
+| **S004** | SIMD element type mismatch | Check that `T` is consistent |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `SIMD2` / `SIMD4` / `SIMD8` / `SIMD16` | **已实现** |
-| `SIMD3` | **未实现** |
-| `SIMD64` | **未实现** |
-| WASM SIMD128 | **已实现**（guest-v16） |
-| LLVM vector intrinsics | **已实现** |
-| Cranelift SIMD | **已移除**（Phase 77） |
-| full SIMD16 指令集 | **部分实现**（→ 139+） |
+| `SIMD2` / `SIMD4` / `SIMD8` / `SIMD16` | **Implemented** |
+| `SIMD3` | **Not implemented** |
+| `SIMD64` | **Not implemented** |
+| WASM SIMD128 | **Implemented** (guest-v16) |
+| LLVM vector intrinsics | **Implemented** |
+| Cranelift SIMD | **Removed** (Phase 77) |
+| Full SIMD16 instruction set | **Partially implemented** (→ 139+) |
 
-## 进一步阅读
+## Further Reading
 
-- [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md) — ADR-035（relocating GC）等
-- [第 26 章 内存管理](../../docs/adr/architecture-decisions.md) — Native 后端的 SIMD 内存布局
-- [第 32 章 运算符 vs Core Host](../../docs/adr/architecture-decisions.md) — SIMD 与 Core 桥
+- [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md) — ADR-035 (relocating GC) and others
+- [Chapter 26, Memory Management](26-memory-management.md) — SIMD memory layout on the Native back end
+- [Chapter 32, Operators vs Core Host](32-operators-vs-host.md) — SIMD and the Core bridge
 
 ---
 
-**上一章** ← [高级运算符](../../docs/adr/architecture-decisions.md)
+**Previous chapter** ← [Advanced Operators](30-advanced-operators.md)
 
-**参见** → [实现状态总表](../shared/implementation-status.md) · [docs/10_BackendParity.md](../../docs/10_BackendParity.md)
+**See also** → [Implementation Status Master Table](../shared/implementation-status.md) · [docs/10_BackendParity.md](../../docs/10_BackendParity.md)

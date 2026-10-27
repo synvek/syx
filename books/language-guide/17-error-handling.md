@@ -1,16 +1,16 @@
-# 错误处理
+# Error Handling
 
-**实现状态：** `try` / `catch` / `throw` / `try?` / `try!` / `Result<T, E>` **已实现**；`throws T` typed throws **部分实现**；rethrows **未实现**
+**Implementation status:** `try` / `catch` / `throw` / `try?` / `try!` / `Result<T, E>` **Implemented**; `throws T` typed throws **Partially implemented**; rethrows **Not implemented**
 
-SYX 提供三种错误传播路径：
+SYX provides three error-propagation paths:
 
-1. **throws / try** — 异常抛出与捕获（运行时错误）
-2. **Result<T, E>** — 显式代数类型
-3. **Optional** — 用 `nil` 表示失败（最轻量）
+1. **throws / try** — raising and catching exceptions (runtime errors)
+2. **Result<T, E>** — an explicit algebraic type
+3. **Optional** — using `nil` to mean failure (the lightest weight)
 
-本章覆盖语法、用法、Result 集成与跨函数传播。
+This chapter covers syntax, usage, Result integration, and cross-function propagation.
 
-## try / catch 块
+## try / catch Blocks
 
 ```syx
 func main() {
@@ -23,13 +23,13 @@ func main() {
 }
 ```
 
-- `try { }` 块内可 `throw` / 调 `throws` 函数
-- 异常触发后**立即**跳到 `catch`，跳过 `try` 块剩余部分
-- `err` 类型 MVP 是 `String`（更复杂错误类型规划中）
+- Inside a `try { }` block you may `throw` / call `throws` functions
+- When an exception fires, control jumps **immediately** to `catch`, skipping the rest of the `try` block
+- The MVP type of `err` is `String` (more complex error types are planned)
 
-来源：`crates/syx-driver/tests/fixtures/lsp/result_generic.sy`
+Source: `crates/syx-driver/tests/fixtures/lsp/result_generic.sy`
 
-## throw 表达式
+## throw Expressions
 
 ```syx
 func divide(_ a: Int, _ b: Int) throws -> Int {
@@ -40,11 +40,11 @@ func divide(_ a: Int, _ b: Int) throws -> Int {
 }
 ```
 
-- `throw expr` 抛 `expr`（MVP 类型 `String`）
-- 仅在 `throws` 函数内合法
-- 抛 `String` / `Result.err` / 自定义 enum 都允许（`expr` 类型由函数签名的 `throws T` 决定）
+- `throw expr` throws `expr` (MVP type `String`)
+- Legal only inside a `throws` function
+- Throwing a `String` / `Result.err` / a custom enum is all allowed (the type of `expr` is determined by the function signature's `throws T`)
 
-## throws 函数声明
+## throws Function Declarations
 
 ```syx
 func loadFile(path: String) throws -> String {
@@ -55,7 +55,7 @@ func loadFile(path: String) throws -> String {
 }
 
 func parseInt(s: String) throws -> Int {
-    // 假定有 Int.fromString，返回 Result
+    // Assuming Int.fromString exists and returns a Result
     let r = Int.fromString(s)
     switch (r) {
     case .ok(let n) { return n }
@@ -64,46 +64,46 @@ func parseInt(s: String) throws -> Int {
 }
 ```
 
-| 签名 | 含义 |
+| Signature | Meaning |
 |------|------|
-| `throws -> T` | 可能抛出，调用方需 `try` |
-| `throws E -> T` | typed throws（**部分实现**）抛 `E` |
-| `async throws -> T` | async 且 throws |
+| `throws -> T` | May throw; callers need `try` |
+| `throws E -> T` | Typed throws (**Partially implemented**), throws `E` |
+| `async throws -> T` | async and throws |
 
-## try 表达式
+## try Expressions
 
-调用 `throws` 函数的三种形式：
+Three forms for calling `throws` functions:
 
-### `try expr`（必须 try）
+### `try expr` (try is mandatory)
 
 ```syx
 let s = try loadFile(path: "/tmp/x")      // String
 ```
 
-- 必须用 `try` 包裹（编译器提示 P001 包装缺失）
-- 等价于 `try { let s = loadFile(...) }`
+- It must be wrapped in `try` (the compiler reports missing wrapping as P001)
+- Equivalent to `try { let s = loadFile(...) }`
 
-### `try? expr`（失败转 nil）
+### `try? expr` (failure becomes nil)
 
 ```syx
 let s = try? loadFile(path: "/tmp/x")     // String?
 ```
 
-- 成功 → 返回 `T`
-- 失败 → 返回 `nil`（异常被吞掉）
+- Success → returns `T`
+- Failure → returns `nil` (the exception is swallowed)
 
-### `try! expr`（强制无错）
+### `try! expr` (forced non-erroring)
 
 ```syx
 let s = try! loadFile(path: "/tmp/x")     // String
 ```
 
-- 成功 → 返回 `T`
-- 失败 → 运行时 panic
+- Success → returns `T`
+- Failure → runtime panic
 
-> **`try?` 链：** 多个 `try?` 可链式：`try? foo() + try? bar()`，任一失败 → 整体 `nil`（视具体语义）。
+> **`try?` chains:** several `try?`s may be chained: `try? foo() + try? bar()`, and any failure makes the whole thing `nil` (depending on the exact semantics).
 
-## 链式 catch
+## Chained catch
 
 ```syx
 try {
@@ -118,11 +118,11 @@ try {
 }
 ```
 
-> **`where` 守卫：** 早期版本支持 try-catch 块的 where 守卫（**部分实现**）；推荐直接调 `try?` / `switch` Result。
+> **`where` guards:** early versions supported `where` guards on try-catch blocks (**Partially implemented**); calling `try?` / switching on a Result directly is recommended.
 
-## Result 类型
+## The Result Type
 
-`Result<T, E>` 是显式错误类型的标准方案（[第 9 章 枚举](../../docs/adr/architecture-decisions.md)）：
+`Result<T, E>` is the standard solution for explicit error types ([Chapter 9, Enumerations](09-enumerations.md)):
 
 ```syx
 func parse(s: String) -> Result<Int, String> {
@@ -141,16 +141,16 @@ case .err(let msg) {
 }
 ```
 
-### Result 静态构造
+### Static Result Construction
 
-`ok(value)` / `err(value)` 是预声明的便利函数：
+`ok(value)` / `err(value)` are pre-declared convenience functions:
 
 ```syx
 let r1 = ok(42)                            // Result<Int, Never>
 let r2 = err("oops")                       // Result<Never, String>
 ```
 
-### Result 链式
+### Result Chaining
 
 ```syx
 let r: Result<Int, String> = ok(10)
@@ -158,9 +158,9 @@ let r: Result<Int, String> = ok(10)
     .flatMap({ x in x > 0 ? ok(x) : err("neg") })
 ```
 
-> **方法：** `.ok(v)` / `.err(v)` / `.isOk()` / `.map(f)` / `.flatMap(f)` / `.description` 全部由 `packages/core/builtins/result.sy` 定义。
+> **Methods:** `.ok(v)` / `.err(v)` / `.isOk()` / `.map(f)` / `.flatMap(f)` / `.description` are all defined in `packages/core/builtins/result.sy`.
 
-### @Codable + Result 序列化
+### @Codable + Result Serialization
 
 ```syx
 @Codable
@@ -170,11 +170,11 @@ enum ApiError: Error {
 }
 ```
 
-来源：`fixtures/lsp/result_generic.sy` · `fixtures/lsp/result_generic.sy`
+Source: `fixtures/lsp/result_generic.sy` · `fixtures/lsp/result_generic.sy`
 
-## throws 与 actor
+## throws and Actors
 
-`actor` 内的 `throws func` 自动隔离：
+A `throws func` inside an `actor` is isolated automatically:
 
 ```syx
 actor FileManager {
@@ -193,17 +193,17 @@ try {
 }
 ```
 
-## 错误处理策略选择
+## Choosing an Error-Handling Strategy
 
-| 场景 | 选 |
+| Scenario | Choose |
 |------|-----|
-| 必须处理的运行时错误（IO、网络） | `throws` + `try / catch` |
-| 可恢复的逻辑错误（解析、转换） | `Result<T, E>` |
-| 「有/无」二态（查找、缓存命中） | `Optional<T>` |
-| 库内部 panic 路径 | `try!` / `fatalError` |
-| 错误类型需要携带多字段 | enum + `Result` / typed throws |
+| Runtime errors that must be handled (IO, network) | `throws` + `try / catch` |
+| Recoverable logic errors (parsing, conversion) | `Result<T, E>` |
+| A two-state "present/absent" (lookup, cache hit) | `Optional<T>` |
+| Internal panic paths in libraries | `try!` / `fatalError` |
+| Error types carrying multiple fields | enum + `Result` / typed throws |
 
-## 完整示例
+## Complete Example
 
 ```syx
 enum MathError {
@@ -238,30 +238,30 @@ func main() {
 }
 ```
 
-## 与 Swift 风格对照
+## Comparison with the Swift Style
 
 | Swift | SYX |
 |-------|-----|
-| `do { try … } catch { }` | `try { } catch { }`（无 `do`） |
-| `Error` 协议 | MVP 用 `String` / `Result` |
-| `throws E` typed throws | **部分实现** |
-| `try?` `try!` | **已实现** |
-| `rethrows` | **未实现** |
-| `Result<T, E>` stdlib | **已实现**（含静态 `ok` / `err`） |
-| `error: { }` 闭包参数 | `catch (err) { }` 块 |
-| `try? foo()?.bar()` | 合法 |
+| `do { try … } catch { }` | `try { } catch { }` (no `do`) |
+| The `Error` protocol | The MVP uses `String` / `Result` |
+| `throws E` typed throws | **Partially implemented** |
+| `try?` `try!` | **Implemented** |
+| `rethrows` | **Not implemented** |
+| stdlib `Result<T, E>` | **Implemented** (including static `ok` / `err`) |
+| `error: { }` closure parameter | A `catch (err) { }` block |
+| `try? foo()?.bar()` | Legal |
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S020** | 非 `throws` 函数内 `throw` | 加 `throws` |
-| **P001** | 调 `throws` 函数未 `try` | 加 `try` / `try?` / `try!` |
-| **R007** | `try!` 失败 | 改 `try?` / `try { } catch` |
-| **S004** | `throws` 类型不匹配 | 修正 `throws T` |
+| **S020** | `throw` inside a non-`throws` function | Add `throws` |
+| **P001** | Calling a `throws` function without `try` | Add `try` / `try?` / `try!` |
+| **R007** | `try!` failed | Change to `try?` / `try { } catch` |
+| **S004** | `throws` type mismatch | Fix `throws T` |
 
 ---
 
-**下一章** → [并发](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Concurrency](18-concurrency.md)
 
-**参见** → [语言参考：语句](../language-reference/04-statements.md) · [语言参考：声明](../language-reference/05-declarations.md) · [第 9 章 枚举](../../docs/adr/architecture-decisions.md) · [第 18 章 并发](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Statements](../language-reference/04-statements.md) · [Language Reference: Declarations](../language-reference/05-declarations.md) · [Chapter 9, Enumerations](09-enumerations.md) · [Chapter 18, Concurrency](18-concurrency.md)

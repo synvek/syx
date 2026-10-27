@@ -1,138 +1,138 @@
-# 附录 B：诊断代码索引
+# Appendix B: Diagnostic Code Index
 
-用户向诊断代码速查。编译器实现细节见 [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md)。
+A user-facing cheat sheet of diagnostic codes. For compiler implementation details, see [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md).
 
-> **当前版本：** SYX **117.0** · Phase **139** · 文档指纹 `diag-139`（以编译器源码为准）
+> **Current version:** SYX **117.0** · Phase **139** · documentation fingerprint `diag-139` (compiler source is authoritative)
 
-## 语义（S 系列）
+## Semantics (S series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| S001 | 符号重复定义 |
-| S002 | 未定义标识符 |
-| S003 | 对不可变变量赋值 |
-| S004 | 类型不匹配 |
-| S005 | 跨模块访问 internal / private / fileprivate 符号 |
-| S006 | `Iterator` 协议缺少 `next()` |
-| S007 | Sealed / exhaustiveness 相关（switch 缺 case） |
-| S008 | 类型窄化（如 `Int64 → Int8`） |
-| S009 | 有符号/无符号混合（部分） |
-| S010 | 协议不符合 / 泛型 where 约束不满足 |
-| S011 | 借用 / 变异违规 |
-| S012 | 关联类型错误 |
-| S013 | 集合类型一致性 |
-| S014 | 有符号 / 无符号混合 |
-| S015 | `Hashable` 协议不符 |
-| S016 | `Equatable` 协议不符 |
-| S017 | 生命周期违规 |
+| S001 | Duplicate symbol definition |
+| S002 | Undefined identifier |
+| S003 | Assignment to an immutable variable |
+| S004 | Type mismatch |
+| S005 | Cross-module access to an internal / private / fileprivate symbol |
+| S006 | `Iterator` protocol missing `next()` |
+| S007 | Sealed / exhaustiveness related (switch missing a case) |
+| S008 | Type narrowing (e.g. `Int64 → Int8`) |
+| S009 | Signed/unsigned mixing (partial) |
+| S010 | Does not conform to the protocol / generic where constraint not satisfied |
+| S011 | Borrow / mutation violation |
+| S012 | Associated type error |
+| S013 | Collection type consistency |
+| S014 | Signed / unsigned mixing |
+| S015 | Does not conform to the `Hashable` protocol |
+| S016 | Does not conform to the `Equatable` protocol |
+| S017 | Lifetime violation |
 | S019 | Sendable channel |
-| S020 | MainActor await 后违规 / `guard let` `else` 未退出 / 非 `async` 内 `await` |
-| S022 | SIMD 在禁用模式下使用 |
-| S024 | 集合 hosted op 禁止 legacy `MethodCall`（Phase 48） |
-| S025 | 语义层 hosted 方法须走 extension / `CallHost`（Phase 50） |
-| S046 | `is` 数值目标禁止（`1 is Int` 等） |
-| S050 | 继承 override 校验相关（`override` 缺 / 父类未声明 / 签名不匹配） |
-| S051 | override 缺关键字 |
-| S052 | override 父类未声明 |
-| S053 | 继承 `final` 类 |
-| S054 | override 签名不匹配 |
-| S055 | override 父类 `final` 方法 |
-| S056 | 计算属性观察器（拒绝） |
+| S020 | MainActor violation after await / `guard let` `else` does not exit / `await` in a non-`async` context |
+| S022 | Using SIMD while it is disabled |
+| S024 | Collection hosted ops forbid the legacy `MethodCall` (Phase 48) |
+| S025 | Semantic-layer hosted methods must go through an extension / `CallHost` (Phase 50) |
+| S046 | `is` with a numeric target forbidden (`1 is Int` and similar) |
+| S050 | Inheritance override validation related (missing `override` / not declared in the superclass / signature mismatch) |
+| S051 | `override` keyword missing |
+| S052 | `override` of something not declared in the superclass |
+| S053 | Inheriting a `final` class |
+| S054 | `override` signature mismatch |
+| S055 | `override` of a `final` superclass method |
+| S056 | Computed property observers (rejected) |
 
-## Host 插件（H 系列）
+## Host Plugins (H series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| H001 | 插件未加载或插件 Host 不存在 |
-| H002 | 编译期插件 manifest 与运行期 / 锁文件不一致 |
-| H003 | 插件 ABI 版本不匹配 |
-| H004 | 插件 `min_syx_version` 不满足 |
+| H001 | Plugin not loaded or plugin Host does not exist |
+| H002 | Compile-time plugin manifest inconsistent with runtime / lock file |
+| H003 | Plugin ABI version mismatch |
+| H004 | Plugin `min_syx_version` not satisfied |
 
-## 词法（L 系列）
+## Lexical (L series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| L001 | 未闭合字符串 / 无效词法（lexer） |
-| L002–L012 | Lint 规则（见 [9_UsageGuide](../../docs/9_UsageGuide.md)） |
+| L001 | Unterminated string / invalid lexical element (lexer) |
+| L002–L012 | Lint rules (see [9_UsageGuide](../../docs/9_UsageGuide.md)) |
 
-Lint 摘录：
+Lint excerpts:
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| L001 | 函数名应小写开头（lint） |
-| L002 | 重复函数名 |
-| L003 | 空函数体 |
-| L004 | public 函数应声明返回类型 |
-| L005 | async 函数应使用 await |
-| L006 | 非法字符（变量名） |
-| L007 | 全局变量缺少初始化 |
-| L008 | 空 import 名 |
-| L009 | 裸 return |
-| L010 | 行超过 120 字符 |
-| L011 | 含 TODO/FIXME |
-| L012 | 建议使用结构化日志而非 print |
+| L001 | Function names should start lowercase (lint) |
+| L002 | Duplicate function name |
+| L003 | Empty function body |
+| L004 | A public function should declare a return type |
+| L005 | An async function should use await |
+| L006 | Illegal character (variable name) |
+| L007 | Global variable missing initialization |
+| L008 | Empty import name |
+| L009 | Bare return |
+| L010 | Line longer than 120 characters |
+| L011 | Contains TODO/FIXME |
+| L012 | Prefer structured logging over print |
 
-## 语法（P 系列）
+## Syntax (P series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| P001 | 解析错误（语法不合法） |
-| P001 | 编译时缺 `syx.lock`（manifest 未安装） |
+| P001 | Parse error (illegal syntax) |
+| P001 | `syx.lock` missing at compile time (manifest not installed) |
 
-## 运行时（R 系列）
+## Runtime (R series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| R003 | `as!` 失败；Array / String 下标越界；整数窄化越界 |
-| R007 | 对 nil 强制解包 `!` |
-| R008 | `readLine` 失败 |
-| R011 | 整数溢出 Display（**≠ GA**；现行算术恒 wrap）。同码亦可用于其它域（如 HTTP client） |
-| R012 | 整数除零 |
-| R013 | URL 解析失败 |
-| R014 | 递归过深（栈溢出） |
-| R016 | 必填字段未初始化 |
+| R003 | `as!` failure; Array / String subscript out of bounds; integer narrowing out of range |
+| R007 | Force-unwrapping `nil` with `!` |
+| R008 | `readLine` failure |
+| R011 | Integer overflow Display (**≠ GA**; current arithmetic always wraps). The same code may also be used by other domains (such as the HTTP client) |
+| R012 | Integer division by zero |
+| R013 | URL parsing failure |
+| R014 | Recursion too deep (stack overflow) |
+| R016 | Required field not initialized |
 
-## 并发（A / C 系列）
+## Concurrency (A / C series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| A002 | Actor 隔离违规 |
-| A003 | GlobalActor 相关 |
-| C001 | actor 隔离违规（更细粒度） |
-| C002 | distributed actor 边界 |
-| C003 | 跨隔离传非 `Sendable` 类型 |
-| C004 | Task 取消相关 |
-| C005 | GlobalActor await 后违规 |
-| C006 | structured concurrency 父任务取消传播 |
-| C009 | Actor 同步同实例 reentrancy 拒绝（serial-no-reenter） |
-| C010 | Channel 已关闭（post-close send） |
+| A002 | Actor isolation violation |
+| A003 | GlobalActor related |
+| C001 | Actor isolation violation (finer-grained) |
+| C002 | distributed actor boundary |
+| C003 | Passing a non-`Sendable` type across isolation |
+| C004 | Task cancellation related |
+| C005 | GlobalActor violation after await |
+| C006 | Structured concurrency parent task cancellation propagation |
+| C009 | Actor synchronous same-instance reentrancy rejected (serial-no-reenter) |
+| C010 | Channel closed (post-close send) |
 
-## 宏（E / W 系列）
+## Macros (E / W series)
 
-| 代码 | 含义 |
+| Code | Meaning |
 |------|------|
-| W001 | `#warning` 触发 |
-| E001 | `#error` 触发 |
-| E002 | 宏展开深度超限或循环展开 |
-| E003 | 角色错位（如 `@freestanding(expression)` 用在语句位置） |
-| E004 | external macro 在 WASM 编译期（`SYX_TARGET_WASM=1`） |
-| E006 | `@Service` / `@Component` 错用在非类型上 |
-| E007 | 无 `@Lazy` 环依赖 |
-| E008 | `@Inject` 缺依赖 |
-| E010 | DI typed resolve 动态变量 |
+| W001 | `#warning` triggered |
+| E001 | `#error` triggered |
+| E002 | Macro expansion depth exceeded or cyclic expansion |
+| E003 | Role misplacement (e.g. `@freestanding(expression)` used in statement position) |
+| E004 | external macro during WASM compilation (`SYX_TARGET_WASM=1`) |
+| E006 | `@Service` / `@Component` used on a non-type |
+| E007 | Dependency cycle without `@Lazy` |
+| E008 | `@Inject` missing dependency |
+| E010 | DI typed resolve with a dynamic variable |
 
-## 借用机器证明
+## Borrow Machine Proofs
 
-| 阶段 | 触发 |
+| Phase | Trigger |
 |------|------|
-| Phase 32+ | `SYX_BORROW_MACHINE_PROOF=1` 启用 proof obligation 导出 |
-| Phase 33+ | `SYX_BORROW_COQ_LEAN_EXPORT=1` 启用 Coq/Lean 导出 |
-| Phase 34+ | `SYX_BORROW_COQ_LEAN_PROOF_PROD=1` prod 机器检验 |
+| Phase 32+ | `SYX_BORROW_MACHINE_PROOF=1` enables proof obligation export |
+| Phase 33+ | `SYX_BORROW_COQ_LEAN_EXPORT=1` enables Coq/Lean export |
+| Phase 34+ | `SYX_BORROW_COQ_LEAN_PROOF_PROD=1` prod machine checking |
 
-## 完整工具链诊断
+## Full Toolchain Diagnostics
 
-详见 [docs/9_UsageGuide.md — 诊断代码](../../docs/9_UsageGuide.md#诊断代码)。
+See [docs/9_UsageGuide.md — Diagnostic Codes](../../docs/9_UsageGuide.md#diagnostic-codes).
 
 ---
 
-**参见** → [语言参考：关于本参考](../language-reference/00-about-this-reference.md) · [实现状态总表](../shared/implementation-status.md) · [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md)
+**See also** → [Language Reference: About This Reference](../language-reference/00-about-this-reference.md) · [Implementation Status Master Table](../shared/implementation-status.md) · [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md)

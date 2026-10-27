@@ -1,54 +1,54 @@
-# SYX 语言指南
+# SYX Language Guide
 
-[前言](00-preface.md)
+[Preface](00-preface.md)
 
-# 入门
+# Getting Started
 
-- [快速入门](01-getting-started.md)
-- [基础](02-the-basics.md)
-- [基本运算符](03-basic-operators.md)
+- [Getting Started](01-getting-started.md)
+- [The Basics](02-the-basics.md)
+- [Basic Operators](03-basic-operators.md)
 
-# 语言基础
+# Language Basics
 
-- [字符串和字符](04-strings-and-characters.md)
-- [集合类型](05-collection-types.md)
-- [控制流](06-control-flow.md)
-- [函数](07-functions.md)
-- [闭包](08-closures.md)
+- [Strings and Characters](04-strings-and-characters.md)
+- [Collection Types](05-collection-types.md)
+- [Control Flow](06-control-flow.md)
+- [Functions](07-functions.md)
+- [Closures](08-closures.md)
 
-# 类型
+# Types
 
-- [枚举](09-enumerations.md)
-- [结构体和类](10-structures-and-classes.md)
-- [属性](11-properties.md)
-- [方法](12-methods.md)
-- [下标](13-subscripts.md)
-- [继承](14-inheritance.md)
-- [构造过程](15-initialization.md)
-- [析构过程](16-deinitialization.md)
+- [Enumerations](09-enumerations.md)
+- [Structures and Classes](10-structures-and-classes.md)
+- [Properties](11-properties.md)
+- [Methods](12-methods.md)
+- [Subscripts](13-subscripts.md)
+- [Inheritance](14-inheritance.md)
+- [Initialization](15-initialization.md)
+- [Deinitialization](16-deinitialization.md)
 
-# 高级特性
+# Advanced Features
 
-- [错误处理](17-error-handling.md)
-- [并发](18-concurrency.md)
-- [宏](19-macros.md)
-- [类型转换](20-type-casting.md)
-- [嵌套类型](21-nested-types.md)
-- [扩展](22-extensions.md)
-- [协议](23-protocols.md)
-- [泛型](24-generics.md)
-- [不透明类型和封装协议类型](25-opaque-types.md)
-- [内存管理与垃圾回收](26-memory-management.md)
-- [内存安全](27-memory-safety.md)
-- [访问控制](28-access-control.md)
-- [模块与包](29-modules-and-packages.md)
-- [高级运算符](30-advanced-operators.md)
+- [Error Handling](17-error-handling.md)
+- [Concurrency](18-concurrency.md)
+- [Macros](19-macros.md)
+- [Type Casting](20-type-casting.md)
+- [Nested Types](21-nested-types.md)
+- [Extensions](22-extensions.md)
+- [Protocols](23-protocols.md)
+- [Generics](24-generics.md)
+- [Opaque Types and Boxed Protocol Types](25-opaque-types.md)
+- [Memory Management and Garbage Collection](26-memory-management.md)
+- [Memory Safety](27-memory-safety.md)
+- [Access Control](28-access-control.md)
+- [Modules and Packages](29-modules-and-packages.md)
+- [Advanced Operators](30-advanced-operators.md)
 - [SIMD](31-simd.md)
-- [运算符 vs Core Host](32-operators-vs-host.md)
-- [运行时扩展（动态 Host 插件）](33-runtime-extensions.md)
-- [单元测试（@Test）](34-testing.md)
+- [Operators vs Core Host](32-operators-vs-host.md)
+- [Runtime Extensions (Dynamic Host Plugins)](33-runtime-extensions.md)
+- [Unit Testing (@Test)](34-testing.md)
 
-# 附录
+# Appendix
 
-- [附录 A：实现状态矩阵](appendix-a-implementation-matrix.md)
-- [附录 B：诊断代码索引](appendix-b-diagnostic-index.md)
+- [Appendix A: Implementation Status Matrix](appendix-a-implementation-matrix.md)
+- [Appendix B: Diagnostic Code Index](appendix-b-diagnostic-index.md)

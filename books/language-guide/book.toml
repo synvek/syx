@@ -1,8 +1,8 @@
 [book]
-title = "SYX 语言指南"
-description = "叙事式教程：从入门到高级特性"
-authors = ["SYX 核心团队"]
-language = "zh"
+title = "SYX Language Guide"
+description = "A narrative tutorial: from the basics to advanced features"
+authors = ["SYX Core Team"]
+language = "en"
 src = "."
 
 [output.html]

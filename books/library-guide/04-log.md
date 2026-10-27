@@ -1,6 +1,6 @@
 # Log
 
-**实现状态：** 级别 + 结构化字段行 **已实现**；**不是** JSON 日志 GA。
+**Implementation status:** levels + structured field lines **Implemented**; **not** JSON logging GA.
 
 ```syx
 import Log
@@ -12,14 +12,14 @@ func main() {
 }
 ```
 
-范例：[examples/log_fields.sy](../../examples/log_fields.sy)
+Example: [examples/log_fields.sy](../../examples/log_fields.sy)
 
-| API | 说明 |
+| API | Description |
 |-----|------|
-| `debug` / `info` / `warn` / `error` | 纯消息 |
-| `setMinLevel` / `minLevel` | 全局下限：`DEBUG` / `INFO` / `WARN` / `ERROR` |
-| `infoFields` 等 | 结构化字段；低于下限则空串 |
-| `takeLast` | 读走最近成功发出的一行（测过滤用） |
-| `policy` | 策略指纹；≠ JSON GA |
+| `debug` / `info` / `warn` / `error` | Plain message |
+| `setMinLevel` / `minLevel` | Global floor: `DEBUG` / `INFO` / `WARN` / `ERROR` |
+| `infoFields` and friends | Structured fields; empty string when below the floor |
+| `takeLast` | Reads out the most recent successfully emitted line (for testing filtering) |
+| `policy` | Policy fingerprint; ≠ JSON GA |
 
-`Metrics` / `Trace` / `Profiler` 是相邻可观测包，本指南不把它们写成稳定 `importable_modules` 用户面。
+`Metrics` / `Trace` / `Profiler` are adjacent observability packages; this guide does not present them as a stable `importable_modules` user surface.

@@ -1,115 +1,115 @@
-# 前言
+# Preface
 
-欢迎阅读 **《SYX 语言指南》**。SYX（读作 **sy-ex**，`/saɪˈɛks/`）是一门受 Swift 语法启发的编程语言，由 Rust 实现的完整编译器工具链支撑（默认 **VM** + **LLVM** 原生 AOT + **WASM**；实验 JIT tier-2 opt-in）。源文件扩展名为 **`.sy`**，项目清单为 **`syx.toml`**。本指南帮助你系统学习 SYX 的语义与惯用法，并通过可运行示例建立直觉。
+Welcome to the ***SYX Language Guide***. SYX (pronounced **sy-ex**, `/saɪˈɛks/`) is a programming language inspired by Swift syntax, backed by a complete Rust-implemented compiler toolchain (default **VM** + **LLVM** native AOT + **WASM**; experimental JIT tier-2 opt-in). Source files use the **`.sy`** extension and project manifests are **`syx.toml`**. This guide helps you learn SYX semantics and idioms systematically, and build intuition through runnable examples.
 
-> **本版对应：** SYX **117.0** · Phase **139** · `syx-cache-v1` · audit 2600/3050 · 许可证 [Apache-2.0](../../LICENSE) · 最后文档同步 2026-10-27
+> **This edition covers:** SYX **117.0** · Phase **139** · `syx-cache-v1` · audit 2600/3050 · license [Apache-2.0](../../LICENSE) · documentation last synced 2026-10-27
 >
-> 完整状态见 [shared/implementation-status.md](../shared/implementation-status.md)；架构决议见 [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md)；能力摘要见 [docs/adr/capabilities-summary.md](../../docs/adr/capabilities-summary.md)。
+> For the full status matrix, see [shared/implementation-status.md](../shared/implementation-status.md); for architecture decisions, see [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md); for the capabilities summary, see [docs/adr/capabilities-summary.md](../../docs/adr/capabilities-summary.md).
 
-## SYX 是什么
+## What Is SYX
 
-SYX 提供：
+SYX provides:
 
-- **语法：** Swift 风格的 `func` / `let` / `var`、协议、泛型、`async` / `await`、属性包装、结果构建器
-- **类型：** 静态强类型，含 `Int8..Int64/128`、`UInt8..UInt64/128`、`Float32/64`、`SIMD2/4/8/16<T>`、`BigInt`、引用类型 `&T` / `&mut T`
-- **后端：** 默认栈式 VM（`syx run`）+ Native LLVM（`syx build --native`）+ WASM（`syx run --wasm`）；Cranelift **AOT 已移除**（JIT tier-2 实验 opt-in）
-- **模块：** `syx.toml` 项目 + `import` 路径依赖 + git/registry 依赖 + Host 插件（dlopen）
-- **标准库：** 嵌入 `Math` / `IO` / `Net` / `Crypto` / `Di` / `Os` / `Sync` / `UI` 等；Core builtins 见 [`packages/core/builtins/`](../../packages/core/builtins/)
+- **Syntax:** Swift-style `func` / `let` / `var`, protocols, generics, `async` / `await`, property wrappers, result builders
+- **Types:** statically and strongly typed, including `Int8..Int64/128`, `UInt8..UInt64/128`, `Float32/64`, `SIMD2/4/8/16<T>`, `BigInt`, and reference types `&T` / `&mut T`
+- **Back ends:** default stack VM (`syx run`) + Native LLVM (`syx build --native`) + WASM (`syx run --wasm`); Cranelift **AOT removed** (experimental JIT tier-2 opt-in)
+- **Modules:** a `syx.toml` project + `import` path dependencies + git/registry dependencies + Host plugins (`dlopen`)
+- **Standard library:** embedded `Math` / `IO` / `Net` / `Crypto` / `Di` / `Os` / `Sync` / `UI` and more; Core builtins in [`packages/core/builtins/`](../../packages/core/builtins/)
 
-> **重要：** SYX **不是** Swift 的子集或超集。许多名称相同，语义可能非常不同（特别在 String 字符语义、内存模型、宏、并发与跨模块 Actor 上）。
+> **Important:** SYX is **neither** a subset nor a superset of Swift. Many names match, but semantics may differ substantially (especially String character semantics, the memory model, macros, concurrency, and cross-module actors).
 
-## 编译流水线
+## The Compilation Pipeline
 
 ```
 Source (.sy, UTF-8)
-  → syx-lexer (Token 流)
-  → syx-parser (AST, 递归下降)
-  → syx-semantic (类型检查 + 符号表 + 借用)
-  → syx-macro (固定点展开)
-  → syx-mir (统一 IR)
+  → syx-lexer (Token stream)
+  → syx-parser (AST, recursive descent)
+  → syx-semantic (type checking + symbol table + borrowing)
+  → syx-macro (fixed-point expansion)
+  → syx-mir (unified IR)
   → syx-vm | syx-llvm | syx-wasm-emit
 ```
 
-见 [docs/5_CompleteTechnicalDocumentation.md](../../docs/5_CompleteTechnicalDocumentation.md) · [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md)。
+See [docs/5_CompleteTechnicalDocumentation.md](../../docs/5_CompleteTechnicalDocumentation.md) · [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md).
 
-## 本书约定
+## Conventions Used in This Book
 
-### 实现状态标记
+### Implementation Status Markers
 
-每节顶部以 **实现状态** 行标注：
+An **Implementation status** line appears at the top of each section:
 
-| 标记 | 含义 |
+| Marker | Meaning |
 |------|------|
-| **已实现** / **GA** | `syx run` 或 parity / 硬闸可验证 |
-| **部分实现** | 可解析/编译但语义不完整 |
-| **计划中** | roadmap 有记录，实现未完成 |
-| **未实现** | 无对应 AST/语义 |
+| **Implemented** / **GA** | Verifiable with `syx run`, parity, or hard gates |
+| **Partially implemented** | Parses/compiles but semantics are incomplete |
+| **Planned** | Recorded on the roadmap, implementation unfinished |
+| **Not implemented** | No corresponding AST/semantics |
 
-统一总表：[shared/implementation-status.md](../shared/implementation-status.md)。
+The single master table: [shared/implementation-status.md](../shared/implementation-status.md).
 
-### 代码示例
+### Code Examples
 
-除非另有说明，示例可在仓库根目录用：
+Unless stated otherwise, examples can be run from the repository root with:
 
 ```bash
 cargo run -p syx-cli -- run path/to/example.sy
 ```
 
-### 与参考文档的关系
+### Relationship to Other Reference Documents
 
-| 需求 | 去向 |
+| Need | Where to go |
 |------|------|
-| 叙事学习 | 本书（language-guide） |
-| 形式化规则 | [language-reference](../language-reference/00-about-this-reference.md) |
-| 嵌入包 API | [library-guide](../library-guide/00-preface.md) |
-| 安装 / CLI | [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) |
+| Narrative learning | This book (language-guide) |
+| Formal rules | [language-reference](../language-reference/00-about-this-reference.md) |
+| Embedded package APIs | [library-guide](../library-guide/00-preface.md) |
+| Installation / CLI | [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) |
 
-CLI、Native/WASM 编译、Embed API 与诊断码请参阅：
+For the CLI, Native/WASM compilation, the Embed API and diagnostic codes, see:
 
-- [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) — 完整使用指南
-- [docs/8_QuickReference.md](../../docs/8_QuickReference.md) — 语法速查
-- [docs/12_BackendDebuggingGuide.md](../../docs/12_BackendDebuggingGuide.md) — DAP 调试与后端调试
+- [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) — the complete usage guide
+- [docs/8_QuickReference.md](../../docs/8_QuickReference.md) — syntax cheat sheet
+- [docs/12_BackendDebuggingGuide.md](../../docs/12_BackendDebuggingGuide.md) — DAP debugging and back-end debugging
 
-## 与 Swift 的总体差异（速览）
+## Differences from Swift at a Glance
 
-| 主题 | Swift 6 | SYX 117.0 |
+| Topic | Swift 6 | SYX 117.0 |
 |------|---------|-----------|
-| String 字符 | 扩展字素簇（grapheme cluster） | **字素簇**（`unicode-segmentation`）；早期按 Unicode 标量 |
-| 内存 | ARC（统一） | **ARC（class）+ ManagedHeap**（VM / WASM / Native） |
-| 入口 | `@main` / 自由函数 | `func main()`（同步或 `async`） |
-| `switch` | 隐式 break | `case { }` 块；无 fallthrough |
-| 宏 | 内置 + 完整 Swift 宏 + 外部 macro | freestanding + 用户 `#macro` MVP + attached / `@resultBuilder` / DI 点切面 MVP |
-| 运行时扩展 | 静态 stdlib + ABI 插件 | 静态 Host + opt-in dlopen 插件 + Embed API |
-| 泛型 | 全量 + 特化 | 单态化（无运行时特化反射全集） |
-| 并发 | Structured + actors + distributed | `async`/`await` + `actor` + `Task`/`TaskGroup` + `Channel` + `GlobalActor` MVP |
-| 原生后端 | — | **LLVM sole**（Cranelift AOT 已移除） |
+| String characters | Extended grapheme clusters | **Grapheme clusters** (`unicode-segmentation`); earlier versions used Unicode scalars |
+| Memory | ARC (uniform) | **ARC (class) + ManagedHeap** (VM / WASM / Native) |
+| Entry point | `@main` / free function | `func main()` (synchronous or `async`) |
+| `switch` | Implicit break | `case { }` blocks; no fallthrough |
+| Macros | Built-in + full Swift macros + external macro | freestanding + user `#macro` MVP + attached / `@resultBuilder` / DI pointcut MVP |
+| Runtime extensions | Static stdlib + ABI plugins | Static Host + opt-in dlopen plugins + Embed API |
+| Generics | Full + specialization | Monomorphization (no full runtime specialization reflection) |
+| Concurrency | Structured + actors + distributed | `async`/`await` + `actor` + `Task`/`TaskGroup` + `Channel` + `GlobalActor` MVP |
+| Native back end | — | **LLVM only** (Cranelift AOT removed) |
 
-## 推荐学习路径
+## Recommended Learning Path
 
-| 阶段 | 章节 | 目标 |
+| Stage | Chapters | Goal |
 |------|------|------|
-| **入门** | 1–8 | 能读能写普通 SYX 程序 |
-| **类型系统** | 9–16 | 掌握 enum/class/struct/protocol/泛型/属性/构造/析构 |
-| **高级特性** | 17–25 | 错误处理、并发、宏、协议、不透明类型 |
-| **运行时与扩展** | 26–33 | 内存、借用、宏/AOP 实战、Host 插件、SIMD |
-| **附录** | A、B | 状态总表 + 诊断码速查 |
+| **Getting started** | 1–8 | Able to read and write ordinary SYX programs |
+| **Type system** | 9–16 | Master enum/class/struct/protocol/generics/properties/initialization/deinitialization |
+| **Advanced features** | 17–25 | Error handling, concurrency, macros, protocols, opaque types |
+| **Runtime and extensions** | 26–33 | Memory, borrowing, macros/AOP in practice, Host plugins, SIMD |
+| **Appendices** | A, B | Master status table + diagnostic code cheat sheet |
 
-每一阶段都可以跳到对应语言参考章节精确查表。
+At any stage you can jump to the corresponding language reference chapter to look things up precisely.
 
-## 版本历史（最近 Phase）
+## Version History (Recent Phases)
 
-| Phase | 营销版 | 主要变化 |
+| Phase | Marketing version | Main changes |
 |------|--------|---------|
-| **139** | **117.0** | multiline / tuple / nested path / range / Character / call labels；SIMD16 all/any；`syx-cache-v1`；audit 2600/3050；SynUI deferred；Farm/Dist freeze v19 |
-| 138 | 116.0 | Class Properties v6、Macro M28、Service DI v19、Actor shared pool、SIMD16 bitmask、Os primaryIpv4 |
-| 137 | 115.0 | Class Properties v5、Macro M27、Service DI v18、Task DiscardOldest、SIMD16 popcnt |
-| 136 | 114.0 | Class Properties v4、Macro M26、Service DI v17、Os hostname/uptime |
-| 135 | 113.0 | Class Properties v3、Macro M25、SynUI v12、Task CallerRuns |
+| **139** | **117.0** | multiline / tuple / nested path / range / Character / call labels; SIMD16 all/any; `syx-cache-v1`; audit 2600/3050; SynUI deferred; Farm/Dist freeze v19 |
+| 138 | 116.0 | Class Properties v6, Macro M28, Service DI v19, Actor shared pool, SIMD16 bitmask, Os primaryIpv4 |
+| 137 | 115.0 | Class Properties v5, Macro M27, Service DI v18, Task DiscardOldest, SIMD16 popcnt |
+| 136 | 114.0 | Class Properties v4, Macro M26, Service DI v17, Os hostname/uptime |
+| 135 | 113.0 | Class Properties v3, Macro M25, SynUI v12, Task CallerRuns |
 
-历史详见 [shared/implementation-status.md](../shared/implementation-status.md) 与 ADR 序列。
+For the full history, see [shared/implementation-status.md](../shared/implementation-status.md) and the ADR series.
 
 ---
 
-**下一章** → [快速入门](01-getting-started.md)
+**Next chapter** → [Getting Started](01-getting-started.md)
 
-**参见** → [语言参考：关于本参考](../language-reference/00-about-this-reference.md) · [实现状态总表](../shared/implementation-status.md) · [完整使用指南](../../docs/9_UsageGuide.md)
+**See also** → [Language Reference: About This Reference](../language-reference/00-about-this-reference.md) · [Implementation Status Master Table](../shared/implementation-status.md) · [Complete Usage Guide](../../docs/9_UsageGuide.md)

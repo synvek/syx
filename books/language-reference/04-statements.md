@@ -1,12 +1,12 @@
-# 语句
+# Statements
 
-**实现状态：** **已实现**（`Stmt` 枚举）；控制流 / 异常 / 模式匹配 / async 全部覆盖；标签 **部分实现**；fallthrough **拒绝**
+**Implementation status:** **Implemented** (`Stmt` enum); control flow / exceptions / pattern matching / async are fully covered; labels **Partially implemented**; fallthrough **Rejected**
 
-语句控制执行流程，不直接作为表达式值。`print` 是语言全局 Host（签名见 [`packages/core/builtins/special/globals.sy`](../../packages/core/builtins/special/globals.sy)），调用写法像函数。
+Statements control the flow of execution and do not directly serve as expression values. `print` is a language-level global Host (signature in [`packages/core/builtins/special/globals.sy`](../../packages/core/builtins/special/globals.sy)) whose call syntax looks like a function.
 
 ---
 
-## 分类
+## Classification
 
 ```
 stmt ::= var-decl-stmt
@@ -29,7 +29,7 @@ stmt ::= var-decl-stmt
        | macro-invoke-stmt
 ```
 
-## 变量声明
+## Variable Declarations
 
 ```
 var-decl ::= ('let' | 'var') pattern (':' type)? ('=' expr)?
@@ -45,30 +45,30 @@ async let result = await fetch()            // async let
 async var lazyRes: Int? = nil
 ```
 
-| 关键字 | 可变性 | 重新赋值 |
+| Keyword | Mutability | Reassignment |
 |--------|--------|----------|
-| `let` | 不可变 | ❌ S003 |
-| `var` | 可变 | ✅ |
-| `async let` | 不可变 | ❌ |
-| `async var` | 可变 | ✅ |
+| `let` | Immutable | ❌ S003 |
+| `var` | Mutable | ✅ |
+| `async let` | Immutable | ❌ |
+| `async var` | Mutable | ✅ |
 
-> **类型推断：** 首次赋值后 `let` 类型冻结；后续赋值不兼容 → **S004**。
+> **Type inference:** a `let` type is frozen after its first assignment; a later incompatible assignment → **S004**.
 
-**诊断：** S003（对 `let` 赋值）；S002（未定义）
+**Diagnostics:** S003 (assignment to `let`); S002 (undefined)
 
-## 表达式语句
+## Expression Statements
 
 ```
 expr-stmt ::= expr
 ```
 
 ```syx
-foo()                                       // 函数调用
-x = 1                                       // 赋值
-arr.append(2)                                // 方法调用
+foo()                                       // Function call
+x = 1                                       // Assignment
+arr.append(2)                                // Method call
 ```
 
-> **赋值表达式** 是合法语句；不返回值用于链式。
+> An **assignment expression** is a legal statement; it returns no value usable for chaining.
 
 ## return
 
@@ -82,7 +82,7 @@ return 42
 return result
 ```
 
-> 无 `expr` 等价于 `return ()`（Void）；非 Void 函数必须 return expr。
+> With no `expr`, this is equivalent to `return ()` (Void); a non-Void function must `return expr`.
 
 ## if
 
@@ -100,9 +100,9 @@ if condition {
 }
 ```
 
-> **条件括号可选：** `if expr` 与 `if (expr)` 都合法；推荐省略（与 Swift 一致）。
-> **条件类型** 必须 `Bool`；非 Bool → **S004**。
-> **if 表达式**（Phase 100+）：作表达式时两分支必须存在且类型相同。
+> **Condition parentheses are optional:** both `if expr` and `if (expr)` are legal; omitting them is recommended (consistent with Swift).
+> **Condition type** must be `Bool`; anything else → **S004**.
+> **if expression** (Phase 100+): when used as an expression, both branches must exist and have the same type.
 
 ## while
 
@@ -116,7 +116,7 @@ while x > 0 {
 }
 ```
 
-> 条件括号可选。
+> Condition parentheses are optional.
 
 ## repeat while
 
@@ -130,7 +130,7 @@ repeat {
 } while n < 3
 ```
 
-> 循环体**至少**执行一次；条件在每次迭代后检查。条件括号可选。
+> The loop body executes **at least** once; the condition is checked after each iteration. Condition parentheses are optional.
 
 ## for-in
 
@@ -145,16 +145,16 @@ for i in 0..<10 { … }
 for await x in asyncSeq { … }
 ```
 
-可迭代：
+Iterable:
 
-| 类型 | 元素类型 |
+| Type | Element type |
 |------|----------|
 | `Array<T>` | `T` |
-| `String` | `String`（单标量） |
+| `String` | `String` (single scalar) |
 | `Set<T>` | `T` |
-| `Dictionary<K, V>` | `(K, V)` 元组 |
+| `Dictionary<K, V>` | `(K, V)` tuple |
 | `0..<n` | `Int` |
-| 自定义 `Iterator` | `String` |
+| Custom `Iterator` | `String` |
 | `Object` | `(String, Any)` |
 
 ## break / continue
@@ -170,17 +170,17 @@ while true {
     if skip { continue }
 }
 
-// 标签
+// Labels
 outer: for x in items {
     inner: for y in x.subs {
-        if y.shouldStop { break outer }     // ⚠️ 标签部分实现
+        if y.shouldStop { break outer }     // ⚠️ Labels are partially implemented
     }
 }
 ```
 
-> 标签 / 跨层 break / continue **部分实现**。
+> Labels / cross-level `break` / `continue` are **Partially implemented**.
 
-## 块
+## Blocks
 
 ```
 block-stmt ::= '{' stmt* '}'
@@ -200,24 +200,24 @@ try-stmt ::= 'try' block 'catch' '(' identifier (':' type)? ')' block
              ('catch' '(' identifier (':' type)? ')' block)*
 ```
 
-> 注：`try` 块用 `{ }`；`catch` 绑定**必须**加 `()`，因为 `catch err` 形式与语句歧义（catch 是关键字 + 标识符，无括号时与 `let`/binding 冲突）。
+> Note: a `try` block uses `{ }`; `catch` bindings **must** carry `()`, because the `catch err` form is ambiguous with statements (catch is a keyword plus an identifier, which without parentheses collides with `let`/binding).
 
 ```syx
 try {
     throw "error"
     print("no catch")
 } catch (err) {
-    print(err)                              // err: String（省略类型时的默认）
+    print(err)                              // err: String (default when the type is omitted)
 }
 try {
     throw "typed"
 } catch (err: String) {
-    print(err)                              // 可选显式类型（类似 Java）
+    print(err)                              // Explicit type is optional (Java-like)
 }
 ```
 
-> **catch 多个：** 支持多个 `catch` 子句 + `where` 守卫（**部分实现**）。
-> **catch 绑定类型** 省略时默认为 `String`；可写 `catch (e: T)`；typed throws（`throws T`）**部分实现**。
+> **Multiple catch clauses:** several `catch` clauses plus `where` guards are supported (**Partially implemented**).
+> **Catch binding type** defaults to `String` when omitted; `catch (e: T)` may be written; typed throws (`throws T`) are **Partially implemented**.
 
 ## switch
 
@@ -250,11 +250,11 @@ default {
 }
 ```
 
-> 条件括号可选；`switch expr` 与 `switch (expr)` 都合法。
+> Condition parentheses are optional; both `switch expr` and `switch (expr)` are legal.
 
-> **`case` 块语法：** SYX `case` **必须** 跟 `{ }` 块（**不是** `case 1:` + 缩进）。
-> **`default`：** `enum` / 封闭域可省略（编译器检查全 case 覆盖 → **S007**）；非封闭域需 `default`。
-> **`fallthrough`：** **拒绝**（编译错误）。
+> **`case` block syntax:** a SYX `case` **must** be followed by a `{ }` block (**not** `case 1:` plus indentation).
+> **`default`:** may be omitted for an `enum` / closed domain (the compiler checks full case coverage → **S007**); an open domain needs `default`.
+> **`fallthrough`:** **Rejected** (compile error).
 
 ## if case / if let / guard let
 
@@ -276,13 +276,13 @@ if let x = optional {
 }
 
 guard let y = optional else {
-    return                                  // 必须早退
+    return                                  // Early exit required
 }
 print("y is \(y)")
 ```
 
-> **`guard let` else** 必须退出（`return` / `throw` / `break` / `continue` / 无限循环）— 否则 **S020**。
-> **多模式**：`if let x = a, let y = b, cond { … }`（链式 + 守卫）— 合法。
+> **`guard let` else** must exit (`return` / `throw` / `break` / `continue` / an infinite loop) — otherwise **S020**.
+> **Multiple patterns:** `if let x = a, let y = b, cond { … }` (chaining + guards) — legal.
 
 ## print
 
@@ -295,8 +295,8 @@ print(expr)
 print("Hello", name, count)
 ```
 
-> 内置输出语句（专用语句，**非**函数）。
-> 调用形式为 `print(x)` 看起来像函数；底层是 statement 节点。
+> A built-in output statement (a dedicated statement, **not** a function).
+> The call form `print(x)` looks like a function; underneath it is a statement node.
 
 ## throw
 
@@ -309,9 +309,9 @@ throw "message"
 throw err
 ```
 
-> 仅在 `throws` 函数体内合法；非 throws 函数 → **S020**。
+> Legal only inside a `throws` function body; in a non-`throws` function → **S020**.
 
-## 宏调用语句
+## Macro Invocation Statements
 
 ```
 macro-invoke-stmt ::= '#' identifier '(' arg-list? ')'
@@ -323,17 +323,17 @@ macro-invoke-stmt ::= '#' identifier '(' arg-list? ')'
 #if(DEBUG) print("debug mode")
 ```
 
-> 详见 [特性（Attributes）](../../docs/adr/architecture-decisions.md)。
+> See [Attributes](06-attributes.md).
 
 ## empty statement
 
 ```syx
-;                                           // 允许空语句（不常用）
+;                                           // An empty statement is allowed (uncommon)
 ```
 
-> SYX 不强制分号；可省略。
+> SYX does not require semicolons; they may be omitted.
 
-## 标签
+## Labels
 
 ```
 label-stmt ::= identifier ':' stmt
@@ -342,17 +342,17 @@ label-stmt ::= identifier ':' stmt
 ```syx
 outer: for x in items {
     for y in x.subs {
-        if y.bad { break outer }            // ⚠️ 标签支持演进
+        if y.bad { break outer }            // ⚠️ Label support is still evolving
     }
 }
 ```
 
-> **状态：** 标签基础支持；跨函数 / 跨闭包识别仍演进。
+> **Status:** basic label support; recognition across functions / closures is still evolving.
 
 ---
 
-**诊断：** S003 / S004 / S007 / S010 / S017 / S020 / R007 / P001
+**Diagnostics:** S003 / S004 / S007 / S010 / S017 / S020 / R007 / P001
 
-**用法示例** → [语言指南：控制流](../language-guide/06-control-flow.md) · [错误处理](../language-guide/17-error-handling.md) · [并发](../language-guide/18-concurrency.md)
+**Usage examples** → [Language Guide: Control Flow](../language-guide/06-control-flow.md) · [Error Handling](../language-guide/17-error-handling.md) · [Concurrency](../language-guide/18-concurrency.md)
 
-**参见** → [声明](../../docs/adr/architecture-decisions.md) · [模式](../../docs/adr/architecture-decisions.md) · [表达式](../../docs/adr/architecture-decisions.md) · [语法摘要](../../docs/adr/architecture-decisions.md)
+**See also** → [Declarations](05-declarations.md) · [Patterns](07-patterns.md) · [Expressions](03-expressions.md) · [Grammar Summary](10-grammar-summary.md)

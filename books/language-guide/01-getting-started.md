@@ -1,12 +1,12 @@
-# 快速入门
+# Getting Started
 
-**实现状态：** **已实现**（含 `async` 入口、`syx run` / `syx build` / `syx run --wasm` / `syx build --native` 全路径）
+**Implementation status:** **Implemented** (including the `async` entry point and the full paths of `syx run` / `syx build` / `syx run --wasm` / `syx build --native`)
 
-本章从零开始：编写第一个 SYX 程序、用 CLI 跑起来、读懂错误、扩展成多文件项目。
+This chapter starts from zero: write your first SYX program, run it with the CLI, read errors, and grow it into a multi-file project.
 
 ## Hello, World
 
-最小可运行程序（来源 `examples/hello.sy`）：
+The smallest runnable program (from `examples/hello.sy`):
 
 ```syx
 func main() {
@@ -14,71 +14,71 @@ func main() {
 }
 ```
 
-| 元素 | 说明 |
+| Element | Description |
 |------|------|
-| `func main()` | **唯一** 程序入口；可省略（`syx run` 会自动插入 `main`），但项目根入口必须存在 |
-| `print(…)` | 语言全局 Host 输出（写法像函数；权威签名见 [`packages/core/builtins/special/globals.sy`](../../packages/core/builtins/special/globals.sy)） |
-| `{ … }` | 语句块 |
+| `func main()` | The **only** program entry point; it may be omitted (`syx run` inserts `main` automatically), but a project root entry must exist |
+| `print(…)` | The language-level global Host output (written like a function; the authoritative signature is in [`packages/core/builtins/special/globals.sy`](../../packages/core/builtins/special/globals.sy)) |
+| `{ … }` | Statement block |
 
-SYX **不允许** 顶层可执行语句；所有逻辑都必须在 `func` 内（`main` 或其他函数）。这是和 Python、Ruby 的主要区别。
+SYX does **not** allow top-level executable statements; all logic must live inside a `func` (`main` or another function). This is the main difference from Python and Ruby.
 
-## 安装与构建
+## Installation and Building
 
-### 方式 A：从源码构建（推荐日常）
+### Option A: Build from Source (Recommended for Daily Use)
 
 ```bash
 git clone <repo-url> synswx
 cd synswx
 
-# 调试版（启动慢，约 5–10 秒）
+# Debug build (slow startup, about 5–10 seconds)
 cargo build
 
-# 发布版（启动 < 0.3 秒；推荐日常）
+# Release build (startup < 0.3 seconds; recommended for daily use)
 cargo build --release
 ```
 
-发布版二进制在 `target/release/syx`。把它加入 `PATH`：
+The release binary is at `target/release/syx`. Add it to your `PATH`:
 
 ```bash
 export PATH="$PWD/target/release:$PATH"
 syx --version
 ```
 
-### 方式 B：单次运行（无需构建）
+### Option B: One-Off Run (No Build Step)
 
 ```bash
 cargo run -p syx-cli -- run examples/hello.sy
 ```
 
-Cargo 会编译 `syx-cli` 并立刻执行。CI / smoke test 常用；日常推荐方式 A。
+Cargo compiles `syx-cli` and runs it immediately. Common in CI / smoke tests; Option A is recommended for daily use.
 
-### 方式 C：`cargo install`（安装到 `~/.cargo/bin`）
+### Option C: `cargo install` (Into `~/.cargo/bin`)
 
 ```bash
 cargo install --path crates/syx-cli
 syx run examples/hello.sy
 ```
 
-### 系统要求
+### System Requirements
 
-| 组件 | 版本 |
+| Component | Version |
 |------|------|
 | Rust | 1.80+ |
-| Cargo | 随 Rust 安装 |
-| clang / 系统链接器 | `syx build --native` 需要 |
-| LLVM 18+（可选） | `--backend=llvm` 直出 LLVM IR（默认 `--backend=llvm` 仍依赖 `syx-rt` 静态库） |
+| Cargo | Installed with Rust |
+| clang / system linker | Required by `syx build --native` |
+| LLVM 18+ (optional) | `--backend=llvm` emits LLVM IR directly (the default `--backend=llvm` still depends on the `syx-rt` static library) |
 
-## 三种运行方式
+## Three Ways to Run
 
-| 场景 | 命令 | 产出 | 适用 |
+| Scenario | Command | Output | Best for |
 |------|------|------|------|
-| **日常开发 / 调试** | `syx run program.sy` | 无文件，直接执行 | 完整 P0 能力（File、HTTP、模块、宏） |
-| **Native 编译** | `syx build --native program.sy` | `./program` 可执行文件 | 生产部署、benchmark、C ABI 集成 |
-| **WASM** | `syx run --wasm program.sy` | 内存中运行 | 跨平台分发、嵌入宿主 |
+| **Daily development / debugging** | `syx run program.sy` | No file, executed directly | Full P0 capabilities (File, HTTP, modules, macros) |
+| **Native compilation** | `syx build --native program.sy` | An `./program` executable | Production deployment, benchmarks, C ABI integration |
+| **WASM** | `syx run --wasm program.sy` | Runs in memory | Cross-platform distribution, embedding in a host |
 
-详见 [docs/9_UsageGuide.md § 编译与后端](../../docs/9_UsageGuide.md#编译与后端) 与 [第 31 章 SIMD](../../docs/adr/architecture-decisions.md) 中 WASM guest 路径说明。
+See [docs/9_UsageGuide.md § Compilation and Back Ends](../../docs/9_UsageGuide.md) and the WASM guest path notes in [Chapter 31, SIMD](31-simd.md).
 
-## 你的第一个程序：变量与字符串插值
+## Your First Program: Variables and String Interpolation
 
 ```syx
 func main() {
@@ -89,22 +89,22 @@ func main() {
 }
 ```
 
-输出：
+Output:
 
 ```
 Hello, SYX! count=1
 ```
 
-| 关键字 | 含义 | 重新赋值 |
+| Keyword | Meaning | Reassignment |
 |--------|------|----------|
-| `let` | 不可变绑定 | ❌ 编译错误 **S003** |
-| `var` | 可变绑定 | ✅ |
+| `let` | Immutable binding | ❌ Compile error **S003** |
+| `var` | Mutable binding | ✅ |
 
-字符串插值 `"\(expr)"` 在编译期被解析为 `StringConcat` 表达式；`\(name)` 内任意表达式合法（包括函数调用）。详见 [第 4 章 字符串和字符](../../docs/adr/architecture-decisions.md)。
+String interpolation `"\(expr)"` is parsed at compile time into a `StringConcat` expression; any expression is legal inside `\(name)` (including function calls). See [Chapter 4, Strings and Characters](04-strings-and-characters.md).
 
-## 多文件项目
+## Multi-File Projects
 
-SYX 鼓励把多模块放进 `syx.toml` 项目：
+SYX encourages putting multiple modules into a `syx.toml` project:
 
 ```
 my-app/
@@ -114,7 +114,7 @@ my-app/
     └── math.sy
 ```
 
-`syx.toml`：
+`syx.toml`:
 
 ```toml
 name = "my-app"
@@ -122,11 +122,11 @@ version = "0.1.0"
 main = "main.sy"
 
 [dependencies]
-# 路径依赖（指向 lib/math.sy）
+# Path dependency (points at lib/math.sy)
 math = "lib/math.sy"
 ```
 
-`lib/math.sy`：
+`lib/math.sy`:
 
 ```syx
 public func add(a: Int, b: Int) -> Int {
@@ -134,7 +134,7 @@ public func add(a: Int, b: Int) -> Int {
 }
 ```
 
-`main.sy`：
+`main.sy`:
 
 ```syx
 import math
@@ -144,7 +144,7 @@ func main() {
 }
 ```
 
-运行：
+Run it:
 
 ```bash
 cd my-app
@@ -152,11 +152,11 @@ syx run .
 # → 3 + 4 = 7
 ```
 
-跨模块仅 `public` 符号可见（详见 [第 28 章 访问控制](../../docs/adr/architecture-decisions.md) 与 [第 29 章 模块与包](../../docs/adr/architecture-decisions.md)）。
+Only `public` symbols are visible across modules (see [Chapter 28, Access Control](28-access-control.md) and [Chapter 29, Modules and Packages](29-modules-and-packages.md)).
 
-## async 入口
+## The async Entry Point
 
-`func main` 可声明 `async`，调用 `await`：
+`func main` may be declared `async` and call `await`:
 
 ```syx
 import Net
@@ -167,61 +167,61 @@ async func main() {
 }
 ```
 
-> **注意：** `await` 仅在 `async` 函数体内合法（编译错误 S020）。非 `async` 函数使用 `await` → 编译错误。
+> **Note:** `await` is legal only inside an `async` function body (compile error S020). Using `await` in a non-`async` function → compile error.
 
-## 常见错误与排查
+## Common Errors and Troubleshooting
 
-| 现象 | 原因 | 解决 |
+| Symptom | Cause | Fix |
 |------|------|------|
-| `syx: command not found` | 未构建/未加入 PATH | `cargo build --release` + `export PATH=$PWD/target/release:$PATH` |
-| `P001: parse error at line N` | 语法错误 | 查看上面一行的 `^^^^^` 高亮 |
-| `S002: undefined identifier 'x'` | 用了未声明的标识符 | 检查 import / 拼写 / 作用域 |
-| `S003: cannot assign to let` | 给 `let` 绑定重新赋值 | 改 `var` |
-| `S004: type mismatch` | 类型不匹配 | 显式标注或插入转换 |
-| `R007: force unwrap of nil` | `!` 解包了一个 `Optional` | 用 `if let` / `guard let` / `??` |
-| 网络测试 `Http.get` 超时 | 沙箱网络隔离 | 离线或设置 `SYX_NET_ALLOW=*`（企业版） |
+| `syx: command not found` | Not built / not on PATH | `cargo build --release` + `export PATH=$PWD/target/release:$PATH` |
+| `P001: parse error at line N` | Syntax error | Look at the `^^^^^` highlight on the line above |
+| `S002: undefined identifier 'x'` | An undeclared identifier was used | Check imports / spelling / scope |
+| `S003: cannot assign to let` | Reassigning a `let` binding | Change it to `var` |
+| `S004: type mismatch` | Type mismatch | Add an explicit annotation or insert a conversion |
+| `R007: force unwrap of nil` | `!` unwrapped an `Optional` | Use `if let` / `guard let` / `??` |
+| Network test `Http.get` times out | Sandboxed network isolation | Go offline or set `SYX_NET_ALLOW=*` (enterprise edition) |
 
-完整诊断码见 [附录 B 诊断代码索引](appendix-b-diagnostic-index.md) 与 [docs/9_UsageGuide.md § 诊断代码](../../docs/9_UsageGuide.md#诊断代码)。
+For the complete diagnostic codes, see [Appendix B: Diagnostic Code Index](appendix-b-diagnostic-index.md) and [docs/9_UsageGuide.md § Diagnostic Codes](../../docs/9_UsageGuide.md).
 
-## 编译期与运行期检查
+## Compile-Time vs. Runtime Checks
 
-`syx run` 默认走完整流水线：lex → parse → semantic → macro → MIR → VM。常用 flag：
+`syx run` runs the full pipeline by default: lex → parse → semantic → macro → MIR → VM. Common flags:
 
-| Flag | 行为 |
+| Flag | Behavior |
 |------|------|
-| `syx check program.sy` | 仅类型检查，不执行 |
-| `syx emit program.sy --format syxbc` | 输出栈 VM 字节码文本（人类可读） |
-| `syx emit program.sy --format mir` | 输出统一 MIR 文本 |
-| `syx emit program.sy --format wasm -o out.wasm` | 输出 WASM 二进制（与 `--wasm` 行为不同；详见 [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md#字节码与-ir-导出--syx-emit)） |
-| `syx emit . --format all -o emit/` | 一次导出六种 IR（`syxbc` / `mir` / `wasm` / `wat` / `llvm` / `clif`） |
-| `syx doc .` | 从 `///` 文档注释生成 `docs/api.md` |
-| `syx test .` | 运行 `tests/**/*.sy`（见 [第 34 章 单元测试](34-testing.md)） |
-| `syx lint .` | 静态检查（见 [docs/9_UsageGuide.md § 静态检查](../../docs/9_UsageGuide.md#静态检查--syx-lint)） |
-| `syx format .` | 格式化入口文件 |
-| `syx repl` | 交互式 REPL（Ctrl-D 退出） |
+| `syx check program.sy` | Type checking only, no execution |
+| `syx emit program.sy --format syxbc` | Emits stack VM bytecode text (human readable) |
+| `syx emit program.sy --format mir` | Emits unified MIR text |
+| `syx emit program.sy --format wasm -o out.wasm` | Emits a WASM binary (differs from `--wasm`; see [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md)) |
+| `syx emit . --format all -o emit/` | Exports six IRs at once (`syxbc` / `mir` / `wasm` / `wat` / `llvm` / `clif`) |
+| `syx doc .` | Generates `docs/api.md` from `///` documentation comments |
+| `syx test .` | Runs `tests/**/*.sy` (see [Chapter 34, Unit Testing](34-testing.md)) |
+| `syx lint .` | Static checking (see [docs/9_UsageGuide.md § Static Checking](../../docs/9_UsageGuide.md)) |
+| `syx format .` | Formats the entry file |
+| `syx repl` | Interactive REPL (Ctrl-D to exit) |
 
-## 下一步
+## Next Steps
 
-| 你想… | 跳到 |
+| If you want to… | Jump to |
 |------|------|
-| 写更复杂的数据 | [第 5 章 集合类型](../../docs/adr/architecture-decisions.md) |
-| 写自己的类型 | [第 10 章 结构体和类](../../docs/adr/architecture-decisions.md) |
-| 写 async / 并发 | [第 18 章 并发](../../docs/adr/architecture-decisions.md) |
-| 写宏 / DI | [第 19 章 宏](../../docs/adr/architecture-decisions.md) |
-| 查精确语法 | [语言参考](../language-reference/00-about-this-reference.md) |
-| 查某个特性是否 GA | [实现状态总表](../shared/implementation-status.md) |
+| Write more complex data | [Chapter 5, Collection Types](05-collection-types.md) |
+| Write your own types | [Chapter 10, Structures and Classes](10-structures-and-classes.md) |
+| Write async / concurrent code | [Chapter 18, Concurrency](18-concurrency.md) |
+| Write macros / DI | [Chapter 19, Macros](19-macros.md) |
+| Look up precise grammar | [Language Reference](../language-reference/00-about-this-reference.md) |
+| Check whether a feature is GA | [Implementation Status Master Table](../shared/implementation-status.md) |
 
-## 与 Swift 的差异
+## Differences from Swift
 
-| 点 | SYX |
+| Point | SYX |
 |----|-----|
-| 入口 | 必须 `func main()`（sync 或 `async`） |
-| `print` | Host 全局（签名见 `globals.sy`；写法 `print(x)`） |
-| 字符串插值 | `"\(expr)"` 一致 |
-| 顶层代码 | 禁止；逻辑必须在 `func` 内 |
+| Entry point | `func main()` is required (sync or `async`) |
+| `print` | Host global (signature in `globals.sy`; written `print(x)`) |
+| String interpolation | `"\(expr)"`, same as Swift |
+| Top-level code | Forbidden; logic must live inside a `func` |
 
 ---
 
-**下一章** → [基础](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [The Basics](02-the-basics.md)
 
-**参见** → [完整使用指南](../../docs/9_UsageGuide.md) · [语言参考：声明](../language-reference/05-declarations.md) · [附录 A 实现状态矩阵](appendix-a-implementation-matrix.md)
+**See also** → [Complete Usage Guide](../../docs/9_UsageGuide.md) · [Language Reference: Declarations](../language-reference/05-declarations.md) · [Appendix A: Implementation Status Matrix](appendix-a-implementation-matrix.md)

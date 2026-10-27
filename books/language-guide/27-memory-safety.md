@@ -1,12 +1,12 @@
-# 内存安全
+# Memory Safety
 
-**实现状态：** 借用检查（**已实现** S011）；机器证明 harness（**Phase 32**）；Coq/Lean 外部证明 scaffold（**Phase 33**）；机器检验证明 prod（**Phase 34**）；Actor 隔离（**已实现** A002/C001）；`@unchecked Sendable`（**部分实现**）
+**Implementation status:** borrow checking (**Implemented** S011); machine-proof harness (**Phase 32**); Coq/Lean external proof scaffold (**Phase 33**); machine-checked proof prod (**Phase 34**); Actor isolation (**Implemented** A002/C001); `@unchecked Sendable` (**Partially implemented**)
 
-内存安全防止 **数据竞争、悬垂引用、非法变异**。SYX 通过 **编译期借用检查 + 运行时 GC 屏障 + actor 隔离 + Sendable 约束** 四层保护构建安全网。
+Memory safety prevents **data races, dangling references, and illegal mutation**. SYX builds a safety net from four layers: **compile-time borrow checking + runtime GC barriers + actor isolation + Sendable constraints**.
 
-## 借用检查（编译期）
+## Borrow Checking (Compile Time)
 
-不可同时存在可变借用与共享借用（简化 NLL）：
+A mutable borrow cannot coexist with a shared borrow (simplified NLL):
 
 ```syx
 func read(x: &Int) -> Int { return x }
@@ -14,12 +14,12 @@ func write(x: &mut Int) { x = x + 1 }
 
 func main() {
     var n = 10
-    let r1 = &n                              // 共享借用
+    let r1 = &n                              // Shared borrow
     print(read(x: r1))                       // 10
-    r1 = nil                                  // 释放共享借用
+    r1 = nil                                  // Release the shared borrow
 
-    let r2 = &mut n                          // 可变借用
-    write(x: r2)                              // 合法
+    let r2 = &mut n                          // Mutable borrow
+    write(x: r2)                              // Legal
 }
 ```
 
@@ -27,47 +27,47 @@ func main() {
 
 ```syx
 var n = 10
-let r1 = &mut n                              // 可变借用
-// let r2 = &n                              // ❌ S011：cannot borrow as immutable
-// print(n)                                 // ❌ S011：cannot access through mutable borrow
-r1 = nil                                     // 释放可变借用
-let r3 = &n                                  // ✅ 现在可共享借用
+let r1 = &mut n                              // Mutable borrow
+// let r2 = &n                              // ❌ S011: cannot borrow as immutable
+// print(n)                                 // ❌ S011: cannot access through mutable borrow
+r1 = nil                                     // Release the mutable borrow
+let r3 = &n                                  // ✅ Now a shared borrow is allowed
 ```
 
-测试：`p6_borrow_*.sy` · `p23_borrow_regions_v5_*.sy`
+Tests: `p6_borrow_*.sy` · `p23_borrow_regions_v5_*.sy`
 
-### 借用规则总结
+### Summary of Borrow Rules
 
-| 状态 | 可变借用 | 共享借用 | 读访问 | 写访问 |
+| State | Mutable borrow | Shared borrow | Read access | Write access |
 |------|----------|----------|--------|--------|
-| 无借用 | ✅ | ✅ | ✅ | ✅ |
-| 活跃可变借用 `&mut` | ❌ S011 | ❌ S011 | ❌ S011 | ❌ S011 |
-| 活跃共享借用 `&` | ❌ S011 | ✅ | ✅ | ❌ S011 |
+| No borrow | ✅ | ✅ | ✅ | ✅ |
+| Active mutable borrow `&mut` | ❌ S011 | ❌ S011 | ❌ S011 | ❌ S011 |
+| Active shared borrow `&` | ❌ S011 | ✅ | ✅ | ❌ S011 |
 
-> **NLL（Non-Lexical Lifetimes）：** 借用作用域在「最后一次使用」结束，**不** 到词法末尾。简化模式让 Rust 风格借用更易写。
+> **NLL (Non-Lexical Lifetimes):** a borrow's scope ends at its **last use**, **not** at the end of the lexical block. This simplified model makes Rust-style borrowing easier to write.
 
-## 机器证明 harness（Phase 32+）
+## Machine-Proof Harness (Phase 32+)
 
-Phase 32 引入 **borrow 机器证明 harness**（`borrow_regions_machine_proof_enabled()`）：编译器将 region 图导出为 **proof obligation**，供 replay smoke 与外部证明工具链接。
+Phase 32 introduced the **borrow machine-proof harness** (`borrow_regions_machine_proof_enabled()`): the compiler exports the region graph as **proof obligations**, for replay smoke and linking with external proof tools.
 
-| 阶段 | 能力 |
+| Phase | Capability |
 |------|------|
-| Phase 31 | 形式化验证 scaffold（region 图 proof smoke） |
-| Phase 32 | **机器证明 harness** — region 图 → proof obligation 导出 + replay |
-| Phase 33 | **Coq/Lean 外部证明 scaffold** — obligation → `.v`/`.lean` 导出 + replay |
-| Phase 34 | **机器检验证明 prod** — obligation replay + 外部 Coq/Lean 工具 hook prod |
+| Phase 31 | Formal verification scaffold (region graph proof smoke) |
+| Phase 32 | **Machine-proof harness** — region graph → proof obligation export + replay |
+| Phase 33 | **Coq/Lean external proof scaffold** — obligation → `.v`/`.lean` export + replay |
+| Phase 34 | **Machine-checked proof prod** — obligation replay + external Coq/Lean tool hook prod |
 
-启用：
+Enabling:
 
 ```bash
 SYX_BORROW_MACHINE_PROOF=1 syx run program.sy
-SYX_BORROW_COQ_LEAN_EXPORT=1 syx run program.sy        # Phase 33 Coq/Lean 导出
-SYX_BORROW_COQ_LEAN_PROOF_PROD=1 syx run program.sy    # Phase 34 机器检验 prod
+SYX_BORROW_COQ_LEAN_EXPORT=1 syx run program.sy        # Phase 33 Coq/Lean export
+SYX_BORROW_COQ_LEAN_PROOF_PROD=1 syx run program.sy    # Phase 34 machine-checked prod
 ```
 
-测试 fixture：`p32_borrow_proof_*` · `p33_borrow_coq_lean_*` · `p34_borrow_coq_lean_proof_*`
+Test fixtures: `p32_borrow_proof_*` · `p33_borrow_coq_lean_*` · `p34_borrow_coq_lean_proof_*`
 
-## 生命周期
+## Lifetimes
 
 ```syx
 func longest<'a>(x: &'a String, y: &'a String) -> &'a String {
@@ -76,19 +76,19 @@ func longest<'a>(x: &'a String, y: &'a String) -> &'a String {
 }
 ```
 
-| 能力 | 状态 |
+| Capability | Status |
 |------|------|
-| 生命周期标注 `<'a>` | **部分实现**（S017） |
-| 生命周期推断 | **已实现** |
-| 跨 `await` 借用 | **部分实现**（async/actor 子集） |
-| 高阶生命周期 | **未实现** |
-| 生命周期 bound `'a: 'b` | **部分实现** |
+| Lifetime annotations `<'a>` | **Partially implemented** (S017) |
+| Lifetime inference | **Implemented** |
+| Borrows across `await` | **Partially implemented** (async/actor subset) |
+| Higher-ranked lifetimes | **Not implemented** |
+| Lifetime bounds `'a: 'b` | **Partially implemented** |
 
-测试：`p15_lifetime_a_*.sy` · `p17_lifetime_await_*.sy`
+Tests: `p15_lifetime_a_*.sy` · `p17_lifetime_await_*.sy`
 
-## Actor 隔离
+## Actor Isolation
 
-actor 外直接访问 actor 状态 → **A002** / **C001**：
+Accessing actor state directly from outside → **A002** / **C001**:
 
 ```syx
 actor Counter {
@@ -97,15 +97,15 @@ actor Counter {
 }
 
 let c = Counter()
-// print(c.value)                            // ❌ A002：cross-actor access without await
-print(await c.value)                        // ✅ 跨隔离必须 await
+// print(c.value)                            // ❌ A002: cross-actor access without await
+print(await c.value)                        // ✅ Crossing isolation requires await
 ```
 
-详见 [第 18 章 并发](18-concurrency.md#actor-隔离)。
+See [Chapter 18, Concurrency](18-concurrency.md#actor-isolation).
 
 ## Sendable
 
-跨隔离传递类型须 `Sendable`：
+A type passed across isolation must be `Sendable`:
 
 ```syx
 @Sendable
@@ -113,29 +113,29 @@ data class User(name: String, age: Int)
 
 actor Cache {
     var users: Array<User> = []
-    func put(_ u: User) { users.append(u) } // User 满足 Sendable
+    func put(_ u: User) { users.append(u) } // User satisfies Sendable
 }
 
 let cache = Cache()
 let u = User(name: "Alice", age: 30)
-await cache.put(u)                          // 跨隔离传 Sendable 值
+await cache.put(u)                          // Passing a Sendable value across isolation
 ```
 
-| 注解 | 状态 | 说明 |
+| Annotation | Status | Description |
 |------|------|------|
-| `@Sendable` | **已实现** | 标记类型可安全跨隔离传递 |
-| `@unchecked Sendable` | **部分实现** | 抑制检查；自担风险 |
+| `@Sendable` | **Implemented** | Marks a type as safe to pass across isolation |
+| `@unchecked Sendable` | **Partially implemented** | Suppresses checking; you accept the risk |
 
-> **Phase 60 严格模式：** `Sendable` 检查在 `strict` 模式下为编译错误 **C003** E2E（`concurrency.rs`）。
+> **Phase 60 strict mode:** `Sendable` checking is a compile error **C003** E2E in `strict` mode (`concurrency.rs`).
 
 ```syx
-// 非 Sendable 跨 actor → 编译错误
+// A non-Sendable crossing actors → compile error
 class NotSendable {
-    var mutable: Int = 0                    // 引用类型 + 内部可变
+    var mutable: Int = 0                    // Reference type + internal mutability
 }
 
 let bad = NotSendable()
-// await cache.put(bad)                     // ❌ C003：NotSendable not Sendable
+// await cache.put(bad)                     // ❌ C003: NotSendable is not Sendable
 ```
 
 ## @unchecked Sendable
@@ -147,21 +147,21 @@ class MyLegacy {
 }
 ```
 
-> **风险：** `@unchecked` 抑制检查；多线程同时访问需外部同步（如 `Lock` / `actor`），否则可能数据竞争。
+> **Risk:** `@unchecked` suppresses checking; concurrent access from multiple threads needs external synchronization (such as `Lock` / `actor`), otherwise a data race may occur.
 
-## GC 与内存安全
+## GC and Memory Safety
 
-**Unified GC LTS**（[ADR-045](../../docs/adr/architecture-decisions.md)）在三后端 VM/WASM/native 统一 remembered set 分代 GC，保证跨代引用在 minor collect 时不遗漏；与 borrow 检查互补 — 编译期借用 + 运行时 GC 屏障。
+**Unified GC LTS** ([ADR-045](../../docs/adr/architecture-decisions.md)) unifies remembered-set generational GC across the three back ends VM/WASM/native, guaranteeing that cross-generation references are not missed during a minor collect; it complements borrow checking — compile-time borrowing + runtime GC barriers.
 
-| 维度 | 编译期 | 运行时 |
+| Dimension | Compile time | Runtime |
 |------|--------|--------|
-| 借用检查 | ✅ S011 | N/A |
-| 生命周期 | ✅ S017 | N/A |
-| 跨代引用屏障 | N/A | ✅ write barrier |
-| Actor 隔离 | 类型检查 A002 | queue serial |
-| Sendable | 类型检查 C003 | witness |
+| Borrow checking | ✅ S011 | N/A |
+| Lifetimes | ✅ S017 | N/A |
+| Cross-generation reference barriers | N/A | ✅ write barrier |
+| Actor isolation | Type check A002 | queue serial |
+| Sendable | Type check C003 | witness |
 
-## 完整示例
+## Complete Example
 
 ```syx
 @Sendable
@@ -187,38 +187,38 @@ func main() async {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S011** | 同时可变 + 不可变借用 | 调整作用域 |
-| **S017** | 生命周期违规 | 显式标注 / 重组代码 |
-| **A002** | 跨 actor 访问未 await | 加 `await` |
-| **C001** | actor 隔离违规 | 移到 actor 内 |
-| **C003** | 跨隔离传非 Sendable | 加 `@Sendable` / `@unchecked Sendable` |
-| **S019** | Sendable channel | 用 Sendable 元素类型 |
+| **S011** | Mutable + immutable borrow at the same time | Restructure the scopes |
+| **S017** | Lifetime violation | Annotate explicitly / restructure the code |
+| **A002** | Cross-actor access without await | Add `await` |
+| **C001** | Actor isolation violation | Move it inside the actor |
+| **C003** | Passing a non-Sendable value across isolation | Add `@Sendable` / `@unchecked Sendable` |
+| **S019** | Sendable channel | Use a Sendable element type |
 
-## 与 Swift 的差异
+## Differences from Swift
 
-| Swift 6 严格并发 | SYX |
+| Swift 6 strict concurrency | SYX |
 |-----------------|-----|
-| Sendable 检查 | **已实现**（strict 模式 C003 E2E） |
-| Actor 隔离 | **已实现**（A002/C001） |
-| 借用检查 | **已实现**（S011） |
-| 生命周期 | **部分实现** |
-| 机器证明 | **部分实现**（Phase 32+ scaffold） |
-| 全局 actor | **已实现**（`@MainActor`） |
-| `sending` 参数 | **已实现**（Phase 26） |
-| 数据竞争静态检测 | **部分实现** |
+| Sendable checking | **Implemented** (strict mode C003 E2E) |
+| Actor isolation | **Implemented** (A002/C001) |
+| Borrow checking | **Implemented** (S011) |
+| Lifetimes | **Partially implemented** |
+| Machine proofs | **Partially implemented** (Phase 32+ scaffold) |
+| Global actors | **Implemented** (`@MainActor`) |
+| `sending` parameters | **Implemented** (Phase 26) |
+| Static data-race detection | **Partially implemented** |
 
-## 进一步阅读
+## Further Reading
 
-- [第 26 章 内存管理与垃圾回收](../../docs/adr/architecture-decisions.md) — ARC / 分代 GC / 借用
-- [第 18 章 并发](../../docs/adr/architecture-decisions.md) — actor / async / Task
-- [第 16 章 析构过程](../../docs/adr/architecture-decisions.md) — deinit / 资源释放
+- [Chapter 26, Memory Management and Garbage Collection](26-memory-management.md) — ARC / generational GC / borrowing
+- [Chapter 18, Concurrency](18-concurrency.md) — actor / async / Task
+- [Chapter 16, Deinitialization](16-deinitialization.md) — deinit / resource release
 
 ---
 
-**下一章** → [访问控制](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Access Control](28-access-control.md)
 
-**参见** → [第 26 章 内存管理](26-memory-management.md) · [第 18 章 并发](18-concurrency.md) · [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md) · [plan/topics/gc-parity.md](../../plan/topics/gc-parity.md)
+**See also** → [Chapter 26, Memory Management](26-memory-management.md) · [Chapter 18, Concurrency](18-concurrency.md) · [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md) · [plan/topics/gc-parity.md](../../plan/topics/gc-parity.md)

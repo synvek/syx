@@ -1,26 +1,26 @@
-# 语法摘要
+# Grammar Summary
 
-**实现状态：** 摘要表 **已实现**；与 `syx-parser` 严格对齐
+**Implementation status:** summary tables **Implemented**; kept strictly in sync with `syx-parser`
 
-本摘要提炼自 `syx-parser` 与 [docs/2_SyntaxAnalysis.md](../../docs/2_SyntaxAnalysis.md)。完整 BNF / LR 推导表请参阅编译器文档。
+This summary is distilled from `syx-parser` and [docs/2_SyntaxAnalysis.md](../../docs/2_SyntaxAnalysis.md). For the complete BNF / LR derivation tables, see the compiler documentation.
 
 ---
 
-## 记号
+## Notation
 
-| 记号 | 含义 |
+| Notation | Meaning |
 |------|------|
-| `A ::= B` | A 推导为 B |
-| `A \| B` | 择一 |
-| `A?` | 零或一 |
-| `A*` | 零或多 |
-| `A+` | 一或多 |
-| `[A]` | 分组 |
-| `'kw'` | 关键字终结符 |
-| `terminal` | 终结符 |
-| `nonterm` | 非终结符 |
+| `A ::= B` | A derives B |
+| `A \| B` | Alternative |
+| `A?` | Zero or one |
+| `A*` | Zero or more |
+| `A+` | One or more |
+| `[A]` | Grouping |
+| `'kw'` | Keyword terminal |
+| `terminal` | Terminal |
+| `nonterm` | Nonterminal |
 
-## 模块
+## Modules
 
 ```
 module ::= decl*
@@ -35,7 +35,7 @@ decl ::= import-decl
       |  attribute-decl
 ```
 
-## 导入与全局变量
+## Imports and Global Variables
 
 ```
 import-decl       ::= 'import' dotted-name ('as' identifier)?
@@ -43,7 +43,7 @@ import-decl       ::= 'import' dotted-name ('as' identifier)?
 var-global-decl   ::= access? attrs? ('let' | 'var') identifier (':' type)? ('=' expr)?
 ```
 
-## 函数
+## Functions
 
 ```
 function-decl ::= access? attrs? 'async'? 'func' identifier generic-params?
@@ -59,7 +59,7 @@ effect-clause ::= 'requires' ('Pure' | 'IO')
 where-clause  ::= 'where' where-pred (',' where-pred)*
 ```
 
-## 构造 / 析构
+## Initialization / Deinitialization
 
 ```
 init-decl   ::= access? attrs? 'async'? 'init' '(' param-list? ')' (throws-clause)? where-clause? block
@@ -68,7 +68,7 @@ init-decl   ::= access? attrs? 'async'? 'init' '(' param-list? ')' (throws-claus
 deinit-decl ::= access? attrs? 'deinit' block
 ```
 
-## 类
+## Classes
 
 ```
 class-decl ::= access? attrs? ('final')? 'class' identifier generic-params?
@@ -85,7 +85,7 @@ set-clause       ::= 'set' (identifier)? block
 subscript-decl   ::= attrs? ('static')? 'subscript' param-list ('->' type)? '{' get-clause set-clause? '}'
 ```
 
-## 结构体
+## Structures
 
 ```
 struct-decl ::= access? attrs? 'struct' identifier generic-params?
@@ -95,7 +95,7 @@ struct-member ::= var-decl | func-decl | computed-property | subscript-decl
                 |  init-decl | nested-decl
 ```
 
-## 枚举
+## Enumerations
 
 ```
 enum-decl ::= access? attrs? 'enum' identifier generic-params?
@@ -122,7 +122,7 @@ actor-decl ::= access? attrs? ('global')? 'actor' identifier generic-params?
 global-actor-decl ::= access? attrs? 'global' 'actor' identifier '{' actor-member* '}'
 ```
 
-## 协议
+## Protocols
 
 ```
 protocol-decl ::= access? attrs? 'protocol' identifier generic-params?
@@ -140,14 +140,14 @@ protocol-property ::= ('var' identifier ':' type accessors | 'let' identifier ':
 protocol-associatedtype ::= 'associatedtype' identifier ('=' type)?
 ```
 
-## 扩展
+## Extensions
 
 ```
 extension-decl ::= access? attrs? 'extension' type where-clause? ('{' extension-member* '}' | extension-method-default)
                 |  access? attrs? 'extension' type ':' protocol (',' protocol)* where-clause? '{' … '}'
 ```
 
-## 泛型
+## Generics
 
 ```
 generic-params ::= '<' identifier (',' identifier)* ('=' type)? (',' identifier ('=' type)?)* '>'
@@ -158,7 +158,7 @@ where-pred ::= type-identifier ':' type
             |  type-identifier conformance
 ```
 
-## 类型
+## Types
 
 ```
 type ::= named-type
@@ -183,7 +183,7 @@ opaque-type    ::= 'some' type | 'any' type
 metatype       ::= 'Self' | 'SelfType' | 'Type'
 ```
 
-## 语句
+## Statements
 
 ```
 stmt ::= var-decl-stmt
@@ -224,7 +224,7 @@ print-stmt       ::= 'print' '(' arg-list? ')'
 macro-invoke-stmt::= '#' identifier '(' arg-list? ')'
 ```
 
-## 表达式
+## Expressions
 
 ```
 expr ::= assign-expr
@@ -232,7 +232,7 @@ expr ::= assign-expr
 assign-expr ::= ternary-expr ('=' assign-expr)?
              |  ternary-expr ('+=' | '-=' | '*=' | '/=' | '%=') assign-expr
 
-ternary-expr ::= nil-coalesce                    -- SYX 故意无 ?: 三元（用 if 表达式）
+ternary-expr ::= nil-coalesce                    -- SYX deliberately has no ?: ternary (use an if expression)
 
 nil-coalesce ::= logical-or ('??' logical-or)?
 
@@ -271,7 +271,7 @@ primary      ::= literal
              |  regex-literal
 ```
 
-## 模式
+## Patterns
 
 ```
 pattern ::= '_'
@@ -290,7 +290,7 @@ variant-pattern  ::= '.' identifier ('(' pattern (',' pattern)* ')')?
 tuple-pattern    ::= '(' pattern (',' pattern)* ')'
 ```
 
-## 字面量
+## Literals
 
 ```
 literal ::= int-literal
@@ -304,27 +304,27 @@ literal ::= int-literal
          |  regex-literal
 ```
 
-## 访问控制
+## Access Control
 
 ```
 access ::= 'public' | 'internal' | 'private' | 'fileprivate'
 ```
 
-| 级别 | 跨模块 | 模块内 | 文件内 |
+| Level | Cross-module | Within module | Within file |
 |------|--------|--------|--------|
 | `public` | ✅ | ✅ | ✅ |
 | `internal` | ❌ | ✅ | ✅ |
 | `fileprivate` | ❌ | ❌ | ✅ |
-| `private` | ❌ | ❌ | 同 scope |
+| `private` | ❌ | ❌ | Same scope |
 
-## 自定义运算符
+## Custom Operators
 
 ```
 operator-decl ::= ('prefix' | 'infix' | 'postfix') 'operator' identifier
                   '{' 'precedence' ':' int ',' 'associativity' ':' ('left' | 'right' | 'none') '}'
 ```
 
-## 特性（Attributes）
+## Attributes
 
 ```
 attribute-decl ::= '@' identifier (attribute-args)?
@@ -334,14 +334,14 @@ attribute-arg  ::= identifier (':' expr)?
                 |  identifier ('as' type)?       -- cast
 ```
 
-## 宏声明
+## Macro Declarations
 
 ```
 macro-decl ::= 'macro' identifier '=' '#externalMacro' '(' 'module' ':' string ',' 'type' ':' string ')'
-            |  '#macro' identifier '(' param-list? ')' block     -- 用户 freestanding
+            |  '#macro' identifier '(' param-list? ')' block     -- User freestanding
 ```
 
-## 入口
+## Entry Point
 
 ```
 entry ::= 'func' 'main' '(' ')' ('async')? block
@@ -349,8 +349,8 @@ entry ::= 'func' 'main' '(' ')' ('async')? block
 
 ---
 
-**完整 AST 节点：** `crates/syx-ast/src/lib.rs`
+**Complete AST nodes:** `crates/syx-ast/src/lib.rs`
 
-**用法示例** → [语言指南全书](../language-guide/00-preface.md)
+**Usage examples** → [Language Guide (whole book)](../language-guide/00-preface.md)
 
-**编译器 BNF：** [docs/2_SyntaxAnalysis.md](../../docs/2_SyntaxAnalysis.md) · [docs/1_LexicalAnalysis.md](../../docs/1_LexicalAnalysis.md)
+**Compiler BNF:** [docs/2_SyntaxAnalysis.md](../../docs/2_SyntaxAnalysis.md) · [docs/1_LexicalAnalysis.md](../../docs/1_LexicalAnalysis.md)

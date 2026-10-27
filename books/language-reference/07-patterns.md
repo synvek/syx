@@ -1,31 +1,31 @@
-# 模式
+# Patterns
 
-**实现状态：** **已实现**（`switch` / `if case` / `if let` / `guard let`）；变体 / 元组 / 通配符 / 范围 / 关联值解构 / where 守卫 / 类型模式 **已实现**；`case let x as T` **未实现**；`is` 模式 **部分实现**
+**Implementation status:** **Implemented** (`switch` / `if case` / `if let` / `guard let`); variant / tuple / wildcard / range / associated-value destructuring / where guard / type patterns **Implemented**; `case let x as T` **Not implemented**; `is` patterns **Partially implemented**
 
-模式用于匹配值结构并绑定变量。SYX 模式与 Swift 类似：在 `switch` / `case` / `let` 上下文使用。
+Patterns match value structure and bind variables. SYX patterns are similar to Swift's: they are used in `switch` / `case` / `let` contexts.
 
 ---
 
-## 模式语法
+## Pattern Syntax
 
 ```
-pattern ::= '_'                                  -- 通配
-         |  identifier                           -- 绑定
-         |  'let' pattern                        -- 显式绑定
-         |  literal                              -- 字面量
-         |  range-pattern                        -- 范围
-         |  variant-pattern                      -- 变体
-         |  tuple-pattern                        -- 元组
-         |  type-identifier                      -- 类型标注
-         |  '(' pattern ')'                      -- 括号
-         |  pattern 'as' type                    -- 类型模式（**部分**）
+pattern ::= '_'                                  -- Wildcard
+         |  identifier                           -- Binding
+         |  'let' pattern                        -- Explicit binding
+         |  literal                              -- Literal
+         |  range-pattern                        -- Range
+         |  variant-pattern                      -- Variant
+         |  tuple-pattern                        -- Tuple
+         |  type-identifier                      -- Type annotation
+         |  '(' pattern ')'                      -- Parentheses
+         |  pattern 'as' type                    -- Type pattern (**partial**)
 
 range-pattern    ::= expr '..<' expr
 variant-pattern  ::= '.' identifier ('(' pattern? (',' pattern)* ')')?
 tuple-pattern    ::= '(' pattern (',' pattern)* ')'
 ```
 
-## 变体模式
+## Variant Patterns
 
 ```
 variant-pattern ::= '.' identifier ('(' pattern? (',' pattern)* ')')?
@@ -36,66 +36,66 @@ variant-pattern ::= '.' identifier ('(' pattern? (',' pattern)* ')')?
 .err(let message)
 .success(let data)
 .failure(code: let c, message: let m)
-.failure(let c, let m)                         // 位置解构
-.empty                                         // 无关联值
+.failure(let c, let m)                         // Positional destructuring
+.empty                                         // No associated value
 ```
 
-| 形式 | 含义 |
+| Form | Meaning |
 |------|------|
-| `.ok` | 无关联值 |
-| `.ok(let x)` | 解构单关联值，绑定 `x` |
-| `.failure(code: let c, message: let m)` | 命名关联值解构 |
-| `.failure(let c, let m)` | 位置解构 |
-| `.failure(let c, _) ` | 部分解构（`_` 显式忽略） |
+| `.ok` | No associated value |
+| `.ok(let x)` | Destructures and binds a single associated value as `x` |
+| `.failure(code: let c, message: let m)` | Named associated-value destructuring |
+| `.failure(let c, let m)` | Positional destructuring |
+| `.failure(let c, _) ` | Partial destructuring (`_` explicitly ignored) |
 
-## 元组模式
+## Tuple Patterns
 
 ```syx
-(a, b)                                        // 位置
-(let x, let y)                                // 显式绑定
-(1, let name)                                 // 混合
+(a, b)                                        // Positional
+(let x, let y)                                // Explicit binding
+(1, let name)                                 // Mixed
 ```
 
-> 元素模式按位置匹配；类型须与 subject 兼容。
+> Element patterns match positionally; types must be compatible with the subject.
 
-## 字面量模式
+## Literal Patterns
 
 ```syx
-case 1 { … }                                  // 整数
-case "hello" { … }                            // 字符串
-case true { … }                               // 布尔
+case 1 { … }                                  // Integer
+case "hello" { … }                            // String
+case true { … }                               // Boolean
 case nil { … }                                // nil
 ```
 
-> 字面量模式按值比较；`==` 走 `Equatable` witness。
+> Literal patterns compare by value; `==` goes through the `Equatable` witness.
 
-## 范围模式
+## Range Patterns
 
 ```syx
-case 0..<10 { … }                             // 半开
+case 0..<10 { … }                             // Half-open
 case 10..<100 { … }
 case 100..<1000 { … }
 ```
 
-> 闭区间 `a...b` **部分实现**。`0..<n` 走 `Range<Int>`。
+> Closed ranges `a...b` are **Partially implemented**. `0..<n` goes through `Range<Int>`.
 
-## 通配符 `_`
-
-```syx
-let (_, x) = (1, 2)                           // 丢弃第一个
-case .ok(let _) { … }                         // 丢弃关联值
-```
-
-## `let` 显式绑定
+## The Wildcard `_`
 
 ```syx
-case let x { … }                              // 绑定整个 subject
-case .ok(let v) { … }                         // 绑定关联值
+let (_, x) = (1, 2)                           // Discard the first
+case .ok(let _) { … }                         // Discard the associated value
 ```
 
-> `let x` 等价于 `x`（在模式中默认绑定）；`let` 关键字显式表达意图。
+## Explicit `let` Binding
 
-## switch 中的模式
+```syx
+case let x { … }                              // Bind the whole subject
+case .ok(let v) { … }                         // Bind the associated value
+```
+
+> `let x` is equivalent to `x` (patterns bind by default); the `let` keyword makes the intent explicit.
+
+## Patterns in switch
 
 ```syx
 switch (result) {
@@ -111,7 +111,7 @@ default {
 }
 ```
 
-> 完整 `SwitchCase { pattern, guard, body }`。
+> The complete form is `SwitchCase { pattern, guard, body }`.
 
 ## if case
 
@@ -121,59 +121,59 @@ if case .ok(let x) = result {
 }
 ```
 
-> `if case` 是 `switch` 单分支的便捷形式；模式与 `switch` case 一致。
+> `if case` is a convenient single-branch form of `switch`; its patterns are the same as those of a `switch` case.
 
 ## if let / guard let
 
 ```syx
 if let x = optional { … }
-if let x = optional, let y = other, cond { … }  // 多条件 + 守卫
+if let x = optional, let y = other, cond { … }  // Multiple conditions + guard
 guard let x = optional else { return }
 ```
 
-> **多条件链式：** 用 `,` 分隔；任一条件失败 → 整体分支跳过。
-> **guard else 必须退出：** 否则 **S020**。
+> **Chained conditions:** separated by `,`; if any condition fails, the whole branch is skipped.
+> **`guard else` must exit:** otherwise **S020**.
 
-## 类型模式（部分实现）
+## Type Patterns (Partially Implemented)
 
 ```syx
-case let x as String { … }                     // ⚠️ 部分实现
+case let x as String { … }                     // ⚠️ Partially implemented
 ```
 
-> 当前实现仅在 cast host 路径支持基础类型；完整类型模式 → 后续 Phase。
+> The current implementation supports only basic types on the cast host path; complete type patterns → later Phases.
 
-## where 守卫
+## where Guards
 
 ```syx
 case .ok(let v) where (v > 0) { … }
 case let x where (x % 2 == 0) { … }
 ```
 
-> `where` 表达式必须为 `Bool`；多 `where` 模式用 `,` 分隔。
+> A `where` expression must be `Bool`; separate multiple `where` patterns with `,`.
 
-## 模式与类型
+## Patterns and Types
 
-- 模式类型须与 subject 兼容
-- 不匹配时分支跳过（非封闭域）或编译错误（封闭域缺 `default` → **S007**）
+- Pattern types must be compatible with the subject
+- On failure, the branch is skipped (open domain) or a compile error is raised (a closed domain lacking `default` → **S007**)
 
-| 场景 | 缺 `default` 行为 |
+| Scenario | Behavior when `default` is missing |
 |------|-------------------|
-| `enum` / `final class` / `Bool` | **S007**（必须穷尽） |
-| `Int` / `String` | 警告（**部分**） |
-| 协议 / `Any` | 必须 `default` |
+| `enum` / `final class` / `Bool` | **S007** (must be exhaustive) |
+| `Int` / `String` | Warning (**partial**) |
+| Protocol / `Any` | `default` required |
 
-## 模式与字面量推断
+## Patterns and Literal Inference
 
 ```syx
 let p: any Named = obj
-if case let x where (x is User) { … }         // x: any Named（子类型 User）
+if case let x where (x is User) { … }         // x: any Named (subtype User)
 ```
 
-> 模式内类型推断按 `case` 后子句；与 let-bind 不同（subject 类型已定）。
+> Type inference inside a pattern follows the clause after `case`; this differs from let-binding (where the subject type is fixed).
 
-## exhaustiveness 检查
+## Exhaustiveness Checking
 
-封闭域（`enum` / `final class` / `Bool`）上 `switch` 自动做穷尽检查；缺 `default` 且未覆盖全部 case → **S007**。
+On a closed domain (`enum` / `final class` / `Bool`), `switch` performs automatic exhaustiveness checking; missing `default` and incomplete case coverage → **S007**.
 
 ```syx
 enum Color { case red, green, blue }
@@ -183,22 +183,22 @@ func describe(_ c: Color) -> String {
     case .red { return "red" }
     case .green { return "green" }
     case .blue { return "blue" }
-    }                                          // ✅ 全覆盖
+    }                                          // ✅ Fully covered
 }
 ```
 
-## 未实现 / 计划中
+## Not Implemented / Planned
 
-| Swift 模式 | SYX 状态 |
+| Swift pattern | SYX status |
 |------------|---------|
-| `case let x as T` | **部分实现** |
-| 完整值绑定 `case .red` 无绑定 | 已支持（`.red { }`） |
-| `_` 显式忽略 | **已实现** |
-| 嵌套模式 / 复杂解构 | **已实现**（基础） |
-| 区间数组 `[1, 2, ...]` | **未实现** |
-| 正则模式 | **未实现** |
+| `case let x as T` | **Partially implemented** |
+| Full value binding `case .red` without binding | Supported (`.red { }`) |
+| `_` explicit ignore | **Implemented** |
+| Nested patterns / complex destructuring | **Implemented** (basic) |
+| Interval arrays `[1, 2, ...]` | **Not implemented** |
+| Regex patterns | **Not implemented** |
 
-## 完整示例
+## Complete Example
 
 ```syx
 enum Tree {
@@ -230,10 +230,10 @@ func main() {
 
 ---
 
-**诊断：** S004 / S007 / S010 / S012 / S020
+**Diagnostics:** S004 / S007 / S010 / S012 / S020
 
-**用法示例** → [语言指南：枚举](../language-guide/09-enumerations.md) · [控制流](../language-guide/06-control-flow.md) · [高级运算符](../language-guide/30-advanced-operators.md)
+**Usage examples** → [Language Guide: Enumerations](../language-guide/09-enumerations.md) · [Control Flow](../language-guide/06-control-flow.md) · [Advanced Operators](../language-guide/30-advanced-operators.md)
 
-**参见** → [语句](../../docs/adr/architecture-decisions.md) · [表达式](../../docs/adr/architecture-decisions.md) · [类型](../../docs/adr/architecture-decisions.md)
+**See also** → [Statements](04-statements.md) · [Expressions](03-expressions.md) · [Types](02-types.md)
 
-**测试：** `fixtures/format/switch_where_mvp` · `fixtures/format/switch_where_mvp` · `fixtures/format/switch_where_mvp`
+**Tests:** `fixtures/format/switch_where_mvp` · `fixtures/format/switch_where_mvp` · `fixtures/format/switch_where_mvp`

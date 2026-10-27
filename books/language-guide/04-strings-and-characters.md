@@ -1,62 +1,62 @@
-# 字符串和字符
+# Strings and Characters
 
-**实现状态：** **已实现**（UTF-8 存储、字素簇计数 Phase 84、for-in、`.count`、下标、split/trim/... 全部 stdlib 方法、正则字面量 Phase 50+）；`Character` **Phase 139 MVP GA** 为与 `String` 区分的标量类型（非完整 Unicode Character 属性库）
+**Implementation status:** **Implemented** (UTF-8 storage, grapheme-cluster counting Phase 84, for-in, `.count`, subscripts, split/trim/... and all other stdlib methods, regex literals Phase 50+); `Character` is a **Phase 139 MVP GA** scalar type distinct from `String` (not a complete Unicode Character property library)
 
-字符串是 SYX 与 Swift 差异最显著的领域之一。本章会讲清「**字素簇 vs 标量**」、「**Character 类型**」、「**插值与转义**」、「**正则字面量**」四个关键点。
+Strings are one of the areas where SYX differs most from Swift. This chapter explains the four key points: "**grapheme clusters vs. scalars**", "**the `Character` type**", "**interpolation and escapes**", and "**regex literals**".
 
-## 创建字符串
+## Creating Strings
 
 ```syx
 let s = "Hello"
-let msg = "Hello, \(name)!"        // 插值
-let multi = "a" + "b" + "c"        // 字符串拼接
+let msg = "Hello, \(name)!"        // Interpolation
+let multi = "a" + "b" + "c"        // String concatenation
 let multiline = "line one\nline two"
 let tabbed = "col1\tcol2\tcol3"
 ```
 
-来源：`crates/syx-driver/tests/fixtures/lang/string_multiline.sy` · `examples/main.sy`
+Sources: `crates/syx-driver/tests/fixtures/lang/string_multiline.sy` · `examples/main.sy`
 
-## 字符串字面量语法
+## String Literal Syntax
 
-| 形式 | 语法 | 说明 |
+| Form | Syntax | Description |
 |------|------|------|
-| 单行 | `"…"` | 双引号包裹；支持转义与插值 |
-| 多行 | **MVP GA** | `"""`…`"""` 可含裸换行与 `\(expr)` 插值（Phase 139） |
-| 转义 | `\n` `\t` `\\` `\"` `\(expr)` | 同 Swift |
-| 插值 | `\(expr)` | 任意表达式（函数调用、算术、字段访问） |
+| Single line | `"…"` | Delimited by double quotes; supports escapes and interpolation |
+| Multiline | **MVP GA** | `"""`…`"""` may contain raw newlines and `\(expr)` interpolation (Phase 139) |
+| Escapes | `\n` `\t` `\\` `\"` `\(expr)` | Same as Swift |
+| Interpolation | `\(expr)` | Arbitrary expressions (function calls, arithmetic, field access) |
 
 ```syx
 let name = "World"
 let count = 3
 let s1 = "Hello, \(name)!"
-let s2 = "count=\(count + 1)"        // 表达式
-let s3 = "items: \([1,2,3].count)"  // 任意表达式合法
+let s2 = "count=\(count + 1)"        // Expression
+let s3 = "items: \([1,2,3].count)"  // Any expression is legal
 ```
 
-> **重要：** 单行字符串内不允许裸换行（**L001**）。多行 `"""` 字面量允许裸换行（Phase 139 MVP）。
+> **Important:** raw newlines are not allowed inside a single-line string (**L001**). Multiline `"""` literals allow raw newlines (Phase 139 MVP).
 
-## 转义序列
+## Escape Sequences
 
-| 转义 | 含义 | 字节 |
+| Escape | Meaning | Byte |
 |------|------|------|
-| `\n` | 换行 (LF) | 0x0A |
-| `\r` | 回车 (CR) | 0x0D |
-| `\t` | 制表符 | 0x09 |
-| `\\` | 反斜杠 | 0x5C |
-| `\"` | 双引号 | 0x22 |
-| `\'` | 单引号 | 0x27 |
-| `\0` | 空字符 (NUL) | 0x00 |
-| `\(…)` | 插值（无 0 字节，编译为 StringConcat） | — |
-| `\x41` | ASCII 字节 | 0x41 |
-| `\u{1F600}` | Unicode 码点 | emoji 0x1F600 |
+| `\n` | Newline (LF) | 0x0A |
+| `\r` | Carriage return (CR) | 0x0D |
+| `\t` | Tab | 0x09 |
+| `\\` | Backslash | 0x5C |
+| `\"` | Double quote | 0x22 |
+| `\'` | Single quote | 0x27 |
+| `\0` | Null character (NUL) | 0x00 |
+| `\(…)` | Interpolation (no 0 byte; compiled to StringConcat) | — |
+| `\x41` | ASCII byte | 0x41 |
+| `\u{1F600}` | Unicode code point | emoji 0x1F600 |
 
 ```syx
 let s = "tab\there\nnewline"
 let emoji = "\u{1F600}"            // 😀
-let zwnj = "\u{200C}"              // ZWNJ（零宽非连接符）
+let zwnj = "\u{200C}"              // ZWNJ (zero-width non-joiner)
 ```
 
-## 字符串常用方法
+## Common String Methods
 
 ```syx
 "a,b,c".split(",")                       // ["a", "b", "c"]
@@ -65,142 +65,142 @@ let zwnj = "\u{200C}"              // ZWNJ（零宽非连接符）
 "abc".uppercased()                       // "ABC"
 "file.txt".hasPrefix("file")             // true
 "hello.txt".hasSuffix(".txt")            // true
-"hello".substring(0, 3)                  // "hel"  [start, end) 标量索引
+"hello".substring(0, 3)                  // "hel"  [start, end) scalar index
 "banana".replacingOccurrences("a", "o")  // "bonono"
-"abc123".matches("\\d+")                 // ["123"]（正则匹配返回子串数组）
-"text".count                            // 4（字素簇个数）
+"abc123".matches("\\d+")                 // ["123"] (regex matching returns an array of substrings)
+"text".count                            // 4 (number of grapheme clusters)
 "text".isEmpty                           // false
-"  ".isEmpty                             // false（空格也是字素簇）
+"  ".isEmpty                             // false (a space is also a grapheme cluster)
 ```
 
-完整 String 方法注册表见 `crates/syx-stdlib/src/string_methods.rs`（`STRING_METHODS`）。`examples/main.sy` 给出端到端示例。
+The complete String method registry lives in `crates/syx-stdlib/src/string_methods.rs` (`STRING_METHODS`). `examples/main.sy` gives an end-to-end example.
 
-| 方法 | 签名 | 说明 |
+| Method | Signature | Description |
 |------|------|------|
-| `split(sep: String)` | `Array<String>` | 按分隔符拆分 |
-| `trim()` | `String` | 去首尾 Unicode 空白 |
-| `lowercased()` | `String` | Unicode **simple case mapping**（Rust；**≠** `caseFolded`；**≠** locale） |
-| `uppercased()` | `String` | Unicode **simple case mapping**（Rust；**≠** `caseFolded`；**≠** locale） |
-| `normalizedNFC(text:)` | `String` | Unicode NFC（ADR-228） |
-| `normalizedNFD(text:)` | `String` | Unicode NFD（ADR-228） |
-| `caseFolded(text:)` | `String` | Unicode default/full case folding（如 `ß`→`ss`；ADR-228） |
-| `hasPrefix(s)` | `Bool` | 前缀判断 |
-| `hasSuffix(s)` | `Bool` | 后缀判断 |
-| `substring(start, end)` | `String` | 标量子串 [start, end) |
-| `replacingOccurrences(target, with)` | `String` | 替换（首次 / 全部依实现） |
-| `matches(pattern)` | `Array<String>` | 正则匹配 |
-| `count` | `Int` | 字素簇个数（**非** 字节数） |
-| `isEmpty` | `Bool` | 字素簇数为 0 |
-| `repeat(n)` | `String` | 重复 n 次 |
+| `split(sep: String)` | `Array<String>` | Split by separator |
+| `trim()` | `String` | Strip leading/trailing Unicode whitespace |
+| `lowercased()` | `String` | Unicode **simple case mapping** (Rust; **≠** `caseFolded`; **≠** locale) |
+| `uppercased()` | `String` | Unicode **simple case mapping** (Rust; **≠** `caseFolded`; **≠** locale) |
+| `normalizedNFC(text:)` | `String` | Unicode NFC (ADR-228) |
+| `normalizedNFD(text:)` | `String` | Unicode NFD (ADR-228) |
+| `caseFolded(text:)` | `String` | Unicode default/full case folding (e.g. `ß`→`ss`; ADR-228) |
+| `hasPrefix(s)` | `Bool` | Prefix test |
+| `hasSuffix(s)` | `Bool` | Suffix test |
+| `substring(start, end)` | `String` | Scalar substring [start, end) |
+| `replacingOccurrences(target, with)` | `String` | Replacement (first / all depending on the implementation) |
+| `matches(pattern)` | `Array<String>` | Regex matching |
+| `count` | `Int` | Number of grapheme clusters (**not** bytes) |
+| `isEmpty` | `Bool` | Zero grapheme clusters |
+| `repeat(n)` | `String` | Repeated n times |
 
-## 遍历字符串
+## Iterating Over Strings
 
 ```syx
 for c in "abc" {
-    print(c)    // 依次输出 "a", "b", "c"
+    print(c)    // Prints "a", "b", "c" in turn
 }
 ```
 
-循环变量 `c` 的类型为 **`Character`**（Phase 139 起为独立标量类型；运行时非多字符 `String`）。
+The loop variable `c` has type **`Character`** (since Phase 139 a distinct scalar type; at runtime it is not a multi-character `String`).
 
-> **实现状态：** `for-in` **已实现**；循环变量为 `Character`（MVP GA；`fixtures/lang/character.sy`）。
+> **Implementation status:** `for-in` is **Implemented**; the loop variable is `Character` (MVP GA; `fixtures/lang/character.sy`).
 
-## 内部表示（重要）
+## Internal Representation (Important)
 
-| 层面 | SYX |
+| Layer | SYX |
 |------|-----|
-| 存储 | UTF-8 字节数组（Rust `String` 后端） |
-| `.count` / `substring` / `for-in` | **Unicode 字素簇**（Phase 84 起，`unicode-segmentation` 索引） |
-| `Character` 类型 | **MVP GA**（Phase 139；运行时 `Value::Character` 标量；非完整 Unicode 属性库） |
-| `Character.isASCII()` | **MVP GA**（单标量检查；非完整 ASCII 属性判定） |
+| Storage | UTF-8 byte array (Rust `String` back end) |
+| `.count` / `substring` / `for-in` | **Unicode grapheme clusters** (since Phase 84, indexed with `unicode-segmentation`) |
+| `Character` type | **MVP GA** (Phase 139; runtime `Value::Character` scalar; not a complete Unicode property library) |
+| `Character.isASCII()` | **MVP GA** (single-scalar check; not a complete ASCII property judgment) |
 
-> **Swift 对齐：** 组合 emoji（如 👨‍👩‍👧‍👦，家庭）在 Swift 中为 1 个「字符」；SYX 在 Phase 84 字素簇索引下也是 1。
+> **Swift alignment:** combined emoji (e.g. 👨‍👩‍👧‍👦, a family) count as 1 "character" in Swift; under the Phase 84 grapheme-cluster index, SYX also counts 1.
 >
-> **回退标记：** Phase 84 之前 `.count` 按 Unicode 标量计数；老 fixture（`stdlib/string_index_honesty.rs` 等）保留标量行为测试。如发现 `.count` 与早期文档不一致，以当前行为为准。
+> **Legacy markers:** before Phase 84, `.count` counted Unicode scalars; old fixtures (`stdlib/string_index_honesty.rs` and others) keep scalar behavior tests. If `.count` disagrees with earlier documentation, trust the current behavior.
 
-## 下标 `s[i]`
+## Subscripts `s[i]`
 
 ```syx
 let s = "syx"
-let c: Character = s[0]      // grapheme Character
+let c: Character = s[0]      // Grapheme Character
 print(c)                     // "s"
 
 let second = s[1]            // "w"
 ```
 
-| 行为 | SYX |
+| Behavior | SYX |
 |------|-----|
-| 索引语义 | **Int grapheme offset**（Phase 84；ADR-227） |
-| 复杂度 | **单次随机访问 O(n)**（无 opaque Index / 无 O(1) 缓存） |
-| 返回类型 | `Character`（grapheme 簇） |
-| 越界 | 运行时错误 **R003**（文案含 `out of bounds`；≠ 空 Character；≠ R013） |
-| 与 Swift | **≠** opaque `String.Index`；SYX 用整数偏移 |
+| Index semantics | **Int grapheme offset** (Phase 84; ADR-227) |
+| Complexity | **O(n) for a single random access** (no opaque Index / no O(1) cache) |
+| Return type | `Character` (grapheme cluster) |
+| Out of bounds | Runtime error **R003** (message contains `out of bounds`; ≠ an empty Character; ≠ R013) |
+| vs. Swift | **≠** opaque `String.Index`; SYX uses integer offsets |
 
-> **区间访问：** 暂未提供 `s[0..<3]` 切片语法；用 `substring(0, 3)`（同样为 O(n) grapheme offset）。钉测：`m2_s2_02_string_index_honesty`。
+> **Range access:** the slicing syntax `s[0..<3]` is not yet provided; use `substring(0, 3)` (also an O(n) grapheme offset). Pinning test: `m2_s2_02_string_index_honesty`.
 
-## 字符串拼接
+## String Concatenation
 
 ```syx
 let a = "Hello"
 let b = ", World"
 let c = a + b                       // "Hello, World"
-let d = "\(a)\(b)!"                 // 插值拼接
-let e = String.concat([a, b, "!"])  // 数组形式
+let d = "\(a)\(b)!"                 // Concatenation via interpolation
+let e = String.concat([a, b, "!"])  // Array form
 ```
 
-`+` 运算符在 String 上是 `StringConcat` 指令的低级 lowering（**非** Core Host 函数）；运行时内联为字节拷贝。
+The `+` operator on `String` is the low-level lowering of the `StringConcat` instruction (**not** a Core Host function); at runtime it is inlined into a byte copy.
 
-## 字符串比较
+## String Comparison
 
 ```syx
-"abc" == "abc"     // true（值相等，Equatable witness）
-"abc" < "abd"      // true（字典序）
-"abc" === "abc"    // false（不同 String 对象；=== 比较引用）
+"abc" == "abc"     // true (value equality, Equatable witness)
+"abc" < "abd"      // true (lexicographic)
+"abc" === "abc"    // false (different String objects; === compares references)
 ```
 
-> **比较语义：** `==` 按字素簇序列比较（Phase 84 起）；`<` 字典序（`Comparable` witness）。`===` 比较 VM/MIR 层的对象身份（不常用）。
+> **Comparison semantics:** `==` compares grapheme-cluster sequences (since Phase 84); `<` is lexicographic (`Comparable` witness). `===` compares object identity at the VM/MIR layer (rarely used).
 
-## 正则字面量
+## Regex Literals
 
 ```syx
-let p = /\d+/                       // 正则字面量
+let p = /\d+/                       // Regex literal
 let matches = "abc123def".matches(p)
 for m in matches { print(m) }       // "123"
 
-let ci = /hello/i                   // 大小写不敏感（编译期标记）
+let ci = /hello/i                   // Case insensitive (compile-time marker)
 ```
 
-| 形式 | 状态 | 说明 |
+| Form | Status | Description |
 |------|------|------|
-| `/pattern/` | **已实现** | 由 `crates/syx-regex` 解析；与上下文消歧 |
-| `/pattern/i` | **部分实现** | flag 在 parser 接受；运行时支持有限 |
-| `/pattern/m` `/pattern/s` | **未实现** | 多行/单行 flag |
+| `/pattern/` | **Implemented** | Parsed by `crates/syx-regex`; disambiguated by context |
+| `/pattern/i` | **Partially implemented** | The flag is accepted by the parser; runtime support is limited |
+| `/pattern/m` `/pattern/s` | **Not implemented** | Multiline / single-line flags |
 
-> **歧义消歧：** `/` 在注释起始上下文不出现（行注释用 `//`），但在除法表达式中可能歧义（`x/y` vs 正则）。Parser 通过前瞻 token 区分；典型情况无需担心。
+> **Disambiguation:** `/` does not occur at the start of a comment (line comments use `//`), but it can be ambiguous in division expressions (`x/y` vs. a regex). The parser distinguishes them by token lookahead; typical cases need no attention.
 
-详见 [语言参考：词法结构](../language-reference/01-lexical-structure.md#正则字面量)。
+See [Language Reference: Lexical Structure](../language-reference/01-lexical-structure.md).
 
-## 字符串与集合互转
+## Converting Between Strings and Collections
 
 ```syx
 let s = "a,b,c"
 let parts = s.split(",")                  // ["a", "b", "c"]
 let joined = parts.joined("-")            // "a-b-c"
 
-let chars: Array<Character> = Array(s)    // 字素簇数组
+let chars: Array<Character> = Array(s)    // Array of grapheme clusters
 let back = chars.joined("")               // "abc"
 ```
 
-| 方向 | 方法 |
+| Direction | Method |
 |------|------|
 | String → Array<String> | `s.split(sep)` |
 | Array<String> → String | `arr.joined(sep)` |
-| String → Array<Character> | `Array(s)`（标准库） |
+| String → Array<Character> | `Array(s)` (standard library) |
 | Array<Character> → String | `chars.joined("")` |
 
-## 完整示例
+## Complete Example
 
-来源 `fixtures/lang/string_multiline.sy`：
+Source `fixtures/lang/string_multiline.sy`:
 
 ```syx
 func main() {
@@ -224,9 +224,9 @@ func main() {
 }
 ```
 
-## 内部 API（Core 扩展）
+## Internal APIs (Core Extensions)
 
-字符串 witness（`hash` / `description` / `debugDescription`）通过 Core extension → Host 函数实现（详见 [第 32 章 运算符 vs Core Host](../../docs/adr/architecture-decisions.md)）：
+The String witnesses (`hash` / `description` / `debugDescription`) are implemented through Core extensions → Host functions (see [Chapter 32, Operators vs Core Host](32-operators-vs-host.md)):
 
 ```syx
 extension String {
@@ -239,31 +239,31 @@ extension String {
 }
 ```
 
-`String` 在 `crates/syx-stdlib/src/builtins/string.sy` 完整注册；用户代码一般无需直接调用 `__syx_*`。
+`String` is fully registered in `crates/syx-stdlib/src/builtins/string.sy`; user code generally need not call `__syx_*` directly.
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **L001** | 字符串未闭合 | 补全 `"` |
-| **R003** | `s[i]` 越界（含负下标） | 检查索引；≠ 空 Character |
-| **S004** | `String` 与 `Array` 互用 | 显式 `.split()` / `.joined()` |
+| **L001** | Unterminated string | Close the `"` |
+| **R003** | `s[i]` out of bounds (including negative indices) | Check the index; ≠ an empty Character |
+| **S004** | Using `String` and `Array` interchangeably | Use an explicit `.split()` / `.joined()` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `Character` 是独立 struct | `Character` 是 `String` 类型别名（运行时单标量） |
-| opaque `String.Index` | **Int grapheme offset**（O(n) 随机访问；≠ opaque Index） |
-| `s[i]` 返回 `Character` | 返回 grapheme `Character`（ADR-226/227） |
-| `s[range]` 切片 | `s.substring(start, end)` |
-| `String(format:)` | **未实现**；用插值或 `Int.toString()` |
-| `count` | `.count`（一致） |
-| `String == String` | 字素簇序列相等（Phase 84 起） |
-| `String` 字面量插值 | 兼容 Swift `\(expr)` 语法 |
+| `Character` is a standalone struct | `Character` is a `String` type alias (a single runtime scalar) |
+| opaque `String.Index` | **Int grapheme offset** (O(n) random access; ≠ opaque Index) |
+| `s[i]` returns `Character` | Returns a grapheme `Character` (ADR-226/227) |
+| `s[range]` slicing | `s.substring(start, end)` |
+| `String(format:)` | **Not implemented**; use interpolation or `Int.toString()` |
+| `count` | `.count` (consistent) |
+| `String == String` | Grapheme-cluster sequence equality (since Phase 84) |
+| `String` literal interpolation | Compatible with Swift's `\(expr)` syntax |
 
 ---
 
-**下一章** → [集合类型](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Collection Types](05-collection-types.md)
 
-**参见** → [语言参考：词法](../language-reference/01-lexical-structure.md) · [第 5 章 集合类型](../../docs/adr/architecture-decisions.md) · [第 32 章 运算符 vs Core Host](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Lexical Structure](../language-reference/01-lexical-structure.md) · [Chapter 5, Collection Types](05-collection-types.md) · [Chapter 32, Operators vs Core Host](32-operators-vs-host.md)

@@ -1,12 +1,12 @@
-# 声明
+# Declarations
 
-**实现状态：** 顶层与成员声明 **已实现**；继承 GA（Phase 51–55 + Phase 66 vtable）；`final class` Phase 60；`subscript` 部分实现；`convenience init` / `required init` **未实现**
+**Implementation status:** top-level and member declarations **Implemented**; inheritance GA (Phase 51–55 + Phase 66 vtable); `final class` Phase 60; `subscript` partially implemented; `convenience init` / `required init` **Not implemented**
 
-模块由顶层 `Decl` 列表组成，入口为 `func main()`。
+A module consists of a list of top-level `Decl`s, with `func main()` as the entry point.
 
 ---
 
-## 分类
+## Classification
 
 ```
 decl ::= import-decl
@@ -25,7 +25,7 @@ decl ::= import-decl
       | typealias-decl
       | operator-decl
       | macro-decl
-      | attribute-decl           -- @attached 等
+      | attribute-decl           -- @attached and friends
 ```
 
 ## import
@@ -40,9 +40,9 @@ import local.deps as Deps
 import utils.helpers as H
 ```
 
-> 跨模块仅 `public` 符号可访问；internal → **S005**。
+> Only `public` symbols are accessible across modules; internal → **S005**.
 
-## 全局变量
+## Global Variables
 
 ```
 var-global-decl ::= access? attrs? ('let' | 'var') identifier (':' type)? ('=' expr)?
@@ -51,10 +51,10 @@ var-global-decl ::= access? attrs? ('let' | 'var') identifier (':' type)? ('=' e
 ```syx
 let globalConst = 42
 var globalVar: Int = 0
-public var shared: String = "shared"        // 跨模块
+public var shared: String = "shared"        // Cross-module
 ```
 
-> 全局变量 init 在进程启动时执行一次。
+> Global variable initializers run once at process startup.
 
 ## function
 
@@ -86,15 +86,15 @@ func pureCalc(x: Int) -> Int requires Pure {
 }
 ```
 
-| 子句 | 说明 |
+| Clause | Description |
 |------|------|
 | `access` | `public` / `internal` / `private` / `fileprivate` |
-| `async` | 异步函数 |
-| `throws` | 错误签名（`throws T` typed throws **部分实现**） |
-| `requires Pure` / `requires IO` | 效果注解 |
-| `where T: Equatable` | 约束子句 |
-| 泛型 | `func id<T>(x: T) -> T` |
-| 单表达式 | `func f(x: Int) -> Int = x * 2`（**部分实现**） |
+| `async` | Asynchronous function |
+| `throws` | Error signature (`throws T` typed throws **Partially implemented**) |
+| `requires Pure` / `requires IO` | Effect annotation |
+| `where T: Equatable` | Constraint clause |
+| Generics | `func id<T>(x: T) -> T` |
+| Single expression | `func f(x: Int) -> Int = x * 2` (**Partially implemented**) |
 
 ## init
 
@@ -117,13 +117,13 @@ init throws {
 }
 ```
 
-| 形式 | 状态 |
+| Form | Status |
 |------|------|
-| `init(params)` 指定 init | **已实现** |
-| `init?` 失败构造 | **已实现** |
-| `init!` 隐式 unwrap | **未实现** |
-| `convenience init` | **未实现** |
-| `required init` | **未实现** |
+| `init(params)` designated | **Implemented** |
+| `init?` failable | **Implemented** |
+| `init!` implicit unwrap | **Not implemented** |
+| `convenience init` | **Not implemented** |
+| `required init` | **Not implemented** |
 
 ## deinit
 
@@ -137,8 +137,8 @@ deinit {
 }
 ```
 
-> 仅 `class` / `actor` 成员；顶层 `deinit` → **P001**。
-> 状态：**部分实现**（class ARC 归零触发；struct 不支持）。
+> Members of `class` / `actor` only; a top-level `deinit` → **P001**.
+> Status: **Partially implemented** (triggered when a class ARC count reaches zero; `struct` unsupported).
 
 ## class
 
@@ -161,17 +161,17 @@ class Person {
     deinit { print("bye") }
 }
 
-final class Token {                         // 禁止继承
+final class Token {                         // Inheritance forbidden
     let value: String
     init(value: String) { self.value = value }
 }
 
-class Derived: Base {                       // 继承
+class Derived: Base {                       // Inheritance
     override func foo() { super.foo() }
 }
 ```
 
-成员可含 `var` / `let` / `func` / `init` / `deinit` / 计算属性 / `subscript`（**部分实现**）。
+Members may include `var` / `let` / `func` / `init` / `deinit` / computed properties / `subscript` (**Partially implemented**).
 
 ## struct
 
@@ -198,7 +198,7 @@ struct Point {
 }
 ```
 
-> 值类型字段聚合（运行时 MVP）；`mutating func` 标记会修改 self 的方法。
+> Value-type field aggregation (runtime MVP); `mutating func` marks methods that modify `self`.
 
 ## data class
 
@@ -217,8 +217,8 @@ data class User(name: String, age: Int) {
 }
 ```
 
-> **Phase 50–52 证明宏**（stored 属性 `data class`）。L1：自动 `==` / `hash` / `encode` / `decode`。L2：关联值 enum 全自动（Phase 129）。
-> 无 Swift 式自动 `copy`（**未实现**）。
+> **Phase 50–52 proof macros** (stored-property `data class`). L1: automatic `==` / `hash` / `encode` / `decode`. L2: associated-value enums fully automatic (Phase 129).
+> There is no Swift-style automatic `copy` (**Not implemented**).
 
 ## enum
 
@@ -243,10 +243,10 @@ enum NetworkResult {
     }
 }
 
-enum Optional<T> { case some(T); case none }   // 已预声明
+enum Optional<T> { case some(T); case none }   // Pre-declared
 ```
 
-> 枚举可包含方法、计算属性、`init`；与 `class` 不同的内存布局（discriminated union）。
+> Enumerations may contain methods, computed properties, and `init`; their memory layout differs from `class` (discriminated union).
 
 ## actor
 
@@ -262,11 +262,11 @@ actor Counter {
     func current() -> Int { return value }
 }
 
-global actor MainActor {                    // 全局 actor
+global actor MainActor {                    // Global actor
 }
 ```
 
-> actor 状态对外隔离；外部访问须 `await`（**A002**）。
+> Actor state is isolated from the outside; external access requires `await` (**A002**).
 
 ## protocol
 
@@ -291,7 +291,7 @@ protocol Iterator {
 }
 ```
 
-> 协议成员可包含 `func` / `var` / `init` / `associatedtype`；**可** 包含默认实现（Phase 50+）。
+> Protocol members may include `func` / `var` / `init` / `associatedtype`; default implementations are **allowed** (Phase 50+).
 
 ## extension
 
@@ -314,8 +314,8 @@ extension MyType: Describable {
 }
 ```
 
-> **where 约束：** Phase 40 单约束；Phase 42 多约束。
-> **跨模块：** Phase 60+ 允许（与 Swift 不同）。
+> **where constraints:** Phase 40 single constraint; Phase 42 multiple constraints.
+> **Cross-module:** allowed from Phase 60+ (unlike Swift).
 
 ## global actor
 
@@ -328,7 +328,7 @@ global actor MainActor { }
 global actor BackgroundActor { }
 ```
 
-> 全局 actor 跨平台：UI 线程、GPU 线程等。
+> Global actors are cross-platform abstractions: the UI thread, the GPU thread, and so on.
 
 ## typealias
 
@@ -342,9 +342,9 @@ typealias Handler = (Int) -> String
 typealias StringMap = [String: String]
 ```
 
-> **不创建新类型**；仅同义词。**Phase 40 GA**。
+> **No new type is created**; it is a synonym only. **Phase 40 GA**.
 
-## 属性（成员字段）
+## Properties (Member Fields)
 
 ```
 property-decl ::= access? attrs? ('static')? ('let' | 'var') identifier (':' type)? ('=' expr)?
@@ -358,7 +358,7 @@ static let maxValue: Int = 100
 static var debug: Bool = false
 ```
 
-计算属性（**Phase 134–138 partial GA**）：
+Computed properties (**Phase 134–138 partial GA**):
 
 ```syx
 var doubled: Int {
@@ -367,7 +367,7 @@ var doubled: Int {
 }
 ```
 
-`subscript` 声明：
+`subscript` declarations:
 
 ```syx
 subscript(row: Int, col: Int) -> Int {
@@ -376,29 +376,29 @@ subscript(row: Int, col: Int) -> Int {
 }
 ```
 
-> **状态：** 自定义 `subscript` **部分实现**（Phase 40/41）。
+> **Status:** custom `subscript` **Partially implemented** (Phase 40/41).
 
-## 访问控制
+## Access Control
 
 ```
 access ::= 'public' | 'internal' | 'private' | 'fileprivate'
 ```
 
-| 级别 | 跨模块 | 模块内 | 文件内 | 同 scope |
+| Level | Cross-module | Within module | Within file | Same scope |
 |------|--------|--------|--------|----------|
 | `public` | ✅ | ✅ | ✅ | ✅ |
 | `internal` | ❌ S005 | ✅ | ✅ | ✅ |
 | `fileprivate` | ❌ | ❌ | ✅ | ✅ |
 | `private` | ❌ | ❌ | ✅ | ✅ |
 
-> `open` **未实现**（用 `public` + `class` 表示可继承）。
+> `open` is **Not implemented** (use `public` + `class` to express inheritable).
 
-详见 [语言指南：访问控制](../language-guide/28-access-control.md)。
+See [Language Guide: Access Control](../language-guide/28-access-control.md).
 
 ---
 
-**诊断：** S001 / S004 / S005 / S020 / S051–S055 / P001
+**Diagnostics:** S001 / S004 / S005 / S020 / S051–S055 / P001
 
-**用法示例** → [语言指南：函数](../language-guide/07-functions.md) · [结构体和类](../language-guide/10-structures-and-classes.md) · [枚举](../language-guide/09-enumerations.md) · [并发](../language-guide/18-concurrency.md) · [协议](../language-guide/23-protocols.md) · [扩展](../language-guide/22-extensions.md) · [属性](../language-guide/11-properties.md)
+**Usage examples** → [Language Guide: Functions](../language-guide/07-functions.md) · [Structures and Classes](../language-guide/10-structures-and-classes.md) · [Enumerations](../language-guide/09-enumerations.md) · [Concurrency](../language-guide/18-concurrency.md) · [Protocols](../language-guide/23-protocols.md) · [Extensions](../language-guide/22-extensions.md) · [Properties](../language-guide/11-properties.md)
 
-**参见** → [类型](../../docs/adr/architecture-decisions.md) · [泛型形参](../../docs/adr/architecture-decisions.md) · [协议](../../docs/adr/architecture-decisions.md) · [特性](../../docs/adr/architecture-decisions.md)
+**See also** → [Types](02-types.md) · [Generic Parameters](08-generic-parameters-and-arguments.md) · [Protocols](09-protocols-and-conformances.md) · [Attributes](06-attributes.md)

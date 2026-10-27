@@ -1,71 +1,71 @@
-# 类型转换
+# Type Casting
 
-**实现状态：** `is` 类型检查 / `as?` 失败转 nil / `as!` 失败抛错 / 数值字面量推断 / Optional 包装 **已实现**；完整 Swift 风格 cast（泛型擦除 / 协议存在性）**部分实现**
+**Implementation status:** `is` type checks / `as?` failure-to-nil / `as!` failure-throws / numeric literal inference / Optional wrapping **Implemented**; the full Swift-style cast set (generic erasure / protocol existential) **Partially implemented**
 
-类型转换是「在运行期 / 编译期把一个值视为另一种类型」。SYX 提供 **隐式提升**、**显式 `as` / `as?` / `as!`、类型检查 `is`** 三种方式。
+Type casting means "treating a value as another type at runtime / compile time". SYX offers three ways: **implicit promotion**, explicit **`as` / `as?` / `as!`**, and the **`is`** type check.
 
-## 数值提升（隐式）
+## Numeric Promotion (Implicit)
 
-混合数值运算时编译器按语义规则提升（`widen_for_binary`）：
+For mixed numeric operations the compiler promotes according to semantic rules (`widen_for_binary`):
 
 ```syx
 let x: Int = 1
-let y = x + 1.0                          // Double（Int → Double）
+let y = x + 1.0                          // Double (Int → Double)
 let z: Int8 = 1
-let w = z + 100i32                        // Int32（Int8 → Int32）
+let w = z + 100i32                        // Int32 (Int8 → Int32)
 ```
 
-| 规则 | 说明 |
+| Rule | Description |
 |------|------|
-| 整数字面量 | 默认 `Int`；与 `Double` 运算时 `Int → Double`。显式 `Float` / `Double` 注解下，无后缀整数按该浮点类型解释（`let x: Double = 1`） |
-| 有符号 + 无符号 | 触发 **S014**（避免静默符号位 wrap） |
-| 整数 + 浮点 | 整数提升为浮点 |
-| 浮点 + 浮点 | 同宽返回 `Double`，`Float + Double = Double` |
-| `Int8` + `Int8` | 结果仍为 `Int8`（溢出按 2 的补码回绕） |
-| `Int8` + `Int` | 提升为平台 `Int` |
-| `Int8` + `Int32` | 提升为 `Int32` |
+| Integer literals | Default `Int`; in operations with `Double`, `Int → Double`. Under an explicit `Float` / `Double` annotation, an unsuffixed integer is interpreted as that float type (`let x: Double = 1`) |
+| Signed + unsigned | Triggers **S014** (avoiding a silent sign-bit wrap) |
+| Integer + float | The integer is promoted to float |
+| Float + float | Same width returns `Double`; `Float + Double = Double` |
+| `Int8` + `Int8` | The result is still `Int8` (overflow wraps two's complement) |
+| `Int8` + `Int` | Promoted to platform `Int` |
+| `Int8` + `Int32` | Promoted to `Int32` |
 
-> **同符号整数窄化（`Int` → `Int8`）：** 赋值 / 初始化允许，经 `NumericCast`；值越界 → 运行时 **R003**（≠ 静默截断）。字面量越界仍是编译期 **S011**；错误后缀字面量（`8i16` → `Int8`）仍是 **S004**。
+> **Same-sign integer narrowing (`Int` → `Int8`):** allowed in assignment / initialization, via `NumericCast`; an out-of-range value → runtime **R003** (≠ silent truncation). An out-of-range literal is still compile-time **S011**; a literal with the wrong suffix (`8i16` → `Int8`) is still **S004**.
 >
-> **浮点 → 整数（`Double → Int8`）：** 赋值仍不隐式（**S004**）；显式 `as` / `as?` 向 0 截断（越界 R003 / nil）。S008 专用于跨 actor 字段，不是窄化码。
+> **Float → integer (`Double → Int8`):** assignment is still not implicit (**S004**); explicit `as` / `as?` truncates toward zero (out-of-range → R003 / nil). S008 is dedicated to cross-actor fields, not to narrowing.
 
-**诊断：** S014（有符号/无符号混合）、S004（类型不兼容）、R003（窄化越界）
+**Diagnostics:** S014 (mixed signed/unsigned), S004 (incompatible types), R003 (narrowing out of range)
 
-## is 类型检查
+## is Type Checks
 
-运行时类型检查，结果为 `Bool`：
+A runtime type check producing a `Bool`:
 
 ```syx
 let a = [1, 2, 3]
 print(a is Array)                         // true
-print(a is Array<Int>)                    // true（运行时按基类型匹配；元素类型不擦除校验）
+print(a is Array<Int>)                    // true (matched at runtime by base type; element types are not checked through erasure)
 
 class Dog { init() {} }
 let d = Dog()
 print(d is Dog)                           // true
 ```
 
-> **数值目标禁止：** `1 is Int` ❌（编译错误 **S046**）；`is` 主要用于 class / protocol / 集合基类型。
+> **Numeric targets forbidden:** `1 is Int` ❌ (compile error **S046**); `is` targets classes / protocols / collection base types.
 
-### 支持的目标类型
+### Supported Target Types
 
-| 目标 | 匹配值 |
+| Target | Matching values |
 |------|--------|
-| `Array` / `Array<T>` | 数组字面量 / `Value::Array` |
-| `Set` | 集合 |
-| `Dictionary` | 字典 |
-| `String` / `Bool` / `Int*` / `Float*` / `Double` | 对应标量 |
-| 用户 `class` / `data class` | 带 `__type` / `ObjectRef` 的实例 |
-| `protocol`（existential） | 实现该协议的值 |
+| `Array` / `Array<T>` | Array literals / `Value::Array` |
+| `Set` | Sets |
+| `Dictionary` | Dictionaries |
+| `String` / `Bool` / `Int*` / `Float*` / `Double` | The corresponding scalars |
+| User `class` / `data class` | Instances carrying `__type` / `ObjectRef` |
+| `protocol` (existential) | Values implementing that protocol |
 
 ```syx
 let v: any CustomStringConvertible = "hello"
 print(v is String)                        // true
 ```
 
-## 显式转换
+## Explicit Conversion
 
-### as? — 失败转 nil
+### as? — Failure Becomes nil
 
 ```syx
 class Animal { init() {} }
@@ -80,54 +80,54 @@ if let d = a as? Dog {
 }
 ```
 
-| 场景 | `as?` 行为 |
+| Scenario | `as?` behavior |
 |------|-----------|
-| 成功 | 返回目标类型（`Dog`） |
-| 失败 | 返回 `nil` |
-| 同符号整数（`Int as? Int8`） | 范围内转换；越界 → `nil`（≠ R003） |
+| Success | Returns the target type (`Dog`) |
+| Failure | Returns `nil` |
+| Same-sign integers (`Int as? Int8`) | Converts when in range; out of range → `nil` (≠ R003) |
 
-### as! — 失败抛错
+### as! — Failure Throws
 
 ```syx
-let d = a as! Dog                         // 失败运行时 R003
+let d = a as! Dog                         // Failure → runtime R003
 ```
 
-| 场景 | `as!` 行为 |
+| Scenario | `as!` behavior |
 |------|-----------|
-| 成功 | 返回目标类型 |
-| 失败 | 运行时错误 **R003** |
+| Success | Returns the target type |
+| Failure | Runtime error **R003** |
 
-### as — 强转（编译期已知）
+### as — Forced Cast (Known at Compile Time)
 
 ```syx
 let a: Animal = Dog()
-let d = a as Dog                          // 已知为 Dog，编译通过
+let d = a as Dog                          // Known to be Dog; compiles
 
 let n: Int = 8
-let n8 = n as Int8                        // 同符号整数 → NumericCast；越界 R003
+let n8 = n as Int8                        // Same-sign integer → NumericCast; out of range → R003
 
 let d: Double = 1.5
-let i = d as Int                          // 向 0 截断 → 1；越界 R003
-let i8 = d as? Int8                       // 成功 → 1；越界 → nil
+let i = d as Int                          // Truncates toward zero → 1; out of range → R003
+let i8 = d as? Int8                       // Success → 1; out of range → nil
 ```
 
-> **状态：** `as` 在编译期已知类型转换时使用；运行时失败抛错。同符号整数宽窄互转与显式 `Double`/`Float` → 整数走 `NumericCast`（`as` 越界 **R003**；`as?` 越界 → `nil`）。赋值仍不隐式 float→int。完整 Swift 风格 `as` / `as!` / `as?` 区分仍在细化中。
+> **Status:** `as` is used when the conversion is known at compile time; a runtime failure throws. Same-sign integer widening/narrowing and explicit `Double`/`Float` → integer go through `NumericCast` (`as` out of range → **R003**; `as?` out of range → `nil`). Assignment still does not implicitly convert float→int. The full Swift-style distinction between `as` / `as!` / `as?` is still being refined.
 
-## Optional 转换
+## Optional Conversion
 
 ```syx
 let x: Int = 42
-let y: Int? = x                           // T → T? 隐式包装
-let z: Int = y ?? 0                       // T? → T（nil 合并）
+let y: Int? = x                           // T → T? implicit wrapping
+let z: Int = y ?? 0                       // T? → T (nil coalescing)
 ```
 
-| 方向 | 形式 | 失败 |
+| Direction | Form | Failure |
 |------|------|------|
-| `T` → `T?` | 隐式 | 不失败 |
-| `T?` → `T` | `??` / `!` / `if let` | `!` 失败 **R007** |
-| `T` → `U` (related) | `as?` / `as!` | `as!` **R003** |
+| `T` → `T?` | Implicit | Never fails |
+| `T?` → `T` | `??` / `!` / `if let` | `!` failure **R007** |
+| `T` → `U` (related) | `as?` / `as!` | `as!` → **R003** |
 
-## 协议与存在类型
+## Protocols and Existential Types
 
 ```syx
 protocol Describable {
@@ -146,24 +146,24 @@ if let city = c as? City {
 }
 ```
 
-> **existential：** `any Describable` 是存在类型；运行时通过 witness 表调度。详见 [第 25 章 不透明类型](../../docs/adr/architecture-decisions.md)。
+> **existential:** `any Describable` is an existential type; dispatch at runtime goes through a witness table. See [Chapter 25, Opaque Types](25-opaque-types.md).
 
-## 数字字面量转换
+## Numeric Literal Conversion
 
 ```syx
 let n: Int = 42
-let n8: Int8 = n                          // 同符号整数窄化（越界 → R003）
-let n8b: Int8 = 42i8                      // 字面量后缀直接选类型
-let f: Double = Double(n)                 // 显式转换
-let f2 = 3.14.toFloat()                   // 部分实现
+let n8: Int8 = n                          // Same-sign integer narrowing (out of range → R003)
+let n8b: Int8 = 42i8                      // The literal suffix selects the type directly
+let f: Double = Double(n)                 // Explicit conversion
+let f2 = 3.14.toFloat()                   // Partially implemented
 ```
 
-| 转换 | 形式 |
+| Conversion | Form |
 |------|------|
-| `Int → Int8` | 赋值/初始化隐式窄化；越界 → **R003** |
-| `Int → Double` | widening：隐式 |
-| `Double → Int` | 显式 `as` / `as?`：向 0 截断；越界 `as` → **R003**、`as?` → `nil`；赋值仍 **S004** |
-| `Int8 → Int` | widening：隐式 |
+| `Int → Int8` | Implicit narrowing in assignment/initialization; out of range → **R003** |
+| `Int → Double` | widening: implicit |
+| `Double → Int` | explicit `as` / `as?`: truncates toward zero; out of range `as` → **R003**, `as?` → `nil`; assignment is still **S004** |
+| `Int8 → Int` | widening: implicit |
 | `String → Int?` | `Int.fromString("42")` → `ok(42)` |
 
 ```syx
@@ -174,7 +174,7 @@ case .err(let e) { print("err: \(e)") }
 }
 ```
 
-## 跨类转换
+## Cross-Class Conversion
 
 ```syx
 class Animal { init() {} }
@@ -189,19 +189,19 @@ if let d = a as? Dog {
 }
 ```
 
-- 子类 → 父类：upcast，**总是**成功（用 `as`）
-- 父类 → 子类：downcast，可能失败（用 `as?` / `as!`）
-- 不相关类型：编译错误 **S004**
+- Subclass → superclass: upcast, **always** succeeds (use `as`)
+- Superclass → subclass: downcast, may fail (use `as?` / `as!`)
+- Unrelated types: compile error **S004**
 
-## `as` 与 `as!` 的取舍
+## Choosing Between `as` and `as!`
 
-| 形式 | 失败 | 何时用 |
+| Form | Failure | When to use |
 |------|------|--------|
-| `as?` | `nil` | 类型不确定 |
-| `as!` | panic | 100% 确定 |
-| `as` | panic | 编译期已知 |
+| `as?` | `nil` | When the type is uncertain |
+| `as!` | panic | When you are 100% sure |
+| `as` | panic | Known at compile time |
 
-## 完整示例
+## Complete Example
 
 ```syx
 class Shape { init() {} func area() -> Double { return 0 } }
@@ -232,29 +232,29 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S004** | 转换不兼容（含 float→int、错误后缀） | 检查类型关系 |
-| **S008** | 跨 actor 直接访问实例字段 | 经消息 / 隔离 API |
-| **S014** | 有符号/无符号混合 | 显式 cast |
-| **S046** | `is` 数值目标 | 改 `==` 比较 |
-| **R003** | `as!` 失败；整数窄化越界 | 改 `as?` / 保证值在目标范围内 |
-| **R007** | `!` 解包 nil | 用 `?.` / `if let` |
+| **S004** | Incompatible conversion (including float→int, wrong suffix) | Check the type relationship |
+| **S008** | Direct cross-actor access to instance fields | Go through messaging / isolation APIs |
+| **S014** | Mixed signed/unsigned | Explicit cast |
+| **S046** | `is` with a numeric target | Use an `==` comparison |
+| **R003** | `as!` failure; integer narrowing out of range | Change to `as?` / keep the value in the target range |
+| **R007** | `!` unwrapping nil | Use `?.` / `if let` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `is` 类型检查 | **已实现**（集合 + 标量 + class） |
-| `as?` / `as!` / `as` | **已实现**（运行时 cast host） |
-| 完整 cast 协议存在性 | **部分实现**（基础 witness） |
-| `AnyObject` / `Any` | 弱支持（用 `Object` / `any P`） |
-| 泛型擦除 | **部分实现** |
+| `is` type check | **Implemented** (collections + scalars + classes) |
+| `as?` / `as!` / `as` | **Implemented** (runtime cast host) |
+| Full cast protocol existential | **Partially implemented** (basic witness) |
+| `AnyObject` / `Any` | Weakly supported (use `Object` / `any P`) |
+| Generic erasure | **Partially implemented** |
 
 ---
 
-**下一章** → [嵌套类型](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Nested Types](21-nested-types.md)
 
-**参见** → [语言参考：类型](../language-reference/02-types.md) · [第 9 章 枚举](../../docs/adr/architecture-decisions.md) · [第 25 章 不透明类型](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Types](../language-reference/02-types.md) · [Chapter 9, Enumerations](09-enumerations.md) · [Chapter 25, Opaque Types](25-opaque-types.md)

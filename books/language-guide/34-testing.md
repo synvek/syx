@@ -1,10 +1,10 @@
-# 单元测试（`@Test`）
+# Unit Testing (@Test)
 
-**实现状态：** `@Test` 发现与运行 **已实现**；JUnit 形钩子（`@TestSetup` / `@TestTeardown` / `@TestBefore` / `@TestAfter`）**已实现**；递归 `tests/**/*.sy` 与单文件 `syx test path/to/file.sy` **已实现**；`import Testing` + `assert` / `assertEq` **已实现**（显式 import，**不会**自动注入）；`@Test async` + 体内可完成的 `await`（经 `syx test` JSON pass）**已实现**。没有 `@Test` 的文件若在入口里调用 `test(name:fn:)`，这些闭包会在该入口结束前执行，JSON 用例名为 `{文件}.{name}`。**未做：** `Testing` auto-import。
+**Implementation status:** `@Test` discovery and execution **Implemented**; JUnit-shaped hooks (`@TestSetup` / `@TestTeardown` / `@TestBefore` / `@TestAfter`) **Implemented**; recursive `tests/**/*.sy` and single-file `syx test path/to/file.sy` **Implemented**; `import Testing` + `assert` / `assertEq` **Implemented** (explicit import, **not** auto-injected); `@Test async` plus `await` that can complete inside the body (via the `syx test` JSON pass) **Implemented**. For a file without `@Test`, if the entry calls `test(name:fn:)`, those closures run before that entry finishes, and the JSON case name is `{file}.{name}`. **Not implemented:** `Testing` auto-import.
 
-`syx test` 把测试文件编进 VM 并跑带 `@Test` 的用例；失败非零退出。产品示例见 [examples/test_demo.sy](../../examples/test_demo.sy)；CLI 细节见 [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md)；窄章程与后续片见 [plan/topics/syx-test.md](../../plan/topics/syx-test.md)。
+`syx test` compiles the test files into the VM and runs the cases carrying `@Test`; a failure exits non-zero. For a product example see [examples/test_demo.sy](../../examples/test_demo.sy); for CLI details see [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md); for the narrow charter and follow-up slices see [plan/topics/syx-test.md](../../plan/topics/syx-test.md).
 
-## 最短成例
+## Minimal Working Example
 
 ```syx
 import Testing
@@ -16,32 +16,32 @@ func adds() {
 }
 ```
 
-把文件放在项目的 `tests/` 下（可嵌套），然后：
+Put the file under the project's `tests/` directory (nesting is allowed), then:
 
 ```bash
 syx test .
 ```
 
-## 发现规则
+## Discovery Rules
 
-| 输入 | 行为 |
+| Input | Behavior |
 |------|------|
-| `syx test .`（或项目根） | 递归收集 `tests/**/*.sy`；用例名含相对路径（如 `nested/math.add`） |
-| `syx test path/to/file.sy` | 只跑该文件里的 `@Test` |
-| `--filter substr` | 按用例名子串过滤；未匹配记 `skipped` |
-| `--format human\|json\|tap\|junit` | 报告格式（默认 human） |
+| `syx test .` (or the project root) | Collects `tests/**/*.sy` recursively; case names include the relative path (e.g. `nested/math.add`) |
+| `syx test path/to/file.sy` | Runs only the `@Test`s in that file |
+| `--filter substr` | Filters by case-name substring; non-matches are recorded as `skipped` |
+| `--format human\|json\|tap\|junit` | Report format (default human) |
 
-每个测试文件独立编译运行。
+Each test file is compiled and run independently.
 
-## 钩子（PascalCase）
+## Hooks (PascalCase)
 
-| 属性 | 时机 |
+| Attribute | Timing |
 |------|------|
-| `@TestSetup` | 该文件内所有用例之前，一次 |
-| `@TestBefore` | 每个 `@Test` 之前 |
-| `@Test` | 用例本身 |
-| `@TestAfter` | 每个 `@Test` 之后 |
-| `@TestTeardown` | 该文件内所有用例之后，一次 |
+| `@TestSetup` | Once before all cases in the file |
+| `@TestBefore` | Before each `@Test` |
+| `@Test` | The case itself |
+| `@TestAfter` | After each `@Test` |
+| `@TestTeardown` | Once after all cases in the file |
 
 ```syx
 import Log
@@ -75,20 +75,20 @@ func done() {
 
 ## `import Testing`
 
-[`packages/testing/mod.sy`](../../packages/testing/mod.sy) 提供：
+[`packages/testing/mod.sy`](../../packages/testing/mod.sy) provides:
 
-| API | 作用 |
+| API | Purpose |
 |-----|------|
-| `assert(condition: Bool)` | 条件为假 → 该用例失败（Host `Err`，非进程 panic） |
-| `assertEq(actual: Object, expected: Object)` | 值不相等 → 失败（`value_equals`） |
+| `assert(condition: Bool)` | If the condition is false → the case fails (Host `Err`, not a process panic) |
+| `assertEq(actual: Object, expected: Object)` | If the values are unequal → failure (`value_equals`) |
 
-**必须**写 `import Testing`；`syx test` **不会**自动注入该模块。没有 `@Test` 时，`test(name:fn:)` 登记的闭包会执行并出现在 JSON 里（`{文件}.{name}`）。带 `@Test` 的文件不另开兄弟用例；登记闭包若失败，失败文本并进该 `@Test`。`expectEqual` 仍不是发现路径。`@Test async func …` 体内可 `await`（与 `async func main` 同形 drain）；仍须显式 `import Testing`。**未做：** auto-import。
+You **must** write `import Testing`; `syx test` does **not** auto-inject the module. When there is no `@Test`, the closures registered by `test(name:fn:)` run and appear in the JSON (`{file}.{name}`). A file with `@Test` does not open additional sibling cases; if a registered closure fails, the failure text is merged into that `@Test`. `expectEqual` is still not a discovery path. `@Test async func …` may `await` inside its body (same drain shape as `async func main`); an explicit `import Testing` is still required. **Not implemented:** auto-import.
 
-## 与 `main` 的关系
+## Relationship to `main`
 
-测试文件通常 **不需要** `func main()`：驱动器按属性发现并调用钩子与用例。普通 `syx run` 入口仍要求 `main`；两者不要混用同一叙事。
+A test file usually does **not** need `func main()`: the driver discovers by attribute and calls the hooks and cases. A normal `syx run` entry still requires `main`; do not mix the two narratives in the same file.
 
-## 诚实边界
+## Honest Boundaries
 
-- Host 能力矩阵里 `TestingAssert` / `TestingAssertEq` 为 **partial**、**仅 VM `real`**（`syx test` 产品路径）；不宣称 mir/llvm/wasm GA。
-- ≠ auto-import、≠ 全量 HostFn `status=implemented`、≠ 完整 async test matrix。
+- In the Host capability matrix, `TestingAssert` / `TestingAssertEq` are **partial**, **VM `real` only** (the `syx test` product path); no claim of mir/llvm/wasm GA.
+- ≠ auto-import, ≠ all HostFns with `status=implemented`, ≠ a complete async test matrix.

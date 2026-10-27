@@ -1,21 +1,21 @@
-# Text 与 Crypto
+# Text and Crypto
 
 ## Text
 
-**实现状态：** `Fmt` / `Regex` / `Encoding` / `StringBuilder` / `Bytes` 薄封装 **已实现**。
+**Implementation status:** thin wrappers `Fmt` / `Regex` / `Encoding` / `StringBuilder` / `Bytes` **Implemented**.
 
-| 类型 | 典型 API |
+| Type | Typical API |
 |------|----------|
 | `Fmt` | `print` / `printLine` / `format` / `debug` |
 | `Regex` | `isMatch` / `findAll` / `replaceAll` |
 | `Encoding` | `base64Encode` / `hexEncode` |
-| `Bytes` / `StringBuilder` | 缓冲拼接 |
+| `Bytes` / `StringBuilder` | Buffered concatenation |
 
-字符串内置方法（`split`、`matches`）仍走 CORE，不必 `import Text`。
+Built-in string methods (`split`, `matches`) still come from CORE, so `import Text` is unnecessary.
 
 ## Crypto
 
-**实现状态：** `Crypto.sha256` 等 **已实现**（Host）。动态插件另见 [examples/plugin_demo](../../examples/plugin_demo/) 与 [语言指南 · 运行时扩展](../language-guide/33-runtime-extensions.md)。
+**Implementation status:** `Crypto.sha256` and others **Implemented** (Host). For dynamic plugins, see also [examples/plugin_demo](../../examples/plugin_demo/) and [Language Guide · Runtime Extensions](../language-guide/33-runtime-extensions.md).
 
 ```syx
 import Crypto
@@ -25,14 +25,14 @@ func main() {
 }
 ```
 
-## 其它嵌入包（短）
+## Other Embedded Packages (Short)
 
-| 包 | 要点 |
+| Package | Key points |
 |----|------|
-| `DateTime` | `now` / `parseIso8601` / `format`；`Duration.seconds` 返回毫秒整数 |
-| `Process` | `args` / `env` / `exec`；legacy `spawn`/`wait` 仍可能返回 `-1`，新路径用 `ProcessBuilder`/`Child` |
+| `DateTime` | `now` / `parseIso8601` / `format`; `Duration.seconds` returns whole milliseconds |
+| `Process` | `args` / `env` / `exec`; legacy `spawn`/`wait` may still return `-1`, use `ProcessBuilder`/`Child` on new paths |
 | `Testing` | `assert` / `assertEq` / `test` |
-| `Di` | Service DI；见 [examples/service_di](../../examples/service_di/) |
-| `Sql` | 见 [examples/sql_tool](../../examples/sql_tool/) |
+| `Di` | Service DI; see [examples/service_di](../../examples/service_di/) |
+| `Sql` | See [examples/sql_tool](../../examples/sql_tool/) |
 | `Sync` | Channel / Mutex / Semaphore |
-| `UI` | SynUI 桥；**deferred**，勿当产品 GUI |
+| `UI` | SynUI bridge; **deferred**, do not treat as a product GUI |

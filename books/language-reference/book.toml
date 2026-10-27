@@ -1,8 +1,8 @@
 [book]
-title = "SYX 语言参考"
-description = "词法、类型、表达式、语句等形式化参考"
-authors = ["SYX 核心团队"]
-language = "zh"
+title = "SYX Language Reference"
+description = "Formal reference for lexical structure, types, expressions, statements and more"
+authors = ["SYX Core Team"]
+language = "en"
 src = "."
 
 [output.html]

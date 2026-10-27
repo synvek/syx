@@ -1,10 +1,10 @@
-# 继承
+# Inheritance
 
-**实现状态：** 单继承 + `override` + vtable 多态 **GA**（Phase 51–55 + Phase 66）；`super.method()` 静态绑定到 direct super vtable 槽；`final class` 禁止子类化（Phase 60）；运行时多态 vtable indirect call **已实现**（Phase 66）
+**Implementation status:** single inheritance + `override` + vtable polymorphism **GA** (Phase 51–55 + Phase 66); `super.method()` binds statically to the direct super vtable slot; `final class` forbids subclassing (Phase 60); runtime polymorphic vtable indirect calls **Implemented** (Phase 66)
 
-继承是 class 的核心能力。SYX 单继承 + 必填 `override` 关键字的设计与 Swift 一致；运行时通过 vtable 多态分派。
+Inheritance is a core capability of classes. SYX's design — single inheritance plus a mandatory `override` keyword — matches Swift; dispatch at runtime goes through vtables.
 
-## class 继承基础
+## Class Inheritance Basics
 
 ```syx
 class Animal {
@@ -28,18 +28,18 @@ func main() {
 }
 ```
 
-| 规则 | 说明 |
+| Rule | Description |
 |------|------|
-| 语法 | `class Sub: Super { … }` |
-| 单继承 | 仅一个父类（多继承 **未实现**） |
-| `override` | 必填关键字（缺 → **S051**） |
-| `super.method()` | 调用父类实现 |
+| Syntax | `class Sub: Super { … }` |
+| Single inheritance | Only one superclass (multiple inheritance is **Not implemented**) |
+| `override` | Mandatory keyword (omitting it → **S051**) |
+| `super.method()` | Calls the superclass implementation |
 
-> **必须 `override`：** 这是 SYX 严格契约的一部分，防止无意覆盖父类方法；也帮助 LSP / IDE 工具准确识别重写。
+> **`override` is mandatory:** this is part of SYX's strict contract, preventing accidental overrides of superclass methods; it also helps LSP / IDE tooling identify overrides accurately.
 
-## 运行时多态（vtable）
+## Runtime Polymorphism (vtable)
 
-基类引用持有子类实例时，方法调用经 **运行时 vtable 间接分派**：
+When a base reference holds a subclass instance, method calls are **dispatched indirectly through the runtime vtable**:
 
 ```syx
 class Animal {
@@ -55,7 +55,7 @@ class Cat: Animal {
 }
 
 func describe(_ a: Animal) {
-    a.speak()                              // 多态
+    a.speak()                              // Polymorphic
 }
 
 func main() {
@@ -64,16 +64,16 @@ func main() {
 }
 ```
 
-| 调用形式 | 分派 |
+| Call form | Dispatch |
 |----------|------|
-| `Dog().speak()` | 静态已知类型，可 devirtualize（编译器可优化为直接调用） |
-| `let a: Animal = Dog(); a.speak()` | **动态 vtable**（Phase 66 GA） |
+| `Dog().speak()` | Statically known type, may be devirtualized (the compiler can optimize it into a direct call) |
+| `let a: Animal = Dog(); a.speak()` | **Dynamic vtable** (Phase 66 GA) |
 
-> **实现：** Phase 66 引入「**单继承、module-local vtable**」；每个 class 持有 `vtable: Array<fn_ptr>`；`override` 替换对应槽位；`super.method()` 静态绑定到 immediate super 的 vtable 槽（**不** 走 receiver 动态类型）。
+> **Implementation:** Phase 66 introduced "**single inheritance, module-local vtable**"; each class holds `vtable: Array<fn_ptr>`; `override` replaces the corresponding slot; `super.method()` binds statically to the immediate super's vtable slot (it does **not** go through the receiver's dynamic type).
 
-测试：`inheritance_polymorphic.rs` · `inheritance.rs` · LSP `lsp_phase66_real.rs`
+Tests: `inheritance_polymorphic.rs` · `inheritance.rs` · LSP `lsp_phase66_real.rs`
 
-## super 调用
+## super Calls
 
 ```syx
 class Base {
@@ -88,11 +88,11 @@ class Derived: Base {
 }
 ```
 
-- `super.method()` 调用 **直接父类** 的 vtable 槽
-- 不递归向上（A→B→C 中 `super.x` 只到 B）
-- `super` 在静态作用域合法；在 override 链中正确链接
+- `super.method()` calls the **direct superclass**'s vtable slot
+- It does not recurse upward (in A→B→C, `super.x` reaches only B)
+- `super` is legal in static scope; it links correctly along override chains
 
-## final 禁止子类化
+## final Forbids Subclassing
 
 ```syx
 final class Token {
@@ -100,16 +100,16 @@ final class Token {
     init(value: String) { self.value = value }
 }
 
-// class SubToken: Token { }                // ❌ S053：cannot inherit from final
+// class SubToken: Token { }                // ❌ S053: cannot inherit from final
 ```
 
-- `final class` 禁止被继承
-- 允许编译器做 devirtualization（直接调用，无 vtable 间接）
-- 与 Swift `final class` 等价
+- A `final class` cannot be inherited
+- It lets the compiler devirtualize (direct calls, no vtable indirection)
+- Equivalent to Swift's `final class`
 
-## 构造链
+## Initializer Chains
 
-子类 `init` 必须调用 `super.init`（**Phase 51 GA**）：
+A subclass `init` must call `super.init` (**Phase 51 GA**):
 
 ```syx
 class Animal {
@@ -124,14 +124,14 @@ class Dog: Animal {
 
     init(name: String, breed: String) {
         self.breed = breed
-        super.init(name: name)             // 必须
+        super.init(name: name)             // Required
     }
 }
 ```
 
-详见 [第 15 章 构造过程](../../docs/adr/architecture-decisions.md)。
+See [Chapter 15, Initialization](15-initialization.md).
 
-## 多层继承
+## Multi-Level Inheritance
 
 ```syx
 class A {
@@ -149,16 +149,16 @@ class C: B {
 let c = C()
 c.a()                                      // "C"
 let b: B = c
-b.a()                                      // "C"（多态分派到 C）
+b.a()                                      // "C" (polymorphic dispatch to C)
 let a: A = c
 a.a()                                      // "C"
 ```
 
-> **菱形继承：** 多继承 **未实现**；SYX 用 `protocol` 表达多态能力（详见 [第 23 章](../../docs/adr/architecture-decisions.md)）。
+> **Diamond inheritance:** multiple inheritance is **Not implemented**; SYX expresses polymorphic capability with `protocol` (see [Chapter 23](23-protocols.md)).
 
-## 重写属性
+## Overriding Properties
 
-子类可 `override var` 覆盖父类 computed 属性（vtable 多态读/写）：
+A subclass may use `override var` to replace a superclass computed property (vtable polymorphic read/write):
 
 ```syx
 class Base {
@@ -180,11 +180,11 @@ let b: Base = Derived()
 print(b.label)                            // "derived"
 ```
 
-详见 [第 11 章 属性](11-properties.md#属性-override)。
+See [Chapter 11, Properties](11-properties.md).
 
-## 重写初始化器
+## Overriding Initializers
 
-子类 `init` 必须调用 `super.init`，且所有 stored 属性必须赋值（两段式校验）：
+A subclass `init` must call `super.init`, and all stored properties must be assigned (two-phase checking):
 
 ```syx
 class Animal {
@@ -199,30 +199,30 @@ class Dog: Animal {
 
     init(name: String, tricks: Array<String>) {
         self.tricks = tricks
-        super.init(name: name)             // 必须
+        super.init(name: name)             // Required
     }
 }
 ```
 
-## override 与协议
+## override and Protocols
 
-实现协议方法 **不需要** `override`（不是继承父类）：
+Implementing a protocol method does **not** need `override` (it is not inheriting from a superclass):
 
 ```syx
 protocol Greetable {
     func greet() -> String
 }
 
-class User: Greetable {                    // 不写 override
-    func greet() -> String { return "hi" } // 满足协议
+class User: Greetable {                    // No override
+    func greet() -> String { return "hi" } // Satisfies the protocol
 }
 ```
 
-> **区分：** `override` 仅用于重写父类方法；协议实现不带 `override`。
+> **Distinction:** `override` is used only to override a superclass method; protocol implementations carry no `override`.
 
-## 继承与 actor
+## Inheritance and Actors
 
-`actor` 不能被继承（**未实现**）；actor 内部可与 class 自由组合：
+An `actor` cannot be inherited (**Not implemented**); inside an actor you may freely compose with classes:
 
 ```syx
 actor Manager {
@@ -240,7 +240,7 @@ actor Manager {
 }
 ```
 
-## 完整示例
+## Complete Example
 
 ```syx
 class Shape {
@@ -297,31 +297,31 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S051** | override 缺关键字 | 加 `override` |
-| **S052** | override 父类未声明 | 删 `override` |
-| **S053** | 继承 `final` 类 | 改非 final 或删继承 |
-| **S054** | override 签名不匹配 | 修正签名 |
-| **S055** | override 父类 `final` 方法 | 不能 override `final` |
+| **S051** | Missing `override` keyword | Add `override` |
+| **S052** | Overriding something not declared in the superclass | Remove `override` |
+| **S053** | Inheriting a `final` class | Make it non-final or drop the inheritance |
+| **S054** | Override signature mismatch | Fix the signature |
+| **S055** | Overriding a `final` superclass method | `final` cannot be overridden |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 单继承 + `override` | **已实现** |
-| `final class` | **已实现**（Phase 60） |
-| vtable 多态 | **已实现**（Phase 66） |
-| 多继承 | **未实现**（用 protocol） |
-| `final class` / `final func` | **已实现**（lexer 无 `sealed`） |
-| 协议组合（`protocol<A, B>`） | 部分实现（用 `&` / `where`） |
-| `convenience init` | **部分实现** |
-| `required init` | **未实现**（构造链 `super.init` 校验） |
+| Single inheritance + `override` | **Implemented** |
+| `final class` | **Implemented** (Phase 60) |
+| vtable polymorphism | **Implemented** (Phase 66) |
+| Multiple inheritance | **Not implemented** (use protocols) |
+| `final class` / `final func` | **Implemented** (the lexer has no `sealed`) |
+| Protocol composition (`protocol<A, B>`) | Partially implemented (use `&` / `where`) |
+| `convenience init` | **Partially implemented** |
+| `required init` | **Not implemented** (constructor chains check `super.init`) |
 
 ---
 
-**下一章** → [构造过程](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Initialization](15-initialization.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [第 11 章 属性](../../docs/adr/architecture-decisions.md) · [第 15 章 构造过程](../../docs/adr/architecture-decisions.md) · [第 16 章 析构过程](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Chapter 11, Properties](11-properties.md) · [Chapter 15, Initialization](15-initialization.md) · [Chapter 16, Deinitialization](16-deinitialization.md)

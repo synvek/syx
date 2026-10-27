@@ -1,95 +1,95 @@
-# 基本运算符
+# Basic Operators
 
-**实现状态：** **已实现**（算术 / 比较 / 逻辑 / 赋值 / 范围 / 空合并 / 强制解包 / 恒等子集）；自定义 `operator func` 见 [第 30 章 高级运算符](../../docs/adr/architecture-decisions.md)
+**Implementation status:** **Implemented** (arithmetic / comparison / logical / assignment / range / nil coalescing / force unwrap / identity subset); custom `operator func` is covered in [Chapter 30, Advanced Operators](30-advanced-operators.md)
 
-SYX 运算符主要分 **算术、比较、逻辑、赋值** 四大类。底层通过 [Core Host](../../docs/adr/architecture-decisions.md) 的 intrinsic 指令实现，与 Swift 大体一致；不依赖任何运行时解释。
+SYX operators fall mainly into four categories: **arithmetic, comparison, logical, assignment**. They are implemented underneath through [Core Host](32-operators-vs-host.md) intrinsic instructions and are broadly consistent with Swift; nothing relies on runtime interpretation.
 
-## 算术运算符
+## Arithmetic Operators
 
 ```syx
 let a = 10 + 3      // 13
 let b = 10 - 3      // 7
 let c = 10 * 3      // 30
-let d = 10 / 3      // 3（整数除）
-let m = 10 % 3      // 1（取模，符号与左操作数一致）
-let n = -a           // 一元负
+let d = 10 / 3      // 3 (integer division)
+let m = 10 % 3      // 1 (modulo; sign follows the left operand)
+let n = -a           // Unary minus
 ```
 
-| 运算符 | 含义 | 适用类型 |
+| Operator | Meaning | Applicable types |
 |--------|------|----------|
-| `+` `-` `*` `/` `%` | 加 / 减 / 乘 / 除 / 取模 | 整数、浮点 |
-| `-x` | 一元负 | 数值 |
-| `+x` | 一元正（语法允许） | 数值 |
+| `+` `-` `*` `/` `%` | Add / subtract / multiply / divide / modulo | Integers, floats |
+| `-x` | Unary minus | Numeric |
+| `+x` | Unary plus (syntactically allowed) | Numeric |
 
-> **溢出：** VM / MIR / WASM 路径整数算术与定宽运算 **恒按二补回绕**（`wrapping_*` 地板；与 debug/release 无关）。书本曾写的 debug **R011** panic **未交付**。请在写循环/位运算时显式检查边界，或换更大类型。
+> **Overflow:** integer arithmetic on the VM / MIR / WASM paths and fixed-width operations **always wrap two's complement** (`wrapping_*` is the floor; independent of debug/release). The debug **R011** panic once described in this book was **not delivered**. Check bounds explicitly when writing loops/bit operations, or move to a wider type.
 >
-> **除零：** 整数 `/0` 或 `%0` 触发 **R012 division by zero**；浮点除零结果为 `inf` / `nan`。
+> **Division by zero:** integer `/0` or `%0` triggers **R012 division by zero**; float division by zero yields `inf` / `nan`.
 
-**混合类型：** `Int + Double` 走 widening rule（`widen_for_binary`）。同宽整数（如 `Int8 + Int8`）保持该宽；`Int8 + Int` 提升为平台 `Int`。`Int + UInt` 触发 **S014**（避免静默符号位 wrap）。标量位运算 `& | ^ << >> ~` 与算术同走该 kind（`Int8 << 1` 按 8-bit wrap；`Int & UInt` → **S014**）。有序比较 `< <= > >=` 同走该 kind（如 `UInt8` 按无符号比较；`==`/`!=` 仍走值相等）。一元 `-` / `~` 同走操作数 kind（如 `-(-128 as Int8)` 按 8-bit wrap 仍为 `-128`）。
+**Mixed types:** `Int + Double` follows the widening rule (`widen_for_binary`). Same-width integers (e.g. `Int8 + Int8`) keep that width; `Int8 + Int` is promoted to platform `Int`. `Int + UInt` triggers **S014** (avoiding a silent sign-bit wrap). Scalar bit operations `& | ^ << >> ~` follow the same kind (`Int8 << 1` wraps at 8 bits; `Int & UInt` → **S014**). Ordered comparisons `< <= > >=` follow the same kind (`UInt8` compares as unsigned; `==`/`!=` still use value equality). Unary `-` / `~` follow the operand's kind (`-(-128 as Int8)` wraps at 8 bits and stays `-128`).
 
-## 比较运算符
+## Comparison Operators
 
 ```syx
-x == y      // 相等
-x != y      // 不等
-x === y     // 恒等（引用/类型敏感子集；详见下）
-x !== y     // 恒等取反
-x < y       // 小于
-x <= y      // 小于等于
-x > y       // 大于
-x >= y      // 大于等于
+x == y      // Equal
+x != y      // Not equal
+x === y     // Identity (reference/type-sensitive subset; see below)
+x !== y     // Identity negated
+x < y       // Less than
+x <= y      // Less than or equal
+x > y       // Greater than
+x >= y      // Greater than or equal
 ```
 
-| 形式 | 适用 |
+| Form | Applies to |
 |------|------|
-| `==` / `!=` | 值相等（`Equatable` 协议 witness；自定义类型需 `data class` + `@Equatable`） |
-| `===` / `!==` | 恒等（引用类型比较引用 / 元类型 tag；详见 [第 30 章 高级运算符](../../docs/adr/architecture-decisions.md)） |
-| `<` `<=` `>` `>=` | 有序比较（`Comparable` 协议 witness；`data class` + L1 合成或自定义） |
+| `==` / `!=` | Value equality (`Equatable` protocol witness; custom types need `data class` + `@Equatable`) |
+| `===` / `!==` | Identity (reference types compare references / metatype tags; see [Chapter 30, Advanced Operators](30-advanced-operators.md)) |
+| `<` `<=` `>` `>=` | Ordered comparison (`Comparable` protocol witness; `data class` + L1 synthesis or custom) |
 
-> **不可比较：** 没有 `Comparable` 一致性的类型使用 `<` 等有序比较 → **S004** 类型不匹配。
+> **Not comparable:** using `<` and friends on a type without `Comparable` conformance → **S004** type mismatch.
 
-## 逻辑运算符
-
-```syx
-if (a && b) { … }    // 短路与
-if (a || b) { … }    // 短路或
-if (!flag) { … }     // 逻辑非
-```
-
-| 运算符 | 含义 | 短路 |
-|--------|------|------|
-| `&&` | 逻辑与 | ✅ 右侧只在左侧为 `true` 时求值 |
-| `\|\|` | 逻辑或 | ✅ 右侧只在左侧为 `false` 时求值 |
-| `!` | 逻辑非 | 一元 |
-
-> 操作数必须为 `Bool`；非 `Bool` 表达式条件 → **S004**。
-
-## 空合并与可选链
+## Logical Operators
 
 ```syx
-let v = optional ?? defaultValue     // nil 合并
-let len = maybeString?.count        // 可选链
-let v = maybeString!                 // 强制解包
+if (a && b) { … }    // Short-circuit AND
+if (a || b) { … }    // Short-circuit OR
+if (!flag) { … }     // Logical NOT
 ```
 
-| 运算符 | 含义 | 失败行为 |
+| Operator | Meaning | Short-circuits |
+|--------|------|--------|
+| `&&` | Logical AND | ✅ The right side is evaluated only when the left is `true` |
+| `\|\|` | Logical OR | ✅ The right side is evaluated only when the left is `false` |
+| `!` | Logical NOT | Unary |
+
+> Operands must be `Bool`; a non-`Bool` expression condition → **S004**.
+
+## Nil Coalescing and Optional Chaining
+
+```syx
+let v = optional ?? defaultValue     // Nil coalescing
+let len = maybeString?.count        // Optional chaining
+let v = maybeString!                 // Force unwrap
+```
+
+| Operator | Meaning | Failure behavior |
 |--------|------|----------|
-| `??` | nil 合并 | 左 `nil` 时取右 |
-| `?.` | 可选链 | 链路任一环节 `nil` → 整体 `nil` |
-| `!` | 强制解包 | `nil` → 运行时错误 **R007** |
+| `??` | Nil coalescing | Takes the right side when the left is `nil` |
+| `?.` | Optional chaining | Any `nil` link makes the whole thing `nil` |
+| `!` | Force unwrap | `nil` → runtime error **R007** |
 
 ```syx
 let s: String? = "hello"
-print(s?.count)        // Optional(5)  ← 注意：仍是 Optional
+print(s?.count)        // Optional(5)  ← Note: still an Optional
 let n: Int = s?.count ?? 0   // 5
-let bad: Int = s!.count      // 5（强制解包成功）
+let bad: Int = s!.count      // 5 (force unwrap succeeds)
 ```
 
-## 赋值与复合赋值
+## Assignment and Compound Assignment
 
 ```syx
-x = 1          // 简单赋值
-x += 2         // 等价 x = x + 2
+x = 1          // Simple assignment
+x += 2         // Equivalent to x = x + 2
 x -= 1
 x *= 2
 x /= 2
@@ -98,32 +98,32 @@ obj.field = v
 arr[i] = v
 ```
 
-| 形式 | 含义 | 失败 |
+| Form | Meaning | Failure |
 |------|------|------|
-| `=` | 简单赋值 | 对 `let` → **S003** |
-| `+=` `-=` `*=` `/=` `%=` | 复合赋值 | 同上 |
-| `obj.field = v` | 成员赋值 | 字段只读或对象不可变 → **S003** |
-| `arr[i] = v` | 下标赋值 | 越界 → 运行时 **R003** |
+| `=` | Simple assignment | On a `let` → **S003** |
+| `+=` `-=` `*=` `/=` `%=` | Compound assignment | Same as above |
+| `obj.field = v` | Member assignment | Read-only field or immutable object → **S003** |
+| `arr[i] = v` | Subscript assignment | Out of bounds → runtime **R003** |
 
-> **赋值表达式：** SYX 赋值 **不返回** `Void` 值用于链式（与 Swift 一致）。`a = b = c` 编译错误 **S004**。
+> **Assignment expressions:** in SYX assignment does **not** return a `Void` value usable for chaining (consistent with Swift). `a = b = c` is compile error **S004**.
 >
-> **定宽复合赋值：** `Int8` 等定宽整数的 `+=`/`-=`/`*=`/`/=`/`%=`/`&=`/`|=`/`^=`/`<<=`/`>>=` desugar 到带 `widen_for_binary` kind 的二元运算（如 `120i8 += 10` → `-126`；`-1i8 &= 15` → `15`；`1i8 |= 15` → `15`；`15i8 ^= 1` → `14`；`64i8 <<= 1` → `-128`；`-128i8 >>= 1` → `-64`）。平台 `Int` 的 `+=`/`-=` 可走 host 特判。位复合文法（含移位复合）已齐。
+> **Fixed-width compound assignment:** for fixed-width integers such as `Int8`, `+=`/`-=`/`*=`/`/=`/`%=`/`&=`/`|=`/`^=`/`<<=`/`>>=` desugar to binary operations carrying the `widen_for_binary` kind (e.g. `120i8 += 10` → `-126`; `-1i8 &= 15` → `15`; `1i8 |= 15` → `15`; `15i8 ^= 1` → `14`; `64i8 <<= 1` → `-128`; `-128i8 >>= 1` → `-64`). For platform `Int`, `+=`/`-=` may take a host fast path. The bitwise compound grammar (including shift compounds) is complete.
 
-## 范围运算符
+## Range Operators
 
 ```syx
-for i in 0..<10 { … }   // 半开 [0, 10)
-for i in 1...5 { … }    // 闭区间 [1, 5]（整字面量端点）
+for i in 0..<10 { … }   // Half-open [0, 10)
+for i in 1...5 { … }    // Closed [1, 5] (integer literal endpoints)
 ```
 
-| 形式 | 含义 | 状态 |
+| Form | Meaning | Status |
 |------|------|------|
-| `a..<b` | 半开 `[a, b)` | **已实现** |
-| `a...b` | 闭区间 `[a, b]`（**整字面量端点**） | **MVP GA**（Phase 139） |
-| `a..<` | 无限右开 | **未实现** |
-| `..<b` | 无限左开 | **未实现** |
+| `a..<b` | Half-open `[a, b)` | **Implemented** |
+| `a...b` | Closed `[a, b]` (**integer literal endpoints**) | **MVP GA** (Phase 139) |
+| `a..<` | Unbounded on the right | **Not implemented** |
+| `..<b` | Unbounded on the left | **Not implemented** |
 
-范围表达式的类型为 `Range<Int>`（`for-in` 与 `contains` 上下文）。
+The type of a range expression is `Range<Int>` (in `for-in` and `contains` contexts).
 
 ```syx
 print((1..<10).contains(5))    // true
@@ -132,38 +132,38 @@ print((1...10).contains(10))  // true
 print((1...10).contains(11))   // false
 ```
 
-## 一元前缀
+## Unary Prefix Operators
 
-| 运算符 | 含义 | 适用 |
+| Operator | Meaning | Applies to |
 |--------|------|------|
-| `-` | 一元负 | 数值 |
-| `!` | 逻辑非 / 强制解包 | `Bool` / `Optional` |
-| `try` | 错误传播 / `?` 链 | throws 调用 |
-| `await` | 异步等待 | async 上下文 |
-| `&` | 借用表达式 | `&T` / `&mut T` |
+| `-` | Unary minus | Numeric |
+| `!` | Logical NOT / force unwrap | `Bool` / `Optional` |
+| `try` | Error propagation / `?` chains | `throws` calls |
+| `await` | Asynchronous wait | async context |
+| `&` | Borrow expression | `&T` / `&mut T` |
 
-## 三元（条件）运算符
+## The Ternary (Conditional) Operator
 
-SYX **不直接** 提供 `?:` 三元运算符；用 `if` 表达式或临时变量替代：
+SYX does **not** provide the `?:` ternary operator directly; use an `if` expression or a temporary variable instead:
 
 ```syx
-// ✅ 推荐
+// ✅ Recommended
 let label = if (x > 0) { "pos" } else { "non-pos" }
 
-// ❌ 不支持
-// let label = x > 0 ? "pos" : "non-pos"   // 编译错误
+// ❌ Not supported
+// let label = x > 0 ? "pos" : "non-pos"   // Compile error
 ```
 
-> **为何没有 `?:`：** 与 Swift 一致；目标是鼓励可读性，三元的嵌套让代码难读。
+> **Why no `?:`:** consistent with Swift; the goal is to encourage readability, since nested ternaries are hard to read.
 
-## 运算符优先级
+## Operator Precedence
 
-完整优先级表见 [语言参考：表达式](../language-reference/03-expressions.md#优先级摘要)。**从高到低** 摘要：
+For the complete precedence table, see [Language Reference: Expressions](../language-reference/03-expressions.md). Summary, **from highest to lowest**:
 
-| 级别 | 运算符 |
+| Level | Operators |
 |------|--------|
-| 1（最高） | `.` `[]` `()` `?.` `!` `await`（后缀） |
-| 2 | `-` `!` `try`（一元前缀） |
+| 1 (highest) | `.` `[]` `()` `?.` `!` `await` (postfix) |
+| 2 | `-` `!` `try` (unary prefix) |
 | 3 | `*` `/` `%` |
 | 4 | `+` `-` |
 | 5 | `..<` `...` |
@@ -172,20 +172,20 @@ let label = if (x > 0) { "pos" } else { "non-pos" }
 | 8 | `&&` |
 | 9 | `\|\|` |
 | 10 | `??` |
-| 11（最低） | `=` `+=` `-=` `*=` `/=` `%=` |
+| 11 (lowest) | `=` `+=` `-=` `*=` `/=` `%=` |
 
-> **括号优先：** 任意位置可加 `()` 强制优先级，无副作用。
+> **Parentheses win:** `()` may be added anywhere to force precedence, with no side effects.
 
-## 数值提升与字面量规则
+## Numeric Promotion and Literal Rules
 
 ```syx
 let a: Int = 1
-let b = a + 1.0   // Double（`1.0` 是 Double 字面量；`a` 提升为 Double）
-let c = a + 1     // Int（`1` 是 Int 字面量）
-let d = 1_000     // Int（下划线可读性）
+let b = a + 1.0   // Double (`1.0` is a Double literal; `a` is promoted to Double)
+let c = a + 1     // Int (`1` is an Int literal)
+let d = 1_000     // Int (underscores for readability)
 ```
 
-| 字面量 | 推断类型 |
+| Literal | Inferred type |
 |--------|----------|
 | `42` | `Int` |
 | `42i8` | `Int8` |
@@ -193,9 +193,9 @@ let d = 1_000     // Int（下划线可读性）
 | `3.14f32` | `Float32` |
 | `"text"` | `String` |
 | `true` | `Bool` |
-| `nil` | 上下文推断（通常 `Optional<T>`） |
+| `nil` | Contextually inferred (usually `Optional<T>`) |
 
-## 示例：累加
+## Example: Accumulating
 
 ```syx
 func main() {
@@ -207,9 +207,9 @@ func main() {
 }
 ```
 
-## 自定义运算符
+## Custom Operators
 
-`operator func` 允许声明新运算符（[第 30 章](../../docs/adr/architecture-decisions.md)）：
+`operator func` lets you declare new operators ([Chapter 30](30-advanced-operators.md)):
 
 ```syx
 infix operator |> { precedence: 50, associativity: left }
@@ -218,33 +218,33 @@ func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
 let result = 5 |> { $0 * 2 }    // 10
 ```
 
-完整语法、优先级组、自定义中缀 / 前缀 / 后缀运算符见 [第 30 章 高级运算符](../../docs/adr/architecture-decisions.md)。
+For the complete grammar, precedence groups, and custom infix / prefix / postfix operators, see [Chapter 30, Advanced Operators](30-advanced-operators.md).
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S003** | 对 `let` 赋值 | 改 `var` |
-| **S004** | 运算符两侧类型不兼容 | 显式转换 / 换类型 |
-| **S008** | 窄化（`Int64 → Int8`） | 显式截断 / 检查范围 |
-| **S014** | 有符号/无符号混合 | 显式 cast |
-| **R007** | `!` 解包 `nil` | 用 `?.` / `??` / `if let` |
-| **R011** | 整数溢出 Display（**未交付**；现行为 wrap） | 检查边界；可换更大类型；同码可被其它域复用（如 HTTP client） |
-| **R012** | 整数除零 | 检查分母 |
-| **R003** | 数组 / 字符串下标越界 | 显式范围检查 |
+| **S003** | Assignment to `let` | Change it to `var` |
+| **S004** | Incompatible operand types | Add an explicit conversion / change the type |
+| **S008** | Narrowing (`Int64 → Int8`) | Explicit truncation / range check |
+| **S014** | Mixed signed/unsigned | Explicit cast |
+| **R007** | `!` unwrapping `nil` | Use `?.` / `??` / `if let` |
+| **R011** | Integer overflow Display (**not delivered**; the current behavior is wrapping) | Check bounds; you can move to a wider type; the same code may be reused by other domains (e.g. the HTTP client) |
+| **R012** | Integer division by zero | Check the divisor |
+| **R003** | Array / string subscript out of bounds | Explicit range check |
 
-完整诊断见 [附录 B 诊断代码索引](appendix-b-diagnostic-index.md)。
+For complete diagnostics, see [Appendix B: Diagnostic Code Index](appendix-b-diagnostic-index.md).
 
-## 与 Swift 的差异
+## Differences from Swift
 
-| 点 | SYX |
+| Point | SYX |
 |----|-----|
-| `===` | 支持，引用/类型敏感子集 |
-| 自定义运算符 | **GA**（`operator func` + 三后端 parity） |
-| 溢出 | 恒二补回绕（≠ Swift 默认 trap；整数溢出 Display **R011** 未交付） |
+| `===` | Supported, with a reference/type-sensitive subset |
+| Custom operators | **GA** (`operator func` + three-back-end parity) |
+| Overflow | Always two's-complement wrapping (≠ Swift's default trap; the Display for integer overflow **R011** was not delivered) |
 
 ---
 
-**下一章** → [字符串和字符](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Strings and Characters](04-strings-and-characters.md)
 
-**参见** → [语言参考：表达式](../language-reference/03-expressions.md) · [第 30 章 高级运算符](../../docs/adr/architecture-decisions.md) · [第 32 章 运算符 vs Core Host](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Expressions](../language-reference/03-expressions.md) · [Chapter 30, Advanced Operators](30-advanced-operators.md) · [Chapter 32, Operators vs Core Host](32-operators-vs-host.md)

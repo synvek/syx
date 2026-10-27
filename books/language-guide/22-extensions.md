@@ -1,10 +1,10 @@
-# 扩展
+# Extensions
 
-**实现状态：** `extension` 方法 / 协议一致性 / 计算属性（**Phase 136 GA**）/ 带约束扩展 **已实现**（Phase 40–42）；`extension` 中嵌套类型 **部分实现**；`extension` 跨模块 **已实现**（Phase 60 module-local witness）
+**Implementation status:** `extension` methods / protocol conformance / computed properties (**Phase 136 GA**) / constrained extensions **Implemented** (Phase 40–42); nested types inside an `extension` **Partially implemented**; cross-module `extension` **Implemented** (Phase 60 module-local witness)
 
-`extension` 为已有类型追加功能（方法、计算属性、协议一致性、初始化器），不修改原类型声明。SYX 与 Swift 风格一致；多约束 where 子句在 Phase 42 起支持。
+An `extension` adds capability (methods, computed properties, protocol conformances, initializers) to an existing type without modifying the original declaration. SYX follows the Swift style; multi-constraint `where` clauses have been supported since Phase 42.
 
-## extension 方法
+## extension Methods
 
 ```syx
 extension Int {
@@ -20,20 +20,20 @@ func main() {
 }
 ```
 
-> **`self` 在 extension 内** 指代被扩展类型的实例（与 class 内方法一致）。
+> **`self` inside an extension** refers to the instance of the extended type (same as inside a class method).
 
-来源：`crates/syx-driver/tests/fixtures/types/greeter_extension.sy`
+Source: `crates/syx-driver/tests/fixtures/types/greeter_extension.sy`
 
-## extension 计算属性
+## extension Computed Properties
 
-**Phase 136 GA**（`lang-props-v4:extension-computed-mvp`）：
+**Phase 136 GA** (`lang-props-v4:extension-computed-mvp`):
 
 ```syx
 extension Int {
     var isEven: Bool { get { return self % 2 == 0 } }
     var squared: Int {
         get { return self * self }
-        set { /* 仅示意；可重置 stored 字段 */ }
+        set { /* illustration only; may reset a stored field */ }
     }
 }
 
@@ -41,13 +41,13 @@ print(4.isEven)                          // true
 print(3.squared)                         // 9
 ```
 
-| 形式 | 状态 |
+| Form | Status |
 |------|------|
-| get-only | **已实现**（Phase 134） |
-| get / set | **已实现**（Phase 135） |
-| 跨模块 | **已实现**（Phase 60 module-local） |
+| get-only | **Implemented** (Phase 134) |
+| get / set | **Implemented** (Phase 135) |
+| Cross-module | **Implemented** (Phase 60 module-local) |
 
-## 协议一致性
+## Protocol Conformance
 
 ```syx
 protocol Named {
@@ -64,9 +64,9 @@ class User {
 }
 ```
 
-> **绑定顺序无关：** `extension` 写在 class 声明之前也可；编译器后续扫描所有 extension 合成 witness。
+> **Binding order does not matter:** an `extension` may be written before the class declaration; the compiler later scans all extensions and synthesizes witnesses.
 
-## 协议默认实现
+## Protocol Default Implementations
 
 ```syx
 protocol Greetable {
@@ -74,19 +74,19 @@ protocol Greetable {
 }
 
 extension Greetable {
-    func greet() -> String { return "Hello" }    // 默认
+    func greet() -> String { return "Hello" }    // Default
 }
 
 class User: Greetable {
-    // 继承默认 → "Hello"
+    // Inherits the default → "Hello"
 }
 
 class Loud: Greetable {
-    func greet() -> String { return "HI!" }      // 覆盖
+    func greet() -> String { return "HI!" }      // Override
 }
 ```
 
-## 带约束扩展（where）
+## Constrained Extensions (where)
 
 ```syx
 extension Array where Element: Equatable {
@@ -105,9 +105,9 @@ let nums = [1, 2, 2, 3, 3, 3]
 print(nums.unique())                      // [1, 2, 3]
 ```
 
-### 多约束
+### Multiple Constraints
 
-**Phase 42 起**支持多约束：
+Supported **since Phase 42**:
 
 ```syx
 extension Array where Element: Equatable, Element: Hashable {
@@ -119,9 +119,9 @@ extension Array where Element: Equatable, Element: Hashable {
 }
 ```
 
-> **约束不满足：** 编译错误 **S010**。测试：`fixtures/format/extension_where_mvp` / `fixtures/format/extension_where_mvp` / `fixtures/format/extension_where_mvp`。
+> **Constraint not satisfied:** compile error **S010**. Tests: `fixtures/format/extension_where_mvp` / `fixtures/format/extension_where_mvp` / `fixtures/format/extension_where_mvp`.
 
-## extension 初始化器
+## extension Initializers
 
 ```syx
 struct Point {
@@ -130,7 +130,7 @@ struct Point {
 }
 
 extension Point {
-    init() {                              // 提供便利 init
+    init() {                              // Convenience init
         self.init(x: 0, y: 0)
     }
 }
@@ -138,22 +138,22 @@ extension Point {
 let p = Point()                            // (0, 0)
 ```
 
-> **限制：** `extension` 内 `init` 必须委托到原类型指定 init；不能定义新 stored 字段。
+> **Limit:** an `init` inside an `extension` must delegate to a designated init of the original type; it cannot define new stored fields.
 
-## extension 跨模块
+## Cross-Module extension
 
-`extension` 可在模块 A 中扩展模块 B 的类型：
+An `extension` in module A may extend a type from module B:
 
 ```syx
-// 模块 A 中
+// In module A
 extension String {
     func swaCount() -> Int { return self.count }
 }
 ```
 
-> **当前实现：** Phase 60 起 cross-module extension 完整支持；与 module-local witness 集成。Swift 的同 module 限制放宽（**注意**：这是 SYX 行为；Swift 不允许跨 module extension）。
+> **Current implementation:** cross-module extensions have been fully supported since Phase 60; integrated with module-local witnesses. Swift's same-module restriction is relaxed (**note**: this is SYX behavior; Swift does not allow cross-module extensions).
 
-## 给基础类型加方法
+## Adding Methods to Basic Types
 
 ```syx
 extension Int {
@@ -167,17 +167,17 @@ extension Int {
 let x = 100.clamp(0, 10)                  // 10
 ```
 
-## extension 与访问控制
+## extension and Access Control
 
 ```syx
 public extension Int {
-    public func toHex() -> String { ... }   // 必须显式标注
+    public func toHex() -> String { ... }   // Must be annotated explicitly
 }
 ```
 
-> **当前状态：** extension 与成员的 `public` / `internal` 标注 **已实现**（S005 跨模块检查）。
+> **Current status:** `public` / `internal` annotations on extensions and members are **Implemented** (S005 cross-module checking).
 
-## extension 与 KeyPath
+## extension and KeyPath
 
 ```syx
 extension User {
@@ -185,9 +185,9 @@ extension User {
 }
 ```
 
-> **状态：** KeyPath 在 extension 中可用（**部分实现**）。
+> **Status:** KeyPath is usable inside extensions (**Partially implemented**).
 
-## 完整示例
+## Complete Example
 
 ```syx
 protocol Describable {
@@ -229,30 +229,30 @@ func main() {
 }
 ```
 
-## 诊断
+## Diagnostics
 
-| 代码 | 触发 | 修复 |
+| Code | Trigger | Fix |
 |------|------|------|
-| **S001** | extension 中方法与已有冲突 | 改名 |
-| **S010** | where 约束不满足 | 检查协议一致性 |
-| **S005** | extension 跨模块访问 internal 符号 | 改 public |
+| **S001** | An extension method conflicts with an existing one | Rename it |
+| **S010** | `where` constraint not satisfied | Check protocol conformance |
+| **S005** | An extension accessing an internal symbol across modules | Change it to `public` |
 
-## 与 Swift 的差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| `extension` 方法 / 属性 | **已实现** |
-| `extension` 协议一致性 | **已实现** |
-| `extension` 跨模块 | **已实现**（Phase 60；Swift 不允许） |
-| `extension` where 多约束 | **已实现**（Phase 42） |
-| `extension` 内 `init` | **已实现**（委托到指定 init） |
-| `extension` 嵌套类型 | **部分实现** |
-| `extension` 中 subscript | **部分实现** |
-| `extension` 中 stored 字段 | **未实现**（只能 init / 计算属性） |
-| retroactive conformance 警告 | **未实现**（SYX 允许跨 module 扩展） |
+| `extension` methods / properties | **Implemented** |
+| `extension` protocol conformance | **Implemented** |
+| Cross-module `extension` | **Implemented** (Phase 60; Swift does not allow it) |
+| `extension` where with multiple constraints | **Implemented** (Phase 42) |
+| `init` inside an `extension` | **Implemented** (delegating to a designated init) |
+| Nested types inside an `extension` | **Partially implemented** |
+| `subscript` inside an `extension` | **Partially implemented** |
+| Stored fields inside an `extension` | **Not implemented** (only init / computed properties) |
+| Retroactive conformance warning | **Not implemented** (SYX allows cross-module extensions) |
 
 ---
 
-**下一章** → [协议](../../docs/adr/architecture-decisions.md)
+**Next chapter** → [Protocols](23-protocols.md)
 
-**参见** → [语言参考：声明](../language-reference/05-declarations.md) · [语言参考：协议与一致性](../language-reference/09-protocols-and-conformances.md) · [第 11 章 属性](../../docs/adr/architecture-decisions.md) · [第 23 章 协议](../../docs/adr/architecture-decisions.md)
+**See also** → [Language Reference: Declarations](../language-reference/05-declarations.md) · [Language Reference: Protocols and Conformances](../language-reference/09-protocols-and-conformances.md) · [Chapter 11, Properties](11-properties.md) · [Chapter 23, Protocols](23-protocols.md)

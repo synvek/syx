@@ -1,170 +1,170 @@
-# 词法结构
+# Lexical Structure
 
-**实现状态：** **已实现**（`syx-lexer`，Token 完整；正则字面量 Phase 50+；块注释嵌套；标识符 UAX #31 XID — ADR-229 / `M2-S2-04`）
+**Implementation status:** **Implemented** (`syx-lexer`, complete token set; regex literals Phase 50+; nested block comments; identifiers UAX #31 XID — ADR-229 / `M2-S2-04`)
 
-SYX 源文件为 UTF-8 文本（不含 BOM）。词法分析将源码切分为 `Token` 流，供语法分析使用。
+SYX source files are UTF-8 text (without a BOM). Lexical analysis splits source into a `Token` stream for the parser.
 
 ---
 
-## 字符集
+## Character Set
 
-| 元素 | 范围 |
+| Element | Range |
 |------|------|
-| 源码编码 | **UTF-8**（无 BOM） |
-| 行结束符 | `\n`（LF）/ `\r\n`（CRLF，规范化） |
-| 空格 | ` ` / `\t` / `\v` / `\f` |
+| Source encoding | **UTF-8** (no BOM) |
+| Line terminator | `\n` (LF) / `\r\n` (CRLF, normalized) |
+| Whitespace | ` ` / `\t` / `\v` / `\f` |
 
-> 源码内任意位置可出现 **任意 Unicode 字符**（如注释、字符串字面量、标识符）；字符串字面量支持 `\u{…}` 转义。
+> **Any Unicode character** may appear anywhere in source (comments, string literals, identifiers); string literals support the `\u{…}` escape.
 
-## 标识符
+## Identifiers
 
 ```
 identifier ::= letter (letter | digit | '_')*
 letter     ::= [a-zA-Z_] | <unicode XID_Start>
 ```
 
-| 规则 | 说明 |
+| Rule | Description |
 |------|------|
-| 首字符 | 字母或 `_` |
-| 后续 | 字母、数字、`_` |
-| 大小写敏感 | `Foo` ≠ `foo` |
-| Unicode | **已实现**（`XID_Start` / `XID_Continue` via `unicode-xid`；ADR-229） |
-| 规范化 | 标识符**不**做 NFC；比较为源码拼写相等 |
-| 关键字 | 不可作普通标识符 |
+| First character | Letter or `_` |
+| Subsequent | Letter, digit, `_` |
+| Case sensitivity | `Foo` ≠ `foo` |
+| Unicode | **Implemented** (`XID_Start` / `XID_Continue` via `unicode-xid`; ADR-229) |
+| Normalization | Identifiers are **not** NFC-normalized; comparison is source-spelling equality |
+| Keywords | Cannot be used as ordinary identifiers |
 
 ```syx
 count
 _private
 MyType
 helloWorld
-αβγ                           // Unicode XID（合法）
+αβγ                           // Unicode XID (valid)
 ```
 
-> **诊断：** L006 非法字符；L001 标识符命名 lint（lint 规则）。
+> **Diagnostics:** L006 illegal character; L001 identifier naming lint (lint rule).
 
-## 关键字
+## Keywords
 
-保留字不可作普通标识符使用。完整列表分以下几类：
+Reserved words cannot be used as ordinary identifiers. The complete list is grouped as follows:
 
-### 声明
+### Declarations
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `class` | 引用类型 |
-| `struct` | 值类型 |
-| `enum` | 枚举 |
-| `protocol` | 协议 |
-| `extension` | 扩展 |
-| `actor` | 并发隔离类型 |
-| `func` | 函数 |
-| `init` | 构造器 |
-| `deinit` | 析构器 |
-| `var` | 可变绑定 |
-| `let` | 不可变绑定 |
-| `import` | 导入模块 |
-| `typealias` | 类型别名 |
-| `associatedtype` | 关联类型 |
-| `global` | 全局 actor（修饰 `actor`） |
-| `data` | data class 修饰（`data class`） |
-| `final` | 禁止子类化（`final class` / `final func`） |
+| `class` | Reference type |
+| `struct` | Value type |
+| `enum` | Enumeration |
+| `protocol` | Protocol |
+| `extension` | Extension |
+| `actor` | Concurrency-isolated type |
+| `func` | Function |
+| `init` | Initializer |
+| `deinit` | Deinitializer |
+| `var` | Mutable binding |
+| `let` | Immutable binding |
+| `import` | Import a module |
+| `typealias` | Type alias |
+| `associatedtype` | Associated type |
+| `global` | Global actor (modifies `actor`) |
+| `data` | data class modifier (`data class`) |
+| `final` | Forbids subclassing (`final class` / `final func`) |
 
-### 访问控制
+### Access Control
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `public` | 跨模块 |
-| `internal` | 模块内（默认） |
-| `private` | 文件 / 作用域 |
-| `fileprivate` | 文件内 |
+| `public` | Across modules |
+| `internal` | Within the module (default) |
+| `private` | File / scope |
+| `fileprivate` | Within the file |
 
-### 控制流
+### Control Flow
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `if` | 条件 |
-| `else` | 否则 |
-| `guard` | 早退守卫 |
-| `switch` | 多路分支 |
-| `case` | 分支 |
-| `default` | 默认 |
-| `for` | 循环 |
-| `in` | for-in 容器 |
-| `while` | 条件循环 |
+| `if` | Condition |
+| `else` | Otherwise |
+| `guard` | Early-exit guard |
+| `switch` | Multi-way branch |
+| `case` | Branch |
+| `default` | Default |
+| `for` | Loop |
+| `in` | for-in container |
+| `while` | Conditional loop |
 | `repeat` | repeat while |
-| `break` | 跳出 |
-| `continue` | 继续 |
-| `return` | 返回 |
-| `fallthrough` | **拒绝**（SYX 不支持） |
+| `break` | Break out |
+| `continue` | Continue |
+| `return` | Return |
+| `fallthrough` | **Rejected** (not supported by SYX) |
 
-### 并发
+### Concurrency
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `async` | 异步函数 |
-| `await` | 异步等待 |
-| `Task` | 任务 |
-| `actor` | 隔离对象 |
-| `global` | 全局 actor 修饰 |
-| `isolated` | 隔离（部分） |
-| `sending` | 跨隔离传递参数（**Phase 26**） |
-| `distributed` | distributed actor（**partial**） |
+| `async` | Asynchronous function |
+| `await` | Asynchronous wait |
+| `Task` | Task |
+| `actor` | Isolated object |
+| `global` | Global actor modifier |
+| `isolated` | Isolation (partial) |
+| `sending` | Pass parameters across isolation (**Phase 26**) |
+| `distributed` | distributed actor (**partial**) |
 
-### 类型
+### Types
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `Self` | 实现类型 |
-| `Type` | 类型元 |
-| `some` | 不透明返回 |
-| `any` | 存在类型 |
+| `Self` | Implementing type |
+| `Type` | Metatype |
+| `some` | Opaque result |
+| `any` | Existential type |
 
-### 错误处理
+### Error Handling
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `try` | 错误传播 |
-| `catch` | 捕获 |
-| `throw` | 抛出 |
-| `throws` | 错误签名（`throws T` typed throws **部分实现**） |
+| `try` | Error propagation |
+| `catch` | Catch |
+| `throw` | Throw |
+| `throws` | Error signature (`throws T` typed throws **Partially implemented**) |
 
-### 字面量
+### Literals
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `true` | 布尔真 |
-| `false` | 布尔假 |
-| `nil` | 空值 |
+| `true` | Boolean true |
+| `false` | Boolean false |
+| `nil` | Null value |
 
-### 泛型与元编程
+### Generics and Metaprogramming
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `where` | 泛型约束 |
-| `requires` | 效果注解 |
-| `macro` | 用户宏声明 |
-| `compileTime` | 常量求值 |
-| `Pure` / `IO` | 效果标签 |
+| `where` | Generic constraint |
+| `requires` | Effect annotation |
+| `macro` | User macro declaration |
+| `compileTime` | Constant evaluation |
+| `Pure` / `IO` | Effect labels |
 
-### 上下文关键字
+### Contextual Keywords
 
-| 关键字 | 含义 |
+| Keyword | Meaning |
 |--------|------|
-| `static` | 静态（类型方法 / 字段） |
-| `final` | 禁止 override |
-| `override` | 重写 |
-| `lazy` | 惰性属性（class only） |
-| `mutating` | 变异方法 |
-| `convenience` | 便利 init（**未实现**） |
-| `required` | 必填 init（**未实现**） |
-| `prefix` / `infix` / `postfix` | 自定义运算符 |
-| `associativity` | 结合性 |
-| `precedence` | 优先级 |
+| `static` | Static (type method / field) |
+| `final` | Forbids override |
+| `override` | Override |
+| `lazy` | Lazy property (class only) |
+| `mutating` | Mutating method |
+| `convenience` | Convenience init (**Not implemented**) |
+| `required` | Required init (**Not implemented**) |
+| `prefix` / `infix` / `postfix` | Custom operators |
+| `associativity` | Associativity |
+| `precedence` | Precedence |
 
-完整列表见 `crates/syx-lexer/src/token.rs`。
+The full list lives in `crates/syx-lexer/src/token.rs`.
 
-## 字面量
+## Literals
 
-### 整数字面量
+### Integer Literals
 
 ```
 int-literal ::= digit+ (suffix)?
@@ -176,18 +176,18 @@ suffix ::= 'i8' | 'i16' | 'i32' | 'i64' | 'i128' | 'isize'    -- signed
         | 'u8' | 'u16' | 'u32' | 'u64' | 'u128' | 'usize'    -- unsigned
 ```
 
-| 形式 | 示例 | 推断类型 |
+| Form | Example | Inferred type |
 |------|------|----------|
-| 十进制 | `42` | `Int` |
-| 十六进制 | `0xFF` | `Int` |
-| 二进制 | `0b1010` | `Int` |
-| 八进制 | `0o17` | `Int` |
-| 后缀 | `100i8` / `0xFFu8` / `42i128` | 对应固定宽度 |
-| 下划线 | `1_000_000i64` | 编译期忽略 `_` |
+| Decimal | `42` | `Int` |
+| Hexadecimal | `0xFF` | `Int` |
+| Binary | `0b1010` | `Int` |
+| Octal | `0o17` | `Int` |
+| Suffix | `100i8` / `0xFFu8` / `42i128` | Corresponding fixed width |
+| Underscore | `1_000_000i64` | `_` ignored at compile time |
 
-> **无后缀整数默认** 类型为平台 **`Int`**（64 位 host → `Int64`；32 位 → `Int32`）。
+> **Unsuffixed integers default** to platform **`Int`** (64-bit host → `Int64`; 32-bit → `Int32`).
 
-### 浮点字面量
+### Floating-Point Literals
 
 ```
 float-literal ::= digit+ '.' digit+ (exponent)? (suffix)?
@@ -197,24 +197,24 @@ exponent ::= ('e' | 'E') ('+' | '-')? digit+
 suffix    ::= 'f32' | 'f64'
 ```
 
-| 形式 | 示例 | 推断类型 |
+| Form | Example | Inferred type |
 |------|------|----------|
-| 十进制 | `3.14` | `Double` |
-| 后缀 | `3.14f32` / `2.0f64` | `Float32` / `Float64` |
-| 科学计数法 | `2.5e10` | `Double` |
-| 下划线 | `1_000.5` | 同上 |
+| Decimal | `3.14` | `Double` |
+| Suffix | `3.14f32` / `2.0f64` | `Float32` / `Float64` |
+| Scientific notation | `2.5e10` | `Double` |
+| Underscore | `1_000.5` | Same as above |
 
-> **无后缀浮点默认** `Double`。
+> **Unsuffixed floats default** to `Double`.
 
-### 布尔与空
+### Booleans and Nil
 
-| 字面量 | 类型 |
+| Literal | Type |
 |--------|------|
 | `true` | `Bool` |
 | `false` | `Bool` |
-| `nil` | 上下文推断（`T?` / `Optional<T>`） |
+| `nil` | Contextually inferred (`T?` / `Optional<T>`) |
 
-### 字符串字面量
+### String Literals
 
 ```
 string-literal ::= '"' string-char* '"'
@@ -223,15 +223,15 @@ escape         ::= '\' ('n' | 'r' | 't' | '\\' | '\"' | '\'' | '0' | 'x' hex-dig
                | '$' '(' expr ')'        -- interpolation
 ```
 
-| 元素 | 含义 |
+| Element | Meaning |
 |------|------|
-| `"..."` | 双引号包裹 |
-| `\n` `\r` `\t` | 常见控制字符 |
-| `\\` `\"` `\'` `\$` | 字面字符 |
-| `\0` | NUL（**警告**：可能截断字符串） |
-| `\x41` | ASCII 字节（0x00–0xFF） |
-| `\u{1F600}` | Unicode 码点（U+0000–U+10FFFF） |
-| `\(expr)` | 插值（任意表达式） |
+| `"..."` | Delimited by double quotes |
+| `\n` `\r` `\t` | Common control characters |
+| `\\` `\"` `\'` `\$` | Literal characters |
+| `\0` | NUL (**warning**: may truncate the string) |
+| `\x41` | ASCII byte (0x00–0xFF) |
+| `\u{1F600}` | Unicode code point (U+0000–U+10FFFF) |
+| `\(expr)` | Interpolation (arbitrary expression) |
 
 ```syx
 "Hello, World"
@@ -241,130 +241,130 @@ escape         ::= '\' ('n' | 'r' | 't' | '\\' | '\"' | '\'' | '0' | 'x' hex-dig
 "ascii: \x41"
 ```
 
-> **裸换行禁止：** 字符串内不允许裸换行；未闭合报 **L001**。
-> **存储：** UTF-8 字节数组（Rust `String` 后端）。
-> **字素簇：** `.length` / `substring` / `for-in` 按 Unicode **字素簇**（Phase 84 起，`unicode-segmentation` 索引）。
+> **Raw newlines forbidden:** no bare newline inside a string; an unterminated string reports **L001**.
+> **Storage:** UTF-8 byte array (Rust `String` back end).
+> **Grapheme clusters:** `.length` / `substring` / `for-in` operate on Unicode **grapheme clusters** (since Phase 84, indexed with `unicode-segmentation`).
 
-### 正则字面量
+### Regex Literals
 
 ```
 regex-literal ::= '/' regex-body '/' regex-flag?
 regex-flag    ::= [a-zA-Z]+
 ```
 
-| 形式 | 示例 | 状态 |
+| Form | Example | Status |
 |------|------|------|
-| `/pattern/` | `/\d+/` | **已实现** |
-| `/pattern/i` | `/hello/i` | 部分支持（flag 在 parser 接受） |
-| `/pattern/m` | `/foo/m` | **未实现** |
+| `/pattern/` | `/\d+/` | **Implemented** |
+| `/pattern/i` | `/hello/i` | Partially supported (flag accepted by parser) |
+| `/pattern/m` | `/foo/m` | **Not implemented** |
 
-> 由 `/` 与上下文消歧（非注释起始）；典型 `let p = /\d+/` 无歧义。
+> Disambiguated by `/` and context (not the start of a comment); the typical `let p = /\d+/` is unambiguous.
 
-### 字典字面量
+### Dictionary Literals
 
 ```
 dict-literal ::= '[' dict-entry (',' dict-entry)* ']' | '{' dict-entry (',' dict-entry)* '}'
 dict-entry   ::= expr ':' expr
 ```
 
-| 形式 | 语法 | 类型 |
+| Form | Syntax | Type |
 |------|------|------|
-| Dictionary | `["a": 1, "b": 2]` | `[K: V]` 静态 |
-| Object | `{ "name": "SYX" }` | 动态 `Object` |
+| Dictionary | `["a": 1, "b": 2]` | `[K: V]` static |
+| Object | `{ "name": "SYX" }` | Dynamic `Object` |
 
-> 解析器见到 **`[key: value, …]`**（首元素后跟 `:`）即 Dictionary；见到 **`[elem, …]`**（首元素后跟 `,` 或 `]`）即 Array。
+> When the parser sees **`[key: value, …]`** (first element followed by `:`), it is a Dictionary; **`[elem, …]`** (first element followed by `,` or `]`) is an Array.
 
-## 注释
+## Comments
 
-| 形式 | 用途 |
+| Form | Use |
 |------|------|
-| `// 文本` | 单行（行尾或整行） |
-| `/* 文本 */` | 块（**支持嵌套**） |
-| `/// 文本` | 文档注释（`syx doc` 提取） |
+| `// text` | Single line (to end of line or whole line) |
+| `/* text */` | Block (**nesting supported**) |
+| `/// text` | Documentation comment (extracted by `syx doc`) |
 
 ```syx
-// 单行注释
+// Single-line comment
 
-/* 块注释
-   /* 可嵌套 */
-   任意行
+/* Block comment
+   /* may nest */
+   any line
 */
 
-/// 文档注释
-/// 多行：以 `///` 开头
+/// Documentation comment
+/// Multiple lines: each starting with `///`
 func add(a: Int, b: Int) -> Int { return a + b }
 ```
 
-## 运算符
+## Operators
 
-### 算术与赋值
+### Arithmetic and Assignment
 
-| 运算符 | 含义 | 优先级 |
+| Operator | Meaning | Precedence |
 |--------|------|--------|
-| `+` `-` `*` `/` `%` | 算术 | 100 / 90 |
-| `=` | 赋值 | 10 |
-| `+=` `-=` `*=` `/=` `%=` | 复合赋值 | 10 |
-| `<<` `>>` | 位移 | 80 |
-| `&` `\|` `^` | 位运算 | 50 / 30 / 40 |
+| `+` `-` `*` `/` `%` | Arithmetic | 100 / 90 |
+| `=` | Assignment | 10 |
+| `+=` `-=` `*=` `/=` `%=` | Compound assignment | 10 |
+| `<<` `>>` | Bit shift | 80 |
+| `&` `\|` `^` | Bitwise | 50 / 30 / 40 |
 
-### 比较与逻辑
+### Comparison and Logic
 
-| 运算符 | 含义 | 优先级 |
+| Operator | Meaning | Precedence |
 |--------|------|--------|
-| `==` `!=` | 相等 | 60 |
-| `===` `!==` | 恒等 | 60 |
-| `<` `<=` `>` `>=` | 有序比较 | 70 |
-| `&&` | 逻辑与 | 20 |
-| `\|\|` | 逻辑或 | 10 |
-| `!` | 逻辑非（一元） | — |
-| `??` | 空合并 | 5 |
-| `?` | try 链 / Optional / `?.` | — |
-| `!`（后缀） | 强制解包 | — |
+| `==` `!=` | Equality | 60 |
+| `===` `!==` | Identity | 60 |
+| `<` `<=` `>` `>=` | Ordered comparison | 70 |
+| `&&` | Logical AND | 20 |
+| `\|\|` | Logical OR | 10 |
+| `!` | Logical NOT (unary) | — |
+| `??` | Nil coalescing | 5 |
+| `?` | try chain / Optional / `?.` | — |
+| `!` (postfix) | Force unwrap | — |
 
-### 其他
+### Others
 
-| 运算符 | 含义 |
+| Operator | Meaning |
 |--------|------|
-| `->` | 函数返回类型 |
-| `=>` | 闭包 fat arrow（**部分支持**） |
-| `..<` | 半开范围 |
-| `...` | 闭区间（**部分支持**） |
-| `&` | 借用 `&T` / `&mut T` |
-| `@` | 特性 `@attached` / `@Component` |
-| `#` | 宏 `#assert` |
-| `.` | 成员访问 |
-| `?:` | 三元（**故意不提供**；用 `if` 表达式；≠ 待办缺口） |
+| `->` | Function return type |
+| `=>` | Closure fat arrow (**partially supported**) |
+| `..<` | Half-open range |
+| `...` | Closed range (**partially supported**) |
+| `&` | Borrow `&T` / `&mut T` |
+| `@` | Attribute `@attached` / `@Component` |
+| `#` | Macro `#assert` |
+| `.` | Member access |
+| `?:` | Ternary (**deliberately not provided**; use an `if` expression; ≠ a pending gap) |
 
-## 分隔符
+## Separators
 
 ```
 separator ::= '(' | ')' | '{' | '}' | '[' | ']' | ',' | ':' | ';' | '.'
 ```
 
-| 符号 | 用途 |
+| Symbol | Use |
 |------|------|
-| `(` `)` | 元组 / 函数参数 / 条件 |
-| `{` `}` | 块 / 字典 Object / 闭包 |
-| `[` `]` | 数组 / 下标 / Dictionary 类型 |
-| `,` | 列表分隔 |
-| `:` | 命名参数 / 类型标注 / 字典键值 |
-| `;` | 空（可选；SYX 不要求） |
-| `.` | 成员访问 / 浮点小数点 |
+| `(` `)` | Tuple / function parameters / condition |
+| `{` `}` | Block / dictionary Object / closure |
+| `[` `]` | Array / subscript / Dictionary type |
+| `,` | List separator |
+| `:` | Named parameter / type annotation / dictionary key-value |
+| `;` | Empty (optional; never required by SYX) |
+| `.` | Member access / decimal point |
 
-## 空白
+## Whitespace
 
 ```
 whitespace ::= ' ' | '\t' | '\n' | '\r' | <unicode Zs>
 ```
 
-- 词法层多数被跳过（字符串字面量除外）
-- 注释作为空白处理
-- 缩进不强制（**无** Python 式强制缩进）
+- Mostly skipped at the lexical layer (except inside string literals)
+- Comments are treated as whitespace
+- Indentation is not enforced (**no** Python-style mandatory indentation)
 
 ---
 
-**诊断：** L001–L012（词法 / lint）
+**Diagnostics:** L001–L012 (lexical / lint)
 
-**用法示例** → [语言指南：基础](../language-guide/02-the-basics.md) · [字符串](../language-guide/04-strings-and-characters.md)
+**Usage examples** → [Language Guide: The Basics](../language-guide/02-the-basics.md) · [Strings](../language-guide/04-strings-and-characters.md)
 
-**参见** → [类型](../../docs/adr/architecture-decisions.md) · [表达式](../../docs/adr/architecture-decisions.md) · [语法摘要](../../docs/adr/architecture-decisions.md)
+**See also** → [Types](02-types.md) · [Expressions](03-expressions.md) · [Grammar Summary](10-grammar-summary.md)

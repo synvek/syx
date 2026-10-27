@@ -1,10 +1,10 @@
-# 协议与一致性
+# Protocols and Conformances
 
-**实现状态：** 协议声明 / 一致性 / witness 表 / 默认实现 / 关联类型 / 存在类型 `any P` **已实现**；`Self` 约束 / 协议组合 / 协议 extension where / HKT witness **部分实现**；`class-only protocol` **未实现**
+**Implementation status:** protocol declarations / conformance / witness tables / default implementations / associated types / existential types `any P` **Implemented**; `Self` constraints / protocol composition / protocol extension where / HKT witness **Partially implemented**; `class-only protocol` **Not implemented**
 
 ---
 
-## 协议声明
+## Protocol Declarations
 
 ```
 protocol-decl ::= access? attrs? 'protocol' identifier generic-params?
@@ -32,18 +32,18 @@ protocol Iterator {
 }
 ```
 
-| 元素 | 说明 |
+| Element | Description |
 |------|------|
-| `func name(params) -> R` | 必需方法 |
-| `var name: T { get }` | 必需 get 属性 |
-| `var name: T { get set }` | 必需 get + set |
-| `static func name` | 必需类型方法 |
-| `init(params)` | 必需初始化器 |
-| `associatedtype X` | 关联类型 |
-| `typealias X = Y` | 关联类型默认值（**部分实现**） |
-| 默认实现 | 协议内可提供方法体 |
+| `func name(params) -> R` | Required method |
+| `var name: T { get }` | Required get-only property |
+| `var name: T { get set }` | Required get + set |
+| `static func name` | Required type method |
+| `init(params)` | Required initializer |
+| `associatedtype X` | Associated type |
+| `typealias X = Y` | Associated type default (**Partially implemented**) |
+| Default implementation | A method body may be provided inside the protocol |
 
-## 一致性（Conformance）
+## Conformance
 
 ```
 conformance ::= type ':' protocol (',' protocol)*
@@ -59,55 +59,55 @@ class MyClass: Equatable, CustomStringConvertible {
 extension Array: CustomStringConvertible { … }
 ```
 
-> `class` 声明 `: Protocol` 列表触发 witness 表生成（部分路径）。
-> 一致性在模块内**单点声明**（避免多文件冲突）。
+> A `class` declaration's `: Protocol` list triggers witness table generation (partial path).
+> Conformance is declared at a **single point** within a module (to avoid cross-file conflicts).
 
-**诊断：** S006（Iterator 缺 `next`）、S010（不符合协议）、S012（关联类型）
+**Diagnostics:** S006 (Iterator missing `next`), S010 (does not conform), S012 (associated type)
 
-## 内置协议
+## Built-in Protocols
 
-| 协议 | 说明 | 隐式一致性 |
+| Protocol | Description | Implicit conformance |
 |------|------|------------|
-| `Equatable` | `==` | 内置值类型 |
-| `Hashable` | 哈希 | 内置值类型 |
-| `Comparable` | 有序比较 | 数值类型 GA |
-| `CustomStringConvertible` | `.description()` | 内置值类型 |
-| `CustomDebugStringConvertible` | 调试描述 | 内置值类型 |
-| `Encoder` / `Decoder` | 格式无关编解码汇 | **协议面已钉**（ADR-230；容器 API → S7-02） |
-| `Encodable` / `Decodable` / `Codable` | 序列化 | **协议面已钉**（`Codable: Encodable, Decodable`）；`@Codable` / `JSON.encode` 为默认后端 |
-| `Iterator` | `next()` | 声明校验 |
-| `Sequence` / `Collection` | 迭代 | **部分实现** |
-| `Sendable` | 跨隔离安全 | 显式标注 |
-| `Error` | 错误类型 | 自定义 |
+| `Equatable` | `==` | Built-in value types |
+| `Hashable` | Hashing | Built-in value types |
+| `Comparable` | Ordered comparison | Numeric types GA |
+| `CustomStringConvertible` | `.description()` | Built-in value types |
+| `CustomDebugStringConvertible` | Debug description | Built-in value types |
+| `Encoder` / `Decoder` | Format-agnostic codec sink | **Protocol surface pinned** (ADR-230; container API → S7-02) |
+| `Encodable` / `Decodable` / `Codable` | Serialization | **Protocol surface pinned** (`Codable: Encodable, Decodable`); `@Codable` / `JSON.encode` are the default back end |
+| `Iterator` | `next()` | Declaration checking |
+| `Sequence` / `Collection` | Iteration | **Partially implemented** |
+| `Sendable` | Cross-isolation safety | Explicit annotation |
+| `Error` | Error type | User-defined |
 
-定义见 `crates/syx-stdlib/src/protocols.rs`。
+Defined in `crates/syx-stdlib/src/protocols.rs`.
 
-## 协议默认实现
+## Protocol Default Implementations
 
 ```syx
 protocol Greetable {
     func greet() -> String
-    func greet() -> String { return "Hello" }   // 默认
+    func greet() -> String { return "Hello" }   // Default
 }
 
 class User: Greetable {
-    // 继承默认 → "Hello"
+    // Inherits the default → "Hello"
 }
 
 class Loud: Greetable {
-    func greet() -> String { return "HI!" }    // 覆盖
+    func greet() -> String { return "HI!" }    // Override
 }
 ```
 
-> 默认实现通过 `extension` 或协议内方法体声明（**Phase 50+**）。
+> Default implementations are declared through an `extension` or a method body inside the protocol (**Phase 50+**).
 
-## 动态分发
+## Dynamic Dispatch
 
-| 形式 | 分派机制 |
+| Form | Dispatch mechanism |
 |------|----------|
-| `class` + protocol | witness 调用（`CallWitness`） |
-| `opaque some` | 编译期具体（零虚调度） |
-| `any P` existential | 运行时 witness 表 |
+| `class` + protocol | Witness call (`CallWitness`) |
+| `opaque some` | Concrete at compile time (no virtual dispatch) |
+| `any P` existential | Runtime witness table |
 
 ```syx
 protocol Named { func name() -> String }
@@ -120,26 +120,26 @@ greet(A())                                    // "hi A"
 greet(B())                                    // "hi B"
 ```
 
-## 协议作为类型
+## Protocols as Types
 
 ```
 protocol-type ::= 'any' protocol
               |  'some' protocol
 ```
 
-| 形式 | 含义 |
+| Form | Meaning |
 |------|------|
-| `some P` | 不透明返回（编译期具体） |
-| `any P` | 存在类型（运行时 witness） |
+| `some P` | Opaque result (concrete at compile time) |
+| `any P` | Existential type (runtime witness) |
 
 ```syx
-func make() -> some Equatable { 42 }          // 编译期 Int
-let p: any CustomStringConvertible = obj      // 运行时 witness
+func make() -> some Equatable { 42 }          // Int at compile time
+let p: any CustomStringConvertible = obj      // Runtime witness
 ```
 
-详见 [语言指南：不透明类型](../language-guide/25-opaque-types.md)。
+See [Language Guide: Opaque Types](../language-guide/25-opaque-types.md).
 
-## 关联类型
+## Associated Types
 
 ```syx
 protocol Container {
@@ -156,9 +156,9 @@ class IntStack: Container {
 }
 ```
 
-> **自动推断：** 当 `add` / `get` 签名唯一确定 `Item` 时，可省略 `typealias Item = …`。
+> **Automatic inference:** when the `add` / `get` signatures uniquely determine `Item`, `typealias Item = …` may be omitted.
 
-## 协议 extension 约束
+## Protocol Extension Constraints
 
 ```
 protocol-extension ::= 'extension' type ':' protocol where-clause? '{' … '}'
@@ -171,9 +171,9 @@ extension Collection where Element: Equatable {
 }
 ```
 
-> **状态：** 协议 extension 约束 **部分实现**；多约束 where 子句 Phase 42+。
+> **Status:** protocol extension constraints are **Partially implemented**; multi-constraint where clauses since Phase 42+.
 
-## 协议组合
+## Protocol Composition
 
 ```syx
 protocol A { func a() }
@@ -185,9 +185,9 @@ func use<T: A & B>(_ x: T) {
 }
 ```
 
-> **状态：** `&` 组合约束 **部分实现**（基础 `T: A & B` 工作）；用 `where T: A, T: B` 作为完整版。
+> **Status:** `&` composition constraints are **Partially implemented** (basic `T: A & B` works); use `where T: A, T: B` for the full form.
 
-## Self 约束
+## Self Constraints
 
 ```syx
 protocol Equatable {
@@ -195,7 +195,7 @@ protocol Equatable {
 }
 ```
 
-> `Self` 指实现该协议的具体类型。**状态：** **部分实现**（基础 witness 调度可工作）。
+> `Self` refers to the concrete type implementing the protocol. **Status:** **Partially implemented** (basic witness dispatch works).
 
 ## `@unchecked Sendable`
 
@@ -206,9 +206,9 @@ class MyLegacy {
 }
 ```
 
-> 抑制 `Sendable` 检查；需外部同步保证线程安全。
+> Suppresses `Sendable` checking; external synchronization is required to guarantee thread safety.
 
-## Encoder / Decoder / Codable 协议（ADR-230 / `M2-S7-01`）
+## Encoder / Decoder / Codable Protocols (ADR-230 / `M2-S7-01`)
 
 ```syx
 public protocol Encoder { }
@@ -218,7 +218,7 @@ public protocol Decodable { }
 public protocol Codable: Encodable, Decodable { }
 ```
 
-协议层提供可扩展编码抽象；**默认后端**仍是动态 `JSON.encode` / `@Codable` 宏合成（非 `JSONEncoder` GA）。
+The protocol layer provides an extensible encoding abstraction; the **default back end** is still dynamic `JSON.encode` / synthesis by the `@Codable` macro (not `JSONEncoder` GA).
 
 ```syx
 @Codable
@@ -231,9 +231,9 @@ enum Status {
 }
 ```
 
-> **状态：** 协议面 ADR-230 已钉；`JSONEncoder`/`JSONDecoder` + `codingPath` ADR-231 / **`M2-S7-02`** 已钉；`JSONStream` NDJSON session + chunk feed ADR-232 / **`M2-S7-03`** 已钉（`codingPath=line[N].…`；**S7 收口**）。`@Codable` L1 GA；L2 关联值 enum 部分 GA。**非** CodingKeys DSL / metatype `T.Type` / File S3-03 真流 / IANA。
+> **Status:** the protocol surface was pinned by ADR-230; `JSONEncoder`/`JSONDecoder` + `codingPath` pinned by ADR-231 / **`M2-S7-02`**; `JSONStream` NDJSON session + chunk feed pinned by ADR-232 / **`M2-S7-03`** (`codingPath=line[N].…`; **S7 closed out**). `@Codable` L1 GA; L2 associated-value enums partial GA. **Not** a CodingKeys DSL / metatype `T.Type` / real File S3-03 streaming / IANA.
 
-## 与 extension 联用
+## Use with Extensions
 
 ```syx
 extension MyType: CustomStringConvertible {
@@ -241,11 +241,11 @@ extension MyType: CustomStringConvertible {
 }
 ```
 
-> 协议一致性可在原类型声明处 / 单独 extension 声明。SYX 跨模块 extension 允许（**Phase 60+**）。
+> A protocol conformance may be declared at the original type declaration or in a separate extension. SYX allows cross-module extensions (**Phase 60+**).
 
-## conformance 合成
+## Synthesized Conformance
 
-`@Equatable` / `@Hashable` / `@Codable` 宏在 `data class` / 关联值 enum 上自动合成 witness：
+The `@Equatable` / `@Hashable` / `@Codable` macros synthesize witnesses automatically on `data class` and associated-value enums:
 
 ```syx
 @Equatable
@@ -254,15 +254,15 @@ extension MyType: CustomStringConvertible {
 data class Point(x: Int, y: Int)
 ```
 
-详见 [特性（Attributes）](../../docs/adr/architecture-decisions.md) 与 [语言指南：宏](../language-guide/19-macros.md)。
+See [Attributes](06-attributes.md) and [Language Guide: Macros](../language-guide/19-macros.md).
 
-## witness 表实现
+## Witness Table Implementation
 
-`class` + 协议 → witness 表（运行时调度）：
+`class` + protocol → witness table (runtime dispatch):
 
-- class 持有 `witness_table: *const WitnessTable`
-- `CallWitness` 指令走 witness 表
-- 多协议：每协议一张表
+- A class holds `witness_table: *const WitnessTable`
+- The `CallWitness` instruction goes through the witness table
+- Multiple protocols: one table per protocol
 
 ```syx
 class Multi: A, B, C {
@@ -272,25 +272,25 @@ class Multi: A, B, C {
 }
 ```
 
-> class 内部存 `witness_a` / `witness_b` / `witness_c` 三张表。
+> Internally the class stores three tables: `witness_a` / `witness_b` / `witness_c`.
 
-## 与 Swift 差异
+## Differences from Swift
 
 | Swift | SYX |
 |-------|-----|
-| 协议声明 | **已实现** |
-| 默认实现 | **已实现**（协议内 + extension） |
-| 关联类型 | **已实现** |
-| `Self` 约束 | **部分实现** |
-| `class-only protocol` | **未实现**（用 class 约束） |
-| protocol extension where | **部分实现** |
-| protocol composition `&` | **部分实现** |
-| 存在类型 `any P` | **已实现**（witness 表） |
-| 不透明返回 `some P` | **已实现** |
-| retroactive conformance | 跨 module 允许（与 Swift 不同） |
-| `_const` 协议 | **未实现** |
+| Protocol declaration | **Implemented** |
+| Default implementation | **Implemented** (inside protocol + extension) |
+| Associated types | **Implemented** |
+| `Self` constraints | **Partially implemented** |
+| `class-only protocol` | **Not implemented** (use a class constraint) |
+| protocol extension where | **Partially implemented** |
+| protocol composition `&` | **Partially implemented** |
+| Existential `any P` | **Implemented** (witness table) |
+| Opaque result `some P` | **Implemented** |
+| retroactive conformance | Allowed across modules (unlike Swift) |
+| `_const` protocols | **Not implemented** |
 
-## 完整示例
+## Complete Example
 
 ```syx
 protocol Shape {
@@ -327,8 +327,8 @@ func main() {
 
 ---
 
-**诊断：** S006 / S010 / S012 / S015 / S016 / P001
+**Diagnostics:** S006 / S010 / S012 / S015 / S016 / P001
 
-**用法示例** → [语言指南：协议](../language-guide/23-protocols.md)
+**Usage examples** → [Language Guide: Protocols](../language-guide/23-protocols.md)
 
-**参见** → [类型](../../docs/adr/architecture-decisions.md) · [声明](../../docs/adr/architecture-decisions.md) · [泛型形参](../../docs/adr/architecture-decisions.md) · [特性](../../docs/adr/architecture-decisions.md)
+**See also** → [Types](02-types.md) · [Declarations](05-declarations.md) · [Generic Parameters](08-generic-parameters-and-arguments.md) · [Attributes](06-attributes.md)
