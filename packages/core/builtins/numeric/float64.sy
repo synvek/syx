@@ -1,0 +1,60 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_f64_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 64-bit IEEE-754 floating-point (`Float64`). Prelude; host ops via `__syx_f64_*`.
+@builtin("numeric.f64")
+public class Float64: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Machine epsilon (ulp of 1.0) for this floating-point type.
+    public static func epsilon() -> Float64 {
+        return 0.0000000000000002220446049250313
+    }
+
+    /// Absolute value (host `__syx_f64_abs`).
+    public static func abs(x: Float64) -> Float64 {
+        return __syx_f64_abs(x)
+    }
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 64
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 8
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> Float64 {
+        return 0.0
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_f64_min` / `_max`.
+    public static func clamp(x: Float64, lo: Float64, hi: Float64) -> Float64 {
+        return __syx_f64_min(__syx_f64_max(x, lo), hi)
+    }
+
+}
+
+extension Float64 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_f64_compare`.
+    func compare(other: Float64) -> Int {
+        return __syx_f64_compare(self, other)
+    }
+}
+

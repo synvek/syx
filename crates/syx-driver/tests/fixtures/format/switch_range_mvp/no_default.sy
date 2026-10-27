@@ -1,0 +1,7 @@
+func main() {
+    switch 5 {
+    case 0..<10:
+        print(1)
+    }
+}
+

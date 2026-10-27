@@ -1,0 +1,3 @@
+/// docs
+data class Point(x: Int)
+/* trail */

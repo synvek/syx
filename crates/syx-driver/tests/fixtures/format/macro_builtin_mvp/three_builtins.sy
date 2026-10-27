@@ -1,0 +1,10 @@
+macro Alpha = #builtInMacro("tracked_accessor")
+
+macro Beta = #builtInMacro("observable")
+
+macro Gamma = #builtInMacro("tracked_accessor")
+
+func main() {
+    print(1)
+}
+

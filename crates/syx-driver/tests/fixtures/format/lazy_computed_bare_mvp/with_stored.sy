@@ -1,0 +1,13 @@
+class Mixed {
+    var ready: Int = 1
+    lazy var deferred: Int {
+        get {
+            return self.ready
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

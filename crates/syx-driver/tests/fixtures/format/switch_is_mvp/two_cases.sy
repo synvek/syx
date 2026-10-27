@@ -1,0 +1,11 @@
+func main() {
+    switch c {
+    case is Dog:
+        print(1)
+    case is Cat:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

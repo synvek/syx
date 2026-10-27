@@ -1,0 +1,5 @@
+// Byte / text read stream protocol (I/O layer).
+
+/// Types that can read sequential data.
+public protocol Reader {
+}

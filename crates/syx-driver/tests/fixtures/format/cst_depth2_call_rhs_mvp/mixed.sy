@@ -1,0 +1,6 @@
+func main() {
+    let a = foo(bar(baz()))
+    var b = g(h(1))
+    return f(k(m()))
+}
+

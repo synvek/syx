@@ -1,0 +1,6 @@
+macro X = #builtInMacro("tracked_accessor")
+
+func main() {
+    print(2)
+}
+

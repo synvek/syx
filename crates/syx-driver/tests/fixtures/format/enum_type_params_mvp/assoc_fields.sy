@@ -1,0 +1,5 @@
+enum Result2<T, E> {
+    ok(value: T)
+    err(message: E)
+}
+

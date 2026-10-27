@@ -1,0 +1,7 @@
+name = "nested_cross"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.nest]
+version = "1.0.0"
+path = "nest_pkg"

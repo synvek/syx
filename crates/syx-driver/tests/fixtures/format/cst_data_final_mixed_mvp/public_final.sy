@@ -1,0 +1,9 @@
+/// docs
+public final class Token {
+    Ident
+    Number(value: Int)
+}
+func main() {
+    print(1)
+}
+/* trail */

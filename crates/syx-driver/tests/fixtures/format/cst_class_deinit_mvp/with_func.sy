@@ -1,0 +1,11 @@
+// ahead
+class Box {
+  deinit {
+    print(1)
+  }
+}
+func main() {
+  /* mid */
+  print(2)
+}
+/* trail */

@@ -1,0 +1,8 @@
+// ahead
+export { Point }
+data class Point(x: Int)
+export func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

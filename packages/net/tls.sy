@@ -1,0 +1,29 @@
+public data class TlsError(code: Int, message: String)
+
+public class TlsServer {
+    public static func serveOnce(host: String, port: Int, certPemPath: String, keyPemPath: String) -> Int throws {
+        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, "", 0)
+        if r < 0
+        throw TlsError(code: 1, message: "tls serveOnce failed")
+        return r
+    }
+    public static func serveOnceAlpn(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) -> Int throws {
+        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, alpn, 0)
+        if r < 0
+        throw TlsError(code: 1, message: "tls serveOnceAlpn failed")
+        return r
+    }
+    public static func serveOnceNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String) -> Int throws {
+        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, "", 1)
+        if r < 0
+        throw TlsError(code: 1, message: "tls serveOnceNoIdle failed")
+        return r
+    }
+    public static func serveOnceAlpnNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) -> Int throws {
+        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, alpn, 1)
+        if r < 0
+        throw TlsError(code: 1, message: "tls serveOnceAlpnNoIdle failed")
+        return r
+    }
+}
+

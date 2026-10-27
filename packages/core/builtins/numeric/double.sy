@@ -1,0 +1,59 @@
+// Alias of `Float64`. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; methods forward to the canonical surface.
+
+/// Alias of `Float64` (64-bit). Prelude; methods forward to `Float64`.
+@builtin("numeric.f64")
+public class Double: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return Float64.bitWidth()
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return Float64.byteWidth()
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> Double {
+        return Float64.zero()
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive).
+    public static func clamp(x: Double, lo: Double, hi: Double) -> Double {
+        return Float64.clamp(x, lo, hi)
+    }
+
+    /// Absolute value (host `__syx_*_abs` via delegate).
+    public static func abs(x: Double) -> Double {
+        return Float64.abs(x)
+    }
+
+    /// Machine epsilon for this floating-point type.
+    public static func epsilon() -> Double {
+        return Float64.epsilon()
+    }
+}
+
+extension Double {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_f64_compare`.
+    func compare(other: Double) -> Int {
+        return __syx_f64_compare(self, other)
+    }
+}
+

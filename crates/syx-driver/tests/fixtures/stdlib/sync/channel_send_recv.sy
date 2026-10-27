@@ -1,0 +1,8 @@
+import Sync
+
+func main() {
+    let ch = Channel.create(4)
+    ch.send(42)
+    let v = ch.recv()
+    print(v)
+}

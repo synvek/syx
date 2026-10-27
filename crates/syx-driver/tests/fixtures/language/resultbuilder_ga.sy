@@ -1,0 +1,33 @@
+func Nested() -> Array<String> {
+    if true
+    if true
+    "nested-a"
+ else
+    "nested-b"
+
+ else
+    "plain"
+
+}
+
+func Loops() -> Array<String> {
+    for i in ["loop", "loop"] {
+        i
+    }
+}
+
+func printTags(tags) {
+    var n = 0
+    while n < tags.count {
+        print(tags[n])
+        n = n + 1
+    }
+}
+
+func main() {
+    print("root")
+    printTags(Nested())
+    printTags(Loops())
+    print("rb-ga-done")
+}
+

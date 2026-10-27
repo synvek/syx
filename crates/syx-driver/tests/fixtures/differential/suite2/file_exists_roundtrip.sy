@@ -1,0 +1,9 @@
+func main() {
+    let path = "SYX_DIFF_TMP_PATH"
+    print(__syx_file_exists(path))
+    __syx_file_write(path, "x")
+    print(__syx_file_exists(path))
+    __syx_file_delete(path)
+    print(__syx_file_exists(path))
+}
+

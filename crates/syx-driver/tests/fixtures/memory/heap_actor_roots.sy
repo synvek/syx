@@ -1,0 +1,15 @@
+actor Holder {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+    func peek() -> Int {
+        return self.n
+    }
+}
+
+func main() {
+    let h = Holder(n: 7)
+    print(h.peek())
+}
+

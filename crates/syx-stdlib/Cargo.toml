@@ -1,0 +1,12 @@
+[package]
+name = "syx-stdlib"
+description = "Standard library definitions for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+indexmap = { workspace = true }
+smol_str = { workspace = true }

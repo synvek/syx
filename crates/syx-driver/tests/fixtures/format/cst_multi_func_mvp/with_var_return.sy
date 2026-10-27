@@ -1,0 +1,9 @@
+func helper() {
+    var x = 1
+    return
+}
+
+func main() {
+    return
+}
+

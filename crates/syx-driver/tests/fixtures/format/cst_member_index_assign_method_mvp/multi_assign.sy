@@ -1,0 +1,8 @@
+class Box {
+  var items: Int
+  var other: Int
+  func setBoth(i: Int, j: Int, n: Int) {
+    box.items[i] = n
+    other.xs[j] = n
+  }
+}

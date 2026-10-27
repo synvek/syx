@@ -1,0 +1,15 @@
+class Node {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+    func tag() -> String {
+        return self.name
+    }
+}
+
+func main() {
+    let n = Node(name: "n1")
+    print(n.tag())
+}
+

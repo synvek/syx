@@ -1,0 +1,5 @@
+enum Either<L, R> {
+    left(value: L)
+    right(value: R)
+}
+

@@ -1,0 +1,8 @@
+import witness
+
+func main() {
+    let a = User(id: 1)
+    let b = User(id: 1)
+    print(a == b)
+}
+

@@ -1,0 +1,174 @@
+// =============================================================================
+// tutorial/12-methods.sy
+// 对应《SYX 语言指南》第 12 章「方法」
+//
+// 本章涉及语言特性：
+//   - 实例方法
+//   - 静态方法（static func）
+//   - mutating 方法
+//   - override 方法
+//   - 协议默认实现
+//   - self 显式 / 隐式
+//   - 初始化器（init）
+//   - deinit
+//   - @autoclosure（未实现）
+// =============================================================================
+
+// 1) 实例方法
+class Counter {
+    var value: Int = 0
+    func increment() { value = value + 1 }
+    func increment(by n: Int) { value = value + n }
+    func describe() -> String { return "Counter(\(value))" }
+}
+
+func demoInstance() {
+    let c = Counter()
+    c.increment()
+    c.increment(by: 5)
+    print(c.describe())                                 // "Counter(6)"
+}
+
+// 2) 静态方法
+class Factory {
+    static func create() -> Factory { return Factory() }
+    static var defaultName: String = "anon"
+    static func withName(_ s: String) -> Factory {
+        let f = Factory()
+        print("created factory: \(s)")
+        return f
+    }
+}
+
+func demoStatic() {
+    let f1 = Factory.create()
+    let f2 = Factory.withName("primary")
+    print("default=\(Factory.defaultName)")
+}
+
+// 3) mutating 方法（struct / enum）
+struct Stack {
+    var items: Array<Int> = []
+    mutating func push(_ v: Int) { items.append(v) }
+    mutating func pop() -> Int? { return items.remove(at: items.count - 1) }
+}
+
+func demoMutating() {
+    var s = Stack()
+    s.push(1); s.push(2); s.push(3)
+    let top = s.pop()
+    print("top=\(top)  rest=\(s.items)")                 // 3 [1, 2]
+}
+
+// 4) override + super
+class Shape {
+    var name: String
+    init(name: String) { self.name = name }
+    func describe() -> String { return "Shape(\(name))" }
+    func area() -> Double { return 0 }
+}
+
+class Square: Shape {
+    var side: Double
+    init(side: Double) {
+        self.side = side
+        super.init(name: "Square")
+    }
+    override func describe() -> String {
+        return super.describe() + " side=\(side)"
+    }
+    override func area() -> Double { return side * side }
+}
+
+class Circle2: Shape {
+    var radius: Double
+    init(radius: Double) {
+        self.radius = radius
+        super.init(name: "Circle")
+    }
+    override func area() -> Double { return 3.14159 * radius * radius }
+}
+
+func demoOverride() {
+    let sq = Square(side: 2.0)
+    let ci = Circle2(radius: 1.0)
+    print(sq.describe())                                 // Shape(Square) side=2.0
+    print("area=\(sq.area())")                           // 4.0
+    print("ci.area=\(ci.area())")                        // 3.14159
+}
+
+// 5) 协议默认实现
+protocol Greetable {
+    var name: String { get }
+    func greet() -> String
+}
+
+extension Greetable {
+    func greet() -> String { return "Hello, \(name)" }   // 默认实现
+}
+
+class User2: Greetable {
+    let name: String
+    init(name: String) { self.name = name }
+    // 不实现 greet() — 走默认
+}
+
+class LoudUser: Greetable {
+    let name: String
+    init(name: String) { self.name = name }
+    func greet() -> String { return "HI, \(name.uppercased())!!!" }  // 自实现
+}
+
+func demoProtocolDefault() {
+    print(User2(name: "Alice").greet())                  // "Hello, Alice"
+    print(LoudUser(name: "Bob").greet())                 // "HI, BOB!!!"
+}
+
+// 6) self 显式 / 隐式
+class Box {
+    var value: Int
+    init(value: Int) { self.value = value }              // 必须 self（歧义）
+    func set(_ v: Int) {
+        self.value = v                                   // 必须 self（参数同名）
+    }
+    func noop() {
+        print(value)                                     // 隐式 self OK
+    }
+}
+
+// 7) init / deinit
+class Resource {
+    let name: String
+    init(name: String) { self.name = name; print("init \(name)") }
+    deinit { print("deinit \(name)") }
+}
+
+func demoLifecycle() {
+    if true {
+        let r = Resource(name: "temp")
+        print("using \(r.name)")
+    }                                                    // deinit 触发
+}
+
+// 8) 类型方法链
+class Builder {
+    var parts: Array<String> = []
+    static func make() -> Builder { return Builder() }
+    func add(_ s: String) -> Builder { parts.append(s); return self }
+    func build() -> String { return parts.joined(",") }
+}
+
+func demoBuilder() {
+    let s = Builder.make().add("a").add("b").add("c").build()
+    print("built=\(s)")                                  // "a,b,c"
+}
+
+func main() {
+    demoInstance()
+    demoStatic()
+    demoMutating()
+    demoOverride()
+    demoProtocolDefault()
+    demoLifecycle()
+    demoBuilder()
+}

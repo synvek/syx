@@ -1,0 +1,6 @@
+class Box {
+  var count: Int
+  init(n: Int) {
+    count += n
+  }
+}

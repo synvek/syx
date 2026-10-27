@@ -1,0 +1,6 @@
+func main() {
+    print(0)
+    print(x?.y)
+    print(1!)
+}
+

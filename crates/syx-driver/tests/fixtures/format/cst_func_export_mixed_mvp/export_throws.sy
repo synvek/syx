@@ -1,0 +1,4 @@
+// ahead
+export func boom() throws {
+    print(1)
+}

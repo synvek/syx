@@ -1,0 +1,13 @@
+// ahead
+public class Box {
+    var name: String?
+    func tag() {
+        // body
+        print(1)
+    }
+}
+func main() {
+    while flag /* mid */
+    print(2)
+}
+/* trail */

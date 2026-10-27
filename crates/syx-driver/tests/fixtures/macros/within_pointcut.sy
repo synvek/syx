@@ -1,0 +1,30 @@
+import Di
+
+@Service
+class WithinProbe {
+    init() {
+    }
+    @Pointcut("within(WithinProbe)")
+    func marker() {
+    }
+    @Around("within(WithinProbe)")
+    @Before("within(WithinProbe)")
+    @After("within(WithinProbe)")
+    func alpha() -> String {
+        print("__body__:alpha")
+        return "within-alpha-ok"
+    }
+    @Before("within(WithinProbe)")
+    @After("within(WithinProbe)")
+    func beta() -> String {
+        print("__body__:beta")
+        return "within-beta-ok"
+    }
+}
+
+func main() {
+    let p = Di.resolve("WithinProbe")
+    print(p.alpha())
+    print(p.beta())
+}
+

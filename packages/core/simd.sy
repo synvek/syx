@@ -1,0 +1,245 @@
+public class SIMD2 {
+    public static func fromArray(_ items: Array<Int>) -> Object {
+        return __syx_simd_from_array(items, 2)
+    }
+    public static func addF64(a: Object, b: Object) -> Object {
+        return __syx_simd_f64_add(a, b)
+    }
+    public static func subF64(a: Object, b: Object) -> Object {
+        return __syx_simd_f64_sub(a, b)
+    }
+    public static func mulF64(a: Object, b: Object) -> Object {
+        return __syx_simd_f64_mul(a, b)
+    }
+    public static func divF64(a: Object, b: Object) -> Object {
+        return __syx_simd_f64_div(a, b)
+    }
+    public static func addI64(a: Object, b: Object) -> Object {
+        return __syx_simd_i64_add(a, b)
+    }
+    public static func loadFromArray(items: Array<Float64>, offset: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, 2)
+    }
+    public static func storeToArray(items: Array<Float64>, offset: Int, v: Object) -> Array<Float64> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+    public static func loadFromArray(items: Array<Int64>, offset: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, 2)
+    }
+    public static func storeToArray(items: Array<Int64>, offset: Int, v: Object) -> Array<Int64> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+    public static func reduceAdd(_ v: Object) -> Int {
+        return __syx_simd_reduce_add(v)
+    }
+}
+public class SIMD4 {
+    public static func fromArray(_ items: Array<Int>) -> Object {
+        return __syx_simd_from_array(items, 4)
+    }
+    public static func loadFromArray(items: Array<Int>, offset: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, 4)
+    }
+    public static func loadFromArray(items: Array<Float32>, offset: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, 4)
+    }
+    public static func storeToArray(items: Array<Int>, offset: Int, v: Object) -> Array<Int> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+    public static func storeToArray(items: Array<Float32>, offset: Int, v: Object) -> Array<Float32> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+    public static func shuffleReverse(v: Object) -> Object {
+        return __syx_simd_shuffle(v, 0)
+    }
+    public static func shuffleSwapPairs(v: Object) -> Object {
+        return __syx_simd_shuffle(v, 1)
+    }
+    public static func and(a: Object, b: Object) -> Object {
+        return __syx_simd_and(a, b)
+    }
+    public static func or(a: Object, b: Object) -> Object {
+        return __syx_simd_or(a, b)
+    }
+    public static func xor(a: Object, b: Object) -> Object {
+        return __syx_simd_xor(a, b)
+    }
+    public static func not(v: Object) -> Object {
+        return __syx_simd_not(v)
+    }
+    public static func shl(v: Object, amount: Int) -> Object {
+        return __syx_simd_shl(v, amount)
+    }
+    public static func shr(v: Object, amount: Int) -> Object {
+        return __syx_simd_shr(v, amount)
+    }
+    public static func min(a: Object, b: Object) -> Object {
+        return __syx_simd_min(a, b)
+    }
+    public static func max(a: Object, b: Object) -> Object {
+        return __syx_simd_max(a, b)
+    }
+    public static func addF32(a: Object, b: Object) -> Object {
+        return __syx_simd_f32_add(a, b)
+    }
+    public static func subF32(a: Object, b: Object) -> Object {
+        return __syx_simd_f32_sub(a, b)
+    }
+    public static func mulF32(a: Object, b: Object) -> Object {
+        return __syx_simd_f32_mul(a, b)
+    }
+    public static func divF32(a: Object, b: Object) -> Object {
+        return __syx_simd_f32_div(a, b)
+    }
+    public static func reduceAdd(_ v: Object) -> Int {
+        return __syx_simd_reduce_add(v)
+    }
+}
+/// Phase 118 guest-v11: SIMD8 i16×8 pilot (wasm simd128 equivalent of “i32×8”).
+public class SIMD8 {
+    public static func fromArray(_ items: Array<Int>) -> Object {
+        return __syx_simd_from_array(items, 8)
+    }
+    public static func add(a: Object, b: Object) -> Object {
+        return __syx_simd_i16_add(a, b)
+    }
+    public static func mul(a: Object, b: Object) -> Object {
+        return __syx_simd_i16_mul(a, b)
+    }
+    public static func loadFromArray(items: Array<Int>, offset: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, 8)
+    }
+    public static func storeToArray(items: Array<Int>, offset: Int, v: Object) -> Array<Int> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+    public static func reduceAdd(_ v: Object) -> Int {
+        return __syx_simd_reduce_add(v)
+    }
+}
+/// Phase 133 guest-v16: SIMD16 i8×16 ne MVP (+ inherited guest-v15 neg …).
+public class SIMD16 {
+    public static func fromArray(_ items: Array<Int>) -> Object {
+        return __syx_simd_from_array(items, 16)
+    }
+    public static func loadFromArray(items: Array<Int>, offset: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, 16)
+    }
+    public static func storeToArray(items: Array<Int>, offset: Int, v: Object) -> Array<Int> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+    public static func add(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_add(a, b)
+    }
+    public static func sub(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_sub(a, b)
+    }
+    public static func mul(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_mul(a, b)
+    }
+    public static func and(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_and(a, b)
+    }
+    public static func or(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_or(a, b)
+    }
+    public static func xor(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_xor(a, b)
+    }
+    public static func not(v: Object) -> Object {
+        return __syx_simd_i8_not(v)
+    }
+    public static func min(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_min(a, b)
+    }
+    public static func max(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_max(a, b)
+    }
+    /// Phase 130: unsigned lane min (`i8x16.min_u`).
+    public static func umin(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_umin(a, b)
+    }
+    /// Phase 130: unsigned lane max (`i8x16.max_u`).
+    public static func umax(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_umax(a, b)
+    }
+    /// Phase 131: signed lane abs (`i8x16.abs`).
+    public static func abs(v: Object) -> Object {
+        return __syx_simd_i8_abs(v)
+    }
+    /// Phase 132: signed lane neg (`i8x16.neg`).
+    public static func neg(v: Object) -> Object {
+        return __syx_simd_i8_neg(v)
+    }
+    public static func extract(v: Object, lane: Int) -> Int {
+        return __syx_simd_i8_extract(v, lane)
+    }
+    public static func replace(v: Object, lane: Int, value: Int) -> Object {
+        return __syx_simd_i8_replace(v, lane, value)
+    }
+    public static func eq(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_eq(a, b)
+    }
+    /// Phase 133: lane-wise not-equal (`i8x16.ne`).
+    public static func ne(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_ne(a, b)
+    }
+    /// Phase 134: lane-wise less-or-equal (`i8x16.le_s`).
+    public static func le(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_le(a, b)
+    }
+    /// Phase 135: lane-wise greater-or-equal (`i8x16.ge_s`).
+    public static func ge(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_ge(a, b)
+    }
+    /// Phase 136: unsigned rounding average (`i8x16.avgr_u`: (a+b+1)/2 per lane).
+    public static func avgrU(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_avgr_u(a, b)
+    }
+    /// Phase 137: lane-wise population count (`i8x16.popcnt`).
+    public static func popcnt(v: Object) -> Object {
+        return __syx_simd_i8_popcnt(v)
+    }
+    /// Phase 138: MSB bitmask (`i8x16.bitmask`).
+    public static func bitmask(v: Object) -> Int {
+        return __syx_simd_i8_bitmask(v)
+    }
+    /// Phase 139: all lanes non-zero (`i8x16.all_true`).
+    public static func allTrue(_ v: Object) -> Bool {
+        return __syx_simd_i8_all_true(v)
+    }
+    /// Phase 139: any lane non-zero (`v128.any_true` / i8x16 mask).
+    public static func anyTrue(_ v: Object) -> Bool {
+        return __syx_simd_i8_any_true(v)
+    }
+    public static func lt(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_lt(a, b)
+    }
+    public static func gt(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_gt(a, b)
+    }
+    public static func addSat(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_add_sat(a, b)
+    }
+    public static func subSat(a: Object, b: Object) -> Object {
+        return __syx_simd_i8_sub_sat(a, b)
+    }
+    /// Phase 128: i8x16 shuffle MVP — mode 0 reverse, mode 1 swap pairs.
+    public static func shuffle(v: Object, mode: Int) -> Object {
+        return __syx_simd_i8_shuffle(v, mode)
+    }
+    public static func shuffleReverse(v: Object) -> Object {
+        return __syx_simd_i8_shuffle(v, 0)
+    }
+    public static func shuffleSwapPairs(v: Object) -> Object {
+        return __syx_simd_i8_shuffle(v, 1)
+    }
+    public static func shl(v: Object, amount: Int) -> Object {
+        return __syx_simd_i8_shl(v, amount)
+    }
+    public static func shr(v: Object, amount: Int) -> Object {
+        return __syx_simd_i8_shr(v, amount)
+    }
+    public static func reduceAdd(_ v: Object) -> Int {
+        return __syx_simd_reduce_add(v)
+    }
+}

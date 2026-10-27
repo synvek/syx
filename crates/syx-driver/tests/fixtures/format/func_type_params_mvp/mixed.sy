@@ -1,0 +1,7 @@
+func id<T>(x: T) {
+}
+
+func main() {
+    print(1)
+}
+

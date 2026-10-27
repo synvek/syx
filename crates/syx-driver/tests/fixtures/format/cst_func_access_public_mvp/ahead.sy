@@ -1,0 +1,6 @@
+// ahead
+public func main() {
+    // inside
+    print(1)
+}
+/* trail */

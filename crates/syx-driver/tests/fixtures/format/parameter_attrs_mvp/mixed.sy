@@ -1,0 +1,7 @@
+func greeter(@Autowired logger: Logger) {
+}
+
+func main() {
+    print(1)
+}
+

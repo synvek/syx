@@ -1,0 +1,19 @@
+class Box {
+    var base: Int = 1
+}
+
+extension Box {
+    var doubled: Int {
+        get {
+            return self.base * 2
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

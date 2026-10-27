@@ -1,0 +1,5 @@
+/// docs
+public static func api() {
+    // body
+    print(1)
+}

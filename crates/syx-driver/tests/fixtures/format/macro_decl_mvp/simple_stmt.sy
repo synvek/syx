@@ -1,0 +1,9 @@
+#macro say() {
+    let x = 1
+    print(x)
+}
+
+func main() {
+    print(1)
+}
+

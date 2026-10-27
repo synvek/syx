@@ -1,0 +1,6 @@
+func main() {
+    if case is Dog = x {
+        print(1)
+    }
+}
+

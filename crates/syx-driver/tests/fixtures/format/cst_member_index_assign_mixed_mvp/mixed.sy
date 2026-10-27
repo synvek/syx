@@ -1,0 +1,22 @@
+// ahead
+public class Sub: Box, Greeter {
+  var items: Int?
+  init() {
+    // body
+    self.xs[0] = 1
+  }
+  func scale(i: Int, j: Int, n: Int) {
+    box.items[i] = n
+    a[0][1] = 2
+    xs[i] += 1
+    count *= 2
+  }
+  deinit {
+    print(1)
+  }
+}
+func main() {
+  /* mid */
+  print(2)
+}
+/* trail */

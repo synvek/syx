@@ -1,0 +1,6 @@
+data class NamedBox<T>(label: String, value: T) where T: Equatable
+
+func main() {
+    print(1)
+}
+

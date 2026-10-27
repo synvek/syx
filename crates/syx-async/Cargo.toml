@@ -1,0 +1,29 @@
+[package]
+name = "syx-async"
+description = "Async runtime for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[features]
+default = ["runtime"]
+# Full VM/runtime hosts (driver / syx run). Frontend compile-only path leaves this off.
+runtime = ["dep:syx-vm", "dep:syx-mir-run"]
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-ast = { workspace = true }
+syx-codegen = { workspace = true }
+syx-mir = { workspace = true }
+smol_str = { workspace = true }
+crossbeam-channel = { workspace = true }
+parking_lot = { workspace = true }
+# Path deps so default-features=false is honored (workspace inherit ignores it).
+syx-vm = { path = "../syx-vm", optional = true, default-features = false, features = ["interpreter", "http", "file", "jit-tier2"] }
+syx-mir-run = { path = "../syx-mir-run", optional = true, default-features = false }
+
+[dev-dependencies]
+syx-parser = { workspace = true }
+syx-ast = { workspace = true }

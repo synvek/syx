@@ -1,0 +1,9 @@
+/// docs
+export { a, b, }
+class Box {
+    var name: String
+}
+func main() {
+    print(1)
+}
+/* trail */

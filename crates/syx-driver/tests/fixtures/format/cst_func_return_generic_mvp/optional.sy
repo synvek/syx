@@ -1,0 +1,4 @@
+func opt() -> Bar<String>? {
+    return
+}
+

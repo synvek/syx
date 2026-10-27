@@ -1,0 +1,10 @@
+/// docs
+class Counter {
+    var n: Int
+    // method
+    func bump() {
+        /* mid */
+        print(1)
+    }
+}
+/* trail */

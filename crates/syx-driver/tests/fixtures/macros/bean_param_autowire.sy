@@ -1,0 +1,37 @@
+import Di
+
+@Service
+class DepLogger {
+    init() {
+    }
+    func tag() -> String {
+        return "dep-logger"
+    }
+}
+
+class BeanGreeter {
+    var logger: DepLogger
+    init(logger: DepLogger) {
+        self.logger = logger
+    }
+    func greet() -> String {
+        return "bean:" + self.logger.tag()
+    }
+}
+
+@Configuration
+class AppConfig {
+    init() {
+    }
+    @Bean
+    func greeter(@Autowired logger: DepLogger) -> BeanGreeter {
+        return BeanGreeter(logger: logger)
+    }
+}
+
+func main() {
+    let g = Di.resolve("BeanGreeter")
+    print(g.greet())
+    Di.destroy()
+}
+

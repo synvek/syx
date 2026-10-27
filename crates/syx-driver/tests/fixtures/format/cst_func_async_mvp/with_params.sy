@@ -1,0 +1,4 @@
+/// take
+async func take(x: Int) {
+    print(x)
+}

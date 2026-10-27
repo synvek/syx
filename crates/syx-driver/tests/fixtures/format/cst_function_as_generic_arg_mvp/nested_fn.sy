@@ -1,0 +1,4 @@
+func nest(x: Box<(Int) -> (Int) -> Bool>) {
+    return
+}
+

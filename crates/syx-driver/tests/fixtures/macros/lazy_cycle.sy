@@ -1,0 +1,41 @@
+import Di
+
+@Lazy
+@Service
+class Ping {
+    @Autowired
+    var pong: Pong
+    init() {
+        print("__factory__:Ping")
+    }
+    func name() -> String {
+        return "Ping"
+    }
+    func tag() -> String {
+        return "ping->" + self.pong.name()
+    }
+}
+
+@Service
+class Pong {
+    @Autowired
+    var ping: Ping
+    init() {
+        print("__factory__:Pong")
+    }
+    func name() -> String {
+        return "Pong"
+    }
+    func tag() -> String {
+        return "pong->" + self.ping.name()
+    }
+}
+
+func main() {
+    let pong = Di.resolve("Pong")
+    print(pong.tag())
+    let ping = Di.resolve("Ping")
+    print(ping.tag())
+    Di.destroy()
+}
+

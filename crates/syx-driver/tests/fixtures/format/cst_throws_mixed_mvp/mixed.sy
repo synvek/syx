@@ -1,0 +1,13 @@
+func boom() throws {
+    print(foo(bar()))
+}
+
+func go() throws requires IO {
+    while ready() {
+        let x = f(g())
+        print(x)
+    }
+}
+
+print(1)
+

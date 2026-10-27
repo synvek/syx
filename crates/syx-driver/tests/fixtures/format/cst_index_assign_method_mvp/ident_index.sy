@@ -1,0 +1,6 @@
+class Box {
+  var items: Int
+  func put(i: Int) {
+    xs[i] = 2
+  }
+}

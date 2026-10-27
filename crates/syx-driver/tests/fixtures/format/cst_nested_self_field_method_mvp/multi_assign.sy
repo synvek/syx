@@ -1,0 +1,8 @@
+class Box {
+  var name: String
+  var tag: String
+  func setBoth(a: String, b: String) {
+    self.inner.name = a
+    self.outer.tag = b
+  }
+}

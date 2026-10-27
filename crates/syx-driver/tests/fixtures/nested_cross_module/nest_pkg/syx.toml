@@ -1,0 +1,3 @@
+name = "nest_pkg"
+version = "1.0.0"
+main = "nest.sy"

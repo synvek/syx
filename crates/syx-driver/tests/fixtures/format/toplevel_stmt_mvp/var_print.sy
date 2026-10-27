@@ -1,0 +1,8 @@
+var n = 0
+
+print(n)
+
+func main() {
+    print(1)
+}
+

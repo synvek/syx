@@ -1,0 +1,8 @@
+macro A = #builtInMacro("tracked_accessor")
+
+macro B = #builtInMacro("observable")
+
+func main() {
+    print(1)
+}
+

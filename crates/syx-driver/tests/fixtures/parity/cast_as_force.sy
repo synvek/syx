@@ -1,0 +1,9 @@
+class Dog {
+    func speak() -> String { return "woof" }
+}
+
+func main() {
+    let d: Dog? = Dog()
+    let forced = d as! Dog
+    print(forced.speak())
+}

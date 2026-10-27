@@ -1,0 +1,5 @@
+final class Wire<T, E> {
+    ok(code: T)
+    err(message: E)
+}
+

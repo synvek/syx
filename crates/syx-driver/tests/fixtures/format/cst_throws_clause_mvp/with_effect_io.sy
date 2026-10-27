@@ -1,0 +1,4 @@
+func g() throws requires IO {
+    print(1)
+}
+

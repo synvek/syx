@@ -1,0 +1,28 @@
+protocol Named {
+    func label() -> String {
+        return "?"
+    }
+}
+
+class Item: Named {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+    func label() -> String {
+        return self.name
+    }
+}
+
+extension Item {
+    func upper() -> String {
+        return self.name
+    }
+}
+
+func main() {
+    let i = Item(name: "x")
+    print(i.label())
+    print(i.upper())
+}
+

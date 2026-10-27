@@ -1,0 +1,41 @@
+import Math
+
+import IO
+
+import Net
+
+func main() {
+    let name = "SYX"
+    print("Hello, \(name)!")
+    let parts = "a,b,c".split(",")
+    for item in parts {
+        print(item)
+    }
+    let nums = [1, 2, 3]
+    for n in nums {
+        print(n)
+    }
+    let result = Math.add(1, 2)
+    print(result)
+    let matches = "abc123".matches("\d+")
+    for m in matches {
+        print(m)
+    }
+    let tempPath = "/tmp/syx_p0_demo.txt"
+    try {
+        File.write(tempPath, "demo content")
+        let content = File.read(tempPath)
+        print(content)
+    } catch (fileErr) {
+        print("file error")
+    }
+    try {
+        let response = Http.get("https://httpbin.org/get")
+        let json = response.json()
+        print(json)
+        print("http")
+    } catch (httpErr) {
+        print("http skipped")
+    }
+}
+

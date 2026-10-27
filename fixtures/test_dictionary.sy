@@ -1,0 +1,73 @@
+func main() {
+    test001()
+    test002()
+    test003()
+    test004()
+    test005()
+    test006()
+    test007()
+    test008()
+}
+
+func test001() {
+    var d: Dictionary<Int, Int> = {10: 100, 20: 200}
+    print(d[10])
+    print(d[20])
+    print(d.containsKey(10))
+    print(d.remove(10))
+    print(d.containsKey(10))
+    print(d.count)
+    print(d[20])
+}
+
+func test002() {
+    var d: Dictionary<Int, Int> = {10: 100, 20: 200, 30: 300}
+    print(d.count)
+    print(d.keys())
+    for k in d.keys() {            
+        print(k)
+    }
+}
+
+func test003() {
+    var d: Dictionary<String, Int> = ["a": 1, "b": 2]
+    print(d.containsKey("a"))
+    print(d.containsKey("z"))
+    print(d.keys().count)
+    print(d.values().count)
+    print(d.remove("a"))
+    print(d.containsKey("a"))
+    print(d.count)
+}
+
+func test004() {
+    // Expect S004
+    //var d: Dictionary<String, Int> = ["a": 1]
+    //print(d.containsKey(1))
+    //print(d.remove(1))
+}
+
+
+func test005() {
+    var d: Dictionary<String, Int> = ["a": 1, "b": 2]
+    let ks: Array<String> = d.keys()
+    print(ks.count)
+}
+
+func test006() {
+     var d: Dictionary<String, Int> = ["a": 1, "b": 2]
+    let vs: Array<Int> = d.values()
+    print(vs.count)
+}
+
+func test007() {
+    // Expect S004
+    var d: Dictionary<String, Int> = ["a": 1]
+    //let bad: Array<Int> = d.keys()
+}
+
+func test008() {
+    // Expect S004
+    var d: Dictionary<String, Int> = ["a": 1]
+    //let bad: Array<String> = d.values()
+}

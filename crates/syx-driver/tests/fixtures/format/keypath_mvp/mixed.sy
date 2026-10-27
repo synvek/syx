@@ -1,0 +1,6 @@
+func main() {
+    print(0)
+    let kp = \Person.name
+    print(1...3)
+}
+

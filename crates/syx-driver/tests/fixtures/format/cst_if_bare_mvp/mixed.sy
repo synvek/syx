@@ -1,0 +1,12 @@
+/// a
+func a() {
+    if flag {
+        print(1)
+    }
+}
+/// b
+func b() {
+    /* mid */
+    if ready
+    print(2)
+}

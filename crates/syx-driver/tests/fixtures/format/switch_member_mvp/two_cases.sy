@@ -1,0 +1,11 @@
+func main() {
+    switch x {
+    case y.z:
+        print(1)
+    case a.b:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

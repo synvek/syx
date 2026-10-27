@@ -1,0 +1,8 @@
+import Net
+
+func main() {
+    let ws = WebSocket.connect("wss://127.0.0.1:9443/")
+    print(ws.url)
+    print(WebSocket.send(ws, "wss-p28"))
+}
+

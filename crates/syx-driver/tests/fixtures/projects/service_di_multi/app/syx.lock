@@ -1,0 +1,4 @@
+[packages.di_lib]
+source = "path"
+version = "1.0.0"
+path = "../di_lib"

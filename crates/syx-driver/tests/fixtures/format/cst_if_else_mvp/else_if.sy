@@ -1,0 +1,10 @@
+/// chain
+func main() {
+    if a {
+        print(1)
+    } else if b {
+        print(2)
+    } else {
+        print(3)
+    }
+}

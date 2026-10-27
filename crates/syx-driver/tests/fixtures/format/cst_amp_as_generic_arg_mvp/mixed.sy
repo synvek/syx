@@ -1,0 +1,15 @@
+func id(x: Foo<&Int>) {
+    print(x)
+    return x
+}
+
+func ret() -> Bar<&T> {
+    return
+}
+
+func mutp(x: Box<&mut String>) {
+    return
+}
+
+print(0)
+

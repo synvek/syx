@@ -1,0 +1,16 @@
+// Browser unified prelude graph (Phase 68): core builtins without IO/Net/Crypto imports.
+protocol Comparable {
+    func compare(other: Self) -> Int
+}
+
+protocol Iterator {
+    func next() -> Int
+}
+
+class Point: Comparable {
+    var x: Int
+    init(x: Int) { self.x = x }
+    func compare(other: Point) -> Int {
+        return self.x - other.x
+    }
+}

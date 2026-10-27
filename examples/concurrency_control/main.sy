@@ -1,0 +1,18 @@
+import Sync
+
+func main() {
+    Concurrency.setWorkerCount(4)
+    print(Concurrency.workerCount())
+    Concurrency.setMaxActors(8)
+    print(Concurrency.maxActors())
+    Concurrency.setMailboxCapacity(16)
+    print(Concurrency.mailboxCapacity())
+
+    // Channel() — default init, unbounded; Channel.create(n) — factory → Channel
+    let unbounded = Channel()
+    print(unbounded.capacity())
+    let ch = Channel.create(2)
+    print(ch.capacity())
+    ch.trySend(1)
+    print(ch.count())
+}

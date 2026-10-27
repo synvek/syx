@@ -1,0 +1,9 @@
+func main() {
+    switch x {
+    case \Person.name.age:
+        print(1)
+    default:
+        print(0)
+    }
+}
+

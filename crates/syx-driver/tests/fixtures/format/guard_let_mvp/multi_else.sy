@@ -1,0 +1,11 @@
+func main() {
+    guard let x = opt else {
+        print("missing")
+        return
+    }
+    {
+        print(x)
+        print(1)
+    }
+}
+

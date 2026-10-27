@@ -1,0 +1,33 @@
+import Di
+
+@Service
+class AllowedProbe {
+    init() {
+    }
+    @Pointcut("!within(ExcludedProbe)")
+    @Around("!within(ExcludedProbe)")
+    @Before("!within(ExcludedProbe)")
+    @After("!within(ExcludedProbe)")
+    func handle() -> String {
+        print("__body__:handle")
+        return "not-within-ok"
+    }
+}
+
+@Service
+class ExcludedProbe {
+    init() {
+    }
+    func handle() -> String {
+        print("__body__:excluded")
+        return "excluded-plain"
+    }
+}
+
+func main() {
+    let a = Di.resolve("AllowedProbe")
+    print(a.handle())
+    let e = Di.resolve("ExcludedProbe")
+    print(e.handle())
+}
+

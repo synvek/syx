@@ -1,0 +1,6 @@
+func main() {
+    let f: (Int) -> Int = id
+    let x: any Equatable = 1
+    let y: Int? = nil
+}
+

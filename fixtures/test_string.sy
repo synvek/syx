@@ -1,0 +1,9 @@
+func main() {
+    test001()
+}
+
+func test001() {
+    var str: String = "Hello"
+    print(str[2])
+    //print(str[-1])
+}

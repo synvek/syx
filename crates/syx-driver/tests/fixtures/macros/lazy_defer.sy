@@ -1,0 +1,38 @@
+import Di
+
+var __lazy_factory_count: Int = 0
+
+@Lazy
+@Service
+class LazyBox {
+    init() {
+        __lazy_factory_count = __lazy_factory_count + 1
+        print("__factory__:LazyBox")
+    }
+    func tag() -> String {
+        return "lazy-ok"
+    }
+}
+
+@Service
+class EagerBox {
+    init() {
+        print("__factory__:EagerBox")
+    }
+    func tag() -> String {
+        return "eager-ok"
+    }
+}
+
+func main() {
+    print("__boot_done__")
+    print(__lazy_factory_count)
+    let e = Di.resolve("EagerBox")
+    print(e.tag())
+    print(__lazy_factory_count)
+    let l = Di.resolve("LazyBox")
+    print(l.tag())
+    print(__lazy_factory_count)
+    Di.destroy()
+}
+

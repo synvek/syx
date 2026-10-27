@@ -1,0 +1,17 @@
+{
+  "exit": 0,
+  "stdout": [
+    "1",
+    "{c: 2}",
+    "1",
+    "0"
+  ],
+  "skip": {
+    "wasm": true,
+    "native": true,
+    "reason": {
+      "wasm": "in-memory rusqlite only; no prep:/ORM on native/WASM",
+      "native": "in-memory rusqlite only; no prep:/ORM on native/WASM"
+    }
+  }
+}

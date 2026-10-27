@@ -1,0 +1,4 @@
+// ahead
+export { Point }
+data class Point(x: Int)
+/* trail */

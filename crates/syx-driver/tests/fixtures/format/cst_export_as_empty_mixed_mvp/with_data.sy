@@ -1,0 +1,7 @@
+// ahead
+export { Box as Wrap }
+data class Box(value: Int)
+func main() {
+  /* mid */
+  print(1)
+}

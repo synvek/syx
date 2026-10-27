@@ -1,0 +1,27 @@
+/// ADR-239 / M2-S4-04: client response body chunked-read session.
+/// ≠ server streaming; ≠ wire Transfer-Encoding product API; ≠ File S3-03; ≠ JSONStream.
+public class HttpBodyStream {
+    /// Returns Object bag: `handle` (Int), `status` (Int). Body is not buffered.
+    /// Default GET; empty options (embed `{}` is Hashable-fragile — use url-only open).
+    public static func open(url: String) -> Object {
+        return __syx_http_body_stream_open(url)
+    }
+
+    /// Same as open, with fetch-style options object (method/headers/timeout_ms/…).
+    public static func openWithOptions(url: String, options: Object) -> Object {
+        return __syx_http_body_stream_open_opts(url, options)
+    }
+
+    /// Read up to `maxBytes`; empty String means EOF.
+    public static func readChunk(handle: Int, maxBytes: Int) -> String {
+        return __syx_http_body_stream_read_chunk(handle, maxBytes)
+    }
+
+    public static func close(handle: Int) throws {
+        try {
+            __syx_http_body_stream_close(handle)
+        } catch (e) {
+            throw IOError(code: 2, message: "HttpBodyStream close failed")
+        }
+    }
+}

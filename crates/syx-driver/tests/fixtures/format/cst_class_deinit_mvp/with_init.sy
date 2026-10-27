@@ -1,0 +1,9 @@
+class Box {
+  var name: String
+  init(name: String) {
+    print(1)
+  }
+  deinit {
+    print(2)
+  }
+}

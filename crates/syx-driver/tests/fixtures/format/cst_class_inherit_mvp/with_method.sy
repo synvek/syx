@@ -1,0 +1,6 @@
+/// method
+class Sub: Box {
+    func tag() {
+        print(1)
+    }
+}

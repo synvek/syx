@@ -1,0 +1,10 @@
+// priv
+private class Hidden {
+    var flag: Bool
+    func show() {
+        print(1)
+    }
+}
+func main() {
+    print(0)
+}

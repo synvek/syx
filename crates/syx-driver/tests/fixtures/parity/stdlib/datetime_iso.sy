@@ -1,0 +1,6 @@
+import DateTime
+
+func main() {
+    print(Duration.seconds(1))
+}
+

@@ -1,0 +1,9 @@
+func main() {
+    let x = foo()
+    var y = g(1)
+    print(h(x, y))
+    return k()
+}
+
+print(0)
+

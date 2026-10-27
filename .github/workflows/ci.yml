@@ -1,0 +1,544 @@
+name: CI
+
+
+
+on:
+
+  workflow_dispatch:
+
+
+
+env:
+
+  CARGO_TERM_COLOR: always
+
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required for cargo test --all)
+      - name: Checkout synui sibling for syx-vm
+
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+        with:
+
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+
+        run: cargo clippy --all-targets --all-features -- -D warnings -A clippy::result_large_err
+
+      - name: Behavioral test count smoke floor (C-10 — not release KPI)
+
+        run: bash scripts/audit_behavioral_tests.sh --min-driver 2600 --min-lsp 3050
+
+      - name: LSP full suite (Phase 126)
+
+        run: cargo test -p syx-lsp -- --test-threads=1
+
+      - name: LSP M1 W5 workspace + shape (ADR-141)
+
+        run: cargo test -p syx-lsp --lib m1_w5_ -- --test-threads=1 --nocapture
+
+      - name: LSP M1 W7 cancel + document version (ADR-143)
+
+        run: cargo test -p syx-lsp --lib m1_w7_ -- --test-threads=1 --nocapture
+
+      - name: Phase 126 categorized driver gates
+
+        run: |
+
+          cargo test -p syx-driver --test gui --test wasm --test browser --test native --test data --test farm --test runtime --test platform -- --test-threads=1
+
+      - name: Manifest 117.0 / phase 139 smoke
+
+        run: |
+
+          grep -q '"phase": 139' packages/internal/manifest.json
+
+          grep -q '"version": "117.0"' packages/internal/manifest.json
+
+
+      - name: Public tip leak gate (plan-001 Phase 2)
+
+        run: |
+
+          if rg -n 'A-W[0-9]|one-thousand-and-' crates/syx-driver/tests; then
+
+            echo "tip fingerprint nails must not appear in public tests" >&2
+
+            exit 1
+
+          fi
+
+          if rg -n '^mod qs1_' crates/syx-driver/tests/native/main.rs; then
+
+            echo "qs1_* mods must not remain in public native main" >&2
+
+            exit 1
+
+          fi
+
+
+      - name: Capability manifest freshness (M0-C)
+
+        run: python3 scripts/gen_capabilities.py --check
+
+      - name: IR capability tables freshness (M1-B04/B05)
+
+        run: python3 scripts/gen_ir_capabilities.py --check
+
+      - name: Test
+
+        run: cargo test --all
+
+
+
+  windows-smoke:
+
+    runs-on: windows-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build CLI (Windows)
+
+        run: cargo build -p syx-cli
+
+      - name: Driver smoke + plugin load (Windows)
+
+        run: cargo test -p syx-driver --test evergreen -- smoke --test-threads=1
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Windows .dll host plugin load (Phase 70)
+
+        run: |
+
+          cargo build -p syx-host-plugin --release
+
+          cargo test -p syx-driver --test evergreen -- plugin_smoke --test-threads=1
+
+
+
+  build-compiler-wasm32:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build compiler.wasm (wasm32 cdylib)
+
+        run: |
+
+          rustup target add wasm32-unknown-unknown
+
+          cargo build -p syx-compiler-wasm --target wasm32-unknown-unknown --release
+
+      - name: Copy compiler.wasm to wasm_web
+
+        run: cp target/wasm32-unknown-unknown/release/syx_compiler_wasm.wasm examples/wasm_web/compiler.wasm
+
+      - name: Upload compiler.wasm artifact
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: compiler-wasm32
+
+          path: examples/wasm_web/compiler.wasm
+
+
+
+  wasm-aot-matrix-strict:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: WASM AOT strict fixtures (≥99%)
+
+        run: bash scripts/wasm_aot_ratio.sh --matrix --min-direct 0.99
+
+
+
+  wasm-aot-matrix-full:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: WASM AOT full tier main.sy (100%)
+
+        run: bash scripts/wasm_aot_ratio.sh --matrix --full --min-direct 1.0
+
+
+
+  native-strict-main:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Native LLVM strict full matrix gate
+
+        env:
+
+          SYX_NATIVE_STRICT: "1"
+
+        run: |
+
+          cargo test -p syx-driver --test native -- native_strict_parity --test-threads=1
+
+          cargo test -p syx-driver --test evergreen -- parity_native --test-threads=1
+
+          cargo build -p syx-cli
+
+          ./target/debug/syx build --native examples/hello.sy
+
+          ./target/debug/syx build --native examples/main_sync.sy
+
+
+
+      - name: Differential Suite-1/2 exact (M0-D)
+        timeout-minutes: 20
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: cargo test -p syx-driver --test differential -- --test-threads=1
+
+      - name: Upload differential failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: differential-failures
+          path: target/differential-failures/
+          if-no-files-found: ignore
+
+      - name: Domain nails (evergreen + lang + concurrency + stdlib + observability + security + backends)
+        run: cargo test -p syx-driver --test evergreen --test lang --test concurrency --test stdlib --test observability --test security --test backends -- --test-threads=1 --nocapture
+
+      - name: M2 W50 EC-M2-4 Path/File Criterion short bench (ADR-194)
+        run: cargo bench -p syx-driver --bench path_join_criterion -- --sample-size 10 --warm-up-time 1 --measurement-time 2
+      - name: M2 W51 EC-M2-4 HTTP Criterion short bench (ADR-195)
+        run: cargo bench -p syx-driver --bench http_response_criterion -- --sample-size 10 --warm-up-time 1 --measurement-time 2
+      - name: M2 W52 EC-M2-4 Sql Criterion short bench (ADR-196)
+        run: cargo bench -p syx-driver --bench sql_exec_criterion -- --sample-size 10 --warm-up-time 1 --measurement-time 2
+      - name: M2 W53 EC-M2-4 Tcp Criterion short bench (ADR-197)
+        run: cargo bench -p syx-driver --bench tcp_connect_criterion -- --sample-size 10 --warm-up-time 1 --measurement-time 2
+      - name: C-09 property_smoke CI first-slice (W949 / ADR-1293)
+        run: cargo test -p syx-driver --test property_smoke -- --nocapture
+      - name: Install cargo-fuzz (W950)
+        run: cargo install cargo-fuzz --locked
+      - name: Install clang for libFuzzer (W950)
+        run: sudo apt-get update && sudo apt-get install -y clang
+      - name: C-09 fuzz syx_smoke CI first-slice (W950 / ADR-1294)
+        run: cargo fuzz run syx_smoke -- -runs=1
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+
+        with:
+
+          node-version: "20"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build compiler.wasm for Playwright
+
+        run: |
+
+          rustup target add wasm32-unknown-unknown
+
+          cargo build -p syx-compiler-wasm --target wasm32-unknown-unknown --release
+
+          cp target/wasm32-unknown-unknown/release/syx_compiler_wasm.wasm examples/wasm_web/compiler.wasm
+
+      - name: Playwright three-browser hard gate
+
+        run: |
+
+          if [ -f examples/wasm_web/playwright.config.js ]; then
+
+            npm ci --prefix examples/wasm_web 2>/dev/null || npm install --prefix examples/wasm_web @playwright/test
+
+            npx --prefix examples/wasm_web playwright install chromium firefox webkit
+
+            npx --prefix examples/wasm_web playwright test --project=chromium --project=firefox --project=webkit
+
+            npm run --prefix examples/wasm_web test:gui
+
+          else
+
+            cargo test -p syx-driver --test browser -- --test-threads=1
+
+          fi
+
+
+
+  phase125-gui-xvfb:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build syx-gui cdylib
+
+        run: cargo build -p syx-gui
+
+      - name: Phase 126 GUI interactive + visible gates (xvfb)
+
+        run: |
+
+          sudo apt-get update && sudo apt-get install -y xvfb
+
+          export SYX_GUI_DYLIB=target/debug/libsyx_gui.so
+
+          xvfb-run -a cargo test -p syx-driver --test gui -- --test-threads=1
+
+
+
+  phase125-driver-gates:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Phase 126 driver + wasm + farm + codable gates
+
+        run: |
+
+          cargo test -p syx-driver --test platform --test wasm --test farm --test data --test gui --test browser --test native --test runtime -- --test-threads=1
+
+      - name: Phase 126 LSP real matrix
+
+        run: cargo test -p syx-lsp p126_ -- --test-threads=1
+
+
+
+  jit-tier2-default:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: VM JIT tier-2 opt-in + default-off (ADR-140)
+
+        run: |
+          cargo test -p syx-vm --features jit-tier2 tier2_prod_default_when_unset tier2_explicit_one_enables -- --nocapture
+          SYX_JIT_TIER2=0 cargo test -p syx-vm --features jit-tier2 tier2_explicit_zero_disables_prod_default -- --nocapture
+
+      - name: JIT Suite-1 differential (M1-D02)
+
+        run: SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang -- jit_suite1_differential --test-threads=1 --nocapture
+
+      - name: VM JIT tier-2 opt-out smoke
+
+        run: |
+          SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen -- integration --test-threads=1
+
+
+
+  parity-gate:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build CLI
+
+        run: cargo build -p syx-cli
+
+      - name: Driver consolidated parity
+
+        run: |
+
+          cargo test -p syx-driver \
+
+            --test evergreen --test lang --test concurrency --test stdlib \
+
+            --test observability --test security --test backends \
+
+            -- --test-threads=1
+
+      - name: Evergreen + Phase 99 category suites
+        timeout-minutes: 45
+        run: |
+          cargo test -p syx-driver \
+            --test gui --test wasm --test browser --test native --test runtime \
+            --test data --test farm --test platform --test differential \
+            -- --test-threads=1
+
+      - name: Upload differential failure artifacts (parity-gate)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: differential-failures-parity-gate
+          path: target/differential-failures/
+          if-no-files-found: ignore
+
+      - name: Native strict tier-2 matrix
+
+        env:
+
+          SYX_NATIVE_STRICT: "1"
+
+        run: |
+          cargo test -p syx-driver --test evergreen -- parity_native --test-threads=1
+          cargo test -p syx-driver --test native -- native_strict_parity --test-threads=1
+
+      - name: Registry CDN mirror hard E2E
+
+        env:
+
+          SYX_REGISTRY_REQUIRE_SIGNATURE: "1"
+
+        run: cargo test -p syx-driver --test evergreen -- registry_cdn_hard --test-threads=1
+
+      - name: Registry mandatory sign hard E2E
+
+        env:
+
+          SYX_REGISTRY_REQUIRE_SIGNATURE: "1"
+
+        run: cargo test -p syx-driver --test evergreen -- registry_signed_hard --test-threads=1
+
+      - name: Browser compiler E2E
+
+        run: cargo test -p syx-driver --test browser -- browser_ --test-threads=1
+
+      - name: build.syb runner + LSP + root graph
+
+        run: cargo test -p syx-driver --test evergreen -- build_syx --test-threads=1
+
+      - name: LSP workspace tests
+
+        run: cargo test -p syx-lsp -- --test-threads=1
+
+      - name: Fixture audit
+
+        run: scripts/audit_test_fixtures.sh --check
+
+
+
+  native-macos:
+
+    runs-on: macos-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build syx-rt and CLI
+
+        run: cargo build --release -p syx-rt -p syx-cli
+
+      - name: Native link E2E smoke
+
+        run: |
+
+          cargo build -p syx-cli
+
+          dir=$(mktemp -d)
+
+          printf 'func main() { print("hi") }\n' > "$dir/main.sy"
+
+          printf 'name = "hello"\nmain = "main.sy"\n' > "$dir/syx.toml"
+
+          ./target/debug/syx build --native -o "$dir/app" "$dir"
+

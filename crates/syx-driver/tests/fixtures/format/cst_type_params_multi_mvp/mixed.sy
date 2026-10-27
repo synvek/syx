@@ -1,0 +1,8 @@
+func pair<A, B>(a: A, b: B) {
+    print(a)
+}
+
+func id<T>(x: T) -> T throws {
+    return x
+}
+

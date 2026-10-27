@@ -1,0 +1,6 @@
+func main() {
+    let r = &n
+    let m = &mut n
+    print(1)
+}
+

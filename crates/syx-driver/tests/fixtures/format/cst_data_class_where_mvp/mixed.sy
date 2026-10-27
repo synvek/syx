@@ -1,0 +1,7 @@
+// ahead
+data class Box<T>(value: T) where T: Equatable
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

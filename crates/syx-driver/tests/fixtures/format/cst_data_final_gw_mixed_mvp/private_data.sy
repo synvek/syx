@@ -1,0 +1,6 @@
+// ahead
+private data class Secret<T>(code: T)
+func main() {
+    print(1)
+}
+/* trail */

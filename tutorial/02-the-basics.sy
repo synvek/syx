@@ -1,0 +1,101 @@
+// =============================================================================
+// tutorial/02-the-basics.sy
+// 对应《SYX 语言指南》第 2 章「基础」
+//
+// 本章涉及语言特性：
+//   - let / var 声明
+//   - 显式类型标注 + 类型推断
+//   - 注释（//, /* */, ///）
+//   - 数值字面量（Int/UInt/Float/Double、8/16/32/64/128 位、十六/二/八进制、下划线分隔）
+//   - 数值提升与字面量规则
+//   - 布尔、nil
+//   - typealias
+//   - 类型嵌套（flatten 推荐做法）
+//   - 命名规范
+// =============================================================================
+
+// 1) 不可变 / 可变
+let pi = 3.14159                          // 不可变（let）
+var counter = 0                           // 可变（var）
+counter = counter + 1
+// pi = 3.14                             // ❌ S003: cannot assign to let
+
+// 2) 显式类型标注
+let x: Int = 10
+let name: String = "SYX"
+let items: Array<Int> = [1, 2, 3]
+let scores: [String: Int] = ["a": 1, "b": 2]
+let maybe: Int? = nil
+
+// 3) 注释
+// 单行注释
+/*
+   块注释
+   /* 可嵌套 */
+*/
+/// 文档注释（syx doc 提取为 API 文档）
+/// 多行：以 /// 开头
+func documented(a: Int, b: Int) -> Int { return a + b }
+
+// 4) 数值字面量全谱
+let a = 42                                // Int（平台字长）
+let b = 100i8                             // Int8
+let c = 1000i64                           // Int64
+let d = 0xFFu8                            // UInt8 十六进制
+let e = 0b1010u16                         // UInt16 二进制
+let f = 0o17u32                           // UInt32 八进制
+let g = 1_000_000i64                      // 下划线分隔
+let h = 42i128                            // Int128
+let i = 3.14f32                           // Float32
+let j = 3.14                              // Double（默认）
+let k = -2.5e10                           // Double 科学计数法
+let u = 0xFFu128                          // UInt128
+
+// 5) 数值提升 / 字面量规则
+let p: Int = 1
+let q = p + 1.0                           // Double（Int → Double）
+let r = p + 1                             // Int
+
+// 6) 布尔与空
+let ok: Bool = true
+let ng: Bool = false
+let empty: String? = nil
+let present: String? = "hi"
+
+// 7) typealias
+typealias Handle = UInt64
+typealias Handler = (Int) -> String
+
+func register(h: Handle) { print("handle=\(h)") }
+let f1: Handler = { n in "id=\(n)" }
+register(h: 42i64)
+
+// 8) 类型嵌套 — 推荐 flatten 命名（避开当前 parser 边界）
+struct OuterMarker { }
+struct OuterMarker_Inner {
+    var value: Int = 0
+}
+let inner = OuterMarker_Inner(value: 7)
+
+// 9) 元组字面量（Phase 139 MVP GA）
+let pair: (Int, String) = (1, "a")
+print(pair.0)
+let named = (x: 10, y: 20)
+print(named.x)
+let (a1, a2) = (3, 4)
+
+// 10) 多行字符串（Phase 139 MVP GA）
+let multiline = """
+    line one
+    line two with \(name) interpolation
+    line three
+"""
+
+// 11) main 入口
+func main() {
+    print("chapter 02: the basics")
+    print("counter=\(counter) pi=\(pi)")
+    print("q=\(q) r=\(r)")
+    print("inner.value=\(inner.value)")
+    print("multiline=\(multiline)")
+}

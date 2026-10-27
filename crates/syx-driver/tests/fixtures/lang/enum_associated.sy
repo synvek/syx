@@ -1,0 +1,14 @@
+enum NetworkResult {
+    success(code: Int)
+    failure(code: Int)
+}
+
+func main() {
+    let a = NetworkResult.success(code: 42)
+    switch a {
+    case .success(let n):
+        print(n)
+    case .failure(let e):
+        print(e)
+    }
+}

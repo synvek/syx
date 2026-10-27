@@ -1,0 +1,37 @@
+func main() {
+    switch x {
+    case 0:
+        print(0)
+    case 1..<10:
+        print(1)
+    case .ok(let v):
+        print(v)
+    case (a, b):
+        print(a)
+    case is Dog:
+        print(2)
+    case y:
+        print(3)
+    case a + b:
+        print(4)
+    case foo():
+        print(5)
+    case y.z:
+        print(6)
+    case a[0]:
+        print(7)
+    case a?.b:
+        print(8)
+    case a!:
+        print(9)
+    case \Person.name:
+        print(10)
+    case [1, 2]:
+        print(11)
+    case -y where true:
+        print(12)
+    default:
+        print(13)
+    }
+}
+

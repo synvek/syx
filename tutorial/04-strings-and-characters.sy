@@ -1,0 +1,99 @@
+// =============================================================================
+// tutorial/04-strings-and-characters.sy
+// 对应《SYX 语言指南》第 4 章「字符串和字符」
+//
+// 本章涉及语言特性：
+//   - 字符串字面量（单行 / 多行 / 转义 / 插值）
+//   - Character 类型（Phase 139 MVP GA）
+//   - 字素簇语义（Phase 84+）
+//   - 下标 s[i] 字符访问
+//   - 字符串常用方法（split/trim/case/prefix/suffix/substring/replace/...）
+//   - for-in 遍历
+//   - 正则字面量
+//   - String 拼接 / 比较
+//   - 与 Array 互转
+// =============================================================================
+
+// 1) 字面量 / 插值
+let s = "Hello"
+let msg = "Hello, \(s)!"
+let multi = "a" + "b" + "c"
+let tabbed = "col1\tcol2\tcol3"
+let emoji = "\u{1F600}"                   // 😀
+let zwnj = "\u{200C}"                     // ZWNJ
+
+// 2) 多行字符串（Phase 139 MVP GA）
+let haiku = """
+    朝辞白帝彩云间
+    千里江陵一日还
+    \(emoji)  emoji 也可以
+"""
+
+// 3) String 常用方法
+let parts = "a,b,c".split(",")            // ["a", "b", "c"]
+let trimmed = "  hi  ".trim()             // "hi"
+let lower = "ABC".lowercased()            // "abc"
+let upper = "abc".uppercased()            // "ABC"
+let hasPre = "file.txt".hasPrefix("file") // true
+let hasSuf = "hello.txt".hasSuffix(".txt")
+let sub = "hello".substring(0, 3)         // "hel"
+let replaced = "banana".replacingOccurrences("a", "o")
+let digitMatches = "abc123def".matches("\\d+")
+let len = "text".count                   // 4
+let isEmpty = "".isEmpty                  // true
+let repeated = "ab".repeat(3)             // "ababab"
+
+// 4) Character 与 for-in
+for c in "abc" {                          // c: Character
+    print("char = \(c)")
+}
+
+// 5) 下标访问
+let w = "syx"
+let first: Character = w[0]               // "s"
+let second = w[1]                         // "w"
+
+// 6) 拼接
+let a1 = "Hello"
+let a2 = ", World"
+let a3 = a1 + a2                          // "Hello, World"
+let a4 = "\(a1)\(a2)!"                    // 插值拼接
+let a5 = String.concat([a1, a2, "!"])
+
+// 7) 比较
+print("abc" == "abc")                     // true
+print("abc" < "abd")                      // true
+print("abc" === "abc")                    // false（不同 String 对象）
+
+// 8) 正则字面量
+let p = /\d+/
+let digitMs = "abc123def".matches(p)
+for m in digitMs { print("digit: \(m)") }
+
+let ci = /hello/i                         // 大小写不敏感（flag 解析）
+
+// 9) String 与 Array 互转
+let list = "x,y,z".split(",")
+let back = list.joined("-")               // "x-y-z"
+let chars: Array<Character> = Array("0123456789")
+let joined = chars.joined("")             // "0123456789"
+
+// 10) 调试输出
+extension String {
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+}
+
+func main() {
+    print("msg=\(msg)")
+    print("parts=\(parts) trimmed=\(trimmed) lower=\(lower)")
+    print("sub=\(sub) replaced=\(replaced) len=\(len)")
+    print("repeated=\(repeated) first=\(first) second=\(second)")
+    print("a5=\(a5) back=\(back) joined=\(joined) chars.count=\(chars.count)")
+    print("haiku: \(haiku)")
+    print("emoji: \(emoji) zwnj: \(zwnj)")
+}

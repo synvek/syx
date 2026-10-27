@@ -1,0 +1,75 @@
+// Unordered unique collection. Prelude; hand-authored authority.
+// Product surface matches language-guide 05: count/contains/insert/remove (Bool)
+// plus union/intersection (value_equals). No isEmpty/subtraction/forEach — S002.
+// Storage is a linear Vec deduped by value_equals, not a hash table.
+
+/// Unique elements under value equality; host `__syx_set_*`.
+@builtin("collection.set")
+public class Set: Equatable, Hashable, CustomStringConvertible {
+    /// Element count.
+    public static func count(items: Set) -> Int {
+        return __syx_set_count(items)
+    }
+
+    /// Membership test.
+    public static func contains(items: Set, item: Object) -> Bool {
+        return __syx_set_contains(items, item)
+    }
+
+    /// Insert `item` if absent; returns whether inserted.
+    public static func insert(items: Set, item: Object) -> Bool {
+        return __syx_set_insert(items, item)
+    }
+
+    /// Remove `item` if present; returns whether removed.
+    public static func remove(items: Set, item: Object) -> Bool {
+        return __syx_set_remove(items, item)
+    }
+}
+
+extension Set {
+    /// Element count (host `__syx_set_count`).
+    var count: Int {
+        get { return __syx_set_count(self) }
+    }
+
+    /// Membership test.
+    func contains(item: Object) -> Bool {
+        return __syx_set_contains(self, item)
+    }
+
+    /// Insert `item` if absent; returns whether inserted.
+    func insert(item: Object) -> Bool {
+        return __syx_set_insert(self, item)
+    }
+
+    /// Remove `item` if present; returns whether removed.
+    func remove(item: Object) -> Bool {
+        return __syx_set_remove(self, item)
+    }
+
+    /// Set union (value equality).
+    func union(other: Set) -> Set {
+        return __syx_set_union(self, other)
+    }
+
+    /// Set intersection (value equality).
+    func intersection(other: Set) -> Set {
+        return __syx_set_intersection(self, other)
+    }
+
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+}

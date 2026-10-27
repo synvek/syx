@@ -1,0 +1,13 @@
+export { helper }
+class Box {
+  var count: Int
+  func drop(n: Int) {
+    other.count -= n
+  }
+}
+func helper() {
+  print(1)
+}
+func main() {
+  print(2)
+}

@@ -1,0 +1,5 @@
+public class Xml {
+    public static func parse(text: String) -> Object {
+        return __syx_xml_parse(text)
+    }
+}

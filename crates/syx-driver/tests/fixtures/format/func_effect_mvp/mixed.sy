@@ -1,0 +1,7 @@
+func boom() requires Pure {
+}
+
+func main() {
+    print(1)
+}
+

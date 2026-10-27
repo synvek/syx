@@ -1,0 +1,4 @@
+func main() {
+    var g: (Int) -> Box<List<String>> = h
+}
+

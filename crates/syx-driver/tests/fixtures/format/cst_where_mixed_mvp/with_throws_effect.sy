@@ -1,0 +1,4 @@
+func id<T>(x: T) throws requires Pure where T: Equatable {
+    print(x)
+}
+

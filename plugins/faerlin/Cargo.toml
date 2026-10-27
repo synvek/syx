@@ -1,0 +1,22 @@
+# Standalone crate (not a workspace member of the SYX monorepo).
+# W1050 / ADR-1395: P-FAER cdylib load first-slice. ≠ HANDLE×cdylib ≠ product GA.
+[workspace]
+
+[package]
+name = "faerlin_plugin"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "SYX faerlin host plugin (cdylib + C ABI v2 F64LE mul)"
+
+[lib]
+crate-type = ["cdylib"]
+name = "faerlin_plugin"
+
+[dependencies]
+faer = "0.21"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

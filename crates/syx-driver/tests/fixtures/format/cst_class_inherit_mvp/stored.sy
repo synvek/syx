@@ -1,0 +1,4 @@
+// stored
+class Node: Base {
+    var value: Int?
+}

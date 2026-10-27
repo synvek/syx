@@ -1,0 +1,12 @@
+class Point {
+    var x: Int
+    init(x: Int) {
+        self.x = x
+    }
+}
+
+func main() {
+    let meta = __syx_reflect_type("Point")
+    print(__syx_fmt_debug(meta))
+}
+

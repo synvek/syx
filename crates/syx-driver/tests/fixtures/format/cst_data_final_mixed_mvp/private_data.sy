@@ -1,0 +1,6 @@
+// ahead
+private data class Secret(code: Int)
+func main() {
+    print(1)
+}
+/* trail */

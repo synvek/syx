@@ -1,0 +1,6 @@
+// String conversion protocol. Auto-conformance on Core value builtins.
+// Witness: `description()` / `debugDescription()` on conforming types.
+
+/// Types that can produce a user-facing string representation.
+public protocol CustomStringConvertible {
+}

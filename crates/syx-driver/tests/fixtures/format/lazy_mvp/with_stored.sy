@@ -1,0 +1,9 @@
+class Mixed {
+    var ready: Int = 1
+    lazy var deferred: Int = 2
+}
+
+func main() {
+    print(1)
+}
+

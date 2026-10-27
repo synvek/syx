@@ -1,0 +1,11 @@
+class DidOnly {
+    var n: Int
+        didSet {
+            print(2)
+        }
+}
+
+func main() {
+    print(1)
+}
+

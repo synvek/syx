@@ -1,0 +1,55 @@
+/// ADR-246 / M2-S8-02b: named SqlRow (禁糊墙成功). Runtime bags keep `__type=SqlRow`.
+/// Column accessors throw SqlError on missing column / type mismatch.
+/// Requires `SqlError` from sql.sy in the same compilation unit.
+
+public class SqlRow {
+    public static func getString(row: Object, name: String) -> String throws {
+        try {
+            return __syx_sql_row_get_string(row, name)
+        } catch (e) {
+            throw SqlError(code: 22, message: "SqlRow getString failed")
+        }
+    }
+
+    public static func getInt(row: Object, name: String) -> Int throws {
+        try {
+            return __syx_sql_row_get_int(row, name)
+        } catch (e) {
+            throw SqlError(code: 23, message: "SqlRow getInt failed")
+        }
+    }
+
+    public static func getFloat(row: Object, name: String) -> Float64 throws {
+        try {
+            return __syx_sql_row_get_float(row, name)
+        } catch (e) {
+            throw SqlError(code: 24, message: "SqlRow getFloat failed")
+        }
+    }
+
+    public static func getBlob(row: Object, name: String) -> Array throws {
+        try {
+            return __syx_sql_row_get_blob(row, name)
+        } catch (e) {
+            throw SqlError(code: 25, message: "SqlRow getBlob failed")
+        }
+    }
+
+    /// Missing column throws; SQL NULL → true.
+    public static func isNull(row: Object, name: String) -> Bool throws {
+        try {
+            return __syx_sql_row_is_null(row, name)
+        } catch (e) {
+            throw SqlError(code: 26, message: "SqlRow isNull failed")
+        }
+    }
+
+    /// Column names excluding `__type`.
+    public static func columnNames(row: Object) -> Array throws {
+        try {
+            return __syx_sql_row_column_names(row)
+        } catch (e) {
+            throw SqlError(code: 27, message: "SqlRow columnNames failed")
+        }
+    }
+}

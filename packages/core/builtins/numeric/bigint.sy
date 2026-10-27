@@ -1,0 +1,52 @@
+// Arbitrary-precision integer. Prelude; hand-authored authority (not regenerated).
+
+/// Unbounded signed integer; host ops via `__syx_bigint_*`.
+@builtin("numeric.bigint")
+public class BigInt: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Parse a decimal integer string into a `BigInt`.
+    public static func fromString(text: String) -> BigInt {
+        return __syx_bigint_from_string(text)
+    }
+
+    /// Addition.
+    public static func add(a: BigInt, b: BigInt) -> BigInt {
+        return __syx_bigint_add(a, b)
+    }
+
+    /// Subtraction.
+    public static func sub(a: BigInt, b: BigInt) -> BigInt {
+        return __syx_bigint_sub(a, b)
+    }
+
+    /// Multiplication.
+    public static func mul(a: BigInt, b: BigInt) -> BigInt {
+        return __syx_bigint_mul(a, b)
+    }
+
+    /// Three-way compare as a free function (`-1` / `0` / `1`).
+    public static func cmp(a: BigInt, b: BigInt) -> Int {
+        return __syx_bigint_cmp(a, b)
+    }
+}
+
+extension BigInt {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_bigint_cmp`.
+    func compare(other: BigInt) -> Int {
+        return __syx_bigint_cmp(self, other)
+    }
+}

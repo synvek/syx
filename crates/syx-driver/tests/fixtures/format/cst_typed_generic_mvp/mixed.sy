@@ -1,0 +1,9 @@
+func main() {
+    let a: Foo<Int> = p
+    var b: Bar<String>? = q
+    let f: (Foo<Int>) -> Int = id
+    var g: (Int) -> Bar<String> = h
+    print(f)
+    return
+}
+

@@ -1,0 +1,5 @@
+    /// Leading zero bit count for a `UInt128` bit pattern (via `Math`).
+    public static func leadingZeros(x: UInt128) -> Int {
+        return Math.leadingZeros128(x)
+    }
+

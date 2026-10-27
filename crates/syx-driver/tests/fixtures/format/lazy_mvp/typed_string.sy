@@ -1,0 +1,8 @@
+class Typed {
+    lazy var label: String = "ok"
+}
+
+func main() {
+    print(1)
+}
+

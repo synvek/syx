@@ -1,0 +1,8 @@
+// ahead
+class Box {
+  var name: String
+  func setName(name: String) {
+    /* mid */
+    self.inner.name = name
+  }
+}

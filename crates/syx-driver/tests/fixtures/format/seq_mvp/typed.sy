@@ -1,0 +1,6 @@
+func main() {
+    let t = (1, 2)
+    var (x, y): (Int, Int) = t
+    print(x)
+}
+

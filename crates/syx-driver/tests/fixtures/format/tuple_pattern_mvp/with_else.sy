@@ -1,0 +1,8 @@
+func main() {
+    if case (a, b) = getPair() {
+        print(a)
+    } else {
+        print(0)
+    }
+}
+

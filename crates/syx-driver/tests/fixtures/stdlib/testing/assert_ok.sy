@@ -1,0 +1,8 @@
+import Testing
+
+func main() {
+    assert(true)
+    assertEq(83, 83)
+    print("testing-ok")
+}
+

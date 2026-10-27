@@ -1,0 +1,36 @@
+import Net
+
+func tryLocalServer() {
+    let base = "http://127.0.0.1:8765"
+    print("--- local server ---")
+    let health = Http.get("\(base)/health")
+    print("GET /health -> \(health.status())")
+    print(health.text())
+    let echo = Http.get("\(base)/echo")
+    print("GET /echo -> \(echo.status())")
+    print(echo.text())
+}
+
+func tryRemoteApi() {
+    print("--- httpbin.org ---")
+    let resp = Http.fetch("https://httpbin.org/get?from=syx", {"method": "GET"})
+    print("GET /get -> \(resp.status())")
+    print(resp.text())
+    let posted = Http.post("https://httpbin.org/post", {"hello": "SYX"})
+    print("POST /post -> \(posted.status())")
+    print(posted.text())
+}
+
+func main() {
+    try {
+        tryLocalServer()
+    } catch (localErr) {
+        print("local server not reachable (start examples/httpserver.sy first)")
+    }
+    try {
+        tryRemoteApi()
+    } catch (remoteErr) {
+        print("remote request skipped (network unavailable)")
+    }
+}
+

@@ -1,0 +1,4 @@
+func opt() -> Dict<String, Int>? {
+    return
+}
+

@@ -1,0 +1,193 @@
+fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<()> {
+    use syx_ast::{AccessLevel, Decl};
+
+    let member_body_template =
+        attached_body_template_for("member", "SYX_ATTACHED_MEMBER_BODY", "print(\"attached\")");
+    let peer_body_template =
+        attached_body_template_for("peer", "SYX_ATTACHED_PEER_BODY", "print(\"peer\")");
+    let custom_body_template =
+        attached_body_template_for("custom", "SYX_ATTACHED_CUSTOM_BODY", "print(\"custom\")");
+
+    let mut extensions: indexmap::IndexMap<smol_str::SmolStr, (syx_diagnostics::Span, Vec<Decl>)> =
+        indexmap::IndexMap::new();
+    for decl in &module.decls {
+        let (attrs, name, span) = match decl {
+            Decl::DataClass { attrs, name, span, .. } | Decl::Class { attrs, name, span, .. } => {
+                (attrs, name, span)
+            }
+            _ => continue,
+        };
+        let members = attached_member_names(attrs);
+        let peers = attached_peer_names(attrs);
+        let customs = attached_custom_names(attrs);
+        if members.is_empty() && peers.is_empty() && customs.is_empty() {
+            continue;
+        }
+        let entry = extensions.entry(name.clone()).or_insert_with(|| (*span, Vec::new()));
+        for member in members {
+            let body_src = attached_body_from_attr(attrs, "member")
+                .unwrap_or_else(|| member_body_template.clone())
+                .replace("{type}", name.as_str())
+                .replace("{name}", member.as_str());
+            entry.1.push(Decl::Function {
+                span: *span,
+                access: AccessLevel::Internal,
+                attrs: vec![],
+                name: member,
+                type_params: vec![],
+                params: vec![],
+                return_type: None,
+                throws_type: None,
+                effect: None,
+                where_clause: vec![],
+                body: attached_print_body(*span, &body_src),
+                is_async: false,
+            });
+        }
+        for (peer_name, _strategy) in peers {
+            let body_src = peer_body_template
+                .replace("{type}", name.as_str())
+                .replace("{name}", peer_name.as_str());
+            entry.1.push(Decl::Function {
+                span: *span,
+                access: AccessLevel::Internal,
+                attrs: vec![syx_ast::Attribute {
+                    name: smol_str::SmolStr::new("peer"),
+                    args: vec![syx_ast::AttributeArg::Ident(peer_name.clone())],
+                }],
+                name: peer_name,
+                type_params: vec![],
+                params: vec![],
+                return_type: None,
+                throws_type: None,
+                effect: None,
+                where_clause: vec![],
+                body: attached_print_body(*span, &body_src),
+                is_async: false,
+            });
+        }
+        for custom in customs {
+            let body_src = custom_body_template
+                .replace("{type}", name.as_str())
+                .replace("{name}", custom.as_str());
+            entry.1.push(Decl::Function {
+                span: *span,
+                access: AccessLevel::Internal,
+                attrs: vec![syx_ast::Attribute {
+                    name: smol_str::SmolStr::new("custom"),
+                    args: vec![syx_ast::AttributeArg::Ident(custom.clone())],
+                }],
+                name: custom,
+                type_params: vec![],
+                params: vec![],
+                return_type: None,
+                throws_type: None,
+                effect: None,
+                where_clause: vec![],
+                body: attached_print_body(*span, &body_src),
+                is_async: false,
+            });
+        }
+    }
+    for (type_name, (span, methods)) in extensions {
+        module.decls.push(Decl::Extension {
+            span,
+            type_name,
+            conformances: vec![],
+            where_clause: vec![],
+            methods,
+        });
+    }
+    Ok(())
+}
+
+fn attached_body_template(env_key: &str, default: &str) -> String {
+    std::env::var(env_key).unwrap_or_else(|_| default.to_string())
+}
+
+fn attached_body_from_attr(attrs: &[syx_ast::Attribute], kind: &str) -> Option<String> {
+    use syx_ast::AttributeArg;
+    for attr in attrs {
+        if attr.name.as_str() != "attached" {
+            continue;
+        }
+        let ids: Vec<&str> = attr
+            .args
+            .iter()
+            .filter_map(|a| match a {
+                AttributeArg::Ident(id) => Some(id.as_str()),
+                _ => None,
+            })
+            .collect();
+        if ids.first() == Some(&kind) {
+            for arg in &attr.args {
+                if let AttributeArg::String(s) = arg {
+                    return Some(s.clone());
+                }
+            }
+        }
+    }
+    None
+}
+
+fn attached_print_body(span: syx_diagnostics::Span, template: &str) -> Vec<Stmt> {
+    use syx_ast::{Expr, Literal, Stmt};
+    let text = template
+        .trim()
+        .trim_start_matches("print(")
+        .trim_end_matches(')')
+        .trim_matches('"')
+        .trim_matches('\'')
+        .to_string();
+    vec![Stmt::Print {
+        span,
+        expr: Expr::Literal {
+            span,
+            value: Literal::String(text.into()),
+        },
+    }]
+}
+
+fn attached_member_names(attrs: &[syx_ast::Attribute]) -> Vec<smol_str::SmolStr> {
+    attached_kind_names(attrs, "member")
+}
+
+fn attached_custom_names(attrs: &[syx_ast::Attribute]) -> Vec<smol_str::SmolStr> {
+    attached_kind_names(attrs, "custom")
+}
+
+/// Phase 20: `@attached(peer, named, PeerImpl)` peer metadata table entries.
+fn attached_peer_names(attrs: &[syx_ast::Attribute]) -> Vec<(smol_str::SmolStr, smol_str::SmolStr)> {
+    attached_kind_names(attrs, "peer")
+        .into_iter()
+        .map(|name| (name, smol_str::SmolStr::new("named")))
+        .collect()
+}
+
+fn attached_kind_names(attrs: &[syx_ast::Attribute], kind: &str) -> Vec<smol_str::SmolStr> {
+    use syx_ast::AttributeArg;
+    let mut out = Vec::new();
+    for attr in attrs {
+        if attr.name.as_str() != "attached" {
+            continue;
+        }
+        let ids: Vec<&str> = attr
+            .args
+            .iter()
+            .filter_map(|a| match a {
+                AttributeArg::Ident(id) => Some(id.as_str()),
+                _ => None,
+            })
+            .collect();
+        if ids.first() == Some(&kind) {
+            if let Some(name) = ids.last() {
+                out.push(smol_str::SmolStr::new(*name));
+            }
+        }
+    }
+    out
+}
+
+fn attached_member_name(attrs: &[syx_ast::Attribute]) -> Option<smol_str::SmolStr> {
+    attached_member_names(attrs).into_iter().next()
+}

@@ -1,0 +1,5 @@
+func add(a: Foo<Bar<Int>>, b: Box<List<String>>) {
+    let s = a
+    return
+}
+

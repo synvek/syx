@@ -1,0 +1,21 @@
+func main() {
+    switch x {
+    case 0:
+        print(0)
+    case 1..<10:
+        print(1)
+    case .ok(let v):
+        print(v)
+    case (a, b):
+        print(a)
+    case is Dog:
+        print(2)
+    case y:
+        print(3)
+    case a + b where true:
+        print(4)
+    default:
+        print(5)
+    }
+}
+

@@ -1,0 +1,38 @@
+/// W901: JSON demo — CST-first format sample (no string interpolation / no raw `\n`).
+@Codable
+data class Person(id: Int, name: String, email: String)
+
+@Codable
+data class Address(city: String, zip: Int)
+
+@Codable
+data class Employee(id: Int, name: String, active: Bool, address: Address)
+
+func main() {
+    print("=== JSON Demo for SYX Language ===")
+    print("")
+    print("--- Demo 1: Basic Person ---")
+    let person = Person(id: 1, name: "Alice", email: "alice@example.com")
+    let personJson = person.encode()
+    print("Encoded Person:")
+    print(personJson)
+    let decodedPerson = Person.decode(text: personJson)
+    print("Decoded Person name:")
+    print(decodedPerson.name)
+    print("")
+    print("--- Demo 2: Nested Employee ---")
+    let emp = Employee(
+        id: 42,
+        name: "Bob",
+        active: true,
+        address: Address(city: "Shanghai", zip: 200000)
+    )
+    let empJson = emp.encode()
+    print("Encoded Employee:")
+    print(empJson)
+    let decodedEmp = Employee.decode(text: empJson)
+    print("Decoded Employee city:")
+    print(decodedEmp.address.city)
+    print("")
+    print("=== JSON Demo Complete ===")
+}

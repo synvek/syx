@@ -1,0 +1,7 @@
+// Ordering protocol. Auto-conformance on numerics / text / Character.
+
+/// Types with a total order via three-way `compare`.
+public protocol Comparable: Equatable {
+    /// Returns negative / zero / positive when `self` is less / equal / greater than `other`.
+    func compare(other: Self) -> Int { }
+}

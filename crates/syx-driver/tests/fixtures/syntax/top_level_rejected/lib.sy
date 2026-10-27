@@ -1,0 +1,6 @@
+print("bad")
+
+func exported() -> Int {
+    return 1
+}
+

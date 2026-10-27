@@ -1,0 +1,15 @@
+@attached(deinit, named, cleanup, "print(\"dropped\")")
+class Node {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+}
+
+func main() {
+    {
+        let a = Node(name: "n1")
+        print(a.name)
+    }
+    print("done")
+}

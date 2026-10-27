@@ -1,0 +1,14 @@
+# E-03 SQLite / more-DB residual honesty census
+# (W1277 / ADR-1623 deepen first-slice)
+# Written SSOT after W1276 scaffold. deepened_ssot ≠ more-DB GA ≠ E-03 [x]
+# ≠ raise data.sqlite ≠ new driver ≠ Orm product GA.
+
+schema_version = 1
+wave = "W1277"
+floor = "W1276 / ADR-1622 E-03 scaffold first-slice (sql.sy / :memory: / data.sqlite partial)"
+
+[[gaps]]
+id = "sqlite_residual_honesty_census"
+class = "product"
+status = "deepened_ssot"
+note = "W1277 / ADR-1623: residual honesty census SSOT — (1) file DSN vs :memory: (phase89 open_connection honesty; scaffold nails :memory: face); (2) data.sqlite still partial vs pool/row implemented asymmetry; (3) Orm product GA OUT; (4) second DB driver OUT. ≠ SQLite runtime deepen construction ≠ more-DB product GA ≠ E-03 [x] ≠ raise data.sqlite ≠ HostFn+1"

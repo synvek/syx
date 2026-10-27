@@ -1,0 +1,5 @@
+func main() {
+    print(foo?.bar)
+    print(baz?.qux)
+}
+

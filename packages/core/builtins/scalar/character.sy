@@ -1,0 +1,32 @@
+// Unicode character / single-scalar helper. Prelude; hand-authored authority.
+
+/// Extended grapheme / scalar character surface (Comparable value type).
+@builtin("scalar.character")
+public class Character: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Whether `c` is exactly one Unicode scalar.
+    public static func isSingleScalar(c: String) -> Bool {
+        return __syx_character_is_single_scalar(c)
+    }
+}
+
+extension Character {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_value_compare`.
+    func compare(other: Character) -> Int {
+        return __syx_value_compare(self, other)
+    }
+}

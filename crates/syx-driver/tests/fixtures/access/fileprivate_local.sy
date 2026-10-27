@@ -1,0 +1,12 @@
+func hidden() -> Int {
+    return 42
+}
+
+func visible() -> Int {
+    return hidden()
+}
+
+func main() {
+    print(visible())
+}
+

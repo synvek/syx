@@ -1,0 +1,6 @@
+func main() {
+    let a = 1 is Int
+    let b = 2 is Int
+    print(1)
+}
+

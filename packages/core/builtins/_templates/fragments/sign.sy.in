@@ -1,0 +1,11 @@
+    /// Signum: `-1`, `0`, or `1`.
+    public static func sign(x: {{TY}}) -> Int {
+        if x < {{ZERO}} {
+            return -1
+        }
+        if x > {{ZERO}} {
+            return 1
+        }
+        return 0
+    }
+

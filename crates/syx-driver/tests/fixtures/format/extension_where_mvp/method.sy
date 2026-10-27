@@ -1,0 +1,6 @@
+extension Array where Element: Equatable {
+    func isEmptyPair(_ a: Int, _ b: Int) -> Bool {
+        return a == b
+    }
+}
+

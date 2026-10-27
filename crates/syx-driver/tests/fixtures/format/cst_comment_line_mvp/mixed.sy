@@ -1,0 +1,10 @@
+// ahead
+func main() {
+    // inside
+    print(1)
+    // mid
+    let x = 2
+    print(x)
+}
+/* trail */
+

@@ -1,0 +1,7 @@
+public typealias Foo = Int
+
+func main() {
+    let x: Foo = 42
+    print(x)
+}
+

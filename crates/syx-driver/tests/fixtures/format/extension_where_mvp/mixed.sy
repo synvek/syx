@@ -1,0 +1,6 @@
+extension Array: CustomStringConvertible where Element: Equatable {
+    func describe() -> String {
+        return "array"
+    }
+}
+

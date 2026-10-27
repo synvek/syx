@@ -1,0 +1,20 @@
+class Base {
+    func speak() {
+        print(1)
+    }
+    func shout() {
+        print(2)
+    }
+}
+
+class Child: Base {
+    func both() {
+        super.speak()
+        super.shout()
+    }
+}
+
+func main() {
+    print(1)
+}
+

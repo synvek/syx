@@ -1,0 +1,10 @@
+/// docs
+public final class Token<T> where T: Hashable {
+    Ident
+    Number(value: T)
+}
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

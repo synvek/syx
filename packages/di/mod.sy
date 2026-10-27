@@ -1,0 +1,37 @@
+/// Phase 127 / Service DI v8 surface; Phase 128 adds `@Lazy` + cycle-break proxies (v9).
+/// Prefer `import Di`. Dynamic resolve uses `__syx_service_resolve_dynamic`.
+
+public class Di {
+    /// Resolve a registered `@Service` / `@Component` / `@Bean` by type name (or binding alias).
+    public static func resolve(typeName: String) -> Object {
+        return __syx_service_resolve_dynamic(typeName)
+    }
+
+    public static func beginRequest() {
+        __syx_service_begin_request()
+    }
+
+    public static func endRequest() {
+        __syx_service_end_request()
+    }
+
+    public static func withRequest(handlerName: String) {
+        __syx_service_run_in_request(handlerName)
+    }
+
+    public static func runInRequest(handlerName: String) {
+        __syx_service_run_in_request(handlerName)
+    }
+
+    public static func setProfile(name: String) {
+        __syx_service_set_profile(name)
+    }
+
+    public static func destroy() {
+        __syx_service_destroy()
+    }
+
+    public static func reset() {
+        __syx_service_reset()
+    }
+}

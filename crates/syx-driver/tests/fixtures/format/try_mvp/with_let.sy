@@ -1,0 +1,9 @@
+func main() {
+    try {
+        let x = 1
+        print(x)
+    } catch (e) {
+        print(0)
+    }
+}
+

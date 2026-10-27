@@ -1,0 +1,19 @@
+// ahead
+public class Sub: Box, Greeter {
+  var count: Int?
+  init() {
+    // body
+    self.count -= 1
+  }
+  func drop(n: Int) {
+    box.inner.count -= n
+  }
+  deinit {
+    print(1)
+  }
+}
+func main() {
+  /* mid */
+  print(2)
+}
+/* trail */

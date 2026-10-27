@@ -1,0 +1,18 @@
+import Sql
+
+func main() {
+    try {
+        let c = Sql.open(dsn: ":memory:")
+        Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER, name TEXT)")
+        Sql.execOn(connId: c, sql: "INSERT INTO t VALUES (1, 'syx')")
+        let rows = Sql.queryOn(connId: c, sql: "SELECT name FROM t")
+        Sql.close(connId: c)
+        print("ok")
+        print(rows.count())
+        print("closed")
+    } catch (e) {
+        print("UNEXPECTED")
+        print(e.message)
+    }
+}
+

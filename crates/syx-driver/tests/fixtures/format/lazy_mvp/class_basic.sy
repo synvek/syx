@@ -1,0 +1,8 @@
+class Box {
+    lazy var x: Int = 1
+}
+
+func main() {
+    print(1)
+}
+

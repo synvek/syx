@@ -1,0 +1,15 @@
+func main() {
+    switch a {
+    case super:
+        print(1)
+    default:
+        print(0)
+    }
+    switch b {
+    case super:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

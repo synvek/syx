@@ -1,0 +1,38 @@
+import Di
+
+@Service
+class AndProbe {
+    init() {
+    }
+    @Pointcut("within(AndProbe) && args(Int)")
+    func marker() {
+    }
+    @Around("within(AndProbe) && args(Int)")
+    @Before("within(AndProbe) && args(Int)")
+    @After("within(AndProbe) && args(Int)")
+    func handleInt(x: Int) -> String {
+        print("__body__:handleInt")
+        return "and-int-ok"
+    }
+    @Before("within(AndProbe) && args(Int)")
+    @After("within(AndProbe) && args(Int)")
+    func addOne(x: Int) -> Int {
+        print("__body__:addOne")
+        return x + 1
+    }
+    func handleStr(s: String) -> String {
+        return "no-advice"
+    }
+    func otherType(x: String) -> String {
+        return "wrong-type"
+    }
+}
+
+func main() {
+    let p = Di.resolve("AndProbe")
+    print(p.handleInt(x: 7))
+    print(p.addOne(x: 3))
+    print(p.handleStr(s: "plain"))
+    print(p.otherType(x: "nope"))
+}
+

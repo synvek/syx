@@ -1,0 +1,5 @@
+func io() requires IO {
+    let x = foo()
+    print(x)
+}
+

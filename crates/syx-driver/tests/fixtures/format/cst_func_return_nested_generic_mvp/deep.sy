@@ -1,0 +1,4 @@
+func deep() -> Box<Opt<List<Int>>> {
+    return
+}
+

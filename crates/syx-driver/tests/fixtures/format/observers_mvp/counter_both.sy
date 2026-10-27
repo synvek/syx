@@ -1,0 +1,17 @@
+class Counter {
+    var value: Int
+        willSet {
+            print("will")
+        }
+        didSet {
+            print("did")
+        }
+    init(value: Int) {
+        self.value = value
+    }
+}
+
+func main() {
+    print(1)
+}
+

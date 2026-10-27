@@ -1,0 +1,10 @@
+data class Point(x: Int, y: Int)
+
+func main() {
+    let p = Point(3, 4)
+    let q = Point(3, 4)
+    let r = p.copy()
+    print(p == q)
+    print(p == r)
+    print(p.description)
+}

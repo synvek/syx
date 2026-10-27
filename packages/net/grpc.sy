@@ -1,0 +1,23 @@
+public class GrpcClient {
+    public static func connect(addr: String, port: Int) -> Object {
+        let handle = __syx_tcp_connect(addr, port)
+        let client = Object()
+        client["addr"] = addr
+        client["port"] = port
+        client["handle"] = handle
+        client["ok"] = handle >= 0
+        client["experimental"] = "grpc-facade-not-wire-protocol"
+        client["__grpc_client"] = true
+        return client
+    }
+    public static func call(client: Object, method: String, body: String) -> String {
+        return __syx_grpc_unary(method, body)
+    }
+}
+
+public class GrpcServer {
+    public static func serve(addr: String, port: Int, handler: String) {
+        __syx_http_serve(addr, port, handler)
+    }
+}
+

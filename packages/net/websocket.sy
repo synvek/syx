@@ -1,0 +1,17 @@
+public class WebSocket {
+    public static func connect(url: String) -> Object {
+        return __syx_ws_connect(url)
+    }
+
+    public static func send(socket: Object, message: String) -> Bool {
+        return __syx_ws_send(socket, message)
+    }
+
+    public static func recv(socket: Object) -> String {
+        return __syx_ws_recv(socket)
+    }
+
+    public static func close(socket: Object) {
+        __syx_ws_close(socket)
+    }
+}

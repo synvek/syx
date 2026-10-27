@@ -1,0 +1,4 @@
+func main() {
+    var b: &mut String? = q
+}
+

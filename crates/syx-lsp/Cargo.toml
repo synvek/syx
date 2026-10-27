@@ -1,0 +1,18 @@
+[package]
+name = "syx-lsp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+syx-diagnostics = { workspace = true }
+syx-driver = { workspace = true }
+syx-semantic = { workspace = true }
+syx-stdlib = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

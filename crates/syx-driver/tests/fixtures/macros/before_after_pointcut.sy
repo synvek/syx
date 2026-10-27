@@ -1,0 +1,35 @@
+import Di
+
+@Service
+class BeforeAfterProbe {
+    init() {
+    }
+    @Pointcut("execution(* BeforeAfterProbe.greet(..))")
+    @Before("execution(* BeforeAfterProbe.greet(..))")
+    @After("execution(* BeforeAfterProbe.greet(..))")
+    func greet() -> String {
+        print("__body__:greet")
+        return "before-after-ok"
+    }
+}
+
+@Service
+class ExactBeforeProbe {
+    init() {
+    }
+    @Pointcut("ExactBeforeProbe.tick")
+    @Before("ExactBeforeProbe.tick")
+    @After("ExactBeforeProbe.tick")
+    func tick() -> String {
+        print("__body__:tick")
+        return "exact-ok"
+    }
+}
+
+func main() {
+    let p = Di.resolve("BeforeAfterProbe")
+    print(p.greet())
+    let e = Di.resolve("ExactBeforeProbe")
+    print(e.tick())
+}
+

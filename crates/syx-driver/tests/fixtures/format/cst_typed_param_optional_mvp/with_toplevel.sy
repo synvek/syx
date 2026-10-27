@@ -1,0 +1,6 @@
+func id(x: Int?) {
+    print(x)
+}
+
+print(0)
+

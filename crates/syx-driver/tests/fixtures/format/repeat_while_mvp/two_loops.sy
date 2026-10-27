@@ -1,0 +1,9 @@
+func main() {
+    repeat {
+        print(1)
+    } while a
+    repeat {
+        print(2)
+    } while b
+}
+

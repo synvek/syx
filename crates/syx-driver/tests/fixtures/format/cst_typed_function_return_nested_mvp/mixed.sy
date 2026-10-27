@@ -1,0 +1,8 @@
+func main() {
+    let f: (Int) -> (Int) -> Int = id
+    var g: (String?) -> () -> Void = h
+    let u: () -> (Int?) -> Int? = k
+    print(f)
+    return
+}
+

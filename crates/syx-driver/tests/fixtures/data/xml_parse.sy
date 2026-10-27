@@ -1,0 +1,7 @@
+func main() {
+    let doc = __syx_xml_parse("<root><item id=\"1\">alpha</item><item id=\"2\">beta</item></root>")
+    print(__syx_xml_element_name(doc, 0))
+    print(__syx_xml_child_count(doc, 0))
+    print(__syx_xml_element_name(doc, 1))
+    print(__syx_xml_text(doc, 2))
+}

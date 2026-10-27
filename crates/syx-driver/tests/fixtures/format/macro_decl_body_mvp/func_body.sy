@@ -1,0 +1,10 @@
+@freestanding(declaration)
+#macro makeFn() {
+    func helper() {
+        print(1)
+    }
+}
+
+func main() {
+}
+

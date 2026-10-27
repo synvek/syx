@@ -1,0 +1,27 @@
+[package]
+name = "syx-frontend"
+description = "Canonical FrontendPipeline for SYX (M1-A01 / ADR-135)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-ast = { workspace = true }
+syx-parser = { workspace = true }
+syx-macro = { workspace = true }
+syx-meta = { workspace = true }
+# Compile-only: prepare_async_module / lower — no VM runtime (keeps wasm32 compiler slim).
+# Path dep (not workspace=) so default-features=false is honored.
+syx-async = { path = "../syx-async", default-features = false }
+syx-semantic = { workspace = true }
+syx-mono = { workspace = true }
+syx-mir = { workspace = true }
+smol_str = { workspace = true }
+indexmap = { workspace = true }
+sha2 = "0.10"
+
+[dev-dependencies]
+syx-parser = { workspace = true }

@@ -1,0 +1,6 @@
+macro Json = #externalMacro(module: "JsonPlugin", type: "JsonEncode")
+
+func main() {
+    print(1)
+}
+

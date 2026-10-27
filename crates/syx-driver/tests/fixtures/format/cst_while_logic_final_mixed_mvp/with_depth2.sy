@@ -1,0 +1,5 @@
+func main() {
+    while a && b || c
+    print(foo(bar(baz())))
+}
+

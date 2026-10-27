@@ -1,0 +1,6 @@
+// ahead
+final class Opt<T> where T: Hashable {
+    some(value: T)
+    none
+}
+/* trail */

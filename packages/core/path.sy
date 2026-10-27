@@ -1,0 +1,14 @@
+public class Path {
+    public static func join(a: String, b: String) -> String {
+    return __syx_path_join(a, b)
+}
+    public static func normalize(path: String) -> String {
+    return __syx_path_normalize(path)
+}
+    public static func exists(path: String) -> Bool {
+    return __syx_path_exists(path)
+}
+    public static func fileExtension(path: String) -> String {
+    return __syx_path_extension(path)
+}
+}

@@ -1,0 +1,113 @@
+/// Phase 133 Track E: OS runtime queries (cpu / memory / user).
+/// Phase 136 Track D: hostname / uptimeMs MVP (`stdlib-os-v2:hostname-uptime-mvp`).
+/// Phase 137 Track D: disk / load MVP (`stdlib-os-v3:disk-load-mvp`).
+/// Phase 138 Track D: primary IPv4 MVP (`stdlib-os-v4:network-mvp`).
+/// M2 W14 / ADR-158: `hostname` / `diskTotal` throw `OsError` (no empty/-1 sentinels).
+/// M2 W15 / ADR-159: `diskAvailable` / `primaryIpv4` throw `OsError` (no -1/empty sentinels).
+/// M2 W17 / ADR-161: `userName` / `homeDir` throw `OsError` (no empty sentinels).
+/// M2 W26 / ADR-170: `memoryTotal` throw `OsError` (inject: SYX_OS_MEMORY_TOTAL_FORCE_ERR).
+/// M2 W27 / ADR-171: `memoryAvailable` throw `OsError` (inject: SYX_OS_MEMORY_AVAILABLE_FORCE_ERR).
+/// M2 W28 / ADR-172: `uptimeMs` throw `OsError` (inject: SYX_OS_UPTIME_MS_FORCE_ERR).
+/// M2 W29 / ADR-173: `loadAverage` throw `OsError` (inject: SYX_OS_LOAD_AVERAGE_FORCE_ERR).
+/// Wave A W137 / ADR-481: `hostname` / `primaryIpv4` force-err inject (SYX_OS_HOSTNAME_FORCE_ERR / SYX_OS_PRIMARY_IPV4_FORCE_ERR).
+/// Distinct from `Process` (args / env / exec).
+/// Not full sysinfo → 138+.
+
+/// Thin OsError (ADR-138 target type; full Error hierarchy → later M2 windows).
+public data class OsError(code: Int, message: String)
+
+public class Os {
+    public static func cpuCount() -> Int {
+        return __syx_os_cpu_count()
+    }
+
+    /// Total physical memory in bytes; throws `OsError` when unavailable (ADR-170).
+    public static func memoryTotal() -> Int throws {
+        try {
+            return __syx_os_memory_total()
+        } catch (e) {
+            throw OsError(code: 7, message: "os memoryTotal failed")
+        }
+    }
+
+    /// Approx. available memory in bytes; throws `OsError` when unavailable (ADR-171).
+    public static func memoryAvailable() -> Int throws {
+        try {
+            return __syx_os_memory_available()
+        } catch (e) {
+            throw OsError(code: 8, message: "os memoryAvailable failed")
+        }
+    }
+
+    /// Current user name; throws `OsError` when unavailable (ADR-161).
+    public static func userName() -> String throws {
+        try {
+            return __syx_os_user_name()
+        } catch (e) {
+            throw OsError(code: 5, message: "os userName failed")
+        }
+    }
+
+    /// Home directory path; throws `OsError` when unavailable (ADR-161).
+    public static func homeDir() -> String throws {
+        try {
+            return __syx_os_home_dir()
+        } catch (e) {
+            throw OsError(code: 6, message: "os homeDir failed")
+        }
+    }
+
+    /// Host name; throws `OsError` when unavailable (ADR-158).
+    public static func hostname() -> String throws {
+        try {
+            return __syx_os_hostname()
+        } catch (e) {
+            throw OsError(code: 1, message: "os hostname failed")
+        }
+    }
+
+    /// Process / host uptime in milliseconds; throws `OsError` when unavailable (ADR-172).
+    public static func uptimeMs() -> Int throws {
+        try {
+            return __syx_os_uptime_ms()
+        } catch (e) {
+            throw OsError(code: 9, message: "os uptimeMs failed")
+        }
+    }
+
+    /// Total disk space in bytes for `path`; throws `OsError` when unavailable (ADR-158).
+    public static func diskTotal(path: String) -> Int throws {
+        try {
+            return __syx_os_disk_total(path)
+        } catch (e) {
+            throw OsError(code: 2, message: "os diskTotal failed")
+        }
+    }
+
+    /// Available disk space in bytes for `path`; throws `OsError` when unavailable (ADR-159).
+    public static func diskAvailable(path: String) -> Int throws {
+        try {
+            return __syx_os_disk_available(path)
+        } catch (e) {
+            throw OsError(code: 3, message: "os diskAvailable failed")
+        }
+    }
+
+    /// 1-minute load average scaled by 100 (e.g. `125` = 1.25); throws `OsError` when unavailable (ADR-173).
+    public static func loadAverage() -> Int throws {
+        try {
+            return __syx_os_load_average()
+        } catch (e) {
+            throw OsError(code: 10, message: "os loadAverage failed")
+        }
+    }
+
+    /// Best-effort primary non-loopback IPv4; throws `OsError` when unavailable (ADR-159).
+    public static func primaryIpv4() -> String throws {
+        try {
+            return __syx_os_primary_ipv4()
+        } catch (e) {
+            throw OsError(code: 4, message: "os primaryIpv4 failed")
+        }
+    }
+}

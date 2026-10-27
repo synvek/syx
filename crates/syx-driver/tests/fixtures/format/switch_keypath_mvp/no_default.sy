@@ -1,0 +1,7 @@
+func main() {
+    switch x {
+    case \Person.name:
+        print(1)
+    }
+}
+

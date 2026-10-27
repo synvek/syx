@@ -1,0 +1,8 @@
+func main() {
+    print(Path.join(a: "a", b: "b"))
+    print(Path.normalize(path: "a/./b/../c"))
+    print(Path.fileExtension(path: "a.b"))
+    print(Path.fileExtension(path: "noext"))
+    print(Path.fileExtension(path: "a.tar.gz"))
+}
+

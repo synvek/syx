@@ -1,0 +1,7 @@
+func main() {
+    while flag {
+        let x = 1
+        print(x)
+    }
+}
+

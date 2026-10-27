@@ -1,0 +1,7 @@
+func main() {
+    // braced
+    while (((flag))) {
+        print(1)
+    }
+}
+

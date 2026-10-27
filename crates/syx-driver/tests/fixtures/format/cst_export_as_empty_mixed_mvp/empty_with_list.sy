@@ -1,0 +1,6 @@
+/// docs
+export { }
+export { foo }
+func main() {
+  print(1)
+}

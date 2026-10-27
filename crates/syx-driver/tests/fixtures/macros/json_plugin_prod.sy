@@ -1,0 +1,5 @@
+#externalMacro
+@freestanding(expression)
+#macro jsonEncodeProd(value: String) -> String {
+    return "{\"prod\":" + value + "}"
+}

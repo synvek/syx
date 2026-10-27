@@ -1,0 +1,9 @@
+import Log
+
+func main() {
+    Log.setMinLevel("INFO")
+    Log.info("hello-log")
+    print(Log.takeLast())
+    let line = Log.infoFields("ready", {"pkg": "Log"})
+    print(line)
+}

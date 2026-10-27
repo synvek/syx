@@ -1,0 +1,10 @@
+func main() {
+    var sum = 0
+    var i = 0
+    while i < 2000 {
+        sum = sum + i
+        i = i + 1
+    }
+    return sum
+}
+

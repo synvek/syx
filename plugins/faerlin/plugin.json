@@ -1,0 +1,128 @@
+{
+  "id": "faerlin",
+  "api_version": 3,
+  "library": "libfaerlin_plugin.dylib",
+  "hosts": [
+    {
+      "name": "__syx_plugin_faer_cdylib_mul",
+      "syx_name": "faerCdylibMul",
+      "return_type": "Array",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_solve",
+      "syx_name": "faerCdylibSolve",
+      "return_type": "Array",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_zeros",
+      "syx_name": "faerCdylibZeros",
+      "return_type": "Array",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_add",
+      "syx_name": "faerCdylibAdd",
+      "return_type": "Array",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_sub",
+      "syx_name": "faerCdylibSub",
+      "return_type": "Array",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hadamard",
+      "syx_name": "faerCdylibHadamard",
+      "return_type": "Array",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hmul",
+      "syx_name": "faerCdylibHmul",
+      "return_type": "Int",
+      "params": [
+        "a: Int",
+        "b: Int"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hsolve",
+      "syx_name": "faerCdylibHsolve",
+      "return_type": "Int",
+      "params": [
+        "a: Int",
+        "b: Int"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hfrom",
+      "syx_name": "faerCdylibHfrom",
+      "return_type": "Int",
+      "params": [
+        "packed: Array"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hto",
+      "syx_name": "faerCdylibHto",
+      "return_type": "Array",
+      "params": [
+        "handle: Int"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hdrop",
+      "syx_name": "faerCdylibHdrop",
+      "return_type": "Int",
+      "params": [
+        "handle: Int"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hadd",
+      "syx_name": "faerCdylibHadd",
+      "return_type": "Int",
+      "params": [
+        "a: Int",
+        "b: Int"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hsub",
+      "syx_name": "faerCdylibHsub",
+      "return_type": "Int",
+      "params": [
+        "a: Int",
+        "b: Int"
+      ]
+    },
+    {
+      "name": "__syx_plugin_faer_cdylib_hhadamard",
+      "syx_name": "faerCdylibHhadamard",
+      "return_type": "Int",
+      "params": [
+        "a: Int",
+        "b: Int"
+      ]
+    }
+  ],
+  "capabilities": [
+    "linalg"
+  ],
+  "min_syx_version": "117.0"
+}

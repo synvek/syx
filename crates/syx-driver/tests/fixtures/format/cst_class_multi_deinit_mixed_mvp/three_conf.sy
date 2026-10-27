@@ -1,0 +1,9 @@
+class Sub: Box, Greeter, Codable {
+  var name: String
+  init() {
+    print(1)
+  }
+  deinit {
+    print(2)
+  }
+}

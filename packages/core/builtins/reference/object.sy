@@ -1,0 +1,64 @@
+// Untyped reference / dictionary shell. Hand-authored authority (not regenerated).
+// Dictionary-like members on Object enable dynamic key access during the String-shell era.
+
+/// Root reference type (`Equatable` / `Hashable` / `CustomStringConvertible`).
+@builtin("reference.object")
+public class Object: Equatable, Hashable, CustomStringConvertible {
+}
+
+extension Object {
+    /// Entry count when treated as a dictionary shell.
+    var count: Int {
+        get { return __syx_dict_count(self) }
+    }
+
+    /// Whether the dictionary shell has no entries.
+    var isEmpty: Bool {
+        get { return __syx_dict_count(self) == 0 }
+    }
+
+    /// Lookup value for `key` (`__syx_dict_get`).
+    func valueForKey(key: String) -> Object {
+        return __syx_dict_get(self, key)
+    }
+
+    /// Set `key` → `value`; returns the updated shell.
+    func put(key: String, value: Object) -> Object {
+        return __syx_dict_set(self, key, value)
+    }
+
+    /// Whether `key` is present.
+    func containsKey(key: String) -> Bool {
+        return __syx_dict_contains(self, key)
+    }
+
+    /// All keys as an `Array`.
+    func keys() -> Array {
+        return __syx_dict_keys(self)
+    }
+
+    /// All values as an `Array`.
+    func values() -> Array {
+        return __syx_dict_values(self)
+    }
+
+    /// Remove `key`; returns whether it was present.
+    func remove(key: String) -> Bool {
+        return __syx_dict_remove(self, key)
+    }
+
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+}

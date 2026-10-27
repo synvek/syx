@@ -1,0 +1,4 @@
+// where
+public func id<T>(x: T) where T: Bound {
+    print(1)
+}

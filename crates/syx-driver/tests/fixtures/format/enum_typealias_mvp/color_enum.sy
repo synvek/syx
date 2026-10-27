@@ -1,0 +1,10 @@
+enum Color {
+    red
+    green
+    blue
+}
+
+func main() {
+    print(1)
+}
+

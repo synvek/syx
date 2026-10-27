@@ -1,0 +1,10 @@
+{
+  "exit": 0,
+  "stdout": [
+    "1"
+  ],
+  "skip": {
+    "wasm": false,
+    "native": false
+  }
+}

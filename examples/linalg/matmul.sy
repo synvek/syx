@@ -1,0 +1,28 @@
+import Linalg
+
+func main() {
+    let a = Mat.from([1.0, 2.0, 3.0, 4.0], rows: 2, cols: 2)
+    let i = Mat.eye(2)
+    let c = a * i
+    let v = c.packed()
+    print(v[0])
+    print(v[1])
+    print(v[2])
+    print(v[3])
+    print(a.rows)
+    print(a.cols)
+    print(a.at(0, col: 1))
+    let twoI = Mat.from([2.0, 0.0, 0.0, 2.0], rows: 2, cols: 2)
+    // Bind the RHS: a temporary `Mat.from(...)` arg currently overflows on deinit.
+    let rhs = Mat.from([2.0, 4.0], rows: 2, cols: 1)
+    let x = twoI.solve(rhs)
+    let xv = x.packed()
+    print(xv[0])
+    print(xv[1])
+    let z = Mat.zeros(rows: 2, cols: 2)
+    let zv = z.packed()
+    print(zv[0])
+    print(zv[1])
+    print(zv[2])
+    print(zv[3])
+}

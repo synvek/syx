@@ -1,0 +1,9 @@
+@freestanding(declaration)
+#macro makePair() {
+    data class A(x: Int)
+    data class B(y: Bool)
+}
+
+func main() {
+}
+

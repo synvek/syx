@@ -1,0 +1,6 @@
+name = "app"
+main = "main.sy"
+
+[dependencies.witness]
+version = "1.0.0"
+path = "../witness"

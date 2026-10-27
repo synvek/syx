@@ -1,0 +1,121 @@
+// Ordered contiguous collection. Prelude; hand-authored authority (ADR-248 policy).
+// Product surface matches language-guide 05: count/contains/sorted/sortBy/reverse/
+// joined/map/filter/reduce/flatMap/append plus binarySearch/chunked/zip.
+// No isEmpty/first/last/reversed/remove/removeAll/index/slice/contains(where:)/
+// allSatisfy/forEach — those calls are S002.
+
+/// Growable array (`Array<T>` at call sites; storage is host-backed).
+@builtin("collection.array")
+public class Array: Equatable, Hashable, CustomStringConvertible {
+    /// Element count (generic static facade).
+    public static func count<T>(items: Array<T>) -> Int {
+        return items.count
+    }
+
+    /// Replace the element at `index` (returns a new / updated array).
+    public static func setAt<T>(items: Array<T>, index: Int, value: T) -> Array<T> {
+        return __syx_array_set_at(items, index, value)
+    }
+
+    /// Membership test.
+    public static func contains<T>(items: Array<T>, item: T) -> Bool {
+        return items.contains(item)
+    }
+
+    /// Sorted copy (default ordering).
+    public static func sorted<T>(items: Array<T>) -> Array<T> {
+        return items.sorted()
+    }
+
+    /// Reversed copy.
+    public static func reverse<T>(items: Array<T>) -> Array<T> {
+        return items.reverse()
+    }
+
+    /// Join string representations with `sep`.
+    public static func joined<T>(items: Array<T>, sep: String) -> String {
+        return items.joined(sep)
+    }
+}
+
+extension Array {
+    /// Element count (host `__syx_array_len`).
+    var count: Int {
+        get { return __syx_array_len(self) }
+    }
+
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Map each element through `transform`.
+    func map(transform: Function) -> Array {
+        return __syx_array_map(self, transform)
+    }
+
+    /// Keep elements for which `predicate` is true.
+    func filter(predicate: Function) -> Array {
+        return __syx_array_filter(self, predicate)
+    }
+
+    /// Left fold starting at `initial`.
+    func reduce(initial: Int, combine: Function) -> Int {
+        return __syx_array_reduce(self, initial, combine)
+    }
+
+    /// Reversed copy (host `__syx_array_reverse`).
+    func reverse() -> Array {
+        return __syx_array_reverse(self)
+    }
+
+    /// Membership test (host `__syx_array_contains`).
+    func contains(item: Object) -> Bool {
+        return __syx_array_contains(self, item)
+    }
+
+    /// Join string representations with `sep`.
+    func joined(sep: String) -> String {
+        return __syx_array_joined(self, sep)
+    }
+
+    /// Sort by comparator function.
+    func sortBy(comparator: Function) -> Array {
+        return __syx_array_sort_by(self, comparator)
+    }
+
+    /// Binary search for `item` in a sorted Int array; returns index or miss sentinel.
+    func binarySearch(item: Int) -> Int {
+        return __syx_array_binary_search(self, item)
+    }
+
+    /// Split into contiguous chunks of `size`.
+    func chunked(size: Int) -> Array<Array> {
+        return __syx_array_chunked(self, size)
+    }
+
+    /// Pairwise zip with `other`.
+    func zip(other: Array) -> Array {
+        return __syx_array_zip(self, other)
+    }
+
+    /// Map then flatten one level.
+    func flatMap(transform: Function) -> Array {
+        return __syx_array_flat_map(self, transform)
+    }
+
+    /// Append `item` in place (host `__syx_array_append`).
+    func append(item: Object) {
+        __syx_array_append(self, item)
+    }
+}

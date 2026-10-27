@@ -1,0 +1,9 @@
+func main() {
+    Task {
+        print(1)
+    }
+    Task.detached {
+        print(2)
+    }
+}
+

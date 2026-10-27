@@ -1,0 +1,6 @@
+// ahead
+class Sub: A, B, C {
+}
+func main() {
+  print(1)
+}

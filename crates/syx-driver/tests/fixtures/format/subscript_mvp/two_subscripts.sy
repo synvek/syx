@@ -1,0 +1,17 @@
+class Pair {
+    subscript(a: Int) -> Int {
+        get {
+            return a
+        }
+    }
+    subscript(x: Int, y: Int) -> Int {
+        get {
+            return x
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

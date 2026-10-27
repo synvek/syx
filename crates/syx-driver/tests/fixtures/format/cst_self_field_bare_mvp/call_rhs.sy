@@ -1,0 +1,6 @@
+class Box {
+  var name: String
+  init() {
+    self.name = make()
+  }
+}

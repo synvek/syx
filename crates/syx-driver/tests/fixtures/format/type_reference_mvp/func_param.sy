@@ -1,0 +1,4 @@
+func read(x: &Int) -> Int {
+    return x
+}
+

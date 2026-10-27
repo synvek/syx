@@ -1,0 +1,20 @@
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return {{BITS}}
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return {{BYTES}}
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> {{TY}} {
+        return {{ZERO}}
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_{{SLUG}}_min` / `_max`.
+    public static func clamp(x: {{TY}}, lo: {{TY}}, hi: {{TY}}) -> {{TY}} {
+        return __syx_{{SLUG}}_min(__syx_{{SLUG}}_max(x, lo), hi)
+    }
+

@@ -1,0 +1,6 @@
+public data class IOError(code: Int, message: String)
+
+func main() {
+    print(1)
+}
+

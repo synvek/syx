@@ -1,0 +1,4 @@
+/// node
+class Node {
+    var name: String
+}

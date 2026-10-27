@@ -1,0 +1,4 @@
+func none() -> Void? {
+    return
+}
+

@@ -1,0 +1,6 @@
+import helper
+
+func main() {
+    print(helper.answer())
+}
+

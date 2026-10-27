@@ -1,0 +1,46 @@
+import Di
+
+class Logger {
+    init() {
+    }
+    func tag() -> String {
+        return "?"
+    }
+}
+
+@Primary
+@Service
+class DefaultLogger: Logger {
+    init() {
+    }
+    override func tag() -> String {
+        return "default"
+    }
+}
+
+@Qualifier("fast")
+@Service
+class FastLogger: Logger {
+    init() {
+    }
+    override func tag() -> String {
+        return "fast"
+    }
+}
+
+@Service
+class App {
+    var logger: Logger
+    init(@Inject @Qualifier("fast") logger: Logger) {
+        self.logger = logger
+    }
+    func run() -> String {
+        return self.logger.tag()
+    }
+}
+
+func main() {
+    let app = __syx_service_resolve("App")
+    print(app.run())
+}
+

@@ -1,0 +1,675 @@
+# Wave A W1–W129 / ADR-345–473 / A-05 — Q-S1 production HostFn matrix.
+# Rows claim required evidence dimensions. Status:
+#   covered  — behavioral nail exists for this cell on listed backends
+#   pending  — claimed for later Wave A windows
+# Backends: vm/mir required for File/Http/Tcp/Process/Sql batches; HttpGet loopback wasm delivered W29;
+# W30–W36 Sql + W37–W40 Orm product exact (exhausted); W41–W46 Os product exact (ok-path exhausted); W47 Sql nested-begin; W48–W50 File product exact; W51 Tcp listen-close; W52 Process spawn-wait; W53 ChildPipe pipe-close; W54 ProcessBuilder cwd/env; W55 waitTimeout/kill; W56 timeout-kill / pipe fail-after; W57 untaken wait / stdin echo exact; W58 illegal signal / KILL fail-after exact; W59 sql_pool busy / mid-txn exact; W60 sql_pool close-after / dual-checkout exact; W61 connection pool double-release / interleaved exec exact; W62 SqlRow getInt/mismatch + columnNames/isNull exact; W63 pool exhaust SAME + sql_service CRUD exact; W64 mmap readAllBytes + Http.response accessors exact; W65 Url.parse + Http refuse exact; W66 loopback Http.get + Tcp connect-close exact; W67 Http client loopback-ok + graceful shutdown exact; W68 UTC ISO millis + leap-day exact; W69 post-2038 + negative-epoch exact; W70 fixed-offset + date-only exact; W71 FileStream + ChildPipe stdout stream-chunks exact; W72 file_tool roundtrip + FileWatcher poll/close-fail exact; W73 JSONDecoder/JSONStream missing-key codingPath exact; W74 IANA leap-day ISO + unknown zone U001 exact; W75 JSON optional omit/present + nested encode/decode exact; W76 JSONStream reader chunk-feed + writer NDJSON exact; W77 Deque empty-pop nil + FIFO exact; W78 IANA formatWithTimezone NY + DST offsets exact; W79 Deque mixed + writeback exact; W80 Dict/Set mutation persist exact; W81 Array subscript/setAt exact; W82 NFC + caseFolded exact; W83 NFD roundtrip + lowercased exact; W84 for-in + isSingleScalar exact; W85 utf8 + scalar view exact; W86 grapheme + index ZWJ exact; W87 tcp Int + HTTPS EXTRA_ROOT exact; W88 TERM wait + tcp invalid exact; W89 path join + IO bytes exact; W90 file_handle bytes + HTTP chunked exact; W91 withOpen inject + ISO/IANA fail-closed exact; W92 HOF map/filter U001 exact; W93 HOF reduce U001 + emoji L001 exact; W94 R012 timeout Display + filter illegal U001 exact; W95 R003 TLS fail-closed Display exact; W96 tcp tls invalid Display + reduce illegal U001 exact；W97 tcp plain/handle invalid Display exact；W98 graceful body + IANA unknown exact；W99 tcp read/write unknown Display exact；W100 FileHandle invalid-handle Display exact；W101 FileHandle close/seek invalid Display exact；W102 readAllBytes + FileStream invalid Display exact；W103 FileWatcher close/poll invalid Display exact；W104 ChildPipe close/readChunk invalid Display exact；W105 ChildPipe write + FileStream read invalid Display exact；W106 Child wait + kill invalid Display exact；W107 ProcessBuilder cwd + env invalid Display exact；W108 ProcessBuilder spawn + Child signal invalid Display exact；W109 Child waitTimeout + stdout invalid Display exact；W110 Child stderr + stdin invalid Display exact；W111 Sql close + execOn unknown-conn Display exact；W112 Sql queryOn + prepareOn unknown-conn Display exact；W113 Sql begin + commit On unknown-conn Display exact；W114 Sql rollback On + bindStepOn unknown-conn Display exact；W115 Sql bindPreparedOn unknown-stmt + poolAcquire unknown-pool Display exact；W116 Sql poolRelease + poolClose unknown-pool Display exact；W117 HttpBodyStream readChunk invalid + SqlRow requires-object Display exact；W118 SqlRow missing-column + getInt type-mismatch Display exact；W119 SqlRow __type=SqlRow + getString type-mismatch Display exact；W120 Http request invalid-method + options-not-object Display exact；W121 SqlRow getFloat/getBlob type-mismatch Display exact；W122 Orm saveOn/findWhereOn unknown-conn Display exact；W123 Orm saveOn record-not-object + no-columns Display exact；W124 Orm updateWhereOn/deleteWhereOn unknown-conn Display exact；W125 HttpBodyStream openWithOptions invalid-method + options-not-object Display exact；W126 HttpBodyStream openWithOptions timeout + TLS fail-closed Display exact；W127 File+Http native llvm err.code ObjectGet exact；W128 File+Http wasm err.code ObjectGet exact；W129 Tcp+Process wasm err.code ObjectGet exact；W130 Sql wasm err.code ObjectGet exact（wasm 五域 ObjectGet 收官）；W131 Tcp+Process llvm err.code ObjectGet exact（llvm 阶梯首格）；W132 Sql llvm err.code ObjectGet exact（llvm 五域 ObjectGet 收官）；Display 债 → W133+.
+
+schema_version = 1
+wave = "public"
+fingerprint = "qs1-platform-gate-v0:public"
+
+[[row]]
+host = "FileOpen"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_file.rs + error_io_file.rs"
+notes = "Wave A W18 / ADR-362: wasm missing-path catch exact (qs1_file_open_missing_wasm); W9 llvm retained; IOError.code ObjectGet → W79+; not capability table edit"
+
+[[row]]
+host = "FileClose"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_file.rs + error_io_file.rs"
+notes = "Wave A W19 / ADR-363: wasm bad-handle catch exact (qs1_file_close_bad_handle_wasm); W6 llvm retained; IOError.code ObjectGet → W79+; not host_fn llvm=real / capability table edit"
+
+[[row]]
+host = "FileRead"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_file.rs + error_io_file.rs"
+notes = "Wave A W20 / ADR-364: wasm bad-handle catch exact (qs1_file_read_bad_handle_wasm); W7 llvm retained; IOError.code ObjectGet → W79+; not capability table edit"
+
+[[row]]
+host = "FileWrite"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_file.rs + error_io_file.rs"
+notes = "Wave A W21 / ADR-365: wasm bad-handle catch exact (qs1_file_write_bad_handle_wasm); File 批 wasm 齐；W8 llvm retained; IOError.code ObjectGet → W79+; not capability table edit"
+
+[[row]]
+host = "HttpGet"
+dims = ["success", "param_err", "io_err"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_http.rs + differential suite3"
+notes = "Wave A W29 / ADR-373: wasm loopback success exact (qs1_http_get_loopback_wasm); W22 refuse + W10/W17 llvm retained; not capability table edit; ObjectGet → W79+"
+
+[[row]]
+host = "TcpConnect"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_tcp.rs + error_tcp_facade.rs + leak_tcp_socket.rs"
+notes = "Wave A W23 / ADR-367: wasm refuse catch exact (qs1_tcp_connect_refuse_wasm); W11 llvm retained; not capability table edit"
+
+[[row]]
+host = "ProcessBuilderCreate"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_process.rs + process_builder.rs"
+notes = "Wave A W26 / ADR-370: wasm create-success exact (qs1_process_create_success_wasm); Process 批 wasm 齐；W16 llvm retained; not capability table edit"
+
+[[row]]
+host = "ProcessBuilderSpawn"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_process.rs + process_builder.rs + leak_process.rs"
+notes = "Wave A W24 / ADR-368: wasm missing-cmd catch exact (qs1_process_spawn_missing_wasm); W12 llvm retained; Process 首格 wasm; not host_fn llvm=real / capability table edit"
+
+[[row]]
+host = "ChildWait"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_process.rs + leak_process.rs"
+notes = "Wave A W25 / ADR-369: wasm spawn-wait success exact (qs1_process_wait_success_wasm); W13 llvm retained; not host_fn llvm=real / capability table edit"
+
+[[row]]
+host = "SqlOpen"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_sql.rs + error_sql_conn.rs + leak_sql_conn.rs"
+notes = "Wave A W27 / ADR-371: wasm :memory: open+close exact; W30–W36 Sql + W37–W40 Orm product exact deepen via error_sql_*/error_orm_conn; W14 llvm retained; not capability table edit"
+
+[[row]]
+host = "SqlClose"
+dims = ["success", "param_err", "io_err", "close"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/hostfn_sql.rs + error_sql_conn.rs"
+notes = "Wave A W28 / ADR-372: wasm invalid-close catch exact; W40 / ADR-384: Orm product exact (update-invalid fingerprint); W15 llvm retained; not capability table edit; ObjectGet → W79+"
+
+[[row]]
+host = "MathFloatAbs"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1310 / W966 QS1 Math first-slice pilot; Math.fabs success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatTrunc"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1310 / W966 QS1 Math first-slice pilot; Math.trunc success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatExp"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1310 / W966 QS1 Math first-slice pilot; Math.exp success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatLog10"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1310 / W966 QS1 Math first-slice pilot; Math.log10 success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatLog2"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1311 / W967 QS1 Math slice2; Math.log2 success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatHypot"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1311 / W967 QS1 Math slice2; Math.hypot success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatCbrt"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1311 / W967 QS1 Math slice2; Math.cbrt success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAtan2"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1311 / W967 QS1 Math slice2; Math.atan2 success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAsin"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1311 / W967 QS1 Math slice2; Math.asin success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAcos"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_HOST_SMOKE mir/wasm/llvm)"
+notes = "ADR-1311 / W967 QS1 Math slice2; Math.acos success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatSinh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.sinh success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatCosh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.cosh success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatTanh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.tanh success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatFmod"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.fmod success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatCopysign"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.copysign success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatIsNan"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.isNaN success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatIsInfinite"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.isInfinite success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatIsFinite"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.isFinite success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatExpm1"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.expm1 success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatLog1p"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1312 / W968 QS1 Math Phase-2; Math.log1p success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAsinh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.asinh success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAcosh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.acosh success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAtanh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.atanh success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatRemainder"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.remainder success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatMulAdd"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.mulAdd success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatNextUp"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.nextUp success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatNextDown"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SOFT_SMOKE mir/wasm/llvm)"
+notes = "ADR-1313 / W969 QS1 Math Soft; Math.nextDown success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatErf"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SPECIAL_SMOKE mir/wasm/llvm)"
+notes = "ADR-1314 / W970 QS1 Math Special; Math.erf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatErfc"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SPECIAL_SMOKE mir/wasm/llvm)"
+notes = "ADR-1314 / W970 QS1 Math Special; Math.erfc success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatTgamma"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SPECIAL_SMOKE mir/wasm/llvm)"
+notes = "ADR-1314 / W970 QS1 Math Special; Math.tgamma success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatLgamma"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_SPECIAL_SMOKE mir/wasm/llvm)"
+notes = "ADR-1314 / W970 QS1 Math Special; Math.lgamma success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatSin"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.sin success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatCos"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.cos success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatTan"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.tan success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatSqrt"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.sqrt success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatPow"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.pow success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatFloor"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.floor success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatCeil"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.ceil success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatRound"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.round success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatLog"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.log success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatAtan"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.atan success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloatExp2"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_P1_GAP_SMOKE mir/wasm/llvm)"
+notes = "ADR-1315 / W971 QS1 Math Phase-1 gap; Math.exp2 success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Sqrt"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.sqrtf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Sin"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.sinf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Cos"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.cosf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Tan"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.tanf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Exp"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.expf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Log"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.logf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Abs"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.fabsf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Floor"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SMOKE mir/wasm/llvm)"
+notes = "ADR-1316 / W972 QS1 Math F32 first-slice; Math.floorf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Ceil"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.ceilf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Round"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.roundf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Trunc"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.truncf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Pow"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.powf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Asin"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.asinf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Acos"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.acosf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Atan"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.atanf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Hypot"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE2_SMOKE mir/wasm/llvm)"
+notes = "ADR-1317 / W973 QS1 Math F32 slice2; Math.hypotf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Atan2"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.atan2f success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Log2"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.log2f success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Log10"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.log10f success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Exp2"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.exp2f success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Cbrt"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.cbrtf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Sinh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.sinhf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Cosh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.coshf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Tanh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE3_SMOKE mir/wasm/llvm)"
+notes = "ADR-1318 / W974 QS1 Math F32 slice3; Math.tanhf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Fmod"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.fmodf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Copysign"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.copysignf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Expm1"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.expm1f success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Log1p"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.log1pf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Asinh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.asinhf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Acosh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.acoshf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Atanh"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.atanhf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Erf"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE4_SMOKE mir/wasm/llvm)"
+notes = "ADR-1319 / W975 QS1 Math F32 slice4; Math.erff success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Erfc"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.erfcf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Tgamma"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.tgammaf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Lgamma"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.lgammaf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32Remainder"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.remainderf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32IsNan"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.isNaNf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32IsInfinite"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.isInfinitef success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32IsFinite"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.isFinitef success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32NextUp"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SLICE5_SMOKE mir/wasm/llvm)"
+notes = "ADR-1320 / W976 QS1 Math F32 slice5; Math.nextUpf success exact; ≠ full MathFloat* QS1 / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32MulAdd"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SOFT_CLOSE_SMOKE mir/wasm/llvm)"
+notes = "ADR-1321 / W977 QS1 Math F32 soft-close; Math.mulAddf success exact; ≠ qs1_math_ga=true / ≠ status=implemented / ≠ F-08"
+
+[[row]]
+host = "MathFloat32NextDown"
+dims = ["success"]
+backends = { vm = "covered", mir = "covered", llvm = "covered", wasm = "covered" }
+evidence = "crates/syx-driver/tests/stdlib/math.rs (MATH_F32_SOFT_CLOSE_SMOKE mir/wasm/llvm)"
+notes = "ADR-1321 / W977 QS1 Math F32 soft-close; Math.nextDownf success exact; ≠ qs1_math_ga=true / ≠ status=implemented / ≠ F-08"

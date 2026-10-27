@@ -1,0 +1,14 @@
+class Box {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+}
+
+func main() {
+    let a = Box(n: 42)
+    let b = a
+    print(a.n)
+    print(b.n)
+}
+

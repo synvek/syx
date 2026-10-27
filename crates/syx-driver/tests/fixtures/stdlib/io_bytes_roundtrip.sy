@@ -1,0 +1,13 @@
+import IO
+
+func main() {
+    let path = "/tmp/syx_stdlib_bytes_roundtrip.bin"
+    let original: Array<UInt8> = [65u8, 66u8, 67u8]
+    File.writeBytes(path, original)
+    let readBack = File.readBytes(path)
+    print(readBack[0])
+    print(readBack[1])
+    print(readBack[2])
+    File.delete(path)
+}
+

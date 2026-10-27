@@ -1,0 +1,87 @@
+public class File {
+    public static func read(path: String) -> String {
+        return __syx_file_read(path)
+    }
+
+    /// ADR-278 / M3-B02: async read on blocking_pool (awaitable); ≠ epoll reactor GA.
+    public static func readAsync(_ path: String) -> Object {
+        return __syx_file_read_async(path)
+    }
+
+    public static func readLines(path: String) -> Array<String> {
+        return __syx_file_read_lines(path)
+    }
+
+    public static func write(path: String, content: String) {
+        __syx_file_write(path, content)
+    }
+
+    public static func append(path: String, content: String) {
+        __syx_file_append(path, content)
+    }
+
+    public static func exists(path: String) -> Bool {
+        return __syx_file_exists(path)
+    }
+
+    public static func delete(path: String) {
+        __syx_file_delete(path)
+    }
+
+    public static func copy(from: String, to: String) {
+        __syx_file_copy(from, to)
+    }
+
+    public static func move(from: String, to: String) {
+        __syx_file_move(from, to)
+    }
+
+    public static func readBytes(path: String) -> Array<UInt8> {
+        return __syx_file_read_bytes(path)
+    }
+
+    public static func writeBytes(path: String, bytes: Array<UInt8>) {
+        __syx_file_write_bytes(path, bytes)
+    }
+
+    public static func stat(path: String) -> Object {
+        return __syx_file_stat(path)
+    }
+
+    public static func symlink(target: String, linkPath: String) {
+        __syx_file_symlink(target, linkPath)
+    }
+
+    public static func readLink(path: String) -> String {
+        return __syx_file_read_link(path)
+    }
+
+    public static func chmod(path: String, mode: Int) {
+        __syx_file_chmod(path, mode)
+    }
+
+    /// One-shot kick (mock/OS); ≠ FileWatcher lifecycle (ADR-240).
+    public static func watch(path: String) -> Array<String> {
+        return __syx_file_watch(path)
+    }
+}
+
+public class Directory {
+    public static func create(path: String) {
+        __syx_dir_create(path)
+    }
+
+    public static func list(path: String) -> Array<String> {
+        return __syx_dir_list(path)
+    }
+
+    public static func exists(path: String) -> Bool {
+        return __syx_dir_exists(path)
+    }
+}
+
+public class Stdin {
+    public static func readLine() -> String {
+        return __syx_read_line()
+    }
+}

@@ -1,0 +1,12 @@
+func main() {
+    var n = 0
+    if n == 0
+    print("zero")
+ else
+    print("other")
+
+    while n < 2
+    n = n + 1
+    print(n)
+}
+

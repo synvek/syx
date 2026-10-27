@@ -1,0 +1,8 @@
+func main() {
+    let d: Dictionary<Int, String> = {1: "one", 2: "two", 42: "answer"}
+    print(d[1])
+    print(d[42])
+    print(d[2])
+    print(d.count)
+}
+

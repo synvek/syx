@@ -1,0 +1,9 @@
+/// a
+export static func a() {
+    print(1)
+}
+/// b
+export async func b() {
+    /* mid */
+    print(2)
+}

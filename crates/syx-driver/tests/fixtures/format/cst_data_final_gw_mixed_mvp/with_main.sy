@@ -1,0 +1,10 @@
+// ahead
+data class Box<T>(value: T) where T: Equatable
+final class Wrap<U> {
+    wrap(value: U)
+}
+func main() {
+    while flag /* mid */
+    print(1)
+}
+/* trail */

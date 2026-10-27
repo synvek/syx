@@ -1,0 +1,6 @@
+func main() {
+    let s = __syx_plugin_v2probe_grow([1.0, 2.0, 3.0])
+    print(s[0])
+    print(s[1])
+    print(s[2])
+}

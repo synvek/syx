@@ -1,0 +1,36 @@
+import Os
+
+func main() {
+    print(Os.cpuCount())
+    try {
+        print(Os.memoryTotal())
+    } catch (e) {
+        print("memoryTotal-unavailable")
+    }
+    try {
+        print(Os.memoryAvailable())
+    } catch (e) {
+        print("memoryAvailable-unavailable")
+    }
+    try {
+        print(Os.userName())
+    } catch (e) {
+        print("userName-unavailable")
+    }
+    try {
+        print(Os.homeDir())
+    } catch (e) {
+        print("homeDir-unavailable")
+    }
+    try {
+        print(Os.hostname())
+    } catch (e) {
+        print("hostname-unavailable")
+    }
+    try {
+        print(Os.uptimeMs())
+    } catch (e) {
+        print("uptimeMs-unavailable")
+    }
+}
+

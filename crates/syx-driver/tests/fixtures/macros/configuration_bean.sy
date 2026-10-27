@@ -1,0 +1,25 @@
+import Di
+
+class Greeter {
+    init() {
+    }
+    func greet(name: String) -> String {
+        return "bean-hello " + name
+    }
+}
+
+@Configuration
+class AppConfig {
+    init() {
+    }
+    @Bean
+    func greeter() -> Greeter {
+        return Greeter()
+    }
+}
+
+func main() {
+    let g = Di.resolve("Greeter")
+    print(g.greet(name: "world"))
+}
+

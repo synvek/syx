@@ -1,0 +1,13 @@
+class Ops {
+    operator func +(a: Int, b: Int) -> Int {
+        return a
+    }
+    operator func -(a: Int, b: Int) -> Int {
+        return a
+    }
+}
+
+func main() {
+    print(1)
+}
+

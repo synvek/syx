@@ -1,0 +1,12 @@
+class Grid {
+    subscript(r: Int, c: Int) -> Int {
+        get {
+            return 0
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

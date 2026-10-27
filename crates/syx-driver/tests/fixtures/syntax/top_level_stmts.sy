@@ -1,0 +1,6 @@
+print("top")
+
+func main() {
+    print("main")
+}
+

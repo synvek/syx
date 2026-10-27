@@ -1,0 +1,5 @@
+macro Smoke = #externalMacro(module: "SyxMacros", type: "SmokeMemberMacro")
+
+func main() {
+}
+

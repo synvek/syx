@@ -1,0 +1,1879 @@
+{
+  "meta": {
+    "version": "0.1",
+    "syx_version": "117.0",
+    "phase": 139,
+    "schema": "syx-mir-op-capability-v0",
+    "kind": "mir_op",
+    "default": "unsupported",
+    "count": 143,
+    "backend_keys": [
+      "vm",
+      "mir",
+      "llvm",
+      "wasm",
+      "cranelift"
+    ]
+  },
+  "ops": [
+    {
+      "name": "ConstI32",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "ConstNumeric",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ConstNumeric128",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ConstStr",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "ConstBool",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-547 / W203: suite1 ConstBool llvm+wasm=real (RT push_bool + print/branch nails); cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "ConstNil",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-547 / W203: suite1 ConstNil llvm+wasm=real (RT push_nil + print nails); cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "LoadLocal",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "StoreLocal",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "LoadGlobal",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "StoreGlobal",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Add",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "SimdAdd",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdSub",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdMul",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdDiv",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdEq",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdLt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdGt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdNe",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdLe",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdGe",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdAnd",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdOr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdXor",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdNot",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdShl",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdShr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdMin",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdMax",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF32Add",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF32Sub",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF32Mul",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF32Div",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF64Add",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF64Sub",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF64Mul",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdF64Div",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI16Add",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI16Sub",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI16Mul",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Add",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Sub",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Mul",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8And",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Shl",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Shr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Or",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Xor",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Not",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Min",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Max",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8UMin",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8UMax",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Abs",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Neg",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Extract",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Replace",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Eq",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Ne",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Le",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Ge",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8AvgrU",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Popcnt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Bitmask",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8AllTrue",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8AnyTrue",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Lt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Gt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8AddSat",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8SubSat",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI8Shuffle",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdI64Add",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdReduceAdd",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdLoad",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdStore",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SimdShuffle",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Sub",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "Mul",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "Div",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "Mod",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "BitAnd",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "BitOr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "BitXor",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Shl",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Shr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Eq",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Ne",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Lt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Le",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Gt",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Ge",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "And",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Or",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Not",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Neg",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "BitNot",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Print",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-552 / W208: suite1 Print wasm=real (Int/String/Bool/Nil narrow print nails + differential 16/16); cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "Pop",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ConcatStr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ToStr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Jump",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "JumpIfFalse",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; W198 array_for_in control-flow evidence",
+      "pilot": "suite1"
+    },
+    {
+      "name": "Call",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "CallIndirect",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ConstFnIndex",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Return",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial",
+      "pilot": "suite1"
+    },
+    {
+      "name": "Dup",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "JumpIfNil",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "CallHost",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-553 / W209: suite1 CallHost llvm+wasm=real (narrow host fn call nails + differential 16/16); cranelift unsupported keeps partial; ≠ full HostFn inventory batch / ≠ all host GA",
+      "pilot": "suite1"
+    },
+    {
+      "name": "MakeClosure",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "CallClosure",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ActorCall",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ActorRegister",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "CallWitness",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "MakeIterator",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-542 / W198 array_for_in native+wasm unskip; ADR-543 inventory notes cleared; ADR-223 M2-S1-01 Iterator for-in pilot subset",
+      "pilot": "suite1"
+    },
+    {
+      "name": "IteratorNext",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-542 / W198 array_for_in native+wasm unskip; ADR-543 inventory notes cleared; ADR-223 Iterator.next Int? pilot subset",
+      "pilot": "suite1"
+    },
+    {
+      "name": "AwaitPoll",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "AwaitSuspend",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ActorSend",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "DictBuild",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ArrayBuild",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "SetBuild",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ObjectGet",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199 suite1 pilot product backends real; W196 native + W197 wasm dict_subscript evidence",
+      "pilot": ""
+    },
+    {
+      "name": "ObjectSet",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "HeapCompact",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ArrayGet",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "mir": "real",
+        "llvm": "real",
+        "wasm": "real",
+        "cranelift": "unsupported"
+      },
+      "notes": "ADR-543 / W199 suite1 pilot product backends real; W195 native + W197 wasm array_index evidence",
+      "pilot": ""
+    },
+    {
+      "name": "ArraySet",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ValueEq",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ValueNe",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "OpaqueValueEq",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "RefEq",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "RefNe",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "BeginTry",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "EndTry",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Catch",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "Throw",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "BindResult",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ReturnErr",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "TaskSpawn",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "TaskJoin",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "CallSuper",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "ArrSorted",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "NumericCast",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    }
+  ]
+}

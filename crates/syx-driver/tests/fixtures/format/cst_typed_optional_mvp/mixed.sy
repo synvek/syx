@@ -1,0 +1,7 @@
+func main() {
+    let x: Int? = nil
+    var s: String? = "hi"
+    print(x)
+    return
+}
+

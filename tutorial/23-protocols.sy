@@ -1,0 +1,218 @@
+// =============================================================================
+// tutorial/23-protocols.sy
+// 对应《SYX 语言指南》第 23 章「协议」
+//
+// 本章涉及语言特性：
+//   - 协议声明（方法 / 属性 / 关联类型）
+//   - 一致性
+//   - witness 表
+//   - 默认实现
+//   - associatedtype
+//   - Self 约束（部分实现）
+//   - protocol extension where
+//   - 协议存在类型 any P
+//   - class-only（用 class 约束）
+//   - 协议组合
+// =============================================================================
+
+// 1) 基础协议
+protocol Named {
+    var name: String { get }
+    func describe() -> String
+}
+
+class User23: Named {
+    let name: String
+    init(name: String) { self.name = name }
+    func describe() -> String { return "User(\(name))" }
+}
+
+class Product23: Named {
+    let name: String
+    let price: Double
+    init(name: String, price: Double) {
+        self.name = name
+        self.price = price
+    }
+    func describe() -> String { return "Product(\(name), \(price))" }
+}
+
+// 2) 关联类型
+protocol Container {
+    associatedtype Item
+    var count: Int { get }
+    func get(at i: Int) -> Item
+    mutating func add(_ item: Item)
+}
+
+struct IntStack: Container {
+    typealias Item = Int
+    var items: Array<Int> = []
+    var count: Int { return items.count }
+    func get(at i: Int) -> Int { return items[i] }
+    mutating func add(_ item: Int) { items.append(item) }
+}
+
+// 3) 默认实现
+protocol Greetable23 {
+    var name: String { get }
+}
+extension Greetable23 {
+    func greet() -> String { return "Hello, \(name)" }
+}
+
+struct Person23: Greetable23 {
+    let name: String
+}
+
+struct Robot23: Greetable23 {
+    let name: String = "RX-7"
+    func greet() -> String { return "Beep boop, I am \(name)" }  // 自实现
+}
+
+// 4) 类约束
+protocol ClassOnly: class {
+    var id: Int { get }
+}
+
+class ClassImpl: ClassOnly {
+    let id: Int = 1
+}
+// struct StructImpl: ClassOnly {}  ← ❌ class 约束
+
+// 5) 协议组合
+protocol HasName { var name: String { get } }
+protocol HasAge { var age: Int { get } }
+
+class Person3: HasName, HasAge {
+    let name: String
+    let age: Int
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
+    }
+}
+
+func describe(_ p: HasName & HasAge) -> String {
+    return "\(p.name) (\(p.age))"
+}
+
+// 6) Self 约束（部分实现）
+protocol EquatableSelf {
+    func equals(_ other: Self) -> Bool
+}
+
+// 7) 协议存在类型 any P
+protocol Shape23 {
+    func area() -> Double
+}
+class Square23: Shape23 {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return s * s }
+}
+class Circle23: Shape23 {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func totalArea(_ shapes: Array<any Shape23>) -> Double {
+    var sum = 0.0
+    for s in shapes {
+        sum += s.area()
+    }
+    return sum
+}
+
+// 8) protocol extension where
+protocol NumericProto {
+    func double() -> Self
+}
+extension Int: NumericProto {
+    func double() -> Int { return self * 2 }
+}
+extension Double: NumericProto {
+    func double() -> Double { return self * 2 }
+}
+
+extension NumericProto where Self: Comparable {
+    func clamped(to range: Range<Self>) -> Self {
+        if self < range.lowerBound { return range.lowerBound }
+        if self >= range.upperBound { return range.upperBound }
+        return self
+    }
+}
+
+// 9) 协议 + 静态方法
+protocol Factory {
+    static func create() -> Self
+}
+class Widget: Factory {
+    let id: Int
+    init(id: Int) { self.id = id }
+    static func create() -> Widget { return Widget(id: 0) }
+}
+
+// 10) 协议 + init 需求
+protocol Initializable {
+    init(value: Int)
+}
+struct InitImpl: Initializable {
+    let value: Int
+    init(value: Int) { self.value = value }
+}
+
+// 11) 协议继承
+protocol A23 { func a() }
+protocol B23 { func b() }
+protocol AB: A23, B23 { func ab() }
+class ABC: AB {
+    func a() { print("a") }
+    func b() { print("b") }
+    func ab() { print("ab") }
+}
+
+// 12) 协议 witness 表（运行时）
+func dynamicDispatch() {
+    let arr: Array<any Named> = [
+        User23(name: "Alice"),
+        Product23(name: "Book", price: 9.99),
+        User23(name: "Bob")
+    ]
+    for n in arr {
+        print(n.describe())                              // 各自版本
+    }
+}
+
+func main() {
+    // 基础
+    print(User23(name: "Alice").describe())
+    print(Product23(name: "Book", price: 9.99).describe())
+
+    // 关联类型
+    var s = IntStack()
+    s.add(1); s.add(2); s.add(3)
+    print("stack count=\(s.count) top=\(s.get(at: s.count - 1))")
+
+    // 默认实现
+    print(Person23(name: "Alice").greet())
+    print(Robot23().greet())
+
+    // 协议组合
+    print(describe(Person3(name: "Bob", age: 30)))
+
+    // any P
+    let shapes: Array<any Shape23> = [Square23(s: 2.0), Circle23(r: 1.0)]
+    print("total=\(totalArea(shapes))")
+
+    // 静态 dispatch
+    let w = Widget.create()
+    print("widget id=\(w.id)")
+
+    // protocol extension where
+    print("5.clamped(2..<8)=\(5.clamped(to: 2..<8))")
+    print("3.14.clamped(1.0..<2.0)=\(3.14.clamped(to: 1.0..<2.0))")
+
+    dynamicDispatch()
+}

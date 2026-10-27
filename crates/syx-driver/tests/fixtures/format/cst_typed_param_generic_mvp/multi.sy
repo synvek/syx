@@ -1,0 +1,5 @@
+func add(a: Foo<Int>, b: List<String>) {
+    let s = a
+    return
+}
+

@@ -1,0 +1,43 @@
+// Algebraic success/failure shell. Prelude; hand-authored authority.
+// String-typed MVP surface (`Result<String, String>`); full generics later.
+
+/// Success (`ok`) or failure (`err`) carrier.
+@builtin("algebraic.result")
+public class Result {
+    /// Construct a success result.
+    public static func ok(value: String) -> Result<String, String> {
+        return __syx_result_ok(value)
+    }
+
+    /// Construct a failure result.
+    public static func err(value: String) -> Result<String, String> {
+        return __syx_result_err(value)
+    }
+
+    /// Whether `result` is `.ok`.
+    public static func isOk(result: Result<String, String>) -> Bool {
+        return __syx_result_is_ok(result)
+    }
+
+    /// Whether `result` is `.err`.
+    public static func isErr(result: Result<String, String>) -> Bool {
+        return __syx_result_is_err(result)
+    }
+}
+
+extension Result {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+}

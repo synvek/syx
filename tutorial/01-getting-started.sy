@@ -1,0 +1,16 @@
+func main() {
+    print("Hello, World")
+}
+
+func demo_variables() {
+    let name = "SYX"
+    var count = 0
+    count = count + 1
+    print("Hello, \(name)! count=\(count)")
+}
+
+async func asyncMain() {
+    await Concurrency.sleep(2000)
+    print("async entry woke up")
+}
+

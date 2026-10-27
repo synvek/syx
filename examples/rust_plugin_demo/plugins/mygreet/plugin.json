@@ -1,0 +1,20 @@
+{
+  "id": "mygreet",
+  "api_version": 1,
+  "library": "libmygreet_plugin.dylib",
+  "hosts": [
+    {
+      "name": "__syx_plugin_mygreet_greet",
+      "syx_name": "greet",
+      "module": "Greet",
+      "return_type": "String",
+      "params": [
+        "name: String"
+      ]
+    }
+  ],
+  "capabilities": [
+    "demo"
+  ],
+  "min_syx_version": "27.0"
+}

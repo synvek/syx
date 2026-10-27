@@ -1,0 +1,16 @@
+public func registerUserSchema() -> Bool {
+    return __syx_codable_l14_register_migration("name", "User")
+}
+
+public func registerUserRename() -> Bool {
+    return __syx_codable_l14_register_rename("User", "name", "fullName")
+}
+
+public func encodeUser(name: String) -> Array {
+    return __syx_codable_encode_l14(name, "User")
+}
+
+public func decodeUser(wire: Array) -> String {
+    return __syx_codable_decode_l14("User", wire)
+}
+

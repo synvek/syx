@@ -1,0 +1,6 @@
+print(0)
+
+func boom() throws {
+    print(1)
+}
+

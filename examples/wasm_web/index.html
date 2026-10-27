@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SYX wasm_web (44.0)</title>
+</head>
+<body>
+  <h1>SYX WASM Web</h1>
+  <p>Load <code>compiler.wasm</code> → compile user SYX → instantiate guest WASM. No prebuilt fallback.</p>
+  <textarea id="src" rows="8" cols="60">class Point {
+    var x: Int
+    init(x: Int) { self.x = x }
+}
+func main() {
+    let p = Point(x: 42)
+    return p.x
+}</textarea>
+  <br />
+  <button id="compile">Compile &amp; run</button>
+  <pre id="out"></pre>
+  <script>
+    let compilerInstance = null;
+    let compilerMemory = null;
+
+    // syx-mir-run op tags — AOT import → MirRuntime.exec (hosted in compiler.wasm)
+    const OP = {
+      CONST_I32: 0,
+      CONST_STR: 1,
+      CONST_BOOL: 2,
+      CONST_NIL: 3,
+      LOAD_LOCAL: 4,
+      STORE_LOCAL: 5,
+      PRINT: 30,
+      CONCAT_STR: 32,
+      TO_STR: 33,
+      MAKE_ITERATOR: 42,
+      ITERATOR_NEXT: 43,
+      ARRAY_BUILD: 44,
+      ARRAY_GET: 45,
+      OBJECT_GET: 46,
+      BEGIN_FN: 50,
+      GET_RETURN: 51,
+      CALL_FN: 52,
+      DICT_BUILD: 57,
+      SET_BUILD: 58,
+      OBJECT_SET: 59,
+      MAKE_CLOSURE: 64,
+      CALL_CLOSURE: 65,
+      CONST_NUMERIC: 66,
+      VALUE_EQ: 70,
+      VALUE_NE: 71,
+      REF_EQ: 72,
+      REF_NE: 73,
+      LOAD_GLOBAL: 80,
+      STORE_GLOBAL: 81,
+      SET_FN_INDEX: 82,
+      ARRAY_SET: 97,
+      ARRAY_SORTED: 102,
+    };
+
+    const AOT_OP = {
+      '__syx_aot_load_global': OP.LOAD_GLOBAL,
+      '__syx_aot_load_local': OP.LOAD_LOCAL,
+      '__syx_aot_store_global': OP.STORE_GLOBAL,
+      '__syx_aot_store_local': OP.STORE_LOCAL,
+      '__syx_aot_push_rt_i32': OP.CONST_I32,
+      '__syx_aot_push_rt_bool': OP.CONST_BOOL,
+      '__syx_aot_push_rt_nil': OP.CONST_NIL,
+      '__syx_aot_push_rt_numeric': OP.CONST_NUMERIC,
+      '__syx_aot_const_str': OP.CONST_STR,
+      '__syx_aot_concat_str': OP.CONCAT_STR,
+      '__syx_aot_to_str': OP.TO_STR,
+      '__syx_aot_begin_fn': OP.BEGIN_FN,
+      '__syx_aot_get_return': OP.GET_RETURN,
+      '__syx_aot_call_fn': OP.CALL_FN,
+      '__syx_aot_set_fn_index': OP.SET_FN_INDEX,
+      '__syx_aot_array_build': OP.ARRAY_BUILD,
+      '__syx_aot_dict_build': OP.DICT_BUILD,
+      '__syx_aot_set_build': OP.SET_BUILD,
+      '__syx_aot_print': OP.PRINT,
+      '__syx_aot_make_iterator': OP.MAKE_ITERATOR,
+      '__syx_aot_iterator_next': OP.ITERATOR_NEXT,
+      '__syx_aot_array_get': OP.ARRAY_GET,
+      '__syx_aot_array_set': OP.ARRAY_SET,
+      '__syx_aot_object_get': OP.OBJECT_GET,
+      '__syx_aot_object_set': OP.OBJECT_SET,
+      '__syx_aot_value_eq': OP.VALUE_EQ,
+      '__syx_aot_value_ne': OP.VALUE_NE,
+      '__syx_aot_ref_eq': OP.REF_EQ,
+      '__syx_aot_ref_ne': OP.REF_NE,
+      '__syx_aot_array_sorted': OP.ARRAY_SORTED,
+      '__syx_aot_make_closure': OP.MAKE_CLOSURE,
+      '__syx_aot_call_closure': OP.CALL_CLOSURE,
+    };
+
+    async function loadCompiler() {
+      if (compilerInstance) return compilerInstance;
+      const resp = await fetch('./compiler.wasm');
+      if (!resp.ok) {
+        throw new Error('Build syx-compiler-wasm for wasm32 and copy compiler.wasm beside this page');
+      }
+      // C-ABI cdylib: no wasm-bindgen (getrandom uses custom backend).
+      const { instance } = await WebAssembly.instantiate(await resp.arrayBuffer(), {});
+      compilerInstance = instance;
+      compilerMemory = instance.exports.memory;
+      if (!compilerMemory) {
+        throw new Error('compiler.wasm missing memory export');
+      }
+      if (typeof instance.exports.syx_guest_mir_exec !== 'function') {
+        throw new Error('compiler.wasm missing syx_guest_mir_exec (rebuild & copy)');
+      }
+      return instance;
+    }
+
+    function malloc(size) {
+      const fn = compilerInstance.exports.alloc;
+      if (typeof fn !== 'function') {
+        throw new Error('compiler.wasm needs alloc export');
+      }
+      const ptr = fn(size);
+      if (!ptr) throw new Error('alloc failed');
+      return ptr;
+    }
+
+    function readUtf8(ptr, len) {
+      return new TextDecoder().decode(new Uint8Array(compilerMemory.buffer, ptr, len));
+    }
+
+    function writeUtf8(str) {
+      const bytes = new TextEncoder().encode(str);
+      const ptr = malloc(bytes.length);
+      new Uint8Array(compilerMemory.buffer, ptr, bytes.length).set(bytes);
+      return { ptr, len: bytes.length };
+    }
+
+    function allocUsizeSlot() {
+      const ptr = malloc(4);
+      new DataView(compilerMemory.buffer).setUint32(ptr, 0, true);
+      return ptr;
+    }
+
+    function readUsize(ptr) {
+      return new DataView(compilerMemory.buffer).getUint32(ptr, true);
+    }
+
+    async function compileAndRun() {
+      const out = document.getElementById('out');
+      out.textContent = 'compiling…';
+      try {
+        const compiler = await loadCompiler();
+        const compile = compiler.exports.syx_compile_source_to_wasm_bytes;
+        const diagFn = compiler.exports.syx_last_compile_diagnostics_json;
+        if (typeof compile !== 'function') {
+          throw new Error('compiler.wasm missing syx_compile_source_to_wasm_bytes export');
+        }
+        const src = document.getElementById('src').value;
+        const name = writeUtf8('main.sy');
+        const source = writeUtf8(src);
+        const outLenPtr = allocUsizeSlot();
+        const guestPtr = compile(name.ptr, name.len, source.ptr, source.len, outLenPtr);
+        if (!guestPtr) {
+          let msg = 'compile failed';
+          if (typeof diagFn === 'function') {
+            const dlenPtr = allocUsizeSlot();
+            const dptr = diagFn(dlenPtr);
+            const dlen = readUsize(dlenPtr);
+            if (dptr && dlen > 0) {
+              const parsed = JSON.parse(readUtf8(dptr, dlen));
+              if (parsed.diagnostics && parsed.diagnostics.length) {
+                msg = parsed.diagnostics.map(d => `[${d.code || 'SYX'}] ${d.message}`).join('\n');
+              }
+            }
+          }
+          throw new Error(msg);
+        }
+        const outLen = readUsize(outLenPtr);
+        const guestBytes = compilerMemory.buffer.slice(guestPtr, guestPtr + outLen);
+
+        const memHolder = { mem: null };
+        const c = compiler.exports;
+        const withGuestMem = (fn) => {
+          const memory = memHolder.mem;
+          if (!memory) return fn(0, 0);
+          const bytes = new Uint8Array(memory.buffer);
+          const ptr = bytes.length ? malloc(bytes.length) : 0;
+          if (bytes.length) {
+            new Uint8Array(compilerMemory.buffer, ptr, bytes.length).set(bytes);
+          }
+          const r = fn(ptr, bytes.length);
+          if (bytes.length) {
+            bytes.set(new Uint8Array(compilerMemory.buffer, ptr, bytes.length));
+          }
+          return r;
+        };
+        const exec = (op, a = 0, b = 0) =>
+          withGuestMem((ptr, len) => c.syx_guest_mir_exec(op, a | 0, b | 0, ptr, len));
+        const syx = new Proxy(
+          {
+            mir_exec: (op, a, b) => exec(op, a, b),
+            __syx_aot_end_fn: () => c.syx_guest_end_fn(),
+            __syx_aot_take_catch_pc: (p) => c.syx_guest_take_catch_pc(p | 0),
+          },
+          {
+            get(target, name) {
+              if (typeof name !== 'string') return undefined;
+              if (Object.prototype.hasOwnProperty.call(target, name)) return target[name];
+              const op = AOT_OP[name];
+              if (op === undefined) return (..._args) => 0;
+              return (a = 0, b = 0) => exec(op, a, b);
+            },
+          }
+        );
+
+        const { instance } = await WebAssembly.instantiate(guestBytes, { syx });
+        memHolder.mem = instance.exports.memory;
+        instance.exports.main();
+        // AOT main export is exit-code 0; surface RT return via MirRuntime.
+        const code = c.syx_guest_get_return();
+        out.textContent = `main() => ${code}`;
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    }
+
+    document.getElementById('compile').addEventListener('click', () => compileAndRun().catch(console.error));
+  </script>
+</body>
+</html>

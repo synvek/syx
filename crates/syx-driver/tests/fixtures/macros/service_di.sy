@@ -1,0 +1,26 @@
+@Service
+class Logger {
+    init() {
+    }
+    func ping() -> String {
+        return "pong"
+    }
+}
+
+@Service
+class App {
+    @Autowired
+    var logger: Logger
+    init() {
+    }
+    func run() -> String {
+        return self.logger.ping()
+    }
+}
+
+func main() {
+    __syx_service_boot()
+    let app = __syx_service_resolve("App") as App
+    print(app.run())
+}
+

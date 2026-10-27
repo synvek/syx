@@ -1,0 +1,11 @@
+// Host-backed HTTP response shell (Net / IO). Hand-authored authority.
+
+/// Minimal HTTP response: status code and body text.
+@host("host.http_response")
+public class HTTPResponse {
+    /// HTTP status code (e.g. 200).
+    public var status: Int
+
+    /// Response body as text.
+    public var body: String
+}

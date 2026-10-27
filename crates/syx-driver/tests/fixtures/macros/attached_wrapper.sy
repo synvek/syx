@@ -1,0 +1,23 @@
+@attached(wrapper)
+class Clamped {
+    var wrappedValue: Int
+    init(wrappedValue: Int) {
+        self.wrappedValue = wrappedValue
+    }
+}
+
+class Point {
+    @Clamped
+    var x: Int
+    init(x: Int) {
+        self._x = Clamped(wrappedValue: x)
+    }
+}
+
+func main() {
+    var p = Point(x: 3)
+    print(p.x)
+    p.x = 10
+    print(p.x)
+}
+

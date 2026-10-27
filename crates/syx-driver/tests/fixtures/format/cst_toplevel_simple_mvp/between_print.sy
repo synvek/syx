@@ -1,0 +1,8 @@
+func a() {
+}
+
+print(1)
+
+func b() {
+}
+

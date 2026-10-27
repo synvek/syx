@@ -1,0 +1,14 @@
+{
+  "id": "echo",
+  "api_version": 1,
+  "library": "libecho_plugin.so",
+  "capabilities": ["crypto"],
+  "hosts": [
+    {
+      "name": "__syx_plugin_echo_echo",
+      "syx_name": "echo",
+      "return_type": "String",
+      "params": ["data: String"]
+    }
+  ]
+}

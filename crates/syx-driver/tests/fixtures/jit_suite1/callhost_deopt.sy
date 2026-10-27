@@ -1,0 +1,4 @@
+func main() -> Int {
+    return __syx_time_now_ms()
+}
+

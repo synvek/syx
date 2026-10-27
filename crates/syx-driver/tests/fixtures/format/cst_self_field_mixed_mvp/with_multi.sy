@@ -1,0 +1,10 @@
+// ahead
+class Sub: Box, Greeter {
+  var name: String
+  init(name: String) {
+    self.name = name
+  }
+}
+func main() {
+  print(1)
+}

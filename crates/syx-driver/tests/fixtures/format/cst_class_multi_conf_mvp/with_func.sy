@@ -1,0 +1,9 @@
+// ahead
+class Sub: Box, Greeter {
+  var name: String
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

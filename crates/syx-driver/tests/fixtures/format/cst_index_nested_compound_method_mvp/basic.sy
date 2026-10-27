@@ -1,0 +1,6 @@
+class Box {
+  var items: Int
+  func scale(i: Int, j: Int, n: Int) {
+    buf[i][j] *= n
+  }
+}

@@ -1,0 +1,6 @@
+func main() {
+    repeat {
+        print(1)
+    } while false
+}
+

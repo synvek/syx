@@ -1,0 +1,5 @@
+func main() {
+    let kp = \Person.name.age
+    print(1)
+}
+

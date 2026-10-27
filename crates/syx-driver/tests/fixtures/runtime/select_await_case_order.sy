@@ -1,0 +1,19 @@
+async func tick() -> Int {
+    print("tick-before")
+    __syx_task_sleep(0)
+    print("tick-after")
+    return 7
+}
+
+async func main() {
+    let ch = __syx_channel_create(1)
+    __syx_channel_send(ch, 88)
+    {
+        let v = __syx_channel_recv(ch)
+        print("recv")
+        print(v)
+        await tick()
+    }
+    print("case-order-done")
+}
+

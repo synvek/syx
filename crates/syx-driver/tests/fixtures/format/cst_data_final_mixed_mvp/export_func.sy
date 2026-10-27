@@ -1,0 +1,6 @@
+// ahead
+data class Point(x: Int)
+export func tag() {
+    print(1)
+}
+/* trail */

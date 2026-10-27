@@ -1,0 +1,156 @@
+public class Concurrency {
+    public static func detach(_ name: String) -> Object {
+    return __syx_task_detach(name)
+}
+    public static func detach(_ name: String, args: Array<Object>) -> Object {
+    return __syx_task_detach(name, args)
+}
+    public static func join(_ task: Object) -> Object {
+    return __syx_task_join(task)
+}
+    public static func cancel(_ task: Object) -> Bool {
+    return __syx_task_cancel(task)
+}
+    public static func sleep(_ ms: Int) {
+    __syx_task_sleep(ms)
+}
+    public static func awaitValue(_ task: Object) -> Object {
+    return __syx_await_task(task)
+}
+    public static func mainActorRun(_ name: String) -> Object {
+    return __syx_main_actor_run(name)
+}
+    public static func taskGroupCreate() -> Object {
+    return __syx_task_group_create()
+}
+    public static func taskGroupAdd(_ group: Object, _ task: Object) -> Bool {
+    return __syx_task_group_add(group, task)
+}
+    public static func taskGroupWait(_ group: Object) {
+    __syx_task_group_wait(group)
+}
+    /// ADR-260 / M3-A01: cancel group token + all registered child handles (cooperative C004).
+    public static func taskGroupCancel(_ group: Object) {
+    __syx_task_group_cancel(group)
+}
+    /// ADR-261 / M3-A01: unreaped TaskRegistry size (silent-orphan diagnostic; ≠ EC-M3-2).
+    public static func liveTaskCount() -> Int {
+    return __syx_task_live_count()
+}
+    /// ADR-262 / M3-A02: task-scoped deadline (ms from now); children inherit; expiry → C004.
+    public static func setDeadlineMs(_ ms: Int) {
+    __syx_task_set_deadline_ms(ms)
+}
+    /// ADR-263 / M3-A02: task-local set (children inherit a clone; child writes do not affect parent).
+    public static func taskLocalSet(_ key: String, _ value: Object) {
+    __syx_task_local_set(key, value)
+}
+    /// ADR-263 / M3-A02: task-local get (Nil if missing).
+    public static func taskLocalGet(_ key: String) -> Object {
+    return __syx_task_local_get(key)
+}
+    /// ADR-264/265 / M3-A03: actor reentrancy policy (`serial-no-reenter;await-hold`); ≠ Swift await-reentrancy GA.
+    public static func actorReentrancyPolicy() -> String {
+    return __syx_actor_reentrancy_policy()
+}
+    /// ADR-275 / M3-B01: sleep on dedicated blocking pool (≠ Task pool / ≠ `__syx_task_sleep`).
+    public static func blockingSleep(_ ms: Int) {
+    __syx_blocking_sleep(ms)
+}
+    /// ADR-275/276 / M3-B01: Task vs blocking pool isolation fingerprint (`task-pool+blocking-pool-v1-sized`); ≠ reactor GA.
+    public static func isolationPolicy() -> String {
+    return __syx_isolation_policy()
+}
+    /// ADR-278/279 / M3-B02: File/HTTP/Tcp async adapter fingerprint (`blocking-pool-async-adapter-v1-tcp`); ≠ reactor GA.
+    public static func ioAdapterPolicy() -> String {
+    return __syx_io_adapter_policy()
+}
+    /// ADR-281 / M3-C01: Mutex RAII thin fingerprint; ADR-282 deepen bumps to `mutex-raii-guard-v1-blocking`.
+    public static func syncPolicy() -> String {
+    return __syx_sync_policy()
+}
+    /// ADR-284 / M3-C02: Semaphore thin fingerprint (`semaphore-v1-thin`); ≠ RWLock / ≠ Condvar product.
+    public static func semaphorePolicy() -> String {
+    return __syx_semaphore_policy()
+}
+    /// ADR-276 / M3-B01: configure blocking pool size (core=max=n; advanced runtime).
+    public static func setBlockingPoolSize(_ n: Int) -> Int {
+    return __syx_blocking_pool_set_size(n)
+}
+    public static func blockingPoolSize() -> Int {
+    return __syx_blocking_pool_size()
+}
+    /// ADR-270 / M3-A05: advanced runtime tuning (deploy/ops) — not primary business concurrency API.
+    /// Phase 133: configure Task ThreadPool size (effective before / on first schedule).
+    public static func setWorkerCount(_ n: Int) -> Int {
+    return __syx_task_set_worker_count(n)
+}
+    public static func workerCount() -> Int {
+    return __syx_task_worker_count()
+}
+    /// ADR-270: advanced runtime — Task submission queue capacity (`>0` bounded; `0` unbounded). Overflow uses reject policy.
+    public static func setTaskQueueCapacity(_ n: Int) -> Int {
+    return __syx_task_set_queue_capacity(n)
+}
+    public static func taskQueueCapacity() -> Int {
+    return __syx_task_queue_capacity()
+}
+    /// ADR-270: advanced runtime — Task reject policy when queue is full (`"abort"` | `"callerRuns"` | `"discardOldest"`).
+    /// Fingerprint: `runtime-concurrency-v5:discard-oldest-mvp`
+    public static func setTaskRejectPolicy(_ policy: String) -> String {
+    return __syx_task_set_reject_policy(policy)
+}
+    public static func taskRejectPolicy() -> String {
+    return __syx_task_reject_policy()
+}
+    /// ADR-270: advanced runtime — Task pool core / max / keepAlive (coexists with Abort/CallerRuns).
+    public static func setCorePoolSize(_ n: Int) -> Int {
+    return __syx_task_set_core_pool_size(n)
+}
+    public static func corePoolSize() -> Int {
+    return __syx_task_core_pool_size()
+}
+    public static func setMaximumPoolSize(_ n: Int) -> Int {
+    return __syx_task_set_maximum_pool_size(n)
+}
+    public static func maximumPoolSize() -> Int {
+    return __syx_task_maximum_pool_size()
+}
+    public static func setKeepAliveMs(_ ms: Int) -> Int {
+    return __syx_task_set_keep_alive_ms(ms)
+}
+    public static func keepAliveMs() -> Int {
+    return __syx_task_keep_alive_ms()
+}
+    public static func liveWorkerCount() -> Int {
+    return __syx_task_live_worker_count()
+}
+    /// Phase 133: max live actor executors (0 = unlimited). Overflow → C007.
+    public static func setMaxActors(_ n: Int) -> Int {
+    return __syx_actor_set_max_actors(n)
+}
+    public static func maxActors() -> Int {
+    return __syx_actor_max_actors()
+}
+    /// Phase 133: default actor mailbox capacity (`>0` bounded; `0` unbounded).
+    public static func setMailboxCapacity(_ n: Int) -> Int {
+    return __syx_actor_set_mailbox_capacity(n)
+}
+    public static func mailboxCapacity() -> Int {
+    return __syx_actor_mailbox_capacity()
+}
+    /// Phase 138: opt-in shared actor pool (default off — one thread per actor).
+    /// Fingerprint: `runtime-concurrency-v6:actor-shared-pool-mvp`
+    public static func setActorSharedPoolEnabled(_ enabled: Bool) -> Bool {
+    return __syx_actor_set_shared_pool_enabled(enabled)
+}
+    public static func actorSharedPoolEnabled() -> Bool {
+    return __syx_actor_shared_pool_enabled()
+}
+    public static func setActorSharedPoolSize(_ n: Int) -> Int {
+    return __syx_actor_set_shared_pool_size(n)
+}
+    public static func actorSharedPoolSize() -> Int {
+    return __syx_actor_shared_pool_size()
+}
+}

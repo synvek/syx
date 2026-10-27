@@ -1,0 +1,22 @@
+class Greeter {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+    func hello() {
+        print(self.name)
+    }
+}
+
+extension Greeter {
+    func greet() {
+        print("Hello, \(self.name)!")
+    }
+}
+
+func main() {
+    let g = Greeter(name: "Greeter")
+    g.hello()
+    g.greet()
+}
+

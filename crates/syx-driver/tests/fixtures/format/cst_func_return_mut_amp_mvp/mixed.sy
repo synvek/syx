@@ -1,0 +1,15 @@
+func id(x: Int) -> &mut Int {
+    print(x)
+    return x
+}
+
+func bare() -> &mut String {
+    return
+}
+
+func amp() -> &Int {
+    return
+}
+
+print(0)
+

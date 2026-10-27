@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cargo build syx",
+      "type": "shell",
+      "command": "cargo build --release -p syx-cli -q",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$rustc",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "close": true
+      }
+    },
+    {
+      "label": "syx LSP server",
+      "type": "shell",
+      "command": "${workspaceFolder}/target/release/syx",
+      "args": ["lsp"],
+      "dependsOn": ["cargo build syx"],
+      "problemMatcher": []
+    },
+    {
+      "label": "p8 integration tests",
+      "type": "shell",
+      "command": "cargo test -p syx-driver --test p8_integration",
+      "problemMatcher": "$rustc"
+    }
+  ]
+}

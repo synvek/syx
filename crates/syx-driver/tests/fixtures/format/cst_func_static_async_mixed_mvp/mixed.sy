@@ -1,0 +1,11 @@
+// ahead
+public static func go<T>() throws requires Pure where T: Bound {
+    // body
+    while flag
+    print(1)
+}
+private async func main() {
+    /* block */
+    print(2)
+}
+/* trail */

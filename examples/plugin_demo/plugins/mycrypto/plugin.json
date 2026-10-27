@@ -1,0 +1,20 @@
+{
+  "id": "mycrypto",
+  "api_version": 1,
+  "library": "libmycrypto_plugin.dylib",
+  "hosts": [
+    {
+      "name": "__syx_plugin_mycrypto_sha256",
+      "syx_name": "sha256",
+      "module": "Crypto",
+      "return_type": "String",
+      "params": [
+        "data: String"
+      ]
+    }
+  ],
+  "capabilities": [
+    "crypto"
+  ],
+  "min_syx_version": "27.0"
+}

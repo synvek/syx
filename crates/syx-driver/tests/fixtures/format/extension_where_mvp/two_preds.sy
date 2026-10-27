@@ -1,0 +1,5 @@
+extension Dictionary where Key: Hashable, Value: Equatable {
+    func baz() {
+    }
+}
+

@@ -1,0 +1,5 @@
+extension Array: Equatable where Element: Equatable {
+    func bar() {
+    }
+}
+

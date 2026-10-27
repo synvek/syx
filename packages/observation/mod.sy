@@ -1,0 +1,4 @@
+public func observe(object: Object, key: String) -> Bool {
+    return __syx_kvo_observe(object, key)
+}
+

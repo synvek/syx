@@ -1,0 +1,16 @@
+import Di
+
+@Service
+class SugarLogger {
+    init() {
+    }
+    func ping() -> String {
+        return "pong"
+    }
+}
+
+func main() {
+    let logger = Di.resolve("SugarLogger")
+    print(logger.ping())
+}
+

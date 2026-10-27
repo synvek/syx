@@ -1,0 +1,8 @@
+func answer() -> Int {
+    return 42
+}
+
+func hidden() -> Int {
+    return 99
+}
+

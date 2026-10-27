@@ -1,0 +1,56 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_u64_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 64-bit unsigned integer (`UInt64`). Prelude; host ops via `__syx_u64_*`.
+@builtin("numeric.u64")
+public class UInt64: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Smallest representable value (type bound, not binary min).
+    public static let min: UInt64 = 0u64
+
+    /// Largest representable value (type bound, not binary max).
+    public static let max: UInt64 = 18446744073709551615u64
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 64
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 8
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> UInt64 {
+        return 0u64
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_u64_min` / `_max`.
+    public static func clamp(x: UInt64, lo: UInt64, hi: UInt64) -> UInt64 {
+        return __syx_u64_min(__syx_u64_max(x, lo), hi)
+    }
+
+}
+
+extension UInt64 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_u64_compare`.
+    func compare(other: UInt64) -> Int {
+        return __syx_u64_compare(self, other)
+    }
+}
+

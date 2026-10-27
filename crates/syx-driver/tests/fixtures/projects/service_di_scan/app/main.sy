@@ -1,0 +1,18 @@
+import di_lib
+
+@Service
+class App {
+    let logger: Logger
+    init(@Inject logger: Logger) {
+        self.logger = logger
+    }
+    func run() -> String {
+        return self.logger.ping()
+    }
+}
+
+func main() {
+    let app = __syx_service_resolve("App")
+    print(app.run())
+}
+

@@ -1,0 +1,18 @@
+class Bag {
+}
+
+extension Bag {
+    subscript(i: Int) -> Int {
+        get {
+            return 0
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

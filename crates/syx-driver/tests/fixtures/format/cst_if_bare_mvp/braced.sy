@@ -1,0 +1,6 @@
+func main() {
+    if a {
+        print(1)
+        print(2)
+    }
+}

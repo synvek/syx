@@ -1,0 +1,5 @@
+func id<T>(x: T) {
+    while ready()
+    print(x)
+}
+

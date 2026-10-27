@@ -1,0 +1,23 @@
+@freestanding(declaration)
+#macro makePrinter(msg) {
+    func announce() {
+        print(msg)
+    }
+}
+
+@freestanding(declaration)
+#macro makeSum(a, b) {
+    func sum() -> Int {
+        return a + b
+    }
+}
+
+#makePrinter("decl-param-ok")
+
+#makeSum(20, 22)
+
+func main() {
+    announce()
+    print(sum())
+}
+

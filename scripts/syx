@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# DevEx wrapper: prefer release `syx` binary, fallback to `cargo run`.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BIN="$ROOT/target/release/syx"
+
+if [[ -x "$BIN" ]]; then
+  exec "$BIN" "$@"
+fi
+
+exec cargo run -q -p syx-cli -- "$@"

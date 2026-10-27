@@ -1,0 +1,7 @@
+func main() {
+    while x || y
+    print(1)
+    while a && b
+    print(2)
+}
+

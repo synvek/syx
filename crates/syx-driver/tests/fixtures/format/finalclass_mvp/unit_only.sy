@@ -1,0 +1,8 @@
+final class Unit {
+    only
+}
+
+func main() {
+    print(1)
+}
+

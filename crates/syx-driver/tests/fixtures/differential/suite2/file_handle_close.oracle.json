@@ -1,0 +1,15 @@
+{
+  "exit": 0,
+  "stdout": [
+    "120",
+    "true"
+  ],
+  "skip": {
+    "wasm": true,
+    "native": true,
+    "reason": {
+      "wasm": "WASM file hosts incomplete",
+      "native": "native handle path incomplete"
+    }
+  }
+}

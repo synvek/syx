@@ -1,0 +1,11 @@
+func main() {
+    switch x {
+    case Int.self:
+        print(1)
+    case String.self:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

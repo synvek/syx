@@ -1,0 +1,12 @@
+@freestanding(declaration)
+#macro makeHelper() {
+    data class DeclHelper(ok: Bool)
+}
+
+#makeHelper()
+
+func main() {
+    let h = DeclHelper(ok: true)
+    print(h.ok)
+}
+

@@ -1,0 +1,4 @@
+func id(x: &mut Int) {
+    print(x)
+}
+

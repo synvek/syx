@@ -1,0 +1,100 @@
+func main() {
+    test001()
+    test002()
+    test003()
+    test004()
+    test005()
+    test006()
+}
+
+func test006() {
+    let int1: Double = 8.0
+    let int2: Double = 8.0
+
+    print("Dict demo 6")
+    var s2: Dictionary<String, Double> = {}
+    print(s2.count)
+    s2["A"] = int1 
+    print(s2.count)
+    s2["B"] = int2
+    // Dictionary has no append (Array API); would be S002 in semantic / LSP.
+    // s2.append(2.0)
+    print(s2.count)
+}
+
+func test005() {
+    let int1: Double = 8.0
+    let int2: Double = 8.0
+
+    print("Array demo 5")
+    let s2: Array<Double> = []
+    print(s2.count)
+    s2.append(2)
+    print(s2.count)
+    //s2.append("2")
+    //print(s2.count)
+    s2.append(2.0)
+    print(s2.count)
+}
+
+func test004() {
+    let int1: Double = 8.0
+    let int2: Double = 8.0
+
+    print("Set demo 4")
+    let s1: Set<Double> = []
+    print(s1.count)
+    s1.insert(2)
+    print(s1.count)
+    //s1.insert("2")
+    //print(s1.count)
+    s1.insert(2.0)
+    print(s1.count)
+}
+
+func test003() {
+    let f1: Float = 8
+    let f2: Float = 8.0f32
+
+    print("Set demo 3")
+    let s1: Set<Float> = []
+    print(s1.count)
+    s1.insert(2)
+    print(s1.count)
+    //s1.insert("2")
+    //print(s1.count)
+    //s1.insert(2i8)
+    //print(s1.count)
+}
+
+func test002() {
+    let int1: Int8 = 8
+    let int2: Int = 8
+
+    print("Set demo")
+    let s1: Set<Int> = [1, 2,3]
+    print(s1.count)
+    s1.insert(2)
+    print(s1.count)
+    let s2: Set<Int> = Set()
+    s2.insert(1)
+    s2.insert(1)
+    s2.insert(3)
+    print(s2.count)
+    let s3: Set<Int> = []
+    s3.insert(1)
+    s3.insert(2)
+    s3.insert(1)
+    print(s3.count)
+}
+
+func test001() {
+    print("Dictionary demo")
+    let d: Dictionary<String, Int> = {"a": 1, "b": 2}
+    d["abc"] = 33
+    print(d.count)    
+    print("Array demo")
+    let c: Array<Int> = [3,4]
+    print(c.count)
+}
+

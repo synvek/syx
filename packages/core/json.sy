@@ -1,0 +1,52 @@
+public class JSON {
+    public static func encode(value: Object) -> String {
+    return __syx_json_encode(value)
+}
+    public static func decode(text: String) -> Object {
+    return __syx_json_decode(text)
+}
+}
+
+/// ADR-231 / M2-S7-02: nested subset + codingPath (see also json_encoder.sy).
+public class JSONEncoder {
+    public static func encode(value: Object, typeName: String) -> String {
+        return __syx_json_encoder_encode(value, typeName)
+    }
+}
+
+public class JSONDecoder {
+    public static func decode(text: String, typeName: String) -> Object throws {
+        return __syx_json_decoder_decode(text, typeName)
+    }
+}
+
+/// ADR-232 / M2-S7-03: NDJSON session + chunk feed (see also json_stream.sy).
+public class JSONStream {
+    public static func openWriter() -> Int {
+        return __syx_json_stream_open_writer()
+    }
+
+    public static func write(handle: Int, value: Object, typeName: String) throws {
+        __syx_json_stream_write(handle, value, typeName)
+    }
+
+    public static func finishWriter(handle: Int) -> String {
+        return __syx_json_stream_finish_writer(handle)
+    }
+
+    public static func openReader() -> Int {
+        return __syx_json_stream_open_reader()
+    }
+
+    public static func feed(handle: Int, chunk: String) throws {
+        __syx_json_stream_feed(handle, chunk)
+    }
+
+    public static func decodeNext(handle: Int, typeName: String) -> Object throws {
+        return __syx_json_stream_decode_next(handle, typeName)
+    }
+
+    public static func closeReader(handle: Int) {
+        __syx_json_stream_close_reader(handle)
+    }
+}

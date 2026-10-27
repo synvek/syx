@@ -1,0 +1,5 @@
+func io() requires IO {
+    while true
+    print(1)
+}
+

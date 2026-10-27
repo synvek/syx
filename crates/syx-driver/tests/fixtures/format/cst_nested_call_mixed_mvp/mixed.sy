@@ -1,0 +1,10 @@
+func go() requires IO {
+    let x = f(g())
+    print(x)
+}
+
+func main() {
+    while true
+    print(foo(bar()))
+}
+

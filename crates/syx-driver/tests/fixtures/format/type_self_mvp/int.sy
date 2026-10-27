@@ -1,0 +1,5 @@
+func main() {
+    let t = Int.self
+    print(1)
+}
+

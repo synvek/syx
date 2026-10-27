@@ -1,0 +1,3 @@
+Hello from sgate static file serving!
+
+This file is served from tools/sgate/public/hello.txt.

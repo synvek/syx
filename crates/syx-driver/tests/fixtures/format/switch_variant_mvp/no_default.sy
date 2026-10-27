@@ -1,0 +1,7 @@
+func main() {
+    switch r {
+    case .ok(let v):
+        print(v)
+    }
+}
+

@@ -1,0 +1,4 @@
+func main() {
+    print(Fmt.format("parity-{0}", [84]))
+}
+

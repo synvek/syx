@@ -1,0 +1,5 @@
+func boom() throws {
+    while ready()
+    print(1)
+}
+

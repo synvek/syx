@@ -1,0 +1,8 @@
+#boot()
+
+#setup(1)
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,3 @@
+func greeter(@Autowired @Qualifier("fast") logger: Logger) {
+}
+

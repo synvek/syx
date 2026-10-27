@@ -1,0 +1,9 @@
+/// a
+export func a() {
+    print(1)
+}
+/// b
+export func b() {
+    /* mid */
+    print(2)
+}

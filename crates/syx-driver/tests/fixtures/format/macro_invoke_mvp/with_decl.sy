@@ -1,0 +1,8 @@
+#macro double(x) {
+    return x
+}
+
+func main() {
+    print(#double(1))
+}
+

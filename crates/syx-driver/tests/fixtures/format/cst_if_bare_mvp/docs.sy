@@ -1,0 +1,6 @@
+/// docs
+func main() {
+    if flag {
+        print(1)
+    }
+}

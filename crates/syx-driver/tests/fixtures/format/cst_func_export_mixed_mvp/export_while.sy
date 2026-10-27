@@ -1,0 +1,5 @@
+export func loop() {
+    // body
+    while flag /* mid */
+    print(1)
+}

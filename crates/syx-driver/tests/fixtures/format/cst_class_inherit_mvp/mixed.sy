@@ -1,0 +1,11 @@
+/// a
+class A: Root {
+}
+/// b
+class B: Root {
+    /* mid */
+    var x: Int
+    func show() {
+        print(1)
+    }
+}

@@ -1,0 +1,20 @@
+class Box {
+    lazy var a: Int {
+        get {
+            return 1
+        }
+    }
+    lazy var b: Int {
+        get {
+            return 2
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

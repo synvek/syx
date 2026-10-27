@@ -1,0 +1,109 @@
+import config
+import Net
+import IO
+
+/// Config-driven reverse proxy (nginx-style catch-all on `/`).
+///
+/// Full-site proxy config (last location wins for unmatched paths):
+///   { "prefix": "/", "upstream": "web", "proxy": true, "strip_prefix": "" }
+///
+/// Notes:
+/// - Inner `while` exiting false aborts the enclosing `while`.
+/// - Proxy returns the upstream `HTTPResponse` so Content-Type / COOP / COEP
+///   are forwarded (Vm strips hop-by-hop / Content-Encoding after decode).
+/// - Tools use `Http.response` / `JSON.*` — not `__syx_*` host entry points.
+
+public func handle(req: Object) -> Object {
+    let path = "\(req.path)"
+    let query = "\(req.query)"
+
+    var querySuffix = ""
+    var qBuild = query
+    while qBuild != "" {
+        querySuffix = "?" + qBuild
+        qBuild = ""
+    }
+
+    var staticBase = "tools/sgate/public"
+    var useLocal = File.exists("public/index.html")
+    while useLocal == true {
+        staticBase = "public"
+        useLocal = false
+    }
+
+    let exactIdx = config.findExactLocation(path: path)
+    while exactIdx >= 0 {
+        let status = config.locationStaticStatus(i: exactIdx)
+        let body = config.locationStaticBody(i: exactIdx)
+        return Http.response(status, body)
+    }
+
+    let locIdx = config.findBestPrefixLocation(path: path)
+    while locIdx < 0 {
+        return Http.response(404, config.error_body_for(status: 404))
+    }
+
+    let prefEarly = config.locationPrefix(i: locIdx)
+    var rel = config.stripPrefixPath(path: "\(path)", prefix: "\(prefEarly)")
+    var useIndex = "0"
+    var rp = "\(rel)"
+    while rp == "/" {
+        useIndex = "1"
+        rp = ""
+    }
+    while useIndex == "1" {
+        rel = "/index.html"
+        useIndex = "0"
+    }
+
+    // proxy — return upstream response as-is (headers included)
+    var upFlag = "0"
+    var upProbe = config.locationUpstream(i: locIdx)
+    while upProbe != "" {
+        upFlag = "1"
+        upProbe = ""
+    }
+    while upFlag == "1" {
+        let strip = config.locationStripPrefix(i: locIdx)
+        let forwarded = config.stripPrefixPath(path: "\(path)", prefix: "\(strip)")
+        let uname = config.locationUpstream(i: locIdx)
+        let server = config.firstServer(name: "\(uname)")
+        let url = "http://" + "\(server)" + "\(forwarded)" + querySuffix
+        // Upgrade: return upgradeUpstream for Http.serve in-process byte proxy
+        // (do not Http.get — that would hang on the websocket socket).
+        let hdrs = req.headers
+        var upStr = (hdrs["Upgrade"] as? String) ?? ""
+        var needUpgrade = "0"
+        while upStr != "" {
+            needUpgrade = "1"
+            upStr = ""
+        }
+        while needUpgrade == "1" {
+            var upObj: Object = JSON.decode("{}")
+            upObj["upgradeUpstream"] = url
+            return upObj
+        }
+        return Http.get(url)
+    }
+
+    var rtFlag = "0"
+    var rtProbe = config.locationRoot(i: locIdx)
+    while rtProbe != "" {
+        rtFlag = "1"
+        rtProbe = ""
+    }
+    while rtFlag == "1" {
+        let filePath = staticBase + "\(rel)"
+        let content = File.read(filePath)
+        return Http.response(200, content)
+    }
+
+    let status = config.locationStaticStatus(i: locIdx)
+    let body = config.locationStaticBody(i: locIdx)
+    let blen = "\(body)".count
+    while blen > 0 {
+        return Http.response(status, body)
+    }
+
+    return Http.response(404, config.error_body_for(status: 404))
+}

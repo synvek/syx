@@ -1,0 +1,4 @@
+func opt() -> Box<List<String>>? {
+    return
+}
+

@@ -1,0 +1,19 @@
+print(0)
+
+func helper() {
+    let n: Int = 1
+}
+
+let x: Foo<A, B> = p
+
+var y: Dict<String, Int>? = q
+
+print(x)
+
+func main() {
+    print(y)
+    return
+}
+
+return
+

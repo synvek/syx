@@ -1,0 +1,9 @@
+func main() {
+    let a: Foo<A, B> = p
+    var b: Dict<String, Int>? = q
+    let f: (Foo<A, B>) -> Int = id
+    var g: (Int) -> Dict<String, List<Int>> = h
+    print(f)
+    return
+}
+

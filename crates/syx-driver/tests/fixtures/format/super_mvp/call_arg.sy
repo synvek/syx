@@ -1,0 +1,16 @@
+class Base {
+    func value() -> Int {
+        return 1
+    }
+}
+
+class Child: Base {
+    func use() {
+        print(super.value())
+    }
+}
+
+func main() {
+    print(1)
+}
+

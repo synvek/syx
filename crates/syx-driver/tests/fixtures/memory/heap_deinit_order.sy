@@ -1,0 +1,17 @@
+class Node {
+    var tag: Int
+    init(tag: Int) {
+        self.tag = tag
+    }
+    deinit {
+        print("deinit:")
+        print(self.tag)
+    }
+}
+
+func main() {
+    var n = Node(tag: 1)
+    n = Node(tag: 2)
+    print("done")
+}
+

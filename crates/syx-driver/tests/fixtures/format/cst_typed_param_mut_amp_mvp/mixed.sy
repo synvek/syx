@@ -1,0 +1,12 @@
+func id(x: &mut Int) {
+    print(x)
+    return x
+}
+
+func add(a: &mut Int, b) {
+    let s = a
+    return
+}
+
+print(0)
+

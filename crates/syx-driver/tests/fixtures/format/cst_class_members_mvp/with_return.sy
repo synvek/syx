@@ -1,0 +1,7 @@
+// ret
+class Id {
+    var x: Int
+    func get() -> Int {
+        return x
+    }
+}

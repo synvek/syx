@@ -1,0 +1,6 @@
+// ahead
+final class Token {
+    Ident
+    Number(value: Int)
+}
+/* trail */

@@ -1,0 +1,12 @@
+export { helper }
+class Sub: Box, Greeter {
+  deinit {
+    print(1)
+  }
+}
+func helper() {
+  print(2)
+}
+func main() {
+  print(3)
+}

@@ -1,0 +1,32 @@
+/// ADR-236 / M2-S4-01: facade returns `HTTPResponse` (not糊墙 `Object`).
+public class Http {
+    // Http.fetch — Phase 85 net-v2 surface (httpVersion option via __syx_http_request)
+    public static func fetch(url: String, options: Object) -> HTTPResponse {
+        return __syx_http_request(url, options)
+    }
+
+    public static func request(url: String, options: Object) -> HTTPResponse {
+        return __syx_http_request(url, options)
+    }
+
+    public static func get(url: String) -> HTTPResponse {
+        return __syx_http_get(url)
+    }
+
+    public static func post(url: String, body: Object) -> HTTPResponse {
+        return __syx_http_post(url, body)
+    }
+
+    public static func response(status: Int, body: Object) -> HTTPResponse {
+        return __syx_http_make_response(status, body)
+    }
+
+    public static func serve(addr: String, port: Int, handler: String) {
+        __syx_http_serve(addr, port, handler)
+    }
+
+    /// ADR-238 / M2-S4-03b: stop accepting; finish in-flight request; `serve` returns.
+    public static func shutdown() {
+        __syx_http_serve_shutdown()
+    }
+}

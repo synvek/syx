@@ -1,0 +1,6 @@
+// Package-local freestanding macro (exported via syx.toml [macros].exports).
+// Body is a statement, so the role must be `statement` (not `expression`).
+@freestanding(statement)
+#macro greet(name) {
+    print(name)
+}

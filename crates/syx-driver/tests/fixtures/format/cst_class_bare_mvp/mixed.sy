@@ -1,0 +1,8 @@
+/// a
+class A {
+}
+/// b
+class B {
+    /* mid */
+    var x: Int
+}

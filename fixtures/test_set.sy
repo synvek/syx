@@ -1,0 +1,45 @@
+func main() {
+    test001()
+    test002()
+    test003()
+}
+
+func test001() {
+    let a: Set<Int> = [1, 2]
+    let b: Set<Int> = [2, 3]
+    let u = a.union(b)
+    print(u.count)
+    print(u.contains(1))
+    print(u.contains(2))
+    print(u.contains(3))
+}
+
+func test002() {
+    let a: Set<Int> = [1, 2]
+    let b: Set<Int> = [2, 3]
+    let i = a.intersection(b)
+    print(i.count)
+    print(i.contains(1))
+    print(i.contains(2))
+    print(i.contains(3))
+}
+
+func test003() {
+    var s: Set<Int> = [1, 1, 2]
+    print(s.count)
+    print(s.insert(2))
+    print(s.count)
+    print(s.insert(3))
+    print(s.count)
+}
+
+func test004() {
+    let s: Set<Int> = [1, 2]
+    print(s.contains(2))
+    print(s.contains(9))
+}
+
+func test005() {
+    let s: Set<Int> = [1]
+    print(s.contains("x"))
+}

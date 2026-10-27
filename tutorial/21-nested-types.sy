@@ -1,0 +1,167 @@
+// =============================================================================
+// tutorial/21-nested-types.sy
+// 对应《SYX 语言指南》第 21 章「嵌套类型」
+//
+// 本章涉及语言特性：
+//   - 顶层类型（已实现）
+//   - 类型内嵌套 class / struct / enum / final class（Phase 139 MVP GA）
+//   - Outer.Inner 限定路径（Phase 139 MVP GA）
+//   - 多层嵌套 Outer.Middle.Inner（Phase 139 MVP GA）
+//   - flatten 命名（推荐做法）
+//   - 嵌套 enum 携带关联值
+// =============================================================================
+
+// 1) 单层嵌套
+class Outer {
+    class Inner {
+        var value: Int = 7
+        func describe() -> String { return "Outer.Inner(\(self.value))" }
+    }
+}
+
+// 2) 多层嵌套
+class App {
+    class UI {
+        class View {
+            var frame: String = "0,0,100,100"
+            func describe() -> String { return "App.UI.View(\(self.frame))" }
+        }
+    }
+    class Model {
+        class User {
+            var name: String = "anon"
+            func describe() -> String { return "App.Model.User(\(self.name))" }
+        }
+    }
+}
+
+// 3) 嵌套 enum
+class Game {
+    enum State {
+        case menu
+        case playing
+        case paused
+        case gameOver(score: Int)
+    }
+    var state: State = .menu
+    func transition(to s: State) { self.state = s }
+    func describe() -> String {
+        switch self.state {
+        case .menu: return "menu"
+        case .playing: return "playing"
+        case .paused: return "paused"
+        case .gameOver(let score): return "game over \(score)"
+        }
+    }
+}
+
+// 4) 嵌套 struct + class
+class Math2 {
+    struct Vector2D {
+        var x: Double
+        var y: Double
+        func count() -> Double { return sqrt(x * x + y * y) }
+    }
+    class Transform {
+        var position: Vector2D = Vector2D(x: 0, y: 0)
+        func translate(by v: Vector2D) {
+            self.position = Vector2D(x: position.x + v.x, y: position.y + v.y)
+        }
+    }
+}
+
+// 5) 嵌套类型作为参数 / 返回值
+func makeInner() -> Outer.Inner {
+    return Outer.Inner()
+}
+
+func useInner(_ i: Outer.Inner) {
+    print(i.describe())
+}
+
+// 6) 嵌套 final class
+class ServiceContainer {
+    final class Logger {
+        var prefix: String = "[log]"
+        func log(_ s: String) { print("\(prefix) \(s)") }
+    }
+}
+
+// 7) flatten 命名（推荐做法，避开当前 parser 边界）
+struct Color_RGB { var r: Int; var g: Int; var b: Int }
+struct Color_HSV { var h: Double; var s: Double; var v: Double }
+class ColorPalette {
+    func rgb(_ r: Int, _ g: Int, _ b: Int) -> Color_RGB { return Color_RGB(r: r, g: g, b: b) }
+    func hsv(_ h: Double, _ s: Double, _ v: Double) -> Color_HSV { return Color_HSV(h: h, s: s, v: v) }
+}
+
+// 8) 嵌套类型与协议
+class EventBus {
+    enum Event {
+        case userLogin(userId: String)
+        case userLogout(userId: String)
+        case messageReceived(text: String)
+    }
+    protocol Subscriber {
+        func onEvent(_ e: Event)
+    }
+}
+
+// 9) 嵌套类型 + 数据类
+data class AppConfig {
+    let name: String
+    let version: String
+    let features: Array<String>
+
+    class Database {
+        let host: String
+        let port: Int
+    }
+}
+
+// 10) 嵌套类型 + 静态成员
+class Schema {
+    class Table {
+        let name: String
+        let columns: Array<String>
+    }
+    static let users = Table(name: "users", columns: ["id", "name", "email"])
+    static let posts = Table(name: "posts", columns: ["id", "title", "body", "user_id"])
+}
+
+func main() {
+    // 单层
+    let i = Outer.Inner()
+    print(i.describe())                                  // "Outer.Inner(7)"
+
+    // 多层
+    let v = App.UI.View()
+    print(v.describe())
+    let u = App.Model.User()
+    print(u.describe())
+
+    // 嵌套 enum
+    let g = Game()
+    print(g.describe())                                  // "menu"
+    g.transition(to: .playing)
+    print(g.describe())                                  // "playing"
+    g.transition(to: .gameOver(score: 100))
+    print(g.describe())                                  // "game over 100"
+
+    // 嵌套 struct / class
+    let m = Math2.Transform()
+    m.translate(by: Math2.Vector2D(x: 3, y: 4))
+    print("pos=(\(m.position.x), \(m.position.y))")
+
+    // final nested
+    let logger = ServiceContainer.Logger()
+    logger.log("hello")
+
+    // flatten 风格
+    let pal = ColorPalette()
+    let c = pal.rgb(255, 0, 0)
+    print("rgb=\(c.r),\(c.g),\(c.b)")
+
+    // 静态成员
+    print("users table=\(Schema.users.name) cols=\(Schema.users.columns)")
+}

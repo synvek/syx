@@ -1,0 +1,12 @@
+func main() {
+    let s = """
+line one
+line two
+"""
+    print(s.count)
+    let name = "World"
+    let hi = """
+Hello, \(name)!
+"""
+    print(hi)
+}

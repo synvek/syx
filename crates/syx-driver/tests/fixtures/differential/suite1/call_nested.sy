@@ -1,0 +1,8 @@
+func inc(x) -> Int {
+    return x + 1
+}
+
+func main() {
+    print(inc(x: inc(x: 1)))
+}
+

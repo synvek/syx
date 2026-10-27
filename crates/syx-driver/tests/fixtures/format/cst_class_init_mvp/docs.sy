@@ -1,0 +1,9 @@
+/// docs
+class Counter {
+    var n: Int
+    init(n: Int) {
+        /* mid */
+        print(1)
+    }
+}
+/* trail */

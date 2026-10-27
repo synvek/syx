@@ -1,0 +1,34 @@
+[package]
+name = "syx-wasm-emit"
+description = "WASM binary emitter for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-mir = { workspace = true }
+# No jit-tier2/http/file — browser emit only needs MirRuntime + op ids.
+syx-mir-run = { path = "../syx-mir-run", default-features = false }
+syx-config = { workspace = true }
+syx-diagnostics = { workspace = true }
+syx-stdlib = { workspace = true }
+wasm-encoder = { workspace = true }
+wasmprinter = "0.220"
+wasmparser = "0.219"
+
+[[bin]]
+name = "wasm_aot_ratio"
+path = "src/bin/wasm_aot_ratio.rs"
+
+[dev-dependencies]
+wasmparser = "0.219"
+syx-mir = { workspace = true }
+syx-wasm-run = { workspace = true }
+syx-parser = { workspace = true }
+syx-diagnostics = { workspace = true }
+
+[[example]]
+name = "validate_p115"
+path = "examples/validate_p115.rs"

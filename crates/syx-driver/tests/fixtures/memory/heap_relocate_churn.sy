@@ -1,0 +1,5 @@
+func main() {
+    print(__syx_gc_churn_heap("quad"))
+    print("done")
+}
+

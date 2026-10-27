@@ -1,0 +1,11 @@
+@freestanding(declaration)
+#macro makeHelper() {
+    data class DeclHelper(ok: Bool)
+}
+
+#makeHelper()
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,7 @@
+func main() {
+    switch x {
+    case a * b:
+        print(1)
+    }
+}
+

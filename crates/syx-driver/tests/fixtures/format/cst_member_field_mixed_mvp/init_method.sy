@@ -1,0 +1,10 @@
+/// docs
+class Box {
+  var name: String
+  init(name: String) {
+    box.name = name
+  }
+  func clear() {
+    self.name = ""
+  }
+}

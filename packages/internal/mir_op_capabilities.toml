@@ -1,0 +1,149 @@
+# MirOp capability overrides (M1-B04 / ADR-136).
+# Inventory = `pub enum MirOp` in crates/syx-mir/src/lib.rs.
+# Missing name ⇒ generator emits status=unsupported (fail-closed).
+
+[meta]
+version = "0.1"
+syx_version = "117.0"
+phase = 139
+schema = "syx-mir-op-capability-v0"
+
+# Suite-1 pilot set (EC-M1-3): arith / branch / call / string.
+
+[[op]]
+name = "ConstI32"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "ConstStr"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "ConstBool"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-547 / W203: suite1 ConstBool llvm+wasm=real (RT push_bool + print/branch nails); cranelift unsupported keeps partial"
+
+[[op]]
+name = "ConstNil"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-547 / W203: suite1 ConstNil llvm+wasm=real (RT push_nil + print nails); cranelift unsupported keeps partial"
+
+[[op]]
+name = "LoadLocal"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "StoreLocal"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "Add"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "Sub"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "Mul"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "Div"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "Print"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-552 / W208: suite1 Print wasm=real (Int/String/Bool/Nil narrow print nails + differential 16/16); cranelift unsupported keeps partial"
+
+[[op]]
+name = "Jump"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "JumpIfFalse"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; W198 array_for_in control-flow evidence"
+
+[[op]]
+name = "Call"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "Return"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199: suite1 pilot product backends real; differential 16/16; cranelift unsupported keeps partial"
+
+[[op]]
+name = "CallHost"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-553 / W209: suite1 CallHost llvm+wasm=real (narrow host fn call nails + differential 16/16); cranelift unsupported keeps partial; ≠ full HostFn inventory batch / ≠ all host GA"
+
+[[op]]
+name = "MakeIterator"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-542 / W198 array_for_in native+wasm unskip; ADR-543 inventory notes cleared; ADR-223 M2-S1-01 Iterator for-in pilot subset"
+
+[[op]]
+name = "IteratorNext"
+status = "partial"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-542 / W198 array_for_in native+wasm unskip; ADR-543 inventory notes cleared; ADR-223 Iterator.next Int? pilot subset"
+
+[[op]]
+name = "ArrayGet"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199 suite1 pilot product backends real; W195 native + W197 wasm array_index evidence"
+
+[[op]]
+name = "ObjectGet"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-543 / W199 suite1 pilot product backends real; W196 native + W197 wasm dict_subscript evidence"

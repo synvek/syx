@@ -1,0 +1,6 @@
+func main() {
+    let scores: Dictionary<Int, Int> = {2: 4, 3: 6}
+    print(scores[2])
+    print(scores.count)
+}
+

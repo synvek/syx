@@ -1,0 +1,6 @@
+class Box {
+  var count: Int
+  func half() {
+    box.count /= 2
+  }
+}

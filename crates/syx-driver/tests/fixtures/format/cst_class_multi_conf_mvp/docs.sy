@@ -1,0 +1,5 @@
+/// docs
+class Sub: Box, Greeter {
+  var name: String
+}
+/* trail */

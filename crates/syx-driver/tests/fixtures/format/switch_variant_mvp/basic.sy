@@ -1,0 +1,9 @@
+func main() {
+    switch r {
+    case .ok(let v):
+        print(v)
+    default:
+        print(0)
+    }
+}
+

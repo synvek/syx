@@ -1,0 +1,7 @@
+// ahead
+data class Point(x: Int, y: Int)
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

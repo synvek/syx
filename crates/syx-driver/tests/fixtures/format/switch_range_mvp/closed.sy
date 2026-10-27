@@ -1,0 +1,9 @@
+func main() {
+    switch 2 {
+    case 1...3:
+        print(1)
+    default:
+        print(0)
+    }
+}
+

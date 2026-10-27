@@ -1,0 +1,17 @@
+#macro apply(f, x) {
+    f(x) + f(x)
+}
+
+#macro pair(x) {
+    [x, x]
+}
+
+func inc(_ v: Int) -> Int {
+    return v + 1
+}
+
+func main() {
+    print(#apply(inc, 10))
+    print(#pair(21))
+}
+

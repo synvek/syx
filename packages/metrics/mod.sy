@@ -1,0 +1,48 @@
+/// ADR-298 / ADR-299 / M3-D03: Metrics Counter + Gauge + labels
+/// (≠ OTel/Prometheus GA / ≠ Histogram / ≠ D04 / ≠ EC-M3).
+public class Metrics {
+    /// Increment named counter by delta; returns new value.
+    public static func inc(name: String, delta: Int) -> Int {
+        return __syx_metrics_counter_inc(name, delta)
+    }
+
+    /// Current counter value (0 if missing).
+    public static func get(name: String) -> Int {
+        return __syx_metrics_counter_get(name)
+    }
+
+    /// Remove named counter (test isolation).
+    public static func reset(name: String) -> Bool {
+        return __syx_metrics_counter_reset(name)
+    }
+
+    /// Set named gauge; returns written value.
+    public static func gaugeSet(name: String, value: Int) -> Int {
+        return __syx_metrics_gauge_set(name, value)
+    }
+
+    /// Current gauge value (0 if missing).
+    public static func gaugeGet(name: String) -> Int {
+        return __syx_metrics_gauge_get(name)
+    }
+
+    /// Increment labeled counter; empty labels ≡ `inc`.
+    public static func incLabels(name: String, delta: Int, labels: Dictionary) -> Int {
+        return __syx_metrics_counter_inc_labels(name, delta, labels)
+    }
+
+    /// Get labeled counter; empty labels ≡ `get`.
+    public static func getLabels(name: String, labels: Dictionary) -> Int {
+        return __syx_metrics_counter_get_labels(name, labels)
+    }
+
+    /// Sorted snapshot: `name=v` / `name{k=v}=n` / `g:name=v`.
+    public static func snapshot() -> String {
+        return __syx_metrics_snapshot()
+    }
+
+    /// Fingerprint `metrics-v1-gauge-labels` (≠ OTel / ≠ Histogram / ≠ D03 leaf).
+    public static func policy() -> String {
+        return __syx_metrics_policy()
+    }
+}

@@ -1,0 +1,16 @@
+class Base {
+    func setup(name: String) {
+        print(name)
+    }
+}
+
+class Child: Base {
+    init(name: String) {
+        super.setup(name: name)
+    }
+}
+
+func main() {
+    print(1)
+}
+

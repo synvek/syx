@@ -1,0 +1,13 @@
+func ok() -> Bool {
+    return true
+}
+
+func main() {
+    switch 1 {
+    case 1 where ok():
+        print(1)
+    default:
+        print(0)
+    }
+}
+

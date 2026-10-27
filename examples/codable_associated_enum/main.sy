@@ -1,0 +1,19 @@
+@Codable
+enum WireStatus {
+    ok(code: Int)
+    err(message: String)
+}
+
+func main() {
+    let a = WireStatus.ok(code: 7)
+    let j = a.encode()
+    print(j)
+    let b = WireStatus.decode(text: j)
+    print(b.code)
+    let e = WireStatus.err(message: "nope")
+    let ej = e.encode()
+    print(ej)
+    let e2 = WireStatus.decode(text: ej)
+    print(e2.message)
+}
+

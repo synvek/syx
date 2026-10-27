@@ -1,0 +1,9 @@
+class Box {
+  var count: Int
+  init() {
+    count += 1
+  }
+  deinit {
+    print(1)
+  }
+}

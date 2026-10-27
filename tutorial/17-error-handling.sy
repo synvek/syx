@@ -1,0 +1,186 @@
+// =============================================================================
+// tutorial/17-error-handling.sy
+// 对应《SYX 语言指南》第 17 章「错误处理」
+//
+// 本章涉及语言特性：
+//   - throws 函数声明
+//   - throw 表达式
+//   - try { } catch (e) { } 块
+//   - try? / try!
+//   - throws T 类型化错误（部分实现）
+//   - Result<T, E> 显式代数
+//   - 错误传播链
+//   - 自定义 Error 协议（推荐用 enum）
+// =============================================================================
+
+// 1) 基础 try / catch
+func tryCatchBlock() {
+    try {
+        let content = "fake-content"                     // 模拟 File.read
+        print("content=\(content)")
+    } catch (err) {
+        print("failed: \(err)")
+    }
+}
+
+// 2) throws 函数 + throw
+func divide(_ a: Int, _ b: Int) throws -> Int {
+    if b == 0 {
+        throw "division by zero"
+    }
+    return a / b
+}
+
+func loadFile(path: String) throws -> String {
+    if path.isEmpty { throw "empty path" }
+    return "content of \(path)"
+}
+
+func parseInt(_ s: String) throws -> Int {
+    if s == "" { throw "empty string" }
+    // 简化：直接 Int(s) 假定成功
+    return 42
+}
+
+// 3) try? — 失败转 nil
+func tryOptional() {
+    let v1: Int? = try? divide(10, 2)                    // Optional(5)
+    let v2: Int? = try? divide(10, 0)                    // nil
+    print("v1=\(v1) v2=\(v2)")
+}
+
+// 4) try! — 失败抛错（断言非空）
+func tryForce() {
+    let v = try! divide(10, 2)                           // 5
+    print("v=\(v)")
+    // let bad = try! divide(10, 0)                     // ❌ 运行时 R008
+}
+
+// 5) 错误传播链
+func workflow(_ path: String) throws -> String {
+    let content = try loadFile(path: path)
+    let n = try parseInt(content)
+    let result = try divide(n, 2)
+    return "result=\(result)"
+}
+
+func callWorkflow() {
+    try {
+        let r = workflow("/tmp/x")
+        print("workflow: \(r)")
+    } catch (err) {
+        print("workflow failed: \(err)")
+    }
+}
+
+// 6) 自定义 Error 协议 + enum
+protocol AppError: Error {
+    var code: Int { get }
+    var message: String { get }
+}
+
+enum NetworkError: AppError {
+    case timeout
+    case notFound
+    case server(code: Int, message: String)
+
+    var code: Int {
+        switch self {
+        case .timeout: return 1001
+        case .notFound: return 1004
+        case .server(let code, _): return code
+        }
+    }
+    var message: String {
+        switch self {
+        case .timeout: return "request timed out"
+        case .notFound: return "not found"
+        case .server(_, let m): return m
+        }
+    }
+}
+
+func fetchResource(_ id: String) throws -> String {
+    if id == "missing" { throw NetworkError.notFound }
+    if id == "boom" { throw NetworkError.server(code: 500, message: "internal") }
+    return "data-\(id)"
+}
+
+func handleErrors() {
+    let ids = ["a", "missing", "b", "boom", "c"]
+    for id in ids {
+        try {
+            let data = fetchResource(id)
+            print("got: \(data)")
+        } catch (err) {
+            print("err for \(id): \(err)")
+        }
+    }
+}
+
+// 7) Result<T, E> 显式返回
+enum MyResult<T, E> {
+    case ok(T)
+    case err(E)
+}
+
+func safeDivide(_ a: Int, _ b: Int) -> MyResult<Int, String> {
+    if b == 0 { return .err("div by zero") }
+    return .ok(a / b)
+}
+
+func chainResult() {
+    let r1 = safeDivide(20, 4)
+    switch r1 {
+    case .ok(let v): print("ok: \(v)")
+    case .err(let e): print("err: \(e)")
+    }
+    let r2 = safeDivide(20, 0)
+    switch r2 {
+    case .ok(let v): print("ok: \(v)")
+    case .err(let e): print("err: \(e)")
+    }
+}
+
+// 8) Result 链式（标准库 Result）
+func resultChain() {
+    let r: Result<Int, String> = Result.ok(10)
+    let r2 = r.flatMap { v in
+        if v > 0 { return Result.ok(v * 2) }
+        return Result.err("non-positive")
+    }
+    print("r2 ok=\(r2)")
+}
+
+// 9) 错误重抛（rethrows 未实现，仅示意）
+// func map<T>(_ arr: Array<T>, _ f: (T) throws -> T) rethrows -> Array<T> { ... }
+
+// 10) Optional 作为最轻量错误表达
+func findUser(_ id: Int) -> User? {
+    if id > 0 { return User(id: id, name: "u-\(id)", email: "u\(id)@x.com") }
+    return nil
+}
+
+func optionalError() {
+    let u1 = findUser(7)
+    let u2 = findUser(-1)
+    print("u1=\(u1?.name ?? "none")  u2=\(u2?.name ?? "none")")
+}
+
+// 11) throws + 异步
+async func asyncDivide(_ a: Int, _ b: Int) throws -> Int {
+    if b == 0 { throw "div by zero" }
+    await __syx_task_sleep(1)
+    return a / b
+}
+
+func main() {
+    tryCatchBlock()
+    tryOptional()
+    tryForce()
+    callWorkflow()
+    handleErrors()
+    chainResult()
+    resultChain()
+    optionalError()
+}

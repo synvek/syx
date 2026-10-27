@@ -1,0 +1,6 @@
+class Box {
+  var items: Int
+  func put(i: Int, j: Int) {
+    buf[i][j] = 2
+  }
+}

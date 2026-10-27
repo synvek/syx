@@ -1,0 +1,5 @@
+// Resource lifetime protocol (I/O / RAII layer).
+
+/// Types that own a resource that must be closed.
+public protocol Closeable {
+}

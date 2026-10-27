@@ -1,0 +1,15 @@
+func id(x: Foo<(Int) -> Bool>) {
+    print(x)
+    return x
+}
+
+func ret() -> Bar<()> {
+    return
+}
+
+func nest(x: Box<(Int) -> (Int) -> Bool>) {
+    return
+}
+
+print(0)
+

@@ -1,0 +1,131 @@
+/// ADR-242 / M2-S6-01: ProcessBuilder cwd/env overlay + Child kill/waitTimeout.
+/// ADR-243 / M2-S6-02b: Child.stdout/stderr/stdin + ChildPipe readChunk/write/close.
+/// ADR-244 / M2-S6-03: Child.signal(TERM/INT/KILL); ≠ Child.kill (force + remove).
+/// Wait/kill then again must fail. Close pipe then read/write must fail.
+/// Legacy `Process.spawn`/`wait` remain sentinel-compatible (≠ this surface).
+
+/// Thin process error (aligns with IOError style).
+public data class ProcessError(code: Int, message: String)
+
+public class ProcessBuilder {
+    public static func create(command: String, args: Array<String>) -> Int throws {
+        try {
+            return __syx_process_builder_create(command, args)
+        } catch (e) {
+            throw ProcessError(code: 1, message: "ProcessBuilder create failed")
+        }
+    }
+
+    public static func cwd(builder: Int, path: String) throws {
+        try {
+            __syx_process_builder_cwd(builder, path)
+        } catch (e) {
+            throw ProcessError(code: 2, message: "ProcessBuilder cwd failed")
+        }
+    }
+
+    public static func env(builder: Int, key: String, value: String) throws {
+        try {
+            __syx_process_builder_env(builder, key, value)
+        } catch (e) {
+            throw ProcessError(code: 3, message: "ProcessBuilder env failed")
+        }
+    }
+
+    public static func spawn(builder: Int) -> Int throws {
+        try {
+            return __syx_process_builder_spawn(builder)
+        } catch (e) {
+            throw ProcessError(code: 4, message: "ProcessBuilder spawn failed")
+        }
+    }
+}
+
+public class Child {
+    public static func wait(handle: Int) -> Int throws {
+        try {
+            return __syx_child_wait(handle)
+        } catch (e) {
+            throw ProcessError(code: 5, message: "Child wait failed")
+        }
+    }
+
+    public static func kill(handle: Int) throws {
+        try {
+            __syx_child_kill(handle)
+        } catch (e) {
+            throw ProcessError(code: 6, message: "Child kill failed")
+        }
+    }
+
+    /// ADR-244: send TERM/INT/KILL without removing handle (still waitable).
+    /// Windows: only KILL; TERM/INT throw unsupported.
+    public static func signal(handle: Int, name: String) throws {
+        try {
+            __syx_child_signal(handle, name)
+        } catch (e) {
+            throw ProcessError(code: 14, message: "Child signal failed")
+        }
+    }
+
+    /// On timeout the child is killed and this throws.
+    public static func waitTimeout(handle: Int, timeoutMs: Int) -> Int throws {
+        try {
+            return __syx_child_wait_timeout(handle, timeoutMs)
+        } catch (e) {
+            throw ProcessError(code: 7, message: "Child waitTimeout failed")
+        }
+    }
+
+    /// ADR-243: take stdout into a ChildPipe session (once).
+    public static func stdout(handle: Int) -> Int throws {
+        try {
+            return __syx_child_stdout(handle)
+        } catch (e) {
+            throw ProcessError(code: 8, message: "Child stdout take failed")
+        }
+    }
+
+    public static func stderr(handle: Int) -> Int throws {
+        try {
+            return __syx_child_stderr(handle)
+        } catch (e) {
+            throw ProcessError(code: 9, message: "Child stderr take failed")
+        }
+    }
+
+    public static func stdin(handle: Int) -> Int throws {
+        try {
+            return __syx_child_stdin(handle)
+        } catch (e) {
+            throw ProcessError(code: 10, message: "Child stdin take failed")
+        }
+    }
+}
+
+public class ChildPipe {
+    /// Empty array means EOF.
+    public static func readChunk(pipe: Int, maxBytes: Int) -> Array<UInt8> throws {
+        try {
+            return __syx_child_pipe_read_chunk(pipe, maxBytes)
+        } catch (e) {
+            throw ProcessError(code: 11, message: "ChildPipe read failed")
+        }
+    }
+
+    public static func write(pipe: Int, bytes: Array<UInt8>) -> Int throws {
+        try {
+            return __syx_child_pipe_write(pipe, bytes)
+        } catch (e) {
+            throw ProcessError(code: 12, message: "ChildPipe write failed")
+        }
+    }
+
+    public static func close(pipe: Int) throws {
+        try {
+            __syx_child_pipe_close(pipe)
+        } catch (e) {
+            throw ProcessError(code: 13, message: "ChildPipe close failed")
+        }
+    }
+}

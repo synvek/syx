@@ -1,0 +1,20 @@
+class Base {
+    var doubled: Int {
+        get {
+            return 0
+        }
+    }
+}
+
+class Box: Base {
+    override var doubled: Int {
+        get {
+            return 1
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

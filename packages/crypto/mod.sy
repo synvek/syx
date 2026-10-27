@@ -1,0 +1,35 @@
+public class Crypto {
+    public static func sha256(_ s: String) -> String {
+        return __syx_crypto_sha256(s)
+    }
+
+    public static func sha512(_ s: String) -> String {
+        return __syx_crypto_sha512(s)
+    }
+
+    public static func hmacSha256(key: String, message: String) -> String {
+        return __syx_crypto_hmac_sha256(key, message)
+    }
+
+    public static func aesGcmEncrypt(key: String, nonce: String, plaintext: String) -> String {
+        return __syx_crypto_aes_gcm_encrypt(key, nonce, plaintext)
+    }
+
+    public static func ed25519Sign(key: String, message: String) -> String {
+        return __syx_crypto_ed25519_sign(key, message)
+    }
+
+    public static func ed25519Verify(key: String, message: String, signature: String) -> Bool {
+        return __syx_crypto_ed25519_verify(key, message, signature)
+    }
+
+    /// M0-B04: experimental — ABI aligned with host (password, salt, iterations, dkLen).
+    /// Not production GA until RFC vector suite is complete (W2+).
+    public static func pbkdf2(password: String, salt: String, iterations: Int, dkLen: Int) -> String {
+        return __syx_crypto_pbkdf2(password, salt, iterations, dkLen)
+    }
+
+    public static func randomBytes(_ count: Int) -> Array<UInt8> {
+        return __syx_random_fill_bytes(count)
+    }
+}

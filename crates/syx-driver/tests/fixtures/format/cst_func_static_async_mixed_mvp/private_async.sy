@@ -1,0 +1,5 @@
+// ahead
+private async func worker() {
+    /* mid */
+    print(1)
+}

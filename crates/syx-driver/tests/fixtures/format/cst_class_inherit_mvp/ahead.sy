@@ -1,0 +1,5 @@
+// ahead
+class Child: Parent {
+    var name: String
+}
+/* trail */

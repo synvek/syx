@@ -1,0 +1,7 @@
+func main() {
+    print(#a())
+    #b(1)
+    return
+    #c("x")
+}
+

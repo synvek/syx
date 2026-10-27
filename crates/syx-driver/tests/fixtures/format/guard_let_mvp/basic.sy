@@ -1,0 +1,9 @@
+func main() {
+    guard let x = opt else {
+        return
+    }
+    {
+        print(x)
+    }
+}
+

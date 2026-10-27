@@ -1,0 +1,8 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_{{SLUG}}_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// {{DOC}}
+@builtin("{{ID}}")
+public class {{TY}}: {{PROTOCOLS}} {
+{{BOUNDS}}{{EPSILON}}{{ABS_SIGN}}{{WIDTHS_CLAMP}}{{WIDE}}}
+{{WITNESS}}

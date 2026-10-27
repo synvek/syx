@@ -1,0 +1,12 @@
+class Base {
+    var n: Int = 0
+}
+
+class PublicBox: Base {
+    public override var n: Int = 1
+}
+
+func main() {
+    print(1)
+}
+

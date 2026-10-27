@@ -1,0 +1,7 @@
+while go
+print(0)
+
+func main() {
+    print(1)
+}
+

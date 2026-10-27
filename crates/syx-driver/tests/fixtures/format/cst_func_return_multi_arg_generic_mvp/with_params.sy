@@ -1,0 +1,5 @@
+func id(x: Int) -> Foo<A, B> {
+    print(x)
+    return x
+}
+

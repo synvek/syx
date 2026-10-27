@@ -1,0 +1,26 @@
+@freestanding(declaration)
+#macro makeFunc(fnName, msg) {
+    func fnName() {
+        print(msg)
+    }
+}
+
+@freestanding(declaration)
+#macro makeDefault(base) {
+    func compute() -> Int {
+        return base + 1
+    }
+}
+
+#makeFunc(greet, "decl-token-ok")
+
+#makeFunc(bye, "decl-token-bye")
+
+#makeDefault(41)
+
+func main() {
+    greet()
+    bye()
+    print(compute())
+}
+

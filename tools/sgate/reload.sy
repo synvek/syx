@@ -1,0 +1,77 @@
+import config
+import IO
+import Log
+import DateTime
+
+var RELOAD_PATH: String = ""
+var RELOAD_LAST_MTIME: Int = 0
+var RELOAD_LAST_CHECK_MS: Int = 0
+var RELOAD_RELOADS: Int = 0
+
+func jInt(v: Any, fallback: Int) -> Int {
+    return (v as? Int) ?? fallback
+}
+
+public func reloadBind(path: String) {
+    // Bisect: assign path only — avoid File.stat / DateTime during bind.
+    RELOAD_PATH = path
+}
+
+func nowMs() -> Int {
+    return jInt(v: DateTime.now().ms, fallback: 0)
+}
+
+func statMtime(path: String) -> Int {
+    if path == ""
+    return 0
+    if !File.exists(path)
+    return 0
+    let st = File.stat(path)
+    return jInt(v: st.modifiedMs, fallback: 0)
+}
+
+public func reloadApply() -> Bool {
+    if RELOAD_PATH == "" {
+        Log.warn("reload: no path bound, ignoring apply()")
+        return false
+    }
+    let txt = File.read(RELOAD_PATH)
+    let parsed = JSON.decode(text: txt)
+    config.setConfig(obj: parsed)
+    RELOAD_RELOADS = RELOAD_RELOADS + 1
+    Log.info("reload: config reloaded from \(RELOAD_PATH) (rev #\(RELOAD_RELOADS))")
+    return true
+}
+
+public func reloadMaybe(intervalMs: Int) -> Bool {
+    if intervalMs <= 0
+    return false
+    if RELOAD_PATH == ""
+    return false
+    let now = nowMs()
+    if now - RELOAD_LAST_CHECK_MS < intervalMs
+    return false
+    RELOAD_LAST_CHECK_MS = now
+    let watched = __syx_file_watch(RELOAD_PATH)
+    let watchedSomething = watched.count > 0
+    let mt = statMtime(path: RELOAD_PATH)
+    if mt == RELOAD_LAST_MTIME && !watchedSomething
+    return false
+    RELOAD_LAST_MTIME = mt
+    return reloadApply()
+}
+
+public func reloadForce() -> Bool {
+    if RELOAD_PATH == ""
+    return false
+    RELOAD_LAST_MTIME = statMtime(path: RELOAD_PATH)
+    return reloadApply()
+}
+
+public func reloadPath() -> String {
+    return RELOAD_PATH
+}
+
+public func reloadCount() -> Int {
+    return RELOAD_RELOADS
+}

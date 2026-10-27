@@ -1,0 +1,9 @@
+final class PairBox<T> {
+    one(value: T)
+    two(a: T, b: T)
+}
+
+func main() {
+    print(1)
+}
+

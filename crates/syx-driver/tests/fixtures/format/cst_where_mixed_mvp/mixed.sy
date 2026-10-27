@@ -1,0 +1,13 @@
+func id<T>(x: T) throws requires IO where T: Equatable {
+    print(foo(bar()))
+}
+
+func go<U>() where U: Bound {
+    while ready() {
+        let x = f(g())
+        print(x)
+    }
+}
+
+print(1)
+

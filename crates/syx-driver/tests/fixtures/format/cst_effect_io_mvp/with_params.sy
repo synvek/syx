@@ -1,0 +1,4 @@
+func go(x: Int) requires IO {
+    print(x)
+}
+

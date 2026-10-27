@@ -1,0 +1,12 @@
+// ahead
+class Box {
+  var items: Int
+  func scale(i: Int, n: Int) {
+    xs[i] *= n
+  }
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

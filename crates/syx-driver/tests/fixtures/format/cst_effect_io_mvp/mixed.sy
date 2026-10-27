@@ -1,0 +1,8 @@
+func a() requires IO {
+    print(1)
+}
+
+func b(x: Int) -> Int requires IO {
+    return x
+}
+

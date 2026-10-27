@@ -1,0 +1,219 @@
+// sgate/sha1.sy
+// ---------------------------------------------------------------
+// Pure-SYX SHA-1 implementation.
+//
+// Why this exists: WebSocket's RFC 6455 handshake requires
+// `Sec-WebSocket-Accept = base64(sha1(client_key + magic))`
+// where the magic is the literal GUID
+//   258EAFA5-E914-47DA-95CA-C5AB0DC85B11
+//
+// SYX's stdlib exposes SHA-256 / SHA-512 / HMAC but not SHA-1.
+// Rather than open-code the hash in TcpStream-driven WS code,
+// we provide a small, tested-in-spirit implementation here.
+// This is the reference algorithm from FIPS PUB 180-4.
+//
+// Implementation notes:
+//   * Uses native bitwise ops (`& | ^ ~ << >>`) with explicit
+//     `mask32` so all word arithmetic stays in UInt32 range.
+//   * Message bytes are kept as Int (0..255) for typing
+//     convenience; the public API still returns Array<UInt8>.
+//
+// The API surface is intentionally tiny:
+//   sha1Hex(input) -> 40-char lowercase hex string
+//   sha1Bytes(input) -> Array<UInt8> of length 20
+// ---------------------------------------------------------------
+
+let MASK32: Int = 0xffffffff
+
+func mask32(_ x: Int) -> Int {
+    return x & MASK32
+}
+
+/// 32-bit left rotate (FIPS ROTL).
+func rotl32(_ x: Int, _ n: Int) -> Int {
+    let v = mask32(x)
+    return mask32((v << n) | (v >> (32 - n)))
+}
+
+func bytesOf(s: String) -> Array<Int> {
+    let raw = String.utf8Bytes(text: s)
+    var out: Array<Int> = []
+    var i: Int = 0
+    while i < raw.count {
+        if let b = raw[i] as? Int {
+            out.append(b)
+        } else {
+            out.append(0)
+        }
+        i = i + 1
+    }
+    return out
+}
+
+func wordToBytes(w: Int) -> Array<Int> {
+    var out: Array<Int> = []
+    let v = mask32(w)
+    out.append((v >> 24) & 0xff)
+    out.append((v >> 16) & 0xff)
+    out.append((v >> 8) & 0xff)
+    out.append(v & 0xff)
+    return out
+}
+
+func u8FromInt(v: Int) -> UInt8 {
+    let x = v & 0xff
+    var bit: UInt8 = 1u8
+    var acc: UInt8 = 0u8
+    var n: Int = x
+    var i: Int = 0
+    while i < 8 {
+        if (n & 1) == 1 {
+            acc = acc + bit
+        }
+        n = n >> 1
+        bit = bit + bit
+        i = i + 1
+    }
+    return acc
+}
+
+func intBytesToU8(bytes: Array<Int>) -> Array<UInt8> {
+    var out: Array<UInt8> = []
+    var i: Int = 0
+    while i < bytes.count {
+        out.append(u8FromInt(v: bytes[i]))
+        i = i + 1
+    }
+    return out
+}
+
+// Core digest as 20 Ints in 0..255.
+func sha1Digest(input: String) -> Array<Int> {
+    var msg = bytesOf(s: input)
+    let origLenBits = msg.count * 8
+
+    msg.append(0x80)
+    while (msg.count % 64) != 56 {
+        msg.append(0)
+    }
+    var i = 56
+    while i >= 0 {
+        msg.append((origLenBits >> i) & 0xff)
+        i = i - 8
+    }
+
+    var h0: Int = 0x67452301
+    var h1: Int = 0xefcdab89
+    var h2: Int = 0x98badcfe
+    var h3: Int = 0x10325476
+    var h4: Int = 0xc3d2e1f0
+
+    var off: Int = 0
+    while off < msg.count {
+        var w: Array<Int> = []
+        var j: Int = 0
+        while j < 16 {
+            let b0 = msg[off + j * 4]
+            let b1 = msg[off + j * 4 + 1]
+            let b2 = msg[off + j * 4 + 2]
+            let b3 = msg[off + j * 4 + 3]
+            let word = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
+            w.append(mask32(word))
+            j = j + 1
+        }
+        while j < 80 {
+            let v = w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16]
+            w.append(rotl32(v, 1))
+            j = j + 1
+        }
+
+        var a: Int = h0
+        var b: Int = h1
+        var c: Int = h2
+        var d: Int = h3
+        var e: Int = h4
+
+        j = 0
+        while j < 80 {
+            var f: Int = 0
+            var k: Int = 0
+            if j < 20 {
+                f = (b & c) | ((~b) & d)
+                k = 0x5a827999
+            } else if j < 40 {
+                f = b ^ c ^ d
+                k = 0x6ed9eba1
+            } else if j < 60 {
+                f = (b & c) | (b & d) | (c & d)
+                k = 0x8f1bbcdc
+            } else {
+                f = b ^ c ^ d
+                k = 0xca62c1d6
+            }
+            let temp = mask32(rotl32(a, 5) + mask32(f) + e + k + w[j])
+            e = d
+            d = c
+            c = rotl32(b, 30)
+            b = a
+            a = temp
+            j = j + 1
+        }
+
+        h0 = mask32(h0 + a)
+        h1 = mask32(h1 + b)
+        h2 = mask32(h2 + c)
+        h3 = mask32(h3 + d)
+        h4 = mask32(h4 + e)
+
+        off = off + 64
+    }
+
+    var digest: Array<Int> = []
+    let a1 = wordToBytes(w: h0)
+    let a2 = wordToBytes(w: h1)
+    let a3 = wordToBytes(w: h2)
+    let a4 = wordToBytes(w: h3)
+    let a5 = wordToBytes(w: h4)
+    var k: Int = 0
+    while k < 4 { digest.append(a1[k]); k = k + 1 }
+    k = 0
+    while k < 4 { digest.append(a2[k]); k = k + 1 }
+    k = 0
+    while k < 4 { digest.append(a3[k]); k = k + 1 }
+    k = 0
+    while k < 4 { digest.append(a4[k]); k = k + 1 }
+    k = 0
+    while k < 4 { digest.append(a5[k]); k = k + 1 }
+    return digest
+}
+
+public func sha1Bytes(input: String) -> Array<UInt8> {
+    return intBytesToU8(bytes: sha1Digest(input: input))
+}
+
+public func sha1Hex(input: String) -> String {
+    let bytes = sha1Digest(input: input)
+    var hex = ""
+    var i: Int = 0
+    while i < bytes.count {
+        let b = bytes[i] & 0xff
+        let hi = (b >> 4) & 0x0f
+        let lo = b & 0x0f
+        hex = hex + hexDigit(d: hi)
+        hex = hex + hexDigit(d: lo)
+        i = i + 1
+    }
+    return hex
+}
+
+func hexDigit(d: Int) -> String {
+    if d == 0  { return "0" } if d == 1  { return "1" }
+    if d == 2  { return "2" } if d == 3  { return "3" }
+    if d == 4  { return "4" } if d == 5  { return "5" }
+    if d == 6  { return "6" } if d == 7  { return "7" }
+    if d == 8  { return "8" } if d == 9  { return "9" }
+    if d == 10 { return "a" } if d == 11 { return "b" }
+    if d == 12 { return "c" } if d == 13 { return "d" }
+    if d == 14 { return "e" } if d == 15 { return "f" }
+    return "0"
+}

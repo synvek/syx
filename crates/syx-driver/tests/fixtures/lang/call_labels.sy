@@ -1,0 +1,25 @@
+func greet(name: String) {
+    print("hi \(name)")
+}
+
+func move(to destination: String) {
+    print(destination)
+}
+
+func accept(_ task: String) -> String {
+    return task
+}
+
+func pair(_ first: Int, second: Int) -> Int {
+    return first + second
+}
+
+func main() {
+    greet(name: "SYX")
+    move(to: "home")
+    let a = accept("worker")
+    print(a)
+    let b = pair(1, second: 2)
+    print(b)
+}
+

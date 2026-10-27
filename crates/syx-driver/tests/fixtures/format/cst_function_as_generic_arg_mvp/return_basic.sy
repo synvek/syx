@@ -1,0 +1,4 @@
+func ret() -> Bar<()> {
+    return
+}
+

@@ -1,0 +1,4 @@
+// ret
+export func id(x: Int) -> Int {
+    return x
+}

@@ -1,0 +1,11 @@
+func main() {
+    if case .ok(let v) = opt {
+        print(v)
+    }
+    if case 1 = x {
+        print(1)
+    } else {
+        print(0)
+    }
+}
+

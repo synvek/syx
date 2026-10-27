@@ -1,0 +1,13 @@
+// ahead
+export func go<T>() throws requires Pure where T: Bound {
+    // body
+    while flag
+    print(1)
+}
+export func main() {
+    /* block */
+    if ready {
+        print(2)
+    }
+}
+/* trail */

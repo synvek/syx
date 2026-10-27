@@ -1,0 +1,88 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_i128_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 128-bit signed integer (`Int128`). Prelude; host ops via `__syx_i128_*`.
+@builtin("numeric.i128")
+public class Int128: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Smallest representable value (type bound, not binary min).
+    public static var min: Int128 {
+        get {
+            let one: Int128 = 1i128
+            return one << 127
+        }
+    }
+
+    /// Largest representable value (type bound, not binary max).
+    public static var max: Int128 {
+        get {
+            let one: Int128 = 1i128
+            let mn: Int128 = one << 127
+            return mn - 1i128
+        }
+    }
+
+    /// Absolute value (host `__syx_i128_abs`).
+    public static func abs(x: Int128) -> Int128 {
+        return __syx_i128_abs(x)
+    }
+
+    /// Signum: `-1`, `0`, or `1`.
+    public static func sign(x: Int128) -> Int {
+        if x < 0i128 {
+            return -1
+        }
+        if x > 0i128 {
+            return 1
+        }
+        return 0
+    }
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 128
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 16
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> Int128 {
+        return 0i128
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i128_min` / `_max`.
+    public static func clamp(x: Int128, lo: Int128, hi: Int128) -> Int128 {
+        return __syx_i128_min(__syx_i128_max(x, lo), hi)
+    }
+
+    /// Leading zero bit count for a `UInt128` bit pattern (via `Math`).
+    public static func leadingZeros(x: UInt128) -> Int {
+        return Math.leadingZeros128(x)
+    }
+
+}
+
+extension Int128 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_i128_compare`.
+    func compare(other: Int128) -> Int {
+        return __syx_i128_compare(self, other)
+    }
+}
+

@@ -1,0 +1,28 @@
+/// ADR-240 / M2-S3-03: FileWatcher lifecycle session (≠ one-shot File.watch).
+/// Close then poll must fail. Mock-default events (partial OS notify).
+
+public class FileWatcher {
+    public static func open(path: String) -> Int throws {
+        try {
+            return __syx_file_watcher_open(path)
+        } catch (e) {
+            throw IOError(code: 10, message: "FileWatcher open failed")
+        }
+    }
+
+    public static func poll(handle: Int) -> Array<String> throws {
+        try {
+            return __syx_file_watcher_poll(handle)
+        } catch (e) {
+            throw IOError(code: 11, message: "FileWatcher poll failed")
+        }
+    }
+
+    public static func close(handle: Int) throws {
+        try {
+            __syx_file_watcher_close(handle)
+        } catch (e) {
+            throw IOError(code: 12, message: "FileWatcher close failed")
+        }
+    }
+}

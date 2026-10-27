@@ -1,0 +1,6 @@
+func main() {
+    let a = \Person.name
+    let b = \Person.title
+    print(1)
+}
+

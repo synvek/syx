@@ -1,0 +1,16 @@
+// ahead
+public class Sub: Box {
+    var name: String?
+    init(name: String) {
+        // body
+        print(1)
+    }
+    func tag() {
+        print(2)
+    }
+}
+func main() {
+    while flag /* mid */
+    print(3)
+}
+/* trail */

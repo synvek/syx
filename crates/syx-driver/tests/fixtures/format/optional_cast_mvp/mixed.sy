@@ -1,0 +1,7 @@
+func main() {
+    print(0)
+    let x = 1 as? Int
+    let y = 2 as Int
+    print(y!)
+}
+

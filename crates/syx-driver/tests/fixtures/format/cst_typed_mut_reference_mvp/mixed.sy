@@ -1,0 +1,7 @@
+func main() {
+    let x: &mut Int = y
+    var s: &mut String = t
+    print(x)
+    return
+}
+

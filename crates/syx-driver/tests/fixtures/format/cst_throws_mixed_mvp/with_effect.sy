@@ -1,0 +1,5 @@
+func go() throws requires IO {
+    let x = f(g())
+    print(x)
+}
+

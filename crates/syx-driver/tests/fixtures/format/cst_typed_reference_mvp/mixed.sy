@@ -1,0 +1,7 @@
+func main() {
+    let x: &Int = y
+    var s: &String = t
+    print(x)
+    return
+}
+

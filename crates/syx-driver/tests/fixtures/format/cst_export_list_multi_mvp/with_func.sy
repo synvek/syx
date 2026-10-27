@@ -1,0 +1,6 @@
+// ahead
+export { a, b, c, d }
+func main() {
+    print(1)
+}
+/* trail */

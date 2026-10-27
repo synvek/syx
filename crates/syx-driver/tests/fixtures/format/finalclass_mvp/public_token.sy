@@ -1,0 +1,9 @@
+public final class Token {
+    eof
+    ident(name: String)
+}
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,12 @@
+class PublicBox {
+    public lazy var n: Int {
+        get {
+            return 0
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,6 @@
+func main() {
+    if case 42 = getVal() {
+        print(1)
+    }
+}
+

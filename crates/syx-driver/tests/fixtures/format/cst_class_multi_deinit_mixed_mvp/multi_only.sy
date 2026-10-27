@@ -1,0 +1,7 @@
+/// docs
+class Sub: A, B {
+  var x: Int
+  deinit {
+    print(1)
+  }
+}

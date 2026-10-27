@@ -1,0 +1,4 @@
+func nest() -> (Int) -> (Int) -> Bool {
+    return
+}
+

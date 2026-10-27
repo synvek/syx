@@ -1,0 +1,13 @@
+func main() {
+    let a = __syx_plugin_faer_from([1.0, 2.0, 3.0, 4.0], 2, 2)
+    let b = __syx_plugin_faer_from([1.0, 0.0, 0.0, 1.0], 2, 2)
+    let c = __syx_plugin_faer_mul(a, b)
+    let v = __syx_plugin_faer_to(c)
+    print(v[0])
+    print(v[1])
+    print(v[2])
+    print(v[3])
+    __syx_plugin_v2probe_drop(a)
+    __syx_plugin_v2probe_drop(b)
+    __syx_plugin_v2probe_drop(c)
+}

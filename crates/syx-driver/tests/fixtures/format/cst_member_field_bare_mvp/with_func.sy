@@ -1,0 +1,12 @@
+// ahead
+class Box {
+  var name: String
+  init(name: String) {
+    box.name = name
+  }
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

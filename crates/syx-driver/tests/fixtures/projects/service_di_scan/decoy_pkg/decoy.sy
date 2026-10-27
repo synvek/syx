@@ -1,0 +1,9 @@
+@Service
+class Decoy {
+    init() {
+    }
+    func leak() -> String {
+        return "decoy-leak"
+    }
+}
+

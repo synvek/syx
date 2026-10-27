@@ -1,0 +1,7 @@
+global actor UIQueue {
+}
+
+func main() {
+    print(1)
+}
+

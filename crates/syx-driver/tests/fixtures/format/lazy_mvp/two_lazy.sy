@@ -1,0 +1,9 @@
+class TwoLazy {
+    lazy var a: Int = 1
+    lazy var b: Int = 2
+}
+
+func main() {
+    print(1)
+}
+

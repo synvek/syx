@@ -1,0 +1,5 @@
+func go() requires IO {
+    while ready() && a || b
+    print(1)
+}
+

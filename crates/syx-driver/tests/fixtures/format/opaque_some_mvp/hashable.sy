@@ -1,0 +1,4 @@
+func main() {
+    let x: some Hashable = 1
+}
+

@@ -1,0 +1,2 @@
+data class Pair<A, B>(left: A, right: B)
+

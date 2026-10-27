@@ -1,0 +1,7 @@
+func main() {
+    while !(a && b)
+    print(1)
+    while (tick(1) || done)
+    print(2)
+}
+

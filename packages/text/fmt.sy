@@ -1,0 +1,17 @@
+public class Fmt {
+    public static func print(value: Object) {
+        __syx_fmt_print(value)
+    }
+
+    public static func printLine(value: Object) {
+        __syx_fmt_print_line(value)
+    }
+
+    public static func format(pattern: String, args: Object) -> String {
+        return __syx_fmt_format(pattern, args)
+    }
+
+    public static func debug(value: Object) -> String {
+        return __syx_fmt_debug(value)
+    }
+}

@@ -1,0 +1,7 @@
+class Box {
+  var items: Int
+  func scaleBoth(i: Int, j: Int, n: Int) {
+    xs[i] *= n
+    ys[j] /= n
+  }
+}

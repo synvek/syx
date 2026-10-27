@@ -1,0 +1,33 @@
+# W1257 / ADR-1603 — D-02 harden TSAN sample first-slice
+# Opt-in + nightly ThreadSanitizer on race_stress prefix (smoke + inventory fence).
+# Fail-closed: job fails on red (do not soft-pass nightly).
+# ≠ TSAN GA / ≠ D-02 [x] / ≠ default PR ci.yml gate.
+
+name: TSAN sample
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily 05:17 UTC
+    - cron: "17 5 * * *"
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-Z sanitizer=thread"
+  RUSTDOCFLAGS: "-Z sanitizer=thread"
+
+jobs:
+  concurrency-race-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: tsan-sample
+      - name: TSAN harden — race_stress prefix (fail-closed)
+        run: |
+          cargo test -p syx-driver --test concurrency \
+            m3_c04_race_stress \
+            -- --test-threads=1 --nocapture

@@ -1,0 +1,22 @@
+actor GlobalCdnCounter {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+    func increment() {
+        self.n = self.n + 1
+    }
+    func get() -> Int {
+        return self.n
+    }
+}
+
+func main() {
+    let c = GlobalCdnCounter(n: 0)
+    c.increment()
+    c.increment()
+    c.increment()
+    c.increment()
+    print(c.get())
+}
+

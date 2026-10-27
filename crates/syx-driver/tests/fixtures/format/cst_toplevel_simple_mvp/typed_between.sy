@@ -1,0 +1,12 @@
+func helper() {
+    let n: Int = 1
+}
+
+let x: Foo<A, B> = p
+
+var y: Dict<String, Int>? = q
+
+func main() {
+    print(x)
+}
+

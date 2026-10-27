@@ -1,0 +1,6 @@
+func main() {
+    let a = Int.self
+    let b = String.self
+    print(1)
+}
+

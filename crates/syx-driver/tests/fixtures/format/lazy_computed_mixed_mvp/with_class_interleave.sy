@@ -1,0 +1,24 @@
+class A {
+    lazy var x: Int {
+        get {
+            return 1
+        }
+    }
+}
+
+class B {
+    lazy var y: Int = 2
+    lazy var z: Int {
+        get {
+            return 3
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

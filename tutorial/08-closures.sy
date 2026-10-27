@@ -1,0 +1,111 @@
+// =============================================================================
+// tutorial/08-closures.sy
+// 对应《SYX 语言指南》第 8 章「闭包」
+//
+// 本章涉及语言特性：
+//   - 闭包表达式 { params in body }
+//   - 简写 $0, $1（部分实现）
+//   - 闭包作为参数 / 返回值
+//   - 闭包捕获
+//   - 尾随闭包
+//   - HOF：map / filter / reduce / sort / sorted(by:)
+//   - 函数引用 (function reference)
+// =============================================================================
+
+// 1) 基础闭包
+let inc = { |x| x + 1 }
+let sum = { |a, b| a + b }
+let hi  = { print("hi") }                            // 无参
+
+// 2) 显式类型标注
+let f: (Int) -> Int = { |x| x * 2 }
+let g: (Int, Int) -> Int = { |a, b| a + b }
+let h: () -> Void = { print("hi") }
+
+// 3) 闭包作为函数参数
+func apply(_ x: Int, _ f: (Int) -> Int) -> Int {
+    return f(x)
+}
+let r1 = apply(5, { |x| x * x })                    // 25
+
+// 4) 尾随闭包（最后一个参数是闭包时移到外面）
+let r2 = apply(10) { |x| x + 100 }                   // 110
+
+// 5) 捕获
+func makeAdder(_ k: Int) -> (Int) -> Int {
+    return { |x| x + k }
+}
+let add10 = makeAdder(10)
+let add100 = makeAdder(100)
+print("add10(3)=\(add10(3)) add100(3)=\(add100(3))")  // 13, 103
+
+// 6) 多重捕获
+func makeCounter() -> () -> Int {
+    var n = 0
+    return { n += 1; return n }
+}
+let c = makeCounter()
+print("c=\(c()) \(c()) \(c())")                      // 1 2 3
+
+// 7) HOF 实战
+let nums = [5, 1, 4, 2, 3]
+
+// map
+let sq  = nums.map({ |x| x * x })                    // [25, 1, 16, 4, 9]
+let str = nums.map({ |x| "n=\(x)" })                 // 字符串数组
+
+// filter
+let big = nums.filter({ |x| x > 2 })                 // [5, 4, 3]
+
+// reduce
+let s   = nums.reduce(0, { |a, b| a + b })           // 15
+let smp = nums.reduce(0, +)                          // 部分支持：运算符引用
+
+// 链式
+let bigSq = nums
+    .filter({ |x| x > 1 })
+    .map({ |x| x * x })
+    .reduce(0, +)                                    // 4+9+16+25 = 54
+
+// 8) sort / sorted(by:)
+let asc  = nums.sorted()                             // [1,2,3,4,5]
+let desc = nums.sorted(by: { |a, b| b - a })         // [5,4,3,2,1]
+let byStr = ["foo", "x", "hello"].sorted(by: { |a, b|
+    if a.count < b.count { return -1 }
+    if a.count > b.count { return 1 }
+    return 0
+})
+
+// 9) sortBy 接受任意比较器
+let byAbs = [-3, -1, 2, -5, 4].sortBy({ |a, b|
+    let aa = if a < 0 { -a } else { a }
+    let bb = if b < 0 { -b } else { b }
+    return aa - bb
+})
+
+// 10) 闭包作为返回值
+func makePredicate(_ threshold: Int) -> (Int) -> Bool {
+    return { |x| x > threshold }
+}
+let gt5  = makePredicate(5)
+let gt50 = makePredicate(50)
+print("gt5(10)=\(gt5(10))  gt50(10)=\(gt50(10))")
+
+// 11) 闭包作为立即值（IIFE 风格）
+let squared = { |x: Int| x * x }(7)
+print("squared=\(squared)")                          // 49
+
+// 12) 嵌套闭包 + 多层捕获
+func makeAdderN(_ n: Int) -> (Int) -> Int {
+    func helper(_ k: Int) -> Int { return n + k }
+    return { |x| helper(x) }
+}
+
+func main() {
+    print("inc(41)=\(inc(41))  sum(1,2)=\(sum(1, 2))")
+    print("apply=\(r1)  trailing=\(r2)")
+    print("sq=\(sq)  str=\(str)  big=\(big)")
+    print("s=\(s)  bigSq=\(bigSq)")
+    print("asc=\(asc)  desc=\(desc)  byStr=\(byStr)  byAbs=\(byAbs)")
+    print("squared=\(squared)")
+}

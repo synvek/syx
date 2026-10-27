@@ -1,0 +1,14 @@
+func main() {
+    let s: String = "hi"
+    let c: Character = s[0]
+    print(__syx_value_description(c))
+    print(Character.isSingleScalar(c: __syx_value_description(c)))
+    let ch: Character = "Z"
+    print(__syx_value_description(ch))
+    print(Character.isSingleScalar(c: __syx_value_description(ch)))
+    for item in "ab" {
+        print(__syx_value_description(item))
+    }
+    print(Character.isSingleScalar(c: "a"))
+}
+

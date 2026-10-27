@@ -1,0 +1,20 @@
+func main() {
+    let pair: (Int, String) = (1, "a")
+    print(pair.0)
+    print(pair.1)
+    let named = (x: 10, y: 20)
+    print(named.x)
+    print(named.y)
+    let (a, b) = (3, 4)
+    print(a)
+    print(b)
+    let t = (x: 1, y: 2)
+    switch t {
+    case (x, y):
+        print(x)
+        print(y)
+    default:
+        print("fail")
+    }
+}
+

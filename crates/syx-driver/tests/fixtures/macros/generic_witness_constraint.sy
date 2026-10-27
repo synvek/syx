@@ -1,0 +1,8 @@
+@Codable
+data class Box<T>(value: T) where T: Codable
+
+func main() {
+    let a = Box(value: 7)
+    print(a.value)
+}
+

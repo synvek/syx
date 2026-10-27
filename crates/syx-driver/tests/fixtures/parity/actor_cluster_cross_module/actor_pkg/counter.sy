@@ -1,0 +1,21 @@
+public actor Counter {
+    var value: Int
+    init(value: Int) {
+        self.value = value
+    }
+    func increment() {
+        self.value = self.value + 1
+    }
+    func get() -> Int {
+        return self.value
+    }
+}
+
+public func base() -> Int {
+    return 0
+}
+
+public func bump(n: Int) -> Int {
+    return n + 1
+}
+

@@ -1,0 +1,15 @@
+class PublicBox {
+    public var n: Int {
+        get {
+            return 0
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

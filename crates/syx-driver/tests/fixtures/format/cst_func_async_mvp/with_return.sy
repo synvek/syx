@@ -1,0 +1,4 @@
+// ret
+async func one() -> Int {
+    return 1
+}

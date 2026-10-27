@@ -1,0 +1,22 @@
+import Di
+
+var __syx_req_hits = 0
+
+@Scope("request")
+@Service
+class ReqSvc {
+    init() {
+        __syx_req_hits = __syx_req_hits + 1
+    }
+}
+
+func handleReq() {
+    let _a = Di.resolve("ReqSvc")
+    let _b = Di.resolve("ReqSvc")
+}
+
+func main() {
+    Di.withRequest("handleReq")
+    print(__syx_req_hits == 1)
+}
+

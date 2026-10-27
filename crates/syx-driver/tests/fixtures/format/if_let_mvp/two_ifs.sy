@@ -1,0 +1,9 @@
+func main() {
+    if let a = x {
+        print(a)
+    }
+    if let b = y {
+        print(b)
+    }
+}
+

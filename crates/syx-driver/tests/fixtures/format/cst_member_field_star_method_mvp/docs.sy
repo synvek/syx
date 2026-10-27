@@ -1,0 +1,8 @@
+/// docs
+class Box {
+  var count: Int
+  func scale(n: Int) {
+    box.count *= n
+  }
+}
+/* trail */

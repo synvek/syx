@@ -1,0 +1,5 @@
+// Value equality protocol. Auto-conformance on Core value builtins.
+
+/// Types that support `==` / value equality.
+public protocol Equatable {
+}

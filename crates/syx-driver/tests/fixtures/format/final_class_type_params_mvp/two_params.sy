@@ -1,0 +1,5 @@
+final class Either<L, R> {
+    left(value: L)
+    right(value: R)
+}
+

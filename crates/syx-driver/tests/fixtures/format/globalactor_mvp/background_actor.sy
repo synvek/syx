@@ -1,0 +1,7 @@
+global actor BackgroundActor {
+}
+
+func main() {
+    print(1)
+}
+

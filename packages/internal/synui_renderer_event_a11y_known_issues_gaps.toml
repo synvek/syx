@@ -1,0 +1,14 @@
+# E-04 SynUI renderer/event/a11y residual honesty census
+# (W1281 / ADR-1627 deepen first-slice)
+# Written SSOT after W1280 scaffold. deepened_ssot ≠ SynUI GA ≠ E-04 [x]
+# ≠ v13 construction ≠ pixel GA ≠ Web·Mobile language full GA ≠ Farm/Dist.
+
+schema_version = 1
+wave = "W1281"
+floor = "W1280 / ADR-1626 E-04 scaffold first-slice (packages/ui / __syx_synui_* thin facade)"
+
+[[gaps]]
+id = "synui_residual_honesty_census"
+class = "product"
+status = "deepened_ssot"
+note = "W1281 / ADR-1627: residual honesty census SSOT — (1) Renderer: structural renderFingerprint / inherit-v12 facade only; ≠ wgpu HeadlessRenderer / pixel-true render; (2) Event: __syx_synui_button_on_click / Signal bind present; desktop true wiring still opt-in (SYX_SYNUI_RUN etc.); (3) a11y: packages/ui has no a11y/aria host — residual honesty OUT-of-surface; (4) OUT pinned: pixel product GA · SynUI v13 full · Web·Mobile language full GA · Farm/Dist (E-05). ≠ SynUI runtime deepen construction ≠ SynUI product GA ≠ E-04 [x] ≠ HostFn+1"

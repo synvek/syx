@@ -1,0 +1,11 @@
+func main() {
+    if case 1 = x {
+        print(1)
+    }
+    if case 0..<10 = y {
+        print(2)
+    } else {
+        print(0)
+    }
+}
+

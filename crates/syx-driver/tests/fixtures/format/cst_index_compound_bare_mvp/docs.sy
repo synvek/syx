@@ -1,0 +1,8 @@
+/// docs
+class Box {
+  var items: Int
+  init() {
+    a[0] += 1
+  }
+}
+/* trail */

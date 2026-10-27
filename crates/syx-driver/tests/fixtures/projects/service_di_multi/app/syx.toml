@@ -1,0 +1,7 @@
+name = "service_di_app"
+version = "1.0.0"
+main = "main.sy"
+
+[dependencies.di_lib]
+version = "1.0.0"
+path = "../di_lib"

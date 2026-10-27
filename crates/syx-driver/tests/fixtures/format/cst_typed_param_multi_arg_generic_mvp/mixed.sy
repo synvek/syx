@@ -1,0 +1,12 @@
+func id(x: Foo<A, B>) {
+    print(x)
+    return x
+}
+
+func add(a: Dict<String, Int>?, b) {
+    let s = a
+    return
+}
+
+print(0)
+

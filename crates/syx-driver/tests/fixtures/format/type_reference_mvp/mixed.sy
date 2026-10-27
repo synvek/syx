@@ -1,0 +1,6 @@
+func main() {
+    let x: &Int = y
+    let f: (Int) -> Int = id
+    let z: Int? = nil
+}
+

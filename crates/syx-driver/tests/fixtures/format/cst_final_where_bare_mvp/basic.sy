@@ -1,0 +1,3 @@
+final class Box<T> where T: Equatable {
+    wrap(value: T)
+}

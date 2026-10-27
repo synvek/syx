@@ -1,0 +1,91 @@
+// =============================================================================
+// tutorial/03-basic-operators.sy
+// 对应《SYX 语言指南》第 3 章「基本运算符」
+//
+// 本章涉及语言特性：
+//   - 算术 + - * / %、一元负、正
+//   - 比较 == != === !== < <= > >=
+//   - 逻辑 && || !
+//   - 空合并 ??、可选链 ?.、强制解包 !
+//   - 复合赋值 = += -= *= /= %=
+//   - 范围 0..<n / 1...n
+//   - 一元前缀（-, !, try, await, &）
+//   - 字面量类型规则 + 下划线
+//   - 自定义运算符入门（详见第 30 章）
+// =============================================================================
+
+// 1) 算术
+let a = 10 + 3                            // 13
+let b = 10 - 3                            // 7
+let c = 10 * 3                            // 30
+let d = 10 / 3                            // 3（整除）
+let m = 10 % 3                            // 1（取模）
+let neg = -a                              // 一元负
+
+// 2) 比较
+let eq1 = (1 == 1)                        // true
+let eq2 = ("a" == "a")                    // true
+let lt  = (1 < 2)
+let ge  = (3 >= 2)
+let ne  = (1 != 2)
+
+// 3) 逻辑（短路）
+let flag = true
+let and_ = flag && (1 + 1 == 2)           // true
+let or_  = !flag || (1 == 1)              // true
+let not_ = !flag                          // false
+
+// 4) 空合并 / 可选链 / 强制解包
+let s: String? = "hello"
+let len1 = s?.count                      // Optional(5)
+let len2 = s?.count ?? 0                 // 5
+let len3 = s!.count                      // 5（强制解包）
+
+let ns: String? = nil
+let nilLen = ns?.count ?? 0              // 0
+// let crash = ns!.count                  // ❌ R007: force unwrap of nil
+
+// 5) 复合赋值
+var x = 1
+x += 2
+x -= 1
+x *= 2
+x /= 2
+x %= 3
+
+// 6) 范围
+print((1..<10).contains(5))                // true
+print((1..<10).contains(10))               // false
+print((1...10).contains(10))               // true（闭区间 Phase 139 MVP）
+print((1...10).contains(11))               // false
+
+// 7) 自定义运算符（详细见 30 章，此处仅作语法示意）
+infix operator |> { precedence: 50, associativity: left }
+func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
+
+// 8) 优先级示例
+let expr = 1 + 2 * 3                      // 7（* 高于 +）
+let paren = (1 + 2) * 3                   // 9
+
+func main() {
+    print("a=\(a) b=\(b) c=\(c) d=\(d) m=\(m) neg=\(neg)")
+    print("eq1=\(eq1) lt=\(lt) ge=\(ge) ne=\(ne)")
+    print("and_=\(and_) or_=\(or_) not_=\(not_)")
+
+    // 范围遍历
+    var sum = 0
+    for i in 0..<5 { sum += i }           // 0+1+2+3+4 = 10
+    print("sum 0..<5 = \(sum)")
+
+    // 闭区间
+    var prod = 1
+    for i in 1...4 { prod *= i }          // 1*2*3*4 = 24
+    print("prod 1...4 = \(prod)")
+
+    // 自定义运算符
+    let r = 5 |> { $0 * 2 }
+    print("r = \(r)")                     // 10
+
+    // 优先级对比
+    print("expr=\(expr) paren=\(paren)")
+}

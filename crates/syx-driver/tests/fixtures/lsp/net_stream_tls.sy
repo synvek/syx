@@ -1,0 +1,7 @@
+import Net
+
+func main() {
+    let status = Net.streamTls(bytes: 28)
+    print(status)
+}
+

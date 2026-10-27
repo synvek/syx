@@ -1,0 +1,16 @@
+import Result
+
+func okValue() -> Result<Int, String> {
+    return {"tag": "ok", "value": "28"}
+}
+
+func main() {
+    let r = okValue()
+    if (Result.isOk(r))
+    print(r.value)
+ else
+    print(0)
+
+    print("result-generic-v28")
+}
+

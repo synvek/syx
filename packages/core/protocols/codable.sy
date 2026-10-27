@@ -1,0 +1,5 @@
+// ADR-230 / M2-S7-01: composition of Encodable + Decodable.
+
+/// Types that are both `Encodable` and `Decodable`.
+public protocol Codable: Encodable, Decodable {
+}

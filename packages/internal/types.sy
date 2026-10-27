@@ -1,0 +1,10 @@
+// Phase 46 — builtin registry index (embedded read-only; not importable).
+// Hand-authored; build.rs does not overwrite this file.
+
+/// Internal note surface pointing at `packages/internal/manifest.json`.
+public class BuiltinRegistry {
+    /// Human-readable registry note for tooling / diagnostics.
+    public static func note() -> String {
+        return "SYX 24.0 builtins — see packages/internal/manifest.json entries"
+    }
+}

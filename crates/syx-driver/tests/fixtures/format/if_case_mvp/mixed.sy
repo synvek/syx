@@ -1,0 +1,8 @@
+func main() {
+    print(0)
+    if case .ok(let x) = opt {
+        print(x)
+        print(1...3)
+    }
+}
+

@@ -1,0 +1,5 @@
+func main() {
+    let p = Point(x: 42)
+    return p.x
+}
+

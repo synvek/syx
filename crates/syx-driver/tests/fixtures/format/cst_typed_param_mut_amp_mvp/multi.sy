@@ -1,0 +1,5 @@
+func add(a: &mut Int, b: &mut Int) {
+    let s = a
+    return
+}
+

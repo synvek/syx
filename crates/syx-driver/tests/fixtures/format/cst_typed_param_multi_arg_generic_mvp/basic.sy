@@ -1,0 +1,4 @@
+func id(x: Foo<A, B>) {
+    print(x)
+}
+

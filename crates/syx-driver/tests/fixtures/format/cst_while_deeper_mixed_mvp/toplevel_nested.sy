@@ -1,0 +1,8 @@
+while go
+while i < n
+print(i)
+
+func main() {
+    print(1)
+}
+

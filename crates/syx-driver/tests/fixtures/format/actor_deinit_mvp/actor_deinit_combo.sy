@@ -1,0 +1,22 @@
+actor Box {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+}
+
+class Cell {
+    var v: Int
+    init(v: Int) {
+        self.v = v
+    }
+    deinit {
+        print(self.v)
+    }
+}
+
+func main() {
+    let b = Box(n: 3)
+    print(1)
+}
+

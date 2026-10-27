@@ -1,0 +1,24 @@
+#macro say(msg) {
+    print(msg)
+}
+
+#macro logSum(a, b) {
+    print(a + b)
+}
+
+#macro wrap(s) {
+    "hi:" + s
+}
+
+#macro sayNested(x) {
+    print(x)
+}
+
+func main() {
+    #say("stmt-token-ok")
+    #logSum(20, 22)
+    let n = 7
+    #sayNested(n)
+    #say(#wrap("world"))
+}
+

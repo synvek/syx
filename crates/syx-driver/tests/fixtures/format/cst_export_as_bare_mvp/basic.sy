@@ -1,0 +1,4 @@
+export { foo as bar }
+func main() {
+  print(1)
+}

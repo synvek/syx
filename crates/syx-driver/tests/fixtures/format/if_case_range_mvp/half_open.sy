@@ -1,0 +1,6 @@
+func main() {
+    if case 0..<10 = x {
+        print(1)
+    }
+}
+

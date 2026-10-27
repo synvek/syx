@@ -1,0 +1,55 @@
+// Todo 10 slice 6: binary widen kind + float as/as? + integer NumericCast + assign narrowing.
+// Run: target/release/syx run fixtures/test_type_casting.sy
+
+func main() {
+    // as: same-signedness integer convert (NumericCast)
+    let n: Int = 8
+    print(n as Int8)              // 8
+    print(n as? Int8)             // 8
+
+    // as? OOR → nil (not R003)
+    let big: Int = 128
+    print(big as? Int8)           // nil
+
+    // widening via as
+    let n8: Int8 = 8
+    print(n8 as Int)              // 8
+
+    // assign/init narrowing (slice 3)
+    let a: Int = 7
+    let b: Int8 = a
+    print(b)                      // 7
+    var c: Int8 = 0
+    c = a
+    print(c)                      // 7
+
+    // float → int explicit as (trunc toward 0)
+    let d: Double = 1.5
+    print(d as Int)               // 1
+    print(d as Int8)              // 1
+    print(d as? Int8)             // 1
+
+    // float as? OOR → nil
+    let huge: Double = 100000000000000000000.0
+    print(huge as? Int8)          // nil
+
+    // binary widen (slice 6): Int8+Int8 stays Int8 (wrap)
+    let x8: Int8 = 100
+    let y8: Int8 = 100
+    print(x8 + y8)                // -56
+
+    // Int8 + Int → platform Int
+    let z8: Int8 = 1
+    let zi: Int = 100
+    print(z8 + zi)                // 101
+
+    // Int + Double → Double
+    let one: Int = 1
+    print(one + 1.5)              // 2.5
+
+    // as OOR / assign float / Int+UInt → fail-closed (uncomment to verify)
+    // let _bad = big as Int8
+    // let _badf = huge as Int8
+    // let _badAssign: Int8 = 1.5
+    // let _u: UInt = 2; let _mix = one + _u
+}

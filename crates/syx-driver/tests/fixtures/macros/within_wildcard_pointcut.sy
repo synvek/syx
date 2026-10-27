@@ -1,0 +1,33 @@
+import Di
+
+@Service
+class OrderService {
+    init() {
+    }
+    @Pointcut("within(*Service)")
+    @Around("within(*Service)")
+    @Before("within(*Service)")
+    @After("within(*Service)")
+    func handle() -> String {
+        print("__body__:handle")
+        return "within-wildcard-ok"
+    }
+}
+
+@Service
+class OrderRepo {
+    init() {
+    }
+    func handle() -> String {
+        print("__body__:repo")
+        return "repo-plain"
+    }
+}
+
+func main() {
+    let s = Di.resolve("OrderService")
+    print(s.handle())
+    let r = Di.resolve("OrderRepo")
+    print(r.handle())
+}
+

@@ -1,0 +1,12 @@
+@attached(conformance, Equatable)
+@Codable
+data class Pair(a: Int, b: Int)
+
+func main() {
+    let p = Pair(a: 3, b: 4)
+    print(p.a + p.b)
+    let j = p.encode()
+    let q = Pair.decode(text: j)
+    print(q.a == p.a)
+}
+

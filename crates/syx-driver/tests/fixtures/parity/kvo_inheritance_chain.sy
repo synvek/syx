@@ -1,0 +1,22 @@
+class Animal {
+    var name: String
+        willSet { print("animal-will") }
+        didSet { print("animal-did") }
+
+    init(name: String) {
+        self.name = name
+    }
+}
+
+class Dog: Animal {
+    init(name: String) {
+        super.init(name: name)
+    }
+}
+
+func main() {
+    let d = Dog(name: "rex")
+    print(d.name)
+    d.name = "max"
+    print(d.name)
+}

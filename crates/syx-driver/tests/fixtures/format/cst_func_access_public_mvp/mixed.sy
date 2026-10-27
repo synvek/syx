@@ -1,0 +1,9 @@
+/// a
+public func a() {
+    print(1)
+}
+/// b
+public func b() {
+    /* mid */
+    print(2)
+}

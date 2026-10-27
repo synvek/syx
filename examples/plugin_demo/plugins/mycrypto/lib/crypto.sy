@@ -1,0 +1,4 @@
+func sha256(data) -> String {
+    return __syx_plugin_mycrypto_sha256(data)
+}
+

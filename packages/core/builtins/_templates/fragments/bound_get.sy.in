@@ -1,0 +1,6 @@
+    /// {{DOC}}
+    public static var {{NAME}}: {{TY}} {
+        get {
+{{BLOCK}}        }
+    }
+

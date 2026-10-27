@@ -1,0 +1,72 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_i16_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 16-bit signed integer (`Int16`). Prelude; host ops via `__syx_i16_*`.
+@builtin("numeric.i16")
+public class Int16: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Smallest representable value (type bound, not binary min).
+    public static let min: Int16 = -32768i16
+
+    /// Largest representable value (type bound, not binary max).
+    public static let max: Int16 = 32767i16
+
+    /// Absolute value (host `__syx_i16_abs`).
+    public static func abs(x: Int16) -> Int16 {
+        return __syx_i16_abs(x)
+    }
+
+    /// Signum: `-1`, `0`, or `1`.
+    public static func sign(x: Int16) -> Int {
+        if x < 0i16 {
+            return -1
+        }
+        if x > 0i16 {
+            return 1
+        }
+        return 0
+    }
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 16
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 2
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> Int16 {
+        return 0i16
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i16_min` / `_max`.
+    public static func clamp(x: Int16, lo: Int16, hi: Int16) -> Int16 {
+        return __syx_i16_min(__syx_i16_max(x, lo), hi)
+    }
+
+}
+
+extension Int16 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_i16_compare`.
+    func compare(other: Int16) -> Int {
+        return __syx_i16_compare(self, other)
+    }
+}
+

@@ -1,0 +1,35 @@
+[package]
+name = "syx-gui"
+description = "Isolated winit/egui-wgpu GUI backend for SYX (no libsyx_rt pollution)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[features]
+default = ["skia-glyph"]
+# Phase 111+ GA: HB/emoji glyphs raster via skia-safe atlas (not fontdue-by-char overlay).
+# Phase 113: textlayout enables real ParagraphBuilder (not unicode-bidi greedy wrap).
+skia-glyph = ["dep:skia-safe"]
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-runtime-core = { workspace = true }
+parking_lot = { workspace = true }
+winit = "0.29"
+# Softbuffer is optional present fallback (`SYX_GUI_SOFTBUFFER=1`); not the GA path.
+softbuffer = "0.4"
+fontdue = "0.9.3"
+rustybuzz = { workspace = true }
+egui = "0.28"
+egui-winit = { version = "0.28", default-features = false }
+egui-wgpu = "0.28"
+wgpu = "0.20"
+pollster = "0.3"
+bytemuck = { version = "1", features = ["derive"] }
+ttf-parser = "0.25"
+skia-safe = { version = "0.99", optional = true, features = ["binary-cache", "textlayout", "embed-icudtl"] }

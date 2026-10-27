@@ -1,0 +1,4 @@
+func mutp(x: Box<&mut String>) {
+    return
+}
+

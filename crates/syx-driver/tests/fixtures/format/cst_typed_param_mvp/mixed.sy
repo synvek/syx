@@ -1,0 +1,12 @@
+func id(x: Int) {
+    print(x)
+    return x
+}
+
+func add(a: Int, b) {
+    let s = a
+    return
+}
+
+print(0)
+

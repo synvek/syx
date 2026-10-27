@@ -1,0 +1,21 @@
+// Ordered unique collection. Prelude; hand-authored authority.
+// Object-shell MVP (insertion order preserved); not a full generic OrderedSet<T>.
+
+/// Unique elements in insertion order; host `__syx_ordered_set_*`.
+@builtin("collection.ordered_set")
+public class OrderedSet {
+    /// Create an empty ordered set (returns Object shell).
+    public static func new() -> Object {
+        return __syx_ordered_set_new()
+    }
+
+    /// Insert `item` if absent; returns the set shell.
+    public static func insert(set: Object, item: Object) -> Object {
+        return __syx_ordered_set_insert(set, item)
+    }
+
+    /// Membership test.
+    public static func contains(set: Object, item: Object) -> Bool {
+        return __syx_ordered_set_contains(set, item)
+    }
+}

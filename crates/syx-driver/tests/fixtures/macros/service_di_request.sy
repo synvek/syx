@@ -1,0 +1,21 @@
+import Di
+
+@Service
+@Scope("request")
+class ReqWorker {
+    init() {
+    }
+    func tag() -> String {
+        return "req"
+    }
+}
+
+func main() {
+    Di.beginRequest()
+    let a = Di.resolve("ReqWorker")
+    let b = Di.resolve("ReqWorker")
+    print(a.tag())
+    print(b.tag())
+    Di.endRequest()
+}
+

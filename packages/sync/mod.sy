@@ -1,0 +1,125 @@
+/// Bounded/unbounded channel. Prefer instance API (`ch.send(v)`).
+/// - `Channel()` — default init, unbounded (capacity 0)
+/// - `Channel.create(n)` — factory, returns `Channel` (not a raw host `Object`)
+/// Note: do not add `init(capacity:)` alongside `init()`; labeled ctor currently
+/// resolves to the zero-arg init and would ignore capacity.
+public class Channel {
+    /// Host channel handle (`__channel_id` object). Select accepts `Channel` and unwraps this.
+    public var handle: Object = nil
+
+    /// Unbounded channel (`capacity == 0`).
+    public init() {
+        let h = __syx_channel_create(0)
+        self.handle = h
+    }
+
+    /// Bounded when `capacity > 0`; unbounded when `capacity == 0`.
+    public static func create(_ capacity: Int) -> Channel {
+        let ch = Channel()
+        let h = __syx_channel_create(capacity)
+        ch.handle = h
+        return ch
+    }
+
+    public func send(_ value: Object) {
+        __syx_channel_send(self.handle, value)
+    }
+    public func recv() -> Object {
+        return __syx_channel_recv(self.handle)
+    }
+    public func trySend(_ value: Object) -> Bool {
+        return __syx_channel_try_send(self.handle, value)
+    }
+    public func tryRecv() -> Object {
+        return __syx_channel_try_recv(self.handle)
+    }
+    public func close() {
+        __syx_channel_close(self.handle)
+    }
+    public func count() -> Int {
+        return __syx_channel_length(self.handle)
+    }
+    public func capacity() -> Int {
+        return __syx_channel_capacity(self.handle)
+    }
+}
+
+public class Select {
+    public static func select(channels: Array<Object>) -> Object {
+        let r = __syx_channel_select(channels)
+        if __syx_value_compare(r[0], "-1") == 0
+        return nil
+        return r[1]
+    }
+    public static func orDefault(channels: Array<Object>, fallback: Object) -> Object {
+        let miss = "__syx_select_pkg_miss__"
+        let r = __syx_channel_select_default(channels, miss)
+        if __syx_value_compare(r[0], "-1") == 0
+        return fallback
+        return r[1]
+    }
+    public static func timeout(channels: Array<Object>, ms: Int) -> Object {
+        let r = __syx_channel_select_timeout(channels, ms)
+        if __syx_value_compare(r, nil) == 0
+        return nil
+        if __syx_value_compare(r[0], "-1") == 0
+        return nil
+        return r[1]
+    }
+}
+
+public class MutexGuard {
+    public var mutexId: Int = -1
+    deinit {
+        __syx_mutex_unlock_quiet(self.mutexId)
+    }
+}
+
+public class Mutex {
+    public static func create() -> Object {
+        return __syx_mutex_create()
+    }
+    public static func lock(mutex: Object) {
+        __syx_mutex_lock_wait(mutex)
+    }
+    public static func unlock(mutex: Object) {
+        __syx_mutex_unlock(mutex)
+    }
+    public static func lockGuard(mutex: Object) -> MutexGuard {
+        let ok = __syx_mutex_lock_wait(mutex)
+        let g = MutexGuard()
+        if ok
+        g.mutexId = mutex
+        return g
+    }
+}
+
+public class SemaphoreGuard {
+    public var semId: Int = -1
+    deinit {
+        __syx_semaphore_signal_quiet(self.semId)
+    }
+}
+
+public class Semaphore {
+    public static func create(permits: Int) -> Object {
+        return __syx_semaphore_create(permits)
+    }
+    public static func wait(sem: Object) {
+        __syx_semaphore_wait(sem)
+    }
+    public static func tryWait(sem: Object) -> Bool {
+        return __syx_semaphore_try_wait(sem)
+    }
+    public static func signal(sem: Object) {
+        __syx_semaphore_signal(sem)
+    }
+    public static func waitGuard(sem: Object) -> SemaphoreGuard {
+        let ok = __syx_semaphore_wait(sem)
+        let g = SemaphoreGuard()
+        if ok
+        g.semId = sem
+        return g
+    }
+}
+

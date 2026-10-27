@@ -1,0 +1,9 @@
+func helper() {
+    print(0)
+}
+
+func main() {
+    while ready()
+    print(1)
+}
+

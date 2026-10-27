@@ -1,0 +1,56 @@
+# D-02 known-issues open-gap classification
+# (W1254 deepen + W1255 TSAN sampling + W1256 list disposition + W1257 harden)
+# Extends W1044 M3-C04 corpus body with an explicit residual map.
+# sampling_hardened ≠ TSAN GA ≠ loom GA ≠ D-02 [x].
+
+schema_version = 1
+wave = "W1257"
+floor = "W1256 / ADR-1602 known-issues list complete (disposition deferred)"
+
+[[gaps]]
+id = "tsan_ci"
+class = "detector"
+status = "sampling_hardened"
+note = "W1257: tsan-sample.yml hardened filter m3_c04_race_stress prefix + fail-closed (timeout-minutes; no continue-on-error). Prior W1255 sampling_wired. ≠ TSAN GA / ≠ default PR ci.yml gate"
+
+[[gaps]]
+id = "loom_ga"
+class = "detector"
+status = "deferred"
+note = "W1256 disposition: deferred to future detector axis (loom model-checking GA). ≠ loom GA claimed"
+
+[[gaps]]
+id = "kill_process_chaos"
+class = "chaos_farm"
+status = "deferred"
+note = "W1256 disposition: deferred to chaos farm / D-01 bypass (kill-process beyond TaskGroup cancel samples)"
+
+[[gaps]]
+id = "network_partition_chaos"
+class = "chaos_farm"
+status = "deferred"
+note = "W1256 disposition: deferred to chaos farm / D-01 bypass (network-partition chaos not registered)"
+
+[[gaps]]
+id = "wasm_atomics_ga"
+class = "backend"
+status = "deferred"
+note = "W1256 disposition: deferred to backend axis (wasm atomics / shared-memory race surface). ≠ wasm atomics GA"
+
+[[gaps]]
+id = "actor_shared_pool_race_census"
+class = "product"
+status = "deepened_ssot"
+note = "W1271 / ADR-1617: D-05 race-census deepen SSOT wired (evidence track + classification beyond Phase 138 MVP). Prior W1256 deferred→D-05. ≠ Actor shared-pool product GA / ≠ D-05 [x] / ≠ soft-close"
+
+[[gaps]]
+id = "discard_oldest_policy_deepen"
+class = "product"
+status = "deepened_ssot"
+note = "W1271 / ADR-1617: D-06 DiscardOldest policy deepen SSOT (abort / callerRuns / discardOldest triad beyond MVP string pin). ≠ DiscardOldest product GA / ≠ Java TPE full suite / ≠ D-06 [x] / ≠ soft-close"
+
+[[closed_body]]
+id = "m3_c04_corpus"
+class = "stress_chaos_body"
+status = "met_first_slice"
+note = "W1044 table body: race_stress_samples.toml + race_stress.rs + chaos_sampling.rs"

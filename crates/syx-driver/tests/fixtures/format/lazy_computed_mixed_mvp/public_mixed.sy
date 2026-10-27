@@ -1,0 +1,16 @@
+class PublicBox {
+    public lazy var stored: Int = 0
+    public lazy var value: Int {
+        get {
+            return 1
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

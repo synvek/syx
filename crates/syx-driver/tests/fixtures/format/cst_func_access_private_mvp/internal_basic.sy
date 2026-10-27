@@ -1,0 +1,5 @@
+/* block */
+internal func helper() {
+    // inside
+    print(1)
+}

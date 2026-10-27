@@ -1,0 +1,10 @@
+// ahead
+class Sub: Box {
+  deinit {
+    /* mid */
+    print(1)
+  }
+}
+func main() {
+  print(2)
+}

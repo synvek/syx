@@ -1,0 +1,13 @@
+class Base {
+    var deferred: Int = 0
+}
+
+class Mixed: Base {
+    var ready: Int = 1
+    override var deferred: Int = 2
+}
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,35 @@
+import Log
+import Testing
+
+@TestSetup
+func boot() {
+    Log.info("TestSetup")
+}
+
+@TestBefore
+func prep() {
+    Log.info("TestBefore")
+}
+
+@Test
+func first() {
+    assertEq(1 + 1, 2)
+    Log.info("TestFirst")
+}
+
+@Test
+func second() {
+    assert(true)
+    assertEq("ok", "ok")
+    Log.info("TestSecond")
+}
+
+@TestAfter
+func clean() {
+    Log.info("TestAfter")
+}
+
+@TestTeardown
+func done() {
+    Log.info("TestTeardown")
+}

@@ -1,0 +1,325 @@
+fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> {
+    use indexmap::IndexMap;
+    use syx_ast::{Decl, Expr, Stmt};
+
+    let mut defs: IndexMap<smol_str::SmolStr, (Vec<smol_str::SmolStr>, smol_str::SmolStr, Vec<Stmt>)> =
+        IndexMap::new();
+    module.decls.retain(|decl| {
+        if let Decl::UserMacro { name, params, body, .. } = decl {
+            let prefix = smol_str::SmolStr::new(format!("__syx_m_{name}_"));
+            let mut hygienic_body = body.clone();
+            if macro_hygiene_enabled() {
+                rename_macro_params(&mut hygienic_body, params, &prefix);
+            }
+            defs.insert(name.clone(), (params.clone(), prefix, hygienic_body));
+            false
+        } else {
+            true
+        }
+    });
+    if defs.is_empty() {
+        return Ok(());
+    }
+
+    fn rename_macro_params(stmts: &mut [Stmt], params: &[smol_str::SmolStr], prefix: &str) {
+        for stmt in stmts {
+            match stmt {
+                Stmt::Print { expr, .. } | Stmt::Expr { expr, .. } => {
+                    rename_macro_params_expr(expr, params, prefix);
+                }
+                Stmt::Return { value: Some(expr), .. } => {
+                    rename_macro_params_expr(expr, params, prefix);
+                }
+                Stmt::VarDecl { init: Some(expr), .. } => {
+                    rename_macro_params_expr(expr, params, prefix);
+                }
+                Stmt::Block { stmts, .. } => rename_macro_params(stmts, params, prefix),
+                Stmt::If {
+                    condition,
+                    then_branch,
+                    else_branch,
+                    ..
+                } => {
+                    rename_macro_params_expr(condition, params, prefix);
+                    rename_macro_params(then_branch, params, prefix);
+                    if let Some(eb) = else_branch {
+                        rename_macro_params(eb, params, prefix);
+                    }
+                }
+                Stmt::While { condition, body, .. } => {
+                    rename_macro_params_expr(condition, params, prefix);
+                    rename_macro_params(body, params, prefix);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn rename_macro_params_expr(expr: &mut Expr, params: &[smol_str::SmolStr], prefix: &str) {
+        match expr {
+            Expr::Ident { name, .. } if params.iter().any(|p| p == name) => {
+                *name = smol_str::SmolStr::new(format!("{prefix}{name}"));
+            }
+            Expr::Binary { left, right, .. } => {
+                rename_macro_params_expr(left, params, prefix);
+                rename_macro_params_expr(right, params, prefix);
+            }
+            Expr::Unary { expr, .. } => rename_macro_params_expr(expr, params, prefix),
+            Expr::Call { callee, args, .. } => {
+                rename_macro_params_expr(callee, params, prefix);
+                for a in args {
+                    rename_macro_params_expr(&mut a.value, params, prefix);
+                }
+            }
+            Expr::Member { object, .. } => rename_macro_params_expr(object, params, prefix),
+            Expr::Group { expr, .. } => rename_macro_params_expr(expr, params, prefix),
+            Expr::Index { object, index, .. } => {
+                rename_macro_params_expr(object, params, prefix);
+                rename_macro_params_expr(index, params, prefix);
+            }
+            _ => {}
+        }
+    }
+
+    fn subst_param(expr: &Expr, param: &str, arg: &Expr) -> Expr {
+        match expr {
+            Expr::Ident { name, span } if name.as_str() == param => arg.clone(),
+            Expr::Binary { span, left, op, right } => Expr::Binary {
+                span: *span,
+                left: Box::new(subst_param(left, param, arg)),
+                op: *op,
+                right: Box::new(subst_param(right, param, arg)),
+            },
+            Expr::Unary { span, op, expr } => Expr::Unary {
+                span: *span,
+                op: *op,
+                expr: Box::new(subst_param(expr, param, arg)),
+            },
+            Expr::Call { span, callee, args } => Expr::Call {
+                span: *span,
+                callee: Box::new(subst_param(callee, param, arg)),
+                args: args
+                    .iter()
+                    .map(|a| syx_ast::CallArg {
+                        label: a.label.clone(),
+                        value: subst_param(&a.value, param, arg),
+                    })
+                    .collect(),
+            },
+            Expr::Member { span, object, name } => Expr::Member {
+                span: *span,
+                object: Box::new(subst_param(object, param, arg)),
+                name: name.clone(),
+            },
+            Expr::Group { span, expr } => Expr::Group {
+                span: *span,
+                expr: Box::new(subst_param(expr, param, arg)),
+            },
+            _ => expr.clone(),
+        }
+    }
+
+    fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
+        match stmt {
+            Stmt::Print { span, expr } => Stmt::Print {
+                span: *span,
+                expr: subst_param(expr, param, arg),
+            },
+            Stmt::Expr { span, expr } => Stmt::Expr {
+                span: *span,
+                expr: subst_param(expr, param, arg),
+            },
+            Stmt::VarDecl {
+                span,
+                mutable,
+                name,
+                ty,
+                init,
+            } => Stmt::VarDecl {
+                span: *span,
+                mutable: *mutable,
+                name: name.clone(),
+                ty: ty.clone(),
+                init: init.as_ref().map(|e| subst_param(e, param, arg)),
+            },
+            Stmt::Return { span, value } => Stmt::Return {
+                span: *span,
+                value: value.as_ref().map(|e| subst_param(e, param, arg)),
+            },
+            Stmt::Block { span, stmts } => Stmt::Block {
+                span: *span,
+                stmts: stmts.iter().map(|s| subst_stmt(s, param, arg)).collect(),
+            },
+            other => other.clone(),
+        }
+    }
+
+    fn expand_stmts_user(
+        stmts: &mut Vec<Stmt>,
+        defs: &IndexMap<smol_str::SmolStr, (Vec<smol_str::SmolStr>, smol_str::SmolStr, Vec<Stmt>)>,
+        depth: u32,
+        stack: &mut Vec<smol_str::SmolStr>,
+    ) -> SyxResult<()> {
+        let mut out = Vec::new();
+        for stmt in stmts.drain(..) {
+            if let Stmt::MacroInvoke { span, name, args, .. } = &stmt {
+                if let Some((params, prefix, body)) = defs.get(name) {
+                    if depth >= 16 {
+                        return Err(SyxDiagnostic::error("macro expansion depth exceeded").with_code("E002"));
+                    }
+                    if stack.iter().any(|n| n == name) {
+                        return Err(SyxDiagnostic::error("cyclic macro expansion").with_code("E002"));
+                    }
+                    stack.push(name.clone());
+                    let mut expanded = body.clone();
+                    for (param, arg_expr) in params.iter().zip(args.iter()) {
+                        let hyg = if macro_hygiene_enabled() {
+                            smol_str::SmolStr::new(format!("{prefix}{param}"))
+                        } else {
+                            param.clone()
+                        };
+                        expanded = expanded
+                            .into_iter()
+                            .map(|s| subst_stmt(&s, hyg.as_str(), arg_expr))
+                            .collect();
+                    }
+                    expand_stmts_user(&mut expanded, defs, depth + 1, stack)?;
+                    out.extend(expanded);
+                    stack.pop();
+                    continue;
+                }
+            }
+            match stmt {
+                Stmt::Block { span, mut stmts, .. } => {
+                    expand_stmts_user(&mut stmts, defs, depth, stack)?;
+                    out.push(Stmt::Block { span, stmts });
+                }
+                Stmt::If {
+                    span,
+                    condition,
+                    then_branch,
+                    else_branch,
+                } => {
+                    let mut then_b = then_branch;
+                    expand_stmts_user(&mut then_b, defs, depth, stack)?;
+                    let else_b = if let Some(mut eb) = else_branch {
+                        expand_stmts_user(&mut eb, defs, depth, stack)?;
+                        Some(eb)
+                    } else {
+                        None
+                    };
+                    out.push(Stmt::If {
+                        span,
+                        condition,
+                        then_branch: then_b,
+                        else_branch: else_b,
+                    });
+                }
+                Stmt::While {
+                    span,
+                    condition,
+                    mut body,
+                } => {
+                    expand_stmts_user(&mut body, defs, depth, stack)?;
+                    out.push(Stmt::While {
+                        span,
+                        condition,
+                        body,
+                    });
+                }
+                other => out.push(other),
+            }
+        }
+        *stmts = out;
+        Ok(())
+    }
+
+    fn expand_decls_user(
+        decls: &mut [Decl],
+        defs: &IndexMap<smol_str::SmolStr, (Vec<smol_str::SmolStr>, smol_str::SmolStr, Vec<Stmt>)>,
+    ) -> SyxResult<()> {
+        let mut stack = Vec::new();
+        for decl in decls {
+            match decl {
+                Decl::Function { body, .. }
+                | Decl::Init { body, .. }
+                | Decl::Deinit { body, .. } => {
+                    expand_stmts_user(body, defs, 0, &mut stack)?;
+                }
+                Decl::Class { members, .. } | Decl::Actor { members, .. } => {
+                    expand_decls_user(members, defs)?;
+                }
+                Decl::Extension { methods, .. } => expand_decls_user(methods, defs)?,
+                _ => {}
+            }
+        }
+        Ok(())
+    }
+
+    expand_decls_user(&mut module.decls, &defs)?;
+    fn reject_unknown_macros(stmts: &mut Vec<Stmt>) -> SyxResult<()> {
+        let mut out = Vec::new();
+        for stmt in stmts.drain(..) {
+            if let Stmt::MacroInvoke { name, .. } = &stmt {
+                return Err(SyxDiagnostic::error(format!("Unknown macro '#{name}'")));
+            }
+            match stmt {
+                Stmt::Block { span, mut stmts, .. } => {
+                    reject_unknown_macros(&mut stmts)?;
+                    out.push(Stmt::Block { span, stmts });
+                }
+                Stmt::If {
+                    span,
+                    condition,
+                    mut then_branch,
+                    else_branch,
+                } => {
+                    reject_unknown_macros(&mut then_branch)?;
+                    let else_branch = if let Some(mut eb) = else_branch {
+                        reject_unknown_macros(&mut eb)?;
+                        Some(eb)
+                    } else {
+                        None
+                    };
+                    out.push(Stmt::If {
+                        span,
+                        condition,
+                        then_branch,
+                        else_branch,
+                    });
+                }
+                Stmt::While {
+                    span,
+                    condition,
+                    mut body,
+                } => {
+                    reject_unknown_macros(&mut body)?;
+                    out.push(Stmt::While {
+                        span,
+                        condition,
+                        body,
+                    });
+                }
+                other => out.push(other),
+            }
+        }
+        *stmts = out;
+        Ok(())
+    }
+    fn reject_in_decls(decls: &mut [Decl]) -> SyxResult<()> {
+        for decl in decls {
+            match decl {
+                Decl::Function { body, .. }
+                | Decl::Init { body, .. }
+                | Decl::Deinit { body, .. } => reject_unknown_macros(body)?,
+                Decl::Class { members, .. } | Decl::Actor { members, .. } => {
+                    reject_in_decls(members)?
+                }
+                Decl::Extension { methods, .. } => reject_in_decls(methods)?,
+                _ => {}
+            }
+        }
+        Ok(())
+    }
+    reject_in_decls(&mut module.decls)
+}

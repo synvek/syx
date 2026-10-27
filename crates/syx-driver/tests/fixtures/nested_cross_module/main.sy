@@ -1,0 +1,6 @@
+import nest
+
+func main() {
+    print(nest.nestedValue())
+}
+

@@ -1,0 +1,5 @@
+// p
+private func take(x: Int) {
+    let y = x
+    print(y)
+}

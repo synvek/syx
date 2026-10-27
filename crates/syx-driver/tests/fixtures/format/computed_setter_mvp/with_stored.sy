@@ -1,0 +1,16 @@
+class Mixed {
+    var ready: Int = 1
+    var deferred: Int {
+        get {
+            return self.ready
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

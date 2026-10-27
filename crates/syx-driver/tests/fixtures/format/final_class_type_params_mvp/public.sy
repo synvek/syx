@@ -1,0 +1,5 @@
+public final class Option2<T> {
+    some(value: T)
+    none
+}
+

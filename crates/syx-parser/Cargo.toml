@@ -1,0 +1,15 @@
+[package]
+name = "syx-parser"
+description = "Recursive descent parser for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-lexer = { workspace = true }
+syx-ast = { workspace = true }
+syx-semantic = { workspace = true }
+smol_str = { workspace = true }

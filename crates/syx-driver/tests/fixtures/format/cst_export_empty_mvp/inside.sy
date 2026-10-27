@@ -1,0 +1,4 @@
+export { /* empty */ }
+func main() {
+  print(1)
+}

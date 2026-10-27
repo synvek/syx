@@ -1,0 +1,15 @@
+func id(x: Int) -> (Int) -> Bool {
+    print(x)
+    return x
+}
+
+func unit() -> () {
+    return
+}
+
+func named() -> Int {
+    return
+}
+
+print(0)
+

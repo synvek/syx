@@ -1,0 +1,7 @@
+// Import the sibling module so `#greet` is registered via imported MacroDecl.
+// (`import greet from "…"` is not valid SYX import syntax.)
+import macros
+
+func main() {
+    #greet("syx")
+}

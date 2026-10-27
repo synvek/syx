@@ -1,0 +1,15 @@
+public class Time {
+    public static func nowMs() -> Int {
+        return __syx_time_now_ms()
+    }
+    public static func sleepMs(ms: Int) {
+        __syx_time_sleep_ms(ms)
+    }
+    public static func parseTimestampMs(s: String) -> Int {
+        if s == ""
+        return __syx_time_now_ms()
+        let parsed = __syx_datetime_parse(s)
+        return __syx_keypath_get(parsed, "DateTime", "ms", false)
+    }
+}
+

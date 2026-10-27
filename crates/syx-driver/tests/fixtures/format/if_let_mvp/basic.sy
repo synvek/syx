@@ -1,0 +1,6 @@
+func main() {
+    if let x = opt {
+        print(x)
+    }
+}
+

@@ -1,0 +1,13 @@
+class Box {
+    lazy var stored: Int = 1
+    lazy var computed: Int {
+        get {
+            return 2
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,44 @@
+import Sql
+
+func insertN(c: Int, left: Int) {
+    if left > 0 {
+        Sql.execOn(connId: c, sql: "INSERT INTO t VALUES (1)")
+        insertN(c: c, left: left - 1)
+    }
+}
+
+func insertBatches(c: Int, batches: Int, chunk: Int) {
+    if batches > 0 {
+        insertN(c: c, left: chunk)
+        insertBatches(c: c, batches: batches - 1, chunk: chunk)
+    }
+}
+
+func insertMega(c: Int, megs: Int, batches: Int, chunk: Int) {
+    if megs > 0 {
+        insertBatches(c: c, batches: batches, chunk: chunk)
+        insertMega(c: c, megs: megs - 1, batches: batches, chunk: chunk)
+    }
+}
+
+func insertGiga(c: Int, gigas: Int, megs: Int, batches: Int, chunk: Int) {
+    if gigas > 0 {
+        insertMega(c: c, megs: megs, batches: batches, chunk: chunk)
+        insertGiga(c: c, gigas: gigas - 1, megs: megs, batches: batches, chunk: chunk)
+    }
+}
+
+func main() {
+    try {
+        let c = Sql.open(dsn: ":memory:")
+        Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER)")
+        insertGiga(c: c, gigas: 10, megs: 5, batches: 8, chunk: 25)
+        Sql.close(connId: c)
+        print("ok")
+        print(10000)
+    } catch (e) {
+        print("UNEXPECTED")
+        print(e.message)
+    }
+}
+

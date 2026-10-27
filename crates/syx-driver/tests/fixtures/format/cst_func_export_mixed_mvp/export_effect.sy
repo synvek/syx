@@ -1,0 +1,4 @@
+/// io
+export func go() requires IO {
+    print(1)
+}

@@ -1,0 +1,8 @@
+func a() requires Pure {
+    print(1)
+}
+
+func b(x: Int) -> Int requires Pure {
+    return x
+}
+

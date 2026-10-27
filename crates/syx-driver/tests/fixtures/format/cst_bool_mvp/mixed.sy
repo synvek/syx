@@ -1,0 +1,7 @@
+func main() {
+    let x = true
+    print(x)
+    print(false)
+    return true
+}
+

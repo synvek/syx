@@ -1,0 +1,7 @@
+macro A = #externalMacro(module: "SyxMacros", type: "SmokeMemberMacro")
+
+macro B = #externalMacro(module: "Other", type: "Helper")
+
+func main() {
+}
+

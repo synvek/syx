@@ -1,0 +1,19 @@
+    fn expand_decls(decls: &mut [syx_ast::Decl]) -> SyxResult<()> {
+        for decl in decls.iter_mut() {
+            match decl {
+                syx_ast::Decl::Function { body, .. }
+                | syx_ast::Decl::Init { body, .. }
+                | syx_ast::Decl::Deinit { body, .. } => {
+                    expand_stmts(body)?;
+                }
+                syx_ast::Decl::Class { members, .. } | syx_ast::Decl::Actor { members, .. } => {
+                    expand_decls(members)?;
+                }
+                syx_ast::Decl::Extension { methods, .. } => {
+                    expand_decls(methods)?;
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    }

@@ -1,0 +1,9 @@
+func main() {
+    switch x {
+    case foo() is String:
+        print(1)
+    default:
+        print(0)
+    }
+}
+

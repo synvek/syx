@@ -1,0 +1,16 @@
+// ahead
+public class Sub: Box, Greeter {
+  var items: Int?
+  init() {
+    self.xs[0] = 1
+    a[0][1] = 2
+  }
+  func bump(i: Int) {
+    box.items[i] = 3
+    xs[i] += 1
+  }
+  deinit {
+    print(1)
+  }
+}
+/* trail */

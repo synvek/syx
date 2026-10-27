@@ -1,0 +1,30 @@
+func main() {
+    var user: Object = {
+        "name": "ada",
+        "age": 30,
+        "active": true
+    }
+    print(user.name)
+    print(user["age"])
+    print(user.valueForKey(key: "name"))
+
+    user.age = 31
+    user["city"] = "SF"
+    var title: Object = { "t": "engineer" }
+    user = user.put(key: "meta2", value: title)
+
+    print(user.count)
+    print(user.isEmpty)
+    print(user.containsKey(key: "city"))
+    print(user.keys())
+
+    var meta: Object = { "role": "admin" }
+    user.meta = meta
+    print(user.meta.role)
+
+    print(user["missing"])
+    let text = JSON.encode(value: user)
+    print(text)
+    let again: Object = JSON.decode(text: text)
+    print(again.name)
+}

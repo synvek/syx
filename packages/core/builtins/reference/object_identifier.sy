@@ -1,0 +1,23 @@
+// Stable identity token for class instances. Hand-authored authority.
+
+/// Opaque identifier for reference equality / hashing of objects.
+@builtin("reference.object_identifier")
+public class ObjectIdentifier: Equatable, Hashable, CustomStringConvertible {
+}
+
+extension ObjectIdentifier {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+}

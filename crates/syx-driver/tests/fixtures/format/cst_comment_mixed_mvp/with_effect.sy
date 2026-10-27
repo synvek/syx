@@ -1,0 +1,7 @@
+// ahead
+func go() requires Pure {
+    // body
+    while (((flag)))
+    print(1)
+}
+

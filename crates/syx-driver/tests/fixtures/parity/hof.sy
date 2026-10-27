@@ -1,0 +1,12 @@
+func main() {
+    let nums = [1, 2, 3, 4]
+    let evens = nums.filter({ (x) in
+        x % 2 == 0
+    })
+    print(evens.count())
+    let sum = nums.reduce({ (a, b) in
+        a + b
+    })
+    print(sum)
+}
+

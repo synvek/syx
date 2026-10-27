@@ -1,0 +1,21 @@
+/// ADR-236 / M2-S4-01: `Url.parse` returns `Url` (not糊墙 `Object`).
+/// Runtime parse bag also has `protocol` (keyword; not declared as a property).
+public class Url {
+    public var href: String
+    public var host: String
+    public var port: Int
+    public var path: String
+    public var query: String
+
+    public static func parse(text: String) -> Url {
+        return __syx_url_parse(text)
+    }
+
+    public static func encodeQuery(query: Object) -> String {
+        return __syx_url_encode_query(query)
+    }
+
+    public static func build(base: String, path: String, query: Object) -> String {
+        return __syx_url_build(base, path, query)
+    }
+}

@@ -1,0 +1,6 @@
+/// docs
+final class Shape {
+    point
+    circle(r: Int)
+}
+/* trail */

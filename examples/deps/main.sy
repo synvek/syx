@@ -1,0 +1,6 @@
+import local_math
+
+func main() {
+    print(local_math.add(10, 32))
+}
+

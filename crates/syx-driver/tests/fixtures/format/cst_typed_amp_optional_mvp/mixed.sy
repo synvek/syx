@@ -1,0 +1,9 @@
+func main() {
+    let a: &Int? = p
+    var b: &mut String? = q
+    let f: (&Int?) -> Int = id
+    var g: (Int) -> &mut String? = h
+    print(f)
+    return
+}
+

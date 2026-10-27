@@ -1,0 +1,15 @@
+func main() {
+    switch x {
+    case Task {
+        print(1)
+    }:
+        print(1)
+    case Task.detached {
+        print(2)
+    }:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

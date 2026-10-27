@@ -1,0 +1,21 @@
+import Net
+
+func handle(req: Object) -> Object {
+    let path = req.path
+    if (path == "/health")
+    return Http.response(200, {"status": "ok"})
+    if (path == "/echo")
+    return Http.response(200, {"path": req.path, "method": req.method})
+    if (path == "/hello")
+    return Http.response(200, {"message": "Hello from SYX"})
+    return Http.response(404, {"error": "not found", "path": req.path})
+}
+
+func main() {
+    let addr = "127.0.0.1"
+    let port = 8765
+    print("SYX HTTP server listening on http://\(addr):\(port)")
+    print("Routes: GET /health  /echo  /hello  (Ctrl-C to stop)")
+    Http.serve(addr, port, "handle")
+}
+

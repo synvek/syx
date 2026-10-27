@@ -1,0 +1,6 @@
+macro Obs = #builtInMacro("observable")
+
+func main() {
+    print(1)
+}
+

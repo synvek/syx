@@ -1,0 +1,13 @@
+class Outer {
+    class Inner {
+        func value() -> Int {
+            return 7
+        }
+    }
+}
+
+func main() {
+    var inner = Outer.Inner()
+    print(inner.value())
+}
+

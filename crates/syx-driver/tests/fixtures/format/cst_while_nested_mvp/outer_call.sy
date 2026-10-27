@@ -1,0 +1,6 @@
+func main() {
+    while ready()
+    while tick(1)
+    print(1)
+}
+

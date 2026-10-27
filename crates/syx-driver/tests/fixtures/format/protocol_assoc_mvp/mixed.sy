@@ -1,0 +1,7 @@
+protocol P {
+    associatedtype Item: Equatable
+    func count() -> Int {
+        return 0
+    }
+}
+

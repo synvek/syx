@@ -1,0 +1,5 @@
+func go() requires Pure {
+    while ------flag
+    print(1)
+}
+

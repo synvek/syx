@@ -1,0 +1,5 @@
+func wrap(x: Foo<Int>) -> List<Int> {
+    print(x)
+    return x
+}
+

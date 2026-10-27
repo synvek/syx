@@ -1,0 +1,4 @@
+func id<T>(x: T) throws requires Pure {
+    print(x)
+}
+

@@ -1,0 +1,11 @@
+func main() {
+    let path = "SYX_DIFF_TMP_PATH"
+    __syx_file_write(path, "xy")
+    let h = __syx_file_open(path, "r")
+    let chunk = __syx_file_read_chunk(h, 16)
+    print(chunk[0])
+    let closed = __syx_file_close(h)
+    print(closed)
+    __syx_file_delete(path)
+}
+

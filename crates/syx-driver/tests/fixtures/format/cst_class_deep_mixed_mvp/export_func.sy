@@ -1,0 +1,12 @@
+// export mix
+class Sub: Box {
+    var n: Int
+    init(n: Int) {
+        print(1)
+    }
+}
+export func main() {
+    // body
+    print(2)
+}
+/* trail */

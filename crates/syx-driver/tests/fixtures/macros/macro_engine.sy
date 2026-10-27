@@ -1,0 +1,16 @@
+#macro macroC() {
+    print("done")
+}
+
+#macro macroB() {
+    #macroC()
+}
+
+#macro macroA() {
+    #macroB()
+}
+
+func main() {
+    #macroA()
+}
+

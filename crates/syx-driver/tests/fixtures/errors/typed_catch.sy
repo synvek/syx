@@ -1,0 +1,15 @@
+data class AppError(code: Int, message: String)
+
+func fail() throws {
+    throw AppError(code: 42, message: "boom")
+}
+
+func main() {
+    try {
+        fail()
+    } catch (err) {
+        print(err.message)
+        print(err.code)
+    }
+}
+

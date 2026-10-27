@@ -1,0 +1,4 @@
+[packages.local_math]
+source = "path"
+version = "1.0.0"
+path = "../deps_math"

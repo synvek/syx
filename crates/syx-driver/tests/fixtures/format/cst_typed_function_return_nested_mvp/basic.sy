@@ -1,0 +1,4 @@
+func main() {
+    let f: (Int) -> (Int) -> Int = id
+}
+

@@ -1,0 +1,12 @@
+global actor MainActor {
+}
+
+@MainActor
+func greet() {
+    print("main-actor")
+}
+
+func main() {
+    greet()
+}
+

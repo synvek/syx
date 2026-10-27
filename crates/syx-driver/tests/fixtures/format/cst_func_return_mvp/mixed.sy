@@ -1,0 +1,11 @@
+func id(x: Int) -> Int {
+    print(x)
+    return x
+}
+
+func none() -> Void? {
+    return
+}
+
+print(0)
+

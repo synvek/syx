@@ -1,0 +1,7 @@
+func main() {
+    let x = 1
+    let s = "hi"
+    print(x)
+    print(s)
+}
+

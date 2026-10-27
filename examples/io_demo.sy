@@ -1,0 +1,23 @@
+import IO
+
+import URL
+
+import Env
+
+import Path
+
+import Time
+
+func main() {
+    let home = Env.get("HOME")
+    print(home)
+    let cfg = Path.join(".", "syx.toml")
+    print(Path.normalize(cfg))
+    print(Path.exists(cfg))
+    let built = URL.build("https://api.example.com", "/v1/status", {"q": "syx"})
+    print(built)
+    let t0 = Time.nowMs()
+    Time.sleepMs(10)
+    print(Time.nowMs() - t0)
+}
+

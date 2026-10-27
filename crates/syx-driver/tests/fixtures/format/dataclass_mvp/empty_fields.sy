@@ -1,0 +1,6 @@
+public data class HttpHeaders()
+
+func main() {
+    print(1)
+}
+

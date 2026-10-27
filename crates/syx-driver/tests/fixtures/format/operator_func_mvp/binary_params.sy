@@ -1,0 +1,12 @@
+class Vec2 {
+    var x: Int = 0
+    var y: Int = 0
+    operator func +(a: Vec2, b: Vec2) -> Vec2 {
+        return Vec2(x: a.x + b.x, y: a.y + b.y)
+    }
+}
+
+func main() {
+    print(1)
+}
+

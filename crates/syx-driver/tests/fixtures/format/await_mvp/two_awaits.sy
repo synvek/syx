@@ -1,0 +1,5 @@
+func main() {
+    await print(1)
+    await print(2)
+}
+

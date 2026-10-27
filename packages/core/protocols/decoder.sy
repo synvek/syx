@@ -1,0 +1,5 @@
+// ADR-230 / M2-S7-01: format-agnostic decoding source; containers → M2-S7-02.
+
+/// Source that yields decoded values (JSON / plist / … backends).
+public protocol Decoder {
+}

@@ -1,0 +1,9 @@
+func main() {
+    if case is Dog = x {
+        print(1)
+    }
+    if case is Cat = y {
+        print(2)
+    }
+}
+

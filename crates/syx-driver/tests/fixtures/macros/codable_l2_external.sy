@@ -1,0 +1,11 @@
+@Codable
+data class Item(name: String, count: Int)
+
+func main() {
+    let a = Item(name: "syx", count: 1)
+    let j = a.encode()
+    let b = Item.decode(text: j)
+    print(b.name)
+    print(b.count)
+}
+

@@ -1,0 +1,21 @@
+class Box {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+    func tag() -> Int {
+        return self.n
+    }
+}
+
+extension Box {
+    func doubled() -> Int {
+        return self.n + self.n
+    }
+}
+
+func main() {
+    let b = Box(n: 3)
+    print(b.doubled())
+}
+

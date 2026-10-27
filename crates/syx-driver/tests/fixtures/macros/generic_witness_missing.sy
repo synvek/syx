@@ -1,0 +1,8 @@
+@Codable
+data class Bad<T>(value: T) where T: Hashable
+
+func main() {
+    let a = Bad < Int > (value: 1)
+    print(a.value)
+}
+

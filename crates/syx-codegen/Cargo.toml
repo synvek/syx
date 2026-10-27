@@ -1,0 +1,20 @@
+[package]
+name = "syx-codegen"
+description = "Code generation for the SYX VM"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-ast = { workspace = true }
+syx-semantic = { workspace = true }
+syx-stdlib = { workspace = true }
+syx-mir = { workspace = true }
+syx-mono = { workspace = true }
+syx-meta = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
+smol_str = { workspace = true }
+serde = { workspace = true }

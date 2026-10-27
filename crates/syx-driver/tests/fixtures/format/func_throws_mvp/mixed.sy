@@ -1,0 +1,10 @@
+func id<T>(x: T) {
+}
+
+func boom() throws {
+}
+
+func main() {
+    print(1)
+}
+

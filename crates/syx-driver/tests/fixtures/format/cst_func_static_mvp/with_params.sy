@@ -1,0 +1,4 @@
+/// take
+static func take(x: Int) {
+    print(x)
+}

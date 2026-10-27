@@ -1,0 +1,938 @@
+{
+  "meta": {
+    "version": "0.1",
+    "syx_version": "117.0",
+    "phase": 139,
+    "schema": "syx-capability-v0"
+  },
+  "capability": [
+    {
+      "id": "runtime.jit.tier2",
+      "feature": "runtime.jit.tier2",
+      "surface": "SYX_JIT_TIER2 / Cranelift Suite-1 subset",
+      "status": "experimental-real-subset",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "jit_suite1_differential"
+      ],
+      "notes": "ADR-711 / W367 exit charter (ql5-jit-exit.md; scope narrow; B-08 [x]; Q-L5 checked; ≠ production default); ADR-710 / W366 floor; ADR-709 deepen-3; ADR-708 deepen-2; ADR-707 deepen-1; ADR-706 thin-open; Opt-in SYX_JIT_TIER2=1 + feature jit-tier2: Cranelift lowers/invokes Suite-1 pilot MirOp subset (arith/locals/cmp/branch/call/return); default off; ≠ production JIT GA / ≠ full MirOp / ≠ wasm JIT (ADR-140 / M1-D02)",
+      "since": "M0-A01"
+    },
+    {
+      "id": "tools.fmt",
+      "feature": "tools.fmt.rewrite",
+      "surface": "syx format",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "fmt_fail_closed"
+      ],
+      "notes": "Unsupported AST → Err; no write on failure (M0-A02)",
+      "since": "M0-A02"
+    },
+    {
+      "id": "datetime.calendar",
+      "feature": "datetime.calendar",
+      "surface": "DateTime.parse/format/parseIso8601/now",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "datetime_gregorian",
+        "m2_s5_03_iso_rfc3339_roundtrip",
+        "m2_s5_04_retire_unsupported_preview"
+      ],
+      "notes": "ADR-701 / W357 A-08/Q-S4 exit (A-08/Q-S4 [x]; ≠ all A-* / ≠ leap-second GA); ADR-700 / W356 A-08/Q-S4 floor (≠ A-08/Q-S4 [x]); ADR-699 / W355 A-08 deepen batch-3 (London DST 0/60; ≠ A-08/Q-S4 [x]); ADR-698 / W354 A-08 deepen batch-2 (Tokyo format + reject 2023-04-31; ≠ A-08/Q-S4 [x]); ADR-697 / W353 deepen batch-1; ADR-696 / W352 A-08 thin-open; ADR-628 / W284: native+wasm=real + status=implemented (narrow Gregorian+RFC3339) + DateTime* HostFn llvm/wasm real (W222–W260); ADR-222 / M2-S5-04 lineage; IANA/DST → datetime.timezone; ≠ leap second / ≠ full tz GA / ≠ EC-M2-4-Z / ≠ Wave A exit",
+      "since": "M0-B01"
+    },
+    {
+      "id": "datetime.clock",
+      "feature": "datetime.clock",
+      "surface": "Clock.nowMs / Instant.now / Duration",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s5_01_instant_duration"
+      ],
+      "notes": "ADR-701 / W357 A-08/Q-S4 exit (A-08/Q-S4 [x]; ≠ all A-* / ≠ leap-second GA); ADR-700 / W356 A-08/Q-S4 floor (≠ A-08/Q-S4 [x]); ADR-699 / W355 A-08 deepen batch-3 (London DST 0/60; ≠ A-08/Q-S4 [x]); ADR-698 / W354 A-08 deepen batch-2 (≠ A-08/Q-S4 [x]); ADR-697 / W353 deepen; ADR-696 / W352 A-08 thin-open; ADR-622 / W278: wasm=real + ADR-600 native; ADR-600 / W256: native=real Clock.nowMs epoch-scale + Instant.now monotonic tick offline narrow native AOT + ADR-220; TimeNowMs/InstantNowMs HostFn wasm=real (W274); ≠ leap second / ≠ Wave A exit",
+      "since": "M0-A03"
+    },
+    {
+      "id": "datetime.timezone",
+      "feature": "datetime.timezone",
+      "surface": "DateTime.formatWithTimezone / timezoneOffset(ms,tz) IANA",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-701 / W357 A-08/Q-S4 exit (A-08/Q-S4 [x]; ≠ all A-* / ≠ leap-second GA); ADR-700 / W356 A-08/Q-S4 floor (≠ A-08/Q-S4 [x]); ADR-699 / W355 A-08 deepen batch-3 (London DST 0/60; ≠ A-08/Q-S4 [x]); ADR-698 / W354 A-08 deepen batch-2 (Asia/Tokyo format+offset partial; ≠ A-08/Q-S4 [x] / ≠ full tz GA); ADR-697 / W353 deepen; ADR-696 / W352 A-08 thin-open; ADR-565 / W221: IANA timezoneOffset NY DST offline narrow native+wasm=real (mir-run + wasm nails + S5-02 VM + differential 16/16); ≠ Clock/Instant now exact / ≠ leap second / ≠ llvm DateTime=real / ≠ HostFn inventory real / ≠ EC-M2-4-Z",
+      "since": "ADR-233"
+    },
+    {
+      "id": "net.tcp",
+      "feature": "net.tcp.stream",
+      "surface": "TcpStream",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "tcp_stream_handle",
+        "ec_m2_3_tcp_leak",
+        "ec_m2_4_tcp_availability",
+        "ec_m2_4_tcp_microbench",
+        "ec_m2_4_tcp_native_wasm_matrix",
+        "ec_m2_4_tcp_native_wasm_ga",
+        "ec_m2_4_tcp_native_wasm_ga2",
+        "ec_m2_4_tcp_native_wasm_ga3",
+        "ec_m2_4_tcp_native_wasm_ga4"
+      ],
+      "notes": "ADR-635 / W291: native=partial→real (reuse qs1_tcp + tcp_native_wasm_ga dual-backend nails; status still partial); ADR-623 / W279 wasm=real + W274 Tcp* HostFn wasm; ADR-188 EC-M2-4 Tcp HostFn availability first nail (facade core; ≠ TLS GA / ≠ listen-accept / ≠ status=implemented / ≠ Wave A exit / ≠ websocket / ≠ other native=partial rows).",
+      "since": "M0-B02"
+    },
+    {
+      "id": "net.tcp.listener",
+      "feature": "net.tcp.listener",
+      "surface": "TcpListener.bind/close",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "ec_m2_3_tcp_listener_leak",
+        "qs1_tcp_listen_close_wasm",
+        "m2_s4_tcp_listen_close_native_llvm",
+        "qs1_tcp_listener_accept_native_llvm",
+        "qs1_tcp_listener_accept_wasm"
+      ],
+      "notes": "ADR-255 / EC-M2-3-H: bind/close session only; ≠ accept GA / ≠ TLS / ≠ EC-M2-3 total.; ADR-719 / W375: product dual-backend raise (native+wasm=real; status=implemented); residual product 4/4; still ≠ accept / ≠ TLS / ≠ website met; ADR-720 / W376: website thin inventory signed; ADR-721 / W377: website deepen; ADR-722 / W378: website product met exit scope narrow (≠ hosted full site); ADR-723 / W379: hosted full-site thin inventory signed (≠ hosted met); ADR-724 / W380: hosted same-source deepen (Deployable partial met; ≠ hosted met); ADR-725 / W381: hosted product met exit scope narrow (≠ marketing full site); ADR-726 / W382: accept GA thin inventory signed (≠ accept GA); ADR-727 / W383: accept HostFn llvm first-slice partial; ADR-728 / W384: accept HostFn wasm first-slice; ADR-729 / W385: accept GA met exit scope narrow (≠ TLS / ≠ status raise); ADR-730 / W386: TLS server inventory thin signed; ADR-731 / W387: HostFn-gap deepen partial; ADR-732 / W388: honesty floor exit (≠ TLS GA); ADR-733 / W389: marketing deploy inventory thin signed (≠ marketing met); ADR-734 / W390: marketing same-source deepen (Static partial met; ≠ marketing met); ADR-735 / W391: marketing product met exit scope narrow (≠ full site)",
+      "since": "M2-W111"
+    },
+    {
+      "id": "net.http",
+      "feature": "net.http.client",
+      "surface": "HttpClient",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "http_transport_fail",
+        "differential suite3",
+        "ec_m2_1_http_client",
+        "ec_m2_4_http_availability",
+        "ec_m2_4_http_microbench",
+        "ec_m2_4_http_native_wasm_matrix",
+        "ec_m2_4_http_native_wasm_ga",
+        "m2_s4_02b_client_timeout_tls",
+        "m2_s4_01_http_types",
+        "m2_s4_05_client_tls"
+      ],
+      "notes": "ADR-637 / W293: native=partial→real client-only (reuse qs1_http refuse+loopback dual-backend nails; status still partial); ADR-623 / W279: wasm=real + W270/W271 Http* HostFn wasm; Transport failure must not return status=0 success (M0-B06); Suite-3 loopback + refused (M0-D04); HostFn availability honesty ADR-186; Instant microbench ADR-189; native/WASM matrix first deepening ADR-200; timeout+bad-cert nails ADR-235; named HTTPResponse/Url types ADR-236; TLS client real path ADR-237 (≠ server / ≠ timeout_tls / ≠ tls.client / ≠ status=implemented / ≠ Wave A exit / ≠ other native=partial rows).",
+      "since": "M0-B06"
+    },
+    {
+      "id": "net.http.types",
+      "feature": "net.http.types",
+      "surface": "HTTPResponse / Url / HttpRequest / HttpHeaders / HttpBody",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-560 / W216: Http.response+Url.parse offline narrow native+wasm=real (mir-run + wasm nails + W64/W65 VM + W148 llvm + differential 16/16); ≠ loopback Http.get wasm GA; ≠ net.http/server/stream/TLS; HostFn inventory still partial",
+      "since": "ADR-236"
+    },
+    {
+      "id": "net.http.stream",
+      "feature": "net.http.stream",
+      "surface": "HttpBodyStream.open/openWithOptions/readChunk/close",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s4_04_http_body_stream"
+      ],
+      "notes": "ADR-622 / W278: wasm=real + ADR-601 native; ADR-601 / W257: native=real HttpBodyStream open/readChunk/close offline narrow native AOT + ADR-239/W242; HttpBodyStream* HostFn wasm=real (W271); ≠ TLS / ≠ Wave A exit",
+      "since": "ADR-239"
+    },
+    {
+      "id": "net.http.timeout_tls",
+      "feature": "net.http.timeout_tls",
+      "surface": "Http.fetch timeout_ms + HTTPS verify fail-closed",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s4_02b_client_timeout_tls",
+        "m2_s4_02b_timeout_hang_loopback_wasm",
+        "m2_s4_02b_timeout_hang_loopback_native_aot",
+        "ec_m2_4_http_native_wasm_matrix",
+        "ec_m2_4_http_native_wasm_ga"
+      ],
+      "notes": "ADR-687 / W343: native=partial→real (reuse hang R012 dual-backend + native AOT nails; status remains implemented); ADR-686 / W342: native AOT hang timeout R012 nail; ADR-626 / W282: wasm=real + hang timeout R012 wasm AOT + W271 HttpRequest HostFn wasm; ADR-235 / M2-S4-02b: hang loopback timeout_ms → R012; self-signed HTTPS → verify fail; ≠ S4-05 TLS client GA / ≠ skip-verify / ≠ server TLS / ≠ EC-M2-4-Z / ≠ Wave A exit / ≠ A-06/Q-S2 `[x]`",
+      "since": "ADR-235"
+    },
+    {
+      "id": "net.http.server",
+      "feature": "net.http.server",
+      "surface": "Http.serve/response/shutdown",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s4_03b_server_graceful_shutdown",
+        "ec_m2_1_http_server",
+        "ec_m2_4_http_availability",
+        "ec_m2_4_http_native_wasm_matrix",
+        "ec_m2_4_http_native_wasm_ga",
+        "ec_m2_4_http_native_wasm_ga2",
+        "ec_m2_4_http_native_wasm_ga3"
+      ],
+      "notes": "ADR-638 / W294: native=partial→real (reuse graceful shutdown dual-backend nails; status still partial); ADR-624 / W280: wasm=real + W271 HttpServe/Shutdown HostFn wasm; ADR-238 / M2-S4-03b: Http.shutdown → tiny_http Server::unblock (finish in-flight; ≠ SYX_HTTP_SERVE_MAX_REQUESTS); ADR-177 server slice + ADR-186 availability + matrix/GA deepen; status remains partial — not full Http GA / not TLS server GA / not streaming S4-04 / ≠ status=implemented / ≠ Wave A exit / ≠ timeout_tls / ≠ tls.client / ≠ other native=partial rows",
+      "since": "ADR-186"
+    },
+    {
+      "id": "net.websocket",
+      "feature": "net.websocket.client",
+      "surface": "WebSocket",
+      "status": "experimental",
+      "backends": {
+        "vm": "stub",
+        "native": "noop",
+        "wasm": "host-assisted",
+        "mir": "stub"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [],
+      "notes": "Mock by default; not production handshake (M0-A04)",
+      "since": "M0-A04"
+    },
+    {
+      "id": "net.grpc",
+      "feature": "net.grpc.facade",
+      "surface": "GrpcClient",
+      "status": "experimental",
+      "backends": {
+        "vm": "stub",
+        "native": "noop",
+        "wasm": "unsupported",
+        "mir": "stub"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [],
+      "notes": "In-process facade; not wire gRPC (M0-A05)",
+      "since": "M0-A05"
+    },
+    {
+      "id": "net.tls.client",
+      "feature": "net.tls.client",
+      "surface": "Http HTTPS via reqwest+rustls (default verify)",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s4_05_client_tls",
+        "m2_s4_05_https_loopback_ok_with_extra_root_wasm",
+        "m2_s4_05_https_loopback_ok_with_extra_root_native_aot",
+        "m2_s4_05_self_signed_fail_closed_wasm",
+        "m2_s4_05_self_signed_fail_closed_native_aot",
+        "m2_s4_02b_client_timeout_tls",
+        "ec_m2_4_http_native_wasm_matrix",
+        "ec_m2_4_http_native_wasm_ga"
+      ],
+      "notes": "ADR-687 / W343: native=partial→real (reuse EXTRA_ROOT HTTPS + self-signed dual-backend + native AOT nails; status remains implemented); ADR-686 / W342: native AOT EXTRA_ROOT HTTPS + self-signed fail-closed nails; ADR-626 / W282: wasm=real + EXTRA_ROOT HTTPS + self-signed fail-closed wasm AOT + W270 HttpGet HostFn wasm; ADR-237 / M2-S4-05: HTTPS client real path; diagnostic SYX_HTTP_EXTRA_ROOT_PEM appends trust anchors (≠ skip-verify / ≠ danger_accept_invalid_certs); 02b bad-cert fail-closed still holds; ≠ server TLS GA / ≠ EC-M2-4-Z / ≠ Wave A exit / ≠ A-06/Q-S2 `[x]`; ADR-730 / W386: TLS server inventory thin signed; ADR-731 / W387: HostFn-gap deepen partial; ADR-732 / W388: honesty floor exit (server still unmet)",
+      "since": "ADR-237"
+    },
+    {
+      "id": "net.tls.server",
+      "feature": "net.tls.server",
+      "surface": "TlsServer",
+      "status": "implemented",
+      "backends": {
+        "vm": "partial",
+        "native": "real",
+        "wasm": "real",
+        "mir": "partial"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "qs1_tls_serve_native_llvm",
+        "qs1_tls_serve_wasm",
+        "qs1_tls_serve_native_llvm_alpn_config",
+        "qs1_tls_serve_native_llvm_concurrent",
+        "qs1_tls_serve_native_llvm_alpn_lang",
+        "tls_server_no_idle_native_cross_idle",
+        "tls_server_noidle_lang_native_cross_idle"
+      ],
+      "notes": "ADR-802 / W458: language noIdle 6th Int (serveOnceNoIdle; 0→env/default idle; ≠ daemon GA); ADR-801 / W457: env no-idle first-slice (SYX_TLS_SERVE_NO_IDLE + optional SYX_TLS_SERVE_MAX_HANDLED; default idle unchanged); ADR-779 / W435: product status raise first-slice (unsupported→implemented) on GA met narrow + TlsServe llvm/wasm nails; native/wasm=real; vm/mir=partial honesty; ADR-785 / W441: TlsServe HostFn status→implemented; ADR-786 / W442: unbounded multi-conn first-slice (idle-timeout sequential accept); ADR-787 / W443: configurable ALPN via SYX_TLS_SERVE_ALPN (default syx/1); ADR-788 / W444: concurrent thread-per-conn serve (idle drain); ADR-789 / W445: language ALPN 5th arg / serveOnceAlpn (empty → env/default; ≠ Array alpn); ADR-780 / W436: application-data first-slice (HANDLED); ADR-781 / W437: multi-conn N=2 historical; ADR-782 / W438: ALPN first-slice (fixed syx/1 historical); ADR-739 / W395 TLS GA met exit narrow (historical ≠ status raise at that window); ADR-737/738 llvm/wasm first-slice retained",
+      "since": "M0-A06"
+    },
+    {
+      "id": "crypto.core",
+      "feature": "crypto.hash_mac_aead",
+      "surface": "SHA/HMAC/AES/Ed25519",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [],
+      "notes": "Core crypto hosts; ADR-690 / W346 A-07 thin-open; ADR-691–693 RFC/tamper nails; ADR-694 / W350 floor; ADR-695 / W351 A-07/Q-S3 exit (≠ all A-* [x] / ≠ full RFC GA)",
+      "since": "pre-M0"
+    },
+    {
+      "id": "crypto.pbkdf2",
+      "feature": "crypto.pbkdf2",
+      "surface": "pbkdf2(password,salt,iters,dkLen)",
+      "status": "experimental",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "crypto_pbkdf2"
+      ],
+      "notes": "Four-arg ABI + RFC6070 smoke (M0-B04); ADR-690 / W346 A-07 thin-open; ADR-693 / W349 a07_rfc_pbkdf2_c2_vector; ADR-694–695 floor+exit cross-index (status still experimental; ≠ full RFC GA)",
+      "since": "M0-B04"
+    },
+    {
+      "id": "data.sqlite",
+      "feature": "data.sqlite",
+      "surface": "SQLite / ORM MVP",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "ec_m2_1_sql_service",
+        "ec_m2_3_sql_leak",
+        "ec_m2_4_sql_availability",
+        "ec_m2_4_sql_microbench",
+        "ec_m2_4_sql_native_wasm_matrix",
+        "ec_m2_4_sql_native_wasm_ga",
+        "ec_m2_4_sql_native_wasm_ga2",
+        "ec_m2_4_sql_native_wasm_ga3"
+      ],
+      "notes": "ADR-636 / W292: native=partial→real (reuse qs1_sql + sql_native_wasm_ga dual-backend nails; status still partial); ADR-624 / W280: wasm=real + W272/W273 Sql* HostFn wasm; In-process rusqlite; Suite-4 differential VM+MIR exact (M0-D05). ADR-187 EC-M2-4 Sql HostFn availability first nail (facade core; not Orm GA / not full EC-M2-4). Instant microbench ADR-190; native/WASM matrix first deepening ADR-201; SqlOpen llvm GA first deepening ADR-206; SqlClose llvm GA second deepening ADR-211; SqlExecOn llvm GA third deepening ADR-216 (≠ full Sql GA / ≠ Orm GA / ≠ status=implemented / ≠ Wave A exit / ≠ pool/row / ≠ other native=partial rows). Pool slice → data.sqlite.pool (ADR-245).",
+      "since": "pre-M0"
+    },
+    {
+      "id": "data.sqlite.pool",
+      "feature": "data.sqlite.pool",
+      "surface": "Sql.poolCreate/poolAcquire/poolRelease/poolClose",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-717 / W373 residual product raise: dual-backend real (qs1_sql_pool_lifecycle native+wasm); ADR-245 / M2-S8-01c + ADR-247 / M2-S8-03b retained; HostFn SqlPool* wasm complete (ADR-716); ≠ live Statement / ≠ EC-M2-4-Z; ≠ listener residual clear",
+      "since": "ADR-245"
+    },
+    {
+      "id": "data.sqlite.row",
+      "feature": "data.sqlite.row",
+      "surface": "SqlRow.getString/getInt/getFloat/getBlob/isNull/columnNames",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-715 / W371 residual product raise: dual-backend real (qs1_sql_row_accessors + GetInt native+wasm); ADR-246 / M2-S8-02b typed SqlRow retained; HostFn SqlRow* wasm complete (ADR-713/714); ≠ query builder / ≠ Orm GA / ≠ EC-M2-4-Z; ≠ pool/listener residual clear",
+      "since": "ADR-246"
+    },
+    {
+      "id": "io.file.read_all_bytes",
+      "feature": "io.file.read_all_bytes",
+      "surface": "FileHandle.readAllBytes",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-558 / W214: read_to_end narrow native+wasm=real (mir-run + wasm nails + W64 VM + W194 llvm + differential 16/16); historical FileMmapRead alias; behavior ≠ OS mmap; HostFn inventory still partial",
+      "since": "M0-B07"
+    },
+    {
+      "id": "io.file.raii",
+      "feature": "io.file.raii",
+      "surface": "FileHandle.withOpen / openResource→FileResource + Reader/Writer/Seekable/Closeable",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-546 / W202: FileHandle.withOpen RAII narrow subset native+wasm=real; W48/W49/W91 VM exact; File HostFn llvm/wasm W18-W21+W192-W194; ≠ EC-M2-3 total; stream/watcher → io.file.stream/io.file.watch; mmap → ADR-241",
+      "since": "ADR-234"
+    },
+    {
+      "id": "io.file.stream",
+      "feature": "io.file.stream",
+      "surface": "FileStream.open/readChunk/close",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-548 / W204: FileStream open/readChunk/close narrow subset native+wasm=real; W50/W71/W136 VM exact + native/wasm nails; ≠ FileWatcher; ≠ mmap; ≠ EC-M2-3 total",
+      "since": "ADR-240"
+    },
+    {
+      "id": "io.file.watch",
+      "feature": "io.file.watch",
+      "surface": "FileWatcher.open/poll/close",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-555 / W211: FileWatcher open/poll/close mir=real (mir-run narrow nail + W206 native/wasm + differential 16/16); W72/W103/W138 VM exact; ≠ recursive/async notify GA; ≠ File.watch one-shot; ≠ llvm FileWatcher GA",
+      "since": "ADR-240"
+    },
+    {
+      "id": "io.path",
+      "feature": "io.path",
+      "surface": "Path.join/normalize/exists/fileExtension",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-559 / W215: PathJoin+PathExists+PathNormalize+PathExtension narrow native+wasm=real (mir-run + wasm nails + W146/W147/W70 llvm + W213 + differential 16/16); status implemented ≠ full Path GA / ≠ UNC/drive / ≠ HostFn inventory real; HostFn Path* still partial",
+      "since": "ADR-184"
+    },
+    {
+      "id": "collections.protocol",
+      "feature": "collections.protocol",
+      "surface": "Iterator for-in + Sequence/Collection named subset",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-544 / W200: Iterator for-in subset native+wasm=real; W198 array_for_in differential; custom Counter parity; Sequence.makeIterator / full Collection Index still open; Deque → collections.deque (ADR-248)",
+      "since": "ADR-223"
+    },
+    {
+      "id": "collections.mutation",
+      "feature": "collections.mutation",
+      "surface": "Dict.remove / Set.insert·remove / Array subscript·setAt",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-545 / W201: Dict/Set/Array mutation narrow subset native+wasm=real; W80/W81 VM exact; Suite-1 read paths W195-W197; ≠ Dict subscript-insert GA; Deque → collections.deque; HOF → collections.feature_off",
+      "since": "ADR-224"
+    },
+    {
+      "id": "collections.feature_off",
+      "feature": "collections.feature_off",
+      "surface": "Array.map/filter/reduce illegal shape + interpreter feature-off",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-549 / W205: Array.map/filter/reduce illegal shape U001 fail-closed native+wasm=real; W92-W96 VM exact + native/wasm nails; ≠ llvm HOF GA; Deque → collections.deque; String → text.three_view",
+      "since": "ADR-225"
+    },
+    {
+      "id": "collections.deque",
+      "feature": "collections.deque",
+      "surface": "Deque.new/pushBack/pushFront/popBack/popFront/count/isEmpty",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-712 / W368 residual first-slice: dual-backend raise (a04_deque_empty_pop_nil native+wasm); ADR-248 / M2-S1-03 Deque<Int> MVP retained; HeapSlotKind::Deque write-back; empty pop → Nil; ≠ Heap/PriorityQueue / ≠ lazy sequence / ≠ Deque<T> generics / ≠ makeIterator GA / ≠ EC-M2-4-Z; ≠ listener/pool/row residual clear",
+      "since": "ADR-248"
+    },
+    {
+      "id": "text.three_view",
+      "feature": "text.three_view",
+      "surface": "grapheme Character / unicodeScalars / utf8Bytes",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-551 / W207: grapheme length/subscript/for-in + scalar/utf8 views + isSingleScalar narrow subset native+wasm=real; W84-W86 VM exact + native/wasm nails; ≠ llvm String GA / ≠ opaque Index / ≠ normalization / ≠ XID / ≠ IANA; index → text.index_honesty (ADR-227)",
+      "since": "ADR-226"
+    },
+    {
+      "id": "text.index_honesty",
+      "feature": "text.index_honesty",
+      "surface": "Int grapheme offset O(n) random access",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-554 / W210: Int grapheme offset O(n) native+wasm=real (ASCII s[0]/s[1] + ZWJ s[0] narrow nails + differential 16/16); W83 VM exact + native/wasm; ≠ llvm String GA / ≠ opaque Index / ≠ StringCharAt host inventory batch / ≠ normalization XID IANA",
+      "since": "ADR-227"
+    },
+    {
+      "id": "text.normalization",
+      "feature": "text.normalization",
+      "surface": "NFC/NFD + caseFolded",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-556 / W212: normalizedNFC/NFD + caseFolded narrow native+wasm=real (NFC compose + caseFold nails + W82/W83 VM + differential 16/16); lowercased/uppercased=Unicode simple case ≠ caseFolded ≠ locale; ≠ NFKC/NFKD; HostFn inventory still partial; ≠ llvm String GA",
+      "since": "ADR-228"
+    },
+    {
+      "id": "language.unicode_identifiers",
+      "feature": "language.unicode_identifiers",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s2_04_unicode_xid_identifiers"
+      ],
+      "notes": "ADR-229 / M2-S2-04: lexer unicode-xid; ASCII + Greek/CJK ok; emoji start fail; no ident NFC / ≠ UTS39 confusables / ≠ IANA / ≠ EC-M2-4-Z / ≠ full LSP GA",
+      "since": "ADR-229"
+    },
+    {
+      "id": "data.coding.protocol",
+      "feature": "data.coding.protocol",
+      "surface": "Encoder/Decoder/Encodable/Decodable + Codable",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-561 / W217: JsonEncode+JsonDecode dynamic roundtrip offline narrow native+wasm=real (mir-run + wasm nails + S7-01 VM + differential 16/16); ≠ @Codable GA / ≠ JSONEncoder/JSONStream product rows / ≠ Json* HostFn inventory real / ≠ CodingKeys",
+      "since": "ADR-230"
+    },
+    {
+      "id": "data.coding.json_encoder",
+      "feature": "data.coding.json_encoder",
+      "surface": "JSONEncoder.encode / JSONDecoder.decode + codingPath",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-562 / W218: JsonEncoderEncode+JsonDecoderDecode flat Box roundtrip offline narrow native+wasm=real (mir-run + wasm nails + S7-02 VM + differential 16/16); ≠ nested/codingPath product deepen / ≠ JSONStream / ≠ JsonEncoder* HostFn inventory real / ≠ CodingKeys",
+      "since": "ADR-231"
+    },
+    {
+      "id": "data.coding.json_stream",
+      "feature": "data.coding.json_stream",
+      "surface": "JSONStream NDJSON openWriter/write/finish + openReader/feed/decodeNext",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-563 / W219: JSONStream flat Box roundtrip offline narrow native+wasm=real (mir-run + wasm nails + S7-03 VM + differential 16/16); ≠ nested/codingPath product deepen / ≠ File/HTTP streaming / ≠ JsonStream* HostFn inventory real / ≠ CodingKeys",
+      "since": "ADR-232"
+    },
+    {
+      "id": "collections.dict",
+      "feature": "collections.dictionary",
+      "surface": "Dictionary.remove",
+      "status": "implemented",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "real",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "notes": "ADR-564 / W220: Dictionary.remove offline narrow native+wasm=real (reuse W201 mir-run + wasm nails + differential 16/16); ≠ Dict insert/subscript GA / ≠ Deque / ≠ HOF / ≠ HostFn inventory batch",
+      "since": "M0-B03"
+    },
+    {
+      "id": "os.process.builder",
+      "feature": "os.process.builder",
+      "surface": "ProcessBuilder.create/cwd/env/spawn + Child.wait/kill/waitTimeout",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "unsupported",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s6_01_process_builder"
+      ],
+      "notes": "ADR-602 / W258: native=real ProcessBuilder/Child offline narrow native AOT + ADR-242/W243–W246; wasm=unsupported → overall partial; ≠ wasm GA / ≠ Offset·Format wasm / ≠ Task* / ≠ TLS / ≠ EC-M2-4-Z",
+      "since": "ADR-242"
+    },
+    {
+      "id": "os.process.stdio",
+      "feature": "os.process.stdio",
+      "surface": "Child.stdout/stderr/stdin + ChildPipe.readChunk/write/close",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "unsupported",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s6_02b_child_stdio_pipe"
+      ],
+      "notes": "ADR-602 / W258: native=real ChildPipe/stdio offline narrow native AOT + ADR-243/W245–W247; wasm=unsupported → overall partial; ≠ wasm GA / ≠ Offset·Format wasm / ≠ Task* / ≠ TLS / ≠ EC-M2-4-Z",
+      "since": "ADR-243"
+    },
+    {
+      "id": "os.process.signal",
+      "feature": "os.process.signal",
+      "surface": "Child.signal(handle, name) TERM/INT/KILL",
+      "status": "partial",
+      "backends": {
+        "vm": "real",
+        "native": "real",
+        "wasm": "unsupported",
+        "mir": "real"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [
+        "m2_s6_03_child_signal"
+      ],
+      "notes": "ADR-602 / W258: native=real Child.signal TERM offline narrow native AOT + ADR-244/W246; wasm=unsupported → overall partial; Windows KILL-only (TERM/INT unsupported); ≠ wasm GA / ≠ Offset·Format wasm / ≠ Task* / ≠ TLS / ≠ EC-M2-4-Z",
+      "since": "ADR-244"
+    },
+    {
+      "id": "ui.synui",
+      "feature": "ui.synui",
+      "surface": "SynUI",
+      "status": "frozen",
+      "backends": {
+        "vm": "partial",
+        "native": "partial",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [],
+      "notes": "v12 frozen; no v13 in M0 (ADR-131/133)",
+      "since": "ADR-131"
+    },
+    {
+      "id": "build.farm",
+      "feature": "build.farm",
+      "surface": "Build farm / Dist",
+      "status": "frozen",
+      "backends": {
+        "vm": "partial",
+        "native": "partial",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "tests": [],
+      "notes": "Farm/Dist v19 frozen (ADR-131/133)",
+      "since": "ADR-131"
+    }
+  ]
+}

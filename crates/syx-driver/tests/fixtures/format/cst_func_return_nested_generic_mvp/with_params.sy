@@ -1,0 +1,5 @@
+func id(x: Int) -> Foo<Bar<Int>> {
+    print(x)
+    return x
+}
+

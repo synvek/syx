@@ -1,0 +1,4 @@
+func greeter(@Autowired logger: Logger) -> Logger {
+    return logger
+}
+

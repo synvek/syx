@@ -1,0 +1,13 @@
+{
+  "exit": 1,
+  "stdout": [],
+  "expect_error": true,
+  "skip": {
+    "wasm": true,
+    "native": true,
+    "reason": {
+      "wasm": "no HTTP host on native/WASM yet",
+      "native": "no HTTP host on native/WASM yet"
+    }
+  }
+}

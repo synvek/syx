@@ -1,0 +1,8 @@
+func pure() requires Pure {
+    print(0)
+}
+
+func io() requires IO {
+    print(1)
+}
+

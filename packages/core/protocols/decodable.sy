@@ -1,0 +1,5 @@
+// ADR-230 / M2-S7-01: marker for values that can be decoded.
+
+/// Types that can be constructed from a `Decoder`.
+public protocol Decodable {
+}

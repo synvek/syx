@@ -1,0 +1,9 @@
+/// a
+async func a() {
+    print(1)
+}
+/// b
+async func b() {
+    /* mid */
+    print(2)
+}

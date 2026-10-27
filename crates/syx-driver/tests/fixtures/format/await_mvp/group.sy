@@ -1,0 +1,4 @@
+func main() {
+    await (print(1))
+}
+

@@ -1,0 +1,16 @@
+class Point {
+    var x: Int = 0
+}
+
+extension Point {
+    var doubled: Int {
+        get {
+            return self.x * 2
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

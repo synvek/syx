@@ -1,0 +1,12 @@
+// ahead
+class Box {
+  var items: Int
+  func set(i: Int, n: Int) {
+    box.items[i] = n
+  }
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

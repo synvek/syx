@@ -1,0 +1,53 @@
+import Di
+
+protocol Pingable {
+    func ping() -> String {
+        return "?"
+    }
+    func next() -> Int {
+        return 0
+    }
+}
+
+@Primary
+@Service
+class DefaultPing: Pingable {
+    init() {
+    }
+    func ping() -> String {
+        return "default-ping"
+    }
+    func next() -> Int {
+        return 1
+    }
+}
+
+@Qualifier("fast")
+@Service
+class FastPing: Pingable {
+    init() {
+    }
+    func ping() -> String {
+        return "fast-ping"
+    }
+    func next() -> Int {
+        return 2
+    }
+}
+
+@Service
+class App {
+    init(@Inject @Qualifier("fast") ping: Pingable) {
+    }
+    func tag() -> String {
+        return "app-ok"
+    }
+}
+
+func main() {
+    let app = Di.resolve("App")
+    print(app.tag())
+    let primary = Di.resolve("Pingable")
+    print(primary.ping())
+}
+

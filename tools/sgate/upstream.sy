@@ -1,0 +1,54 @@
+import config
+
+var counterNames: Array<String> = []
+
+var counterValues: Array<Int> = []
+
+public func counterFor(name: String) -> Int {
+    var i = 0
+    while i < counterNames.count {
+        if counterNames[i] == name
+        return counterValues[i]
+        i = i + 1
+    }
+    counterNames.append(name)
+    counterValues.append(0)
+    return 0
+}
+
+public func nextServerIdx(name: String, servers: Array<String>) -> Int {
+    if servers.count == 0
+    return -1
+    // String is move-consumed on by-value call; keep a copy for later compares.
+    let key = "\(name)"
+    let c = counterFor(name: key)
+    let idx = c % servers.count
+    var i = 0
+    while i < counterNames.count {
+        if counterNames[i] == name
+        counterValues[i] = c + 1
+        i = i + 1
+    }
+    return idx
+}
+
+public func pickServer(name: String) -> String {
+    let key = "\(name)"
+    let servers = config.serversForUpstream(name: name)
+    if servers.count == 0
+    return ""
+    let idx = nextServerIdx(name: key, servers: servers)
+    if idx < 0
+    return ""
+    return servers[idx]
+}
+
+public func buildUpstreamURL(upstreamName: String, path: String, query: String) -> String {
+    let server = pickServer(name: upstreamName)
+    if server == ""
+    return ""
+    var url: String = "http://\(server)\(path)"
+    if query != ""
+    url = url + "?" + query
+    return url
+}

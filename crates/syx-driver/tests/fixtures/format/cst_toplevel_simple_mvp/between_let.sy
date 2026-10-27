@@ -1,0 +1,8 @@
+func a() {
+}
+
+let x = 1
+
+func b() {
+}
+

@@ -1,0 +1,16 @@
+// ahead
+public class Sub: Box, Greeter {
+  var name: String?
+  init(name: String) {
+    // body
+    print(1)
+  }
+  deinit {
+    print(2)
+  }
+}
+func main() {
+  /* mid */
+  print(3)
+}
+/* trail */

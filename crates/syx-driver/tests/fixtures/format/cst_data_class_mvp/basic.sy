@@ -1,0 +1,3 @@
+// ahead
+data class Point(x: Int, y: Int)
+/* trail */

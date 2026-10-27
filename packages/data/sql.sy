@@ -1,0 +1,201 @@
+/// M2 W4 / ADR-148: Sql.prepare throws SqlError (no `prep:{sql}` status strings).
+/// M2 W10 / ADR-154: Sql.bindStep throws SqlError (registry host bypass cleared).
+/// M2 W11 / ADR-155: Sql.exec/query throws SqlError (exec host unwrap_or sentinel cleared).
+/// M2 W12 / ADR-156: Sql begin/commit/rollback throws SqlError (registry host bypass cleared).
+/// M2 W16 / ADR-160: Sql.open/close/execOn/queryOn multi-Connection first nail (default conn 0 for legacy).
+/// M2 W18 / ADR-162: Sql.prepareOn multi-Connection prepare validation (bindStep still conn 0).
+/// M2 W19 / ADR-163: Sql.bindStepOn multi-Connection parameterized execute (PREPARED_SQL still unused by bind).
+/// M2 W20 / ADR-164: Sql.bindPreparedOn stmt↔conn binding (PREPARED_SQL stores (connId, sql)).
+/// M2 W21 / ADR-165: Sql begin/commit/rollback TransactionOn multi-Connection txn (legacy txn still conn 0).
+/// M2 W101 / ADR-245: Sql.poolCreate/Acquire/Release/Close connection pool MVP.
+/// M2 W102 / ADR-246: query*/queryOn return Array of SqlRow (named type + accessors; ≠ Object糊墙成功).
+/// M2 W103 / ADR-247: pool×txn threshold (release mid-txn forbidden; IMMEDIATE busy; poolClose leak honesty).
+/// Bare SQL hatch: query* still accept raw SQL strings (≠ query builder / ≠ Orm GA).
+
+/// Thin SqlError (ADR-138 target type; full Error hierarchy → later M2 windows).
+public data class SqlError(code: Int, message: String)
+
+public class Sql {
+    /// Open a connection; returns handle id ≥ 1. Use `":memory:"` for in-memory DB (ADR-160).
+    public static func open(dsn: String) -> Int throws {
+        try {
+            return __syx_sql_open(dsn)
+        } catch (e) {
+            throw SqlError(code: 8, message: "sql open failed")
+        }
+    }
+
+    /// Close an explicitly opened connection (not the implicit default conn 0) (ADR-160).
+    public static func close(connId: Int) throws {
+        try {
+            __syx_sql_close(connId)
+        } catch (e) {
+            throw SqlError(code: 9, message: "sql close failed")
+        }
+    }
+
+    /// Exec SQL on a specific connection handle (ADR-160).
+    public static func execOn(connId: Int, sql: String) -> Int throws {
+        try {
+            return __syx_sql_exec_on(connId, sql)
+        } catch (e) {
+            throw SqlError(code: 10, message: "sql execOn failed")
+        }
+    }
+
+    /// Query SQL on a specific connection handle (ADR-160).
+    /// Returns Array of SqlRow (ADR-246); still a bare SQL string hatch.
+    public static func queryOn(connId: Int, sql: String) -> Array throws {
+        try {
+            return __syx_sql_query_on(connId, sql)
+        } catch (e) {
+            throw SqlError(code: 11, message: "sql queryOn failed")
+        }
+    }
+
+    /// Prepare SQL on a specific connection handle (ADR-162); validates against that conn's schema.
+    public static func prepareOn(connId: Int, sql: String) -> Int throws {
+        try {
+            return __syx_sql_prepare_on(connId, sql)
+        } catch (e) {
+            throw SqlError(code: 12, message: "sql prepareOn failed")
+        }
+    }
+
+    /// Parameterized execute on a specific connection handle (ADR-163); does not use stmt ids.
+    public static func bindStepOn(connId: Int, sql: String, value: String) -> Int throws {
+        try {
+            return __syx_sql_bind_step_on(connId, sql, value)
+        } catch (e) {
+            throw SqlError(code: 13, message: "sql bindStepOn failed")
+        }
+    }
+
+    /// Execute a stmt prepared on connId (ADR-164); rejects conn mismatch.
+    public static func bindPreparedOn(connId: Int, stmtId: Int, value: String) -> Int throws {
+        try {
+            return __syx_sql_bind_prepared_on(connId, stmtId, value)
+        } catch (e) {
+            throw SqlError(code: 14, message: "sql bindPreparedOn failed")
+        }
+    }
+
+    /// Begin a transaction on a specific connection (ADR-165).
+    public static func beginTransactionOn(connId: Int) throws {
+        try {
+            __syx_sql_begin_transaction_on(connId)
+        } catch (e) {
+            throw SqlError(code: 15, message: "sql beginTransactionOn failed")
+        }
+    }
+
+    /// Commit a transaction on a specific connection (ADR-165).
+    public static func commitTransactionOn(connId: Int) throws {
+        try {
+            __syx_sql_commit_transaction_on(connId)
+        } catch (e) {
+            throw SqlError(code: 16, message: "sql commitTransactionOn failed")
+        }
+    }
+
+    /// Rollback a transaction on a specific connection (ADR-165).
+    public static func rollbackTransactionOn(connId: Int) throws {
+        try {
+            __syx_sql_rollback_transaction_on(connId)
+        } catch (e) {
+            throw SqlError(code: 17, message: "sql rollbackTransactionOn failed")
+        }
+    }
+
+    /// ADR-245: create a pool (maxSize >= 1). Acquire is non-blocking; exhaust throws.
+    public static func poolCreate(dsn: String, maxSize: Int) -> Int throws {
+        try {
+            return __syx_sql_pool_create(dsn, maxSize)
+        } catch (e) {
+            throw SqlError(code: 18, message: "sql poolCreate failed")
+        }
+    }
+
+    public static func poolAcquire(poolId: Int) -> Int throws {
+        try {
+            return __syx_sql_pool_acquire(poolId)
+        } catch (e) {
+            throw SqlError(code: 19, message: "sql poolAcquire failed")
+        }
+    }
+
+    /// Return conn to free list (does not close). Double release throws.
+    public static func poolRelease(poolId: Int, connId: Int) throws {
+        try {
+            __syx_sql_pool_release(poolId, connId)
+        } catch (e) {
+            throw SqlError(code: 20, message: "sql poolRelease failed")
+        }
+    }
+
+    /// Close all pooled connections and destroy the pool.
+    public static func poolClose(poolId: Int) throws {
+        try {
+            __syx_sql_pool_close(poolId)
+        } catch (e) {
+            throw SqlError(code: 21, message: "sql poolClose failed")
+        }
+    }
+
+    public static func exec(sql: String) -> Int throws {
+        try {
+            return __syx_sql_exec(sql)
+        } catch (e) {
+            throw SqlError(code: 3, message: "sql exec failed")
+        }
+    }
+
+    /// Returns Array of SqlRow (ADR-246); bare SQL string hatch (≠ query builder).
+    public static func query(sql: String) -> Array throws {
+        try {
+            return __syx_sql_query(sql)
+        } catch (e) {
+            throw SqlError(code: 4, message: "sql query failed")
+        }
+    }
+
+    public static func prepare(sql: String) -> Int throws {
+        try {
+            return __syx_sql_prepare(sql)
+        } catch (e) {
+            throw SqlError(code: 1, message: "sql prepare failed")
+        }
+    }
+
+    public static func bindStep(sql: String, value: String) -> Int throws {
+        try {
+            return __syx_sql_bind_step(sql, value)
+        } catch (e) {
+            throw SqlError(code: 2, message: "sql bindStep failed")
+        }
+    }
+
+    public static func beginTransaction() throws {
+        try {
+            __syx_sql_begin_transaction()
+        } catch (e) {
+            throw SqlError(code: 5, message: "sql beginTransaction failed")
+        }
+    }
+
+    public static func commitTransaction() throws {
+        try {
+            __syx_sql_commit_transaction()
+        } catch (e) {
+            throw SqlError(code: 6, message: "sql commitTransaction failed")
+        }
+    }
+
+    public static func rollbackTransaction() throws {
+        try {
+            __syx_sql_rollback_transaction()
+        } catch (e) {
+            throw SqlError(code: 7, message: "sql rollbackTransaction failed")
+        }
+    }
+}

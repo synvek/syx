@@ -1,0 +1,13 @@
+/// ADR-231 / M2-S7-02: JSONEncoder/JSONDecoder static typeName API + codingPath diagnostics.
+/// Streaming NDJSON → ADR-232 / M2-S7-03 (`JSONStream`); ≠ CodingKeys DSL; ≠ metatype T.Type API.
+public class JSONEncoder {
+    public static func encode(value: Object, typeName: String) -> String {
+        return __syx_json_encoder_encode(value, typeName)
+    }
+}
+
+public class JSONDecoder {
+    public static func decode(text: String, typeName: String) -> Object throws {
+        return __syx_json_decoder_decode(text, typeName)
+    }
+}

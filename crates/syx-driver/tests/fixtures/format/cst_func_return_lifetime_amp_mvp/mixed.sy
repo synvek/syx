@@ -1,0 +1,15 @@
+func id(x: Int) -> &'a Int {
+    print(x)
+    return x
+}
+
+func mut_life() -> &'b mut String {
+    return
+}
+
+func amp() -> &Int {
+    return
+}
+
+print(0)
+

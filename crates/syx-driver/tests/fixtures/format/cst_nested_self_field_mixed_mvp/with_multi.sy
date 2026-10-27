@@ -1,0 +1,12 @@
+// ahead
+public class Sub: Box, Greeter {
+  var name: String
+  init(name: String) {
+    self.inner.name = name
+    self.name = name
+  }
+  deinit {
+    print(1)
+  }
+}
+/* trail */

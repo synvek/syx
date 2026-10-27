@@ -1,0 +1,6 @@
+class Box {
+  var items: Int
+  func half(i: Int) {
+    xs[i] /= 2
+  }
+}

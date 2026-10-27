@@ -1,0 +1,20 @@
+#macro double(x) {
+    x + x
+}
+
+#macro wrap(s) {
+    "hi:" + s
+}
+
+#macro inc(x) {
+    return x + 1
+}
+
+func main() {
+    print(#double(21))
+    print(#wrap("world"))
+    let n = 7
+    print(#double(n))
+    print(#double(#inc(20)))
+}
+

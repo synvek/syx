@@ -1,0 +1,5 @@
+func main() {
+    // before return
+    return 1
+}
+

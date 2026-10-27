@@ -1,0 +1,12 @@
+class Base {
+    var label: String = ""
+}
+
+class Typed: Base {
+    override var label: String = "ok"
+}
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,10 @@
+final class Shape {
+    point
+    circle(r: Int)
+    rect(w: Int, h: Int)
+}
+
+func main() {
+    print(1)
+}
+

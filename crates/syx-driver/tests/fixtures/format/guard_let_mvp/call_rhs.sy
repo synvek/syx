@@ -1,0 +1,9 @@
+func main() {
+    guard let v = getOpt() else {
+        return
+    }
+    {
+        print(v)
+    }
+}
+

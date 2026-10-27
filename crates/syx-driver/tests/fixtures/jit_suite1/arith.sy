@@ -1,0 +1,7 @@
+func compute() -> Int {
+    return 10 + 5
+}
+
+func main() {
+}
+

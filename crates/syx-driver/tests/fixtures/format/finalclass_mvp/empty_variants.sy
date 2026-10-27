@@ -1,0 +1,7 @@
+final class Empty {
+}
+
+func main() {
+    print(1)
+}
+

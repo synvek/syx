@@ -1,0 +1,10 @@
+while go
+print(0)
+
+func main() {
+    while true {
+        print(1)
+        return
+    }
+}
+

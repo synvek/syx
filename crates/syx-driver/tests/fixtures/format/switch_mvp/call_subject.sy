@@ -1,0 +1,9 @@
+func main() {
+    switch getVal() {
+    case 0:
+        print("zero")
+    default:
+        print("nonzero")
+    }
+}
+

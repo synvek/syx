@@ -1,0 +1,18 @@
+[package]
+name = "syx-semantic"
+description = "Semantic analysis and type checking for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-ast = { workspace = true }
+syx-stdlib = { workspace = true }
+syx-config = { workspace = true }
+syx-meta = { workspace = true }
+indexmap = { workspace = true }
+smol_str = { workspace = true }
+serde_json = { workspace = true }

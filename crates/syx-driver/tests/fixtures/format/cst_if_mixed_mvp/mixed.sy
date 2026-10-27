@@ -1,0 +1,13 @@
+// ahead
+public func go() {
+    // body
+    if a && b {
+        while flag /* mid */
+        print(1)
+    } else if c {
+        print(2)
+    } else {
+        print(3)
+    }
+}
+/* trail */

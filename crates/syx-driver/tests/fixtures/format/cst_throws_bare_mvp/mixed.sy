@@ -1,0 +1,8 @@
+func a() throws {
+    print(1)
+}
+
+func b(x: Int) throws {
+    print(x)
+}
+

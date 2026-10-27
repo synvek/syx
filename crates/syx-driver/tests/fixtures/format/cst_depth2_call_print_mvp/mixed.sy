@@ -1,0 +1,6 @@
+func main() {
+    print(foo())
+    print(foo(bar()))
+    print(foo(bar(baz())))
+}
+

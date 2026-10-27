@@ -1,0 +1,6 @@
+// ahead
+data class Box<T>(value: T) where T: Equatable
+final class Wrap<U> where U: Hashable {
+    wrap(value: U)
+}
+/* trail */

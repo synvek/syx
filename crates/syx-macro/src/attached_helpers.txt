@@ -1,0 +1,90 @@
+fn attached_body_template(env_key: &str, default: &str) -> String {
+    std::env::var(env_key).unwrap_or_else(|_| default.to_string())
+}
+
+fn attached_body_from_attr(attrs: &[syx_ast::Attribute], kind: &str) -> Option<String> {
+    use syx_ast::AttributeArg;
+    for attr in attrs {
+        if attr.name.as_str() != "attached" {
+            continue;
+        }
+        let ids: Vec<&str> = attr
+            .args
+            .iter()
+            .filter_map(|a| match a {
+                AttributeArg::Ident(id) => Some(id.as_str()),
+                _ => None,
+            })
+            .collect();
+        if ids.first() == Some(&kind) {
+            for arg in &attr.args {
+                if let AttributeArg::String(s) = arg {
+                    return Some(s.clone());
+                }
+            }
+        }
+    }
+    None
+}
+
+fn attached_print_body(span: syx_diagnostics::Span, template: &str) -> Vec<Stmt> {
+    use syx_ast::{Expr, Literal, Stmt};
+    let text = template
+        .trim()
+        .trim_start_matches("print(")
+        .trim_end_matches(')')
+        .trim_matches('"')
+        .trim_matches('\'')
+        .to_string();
+    vec![Stmt::Print {
+        span,
+        expr: Expr::Literal {
+            span,
+            value: Literal::String(text.into()),
+        },
+    }]
+}
+
+fn attached_member_names(attrs: &[syx_ast::Attribute]) -> Vec<smol_str::SmolStr> {
+    attached_kind_names(attrs, "member")
+}
+
+fn attached_custom_names(attrs: &[syx_ast::Attribute]) -> Vec<smol_str::SmolStr> {
+    attached_kind_names(attrs, "custom")
+}
+
+/// Phase 20: `@attached(peer, named, PeerImpl)` peer metadata table entries.
+fn attached_peer_names(attrs: &[syx_ast::Attribute]) -> Vec<(smol_str::SmolStr, smol_str::SmolStr)> {
+    attached_kind_names(attrs, "peer")
+        .into_iter()
+        .map(|name| (name, smol_str::SmolStr::new("named")))
+        .collect()
+}
+
+fn attached_kind_names(attrs: &[syx_ast::Attribute], kind: &str) -> Vec<smol_str::SmolStr> {
+    use syx_ast::AttributeArg;
+    let mut out = Vec::new();
+    for attr in attrs {
+        if attr.name.as_str() != "attached" {
+            continue;
+        }
+        let ids: Vec<&str> = attr
+            .args
+            .iter()
+            .filter_map(|a| match a {
+                AttributeArg::Ident(id) => Some(id.as_str()),
+                _ => None,
+            })
+            .collect();
+        if ids.first() == Some(&kind) {
+            if let Some(name) = ids.last() {
+                out.push(smol_str::SmolStr::new(*name));
+            }
+        }
+    }
+    out
+}
+
+fn attached_member_name(attrs: &[syx_ast::Attribute]) -> Option<smol_str::SmolStr> {
+    attached_member_names(attrs).into_iter().next()
+}

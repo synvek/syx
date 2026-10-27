@@ -1,0 +1,11 @@
+enum E4 {
+    a
+    b
+}
+
+typealias T4 = String
+
+func main() {
+    print(4)
+}
+

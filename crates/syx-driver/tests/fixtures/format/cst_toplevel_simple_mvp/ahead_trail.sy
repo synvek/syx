@@ -1,0 +1,8 @@
+print(0)
+
+func main() {
+    print(1)
+}
+
+return
+

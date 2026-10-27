@@ -1,0 +1,8 @@
+/// docs
+class Box {
+  var items: Int
+  func set(i: Int, n: Int) {
+    box.items[i] = n
+  }
+}
+/* trail */

@@ -1,0 +1,5 @@
+func main() {
+    var y = g(h(1))
+    print(y)
+}
+

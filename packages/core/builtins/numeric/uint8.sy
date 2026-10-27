@@ -1,0 +1,56 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_u8_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 8-bit unsigned integer (`UInt8`). Prelude; host ops via `__syx_u8_*`.
+@builtin("numeric.u8")
+public class UInt8: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Smallest representable value (type bound, not binary min).
+    public static let min: UInt8 = 0u8
+
+    /// Largest representable value (type bound, not binary max).
+    public static let max: UInt8 = 255u8
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 8
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 1
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> UInt8 {
+        return 0u8
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_u8_min` / `_max`.
+    public static func clamp(x: UInt8, lo: UInt8, hi: UInt8) -> UInt8 {
+        return __syx_u8_min(__syx_u8_max(x, lo), hi)
+    }
+
+}
+
+extension UInt8 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_u8_compare`.
+    func compare(other: UInt8) -> Int {
+        return __syx_u8_compare(self, other)
+    }
+}
+

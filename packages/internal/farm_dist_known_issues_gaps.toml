@@ -1,0 +1,14 @@
+# E-05 Farm/Dist residual honesty census
+# (W1285 / ADR-1631 deepen first-slice)
+# Written SSOT after W1284 scaffold. deepened_ssot ≠ Farm/Dist GA ≠ E-05 [x]
+# ≠ v20 construction ≠ multi-region·CDN ≠ HSM production GA ≠ F-08.
+
+schema_version = 1
+wave = "W1285"
+floor = "W1284 / ADR-1630 E-05 scaffold first-slice (build.farm / farm-lease v19 / peer-announce-hold thin facade)"
+
+[[gaps]]
+id = "farm_dist_residual_honesty_census"
+class = "product"
+status = "deepened_ssot"
+note = "W1285 / ADR-1631: residual honesty census SSOT — (1) Farm lease/billing/TCP: inherit v19 driver-test + report surface honesty; ≠ multi-tenant billing GA / ≠ default CI farm hard gate; (2) Dist peer-announce/sticky/multihost: v19 tip incl. peer-announce-hold honesty; ≠ multi-region·CDN full set; (3) build.farm: still status=frozen (ADR-131/133); this window does not lift v20; (4) OUT pinned: HSM production GA (MVP key-id ≠ production) · full farm/dist product GA · multi-region·CDN · F-08 · HostFn+1. ≠ Farm/Dist runtime deepen construction ≠ Farm/Dist product GA ≠ E-05 [x] ≠ HostFn+1"

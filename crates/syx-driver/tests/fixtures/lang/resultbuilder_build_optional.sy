@@ -1,0 +1,16 @@
+@resultBuilder
+func build() -> Array<Int> {
+    let opt = 42
+    if let x = opt {
+        x
+    }
+    99
+}
+
+func main() {
+    let out = build()
+    print(out.count)
+    print(out[0])
+    print(out[1])
+}
+

@@ -1,0 +1,4 @@
+[packages.witness]
+source = "path"
+version = "1.0.0"
+path = "../witness"

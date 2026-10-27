@@ -1,0 +1,6 @@
+func main() {
+    let h = __syx_plugin_v2probe_pin([1.0, 2.0, 3.0])
+    let s = __syx_plugin_v2probe_sumh(h)
+    print(s[0])
+    __syx_plugin_v2probe_drop(h)
+}

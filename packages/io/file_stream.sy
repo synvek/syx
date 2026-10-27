@@ -1,0 +1,29 @@
+/// ADR-240 / M2-S3-03: FileStream chunked-read session (≠ File.read whole-file; ≠ mmap S3-04).
+/// Close then readChunk must fail.
+
+public class FileStream {
+    public static func open(path: String, mode: String) -> Int throws {
+        try {
+            return __syx_file_stream_open(path, mode)
+        } catch (e) {
+            throw IOError(code: 1, message: "FileStream open failed")
+        }
+    }
+
+    /// Empty array means EOF.
+    public static func readChunk(handle: Int, maxBytes: Int) -> Array<UInt8> throws {
+        try {
+            return __syx_file_stream_read_chunk(handle, maxBytes)
+        } catch (e) {
+            throw IOError(code: 3, message: "FileStream read failed")
+        }
+    }
+
+    public static func close(handle: Int) throws {
+        try {
+            __syx_file_stream_close(handle)
+        } catch (e) {
+            throw IOError(code: 2, message: "FileStream close failed")
+        }
+    }
+}

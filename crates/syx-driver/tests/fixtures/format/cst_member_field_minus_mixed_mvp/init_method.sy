@@ -1,0 +1,10 @@
+/// docs
+class Box {
+  var count: Int
+  init() {
+    self.count -= 1
+  }
+  func drop(n: Int) {
+    box.count -= n
+  }
+}

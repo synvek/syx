@@ -1,0 +1,11 @@
+func main() {
+    switch status {
+    case pending:
+        print(0)
+    case done:
+        print(1)
+    default:
+        print(2)
+    }
+}
+

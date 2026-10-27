@@ -1,0 +1,11 @@
+public class Random {
+    public static func nextInt(_ max: Int) -> Int {
+        return __syx_random_next_int64(max)
+    }
+    public static func nextUInt64() -> UInt64 {
+        return __syx_random_next_uint64()
+    }
+    public static func nextBytes(_ n: Int) -> Array<UInt8> {
+        return __syx_random_fill_bytes(n)
+    }
+}

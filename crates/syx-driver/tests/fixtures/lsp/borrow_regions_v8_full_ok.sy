@@ -1,0 +1,9 @@
+func relay(v) {
+    print(v)
+}
+
+func main() {
+    relay(11)
+    print("full-ok")
+}
+

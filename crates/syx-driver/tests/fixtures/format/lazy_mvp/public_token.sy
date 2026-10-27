@@ -1,0 +1,8 @@
+class PublicBox {
+    public lazy var n: Int = 0
+}
+
+func main() {
+    print(1)
+}
+

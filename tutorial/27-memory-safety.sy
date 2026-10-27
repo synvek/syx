@@ -1,0 +1,205 @@
+// =============================================================================
+// tutorial/27-memory-safety.sy
+// 对应《SYX 语言指南》第 27 章「内存安全」
+//
+// 本章涉及语言特性：
+//   - 借用检查（编译期 S011）
+//   - &T / &mut T 单活跃规则
+//   - NLL（Non-Lexical Lifetimes，简化）
+//   - 借用与闭包
+//   - 借用与函数参数
+//   - 借用与多线程（Sendable / actor）
+//   - 借用冲突矩阵
+// =============================================================================
+
+// 1) &T 共享借用
+func read(x: &Int) -> Int { return x }
+
+func sharedBorrow() {
+    var n = 10
+    let r1 = &n                                        // 共享借用
+    print("r1=\(r1)")
+    let r2 = &n                                        // 多个共享借用 OK
+    print("r2=\(r2)")
+    // print(n)  ← ❌ S011: cannot access through borrow
+    r1 = nil                                            // 释放
+    r2 = nil
+    print(n)                                            // 现在可读
+}
+
+// 2) &mut T 可变借用
+func write(x: &mut Int) { x = x + 1 }
+
+func mutableBorrow() {
+    var n = 10
+    let r1 = &mut n
+    write(x: r1)
+    // let r2 = &n  ← ❌ S011: cannot borrow as immutable while mutably borrowed
+    r1 = nil
+    let r2 = &n
+    print("r2=\(r2)")
+}
+
+// 3) NLL：借用在「最后一次使用」结束
+func nllDemo() {
+    var n = 10
+    let r = &mut n
+    write(x: r)
+    r = nil                                             // 显式释放
+    let s = &n                                          // 现在可共享
+    print("s=\(s)")
+}
+
+// 4) 借用与函数返回
+func takeRef(_ x: &Int) -> Int { return x }
+func takeMutRef(_ x: &mut Int) { x = x + 1 }
+
+func borrowReturn() {
+    var n = 10
+    let v = takeRef(&n)                                // n 临时借用
+    print("v=\(v) n=\(n)")                             // OK
+}
+
+// 5) 借用与闭包
+func borrowClosure() {
+    var n = 10
+    let inc = { n += 1 }                              // 闭包捕获 n（强引用）
+    inc()
+    print("n=\(n)")                                    // 11
+}
+
+// 6) 借用冲突矩阵（注释）
+//
+// 状态        可变借用  共享借用  读访问  写访问
+// 无借用       ✅       ✅        ✅      ✅
+// 活跃 &mut    ❌       ❌        ❌      ❌
+// 活跃 &       ❌       ✅        ✅      ❌
+
+// 7) 借用 + 数据竞争（Sendable）
+@Sendable
+struct CounterSafe {
+    var value: Int
+}
+
+func sendableDemo() async {
+    let c = CounterSafe(value: 0)
+    // 跨任务传递需 Sendable
+    let t = Task.detached {
+        return c.value * 2
+    }
+    let r = await t
+    print("r=\(r)")
+}
+
+// 8) 借用与 actor
+actor Account {
+    var balance: Int
+    init(balance: Int) { self.balance = balance }
+    func get() -> Int { return self.balance }
+    func set(_ v: Int) { self.balance = v }
+}
+
+func actorBorrow() async {
+    let a = Account(balance: 100)
+    // 跨 await 借用要小心
+    let v1 = await a.get()
+    let v2 = await a.get()
+    print("v1=\(v1) v2=\(v2)")
+}
+
+// 9) 借用与数组
+func arrayBorrow() {
+    var arr = [1, 2, 3, 4, 5]
+    let r = &arr
+    // arr.append(6)  ← ❌ S011: cannot mutate through borrow
+    r = nil
+    arr.append(6)
+    print("arr=\(arr)")
+}
+
+// 10) 借用与 struct 字段
+struct Point3D {
+    var x: Int
+    var y: Int
+    var z: Int
+}
+
+func fieldBorrow() {
+    var p = Point3D(x: 1, y: 2, z: 3)
+    let rx = &p.x
+    // p.x = 99  ← ❌ S011: cannot mutate through field borrow
+    print("rx=\(rx)")
+    rx = nil
+    p.x = 99
+    print("p=\(p.x),\(p.y),\(p.z)")
+}
+
+// 11) 借用与 for-in
+func forInBorrow() {
+    var arr = [1, 2, 3]
+    for x in &arr {                                    // x: &Int
+        print(x)
+    }
+    for x in &arr {                                    // 可多次借用
+        print("again: \(x)")
+    }
+}
+
+// 12) 借用 + try
+func tryBorrow() {
+    var path = "/tmp/x"
+    try {
+        let r = &path                                  // try 块内借用
+        print("r=\(r)")
+    } catch (e) {
+        print("err=\(e)")
+    }
+}
+
+// 13) 借用与生命周期推断
+func lifetimeInference() {
+    var n = 10
+    var ref: &Int
+    {
+        ref = &n
+        print("ref=\(ref)")
+    }                                                    // ref 仍可用，NLL 推断
+    ref = nil
+    print("n=\(n)")
+}
+
+// 14) 编译错误示例（注释形式）
+//
+// var n = 10
+// let r1 = &mut n
+// let r2 = &n                                         // ❌ S011
+// print(r1)                                          // ❌ S011
+//
+// let arr = [1, 2, 3]
+// let r = &arr
+// arr[0] = 99                                        // ❌ S011
+//
+// class C { var x = 0 }
+// let c1 = C()
+// let c2 = c1
+// let r = &c1.x
+// c1.x = 99                                          // ❌ S011
+
+// 15) 机器证明 harness（Phase 32+）
+// 编译期将借用区域图导出为 proof obligation，由 Coq/Lean 外部证明
+// Region graph: 借用节点 + 冲突边
+
+func main() {
+    sharedBorrow()
+    mutableBorrow()
+    nllDemo()
+    borrowReturn()
+    borrowClosure()
+    arrayBorrow()
+    fieldBorrow()
+    forInBorrow()
+    tryBorrow()
+    lifetimeInference()
+    Task.detached { await sendableDemo() }
+    Task.detached { await actorBorrow() }
+}

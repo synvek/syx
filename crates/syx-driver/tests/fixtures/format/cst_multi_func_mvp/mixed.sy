@@ -1,0 +1,10 @@
+func helper() {
+    print(1)
+}
+
+func main() {
+    var x = 1
+    print(x)
+    return
+}
+

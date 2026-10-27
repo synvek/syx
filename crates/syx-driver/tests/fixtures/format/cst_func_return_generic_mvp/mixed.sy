@@ -1,0 +1,15 @@
+func id(x: Int) -> Foo<Int> {
+    print(x)
+    return x
+}
+
+func opt() -> Bar<String>? {
+    return
+}
+
+func amp() -> &Int? {
+    return
+}
+
+print(0)
+

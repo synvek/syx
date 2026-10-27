@@ -1,0 +1,218 @@
+// =============================================================================
+// tutorial/29-modules-and-packages.sy
+// 对应《SYX 语言指南》第 29 章「模块与包」
+//
+// 本章涉及语言特性：
+//   - 单文件模块
+//   - import 路径依赖
+//   - 多文件项目（syx.toml）
+//   - git 依赖
+//   - registry 依赖
+//   - [plugins].paths
+//   - [macros].exports
+//   - syx install / add / update / lock
+//   - 别名 import ... as ...
+// =============================================================================
+
+// ---------- 1) 单文件模块 ----------
+//
+// file: hello.sy
+// func main() { print("Hello") }
+//
+// 运行：syx run hello.sy
+
+// ---------- 2) 跨文件 import（项目结构） ----------
+//
+//   my-app/
+//   ├── syx.toml
+//   ├── syx.lock
+//   ├── main.sy
+//   ├── lib/
+//   │   ├── math.sy
+//   │   └── text.sy
+//   └── plugins/
+//       └── mycrypto/
+//
+// syx.toml:
+//   name = "my-app"
+//   version = "0.1.0"
+//   main = "main.sy"
+//
+//   [dependencies]
+//   math = "lib/math.sy"                 # 路径依赖
+//   text = "lib/text.sy"
+//
+//   [dependencies.gitlib]
+//   version = "1.0.0"
+//   git = "https://github.com/foo/syx-lib.git"
+//
+//   [dependencies.remote]
+//   version = "^2.1.0"
+//   registry = "https://packages.sy.dev"
+//
+//   [plugins.paths]
+//   mycrypto = "plugins/mycrypto"
+//
+//   [macros.exports]
+//   exports = ["MyLib.CodablePlugin"]
+
+// ---------- 3) import 语法 ----------
+
+// import Math                  // 同目录 math.sy 或依赖键
+// import local.deps            // 嵌套命名空间（local/deps.sy）
+// import utils.helpers as H   // 别名
+
+// ---------- 4) 跨模块访问 ----------
+//
+// lib/math.sy:
+//   public func add(a: Int, b: Int) -> Int { return a + b }
+//
+// main.sy:
+//   import math
+//   func main() { print("3+4=\(math.add(3, 4))") }
+//
+// 内部符号跨模块不可见（S005）
+
+// ---------- 5) 嵌套命名空间 ----------
+
+// lib/local/deps.sy:
+//   public func f() -> String { return "deps.f" }
+//
+// main.sy:
+//   import local.deps
+//   print(local.deps.f())
+
+// ---------- 6) 别名 import ----------
+
+// import utils.helpers as H
+// print(H.greet())
+
+// ---------- 7) git 依赖（syx install 拉取） ----------
+//
+// syx.toml:
+//   [dependencies.jsonparser]
+//   version = "1.0.0"
+//   git = "https://github.com/syx/jsonparser.git"
+//
+// 执行：
+//   syx install
+//   → 拉取到 .sy/vendor/
+//   → 写入 syx.lock
+//
+// main.sy:
+//   import jsonparser
+//   let r = jsonparser.parse(text)
+
+// ---------- 8) registry 依赖 ----------
+//
+// syx.toml:
+//   [dependencies.httpkit]
+//   version = "^3.0.0"
+//   registry = "https://packages.sy.dev"
+//
+//   # 或
+//   [dependencies.httpkit]
+//   version = "3.2.1"
+//
+// 执行：
+//   syx add httpkit@3.2.1
+//   syx update httpkit
+
+// ---------- 9) SemVer 约束 ----------
+//
+//   "1.0.0"        精确
+//   "^1.0.0"       >= 1.0.0, < 2.0.0
+//   "~1.2.0"       >= 1.2.0, < 1.3.0
+//   ">=1.0.0"      显式
+//   "1.0.0 - 2.0.0" 区间
+
+// ---------- 10) [plugins].paths 声明插件 ----------
+//
+// syx.toml:
+//   [plugins.paths]
+//   mycrypto = "plugins/mycrypto"
+//
+//   [plugins.paths.echoplugin]
+//   shared = "lib/libecho_plugin.so"
+//
+// 运行时：
+//   export SYX_HOST_PLUGIN_PATH=...
+//   syx run app.sy
+// 或在 .sy-cache 锁中（syx-plugin-lock.json）
+
+// ---------- 11) [macros].exports ----------
+//
+// syx.toml:
+//   [macros]
+//   exports = ["MyLib.CodablePlugin", "MyLib.DIPlugin"]
+//
+// MyLib/CodablePlugin.sy:
+//   public func expand(...) -> ... { ... }
+
+// ---------- 12) 锁文件（syx.lock） ----------
+//
+// 自动生成，包含：
+//   - 依赖版本
+//   - SHA 校验
+//   - 依赖图
+//   - 插件索引（syx-plugin-lock.json）
+
+// ---------- 13) 多包 workspace ----------
+//
+// workspace/
+//   syx-workspace.toml
+//   ├── pkg-a/
+//   │   └── syx.toml
+//   ├── pkg-b/
+//   │   └── syx.toml
+//   └── pkg-c/
+//       └── syx.toml
+//
+// workspace 内 pkg-a 引用 pkg-b：
+//   [dependencies.pkg-b]
+//   path = "../pkg-b"
+
+// ---------- 14) 内置模块（packages/*） ----------
+//
+// packages/ 下提供 importable 模块：
+//   import Math
+//   import JSON
+//   import Time
+//   import Path
+//   import Env
+//   import Random
+//   import Concurrency
+//   import Di
+//   import Net
+//   import Os
+//   import Log
+//   import Sync
+//   import Testing
+
+// ---------- 15) 内置模块使用示例（综合） ----------
+
+import Math
+import JSON
+import Time
+import Path
+import Env
+import Random
+
+func builtinDemo() {
+    print("Math.add=\(Math.add(1, 2))")
+    print("Math.sqrt=\(Math.sqrt(4.0))")
+    print("Time.nowMs=\(Time.nowMs())")
+    print("Env.get(HOME)=\(Env.get("HOME"))")
+    print("Path.join=\(Path.join("a", "b"))")
+    let n = Random.int(1, 100)
+    print("random=\(n)")
+    let obj: Object = ["k": "v", "n": 42]
+    print("json=\(JSON.encode(value: obj))")
+}
+
+func main() {
+    builtinDemo()
+    // import 演示（同目录）
+    // import math
+    // print(math.add(3, 4))
+}

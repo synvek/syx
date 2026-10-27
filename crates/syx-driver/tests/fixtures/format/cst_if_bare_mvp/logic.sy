@@ -1,0 +1,6 @@
+/// logic
+func main() {
+    if a && b {
+        print(1)
+    }
+}

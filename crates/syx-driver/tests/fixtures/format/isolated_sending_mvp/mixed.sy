@@ -1,0 +1,10 @@
+func f(isolated x: Int) {
+}
+
+func g(sending y: Int) {
+}
+
+func main() {
+    print(1)
+}
+

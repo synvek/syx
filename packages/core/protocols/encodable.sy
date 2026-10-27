@@ -1,0 +1,5 @@
+// ADR-230 / M2-S7-01: marker for values that can be encoded.
+
+/// Types that can write themselves into an `Encoder`.
+public protocol Encodable {
+}

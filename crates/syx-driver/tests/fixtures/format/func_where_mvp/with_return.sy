@@ -1,0 +1,4 @@
+func id<T>(x: T) -> T where T: Equatable {
+    return x
+}
+

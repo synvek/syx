@@ -1,0 +1,19 @@
+func main() {
+    let base = 10
+    let nums = [1, 2, 3]
+    let mapped = nums.map({ (x) in
+        x + base
+    })
+    print(mapped[0])
+    let scale = 2
+    let offset = 1
+    let mapped2 = nums.map({ (x) in
+        x * scale + offset
+    })
+    print(mapped2[1])
+    let evens = nums.filter({ (x) in
+        x % 2 != 0
+    })
+    print(evens.count())
+}
+

@@ -1,0 +1,4 @@
+enum Box<T> {
+    wrap(value: T)
+}
+

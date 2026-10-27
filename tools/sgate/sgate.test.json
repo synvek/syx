@@ -1,0 +1,40 @@
+{
+  "_about": "Test config — has TLS / hot_reload / ws_routes all enabled. Used by test.sh.",
+  "server": {
+    "listen": "127.0.0.1",
+    "port": 8081,
+    "access_log": true,
+    "worker_name": "sgate-test",
+    "tls": {
+      "enabled": true,
+      "port": 8443,
+      "cert": "./certs/server.pem",
+      "key": "./certs/server.key",
+      "backend_port": 8081,
+      "mode": "sidecar"
+    },
+    "hot_reload": {
+      "enabled": true,
+      "interval_ms": 300
+    }
+  },
+  "upstreams": [
+    { "name": "api",   "servers": ["127.0.0.1:3001", "127.0.0.1:3002"], "strategy": "round_robin", "timeout_ms": 5000 },
+    { "name": "web",   "servers": ["127.0.0.1:4000"],                   "strategy": "round_robin", "timeout_ms": 3000 },
+    { "name": "wsapi", "servers": ["127.0.0.1:5002"],                   "strategy": "round_robin", "timeout_ms": 30000 }
+  ],
+  "locations": [
+    { "name": "health", "exact": "/health", "status": 200, "body": "ok-original" },
+    { "name": "version", "exact": "/version", "status": 200, "body": "sgate-test" },
+    { "name": "api_proxy", "prefix": "/api/", "upstream": "api", "proxy": true, "strip_prefix": "/api/" },
+    { "name": "static_files", "prefix": "/static/", "root": "./public" }
+  ],
+  "ws_routes": [
+    { "name": "ws_echo", "path": "/ws/", "upstream": "wsapi", "listen_port": 5001, "strip_prefix": "/ws/" }
+  ],
+  "error_pages": {
+    "not_found": "Not Found (test)",
+    "bad_gateway": "Bad Gateway (test)",
+    "gateway_timeout": "Gateway Timeout (test)"
+  }
+}

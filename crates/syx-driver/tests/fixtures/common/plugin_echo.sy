@@ -1,0 +1,5 @@
+func main() {
+    let echoed = __syx_plugin_echo_echo("phase50")
+    print(echoed)
+}
+

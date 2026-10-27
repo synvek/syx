@@ -1,0 +1,4 @@
+func main() requires Pure {
+    print(1)
+}
+

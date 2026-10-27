@@ -1,0 +1,4 @@
+// ahead
+public static func boom() throws {
+    print(1)
+}

@@ -1,0 +1,11 @@
+// ahead
+class Box {
+  var name: String
+  init(name: String) {
+    print(1)
+  }
+  func setName(name: String) {
+    other.name = name
+  }
+}
+/* trail */

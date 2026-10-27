@@ -1,0 +1,22 @@
+[package]
+name = "syx-hir"
+description = "Typed HIR thin slice for SYX (M1-B01 / ADR-136)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-ast = { workspace = true }
+syx-diagnostics = { workspace = true }
+syx-mir = { workspace = true }
+syx-mono = { workspace = true }
+syx-semantic = { workspace = true }
+syx-stdlib = { workspace = true }
+smol_str = { workspace = true }
+sha2 = "0.10"
+
+[dev-dependencies]
+syx-frontend = { workspace = true }
+syx-diagnostics = { workspace = true }

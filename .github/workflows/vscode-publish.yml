@@ -1,0 +1,27 @@
+name: VS Code Publish
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  vsce-package-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode-syx
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+      - name: Install extension dependencies
+        run: npm ci
+      - name: Package VS Code extension (smoke)
+        run: vsce package --no-dependencies
+      - name: Verify VSIX artifact
+        run: ls -la *.vsix

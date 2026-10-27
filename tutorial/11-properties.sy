@@ -1,0 +1,152 @@
+// =============================================================================
+// tutorial/11-properties.sy
+// 对应《SYX 语言指南》第 11 章「属性」
+//
+// 本章涉及语言特性：
+//   - 存储属性（var / let）
+//   - 静态属性（static var / let）
+//   - 计算属性（{ get } / { get set }）
+//   - willSet / didSet 观察器
+//   - lazy 属性（部分实现）
+//   - @Published（class stored MVP）
+//   - type property / instance property
+// =============================================================================
+
+// 1) 存储属性
+class Person {
+    var name: String                       // 可变 stored
+    let id: Int                            // 不可变 stored
+    init(name: String, id: Int) {
+        self.name = name
+        self.id = id
+    }
+}
+
+struct Settings {
+    var theme: String = "light"
+    let version: Int = 1
+}
+
+// 2) 静态属性
+class Config {
+    static var debug: Bool = false
+    static let version: Int = 116
+    static var name: String = "SYX"
+}
+
+func demoStatic() {
+    print("Config.version=\(Config.version)")
+    Config.debug = true
+    print("Config.debug=\(Config.debug)")
+}
+
+// 3) 计算属性（get / get-set）
+struct Circle {
+    var radius: Double
+    var area: Double {
+        get { return 3.14159 * radius * radius }
+        set { radius = sqrt(newValue / 3.14159) }
+    }
+    var diameter: Double {
+        get { return radius * 2 }
+    }
+}
+
+func demoComputed() {
+    var c = Circle(radius: 2.0)
+    print("area=\(c.area)  diameter=\(c.diameter)")
+    c.area = 12.56636                                    // 通过 set 改 radius
+    print("new radius=\(c.radius)")
+}
+
+// 4) willSet / didSet（class static 上 Phase 138 MVP）
+class Counter {
+    static var value: Int = 0 {
+        willSet { print("about to set: \(newValue)") }
+        didSet { print("changed: \(oldValue) -> \(Counter.value)") }
+    }
+}
+
+func demoObservers() {
+    Counter.value = 7
+    Counter.value = 100
+}
+
+// 5) lazy 属性（部分实现）
+class HeavyResource {
+    lazy var buffer: Array<Int> = {
+        print("initializing heavy resource")
+        var arr: Array<Int> = []
+        for i in 0..<100 { arr.append(i) }
+        return arr
+    }()
+    func use() {
+        let _ = self.buffer
+        let _ = self.buffer
+    }
+}
+
+// 6) @Published（class stored MVP，Phase 137）
+@Published
+class TodoList {
+    var items: Array<String> = []
+    func add(_ s: String) { items.append(s) }
+}
+
+// 7) extension 计算属性
+extension Int {
+    var isEven: Bool { return self % 2 == 0 }
+    var squared: Int { return self * self }
+}
+
+// 8) 静态 computed
+struct MathConst {
+    static let pi: Double = 3.14159265358979
+    static var tau: Double { return pi * 2 }
+}
+
+// 9) readonly computed on instance
+class Thermometer {
+    var celsius: Double = 0
+    var fahrenheit: Double {
+        get { return celsius * 9.0 / 5.0 + 32.0 }
+        set { celsius = (newValue - 32.0) * 5.0 / 9.0 }
+    }
+    var kelvin: Double { return celsius + 273.15 }
+}
+
+func demoTemp() {
+    let t = Thermometer()
+    t.celsius = 100
+    print("f=\(t.fahrenheit)  k=\(t.kelvin)")          // 212 373.15
+    t.fahrenheit = 32
+    print("c=\(t.celsius)")                            // 0
+}
+
+// 10) 属性包装（@Lazy 等 — M26 配套）
+// @Lazy
+// var expensive: String = computeExpensive()  // 首次访问时计算
+
+// 11) type property（meta-type 通过 Type.self 访问）
+class App {
+    class var version: String { return "1.0.0" }
+    class func current() -> App { return App() }
+}
+
+func demoTypeProp() {
+    let app = App.current()
+    print("app version=\(App.version)")
+    print("instance type=\(type(of: app))")
+}
+
+func main() {
+    demoStatic()
+    demoComputed()
+    demoObservers()
+    demoTemp()
+    demoTypeProp()
+    print("4.isEven=\(4.isEven)  5.squared=\(5.squared)")
+    let todo = TodoList()
+    todo.add("buy milk")
+    print("todo=\(todo.items)")
+}

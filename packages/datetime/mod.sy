@@ -1,0 +1,57 @@
+public class DateTime {
+    public static func now() -> Object {
+        return __syx_datetime_now()
+    }
+    public static func parse(text: String) -> Object {
+        return __syx_datetime_parse(text)
+    }
+    public static func parseIso8601(text: String) -> Object {
+        return __syx_datetime_parse_iso8601(text)
+    }
+    public static func format(ms: Int, pattern: String) -> String {
+        return __syx_datetime_format(ms, pattern)
+    }
+    public static func formatWithTimezone(ms: Int, pattern: String, timezone: String) -> String throws {
+        return __syx_datetime_format_with_timezone(ms, pattern, timezone)
+    }
+    public static func addDuration(ms: Int, deltaMs: Int) -> Int {
+        return ms + deltaMs
+    }
+    public static func timezoneOffset(ms: Int, timezone: String) -> Int throws {
+        return __syx_datetime_timezone_offset(ms, timezone)
+    }
+}
+
+public class Duration {
+    public static func ms(value: Int) -> Int {
+        return value
+    }
+    public static func seconds(value: Int) -> Int {
+        return value * 1000
+    }
+    public static func minutes(value: Int) -> Int {
+        return value * 60 * 1000
+    }
+    public static func hours(value: Int) -> Int {
+        return value * 60 * 60 * 1000
+    }
+}
+
+public class Clock {
+    public static func nowMs() -> Int {
+        return __syx_time_now_ms()
+    }
+}
+
+public class Instant {
+    public static func now() -> Int {
+        return __syx_instant_now_ms()
+    }
+    public static func elapsedMs(start: Int) -> Int {
+        let n = Instant.now()
+        if n < start
+        return 0
+        return n - start
+    }
+}
+

@@ -1,0 +1,5 @@
+func main() {
+    var s: Set<Int> = [1, 2]
+    return s
+}
+

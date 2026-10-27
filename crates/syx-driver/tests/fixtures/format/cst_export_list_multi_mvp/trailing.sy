@@ -1,0 +1,3 @@
+/// docs
+export { a, b, c, }
+/* trail */

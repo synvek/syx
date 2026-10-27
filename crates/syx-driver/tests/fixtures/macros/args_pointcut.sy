@@ -1,0 +1,34 @@
+import Di
+
+@Service
+class ArgsProbe {
+    init() {
+    }
+    @Pointcut("args(Int)")
+    func marker() {
+    }
+    @Around("args(Int)")
+    @Before("args(Int)")
+    @After("args(Int)")
+    func handleInt(x: Int) -> String {
+        print("__body__:handleInt")
+        return "args-int-ok"
+    }
+    @Before("args(Int)")
+    @After("args(Int)")
+    func addOne(x: Int) -> Int {
+        print("__body__:addOne")
+        return x + 1
+    }
+    func handleStr(s: String) -> String {
+        return "no-advice"
+    }
+}
+
+func main() {
+    let p = Di.resolve("ArgsProbe")
+    print(p.handleInt(x: 7))
+    print(p.addOne(x: 3))
+    print(p.handleStr(s: "plain"))
+}
+

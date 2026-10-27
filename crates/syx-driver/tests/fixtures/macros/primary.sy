@@ -1,0 +1,43 @@
+import Di
+
+var __picked = "?"
+
+class Logger {
+    init() {
+    }
+    func tag() -> String {
+        return "?"
+    }
+}
+
+@Primary
+@Service
+class DefaultLogger: Logger {
+    init() {
+        __picked = "default"
+    }
+}
+
+@Qualifier("fast")
+@Service
+class FastLogger: Logger {
+    init() {
+        __picked = "fast"
+    }
+}
+
+@Service
+class App {
+    let logger: Logger
+    init(@Inject logger: Logger) {
+        self.logger = logger
+    }
+}
+
+func main() {
+    let _app = Di.resolve("App")
+    print(__picked)
+    let _again = Di.resolve("Logger")
+    print(__picked)
+}
+

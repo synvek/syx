@@ -1,0 +1,5 @@
+func main() {
+    let handle = __syx_tcp_connect("127.0.0.1", 9)
+    print(Fmt.format("p85-tcp-{0}", [handle]))
+}
+

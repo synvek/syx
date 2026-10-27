@@ -1,0 +1,5 @@
+{
+  "name": "sgate",
+  "version": "1.0",
+  "upstreams": ["api", "web"]
+}

@@ -1,0 +1,4 @@
+/// file
+fileprivate func helper() {
+    print(1)
+}

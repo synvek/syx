@@ -1,0 +1,7 @@
+func main() {
+    let add = { (a: Int, b: Int) in
+        return a + b
+    }
+    print(add(1, 2))
+}
+

@@ -1,0 +1,14 @@
+class Box {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+}
+
+func main() {
+    let outer: Box? = Box(n: 91)
+    let inner = outer as? Box
+    if inner != nil
+    print(inner!.n)
+}
+

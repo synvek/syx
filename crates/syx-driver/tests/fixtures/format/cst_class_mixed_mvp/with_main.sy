@@ -1,0 +1,11 @@
+/// docs
+class Box {
+    var name: String
+    func tag() {
+        print(1)
+    }
+}
+func main() {
+    /* mid */
+    print(2)
+}

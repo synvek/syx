@@ -1,0 +1,6 @@
+func main() {
+    if case (a, b) = pair {
+        print(a)
+    }
+}
+

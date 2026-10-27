@@ -1,0 +1,33 @@
+# M3-C04 race/stress/chaos sample corpus (ADR-289 thin + ADR-290 deepen)
+# Regression gate samples — reproducible concurrent stress + cooperative cancel chaos.
+# ≠ TSAN / loom GA; ≠ kill-process / network-partition chaos farms.
+
+[[samples]]
+id = "m3_c01_mutex_blocking"
+kind = "stress"
+nail = "m3_c01_mutex_blocking"
+note = "cross-Task Mutex lock_wait contention (ADR-282)"
+
+[[samples]]
+id = "m3_c02_semaphore"
+kind = "stress"
+nail = "m3_c02_semaphore"
+note = "cross-Task Semaphore wait/signal (ADR-284)"
+
+[[samples]]
+id = "m3_c04_race_stress"
+kind = "stress"
+nail = "m3_c04_race_stress"
+note = "C04-owned Mutex cross-Task sampling smoke (ADR-289)"
+
+[[samples]]
+id = "m3_a01_task_tree"
+kind = "chaos"
+nail = "m3_a01_task_tree"
+note = "TaskGroup cancel → C004 (ADR-260; registered chaos corpus)"
+
+[[samples]]
+id = "m3_c04_chaos"
+kind = "chaos"
+nail = "m3_c04_chaos"
+note = "C04-owned TaskGroup cancel interrupt of long sleep (ADR-290)"

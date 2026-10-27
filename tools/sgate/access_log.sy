@@ -1,0 +1,52 @@
+// sgate/access_log.sy
+// ---------------------------------------------------------------
+// Access log + error log helpers for sgate.
+// Named access_log.sy (not log.sy) so it does not case-fold-collide
+// with the stdlib `Log` package on macOS.
+//
+// Two log formats are supported:
+//   * "combined"  — the de-facto nginx standard
+//                    `<remote> - <user> [<time>] "<method> <path>
+//                     HTTP/1.1" <status> <bytes> "<referer>"
+//                     "<user-agent>"`
+//   * "common"   — the older CLF form without referer / agent
+//
+// We hand-format the timestamp using the DateTime package; the
+// string interpolation in `print` handles the rest.
+// ---------------------------------------------------------------
+
+import DateTime
+import Log
+
+// One combined-format access log line. Fields are kept as plain
+// strings so the caller can assemble the line in any order it
+// likes; `writeAccess` is the high-level entrypoint the router
+// uses.
+public func writeAccess(
+    remote: String,
+    method: String,
+    path: String,
+    status: Int,
+    bytes: Int,
+    elapsedMs: Int,
+    userAgent: String,
+    referer: String
+) {
+    let ts = currentTimestamp()
+    let line = "\(remote) - - [\(ts)] \"\(method) \(path) HTTP/1.1\" \(status) \(bytes) \"\(referer)\" \"\(userAgent)\" \(elapsedMs)ms"
+    Log.info(line)
+}
+
+// One error log line, e.g. upstream connection failure.
+public func writeError(remote: String, method: String, path: String, status: Int, reason: String) {
+    let ts = currentTimestamp()
+    let line = "[\(ts)] error \(remote) \"\(method) \(path)\" -> \(status) reason=\"\(reason)\""
+    Log.error(line)
+}
+
+// Build a "01/Jan/2026:14:30:00 +0000" timestamp using the
+// DateTime package.
+public func currentTimestamp() -> String {
+    let ms = DateTime.now().ms
+    return DateTime.format(ms: ms, pattern: "%d/%b/%Y:%H:%M:%S +0000")
+}

@@ -1,0 +1,9 @@
+func main() {
+    var sum = 0
+    for i in (0..<1000) {
+        sum = sum + i
+    }
+    print(sum)
+    return 0
+}
+

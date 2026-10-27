@@ -1,0 +1,3 @@
+public func id<T>(x: T) {
+}
+

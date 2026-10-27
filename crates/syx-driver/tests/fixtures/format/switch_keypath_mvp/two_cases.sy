@@ -1,0 +1,11 @@
+func main() {
+    switch x {
+    case \Person.name:
+        print(1)
+    case \Dog.age:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

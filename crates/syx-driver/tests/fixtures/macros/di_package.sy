@@ -1,0 +1,19 @@
+import Di
+
+@Service
+class Box {
+    init() {
+    }
+    func tag() -> String {
+        return "di-pkg"
+    }
+}
+
+func main() {
+    let a = Di.resolve("Box")
+    print(a.tag())
+    Di.beginRequest()
+    Di.endRequest()
+    Di.destroy()
+}
+

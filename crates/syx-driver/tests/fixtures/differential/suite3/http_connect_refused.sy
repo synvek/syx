@@ -1,0 +1,4 @@
+func main() {
+    print(__syx_http_get("http://127.0.0.1:1/x"))
+}
+

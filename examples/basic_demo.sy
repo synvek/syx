@@ -1,0 +1,84 @@
+import Crypto
+
+class Greeter {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+    func hello() {
+        print(self.name)
+    }
+}
+
+extension Greeter {
+    func greet() {
+        print("Hello, \(self.name)!")
+    }
+}
+
+async func main() {
+    let name: String = "SYX"
+    print("Hello, \(name)!")
+    let i: Float = 3.14f32
+    print(i)
+    print(i.description)
+    let g = Greeter(name: "Greeter")
+    g.hello()
+    g.greet()
+    let scores: Dictionary<String, Int> = {"a": 1, "b": 2}
+    print(scores["a"])
+    let scores2: Dictionary<Int, Int> = {2: 4, 3: 6}
+    print(scores2[2])
+    print(scores2.count)
+    let b: Int = 3
+    var h = Hasher.newHasher()
+    b.hash(into: h)
+    print(Hasher.finalize(h))
+    let parts = "a,b,c".split(",")
+    print(parts)
+    print(parts.description)
+    for item in parts {
+        print(item)
+    }
+    let nums = [1, 2, 3]
+    for n in nums {
+        print(n)
+    }
+    let result = Math.add(1, 2)
+    print(result)
+    let matches = "abc123".matches("\d+")
+    for m in matches {
+        print(m)
+    }
+    let n2 = Random.nextInt(100)
+    let h2 = Hasher.newHasher()
+    print(n2)
+    print(h2)
+    let c = Crypto.sha256("data")
+    print(c)
+    let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
+    let w: SIMD4<Int32> = SIMD4.fromArray([10i32, 20i32, 30i32, 40i32])
+    let s = v + w
+    let sum = SIMD4.reduceAdd(s)
+    print(sum)
+    runPrint()
+
+    try {
+        throw "os-info-test-exception"
+    } catch (e: String) {
+        print(e)
+    }
+
+    print("Begin")
+    await runSync()
+    print("End")
+}
+
+func runPrint() {
+    print("Test func")
+}
+
+async func runSync() {
+    print("Sync")
+}
+

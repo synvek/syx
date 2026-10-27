@@ -1,0 +1,28 @@
+func demoEchoPlugin() {
+    let msg = __syx_plugin_echo_echo("hello from syx")
+    print("echo=\(msg)")
+}
+
+func demoCryptoPlugin() {
+    let hash = __syx_plugin_mycrypto_sha256("data")
+    let sign = __syx_plugin_mycrypto_sign("data", "key")
+    print("sha256=\(hash)  sign=\(sign)")
+}
+
+import Net
+
+func pluginDemo() {
+    try {
+        let resp = HTTP.get("https://example.com")
+        print("status=\(resp.status())")
+    } catch (e) {
+        print("err=\(e)")
+    }
+    demoEchoPlugin()
+    demoCryptoPlugin()
+}
+
+func main() {
+    pluginDemo()
+}
+

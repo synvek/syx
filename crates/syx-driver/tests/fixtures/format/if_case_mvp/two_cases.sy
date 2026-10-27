@@ -1,0 +1,9 @@
+func main() {
+    if case .ok(let a) = x {
+        print(a)
+    }
+    if case .failure = y {
+        print(1)
+    }
+}
+

@@ -1,0 +1,8 @@
+@freestanding(declaration)
+#macro makeAlias() {
+    typealias Id = Int
+}
+
+func main() {
+}
+

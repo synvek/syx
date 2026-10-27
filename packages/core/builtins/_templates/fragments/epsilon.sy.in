@@ -1,0 +1,5 @@
+    /// Machine epsilon (ulp of 1.0) for this floating-point type.
+    public static func epsilon() -> {{TY}} {
+        return {{EPS}}
+    }
+

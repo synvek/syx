@@ -1,0 +1,76 @@
+public class Fmt {
+    public static func print(value: Object) {
+        __syx_fmt_print(value)
+    }
+    public static func printLine(value: Object) {
+        __syx_fmt_print_line(value)
+    }
+    public static func format(pattern: String, args: Object) -> String {
+        return __syx_fmt_format(pattern, args)
+    }
+    public static func debug(value: Object) -> String {
+        return __syx_fmt_debug(value)
+    }
+}
+
+public class Regex {
+    public static func isMatch(text: String, pattern: String) -> Bool {
+        let hits = __syx_regex_match(text, pattern)
+        return hits.count > 0
+    }
+    public static func compile(pattern: String) -> String {
+        return __syx_regex_compile(pattern)
+    }
+    public static func findAll(text: String, pattern: String) -> Array<String> {
+        return __syx_regex_find_all(text, pattern)
+    }
+    public static func replaceAll(text: String, pattern: String, replacement: String) -> String {
+        return __syx_regex_replace_all(text, pattern, replacement)
+    }
+}
+
+public class Encoding {
+    public static func base64Encode(data: String) -> String {
+        return __syx_base64_encode(data)
+    }
+    public static func base64Decode(encoded: String) -> String {
+        return __syx_base64_decode(encoded)
+    }
+    public static func hexEncode(data: String) -> String {
+        return __syx_hex_encode(data)
+    }
+    public static func hexDecode(encoded: String) -> String {
+        return __syx_hex_decode(encoded)
+    }
+    public static func urlEncode(text: String) -> String {
+        return __syx_url_encode(text)
+    }
+    public static func urlDecode(text: String) -> String {
+        return __syx_url_decode(text)
+    }
+}
+
+public class StringBuilder {
+    public static func create() -> Int {
+        return __syx_string_builder_new()
+    }
+    public static func append(builder: Int, text: String) {
+        __syx_string_builder_append(builder, text)
+    }
+    public static func toString(builder: Int) -> String {
+        return __syx_string_builder_to_string(builder)
+    }
+}
+
+public class Bytes {
+    public static func fromArray(data: Array<UInt8>) -> Array<UInt8> {
+        return __syx_bytes_from_array(data)
+    }
+    public static func slice(data: Array<UInt8>, start: Int, end: Int) -> Array<UInt8> {
+        return __syx_bytes_slice(data, start, end)
+    }
+    public static func concat(a: Array<UInt8>, b: Array<UInt8>) -> Array<UInt8> {
+        return __syx_bytes_concat(a, b)
+    }
+}
+

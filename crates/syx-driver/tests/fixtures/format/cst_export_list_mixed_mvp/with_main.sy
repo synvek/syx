@@ -1,0 +1,8 @@
+// ahead
+export { Point }
+data class Point(x: Int)
+func main() {
+    while flag /* mid */
+    print(1)
+}
+/* trail */

@@ -1,0 +1,10 @@
+async func compute() -> Int {
+    return 42
+}
+
+func main() {
+    print("jit-barrier-v24")
+    let t = compute()
+    print(t)
+}
+

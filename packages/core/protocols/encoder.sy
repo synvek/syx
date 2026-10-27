@@ -1,0 +1,5 @@
+// ADR-230 / M2-S7-01: format-agnostic encoding sink; containers → M2-S7-02.
+
+/// Sink that accepts encoded values (JSON / plist / … backends).
+public protocol Encoder {
+}

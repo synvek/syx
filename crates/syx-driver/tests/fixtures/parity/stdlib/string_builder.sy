@@ -1,0 +1,6 @@
+func main() {
+    let b = __syx_string_builder_new()
+    __syx_string_builder_append(b, "p85-sb")
+    print(__syx_string_builder_to_string(b))
+}
+

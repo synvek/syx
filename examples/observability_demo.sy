@@ -1,0 +1,28 @@
+// W1259 / ADR-1605 — D-03 e2e example first-slice
+// In-process Log + Trace + Metrics + Profiler path.
+// ≠ OTel GA / ≠ pprof export / ≠ D-03 [x].
+import Log
+import Trace
+import Metrics
+import Profiler
+
+func main() {
+    print("obs-demo-v1")
+    Log.setMinLevel("INFO")
+    Log.info("obs-demo-log")
+
+    print(Profiler.start("demo"))
+    let span = Trace.start("obs-demo")
+    print(Trace.contextLine())
+    print(Metrics.inc("obs_demo_hits", 1))
+    print(Metrics.gaugeSet("obs_demo_ready", 1))
+    print(Trace.end())
+    print(Profiler.stop("demo"))
+
+    print(Metrics.policy())
+    print(Profiler.policy())
+    print(Trace.policy())
+    print(Metrics.snapshot())
+    print(Profiler.snapshot())
+    print(span)
+}

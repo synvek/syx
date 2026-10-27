@@ -1,0 +1,6 @@
+class Box {
+  var items: Int
+  init(n: Int) {
+    self.xs[0] = n
+  }
+}

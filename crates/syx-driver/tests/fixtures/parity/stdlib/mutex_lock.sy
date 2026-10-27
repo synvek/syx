@@ -1,0 +1,10 @@
+import Sync
+
+func main() {
+    let m = Mutex.create()
+    Mutex.lock(m)
+    print("locked")
+    Mutex.unlock(m)
+    print("unlocked")
+}
+

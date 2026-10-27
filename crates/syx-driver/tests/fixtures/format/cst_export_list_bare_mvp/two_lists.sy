@@ -1,0 +1,4 @@
+// ahead
+export { greet }
+export { farewell }
+/* trail */

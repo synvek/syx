@@ -1,0 +1,16 @@
+{
+  "exit": 0,
+  "stdout": [
+    "200",
+    "ok"
+  ],
+  "skip": {
+    "wasm": true,
+    "native": true,
+    "reason": {
+      "wasm": "no HTTP host on native/WASM yet",
+      "native": "no HTTP host on native/WASM yet"
+    }
+  },
+  "http_loopback": true
+}

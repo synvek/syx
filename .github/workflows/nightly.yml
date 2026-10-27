@@ -1,0 +1,154 @@
+name: Nightly
+
+on:
+  workflow_dispatch:
+
+env:
+  SYX_NIGHTLY: "1"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  driver-permanent-suites:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build CLI
+        run: cargo build -p syx-cli
+      - name: Permanent driver suites (SYX 38.0)
+        run: |
+          cargo test -p syx-driver \
+            --test integration --test smoke --test macro --test backend \
+            --test parity_vm --test parity_native --test parity_wasm \
+            --test plugin_smoke --test concurrency --test stdlib \
+            -- --test-threads=1
+      - name: Behavioral test count smoke floor (C-10 — not release KPI)
+        run: bash scripts/audit_behavioral_tests.sh --min-driver 5150 --min-lsp 3150
+      - name: Fixture audit
+        run: scripts/audit_test_fixtures.sh --check
+      - name: examples/deps cross-module smoke
+        run: |
+          ./target/debug/syx run examples/deps | grep -q 42
+
+  native-http:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Native HTTP parity (network, ignored)
+        run: cargo test -p syx-driver -- --ignored --test-threads=1
+
+  pkg-git:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Package git resolver
+        run: cargo test -p syx-pkg -- --ignored
+
+  compile-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Compile bench (±20% warn / ±30% fail vs baseline)
+        env:
+          SYX_COMPILE_BENCH_BASELINE_MS: "500"
+        run: cargo bench -p syx-driver --bench compile_bench
+
+  lsp-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: LSP workspace tests
+        run: cargo test -p syx-lsp -- --test-threads=1
+
+  wasm-aot-ratio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: WASM AOT strict matrix (≥99%)
+        run: bash scripts/wasm_aot_ratio.sh --matrix --min-direct 0.99
+      - name: WASM AOT full main tier (100%)
+        run: bash scripts/wasm_aot_ratio.sh --matrix --full --min-direct 1.0
+      - name: WASM AOT per-fixture breakdown
+        run: cargo run -p syx-driver --bin wasm_aot_matrix_gate -- --matrix --breakdown
+
+  build-compiler-wasm32:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build compiler.wasm artifact
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build -p syx-compiler-wasm --target wasm32-unknown-unknown --release
+      - name: Upload compiler.wasm
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiler-wasm32-nightly
+          path: target/wasm32-unknown-unknown/release/syx_compiler_wasm.wasm
+
+  browser-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Browser compiler E2E
+        run: cargo test -p syx-driver --test browser_compile --test browser_e2e -- --test-threads=1
+      - name: syx-compiler-wasm unit tests
+        run: cargo test -p syx-compiler-wasm -- --test-threads=1
+      - name: WASM AOT ratio smoke
+        run: bash scripts/wasm_aot_ratio.sh examples/hot_loop.sy
+
+  jit-tier2-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
+      - name: Checkout synui sibling for syx-vm
+        run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: VM JIT tier-2 production default
+        run: cargo test -p syx-vm --features jit-tier2 -- --nocapture
+
+  registry-mandatory-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Registry lock v8 mandatory sign E2E
+        env:
+          SYX_REGISTRY_REQUIRE_SIGNATURE: "1"
+        run: cargo test -p syx-driver --test registry registry_signed_hard -- --test-threads=1
+
+  windows-dll-plugin:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Windows .dll host plugin CI
+        run: cargo test -p syx-driver --test plugin_smoke -- --test-threads=1
+
+  # W1050–W1075: faerlin cdylib F64LE mul/solve/zeros + HANDLE family (opt-in nightly; ≠ P-FAER [x] / ≠ product GA). W1075 packed-SYX hypot/pow/fmod/remainder is in-process VM smoke.
+  faerlin-cdylib:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Standalone plugins/faerlin cdylib load + F64LE mul/solve + HANDLE hmul/hsolve/hfrom/hto/hdrop
+        run: cargo test -p syx-host-plugin --test faerlin_cdylib -- --test-threads=1

@@ -1,0 +1,6 @@
+/// bang
+func main() {
+    if !!!!flag {
+        print(1)
+    }
+}

@@ -1,0 +1,12 @@
+class Base {
+    var x: Int = 0
+}
+
+class Box: Base {
+    override var x: Int = 1
+}
+
+func main() {
+    print(1)
+}
+

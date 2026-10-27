@@ -1,0 +1,8 @@
+#macro add(a, b) {
+    return a
+}
+
+func main() {
+    print(1)
+}
+

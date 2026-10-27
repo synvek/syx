@@ -1,0 +1,8 @@
+/// docs
+class Box {
+  var name: String
+  init(name: String) {
+    self.inner.name = name
+  }
+}
+/* trail */

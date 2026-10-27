@@ -1,0 +1,5 @@
+// ahead
+func main() {
+    print(1)
+}
+

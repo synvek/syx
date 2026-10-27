@@ -1,0 +1,7 @@
+func main() {
+    repeat {
+        print("tick")
+        print(1)
+    } while true
+}
+

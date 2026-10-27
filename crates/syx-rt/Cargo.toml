@@ -1,0 +1,39 @@
+[package]
+name = "syx-rt"
+description = "Native runtime library for SYX Cranelift backend (C ABI)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-mir = { workspace = true }
+syx-mir-run = { workspace = true }
+syx-runtime-core = { workspace = true }
+syx-stdlib = { workspace = true }
+syx-host-plugin = { workspace = true }
+syx-vm = { workspace = true, default-features = false, features = ["interpreter", "jit-tier2"] }
+syx-async = { workspace = true, optional = true }
+crossbeam-channel = { workspace = true, optional = true }
+parking_lot = { workspace = true, optional = true }
+tempfile = "3"
+syx-lld = { workspace = true, optional = true }
+
+[features]
+default = ["async-runtime"]
+async-runtime = ["dep:syx-async", "dep:crossbeam-channel", "dep:parking_lot"]
+http = ["syx-vm/http", "syx-mir-run/http"]
+file = ["syx-vm/file", "syx-mir-run/file"]
+full = ["async-runtime", "http", "file"]
+# Embed host LLD from sibling LLVM / SYX_LLVM_PREFIX (in-process or prefix bin/lld).
+vendored-lld = ["dep:syx-lld"]
+
+[dev-dependencies]
+syx-parser = { workspace = true }
+
+[build-dependencies]

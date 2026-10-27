@@ -1,0 +1,13 @@
+func main() {
+    try {
+        print(1)
+    } catch (a) {
+        print(2)
+    }
+    try {
+        print(3)
+    } catch (b) {
+        print(4)
+    }
+}
+

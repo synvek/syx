@@ -1,0 +1,17 @@
+class Metrics {
+    lazy var a: Int {
+        get {
+            return 1
+        }
+    }
+    lazy var b: Int {
+        get {
+            return 2
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

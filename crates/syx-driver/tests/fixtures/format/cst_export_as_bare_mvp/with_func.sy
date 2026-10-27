@@ -1,0 +1,6 @@
+/// rename
+export { foo as bar }
+func helper() {
+  /* mid */
+  print(1)
+}

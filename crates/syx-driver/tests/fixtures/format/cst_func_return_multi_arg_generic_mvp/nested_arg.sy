@@ -1,0 +1,4 @@
+func deep() -> Foo<Bar<Int>, Baz> {
+    return
+}
+

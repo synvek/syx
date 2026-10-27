@@ -1,0 +1,13 @@
+// ahead
+func main() {
+    if a {
+        print(1)
+    } else {
+        /* mid */
+        print(2)
+    }
+    if b
+    print(3)
+    else
+    print(4)
+}

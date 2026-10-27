@@ -1,0 +1,28 @@
+[package]
+name = "syx-mir-run"
+description = "Shared MIR interpreter runtime for WASM and native backends"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-ast = { workspace = true }
+syx-mir = { workspace = true }
+syx-stdlib = { workspace = true }
+syx-runtime-core = { workspace = true }
+# interpreter only — no jit-tier2 / http / file (avoids cranelift on wasm32).
+syx-vm = { path = "../syx-vm", default-features = false, features = ["interpreter"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+syx-host-plugin = { workspace = true }
+
+[features]
+http = ["syx-vm/http"]
+file = ["syx-vm/file"]
+full = ["http", "file"]
+
+[dev-dependencies]
+syx-parser = { workspace = true }

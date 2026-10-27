@@ -1,0 +1,4 @@
+func boom(x: Int) throws {
+    print(x)
+}
+

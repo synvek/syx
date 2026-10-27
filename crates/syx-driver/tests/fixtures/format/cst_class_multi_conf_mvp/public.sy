@@ -1,0 +1,7 @@
+/// public multi
+public class Sub: Box, Greeter {
+  var name: String?
+  func tag() {
+    print(1)
+  }
+}

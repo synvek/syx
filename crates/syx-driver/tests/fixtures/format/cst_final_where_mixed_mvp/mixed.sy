@@ -1,0 +1,11 @@
+// ahead
+export { Box }
+public data class Box<T>(value: T) where T: Equatable
+final class Wrap<U> where U: Hashable {
+    wrap(value: U)
+}
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

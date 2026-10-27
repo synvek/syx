@@ -1,0 +1,8 @@
+// multi
+class Pair {
+    var a: Int
+    var b: Int
+    init(a: Int, b: Int) {
+        print(1)
+    }
+}

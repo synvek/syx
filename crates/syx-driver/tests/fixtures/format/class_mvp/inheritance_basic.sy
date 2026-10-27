@@ -1,0 +1,17 @@
+class Animal {
+    func speak() {
+        print("animal")
+    }
+}
+
+class Dog: Animal {
+    override func speak() {
+        print("woof")
+    }
+}
+
+func main() {
+    let d = Dog()
+    d.speak()
+}
+

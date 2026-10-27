@@ -1,0 +1,10 @@
+// ahead
+data class Point(x: Int)
+final class Shape {
+    point
+}
+func main() {
+    while flag /* mid */
+    print(1)
+}
+/* trail */

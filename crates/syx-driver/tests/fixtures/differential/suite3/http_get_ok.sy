@@ -1,0 +1,6 @@
+func main() {
+    let r = __syx_http_get("http://127.0.0.1:SYX_DIFF_HTTP_PORT/")
+    print(r.status)
+    print(r.body)
+}
+

@@ -1,0 +1,10 @@
+class Pair {
+    var a: Int
+    var b: Int
+    func left() {
+        print(1)
+    }
+    func right() {
+        print(2)
+    }
+}

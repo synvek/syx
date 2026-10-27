@@ -1,0 +1,10 @@
+/// docs
+class Box {
+  var count: Int
+  init() {
+    count += 1
+  }
+  func scale(n: Int) {
+    count /= n
+  }
+}

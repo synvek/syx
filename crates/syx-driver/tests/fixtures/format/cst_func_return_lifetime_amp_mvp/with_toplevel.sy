@@ -1,0 +1,7 @@
+func id() -> &'a Int {
+    print(1)
+    return 1
+}
+
+print(0)
+

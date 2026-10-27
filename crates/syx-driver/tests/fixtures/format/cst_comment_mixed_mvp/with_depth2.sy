@@ -1,0 +1,6 @@
+func main() {
+    /* block */
+    while (((ready())))
+    print(foo(bar(baz())))
+}
+

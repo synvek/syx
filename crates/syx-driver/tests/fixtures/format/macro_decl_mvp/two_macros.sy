@@ -1,0 +1,12 @@
+#macro a() {
+    print(1)
+}
+
+#macro b(x) {
+    print(x)
+}
+
+func main() {
+    print(1)
+}
+

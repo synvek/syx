@@ -1,0 +1,7 @@
+// Permanent nail fixture: multiple independent syntax errors in one file.
+// LSP / Parser::parse_collecting must report more than one P001 at once.
+// Not a runnable program — do not expect `syx run` to succeed.
+
+func broken_a()
+func broken_b()
+func main() {}

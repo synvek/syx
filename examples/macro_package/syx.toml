@@ -1,0 +1,5 @@
+name = "macro_package_demo"
+main = "main.sy"
+
+[macros]
+exports = ["greet"]

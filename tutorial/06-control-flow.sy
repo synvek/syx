@@ -1,0 +1,170 @@
+// =============================================================================
+// tutorial/06-control-flow.sy
+// 对应《SYX 语言指南》第 6 章「控制流」
+//
+// 本章涉及语言特性：
+//   - if / else（条件括号可选）
+//   - while / repeat-while
+//   - for-in（含 for await in）
+//   - switch（含 where 守卫、范围、enum 关联值模式）
+//   - break / continue（label 部分实现）
+//   - if case / if let / guard let
+//   - if 表达式（Phase 100+）
+//   - 嵌套控制流
+// =============================================================================
+
+// 0) 用于示例的辅助类型
+enum Result2 {
+    case ok(value: Int)
+    case err(msg: String)
+}
+
+// 1) if / else
+func classify(_ n: Int) -> String {
+    if n > 0 {
+        return "positive"
+    } else if n == 0 {
+        return "zero"
+    } else {
+        return "negative"
+    }
+}
+
+// 1b) if 表达式（两分支返回同类型）
+func sign(_ n: Int) -> String {
+    return if n > 0 { "pos" } else { "non-pos" }
+}
+
+// 2) while / repeat-while
+func sumTo(_ n: Int) -> Int {
+    var s = 0
+    var i = 0
+    while i < n {
+        s += i
+        i += 1
+    }
+    return s
+}
+
+func repeatSumTo(_ n: Int) -> Int {
+    var s = 0
+    var i = 0
+    repeat {
+        s += i
+        i += 1
+    } while i < n
+    return s
+}
+
+// 3) for-in 遍历
+func sumArray(_ arr: Array<Int>) -> Int {
+    var s = 0
+    for x in arr { s += x }
+    return s
+}
+
+func sumString(_ s: String) -> Int {
+    // 字素簇遍历
+    var n = 0
+    for _ in s { n += 1 }
+    return n
+}
+
+// 4) for await in（异步流，详见 18 章）
+async func consumeAsyncStream() -> Int {
+    var count = 0
+    let ch = __syx_channel_create(4)
+    for await v in __syx_async_iter_from_channel(ch) {
+        count += v
+    }
+    return count
+}
+
+// 5) switch — 整型 / 范围 / enum 关联值 / where 守卫
+func describe(_ r: Result2) -> String {
+    switch r {
+    case .ok(let v) where v > 100 {
+        return "big ok: \(v)"
+    }
+    case .ok(let v) where v >= 0:
+        return "ok: \(v)"
+    case .ok:
+        return "ok: zero or negative"
+    case .err(let msg):
+        return "err: \(msg)"
+    }
+}
+
+func bucketAge(_ age: Int) -> String {
+    switch age {
+    case 0..<13:
+        return "child"
+    case 13..<20:
+        return "teen"
+    case 20..<65:
+        return "adult"
+    default:
+        return "senior"
+    }
+}
+
+// 6) if case / if let / guard let
+func maybeIncrement(_ x: Int?) -> Int {
+    if let v = x {
+        return v + 1
+    } else {
+        return 0
+    }
+}
+
+func unwrapOrZero(_ x: Int?) -> Int {
+    guard let v = x else { return 0 }
+    return v * 2
+}
+
+func matchEnum(_ r: Result2) -> Int {
+    if case .ok(let v) = r { return v }
+    return -1
+}
+
+// 7) break / continue（带 label 部分实现）
+func findFirstNegative(_ arr: Array<Int>) -> Int {
+    outer: for n in arr {
+        if n >= 0 { continue }
+        if n < -100 { break outer }
+        return n
+    }
+    return 0
+}
+
+// 8) 嵌套 + 综合
+func processItems(_ items: Array<Int>) -> Array<String> {
+    var out: Array<String> = []
+    for (idx, v) in items.enumerated() {
+        switch v {
+        case 0..<10:
+            out.append("small[\(idx)]=\(v)")
+        case 10..<100:
+            out.append("mid[\(idx)]=\(v)")
+        default:
+            out.append("big[\(idx)]=\(v)")
+        }
+    }
+    return out
+}
+
+func main() {
+    print("classify(5)=\(classify(5)) sign(5)=\(sign(5))")
+    print("sumTo(5)=\(sumTo(5)) repeatSumTo(5)=\(repeatSumTo(5))")
+    print("sumArray=\(sumArray([1,2,3,4]))")
+    print("sumString(abc)=\(sumString("abc"))")
+    print("describe(ok 200)=\(describe(.ok(value: 200)))")
+    print("describe(ok 5)=\(describe(.ok(value: 5)))")
+    print("describe(err)=\(describe(.err(msg: "boom")))")
+    print("bucketAge(8)=\(bucketAge(8)) bucketAge(25)=\(bucketAge(25)) bucketAge(70)=\(bucketAge(70))")
+    print("maybeIncrement(7)=\(maybeIncrement(7)) unwrapOrZero(nil)=\(unwrapOrZero(nil))")
+    print("matchEnum(ok 42)=\(matchEnum(.ok(value: 42)))")
+    print("findFirstNegative=\(findFirstNegative([1,2,-3,4,-200]))")
+    let labels = processItems([3, 50, 999])
+    for l in labels { print(l) }
+}

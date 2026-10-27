@@ -1,0 +1,3 @@
+/// docs
+data class Box<T>(value: T) where T: Equatable
+/* trail */

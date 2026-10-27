@@ -1,0 +1,17 @@
+[package]
+name = "syx-cranelift-jit"
+description = "Cranelift JIT tier-2 compiler for SYX VM hot paths"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-mir = { workspace = true }
+cranelift-codegen = "0.116.1"
+cranelift-frontend = "0.116.1"
+cranelift-module = "0.116.1"
+cranelift-jit = "0.116.1"
+target-lexicon = "0.13.0"

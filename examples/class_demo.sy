@@ -1,0 +1,34 @@
+class Greeter {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+    func hello() {
+        print(self.name)
+    }
+}
+
+extension Greeter {
+    func greet() {
+        print("Hello, \(self.name)!")
+    }
+}
+
+func main() {
+    let name: String = "SYX"
+    print("Hello, \(name)!")
+    let g = Greeter(name: "Greeter")
+    g.hello()
+    g.greet()
+    let scores: Dictionary<String, Int> = {"a": 1, "b": 2}
+    print(scores["a"])
+    var sum = 0
+    for x in [1, 2, 3, 4] {
+        sum = sum + x
+    }
+    print(sum)
+    let sorted = [3, 1, 2].sorted()
+    sorted.append(5)
+    print(sorted.count)
+}
+

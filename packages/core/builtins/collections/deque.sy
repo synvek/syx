@@ -1,0 +1,73 @@
+// Double-ended queue. Prelude; hand-authored authority (ADR-248 / M2-S1-03).
+// Deque<Int> MVP (≠ Heap / ≠ lazy sequence / ≠ Deque<T> generics).
+
+/// Int deque with O(1) ends; host `__syx_deque_*`.
+@builtin("collection.deque")
+public class Deque {
+    /// Create an empty deque.
+    public static func new() -> Deque {
+        return __syx_deque_new()
+    }
+
+    /// Push `item` at the back.
+    public static func pushBack(items: Deque, item: Int) {
+        __syx_deque_push_back(items, item)
+    }
+
+    /// Push `item` at the front.
+    public static func pushFront(items: Deque, item: Int) {
+        __syx_deque_push_front(items, item)
+    }
+
+    /// Pop from the back, or `nil` if empty.
+    public static func popBack(items: Deque) -> Int? {
+        return __syx_deque_pop_back(items)
+    }
+
+    /// Pop from the front, or `nil` if empty.
+    public static func popFront(items: Deque) -> Int? {
+        return __syx_deque_pop_front(items)
+    }
+
+    /// Element count.
+    public static func count(items: Deque) -> Int {
+        return __syx_deque_count(items)
+    }
+
+    /// Whether the deque has no elements.
+    public static func isEmpty(items: Deque) -> Bool {
+        return __syx_deque_is_empty(items)
+    }
+}
+
+extension Deque {
+    /// Push `item` at the back.
+    func pushBack(item: Int) {
+        __syx_deque_push_back(self, item)
+    }
+
+    /// Push `item` at the front.
+    func pushFront(item: Int) {
+        __syx_deque_push_front(self, item)
+    }
+
+    /// Pop from the back, or `nil` if empty.
+    func popBack() -> Int? {
+        return __syx_deque_pop_back(self)
+    }
+
+    /// Pop from the front, or `nil` if empty.
+    func popFront() -> Int? {
+        return __syx_deque_pop_front(self)
+    }
+
+    /// Element count (host `__syx_deque_count`).
+    var count: Int {
+        get { return __syx_deque_count(self) }
+    }
+
+    /// Whether the deque has no elements.
+    func isEmpty() -> Bool {
+        return __syx_deque_is_empty(self)
+    }
+}

@@ -1,0 +1,7 @@
+func main() {
+    switch x {
+    case Int.self:
+        print(1)
+    }
+}
+

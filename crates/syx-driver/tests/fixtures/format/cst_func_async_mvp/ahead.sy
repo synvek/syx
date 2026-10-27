@@ -1,0 +1,6 @@
+// ahead
+async func main() {
+    // inside
+    print(1)
+}
+/* trail */

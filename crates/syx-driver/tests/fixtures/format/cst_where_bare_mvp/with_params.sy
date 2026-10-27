@@ -1,0 +1,5 @@
+func id<T>(x: T, y: Int) where T: Equatable {
+    print(x)
+    print(y)
+}
+

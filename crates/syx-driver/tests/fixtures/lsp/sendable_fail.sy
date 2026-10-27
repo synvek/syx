@@ -1,0 +1,12 @@
+class Box {
+    var payload: Int
+    init(payload: Int) {
+        self.payload = payload
+    }
+}
+
+func main() {
+    let b = Box(payload: 99)
+    __syx_task_detach("main")
+}
+

@@ -1,0 +1,19 @@
+class Counter {
+    var value: Int
+        willSet {
+            print("will")
+        }
+        didSet {
+            print("did")
+        }
+    init(value: Int) {
+        self.value = value
+    }
+}
+
+func main() {
+    let c = Counter(value: 1)
+    c.value = 2
+    print(c.value)
+}
+

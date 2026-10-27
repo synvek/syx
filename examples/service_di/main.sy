@@ -1,0 +1,202 @@
+import Di
+
+class Logger {
+    init() {
+    }
+    func tag() -> String {
+        return "?"
+    }
+}
+
+@Primary
+@Service
+class DefaultLogger: Logger {
+    override func tag() -> String {
+        return "default"
+    }
+}
+
+@Qualifier("fast")
+@Service
+class FastLogger: Logger {
+    override func tag() -> String {
+        return "fast"
+    }
+}
+
+class BeanGreeter {
+    var logger: Logger
+    init(logger: Logger) {
+        self.logger = logger
+    }
+    func greet() -> String {
+        return "bean-hello:" + self.logger.tag()
+    }
+}
+
+@Configuration
+class DiConfig {
+    init() {
+    }
+    @Bean
+    func configGreeter(@Autowired @Qualifier("fast") logger: Logger) -> BeanGreeter {
+        return BeanGreeter(logger: logger)
+    }
+}
+
+@Service
+class App {
+    @Autowired
+    @Qualifier("fast")
+    var logger: Logger
+    init() {
+    }
+    @Around
+    func run() -> String {
+        print("__body__:run")
+        return self.logger.tag()
+    }
+}
+
+@Service
+class PointcutProbe {
+    init() {
+    }
+    @Pointcut("PointcutProbe.work")
+    @Around("PointcutProbe.work")
+    func work() -> String {
+        print("__body__:work")
+        return "pointcut-ok"
+    }
+}
+
+@Service
+class ExecutionProbe {
+    init() {
+    }
+    @Pointcut("execution(* ExecutionProbe.tick(..))")
+    @Around("execution(* ExecutionProbe.tick(..))")
+    func tick() -> String {
+        print("__body__:tick")
+        return "execution-ok"
+    }
+}
+
+@Service
+class WildcardProbe {
+    init() {
+    }
+    @Pointcut("execution(* WildcardProbe.*(..))")
+    @Around("execution(* WildcardProbe.*(..))")
+    func runWild() -> String {
+        print("__body__:runWild")
+        return "wildcard-ok"
+    }
+}
+
+@Service
+class BeforeAfterProbe {
+    init() {
+    }
+    @Pointcut("execution(* BeforeAfterProbe.pulse(..))")
+    @Before("execution(* BeforeAfterProbe.pulse(..))")
+    @After("execution(* BeforeAfterProbe.pulse(..))")
+    func pulse() -> String {
+        print("__body__:pulse")
+        return "before-after-ok"
+    }
+}
+
+@Service
+class WithinProbe {
+    init() {
+    }
+    @Pointcut("within(WithinProbe)")
+    @Around("within(WithinProbe)")
+    @Before("within(WithinProbe)")
+    @After("within(WithinProbe)")
+    func wave() -> String {
+        print("__body__:wave")
+        return "within-ok"
+    }
+}
+
+@Service
+class ArgsProbe {
+    init() {
+    }
+    @Pointcut("args(Int)")
+    @Around("args(Int)")
+    @Before("args(Int)")
+    @After("args(Int)")
+    func handleInt(x: Int) -> String {
+        print("__body__:handleInt")
+        return "args-int-ok"
+    }
+}
+
+@Lazy
+@Service
+class LazyProbe {
+    init() {
+        print("__lazy__:constructed")
+    }
+    func tag() -> String {
+        return "lazy-probe"
+    }
+}
+
+@Lazy
+@Service
+class CyclePing {
+    @Autowired
+    var pong: CyclePong
+    init() {
+    }
+    func name() -> String {
+        return "CyclePing"
+    }
+    func tag() -> String {
+        return "ping->" + self.pong.name()
+    }
+}
+
+@Service
+class CyclePong {
+    @Autowired
+    var ping: CyclePing
+    init() {
+    }
+    func name() -> String {
+        return "CyclePong"
+    }
+    func tag() -> String {
+        return "pong->" + self.ping.name()
+    }
+}
+
+func main() {
+    let bean = Di.resolve("BeanGreeter")
+    print("bean:" + bean.greet())
+    let app = Di.resolve("App")
+    print(app.run())
+    let probe = Di.resolve("PointcutProbe")
+    print(probe.work())
+    let exec = Di.resolve("ExecutionProbe")
+    print(exec.tick())
+    let wild = Di.resolve("WildcardProbe")
+    print(wild.runWild())
+    let ba = Di.resolve("BeforeAfterProbe")
+    print(ba.pulse())
+    let within = Di.resolve("WithinProbe")
+    print(within.wave())
+    let args = Di.resolve("ArgsProbe")
+    print(args.handleInt(x: 9))
+    print("__before_lazy__")
+    let lazy = Di.resolve("LazyProbe")
+    print(lazy.tag())
+    let pong = Di.resolve("CyclePong")
+    print(pong.tag())
+    Di.destroy()
+}
+

@@ -1,0 +1,3 @@
+# Phase 130 M20 — token/ident/literal substitution in expression position
+name = "token_expr_macro"
+main = "main.sy"

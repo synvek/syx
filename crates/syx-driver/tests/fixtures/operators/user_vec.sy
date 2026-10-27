@@ -1,0 +1,19 @@
+class Vec2 {
+    var x: Int
+    var y: Int
+    init(x: Int, y: Int) {
+        self.x = x
+        self.y = y
+    }
+    operator func +(a: Vec2, b: Vec2) -> Vec2 {
+        return Vec2(x: a.x + b.x, y: a.y + b.y)
+    }
+}
+
+func main() {
+    let a = Vec2(x: 1, y: 2)
+    let b = Vec2(x: 3, y: 4)
+    let c = a + b
+    print(c.x + c.y)
+}
+

@@ -1,0 +1,6 @@
+print(foo(bar(baz())))
+
+func main() {
+    print(1)
+}
+

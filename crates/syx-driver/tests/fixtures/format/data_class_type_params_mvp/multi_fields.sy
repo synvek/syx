@@ -1,0 +1,2 @@
+data class TripleBox<T>(a: T, b: T, c: T)
+

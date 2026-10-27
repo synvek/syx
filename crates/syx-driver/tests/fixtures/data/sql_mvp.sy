@@ -1,0 +1,10 @@
+func main() {
+    __syx_sql_exec("CREATE TABLE items (id INT, label TEXT)")
+    __syx_sql_exec("INSERT INTO items VALUES (1, 'alpha')")
+    __syx_sql_exec("INSERT INTO items VALUES (2, 'beta')")
+    let rows = __syx_sql_query("SELECT id, label FROM items WHERE id = 1")
+    print(rows.count)
+    print(rows[0][0])
+    print(rows[0][1])
+}
+

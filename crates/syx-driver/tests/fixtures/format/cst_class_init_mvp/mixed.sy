@@ -1,0 +1,12 @@
+/// mix
+class Box {
+    var name: String?
+    init(name: String) {
+        print(1)
+    }
+    func tag() {
+        /* mid */
+        print(2)
+    }
+}
+/* trail */

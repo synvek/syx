@@ -1,0 +1,7 @@
+func main() {
+    switch t {
+    case (a, b):
+        print(a)
+    }
+}
+

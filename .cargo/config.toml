@@ -1,0 +1,6 @@
+# Internal wiring for llvm-sys (inkwell llvm21-1). Users should set SYX_LLVM_PREFIX
+# or place LLVM at <workspace>/../llvm — not LLVM_SYS_*_PREFIX.
+#
+# relative path is from this file's directory (.cargo/) → workspace sibling ../llvm.
+[env]
+LLVM_SYS_211_PREFIX = { value = "../../llvm", relative = true }

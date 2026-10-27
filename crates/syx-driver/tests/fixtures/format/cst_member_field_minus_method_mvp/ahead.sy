@@ -1,0 +1,8 @@
+// ahead
+class Box {
+  var count: Int
+  func drop(n: Int) {
+    /* mid */
+    box.count -= n
+  }
+}

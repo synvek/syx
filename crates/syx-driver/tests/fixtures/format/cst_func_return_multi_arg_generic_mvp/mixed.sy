@@ -1,0 +1,15 @@
+func id(x: Int) -> Foo<A, B> {
+    print(x)
+    return x
+}
+
+func opt() -> Dict<String, Int>? {
+    return
+}
+
+func nested() -> Foo<Bar<Int>> {
+    return
+}
+
+print(0)
+

@@ -1,0 +1,21 @@
+// Language-global host builtins — always in scope (no `import`).
+// Browsable authority for signatures. Runtime still binds via host/MIR
+// (`MirOp::Print`, `__syx_read_line`, reflect metadata) — this file is not
+// a user-importable module and is not merged into program graphs.
+//
+// Module-style I/O: see `Text.Fmt.print` / `Text.Fmt.printLine` under packages/text/.
+
+/// Print a value (host statement; lowered to `MirOp::Print`).
+/// Call site looks like a function: `print(x)`. Any value is accepted.
+public func print(value: Object) {
+}
+
+/// Read one line from standard input (host `__syx_read_line`).
+public func readLine() -> String {
+    return ""
+}
+
+/// Compile-time type reflection: `reflect(T.self)` → type metadata.
+public func reflect(type: Object) -> Object {
+    return type
+}

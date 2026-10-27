@@ -1,0 +1,179 @@
+// =============================================================================
+// tutorial/25-opaque-types.sy
+// 对应《SYX 语言指南》第 25 章「不透明类型和封装协议类型」
+//
+// 本章涉及语言特性：
+//   - some P（不透明返回类型）
+//   - any P（存在类型 / existential）
+//   - some + 协议关联类型
+//   - 静态分派（some）vs 动态分派（any）
+//   - some 限制：所有返回路径同一具体类型
+//   - 性能：some 零虚调度
+// =============================================================================
+
+// 1) 基础：some Shape
+protocol Shape {
+    func area() -> Double
+    func perimeter() -> Double
+}
+
+class SquareShape: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return s * s }
+    func perimeter() -> Double { return 4 * s }
+}
+
+class CircleShape: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+    func perimeter() -> Double { return 2 * 3.14159 * r }
+}
+
+// 1a) some — 不透明返回
+func makeSquare() -> some Shape {
+    return SquareShape(s: 2.0)
+}
+
+func makeCircle() -> some Shape {
+    return CircleShape(r: 1.0)
+}
+
+// 1b) 调用方看到的是 Shape 接口
+func opaqueDemo() {
+    let s1 = makeSquare()
+    let s2 = makeCircle()
+    print("square area=\(s1.area()) perim=\(s1.perimeter())")
+    print("circle area=\(s2.area()) perim=\(s2.perimeter())")
+}
+
+// 2) some 限制：所有路径返回同一具体类型
+// func makeShape(flag: Bool) -> some Shape {
+//     if flag { return SquareShape(s: 1.0) }
+//     return CircleShape(r: 1.0)            ← ❌ 必须返回同一具体类型
+// }
+
+// 3) some 性能：零虚调度
+class FastSquare: Shape {
+    var side: Double
+    init(side: Double) { self.side = side }
+    func area() -> Double { return side * side }
+    func perimeter() -> Double { return 4 * side }
+}
+
+func makeFast() -> some Shape { return FastSquare(side: 3.0) }
+
+// 4) any P — 存在类型（动态分派）
+func makeAny(flag: Bool) -> any Shape {
+    if flag { return SquareShape(s: 1.0) }
+    return CircleShape(r: 1.0)
+}
+
+func anyDemo() {
+    let s1 = makeAny(flag: true)                       // 实际 SquareShape
+    let s2 = makeAny(flag: false)                      // 实际 CircleShape
+    print("any[true] area=\(s1.area())")
+    print("any[false] area=\(s2.area())")
+}
+
+// 5) Array<any Shape>
+func collectionAny() {
+    let shapes: Array<any Shape> = [
+        SquareShape(s: 2.0),
+        CircleShape(r: 1.0),
+        SquareShape(s: 3.0)
+    ]
+    var total = 0.0
+    for s in shapes {
+        total += s.area()                              // 动态分派
+    }
+    print("total=\(total)")
+}
+
+// 6) some + 关联类型
+protocol Producer {
+    associatedtype Output
+    func produce() -> Output
+}
+
+struct IntProducer: Producer {
+    func produce() -> Int { return 42 }
+}
+
+struct StringProducer: Producer {
+    func produce() -> String { return "hello" }
+}
+
+func makeIntProducer() -> some Producer { return IntProducer() }
+func makeStringProducer() -> some Producer { return StringProducer() }
+
+func associatedDemo() {
+    let p1 = makeIntProducer()
+    let p2 = makeStringProducer()
+    print("int producer=\(p1.produce())")
+    print("string producer=\(p2.produce())")
+}
+
+// 7) some 用于隐藏实现细节
+protocol Formatter {
+    func format(_ v: Int) -> String
+}
+class HexFormatter: Formatter {
+    func format(_ v: Int) -> String {
+        return "0x\(String(v, radix: 16))"             // 示意
+    }
+}
+class BinFormatter: Formatter {
+    func format(_ v: Int) -> String {
+        return "0b\(String(v, radix: 2))"               // 示意
+    }
+}
+func makeFormatter() -> some Formatter { return HexFormatter() }
+
+// 8) some vs any 性能对比（概念）
+//
+//   func f() -> some P    → 编译期固定，inline 友好
+//   func f() -> any P     → 运行时 witness table 查找
+//
+// 推荐：内部函数返回 some；公开 API 用 any 保持灵活性
+
+// 9) 协议存在类型的擦除（boxing）
+protocol Animal25 {
+    var name: String { get }
+    func speak() -> String
+}
+class Dog25: Animal25 {
+    var name: String = "Dog"
+    func speak() -> String { return "woof" }
+}
+class Cat25: Animal25 {
+    var name: String = "Cat"
+    func speak() -> String { return "meow" }
+}
+
+func animals() -> Array<any Animal25> {
+    return [Dog25(), Cat25(), Dog25()]
+}
+
+// 10) opaque + generic
+func identityShape<S: Shape>(_ s: S) -> some Shape {
+    return s
+}
+
+func genericOpaque() {
+    let s = identityShape(SquareShape(s: 2.0))
+    print("identity area=\(s.area())")
+}
+
+func main() {
+    opaqueDemo()
+    anyDemo()
+    collectionAny()
+    associatedDemo()
+    let fmt = makeFormatter()
+    print("format 255 = \(fmt.format(255))")
+    let arr = animals()
+    for a in arr { print("\(a.name) says \(a.speak())") }
+    genericOpaque()
+}

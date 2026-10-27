@@ -1,0 +1,6 @@
+func main() {
+    print("hi\(x)")
+    print("ok")
+    print(1)
+}
+

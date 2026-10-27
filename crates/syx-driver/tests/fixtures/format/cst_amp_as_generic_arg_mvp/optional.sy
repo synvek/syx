@@ -1,0 +1,4 @@
+func opt(x: Foo<&Int?>) {
+    return
+}
+

@@ -1,0 +1,9 @@
+func main() {
+    switch r {
+    case .ok:
+        print(1)
+    default:
+        print(0)
+    }
+}
+

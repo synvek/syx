@@ -1,0 +1,13 @@
+[package]
+name = "syx-runtime-core"
+description = "Core SYX runtime value model and protocols (no VM interpreter / codegen)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-stdlib = { workspace = true }
+smol_str = { workspace = true }

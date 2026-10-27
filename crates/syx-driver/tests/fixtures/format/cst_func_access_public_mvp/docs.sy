@@ -1,0 +1,4 @@
+/// docs
+public func api() {
+    print(1)
+}

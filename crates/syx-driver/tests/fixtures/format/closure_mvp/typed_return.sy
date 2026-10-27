@@ -1,0 +1,7 @@
+func main() {
+    let f = { (a: Int) in
+        return a
+    }
+    print(f(1))
+}
+

@@ -1,0 +1,7 @@
+global actor EmptyActor {
+}
+
+func main() {
+    print(1)
+}
+

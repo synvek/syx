@@ -1,0 +1,10 @@
+func go<T>() requires Pure where T: Bound {
+    let x = f(g(h()))
+    print(x)
+}
+
+func main() {
+    while ready()
+    print(foo(bar(baz())))
+}
+

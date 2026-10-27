@@ -1,0 +1,6 @@
+func main() {
+    repeat {
+        print(getN())
+    } while cond
+}
+

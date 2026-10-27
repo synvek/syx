@@ -1,0 +1,9 @@
+func main() {
+    while a && b && c {
+        print(1)
+        print(2)
+    }
+    while i < n || flag
+    print(3)
+}
+

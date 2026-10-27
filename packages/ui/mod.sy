@@ -1,0 +1,196 @@
+public func app() -> String {
+    return __syx_synui_app_create()
+}
+
+public func label(text: String) -> String {
+    return __syx_synui_label(text)
+}
+
+public func button(text: String) -> String {
+    return __syx_synui_button(text)
+}
+
+public func onClick(viewHandle: String, handlerName: String) -> String {
+    return __syx_synui_button_on_click(viewHandle, handlerName)
+}
+
+public func click(viewHandle: String) -> String {
+    return __syx_synui_button_click(viewHandle)
+}
+
+public func textField(placeholder: String) -> String {
+    return __syx_synui_text_field(placeholder)
+}
+
+public func checkbox(label: String, checked: Bool) -> String {
+    return __syx_synui_checkbox(label, checked)
+}
+
+public func slider(value: Float, min: Float, max: Float) -> String {
+    return __syx_synui_slider(value, min, max)
+}
+
+public func toggle(on: Bool) -> String {
+    return __syx_synui_switch(on)
+}
+
+public func radio(label: String, selected: Bool) -> String {
+    return __syx_synui_radio(label, selected)
+}
+
+public func progress(value: Float) -> String {
+    return __syx_synui_progress(value)
+}
+
+public func picker(options: String, selected: Int) -> String {
+    return __syx_synui_picker(options, selected)
+}
+
+public func textArea(text: String) -> String {
+    return __syx_synui_text_area(text)
+}
+
+public func list(items: String) -> String {
+    return __syx_synui_list(items)
+}
+
+public func image(source: String) -> String {
+    return __syx_synui_image(source)
+}
+
+public func scrollView(children: String) -> String {
+    return __syx_synui_scroll_view(children)
+}
+
+public func stack(children: String) -> String {
+    return __syx_synui_stack(children)
+}
+
+public func tabView(tabs: String, children: String) -> String {
+    return __syx_synui_tab_view(tabs, children)
+}
+
+public func navigation(routes: String, destinations: String) -> String {
+    return __syx_synui_navigation(routes, destinations)
+}
+
+public func spacer(size: Float, weight: Float) -> String {
+    return __syx_synui_spacer(size, weight)
+}
+
+public func divider(orientationOrThickness: Float) -> String {
+    return __syx_synui_divider(orientationOrThickness)
+}
+
+public func column(children: String) -> String {
+    return __syx_synui_column(children)
+}
+
+public func row(children: String) -> String {
+    return __syx_synui_row(children)
+}
+
+public func signalNew(initial: String) -> String {
+    return __syx_synui_signal_new(initial)
+}
+
+public func signalGet(handle: String) -> String {
+    return __syx_synui_signal_get(handle)
+}
+
+public func signalSet(handle: String, value: String) -> String {
+    return __syx_synui_signal_set(handle, value)
+}
+
+public func signalBoolNew(initial: Bool) -> String {
+    return __syx_synui_signal_bool_new(initial)
+}
+
+public func signalBoolGet(handle: String) -> Bool {
+    return __syx_synui_signal_bool_get(handle)
+}
+
+public func signalBoolSet(handle: String, value: Bool) -> String {
+    return __syx_synui_signal_bool_set(handle, value)
+}
+
+public func signalNumberNew(initial: Float) -> String {
+    return __syx_synui_signal_number_new(initial)
+}
+
+public func signalNumberGet(handle: String) -> Float {
+    return __syx_synui_signal_number_get(handle)
+}
+
+public func signalNumberSet(handle: String, value: Float) -> String {
+    return __syx_synui_signal_number_set(handle, value)
+}
+
+public func bindTextField(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_text_field(viewHandle, signalHandle)
+}
+
+public func bindCheckbox(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_checkbox(viewHandle, signalHandle)
+}
+
+public func bindSlider(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_slider(viewHandle, signalHandle)
+}
+
+public func bindToggle(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_switch(viewHandle, signalHandle)
+}
+
+public func bindRadio(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_radio(viewHandle, signalHandle)
+}
+
+public func bindProgress(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_progress(viewHandle, signalHandle)
+}
+
+public func bindPicker(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_picker(viewHandle, signalHandle)
+}
+
+public func bindTextArea(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_text_area(viewHandle, signalHandle)
+}
+
+public func bindList(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_list(viewHandle, signalHandle)
+}
+
+public func bindImage(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_image(viewHandle, signalHandle)
+}
+
+public func bindScrollView(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_scroll_view(viewHandle, signalHandle)
+}
+
+public func bindTabView(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_tab_view(viewHandle, signalHandle)
+}
+
+public func bindNavigation(viewHandle: String, signalHandle: String) -> String {
+    return __syx_synui_bind_navigation(viewHandle, signalHandle)
+}
+
+public func pump() -> String {
+    return __syx_synui_pump()
+}
+
+public func renderFingerprint() -> String {
+    return __syx_synui_render_fingerprint()
+}
+
+public func run() -> String {
+    return __syx_synui_run()
+}
+
+public func fingerprint() -> String {
+    return __syx_synui_fingerprint()
+}
+

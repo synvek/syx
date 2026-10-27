@@ -1,0 +1,8 @@
+func boom() -> String {
+    return "boom"
+}
+
+func main() {
+    throw boom()
+}
+

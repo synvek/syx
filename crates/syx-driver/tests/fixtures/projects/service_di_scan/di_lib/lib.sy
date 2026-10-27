@@ -1,0 +1,9 @@
+@Service
+class Logger {
+    init() {
+    }
+    func ping() -> String {
+        return "lib-ok"
+    }
+}
+

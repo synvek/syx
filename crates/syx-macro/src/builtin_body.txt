@@ -1,0 +1,363 @@
+    fn expand_stmts(stmts: &mut Vec<Stmt>) -> SyxResult<()> {
+        let mut out = Vec::new();
+        for stmt in std::mem::take(stmts) {
+            match stmt {
+                Stmt::MacroInvoke { span, name, args, .. } => {
+                    if name.as_str() == "assert" {
+                        let cond = args.into_iter().next().ok_or_else(|| {
+                            SyxDiagnostic::error("#assert requires one argument")
+                        })?;
+                        let fail = Expr::Literal {
+                            span,
+                            value: Literal::String("assertion failed".into()),
+                        };
+                        out.push(Stmt::If {
+                            span,
+                            condition: Expr::Unary {
+                                span,
+                                op: syx_ast::UnaryOp::Not,
+                                expr: Box::new(cond),
+                            },
+                            then_branch: vec![Stmt::Throw { span, expr: fail }],
+                            else_branch: None,
+                        });
+                    } else if name.as_str() == "if" {
+                        let mut arg_iter = args.into_iter();
+                        let cond = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#if requires condition and body statements")
+                        })?;
+                        let then_stmts: Vec<Stmt> = arg_iter
+                            .map(|e| macro_arg_to_stmt(span, e))
+                            .collect();
+                        if then_stmts.is_empty() {
+                            return Err(SyxDiagnostic::error(
+                                "#if requires at least one body statement after condition",
+                            ));
+                        }
+                        out.push(Stmt::If {
+                            span,
+                            condition: cond,
+                            then_branch: then_stmts,
+                            else_branch: None,
+                        });
+                    } else if name.as_str() == "assert_eq" {
+                        let mut arg_iter = args.into_iter();
+                        let left = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#assert_eq requires two arguments")
+                        })?;
+                        let right = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#assert_eq requires two arguments")
+                        })?;
+                        let cond = Expr::Binary {
+                            span,
+                            left: Box::new(left),
+                            op: BinOp::Eq,
+                            right: Box::new(right),
+                        };
+                        let fail = Expr::Literal {
+                            span,
+                            value: Literal::String("assert_eq failed".into()),
+                        };
+                        out.push(Stmt::If {
+                            span,
+                            condition: Expr::Unary {
+                                span,
+                                op: syx_ast::UnaryOp::Not,
+                                expr: Box::new(cond),
+                            },
+                            then_branch: vec![Stmt::Throw { span, expr: fail }],
+                            else_branch: None,
+                        });
+                    } else if name.as_str() == "assert_ne" {
+                        let mut arg_iter = args.into_iter();
+                        let left = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#assert_ne requires two arguments")
+                        })?;
+                        let right = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#assert_ne requires two arguments")
+                        })?;
+                        let cond = Expr::Binary {
+                            span,
+                            left: Box::new(left),
+                            op: BinOp::Eq,
+                            right: Box::new(right),
+                        };
+                        let fail = Expr::Literal {
+                            span,
+                            value: Literal::String("assert_ne failed".into()),
+                        };
+                        out.push(Stmt::If {
+                            span,
+                            condition: cond,
+                            then_branch: vec![Stmt::Throw { span, expr: fail }],
+                            else_branch: None,
+                        });
+                    } else if name.as_str() == "debug_assert" {
+                        let expr = args.into_iter().next().ok_or_else(|| {
+                            SyxDiagnostic::error("#debug_assert requires one argument")
+                        })?;
+                        let fail = Expr::Literal {
+                            span,
+                            value: Literal::String("debug_assert failed".into()),
+                        };
+                        out.push(Stmt::If {
+                            span,
+                            condition: Expr::Unary {
+                                span,
+                                op: syx_ast::UnaryOp::Not,
+                                expr: Box::new(expr),
+                            },
+                            then_branch: vec![Stmt::Throw { span, expr: fail }],
+                            else_branch: None,
+                        });
+                    } else if name.as_str() == "line" || name.as_str() == "file" {
+                        // Phase 16: freestanding source location hints (no runtime effect).
+                    } else if name.as_str() == "while" {
+                        let mut arg_iter = args.into_iter();
+                        let cond = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#while requires condition and body statements")
+                        })?;
+                        let body_stmts: Vec<Stmt> = arg_iter
+                            .map(|e| macro_arg_to_stmt(span, e))
+                            .collect();
+                        if body_stmts.is_empty() {
+                            return Err(SyxDiagnostic::error(
+                                "#while requires at least one body statement after condition",
+                            ));
+                        }
+                        out.push(Stmt::While {
+                            span,
+                            condition: cond,
+                            body: body_stmts,
+                        });
+                    } else if name.as_str() == "compileTime" {
+                        let expr = args.into_iter().next().ok_or_else(|| {
+                            SyxDiagnostic::error("#compileTime requires one constant expression")
+                        })?;
+                        let folded = eval_const_expr(&expr).ok_or_else(|| {
+                            SyxDiagnostic::error("#compileTime expression must be a compile-time constant")
+                        })?;
+                        if let Expr::Call {
+                            callee,
+                            args: print_args,
+                            ..
+                        } = &folded
+                        {
+                            if matches!(callee.as_ref(), Expr::Ident { name, .. } if name.as_str() == "print")
+                            {
+                                out.push(Stmt::Print {
+                                    span,
+                                    expr: print_args
+                                        .first()
+                                        .map(|a| a.value.clone())
+                                        .unwrap_or(folded),
+                                });
+                                continue;
+                            }
+                        }
+                        out.push(Stmt::Expr { span, expr: folded });
+                    } else if name.as_str() == "line" {
+                        out.push(Stmt::Expr {
+                            span,
+                            expr: Expr::Literal {
+                                span,
+                                value: Literal::Integer {
+                                    value: 1,
+                                    suffix: None,
+                                },
+                            },
+                        });
+                    } else if name.as_str() == "file" {
+                        out.push(Stmt::Expr {
+                            span,
+                            expr: Expr::Literal {
+                                span,
+                                value: Literal::String("syx.sy".into()),
+                            },
+                        });
+                    } else if name.as_str() == "for" {
+                        let mut arg_iter = args.into_iter();
+                        let count = arg_iter.next().ok_or_else(|| {
+                            SyxDiagnostic::error("#for requires count and body statements")
+                        })?;
+                        let body_stmts: Vec<Stmt> = arg_iter
+                            .map(|e| macro_arg_to_stmt(span, e))
+                            .collect();
+                        if body_stmts.is_empty() {
+                            return Err(SyxDiagnostic::error(
+                                "#for requires at least one body statement after count",
+                            ));
+                        }
+                        let counter = SmolStr::new("__syx_for_i");
+                        out.push(Stmt::VarDecl {
+                            span,
+                            mutable: true,
+                            name: counter.clone(),
+                            ty: None,
+                            init: Some(Expr::Literal {
+                                span,
+                                value: Literal::Integer {
+                                    value: 0,
+                                    suffix: None,
+                                },
+                            }),
+                        });
+                        let condition = Expr::Binary {
+                            span,
+                            left: Box::new(Expr::Ident {
+                                span,
+                                name: counter.clone(),
+                            }),
+                            op: BinOp::Lt,
+                            right: Box::new(count),
+                        };
+                        let mut while_body = body_stmts;
+                        while_body.push(Stmt::Expr {
+                            span,
+                            expr: Expr::CompoundAssign {
+                                span,
+                                name: counter,
+                                op: CompoundAssignOp::Add,
+                                value: Box::new(Expr::Literal {
+                                    span,
+                                    value: Literal::Integer {
+                                        value: 1,
+                                        suffix: None,
+                                    },
+                                }),
+                            },
+                        });
+                        out.push(Stmt::While {
+                            span,
+                            condition,
+                            body: while_body,
+                        });
+                    } else if name.as_str() == "warning" {
+                        let msg = macro_message_arg(args, span, "warning")?;
+                        push_macro_warning(
+                            SyxDiagnostic::warning(msg).with_code("W001"),
+                        );
+                    } else if name.as_str() == "error" {
+                        let msg = macro_message_arg(args, span, "error")?;
+                        return Err(SyxDiagnostic::error(msg).with_code("E001"));
+                    } else {
+                        out.push(Stmt::MacroInvoke {
+                            span,
+                            name: name.clone(),
+                            args: args.clone(),
+                        });
+                    }
+                }
+                Stmt::Block { span, mut stmts, .. } => {
+                    expand_stmts(&mut stmts)?;
+                    out.push(Stmt::Block { span, stmts });
+                }
+                Stmt::If {
+                    span,
+                    condition,
+                    mut then_branch,
+                    else_branch,
+                    ..
+                } => {
+                    expand_stmts(&mut then_branch)?;
+                    let else_branch = if let Some(mut branch) = else_branch {
+                        expand_stmts(&mut branch)?;
+                        Some(branch)
+                    } else {
+                        None
+                    };
+                    out.push(Stmt::If {
+                        span,
+                        condition,
+                        then_branch,
+                        else_branch,
+                    });
+                }
+                Stmt::While {
+                    span,
+                    condition,
+                    mut body,
+                    ..
+                } => {
+                    expand_stmts(&mut body)?;
+                    out.push(Stmt::While { span, condition, body });
+                }
+                Stmt::ForIn {
+                    span,
+                    name,
+                    iterable,
+                    mut body,
+                    is_async_iter,
+                    ..
+                } => {
+                    expand_stmts(&mut body)?;
+                    out.push(Stmt::ForIn {
+                        span,
+                        name,
+                        iterable,
+                        body,
+                        is_async_iter,
+                    });
+                }
+                Stmt::Try {
+                    span,
+                    mut body,
+                    catch_name,
+                    mut catch_body,
+                    ..
+                } => {
+                    expand_stmts(&mut body)?;
+                    expand_stmts(&mut catch_body)?;
+                    out.push(Stmt::Try {
+                        span,
+                        body,
+                        catch_name,
+                        catch_body,
+                    });
+                }
+                Stmt::Switch {
+                    span,
+                    subject,
+                    mut cases,
+                    mut default,
+                    ..
+                } => {
+                    for case in &mut cases {
+                        expand_stmts(&mut case.body)?;
+                    }
+                    if let Some(ref mut body) = default {
+                        expand_stmts(body)?;
+                    }
+                    out.push(Stmt::Switch {
+                        span,
+                        subject,
+                        cases,
+                        default,
+                    });
+                }
+                other => out.push(other),
+            }
+        }
+        *stmts = out;
+        Ok(())
+    }
+
+    fn expand_decls(decls: &mut [syx_ast::Decl]) -> SyxResult<()> {
+        for decl in decls.iter_mut() {
+            match decl {
+                syx_ast::Decl::Function { body, .. }
+                | syx_ast::Decl::Init { body, .. }
+                | syx_ast::Decl::Deinit { body, .. } => {
+                    expand_stmts(body)?;
+                }
+                syx_ast::Decl::Class { members, .. } | syx_ast::Decl::Actor { members, .. } => {
+                    expand_decls(members)?;
+                }
+                syx_ast::Decl::Extension { methods, .. } => {
+                    expand_decls(methods)?;
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    }

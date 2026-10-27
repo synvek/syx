@@ -1,0 +1,5 @@
+    /// Absolute value (host `__syx_{{SLUG}}_abs`).
+    public static func abs(x: {{TY}}) -> {{TY}} {
+        return __syx_{{SLUG}}_abs(x)
+    }
+

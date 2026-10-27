@@ -1,0 +1,22 @@
+protocol CounterProto {
+    func next() -> Int {
+        return 0
+    }
+}
+
+class Counter: CounterProto {
+    var value: Int
+    init(value: Int) {
+        self.value = value
+    }
+    func next() -> Int {
+        self.value = self.value + 1
+        return self.value
+    }
+}
+
+func main() {
+    let c = Counter(value: 0)
+    print(c.next())
+}
+

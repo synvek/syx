@@ -1,0 +1,13 @@
+class Circle {
+    var radius: Int = 1
+    var diameter: Int {
+        get {
+            return self.radius * 2
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

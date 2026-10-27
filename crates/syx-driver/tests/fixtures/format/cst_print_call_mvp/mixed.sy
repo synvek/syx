@@ -1,0 +1,8 @@
+func main() {
+    print(foo())
+    print(g(1))
+    print(h(x, y))
+}
+
+print(0)
+

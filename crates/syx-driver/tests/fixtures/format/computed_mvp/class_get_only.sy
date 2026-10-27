@@ -1,0 +1,12 @@
+class Box {
+    var doubled: Int {
+        get {
+            return 0
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

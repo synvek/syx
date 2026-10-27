@@ -1,0 +1,7 @@
+name = "deps-demo"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.local_math]
+version = "1.0.0"
+path = "../deps_math"

@@ -1,0 +1,6 @@
+func main() {
+    Task {
+        print(1)
+    }
+}
+

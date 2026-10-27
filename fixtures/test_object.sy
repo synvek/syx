@@ -1,0 +1,35 @@
+func main() {
+    test001()
+    test002()
+    test003()
+    test004()
+    test005()
+}
+
+func test001() {
+    let o: Object = { "a": 1, "b": 2 }
+    let ks: Array<String> = o.keys()
+    print(ks.count)
+    print(ks.contains("a"))
+}
+
+func test002() {
+    let o: Object = { "a": 1 }
+    //Expect S004
+    //let bad: Array<Int> = o.keys()
+}
+
+func test003() {
+    let o: Object = { "a": 1, "b": 2 }
+    let vs: Array<Object> = o.values()
+    print(vs.count)
+}
+
+func test004() {
+    let o: Object = { "a": 1 }
+    //Expect S004
+    //let bad: Array<Int> = o.values()
+}
+
+func test005() {
+}

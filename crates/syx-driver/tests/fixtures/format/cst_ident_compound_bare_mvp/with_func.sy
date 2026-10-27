@@ -1,0 +1,12 @@
+// ahead
+class Box {
+  var count: Int
+  init() {
+    count += 1
+  }
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

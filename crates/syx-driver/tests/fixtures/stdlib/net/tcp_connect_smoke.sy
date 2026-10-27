@@ -1,0 +1,7 @@
+import Net
+
+func main() {
+    let status = TcpSocket.connect("127.0.0.1", 9)
+    print(status)
+}
+

@@ -1,0 +1,48 @@
+/target/
+/bin/
+**/.syx/
+**/.sy-cache/
+**/target/
+/syx-private/
+
+editors/vscode-syx/node_modules/
+editors/vscode-syx/syx-language-*.vsix
+**/*.o
+**/*.rs.bk
+
+crates/syx-host-plugin/tests/fixtures/echo_plugin/*.dylib
+crates/syx-host-plugin/tests/fixtures/macro_plugin/*.dylib
+# SYX project artifacts (38.0+: target/{cache,debug,release})
+examples/plugin_demo/plugins/mycrypto/*.dylib
+examples/emit/
+examples/test.sy
+examples/hello2.sy
+examples/**/target/
+packages/.sy-cache/
+examples/http_server_tool/.tmp_nail/
+examples/http_server_tool/.tmp_upgrade/
+examples/wasm_web/compiler.wasm
+examples/plugin_demo/.syx-cache/
+examples/http_server_tool/.tmp_*/
+# Differential failure dumps (local harness / CI artifact source)
+target/differential-failures/
+# cargo-fuzz scaffold artifacts (W948)
+fuzz/target/
+fuzz/corpus/
+fuzz/artifacts/
+fuzz/coverage/
+
+# Phase 6: local nail / TLS temp artifacts (never commit keys)
+tools/sgate/.tmp_*/
+**/*.pem
+!**/*.pem.example
+
+.cursor/
+.kiro/
+plan/
+
+# plan-001 Phase 6b: qs1 ledger overlaid from private inventory/
+crates/syx-driver/src/qs1_ledger.rs
+
+Cargo.lock
+.DS_Store

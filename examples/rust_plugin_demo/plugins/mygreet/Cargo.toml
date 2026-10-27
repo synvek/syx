@@ -1,0 +1,18 @@
+# Standalone crate (not a workspace member of the SYX monorepo).
+[workspace]
+
+[package]
+name = "mygreet_plugin"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Minimal SYX Host plugin written in Rust (cdylib + C ABI)"
+
+[lib]
+crate-type = ["cdylib"]
+name = "mygreet_plugin"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

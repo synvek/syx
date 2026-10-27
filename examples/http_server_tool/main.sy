@@ -1,0 +1,17 @@
+import Net
+
+func handle(req) -> Object {
+    let path = req.path
+    if path == "/health"
+    return Http.response(status: 200, body: "ok")
+    return Http.response(status: 404, body: "not found")
+}
+
+func main() {
+    let addr = "127.0.0.1"
+    let port = 18765
+    print("listening")
+    print(port)
+    Http.serve(addr: addr, port: port, handler: "handle")
+}
+

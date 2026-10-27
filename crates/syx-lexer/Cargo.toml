@@ -1,0 +1,13 @@
+[package]
+name = "syx-lexer"
+description = "Lexical analysis for the SYX language"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+smol_str = { workspace = true }
+unicode-xid = { workspace = true }

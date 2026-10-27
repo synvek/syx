@@ -1,0 +1,106 @@
+[package]
+name = "syx-driver"
+description = "SYX compiler driver and module system"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-lexer = { workspace = true }
+syx-ast = { workspace = true }
+syx-parser = { workspace = true }
+syx-semantic = { workspace = true }
+syx-codegen = { workspace = true }
+syx-vm = { workspace = true, features = ["jit-tier2", "codable-prost"] }
+syx-stdlib = { workspace = true }
+syx-mir = { workspace = true }
+syx-fmt = { workspace = true }
+syx-lint = { workspace = true }
+syx-debug = { workspace = true }
+syx-llvm = { workspace = true }
+syx-wasm-emit = { workspace = true }
+syx-wasm-run = { workspace = true }
+syx-rt = { workspace = true, features = ["full"] }
+syx-mir-run = { workspace = true }
+syx-runtime-core = { workspace = true }
+cc = "1"
+tempfile = "3"
+syx-meta = { workspace = true }
+syx-mono = { workspace = true }
+syx-frontend = { workspace = true }
+syx-async = { workspace = true }
+syx-doc = { workspace = true }
+syx-pkg = { workspace = true }
+syx-config = { workspace = true }
+syx-macro = { workspace = true }
+syx-host-plugin = { workspace = true, features = ["p-faer"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
+smol_str = { workspace = true }
+sha2 = "0.10"
+libloading = "0.8"
+bincode = { workspace = true }
+semver = "1"
+reqwest = { workspace = true, features = ["blocking"] }
+
+[features]
+default = []
+# Opt-in QS1 tip-window Inventory ledger (private harness / qs1 CI).
+qs1-ledger = []
+# inkwell object-direct + vendored LLD (sibling ../llvm or SYX_LLVM_PREFIX).
+full-native = ["syx-llvm/llvm", "syx-rt/vendored-lld"]
+# Opt-in SynUI GUI host bridge (sibling ../synui). Off by default.
+gui-synui = ["syx-vm/gui-synui"]
+
+[[bench]]
+name = "compile_bench"
+harness = false
+
+[[bench]]
+name = "path_join_criterion"
+harness = false
+
+[[bench]]
+name = "http_response_criterion"
+harness = false
+
+[[bench]]
+name = "sql_exec_criterion"
+harness = false
+
+[[bench]]
+name = "tcp_connect_criterion"
+harness = false
+[[bin]]
+name = "wasm_aot_matrix_gate"
+path = "src/bin/wasm_aot_matrix_gate.rs"
+
+[[example]]
+name = "wasm_validate_full"
+path = "examples/wasm_validate_full.rs"
+
+[[example]]
+name = "wasm_wat_dump"
+path = "examples/wasm_wat_dump.rs"
+
+[dev-dependencies]
+criterion = "0.5"
+serde_json = { workspace = true }
+syx-compiler-wasm = { path = "../syx-compiler-wasm" }
+syx-lsp = { path = "../syx-lsp" }
+syx-host-plugin = { workspace = true, features = ["p-faer"] }
+syx-parser = { workspace = true }
+syx-diagnostics = { workspace = true }
+syx-cst = { workspace = true }
+syx-semantic = { workspace = true }
+syx-cranelift-jit = { workspace = true }
+tempfile = "3"
+wasmparser = "0.219"
+ed25519-dalek = { workspace = true }
+rcgen = { workspace = true }
+rustls = { workspace = true }

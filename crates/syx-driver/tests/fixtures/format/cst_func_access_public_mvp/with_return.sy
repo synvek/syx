@@ -1,0 +1,4 @@
+// ret
+public func id(x: Int) -> Int {
+    return x
+}

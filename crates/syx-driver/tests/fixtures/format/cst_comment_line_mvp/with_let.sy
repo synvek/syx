@@ -1,0 +1,7 @@
+// ahead
+func main() {
+    // mid
+    let x = 1
+    print(x)
+}
+

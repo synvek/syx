@@ -1,0 +1,12 @@
+// ahead
+class Box {
+  var count: Int
+  func drop(n: Int) {
+    box.count -= n
+  }
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

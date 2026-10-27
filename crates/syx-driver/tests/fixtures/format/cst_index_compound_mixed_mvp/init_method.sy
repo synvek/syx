@@ -1,0 +1,10 @@
+/// docs
+class Box {
+  var items: Int
+  init() {
+    a[0] += 1
+  }
+  func scale(i: Int, n: Int) {
+    xs[i] /= n
+  }
+}

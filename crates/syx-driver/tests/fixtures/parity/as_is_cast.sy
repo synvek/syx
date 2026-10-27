@@ -1,0 +1,17 @@
+class Dog {
+    func speak() -> String {
+        return "woof"
+    }
+}
+
+class Cat {
+    func speak() -> String {
+        return "meow"
+    }
+}
+
+func main() {
+    let c = Cat()
+    print(c.speak())
+}
+

@@ -1,0 +1,76 @@
+// Key-value map. Prelude; hand-authored authority.
+// Statics still take Object-key facade (like Array.count<T> vs bare count): product
+// Dictionary is String-shell storage; see language-guide 05 — not HashMap<Value,Value> yet.
+// Product surface: count / containsKey / keys / values / remove + subscript only
+// (no mapValues / merge / forEach / isEmpty — book table aligned).
+
+/// Associative map; host `__syx_dict_*`.
+@builtin("collection.dictionary")
+public class Dictionary: Equatable, Hashable, CustomStringConvertible {
+    /// Entry count.
+    public static func count(map: Dictionary) -> Int {
+        return __syx_dict_count(map)
+    }
+
+    /// Whether `key` is present.
+    public static func containsKey(map: Dictionary, key: Object) -> Bool {
+        return __syx_dict_contains(map, key)
+    }
+
+    /// All keys as an `Array`.
+    public static func keys(map: Dictionary) -> Array {
+        return __syx_dict_keys(map)
+    }
+
+    /// All values as an `Array`.
+    public static func values(map: Dictionary) -> Array {
+        return __syx_dict_values(map)
+    }
+
+    /// Remove `key`; returns whether it was present.
+    public static func remove(map: Dictionary, key: Object) -> Bool {
+        return __syx_dict_remove(map, key)
+    }
+}
+
+extension Dictionary {
+    /// Entry count (host `__syx_dict_count`).
+    var count: Int {
+        get { return __syx_dict_count(self) }
+    }
+
+    /// Whether `key` is present.
+    func containsKey(key: Object) -> Bool {
+        return __syx_dict_contains(self, key)
+    }
+
+    /// All keys as an `Array`.
+    func keys() -> Array {
+        return __syx_dict_keys(self)
+    }
+
+    /// All values as an `Array`.
+    func values() -> Array {
+        return __syx_dict_values(self)
+    }
+
+    /// Remove `key`; returns whether it was present.
+    func remove(key: Object) -> Bool {
+        return __syx_dict_remove(self, key)
+    }
+
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+}

@@ -1,0 +1,12 @@
+// ahead
+public class Sub: Box, Greeter {
+  var count: Int
+  init() {
+    self.count *= 2
+    box.count %= 3
+  }
+  deinit {
+    print(1)
+  }
+}
+/* trail */

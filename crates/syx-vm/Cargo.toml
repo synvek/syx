@@ -1,0 +1,82 @@
+[package]
+name = "syx-vm"
+description = "Stack-based virtual machine for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-runtime-core = { workspace = true }
+syx-codegen = { workspace = true, optional = true }
+syx-diagnostics = { workspace = true }
+syx-ast = { workspace = true }
+syx-stdlib = { workspace = true }
+smol_str = { workspace = true }
+reqwest = { workspace = true, optional = true }
+regex = { workspace = true }
+serde_json = { workspace = true }
+rand = { workspace = true }
+libm = { workspace = true }
+sha2 = { workspace = true }
+hmac = { workspace = true }
+aes-gcm = { workspace = true }
+syx-meta = { workspace = true }
+syx-cranelift-jit = { workspace = true, optional = true }
+syx-mir = { workspace = true, optional = true }
+crossbeam-channel = { workspace = true }
+parking_lot = { workspace = true }
+unicode-segmentation = { workspace = true }
+unicode-normalization = { workspace = true }
+caseless = { workspace = true }
+ed25519-dalek = { workspace = true }
+flate2 = { workspace = true }
+url = "2"
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+# W1176 / ADR-1522: Http.serve default path = hyper+tokio (≠ tiny_http).
+hyper = { version = "1", optional = true, default-features = false, features = ["server", "http1"] }
+hyper-util = { version = "0.1", optional = true, default-features = false, features = ["tokio"] }
+http-body-util = { version = "0.1", optional = true }
+# W1178 / ADR-1524: rt-multi-thread so accept can overlap connection handlers
+# (handler isolate uses blocking recv; current_thread would serialize).
+tokio = { version = "1", optional = true, default-features = false, features = ["rt", "rt-multi-thread", "net", "io-util", "macros", "sync", "time"] }
+bytes = { version = "1", optional = true }
+notify = { version = "6", optional = true }
+winit = { version = "0.29", optional = true }
+softbuffer = { version = "0.4", optional = true }
+syx-gui = { path = "../syx-gui", optional = true }
+# Phase 124 Track B: SynUI path dep (from synswx root: ../synui/crates/synui).
+# Opt-in only (`gui-synui`): default / server builds do not link SynUI.
+# synui v0.3 dropped the `legacy` feature; path dep has no feature flags.
+synui = { path = "../../../synui/crates/synui", optional = true }
+prost = { version = "0.13" }
+libloading = { version = "0.8", optional = true }
+
+[features]
+default = ["interpreter", "http", "file", "jit-tier2"]
+interpreter = ["dep:syx-codegen"]
+jit-tier2 = ["dep:syx-cranelift-jit", "dep:syx-mir"]
+http = ["dep:reqwest", "dep:hyper", "dep:hyper-util", "dep:http-body-util", "dep:tokio", "dep:bytes"]
+file = ["dep:notify"]
+gui-winit = ["dep:winit", "dep:softbuffer"]
+# Phase 124: syx-gui no longer default; optional opt-in only (retired product path).
+gui-syx-isolated = ["dep:syx-gui"]
+# Phase 124: dlopen libsyx_gui retired from default driver path.
+gui-dlopen = ["dep:libloading"]
+# Opt-in SynUI host bridge (sibling ../synui). Off by default — not for server builds.
+gui-synui = ["dep:synui"]
+codable-prost = []
+
+# Native-only: C/asm build scripts fail on wasm32-unknown-unknown.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rustls = { workspace = true }
+# W1179 / ADR-1525: Http.serve in-process HTTPS (rustls terminate → hyper HTTP/1).
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+rcgen = { workspace = true }
+zstd = "0.13"
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

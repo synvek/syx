@@ -1,0 +1,4 @@
+func go() requires Pure {
+    print(foo(bar()))
+}
+

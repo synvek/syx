@@ -1,0 +1,48 @@
+/// ADR-301 / ADR-302 / M3-D04: Profiler wall-clock + process CPU sections
+/// (≠ sampling GA / ≠ pprof export / ≠ EC-M3).
+public class Profiler {
+    /// Start named wall-clock section; false if already active.
+    public static func start(name: String) -> Bool {
+        return __syx_profiler_start(name)
+    }
+
+    /// Stop named wall-clock section; returns this slice ms (0 if not started).
+    public static func stop(name: String) -> Int {
+        return __syx_profiler_stop(name)
+    }
+
+    /// Cumulative wall-clock ms for name (0 if missing).
+    public static func elapsed(name: String) -> Int {
+        return __syx_profiler_elapsed(name)
+    }
+
+    /// Start named process-CPU section; false if already active.
+    public static func cpuStart(name: String) -> Bool {
+        return __syx_profiler_cpu_start(name)
+    }
+
+    /// Stop named process-CPU section; returns this slice CPU ms (0 if not started).
+    public static func cpuStop(name: String) -> Int {
+        return __syx_profiler_cpu_stop(name)
+    }
+
+    /// Cumulative process-CPU ms for name (0 if missing).
+    public static func cpuElapsed(name: String) -> Int {
+        return __syx_profiler_cpu_elapsed(name)
+    }
+
+    /// Clear wall + CPU active/totals for name (test isolation).
+    public static func reset(name: String) -> Bool {
+        return __syx_profiler_reset(name)
+    }
+
+    /// Sorted snapshot: `name=ms` / `c:name=ms`.
+    public static func snapshot() -> String {
+        return __syx_profiler_snapshot()
+    }
+
+    /// Fingerprint `profiler-v1-cpu` (≠ sampling / ≠ pprof / ≠ D04 leaf).
+    public static func policy() -> String {
+        return __syx_profiler_policy()
+    }
+}

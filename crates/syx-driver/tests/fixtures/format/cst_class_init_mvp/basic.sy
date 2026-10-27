@@ -1,0 +1,7 @@
+// ahead
+class Box {
+    var name: String
+    init(name: String) {
+        print(1)
+    }
+}

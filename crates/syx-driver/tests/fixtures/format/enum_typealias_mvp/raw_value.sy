@@ -1,0 +1,9 @@
+enum Rank {
+    ace = 1
+    two = 2
+}
+
+func main() {
+    print(1)
+}
+

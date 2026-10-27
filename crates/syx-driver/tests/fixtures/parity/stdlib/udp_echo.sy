@@ -1,0 +1,5 @@
+func main() {
+    let sock = __syx_udp_bind("127.0.0.1", 0)
+    print(sock >= 0)
+}
+

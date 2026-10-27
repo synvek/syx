@@ -1,0 +1,17 @@
+class Metrics {
+    var a: Int {
+        get {
+            return 1
+        }
+    }
+    var b: Int {
+        get {
+            return 2
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

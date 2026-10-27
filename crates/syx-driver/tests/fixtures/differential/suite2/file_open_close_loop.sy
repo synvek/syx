@@ -1,0 +1,13 @@
+func main() {
+    let path = "SYX_DIFF_TMP_PATH"
+    __syx_file_write(path, "z")
+    var n = 0
+    while n < 5 {
+        let h = __syx_file_open(path, "r")
+        let _ = __syx_file_close(h)
+        n = n + 1
+    }
+    print(n)
+    __syx_file_delete(path)
+}
+

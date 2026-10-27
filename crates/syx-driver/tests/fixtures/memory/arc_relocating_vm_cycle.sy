@@ -1,0 +1,11 @@
+class Node {
+    var v: Int
+    init(v: Int) {
+        self.v = v
+    }
+}
+
+func main() {
+    print(Node(v: 0).v + Node(v: 1).v + Node(v: 2).v + Node(v: 3).v + Node(v: 4).v)
+}
+

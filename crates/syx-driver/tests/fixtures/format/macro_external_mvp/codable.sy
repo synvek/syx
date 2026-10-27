@@ -1,0 +1,5 @@
+macro Codec = #externalMacro(module: "CodablePlugin", type: "Codable")
+
+func main() {
+}
+

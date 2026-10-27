@@ -1,0 +1,5 @@
+func main() {
+    throw "a"
+    throw "b"
+}
+

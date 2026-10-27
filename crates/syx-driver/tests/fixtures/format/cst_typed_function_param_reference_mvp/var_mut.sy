@@ -1,0 +1,4 @@
+func main() {
+    var g: (&mut String) -> Bool = h
+}
+

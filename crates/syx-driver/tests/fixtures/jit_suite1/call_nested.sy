@@ -1,0 +1,11 @@
+func inc(x) -> Int {
+    return x + 1
+}
+
+func nest(x) -> Int {
+    return inc(x: inc(x: x))
+}
+
+func main() {
+}
+

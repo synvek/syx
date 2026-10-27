@@ -1,0 +1,48 @@
+import Di
+
+@Service
+class OrProbe {
+    init() {
+    }
+    @Pointcut("within(OrProbe) || args(Int)")
+    func marker() {
+    }
+    @Around("within(OrProbe) || args(Int)")
+    @Before("within(OrProbe) || args(Int)")
+    @After("within(OrProbe) || args(Int)")
+    func handleStr(s: String) -> String {
+        print("__body__:handleStr")
+        return "or-within-ok"
+    }
+    @Before("within(OrProbe) || args(Int)")
+    @After("within(OrProbe) || args(Int)")
+    func addOne(x: Int) -> Int {
+        print("__body__:addOne")
+        return x + 1
+    }
+}
+
+@Service
+class OtherProbe {
+    init() {
+    }
+    @Before("within(OrProbe) || args(Int)")
+    @After("within(OrProbe) || args(Int)")
+    func handleInt(x: Int) -> String {
+        print("__body__:handleInt")
+        return "or-args-ok"
+    }
+    func plain(s: String) -> String {
+        return "no-advice"
+    }
+}
+
+func main() {
+    let p = Di.resolve("OrProbe")
+    print(p.handleStr(s: "plain"))
+    print(p.addOne(x: 3))
+    let o = Di.resolve("OtherProbe")
+    print(o.handleInt(x: 7))
+    print(o.plain(s: "nope"))
+}
+

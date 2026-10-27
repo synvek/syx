@@ -1,0 +1,9 @@
+// ahead
+public final class Pair<A, B> where A: Equatable, B: Hashable {
+    pair(a: A, b: B)
+}
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

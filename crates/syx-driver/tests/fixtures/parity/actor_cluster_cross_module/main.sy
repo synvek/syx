@@ -1,0 +1,9 @@
+import counter
+
+func main() {
+    let c = counter.Counter(value: 0)
+    c.increment()
+    c.increment()
+    print(c.get())
+}
+

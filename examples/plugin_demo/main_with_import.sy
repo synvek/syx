@@ -1,0 +1,7 @@
+import Crypto
+
+func main() {
+    let digest = sha256(data: "hello")
+    print(digest)
+}
+

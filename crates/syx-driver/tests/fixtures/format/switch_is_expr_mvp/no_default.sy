@@ -1,0 +1,7 @@
+func main() {
+    switch x {
+    case y is Int:
+        print(1)
+    }
+}
+

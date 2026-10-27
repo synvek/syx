@@ -1,0 +1,8 @@
+/// docs
+class Box {
+  var name: String
+  func setName(name: String) {
+    other.name = name
+  }
+}
+/* trail */

@@ -1,0 +1,6 @@
+#makeHelper()
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,28 @@
+import Di
+
+@Profile("prod")
+@Service
+class ProdSvc {
+    init() {
+    }
+    func tag() -> String {
+        return "prod"
+    }
+}
+
+@Profile("dev")
+@Service
+class DevSvc {
+    init() {
+    }
+    func tag() -> String {
+        return "dev-ok"
+    }
+}
+
+func main() {
+    Di.setProfile("dev")
+    let s = Di.resolve("DevSvc")
+    print(s.tag())
+}
+

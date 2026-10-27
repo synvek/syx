@@ -1,0 +1,171 @@
+// =============================================================================
+// tutorial/20-type-casting.sy
+// 对应《SYX 语言指南》第 20 章「类型转换」
+//
+// 本章涉及语言特性：
+//   - 数值提升（隐式 widening）
+//   - 数值窄化（错误 S008）
+//   - is 类型检查
+//   - as? 失败转 nil
+//   - as! 失败抛错
+//   - 类型字面量推断
+//   - 协议存在性 cast
+//   - 数值类型转换（Int8.from 等）
+// =============================================================================
+
+// 1) 数值提升
+func numericPromotion() {
+    let x: Int = 1
+    let y = x + 1.0                                     // Double
+    let z: Int8 = 1
+    let w = z + 100i32                                  // Int32
+    print("y=\(y)  w=\(w)")
+
+    // 整数字面量默认 Int，与 Double 运算 → Double
+    let a: Double = 1 + 2.0
+    print("a=\(a)")
+}
+
+// 2) 窄化（编译错误）
+func narrowingForbidden() {
+    let d: Double = 3.14
+    // let i: Int8 = d                                  // ❌ S008: narrowing
+    let i = Int8.from(Double(d))                        // 显式
+    print("i=\(i)")
+}
+
+// 3) is 类型检查
+class Animal { init() {} }
+class Dog2: Animal { init() { super.init() } func bark() { print("woof") } }
+class Cat2: Animal { init() { super.init() } func meow() { print("meow") } }
+
+func isCheck() {
+    let arr: Array<Animal> = [Dog2(), Cat2(), Dog2(), Animal()]
+    var dogCount = 0
+    var catCount = 0
+    for a in arr {
+        if a is Dog2 { dogCount += 1 }
+        if a is Cat2 { catCount += 1 }
+    }
+    print("dogs=\(dogCount)  cats=\(catCount)")
+
+    // 集合类型 is
+    let a = [1, 2, 3]
+    print("a is Array = \(a is Array)")                 // true
+    print("a is Array<Int> = \(a is Array<Int>)")       // true
+    // print("1 is Int")                               // ❌ S046: 数值不能用 is
+}
+
+// 4) as? 失败转 nil
+func asOptional() {
+    let a: Animal = Dog2()
+    let d: Dog2? = a as? Dog2
+    if let d = d {
+        d.bark()
+    }
+    let c: Cat2? = a as? Cat2
+    print("c=\(c)")                                     // nil
+}
+
+// 5) as! 失败抛错
+func asForce() {
+    let a: Animal = Dog2()
+    let d = a as! Dog2                                  // 成功
+    d.bark()
+    // let c = a as! Cat2                              // ❌ R008: cast failure
+}
+
+// 6) 协议存在性 cast
+protocol Drawable {
+    func draw()
+}
+class Circle3: Drawable {
+    init() {}
+    func draw() { print("○") }
+}
+class Square3: Drawable {
+    init() {}
+    func draw() { print("□") }
+}
+
+func protocolCast() {
+    let arr: Array<Any> = [Circle3(), Square3(), "not-drawable"]
+    for x in arr {
+        if let d = x as? Drawable {
+            d.draw()
+        } else {
+            print("not drawable: \(x)")
+        }
+    }
+}
+
+// 7) 字面量推断
+func literalInference() {
+    let a = 42                                            // Int
+    let b: Int8 = 42i8
+    let c = 3.14f32                                       // Float32
+    let d = 3.14                                          // Double
+    let e = "hello"                                       // String
+    let f = true                                          // Bool
+    let g = nil                                           // 推断失败（上下文）
+    let h: Int? = nil
+    print("a=\(a) b=\(b) c=\(c) d=\(d)")
+    print("h=\(h)")
+}
+
+// 8) 数值类型转换显式
+func numericConversion() {
+    let a: Int = 42
+    let b: Int8 = Int8.from(Int(a))                      // 显式
+    let c: Double = Double.from(Int(a))                  // 显式
+    let d: UInt = UInt.from(Int(a))                      // 显式
+    print("b=\(b) c=\(c) d=\(d)")
+
+    // 字符串 → 数值
+    // let n = Int.from("42")                            // 字面量风格
+    // print("n=\(n)")
+}
+
+// 9) 数值有符号 / 无符号 混合报错
+func signedUnsigned() {
+    let a: Int = 1
+    let b: UInt = 1
+    // let c = a + b                                     // ❌ S014
+    let c = a + Int.from(b)
+    print("c=\(c)")
+}
+
+// 10) Optional 包装
+func optionalWrap() {
+    let i: Int = 42
+    let o: Int? = Int?.from(i)                           // 自动包装
+    let n: Int? = nil
+    let v = n ?? 99
+    print("o=\(o) v=\(v)")
+}
+
+// 11) 复杂场景：Any / AnyObject 容器
+func anyContainer() {
+    let arr: Array<Any> = [1, "two", 3.0, true, [1, 2]]
+    var intSum = 0
+    var strJoin = ""
+    for x in arr {
+        if let i = x as? Int { intSum += i }
+        if let s = x as? String { strJoin += s + " " }
+    }
+    print("intSum=\(intSum)  strJoin=\(strJoin)")
+}
+
+func main() {
+    numericPromotion()
+    narrowingForbidden()
+    isCheck()
+    asOptional()
+    asForce()
+    protocolCast()
+    literalInference()
+    numericConversion()
+    signedUnsigned()
+    optionalWrap()
+    anyContainer()
+}

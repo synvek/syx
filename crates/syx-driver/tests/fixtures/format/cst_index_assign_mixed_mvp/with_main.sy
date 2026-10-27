@@ -1,0 +1,13 @@
+export { helper }
+class Box {
+  var items: Int
+  func set(i: Int, n: Int) {
+    xs[i] = n
+  }
+}
+func helper() {
+  print(1)
+}
+func main() {
+  print(2)
+}

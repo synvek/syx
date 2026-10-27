@@ -1,0 +1,7 @@
+/// docs
+class Box {
+  deinit {
+    print(1)
+  }
+}
+/* trail */

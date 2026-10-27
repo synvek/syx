@@ -1,0 +1,10 @@
+{
+  "name": "syx-wasm-web",
+  "private": true,
+  "scripts": {
+    "test:gui": "playwright test -g tier2w"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

@@ -1,0 +1,46 @@
+import Di
+
+class Pingable {
+    init() {
+    }
+    func ping() -> String {
+        return "?"
+    }
+}
+
+@Primary
+@Service
+class DefaultPing: Pingable {
+    init() {
+    }
+    override func ping() -> String {
+        return "default-ping"
+    }
+}
+
+@Qualifier("fast")
+@Service
+class FastPing: Pingable {
+    init() {
+    }
+    override func ping() -> String {
+        return "fast-ping"
+    }
+}
+
+@Service
+class App {
+    var p: Pingable
+    init(@Inject @Qualifier("fast") p: Pingable) {
+        self.p = p
+    }
+    func run() -> String {
+        return self.p.ping()
+    }
+}
+
+func main() {
+    let app = __syx_service_resolve("App")
+    print(app.run())
+}
+

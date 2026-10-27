@@ -1,0 +1,54 @@
+public data class OrmError(code: Int, message: String)
+
+public func save<T>(table: String, record: T) -> Bool {
+    return __syx_orm_save(table, record)
+}
+
+public func saveOn(connId: Int, table: String, record: Any) -> Bool throws {
+    try {
+        return __syx_orm_save_on(connId, table, record)
+    } catch (e) {
+        throw OrmError(code: 1, message: "orm saveOn failed")
+    }
+}
+
+public func findWhere(table: String, col: String, val: String) -> Array {
+    return __syx_orm_find_where(table, col, val)
+}
+
+public func findWhereOn(connId: Int, table: String, col: String, val: String) -> Array throws {
+    try {
+        return __syx_orm_find_where_on(connId, table, col, val)
+    } catch (e) {
+        throw OrmError(code: 2, message: "orm findWhereOn failed")
+    }
+}
+
+public func updateWhere(table: String, col: String, val: String, newCol: String, newVal: String) -> Int {
+    return __syx_orm_update_where(table, col, val, newCol, newVal)
+}
+
+public func updateWhereOn(connId: Int, table: String, col: String, val: String, newCol: String, newVal: String) -> Int throws {
+    try {
+        return __syx_orm_update_where_on(connId, table, col, val, newCol, newVal)
+    } catch (e) {
+        throw OrmError(code: 3, message: "orm updateWhereOn failed")
+    }
+}
+
+public func deleteWhere(table: String, col: String, val: String) -> Int {
+    return __syx_orm_delete_where(table, col, val)
+}
+
+public func deleteWhereOn(connId: Int, table: String, col: String, val: String) -> Int throws {
+    try {
+        return __syx_orm_delete_where_on(connId, table, col, val)
+    } catch (e) {
+        throw OrmError(code: 4, message: "orm deleteWhereOn failed")
+    }
+}
+
+public func migrate(sql: String) -> Int {
+    return __syx_sql_migrate(sql)
+}
+

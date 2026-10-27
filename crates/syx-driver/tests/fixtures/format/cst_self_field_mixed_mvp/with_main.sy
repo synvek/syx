@@ -1,0 +1,13 @@
+export { helper }
+class Box {
+  var name: String
+  func setName(name: String) {
+    self.name = name
+  }
+}
+func helper() {
+  print(1)
+}
+func main() {
+  print(2)
+}

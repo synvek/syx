@@ -1,0 +1,14 @@
+class WithInit {
+    var n: Int = 7
+        willSet {
+            print(1)
+        }
+        didSet {
+            print(2)
+        }
+}
+
+func main() {
+    print(1)
+}
+

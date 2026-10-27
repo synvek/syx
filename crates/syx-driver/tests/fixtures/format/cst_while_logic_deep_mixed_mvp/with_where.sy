@@ -1,0 +1,5 @@
+func id<T>(x: T) where T: Equatable {
+    while a < b && c
+    print(x)
+}
+

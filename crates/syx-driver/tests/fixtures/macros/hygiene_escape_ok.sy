@@ -1,0 +1,10 @@
+var captured = "outer"
+
+#macro show() {
+    print(\captured)
+}
+
+func main() {
+    #show()
+}
+

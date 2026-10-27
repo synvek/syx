@@ -1,0 +1,12 @@
+func id(x: Foo<Int>) {
+    print(x)
+    return x
+}
+
+func add(a: List<Int>?, b) {
+    let s = a
+    return
+}
+
+print(0)
+

@@ -1,0 +1,7 @@
+public global actor MainQueue {
+}
+
+func main() {
+    print(1)
+}
+

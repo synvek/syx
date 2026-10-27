@@ -1,0 +1,10 @@
+// priv
+private class Hidden: Base {
+    var flag: Bool
+    init() {
+        print(1)
+    }
+}
+func main() {
+    print(0)
+}

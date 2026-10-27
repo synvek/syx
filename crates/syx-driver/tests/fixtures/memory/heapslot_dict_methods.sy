@@ -1,0 +1,7 @@
+func main() {
+    let d: Dictionary<Int, Int> = {10: 100, 20: 200}
+    print(d.count)
+    print(d.keys().count)
+    print(d.description)
+}
+

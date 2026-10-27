@@ -1,0 +1,21 @@
+import Di
+
+@Service
+class Greeter {
+    init() {
+    }
+    @Around
+    @Around
+    @Before
+    @After
+    func greet(name: String) -> String {
+        print("__body__:greet")
+        return "hello " + name
+    }
+}
+
+func main() {
+    let g = Di.resolve("Greeter")
+    print(g.greet(name: "world"))
+}
+

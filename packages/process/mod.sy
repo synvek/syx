@@ -1,0 +1,34 @@
+/// Legacy Process surface (sentinel `-1` on spawn/wait fail).
+/// Prefer `ProcessBuilder` / `Child` (ADR-242) for cwd/env/kill/timeout + throws.
+
+public class Process {
+    public static func args() -> Array<String> {
+        return __syx_process_args()
+    }
+
+    public static func env(key: String) -> String {
+        return __syx_process_env(key)
+    }
+
+    public static func exec(command: String, args: Array<String>) -> Int {
+        return __syx_process_exec(command, args)
+    }
+
+    public static func execOutput(command: String, args: Array<String>) -> String {
+        return __syx_process_exec_output(command, args)
+    }
+
+    /// Legacy spawn (no cwd/env overlay). Prefer `ProcessBuilder.spawn` (ADR-242).
+    public static func spawn(command: String, args: Array<String>) -> Int {
+        return __syx_process_spawn(command, args)
+    }
+
+    /// Legacy wait (sentinel `-1`). Prefer `Child.wait` / `waitTimeout` (ADR-242).
+    public static func wait(handle: Int) -> Int {
+        return __syx_process_wait(handle)
+    }
+
+    public static func exitCode() -> Int {
+        return __syx_process_exit_code()
+    }
+}

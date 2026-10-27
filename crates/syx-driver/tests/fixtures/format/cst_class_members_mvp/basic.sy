@@ -1,0 +1,7 @@
+// ahead
+class Box {
+    var name: String
+    func tag() {
+        print(1)
+    }
+}

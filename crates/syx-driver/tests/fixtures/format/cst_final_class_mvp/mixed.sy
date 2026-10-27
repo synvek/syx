@@ -1,0 +1,11 @@
+// ahead
+final class Shape {
+    point
+    circle(r: Int)
+    rect(w: Int, h: Int)
+}
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

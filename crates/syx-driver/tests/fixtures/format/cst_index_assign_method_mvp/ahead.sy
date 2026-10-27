@@ -1,0 +1,8 @@
+// ahead
+class Box {
+  var items: Int
+  func set(i: Int, n: Int) {
+    /* mid */
+    xs[i] = n
+  }
+}

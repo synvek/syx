@@ -1,0 +1,12 @@
+public class UdpSocket {
+    public static func bind(host: String, port: Int) -> Object {
+        return __syx_udp_bind(host, port)
+    }
+    public static func sendTo(socket: Object, host: String, port: Int, data: String) -> Int {
+        return __syx_udp_send_to(socket, host, port, data)
+    }
+    public static func recvFrom(socket: Object, maxBytes: Int) -> Object {
+        return __syx_udp_recv_from(socket, maxBytes)
+    }
+}
+

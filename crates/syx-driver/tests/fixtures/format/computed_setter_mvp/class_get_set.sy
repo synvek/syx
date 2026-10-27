@@ -1,0 +1,15 @@
+class Box {
+    var x: Int {
+        get {
+            return 0
+        }
+        set {
+            print(1)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

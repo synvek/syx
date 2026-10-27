@@ -1,0 +1,5 @@
+// Random-access stream protocol (I/O layer).
+
+/// Types that support repositioning the read/write cursor.
+public protocol Seekable {
+}

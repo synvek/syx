@@ -1,0 +1,9 @@
+func main() {
+    let a: Foo<Bar<Int>> = p
+    var b: Box<Opt<String>>? = q
+    let f: (Foo<Bar<Int>>) -> Int = id
+    var g: (Int) -> Box<List<String>> = h
+    print(f)
+    return
+}
+

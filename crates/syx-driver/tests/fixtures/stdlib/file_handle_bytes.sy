@@ -1,0 +1,19 @@
+import IO
+
+func main() {
+    let path = "/tmp/syx_stdlib_handle_bytes.bin"
+    File.writeBytes(path, [10u8, 20u8, 30u8])
+    try {
+        let handle = FileHandle.open(path: path, mode: "r")
+        let chunk = FileHandle.read(handle: handle, maxBytes: 16)
+        FileHandle.close(handle: handle)
+        print(chunk[0])
+        print(chunk[1])
+        print(chunk[2])
+    } catch (err) {
+        print("UNEXPECTED")
+        print(err.message)
+    }
+    File.delete(path)
+}
+

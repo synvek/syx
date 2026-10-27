@@ -1,0 +1,5 @@
+// ahead
+export { a as b }
+func main() {
+  print(1)
+}

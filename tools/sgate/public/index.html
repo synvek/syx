@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgate</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; }
+    code { background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+    h1 { margin-bottom: 0.2em; }
+    .tag { display: inline-block; padding: 1px 6px; background: #0066cc; color: white; border-radius: 3px; font-size: 12px; }
+    ul { padding-left: 1.2em; }
+    li { margin: 0.3em 0; }
+  </style>
+</head>
+<body>
+  <span class="tag">sgate</span>
+  <h1>Static file serving works</h1>
+  <p>This page is served from <code>tools/sgate/public/index.html</code> by sgate's static-file location
+     (<code>prefix = "/"</code>, <code>root = "./public"</code>).</p>
+
+  <h2>Try the routes</h2>
+  <ul>
+    <li><a href="/health">/health</a> &mdash; canned 200 ok (X-Sgate-Handler: health)</li>
+    <li><a href="/version">/version</a> &mdash; canned 200 with body</li>
+    <li><a href="/echo">/echo</a> &mdash; canned 200 from <code>prefix="/echo"</code> location</li>
+    <li><a href="/api/users">/api/users</a> &mdash; proxied to upstream <code>api</code> (with <code>strip_prefix="/api/"</code>)</li>
+    <li><a href="/web/">/web/</a> &mdash; proxied to upstream <code>web</code></li>
+    <li><a href="/static/index.html">/static/index.html</a> &mdash; this same page served from the <code>static_files</code> location</li>
+    <li><a href="/nope">/nope</a> &mdash; 404 with configured body</li>
+  </ul>
+
+  <h2>Configuration</h2>
+  <p>All routes are defined in <code>tools/sgate/sgate.json</code> and loaded at startup. Edit, restart, repeat.</p>
+</body>
+</html>

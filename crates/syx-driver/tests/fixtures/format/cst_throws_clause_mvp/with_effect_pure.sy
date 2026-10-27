@@ -1,0 +1,4 @@
+func g() throws requires Pure {
+    print(0)
+}
+

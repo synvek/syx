@@ -1,0 +1,21 @@
+class Counter: Iterator {
+    var n: Int
+    init() {
+        self.n = 0
+    }
+    func next() -> Int? {
+        self.n = self.n + 1
+        if self.n > 3
+        return nil
+        return self.n
+    }
+}
+
+func main() {
+    var s: Int = 0
+    for x in Counter() {
+        s = s + x
+    }
+    print(s)
+}
+

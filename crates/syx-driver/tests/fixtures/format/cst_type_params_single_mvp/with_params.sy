@@ -1,0 +1,5 @@
+func id<T>(x: T, y: Int) {
+    print(x)
+    print(y)
+}
+

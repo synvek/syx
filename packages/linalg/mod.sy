@@ -1,0 +1,5533 @@
+/// W1072 / ADR-1418: P-SURF packed-SYX element-div/scalar-broadcast first-slice.
+/// div / addScalar / subScalar / divScalar walk packed (no new faer host).
+/// W1071 unary stay; `*` remains matmul.
+/// W1068 / ADR-1414: structure/replication first-slice.
+/// tile / kron / tril / triu walk packed (no new faer host).
+/// W1067 reduce/norm stay.
+/// Methods call `__syx_plugin_faer_to` directly (not `self.packed()`).
+/// Flat /% loops for writeback (nested ArraySet historically broken).
+/// No `A[i,j]` / no in-place setAt / no faer add host.
+/// Not a Core prelude type; `import Linalg`. Not product Mat GA (needs E-00).
+/// Must not live in `packages/core/math.sy`.
+
+public class Mat {
+    public var handle: Int
+    public var rows: Int
+    public var cols: Int
+
+    public init(_ packed: Array<Float64>, rows: Int, cols: Int) {
+        self.handle = __syx_plugin_faer_from(packed, rows, cols)
+        self.rows = rows
+        self.cols = cols
+    }
+
+    deinit {
+        __syx_plugin_v2probe_drop(self.handle)
+    }
+
+    public static func from(_ packed: Array<Float64>, rows: Int, cols: Int) -> Mat {
+        return Mat(packed, rows: rows, cols: cols)
+    }
+
+    public static func zeros(rows: Int, cols: Int) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(rows, cols)
+        out.rows = rows
+        out.cols = cols
+        return out
+    }
+
+    public static func sumPacked(_ p: Array<Float64>, _ n: Int) -> Float64 {
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            acc = acc + p[i]
+            i = i + 1
+        }
+        return acc
+    }
+
+    public static func ones(rows: Int, cols: Int) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(rows, cols)
+        let p = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        let n = rows * cols
+        while i < n {
+            p[i] = 1.0
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(p, rows, cols)
+        out.rows = rows
+        out.cols = cols
+        return out
+    }
+
+    public static func filled(rows: Int, cols: Int, _ v: Float64) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(rows, cols)
+        let p = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        let n = rows * cols
+        while i < n {
+            p[i] = v
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(p, rows, cols)
+        out.rows = rows
+        out.cols = cols
+        return out
+    }
+
+    public static func eye(_ n: Int) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(n, n)
+        let p = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            p[i * n + i] = 1.0
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(p, n, n)
+        out.rows = n
+        out.cols = n
+        return out
+    }
+
+    public static func fromDiagonal(_ d: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(d.handle)
+        var k = d.rows
+        if d.cols > k {
+            k = d.cols
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(k, k)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < k {
+            q[i * k + i] = p[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, k, k)
+        out.rows = k
+        out.cols = k
+        return out
+    }
+
+    public func packed() -> Array<Float64> {
+        return __syx_plugin_faer_to(self.handle)
+    }
+
+    public func at(_ row: Int, col: Int) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        return p[row * self.cols + col]
+    }
+
+    public func withAt(_ row: Int, col: Int, _ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i]
+            i = i + 1
+        }
+        q[row * nc + col] = v
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func row(_ i: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nc = self.cols
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var c = 0
+        while c < nc {
+            q[c] = p[i * nc + c]
+            c = c + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func col(_ j: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let q = __syx_plugin_faer_to(out.handle)
+        var r = 0
+        while r < nr {
+            q[r] = p[r * nc + j]
+            r = r + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func diagonal() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        var k = nr
+        if nc < nr {
+            k = nc
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(k, 1)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < k {
+            q[i] = p[i * nc + i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, k, 1)
+        out.rows = k
+        out.cols = 1
+        return out
+    }
+
+    public func trace() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        var k = nr
+        if nc < nr {
+            k = nc
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(k, 1)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < k {
+            q[i] = p[i * nc + i]
+            i = i + 1
+        }
+        return Mat.sumPacked(q, k)
+    }
+
+    public func abs() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i]
+            i = i + 1
+        }
+        i = 0
+        while i < n {
+            let x = q[i] * 1.0
+            q[i] = __syx_f64_max(x, 0.0 - x)
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func reshape(_ rows: Int, cols: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = rows * cols
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(rows, cols)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, rows, cols)
+        out.rows = rows
+        out.cols = cols
+        return out
+    }
+
+    public func flatten() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, n)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, 1, n)
+        out.rows = 1
+        out.cols = n
+        return out
+    }
+
+    public func hstack(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let ncA = self.cols
+        let ncB = other.cols
+        let nc = ncA + ncB
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        let nA = nr * ncA
+        while i < nA {
+            let row = i / ncA
+            let c = i % ncA
+            r[row * nc + c] = p[i]
+            i = i + 1
+        }
+        i = 0
+        let nB = nr * ncB
+        while i < nB {
+            let row = i / ncB
+            let c = i % ncB
+            r[row * nc + ncA + c] = q[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func vstack(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nc = self.cols
+        let nrA = self.rows
+        let nrB = other.rows
+        let nr = nrA + nrB
+        let nA = nrA * nc
+        let nB = nrB * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < nA {
+            r[i] = p[i]
+            i = i + 1
+        }
+        i = 0
+        while i < nB {
+            r[nA + i] = q[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func copy() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func transposed() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nc, nr)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        let n = nr * nc
+        while i < n {
+            let r = i / nc
+            let c = i % nc
+            q[c * nr + r] = p[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nc, nr)
+        out.rows = nc
+        out.cols = nr
+        return out
+    }
+
+    // W1125: thin-wire scale via filled + in-process faer_hadamard (compose; no faer_scale host).
+    public func scale(_ factor: Float64) -> Mat {
+        let s = Mat.filled(rows: self.rows, cols: self.cols, factor)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_hadamard(self.handle, s.handle)
+        out.rows = self.rows
+        out.cols = self.cols
+        __syx_plugin_v2probe_drop(s.handle)
+        return out
+    }
+
+    // W1124: thin-wire negated via zeros + in-process faer_sub.
+    public func negated() -> Mat {
+        let z = Mat.zeros(rows: self.rows, cols: self.cols)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_sub(z.handle, self.handle)
+        out.rows = self.rows
+        out.cols = self.cols
+        __syx_plugin_v2probe_drop(z.handle)
+        return out
+    }
+
+    // W1121: thin-wire to in-process faer hadamard.
+    public func hadamard(_ other: Mat) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_hadamard(self.handle, other.handle)
+        out.rows = self.rows
+        out.cols = self.cols
+        return out
+    }
+
+    public func sum() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        return Mat.sumPacked(p, self.rows * self.cols)
+    }
+
+    public func mean() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        let s = Mat.sumPacked(p, n)
+        var dn = 0.0
+        var i = 0
+        while i < n {
+            dn = dn + 1.0
+            i = i + 1
+        }
+        return s / dn
+    }
+
+    // W1117: median / quantile / medianRows / medianCols.
+    // Whole-matrix: faer_to copy + Array.sorted.
+    // Axis: in-place bubble on a detached copy (row windows / manual transpose
+    // buffer for cols). Avoid live zeros(nc) scratch alongside zeros(nr) acc —
+    // identical zero Arrays of equal length can alias under ArraySet.
+    public static func medianSorted(_ s: Array<Float64>, _ n: Int) -> Float64 {
+        let odd = n % 2
+        if odd == 1 {
+            return 0.0 + s[n / 2]
+        }
+        let a = 0.0 + s[n / 2 - 1]
+        let b = 0.0 + s[n / 2]
+        return (a + b) / 2.0
+    }
+
+    public static func medianSortedRange(_ s: Array<Float64>, _ start: Int, _ n: Int) -> Float64 {
+        let odd = n % 2
+        if odd == 1 {
+            return 0.0 + s[start + n / 2]
+        }
+        let a = 0.0 + s[start + n / 2 - 1]
+        let b = 0.0 + s[start + n / 2]
+        return (a + b) / 2.0
+    }
+
+    public static func quantileSorted(_ s: Array<Float64>, _ n: Int, _ q: Float64) -> Float64 {
+        return Mat.quantileSortedRange(s, 0, n, q)
+    }
+
+    public static func quantileSortedRange(
+        _ s: Array<Float64>,
+        _ start: Int,
+        _ n: Int,
+        _ q: Float64
+    ) -> Float64 {
+        var nm1 = 0.0
+        var t = 1
+        while t < n {
+            nm1 = nm1 + 1.0
+            t = t + 1
+        }
+        let pos = q * nm1
+        let fl = __syx_f64_floor(pos)
+        var lo = 0
+        var i = 0
+        while i < n {
+            let fi = 0.0 + i
+            let c = __syx_f64_compare(fi, fl)
+            let absC = c * c
+            let flag = 1 - absC
+            lo = lo + (i - lo) * flag
+            i = i + 1
+        }
+        var hi = lo
+        if lo + 1 < n {
+            hi = lo + 1
+        }
+        let frac = pos - fl
+        let a = 0.0 + s[start + lo]
+        let b = 0.0 + s[start + hi]
+        return a + (b - a) * frac
+    }
+
+    public static func sortedCopyPacked(_ p: Array<Float64>, _ n: Int) -> Array<Float64> {
+        let tmp = Mat.zeros(rows: 1, cols: n)
+        let q = __syx_plugin_faer_to(tmp.handle)
+        var i = 0
+        while i < n {
+            q[i] = 0.0 + p[i]
+            i = i + 1
+        }
+        return q.sorted()
+    }
+
+    public static func bubbleSortRange(_ a: Array<Float64>, _ start: Int, _ n: Int) {
+        var i = 0
+        while i < n {
+            var j = 0
+            while j < n - 1 - i {
+                let x = 0.0 + a[start + j]
+                let y = 0.0 + a[start + j + 1]
+                let cmp = __syx_f64_compare(x, y)
+                if cmp > 0 {
+                    a[start + j] = 0.0 + y
+                    a[start + j + 1] = 0.0 + x
+                }
+                j = j + 1
+            }
+            i = i + 1
+        }
+    }
+
+    public func median() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        let s = Mat.sortedCopyPacked(p, n)
+        return Mat.medianSorted(s, n)
+    }
+
+    public func quantile(_ q: Float64) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        let s = Mat.sortedCopyPacked(p, n)
+        return Mat.quantileSorted(s, n, q)
+    }
+
+    public func medianRows() -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let src = __syx_plugin_faer_to(self.handle)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var row = 0
+        while row < nr {
+            Mat.bubbleSortRange(src, row * nc, nc)
+            let m = Mat.medianSortedRange(src, row * nc, nc)
+            r[row] = 0.0 + m
+            row = row + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func medianCols() -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let p = __syx_plugin_faer_to(self.handle)
+        // Materialize transpose into a detached buffer before allocating the result.
+        let tMat = Mat.zeros(rows: 1, cols: n)
+        let src = __syx_plugin_faer_to(tMat.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            src[col * nr + row] = 0.0 + p[i]
+            i = i + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var col = 0
+        while col < nc {
+            Mat.bubbleSortRange(src, col * nr, nr)
+            let m = Mat.medianSortedRange(src, col * nr, nr)
+            r[col] = 0.0 + m
+            col = col + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    // W1118: quantileRows / quantileCols — same axis shapes + W1117 quantileSorted rule.
+    public func quantileRows(_ q: Float64) -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let src = __syx_plugin_faer_to(self.handle)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var row = 0
+        while row < nr {
+            Mat.bubbleSortRange(src, row * nc, nc)
+            let m = Mat.quantileSortedRange(src, row * nc, nc, q)
+            r[row] = 0.0 + m
+            row = row + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func quantileCols(_ q: Float64) -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let p = __syx_plugin_faer_to(self.handle)
+        let tMat = Mat.zeros(rows: 1, cols: n)
+        let src = __syx_plugin_faer_to(tMat.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            src[col * nr + row] = 0.0 + p[i]
+            i = i + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var col = 0
+        while col < nc {
+            Mat.bubbleSortRange(src, col * nr, nr)
+            let m = Mat.quantileSortedRange(src, col * nr, nr, q)
+            r[col] = 0.0 + m
+            col = col + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func min() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var m = 0.0 + p[0]
+        var i = 1
+        while i < n {
+            m = __syx_f64_min(m, 0.0 + p[i])
+            i = i + 1
+        }
+        return m
+    }
+
+    public func max() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var m = 0.0 + p[0]
+        var i = 1
+        while i < n {
+            m = __syx_f64_max(m, 0.0 + p[i])
+            i = i + 1
+        }
+        return m
+    }
+
+    public func argmin() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var best = 0.0 + p[0]
+        var bi = 0
+        var i = 1
+        while i < n {
+            let x = 0.0 + p[i]
+            let nb = __syx_f64_min(best, x)
+            let changed = __syx_f64_compare(nb, best)
+            let flag = 0 - changed
+            bi = bi + (i - bi) * flag
+            best = nb
+            i = i + 1
+        }
+        return bi
+    }
+
+    public func argmax() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var best = 0.0 + p[0]
+        var bi = 0
+        var i = 1
+        while i < n {
+            let x = 0.0 + p[i]
+            let nb = __syx_f64_max(best, x)
+            let flag = __syx_f64_compare(nb, best)
+            bi = bi + (i - bi) * flag
+            best = nb
+            i = i + 1
+        }
+        return bi
+    }
+
+    public func frobeniusNorm() -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            acc = __syx_f64_mul_add(x, x, acc)
+            i = i + 1
+        }
+        return __syx_f64_sqrt(acc)
+    }
+
+    public func tile(_ rowReps: Int, cols: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let ar = self.rows
+        let ac = self.cols
+        let nr = ar * rowReps
+        let nc = ac * cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let orow = i / nc
+            let ocol = i % nc
+            let ir = orow % ar
+            let ic = ocol % ac
+            q[i] = p[ir * ac + ic]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func kron(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let b = __syx_plugin_faer_to(other.handle)
+        let ar = self.rows
+        let ac = self.cols
+        let br = other.rows
+        let bc = other.cols
+        let nr = ar * br
+        let nc = ac * bc
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let orow = i / nc
+            let ocol = i % nc
+            let ai = orow / br
+            let bi = orow % br
+            let aj = ocol / bc
+            let bj = ocol % bc
+            let av = 0.0 + p[ai * ac + aj]
+            let bv = 0.0 + b[bi * bc + bj]
+            q[i] = av * bv
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func tril() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let d = __syx_int_max(0, row - col + 1)
+            let keep = __syx_int_min(1, d)
+            q[i] = (0.0 + p[i]) * (0.0 + keep)
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func triu() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let d = __syx_int_max(0, col - row + 1)
+            let keep = __syx_int_min(1, d)
+            q[i] = (0.0 + p[i]) * (0.0 + keep)
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func flipud() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let sr = nr - 1 - row
+            q[i] = 0.0 + p[sr * nc + col]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func fliplr() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let sc = nc - 1 - col
+            q[i] = 0.0 + p[row * nc + sc]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func rot90() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let ar = self.rows
+        let ac = self.cols
+        let nr = ac
+        let nc = ar
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let sr = col
+            let sc = ac - 1 - row
+            q[i] = 0.0 + p[sr * ac + sc]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func antidiagonal() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = __syx_int_min(nr, nc)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(n, 1)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let sc = nc - 1 - i
+            q[i] = 0.0 + p[i * nc + sc]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, n, 1)
+        out.rows = n
+        out.cols = 1
+        return out
+    }
+
+    public func rot180() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let sr = nr - 1 - row
+            let sc = nc - 1 - col
+            q[i] = 0.0 + p[sr * nc + sc]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func swapRows(_ i: Int, _ j: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let dI = row - i
+            let dJ = row - j
+            let pickJ = 1 - __syx_int_min(1, __syx_int_max(0, dI) + __syx_int_max(0, 0 - dI))
+            let pickI = 1 - __syx_int_min(1, __syx_int_max(0, dJ) + __syx_int_max(0, 0 - dJ))
+            let sr = row + (j - row) * pickJ + (i - row) * pickI
+            q[k] = 0.0 + p[sr * nc + col]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func swapCols(_ i: Int, _ j: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let dI = col - i
+            let dJ = col - j
+            let pickJ = 1 - __syx_int_min(1, __syx_int_max(0, dI) + __syx_int_max(0, 0 - dI))
+            let pickI = 1 - __syx_int_min(1, __syx_int_max(0, dJ) + __syx_int_max(0, 0 - dJ))
+            let sc = col + (j - col) * pickJ + (i - col) * pickI
+            q[k] = 0.0 + p[row * nc + sc]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func roll(_ rowShift: Int, cols: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let rs = rowShift % nr
+        let cs = cols % nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let row = i / nc
+            let col = i % nc
+            let sr = (row + nr - rs) % nr
+            let sc = (col + nc - cs) % nc
+            q[i] = 0.0 + p[sr * nc + sc]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func sign() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            q[i] = 0.0 + __syx_f64_compare(x, 0.0)
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func sqrt() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            // Avoid MathFloat HostFn on ArraySet RHS (ArgsEarly double-push).
+            // Unrolled Heron — nested while in this slot historically zeros writeback.
+            var y = 0.5 * x + 0.5
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            y = 0.5 * (y + x / y)
+            q[i] = y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func squared() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            q[i] = x * x
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func clamp(_ lo: Float64, _ hi: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            q[i] = __syx_f64_min(__syx_f64_max(x, lo), hi)
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1092: clampMin / clampMax / relu / threshold. HostFn via let only.
+    public func clampMin(_ lo: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let z = __syx_f64_max(x, lo)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func clampMax(_ hi: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let z = __syx_f64_min(x, hi)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func relu() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let z = __syx_f64_max(x, 0.0)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func threshold(_ t: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, t)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let z = __syx_f64_mul_add(mv, x, 0.0)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1093: leakyRelu / hardTanh / heaviside / relu6. HostFn via let only.
+    public func leakyRelu(_ alpha: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, 0.0)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let negPart = alpha * x
+            let d = x - negPart
+            let z = __syx_f64_mul_add(mv, d, negPart)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func hardTanh() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let lo = __syx_f64_max(x, -1.0)
+            let z = __syx_f64_min(lo, 1.0)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func heaviside() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, 0.0)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            q[i] = 0.0 + mv
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func relu6() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let lo = __syx_f64_max(x, 0.0)
+            let z = __syx_f64_min(lo, 6.0)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1094: absDiff / squaredDiff / manhattan / sumSquaredDiff. HostFn via let only.
+    public func absDiff(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let z = __syx_f64_abs(d)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func squaredDiff(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let z = __syx_f64_mul_add(d, d, 0.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func manhattan(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let ad = __syx_f64_abs(d)
+            acc = __syx_f64_mul_add(1.0, ad, acc)
+            i = i + 1
+        }
+        return acc
+    }
+
+    public func sumSquaredDiff(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            acc = __syx_f64_mul_add(d, d, acc)
+            i = i + 1
+        }
+        return acc
+    }
+
+    // W1106: mae / mse / euclidean / rmse. HostFn via let only; no MathFloat ArraySet RHS.
+    public func mae(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let ad = __syx_f64_abs(d)
+            acc = __syx_f64_mul_add(1.0, ad, acc)
+            i = i + 1
+        }
+        var dn = 0.0
+        var j = 0
+        while j < n {
+            dn = dn + 1.0
+            j = j + 1
+        }
+        return acc / dn
+    }
+
+    public func mse(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            acc = __syx_f64_mul_add(d, d, acc)
+            i = i + 1
+        }
+        var dn = 0.0
+        var j = 0
+        while j < n {
+            dn = dn + 1.0
+            j = j + 1
+        }
+        return acc / dn
+    }
+
+    public func euclidean(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            acc = __syx_f64_mul_add(d, d, acc)
+            i = i + 1
+        }
+        return __syx_f64_sqrt(acc)
+    }
+
+    public func rmse(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            acc = __syx_f64_mul_add(d, d, acc)
+            i = i + 1
+        }
+        var dn = 0.0
+        var j = 0
+        while j < n {
+            dn = dn + 1.0
+            j = j + 1
+        }
+        let m = acc / dn
+        return __syx_f64_sqrt(m)
+    }
+
+    // W1107: cosineSimilarity / cosineDistance. HostFn via let only; no MathFloat ArraySet RHS.
+    public func cosineSimilarity(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var dot = 0.0
+        var sx2 = 0.0
+        var sy2 = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            dot = __syx_f64_mul_add(x, y, dot)
+            sx2 = __syx_f64_mul_add(x, x, sx2)
+            sy2 = __syx_f64_mul_add(y, y, sy2)
+            i = i + 1
+        }
+        let nx = __syx_f64_sqrt(sx2)
+        let ny = __syx_f64_sqrt(sy2)
+        let den = nx * ny
+        return dot / den
+    }
+
+    public func cosineDistance(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var dot = 0.0
+        var sx2 = 0.0
+        var sy2 = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            dot = __syx_f64_mul_add(x, y, dot)
+            sx2 = __syx_f64_mul_add(x, x, sx2)
+            sy2 = __syx_f64_mul_add(y, y, sy2)
+            i = i + 1
+        }
+        let nx = __syx_f64_sqrt(sx2)
+        let ny = __syx_f64_sqrt(sy2)
+        let den = nx * ny
+        let s = dot / den
+        return 1.0 - s
+    }
+
+    // W1111: normalize / center / standardize / minMaxScale. HostFn via let only;
+    // no MathFloat ArraySet RHS; flat walk; zero-norm / zero-std / max==min → /0 (非静默).
+    public func normalize() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            acc = __syx_f64_mul_add(x, x, acc)
+            i = i + 1
+        }
+        let nrm = __syx_f64_sqrt(acc)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var j = 0
+        while j < n {
+            let x = 0.0 + p[j]
+            q[j] = x / nrm
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func center() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        var s = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            s = __syx_f64_mul_add(1.0, x, s)
+            i = i + 1
+        }
+        var dn = 0.0
+        var k = 0
+        while k < n {
+            dn = dn + 1.0
+            k = k + 1
+        }
+        let mu = s / dn
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var j = 0
+        while j < n {
+            let x = 0.0 + p[j]
+            q[j] = x - mu
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func standardize() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        var s = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            s = __syx_f64_mul_add(1.0, x, s)
+            i = i + 1
+        }
+        var dn = 0.0
+        var k = 0
+        while k < n {
+            dn = dn + 1.0
+            k = k + 1
+        }
+        let mu = s / dn
+        var ss = 0.0
+        var t = 0
+        while t < n {
+            let x = 0.0 + p[t]
+            let d = x - mu
+            ss = __syx_f64_mul_add(d, d, ss)
+            t = t + 1
+        }
+        let v = ss / dn
+        let sd = __syx_f64_sqrt(v)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var j = 0
+        while j < n {
+            let x = 0.0 + p[j]
+            let d = x - mu
+            q[j] = d / sd
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func minMaxScale() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        var lo = 0.0 + p[0]
+        var hi = 0.0 + p[0]
+        var i = 1
+        while i < n {
+            let x = 0.0 + p[i]
+            lo = __syx_f64_min(lo, x)
+            hi = __syx_f64_max(hi, x)
+            i = i + 1
+        }
+        let span = hi - lo
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var j = 0
+        while j < n {
+            let x = 0.0 + p[j]
+            let d = x - lo
+            q[j] = d / span
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1095: maxAbsDiff / hamming / equalToScalar / greaterThanScalar. HostFn via let only.
+    public func maxAbsDiff(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let ad = __syx_f64_abs(d)
+            let z = __syx_f64_max(acc, ad)
+            acc = 0.0 + z
+            i = i + 1
+        }
+        return acc
+    }
+
+    public func hamming(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let ad = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(ad, 0.0)
+            acc = __syx_f64_mul_add(1.0, 0.0 + ne, acc)
+            i = i + 1
+        }
+        return acc
+    }
+
+    public func equalToScalar(_ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let d = x - v
+            let a = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(a, 0.0)
+            let z = __syx_f64_mul_add(-1.0, 0.0 + ne, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func greaterThanScalar(_ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, v)
+            let z = __syx_f64_max(0.0, 0.0 + c)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1096: lessThanScalar / notEqualToScalar / lessEqualToScalar / greaterEqualToScalar.
+    public func lessThanScalar(_ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, v)
+            let neg = 0.0 - (0.0 + c)
+            let z = __syx_f64_max(0.0, neg)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func notEqualToScalar(_ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let d = x - v
+            let a = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(a, 0.0)
+            r[i] = 0.0 + ne
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func lessEqualToScalar(_ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, v)
+            let g = __syx_f64_max(0.0, 0.0 + c)
+            let z = __syx_f64_mul_add(-1.0, g, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func greaterEqualToScalar(_ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, v)
+            let neg = 0.0 - (0.0 + c)
+            let lt = __syx_f64_max(0.0, neg)
+            let z = __syx_f64_mul_add(-1.0, lt, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1097: takeRows / dropRows / takeCols / dropCols. Pure packed copy; no new HostFn.
+    public func takeRows(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nc = self.cols
+        let outN = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(n, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, n, nc)
+        out.rows = n
+        out.cols = nc
+        return out
+    }
+
+    public func dropRows(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr - n
+        let outN = outR * nc
+        let skip = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k] = 0.0 + p[k + skip]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    public func takeCols(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outN = nr * n
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, n)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            let r = k / n
+            let c = k % n
+            q[k] = 0.0 + p[r * nc + c]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, n)
+        out.rows = nr
+        out.cols = n
+        return out
+    }
+
+    public func dropCols(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc - n
+        let outN = nr * outC
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            let r = k / outC
+            let c = k % outC
+            q[k] = 0.0 + p[r * nc + (c + n)]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    // W1098: padRowsBefore / padRowsAfter / padColsBefore / padColsAfter. Zero pad; no new HostFn.
+    public func padRowsBefore(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            q[k + skip] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    public func padRowsAfter(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            q[k] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    public func padColsBefore(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let srcN = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            let r = k / nc
+            let c = k % nc
+            q[r * outC + (c + n)] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    public func padColsAfter(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let srcN = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            let r = k / nc
+            let c = k % nc
+            q[r * outC + c] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    // W1099: pad*Constant. Fill border with v; no new HostFn; ArraySet RHS uses 0.0+v.
+    public func padRowsBeforeConstant(_ n: Int, _ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let outN = outR * nc
+        let srcN = nr * nc
+        let skip = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < outN {
+            q[i] = 0.0 + v
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            q[k + skip] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    public func padRowsAfterConstant(_ n: Int, _ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let outN = outR * nc
+        let srcN = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < outN {
+            q[i] = 0.0 + v
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            q[k] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    public func padColsBeforeConstant(_ n: Int, _ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let srcN = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < outN {
+            q[i] = 0.0 + v
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            let r = k / nc
+            let c = k % nc
+            q[r * outC + (c + n)] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    public func padColsAfterConstant(_ n: Int, _ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let srcN = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < outN {
+            q[i] = 0.0 + v
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            let r = k / nc
+            let c = k % nc
+            q[r * outC + c] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    // W1100: pad*Reflect. numpy mode=reflect (no edge repeat); L>=2; first-slice n=1.
+    // Inline only — never call padRowsBefore/After (same-arity name prefix recurses).
+    // ArraySet LHS: prefer q[i*nc+c] / q[k+skip] with loop-var index (let-aliased dst is a no-op).
+    public func padRowsBeforeReflect(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let srcR = 1
+            var c = 0
+            while c < nc {
+                q[i * nc + c] = 0.0 + p[srcR * nc + c]
+                c = c + 1
+            }
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            q[k + skip] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    // After: two q[k+skip] passes (skip0=0, skipB=srcN). First-slice n=1 → bottom = row0.
+    public func padRowsAfterReflect(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip0 = 0
+        let skipB = srcN
+        let borderN = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            q[k + skip0] = 0.0 + p[k]
+            k = k + 1
+        }
+        var k2 = 0
+        while k2 < borderN {
+            q[k2 + skipB] = 0.0 + p[k2]
+            k2 = k2 + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    // Cols: only q[k+skip0] with k stepped by outC (loop-var index; no let-alias).
+    // First-slice n=1: border col ← srcC=1; then src cols; after: src then srcC=0.
+    public func padColsBeforeReflect(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let skip0 = 0
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k + skip0] = 0.0 + p[k / outC * nc + 1]
+            k = k + outC
+        }
+        var k1 = 1
+        while k1 < outN {
+            q[k1 + skip0] = 0.0 + p[k1 / outC * nc]
+            k1 = k1 + outC
+        }
+        var k2 = 2
+        while k2 < outN {
+            q[k2 + skip0] = 0.0 + p[k2 / outC * nc + 1]
+            k2 = k2 + outC
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    public func padColsAfterReflect(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let skip0 = 0
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k + skip0] = 0.0 + p[k / outC * nc]
+            k = k + outC
+        }
+        var k1 = 1
+        while k1 < outN {
+            q[k1 + skip0] = 0.0 + p[k1 / outC * nc + 1]
+            k1 = k1 + outC
+        }
+        var k2 = 2
+        while k2 < outN {
+            q[k2 + skip0] = 0.0 + p[k2 / outC * nc]
+            k2 = k2 + outC
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    // W1101: pad*Replicate. numpy mode=edge (repeat edge); first-slice n=1.
+    // Inline only — never call padRowsBefore/After or pad*Reflect (same-arity prefix recurses).
+    public func padRowsBeforeReplicate(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            var c = 0
+            while c < nc {
+                q[i * nc + c] = 0.0 + p[c]
+                c = c + 1
+            }
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            q[k + skip] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    // After: identical control-flow to padRowsAfterReflect; lastOff via add-loop (avoid nr-1).
+    public func padRowsAfterReplicate(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip0 = 0
+        let skipB = srcN
+        let borderN = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            q[k + skip0] = 0.0 + p[k]
+            k = k + 1
+        }
+        var lastOff = 0
+        var r = 1
+        while r < nr {
+            lastOff = lastOff + nc
+            r = r + 1
+        }
+        var k2 = 0
+        while k2 < borderN {
+            q[k2 + skipB] = 0.0 + p[k2 + lastOff]
+            k2 = k2 + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    // Cols: q[k+skip0] stepped by outC. First-slice n=1: border col ← srcC=0 / last.
+    public func padColsBeforeReplicate(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let skip0 = 0
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k + skip0] = 0.0 + p[k / outC * nc]
+            k = k + outC
+        }
+        var k1 = 1
+        while k1 < outN {
+            q[k1 + skip0] = 0.0 + p[k1 / outC * nc]
+            k1 = k1 + outC
+        }
+        var k2 = 2
+        while k2 < outN {
+            q[k2 + skip0] = 0.0 + p[k2 / outC * nc + 1]
+            k2 = k2 + outC
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    public func padColsAfterReplicate(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let skip0 = 0
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k + skip0] = 0.0 + p[k / outC * nc]
+            k = k + outC
+        }
+        var k1 = 1
+        while k1 < outN {
+            q[k1 + skip0] = 0.0 + p[k1 / outC * nc + 1]
+            k1 = k1 + outC
+        }
+        var k2 = 2
+        while k2 < outN {
+            q[k2 + skip0] = 0.0 + p[k2 / outC * nc + 1]
+            k2 = k2 + outC
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    // W1102: pad*Circular. numpy mode=wrap; first-slice n=1; nail L>=3 (≠ reflect on L=2).
+    // Inline only — never call padRowsBefore/After / *Reflect / *Replicate (same-arity prefix).
+    public func padRowsBeforeCircular(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip = n * nc
+        var lastOff = 0
+        var r = 1
+        while r < nr {
+            lastOff = lastOff + nc
+            r = r + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            var c = 0
+            while c < nc {
+                q[i * nc + c] = 0.0 + p[lastOff + c]
+                c = c + 1
+            }
+            i = i + 1
+        }
+        var k = 0
+        while k < srcN {
+            q[k + skip] = 0.0 + p[k]
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    // After: skipB=srcN; first-slice n=1 → bottom = first row (p[k2]).
+    public func padRowsAfterCircular(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outR = nr + n
+        let srcN = nr * nc
+        let skip0 = 0
+        let skipB = srcN
+        let borderN = n * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(outR, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < srcN {
+            q[k + skip0] = 0.0 + p[k]
+            k = k + 1
+        }
+        var k2 = 0
+        while k2 < borderN {
+            q[k2 + skipB] = 0.0 + p[k2]
+            k2 = k2 + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, outR, nc)
+        out.rows = outR
+        out.cols = nc
+        return out
+    }
+
+    // Cols first-slice n=1 on nc=3 → outC=4: border last/first + three src cols.
+    public func padColsBeforeCircular(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let skip0 = 0
+        var lastC = 0
+        var ci = 1
+        while ci < nc {
+            lastC = lastC + 1
+            ci = ci + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k + skip0] = 0.0 + p[k / outC * nc + lastC]
+            k = k + outC
+        }
+        var k1 = 1
+        while k1 < outN {
+            q[k1 + skip0] = 0.0 + p[k1 / outC * nc]
+            k1 = k1 + outC
+        }
+        var k2 = 2
+        while k2 < outN {
+            q[k2 + skip0] = 0.0 + p[k2 / outC * nc + 1]
+            k2 = k2 + outC
+        }
+        var k3 = 3
+        while k3 < outN {
+            q[k3 + skip0] = 0.0 + p[k3 / outC * nc + 2]
+            k3 = k3 + outC
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    public func padColsAfterCircular(_ n: Int) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let outC = nc + n
+        let outN = nr * outC
+        let skip0 = 0
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, outC)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            q[k + skip0] = 0.0 + p[k / outC * nc]
+            k = k + outC
+        }
+        var k1 = 1
+        while k1 < outN {
+            q[k1 + skip0] = 0.0 + p[k1 / outC * nc + 1]
+            k1 = k1 + outC
+        }
+        var k2 = 2
+        while k2 < outN {
+            q[k2 + skip0] = 0.0 + p[k2 / outC * nc + 2]
+            k2 = k2 + outC
+        }
+        var k3 = 3
+        while k3 < outN {
+            q[k3 + skip0] = 0.0 + p[k3 / outC * nc]
+            k3 = k3 + outC
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, outC)
+        out.rows = nr
+        out.cols = outC
+        return out
+    }
+
+    public func div(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            r[i] = p[i] / q[i]
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func addScalar(_ s: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i] + s
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func subScalar(_ s: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i] - s
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func divScalar(_ s: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = p[i] / s
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1073: element unary-II. HostFn via let only — never MathFloat on ArraySet RHS.
+    public func floor() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_floor(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func ceil() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_ceil(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func round() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_round(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func trunc() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_trunc(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1074: elementwise max/min/copysign/reciprocal. HostFn via let only.
+    public func maximum(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_max(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func minimum(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_min(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func copysign(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let mag = 0.0 + p[i]
+            let sgn = 0.0 + q[i]
+            let z = __syx_f64_copysign(mag, sgn)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func reciprocal() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            q[i] = 1.0 / x
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1075: elementwise hypot/pow/fmod/remainder. HostFn via let only.
+    public func hypot(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_hypot(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func pow(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_pow(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func fmod(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_fmod(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func remainder(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_remainder(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1076: mulAdd / exp2 / log2 / cbrt. HostFn via let only.
+    public func mulAdd(_ a: Mat, _ b: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(a.handle)
+        let s = __syx_plugin_faer_to(b.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = 0.0 + s[i]
+            let w = __syx_f64_mul_add(x, y, z)
+            r[i] = 0.0 + w
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1114: elu / gelu / tanh / swish. HostFn via let only;
+    // elu 分支对齐 leakyRelu；gelu 用 erf；swish = x*sigmoid(x).
+    public func elu(_ alpha: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, 0.0)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let e = __syx_f64_exp(x)
+            let em1 = e - 1.0
+            let negPart = alpha * em1
+            let d = x - negPart
+            let z = __syx_f64_mul_add(mv, d, negPart)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func gelu() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let t = x * 0.7071067811865476
+            let er = __syx_f64_erf(t)
+            let onePlus = 1.0 + er
+            let half = 0.5 * x
+            let z = half * onePlus
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func tanh() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_tanh(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func swish() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let nx = 0.0 - x
+            let e = __syx_f64_exp(nx)
+            let den = 1.0 + e
+            let s = 1.0 / den
+            let z = x * s
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1115: selu / celu / mish / softsign. HostFn via let only;
+    // selu 固定 Klambauer λ/α；celu 分支对齐 elu；mish = x*tanh(softplus(x)).
+    public func selu() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        let scale = 1.0507009873554805
+        let alpha = 1.6732632423543772
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, 0.0)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let e = __syx_f64_exp(x)
+            let em1 = e - 1.0
+            let negPart = scale * alpha * em1
+            let posPart = scale * x
+            let d = posPart - negPart
+            let z = __syx_f64_mul_add(mv, d, negPart)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func celu(_ alpha: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, 0.0)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let xa = x / alpha
+            let e = __syx_f64_exp(xa)
+            let em1 = e - 1.0
+            let negPart = alpha * em1
+            let d = x - negPart
+            let z = __syx_f64_mul_add(mv, d, negPart)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func mish() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let e = __syx_f64_exp(x)
+            let sp = __syx_f64_log1p(e)
+            let t = __syx_f64_tanh(sp)
+            let z = x * t
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func softsign() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let a = __syx_f64_abs(x)
+            let den = 1.0 + a
+            let z = x / den
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1116: softshrink / hardshrink / prelu / hardSigmoid. HostFn via let only;
+    // prelu 对齐 leakyRelu；hardSigmoid = clamp(0.2*x+0.5, 0, 1).
+    public func softshrink(_ lambda: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let a = __syx_f64_abs(x)
+            let t = a - lambda
+            let m = __syx_f64_max(t, 0.0)
+            let s = __syx_f64_compare(x, 0.0)
+            let z = m * s
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func hardshrink(_ lambda: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let a = __syx_f64_abs(x)
+            let c = __syx_f64_compare(a, lambda)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let z = mv * x
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func prelu(_ alpha: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c = __syx_f64_compare(x, 0.0)
+            let mv = __syx_f64_max(0.0, 0.0 + c)
+            let negPart = alpha * x
+            let d = x - negPart
+            let z = __syx_f64_mul_add(mv, d, negPart)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func hardSigmoid() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.2 * x + 0.5
+            let lo = __syx_f64_max(y, 0.0)
+            let z = __syx_f64_min(lo, 1.0)
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1113: sin / cos / erf / erfc. HostFn via let only; body shape对齐 exp.
+    public func sin() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_sin(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cos() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_cos(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func erf() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_erf(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func erfc() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_erfc(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1112: natural exp / log / softplus / sigmoid. HostFn via let only;
+    // softplus = log1p(exp(x)); sigmoid = 1/(1+exp(-x)); log non-positive → /0|inf|nan (非静默).
+    public func exp() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_exp(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func log() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_log(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func softplus() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let e = __syx_f64_exp(x)
+            let y = __syx_f64_log1p(e)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func sigmoid() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let nx = 0.0 - x
+            let e = __syx_f64_exp(nx)
+            let den = 1.0 + e
+            q[i] = 1.0 / den
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1119: glu — last-dim half-split; a ⊙ σ(b) → nr×(nc/2); even cols.
+    public func glu() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let half = nc / 2
+        let outN = nr * half
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, half)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < outN {
+            let r = k / half
+            let c = k % half
+            let a = 0.0 + p[r * nc + c]
+            let b = 0.0 + p[r * nc + (c + half)]
+            let nb = 0.0 - b
+            let e = __syx_f64_exp(nb)
+            let den = 1.0 + e
+            let s = 1.0 / den
+            q[k] = a * s
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, half)
+        out.rows = nr
+        out.cols = half
+        return out
+    }
+
+    public func exp2() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_exp2(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func log2() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_log2(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cbrt() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_cbrt(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1077: log10 / tgamma / lerp / dot. HostFn via let; lerp/dot pure arithmetic.
+    public func log10() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_log10(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func tgamma() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = __syx_f64_tgamma(x)
+            q[i] = 0.0 + y
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func lerp(_ other: Mat, _ t: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = y - x
+            let z = x + t * d
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func dot(_ other: Mat) -> Float64 {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let n = self.rows * self.cols
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            acc = __syx_f64_mul_add(x, y, acc)
+            i = i + 1
+        }
+        return acc
+    }
+
+    // W1078: cumsum / cumprod / diff / countNonzero. Pure arithmetic / mul_add; no new HostFn surface.
+    public func cumsum() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            acc = __syx_f64_mul_add(1.0, x, acc)
+            q[i] = 0.0 + acc
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cumprod() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 1.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            acc = __syx_f64_mul_add(acc, x, 0.0)
+            q[i] = 0.0 + acc
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func diff() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        q[0] = 0.0 + p[0]
+        var i = 1
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + p[i - 1]
+            let z = x - y
+            q[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func countNonzero() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var count = 0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let a = __syx_f64_abs(x)
+            let flag = __syx_f64_compare(a, 0.0)
+            count = count + flag
+            i = i + 1
+        }
+        return count
+    }
+
+    // W1079: outer / onesLike / equal / greater. Pure arithmetic / compare / mul_add.
+    public func outer(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let b = __syx_plugin_faer_to(other.handle)
+        let m = self.rows * self.cols
+        let n = other.rows * other.cols
+        let total = m * n
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(m, n)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < total {
+            let i = k / n
+            let j = k % n
+            let av = 0.0 + p[i]
+            let bv = 0.0 + b[j]
+            r[k] = av * bv
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, m, n)
+        out.rows = m
+        out.cols = n
+        return out
+    }
+
+    public func onesLike() -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = 1.0
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func equal(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let a = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(a, 0.0)
+            let z = __syx_f64_mul_add(-1.0, 0.0 + ne, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func greater(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let c = __syx_f64_compare(x, y)
+            let z = __syx_f64_max(0.0, 0.0 + c)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1080: notEqual / less / lessEqual / greaterEqual. HostFn via let only.
+    public func notEqual(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let a = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(a, 0.0)
+            r[i] = 0.0 + ne
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func less(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let c = __syx_f64_compare(x, y)
+            let neg = 0.0 - (0.0 + c)
+            let z = __syx_f64_max(0.0, neg)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func lessEqual(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let c = __syx_f64_compare(x, y)
+            let g = __syx_f64_max(0.0, 0.0 + c)
+            let z = __syx_f64_mul_add(-1.0, g, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func greaterEqual(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let c = __syx_f64_compare(x, y)
+            let neg = 0.0 - (0.0 + c)
+            let lt = __syx_f64_max(0.0, neg)
+            let z = __syx_f64_mul_add(-1.0, lt, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1081: zerosLike / filledLike / choose (where-semantics; `where` is keyword) / logicalNot.
+    // HostFn via let only.
+    public func zerosLike() -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func filledLike(_ v: Float64) -> Mat {
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            q[i] = v
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func choose(_ mask: Mat, _ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let m = __syx_plugin_faer_to(mask.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let mv = 0.0 + m[i]
+            let d = x - y
+            let z = __syx_f64_mul_add(mv, d, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func logicalNot() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let mv = 0.0 + p[i]
+            let z = __syx_f64_mul_add(-1.0, mv, 1.0)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1082: logicalAnd / logicalOr / anyTrue / allTrue. HostFn via let only.
+    public func logicalAnd(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_min(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func logicalOr(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let z = __syx_f64_max(x, y)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func anyTrue() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var hit = 0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let a = __syx_f64_abs(x)
+            let flag = __syx_f64_compare(a, 0.0)
+            hit = hit + flag
+            i = i + 1
+        }
+        let has = __syx_f64_compare(0.0 + hit, 0.0)
+        return has
+    }
+
+    public func allTrue() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var miss = 0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let d = x - 1.0
+            let a = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(a, 0.0)
+            miss = miss + ne
+            i = i + 1
+        }
+        let hasMiss = __syx_f64_compare(0.0 + miss, 0.0)
+        var out = 1
+        out = out - hasMiss
+        return out
+    }
+
+    // W1083: logicalXor / countTrue / noneTrue / fillWhere. HostFn via let only.
+    public func logicalXor(_ other: Mat) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let q = __syx_plugin_faer_to(other.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let y = 0.0 + q[i]
+            let d = x - y
+            let z = __syx_f64_abs(d)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func countTrue() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var count = 0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let d = x - 1.0
+            let a = __syx_f64_abs(d)
+            let ne = __syx_f64_compare(a, 0.0)
+            var hit = 1
+            hit = hit - ne
+            count = count + hit
+            i = i + 1
+        }
+        return count
+    }
+
+    public func noneTrue() -> Int {
+        let p = __syx_plugin_faer_to(self.handle)
+        let n = self.rows * self.cols
+        var hit = 0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let a = __syx_f64_abs(x)
+            let flag = __syx_f64_compare(a, 0.0)
+            hit = hit + flag
+            i = i + 1
+        }
+        let has = __syx_f64_compare(0.0 + hit, 0.0)
+        var out = 1
+        out = out - has
+        return out
+    }
+
+    public func fillWhere(_ mask: Mat, _ v: Float64) -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let m = __syx_plugin_faer_to(mask.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let mv = 0.0 + m[i]
+            let d = v - x
+            let z = __syx_f64_mul_add(mv, d, x)
+            r[i] = 0.0 + z
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1084: sumRows / sumCols / minRows / maxCols. HostFn via let only.
+    // Flat packed walk (same discipline as cumsum/flipud); no nested Mat helpers.
+    public func sumRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[row]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            r[row] = 0.0 + z
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func sumCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[col]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            r[col] = 0.0 + z
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func minRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[row]
+            let z = __syx_f64_min(prev, x)
+            let pick = 1 - __syx_int_min(1, col)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            r[row] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func maxCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[col]
+            let z = __syx_f64_max(prev, x)
+            let pick = 1 - __syx_int_min(1, row)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            r[col] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    // W1085: meanRows / prodCols / maxRows / minCols. HostFn via let only.
+    // Flat packed walk (same discipline as W1084 axis-reduce).
+    public func meanRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[row]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            r[row] = 0.0 + z
+            k = k + 1
+        }
+        var dn = 0.0
+        var c = 0
+        while c < nc {
+            dn = dn + 1.0
+            c = c + 1
+        }
+        var i = 0
+        while i < nr {
+            let s = 0.0 + r[i]
+            r[i] = s / dn
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func prodCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[col]
+            let prod = __syx_f64_mul_add(prev, x, 0.0)
+            let pick = 1 - __syx_int_min(1, row)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - prod, prod)
+            r[col] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func maxRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[row]
+            let z = __syx_f64_max(prev, x)
+            let pick = 1 - __syx_int_min(1, col)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            r[row] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func minCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[col]
+            let z = __syx_f64_min(prev, x)
+            let pick = 1 - __syx_int_min(1, row)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            r[col] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    // W1086: meanCols / prodRows / argminRows / argmaxCols. HostFn via let only.
+    // Flat packed walk (same discipline as W1084/W1085 axis-reduce).
+    public func meanCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[col]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            r[col] = 0.0 + z
+            k = k + 1
+        }
+        var dn = 0.0
+        var i = 0
+        while i < nr {
+            dn = dn + 1.0
+            i = i + 1
+        }
+        var j = 0
+        while j < nc {
+            let s = 0.0 + r[j]
+            r[j] = s / dn
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func prodRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + r[row]
+            let prod = __syx_f64_mul_add(prev, x, 0.0)
+            let pick = 1 - __syx_int_min(1, col)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - prod, prod)
+            r[row] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func argminRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let bestM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(bestM.handle)
+        bestM.handle = __syx_plugin_faer_zeros(nr, 1)
+        let best = __syx_plugin_faer_to(bestM.handle)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prevB = 0.0 + best[row]
+            let prevI = 0.0 + r[row]
+            let cf = 0.0 + col
+            let nb = __syx_f64_min(prevB, x)
+            let changed = __syx_f64_compare(nb, prevB)
+            let flag = 0 - changed
+            let mixedI = __syx_f64_mul_add(cf - prevI, 0.0 + flag, prevI)
+            let pick = 1 - __syx_int_min(1, col)
+            let outI = __syx_f64_mul_add(0.0 + pick, cf - mixedI, mixedI)
+            let outB = __syx_f64_mul_add(0.0 + pick, x - nb, nb)
+            r[row] = 0.0 + outI
+            best[row] = 0.0 + outB
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(bestM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func argmaxCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let bestM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(bestM.handle)
+        bestM.handle = __syx_plugin_faer_zeros(1, nc)
+        let best = __syx_plugin_faer_to(bestM.handle)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prevB = 0.0 + best[col]
+            let prevI = 0.0 + r[col]
+            let rf = 0.0 + row
+            let nb = __syx_f64_max(prevB, x)
+            let flag = __syx_f64_compare(nb, prevB)
+            let mixedI = __syx_f64_mul_add(rf - prevI, 0.0 + flag, prevI)
+            let pick = 1 - __syx_int_min(1, row)
+            let outI = __syx_f64_mul_add(0.0 + pick, rf - mixedI, mixedI)
+            let outB = __syx_f64_mul_add(0.0 + pick, x - nb, nb)
+            r[col] = 0.0 + outI
+            best[col] = 0.0 + outB
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(bestM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    // W1087: argminCols / argmaxRows / stdRows / stdCols. HostFn via let only.
+    // Flat packed walk (same discipline as W1084–W1086 axis-reduce).
+    // std* = population std (ddof=0): mean then Σ(x-μ)²/n then sqrt.
+    public func argminCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let bestM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(bestM.handle)
+        bestM.handle = __syx_plugin_faer_zeros(1, nc)
+        let best = __syx_plugin_faer_to(bestM.handle)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prevB = 0.0 + best[col]
+            let prevI = 0.0 + r[col]
+            let rf = 0.0 + row
+            let nb = __syx_f64_min(prevB, x)
+            let changed = __syx_f64_compare(nb, prevB)
+            let flag = 0 - changed
+            let mixedI = __syx_f64_mul_add(rf - prevI, 0.0 + flag, prevI)
+            let pick = 1 - __syx_int_min(1, row)
+            let outI = __syx_f64_mul_add(0.0 + pick, rf - mixedI, mixedI)
+            let outB = __syx_f64_mul_add(0.0 + pick, x - nb, nb)
+            r[col] = 0.0 + outI
+            best[col] = 0.0 + outB
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(bestM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func argmaxRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let bestM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(bestM.handle)
+        bestM.handle = __syx_plugin_faer_zeros(nr, 1)
+        let best = __syx_plugin_faer_to(bestM.handle)
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prevB = 0.0 + best[row]
+            let prevI = 0.0 + r[row]
+            let cf = 0.0 + col
+            let nb = __syx_f64_max(prevB, x)
+            let flag = __syx_f64_compare(nb, prevB)
+            let mixedI = __syx_f64_mul_add(cf - prevI, 0.0 + flag, prevI)
+            let pick = 1 - __syx_int_min(1, col)
+            let outI = __syx_f64_mul_add(0.0 + pick, cf - mixedI, mixedI)
+            let outB = __syx_f64_mul_add(0.0 + pick, x - nb, nb)
+            r[row] = 0.0 + outI
+            best[row] = 0.0 + outB
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(bestM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func stdRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let meanM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(meanM.handle)
+        meanM.handle = __syx_plugin_faer_zeros(nr, 1)
+        let mean = __syx_plugin_faer_to(meanM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + mean[row]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            mean[row] = 0.0 + z
+            k = k + 1
+        }
+        var dn = 0.0
+        var c = 0
+        while c < nc {
+            dn = dn + 1.0
+            c = c + 1
+        }
+        var i = 0
+        while i < nr {
+            let s = 0.0 + mean[i]
+            mean[i] = s / dn
+            i = i + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k2 = 0
+        while k2 < n {
+            let row = k2 / nc
+            let x = 0.0 + p[k2]
+            let mu = 0.0 + mean[row]
+            let d = x - mu
+            let sq = __syx_f64_mul_add(d, d, 0.0)
+            let prev = 0.0 + r[row]
+            let z = __syx_f64_mul_add(1.0, sq, prev)
+            r[row] = 0.0 + z
+            k2 = k2 + 1
+        }
+        var j = 0
+        while j < nr {
+            let s = 0.0 + r[j]
+            let v = s / dn
+            let sd = __syx_f64_sqrt(v)
+            r[j] = 0.0 + sd
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(meanM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func stdCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let meanM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(meanM.handle)
+        meanM.handle = __syx_plugin_faer_zeros(1, nc)
+        let mean = __syx_plugin_faer_to(meanM.handle)
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + mean[col]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            mean[col] = 0.0 + z
+            k = k + 1
+        }
+        var dn = 0.0
+        var i = 0
+        while i < nr {
+            dn = dn + 1.0
+            i = i + 1
+        }
+        var j = 0
+        while j < nc {
+            let s = 0.0 + mean[j]
+            mean[j] = s / dn
+            j = j + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k2 = 0
+        while k2 < n {
+            let col = k2 % nc
+            let x = 0.0 + p[k2]
+            let mu = 0.0 + mean[col]
+            let d = x - mu
+            let sq = __syx_f64_mul_add(d, d, 0.0)
+            let prev = 0.0 + r[col]
+            let z = __syx_f64_mul_add(1.0, sq, prev)
+            r[col] = 0.0 + z
+            k2 = k2 + 1
+        }
+        var t = 0
+        while t < nc {
+            let s = 0.0 + r[t]
+            let v = s / dn
+            let sd = __syx_f64_sqrt(v)
+            r[t] = 0.0 + sd
+            t = t + 1
+        }
+        __syx_plugin_v2probe_drop(meanM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    // W1088: varRows / varCols / rangeRows / rangeCols. HostFn via let only.
+    // Flat packed walk (same discipline as W1084–W1087 axis-reduce).
+    // var* = population variance (ddof=0): mean then Σ(x-μ)²/n (no sqrt).
+    // range* = max − min per axis.
+    public func varRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let meanM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(meanM.handle)
+        meanM.handle = __syx_plugin_faer_zeros(nr, 1)
+        let mean = __syx_plugin_faer_to(meanM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + mean[row]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            mean[row] = 0.0 + z
+            k = k + 1
+        }
+        var dn = 0.0
+        var c = 0
+        while c < nc {
+            dn = dn + 1.0
+            c = c + 1
+        }
+        var i = 0
+        while i < nr {
+            let s = 0.0 + mean[i]
+            mean[i] = s / dn
+            i = i + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k2 = 0
+        while k2 < n {
+            let row = k2 / nc
+            let x = 0.0 + p[k2]
+            let mu = 0.0 + mean[row]
+            let d = x - mu
+            let sq = __syx_f64_mul_add(d, d, 0.0)
+            let prev = 0.0 + r[row]
+            let z = __syx_f64_mul_add(1.0, sq, prev)
+            r[row] = 0.0 + z
+            k2 = k2 + 1
+        }
+        var j = 0
+        while j < nr {
+            let s = 0.0 + r[j]
+            r[j] = s / dn
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(meanM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func varCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let meanM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(meanM.handle)
+        meanM.handle = __syx_plugin_faer_zeros(1, nc)
+        let mean = __syx_plugin_faer_to(meanM.handle)
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + mean[col]
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            mean[col] = 0.0 + z
+            k = k + 1
+        }
+        var dn = 0.0
+        var i = 0
+        while i < nr {
+            dn = dn + 1.0
+            i = i + 1
+        }
+        var j = 0
+        while j < nc {
+            let s = 0.0 + mean[j]
+            mean[j] = s / dn
+            j = j + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var k2 = 0
+        while k2 < n {
+            let col = k2 % nc
+            let x = 0.0 + p[k2]
+            let mu = 0.0 + mean[col]
+            let d = x - mu
+            let sq = __syx_f64_mul_add(d, d, 0.0)
+            let prev = 0.0 + r[col]
+            let z = __syx_f64_mul_add(1.0, sq, prev)
+            r[col] = 0.0 + z
+            k2 = k2 + 1
+        }
+        var t = 0
+        while t < nc {
+            let s = 0.0 + r[t]
+            r[t] = s / dn
+            t = t + 1
+        }
+        __syx_plugin_v2probe_drop(meanM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    public func rangeRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let minM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(minM.handle)
+        minM.handle = __syx_plugin_faer_zeros(nr, 1)
+        let lo = __syx_plugin_faer_to(minM.handle)
+        let maxM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(maxM.handle)
+        maxM.handle = __syx_plugin_faer_zeros(nr, 1)
+        let hi = __syx_plugin_faer_to(maxM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prevLo = 0.0 + lo[row]
+            let prevHi = 0.0 + hi[row]
+            let zLo = __syx_f64_min(prevLo, x)
+            let zHi = __syx_f64_max(prevHi, x)
+            let pick = 1 - __syx_int_min(1, col)
+            let mixedLo = __syx_f64_mul_add(0.0 + pick, x - zLo, zLo)
+            let mixedHi = __syx_f64_mul_add(0.0 + pick, x - zHi, zHi)
+            lo[row] = 0.0 + mixedLo
+            hi[row] = 0.0 + mixedHi
+            k = k + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, 1)
+        let r = __syx_plugin_faer_to(out.handle)
+        var i = 0
+        while i < nr {
+            let a = 0.0 + hi[i]
+            let b = 0.0 + lo[i]
+            r[i] = a - b
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(minM.handle)
+        __syx_plugin_v2probe_drop(maxM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, nr, 1)
+        out.rows = nr
+        out.cols = 1
+        return out
+    }
+
+    public func rangeCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let minM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(minM.handle)
+        minM.handle = __syx_plugin_faer_zeros(1, nc)
+        let lo = __syx_plugin_faer_to(minM.handle)
+        let maxM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(maxM.handle)
+        maxM.handle = __syx_plugin_faer_zeros(1, nc)
+        let hi = __syx_plugin_faer_to(maxM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prevLo = 0.0 + lo[col]
+            let prevHi = 0.0 + hi[col]
+            let zLo = __syx_f64_min(prevLo, x)
+            let zHi = __syx_f64_max(prevHi, x)
+            let pick = 1 - __syx_int_min(1, row)
+            let mixedLo = __syx_f64_mul_add(0.0 + pick, x - zLo, zLo)
+            let mixedHi = __syx_f64_mul_add(0.0 + pick, x - zHi, zHi)
+            lo[col] = 0.0 + mixedLo
+            hi[col] = 0.0 + mixedHi
+            k = k + 1
+        }
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(1, nc)
+        let r = __syx_plugin_faer_to(out.handle)
+        var j = 0
+        while j < nc {
+            let a = 0.0 + hi[j]
+            let b = 0.0 + lo[j]
+            r[j] = a - b
+            j = j + 1
+        }
+        __syx_plugin_v2probe_drop(minM.handle)
+        __syx_plugin_v2probe_drop(maxM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(r, 1, nc)
+        out.rows = 1
+        out.cols = nc
+        return out
+    }
+
+    // W1089: cumsumRows / cumsumCols / cumprodRows / cumprodCols. HostFn via let only.
+    public func cumsumRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 0.0
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let c1 = __syx_int_min(1, col)
+            let pick = 1 - c1
+            let z = __syx_f64_mul_add(1.0, x, acc)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cumsumCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        let accM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(accM.handle)
+        accM.handle = __syx_plugin_faer_zeros(1, nc)
+        let acc = __syx_plugin_faer_to(accM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + acc[col]
+            let r1 = __syx_int_min(1, row)
+            let pick = 1 - r1
+            let z = __syx_f64_mul_add(1.0, x, prev)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc[col] = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(accM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cumprodRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 1.0
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let c1 = __syx_int_min(1, col)
+            let pick = 1 - c1
+            let z = __syx_f64_mul_add(acc, x, 0.0)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cumprodCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        let accM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(accM.handle)
+        accM.handle = __syx_plugin_faer_zeros(1, nc)
+        let acc = __syx_plugin_faer_to(accM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + acc[col]
+            let r1 = __syx_int_min(1, row)
+            let pick = 1 - r1
+            let z = __syx_f64_mul_add(prev, x, 0.0)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc[col] = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(accM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1090: diffRows / diffCols / cumminRows / cumminCols. HostFn via let only.
+    public func diffRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let c1 = __syx_int_min(1, col)
+            let pick = 1 - c1
+            let back = 1 - pick
+            let y = 0.0 + p[k - back]
+            let d = x - y
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - d, d)
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func diffCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let x = 0.0 + p[k]
+            let r1 = __syx_int_min(1, row)
+            let pick = 1 - r1
+            let back = nc * (1 - pick)
+            let y = 0.0 + p[k - back]
+            let d = x - y
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - d, d)
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cumminRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 0.0
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let c1 = __syx_int_min(1, col)
+            let pick = 1 - c1
+            let z = __syx_f64_min(acc, x)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cumminCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        let accM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(accM.handle)
+        accM.handle = __syx_plugin_faer_zeros(1, nc)
+        let acc = __syx_plugin_faer_to(accM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + acc[col]
+            let r1 = __syx_int_min(1, row)
+            let pick = 1 - r1
+            let z = __syx_f64_min(prev, x)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc[col] = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(accM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    // W1091: cummaxRows / cummaxCols / cummin / cummax. HostFn via let only.
+    public func cummaxRows() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 0.0
+        var k = 0
+        while k < n {
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let c1 = __syx_int_min(1, col)
+            let pick = 1 - c1
+            let z = __syx_f64_max(acc, x)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cummaxCols() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        let accM = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(accM.handle)
+        accM.handle = __syx_plugin_faer_zeros(1, nc)
+        let acc = __syx_plugin_faer_to(accM.handle)
+        var k = 0
+        while k < n {
+            let row = k / nc
+            let col = k % nc
+            let x = 0.0 + p[k]
+            let prev = 0.0 + acc[col]
+            let r1 = __syx_int_min(1, row)
+            let pick = 1 - r1
+            let z = __syx_f64_max(prev, x)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc[col] = 0.0 + mixed
+            q[k] = 0.0 + mixed
+            k = k + 1
+        }
+        __syx_plugin_v2probe_drop(accM.handle)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cummin() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c1 = __syx_int_min(1, i)
+            let pick = 1 - c1
+            let z = __syx_f64_min(acc, x)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc = 0.0 + mixed
+            q[i] = 0.0 + mixed
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func cummax() -> Mat {
+        let p = __syx_plugin_faer_to(self.handle)
+        let nr = self.rows
+        let nc = self.cols
+        let n = nr * nc
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_zeros(nr, nc)
+        let q = __syx_plugin_faer_to(out.handle)
+        var acc = 0.0
+        var i = 0
+        while i < n {
+            let x = 0.0 + p[i]
+            let c1 = __syx_int_min(1, i)
+            let pick = 1 - c1
+            let z = __syx_f64_max(acc, x)
+            let mixed = __syx_f64_mul_add(0.0 + pick, x - z, z)
+            acc = 0.0 + mixed
+            q[i] = 0.0 + mixed
+            i = i + 1
+        }
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_from(q, nr, nc)
+        out.rows = nr
+        out.cols = nc
+        return out
+    }
+
+    public func solve(_ b: Mat) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_solve(self.handle, b.handle)
+        out.rows = b.rows
+        out.cols = b.cols
+        return out
+    }
+
+    public operator func *(a: Mat, b: Mat) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_mul(a.handle, b.handle)
+        out.rows = a.rows
+        out.cols = b.cols
+        return out
+    }
+
+    // W1120: +/- thin-wire to in-process faer add/sub (hadamard stays packed).
+    public operator func +(a: Mat, b: Mat) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_add(a.handle, b.handle)
+        out.rows = a.rows
+        out.cols = a.cols
+        return out
+    }
+
+    public operator func -(a: Mat, b: Mat) -> Mat {
+        let out = Mat([0.0], rows: 1, cols: 1)
+        __syx_plugin_v2probe_drop(out.handle)
+        out.handle = __syx_plugin_faer_sub(a.handle, b.handle)
+        out.rows = a.rows
+        out.cols = a.cols
+        return out
+    }
+}

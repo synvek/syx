@@ -1,0 +1,27 @@
+/// ADR-295 / ADR-296 / M3-D02: Trace/Span (≠ OTel GA / ≠ D03–D04 / ≠ EC-M3).
+public class Trace {
+    /// Start a named span; returns span id and pushes onto the TLS stack.
+    public static func start(name: String) -> String {
+        return __syx_trace_start(name)
+    }
+
+    /// End the current span; returns false if none.
+    public static func end() -> Bool {
+        return __syx_trace_end()
+    }
+
+    /// Current span id, or empty string if none.
+    public static func current() -> String {
+        return __syx_trace_current()
+    }
+
+    /// Stable correlation line: `span=<id|-> task_id=<n|-> actor_id=<n|->`.
+    public static func contextLine() -> String {
+        return __syx_trace_context_line()
+    }
+
+    /// Fingerprint `trace-v1-logctx` (ADR-296 nested + Log inject; ≠ OTel / ≠ D02 leaf).
+    public static func policy() -> String {
+        return __syx_trace_policy()
+    }
+}

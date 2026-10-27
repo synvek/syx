@@ -1,0 +1,10 @@
+class Box {
+    operator func -(a: Int, b: Int) -> Int {
+        return a
+    }
+}
+
+func main() {
+    print(1)
+}
+

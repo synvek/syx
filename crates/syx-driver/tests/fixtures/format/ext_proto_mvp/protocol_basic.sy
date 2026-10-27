@@ -1,0 +1,17 @@
+protocol Pingable {
+    func ping() -> String {
+        return "?"
+    }
+}
+
+class Node: Pingable {
+    func ping() -> String {
+        return "ok"
+    }
+}
+
+func main() {
+    let n = Node()
+    print(n.ping())
+}
+

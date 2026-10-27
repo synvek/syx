@@ -1,0 +1,37 @@
+// Alias of `{{DELEGATE}}`. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; methods forward to the canonical surface.
+
+/// {{DOC}}
+@builtin("{{ID}}")
+public class {{TY}}: {{PROTOCOLS}} {
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return {{DELEGATE}}.bitWidth()
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return {{DELEGATE}}.byteWidth()
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> {{TY}} {
+        return {{DELEGATE}}.zero()
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive).
+    public static func clamp(x: {{TY}}, lo: {{TY}}, hi: {{TY}}) -> {{TY}} {
+        return {{DELEGATE}}.clamp(x, lo, hi)
+    }
+
+    /// Absolute value (host `__syx_*_abs` via delegate).
+    public static func abs(x: {{TY}}) -> {{TY}} {
+        return {{DELEGATE}}.abs(x)
+    }
+
+    /// Machine epsilon for this floating-point type.
+    public static func epsilon() -> {{TY}} {
+        return {{DELEGATE}}.epsilon()
+    }
+}
+{{WITNESS}}

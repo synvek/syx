@@ -1,0 +1,15 @@
+actor Counter {
+    var n: Int
+    init() {
+        self.n = 7
+    }
+    func peek() -> Int {
+        return self.n
+    }
+}
+
+func main() {
+    let c = Counter()
+    print(c.peek())
+}
+

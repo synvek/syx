@@ -1,0 +1,5 @@
+func id() -> Int {
+    print(1)
+    return 1
+}
+

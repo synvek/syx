@@ -1,0 +1,7 @@
+func main() {
+    let x = nil
+    print(x)
+    print(nil)
+    return nil
+}
+

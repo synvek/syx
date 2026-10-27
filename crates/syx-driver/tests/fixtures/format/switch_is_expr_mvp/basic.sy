@@ -1,0 +1,9 @@
+func main() {
+    switch x {
+    case y is Int:
+        print(1)
+    default:
+        print(0)
+    }
+}
+

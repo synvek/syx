@@ -1,0 +1,4 @@
+[packages.nest]
+source = "path"
+version = "1.0.0"
+path = "nest_pkg"

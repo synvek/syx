@@ -1,0 +1,5 @@
+func add(a: Foo<A, B>, b: Dict<String, Int>) {
+    let s = a
+    return
+}
+

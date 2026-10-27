@@ -1,0 +1,10 @@
+while go
+while i < n
+print(i)
+
+func main() {
+    while ready()
+    while flag
+    print(1)
+}
+

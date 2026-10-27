@@ -1,0 +1,8 @@
+export { }
+export { helper as go }
+func helper() {
+  print(1)
+}
+func main() {
+  print(2)
+}

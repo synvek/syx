@@ -1,0 +1,30 @@
+[package]
+name = "syx-cli"
+description = "SYX command-line compiler and toolchain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "syx"
+path = "src/main.rs"
+
+[dependencies]
+syx-driver = { workspace = true }
+syx-macro = { workspace = true }
+syx-config = { workspace = true }
+syx-diagnostics = { workspace = true }
+syx-lsp = { path = "../syx-lsp" }
+syx-host-plugin = { workspace = true }
+syx-pkg = { workspace = true }
+clap = { workspace = true }
+miette = { workspace = true }
+
+[features]
+default = []
+# Propagate full-native (inkwell object-direct + vendored LLD) to the CLI.
+full-native = ["syx-driver/full-native"]
+# Opt-in SynUI GUI (sibling ../synui). Off by default — not needed for server/toolchain builds.
+gui-synui = ["syx-driver/gui-synui"]

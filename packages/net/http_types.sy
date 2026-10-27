@@ -1,0 +1,6 @@
+public data class HttpHeaders()
+
+public data class HttpBody(text: String)
+
+public data class HttpRequest(method: String, path: String, query: String, body: String)
+

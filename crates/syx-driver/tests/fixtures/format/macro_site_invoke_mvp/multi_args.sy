@@ -1,0 +1,6 @@
+#log("hi", 1)
+
+func main() {
+    print(1)
+}
+

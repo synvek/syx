@@ -1,0 +1,174 @@
+// =============================================================================
+// tutorial/16-deinitialization.sy
+// 对应《SYX 语言指南》第 16 章「析构过程」
+//
+// 本章涉及语言特性：
+//   - class / actor 显式 deinit
+//   - ARC 引用归零触发
+//   - struct / enum 无 deinit
+//   - deinit 调用链
+//   - 弱引用触发归零（未完整）
+// =============================================================================
+
+// 1) class deinit
+class Resource {
+    let id: Int
+    init(id: Int) { self.id = id; print("init Resource(\(id))") }
+    deinit { print("deinit Resource(\(self.id))") }
+}
+
+func basicDeinit() {
+    let _ = Resource(id: 1)                              // init + deinit (作用域结束)
+    let _ = Resource(id: 2)                              // init + deinit
+}
+
+// 2) 多个引用共享，refcount 控制释放
+class Shared {
+    let tag: String
+    init(tag: String) { self.tag = tag; print("init \(tag)") }
+    deinit { print("deinit \(self.tag)") }
+}
+
+func refcountDemo() {
+    let a = Shared(tag: "A")                             // ref=1
+    let b = a                                            // ref=2
+    let c = a                                            // ref=3
+    let _ = (b, c)                                       // 离开作用域时 b,c 释放 → ref=1
+    let _ = a                                            // 离开作用域 → ref=0 → deinit
+}
+
+// 3) 嵌套对象 + deinit 链
+class Inner {
+    let name: String
+    init(name: String) { self.name = name }
+    deinit { print("deinit Inner(\(self.name))") }
+}
+
+class Outer {
+    let inner: Inner
+    init(name: String) {
+        self.inner = Inner(name: name)
+    }
+    deinit { print("deinit Outer (holds \(self.inner.name))") }
+}
+
+func nestedDeinit() {
+    let o = Outer(name: "deep")
+    print("using outer")
+    // 离开作用域：先 o deinit → 后 inner deinit
+}
+
+// 4) 闭包捕获 + deinit
+class ClosureHolder {
+    var callback: (() -> Void)?
+    init() { print("init ClosureHolder") }
+    deinit { print("deinit ClosureHolder") }
+    func setCallback() {
+        callback = { print("callback fired") }
+    }
+}
+
+func closureDeinit() {
+    let h = ClosureHolder()
+    h.setCallback()
+    h.callback!()                                        // 输出 "callback fired"
+}
+
+// 5) actor deinit
+actor Worker {
+    let id: Int
+    init(id: Int) { self.id = id }
+    deinit { print("deinit Worker(\(self.id))") }
+    func work() { print("working \(self.id)") }
+}
+
+async func actorDeinit() {
+    let w = Worker(id: 7)
+    await w.work()
+    // actor 离开作用域触发 deinit
+}
+
+// 6) static counter 跟踪实例数
+class Tracked {
+    static var live: Int = 0
+    let id: Int
+    init(id: Int) {
+        self.id = id
+        Tracked.live = Tracked.live + 1
+    }
+    deinit { Tracked.live = Tracked.live - 1 }
+}
+
+func trackDemo() {
+    print("live=\(Tracked.live)")
+    let a = Tracked(id: 1)
+    print("after a: live=\(Tracked.live)")
+    let b = Tracked(id: 2)
+    let c = Tracked(id: 3)
+    print("after b,c: live=\(Tracked.live)")
+    let _ = a
+    print("after a out: live=\(Tracked.live)")
+    let _ = (b, c)
+    print("after b,c out: live=\(Tracked.live)")
+}
+
+// 7) 资源管理：文件句柄、连接等
+class FileHandle {
+    let path: String
+    init(path: String) {
+        self.path = path
+        print("opened \(path)")
+    }
+    deinit {
+        print("closed \(self.path)")
+    }
+}
+
+func fileDemo() {
+    let h1 = FileHandle(path: "/tmp/a.txt")
+    let h2 = FileHandle(path: "/tmp/b.txt")
+    // 离开作用域：h2 deinit → h1 deinit（栈顺序）
+}
+
+// 8) struct / enum 无 deinit
+struct Value {
+    var x: Int
+    // deinit {} ← ❌ struct 不支持 deinit
+}
+
+enum Flavor {
+    case sweet, sour, bitter
+    // deinit {} ← ❌ enum 不支持
+}
+
+// 9) deinit 不能抛错 / 不能传参
+class NoThrow {
+    deinit {
+        // throw "..."  ← ❌ deinit 不能 throw
+        print("cleanup")
+    }
+}
+
+// 10) super.deinit 自动调用（override 链）
+class Base3 {
+    deinit { print("Base3 deinit") }
+}
+class Sub3: Base3 {
+    deinit { print("Sub3 deinit") }                     // 隐式 super.deinit
+}
+
+func deinitChain() {
+    let _ = Sub3()                                       // Sub3 deinit → Base3 deinit
+}
+
+func main() {
+    basicDeinit()
+    refcountDemo()
+    nestedDeinit()
+    closureDeinit()
+    trackDemo()
+    fileDemo()
+    deinitChain()
+    // actor demo
+    Task.detached { await actorDeinit() }
+}

@@ -1,0 +1,12 @@
+class Box {
+    var n: Int
+    init(n: Int) {
+        self.n = n
+    }
+}
+
+func main() {
+    let a = [Box(n: 1), Box(n: 2)]
+    print(a[0].n + a[1].n)
+}
+

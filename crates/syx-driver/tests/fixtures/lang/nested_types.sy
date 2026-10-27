@@ -1,0 +1,34 @@
+class Outer {
+    class Inner {
+        func value() -> Int {
+            return 7
+        }
+    }
+    class Middle {
+        class Deep {
+            func value() -> Int {
+                return 9
+            }
+        }
+    }
+}
+
+class Holder {
+    var inner: Outer_Inner
+    init(inner: Outer_Inner) {
+        self.inner = inner
+    }
+    func read() -> Int {
+        return self.inner.value()
+    }
+}
+
+func main() {
+    var direct = Outer.Inner()
+    print(direct.value())
+    var h = Holder(inner: Outer.Inner())
+    print(h.read())
+    var deep = Outer.Middle.Deep()
+    print(deep.value())
+}
+

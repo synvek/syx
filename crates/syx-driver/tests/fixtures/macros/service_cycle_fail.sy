@@ -1,0 +1,16 @@
+@Service
+class A {
+    init(@Inject b: B) {
+    }
+}
+
+@Service
+class B {
+    init(@Inject a: A) {
+    }
+}
+
+func main() {
+    print(1)
+}
+

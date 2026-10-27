@@ -1,0 +1,93 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SYX",
+  "scopeName": "source.sy",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#strings" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.sy",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.sy",
+          "match": "\\b(func|let|var|if|else|while|for|in|return|import|class|struct|enum|protocol|actor|async|await|try|catch|throw|throws|data|final|extension|match|case|default|break|continue|switch|where|concurrent|nonisolated|MainActor|Sendable|init|deinit|is|as)\\b"
+        },
+        {
+          "name": "keyword.operator.sy",
+          "match": "\\bas[?!]"
+        },
+        {
+          "name": "keyword.modifier.sy",
+          "match": "\\b(public|internal|private|open|fileprivate|static|mutating|override|final)\\b"
+        },
+        {
+          "name": "storage.type.sy",
+          "match": "\\b(Int|Int8|Int16|Int32|Int64|Int128|UInt|UInt8|UInt16|UInt32|UInt64|UInt128|Float|Float32|Float64|Double|Bool|String|Character|Void|Any|Nil|Object|Array|Set|Dictionary|BigInt)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.sy",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "include": "#string-interpolation" },
+            {
+              "name": "constant.character.escape.sy",
+              "match": "\\\\(?:[\"\\\\nrt]|[^\"\\\\])"
+            }
+          ]
+        }
+      ]
+    },
+    "string-interpolation": {
+      "patterns": [
+        {
+          "name": "meta.interpolation.sy",
+          "begin": "\\\\\\(",
+          "end": "\\)",
+          "beginCaptures": {
+            "0": { "name": "punctuation.section.interpolation.begin.sy" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.section.interpolation.end.sy" }
+          },
+          "patterns": [
+            { "include": "#interpolation-expr" }
+          ]
+        }
+      ]
+    },
+    "interpolation-expr": {
+      "patterns": [
+        { "include": "#keywords" },
+        { "include": "#numbers" },
+        {
+          "name": "variable.other.sy",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "name": "keyword.operator.sy",
+          "match": "\\."
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.sy",
+      "match": "\\b[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fF32F64iIuU]?\\b"
+    }
+  }
+}

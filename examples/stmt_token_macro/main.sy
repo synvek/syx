@@ -1,0 +1,20 @@
+#macro say(msg) {
+    print(msg)
+}
+
+#macro logSum(a, b) {
+    print(a + b)
+}
+
+#macro wrap(s) {
+    "hi:" + s
+}
+
+func main() {
+    #say("stmt-token-ok")
+    #logSum(20, 22)
+    let n = 7
+    #say(n)
+    #say(#wrap("world"))
+}
+

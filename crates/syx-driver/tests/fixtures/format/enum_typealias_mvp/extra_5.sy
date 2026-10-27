@@ -1,0 +1,11 @@
+enum E5 {
+    a
+    b
+}
+
+typealias T5 = String
+
+func main() {
+    print(5)
+}
+

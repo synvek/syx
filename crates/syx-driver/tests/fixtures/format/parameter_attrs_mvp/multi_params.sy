@@ -1,0 +1,3 @@
+func pair(@Autowired a: Logger, b: Int) {
+}
+

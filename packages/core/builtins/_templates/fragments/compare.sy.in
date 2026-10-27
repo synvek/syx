@@ -1,0 +1,4 @@
+    /// Three-way compare (`Comparable`); host `__syx_{{SLUG}}_compare`.
+    func compare(other: {{TY}}) -> Int {
+        return __syx_{{SLUG}}_compare(self, other)
+    }

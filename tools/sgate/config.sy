@@ -1,0 +1,624 @@
+import IO
+
+public var CONFIG: Object = JSON.decode("{}")
+
+/// Cross-module assignment to `CONFIG` is rejected by the checker;
+/// other modules must call this setter instead of `config.CONFIG = …`.
+public func setConfig(obj: Object) {
+    CONFIG = obj
+}
+
+/// JSON field helpers — prefer `as?` / `??` (MIR once dropped `if let` and
+/// mis-placed `??` stores; both are fixed). Missing / null → fallback.
+func jStr(v: Any) -> String {
+    return (v as? String) ?? ""
+}
+
+func jInt(v: Any, fallback: Int) -> Int {
+    return (v as? Int) ?? fallback
+}
+
+func jBool(v: Any, fallback: Bool) -> Bool {
+    return (v as? Bool) ?? fallback
+}
+
+public func loadConfig(path: String) -> Bool {
+    if !File.exists(path)
+    return false
+    let txt = File.read(path)
+    let parsed = JSON.decode(text: txt)
+    setConfig(obj: parsed)
+    return true
+}
+
+public func server_listen() -> String {
+    let v = jStr(v: CONFIG.server.listen)
+    if v == "" {
+        return "0.0.0.0"
+    }
+    return v
+}
+
+public func server_port() -> Int {
+    return jInt(v: CONFIG.server.port, fallback: 8080)
+}
+
+public func server_access_log() -> Bool {
+    return jBool(v: CONFIG.server.access_log, fallback: true)
+}
+
+public func server_worker_name() -> String {
+    let n = jStr(v: CONFIG.server.worker_name)
+    if n == "" {
+        return "sgate"
+    }
+    return n
+}
+
+public func tlsEnabled() -> Bool {
+    return jBool(v: CONFIG.server.tls.enabled, fallback: false)
+}
+
+public func tlsPort() -> Int {
+    return jInt(v: CONFIG.server.tls.port, fallback: 8443)
+}
+
+public func tlsCertPath() -> String {
+    return jStr(v: CONFIG.server.tls.cert)
+}
+
+public func tlsKeyPath() -> String {
+    return jStr(v: CONFIG.server.tls.key)
+}
+
+public func tlsBackendPort() -> Int {
+    return jInt(v: CONFIG.server.tls.backend_port, fallback: 8080)
+}
+
+public func tlsMode() -> String {
+    let m = jStr(v: CONFIG.server.tls.mode)
+    if m == "" {
+        return "sidecar"
+    }
+    return m
+}
+
+public func hotReloadEnabled() -> Bool {
+    return jBool(v: CONFIG.server.hot_reload.enabled, fallback: false)
+}
+
+public func hotReloadIntervalMs() -> Int {
+    return jInt(v: CONFIG.server.hot_reload.interval_ms, fallback: 1000)
+}
+
+public func upstreamCount() -> Int {
+    return CONFIG.upstreams.count
+}
+
+public func upstreamName(idx: Int) -> String {
+    if idx < 0
+    return ""
+    if idx >= CONFIG.upstreams.count
+    return ""
+    return jStr(v: CONFIG.upstreams[idx].name)
+}
+
+public func findUpstreamIndex(name: String) -> Int {
+    // Name compare must not sit inside another while: a false match aborts the
+    // outer while (VM quirk). Gate each index with a top-level flag instead.
+    let want = "\(name)"
+    var found = -1
+
+    var n0 = CONFIG.upstreams.count
+    var take0 = "0"
+    while n0 > 0 {
+        take0 = "1"
+        n0 = 0
+    }
+    var p0 = ""
+    while take0 == "1" {
+        p0 = jStr(v: CONFIG.upstreams[0].name)
+        take0 = "0"
+    }
+    var w = want
+    while w == p0 {
+        found = 0
+        w = ""
+    }
+
+    var n1 = CONFIG.upstreams.count
+    var take1 = "0"
+    while n1 > 1 {
+        take1 = "1"
+        n1 = 0
+    }
+    var p1 = ""
+    while take1 == "1" {
+        p1 = jStr(v: CONFIG.upstreams[1].name)
+        take1 = "0"
+    }
+    w = want
+    while w == p1 {
+        found = 1
+        w = ""
+    }
+
+    var n2 = CONFIG.upstreams.count
+    var take2 = "0"
+    while n2 > 2 {
+        take2 = "1"
+        n2 = 0
+    }
+    var p2 = ""
+    while take2 == "1" {
+        p2 = jStr(v: CONFIG.upstreams[2].name)
+        take2 = "0"
+    }
+    w = want
+    while w == p2 {
+        found = 2
+        w = ""
+    }
+
+    var n3 = CONFIG.upstreams.count
+    var take3 = "0"
+    while n3 > 3 {
+        take3 = "1"
+        n3 = 0
+    }
+    var p3 = ""
+    while take3 == "1" {
+        p3 = jStr(v: CONFIG.upstreams[3].name)
+        take3 = "0"
+    }
+    w = want
+    while w == p3 {
+        found = 3
+        w = ""
+    }
+
+    return found
+}
+
+public func upstreamServersAt(idx: Int) -> Array<String> {
+    var empty: Array<String> = []
+    if idx < 0
+    return empty
+    if idx >= CONFIG.upstreams.count
+    return empty
+    let srv = CONFIG.upstreams[idx].servers
+    var out: Array<String> = []
+    var j = 0
+    while j < srv.count {
+        out.append(jStr(v: srv[j]))
+        j = j + 1
+    }
+    return out
+}
+
+public func serversForUpstream(name: String) -> Array<String> {
+    return upstreamServersAt(idx: findUpstreamIndex(name: name))
+}
+
+public func timeoutForUpstream(name: String) -> Int {
+    let idx = findUpstreamIndex(name: name)
+    if idx < 0
+    return 5000
+    return jInt(v: CONFIG.upstreams[idx].timeout_ms, fallback: 5000)
+}
+
+public func strategyForUpstream(name: String) -> String {
+    let idx = findUpstreamIndex(name: name)
+    if idx < 0
+    return "round_robin"
+    let s = jStr(v: CONFIG.upstreams[idx].strategy)
+    if s == "" {
+        return "round_robin"
+    }
+    return s
+}
+
+public func locationCount() -> Int {
+    return CONFIG.locations.count
+}
+
+public func locationName(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].name)
+}
+
+public func locationExact(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].exact)
+}
+
+public func locationPrefix(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].prefix)
+}
+
+public func locationUpstream(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].upstream)
+}
+
+public func locationRoot(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].root)
+}
+
+public func locationProxy(i: Int) -> Bool {
+    if i < 0
+    return false
+    if i >= CONFIG.locations.count
+    return false
+    return jBool(v: CONFIG.locations[i].proxy, fallback: false)
+}
+
+public func locationStaticStatus(i: Int) -> Int {
+    if i < 0
+    return 200
+    if i >= CONFIG.locations.count
+    return 200
+    return jInt(v: CONFIG.locations[i].status, fallback: 200)
+}
+
+public func locationStaticBody(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].body)
+}
+
+public func locationStripPrefix(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].strip_prefix)
+}
+
+public func locationHeader(i: Int, name: String) -> String {
+    // Dashed header names are not dotted-accessible; demo uses x_sgate_handler.
+    if name != "X-Sgate-Handler"
+    return ""
+    if i < 0
+    return ""
+    if i >= CONFIG.locations.count
+    return ""
+    return jStr(v: CONFIG.locations[i].x_sgate_handler)
+}
+
+public func locationHasHeader(i: Int, name: String) -> Bool {
+    if name != "X-Sgate-Handler"
+    return false
+    return locationHeader(i: i, name: name) != ""
+}
+
+public func findExactLocation(path: String) -> Int {
+    let want = "\(path)"
+    var found = -1
+    let nLoc = locationCount()
+
+    var n0 = nLoc
+    var e0 = ""
+    while n0 > 0 {
+        e0 = locationExact(i: 0)
+        n0 = 0
+    }
+    var w = want
+    while w == e0 {
+        found = 0
+        w = ""
+    }
+
+    var n1 = nLoc
+    var e1 = ""
+    while n1 > 1 {
+        e1 = locationExact(i: 1)
+        n1 = 1
+    }
+    w = want
+    while w == e1 {
+        found = 1
+        w = ""
+    }
+
+    var n2 = nLoc
+    var e2 = ""
+    while n2 > 2 {
+        e2 = locationExact(i: 2)
+        n2 = 2
+    }
+    w = want
+    while w == e2 {
+        found = 2
+        w = ""
+    }
+
+    var n3 = nLoc
+    var e3 = ""
+    while n3 > 3 {
+        e3 = locationExact(i: 3)
+        n3 = 3
+    }
+    w = want
+    while w == e3 {
+        found = 3
+        w = ""
+    }
+
+    return found
+}
+
+public func findPrefixLocation(path: String) -> Int {
+    return findBestPrefixLocation(path: "\(path)")
+}
+
+public func startsWith(text: String, prefix: String) -> Bool {
+    // Prefer the "y"/"n" helper — Bool returns from compare have been unreliable.
+    let yn = startsWithYN(text: text, prefix: prefix)
+    var result = false
+    var s = yn
+    while s == "y" {
+        result = true
+        s = ""
+    }
+    return result
+}
+
+/// Returns "y" or "n".
+/// Char-append compare (substring() is empty in this VM). Counting loops stay
+/// at function top-level — an inner `while` exiting false aborts an outer `while`.
+public func startsWithYN(text: String, prefix: String) -> String {
+    let tLen = "\(text)".count
+    let pfxLen = "\(prefix)".count
+    var result = "n"
+    var lim = pfxLen
+    var lenOk = "0"
+    while lim <= tLen {
+        lenOk = "1"
+        lim = tLen + 1
+    }
+    while lenOk == "0" {
+        return "n"
+    }
+    var head = ""
+    var i = 0
+    let t2 = "\(text)"
+    while i < pfxLen {
+        head = head + "\(t2[i])"
+        i = i + 1
+    }
+    var h = head
+    let pfx2 = "\(prefix)"
+    while h == pfx2 {
+        result = "y"
+        h = ""
+    }
+    return result
+}
+
+/// Strip a path prefix; result always starts with `/`.
+/// Empty prefix → return path unchanged (catch-all proxy).
+public func stripPrefixPath(path: String, prefix: String) -> String {
+    let pfxLen = "\(prefix)".count
+    while pfxLen == 0 {
+        return "\(path)"
+    }
+    let yn = startsWithYN(text: "\(path)", prefix: "\(prefix)")
+    while yn == "n" {
+        return "\(path)"
+    }
+    let pLen = "\(path)".count
+    var rest = ""
+    var i = pfxLen
+    let src = "\(path)"
+    while i < pLen {
+        rest = rest + "\(src[i])"
+        i = i + 1
+    }
+    return "/" + rest
+}
+
+/// Longest matching `prefix` location (so `/api/` wins over catch-all `/`).
+public func findBestPrefixLocation(path: String) -> Int {
+    var bestIdx = -1
+    var bestLen = -1
+
+    let len0 = prefixCandidateLen(path: "\(path)", idx: 0)
+    let idx0 = prefixCandidateIdx(path: "\(path)", idx: 0)
+    while len0 > bestLen {
+        bestIdx = idx0
+        bestLen = len0
+    }
+
+    let len1 = prefixCandidateLen(path: "\(path)", idx: 1)
+    let idx1 = prefixCandidateIdx(path: "\(path)", idx: 1)
+    while len1 > bestLen {
+        bestIdx = idx1
+        bestLen = len1
+    }
+
+    let len2 = prefixCandidateLen(path: "\(path)", idx: 2)
+    let idx2 = prefixCandidateIdx(path: "\(path)", idx: 2)
+    while len2 > bestLen {
+        bestIdx = idx2
+        bestLen = len2
+    }
+
+    let len3 = prefixCandidateLen(path: "\(path)", idx: 3)
+    let idx3 = prefixCandidateIdx(path: "\(path)", idx: 3)
+    while len3 > bestLen {
+        bestIdx = idx3
+        bestLen = len3
+    }
+
+    let len4 = prefixCandidateLen(path: "\(path)", idx: 4)
+    let idx4 = prefixCandidateIdx(path: "\(path)", idx: 4)
+    while len4 > bestLen {
+        bestIdx = idx4
+        bestLen = len4
+    }
+
+    let len5 = prefixCandidateLen(path: "\(path)", idx: 5)
+    let idx5 = prefixCandidateIdx(path: "\(path)", idx: 5)
+    while len5 > bestLen {
+        bestIdx = idx5
+        bestLen = len5
+    }
+
+    let len6 = prefixCandidateLen(path: "\(path)", idx: 6)
+    let idx6 = prefixCandidateIdx(path: "\(path)", idx: 6)
+    while len6 > bestLen {
+        bestIdx = idx6
+        bestLen = len6
+    }
+
+    let len7 = prefixCandidateLen(path: "\(path)", idx: 7)
+    let idx7 = prefixCandidateIdx(path: "\(path)", idx: 7)
+    while len7 > bestLen {
+        bestIdx = idx7
+        bestLen = len7
+    }
+
+    return bestIdx
+}
+
+public func prefixCandidateLen(path: String, idx: Int) -> Int {
+    let n = locationCount()
+    while idx < 0 {
+        return -1
+    }
+    while idx >= n {
+        return -1
+    }
+    let plen = "\(locationPrefix(i: idx))".count
+    while plen == 0 {
+        return -1
+    }
+    let yn = startsWithYN(text: "\(path)", prefix: "\(locationPrefix(i: idx))")
+    while yn == "n" {
+        return -1
+    }
+    return plen
+}
+
+public func prefixCandidateIdx(path: String, idx: Int) -> Int {
+    let n = locationCount()
+    while idx < 0 {
+        return -1
+    }
+    while idx >= n {
+        return -1
+    }
+    let plen = "\(locationPrefix(i: idx))".count
+    while plen == 0 {
+        return -1
+    }
+    let yn = startsWithYN(text: "\(path)", prefix: "\(locationPrefix(i: idx))")
+    while yn == "n" {
+        return -1
+    }
+    return idx
+}
+
+/// First server in an upstream pool (round-robin deferred).
+public func firstServer(name: String) -> String {
+    let idx = findUpstreamIndex(name: name)
+    while idx < 0 {
+        return ""
+    }
+    let servers = upstreamServersAt(idx: idx)
+    let n = servers.count
+    while n == 0 {
+        return ""
+    }
+    return servers[0]
+}
+
+public func error_body_for(status: Int) -> String {
+    // Numeric JSON keys are not reachable via dotted access; use identifier keys.
+    let pages = CONFIG.error_pages
+    if status == 404 {
+        return jStr(v: pages.not_found)
+    }
+    if status == 502 {
+        return jStr(v: pages.bad_gateway)
+    }
+    if status == 504 {
+        return jStr(v: pages.gateway_timeout)
+    }
+    return ""
+}
+
+public func wsRouteCount() -> Int {
+    return CONFIG.ws_routes.count
+}
+
+public func wsRouteListenPort(i: Int) -> Int {
+    if i < 0
+    return 0
+    if i >= CONFIG.ws_routes.count
+    return 0
+    return jInt(v: CONFIG.ws_routes[i].listen_port, fallback: 0)
+}
+
+public func wsRoutePath(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.ws_routes.count
+    return ""
+    return jStr(v: CONFIG.ws_routes[i].path)
+}
+
+public func wsRouteUpstream(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.ws_routes.count
+    return ""
+    return jStr(v: CONFIG.ws_routes[i].upstream)
+}
+
+public func wsRouteStripPrefix(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.ws_routes.count
+    return ""
+    return jStr(v: CONFIG.ws_routes[i].strip_prefix)
+}
+
+public func wsRouteName(i: Int) -> String {
+    if i < 0
+    return ""
+    if i >= CONFIG.ws_routes.count
+    return ""
+    return jStr(v: CONFIG.ws_routes[i].name)
+}
+
+public func findWsRoute(path: String) -> Int {
+    let n = wsRouteCount()
+    var i = 0
+    while i < n {
+        if startsWith(text: path, prefix: wsRoutePath(i: i))
+        return i
+        i = i + 1
+    }
+    return -1
+}

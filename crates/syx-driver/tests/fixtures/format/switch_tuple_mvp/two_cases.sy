@@ -1,0 +1,11 @@
+func main() {
+    switch t {
+    case (a, b):
+        print(a)
+    case (x, y, z):
+        print(x)
+    default:
+        print(0)
+    }
+}
+

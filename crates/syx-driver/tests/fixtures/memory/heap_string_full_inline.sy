@@ -1,0 +1,8 @@
+func main() {
+    let a: String = "hello"
+    let b: String = "world"
+    print(a)
+    print(b)
+    print(a.count + b.count)
+}
+

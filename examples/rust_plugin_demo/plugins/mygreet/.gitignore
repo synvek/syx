@@ -1,0 +1,5 @@
+/target/
+libmygreet_plugin.dylib
+libmygreet_plugin.so
+mygreet_plugin.dll
+Cargo.lock

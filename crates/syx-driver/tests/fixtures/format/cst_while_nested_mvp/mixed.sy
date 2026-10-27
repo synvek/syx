@@ -1,0 +1,11 @@
+func main() {
+    while true
+    while flag
+    print(1)
+    while ready()
+    while tick(1) {
+        let x = 1
+        print(x)
+    }
+}
+

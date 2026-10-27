@@ -1,0 +1,6 @@
+import lib
+
+func main() {
+    print(lib.exported())
+}
+

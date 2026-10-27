@@ -1,0 +1,8 @@
+public func add(a, b) -> Int {
+    return a + b
+}
+
+public func secret() -> Int {
+    return 42
+}
+

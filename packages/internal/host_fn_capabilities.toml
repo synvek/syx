@@ -1,0 +1,1524 @@
+# HostFn capability overrides (M1-B05 / ADR-136).
+# Inventory = `pub enum HostFnId` in crates/syx-stdlib/src/registry.rs.
+# Missing name ⇒ generator emits status=unsupported (fail-closed).
+
+[meta]
+version = "0.1"
+syx_version = "117.0"
+phase = 139
+schema = "syx-host-fn-capability-v0"
+
+[[host]]
+name = "FmtPrint"
+status = "implemented"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1335 / W991: status→implemented Fmt first-slice (FmtPrint/FmtPrintLine); remaining HostFn partial this window −2; ADR-611 / W267: wasm=real fmt_print(hi)→hi + ADR-585 llvm; ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FmtPrintLine"
+status = "implemented"
+pilot = "suite1"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1335 / W991: status→implemented Fmt first-slice (FmtPrint/FmtPrintLine); remaining HostFn partial this window −2; ADR-611 / W267: wasm=real fmt_print_line(hi)→hi + ADR-585 llvm; ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ObjectIdentifier"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1372 / W1028: ObjectIdentifier ×1 status → implemented (four-backend-real already met); ADR-1371 / W1027: ObjectIdentifier ×1 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented); ADR-1370 / W1026: ObjectIdentifier ×1 mir+llvm → real (wasm still partial; ≠ status=implemented under four-backend-real rule); ADR-1369 / W1025: ObjectIdentifier mir/llvm/wasm-partial honesty (×1; ≠ status=implemented under four-backend-real rule); Common object host；ObjectIdentifier status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；ObjectIdentifier wasm/四后端 met / ≠ ObjectIdentifier status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；ObjectIdentifier mir+llvm 后端 met / ≠ ObjectIdentifier status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；ObjectIdentifier 诚实规则 met / ≠ ObjectIdentifier status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- M2 W40 / ADR-184: Path + File availability first nail; M2 W55 / ADR-199 matrix deepen; M2 W60 / ADR-204 PathJoin llvm GA ---
+
+[[host]]
+name = "PathJoin"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1336 / W992: status→implemented Path first-slice (Join/Normalize/Exists/Extension); ADR-612 / W268: wasm=real PathJoin + ADR-204 llvm; ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "PathNormalize"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1336 / W992: status→implemented Path first-slice (Join/Normalize/Exists/Extension); ADR-612 / W268: wasm=real PathNormalize + ADR-214 llvm; ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "PathExists"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1336 / W992: status→implemented Path first-slice (Join/Normalize/Exists/Extension); ADR-612 / W268: wasm=real PathExists + ADR-491 llvm; ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "PathExtension"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1336 / W992: status→implemented Path first-slice (Join/Normalize/Exists/Extension); ADR-612 / W268: wasm=real PathExtension + ADR-209 llvm; ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileOpen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1338 / W994: status→implemented File first-slice (Open/Close/Read/Write); ADR-612 / W268: wasm=real FileOpen + ADR-536 llvm; ≠ 全量 File* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1338 / W994: status→implemented File first-slice (Open/Close/Read/Write); ADR-612 / W268: wasm=real FileClose + ADR-536 llvm; ≠ 全量 File* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileCloseQuiet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileCloseQuiet + ADR-588 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileWithOpen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileWithOpen + ADR-592 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileWithOpenFail"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileWithOpenFail + ADR-591 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileRead"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1338 / W994: status→implemented File first-slice (Open/Close/Read/Write); ADR-612 / W268: wasm=real FileRead + ADR-537 llvm; ≠ 全量 File* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileWrite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1338 / W994: status→implemented File first-slice (Open/Close/Read/Write); ADR-612 / W268: wasm=real FileWrite + ADR-537 llvm; ≠ 全量 File* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileSeek"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileSeek + ADR-538 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileMmapRead"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileMmapRead + ADR-538 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- M2 W42 / ADR-186: HTTP HostFn availability; M2 W56 / ADR-200 matrix deepen; M2 W61 / ADR-205 HttpMakeResponse llvm GA ---
+
+[[host]]
+name = "HttpGet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpGet + ADR-591 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / product native=real (ADR-637/W293); ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpPost"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpPost + ADR-592 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / product native=real (ADR-637/W293); ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpRequest"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpRequest + ADR-593 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / product native=real (ADR-637/W293); ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpServe"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpServe + ADR-592 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / product native=real (ADR-638/W294); ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpShutdown"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpShutdown + ADR-592 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / product native=real (ADR-638/W294); ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpBodyStreamOpen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpBodyStreamOpen + ADR-586/601 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpBodyStreamOpenOpts"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpBodyStreamOpenOpts + ADR-586/601 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpBodyStreamReadChunk"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpBodyStreamReadChunk + ADR-586/601 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpBodyStreamClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-615 / W271: wasm=real HttpBodyStreamClose + ADR-586/601 llvm; ≠ Task* wasm / ≠ Sql* wasm / ≠ TLS server / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileStreamOpen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-611 / W267: wasm=real FileStream open + ADR-585 llvm + ADR-240/W204; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileStreamReadChunk"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-611 / W267: wasm=real read_chunk hi→length 2 + ADR-585 llvm + ADR-240/W204; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileStreamClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-611 / W267: wasm=real FileStream close + ADR-585 llvm + ADR-240/W204; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileWatcherOpen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileWatcherOpen + ADR-588 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileWatcherPoll"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileWatcherPoll + ADR-588 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "FileWatcherClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1339 / W995: status→implemented File rest (×11 File family close); ADR-613 / W269: wasm=real FileWatcherClose + ADR-588 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；全量 File* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProcessBuilderCreate"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-587 / W243 llvm=real create+cwd+env+spawn offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProcessBuilderCwd"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-587 / W243 llvm=real create+cwd+env+spawn offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProcessBuilderEnv"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-587 / W243 llvm=real create+cwd+env+spawn offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProcessBuilderSpawn"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-587 / W243 llvm=real create+cwd+env+spawn offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildWait"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-589 / W245 llvm=real stdout+readChunk×4+close+wait offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildKill"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-590 / W246 llvm=real kill fail-after offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildWaitTimeout"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-590 / W246 llvm=real waitTimeout success offline narrow native AOT + ADR-242; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildStdout"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-589 / W245 llvm=real stdout+readChunk×4+close+wait offline narrow native AOT + ADR-243; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildStderr"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-591 / W247 llvm=real stderr+readChunk×4+close+wait offline narrow native AOT + ADR-243; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildStdin"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-590 / W246 llvm=real stdin+write echo offline narrow native AOT + ADR-243; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildPipeReadChunk"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-589 / W245 llvm=real stdout+readChunk×4+close+wait offline narrow native AOT + ADR-243; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildPipeWrite"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-590 / W246 llvm=real stdin+write echo offline narrow native AOT + ADR-243; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildPipeClose"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-589 / W245 llvm=real stdout+readChunk×4+close+wait offline narrow native AOT + ADR-243; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ChildSignal"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "unsupported", cranelift = "unsupported" }
+notes = "ADR-1348 / W1004: Process/Child wasm-unsupported honesty (×14; ≠ status=implemented under four-backend-real rule); ADR-602 / W258: product native=real aligned; ADR-590 / W246 llvm=real TERM+wait→-1 offline narrow native AOT + ADR-244; ≠ wasm GA / ≠ Clock now；Process 诚实规则 met / ≠ Process status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpMakeResponse"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpMakeResponse + ADR-205 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpResponseStatus"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpResponseStatus + ADR-210 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpResponseText"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpResponseText + ADR-215 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpResponseOk"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpResponseOk + ADR-593 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpResponseHeader"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpResponseHeader + ADR-593 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpResponseHeaders"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpResponseHeaders + ADR-593 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "HttpResponseJson"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1340 / W996: status→implemented Http rest (×16 Http family close); ADR-614 / W270: wasm=real HttpResponseJson + ADR-593 llvm; ≠ Task* wasm / ≠ HttpServe·BodyStream wasm / ≠ process status=implemented；全量 Http* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- M2 W43 / ADR-187: Sql HostFn availability; M2 W57 / ADR-201 matrix deepen; M2 W62 / ADR-206 SqlOpen llvm GA ---
+
+[[host]]
+name = "SqlOpen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1341 / W997: status→implemented Sql core first-slice (Open/Close/ExecOn/QueryOn); ADR-616 / W272: wasm=real SqlOpen + ADR-206 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；≠ 全量 Sql* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1341 / W997: status→implemented Sql core first-slice (Open/Close/ExecOn/QueryOn); ADR-616 / W272: wasm=real SqlClose + ADR-211 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；≠ 全量 Sql* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlExecOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1341 / W997: status→implemented Sql core first-slice (Open/Close/ExecOn/QueryOn); ADR-616 / W272: wasm=real SqlExecOn + ADR-216 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；≠ 全量 Sql* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlQueryOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1341 / W997: status→implemented Sql core first-slice (Open/Close/ExecOn/QueryOn); ADR-616 / W272: wasm=real SqlQueryOn + ADR-594 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；≠ 全量 Sql* status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlExec"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-616 / W272: wasm=real SqlExec + ADR-598 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlQuery"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-616 / W272: wasm=real SqlQuery + ADR-598 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlPrepare"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-616 / W272: wasm=real SqlPrepare + ADR-598 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlBindStep"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-616 / W272: wasm=real SqlBindStep + ADR-598 llvm; ≠ Task* wasm / ≠ Sql txn·PrepareOn wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlBeginTransaction"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlBeginTransaction + ADR-599 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlCommitTransaction"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlCommitTransaction + ADR-599 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRollback"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlRollback + ADR-599 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlPrepareOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlPrepareOn + ADR-595 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlBindStepOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlBindStepOn + ADR-595 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlBindPreparedOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlBindPreparedOn + ADR-595 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlBeginTransactionOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlBeginTransactionOn + ADR-594 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlCommitTransactionOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlCommitTransactionOn + ADR-594 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRollbackTransactionOn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-617 / W273: wasm=real SqlRollbackTransactionOn + ADR-594 llvm; ≠ Task* wasm / ≠ Tcp* wasm / product native=real (ADR-636/W292) / ≠ process status=implemented；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlPoolCreate"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-716 / W372: wasm=real SqlPoolCreate + ADR-596 llvm + ADR-245; ≠ product pool raise / ≠ TcpListen* wasm / ≠ status=implemented / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlPoolAcquire"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-716 / W372: wasm=real SqlPoolAcquire + ADR-596 llvm + ADR-245; ≠ product pool raise / ≠ TcpListen* wasm / ≠ status=implemented / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlPoolRelease"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-716 / W372: wasm=real SqlPoolRelease + ADR-596 llvm + ADR-245; ≠ product pool raise / ≠ TcpListen* wasm / ≠ status=implemented / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlPoolClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-716 / W372: wasm=real SqlPoolClose + ADR-596 llvm + ADR-245; ≠ product pool raise / ≠ TcpListen* wasm / ≠ status=implemented / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRowGetString"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-714 / W370 residual SqlRow* HostFn wasm batch-5: wasm=real (qs1_sql_row_accessors_wasm); ADR-597 / W253 llvm=real SqlRow.getString + ADR-246 retained; status still partial; ≠ product data.sqlite.row raise / ≠ SqlPool* / ≠ TcpListen* / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRowGetInt"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-713 / W369 residual HostFn wasm first-slice: wasm=real (qs1_sql_prepare_bind_row_get_int_wasm); ADR-595 / W251 llvm=real + ADR-246 retained; status still partial; ADR-714 / W370 remaining SqlRow* wasm batch-5 also real; ≠ product data.sqlite.row raise / ≠ SqlPool* / ≠ TcpListen* / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRowGetFloat"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-714 / W370 residual SqlRow* HostFn wasm batch-5: wasm=real (qs1_sql_row_accessors_wasm); ADR-597 / W253 llvm=real SqlRow.getFloat + ADR-246 retained; status still partial; ≠ product data.sqlite.row raise / ≠ SqlPool* / ≠ TcpListen* / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRowGetBlob"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-714 / W370 residual SqlRow* HostFn wasm batch-5: wasm=real (qs1_sql_row_accessors_wasm); ADR-597 / W253 llvm=real SqlRow.getBlob + ADR-246 retained; status still partial; ≠ product data.sqlite.row raise / ≠ SqlPool* / ≠ TcpListen* / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRowIsNull"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-714 / W370 residual SqlRow* HostFn wasm batch-5: wasm=real (qs1_sql_row_accessors_wasm); ADR-597 / W253 llvm=real SqlRow.isNull + ADR-246 retained; status still partial; ≠ product data.sqlite.row raise / ≠ SqlPool* / ≠ TcpListen* / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "SqlRowColumnNames"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1342 / W998: status→implemented Sql rest (×23 Sql family close); ADR-714 / W370 residual SqlRow* HostFn wasm batch-5: wasm=real (qs1_sql_row_accessors_wasm); ADR-597 / W253 llvm=real SqlRow.columnNames + ADR-246 retained; status still partial; ≠ product data.sqlite.row raise / ≠ SqlPool* / ≠ TcpListen* / ≠ Clock now；全量 Sql* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- M2 W44 / ADR-188: Tcp HostFn availability; M2 W58 / ADR-202 matrix deepen ---
+
+[[host]]
+name = "TcpConnect"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-618 / W274: wasm=real TcpConnect refuse wasm + ADR-207 llvm; ≠ Task* wasm / ≠ TcpListen wasm / product native=real (ADR-635/W291); ≠ status=implemented / ≠ process status=implemented；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TcpRead"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-618 / W274: wasm=real TcpRead loopback wasm + ADR-219 llvm; ≠ Task* wasm / ≠ TcpListen wasm / product native=real (ADR-635/W291); ≠ status=implemented / ≠ process status=implemented；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TcpWrite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-618 / W274: wasm=real TcpWrite loopback wasm + ADR-217 llvm; ≠ Task* wasm / ≠ TcpListen wasm / product native=real (ADR-635/W291); ≠ status=implemented / ≠ process status=implemented；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TcpHandleRelease"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-618 / W274: wasm=real TcpHandleRelease loopback wasm + ADR-212 llvm; ≠ Task* wasm / ≠ TcpListen wasm / product native=real (ADR-635/W291); ≠ status=implemented / ≠ process status=implemented；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TcpListen"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-718 / W374: wasm=real TcpListen + ADR-591 llvm + ADR-255; ≠ accept GA met / ≠ TLS / ≠ status=implemented / ≠ Clock now；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TcpListenerClose"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-718 / W374: wasm=real TcpListenerClose + ADR-591 llvm + ADR-255; ≠ accept GA met / ≠ TLS / ≠ status=implemented / ≠ Clock now；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TcpListenerAccept"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1343 / W999: status→implemented Tcp (×7 Tcp family close); ADR-729 / W385: accept GA met exit scope narrow + ADR-728 wasm=real + ADR-727 llvm first-slice + ADR-255; status still partial; accept GA met narrow ≠ TLS / ≠ product surface raise / ≠ Clock now；全量 Tcp* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TlsServe"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-802 / W458: language noIdle 6th Int arg (≠0 skips idle; 0 → SYX_TLS_SERVE_NO_IDLE → default idle; serveOnceNoIdle / serveOnceAlpnNoIdle; arity 5→6; ≠ daemon GA); ADR-801 / W457: env no-idle first-slice (SYX_TLS_SERVE_NO_IDLE skips 400ms idle; optional SYX_TLS_SERVE_MAX_HANDLED bound; default idle unchanged); ADR-789 / W445: language ALPN parameter first-slice (5th arg alpn comma-separated; empty → SYX_TLS_SERVE_ALPN → default syx/1; ≠ Array alpn); ADR-788 / W444: concurrent serve (thread-per-conn + idle drain); ADR-787 / W443: env SYX_TLS_SERVE_ALPN; ADR-786 / W442: unbounded multi-conn idle; ADR-785 / W441: HostFn status→implemented; cranelift remains unsupported — JIT axis ≠ TLS raise; ADR-739 / W395: TLS GA met exit narrow + ADR-738 wasm=real + ADR-737 llvm first-slice; ADR-779 / W435: product net.tls.server status=implemented; ADR-780 / W436: application-data; ADR-781 / W437: multi-conn N=2 historical; ADR-782 / W438: ALPN syx/1 historical fixed; HostFn count 554"
+
+[[host]]
+name = "TaskGroupCreate"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-620 / W276: wasm=real TaskGroup create + ADR-607 llvm; ≠ spawn inherit / ≠ Deadline sleep C004 GA / ≠ process status=implemented / ≠ Wave A exit；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskGroupAdd"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-620 / W276: wasm=real TaskGroup add + ADR-607 llvm; ≠ spawn inherit / ≠ Deadline sleep C004 GA / ≠ process status=implemented / ≠ Wave A exit；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskGroupWait"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-620 / W276: wasm=real TaskGroup wait + ADR-607 llvm; ≠ spawn inherit / ≠ Deadline sleep C004 GA / ≠ process status=implemented / ≠ Wave A exit；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskGroupCancel"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-620 / W276: wasm=real cancel→wait C004 + ADR-607 llvm; ≠ spawn inherit / ≠ Deadline sleep C004 GA / ≠ process status=implemented / ≠ Wave A exit；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskLiveCount"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-619 / W275: wasm=real orphan+join live_count wasm + ADR-605 llvm; ≠ TaskGroup* wasm / ≠ spawn inherit / ≠ sleep C004 GA / ≠ process status=implemented；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskSetDeadlineMs"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-619 / W275: wasm=real set DEADLINE_SET wasm + ADR-605 llvm; ≠ TaskGroup* wasm / ≠ spawn inherit / ≠ sleep C004 GA / ≠ process status=implemented；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskLocalSet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-619 / W275: wasm=real same-thread set→get wasm + ADR-605 llvm; ≠ TaskGroup* wasm / ≠ spawn inherit / ≠ sleep C004 GA / ≠ process status=implemented；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TaskLocalGet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1344 / W1000: status→implemented Task (×8 Task family close); ADR-619 / W275: wasm=real missing→nil wasm + ADR-605 llvm; ≠ TaskGroup* wasm / ≠ spawn inherit / ≠ sleep C004 GA / ≠ process status=implemented；全量 Task* status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ActorReentrancyPolicy"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1374 / W1030: ActorReentrancyPolicy ×1 status → implemented (four-backend-real already met); ADR-1373 / W1029: ActorReentrancyPolicy ×1 llvm → real (four-backend-real met; status still partial by charter; ≠ status=implemented); ADR-631 / W287: wasm=real policy fingerprint + ADR-264/265 serial-no-reenter;await-hold; same-id sync → C009; ≠ await-hold GA / ≠ Swift await-reentrancy / ≠ Q-L4 exit；Actor status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Actor llvm/四后端 met / ≠ Actor status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+
+# --- M2 W76 / ADR-220: Instant/Duration separation (M2-S5-01) ---
+
+[[host]]
+name = "TimeNowMs"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-618 / W274: wasm=real wall UNIX epoch-scale wasm + ADR-600 llvm; ≠ Task* wasm / ≠ TcpListen wasm / ≠ product native=real / ≠ process status=implemented；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "InstantNowMs"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-618 / W274: wasm=real monotonic tick wasm + ADR-600 llvm; ≠ Task* wasm / ≠ TcpListen wasm / ≠ product native=real / ≠ process status=implemented；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- M2 W77 / ADR-221: ISO8601/RFC3339 standard-set honesty (M2-S5-03) ---
+
+[[host]]
+name = "DateTimeParse"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-604 / W260: wasm=real date-only YYYY-MM-DD parse offline wasm + ADR-572/W228 llvm; ≠ Task* llvm / ≠ Clock GA；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "DateTimeParseIso8601"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-604 / W260: wasm=real UTC ISO parse offline wasm + ADR-571/W227 llvm; ≠ Task* llvm / ≠ Clock GA；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "DateTimeFormat"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-603 / W259: wasm=real UTC ISO format offline wasm + ADR-570/W226 llvm; ≠ Task* llvm / ≠ Parse wasm / ≠ Clock GA；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "DateTimeNow"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-604 / W260: wasm=real DateTime.now epoch-scale ms offline wasm + ADR-599/W255 llvm + ADR-222; ≠ Task* llvm / ≠ Clock GA；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "DateTimeFormatWithTimezone"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-603 / W259: wasm=real NY winter formatWithTimezone offline wasm + ADR-567/W223 llvm; ≠ Task* llvm / ≠ Parse wasm / ≠ leap second / ≠ Clock GA；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "DateTimeTimezoneOffset"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1345 / W1001: status→implemented Time/DateTime (×8 family close); ADR-603 / W259: wasm=real NY DST offset offline wasm + ADR-566/W222 llvm; ≠ Task* llvm / ≠ Parse wasm / ≠ leap second / ≠ Clock GA；Time/DateTime 族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- M2 W82 / ADR-226: String three-view ---
+
+[[host]]
+name = "StrUnicodeScalarCount"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real scalar_count ab→2 + ADR-578 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrUnicodeScalars"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-611 / W267: wasm=real scalars(ab).length→2 + ADR-580 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrUtf8Count"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real utf8_count hi→2 + ADR-579 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrUtf8Bytes"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-611 / W267: wasm=real utf8_bytes(hi).length→2 + ADR-581 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "CharacterIsSingleScalar"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-611 / W267: wasm=real is_single_scalar(a)→true + ADR-582 llvm; ≠ Task* wasm / ≠ Clock GA / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StringCharAt"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real string_char_at(ab,0)→a + ADR-583 llvm O(n); ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrInstLowercased"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real lowercased≠caseFolded ß + ADR-576 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrInstUppercased"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real uppercased AbC→ABC + ADR-577 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrNormalizedNFC"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real NFC compose + ADR-574 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrNormalizedNFD"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real NFD roundtrip + ADR-575 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "StrCaseFolded"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1347 / W1003: status→implemented Str/Unicode (×11 family close); ADR-610 / W266: wasm=real caseFolded ß→ss + ADR-573 llvm; ≠ Scalars/Utf8Bytes/IsSingleScalar wasm / ≠ locale/Turkish / ≠ Task* wasm / ≠ process status=implemented；Str/Unicode 族 status met / ≠ Log status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonEncode"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-606 / W262: wasm=real dynamic encode 42 + ADR-583 llvm + ADR-230 VM; ≠ Cancel llvm / ≠ CodingKeys / ≠ JsonStream* wasm / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonDecode"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-606 / W262: wasm=real dynamic decode roundtrip 42 + ADR-583 llvm + ADR-230 VM; ≠ Cancel llvm / ≠ CodingKeys / ≠ JsonStream* wasm / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "CodableEncode"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1368 / W1024: Codable ×2 status → implemented (four-backend-real already met); ADR-1367 / W1023: Codable ×2 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented); ADR-1366 / W1022: Codable ×2 llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-1365 / W1021: Codable llvm-partial/wasm-host-assisted honesty (×2; ≠ status=implemented under four-backend-real rule); ADR-230 Value→JSON for @Codable L1; nested path-aware → JsonEncoderEncode (ADR-231)；Codable status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Codable wasm/四后端 met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Codable llvm 后端 met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Codable 诚实规则 met / ≠ Codable status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "CodableDecode"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1368 / W1024: Codable ×2 status → implemented (four-backend-real already met); ADR-1367 / W1023: Codable ×2 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented); ADR-1366 / W1022: Codable ×2 llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-1365 / W1021: Codable llvm-partial/wasm-host-assisted honesty (×2; ≠ status=implemented under four-backend-real rule); ADR-230 JSON→Value for @Codable L1; nested path-aware → JsonDecoderDecode (ADR-231)；Codable status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Codable wasm/四后端 met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Codable llvm 后端 met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Codable 诚实规则 met / ≠ Codable status=implemented / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonEncoderEncode"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-606 / W262: wasm=real flat Box encode + ADR-568 llvm; ≠ Cancel llvm / ≠ CodingKeys / ≠ JsonStream* wasm / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonDecoderDecode"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-606 / W262: wasm=real flat Box decode + ADR-569 llvm; ≠ Cancel llvm / ≠ CodingKeys / ≠ JsonStream* wasm / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamOpenWriter"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-609 / W265: wasm=real Box stream writer open + ADR-583 llvm + ADR-232/W219; ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamWrite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-609 / W265: wasm=real Box stream write + ADR-583 llvm + ADR-232/W219; ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamFinishWriter"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-609 / W265: wasm=real finish_writer→{\"n\":42} + ADR-583 llvm + ADR-232/W219; ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamOpenReader"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-608 / W264: wasm=real Box stream reader open + ADR-584 llvm + ADR-232/W219; ≠ writer wasm / ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamFeed"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-608 / W264: wasm=real Box stream feed + ADR-584 llvm + ADR-232/W219; ≠ writer wasm / ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamDecodeNext"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-608 / W264: wasm=real decode_next Box→{n:42} + ADR-584 llvm + ADR-232/W219; ≠ writer wasm / ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "JsonStreamCloseReader"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1346 / W1002: status→implemented Json (×11 Json family close); ADR-608 / W264: wasm=real Box stream close reader + ADR-584 llvm + ADR-232/W219; ≠ writer wasm / ≠ CodingKeys·streaming GA / ≠ Deadline sleep C004 / ≠ process status=implemented；全量 Json* status met / ≠ Codable status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogDebug"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 message log; respects min-level filter; ≠ D02 / ≠ handler GA；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogInfo"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1349 / W1005: Log core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 message log; respects min-level filter; ≠ D02 / ≠ handler GA；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogWarn"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 message log; respects min-level filter; ≠ D02 / ≠ handler GA；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogError"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 message log; respects min-level filter; ≠ D02 / ≠ handler GA；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogSetMinLevel"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1349 / W1005: Log core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 global min-level filter; ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogMinLevel"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1349 / W1005: Log core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 read min-level; ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogPolicy"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 fingerprint log-v1-thin; ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogInfoFields"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 structured INFO fields; ≠ JSON GA / ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogTakeLast"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1349 / W1005: Log core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-292 / M3-D01 last-emitted capture for filter nails; ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogDebugFields"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-293 / M3-D01 debugFields; ≠ JSON GA / ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogWarnFields"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-293 / M3-D01 warnFields; ≠ JSON GA / ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "LogErrorFields"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1352 / W1008: status→implemented Log (×12 family close; four-backend-real); ADR-1351 / W1007: Log family ×12 wasm → real (four-backend-real met; status still partial by charter; ≠ status=implemented this window); ADR-1350 / W1006: Log rest ×8 mir+llvm → real (Log family ×12 mir+llvm close; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-293 / M3-D01 errorFields; ≠ JSON GA / ≠ D02；Log 全族 status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TraceStart"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1356 / W1012: Trace family ×5 status → implemented under four-backend-real rule; ADR-1355 / W1011: Trace family ×5 wasm → real (four-backend-real met; status still partial by charter); ADR-1353 / W1009: Trace core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-295 / M3-D02 Trace.start; ≠ OTel GA / ≠ D03；Trace status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TraceEnd"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1356 / W1012: Trace family ×5 status → implemented under four-backend-real rule; ADR-1355 / W1011: Trace family ×5 wasm → real (four-backend-real met; status still partial by charter); ADR-1353 / W1009: Trace core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-295 / M3-D02 Trace.end; ≠ OTel GA / ≠ D03；Trace status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TraceCurrent"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1356 / W1012: Trace family ×5 status → implemented under four-backend-real rule; ADR-1355 / W1011: Trace family ×5 wasm → real (four-backend-real met; status still partial by charter); ADR-1353 / W1009: Trace core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-295 / M3-D02 Trace.current; ≠ OTel GA / ≠ D03；Trace status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TraceContextLine"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1356 / W1012: Trace family ×5 status → implemented under four-backend-real rule; ADR-1355 / W1011: Trace family ×5 wasm → real (four-backend-real met; status still partial by charter); ADR-1354 / W1010: Trace rest ×1 (ContextLine) mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-295 / M3-D02 Trace.contextLine task/actor; ≠ OTel GA / ≠ D03；Trace status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TracePolicy"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1356 / W1012: Trace family ×5 status → implemented under four-backend-real rule; ADR-1355 / W1011: Trace family ×5 wasm → real (four-backend-real met; status still partial by charter); ADR-1353 / W1009: Trace core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-296 / M3-D02 fingerprint trace-v1-logctx; ≠ OTel GA / ≠ D03；Trace status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsCounterInc"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1357 / W1013: Metrics core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-298 / M3-D03 Metrics.inc; ≠ OTel/Prometheus / ≠ D04；Metrics core 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsCounterGet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1357 / W1013: Metrics core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-298 / M3-D03 Metrics.get; ≠ OTel/Prometheus / ≠ D04；Metrics core 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsCounterReset"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1357 / W1013: Metrics core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-298 / M3-D03 Metrics.reset; ≠ OTel/Prometheus / ≠ D04；Metrics core 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsSnapshot"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1357 / W1013: Metrics core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-299 / M3-D03 Metrics.snapshot (counter + labeled + gauge); ≠ OTel/Prometheus / ≠ Histogram / ≠ D04；Metrics core 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsPolicy"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1358 / W1014: Metrics rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-299 / M3-D03 fingerprint metrics-v1-gauge-labels; ≠ OTel/Prometheus / ≠ Histogram / ≠ D04；Metrics 全族 mir+llvm 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsGaugeSet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1358 / W1014: Metrics rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-299 / M3-D03 Metrics.gaugeSet; ≠ OTel/Prometheus / ≠ Histogram / ≠ D04；Metrics 全族 mir+llvm 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsGaugeGet"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1358 / W1014: Metrics rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-299 / M3-D03 Metrics.gaugeGet; ≠ OTel/Prometheus / ≠ Histogram / ≠ D04；Metrics 全族 mir+llvm 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsCounterIncLabels"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1358 / W1014: Metrics rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-299 / M3-D03 Metrics.incLabels; ≠ OTel/Prometheus / ≠ Histogram / ≠ D04；Metrics 全族 mir+llvm 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MetricsCounterGetLabels"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1360 / W1016: Metrics family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1359 / W1015: Metrics family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1358 / W1014: Metrics rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-299 / M3-D03 Metrics.getLabels; ≠ OTel/Prometheus / ≠ Histogram / ≠ D04；Metrics 全族 mir+llvm 后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics 四后端 met / ≠ Metrics status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Metrics status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerStart"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1361 / W1017: Profiler core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-301 / M3-D04 Profiler.start; ≠ sampling / ≠ CPU GA / ≠ pprof；Profiler core 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerStop"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1361 / W1017: Profiler core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-301 / M3-D04 Profiler.stop; ≠ sampling / ≠ CPU GA / ≠ pprof；Profiler core 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerElapsed"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1361 / W1017: Profiler core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-301 / M3-D04 Profiler.elapsed; ≠ sampling / ≠ CPU GA / ≠ pprof；Profiler core 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerReset"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1361 / W1017: Profiler core ×4 mir+llvm → real (wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-301 / M3-D04 Profiler.reset; ≠ sampling / ≠ CPU GA / ≠ pprof；Profiler core 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerSnapshot"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1362 / W1018: Profiler rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-302 / M3-D04 Profiler.snapshot (wall + c:cpu); ≠ sampling / ≠ pprof；Profiler 全族 mir+llvm 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerPolicy"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1362 / W1018: Profiler rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-302 / M3-D04 fingerprint profiler-v1-cpu; ≠ sampling / ≠ pprof；Profiler 全族 mir+llvm 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerCpuStart"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1362 / W1018: Profiler rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-302 / M3-D04 Profiler.cpuStart; ≠ sampling / ≠ pprof；Profiler 全族 mir+llvm 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerCpuStop"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1362 / W1018: Profiler rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-302 / M3-D04 Profiler.cpuStop; ≠ sampling / ≠ pprof；Profiler 全族 mir+llvm 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "ProfilerCpuElapsed"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1364 / W1020: Profiler family ×9 status → implemented (four-backend-real rule; ≠ all HostFn status / ≠ F-08); ADR-1363 / W1019: Profiler family ×9 wasm → real (four-backend-real met; status still partial by charter); ADR-1362 / W1018: Profiler rest ×5 mir+llvm → real (family ×9 mir+llvm met; wasm still host-assisted; ≠ status=implemented under four-backend-real rule); ADR-302 / M3-D04 Profiler.cpuElapsed; ≠ sampling / ≠ pprof；Profiler 全族 mir+llvm 后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler status met / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1；Profiler 四后端 met / ≠ Profiler status / ≠ 全量 HostFn status / ≠ F-08 / ≠ HostFn+1"
+
+# --- W902 / ADR-1246: Math float libm (VM+MIR+wasm CallHost; llvm Phase-1 claimed W955 / ADR-1299) ---
+
+[[host]]
+name = "MathFloatSin"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatCos"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatTan"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatSqrt"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatPow"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatFloor"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatCeil"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatRound"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatLog"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAsin"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1324 / W980: status→implemented slice2 first-slice (Log2/Hypot/Cbrt/Atan2/Asin/Acos); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAcos"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1324 / W980: status→implemented slice2 first-slice (Log2/Hypot/Cbrt/Atan2/Asin/Acos); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAtan"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAtan2"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1324 / W980: status→implemented slice2 first-slice (Log2/Hypot/Cbrt/Atan2/Asin/Acos); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatExp"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1323 / W979: status→implemented first-slice (pilot Abs/Trunc/Exp/Log10); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatExp2"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1328 / W984: status→implemented Phase-1 gap first-slice (Sin…Exp2); ADR-1315 / W971 QS1 Math Phase-1 gap first-slice; ADR-1299 W955; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatLog2"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1324 / W980: status→implemented slice2 first-slice (Log2/Hypot/Cbrt/Atan2/Asin/Acos); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatLog10"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1323 / W979: status→implemented first-slice (pilot Abs/Trunc/Exp/Log10); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatHypot"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1324 / W980: status→implemented slice2 first-slice (Log2/Hypot/Cbrt/Atan2/Asin/Acos); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatCbrt"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1324 / W980: status→implemented slice2 first-slice (Log2/Hypot/Cbrt/Atan2/Asin/Acos); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatTrunc"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1323 / W979: status→implemented first-slice (pilot Abs/Trunc/Exp/Log10); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAbs"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1323 / W979: status→implemented first-slice (pilot Abs/Trunc/Exp/Log10); ADR-1299 / W955 Math llvm Phase-1 first-slice; ADR-1246 W902; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+# --- W903 / ADR-1247: Math Phase-2 (llvm Phase-2 claimed W956 / ADR-1300) ---
+
+[[host]]
+name = "MathFloatSinh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatCosh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatTanh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatFmod"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatCopysign"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatIsNan"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatIsInfinite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatIsFinite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatExpm1"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatLog1p"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1325 / W981: status→implemented Phase-2 first-slice (Sinh…Log1p); ADR-1300 / W956 Math llvm Phase-2 first-slice; ADR-1247 W903; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAsinh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAcosh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatAtanh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatRemainder"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatNextUp"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatNextDown"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatMulAdd"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1326 / W982: status→implemented Soft first-slice (Asinh…NextDown); ADR-1301 / W957 Math llvm Soft first-slice; ADR-1248 W904; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatErf"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1327 / W983: status→implemented Special first-slice (Erf…Lgamma); ADR-1302 / W958 Math llvm Special first-slice; ADR-1249 W905; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatErfc"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1327 / W983: status→implemented Special first-slice (Erf…Lgamma); ADR-1302 / W958 Math llvm Special first-slice; ADR-1249 W905; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatTgamma"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1327 / W983: status→implemented Special first-slice (Erf…Lgamma); ADR-1302 / W958 Math llvm Special first-slice; ADR-1249 W905; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloatLgamma"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1327 / W983: status→implemented Special first-slice (Erf…Lgamma); ADR-1302 / W958 Math llvm Special first-slice; ADR-1249 W905; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Sqrt"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Sin"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Cos"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Tan"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Exp"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Log"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Abs"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Floor"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1329 / W985: status→implemented F32 first-slice (Sqrt…Floor); ADR-1316 / W972 QS1 Math F32 first-slice; ADR-1303 W959; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Ceil"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Round"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Trunc"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Pow"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Asin"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Acos"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Atan"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Hypot"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1330 / W986: status→implemented F32 slice2 first-slice (Ceil…Hypot); ADR-1317 / W973 QS1 Math F32 slice2 first-slice; ADR-1304 W960; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Atan2"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Log2"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Log10"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Exp2"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Cbrt"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Sinh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Cosh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Tanh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1331 / W987: status→implemented F32 slice3 first-slice (Atan2…Tanh); ADR-1318 / W974 QS1 Math F32 slice3 first-slice; ADR-1305 W961; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Fmod"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Copysign"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Expm1"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Log1p"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Asinh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Acosh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Atanh"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Erf"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1332 / W988: status→implemented F32 slice4 first-slice (Fmod…Erf); ADR-1319 / W975 QS1 Math F32 slice4 first-slice; ADR-1306 W962; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Erfc"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Tgamma"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Lgamma"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32Remainder"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32IsNan"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32IsInfinite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32IsFinite"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32NextUp"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1333 / W989: status→implemented F32 slice5 first-slice (Erfc…NextUp); ADR-1320 / W976 QS1 Math F32 slice5 first-slice; ADR-1307 W963; ≠ all 84 MathFloat* status / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32NextDown"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1334 / W990: status→implemented F32 soft-close first-slice (NextDown/MulAdd); ADR-1321 / W977 QS1 Math F32 soft-close first-slice; ADR-1308 W964; MathFloat* status 84/84; ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "MathFloat32MulAdd"
+status = "implemented"
+backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
+notes = "ADR-1334 / W990: status→implemented F32 soft-close first-slice (NextDown/MulAdd); ADR-1321 / W977 QS1 Math F32 soft-close first-slice; ADR-1308 W964; MathFloat* status 84/84; ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TestingAssert"
+status = "partial"
+backends = { vm = "real", mir = "unsupported", llvm = "unsupported", wasm = "unsupported", cranelift = "unsupported" }
+notes = "syx test / VM Err 路径（packages/testing assert）；≠ four-backend-real / ≠ status=implemented / ≠ TestingTest/RunAll / ≠ F-08 / ≠ HostFn+1"
+
+[[host]]
+name = "TestingAssertEq"
+status = "partial"
+backends = { vm = "real", mir = "unsupported", llvm = "unsupported", wasm = "unsupported", cranelift = "unsupported" }
+notes = "syx test / VM Err + value_equals（packages/testing assertEq）；≠ mir/llvm/wasm GA this window / ≠ status=implemented / ≠ TestingExpectEqual/RunAll / ≠ F-08 / ≠ HostFn+1"

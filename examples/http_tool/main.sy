@@ -1,0 +1,21 @@
+import Net
+
+func main() {
+    try {
+        let _ = Http.get(url: "http://127.0.0.1:1/syx_refuse")
+        print("UNEXPECTED")
+    } catch (e) {
+        print("refused")
+    }
+    let base = Env.get("SYX_HTTP_BASE")
+    if String.count(base) > 0
+    try {
+        let resp = Http.get(url: "\(base)/health")
+        print("ok")
+        print(resp.status())
+        print(resp.text())
+    } catch (e) {
+        print("UNEXPECTED")
+    }
+}
+

@@ -1,0 +1,5 @@
+// ahead
+export { Point, Box }
+data class Point(x: Int)
+data class Box<T>(value: T)
+/* trail */

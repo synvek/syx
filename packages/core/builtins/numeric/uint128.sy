@@ -1,0 +1,67 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_u128_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 128-bit unsigned integer (`UInt128`). Prelude; host ops via `__syx_u128_*`.
+@builtin("numeric.u128")
+public class UInt128: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Smallest representable value (type bound, not binary min).
+    public static let min: UInt128 = 0u128
+
+    /// Largest representable value (type bound, not binary max).
+    public static var max: UInt128 {
+        get {
+            let z: UInt128 = 0u128
+            let one: UInt128 = 1u128
+            return z - one
+        }
+    }
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 128
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 16
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> UInt128 {
+        return 0u128
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_u128_min` / `_max`.
+    public static func clamp(x: UInt128, lo: UInt128, hi: UInt128) -> UInt128 {
+        return __syx_u128_min(__syx_u128_max(x, lo), hi)
+    }
+
+    /// Leading zero bit count for a `UInt128` bit pattern (via `Math`).
+    public static func leadingZeros(x: UInt128) -> Int {
+        return Math.leadingZeros128(x)
+    }
+
+}
+
+extension UInt128 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_u128_compare`.
+    func compare(other: UInt128) -> Int {
+        return __syx_u128_compare(self, other)
+    }
+}
+

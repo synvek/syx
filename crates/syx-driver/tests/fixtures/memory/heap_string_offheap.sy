@@ -1,0 +1,8 @@
+func main() {
+    let short: String = "hi"
+    let long: String = "this is a long string that should be offloaded to heap external storage"
+    print(short)
+    print(long.count)
+    print(short.count + long.count)
+}
+

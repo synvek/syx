@@ -1,0 +1,16 @@
+# SYX Helix LSP thin client (W927 / ADR-1271 / C-07 deepen).
+# Speaks the same `syx lsp` stdio server as editors/vscode-syx and editors/neovim-syx.
+# Merge into ~/.config/helix/languages.toml (or override `command` for a workspace binary).
+
+[[language]]
+name = "syx"
+scope = "source.syx"
+injection-regex = "syx"
+file-types = ["sy"]
+comment-token = "//"
+language-servers = ["syx"]
+indent = { tab-width = 4, unit = "    " }
+
+[language-server.syx]
+command = "syx"
+args = ["lsp"]

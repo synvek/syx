@@ -1,0 +1,5 @@
+func main() {
+    while flag && true
+    print(1)
+}
+

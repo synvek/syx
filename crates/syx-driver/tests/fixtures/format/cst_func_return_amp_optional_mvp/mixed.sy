@@ -1,0 +1,19 @@
+func id(x: Int) -> &Int? {
+    print(x)
+    return x
+}
+
+func mut_opt() -> &mut String? {
+    return
+}
+
+func life() -> &'a Int? {
+    return
+}
+
+func mut_life() -> &'b mut String? {
+    return
+}
+
+print(0)
+

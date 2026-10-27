@@ -1,0 +1,15 @@
+func main() {
+    guard let a = x else {
+        return
+    }
+    {
+        print(a)
+    }
+    guard let b = y else {
+        return
+    }
+    {
+        print(b)
+    }
+}
+

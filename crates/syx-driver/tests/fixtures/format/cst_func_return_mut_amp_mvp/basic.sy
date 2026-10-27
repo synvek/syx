@@ -1,0 +1,5 @@
+func id() -> &mut Int {
+    print(1)
+    return 1
+}
+

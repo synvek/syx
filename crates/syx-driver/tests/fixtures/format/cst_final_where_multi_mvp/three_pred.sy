@@ -1,0 +1,5 @@
+/// docs
+final class Triple<A, B, C> where A: Equatable, B: Hashable, C: Comparable {
+    triple(a: A, b: B, c: C)
+}
+/* trail */

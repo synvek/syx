@@ -1,0 +1,7 @@
+func main() {
+    let path = "SYX_DIFF_TMP_PATH"
+    __syx_file_write(path, "hello")
+    print(__syx_file_read(path))
+    __syx_file_delete(path)
+}
+

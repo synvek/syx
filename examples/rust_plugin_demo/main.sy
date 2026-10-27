@@ -1,0 +1,4 @@
+func main() {
+    let msg = __syx_plugin_mygreet_greet("SYX")
+    print(msg)
+}

@@ -1,0 +1,7 @@
+func main() {
+    let x = 1
+    print(0)
+    print(x!)
+    await print(1)
+}
+

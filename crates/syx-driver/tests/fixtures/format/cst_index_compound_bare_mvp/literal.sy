@@ -1,0 +1,6 @@
+class Box {
+  var items: Int
+  init(n: Int) {
+    a[0] += n
+  }
+}

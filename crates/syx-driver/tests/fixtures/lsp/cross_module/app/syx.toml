@@ -1,0 +1,7 @@
+name = "lsp-cross-module"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.math]
+version = "1.0.0"
+path = "../math"

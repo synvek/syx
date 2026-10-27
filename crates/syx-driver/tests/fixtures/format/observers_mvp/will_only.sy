@@ -1,0 +1,11 @@
+class WillOnly {
+    var n: Int
+        willSet {
+            print(1)
+        }
+}
+
+func main() {
+    print(1)
+}
+

@@ -1,0 +1,155 @@
+// sgate/mock_upstream.sy
+// ---------------------------------------------------------------
+// Tiny upstream server used by sgate's smoke tests.
+//
+// Listens on 127.0.0.1:PORT and answers a handful of canned
+// routes so the gateway can be exercised end-to-end without a
+// real backend. PORT and NODE are taken from argv:
+//
+//   syx run tools/sgate/mock_upstream.sy -- 9001 node-a
+//
+// Routes:
+//   ANY  / /whoami     → identity card
+//   GET  /users        → fake list
+//   GET  /users/<id>   → fake user
+//   ANY  /echo         → echo body + selected headers
+//   ANY  /slow         → sleep ~1s (timeout drill)
+//   else               → 404
+//
+// Every response carries `node` and `port` so a curl + jq
+// pipeline can assert which backend handled the request.
+// ---------------------------------------------------------------
+
+import Net
+import Process
+import IO
+import Log
+import DateTime
+
+var PORT: Int = 9001
+var NODE: String = "mock"
+
+func resolveConfig() -> (Int, String) {
+    let args = Process.args()
+    var port = 9001
+    var node = "mock"
+    var i = 0
+    var sawPort = false
+    while i < args.count {
+        let a = "\(args[i])"
+        if !sawPort && isAllDigits(s: "\(a)") {
+            port = Int("\(a)") as Int
+            sawPort = true
+        } else if a.count > 0 {
+            node = a
+        }
+        i = i + 1
+    }
+    return (port, node)
+}
+
+func isAllDigits(s: String) -> Bool {
+    if s.count == 0 { return false }
+    var i = 0
+    while i < s.count {
+        let c = s[i]
+        if c < "0" || c > "9" { return false }
+        i = i + 1
+    }
+    return true
+}
+
+func sleepMs(ms: Int) {
+    let start = (DateTime.now().ms as? Int) ?? 0
+    while true {
+        let now = (DateTime.now().ms as? Int) ?? 0
+        if now - start >= ms { return }
+    }
+}
+
+func buildResponse(status: Int, body: Object) -> Object {
+    var resp: Object = JSON.decode("{}")
+    resp["status"] = status
+    resp["node"] = NODE
+    resp["port"] = PORT
+    resp["body"] = body
+    return resp
+}
+
+public func handle(req: Object) -> Object {
+    // Dotted fields match Http.serve / sgate router; `??` is reliable again.
+    let m = (req.method as? String) ?? "GET"
+    let p = (req.path as? String) ?? "/"
+    let b = (req.body as? String) ?? ""
+
+    if p == "/" || p == "/whoami" {
+        var whoami: Object = JSON.decode("{}")
+        whoami["ok"] = true
+        whoami["node"] = NODE
+        whoami["port"] = PORT
+        whoami["method"] = m
+        return buildResponse(status: 200, body: whoami)
+    }
+
+    if p == "/users" {
+        var u1: Object = JSON.decode("{}")
+        u1["id"] = 1
+        u1["name"] = "alice"
+        var u2: Object = JSON.decode("{}")
+        u2["id"] = 2
+        u2["name"] = "bob"
+        var users: Array<Object> = []
+        users.append(u1)
+        users.append(u2)
+        var listBody: Object = JSON.decode("{}")
+        listBody["users"] = users
+        listBody["count"] = 2
+        return buildResponse(status: 200, body: listBody)
+    }
+
+    if p.count >= 7 && p.substring(0, 7) == "/users/" {
+        let idStr = p.substring(7, p.count)
+        var userBody: Object = JSON.decode("{}")
+        userBody["id"] = idStr
+        userBody["name"] = "user-\(idStr)"
+        return buildResponse(status: 200, body: userBody)
+    }
+
+    if p == "/echo" {
+        var echoBody: Object = JSON.decode("{}")
+        echoBody["method"] = m
+        echoBody["path"] = p
+        echoBody["body"] = b
+        let h = req.headers
+        let k1 = "X-Real-IP"
+        let k2 = "X-Forwarded-For"
+        let k3 = "X-Forwarded-Proto"
+        let k4 = "X-Sgate-Handler"
+        echoBody["x_real_ip"] = h[k1]
+        echoBody["x_forwarded_for"] = h[k2]
+        echoBody["x_forwarded_proto"] = h[k3]
+        echoBody["x_sgate_handler"] = h[k4]
+        return buildResponse(status: 200, body: echoBody)
+    }
+
+    if p == "/slow" {
+        sleepMs(ms: 1000)
+        var slowBody: Object = JSON.decode("{}")
+        slowBody["slept_ms"] = 1000
+        return buildResponse(status: 200, body: slowBody)
+    }
+
+    var err: Object = JSON.decode("{}")
+    err["error"] = "no such route on mock upstream"
+    err["node"] = NODE
+    err["port"] = PORT
+    return buildResponse(status: 404, body: err)
+}
+
+func main() {
+    let cfg = resolveConfig()
+    PORT = cfg.0
+    NODE = cfg.1
+    Log.info("mock_upstream node=\(NODE) listening on 127.0.0.1:\(PORT)")
+    Http.serve(addr: "127.0.0.1", port: PORT, handler: "handle")
+}

@@ -1,0 +1,6 @@
+func main() {
+    print(0)
+    x += 1
+    print(1...3)
+}
+

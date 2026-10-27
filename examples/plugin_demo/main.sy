@@ -1,0 +1,5 @@
+func main() {
+    let digest = __syx_plugin_mycrypto_sha256("hello")
+    print(digest)
+}
+

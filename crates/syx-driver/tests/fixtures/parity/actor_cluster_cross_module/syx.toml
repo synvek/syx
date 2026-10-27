@@ -1,0 +1,7 @@
+name = "actor_cluster"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.counter]
+version = "1.0.0"
+path = "actor_pkg"

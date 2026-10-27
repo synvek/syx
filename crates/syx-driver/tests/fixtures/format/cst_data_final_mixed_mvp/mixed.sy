@@ -1,0 +1,11 @@
+// ahead
+public data class Point(x: Int, y: Int)
+final class Shape {
+    point
+    circle(r: Int)
+}
+func main() {
+    /* mid */
+    print(1)
+}
+/* trail */

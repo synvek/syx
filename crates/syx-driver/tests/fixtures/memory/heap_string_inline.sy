@@ -1,0 +1,6 @@
+func main() {
+    let a: String = "hi"
+    print(a)
+    print(a.count)
+}
+

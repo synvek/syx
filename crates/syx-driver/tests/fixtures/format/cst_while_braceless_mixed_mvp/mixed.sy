@@ -1,0 +1,14 @@
+func go<T>() requires Pure where T: Bound {
+    while true
+    print(foo(bar(baz())))
+}
+
+func main() {
+    while ready() {
+        print(1)
+        print(2)
+    }
+    while flag
+    print(2)
+}
+

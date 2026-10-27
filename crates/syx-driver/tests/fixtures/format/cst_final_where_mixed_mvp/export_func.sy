@@ -1,0 +1,8 @@
+/// docs
+final class Wrap<T> where T: Equatable {
+    wrap(value: T)
+}
+export func main() {
+    print(1)
+}
+/* trail */

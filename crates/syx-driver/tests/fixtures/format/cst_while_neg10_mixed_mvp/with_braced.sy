@@ -1,0 +1,7 @@
+func main() {
+    while ----------flag {
+        print(1)
+        print(2)
+    }
+}
+

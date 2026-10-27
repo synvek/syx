@@ -1,0 +1,102 @@
+{
+  "server": {
+    "listen": "127.0.0.1",
+    "port": 8080,
+    "access_log": true,
+    "worker_name": "sgate-1",
+    "tls": {
+      "enabled": false,
+      "port": 8443,
+      "cert": "./certs/server.pem",
+      "key": "./certs/server.key",
+      "backend_port": 8080,
+      "mode": "sidecar",
+      "_mode_doc": "sidecar = spawn socat/stunnel in front of server.port (when Process.spawn available); native = Env.set SYX_HTTP_SERVE_TLS_* + Http.serve on tls.port (in-process rustls; W1249). ≠ net.tls.server HostFn GA."
+    },
+    "hot_reload": {
+      "enabled": true,
+      "interval_ms": 1000
+    }
+  },
+  "upstreams": [
+    {
+      "name": "api",
+      "servers": ["127.0.0.1:3001", "127.0.0.1:3002"],
+      "strategy": "round_robin",
+      "timeout_ms": 5000
+    },
+    {
+      "name": "web",
+      "servers": ["127.0.0.1:9999"],
+      "strategy": "round_robin",
+      "timeout_ms": 3000
+    },
+    {
+      "name": "wsapi",
+      "servers": ["127.0.0.1:5001"],
+      "strategy": "round_robin",
+      "timeout_ms": 30000
+    }
+  ],
+  "locations": [
+    {
+      "name": "health",
+      "exact": "/health",
+      "status": 200,
+      "body": "ok",
+      "x_sgate_handler": "health"
+    },
+    {
+      "name": "version",
+      "exact": "/version",
+      "status": 200,
+      "body": "sgate 1.0 (syx 116.0)"
+    },
+    {
+      "name": "echo",
+      "prefix": "/echo",
+      "status": 200,
+      "body": "you reached the echo location"
+    },
+    {
+      "name": "api_proxy",
+      "prefix": "/api/",
+      "upstream": "api",
+      "proxy": true,
+      "strip_prefix": "/api/"
+    },
+    {
+      "name": "static_files",
+      "prefix": "/static/",
+      "root": "./public"
+    },
+    {
+      "name": "static_root",
+      "prefix": "/root/",
+      "root": "./public"
+    },
+    {
+      "name": "web_proxy",
+      "prefix": "/",
+      "upstream": "web",
+      "proxy": true,
+      "strip_prefix": "",
+      "_note": "Catch-all last. Empty strip_prefix forwards the full path (needed for Vite absolute assets)."
+    }
+  ],
+  "ws_routes": [
+    {
+      "name": "ws_echo",
+      "path": "/ws/",
+      "upstream": "wsapi",
+      "listen_port": 5001,
+      "_upstream_doc": "wsapi is a single pool entry; the proxy dials the host:port and does the WebSocket handshake there",
+      "strip_prefix": "/ws/"
+    }
+  ],
+  "error_pages": {
+    "not_found": "Not Found",
+    "bad_gateway": "Bad Gateway",
+    "gateway_timeout": "Gateway Timeout"
+  }
+}

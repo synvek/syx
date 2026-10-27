@@ -1,0 +1,33 @@
+class Dog {
+    func speak() -> String {
+        return "woof"
+    }
+}
+
+class Cat {
+    func speak() -> String {
+        return "meow"
+    }
+}
+
+func main() {
+    var d = Dog()
+    if d is Dog
+    print("dog")
+    print(d.speak())
+    let dog = d as Dog
+    print(dog.speak())
+    let maybe = d as? Cat
+    if !(d is Cat)
+    print("not-cat")
+    let c = Cat()
+    switch c {
+    case is Dog:
+        print("switch-dog")
+    case is Cat:
+        print("switch-cat")
+    default:
+        print("switch-other")
+    }
+}
+

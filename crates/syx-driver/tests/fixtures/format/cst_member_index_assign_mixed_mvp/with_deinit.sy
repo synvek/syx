@@ -1,0 +1,11 @@
+// ahead
+class Box {
+  var items: Int
+  init() {
+    self.xs[0] = 1
+  }
+  deinit {
+    print(0)
+  }
+}
+/* trail */

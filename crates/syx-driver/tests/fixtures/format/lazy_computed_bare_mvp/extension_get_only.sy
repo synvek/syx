@@ -1,0 +1,12 @@
+class Typed {
+    lazy var label: String {
+        get {
+            return "ok"
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

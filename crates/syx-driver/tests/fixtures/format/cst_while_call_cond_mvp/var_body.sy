@@ -1,0 +1,7 @@
+func main() {
+    while tick(1) {
+        var y = 2
+        print(y)
+    }
+}
+

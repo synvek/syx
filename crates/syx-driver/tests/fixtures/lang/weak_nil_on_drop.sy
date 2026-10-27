@@ -1,0 +1,20 @@
+class Node {
+    var tag: Int
+    init(tag: Int) {
+        self.tag = tag
+    }
+    deinit {
+        print("deinit:")
+        print(self.tag)
+    }
+}
+
+func main() {
+    var n = Node(tag: 1)
+    var w = __syx_weak_from(n)
+    print(__syx_weak_alive(w))
+    n = Node(tag: 2)
+    print(__syx_weak_alive(w))
+    print("done")
+}
+

@@ -1,0 +1,6 @@
+name = "rust-plugin-demo"
+version = "0.1.0"
+main = "main.sy"
+
+[plugins]
+paths = ["plugins/mygreet/plugin.json"]

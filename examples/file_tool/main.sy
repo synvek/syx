@@ -1,0 +1,20 @@
+import IO
+
+func main() {
+    let path = Path.normalize(Path.join("/tmp", "syx_file_tool.txt"))
+    try {
+        let wh = FileHandle.open(path: path, mode: "w")
+        let _ = FileHandle.write(handle: wh, bytes: [65u8, 66u8, 67u8])
+        FileHandle.close(handle: wh)
+        let rh = FileHandle.open(path: path, mode: "r")
+        let bytes = FileHandle.readAllBytes(handle: rh)
+        FileHandle.close(handle: rh)
+        print("ok")
+        print(bytes.count)
+        print(Path.exists(path))
+    } catch (e) {
+        print("UNEXPECTED")
+        print(e.message)
+    }
+}
+

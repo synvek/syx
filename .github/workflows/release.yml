@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0)"
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: syx-linux-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: syx-macos-aarch64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build release CLI
+        run: cargo build --release -p syx-cli
+      - name: Driver parity smoke (SYX 38.0)
+        run: |
+          cargo test -p syx-driver \
+            --test evergreen --test lang --test concurrency --test stdlib \
+            --test observability --test security --test backends \
+            -- --test-threads=1
+      - name: examples/deps cross-module (local_math.add → 42)
+        run: ./target/release/syx run examples/deps | grep -q 42
+      - name: Build examples/main native (minimal)
+        run: |
+          mkdir -p dist
+          ./target/release/syx build --native --minimal -o dist/examples-main-${{ matrix.artifact }} examples
+      - name: Package CLI
+        run: |
+          mkdir -p dist
+          cp target/release/syx dist/syx-${{ matrix.artifact }}
+          chmod +x dist/syx-${{ matrix.artifact }} dist/examples-main-${{ matrix.artifact }}
+      - name: Generate checksums
+        run: |
+          cd dist
+          if command -v sha256sum >/dev/null; then
+            sha256sum * > SHA256SUMS
+          else
+            shasum -a 256 * > SHA256SUMS
+          fi
+          cat SHA256SUMS
+      - name: Release install smoke
+        run: |
+          ./dist/syx-${{ matrix.artifact }} --version || ./dist/syx-${{ matrix.artifact }} build --help
+          test -x ./dist/examples-main-${{ matrix.artifact }}
+          dir=$(mktemp -d)
+          printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
+          printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
+          ./dist/syx-${{ matrix.artifact }} run "$dir" | grep -q vm-smoke || ./dist/syx-${{ matrix.artifact }} run "$dir/main.sy" | grep -q vm-smoke
+          ./dist/syx-${{ matrix.artifact }} build --wasm -o "$dir/out.wasm" "$dir"
+      - name: Install wasmtime
+        run: |
+          curl -fsSL https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/wasmtime-v25.0.0-x86_64-linux.tar.xz -o /tmp/wt.tar.xz || \
+          curl -fsSL https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/wasmtime-v25.0.0-aarch64-macos.tar.xz -o /tmp/wt.tar.xz
+          tar -xf /tmp/wt.tar.xz -C /tmp
+          echo "$(find /tmp -name wasmtime -type f | head -1 | xargs dirname)" >> "$GITHUB_PATH"
+      - name: WASI wasmtime E2E (mandatory)
+        run: |
+          dir=$(mktemp -d)
+          printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
+          printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
+          ./dist/syx-${{ matrix.artifact }} build --wasm -o "$dir/out.wasm" "$dir"
+          SYX_WASI=1 wasmtime run "$dir/out.wasm"
+          cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
+      - name: Registry prod URL smoke
+        run: cargo test -p syx-pkg registry_prod_url_smoke -- --test-threads=1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Package VS Code extension
+        run: |
+          npm install -g @vscode/vsce
+          cd editors/vscode-syx
+          vsce package --no-dependencies
+          mkdir -p ../../dist
+          mv *.vsix ../../dist/
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ github.event.inputs.tag }}"
+          gh release create "$tag" --title "$tag" --notes "Prebuilt SYX CLI and examples/main native binary per platform (with SHA256SUMS)." \
+            artifacts/*/* || gh release upload "$tag" artifacts/*/*

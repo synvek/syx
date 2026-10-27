@@ -1,0 +1,12 @@
+actor Counter {
+    var n: Int
+    init() {
+        self.n = 7
+    }
+}
+
+func main() {
+    let c = Counter()
+    print(7)
+}
+

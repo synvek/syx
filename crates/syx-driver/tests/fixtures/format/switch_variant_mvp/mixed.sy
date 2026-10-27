@@ -1,0 +1,13 @@
+func main() {
+    switch x {
+    case 0:
+        print(0)
+    case 1..<10:
+        print(1)
+    case .ok(let v) where true:
+        print(v)
+    default:
+        print(2)
+    }
+}
+

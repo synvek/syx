@@ -1,0 +1,4 @@
+func f(isolated x: Int) -> Int {
+    return x
+}
+

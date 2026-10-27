@@ -1,0 +1,7 @@
+global actor AppActor {
+}
+
+func main() {
+    print(1)
+}
+

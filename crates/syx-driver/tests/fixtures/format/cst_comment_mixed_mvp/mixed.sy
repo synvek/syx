@@ -1,0 +1,13 @@
+// ahead
+func go<T>() requires Pure where T: Bound {
+    // body
+    while (((!!!!ready()))) && a || -b /* mid */
+    print(foo(bar(baz())))
+}
+func main() {
+    /* block */
+    while (((flag)))
+    print(1)
+}
+/* trail */
+

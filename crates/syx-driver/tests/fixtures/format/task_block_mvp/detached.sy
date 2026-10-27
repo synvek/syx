@@ -1,0 +1,6 @@
+func main() {
+    Task.detached {
+        print(1)
+    }
+}
+

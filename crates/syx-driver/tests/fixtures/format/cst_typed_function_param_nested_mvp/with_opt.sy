@@ -1,0 +1,4 @@
+func main() {
+    var g: ((String?) -> String?) -> Void = h
+}
+

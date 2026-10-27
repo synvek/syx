@@ -1,0 +1,7 @@
+// ahead
+public class Sub: Box {
+    var name: String
+    init(name: String) {
+        print(1)
+    }
+}

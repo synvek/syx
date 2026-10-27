@@ -1,0 +1,9 @@
+enum Wire {
+    ok(code: Int)
+    err(message: String)
+}
+
+func main() {
+    print(1)
+}
+

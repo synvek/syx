@@ -1,0 +1,12 @@
+// ahead
+public class Sub: Box, Greeter {
+  var count: Int?
+  init() {
+    count += 1
+  }
+  func scale(n: Int) {
+    other.count %= n
+    count *= 2
+  }
+}
+/* trail */

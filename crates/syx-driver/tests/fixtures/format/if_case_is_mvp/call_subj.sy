@@ -1,0 +1,6 @@
+func main() {
+    if case is Dog = getVal() {
+        print(1)
+    }
+}
+

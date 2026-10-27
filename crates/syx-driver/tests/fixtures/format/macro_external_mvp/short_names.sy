@@ -1,0 +1,6 @@
+macro X = #externalMacro(module: "M", type: "T")
+
+func main() {
+    print(2)
+}
+

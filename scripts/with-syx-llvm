@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Run a command with SYX LLVM on PATH and llvm-sys PREFIX injected from
+# SYX_LLVM_PREFIX (or sibling ../llvm). Prefer plain `cargo` when using sibling
+# (see .cargo/config.toml); use this when SYX_LLVM_PREFIX points elsewhere.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PREFIX="${SYX_LLVM_PREFIX:-$ROOT/../llvm}"
+if [[ ! -x "$PREFIX/bin/llvm-config" && ! -f "$PREFIX/bin/llvm-config" ]]; then
+  echo "with-syx-llvm: no llvm-config at $PREFIX/bin (set SYX_LLVM_PREFIX or install sibling ../llvm)" >&2
+  exit 1
+fi
+export SYX_LLVM_PREFIX="$PREFIX"
+export PATH="$PREFIX/bin:${PATH:-}"
+# Private to llvm-sys for the current inkwell feature line (not a user-facing var).
+export LLVM_SYS_211_PREFIX="$PREFIX"
+exec "$@"

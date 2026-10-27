@@ -1,0 +1,8 @@
+class Box {
+  var count: Int
+  var total: Int
+  func scaleBoth(a: Int, b: Int) {
+    box.count *= a
+    box.total /= b
+  }
+}

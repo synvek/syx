@@ -1,0 +1,3 @@
+// ahead
+export { a as x, b as y }
+/* trail */

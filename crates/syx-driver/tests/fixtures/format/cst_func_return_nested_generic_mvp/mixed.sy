@@ -1,0 +1,15 @@
+func id(x: Int) -> Foo<Bar<Int>> {
+    print(x)
+    return x
+}
+
+func opt() -> Box<List<String>>? {
+    return
+}
+
+func flat() -> Foo<Int> {
+    return
+}
+
+print(0)
+

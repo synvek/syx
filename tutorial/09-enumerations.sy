@@ -1,0 +1,162 @@
+// =============================================================================
+// tutorial/09-enumerations.sy
+// 对应《SYX 语言指南》第 9 章「枚举」
+//
+// 本章涉及语言特性：
+//   - 简单 enum（必须 case 关键字）
+//   - 关联值（位置 / 命名）
+//   - 泛型 enum
+//   - switch exhaustiveness + 模式绑定
+//   - if case
+//   - 自定义 RawRepresentable 风格
+//   - Result<T, E> 标准库用法
+// =============================================================================
+
+// 1) 简单枚举
+enum Status {
+    case ok
+    case err
+    case pending
+}
+
+let s = Status.ok
+print("s.tag=\(s.tag)")                              // 0
+
+// 2) 关联值（位置）
+enum NetworkResult {
+    case success(String)
+    case failure(Int, String)
+}
+
+let r1 = NetworkResult.success("OK")
+let r2 = NetworkResult.failure(404, "Not Found")
+
+// 2b) 关联值（命名）
+enum UserAction {
+    case login(userId: String, at: Int)
+    case logout(userId: String)
+    case purchase(productId: String, amount: Int, currency: String)
+}
+let a1 = UserAction.login(userId: "u-1", at: 1700000000)
+let a2 = UserAction.purchase(productId: "p-7", amount: 9900, currency: "CNY")
+
+// 3) 泛型枚举
+enum Optional2<T> {
+    case some(T)
+    case none
+}
+
+enum Either<L, R> {
+    case left(L)
+    case right(R)
+}
+
+// 4) switch 模式匹配
+func describe(_ r: NetworkResult) -> String {
+    switch r {
+    case .success(let data):
+        return "ok: \(data)"
+    case .failure(let code, let msg):
+        return "err \(code): \(msg)"
+    }
+}
+
+// 4b) 关联值（命名）匹配
+func describeAction(_ a: UserAction) -> String {
+    switch a {
+    case .login(userId: let uid, at: let t):
+        return "login \(uid) @ \(t)"
+    case .logout(userId: let uid):
+        return "logout \(uid)"
+    case .purchase(productId: let pid, amount: let amt, currency: let cur):
+        return "buy \(pid) for \(amt) \(cur)"
+    }
+}
+
+// 5) if case
+func isFailure(_ r: NetworkResult) -> Bool {
+    if case .failure = r { return true }
+    return false
+}
+
+func is404(_ r: NetworkResult) -> Bool {
+    if case .failure(let code, _) = r {
+        return code == 404
+    }
+    return false
+}
+
+// 6) 嵌套 enum（flatten 推荐）
+enum Tree {
+    case leaf(value: Int)
+    case node(value: Int, left: Int, right: Int)
+}
+func sumTree(_ t: Tree) -> Int {
+    switch t {
+    case .leaf(value: let v):
+        return v
+    case .node(value: let v, left: let l, right: let r):
+        return v + l + r
+    }
+}
+
+// 7) 枚举作为 raw value 风格
+enum Direction: Int {
+    case up = 0
+    case down = 1
+    case left = 2
+    case right = 3
+}
+let d = Direction.left
+print("d.rawValue=\(d.rawValue)")                    // 2
+
+// 8) Result<T, E> 风格（基于 packages/core/builtins/algebraic/result.sy）
+enum MyResult<T, E> {
+    case ok(T)
+    case err(E)
+}
+func safeDivide(_ a: Int, _ b: Int) -> MyResult<Int, String> {
+    if b == 0 { return .err("division by zero") }
+    return .ok(a / b)
+}
+
+// 9) Codable L2（关联值 enum 自动派生，部分 GA）
+// @Codable
+// enum ApiResponse<T> {
+//     case ok(T)
+//     case err(code: Int, message: String)
+// }
+
+// 10) 模式穷尽性示例
+func allStatuses(_ s: Status) -> String {
+    switch s {
+    case .ok:
+        return "ok"
+    case .err:
+        return "err"
+    case .pending:
+        return "pending"
+    }
+}
+
+func main() {
+    print("describe(r1)=\(describe(r1)) describe(r2)=\(describe(r2))")
+    print("describe(a1)=\(describeAction(a1))")
+    print("describe(a2)=\(describeAction(a2))")
+    print("isFailure(r1)=\(isFailure(r1)) is404(r2)=\(is404(r2))")
+    let tree = Tree.node(value: 10, left: 3, right: 7)
+    print("sumTree=\(sumTree(tree))")                 // 20
+
+    let div1 = safeDivide(10, 2)
+    let div2 = safeDivide(10, 0)
+    switch div1 {
+    case .ok(let v): print("div1 ok=\(v)")
+    case .err(let m): print("div1 err=\(m)")
+    }
+    switch div2 {
+    case .ok(let v): print("div2 ok=\(v)")
+    case .err(let m): print("div2 err=\(m)")
+    }
+
+    print("allStatuses(ok)=\(allStatuses(.ok))")
+}

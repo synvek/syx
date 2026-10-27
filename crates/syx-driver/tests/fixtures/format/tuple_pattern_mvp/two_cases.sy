@@ -1,0 +1,9 @@
+func main() {
+    if case (a, b) = x {
+        print(a)
+    }
+    if case (c, d) = y {
+        print(c)
+    }
+}
+

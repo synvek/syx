@@ -1,0 +1,14 @@
+protocol Describable {
+    func describe() -> String
+}
+
+class Item: Describable {
+    var tag: String
+    init(tag: String) { self.tag = tag }
+    func describe() -> String { return "item-" + self.tag }
+}
+
+func main() {
+    let items: Array<Describable> = [Item(tag: "a"), Item(tag: "b")]
+    print(items[0].describe())
+}

@@ -1,0 +1,5 @@
+func id(x) {
+    print(x)
+    return x
+}
+

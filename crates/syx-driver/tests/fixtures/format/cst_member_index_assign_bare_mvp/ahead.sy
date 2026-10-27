@@ -1,0 +1,8 @@
+// ahead
+class Box {
+  var items: Int
+  init() {
+    /* mid */
+    self.xs[0] = 1
+  }
+}

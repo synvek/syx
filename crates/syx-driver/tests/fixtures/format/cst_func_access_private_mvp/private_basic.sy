@@ -1,0 +1,4 @@
+// ahead
+private func helper() {
+    print(1)
+}

@@ -1,0 +1,72 @@
+// Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
+// Prelude value type; host ops via `__syx_i32_*`. Edit templates then `cargo build -p syx-driver`.
+
+/// 32-bit signed integer (`Int32`). Prelude; host ops via `__syx_i32_*`.
+@builtin("numeric.i32")
+public class Int32: Equatable, Hashable, CustomStringConvertible, Comparable {
+    /// Smallest representable value (type bound, not binary min).
+    public static let min: Int32 = -2147483648i32
+
+    /// Largest representable value (type bound, not binary max).
+    public static let max: Int32 = 2147483647i32
+
+    /// Absolute value (host `__syx_i32_abs`).
+    public static func abs(x: Int32) -> Int32 {
+        return __syx_i32_abs(x)
+    }
+
+    /// Signum: `-1`, `0`, or `1`.
+    public static func sign(x: Int32) -> Int {
+        if x < 0i32 {
+            return -1
+        }
+        if x > 0i32 {
+            return 1
+        }
+        return 0
+    }
+
+    /// Bit width of the underlying representation.
+    public static func bitWidth() -> Int {
+        return 32
+    }
+
+    /// Byte width of the underlying representation.
+    public static func byteWidth() -> Int {
+        return 4
+    }
+
+    /// Additive identity for this type.
+    public static func zero() -> Int32 {
+        return 0i32
+    }
+
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i32_min` / `_max`.
+    public static func clamp(x: Int32, lo: Int32, hi: Int32) -> Int32 {
+        return __syx_i32_min(__syx_i32_max(x, lo), hi)
+    }
+
+}
+
+extension Int32 {
+    /// Combine into a hasher (`Hashable`).
+    func hash(into hasher: Hasher) {
+        __syx_hasher_combine(hasher, self)
+    }
+
+    /// User-facing string conversion (`CustomStringConvertible`).
+    func description() -> String {
+        return __syx_value_description(self)
+    }
+
+    /// Debug string conversion.
+    func debugDescription() -> String {
+        return __syx_value_debug_description(self)
+    }
+
+    /// Three-way compare (`Comparable`); host `__syx_i32_compare`.
+    func compare(other: Int32) -> Int {
+        return __syx_i32_compare(self, other)
+    }
+}
+

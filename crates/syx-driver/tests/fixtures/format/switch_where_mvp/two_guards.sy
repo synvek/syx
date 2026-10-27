@@ -1,0 +1,11 @@
+func main() {
+    switch 2 {
+    case 1 where true:
+        print(1)
+    case 2 where false:
+        print(2)
+    default:
+        print(0)
+    }
+}
+

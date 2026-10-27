@@ -1,0 +1,10 @@
+private func a() {
+    print(1)
+}
+internal func b() {
+    /* mid */
+    print(2)
+}
+fileprivate func c() {
+    print(3)
+}

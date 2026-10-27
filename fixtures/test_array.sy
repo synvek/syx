@@ -1,0 +1,81 @@
+func main() {
+    test001()
+    test002()
+    test003()
+    test004()
+    test005()
+    test006()
+    test007() 
+    test008()
+    test009()
+    test010()
+    test011()
+    test012()
+}
+
+func test001() {
+    let a: Array<Int> = [1, 2].map({ (x: Int) -> Int in return x * 2 })
+    print(a)
+}
+
+func test002() {
+    //Expect error: S004
+    //let wrong: Array<Int> = [1].map({ (x: Int) -> String in return "x" })
+}
+
+func test003() {
+    let f: Array<Int> = [1, 2, 3].filter({ (x: Int) -> Bool in return x > 1 })
+    print(f)
+}
+
+func test004() {
+    let a: Array<Int> = [1, 2].flatMap({ (x: Int) -> Array<Int> in return [x, x] })
+    print(a.count)
+    print(a[0])
+    print(a[1])
+}
+
+func test005() {
+    //Expect S004
+    //let wrong: Array<Int> = [1].flatMap({ (x: Int) -> Array<String> in return ["x"] })
+}
+
+func test006() {
+    let sum: Int = [1, 2, 3].reduce(0, { (acc: Int, x: Int) -> Int in return acc + x })
+    print(sum)
+}
+
+func test007() {
+    let a: Array<Int> = [3, 1, 2].sortBy({ (x: Int, y: Int) -> Int in return x - y })
+    print(a[0])
+    print(a[2])
+}
+
+func test008() {
+    //Expect S004
+    //let wrong: Array<String> = [1, 2].sortBy({ (x: Int, y: Int) -> Int in return x - y })
+}
+
+func test009() {
+    let c: Array<Array<Int>> = [1, 2, 3, 4].chunked(2)
+    print(c.count)
+    print(c[0][0])
+    print(c[1][1])
+}
+
+func test010() {
+    //Expect S004
+    //let wrong: Array<Int> = [1, 2, 3, 4].chunked(2)
+}
+
+func test011() {
+    let z: Array<Array<Int>> = [1, 2].zip([3, 4])
+    print(z.count)
+    print(z[0][0])
+    print(z[0][1])
+}
+
+func test012() {
+    //Expect S004
+    //let wrong: Array<Array<Int>> = [1, 2].zip(["a", "b"])
+}

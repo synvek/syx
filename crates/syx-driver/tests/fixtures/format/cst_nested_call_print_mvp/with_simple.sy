@@ -1,0 +1,4 @@
+func main() {
+    print(g(h(1)))
+}
+

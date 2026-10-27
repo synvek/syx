@@ -1,0 +1,25 @@
+class First {
+    lazy var a: Int {
+        get {
+            return 1
+        }
+    }
+}
+
+func helper() {
+    print(0)
+}
+
+class Second {
+    lazy var b: Int = 2
+    lazy var c: Int {
+        get {
+            return 3
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

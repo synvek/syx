@@ -1,0 +1,32 @@
+[package]
+name = "syx-compiler-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "SYX compiler subset for wasm32 browser embedding (Phase 65)"
+build = "build.rs"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# aes-gcm → getrandom needs a backend on wasm32; `custom` avoids wasm-bindgen
+# so examples/wasm_web can raw-instantiate the cdylib (C ABI).
+getrandom = { workspace = true, features = ["custom"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+syx-config = { path = "../syx-config" }
+syx-diagnostics = { path = "../syx-diagnostics" }
+syx-parser = { path = "../syx-parser" }
+syx-semantic = { path = "../syx-semantic" }
+syx-mir = { path = "../syx-mir" }
+syx-mono = { path = "../syx-mono" }
+syx-frontend = { path = "../syx-frontend" }
+syx-wasm-emit = { path = "../syx-wasm-emit" }
+# Browser page wires guest `syx.*` imports to MirRuntime hosted in this cdylib.
+syx-mir-run = { path = "../syx-mir-run", default-features = false }
+
+[[bin]]
+name = "hot_loop_aot_gate"
+path = "src/bin/hot_loop_aot_gate.rs"

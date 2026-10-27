@@ -1,0 +1,8 @@
+func main() {
+    if case 1 = getVal() {
+        print(1)
+    } else {
+        print(0)
+    }
+}
+

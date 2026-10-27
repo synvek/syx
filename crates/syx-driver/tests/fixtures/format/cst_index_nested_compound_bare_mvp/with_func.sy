@@ -1,0 +1,12 @@
+// ahead
+class Box {
+  var items: Int
+  init() {
+    a[0][1] += 1
+  }
+}
+func main() {
+  /* mid */
+  print(1)
+}
+/* trail */

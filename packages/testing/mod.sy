@@ -1,0 +1,16 @@
+public func assert(condition: Bool) {
+    __syx_testing_assert(condition, "assertion failed")
+}
+
+public func assertEq(actual: Object, expected: Object) {
+    __syx_testing_assert_eq(actual, expected, "assertEq failed")
+}
+
+public func test(name: String, fn: Object) {
+    __syx_testing_test(name, fn)
+}
+
+public func expectEqual(actual: Object, expected: Object) {
+    __syx_testing_expect_equal(actual, expected, "expectEqual failed")
+}
+

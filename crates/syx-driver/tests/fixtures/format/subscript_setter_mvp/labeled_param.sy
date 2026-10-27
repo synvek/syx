@@ -1,0 +1,15 @@
+class Cell {
+    subscript(label i: Int) -> Int {
+        get {
+            return i
+        }
+        set {
+            print(i)
+        }
+    }
+}
+
+func main() {
+    print(1)
+}
+

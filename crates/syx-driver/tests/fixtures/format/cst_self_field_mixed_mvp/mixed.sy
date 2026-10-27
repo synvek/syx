@@ -1,0 +1,19 @@
+// ahead
+public class Sub: Box, Greeter {
+  var name: String?
+  init(name: String) {
+    // body
+    self.name = name
+  }
+  func retag(tag: String) {
+    self.name = tag
+  }
+  deinit {
+    print(1)
+  }
+}
+func main() {
+  /* mid */
+  print(2)
+}
+/* trail */

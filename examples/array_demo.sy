@@ -1,0 +1,22 @@
+func main() {
+    test001()
+}
+
+func test001() {
+    let int1: Double = 8.0
+    let int2: Double = 8.0
+
+    print("Array demo 5")
+    var s2: Array<Double> = []
+    print(s2.count)
+    s2.append(2)
+    print(s2.count)
+    s2.append(2.0)
+    print(s2.count)
+    s2[1] = 5
+    print(s2[0])
+    print(s2[1])
+    //s2[2] = 5   // R003: Array index 2 out of bounds (count 2)
+    //print(s2[-1]) // R003: negative index
+    print(s2.count)
+}

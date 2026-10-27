@@ -1,0 +1,4 @@
+func f() -> some Equatable {
+    return 1
+}
+

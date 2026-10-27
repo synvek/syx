@@ -1,0 +1,5 @@
+// ahead
+final class Token where Bound: Equatable {
+    Ident
+    Number
+}

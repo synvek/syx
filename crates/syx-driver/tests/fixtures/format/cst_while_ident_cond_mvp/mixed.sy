@@ -1,0 +1,9 @@
+func main() {
+    while true
+    print(1)
+    while flag {
+        let x = 1
+        print(x)
+    }
+}
+

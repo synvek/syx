@@ -1,0 +1,45 @@
+/// W901: advanced JSON demo — CST-first (no enum / no interpolation / no raw `\n`).
+@Codable
+data class Person(id: Int, name: String, email: String)
+
+@Codable
+data class Address(street: String, city: String, zipCode: String, country: String)
+
+@Codable
+data class Employee(person: Person, address: Address, department: String, salary: Float)
+
+func main() {
+    print("=== JSON Adv Demo for SYX Language ===")
+    print("")
+    print("--- Demo 1: Basic Person ---")
+    let person = Person(id: 1, name: "Alice", email: "alice@example.com")
+    let personJson = person.encode()
+    print("Encoded Person:")
+    print(personJson)
+    let decodedPerson = Person.decode(text: personJson)
+    print("Decoded Person:")
+    print(decodedPerson.name)
+    print("")
+    print("--- Demo 2: Nested Employee ---")
+    let addr = Address(
+        street: "123 Main St",
+        city: "San Francisco",
+        zipCode: "94102",
+        country: "USA"
+    )
+    let empPerson = Person(id: 2, name: "Bob", email: "bob@company.com")
+    let employee = Employee(
+        person: empPerson,
+        address: addr,
+        department: "Engineering",
+        salary: 85000.0
+    )
+    let empJson = employee.encode()
+    print("Encoded Employee:")
+    print(empJson)
+    let decodedEmp = Employee.decode(text: empJson)
+    print("Decoded Department:")
+    print(decodedEmp.department)
+    print("")
+    print("=== JSON Adv Demo Complete ===")
+}

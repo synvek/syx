@@ -1,0 +1,9 @@
+// ahead
+export { Wrap }
+final class Wrap<T> where T: Equatable {
+    wrap(value: T)
+}
+func main() {
+    print(1)
+}
+/* trail */

@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SYX: Debug Current File",
+      "type": "syx",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/release/syx",
+      "args": ["debug", "--dap", "${file}"],
+      "cwd": "${workspaceFolder}",
+    },
+    {
+      "name": "SYX: Debug Project (examples)",
+      "type": "syx",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/release/syx",
+      "args": ["debug", "--dap", "${workspaceFolder}/examples/os_info"],
+      "cwd": "${workspaceFolder}",
+    }
+  ]
+}

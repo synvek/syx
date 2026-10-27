@@ -1,0 +1,5 @@
+func id(x: Int) -> (Int) -> Bool {
+    print(x)
+    return x
+}
+

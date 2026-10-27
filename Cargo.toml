@@ -1,0 +1,83 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+version = "0.1.0"
+authors = ["SYX Core Team"]
+
+[workspace.dependencies]
+miette = { version = "7", features = ["fancy"] }
+thiserror = "2"
+indexmap = "2"
+smol_str = { version = "0.3", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls", "gzip", "deflate", "http2"] }
+regex = "1"
+serde_json = "1"
+wasm-encoder = "0.220"
+wasmtime = { version = "27", default-features = false, features = ["runtime", "cranelift"] }
+semver = "1"
+bincode = "1"
+flate2 = "1"
+tar = "0.4"
+ed25519-dalek = { version = "2", features = ["std"] }
+crossbeam-channel = "0.5"
+parking_lot = "0.12"
+rustybuzz = "0.20.1"
+unicode-segmentation = "1.12"
+unicode-normalization = "0.1.25"
+caseless = "0.2.2"
+unicode-xid = "0.2.6"
+rand = "0.8"
+# No `js` feature: that pulls wasm-bindgen and breaks raw WebAssembly.instantiate
+# of syx-compiler-wasm (examples/wasm_web). Browser crate uses getrandom/custom.
+getrandom = { version = "0.2" }
+libm = "0.2"
+sha2 = "0.10"
+hmac = "0.12"
+aes-gcm = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+chrono-tz = "0.10"
+rcgen = "0.13"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+
+syx-diagnostics = { path = "crates/syx-diagnostics" }
+syx-lexer = { path = "crates/syx-lexer" }
+syx-ast = { path = "crates/syx-ast" }
+syx-parser = { path = "crates/syx-parser" }
+syx-semantic = { path = "crates/syx-semantic" }
+syx-codegen = { path = "crates/syx-codegen" }
+# default-features must be explicit so members can set default-features = false.
+syx-vm = { path = "crates/syx-vm", default-features = true }
+syx-stdlib = { path = "crates/syx-stdlib" }
+syx-driver = { path = "crates/syx-driver" }
+syx-pkg = { path = "crates/syx-pkg" }
+syx-async = { path = "crates/syx-async", default-features = true }
+syx-mir = { path = "crates/syx-mir" }
+syx-fmt = { path = "crates/syx-fmt" }
+syx-cst = { path = "crates/syx-cst" }
+syx-lint = { path = "crates/syx-lint" }
+syx-debug = { path = "crates/syx-debug" }
+syx-llvm = { path = "crates/syx-llvm" }
+syx-llvm-prefix = { path = "crates/syx-llvm-prefix" }
+syx-lld = { path = "crates/syx-lld" }
+syx-wasm-emit = { path = "crates/syx-wasm-emit" }
+syx-wasm-run = { path = "crates/syx-wasm-run" }
+syx-runtime-core = { path = "crates/syx-runtime-core" }
+syx-rt = { path = "crates/syx-rt" }
+syx-mir-run = { path = "crates/syx-mir-run", default-features = true }
+syx-cranelift-jit = { path = "crates/syx-cranelift-jit" }
+syx-config = { path = "crates/syx-config" }
+syx-macro = { path = "crates/syx-macro" }
+syx-host-plugin = { path = "crates/syx-host-plugin" }
+syx-meta = { path = "crates/syx-meta" }
+syx-mono = { path = "crates/syx-mono" }
+syx-doc = { path = "crates/syx-doc" }
+syx-frontend = { path = "crates/syx-frontend" }
+syx-hir = { path = "crates/syx-hir" }

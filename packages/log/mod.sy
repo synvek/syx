@@ -1,0 +1,54 @@
+public class Log {
+    public static func debug(message: String) {
+        __syx_log_debug(message)
+    }
+
+    public static func info(message: String) {
+        __syx_log_info(message)
+    }
+
+    public static func warn(message: String) {
+        __syx_log_warn(message)
+    }
+
+    public static func error(message: String) {
+        __syx_log_error(message)
+    }
+
+    /// ADR-292 / M3-D01: set global min level (`DEBUG`/`INFO`/`WARN`/`ERROR`).
+    public static func setMinLevel(level: String) -> Bool {
+        return __syx_log_set_min_level(level)
+    }
+
+    public static func minLevel() -> String {
+        return __syx_log_min_level()
+    }
+
+    /// Fingerprint `log-v1-fields` (ADR-293; ≠ JSON GA / ≠ D02).
+    public static func policy() -> String {
+        return __syx_log_policy()
+    }
+
+    /// Structured INFO line; empty string if filtered below min level.
+    public static func infoFields(message: String, fields: Dictionary) -> String {
+        return __syx_log_info_fields(message, fields)
+    }
+
+    /// ADR-293: structured DEBUG/WARN/ERROR field lines (same format as infoFields).
+    public static func debugFields(message: String, fields: Dictionary) -> String {
+        return __syx_log_debug_fields(message, fields)
+    }
+
+    public static func warnFields(message: String, fields: Dictionary) -> String {
+        return __syx_log_warn_fields(message, fields)
+    }
+
+    public static func errorFields(message: String, fields: Dictionary) -> String {
+        return __syx_log_error_fields(message, fields)
+    }
+
+    /// Last successfully emitted line (cleared on read); for filter nails.
+    public static func takeLast() -> String {
+        return __syx_log_take_last()
+    }
+}

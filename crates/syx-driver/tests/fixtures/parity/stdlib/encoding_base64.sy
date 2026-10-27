@@ -1,0 +1,4 @@
+func main() {
+    print(__syx_base64_encode("x"))
+}
+

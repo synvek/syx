@@ -1,0 +1,7 @@
+func main() {
+    while ready()
+    print(1)
+    while x < n
+    print(x)
+}
+

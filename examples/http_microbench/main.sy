@@ -1,0 +1,12 @@
+import Net
+
+func main() {
+    var i = 0
+    while i < 10000 {
+        let _ = Http.response(status: 200, body: "x")
+        i = i + 1
+    }
+    print("ok")
+    print(10000)
+}
+

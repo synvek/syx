@@ -1,0 +1,6 @@
+func main() {
+    if let v = getOpt() {
+        print(v)
+    }
+}
+

@@ -1,0 +1,8 @@
+func id(x) -> Int {
+    return x
+}
+
+func main() {
+    print(id(42))
+}
+

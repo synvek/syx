@@ -1,0 +1,208 @@
+{
+  "name": "syx-language",
+  "displayName": "SYX Language",
+  "description": "SYX language support: LSP Phase 82 / SYX 60.0 — HeapSlot parity, heap v11 bridge, RT stack v7, tier-2F browser",
+  "version": "4.0.0",
+  "publisher": "syx",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/synvek/synswx",
+  "scripts": {
+    "package": "vsce package",
+    "publish:marketplace": "vsce publish"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages", "Debuggers"],
+  "activationEvents": [
+    "onLanguage:syx",
+    "onDebugResolve:syx",
+    "onDebugInitialConfigurations:syx",
+    "onDebugDynamicConfigurations:syx"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "syx.restartLanguageServer",
+        "title": "Restart Language Server",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.checkLanguageServer",
+        "title": "Check Language Server",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.showActorRoutingGraph",
+        "title": "Show Actor Routing Graph",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.fetchActorRoutes",
+        "title": "Fetch Actor Routes from LSP",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.syncBreakpointToRoute",
+        "title": "Sync Breakpoint to Route Target",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.syncMultiprocessRoutes",
+        "title": "Sync Multiprocess Routes",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.syncFederatedRoutes",
+        "title": "Sync Federated Routes",
+        "category": "SYX"
+      },
+      {
+        "command": "syx.showFederatedRoutingGraph",
+        "title": "Show Federated Routing Graph",
+        "category": "SYX"
+      }
+    ],
+    "configurationDefaults": {
+      "debug.showVariableTypes": true,
+      "[syx]": {
+        "editor.semanticHighlighting.enabled": true,
+        "editor.formatOnSave": true,
+        "editor.inlayHints.enabled": "on",
+        "editor.quickSuggestions": {
+          "other": "on",
+          "comments": "off",
+          "strings": "on"
+        },
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.semanticTokenColorCustomizations": {
+          "enabled": true,
+          "rules": {
+            "decorator": "#569CD6"
+          },
+          "textMateRules": [
+            {
+              "scope": "punctuation.section.interpolation.begin.sy, punctuation.section.interpolation.end.sy",
+              "settings": { "foreground": "#569CD6", "fontStyle": "bold" }
+            },
+            {
+              "scope": "meta.interpolation.sy variable.other.sy",
+              "settings": { "foreground": "#9CDCFE" }
+            }
+          ]
+        }
+      },
+      "editor.semanticTokenColorCustomizations": {
+        "rules": {
+          "function": "#DCDCAA",
+          "method": "#DCDCAA",
+          "type": "#4EC9B0",
+          "parameter": "#9CDCFE",
+          "variable": "#9CDCFE",
+          "property": "#9CDCFE",
+          "keyword": "#C586C0",
+          "string": "#CE9178",
+          "number": "#B5CEA8",
+          "decorator": "#D7BA7D",
+          "operator": "#569CD6"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "syx",
+        "aliases": ["SYX", "syx"],
+        "extensions": [".sy"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "syx",
+        "scopeName": "source.sy",
+        "path": "./syntaxes/syx.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "SYX",
+      "properties": {
+        "syx.languageServerPath": {
+          "type": "string",
+          "default": "syx",
+          "description": "Path to the syx CLI (must support `syx lsp`)"
+        },
+        "syx.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Trace LSP communication"
+        },
+        "syx.inlayHints.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show type-linked inlay hints including Result<T,E> generic params (LSP v14, default on)"
+        },
+        "syx.testExplorer.include": {
+          "type": "string",
+          "default": "p34_*",
+          "description": "Glob pattern for SYX integration fixtures surfaced in Test Explorer (Phase 34)"
+        },
+        "syx.wsMock.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use SYX_WS_MOCK=1 WebSocket mock handshake fallback when WSS is unavailable (Phase 22)"
+        }
+      }
+    },
+    "breakpoints": [
+      {
+        "language": "syx"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "syx",
+        "label": "SYX Debugger",
+        "languages": ["syx"],
+        "configurationAttributes": {
+          "launch": {
+            "required": ["program"],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Path to syx CLI binary",
+                "default": "${workspaceFolder}/target/debug/syx"
+              },
+              "args": {
+                "type": "array",
+                "default": ["debug", "--dap", "${file}"]
+              },
+              "cwd": {
+                "type": "string",
+                "default": "${workspaceFolder}"
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "syx",
+            "request": "launch",
+            "name": "SYX: Debug File",
+            "program": "${workspaceFolder}/target/debug/syx",
+            "args": ["debug", "--dap", "${file}"],
+            "cwd": "${workspaceFolder}"
+          }
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1"
+  }
+}

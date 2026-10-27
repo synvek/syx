@@ -1,0 +1,3 @@
+@attached(conformance, Equatable)
+data class User(id: Int)
+

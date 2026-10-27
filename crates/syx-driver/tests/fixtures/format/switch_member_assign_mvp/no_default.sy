@@ -1,0 +1,7 @@
+func main() {
+    switch x {
+    case y.z = 1:
+        print(1)
+    }
+}
+
