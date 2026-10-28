@@ -1,9 +1,9 @@
 // =============================================================================
 // tutorial/20-type-casting.sy
-// 对应《SYX 语言指南》第 20 章「类型转换」
+// Corresponds to Chapter 20 "Type Casting" of the *SYX Language Guide*
 //
-// 可运行演示：数值提升、as / as?、类层次 is / as?、字面量类型。
-// note: as!、异构 Array<Any>、协议存在性 cast、Int8.from 工厂在本教程中省略或受限。
+// Runnable demos: numeric promotion, as / as?, class hierarchy is / as?, literal types.
+// note: as!, heterogeneous Array<Any>, protocol-existential casts, and Int8.from factory are omitted or limited in this tutorial.
 // =============================================================================
 
 func numericPromotion() {
@@ -94,7 +94,7 @@ func numericConversion() {
     let a: Int = 42
     let b = a as Int8
     print(b)
-    // note: Int as Double 可能失败 → 用算术提升
+    // note: Int as Double may fail -> use arithmetic promotion
     let widened = a + 0.0
     print(widened)
 

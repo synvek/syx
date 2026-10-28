@@ -1,13 +1,13 @@
 // =============================================================================
 // tutorial/11-properties.sy
-// 对应《SYX 语言指南》第 11 章「属性」
+// Corresponds to Chapter 11 "Properties" of the *SYX Language Guide*
 //
-// 可运行演示：存储属性、静态属性、计算属性 get/set、willSet/didSet、lazy。
-// note: Swift 风格 struct { var x } 不受支持 → 用 class / data class。
-// note: extension 上的计算属性、@Published 观察链在本运行时受限，此处省略。
+// Runnable demos: stored properties, static properties, computed properties get/set, willSet/didSet, lazy.
+// note: Swift-style `struct { var x }` is unsupported -> use class / data class.
+// note: Computed properties on extension / the @Published observation chain are limited in this runtime, so they are omitted here.
 // =============================================================================
 
-// 1) 存储属性（class + init）
+// 1) Stored properties (class + init)
 class Person {
     var name: String
     let id: Int
@@ -17,10 +17,10 @@ class Person {
     }
 }
 
-// 2) data class 记录
+// 2) data class record
 data class Settings(theme: String, version: Int)
 
-// 3) 静态属性
+// 3) Static properties
 class Config {
     static var debug: Bool = false
     static let version: Int = 116
@@ -34,7 +34,7 @@ func demoStatic() {
     print(Config.name)
 }
 
-// 4) 计算属性 get / set
+// 4) Computed property get / set
 class Circle {
     var radius: Double
     init(radius: Double) {
@@ -74,7 +74,7 @@ func demoObservers() {
     print(c.value)
 }
 
-// 6) lazy（首次访问时初始化）
+// 6) lazy (initialized on first access)
 class HeavyResource {
     lazy var buffer: Array<Int> = [0, 1, 2]
     init() {}
@@ -86,7 +86,7 @@ func demoLazy() {
     print(h.buffer[1])
 }
 
-// 7) 静态 computed
+// 7) Static computed
 class MathConst {
     static let pi: Double = 3.14159265358979
     static var tau: Double {
@@ -94,7 +94,7 @@ class MathConst {
     }
 }
 
-// 8) 温度计：读写计算属性
+// 8) Thermometer: read-write computed property
 class Thermometer {
     var celsius: Double
     init(celsius: Double) {

@@ -1,17 +1,17 @@
 // =============================================================================
 // tutorial/04-strings-and-characters.sy
-// 对应《SYX 语言指南》第 4 章「字符串和字符」
+// Corresponds to Chapter 4 "Strings and Characters" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - 字符串字面量（单行 / 多行 / 转义 / 插值）
-//   - Character 类型（Phase 139 MVP GA）
-//   - 字素簇语义（Phase 84+）
-//   - 下标 s[i] 字符访问
-//   - 字符串常用方法（split/trim/case/prefix/suffix/substring/replace/...）
-//   - for-in 遍历
-//   - 正则字面量
-//   - String 拼接 / 比较
-//   - 与 Array 互转
+// Language features covered in this chapter:
+//   - String literals (single-line / multiline / escape / interpolation)
+//   - Character type (Phase 139 MVP GA)
+//   - Grapheme-cluster semantics (Phase 84+)
+//   - Subscript s[i] character access
+//   - Common string methods (split/trim/case/prefix/suffix/substring/replace/...)
+//   - for-in traversal
+//   - Regex literals
+//   - String concatenation / comparison
+//   - Conversion with Array
 // =============================================================================
 
 func demo_literals() {
@@ -23,7 +23,7 @@ func demo_literals() {
     print("multi=\(multi)")
     print(tabbed)
 
-    // note: `\u{...}` 在部分路径会原样保留；多行字符串与插值可用。
+    // note: `\u{...}` is preserved verbatim on some paths; multiline strings and interpolation work.
     let haiku = """
 line one
 line two with \(s)
@@ -46,7 +46,7 @@ func demo_methods() {
     print("hasPrefix=\(hasPre) len=\(len)")
     print("matches=\(digitMatches)")
 
-    // note: hasSuffix / replacingOccurrences / substring / repeat / isEmpty 在本构建中不可用或行为不稳定。
+    // note: hasSuffix / replacingOccurrences / substring / repeat / isEmpty are unavailable or unstable in this build.
     let back = parts.joined("-")
     print("joined=\(back)")
 }
@@ -70,7 +70,7 @@ func demo_chars_and_compare() {
     print(a4)
 
     print("abc" == "abc")
-    // note: 字符串字典序比较 `<` 结果在当前运行时可能不符合预期，仅演示 ==。
+    // note: String lexicographic comparison with `<` may be unexpected on the current runtime; only == is demonstrated.
 }
 
 func main() {

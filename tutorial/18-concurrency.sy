@@ -1,10 +1,10 @@
 // =============================================================================
 // tutorial/18-concurrency.sy
-// 对应《SYX 语言指南》第 18 章「并发」
+// Corresponds to Chapter 18 "Concurrency" of the *SYX Language Guide*
 //
-// 可运行演示：Task / Task.detached、Channel、Concurrency 运行时配置。
-// note: async main + await Concurrency.sleep 在当前运行时可能重入循环 → 本文件用同步 main。
-// note: actor / async let / @MainActor / TaskGroup 省略或受限。
+// Runnable demos: Task / Task.detached, Channel, Concurrency runtime configuration.
+// note: async main + await Concurrency.sleep may re-enter the loop in the current runtime -> this file uses a synchronous main.
+// note: actor / async let / @MainActor / TaskGroup are omitted or limited.
 // =============================================================================
 
 import Sync

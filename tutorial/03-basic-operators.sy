@@ -1,17 +1,17 @@
 // =============================================================================
 // tutorial/03-basic-operators.sy
-// 对应《SYX 语言指南》第 3 章「基本运算符」
+// Corresponds to Chapter 3 "Basic Operators" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - 算术 + - * / %、一元负、正
-//   - 比较 == != === !== < <= > >=
-//   - 逻辑 && || !
-//   - 空合并 ??、可选链 ?.、强制解包 !
-//   - 复合赋值 = += -= *= /= %=
-//   - 范围 0..<n / 1...n
-//   - 一元前缀（-, !, try, await, &）
-//   - 字面量类型规则 + 下划线
-//   - 自定义运算符入门（详见第 30 章）
+// Language features covered in this chapter:
+//   - Arithmetic + - * / %
+//   - Comparison == != === !== < <= > >=
+//   - Logical && || !
+//   - Nil-coalescing ?? / optional chaining ?. / force-unwrap !
+//   - Compound assignment = += -= *= /= %=
+//   - Ranges 0..<n / 1...n
+//   - Unary prefix (-, !, try, await, &)
+//   - Literal type rules + underscores
+//   - Intro to custom operators (see Chapter 30)
 // =============================================================================
 
 func demo_arithmetic() {
@@ -40,7 +40,7 @@ func demo_compare_logic() {
 }
 
 func demo_optional_ops() {
-    // note: 可选链 ?.count / 强制解包 ! 在 CLI 路径上对 String? 不稳定；用 ?? 演示空合并。
+    // note: Optional chaining ?.count / force-unwrap ! on String? is unstable on the CLI path; ?? is used to demonstrate nil-coalescing.
     let s: String? = "hello"
     let ns: String? = nil
     print(s ?? "missing")
@@ -82,7 +82,7 @@ func demo_precedence() {
     let expr = 1 + 2 * 3
     let paren = (1 + 2) * 3
     print("expr=\(expr) paren=\(paren)")
-    // note: 自定义运算符（infix operator |> 等）详见第 30 章，本教程不演示。
+    // note: Custom operators (infix operator |> etc.) are covered in Chapter 30; not demonstrated here.
 }
 
 func main() {

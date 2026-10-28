@@ -1,12 +1,12 @@
 // =============================================================================
 // tutorial/16-deinitialization.sy
-// 对应《SYX 语言指南》第 16 章「析构过程」
+// Corresponds to Chapter 16 "Deinitialization" of the *SYX Language Guide*
 //
-// 可运行演示：class deinit、引用共享、嵌套对象、静态计数。
-// note: actor deinit、弱引用、enum/struct deinit 不支持或受限。
+// Runnable demos: class deinit, reference sharing, nested objects, static counter.
+// note: actor deinit, weak references, and enum/struct deinit are unsupported or limited.
 // =============================================================================
 
-// 1) 基础 deinit
+// 1) Basic deinit
 class Resource {
     var id: Int
     init(id: Int) {
@@ -23,7 +23,7 @@ func basicDeinit() {
     print(r.id)
 }
 
-// 2) 多个引用共享同一对象
+// 2) Multiple references share the same object
 class Shared {
     var tag: String
     init(tag: String) {
@@ -44,7 +44,7 @@ func refcountDemo() {
     print(a.tag)
 }
 
-// 3) 嵌套对象
+// 3) Nested objects
 class Inner {
     var name: String
     init(name: String) {
@@ -70,7 +70,7 @@ func nestedDeinit() {
     print(o.inner.name)
 }
 
-// 4) 静态计数跟踪存活实例
+// 4) Static counter to track live instances
 class Tracked {
     static var live: Int = 0
     var id: Int
@@ -93,7 +93,7 @@ func trackDemo() {
     print(b.id)
 }
 
-// 5) 文件句柄风格资源
+// 5) File-handle-style resource
 class FileHandle {
     var path: String
     init(path: String) {
@@ -110,7 +110,7 @@ func fileDemo() {
     print(h.path)
 }
 
-// 6) 继承链 deinit（子类 deinit 先跑）
+// 6) Inheritance-chain deinit (subclass deinit runs first)
 class Base3 {
     init() {}
     deinit {
@@ -128,7 +128,7 @@ func deinitChain() {
     print("alive")
 }
 
-// note: data class / enum 无 deinit
+// note: data class / enum have no deinit
 data class Value(x: Int)
 
 func main() {

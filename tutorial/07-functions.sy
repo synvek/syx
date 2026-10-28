@@ -1,17 +1,17 @@
 // =============================================================================
 // tutorial/07-functions.sy
-// 对应《SYX 语言指南》第 7 章「函数」
+// Corresponds to Chapter 7 "Functions" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - func 声明 / 命名参数 / 默认参数
-//   - 形参外部标签（label name / _ name）
-//   - 多返回值（元组）
-//   - 嵌套函数
-//   - 效果注解 requires Pure / requires IO
-//   - async / throws 函数
-//   - 重载
-//   - inout（未实现，仅注释）
-//   - 函数引用 / 函数类型
+// Language features covered in this chapter:
+//   - func declaration / named parameters / default parameters
+//   - Argument external labels (label name / _ name)
+//   - Multiple return values (tuples)
+//   - Nested functions
+//   - Effect annotations requires Pure / requires IO
+//   - async / throws functions
+//   - Overloading
+//   - inout (not implemented, comment only)
+//   - Function references / function types
 // =============================================================================
 
 func greet(name: String) {
@@ -22,7 +22,7 @@ func addNums(a: Int, b: Int) -> Int {
     return a + b
 }
 
-// note: 默认参数在 CLI 路径上常为 nil，教程改为显式传参。
+// note: Default parameters are often nil on the CLI path; this tutorial passes them explicitly.
 func logMsg(msg: String, level: String, tag: String) {
     print(level)
     print(tag)
@@ -51,7 +51,7 @@ func minMax(_ arr: Array<Int>) -> (min: Int, max: Int) {
     return (min: mn, max: mx)
 }
 
-// note: 嵌套函数 / 重载 / requires Pure|IO / async / variadic / inout 本教程不演示。
+// note: Nested functions / overloading / requires Pure|IO / async / variadic / inout are not demonstrated here.
 
 func processInt(_ x: Int) -> Int {
     return x * 2
@@ -61,7 +61,7 @@ func processStr(_ s: String) -> String {
     return s + "!"
 }
 
-// note: 函数类型参数不能直接 `f(x)` 调用；通过 Array.map 间接应用。
+// note: Function-type parameters cannot be called directly as `f(x)`; apply indirectly via Array.map.
 func applyMapped(_ x: Int, f: (Int) -> Int) -> Int {
     let arr = [x]
     let out = arr.map(f)
@@ -96,5 +96,5 @@ func main() {
 
     print(divideSafe(10, 2))
     print(divideSafe(10, 0))
-    // note: throws / try-catch 错误处理详见第 17 章。
+    // note: throws / try-catch error handling is covered in Chapter 17.
 }

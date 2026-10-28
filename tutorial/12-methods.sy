@@ -1,13 +1,13 @@
 // =============================================================================
 // tutorial/12-methods.sy
-// 对应《SYX 语言指南》第 12 章「方法」
+// Corresponds to Chapter 12 "Methods" of the *SYX Language Guide*
 //
-// 可运行演示：实例方法、静态方法、override、self、init / deinit。
-// note: struct mutating / 协议默认实现在本教程中省略（解析或运行时受限）。
-// note: class 上 Array 字段的 append 在当前运行时不可靠 → 用 Int 状态演示。
+// Runnable demos: instance methods, static methods, override, self, init / deinit.
+// note: struct mutating / protocol default implementations are omitted here (limited at parse or runtime).
+// note: Array field append on a class is unreliable in the current runtime -> demonstrated with Int state.
 // =============================================================================
 
-// 1) 实例方法
+// 1) Instance methods
 class Counter {
     var value: Int
     init(value: Int) {
@@ -31,7 +31,7 @@ func demoInstance() {
     c.describe()
 }
 
-// 2) 静态方法 / 工厂
+// 2) Static methods / factory
 class Factory {
     static var defaultName: String = "anon"
     static func create() -> Factory {
@@ -49,7 +49,7 @@ func demoStatic() {
     print(Factory.defaultName)
 }
 
-// 3) override（无 super.init；子类自有默认字段）
+// 3) override (no super.init; subclass has its own default fields)
 class Shape {
     var name: String = "Shape"
     func area() -> Double {
@@ -91,7 +91,7 @@ func demoOverride() {
     asShape.describe()
 }
 
-// 4) self 显式 / 隐式
+// 4) self explicit / implicit
 class Box {
     var value: Int
     init(value: Int) {
@@ -128,7 +128,7 @@ func demoLifecycle() {
     print(r.name)
 }
 
-// 6) 链式：返回 self（非 Array 状态）
+// 6) Chaining: return self (not Array state)
 class Accumulator {
     var total: Int
     init() {

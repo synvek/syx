@@ -1,13 +1,13 @@
 // =============================================================================
 // tutorial/15-initialization.sy
-// 对应《SYX 语言指南》第 15 章「构造过程」
+// Corresponds to Chapter 15 "Initialization" of the *SYX Language Guide*
 //
-// 可运行演示：designated init、data class 构造、多参数 init、继承字段赋值。
-// note: super.init / init? / actor init / throws init / self.init 委托当前受限。
-// note: 多标签 overload 解析不稳定 → 每个类型尽量只保留一个清晰 init。
+// Runnable demos: designated init, data class construction, multi-parameter init, inherited field assignment.
+// note: super.init / init? / actor init / throws init / self.init delegation are currently limited.
+// note: Multi-label overload resolution is unstable -> keep only one clear init per type.
 // =============================================================================
 
-// 1) class init 基础
+// 1) Basic class init
 class Greeter {
     var name: String
     var greeting: String
@@ -26,7 +26,7 @@ func basicInit() {
     print(g2.name)
 }
 
-// 2) 显式默认值写在 init 内（避免多 overload 抢标签）
+// 2) Explicit defaults written inside init (avoid multi-overload label clashes)
 class Counter {
     var value: Int
     var step: Int
@@ -45,7 +45,7 @@ func counterInit() {
     print(c1.step)
 }
 
-// 3) data class 字段构造
+// 3) data class field construction
 data class Point(x: Int, y: Int)
 data class User(id: Int, name: String, email: String)
 
@@ -59,7 +59,7 @@ func dataClassInit() {
     print(u.description())
 }
 
-// 4) 继承：子类字段默认 + 之后赋值（无 super.init）
+// 4) Inheritance: subclass default field + later assignment (no super.init)
 class Animal {
     var name: String = "anon"
 }
@@ -75,7 +75,7 @@ func inheritInit() {
     print(d.breed)
 }
 
-// 5) 两段式：先写齐 stored，再使用
+// 5) Two-phase: assign all stored first, then use
 class Car {
     var brand: String
     var maxSpeed: Int
@@ -94,7 +94,7 @@ func carInit() {
     print(c.maxSpeed)
 }
 
-// 6) Server 配置
+// 6) Server config
 class Server {
     var host: String
     var port: Int
@@ -106,7 +106,7 @@ class Server {
     }
 }
 
-// 7) 构造时计算派生值
+// 7) Compute derived values at construction
 class CircleInit {
     var radius: Double
     var area: Double
@@ -116,7 +116,7 @@ class CircleInit {
     }
 }
 
-// 8) 失败用 Optional 表达（代替 init?）
+// 8) Use Optional to express failure (instead of init?)
 func makePort(_ number: Int) -> Int? {
     if number < 1 {
         return nil

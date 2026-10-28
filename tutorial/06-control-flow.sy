@@ -1,16 +1,16 @@
 // =============================================================================
 // tutorial/06-control-flow.sy
-// 对应《SYX 语言指南》第 6 章「控制流」
+// Corresponds to Chapter 6 "Control Flow" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - if / else（条件括号可选）
+// Language features covered in this chapter:
+//   - if / else (condition parentheses optional)
 //   - while / repeat-while
-//   - for-in（含 for await in）
-//   - switch（含 where 守卫、范围、enum 关联值模式）
-//   - break / continue（label 部分实现）
+//   - for-in (including for await in)
+//   - switch (including where guards, ranges, enum associated-value patterns)
+//   - break / continue (labels partially implemented)
 //   - if case / if let / guard let
-//   - if 表达式（Phase 100+）
-//   - 嵌套控制流
+//   - if expression (Phase 100+)
+//   - Nested control flow
 // =============================================================================
 
 enum Result2 {
@@ -29,7 +29,7 @@ func classify(_ n: Int) -> String {
 }
 
 func sign(_ n: Int) -> String {
-    // note: if 表达式在部分路径返回不稳定；改用普通 if。
+    // note: if-expression returns unstably on some paths; a plain if is used instead.
     if n > 0 {
         return "pos"
     }
@@ -47,7 +47,7 @@ func sumTo(_ n: Int) -> Int {
 }
 
 func repeatSumTo(_ n: Int) -> Int {
-    // note: repeat-while 在本构建上结果不稳定；用 while 等价写法。
+    // note: repeat-while yields unstable results in this build; an equivalent while is used.
     var s = 0
     var i = 0
     while i < n {
@@ -74,7 +74,7 @@ func sumString(_ s: String) -> Int {
 }
 
 func describe(_ r: Result2) -> String {
-    // note: switch where 守卫本教程用 if 代替，避免复杂模式边界。
+    // note: switch where guards are replaced with if here to avoid complex pattern edges.
     switch r {
     case .ok(let v):
         if v > 100 {
@@ -110,7 +110,7 @@ func maybeIncrement(_ x: Int?) -> Int {
 }
 
 func unwrapOrZero(_ x: Int?) -> Int {
-    // note: guard let 成功分支需要额外 `{ ... }` 块。
+    // note: The guard-let success branch needs an extra `{ ... }` block.
     guard let v = x else {
         return 0
     }
@@ -152,7 +152,7 @@ func processItems(_ items: Array<Int>) -> Array<String> {
         }
         idx += 1
     }
-    // note: enumerated() / labeled break 本教程简化；idx 仅示意。
+    // note: enumerated() / labeled break are simplified here; idx is only illustrative.
     print(idx)
     return out
 }
@@ -179,5 +179,5 @@ func main() {
     for l in labels {
         print(l)
     }
-    // note: for await in / 异步流详见第 18 章。
+    // note: for await in / async streams are covered in Chapter 18.
 }

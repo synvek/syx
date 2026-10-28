@@ -1,10 +1,10 @@
 // =============================================================================
 // tutorial/19-macros.sy
-// 对应《SYX 语言指南》第 19 章「宏」
+// Corresponds to Chapter 19 "Macros" of the *SYX Language Guide*
 //
-// 最小可运行演示：Service DI（@Service + Di.resolve）。
-// note: #assert / #stringify / @resultBuilder / 完整 AOP 需宏包或特殊启动配置。
-// note: @Equatable 等 conformance 宏对 data class 有支持，但本文件聚焦 DI 可运行路径。
+// Minimal runnable demo: Service DI (@Service + Di.resolve).
+// note: #assert / #stringify / @resultBuilder / full AOP require a macro package or special startup config.
+// note: Conformance macros like @Equatable are supported for data class, but this file focuses on the runnable DI path.
 // =============================================================================
 
 import Di
@@ -44,7 +44,7 @@ class Greeter {
 func main() {
     print("macros-demo")
 
-    // data class 仍可作普通记录使用（无需宏即可构造）
+    // data class can still be used as a plain record (constructible without a macro)
     let p1 = Point3D(x: 1, y: 2, z: 3)
     let p2 = Point3D(x: 1, y: 2, z: 3)
     print(p1.x)

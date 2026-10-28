@@ -1,10 +1,10 @@
 // =============================================================================
 // tutorial/14-inheritance.sy
-// 对应《SYX 语言指南》第 14 章「继承」
+// Corresponds to Chapter 14 "Inheritance" of the *SYX Language Guide*
 //
-// 可运行演示：单继承、override、vtable 多态、is / as?。
-// note: super.init 当前解析失败 → 子类用默认字段，不调用 super.init。
-// note: final class、协议继承、混合子类 Array<Animal> 在本运行时受限。
+// Runnable demos: single inheritance, override, vtable polymorphism, is / as?.
+// note: super.init currently fails to resolve -> subclasses use default fields and do not call super.init.
+// note: final class, protocol inheritance, and mixed Array<Animal> subclasses are limited in this runtime.
 // =============================================================================
 
 class Animal {
@@ -67,7 +67,7 @@ func typeCheckDemo() {
     print(p is Puppy)
 }
 
-// 多级 override 链
+// Multi-level override chain
 class A2 {
     func f() {
         print("A")
@@ -91,7 +91,7 @@ func overrideChain() {
     asA.f()
 }
 
-// 车辆示例：子类自有字段 + 默认值（无 super.init）
+// Vehicle example: subclass has its own fields + defaults (no super.init)
 class Vehicle {
     var wheels: Int = 0
 }

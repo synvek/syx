@@ -1,16 +1,16 @@
 // =============================================================================
 // tutorial/17-error-handling.sy
-// 对应《SYX 语言指南》第 17 章「错误处理」
+// Corresponds to Chapter 17 "Error Handling" of the *SYX Language Guide*
 //
-// 可运行演示：try/catch 块结构、data class 错误类型、Result、Optional。
-// note: 当前运行时 throw 可能不会进入 catch → 用 Result/Optional 表达失败。
-// note: switch 匹配关联值 enum 可能导致进程不退出 → 避免 switch。
-// note: throws -> T、try?、try!、rethrows、Optional == nil 此处省略。
+// Runnable demos: try/catch block structure, data class error types, Result, Optional.
+// note: In the current runtime, throw may not enter catch -> express failure with Result/Optional.
+// note: switch over an associated-value enum may prevent the process from exiting -> avoid switch.
+// note: throws -> T, try?, try!, rethrows, and Optional == nil are omitted here.
 // =============================================================================
 
 data class AppError(code: Int, message: String)
 
-// 1) try / catch 结构（无 throw，演示块可运行）
+// 1) try / catch structure (no throw, demonstrating that the block runs)
 func tryCatchBlock() {
     try {
         let content = "fake-content"
@@ -20,7 +20,7 @@ func tryCatchBlock() {
     }
 }
 
-// 2) 用 Optional 表达可失败操作
+// 2) Express fallible operations with Optional
 func divide(_ a: Int, _ b: Int) -> Int? {
     if b == 0 {
         return nil
@@ -47,7 +47,7 @@ func optionalErrors() {
     print(bad)
 }
 
-// 3) 标准库 Result（String 成功 / 失败）
+// 3) Standard-library Result (String success / failure)
 func safeDivide(_ a: Int, _ b: Int) -> Result<String, String> {
     if b == 0 {
         return Result.err(value: "div by zero")
@@ -66,14 +66,14 @@ func resultDemo() {
     print(Result.isErr(result: r4))
 }
 
-// 4) data class 作为错误载体
+// 4) data class as error carrier
 func appErrorDemo() {
     let e = AppError(code: 500, message: "internal")
     print(e.code)
     print(e.message)
 }
 
-// 5) Optional 查找
+// 5) Optional lookup
 data class User(id: Int, name: String)
 
 func findUser(_ id: Int) -> User? {
@@ -90,7 +90,7 @@ func optionalFind() {
     print(u2)
 }
 
-// 6) 工作流：用 Bool 标志代替二次使用 path（避免 moved value）
+// 6) Workflow: use a Bool flag instead of reusing path (avoid moved value)
 func workflowOk() -> String? {
     let content = loadFile("/tmp/x")
     let n = divide(42, 2)

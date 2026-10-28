@@ -1,18 +1,18 @@
 // =============================================================================
 // tutorial/10-structures-and-classes.sy
-// 对应《SYX 语言指南》第 10 章「结构体和类」
+// Corresponds to Chapter 10 "Structures and Classes" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - struct（值类型，mutating func）
-//   - class（引用类型，ARC）
-//   - data class（不可变记录 + 自动派生 description / copy / eq / hash）
-//   - actor（并发隔离）
-//   - 引用比较 === / !==
-//   - 单继承 + override（详见 14）
+// Language features covered in this chapter:
+//   - struct (value type, mutating func)
+//   - class (reference type, ARC)
+//   - data class (immutable record + auto-derived description / copy / eq / hash)
+//   - actor (concurrency isolation)
+//   - Reference comparison === / !==
+//   - Single inheritance + override (see 14)
 //   - final class
 // =============================================================================
 
-// note: 不要写 Swift 式 struct { var x: Int } 体；用 class + init，或 data class 简写。
+// note: Do not write a Swift-style `struct { var x: Int }` body; use class + init, or the data class shorthand.
 
 class Point {
     var x: Int
@@ -67,7 +67,7 @@ class Animal {
     }
 }
 
-// note: 子类复用父类 init；重写 init 调用父初始化在 CLI 路径上不稳定。
+// note: Subclasses reuse the parent init; overriding init to call the parent initializer is unstable on the CLI path.
 class Dog: Animal {
     override func speak() {
         print("woof")
@@ -75,7 +75,7 @@ class Dog: Animal {
     }
 }
 
-// note: final class 在 syx run 路径上解析失败；此处用普通 class 演示不可变字段。
+// note: final class fails to resolve on the syx run path; a plain class with immutable fields is used here.
 class ImmutableKey {
     let id: Int
     init(id: Int) {
@@ -113,7 +113,7 @@ func demoDataClass() {
     let u3 = u1.copy()
     print(u1.description)
     print(u3.description)
-    // note: 多字段 data class 的 == 合成在 syx run 路径上可能缺失；用 description / === 演示。
+    // note: == synthesis for multi-field data class may be missing on the syx run path; demonstrate with description / ===.
     print(u1 === u3)
 
     let p1 = Point2D(3, 4)
@@ -140,5 +140,5 @@ func main() {
     demoDataClass()
     demoInheritance()
     demoFinal()
-    // note: actor / Task.detached / mutating struct 方法详见并发与后续章节。
+    // note: actor / Task.detached / mutating struct methods are covered in the concurrency and later chapters.
 }

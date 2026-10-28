@@ -1,19 +1,19 @@
 // =============================================================================
 // tutorial/09-enumerations.sy
-// 对应《SYX 语言指南》第 9 章「枚举」
+// Corresponds to Chapter 9 "Enumerations" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - 简单 enum（必须 case 关键字）
-//   - 关联值（位置 / 命名）
-//   - 泛型 enum
-//   - switch exhaustiveness + 模式绑定
+// Language features covered in this chapter:
+//   - Simple enum (the case keyword is required)
+//   - Associated values (positional / named)
+//   - Generic enum
+//   - switch exhaustiveness + pattern binding
 //   - if case
-//   - 自定义 RawRepresentable 风格
-//   - Result<T, E> 标准库用法
+//   - Custom RawRepresentable style
+//   - Result<T, E> standard-library usage
 // =============================================================================
 
-// note: SYX enum 变体不用 case 关键字；关联值字段需命名 field: Type。
-// note: 多关联值在 case 中用单个 let 绑定整个 payload；if case 不支持 _ 通配。
+// note: SYX enum variants use the case keyword; associated-value fields need named field: Type.
+// note: Multiple associated values bind the whole payload with a single let in a case; if case does not support _ wildcards.
 
 enum Status {
     ok
@@ -88,7 +88,7 @@ func sumTree(_ t: Tree) -> Int {
         return v
     case .node(let payload):
         print(payload)
-        // note: 多字段 payload 绑成整体后，教程用构造时已知值演示求和。
+        // note: After binding a multi-field payload as a whole, this tutorial demonstrates the sum with construction-time known values.
         return 10 + 3 + 7
     }
 }
@@ -101,7 +101,7 @@ func safeDivide(_ a: Int, _ b: Int) -> MyResult {
 }
 
 func showResult(_ r: MyResult) -> String {
-    // note: 带关联值的 switch 在 main 中落空后可能挂起；放进返回函数更稳妥。
+    // note: A switch over associated values may hang after falling through in main; putting it in a returning function is safer.
     switch r {
     case .ok(let v):
         print(v)
@@ -128,7 +128,7 @@ func main() {
     let s = Status.ok
     print(allStatuses(s))
 
-    // note: enum 值按 move 语义；每次演示重新构造，避免 Use of moved value。
+    // note: enum values follow move semantics; reconstruct each time to avoid Use of moved value.
     print(describe(NetworkResult.success(data: "OK")))
     print(describe(NetworkResult.failure(code: 404, msg: "Not Found")))
 
@@ -143,5 +143,5 @@ func main() {
     print(showResult(safeDivide(10, 2)))
     print(showResult(safeDivide(10, 0)))
 
-    // note: 泛型 enum / raw value enum / Codable 派生详见后续章节。
+    // note: Generic enums / raw-value enums / Codable derivation are covered in later chapters.
 }

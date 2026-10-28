@@ -1,22 +1,22 @@
 // =============================================================================
 // tutorial/05-collection-types.sy
-// 对应《SYX 语言指南》第 5 章「集合类型」
+// Corresponds to Chapter 5 "Collection Types" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - Array<T> 字面量 / 方法 / 下标
-//   - Set<T> 去重 / 集合运算
-//   - Dictionary<K,V> 字面量 / 访问
-//   - Object 动态 JSON
-//   - HOF：map / filter / reduce
-//   - for-in 遍历（含字符串 / 数组 / 文件 readLines）
-//   - 集合与字符串互转
+// Language features covered in this chapter:
+//   - Array<T> literals / methods / subscript
+//   - Set<T> deduplication / set operations
+//   - Dictionary<K,V> literals / access
+//   - Object dynamic JSON
+//   - HOF: map / filter / reduce
+//   - for-in traversal (strings / arrays / file readLines)
+//   - Conversion between collections and strings
 // =============================================================================
 
 func demo_array() {
     let nums: Array<Int> = [1, 2, 3, 4, 5]
     let empty: Array<Int> = []
     print("nums.count=\(nums.count) empty.count=\(empty.count)")
-    // note: Array 无 first/last/isEmpty；用下标与 count。
+    // note: Array has no first/last/isEmpty; use subscript and count.
 
     var arr = [10, 20, 30]
     print(arr[0])
@@ -44,7 +44,7 @@ func demo_set() {
     print(s.contains(3))
     print(s.remove(1))
 
-    // note: union/intersection 接受数组字面量；subtracting 本教程不演示。
+    // note: union/intersection accept array literals; subtracting is not demonstrated here.
     let u = tags.union([3, 4])
     print(u.count)
     let inter = tags.intersection([2, 3])
@@ -64,12 +64,12 @@ func demo_dictionary() {
     print(mutableScores.remove("x"))
     print(mutableScores)
 
-    // note: Object 动态 JSON 与嵌套可选链本教程不演示。
+    // note: Object dynamic JSON and nested optional chaining are not demonstrated here.
 }
 
 func demo_hof() {
     let nums: Array<Int> = [1, 2, 3, 4, 5]
-    // note: 闭包参数必须括号；HOF 体建议写 return。
+    // note: Closure parameters must be parenthesized; HOF bodies should use return.
     let doubled = nums.map({ (x: Int) in return x * 2 })
     let evens = nums.filter({ (x: Int) in return x % 2 == 0 })
     let sum10 = nums.reduce(0, { (a: Int, b: Int) in return a + b })

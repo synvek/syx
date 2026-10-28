@@ -1,10 +1,10 @@
 // =============================================================================
 // tutorial/13-subscripts.sy
-// 对应《SYX 语言指南》第 13 章「下标」
+// Corresponds to Chapter 13 "Subscripts" of the *SYX Language Guide*
 //
-// 可运行演示：Array / Dictionary / String 内置下标。
-// note: 自定义 subscript 在当前运行时会触发 S001（self 重复定义）→ 省略。
-// note: KeyPath、Object 动态下标此处不演示。
+// Runnable demos: built-in subscripts for Array / Dictionary / String.
+// note: Custom subscript triggers S001 (duplicate self definition) in the current runtime -> omitted.
+// note: KeyPath and Object dynamic subscripts are not demonstrated here.
 // =============================================================================
 
 func arraySubscript() {
@@ -17,7 +17,7 @@ func arraySubscript() {
     print(mut[0])
     print(mut[1])
     print(mut[2])
-    // print(items[5])  // note: 越界 → R003
+    // print(items[5])  // note: out of bounds -> R003
 }
 
 func dictSubscript() {
@@ -39,7 +39,7 @@ func stringSubscript() {
 }
 
 func nestedAccess() {
-    // 用「数组的数组」模拟二维下标，避免自定义 subscript
+    // Simulate 2D subscript with an "array of arrays" to avoid a custom subscript
     var row0 = [1.0, 2.0, 0.0]
     var row1 = [0.0, 5.0, 0.0]
     var row2 = [0.0, 0.0, 0.0]

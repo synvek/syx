@@ -1,15 +1,15 @@
 // =============================================================================
 // tutorial/08-closures.sy
-// 对应《SYX 语言指南》第 8 章「闭包」
+// Corresponds to Chapter 8 "Closures" of the *SYX Language Guide*
 //
-// 本章涉及语言特性：
-//   - 闭包表达式 { params in body }
-//   - 简写 $0, $1（部分实现）
-//   - 闭包作为参数 / 返回值
-//   - 闭包捕获
-//   - 尾随闭包
-//   - HOF：map / filter / reduce / sort / sorted(by:)
-//   - 函数引用 (function reference)
+// Language features covered in this chapter:
+//   - Closure expression { params in body }
+//   - Shorthand $0, $1 (partially implemented)
+//   - Closures as parameters / return values
+//   - Closure capture
+//   - Trailing closures
+//   - HOF: map / filter / reduce / sort / sorted(by:)
+//   - Function reference
 // =============================================================================
 
 func applyMapped(_ x: Int, f: (Int) -> Int) -> Int {
@@ -19,7 +19,7 @@ func applyMapped(_ x: Int, f: (Int) -> Int) -> Int {
 }
 
 func demo_basic() {
-    // note: 闭包参数必须写 `(x)` / `(x: Int)`；裸 `{ x in ... }` 会被当成字典。
+    // note: Closure parameters must be written as `(x)` / `(x: Int)`; a bare `{ x in ... }` is parsed as a dictionary.
     let r1 = applyMapped(5, f: { (x: Int) in return x * x })
     print(r1)
 
@@ -28,7 +28,7 @@ func demo_basic() {
 }
 
 func demo_capture_via_hof() {
-    // note: 返回的闭包值不宜按名直接调用；用 map 展示捕获。
+    // note: A returned closure value should not be called by name directly; use map to show capture.
     let base = 10
     let nums = [1, 2, 3]
     let mapped = nums.map({ (x: Int) in return x + base })
@@ -49,7 +49,7 @@ func demo_hof() {
     let big = nums.filter({ (x: Int) in return x > 2 })
     print(big)
 
-    // note: reduce 需要初始值形态 reduce(0, closure)。
+    // note: reduce needs the initial-value form reduce(0, closure).
     let s = nums.reduce(0, { (a: Int, b: Int) in return a + b })
     print(s)
 
@@ -62,7 +62,7 @@ func demo_hof() {
     let asc = nums.sorted()
     print(asc)
 
-    // note: sorted(by:) / sortBy / $0 简写 / 尾随闭包 / 运算符引用(+) 本教程不演示。
+    // note: sorted(by:) / sortBy / $0 shorthand / trailing closures / operator references (+) are not demonstrated here.
 }
 
 func demo_predicate_via_filter() {
