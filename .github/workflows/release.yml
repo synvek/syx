@@ -360,11 +360,22 @@ jobs:
             ls -la "${LIB_DIR}" >&2 || true
             exit 1
           fi
+          # x64 llvm-config asks for libxml2s.lib; arm64 packages have been
+          # seen asking for xml2s.lib. Provide both names for llvm-sys/MSVC.
           cp "${SRC}" "${LLVM_LIB_UNIX}/libxml2s.lib"
-          echo "Installed ${LLVM_LIB_UNIX}/libxml2s.lib from ${SRC}"
+          cp "${SRC}" "${LLVM_LIB_UNIX}/xml2s.lib"
+          echo "Installed libxml2s.lib and xml2s.lib from ${SRC}"
+          CFG_SYS="${LLVM_LIB_UNIX%/lib}/bin/llvm-config"
+          if [ ! -f "${CFG_SYS}" ]; then
+            CFG_SYS="${CFG_SYS}.exe"
+          fi
+          if [ -f "${CFG_SYS}" ]; then
+            echo "llvm-config --system-libs:"
+            "${CFG_SYS}" --system-libs --link-static || "${CFG_SYS}" --system-libs || true
+          fi
 
           # Static libxml2 pulls zlib/iconv/lzma; llvm-sys only forwards
-          # llvm-config --system-libs (which names libxml2s.lib, not deps).
+          # llvm-config --system-libs (libxml2s.lib / xml2s.lib, not deps).
           # Use mixed paths (C:/...) so GITHUB_ENV / RUSTFLAGS keep backslashes
           # from being treated as escapes.
           LIB_NATIVE="$(cygpath -m "${LIB_DIR}")"
@@ -392,7 +403,7 @@ jobs:
           else
             echo "RUSTFLAGS=${extra_rustflags}" >> "${GITHUB_ENV}"
           fi
-          ls -la "${LLVM_LIB_UNIX}/libxml2s.lib"
+          ls -la "${LLVM_LIB_UNIX}/libxml2s.lib" "${LLVM_LIB_UNIX}/xml2s.lib"
           echo "LIB search: ${LIB_NATIVE_WIN}"
           echo "extra RUSTFLAGS: ${extra_rustflags}"
       - name: Build release CLI (full-native)
@@ -444,16 +455,108 @@ jobs:
       #     BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
       #     mkdir -p dist
       #     "$BIN" build --native --minimal -o "dist/examples-main-${{ matrix.artifact }}" examples
-      - name: Package CLI
+      - name: Package syx-sdk (CLI + libsyx_rt profiles)
         run: |
-          BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
-          mkdir -p dist
-          cp "$BIN" "dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
-          if [ -f "dist/examples-main-${{ matrix.artifact }}" ] || [ -f "dist/examples-main-${{ matrix.artifact }}.exe" ]; then
-            chmod +x "dist/${{ matrix.artifact }}${{ matrix.exe_ext }}" "dist/examples-main-${{ matrix.artifact }}"* || true
-          else
-            chmod +x "dist/${{ matrix.artifact }}${{ matrix.exe_ext }}" || true
+          set -euo pipefail
+          TARGET="${{ matrix.target }}"
+          EXE_EXT="${{ matrix.exe_ext }}"
+          ARTIFACT="${{ matrix.artifact }}"
+          BIN="target/${TARGET}/release/syx${EXE_EXT}"
+          if [ ! -f "${BIN}" ]; then
+            echo "ERROR: missing CLI binary ${BIN}" >&2
+            exit 1
           fi
+
+          SDK_ROOT="sdk-stage/syx-sdk"
+          rm -rf sdk-stage
+          mkdir -p "${SDK_ROOT}/bin" "${SDK_ROOT}/lib/profiles"
+
+          cp "${BIN}" "${SDK_ROOT}/bin/syx${EXE_EXT}"
+          chmod +x "${SDK_ROOT}/bin/syx${EXE_EXT}" || true
+          cp packaging/syx-sdk/README.md "${SDK_ROOT}/README.md"
+          cp LICENSE "${SDK_ROOT}/LICENSE"
+
+          # Locate cargo staticlib output for a given --target-dir root.
+          find_rt_lib() {
+            local root="$1"
+            local cand
+            for cand in \
+              "${root}/${TARGET}/release/libsyx_rt.a" \
+              "${root}/${TARGET}/release/syx_rt.lib" \
+              "${root}/release/libsyx_rt.a" \
+              "${root}/release/syx_rt.lib"
+            do
+              if [ -f "${cand}" ]; then
+                printf '%s\n' "${cand}"
+                return 0
+              fi
+            done
+            # Hashed deps names (prefer non-.rlib).
+            cand="$(find "${root}" \( -name 'libsyx_rt*.a' -o -name 'syx_rt.lib' -o -name 'syx_rt-*.lib' \) ! -name '*.rlib' 2>/dev/null | head -n 1 || true)"
+            if [ -n "${cand}" ] && [ -f "${cand}" ]; then
+              printf '%s\n' "${cand}"
+              return 0
+            fi
+            return 1
+          }
+
+          install_rt_profile() {
+            local id="$1"
+            shift
+            local tdir="target/sdk-rt-${id}"
+            echo "Building syx-rt profile '${id}' → ${tdir}"
+            cargo build --release -p syx-rt --target "${TARGET}" --target-dir "${tdir}" "$@"
+            local src
+            src="$(find_rt_lib "${tdir}")" || {
+              echo "ERROR: libsyx_rt archive not found under ${tdir}" >&2
+              find "${tdir}" -name '*syx_rt*' 2>/dev/null | head -n 50 >&2 || true
+              exit 1
+            }
+            local dest_dir="${SDK_ROOT}/lib/profiles/${id}"
+            mkdir -p "${dest_dir}"
+            local base
+            base="$(basename "${src}")"
+            # Normalize Windows hashed names to syx_rt.lib
+            case "${base}" in
+              syx_rt-*.lib) base="syx_rt.lib" ;;
+              libsyx_rt-*.a) base="libsyx_rt.a" ;;
+            esac
+            cp "${src}" "${dest_dir}/${base}"
+            echo "  installed ${dest_dir}/${base} (from ${src})"
+            # Default flat lib = full profile
+            if [ "${id}" = "full" ]; then
+              cp "${dest_dir}/${base}" "${SDK_ROOT}/lib/${base}"
+            fi
+          }
+
+          # Feature map matches packaging/syx-sdk/README.md
+          install_rt_profile full --features full
+          install_rt_profile minimal --no-default-features
+          install_rt_profile async-only --no-default-features --features async-runtime
+          install_rt_profile async-http --no-default-features --features async-runtime,http
+          install_rt_profile async-file --no-default-features --features async-runtime,file
+
+          mkdir -p dist
+          # matrix.artifact is syx-<platform-arch>; archive is syx-sdk-<platform-arch>.*
+          case "${{ runner.os }}" in
+            Windows)
+              ARCHIVE="dist/syx-sdk-${ARTIFACT#syx-}.zip"
+              rm -f "${ARCHIVE}"
+              ARCHIVE_WIN="$(cygpath -w "${ARCHIVE}")"
+              SDK_WIN="$(cygpath -w sdk-stage/syx-sdk)"
+              powershell.exe -NoProfile -Command \
+                "Compress-Archive -Path '${SDK_WIN}' -DestinationPath '${ARCHIVE_WIN}' -Force"
+              ;;
+            *)
+              ARCHIVE="dist/syx-sdk-${ARTIFACT#syx-}.tar.gz"
+              rm -f "${ARCHIVE}"
+              tar -czf "${ARCHIVE}" -C sdk-stage syx-sdk
+              ;;
+          esac
+
+          echo "Packaged ${ARCHIVE}"
+          find sdk-stage/syx-sdk -type f | sort
+          ls -la dist/
       - name: Generate checksums
         run: |
           cd dist
@@ -567,16 +670,18 @@ jobs:
           channel="${{ needs.meta.outputs.channel }}"
           notes_file=$(mktemp)
           cat > "$notes_file" <<EOF
-          Prebuilt SYX CLI (channel **${channel}**, Cargo.toml **${version}**, tag **${tag}**).
+          Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, tag **${tag}**).
+
+          Each archive is a \`syx-sdk/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, plus \`README.md\` and \`LICENSE\`.
 
           | OS | Arch | Artifact |
           |----|------|----------|
-          | Linux | x86_64 | syx-linux-x86_64 |
-          | Linux | aarch64 | syx-linux-aarch64 |
-          | macOS | x86_64 | syx-macos-x86_64 |
-          | macOS | aarch64 | syx-macos-aarch64 |
-          | Windows | x86_64 | syx-windows-x86_64.exe |
-          | Windows | aarch64 | syx-windows-aarch64.exe |
+          | Linux | x86_64 | syx-sdk-linux-x86_64.tar.gz |
+          | Linux | aarch64 | syx-sdk-linux-aarch64.tar.gz |
+          | macOS | x86_64 | syx-sdk-macos-x86_64.tar.gz |
+          | macOS | aarch64 | syx-sdk-macos-aarch64.tar.gz |
+          | Windows | x86_64 | syx-sdk-windows-x86_64.zip |
+          | Windows | aarch64 | syx-sdk-windows-aarch64.zip |
 
           Also includes VS Code extension .vsix when packaging succeeds.
           EOF

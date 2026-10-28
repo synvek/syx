@@ -1,19 +1,20 @@
-# syx-sdk install layout (W930 / ADR-1274 · claimed W931 / ADR-1275)
+# SYX SDK
 
-Thin packaging contract for a deployable SYX SDK tree. This documents directory
-layout and env overrides used by [`rt_archive_path`](../../crates/syx-rt/src/link.rs).
+Prebuilt toolchain layout for running SYX and linking **native** executables.
 
-**C-11 narrow `[x]`** (W931): install/env/packaging contract claimed. This does
-**not** claim multi-platform CI artifact upload or marketplace SDK GA.
+Native `syx build --native` links against `libsyx_rt` next to the CLI. A CLI-only
+binary is not enough: without the runtime archive under `lib/`, native builds fail.
 
-## Directory tree
+## Layout
 
 ```text
 syx-sdk/
+  README.md
+  LICENSE
   bin/
-    syx                 # CLI
+    syx                 # CLI (syx.exe on Windows)
   lib/
-    libsyx_rt.a         # default / full install archive (flat)
+    libsyx_rt.a         # default runtime (same as profiles/full)
     profiles/
       full/libsyx_rt.a
       minimal/libsyx_rt.a
@@ -22,20 +23,49 @@ syx-sdk/
       async-file/libsyx_rt.a
 ```
 
-MSVC-style installs may use `syx_rt.lib` in the same locations.
+On Windows MSVC installs, the archive is named `syx_rt.lib` in the same places.
 
-## Env overrides (link lookup order)
+## Quick start
 
-1. **`SYX_RT_STATIC_LIB`** — absolute path to a `.a` / `.lib` (or deps dir). Highest priority.
-2. **`SYX_RT_PROFILE=<id>`** — feature profile id (`full` / `minimal` / `async-only` / `async-http` / `async-file`).
-   Relative to `bin/syx`, looks up:
+```bash
+# Unpack, then put bin/ on PATH (or invoke bin/syx directly)
+export PATH="$PWD/bin:$PATH"
+syx --version
+syx run examples/hello.sy
+syx build --native examples/hello.sy
+```
+
+Keep `bin/` and `lib/` as siblings. The linker resolves `../lib/libsyx_rt.a`
+relative to `bin/syx`.
+
+## Runtime profiles
+
+| Profile id   | Contents                                      |
+|--------------|-----------------------------------------------|
+| `full`       | async + HTTP + file hosts (default flat lib)  |
+| `minimal`    | no optional host features                     |
+| `async-only` | async runtime only                            |
+| `async-http` | async + HTTP                                  |
+| `async-file` | async + file                                  |
+
+Select a non-default archive with:
+
+```bash
+export SYX_RT_PROFILE=minimal   # uses ../lib/profiles/minimal/...
+# or
+export SYX_RT_STATIC_LIB=/absolute/path/to/libsyx_rt.a
+```
+
+### Link lookup order
+
+1. **`SYX_RT_STATIC_LIB`** — absolute path to a `.a` / `.lib` (or a deps directory)
+2. **`SYX_RT_PROFILE=<id>`** — relative to `bin/syx`:
    - `../lib/profiles/<id>/libsyx_rt.a` (preferred)
    - `../lib/<id>/libsyx_rt.a` (fallback)
-3. Compile-time embed / flat `../lib/libsyx_rt.a` / cargo `target/{debug,release}`.
+3. Flat **`../lib/libsyx_rt.a`**, then cargo `target/{debug,release}` when developing from source
 
-Note: `LinkOptions.rt_profile` (`debug`|`release`) is the **Cargo build profile**, not a feature profile id.
+`LinkOptions.rt_profile` (`debug` | `release`) is the Cargo build profile, not a feature profile id.
 
-## Honesty
+## License
 
-- C-11 **`[x]`** after W931 is **narrow** (docs + lookup + packaging contract).
-- Shipping this README ≠ Release full profile matrix CI ≠ marketplace SDK KPI.
+See `LICENSE` in this directory (Apache-2.0).
