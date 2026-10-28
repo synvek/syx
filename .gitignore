@@ -12,6 +12,8 @@ editors/vscode-syx/syx-language-*.vsix
 
 crates/syx-host-plugin/tests/fixtures/echo_plugin/*.dylib
 crates/syx-host-plugin/tests/fixtures/macro_plugin/*.dylib
+crates/syx-host-plugin/tests/fixtures/echo_plugin/*.so
+crates/syx-host-plugin/tests/fixtures/macro_plugin/*.so
 # SYX project artifacts (38.0+: target/{cache,debug,release})
 examples/plugin_demo/plugins/mycrypto/*.dylib
 examples/emit/
