@@ -1064,7 +1064,11 @@ fn emit_inkwell_object_v6(module: &MirModule) -> SyxResult<Vec<u8>> {
         };
         use inkwell::OptimizationLevel;
 
-        Target::initialize_all(&InitializationConfig::default());
+        // Host object-direct only needs the native backend. initialize_all also
+        // pulls targets missing from official Windows LLVM packages (LNK2019).
+        Target::initialize_native(&InitializationConfig::default()).map_err(|e| {
+            SyxDiagnostic::error(format!("inkwell native target init failed: {e}"))
+        })?;
         let triple = TargetMachine::get_default_triple();
         let target = Target::from_triple(&triple).map_err(|e| {
             SyxDiagnostic::error(format!("inkwell target triple failed: {e}"))
