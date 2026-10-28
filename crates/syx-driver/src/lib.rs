@@ -9,17 +9,19 @@ pub mod inkwell_report;
 /// without an explicit call (important on MSVC; Unix also has weak stubs in `syx-rt`).
 #[inline(always)]
 pub fn ensure_host_rt_link_stubs() {
-    let _ = (
-        host_rt_stubs::syx_user_init as usize,
-        host_rt_stubs::syx_user_main as usize,
-    );
+    // Touch the kept-alive static so host tool `main` also retains the stubs.
+    let _ = &FORCE_HOST_RT_STUBS;
 }
 
+/// Keep `syx_user_*` stub symbols linked for host tools/tests.
+///
+/// Must store function pointers (not `as usize`): pointer→integer casts are
+/// rejected in const eval (rustc 1.91+).
 #[used]
-static FORCE_HOST_RT_STUBS: [usize; 2] = [
-    host_rt_stubs::syx_user_init as usize,
-    host_rt_stubs::syx_user_main as usize,
-];
+static FORCE_HOST_RT_STUBS: (extern "C" fn(), extern "C" fn() -> i32) = (
+    host_rt_stubs::syx_user_init,
+    host_rt_stubs::syx_user_main,
+);
 
 pub mod cache_remote_report;
 pub mod capabilities_report;
