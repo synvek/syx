@@ -188,60 +188,79 @@ jobs:
             echo "ERROR: matrix.llvm_asset is empty for this runner" >&2
             exit 1
           fi
-          PREFIX="${GITHUB_WORKSPACE}/../llvm"
-          STAGE="${RUNNER_TEMP}/llvm-extract"
+
+          # Git Bash on Windows exposes RUNNER_TEMP / GITHUB_WORKSPACE as C:\...
+          # which breaks tar/curl path handling ("Cannot connect to C:"). Normalize.
+          to_unix() {
+            if command -v cygpath >/dev/null 2>&1; then
+              cygpath -u "$1"
+            else
+              printf '%s\n' "$1"
+            fi
+          }
+          to_native() {
+            # Path for Rust / llvm-sys (Windows needs drive-letter paths).
+            if command -v cygpath >/dev/null 2>&1; then
+              cygpath -w "$1"
+            elif (cd "$1" && pwd -W >/dev/null 2>&1); then
+              (cd "$1" && pwd -W)
+            else
+              (cd "$1" && pwd)
+            fi
+          }
+
+          WS_UNIX="$(to_unix "${GITHUB_WORKSPACE}")"
+          # Prefer workspace-adjacent dirs so we never depend on RUNNER_TEMP shape.
+          PREFIX_UNIX="$(cd "${WS_UNIX}/.." && pwd)/llvm"
+          STAGE_UNIX="$(cd "${WS_UNIX}/.." && pwd)/llvm-extract"
+          DL_UNIX="$(cd "${WS_UNIX}/.." && pwd)/llvm-download"
           URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/${LLVM_ASSET}"
-          rm -rf "${PREFIX}" "${STAGE}"
-          mkdir -p "${STAGE}"
+
+          rm -rf "${PREFIX_UNIX}" "${STAGE_UNIX}"
+          mkdir -p "${STAGE_UNIX}" "${DL_UNIX}"
 
           echo "Downloading ${URL}"
-          # Prefer stream extract (no archive left on disk); fall back to file if needed.
-          if ! curl -fsSL --retry 5 --retry-delay 5 "${URL}" | tar -xJ -C "${STAGE}"; then
-            echo "Stream extract failed; downloading archive to disk then extracting"
-            rm -rf "${STAGE}"
-            mkdir -p "${STAGE}"
-            ARCHIVE="${RUNNER_TEMP}/${LLVM_ASSET}"
-            curl -fsSL --retry 5 --retry-delay 5 -o "${ARCHIVE}" "${URL}"
-            tar -xJf "${ARCHIVE}" -C "${STAGE}"
-            rm -f "${ARCHIVE}"
-          fi
+          ARCHIVE_UNIX="${DL_UNIX}/${LLVM_ASSET}"
+          # Download to disk first (reliable on Windows Git Bash), then extract.
+          curl -fsSL --retry 5 --retry-delay 5 -o "${ARCHIVE_UNIX}" "${URL}"
+          tar -xJf "${ARCHIVE_UNIX}" -C "${STAGE_UNIX}"
+          rm -f "${ARCHIVE_UNIX}"
 
           # Official tarballs have a single top-level directory.
-          TOP="$(find "${STAGE}" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          TOP="$(find "${STAGE_UNIX}" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
           if [ -z "${TOP}" ]; then
             echo "ERROR: no top-level directory in ${LLVM_ASSET}" >&2
-            ls -la "${STAGE}" >&2 || true
+            ls -la "${STAGE_UNIX}" >&2 || true
             exit 1
           fi
-          mkdir -p "${PREFIX}"
-          # Move rather than copy to save space.
+          mkdir -p "${PREFIX_UNIX}"
           shopt -s dotglob nullglob
-          mv "${TOP}"/* "${PREFIX}/"
+          mv "${TOP}"/* "${PREFIX_UNIX}/"
           shopt -u dotglob nullglob
-          rm -rf "${STAGE}"
+          rm -rf "${STAGE_UNIX}" "${DL_UNIX}"
 
           # Drop components not needed for inkwell/llvm-sys + syx-lld:
           # need: bin/llvm-config*, bin/lld*, include/{llvm,llvm-c,lld}, lib/LLVM*|liblld*|Polly*
           rm -rf \
-            "${PREFIX}/share" \
-            "${PREFIX}/libexec" \
-            "${PREFIX}/python" \
-            "${PREFIX}/lib/python"* \
-            "${PREFIX}/lib/clang" \
-            "${PREFIX}/lib/ocaml" \
-            "${PREFIX}/include/clang" \
-            "${PREFIX}/include/clang-c" \
-            "${PREFIX}/include/clang-tidy" \
-            "${PREFIX}/include/mlir" \
-            "${PREFIX}/include/mlir-c" \
-            "${PREFIX}/include/flang" \
-            "${PREFIX}/include/lldb" \
-            "${PREFIX}/include/openmp" \
-            "${PREFIX}/include/c++" \
-            "${PREFIX}/include/polly" \
+            "${PREFIX_UNIX}/share" \
+            "${PREFIX_UNIX}/libexec" \
+            "${PREFIX_UNIX}/python" \
+            "${PREFIX_UNIX}/lib/python"* \
+            "${PREFIX_UNIX}/lib/clang" \
+            "${PREFIX_UNIX}/lib/ocaml" \
+            "${PREFIX_UNIX}/include/clang" \
+            "${PREFIX_UNIX}/include/clang-c" \
+            "${PREFIX_UNIX}/include/clang-tidy" \
+            "${PREFIX_UNIX}/include/mlir" \
+            "${PREFIX_UNIX}/include/mlir-c" \
+            "${PREFIX_UNIX}/include/flang" \
+            "${PREFIX_UNIX}/include/lldb" \
+            "${PREFIX_UNIX}/include/openmp" \
+            "${PREFIX_UNIX}/include/c++" \
+            "${PREFIX_UNIX}/include/polly" \
             || true
 
-          if [ -d "${PREFIX}/bin" ]; then
+          if [ -d "${PREFIX_UNIX}/bin" ]; then
             while IFS= read -r -d '' f; do
               base="$(basename "${f}")"
               case "${base}" in
@@ -251,10 +270,10 @@ jobs:
                   rm -rf "${f}"
                   ;;
               esac
-            done < <(find "${PREFIX}/bin" -mindepth 1 -maxdepth 1 -print0)
+            done < <(find "${PREFIX_UNIX}/bin" -mindepth 1 -maxdepth 1 -print0)
           fi
 
-          if [ -d "${PREFIX}/lib" ]; then
+          if [ -d "${PREFIX_UNIX}/lib" ]; then
             while IFS= read -r -d '' f; do
               base="$(basename "${f}")"
               case "${base}" in
@@ -264,35 +283,55 @@ jobs:
                   rm -rf "${f}"
                   ;;
               esac
-            done < <(find "${PREFIX}/lib" -mindepth 1 -maxdepth 1 -print0)
+            done < <(find "${PREFIX_UNIX}/lib" -mindepth 1 -maxdepth 1 -print0)
           fi
 
-          CFG="${PREFIX}/bin/llvm-config"
+          CFG="${PREFIX_UNIX}/bin/llvm-config"
           if [ ! -f "${CFG}" ]; then
-            CFG="${PREFIX}/bin/llvm-config.exe"
+            CFG="${PREFIX_UNIX}/bin/llvm-config.exe"
           fi
           if [ ! -f "${CFG}" ]; then
-            echo "ERROR: llvm-config missing under ${PREFIX}/bin" >&2
-            ls -la "${PREFIX}/bin" >&2 || true
+            echo "ERROR: llvm-config missing under ${PREFIX_UNIX}/bin" >&2
+            ls -la "${PREFIX_UNIX}/bin" >&2 || true
             exit 1
           fi
-          echo "Installed LLVM at ${PREFIX}"
+          echo "Installed LLVM at ${PREFIX_UNIX}"
           "${CFG}" --version
           "${CFG}" --prefix
-          du -sh "${PREFIX}" "${PREFIX}/bin" "${PREFIX}/lib" "${PREFIX}/include" || true
+          du -sh "${PREFIX_UNIX}" "${PREFIX_UNIX}/bin" "${PREFIX_UNIX}/lib" "${PREFIX_UNIX}/include" || true
           df -h || true
 
-          # Export a path Rust/Windows can open (cygpath/pwd -W on Git Bash).
-          ABS_PREFIX="$(cd "${PREFIX}" && pwd)"
-          if command -v cygpath >/dev/null 2>&1; then
-            ABS_PREFIX="$(cygpath -w "${ABS_PREFIX}")"
-          elif (cd "${PREFIX}" && pwd -W >/dev/null 2>&1); then
-            ABS_PREFIX="$(cd "${PREFIX}" && pwd -W)"
-          fi
-          echo "SYX_LLVM_PREFIX=${ABS_PREFIX}" >> "${GITHUB_ENV}"
-          echo "SYX_LLVM_PREFIX=${ABS_PREFIX}"
+          # llvm-sys reads LLVM_SYS_211_PREFIX (not SYX_LLVM_PREFIX). Export both
+          # as native absolute paths so CI does not rely on .cargo relative env.
+          NATIVE_PREFIX="$(to_native "${PREFIX_UNIX}")"
+          {
+            echo "SYX_LLVM_PREFIX=${NATIVE_PREFIX}"
+            echo "LLVM_SYS_211_PREFIX=${NATIVE_PREFIX}"
+          } >> "${GITHUB_ENV}"
+          echo "SYX_LLVM_PREFIX=${NATIVE_PREFIX}"
+          echo "LLVM_SYS_211_PREFIX=${NATIVE_PREFIX}"
       - name: Build release CLI (full-native)
-        run: cargo build --release -p syx-cli --features full-native --target ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          echo "SYX_LLVM_PREFIX=${SYX_LLVM_PREFIX:-}"
+          echo "LLVM_SYS_211_PREFIX=${LLVM_SYS_211_PREFIX:-}"
+          CFG="${LLVM_SYS_211_PREFIX}/bin/llvm-config"
+          if [ ! -f "${CFG}" ] && [ ! -f "${CFG}.exe" ]; then
+            # Git Bash may need Unix path to test existence when env is Windows-native.
+            if command -v cygpath >/dev/null 2>&1; then
+              CFG_UNIX="$(cygpath -u "${LLVM_SYS_211_PREFIX}")/bin/llvm-config"
+              CFG="${CFG_UNIX}"
+            fi
+          fi
+          if [ -f "${CFG}" ]; then
+            "${CFG}" --version
+          elif [ -f "${CFG}.exe" ]; then
+            "${CFG}.exe" --version
+          else
+            echo "ERROR: llvm-config not reachable via LLVM_SYS_211_PREFIX=${LLVM_SYS_211_PREFIX:-}" >&2
+            exit 1
+          fi
+          cargo build --release -p syx-cli --features full-native --target ${{ matrix.target }}
       # - name: Driver parity smoke (SYX 38.0)
       #   run: |
       #     cargo test -p syx-driver \
