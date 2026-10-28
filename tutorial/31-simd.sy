@@ -1,149 +1,35 @@
 // =============================================================================
 // tutorial/31-simd.sy
-// 对应《SYX 语言指南》第 31 章「SIMD」
-//
-// 本章涉及语言特性：
-//   - SIMD2<T> / SIMD4<T> / SIMD8<T> / SIMD16<T> 类型
-//   - 字面量构造（fromArray / splat / zero）
-//   - 元素逐 lane 运算
-//   - 归约（reduce sum / min / max / any / all）
-//   - 元素访问（[i]）
-//   - 类型约束（固定宽度数值）
-//   - WASM SIMD128 直发
-//   - Native LLVM 增强
+// SIMD: SIMD4.fromArray / lane ops / SIMD4.reduceAdd (see examples/basic_demo.sy).
+// note: prefer Int32 lanes; wider SIMD8/16 / mask helpers may be incomplete.
 // =============================================================================
 
-// 1) SIMD4<Int32> 字面量
-let v4: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
-let zero4: SIMD4<Int32> = SIMD4.zero
-let splat4: SIMD4<Int32> = SIMD4.splat(7i32)
-
-// 2) SIMD8<Float32>
-let v8: SIMD8<Float32> = SIMD8.fromArray([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
-let zero8: SIMD8<Float32> = SIMD8.zero
-
-// 3) SIMD16<UInt8>
-let v16: SIMD16<UInt8> = SIMD16.fromArray([
-    0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8,
-    8u8, 9u8, 10u8, 11u8, 12u8, 13u8, 14u8, 15u8
-])
-
-// 4) 元素运算
-let a: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
-let b: SIMD4<Int32> = SIMD4.fromArray([10i32, 20i32, 30i32, 40i32])
-let s = a + b                                          // [11, 22, 33, 44]
-let d = b - a                                          // [9, 18, 27, 36]
-let p = a * b                                          // [10, 40, 90, 160]
-let q = b / a                                          // [10, 10, 10, 10]
-let cmp = a < b                                        // [true, true, true, true]
-print("s=\(s)  d=\(d)  p=\(p)  q=\(q)  cmp=\(cmp)")
-
-// 5) 归约
-let sum: Int32 = s.reduceSum()                         // 110
-let mn: Int32 = s.reduceMin()                          // 11
-let mx: Int32 = s.reduceMax()                          // 44
-let anyZero: Bool = zero4.anyEquals(0i32)              // true
-let allPositive: Bool = a.allGreaterThan(0i32)         // true
-print("sum=\(sum)  min=\(mn)  max=\(mx)  anyZero=\(anyZero)  allPositive=\(allPositive)")
-
-// 6) 元素访问
-let first: Int32 = v4[0]                               // 1
-let last: Int32 = v4[3]                                // 4
-print("first=\(first)  last=\(last)")
-
-// 7) SIMD8 运算
-let f1: SIMD8<Float32> = SIMD8.fromArray([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
-let f2: SIMD8<Float32> = SIMD8.splat(2.0)
-let fMul = f1 * f2                                     // [2, 4, 6, 8, 10, 12, 14, 16]
-let fSum: Float32 = fMul.reduceSum()                    // 72
-print("fMul=\(fMul)  fSum=\(fSum)")
-
-// 8) SIMD16 操作（i8x16）
-let bytes: SIMD16<UInt8> = SIMD16.fromArray([
-    0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8,
-    8u8, 9u8, 10u8, 11u8, 12u8, 13u8, 14u8, 15u8
-])
-let bytesDoubled = bytes + bytes                       // 逐字节加
-let bytesSum: UInt32 = bytesDoubled.reduceSum()         // (0+15)*16 = 240
-let hasZero: Bool = bytes.anyEquals(0u8)               // true
-let allUnder: Bool = bytes.allLessThan(16u8)           // true
-print("bytesSum=\(bytesSum)  hasZero=\(hasZero)  allUnder=\(allUnder)")
-
-// 9) SIMD 比较 + 掩码
-let mask = bytes.cmpeq(SIMD16<UInt8>.splat(7u8))       // 16 个 bool
-print("byte7 mask=\(mask)")
-
-// 10) 整数 SIMD 应用：批量加法
-func vectorizedAdd(_ a: SIMD4<Int32>, _ b: SIMD4<Int32>) -> SIMD4<Int32> {
-    return a + b
+func basicSimd() {
+    let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
+    let w: SIMD4<Int32> = SIMD4.fromArray([10i32, 20i32, 30i32, 40i32])
+    let s = v + w
+    print(SIMD4.reduceAdd(s))
 }
 
-let vRes = vectorizedAdd(
-    SIMD4.fromArray([1i32, 2i32, 3i32, 4i32]),
-    SIMD4.fromArray([5i32, 6i32, 7i32, 8i32])
-)
-print("vRes=\(vRes)")                                  // [6, 8, 10, 12]
-
-// 11) 浮点 SIMD：内积
-func dotProduct(_ a: SIMD4<Float32>, _ b: SIMD4<Float32>) -> Float32 {
-    return (a * b).reduceSum()
-}
-let dp = dotProduct(
-    SIMD4.fromArray([1.0, 2.0, 3.0, 4.0]),
-    SIMD4.fromArray([5.0, 6.0, 7.0, 8.0])
-)
-print("dot=\(dp)")                                     // 1*5+2*6+3*7+4*8 = 70
-
-// 12) SIMD2 / 复数模拟
-let v2a: SIMD2<Int32> = SIMD2.fromArray([3i32, 4i32])
-let v2b: SIMD2<Int32> = SIMD2.fromArray([0i32, 1i32])
-// 复数 (3+4i) × (0+1i) = (-4+3i)
-let v2Real = v2a * v2b - SIMD2.fromArray([4i32, 3i32])  // 简化
-print("v2=\(v2a)")
-
-// 13) SIMD + 数据并行
-func scale(_ v: SIMD4<Float32>, k: Float32) -> SIMD4<Float32> {
-    return v * SIMD4<Float32>.splat(k)
-}
-let scaled = scale(SIMD4.fromArray([1.0, 2.0, 3.0, 4.0]), k: 2.5)
-print("scaled=\(scaled)")                              // [2.5, 5.0, 7.5, 10.0]
-
-// 14) SIMD + 范围检查
-func inRange(_ v: SIMD4<Int32>, lo: Int32, hi: Int32) -> SIMD4<Bool> {
-    let lo4 = SIMD4<Int32>.splat(lo)
-    let hi4 = SIMD4<Int32>.splat(hi)
-    return v.cmpge(lo4) & v.cmple(hi4)
-}
-let r = inRange(SIMD4.fromArray([1i32, 5i32, 10i32, 15i32]), lo: 2, hi: 12)
-print("inRange=\(r)")
-
-// 15) 性能要点（注释）
-//
-// SIMD4<Float32> → x86 SSE (1× 128-bit) / ARM NEON (1× 128-bit)
-// SIMD8<Float32> → AVX2 / NEON 2×
-// SIMD16<UInt8> → AVX-512 (1× 512-bit) / WASM SIMD128 (1× 128-bit)
-//
-// 编译器将 SIMD 操作直接 lowering 为对应指令：
-//   LLVM: <4 x float> / <16 x i8>
-//   Cranelift: I8X16 / F32X4
-//   WASM: i8x16.add / f32x4.mul / 等
-
-// 16) 实际用例：图像像素处理
-func grayscale(_ pixels: SIMD4<UInt8>) -> UInt8 {
-    // 简化：返回 R 通道
-    return pixels[0]
+func vectorizedAdd() {
+    let a: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
+    let b: SIMD4<Int32> = SIMD4.fromArray([5i32, 6i32, 7i32, 8i32])
+    let r = a + b
+    print(SIMD4.reduceAdd(r))
 }
 
-func demoImage() {
-    let pixel: SIMD4<UInt8> = SIMD4.fromArray([255u8, 128u8, 64u8, 255u8])
-    let g = grayscale(pixel)
-    print("grayscale=\(g)")
+func simdSubMul() {
+    let a: SIMD4<Int32> = SIMD4.fromArray([10i32, 20i32, 30i32, 40i32])
+    let b: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
+    let d = a - b
+    let p = a * b
+    print(SIMD4.reduceAdd(d))
+    print(SIMD4.reduceAdd(p))
 }
 
 func main() {
-    print("v4=\(v4)  zero4=\(zero4)  splat4=\(splat4)")
-    print("v8=\(v8)  v16=\(v16)")
-    print("sum=\(sum)  min=\(mn)  max=\(mx)")
-    print("vRes=\(vRes)  dp=\(dp)  scaled=\(scaled)  r=\(r)")
-    demoImage()
+    basicSimd()
+    vectorizedAdd()
+    simdSubMul()
+    print("simd demo done")
 }

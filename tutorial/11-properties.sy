@@ -2,32 +2,25 @@
 // tutorial/11-properties.sy
 // 对应《SYX 语言指南》第 11 章「属性」
 //
-// 本章涉及语言特性：
-//   - 存储属性（var / let）
-//   - 静态属性（static var / let）
-//   - 计算属性（{ get } / { get set }）
-//   - willSet / didSet 观察器
-//   - lazy 属性（部分实现）
-//   - @Published（class stored MVP）
-//   - type property / instance property
+// 可运行演示：存储属性、静态属性、计算属性 get/set、willSet/didSet、lazy。
+// note: Swift 风格 struct { var x } 不受支持 → 用 class / data class。
+// note: extension 上的计算属性、@Published 观察链在本运行时受限，此处省略。
 // =============================================================================
 
-// 1) 存储属性
+// 1) 存储属性（class + init）
 class Person {
-    var name: String                       // 可变 stored
-    let id: Int                            // 不可变 stored
+    var name: String
+    let id: Int
     init(name: String, id: Int) {
         self.name = name
         self.id = id
     }
 }
 
-struct Settings {
-    var theme: String = "light"
-    let version: Int = 1
-}
+// 2) data class 记录
+data class Settings(theme: String, version: Int)
 
-// 2) 静态属性
+// 3) 静态属性
 class Config {
     static var debug: Bool = false
     static let version: Int = 116
@@ -35,118 +28,105 @@ class Config {
 }
 
 func demoStatic() {
-    print("Config.version=\(Config.version)")
+    print(Config.version)
     Config.debug = true
-    print("Config.debug=\(Config.debug)")
+    print(Config.debug)
+    print(Config.name)
 }
 
-// 3) 计算属性（get / get-set）
-struct Circle {
+// 4) 计算属性 get / set
+class Circle {
     var radius: Double
+    init(radius: Double) {
+        self.radius = radius
+    }
     var area: Double {
-        get { return 3.14159 * radius * radius }
-        set { radius = sqrt(newValue / 3.14159) }
+        get { return 3.14159 * self.radius * self.radius }
+        set { self.radius = newValue / 3.14159 }
     }
     var diameter: Double {
-        get { return radius * 2 }
+        get { return self.radius * 2.0 }
     }
 }
 
 func demoComputed() {
-    var c = Circle(radius: 2.0)
-    print("area=\(c.area)  diameter=\(c.diameter)")
-    c.area = 12.56636                                    // 通过 set 改 radius
-    print("new radius=\(c.radius)")
+    let c = Circle(radius: 2.0)
+    print(c.area)
+    print(c.diameter)
+    c.area = 12.56636
+    print(c.radius)
 }
 
-// 4) willSet / didSet（class static 上 Phase 138 MVP）
+// 5) willSet / didSet
 class Counter {
-    static var value: Int = 0 {
-        willSet { print("about to set: \(newValue)") }
-        didSet { print("changed: \(oldValue) -> \(Counter.value)") }
+    var value: Int
+        willSet { print("willSet") }
+        didSet { print("didSet") }
+    init(value: Int) {
+        self.value = value
     }
 }
 
 func demoObservers() {
-    Counter.value = 7
-    Counter.value = 100
+    let c = Counter(value: 0)
+    c.value = 7
+    c.value = 100
+    print(c.value)
 }
 
-// 5) lazy 属性（部分实现）
+// 6) lazy（首次访问时初始化）
 class HeavyResource {
-    lazy var buffer: Array<Int> = {
-        print("initializing heavy resource")
-        var arr: Array<Int> = []
-        for i in 0..<100 { arr.append(i) }
-        return arr
-    }()
-    func use() {
-        let _ = self.buffer
-        let _ = self.buffer
-    }
+    lazy var buffer: Array<Int> = [0, 1, 2]
+    init() {}
 }
 
-// 6) @Published（class stored MVP，Phase 137）
-@Published
-class TodoList {
-    var items: Array<String> = []
-    func add(_ s: String) { items.append(s) }
+func demoLazy() {
+    let h = HeavyResource()
+    print(h.buffer.count)
+    print(h.buffer[1])
 }
 
-// 7) extension 计算属性
-extension Int {
-    var isEven: Bool { return self % 2 == 0 }
-    var squared: Int { return self * self }
-}
-
-// 8) 静态 computed
-struct MathConst {
+// 7) 静态 computed
+class MathConst {
     static let pi: Double = 3.14159265358979
-    static var tau: Double { return pi * 2 }
+    static var tau: Double {
+        get { return MathConst.pi * 2.0 }
+    }
 }
 
-// 9) readonly computed on instance
+// 8) 温度计：读写计算属性
 class Thermometer {
-    var celsius: Double = 0
-    var fahrenheit: Double {
-        get { return celsius * 9.0 / 5.0 + 32.0 }
-        set { celsius = (newValue - 32.0) * 5.0 / 9.0 }
+    var celsius: Double
+    init(celsius: Double) {
+        self.celsius = celsius
     }
-    var kelvin: Double { return celsius + 273.15 }
+    var fahrenheit: Double {
+        get { return self.celsius * 9.0 / 5.0 + 32.0 }
+        set { self.celsius = (newValue - 32.0) * 5.0 / 9.0 }
+    }
 }
 
 func demoTemp() {
-    let t = Thermometer()
-    t.celsius = 100
-    print("f=\(t.fahrenheit)  k=\(t.kelvin)")          // 212 373.15
-    t.fahrenheit = 32
-    print("c=\(t.celsius)")                            // 0
-}
-
-// 10) 属性包装（@Lazy 等 — M26 配套）
-// @Lazy
-// var expensive: String = computeExpensive()  // 首次访问时计算
-
-// 11) type property（meta-type 通过 Type.self 访问）
-class App {
-    class var version: String { return "1.0.0" }
-    class func current() -> App { return App() }
-}
-
-func demoTypeProp() {
-    let app = App.current()
-    print("app version=\(App.version)")
-    print("instance type=\(type(of: app))")
+    let t = Thermometer(celsius: 100.0)
+    print(t.fahrenheit)
+    t.fahrenheit = 32.0
+    print(t.celsius)
 }
 
 func main() {
+    let p = Person(name: "Ada", id: 1)
+    print(p.name)
+    print(p.id)
+
+    let s = Settings(theme: "light", version: 1)
+    print(s.theme)
+    print(s.version)
+
     demoStatic()
     demoComputed()
     demoObservers()
+    demoLazy()
+    print(MathConst.pi)
+    print(MathConst.tau)
     demoTemp()
-    demoTypeProp()
-    print("4.isEven=\(4.isEven)  5.squared=\(5.squared)")
-    let todo = TodoList()
-    todo.add("buy milk")
-    print("todo=\(todo.items)")
 }

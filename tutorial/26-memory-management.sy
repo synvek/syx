@@ -1,174 +1,77 @@
 // =============================================================================
 // tutorial/26-memory-management.sy
-// 对应《SYX 语言指南》第 26 章「内存管理与垃圾回收」
-//
-// 本章涉及语言特性：
-//   - ARC for class（引用计数）
-//   - ManagedHeap 分代追踪 GC（Array / String / Dictionary / 闭包）
-//   - 三后端：VM / WASM / Native
-//   - refcount 调试
-//   - deinit 触发
-//   - 闭包捕获与生命周期
-//   - 弱引用（部分实现）
+// Memory: ARC for class, shared refs, deinit, data class immutability.
+// note: avoid &mut / weak / actor Task demos if unsupported; keep class refs.
 // =============================================================================
 
-// 1) ARC 引用语义
 class Node {
-    let id: Int
-    var next: Node? = nil
-    init(id: Int) { self.id = id }
+    var id: Int
+    init(id: Int) {
+        self.id = id
+        print("init Node(\(id))")
+    }
     deinit { print("deinit Node(\(self.id))") }
 }
 
 func arcDemo() {
-    let a = Node(id: 1)                                // refcount=1
-    let b = Node(id: 2)                                // refcount=1
-    a.next = b                                         // b refcount=2
-    let c = a                                          // a refcount=2
-    let _ = c
-    // 离开作用域：c → 释放，a refcount=1；b refcount=2 (a.next + b)
-    // a 离开：a refcount=0 → deinit；b refcount=1
-    // b 离开：b refcount=0 → deinit
+    let a = Node(id: 1)
+    let b = a
+    print(a === b)
+    print(a.id)
 }
 
-// 2) 闭包捕获与循环引用
 class Holder {
-    var value: Int = 0
-    var callback: (() -> Void)?
+    var value: Int
     init(v: Int) { self.value = v }
-    deinit { print("deinit Holder(\(self.value))") }
+    func bump() { self.value = self.value + 1 }
 }
 
-func closureRefCycle() {
+func holderDemo() {
     let h = Holder(v: 1)
-    h.callback = { h.value += 1 }                      // ❌ 循环引用（h → callback → h）
-    // h 离开作用域不会 deinit（callback 仍持有 h）
-    // 实际可通过 weak 解（弱引用部分实现）
-    h.callback = nil                                   // 手动断开
-    // h 离开作用域 → deinit
+    h.bump()
+    h.bump()
+    print(h.value)
 }
 
-// 3) 闭包捕获列表
-class Counter26 {
-    var value: Int = 0
-    func makeInc() -> () -> Int {
-        // 强引用 self（拷贝语义）
-        return { [self] in self.value += 1; return self.value }
+func arrayLocalDemo() {
+    var big: Array<Int> = []
+    var i = 0
+    while i < 100 {
+        big.append(i)
+        i = i + 1
     }
-    deinit { print("deinit Counter26(\(self.value))") }
+    print(big.count)
+    big = []
+    print(big.count)
 }
 
-// 4) 引用计数可见性（部分实现）
-class Refcounted {
-    static var total: Int = 0
-    let id: Int
-    init(id: Int) { self.id = id; Refcounted.total += 1 }
-    deinit { Refcounted.total -= 1; print("deinit \(id)  total=\(Refcounted.total)") }
-}
-
-func refcountVisible() {
-    print("total=\(Refcounted.total)")
-    let a = Refcounted(id: 1)
-    print("after a: \(Refcounted.total)")
-    let b = a                                          // +1
-    print("after b: \(Refcounted.total)")
-    let c = a                                          // +1
-    print("after c: \(Refcounted.total)")
-    let _ = (b, c)
-    print("after b,c out: \(Refcounted.total)")
-    let _ = a
-    print("after a out: \(Refcounted.total)")
-}
-
-// 5) ManagedHeap GC 触发（Array / String / 闭包）
-func gcTrigger() {
-    var big: Array<Array<Int>> = []
-    for i in 0..<1000 {
-        var inner: Array<Int> = []
-        for j in 0..<100 {
-            inner.append(i * 100 + j)
-        }
-        big.append(inner)
-    }
-    print("big.count=\(big.count)")
-    big = []                                           // 释放旧引用，触发 GC
-    // 显式 GC 提示
-    __syx_gc_collect()
-    print("gc done")
-}
-
-// 6) String 内部表示
-func stringInternals() {
+func stringDemo() {
     let s1 = "hello"
     let s2 = "hello"
-    print("s1 == s2 = \(s1 == s2)")                   // 值相等
-    print("s1 === s2 = \(s1 === s2)")                 // 引用标识：通常 false（不同对象）
+    print(s1 == s2)
 }
 
-// 7) 数组的写时复制（部分实现）
-func arrayCow() {
-    let a = [1, 2, 3, 4, 5]
-    var b = a                                          // 共享底层
-    b[0] = 99                                          // 触发 copy
-    print("a=\(a)  b=\(b)")                            // a 不变，b 已修改
-}
-
-// 8) 多后端内存策略
-//
-// VM：ARC for class（class ObjectRef retain/release）
-//   + ManagedHeap v4 分代 GC（Array/String/Dict/闭包）
-// WASM：ARC tier-2D + ManagedHeap v4 统一
-// Native (LLVM)：ARC tier-3 直发 + ManagedHeap v4 统一
-
-// 9) 弱引用（部分实现）
-// class WeakDemo {
-//     weak var ref: OtherClass?    ← 部分实现
-// }
-
-// 10) actor 内存模型
-actor StatefulActor {
-    var data: Array<Int> = []
-    func append(_ v: Int) { data.append(v) }
-    func all() -> Array<Int> { return data }
-}
-
-async func actorMemDemo() {
-    let a = StatefulActor()
-    for i in 0..<10 {
-        await a.append(i)
-    }
-    let d = await a.all()
-    print("actor data.count=\(d.count)")
-}
-
-// 11) 闭包作为参数（不持有）
-func useClosure(_ f: () -> Int) -> Int {
-    return f()
-}
-
-func noCapture() {
-    let r = useClosure({ 42 })
-    print("r=\(r)")                                    // 闭包用完即释放
-}
-
-// 12) 数据类的不可变语义
 data class Immutable(id: Int, name: String)
 
 func immutableDemo() {
     let u = Immutable(id: 1, name: "Alice")
-    // u.id = 2  ← ❌ let 不可变
-    let u2 = u.copy()
-    print("u=\(u)  u2=\(u2)")
+    print(u.description())
+    print(u.id)
+    print(u.name)
+}
+
+func noCapture() {
+    // HOF-style: pass closure to map (standalone typed closure params are limited)
+    let doubled = [21].map({ (x) in return x * 2 })
+    print(doubled)
 }
 
 func main() {
     arcDemo()
-    closureRefCycle()
-    refcountVisible()
-    gcTrigger()
-    stringInternals()
-    arrayCow()
-    noCapture()
+    holderDemo()
+    arrayLocalDemo()
+    stringDemo()
     immutableDemo()
-    Task.detached { await actorMemDemo() }
+    noCapture()
+    print("memory demo done")
 }

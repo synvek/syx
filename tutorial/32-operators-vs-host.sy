@@ -1,219 +1,70 @@
 // =============================================================================
 // tutorial/32-operators-vs-host.sy
-// 对应《SYX 语言指南》第 32 章「运算符 vs Core Host」
-//
-// 本章涉及语言特性：
-//   - 两层模型：Operator Intrinsic vs Host Explicit
-//   - Operator Intrinsic（编译器硬编码 + LLVM/Cranelift 直发）
-//   - Host Explicit（Core .sy 声明 + __syx_* 函数）
-//   - 数值 static Host（Int8.min 等）
-//   - 集合 HOF Host（__syx_array_map 等）
-//   - BigInt 主机
-//   - Result 泛型代数
-//   - 何时走哪条路径
+// Operators (intrinsic) vs Host APIs (Math / Hasher / Array HOF).
+// note: BigInt / custom Result enum / Hasher on data class may be unavailable.
 // =============================================================================
-
-// ---------- 1) Operator Intrinsic 层 ----------
-//
-// 这些表达式 lowering 为 MIR 操作码，由 LLVM/Cranelift 直发
-// 不经 Host 调用，性能与原生代码同阶
 
 func intrinsicLayer() {
     let a = 10
     let b = 3
-    let sum = a + b                                    // NumericAdd
-    let diff = a - b                                   // NumericSub
-    let prod = a * b                                   // NumericMul
-    let quot = a / b                                   // NumericDiv
-    let rem = a % b                                    // NumericMod
-    let eq = (a == b)                                  // NumericEq
-    let lt = (a < b)                                   // NumericLt
-    let band = a & b                                   // BitAnd
-    let bor = a | b                                    // BitOr
-    let bxor = a ^ b                                   // BitXor
-    let bshl = a << 2                                  // Shl
-    let bshr = a >> 1                                  // Shr
-    let bnot = ~a                                      // BitNot
-    let and_ = (a > 0) && (b > 0)                      // BoolAnd（短路）
-    let or_ = (a < 0) || (b > 0)                       // BoolOr（短路）
-    let not_ = !(a > 0)                                // BoolNot
-    print("sum=\(sum) diff=\(diff) eq=\(eq) lt=\(lt)")
-    print("band=\(band) bor=\(bor) bxor=\(bxor) bshl=\(bshl)")
-    print("and_=\(and_) or_=\(or_) not_=\(not_)")
+    print(a + b)
+    print(a - b)
+    print(a * b)
+    print(a / b)
+    print(a % b)
+    print(a == b)
+    print(a < b)
+    print(a & b)
+    print(a | b)
+    print(a ^ b)
+    print(a << 2)
+    print(a >> 1)
+    print(~a)
+    print((a > 0) && (b > 0))
+    print((a < 0) || (b > 0))
+    print(!(a > 0))
 }
-
-// ---------- 2) Host Explicit 层 ----------
-//
-// 非运算符 builtin（.min / .max / .description / .hash / Array.map / ...）
-// 走 Host 调用
 
 func hostLayer() {
-    // 数值 static：Type.min/max = 类型上下界；二元比较走 Math.min
-    let lo = Int32.min
-    let hi = Int32.max
-    let abs = Int32.abs(x: -5i32)
-    let pair = Math.min(10, 20)
-    print("lo=\(lo)  hi=\(hi)  abs=\(abs)  pair=\(pair)")
+    print(Int32.min)
+    print(Int32.max)
+    print(Math.add(10, 20))
+    print(Math.min(10, 20))
 
-    // BigInt
-    let big = BigInt.from(1234567890123456789i64)
-    print("big=\(big)")
-
-    // 集合 HOF（__syx_array_map 等）
     let arr = [1, 2, 3, 4, 5]
-    let doubled = arr.map({ |x| x * 2 })
-    let evens = arr.filter({ |x| x % 2 == 0 })
-    let s = arr.reduce(0, +)
-    print("doubled=\(doubled)  evens=\(evens)  s=\(s)")
+    let doubled = arr.map({ (x) in return x * 2 })
+    let evens = arr.filter({ (x) in return x % 2 == 0 })
+    let s = arr.reduce(0, { (acc, x) in return acc + x })
+    print(doubled)
+    print(evens)
+    print(s)
 }
-
-// ---------- 3) Core extension 形式 ----------
-//
-// 标准库 String 扩展（packages/core/builtins/text/string.sy）：
-//
-//   extension String {
-//       func hash(into hasher: Hasher) { ... }
-//       func description() -> String { ... }
-//       func debugDescription() -> String { ... }
-//   }
-//
-// 这些是 Host Explicit 层的「用户可见 API」
-
-extension String {
-    func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
-    }
-    func description() -> String {
-        return __syx_value_description(self)
-    }
-}
-
-// ---------- 4) 集合 HOF 内部 ----------
-//
-// 内部实现（packages/core/builtins/collections/array.sy）：
-//
-//   extension Array {
-//       func map(transform: Function) -> Array {
-//           return __syx_array_map(self, transform)
-//       }
-//   }
-//
-// 用户写：
-//   let r = [1, 2, 3].map({ |x| x * 2 })
-// 编译器 desugar 为：
-//   let r = __syx_array_map(self, transform)
-
-// ---------- 5) BigInt（host） ----------
-//
-// BigInt 不在 Operator Intrinsic 层（变长、堆分配）
-// 走 host 调用：__syx_bigint_* 系列
-
-func bigintDemo() {
-    let a = BigInt.from(1000000000000i64)
-    let b = BigInt.from(2000000000000i64)
-    let sum = BigInt.add(a, b)
-    let prod = BigInt.mul(a, b)
-    print("sum=\(sum)  prod=\(prod)")
-}
-
-// ---------- 6) Result<T, E>（final class） ----------
-//
-// Result 泛型代数走 final class（Phase 46）
-// 不是 Operator Intrinsic，是 Host 层结构体
-
-enum Result2<T, E> {
-    case ok(T)
-    case err(E)
-}
-
-func resultChain() {
-    let r: Result2<Int, String> = .ok(42)
-    switch r {
-    case .ok(let v): print("ok: \(v)")
-    case .err(let e): print("err: \(e)")
-    }
-}
-
-// ---------- 7) Hashable witness（host） ----------
-//
-// 自定义类型的 hash(into:) 由 host 函数实现
-// 编译器把 hash 调用 lowering 为 __syx_hasher_combine + finalize
-
-data class UserData(id: Int, name: String)
 
 func hashableDemo() {
-    let h1 = Hasher.newHasher()
-    UserData(id: 1, name: "Alice").hash(into: h1)
-    let hash1 = Hasher.finalize(h1)
-    print("hash1=\(hash1)")
+    var h = Hasher.newHasher()
+    let n: Int = 3
+    n.hash(into: h)
+    print(Hasher.finalize(h))
 }
 
-// ---------- 8) 何时走哪条路径 ----------
-//
-// 运算符（+ - * / == < & | ...）           → Intrinsic（直发）
-// 静态方法（Int32.min / Math.sqrt）        → Host
-// 实例方法（arr.map / str.split）          → Host
-// 类型化代数（Result / Optional）           → 内置 + 编译器
-// 反射（reflect / Mirror）                 → Host（Meta）
-
-// ---------- 9) 性能对比 ----------
-//
-// Intrinsic:
-//   let s = a + b       → LLVM: add i32 %a, %b
-//                         Cranelift: iadd
-//                         WASM: i32.add
-//   性能：原生
-//
-// Host:
-//   let m = Math.min(a, b)
-//                         → call __syx_int_min(a, b)
-//   let lo = Int32.min → 类型下界（static let / computed get）
-//   性能：Host 为函数调用（可被 JIT 内联）；bounds 常可常量折叠
-
-// ---------- 10) 自定义 Host 插件（dlopen） ----------
-//
-// 见第 33 章。SYX_HOST_PLUGIN_PATH 指定 .so 路径
-// 插件导出 C ABI 函数，注册为 __syx_plugin_{id}_{fn}
-
-// ---------- 11) MIR 操作码映射（部分） ----------
-//
-// | 运算符   | MIR 操作         | LLVM         | Cranelift     | WASM        |
-// |----------|------------------|--------------|---------------|-------------|
-// | +        | NumericAdd       | add          | iadd/fadd     | i32.add     |
-// | -        | NumericSub       | sub          | isub/fsub     | i32.sub     |
-// | *        | NumericMul       | mul          | imul/fmul     | i32.mul     |
-// | ==       | NumericEq        | icmp eq      | icmp          | i32.eq      |
-// | <        | NumericLt        | icmp slt     | icmp          | i32.lt_s    |
-// | &        | BitAnd           | and          | band          | i32.and     |
-// | <<       | Shl              | shl          | ishl          | i32.shl     |
-// | &&       | BoolAnd（短路）  | select/br    | brz/brnz      | select      |
-
-// ---------- 12) 实际样例：性能敏感计算走 Intrinsic ----------
-
 func hotPath(_ a: Int, _ b: Int) -> Int {
-    // 全部 Intrinsic，编译后是几个原生指令
     return (a * b + a - b) / (a + 1)
 }
 
-// 集合操作走 Host
 func warmPath(_ arr: Array<Int>) -> Int {
-    // map 是 Host 调用
-    return arr.map({ |x| x * 2 }).reduce(0, +)
+    let doubled = arr.map({ (x) in return x * 2 })
+    return doubled.reduce(0, { (acc, x) in return acc + x })
 }
 
-// ---------- 13) 选择策略 ----------
-//
-// 性能热路径：尽量用 Intrinsic（直接运算符、SIMD）
-// 复杂逻辑：用 HOF + Host（可读性、维护性）
-// 大量数据：优先 SIMD（auto-vectorize）+ Intrinsic
-// 类型化：Result / Optional / 协议 witness 走专门路径
+// Path choice (conceptual):
+//   + - * / == < & | <<   → Operator Intrinsic (direct codegen)
+//   Math.* / Array.map    → Host Explicit (__syx_* calls)
 
 func main() {
     intrinsicLayer()
     hostLayer()
-    bigintDemo()
-    resultChain()
     hashableDemo()
-    print("hotPath=\(hotPath(3, 4))")
-    print("warmPath=\(warmPath([1, 2, 3, 4, 5]))")
+    print(hotPath(3, 4))
+    print(warmPath([1, 2, 3, 4, 5]))
+    print("operators-vs-host demo done")
 }

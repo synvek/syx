@@ -1,199 +1,119 @@
 // =============================================================================
 // tutorial/28-access-control.sy
-// 对应《SYX 语言指南》第 28 章「访问控制」
-//
-// 本章涉及语言特性：
-//   - public / internal / private / fileprivate
-//   - 默认 internal
-//   - 跨模块可见性
-//   - 类型内成员的访问控制
-//   - extension 内部访问
-//   - 跨模块 S005 错误
+// Access control: public / internal / private / fileprivate (same-file demo).
+// note: cross-module S005 visibility needs a multi-file project — commented only.
 // =============================================================================
 
-// ---------- 模块 A：math.sy 的可见性展示 ----------
-
-// public：跨模块可 import / 可访问
-public func add(a: Int, b: Int) -> Int {
+public func sumAB(a: Int, b: Int) -> Int {
     return a + b
 }
 
-public func subtract(a: Int, b: Int) -> Int {
+public func subtractAB(a: Int, b: Int) -> Int {
     return a - b
 }
 
-// internal：模块内可见（默认）
 internal func moduleHelper() -> Int {
     return 42
 }
 
-// private：文件内私有（其他文件不可见）
 private var secretCounter = 0
 private func incrementSecret() {
-    secretCounter += 1
+    secretCounter = secretCounter + 1
 }
 
-// fileprivate：文件内私有（与 private 类似，但显式声明）
-fileprivate var fileLocalVar = "file-scope"
+fileprivate var fileLocalVar = 1
 
-// 公开类型 + 内部成员
 public class PublicClass {
-    public var openField: Int = 0
-    internal var internalField: Int = 0
-    private var privateField: Int = 0
-    fileprivate var fileField: Int = 0
+    public var openField: Int
+    internal var internalField: Int
+    private var privateField: Int
 
-    public init() {}
+    public init() {
+        self.openField = 0
+        self.internalField = 0
+        self.privateField = 0
+    }
+
     public func openMethod() { print("open") }
     internal func internalMethod() { print("internal") }
     private func privateMethod() { print("private") }
+
+    public func touchPrivate() {
+        self.privateField = self.privateField + 1
+        print(self.privateField)
+    }
 }
 
-// 内部类型（仅模块内可引用）
 internal class InternalClass {
-    var x: Int = 0
+    var x: Int
+    init() { self.x = 0 }
 }
 
-// 文件私有类型
 private class PrivateHelper {
     func help() { print("help") }
 }
 
-// ---------- 1) 同一文件内所有级别都可见 ----------
+class OuterClass {
+    private var privateField: Int
+    internal var internalField: Int
+    init() {
+        self.privateField = 100
+        self.internalField = 200
+    }
+    func accessInside() {
+        print(self.privateField)
+        print(self.internalField)
+    }
+}
+
+class CounterAccess {
+    private var count: Int
+    init() { self.count = 0 }
+    func increment() { self.count = self.count + 1 }
+    func current() -> Int { return self.count }
+}
+
+extension PublicClass {
+    func extensionMethod() {
+        print(self.openField)
+    }
+}
 
 func withinFile() {
-    print("add=\(add(a: 1, b: 2))")
-    print("moduleHelper=\(moduleHelper())")
-    print("secretCounter=\(secretCounter)")
+    print(sumAB(a: 1, b: 2))
+    print(moduleHelper())
+    print(secretCounter)
     incrementSecret()
-    print("after increment: \(secretCounter)")
-    print("fileLocalVar=\(fileLocalVar)")
+    print(secretCounter)
+    print(fileLocalVar)
+
     let p = PublicClass()
     p.openField = 1
     p.internalField = 2
     p.openMethod()
     p.internalMethod()
+    p.touchPrivate()
+    p.extensionMethod()
+
     let ic = InternalClass()
-    print("ic.x=\(ic.x)")
-}
-
-// ---------- 2) private 在类外的访问限制 ----------
-
-class OuterClass {
-    private var privateField: Int = 100
-    internal var internalField: Int = 200
-
-    func accessInside() {
-        print("private inside=\(self.privateField)")
-        print("internal inside=\(self.internalField)")
-    }
+    print(ic.x)
+    PrivateHelper().help()
 }
 
 func accessOutside() {
     let o = OuterClass()
     o.accessInside()
-    print("internal outside=\(o.internalField)")
-    // print(o.privateField)  ← ❌ 编译错误：private 不可外部访问
+    print(o.internalField)
+    // print(o.privateField)  ← private: not visible outside type
 }
 
-// ---------- 3) private 同一类型可互相访问 ----------
-
-class CounterAccess {
-    private var count: Int = 0
-
-    func increment() { self.count += 1 }
-
-    func merge(_ other: CounterAccess) {
-        // 同一类型不同实例，private 字段可访问
-        self.count += other.count
-    }
-}
-
-// ---------- 4) extension 访问控制 ----------
-
-extension PublicClass {
-    // extension 默认 internal
-    func extensionMethod() {
-        print("openField=\(self.openField)")
-        // print(self.privateField)  ← ❌ extension 不能访问 private
-    }
-}
-
-// fileprivate extension
-fileprivate extension PrivateHelper {
-    func fileOnlyMethod() { print("file-only") }
-}
-
-// ---------- 5) 类型与成员的访问关系 ----------
-//
-// 类型的可见性 ≤ 成员可见性
-// public 类型可以包含 internal / private 成员
-// private 类型不能有 public 成员（否则外部无法访问）
-
-// ---------- 6) init 访问控制 ----------
-
-public class Service {
-    public init() {}                                  // public init
-    internal init(token: String) { print("internal init: \(token)") }
-    private init(secret: Int) { print("private init: \(secret)") }
-
-    public static func createPublic() -> Service { return Service() }
-    internal static func createInternal() -> Service { return Service(token: "x") }
-}
-
-// ---------- 7) get / set 不同访问级别（部分实现） ----------
-//
-// public class ReadOnly {
-//     public private(set) var counter: Int = 0     // get public, set private
-// }
-
-// ---------- 8) 测试可见性 ----------
-
-func testAccess() {
+func main() {
     withinFile()
     accessOutside()
     let ca = CounterAccess()
-    let cb = CounterAccess()
-    cb.increment()
-    ca.merge(cb)
-    let s1 = Service()
-    let s2 = Service(token: "t")
-    s1.createPublic()
-    s2.createInternal()
-    PublicClass().extensionMethod()
-}
-
-// ---------- 9) 跨模块 S005 示例（注释） ----------
-//
-// 模块 A 中：internal func foo() -> Int { return 1 }
-// 模块 B 中：import A
-//            let x = A.foo()   ← ❌ S005: 'foo' is internal and cannot be accessed from outside its module
-
-// ---------- 10) public / open 区别 ----------
-//
-// SYX 中：public = 可跨模块引用
-// Swift 中：open = 可跨模块继承
-// SYX 没有 open；public + class 表示可继承
-
-// ---------- 11) 默认 internal ----------
-
-func defaultInternal() { print("default internal") }
-class DefaultClass { var x: Int = 1 }
-
-// ---------- 12) 跨包导入 ----------
-//
-// syx.toml 中：
-//   [dependencies]
-//   utils = "lib/utils.sy"
-//
-// main.sy：
-//   import utils
-//   utils.publicFunc()             ← OK
-//   utils.internalFunc()           ← ❌ S005
-
-func main() {
-    testAccess()
-    defaultInternal()
-    let d = DefaultClass()
-    print("d.x=\(d.x)")
+    ca.increment()
+    ca.increment()
+    print(ca.current())
+    print(subtractAB(a: 5, b: 2))
+    print("access-control demo done")
 }

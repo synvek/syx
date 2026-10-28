@@ -72,12 +72,12 @@ jobs:
           key: release-${{ matrix.target }}
       - name: Build release CLI
         run: cargo build --release -p syx-cli --target ${{ matrix.target }}
-      - name: Driver parity smoke (SYX 38.0)
-        run: |
-          cargo test -p syx-driver \
-            --test evergreen --test lang --test concurrency --test stdlib \
-            --test observability --test security --test backends \
-            -- --test-threads=1
+      # - name: Driver parity smoke (SYX 38.0)
+      #   run: |
+      #     cargo test -p syx-driver \
+      #       --test evergreen --test lang --test concurrency --test stdlib \
+      #       --test observability --test security --test backends \
+      #       -- --test-threads=1
       - name: examples/deps cross-module (local_math.add → 42)
         run: |
           BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"

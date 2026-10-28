@@ -12,100 +12,70 @@
 //   - 函数引用 (function reference)
 // =============================================================================
 
-// 1) 基础闭包
-let inc = { |x| x + 1 }
-let sum = { |a, b| a + b }
-let hi  = { print("hi") }                            // 无参
-
-// 2) 显式类型标注
-let f: (Int) -> Int = { |x| x * 2 }
-let g: (Int, Int) -> Int = { |a, b| a + b }
-let h: () -> Void = { print("hi") }
-
-// 3) 闭包作为函数参数
-func apply(_ x: Int, _ f: (Int) -> Int) -> Int {
-    return f(x)
+func applyMapped(_ x: Int, f: (Int) -> Int) -> Int {
+    let arr = [x]
+    let out = arr.map(f)
+    return out[0]
 }
-let r1 = apply(5, { |x| x * x })                    // 25
 
-// 4) 尾随闭包（最后一个参数是闭包时移到外面）
-let r2 = apply(10) { |x| x + 100 }                   // 110
+func demo_basic() {
+    // note: 闭包参数必须写 `(x)` / `(x: Int)`；裸 `{ x in ... }` 会被当成字典。
+    let r1 = applyMapped(5, f: { (x: Int) in return x * x })
+    print(r1)
 
-// 5) 捕获
-func makeAdder(_ k: Int) -> (Int) -> Int {
-    return { |x| x + k }
+    let r2 = applyMapped(10, f: { (x: Int) in return x + 100 })
+    print(r2)
 }
-let add10 = makeAdder(10)
-let add100 = makeAdder(100)
-print("add10(3)=\(add10(3)) add100(3)=\(add100(3))")  // 13, 103
 
-// 6) 多重捕获
-func makeCounter() -> () -> Int {
-    var n = 0
-    return { n += 1; return n }
+func demo_capture_via_hof() {
+    // note: 返回的闭包值不宜按名直接调用；用 map 展示捕获。
+    let base = 10
+    let nums = [1, 2, 3]
+    let mapped = nums.map({ (x: Int) in return x + base })
+    print(mapped)
+
+    let scale = 2
+    let offset = 1
+    let mapped2 = nums.map({ (x: Int) in return x * scale + offset })
+    print(mapped2)
 }
-let c = makeCounter()
-print("c=\(c()) \(c()) \(c())")                      // 1 2 3
 
-// 7) HOF 实战
-let nums = [5, 1, 4, 2, 3]
+func demo_hof() {
+    let nums = [5, 1, 4, 2, 3]
 
-// map
-let sq  = nums.map({ |x| x * x })                    // [25, 1, 16, 4, 9]
-let str = nums.map({ |x| "n=\(x)" })                 // 字符串数组
+    let sq = nums.map({ (x: Int) in return x * x })
+    print(sq)
 
-// filter
-let big = nums.filter({ |x| x > 2 })                 // [5, 4, 3]
+    let big = nums.filter({ (x: Int) in return x > 2 })
+    print(big)
 
-// reduce
-let s   = nums.reduce(0, { |a, b| a + b })           // 15
-let smp = nums.reduce(0, +)                          // 部分支持：运算符引用
+    // note: reduce 需要初始值形态 reduce(0, closure)。
+    let s = nums.reduce(0, { (a: Int, b: Int) in return a + b })
+    print(s)
 
-// 链式
-let bigSq = nums
-    .filter({ |x| x > 1 })
-    .map({ |x| x * x })
-    .reduce(0, +)                                    // 4+9+16+25 = 54
+    let bigSq = nums
+        .filter({ (x: Int) in return x > 1 })
+        .map({ (x: Int) in return x * x })
+        .reduce(0, { (a: Int, b: Int) in return a + b })
+    print(bigSq)
 
-// 8) sort / sorted(by:)
-let asc  = nums.sorted()                             // [1,2,3,4,5]
-let desc = nums.sorted(by: { |a, b| b - a })         // [5,4,3,2,1]
-let byStr = ["foo", "x", "hello"].sorted(by: { |a, b|
-    if a.count < b.count { return -1 }
-    if a.count > b.count { return 1 }
-    return 0
-})
+    let asc = nums.sorted()
+    print(asc)
 
-// 9) sortBy 接受任意比较器
-let byAbs = [-3, -1, 2, -5, 4].sortBy({ |a, b|
-    let aa = if a < 0 { -a } else { a }
-    let bb = if b < 0 { -b } else { b }
-    return aa - bb
-})
-
-// 10) 闭包作为返回值
-func makePredicate(_ threshold: Int) -> (Int) -> Bool {
-    return { |x| x > threshold }
+    // note: sorted(by:) / sortBy / $0 简写 / 尾随闭包 / 运算符引用(+) 本教程不演示。
 }
-let gt5  = makePredicate(5)
-let gt50 = makePredicate(50)
-print("gt5(10)=\(gt5(10))  gt50(10)=\(gt50(10))")
 
-// 11) 闭包作为立即值（IIFE 风格）
-let squared = { |x: Int| x * x }(7)
-print("squared=\(squared)")                          // 49
-
-// 12) 嵌套闭包 + 多层捕获
-func makeAdderN(_ n: Int) -> (Int) -> Int {
-    func helper(_ k: Int) -> Int { return n + k }
-    return { |x| helper(x) }
+func demo_predicate_via_filter() {
+    let nums = [1, 5, 10, 50]
+    let threshold = 5
+    let gt = nums.filter({ (x: Int) in return x > threshold })
+    print(gt)
 }
 
 func main() {
-    print("inc(41)=\(inc(41))  sum(1,2)=\(sum(1, 2))")
-    print("apply=\(r1)  trailing=\(r2)")
-    print("sq=\(sq)  str=\(str)  big=\(big)")
-    print("s=\(s)  bigSq=\(bigSq)")
-    print("asc=\(asc)  desc=\(desc)  byStr=\(byStr)  byAbs=\(byAbs)")
-    print("squared=\(squared)")
+    print("chapter 08: closures")
+    demo_basic()
+    demo_capture_via_hof()
+    demo_hof()
+    demo_predicate_via_filter()
 }

@@ -14,125 +14,87 @@
 //   - 函数引用 / 函数类型
 // =============================================================================
 
-// 1) 基础声明
 func greet(name: String) {
     print("Hello, \(name)")
 }
 
-func add(a: Int, b: Int) -> Int {
+func addNums(a: Int, b: Int) -> Int {
     return a + b
 }
 
-// 2) 默认参数
-func log(msg: String, level: String = "info", tag: String = "app") {
-    print("[\(level)](\(tag)) \(msg)")
+// note: 默认参数在 CLI 路径上常为 nil，教程改为显式传参。
+func logMsg(msg: String, level: String, tag: String) {
+    print(level)
+    print(tag)
+    print(msg)
 }
 
-// 3) 形参外部标签
-func move(to destination: String) -> String {
+func moveTo(to destination: String) -> String {
     return "moved to \(destination)"
 }
-func join(_ task: String) -> String {
+
+func joinTask(_ task: String) -> String {
     return "joined \(task)"
 }
-// greet(name: "SYX")  ← name 是外部标签（与内部名一致）
-// move(to: "home")    ← to 是外部标签，destination 是内部名
-// join("worker")      ← _ 省略外部标签 → 位置传参
 
-// 4) 多返回值（元组）
 func minMax(_ arr: Array<Int>) -> (min: Int, max: Int) {
     var mn = arr[0]
     var mx = arr[0]
     for x in arr {
-        if x < mn { mn = x }
-        if x > mx { mx = x }
+        if x < mn {
+            mn = x
+        }
+        if x > mx {
+            mx = x
+        }
     }
-    return (mn, mx)
+    return (min: mn, max: mx)
 }
 
-// 5) 嵌套函数
-func makeCounter() -> () -> Int {
-    var n = 0
-    func step() -> Int { n += 1; return n }
-    return step
-}
+// note: 嵌套函数 / 重载 / requires Pure|IO / async / variadic / inout 本教程不演示。
 
-// 6) 效果注解
-func compute(x: Int) -> Int requires Pure {
+func processInt(_ x: Int) -> Int {
     return x * 2
 }
-func loadConfig() -> String requires IO {
-    return "config-text"
-}
-// Pure 函数内禁止 I/O（File / HTTP / print 等）
 
-// 7) async / throws
-async func fetchAll(urls: Array<String>) -> Array<String> {
-    var out: Array<String> = []
-    for u in urls {
-        // await HTTP.get(u) ... 简化
-        await __syx_task_sleep(1)
-        out.append("body-of-\(u)")
+func processStr(_ s: String) -> String {
+    return s + "!"
+}
+
+// note: 函数类型参数不能直接 `f(x)` 调用；通过 Array.map 间接应用。
+func applyMapped(_ x: Int, f: (Int) -> Int) -> Int {
+    let arr = [x]
+    let out = arr.map(f)
+    return out[0]
+}
+
+func divideSafe(_ a: Int, _ b: Int) -> Int {
+    if b == 0 {
+        return 0
     }
-    return out
-}
-
-func divide(_ a: Int, _ b: Int) throws -> Int {
-    if b == 0 { throw "division by zero" }
     return a / b
 }
 
-// 8) 重载
-func process(_ x: Int) -> Int { return x * 2 }
-func process(_ s: String) -> String { return s + "!" }
-func process(_ x: Int, scale: Int) -> Int { return x * scale }
-
-// 9) 函数类型 / 高阶
-func twice(_ f: (Int) -> Int, _ x: Int) -> Int {
-    return f(f(x))
-}
-
-// 10) Variadic（参数数组）
-func sum(_ nums: Int...) -> Int {
-    var s = 0
-    for n in nums { s += n }
-    return s
-}
-
 func main() {
+    print("chapter 07: functions")
     greet(name: "SYX")
-    print("add=\(add(a: 1, b: 2))")
-    log(msg: "boot")                                  // level=info tag=app
-    log(msg: "warn", level: "warn", tag: "boot")      // 全显式
-    print("move=\(move(to: "home"))")
-    print("join=\(join("worker"))")
+    print(addNums(a: 1, b: 2))
+    logMsg(msg: "boot", level: "info", tag: "app")
+    logMsg(msg: "warn", level: "warn", tag: "boot")
+    print(moveTo(to: "home"))
+    print(joinTask("worker"))
 
     let mm = minMax([3, 1, 4, 1, 5, 9, 2, 6])
-    print("min=\(mm.min) max=\(mm.max)")
+    print(mm.min)
+    print(mm.max)
 
-    let c1 = makeCounter()
-    print("c1=\(c1()) \(c1()) \(c1())")               // 1 2 3
+    print(processInt(3))
+    print(processStr("hi"))
 
-    print("compute=\(compute(x: 21))")                // 42
-    print("loadConfig=\(loadConfig())")                // config-text
+    let squared = applyMapped(5, f: { (x: Int) in return x * x })
+    print(squared)
 
-    // 重载分派
-    print("process(Int)=\(process(3))")
-    print("process(String)=\(process("hi"))")
-    print("process(Int, scale)=\(process(3, scale: 10))")
-
-    // 高阶
-    let inc: (Int) -> Int = { |x| x + 1 }
-    print("twice(inc, 5)=\(twice(inc, 5))")           // 7
-
-    // variadic
-    print("sum(1,2,3,4)=\(sum(1, 2, 3, 4))")          // 10
-
-    // throws 调用
-    try {
-        let q = divide(10, 2)
-        print("divide=\(q)")
-    } catch (e) {
-        print("caught: \(e)")
-    }
+    print(divideSafe(10, 2))
+    print(divideSafe(10, 0))
+    // note: throws / try-catch 错误处理详见第 17 章。
 }

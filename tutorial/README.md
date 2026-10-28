@@ -2,8 +2,8 @@
 
 > **本目录**：`tutorial/`
 > **对应文档**：[`books/language-guide/`](../books/language-guide/)（33 章 + 2 附录）
-> **目标**：为《SYX 语言指南》每一章提供一份"综合详细、能体现该章所有语言特性"的 `.sy` 示例代码。
-> **不要求编译运行**：示例优先可读性与特性覆盖，部分内容是 partial GA / MVP；可能含"伪代码"或概念示意。
+> **目标**：为《SYX 语言指南》每一章提供一份可运行的 `.sy` 示例，覆盖该章在当前实现面上可用的语言特性。
+> **可运行**：每个文件均含 `func main()`（或同步入口），可用 `syx run tutorial/XX-....sy` 验证；不支持的特性以 `// note:` 标明，不再使用错误的 Swift 伪语法。
 
 ---
 
@@ -58,19 +58,25 @@
 
 ### 2) 想跑起来
 
-部分章节（如 01、02、04、05、07、08、09、10、15、17、22、30、31）已实现程度较高，理论可 `syx run <章>.sy`；但很多章用到了 **partial GA / MVP** 或 **规划中** 特性（如 19 宏、25 不透明类型部分场景、33 插件），所以**不要**试图编译全部 33 个文件。
+在仓库根目录：
 
-### 3) 想看每个特性的真实可运行示例
+```bash
+cargo run -p syx-cli -- run tutorial/01-getting-started.sy
+# 或使用已构建二进制：
+./target/debug/syx run tutorial/25-opaque-types.sy
+```
 
-请看：
+全部 33 个文件均可 `syx run`。若干章节刻意避开尚未稳定的表面（例如自定义 `subscript`、`super.init`、不可靠的 `throw`→`catch`、会挂起的关联值 `switch`、缺失的 plugin host），详见各文件内 `// note:`。
 
-- `crates/syx-driver/tests/` — 编译器内部集成测试
+### 3) 想看更多真实可运行示例
+
+- `crates/syx-driver/tests/fixtures/` — 编译器集成测试语料
 - `examples/` — 用户向示例
-- `books/language-guide/<章>.md` — 章节内嵌示例
+- `books/language-guide/<章>.md` — 章节内嵌示例（叙事可能超前于本目录可运行子集）
 
 ### 4) 想对照 Swift 写同款代码
 
-`books/language-guide/<章>.md` 每章末尾都有"与 Swift 的差异"表格。
+`books/language-guide/<章>.md` 每章末尾都有「与 Swift 的差异」表格。常见陷阱：SYX enum **不要**写 `case` 关键字；记录用 `class`/`data class`，不是 Swift 风格 `struct { var x: Int }`；Dictionary 字面量用 `{ "k": v }`；闭包参数须写成 `{ (x) in ... }`。
 
 ---
 
@@ -95,6 +101,6 @@
 
 ---
 
-**最后更新：** 2026-07-28
+**最后更新：** 2026-10-28
 **维护者：** SYX 核心团队
-**版本：** 对应 SYX 117.0 / Phase 139
+**版本：** 对应 SYX 117.0 / Phase 139（tutorial 全量 `syx run` 可运行）

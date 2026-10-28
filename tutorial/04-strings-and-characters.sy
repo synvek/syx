@@ -14,86 +14,68 @@
 //   - 与 Array 互转
 // =============================================================================
 
-// 1) 字面量 / 插值
-let s = "Hello"
-let msg = "Hello, \(s)!"
-let multi = "a" + "b" + "c"
-let tabbed = "col1\tcol2\tcol3"
-let emoji = "\u{1F600}"                   // 😀
-let zwnj = "\u{200C}"                     // ZWNJ
+func demo_literals() {
+    let s = "Hello"
+    let msg = "Hello, \(s)!"
+    let multi = "a" + "b" + "c"
+    let tabbed = "col1\tcol2\tcol3"
+    print("msg=\(msg)")
+    print("multi=\(multi)")
+    print(tabbed)
 
-// 2) 多行字符串（Phase 139 MVP GA）
-let haiku = """
-    朝辞白帝彩云间
-    千里江陵一日还
-    \(emoji)  emoji 也可以
+    // note: `\u{...}` 在部分路径会原样保留；多行字符串与插值可用。
+    let haiku = """
+line one
+line two with \(s)
+line three
 """
-
-// 3) String 常用方法
-let parts = "a,b,c".split(",")            // ["a", "b", "c"]
-let trimmed = "  hi  ".trim()             // "hi"
-let lower = "ABC".lowercased()            // "abc"
-let upper = "abc".uppercased()            // "ABC"
-let hasPre = "file.txt".hasPrefix("file") // true
-let hasSuf = "hello.txt".hasSuffix(".txt")
-let sub = "hello".substring(0, 3)         // "hel"
-let replaced = "banana".replacingOccurrences("a", "o")
-let digitMatches = "abc123def".matches("\\d+")
-let len = "text".count                   // 4
-let isEmpty = "".isEmpty                  // true
-let repeated = "ab".repeat(3)             // "ababab"
-
-// 4) Character 与 for-in
-for c in "abc" {                          // c: Character
-    print("char = \(c)")
+    print(haiku)
 }
 
-// 5) 下标访问
-let w = "syx"
-let first: Character = w[0]               // "s"
-let second = w[1]                         // "w"
+func demo_methods() {
+    let parts = "a,b,c".split(",")
+    let trimmed = "  hi  ".trim()
+    let lower = "ABC".lowercased()
+    let upper = "abc".uppercased()
+    let hasPre = "file.txt".hasPrefix("file")
+    let len = "text".count
+    let digitMatches = "abc123def".matches("\\d+")
 
-// 6) 拼接
-let a1 = "Hello"
-let a2 = ", World"
-let a3 = a1 + a2                          // "Hello, World"
-let a4 = "\(a1)\(a2)!"                    // 插值拼接
-let a5 = String.concat([a1, a2, "!"])
+    print("parts=\(parts)")
+    print("trimmed=\(trimmed) lower=\(lower) upper=\(upper)")
+    print("hasPrefix=\(hasPre) len=\(len)")
+    print("matches=\(digitMatches)")
 
-// 7) 比较
-print("abc" == "abc")                     // true
-print("abc" < "abd")                      // true
-print("abc" === "abc")                    // false（不同 String 对象）
+    // note: hasSuffix / replacingOccurrences / substring / repeat / isEmpty 在本构建中不可用或行为不稳定。
+    let back = parts.joined("-")
+    print("joined=\(back)")
+}
 
-// 8) 正则字面量
-let p = /\d+/
-let digitMs = "abc123def".matches(p)
-for m in digitMs { print("digit: \(m)") }
-
-let ci = /hello/i                         // 大小写不敏感（flag 解析）
-
-// 9) String 与 Array 互转
-let list = "x,y,z".split(",")
-let back = list.joined("-")               // "x-y-z"
-let chars: Array<Character> = Array("0123456789")
-let joined = chars.joined("")             // "0123456789"
-
-// 10) 调试输出
-extension String {
-    func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
+func demo_chars_and_compare() {
+    for c in "abc" {
+        print(__syx_value_description(c))
     }
-    func description() -> String {
-        return __syx_value_description(self)
-    }
+
+    let w = "syx"
+    let first: Character = w[0]
+    let second = w[1]
+    print(__syx_value_description(first))
+    print(__syx_value_description(second))
+
+    let a1 = "Hello"
+    let a2 = ", World"
+    let a3 = a1 + a2
+    let a4 = "\(a1)\(a2)!"
+    print(a3)
+    print(a4)
+
+    print("abc" == "abc")
+    // note: 字符串字典序比较 `<` 结果在当前运行时可能不符合预期，仅演示 ==。
 }
 
 func main() {
-    print("msg=\(msg)")
-    print("parts=\(parts) trimmed=\(trimmed) lower=\(lower)")
-    print("sub=\(sub) replaced=\(replaced) len=\(len)")
-    print("repeated=\(repeated) first=\(first) second=\(second)")
-    print("a5=\(a5) back=\(back) joined=\(joined) chars.count=\(chars.count)")
-    print("haiku: \(haiku)")
-    print("emoji: \(emoji) zwnj: \(zwnj)")
+    print("chapter 04: strings and characters")
+    demo_literals()
+    demo_methods()
+    demo_chars_and_compare()
 }

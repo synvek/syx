@@ -2,26 +2,15 @@
 // tutorial/15-initialization.sy
 // 对应《SYX 语言指南》第 15 章「构造过程」
 //
-// 本章涉及语言特性：
-//   - 指定构造器（designated init）
-//   - 默认值
-//   - 字段顺序构造（struct / data class）
-//   - init? 失败构造
-//   - init() / 自定义 init
-//   - super.init() 链
-//   - 两段式构造
-//   - @autoclosure（未实现）
+// 可运行演示：designated init、data class 构造、多参数 init、继承字段赋值。
+// note: super.init / init? / actor init / throws init / self.init 委托当前受限。
+// note: 多标签 overload 解析不稳定 → 每个类型尽量只保留一个清晰 init。
 // =============================================================================
 
 // 1) class init 基础
 class Greeter {
     var name: String
-    var greeting: String = "Hello"
-
-    init(name: String) {
-        self.name = name
-    }
-
+    var greeting: String
     init(name: String, greeting: String) {
         self.name = name
         self.greeting = greeting
@@ -29,144 +18,95 @@ class Greeter {
 }
 
 func basicInit() {
-    let g1 = Greeter(name: "SYX")
+    let g1 = Greeter(name: "SYX", greeting: "Hello")
     let g2 = Greeter(name: "World", greeting: "Hi")
-    print("\(g1.greeting), \(g1.name)!")
-    print("\(g2.greeting), \(g2.name)!")
+    print(g1.greeting)
+    print(g1.name)
+    print(g2.greeting)
+    print(g2.name)
 }
 
-// 2) 默认值
+// 2) 显式默认值写在 init 内（避免多 overload 抢标签）
 class Counter {
-    var value: Int = 0
-    var step: Int = 1
-    init() {}                                            // 全用默认
-    init(value: Int) { self.value = value }
+    var value: Int
+    var step: Int
+    init(value: Int, step: Int) {
+        self.value = value
+        self.step = step
+    }
 }
 
-// 3) struct / data class 字段顺序构造
-struct Point {
-    var x: Int
-    var y: Int
+func counterInit() {
+    let c0 = Counter(value: 0, step: 1)
+    print(c0.value)
+    print(c0.step)
+    let c1 = Counter(value: 10, step: 2)
+    print(c1.value)
+    print(c1.step)
 }
 
+// 3) data class 字段构造
+data class Point(x: Int, y: Int)
 data class User(id: Int, name: String, email: String)
 
-func structInit() {
-    let p = Point(x: 1, y: 2)                            // 标签构造
-    let p2 = Point(1, 2)                                 // 顺序构造
+func dataClassInit() {
+    let p = Point(x: 1, y: 2)
+    print(p.x)
+    print(p.y)
     let u = User(id: 1, name: "Alice", email: "a@x.com")
-    print("p=\(p)  u=\(u.description())")
+    print(u.id)
+    print(u.name)
+    print(u.description())
 }
 
-// 4) init? 失败构造
-struct Port {
-    let number: Int
-    init?(number: Int) {
-        if number < 1 || number > 65535 { return nil }
-        self.number = number
-    }
-}
-
-func initFailable() {
-    if let p = Port(number: 80) {
-        print("valid port \(p.number)")
-    } else {
-        print("invalid")
-    }
-    if let p = Port(number: 70000) {
-        print("port \(p.number)")
-    } else {
-        print("70000 is invalid")
-    }
-}
-
-// 5) 继承 + super.init
+// 4) 继承：子类字段默认 + 之后赋值（无 super.init）
 class Animal {
-    var name: String
-    init(name: String) { self.name = name }
+    var name: String = "anon"
 }
-
 class Dog: Animal {
-    var breed: String
-    init(name: String, breed: String) {
-        self.breed = breed
-        super.init(name: name)
-    }
+    var breed: String = "unknown"
 }
 
-// 6) 两段式构造（stored 属性必须先初始化才能调用 super.init）
-class Vehicle2 {
-    var wheels: Int
-    init(wheels: Int) { self.wheels = wheels }
+func inheritInit() {
+    let d = Dog()
+    d.name = "Rex"
+    d.breed = "Lab"
+    print(d.name)
+    print(d.breed)
 }
 
-class Car2: Vehicle2 {
+// 5) 两段式：先写齐 stored，再使用
+class Car {
     var brand: String
     var maxSpeed: Int
-
-    init(brand: String, maxSpeed: Int) {
-        // 阶段 1：先初始化自己的 stored 属性
+    var wheels: Int
+    init(brand: String, maxSpeed: Int, wheels: Int) {
         self.brand = brand
         self.maxSpeed = maxSpeed
-        // 阶段 2：调用 super.init
-        super.init(wheels: 4)
+        self.wheels = wheels
     }
 }
 
-// 7) 委托构造（一个 init 调另一个 init）
-class Rectangle {
-    var width: Double
-    var height: Double
-    var area: Double { return width * height }
-
-    init(width: Double, height: Double) {
-        self.width = width
-        self.height = height
-    }
-
-    init(side: Double) {
-        // 调用 designated init
-        self.init(width: side, height: side)
-    }
+func carInit() {
+    let c = Car(brand: "Tesla", maxSpeed: 250, wheels: 4)
+    print(c.brand)
+    print(c.wheels)
+    print(c.maxSpeed)
 }
 
-// 8) init 参数默认值
+// 6) Server 配置
 class Server {
     var host: String
     var port: Int
     var secure: Bool
-    init(host: String, port: Int = 8080, secure: Bool = false) {
+    init(host: String, port: Int, secure: Bool) {
         self.host = host
         self.port = port
         self.secure = secure
     }
 }
 
-// 9) struct mutating init
-struct Counter3 {
-    var value: Int
-    init() { self.value = 0 }
-    init(start: Int) { self.value = start }
-    mutating func reset() { self.value = 0 }
-}
-
-// 10) actor init
-actor CounterActor {
-    var count: Int
-    init(count: Int) { self.count = count }
-    func increment() { count += 1 }
-}
-
-// 11) throws init（部分实现）
-struct ValidatedEmail {
-    let value: String
-    init(raw: String) throws {
-        if !raw.contains("@") { throw "invalid email" }
-        self.value = raw
-    }
-}
-
-// 12) init with computed value
+// 7) 构造时计算派生值
 class CircleInit {
     var radius: Double
     var area: Double
@@ -176,20 +116,39 @@ class CircleInit {
     }
 }
 
+// 8) 失败用 Optional 表达（代替 init?）
+func makePort(_ number: Int) -> Int? {
+    if number < 1 {
+        return nil
+    }
+    if number > 65535 {
+        return nil
+    }
+    return number
+}
+
+func failableDemo() {
+    let p1 = makePort(80)
+    let p2 = makePort(70000)
+    print(p1)
+    print(p2)
+}
+
 func main() {
     basicInit()
-    structInit()
-    initFailable()
-    let c2 = Car2(brand: "Tesla", maxSpeed: 250)
-    print("\(c2.brand) \(c2.wheels)w max=\(c2.maxSpeed)")
+    counterInit()
+    dataClassInit()
+    inheritInit()
+    carInit()
+
     let s = Server(host: "0.0.0.0", port: 9000, secure: true)
-    print("server=\(s.host):\(s.port) secure=\(s.secure)")
+    print(s.host)
+    print(s.port)
+    print(s.secure)
+
     let circle = CircleInit(radius: 5.0)
-    print("circle area=\(circle.area)")
-    try {
-        let e = ValidatedEmail(raw: "user@example.com")
-        print("email=\(e.value)")
-    } catch (err) {
-        print("err=\(err)")
-    }
+    print(circle.radius)
+    print(circle.area)
+
+    failableDemo()
 }

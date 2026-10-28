@@ -1,204 +1,101 @@
 // =============================================================================
 // tutorial/22-extensions.sy
-// 对应《SYX 语言指南》第 22 章「扩展」
-//
-// 本章涉及语言特性：
-//   - extension 方法
-//   - extension 计算属性（get / get-set，Phase 136 GA）
-//   - extension 构造器
-//   - extension 协议一致性
-//   - extension 嵌套类型（部分实现）
-//   - extension where 约束
-//   - extension 跨模块（Phase 60）
+// Extensions: methods and computed properties on custom types.
+// note: extending Int/String/Array builtins may not dispatch at runtime —
+//       demos use custom classes. Prefer { (x) in ... } closures.
 // =============================================================================
 
-// 1) extension 方法
-extension Int {
-    func doubled() -> Int { return self + self }
-    func times(_ f: () -> Void) {
-        for _ in 0..<self { f() }
-    }
-    func clamped(to range: Range<Int>) -> Int {
-        if self < range.lowerBound { return range.lowerBound }
-        if self >= range.upperBound { return range.upperBound }
-        return self
-    }
+class Num {
+    var value: Int
+    init(value: Int) { self.value = value }
 }
 
-// 2) extension 计算属性
-extension Int {
-    var isEven: Bool { return self % 2 == 0 }
-    var isOdd: Bool { return self % 2 != 0 }
+extension Num {
+    func doubled() -> Int { return self.value + self.value }
+    var isEven: Bool {
+        get { return self.value % 2 == 0 }
+    }
     var squared: Int {
-        get { return self * self }
-        set { /* 示意；int 是值类型无 setter 字段 */ }
+        get { return self.value * self.value }
     }
 }
 
-extension Double {
-    var squared: Double { return self * self }
-    var cubed: Double { return self * self * self }
-}
-
-extension String {
-    var wordCount: Int {
-        return self.split(" ").filter({ |s| !s.isEmpty }).count
-    }
-    func repeating(_ n: Int) -> String {
-        var out = ""
-        for _ in 0..<n { out += self }
-        return out
-    }
-}
-
-// 3) extension 构造器（值类型）
-struct Vec2 {
+class Vec2 {
     var x: Double
     var y: Double
+    init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
 }
+
 extension Vec2 {
-    init() { self.init(x: 0, y: 0) }
-    init(_ v: Double) { self.init(x: v, y: v) }
+    func lengthSquared() -> Double {
+        return self.x * self.x + self.y * self.y
+    }
+    func describe() -> String {
+        return "Vec2(\(self.x), \(self.y))"
+    }
 }
 
-// 4) extension 协议一致性
 protocol DescribableExt {
-    func describe() -> String
-}
-
-extension Int: DescribableExt {
-    func describe() -> String { return "Int(\(self))" }
-}
-
-extension String: DescribableExt {
-    func describe() -> String { return "String(\"\(self)\")" }
-}
-
-// 5) extension Array
-extension Array where Element == Int {
-    func sum2() -> Int {
-        var s = 0
-        for x in self { s += x }
-        return s
-    }
-    func average() -> Double {
-        if self.isEmpty { return 0 }
-        return Double(self.sum2()) / Double(self.count)
+    func describe() -> String {
+        return "?"
     }
 }
 
-// 6) extension 自定义类型
-class UserX {
+class UserX: DescribableExt {
     var firstName: String
     var lastName: String
     init(first: String, last: String) {
         self.firstName = first
         self.lastName = last
     }
+    func describe() -> String {
+        return self.firstName + " " + self.lastName
+    }
 }
 
 extension UserX {
-    var fullName: String { return "\(firstName) \(lastName)" }
-    func greeting() -> String { return "Hello, \(fullName)" }
-}
-
-// 7) extension 嵌套类型（部分实现）
-// extension Outer {
-//     class ExtensionNested { func value() -> Int { return 99 } }
-// }
-
-// 8) extension 给 Optional
-extension Optional where Wrapped == Int {
-    func doubledOrZero() -> Int {
-        if let v = self { return v * 2 }
-        return 0
+    func greeting() -> String {
+        return "Hello, " + self.firstName + " " + self.lastName
     }
 }
 
-// 9) extension 给 String 提供正则
-extension String {
-    func containsMatch(_ pattern: String) -> Bool {
-        return self.matches(pattern).count > 0
-    }
+class IntBag {
+    var items: Array<Int>
+    init(items: Array<Int>) { self.items = items }
 }
 
-// 10) extension 给 Array 提供 HOF 链
-extension Array where Element == Int {
-    func product2() -> Int {
+extension IntBag {
+    func sum() -> Int {
+        var s = 0
+        for x in self.items { s = s + x }
+        return s
+    }
+    func product() -> Int {
         var p = 1
-        for x in self { p *= x }
+        for x in self.items { p = p * x }
         return p
     }
-    func uniqueValues() -> Array<Int> {
-        var seen: Array<Int> = []
-        for x in self {
-            if !seen.contains(x) { seen.append(x) }
-        }
-        return seen
-    }
-}
-
-// 11) extension 给 Dictionary
-extension Dictionary where Key == String, Value == Any {
-    func getString(_ key: String) -> String? {
-        return self[key] as? String
-    }
-    func getInt(_ key: String) -> Int? {
-        return self[key] as? Int
-    }
-}
-
-// 12) 协议 + extension 默认实现
-protocol Loggable {
-    var tag: String { get }
-    func message() -> String
-}
-extension Loggable {
-    func log() { print("[\(tag)] \(message())") }
-}
-
-struct AppLog: Loggable {
-    let tag: String = "App"
-    let text: String
-    func message() -> String { return text }
 }
 
 func main() {
-    // Int 扩展
-    print("5.doubled=\(5.doubled())  4.isEven=\(4.isEven)  5.squared=\(5.squared)")
-    3.times({ print("hi") })
+    let n = Num(value: 5)
+    print("doubled=\(n.doubled()) even=\(Num(value: 4).isEven) squared=\(n.squared)")
 
-    // Double
-    print("2.0.squared=\(2.0.squared)  2.0.cubed=\(2.0.cubed)")
+    let v = Vec2(x: 3.0, y: 4.0)
+    print(v.describe())
+    print("len2=\(v.lengthSquared())")
 
-    // String
-    print("wordCount=\("hello world foo".wordCount)")
-    print("repeat=\("ab".repeating(3))")
-
-    // Vec2
-    let v1 = Vec2()
-    let v2 = Vec2(5.0)
-    let v3 = Vec2(x: 3, y: 4)
-    print("v1=\(v1.x),\(v1.y)  v2=\(v2.x),\(v2.y)  v3=\(v3.x),\(v3.y)")
-
-    // 协议
-    print(42.describe())
-    print("hi".describe())
-
-    // Array
-    let nums = [1, 2, 3, 4, 5]
-    print("sum=\(nums.sum2()) avg=\(nums.average()) prod=\(nums.product2())")
-    print("unique=\([1, 2, 2, 3, 3, 3].uniqueValues())")
-
-    // UserX
     let u = UserX(first: "Alice", last: "Wang")
+    print(u.describe())
     print(u.greeting())
 
-    // Optional 扩展
-    let x1: Int? = 21
-    let x2: Int? = nil
-    print("x1.doubledOrZero=\(x1.doubledOrZero())  x2.doubledOrZero=\(x2.doubledOrZero())")
+    let bag = IntBag(items: [1, 2, 3, 4, 5])
+    print("sum=\(bag.sum()) product=\(bag.product())")
 
-    // Loggable
-    AppLog(text: "boot complete").log()
+    // HOF with paren-in closures
+    let doubled = [1, 2, 3].map({ (x) in return x * 2 })
+    print(doubled)
 }

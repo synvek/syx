@@ -1,204 +1,72 @@
 // =============================================================================
 // tutorial/24-generics.sy
-// 对应《SYX 语言指南》第 24 章「泛型」
-//
-// 本章涉及语言特性：
-//   - 泛型函数
-//   - 泛型类型
-//   - where 子句
-//   - 协议约束
-//   - 关联类型
-//   - 单态化（编译器策略）
-//   - 类型参数默认值
-//   - 类型擦除反射（部分实现）
+// Generics: data class type params and simple typed helpers.
+// note: `func id<T>` / `class Box<T>` may not lower at runtime —
+//       prefer `data class Box<T>(...)` and concrete helpers.
 // =============================================================================
 
-// 1) 泛型函数
-func id<T>(x: T) -> T { return x }
-func swap<T>(a: T, b: T) -> (T, T) { return (b, a) }
-func pair<A, B>(a: A, b: B) -> (A, B) { return (a, b) }
-
-func basicGeneric() {
-    print("id(42)=\(id(x: 42))")
-    print("id(\"hi\")=\(id(x: "hi"))")
-    let s = swap(a: 1, b: 2)
-    print("swap=\(s.0), \(s.1)")
-    let p = pair(a: "x", b: 7)
-    print("pair=\(p.0), \(p.1)")
-}
-
-// 2) 泛型 + 协议约束
-func eq<T>(a: T, b: T) -> Bool where T: Equatable {
-    return a == b
-}
-
-func cmp<T>(a: T, b: T) -> Int where T: Comparable {
-    if a < b { return -1 }
-    if a > b { return 1 }
-    return 0
-}
-
-func constrainedDemo() {
-    print("eq(1,1)=\(eq(a: 1, b: 1))")
-    print("cmp(2,3)=\(cmp(a: 2, b: 3))")
-}
-
-// 3) 泛型类型
-struct Box<T> {
-    var value: T
-    init(value: T) { self.value = value }
-    func describe() -> String { return "Box(\(value))" }
-}
-
-enum Optional3<T> {
-    case some(T)
-    case none
-    func describe() -> String {
-        switch self {
-        case .some(let v): return "some(\(v))"
-        case .none: return "none"
-        }
-    }
-}
-
+data class Box<T>(value: T)
 data class Pair<A, B>(first: A, second: B)
 
-func genericTypeDemo() {
-    let b1 = Box(value: 42)
-    let b2 = Box(value: "hi")
-    print(b1.describe())
-    print(b2.describe())
+func idInt(_ value: Int) -> Int { return value }
+func idString(_ value: String) -> String { return value }
 
-    let o1: Optional3<Int> = .some(10)
-    let o2: Optional3<Int> = .none
-    print(o1.describe())
-    print(o2.describe())
+func eqInt(a: Int, b: Int) -> Bool { return a == b }
 
-    let p = Pair(first: "Alice", second: 30)
-    print("pair=\(p.first), \(p.second)")
+func swapInt(a: Int, b: Int) -> Pair<Int, Int> {
+    return Pair(first: b, second: a)
 }
 
-// 4) 泛型 struct
-struct Stack<T> {
-    var items: Array<T> = []
-    var count: Int { return items.count }
-    var isEmpty: Bool { return items.isEmpty }
-    mutating func push(_ v: T) { items.append(v) }
-    mutating func pop() -> T? {
-        if items.isEmpty { return nil }
-        return items.remove(at: items.count - 1)
+func mergeUnique(_ a: Array<Int>, _ b: Array<Int>) -> Array<Int> {
+    var out: Array<Int> = []
+    for itemA in a {
+        var seen = false
+        for y in out { if y == itemA { seen = true } }
+        if !seen { out.append(itemA) }
     }
-    func peek() -> T? { return items[items.count - 1] }
-}
-
-func stackDemo() {
-    var s = Stack<Int>()
-    s.push(1); s.push(2); s.push(3)
-    print("top=\(s.peek() ?? -1)")
-    let _ = s.pop()
-    print("after pop count=\(s.count)")
-
-    var ss = Stack<String>()
-    ss.push("a"); ss.push("b")
-    print("ss top=\(ss.peek() ?? "")")
-}
-
-// 5) 泛型 + where 多约束
-func merge<T>(_ a: Array<T>, _ b: Array<T>) -> Array<T> where T: Equatable {
-    var out: Array<T> = []
-    for x in a { if !out.contains(x) { out.append(x) } }
-    for x in b { if !out.contains(x) { out.append(x) } }
+    for itemB in b {
+        var seen = false
+        for y in out { if y == itemB { seen = true } }
+        if !seen { out.append(itemB) }
+    }
     return out
 }
 
-// 6) 泛型 enum
-enum Either<L, R> {
-    case left(L)
-    case right(R)
-    func describe() -> String {
-        switch self {
-        case .left(let v): return "left(\(v))"
-        case .right(let v): return "right(\(v))"
-        }
-    }
-}
-
-// 7) 泛型 + 协议 witness
-protocol Summable {
-    static func zero() -> Self
-    static func + (a: Self, b: Self) -> Self
-}
-extension Int: Summable {
-    static func zero() -> Int { return 0 }
-}
-extension Double: Summable {
-    static func zero() -> Double { return 0.0 }
-}
-
-func sumOf<T>(_ arr: Array<T>, _ initial: T) -> T where T: Summable {
-    var s = initial
-    for x in arr { s = s + x }
+func sumInts(_ arr: Array<Int>) -> Int {
+    var s = 0
+    for n in arr { s = s + n }
     return s
 }
 
-// 8) 泛型类
-class Container<T> {
-    var items: Array<T> = []
-    func add(_ v: T) { items.append(v) }
-    func all() -> Array<T> { return items }
-}
-
-// 9) 关联类型泛型
-protocol Iterable {
-    associatedtype Element
-    func forEach(_ f: (Element) -> Void)
-    func toArray() -> Array<Element>
-}
-
-struct Range2<T: Comparable>: Iterable {
-    typealias Element = T
-    var lower: T
-    var upper: T
-    init(_ a: T, _ b: T) { self.lower = a; self.upper = b }
-    func forEach(_ f: (T) -> Void) {
-        var cur = lower
-        while cur < upper {
-            f(cur)
-            cur = cur + 1                       // 简化：仅适用于整数
-        }
-    }
-    func toArray() -> Array<T> {
-        var out: Array<T> = []
-        self.forEach({ out.append($0) })
-        return out
-    }
-}
-
-// 10) 类型参数默认值
-typealias StringMap<V> = [String: V]
-func defaultKey<V>(_ m: StringMap<V>) -> V? { return m["default"] }
-
-// 11) 单态化（编译期）vs 反射（部分）
-func monoDemo() {
-    // id<Int> 和 id<String> 是两个不同的函数
-    // 编译器会生成 id_int 和 id_string
-    let a = id(x: 1)
-    let b = id(x: "x")
-    print("type a=\(type(of: a))  type b=\(type(of: b))")
-}
-
 func main() {
-    basicGeneric()
-    constrainedDemo()
-    genericTypeDemo()
-    stackDemo()
-    print("merge=\(merge([1, 2, 3], [3, 4, 5]))")
-    print(Either<Int, String>.left(7).describe())
-    print(Either<Int, String>.right("err").describe())
-    print("sumOf([1,2,3])=\(sumOf([1, 2, 3], 0))")
-    let r = Range2(1, 5)
-    print("Range2 1..<5 = \(r.toArray())")
-    monoDemo()
-    let m: StringMap<Int> = ["default": 99, "x": 1]
-    print("default=\(defaultKey(m) ?? -1)")
+    print(idInt(42))
+    print(idString("hi"))
+    print(eqInt(a: 1, b: 1))
+
+    let b1 = Box(value: 42)
+    let b2 = Box(value: "hello")
+    print(b1.value)
+    print(b2.value)
+
+    let p = Pair(first: "Alice", second: 30)
+    print(p.first)
+    print(p.second)
+
+    let sw = swapInt(a: 1, b: 2)
+    print(sw.first)
+    print(sw.second)
+
+    // Prefer local arrays for push/pop demos
+    var items: Array<Int> = []
+    items.append(1)
+    items.append(2)
+    items.append(3)
+    print(items.count)
+    print(items[items.count - 1])
+
+    print(mergeUnique([1, 2, 3], [3, 4, 5]))
+    print(sumInts([1, 2, 3]))
+
+    let dict: Dictionary<String, Int> = {"default": 99, "key": 1}
+    print(dict["default"])
 }

@@ -2,204 +2,64 @@
 // tutorial/19-macros.sy
 // 对应《SYX 语言指南》第 19 章「宏」
 //
-// 本章涉及语言特性：
-//   - freestanding builtin 宏（#assert / #if / #for / #stringify / #compileTime）
-//   - 用户 #macro 声明
-//   - attached 宏：@Equatable / @Hashable / @Codable
-//   - @resultBuilder
-//   - 外部宏 #externalMacro
-//   - 宏包 [macros].exports
-//   - Service DI：@Service / @Component / @Inject / @Autowired / @Scope
-//   - @Qualifier / @Primary / @Profile
-//   - @PostConstruct / @PreDestroy
-//   - AOP：@Pointcut / @Around / @Before / @After
+// 最小可运行演示：Service DI（@Service + Di.resolve）。
+// note: #assert / #stringify / @resultBuilder / 完整 AOP 需宏包或特殊启动配置。
+// note: @Equatable 等 conformance 宏对 data class 有支持，但本文件聚焦 DI 可运行路径。
 // =============================================================================
 
-// ----- 1) freestanding builtin 宏 -----
+import Di
 
-// #assert 编译期断言
-#assert(1 + 1 == 2, "math broke")
+data class Point3D(x: Int, y: Int, z: Int)
 
-// #if 编译期条件
-#if true
-let enabled = true
-#else
-// let enabled = false
-#endif
+data class UserDTO(id: Int, name: String, email: String, active: Bool)
 
-// #for 编译期循环展开
-#for i in 0..<3 {
-    let _stage_i = i
-}
-
-// #stringify 标记
-let sym = #stringify(add)
-print("sym=\(sym)")
-
-// #compileTime 块（编译期求值，桩）
-// #compileTime {
-//     let x = 1 + 2
-// }
-
-// ----- 2) attached 宏：@Equatable / @Hashable / @Codable -----
-
-@Equatable
-@Hashable
-data class Point3D {
-    let x: Int
-    let y: Int
-    let z: Int
-}
-
-@Codable
-data class UserDTO {
-    let id: Int
-    let name: String
-    let email: String
-    let active: Bool
-}
-
-// ----- 3) @resultBuilder（DSL 构造器） -----
-
-@resultBuilder
-struct ArrayBuilder {
-    static func buildBlock<T>(_ items: T...) -> Array<T> {
-        var arr: Array<T> = []
-        for it in items { arr.append(it) }
-        return arr
+@Service
+class UserRepository {
+    init() {}
+    func find(_ id: Int) -> String {
+        if id == 1 {
+            return "Alice"
+        }
+        return "none"
     }
-    static func buildOptional<T>(_ item: Array<T>?) -> Array<T> {
-        return item ?? []
-    }
-    static func buildEither<T>(first: Array<T>) -> Array<T> { return first }
-    static func buildEither<T>(second: Array<T>) -> Array<T> { return second }
 }
-
-func makeList(@ArrayBuilder _ build: () -> Array<Int>) -> Array<Int> {
-    return build()
-}
-
-let list = makeList {
-    1
-    2
-    3
-}
-print("list=\(list)")
-
-// ----- 4) Service DI：@Service / @Component -----
 
 @Service
 class UserService {
-    @Autowired
-    var userRepo: UserRepository
-
-    func getUser(_ id: Int) -> UserDTO? {
-        return userRepo.find(id)
+    init() {}
+    func getUser(_ id: Int) -> String {
+        let repo = Di.resolve("UserRepository")
+        return repo.find(id)
     }
 }
 
-@Component
-class UserRepository {
-    var store: [Int: UserDTO] = [:]
-
-    init() {
-        store[1] = UserDTO(id: 1, name: "Alice", email: "a@x.com", active: true)
-        store[2] = UserDTO(id: 2, name: "Bob", email: "b@x.com", active: false)
+@Service
+class Greeter {
+    init() {}
+    func hello() -> String {
+        return "hi-from-di"
     }
-
-    func find(_ id: Int) -> UserDTO? { return store[id] }
 }
 
-// @Qualifier 多绑定消歧
-@Service
-@Qualifier("primary")
-class PrimaryMailer { func send(_ s: String) { print("[primary] \(s)") } }
-
-@Service
-@Qualifier("backup")
-class BackupMailer { func send(_ s: String) { print("[backup] \(s)") } }
-
-// @Scope("prototype" / "request")
-@Scope("prototype")
-@Component
-class RequestHandler {
-    let id = __syx_random_int()
-    func handle() { print("handler \(id)") }
-}
-
-// @Primary
-@Service
-@Primary
-class DefaultLogger {
-    func log(_ s: String) { print("[LOG] \(s)") }
-}
-
-// @PostConstruct / @PreDestroy
-@Component
-class Database {
-    @PostConstruct
-    func init() { print("DB: connection opened") }
-    @PreDestroy
-    func cleanup() { print("DB: connection closed") }
-    func query(_ s: String) { print("query: \(s)") }
-}
-
-// ----- 5) AOP：@Pointcut / @Around / @Before / @After -----
-
-@Pointcut("execution(* UserService.getUser(..))")
-@Around("log-trace")
-func traceAdvice(p: __syx_proceed_t) {
-    print("[AOP] before")
-    p.proceed()
-    print("[AOP] after")
-}
-
-// ----- 6) 外部宏 -----
-
-// #externalMacro(plugin: "CodablePlugin", kind: "Codable")
-// data class Auto { let x: Int }
-
-// ----- 7) 宏包声明（[macros].exports in syx.toml） -----
-//
-// [macros]
-// exports = ["MyLib.CodablePlugin", "MyLib.DIPlugin"]
-
-// ----- 8) 字段 @Autowired + @Qualifier 组合 -----
-//
-// @Component
-// class MailController {
-//     @Autowired @Qualifier("primary")
-//     var mailer: Mailer
-// }
-
-// ----- 9) DI 容器使用 -----
-//
-// import Di
-// func main() {
-//     Di.setProfile("dev")
-//     let svc = Di.resolve(UserService.self)
-//     print(svc?.getUser(1)?.name ?? "none")
-// }
-
-// ----- 10) 完整使用示例（综合） -----
 func main() {
-    print("=== macros demo ===")
+    print("macros-demo")
 
-    // 1) @Equatable / @Hashable 派生
+    // data class 仍可作普通记录使用（无需宏即可构造）
     let p1 = Point3D(x: 1, y: 2, z: 3)
     let p2 = Point3D(x: 1, y: 2, z: 3)
-    print("p1 == p2 = \(p1 == p2)")                      // true
+    print(p1.x)
+    print(p2.z)
 
-    // 2) @resultBuilder 列表
-    print("list=\(list)")
+    let u = UserDTO(id: 1, name: "Alice", email: "a@x.com", active: true)
+    print(u.name)
+    print(u.active)
 
-    // 3) DI 容器解析（需 import Di）
-    // let svc = resolve(UserService.self)
-    // print(svc?.getUser(1)?.name ?? "none")
+    let g = Di.resolve("Greeter")
+    print(g.hello())
 
-    // 4) AOP
-    let us = UserService()
-    us.userRepo = UserRepository()
-    let u = us.getUser(1)
-    print("user=\(u?.name ?? "none")")
+    let svc = Di.resolve("UserService")
+    print(svc.getUser(1))
+    print(svc.getUser(99))
+
+    Di.destroy()
 }

@@ -2,155 +2,57 @@
 // tutorial/13-subscripts.sy
 // 对应《SYX 语言指南》第 13 章「下标」
 //
-// 本章涉及语言特性：
-//   - Array / Dictionary / String / Object 内置下标
-//   - 自定义 subscript（get / get-set）
-//   - 多参数下标
-//   - KeyPath（部分实现）
-//   - 下标越界 R013
+// 可运行演示：Array / Dictionary / String 内置下标。
+// note: 自定义 subscript 在当前运行时会触发 S001（self 重复定义）→ 省略。
+// note: KeyPath、Object 动态下标此处不演示。
 // =============================================================================
 
-// 1) 数组下标
 func arraySubscript() {
     let items = [10, 20, 30]
-    print(items[0])                                      // 10
+    print(items[0])
+    print(items[2])
+
     var mut = [1, 2, 3]
     mut[1] = 99
-    print("mut=\(mut)")                                  // [1, 99, 3]
-    // print(items[5])                                  // ❌ R013: index out of range
+    print(mut[0])
+    print(mut[1])
+    print(mut[2])
+    // print(items[5])  // note: 越界 → R003
 }
 
-// 2) 字典下标
 func dictSubscript() {
-    let m = ["a": 1, "b": 2]
-    print(m["a"])                                        // Optional(1)
-    print(m["missing"])                                  // nil
-    var mut = ["x": 10]
+    let m: Dictionary<String, Int> = {"a": 1, "b": 2}
+    print(m["a"])
+    print(m["missing"])
+
+    var mut: Dictionary<String, Int> = {"x": 10}
     mut["y"] = 20
-    print("mut=\(mut)")
+    print(mut["x"])
+    print(mut["y"])
 }
 
-// 3) 字符串下标：Int grapheme offset（ADR-227）；单次随机访问 O(n)，≠ Swift opaque Index
 func stringSubscript() {
     let s = "syx"
-    let c: Character = s[0]                              // 's'
-    let c2 = s[1]                                        // 'w'
-    print("\(c) \(c2)")
+    print(s[0])
+    print(s[1])
+    print(s[2])
 }
 
-// 4) Object 下标（动态键）
-func objectSubscript() {
-    let obj: Object = { "name": "SYX", "version": 110, "stable": true }
-    print(obj["name"])
-    print(obj["version"])
-    // 不存在的键 → nil
-    let missing = obj["nope"]
-    print("missing=\(missing)")
-}
-
-// 5) 自定义 subscript
-struct Matrix {
-    var rows: Int
-    var cols: Int
-    var data: Array<Double>
-
-    init(rows: Int, cols: Int) {
-        self.rows = rows
-        self.cols = cols
-        self.data = []
-        for _ in 0..<(rows * cols) { self.data.append(0) }
-    }
-
-    subscript(r: Int, c: Int) -> Double {
-        get { return data[r * cols + c] }
-        set { data[r * cols + c] = newValue }
-    }
-}
-
-func matrixSubscript() {
-    var m = Matrix(rows: 3, cols: 3)
-    m[0, 0] = 1
-    m[0, 1] = 2
-    m[1, 1] = 5
-    print("m[0,0]=\(m[0, 0])  m[1,1]=\(m[1, 1])")
-    for r in 0..<m.rows {
-        var row: Array<String> = []
-        for c in 0..<m.cols {
-            row.append("\(m[r, c])")
-        }
-        print(row.joined(" "))
-    }
-}
-
-// 6) 自定义 subscript on String（graphemeIndex 仅为参数标签；仍为 O(n) Int offset）
-extension String {
-    subscript(graphemeIndex i: Int) -> Character {
-        return self[i]                                    // 委托内置 s[i]
-    }
-}
-
-// 7) 多类型下标（同类型多个签名）
-class MultiKey {
-    var strMap: [String: String] = [:]
-    var intMap: [Int: String] = [:]
-    subscript(s: String) -> String? {
-        get { return strMap[s] }
-        set { strMap[s] = newValue }
-    }
-    subscript(i: Int) -> String? {
-        get { return intMap[i] }
-        set { intMap[i] = newValue }
-    }
-}
-
-// 8) KeyPath（部分实现）
-struct User {
-    let id: Int
-    let profile: Profile
-}
-struct Profile {
-    let name: String
-    let email: String
-}
-func keypathDemo() {
-    let u = User(id: 1, profile: Profile(name: "Alice", email: "a@x.com"))
-    let kp = \User.profile.name
-    print("kp=\(u[keyPath: kp])")                         // "Alice"
-    let kpEmail = \User.profile.email
-    print("email=\(u[keyPath: kpEmail])")
-}
-
-// 9) 一维 vs 多维
-struct Image2D {
-    let width: Int
-    let height: Int
-    var pixels: Array<UInt8>
-    init(w: Int, h: Int) {
-        width = w; height = h
-        pixels = []
-        for _ in 0..<(w * h) { pixels.append(0) }
-    }
-    subscript(x: Int, y: Int) -> UInt8 {
-        get { return pixels[y * width + x] }
-        set { pixels[y * width + x] = newValue }
-    }
+func nestedAccess() {
+    // 用「数组的数组」模拟二维下标，避免自定义 subscript
+    var row0 = [1.0, 2.0, 0.0]
+    var row1 = [0.0, 5.0, 0.0]
+    var row2 = [0.0, 0.0, 0.0]
+    print(row0[0])
+    print(row0[1])
+    print(row1[1])
+    row2[2] = 9.0
+    print(row2[2])
 }
 
 func main() {
     arraySubscript()
     dictSubscript()
     stringSubscript()
-    objectSubscript()
-    matrixSubscript()
-    keypathDemo()
-
-    let mk = MultiKey()
-    mk["hello"] = "world"
-    mk[42] = "answer"
-    print("mk[hello]=\(mk["hello"])  mk[42]=\(mk[42])")
-
-    let img = Image2D(w: 4, h: 4)
-    var mut = img
-    mut[0, 0] = 255
-    print("pixel=\(mut[0, 0])")
+    nestedAccess()
 }

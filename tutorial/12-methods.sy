@@ -2,173 +2,157 @@
 // tutorial/12-methods.sy
 // 对应《SYX 语言指南》第 12 章「方法」
 //
-// 本章涉及语言特性：
-//   - 实例方法
-//   - 静态方法（static func）
-//   - mutating 方法
-//   - override 方法
-//   - 协议默认实现
-//   - self 显式 / 隐式
-//   - 初始化器（init）
-//   - deinit
-//   - @autoclosure（未实现）
+// 可运行演示：实例方法、静态方法、override、self、init / deinit。
+// note: struct mutating / 协议默认实现在本教程中省略（解析或运行时受限）。
+// note: class 上 Array 字段的 append 在当前运行时不可靠 → 用 Int 状态演示。
 // =============================================================================
 
 // 1) 实例方法
 class Counter {
-    var value: Int = 0
-    func increment() { value = value + 1 }
-    func increment(by n: Int) { value = value + n }
-    func describe() -> String { return "Counter(\(value))" }
+    var value: Int
+    init(value: Int) {
+        self.value = value
+    }
+    func increment() {
+        self.value = self.value + 1
+    }
+    func incrementBy(_ n: Int) {
+        self.value = self.value + n
+    }
+    func describe() {
+        print(self.value)
+    }
 }
 
 func demoInstance() {
-    let c = Counter()
+    let c = Counter(value: 0)
     c.increment()
-    c.increment(by: 5)
-    print(c.describe())                                 // "Counter(6)"
+    c.incrementBy(5)
+    c.describe()
 }
 
-// 2) 静态方法
+// 2) 静态方法 / 工厂
 class Factory {
-    static func create() -> Factory { return Factory() }
     static var defaultName: String = "anon"
+    static func create() -> Factory {
+        return Factory()
+    }
     static func withName(_ s: String) -> Factory {
-        let f = Factory()
-        print("created factory: \(s)")
-        return f
+        print(s)
+        return Factory()
     }
 }
 
 func demoStatic() {
     let f1 = Factory.create()
     let f2 = Factory.withName("primary")
-    print("default=\(Factory.defaultName)")
+    print(Factory.defaultName)
 }
 
-// 3) mutating 方法（struct / enum）
-struct Stack {
-    var items: Array<Int> = []
-    mutating func push(_ v: Int) { items.append(v) }
-    mutating func pop() -> Int? { return items.remove(at: items.count - 1) }
-}
-
-func demoMutating() {
-    var s = Stack()
-    s.push(1); s.push(2); s.push(3)
-    let top = s.pop()
-    print("top=\(top)  rest=\(s.items)")                 // 3 [1, 2]
-}
-
-// 4) override + super
+// 3) override（无 super.init；子类自有默认字段）
 class Shape {
-    var name: String
-    init(name: String) { self.name = name }
-    func describe() -> String { return "Shape(\(name))" }
-    func area() -> Double { return 0 }
+    var name: String = "Shape"
+    func area() -> Double {
+        return 0.0
+    }
+    func describe() {
+        print(self.name)
+    }
 }
 
 class Square: Shape {
-    var side: Double
-    init(side: Double) {
-        self.side = side
-        super.init(name: "Square")
+    var side: Double = 1.0
+    override func area() -> Double {
+        return self.side * self.side
     }
-    override func describe() -> String {
-        return super.describe() + " side=\(side)"
+    override func describe() {
+        print("Square")
     }
-    override func area() -> Double { return side * side }
 }
 
-class Circle2: Shape {
-    var radius: Double
-    init(radius: Double) {
-        self.radius = radius
-        super.init(name: "Circle")
+class CircleShape: Shape {
+    var radius: Double = 1.0
+    override func area() -> Double {
+        return 3.14159 * self.radius * self.radius
     }
-    override func area() -> Double { return 3.14159 * radius * radius }
 }
 
 func demoOverride() {
-    let sq = Square(side: 2.0)
-    let ci = Circle2(radius: 1.0)
-    print(sq.describe())                                 // Shape(Square) side=2.0
-    print("area=\(sq.area())")                           // 4.0
-    print("ci.area=\(ci.area())")                        // 3.14159
+    let sq = Square()
+    sq.side = 2.0
+    sq.describe()
+    print(sq.area())
+
+    let ci = CircleShape()
+    ci.radius = 1.0
+    print(ci.area())
+
+    let asShape: Shape = Square()
+    asShape.describe()
 }
 
-// 5) 协议默认实现
-protocol Greetable {
-    var name: String { get }
-    func greet() -> String
-}
-
-extension Greetable {
-    func greet() -> String { return "Hello, \(name)" }   // 默认实现
-}
-
-class User2: Greetable {
-    let name: String
-    init(name: String) { self.name = name }
-    // 不实现 greet() — 走默认
-}
-
-class LoudUser: Greetable {
-    let name: String
-    init(name: String) { self.name = name }
-    func greet() -> String { return "HI, \(name.uppercased())!!!" }  // 自实现
-}
-
-func demoProtocolDefault() {
-    print(User2(name: "Alice").greet())                  // "Hello, Alice"
-    print(LoudUser(name: "Bob").greet())                 // "HI, BOB!!!"
-}
-
-// 6) self 显式 / 隐式
+// 4) self 显式 / 隐式
 class Box {
     var value: Int
-    init(value: Int) { self.value = value }              // 必须 self（歧义）
-    func set(_ v: Int) {
-        self.value = v                                   // 必须 self（参数同名）
+    init(value: Int) {
+        self.value = value
     }
-    func noop() {
-        print(value)                                     // 隐式 self OK
+    func set(_ v: Int) {
+        self.value = v
+    }
+    func show() {
+        print(self.value)
     }
 }
 
-// 7) init / deinit
+func demoSelf() {
+    let b = Box(value: 1)
+    b.set(9)
+    b.show()
+}
+
+// 5) init / deinit
 class Resource {
-    let name: String
-    init(name: String) { self.name = name; print("init \(name)") }
-    deinit { print("deinit \(name)") }
+    var name: String
+    init(name: String) {
+        self.name = name
+        print("init")
+    }
+    deinit {
+        print("deinit")
+    }
 }
 
 func demoLifecycle() {
-    if true {
-        let r = Resource(name: "temp")
-        print("using \(r.name)")
-    }                                                    // deinit 触发
+    let r = Resource(name: "temp")
+    print(r.name)
 }
 
-// 8) 类型方法链
-class Builder {
-    var parts: Array<String> = []
-    static func make() -> Builder { return Builder() }
-    func add(_ s: String) -> Builder { parts.append(s); return self }
-    func build() -> String { return parts.joined(",") }
+// 6) 链式：返回 self（非 Array 状态）
+class Accumulator {
+    var total: Int
+    init() {
+        self.total = 0
+    }
+    static func make() -> Accumulator {
+        return Accumulator()
+    }
+    func add(_ n: Int) -> Accumulator {
+        self.total = self.total + n
+        return self
+    }
 }
 
-func demoBuilder() {
-    let s = Builder.make().add("a").add("b").add("c").build()
-    print("built=\(s)")                                  // "a,b,c"
+func demoChain() {
+    let a = Accumulator.make().add(1).add(2).add(3)
+    print(a.total)
 }
 
 func main() {
     demoInstance()
     demoStatic()
-    demoMutating()
     demoOverride()
-    demoProtocolDefault()
+    demoSelf()
     demoLifecycle()
-    demoBuilder()
+    demoChain()
 }

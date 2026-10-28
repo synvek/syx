@@ -2,180 +2,115 @@
 // tutorial/14-inheritance.sy
 // 对应《SYX 语言指南》第 14 章「继承」
 //
-// 本章涉及语言特性：
-//   - class 单继承
-//   - override 关键字（必填）
-//   - super.method() / super.init()
-//   - vtable 运行时多态
-//   - final class（禁止子类化）
-//   - 类型检查 is / as
-//   - 防止继承：sealed class（详见 9 章）
-//   - 子类构造链
+// 可运行演示：单继承、override、vtable 多态、is / as?。
+// note: super.init 当前解析失败 → 子类用默认字段，不调用 super.init。
+// note: final class、协议继承、混合子类 Array<Animal> 在本运行时受限。
 // =============================================================================
 
-// 1) 基础继承 + override
 class Animal {
-    var name: String
-    var age: Int
-    init(name: String, age: Int) {
-        self.name = name
-        self.age = age
-    }
-    func speak() { print("...") }
-    func describe() -> String {
-        return "Animal(name: \(name), age: \(age))"
+    var name: String = "anon"
+    var age: Int = 0
+    func speak() {
+        print("...")
     }
 }
 
 class Dog: Animal {
-    var breed: String
-    init(name: String, age: Int, breed: String) {
-        self.breed = breed
-        super.init(name: name, age: age)
+    var breed: String = "unknown"
+    override func speak() {
+        print("woof")
     }
-    override func speak() { print("woof") }
-    override func describe() -> String {
-        return super.describe() + " [Dog breed=\(breed)]"
+    func fetch() {
+        print(self.name)
     }
-    func fetch() { print("\(name) fetches the ball") }
 }
 
 class Puppy: Dog {
     override func speak() {
-        super.speak()
-        print("(yipping)")
+        print("yip")
     }
 }
 
 func basicInheritance() {
-    let d = Dog(name: "Rex", age: 3, breed: "Labrador")
-    d.speak()                                            // "woof"
+    let d = Dog()
+    d.name = "Rex"
+    d.age = 3
+    d.breed = "Labrador"
+    d.speak()
     d.fetch()
-    print(d.describe())
+    print(d.breed)
 
-    let p = Puppy(name: "Buddy", age: 1, breed: "Beagle")
-    p.speak()                                            // "woof" + "(yipping)"
+    let p = Puppy()
+    p.name = "Buddy"
+    p.speak()
 }
 
-// 2) vtable 运行时多态
 func polymorphicDemo() {
-    let animals: Array<Animal> = [
-        Dog(name: "Rex", age: 3, breed: "Lab"),
-        Puppy(name: "Buddy", age: 1, breed: "Beagle"),
-        Animal(name: "Generic", age: 5)
-    ]
-    for a in animals {
-        a.speak()                                        // 各自版本的 speak
-    }
+    let a1: Animal = Dog()
+    let a2: Animal = Puppy()
+    let a3: Animal = Animal()
+    a1.speak()
+    a2.speak()
+    a3.speak()
 }
 
-// 3) 类型检查与转换
 func typeCheckDemo() {
-    let a: Animal = Dog(name: "Rex", age: 3, breed: "Lab")
-    print("a is Dog = \(a is Dog)")                      // true
-    print("a is Puppy = \(a is Puppy)")                  // false
+    let a: Animal = Dog()
+    print(a is Dog)
+    print(a is Puppy)
+    print(a is Animal)
 
-    // as? 失败转 nil
-    let d: Dog? = a as? Dog
-    if let d = d {
-        print("d.breed=\(d.breed)")
-    }
+    let d = a as? Dog
+    print(d is Dog)
 
-    // as! 失败抛错（运行时）
-    let p: Puppy? = a as? Puppy
-    print("p=\(p)")                                      // nil
+    let p = a as? Puppy
+    print(p is Puppy)
 }
 
-// 4) final class
-final class FinalBox {
-    let value: Int
-    init(value: Int) { self.value = value }
-}
-// class ChildOfFinal: FinalBox {}  ← ❌ cannot inherit from final class
-
-// 5) 防止意外覆盖（无 override 关键字报错）
-class Strict {
-    func mustOverride() { print("base") }
-}
-class ChildOfStrict: Strict {
-    override func mustOverride() { print("child") }     // 必须 override
-}
-// class WrongChild: Strict {
-//     func mustOverride() { print("no override") }      // ❌ S051
-// }
-
-// 6) init 链（两段式构造）
-class Vehicle {
-    var wheels: Int
-    init(wheels: Int) { self.wheels = wheels }
-}
-class Car: Vehicle {
-    var brand: String
-    init(brand: String) {
-        self.brand = brand
-        super.init(wheels: 4)
-    }
-    init(brand: String, wheels: Int) {
-        self.brand = brand
-        super.init(wheels: wheels)
-    }
-}
-
-// 7) 继承 + 协议
-protocol Describable2 {
-    func describe() -> String
-}
-
-class Base2: Describable2 {
-    var name: String
-    init(name: String) { self.name = name }
-    func describe() -> String { return "Base(\(name))" }
-}
-
-class Derived2: Base2 {
-    var extra: String
-    init(name: String, extra: String) {
-        self.extra = extra
-        super.init(name: name)
-    }
-    override func describe() -> String {
-        return super.describe() + " + \(extra)"
-    }
-}
-
-func protocolInherit() {
-    let d: Describable2 = Derived2(name: "x", extra: "y")
-    print(d.describe())                                   // "Base(x) + y"
-}
-
-// 8) 抽象方法（无 abstract 关键字，靠 protocol 表达）
-protocol Abstract {
-    func must() -> String
-}
-class Concrete: Abstract {
-    func must() -> String { return "implemented" }
-}
-
-// 9) override + super 链
+// 多级 override 链
 class A2 {
-    func f() { print("A") }
+    func f() {
+        print("A")
+    }
 }
 class B2: A2 {
-    override func f() { super.f(); print("B") }
+    override func f() {
+        print("B")
+    }
 }
 class C2: B2 {
-    override func f() { super.f(); print("C") }
+    override func f() {
+        print("C")
+    }
 }
+
 func overrideChain() {
-    C2().f()                                             // A B C
+    let c = C2()
+    c.f()
+    let asA: A2 = C2()
+    asA.f()
+}
+
+// 车辆示例：子类自有字段 + 默认值（无 super.init）
+class Vehicle {
+    var wheels: Int = 0
+}
+class Car: Vehicle {
+    var brand: String = "none"
+}
+
+func vehicleDemo() {
+    let c = Car()
+    c.wheels = 4
+    c.brand = "Toyota"
+    print(c.wheels)
+    print(c.brand)
 }
 
 func main() {
     basicInheritance()
     polymorphicDemo()
     typeCheckDemo()
-    protocolInherit()
     overrideChain()
-    let c = Car(brand: "Toyota")
-    print("car: \(c.wheels) wheels, \(c.brand)")
+    vehicleDemo()
 }

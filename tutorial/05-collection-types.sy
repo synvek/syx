@@ -12,94 +12,103 @@
 //   - 集合与字符串互转
 // =============================================================================
 
-// 1) Array
-let nums: Array<Int> = [1, 2, 3, 4, 5]
-let empty: Array<Int> = []
-print("length=\(nums.count) first=\(nums.first) last=\(nums.last)")
+func demo_array() {
+    let nums: Array<Int> = [1, 2, 3, 4, 5]
+    let empty: Array<Int> = []
+    print("nums.count=\(nums.count) empty.count=\(empty.count)")
+    // note: Array 无 first/last/isEmpty；用下标与 count。
 
-// 强类型：禁止裸 Array
-// let bad = [1, "a"]                    // ❌ 元素类型不统一
-let anyArr: Array<Any> = [1, "a", true]
+    var arr = [10, 20, 30]
+    print(arr[0])
+    arr[1] = 99
+    print(arr[1])
 
-// 下标读写
-var arr = [10, 20, 30]
-print(arr[0])                              // 10
-arr[1] = 99
-print("arr=\(arr)")
-
-// 常用方法
-let contains3 = nums.contains(3)          // true
-let sortedDesc = [3, 1, 2].sorted()       // [1, 2, 3]
-let reversed = [1, 2, 3].reverse()        // [3, 2, 1]
-let joined = [1, 2, 3].joined(",")        // "1,2,3"
-let appended = [1, 2].append(3)           // 副作用式追加
-
-// 2) Set
-let tags: Set<Int> = [1, 2, 2, 3, 3, 3]   // 自动去重
-print("tags.count=\(tags.count)")
-print("tags.contains(2)=\(tags.contains(2))")
-print("tags.union(Set([3,4]))=\(tags.union(Set([3, 4])))")
-print("tags.intersection(Set([2,3]))=\(tags.intersection(Set([2, 3])))")
-print("tags.subtracting(Set([1]))=\(tags.subtracting(Set([1])))")
-
-// 3) Dictionary
-let scores: [String: Int] = ["a": 1, "b": 2, "c": 3]
-print("scores.count=\(scores.count)")
-print("scores[a]=\(scores["a"])")         // Optional(1)
-print("scores.count=\(scores.count)")
-print("scores.containsKey(\"b\")=\(scores.containsKey("b"))")
-let keys = scores.keys                    // 所有键
-let values = scores.values                // 所有值
-var mutableScores = ["x": 10]
-mutableScores["y"] = 20
-mutableScores.remove("x")
-print("mutableScores=\(mutableScores)")
-
-// 4) Object（动态 JSON 式）
-let user: Object = { "name": "SYX", "version": 110, "stable": true }
-print("user=\(user)")
-print("user.name=\(user["name"])")
-print("user.version=\(user["version"])")
-let nested: Object = {
-    "id": 1,
-    "tags": ["a", "b", "c"],
-    "meta": { "created": 1700000000 }
+    print(nums.contains(3))
+    let sortedAsc = [3, 1, 2].sorted()
+    print(sortedAsc)
+    let reversed = [1, 2, 3].reverse()
+    print(reversed)
+    let joined = [1, 2, 3].joined(",")
+    print(joined)
+    arr.append(40)
+    print(arr.count)
 }
-print("nested.tags=\(nested["tags"])")
-print("nested.meta.created=\(nested["meta"]?["created"] ?? 0)")
 
-// 5) HOF：map / filter / reduce
-let doubled = [1, 2, 3, 4, 5].map({ |x| x * 2 })              // [2,4,6,8,10]
-let evens = [1, 2, 3, 4, 5].filter({ |x| x % 2 == 0 })        // [2, 4]
-let sum10 = [1, 2, 3, 4].reduce(0, { |a, b| a + b })         // 10
-let s2s = [1, 2, 3].map({ |x| "n=\(x)" })                    // ["n=1", "n=2", "n=3"]
+func demo_set() {
+    let tags: Set<Int> = [1, 2, 2, 3, 3, 3]
+    print(tags.count)
+    print(tags.contains(2))
 
-// 链式 HOF
-let sumEvenSq = [1, 2, 3, 4, 5]
-    .filter({ |x| x % 2 == 0 })    // [2, 4]
-    .map({ |x| x * x })            // [4, 16]
-    .reduce(0, { |a, b| a + b })   // 20
+    var s: Set<Int> = [1, 2]
+    print(s.insert(3))
+    print(s.contains(3))
+    print(s.remove(1))
 
-// 6) 字符串与 Array 互转
-let csv = "a,b,c"
-let parts = csv.split(",")                // ["a", "b", "c"]
-let rejoined = parts.joined("-")          // "a-b-c"
-let chars: Array<Character> = Array("abc")
-let back = chars.joined("")               // "abc"
+    // note: union/intersection 接受数组字面量；subtracting 本教程不演示。
+    let u = tags.union([3, 4])
+    print(u.count)
+    let inter = tags.intersection([2, 3])
+    print(inter.count)
+}
 
-// 7) for-in 遍历
-for n in [10, 20, 30] { print("n=\(n)") }
-for ch in "xyz" { print("ch=\(ch)") }
+func demo_dictionary() {
+    let scores: Dictionary<String, Int> = {"a": 1, "b": 2, "c": 3}
+    print(scores.count)
+    print(scores["a"])
+    print(scores.containsKey("b"))
+    print(scores.keys)
+    print(scores.values)
 
-// 8) zip / chunked
-let zipped = [1, 2, 3].zip(["a", "b", "c"])
-let chunks = [1, 2, 3, 4, 5].chunked(2)   // [[1,2],[3,4],[5]]
+    var mutableScores: Dictionary<String, Int> = {"x": 10}
+    mutableScores["y"] = 20
+    print(mutableScores.remove("x"))
+    print(mutableScores)
+
+    // note: Object 动态 JSON 与嵌套可选链本教程不演示。
+}
+
+func demo_hof() {
+    let nums: Array<Int> = [1, 2, 3, 4, 5]
+    // note: 闭包参数必须括号；HOF 体建议写 return。
+    let doubled = nums.map({ (x: Int) in return x * 2 })
+    let evens = nums.filter({ (x: Int) in return x % 2 == 0 })
+    let sum10 = nums.reduce(0, { (a: Int, b: Int) in return a + b })
+    print(doubled)
+    print(evens)
+    print(sum10)
+
+    let sumEvenSq = nums
+        .filter({ (x: Int) in return x % 2 == 0 })
+        .map({ (x: Int) in return x * x })
+        .reduce(0, { (a: Int, b: Int) in return a + b })
+    print(sumEvenSq)
+
+    let zipped = [1, 2, 3].zip(["a", "b", "c"])
+    let chunks = [1, 2, 3, 4, 5].chunked(2)
+    print(zipped)
+    print(chunks)
+}
+
+func demo_for_and_string() {
+    for n in [10, 20, 30] {
+        print(n)
+    }
+    for ch in "xyz" {
+        print(__syx_value_description(ch))
+    }
+
+    let csv = "a,b,c"
+    let parts = csv.split(",")
+    let rejoined = parts.joined("-")
+    print(parts)
+    print(rejoined)
+}
 
 func main() {
-    print("doubled=\(doubled) evens=\(evens) sum10=\(sum10)")
-    print("s2s=\(s2s) sumEvenSq=\(sumEvenSq)")
-    print("parts=\(parts) rejoined=\(rejoined)")
-    print("zipped=\(zipped) chunks=\(chunks)")
-    print("anyArr.count=\(anyArr.count)")
-    print("keys=\(keys) values=\(values)")
+    print("chapter 05: collection types")
+    demo_array()
+    demo_set()
+    demo_dictionary()
+    demo_hof()
+    demo_for_and_string()
 }

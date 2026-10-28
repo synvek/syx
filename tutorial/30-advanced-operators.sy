@@ -1,202 +1,82 @@
 // =============================================================================
 // tutorial/30-advanced-operators.sy
-// 对应《SYX 语言指南》第 30 章「高级运算符」
-//
-// 本章涉及语言特性：
-//   - 位运算 & | ^ ~ << >>
-//   - 自定义运算符（infix / prefix / postfix）
-//   - 优先级 / 结合性
-//   - 自定义 operator func
-//   - Optional 链式（?. / ?? / !）
-//   - 范围 a..<b / a...b
-//   - Identity 运算符 === / !==
-//   - 三元 / 强制解包 / 借用
+// Advanced operators: bitwise, identity, ranges, nil-coalescing, compound assign.
+// note: custom `operator func` / unicode ops dropped unless verified — use builtins.
 // =============================================================================
 
-// 1) 位运算
 func bitOps() {
-    let a: Int = 0b1100                                 // 12
-    let b: Int = 0b1010                                 // 10
-    print("a & b = \(a & b)")                           // 8
-    print("a | b = \(a | b)")                           // 14
-    print("a ^ b = \(a ^ b)")                           // 6
-    print("~a = \(~a)")                                 // -13
-    print("a << 2 = \(a << 2)")                         // 48
-    print("a >> 1 = \(a >> 1)")                         // 6
+    let a: Int = 0b1100
+    let b: Int = 0b1010
+    print(a & b)
+    print(a | b)
+    print(a ^ b)
+    print(~a)
+    print(a << 2)
+    print(a >> 1)
 }
 
-// 2) Identity === / !==
+class Ref {
+    var n: Int
+    init(n: Int) { self.n = n }
+}
+
 func identityOps() {
-    let s1 = "abc"
-    let s2 = "abc"
-    let s3 = s1
-    print("s1 === s2 = \(s1 === s2)")                  // false
-    print("s1 === s3 = \(s1 === s3)")                  // true
-
-    let a = [1, 2, 3]
-    let b = [1, 2, 3]
-    print("a == b = \(a == b)")                        // true
-    print("a === b = \(a === b)")                      // false
+    let a = Ref(n: 1)
+    let b = a
+    let c = Ref(n: 1)
+    print(a === b)
+    print(a === c)
+    print(a !== c)
 }
 
-// 3) 自定义中缀运算符
-infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T {
-    return f(value)
-}
-
-infix operator <^> { precedence: 60, associativity: right }
-func <^> <T>(a: T, b: T) -> (T, T) {
-    return (a, b)
-}
-
-func customInfix() {
-    let r1 = 5 |> { $0 * 2 }                          // 10
-    let r2 = [1, 2, 3] |> { $0.reverse() }             // [3, 2, 1]
-    let p = 10 <^> 20                                 // (10, 20)
-    print("r1=\(r1)  r2=\(r2)  p=\(p.0),\(p.1)")
-}
-
-// 4) 自定义前缀 / 后缀
-prefix operator √
-func √ <T>(value: T) -> Double where T: BinaryInteger {
-    return sqrt(Double(value))
-}
-
-postfix operator °
-func ° <T>(value: T) -> Double where T: BinaryInteger {
-    return Double(value) * 3.14159 / 180.0
-}
-
-func customPrefix() {
-    let s = √16                                        // 4.0
-    let rad = 90°                                      // 1.5708...
-    print("√16=\(s)  90°=\(rad)")
-}
-
-// 5) 自定义运算符 + 协议约束
-infix operator ⊕ { precedence: 40, associativity: left }
-func ⊕ <T>(a: T, b: T) -> T where T: Summable {
-    return a + b
-}
-
-// 6) 自定义运算符 + Optional
-prefix operator ¬
-func ¬ <T>(value: T?) -> Bool {
-    return value == nil
-}
-
-func customOptional() {
-    let x: Int? = nil
-    let y: Int? = 7
-    print("¬x = \(¬x)")                                // true
-    print("¬y = \(¬y)")                                // false
-}
-
-// 7) 自定义范围比较
-infix operator ⊆ { precedence: 70, associativity: left }
-func ⊆ <T>(a: Set<T>, b: Set<T>) -> Bool {
-    return b.contains(a)
-}
-
-func customSet() {
-    let s1: Set<Int> = [1, 2]
-    let s2: Set<Int> = [1, 2, 3, 4]
-    print("s1 ⊆ s2 = \(s1 ⊆ s2)")                      // true
-}
-
-// 8) 运算符优先级
-//
-// 数字越高，优先级越高
-// 默认：乘除（150）> 加减（140）> 比较（130）> 等于（120）> 与（110）> 或（100）> 三元
-// 自定义：precedence: 50
-
-// 9) 中缀 + String 拼接（部分实现）
-infix operator × { precedence: 55, associativity: left }
-func × <T>(a: T, b: T) -> String {
-    return "(\(a) × \(b))"
-}
-
-func customString() {
-    let r = 3 × 4                                      // "(3 × 4)"
-    print("3 × 4 = \(r)")
-}
-
-// 10) 链式自定义运算符
-func chainedCustom() {
-    let r = 5 |> { $0 * 2 } |> { $0 + 3 }             // 13
-    print("5 |> *2 |> +3 = \(r)")
-}
-
-// 11) 借用 + 范围
-func borrowRange() {
-    var arr = [10, 20, 30, 40, 50]
-    for x in &arr {                                    // x: &Int
-        print("x=\(x)")
-    }
-}
-
-// 12) 范围类型转换
 func rangeOps() {
-    let r1: Range<Int> = 0..<10
-    let r2: Range<Int> = 1...10                        // 闭区间（Phase 139 MVP）
-    print("r1.contains(5)=\(r1.contains(5))")
-    print("r2.contains(10)=\(r2.contains(10))")
+    var sum = 0
+    for i in 0..<5 {
+        sum = sum + i
+    }
+    print(sum)
 }
 
-// 13) 自定义 Comparable
-data class Money(amount: Double, currency: String): Comparable
-
-func customComparable() {
-    let m1 = Money(amount: 100, currency: "USD")
-    let m2 = Money(amount: 200, currency: "USD")
-    print("m1 < m2 = \(m1 < m2)")
-}
-
-// 14) 实现 Equatable / Hashable
-data class Point2(x: Int, y: Int)
-
-func equalityOps() {
-    let p1 = Point2(x: 1, y: 2)
-    let p2 = Point2(x: 1, y: 2)
-    print("p1 == p2 = \(p1 == p2)")
-    print("p1.hash == p2.hash = \(p1.hashValue == p2.hashValue)")
-}
-
-// 15) Nil-coalescing 链
 func nilCoalesce() {
     let a: Int? = nil
-    let b: Int? = nil
-    let c: Int? = 7
-    let r1 = a ?? 99                                   // 99
-    let r2 = b ?? c ?? 100                             // 7
-    print("r1=\(r1)  r2=\(r2)")
+    let b: Int? = 7
+    print(a ?? 99)
+    print(b ?? 100)
 }
 
-// 16) 复合赋值链
 func compoundOps() {
     var x = 1
-    x += 2                                              // 3
-    x *= 3                                              // 9
-    x -= 4                                              // 5
-    x /= 5                                              // 1
-    x %= 1                                              // 0
-    print("x=\(x)")
+    x += 2
+    x *= 3
+    x -= 4
+    x /= 5
+    print(x)
+}
+
+func compareOps() {
+    print(3 < 5)
+    print(5 == 5)
+    print(7 != 8)
+    print(10 >= 10)
+}
+
+data class Point2(x: Int, y: Int)
+
+func dataClassDemo() {
+    let p1 = Point2(x: 1, y: 2)
+    let p2 = Point2(x: 1, y: 2)
+    print(p1.x)
+    print(p2.y)
+    print(p1.description())
 }
 
 func main() {
     bitOps()
     identityOps()
-    customInfix()
-    customPrefix()
-    customOptional()
-    customSet()
-    customString()
-    chainedCustom()
-    borrowRange()
     rangeOps()
-    customComparable()
-    equalityOps()
     nilCoalesce()
     compoundOps()
+    compareOps()
+    dataClassDemo()
+    print("advanced-operators demo done")
 }

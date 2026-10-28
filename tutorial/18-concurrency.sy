@@ -2,189 +2,76 @@
 // tutorial/18-concurrency.sy
 // 对应《SYX 语言指南》第 18 章「并发」
 //
-// 本章涉及语言特性：
-//   - async / await
-//   - async let（并行子任务）
-//   - Task { } / Task.detached { }
-//   - TaskGroup（结构化并发）
-//   - actor 隔离
-//   - GlobalActor / @MainActor
-//   - Channel（有界 + backpressure + try_recv）
-//   - select
-//   - Sendable 约束
-//   - 取消
-//   - distributed actor（部分实现）
+// 可运行演示：Task / Task.detached、Channel、Concurrency 运行时配置。
+// note: async main + await Concurrency.sleep 在当前运行时可能重入循环 → 本文件用同步 main。
+// note: actor / async let / @MainActor / TaskGroup 省略或受限。
 // =============================================================================
 
-// 1) async / await
-async func fetchOne() -> String {
-    await __syx_task_sleep(10)
-    return "one"
+import Sync
+import Concurrency
+
+func work() {
+    print("task-body")
 }
 
-async func fetchAll2() -> String {
-    let a = await fetchOne()
-    let b = await fetchOne()
-    return "\(a) + \(b)"
-}
-
-// 2) async let（并行）
-async func parallel() -> (String, String) {
-    async let a = fetchOne()                             // 立即启动
-    async let b = fetchOne()
-    return (await a, await b)
-}
-
-// 3) Task { } / Task.detached { }
 func taskDemo() {
     let t = Task {
-        await __syx_task_sleep(5)
-        return "task result"
+        work()
     }
-    let _ = t
-    // t 是 task handle，async 函数内可 await
+    Concurrency.join(t)
+    print("joined")
 }
 
-// 4) actor 隔离
-actor CounterActor {
-    var count: Int = 0
-    init() {}
-    func increment() { count += 1 }
-    func value() -> Int { return count }
+func detachedDemo() {
+    Task.detached {
+        work()
+    }
+    Concurrency.sleep(40)
+    print("detached-done")
 }
 
-async func actorDemo() {
-    let c = CounterActor()
-    await c.increment()
-    await c.increment()
-    await c.increment()
-    let v = await c.value()
-    print("counter=\(v)")                                // 3
+func channelDemo() {
+    let ch = Channel.create(2)
+    print(ch.capacity())
+    ch.trySend(1)
+    ch.trySend(2)
+    print(ch.count())
+    let a = ch.tryRecv()
+    print(a)
+    print(ch.count())
+
+    let unbounded = Channel()
+    print(unbounded.capacity())
 }
 
-// 5) Channel
-func channelDemo() async {
-    let ch = __syx_channel_create(2)                    // 容量 2（有界）
-
-    // 生产
-    __syx_channel_send(ch, 1)
-    __syx_channel_send(ch, 2)
-    // __syx_channel_send(ch, 3)  // backpressure：满则阻塞或 reject
-
-    // 消费
-    let a = __syx_channel_recv(ch)                       // 1
-    let b = __syx_channel_recv(ch)                       // 2
-    print("a=\(a)  b=\(b)")
-
-    // 长度 / 容量查询
-    print("len=\(__syx_channel_length(ch))  cap=\(__syx_channel_capacity(ch))")
-}
-
-// 6) TaskGroup
-async func taskGroupDemo() async {
-    let g = __syx_task_group_create()
-    let t1 = __syx_task_detach("workA", [])
-    let t2 = __syx_task_detach("workB", [])
-    let t3 = __syx_task_detach("workC", [])
-    __syx_task_group_add(g, t1)
-    __syx_task_group_add(g, t2)
-    __syx_task_group_add(g, t3)
-    __syx_task_group_wait(g)
-    print("group done")
-}
-
-// 7) select（多 channel 监听，Phase 14+）
-async func selectDemo() {
-    let ch1 = __syx_channel_create(1)
-    let ch2 = __syx_channel_create(1)
-    __syx_channel_send(ch1, "A")
-    // select 谁先到选谁
-    // 简化：用 try_recv 轮询
-    let v1 = __syx_channel_try_recv(ch1)
-    let v2 = __syx_channel_try_recv(ch2)
-    print("select: \(v1) \(v2)")
-}
-
-// 8) GlobalActor / @MainActor
-@MainActor
-func updateUI(_ msg: String) {
-    print("[MainActor] \(msg)")
-}
-
-func globalActorDemo() async {
-    await updateUI("hello from main")
-}
-
-// 9) Sendable 约束（部分实现）
-// @Sendable
-struct SafeData {
-    let value: Int
-}
-
-// 10) 取消
-func cancelDemo() {
-    let t = __syx_task_detach("cancellable", [])
-    __syx_task_cancel(t)
-}
-
-// 11) 配置（Phase 133+）
 func configDemo() {
     Concurrency.setWorkerCount(4)
+    print(Concurrency.workerCount())
     Concurrency.setMaxActors(8)
+    print(Concurrency.maxActors())
     Concurrency.setMailboxCapacity(16)
+    print(Concurrency.mailboxCapacity())
     Concurrency.setTaskQueueCapacity(100)
-    Concurrency.setTaskRejectPolicy("abort")            // "abort" | "callerRuns" | "discardOldest"
-    print("worker=\(Concurrency.workerCount()) maxActors=\(Concurrency.maxActors()) mailboxCap=\(Concurrency.mailboxCapacity())")
-    print("queueCap=\(Concurrency.taskQueueCapacity()) reject=\(Concurrency.taskRejectPolicy())")
+    print(Concurrency.taskQueueCapacity())
+    Concurrency.setTaskRejectPolicy("abort")
+    print(Concurrency.taskRejectPolicy())
 }
 
-// 12) Advanced pool sizing (ADR-270) — NOT Channel select RR fairness (see m3_a04_fairness)
-func fairnessDemo() {
+func poolDemo() {
     Concurrency.setCorePoolSize(2)
+    print(Concurrency.corePoolSize())
     Concurrency.setMaximumPoolSize(8)
-    Concurrency.setKeepAliveMs(30_000)
-    print("core=\(Concurrency.corePoolSize()) max=\(Concurrency.maximumPoolSize()) keepAlive=\(Concurrency.keepAliveMs())ms")
+    print(Concurrency.maximumPoolSize())
+    Concurrency.setKeepAliveMs(30000)
+    print(Concurrency.keepAliveMs())
 }
 
-// 13) Actor shared pool（Phase 138）
-func sharedPoolDemo() {
-    Concurrency.setActorSharedPoolEnabled(true)
-    Concurrency.setActorSharedPoolSize(4)
-    print("shared pool=\(Concurrency.actorSharedPoolEnabled()) size=\(Concurrency.actorSharedPoolSize())")
-}
-
-// 14) async main
-async func main() {
-    print("=== async main ===")
-
-    // 简单 await
-    let r = await fetchAll2()
-    print("fetchAll2=\(r)")
-
-    // 并行
-    let (pa, pb) = await parallel()
-    print("parallel=\(pa), \(pb)")
-
-    // actor
-    await actorDemo()
-
-    // channel
-    await channelDemo()
-
-    // select
-    await selectDemo()
-
-    // global actor
-    await globalActorDemo()
-
-    // 同步配置
+func main() {
+    print("begin")
+    taskDemo()
+    detachedDemo()
+    channelDemo()
     configDemo()
-    fairnessDemo()
-    sharedPoolDemo()
-    cancelDemo()
-
-    // task group
-    await taskGroupDemo()
-
-    print("=== done ===")
+    poolDemo()
+    print("end")
 }

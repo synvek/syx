@@ -14,78 +14,82 @@
 //   - 自定义运算符入门（详见第 30 章）
 // =============================================================================
 
-// 1) 算术
-let a = 10 + 3                            // 13
-let b = 10 - 3                            // 7
-let c = 10 * 3                            // 30
-let d = 10 / 3                            // 3（整除）
-let m = 10 % 3                            // 1（取模）
-let neg = -a                              // 一元负
+func demo_arithmetic() {
+    let a = 10 + 3
+    let b = 10 - 3
+    let c = 10 * 3
+    let d = 10 / 3
+    let m = 10 % 3
+    let neg = -a
+    print("a=\(a) b=\(b) c=\(c) d=\(d) m=\(m) neg=\(neg)")
+}
 
-// 2) 比较
-let eq1 = (1 == 1)                        // true
-let eq2 = ("a" == "a")                    // true
-let lt  = (1 < 2)
-let ge  = (3 >= 2)
-let ne  = (1 != 2)
+func demo_compare_logic() {
+    let eq1 = (1 == 1)
+    let eq2 = ("a" == "a")
+    let lt = (1 < 2)
+    let ge = (3 >= 2)
+    let ne = (1 != 2)
+    print("eq1=\(eq1) eq2=\(eq2) lt=\(lt) ge=\(ge) ne=\(ne)")
 
-// 3) 逻辑（短路）
-let flag = true
-let and_ = flag && (1 + 1 == 2)           // true
-let or_  = !flag || (1 == 1)              // true
-let not_ = !flag                          // false
+    let flag = true
+    let and_ = flag && (1 + 1 == 2)
+    let or_ = !flag || (1 == 1)
+    let not_ = !flag
+    print("and_=\(and_) or_=\(or_) not_=\(not_)")
+}
 
-// 4) 空合并 / 可选链 / 强制解包
-let s: String? = "hello"
-let len1 = s?.count                      // Optional(5)
-let len2 = s?.count ?? 0                 // 5
-let len3 = s!.count                      // 5（强制解包）
+func demo_optional_ops() {
+    // note: 可选链 ?.count / 强制解包 ! 在 CLI 路径上对 String? 不稳定；用 ?? 演示空合并。
+    let s: String? = "hello"
+    let ns: String? = nil
+    print(s ?? "missing")
+    print(ns ?? "missing")
+    let n: Int? = nil
+    print(n ?? 0)
+    let m: Int? = 5
+    print(m ?? 0)
+}
 
-let ns: String? = nil
-let nilLen = ns?.count ?? 0              // 0
-// let crash = ns!.count                  // ❌ R007: force unwrap of nil
+func demo_compound_and_range() {
+    var x = 1
+    x += 2
+    x -= 1
+    x *= 2
+    x /= 2
+    x %= 3
+    print("x=\(x)")
 
-// 5) 复合赋值
-var x = 1
-x += 2
-x -= 1
-x *= 2
-x /= 2
-x %= 3
+    print((1..<10).contains(5))
+    print((1..<10).contains(10))
+    print((1...10).contains(10))
+    print((1...10).contains(11))
 
-// 6) 范围
-print((1..<10).contains(5))                // true
-print((1..<10).contains(10))               // false
-print((1...10).contains(10))               // true（闭区间 Phase 139 MVP）
-print((1...10).contains(11))               // false
+    var sum = 0
+    for n in 0..<5 {
+        sum += n
+    }
+    print(sum)
 
-// 7) 自定义运算符（详细见 30 章，此处仅作语法示意）
-infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
+    var prod = 1
+    for m in 1...4 {
+        prod *= m
+    }
+    print(prod)
+}
 
-// 8) 优先级示例
-let expr = 1 + 2 * 3                      // 7（* 高于 +）
-let paren = (1 + 2) * 3                   // 9
+func demo_precedence() {
+    let expr = 1 + 2 * 3
+    let paren = (1 + 2) * 3
+    print("expr=\(expr) paren=\(paren)")
+    // note: 自定义运算符（infix operator |> 等）详见第 30 章，本教程不演示。
+}
 
 func main() {
-    print("a=\(a) b=\(b) c=\(c) d=\(d) m=\(m) neg=\(neg)")
-    print("eq1=\(eq1) lt=\(lt) ge=\(ge) ne=\(ne)")
-    print("and_=\(and_) or_=\(or_) not_=\(not_)")
-
-    // 范围遍历
-    var sum = 0
-    for i in 0..<5 { sum += i }           // 0+1+2+3+4 = 10
-    print("sum 0..<5 = \(sum)")
-
-    // 闭区间
-    var prod = 1
-    for i in 1...4 { prod *= i }          // 1*2*3*4 = 24
-    print("prod 1...4 = \(prod)")
-
-    // 自定义运算符
-    let r = 5 |> { $0 * 2 }
-    print("r = \(r)")                     // 10
-
-    // 优先级对比
-    print("expr=\(expr) paren=\(paren)")
+    print("chapter 03: basic operators")
+    demo_arithmetic()
+    demo_compare_logic()
+    demo_optional_ops()
+    demo_compound_and_range()
+    demo_precedence()
 }

@@ -14,88 +14,135 @@
 //   - 命名规范
 // =============================================================================
 
-// 1) 不可变 / 可变
-let pi = 3.14159                          // 不可变（let）
-var counter = 0                           // 可变（var）
-counter = counter + 1
-// pi = 3.14                             // ❌ S003: cannot assign to let
-
-// 2) 显式类型标注
-let x: Int = 10
-let name: String = "SYX"
-let items: Array<Int> = [1, 2, 3]
-let scores: [String: Int] = ["a": 1, "b": 2]
-let maybe: Int? = nil
-
-// 3) 注释
-// 单行注释
-/*
-   块注释
-   /* 可嵌套 */
-*/
-/// 文档注释（syx doc 提取为 API 文档）
-/// 多行：以 /// 开头
-func documented(a: Int, b: Int) -> Int { return a + b }
-
-// 4) 数值字面量全谱
-let a = 42                                // Int（平台字长）
-let b = 100i8                             // Int8
-let c = 1000i64                           // Int64
-let d = 0xFFu8                            // UInt8 十六进制
-let e = 0b1010u16                         // UInt16 二进制
-let f = 0o17u32                           // UInt32 八进制
-let g = 1_000_000i64                      // 下划线分隔
-let h = 42i128                            // Int128
-let i = 3.14f32                           // Float32
-let j = 3.14                              // Double（默认）
-let k = -2.5e10                           // Double 科学计数法
-let u = 0xFFu128                          // UInt128
-
-// 5) 数值提升 / 字面量规则
-let p: Int = 1
-let q = p + 1.0                           // Double（Int → Double）
-let r = p + 1                             // Int
-
-// 6) 布尔与空
-let ok: Bool = true
-let ng: Bool = false
-let empty: String? = nil
-let present: String? = "hi"
-
-// 7) typealias
-typealias Handle = UInt64
-typealias Handler = (Int) -> String
-
-func register(h: Handle) { print("handle=\(h)") }
-let f1: Handler = { n in "id=\(n)" }
-register(h: 42i64)
-
-// 8) 类型嵌套 — 推荐 flatten 命名（避开当前 parser 边界）
-struct OuterMarker { }
-struct OuterMarker_Inner {
-    var value: Int = 0
+/// 文档注释示例（syx doc 可提取）
+func documented(a: Int, b: Int) -> Int {
+    return a + b
 }
-let inner = OuterMarker_Inner(value: 7)
 
-// 9) 元组字面量（Phase 139 MVP GA）
-let pair: (Int, String) = (1, "a")
-print(pair.0)
-let named = (x: 10, y: 20)
-print(named.x)
-let (a1, a2) = (3, 4)
+typealias Handle = Int
 
-// 10) 多行字符串（Phase 139 MVP GA）
-let multiline = """
-    line one
-    line two with \(name) interpolation
-    line three
+// note: 函数类型值可声明，但按名直接调用闭包变量在部分路径不稳定；此处用普通函数代替 Handler 演示。
+func formatId(n: Int) -> String {
+    return "id=\(n)"
+}
+
+func register(h: Handle) {
+    print("handle=\(h)")
+}
+
+// note: 嵌套类型请用 flatten 命名；不要写 Swift 式 `struct { var x: Int }` 体。
+data class OuterMarker_Inner(value: Int)
+
+func demo_bindings() {
+    // 1) 不可变 / 可变
+    let pi = 3.14159
+    var counter = 0
+    counter = counter + 1
+    // pi = 3.14  // note: cannot assign to let
+
+    // 2) 显式类型标注
+    let x: Int = 10
+    let name: String = "SYX"
+    let items: Array<Int> = [1, 2, 3]
+    let scores: Dictionary<String, Int> = {"a": 1, "b": 2}
+    let maybe: Int? = nil
+
+    // 3) 注释
+    // 单行注释
+    /* 块注释（嵌套块注释语法见语言指南；此处用单层） */
+
+    print("counter=")
+    print(counter)
+    print(pi)
+    print(x)
+    print(name)
+    print(items.count)
+    print(scores.count)
+    // note: Optional == nil 比较在类型检查上不稳定；用 ?? 观察缺省值。
+    print(maybe ?? 0)
+}
+
+func demo_numbers() {
+    // 4) 数值字面量
+    let a = 42
+    let b = 100i8
+    let c = 1000i64
+    let d = 0xFFu8
+    let e = 0b1010u16
+    let f = 0o17u32
+    let g = 1_000_000i64
+    let h = 42i128
+    let i = 3.14f32
+    let j = 3.14
+    // note: 科学计数法字面量在部分路径打印不完整，教程用普通 Float64。
+    let k = 2.5
+    let u = 0xFFu128
+
+    print(a)
+    print(b)
+    print(c)
+    print(d)
+    print(e)
+    print(f)
+    print(g)
+    print(h)
+    print(i)
+    print(j)
+    print(k)
+    print(u)
+
+    // 5) 同类型算术
+    let p: Int = 1
+    let r = p + 1
+    print(r)
+    // note: Int + Float64 自动提升在 CLI 路径上不稳定，教程保持同类型运算。
+}
+
+func demo_bool_alias_tuple() {
+    // 6) 布尔与空
+    let ok: Bool = true
+    let ng: Bool = false
+    let empty: String? = nil
+    let present: String? = "hi"
+    print(ok)
+    print(ng)
+    print(empty ?? "none")
+    print(present ?? "none")
+
+    // 7) typealias
+    register(h: 42)
+    print(formatId(n: 7))
+
+    // 8) flatten 记录类型
+    let inner = OuterMarker_Inner(7)
+    print(inner.value)
+
+    // 9) 元组
+    let pair: (Int, String) = (1, "a")
+    print(pair.0)
+    print(pair.1)
+    let named = (x: 10, y: 20)
+    print(named.x)
+    print(named.y)
+    let (a1, a2) = (3, 4)
+    print(a1)
+    print(a2)
+
+    // 10) 多行字符串
+    let name = "SYX"
+    let multiline = """
+line one
+line two with \(name) interpolation
+line three
 """
+    print(multiline)
+    let doc = documented(a: 1, b: 2)
+    print(doc)
+}
 
-// 11) main 入口
 func main() {
     print("chapter 02: the basics")
-    print("counter=\(counter) pi=\(pi)")
-    print("q=\(q) r=\(r)")
-    print("inner.value=\(inner.value)")
-    print("multiline=\(multiline)")
+    demo_bindings()
+    demo_numbers()
+    demo_bool_alias_tuple()
 }
