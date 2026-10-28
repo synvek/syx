@@ -476,6 +476,33 @@ jobs:
           cp packaging/syx-sdk/README.md "${SDK_ROOT}/README.md"
           cp LICENSE "${SDK_ROOT}/LICENSE"
 
+          # Reference trees for end users (stdlib sources + samples).
+          copy_ref_tree() {
+            local src="$1"
+            local dest="$2"
+            if [ ! -d "${src}" ]; then
+              echo "ERROR: missing reference tree ${src}" >&2
+              exit 1
+            fi
+            mkdir -p "${dest}"
+            if command -v rsync >/dev/null 2>&1; then
+              rsync -a \
+                --exclude '.DS_Store' \
+                --exclude '.syx-cache' \
+                --exclude 'target' \
+                --exclude '*.rlib' \
+                "${src}/" "${dest}/"
+            else
+              # Git Bash / minimal runners: recursive copy then drop junk.
+              cp -R "${src}/." "${dest}/"
+              find "${dest}" \( -name '.DS_Store' -o -name '.syx-cache' -o -name 'target' \) -prune -exec rm -rf {} + 2>/dev/null || true
+            fi
+          }
+          copy_ref_tree packages "${SDK_ROOT}/packages"
+          copy_ref_tree examples "${SDK_ROOT}/examples"
+          # Repo path is `tutorial/` (singular); ship under the same name.
+          copy_ref_tree tutorial "${SDK_ROOT}/tutorial"
+
           # Locate cargo staticlib output for a given --target-dir root.
           find_rt_lib() {
             local root="$1"
@@ -672,7 +699,7 @@ jobs:
           cat > "$notes_file" <<EOF
           Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, tag **${tag}**).
 
-          Each archive is a \`syx-sdk/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, plus \`README.md\` and \`LICENSE\`.
+          Each archive is a \`syx-sdk/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`.
 
           | OS | Arch | Artifact |
           |----|------|----------|

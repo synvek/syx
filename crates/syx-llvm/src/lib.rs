@@ -2730,10 +2730,27 @@ fn fresh_block_label(next: &mut u32) -> String {
 }
 
 fn is_native_object_bytes(bytes: &[u8]) -> bool {
-    bytes.len() >= 4
-        && (bytes.starts_with(b"\xcf\xfa\xed\xfe")
-            || bytes.starts_with(b"\xfe\xed\xfa\xcf")
-            || bytes.starts_with(b"\x7fELF"))
+    if bytes.len() < 4 {
+        return false;
+    }
+    // Mach-O 64-bit (LE / BE)
+    if bytes.starts_with(b"\xcf\xfa\xed\xfe") || bytes.starts_with(b"\xfe\xed\xfa\xcf") {
+        return true;
+    }
+    // ELF
+    if bytes.starts_with(b"\x7fELF") {
+        return true;
+    }
+    // Windows COFF object: first u16 LE is IMAGE_FILE_HEADER.Machine.
+    // inkwell FileType::Object on MSVC targets emits COFF, not PE/ELF/Mach-O.
+    let machine = u16::from_le_bytes([bytes[0], bytes[1]]);
+    matches!(
+        machine,
+        0x014c | // IMAGE_FILE_MACHINE_I386
+        0x8664 | // IMAGE_FILE_MACHINE_AMD64
+        0xaa64 | // IMAGE_FILE_MACHINE_ARM64
+        0x01c4 // IMAGE_FILE_MACHINE_ARMNT
+    )
 }
 
 pub fn compile_native(module: &MirModule) -> SyxResult<Vec<u8>> {
@@ -3344,6 +3361,18 @@ mod tests {
         assert!(ir.contains("syx_rt_begin_try"));
         assert!(ir.contains("syx_rt_await_poll"));
         assert!(ir.contains("syx_rt_await_suspend"));
+    }
+
+    #[test]
+    fn native_object_magic_accepts_coff_elf_macho() {
+        assert!(is_native_object_bytes(b"\x7fELF........"));
+        assert!(is_native_object_bytes(b"\xcf\xfa\xed\xfe........"));
+        assert!(is_native_object_bytes(b"\xfe\xed\xfa\xcf........"));
+        // COFF AMD64 / ARM64 machine words (LE)
+        assert!(is_native_object_bytes(&[0x64, 0x86, 0, 0]));
+        assert!(is_native_object_bytes(&[0x64, 0xaa, 0, 0]));
+        assert!(!is_native_object_bytes(b"BC"));
+        assert!(!is_native_object_bytes(b"; ModuleID"));
     }
 
     #[test]

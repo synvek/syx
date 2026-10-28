@@ -21,6 +21,9 @@ syx-sdk/
       async-only/libsyx_rt.a
       async-http/libsyx_rt.a
       async-file/libsyx_rt.a
+  packages/             # standard library sources (reference)
+  examples/             # sample programs
+  tutorial/             # guided `.sy` lessons
 ```
 
 On Windows MSVC installs, the archive is named `syx_rt.lib` in the same places.
@@ -33,10 +36,14 @@ export PATH="$PWD/bin:$PATH"
 syx --version
 syx run examples/hello.sy
 syx build --native examples/hello.sy
+syx run tutorial/01-getting-started.sy   # see tutorial/README.md for the full list
 ```
 
 Keep `bin/` and `lib/` as siblings. The linker resolves `../lib/libsyx_rt.a`
 relative to `bin/syx`.
+
+`packages/`, `examples/`, and `tutorial/` are for reading and trying locally; they are
+not required on `PATH`.
 
 ## Runtime profiles
 
