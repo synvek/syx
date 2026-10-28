@@ -323,8 +323,10 @@ jobs:
             exit 1
           fi
           case "${TARGET}" in
-            x86_64-*) TRIPLET=x64-windows-static-md ;;
-            aarch64-*|arm64-*) TRIPLET=arm64-windows-static-md ;;
+            # Official Windows clang+llvm is /MT + rpmalloc; match with fully
+            # static vcpkg libs (not *-static-md) so we do not mix ucrt (/MD).
+            x86_64-*) TRIPLET=x64-windows-static ;;
+            aarch64-*|arm64-*) TRIPLET=arm64-windows-static ;;
             *)
               echo "ERROR: unsupported Windows target for libxml2: ${TARGET}" >&2
               exit 1
@@ -373,7 +375,10 @@ jobs:
             echo "LIB=${LIB_NATIVE_WIN}" >> "${GITHUB_ENV}"
           fi
 
-          extra_rustflags="-Lnative=${LIB_NATIVE}"
+          # Official x64 Windows LLVM embeds rpmalloc (overrides malloc). Rust's
+          # default /MD pulls ucrt.dll imports → LNK2005. Use static CRT and
+          # /INCLUDE:malloc so LLVMSupport's rpmalloc wins link order (llvm D71786).
+          extra_rustflags="-Ctarget-feature=+crt-static -Clink-arg=/INCLUDE:malloc -Lnative=${LIB_NATIVE}"
           for dep in zlib libiconv lzma liblzma charset iconv; do
             if [ -f "${LIB_DIR}/${dep}.lib" ]; then
               extra_rustflags="${extra_rustflags} -Clink-arg=${dep}.lib"
@@ -395,6 +400,7 @@ jobs:
           set -euo pipefail
           echo "SYX_LLVM_PREFIX=${SYX_LLVM_PREFIX:-}"
           echo "LLVM_SYS_211_PREFIX=${LLVM_SYS_211_PREFIX:-}"
+          echo "RUSTFLAGS=${RUSTFLAGS:-}"
           CFG="${LLVM_SYS_211_PREFIX}/bin/llvm-config"
           if [ ! -f "${CFG}" ] && [ ! -f "${CFG}.exe" ]; then
             # Git Bash may need Unix path to test existence when env is Windows-native.
@@ -410,6 +416,16 @@ jobs:
           else
             echo "ERROR: llvm-config not reachable via LLVM_SYS_211_PREFIX=${LLVM_SYS_211_PREFIX:-}" >&2
             exit 1
+          fi
+          # Defense in depth if the Windows libxml2 step did not run (shouldn't).
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            case " ${RUSTFLAGS:-} " in
+              *"crt-static"*) ;;
+              *)
+                export RUSTFLAGS="${RUSTFLAGS:+${RUSTFLAGS} }-Ctarget-feature=+crt-static -Clink-arg=/INCLUDE:malloc"
+                ;;
+            esac
+            echo "RUSTFLAGS(effective)=${RUSTFLAGS}"
           fi
           cargo build --release -p syx-cli --features full-native --target ${{ matrix.target }}
       # - name: Driver parity smoke (SYX 38.0)
