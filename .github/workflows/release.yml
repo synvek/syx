@@ -310,6 +310,86 @@ jobs:
           } >> "${GITHUB_ENV}"
           echo "SYX_LLVM_PREFIX=${NATIVE_PREFIX}"
           echo "LLVM_SYS_211_PREFIX=${NATIVE_PREFIX}"
+      # Official Windows clang+llvm tarballs list libxml2s.lib in
+      # `llvm-config --system-libs` but do not ship the file (llvm#172890).
+      - name: Provide libxml2s.lib for Windows LLVM
+        if: runner.os == 'Windows'
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          if [ -z "${LLVM_SYS_211_PREFIX:-}" ]; then
+            echo "ERROR: LLVM_SYS_211_PREFIX unset; Install LLVM step must run first" >&2
+            exit 1
+          fi
+          case "${TARGET}" in
+            x86_64-*) TRIPLET=x64-windows-static-md ;;
+            aarch64-*|arm64-*) TRIPLET=arm64-windows-static-md ;;
+            *)
+              echo "ERROR: unsupported Windows target for libxml2: ${TARGET}" >&2
+              exit 1
+              ;;
+          esac
+          if [ -z "${VCPKG_INSTALLATION_ROOT:-}" ]; then
+            echo "ERROR: VCPKG_INSTALLATION_ROOT unset on Windows runner" >&2
+            exit 1
+          fi
+          VCPKG_UNIX="$(cygpath -u "${VCPKG_INSTALLATION_ROOT}")"
+          LLVM_LIB_UNIX="$(cygpath -u "${LLVM_SYS_211_PREFIX}")/lib"
+          mkdir -p "${LLVM_LIB_UNIX}"
+
+          echo "Installing libxml2:${TRIPLET} via vcpkg"
+          "${VCPKG_UNIX}/vcpkg.exe" install "libxml2:${TRIPLET}" --clean-after-build
+
+          LIB_DIR="${VCPKG_UNIX}/installed/${TRIPLET}/lib"
+          if [ ! -d "${LIB_DIR}" ]; then
+            echo "ERROR: vcpkg lib dir missing: ${LIB_DIR}" >&2
+            exit 1
+          fi
+          SRC=""
+          for cand in "${LIB_DIR}/libxml2.lib" "${LIB_DIR}/libxml2s.lib" "${LIB_DIR}/xml2.lib"; do
+            if [ -f "${cand}" ]; then
+              SRC="${cand}"
+              break
+            fi
+          done
+          if [ -z "${SRC}" ]; then
+            echo "ERROR: no libxml2 .lib under ${LIB_DIR}" >&2
+            ls -la "${LIB_DIR}" >&2 || true
+            exit 1
+          fi
+          cp "${SRC}" "${LLVM_LIB_UNIX}/libxml2s.lib"
+          echo "Installed ${LLVM_LIB_UNIX}/libxml2s.lib from ${SRC}"
+
+          # Static libxml2 pulls zlib/iconv/lzma; llvm-sys only forwards
+          # llvm-config --system-libs (which names libxml2s.lib, not deps).
+          # Use mixed paths (C:/...) so GITHUB_ENV / RUSTFLAGS keep backslashes
+          # from being treated as escapes.
+          LIB_NATIVE="$(cygpath -m "${LIB_DIR}")"
+          LIB_NATIVE_WIN="$(cygpath -w "${LIB_DIR}")"
+          if [ -n "${LIB:-}" ]; then
+            echo "LIB=${LIB_NATIVE_WIN};${LIB}" >> "${GITHUB_ENV}"
+          else
+            echo "LIB=${LIB_NATIVE_WIN}" >> "${GITHUB_ENV}"
+          fi
+
+          extra_rustflags="-Lnative=${LIB_NATIVE}"
+          for dep in zlib libiconv lzma liblzma charset iconv; do
+            if [ -f "${LIB_DIR}/${dep}.lib" ]; then
+              extra_rustflags="${extra_rustflags} -Clink-arg=${dep}.lib"
+            fi
+          done
+          # libxml2 >= 2.12 needs BCryptGenRandom; ws2_32 is usually already
+          # in llvm-config --system-libs, but bcrypt is not.
+          extra_rustflags="${extra_rustflags} -Clink-arg=bcrypt.lib"
+          if [ -n "${RUSTFLAGS:-}" ]; then
+            echo "RUSTFLAGS=${RUSTFLAGS} ${extra_rustflags}" >> "${GITHUB_ENV}"
+          else
+            echo "RUSTFLAGS=${extra_rustflags}" >> "${GITHUB_ENV}"
+          fi
+          ls -la "${LLVM_LIB_UNIX}/libxml2s.lib"
+          echo "LIB search: ${LIB_NATIVE_WIN}"
+          echo "extra RUSTFLAGS: ${extra_rustflags}"
       - name: Build release CLI (full-native)
         run: |
           set -euo pipefail
