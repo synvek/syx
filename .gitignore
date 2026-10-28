@@ -5,6 +5,7 @@
 **/target/
 /syx-private/
 
+node_modules/
 editors/vscode-syx/node_modules/
 editors/vscode-syx/syx-language-*.vsix
 **/*.o

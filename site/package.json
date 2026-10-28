@@ -1,0 +1,17 @@
+{
+  "name": "syx-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/sync-content.mjs",
+    "prebuild": "node scripts/sync-content.mjs",
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "sync": "node scripts/sync-content.mjs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.13"
+  }
+}
