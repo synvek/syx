@@ -61,6 +61,8 @@ export default defineConfig({
 
   head: [
     ['meta', { name: 'theme-color', content: '#0f766e' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'apple-touch-icon', href: '/logo.svg' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'SYX Language' }],
     [
@@ -74,7 +76,7 @@ export default defineConfig({
   ],
 
   themeConfig: {
-    logo: undefined,
+    logo: '/logo.svg',
     siteTitle: 'SYX',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/synvek/syx' },

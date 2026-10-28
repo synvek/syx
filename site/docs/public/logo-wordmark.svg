@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" width="360" height="120" role="img" aria-label="SYX">
+  <defs>
+    <linearGradient id="syxWM" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="52%" stop-color="#0d9488"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="14" width="92" height="92" rx="22" fill="url(#syxWM)"/>
+  <text x="52" y="60" dy="0.35em" text-anchor="middle"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, 'PingFang SC', sans-serif"
+        font-weight="800" font-size="70" letter-spacing="-2" fill="#ffffff">S</text>
+  <text x="124" y="60" dy="0.35em" text-anchor="start"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, 'PingFang SC', sans-serif"
+        font-weight="800" font-size="74" letter-spacing="1" fill="url(#syxWM)">SYX</text>
+</svg>

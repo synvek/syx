@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="SYX logo">
+  <defs>
+    <linearGradient id="syxBrand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e"/>
+      <stop offset="52%" stop-color="#0d9488"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="56" fill="url(#syxBrand)"/>
+  <rect x="14" y="14" width="228" height="228" rx="44" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="2.5"/>
+  <text x="50%" y="50%" dy="0.35em" text-anchor="middle"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, 'PingFang SC', sans-serif"
+        font-weight="800" font-size="190" letter-spacing="-8" fill="#ffffff">S</text>
+</svg>
