@@ -14,6 +14,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  LLVM_VERSION: "21.1.6"
 
 jobs:
   meta:
@@ -74,38 +75,45 @@ jobs:
           #   artifact: syx-linux-x86_64
           #   exe_ext: ""
           #   wasmtime_asset: wasmtime-v25.0.0-x86_64-linux.tar.xz
+          #   llvm_asset: LLVM-21.1.6-Linux-X64.tar.xz
           #   native_examples: true
           # - os: ubuntu-24.04-arm
           #   target: aarch64-unknown-linux-gnu
           #   artifact: syx-linux-aarch64
           #   exe_ext: ""
           #   wasmtime_asset: wasmtime-v25.0.0-aarch64-linux.tar.xz
+          #   llvm_asset: LLVM-21.1.6-Linux-ARM64.tar.xz
           #   native_examples: true
-          # macOS x64 / arm64
-          - os: macos-15-intel
-            target: x86_64-apple-darwin
-            artifact: syx-macos-x86_64
-            exe_ext: ""
-            wasmtime_asset: wasmtime-v25.0.0-x86_64-macos.tar.xz
-            native_examples: true
+          # macOS x64: llvmorg-21.1.6 has no official macOS x86_64 tarball (ARM64 only).
+          # - os: macos-15-intel
+          #   target: x86_64-apple-darwin
+          #   artifact: syx-macos-x86_64
+          #   exe_ext: ""
+          #   wasmtime_asset: wasmtime-v25.0.0-x86_64-macos.tar.xz
+          #   llvm_asset: ""
+          #   native_examples: true
+          # macOS arm64
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact: syx-macos-aarch64
             exe_ext: ""
             wasmtime_asset: wasmtime-v25.0.0-aarch64-macos.tar.xz
+            llvm_asset: LLVM-21.1.6-macOS-ARM64.tar.xz
             native_examples: true
-          # Windows x64 / arm64
+          # Windows x64 / arm64 (clang+llvm dev tarballs include llvm-config + libs)
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact: syx-windows-x86_64
             exe_ext: ".exe"
             wasmtime_asset: wasmtime-v25.0.0-x86_64-windows.zip
+            llvm_asset: clang+llvm-21.1.6-x86_64-pc-windows-msvc.tar.xz
             native_examples: false
           - os: windows-11-arm
             target: aarch64-pc-windows-msvc
             artifact: syx-windows-aarch64
             exe_ext: ".exe"
             wasmtime_asset: wasmtime-v25.0.0-aarch64-windows.zip
+            llvm_asset: clang+llvm-21.1.6-aarch64-pc-windows-msvc.tar.xz
             native_examples: false
     runs-on: ${{ matrix.os }}
     defaults:
@@ -113,6 +121,55 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+      - name: Free runner disk space
+        run: |
+          set -euo pipefail
+          df -h || true
+          case "${{ runner.os }}" in
+            Linux)
+              sudo rm -rf \
+                /usr/share/dotnet \
+                /usr/local/lib/android \
+                /opt/ghc \
+                /usr/local/share/boost \
+                /usr/share/swift \
+                /usr/local/.ghcup \
+                /usr/lib/jvm \
+                /opt/hostedtoolcache/CodeQL \
+                /opt/hostedtoolcache/go \
+                /opt/hostedtoolcache/Python \
+                /opt/hostedtoolcache/Ruby \
+                || true
+              sudo apt-get clean || true
+              docker system prune -af || true
+              ;;
+            macOS)
+              for xcode_root in /Applications/Xcode.app /Applications/Xcode_*.app; do
+                [ -d "${xcode_root}" ] || continue
+                sudo rm -rf \
+                  "${xcode_root}/Contents/Developer/Platforms/AppleTVOS.platform" \
+                  "${xcode_root}/Contents/Developer/Platforms/AppleTVSimulator.platform" \
+                  "${xcode_root}/Contents/Developer/Platforms/WatchOS.platform" \
+                  "${xcode_root}/Contents/Developer/Platforms/WatchSimulator.platform" \
+                  "${xcode_root}/Contents/Developer/Platforms/XROS.platform" \
+                  "${xcode_root}/Contents/Developer/Platforms/XRSimulator.platform" \
+                  || true
+              done
+              sudo rm -rf \
+                /Users/runner/Library/Android \
+                /Users/runner/hostedtoolcache/CodeQL \
+                || true
+              ;;
+            Windows)
+              rm -rf \
+                "/c/Program Files/dotnet/sdk" \
+                "/c/Program Files (x86)/Android" \
+                "/c/ProgramData/chocolatey/lib" \
+                "/c/hostedtoolcache/windows/CodeQL" \
+                || true
+              ;;
+          esac
+          df -h || true
       # syx-vm path dep: ../../../synui/crates/synui (sibling checkout required)
       - name: Checkout synui sibling for syx-vm
         run: git clone --depth 1 https://github.com/synvek/synui.git "${GITHUB_WORKSPACE}/../synui"
@@ -121,9 +178,121 @@ jobs:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
         with:
-          key: release-${{ matrix.target }}
-      - name: Build release CLI
-        run: cargo build --release -p syx-cli --target ${{ matrix.target }}
+          key: release-full-native-${{ matrix.target }}-llvm${{ env.LLVM_VERSION }}
+      - name: Install LLVM ${{ env.LLVM_VERSION }} (full-native)
+        env:
+          LLVM_ASSET: ${{ matrix.llvm_asset }}
+        run: |
+          set -euo pipefail
+          if [ -z "${LLVM_ASSET}" ]; then
+            echo "ERROR: matrix.llvm_asset is empty for this runner" >&2
+            exit 1
+          fi
+          PREFIX="${GITHUB_WORKSPACE}/../llvm"
+          STAGE="${RUNNER_TEMP}/llvm-extract"
+          URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/${LLVM_ASSET}"
+          rm -rf "${PREFIX}" "${STAGE}"
+          mkdir -p "${STAGE}"
+
+          echo "Downloading ${URL}"
+          # Prefer stream extract (no archive left on disk); fall back to file if needed.
+          if ! curl -fsSL --retry 5 --retry-delay 5 "${URL}" | tar -xJ -C "${STAGE}"; then
+            echo "Stream extract failed; downloading archive to disk then extracting"
+            rm -rf "${STAGE}"
+            mkdir -p "${STAGE}"
+            ARCHIVE="${RUNNER_TEMP}/${LLVM_ASSET}"
+            curl -fsSL --retry 5 --retry-delay 5 -o "${ARCHIVE}" "${URL}"
+            tar -xJf "${ARCHIVE}" -C "${STAGE}"
+            rm -f "${ARCHIVE}"
+          fi
+
+          # Official tarballs have a single top-level directory.
+          TOP="$(find "${STAGE}" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          if [ -z "${TOP}" ]; then
+            echo "ERROR: no top-level directory in ${LLVM_ASSET}" >&2
+            ls -la "${STAGE}" >&2 || true
+            exit 1
+          fi
+          mkdir -p "${PREFIX}"
+          # Move rather than copy to save space.
+          shopt -s dotglob nullglob
+          mv "${TOP}"/* "${PREFIX}/"
+          shopt -u dotglob nullglob
+          rm -rf "${STAGE}"
+
+          # Drop components not needed for inkwell/llvm-sys + syx-lld:
+          # need: bin/llvm-config*, bin/lld*, include/{llvm,llvm-c,lld}, lib/LLVM*|liblld*|Polly*
+          rm -rf \
+            "${PREFIX}/share" \
+            "${PREFIX}/libexec" \
+            "${PREFIX}/python" \
+            "${PREFIX}/lib/python"* \
+            "${PREFIX}/lib/clang" \
+            "${PREFIX}/lib/ocaml" \
+            "${PREFIX}/include/clang" \
+            "${PREFIX}/include/clang-c" \
+            "${PREFIX}/include/clang-tidy" \
+            "${PREFIX}/include/mlir" \
+            "${PREFIX}/include/mlir-c" \
+            "${PREFIX}/include/flang" \
+            "${PREFIX}/include/lldb" \
+            "${PREFIX}/include/openmp" \
+            "${PREFIX}/include/c++" \
+            "${PREFIX}/include/polly" \
+            || true
+
+          if [ -d "${PREFIX}/bin" ]; then
+            while IFS= read -r -d '' f; do
+              base="$(basename "${f}")"
+              case "${base}" in
+                llvm-config|llvm-config.exe|lld|lld.exe|ld64.lld|ld.lld|lld-link|lld-link.exe|wasm-ld|wasm-ld.exe|*.dll)
+                  ;;
+                *)
+                  rm -rf "${f}"
+                  ;;
+              esac
+            done < <(find "${PREFIX}/bin" -mindepth 1 -maxdepth 1 -print0)
+          fi
+
+          if [ -d "${PREFIX}/lib" ]; then
+            while IFS= read -r -d '' f; do
+              base="$(basename "${f}")"
+              case "${base}" in
+                libLLVM*|LLVM*|liblld*|lld*|libPolly*|Polly*|cmake|libzstd*|zstd*|libxml2*|Remarks*)
+                  ;;
+                *)
+                  rm -rf "${f}"
+                  ;;
+              esac
+            done < <(find "${PREFIX}/lib" -mindepth 1 -maxdepth 1 -print0)
+          fi
+
+          CFG="${PREFIX}/bin/llvm-config"
+          if [ ! -f "${CFG}" ]; then
+            CFG="${PREFIX}/bin/llvm-config.exe"
+          fi
+          if [ ! -f "${CFG}" ]; then
+            echo "ERROR: llvm-config missing under ${PREFIX}/bin" >&2
+            ls -la "${PREFIX}/bin" >&2 || true
+            exit 1
+          fi
+          echo "Installed LLVM at ${PREFIX}"
+          "${CFG}" --version
+          "${CFG}" --prefix
+          du -sh "${PREFIX}" "${PREFIX}/bin" "${PREFIX}/lib" "${PREFIX}/include" || true
+          df -h || true
+
+          # Export a path Rust/Windows can open (cygpath/pwd -W on Git Bash).
+          ABS_PREFIX="$(cd "${PREFIX}" && pwd)"
+          if command -v cygpath >/dev/null 2>&1; then
+            ABS_PREFIX="$(cygpath -w "${ABS_PREFIX}")"
+          elif (cd "${PREFIX}" && pwd -W >/dev/null 2>&1); then
+            ABS_PREFIX="$(cd "${PREFIX}" && pwd -W)"
+          fi
+          echo "SYX_LLVM_PREFIX=${ABS_PREFIX}" >> "${GITHUB_ENV}"
+          echo "SYX_LLVM_PREFIX=${ABS_PREFIX}"
+      - name: Build release CLI (full-native)
+        run: cargo build --release -p syx-cli --features full-native --target ${{ matrix.target }}
       # - name: Driver parity smoke (SYX 38.0)
       #   run: |
       #     cargo test -p syx-driver \
@@ -257,6 +426,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           tag="${{ needs.meta.outputs.tag }}"
           version="${{ needs.meta.outputs.version }}"
           channel="${{ needs.meta.outputs.channel }}"
@@ -275,12 +445,41 @@ jobs:
 
           Also includes VS Code extension .vsix when packaging succeeds.
           EOF
-          assets=(artifacts/*/*)
+
+          # Each matrix job uploads its own SHA256SUMS with the same basename.
+          # GitHub Release assets must have unique names; duplicates cause
+          # uploads.github.com 404 "release not found" mid-upload.
+          mkdir -p release-assets
+          shopt -s nullglob
+          for f in artifacts/*/*; do
+            base="$(basename "$f")"
+            if [ "$base" = "SHA256SUMS" ]; then
+              continue
+            fi
+            if [ -e "release-assets/$base" ]; then
+              echo "ERROR: duplicate release asset name: $base (from $f)" >&2
+              exit 1
+            fi
+            cp "$f" "release-assets/$base"
+          done
           if compgen -G 'dist/*.vsix' > /dev/null; then
-            assets+=(dist/*.vsix)
+            cp dist/*.vsix release-assets/
           fi
-          gh release create "$tag" --title "$tag" --notes-file "$notes_file" "${assets[@]}" \
-            || gh release upload "$tag" "${assets[@]}"
+          (
+            cd release-assets
+            # Write outside the dir so the redirect does not include SHA256SUMS itself.
+            sha256sum * > ../SHA256SUMS
+            mv ../SHA256SUMS .
+            cat SHA256SUMS
+          )
+          assets=(release-assets/*)
+          ls -la "${assets[@]}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "${assets[@]}" --clobber
+          else
+            gh release create "$tag" --title "$tag" --notes-file "$notes_file" "${assets[@]}"
+          fi
       - name: Dev channel summary (no git tag)
         if: needs.meta.outputs.create_tag != 'true'
         run: |
