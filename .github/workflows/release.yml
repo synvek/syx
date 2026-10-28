@@ -17,18 +17,18 @@ jobs:
       matrix:
         include:
           # Linux x64 / arm64
-          - os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-            artifact: syx-linux-x86_64
-            exe_ext: ""
-            wasmtime_asset: wasmtime-v25.0.0-x86_64-linux.tar.xz
-            native_examples: true
-          - os: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
-            artifact: syx-linux-aarch64
-            exe_ext: ""
-            wasmtime_asset: wasmtime-v25.0.0-aarch64-linux.tar.xz
-            native_examples: true
+          # - os: ubuntu-24.04
+          #   target: x86_64-unknown-linux-gnu
+          #   artifact: syx-linux-x86_64
+          #   exe_ext: ""
+          #   wasmtime_asset: wasmtime-v25.0.0-x86_64-linux.tar.xz
+          #   native_examples: true
+          # - os: ubuntu-24.04-arm
+          #   target: aarch64-unknown-linux-gnu
+          #   artifact: syx-linux-aarch64
+          #   exe_ext: ""
+          #   wasmtime_asset: wasmtime-v25.0.0-aarch64-linux.tar.xz
+          #   native_examples: true
           # macOS x64 / arm64
           - os: macos-15-intel
             target: x86_64-apple-darwin
