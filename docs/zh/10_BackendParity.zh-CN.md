@@ -1,5 +1,3 @@
-> **SYX 117.0（Phase 139）** — VM · MIR · LLVM · WASM 后端 parity。ManagedHeap + ObjectRef；WASM SIMD guest-v22；Native **LLVM sole**。见 [architecture-decisions.md](../adr/architecture-decisions.md) · [implementation-status](../../books/shared/implementation-status.md)。
-
 # SYX 后端 Parity（VM · MIR/WASM · LLVM）
 
 [English](../10_BackendParity.md)

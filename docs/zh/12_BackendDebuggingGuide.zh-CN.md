@@ -2,9 +2,6 @@
 
 [English](../12_BackendDebuggingGuide.md)
 
-
-> **现状对齐：** SYX **117.0** · Phase **139** · Native **LLVM sole** · [10_BackendParity.md](./10_BackendParity.zh-CN.md)
-
 SYX 可在多条执行路径下运行同一份源码。本指南说明何时使用各路径、常见差异与排查步骤。
 
 ## 后端选择

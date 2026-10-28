@@ -5,10 +5,6 @@
 
 面向 **`.sy` 源码作者** 的语法与标准库速查。与 `syx-parser` / `syx-semantic` 当前能力对齐；工具链见 [9_UsageGuide.md](./9_UsageGuide.zh-CN.md)。
 
-> **版本：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../../LICENSE)  
-> **原生 AOT：** 仅 LLVM · **Host 全局：** [`packages/core/builtins/special/globals.sy`](../../packages/core/builtins/special/globals.sy)（`print` / `readLine` / `reflect`）  
-> **实现状态 SSOT：** [books/shared/implementation-status.md](../../books/shared/implementation-status.md)  
-> 历史 Phase 条幅已移除；细节以 status / ADR 为准。
 
 ---
 

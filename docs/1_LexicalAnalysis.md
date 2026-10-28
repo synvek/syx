@@ -2,9 +2,6 @@
 
 [简体中文](./zh/1_LexicalAnalysis.zh-CN.md)
 
-> **Current alignment:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
-> Implementation status SSOT: [books/shared/implementation-status.md](../books/shared/implementation-status.md) · Doc index: [README.md](./README.md)
-
 ## 1. Overview
 
 The lexer is the first stage of the SYX compiler pipeline. It turns `.sy` source text into a `Token` stream for `syx-parser` to parse.

@@ -2,9 +2,6 @@
 
 [简体中文](./zh/2_SyntaxAnalysis.zh-CN.md)
 
-> **Current alignment:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
-> Implementation status SSOT: [books/shared/implementation-status.md](../books/shared/implementation-status.md) · Doc index: [README.md](./README.md)
-
 ## 1. Overview
 
 The parser is the second stage of the SYX compiler pipeline. It converts the `Token` stream from `syx-lexer` into an abstract syntax tree (AST).

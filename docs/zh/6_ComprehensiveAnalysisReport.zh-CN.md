@@ -3,10 +3,6 @@
 [English](../6_ComprehensiveAnalysisReport.md)
 
 
-> **现状 SSOT：** [books/shared/implementation-status.md](../../books/shared/implementation-status.md)（SYX **117.0** / Phase **139** · `syx-cache-v1` · audit 2600/3050）。  
-> **许可证：** [Apache-2.0](../../LICENSE) · **原生 AOT：** 仅 LLVM。  
-> 下文保留历史竞争力 / Phase 差距审计叙述，**勿**当作当前版本条幅。架构决议见 [architecture-decisions.md](../adr/architecture-decisions.md)。
-
 ### Phase 33 → Phase 34 scaffold vs 生产（差距审计）
 
 | 领域 | Phase 33 实际 | Phase 34 目标 |

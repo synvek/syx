@@ -4,11 +4,6 @@
 
 Syntax and standard-library cheat sheet for **`.sy` source authors**. Aligned with current `syx-parser` / `syx-semantic` capabilities; toolchain usage in [9_UsageGuide.md](./9_UsageGuide.md).
 
-> **Version:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
-> **Native AOT:** LLVM only · **Host globals:** [`packages/core/builtins/special/globals.sy`](../packages/core/builtins/special/globals.sy) (`print` / `readLine` / `reflect`)  
-> **Implementation SSOT:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
-> Legacy Phase banners removed; details follow status / ADRs.
-
 ---
 
 ## Table of contents

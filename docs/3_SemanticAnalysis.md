@@ -2,10 +2,6 @@
 
 [简体中文](./zh/3_SemanticAnalysis.zh-CN.md)
 
-> **Current alignment:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
-> Built-in types SSOT: [`packages/core/builtins/`](../packages/core/builtins/) (numeric types generated from [`_templates/`](../packages/core/builtins/_templates/))  
-> Implementation status SSOT: [books/shared/implementation-status.md](../books/shared/implementation-status.md) · Doc index: [README.md](./README.md)
-
 ## 1. Overview
 
 Semantic analysis is the third stage of the SYX compile pipeline, in `crates/syx-semantic/`. This crate type-checks `syx_ast::Module`: type inference, symbol resolution, scope management, and cross-module visibility, supplying type information for MIR and code generation.

@@ -1,11 +1,6 @@
-# SYX 完整使用指南
+# SYX 快速使用指南
 
 [English](../9_UsageGuide.md)
-
-
-> **Phase 139（SYX 117.0）：** Truth M0–M4 口径下的语言/工具链；SIMD16 guest-v22；SynUI deferred；Farm/Dist frozen v19；audit **2600/3050**；`syx-cache-v1`；原生 AOT **仅 LLVM**；许可证 [Apache-2.0](../../LICENSE)。  
-> 详见 [architecture-decisions.md](../adr/architecture-decisions.md) 与 [implementation-status](../../books/shared/implementation-status.md)。
-
 
 
 本文档面向 **SYX 语言用户与工具链使用者**，涵盖安装、CLI、项目配置、语言特性、标准库、工具链与进阶编译选项。技术实现细节请参阅 [docs/README.md](./README.zh-CN.md) 中的编译器文档。
@@ -492,292 +487,6 @@ syx run examples/deps         # 输出 42（local_math.add(10, 32)）
 | `File.copy(from, to)` | 复制文件 |
 | `File.move(from, to)` | 移动文件 |
 
-`FileHandle`（`import IO`）提供带 `throws IOError` 的 open/read/write/close/seek/readAllBytes。路径拼装用 prelude `Path.join` / `normalize` / `exists` / `fileExtension`（OS 分隔符契约： / `ec_m2_1_path_contract`；**非** Path GA）。Path/File HostFn availability 已在能力矩阵诚实回写；native/WASM 列诚实加深已钉（`ec_m2_4_path_file_native_wasm_matrix`）；PathJoin llvm GA 首档已钉（`ec_m2_4_path_file_native_wasm_ga`；`PathJoin` `llvm=real` + native AOT 执行证据）；PathExtension llvm GA 二档已钉（`ec_m2_4_path_file_native_wasm_ga2`；`PathExtension` `llvm=real` + native AOT `"a/b.txt"` → `"txt"`）；PathNormalize llvm GA 三档已钉（`ec_m2_4_path_file_native_wasm_ga3`；`PathNormalize` `llvm=real` + native AOT `"a/b/../c"` → `"a/c"`；PathExists/File* 仍 `llvm=partial` / `wasm=host-assisted` / 产品 `native=partial`；**非** 全量 Path/File GA **非** wasm GA **非** EC-M2-4 全量退出）。`Path.join`×N Instant 微基准在测试层（`ec_m2_4_path_file_microbench`；**非** perf SLA **非** EC-M2-4 全量退出）。`Path.join`×N Criterion 正式 benchmark 首档在 `cargo bench`（`ec_m2_4_path_file_criterion`；**非** absolute SLA gate **非** EC-M2-4 全量退出）。示例：`examples/file_tool/`（ EC-M2-1 切片）。存活计数 `file_handle_live_count` 仅在测试/诊断层（ EC-M2-3 首钉），**不是**应用 API。
-
-**EC-M2-3-Z：** post-Sx 四类生产路径（File `withOpen` / Sql `poolClose` / ProcessBuilder+`Child.wait` / Tcp host-release）live_count 回基线钉已签；**非** EC-M2-3 总勾 **非** Q-S5。钉测：`ec_m2_3_z_closeout`。
-
-**EC-M2-4-Z：** A–H 八轴加深轨（availability/µbench/Criterion/matrix/GA1–3 closeout/Tcp GA4）证据链收口已签；**非** absolute SLA **非** 产品 `native=real`/`wasm=real` **非** 全量 HostFn GA。钉测：`ec_m2_4_z_closeout`。
-
-**EC-M2-4 总勾：** 加深轨退出口径 A–H + Z 已签（诚实收窄）；四产品切片仍 `native=partial` / `wasm=host-assisted`；**非** absolute SLA **非** backends=`real`。钉测：`ec_m2_4_total_closeout`。
-
-**M2 退出：** 四 EC 总勾已签前提下的 thin exit；开放债（SLA / backends=`real` / 全量 HostFn GA / Path GA / TLS server·accept）**不挡退出**。钉测：`m2_exit_closeout`。
-
-**M3-A01 task tree 首钉：** `Concurrency.taskGroupCancel` 取消组内子任务；`taskGroupWait` 在 cancel 后及时返回；子 `join` 表面 **C004**；**非** silent-leak GA **非** EC-M3-* **非** deadline。钉测：`m3_a01_task_tree`。
-
-**M3-A01 silent-leak 加深：** `Concurrency.liveTaskCount` / `__syx_task_live_count`；结构化 `taskGroupWait`（含 cancel+wait）后 live_count 回 baseline；未入组 unreaped detach 可观测 `LEAKED`；**非** EC-M3-2 **非** A01 叶子满勾（本窗）**非** deadline。钉测：`m3_a01_silent_leak`。
-
-**M3-A01 leaf thin closeout：** task tree + silent-leak 双轴证据链收口；roadmap `M3-A01` `[x]`；**非** EC-M3-2 **非** 全量 structured-concurrency GA **非** A02–A03 **非** M3 退出。钉测：`m3_a01_closeout`。
-
-**M3-A02 deadline 首钉：** `Concurrency.setDeadlineMs`；子任务继承；到期协作取消；长 sleep 及时返回；join **C004**；**非** TaskLocal GA **非** EC-M3 **非** A02 满勾。钉测：`m3_a02_deadline`。
-
-**M3-A02 task-local 加深：** `Concurrency.taskLocalSet` / `taskLocalGet`；子任务克隆继承；子写不回写父；**非** `@TaskLocal` **非** EC-M3 **非** A02 满勾（本窗）。钉测：`m3_a02_task_local`。
-
-**M3-A02 leaf thin closeout：** deadline + task-local 双轴证据链收口；roadmap `M3-A02` `[x]`；**非** EC-M3 **非** `@TaskLocal` GA **非** A03 **非** M3 退出。钉测：`m3_a02_closeout`。
-
-**M3-A03 actor reentrancy 首钉：** `Concurrency.actorReentrancyPolicy`；同实例同步重入 → **C009**；**非** Swift await-reentrancy GA **非** EC-M3 **非** A03 满勾。钉测：`m3_a03_reentrancy`。
-
-**M3-A03 await-hold 加深：** policy → `serial-no-reenter;await-hold`；handler 内 sleep/await 期间无 mid-await mailbox 插队；**非** Swift await-reentrancy GA **非** EC-M3 **非** A03 满勾（本窗）。钉测：`m3_a03_await_reentrancy`。
-
-**M3-A03 leaf thin closeout：** reentrancy + await-hold 双轴证据链收口；roadmap `M3-A03` `[x]`；**非** EC-M3 **非** Swift await-reentrancy GA **非** B01 **非** M3 退出。钉测：`m3_a03_closeout`。
-
-**M3-B01 isolation 薄首钉：** 独立 `blocking_pool`；`Concurrency.blockingSleep` / `isolationPolicy`；Task 池 size=1 时长阻塞不得饿死短 Task；**未**改道 `__syx_task_sleep` / HTTP/File；**非** epoll reactor **非** B02 **非** EC-M3 **非** B01 叶子 `[x]`。钉测：`m3_b01_isolation`。
-
-**M3-B01 isolation 加深：** `Concurrency.setBlockingPoolSize` / `blockingPoolSize`；指纹 `task-pool+blocking-pool-v1-sized`；size=2 并行 `blockingSleep` + size=1 排队不得饿死短 Task；**非** B01 叶子 `[x]`（当时） **非** B02 **非** EC-M3 **非** reactor GA。钉测：`m3_b01_pool_sizing`。
-
-**M3-B01 leaf thin closeout：** isolation + sizing 双轴证据链收口；roadmap `M3-B01` `[x]`；**非** EC-M3 **非** epoll reactor GA **非** B02 **非** M3 退出。钉测：`m3_b01_closeout`。
-
-**M3-B02 async adapter 薄首钉：** `File.readAsync` / `__syx_file_read_async` + `HttpRequestAsync` 改道 `blocking_pool`；指纹原 `v1-thin`（加深后升档见 ）；**非** epoll reactor GA **非** 同步 File·Http 改道 **非** EC-M3。钉测：`m3_b02_async_adapter`。
-
-**M3-B02 async adapter 加深：** `TcpStream.readAsync` / `__syx_tcp_read_async` 走 `blocking_pool`；指纹 `blocking-pool-async-adapter-v1-tcp`；**非** TcpWrite/Connect async **非** accept GA **非** epoll reactor GA **非** HttpRequestAsync capability TOML **非** EC-M3。钉测：`m3_b02_tcp_async`。
-
-**M3-B02 leaf thin closeout：** File/HTTP thin + Tcp deepen 双轴证据链收口；roadmap `M3-B02` `[x]`；**非** EC-M3 **非** epoll reactor GA **非** TcpWrite·Connect async GA **非** M3 退出。钉测：`m3_b02_closeout`。
-
-**M3-C01 Mutex RAII 薄首钉：** `Mutex.lockGuard` → `MutexGuard`（`deinit` quiet unlock）；指纹原 `v1-thin`（加深后升档见 ）；**非** C02 **非** EC-M3。钉测：`m3_c01_mutex_raii`。
-
-**M3-C01 Mutex blocking 加深：** `__syx_mutex_lock_wait`（held 时 Condvar wait）；产品 `Mutex.lock` / `lockGuard` 改道 wait；指纹 `mutex-raii-guard-v1-blocking`；跨 Task 争用证据；try-lock HostFn 保留；**非** C02 **非** EC-M3。钉测：`m3_c01_mutex_blocking`。
-
-**M3-C01 leaf thin closeout：** RAII thin + blocking deepen 双轴证据链收口；roadmap `M3-C01` `[x]`；**非** C02 **非** EC-M3 **非** M3 退出。钉测：`m3_c01_closeout`。
-
-**M3-C02 Semaphore 薄首钉：** `Semaphore.create/wait/tryWait/signal`；指纹曾为 `semaphore-v1-thin`；钉测：`m3_c02_semaphore`。
-
-**M3-C02 SemaphoreGuard RAII 加深：** `SemaphoreGuard` + `Semaphore.waitGuard`；指纹 `semaphore-v1-raii`；钉测：`m3_c02_semaphore_raii`。
-
-**M3-C02 叶子薄收口：** 双轴证据链（thin + RAII）→ 叶子 `[x]`（Semaphore 切片）；**非** RWLock **非** Condvar 产品 **非** EC-M3 **非** C03。钉测：`m3_c02_closeout`。
-
-**M3-C03 内存序 / Atomic 文档首钉：** 跨 Task 共享可变 → `Mutex` / `Semaphore` / `Channel` 建立 happens-before；**无**产品 `Atomic*` / `memory_order` 枚举；Wasm atomics **unsupported**；race/stress → C04。钉测：`m3_c03_memory_ordering`。
-
-**M3-C03 叶子薄收口：** docs 证据链收口 → 叶子 `[x]`（内存序/Atomic 诚实文档切片）；**非**产品 Atomic API **非** Wasm atomics 满勾 **非** C04 **非** EC-M3。钉测：`m3_c03_closeout`。
-
-**M3-C04 race/stress CI 抽样首钉：** 机读样例库 `race_stress_samples.toml` + 跨 Task Mutex 抽样冒烟；钉测：`m3_c04_race_stress`。
-
-**M3-C04 chaos 抽样加深：** TaskGroup cancel 中断长 sleep → C004；样例库 `kind=chaos`；钉测：`m3_c04_chaos`。
-
-**M3-C04 叶子收口：** stress + chaos 双轴证据链 → `[x]`；**非** TSAN **非** 杀进程·网络分区 chaos GA **非** EC-M3。钉测：`m3_c04_closeout`。
-
-**M3-D01 structured logging 薄首钉：** `Log.setMinLevel` / `infoFields` / 指纹 `log-v1-thin`；钉测：`m3_d01_structured_logging`。
-
-**M3-D01 全 level `*Fields` 加深：** `debugFields` / `warnFields` / `errorFields`；指纹 `log-v1-fields`；钉测：`m3_d01_log_fields`。
-
-**M3-D01 叶子收口：** thin + fields 双轴证据链 → `[x]`；指纹 `log-v1-fields`；**非** JSON GA **非** D02–D04 **非** EC-M3。钉测：`m3_d01_closeout`。
-
-**M3-D02 Trace/Span 薄首钉：** `Trace.start` / `end` / `current` / `contextLine`（含 `task_id`/`actor_id`）/ 指纹 `trace-v1-thin`；**非** OTel/W3C 传播 GA **非** D02 `[x]` **非** D03–D04 **非** EC-M3。钉测：`m3_d02_trace_span`。
-
-**M3-D02 nested + Log context 加深：** nested LIFO；`Log.*Fields` 自动注入 `span`/`task_id`/`actor_id`；指纹 `trace-v1-logctx`；**非** OTel GA **非** 跨 Task span 继承 **非** D02 `[x]` **非** EC-M3。钉测：`m3_d02_trace_logctx`。
-
-**M3-D02 叶子收口：** thin + logctx 双轴证据链 → `[x]`；指纹 `trace-v1-logctx`；**非** OTel GA **非** 跨 Task 继承 **非** D03–D04 **非** EC-M3。钉测：`m3_d02_closeout`。
-
-**M3-D03 Metrics Counter 薄首钉：** `Metrics.inc` / `get` / `reset` / `snapshot` / 指纹 `metrics-v1-thin`；**非** OTel/Prometheus export **非** Gauge/Histogram/labels **非** D03 `[x]` **非** D04 **非** EC-M3。钉测：`m3_d03_metrics_counter`。
-
-**M3-D03 Gauge + labeled counter 加深：** `Metrics.gaugeSet` / `gaugeGet` / `incLabels` / `getLabels`；snapshot 含 `g:name=v` 与 `name{k=v}=n`；指纹 `metrics-v1-gauge-labels`；**非** OTel/Prometheus export **非** Histogram **非** D04 **非** EC-M3。钉测：`m3_d03_metrics_gauge_labels`。
-
-**M3-D03 叶子薄收口：** thin + deepen 双轴证据链 → `M3-D03` `[x]`；指纹保持 `metrics-v1-gauge-labels`；**非** OTel/Prometheus export **非** Histogram **非** D04 **非** EC-M3。钉测：`m3_d03_closeout`。
-
-**M3-D04 Profiler 区段墙钟薄首钉：** `Profiler.start` / `stop` / `elapsed` / `reset` / `snapshot` / 指纹 `profiler-v1-thin`；**非** 采样 GA **非** CPU-time GA **非** pprof export **非** D04 `[x]` **非** EC-M3。钉测：`m3_d04_profiler_sections`。
-
-**M3-D04 进程 CPU 区段加深：** `Profiler.cpuStart` / `cpuStop` / `cpuElapsed`；snapshot 含 `c:name=ms`；指纹 `profiler-v1-cpu`；**非** 采样 GA **非** pprof export **非** EC-M3。钉测：`m3_d04_profiler_cpu`。
-
-**M3-D04 叶子薄收口：** thin + deepen 双轴证据链 → `M3-D04` `[x]`；指纹保持 `profiler-v1-cpu`；**非** 采样 GA **非** pprof export **非** EC-M3。钉测：`m3_d04_closeout`。
-
-**EC-M3-4 Observability 证据链薄首钉：** D01–D04 四叶 closeout + 指纹证据链（`log-v1-fields` / `trace-v1-logctx` / `metrics-v1-gauge-labels` / `profiler-v1-cpu`）；roadmap 脚注 thin 已交；**非** 采样 **非** pprof **非** OTel **非** M3 退出。钉测：`ec_m3_4_observability`。
-
-**EC-M3-4 叶子薄收口：** thin 证据链 → `EC-M3-4` 总勾 `[x]`（诚实收窄）；**非** EC-M3-1～3 **非** 采样 **非** pprof **非** OTel **非** M3 退出。钉测：`ec_m3_4_closeout`。
-
-**EC-M3-2 Silent-leak 证据链薄首钉：** A01 closeout + task-tree/silent-leak 双轴 + `liveTaskCount` / `TaskLiveCount`；roadmap 脚注 thin 已交；**非** async-let GA **非** 非 group 回收完备 **非** EC-M3-1/3 **非** M3 退出。钉测：`ec_m3_2_silent_leak`。
-
-**EC-M3-2 叶子薄收口：** thin 证据链 → `EC-M3-2` 总勾 `[x]`（诚实收窄）；**非** async-let GA **非** 非 group 回收完备 **非** EC-M3-1/3 **非** M3 退出。钉测：`ec_m3_2_closeout`。
-
-**M3-E01 权限模型文档薄首钉：** 五域 default-deny 意图（`docs/capability-sandbox-policy-v0.md`）；指纹 `permission-policy-v0:default-deny-intent`；roadmap `M3-E01` `[~]`；**非** 运行时强制 **非** CLI grant **非** HostFn 闸门 **非** EC-M3-3 **非** M3 退出。钉测：`m3_e01_permission_model`。
-
-**M3-E01 叶子薄收口：** 策略文档证据链收口；roadmap `M3-E01` `[x]`；**非** 运行时强制 **非** E02–E03 **非** EC-M3-3 **非** M3 退出。钉测：`m3_e01_closeout`。
-
-**M3-E02 权限授予薄首钉：** opt-in `--permission-sandbox` + `--allow-net` / `SYX_ALLOW_NET`；指纹 `permission-grants-v0:allow-net-cli`；未授权 net HostFn → `S024`（W52 起；曾用 `S023`）；roadmap `M3-E02` `[~]`；**非** 五域 GA **非** E03 **非** EC-M3-3 **非** M3 退出。钉测：`m3_e02_permission_grants`。
-
-**M3-E02 权限授予加深：** `--allow-fs` / `SYX_ALLOW_FS` + `syx.toml` `[permissions]`；指纹 `permission-grants-v0:allow-net-fs-toml`；`FileRead`/`FileWrite` 未授权 → `S024`；roadmap `M3-E02` 仍 `[~]`；**非** 五域 GA **非** path allowlist **非** E03 **非** EC-M3-3。钉测：`m3_e02_permission_fs`。
-
-** D-04 env+process 薄闸：** opt-in `--allow-env` / `--allow-process`；未授权 `EnvGet`/`EnvSet`/`ProcessExec`/`ProcessSpawn` → `S024`；**非** 五域 GA **非** default-on **非** plugin 闸 **非** D-04 `[x]`。钉测：`qs1_d04_permission_env` / `qs1_d04_permission_process`。
-
-** D-04 env+process 薄闸：** opt-in `--allow-env` / `--allow-process`；未授权 `EnvGet`/`EnvSet`/`ProcessExec`/`ProcessSpawn` → `S024`；**非** 五域 GA **非** default-on **非** plugin 闸 **非** D-04 `[x]`。钉测：`qs1_d04_permission_env` / `qs1_d04_permission_process`。
-
-** D-04 plugin 薄闸：** opt-in `--allow-plugin`；未授权 `__syx_plugin_*` → `S024`；**非** 五域 GA **非** default-on **非** plugin-id allowlist **非** D-04 `[x]`。钉测：`qs1_d04_permission_plugin`。
-
-** HostFn 中间 meta F-10：** 删施工链中间 first-slice meta ×21；保留 status 收口 / Process honesty / D-04/F-08 活地板；**非** D-04 `[x]` **非** F-08 `[x]` **非** 全量 HostFn status。钉测：`qs1_hostfn_intermediate_meta_f10_first_slice`。
-
-** D-04 default-on 产品决策 ADR：** 书面决策 = **保持 opt-in**；sandbox **不是** default-on；default-on **延至**显式执行窗；**非** D-04 `[x]` **非** 五域 GA **非** sandbox 默认开。钉测：`qs1_d04_default_on_adr_first_slice`。
-
-** D-04 opt-in 书面缩小域：** D-04 **`[x]`** = opt-in + 五域薄闸齐；**非** sandbox 默认开 **非** 五域 default-on GA **非** default-on 执行。钉测：`qs1_d04_optin_soft_close_first_slice`。
-
-** D-01 产品执行 ADR：** D-01 **产品执行 ADR met**；行 **仍冻**；**非** load-farm GA **非** 压测脚手架落地 **非** D-01 `[x]`。钉测：`qs1_d01_execute_adr_first_slice`。
-
-** D-01 脚手架：** 既有 HTTP Criterion 钉成可复现报告薄入口；行 **仍冻**；**非** load-farm GA **非** 新 Criterion **非** D-01 `[x]`。复现：`cargo bench -p syx-driver --bench http_response_criterion -- --sample-size 10 --warm-up-time 1 --measurement-time 2`。钉测：`qs1_d01_scaffold_first_slice`。
-
-** D-01 加深：** 既有 path/sql/tcp Criterion 钉成可复现报告；行 **仍冻**；**非** load-farm GA **非** actor Criterion **非** D-01 `[x]`。复现：`cargo bench -p syx-driver --bench path_join_criterion` / `--bench sql_exec_criterion` / `--bench tcp_connect_criterion`（同样 `--sample-size 10 --warm-up-time 1 --measurement-time 2`）。钉测：`qs1_d01_deepen_first_slice`。
-
-** D-01 load-farm GA charter：** 书面冻结未来诚实宣称 load-farm GA 的 in-scope/OUT（HTTP + path/sql/tcp Criterion 可复现报告链）；行 **仍冻**；**非** load-farm GA **非** actor Criterion **非** D-01 `[x]`。钉测：`qs1_d01_load_farm_ga_charter_first_slice`。
-
-** D-01 load-farm GA 宣称：** charter in-scope 完成面宣称 + soft-close；`| D-01 |` **`[x]`**；本窗 inventory `d01_load_farm_ga_not_claimed=false`；**非** actor Criterion **非** 绝对 SLA **非** 默认 CI 硬闸。钉测：`qs1_d01_load_farm_ga_claim_first_slice`。
-
-** D-05/D-06 产品执行 ADR：** 书面冻结 Actor 共享池 + DiscardOldest 产品完成面（同 ADR）；行 **仍冻**；**非** Actor pool GA **非** DiscardOldest 产品 GA **非** D-05·06 `[x]`。钉测：`qs1_d05_d06_execute_adr_first_slice`。
-
-** D-05/D-06 施工：** 钉既有 Actor 共享池 MVP + DiscardOldest MVP 薄入口；行 **仍冻**；**非** Actor pool GA **非** DiscardOldest 产品 GA **非** D-05·06 `[x]`。钉测：`qs1_d05_d06_construction_first_slice`。
-
-** D-05/D-06 加深：** 钉 Actor 共享池 race-census + DiscardOldest 策略加深 SSOT；行 **仍冻**；**非** Actor pool GA **非** DiscardOldest 产品 GA **非** soft-close **非** D-05·06 `[x]`。钉测：`qs1_d05_d06_deepen_first_slice`。
-
-** D-05/D-06 收窄 soft-close：** deepen SSOT 完成面翻行；`| D-05 |` / `| D-06 |` **`[x]`**；Wave D **6/6**；**仍** 伞 Actor pool / DiscardOldest 产品 GA **未宣称**。钉测：`qs1_d05_d06_soft_close_first_slice`。
-
-** D-02 产品执行 ADR：** D-02 **产品执行 ADR met**；行 **仍冻**；**非** TSAN GA **非** loom GA **非** 已知问题清单落地 **非** D-02 `[x]`。钉测：`qs1_d02_execute_adr_first_slice`。
-
-** D-02 已知问题清单：** 既有 M3-C04 corpus 钉成清单表体；行 **仍冻**；**非** 清单完成 **非** TSAN GA **非** loom GA **非** D-02 `[x]`。钉测：`qs1_d02_known_issues_first_slice`。
-
-** D-02 已知问题清单加深：** 书面冻结仍开残差分类（TSAN CI / loom / kill·网络 chaos / wasm atomics / Actor 共享池竞态）；行 **仍冻**；**非** 清单完成 **非** TSAN CI **非** TSAN GA **非** D-02 `[x]`。钉测：`qs1_d02_known_issues_deepen_first_slice`。
-
-** D-02 TSAN CI 采样：** nightly/opt-in `tsan-sample.yml`（`-Zsanitizer=thread` + 窄 race_stress mutex smoke）；行 **仍冻**；**非** TSAN GA **非** 默认 PR CI 硬闸 **非** 清单完成 **非** D-02 `[x]`。钉测：`qs1_d02_tsan_ci_sampling_first_slice`。
-
-** D-02 已知问题清单 complete：** 残差 gap disposition→`deferred`（无 `open`）；行 **仍冻**；**非** TSAN GA **非** harden 完成 **非** D-02 `[x]`。钉测：`qs1_d02_known_issues_complete_first_slice`。
-
-** D-02 TSAN sample harden：** `tsan-sample.yml` 滤 `m3_c04_race_stress` 前缀 + fail-closed；`tsan_ci=sampling_hardened`；行 **仍冻**；**非** TSAN GA **非** 默认 PR CI 硬闸 **非** D-02 `[x]`。钉测：`qs1_d02_tsan_harden_first_slice`。
-
-** D-02 TSAN GA charter：** 书面冻结未来诚实宣称 TSAN GA 的 in-scope/OUT（`tsan-sample.yml` + race_stress fail-closed + list complete + `sampling_hardened`）；行 **仍冻**；**非** TSAN GA **非** 默认 PR CI 硬闸 **非** D-02 `[x]`。钉测：`qs1_d02_tsan_ga_charter_first_slice`。
-
-** D-02 TSAN GA 宣称：** charter in-scope 完成面宣称 + soft-close；`| D-02 |` **`[x]`**；本窗 inventory `d02_tsan_ga_not_claimed=false`；**非** 默认 PR CI 硬闸 **非** loom GA **非** 全量 stress。钉测：`qs1_d02_tsan_ga_claim_first_slice`。
-
-** D-03 产品执行 ADR：** D-03 **产品执行 ADR met**；行 **仍冻**；**非** OTel GA **非** pprof GA **非** 端到端示例落地 **非** D-03 `[x]`。钉测：`qs1_d03_execute_adr_first_slice`。
-
-** D-03 端到端示例：** `examples/observability_demo.sy` 串联 Log+Trace+Metrics+Profiler（指纹 `obs-demo-v1`）；`cargo run -p syx-cli -- run ./examples/observability_demo.sy`；in-process 薄可观测性；行 **仍冻**；**非** OTel GA **非** pprof export **非** D-03 `[x]`。钉测：`qs1_d03_e2e_example_first_slice`。
-
-** D-03 收窄 soft-close：** `| D-03 |` **`[x]`** = ADR-1604 in-process e2e 完成面；**非** OTel GA **非** pprof 产品 GA。钉测：`qs1_d03_soft_close_first_slice`。
-
-** E-02 负例全集 charter：** 书面冻结 loopback fail-closed 负例全集 in-scope/OUT；仍 `e02_negative_tests_not_claimed`；**非** 负例全集宣称 **非** streaming GA **非** 产品 gRPC GA。钉测：`qs1_e02_negative_tests_complete_charter_first_slice`。
-
-** E-02 负例全集宣称：** charter in-scope 完成面宣称 + soft-close；本窗 inventory `e02_negative_tests_not_claimed=false`；**非** streaming GA **非** 产品 gRPC GA。钉测：`qs1_e02_negative_tests_complete_claim_first_slice`。
-
-** E-02 streaming GA charter：** 书面冻结 loopback streaming 完成面 in-scope/OUT（W1158–W1166）；仍 `e02_streaming_not_claimed`；**非** streaming GA 宣称 **非** 产品 gRPC GA。钉测：`qs1_e02_streaming_ga_charter_first_slice`。
-
-** E-02 streaming GA 宣称：** charter in-scope 完成面宣称 + soft-close；本窗 inventory `e02_streaming_not_claimed=false`；**非** 产品 gRPC GA **非** 互操作全集。钉测：`qs1_e02_streaming_ga_claim_first_slice`。
-
-** E-02 product gRPC·interop GA charter：** 书面冻结未来诚实宣称产品 gRPC GA + 互操作 GA 的 in-scope/OUT（同 ADR 双伞）；仍 `e02_grpc_not_claimed` ∧ `e02_interop_not_claimed`；**非** 产品 gRPC GA **非** 互操作全集 **非** 翻两伞。钉测：`qs1_e02_product_grpc_interop_ga_charter_first_slice`。
-
-** E-02 product gRPC·interop GA 宣称：** charter in-scope 完成面宣称 + soft-close；本窗 inventory `e02_grpc_not_claimed=false` ∧ `e02_interop_not_claimed=false`；**非** tonic 全集 **非** 升 `net.grpc` **非** 改写 W1273 历史双伞。钉测：`qs1_e02_product_grpc_interop_ga_claim_first_slice`。
-
-** E-03 产品执行 ADR：** 书面冻结「更多 DB」完成面 in-scope/OUT；行 **仍冻**；**非** 更多 DB 产品 GA **非** SQLite 加深 **非** E-03 `[x]`。钉测：`qs1_e03_execute_adr_first_slice`。
-
-** E-03 scaffold：** 钉既有 `sql.sy` / `:memory:` / Sql.* / `data.sqlite` partial 为薄入口；行 **仍冻**；**非** SQLite 加深 **非** 更多 DB 产品 GA **非** E-03 `[x]`。钉测：`qs1_e03_scaffold_first_slice`。
-** E-03 SQLite deepen：** 书面残差诚实 census SSOT（file DSN vs `:memory:`；`data.sqlite` partial；Orm OUT；第二 driver OUT）；行 **仍冻**；**非** Sql 施工加深 **非** 更多 DB 产品 GA **非** E-03 `[x]`。钉测：`qs1_e03_sqlite_deepen_first_slice`。
-** E-03 soft-close：** 收窄 deepen 完成面翻 `| E-03 |` → `[x]`；**仍** `e03_more_db_ga_not_claimed`；**非** 更多 DB 产品 GA **非** Sql 施工加深。钉测：`qs1_e03_soft_close_first_slice`。
-** E-04 execute ADR：** 书面冻结 SynUI 真 renderer/event/a11y 完成面 in-scope/OUT；行 **仍冻**；**非** SynUI 产品 GA **非** v13 施工 **非** E-04 `[x]`。钉测：`qs1_e04_execute_adr_first_slice`。
-** E-04 scaffold：** 钉既有 `packages/ui` / `__syx_synui_*` 为薄入口；行 **仍冻**；**非** SynUI deepen **非** SynUI 产品 GA **非** E-04 `[x]`。钉测：`qs1_e04_scaffold_first_slice`。
-** E-04 SynUI deepen：** 书面残差诚实 census SSOT（Renderer structural-only；Event opt-in；a11y OUT；像素/v13/Farm OUT）；行 **仍冻**；**非** SynUI runtime 施工 **非** SynUI 产品 GA **非** E-04 `[x]`。钉测：`qs1_e04_synui_deepen_first_slice`。
-** E-04 soft-close：** 收窄 deepen 完成面翻 `| E-04 |` → `[x]`；**仍** `e04_synui_ga_not_claimed`；**非** SynUI 产品 GA **非** SynUI runtime 施工。钉测：`qs1_e04_soft_close_first_slice`。
-** E-05 execute ADR：** 书面冻结 Farm/Dist v20+ 完成面 in-scope/OUT；行 **仍冻**；**非** Farm/Dist 产品 GA **非** v20 施工 **非** E-05 `[x]`。钉测：`qs1_e05_execute_adr_first_slice`。
-** E-05 scaffold：** 钉既有 `build.farm` / farm-lease v19 / dist peer-announce-hold 为薄入口；行 **仍冻**；**非** Farm/Dist deepen **非** Farm/Dist 产品 GA **非** E-05 `[x]`。钉测：`qs1_e05_scaffold_first_slice`。
-** E-05 Farm/Dist deepen：** 书面残差诚实 census SSOT（lease/billing/TCP；peer-announce/sticky/multihost；`build.farm` frozen；HSM/multi-region OUT）；行 **仍冻**；**非** Farm/Dist runtime 施工 **非** Farm/Dist 产品 GA **非** E-05 `[x]`。钉测：`qs1_e05_farm_dist_deepen_first_slice`。
-** E-05 soft-close：** 收窄 deepen 完成面翻 `| E-05 |` → `[x]`；**仍** `e05_farm_dist_ga_not_claimed`；**非** Farm/Dist 产品 GA **非** Farm/Dist runtime 施工。钉测：`qs1_e05_soft_close_first_slice`。
-** Wave soft-complete + F-08 park honesty：** 书面 Wave soft-complete @ **52/53**（A–E 满；F **10/11**）；重申 ADR-1375 default-no；`| F-08 |` **仍 `[ ]`**；**非** F-08 `[x]` **非** RT ABI 全清 **非** Wave **53/53**。钉测：`qs1_wave_soft_complete_park_honesty_first_slice`。
-** Post-wave product-debt parked-charter：** 另立维护/产品债 census SSOT（F-08；D/E/P 伞；SharedCell/wasm-gc；HostFn status residual）；`| F-08 |` **仍 `[ ]`**；**非** 债已清 **非** F-08 `[x]` **非** RT ABI 全清 **非** Wave **53/53**。钉测：`qs1_post_wave_product_debt_parked_charter_first_slice`。
-** HostFn status residual honesty census：** 加深 Process×14 `partial`/`wasm=unsupported` SSOT；**仍** `hostfn_status_batch_all_implemented=false`；**非** 升 `implemented` **非** 全量 HostFn status **非** HostFn+1 **非** F-08 `[x]`。钉测：`qs1_hostfn_status_residual_honesty_census_first_slice`。
-** SharedCell / wasm-gc residual honesty census：** 加深 Arc still present ∧ wasm-gc unmet ∧ guest SYX GC not claimed SSOT；**非** Arc 清除 **非** wasm-gc 完成 **非** F-08 `[x]` **非** Wave **53/53**。钉测：`qs1_sharedcell_wasm_gc_residual_honesty_census_first_slice`。
-** D/E/P umbrella residual honesty census：** 加深仍 park 产品-GA 伞 SSOT（P-star：P-ABI-v2 / P-FAER / P-SURF；D/E 样本）；**仍** `*_ga_not_claimed` / `p_surf_mat_not_claimed`；**非** 翻 not_claimed **非** 产品 GA **非** F-08 `[x]` **非** Wave **53/53**。钉测：`qs1_dep_umbrella_residual_honesty_census_first_slice`。
-** Post-wave residual honesty census-chain closeout：** 书面钉 W1287–W1291 census 栈齐 ∧ 仍 park ∧ 默认不再 census deepen；**非** 债已清 **非** 产品 GA **非** F-08 `[x]` **非** Wave **53/53**。钉测：`qs1_post_wave_residual_honesty_census_chain_closeout_first_slice`。
-
-** 插件 ABI v2 / faer 旁路（parked 章程）：** 方案 B 写入 roadmap。** P-SURF packed-SYX 轴前缀met**；** P-SURF packed-SYX 轴前缀met**；** P-SURF packed-SYX 轴前缀met**；** P-SURF packed-SYX 轴归约met**；** P-SURF packed-SYX 轴归约met**；** P-SURF packed-SYX 轴归约met**；** P-SURF packed-SYX 轴归约met**；** P-SURF packed-SYX 轴归约met**；** P-SURF packed-SYX 掩码逻辑met**；** P-SURF packed-SYX 掩码逻辑met**；** P-SURF packed-SYX 掩码选择/同形填充met**；** P-SURF packed-SYX 元素比较met**；** P-SURF packed-SYX 外积/同形/比较met**；** P-SURF packed-SYX 前缀累加/差分met**；** P-SURF packed-SYX 元素 log10/Γ/lerp/dot met**；** P-SURF packed-SYX 元素熔合/指数对数met**；** P-SURF packed-SYX 元素浮点二元met**；** P-SURF packed-SYX 元素二元极值/符号met**；** P-SURF packed-SYX 元素一元met**；** P-SURF packed-SYX 元素除/标量广播met**；** P-SURF packed-SYX 元素一元met**；** P-SURF packed-SYX 几何置换met**；** P-SURF packed-SYX 几何翻转met**；** P-SURF packed-SYX 结构复制met**；** P-SURF packed-SYX 归约/范数met**；** P-SURF packed-SYX 形状拼装met**；** P-SURF packed-SYX 切片/访问met**；** P-SURF packed-SYX 元素算术met**；** P-SURF packed-SYX 形状通用化met**；** P-SURF packed-SYX 便利/stats met**；** P-SURF solve/packed/shape 方法族met**；** P-SURF zeros 语言面met**；** P-SURF 独立新 Mat met**；** P-FAER cdylib F64LE packed zeros met**；** P-SURF operator 返回值met**；** P-SURF Mat 独立包落地met**；** P-FAER cdylib F64LE packed solve met**；** P-FAER HANDLE×cdylib drop met**；** P-SURF 书面 Mat 约束met**；** P-FAER HANDLE×cdylib to/from met**；** P-FAER HANDLE×cdylib solve met**；** P-ABI-v2 句柄 borrow met**；** P-FAER cdylib 装载met**；** P-FAER solve met**；** P-FAER 施工met**（from/zeros/mul/to）；** 句柄表met**（pin/sumh/drop）；** 加深met**（多槽 iov + host realloc）；** 施工met**；`P-FAER` / `P-ABI-v2` / `P-SURF` 仍 `[ ]`；**非** faer 产品 GA **非** Mat **非** ABI v2 完成 **非** 句柄 GA **非** HostFn+1 **非** F-08。详 [`plan/topics/plugin-abi-v2-linalg.md`](../../plan/topics/plugin-abi-v2-linalg.md)。
-
-**M3-E02 叶子薄收口：** thin+deepen 证据链收口；roadmap `M3-E02` `[x]`；**非** 五域 GA **非** E03 **非** EC-M3-3 **非** M3 退出。钉测：`m3_e02_closeout`。
-
-**M3-E03 HostFn capability 闸薄首钉：** opt-in `--ir-capability-gate` / `SYX_IR_CAPABILITY_GATE`；指纹 `hostfn-capability-gate-v0:compile-unsupported`；表 `status=unsupported` → `S026`；roadmap `M3-E03` `[~]`；**非** 默认全局闸 **非** backend 列 GA **非** EC-M3-3 **非** M3 退出。钉测：`m3_e03_capability_gate`。
-
-**M3-E03 叶子薄收口：** thin 证据链收口；roadmap `M3-E03` `[x]`；**非** 默认全局闸 **非** EC-M3-3 **非** M3 退出。钉测：`m3_e03_closeout`。
-
-**EC-M3-3 Capability-sandbox 证据链薄首钉：** E01–E03 三叶 closeout + 指纹证据链（`permission-policy-v0:default-deny-intent` / `permission-grants-v0:allow-net-fs-toml` / `hostfn-capability-gate-v0:compile-unsupported`）；roadmap 脚注 thin 已交；总勾仍 `[ ]`；**非** 五域 GA **非** 默认全局闸 **非** EC-M3-1 **非** M3 退出。钉测：`ec_m3_3_capability_sandbox`。
-
-**EC-M3-3 叶子薄收口：** thin 证据链 → `EC-M3-3` 总勾 `[x]`（诚实收窄）；**非** 五域 GA **非** 默认全局闸 **非** EC-M3-1 **非** M3 退出。钉测：`ec_m3_3_closeout`。
-
-**EC-M3-1 高并发压测可复现证据链薄首钉：** HTTP Criterion（`ec_m2_4_http_criterion`）+ A03/A04/C04 closeout + C04 抽样语料；诊断面继承 `liveTaskCount` / `profiler-v1-cpu`；roadmap 脚注 thin 已交；总勾仍 `[ ]`；**非** load-farm GA **非** 绝对 SLA 硬闸 **非** TSAN **非** M3 退出。钉测：`ec_m3_1_stress_repro`。
-
-**EC-M3-1 叶子薄收口：** thin 证据链 → `EC-M3-1` 总勾 `[x]`（诚实收窄）；四 EC 齐；**非** load-farm GA **非** 绝对 SLA 硬闸 **非** TSAN **非** M3 退出。钉测：`ec_m3_1_closeout`。
-
-**M3 退出：** 四 EC 总勾已签前提下的 thin exit；开放债（load-farm / SLA / TSAN / 五域 GA / async-let / 采样·OTel 等）**不挡退出**；**停止**默认 M3 EC 收口列车。钉测：`m3_exit_closeout`。
-
-**M4-L01 一阶 where 约束薄首钉：** 泛型函数 `where T: Equatable`；`Int` compile-pass；非 Equatable 用户类型 → `S010`；指纹 `generic-where-v0:first-order-s010`；roadmap `M4-L01` `[~]`；**非** EC-M4-L **非** L02 **非** `where T == U` **非** M4 退出。钉测：`m4_l01_first_order_where`。
-
-**M4-L01 叶子薄收口：** thin 证据链 → `M4-L01` `[x]`（诚实收窄）；**非** EC-M4-L **非** L02 **非** `where T == U` **非** M4 退出。钉测：`m4_l01_closeout`。
-
-**M4-L02 关联类型 typealias 薄首钉：** 协议 `associatedtype Item: Equatable` + 符合侧 `typealias` 见证；`Item = Int` compile-pass；`Item = Box`（非 Equatable）→ `S012`；指纹 `assoc-type-v0:typealias-s012`；roadmap `M4-L02` `[~]`（**assoc-only**）；**非** conditional conformance GA **非** EC-M4-L **非** 跨模块矩阵 **非** M4 退出。钉测：`m4_l02_assoc_type`。
-
-**M4-L02 叶子薄收口：** thin 证据链 → `M4-L02` `[x]`（诚实 **assoc-only**）；**非** conditional conformance GA **非** EC-M4-L **非** 跨模块矩阵 **非** M4 退出。钉测：`m4_l02_closeout`。
-
-**条件符合薄首钉：** `extension Array: Marker where Element: Equatable` → 泛型 `where T: Marker` compile-pass（`[Int]`）/ compile-fail（非 Equatable 元素 → **S010**）；指纹 `conditional-conform-v0:array-element-s010`；L02 仍 `[x]`（deepen，**非**重开 `[~]`）；**非** conditional GA **非** EC-M4-L **非** L03 **非** M4 退出。钉测：`m4_conditional_conformance`。
-
-**条件符合叶子薄收口：** thin 证据链 meta 收口；L02 仍 `[x]`；**非** conditional GA **非** EC-M4-L **非** L03 **非** M4 退出。钉测：`m4_conditional_closeout`。
-
-**M4-L03 existential `any` 绑定薄首钉：** `let x: any Equatable = 1` compile-pass；非 Equatable `Box` → **S014**；指纹 `existential-any-v0:binding-s014`；roadmap `M4-L03` `[~]`；**非** full existential opening **非** `-> some/any` 返回门控 **非** EC-M4-L **非** M4 退出。钉测：`m4_l03_existential_any`。
-
-**M4-L03 叶子薄收口：** thin 证据链 → `M4-L03` `[x]`（诚实 **binding-only**）；**非** full existential opening **非** EC-M4-L **非** M4 退出。钉测：`m4_l03_closeout`。
-
-**EC-M4-L 协议层证据薄首钉：** L02 assoc/conditional + L03 binding 证据链 meta；指纹 `assoc-type-v0:typealias-s012` / `conditional-conform-v0:array-element-s010` / `existential-any-v0:binding-s014`；**EC-M4-L 总勾仍开**；**非** full opening GA **非** conditional GA **非** M4 退出。钉测：`ec_m4_l_protocol_layer`。
-
-**EC-M4-L 叶子薄收口：** thin 证据链 → `EC-M4-L` **总勾已签**；**非** full opening GA **非** conditional GA **非** 其余 EC-M4-* **非** M4 退出。钉测：`ec_m4_l_closeout`。
-
-**M4-B01 静态独占 borrow 薄首钉：** 单 `&mut` compile-pass；同区域双 `&mut` → **S011**；指纹 `borrow-exclusive-v0:double-mut-s011`；roadmap `M4-B01` `[~]`；**非** NLL **非** noncopyable **非** EC-M4-B **非** M4 退出。钉测：`m4_b01_exclusive_borrow`。
-
-**M4-B01 叶子薄收口：** thin 证据链 → `M4-B01` `[x]`；**非** NLL **非** noncopyable **非** EC-M4-B **非** M4 退出。钉测：`m4_b01_closeout`。
-
-**M4-B02 move-consume 所有权薄首钉：** `String` by-value 消费一次 compile-pass；再使用 → **S011**（Use of moved value）；指纹 `move-consume-v0:string-s011`；roadmap `M4-B02` `[~]`（**move-consume-only**）；**非** `~Copyable` **非** assignment-move **非** EC-M4-B **非** M4 退出。钉测：`m4_b02_move_consume`。
-
-**M4-B02 叶子薄收口：** thin 证据链 → `M4-B02` `[x]`（诚实 **move-consume-only**）；**非** `~Copyable` **非** EC-M4-B **非** M4 退出。钉测：`m4_b02_closeout`。
-
-**M4-B03 language-complete 非目标薄首钉：** M4 叶面明确关闭 language-complete borrow 为**非目标**；指纹 `borrow-lang-complete-v0:nongoal`；roadmap `M4-B03` `[~]`（**nongoal**）；完备/NLL deepen → EC-M4-B；**非** NLL GA **非** language-complete GA **非** EC-M4-B **非** M4 退出。钉测：`m4_b03_nongoal`。
-
-**M4-B03 叶子薄收口：** thin 证据链 → `M4-B03` `[x]`（诚实 **nongoal**）；**非** NLL GA **非** language-complete GA **非** EC-M4-B **非** M4 退出。钉测：`m4_b03_closeout`。
-
-**EC-M4-B Named move-consume 薄首钉：** `class`/Named by-value 消费一次 compile-pass；再使用 → **S011**；指纹 `move-consume-v0:named-s011`；roadmap EC-M4-B thin（总勾仍 `[ ]`；**named-move-layer**）；**非** NLL **非** `~Copyable` GA **非** EC 总勾 **非** M4 退出。钉测：`ec_m4_b_named_move`。
-
-**EC-M4-B 叶子薄收口：** thin 证据链 → `EC-M4-B` **总勾已签**（诚实 **named-move-layer**；String + Named S011）；**非** NLL GA **非** `~Copyable` GA **非** 其余 EC-M4-* **非** M4 退出。钉测：`ec_m4_b_closeout`。
-
-**EC-M4-M 宏 sandbox 薄首钉：** 外部宏默认 reexec sandbox（非 in-process）；`macro_sandbox_mode` ∈ `{sandbox-reexec-only, seccomp}`；WASM 外部展开 → **E004**；指纹 `macro-sandbox-v0:reexec-default`；roadmap EC-M4-M thin（总勾仍 `[ ]`；**sandbox-reexec**）；**非** source-map GA **非** incremental-binary GA **非** EC 总勾 **非** M4 退出。钉测：`ec_m4_m_macro_sandbox`。
-
-**EC-M4-M 叶子薄收口：** thin 证据链 → `EC-M4-M` **总勾已签**（诚实 **sandbox-reexec-layer**）；**非** source-map GA **非** incremental-binary GA **非** 其余 EC-M4-P/X **非** M4 退出。钉测：`ec_m4_m_closeout`。
-
-**EC-M4-P 签名校验薄首钉：** ed25519 checksum `syx1:ed25519:` verify pass；篡改 checksum / 坏签 → fail；install **P011**；指纹 `pkg-sig-v0:ed25519-checksum`；roadmap EC-M4-P thin（总勾仍 `[ ]`；**signature-verify**）；**非** trust-root GA **非** solver GA **非** frozen GA **非** EC 总勾 **非** M4 退出。钉测：`ec_m4_p_signature_verify`。
-
-**EC-M4-P 叶子薄收口：** thin 证据链 → `EC-M4-P` **总勾已签**（诚实 **signature-verify-layer**）；**非** trust-root GA **非** solver GA **非** frozen GA **非** EC-M4-X **非** M4 退出。钉测：`ec_m4_p_closeout`。
-
-**EC-M4-X 产品门薄首钉：** 本里程碑 **product-gate defer**（不单选 WS/gRPC/UI）；指纹 `ec-m4-x-v0:product-gate`；roadmap EC-M4-X thin（总勾仍 `[ ]`）；**非** 真 WS **非** 真 gRPC **非** SynUI 解冻 **非** EC 总勾 **非** M4 退出。钉测：`ec_m4_x_product_gate`。
-
-**EC-M4-X 叶子薄收口：** thin 证据链 → `EC-M4-X` **总勾已签**（诚实 **product-gate-layer**）；**非** 真 WS GA **非** 真 gRPC GA **非** SynUI GA **非** M4-X01–X04 满勾 **非** M4 退出。钉测：`ec_m4_x_closeout`。
-
-**M4 退出：** 五 EC 总勾已签前提下的 thin exit；开放债（真 WS/gRPC/SynUI；trust-root / solver / frozen；NLL；source-map 等）**不挡退出**；**停止**默认 M4 EC 收口列车；**Truth M0–M4 列车收官**。钉测：`m4_exit_closeout`。
-
-**M3-A04 Channel close 首钉：** `Channel.close` 真断开 sender；drain 后 recv **Nil**；再 send → **C010**；**非** backpressure/fairness 满勾 **非** EC-M3 **非** A04 满勾。钉测：`m3_a04_channel_close`。
-
-**M3-A04 Channel backpressure 加深：** bounded `create(N)`；填满后 `trySend` → **false**；`count`/`capacity` 可观测；**非** fairness 满勾 **非** EC-M3 **非** A04 满勾。钉测：`m3_a04_backpressure`。
-
-**M3-A04 Channel fairness 产品钉：** 多臂同时 ready 时 `__syx_channel_select` round-robin（`select-fair-v1:round-robin`）；seed=0 → 20 次 10/10；**非**跨线程 RR GA **非** EC-M3。钉测：`m3_a04_fairness`。
-
-**M3-A04 leaf thin closeout：** close + backpressure + fairness 三轴证据链收口；roadmap `M3-A04` `[x]`；**非**跨线程 RR GA **非** EC-M3 **非** A05 **非** M3 退出。钉测：`m3_a04_closeout`。
-
-**M3-A05 池分层文档首钉：** 结构化并发为主业务 API；`Concurrency` 池/Actor 容量旋钮为**高级运行时配置**；**非**删池 API **非** EC-M3 **非** A05 满勾（本窗）。钉测：`m3_a05_pool_layering`。
-
-**M3-A05 leaf thin closeout：** 分层文档证据链收口；roadmap `M3-A05` `[x]`；**非**删池 API **非** EC-M3 **非** ThreadPoolExecutor 全集 **非** B01 **非** M3 退出。钉测：`m3_a05_closeout`。
-
-**EC-M2-1-Z：** A–F 六切片交付（file+Path / HTTP client / SQLite / HTTP server / Path deep / five-slice closeout）证据链收口已签；**非** 全量 Path GA。钉测：`ec_m2_1_z_closeout`。
-
-**EC-M2-1 总勾：** 官方 stdlib 可交付 A–F + Z 证据链已签（诚实收窄）；`io.path` 仍 partial；Http 无 typed throws 全迁；**非** M2 退出。钉测：`ec_m2_1_total_closeout`。
-
-**Q-S5：** 四类 handle multi-handle stress（File/Sql/Tcp/Process；N=4）live_count 回基线已签；**非** FileStream·Watcher·Pipe session **非** Listener·TLS **非** EC-M2-3 总勾。钉测：`q_s5_closeout`。
-
-**EC-M2-3-F：** FileStream / FileWatcher / ChildPipe session `*_live_count` 首钉已签（仅测试/诊断层）；**非** HTTP body stream **非** Listener·TLS **非** EC-M2-3 总勾。钉测：`ec_m2_3_session_leak_closeout`。
-
-**EC-M2-3-G：** HttpBodyStream session `http_body_stream_live_count` 首钉已签（仅测试/诊断层）；**非** Listener·TLS **非** EC-M2-3 总勾。钉测：`ec_m2_3_http_body_stream_leak_closeout`。
-
-**EC-M2-3-H：** TcpListener bind/close session `tcp_listener_live_count` 首钉已签（仅测试/诊断层）；**非** accept **非** TLS **非** EC-M2-3 总勾（当时）。钉测：`ec_m2_3_tcp_listener_leak_closeout`。
-
-**EC-M2-3 总勾：** 已有产品 handle/session 泄漏钉齐已签（诚实收窄）；`net.tls.server` 仍 unsupported；无 accept GA；**非** M2 退出。钉测：`ec_m2_3_total_closeout`。
-
-**FileHandle RAII / `withOpen`（`M2-S3-02b`）：** 协议面 `Reader` / `Writer` / `Seekable` / `Closeable`；`FileHandle.openResource` → `FileResource` 实例（read/write/seek/close + `deinit` quiet-close）；`FileHandle.withOpen(path:mode:body:)` 对 `body(handle: Int)` **退出必 close**（资源契约；body 成功须返回 `>= 0`）。**非**语言关键字 `with`/`defer`；**非** `EC-M2-3` 总勾。钉测：`m2_s3_02b_filehandle_raii_with`。
-
-**`readAllBytes`（`M2-S3-04`）：** `FileHandle.readAllBytes` 为整缓冲 `read_to_end`（公开面已无 `readMmap`）。**≠ OS mmap**；流式分块见 `FileStream`。`io.file.read_all_bytes` implemented。钉测：`m2_s3_04_mmap_rename`。**非** `memmap2`；**非** `EC-M2-4-Z`。
-
-**FileStream / FileWatcher（`M2-S3-03`）：** `FileStream.open` → `readChunk(handle, maxBytes)`（空数组=EOF）→ `close`；`FileWatcher.open` → `poll` → `close`。**关闭后再操作必须失败**。默认 `File.read` 仍整缓冲；`File.watch` 仍是 one-shot（≠ lifecycle）。`io.file.stream` implemented；`io.file.watch` partial（mock 默认）。钉测：`m2_s3_03_file_stream_watcher`。**非** 递归/async notify GA；**非** `EC-M2-4-Z`。
-
 ```syx
 func main() {
   try {
@@ -840,180 +549,6 @@ func main() {
 | `Http.response(status, body)` | 构造 handler 响应 → `HTTPResponse`（`body` 宜为 String） |
 | `HttpBodyStream.open/readChunk/close` | 客户端响应 body 分块读会话（；默认 get/fetch 仍缓冲） |
 
-**HTTP 命名类型（`M2-S4-01`）：** facade 返回 `HTTPResponse` / `Url`（及类型面 `HttpRequest`/`HttpHeaders`/`HttpBody`），**非**糊墙 `Object`。运行时仍可为 Object 袋 + MethodId 访问器。钉测：`m2_s4_01_http_types`。流式读见。**非** `EC-M2-4-Z`。
-
-**TLS client 真实路径（`M2-S4-05`）：** HTTPS 走 reqwest+rustls **默认校验证书**；CI/诊断可用环境变量 `SYX_HTTP_EXTRA_ROOT_PEM`（PEM 文件路径）**追加**信任锚（≠ skip-verify / ≠ `danger_accept_invalid_certs`）。钉测：`m2_s4_05_client_tls`（loopback HTTPS 正例）。**非** skip-verify 产品 API；**非** server TLS GA；**非** `EC-M2-4-Z`。
-
-**HTTP body stream（`M2-S4-04`）：** `HttpBodyStream.open` → `readChunk(handle, maxBytes)`（空串=EOF）→ `close`；session + `Read`（≠ `response.bytes`）。默认 `Http.get`/`fetch` **仍整缓冲**。钉测：`m2_s4_04_http_body_stream`。**非** server 流式；**非** wire chunked TE 产品 API；**非** File S3-03；**非** JSONStream；**非** `EC-M2-4-Z`。
-
-**HTTP server graceful shutdown（`M2-S4-03b`）：** `Http.shutdown` → watch cancel（停 accept）；完成当前请求后 `Http.serve` 返回。钉测：`m2_s4_03b_server_graceful_shutdown`（**不用** `SYX_HTTP_SERVE_MAX_REQUESTS` 冒充 graceful）。`MAX_REQUESTS` 仍是独立测试钩。**非** server TLS GA；**非** `EC-M2-4-Z`。
-
-**HTTP server 后端：默认** `Http.serve` / `Http.shutdown` / `upgradeUpstream` 字节隧道建在 **hyper + tokio** 上（[`crates/syx-vm/src/http.rs`](../../crates/syx-vm/src/http.rs)；plain HTTP 经 hyper HTTP/1；Upgrade 头探测后走旁路字节隧道；handler 经隔离线程接入以保 `ProgramCtx` / native MIR）。**未做**（进程内帧终结 / serve 自算 Accept）。**非** axum/ntex/warp；**非** `net.http.server` 产品 GA；**非** HostFn+1；**非** 翻行。
-
-**进程内 HTTPS：** 诊断 env `SYX_HTTP_SERVE_TLS_CERT` + `SYX_HTTP_SERVE_TLS_KEY`（PEM 路径）齐备时，accept 后 **rustls 终止**再走 hyper HTTP/1；客户端可用 `SYX_HTTP_EXTRA_ROOT_PEM` 追加信任锚（≠ skip-verify）。钉 `http_serve_https_loopback_get_with_extra_root`。**宣称** HTTPS GET met；**不宣称** WSS 产品 GA（HMR-over-HTTPS 见）；**不宣称** sgate 生产去 sidecar；**不宣称** `net.http.server` / `net.tls.server` 产品 GA。
-
-**多连接重叠：** accept 后 `JoinSet` spawn（multi-thread runtime）；plain / Upgrade 可重叠处理；钉 `http_serve_overlap_slow_fast_plain_get`（慢请求持锁期间快请求须完成）。**宣称** 多连接可重叠 accept/处理met；**不宣称** 高并发 SLA / 连接池 / backpressure / 全量调优。
-
-**重叠×HMR 交叉：** 慢 plain GET 持锁期间，同端口 HMR Upgrade（101 + Accept 透传 + 掩码 text-frame）须完成；钉 `http_serve_overlap_slow_plain_and_hmr_upgrade`。**宣称** 组合交叉met；**不宣称** 全量并发 SLA。
-
-**Upgrade-over-TLS / HMR-over-HTTPS：** 诊断 PEM 齐备时，rustls 终止后 Upgrade 走与 plain 同语义的 `upgradeUpstream` 字节隧道（含 head 后 leftover；async `copy_bidirectional`）；同端口 Vite-like 路径：101 + Accept 透传 + 掩码 text-frame。钉 `http_serve_https_hmr_path_same_port_roundtrip`。**宣称** Upgrade-over-TLS / 同端口 HMR-over-HTTPS （自动化钉）met；**不宣称** WSS 产品 GA；**不宣称** sgate 生产去 sidecar；**不宣称** 浏览器 Playwright HMR GA。
-
-**进程内帧终结 / serve 自算 Accept：** handler 返回显式 `upgradeTerminate: true`（**≠** 缺 `upgradeUpstream`——缺字段仍 502）时，serve 从客户端 `Sec-WebSocket-Key` **自算** `Sec-WebSocket-Accept` → 101 → 解一帧掩码 text 并 echo。与 `upgradeUpstream` **透传**路径二分：HMR 仍走上游；终结不拨号。钉 `http_serve_upgrade_terminate_accept_and_text_echo`。**宣称** 帧终结 / 自算 Accept met；**不宣称** WSS / WebSocket 产品 GA；**不宣称** 改写 HMR 透传。
-
-**upgradeTerminate close-path：** text echo 之后读客户端 close（opcode 8）→ 回 unmasked close；钉 `http_serve_upgrade_terminate_accept_text_and_close`。**宣称** close-path met；**不宣称** 完整 RFC6455（binary/fragment/extension/ping）；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate binary echo：** text echo 之后再读一帧客户端 binary（opcode 2）→ 回 unmasked binary（`0x82`）→ 再 close 交换；钉 `http_serve_upgrade_terminate_accept_text_binary_and_close`。**宣称** binary echo met；**不宣称** 完整 RFC6455（fragment/extension/ping）；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate ping→pong：** text→binary 之后读客户端 ping（opcode 9）→ 回 unmasked pong（`0x8A` + 同 payload）→ 再 close 交换；钉 `http_serve_upgrade_terminate_accept_text_binary_ping_and_close`。**宣称** ping→pong met；**不宣称** 完整 RFC6455（fragment/extension/完整 keepalive）；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate 分片 text：** 客户端两帧分片 text（`FIN=0`+opcode 1 → `FIN=1`+continuation）→ 服务端拼装回单帧 unmasked text；其后 binary→ping/pong→close；钉 `http_serve_upgrade_terminate_accept_fragmented_text_binary_ping_and_close`。**宣称** 分片 text met；**不宣称** binary 分片 / 多段 continuation / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate binary 分片：** 分片 text 之后再两帧分片 binary（`FIN=0`+opcode 2 → `FIN=1`+continuation）→ 拼装回单帧 unmasked binary（`0x82`）→ ping/pong→close；钉 `http_serve_upgrade_terminate_accept_fragmented_text_fragmented_binary_ping_and_close`。**宣称** binary 分片met；**不宣称** 多段 continuation / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate 多段 continuation N=3：** frag-text/binary 均为三帧（`FIN=0` data + `FIN=0` mid cont + `FIN=1` final cont）拼装回单帧；钉 `http_serve_upgrade_terminate_accept_multi_continuation_n3_ping_and_close`。**宣称** 多段 continuation（N=3）met；**不宣称** 任意段数 / control-during-fragment / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate control-during-fragment：** N=3 text 在 frag1 与 mid continuation 之间可插 client ping → 服务端即时 pong，**不中止**拼装 → 单帧 `0x81` echo；binary 仍 N=3 无 mid-control；钉 `http_serve_upgrade_terminate_accept_control_during_fragment_n3_ping_and_close`。**宣称** control-during-fragment（N=3 text / frag1→mid 插 ping）met；**不宣称** 任意段数 / binary mid-control / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate binary mid-control：** N=3 binary 在 frag1 与 mid continuation 之间可插 client ping → 即时 pong → 拼装回单帧 `0x82`；钉 `http_serve_upgrade_terminate_accept_control_during_fragment_n3_binary_ping_and_close`。**宣称** control-during-fragment（N=3 binary / frag1→mid 插 ping）met；**不宣称** 任意段数 / mid↔final control / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate 任意段数 N=4 text：** 分片 text 四帧（`FIN=0` data + 2× `FIN=0` cont + `FIN=1` cont）拼装回单帧 `0x81`；binary 生命周期仍 N=3；钉 `http_serve_upgrade_terminate_accept_multi_continuation_n4_text_ping_and_close`。**宣称** 任意段数（N=4 text）met；**不宣称** 无界 N / binary 任意-N / mid↔final control / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate binary 任意段数 N=4：** 分片 binary 四帧拼装回单帧 `0x82`；text 同生命周期保留 N=4；钉 `http_serve_upgrade_terminate_accept_multi_continuation_n4_text_and_binary_ping_and_close`。**宣称** binary 任意段数（N=4）met；**不宣称** 无界 N / mid↔final control / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate mid↔final control：** N=4 text 在 cont1 与 cont2 之间可插 client ping → 即时 pong → 拼装回单帧 `0x81`；钉 `http_serve_upgrade_terminate_accept_mid_final_control_n4_text_ping_and_close`。**宣称** mid↔final control（N=4 text / cont 间插 ping）met；**不宣称** 无界 N / binary mid↔final / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate binary mid↔final control：** N=4 binary 在 cont1 与 cont2 之间可插 client ping → 即时 pong → 拼装回单帧 `0x82`；钉 `http_serve_upgrade_terminate_accept_mid_final_control_n4_binary_ping_and_close`。**宣称** binary mid↔final control（N=4 binary / cont 间插 ping）met；**不宣称** 无界 N / extension / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate 无界 N（N=5 text）：** 分片 text 五帧（`FIN=0` data + 3× `FIN=0` cont + `FIN=1` cont）拼装回单帧 `0x81`；钉 `http_serve_upgrade_terminate_accept_multi_continuation_n5_text_ping_and_close`。**宣称** 无界 N（N=5 text）met；**不宣称** 无界矩阵全集 / N=5 binary / extension / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate 无界 N（N=5 binary）：** 分片 binary 五帧拼装回单帧 `0x82`；text 同生命周期保留 N=5；钉 `http_serve_upgrade_terminate_accept_multi_continuation_n5_text_and_binary_ping_and_close`。**宣称** 无界 N（N=5 binary）met；**不宣称** 无界矩阵全集 / extension / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate close status+reason echo：** 客户端 close 带 2 字节 status + UTF-8 reason 时，服务端 unmasked 回显同 payload；空 close 仍回空 close；钉 `http_serve_upgrade_terminate_accept_text_close_status_reason_echo`。**宣称** close status+reason echo met；**不宣称** RSV / extension / close 负例全集 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate RSV fail-closed：** 客户端帧 RSV1/2/3 任一非 0 时，服务端 fail-closed（不 echo / 断连）；RSV=0 正向路径不变；钉 `http_serve_upgrade_terminate_accept_rsv_text_fail_closed`。**宣称** RSV fail-closed met；**不宣称** extension 协商 / 协议 close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate close body len=1 fail-closed：** 客户端 close payload 恰好 1 字节时，服务端 fail-closed（不回 close / 断连）；空 close 与 len≥2 echo 不变；钉 `http_serve_upgrade_terminate_accept_close_len1_fail_closed`。**宣称** close body len=1 fail-closed met；**不宣称** unmasked client / extension / close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate unmasked-client fail-closed：** 客户端帧 MASK=0 时，服务端 fail-closed（不 echo / 断连）；masked 正向路径不变；钉 `http_serve_upgrade_terminate_accept_unmasked_text_fail_closed`。**宣称** unmasked-client fail-closed met；**不宣称** fragmented control / extension / close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate fragmented-control（FIN=0 ping）fail-closed：** 客户端 ping FIN=0 时，服务端 fail-closed（不 pong / 断连）；FIN=1 ping 正向路径不变；钉 `http_serve_upgrade_terminate_accept_fin0_ping_fail_closed`。**宣称** fragmented-control（FIN=0 ping）fail-closed met；**不宣称** extension / reserved opcode / close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate reserved-control-opcode（0xB–0xF）fail-closed：** 客户端帧 opcode ∈ 0xB..=0xF 时，服务端 fail-closed（不 echo / 断连）；合法 opcode 正向路径不变；钉 `http_serve_upgrade_terminate_accept_reserved_opcode_0xb_fail_closed`。**宣称** reserved-control-opcode（0xB–0xF）fail-closed met；**不宣称** extension / close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate data-reserved-opcode（0x3–0x7）fail-closed：** 客户端帧 opcode ∈ 0x3..=0x7 时，服务端 fail-closed（不 echo / 断连）；0xB..=0xF 与合法 opcode 行为不变；钉 `http_serve_upgrade_terminate_accept_reserved_opcode_0x3_fail_closed`。**宣称** data-reserved-opcode（0x3–0x7）fail-closed met；**不宣称** extension / close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate oversized-control-payload（>125）fail-closed：** 控制帧（opcode 0x8/0x9/0xA）且 len7>125 时，服务端 fail-closed（不 pong / 断连；拒在扩展长度解析前）；≤125 control 与 data 帧不变；钉 `http_serve_upgrade_terminate_accept_oversized_ping_fail_closed`。**宣称** oversized-control-payload（>125）fail-closed met；**不宣称** extension / close(1002) 产品语义 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate illegal-close-status fail-closed：** 客户端 close payload len≥2 且 status ∈ 0..=999 / 1005 / 1006 / 1015 时，服务端 fail-closed（不 echo close / 断连）；空 close 与合法 status（如 1000+reason）不变；钉 `http_serve_upgrade_terminate_accept_close_status_1005_fail_closed`。**宣称** illegal-close-status fail-closed met；**不宣称** extension / close(1002) 产品回帧 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate close-reason-utf8 fail-closed：** 客户端 close payload `len>2` 且 reason（`payload[2..]`）非合法 UTF-8 时，服务端 fail-closed（不 echo close / 断连）；`len∈{0,2}` 与合法 UTF-8 reason（如 1000+"bye"）不变；钉 `http_serve_upgrade_terminate_accept_close_reason_non_utf8_fail_closed`。**宣称** close-reason-utf8 fail-closed met；**不宣称** UTF-8 text / extension / close(1002) 产品回帧 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate UTF-8 text + close-1004 fail-closed 三连簇：**（1）FIN=1 text 载荷非合法 UTF-8 → fail-closed（钉 `http_serve_upgrade_terminate_accept_text_non_utf8_fail_closed`）；（2）分片 text 拼装后非合法 UTF-8 → fail-closed（钉 `…_fragmented_text_non_utf8_fail_closed`）；（3）close status 1004 → fail-closed（钉 `…_close_status_1004_fail_closed`）。合法 UTF-8 text / binary / 空 close / 1000+reason 不变。**宣称** UTF-8 text fail-closed 第一簇 + close-1004 fail-closed met；**不宣称** UTF-8 text 产品 GA / extension / close(1002) 产品回帧 / 完整 codec；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate framing 负例 fail-closed 四连簇：**（1）FIN=0 close → fail-closed（钉 `http_serve_upgrade_terminate_accept_fin0_close_fail_closed`）；（2）无进行中消息时 continuation（opcode 0x0）→ fail-closed（钉 `…_unexpected_continuation_fail_closed`）；（3）首发 unsolicited client pong（opcode 0xA）→ fail-closed（钉 `…_unsolicited_pong_fail_closed`）；（4）`read_client_ws_frame` 对 close/ping/pong 中心化 `require_control_fin`；分片途中 FIN=0 close → fail-closed（钉 `…_fin0_close_during_fragment_fail_closed`）。合法 FIN=1 close / ping→pong / 分片 data 不变。**宣称** framing 负例 fail-closed 第一簇 met；**不宣称** extension / close(1002) 产品回帧 / 完整 RFC6455；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate close(1002) 产品回帧四连簇：** 协议错路径由 abort-only 升为 **先发 unmasked close(status=1002) 再关连接**（`write_protocol_close_1002`）：（1）RSV≠0 → close(1002)（钉 `…_accept_rsv_text_close_1002`）；（2）reserved opcode（0xB）→ close(1002)（钉 `…_accept_reserved_opcode_0xb_close_1002`）；（3）FIN=0 control（ping）→ close(1002)（钉 `…_accept_fin0_ping_close_1002`）；（4）unexpected continuation → close(1002)（钉 `…_accept_unexpected_continuation_close_1002`）。既有 framing/RSV/reserved/UTF-8 等 abort 钉改期望 1002 回帧。合法 lifecycle / 空 close / 1000+reason 不变。**宣称** close(1002) 产品回帧第一簇（RSV / reserved opcode / FIN=0 control / unexpected continuation）met；**不宣称** close 码全集 GA / extension / 完整 RFC6455；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate close(1002) 产品回帧第二簇：** 统一出口已挂；补产品专钉矩阵：（1）unmasked client → close(1002)（钉 `…_accept_unmasked_text_close_1002`）；（2）oversized ping（len7=126）→ close(1002)（钉 `…_accept_oversized_ping_close_1002`）；（3）close body len=1 → close(1002)（钉 `…_accept_close_len1_close_1002`）；（4）illegal close status 1005 → close(1002)（钉 `…_accept_close_status_1005_close_1002`）。既有 `*_fail_closed` 保留。**宣称** close(1002) 产品回帧第二簇（unmasked / oversized ping / close len=1 / status 1005）met；**不宣称** close 码全集 GA / UTF-8 text 产品 GA / extension；**不宣称** WSS 产品 GA。
-
-**upgradeTerminate-over-TLS 产品簇：** HTTPS 上 `upgradeTerminate` 与 plain 同语义：（1）自算 Accept + text echo（钉 `http_serve_https_upgrade_terminate_accept_and_text_echo`）；（2）RSV≠0 → close(1002)（钉 `…_accept_rsv_text_close_1002`）；（3）text→binary→ping/pong→close（钉 `…_accept_text_binary_ping_and_close`）；（4）HMR-over-HTTPS Accept 仍透传上游、≠ serve 自算（钉 `http_serve_https_hmr_path_accept_still_relayed_not_serve_computed`）。**宣称** upgradeTerminate-over-TLS / WSS terminate 产品簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate close(1002) 产品回帧第三簇：** 统一 `InvalidData`→close(1002) 出口已挂；补产品专钉矩阵：（1）text 非 UTF-8 → close(1002)（钉 `…_accept_text_non_utf8_close_1002`）；（2）close reason 非 UTF-8 → close(1002)（钉 `…_accept_close_reason_non_utf8_close_1002`）；（3）unsolicited pong → close(1002)（钉 `…_accept_unsolicited_pong_close_1002`）；（4）illegal close status 1004 → close(1002)（钉 `…_accept_close_status_1004_close_1002`）。既有 `*_fail_closed` 保留。**宣称** close(1002) 产品回帧第三簇（text 非 UTF-8 / close-reason 非 UTF-8 / unsolicited pong / status 1004）met；**不宣称** close 码全集 GA / UTF-8 text 产品 GA / extension / WSS 产品 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate close(1002) 产品回帧第四簇：** 统一出口已挂；补产品专钉矩阵：（1）fragmented text 非 UTF-8 → close(1002)（钉 `…_accept_fragmented_text_non_utf8_close_1002`）；（2）FIN=0 close → close(1002)（钉 `…_accept_fin0_close_close_1002`）；（3）FIN=0 close mid-fragment → close(1002)（钉 `…_accept_fin0_close_during_fragment_close_1002`）；（4）reserved data opcode 0x3 → close(1002)（钉 `…_accept_reserved_opcode_0x3_close_1002`）。既有 `*_fail_closed` 保留；plain 专钉矩阵 16/16。**宣称** close(1002) 产品回帧第四簇（frag UTF-8 / FIN=0 close / FIN=0 close-during-fragment / reserved 0x3）met；**不宣称** close 码全集 GA / UTF-8 text 产品 GA / extension / WSS 产品 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS close(1002) 产品回帧第一簇：** HTTPS 上复用同套 `InvalidData`→close(1002) 出口；补 TLS 产品专钉：（1）reserved control opcode 0xB → close(1002)（钉 `http_serve_https_upgrade_terminate_accept_reserved_opcode_0xb_close_1002`）；（2）FIN=0 ping → close(1002)（钉 `…_accept_fin0_ping_close_1002`）；（3）unexpected continuation → close(1002)（钉 `…_accept_unexpected_continuation_close_1002`）；（4）unmasked client text → close(1002)（钉 `…_accept_unmasked_text_close_1002`）。**宣称** upgradeTerminate-over-TLS close(1002) 产品回帧第一簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** TLS close(1002) 矩阵全集 / 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS close(1002) 产品回帧第二簇：** 统一出口已挂；补 TLS 产品专钉：（1）oversized ping（len7=126）→ close(1002)（钉 `http_serve_https_upgrade_terminate_accept_oversized_ping_close_1002`）；（2）close body len=1 → close(1002)（钉 `…_accept_close_len1_close_1002`）；（3）illegal close status 1005 → close(1002)（钉 `…_accept_close_status_1005_close_1002`）；（4）text 非 UTF-8 → close(1002)（钉 `…_accept_text_non_utf8_close_1002`）。**宣称** upgradeTerminate-over-TLS close(1002) 产品回帧第二簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** TLS close(1002) 矩阵全集 / UTF-8 text 产品 GA / 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS close(1002) 产品回帧第三簇：** 统一出口已挂；补 TLS 产品专钉：（1）close reason 非 UTF-8 → close(1002)（钉 `http_serve_https_upgrade_terminate_accept_close_reason_non_utf8_close_1002`）；（2）unsolicited pong → close(1002)（钉 `…_accept_unsolicited_pong_close_1002`）；（3）illegal close status 1004 → close(1002)（钉 `…_accept_close_status_1004_close_1002`）；（4）fragmented text 非 UTF-8 → close(1002)（钉 `…_accept_fragmented_text_non_utf8_close_1002`）。**宣称** upgradeTerminate-over-TLS close(1002) 产品回帧第三簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** TLS close(1002) 矩阵全集 / UTF-8 text 产品 GA / 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS close(1002) 产品回帧第四簇：** 统一出口已挂；补 TLS 产品专钉：（1）FIN=0 close → close(1002)（钉 `http_serve_https_upgrade_terminate_accept_fin0_close_close_1002`）；（2）FIN=0 close mid-fragment → close(1002)（钉 `…_accept_fin0_close_during_fragment_close_1002`）；（3）reserved data opcode 0x3 → close(1002)（钉 `…_accept_reserved_opcode_0x3_close_1002`）。**宣称** upgradeTerminate-over-TLS close(1002) 产品回帧第四簇 met；TLS close(1002) 专钉矩阵相对 plain **16/16** met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** close 码全集 GA / UTF-8 text 产品 GA / 去 sidecar / Playwright。
-
-**upgradeTerminate illegal close-status 加深第一簇：** 统一出口已挂；补产品专钉：（1）plain close status 1006 → close(1002)（钉 `http_serve_upgrade_terminate_accept_close_status_1006_close_1002`）；（2）plain close status 1015 → close(1002)（钉 `…_accept_close_status_1015_close_1002`）；（3）plain close status 999（0–999 代表）→ close(1002)（钉 `…_accept_close_status_999_close_1002`）；（4）TLS close status 1006 → close(1002)（钉 `http_serve_https_upgrade_terminate_accept_close_status_1006_close_1002`）。**宣称** illegal close-status 加深第一簇 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate illegal close-status 加深第二簇：** 统一出口已挂；补产品专钉：（1）TLS close status 1015 → close(1002)（钉 `http_serve_https_upgrade_terminate_accept_close_status_1015_close_1002`）；（2）TLS close status 999 → close(1002)（钉 `…_accept_close_status_999_close_1002`）；（3）plain close status 0 → close(1002)（钉 `http_serve_upgrade_terminate_accept_close_status_0_close_1002`）；（4）plain close status 500 → close(1002)（钉 `…_accept_close_status_500_close_1002`）。**宣称** illegal close-status 加深第二簇 met；TLS 非法五码（1004/1005/1006/1015/999）与 plain 对齐；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS 正向 codec 加深第一簇：** 无新 runtime；HTTPS terminate 对齐 plain 正向四钉：（1）close status+reason echo（钉 `http_serve_https_upgrade_terminate_accept_text_close_status_reason_echo`）；（2）双 frag text+binary + ping + close（钉 `…_accept_fragmented_text_fragmented_binary_ping_and_close`）；（3）multi-continuation N=3 + ping + close（钉 `…_accept_multi_continuation_n3_ping_and_close`）；（4）mid↔final control N=4 text + ping + close（钉 `…_accept_mid_final_control_n4_text_ping_and_close`）。**宣称** upgradeTerminate-over-TLS 正向 codec 加深第一簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA / TLS 正向 codec 全集 / close 码全集 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS 正向 codec 加深第二簇：** 无新 runtime；HTTPS terminate 对齐 plain：（1）control-during-fragment N=3 text（钉 `http_serve_https_upgrade_terminate_accept_control_during_fragment_n3_ping_and_close`）；（2）control-during-fragment N=3 binary（钉 `…_accept_control_during_fragment_n3_binary_ping_and_close`）；（3）multi-continuation N=4 text（钉 `…_accept_multi_continuation_n4_text_ping_and_close`）；（4）multi-continuation N=4 text+binary（钉 `…_accept_multi_continuation_n4_text_and_binary_ping_and_close`）。**宣称** upgradeTerminate-over-TLS 正向 codec 加深第二簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA / TLS 正向 codec 全集 / close 码全集 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS 正向 codec 加深第三簇：** 无新 runtime；HTTPS terminate 对齐 plain /：（1）mid↔final control N=4 binary（钉 `http_serve_https_upgrade_terminate_accept_mid_final_control_n4_binary_ping_and_close`）；（2）multi-continuation N=5 text（钉 `…_accept_multi_continuation_n5_text_ping_and_close`）；（3）multi-continuation N=5 text+binary（钉 `…_accept_multi_continuation_n5_text_and_binary_ping_and_close`）；（4）fragmented text + FIN=1 binary（钉 `…_accept_fragmented_text_binary_ping_and_close`）。**宣称** upgradeTerminate-over-TLS 正向 codec 加深第三簇 met；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA / TLS 正向 codec 全集 / N5 无界全集 GA / close 码全集 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS 正向 twin 收口 + illegal-status TLS 补齐：** 无新 runtime；HTTPS terminate 对齐 plain /：（1）text + close（钉 `http_serve_https_upgrade_terminate_accept_text_and_close`）；（2）text + binary + close（钉 `…_accept_text_binary_and_close`）；（3）illegal close status 0 → close(1002)（钉 `…_accept_close_status_0_close_1002`）；（4）illegal close status 500 → close(1002)（钉 `…_accept_close_status_500_close_1002`）。**宣称** upgradeTerminate-over-TLS 正向 twin 收口 + illegal-status TLS 0/500 补齐 met / plain↔HTTPS 正向 twin 名表齐；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA / TLS 正向 codec 全集 / close 码全集 GA；**不宣称** 去 sidecar / Playwright。
-
-**upgradeTerminate-over-TLS fail_closed 名表四连第一簇：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 plain `*_fail_closed` + 场景）：（1）reserved opcode 0xB（钉 `http_serve_https_upgrade_terminate_accept_reserved_opcode_0xb_fail_closed`）；（2）FIN=0 ping（钉 `…_accept_fin0_ping_fail_closed`）；（3）unexpected continuation（钉 `…_accept_unexpected_continuation_fail_closed`）；（4）unmasked text（钉 `…_accept_unmasked_text_fail_closed`）。**宣称** fail_closed 名表四连第一簇 met / TLS fail_closed **4/16**；**不宣称** fail_closed TLS 名表全集 / WSS / WebSocket / `net.tls.server` 产品 GA / close 码全集 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**todo 8 总 soft-close / 项收口：** 无新 runtime / 无 HostFn+1；书面冻结项 8 完成面 SSOT：hyper+tokio 默认栈；同端口 `upgradeUpstream`/HMR（含 over-TLS）；重叠 accept + 重叠×HMR；HTTPS + sgate native；`upgradeTerminate` plain/over-TLS + close(1002) 主矩阵 + illegal 近界 soft-close；WSS 营销宣称边界 soft-close。**OUT（项级永久）：** Playwright HMR GA；全量并发 SLA；`ws_routes` 去 websocat；RFC6455 extension；close 码全集；`net.tls.server` HostFn GA；「完整 WSS/WebSocket 产品 GA」。钉 `todo8_overall_soft_close_first_slice`。**宣称** todo 8 soft-close / 项收口 met；**项 8 不再开片**；**不宣称** OUT 任一项「已交付」；**不宣称** 新进度。
-
-**todo 4 Object soft-close / 项收口：** 无新 runtime / 无 HostFn+1；书面冻结：默认字面量 → `Dictionary`；显式 `: Object` 异构袋；方法面 `count`/`isEmpty`/`valueForKey`/`put`/`containsKey`/`keys`/`values`/`remove`（下标读写同语义）。**OUT（项级永久）：** `.merge`；真 `HashMap<Value,Value>`；Object 泛型深化；`object_bag_ga`。钉 `todo4_object_soft_close_first_slice`。**宣称** Object soft-close / 项收口 met；**项 4 不再开片**；**不宣称** OUT 任一项「已交付」；**不宣称** Wave 新进度。
-
-**WSS 营销产品 soft-close（todo 8）：** 无新 runtime / 无 HostFn+1；书面冻结产品地板 SSOT：（1）同端口 `upgradeUpstream` 透传（含 HMR-over-TLS 自动化钉）；（2）`upgradeTerminate` plain + over-TLS（正向代表簇 + close(1002) 主矩阵 + illegal 近界 soft-close）；（3）sgate native HTTPS可承载上述路径。**OUT：** RFC6455 extension；close 码全集 GA；`net.tls.server` / `__syx_tls_serve` HostFn GA；真浏览器 Playwright HMR；全量并发 SLA；`ws_routes` websocat 去 sidecar；「完整 WSS/WebSocket 产品 GA」营销口号。钉 `wss_marketing_product_soft_close_first_slice`（索引既有代表测）。**宣称** WSS 营销产品 soft-close met / 该子轴不再开片追「WSS GA」；**不宣称** 完整 WSS/WebSocket 产品 GA / Playwright / SLA / 删 websocat / 项 8 总收口。
-
-**sgate TLS native （todo 8）：** 无新 HostFn；`mode: native` → `tls_native.sy` 对配置 PEM 做 `Env.set(SYX_HTTP_SERVE_TLS_CERT/KEY)`，`main.sy` 在 `tls.port` 上 `Http.serve`（进程内 rustls，与 stdlib HTTPS 钉同语义）；配置可用 `SYX_SGATE_CONFIG`；保留 `tls.sy` `__syx_tls_serve`/`if false` 诚实占位。钉 `sgate_tls_native_first_slice` / test.sh native。**宣称** sgate TLS native met / 生产 HTTPS 可不依赖 socat；**不宣称** 删除 sidecar 代码 / `ws_routes` 去 sidecar / Playwright / `net.tls.server` HostFn GA / 项 8 总收口（WSS 营销宣称边界见 soft-close）。
-
-**upgradeTerminate illegal close-status 近界采样轴 soft-close（todo 8）：** 无新 runtime；结清 soft 债 + TLS 边沿对齐至 9/990；近界 `N/999−N` 继续 deepen **OUT**：（1）TLS 8/991 fail_closed（钉 `http_serve_https_upgrade_terminate_accept_close_status_8_fail_closed` / `…_991_fail_closed`）；（2）plain 9/990 fail_closed（钉 `http_serve_upgrade_terminate_accept_close_status_9_fail_closed` / `…_990_fail_closed`）；（3）TLS 9/990 close(1002) 对齐（钉 `…_9_close_1002` / `…_990_close_1002`）。**宣称** illegal 近界采样轴 soft-close met / soft **4/4**TLS↔plain 边沿对齐至 9/990；该子轴不再开片；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 项 8 总收口 / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 8/991 收口 + plain 9/990 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 8（钉 `http_serve_https_upgrade_terminate_accept_close_status_8_close_1002`）；（2）TLS close status 991（钉 `…_991_close_1002`）；（3）plain close status 9（钉 `http_serve_upgrade_terminate_accept_close_status_9_close_1002`）；（4）plain close status 990（钉 `…_990_close_1002`）。**宣称** TLS 8/991 收口 + plain 9/990 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 7（钉 `http_serve_https_upgrade_terminate_accept_close_status_7_fail_closed`）；（2）TLS close status 992（钉 `…_992_fail_closed`）；（3）plain close status 8（钉 `http_serve_upgrade_terminate_accept_close_status_8_fail_closed`）；（4）plain close status 991（钉 `…_991_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 7/992 收口 + plain 8/991 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 7（钉 `http_serve_https_upgrade_terminate_accept_close_status_7_close_1002`）；（2）TLS close status 992（钉 `…_992_close_1002`）；（3）plain close status 8（钉 `http_serve_upgrade_terminate_accept_close_status_8_close_1002`）；（4）plain close status 991（钉 `…_991_close_1002`）。**宣称** TLS 7/992 收口 + plain 8/991 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 6（钉 `http_serve_https_upgrade_terminate_accept_close_status_6_fail_closed`）；（2）TLS close status 993（钉 `…_993_fail_closed`）；（3）plain close status 7（钉 `http_serve_upgrade_terminate_accept_close_status_7_fail_closed`）；（4）plain close status 992（钉 `…_992_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 6/993 收口 + plain 7/992 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 6（钉 `http_serve_https_upgrade_terminate_accept_close_status_6_close_1002`）；（2）TLS close status 993（钉 `…_993_close_1002`）；（3）plain close status 7（钉 `http_serve_upgrade_terminate_accept_close_status_7_close_1002`）；（4）plain close status 992（钉 `…_992_close_1002`）。**宣称** TLS 6/993 收口 + plain 7/992 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 5（钉 `http_serve_https_upgrade_terminate_accept_close_status_5_fail_closed`）；（2）TLS close status 994（钉 `…_994_fail_closed`）；（3）plain close status 6（钉 `http_serve_upgrade_terminate_accept_close_status_6_fail_closed`）；（4）plain close status 993（钉 `…_993_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 5/994 收口 + plain 6/993 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 5（钉 `http_serve_https_upgrade_terminate_accept_close_status_5_close_1002`）；（2）TLS close status 994（钉 `…_994_close_1002`）；（3）plain close status 6（钉 `http_serve_upgrade_terminate_accept_close_status_6_close_1002`）；（4）plain close status 993（钉 `…_993_close_1002`）。**宣称** TLS 5/994 收口 + plain 6/993 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 4（钉 `http_serve_https_upgrade_terminate_accept_close_status_4_fail_closed`）；（2）TLS close status 995（钉 `…_995_fail_closed`）；（3）plain close status 5（钉 `http_serve_upgrade_terminate_accept_close_status_5_fail_closed`）；（4）plain close status 994（钉 `…_994_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 4/995 收口 + plain 5/994 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 4（钉 `http_serve_https_upgrade_terminate_accept_close_status_4_close_1002`）；（2）TLS close status 995（钉 `…_995_close_1002`）；（3）plain close status 5（钉 `http_serve_upgrade_terminate_accept_close_status_5_close_1002`）；（4）plain close status 994（钉 `…_994_close_1002`）。**宣称** TLS 4/995 收口 + plain 5/994 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 3（钉 `http_serve_https_upgrade_terminate_accept_close_status_3_fail_closed`）；（2）TLS close status 996（钉 `…_996_fail_closed`）；（3）plain close status 4（钉 `http_serve_upgrade_terminate_accept_close_status_4_fail_closed`）；（4）plain close status 995（钉 `…_995_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 3/996 收口 + plain 4/995 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 3（钉 `http_serve_https_upgrade_terminate_accept_close_status_3_close_1002`）；（2）TLS close status 996（钉 `…_996_close_1002`）；（3）plain close status 4（钉 `http_serve_upgrade_terminate_accept_close_status_4_close_1002`）；（4）plain close status 995（钉 `…_995_close_1002`）。**宣称** TLS 3/996 收口 + plain 4/995 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 2（钉 `http_serve_https_upgrade_terminate_accept_close_status_2_fail_closed`）；（2）TLS close status 997（钉 `…_997_fail_closed`）；（3）plain close status 3（钉 `http_serve_upgrade_terminate_accept_close_status_3_fail_closed`）；（4）plain close status 996（钉 `…_996_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 2/997 收口 + plain 3/996 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 2（钉 `http_serve_https_upgrade_terminate_accept_close_status_2_close_1002`）；（2）TLS close status 997（钉 `…_997_close_1002`）；（3）plain close status 3（钉 `http_serve_upgrade_terminate_accept_close_status_3_close_1002`）；（4）plain close status 996（钉 `…_996_close_1002`）。**宣称** TLS 2/997 收口 + plain 3/996 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）TLS close status 100（钉 `http_serve_https_upgrade_terminate_accept_close_status_100_fail_closed`）；（2）TLS close status 998（钉 `…_998_fail_closed`）；（3）plain close status 2（钉 `http_serve_upgrade_terminate_accept_close_status_2_fail_closed`）；（4）plain close status 997（钉 `…_997_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status TLS 100/998 收口 + plain 2/997 加深：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品 `*_close_1002`：（1）TLS close status 100（钉 `http_serve_https_upgrade_terminate_accept_close_status_100_close_1002`）；（2）TLS close status 998（钉 `…_998_close_1002`）；（3）plain close status 2（钉 `http_serve_upgrade_terminate_accept_close_status_2_close_1002`）；（4）plain close status 997（钉 `…_997_close_1002`）。**宣称** TLS 100/998 收口 + plain 2/997 加深 met；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin（对齐 ）：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 `*_close_1002`）：（1）plain close status 1（钉 `http_serve_upgrade_terminate_accept_close_status_1_fail_closed`）；（2）plain close status 100（钉 `…_100_fail_closed`）；（3）plain close status 998（钉 `…_998_fail_closed`）；（4）TLS close status 1（钉 `http_serve_https_upgrade_terminate_accept_close_status_1_fail_closed`）。**宣称** illegal-status fail_closed soft-twin（对齐 ）met / 四码 soft-twin **4/4**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status 加深第三簇：** 无新 runtime（`reject_illegal_close_status` 已拒 `0..=999`）；产品采样代表点 → close(1002)：（1）plain close status 1（钉 `http_serve_upgrade_terminate_accept_close_status_1_close_1002`）；（2）plain close status 100（钉 `…_100_close_1002`）；（3）plain close status 998（钉 `…_998_close_1002`）；（4）TLS close status 1（钉 `http_serve_https_upgrade_terminate_accept_close_status_1_close_1002`）。**宣称** illegal close-status 加深第三簇 met / 采样 1/100/998（+ TLS 1）；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin 收口：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 TLS `*_close_1002`）：（1）TLS close status 0（钉 `http_serve_https_upgrade_terminate_accept_close_status_0_fail_closed`）；（2）TLS close status 500（钉 `…_500_fail_closed`）。**宣称** illegal-status fail_closed soft-twin 收口 met / illegal fail_closed **10/10**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin 第二簇：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；镜像 ）：（1）TLS close status 1015（钉 `http_serve_https_upgrade_terminate_accept_close_status_1015_fail_closed`）；（2）TLS close status 999（钉 `…_999_fail_closed`）；（3）plain close status 0（钉 `http_serve_upgrade_terminate_accept_close_status_0_fail_closed`）；（4）plain close status 500（钉 `…_500_fail_closed`）。**宣称** illegal-status fail_closed soft-twin 第二簇 met / illegal fail_closed **8/10**；**不宣称** close 码全集 GA / illegal fail_closed 全集 / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate illegal close-status fail_closed soft-twin 第一簇：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；镜像 ）：（1）plain close status 1006（钉 `http_serve_upgrade_terminate_accept_close_status_1006_fail_closed`）；（2）plain close status 1015（钉 `…_1015_fail_closed`）；（3）plain close status 999（钉 `…_999_fail_closed`）；（4）TLS close status 1006（钉 `http_serve_https_upgrade_terminate_accept_close_status_1006_fail_closed`）。**宣称** illegal-status fail_closed soft-twin 第一簇 met / illegal fail_closed **4/10**；**不宣称** close 码全集 GA / WSS / WebSocket / `net.tls.server` 产品 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate-over-TLS fail_closed 名表第四/末簇：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 plain `*_fail_closed` + / RSV 场景）：（1）FIN=0 close（钉 `http_serve_https_upgrade_terminate_accept_fin0_close_fail_closed`）；（2）FIN=0 close mid-fragment（钉 `…_accept_fin0_close_during_fragment_fail_closed`）；（3）reserved opcode 0x3（钉 `…_accept_reserved_opcode_0x3_fail_closed`）；（4）RSV text（钉 `…_accept_rsv_text_fail_closed`）。**宣称** fail_closed 名表第四/末簇 met / TLS fail_closed **16/16**（soft-twin）；**不宣称** WSS / WebSocket / `net.tls.server` 产品 GA / close 码全集 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate-over-TLS fail_closed 名表第三簇：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 plain `*_fail_closed` + 场景）：（1）close reason non-UTF-8（钉 `http_serve_https_upgrade_terminate_accept_close_reason_non_utf8_fail_closed`）；（2）unsolicited pong（钉 `…_accept_unsolicited_pong_fail_closed`）；（3）illegal status 1004（钉 `…_accept_close_status_1004_fail_closed`）；（4）fragmented text non-UTF-8（钉 `…_accept_fragmented_text_non_utf8_fail_closed`）。**宣称** fail_closed 名表第三簇 met / TLS fail_closed **12/16**；**不宣称** fail_closed TLS 名表全集 / WSS / WebSocket / `net.tls.server` 产品 GA / close 码全集 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-**upgradeTerminate-over-TLS fail_closed 名表第二簇：** 无新 runtime；名表 soft-twin（行为仍 close(1002)；对齐 plain `*_fail_closed` + 场景）：（1）oversized ping（钉 `http_serve_https_upgrade_terminate_accept_oversized_ping_fail_closed`）；（2）close len=1（钉 `…_accept_close_len1_fail_closed`）；（3）illegal status 1005（钉 `…_accept_close_status_1005_fail_closed`）；（4）text non-UTF-8（钉 `…_accept_text_non_utf8_fail_closed`）。**宣称** fail_closed 名表第二簇 met / TLS fail_closed **8/16**；**不宣称** fail_closed TLS 名表全集 / WSS / WebSocket / `net.tls.server` 产品 GA / close 码全集 GA；**不宣称** 去 sidecar / Playwright / 「新 abort-only 语义」。
-
-
-
-
-**同端口 HMR 路径：** 客户端 Upgrade **只打 serve 口**；handler 返回 `upgradeUpstream` 指向本机 Vite-like WS 上游；101 + `Sec-WebSocket-Accept` 透传 + 掩码 text-frame 往返已钉（`http_serve_upgrade_proxy_hmr_path_same_port_roundtrip`）。**宣称** 同端口 HMR **产品路径**（自动化钉）met；**不宣称** 真浏览器 / Playwright HMR GA；**不宣称** 帧终结 / serve 自算 Accept。产品用法见 [tools/sgate/README.md](../../tools/sgate/README.md)（`:8080`→`:9999`）。
-
-**HTTP Upgrade → `upgradeUpstream`（进程内字节隧道）：** handler 可返回带 `upgradeUpstream`（上游 `http: / host:port/path`）的 Object；`Http.serve` 拨号上游、转发握手，收到 `101` 后双向拷贝字节。WebSocket 帧（含客户端掩码 text frame）**原样透传**；上游 101 响应头（含 `Sec-WebSocket-Accept`）**原样转发**（serve **不**按 Key 自算 Accept）。上游非 101 时回写客户端 `status.max(400)`（如 500→500、200→400）且**不开**隧道。缺 `upgradeUpstream`、空串 `upgradeUpstream`（视同缺字段）、handler 调用失败、拨号/写请求/读头失败（隧道前）→ 客户端 **502**（body 含 `Bad Gateway` 或字段名）。钉测：`http_serve_upgrade_proxy_roundtrip` / `http_serve_upgrade_proxy_masked_text_frame_roundtrip` / `http_serve_upgrade_proxy_non_101_maps_status_max_400` / `http_serve_upgrade_proxy_relays_sec_websocket_accept` / `http_serve_upgrade_proxy_missing_upgrade_upstream_returns_502` / `http_serve_upgrade_proxy_dial_fail_returns_502` / `http_serve_upgrade_proxy_empty_upgrade_upstream_returns_502` / `http_serve_upgrade_proxy_handler_err_returns_502` / `http_serve_upgrade_proxy_hmr_path_same_port_roundtrip`。产品用法见 [tools/sgate/README.md](../../tools/sgate/README.md)。**非** WSS 产品 GA；**非** 真浏览器 HMR GA（HMR-over-HTTPS 见 ；进程内终结见 `upgradeTerminate`）。
-
-**HTTP timeout / TLS 负例（`M2-S4-02b`）：** `Http.fetch`/`request` 的 `timeout_ms` 真超时 → **R012**；self-signed / bad cert fail-closed，禁 `status=0` 成功。`Http.get` **无** per-call timeout。钉测：`m2_s4_02b_client_timeout_tls`。**非** skip-verify API；**非** server TLS GA；**非** `EC-M2-4-Z`。
-
-Http* HostFn availability 已在能力矩阵诚实回写（`ec_m2_4_http_availability`；**非** EC-M2-4 全量 **非** TLS server GA）。native/WASM 列诚实加深已钉（`ec_m2_4_http_native_wasm_matrix`）；HttpMakeResponse llvm GA 首档已钉（`ec_m2_4_http_native_wasm_ga`；`HttpMakeResponse` `llvm=real` + native AOT 执行证据）；HttpResponseStatus llvm GA 二档已钉（`ec_m2_4_http_native_wasm_ga2`；`HttpResponseStatus` `llvm=real` + native AOT MakeResponse+status → `"200"`）；HttpResponseText llvm GA 三档已钉（`ec_m2_4_http_native_wasm_ga3`；`HttpResponseText` `llvm=real` + native AOT MakeResponse+text → `"ok"`；其余 Http* 仍 `llvm=partial` / `wasm=host-assisted` / 产品 `native=partial`；**非** 全量 HTTP GA **非** wasm GA **非** TLS server GA **非** EC-M2-4 全量退出）。`Http.response`×N Instant 微基准在测试层（`ec_m2_4_http_microbench`；**非** perf SLA **非** EC-M2-4 全量退出）。`Http.response`×N Criterion 正式 benchmark 首档在 `cargo bench`（`ec_m2_4_http_criterion`；**非** absolute SLA gate **非** EC-M2-4 全量退出）。
-
-`TcpStream.connect` / `read` / `write` 抛 `NetworkError`。`host_tcp_handle_release` / `TcpStream.closeHandle` 从 VM `TCP_STREAMS` 真 drop；存活计数 `tcp_stream_live_count` 仅在测试/诊断层，**不是**应用 API。Tcp* HostFn availability 已在能力矩阵诚实回写（`ec_m2_4_tcp_availability`；**非** EC-M2-4 全量 **非** TLS GA）。native/WASM 列诚实加深已钉（`ec_m2_4_tcp_native_wasm_matrix`）；TcpConnect llvm GA 首档已钉（`ec_m2_4_tcp_native_wasm_ga`；`TcpConnect` `llvm=real` + native AOT refuse → `-1` 执行证据）；TcpHandleRelease llvm GA 二档已钉（`ec_m2_4_tcp_native_wasm_ga2`；`TcpHandleRelease` `llvm=real` + native AOT loopback connect+release → `"true"`）；TcpWrite llvm GA 三档已钉（`ec_m2_4_tcp_native_wasm_ga3`；`TcpWrite` `llvm=real` + native AOT loopback connect+write `"hi"` → `"2"`）；四切片 native/WASM GA 三档收口评估已签署（`ec_m2_4_four_slice_native_wasm_ga3_closeout` / roadmap `EC-M2-4-G`；**非** 全量 EC-M2-4 **非** `EC-M2-4-Z`）；TcpRead llvm GA 四档已钉（`ec_m2_4_tcp_native_wasm_ga4` / roadmap `EC-M2-4-H`；`TcpRead` `llvm=real` + native AOT loopback connect+read → `"hi"`； 四 HostFn 齐）；`wasm=host-assisted` / 产品 `native=partial`；**非** 全量 Tcp GA **非** TLS GA **非** wasm GA **非** `EC-M2-4-Z` **非** EC-M2-4 全量退出）。`TcpStream.connect` 拒连×N Instant 微基准在测试层（`ec_m2_4_tcp_microbench`；**非** perf SLA **非** EC-M2-4 全量退出）。`TcpStream.connect` 拒连×N Criterion 正式 benchmark 首档在 `cargo bench`（`ec_m2_4_tcp_criterion`；16MB 栈；**非** absolute SLA gate **非** EC-M2-4 全量退出）。
-
-`Process.spawn` / `Process.wait` 管理子进程句柄生命周期（`wait` 从 VM `CHILD_TABLE` 移除；失败哨兵 `-1`）。**ProcessBuilder / Child（`M2-S6-01`）：** `ProcessBuilder.create` → `cwd` / `env`（overlay）→ `spawn` → `Child.wait` / `kill` / `waitTimeout`；**wait/kill 后再操作必须失败**；超时 `waitTimeout` 会 kill 并 throws。`os.process.builder` implemented。钉测：`m2_s6_01_process_builder`。**ChildPipe（`M2-S6-02b`）：** `Child.stdout`/`stderr`/`stdin` take → `ChildPipe.readChunk`（空=EOF）/`write`/`close`；**关闭后再读写必须失败**；未 take 的端在 wait 时内部 drop（防阻塞）。`os.process.stdio` implemented。钉测：`m2_s6_02b_child_stdio_pipe`。**Child.signal（`M2-S6-03`）：** `Child.signal(handle, name)` 接受 `TERM`/`INT`/`KILL`（可选 `SIG` 前缀，大小写不敏感）；**发信号后句柄仍可 `Child.wait`**（≠ `Child.kill`：强制 kill + 移除 + wait）。Unix：`libc::kill`；Windows：仅 `KILL`（`TERM`/`INT` throws unsupported）。`os.process.signal` implemented。钉测：`m2_s6_03_child_signal`。**非** 全量 POSIX signal GA；**非** `Process.signalSelf`；**非** async select Pipe GA；**非** `EC-M2-4-Z`。存活计数 `process_child_live_count` 仅在测试/诊断层（ EC-M2-3 首钉），**不是**应用 API。EC-M2-3 四类 live-count 首钉已收口评估签署；总闸「泄漏=0」仍开，**不是**全量 EC-M2-3 / M2 退出。EC-M2-4 四切片 availability + Instant microbench 首档已收口评估签署（`ec_m2_4_four_slice_closeout`）；总闸全量仍开，**不是** EC-M2-4 全量 / M2 退出。EC-M2-4 四切片 Criterion 正式 benchmark 首档已收口评估签署（`ec_m2_4_four_slice_criterion_closeout`；≠ absolute SLA gate）；总闸全量仍开，**不是** EC-M2-4 全量 / M2 退出。EC-M2-4 四切片 native/WASM matrix 首档已收口评估签署（`ec_m2_4_four_slice_native_wasm_matrix_closeout`；≠ native/WASM GA）；总闸全量仍开，**不是** EC-M2-4 全量 / M2 退出。EC-M2-4 四切片 native/WASM GA 首档已收口评估签署（`ec_m2_4_four_slice_native_wasm_ga_closeout`；PathJoin / HttpMakeResponse / SqlOpen / TcpConnect llvm；≠ 全量 native/WASM GA）；总闸全量仍开，**不是** EC-M2-4 全量 / M2 退出。EC-M2-4 四切片 native/WASM GA 二档已收口评估签署（`ec_m2_4_four_slice_native_wasm_ga2_closeout`；PathExtension / HttpResponseStatus / SqlClose / TcpHandleRelease llvm；≠ 全量 native/WASM GA）；总闸全量仍开，**不是** EC-M2-4 全量 / M2 退出。EC-M2-1 五切片（file+Path / HTTP client/server / SQLite / Path deep）已收口评估签署（`ec_m2_1_five_slice_closeout`）；总闸全量仍开，**不是** Path GA / M2 退出。
 
 示例：`examples/http_tool/`（ client）；`examples/http_server_tool/`（ server；默认端口 18765）。另见 `examples/httpclient_demo.sy` / `httpserver_demo.sy`。
 
@@ -1028,12 +563,6 @@ Http* HostFn availability 已在能力矩阵诚实回写（`ec_m2_4_http_availab
 | `Sql.queryOn(connId:, sql:)` | 查询 → **`Array` of `SqlRow`**（可用 `.count`） |
 | `Sql.close(connId:)` | 关闭显式打开的连接 |
 
-**Typed Row（`M2-S8-02b`）：** 命名类型 `SqlRow`（禁糊墙 Object 成功）。`SqlRow.getInt`/`getString`/`getFloat`/`getBlob`/`isNull`/`columnNames`（缺列或类型错 throws `SqlError`）。`data.sqlite.row` implemented。钉测：`m2_s8_02b_typed_row`。**裸 SQL hatch：** `Sql.query`/`queryOn` **仍接受裸 SQL 字符串**（注入风险自负）；≠ typed query builder；≠ Orm GA。**非** `EC-M2-4-Z`。
-
-**Connection pool（`M2-S8-01c` + `M2-S8-03b`）：** `Sql.poolCreate(dsn, maxSize)` → `poolAcquire` → 用 `*On` → `poolRelease`（归还 free list，**不** close）→ `poolClose`（关闭池内全部连接）。`maxSize` 耗尽时 `poolAcquire` **立即 throws**（非阻塞等待）。与裸 `Sql.open`/`close` 并存；池外连接不进 pool。`data.sqlite.pool` implemented。钉测：`m2_s8_01c_connection_pool`、`m2_s8_03b_pool_txn`。**事务门槛：** `poolRelease` 在连接仍有 open txn（`beginTransactionOn` 未 commit/rollback）时 **throws**（facade code 20）；同文件双 checkout 并发 `BEGIN IMMEDIATE` 至多一条成功，第二条 begin → busy（code 15）；`poolClose` 硬关池内 conn 并清除 txn 记账，`sql_conn_live_count` 不保留池 conn。**非** 阻塞/超时 acquire；**非** `EC-M2-4-Z`。
-
-Sql* HostFn availability 已在能力矩阵诚实回写（`ec_m2_4_sql_availability`；**非** EC-M2-4 全量 **非** Orm GA）。native/WASM 列诚实加深已钉（`ec_m2_4_sql_native_wasm_matrix`）；SqlOpen llvm GA 首档已钉（`ec_m2_4_sql_native_wasm_ga`；`SqlOpen` `llvm=real` + native AOT `:memory:` 执行证据）；SqlClose llvm GA 二档已钉（`ec_m2_4_sql_native_wasm_ga2`；`SqlClose` `llvm=real` + native AOT open+close → `"ok"`）；SqlExecOn llvm GA 三档已钉（`ec_m2_4_sql_native_wasm_ga3`；`SqlExecOn` `llvm=real` + native AOT `:memory:` CREATE+INSERT → `"1"`；其余 Sql* 仍 `llvm=partial` / `wasm=host-assisted` / 产品 `native=partial`；**非** 全量 Sql GA **非** Orm GA **非** wasm GA **非** EC-M2-4 全量退出）。`:memory:` + `Sql.execOn` INSERT×N Instant 微基准在测试层（`ec_m2_4_sql_microbench`；**非** perf SLA **非** EC-M2-4 全量退出）。`:memory:` + `Sql.execOn` INSERT×N Criterion 正式 benchmark 首档在 `cargo bench`（`ec_m2_4_sql_criterion`；16MB 栈；**非** absolute SLA gate **非** EC-M2-4 全量退出）。
-
 示例：`examples/sql_tool/`（ EC-M2-1 SQLite 服务切片）。存活计数 `sql_conn_live_count` 仅计显式连接（id≥1），在测试/诊断层（ EC-M2-3 首钉），**不是**应用 API。
 
 ### String 三视图（`M2-S2-01`）
@@ -1046,7 +575,6 @@ Sql* HostFn availability 已在能力矩阵诚实回写（`ec_m2_4_sql_availabil
 | Unicode scalar | `String.unicodeScalarCount(text:)` / `String.unicodeScalars(text:)` | 与 grapheme 可分叉（如 ZWJ 家庭 emoji） |
 | UTF-8 bytes | `String.utf8Count(text:)` / `String.utf8Bytes(text:)` | 字节长度与 `Array<Int>`（0–255） |
 
-`Character.isSingleScalar` 按 **scalar count == 1** 判断（非 grapheme `.count`）。钉测：`m2_s2_01_string_three_view`。**非** normalization / XID / IANA。
 
 ### String 下标复杂度（`M2-S2-02`）
 
@@ -1060,8 +588,6 @@ Sql* HostFn availability 已在能力矩阵诚实回写（`ec_m2_4_sql_availabil
 | `String.normalizedNFD(text:)` | Unicode **NFD** |
 | `String.caseFolded(text:)` | Unicode **default/full case folding**（如 `ß`→`ss`） |
 | `.lowercased()` / `.uppercased()` | Unicode **simple case mapping**（≠ `caseFolded`；≠ locale/Turkish） |
-
-**非** NFKC/NFKD / IANA。钉测：`m2_s2_03_string_normalization`。标识符 XID 见下节。
 
 ### 标识符 Unicode XID（`M2-S2-04`）
 
@@ -1130,7 +656,6 @@ protocol Iterator {
 | `s.insert(x)` / `s.remove(x)` | `Set<Int>`；返回是否新插入 / 是否曾存在 |
 | `a[i] = v` / `__syx_array_set_at` | Array 下标与 setAt 写回 |
 
-钉测：`m2_s1_02_collection_mutation`。**非** Dict 下标插入 GA / 泛型全集。Deque → `collections.deque`。
 
 ### Deque（`M2-S1-03`）
 
@@ -1145,8 +670,6 @@ print(Deque.popBack(items: d))   // 1
 print(Deque.isEmpty(items: d))   // true；空 pop → nil
 ```
 
-`data`/`collections.deque` implemented。钉测：`m2_s1_03_deque`。**非** Heap/PriorityQueue；**非** lazy sequence；**非** `Deque<T>` 泛型；**非** for-in / makeIterator GA；**非** `EC-M2-4-Z`。
-
 ### 集合 HOF feature-off（`M2-S1-04`）
 
 `Array.map` / `filter` / `reduce`（含 `__syx_array_*` CallHost）在非法 receiver、缺 Closure、或 interpreter feature-off 时 **fail-closed**：诊断码 **`U001` / unsupported**，**不得**以空数组 `[]` 或静默 `Nil` 当作成功。
@@ -1155,8 +678,6 @@ print(Deque.isEmpty(items: d))   // true；空 pop → nil
 // 非法：第二参不是 Closure → 运行失败（U001），不会打印 []
 __syx_array_map([1, 2, 3], 0)
 ```
-
-钉测：`m2_s1_04_native_feature_off_no_silent`。**非** String 三视图 GA / llvm HOF GA。Deque → `collections.deque`。
 
 ---
 
@@ -1231,8 +752,6 @@ func main() {
 }
 ```
 
-编译器自动生成 `_init` 与 `_describe`；`@Equatable`/`@Hashable`/`@Codable` 为 L1 证明宏（stored 属性 `data class`）。详见 [books/language-guide/19-macros.md](../../books/language-guide/19-macros.md)。
-
 ### Encoder / Decoder 协议（`M2-S7-01`）
 
 语言提供可扩展编码协议面：`Encoder` / `Decoder` / `Encodable` / `Decodable`，以及 `Codable: Encodable, Decodable`。默认仍用 `JSON.encode` / `@Codable` 动态 JSON 路径。钉测：`m2_s7_01_encoder_decoder_protocol`。
@@ -1253,8 +772,6 @@ func main() {
 }
 ```
 
-可选字段（`T?`）缺键可 decode。**非** CodingKeys DSL。钉测：`m2_s7_02_json_encoder_decoder_field_paths`。
-
 ### JSONStream NDJSON（`M2-S7-03`）
 
 可选 streaming MVP：session 写出 NDJSON 行，再分块 `feed` 后 `decodeNext`：
@@ -1271,8 +788,6 @@ func main() {
   JSONStream.closeReader(handle: r)
 }
 ```
-
-**非** CodingKeys DSL；**非** File 真 stream（→ `M2-S3-03`）；**非** HTTP 流式 body（→ `M2-S4-04`）；**非** IANA（→ `M2-S5-02`）。钉测：`m2_s7_03_json_stream_ndjson`。
 
 ### Extension
 
@@ -1396,16 +911,12 @@ func main() {
 
 ### 运行时 Host 插件（opt-in）
 
-Phase 49+ 动态扩展见 [books/language-guide/33-runtime-extensions.md](../../books/language-guide/33-runtime-extensions.md) 与 [架构决议 · Host 插件](../adr/architecture-decisions.md#host-插件)。
-
 ```bash
 export SYX_HOST_PLUGIN_PATH=/path/to/libplugin.so
 syx run app.sy
 ```
 
 `syx.toml` 可选 `[plugins].paths`；索引锁 `syx-plugin-lock.json`。验签：`SYX_HOST_PLUGIN_VERIFY=1`。
-
-现行 ABI v1 为 UTF-8 字符串进出（输出约 8 KiB）。**：** P-SURF packed-SYX padReflect 四向（`padRowsBeforeReflect`/`padRowsAfterReflect`/`padColsBeforeReflect`/`padColsAfterReflect`；≠ 产品 GA）；**：** P-SURF packed-SYX padConstant 四向（`padRowsBeforeConstant`/`padRowsAfterConstant`/`padColsBeforeConstant`/`padColsAfterConstant`；≠ 产品 GA）；**：** P-SURF packed-SYX pad 边框（`padRowsBefore`/`padRowsAfter`/`padColsBefore`/`padColsAfter`；≠ 产品 GA）；**：** P-SURF packed-SYX 取舍/丢弃（`takeRows`/`dropRows`/`takeCols`/`dropCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 标量掩码（`lessThanScalar`/`notEqualToScalar`/`lessEqualToScalar`/`greaterEqualToScalar`；≠ 产品 GA）；**：** P-SURF packed-SYX 差分加深/标量掩码（`maxAbsDiff`/`hamming`/`equalToScalar`/`greaterThanScalar`；≠ 产品 GA）；**：** P-SURF packed-SYX 差分/整数损失（`absDiff`/`squaredDiff`/`manhattan`/`sumSquaredDiff`；≠ 产品 GA）；**：** P-SURF packed-SYX 硬激活加深（`leakyRelu`/`hardTanh`/`heaviside`/`relu6`；≠ 产品 GA）；**：** P-SURF packed-SYX clip/threshold （`clampMin`/`clampMax`/`relu`/`threshold`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴前缀（`cummaxRows`/`cummaxCols`/`cummin`/`cummax`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴前缀（`diffRows`/`diffCols`/`cumminRows`/`cumminCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴前缀（`cumsumRows`/`cumsumCols`/`cumprodRows`/`cumprodCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴归约（`varRows`/`varCols`/`rangeRows`/`rangeCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴归约（`argminCols`/`argmaxRows`/`stdRows`/`stdCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴归约（`meanCols`/`prodRows`/`argminRows`/`argmaxCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴归约（`meanRows`/`prodCols`/`maxRows`/`minCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 轴归约（`sumRows`/`sumCols`/`minRows`/`maxCols`；≠ 产品 GA）；**：** P-SURF packed-SYX 掩码逻辑（`logicalXor`/`countTrue`/`noneTrue`/`fillWhere`；≠ 产品 GA）；**：** P-SURF packed-SYX 掩码逻辑（`logicalAnd`/`logicalOr`/`anyTrue`/`allTrue`；≠ 产品 GA）；**：** P-SURF packed-SYX 掩码选择/同形填充（`zerosLike`/`filledLike`/`choose`/`logicalNot`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素比较（`notEqual`/`less`/`lessEqual`/`greaterEqual`；≠ 产品 GA）；**：** P-SURF packed-SYX 外积/同形/比较（`outer`/`onesLike`/`equal`/`greater`；≠ 产品 GA）；**：** P-SURF packed-SYX 前缀累加/差分（`cumsum`/`cumprod`/`diff`/`countNonzero`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素 log10/Γ/lerp/dot （`log10`/`tgamma`/`lerp`/`dot`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素熔合/指数对数（`mulAdd`/`exp2`/`log2`/`cbrt`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素浮点二元（`hypot`/`pow`/`fmod`/`remainder`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素二元极值/符号（`maximum`/`minimum`/`copysign`/`reciprocal`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素一元（`floor`/`ceil`/`round`/`trunc`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素除/标量广播（`div`/`addScalar`/`subScalar`/`divScalar`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素一元（`sign`/`sqrt`/`squared`/`clamp`；≠ 产品 GA）；**：** P-SURF packed-SYX 几何置换（`rot180`/`swapRows`/`swapCols`/`roll`；≠ 产品 GA）；**：** P-SURF packed-SYX 几何翻转（`flipud`/`fliplr`/`rot90`/`antidiagonal`；≠ 产品 GA）；**：** P-SURF packed-SYX 结构复制（`tile`/`kron`/`tril`/`triu`；≠ 产品 GA）；**：** P-SURF packed-SYX 归约/范数（`min`/`max`/`argmin`/`argmax`/`frobeniusNorm`；≠ 产品 GA）；**：** P-SURF packed-SYX 形状拼装（`reshape`/`flatten`/`hstack`/`vstack`/`fromDiagonal`；≠ 产品 GA）；**：** P-SURF packed-SYX 切片/访问（`withAt`/`row`/`col`/`diagonal`/`trace`/`abs`；≠ 产品 GA）；**：** P-SURF packed-SYX 元素算术（`+`/`-`/`negated`/`hadamard`/`filled`/`mean`；≠ 产品 GA）；**：** P-SURF packed-SYX 形状通用化（任意形 `eye`/`ones`/`sum`/`transposed`/`copy` + `scale`；≠ 产品 GA）；**：** P-SURF packed-SYX 便利/stats （`at`/`transposed`/`copy`/`eye`/`ones`/`sum`；≠ 产品 GA）；**：** P-SURF solve/packed/shape 方法族（`Mat.solve` / `packed` / shape / `from`；≠ 产品 GA）；**：** P-SURF zeros 语言面（`Mat.zeros` 接 in-process `__syx_plugin_faer_zeros`；≠ 产品 GA）；**：** P-SURF 独立新 Mat （`let c = a * b` 独立对象，LHS packed 不改；≠ 产品 GA）；**：** P-FAER cdylib F64LE packed zeros （`__syx_plugin_faer_cdylib_zeros`；≠ Mat 语言面）；**：** P-SURF operator 返回值（`let c = a * b` 不破坏右操作数；≠ 产品 GA）；**：** P-SURF Mat 独立包落地（`import Linalg` / `class Mat` HANDLE wrap；≠ 产品 GA）；**：** cdylib F64LE packed solve （`__syx_plugin_faer_cdylib_solve`）；**：** HANDLE×cdylib drop （`__syx_plugin_faer_cdylib_hdrop` + alloc `drop_fn`）；**：** P-SURF 书面 Mat 约束（HANDLE 包一层 / `operator func` / 禁并入 math.sy；≠ 落地）；**：** HANDLE×cdylib to/from （`__syx_plugin_faer_cdylib_hfrom` / `_hto`）；**：** HANDLE×cdylib solve （`__syx_plugin_faer_cdylib_hsolve`）；**：** 句柄 borrow （alloc borrow/pin + `__syx_plugin_faer_cdylib_hmul`）；**：** P-FAER cdylib 装载（站外 `plugins/faerlin` dlopen + F64LE mul）；**：** P-FAER solve （in-process `__syx_plugin_faer_solve`；dense LU）；**：** P-FAER 施工（`__syx_plugin_faer_from` / `_zeros` / `_mul` / `_to`；句柄带 shape）；**：** ABI v2 句柄表（`SYX_PLUGIN_BUF_HANDLE` + `__syx_plugin_v2probe_pin` / `_sumh` / `_drop`）； 多槽 iov + realloc 仍真； 单槽 f64 仍真；`P-FAER` / `P-ABI-v2` / `P-SURF` 仍 `[ ]`。数值核走插件协议 + faer，不加 `HostFnId`、不改语言。详 [`plan/topics/plugin-abi-v2-linalg.md`](../../plan/topics/plugin-abi-v2-linalg.md)。**非** faer 产品 GA、**非** Mat、**非** ABI v2 完成、**非** 句柄 GA、**非** F-08、**非** Math 扩面、**非** 四后端插件 GA。
 
 ---
 
@@ -1415,9 +926,6 @@ syx run app.sy
 
 Phase 14+ Embed API（`syx_embed_v2_*`）：沙箱 / 超时 / 内存与 RSS 预算 / capability 白名单。详见 [架构决议](../adr/architecture-decisions.md)。
 
-- **v1（冻结）：** `syx_embed_v1_compile_run` / `syx_embed_v1_free_result`
-- **v2：** `syx_embed_v2_compile` / `syx_embed_v2_run` / `syx_embed_v2_free`
-
 ### 格式化 — `syx format`
 
 格式化项目入口文件（`syx.toml` 中 `main` 指定）：
@@ -1425,8 +933,6 @@ Phase 14+ Embed API（`syx_embed_v2_*`）：沙箱 / 超时 / 内存与 RSS 预�
 ```bash
 syx format .
 ```
-
-**C-06（––1176）：** `syx format --check [path]` 递归 dry-run `.sy`——断言 `format(format(x)) == format(x)`；会改写或 F001 → 非零退出且**不写盘**。：Index/Dict、Class/Init、Extension/Protocol、Protocol access/继承诚实、Actor/`deinit`、Enum/TypeAlias、`data class`、`final class`、`global actor`、Subscript get-only/get+set、stored willSet/didSet、computed get-only、`lazy var`、computed get+set、`override var`、`operator func`、`#macro`（User 空/非空 decl_body + BuiltIn/External）、模块级/表达式/语句 `#name(args)`、模块顶层语句、非空 `decl_body`、`throw`、`try`/`catch`、闭包 `{ (params) in … }`（不重建 `-> Ret`）、`await`、`<expr>!` force-unwrap、`as`/`as?`/`is`、`T.self`、`?.`、`..<`/`...`、`switch` 字面 case、`if let`、`guard let`（先 else 后 body）、`repeat {…} while`、`if case .variant[(let x)]`。**：** `if case (a, b) = subject { … }`（`Expr::TuplePattern`；IfCase 收 VariantPattern|TuplePattern；TaskBlock → F001）；`format/tuple_pattern_mvp` 绿；corpus `would_change=0`（自然 Δ≈0；MVP +5）；gre … ≠ C-06 `[x]`。钉测：`c06_fmt_*` / `c06_fmt_check_*`。
 
 覆盖：函数、变量、if/while/for-in、表达式、数组/下标、字典字面量、结构体声明等（AST 路径；unsupported → F001）。
 
@@ -1606,9 +1112,6 @@ syx build --native --object .
 - 显式 debug：`syx build --native --debug`（与 `--release` 互斥）
 - 报告：`syx doctor --native-profile-report` 打印 profile、clang 参数与 rt 档案路径
 - **LTO opt-in（Phase 94）**：`SYX_NATIVE_LTO=1 syx build --native --release` 启用 thin-LTO（`-flto=thin` + link `-flto`）
-- **GUI SynUI v10（Phase 133 · partial GA）：** `import UI` / `packages/ui` 走 `__syx_synui_*` host 桥（stack · scrollView Signal bind · Web/Mobile 布局加深 · v9 继承 image Signal bind · divider · Web/Mobile 控件加深 · textArea/list Signal bind · spacer · picker/progress bind · desktop run Column+Scroll+rekey · toggle/radio Signal bind · Signal↔widget bind · desktop onClick 真接线需 HOLD/`--gui-visible`/`SYX_SYNUI_RUN=1` · checkbox/slider · `row`/`textField`/`column` · structural `renderFingerprint` CI）。需同级 checkout `../synui`（CI sibling gate）。旧 `syx-gui` / egui/skia **已退役**。**不得**称 wgpu HeadlessRenderer GA / 全控件库 / Web/Mobile **SYX language** 全集 GA（→ **134+**）。
-- **GUI 报告：** `syx doctor --gui-backend-report` 打印 backend 指纹（SynUI path-dep / host-bridge）
-- **Codable L11（Phase 94）**：纯 protobuf wire，与 L10 `L10:` 前缀不兼容
 
 #### 完整示例
 

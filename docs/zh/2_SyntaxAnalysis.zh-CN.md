@@ -2,10 +2,6 @@
 
 [English](../2_SyntaxAnalysis.md)
 
-
-> **现状对齐：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../../LICENSE)  
-> 实现状态 SSOT：[books/shared/implementation-status.md](../../books/shared/implementation-status.md) · 文档索引：[README.md](./README.zh-CN.md)
-
 ## 1. 概述
 
 语法分析器（Parser）是 SYX 编译器流水线的第二阶段，将 `syx-lexer` 产出的 `Token` 序列转换为抽象语法树（AST）。

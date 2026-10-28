@@ -2,10 +2,6 @@
 
 [简体中文](./zh/6_ComprehensiveAnalysisReport.zh-CN.md)
 
-> **Status SSOT:** [books/shared/implementation-status.md](../books/shared/implementation-status.md) (SYX **117.0** / Phase **139** · `syx-cache-v1` · audit 2600/3050).  
-> **License:** [Apache-2.0](../LICENSE) · **Native AOT:** LLVM only.  
-> Historical competitiveness / Phase gap audits below are **not** the current version banner. See [architecture-decisions.md](adr/architecture-decisions.md).
-
 ### Phase 33 → Phase 34 scaffold vs production (gap audit)
 
 | Area | Phase 33 actual | Phase 34 target |

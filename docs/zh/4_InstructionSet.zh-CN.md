@@ -3,10 +3,6 @@
 [English](../4_InstructionSet.md)
 
 
-> **现状对齐：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../../LICENSE)  
-> 原生 AOT：**仅 LLVM**（`syx build --native`）；VM 默认路径为 `syx run`。  
-> 实现状态 SSOT：[books/shared/implementation-status.md](../../books/shared/implementation-status.md) · 文档索引：[README.md](./README.zh-CN.md)
-
 ## 1. 概述
 
 SYX 采用**栈式字节码**虚拟机。指令定义在 `crates/syx-codegen/src/lib.rs`，运行时由 `crates/syx-vm/src/lib.rs` 中的 `VmInstance`（历史类型别名 `WasmVM`）解释执行。

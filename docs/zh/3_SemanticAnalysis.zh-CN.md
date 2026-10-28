@@ -3,10 +3,6 @@
 [English](../3_SemanticAnalysis.md)
 
 
-> **现状对齐：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../../LICENSE)  
-> 内置类型权威面：[`packages/core/builtins/`](../../packages/core/builtins/)（数值由 [`_templates/`](../../packages/core/builtins/_templates/) 生成）  
-> 实现状态 SSOT：[books/shared/implementation-status.md](../../books/shared/implementation-status.md) · 文档索引：[README.md](./README.zh-CN.md)
-
 ## 1. 概述
 
 语义分析是 SYX 编译流水线的第三阶段，位于 `crates/syx-semantic/`。该 crate 对 `syx_ast::Module` 进行类型推断、符号解析、作用域管理与跨模块可见性检查，为后续 MIR 与代码生成提供类型信息。

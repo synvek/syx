@@ -2,10 +2,6 @@
 
 [English](../11_NetworkStdlib.md)
 
-
-> **现状对齐：** SYX **117.0** · Phase **139** · 包面 [`packages/net/`](../../packages/net/) · 能力摘要 [capabilities-summary.md](../adr/capabilities-summary.md)  
-> WebSocket / gRPC 等为**收窄面**；**≠** 产品 GA。详见 [implementation-status](../../books/shared/implementation-status.md)。
-
 Node.js / fetch 风格的 HTTP 客户端、URL 工具、blocking HTTP 服务端，以及 TCP / WebSocket 等收窄模块。
 
 ## HTTP 命名类型（ADR-236 / `M2-S4-01`）

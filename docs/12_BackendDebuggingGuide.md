@@ -1,7 +1,5 @@
 # SYX Backend Debugging Guide
 
-> **Status alignment:** SYX **117.0** · Phase **139** · Native **LLVM sole** · [10_BackendParity.md](10_BackendParity.md)
-
 [简体中文](./zh/12_BackendDebuggingGuide.zh-CN.md)
 
 SYX can run the same source on multiple execution paths. This guide explains when to use each path, common differences, and troubleshooting steps.

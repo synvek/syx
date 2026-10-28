@@ -2,10 +2,6 @@
 
 欢迎阅读 **《SYX 语言指南》**。SYX（读作 **sy-ex**，`/saɪˈɛks/`）是一门受 Swift 语法启发的编程语言，由 Rust 实现的完整编译器工具链支撑（默认 **VM** + **LLVM** 原生 AOT + **WASM**；实验 JIT tier-2 opt-in）。源文件扩展名为 **`.sy`**，项目清单为 **`syx.toml`**。本指南帮助你系统学习 SYX 的语义与惯用法，并通过可运行示例建立直觉。
 
-> **本版对应：** SYX **117.0** · Phase **139** · `syx-cache-v1` · audit 2600/3050 · 许可证 [Apache-2.0](../../../LICENSE) · 最后文档同步 2026-10-27
->
-> 完整状态见 [shared/implementation-status.md](../../shared/implementation-status.md)；架构决议见 [docs/adr/architecture-decisions.md](../../../docs/adr/architecture-decisions.md)；能力摘要见 [docs/adr/capabilities-summary.md](../../../docs/adr/capabilities-summary.md)。
-
 ## SYX 是什么
 
 SYX 提供：
@@ -100,11 +96,7 @@ CLI、Native/WASM 编译、Embed API 与诊断码请参阅：
 
 | Phase | 营销版 | 主要变化 |
 |------|--------|---------|
-| **139** | **117.0** | multiline / tuple / nested path / range / Character / call labels；SIMD16 all/any；`syx-cache-v1`；audit 2600/3050；SynUI deferred；Farm/Dist freeze v19 |
-| 138 | 116.0 | Class Properties v6、Macro M28、Service DI v19、Actor shared pool、SIMD16 bitmask、Os primaryIpv4 |
-| 137 | 115.0 | Class Properties v5、Macro M27、Service DI v18、Task DiscardOldest、SIMD16 popcnt |
-| 136 | 114.0 | Class Properties v4、Macro M26、Service DI v17、Os hostname/uptime |
-| 135 | 113.0 | Class Properties v3、Macro M25、SynUI v12、Task CallerRuns |
+
 
 历史详见 [shared/implementation-status.md](../../shared/implementation-status.md) 与 ADR 序列。
 

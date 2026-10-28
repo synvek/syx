@@ -2,11 +2,6 @@
 
 [简体中文](./zh/5_CompleteTechnicalDocumentation.zh-CN.md)
 
-> **Current alignment:** SYX **117.0** · Phase **139** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · License [Apache-2.0](../LICENSE)  
-> **Native AOT:** **LLVM only** (`syx build --native`); Cranelift AOT removed (JIT tier-2 remains opt-in experimental).  
-> **SSOT:** [implementation-status](../books/shared/implementation-status.md) · [architecture-decisions](adr/architecture-decisions.md) · [docs/README](./README.md)  
-> Some sections below retain historical detail; when they conflict with the banner above, the banner wins.
-
 ## Table of contents
 
 1. [Project overview](#1-project-overview)

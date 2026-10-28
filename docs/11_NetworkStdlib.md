@@ -2,9 +2,6 @@
 
 [简体中文](./zh/11_NetworkStdlib.zh-CN.md)
 
-> **Current alignment:** SYX **117.0** · Phase **139** · package surface [`packages/net/`](../packages/net/) · capability summary [capabilities-summary.md](adr/capabilities-summary.md)  
-> WebSocket / gRPC are **narrow surfaces**; **≠** product GA. See [implementation-status](../books/shared/implementation-status.md).
-
 Node.js / fetch-style HTTP client, URL helpers, blocking HTTP server, plus narrow TCP / WebSocket modules.
 
 ## Named HTTP types (ADR-236 / `M2-S4-01`)

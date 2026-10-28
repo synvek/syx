@@ -2,10 +2,6 @@
 
 [简体中文](./zh/4_InstructionSet.zh-CN.md)
 
-> **Current alignment:** SYX **117.0** · Phase **139** · `syx-cache-v1` · License [Apache-2.0](../LICENSE)  
-> Native AOT: **LLVM only** (`syx build --native`); default VM path is `syx run`.  
-> Implementation status SSOT: [books/shared/implementation-status.md](../books/shared/implementation-status.md) · Doc index: [README.md](./README.md)
-
 ## 1. Overview
 
 SYX uses a **stack bytecode** virtual machine. Instructions are defined in `crates/syx-codegen/src/lib.rs`; the runtime interprets them in `crates/syx-vm/src/lib.rs` via `VmInstance` (historical type alias `WasmVM`).

@@ -2,10 +2,6 @@
 
 [English](../1_LexicalAnalysis.md)
 
-
-> **现状对齐：** SYX **117.0** · Phase **139** · `syx-cache-v1` · 许可证 [Apache-2.0](../../LICENSE)  
-> 实现状态 SSOT：[books/shared/implementation-status.md](../../books/shared/implementation-status.md) · 文档索引：[README.md](./README.zh-CN.md)
-
 ## 1. 概述
 
 词法分析器（Lexer）是 SYX 编译器流水线的第一阶段，负责将 `.sy` 源代码文本转换为 `Token` 序列，供 `syx-parser` 进行语法分析。

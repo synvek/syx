@@ -2,10 +2,6 @@
 
 Welcome to the ***SYX Language Guide***. SYX (pronounced **sy-ex**, `/saɪˈɛks/`) is a programming language inspired by Swift syntax, backed by a complete Rust-implemented compiler toolchain (default **VM** + **LLVM** native AOT + **WASM**; experimental JIT tier-2 opt-in). Source files use the **`.sy`** extension and project manifests are **`syx.toml`**. This guide helps you learn SYX semantics and idioms systematically, and build intuition through runnable examples.
 
-> **This edition covers:** SYX **117.0** · Phase **139** · `syx-cache-v1` · audit 2600/3050 · license [Apache-2.0](../../LICENSE) · documentation last synced 2026-10-27
->
-> For the full status matrix, see [shared/implementation-status.md](../shared/implementation-status.md); for architecture decisions, see [docs/adr/architecture-decisions.md](../../docs/adr/architecture-decisions.md); for the capabilities summary, see [docs/adr/capabilities-summary.md](../../docs/adr/capabilities-summary.md).
-
 ## What Is SYX
 
 SYX provides:
@@ -100,11 +96,6 @@ At any stage you can jump to the corresponding language reference chapter to loo
 
 | Phase | Marketing version | Main changes |
 |------|--------|---------|
-| **139** | **117.0** | multiline / tuple / nested path / range / Character / call labels; SIMD16 all/any; `syx-cache-v1`; audit 2600/3050; SynUI deferred; Farm/Dist freeze v19 |
-| 138 | 116.0 | Class Properties v6, Macro M28, Service DI v19, Actor shared pool, SIMD16 bitmask, Os primaryIpv4 |
-| 137 | 115.0 | Class Properties v5, Macro M27, Service DI v18, Task DiscardOldest, SIMD16 popcnt |
-| 136 | 114.0 | Class Properties v4, Macro M26, Service DI v17, Os hostname/uptime |
-| 135 | 113.0 | Class Properties v3, Macro M25, SynUI v12, Task CallerRuns |
 
 For the full history, see [shared/implementation-status.md](../shared/implementation-status.md) and the ADR series.
 

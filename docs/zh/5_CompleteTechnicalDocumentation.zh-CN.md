@@ -3,11 +3,6 @@
 [English](../5_CompleteTechnicalDocumentation.md)
 
 
-> **现状对齐：** SYX **117.0** · Phase **139** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · 许可证 [Apache-2.0](../../LICENSE)  
-> **原生 AOT：** 仅 **LLVM**（`syx build --native`）；Cranelift AOT 已移除（JIT tier-2 仍为 opt-in 实验）。  
-> **SSOT：** [implementation-status](../../books/shared/implementation-status.md) · [architecture-decisions](../adr/architecture-decisions.md) · [docs/README](./README.zh-CN.md)  
-> 下文部分章节仍含历史细节；与上列冲突时以上列为准。
-
 ## 目录
 
 1. [项目概述](#1-项目概述)
