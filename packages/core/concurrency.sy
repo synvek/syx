@@ -1,31 +1,45 @@
+// Task / actor / TaskGroup facade (host `__syx_task_*` / `__syx_main_actor_*`).
+// Prefer language `async`/`await` + `actor` where available; this class is the static Host bridge.
+
+/// Detached tasks, joins, sleep, MainActor, and TaskGroup helpers.
 public class Concurrency {
+    /// Detach a named task with no args; returns task handle.
     public static func detach(_ name: String) -> Object {
     return __syx_task_detach(name)
 }
+    /// Detach a named task with `args`; returns task handle.
     public static func detach(_ name: String, args: Array<Object>) -> Object {
     return __syx_task_detach(name, args)
 }
+    /// Join `task` and return its result.
     public static func join(_ task: Object) -> Object {
     return __syx_task_join(task)
 }
+    /// Request cancellation of `task`.
     public static func cancel(_ task: Object) -> Bool {
     return __syx_task_cancel(task)
 }
+    /// Sleep current task for `ms` milliseconds.
     public static func sleep(_ ms: Int) {
     __syx_task_sleep(ms)
 }
+    /// Await completion of `task` and return its value.
     public static func awaitValue(_ task: Object) -> Object {
     return __syx_await_task(task)
 }
+    /// Run `name` on the MainActor.
     public static func mainActorRun(_ name: String) -> Object {
     return __syx_main_actor_run(name)
 }
+    /// Create a TaskGroup host object.
     public static func taskGroupCreate() -> Object {
     return __syx_task_group_create()
 }
+    /// Add `task` to `group`.
     public static func taskGroupAdd(_ group: Object, _ task: Object) -> Bool {
     return __syx_task_group_add(group, task)
 }
+    /// Wait until all tasks in `group` complete.
     public static func taskGroupWait(_ group: Object) {
     __syx_task_group_wait(group)
 }
@@ -77,6 +91,7 @@ public class Concurrency {
     public static func setBlockingPoolSize(_ n: Int) -> Int {
     return __syx_blocking_pool_set_size(n)
 }
+    /// Configured blocking-pool size.
     public static func blockingPoolSize() -> Int {
     return __syx_blocking_pool_size()
 }
@@ -85,6 +100,7 @@ public class Concurrency {
     public static func setWorkerCount(_ n: Int) -> Int {
     return __syx_task_set_worker_count(n)
 }
+    /// Current task worker count.
     public static func workerCount() -> Int {
     return __syx_task_worker_count()
 }
@@ -92,6 +108,7 @@ public class Concurrency {
     public static func setTaskQueueCapacity(_ n: Int) -> Int {
     return __syx_task_set_queue_capacity(n)
 }
+    /// Task queue capacity.
     public static func taskQueueCapacity() -> Int {
     return __syx_task_queue_capacity()
 }
@@ -100,6 +117,7 @@ public class Concurrency {
     public static func setTaskRejectPolicy(_ policy: String) -> String {
     return __syx_task_set_reject_policy(policy)
 }
+    /// Task reject policy name/code.
     public static func taskRejectPolicy() -> String {
     return __syx_task_reject_policy()
 }
@@ -107,21 +125,27 @@ public class Concurrency {
     public static func setCorePoolSize(_ n: Int) -> Int {
     return __syx_task_set_core_pool_size(n)
 }
+    /// Core pool size for the task executor.
     public static func corePoolSize() -> Int {
     return __syx_task_core_pool_size()
 }
+    /// Set maximum Pool Size (host `__syx_task_set_maximum_pool_size`).
     public static func setMaximumPoolSize(_ n: Int) -> Int {
     return __syx_task_set_maximum_pool_size(n)
 }
+    /// Maximum pool size for the task executor.
     public static func maximumPoolSize() -> Int {
     return __syx_task_maximum_pool_size()
 }
+    /// Set keep Alive Ms (host `__syx_task_set_keep_alive_ms`).
     public static func setKeepAliveMs(_ ms: Int) -> Int {
     return __syx_task_set_keep_alive_ms(ms)
 }
+    /// Worker keep-alive time in milliseconds.
     public static func keepAliveMs() -> Int {
     return __syx_task_keep_alive_ms()
 }
+    /// Number of live worker threads.
     public static func liveWorkerCount() -> Int {
     return __syx_task_live_worker_count()
 }
@@ -129,6 +153,7 @@ public class Concurrency {
     public static func setMaxActors(_ n: Int) -> Int {
     return __syx_actor_set_max_actors(n)
 }
+    /// Maximum concurrent actors.
     public static func maxActors() -> Int {
     return __syx_actor_max_actors()
 }
@@ -136,6 +161,7 @@ public class Concurrency {
     public static func setMailboxCapacity(_ n: Int) -> Int {
     return __syx_actor_set_mailbox_capacity(n)
 }
+    /// Per-actor mailbox capacity.
     public static func mailboxCapacity() -> Int {
     return __syx_actor_mailbox_capacity()
 }
@@ -144,12 +170,15 @@ public class Concurrency {
     public static func setActorSharedPoolEnabled(_ enabled: Bool) -> Bool {
     return __syx_actor_set_shared_pool_enabled(enabled)
 }
+    /// Whether the actor shared pool is enabled.
     public static func actorSharedPoolEnabled() -> Bool {
     return __syx_actor_shared_pool_enabled()
 }
+    /// Set actor Shared Pool Size (host `__syx_actor_set_shared_pool_size`).
     public static func setActorSharedPoolSize(_ n: Int) -> Int {
     return __syx_actor_set_shared_pool_size(n)
 }
+    /// Actor shared-pool size.
     public static func actorSharedPoolSize() -> Int {
     return __syx_actor_shared_pool_size()
 }

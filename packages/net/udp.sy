@@ -1,10 +1,16 @@
+// UDP bind / sendTo / recvFrom (host `__syx_udp_*`).
+
+/// Connectionless datagram socket facade.
 public class UdpSocket {
+    /// Bind a UDP socket on `host`:`port`.
     public static func bind(host: String, port: Int) -> Object {
         return __syx_udp_bind(host, port)
     }
+    /// Send `data` to `host`:`port` via `socket`.
     public static func sendTo(socket: Object, host: String, port: Int, data: String) -> Int {
         return __syx_udp_send_to(socket, host, port, data)
     }
+    /// Receive up to `maxBytes` from `socket` (Object bag).
     public static func recvFrom(socket: Object, maxBytes: Int) -> Object {
         return __syx_udp_recv_from(socket, maxBytes)
     }

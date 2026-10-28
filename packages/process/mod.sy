@@ -2,18 +2,22 @@
 /// Prefer `ProcessBuilder` / `Child` (ADR-242) for cwd/env/kill/timeout + throws.
 
 public class Process {
+    /// Current process argument list.
     public static func args() -> Array<String> {
         return __syx_process_args()
     }
 
+    /// Current process environment map/object.
     public static func env(key: String) -> String {
         return __syx_process_env(key)
     }
 
+    /// Execute a process (legacy spawn surface).
     public static func exec(command: String, args: Array<String>) -> Int {
         return __syx_process_exec(command, args)
     }
 
+    /// Execute output (host `__syx_process_exec_output`).
     public static func execOutput(command: String, args: Array<String>) -> String {
         return __syx_process_exec_output(command, args)
     }
@@ -28,6 +32,7 @@ public class Process {
         return __syx_process_wait(handle)
     }
 
+    /// Exit Code (host `__syx_process_exit_code`).
     public static func exitCode() -> Int {
         return __syx_process_exit_code()
     }

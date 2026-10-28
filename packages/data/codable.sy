@@ -1,15 +1,22 @@
+// Codable L14 migration / rename smoke helpers (host `__syx_codable_*`).
+// Not the Encodable/Decodable protocols — those live under `core/protocols/`.
+
+/// Register User Schema (host `__syx_codable_l14_register_migration`).
 public func registerUserSchema() -> Bool {
     return __syx_codable_l14_register_migration("name", "User")
 }
 
+/// Register User Rename (host `__syx_codable_l14_register_rename`).
 public func registerUserRename() -> Bool {
     return __syx_codable_l14_register_rename("User", "name", "fullName")
 }
 
+/// Encode user (host `__syx_codable_encode_l14`).
 public func encodeUser(name: String) -> Array {
     return __syx_codable_encode_l14(name, "User")
 }
 
+/// Decode user (host `__syx_codable_decode_l14`).
 public func decodeUser(wire: Array) -> String {
     return __syx_codable_decode_l14("User", wire)
 }

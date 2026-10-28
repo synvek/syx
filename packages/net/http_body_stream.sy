@@ -17,6 +17,7 @@ public class HttpBodyStream {
         return __syx_http_body_stream_read_chunk(handle, maxBytes)
     }
 
+    /// Close the body-stream session (throws).
     public static func close(handle: Int) throws {
         try {
             __syx_http_body_stream_close(handle)

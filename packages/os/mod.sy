@@ -16,7 +16,9 @@
 /// Thin OsError (ADR-138 target type; full Error hierarchy → later M2 windows).
 public data class OsError(code: Int, message: String)
 
+/// OS runtime queries: cpu / memory / user / hostname / disk / load / primary IPv4.
 public class Os {
+    /// Logical CPU count.
     public static func cpuCount() -> Int {
         return __syx_os_cpu_count()
     }

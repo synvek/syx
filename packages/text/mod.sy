@@ -1,74 +1,101 @@
+// Text utilities: formatting, regex, encoding, builders, bytes.
+
+/// Print, printLine, format, and debug stringification.
 public class Fmt {
+    /// Print `value` without a trailing newline.
     public static func print(value: Object) {
         __syx_fmt_print(value)
     }
+    /// Print `value` followed by a newline.
     public static func printLine(value: Object) {
         __syx_fmt_print_line(value)
     }
+    /// Format `args` into `pattern`; returns the string.
     public static func format(pattern: String, args: Object) -> String {
         return __syx_fmt_format(pattern, args)
     }
+    /// Debug-string representation of `value`.
     public static func debug(value: Object) -> String {
         return __syx_fmt_debug(value)
     }
 }
 
+/// Regex match / compile / findAll / replaceAll (host `__syx_regex_*`).
 public class Regex {
+    /// Whether Match (host `__syx_regex_match`).
     public static func isMatch(text: String, pattern: String) -> Bool {
         let hits = __syx_regex_match(text, pattern)
         return hits.count > 0
     }
+    /// Compile `pattern` (returns host pattern id/string).
     public static func compile(pattern: String) -> String {
         return __syx_regex_compile(pattern)
     }
+    /// Find All (host `__syx_regex_find_all`).
     public static func findAll(text: String, pattern: String) -> Array<String> {
         return __syx_regex_find_all(text, pattern)
     }
+    /// Replace All (host `__syx_regex_replace_all`).
     public static func replaceAll(text: String, pattern: String, replacement: String) -> String {
         return __syx_regex_replace_all(text, pattern, replacement)
     }
 }
 
+/// Base64 / hex / URL encode and decode helpers.
 public class Encoding {
+    /// Base64 Encode (host `__syx_base64_encode`).
     public static func base64Encode(data: String) -> String {
         return __syx_base64_encode(data)
     }
+    /// Base64 Decode (host `__syx_base64_decode`).
     public static func base64Decode(encoded: String) -> String {
         return __syx_base64_decode(encoded)
     }
+    /// Hex Encode (host `__syx_hex_encode`).
     public static func hexEncode(data: String) -> String {
         return __syx_hex_encode(data)
     }
+    /// Hex Decode (host `__syx_hex_decode`).
     public static func hexDecode(encoded: String) -> String {
         return __syx_hex_decode(encoded)
     }
+    /// Url Encode (host `__syx_url_encode`).
     public static func urlEncode(text: String) -> String {
         return __syx_url_encode(text)
     }
+    /// Url Decode (host `__syx_url_decode`).
     public static func urlDecode(text: String) -> String {
         return __syx_url_decode(text)
     }
 }
 
+/// Mutable string builder session (handle id + append / toString).
 public class StringBuilder {
+    /// Create a `StringBuilder` session; returns handle id.
     public static func create() -> Int {
         return __syx_string_builder_new()
     }
+    /// Append `text` to builder handle.
     public static func append(builder: Int, text: String) {
         __syx_string_builder_append(builder, text)
     }
+    /// Convert to string (host `__syx_string_builder_to_string`).
     public static func toString(builder: Int) -> String {
         return __syx_string_builder_to_string(builder)
     }
 }
 
+/// Byte-array helpers: fromArray / slice / concat.
 public class Bytes {
+    /// Construct from array (host `__syx_bytes_from_array`).
     public static func fromArray(data: Array<UInt8>) -> Array<UInt8> {
         return __syx_bytes_from_array(data)
     }
+    /// Slice `data` from `start` to `end`.
     public static func slice(data: Array<UInt8>, start: Int, end: Int) -> Array<UInt8> {
         return __syx_bytes_slice(data, start, end)
     }
+    /// Concatenate byte arrays `a` and `b`.
     public static func concat(a: Array<UInt8>, b: Array<UInt8>) -> Array<UInt8> {
         return __syx_bytes_concat(a, b)
     }

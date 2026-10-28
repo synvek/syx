@@ -1,13 +1,20 @@
+// Incremental hasher for `Hashable` (host `__syx_hasher_*`).
+
+/// Combine values into a hash; used by `hash(into:)` witnesses.
 public class Hasher {
+    /// Create a new incremental `Hasher`.
     public static func newHasher() -> Hasher {
     return __syx_hasher_new()
 }
+    /// Combine `value` into `hasher`; returns the hasher.
     public static func combine(hasher: Hasher, value: Object) -> Hasher {
     return __syx_hasher_combine(hasher, value)
 }
+    /// Finalize `hasher` into an `Int` hash.
     public static func finalize(hasher: Hasher) -> Int {
     return __syx_hasher_finalize(hasher)
 }
+    /// Stable `ObjectIdentifier` for a class instance.
     public static func objectId(value: Object) -> ObjectIdentifier {
     return __syx_object_identifier(value)
 }

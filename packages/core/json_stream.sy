@@ -1,30 +1,37 @@
 /// ADR-232 / M2-S7-03: JSONStream NDJSON session + chunk feed.
 /// ≠ CodingKeys DSL; ≠ File S3-03 true stream; ≠ HTTP body stream; ≠ IANA.
 public class JSONStream {
+    /// Open an NDJSON writer session; returns handle.
     public static func openWriter() -> Int {
         return __syx_json_stream_open_writer()
     }
 
+    /// Write one typed value to the NDJSON writer (throws).
     public static func write(handle: Int, value: Object, typeName: String) throws {
         __syx_json_stream_write(handle, value, typeName)
     }
 
+    /// Finish the NDJSON writer and return accumulated text.
     public static func finishWriter(handle: Int) -> String {
         return __syx_json_stream_finish_writer(handle)
     }
 
+    /// Open an NDJSON reader session; returns handle.
     public static func openReader() -> Int {
         return __syx_json_stream_open_reader()
     }
 
+    /// Feed a text `chunk` into the reader (throws).
     public static func feed(handle: Int, chunk: String) throws {
         __syx_json_stream_feed(handle, chunk)
     }
 
+    /// Decode the next value as `typeName` (throws).
     public static func decodeNext(handle: Int, typeName: String) -> Object throws {
         return __syx_json_stream_decode_next(handle, typeName)
     }
 
+    /// Close the NDJSON reader session.
     public static func closeReader(handle: Int) {
         __syx_json_stream_close_reader(handle)
     }

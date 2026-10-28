@@ -1,9 +1,14 @@
+// Thin table/record helpers over Sql (≠ full ORM / ≠ query builder GA).
+
+/// Thin ORM error (ADR-138 style; full Error hierarchy later).
 public data class OrmError(code: Int, message: String)
 
+/// Save (host `__syx_orm_save`).
 public func save<T>(table: String, record: T) -> Bool {
     return __syx_orm_save(table, record)
 }
 
+/// Save On (throws) (host `__syx_orm_save_on`).
 public func saveOn(connId: Int, table: String, record: Any) -> Bool throws {
     try {
         return __syx_orm_save_on(connId, table, record)
@@ -12,10 +17,12 @@ public func saveOn(connId: Int, table: String, record: Any) -> Bool throws {
     }
 }
 
+/// Find Where (host `__syx_orm_find_where`).
 public func findWhere(table: String, col: String, val: String) -> Array {
     return __syx_orm_find_where(table, col, val)
 }
 
+/// Find Where On (throws) (host `__syx_orm_find_where_on`).
 public func findWhereOn(connId: Int, table: String, col: String, val: String) -> Array throws {
     try {
         return __syx_orm_find_where_on(connId, table, col, val)
@@ -24,10 +31,12 @@ public func findWhereOn(connId: Int, table: String, col: String, val: String) ->
     }
 }
 
+/// Update Where (host `__syx_orm_update_where`).
 public func updateWhere(table: String, col: String, val: String, newCol: String, newVal: String) -> Int {
     return __syx_orm_update_where(table, col, val, newCol, newVal)
 }
 
+/// Update Where On (throws) (host `__syx_orm_update_where_on`).
 public func updateWhereOn(connId: Int, table: String, col: String, val: String, newCol: String, newVal: String) -> Int throws {
     try {
         return __syx_orm_update_where_on(connId, table, col, val, newCol, newVal)
@@ -36,10 +45,12 @@ public func updateWhereOn(connId: Int, table: String, col: String, val: String, 
     }
 }
 
+/// Delete where (host `__syx_orm_delete_where`).
 public func deleteWhere(table: String, col: String, val: String) -> Int {
     return __syx_orm_delete_where(table, col, val)
 }
 
+/// Delete where On (throws) (host `__syx_orm_delete_where_on`).
 public func deleteWhereOn(connId: Int, table: String, col: String, val: String) -> Int throws {
     try {
         return __syx_orm_delete_where_on(connId, table, col, val)
@@ -48,6 +59,7 @@ public func deleteWhereOn(connId: Int, table: String, col: String, val: String) 
     }
 }
 
+/// Migrate (host `__syx_sql_migrate`).
 public func migrate(sql: String) -> Int {
     return __syx_sql_migrate(sql)
 }

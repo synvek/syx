@@ -1,8 +1,13 @@
+// DNS resolution facade (host `__syx_dns_*`).
+
+/// Resolve hostnames to address lists or a primary IP string.
 public class Dns {
+    /// Resolve `host` to a list of address strings.
     public static func resolve(host: String) -> Array<String> {
         return __syx_dns_resolve(host)
     }
 
+    /// Resolve `host` to a single preferred IP string.
     public static func resolveIp(host: String) -> String {
         return __syx_dns_resolve_ip(host)
     }

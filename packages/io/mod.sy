@@ -1,4 +1,9 @@
+// Path-based file / directory / stdin helpers (`import IO`).
+// Handle-based RAII lives in `FileHandle` / `FileStream` / `FileWatcher`.
+
+/// Whole-file read/write/copy/stat and one-shot watch kick.
 public class File {
+    /// Read entire file at `path` as UTF-8 text.
     public static func read(path: String) -> String {
         return __syx_file_read(path)
     }
@@ -8,54 +13,67 @@ public class File {
         return __syx_file_read_async(path)
     }
 
+    /// Read file at `path` as an array of lines.
     public static func readLines(path: String) -> Array<String> {
         return __syx_file_read_lines(path)
     }
 
+    /// Write `content` to `path` (overwrite).
     public static func write(path: String, content: String) {
         __syx_file_write(path, content)
     }
 
+    /// Append `content` to `path`.
     public static func append(path: String, content: String) {
         __syx_file_append(path, content)
     }
 
+    /// Whether `path` exists.
     public static func exists(path: String) -> Bool {
         return __syx_file_exists(path)
     }
 
+    /// Delete file at `path`.
     public static func delete(path: String) {
         __syx_file_delete(path)
     }
 
+    /// Copy file from `from` to `to`.
     public static func copy(from: String, to: String) {
         __syx_file_copy(from, to)
     }
 
+    /// Move/rename file from `from` to `to`.
     public static func move(from: String, to: String) {
         __syx_file_move(from, to)
     }
 
+    /// Read file at `path` as raw bytes.
     public static func readBytes(path: String) -> Array<UInt8> {
         return __syx_file_read_bytes(path)
     }
 
+    /// Write raw `bytes` to `path`.
     public static func writeBytes(path: String, bytes: Array<UInt8>) {
         __syx_file_write_bytes(path, bytes)
     }
 
+    /// Filesystem metadata for `path` (Object bag).
     public static func stat(path: String) -> Object {
         return __syx_file_stat(path)
     }
 
+    /// Create symlink at `linkPath` pointing to `target`.
     public static func symlink(target: String, linkPath: String) {
         __syx_file_symlink(target, linkPath)
     }
 
+    /// Read symlink target at `path`.
     public static func readLink(path: String) -> String {
         return __syx_file_read_link(path)
     }
 
+    /// Change mode bits on `path`.
     public static func chmod(path: String, mode: Int) {
         __syx_file_chmod(path, mode)
     }
@@ -66,21 +84,27 @@ public class File {
     }
 }
 
+/// Create / list / exists for directories.
 public class Directory {
+    /// Create directory at `path`.
     public static func create(path: String) {
         __syx_dir_create(path)
     }
 
+    /// List directory entries at `path`.
     public static func list(path: String) -> Array<String> {
         return __syx_dir_list(path)
     }
 
+    /// Whether directory `path` exists.
     public static func exists(path: String) -> Bool {
         return __syx_dir_exists(path)
     }
 }
 
+/// Read a line from standard input (`__syx_read_line`).
 public class Stdin {
+    /// Read one line from standard input.
     public static func readLine() -> String {
         return __syx_read_line()
     }

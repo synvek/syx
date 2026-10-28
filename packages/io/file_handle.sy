@@ -7,7 +7,9 @@
 /// Thin IOError (ADR-138 target type; full Error hierarchy → later M2 windows).
 public data class IOError(code: Int, message: String)
 
+/// Open file handle: chunked read/write/seek (throws `IOError`; RAII via `FileResource`).
 public class FileHandle {
+    /// Open `path` with `mode`; returns handle id (throws `IOError`).
     public static func open(path: String, mode: String) -> Int throws {
         try {
             return __syx_file_open(path, mode)
@@ -16,6 +18,7 @@ public class FileHandle {
         }
     }
 
+    /// Read up to `maxBytes` from handle (throws `IOError`).
     public static func read(handle: Int, maxBytes: Int) -> Array<UInt8> throws {
         try {
             return __syx_file_read_chunk(handle, maxBytes)
@@ -24,6 +27,7 @@ public class FileHandle {
         }
     }
 
+    /// Write `bytes` to handle; returns byte count (throws `IOError`).
     public static func write(handle: Int, bytes: Array<UInt8>) -> Int throws {
         try {
             return __syx_file_write_chunk(handle, bytes)
@@ -32,6 +36,7 @@ public class FileHandle {
         }
     }
 
+    /// Close handle (throws `IOError`).
     public static func close(handle: Int) throws {
         try {
             __syx_file_close(handle)
@@ -40,6 +45,7 @@ public class FileHandle {
         }
     }
 
+    /// Seek handle to `offset` (throws `IOError`).
     public static func seek(handle: Int, offset: Int) throws {
         try {
             __syx_file_seek(handle, offset)
@@ -48,6 +54,7 @@ public class FileHandle {
         }
     }
 
+    /// Read remaining bytes from handle to end (throws `IOError`).
     public static func readAllBytes(handle: Int) -> Array<UInt8> throws {
         // M0-B07 / ADR-241: was `readMmap`; host is `read_to_end` (≠ OS mmap; S3-04 rename closeout).
         try {
@@ -84,6 +91,7 @@ public class FileHandle {
 public class FileResource {
     public var handle: Int = -1
 
+    /// Read up to `maxBytes` from handle (throws `IOError`).
     public func read(maxBytes: Int) -> Array<UInt8> throws {
         try {
             return __syx_file_read_chunk(self.handle, maxBytes)
@@ -92,6 +100,7 @@ public class FileResource {
         }
     }
 
+    /// Write `bytes` to handle; returns byte count (throws `IOError`).
     public func write(bytes: Array<UInt8>) -> Int throws {
         try {
             return __syx_file_write_chunk(self.handle, bytes)
@@ -100,6 +109,7 @@ public class FileResource {
         }
     }
 
+    /// Seek handle to `offset` (throws `IOError`).
     public func seek(offset: Int) throws {
         try {
             __syx_file_seek(self.handle, offset)
@@ -108,6 +118,7 @@ public class FileResource {
         }
     }
 
+    /// Close handle (throws `IOError`).
     public func close() throws {
         let h = self.handle
         if h < 0 {
@@ -121,6 +132,7 @@ public class FileResource {
         }
     }
 
+    /// Read remaining bytes from handle to end (throws `IOError`).
     public func readAllBytes() -> Array<UInt8> throws {
         try {
             return __syx_file_read_all_bytes(self.handle)
@@ -129,6 +141,7 @@ public class FileResource {
         }
     }
 
+    /// Close the handle quietly on destruction.
     deinit {
         __syx_file_close_quiet(self.handle)
     }

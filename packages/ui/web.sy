@@ -1,159 +1,201 @@
+// SynUI web-oriented view helpers (deferred product GA). Host `__syx_synui_*`.
+
+/// Create a label view.
 public func label(text: String) -> String {
     return __syx_synui_label(text)
 }
 
+/// Create a button view.
 public func button(text: String) -> String {
     return __syx_synui_button(text)
 }
 
+/// Create a text field.
 public func textField(placeholder: String) -> String {
     return __syx_synui_text_field(placeholder)
 }
 
+/// Create a text area.
 public func textArea(text: String) -> String {
     return __syx_synui_text_area(text)
 }
 
+/// Create a list view.
 public func list(items: String) -> String {
     return __syx_synui_list(items)
 }
 
+/// Create an image view.
 public func image(source: String) -> String {
     return __syx_synui_image(source)
 }
 
+/// Create a checkbox.
 public func checkbox(label: String, checked: Bool) -> String {
     return __syx_synui_checkbox(label, checked)
 }
 
+/// Create a slider.
 public func slider(value: Float, min: Float, max: Float) -> String {
     return __syx_synui_slider(value, min, max)
 }
 
+/// Create a radio control.
 public func radio(label: String, selected: Bool) -> String {
     return __syx_synui_radio(label, selected)
 }
 
+/// Create a progress indicator.
 public func progress(value: Float) -> String {
     return __syx_synui_progress(value)
 }
 
+/// Create a picker.
 public func picker(options: String, selected: Int) -> String {
     return __syx_synui_picker(options, selected)
 }
 
+/// Create a toggle.
 public func toggle(on: Bool) -> String {
     return __syx_synui_switch(on)
 }
 
+/// Signal bool New (SynUI signal).
 public func signalBoolNew(initial: Bool) -> String {
     return __syx_synui_signal_bool_new(initial)
 }
 
+/// Signal bool Get (SynUI signal).
 public func signalBoolGet(handle: String) -> Bool {
     return __syx_synui_signal_bool_get(handle)
 }
 
+/// Signal bool Set (SynUI signal).
 public func signalBoolSet(handle: String, value: Bool) -> String {
     return __syx_synui_signal_bool_set(handle, value)
 }
 
+/// Signal number New (SynUI signal).
 public func signalNumberNew(initial: Float) -> String {
     return __syx_synui_signal_number_new(initial)
 }
 
+/// Signal number Set (SynUI signal).
 public func signalNumberSet(handle: String, value: Float) -> String {
     return __syx_synui_signal_number_set(handle, value)
 }
 
+/// Bind checkbox (bind view to signal).
 public func bindCheckbox(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_checkbox(viewHandle, signalHandle)
 }
 
+/// Bind slider (bind view to signal).
 public func bindSlider(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_slider(viewHandle, signalHandle)
 }
 
+/// Bind toggle (bind view to signal).
 public func bindToggle(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_switch(viewHandle, signalHandle)
 }
 
+/// Bind radio (bind view to signal).
 public func bindRadio(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_radio(viewHandle, signalHandle)
 }
 
+/// Bind progress (bind view to signal).
 public func bindProgress(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_progress(viewHandle, signalHandle)
 }
 
+/// Bind picker (bind view to signal).
 public func bindPicker(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_picker(viewHandle, signalHandle)
 }
 
+/// Bind text Area (bind view to signal).
 public func bindTextArea(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_text_area(viewHandle, signalHandle)
 }
 
+/// Bind list (bind view to signal).
 public func bindList(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_list(viewHandle, signalHandle)
 }
 
+/// Bind image (bind view to signal).
 public func bindImage(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_image(viewHandle, signalHandle)
 }
 
+/// Create a spacer.
 public func spacer(size: Float, weight: Float) -> String {
     return __syx_synui_spacer(size, weight)
 }
 
+/// Create a divider.
 public func divider(orientationOrThickness: Float) -> String {
     return __syx_synui_divider(orientationOrThickness)
 }
 
+/// Create a stack container.
 public func stack(children: String) -> String {
     return __syx_synui_stack(children)
 }
 
+/// Create a scroll view.
 public func scrollView(children: String) -> String {
     return __syx_synui_scroll_view(children)
 }
 
+/// Create a tab view.
 public func tabView(tabs: String, children: String) -> String {
     return __syx_synui_tab_view(tabs, children)
 }
 
+/// Bind scroll View (bind view to signal).
 public func bindScrollView(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_scroll_view(viewHandle, signalHandle)
 }
 
+/// Bind tab View (bind view to signal).
 public func bindTabView(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_tab_view(viewHandle, signalHandle)
 }
 
+/// Create a navigation container.
 public func navigation(routes: String, destinations: String) -> String {
     return __syx_synui_navigation(routes, destinations)
 }
 
+/// Bind navigation (bind view to signal).
 public func bindNavigation(viewHandle: String, signalHandle: String) -> String {
     return __syx_synui_bind_navigation(viewHandle, signalHandle)
 }
 
+/// Render Fingerprint.
 public func renderFingerprint() -> String {
     return __syx_synui_render_fingerprint()
 }
 
+/// Create a column layout.
 public func column(children: String) -> String {
     return __syx_synui_column(children)
 }
 
+/// Create a row layout.
 public func row(children: String) -> String {
     return __syx_synui_row(children)
 }
 
+/// Pump.
 public func pump() -> String {
     return __syx_synui_pump()
 }
 
+/// Run.
 public func run() -> String {
     return __syx_synui_run()
 }

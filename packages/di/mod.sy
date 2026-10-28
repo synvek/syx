@@ -7,30 +7,37 @@ public class Di {
         return __syx_service_resolve_dynamic(typeName)
     }
 
+    /// Enter a request-scoped DI context.
     public static func beginRequest() {
         __syx_service_begin_request()
     }
 
+    /// Leave the current request-scoped DI context.
     public static func endRequest() {
         __syx_service_end_request()
     }
 
+    /// Run `handlerName` inside a fresh request scope.
     public static func withRequest(handlerName: String) {
         __syx_service_run_in_request(handlerName)
     }
 
+    /// Run `handlerName` inside a request scope (alias of `withRequest`).
     public static func runInRequest(handlerName: String) {
         __syx_service_run_in_request(handlerName)
     }
 
+    /// Select active DI profile by `name`.
     public static func setProfile(name: String) {
         __syx_service_set_profile(name)
     }
 
+    /// Tear down the DI container.
     public static func destroy() {
         __syx_service_destroy()
     }
 
+    /// Reset DI container state (tests / re-init).
     public static func reset() {
         __syx_service_reset()
     }

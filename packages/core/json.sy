@@ -1,7 +1,13 @@
+// Free-form JSON encode/decode plus typed Encoder/Decoder/Stream facades.
+// Prefer `JSONEncoder`/`JSONDecoder` when a typeName is known (ADR-231).
+
+/// Untyped JSON: `encode`/`decode` via host `__syx_json_*` (Object graph).
 public class JSON {
+    /// Encode an Object graph to a JSON string.
     public static func encode(value: Object) -> String {
     return __syx_json_encode(value)
 }
+    /// Decode a JSON string to an Object graph.
     public static func decode(text: String) -> Object {
     return __syx_json_decode(text)
 }
@@ -9,12 +15,15 @@ public class JSON {
 
 /// ADR-231 / M2-S7-02: nested subset + codingPath (see also json_encoder.sy).
 public class JSONEncoder {
+    /// Encode an Object graph to a JSON string.
     public static func encode(value: Object, typeName: String) -> String {
         return __syx_json_encoder_encode(value, typeName)
     }
 }
 
+/// ADR-231 / M2-S7-02: decode JSON text into a named type (`typeName`).
 public class JSONDecoder {
+    /// Decode a JSON string to an Object graph.
     public static func decode(text: String, typeName: String) -> Object throws {
         return __syx_json_decoder_decode(text, typeName)
     }
@@ -22,30 +31,37 @@ public class JSONDecoder {
 
 /// ADR-232 / M2-S7-03: NDJSON session + chunk feed (see also json_stream.sy).
 public class JSONStream {
+    /// Open an NDJSON writer session; returns handle.
     public static func openWriter() -> Int {
         return __syx_json_stream_open_writer()
     }
 
+    /// Write one typed value to the writer session.
     public static func write(handle: Int, value: Object, typeName: String) throws {
         __syx_json_stream_write(handle, value, typeName)
     }
 
+    /// Finish writer and return accumulated NDJSON text.
     public static func finishWriter(handle: Int) -> String {
         return __syx_json_stream_finish_writer(handle)
     }
 
+    /// Open an NDJSON reader session; returns handle.
     public static func openReader() -> Int {
         return __syx_json_stream_open_reader()
     }
 
+    /// Feed a text `chunk` into the reader.
     public static func feed(handle: Int, chunk: String) throws {
         __syx_json_stream_feed(handle, chunk)
     }
 
+    /// Decode the next value as `typeName` from the reader.
     public static func decodeNext(handle: Int, typeName: String) -> Object throws {
         return __syx_json_stream_decode_next(handle, typeName)
     }
 
+    /// Close the reader session.
     public static func closeReader(handle: Int) {
         __syx_json_stream_close_reader(handle)
     }

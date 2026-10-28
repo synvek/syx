@@ -2,6 +2,7 @@
 /// Close then poll must fail. Mock-default events (partial OS notify).
 
 public class FileWatcher {
+    /// Open a file watcher on `path` (throws).
     public static func open(path: String) -> Int throws {
         try {
             return __syx_file_watcher_open(path)
@@ -10,6 +11,7 @@ public class FileWatcher {
         }
     }
 
+    /// Poll watcher events (throws).
     public static func poll(handle: Int) -> Array<String> throws {
         try {
             return __syx_file_watcher_poll(handle)
@@ -18,6 +20,7 @@ public class FileWatcher {
         }
     }
 
+    /// Close the file watcher (throws).
     public static func close(handle: Int) throws {
         try {
             __syx_file_watcher_close(handle)

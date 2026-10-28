@@ -1,24 +1,34 @@
+// Hashing, HMAC, AES-GCM, Ed25519, PBKDF2, and random bytes.
+// Prefer `import Crypto`. Experimental surfaces note GA status inline.
+
+/// Cryptographic primitives via host `__syx_crypto_*` / `__syx_random_*`.
 public class Crypto {
+    /// SHA-256 digest of `s` (host encoding).
     public static func sha256(_ s: String) -> String {
         return __syx_crypto_sha256(s)
     }
 
+    /// SHA-512 digest of `s` (host encoding).
     public static func sha512(_ s: String) -> String {
         return __syx_crypto_sha512(s)
     }
 
+    /// HMAC-SHA256 of `message` under `key`.
     public static func hmacSha256(key: String, message: String) -> String {
         return __syx_crypto_hmac_sha256(key, message)
     }
 
+    /// AES-GCM encrypt `plaintext` with `key` and `nonce`.
     public static func aesGcmEncrypt(key: String, nonce: String, plaintext: String) -> String {
         return __syx_crypto_aes_gcm_encrypt(key, nonce, plaintext)
     }
 
+    /// Ed25519 sign `message` with `key`.
     public static func ed25519Sign(key: String, message: String) -> String {
         return __syx_crypto_ed25519_sign(key, message)
     }
 
+    /// Verify Ed25519 `signature` for `message` with `key`.
     public static func ed25519Verify(key: String, message: String, signature: String) -> Bool {
         return __syx_crypto_ed25519_verify(key, message, signature)
     }
@@ -29,6 +39,7 @@ public class Crypto {
         return __syx_crypto_pbkdf2(password, salt, iterations, dkLen)
     }
 
+    /// Fill `count` cryptographically random bytes.
     public static func randomBytes(_ count: Int) -> Array<UInt8> {
         return __syx_random_fill_bytes(count)
     }

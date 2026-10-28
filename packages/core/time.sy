@@ -1,10 +1,17 @@
+// Wall-clock milliseconds and sleep (host `__syx_time_*`).
+// Higher-level calendar types live under `import DateTime`.
+
+/// Epoch milliseconds, sleep, and simple timestamp parse.
 public class Time {
+    /// Current wall-clock time in milliseconds.
     public static func nowMs() -> Int {
         return __syx_time_now_ms()
     }
+    /// Block the current task for `ms` milliseconds.
     public static func sleepMs(ms: Int) {
         __syx_time_sleep_ms(ms)
     }
+    /// Parse timestamp string to epoch ms (empty → now).
     public static func parseTimestampMs(s: String) -> Int {
         if s == ""
         return __syx_time_now_ms()

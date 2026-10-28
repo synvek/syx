@@ -3,6 +3,7 @@
 /// Requires `SqlError` from sql.sy in the same compilation unit.
 
 public class SqlRow {
+    /// Get string (throws) (host `__syx_sql_row_get_string`).
     public static func getString(row: Object, name: String) -> String throws {
         try {
             return __syx_sql_row_get_string(row, name)
@@ -11,6 +12,7 @@ public class SqlRow {
         }
     }
 
+    /// Get int (throws) (host `__syx_sql_row_get_int`).
     public static func getInt(row: Object, name: String) -> Int throws {
         try {
             return __syx_sql_row_get_int(row, name)
@@ -19,6 +21,7 @@ public class SqlRow {
         }
     }
 
+    /// Get float (throws) (host `__syx_sql_row_get_float`).
     public static func getFloat(row: Object, name: String) -> Float64 throws {
         try {
             return __syx_sql_row_get_float(row, name)
@@ -27,6 +30,7 @@ public class SqlRow {
         }
     }
 
+    /// Get blob (throws) (host `__syx_sql_row_get_blob`).
     public static func getBlob(row: Object, name: String) -> Array throws {
         try {
             return __syx_sql_row_get_blob(row, name)

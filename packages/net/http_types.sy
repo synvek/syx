@@ -1,6 +1,11 @@
+// Shared HTTP value shells for Net / IO facades.
+
+/// HTTP header bag (data class shell).
 public data class HttpHeaders()
 
+/// HTTP body carrying text content.
 public data class HttpBody(text: String)
 
+/// HTTP request: method, path, query, body.
 public data class HttpRequest(method: String, path: String, query: String, body: String)
 

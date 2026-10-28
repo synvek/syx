@@ -1,7 +1,12 @@
+// TCP stream / socket / listener (throws `NetworkError`).
+
+/// Thin network error (ADR-138 style).
 public data class NetworkError(code: Int, message: String)
 
+/// Connected TCP stream: read/write/close (instance `handle`).
 public class TcpStream {
     public var handle: Int = -1
+    /// Connect to `host`:`port`; returns a `TcpStream` (throws `NetworkError`).
     public static func connect(host: String, port: Int) -> TcpStream throws {
         let h = __syx_tcp_connect(host, port)
         if h < 0
@@ -10,6 +15,7 @@ public class TcpStream {
         s.handle = h
         return s
     }
+    /// Read up to `maxBytes` as String (throws `NetworkError`).
     public func read(maxBytes: Int) -> String throws {
         if self.handle < 0
         throw NetworkError(code: 2, message: "tcp read: invalid handle")
@@ -19,6 +25,7 @@ public class TcpStream {
             throw NetworkError(code: 2, message: "tcp read failed")
         }
     }
+    /// Async read up to `maxBytes` (throws `NetworkError`).
     public func readAsync(maxBytes: Int) -> Object throws {
         if self.handle < 0
         throw NetworkError(code: 2, message: "tcp readAsync: invalid handle")
@@ -28,6 +35,7 @@ public class TcpStream {
             throw NetworkError(code: 2, message: "tcp readAsync failed")
         }
     }
+    /// Write `data`; returns byte count (throws `NetworkError`).
     public func write(data: String) -> Int throws {
         if self.handle < 0
         throw NetworkError(code: 3, message: "tcp write: invalid handle")
@@ -37,28 +45,35 @@ public class TcpStream {
             throw NetworkError(code: 3, message: "tcp write failed")
         }
     }
+    /// Release a TCP handle by id.
     public static func closeHandle(handle: Int) {
         __syx_tcp_handle_release(handle)
     }
+    /// Close this stream and invalidate `handle`.
     public func close() {
         __syx_tcp_handle_release(self.handle)
         self.handle = -1
     }
 }
 
+/// Compatibility alias that returns `TcpStream.connect`.
 public class TcpSocket {
+    /// Connect via `TcpStream.connect` (compatibility alias).
     public static func connect(host: String, port: Int) -> TcpStream throws {
         return TcpStream.connect(host: host, port: port)
     }
 }
 
+/// TCP listen / accept / close by handle id.
 public class TcpListener {
+    /// Listen on `host`:`port`; returns listener handle (throws).
     public static func bind(host: String, port: Int) -> Int throws {
         let h = __syx_tcp_listen(host, port)
         if h == -1
         throw NetworkError(code: 10, message: "tcp listen failed")
         return h
     }
+    /// Close listener handle (throws).
     public static func close(handle: Int) throws {
         try {
             __syx_tcp_listener_close(handle)
@@ -66,6 +81,7 @@ public class TcpListener {
             throw NetworkError(code: 11, message: "TcpListener close failed")
         }
     }
+    /// Accept one connection; returns stream handle (throws).
     public static func accept(handle: Int) -> Int throws {
         try {
             let s = __syx_tcp_listener_accept(handle)

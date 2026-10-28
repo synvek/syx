@@ -1,10 +1,16 @@
+// Cryptographically-oriented RNG facade (host `__syx_random_*`).
+
+/// Random integers and byte fills.
 public class Random {
+    /// Random Int in `[0, max)` (host RNG).
     public static func nextInt(_ max: Int) -> Int {
         return __syx_random_next_int64(max)
     }
+    /// Random `UInt64`.
     public static func nextUInt64() -> UInt64 {
         return __syx_random_next_uint64()
     }
+    /// Fill `n` random bytes.
     public static func nextBytes(_ n: Int) -> Array<UInt8> {
         return __syx_random_fill_bytes(n)
     }

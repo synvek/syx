@@ -21,36 +21,46 @@ public class Channel {
         return ch
     }
 
+    /// Send `value` (blocks if bounded and full).
     public func send(_ value: Object) {
         __syx_channel_send(self.handle, value)
     }
+    /// Receive one value (blocks if empty).
     public func recv() -> Object {
         return __syx_channel_recv(self.handle)
     }
+    /// Non-blocking send; `false` if full/closed.
     public func trySend(_ value: Object) -> Bool {
         return __syx_channel_try_send(self.handle, value)
     }
+    /// Non-blocking receive; nil/sentinel if empty.
     public func tryRecv() -> Object {
         return __syx_channel_try_recv(self.handle)
     }
+    /// Close the channel (further sends fail).
     public func close() {
         __syx_channel_close(self.handle)
     }
+    /// Current buffered element count.
     public func count() -> Int {
         return __syx_channel_length(self.handle)
     }
+    /// Buffer capacity (`0` = unbounded).
     public func capacity() -> Int {
         return __syx_channel_capacity(self.handle)
     }
 }
 
+/// Multi-channel select: first-ready, default, or timeout.
 public class Select {
+    /// Wait until one channel is ready; returns value or `nil`.
     public static func select(channels: Array<Object>) -> Object {
         let r = __syx_channel_select(channels)
         if __syx_value_compare(r[0], "-1") == 0
         return nil
         return r[1]
     }
+    /// Select with `fallback` when none are ready immediately.
     public static func orDefault(channels: Array<Object>, fallback: Object) -> Object {
         let miss = "__syx_select_pkg_miss__"
         let r = __syx_channel_select_default(channels, miss)
@@ -58,6 +68,7 @@ public class Select {
         return fallback
         return r[1]
     }
+    /// Select with timeout `ms`; `nil` on timeout.
     public static func timeout(channels: Array<Object>, ms: Int) -> Object {
         let r = __syx_channel_select_timeout(channels, ms)
         if __syx_value_compare(r, nil) == 0
@@ -68,23 +79,30 @@ public class Select {
     }
 }
 
+/// RAII unlock guard for `Mutex.lockGuard` (`deinit` → unlock).
 public class MutexGuard {
     public var mutexId: Int = -1
+    /// Unlock the mutex on scope exit.
     deinit {
         __syx_mutex_unlock_quiet(self.mutexId)
     }
 }
 
+/// Mutual exclusion: create / lock / unlock / lockGuard.
 public class Mutex {
+    /// Create a mutex host object.
     public static func create() -> Object {
         return __syx_mutex_create()
     }
+    /// Acquire mutex (blocking).
     public static func lock(mutex: Object) {
         __syx_mutex_lock_wait(mutex)
     }
+    /// Release mutex.
     public static func unlock(mutex: Object) {
         __syx_mutex_unlock(mutex)
     }
+    /// Lock and return an RAII `MutexGuard`.
     public static func lockGuard(mutex: Object) -> MutexGuard {
         let ok = __syx_mutex_lock_wait(mutex)
         let g = MutexGuard()
@@ -94,26 +112,34 @@ public class Mutex {
     }
 }
 
+/// RAII signal guard for `Semaphore.waitGuard` (`deinit` → signal).
 public class SemaphoreGuard {
     public var semId: Int = -1
+    /// Signal the semaphore on scope exit.
     deinit {
         __syx_semaphore_signal_quiet(self.semId)
     }
 }
 
+/// Counting semaphore: create / wait / tryWait / signal / waitGuard.
 public class Semaphore {
+    /// Create a semaphore with `permits`.
     public static func create(permits: Int) -> Object {
         return __syx_semaphore_create(permits)
     }
+    /// Acquire one semaphore permit (blocking).
     public static func wait(sem: Object) {
         __syx_semaphore_wait(sem)
     }
+    /// Try acquire; `false` if no permit.
     public static func tryWait(sem: Object) -> Bool {
         return __syx_semaphore_try_wait(sem)
     }
+    /// Release one semaphore permit.
     public static func signal(sem: Object) {
         __syx_semaphore_signal(sem)
     }
+    /// Wait and return an RAII `SemaphoreGuard`.
     public static func waitGuard(sem: Object) -> SemaphoreGuard {
         let ok = __syx_semaphore_wait(sem)
         let g = SemaphoreGuard()

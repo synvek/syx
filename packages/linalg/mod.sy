@@ -10,25 +10,30 @@
 /// Not a Core prelude type; `import Linalg`. Not product Mat GA (needs E-00).
 /// Must not live in `packages/core/math.sy`.
 
+/// Packed-SYX matrix (`handle` + `rows`/`cols`); faer-backed via plugin host. ≠ product Mat GA.
 public class Mat {
     public var handle: Int
     public var rows: Int
     public var cols: Int
 
+    /// Construct from row-major packed data with `rows`×`cols`.
     public init(_ packed: Array<Float64>, rows: Int, cols: Int) {
         self.handle = __syx_plugin_faer_from(packed, rows, cols)
         self.rows = rows
         self.cols = cols
     }
 
+    /// Drop the faer handle.
     deinit {
         __syx_plugin_v2probe_drop(self.handle)
     }
 
+    /// Factory: matrix from packed Float64 data.
     public static func from(_ packed: Array<Float64>, rows: Int, cols: Int) -> Mat {
         return Mat(packed, rows: rows, cols: cols)
     }
 
+    /// Factory: all-zero matrix.
     public static func zeros(rows: Int, cols: Int) -> Mat {
         let out = Mat([0.0], rows: 1, cols: 1)
         __syx_plugin_v2probe_drop(out.handle)
@@ -38,6 +43,7 @@ public class Mat {
         return out
     }
 
+    /// Sum the first `n` elements of packed array `p`.
     public static func sumPacked(_ p: Array<Float64>, _ n: Int) -> Float64 {
         var acc = 0.0
         var i = 0
@@ -48,6 +54,7 @@ public class Mat {
         return acc
     }
 
+    /// Factory: all-ones matrix.
     public static func ones(rows: Int, cols: Int) -> Mat {
         let out = Mat([0.0], rows: 1, cols: 1)
         __syx_plugin_v2probe_drop(out.handle)
@@ -66,6 +73,7 @@ public class Mat {
         return out
     }
 
+    /// Factory: matrix filled with `v`.
     public static func filled(rows: Int, cols: Int, _ v: Float64) -> Mat {
         let out = Mat([0.0], rows: 1, cols: 1)
         __syx_plugin_v2probe_drop(out.handle)
@@ -84,6 +92,7 @@ public class Mat {
         return out
     }
 
+    /// Factory: identity matrix of size `n`.
     public static func eye(_ n: Int) -> Mat {
         let out = Mat([0.0], rows: 1, cols: 1)
         __syx_plugin_v2probe_drop(out.handle)
@@ -101,6 +110,7 @@ public class Mat {
         return out
     }
 
+    /// Factory: diagonal matrix from vector/matrix `d`.
     public static func fromDiagonal(_ d: Mat) -> Mat {
         let p = __syx_plugin_faer_to(d.handle)
         var k = d.rows
@@ -123,15 +133,18 @@ public class Mat {
         return out
     }
 
+    /// Export row-major packed Float64 data.
     public func packed() -> Array<Float64> {
         return __syx_plugin_faer_to(self.handle)
     }
 
+    /// Element at (`row`, `col`).
     public func at(_ row: Int, col: Int) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         return p[row * self.cols + col]
     }
 
+    /// Copy with element (`row`, `col`) replaced.
     public func withAt(_ row: Int, col: Int, _ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -154,6 +167,7 @@ public class Mat {
         return out
     }
 
+    /// Extract row as a matrix/vector.
     public func row(_ i: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nc = self.cols
@@ -173,6 +187,7 @@ public class Mat {
         return out
     }
 
+    /// Extract column as a matrix/vector.
     public func col(_ j: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -193,6 +208,7 @@ public class Mat {
         return out
     }
 
+    /// Extract the main diagonal.
     public func diagonal() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -217,6 +233,7 @@ public class Mat {
         return out
     }
 
+    /// Sum of diagonal elements.
     public func trace() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -237,6 +254,7 @@ public class Mat {
         return Mat.sumPacked(q, k)
     }
 
+    /// Element-wise absolute value.
     public func abs() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -264,6 +282,7 @@ public class Mat {
         return out
     }
 
+    /// Reshape to new dimensions (packed size must match).
     public func reshape(_ rows: Int, cols: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let n = rows * cols
@@ -283,6 +302,7 @@ public class Mat {
         return out
     }
 
+    /// Flatten to a row or column vector.
     public func flatten() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -302,6 +322,7 @@ public class Mat {
         return out
     }
 
+    /// Horizontal stack.
     public func hstack(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -336,6 +357,7 @@ public class Mat {
         return out
     }
 
+    /// Vertical stack.
     public func vstack(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -366,6 +388,7 @@ public class Mat {
         return out
     }
 
+    /// Deep copy (new handle).
     public func copy() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -387,6 +410,7 @@ public class Mat {
         return out
     }
 
+    /// Matrix transpose.
     public func transposed() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -411,6 +435,7 @@ public class Mat {
     }
 
     // W1125: thin-wire scale via filled + in-process faer_hadamard (compose; no faer_scale host).
+    /// Scale all elements by a scalar.
     public func scale(_ factor: Float64) -> Mat {
         let s = Mat.filled(rows: self.rows, cols: self.cols, factor)
         let out = Mat([0.0], rows: 1, cols: 1)
@@ -423,6 +448,7 @@ public class Mat {
     }
 
     // W1124: thin-wire negated via zeros + in-process faer_sub.
+    /// Element-wise negation.
     public func negated() -> Mat {
         let z = Mat.zeros(rows: self.rows, cols: self.cols)
         let out = Mat([0.0], rows: 1, cols: 1)
@@ -435,6 +461,7 @@ public class Mat {
     }
 
     // W1121: thin-wire to in-process faer hadamard.
+    /// Element-wise (Hadamard) product.
     public func hadamard(_ other: Mat) -> Mat {
         let out = Mat([0.0], rows: 1, cols: 1)
         __syx_plugin_v2probe_drop(out.handle)
@@ -444,11 +471,13 @@ public class Mat {
         return out
     }
 
+    /// Sum of all elements.
     public func sum() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         return Mat.sumPacked(p, self.rows * self.cols)
     }
 
+    /// Mean of all elements.
     public func mean() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -467,6 +496,7 @@ public class Mat {
     // Axis: in-place bubble on a detached copy (row windows / manual transpose
     // buffer for cols). Avoid live zeros(nc) scratch alongside zeros(nr) acc —
     // identical zero Arrays of equal length can alias under ArraySet.
+    /// Median sorted.
     public static func medianSorted(_ s: Array<Float64>, _ n: Int) -> Float64 {
         let odd = n % 2
         if odd == 1 {
@@ -477,6 +507,7 @@ public class Mat {
         return (a + b) / 2.0
     }
 
+    /// Median of a contiguous sorted packed range.
     public static func medianSortedRange(_ s: Array<Float64>, _ start: Int, _ n: Int) -> Float64 {
         let odd = n % 2
         if odd == 1 {
@@ -487,10 +518,12 @@ public class Mat {
         return (a + b) / 2.0
     }
 
+    /// Quantile `q` of a sorted packed vector.
     public static func quantileSorted(_ s: Array<Float64>, _ n: Int, _ q: Float64) -> Float64 {
         return Mat.quantileSortedRange(s, 0, n, q)
     }
 
+    /// Quantile `q` of a contiguous sorted packed range.
     public static func quantileSortedRange(
         _ s: Array<Float64>,
         _ start: Int,
@@ -525,6 +558,7 @@ public class Mat {
         return a + (b - a) * frac
     }
 
+    /// Return a sorted copy of packed data.
     public static func sortedCopyPacked(_ p: Array<Float64>, _ n: Int) -> Array<Float64> {
         let tmp = Mat.zeros(rows: 1, cols: n)
         let q = __syx_plugin_faer_to(tmp.handle)
@@ -536,6 +570,7 @@ public class Mat {
         return q.sorted()
     }
 
+    /// In-place bubble-sort a packed range (helper).
     public static func bubbleSortRange(_ a: Array<Float64>, _ start: Int, _ n: Int) {
         var i = 0
         while i < n {
@@ -554,6 +589,7 @@ public class Mat {
         }
     }
 
+    /// Median.
     public func median() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -561,6 +597,7 @@ public class Mat {
         return Mat.medianSorted(s, n)
     }
 
+    /// Quantile.
     public func quantile(_ q: Float64) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -568,6 +605,7 @@ public class Mat {
         return Mat.quantileSorted(s, n, q)
     }
 
+    /// Median rows.
     public func medianRows() -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -590,6 +628,7 @@ public class Mat {
         return out
     }
 
+    /// Median cols.
     public func medianCols() -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -624,6 +663,7 @@ public class Mat {
     }
 
     // W1118: quantileRows / quantileCols — same axis shapes + W1117 quantileSorted rule.
+    /// Quantile rows.
     public func quantileRows(_ q: Float64) -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -646,6 +686,7 @@ public class Mat {
         return out
     }
 
+    /// Quantile cols.
     public func quantileCols(_ q: Float64) -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -678,6 +719,7 @@ public class Mat {
         return out
     }
 
+    /// Min.
     public func min() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -690,6 +732,7 @@ public class Mat {
         return m
     }
 
+    /// Max.
     public func max() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -702,6 +745,7 @@ public class Mat {
         return m
     }
 
+    /// Argmin.
     public func argmin() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -720,6 +764,7 @@ public class Mat {
         return bi
     }
 
+    /// Argmax.
     public func argmax() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -737,6 +782,7 @@ public class Mat {
         return bi
     }
 
+    /// Frobenius norm.
     public func frobeniusNorm() -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -750,6 +796,7 @@ public class Mat {
         return __syx_f64_sqrt(acc)
     }
 
+    /// Tile.
     public func tile(_ rowReps: Int, cols: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let ar = self.rows
@@ -777,6 +824,7 @@ public class Mat {
         return out
     }
 
+    /// Kron.
     public func kron(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let b = __syx_plugin_faer_to(other.handle)
@@ -811,6 +859,7 @@ public class Mat {
         return out
     }
 
+    /// Tril.
     public func tril() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -836,6 +885,7 @@ public class Mat {
         return out
     }
 
+    /// Triu.
     public func triu() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -861,6 +911,7 @@ public class Mat {
         return out
     }
 
+    /// Flipud.
     public func flipud() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -885,6 +936,7 @@ public class Mat {
         return out
     }
 
+    /// Fliplr.
     public func fliplr() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -909,6 +961,7 @@ public class Mat {
         return out
     }
 
+    /// Rot90.
     public func rot90() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let ar = self.rows
@@ -936,6 +989,7 @@ public class Mat {
         return out
     }
 
+    /// Antidiagonal.
     public func antidiagonal() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -958,6 +1012,7 @@ public class Mat {
         return out
     }
 
+    /// Rot180.
     public func rot180() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -983,6 +1038,7 @@ public class Mat {
         return out
     }
 
+    /// Swap rows.
     public func swapRows(_ i: Int, _ j: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1011,6 +1067,7 @@ public class Mat {
         return out
     }
 
+    /// Swap cols.
     public func swapCols(_ i: Int, _ j: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1039,6 +1096,7 @@ public class Mat {
         return out
     }
 
+    /// Roll.
     public func roll(_ rowShift: Int, cols: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1066,6 +1124,7 @@ public class Mat {
         return out
     }
 
+    /// Sign.
     public func sign() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1088,6 +1147,7 @@ public class Mat {
         return out
     }
 
+    /// Sqrt.
     public func sqrt() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1121,6 +1181,7 @@ public class Mat {
         return out
     }
 
+    /// Squared.
     public func squared() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1143,6 +1204,7 @@ public class Mat {
         return out
     }
 
+    /// Clamp.
     public func clamp(_ lo: Float64, _ hi: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1166,6 +1228,7 @@ public class Mat {
     }
 
     // W1092: clampMin / clampMax / relu / threshold. HostFn via let only.
+    /// Clamp min.
     public func clampMin(_ lo: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1189,6 +1252,7 @@ public class Mat {
         return out
     }
 
+    /// Clamp max.
     public func clampMax(_ hi: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1212,6 +1276,7 @@ public class Mat {
         return out
     }
 
+    /// Relu.
     public func relu() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1235,6 +1300,7 @@ public class Mat {
         return out
     }
 
+    /// Threshold.
     public func threshold(_ t: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1261,6 +1327,7 @@ public class Mat {
     }
 
     // W1093: leakyRelu / hardTanh / heaviside / relu6. HostFn via let only.
+    /// Leaky relu.
     public func leakyRelu(_ alpha: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1288,6 +1355,7 @@ public class Mat {
         return out
     }
 
+    /// Hard tanh.
     public func hardTanh() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1312,6 +1380,7 @@ public class Mat {
         return out
     }
 
+    /// Heaviside.
     public func heaviside() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1336,6 +1405,7 @@ public class Mat {
         return out
     }
 
+    /// Relu6.
     public func relu6() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1361,6 +1431,7 @@ public class Mat {
     }
 
     // W1094: absDiff / squaredDiff / manhattan / sumSquaredDiff. HostFn via let only.
+    /// Abs diff.
     public func absDiff(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1387,6 +1458,7 @@ public class Mat {
         return out
     }
 
+    /// Squared diff.
     public func squaredDiff(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1413,6 +1485,7 @@ public class Mat {
         return out
     }
 
+    /// Manhattan.
     public func manhattan(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1430,6 +1503,7 @@ public class Mat {
         return acc
     }
 
+    /// Sum squared diff.
     public func sumSquaredDiff(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1447,6 +1521,7 @@ public class Mat {
     }
 
     // W1106: mae / mse / euclidean / rmse. HostFn via let only; no MathFloat ArraySet RHS.
+    /// Mae.
     public func mae(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1470,6 +1545,7 @@ public class Mat {
         return acc / dn
     }
 
+    /// Mse.
     public func mse(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1492,6 +1568,7 @@ public class Mat {
         return acc / dn
     }
 
+    /// Euclidean.
     public func euclidean(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1508,6 +1585,7 @@ public class Mat {
         return __syx_f64_sqrt(acc)
     }
 
+    /// Rmse.
     public func rmse(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1532,6 +1610,7 @@ public class Mat {
     }
 
     // W1107: cosineSimilarity / cosineDistance. HostFn via let only; no MathFloat ArraySet RHS.
+    /// Cosine similarity.
     public func cosineSimilarity(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1554,6 +1633,7 @@ public class Mat {
         return dot / den
     }
 
+    /// Cosine distance.
     public func cosineDistance(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1579,6 +1659,7 @@ public class Mat {
 
     // W1111: normalize / center / standardize / minMaxScale. HostFn via let only;
     // no MathFloat ArraySet RHS; flat walk; zero-norm / zero-std / max==min → /0 (非静默).
+    /// Normalize.
     public func normalize() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1609,6 +1690,7 @@ public class Mat {
         return out
     }
 
+    /// Center.
     public func center() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1645,6 +1727,7 @@ public class Mat {
         return out
     }
 
+    /// Standardize.
     public func standardize() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1692,6 +1775,7 @@ public class Mat {
         return out
     }
 
+    /// Min max scale.
     public func minMaxScale() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1726,6 +1810,7 @@ public class Mat {
     }
 
     // W1095: maxAbsDiff / hamming / equalToScalar / greaterThanScalar. HostFn via let only.
+    /// Max abs diff.
     public func maxAbsDiff(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1744,6 +1829,7 @@ public class Mat {
         return acc
     }
 
+    /// Hamming.
     public func hamming(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -1762,6 +1848,7 @@ public class Mat {
         return acc
     }
 
+    /// Equal to scalar.
     public func equalToScalar(_ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1788,6 +1875,7 @@ public class Mat {
         return out
     }
 
+    /// Greater than scalar.
     public func greaterThanScalar(_ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1813,6 +1901,7 @@ public class Mat {
     }
 
     // W1096: lessThanScalar / notEqualToScalar / lessEqualToScalar / greaterEqualToScalar.
+    /// Less than scalar.
     public func lessThanScalar(_ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1838,6 +1927,7 @@ public class Mat {
         return out
     }
 
+    /// Not equal to scalar.
     public func notEqualToScalar(_ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1863,6 +1953,7 @@ public class Mat {
         return out
     }
 
+    /// Less equal to scalar.
     public func lessEqualToScalar(_ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1888,6 +1979,7 @@ public class Mat {
         return out
     }
 
+    /// Greater equal to scalar.
     public func greaterEqualToScalar(_ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1915,6 +2007,7 @@ public class Mat {
     }
 
     // W1097: takeRows / dropRows / takeCols / dropCols. Pure packed copy; no new HostFn.
+    /// Take rows.
     public func takeRows(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nc = self.cols
@@ -1935,6 +2028,7 @@ public class Mat {
         return out
     }
 
+    /// Drop rows.
     public func dropRows(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1958,6 +2052,7 @@ public class Mat {
         return out
     }
 
+    /// Take cols.
     public func takeCols(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -1981,6 +2076,7 @@ public class Mat {
         return out
     }
 
+    /// Drop cols.
     public func dropCols(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2006,6 +2102,7 @@ public class Mat {
     }
 
     // W1098: padRowsBefore / padRowsAfter / padColsBefore / padColsAfter. Zero pad; no new HostFn.
+    /// Pad rows before.
     public func padRowsBefore(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2029,6 +2126,7 @@ public class Mat {
         return out
     }
 
+    /// Pad rows after.
     public func padRowsAfter(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2051,6 +2149,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols before.
     public func padColsBefore(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2075,6 +2174,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols after.
     public func padColsAfter(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2100,6 +2200,7 @@ public class Mat {
     }
 
     // W1099: pad*Constant. Fill border with v; no new HostFn; ArraySet RHS uses 0.0+v.
+    /// Pad rows before constant.
     public func padRowsBeforeConstant(_ n: Int, _ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2129,6 +2230,7 @@ public class Mat {
         return out
     }
 
+    /// Pad rows after constant.
     public func padRowsAfterConstant(_ n: Int, _ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2157,6 +2259,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols before constant.
     public func padColsBeforeConstant(_ n: Int, _ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2187,6 +2290,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols after constant.
     public func padColsAfterConstant(_ n: Int, _ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2220,6 +2324,7 @@ public class Mat {
     // W1100: pad*Reflect. numpy mode=reflect (no edge repeat); L>=2; first-slice n=1.
     // Inline only — never call padRowsBefore/After (same-arity name prefix recurses).
     // ArraySet LHS: prefer q[i*nc+c] / q[k+skip] with loop-var index (let-aliased dst is a no-op).
+    /// Pad rows before reflect.
     public func padRowsBeforeReflect(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2254,6 +2359,7 @@ public class Mat {
     }
 
     // After: two q[k+skip] passes (skip0=0, skipB=srcN). First-slice n=1 → bottom = row0.
+    /// Pad rows after reflect.
     public func padRowsAfterReflect(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2286,6 +2392,7 @@ public class Mat {
 
     // Cols: only q[k+skip0] with k stepped by outC (loop-var index; no let-alias).
     // First-slice n=1: border col ← srcC=1; then src cols; after: src then srcC=0.
+    /// Pad cols before reflect.
     public func padColsBeforeReflect(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2319,6 +2426,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols after reflect.
     public func padColsAfterReflect(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2354,6 +2462,7 @@ public class Mat {
 
     // W1101: pad*Replicate. numpy mode=edge (repeat edge); first-slice n=1.
     // Inline only — never call padRowsBefore/After or pad*Reflect (same-arity prefix recurses).
+    /// Pad rows before replicate.
     public func padRowsBeforeReplicate(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2387,6 +2496,7 @@ public class Mat {
     }
 
     // After: identical control-flow to padRowsAfterReflect; lastOff via add-loop (avoid nr-1).
+    /// Pad rows after replicate.
     public func padRowsAfterReplicate(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2424,6 +2534,7 @@ public class Mat {
     }
 
     // Cols: q[k+skip0] stepped by outC. First-slice n=1: border col ← srcC=0 / last.
+    /// Pad cols before replicate.
     public func padColsBeforeReplicate(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2457,6 +2568,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols after replicate.
     public func padColsAfterReplicate(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2492,6 +2604,7 @@ public class Mat {
 
     // W1102: pad*Circular. numpy mode=wrap; first-slice n=1; nail L>=3 (≠ reflect on L=2).
     // Inline only — never call padRowsBefore/After / *Reflect / *Replicate (same-arity prefix).
+    /// Pad rows before circular.
     public func padRowsBeforeCircular(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2531,6 +2644,7 @@ public class Mat {
     }
 
     // After: skipB=srcN; first-slice n=1 → bottom = first row (p[k2]).
+    /// Pad rows after circular.
     public func padRowsAfterCircular(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2562,6 +2676,7 @@ public class Mat {
     }
 
     // Cols first-slice n=1 on nc=3 → outC=4: border last/first + three src cols.
+    /// Pad cols before circular.
     public func padColsBeforeCircular(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2606,6 +2721,7 @@ public class Mat {
         return out
     }
 
+    /// Pad cols after circular.
     public func padColsAfterCircular(_ n: Int) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2644,6 +2760,7 @@ public class Mat {
         return out
     }
 
+    /// Div.
     public func div(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2666,6 +2783,7 @@ public class Mat {
         return out
     }
 
+    /// Add scalar.
     public func addScalar(_ s: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2687,6 +2805,7 @@ public class Mat {
         return out
     }
 
+    /// Sub scalar.
     public func subScalar(_ s: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2708,6 +2827,7 @@ public class Mat {
         return out
     }
 
+    /// Div scalar.
     public func divScalar(_ s: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2730,6 +2850,7 @@ public class Mat {
     }
 
     // W1073: element unary-II. HostFn via let only — never MathFloat on ArraySet RHS.
+    /// Floor.
     public func floor() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2753,6 +2874,7 @@ public class Mat {
         return out
     }
 
+    /// Ceil.
     public func ceil() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2776,6 +2898,7 @@ public class Mat {
         return out
     }
 
+    /// Round.
     public func round() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2799,6 +2922,7 @@ public class Mat {
         return out
     }
 
+    /// Trunc.
     public func trunc() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2823,6 +2947,7 @@ public class Mat {
     }
 
     // W1074: elementwise max/min/copysign/reciprocal. HostFn via let only.
+    /// Maximum.
     public func maximum(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2848,6 +2973,7 @@ public class Mat {
         return out
     }
 
+    /// Minimum.
     public func minimum(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2873,6 +2999,7 @@ public class Mat {
         return out
     }
 
+    /// Copysign.
     public func copysign(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2898,6 +3025,7 @@ public class Mat {
         return out
     }
 
+    /// Reciprocal.
     public func reciprocal() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -2921,6 +3049,7 @@ public class Mat {
     }
 
     // W1075: elementwise hypot/pow/fmod/remainder. HostFn via let only.
+    /// Hypot.
     public func hypot(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2946,6 +3075,7 @@ public class Mat {
         return out
     }
 
+    /// Pow.
     public func pow(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2971,6 +3101,7 @@ public class Mat {
         return out
     }
 
+    /// Fmod.
     public func fmod(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -2996,6 +3127,7 @@ public class Mat {
         return out
     }
 
+    /// Remainder.
     public func remainder(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -3022,6 +3154,7 @@ public class Mat {
     }
 
     // W1076: mulAdd / exp2 / log2 / cbrt. HostFn via let only.
+    /// Mul add.
     public func mulAdd(_ a: Mat, _ b: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(a.handle)
@@ -3051,6 +3184,7 @@ public class Mat {
 
     // W1114: elu / gelu / tanh / swish. HostFn via let only;
     // elu 分支对齐 leakyRelu；gelu 用 erf；swish = x*sigmoid(x).
+    /// Elu.
     public func elu(_ alpha: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3080,6 +3214,7 @@ public class Mat {
         return out
     }
 
+    /// Gelu.
     public func gelu() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3107,6 +3242,7 @@ public class Mat {
         return out
     }
 
+    /// Tanh.
     public func tanh() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3130,6 +3266,7 @@ public class Mat {
         return out
     }
 
+    /// Swish.
     public func swish() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3159,6 +3296,7 @@ public class Mat {
 
     // W1115: selu / celu / mish / softsign. HostFn via let only;
     // selu 固定 Klambauer λ/α；celu 分支对齐 elu；mish = x*tanh(softplus(x)).
+    /// Selu.
     public func selu() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3191,6 +3329,7 @@ public class Mat {
         return out
     }
 
+    /// Celu.
     public func celu(_ alpha: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3221,6 +3360,7 @@ public class Mat {
         return out
     }
 
+    /// Mish.
     public func mish() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3247,6 +3387,7 @@ public class Mat {
         return out
     }
 
+    /// Softsign.
     public func softsign() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3274,6 +3415,7 @@ public class Mat {
 
     // W1116: softshrink / hardshrink / prelu / hardSigmoid. HostFn via let only;
     // prelu 对齐 leakyRelu；hardSigmoid = clamp(0.2*x+0.5, 0, 1).
+    /// Softshrink.
     public func softshrink(_ lambda: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3301,6 +3443,7 @@ public class Mat {
         return out
     }
 
+    /// Hardshrink.
     public func hardshrink(_ lambda: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3327,6 +3470,7 @@ public class Mat {
         return out
     }
 
+    /// Prelu.
     public func prelu(_ alpha: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3354,6 +3498,7 @@ public class Mat {
         return out
     }
 
+    /// Hard sigmoid.
     public func hardSigmoid() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3380,6 +3525,7 @@ public class Mat {
     }
 
     // W1113: sin / cos / erf / erfc. HostFn via let only; body shape对齐 exp.
+    /// Sin.
     public func sin() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3403,6 +3549,7 @@ public class Mat {
         return out
     }
 
+    /// Cos.
     public func cos() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3426,6 +3573,7 @@ public class Mat {
         return out
     }
 
+    /// Erf.
     public func erf() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3449,6 +3597,7 @@ public class Mat {
         return out
     }
 
+    /// Erfc.
     public func erfc() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3474,6 +3623,7 @@ public class Mat {
 
     // W1112: natural exp / log / softplus / sigmoid. HostFn via let only;
     // softplus = log1p(exp(x)); sigmoid = 1/(1+exp(-x)); log non-positive → /0|inf|nan (非静默).
+    /// Exp.
     public func exp() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3497,6 +3647,7 @@ public class Mat {
         return out
     }
 
+    /// Log.
     public func log() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3520,6 +3671,7 @@ public class Mat {
         return out
     }
 
+    /// Softplus.
     public func softplus() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3544,6 +3696,7 @@ public class Mat {
         return out
     }
 
+    /// Sigmoid.
     public func sigmoid() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3570,6 +3723,7 @@ public class Mat {
     }
 
     // W1119: glu — last-dim half-split; a ⊙ σ(b) → nr×(nc/2); even cols.
+    /// Glu.
     public func glu() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3600,6 +3754,7 @@ public class Mat {
         return out
     }
 
+    /// Exp2.
     public func exp2() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3623,6 +3778,7 @@ public class Mat {
         return out
     }
 
+    /// Log2.
     public func log2() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3646,6 +3802,7 @@ public class Mat {
         return out
     }
 
+    /// Cbrt.
     public func cbrt() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3670,6 +3827,7 @@ public class Mat {
     }
 
     // W1077: log10 / tgamma / lerp / dot. HostFn via let; lerp/dot pure arithmetic.
+    /// Log10.
     public func log10() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3693,6 +3851,7 @@ public class Mat {
         return out
     }
 
+    /// Tgamma.
     public func tgamma() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3716,6 +3875,7 @@ public class Mat {
         return out
     }
 
+    /// Lerp.
     public func lerp(_ other: Mat, _ t: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -3742,6 +3902,7 @@ public class Mat {
         return out
     }
 
+    /// Dot.
     public func dot(_ other: Mat) -> Float64 {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -3758,6 +3919,7 @@ public class Mat {
     }
 
     // W1078: cumsum / cumprod / diff / countNonzero. Pure arithmetic / mul_add; no new HostFn surface.
+    /// Cumsum.
     public func cumsum() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3782,6 +3944,7 @@ public class Mat {
         return out
     }
 
+    /// Cumprod.
     public func cumprod() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3806,6 +3969,7 @@ public class Mat {
         return out
     }
 
+    /// Diff.
     public func diff() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -3831,6 +3995,7 @@ public class Mat {
         return out
     }
 
+    /// Count nonzero.
     public func countNonzero() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -3847,6 +4012,7 @@ public class Mat {
     }
 
     // W1079: outer / onesLike / equal / greater. Pure arithmetic / compare / mul_add.
+    /// Outer.
     public func outer(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let b = __syx_plugin_faer_to(other.handle)
@@ -3873,6 +4039,7 @@ public class Mat {
         return out
     }
 
+    /// Ones like.
     public func onesLike() -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -3893,6 +4060,7 @@ public class Mat {
         return out
     }
 
+    /// Equal.
     public func equal(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -3921,6 +4089,7 @@ public class Mat {
         return out
     }
 
+    /// Greater.
     public func greater(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -3948,6 +4117,7 @@ public class Mat {
     }
 
     // W1080: notEqual / less / lessEqual / greaterEqual. HostFn via let only.
+    /// Not equal.
     public func notEqual(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -3975,6 +4145,7 @@ public class Mat {
         return out
     }
 
+    /// Less.
     public func less(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -4002,6 +4173,7 @@ public class Mat {
         return out
     }
 
+    /// Less equal.
     public func lessEqual(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -4029,6 +4201,7 @@ public class Mat {
         return out
     }
 
+    /// Greater equal.
     public func greaterEqual(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -4059,6 +4232,7 @@ public class Mat {
 
     // W1081: zerosLike / filledLike / choose (where-semantics; `where` is keyword) / logicalNot.
     // HostFn via let only.
+    /// Zeros like.
     public func zerosLike() -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -4070,6 +4244,7 @@ public class Mat {
         return out
     }
 
+    /// Filled like.
     public func filledLike(_ v: Float64) -> Mat {
         let nr = self.rows
         let nc = self.cols
@@ -4090,6 +4265,7 @@ public class Mat {
         return out
     }
 
+    /// Choose.
     public func choose(_ mask: Mat, _ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let m = __syx_plugin_faer_to(mask.handle)
@@ -4118,6 +4294,7 @@ public class Mat {
         return out
     }
 
+    /// Logical not.
     public func logicalNot() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4142,6 +4319,7 @@ public class Mat {
     }
 
     // W1082: logicalAnd / logicalOr / anyTrue / allTrue. HostFn via let only.
+    /// Logical and.
     public func logicalAnd(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -4167,6 +4345,7 @@ public class Mat {
         return out
     }
 
+    /// Logical or.
     public func logicalOr(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -4192,6 +4371,7 @@ public class Mat {
         return out
     }
 
+    /// Any true.
     public func anyTrue() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -4208,6 +4388,7 @@ public class Mat {
         return has
     }
 
+    /// All true.
     public func allTrue() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -4228,6 +4409,7 @@ public class Mat {
     }
 
     // W1083: logicalXor / countTrue / noneTrue / fillWhere. HostFn via let only.
+    /// Logical xor.
     public func logicalXor(_ other: Mat) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let q = __syx_plugin_faer_to(other.handle)
@@ -4254,6 +4436,7 @@ public class Mat {
         return out
     }
 
+    /// Count true.
     public func countTrue() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -4272,6 +4455,7 @@ public class Mat {
         return count
     }
 
+    /// None true.
     public func noneTrue() -> Int {
         let p = __syx_plugin_faer_to(self.handle)
         let n = self.rows * self.cols
@@ -4290,6 +4474,7 @@ public class Mat {
         return out
     }
 
+    /// Fill where.
     public func fillWhere(_ mask: Mat, _ v: Float64) -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let m = __syx_plugin_faer_to(mask.handle)
@@ -4318,6 +4503,7 @@ public class Mat {
 
     // W1084: sumRows / sumCols / minRows / maxCols. HostFn via let only.
     // Flat packed walk (same discipline as cumsum/flipud); no nested Mat helpers.
+    /// Sum rows.
     public func sumRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4343,6 +4529,7 @@ public class Mat {
         return out
     }
 
+    /// Sum cols.
     public func sumCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4368,6 +4555,7 @@ public class Mat {
         return out
     }
 
+    /// Min rows.
     public func minRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4396,6 +4584,7 @@ public class Mat {
         return out
     }
 
+    /// Max cols.
     public func maxCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4426,6 +4615,7 @@ public class Mat {
 
     // W1085: meanRows / prodCols / maxRows / minCols. HostFn via let only.
     // Flat packed walk (same discipline as W1084 axis-reduce).
+    /// Mean rows.
     public func meanRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4463,6 +4653,7 @@ public class Mat {
         return out
     }
 
+    /// Prod cols.
     public func prodCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4491,6 +4682,7 @@ public class Mat {
         return out
     }
 
+    /// Max rows.
     public func maxRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4519,6 +4711,7 @@ public class Mat {
         return out
     }
 
+    /// Min cols.
     public func minCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4549,6 +4742,7 @@ public class Mat {
 
     // W1086: meanCols / prodRows / argminRows / argmaxCols. HostFn via let only.
     // Flat packed walk (same discipline as W1084/W1085 axis-reduce).
+    /// Mean cols.
     public func meanCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4586,6 +4780,7 @@ public class Mat {
         return out
     }
 
+    /// Prod rows.
     public func prodRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4614,6 +4809,7 @@ public class Mat {
         return out
     }
 
+    /// Argmin rows.
     public func argminRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4654,6 +4850,7 @@ public class Mat {
         return out
     }
 
+    /// Argmax cols.
     public func argmaxCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4696,6 +4893,7 @@ public class Mat {
     // W1087: argminCols / argmaxRows / stdRows / stdCols. HostFn via let only.
     // Flat packed walk (same discipline as W1084–W1086 axis-reduce).
     // std* = population std (ddof=0): mean then Σ(x-μ)²/n then sqrt.
+    /// Argmin cols.
     public func argminCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4736,6 +4934,7 @@ public class Mat {
         return out
     }
 
+    /// Argmax rows.
     public func argmaxRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4775,6 +4974,7 @@ public class Mat {
         return out
     }
 
+    /// Std rows.
     public func stdRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4837,6 +5037,7 @@ public class Mat {
         return out
     }
 
+    /// Std cols.
     public func stdCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4903,6 +5104,7 @@ public class Mat {
     // Flat packed walk (same discipline as W1084–W1087 axis-reduce).
     // var* = population variance (ddof=0): mean then Σ(x-μ)²/n (no sqrt).
     // range* = max − min per axis.
+    /// Var rows.
     public func varRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -4963,6 +5165,7 @@ public class Mat {
         return out
     }
 
+    /// Var cols.
     public func varCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5023,6 +5226,7 @@ public class Mat {
         return out
     }
 
+    /// Range rows.
     public func rangeRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5072,6 +5276,7 @@ public class Mat {
         return out
     }
 
+    /// Range cols.
     public func rangeCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5122,6 +5327,7 @@ public class Mat {
     }
 
     // W1089: cumsumRows / cumsumCols / cumprodRows / cumprodCols. HostFn via let only.
+    /// Cumsum rows.
     public func cumsumRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5151,6 +5357,7 @@ public class Mat {
         return out
     }
 
+    /// Cumsum cols.
     public func cumsumCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5186,6 +5393,7 @@ public class Mat {
         return out
     }
 
+    /// Cumprod rows.
     public func cumprodRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5215,6 +5423,7 @@ public class Mat {
         return out
     }
 
+    /// Cumprod cols.
     public func cumprodCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5251,6 +5460,7 @@ public class Mat {
     }
 
     // W1090: diffRows / diffCols / cumminRows / cumminCols. HostFn via let only.
+    /// Diff rows.
     public func diffRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5280,6 +5490,7 @@ public class Mat {
         return out
     }
 
+    /// Diff cols.
     public func diffCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5309,6 +5520,7 @@ public class Mat {
         return out
     }
 
+    /// Cummin rows.
     public func cumminRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5338,6 +5550,7 @@ public class Mat {
         return out
     }
 
+    /// Cummin cols.
     public func cumminCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5374,6 +5587,7 @@ public class Mat {
     }
 
     // W1091: cummaxRows / cummaxCols / cummin / cummax. HostFn via let only.
+    /// Cummax rows.
     public func cummaxRows() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5403,6 +5617,7 @@ public class Mat {
         return out
     }
 
+    /// Cummax cols.
     public func cummaxCols() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5438,6 +5653,7 @@ public class Mat {
         return out
     }
 
+    /// Cummin.
     public func cummin() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5466,6 +5682,7 @@ public class Mat {
         return out
     }
 
+    /// Cummax.
     public func cummax() -> Mat {
         let p = __syx_plugin_faer_to(self.handle)
         let nr = self.rows
@@ -5494,6 +5711,7 @@ public class Mat {
         return out
     }
 
+    /// Solve linear system (faer).
     public func solve(_ b: Mat) -> Mat {
         let out = Mat([0.0], rows: 1, cols: 1)
         __syx_plugin_v2probe_drop(out.handle)

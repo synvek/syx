@@ -7,7 +7,9 @@
 /// Thin process error (aligns with IOError style).
 public data class ProcessError(code: Int, message: String)
 
+/// Build a child process: create / cwd / env / spawn (throws `ProcessError`).
 public class ProcessBuilder {
+    /// Create a builder for `command` + `args` (throws `ProcessError`).
     public static func create(command: String, args: Array<String>) -> Int throws {
         try {
             return __syx_process_builder_create(command, args)
@@ -16,6 +18,7 @@ public class ProcessBuilder {
         }
     }
 
+    /// Set working directory for the child (throws).
     public static func cwd(builder: Int, path: String) throws {
         try {
             __syx_process_builder_cwd(builder, path)
@@ -24,6 +27,7 @@ public class ProcessBuilder {
         }
     }
 
+    /// Set/override environment `key`=`value` (throws).
     public static func env(builder: Int, key: String, value: String) throws {
         try {
             __syx_process_builder_env(builder, key, value)
@@ -32,6 +36,7 @@ public class ProcessBuilder {
         }
     }
 
+    /// Spawn the child; returns child handle (throws).
     public static func spawn(builder: Int) -> Int throws {
         try {
             return __syx_process_builder_spawn(builder)
@@ -41,7 +46,9 @@ public class ProcessBuilder {
     }
 }
 
+/// Spawned child: wait / kill / signal / pipes (ADR-242…244).
 public class Child {
+    /// Wait for exit; returns status code (throws).
     public static func wait(handle: Int) -> Int throws {
         try {
             return __syx_child_wait(handle)
@@ -50,6 +57,7 @@ public class Child {
         }
     }
 
+    /// Force-kill the child and remove handle (throws).
     public static func kill(handle: Int) throws {
         try {
             __syx_child_kill(handle)
@@ -86,6 +94,7 @@ public class Child {
         }
     }
 
+    /// Take stderr into a `ChildPipe` session (once; throws).
     public static func stderr(handle: Int) -> Int throws {
         try {
             return __syx_child_stderr(handle)
@@ -94,6 +103,7 @@ public class Child {
         }
     }
 
+    /// Take stdin into a `ChildPipe` session (once; throws).
     public static func stdin(handle: Int) -> Int throws {
         try {
             return __syx_child_stdin(handle)
@@ -103,6 +113,7 @@ public class Child {
     }
 }
 
+/// Stdio pipe session: readChunk / write / close.
 public class ChildPipe {
     /// Empty array means EOF.
     public static func readChunk(pipe: Int, maxBytes: Int) -> Array<UInt8> throws {
@@ -113,6 +124,7 @@ public class ChildPipe {
         }
     }
 
+    /// Write `bytes` to the pipe (throws).
     public static func write(pipe: Int, bytes: Array<UInt8>) -> Int throws {
         try {
             return __syx_child_pipe_write(pipe, bytes)
@@ -121,6 +133,7 @@ public class ChildPipe {
         }
     }
 
+    /// Close the pipe (throws).
     public static func close(pipe: Int) throws {
         try {
             __syx_child_pipe_close(pipe)

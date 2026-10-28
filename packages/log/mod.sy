@@ -1,16 +1,23 @@
+// Leveled logging + structured field lines (ADR-292 / ADR-293).
+
+/// Global min-level filter and debug/info/warn/error (plain + fields).
 public class Log {
+    /// Emit a DEBUG log line.
     public static func debug(message: String) {
         __syx_log_debug(message)
     }
 
+    /// Emit an INFO log line.
     public static func info(message: String) {
         __syx_log_info(message)
     }
 
+    /// Emit a WARN log line.
     public static func warn(message: String) {
         __syx_log_warn(message)
     }
 
+    /// Emit an ERROR log line.
     public static func error(message: String) {
         __syx_log_error(message)
     }
@@ -20,6 +27,7 @@ public class Log {
         return __syx_log_set_min_level(level)
     }
 
+    /// Current global minimum log level string.
     public static func minLevel() -> String {
         return __syx_log_min_level()
     }
@@ -39,10 +47,12 @@ public class Log {
         return __syx_log_debug_fields(message, fields)
     }
 
+    /// Structured WARN line with `fields`; empty if filtered.
     public static func warnFields(message: String, fields: Dictionary) -> String {
         return __syx_log_warn_fields(message, fields)
     }
 
+    /// Structured ERROR line with `fields`; empty if filtered.
     public static func errorFields(message: String, fields: Dictionary) -> String {
         return __syx_log_error_fields(message, fields)
     }

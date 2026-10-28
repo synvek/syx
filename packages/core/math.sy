@@ -1,59 +1,81 @@
+// Scalar math helpers and f64 constants (host / intrinsic).
+// Not linear algebra — use `import Linalg` for `Mat`.
+
+/// Constants (`pi`/`e`/…) and numeric helpers (`sin`/`pow`/…).
 public class Math {
     // --- constants (Rust f64::consts; lowercase static getters) ---
+    /// π (Float64).
     public static func pi() -> Float64 {
         return 3.141592653589793
     }
+    /// Euler's number e (Float64).
     public static func e() -> Float64 {
         return 2.718281828459045
     }
+    /// τ = 2π (Float64).
     public static func tau() -> Float64 {
         return 6.283185307179586
     }
+    /// ln(2) (Float64).
     public static func ln2() -> Float64 {
         return 0.6931471805599453
     }
+    /// ln(10) (Float64).
     public static func ln10() -> Float64 {
         return 2.302585092994046
     }
+    /// log₂(e) (Float64).
     public static func log2e() -> Float64 {
         return 1.4426950408889634
     }
+    /// log₁₀(e) (Float64).
     public static func log10e() -> Float64 {
         return 0.4342944819032518
     }
+    /// √2 (Float64).
     public static func sqrt2() -> Float64 {
         return 1.4142135623730951
     }
+    /// π/2 (Float64).
     public static func fracPi2() -> Float64 {
         return 1.5707963267948966
     }
+    /// π/4 (Float64).
     public static func fracPi4() -> Float64 {
         return 0.7853981633974483
     }
 
+    /// Integer addition `a + b`.
     public static func add(_ a: Int, _ b: Int) -> Int {
         return a + b
     }
+    /// Integer subtraction `a - b`.
     public static func sub(_ a: Int, _ b: Int) -> Int {
         return a - b
     }
+    /// Maximum of integer arguments.
     public static func max(_ a: Int, _ b: Int) -> Int {
         return __syx_int_max(a, b)
     }
+    /// Minimum of integer arguments.
     public static func min(_ a: Int, _ b: Int) -> Int {
         return __syx_int_min(a, b)
     }
+    /// Absolute value (Int).
     public static func abs(_ x: Int) -> Int {
         return __syx_int_abs(x)
     }
+    /// Absolute value (`Int128`).
     public static func abs128(_ x: Int128) -> Int128 {
         return __syx_i128_abs(x)
     }
+    /// Leading zero bit count for `UInt128`.
     public static func leadingZeros128(_ x: UInt128) -> Int {
         return __syx_leading_zeros128(x)
     }
 
     // Int tools (pure SYX)
+    /// Sign of `x`: -1, 0, or 1.
     public static func sign(_ x: Int) -> Int {
         if x < 0 {
             return -1
@@ -63,9 +85,11 @@ public class Math {
         }
         return 0
     }
+    /// Clamp `x` into `[lo, hi]`.
     public static func clamp(_ x: Int, _ lo: Int, _ hi: Int) -> Int {
         return __syx_int_min(__syx_int_max(x, lo), hi)
     }
+    /// Greatest common divisor.
     public static func gcd(_ a: Int, _ b: Int) -> Int {
         var x = __syx_int_abs(a)
         var y = __syx_int_abs(b)
@@ -76,6 +100,7 @@ public class Math {
         }
         return x
     }
+    /// Least common multiple.
     public static func lcm(_ a: Int, _ b: Int) -> Int {
         if a == 0 || b == 0 {
             return 0
@@ -85,276 +110,366 @@ public class Math {
     }
 
     // Float64 convenience
+    /// Maximum of Float64 arguments.
     public static func fmax(_ a: Float64, _ b: Float64) -> Float64 {
         return __syx_f64_max(a, b)
     }
+    /// Minimum of Float64 arguments.
     public static func fmin(_ a: Float64, _ b: Float64) -> Float64 {
         return __syx_f64_min(a, b)
     }
+    /// Absolute value (Float64).
     public static func fabs(_ x: Float64) -> Float64 {
         return __syx_f64_abs(x)
     }
+    /// Clamp Float64 `x` into `[lo, hi]`.
     public static func fclamp(_ x: Float64, _ lo: Float64, _ hi: Float64) -> Float64 {
         return __syx_f64_min(__syx_f64_max(x, lo), hi)
     }
+    /// Convert radians to degrees.
     public static func toDegrees(_ x: Float64) -> Float64 {
         return x * 180.0 / Math.pi()
     }
+    /// Convert degrees to radians.
     public static func toRadians(_ x: Float64) -> Float64 {
         return x * Math.pi() / 180.0
     }
 
+    /// Sine of `x` (radians).
     public static func sin(_ x: Float64) -> Float64 {
         return __syx_f64_sin(x)
     }
+    /// Cosine of `x` (radians).
     public static func cos(_ x: Float64) -> Float64 {
         return __syx_f64_cos(x)
     }
+    /// Tangent of `x` (radians).
     public static func tan(_ x: Float64) -> Float64 {
         return __syx_f64_tan(x)
     }
+    /// Arcsine (radians).
     public static func asin(_ x: Float64) -> Float64 {
         return __syx_f64_asin(x)
     }
+    /// Arccosine (radians).
     public static func acos(_ x: Float64) -> Float64 {
         return __syx_f64_acos(x)
     }
+    /// Arctangent (radians).
     public static func atan(_ x: Float64) -> Float64 {
         return __syx_f64_atan(x)
     }
+    /// Two-argument arctangent (radians).
     public static func atan2(_ y: Float64, _ x: Float64) -> Float64 {
         return __syx_f64_atan2(y, x)
     }
+    /// Square root.
     public static func sqrt(_ x: Float64) -> Float64 {
         return __syx_f64_sqrt(x)
     }
+    /// Cube root.
     public static func cbrt(_ x: Float64) -> Float64 {
         return __syx_f64_cbrt(x)
     }
+    /// Hypotenuse √(a²+b²).
     public static func hypot(_ x: Float64, _ y: Float64) -> Float64 {
         return __syx_f64_hypot(x, y)
     }
+    /// Power `base^exp`.
     public static func pow(_ base: Float64, _ exp: Float64) -> Float64 {
         return __syx_f64_pow(base, exp)
     }
+    /// e^x.
     public static func exp(_ x: Float64) -> Float64 {
         return __syx_f64_exp(x)
     }
+    /// 2^x.
     public static func exp2(_ x: Float64) -> Float64 {
         return __syx_f64_exp2(x)
     }
+    /// Floor.
     public static func floor(_ x: Float64) -> Float64 {
         return __syx_f64_floor(x)
     }
+    /// Ceiling.
     public static func ceil(_ x: Float64) -> Float64 {
         return __syx_f64_ceil(x)
     }
+    /// Round to nearest.
     public static func round(_ x: Float64) -> Float64 {
         return __syx_f64_round(x)
     }
+    /// Truncate toward zero.
     public static func trunc(_ x: Float64) -> Float64 {
         return __syx_f64_trunc(x)
     }
     // natural log (ln); ≠ log10 / log2
+    /// Natural logarithm.
     public static func log(_ x: Float64) -> Float64 {
         return __syx_f64_log(x)
     }
+    /// Ln.
     public static func ln(_ x: Float64) -> Float64 {
         return __syx_f64_log(x)
     }
+    /// Base-2 logarithm.
     public static func log2(_ x: Float64) -> Float64 {
         return __syx_f64_log2(x)
     }
+    /// Base-10 logarithm.
     public static func log10(_ x: Float64) -> Float64 {
         return __syx_f64_log10(x)
     }
+    /// Hyperbolic sine.
     public static func sinh(_ x: Float64) -> Float64 {
         return __syx_f64_sinh(x)
     }
+    /// Hyperbolic cosine.
     public static func cosh(_ x: Float64) -> Float64 {
         return __syx_f64_cosh(x)
     }
+    /// Hyperbolic tangent.
     public static func tanh(_ x: Float64) -> Float64 {
         return __syx_f64_tanh(x)
     }
+    /// Floating modulo.
     public static func fmod(_ x: Float64, _ y: Float64) -> Float64 {
         return __syx_f64_fmod(x, y)
     }
+    /// Copy sign of `y` onto `x`.
     public static func copysign(_ mag: Float64, _ sign: Float64) -> Float64 {
         return __syx_f64_copysign(mag, sign)
     }
+    /// Whether `x` is NaN.
     public static func isNaN(_ x: Float64) -> Bool {
         return __syx_f64_isnan(x)
     }
+    /// Whether infinite.
     public static func isInfinite(_ x: Float64) -> Bool {
         return __syx_f64_isinf(x)
     }
+    /// Whether finite.
     public static func isFinite(_ x: Float64) -> Bool {
         return __syx_f64_isfinite(x)
     }
+    /// e^x − 1.
     public static func expm1(_ x: Float64) -> Float64 {
         return __syx_f64_expm1(x)
     }
+    /// ln(1+x).
     public static func log1p(_ x: Float64) -> Float64 {
         return __syx_f64_log1p(x)
     }
+    /// Inverse hyperbolic sine.
     public static func asinh(_ x: Float64) -> Float64 {
         return __syx_f64_asinh(x)
     }
+    /// Inverse hyperbolic cosine.
     public static func acosh(_ x: Float64) -> Float64 {
         return __syx_f64_acosh(x)
     }
+    /// Inverse hyperbolic tangent.
     public static func atanh(_ x: Float64) -> Float64 {
         return __syx_f64_atanh(x)
     }
+    /// IEEE remainder.
     public static func remainder(_ x: Float64, _ y: Float64) -> Float64 {
         return __syx_f64_remainder(x, y)
     }
+    /// Next up.
     public static func nextUp(_ x: Float64) -> Float64 {
         return __syx_f64_next_up(x)
     }
+    /// Next down.
     public static func nextDown(_ x: Float64) -> Float64 {
         return __syx_f64_next_down(x)
     }
+    /// Mul add.
     public static func mulAdd(_ a: Float64, _ b: Float64, _ c: Float64) -> Float64 {
         return __syx_f64_mul_add(a, b, c)
     }
+    /// Error function.
     public static func erf(_ x: Float64) -> Float64 {
         return __syx_f64_erf(x)
     }
+    /// Complementary error function.
     public static func erfc(_ x: Float64) -> Float64 {
         return __syx_f64_erfc(x)
     }
+    /// Gamma function.
     public static func tgamma(_ x: Float64) -> Float64 {
         return __syx_f64_tgamma(x)
     }
+    /// Log-gamma.
     public static func lgamma(_ x: Float64) -> Float64 {
         return __syx_f64_lgamma(x)
     }
     // Float32 thin wrappers (C/libm *f suffix; no same-name overload)
+    /// Sqrtf.
     public static func sqrtf(_ x: Float32) -> Float32 {
         return __syx_f32_sqrt(x)
     }
+    /// Sinf.
     public static func sinf(_ x: Float32) -> Float32 {
         return __syx_f32_sin(x)
     }
+    /// Cosf.
     public static func cosf(_ x: Float32) -> Float32 {
         return __syx_f32_cos(x)
     }
+    /// Tanf.
     public static func tanf(_ x: Float32) -> Float32 {
         return __syx_f32_tan(x)
     }
+    /// Expf.
     public static func expf(_ x: Float32) -> Float32 {
         return __syx_f32_exp(x)
     }
+    /// Logf.
     public static func logf(_ x: Float32) -> Float32 {
         return __syx_f32_log(x)
     }
+    /// Fabsf.
     public static func fabsf(_ x: Float32) -> Float32 {
         return __syx_f32_abs(x)
     }
+    /// Floorf.
     public static func floorf(_ x: Float32) -> Float32 {
         return __syx_f32_floor(x)
     }
+    /// Ceilf.
     public static func ceilf(_ x: Float32) -> Float32 {
         return __syx_f32_ceil(x)
     }
+    /// Roundf.
     public static func roundf(_ x: Float32) -> Float32 {
         return __syx_f32_round(x)
     }
+    /// Truncf.
     public static func truncf(_ x: Float32) -> Float32 {
         return __syx_f32_trunc(x)
     }
+    /// Powf.
     public static func powf(_ base: Float32, _ exp: Float32) -> Float32 {
         return __syx_f32_pow(base, exp)
     }
+    /// Asinf.
     public static func asinf(_ x: Float32) -> Float32 {
         return __syx_f32_asin(x)
     }
+    /// Acosf.
     public static func acosf(_ x: Float32) -> Float32 {
         return __syx_f32_acos(x)
     }
+    /// Atanf.
     public static func atanf(_ x: Float32) -> Float32 {
         return __syx_f32_atan(x)
     }
+    /// Hypotf.
     public static func hypotf(_ x: Float32, _ y: Float32) -> Float32 {
         return __syx_f32_hypot(x, y)
     }
+    /// Atan2f.
     public static func atan2f(_ y: Float32, _ x: Float32) -> Float32 {
         return __syx_f32_atan2(y, x)
     }
+    /// Log2f.
     public static func log2f(_ x: Float32) -> Float32 {
         return __syx_f32_log2(x)
     }
+    /// Log10f.
     public static func log10f(_ x: Float32) -> Float32 {
         return __syx_f32_log10(x)
     }
+    /// Exp2f.
     public static func exp2f(_ x: Float32) -> Float32 {
         return __syx_f32_exp2(x)
     }
+    /// Cbrtf.
     public static func cbrtf(_ x: Float32) -> Float32 {
         return __syx_f32_cbrt(x)
     }
+    /// Sinhf.
     public static func sinhf(_ x: Float32) -> Float32 {
         return __syx_f32_sinh(x)
     }
+    /// Coshf.
     public static func coshf(_ x: Float32) -> Float32 {
         return __syx_f32_cosh(x)
     }
+    /// Tanhf.
     public static func tanhf(_ x: Float32) -> Float32 {
         return __syx_f32_tanh(x)
     }
+    /// Fmodf.
     public static func fmodf(_ x: Float32, _ y: Float32) -> Float32 {
         return __syx_f32_fmod(x, y)
     }
+    /// Copysignf.
     public static func copysignf(_ mag: Float32, _ sign: Float32) -> Float32 {
         return __syx_f32_copysign(mag, sign)
     }
+    /// Expm1f.
     public static func expm1f(_ x: Float32) -> Float32 {
         return __syx_f32_expm1(x)
     }
+    /// Log1pf.
     public static func log1pf(_ x: Float32) -> Float32 {
         return __syx_f32_log1p(x)
     }
+    /// Asinhf.
     public static func asinhf(_ x: Float32) -> Float32 {
         return __syx_f32_asinh(x)
     }
+    /// Acoshf.
     public static func acoshf(_ x: Float32) -> Float32 {
         return __syx_f32_acosh(x)
     }
+    /// Atanhf.
     public static func atanhf(_ x: Float32) -> Float32 {
         return __syx_f32_atanh(x)
     }
+    /// Erff.
     public static func erff(_ x: Float32) -> Float32 {
         return __syx_f32_erf(x)
     }
+    /// Erfcf.
     public static func erfcf(_ x: Float32) -> Float32 {
         return __syx_f32_erfc(x)
     }
+    /// Tgammaf.
     public static func tgammaf(_ x: Float32) -> Float32 {
         return __syx_f32_tgamma(x)
     }
+    /// Lgammaf.
     public static func lgammaf(_ x: Float32) -> Float32 {
         return __syx_f32_lgamma(x)
     }
+    /// Remainderf.
     public static func remainderf(_ x: Float32, _ y: Float32) -> Float32 {
         return __syx_f32_remainder(x, y)
     }
+    /// Whether `x` is NaN (Float32).
     public static func isNaNf(_ x: Float32) -> Bool {
         return __syx_f32_isnan(x)
     }
+    /// Whether infinitef.
     public static func isInfinitef(_ x: Float32) -> Bool {
         return __syx_f32_isinf(x)
     }
+    /// Whether finitef.
     public static func isFinitef(_ x: Float32) -> Bool {
         return __syx_f32_isfinite(x)
     }
+    /// Next upf.
     public static func nextUpf(_ x: Float32) -> Float32 {
         return __syx_f32_next_up(x)
     }
+    /// Next downf.
     public static func nextDownf(_ x: Float32) -> Float32 {
         return __syx_f32_next_down(x)
     }
+    /// Mul addf.
     public static func mulAddf(_ a: Float32, _ b: Float32, _ c: Float32) -> Float32 {
         return __syx_f32_mul_add(a, b, c)
     }

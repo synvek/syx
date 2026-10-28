@@ -15,6 +15,7 @@
 /// Thin SqlError (ADR-138 target type; full Error hierarchy → later M2 windows).
 public data class SqlError(code: Int, message: String)
 
+/// Embedded SQL: connections, prepare/bind, txn, and pool MVP (throws `SqlError`).
 public class Sql {
     /// Open a connection; returns handle id ≥ 1. Use `":memory:"` for in-memory DB (ADR-160).
     public static func open(dsn: String) -> Int throws {
@@ -116,6 +117,7 @@ public class Sql {
         }
     }
 
+    /// Acquire a connection from the pool (non-blocking; throws when exhausted).
     public static func poolAcquire(poolId: Int) -> Int throws {
         try {
             return __syx_sql_pool_acquire(poolId)
@@ -142,6 +144,7 @@ public class Sql {
         }
     }
 
+    /// Execute SQL on the default connection (throws `SqlError`).
     public static func exec(sql: String) -> Int throws {
         try {
             return __syx_sql_exec(sql)
@@ -159,6 +162,7 @@ public class Sql {
         }
     }
 
+    /// Prepare SQL on the default connection (throws `SqlError`).
     public static func prepare(sql: String) -> Int throws {
         try {
             return __syx_sql_prepare(sql)
@@ -167,6 +171,7 @@ public class Sql {
         }
     }
 
+    /// Bind step (throws) (host `__syx_sql_bind_step`).
     public static func bindStep(sql: String, value: String) -> Int throws {
         try {
             return __syx_sql_bind_step(sql, value)
@@ -175,6 +180,7 @@ public class Sql {
         }
     }
 
+    /// Begin transaction (throws) (host `__syx_sql_begin_transaction`).
     public static func beginTransaction() throws {
         try {
             __syx_sql_begin_transaction()
@@ -183,6 +189,7 @@ public class Sql {
         }
     }
 
+    /// Commit transaction (throws) (host `__syx_sql_commit_transaction`).
     public static func commitTransaction() throws {
         try {
             __syx_sql_commit_transaction()
@@ -191,6 +198,7 @@ public class Sql {
         }
     }
 
+    /// Rollback transaction (throws) (host `__syx_sql_rollback_transaction`).
     public static func rollbackTransaction() throws {
         try {
             __syx_sql_rollback_transaction()

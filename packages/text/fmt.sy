@@ -1,16 +1,23 @@
+// Formatting / print helpers (also re-exported via `text/mod.sy`).
+
+/// Print, printLine, format, and debug stringification.
 public class Fmt {
+    /// Print `value` without a trailing newline.
     public static func print(value: Object) {
         __syx_fmt_print(value)
     }
 
+    /// Print `value` followed by a newline.
     public static func printLine(value: Object) {
         __syx_fmt_print_line(value)
     }
 
+    /// Format `args` into `pattern`; returns the string.
     public static func format(pattern: String, args: Object) -> String {
         return __syx_fmt_format(pattern, args)
     }
 
+    /// Debug-string representation of `value`.
     public static func debug(value: Object) -> String {
         return __syx_fmt_debug(value)
     }

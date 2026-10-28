@@ -2,6 +2,7 @@
 /// Close then readChunk must fail.
 
 public class FileStream {
+    /// Open a streaming file session (throws `IOError`).
     public static func open(path: String, mode: String) -> Int throws {
         try {
             return __syx_file_stream_open(path, mode)
@@ -19,6 +20,7 @@ public class FileStream {
         }
     }
 
+    /// Close the file-stream session (throws).
     public static func close(handle: Int) throws {
         try {
             __syx_file_stream_close(handle)

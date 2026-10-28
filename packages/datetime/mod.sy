@@ -1,52 +1,72 @@
+// Calendar time, durations, clocks, and monotonic instants.
+
+/// Parse / format / timezone helpers over epoch milliseconds.
 public class DateTime {
+    /// Current date-time as an Object bag.
     public static func now() -> Object {
         return __syx_datetime_now()
     }
+    /// Parse a date-time string into an Object bag.
     public static func parse(text: String) -> Object {
         return __syx_datetime_parse(text)
     }
+    /// Parse an ISO-8601 date-time string.
     public static func parseIso8601(text: String) -> Object {
         return __syx_datetime_parse_iso8601(text)
     }
+    /// Format epoch `ms` with `pattern`.
     public static func format(ms: Int, pattern: String) -> String {
         return __syx_datetime_format(ms, pattern)
     }
+    /// Format epoch `ms` with `pattern` in `timezone` (throws).
     public static func formatWithTimezone(ms: Int, pattern: String, timezone: String) -> String throws {
         return __syx_datetime_format_with_timezone(ms, pattern, timezone)
     }
+    /// Add `deltaMs` to epoch `ms`.
     public static func addDuration(ms: Int, deltaMs: Int) -> Int {
         return ms + deltaMs
     }
+    /// Timezone offset for `ms` in `timezone` (throws).
     public static func timezoneOffset(ms: Int, timezone: String) -> Int throws {
         return __syx_datetime_timezone_offset(ms, timezone)
     }
 }
 
+/// Duration constructors returning millisecond deltas.
 public class Duration {
+    /// Duration of `value` milliseconds.
     public static func ms(value: Int) -> Int {
         return value
     }
+    /// Duration of `value` seconds as milliseconds.
     public static func seconds(value: Int) -> Int {
         return value * 1000
     }
+    /// Duration of `value` minutes as milliseconds.
     public static func minutes(value: Int) -> Int {
         return value * 60 * 1000
     }
+    /// Duration of `value` hours as milliseconds.
     public static func hours(value: Int) -> Int {
         return value * 60 * 60 * 1000
     }
 }
 
+/// Wall-clock now in milliseconds (`__syx_time_now_ms`).
 public class Clock {
+    /// Now Ms (host `__syx_time_now_ms`).
     public static func nowMs() -> Int {
         return __syx_time_now_ms()
     }
 }
 
+/// Monotonic-ish instant helpers for elapsed timing.
 public class Instant {
+    /// Monotonic-ish instant now in milliseconds.
     public static func now() -> Int {
         return __syx_instant_now_ms()
     }
+    /// Elapsed milliseconds since `start` instant.
     public static func elapsedMs(start: Int) -> Int {
         let n = Instant.now()
         if n < start
