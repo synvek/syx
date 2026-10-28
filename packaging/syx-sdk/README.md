@@ -73,6 +73,14 @@ export SYX_RT_STATIC_LIB=/absolute/path/to/libsyx_rt.a
 
 `LinkOptions.rt_profile` (`debug` | `release`) is the Cargo build profile, not a feature profile id.
 
+## Windows notes
+
+Native linking needs the **MSVC toolchain** (Visual Studio Build Tools with
+“Desktop development with C++”, or VS with the MSVC + Windows SDK workloads).
+`syx` drives `rust-lld` / `link.exe` with the same VC `LIB` paths rustc uses so
+CRT (`memcpy` / `memcmp` / …) and `kernel32` resolve. A plain `cc` on `PATH` is
+not required and is not used on Windows.
+
 ## License
 
 See `LICENSE` in this directory (Apache-2.0).

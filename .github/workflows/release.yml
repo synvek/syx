@@ -532,7 +532,11 @@ jobs:
             shift
             local tdir="target/sdk-rt-${id}"
             echo "Building syx-rt profile '${id}' → ${tdir}"
-            cargo build --release -p syx-rt --target "${TARGET}" --target-dir "${tdir}" "$@"
+            # Do not inherit CLI-only Windows flags (`+crt-static`, LLVM rpmalloc
+            # /INCLUDE:malloc, vcpkg link-args) into redistributed syx_rt.lib —
+            # those make user `syx build --native` require a non-default CRT.
+            RUSTFLAGS="${SYX_RT_RUSTFLAGS:-}" \
+              cargo build --release -p syx-rt --target "${TARGET}" --target-dir "${tdir}" "$@"
             local src
             src="$(find_rt_lib "${tdir}")" || {
               echo "ERROR: libsyx_rt archive not found under ${tdir}" >&2

@@ -36,5 +36,9 @@ vendored-lld = ["dep:syx-lld"]
 [dev-dependencies]
 syx-parser = { workspace = true }
 
+[target.'cfg(windows)'.dependencies]
+# Locate MSVC `link.exe` + LIB/INCLUDE so native AOT can resolve CRT / kernel32.
+cc = "1"
+
 [build-dependencies]
 cc = "1"

@@ -317,10 +317,68 @@ fn host_linker_command(prefer_lld: bool) -> Command {
         if let Some(lld) = resolve_lld_linker() {
             let mut cmd = Command::new(lld);
             apply_lld_flavor_args(&mut cmd);
+            // rust-lld -flavor link still needs MSVC LIB paths for CRT / kernel32.
+            #[cfg(windows)]
+            apply_msvc_link_env(&mut cmd);
             return cmd;
         }
     }
+    #[cfg(windows)]
+    {
+        if let Some(cmd) = msvc_link_exe_command() {
+            return cmd;
+        }
+        // Last resort (Developer Command Prompt usually has link.exe on PATH).
+        return Command::new("link.exe");
+    }
+    #[cfg(not(windows))]
     Command::new("cc")
+}
+
+#[cfg(windows)]
+fn windows_host_msvc_triple() -> String {
+    match std::env::consts::ARCH {
+        "x86_64" => "x86_64-pc-windows-msvc".into(),
+        "aarch64" => "aarch64-pc-windows-msvc".into(),
+        "x86" => "i686-pc-windows-msvc".into(),
+        other => format!("{other}-pc-windows-msvc"),
+    }
+}
+
+/// Inject VC/Windows SDK `LIB` / `PATH` from the same detector rustc/cc uses.
+#[cfg(windows)]
+fn apply_msvc_link_env(cmd: &mut Command) {
+    let triple = std::env::var("TARGET").unwrap_or_else(|_| windows_host_msvc_triple());
+    if let Some(tool) = cc::windows_registry::find_tool(&triple, "link.exe") {
+        for (k, v) in tool.env() {
+            cmd.env(k, v);
+        }
+    }
+}
+
+#[cfg(windows)]
+fn msvc_link_exe_command() -> Option<Command> {
+    let triple = std::env::var("TARGET").unwrap_or_else(|_| windows_host_msvc_triple());
+    let tool = cc::windows_registry::find_tool(&triple, "link.exe")?;
+    let mut cmd = Command::new(tool.path());
+    for (k, v) in tool.env() {
+        cmd.env(k, v);
+    }
+    Some(cmd)
+}
+
+/// True when the linker expects MSVC `link.exe` / lld-link style flags (`/OUT`, `/LIBPATH`).
+fn windows_msvc_style_linker(cmd: &Command) -> bool {
+    if !cfg!(target_os = "windows") {
+        return false;
+    }
+    let prog = cmd.get_program().to_string_lossy();
+    let lower = prog.to_ascii_lowercase();
+    lower.contains("lld")
+        || lower.contains("link.exe")
+        || lower.ends_with("\\link")
+        || lower.ends_with("/link")
+        || lower == "link"
 }
 
 fn apply_lld_flavor_args(cmd: &mut Command) {
@@ -519,11 +577,23 @@ fn link_executable_with_prefer_lld(
 
     #[cfg(feature = "vendored-lld")]
     if prefer_lld && syx_lld::available() {
+        // Ensure in-process / prefix LLD sees the same VC LIB paths as rust-lld.
+        #[cfg(windows)]
+        {
+            let triple = std::env::var("TARGET").unwrap_or_else(|_| windows_host_msvc_triple());
+            if let Some(tool) = cc::windows_registry::find_tool(&triple, "link.exe") {
+                for (k, v) in tool.env() {
+                    // Safety: single-threaded link attempt; restore not required for child.
+                    std::env::set_var(k, v);
+                }
+            }
+        }
         return link_with_embedded_lld(user_obj, output, opts, &rt);
     }
 
     let mut cmd = host_linker_command(prefer_lld);
     let lld = using_lld_driver(&cmd);
+    let win_msvc = windows_msvc_style_linker(&cmd);
 
     cmd.arg(user_obj);
     for obj in &opts.objects {
@@ -531,14 +601,14 @@ fn link_executable_with_prefer_lld(
     }
     cmd.arg(&rt);
     for path in &opts.lib_paths {
-        if lld && cfg!(target_os = "windows") {
+        if win_msvc {
             cmd.arg(format!("/LIBPATH:{}", path.display()));
         } else {
             cmd.arg("-L").arg(path);
         }
     }
     for lib in &opts.libs {
-        if lld && cfg!(target_os = "windows") {
+        if win_msvc {
             cmd.arg(format!("{lib}.lib"));
         } else {
             cmd.arg(format!("-l{lib}"));
@@ -548,18 +618,12 @@ fn link_executable_with_prefer_lld(
         cmd.arg(flag);
     }
 
-    if lld && cfg!(target_os = "windows") {
+    if win_msvc {
         cmd.arg(format!("/OUT:{}", output.display()));
         cmd.arg("/ENTRY:syx_rt_start");
+        cmd.arg("/SUBSYSTEM:CONSOLE");
     } else {
         cmd.arg("-o").arg(output);
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        if !lld {
-            cmd.arg("/ENTRY:syx_rt_start");
-        }
     }
     #[cfg(target_os = "macos")]
     {
