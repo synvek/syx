@@ -1,10 +1,9 @@
 //! Host-toolchain stubs for AOT user entry points.
 //!
 //! `syx-rt::syx_rt_start` references `syx_user_init` / `syx_user_main`, which
-//! real native programs provide via LLVM/C codegen. On Windows MSVC, `#[no_mangle]`
-//! symbols from `syx-rt` are retained when linking host tools (`syx.exe`), so those
-//! externals must resolve. macOS/Linux dead-strip unused `syx_rt_start` and do not
-//! need these.
+//! real native programs provide via LLVM/C codegen. Host tools (`syx`, gates)
+//! link `syx-rt` and may retain `syx_rt_start` (MSVC always; Linux rust-lld /
+//! some macOS link configs also keep it), so those externals must resolve.
 //!
 //! Stubs live in `syx-driver` (not `syx-rt`) so they are **not** baked into
 //! `libsyx_rt` / `syx_rt.lib` used when linking user AOT objects.

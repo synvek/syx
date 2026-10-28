@@ -37,3 +37,4 @@ vendored-lld = ["dep:syx-lld"]
 syx-parser = { workspace = true }
 
 [build-dependencies]
+cc = "1"

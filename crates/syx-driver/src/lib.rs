@@ -2,26 +2,30 @@ pub mod aot_matrix;
 pub mod gc_report;
 pub mod inkwell_report;
 
-/// Ensure MSVC host binaries resolve `syx_user_*` required by `syx_rt_start`.
+/// Ensure host binaries resolve `syx_user_*` required by `syx_rt_start`.
 ///
 /// Call once from host tool `main` (e.g. `syx-cli`) so the stub object is linked.
+/// Also kept alive via [`FORCE_HOST_RT_STUBS`] so tests linking `syx-driver` work
+/// without an explicit call (important on MSVC; Unix also has weak stubs in `syx-rt`).
 #[inline(always)]
 pub fn ensure_host_rt_link_stubs() {
-    #[cfg(windows)]
-    {
-        let _ = (
-            host_rt_stubs::syx_user_init as usize,
-            host_rt_stubs::syx_user_main as usize,
-        );
-    }
+    let _ = (
+        host_rt_stubs::syx_user_init as usize,
+        host_rt_stubs::syx_user_main as usize,
+    );
 }
+
+#[used]
+static FORCE_HOST_RT_STUBS: [usize; 2] = [
+    host_rt_stubs::syx_user_init as usize,
+    host_rt_stubs::syx_user_main as usize,
+];
 
 pub mod cache_remote_report;
 pub mod capabilities_report;
 pub mod gc_generational_report;
 pub mod gc_relocate_report;
 pub mod gui_backend_report;
-#[cfg(windows)]
 mod host_rt_stubs;
 pub mod hosted_capabilities;
 pub mod lang_props_v2;

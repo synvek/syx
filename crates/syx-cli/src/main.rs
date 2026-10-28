@@ -401,7 +401,7 @@ enum PluginCommands {
 }
 
 fn main() {
-    // Windows MSVC: keep `syx_user_*` stubs linked for `syx_rt_start` exports.
+    // Keep `syx_user_*` stubs linked for `syx_rt_start` (MSVC / Linux rust-lld).
     syx_driver::ensure_host_rt_link_stubs();
     let args: Vec<String> = std::env::args().collect();
     if syx_macro::is_macro_sandbox_child_argv(&args) {
