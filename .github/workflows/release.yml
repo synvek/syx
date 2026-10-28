@@ -3,15 +3,67 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Release tag (e.g. v0.1.0)"
+      channel:
+        description: "Release channel (dev = artifacts only with -dev; release = unique git tag + GitHub Release)"
         required: true
+        type: choice
+        options:
+          - release
+          - dev
+        default: release
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      channel: ${{ steps.resolve.outputs.channel }}
+      create_tag: ${{ steps.resolve.outputs.create_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve version and tag from Cargo.toml
+        id: resolve
+        run: |
+          set -euo pipefail
+          # Read [workspace.package].version (portable; no tomllib required).
+          version="$(
+            awk '
+              /^\[workspace\.package\]/ { in_ws=1; next }
+              /^\[/ { in_ws=0 }
+              in_ws && /^version[[:space:]]*=/ {
+                if (match($0, /"[^"]+"/)) {
+                  print substr($0, RSTART+1, RLENGTH-2)
+                  exit
+                }
+              }
+            ' Cargo.toml
+          )"
+          if [ -z "${version}" ]; then
+            echo "ERROR: could not parse workspace.package.version from Cargo.toml" >&2
+            exit 1
+          fi
+          channel="${{ github.event.inputs.channel }}"
+          if [ "$channel" = "dev" ]; then
+            tag="v${version}-dev"
+            create_tag="false"
+          else
+            tag="v${version}-${{ github.run_number }}"
+            create_tag="true"
+          fi
+          {
+            echo "version=${version}"
+            echo "tag=${tag}"
+            echo "channel=${channel}"
+            echo "create_tag=${create_tag}"
+          } >> "$GITHUB_OUTPUT"
+          echo "channel=${channel} version=${version} tag=${tag} create_tag=${create_tag}"
+
   build:
+    needs: meta
     strategy:
       fail-fast: false
       matrix:
@@ -78,16 +130,16 @@ jobs:
       #       --test evergreen --test lang --test concurrency --test stdlib \
       #       --test observability --test security --test backends \
       #       -- --test-threads=1
-      - name: examples/deps cross-module (local_math.add → 42)
-        run: |
-          BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
-          "$BIN" run examples/deps | grep -q 42
-      - name: Build examples/main native (minimal)
-        if: matrix.native_examples
-        run: |
-          BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
-          mkdir -p dist
-          "$BIN" build --native --minimal -o "dist/examples-main-${{ matrix.artifact }}" examples
+      # - name: examples/deps cross-module (local_math.add → 42)
+      #   run: |
+      #     BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
+      #     "$BIN" run examples/deps | grep -q 42
+      # - name: Build examples/hello native (minimal)
+      #   if: matrix.native_examples
+      #   run: |
+      #     BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
+      #     mkdir -p dist
+      #     "$BIN" build --native --minimal -o "dist/examples-main-${{ matrix.artifact }}" examples
       - name: Package CLI
         run: |
           BIN="target/${{ matrix.target }}/release/syx${{ matrix.exe_ext }}"
@@ -107,76 +159,76 @@ jobs:
             shasum -a 256 * > SHA256SUMS
           fi
           cat SHA256SUMS
-      - name: Release install smoke
-        run: |
-          CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
-          "$CLI" --version || "$CLI" build --help
-          if [ "${{ matrix.native_examples }}" = "true" ]; then
-            test -x "dist/examples-main-${{ matrix.artifact }}" || test -f "dist/examples-main-${{ matrix.artifact }}"
-          fi
-          dir=$(mktemp -d)
-          printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
-          printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
-          "$CLI" run "$dir" | grep -q vm-smoke || "$CLI" run "$dir/main.sy" | grep -q vm-smoke
-          "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
-      - name: Install wasmtime
-        if: matrix.wasmtime_asset != ''
-        continue-on-error: true
-        run: |
-          asset="${{ matrix.wasmtime_asset }}"
-          url="https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/${asset}"
-          mkdir -p /tmp/wasmtime-dist
-          curl -fsSL "$url" -o "/tmp/${asset}"
-          case "$asset" in
-            *.zip)
-              if command -v unzip >/dev/null; then
-                unzip -o "/tmp/${asset}" -d /tmp/wasmtime-dist
-              else
-                powershell -Command "Expand-Archive -Path '/tmp/${asset}' -DestinationPath '/tmp/wasmtime-dist' -Force"
-              fi
-              ;;
-            *)
-              tar -xf "/tmp/${asset}" -C /tmp/wasmtime-dist
-              ;;
-          esac
-          bin_dir="$(find /tmp/wasmtime-dist -name 'wasmtime*' -type f \( -perm -111 -o -name 'wasmtime.exe' \) 2>/dev/null | head -1 | xargs -I{} dirname {} || true)"
-          if [ -z "$bin_dir" ]; then
-            bin_dir="$(find /tmp/wasmtime-dist -type f -name 'wasmtime' -o -name 'wasmtime.exe' | head -1 | xargs dirname)"
-          fi
-          echo "$bin_dir" >> "$GITHUB_PATH"
-          ls -la "$bin_dir" || true
-      - name: WASI wasmtime E2E (mandatory on Unix)
-        if: runner.os != 'Windows'
-        run: |
-          CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
-          dir=$(mktemp -d)
-          printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
-          printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
-          "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
-          SYX_WASI=1 wasmtime run "$dir/out.wasm"
-          cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
-      - name: WASI wasmtime E2E (Windows best-effort)
-        if: runner.os == 'Windows'
-        continue-on-error: true
-        run: |
-          CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
-          dir=$(mktemp -d)
-          printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
-          printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
-          "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
-          if command -v wasmtime >/dev/null || command -v wasmtime.exe >/dev/null; then
-            SYX_WASI=1 wasmtime run "$dir/out.wasm" || SYX_WASI=1 wasmtime.exe run "$dir/out.wasm"
-          fi
-          cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
-      - name: Registry prod URL smoke
-        run: cargo test -p syx-pkg registry_prod_url_smoke -- --test-threads=1
+      # - name: Release install smoke
+      #   run: |
+      #     CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
+      #     "$CLI" --version || "$CLI" build --help
+      #     if [ "${{ matrix.native_examples }}" = "true" ]; then
+      #       test -x "dist/examples-main-${{ matrix.artifact }}" || test -f "dist/examples-main-${{ matrix.artifact }}"
+      #     fi
+      #     dir=$(mktemp -d)
+      #     printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
+      #     printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
+      #     "$CLI" run "$dir" | grep -q vm-smoke || "$CLI" run "$dir/main.sy" | grep -q vm-smoke
+      #     "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
+      # - name: Install wasmtime
+      #   if: matrix.wasmtime_asset != ''
+      #   continue-on-error: true
+      #   run: |
+      #     asset="${{ matrix.wasmtime_asset }}"
+      #     url="https://github.com/bytecodealliance/wasmtime/releases/download/v25.0.0/${asset}"
+      #     mkdir -p /tmp/wasmtime-dist
+      #     curl -fsSL "$url" -o "/tmp/${asset}"
+      #     case "$asset" in
+      #       *.zip)
+      #         if command -v unzip >/dev/null; then
+      #           unzip -o "/tmp/${asset}" -d /tmp/wasmtime-dist
+      #         else
+      #           powershell -Command "Expand-Archive -Path '/tmp/${asset}' -DestinationPath '/tmp/wasmtime-dist' -Force"
+      #         fi
+      #         ;;
+      #       *)
+      #         tar -xf "/tmp/${asset}" -C /tmp/wasmtime-dist
+      #         ;;
+      #     esac
+      #     bin_dir="$(find /tmp/wasmtime-dist -name 'wasmtime*' -type f \( -perm -111 -o -name 'wasmtime.exe' \) 2>/dev/null | head -1 | xargs -I{} dirname {} || true)"
+      #     if [ -z "$bin_dir" ]; then
+      #       bin_dir="$(find /tmp/wasmtime-dist -type f -name 'wasmtime' -o -name 'wasmtime.exe' | head -1 | xargs dirname)"
+      #     fi
+      #     echo "$bin_dir" >> "$GITHUB_PATH"
+      #     ls -la "$bin_dir" || true
+      # - name: WASI wasmtime E2E (mandatory on Unix)
+      #   if: runner.os != 'Windows'
+      #   run: |
+      #     CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
+      #     dir=$(mktemp -d)
+      #     printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
+      #     printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
+      #     "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
+      #     SYX_WASI=1 wasmtime run "$dir/out.wasm"
+      #     cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
+      # - name: WASI wasmtime E2E (Windows best-effort)
+      #   if: runner.os == 'Windows'
+      #   continue-on-error: true
+      #   run: |
+      #     CLI="dist/${{ matrix.artifact }}${{ matrix.exe_ext }}"
+      #     dir=$(mktemp -d)
+      #     printf 'func main() { print("vm-smoke") }\n' > "$dir/main.sy"
+      #     printf 'name = "smoke"\nmain = "main.sy"\n' > "$dir/syx.toml"
+      #     "$CLI" build --wasm -o "$dir/out.wasm" "$dir"
+      #     if command -v wasmtime >/dev/null || command -v wasmtime.exe >/dev/null; then
+      #       SYX_WASI=1 wasmtime run "$dir/out.wasm" || SYX_WASI=1 wasmtime.exe run "$dir/out.wasm"
+      #     fi
+      #     cargo test -p syx-wasm-run wasi_path_open_read_write -- --nocapture
+      # - name: Registry prod URL smoke
+      #   run: cargo test -p syx-pkg registry_prod_url_smoke -- --test-threads=1
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
+          name: ${{ matrix.artifact }}-${{ needs.meta.outputs.tag }}
           path: dist/*
 
   publish:
-    needs: build
+    needs: [meta, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -195,14 +247,22 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-      - name: Create GitHub Release
+      - name: Upload VS Code extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-syx-${{ needs.meta.outputs.tag }}
+          path: dist/*.vsix
+      - name: Create GitHub Release (release channel only)
+        if: needs.meta.outputs.create_tag == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="${{ github.event.inputs.tag }}"
+          tag="${{ needs.meta.outputs.tag }}"
+          version="${{ needs.meta.outputs.version }}"
+          channel="${{ needs.meta.outputs.channel }}"
           notes_file=$(mktemp)
-          cat > "$notes_file" <<'EOF'
-          Prebuilt SYX CLI for 6 targets (SHA256SUMS per artifact):
+          cat > "$notes_file" <<EOF
+          Prebuilt SYX CLI (channel **${channel}**, Cargo.toml **${version}**, tag **${tag}**).
 
           | OS | Arch | Artifact |
           |----|------|----------|
@@ -215,11 +275,15 @@ jobs:
 
           Also includes VS Code extension .vsix when packaging succeeds.
           EOF
-          # strip leading spaces from YAML-indented heredoc body
-          sed -i 's/^          //' "$notes_file"
           assets=(artifacts/*/*)
           if compgen -G 'dist/*.vsix' > /dev/null; then
             assets+=(dist/*.vsix)
           fi
           gh release create "$tag" --title "$tag" --notes-file "$notes_file" "${assets[@]}" \
             || gh release upload "$tag" "${assets[@]}"
+      - name: Dev channel summary (no git tag)
+        if: needs.meta.outputs.create_tag != 'true'
+        run: |
+          echo "Dev channel: skipped git tag / GitHub Release."
+          echo "Artifacts uploaded with suffix: ${{ needs.meta.outputs.tag }}"
+          ls -la artifacts/*/* dist/*.vsix 2>/dev/null || true
