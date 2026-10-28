@@ -108,13 +108,13 @@ jobs:
             wasmtime_asset: wasmtime-v25.0.0-x86_64-windows.zip
             llvm_asset: clang+llvm-21.1.6-x86_64-pc-windows-msvc.tar.xz
             native_examples: false
-          - os: windows-11-arm
-            target: aarch64-pc-windows-msvc
-            artifact: syx-windows-aarch64
-            exe_ext: ".exe"
-            wasmtime_asset: wasmtime-v25.0.0-aarch64-windows.zip
-            llvm_asset: clang+llvm-21.1.6-aarch64-pc-windows-msvc.tar.xz
-            native_examples: false
+          # - os: windows-11-arm
+          #   target: aarch64-pc-windows-msvc
+          #   artifact: syx-windows-aarch64
+          #   exe_ext: ".exe"
+          #   wasmtime_asset: wasmtime-v25.0.0-aarch64-windows.zip
+          #   llvm_asset: clang+llvm-21.1.6-aarch64-pc-windows-msvc.tar.xz
+          #   native_examples: false
     runs-on: ${{ matrix.os }}
     defaults:
       run:
