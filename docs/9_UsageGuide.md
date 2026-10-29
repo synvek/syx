@@ -48,7 +48,7 @@ Source (.sy) → Lexer → Parser → Semantic → CodeGen → VM
 |------|------|
 | Rust | 1.80+ |
 | Cargo | Bundled with Rust |
-| clang / LLVM | Optional: with `--features full-native`, use sibling `../llvm` or `SYX_LLVM_PREFIX` (inkwell emits `.o` + **static embedded LLD**); see [plan/topics/native-llvm.md](../plan/topics/native-llvm.md) |
+| clang / LLVM | Optional: with `--features full-native`, use sibling `../llvm` or `SYX_LLVM_PREFIX` (inkwell emits `.o` + **static embedded LLD**); see [plan/topics/native-llvm.md](../plan/topics/native-llvm.md). Official **syx-sdk** packages ship LLD + `lib/sysroot/<triple>` so end users do **not** need VS/Xcode to link a single-file native exe. |
 
 ---
 
@@ -1526,12 +1526,21 @@ See [WASM backend: main.wasm (CLI nativepath)](#wasm-backendmainwasmcli-nativepa
 
 ### `--native` did not produce executable
 
-Default should generate **`app`**. If only `.o`, **`--object`** was used. If link fails, confirm **clang** is installed and `libsyx_rt.a` is available (see [plan/topics/profiles-sdk.md](../plan/topics/profiles-sdk.md)).
+Default should generate a **single-file** `app` (static `syx_rt`, no `syx_rt.dll`). If only `.o`, **`--object`** was used.
 
-When no source tree is available, use environment variables to specify runtime archives (C-11 narrow `[x]` contract; ≠ Release full-matrix CI upload):
+If link fails on a clean machine, prefer the official **syx-sdk** zip/tarball (`bin/syx` + `lib/syx_rt*` + `lib/sysroot/<triple>`). Check layout with:
 
-- **`SYX_RT_STATIC_LIB`**: points to an existing `libsyx_rt.a` / `syx_rt.lib` (orincludes hashed archive deps Table of Contents)
-- **`SYX_RT_PROFILE=<id>`**: lookup per SDK install layout `bin/../lib/profiles/<id>/libsyx_rt.a` (fallback `../lib/<id>/`); convention see [`packaging/syx-sdk/README.md`](../packaging/syx-sdk/README.md)
+```bash
+syx doctor --native-sdk
+```
+
+Source trees may still use a local MSVC/Xcode toolchain when no sysroot is present. See [`packaging/syx-sdk/README.md`](../packaging/syx-sdk/README.md).
+
+When no source tree is available, use environment variables to specify runtime archives / sysroot (C-11 narrow `[x]` contract; ≠ Release full-matrix CI upload):
+
+- **`SYX_RT_STATIC_LIB`**: points to an existing `libsyx_rt.a` / `syx_rt.lib` (or includes hashed archive deps)
+- **`SYX_RT_PROFILE=<id>`**: lookup per SDK install layout `bin/../lib/profiles/<id>/libsyx_rt.a` (fallback `../lib/<id>/`)
+- **`SYX_SYSROOT`**: absolute path to link import libs (replaces `bin/../lib/sysroot/<triple>`)
 
 these take precedence over compile-time embed with cargo `target/` search.
 ### Differences from Swift

@@ -174,6 +174,243 @@ pub struct LinkOptions {
     pub rt_profile: String,
 }
 
+/// Host triple used for `lib/sysroot/<triple>/` (override with `TARGET`).
+pub fn host_link_triple() -> String {
+    if let Ok(t) = std::env::var("TARGET") {
+        if !t.is_empty() {
+            return t;
+        }
+    }
+    let arch = std::env::consts::ARCH;
+    if cfg!(target_os = "windows") {
+        let env = if cfg!(target_env = "gnu") {
+            "gnu"
+        } else {
+            "msvc"
+        };
+        return format!("{arch}-pc-windows-{env}");
+    }
+    if cfg!(target_os = "macos") {
+        return format!("{arch}-apple-darwin");
+    }
+    if cfg!(target_os = "linux") {
+        return format!("{arch}-unknown-linux-gnu");
+    }
+    format!("{arch}-unknown-unknown")
+}
+
+/// Resolve SDK link sysroot: `SYX_SYSROOT` or `bin/../lib/sysroot/<triple>/`.
+pub fn resolve_sdk_sysroot() -> Option<PathBuf> {
+    if let Ok(raw) = std::env::var("SYX_SYSROOT") {
+        let p = PathBuf::from(raw);
+        if p.is_dir() {
+            return Some(p.canonicalize().unwrap_or(p));
+        }
+    }
+    let exe = std::env::current_exe().ok()?;
+    let bin_dir = exe.parent()?;
+    let candidate = bin_dir
+        .join("../lib/sysroot")
+        .join(host_link_triple());
+    if candidate.is_dir() {
+        return Some(candidate.canonicalize().unwrap_or(candidate));
+    }
+    None
+}
+
+/// Whether a sysroot directory looks ready for linking (marker and/or import libs).
+pub fn sysroot_looks_usable(sysroot: &Path) -> bool {
+    if !sysroot.is_dir() {
+        return false;
+    }
+    if sysroot.join(".syx-sysroot").is_file() {
+        return true;
+    }
+    // Windows: at least one import lib
+    if let Ok(rd) = std::fs::read_dir(sysroot) {
+        for e in rd.flatten() {
+            let name = e.file_name();
+            let s = name.to_string_lossy();
+            if s.ends_with(".lib") || s.ends_with(".a") || s.ends_with(".tbd") {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Doctor / smoke report for SDK native layout next to `bin/syx`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NativeSdkLayoutReport {
+    pub triple: String,
+    pub rt_archive: Option<PathBuf>,
+    pub sysroot: Option<PathBuf>,
+    pub sysroot_ok: bool,
+    pub ok: bool,
+    pub notes: Vec<String>,
+}
+
+/// Inspect install layout used for Go-like single-file native links.
+pub fn native_sdk_layout_report() -> NativeSdkLayoutReport {
+    let triple = host_link_triple();
+    let mut notes = Vec::new();
+    let rt = rt_archive_path().ok();
+    if rt.is_none() {
+        notes.push("libsyx_rt / syx_rt.lib not found (set SYX_RT_STATIC_LIB or install SDK lib/)".into());
+    }
+    let sysroot = resolve_sdk_sysroot();
+    let sysroot_ok = sysroot.as_ref().is_some_and(|p| sysroot_looks_usable(p));
+    if sysroot.is_none() {
+        notes.push(format!(
+            "sysroot missing (expected ../lib/sysroot/{triple} or SYX_SYSROOT); \
+             Windows users need the official SDK zip for no-VS linking"
+        ));
+    } else if !sysroot_ok {
+        notes.push("sysroot directory present but empty / unusable".into());
+    } else {
+        notes.push("sysroot OK — prefer SDK libs over local VS/Xcode".into());
+    }
+    #[cfg(windows)]
+    let host_sdk_ok = {
+        let _ = &notes;
+        cc::windows_registry::find_tool(&host_link_triple(), "link.exe").is_some()
+    };
+    #[cfg(not(windows))]
+    let host_sdk_ok = true;
+    if !sysroot_ok && host_sdk_ok {
+        notes.push("using host toolchain fallback (source/dev); ship sysroot in SDK for end users".into());
+    }
+    let ok = rt.is_some()
+        && (sysroot_ok
+            || host_sdk_ok
+            || cfg!(target_os = "linux")
+            || std::env::var_os("SYX_ALLOW_HOST_SDK").is_some());
+    NativeSdkLayoutReport {
+        triple,
+        rt_archive: rt,
+        sysroot,
+        sysroot_ok,
+        ok,
+        notes,
+    }
+}
+
+/// Scan a Windows COFF `.obj` for external undefined symbol names.
+pub fn coff_undefined_externals(bytes: &[u8]) -> Vec<String> {
+    if bytes.len() < 20 {
+        return Vec::new();
+    }
+    let machine = u16::from_le_bytes([bytes[0], bytes[1]]);
+    if !matches!(machine, 0x014c | 0x8664 | 0xaa64 | 0x01c4) {
+        return Vec::new();
+    }
+    let ptr_sym = u32::from_le_bytes(bytes[8..12].try_into().unwrap()) as usize;
+    let num_sym = u32::from_le_bytes(bytes[12..16].try_into().unwrap()) as usize;
+    if ptr_sym == 0 || num_sym == 0 || ptr_sym.saturating_add(num_sym.saturating_mul(18)) > bytes.len()
+    {
+        return Vec::new();
+    }
+    let string_table_off = ptr_sym + num_sym * 18;
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < num_sym {
+        let off = ptr_sym + i * 18;
+        if off + 18 > bytes.len() {
+            break;
+        }
+        let section = i16::from_le_bytes([bytes[off + 12], bytes[off + 13]]);
+        let storage = bytes[off + 16];
+        let num_aux = bytes[off + 17] as usize;
+        // IMAGE_SYM_UNDEFINED = 0, IMAGE_SYM_CLASS_EXTERNAL = 2
+        if section == 0 && storage == 2 {
+            let name = if bytes[off..off + 8] != [0; 8] && bytes[off] != 0 {
+                // short name
+                let end = bytes[off..off + 8]
+                    .iter()
+                    .position(|&b| b == 0)
+                    .unwrap_or(8);
+                String::from_utf8_lossy(&bytes[off..off + end]).into_owned()
+            } else {
+                let str_off = u32::from_le_bytes(bytes[off + 4..off + 8].try_into().unwrap()) as usize;
+                let abs = string_table_off.saturating_add(str_off);
+                if abs < bytes.len() {
+                    let end = bytes[abs..]
+                        .iter()
+                        .position(|&b| b == 0)
+                        .map(|n| abs + n)
+                        .unwrap_or(bytes.len());
+                    String::from_utf8_lossy(&bytes[abs..end]).into_owned()
+                } else {
+                    String::new()
+                }
+            };
+            if !name.is_empty() {
+                out.push(name);
+            }
+        }
+        i += 1 + num_aux;
+    }
+    out
+}
+
+/// True if an undefined COFF symbol is allowed for user AOT objects.
+pub fn user_object_undef_allowed(name: &str) -> bool {
+    // Keep `__imp_*` / `__std_*` before stripping a single Mach-O/`_` prefix.
+    if name.starts_with("__imp_")
+        || name.starts_with("__std_")
+        || name.starts_with("llvm.")
+        || name.starts_with("syx_rt_")
+        || name.starts_with("syx_user_")
+        || name.starts_with("_syx_rt_")
+        || name.starts_with("_syx_user_")
+    {
+        return true;
+    }
+    let n = name.strip_prefix('_').unwrap_or(name);
+    // Common CRT / compiler builtins that sysroot + CRT import libs resolve.
+    matches!(
+        n,
+        "memcpy"
+            | "memmove"
+            | "memset"
+            | "memcmp"
+            | "strlen"
+            | "wcslen"
+            | "malloc"
+            | "free"
+            | "realloc"
+            | "calloc"
+            | "__CxxFrameHandler3"
+            | "__C_specific_handler"
+            | "_Tls_index"
+            | "__chkstk"
+            | "__security_cookie"
+            | "__security_check_cookie"
+            | "_fltused"
+    ) || n.starts_with("__imp_")
+        || n.starts_with("__std_")
+}
+
+/// Audit user object bytes: COFF undefs must pass [`user_object_undef_allowed`].
+pub fn audit_user_object_undefs(bytes: &[u8]) -> Result<(), String> {
+    let undefs = coff_undefined_externals(bytes);
+    if undefs.is_empty() {
+        return Ok(());
+    }
+    let bad: Vec<_> = undefs
+        .into_iter()
+        .filter(|n| !user_object_undef_allowed(n))
+        .collect();
+    if bad.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "user object has disallowed undefined symbols: {}",
+            bad.join(", ")
+        ))
+    }
+}
+
 /// Locate `libsyx_rt*.a` for the given build profile (`debug` / `release`).
 pub fn rt_archive_path_for_profile(profile: &str) -> io::Result<PathBuf> {
     if let Some(path) = runtime_env_rt_archive() {
@@ -317,19 +554,20 @@ fn host_linker_command(prefer_lld: bool) -> Command {
         if let Some(lld) = resolve_lld_linker() {
             let mut cmd = Command::new(lld);
             apply_lld_flavor_args(&mut cmd);
-            // rust-lld -flavor link still needs MSVC LIB paths for CRT / kernel32.
-            #[cfg(windows)]
-            apply_msvc_link_env(&mut cmd);
+            apply_link_search_env(&mut cmd);
             return cmd;
         }
     }
     #[cfg(windows)]
     {
-        if let Some(cmd) = msvc_link_exe_command() {
+        // Prefer SDK sysroot + rust-lld; link.exe only as developer fallback.
+        if let Some(mut cmd) = msvc_link_exe_command() {
+            apply_link_search_env(&mut cmd);
             return cmd;
         }
-        // Last resort (Developer Command Prompt usually has link.exe on PATH).
-        return Command::new("link.exe");
+        let mut cmd = Command::new("link.exe");
+        apply_link_search_env(&mut cmd);
+        return cmd;
     }
     #[cfg(not(windows))]
     Command::new("cc")
@@ -337,18 +575,39 @@ fn host_linker_command(prefer_lld: bool) -> Command {
 
 #[cfg(windows)]
 fn windows_host_msvc_triple() -> String {
-    match std::env::consts::ARCH {
-        "x86_64" => "x86_64-pc-windows-msvc".into(),
-        "aarch64" => "aarch64-pc-windows-msvc".into(),
-        "x86" => "i686-pc-windows-msvc".into(),
-        other => format!("{other}-pc-windows-msvc"),
+    host_link_triple()
+}
+
+/// Prefer SDK `lib/sysroot/<triple>` LIBPATH; fall back to host MSVC for source builds.
+fn apply_link_search_env(cmd: &mut Command) {
+    if let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) {
+        #[cfg(windows)]
+        {
+            let existing = std::env::var_os("LIB").unwrap_or_default();
+            let mut lib = sysroot.as_os_str().to_owned();
+            if !existing.is_empty() {
+                lib.push(";");
+                lib.push(&existing);
+            }
+            cmd.env("LIB", lib);
+            return;
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = (cmd, sysroot);
+            return;
+        }
     }
+    #[cfg(windows)]
+    apply_msvc_link_env(cmd);
+    #[cfg(not(windows))]
+    let _ = cmd;
 }
 
 /// Inject VC/Windows SDK `LIB` / `PATH` from the same detector rustc/cc uses.
 #[cfg(windows)]
 fn apply_msvc_link_env(cmd: &mut Command) {
-    let triple = std::env::var("TARGET").unwrap_or_else(|_| windows_host_msvc_triple());
+    let triple = windows_host_msvc_triple();
     if let Some(tool) = cc::windows_registry::find_tool(&triple, "link.exe") {
         for (k, v) in tool.env() {
             cmd.env(k, v);
@@ -358,13 +617,76 @@ fn apply_msvc_link_env(cmd: &mut Command) {
 
 #[cfg(windows)]
 fn msvc_link_exe_command() -> Option<Command> {
-    let triple = std::env::var("TARGET").unwrap_or_else(|_| windows_host_msvc_triple());
+    let triple = windows_host_msvc_triple();
     let tool = cc::windows_registry::find_tool(&triple, "link.exe")?;
     let mut cmd = Command::new(tool.path());
     for (k, v) in tool.env() {
         cmd.env(k, v);
     }
     Some(cmd)
+}
+
+fn push_sdk_sysroot_libpath(cmd: &mut Command, win_msvc: bool) {
+    let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) else {
+        return;
+    };
+    if win_msvc {
+        cmd.arg(format!("/LIBPATH:{}", sysroot.display()));
+    } else {
+        cmd.arg("-L").arg(&sysroot);
+    }
+}
+
+fn macos_syslibroot_path() -> Option<PathBuf> {
+    if let Some(sysroot) = resolve_sdk_sysroot() {
+        let recorded = sysroot.join("sdk-path.txt");
+        if let Ok(s) = std::fs::read_to_string(&recorded) {
+            let p = PathBuf::from(s.trim());
+            if p.is_dir() {
+                return Some(p);
+            }
+        }
+        // Bundled SDK tree (optional future layout)
+        for name in ["MacOSX.sdk", "sdk"] {
+            let p = sysroot.join(name);
+            if p.is_dir() {
+                return Some(p);
+            }
+        }
+    }
+    let sdk = Command::new("xcrun")
+        .args(["--sdk", "macosx", "--show-sdk-path"])
+        .output()
+        .ok()?;
+    if !sdk.status.success() {
+        return None;
+    }
+    let path = String::from_utf8_lossy(&sdk.stdout).trim().to_string();
+    if path.is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(path))
+    }
+}
+
+/// Ensure Windows can link: SDK sysroot or host MSVC must be available.
+fn ensure_windows_link_inputs() -> io::Result<()> {
+    #[cfg(windows)]
+    {
+        if resolve_sdk_sysroot().is_some_and(|p| sysroot_looks_usable(&p)) {
+            return Ok(());
+        }
+        if msvc_link_exe_command().is_some() {
+            return Ok(());
+        }
+        return Err(io::Error::other(
+            "native link: no SDK sysroot (../lib/sysroot/<triple> or SYX_SYSROOT) and no MSVC link.exe. \
+             Install the official syx-sdk package (includes import libs) or Visual Studio Build Tools. \
+             A plain `cc` on PATH is not used on Windows.",
+        ));
+    }
+    #[cfg(not(windows))]
+    Ok(())
 }
 
 /// True when the linker expects MSVC `link.exe` / lld-link style flags (`/OUT`, `/LIBPATH`).
@@ -469,8 +791,12 @@ fn link_with_embedded_lld(
     }
     #[cfg(target_os = "windows")]
     {
+        if let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) {
+            args.push(format!("/LIBPATH:{}", sysroot.display()).into());
+        }
         args.push(format!("/OUT:{}", output.display()).into());
         args.push("/ENTRY:syx_rt_start".into());
+        args.push("/SUBSYSTEM:CONSOLE".into());
     }
     #[cfg(not(target_os = "windows"))]
     {
@@ -483,17 +809,9 @@ fn link_with_embedded_lld(
         args.push("_syx_rt_start".into());
         args.push("-liconv".into());
         args.push("-lobjc".into());
-        if let Ok(sdk) = Command::new("xcrun")
-            .args(["--sdk", "macosx", "--show-sdk-path"])
-            .output()
-        {
-            if sdk.status.success() {
-                let path = String::from_utf8_lossy(&sdk.stdout).trim().to_string();
-                if !path.is_empty() {
-                    args.push("-syslibroot".into());
-                    args.push(path.into());
-                }
-            }
+        if let Some(sdk) = macos_syslibroot_path() {
+            args.push("-syslibroot".into());
+            args.push(sdk.into_os_string());
         }
         args.push("-lSystem".into());
         for fw in [
@@ -542,20 +860,32 @@ pub fn link_executable_with(user_obj: &Path, output: &Path, opts: &LinkOptions) 
             .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(false);
 
+    ensure_windows_link_inputs()?;
+
+    // With an SDK sysroot, Windows must stay on LLD (no bare `cc` / missing link.exe).
+    #[cfg(windows)]
+    let allow_host_fallback = {
+        let force_lld = std::env::var("SYX_FORCE_LLD")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
+        let sysroot_only = resolve_sdk_sysroot().is_some_and(|p| sysroot_looks_usable(&p))
+            && msvc_link_exe_command().is_none();
+        !force_lld && !sysroot_only
+    };
+    #[cfg(not(windows))]
+    let allow_host_fallback = !std::env::var("SYX_FORCE_LLD")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
     match link_executable_with_prefer_lld(user_obj, output, opts, prefer_lld) {
         Ok(()) => Ok(()),
-        Err(lld_err)
-            if prefer_lld
-                && !std::env::var("SYX_FORCE_LLD")
-                    .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-                    .unwrap_or(false) =>
-        {
+        Err(lld_err) if prefer_lld && allow_host_fallback => {
             // LLD often needs CRT glue on Linux; on newer macOS SDKs rust-lld also
-            // rejects TBD `arm64e.x1-*` arches. Fall back to system cc once.
-            // LLD stderr was captured so the terminal is not flooded with TAPI noise.
+            // rejects TBD `arm64e.x1-*` arches. Fall back once (MSVC link.exe on
+            // Windows when present; system cc on Unix). Never use plain `cc` on Windows.
             link_executable_with_prefer_lld(user_obj, output, opts, false).map_err(|cc_err| {
                 io::Error::other(format!(
-                    "native link failed (lld then cc):\n--- lld ---\n{lld_err}\n--- cc ---\n{cc_err}"
+                    "native link failed (lld then host linker):\n--- lld ---\n{lld_err}\n--- host ---\n{cc_err}"
                 ))
             })
         }
@@ -577,13 +907,21 @@ fn link_executable_with_prefer_lld(
 
     #[cfg(feature = "vendored-lld")]
     if prefer_lld && syx_lld::available() {
-        // Ensure in-process / prefix LLD sees the same VC LIB paths as rust-lld.
+        // Align process LIB with SDK sysroot / host MSVC for prefix LLD.
         #[cfg(windows)]
         {
-            let triple = std::env::var("TARGET").unwrap_or_else(|_| windows_host_msvc_triple());
-            if let Some(tool) = cc::windows_registry::find_tool(&triple, "link.exe") {
+            if let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) {
+                let existing = std::env::var_os("LIB").unwrap_or_default();
+                let mut lib = sysroot.into_os_string();
+                if !existing.is_empty() {
+                    lib.push(";");
+                    lib.push(&existing);
+                }
+                std::env::set_var("LIB", lib);
+            } else if let Some(tool) =
+                cc::windows_registry::find_tool(&windows_host_msvc_triple(), "link.exe")
+            {
                 for (k, v) in tool.env() {
-                    // Safety: single-threaded link attempt; restore not required for child.
                     std::env::set_var(k, v);
                 }
             }
@@ -600,6 +938,7 @@ fn link_executable_with_prefer_lld(
         cmd.arg(obj);
     }
     cmd.arg(&rt);
+    push_sdk_sysroot_libpath(&mut cmd, win_msvc);
     for path in &opts.lib_paths {
         if win_msvc {
             cmd.arg(format!("/LIBPATH:{}", path.display()));
@@ -631,16 +970,8 @@ fn link_executable_with_prefer_lld(
         cmd.arg("-liconv");
         cmd.arg("-lobjc");
         if lld {
-            if let Ok(sdk) = Command::new("xcrun")
-                .args(["--sdk", "macosx", "--show-sdk-path"])
-                .output()
-            {
-                if sdk.status.success() {
-                    let path = String::from_utf8_lossy(&sdk.stdout).trim().to_string();
-                    if !path.is_empty() {
-                        cmd.arg("-syslibroot").arg(path);
-                    }
-                }
+            if let Some(sdk) = macos_syslibroot_path() {
+                cmd.arg("-syslibroot").arg(sdk);
             }
             cmd.arg("-lSystem");
         }
@@ -932,5 +1263,156 @@ mod tests {
         // Historical inventories stay false.
         assert!(!profiles_sdk_first_slice_inventory().c11_ga_claimed);
         assert!(!profiles_sdk_deepen_inventory().c11_ga_claimed);
+    }
+
+    #[test]
+    fn sysroot_env_override_and_usable_marker() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("sysroot");
+        std::fs::create_dir_all(&root).unwrap();
+        assert!(!sysroot_looks_usable(&root));
+        std::fs::write(root.join(".syx-sysroot"), b"").unwrap();
+        assert!(sysroot_looks_usable(&root));
+        let prev = std::env::var_os("SYX_SYSROOT");
+        std::env::set_var("SYX_SYSROOT", &root);
+        let got = resolve_sdk_sysroot().expect("SYX_SYSROOT");
+        match prev {
+            Some(v) => std::env::set_var("SYX_SYSROOT", v),
+            None => std::env::remove_var("SYX_SYSROOT"),
+        }
+        assert_eq!(got.canonicalize().unwrap(), root.canonicalize().unwrap());
+    }
+
+    #[test]
+    fn coff_undef_audit_allows_syx_and_crt() {
+        assert!(user_object_undef_allowed("syx_rt_start"));
+        assert!(user_object_undef_allowed("_syx_user_main"));
+        assert!(user_object_undef_allowed("memcpy"));
+        assert!(user_object_undef_allowed("__imp_GetProcessHeap"));
+        assert!(!user_object_undef_allowed("totally_unknown_sym"));
+        assert!(audit_user_object_undefs(b"not coff").is_ok());
+    }
+
+    #[test]
+    fn coff_undefined_externals_parses_minimal_header() {
+        // Minimal COFF AMD64 header with zero symbols → empty undef list.
+        let mut bytes = vec![0u8; 20];
+        bytes[0] = 0x64;
+        bytes[1] = 0x86;
+        assert!(coff_undefined_externals(&bytes).is_empty());
+    }
+
+    #[test]
+    fn native_sdk_layout_report_runs() {
+        let r = native_sdk_layout_report();
+        assert!(!r.triple.is_empty());
+        assert!(!r.notes.is_empty() || r.rt_archive.is_some());
+    }
+
+    /// Windows: build a fixture sysroot (copy host import libs when available),
+    /// clear polluted `LIB`, and link via `SYX_SYSROOT` only.
+    #[cfg(windows)]
+    #[test]
+    fn windows_fixture_sysroot_link_ignores_polluted_lib() {
+        let Ok(rt) = rt_archive_path() else {
+            eprintln!("skip: no syx_rt archive");
+            return;
+        };
+        let Some(tool) = cc::windows_registry::find_tool(&host_link_triple(), "link.exe") else {
+            eprintln!("skip: no MSVC to seed fixture sysroot");
+            return;
+        };
+        let fixture = tempfile::tempdir().unwrap();
+        let sysroot = fixture.path().join("sysroot");
+        std::fs::create_dir_all(&sysroot).unwrap();
+        // Seed from LIB paths attached to link.exe.
+        let mut seeded = 0usize;
+        for (k, v) in tool.env() {
+            if k.eq_ignore_ascii_case("LIB") {
+                for part in std::env::split_paths(v) {
+                    if !part.is_dir() {
+                        continue;
+                    }
+                    for name in [
+                        "kernel32.lib",
+                        "ucrt.lib",
+                        "vcruntime.lib",
+                        "legacy_stdio_definitions.lib",
+                        "oldnames.lib",
+                        "uuid.lib",
+                        "ws2_32.lib",
+                        "advapi32.lib",
+                        "user32.lib",
+                        "shell32.lib",
+                        "ole32.lib",
+                        "bcrypt.lib",
+                        "ntdll.lib",
+                    ] {
+                        let src = part.join(name);
+                        if src.is_file() {
+                            let _ = std::fs::copy(&src, sysroot.join(name));
+                            seeded += 1;
+                        }
+                    }
+                }
+            }
+        }
+        std::fs::write(sysroot.join(".syx-sysroot"), b"").unwrap();
+        assert!(sysroot_looks_usable(&sysroot));
+        assert!(
+            seeded >= 3,
+            "fixture sysroot needs import libs from host MSVC (seeded={seeded})"
+        );
+
+        // Minimal COFF providing syx_user_* entry stubs expected by syx_rt_start.
+        let obj_dir = tempfile::tempdir().unwrap();
+        let c_path = obj_dir.path().join("empty.c");
+        std::fs::write(
+            &c_path,
+            b"#include <stdint.h>\nvoid syx_user_init(void) {}\nint32_t syx_user_main(void) { return 0; }\n",
+        )
+        .unwrap();
+        let obj = obj_dir.path().join("empty.o");
+        let cl = cc::windows_registry::find_tool(&host_link_triple(), "cl.exe");
+        let Some(cl) = cl else {
+            eprintln!("skip: no cl.exe");
+            return;
+        };
+        let mut compile = std::process::Command::new(cl.path());
+        for (k, v) in cl.env() {
+            compile.env(k, v);
+        }
+        compile
+            .arg("/c")
+            .arg("/Fo")
+            .arg(&obj)
+            .arg(&c_path)
+            .arg("/nologo");
+        let status = compile.status().expect("cl");
+        assert!(status.success(), "cl failed");
+
+        let out = obj_dir.path().join("hello_fixture.exe");
+        let prev_sys = std::env::var_os("SYX_SYSROOT");
+        let prev_lib = std::env::var_os("LIB");
+        std::env::set_var("SYX_SYSROOT", &sysroot);
+        // Pollute LIB so a naive linker would fail without sysroot-first.
+        std::env::set_var("LIB", r"C:\syx-nonexistent-lib-path");
+        let link_res = link_executable(&obj, &out);
+        match prev_sys {
+            Some(v) => std::env::set_var("SYX_SYSROOT", v),
+            None => std::env::remove_var("SYX_SYSROOT"),
+        }
+        match prev_lib {
+            Some(v) => std::env::set_var("LIB", v),
+            None => std::env::remove_var("LIB"),
+        }
+        assert!(
+            link_res.is_ok(),
+            "fixture sysroot link failed: {link_res:?} (rt={})",
+            rt.display()
+        );
+        assert!(out.is_file());
+        // Single-file: no adjacent syx_rt.dll required.
+        assert!(!out.with_file_name("syx_rt.dll").is_file());
     }
 }

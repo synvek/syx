@@ -25,6 +25,7 @@ use syx_driver::{
     gc_relocate_report::{print_gc_relocate_report, run_gc_relocate_report},
     gc_generational_report::{print_gc_generational_report, run_gc_generational_report},
     native_profile_report::{print_native_profile_report, run_native_profile_report},
+    native_sdk_report::{print_native_sdk_report, run_native_sdk_report},
     gui_backend_report::{print_gui_backend_report, run_gui_backend_report},
     capabilities_report::{
         print_capabilities_report, print_ir_capabilities_report, run_capabilities_report,
@@ -377,6 +378,9 @@ enum Commands {
         /// Print dist actor global CDN route report
         #[arg(long)]
         dist_cdn_route_report: bool,
+        /// Check native SDK layout (static syx_rt + lib/sysroot/<triple>)
+        #[arg(long)]
+        native_sdk: bool,
     },
 }
 
@@ -1151,8 +1155,15 @@ build = "build.syb"
             dist_failover_report,
             hsm_rotation_report,
             dist_cdn_route_report,
+            native_sdk,
         } => {
-            if aot_matrix {
+            if native_sdk {
+                let report = run_native_sdk_report();
+                print_native_sdk_report(&report);
+                if !report.ok {
+                    process::exit(1);
+                }
+            } else if aot_matrix {
                 let report = run_aot_matrix(true);
                 print_doctor_summary(&report);
             } else if gc_report {
@@ -1241,7 +1252,7 @@ build = "build.syb"
                 let report = run_dist_cdn_route_report();
                 print_dist_cdn_route_report(&report);
             } else {
-                println!("syx doctor: use --aot-matrix, --gc-report, --native-exec-op-report, --inkwell-report, --cache-remote-report, --rt-exec-report, --heap-host-report, --farm-report, --reflect-report, --rt-runtime-report, --gc-relocate-report, --dict-runtime-report, --actor-ipc-report, --gc-generational-report, --farm-billing-report, --dist-actor-cluster-report, --heap-bridge-report, --heapslot-parity-report, --heap-bridge-prod-report, --rt-v7-report, --dist-failover-report, --hsm-rotation-report, --dist-cdn-route-report, --gui-backend-report, --capabilities, or --ir-capabilities");
+                println!("syx doctor: use --native-sdk, --aot-matrix, --gc-report, --native-exec-op-report, --inkwell-report, --cache-remote-report, --rt-exec-report, --heap-host-report, --farm-report, --reflect-report, --rt-runtime-report, --gc-relocate-report, --dict-runtime-report, --actor-ipc-report, --gc-generational-report, --farm-billing-report, --dist-actor-cluster-report, --heap-bridge-report, --heapslot-parity-report, --heap-bridge-prod-report, --rt-v7-report, --dist-failover-report, --hsm-rotation-report, --dist-cdn-route-report, --gui-backend-report, --capabilities, or --ir-capabilities");
             }
         }
     }

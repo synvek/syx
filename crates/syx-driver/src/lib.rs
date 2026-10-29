@@ -38,6 +38,7 @@ pub mod lang_props_v6;
 pub mod lang_surface_v1;
 pub mod marketing_capabilities;
 pub mod native_profile_report;
+pub mod native_sdk_report;
 pub mod rt_exec_report;
 pub mod rt_runtime_report;
 pub mod website_capabilities;
@@ -2018,6 +2019,9 @@ fn link_native_object(
 ) -> SyxResult<()> {
     if options.native_minimal || options.native_no_http || options.native_no_file {
         rebuild_native_rt(options)?;
+    }
+    if let Err(msg) = syx_rt::audit_user_object_undefs(object) {
+        return Err(SyxDiagnostic::error(msg));
     }
     std::fs::write(obj_path, object).map_err(|e| {
         SyxDiagnostic::error(format!("Failed to write {}: {e}", obj_path.display()))

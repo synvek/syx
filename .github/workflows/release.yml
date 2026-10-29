@@ -567,6 +567,22 @@ jobs:
           install_rt_profile async-http --no-default-features --features async-runtime,http
           install_rt_profile async-file --no-default-features --features async-runtime,file
 
+          # Platform link sysroot (import libs / markers) so end users need no local VS/Xcode.
+          SYSROOT_DIR="${SDK_ROOT}/lib/sysroot/${TARGET}"
+          mkdir -p "${SYSROOT_DIR}"
+          case "${{ runner.os }}" in
+            Windows)
+              powershell.exe -NoProfile -ExecutionPolicy Bypass -File \
+                "packaging/syx-sdk/collect-sysroot.ps1" \
+                -Dest "$(cygpath -w "${SYSROOT_DIR}")" \
+                -Triple "${TARGET}"
+              ;;
+            *)
+              bash packaging/syx-sdk/collect-sysroot.sh "${SYSROOT_DIR}" "${TARGET}"
+              ;;
+          esac
+          ls -la "${SYSROOT_DIR}" | head -n 40 || true
+
           mkdir -p dist
           # matrix.artifact is syx-<platform-arch>; archive is syx-sdk-<platform-arch>.*
           case "${{ runner.os }}" in
@@ -588,6 +604,20 @@ jobs:
           echo "Packaged ${ARCHIVE}"
           find sdk-stage/syx-sdk -type f | sort
           ls -la dist/
+
+          # Native SDK layout smoke (static rt + sysroot; single-file contract).
+          SDK_BIN="sdk-stage/syx-sdk/bin/syx${{ matrix.exe_ext }}"
+          if [ -x "${SDK_BIN}" ] || [ -f "${SDK_BIN}" ]; then
+            "${SDK_BIN}" doctor --native-sdk
+            SYSROOT_CHECK="sdk-stage/syx-sdk/lib/sysroot/${TARGET}"
+            test -f "${SYSROOT_CHECK}/.syx-sysroot" \
+              || test -n "$(find "${SYSROOT_CHECK}" -maxdepth 1 \( -name '*.lib' -o -name '*.a' -o -name '*.tbd' \) 2>/dev/null | head -1)"
+            case "${{ runner.os }}" in
+              Windows)
+                test -n "$(find "${SYSROOT_CHECK}" -maxdepth 1 -name '*.lib' 2>/dev/null | head -1)"
+                ;;
+            esac
+          fi
       - name: Generate checksums
         run: |
           cd dist

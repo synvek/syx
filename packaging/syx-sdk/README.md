@@ -1,9 +1,12 @@
 # SYX SDK
 
-Prebuilt toolchain layout for running SYX and linking **native** executables.
+Prebuilt toolchain for running SYX and linking **native** executables as a
+**single file** (static `syx_rt`, no `syx_rt.dll`).
 
-Native `syx build --native` links against `libsyx_rt` next to the CLI. A CLI-only
-binary is not enough: without the runtime archive under `lib/`, native builds fail.
+`full-native` ships LLVM/LLD inside `bin/syx`. Platform **import libs** live under
+`lib/sysroot/<triple>/` so end-user machines do **not** need Visual Studio or
+Xcode to link. The resulting binary may still load OS-provided DLLs (`kernel32`,
+`libSystem`, …), same idea as Go.
 
 ## Layout
 
@@ -14,36 +17,38 @@ syx-sdk/
   bin/
     syx                 # CLI (syx.exe on Windows)
   lib/
-    libsyx_rt.a         # default runtime (same as profiles/full)
+    libsyx_rt.a         # default runtime (same as profiles/full; syx_rt.lib on Windows)
     profiles/
-      full/libsyx_rt.a
-      minimal/libsyx_rt.a
-      async-only/libsyx_rt.a
-      async-http/libsyx_rt.a
-      async-file/libsyx_rt.a
+      full/...
+      minimal/...
+      async-only/...
+      async-http/...
+      async-file/...
+    sysroot/
+      <host-triple>/    # link import libs / markers (see below)
   packages/             # standard library sources (reference)
   examples/             # sample programs
   tutorial/             # guided `.sy` lessons
 ```
 
-On Windows MSVC installs, the archive is named `syx_rt.lib` in the same places.
-
 ## Quick start
 
 ```bash
-# Unpack, then put bin/ on PATH (or invoke bin/syx directly)
 export PATH="$PWD/bin:$PATH"
 syx --version
+syx doctor --native-sdk
 syx run examples/hello.sy
-syx build --native examples/hello.sy
-syx run tutorial/01-getting-started.sy   # see tutorial/README.md for the full list
+syx build --native examples/hello.sy   # → single executable next to the project
 ```
 
-Keep `bin/` and `lib/` as siblings. The linker resolves `../lib/libsyx_rt.a`
-relative to `bin/syx`.
+Keep `bin/` and `lib/` as siblings. The linker resolves `../lib/libsyx_rt.a` (or
+`syx_rt.lib`) and `../lib/sysroot/<triple>/` relative to `bin/syx`.
 
-`packages/`, `examples/`, and `tutorial/` are for reading and trying locally; they are
-not required on `PATH`.
+Override with:
+
+- `SYX_RT_STATIC_LIB` — absolute path to a `.a` / `.lib`
+- `SYX_RT_PROFILE=<id>` — `../lib/profiles/<id>/…`
+- `SYX_SYSROOT` — absolute path to a sysroot directory (replaces `../lib/sysroot/<triple>`)
 
 ## Runtime profiles
 
@@ -55,31 +60,16 @@ not required on `PATH`.
 | `async-http` | async + HTTP                                  |
 | `async-file` | async + file                                  |
 
-Select a non-default archive with:
+## Sysroot (no local VS / Xcode)
 
-```bash
-export SYX_RT_PROFILE=minimal   # uses ../lib/profiles/minimal/...
-# or
-export SYX_RT_STATIC_LIB=/absolute/path/to/libsyx_rt.a
-```
+| Platform | What ships in `lib/sysroot/<triple>/` | User machine |
+|----------|----------------------------------------|--------------|
+| Windows  | MSVC/Windows SDK **import** `.lib` files (`kernel32`, `ucrt`, …) | No VS required to link |
+| macOS    | Marker + notes; link uses host `libSystem` / CLT when present | Command Line Tools recommended |
+| Linux    | Marker; link uses host glibc (`-lc` …) | Normal libc is enough |
 
-### Link lookup order
-
-1. **`SYX_RT_STATIC_LIB`** — absolute path to a `.a` / `.lib` (or a deps directory)
-2. **`SYX_RT_PROFILE=<id>`** — relative to `bin/syx`:
-   - `../lib/profiles/<id>/libsyx_rt.a` (preferred)
-   - `../lib/<id>/libsyx_rt.a` (fallback)
-3. Flat **`../lib/libsyx_rt.a`**, then cargo `target/{debug,release}` when developing from source
-
-`LinkOptions.rt_profile` (`debug` | `release`) is the Cargo build profile, not a feature profile id.
-
-## Windows notes
-
-Native linking needs the **MSVC toolchain** (Visual Studio Build Tools with
-“Desktop development with C++”, or VS with the MSVC + Windows SDK workloads).
-`syx` drives `rust-lld` / `link.exe` with the same VC `LIB` paths rustc uses so
-CRT (`memcpy` / `memcmp` / …) and `kernel32` resolve. A plain `cc` on `PATH` is
-not required and is not used on Windows.
+Single-file native builds **statically** link `syx_rt` into your executable. They
+do **not** ship or require a separate `syx_rt` DLL/dylib.
 
 ## License
 
