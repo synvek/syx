@@ -1,7 +1,7 @@
-//! Validate local LLVM (SYX_LLVM_PREFIX / sibling ../llvm) for the `llvm` feature.
+﻿//! Validate local LLVM (SYX_LLVM_PREFIX / sibling ../llvm) for the `llvm` feature.
 //!
 //! llvm-sys is wired to the sibling install via `.cargo/config.toml` (internal).
-//! When `SYX_LLVM_PREFIX` points elsewhere, use `./scripts/with-syx-llvm cargo …`.
+//! When `SYX_LLVM_PREFIX` points elsewhere, use `./scripts/with-syx-llvm cargo 鈥.
 
 fn main() {
     println!("cargo:rerun-if-env-changed=SYX_LLVM_PREFIX");
