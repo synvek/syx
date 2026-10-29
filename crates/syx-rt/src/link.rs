@@ -772,14 +772,19 @@ fn windows_atexit_stub_object() -> io::Result<&'static Path> {
     for (k, v) in tool.env() {
         cmd.env(k, v);
     }
+    // /nologo still echoes the .c path; keep cl quiet on the happy path.
     cmd.arg("/nologo")
         .arg("/c")
         .arg(format!("/Fo{}", obj_path.display()))
-        .arg(&c_path);
-    let status = cmd.status()?;
-    if !status.success() {
+        .arg(&c_path)
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped());
+    let output = cmd.output()?;
+    if !output.status.success() {
+        let detail = String::from_utf8_lossy(&output.stderr);
         return Err(io::Error::other(format!(
-            "native link: failed to compile windows_atexit_stub.c ({status})"
+            "native link: failed to compile windows_atexit_stub.c ({}): {detail}",
+            output.status
         )));
     }
     if !obj_path.is_file() {
@@ -887,6 +892,9 @@ fn link_with_embedded_lld(
             args.push(format!("/LIBPATH:{}", sysroot.display()).into());
         }
         push_windows_system_libs_lld(&mut args);
+        // msvcrt.lib (DEFAULTLIB /GS) and vcruntime.lib both define
+        // `__report_gsfailure`; MSVC link.exe merges them, LLD errors without this.
+        args.push("/force:multiple".into());
         args.push(format!("/OUT:{}", output.display()).into());
         args.push("/ENTRY:syx_rt_start".into());
         args.push("/SUBSYSTEM:CONSOLE".into());
@@ -1057,6 +1065,13 @@ fn link_executable_with_prefer_lld(
     if win_msvc {
         #[cfg(windows)]
         push_windows_system_libs_msvc(&mut cmd);
+        if lld {
+            // Same CRT GS duplicate as embedded LLD (see link_with_embedded_lld).
+            cmd.arg("/force:multiple");
+        } else {
+            // Custom `/ENTRY:syx_rt_start` skips CRT startup; .CRT$XCU may remain.
+            cmd.arg("/IGNORE:4210");
+        }
         cmd.arg(format!("/OUT:{}", output.display()));
         cmd.arg("/ENTRY:syx_rt_start");
         cmd.arg("/SUBSYSTEM:CONSOLE");
