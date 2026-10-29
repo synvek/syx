@@ -383,10 +383,15 @@ jobs:
             "${CFG_SYS}" --system-libs --link-static || "${CFG_SYS}" --system-libs || true
           fi
 
-          # Static libxml2 pulls zlib/iconv/lzma; llvm-sys only forwards
+          # Static libxml2 pulls zlib/iconv/lzma; llvm-sys / syx-lld only forward
           # llvm-config --system-libs (libxml2s.lib / xml2s.lib, not deps).
-          # Copy those into LLVM lib/ so the existing llvm-sys -L path finds them.
-          for dep in zlib libiconv lzma liblzma charset iconv; do
+          # Copy those into LLVM lib/ so the existing -L path finds them.
+          # Newer vcpkg x64-windows-static names zlib `zs.lib`.
+          if [ -f "${LIB_DIR}/zs.lib" ] && [ ! -f "${LIB_DIR}/zlib.lib" ]; then
+            cp "${LIB_DIR}/zs.lib" "${LIB_DIR}/zlib.lib"
+            echo "Normalized zs.lib → zlib.lib"
+          fi
+          for dep in zlib zs libiconv lzma liblzma charset iconv; do
             if [ -f "${LIB_DIR}/${dep}.lib" ]; then
               cp "${LIB_DIR}/${dep}.lib" "${LLVM_LIB_UNIX}/${dep}.lib"
               echo "Installed ${dep}.lib into LLVM lib/"
@@ -469,6 +474,20 @@ jobs:
 
           cp "${BIN}" "${SDK_ROOT}/bin/syx${EXE_EXT}"
           chmod +x "${SDK_ROOT}/bin/syx${EXE_EXT}" || true
+          # Windows full-native often links LLD as prefix-bin with an absolute CI
+          # path baked into syx. Ship lld-link next to bin/syx so runtime can
+          # resolve install-relative LLD (see syx-lld install_layout_lld_binary).
+          if [ -n "${LLVM_SYS_211_PREFIX:-}${SYX_LLVM_PREFIX:-}" ]; then
+            LLVM_BIN="${LLVM_SYS_211_PREFIX:-${SYX_LLVM_PREFIX}}/bin"
+            for lld_name in lld-link.exe lld-link lld.exe lld ld.lld ld64.lld; do
+              if [ -f "${LLVM_BIN}/${lld_name}" ]; then
+                cp "${LLVM_BIN}/${lld_name}" "${SDK_ROOT}/bin/${lld_name}"
+                chmod +x "${SDK_ROOT}/bin/${lld_name}" || true
+                echo "Bundled ${SDK_ROOT}/bin/${lld_name}"
+                break
+              fi
+            done
+          fi
           cp packaging/syx-sdk/README.md "${SDK_ROOT}/README.md"
           cp LICENSE "${SDK_ROOT}/LICENSE"
 

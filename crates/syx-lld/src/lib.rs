@@ -48,7 +48,41 @@ pub fn resolved_llvm_prefix() -> Option<&'static Path> {
     option_env!("SYX_RESOLVED_LLVM_PREFIX").map(Path::new)
 }
 
+/// LLD next to the running `syx` (SDK layout: `bin/syx` + `bin/lld-link`).
+///
+/// Windows CI often embeds LLD as **prefix-bin** with an absolute Actions path
+/// (`D:\a\…\lld-link.exe`). That path is dead after packaging; ship `lld-link`
+/// beside `syx` and resolve it here instead.
+fn install_layout_lld_binary() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let bin_dir = exe.parent()?;
+    for name in [
+        "lld-link.exe",
+        "lld-link",
+        "lld.exe",
+        "lld",
+        "ld.lld",
+        "ld64.lld",
+    ] {
+        let p = bin_dir.join(name);
+        if p.is_file() {
+            return Some(p);
+        }
+    }
+    None
+}
+
 fn prefix_lld_binary() -> Option<PathBuf> {
+    if let Ok(path) = std::env::var("SYX_LLD") {
+        let p = PathBuf::from(path);
+        if p.is_file() {
+            return Some(p);
+        }
+    }
+    // Prefer install-relative LLD so packaged SDKs work off the CI machine.
+    if let Some(p) = install_layout_lld_binary() {
+        return Some(p);
+    }
     if let Some(p) = option_env!("SYX_LLD_BIN") {
         let path = PathBuf::from(p);
         if path.is_file() {
@@ -56,7 +90,9 @@ fn prefix_lld_binary() -> Option<PathBuf> {
         }
     }
     if let Some(prefix) = resolved_llvm_prefix() {
-        return syx_llvm_prefix::resolve_lld_binary(prefix);
+        if let Some(p) = syx_llvm_prefix::resolve_lld_binary(prefix) {
+            return Some(p);
+        }
     }
     syx_llvm_prefix::resolve_llvm_prefix().and_then(|p| syx_llvm_prefix::resolve_lld_binary(&p))
 }
@@ -155,13 +191,13 @@ pub fn run_lld(link_args: &[OsString]) -> io::Result<()> {
     }
 }
 
-/// Whether this build can use prefix LLD (in-process or bin).
+/// Whether this build can use LLD (in-process and/or install/prefix bin).
 pub fn available() -> bool {
-    #[cfg(syx_lld_inprocess)]
-    {
-        return true;
+    if cfg!(syx_lld_inprocess) {
+        true
+    } else {
+        cached_lld_bin().is_some()
     }
-    cached_lld_bin().is_some()
 }
 
 #[cfg(test)]

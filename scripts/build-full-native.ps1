@@ -15,8 +15,10 @@ if ($env:CARGO_BUILD_TARGET) {
 }
 
 if ($target -like "*-pc-windows-msvc") {
-    $rustflags = "target.$target.rustflags=[`"-C`",`"target-feature=+crt-static`",`"-C`",`"link-arg=/INCLUDE:malloc`"]"
-    $cargoArgs += @("--target-dir", "target-full-native", "--config", $rustflags)
+    # Isolated target-dir so these flags never contaminate the workspace
+    # `target/` used when packaging `syx_rt.lib` for end-user native link.
+    $cargoArgs += @("--target-dir", "target-full-native")
+    $env:RUSTFLAGS = "-C target-feature=+crt-static -C link-arg=/INCLUDE:malloc"
 }
 
 if (-not $env:SYX_LLVM_PREFIX) {

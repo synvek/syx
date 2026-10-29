@@ -38,7 +38,8 @@ fn main() {
         println!("cargo:rustc-link-arg=/INCLUDE:malloc");
         println!("cargo:rustc-link-lib=bcrypt");
         let lib = prefix.join("lib");
-        for name in ["zlib", "libiconv", "iconv", "charset", "lzma", "liblzma"] {
+        // vcpkg `x64-windows-static` may ship zlib as `zs.lib`.
+        for name in ["zlib", "zs", "libiconv", "iconv", "charset", "lzma", "liblzma"] {
             if lib.join(format!("{name}.lib")).is_file() {
                 println!("cargo:rustc-link-lib={name}");
             }
