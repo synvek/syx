@@ -378,7 +378,7 @@ enum Commands {
         /// Print dist actor global CDN route report
         #[arg(long)]
         dist_cdn_route_report: bool,
-        /// Check native SDK layout (static syx_rt + lib/sysroot/<triple>)
+        /// Check native SDK layout (static syx_rt; optional SYX_SYSROOT)
         #[arg(long)]
         native_sdk: bool,
     },

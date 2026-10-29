@@ -262,8 +262,8 @@ pub fn native_sdk_layout_report() -> NativeSdkLayoutReport {
     let sysroot_ok = sysroot.as_ref().is_some_and(|p| sysroot_looks_usable(p));
     if sysroot.is_none() {
         notes.push(format!(
-            "sysroot missing (expected ../lib/sysroot/{triple} or SYX_SYSROOT); \
-             Windows users need the official SDK zip for no-VS linking"
+            "sysroot not shipped (optional ../lib/sysroot/{triple} or SYX_SYSROOT); \
+             native link uses host VS/Xcode/CLT for now"
         ));
     } else if !sysroot_ok {
         notes.push("sysroot directory present but empty / unusable".into());
@@ -278,7 +278,7 @@ pub fn native_sdk_layout_report() -> NativeSdkLayoutReport {
     #[cfg(not(windows))]
     let host_sdk_ok = true;
     if !sysroot_ok && host_sdk_ok {
-        notes.push("using host toolchain fallback (source/dev); ship sysroot in SDK for end users".into());
+        notes.push("using host toolchain (SDK sysroot temporarily disabled)".into());
     }
     let ok = rt.is_some()
         && (sysroot_ok
@@ -680,8 +680,8 @@ fn ensure_windows_link_inputs() -> io::Result<()> {
             return Ok(());
         }
         return Err(io::Error::other(
-            "native link: no SDK sysroot (../lib/sysroot/<triple> or SYX_SYSROOT) and no MSVC link.exe. \
-             Install the official syx-sdk package (includes import libs) or Visual Studio Build Tools. \
+            "native link: no usable SYX_SYSROOT and no MSVC link.exe. \
+             Install Visual Studio Build Tools (SDK sysroot is not shipped yet). \
              A plain `cc` on PATH is not used on Windows.",
         ));
     }

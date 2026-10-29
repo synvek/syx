@@ -1,4 +1,6 @@
-# Collect MSVC / Windows SDK import libs into syx-sdk/lib/sysroot/<triple>/.
+# Collect MSVC / Windows SDK import libs into syx/lib/sysroot/<triple>/.
+# NOT invoked by release.yml for now (Microsoft .lib redistrib concerns).
+# Kept for experiments / a future self-built import-lib pipeline.
 # Usage: powershell -File collect-sysroot.ps1 -Dest <dir> [-Triple x86_64-pc-windows-msvc]
 param(
   [Parameter(Mandatory = $true)][string]$Dest,

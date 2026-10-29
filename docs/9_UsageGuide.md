@@ -48,7 +48,7 @@ Source (.sy) → Lexer → Parser → Semantic → CodeGen → VM
 |------|------|
 | Rust | 1.80+ |
 | Cargo | Bundled with Rust |
-| clang / LLVM | Optional: with `--features full-native`, use sibling `../llvm` or `SYX_LLVM_PREFIX` (inkwell emits `.o` + **static embedded LLD**); see [plan/topics/native-llvm.md](../plan/topics/native-llvm.md). Official **syx-sdk** packages ship LLD + `lib/sysroot/<triple>` so end users do **not** need VS/Xcode to link a single-file native exe. |
+| clang / LLVM | Optional: with `--features full-native`, use sibling `../llvm` or `SYX_LLVM_PREFIX` (inkwell emits `.o` + **static embedded LLD**); see [plan/topics/native-llvm.md](../plan/topics/native-llvm.md). Official **syx-sdk** packages ship LLD + static `syx_rt`; native link still needs a host toolchain (VS / Xcode / CLT) until a redistributable sysroot lands. |
 
 ---
 
@@ -1528,19 +1528,19 @@ See [WASM backend: main.wasm (CLI nativepath)](#wasm-backendmainwasmcli-nativepa
 
 Default should generate a **single-file** `app` (static `syx_rt`, no `syx_rt.dll`). If only `.o`, **`--object`** was used.
 
-If link fails on a clean machine, prefer the official **syx-sdk** zip/tarball (`bin/syx` + `lib/syx_rt*` + `lib/sysroot/<triple>`). Check layout with:
+If link fails, confirm a host linker toolchain is installed (VS Build Tools / Xcode / CLT) and that `libsyx_rt` / `syx_rt.lib` is available. Official **syx-sdk** ships `bin/syx` + static `syx_rt` (no `lib/sysroot` yet). Check layout with:
 
 ```bash
 syx doctor --native-sdk
 ```
 
-Source trees may still use a local MSVC/Xcode toolchain when no sysroot is present. See [`packaging/syx-sdk/README.md`](../packaging/syx-sdk/README.md).
+See [`packaging/syx-sdk/README.md`](../packaging/syx-sdk/README.md).
 
-When no source tree is available, use environment variables to specify runtime archives / sysroot (C-11 narrow `[x]` contract; ≠ Release full-matrix CI upload):
+When no source tree is available, use environment variables to specify runtime archives (C-11 narrow `[x]` contract; ≠ Release full-matrix CI upload):
 
 - **`SYX_RT_STATIC_LIB`**: points to an existing `libsyx_rt.a` / `syx_rt.lib` (or includes hashed archive deps)
 - **`SYX_RT_PROFILE=<id>`**: lookup per SDK install layout `bin/../lib/profiles/<id>/libsyx_rt.a` (fallback `../lib/<id>/`)
-- **`SYX_SYSROOT`**: absolute path to link import libs (replaces `bin/../lib/sysroot/<triple>`)
+- **`SYX_SYSROOT`**: optional local link sysroot (not shipped in the official SDK yet)
 
 these take precedence over compile-time embed with cargo `target/` search.
 ### Differences from Swift

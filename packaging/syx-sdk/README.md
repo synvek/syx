@@ -3,10 +3,13 @@
 Prebuilt toolchain for running SYX and linking **native** executables as a
 **single file** (static `syx_rt`, no `syx_rt.dll`).
 
-`full-native` ships LLVM/LLD inside `bin/syx`. Platform **import libs** live under
-`lib/sysroot/<triple>/` so end-user machines do **not** need Visual Studio or
-Xcode to link. The resulting binary may still load OS-provided DLLs (`kernel32`,
-`libSystem`, …), same idea as Go.
+`full-native` ships LLVM/LLD inside `bin/syx`. Native link currently uses the
+**host** linker toolchain (Visual Studio Build Tools / Xcode / Command Line Tools
+/ system `cc`). A bundled `lib/sysroot` is **not** shipped yet (pending a
+redistributable import-lib approach).
+
+The resulting binary may still load OS-provided DLLs (`kernel32`, `libSystem`, …),
+same idea as Go.
 
 ## Layout
 
@@ -24,8 +27,6 @@ syx/                      # archive root (e.g. syx-sdk-0.1.0-macos-aarch64.tar.g
       async-only/...
       async-http/...
       async-file/...
-    sysroot/
-      <host-triple>/    # link import libs / markers (see below)
   packages/             # standard library sources (reference)
   examples/             # sample programs
   tutorial/             # guided `.sy` lessons
@@ -42,13 +43,13 @@ syx build --native examples/hello.sy   # → single executable next to the proje
 ```
 
 Keep `bin/` and `lib/` as siblings. The linker resolves `../lib/libsyx_rt.a` (or
-`syx_rt.lib`) and `../lib/sysroot/<triple>/` relative to `bin/syx`.
+`syx_rt.lib`) relative to `bin/syx`.
 
 Override with:
 
 - `SYX_RT_STATIC_LIB` — absolute path to a `.a` / `.lib`
 - `SYX_RT_PROFILE=<id>` — `../lib/profiles/<id>/…`
-- `SYX_SYSROOT` — absolute path to a sysroot directory (replaces `../lib/sysroot/<triple>`)
+- `SYX_SYSROOT` — optional override if you maintain a local link sysroot (not shipped)
 
 ## Runtime profiles
 
@@ -60,13 +61,13 @@ Override with:
 | `async-http` | async + HTTP                                  |
 | `async-file` | async + file                                  |
 
-## Sysroot (no local VS / Xcode)
+## Native link requirements (temporary)
 
-| Platform | What ships in `lib/sysroot/<triple>/` | User machine |
-|----------|----------------------------------------|--------------|
-| Windows  | MSVC/Windows SDK **import** `.lib` files (`kernel32`, `ucrt`, …) | No VS required to link |
-| macOS    | Marker + notes; link uses host `libSystem` / CLT when present | Command Line Tools recommended |
-| Linux    | Marker; link uses host glibc (`-lc` …) | Normal libc is enough |
+| Platform | Host requirement |
+|----------|------------------|
+| Windows  | Visual Studio Build Tools / MSVC `link.exe` (or usable `SYX_SYSROOT`) |
+| macOS    | Xcode or Command Line Tools |
+| Linux    | Normal libc toolchain (`cc` / LLD) |
 
 Single-file native builds **statically** link `syx_rt` into your executable. They
 do **not** ship or require a separate `syx_rt` DLL/dylib.

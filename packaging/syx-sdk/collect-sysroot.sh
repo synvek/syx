@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Collect platform link import libs / stubs into syx-sdk/lib/sysroot/<triple>/.
-# Intended for GitHub Actions release packaging (MSVC / Xcode runners).
+# Collect platform link import libs / stubs into syx/lib/sysroot/<triple>/.
+# NOT invoked by release.yml for now (Windows official .lib redistrib concerns).
+# Kept for experiments / a future self-built import-lib pipeline.
 set -euo pipefail
 
 DEST="${1:?usage: collect-sysroot.sh <dest-dir> [triple]}"

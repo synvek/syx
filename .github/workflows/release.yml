@@ -582,21 +582,9 @@ jobs:
           install_rt_profile async-http --no-default-features --features async-runtime,http
           install_rt_profile async-file --no-default-features --features async-runtime,file
 
-          # Platform link sysroot (import libs / markers) so end users need no local VS/Xcode.
-          SYSROOT_DIR="${SDK_ROOT}/lib/sysroot/${TARGET}"
-          mkdir -p "${SYSROOT_DIR}"
-          case "${{ runner.os }}" in
-            Windows)
-              powershell.exe -NoProfile -ExecutionPolicy Bypass -File \
-                "packaging/syx-sdk/collect-sysroot.ps1" \
-                -Dest "$(cygpath -w "${SYSROOT_DIR}")" \
-                -Triple "${TARGET}"
-              ;;
-            *)
-              bash packaging/syx-sdk/collect-sysroot.sh "${SYSROOT_DIR}" "${TARGET}"
-              ;;
-          esac
-          ls -la "${SYSROOT_DIR}" | head -n 40 || true
+          # NOTE: lib/sysroot is intentionally not packaged for now (MSVC/WinSDK
+          # import .lib redistrib concerns). Native link falls back to host VS/Xcode/CLT.
+          # collect-sysroot.{sh,ps1} kept for a future self-built import-lib approach.
 
           mkdir -p dist
           # matrix.artifact is syx-<platform-arch>;
@@ -622,18 +610,11 @@ jobs:
           find sdk-stage/syx -type f | sort
           ls -la dist/
 
-          # Native SDK layout smoke (static rt + sysroot; single-file contract).
+          # Native SDK layout smoke (static rt; single-file contract — no sysroot yet).
           SDK_BIN="sdk-stage/syx/bin/syx${{ matrix.exe_ext }}"
           if [ -x "${SDK_BIN}" ] || [ -f "${SDK_BIN}" ]; then
             "${SDK_BIN}" doctor --native-sdk
-            SYSROOT_CHECK="sdk-stage/syx/lib/sysroot/${TARGET}"
-            test -f "${SYSROOT_CHECK}/.syx-sysroot" \
-              || test -n "$(find "${SYSROOT_CHECK}" -maxdepth 1 \( -name '*.lib' -o -name '*.a' -o -name '*.tbd' \) 2>/dev/null | head -1)"
-            case "${{ runner.os }}" in
-              Windows)
-                test -n "$(find "${SYSROOT_CHECK}" -maxdepth 1 -name '*.lib' 2>/dev/null | head -1)"
-                ;;
-            esac
+            test ! -d "sdk-stage/syx/lib/sysroot"
           fi
       - name: Generate checksums
         run: |
@@ -752,7 +733,7 @@ jobs:
           cat > "$notes_file" <<EOF
           Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, release **${tag}**, run **${{ github.run_number }}**).
 
-          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), \`lib/sysroot/<triple>/\`, runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`.
+          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`. Native link currently requires a host linker toolchain (VS / Xcode / CLT); SDK sysroot is not shipped yet.
 
           | OS | Arch | Artifact |
           |----|------|----------|
