@@ -57,9 +57,11 @@ jobs:
             version_label="${version}-dev"
             prerelease="true"
           else
+            # Tag and downloadable archive stem share the same run-number suffix
+            # (tag = v${version_label}, archive = syx-sdk-${version_label}-*).
             tag="v${version}-${{ github.run_number }}"
             create_tag="true"
-            version_label="${version}"
+            version_label="${version}-${{ github.run_number }}"
             prerelease="false"
           fi
           {
