@@ -703,6 +703,46 @@ fn windows_msvc_style_linker(cmd: &Command) -> bool {
         || lower == "link"
 }
 
+/// Import libs required when linking a Rust `staticlib` (`syx_rt.lib`) with MSVC
+/// or LLVM `lld-link`. Defaultlib directives alone are often incomplete under LLD
+/// (missing `kernel32` while `MSVCRT.lib` is already pulled).
+#[cfg(windows)]
+fn windows_system_link_libs() -> &'static [&'static str] {
+    &[
+        "kernel32",
+        "user32",
+        "shell32",
+        "advapi32",
+        "ole32",
+        "oleaut32",
+        "uuid",
+        "ws2_32",
+        "ntdll",
+        "bcrypt",
+        "userenv",
+        "dbghelp",
+        "ucrt",
+        "vcruntime",
+        "msvcrt",
+        "legacy_stdio_definitions",
+        "oldnames",
+    ]
+}
+
+#[cfg(windows)]
+fn push_windows_system_libs_msvc(cmd: &mut Command) {
+    for lib in windows_system_link_libs() {
+        cmd.arg(format!("{lib}.lib"));
+    }
+}
+
+#[cfg(windows)]
+fn push_windows_system_libs_lld(args: &mut Vec<std::ffi::OsString>) {
+    for lib in windows_system_link_libs() {
+        args.push(format!("{lib}.lib").into());
+    }
+}
+
 fn apply_lld_flavor_args(cmd: &mut Command) {
     #[cfg(target_os = "macos")]
     {
@@ -794,6 +834,7 @@ fn link_with_embedded_lld(
         if let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) {
             args.push(format!("/LIBPATH:{}", sysroot.display()).into());
         }
+        push_windows_system_libs_lld(&mut args);
         args.push(format!("/OUT:{}", output.display()).into());
         args.push("/ENTRY:syx_rt_start".into());
         args.push("/SUBSYSTEM:CONSOLE".into());
@@ -958,6 +999,8 @@ fn link_executable_with_prefer_lld(
     }
 
     if win_msvc {
+        #[cfg(windows)]
+        push_windows_system_libs_msvc(&mut cmd);
         cmd.arg(format!("/OUT:{}", output.display()));
         cmd.arg("/ENTRY:syx_rt_start");
         cmd.arg("/SUBSYSTEM:CONSOLE");

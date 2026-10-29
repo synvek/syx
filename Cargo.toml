@@ -81,3 +81,7 @@ syx-mono = { path = "crates/syx-mono" }
 syx-doc = { path = "crates/syx-doc" }
 syx-frontend = { path = "crates/syx-frontend" }
 syx-hir = { path = "crates/syx-hir" }
+
+# MSVC: keep system libs as import libs under +crt-static (see third_party/README.md).
+[patch.crates-io]
+llvm-sys = { path = "third_party/llvm-sys" }

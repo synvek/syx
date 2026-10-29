@@ -385,42 +385,20 @@ jobs:
 
           # Static libxml2 pulls zlib/iconv/lzma; llvm-sys only forwards
           # llvm-config --system-libs (libxml2s.lib / xml2s.lib, not deps).
-          # Use mixed paths (C:/...) so GITHUB_ENV / RUSTFLAGS keep backslashes
-          # from being treated as escapes.
-          LIB_NATIVE="$(cygpath -m "${LIB_DIR}")"
-          LIB_NATIVE_WIN="$(cygpath -w "${LIB_DIR}")"
-          if [ -n "${LIB:-}" ]; then
-            echo "LIB=${LIB_NATIVE_WIN};${LIB}" >> "${GITHUB_ENV}"
-          else
-            echo "LIB=${LIB_NATIVE_WIN}" >> "${GITHUB_ENV}"
-          fi
-
-          # Official x64 Windows LLVM embeds rpmalloc (overrides malloc). Rust's
-          # default /MD pulls ucrt.dll imports → LNK2005. Use static CRT and
-          # /INCLUDE:malloc so LLVMSupport's rpmalloc wins link order (llvm D71786).
-          extra_rustflags="-Ctarget-feature=+crt-static -Clink-arg=/INCLUDE:malloc -Lnative=${LIB_NATIVE}"
+          # Copy those into LLVM lib/ so the existing llvm-sys -L path finds them.
           for dep in zlib libiconv lzma liblzma charset iconv; do
             if [ -f "${LIB_DIR}/${dep}.lib" ]; then
-              extra_rustflags="${extra_rustflags} -Clink-arg=${dep}.lib"
+              cp "${LIB_DIR}/${dep}.lib" "${LLVM_LIB_UNIX}/${dep}.lib"
+              echo "Installed ${dep}.lib into LLVM lib/"
             fi
           done
-          # libxml2 >= 2.12 needs BCryptGenRandom; ws2_32 is usually already
-          # in llvm-config --system-libs, but bcrypt is not.
-          extra_rustflags="${extra_rustflags} -Clink-arg=bcrypt.lib"
-          if [ -n "${RUSTFLAGS:-}" ]; then
-            echo "RUSTFLAGS=${RUSTFLAGS} ${extra_rustflags}" >> "${GITHUB_ENV}"
-          else
-            echo "RUSTFLAGS=${extra_rustflags}" >> "${GITHUB_ENV}"
-          fi
           ls -la "${LLVM_LIB_UNIX}/libxml2s.lib" "${LLVM_LIB_UNIX}/xml2s.lib"
-          echo "LIB search: ${LIB_NATIVE_WIN}"
-          echo "extra RUSTFLAGS: ${extra_rustflags}"
       - name: Build release CLI (full-native)
         run: |
           set -euo pipefail
           echo "SYX_LLVM_PREFIX=${SYX_LLVM_PREFIX:-}"
           echo "LLVM_SYS_211_PREFIX=${LLVM_SYS_211_PREFIX:-}"
-          echo "RUSTFLAGS=${RUSTFLAGS:-}"
+          unset RUSTFLAGS || true
           CFG="${LLVM_SYS_211_PREFIX}/bin/llvm-config"
           if [ ! -f "${CFG}" ] && [ ! -f "${CFG}.exe" ]; then
             # Git Bash may need Unix path to test existence when env is Windows-native.
@@ -437,17 +415,20 @@ jobs:
             echo "ERROR: llvm-config not reachable via LLVM_SYS_211_PREFIX=${LLVM_SYS_211_PREFIX:-}" >&2
             exit 1
           fi
-          # Defense in depth if the Windows libxml2 step did not run (shouldn't).
+          TARGET="${{ matrix.target }}"
+          # Windows: +crt-static only for this CLI build (isolated target-dir). Do not
+          # put it in .cargo/config.toml — that contaminates syx_rt for native link.
           if [ "${{ runner.os }}" = "Windows" ]; then
-            case " ${RUSTFLAGS:-} " in
-              *"crt-static"*) ;;
-              *)
-                export RUSTFLAGS="${RUSTFLAGS:+${RUSTFLAGS} }-Ctarget-feature=+crt-static -Clink-arg=/INCLUDE:malloc"
-                ;;
-            esac
-            echo "RUSTFLAGS(effective)=${RUSTFLAGS}"
+            cargo build --release -p syx-cli --features full-native --target "${TARGET}" \
+              --target-dir target-full-native \
+              --config "target.${TARGET}.rustflags=[\"-C\",\"target-feature=+crt-static\",\"-C\",\"link-arg=/INCLUDE:malloc\"]"
+            mkdir -p "target/${TARGET}/release"
+            cp "target-full-native/${TARGET}/release/syx${{ matrix.exe_ext }}" \
+              "target/${TARGET}/release/syx${{ matrix.exe_ext }}"
+          else
+            cargo build --release -p syx-cli --features full-native --target "${TARGET}"
           fi
-          cargo build --release -p syx-cli --features full-native --target ${{ matrix.target }}
+
       # - name: Driver parity smoke (SYX 38.0)
       #   run: |
       #     cargo test -p syx-driver \
@@ -547,9 +528,8 @@ jobs:
             shift
             local tdir="target/sdk-rt-${id}"
             echo "Building syx-rt profile '${id}' → ${tdir}"
-            # Do not inherit CLI-only Windows flags (`+crt-static`, LLVM rpmalloc
-            # /INCLUDE:malloc, vcpkg link-args) into redistributed syx_rt.lib —
-            # those make user `syx build --native` require a non-default CRT.
+            # Build syx_rt without CLI-only Windows CRT flags (those live only in
+            # the full-native CLI `--config` / target-full-native invocation).
             RUSTFLAGS="${SYX_RT_RUSTFLAGS:-}" \
               cargo build --release -p syx-rt --target "${TARGET}" --target-dir "${tdir}" "$@"
             local src

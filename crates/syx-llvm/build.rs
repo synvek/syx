@@ -1,7 +1,7 @@
 ﻿//! Validate local LLVM (SYX_LLVM_PREFIX / sibling ../llvm) for the `llvm` feature.
 //!
 //! llvm-sys is wired to the sibling install via `.cargo/config.toml` (internal).
-//! When `SYX_LLVM_PREFIX` points elsewhere, use `./scripts/with-syx-llvm cargo 鈥.
+//! When `SYX_LLVM_PREFIX` points elsewhere, use `./scripts/with-syx-llvm cargo …`.
 
 fn main() {
     println!("cargo:rerun-if-env-changed=SYX_LLVM_PREFIX");
@@ -25,4 +25,23 @@ fn main() {
     );
     // Prefer -lzstd over absolute Homebrew paths baked into some llvm-config builds.
     println!("cargo:rustc-link-lib=zstd");
+
+    // Official Windows LLVM embeds rpmalloc. Keep its malloc when the final
+    // link mixes object files; complements `.cargo/config.toml` `+crt-static`
+    // (still required for the whole crate graph — cannot be set from here).
+    //
+    // llvm-config --system-libs only names libxml2s; static libxml2 also needs
+    // zlib/iconv/lzma if those .lib files were placed under prefix/lib (CI and
+    // local Windows setup copy them next to libxml2s.lib). bcrypt is a Windows
+    // SDK lib required by libxml2 >= 2.12.
+    if std::env::var_os("CARGO_CFG_WINDOWS").is_some() {
+        println!("cargo:rustc-link-arg=/INCLUDE:malloc");
+        println!("cargo:rustc-link-lib=bcrypt");
+        let lib = prefix.join("lib");
+        for name in ["zlib", "libiconv", "iconv", "charset", "lzma", "liblzma"] {
+            if lib.join(format!("{name}.lib")).is_file() {
+                println!("cargo:rustc-link-lib={name}");
+            }
+        }
+    }
 }

@@ -2156,7 +2156,7 @@ pub fn build_native_executable_file(
 }
 
 pub fn run_native_project_with_options(root: &Path, options: &DriverOptions) -> SyxResult<i32> {
-    let exe = root.join("app");
+    let exe = root.join(native_executable_file_name("app"));
     build_native_executable(root, options, &exe)?;
     let status = std::process::Command::new(&exe)
         .status()
@@ -7389,15 +7389,24 @@ pub fn project_build_dir(project_root: &Path, profile: BuildProfile) -> PathBuf 
     project_target_root(project_root).join(profile.dir_name())
 }
 
+/// Host executable file name for native AOT (`app` / `{stem}`, plus `.exe` on Windows).
+pub fn native_executable_file_name(stem: &str) -> String {
+    if cfg!(windows) {
+        format!("{stem}.exe")
+    } else {
+        stem.to_string()
+    }
+}
+
 pub fn default_native_executable(project_root: &Path, profile: BuildProfile) -> PathBuf {
-    project_build_dir(project_root, profile).join("app")
+    project_build_dir(project_root, profile).join(native_executable_file_name("app"))
 }
 
 /// Default native executable path when building a single `.sy` file (stem-based, not `app`).
 pub fn default_native_executable_for_source(source: &Path, profile: BuildProfile) -> PathBuf {
     let root = project_root_for(source);
     let stem = source.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
-    project_build_dir(&root, profile).join(stem)
+    project_build_dir(&root, profile).join(native_executable_file_name(stem))
 }
 
 pub fn default_native_object(project_root: &Path, profile: BuildProfile) -> PathBuf {

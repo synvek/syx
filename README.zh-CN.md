@@ -41,7 +41,11 @@ cargo run -p syx-cli -- run --wasm examples/hello.sy
 LLVM 是**唯一**的原生 AOT 后端。完整原生工具链构建（Inkwell + 自带 LLD）需开启 `full-native`，并按使用指南配置本地 LLVM：
 
 ```bash
+# Unix / macOS:
 cargo build -p syx-cli --features full-native --release
+# Windows MSVC（隔离 +crt-static，避免污染 syx_rt 导致 native 链接失败）:
+./scripts/build-full-native.ps1
+
 
 ./target/release/syx build --native --release ./examples/basic_demo.sy
 ./examples/target/release/basic_demo

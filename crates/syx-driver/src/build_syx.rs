@@ -390,7 +390,7 @@ fn execute_build_target(
             })
         }
         "link" => {
-            let exe = out_dir.join("app");
+            let exe = out_dir.join(crate::native_executable_file_name("app"));
             crate::build_native_executable(ctx.project_root, ctx.options, &exe).map(|_| ())
         }
         "test" => crate::test_project(ctx.project_root, ctx.options).map(|_| ()),

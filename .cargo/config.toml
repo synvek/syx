@@ -3,5 +3,9 @@
 #
 # Cargo resolves `relative = true` against the project directory that owns `.cargo/`
 # (workspace root), not against `.cargo/` itself — so sibling LLVM is `../llvm`.
+#
+# Do NOT put `+crt-static` here: it would bake a static CRT into `syx_rt.lib` and
+# break `syx build --native` (missing memmove / __imp_*). Windows full-native CLI
+# builds pass those flags via `--config` (see scripts/build-full-native and CI).
 [env]
 LLVM_SYS_211_PREFIX = { value = "../llvm", relative = true }
