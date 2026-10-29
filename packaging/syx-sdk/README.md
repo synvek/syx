@@ -11,7 +11,7 @@ Xcode to link. The resulting binary may still load OS-provided DLLs (`kernel32`,
 ## Layout
 
 ```text
-syx-sdk/
+syx/                      # archive root (e.g. syx-sdk-0.1.0-macos-aarch64.tar.gz)
   README.md
   LICENSE
   bin/

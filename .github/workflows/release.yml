@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: "Release channel (dev = artifacts only with -dev; release = unique git tag + GitHub Release)"
+        description: "release = unique tag + GitHub Release; dev = pre-release (reuse vX.Y.Z-dev, no unique tag)"
         required: true
         type: choice
         options:
@@ -21,9 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.resolve.outputs.version }}
+      version_label: ${{ steps.resolve.outputs.version_label }}
       tag: ${{ steps.resolve.outputs.tag }}
       channel: ${{ steps.resolve.outputs.channel }}
       create_tag: ${{ steps.resolve.outputs.create_tag }}
+      prerelease: ${{ steps.resolve.outputs.prerelease }}
     steps:
       - uses: actions/checkout@v4
       - name: Resolve version and tag from Cargo.toml
@@ -49,19 +51,26 @@ jobs:
           fi
           channel="${{ github.event.inputs.channel }}"
           if [ "$channel" = "dev" ]; then
+            # Floating pre-release tag (overwritten each run); do not mint a unique tag.
             tag="v${version}-dev"
             create_tag="false"
+            version_label="${version}-dev"
+            prerelease="true"
           else
             tag="v${version}-${{ github.run_number }}"
             create_tag="true"
+            version_label="${version}"
+            prerelease="false"
           fi
           {
             echo "version=${version}"
+            echo "version_label=${version_label}"
             echo "tag=${tag}"
             echo "channel=${channel}"
             echo "create_tag=${create_tag}"
+            echo "prerelease=${prerelease}"
           } >> "$GITHUB_OUTPUT"
-          echo "channel=${channel} version=${version} tag=${tag} create_tag=${create_tag}"
+          echo "channel=${channel} version=${version} version_label=${version_label} tag=${tag} create_tag=${create_tag} prerelease=${prerelease}"
 
   build:
     needs: meta
@@ -461,13 +470,19 @@ jobs:
           TARGET="${{ matrix.target }}"
           EXE_EXT="${{ matrix.exe_ext }}"
           ARTIFACT="${{ matrix.artifact }}"
+          VERSION_LABEL="${{ needs.meta.outputs.version_label }}"
           BIN="target/${TARGET}/release/syx${EXE_EXT}"
           if [ ! -f "${BIN}" ]; then
             echo "ERROR: missing CLI binary ${BIN}" >&2
             exit 1
           fi
+          if [ -z "${VERSION_LABEL}" ]; then
+            echo "ERROR: empty version_label from meta job" >&2
+            exit 1
+          fi
 
-          SDK_ROOT="sdk-stage/syx-sdk"
+          # Archive root directory is `syx/` (not `syx-sdk/`).
+          SDK_ROOT="sdk-stage/syx"
           rm -rf sdk-stage
           mkdir -p "${SDK_ROOT}/bin" "${SDK_ROOT}/lib/profiles"
 
@@ -584,32 +599,34 @@ jobs:
           ls -la "${SYSROOT_DIR}" | head -n 40 || true
 
           mkdir -p dist
-          # matrix.artifact is syx-<platform-arch>; archive is syx-sdk-<platform-arch>.*
+          # matrix.artifact is syx-<platform-arch>;
+          # archive is syx-sdk-<version_label>-<platform-arch>.{zip|tar.gz}
+          PLATFORM="${ARTIFACT#syx-}"
           case "${{ runner.os }}" in
             Windows)
-              ARCHIVE="dist/syx-sdk-${ARTIFACT#syx-}.zip"
+              ARCHIVE="dist/syx-sdk-${VERSION_LABEL}-${PLATFORM}.zip"
               rm -f "${ARCHIVE}"
               ARCHIVE_WIN="$(cygpath -w "${ARCHIVE}")"
-              SDK_WIN="$(cygpath -w sdk-stage/syx-sdk)"
+              SDK_WIN="$(cygpath -w sdk-stage/syx)"
               powershell.exe -NoProfile -Command \
                 "Compress-Archive -Path '${SDK_WIN}' -DestinationPath '${ARCHIVE_WIN}' -Force"
               ;;
             *)
-              ARCHIVE="dist/syx-sdk-${ARTIFACT#syx-}.tar.gz"
+              ARCHIVE="dist/syx-sdk-${VERSION_LABEL}-${PLATFORM}.tar.gz"
               rm -f "${ARCHIVE}"
-              tar -czf "${ARCHIVE}" -C sdk-stage syx-sdk
+              tar -czf "${ARCHIVE}" -C sdk-stage syx
               ;;
           esac
 
           echo "Packaged ${ARCHIVE}"
-          find sdk-stage/syx-sdk -type f | sort
+          find sdk-stage/syx -type f | sort
           ls -la dist/
 
           # Native SDK layout smoke (static rt + sysroot; single-file contract).
-          SDK_BIN="sdk-stage/syx-sdk/bin/syx${{ matrix.exe_ext }}"
+          SDK_BIN="sdk-stage/syx/bin/syx${{ matrix.exe_ext }}"
           if [ -x "${SDK_BIN}" ] || [ -f "${SDK_BIN}" ]; then
             "${SDK_BIN}" doctor --native-sdk
-            SYSROOT_CHECK="sdk-stage/syx-sdk/lib/sysroot/${TARGET}"
+            SYSROOT_CHECK="sdk-stage/syx/lib/sysroot/${TARGET}"
             test -f "${SYSROOT_CHECK}/.syx-sysroot" \
               || test -n "$(find "${SYSROOT_CHECK}" -maxdepth 1 \( -name '*.lib' -o -name '*.a' -o -name '*.tbd' \) 2>/dev/null | head -1)"
             case "${{ runner.os }}" in
@@ -720,29 +737,31 @@ jobs:
         with:
           name: vscode-syx-${{ needs.meta.outputs.tag }}
           path: dist/*.vsix
-      - name: Create GitHub Release (release channel only)
-        if: needs.meta.outputs.create_tag == 'true'
+      - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           tag="${{ needs.meta.outputs.tag }}"
           version="${{ needs.meta.outputs.version }}"
+          version_label="${{ needs.meta.outputs.version_label }}"
           channel="${{ needs.meta.outputs.channel }}"
+          prerelease="${{ needs.meta.outputs.prerelease }}"
+          create_tag="${{ needs.meta.outputs.create_tag }}"
           notes_file=$(mktemp)
           cat > "$notes_file" <<EOF
-          Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, tag **${tag}**).
+          Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, release **${tag}**, run **${{ github.run_number }}**).
 
-          Each archive is a \`syx-sdk/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`.
+          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), \`lib/sysroot/<triple>/\`, runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`.
 
           | OS | Arch | Artifact |
           |----|------|----------|
-          | Linux | x86_64 | syx-sdk-linux-x86_64.tar.gz |
-          | Linux | aarch64 | syx-sdk-linux-aarch64.tar.gz |
-          | macOS | x86_64 | syx-sdk-macos-x86_64.tar.gz |
-          | macOS | aarch64 | syx-sdk-macos-aarch64.tar.gz |
-          | Windows | x86_64 | syx-sdk-windows-x86_64.zip |
-          | Windows | aarch64 | syx-sdk-windows-aarch64.zip |
+          | Linux | x86_64 | syx-sdk-${version_label}-linux-x86_64.tar.gz |
+          | Linux | aarch64 | syx-sdk-${version_label}-linux-aarch64.tar.gz |
+          | macOS | x86_64 | syx-sdk-${version_label}-macos-x86_64.tar.gz |
+          | macOS | aarch64 | syx-sdk-${version_label}-macos-aarch64.tar.gz |
+          | Windows | x86_64 | syx-sdk-${version_label}-windows-x86_64.zip |
+          | Windows | aarch64 | syx-sdk-${version_label}-windows-aarch64.zip |
 
           Also includes VS Code extension .vsix when packaging succeeds.
           EOF
@@ -776,14 +795,30 @@ jobs:
           assets=(release-assets/*)
           ls -la "${assets[@]}"
 
+          title="${tag}"
+          if [ "$channel" = "dev" ]; then
+            title="${tag} (run ${{ github.run_number }})"
+          fi
+
           if gh release view "$tag" >/dev/null 2>&1; then
+            # Dev floating tag (and rare re-runs): refresh notes/target and replace assets.
+            edit_flags=(--title "$title" --notes-file "$notes_file" --target "${{ github.sha }}")
+            if [ "$prerelease" = "true" ]; then
+              edit_flags+=(--prerelease)
+            else
+              edit_flags+=(--latest)
+            fi
+            gh release edit "$tag" "${edit_flags[@]}"
             gh release upload "$tag" "${assets[@]}" --clobber
           else
-            gh release create "$tag" --title "$tag" --notes-file "$notes_file" "${assets[@]}"
+            create_flags=(--title "$title" --notes-file "$notes_file" --target "${{ github.sha }}")
+            if [ "$prerelease" = "true" ]; then
+              create_flags+=(--prerelease)
+            fi
+            # release: unique tag vX.Y.Z-<run>.
+            # dev: floating vX.Y.Z-dev only (pre-release; no per-run unique tag).
+            echo "Publishing GitHub Release tag=${tag} create_tag=${create_tag} prerelease=${prerelease}"
+            gh release create "$tag" "${create_flags[@]}" "${assets[@]}"
           fi
-      - name: Dev channel summary (no git tag)
-        if: needs.meta.outputs.create_tag != 'true'
-        run: |
-          echo "Dev channel: skipped git tag / GitHub Release."
-          echo "Artifacts uploaded with suffix: ${{ needs.meta.outputs.tag }}"
-          ls -la artifacts/*/* dist/*.vsix 2>/dev/null || true
+
+          echo "Published: https://github.com/${{ github.repository }}/releases/tag/${tag}"
