@@ -1,0 +1,145 @@
+// soga/main.sy — non-interactive LLM demo
+
+import Log
+import Env
+import config
+import client
+import session
+import message
+import response
+import json_util
+
+func printBanner() {
+    Log.info("soga — SYX LLM chat library demo (non-interactive)")
+    print("[soga] SOGA_DRY_RUN=")
+    print(Env.get("SOGA_DRY_RUN"))
+    print("[soga] SOGA_DEMO=")
+    print(Env.get("SOGA_DEMO"))
+    print("[soga] demoMode=")
+    print(config.demoMode())
+}
+
+func printCfg(cfg: Object) {
+    // Avoid interpolating encode dumps; describe returns a short String.
+    let line = client.describe(cfg: cfg)
+    print("[soga] ")
+    print(line)
+}
+
+func buildDemoHistory(system: String, prompt: String) -> Object {
+    var history = message.newHistory()
+    // Demo path: user message only (system+user double-append has been flaky
+    // with current SYX JSON/move semantics). Library APIs still support system.
+    let _sysIgnored = system
+    let userMsg = message.makeMessage(role: "user", content: prompt)
+    history = message.historyAppend(history: history, msg: userMsg)
+    return history
+}
+
+func runOneShot(cfg: Object, system: String, prompt: String) -> Object {
+    print("[soga] --- one-shot ---")
+    let cfgText = json_util.encodeJson(value: cfg)
+    printCfg(cfg: json_util.decodeObject(text: cfgText))
+    let cfgUse = json_util.decodeObject(text: cfgText)
+
+    let history = buildDemoHistory(system: system, prompt: prompt)
+
+    if config.dryRunEnabled() {
+        let info = client.dryRun(cfg: cfgUse, history: history)
+        client.printDryRun(info: info)
+        return json_util.emptyObject()
+    }
+
+    let result = client.chatComplete(cfg: cfgUse, history: history)
+    response.printResult(r: result)
+    return result
+}
+
+func runMultiTurn(cfg: Object, system: String) -> Object {
+    print("[soga] --- multi-turn script ---")
+    let cfgText = json_util.encodeJson(value: cfg)
+    printCfg(cfg: json_util.decodeObject(text: cfgText))
+    let cfgUse = json_util.decodeObject(text: cfgText)
+
+    // Empty system for session bootstrap reliability in current SYX JSON/move model.
+    var s = session.create(cfg: cfgUse, system: "")
+    let promptsJson = "[\"In three words, what is SYX?\",\"Now repeat those three words in uppercase.\"]"
+
+    if config.dryRunEnabled() {
+        let preview = session.previewNext(session: s, userText: "In three words, what is SYX?")
+        client.printDryRun(info: preview)
+        return json_util.emptyObject()
+    }
+
+    s = session.runScript(session: s, promptsJson: promptsJson)
+    let sText = json_util.encodeJson(value: s)
+    let sSnap = json_util.decodeObject(text: sText)
+    let turns = json_util.jInt(v: sSnap.turns, fallback: 0)
+    let n = message.historyCount(history: sSnap.history)
+    print("[soga] session history messages=")
+    print(n)
+    print("[soga] turns=")
+    print(turns)
+    return json_util.decodeObject(text: sText)
+}
+
+func runProviderDemo(name: String) {
+    print("[soga] === provider ")
+    print(name)
+    print(" ===")
+    let probe = config.loadNamed(name: name)
+    let probeText = json_util.encodeJson(value: probe)
+    let p = json_util.decodeObject(text: probeText)
+    let key = json_util.jStr(v: p.api_key)
+    let p2 = json_util.decodeObject(text: probeText)
+    let keyEnv = json_util.jStr(v: p2.api_key_env)
+    if key.count == 0 {
+        if !config.dryRunEnabled() {
+            Log.warn("soga: no API key; forcing dry-run for this provider")
+            print(keyEnv)
+            let history = buildDemoHistory(system: "You are soga.", prompt: "Say hello.")
+            let info = client.dryRun(cfg: config.loadNamed(name: name), history: history)
+            client.printDryRun(info: info)
+            return
+        }
+    }
+    // Literals at each call site — String is move-consumed on by-value calls.
+    runOneShot(cfg: config.loadNamed(name: name), system: "You are soga.", prompt: "Say hello from SYX soga.")
+    runMultiTurn(cfg: config.loadNamed(name: name), system: "You are soga.")
+}
+
+func runAnthropicPathsDemo() {
+    print("[soga] === anthropic-compatible paths ===")
+    runOneShot(cfg: config.loadNamed(name: "deepseek-anthropic"), system: "You are soga.", prompt: "Say hello.")
+    runOneShot(cfg: config.loadNamed(name: "minimax-anthropic"), system: "You are soga.", prompt: "Say hello.")
+}
+
+func main() {
+    printBanner()
+    let mode = config.demoMode()
+
+    if mode == "provider" {
+        runOneShot(cfg: config.loadFromEnv(), system: "You are soga.", prompt: "Say hello.")
+        runMultiTurn(cfg: config.loadFromEnv(), system: "You are soga.")
+        return
+    }
+    if mode == "deepseek" {
+        runProviderDemo(name: "deepseek")
+        return
+    }
+    if mode == "minimax" {
+        runProviderDemo(name: "minimax")
+        return
+    }
+    if mode == "both" {
+        runProviderDemo(name: "deepseek")
+        print("")
+        runProviderDemo(name: "minimax")
+        return
+    }
+    if mode == "anthropic-paths" {
+        runAnthropicPathsDemo()
+        return
+    }
+    runProviderDemo(name: mode)
+}

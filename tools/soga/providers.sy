@@ -1,0 +1,162 @@
+// soga/providers.sy
+// ---------------------------------------------------------------
+// Named provider presets. Each preset is built as JSON text
+// (Object field mutation is move-fragile in current SYX).
+// ---------------------------------------------------------------
+
+import json_util
+
+public func styleOpenAI() -> String {
+    return "openai"
+}
+
+public func styleAnthropic() -> String {
+    return "anthropic"
+}
+
+func preset(name: String, style: String, baseUrl: String, model: String, keyEnv: String) -> Object {
+    let text = "{\"name\":\"\(name)\",\"api_style\":\"\(style)\",\"base_url\":\"\(baseUrl)\",\"model\":\"\(model)\",\"api_key_env\":\"\(keyEnv)\",\"api_key\":\"\",\"max_tokens\":1024,\"timeout_ms\":120000,\"temperature\":0.7,\"anthropic_version\":\"2023-06-01\"}"
+    return json_util.decodeObject(text: text)
+}
+
+public func deepseek() -> Object {
+    return preset(
+        name: "deepseek",
+        style: styleOpenAI(),
+        baseUrl: "https://api.deepseek.com",
+        model: "deepseek-chat",
+        keyEnv: "DEEPSEEK_API_KEY"
+    )
+}
+
+public func deepseekAnthropic() -> Object {
+    return preset(
+        name: "deepseek-anthropic",
+        style: styleAnthropic(),
+        baseUrl: "https://api.deepseek.com/anthropic",
+        model: "deepseek-chat",
+        keyEnv: "DEEPSEEK_API_KEY"
+    )
+}
+
+public func minimax() -> Object {
+    return preset(
+        name: "minimax",
+        style: styleOpenAI(),
+        baseUrl: "https://api.minimax.io/v1",
+        model: "MiniMax-M3",
+        keyEnv: "MINIMAX_API_KEY"
+    )
+}
+
+public func minimaxAnthropic() -> Object {
+    return preset(
+        name: "minimax-anthropic",
+        style: styleAnthropic(),
+        baseUrl: "https://api.minimax.io/anthropic",
+        model: "MiniMax-M3",
+        keyEnv: "MINIMAX_API_KEY"
+    )
+}
+
+public func openai() -> Object {
+    return preset(
+        name: "openai",
+        style: styleOpenAI(),
+        baseUrl: "https://api.openai.com/v1",
+        model: "gpt-4o-mini",
+        keyEnv: "OPENAI_API_KEY"
+    )
+}
+
+public func anthropic() -> Object {
+    return preset(
+        name: "anthropic",
+        style: styleAnthropic(),
+        baseUrl: "https://api.anthropic.com",
+        model: "claude-sonnet-4-20250514",
+        keyEnv: "ANTHROPIC_API_KEY"
+    )
+}
+
+public func byName(name: String) -> Object {
+    let n = "\(name)".lowercased()
+    if n == "deepseek" {
+        return deepseek()
+    }
+    if n == "deepseek-anthropic" {
+        return deepseekAnthropic()
+    }
+    if n == "minimax" {
+        return minimax()
+    }
+    if n == "minimax-anthropic" {
+        return minimaxAnthropic()
+    }
+    if n == "openai" {
+        return openai()
+    }
+    if n == "anthropic" {
+        return anthropic()
+    }
+    return deepseek()
+}
+
+public func withApiKey(cfg: Object, apiKey: String) -> Object {
+    let text = json_util.encodeJson(value: cfg)
+    let snap = json_util.decodeObject(text: text)
+    // Rebuild with new key via load-style JSON (kept for library users).
+    let c1 = json_util.decodeObject(text: text)
+    let pname = json_util.jStr(v: c1["name"])
+    let c2 = json_util.decodeObject(text: text)
+    let style = json_util.jStr(v: c2["api_style"])
+    let c3 = json_util.decodeObject(text: text)
+    let base = json_util.jStr(v: c3["base_url"])
+    let c4 = json_util.decodeObject(text: text)
+    let model = json_util.jStr(v: c4["model"])
+    let c5 = json_util.decodeObject(text: text)
+    let keyEnv = json_util.jStr(v: c5["api_key_env"])
+    let c6 = json_util.decodeObject(text: text)
+    let maxTokens = json_util.jInt(v: c6["max_tokens"], fallback: 1024)
+    let c7 = json_util.decodeObject(text: text)
+    let timeoutMs = json_util.jInt(v: c7["timeout_ms"], fallback: 120000)
+    let c8 = json_util.decodeObject(text: text)
+    let temperature = json_util.jDouble(v: c8["temperature"], fallback: 0.7)
+    let c9 = json_util.decodeObject(text: text)
+    var ver = json_util.jStr(v: c9["anthropic_version"])
+    if ver.count == 0 {
+        ver = "2023-06-01"
+    }
+    let out = "{\"name\":\"\(pname)\",\"api_style\":\"\(style)\",\"base_url\":\"\(base)\",\"model\":\"\(model)\",\"api_key_env\":\"\(keyEnv)\",\"api_key\":\"\(apiKey)\",\"max_tokens\":\(maxTokens),\"timeout_ms\":\(timeoutMs),\"temperature\":\(temperature),\"anthropic_version\":\"\(ver)\"}"
+    return json_util.decodeObject(text: out)
+}
+
+public func cfgName(cfg: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
+    return json_util.jStr(v: snap["name"])
+}
+
+public func cfgStyle(cfg: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
+    return json_util.jStr(v: snap["api_style"])
+}
+
+public func cfgBaseUrl(cfg: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
+    return json_util.jStr(v: snap["base_url"])
+}
+
+public func cfgModel(cfg: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
+    return json_util.jStr(v: snap["model"])
+}
+
+public func cfgApiKey(cfg: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
+    return json_util.jStr(v: snap["api_key"])
+}
+
+public func cfgApiKeyEnv(cfg: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
+    return json_util.jStr(v: snap["api_key_env"])
+}

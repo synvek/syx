@@ -1,0 +1,86 @@
+// soga/session.sy — multi-turn session
+
+import json_util
+import message
+import client
+import response
+
+public func create(cfg: Object, system: String) -> Object {
+    var history = message.newHistory()
+    if system.count > 0 {
+        let sysMsg = message.makeMessage(role: "system", content: system)
+        history = message.historyAppend(history: history, msg: sysMsg)
+    }
+    let cfgText = JSON.encode(value: cfg)
+    let histText = JSON.encode(value: history)
+    let lastText = "{\"ok\":false,\"provider\":\"pending\",\"model\":\"\",\"content\":\"\",\"finish_reason\":\"\",\"error\":\"no turns yet\",\"status\":0,\"raw\":{},\"usage\":{\"prompt_tokens\":0,\"completion_tokens\":0,\"total_tokens\":0}}"
+    return JSON.decode(text: "{\"cfg\":" + cfgText + ",\"history\":" + histText + ",\"turns\":0,\"last\":" + lastText + "}")
+}
+
+public func turn(session: Object, userText: String) -> Object {
+    let snapText = JSON.encode(value: session)
+    let sHist = JSON.decode(text: snapText)
+    var history = sHist.history
+    let userMsg = message.makeMessage(role: "user", content: userText)
+    history = message.historyAppend(history: history, msg: userMsg)
+    let sCfg = JSON.decode(text: snapText)
+    let cfg = sCfg.cfg
+    let sTurns = JSON.decode(text: snapText)
+    let turns0 = json_util.jInt(v: sTurns.turns, fallback: 0)
+
+    let result = client.chatComplete(cfg: cfg, history: history)
+    let resText = JSON.encode(value: result)
+    let rOk = JSON.decode(text: resText)
+    let ok = json_util.jBool(v: rOk.ok, fallback: false)
+    let rContent = JSON.decode(text: resText)
+    let reply = json_util.jStr(v: rContent.content)
+
+    var turns = turns0
+    if ok {
+        let asst = message.makeMessage(role: "assistant", content: reply)
+        history = message.historyAppend(history: history, msg: asst)
+        turns = turns0 + 1
+    }
+    let histText = JSON.encode(value: history)
+    let sCfg2 = JSON.decode(text: snapText)
+    let cfgText = JSON.encode(value: sCfg2.cfg)
+    return JSON.decode(text: "{\"cfg\":" + cfgText + ",\"history\":" + histText + ",\"turns\":" + "\(turns)" + ",\"last\":" + resText + "}")
+}
+
+public func runScript(session: Object, promptsJson: String) -> Object {
+    let parsed = JSON.decode(text: "{\"items\":" + promptsJson + "}")
+    let n = parsed.items.count
+    var sText = JSON.encode(value: session)
+    var i = 0
+    while i < n {
+        let round = JSON.decode(text: "{\"items\":" + promptsJson + "}")
+        let p = "" + "\(round.items[i])"
+        print("[soga] turn ")
+        print(i + 1)
+        print(" user:")
+        print(p)
+        let cur = JSON.decode(text: sText)
+        let next = turn(session: cur, userText: p)
+        sText = JSON.encode(value: next)
+        let snap = JSON.decode(text: sText)
+        let last = snap.last
+        let okSnap = JSON.decode(text: JSON.encode(value: last))
+        let ok = json_util.jBool(v: okSnap.ok, fallback: false)
+        response.printResult(r: last)
+        if !ok {
+            return JSON.decode(text: sText)
+        }
+        i = i + 1
+    }
+    return JSON.decode(text: sText)
+}
+
+public func previewNext(session: Object, userText: String) -> Object {
+    let snapText = JSON.encode(value: session)
+    let sHist = JSON.decode(text: snapText)
+    var history = message.historyClone(history: sHist.history)
+    let userMsg = message.makeMessage(role: "user", content: userText)
+    history = message.historyAppend(history: history, msg: userMsg)
+    let sCfg = JSON.decode(text: snapText)
+    return client.dryRun(cfg: sCfg.cfg, history: history)
+}

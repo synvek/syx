@@ -1,0 +1,127 @@
+// soga/anthropic_api.sy — Anthropic Messages API
+
+import Net
+import json_util
+import message
+import response
+
+public func buildBody(model: String, maxTokens: Int, temperature: Double, history: Object) -> Object {
+    let split = message.historyToAnthropic(history: history)
+    let splitText = json_util.encodeJson(value: split)
+    let s1 = json_util.decodeObject(text: splitText)
+    let systemText = json_util.jStr(v: s1.system)
+    let s2 = json_util.decodeObject(text: splitText)
+    let msgsJson = json_util.encodeJson(value: s2.messages)
+    var bodyText = ""
+    if systemText.count > 0 {
+        var esc = ""
+        var si = 0
+        while si < systemText.count {
+            let ch = "\(systemText[si])"
+            var done = "0"
+            if ch == "\\" { esc = esc + "\\\\"; done = "1" }
+            if ch == "\"" { esc = esc + "\\\""; done = "1" }
+            if done == "0" { esc = esc + ch }
+            si = si + 1
+        }
+        bodyText = "{\"model\":\"\(model)\",\"max_tokens\":\(maxTokens),\"temperature\":\(temperature),\"system\":\"\(esc)\",\"messages\":\(msgsJson)}"
+    }
+    if systemText.count == 0 {
+        bodyText = "{\"model\":\"\(model)\",\"max_tokens\":\(maxTokens),\"temperature\":\(temperature),\"messages\":\(msgsJson)}"
+    }
+    return json_util.decodeObject(text: bodyText)
+}
+
+public func chatComplete(cfg: Object, history: Object) -> Object {
+    let cfgText = json_util.encodeJson(value: cfg)
+    let c = json_util.decodeObject(text: cfgText)
+    let provider = json_util.jStr(v: c.name)
+    let c2 = json_util.decodeObject(text: cfgText)
+    let model = json_util.jStr(v: c2.model)
+    let c3 = json_util.decodeObject(text: cfgText)
+    let key = json_util.jStr(v: c3.api_key)
+    let c4 = json_util.decodeObject(text: cfgText)
+    let keyEnv = json_util.jStr(v: c4.api_key_env)
+    let c5 = json_util.decodeObject(text: cfgText)
+    let timeoutMs = json_util.jInt(v: c5.timeout_ms, fallback: 120000)
+    let c6 = json_util.decodeObject(text: cfgText)
+    let maxTokens = json_util.jInt(v: c6.max_tokens, fallback: 1024)
+    let c7 = json_util.decodeObject(text: cfgText)
+    let temperature = json_util.jDouble(v: c7.temperature, fallback: 0.7)
+    let c8 = json_util.decodeObject(text: cfgText)
+    var anthropicVersion = json_util.jStr(v: c8.anthropic_version)
+    if anthropicVersion.count == 0 { anthropicVersion = "2023-06-01" }
+    let c9 = json_util.decodeObject(text: cfgText)
+    let base = json_util.jStr(v: c9.base_url)
+    let url = json_util.joinUrl(base: "\(base)", path: "/v1/messages")
+
+    if key.count == 0 {
+        return response.errResult(provider: "\(provider)", model: "\(model)", error: "missing api key (set \(keyEnv) or SOGA_API_KEY)", status: 0, raw: json_util.emptyObject())
+    }
+
+    let histUse = json_util.decodeObject(text: json_util.encodeJson(value: history))
+    let body = buildBody(model: "\(model)", maxTokens: maxTokens, temperature: temperature, history: histUse)
+    let bodyText = json_util.encodeJson(value: body)
+    let headersText = "{\"x-api-key\":\"\(key)\",\"anthropic-version\":\"\(anthropicVersion)\",\"Content-Type\":\"application/json\",\"Accept\":\"application/json\",\"Authorization\":\"Bearer \(key)\"}"
+    let opts = json_util.decodeObject(text: "{\"method\":\"POST\",\"timeout_ms\":\(timeoutMs),\"headers\":\(headersText),\"body\":\(bodyText)}")
+
+    var status = 0
+    var text = ""
+    var transportErr = ""
+    try {
+        let resp = Http.fetch(url, opts)
+        status = json_util.jInt(v: resp.status(), fallback: 0)
+        text = "\(resp.text())"
+    } catch (e) {
+        transportErr = "http transport failed: \(e)"
+    }
+
+    if transportErr.count > 0 {
+        return response.errResult(provider: "\(provider)", model: "\(model)", error: "\(transportErr)", status: status, raw: json_util.emptyObject())
+    }
+
+    let raw = json_util.decodeObject(text: text)
+    if status < 200 {
+        return response.errResult(provider: "\(provider)", model: "\(model)", error: "\(text)", status: status, raw: raw)
+    }
+    if status > 299 {
+        let apiErr = json_util.jStr(v: raw.error.message)
+        var msg = "\(text)"
+        if apiErr.count > 0 { msg = "\(apiErr)" }
+        return response.errResult(provider: "\(provider)", model: "\(model)", error: msg, status: status, raw: json_util.decodeObject(text: text))
+    }
+
+    let content = response.anthropicAssistantText(raw: raw)
+    if content.count == 0 {
+        return response.errResult(provider: "\(provider)", model: "\(model)", error: "empty assistant content; body=\(text)", status: status, raw: json_util.emptyObject())
+    }
+    let raw2 = json_util.decodeObject(text: text)
+    let finish = json_util.jStr(v: raw2.stop_reason)
+    let usage = response.parseAnthropicUsage(raw: json_util.decodeObject(text: text))
+    return response.okResult(provider: "\(provider)", model: "\(model)", content: "\(content)", finish: "\(finish)", status: status, raw: json_util.decodeObject(text: text), usage: usage)
+}
+
+public func dryRun(cfg: Object, history: Object) -> Object {
+    let cfgText = json_util.encodeJson(value: cfg)
+    let c = json_util.decodeObject(text: cfgText)
+    let provider = json_util.jStr(v: c.name)
+    let c2 = json_util.decodeObject(text: cfgText)
+    let model = json_util.jStr(v: c2.model)
+    let c3 = json_util.decodeObject(text: cfgText)
+    let keyEnv = json_util.jStr(v: c3.api_key_env)
+    let c4 = json_util.decodeObject(text: cfgText)
+    let key = json_util.jStr(v: c4.api_key)
+    let c5 = json_util.decodeObject(text: cfgText)
+    let maxTokens = json_util.jInt(v: c5.max_tokens, fallback: 1024)
+    let c6 = json_util.decodeObject(text: cfgText)
+    let temperature = json_util.jDouble(v: c6.temperature, fallback: 0.7)
+    let c7 = json_util.decodeObject(text: cfgText)
+    let base = json_util.jStr(v: c7.base_url)
+    let url = json_util.joinUrl(base: "\(base)", path: "/v1/messages")
+    let histUse = json_util.decodeObject(text: json_util.encodeJson(value: history))
+    let body = buildBody(model: "\(model)", maxTokens: maxTokens, temperature: temperature, history: histUse)
+    let bodyText = json_util.encodeJson(value: body)
+    var hasKey = "false"
+    if key.count > 0 { hasKey = "true" }
+    return json_util.decodeObject(text: "{\"url\":\"\(url)\",\"api_style\":\"anthropic\",\"provider\":\"\(provider)\",\"model\":\"\(model)\",\"api_key_env\":\"\(keyEnv)\",\"has_api_key\":\(hasKey),\"body\":\(bodyText)}")
+}

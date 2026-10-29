@@ -1,0 +1,96 @@
+// soga/json_util.sy
+// ---------------------------------------------------------------
+// JSON / Object helpers.
+// IMPORTANT: prefer `obj.field` or `obj.valueForKey(key:)` — bare
+// `obj["field"]` currently returns the whole object in SYX VM.
+// ---------------------------------------------------------------
+
+public func jStr(v: Any) -> String {
+    return (v as? String) ?? ""
+}
+
+public func jInt(v: Any, fallback: Int) -> Int {
+    return (v as? Int) ?? fallback
+}
+
+public func jBool(v: Any, fallback: Bool) -> Bool {
+    return (v as? Bool) ?? fallback
+}
+
+public func jDouble(v: Any, fallback: Double) -> Double {
+    return (v as? Double) ?? fallback
+}
+
+/// Read a string field by name.
+public func fieldStr(obj: Object, key: String) -> String {
+    return jStr(v: obj.valueForKey(key: key))
+}
+
+/// Read an int field by name.
+public func fieldInt(obj: Object, key: String, fallback: Int) -> Int {
+    return jInt(v: obj.valueForKey(key: key), fallback: fallback)
+}
+
+/// Read a bool field by name.
+public func fieldBool(obj: Object, key: String, fallback: Bool) -> Bool {
+    return jBool(v: obj.valueForKey(key: key), fallback: fallback)
+}
+
+/// Read a double field by name.
+public func fieldDouble(obj: Object, key: String, fallback: Double) -> Double {
+    return jDouble(v: obj.valueForKey(key: key), fallback: fallback)
+}
+
+/// Empty Object bag (mutable).
+public func emptyObject() -> Object {
+    return JSON.decode("{}")
+}
+
+/// Decode JSON text; on failure return `{}`.
+public func decodeObject(text: String) -> Object {
+    var out: Object = JSON.decode("{}")
+    try {
+        out = JSON.decode(text: text)
+    } catch (e) {
+        out = JSON.decode("{}")
+    }
+    return out
+}
+
+/// Encode Object graph to JSON text.
+public func encodeJson(value: Object) -> String {
+    return JSON.encode(value: value)
+}
+
+/// Encode any JSON-able value (Array / Object / scalar).
+public func encodeAny(value: Any) -> String {
+    return JSON.encode(value: value)
+}
+
+/// Join `base` + `path`.
+public func joinUrl(base: String, path: String) -> String {
+    let b = "\(base)"
+    let p = "\(path)"
+    if p.count == 0 {
+        return b
+    }
+    if b.count == 0 {
+        return p
+    }
+    let bEnds = b[b.count - 1] == "/"
+    let pStarts = p.hasPrefix("/")
+    if bEnds {
+        if pStarts {
+            return "\(b)\(p.substring(1, p.count))"
+        }
+        return "\(b)\(p)"
+    }
+    if pStarts {
+        return "\(b)\(p)"
+    }
+    return "\(b)/\(p)"
+}
+
+public func nonEmpty(s: String) -> Bool {
+    return "\(s)".count > 0
+}

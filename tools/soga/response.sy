@@ -1,0 +1,154 @@
+// soga/response.sy — unified ChatResult (use .field access)
+
+import json_util
+
+public func okResult(provider: String, model: String, content: String, finish: String, status: Int, raw: Object, usage: Object) -> Object {
+    let rawText = json_util.encodeJson(value: raw)
+    let usageText = json_util.encodeJson(value: usage)
+    var escContent = ""
+    var i = 0
+    let src = "\(content)"
+    while i < src.count {
+        let ch = "\(src[i])"
+        var done = "0"
+        if ch == "\\" { escContent = escContent + "\\\\"; done = "1" }
+        if ch == "\"" { escContent = escContent + "\\\""; done = "1" }
+        if ch == "\n" { escContent = escContent + "\\n"; done = "1" }
+        if done == "0" { escContent = escContent + ch }
+        i = i + 1
+    }
+    let text = "{\"ok\":true,\"provider\":\"\(provider)\",\"model\":\"\(model)\",\"content\":\"\(escContent)\",\"finish_reason\":\"\(finish)\",\"error\":\"\",\"status\":\(status),\"raw\":\(rawText),\"usage\":\(usageText)}"
+    return json_util.decodeObject(text: text)
+}
+
+public func errResult(provider: String, model: String, error: String, status: Int, raw: Object) -> Object {
+    let rawText = json_util.encodeJson(value: raw)
+    var esc = ""
+    var i = 0
+    let src = "\(error)"
+    while i < src.count {
+        let ch = "\(src[i])"
+        var done = "0"
+        if ch == "\\" { esc = esc + "\\\\"; done = "1" }
+        if ch == "\"" { esc = esc + "\\\""; done = "1" }
+        if ch == "\n" { esc = esc + "\\n"; done = "1" }
+        if done == "0" { esc = esc + ch }
+        i = i + 1
+    }
+    let text = "{\"ok\":false,\"provider\":\"\(provider)\",\"model\":\"\(model)\",\"content\":\"\",\"finish_reason\":\"\",\"error\":\"\(esc)\",\"status\":\(status),\"raw\":\(rawText),\"usage\":{\"prompt_tokens\":0,\"completion_tokens\":0,\"total_tokens\":0}}"
+    return json_util.decodeObject(text: text)
+}
+
+public func emptyUsage() -> Object {
+    return json_util.decodeObject(text: "{\"prompt_tokens\":0,\"completion_tokens\":0,\"total_tokens\":0}")
+}
+
+public func parseOpenAIUsage(raw: Object) -> Object {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: raw))
+    let usage = snap.usage
+    let prompt = json_util.jInt(v: usage.prompt_tokens, fallback: 0)
+    let completion = json_util.jInt(v: usage.completion_tokens, fallback: 0)
+    let total = json_util.jInt(v: usage.total_tokens, fallback: 0)
+    return json_util.decodeObject(text: "{\"prompt_tokens\":\(prompt),\"completion_tokens\":\(completion),\"total_tokens\":\(total)}")
+}
+
+public func parseAnthropicUsage(raw: Object) -> Object {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: raw))
+    let usage = snap.usage
+    let prompt = json_util.jInt(v: usage.input_tokens, fallback: 0)
+    let completion = json_util.jInt(v: usage.output_tokens, fallback: 0)
+    let total = prompt + completion
+    return json_util.decodeObject(text: "{\"prompt_tokens\":\(prompt),\"completion_tokens\":\(completion),\"total_tokens\":\(total)}")
+}
+
+public func openaiAssistantText(raw: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: raw))
+    let choices = snap.choices
+    if choices.count < 1 {
+        return ""
+    }
+    let msg = choices[0].message
+    let content = json_util.jStr(v: msg.content)
+    if content.count > 0 {
+        return content
+    }
+    return json_util.jStr(v: msg.reasoning_content)
+}
+
+public func openaiFinishReason(raw: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: raw))
+    let choices = snap.choices
+    if choices.count < 1 {
+        return ""
+    }
+    return json_util.jStr(v: choices[0].finish_reason)
+}
+
+public func anthropicAssistantText(raw: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: raw))
+    let blocks = snap.content
+    let n = blocks.count
+    if n < 1 {
+        return ""
+    }
+    var text = ""
+    var i = 0
+    while i < n {
+        let round = json_util.decodeObject(text: json_util.encodeJson(value: raw))
+        let block = round.content[i]
+        // `type` is reserved — read via JSON round-trip field in a wrapper
+        let blockText = json_util.encodeJson(value: block)
+        let b = json_util.decodeObject(text: blockText)
+        let t = json_util.jStr(v: b.text)
+        if text.count == 0 {
+            text = t
+        }
+        if text.count > 0 {
+            if text != t {
+                text = text + t
+            }
+        }
+        i = i + 1
+    }
+    return text
+}
+
+public func resultOk(r: Object) -> Bool {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: r))
+    return json_util.jBool(v: snap.ok, fallback: false)
+}
+
+public func resultContent(r: Object) -> String {
+    let snap = json_util.decodeObject(text: json_util.encodeJson(value: r))
+    return json_util.jStr(v: snap.content)
+}
+
+public func printResult(r: Object) {
+    let text = json_util.encodeJson(value: r)
+    let snap = json_util.decodeObject(text: text)
+    let ok = json_util.jBool(v: snap.ok, fallback: false)
+    let s2 = json_util.decodeObject(text: text)
+    let provider = json_util.jStr(v: s2.provider)
+    let s3 = json_util.decodeObject(text: text)
+    let model = json_util.jStr(v: s3.model)
+    let s4 = json_util.decodeObject(text: text)
+    let content = json_util.jStr(v: s4.content)
+    let s5 = json_util.decodeObject(text: text)
+    let err = json_util.jStr(v: s5.error)
+    let s6 = json_util.decodeObject(text: text)
+    let status = json_util.jInt(v: s6.status, fallback: 0)
+    let s7 = json_util.decodeObject(text: text)
+    let usage = s7.usage
+    let pt = json_util.jInt(v: usage.prompt_tokens, fallback: 0)
+    let ct = json_util.jInt(v: usage.completion_tokens, fallback: 0)
+    let tt = json_util.jInt(v: usage.total_tokens, fallback: 0)
+    if ok {
+        print("[soga] ok provider=\(provider) model=\(model)")
+        print(content)
+        print("[soga] usage prompt=\(pt) completion=\(ct) total=\(tt)")
+    }
+    if !ok {
+        print("[soga] FAIL provider=\(provider) model=\(model) status=\(status)")
+        print(err)
+    }
+}

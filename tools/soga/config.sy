@@ -1,0 +1,121 @@
+// soga/config.sy — env → provider cfg (JSON-built Objects; use .field reads)
+
+import Env
+import json_util
+import providers
+
+public func envOr(key: String, fallback: String) -> String {
+    let v = Env.get(key)
+    if v.count > 0 {
+        return v
+    }
+    return fallback
+}
+
+public func isTruthy(s: String) -> Bool {
+    let v = "\(s)".lowercased()
+    if v == "1" { return true }
+    if v == "true" { return true }
+    if v == "yes" { return true }
+    if v == "on" { return true }
+    return false
+}
+
+public func dryRunEnabled() -> Bool {
+    return isTruthy(s: Env.get("SOGA_DRY_RUN"))
+}
+
+public func demoMode() -> String {
+    let d = Env.get("SOGA_DEMO")
+    // Prefer `== ""` over `.count == 0` — some SYX String values report count 0.
+    // Avoid `.lowercased()` here — it has returned nil for env strings in practice.
+    if d == "" {
+        return "deepseek"
+    }
+    if d == "deepseek" { return "deepseek" }
+    if d == "minimax" { return "minimax" }
+    if d == "both" { return "both" }
+    if d == "provider" { return "provider" }
+    if d == "anthropic-paths" { return "anthropic-paths" }
+    if d == "Deepseek" { return "deepseek" }
+    if d == "Minimax" { return "minimax" }
+    if d == "Both" { return "both" }
+    return d
+}
+
+public func defaultSystem() -> String {
+    return envOr(key: "SOGA_SYSTEM", fallback: "You are soga, a concise assistant written in SYX.")
+}
+
+public func defaultPrompt() -> String {
+    return envOr(key: "SOGA_PROMPT", fallback: "Reply with exactly one short sentence saying hello from SYX soga.")
+}
+
+public func resolveApiKeyForEnv(keyEnv: String) -> String {
+    let override = Env.get("SOGA_API_KEY")
+    if override.count > 0 {
+        return override
+    }
+    let fromProvider = Env.get(keyEnv)
+    if fromProvider.count > 0 {
+        return fromProvider
+    }
+    return ""
+}
+
+public func promptFromArgs() -> String {
+    let fromEnv = Env.get("SOGA_PROMPT")
+    if fromEnv.count > 0 {
+        return fromEnv
+    }
+    return defaultPrompt()
+}
+
+public func loadNamed(name: String) -> Object {
+    let preset = providers.byName(name: name)
+    let pText = json_util.encodeJson(value: preset)
+    let p = json_util.decodeObject(text: pText)
+    var base = json_util.jStr(v: p.base_url)
+    let p2 = json_util.decodeObject(text: pText)
+    var model = json_util.jStr(v: p2.model)
+    let p3 = json_util.decodeObject(text: pText)
+    let pname = json_util.jStr(v: p3.name)
+    let p4 = json_util.decodeObject(text: pText)
+    let style = json_util.jStr(v: p4.api_style)
+    let p5 = json_util.decodeObject(text: pText)
+    let keyEnv = json_util.jStr(v: p5.api_key_env)
+    let p6 = json_util.decodeObject(text: pText)
+    var maxTokens = json_util.jInt(v: p6.max_tokens, fallback: 1024)
+    let p7 = json_util.decodeObject(text: pText)
+    var timeoutMs = json_util.jInt(v: p7.timeout_ms, fallback: 120000)
+    let p8 = json_util.decodeObject(text: pText)
+    let temperature = json_util.jDouble(v: p8.temperature, fallback: 0.7)
+    let p9 = json_util.decodeObject(text: pText)
+    var anthropicVersion = json_util.jStr(v: p9.anthropic_version)
+    if anthropicVersion.count == 0 {
+        anthropicVersion = "2023-06-01"
+    }
+
+    let baseOv = Env.get("SOGA_BASE_URL")
+    if baseOv.count > 0 { base = baseOv }
+    let modelOv = Env.get("SOGA_MODEL")
+    if modelOv.count > 0 { model = modelOv }
+    let maxOv = Env.get("SOGA_MAX_TOKENS")
+    if maxOv.count > 0 {
+        let parsed = json_util.decodeObject(text: "{\"n\":\(maxOv)}")
+        maxTokens = json_util.jInt(v: parsed.n, fallback: maxTokens)
+    }
+    let timeoutOv = Env.get("SOGA_TIMEOUT_MS")
+    if timeoutOv.count > 0 {
+        let parsed2 = json_util.decodeObject(text: "{\"n\":\(timeoutOv)}")
+        timeoutMs = json_util.jInt(v: parsed2.n, fallback: timeoutMs)
+    }
+    let apiKey = resolveApiKeyForEnv(keyEnv: keyEnv)
+
+    let cfgText = "{\"name\":\"\(pname)\",\"api_style\":\"\(style)\",\"base_url\":\"\(base)\",\"model\":\"\(model)\",\"api_key_env\":\"\(keyEnv)\",\"api_key\":\"\(apiKey)\",\"max_tokens\":\(maxTokens),\"timeout_ms\":\(timeoutMs),\"temperature\":\(temperature),\"anthropic_version\":\"\(anthropicVersion)\"}"
+    return json_util.decodeObject(text: cfgText)
+}
+
+public func loadFromEnv() -> Object {
+    return loadNamed(name: envOr(key: "SOGA_PROVIDER", fallback: "deepseek"))
+}
