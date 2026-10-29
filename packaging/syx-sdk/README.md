@@ -4,11 +4,10 @@ Prebuilt toolchain for running SYX and linking **native** executables as a
 **single file** (static `syx_rt`, no `syx_rt.dll`).
 
 `full-native` **statically embeds LLD** into `bin/syx` (macOS/Linux `.a`, Windows
-MSVC `lld*.lib`) so the SDK is a single CLI binary for the linker driver. If
-static embed fails at build time, the CLI may fall back to a prefix `lld` /
-`lld-link` (optionally shipped next to `bin/syx`). Native link still needs host
-CRT/import libs (Visual Studio Build Tools / Xcode / Command Line Tools). A
-bundled `lib/sysroot` is **not** shipped yet.
+MSVC `lld*.lib`) so the SDK ships a **single CLI binary** — no separate
+`lld` / `lld-link` redistributable. Native link still needs host CRT/import libs
+(Visual Studio Build Tools / Xcode / Command Line Tools). A bundled
+`lib/sysroot` is **not** shipped yet.
 
 The resulting binary may still load OS-provided DLLs (`kernel32`, `libSystem`, …),
 same idea as Go.

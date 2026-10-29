@@ -14,12 +14,16 @@ fn main() {
     println!("cargo:rerun-if-changed=src/abi.rs");
     println!("cargo:rerun-if-changed=src/bridge.rs");
     println!("cargo:rerun-if-changed=src/link.rs");
+    println!("cargo:rerun-if-changed=src/user_entry_weak_stubs.c");
 
     // Linux (rust-lld) / macOS may retain `syx_rt_start` when building the
     // staticlib or host tools; weak C stubs satisfy the undefined refs.
     // Real AOT objects supply strong `syx_user_*` and override these.
+    //
+    // Windows `atexit` stub is *not* compiled into syx_rt here: it would
+    // collide with libcmt when linking the syx CLI under +crt-static. Native
+    // AOT injects it at link time via `link.rs` instead.
     if !target.contains("windows") {
-        println!("cargo:rerun-if-changed=src/user_entry_weak_stubs.c");
         cc::Build::new()
             .file("src/user_entry_weak_stubs.c")
             .compile("syx_user_entry_weak_stubs");

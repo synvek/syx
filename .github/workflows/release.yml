@@ -474,20 +474,8 @@ jobs:
 
           cp "${BIN}" "${SDK_ROOT}/bin/syx${EXE_EXT}"
           chmod +x "${SDK_ROOT}/bin/syx${EXE_EXT}" || true
-          # Windows full-native often links LLD as prefix-bin with an absolute CI
-          # path baked into syx. Ship lld-link next to bin/syx so runtime can
-          # resolve install-relative LLD (see syx-lld install_layout_lld_binary).
-          if [ -n "${LLVM_SYS_211_PREFIX:-}${SYX_LLVM_PREFIX:-}" ]; then
-            LLVM_BIN="${LLVM_SYS_211_PREFIX:-${SYX_LLVM_PREFIX}}/bin"
-            for lld_name in lld-link.exe lld-link lld.exe lld ld.lld ld64.lld; do
-              if [ -f "${LLVM_BIN}/${lld_name}" ]; then
-                cp "${LLVM_BIN}/${lld_name}" "${SDK_ROOT}/bin/${lld_name}"
-                chmod +x "${SDK_ROOT}/bin/${lld_name}" || true
-                echo "Bundled ${SDK_ROOT}/bin/${lld_name}"
-                break
-              fi
-            done
-          fi
+          # Do not ship a separate lld/lld-link binary: full-native embeds LLD
+          # in-process into syx (single-file CLI; avoids extra LLVM redistrib).
           cp packaging/syx-sdk/README.md "${SDK_ROOT}/README.md"
           cp LICENSE "${SDK_ROOT}/LICENSE"
 

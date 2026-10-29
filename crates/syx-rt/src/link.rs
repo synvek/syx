@@ -1,6 +1,7 @@
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::OnceLock;
 
 /// W929 / ADR-1273: runtime override for `libsyx_rt` archive path.
 ///
@@ -743,6 +744,53 @@ fn push_windows_system_libs_lld(args: &mut Vec<std::ffi::OsString>) {
     }
 }
 
+/// Object that defines `atexit` so MSVC does not pull `msvcrt.lib(utility.obj)`.
+///
+/// Some Rust `std` builds (notably CI) reference `atexit`; resolving it from
+/// `msvcrt.lib` pulls CRT startup that needs static `libvcruntime`/`libucrt`
+/// symbols and breaks `/MD` native link. Injected only when linking user
+/// natives (not into the syx CLI itself).
+#[cfg(windows)]
+fn windows_atexit_stub_object() -> io::Result<&'static Path> {
+    static CELL: OnceLock<PathBuf> = OnceLock::new();
+    if let Some(p) = CELL.get() {
+        return Ok(p.as_path());
+    }
+    let dir = std::env::temp_dir().join("syx-native-link");
+    std::fs::create_dir_all(&dir)?;
+    let c_path = dir.join("windows_atexit_stub.c");
+    let obj_path = dir.join("windows_atexit_stub.obj");
+    const SRC: &str = include_str!("windows_atexit_stub.c");
+    std::fs::write(&c_path, SRC)?;
+    let tool = cc::windows_registry::find_tool(&windows_host_msvc_triple(), "cl.exe")
+        .ok_or_else(|| {
+            io::Error::other(
+                "native link: MSVC cl.exe not found (needed to build atexit stub for Windows)",
+            )
+        })?;
+    let mut cmd = Command::new(tool.path());
+    for (k, v) in tool.env() {
+        cmd.env(k, v);
+    }
+    cmd.arg("/nologo")
+        .arg("/c")
+        .arg(format!("/Fo{}", obj_path.display()))
+        .arg(&c_path);
+    let status = cmd.status()?;
+    if !status.success() {
+        return Err(io::Error::other(format!(
+            "native link: failed to compile windows_atexit_stub.c ({status})"
+        )));
+    }
+    if !obj_path.is_file() {
+        return Err(io::Error::other(
+            "native link: windows_atexit_stub.obj missing after cl.exe",
+        ));
+    }
+    let _ = CELL.set(obj_path);
+    Ok(CELL.get().unwrap().as_path())
+}
+
 fn apply_lld_flavor_args(cmd: &mut Command) {
     #[cfg(target_os = "macos")]
     {
@@ -803,6 +851,10 @@ fn link_with_embedded_lld(
     args.push(user_obj.as_os_str().to_owned());
     for obj in &opts.objects {
         args.push(obj.as_os_str().to_owned());
+    }
+    #[cfg(windows)]
+    {
+        args.push(windows_atexit_stub_object()?.as_os_str().to_owned());
     }
     args.push(rt.as_os_str().to_owned());
     for path in &opts.lib_paths {
@@ -977,6 +1029,10 @@ fn link_executable_with_prefer_lld(
     cmd.arg(user_obj);
     for obj in &opts.objects {
         cmd.arg(obj);
+    }
+    #[cfg(windows)]
+    {
+        cmd.arg(windows_atexit_stub_object()?);
     }
     cmd.arg(&rt);
     push_sdk_sysroot_libpath(&mut cmd, win_msvc);
