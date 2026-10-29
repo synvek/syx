@@ -3,6 +3,9 @@
 //! llvm-sys is wired to the sibling install via `.cargo/config.toml` (internal).
 //! When `SYX_LLVM_PREFIX` points elsewhere, use `./scripts/with-syx-llvm cargo …`.
 
+use std::path::PathBuf;
+use std::process::Command;
+
 fn main() {
     println!("cargo:rerun-if-env-changed=SYX_LLVM_PREFIX");
     println!("cargo:rerun-if-changed=build.rs");
@@ -26,6 +29,14 @@ fn main() {
     // Prefer -lzstd over absolute Homebrew paths baked into some llvm-config builds.
     println!("cargo:rustc-link-lib=zstd");
 
+    // Sibling / GitHub LLVM prefixes often ship libc++.{a,dylib} under lib/ with
+    // @rpath. llvm-sys adds -L$prefix/lib -lc++, so ld picks that copy and leaves
+    // operator new/delete / __cxa_* undefined. Force the Xcode SDK .tbd instead
+    // (same failure mode as linking with only -L../llvm/lib -lc++).
+    if std::env::var("CARGO_CFG_TARGET_OS").ok().as_deref() == Some("macos") {
+        link_macos_system_libcxx();
+    }
+
     // Official Windows LLVM embeds rpmalloc. Keep its malloc when the final
     // link mixes object files; complements `.cargo/config.toml` `+crt-static`
     // (still required for the whole crate graph — cannot be set from here).
@@ -45,4 +56,42 @@ fn main() {
             }
         }
     }
+}
+
+fn link_macos_system_libcxx() {
+    let sdk = macos_sdk_path();
+    let mut linked = false;
+    if let Some(sdk) = sdk.as_ref() {
+        for name in ["libc++.tbd", "libc++abi.tbd"] {
+            let tbd = sdk.join("usr/lib").join(name);
+            if tbd.is_file() {
+                println!("cargo:rustc-link-arg={}", tbd.display());
+                linked = true;
+            }
+        }
+    }
+    if !linked {
+        // Older macOS / non-Xcode CLT: file may live in the dyld shared cache.
+        println!("cargo:rustc-link-arg=-lc++");
+        println!("cargo:rustc-link-arg=-lc++abi");
+        println!(
+            "cargo:warning=syx-llvm: macOS SDK libc++.tbd not found{}; relying on -lc++",
+            sdk.as_ref()
+                .map(|p| format!(" under {}", p.display()))
+                .unwrap_or_default()
+        );
+    }
+}
+
+fn macos_sdk_path() -> Option<PathBuf> {
+    let out = Command::new("xcrun").args(["--show-sdk-path"]).output().ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let path = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    if path.is_empty() {
+        return None;
+    }
+    let p = PathBuf::from(&path);
+    p.is_dir().then_some(p)
 }

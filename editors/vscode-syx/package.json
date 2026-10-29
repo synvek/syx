@@ -1,8 +1,8 @@
 {
   "name": "syx-language",
   "displayName": "SYX Language",
-  "description": "SYX language support: LSP Phase 82 / SYX 60.0 — HeapSlot parity, heap v11 bridge, RT stack v7, tier-2F browser",
-  "version": "4.0.0",
+  "description": "SYX language support",
+  "version": "0.1.1",
   "publisher": "syx",
   "license": "Apache-2.0",
   "repository": "https://github.com/synvek/synswx",

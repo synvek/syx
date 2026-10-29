@@ -845,13 +845,16 @@ fn using_lld_driver(cmd: &Command) -> bool {
     prog.contains("lld") || prog.contains("LLD") || prog.contains("syx-lld")
 }
 
-#[cfg(feature = "vendored-lld")]
-fn link_with_embedded_lld(
+/// Build argv for an external/in-process LLD link of a native SYX executable.
+///
+/// Used by `syx-driver` (`full-native`) so LLD is linked into the **CLI**, not into
+/// `libsyx_rt.a` (which would make every `syx build --native` pull LLVM).
+pub fn native_lld_argv(
     user_obj: &Path,
     output: &Path,
     opts: &LinkOptions,
     rt: &Path,
-) -> io::Result<()> {
+) -> io::Result<Vec<std::ffi::OsString>> {
     let mut args: Vec<std::ffi::OsString> = Vec::new();
     args.push(user_obj.as_os_str().to_owned());
     for obj in &opts.objects {
@@ -943,7 +946,7 @@ fn link_with_embedded_lld(
         args.push("-lm".into());
         args.push("-lc".into());
     }
-    syx_lld::run_lld(&args)
+    Ok(args)
 }
 
 /// Link `user.o` with the SYX runtime into a native executable.
@@ -956,27 +959,35 @@ pub fn link_executable_with(user_obj: &Path, output: &Path, opts: &LinkOptions) 
     let force_cc = std::env::var("SYX_FORCE_CC_LINK")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
-    let prefer_lld = !force_cc
-        && !std::env::var("SYX_DISABLE_LLD")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
+    let force_lld = std::env::var("SYX_FORCE_LLD")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+    let disable_lld = std::env::var("SYX_DISABLE_LLD")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
+    // Xcode 26+ / macOS 26+ SDKs tag TBDs with `arm64e.x1-*`. LLVM 21 ld64.lld
+    // rejects those files → undefined _memmove/_memcpy (libSystem unread) and a
+    // multi-GB, multi-core failed link before falling back. Prefer system `cc`
+    // unless the user forces LLD.
+    #[cfg(target_os = "macos")]
+    let macos_skip_lld = !force_lld && macos_sdk_unsupported_by_llvm21_lld();
+    #[cfg(not(target_os = "macos"))]
+    let macos_skip_lld = false;
+
+    let prefer_lld = !force_cc && !disable_lld && !macos_skip_lld;
 
     ensure_windows_link_inputs()?;
 
     // With an SDK sysroot, Windows must stay on LLD (no bare `cc` / missing link.exe).
     #[cfg(windows)]
     let allow_host_fallback = {
-        let force_lld = std::env::var("SYX_FORCE_LLD")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
         let sysroot_only = resolve_sdk_sysroot().is_some_and(|p| sysroot_looks_usable(&p))
             && msvc_link_exe_command().is_none();
         !force_lld && !sysroot_only
     };
     #[cfg(not(windows))]
-    let allow_host_fallback = !std::env::var("SYX_FORCE_LLD")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
+    let allow_host_fallback = !force_lld;
 
     match link_executable_with_prefer_lld(user_obj, output, opts, prefer_lld) {
         Ok(()) => Ok(()),
@@ -994,6 +1005,32 @@ pub fn link_executable_with(user_obj: &Path, output: &Path, opts: &LinkOptions) 
     }
 }
 
+/// True when the active macOS SDK ships TBD target tags that LLVM 21's ld64.lld
+/// cannot parse (notably `arm64e.x1-*` from MacOSX26+/27 SDKs).
+#[cfg(target_os = "macos")]
+fn macos_sdk_unsupported_by_llvm21_lld() -> bool {
+    static CACHED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *CACHED.get_or_init(|| {
+        let Some(sdk) = macos_syslibroot_path() else {
+            return false;
+        };
+        let tbd = sdk.join("usr/lib/libSystem.tbd");
+        let Ok(text) = std::fs::read_to_string(&tbd) else {
+            return false;
+        };
+        // Keep this list aligned with syx-lld::macos_sdk_unsupported_by_llvm21_lld.
+        let unsupported = text.contains("arm64e.x1-") || text.contains("arm64e.x2-");
+        if unsupported {
+            eprintln!(
+                "syx: macOS SDK at {} uses TBD arches unsupported by LLVM 21 LLD; \
+                 linking with system cc (set SYX_FORCE_LLD=1 to override)",
+                sdk.display()
+            );
+        }
+        unsupported
+    })
+}
+
 fn link_executable_with_prefer_lld(
     user_obj: &Path,
     output: &Path,
@@ -1005,30 +1042,6 @@ fn link_executable_with_prefer_lld(
     } else {
         rt_archive_path_for_profile(&opts.rt_profile)?
     };
-
-    #[cfg(feature = "vendored-lld")]
-    if prefer_lld && syx_lld::available() {
-        // Align process LIB with SDK sysroot / host MSVC for prefix LLD.
-        #[cfg(windows)]
-        {
-            if let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) {
-                let existing = std::env::var_os("LIB").unwrap_or_default();
-                let mut lib = sysroot.into_os_string();
-                if !existing.is_empty() {
-                    lib.push(";");
-                    lib.push(&existing);
-                }
-                std::env::set_var("LIB", lib);
-            } else if let Some(tool) =
-                cc::windows_registry::find_tool(&windows_host_msvc_triple(), "link.exe")
-            {
-                for (k, v) in tool.env() {
-                    std::env::set_var(k, v);
-                }
-            }
-        }
-        return link_with_embedded_lld(user_obj, output, opts, &rt);
-    }
 
     let mut cmd = host_linker_command(prefer_lld);
     let lld = using_lld_driver(&cmd);
@@ -1066,7 +1079,7 @@ fn link_executable_with_prefer_lld(
         #[cfg(windows)]
         push_windows_system_libs_msvc(&mut cmd);
         if lld {
-            // Same CRT GS duplicate as embedded LLD (see link_with_embedded_lld).
+            // Same CRT GS duplicate as native_lld_argv (/force:multiple).
             cmd.arg("/force:multiple");
         } else {
             // Custom `/ENTRY:syx_rt_start` skips CRT startup; .CRT$XCU may remain.

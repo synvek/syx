@@ -22,7 +22,6 @@ syx-async = { workspace = true, optional = true }
 crossbeam-channel = { workspace = true, optional = true }
 parking_lot = { workspace = true, optional = true }
 tempfile = "3"
-syx-lld = { workspace = true, optional = true }
 
 [features]
 default = ["async-runtime"]
@@ -30,8 +29,8 @@ async-runtime = ["dep:syx-async", "dep:crossbeam-channel", "dep:parking_lot"]
 http = ["syx-vm/http", "syx-mir-run/http"]
 file = ["syx-vm/file", "syx-mir-run/file"]
 full = ["async-runtime", "http", "file"]
-# Embed host LLD from sibling LLVM / SYX_LLVM_PREFIX (in-process or prefix bin/lld).
-vendored-lld = ["dep:syx-lld"]
+# Vendored LLD lives on syx-driver/syx-cli (full-native), not here — otherwise
+# libsyx_rt.a absorbs LLVM/LLD and every `syx build --native` becomes a multi-GB link.
 
 [dev-dependencies]
 syx-parser = { workspace = true }

@@ -24,6 +24,7 @@ syx-llvm = { workspace = true }
 syx-wasm-emit = { workspace = true }
 syx-wasm-run = { workspace = true }
 syx-rt = { workspace = true, features = ["full"] }
+syx-lld = { workspace = true, optional = true }
 syx-mir-run = { workspace = true }
 syx-runtime-core = { workspace = true }
 cc = "1"
@@ -52,8 +53,8 @@ reqwest = { workspace = true, features = ["blocking"] }
 default = []
 # Opt-in QS1 tip-window Inventory ledger (private harness / qs1 CI).
 qs1-ledger = []
-# inkwell object-direct + vendored LLD (sibling ../llvm or SYX_LLVM_PREFIX).
-full-native = ["syx-llvm/llvm", "syx-rt/vendored-lld"]
+# inkwell object-direct + LLD driver linked into the CLI (not into libsyx_rt.a).
+full-native = ["syx-llvm/llvm", "dep:syx-lld"]
 # Opt-in SynUI GUI host bridge (sibling ../synui). Off by default.
 gui-synui = ["syx-vm/gui-synui"]
 

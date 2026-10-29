@@ -156,6 +156,16 @@ fn macos_sdk_version() -> String {
 
 /// Run LLD with the given program arguments (excluding argv0).
 pub fn run_lld(link_args: &[OsString]) -> io::Result<()> {
+    // Fail fast: LLVM 21 ld64.lld cannot parse MacOSX26+/27 TBD `arm64e.x1-*`.
+    // Attempting the link burns CPU/RAM on thousands of unresolved CRT symbols.
+    #[cfg(target_os = "macos")]
+    if macos_sdk_unsupported_by_llvm21_lld() {
+        return Err(io::Error::other(
+            "macOS SDK TBD uses arm64e.x1 (or newer) arches unsupported by LLVM 21 LLD; \
+             use system cc (default) or a newer LLVM LLD",
+        ));
+    }
+
     let mut argv: Vec<String> = flavor_prefix_args();
     for a in link_args {
         argv.push(a.to_string_lossy().into_owned());
@@ -189,6 +199,34 @@ pub fn run_lld(link_args: &[OsString]) -> io::Result<()> {
             prog = prog.display()
         )))
     }
+}
+
+/// True when the active macOS SDK ships TBD target tags LLVM 21 ld64.lld rejects.
+#[cfg(target_os = "macos")]
+fn macos_sdk_unsupported_by_llvm21_lld() -> bool {
+    static CACHED: OnceLock<bool> = OnceLock::new();
+    *CACHED.get_or_init(|| {
+        let output = Command::new("xcrun")
+            .args(["--sdk", "macosx", "--show-sdk-path"])
+            .output()
+            .ok();
+        let Some(output) = output else {
+            return false;
+        };
+        if !output.status.success() {
+            return false;
+        }
+        let sdk = String::from_utf8_lossy(&output.stdout);
+        let sdk = sdk.trim();
+        if sdk.is_empty() {
+            return false;
+        }
+        let tbd = Path::new(sdk).join("usr/lib/libSystem.tbd");
+        let Ok(text) = std::fs::read_to_string(tbd) else {
+            return false;
+        };
+        text.contains("arm64e.x1-") || text.contains("arm64e.x2-")
+    })
 }
 
 /// Whether this build can use LLD (in-process and/or install/prefix bin).

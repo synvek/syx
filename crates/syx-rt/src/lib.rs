@@ -177,10 +177,11 @@ pub use bridge::{
 };
 pub use link::{
     audit_user_object_undefs, coff_undefined_externals, host_link_triple, link_executable,
-    link_executable_with, link_object_bytes, native_sdk_layout_report, profiles_sdk_deepen_inventory,
-    profiles_sdk_first_slice_inventory, profiles_sdk_ga_claimed_inventory, resolve_sdk_sysroot,
-    rt_archive_path, rt_archive_path_for_profile, sysroot_looks_usable, user_object_undef_allowed,
-    LinkOptions, NativeSdkLayoutReport, ProfilesSdkDeepenInventory, ProfilesSdkFirstSliceInventory,
+    link_executable_with, link_object_bytes, native_lld_argv, native_sdk_layout_report,
+    profiles_sdk_deepen_inventory, profiles_sdk_first_slice_inventory,
+    profiles_sdk_ga_claimed_inventory, resolve_sdk_sysroot, rt_archive_path,
+    rt_archive_path_for_profile, sysroot_looks_usable, user_object_undef_allowed, LinkOptions,
+    NativeSdkLayoutReport, ProfilesSdkDeepenInventory, ProfilesSdkFirstSliceInventory,
     ProfilesSdkGaClaimedInventory,
 };
 pub use llvm_stub_audit::{

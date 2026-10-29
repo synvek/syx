@@ -106,8 +106,16 @@ fn try_inprocess_lld(prefix: &Path) -> bool {
         }
     };
     println!("cargo:rustc-link-search=native={}", staging.display());
-    // Also search the real LLVM lib dir for any deps not staged (e.g. libxml2s).
-    println!("cargo:rustc-link-search=native={}", lib.display());
+    // Also search the real LLVM lib dir for deps not staged (e.g. Windows
+    // libxml2s). On macOS, sibling LLVM ships @rpath libc++ under lib/; adding
+    // that path makes `-lc++` resolve to it and breaks the final syx link.
+    let macos_libcxx = cfg!(target_os = "macos")
+        && (lib.join("libc++.dylib").is_file()
+            || lib.join("libc++.1.dylib").is_file()
+            || lib.join("libc++.a").is_file());
+    if !macos_libcxx {
+        println!("cargo:rustc-link-search=native={}", lib.display());
+    }
     emit_static_libs(prefix);
 
     match build.try_compile("syx_lld_bridge") {
@@ -304,8 +312,31 @@ fn emit_static_libs(prefix: &Path) {
 
     #[cfg(target_os = "macos")]
     {
-        // Explicit system libc++ (same as ../llvm/bin/lld).
-        println!("cargo:rustc-link-arg=/usr/lib/libc++.1.dylib");
+        // Do not use /usr/lib/libc++.1.dylib: on modern macOS it is only in the
+        // dyld shared cache (no on-disk file), and -L$LLVM/lib shadows -lc++ with
+        // an @rpath libc++ that leaves operator new/delete undefined. Prefer the
+        // Xcode SDK .tbd (works even when LLVM's lib dir is on the search path).
+        let mut linked = false;
+        if let Ok(out) = std::process::Command::new("xcrun")
+            .args(["--show-sdk-path"])
+            .output()
+        {
+            if out.status.success() {
+                let sdk = String::from_utf8_lossy(&out.stdout);
+                let sdk = sdk.trim();
+                for name in ["libc++.tbd", "libc++abi.tbd"] {
+                    let tbd = Path::new(sdk).join("usr/lib").join(name);
+                    if tbd.is_file() {
+                        println!("cargo:rustc-link-arg={}", tbd.display());
+                        linked = true;
+                    }
+                }
+            }
+        }
+        if !linked {
+            println!("cargo:rustc-link-arg=-lc++");
+            println!("cargo:rustc-link-arg=-lc++abi");
+        }
         println!("cargo:rustc-link-lib=dylib=xml2");
         println!("cargo:rustc-link-lib=dylib=z");
         println!("cargo:rustc-link-lib=dylib=ncurses");

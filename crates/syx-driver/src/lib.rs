@@ -2031,6 +2031,43 @@ fn link_native_object(
     for flag in options.build_profile.link_profile_args() {
         merged.link_flags.push(flag.to_string());
     }
+
+    // Prefer in-process / prefix LLD when full-native wired syx-lld into the CLI.
+    // LLD must NOT be linked into libsyx_rt.a (that made every native app link pull LLVM).
+    #[cfg(feature = "full-native")]
+    {
+        let force_cc = std::env::var("SYX_FORCE_CC_LINK")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
+        let disable_lld = std::env::var("SYX_DISABLE_LLD")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
+        if !force_cc && !disable_lld && syx_lld::available() {
+            let rt = if merged.rt_profile.is_empty() {
+                syx_rt::rt_archive_path()
+            } else {
+                syx_rt::rt_archive_path_for_profile(&merged.rt_profile)
+            }
+            .map_err(|e| SyxDiagnostic::error(format!("Failed to locate syx-rt archive: {e}")))?;
+            match syx_rt::native_lld_argv(obj_path, output, &merged, &rt)
+                .and_then(|args| syx_lld::run_lld(&args))
+            {
+                Ok(()) => return Ok(()),
+                Err(lld_err) => {
+                    let force_lld = std::env::var("SYX_FORCE_LLD")
+                        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+                        .unwrap_or(false);
+                    if force_lld {
+                        return Err(SyxDiagnostic::error(format!(
+                            "Failed to link native executable with LLD: {lld_err}"
+                        )));
+                    }
+                    // Fall through to host cc / link.exe.
+                }
+            }
+        }
+    }
+
     syx_rt::link_executable_with(obj_path, output, &merged)
         .map_err(|e| SyxDiagnostic::error(format!("Failed to link native executable: {e}")))?;
     Ok(())

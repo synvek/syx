@@ -7,6 +7,7 @@ extern crate semver;
 
 use std::env;
 use std::ffi::OsStr;
+use std::fs;
 use std::io::{self, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -717,6 +718,7 @@ fn main() {
     }
 
     let libdir = llvm_config(&llvm_config_path, ["--libdir"]);
+    let libdir_path = PathBuf::from(libdir.trim());
 
     // Export information to other crates
     println!("cargo:config_path={}", llvm_config_path.display()); // will be DEP_LLVM_CONFIG_PATH
@@ -724,8 +726,34 @@ fn main() {
 
     let preferences = LinkingPreferences::init();
 
+    // SYX patch (macOS): sibling/GitHub LLVM prefixes ship libc++ under --libdir
+    // with @rpath. `-L$libdir -lc++` then picks that copy and the final binary
+    // link fails with undefined operator new/delete / __cxa_*. `rustc-link-arg`
+    // to the SDK .tbd does not reliably reach the dependent bin link line, so
+    // stage a link search dir that omits libc++/libunwind and keep normal -lc++.
+    let link_search = if target_os_is("macos") && llvm_libdir_has_libcxx(&libdir_path) {
+        match stage_llvm_libdir_without_libcxx(&libdir_path) {
+            Ok(staged) => {
+                println!(
+                    "cargo:warning=llvm-sys: macOS staging LLVM libdir without libc++ -> {}",
+                    staged.display()
+                );
+                staged
+            }
+            Err(e) => {
+                println!(
+                    "cargo:warning=llvm-sys: macOS libc++ staging failed ({e}); using {}",
+                    libdir_path.display()
+                );
+                libdir_path.clone()
+            }
+        }
+    } else {
+        libdir_path.clone()
+    };
+
     // Link LLVM libraries
-    println!("cargo:rustc-link-search=native={}", libdir);
+    println!("cargo:rustc-link-search=native={}", link_search.display());
     for link_search_dir in get_system_library_dirs() {
         println!("cargo:rustc-link-search=native={}", link_search_dir);
     }
@@ -767,4 +795,34 @@ fn main() {
     if force_ffi {
         println!("cargo:rustc-link-lib=dylib=ffi");
     }
+}
+
+fn llvm_libdir_has_libcxx(libdir: &Path) -> bool {
+    libdir.join("libc++.dylib").is_file()
+        || libdir.join("libc++.1.dylib").is_file()
+        || libdir.join("libc++.a").is_file()
+}
+
+fn stage_llvm_libdir_without_libcxx(libdir: &Path) -> io::Result<PathBuf> {
+    let out =
+        PathBuf::from(env::var_os("OUT_DIR").ok_or_else(|| io::Error::new(ErrorKind::NotFound, "OUT_DIR"))?);
+    let staging = out.join("llvm-lib-nolibcxx");
+    if staging.is_dir() {
+        fs::remove_dir_all(&staging)?;
+    }
+    fs::create_dir_all(&staging)?;
+    for ent in fs::read_dir(libdir)? {
+        let ent = ent?;
+        let name = ent.file_name();
+        let n = name.to_string_lossy();
+        if n.starts_with("libc++") || n.starts_with("libunwind") {
+            continue;
+        }
+        let dest = staging.join(&name);
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(ent.path(), &dest)?;
+        #[cfg(not(unix))]
+        fs::copy(ent.path(), &dest)?;
+    }
+    Ok(staging)
 }
