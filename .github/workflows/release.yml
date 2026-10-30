@@ -694,9 +694,12 @@ jobs:
           node-version: "20"
       - name: Package VS Code extension
         run: |
-          npm install -g @vscode/vsce
+          # Must install extension deps and package WITH dependencies.
+          # `--no-dependencies` yields ~20KB shells missing vscode-languageclient
+          # (LSP/DAP broken). Local `npm run package` is ~400KB for comparison.
           cd editors/vscode-syx
-          vsce package --no-dependencies
+          npm ci
+          npx vsce package
           mkdir -p ../../dist
           mv *.vsix ../../dist/
       - uses: actions/download-artifact@v4

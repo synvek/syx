@@ -22,6 +22,14 @@ jobs:
       - name: Install extension dependencies
         run: npm ci
       - name: Package VS Code extension (smoke)
-        run: vsce package --no-dependencies
+        # Include runtime deps (vscode-languageclient); --no-dependencies ≈ empty shell.
+        run: npx vsce package
       - name: Verify VSIX artifact
-        run: ls -la *.vsix
+        run: |
+          ls -la *.vsix
+          size=$(wc -c < *.vsix | tr -d ' ')
+          # Expect bundled deps (~hundreds of KB), not a ~20KB shell.
+          if [ "$size" -lt 100000 ]; then
+            echo "VSIX too small (${size} bytes); packaging likely omitted dependencies" >&2
+            exit 1
+          fi
