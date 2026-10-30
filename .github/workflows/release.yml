@@ -725,7 +725,7 @@ jobs:
           cat > "$notes_file" <<EOF
           Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, release **${tag}**, run **${{ github.run_number }}**).
 
-          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`. Native link currently requires a host linker toolchain (VS / Xcode / CLT); SDK sysroot is not shipped yet.
+          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`. Native link currently requires system SDK (Windows SDK, XCode SDK) for linking; 
 
           | OS | Arch | Artifact |
           |----|------|----------|
