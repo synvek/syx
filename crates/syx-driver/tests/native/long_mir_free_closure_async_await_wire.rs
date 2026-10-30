@@ -1,6 +1,6 @@
 //! Long closure-async Await wire first-slice (W417 / ADR-761).
-//! Public inventory + RT fail-closed + llvm entry drop Await*; gap #3 remains open;
-//! ≠ MIR-free / ≠ delete sidecar / ≠ true native Await.
+//! Public inventory + RT pure-native Await (no MIR opcode fallback) + llvm entry drop Await*;
+//! gap #3 remains open; ≠ MIR-free / ≠ delete sidecar / ≠ full state-machine resume.
 
 #[test]
 fn long_mir_free_closure_async_await_wire_evidence_files_exist() {
@@ -60,21 +60,26 @@ fn long_mir_free_closure_async_await_wire_evidence_files_exist() {
     );
     let stubs = include_str!("../../../syx-rt/src/llvm_stubs.rs");
     let start = stubs
-        .find("fn await_poll_or_fail_closed")
+        .find("fn await_poll_native_wire")
         .or_else(|| stubs.find("pub extern \"C\" fn syx_rt_await_poll"))
-        .expect("syx_rt_await_poll / await_poll_or_fail_closed");
+        .expect("syx_rt_await_poll / await_poll_native_wire");
     let region = &stubs[start..];
     let end = region
         .find("pub extern \"C\" fn syx_rt_begin_try")
         .unwrap_or(region.len());
     let await_region = &region[..end];
     assert!(
-        await_region.contains("no-native") && await_region.contains("panic!"),
-        "Await stubs must fail-closed (W417)"
+        await_region.contains("rt_await_poll_native")
+            && await_region.contains("rt_await_suspend_native"),
+        "Await stubs must call pure-native wire (W417+)"
     );
     assert!(
         !await_region.contains("rt_direct_exec(") && !await_region.contains("AWAIT_POLL"),
         "Await stubs must not rt_direct_exec(AWAIT_*) (W417)"
+    );
+    assert!(
+        !await_region.contains("panic!"),
+        "Await ready-path must not fail-closed abort"
     );
     let wave_b = include_str!("../../../syx-rt/src/wave_b_horizon.rs");
     assert!(

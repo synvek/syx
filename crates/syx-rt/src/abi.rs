@@ -196,6 +196,50 @@ pub fn rt_call_host_native(idx: u32) -> i32 {
     NativeRt::with(|rt| mir_call_host(&mut rt.mir, idx))
 }
 
+/// Pure-native AwaitPoll (no `rt_direct_exec(AWAIT_POLL)`): cooperative yield marker.
+///
+/// W417 closed MIR-opcode fallback; demos need a real native path rather than fail-closed abort.
+pub fn rt_await_poll_native() -> i32 {
+    std::thread::yield_now();
+    0
+}
+
+/// Pure-native AwaitSuspend (no `rt_direct_exec(AWAIT_SUSPEND)`).
+///
+/// Mirrors VM ready-path semantics for AOT without a MIR resume driver:
+/// - ready / blocking-resolved tasks → push result, clear suspended
+/// - plain sync values → push back, do not suspend (single-pass nested async)
+///
+/// Pending-only suspend still sets `suspended` so LLVM's `is_suspended` branch can exit;
+/// full state-machine resume remains a later deepen (≠ this fix).
+pub fn rt_await_suspend_native(resume_fn: i32, state: i32) {
+    NativeRt::with(|rt| {
+        let value = rt.mir.stack.pop().unwrap_or(Value::Nil);
+        if let Some(vm_rt) = rt.mir.runtime.as_ref() {
+            if let Some(result) = vm_rt.try_await_task_value(&value) {
+                match result {
+                    Ok(v) => {
+                        rt.mir.stack.push(v);
+                        rt.mir.suspended = false;
+                    }
+                    Err(err) => native_runtime_fatal(err),
+                }
+                return;
+            }
+            if let Ok(v) = vm_rt.await_task_value(&value) {
+                rt.mir.stack.push(v);
+                rt.mir.suspended = false;
+                return;
+            }
+        }
+        // Sync-ready / non-task awaitable: complete in-place (matches VM no-runtime path).
+        rt.mir.async_resume_fn = resume_fn as u32;
+        rt.mir.async_state = state as u32;
+        rt.mir.stack.push(value);
+        rt.mir.suspended = false;
+    });
+}
+
 fn rt_dispatch_table_exec(rt: &mut MirRuntime, op: u32, a: i32, b: i32) -> i32 {
     native_stack_dispatch(rt, op, a, b)
 }

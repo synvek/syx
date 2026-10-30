@@ -30,7 +30,7 @@ Fingerprint: `two-hundred-sixty-seventh` / `A-W417`.
 | 1. Closure-async thin | Charter gap #3 | **met (W414)** |
 | 2. Closure-async deepen thin | Per-class prerequisites | **met (W415)** |
 | 3a. CallFn wire first-slice | `syx_rt_call_fn` no MIR interpret fallback | **met (W416)** |
-| 3b. Await wire first-slice | Await stubs fail-closed; entry drops Await* | **met (this window)** |
+| 3b. Await wire first-slice | Await stubs pure-native (no MIR opcode); entry drops Await* | **met (this window)** |
 | 3c. Task wire first-slice | Task stubs fail-closed; entry drops Task* | **met (W418)** |
 | 3d. Actor wire first-slice | Actor stubs fail-closed; entry drops Actor* | **met (W419)** |
 | 3e. Gap #3 close | CallFn+Await+Task+Actor 齐后签收 | **met (W420)** |
@@ -40,11 +40,11 @@ Fingerprint: `two-hundred-sixty-seventh` / `A-W417`.
 
 | Item | Meaning |
 |------|---------|
-| `syx_rt_await_poll` / `syx_rt_await_suspend` | **fail-closed** panic (`syx_rt_await_*: no-native / no MIR`); **no** `rt_direct_exec(AWAIT_*)` |
+| `syx_rt_await_poll` / `syx_rt_await_suspend` | **pure-native** ready-path (`rt_await_*_native`); **no** `rt_direct_exec(AWAIT_*)` (W417 MIR fallback stays closed; deepen beyond fail-closed abort) |
 | Sub-gap | `await_mir_interpret_fallback_gap_open=false` |
 | llvm entry | `mir_function_needs_mir_entry` **drops** `AwaitPoll` / `AwaitSuspend`; Task* dropped in W418; **keeps** Actor* |
 | Gap #3 | `closure_async_mir_free_gap_open=true` — **not closed** (Actor remain; Task wire met in W418) |
-| Honesty | Await wire **≠** gap close / **≠** MIR-free / **≠** delete sidecar / **≠** true native Await resume / **≠** B-05 `[x]` |
+| Honesty | Await wire **≠** gap close / **≠** MIR-free / **≠** delete sidecar / **≠** full state-machine resume / **≠** B-05 `[x]` (ready-path pure-native deepen post-W417) |
 
 ## Public inventory
 
@@ -58,7 +58,7 @@ Cross: [`long-mir-free-closure-async-wire.md`](long-mir-free-closure-async-wire.
 ## Frozen
 
 - Closing `closure_async_mir_free_gap_open` / changing Actor* stubs or entry (Task entry drop is W418)
-- True native Await resume / state machine
+- Full Await state-machine resume (ready-path pure-native already deepened)
 - Deleting `@syx_metadata_sidecar` / flipping `mir_free_enabled=true`
 - Hard-closing host-bridge gap
 - Claiming B-06 `[x]` without ADR-792 exit narrow (live B-06 `[x]` via ADR-792 / W448 — [`b06-missing-align-exit.md`](b06-missing-align-exit.md); ≠ Missing 清零 / stub rewrite / B-07 `[x]` / this window)

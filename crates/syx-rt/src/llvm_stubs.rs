@@ -2,7 +2,10 @@
 
 #![allow(dead_code, unused_variables)]
 
-use crate::abi::{rt_call_host_native, rt_direct_exec, rt_print_native};
+use crate::abi::{
+    rt_await_poll_native, rt_await_suspend_native, rt_call_host_native, rt_direct_exec,
+    rt_print_native,
+};
 use syx_stdlib::{host_fn_index, HostFnId};
 
 /// Tier-reduce noop stubs count as wired for GA audit (delegates to MIR POP).
@@ -111,25 +114,24 @@ pub extern "C" fn syx_rt_array_len(a: i32) -> i32 {
     rt_direct_exec(syx_mir_run::op::POP, 0, 0)
 }
 
-/// W417: Await wire first-slice — fail-closed; no MIR opcode fallback.
-pub(crate) fn await_poll_or_fail_closed() -> i32 {
-    panic!("syx_rt_await_poll: no-native / no MIR (W417 Await wire)");
+/// W417+: Await wire — pure native; no MIR AWAIT_* opcode fallback.
+pub(crate) fn await_poll_native_wire() -> i32 {
+    rt_await_poll_native()
 }
 
-/// W417: Await wire first-slice — fail-closed; no MIR opcode fallback.
-pub(crate) fn await_suspend_or_fail_closed(_a: i32, _b: i32) {
-    panic!("syx_rt_await_suspend: no-native / no MIR (W417 Await wire)");
+/// W417+: Await wire — pure native; no MIR AWAIT_* opcode fallback.
+pub(crate) fn await_suspend_native_wire(a: i32, b: i32) {
+    rt_await_suspend_native(a, b);
 }
 
 #[no_mangle]
 pub extern "C" fn syx_rt_await_poll() -> i32 {
-    // Panic across C ABI aborts (intentional fail-closed).
-    await_poll_or_fail_closed()
+    await_poll_native_wire()
 }
 
 #[no_mangle]
 pub extern "C" fn syx_rt_await_suspend(a: i32, b: i32) {
-    await_suspend_or_fail_closed(a, b);
+    await_suspend_native_wire(a, b);
 }
 
 #[no_mangle]
@@ -1195,30 +1197,30 @@ mod tests {
     use super::*;
 
     #[test]
-    #[should_panic(expected = "syx_rt_await_poll: no-native")]
-    fn await_poll_fail_closed_no_mir_direct_exec() {
-        let _ = await_poll_or_fail_closed();
+    fn await_poll_native_wire_no_mir_direct_exec() {
+        let _ = await_poll_native_wire();
     }
 
     #[test]
-    #[should_panic(expected = "syx_rt_await_suspend: no-native")]
-    fn await_suspend_fail_closed_no_mir_direct_exec() {
-        await_suspend_or_fail_closed(0, 0);
+    fn await_suspend_native_wire_ready_path_no_mir_direct_exec() {
+        // Empty stack → Nil ready-path; must not panic / must not need MIR opcodes.
+        await_suspend_native_wire(0, 0);
     }
 
     #[test]
     fn await_stubs_source_has_no_rt_direct_exec() {
         let src = include_str!("llvm_stubs.rs");
         let poll_start = src
-            .find("fn await_poll_or_fail_closed")
-            .expect("await_poll_or_fail_closed");
+            .find("fn await_poll_native_wire")
+            .expect("await_poll_native_wire");
         let suspend_end = src
             .find("pub extern \"C\" fn syx_rt_begin_try")
             .unwrap_or(src.len());
         let await_region = &src[poll_start..suspend_end];
         assert!(
-            await_region.contains("no-native") && await_region.contains("panic!"),
-            "Await helpers must fail-closed (W417)"
+            await_region.contains("rt_await_poll_native")
+                && await_region.contains("rt_await_suspend_native"),
+            "Await helpers must call pure-native wire (W417+)"
         );
         assert!(
             !await_region.contains("rt_direct_exec("),
@@ -1227,6 +1229,10 @@ mod tests {
         assert!(
             !await_region.contains("AWAIT_POLL") && !await_region.contains("AWAIT_SUSPEND"),
             "Await stubs must not reference AWAIT_* MIR opcodes (W417)"
+        );
+        assert!(
+            !await_region.contains("panic!"),
+            "Await ready-path must not fail-closed panic (demos / nested async)"
         );
     }
 
