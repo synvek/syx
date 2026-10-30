@@ -2,7 +2,7 @@
   "name": "syx-language",
   "displayName": "SYX Language",
   "description": "SYX language support",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "syx",
   "license": "Apache-2.0",
   "repository": "https://github.com/synvek/synswx",
