@@ -9,27 +9,120 @@ let client;
 let statusBarItem;
 
 /**
+ * On Windows, `fs.existsSync("syx")` is false even when `syx.exe` exists.
+ * @param {string} filePath
+ * @returns {string[]}
+ */
+function executableCandidates(filePath) {
+  if (process.platform !== "win32") {
+    return [filePath];
+  }
+  const lower = filePath.toLowerCase();
+  if (
+    lower.endsWith(".exe") ||
+    lower.endsWith(".cmd") ||
+    lower.endsWith(".bat") ||
+    lower.endsWith(".com")
+  ) {
+    return [filePath];
+  }
+  return [`${filePath}.exe`, filePath];
+}
+
+/**
+ * @param {string} candidate
+ * @returns {string | undefined}
+ */
+function existingExecutable(candidate) {
+  for (const p of executableCandidates(candidate)) {
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) {
+        return p;
+      }
+    } catch {
+      // ignore stat races
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolve a configured path that may be a binary, a directory containing syx,
+ * or a bare name for PATH lookup.
+ * @param {string} configured
+ * @returns {string | undefined} absolute/resolved file path when found on disk
+ */
+function resolveConfiguredBinary(configured) {
+  try {
+    if (fs.existsSync(configured) && fs.statSync(configured).isDirectory()) {
+      return existingExecutable(path.join(configured, "syx"));
+    }
+  } catch {
+    // ignore
+  }
+  return existingExecutable(configured);
+}
+
+/**
+ * Preferred path to show in errors when the binary is missing.
+ * @param {string} configured
+ * @returns {string}
+ */
+function preferredMissingPath(configured) {
+  try {
+    if (fs.existsSync(configured) && fs.statSync(configured).isDirectory()) {
+      return process.platform === "win32"
+        ? path.join(configured, "syx.exe")
+        : path.join(configured, "syx");
+    }
+  } catch {
+    // ignore
+  }
+  if (
+    process.platform === "win32" &&
+    path.isAbsolute(configured) &&
+    !configured.toLowerCase().endsWith(".exe")
+  ) {
+    return `${configured}.exe`;
+  }
+  return configured;
+}
+
+/**
  * @param {vscode.WorkspaceFolder | undefined} folder
  */
 function resolveSyxPath(folder) {
   const cfg = vscode.workspace.getConfiguration("syx");
-  const configured = cfg.get("languageServerPath", "syx");
+  const configured = String(cfg.get("languageServerPath", "syx") || "syx").trim();
+
   if (path.isAbsolute(configured)) {
-    return configured;
+    return resolveConfiguredBinary(configured) || preferredMissingPath(configured);
   }
+
   const root =
     folder?.uri.fsPath || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (root) {
     if (configured === "syx") {
       for (const rel of ["target/debug/syx", "target/release/syx"]) {
-        const candidate = path.join(root, rel);
-        if (fs.existsSync(candidate)) {
-          return candidate;
+        const found = existingExecutable(path.join(root, rel));
+        if (found) {
+          return found;
         }
       }
+    } else {
+      const asRelative = resolveConfiguredBinary(path.join(root, configured));
+      if (asRelative) {
+        return asRelative;
+      }
+      const legacy = existingExecutable(
+        path.join(root, "target", "debug", configured)
+      );
+      if (legacy) {
+        return legacy;
+      }
     }
-    return path.join(root, "target", "debug", configured);
   }
+  // Bare name: let the OS PATH / PATHEXT resolve at spawn time.
   return configured;
 }
 
@@ -38,19 +131,25 @@ function resolveSyxPath(folder) {
  * @returns {string | undefined}
  */
 function missingBinaryMessage(syxPath) {
-  if (fs.existsSync(syxPath)) {
+  // Bare `syx` may still be found via PATH when spawning; only hard-fail absolute paths.
+  if (!path.isAbsolute(syxPath)) {
+    return undefined;
+  }
+  if (existingExecutable(syxPath)) {
     return undefined;
   }
   const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (root) {
     return (
       `SYX language server not found at ${syxPath}. ` +
-      "Run `cargo build -p syx-cli` in the workspace root, then reload the window."
+      "Set `syx.languageServerPath` to your SDK `bin` folder or `syx.exe`, " +
+      "or run `cargo build -p syx-cli` in the workspace root, then reload."
     );
   }
   return (
     `SYX language server not found at ${syxPath}. ` +
-    "Open the synswx workspace or set `syx.languageServerPath` to your `syx` binary."
+    "Set `syx.languageServerPath` to your SDK `bin` folder (e.g. `C:/tools/syx/bin`) " +
+    "or the full path to `syx.exe`."
   );
 }
 

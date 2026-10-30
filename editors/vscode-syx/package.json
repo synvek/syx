@@ -2,7 +2,7 @@
   "name": "syx-language",
   "displayName": "SYX Language",
   "description": "SYX language support",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "syx",
   "license": "Apache-2.0",
   "repository": "https://github.com/synvek/synswx",
@@ -130,7 +130,7 @@
         "syx.languageServerPath": {
           "type": "string",
           "default": "syx",
-          "description": "Path to the syx CLI (must support `syx lsp`)"
+          "description": "Path to the syx CLI (must support `syx lsp`). Accepts the binary path, or the SDK `bin` directory (e.g. `C:/tools/syx/bin`); on Windows `.exe` is resolved automatically."
         },
         "syx.trace.server": {
           "type": "string",

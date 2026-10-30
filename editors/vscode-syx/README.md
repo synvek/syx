@@ -11,7 +11,7 @@ cargo build -p syx-cli
 cd editors/vscode-syx && npm install
 ```
 
-The extension launches the language server at `<workspace>/target/debug/syx lsp`. Override with `syx.languageServerPath` if needed.
+The extension launches the language server at `<workspace>/target/debug/syx lsp` (or `syx.exe` on Windows). Override with `syx.languageServerPath` — set either the binary, or the SDK `bin` directory (e.g. `C:/tools/syx/bin`).
 
 ## Development
 
