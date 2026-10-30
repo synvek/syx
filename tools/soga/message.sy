@@ -4,79 +4,76 @@
 // IMPORTANT: do not call single-label helpers like `userMessage(content: x)` —
 // SYX may treat that as Type_init construction and then JSON-decode garbage.
 
-import json_util
-
 public func makeMessage(role: String, content: String) -> Object {
     let roleJson = JSON.encode(value: role)
     let contentJson = JSON.encode(value: content)
     let text = "{\"role\":" + roleJson + ",\"content\":" + contentJson + "}"
-    return JSON.decode(text: text)
+    return JSON.decode(text: "\(text)")
 }
 
 public func newHistory() -> Object {
     return JSON.decode(text: "{\"messages\":[]}")
 }
 
-public func historyJson(history: Object) -> String {
-    let snap = JSON.decode(text: JSON.encode(value: history))
+public func historyJson(history histBag: Object) -> String {
+    let snap = JSON.decode(text: JSON.encode(value: histBag))
     return JSON.encode(value: snap.messages)
 }
 
-public func historyCount(history: Object) -> Int {
-    let snap = JSON.decode(text: JSON.encode(value: history))
+public func historyCount(history histBag: Object) -> Int {
+    let snap = JSON.decode(text: JSON.encode(value: histBag))
     return snap.messages.count
 }
 
-public func historyAppend(history: Object, msg: Object) -> Object {
-    let hText = JSON.encode(value: history)
+public func historyAppend(history histBag: Object, msg: Object) -> Object {
+    let hText = JSON.encode(value: histBag)
     let msgJson = JSON.encode(value: msg)
-    let snap = JSON.decode(text: hText)
+    let snap = JSON.decode(text: "\(hText)")
     let msgsJson = JSON.encode(value: snap.messages)
     var combined = "[]"
     if msgsJson == "[]" {
-        combined = "[" + msgJson + "]"
-    }
-    if msgsJson != "[]" {
-        let head = msgsJson.substring(0, msgsJson.count - 1)
-        combined = head + "," + msgJson + "]"
+        combined = "[" + "\(msgJson)" + "]"
+    } else {
+        let head = "\(msgsJson)".substring(0, "\(msgsJson)".count - 1)
+        combined = head + "," + "\(msgJson)" + "]"
     }
     return JSON.decode(text: "{\"messages\":" + combined + "}")
 }
 
-public func historyAddSystem(history: Object, content: String) -> Object {
-    let msg = makeMessage(role: "system", content: content)
-    return historyAppend(history: history, msg: msg)
+public func historyAddSystem(history histBag: Object, content: String) -> Object {
+    let msg = makeMessage(role: "system", content: "\(content)")
+    return historyAppend(history: histBag, msg: msg)
 }
 
-public func historyAddUser(history: Object, content: String) -> Object {
-    let msg = makeMessage(role: "user", content: content)
-    return historyAppend(history: history, msg: msg)
+public func historyAddUser(history histBag: Object, content: String) -> Object {
+    let msg = makeMessage(role: "user", content: "\(content)")
+    return historyAppend(history: histBag, msg: msg)
 }
 
-public func historyAddAssistant(history: Object, content: String) -> Object {
-    let msg = makeMessage(role: "assistant", content: content)
-    return historyAppend(history: history, msg: msg)
+public func historyAddAssistant(history histBag: Object, content: String) -> Object {
+    let msg = makeMessage(role: "assistant", content: "\(content)")
+    return historyAppend(history: histBag, msg: msg)
 }
 
-public func historyClone(history: Object) -> Object {
-    return JSON.decode(text: JSON.encode(value: history))
+public func historyClone(history histBag: Object) -> Object {
+    return JSON.decode(text: JSON.encode(value: histBag))
 }
 
-public func historyToOpenAIMessages(history: Object) -> Object {
-    let snap = JSON.decode(text: JSON.encode(value: history))
+public func historyToOpenAIMessages(history histBag: Object) -> Object {
+    let snap = JSON.decode(text: JSON.encode(value: histBag))
     return snap.messages
 }
 
-public func historyToAnthropic(history: Object) -> Object {
-    let hText = JSON.encode(value: history)
-    let snap0 = JSON.decode(text: hText)
+public func historyToAnthropic(history histBag: Object) -> Object {
+    let hText = JSON.encode(value: histBag)
+    let snap0 = JSON.decode(text: "\(hText)")
     let n = snap0.messages.count
     var systemText = ""
     var parts = ""
     var msgCount = 0
     var i = 0
     while i < n {
-        let round = JSON.decode(text: hText)
+        let round = JSON.decode(text: "\(hText)")
         let m = round.messages[i]
         let role = "" + "\(m.role)"
         let contentCopy = "" + "\(m.content)"

@@ -8610,7 +8610,14 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     let root = parent;
     purge_stale_incremental_caches(root);
     let cache = incremental_cache_path(root, path);
-    let current_source = std::fs::read_to_string(path).unwrap_or_default();
+    let package_main = project_root_if_manifest_entry(path).is_some();
+    let current_source = if package_main {
+        merge_package_unit_source(root, &manifest.main)
+            .map(|(_, s)| s)
+            .unwrap_or_default()
+    } else {
+        std::fs::read_to_string(path).unwrap_or_default()
+    };
     if cache.exists() {
         if let Ok(bytes) = std::fs::read(&cache) {
             if let Ok(cached) = bincode::deserialize::<CachedModuleUnit>(&bytes) {
@@ -8632,13 +8639,14 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     }
     syx_meta::service_di_clear();
     let mut graph = ModuleGraph::default();
-    let unit = compile_module_recursive(
-        ModuleRef::from_file(path.to_path_buf()),
-        root,
-        &mut graph,
-        &manifest,
-        &opts,
-    )?;
+    // When this file is the package `main`, merge sibling `.sy` sources (no file-as-module).
+    let entry_ref = if package_main {
+        let (entry_path, merged) = merge_package_unit_source(root, &manifest.main)?;
+        ModuleRef::from_inline(entry_path, path.display().to_string(), merged)
+    } else {
+        ModuleRef::from_file(path.to_path_buf())
+    };
+    let unit = compile_module_recursive(entry_ref, root, &mut graph, &manifest, &opts)?;
     if let Some(parent_dir) = cache.parent() {
         let _ = std::fs::create_dir_all(parent_dir);
     }
@@ -8732,6 +8740,86 @@ pub fn compile_project(root: &Path) -> SyxResult<CompiledProject> {
     compile_project_with_options(root, &DriverOptions::default())
 }
 
+/// Same-package unit = all `.sy` files in the directory that contains `main`
+/// (Swift/Go-style: files share one namespace; no file-as-module import).
+fn package_unit_sy_files(root: &Path, main_rel: &str) -> SyxResult<Vec<PathBuf>> {
+    let main_path = root.join(main_rel);
+    let dir = main_path.parent().unwrap_or(root);
+    let entries = std::fs::read_dir(dir).map_err(|e| {
+        SyxDiagnostic::error(format!("Failed to read package dir {}: {e}", dir.display()))
+    })?;
+    let mut files = Vec::new();
+    for entry in entries {
+        let entry = entry
+            .map_err(|e| SyxDiagnostic::error(format!("Failed to read dir entry: {e}")))?;
+        let p = entry.path();
+        if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("sy") {
+            files.push(p);
+        }
+    }
+    files.sort();
+    if files.is_empty() {
+        return Err(SyxDiagnostic::error(format!(
+            "No .sy sources in package directory {}",
+            dir.display()
+        )));
+    }
+    // Compile main last so its `main` wins ordering-wise for entry discovery.
+    if let Some(pos) = files.iter().position(|p| p == &main_path) {
+        let main = files.remove(pos);
+        files.push(main);
+    }
+    Ok(files)
+}
+
+fn package_local_stems(files: &[PathBuf]) -> indexmap::IndexSet<String> {
+    files
+        .iter()
+        .filter_map(|p| p.file_stem().and_then(|s| s.to_str()).map(str::to_string))
+        .collect()
+}
+
+/// Drop `import sibling` lines that target another file in the same package unit.
+fn strip_package_local_imports(source: &str, local_stems: &indexmap::IndexSet<String>) -> String {
+    let mut out = String::with_capacity(source.len());
+    for line in source.lines() {
+        let trimmed = line.trim_start();
+        if let Some(rest) = trimmed.strip_prefix("import ") {
+            let name = rest
+                .split_whitespace()
+                .next()
+                .unwrap_or("")
+                .trim_matches(|c| c == ';' || c == ',');
+            let stem = name.split('.').next().unwrap_or(name);
+            if local_stems.contains(stem) {
+                continue;
+            }
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
+    out
+}
+
+fn merge_package_unit_source(root: &Path, main_rel: &str) -> SyxResult<(PathBuf, String)> {
+    let main_path = root.join(main_rel);
+    let files = package_unit_sy_files(root, main_rel)?;
+    let stems = package_local_stems(&files);
+    let mut merged = String::new();
+    for file in &files {
+        let text = std::fs::read_to_string(file).map_err(|e| {
+            SyxDiagnostic::error(format!("Failed to read {}: {e}", file.display()))
+        })?;
+        merged.push_str(&format!("// --- package unit: {} ---\n", file.display()));
+        merged.push_str(&strip_package_local_imports(&text, &stems));
+        if !merged.ends_with('\n') {
+            merged.push('\n');
+        }
+        merged.push('\n');
+    }
+    Ok((main_path, merged))
+}
+
 pub fn compile_project_with_options(
     root: &Path,
     options: &DriverOptions,
@@ -8753,10 +8841,11 @@ pub fn compile_project_with_options(
     }
     syx_meta::service_di_clear();
     scan_workspace_services(root, &manifest, &opts)?;
-    let entry_path = root.join(&manifest.main);
+    let (entry_path, merged_source) = merge_package_unit_source(root, &manifest.main)?;
+    let display = entry_path.display().to_string();
     let mut graph = ModuleGraph::default();
     let entry = compile_module_recursive(
-        ModuleRef::from_file(entry_path.clone()),
+        ModuleRef::from_inline(entry_path.clone(), display, merged_source),
         root,
         &mut graph,
         &manifest,
@@ -8903,11 +8992,17 @@ fn resolve_module(
             }
         }
     }
-    let dotted_file = path_str.replace('.', "/");
-    let mut candidates = vec![
-        importer_dir.with_file_name(format!("{path_str}.sy")),
-        importer_dir.join(format!("{dotted_file}.sy")),
-    ];
+    // File-as-module is not supported (Swift-aligned): a bare name must resolve
+    // to stdlib / lock dependencies / `--module-dir`, not a sibling `.sy` file.
+    // Same-package multi-file projects are merged by `compile_project` instead.
+    let same_dir = importer_dir.join(format!("{}.sy", path_str.replace('.', "/")));
+    if same_dir.is_file() {
+        return Err(SyxDiagnostic::error(format!(
+            "Cannot import '{path_str}' as a file module; same-package `.sy` files share one namespace without import (use `syx.toml` project, or a path dependency)"
+        ))
+        .with_code("M010"));
+    }
+    let mut candidates = Vec::new();
     for dir in &options.module_dirs {
         candidates.extend(module_dir_candidates(dir, path_str));
     }

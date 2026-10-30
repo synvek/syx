@@ -1,15 +1,10 @@
 // soga/session.sy — multi-turn session
 
-import json_util
-import message
-import client
-import response
-
 public func create(cfg: Object, system: String) -> Object {
-    var history = message.newHistory()
+    var history = newHistory()
     if system.count > 0 {
-        let sysMsg = message.makeMessage(role: "system", content: system)
-        history = message.historyAppend(history: history, msg: sysMsg)
+        let sysMsg = makeMessage(role: "system", content: system)
+        history = historyAppend(history: history, msg: sysMsg)
     }
     let cfgText = JSON.encode(value: cfg)
     let histText = JSON.encode(value: history)
@@ -19,31 +14,32 @@ public func create(cfg: Object, system: String) -> Object {
 
 public func turn(session: Object, userText: String) -> Object {
     let snapText = JSON.encode(value: session)
-    let sHist = JSON.decode(text: snapText)
+    let sHist = JSON.decode(text: "\(snapText)")
     var history = sHist.history
-    let userMsg = message.makeMessage(role: "user", content: userText)
-    history = message.historyAppend(history: history, msg: userMsg)
-    let sCfg = JSON.decode(text: snapText)
-    let cfg = sCfg.cfg
-    let sTurns = JSON.decode(text: snapText)
-    let turns0 = json_util.jInt(v: sTurns.turns, fallback: 0)
+    let userMsg = makeMessage(role: "user", content: userText)
+    history = historyAppend(history: history, msg: userMsg)
+    let histForCall = JSON.encode(value: history)
+    let sCfg = JSON.decode(text: "\(snapText)")
+    let cfgText = JSON.encode(value: sCfg.cfg)
+    let sTurns = JSON.decode(text: "\(snapText)")
+    let turns0 = jInt(v: sTurns.turns, fallback: 0)
 
-    let result = client.chatComplete(cfg: cfg, history: history)
+    let result = chatComplete(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histForCall)"))
     let resText = JSON.encode(value: result)
-    let rOk = JSON.decode(text: resText)
-    let ok = json_util.jBool(v: rOk.ok, fallback: false)
-    let rContent = JSON.decode(text: resText)
-    let reply = json_util.jStr(v: rContent.content)
+    let rOk = JSON.decode(text: "\(resText)")
+    let ok = jBool(v: rOk.ok, fallback: false)
+    let rContent = JSON.decode(text: "\(resText)")
+    let reply = jStr(v: rContent.content)
 
     var turns = turns0
+    var histText = "\(histForCall)"
     if ok {
-        let asst = message.makeMessage(role: "assistant", content: reply)
-        history = message.historyAppend(history: history, msg: asst)
+        var history2 = decodeObject(text: "\(histForCall)")
+        let asst = makeMessage(role: "assistant", content: reply)
+        history2 = historyAppend(history: history2, msg: asst)
+        histText = JSON.encode(value: history2)
         turns = turns0 + 1
     }
-    let histText = JSON.encode(value: history)
-    let sCfg2 = JSON.decode(text: snapText)
-    let cfgText = JSON.encode(value: sCfg2.cfg)
     return JSON.decode(text: "{\"cfg\":" + cfgText + ",\"history\":" + histText + ",\"turns\":" + "\(turns)" + ",\"last\":" + resText + "}")
 }
 
@@ -59,28 +55,30 @@ public func runScript(session: Object, promptsJson: String) -> Object {
         print(i + 1)
         print(" user:")
         print(p)
-        let cur = JSON.decode(text: sText)
+        let cur = JSON.decode(text: "\(sText)")
         let next = turn(session: cur, userText: p)
         sText = JSON.encode(value: next)
-        let snap = JSON.decode(text: sText)
-        let last = snap.last
-        let okSnap = JSON.decode(text: JSON.encode(value: last))
-        let ok = json_util.jBool(v: okSnap.ok, fallback: false)
-        response.printResult(r: last)
+        let snap = JSON.decode(text: "\(sText)")
+        let lastText = JSON.encode(value: snap.last)
+        let okSnap = JSON.decode(text: "\(lastText)")
+        let ok = jBool(v: okSnap.ok, fallback: false)
+        printResult(r: decodeObject(text: "\(lastText)"))
         if !ok {
-            return JSON.decode(text: sText)
+            return JSON.decode(text: "\(sText)")
         }
         i = i + 1
     }
-    return JSON.decode(text: sText)
+    return JSON.decode(text: "\(sText)")
 }
 
 public func previewNext(session: Object, userText: String) -> Object {
     let snapText = JSON.encode(value: session)
-    let sHist = JSON.decode(text: snapText)
-    var history = message.historyClone(history: sHist.history)
-    let userMsg = message.makeMessage(role: "user", content: userText)
-    history = message.historyAppend(history: history, msg: userMsg)
-    let sCfg = JSON.decode(text: snapText)
-    return client.dryRun(cfg: sCfg.cfg, history: history)
+    let sHist = JSON.decode(text: "\(snapText)")
+    var history = historyClone(history: sHist.history)
+    let userMsg = makeMessage(role: "user", content: userText)
+    history = historyAppend(history: history, msg: userMsg)
+    let histText = JSON.encode(value: history)
+    let sCfg = JSON.decode(text: "\(snapText)")
+    let cfgText = JSON.encode(value: sCfg.cfg)
+    return dryRun(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
 }

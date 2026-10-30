@@ -1,6 +1,4 @@
-import helper
-
+// Same-package files share one namespace (no file-as-module import).
 func main() {
-    print(helper.answer())
+    print(answer())
 }
-

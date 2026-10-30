@@ -1,56 +1,60 @@
 // soga/client.sy — unified facade
 
-import json_util
-import message
-import openai_compat
-import anthropic_api
-
 public func chatComplete(cfg: Object, history: Object) -> Object {
-    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
-    let style = json_util.jStr(v: snap.api_style)
+    let cfgText = encodeJson(value: cfg)
+    let histText = encodeJson(value: history)
+    let snap = decodeObject(text: "\(cfgText)")
+    let style = jStr(v: snap.api_style)
     if style == "anthropic" {
-        return anthropic_api.chatComplete(cfg: cfg, history: history)
+        return anthropicChatComplete(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
+    } else {
+        return openaiChatComplete(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
     }
-    return openai_compat.chatComplete(cfg: cfg, history: history)
 }
 
 public func ask(cfg: Object, system: String, prompt: String) -> Object {
-    var history = message.newHistory()
+    let cfgText = encodeJson(value: cfg)
+    var history = newHistory()
     if system.count > 0 {
-        history = message.historyAddSystem(history: history, content: "\(system)")
+        history = historyAddSystem(history: history, content: "\(system)")
     }
-    history = message.historyAddUser(history: history, content: "\(prompt)")
-    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
-    let style = json_util.jStr(v: snap.api_style)
+    history = historyAddUser(history: history, content: "\(prompt)")
+    let snap = decodeObject(text: "\(cfgText)")
+    let style = jStr(v: snap.api_style)
+    let histText = encodeJson(value: history)
     if style == "anthropic" {
-        return anthropic_api.chatComplete(cfg: cfg, history: history)
+        return anthropicChatComplete(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
+    } else {
+        return openaiChatComplete(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
     }
-    return openai_compat.chatComplete(cfg: cfg, history: history)
 }
 
 public func dryRun(cfg: Object, history: Object) -> Object {
-    let snap = json_util.decodeObject(text: json_util.encodeJson(value: cfg))
-    let style = json_util.jStr(v: snap.api_style)
+    let cfgText = encodeJson(value: cfg)
+    let histText = encodeJson(value: history)
+    let snap = decodeObject(text: "\(cfgText)")
+    let style = jStr(v: snap.api_style)
     if style == "anthropic" {
-        return anthropic_api.dryRun(cfg: cfg, history: history)
+        return anthropicDryRun(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
+    } else {
+        return openaiDryRun(cfg: decodeObject(text: "\(cfgText)"), history: decodeObject(text: "\(histText)"))
     }
-    return openai_compat.dryRun(cfg: cfg, history: history)
 }
 
 public func printDryRun(info: Object) {
-    let text = json_util.encodeJson(value: info)
-    let s1 = json_util.decodeObject(text: text)
-    let provider = json_util.jStr(v: s1.provider)
-    let s2 = json_util.decodeObject(text: text)
-    let model = json_util.jStr(v: s2.model)
-    let s3 = json_util.decodeObject(text: text)
-    let style = json_util.jStr(v: s3.api_style)
-    let s4 = json_util.decodeObject(text: text)
-    let url = json_util.jStr(v: s4.url)
-    let s5 = json_util.decodeObject(text: text)
-    let keyEnv = json_util.jStr(v: s5.api_key_env)
-    let s6 = json_util.decodeObject(text: text)
-    let hasKey = json_util.jBool(v: s6.has_api_key, fallback: false)
+    let text = encodeJson(value: info)
+    let s1 = decodeObject(text: "\(text)")
+    let provider = jStr(v: s1.provider)
+    let s2 = decodeObject(text: "\(text)")
+    let model = jStr(v: s2.model)
+    let s3 = decodeObject(text: "\(text)")
+    let style = jStr(v: s3.api_style)
+    let s4 = decodeObject(text: "\(text)")
+    let url = jStr(v: s4.url)
+    let s5 = decodeObject(text: "\(text)")
+    let keyEnv = jStr(v: s5.api_key_env)
+    let s6 = decodeObject(text: "\(text)")
+    let hasKey = jBool(v: s6.has_api_key, fallback: false)
     print("[soga] dry-run provider=\(provider) style=\(style) model=\(model)")
     print("[soga] url=\(url)")
     print("[soga] api_key_env=\(keyEnv) has_key=\(hasKey)")
@@ -59,14 +63,14 @@ public func printDryRun(info: Object) {
 }
 
 public func describe(cfg: Object) -> String {
-    let text = json_util.encodeJson(value: cfg)
-    let s1 = json_util.decodeObject(text: text)
-    let name = json_util.jStr(v: s1.name)
-    let s2 = json_util.decodeObject(text: text)
-    let style = json_util.jStr(v: s2.api_style)
-    let s3 = json_util.decodeObject(text: text)
-    let model = json_util.jStr(v: s3.model)
-    let s4 = json_util.decodeObject(text: text)
-    let base = json_util.jStr(v: s4.base_url)
+    let text = encodeJson(value: cfg)
+    let s1 = decodeObject(text: "\(text)")
+    let name = jStr(v: s1.name)
+    let s2 = decodeObject(text: "\(text)")
+    let style = jStr(v: s2.api_style)
+    let s3 = decodeObject(text: "\(text)")
+    let model = jStr(v: s3.model)
+    let s4 = decodeObject(text: "\(text)")
+    let base = jStr(v: s4.base_url)
     return "provider=\(name) style=\(style) model=\(model) base=\(base)"
 }

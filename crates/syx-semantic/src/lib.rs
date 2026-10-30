@@ -4176,6 +4176,9 @@ impl SemanticAnalyzer {
                 } else {
                     self.analyze_expr_with_expected(value, Some(&expected))?
                 };
+                // Reassignment rebinds the name; prior move of the old value no longer applies.
+                self.moved_bindings.remove(name);
+                self.mut_borrows.remove(name);
                 if matches!(expected, TypeId::Unknown) {
                     if let Some(binding) = self.scope.lookup_mut(name) {
                         binding.ty = ty.clone();

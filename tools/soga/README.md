@@ -29,6 +29,8 @@ cargo run -p syx-cli -- run tools/soga
 
 ## 布局
 
+同目录多 `.sy` 属于同一个 `syx.toml` 包：共享命名空间，**不要**再写 `import message` 这类 file module。
+
 | 文件 | 作用 |
 |------|------|
 | `message.sy` | 消息 / 历史（`{ messages: [...] }`） |
@@ -67,22 +69,21 @@ cargo run -p syx-cli -- run tools/soga
 
 ## 库用法
 
+同包多文件共享命名空间（无需 `import message` 这类 file module）：
+
 ```syx
-import providers
-import client
-import message
-import response
+import Env
 
 func main() {
-    var cfg = providers.deepseek()
-    cfg = providers.withApiKey(cfg: cfg, apiKey: Env.get("DEEPSEEK_API_KEY"))
+    var cfg = deepseek()
+    cfg = withApiKey(cfg: cfg, apiKey: Env.get("DEEPSEEK_API_KEY"))
 
-    var history = message.newHistory()
-    let user = message.makeMessage(role: "user", content: "Hello")
-    history = message.historyAppend(history: history, msg: user)
+    var history = newHistory()
+    let user = makeMessage(role: "user", content: "Hello")
+    history = historyAppend(history: history, msg: user)
 
-    let result = client.chatComplete(cfg: cfg, history: history)
-    response.printResult(r: result)
+    let result = chatComplete(cfg: cfg, history: history)
+    printResult(r: result)
 }
 ```
 

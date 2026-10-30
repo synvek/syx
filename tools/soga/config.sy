@@ -1,8 +1,6 @@
-// soga/config.sy — env → provider cfg (JSON-built Objects; use .field reads)
+// soga/sy — env → provider cfg (JSON-built Objects; use .field reads)
 
 import Env
-import json_util
-import providers
 
 public func envOr(key: String, fallback: String) -> String {
     let v = Env.get(key)
@@ -72,26 +70,26 @@ public func promptFromArgs() -> String {
 }
 
 public func loadNamed(name: String) -> Object {
-    let preset = providers.byName(name: name)
-    let pText = json_util.encodeJson(value: preset)
-    let p = json_util.decodeObject(text: pText)
-    var base = json_util.jStr(v: p.base_url)
-    let p2 = json_util.decodeObject(text: pText)
-    var model = json_util.jStr(v: p2.model)
-    let p3 = json_util.decodeObject(text: pText)
-    let pname = json_util.jStr(v: p3.name)
-    let p4 = json_util.decodeObject(text: pText)
-    let style = json_util.jStr(v: p4.api_style)
-    let p5 = json_util.decodeObject(text: pText)
-    let keyEnv = json_util.jStr(v: p5.api_key_env)
-    let p6 = json_util.decodeObject(text: pText)
-    var maxTokens = json_util.jInt(v: p6.max_tokens, fallback: 1024)
-    let p7 = json_util.decodeObject(text: pText)
-    var timeoutMs = json_util.jInt(v: p7.timeout_ms, fallback: 120000)
-    let p8 = json_util.decodeObject(text: pText)
-    let temperature = json_util.jDouble(v: p8.temperature, fallback: 0.7)
-    let p9 = json_util.decodeObject(text: pText)
-    var anthropicVersion = json_util.jStr(v: p9.anthropic_version)
+    let preset = byName(name: name)
+    let pText = encodeJson(value: preset)
+    let p = decodeObject(text: "\(pText)")
+    var base = jStr(v: p.base_url)
+    let p2 = decodeObject(text: "\(pText)")
+    var model = jStr(v: p2.model)
+    let p3 = decodeObject(text: "\(pText)")
+    let pname = jStr(v: p3.name)
+    let p4 = decodeObject(text: "\(pText)")
+    let style = jStr(v: p4.api_style)
+    let p5 = decodeObject(text: "\(pText)")
+    let keyEnv = jStr(v: p5.api_key_env)
+    let p6 = decodeObject(text: "\(pText)")
+    var maxTokens = jInt(v: p6.max_tokens, fallback: 1024)
+    let p7 = decodeObject(text: "\(pText)")
+    var timeoutMs = jInt(v: p7.timeout_ms, fallback: 120000)
+    let p8 = decodeObject(text: "\(pText)")
+    let temperature = jDouble(v: p8.temperature, fallback: 0.7)
+    let p9 = decodeObject(text: "\(pText)")
+    var anthropicVersion = jStr(v: p9.anthropic_version)
     if anthropicVersion.count == 0 {
         anthropicVersion = "2023-06-01"
     }
@@ -102,18 +100,18 @@ public func loadNamed(name: String) -> Object {
     if modelOv.count > 0 { model = modelOv }
     let maxOv = Env.get("SOGA_MAX_TOKENS")
     if maxOv.count > 0 {
-        let parsed = json_util.decodeObject(text: "{\"n\":\(maxOv)}")
-        maxTokens = json_util.jInt(v: parsed.n, fallback: maxTokens)
+        let parsed = decodeObject(text: "{\"n\":\(maxOv)}")
+        maxTokens = jInt(v: parsed.n, fallback: maxTokens)
     }
     let timeoutOv = Env.get("SOGA_TIMEOUT_MS")
     if timeoutOv.count > 0 {
-        let parsed2 = json_util.decodeObject(text: "{\"n\":\(timeoutOv)}")
-        timeoutMs = json_util.jInt(v: parsed2.n, fallback: timeoutMs)
+        let parsed2 = decodeObject(text: "{\"n\":\(timeoutOv)}")
+        timeoutMs = jInt(v: parsed2.n, fallback: timeoutMs)
     }
     let apiKey = resolveApiKeyForEnv(keyEnv: keyEnv)
 
     let cfgText = "{\"name\":\"\(pname)\",\"api_style\":\"\(style)\",\"base_url\":\"\(base)\",\"model\":\"\(model)\",\"api_key_env\":\"\(keyEnv)\",\"api_key\":\"\(apiKey)\",\"max_tokens\":\(maxTokens),\"timeout_ms\":\(timeoutMs),\"temperature\":\(temperature),\"anthropic_version\":\"\(anthropicVersion)\"}"
-    return json_util.decodeObject(text: cfgText)
+    return decodeObject(text: "\(cfgText)")
 }
 
 public func loadFromEnv() -> Object {

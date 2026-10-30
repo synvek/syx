@@ -1,4 +1,4 @@
-// soga/json_util.sy
+// soga/sy
 // ---------------------------------------------------------------
 // JSON / Object helpers.
 // IMPORTANT: prefer `obj.field` or `obj.valueForKey(key:)` — bare
@@ -50,7 +50,7 @@ public func emptyObject() -> Object {
 public func decodeObject(text: String) -> Object {
     var out: Object = JSON.decode("{}")
     try {
-        out = JSON.decode(text: text)
+        out = JSON.decode(text: "\(text)")
     } catch (e) {
         out = JSON.decode("{}")
     }

@@ -12,6 +12,12 @@ pub enum ModuleRef {
         display_name: String,
         source: &'static str,
     },
+    /// In-memory unit (e.g. merged same-package sources).
+    Inline {
+        key: PathBuf,
+        display_name: String,
+        source: String,
+    },
 }
 
 impl ModuleRef {
@@ -19,10 +25,18 @@ impl ModuleRef {
         Self::File(path)
     }
 
+    pub fn from_inline(key: PathBuf, display_name: String, source: String) -> Self {
+        Self::Inline {
+            key,
+            display_name,
+            source,
+        }
+    }
+
     pub fn key(&self) -> PathBuf {
         match self {
             Self::File(path) => path.canonicalize().unwrap_or_else(|_| path.clone()),
-            Self::Embedded { key, .. } => key.clone(),
+            Self::Embedded { key, .. } | Self::Inline { key, .. } => key.clone(),
         }
     }
 
@@ -43,12 +57,21 @@ impl ModuleRef {
                 key.clone(),
                 SourceFile::new(display_name.clone(), (*source).to_string()),
             )),
+            Self::Inline {
+                key,
+                display_name,
+                source,
+            } => Ok((
+                key.clone(),
+                SourceFile::new(display_name.clone(), source.clone()),
+            )),
         }
     }
 
     pub fn importer_path<'a>(&'a self, fallback: &'a Path) -> &'a Path {
         match self {
             Self::File(path) => path.as_path(),
+            Self::Inline { key, .. } => key.as_path(),
             Self::Embedded { .. } => fallback,
         }
     }
