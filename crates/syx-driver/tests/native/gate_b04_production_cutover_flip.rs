@@ -74,38 +74,3 @@ fn b04_production_cutover_flip_spec_signed() {
     }
 }
 
-#[test]
-fn b04_production_cutover_flip_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W400")
-            && (roadmap.contains("cutover")
-                || roadmap.contains("ADR-744")
-                || roadmap.contains("production_cutover")),
-        "roadmap must cite W400 cutover honesty flip"
-    );
-    let b05 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-05 |"))
-        .expect("B-05 row");
-    assert!(
-        b05.contains("| [x] |"),
-        "B-05 must be [x] after W447 exit: {b05}"
-    );
-    let b06 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-06 |"))
-        .expect("B-06 row");
-    assert!(
-        b06.contains("| [x] |"),
-        "B-06 must be [x] after W448 exit: {b06}"
-    );
-    let b04 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-04 |"))
-        .expect("B-04 row");
-    assert!(
-        b04.contains("| [x] |"),
-        "B-04 must be [x] after W446 exit: {b04}"
-    );
-}

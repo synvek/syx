@@ -342,6 +342,7 @@ pub fn check_version_req(root: &Path, req: &VersionReq, dep_name: &str) -> SyxRe
     Ok(version)
 }
 
+#[allow(dead_code)] // path resolution helper retained for pkg deepen
 pub fn package_root_candidates(dep_root: &Path, module_name: &str, main: &str) -> Vec<PathBuf> {
     let first_segment = module_name.split('.').next().unwrap_or(module_name);
     let dotted_file = module_name.replace('.', "/");

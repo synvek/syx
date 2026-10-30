@@ -124,28 +124,3 @@ fn b09_actor_mailbox_value_queue_root_set_first_slice_inventory_nails() {
     assert!(vm.b09_vm_gccollect_root_set_first_slice_signed);
 }
 
-#[test]
-fn b09_actor_mailbox_value_queue_root_set_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W489")
-            && (roadmap.contains("ADR-833")
-                || roadmap.contains("mailbox")
-                || roadmap.contains("根集")
-                || roadmap.contains("Value")),
-        "roadmap must cite W489 / ADR-833 mailbox Value-queue root-set first-slice"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

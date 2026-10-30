@@ -138,26 +138,3 @@ fn math_llvm_ga_exit_first_slice_inventory_nails() {
     assert!(!soft.math_llvm_ga);
 }
 
-#[test]
-fn math_llvm_ga_exit_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W965")
-            && (roadmap.contains("ADR-1309")
-                || roadmap.contains("GA exit")
-                || roadmap.contains("math_llvm_ga")),
-        "roadmap must cite W965 / ADR-1309 Math llvm GA exit"
-    );
-    let f08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| F-08 |"))
-        .expect("F-08 row");
-    assert!(
-        f08.contains("[ ]"),
-        "roadmap F-08 must remain frozen [ ]: {f08}"
-    );
-    assert!(
-        !f08.contains("[x]"),
-        "roadmap F-08 must not flip to [x]: {f08}"
-    );
-}

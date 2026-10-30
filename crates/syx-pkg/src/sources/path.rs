@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use semver::Version;
 use syx_diagnostics::{SyxDiagnostic, SyxResult};
@@ -80,6 +80,7 @@ pub mod pathdiff {
     }
 }
 
+#[allow(dead_code)] // path-source manifest probe retained for pkg deepen
 pub fn package_manifest_at(root: &Path) -> SyxResult<(String, Version)> {
     let manifest = load_manifest(root)?;
     let version = Version::parse(&manifest.version).map_err(|e| {

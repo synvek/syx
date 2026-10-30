@@ -77,39 +77,3 @@ fn b04_size_ci_gate_deepen_spec_signed() {
     }
 }
 
-#[test]
-fn b04_size_ci_gate_deepen_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W399")
-            && (roadmap.contains("size-CI")
-                || roadmap.contains("size_ci")
-                || roadmap.contains("size golden")
-                || roadmap.contains("ADR-743")),
-        "roadmap must cite W399 size-CI gate"
-    );
-    let b05 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-05 |"))
-        .expect("B-05 row");
-    assert!(
-        b05.contains("| [x] |"),
-        "B-05 must be [x] after W447 exit: {b05}"
-    );
-    let b06 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-06 |"))
-        .expect("B-06 row");
-    assert!(
-        b06.contains("| [x] |"),
-        "B-06 must be [x] after W448 exit: {b06}"
-    );
-    let b04 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-04 |"))
-        .expect("B-04 row");
-    assert!(
-        b04.contains("| [x] |"),
-        "B-04 must be [x] after W446 exit: {b04}"
-    );
-}

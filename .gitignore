@@ -48,5 +48,4 @@ plan/
 # plan-001 Phase 6b: qs1 ledger overlaid from private inventory/
 crates/syx-driver/src/qs1_ledger.rs
 
-Cargo.lock
 .DS_Store

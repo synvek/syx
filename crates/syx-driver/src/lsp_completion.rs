@@ -70,8 +70,7 @@ fn expr_span(expr: &Expr) -> Span {
         | Expr::Is { span, .. }
         | Expr::Cast { span, .. }
         | Expr::TypeSelf { span, .. }
-        | Expr::Super { span, .. }
-        | Expr::Tuple { span, .. } => *span,
+        | Expr::Super { span, .. } => *span,
     }
 }
 
@@ -261,7 +260,7 @@ fn visit_module(module: &Module, f: &mut dyn FnMut(&Expr)) {
 }
 
 /// Innermost receiver expression when the cursor is completing a member after `.`.
-pub fn receiver_expr_at_offset(module: &Module, source: &str, byte_offset: usize) -> Option<Expr> {
+pub fn receiver_expr_at_offset(module: &Module, _source: &str, byte_offset: usize) -> Option<Expr> {
     let mut best: Option<(Expr, u32)> = None;
     visit_module(module, &mut |expr| {
         let Expr::Member { object, span, .. } = expr else {
@@ -437,7 +436,7 @@ pub fn receiver_type_at_position(
     line: usize,
     character: u32,
 ) -> syx_semantic::TypeId {
-    use syx_semantic::{TypeId, TypeId::*};
+    use syx_semantic::TypeId::*;
 
     // Prefer binding / symbol type for bare identifiers so Span::DUMMY receivers
     // (completion) are not confused with unrelated expr_types cache entries.

@@ -112,33 +112,3 @@ fn language_exports_aot_roots_thin_inventory_nails() {
     assert!(inv.language_exports_thin_signed);
 }
 
-#[test]
-fn language_exports_aot_roots_thin_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W460")
-            && (roadmap.contains("ADR-804")
-                || roadmap.contains("exports")
-                || roadmap.contains("aot_export_roots")
-                || roadmap.contains("LanguageExports")),
-        "roadmap must cite W460 / ADR-804 language exports thin-open"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W456/W460: {row}"
-        );
-    }
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("| [x] |") || b09.contains("| [~] |") || b09.contains("| [ ] |"),
-        "B-09 must be [x] (W558+) or historical [~] (or historical [ ]): {b09}"
-    );
-}

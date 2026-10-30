@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 mod exec;
 mod mir_emit;
 mod stats;

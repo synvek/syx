@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 use syx_ast::{Decl, Expr, Module, Stmt};
 use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
 use syx_parser::Parser;

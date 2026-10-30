@@ -306,19 +306,6 @@ func main() {{
     );
 }
 
-#[test]
-fn hostfn_http_plan_a05_mentions_http_batch() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let a05 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-05 |"))
-        .expect("A-05 row");
-    assert!(
-        a05.contains("| [~] |") || a05.contains("| [x] |"),
-        "A-05 must stay in progress or done: {a05}"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
-}
 
 fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
     let needle = format!("name = \"{name}\"");

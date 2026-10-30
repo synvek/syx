@@ -1,7 +1,6 @@
-use indexmap::IndexMap;
 use smol_str::SmolStr;
-use syx_ast::{AccessLevel, Attribute, AttributeArg, Decl, Expr, Literal, Param, ParamLabel, Stmt, TypeExpr};
-use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+use syx_ast::{AccessLevel, Attribute, AttributeArg, Decl, Expr, Literal, Stmt, TypeExpr};
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::attached_config::attached_body_template_for;
 use crate::parse_fragment::{parse_attached_body, parse_attached_decls, parse_extension_member};

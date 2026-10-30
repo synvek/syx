@@ -1,5 +1,5 @@
 use syx_stdlib::{
-    bit_width, int_range, is_float, is_integer, is_integer_narrowing, is_signed, is_unsigned,
+    bit_width, int_range, is_float, is_integer, is_integer_narrowing, is_unsigned,
     resolve_alias, type_name, NumericKind, PLATFORM_INT,
 };
 

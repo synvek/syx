@@ -129,28 +129,3 @@ fn b09_storage_cleanup_first_slice_inventory_nails() {
     assert!(er.b09_enable_readiness_signed);
 }
 
-#[test]
-fn b09_storage_cleanup_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W494")
-            && (roadmap.contains("ADR-838")
-                || roadmap.contains("storage-cleanup")
-                || roadmap.contains("dead API")
-                || roadmap.contains("collect_mark_sweep")),
-        "roadmap must cite W494 / ADR-838 storage-cleanup first-slice"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

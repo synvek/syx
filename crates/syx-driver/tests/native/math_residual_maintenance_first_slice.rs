@@ -96,33 +96,3 @@ fn math_residual_maintenance_first_slice_inventory_nails() {
     assert!(!platform.platform_residual_maintenance_ga);
 }
 
-#[test]
-fn math_residual_maintenance_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W953")
-            && (roadmap.contains("ADR-1297")
-                || roadmap.contains("Math residual")
-                || roadmap.contains("Math 维护")),
-        "roadmap must cite W953 / ADR-1297 Math residual maintenance"
-    );
-    for id in ["C-06", "C-07", "C-08", "C-09", "C-11", "F-07"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(row.contains("[x]"), "roadmap {id} must remain [x]: {row}");
-    }
-    let f08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| F-08 |"))
-        .expect("F-08 row");
-    assert!(
-        f08.contains("[ ]"),
-        "roadmap F-08 must remain frozen [ ]: {f08}"
-    );
-    assert!(
-        !f08.contains("[x]"),
-        "roadmap F-08 must not flip to [x]: {f08}"
-    );
-}

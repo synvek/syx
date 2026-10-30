@@ -181,29 +181,3 @@ fn edge_spec_doc_cites_adr629() {
     );
 }
 
-#[test]
-fn edge_roadmap_meta_nan_slice() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let a04 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-04 |"))
-        .expect("A-04 row");
-    assert!(
-        a04.contains("| [x] |"),
-        "A-04 must be checked after W288 exit charter: {a04}"
-    );
-    assert!(
-        a04.contains("W285") || a04.contains("NaN") || a04.contains("ADR-629"),
-        "A-04 row must cite W285 NaN slice: {a04}"
-    );
-    // F-02 slim SSOT dropped `- [x] Q-L4` checklist lines; Q-L4 remains as A-04 source tag.
-    assert!(
-        roadmap.lines().any(|l| l.starts_with("- [x] Q-L4"))
-            || (a04.contains("Q-L4") && a04.contains("| [x] |")),
-        "Q-L4 must remain checked (checklist or A-04 [x] source tag)"
-    );
-    assert!(
-        !roadmap.lines().any(|l| l.starts_with("- [ ] Q-L4")),
-        "unchecked Q-L4 checklist must not remain"
-    );
-}

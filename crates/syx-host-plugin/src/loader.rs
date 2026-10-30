@@ -3,7 +3,7 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-use crate::manifest::{verify_signature, PluginManifest};
+use crate::manifest::PluginManifest;
 use crate::registry::{LoadedPluginHost, PluginHostCallback, PluginHostV2Callback};
 
 pub fn plugins_enabled() -> bool {

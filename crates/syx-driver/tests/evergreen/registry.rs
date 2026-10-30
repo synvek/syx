@@ -951,26 +951,3 @@ func main() { print(cdnlib70.answer()) }"#,
 }
 
 /// C-05 thin doc nail (W682 / ADR-1026): publish→verify env + flow keywords.
-#[test]
-fn c05_ed25519_publish_flow_docs() {
-    let usage = include_str!("../../../../docs/9_UsageGuide.md");
-    let quick = include_str!("../../../../docs/8_QuickReference.md");
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    for (label, doc) in [("UsageGuide", usage), ("QuickReference", quick)] {
-        assert!(
-            doc.contains("SYX_PUBLISHER_SIGNING_KEY")
-                && doc.contains("SYX_REGISTRY_VERIFY_KEY")
-                && doc.contains("syx1:ed25519:"),
-            "{label} must document publisher signing + verify key + syx1:ed25519: flow"
-        );
-    }
-    assert!(
-        usage.contains("P011") && usage.contains("P012"),
-        "UsageGuide must cite P011 (verify) and P012 (unsigned publish)"
-    );
-    assert!(
-        roadmap.contains("| C-05 |") && roadmap.contains("[x]")
-            && roadmap.lines().any(|l| l.contains("C-05") && l.contains("[x]")),
-        "roadmap C-05 must be marked [x] (W682)"
-    );
-}

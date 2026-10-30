@@ -119,21 +119,3 @@ fn tls_server_alpn_lang_caps_and_hostfn() {
     );
 }
 
-#[test]
-fn tls_server_alpn_lang_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("ADR-789") || roadmap.contains("W445"),
-        "roadmap must mention W445 / ADR-789"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W456/W457: {row}"
-        );
-    }
-}

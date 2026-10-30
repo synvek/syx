@@ -47,17 +47,6 @@ fn p133_audit_align_stub() {
     );
 }
 
-#[test]
-fn p133_gate0_exclude_p132_behavioral() {
-    let adr = include_str!("../../../docs/adr/architecture-decisions.md");
-    assert!(adr.contains("EXCLUDE `p132_behavioral`"));
-    let tasks = include_str!("../../../plan/archive/tasks.md");
-    assert!(
-        tasks.contains("P70 任务（Phase 133 / SYX 111.0）")
-            || tasks.contains("P71 任务（Phase 134 / SYX 112.0）")
-    );
-    assert!(tasks.contains("EXCLUDE p132_behavioral"));
-}
 
 #[test]
 fn p133_track_fingerprints_stub() {

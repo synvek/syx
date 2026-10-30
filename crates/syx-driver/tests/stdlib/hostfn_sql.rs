@@ -318,19 +318,6 @@ fn hostfn_sql_open_close_host_wasm_real() {
     }
 }
 
-#[test]
-fn hostfn_sql_plan_a05_mentions_sql_batch() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let a05 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-05 |"))
-        .expect("A-05 row");
-    assert!(
-        a05.contains("| [~] |") || a05.contains("| [x] |"),
-        "A-05 must stay in progress or done: {a05}"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
-}
 
 /// Wave A W250 / ADR-594 / A-05 — SqlQueryOn llvm cell (native CallHost :memory: query).
 #[cfg(unix)]

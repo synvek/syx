@@ -580,7 +580,7 @@ pub fn service_di_peek_entries() -> Vec<ServiceDiEntry> {
     PENDING_SERVICE_DI.with(|slot| slot.borrow().clone())
 }
 
-/// Phase 124: active DI profile for `@Profile` filtering (`SYX_DI_PROFILE` / `Di.setProfile`).
+// Phase 124: active DI profile for `@Profile` filtering (`SYX_DI_PROFILE` / `Di.setProfile`).
 std::thread_local! {
     static ACTIVE_DI_PROFILE: std::cell::RefCell<Option<String>> =
         const { std::cell::RefCell::new(None) };

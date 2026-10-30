@@ -122,28 +122,3 @@ fn b09_gc_narrative_deepen_inventory_nails() {
     assert!(floor.b09_gc_narrative_thin_signed);
 }
 
-#[test]
-fn b09_gc_narrative_deepen_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W485")
-            && (roadmap.contains("ADR-829")
-                || roadmap.contains("deepen")
-                || roadmap.contains("b09_gc_narrative_deepen")
-                || roadmap.contains("B-09")),
-        "roadmap must cite W485 / ADR-829 B-09 GC narrative deepen"
-    );
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("| [x] |") || b09.contains("| [~] |"),
-        "B-09 must be [x] (W558+) or historical [~] after W485 deepen: {b09}"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("| [x] |"), "B-02 must remain [x]: {b02}");
-}

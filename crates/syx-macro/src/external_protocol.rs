@@ -195,7 +195,7 @@ pub fn expand_decls_via_protocol(
     expander: &dyn ExternalMacroExpander,
     req: &MacroExpandRequest,
 ) -> SyxResult<Vec<syx_ast::Decl>> {
-    use crate::parse_fragment::parse_attached_decls;
+    
     let resp = expander.expand(req)?;
     if !resp.decls.is_empty() {
         let mut out = Vec::new();

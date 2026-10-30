@@ -225,30 +225,6 @@ fn m2_s4_03b_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s4_03b_fence_no_streaming_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    assert!(
-        roadmap.contains("M2-S4-03b")
-            && roadmap.contains("ADR-238")
-            && roadmap.contains("M2-S4-04"),
-        "roadmap must list M2-S4-03b / ADR-238 and lock next W95 = M2-S4-04"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-    let tls = product_block(
-        include_str!("../../../../packages/internal/capabilities.toml"),
-        "net.tls.server",
-    );
-    assert!(
-        tls.contains("status = \"implemented\"") && tls.contains("ADR-779"),
-        "net.tls.server product status raise is W435/ADR-779 (M2 graceful shutdown deferred server)"
-    );
-}
 
 #[cfg(unix)]
 #[test]

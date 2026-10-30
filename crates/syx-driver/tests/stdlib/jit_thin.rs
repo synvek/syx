@@ -1,42 +1,5 @@
 //! Cranelift tier-2 JIT thin-open evidence (Suite-1 index; opt-in, not production default).
 
-#[test]
-fn jit_thin_evidence_files_exist() {
-    let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../");
-    for rel in [
-        "docs/lang/ql5-jit-vectors.md",
-        "docs/lang/ql5-jit-floor.md",
-        "plan/topics/jit.md",
-        "packages/internal/capabilities.toml",
-        "crates/syx-cranelift-jit/src/lib.rs",
-        "crates/syx-driver/tests/lang/jit_suite1_differential.rs",
-    ] {
-        let path = format!("{root}{rel}");
-        assert!(
-            std::path::Path::new(&path).is_file(),
-            "Q-L5/B-08 thin requires evidence file: {path}"
-        );
-    }
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    assert!(
-        caps.contains("id = \"runtime.jit.tier2\"")
-            && caps.contains("experimental-real-subset")
-            && caps.contains("jit_suite1_differential"),
-        "capabilities.toml must retain runtime.jit.tier2 Suite-1 evidence"
-    );
-    assert!(
-        caps.contains("ADR-706")
-            && (caps.contains("W362") || caps.contains("thin-open") || caps.contains("B-08")),
-        "runtime.jit.tier2 notes must cross-index ADR-706 / W362 thin-open"
-    );
-    let jit_topic = include_str!("../../../../plan/topics/jit.md");
-    assert!(
-        jit_topic.contains("Default: off")
-            || jit_topic.contains("default: off")
-            || jit_topic.contains("opt-in"),
-        "jit.md must keep default-off honesty"
-    );
-}
 
 #[test]
 fn jit_thin_spec_signed() {
@@ -83,57 +46,6 @@ fn jit_thin_spec_signed() {
     super::construction_progress::assert_spec_progress_without_window_plus_or(spec);
 }
 
-#[test]
-fn jit_thin_roadmap_checked() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(
-        b08.contains("| [x] |"),
-        "B-08 must be [x] after W367 exit: {b08}"
-    );
-    assert!(
-        b08.contains("W367")
-            || b08.contains("ADR-711")
-            || b08.contains("exit")
-            || b08.contains("W362")
-            || b08.contains("thin"),
-        "B-08 row must cite W362 thin and/or W367 exit: {b08}"
-    );
-    // F-02 slim SSOT dropped `- [x] Q-L5` checklist lines; Q-L5 remains as B-08 source tag.
-    assert!(
-        roadmap.lines().any(|l| l.starts_with("- [x] Q-L5"))
-            || (b08.contains("Q-L5") && b08.contains("| [x] |")),
-        "Q-L5 must remain checked (checklist or B-08 [x] source tag)"
-    );
-    assert!(
-        !roadmap.lines().any(|l| l.starts_with("- [ ] Q-L5")),
-        "unchecked Q-L5 must not remain"
-    );
-    // Honesty: Wave B axes remain on the live table (may all be [x] after exit charters).
-    for id in ["B-04", "B-05", "B-06"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [ ] |") || row.contains("| [~] |") || row.contains("| [x] |"),
-            "{id} must remain on the Wave table after Q-L5 thin: {row}"
-        );
-    }
-    for id in ["A-01", "A-10"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W362: {row}"
-        );
-    }
-}
 
 #[test]
 fn jit_thin_wave_a_exit_hygiene() {

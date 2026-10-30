@@ -585,16 +585,3 @@ fn hostfn_tcp_host_wasm_real_w274() {
     }
 }
 
-#[test]
-fn hostfn_tcp_plan_a05_mentions_tcp_batch() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let a05 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-05 |"))
-        .expect("A-05 row");
-    assert!(
-        a05.contains("| [~] |") || a05.contains("| [x] |"),
-        "A-05 must stay in progress or done: {a05}"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
-}

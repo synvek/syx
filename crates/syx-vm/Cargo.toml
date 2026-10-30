@@ -47,10 +47,10 @@ notify = { version = "6", optional = true }
 winit = { version = "0.29", optional = true }
 softbuffer = { version = "0.4", optional = true }
 syx-gui = { path = "../syx-gui", optional = true }
-# Phase 124 Track B: SynUI path dep (from synswx root: ../synui/crates/synui).
-# Opt-in only (`gui-synui`): default / server builds do not link SynUI.
-# synui v0.3 dropped the `legacy` feature; path dep has no feature flags.
-synui = { path = "../../../synui/crates/synui", optional = true }
+# S0-02: SynUI via git rev (optional). Default builds do not need a sibling ../synui
+# checkout — Cargo only fetches this when `gui-synui` is enabled / lockfile resolved.
+# synui v0.3 dropped the `legacy` feature; no feature flags on the dep.
+synui = { git = "https://github.com/synvek/synui", rev = "87aa5580ddbfd4d6f1c938e2a8877390bcdd5c6d", optional = true }
 prost = { version = "0.13" }
 libloading = { version = "0.8", optional = true }
 

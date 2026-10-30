@@ -7,6 +7,7 @@
 | 文档 | 角色 | 可见性 |
 |------|------|--------|
 | [capabilities-summary.md](capabilities-summary.md) | **现行能力主入口**（按域；无窗 tip） | 公开 |
+| [language-book-ssot.md](language-book-ssot.md) | **S1-01**：书（Swift 风格）为语言面 SSOT + 一周期兼容弃用 | 公开 |
 | [architecture-decisions.md](architecture-decisions.md) | 历史全量决议（**过渡**；非现行主叙事） | 公开过渡 |
 | 私有仓 `ledger/adr-window-stream.md` | 窗级 Decision 流水 | **仅内部** |
 | 私有仓 `ledger/architecture-decisions.full.md` | ADR 全量副本 | **仅内部** |

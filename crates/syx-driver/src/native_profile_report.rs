@@ -1,6 +1,6 @@
 //! Phase 93: native build profile report for `syx doctor --native-profile-report`.
 
-use syx_rt::{rt_archive_path_for_profile, LinkOptions};
+use syx_rt::rt_archive_path_for_profile;
 
 #[derive(Debug, Clone, Default)]
 pub struct NativeProfileReport {

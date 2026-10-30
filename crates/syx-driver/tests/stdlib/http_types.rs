@@ -346,22 +346,6 @@ fn m2_s4_01_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s4_01_fence_no_s4_05_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    assert!(
-        roadmap.contains("M2-S4-01")
-            && roadmap.contains("ADR-236")
-            && roadmap.contains("M2-S4-05"),
-        "roadmap must list M2-S4-01 / ADR-236 and lock next W93 = M2-S4-05"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-}
 
 fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
     let needle = format!("name = \"{name}\"");

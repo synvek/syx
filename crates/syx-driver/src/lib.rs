@@ -1,3 +1,8 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unreachable_patterns)]
+#![allow(unused_assignments)]
 pub mod aot_matrix;
 pub mod gc_report;
 pub mod inkwell_report;
@@ -184,13 +189,13 @@ pub use lsp_completion::{
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, OnceLock};
 
 use indexmap::IndexMap;
 use module_ref::{embedded_module, ModuleRef};
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
-use syx_ast::{AccessLevel, Decl, Stmt};
+use syx_ast::{AccessLevel, Decl};
 use syx_async::SyxRuntime;
 use syx_codegen::{CodeGenerator, CompiledProgram};
 use syx_debug::DebugSession;
@@ -202,7 +207,7 @@ pub use syx_frontend::{
 };
 use syx_lint::lint_source;
 use syx_meta::{
-    check_effects, reflect_type, register_data_classes, validate_pure_functions, TypeMetadata,
+    reflect_type, register_data_classes, TypeMetadata,
 };
 use syx_mir::{lower_module, optimize, MirOp};
 use syx_mono::monomorphize_module;
@@ -1017,7 +1022,7 @@ pub fn analyze_document_for_lsp(
         contents.to_string(),
     );
     let outcome = Parser::parse_collecting(source.clone());
-    let mut parse_errors = outcome.errors;
+    let parse_errors = outcome.errors;
     let mut module = if parse_errors.is_empty() {
         if let Some(p) = path {
             query::store_parse(p, contents, &outcome.module);
@@ -6866,7 +6871,7 @@ pub fn farm_tcp_handle_request(
 /// One length-prefixed farm TCP round-trip (tests / raw clients bypassing cache helpers).
 #[doc(hidden)]
 pub fn farm_tcp_roundtrip(host_port: &str, req: &[u8]) -> Result<Vec<u8>, String> {
-    use std::io::{Read, Write};
+    
     let mut stream =
         std::net::TcpStream::connect(host_port).map_err(|e| format!("farm tcp connect: {e}"))?;
     farm_tcp_write_frame(&mut stream, req)?;
@@ -6937,7 +6942,7 @@ pub fn fetch_cache_remote(url: &str) -> Result<Vec<u8>, String> {
         }
         crate::farm_lease_auth::farm_lease_require_active()
             .map_err(|e| format!("tcp cache lease: {e}"))?;
-        use std::io::{Read, Write};
+        
         let (host_port, key) = farm_tcp_url_parts(rest);
         let mut stream = std::net::TcpStream::connect(host_port)
             .map_err(|e| format!("tcp cache connect failed: {e}"))?;
@@ -6979,7 +6984,7 @@ pub fn push_cache_remote(url: &str, bytes: &[u8]) -> Result<(), String> {
         }
         crate::farm_lease_auth::farm_lease_require_active()
             .map_err(|e| format!("tcp cache lease: {e}"))?;
-        use std::io::{Read, Write};
+        
         let (host_port, key) = farm_tcp_url_parts(rest);
         let mut stream = std::net::TcpStream::connect(host_port)
             .map_err(|e| format!("tcp cache push connect failed: {e}"))?;
@@ -7781,9 +7786,9 @@ fn core_prelude_import_symbols(
 
 fn ensure_prelude_modules_in_graph(
     graph: &mut ModuleGraph,
-    manifest: &SyxManifest,
+    _manifest: &SyxManifest,
     options: &DriverOptions,
-    project_root: &Path,
+    _project_root: &Path,
 ) -> SyxResult<()> {
     if !options.enable_std {
         return Ok(());

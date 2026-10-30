@@ -543,7 +543,11 @@ pub enum Decl {
         span: Span,
         access: AccessLevel,
         name: SmolStr,
+        /// Stored fields (`var`/`let name: Type [= init]`). Init expressions live on matching
+        /// `VarGlobal` entries in `members` when present.
         fields: Vec<(SmolStr, TypeExpr)>,
+        /// S1-02: methods / `init` / field decls (`VarGlobal`) / nested types inside the struct body.
+        members: Vec<Decl>,
     },
     Protocol {
         span: Span,

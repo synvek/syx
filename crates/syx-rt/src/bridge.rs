@@ -11,7 +11,7 @@ use syx_diagnostics::{SyxDiagnostic, SyxResult};
 use syx_mir::MirModule;
 use syx_mir_run::{run_mir_function_with_args, MirRuntime};
 use syx_runtime_core::{RuntimeBridge, Value, VmRuntime};
-use syx_vm::{actor_id_from_value, register_task_hosts};
+use syx_vm::register_task_hosts;
 #[cfg(feature = "async-runtime")]
 use syx_vm::{
     platform_int_value, register_actor_reentrancy_policy_host, register_task_group_cancel_host,
@@ -19,7 +19,7 @@ use syx_vm::{
 };
 
 #[cfg(feature = "async-runtime")]
-use syx_async::{CancellationToken, TaskGroup, TaskHandle, TaskRegistry};
+use syx_async::{TaskGroup, TaskHandle, TaskRegistry};
 
 #[cfg(feature = "async-runtime")]
 struct ThreadPool {

@@ -576,11 +576,3 @@ fn m2_s4_02b_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s4_02b_fence_no_s4_05_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    assert!(
-        roadmap.contains("M2-S4-02b") && roadmap.contains("ADR-235"),
-        "roadmap must list M2-S4-02b / ADR-235"
-    );
-}

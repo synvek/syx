@@ -15,6 +15,7 @@ pub const HOST_FN_BACKENDS: &[&str] = &["vm", "mir", "llvm", "wasm", "cranelift"
 #[derive(Debug, Clone)]
 pub struct HostFnCapability {
     pub status: String,
+    #[allow(dead_code)]
     pub backends: HashMap<String, String>,
     #[allow(dead_code)]
     pub notes: String,
@@ -79,6 +80,7 @@ pub fn host_fn_overall_status(capability_name: &str) -> Option<&'static str> {
 }
 
 /// Per-backend status (`vm` / `mir` / `llvm` / `wasm` / `cranelift`).
+#[allow(dead_code)] // public capability API; callers deepen in later stages
 pub fn host_fn_backend_status(capability_name: &str, backend: &str) -> Option<&'static str> {
     host_fn_capability(capability_name).and_then(|c| c.backends.get(backend).map(|s| s.as_str()))
 }

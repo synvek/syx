@@ -1,0 +1,12 @@
+struct Counter {
+    var value: Int = 0
+    mutating func increment() {
+        value = value + 1
+    }
+}
+
+func main() {
+    var c = Counter()
+    c.increment()
+    print(c.value)
+}

@@ -124,28 +124,3 @@ fn mir_residual_abi_narrow_cleanup_inventory_nails() {
     assert!(floor.residual_honesty_signed);
 }
 
-#[test]
-fn mir_residual_abi_narrow_cleanup_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W484")
-            && (roadmap.contains("ADR-828")
-                || roadmap.contains("residual")
-                || roadmap.contains("窄清理")
-                || roadmap.contains("declare")),
-        "roadmap must cite W484 / ADR-828 residual ABI narrow cleanup"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

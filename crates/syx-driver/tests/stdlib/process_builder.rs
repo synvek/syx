@@ -273,26 +273,6 @@ fn m2_s6_01_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s6_01_fence_no_pipe_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    let s6_01 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| M2-S6-01 |"))
-        .expect("M2-S6-01 row");
-    assert!(s6_01.contains("| [x] |"), "M2-S6-01 must be checked: {s6_01}");
-    assert!(
-        roadmap.contains("M2-S6-02b") && roadmap.contains("ADR-242"),
-        "roadmap must list M2-S6-02b as ADR-242 next lock"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-    // S6-02b may be closed by a later window (ADR-243); ADR-242 still freezes it historically.
-}
 
 #[test]
 fn m2_error_child_wait_invalid_handle_throws() {

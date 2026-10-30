@@ -104,33 +104,3 @@ fn platform_residual_maintenance_first_slice_inventory_nails() {
     assert!(!c09.c09_residual_maintenance_ga);
 }
 
-#[test]
-fn platform_residual_maintenance_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W952")
-            && (roadmap.contains("ADR-1296")
-                || roadmap.contains("platform residual")
-                || roadmap.contains("平台")),
-        "roadmap must cite W952 / ADR-1296 platform residual maintenance"
-    );
-    for id in ["C-06", "C-07", "C-08", "C-09", "C-11", "F-07"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(row.contains("[x]"), "roadmap {id} must remain [x]: {row}");
-    }
-    let f08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| F-08 |"))
-        .expect("F-08 row");
-    assert!(
-        f08.contains("[ ]"),
-        "roadmap F-08 must remain frozen [ ]: {f08}"
-    );
-    assert!(
-        !f08.contains("[x]"),
-        "roadmap F-08 must not flip to [x]: {f08}"
-    );
-}

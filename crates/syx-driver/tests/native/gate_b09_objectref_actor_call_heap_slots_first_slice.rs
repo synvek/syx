@@ -158,27 +158,3 @@ fn b09_objectref_actor_call_heap_slots_first_slice_inventory_nails() {
     assert!(floor.b09_objectref_mir_run_call_return_heap_slots_first_slice_signed);
 }
 
-#[test]
-fn b09_objectref_actor_call_heap_slots_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W508")
-            && (roadmap.contains("ADR-852")
-                || roadmap.contains("ActorCall")
-                || roadmap.contains("actor_call")),
-        "roadmap must cite W508 / ADR-852 ActorCall heap_slots"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

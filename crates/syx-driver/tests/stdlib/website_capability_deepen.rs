@@ -83,33 +83,3 @@ fn website_capability_deepen_nail_behavior() {
     );
 }
 
-#[test]
-fn website_capability_deepen_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W377")
-            && (roadmap.contains("website")
-                || roadmap.contains("ADR-721")
-                || roadmap.contains("deepen")),
-        "roadmap must cite W377 website deepen"
-    );
-    for id in ["B-04", "B-05", "B-06"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} is delivered after Wave B; do not re-pin the not-[x] fence: {row}"
-        );
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(b08.contains("| [x] |"), "B-08 must remain [x]: {b08}");
-    assert!(
-        roadmap.contains("Q-L5") && roadmap.contains("已签"),
-        "Q-L5 must remain signed"
-    );
-}

@@ -7,15 +7,11 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase92_hosts::{
-    host_gui_button_create, host_gui_label_create, host_gui_layout_create,
-    host_gui_mobile_canvas_draw, host_gui_mobile_event_pump, host_gui_mobile_pixel_read,
-    host_gui_mobile_run_loop_once, host_gui_mobile_window_create, host_gui_on_click,
-    host_gui_pixel_read, host_gui_run_loop_once, host_gui_text_field_create, host_gui_touch_event,
-    host_gui_winit_canvas_draw, host_gui_winit_event_pump, host_orm_delete_where,
+    host_gui_button_create, host_gui_label_create, host_gui_on_click,
+    host_gui_pixel_read, host_gui_run_loop_once, host_gui_text_field_create, host_gui_touch_event, host_orm_delete_where,
     host_orm_find_where, host_orm_update_where, host_sql_begin_transaction, host_sql_bind_multi,
     host_sql_bind_step, host_sql_commit_transaction, host_sql_migrate,
-    host_sql_rollback_transaction, host_xml_xpath, mobile_touch_event_count, reset_phase92_state,
-    winit_window_count,
+    host_sql_rollback_transaction, host_xml_xpath, reset_phase92_state,
 };
 
 use crate::stdlib_phase91_hosts::host_gui_winit_window_create as host_gui_winit_window_create_inner;

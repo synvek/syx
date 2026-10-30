@@ -1,4 +1,6 @@
-use std::io::{self, BufRead, Read, Write};
+#![allow(dead_code)]
+#![allow(unused_imports)]
+use std::io::{self, BufRead, Write};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

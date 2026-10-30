@@ -1,5 +1,6 @@
 //! Phase 49 ADR-070 M1: macro expansion engine.
 
+#![allow(dead_code)]
 #[cfg(test)]
 mod phase119_unit;
 #[cfg(test)]

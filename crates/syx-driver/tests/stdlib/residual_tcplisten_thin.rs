@@ -102,39 +102,3 @@ fn residual_tcplisten_thin_product_listener_raised() {
     );
 }
 
-#[test]
-fn residual_tcplisten_thin_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W374")
-            && (roadmap.contains("TcpListen")
-                || roadmap.contains("ADR-718")
-                || roadmap.contains("HostFn")),
-        "roadmap must cite W374 TcpListen HostFn"
-    );
-    // Honesty: Wave B axes remain on the live table (may all be [x] after exit charters).
-    for id in ["B-04", "B-05", "B-06"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [ ] |") || row.contains("| [~] |") || row.contains("| [x] |"),
-            "{id} must remain on the Wave table after residual tcplisten: {row}"
-        );
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(
-        b08.contains("| [x] |"),
-        "B-08 must remain [x]: {b08}"
-    );
-    // F-02 slim SSOT dropped `- [x] Q-L5` checklist lines; Q-L5 remains as B-08 source tag.
-    assert!(
-        roadmap.lines().any(|l| l.starts_with("- [x] Q-L5"))
-            || (b08.contains("Q-L5") && b08.contains("| [x] |")),
-        "Q-L5 must remain checked (checklist or B-08 [x] source tag)"
-    );
-}

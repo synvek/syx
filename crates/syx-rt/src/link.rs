@@ -1,7 +1,6 @@
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::OnceLock;
 
 /// W929 / ADR-1273: runtime override for `libsyx_rt` archive path.
 ///

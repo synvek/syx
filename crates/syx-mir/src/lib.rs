@@ -11,8 +11,7 @@ use indexmap::{IndexMap, IndexSet};
 use syx_stdlib::{
     from_suffix, from_type_name, default_float_kind, float_literal_bits, host_fn_id_by_name,
     is_implicit_convertible, is_integer, is_integer_narrowing, resolve_alias, host_fn_index,
-    host_fn_index_by_name, host_fn_return_type, manifest_host_name,
-    is_custom_debug_string_convertible, is_custom_string_convertible, lookup_array_method,
+    host_fn_index_by_name, host_fn_return_type, manifest_host_name, lookup_array_method,
     lookup_dict_method, lookup_set_method, lookup_string_method, lookup_type_method,
     lookup_float64_math_host, lookup_float32_math_host, is_float, widen_for_binary, HostFnId,
     method_id_call_host_index, method_return_type, MethodId, NumericKind, PLATFORM_INT,
@@ -1282,6 +1281,7 @@ impl LowerCtx {
         );
     }
 
+    #[allow(dead_code)] // residual MutRefCell writeback path (parked)
     fn emit_mut_ref_cell_writeback(&mut self, name: &SmolStr, block: u32) {
         let resolved = self.resolve_binding_name(name).clone();
         let Some(&slot) = self.locals.get(&resolved) else {
@@ -1676,6 +1676,7 @@ impl LowerCtx {
         id
     }
 
+    #[allow(dead_code)] // residual helper for MutRefCell / block queries
     fn current_block(&mut self) -> u32 {
         if self.blocks.is_empty() {
             self.fresh_block()
@@ -1927,7 +1928,7 @@ fn lower_type_members(
     globals: &[SmolStr],
     closure_ids: Rc<Cell<u32>>,
 ) -> SyxResult<()> {
-    let fields: Vec<SmolStr> = members
+    let _fields: Vec<SmolStr> = members
         .iter()
         .filter_map(syx_ast::var_global_stored_field_name)
         .collect();
@@ -2328,6 +2329,7 @@ fn emit_mut_ref_cell_wrap_mir(ctx: &mut LowerCtx, block: u32, self_slot: u32) {
     );
 }
 
+#[allow(dead_code)] // class/struct method self injection helper (parked)
 fn self_param() -> syx_ast::Param {
     self_param_typed(None)
 }
@@ -8720,7 +8722,7 @@ fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
                     None
                 }
             }),
-        Expr::Literal { value, .. } => Some(infer_expr_type_name(object)),
+        Expr::Literal { value: _, .. } => Some(infer_expr_type_name(object)),
         Expr::Call { callee, args, .. } => {
             if let Some(type_name) = infer_service_resolve_type_name(callee, args) {
                 return Some(type_name);
@@ -8770,6 +8772,7 @@ fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
     }
 }
 
+#[allow(dead_code)] // array method dispatch index table (parked)
 fn array_method_index(method: &str) -> Option<u32> {
     syx_stdlib::lookup_array_method(method).map(|m| m.index())
 }
@@ -8798,6 +8801,9 @@ fn binop_operator_symbol(op: BinOp) -> Option<&'static str> {
 fn infer_expr_type_name(expr: &Expr) -> SmolStr {
     match expr {
         Expr::Literal { value, .. } => match value {
+            Literal::Integer { suffix, .. } if suffix.as_deref() == Some("n") => {
+                SmolStr::new("BigInt")
+            }
             Literal::Integer { suffix, .. } => SmolStr::new(
                 suffix
                     .as_deref()
@@ -8817,9 +8823,6 @@ fn infer_expr_type_name(expr: &Expr) -> SmolStr {
             Literal::Bool(_) => SmolStr::new("Bool"),
             Literal::String(_) => SmolStr::new("String"),
             Literal::BigInt(_) => SmolStr::new("BigInt"),
-            Literal::Integer { suffix, .. } if suffix.as_deref() == Some("n") => {
-                SmolStr::new("BigInt")
-            }
             _ => SmolStr::new("Unknown"),
         },
         // Uncontexted Ident fallback (binop / host paths): keep historical name-as-type.

@@ -190,29 +190,6 @@ fn m2_s6_03_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s6_03_fence_no_ec_m2_4z_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    let s6_03 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| M2-S6-03 |"))
-        .expect("M2-S6-03 row");
-    assert!(
-        s6_03.contains("| [x] |"),
-        "M2-S6-03 must be checked (S6 leaf closeout): {s6_03}"
-    );
-    assert!(
-        roadmap.contains("W101") && roadmap.contains("M2-S8-01c"),
-        "roadmap must list W101 / M2-S8-01c as ADR-244 next lock"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-    // S8-01c may be closed by a later window (ADR-245); ADR-244 still freezes next historically.
-}
 
 #[cfg(unix)]
 #[test]

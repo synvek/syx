@@ -8,15 +8,12 @@ use regex::Regex;
 use syx_diagnostics::{SyxDiagnostic, SyxResult};
 use syx_meta::reflect_type;
 use syx_stdlib::{
-    bigint_host_names, collection_host_names, from_type_name, is_float, is_integer,
-    lookup_bigint_host, lookup_collection_host, lookup_numeric_host, lookup_result_host,
-    numeric_host_names, BigIntHostOp, CollectionHostOp, HostFnId, MethodId, NumericHostOp,
-    NumericKind, ResultHostOp, NUMERIC_HOST_TABLE,
+    from_type_name, is_float, is_integer,
+    lookup_bigint_host, lookup_collection_host, lookup_numeric_host, lookup_result_host, BigIntHostOp, CollectionHostOp, HostFnId, MethodId, NumericHostOp, ResultHostOp,
 };
 
 use crate::http;
 use crate::script_hosts;
-use crate::ws;
 use crate::{
     combine_value, finalize_state, hasher_from_value, hasher_value, platform_int_value,
     try_numeric_cast, HasherState, HostFn, Value,

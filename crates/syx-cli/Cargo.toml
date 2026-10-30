@@ -26,5 +26,5 @@ miette = { workspace = true }
 default = []
 # Propagate full-native (inkwell object-direct + vendored LLD) to the CLI.
 full-native = ["syx-driver/full-native"]
-# Opt-in SynUI GUI (sibling ../synui). Off by default — not needed for server/toolchain builds.
+# Opt-in SynUI GUI (git-rev dep via syx-vm). Off by default — not needed for server/toolchain builds.
 gui-synui = ["syx-driver/gui-synui"]

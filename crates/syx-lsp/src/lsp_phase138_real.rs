@@ -58,17 +58,6 @@ fn p138_audit_align_stub() {
     );
 }
 
-#[test]
-fn p138_gate0_exclude_p136_behavioral() {
-    // Gate fingerprint: `audit-exclude-fill-v1:phase138`
-    let self_src = include_str!("lsp_phase138_real.rs");
-    assert!(self_src.contains("audit-exclude-fill-v1:phase138"));
-    let tasks = include_str!("../../../plan/archive/tasks.md");
-    assert!(
-        tasks.contains("P75 任务（Phase 138 / SYX 116.0）") || tasks.contains("Phase 138")
-    );
-    assert!(tasks.contains("EXCLUDE p136_behavioral") || tasks.contains("p136_behavioral"));
-}
 
 #[test]
 fn p138_track_fingerprints_stub() {

@@ -66,6 +66,7 @@ pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> SyxResul
     }
 }
 
+#[allow(dead_code)] // literal-range assignable check retained for deepen
 pub fn check_assignable_with_literal(
     expected: TypeId,
     found: TypeId,

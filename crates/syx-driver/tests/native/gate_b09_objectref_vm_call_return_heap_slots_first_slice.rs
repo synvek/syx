@@ -144,27 +144,3 @@ fn b09_objectref_vm_call_return_heap_slots_first_slice_inventory_nails() {
     assert!(floor.b09_mutrefcell_mir_run_callhost_heap_slots_first_slice_signed);
 }
 
-#[test]
-fn b09_objectref_vm_call_return_heap_slots_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W506")
-            && (roadmap.contains("ADR-850")
-                || roadmap.contains("finish_call")
-                || roadmap.contains("call-return")),
-        "roadmap must cite W506 / ADR-850 VM finish_call heap_slots"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

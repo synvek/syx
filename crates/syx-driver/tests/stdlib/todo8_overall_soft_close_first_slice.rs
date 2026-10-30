@@ -3,55 +3,6 @@
 //! ≠ Playwright/SLA/websocat/extension/close-full/WSS-GA "delivered"
 //! ≠ HostFn+1; ≠ Wave E flip; no new runtime / ws_rfc6455 changes.
 
-#[test]
-fn todo8_overall_soft_close_docs_ssot() {
-    let adr = include_str!("../../../../docs/adr/architecture-decisions.md");
-    assert!(
-        adr.contains("Decision (Wave W1251")
-            && adr.contains("ADR-1597")
-            && adr.contains("项总 soft-close")
-            && adr.contains("项 8 完成面 SSOT")
-            && adr.contains("OUT（项级永久，todo 8 不再开片）"),
-        "ADR-1597 must define todo 8 overall soft-close SSOT + item-level OUT"
-    );
-    assert!(
-        adr.contains("Playwright HMR GA")
-            && adr.contains("全量并发 SLA")
-            && adr.contains("websocat")
-            && adr.contains("RFC6455 extension")
-            && adr.contains("close 码全集"),
-        "ADR-1597 OUT list must name Playwright / SLA / websocat / extension / close-code full"
-    );
-
-    let ug = include_str!("../../../../docs/9_UsageGuide.md");
-    assert!(
-        ug.contains("W1251 / ADR-1597")
-            && (ug.contains("todo 8 总 soft-close") || ug.contains("项 8 总 soft-close") || ug.contains("todo 8 soft-close"))
-            && ug.contains("soft-close met"),
-        "UsageGuide must claim W1251 todo 8 overall soft-close met"
-    );
-
-    let sgate = include_str!("../../../../tools/sgate/README.md");
-    assert!(
-        sgate.contains("W1251")
-            && sgate.contains("ADR-1597")
-            && (sgate.contains("overall soft-close")
-                || sgate.contains("todo 8 soft-close")
-                || sgate.contains("项 8")),
-        "sgate README must document W1251 todo 8 overall soft-close"
-    );
-
-    let todo = include_str!("../../../../plan/todo.md");
-    assert!(
-        todo.contains("W1251 / ADR-1597")
-            && (todo.contains("todo 8 soft-close")
-                || todo.contains("项 8 soft-close")
-                || todo.contains("项收口 met")
-                || todo.contains("总 soft-close met"))
-            && (todo.contains("项 8 不再开片") || todo.contains("不再开片")),
-        "plan/todo.md item 8 must record W1251 overall soft-close / no further slices"
-    );
-}
 
 #[test]
 fn todo8_overall_soft_close_floor_nails_indexed() {

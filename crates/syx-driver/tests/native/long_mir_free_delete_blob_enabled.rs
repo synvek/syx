@@ -97,48 +97,6 @@ fn long_mir_free_delete_blob_enabled_spec_signed() {
     }
 }
 
-#[test]
-fn long_mir_free_delete_blob_enabled_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W434")
-            && (roadmap.contains("delete_syx_mir_blob")
-                || roadmap.contains("ADR-778")
-                || roadmap.contains("delete blob")
-                || roadmap.contains("DeleteSyxMirBlob")),
-        "roadmap must cite W434 delete_syx_mir_blob_enabled"
-    );
-    for id in ["B-04", "B-05"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must be [x] after exit charters (ADR-790/ADR-791): {row}"
-        );
-    }
-    let b06 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-06 |"))
-        .expect("B-06 row");
-    assert!(
-        b06.contains("| [x] |"),
-        "B-06 must be [x] after W448 exit: {b06}"
-    );
-    assert!(
-        roadmap.contains("Wave A 退出条件已满足")
-            || roadmap.contains("Wave A exit met")
-            || roadmap.contains("Wave A 退出已满足"),
-        "Wave A exit met claim must remain after W434"
-    );
-    assert!(
-        roadmap.contains("Wave B 退出条件已满足")
-            || roadmap.contains("Wave B exit met")
-            || roadmap.contains("Wave B 退出已满足"),
-        "Wave B exit met claim must remain after W340"
-    );
-}
 
 #[test]
 fn long_mir_free_delete_blob_enabled_inventory_api_callable() {

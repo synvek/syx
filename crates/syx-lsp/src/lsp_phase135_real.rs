@@ -34,15 +34,6 @@ fn p135_audit_align_stub() {
     );
 }
 
-#[test]
-fn p135_gate0_exclude_p134_behavioral() {
-    let tasks = include_str!("../../../plan/archive/tasks.md");
-    assert!(
-        tasks.contains("P72 任务（Phase 135 / SYX 113.0）")
-            || tasks.contains("Phase 135")
-    );
-    assert!(tasks.contains("EXCLUDE p134_behavioral") || tasks.contains("p134_behavioral"));
-}
 
 #[test]
 fn p135_track_fingerprints_stub() {

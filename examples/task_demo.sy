@@ -8,12 +8,11 @@ func main() {
     let t = Task {
         work()
     }
-    join(t)
+    Concurrency.join(t)
     Task.detached {
-        sleep(30)
+        Concurrency.sleep(30)
         print("detached-done")
     }
-    sleep(80)
+    Concurrency.sleep(80)
     print("main-done")
 }
-

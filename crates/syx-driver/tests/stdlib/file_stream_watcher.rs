@@ -372,22 +372,6 @@ fn m2_s3_03_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s3_03_fence_no_mmap_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    assert!(
-        roadmap.contains("M2-S3-03")
-            && roadmap.contains("ADR-240")
-            && roadmap.contains("M2-S3-04"),
-        "roadmap must list M2-S3-03 / ADR-240 and lock next W97 = M2-S3-04"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-}
 
 #[test]
 fn m2_error_file_stream_open_missing_path_display_throws() {

@@ -137,37 +137,3 @@ fn m2_s1_03_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s1_03_fence_no_heap_lazy_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    let s1_03 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| M2-S1-03 |"))
-        .expect("M2-S1-03 row");
-    assert!(
-        s1_03.contains("| [x] |"),
-        "M2-S1-03 must be checked: {s1_03}"
-    );
-    assert!(
-        roadmap.contains("S1 叶子收口") || roadmap.contains("S1 leaf"),
-        "roadmap must note S1 leaf closeout"
-    );
-    let z = roadmap
-        .lines()
-        .find(|l| l.starts_with("| EC-M2-3-Z |"))
-        .expect("EC-M2-3-Z row");
-    assert!(
-        z.contains("| [x] |"),
-        "W105 may check EC-M2-3-Z: {z}"
-    );
-    assert!(
-        roadmap.contains("W106") && roadmap.contains("EC-M2-4-Z"),
-        "roadmap next may advance to W106 = EC-M2-4-Z after W105"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-}

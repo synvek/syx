@@ -8,20 +8,14 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase96_hosts::{
-    gc_churn_stdout_lines, host_gc_churn_heap, host_gui_touch_event, host_gui_touch_inject,
-    host_orm_delete_where, host_orm_find_where, host_orm_find_where_dict_prepare,
-    host_orm_update_where, host_sql_begin_transaction, host_sql_bind_multi, host_sql_bind_step,
-    host_sql_commit_transaction, host_sql_migrate, host_sql_rollback_transaction, host_xml_xpath,
-    orm_bound_value_count, orm_prepared_row_count, orm_prepared_rows,
+    host_gc_churn_heap, host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
 };
 
 use crate::stdlib_phase91_hosts::host_gui_pixel_read as hashmap_pixel_read;
 use crate::stdlib_phase91_hosts::{
     host_gui_button_create as hashmap_button_create, host_gui_label_create as hashmap_label_create,
-    host_gui_run_loop_once as hashmap_run_loop_once,
     host_gui_text_field_create as hashmap_text_field_create,
     host_gui_winit_canvas_draw as hashmap_canvas_draw,
-    host_gui_winit_event_pump as hashmap_event_pump,
 };
 // Phase 99: use Phase 93 create so VISIBLE_WINDOWS is updated (Phase 91 alone does not).
 use crate::stdlib_phase93_hosts::host_gui_winit_window_create as hashmap_window_create;

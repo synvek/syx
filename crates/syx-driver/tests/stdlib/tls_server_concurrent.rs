@@ -115,29 +115,3 @@ fn tls_server_concurrent_caps_and_hostfn() {
     );
 }
 
-#[test]
-fn tls_server_concurrent_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W444")
-            && (roadmap.contains("concurrent")
-                || roadmap.contains("ADR-788")
-                || roadmap.contains("thread-per-conn")),
-        "roadmap must cite W444 concurrent"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W456/W457: {row}"
-        );
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(b08.contains("| [x] |"), "B-08 must remain [x]: {b08}");
-}

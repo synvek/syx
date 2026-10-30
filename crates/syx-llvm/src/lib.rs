@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 use std::collections::{HashMap, HashSet};
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -1837,7 +1839,7 @@ fn emit_function(
     let mut next_label = 0u32;
     let mut labels: HashMap<u32, String> = HashMap::new();
     let locals_count = func.local_count.max(1);
-    let param_count = func.param_count;
+    let _param_count = func.param_count;
     let locals_alloca = fresh_tmp(&mut next_tmp);
     let emit_locals_alloca = |out: &mut String, next_tmp: &mut u32| {
         out.push_str(&format!(
@@ -2764,77 +2766,90 @@ pub fn compile_native_with_profile(module: &MirModule, release: bool) -> SyxResu
 }
 
 fn compile_native_inner(module: &MirModule) -> SyxResult<Vec<u8>> {
-    // Preferred path: inkwell TargetMachine → native .o (no clang).
-    #[cfg(feature = "llvm")]
-    if inkwell_object_direct_enabled() && !llvm_text_emit_enabled() {
-        match emit_inkwell_object_v6(module) {
-            Ok(obj) => {
-                set_last_compile_aot(true);
-                return Ok(obj);
-            }
-            Err(e) if native_stub_fallback_forbidden() => {
-                return Err(SyxDiagnostic::error(format!(
-                    "inkwell object-direct failed (clang IR fallback disabled): {}",
-                    e.message
-                )));
-            }
-            Err(_) => {}
-        }
+    // S0-05: without the `llvm` feature (CLI `--features full-native`), refuse to
+    // emit a native object. The IR/clang and C-stub fallbacks can produce binaries
+    // that crash at runtime (fail-open) — that violates fail-closed.
+    #[cfg(not(feature = "llvm"))]
+    {
+        let _ = module;
+        return Err(SyxDiagnostic::error(
+            "syx build --native requires a toolchain built with `--features full-native` \
+             (LLVM/inkwell + LLD). This build was compiled without it; refusing to emit \
+             an incomplete native binary. Rebuild: cargo build -p syx-cli --features full-native",
+        ));
     }
 
     #[cfg(feature = "llvm")]
-    if inkwell_default_enabled() && !llvm_text_emit_enabled() {
+    {
+        // Preferred path: inkwell TargetMachine → native .o (no clang).
+        if inkwell_object_direct_enabled() && !llvm_text_emit_enabled() {
+            match emit_inkwell_object_v6(module) {
+                Ok(obj) => {
+                    set_last_compile_aot(true);
+                    return Ok(obj);
+                }
+                Err(e) if native_stub_fallback_forbidden() => {
+                    return Err(SyxDiagnostic::error(format!(
+                        "inkwell object-direct failed (clang IR fallback disabled): {}",
+                        e.message
+                    )));
+                }
+                Err(_) => {}
+            }
+        }
+
+        if inkwell_default_enabled() && !llvm_text_emit_enabled() {
+            if let Ok(bytes) = inkwell_backend::compile_with_inkwell(module) {
+                if is_native_object_bytes(&bytes) {
+                    set_last_compile_aot(true);
+                    return Ok(bytes);
+                }
+                set_last_compile_aot(true);
+                if let Ok(obj) = compile_ir_bytes_to_object(&bytes) {
+                    return Ok(obj);
+                }
+            }
+        }
+
         if let Ok(bytes) = inkwell_backend::compile_with_inkwell(module) {
             if is_native_object_bytes(&bytes) {
                 set_last_compile_aot(true);
                 return Ok(bytes);
             }
-            set_last_compile_aot(true);
-            if let Ok(obj) = compile_ir_bytes_to_object(&bytes) {
-                return Ok(obj);
-            }
-        }
-    }
-
-    #[cfg(feature = "llvm")]
-    if let Ok(bytes) = inkwell_backend::compile_with_inkwell(module) {
-        if is_native_object_bytes(&bytes) {
-            set_last_compile_aot(true);
-            return Ok(bytes);
-        }
-        if !bytes.starts_with(b"\x7fELF") {
-            set_last_compile_aot(true);
-            if let Ok(obj) = compile_ir_bytes_to_object(&bytes) {
-                return Ok(obj);
-            }
-        }
-    }
-
-    if llvm_aot_enabled() || llvm_text_emit_enabled() {
-        match compile_native_aot_ir(module) {
-            Ok(bytes) => {
+            if !bytes.starts_with(b"\x7fELF") {
                 set_last_compile_aot(true);
-                return Ok(bytes);
+                if let Ok(obj) = compile_ir_bytes_to_object(&bytes) {
+                    return Ok(obj);
+                }
             }
-            Err(e) if native_stub_fallback_forbidden() => {
-                return Err(SyxDiagnostic::error(format!(
-                    "Native LLVM tier-1 compile failed; C stub fallback disabled \
-                     (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0): {}",
-                    e.message
-                )));
-            }
-            Err(_) => {}
         }
-    }
 
-    set_last_compile_aot(false);
-    if native_stub_fallback_forbidden() {
-        return Err(SyxDiagnostic::error(
-            "Native LLVM tier-1 compile failed; C stub fallback disabled (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0)",
-        ));
+        if llvm_aot_enabled() || llvm_text_emit_enabled() {
+            match compile_native_aot_ir(module) {
+                Ok(bytes) => {
+                    set_last_compile_aot(true);
+                    return Ok(bytes);
+                }
+                Err(e) if native_stub_fallback_forbidden() => {
+                    return Err(SyxDiagnostic::error(format!(
+                        "Native LLVM tier-1 compile failed; C stub fallback disabled \
+                         (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0): {}",
+                        e.message
+                    )));
+                }
+                Err(_) => {}
+            }
+        }
+
+        set_last_compile_aot(false);
+        if native_stub_fallback_forbidden() {
+            return Err(SyxDiagnostic::error(
+                "Native LLVM tier-1 compile failed; C stub fallback disabled (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0)",
+            ));
+        }
+        warn_native_c_stub_fallback_once();
+        compile_native_c_stub(module)
     }
-    warn_native_c_stub_fallback_once();
-    compile_native_c_stub(module)
 }
 
 /// Phase 26 DR-AOT1: IR → clang object with register_native_fn shim (ADR-028).

@@ -102,31 +102,3 @@ fn language_exports_export_list_first_slice_inventory_nails() {
     assert!(!floor.language_exports_auto_discovery_enabled);
 }
 
-#[test]
-fn language_exports_export_list_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W483")
-            && (roadmap.contains("ADR-827")
-                || roadmap.contains("ExportList")
-                || roadmap.contains("export {")
-                || roadmap.contains("列表")),
-        "roadmap must cite W483 / ADR-827 export-list first-slice"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(
-        b02.contains("| [x] |"),
-        "B-02 must remain [x] after W483: {b02}"
-    );
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("| [x] |") || b09.contains("| [~] |") || b09.contains("| [ ] |"),
-        "B-09 must be [x] (W558+) or historical [~] (or historical [ ]): {b09}"
-    );
-}

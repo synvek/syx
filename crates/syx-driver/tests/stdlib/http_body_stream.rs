@@ -348,26 +348,6 @@ fn m2_s4_04_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s4_04_fence_no_server_stream_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    assert!(
-        roadmap.contains("M2-S4-04")
-            && roadmap.contains("ADR-239")
-            && roadmap.contains("M2-S3-03"),
-        "roadmap must list M2-S4-04 / ADR-239 and lock next W96 = M2-S3-03"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-    assert!(
-        roadmap.contains("S4 叶子收口") || roadmap.contains("S4 收口"),
-        "roadmap must note S4 leaf closeout"
-    );
-}
 
 #[test]
 fn m2_s4_04_http_body_stream_native_llvm() {

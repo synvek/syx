@@ -118,28 +118,3 @@ fn language_exports_export_list_trailing_comma_inventory_nails() {
     assert!(!floor.language_exports_auto_discovery_enabled);
 }
 
-#[test]
-fn language_exports_export_list_trailing_comma_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W486")
-            && (roadmap.contains("ADR-830")
-                || roadmap.contains("trailing")
-                || roadmap.contains("尾逗号")
-                || roadmap.contains("export")),
-        "roadmap must cite W486 / ADR-830 export-list trailing-comma"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

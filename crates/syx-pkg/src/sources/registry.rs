@@ -1,6 +1,4 @@
-use std::fs::File;
-use std::io::{Read, Write};
-use std::path::{Component, Path, PathBuf};
+use std::path::{Component, Path};
 
 use flate2::read::GzDecoder;
 use semver::Version;

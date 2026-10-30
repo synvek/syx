@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unreachable_patterns)]
+#![allow(unused_imports)]
 use syx_ast::{
     ClosureBody,
     AccessLevel, Attribute, AttributeArg, BinOp, CompoundAssignOp, Decl, Expr, FunctionEffect,
@@ -464,6 +467,7 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
         Decl::Struct {
             name,
             fields,
+            members,
             access,
             ..
         } => {
@@ -472,13 +476,19 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             out.push_str("struct ");
             out.push_str(name);
             out.push_str(" {\n");
-            for (field, ty) in fields {
-                out.push_str(&pad);
-                out.push_str("    ");
-                out.push_str(field);
-                out.push_str(": ");
-                format_type_expr(ty, out)?;
-                out.push('\n');
+            if members.is_empty() {
+                for (field, ty) in fields {
+                    out.push_str(&pad);
+                    out.push_str("    ");
+                    out.push_str(field);
+                    out.push_str(": ");
+                    format_type_expr(ty, out)?;
+                    out.push('\n');
+                }
+            } else {
+                for member in members {
+                    format_decl_at(member, out, indent + 1)?;
+                }
             }
             out.push_str(&pad);
             out.push_str("}\n");

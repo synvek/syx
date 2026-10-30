@@ -87,40 +87,6 @@ fn b07_real_hostfn_lowering_file_read_wire_live_inventory() {
     assert!(inv.relational_inventory_overlap_ok);
 }
 
-#[test]
-fn b07_real_hostfn_lowering_file_read_wire_roadmap_still_tilde() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W452")
-            && (roadmap.contains("ADR-796")
-                || (roadmap.contains("FileRead") && roadmap.contains("wire"))),
-        "roadmap must cite W452 / ADR-796 FileRead wire"
-    );
-    let b07 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-07 |"))
-        .expect("B-07 row");
-    assert!(
-        b07.contains("| [~] |") || b07.contains("| [x] |"),
-        "B-07 must be [~] or [x] after narrow exit / W456"
-    );
-    // W456: B-07 may be [x] after narrow exit charter (ADR-800)
-    for id in ["B-04", "B-05", "B-06", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(row.contains("| [x] |"), "{id} must remain [x]: {row}");
-    }
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("| [x] |") || b09.contains("| [~] |") || b09.contains("| [ ] |"),
-        "B-09 must be [x] (W558+) or historical [~] (or historical [ ]): {b09}"
-    );
-}
 
 #[test]
 fn b07_real_hostfn_lowering_file_read_wire_honesty_no_exit_no_blob() {

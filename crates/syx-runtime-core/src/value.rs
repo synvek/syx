@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex, Weak};
 use crate::numeric::display_numeric;
 
 #[derive(Debug, Clone)]
-struct SharedCell(Arc<Mutex<HashMap<String, Value>>>);
+pub struct SharedCell(pub(crate) Arc<Mutex<HashMap<String, Value>>>);
 
 impl PartialEq for SharedCell {
     fn eq(&self, other: &Self) -> bool {
@@ -13,7 +13,7 @@ impl PartialEq for SharedCell {
 }
 
 #[derive(Debug, Clone)]
-struct WeakCell(Weak<Mutex<HashMap<String, Value>>>);
+pub struct WeakCell(pub(crate) Weak<Mutex<HashMap<String, Value>>>);
 
 impl PartialEq for WeakCell {
     fn eq(&self, other: &Self) -> bool {

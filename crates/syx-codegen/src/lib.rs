@@ -7,7 +7,7 @@ use syx_ast::{
 use syx_diagnostics::{SyxDiagnostic, SyxResult};
 use syx_mir::{MirFunction, MirModule, MirOp};
 use syx_mono::mangle_name;
-use syx_stdlib::{host_fn_index, host_fn_index_by_name, host_fn_id_by_name, is_manifest_host_op, lookup_array_method, lookup_dict_method, lookup_http_response_method, lookup_set_method, lookup_sql_row_method, lookup_string_method, lookup_type_method, manifest_host_name, method_return_type, from_suffix, default_float_kind, float_literal_bits, from_type_name, HostFnId, PLATFORM_INT, is_custom_debug_string_convertible, is_custom_string_convertible, is_equatable_type, widen_for_binary, bit_width, resolve_alias, is_unsigned};
+use syx_stdlib::{host_fn_index, host_fn_index_by_name, host_fn_id_by_name, is_manifest_host_op, lookup_array_method, lookup_dict_method, lookup_http_response_method, lookup_set_method, lookup_sql_row_method, lookup_string_method, lookup_type_method, manifest_host_name, method_return_type, from_suffix, default_float_kind, float_literal_bits, from_type_name, HostFnId, PLATFORM_INT, is_equatable_type, widen_for_binary, bit_width, resolve_alias, is_unsigned};
 use syx_semantic::{expr_span_start, normalize_type_arg_name, type_id_collection_base, type_id_to_name, type_name_dispatch_base, TypeId};
 use serde::{Deserialize, Serialize};
 
@@ -1328,6 +1328,7 @@ impl CodeGenerator {
         }
     }
 
+        #[allow(dead_code)]
     fn compile_module(&mut self, module: &Module) -> SyxResult<()> {
         for decl in &module.decls {
             if matches!(
@@ -1360,6 +1361,7 @@ impl CodeGenerator {
     }
 
     /// Reserve function table slots so forward references resolve during codegen.
+        #[allow(dead_code)]
     fn preregister_decl_functions(&mut self, decl: &Decl) {
         match decl {
             Decl::Function {
@@ -1381,6 +1383,7 @@ impl CodeGenerator {
         }
     }
 
+        #[allow(dead_code)]
     fn ensure_function_slot(&mut self, name: &SmolStr) {
         if !self.has_function(name) {
             self.program.functions.push(FunctionUnit {
@@ -1826,7 +1829,7 @@ impl CodeGenerator {
                 }
                 Decl::Deinit { body, .. } => {
                     let deinit_name = SmolStr::new(format!("{type_name}_deinit"));
-                    let mut all_params = vec![Self::self_param()];
+                    let all_params = vec![Self::self_param()];
                     self.compile_function_decl(&deinit_name, &all_params, body, &[])?;
                 }
                 Decl::Init { .. } | Decl::VarGlobal { .. } => {}
@@ -3882,8 +3885,8 @@ impl CodeGenerator {
                                     if let Some(stmts) = will_set {
                                         self.compile_inline_stmts(&stmts, out)?;
                                     }
-                                    self.locals.remove("oldValue");
-                                    self.locals.remove("newValue");
+                                    self.locals.swap_remove("oldValue");
+                                    self.locals.swap_remove("newValue");
                                 }
                                 self.compile_expr(value, out)?;
                                 out.push(Instruction::StoreGlobal(idx as u32));
@@ -3893,8 +3896,8 @@ impl CodeGenerator {
                                     self.locals.insert(SmolStr::new("oldValue"), old_slot);
                                     self.locals.insert(SmolStr::new("newValue"), new_slot);
                                     self.compile_inline_stmts(&stmts, out)?;
-                                    self.locals.remove("oldValue");
-                                    self.locals.remove("newValue");
+                                    self.locals.swap_remove("oldValue");
+                                    self.locals.swap_remove("newValue");
                                 }
                                 self.locals = saved_locals;
                                 self.local_count = saved_local_count;
@@ -3944,8 +3947,8 @@ impl CodeGenerator {
                         if let Some(stmts) = will_set {
                             self.compile_inline_stmts(&stmts, out)?;
                         }
-                        self.locals.remove("oldValue");
-                        self.locals.remove("newValue");
+                        self.locals.swap_remove("oldValue");
+                        self.locals.swap_remove("newValue");
                     }
                     if !self.member_assign_skip_unwrap_object(object.as_ref())
                         && !self.expr_is_dict_like(object)
@@ -3963,8 +3966,8 @@ impl CodeGenerator {
                         self.locals.insert(SmolStr::new("oldValue"), old_slot);
                         self.locals.insert(SmolStr::new("newValue"), new_slot);
                         self.compile_inline_stmts(&stmts, out)?;
-                        self.locals.remove("oldValue");
-                        self.locals.remove("newValue");
+                        self.locals.swap_remove("oldValue");
+                        self.locals.swap_remove("newValue");
                     }
                 } else {
                     // Plain Object/Dictionary bags are not MutRefCell wrappers —
@@ -5038,6 +5041,7 @@ fn entry_point_from_module(module: &Module) -> SmolStr {
 }
 
 impl CodeGenerator {
+        #[allow(dead_code)]
     fn method_has_vtable_slot(&self, class: &str, method: &str) -> bool {
         self.class_vtables
             .get(&SmolStr::new(class))
@@ -5074,6 +5078,7 @@ impl CodeGenerator {
         Ok(())
     }
 
+        #[allow(dead_code)]
     fn emit_vtable_instance_call(
         &mut self,
         object: &Expr,
@@ -5462,6 +5467,7 @@ fn keypath_from_expr(expr: &Expr) -> Option<(&SmolStr, &SmolStr, bool)> {
     }
 }
 
+#[allow(dead_code)]
 fn append_with_span(
     out: &mut Vec<Instruction>,
     spans: &mut Vec<Option<(u32, u32)>>,

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::io::{self, Write};
 use std::net::{ToSocketAddrs, UdpSocket};
 use std::process::Command;
-use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
 use std::time::Instant;
 
@@ -118,7 +118,7 @@ fn base64_encode(data: &[u8]) -> String {
 }
 
 fn base64_decode(s: &str) -> Option<Vec<u8>> {
-    let mut decode = |c: u8| -> Option<u8> {
+    let decode = |c: u8| -> Option<u8> {
         if (b'A'..=b'Z').contains(&c) {
             Some(c - b'A')
         } else if (b'a'..=b'z').contains(&c) {

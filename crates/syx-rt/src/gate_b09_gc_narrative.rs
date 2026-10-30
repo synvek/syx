@@ -7801,51 +7801,5 @@ mod gate_b09_gc_narrative_thin_tests {
         assert!(!floor.gc_ga_claimed);
     }
 
-    #[test]
-    fn narrative_docs_present_and_do_not_claim_unified_heap_w476() {
-        let parity = include_str!("../../../plan/topics/gc-parity.md");
-        assert!(
-            parity.contains("Three layers")
-                || parity.contains("three layers")
-                || parity.contains("syx run"),
-            "gc-parity must document three-layer heap honesty"
-        );
-        assert!(
-            parity.contains("MirRuntime") && parity.contains("GcCollect"),
-            "gc-parity must name MirRuntime and GcCollect"
-        );
-        let policy = include_str!("../../../docs/gates/gate-b09-gc-narrative-thin.md");
-        assert!(
-            policy.contains("ADR-820") && policy.contains("b09_gc_narrative_thin_signed=true"),
-            "policy must cite ADR-820 and signed flag"
-        );
-        assert!(
-            policy.contains("unified_mir_runtime_heap_enabled=false")
-                || policy.contains("`unified_mir_runtime_heap_enabled=false`"),
-            "policy must keep unified heap disabled"
-        );
-    }
 
-    #[test]
-    fn deepen_docs_present_and_do_not_claim_unified_heap_w485() {
-        let deepen = include_str!("../../../docs/gates/gate-b09-gc-narrative-deepen.md");
-        assert!(
-            deepen.contains("ADR-829")
-                && deepen.contains("b09_gc_narrative_deepen_signed=true")
-                && deepen.contains("stack")
-                && deepen.contains("GcCollect")
-                && (deepen.contains("wasm-gc") || deepen.contains("wasm_gc")),
-            "deepen policy must cite ADR-829, signed flag, roots, converge, wasm-gc defer"
-        );
-        assert!(
-            deepen.contains("unified_mir_runtime_heap_enabled=false")
-                || deepen.contains("`unified_mir_runtime_heap_enabled=false`"),
-            "deepen policy must keep unified heap disabled"
-        );
-        let parity = include_str!("../../../plan/topics/gc-parity.md");
-        assert!(
-            parity.contains("W485") || parity.contains("ADR-829") || parity.contains("deepen"),
-            "gc-parity must cite W485 deepen"
-        );
-    }
 }

@@ -742,7 +742,7 @@ impl Parser {
             self.consume(TokenKind::Func, "Expected 'func' after operator")?;
             let op = self.parse_operator_symbol()?;
             let start = self.previous().span;
-            let type_params = self.parse_type_params()?;
+            let _type_params = self.parse_type_params()?;
             self.consume(TokenKind::LParen, "Expected '(' after operator")?;
             let params = self.parse_params()?;
             self.consume(TokenKind::RParen, "Expected ')' after parameters")?;
@@ -777,6 +777,23 @@ impl Parser {
             let start = self.advance().span;
             let name = self.consume_identifier("Expected function name after final")?;
             return self.parse_function_with_name(access, false, attrs, start, name, false, true);
+        }
+        // S1-02: `mutating func` — record as `@mutating` attr (semantic S020 deepen → S1-06/I2).
+        if self.match_kind(TokenKind::Mutating) {
+            let mut attrs = attrs;
+            attrs.push(Attribute {
+                name: SmolStr::new("mutating"),
+                args: vec![],
+            });
+            if self.check(TokenKind::Func) {
+                return self.parse_function(access, false, attrs);
+            }
+            if self.check(TokenKind::Async) {
+                self.advance();
+                self.consume(TokenKind::Func, "Expected 'func' after mutating async")?;
+                return self.parse_function(access, true, attrs);
+            }
+            return self.error("Expected 'func' after mutating");
         }
         if self.match_kind(TokenKind::Static) {
             match &self.peek().kind {
@@ -921,6 +938,7 @@ impl Parser {
         Ok(decls)
     }
 
+    #[allow(dead_code)] // entry retained; attrs path used by decl parse
     fn parse_user_macro_decl(&mut self) -> SyxResult<Decl> {
         self.parse_user_macro_decl_with_attrs(vec![])
     }
@@ -1282,17 +1300,58 @@ impl Parser {
     fn parse_struct(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected struct name")?;
+        // S1-02 first slice: optional protocol conformances (`struct Foo: Bar`); generics deferred.
+        let conformances = if self.match_kind(TokenKind::Colon) {
+            let mut list = Vec::new();
+            loop {
+                list.push(self.consume_identifier("Expected conformance name")?);
+                if !self.match_kind(TokenKind::Comma) {
+                    break;
+                }
+            }
+            list
+        } else {
+            Vec::new()
+        };
+        let _ = conformances; // parse-accept; semantic wiring → S1-I2
         self.consume(TokenKind::LBrace, "Expected '{' after struct name")?;
         let mut fields = Vec::new();
+        let mut members = Vec::new();
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
             self.skip_newlines();
             if self.check(TokenKind::RBrace) {
                 break;
             }
-            let field = self.consume_identifier("Expected field name")?;
-            self.consume(TokenKind::Colon, "Expected ':' after field name")?;
-            let ty = self.parse_type()?;
-            fields.push((field, ty));
+            // Legacy bare field: `x: Int` (no var/let).
+            if matches!(self.peek().kind, TokenKind::Identifier(_))
+                && matches!(
+                    self.peek_ahead(1).map(|t| &t.kind),
+                    Some(TokenKind::Colon)
+                )
+            {
+                let field = self.consume_identifier("Expected field name")?;
+                self.consume(TokenKind::Colon, "Expected ':' after field name")?;
+                let ty = self.parse_type()?;
+                fields.push((field, ty));
+                self.skip_newlines();
+                continue;
+            }
+            // Book-style: `var`/`let` fields, `mutating func`, `init`, nested decls.
+            let member = self.parse_class_member()?;
+            match &member {
+                Decl::VarGlobal {
+                    name: fname,
+                    ty: Some(ty),
+                    ..
+                } => {
+                    fields.push((fname.clone(), ty.clone()));
+                    members.push(member);
+                }
+                Decl::VarGlobal { ty: None, .. } => {
+                    members.push(member);
+                }
+                _ => members.push(member),
+            }
             self.skip_newlines();
         }
         self.consume(TokenKind::RBrace, "Expected '}' after struct body")?;
@@ -1302,6 +1361,7 @@ impl Parser {
             access,
             name,
             fields,
+            members,
         })
     }
 
@@ -2406,7 +2466,7 @@ impl Parser {
                         ],
                     }),
                 }];
-                let mut then_branch = case.body.clone();
+                let then_branch = case.body.clone();
                 case_stmts.push(Stmt::If {
                     span,
                     condition: Expr::Ident {
@@ -3833,7 +3893,6 @@ fn expr_span(expr: &Expr) -> Span {
         | Expr::ClosedRange { span, .. }
         | Expr::VariantPattern { span, .. }
         | Expr::TuplePattern { span, .. }
-        | Expr::Tuple { span, .. }
         | Expr::Closure { span, .. }
         | Expr::TaskBlock { span, .. }
         | Expr::Borrow { span, .. }
@@ -3842,8 +3901,7 @@ fn expr_span(expr: &Expr) -> Span {
         | Expr::OptionalCast { span, .. }
         | Expr::Is { span, .. }
         | Expr::Cast { span, .. }
-        | Expr::TypeSelf { span, .. }
-        | Expr::Super { span, .. } => *span,
+        | Expr::TypeSelf { span, .. } => *span,
     }
 }
 

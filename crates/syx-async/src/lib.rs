@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 mod cancellation;
 mod lower;
 #[cfg(feature = "runtime")]

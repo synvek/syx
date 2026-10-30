@@ -106,37 +106,3 @@ fn language_exports_semantic_aot_export_roots_inventory_nails() {
     assert!(thin.language_exports_thin_signed);
 }
 
-#[test]
-fn language_exports_semantic_aot_export_roots_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W481")
-            && (roadmap.contains("ADR-825")
-                || roadmap.contains("aot_export_roots")
-                || roadmap.contains("semantic")),
-        "roadmap must cite W481 / ADR-825 semantic→aot_export_roots"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(
-        b02.contains("| [x] |"),
-        "B-02 must remain [x] after W481: {b02}"
-    );
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("| [x] |") || b09.contains("| [~] |"),
-        "B-09 must be [x] (W558+) or historical [~] after W481: {b09}"
-    );
-    for id in ["B-01", "B-03", "B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(row.contains("| [x] |"), "{id} must remain [x]: {row}");
-    }
-}

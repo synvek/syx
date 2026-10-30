@@ -8,11 +8,10 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase90_hosts::{
-    host_orm_delete_where, host_orm_update_where, host_sql_bind_step, host_sql_migrate,
-    migration_version, reset_phase90_state,
+    host_orm_delete_where, host_orm_update_where, host_sql_bind_step, host_sql_migrate, reset_phase90_state,
 };
 
-use crate::stdlib_phase89_hosts::{host_sql_query_rusqlite, reset_rusqlite_store};
+use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()

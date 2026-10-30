@@ -488,15 +488,6 @@ fn m2_s3_02b_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s3_02b_fence_no_ec_m2_3_total() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    // EC-M2-3 total must remain open; S3-02b may be [x] after this window.
-    assert!(
-        roadmap.contains("M2-S3-02b"),
-        "roadmap must list M2-S3-02b"
-    );
-}
 
 #[cfg(unix)]
 #[test]

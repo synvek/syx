@@ -55,7 +55,7 @@ default = []
 qs1-ledger = []
 # inkwell object-direct + LLD driver linked into the CLI (not into libsyx_rt.a).
 full-native = ["syx-llvm/llvm", "dep:syx-lld"]
-# Opt-in SynUI GUI host bridge (sibling ../synui). Off by default.
+# Opt-in SynUI GUI host bridge (git-rev via syx-vm). Off by default.
 gui-synui = ["syx-vm/gui-synui"]
 
 [[bench]]

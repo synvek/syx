@@ -1,5 +1,7 @@
 //! Dynamic Host plugin loader — ADR-071 P0+P1.
 
+#![allow(dead_code)] // FFI ABI types + compile-manifest helpers are intentional surface
+
 mod abi;
 mod codegen;
 mod handles;

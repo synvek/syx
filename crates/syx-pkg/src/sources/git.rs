@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use syx_diagnostics::{SyxDiagnostic, SyxResult};

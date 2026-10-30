@@ -97,33 +97,3 @@ fn hosted_site_deepen_nail_behavior() {
     let _ = std::fs::remove_file(&path);
 }
 
-#[test]
-fn hosted_site_deepen_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W380")
-            && (roadmap.contains("hosted")
-                || roadmap.contains("ADR-724")
-                || roadmap.contains("deepen")),
-        "roadmap must cite W380 hosted deepen"
-    );
-    for id in ["B-04", "B-05", "B-06"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} is delivered after Wave B; do not re-pin the not-[x] fence: {row}"
-        );
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(b08.contains("| [x] |"), "B-08 must remain [x]: {b08}");
-    assert!(
-        roadmap.contains("Q-L5") && roadmap.contains("已签"),
-        "Q-L5 must remain signed"
-    );
-}

@@ -17,7 +17,9 @@ syx-mir-run = { workspace = true }
 syx-runtime-core = { workspace = true }
 syx-stdlib = { workspace = true }
 syx-host-plugin = { workspace = true }
-syx-vm = { workspace = true, default-features = false, features = ["interpreter", "jit-tier2"] }
+# workspace.dependencies.syx-vm already enables default-features; do not set
+# default-features=false here (Cargo ignores it and warns).
+syx-vm = { workspace = true, features = ["interpreter", "jit-tier2"] }
 syx-async = { workspace = true, optional = true }
 crossbeam-channel = { workspace = true, optional = true }
 parking_lot = { workspace = true, optional = true }

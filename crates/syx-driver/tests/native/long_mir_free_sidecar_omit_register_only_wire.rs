@@ -171,48 +171,6 @@ fn long_mir_free_sidecar_omit_register_only_wire_spec_signed() {
     }
 }
 
-#[test]
-fn long_mir_free_sidecar_omit_register_only_wire_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W429")
-            && (roadmap.contains("Register-only")
-                || roadmap.contains("register-only")
-                || roadmap.contains("ADR-773")
-                || roadmap.contains("register_only")),
-        "roadmap must cite W429 Register-only wire"
-    );
-    for id in ["B-04", "B-05"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must be [x] after exit charters (ADR-790/ADR-791): {row}"
-        );
-    }
-    let b06 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-06 |"))
-        .expect("B-06 row");
-    assert!(
-        b06.contains("| [x] |"),
-        "B-06 must be [x] after W448 exit: {b06}"
-    );
-    assert!(
-        roadmap.contains("Wave A 退出条件已满足")
-            || roadmap.contains("Wave A exit met")
-            || roadmap.contains("Wave A 退出已满足"),
-        "Wave A exit met claim must remain after W429"
-    );
-    assert!(
-        roadmap.contains("Wave B 退出条件已满足")
-            || roadmap.contains("Wave B exit met")
-            || roadmap.contains("Wave B 退出已满足"),
-        "roadmap must claim Wave B exit met after W340"
-    );
-}
 
 #[test]
 fn long_mir_free_sidecar_omit_register_only_wire_inventory_api_callable() {

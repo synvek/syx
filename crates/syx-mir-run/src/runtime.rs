@@ -12,7 +12,7 @@ use syx_runtime_core::{
     value_from_numeric, value_from_numeric128, value_identical, value_kind, IteratorState,
     SimdBinOp, Value, VmRuntime,
 };
-use syx_stdlib::{host_fn_id_by_name, method_from_index, HostFnId, NumericKind, PLATFORM_INT};
+use syx_stdlib::{method_from_index, HostFnId, NumericKind, PLATFORM_INT};
 use syx_vm::{
     call_receiver_method, cooperative_yield, host_fn_for, numeric_add, numeric_bitand,
     numeric_bitnot, numeric_bitor, numeric_bitxor, numeric_div, numeric_mod, numeric_mul,
@@ -1403,7 +1403,7 @@ impl MirRuntime {
             return None;
         }
         let receiver = args.first()?;
-        let mut current = Value::dispatch_receiver_for_method(receiver.clone());
+        let current = Value::dispatch_receiver_for_method(receiver.clone());
         let witness_key = Value::Str(format!("__witness_{static_class}_{method}"));
         if let Value::I32(idx) = current.get_by_key(&witness_key) {
             if let Some(slot_fn) = self.functions.get(idx as usize) {
@@ -1990,7 +1990,7 @@ impl MirRuntime {
             })));
     }
 
-    fn iterator_next(&mut self, memory: &mut [u8]) {
+    fn iterator_next(&mut self, _memory: &mut [u8]) {
         let iter = self
             .stack
             .pop()
@@ -2999,7 +2999,7 @@ fn run_mir_blocks(func: &MirFunction, rt: &mut MirRuntime, memory: &mut [u8]) ->
                         }
                     }
                 }
-                other => {
+                _other => {
                     rt.exec_mir_instr(instr, memory)?;
                     // Wave A W202 / ADR-546: pop handler via take_catch (parity with flat/wasm).
                     let catch = rt.take_catch();

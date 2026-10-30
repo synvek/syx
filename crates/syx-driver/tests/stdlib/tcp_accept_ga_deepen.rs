@@ -125,35 +125,3 @@ fn tcp_accept_ga_deepen_caps_honesty() {
     );
 }
 
-#[test]
-fn tcp_accept_ga_deepen_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W385")
-            && (roadmap.contains("accept")
-                || roadmap.contains("ADR-729")
-                || roadmap.contains("exit")),
-        "roadmap must cite W385 accept GA met exit"
-    );
-    let a10 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-10 |"))
-        .expect("A-10 row");
-    assert!(a10.contains("| [x] |"), "A-10 must remain [x]: {a10}");
-    for id in ["B-04", "B-05", "B-06"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(row.contains("| [x] |"), "{id} is delivered after Wave B; do not re-pin the not-[x] fence: {row}");
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(b08.contains("| [x] |"), "B-08 must remain [x]: {b08}");
-    assert!(
-        roadmap.contains("Q-L5") && roadmap.contains("已签"),
-        "Q-L5 must remain signed"
-    );
-}

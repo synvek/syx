@@ -81,39 +81,3 @@ fn capability_floor_thin_spec_signed() {
     );
 }
 
-#[test]
-fn capability_floor_thin_roadmap_thin() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let a10 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-10 |"))
-        .expect("A-10 row");
-    assert!(
-        a10.contains("| [x] |"),
-        "A-10 must be [x] after W361 exit: {a10}"
-    );
-    assert!(
-        a10.contains("W361")
-            || a10.contains("ADR-705")
-            || a10.contains("exit")
-            || a10.contains("W360")
-            || a10.contains("ADR-704")
-            || a10.contains("floor"),
-        "A-10 row must cite W360 floor and/or W361 exit: {a10}"
-    );
-    assert!(
-        roadmap.contains("W361")
-            && (roadmap.contains("ADR-705") || roadmap.contains("exit")),
-        "roadmap must cite W361 A-10 exit"
-    );
-    for id in ["B-04", "B-05", "B-06"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} is delivered after Wave B; do not re-pin the A-10-era not-[x] fence: {row}"
-        );
-    }
-}

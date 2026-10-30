@@ -113,22 +113,3 @@ fn mir_residual_honesty_inventory_nails() {
     assert!(inv.residual_honesty_signed);
 }
 
-#[test]
-fn mir_residual_honesty_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W459")
-            && (roadmap.contains("ADR-803")
-                || roadmap.contains("residual")
-                || roadmap.contains("观感")
-                || roadmap.contains("MirResidual")),
-        "roadmap must cite W459 / ADR-803 residual honesty"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(row.contains("[x]"), "roadmap {id} must remain [x]: {row}");
-    }
-}

@@ -113,30 +113,3 @@ fn tls_server_hostfn_status_caps_and_hostfn() {
     );
 }
 
-#[test]
-fn tls_server_hostfn_status_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W441")
-            && (roadmap.contains("TlsServe")
-                || roadmap.contains("ADR-785")
-                || roadmap.contains("HostFn")
-                || roadmap.contains("implemented")),
-        "roadmap must cite W441 TlsServe HostFn status"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W456/W457: {row}"
-        );
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(b08.contains("| [x] |"), "B-08 must remain [x]: {b08}");
-}

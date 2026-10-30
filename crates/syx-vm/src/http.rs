@@ -102,7 +102,7 @@ fn extra_root_pem_path() -> Option<String> {
 
 /// Apply CI/diagnostic extra root when `SYX_HTTP_EXTRA_ROOT_PEM` is set.
 fn apply_extra_root(
-    mut builder: reqwest::blocking::ClientBuilder,
+    builder: reqwest::blocking::ClientBuilder,
 ) -> reqwest::blocking::ClientBuilder {
     let Some(path) = extra_root_pem_path() else {
         return builder;

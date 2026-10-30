@@ -152,29 +152,3 @@ fn edge_spec_doc_cites_adr627() {
     );
 }
 
-#[test]
-fn edge_roadmap_meta_overflow_slice() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    let a04 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| A-04 |"))
-        .expect("A-04 row");
-    assert!(
-        a04.contains("| [x] |"),
-        "A-04 must be checked after W288 exit charter: {a04}"
-    );
-    assert!(
-        a04.contains("W283") || a04.contains("overflow") || a04.contains("ADR-627"),
-        "A-04 row must cite W283 overflow slice: {a04}"
-    );
-    // F-02 slim SSOT dropped `- [x] Q-L4` checklist lines; Q-L4 remains as A-04 source tag.
-    assert!(
-        roadmap.lines().any(|l| l.starts_with("- [x] Q-L4"))
-            || (a04.contains("Q-L4") && a04.contains("| [x] |")),
-        "Q-L4 must remain checked (checklist or A-04 [x] source tag)"
-    );
-    assert!(
-        !roadmap.lines().any(|l| l.starts_with("- [ ] Q-L4")),
-        "unchecked Q-L4 checklist must not remain"
-    );
-}

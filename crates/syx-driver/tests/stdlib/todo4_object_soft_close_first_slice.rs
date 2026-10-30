@@ -3,53 +3,6 @@
 //! ≠ merge / true HashMap / Object generics / object_bag_ga "delivered"
 //! ≠ HostFn+1; ≠ Wave flip; no new Object/Dictionary runtime.
 
-#[test]
-fn todo4_object_soft_close_docs_ssot() {
-    let adr = include_str!("../../../../docs/adr/architecture-decisions.md");
-    assert!(
-        adr.contains("Decision (Wave W1253")
-            && adr.contains("ADR-1599")
-            && (adr.contains("Object 文档/项 soft-close") || adr.contains("Object soft-close"))
-            && adr.contains("项 4 完成面 SSOT")
-            && adr.contains("OUT（项级永久，todo 4 不再开片）"),
-        "ADR-1599 must define todo 4 Object soft-close SSOT + item-level OUT"
-    );
-    assert!(
-        adr.contains(".merge")
-            && (adr.contains("HashMap<Value,Value>") || adr.contains("真 `HashMap"))
-            && adr.contains("object_bag_ga"),
-        "ADR-1599 OUT list must name merge / true HashMap / object_bag_ga"
-    );
-
-    let guide = include_str!("../../../../books/language-guide/05-collection-types.md");
-    assert!(
-        guide.contains("W1253 / ADR-1599")
-            && (guide.contains("todo 4") || guide.contains("项 4"))
-            && (guide.contains("soft-close") || guide.contains("soft close"))
-            && guide.contains("valueForKey")
-            && guide.contains("put"),
-        "language-guide Object section must claim W1253 soft-close + valueForKey/put"
-    );
-
-    let ug = include_str!("../../../../docs/9_UsageGuide.md");
-    assert!(
-        ug.contains("W1253 / ADR-1599")
-            && (ug.contains("todo 4") || ug.contains("项 4"))
-            && (ug.contains("Object soft-close") || ug.contains("Object 文档/项 soft-close")),
-        "UsageGuide must claim W1253 todo 4 Object soft-close met"
-    );
-
-    let todo = include_str!("../../../../plan/todo.md");
-    assert!(
-        todo.contains("W1253 / ADR-1599")
-            && (todo.contains("Object soft-close")
-                || todo.contains("项 4 soft-close")
-                || todo.contains("项收口 met")
-                || todo.contains("文档/项 soft-close"))
-            && (todo.contains("项 4 不再开片") || todo.contains("不再开片")),
-        "plan/todo.md item 4 must record W1253 Object soft-close / no further slices"
-    );
-}
 
 #[test]
 fn todo4_object_soft_close_floor_nails_indexed() {

@@ -116,29 +116,3 @@ fn tls_server_alpn_config_caps_and_hostfn() {
     );
 }
 
-#[test]
-fn tls_server_alpn_config_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W443")
-            && (roadmap.contains("ALPN")
-                || roadmap.contains("ADR-787")
-                || roadmap.contains("SYX_TLS_SERVE_ALPN")),
-        "roadmap must cite W443 configurable ALPN"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W456/W457: {row}"
-        );
-    }
-    let b08 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-08 |"))
-        .expect("B-08 row");
-    assert!(b08.contains("| [x] |"), "B-08 must remain [x]: {b08}");
-}

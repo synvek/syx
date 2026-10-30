@@ -1557,7 +1557,7 @@ pub fn rfc6455_connect_wss(url: &str) -> Option<i64> {
     let addr = format!("{host}:{port}");
     let mut addrs = addr.to_socket_addrs().ok()?;
     let sock_addr = addrs.next()?;
-    let mut tcp = TcpStream::connect_timeout(&sock_addr, Duration::from_secs(3)).ok()?;
+    let tcp = TcpStream::connect_timeout(&sock_addr, Duration::from_secs(3)).ok()?;
     tcp.set_read_timeout(Some(Duration::from_secs(3))).ok()?;
     tcp.set_write_timeout(Some(Duration::from_secs(3))).ok()?;
     let name = ServerName::try_from(host.as_str()).ok()?.to_owned();

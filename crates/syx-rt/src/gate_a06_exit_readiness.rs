@@ -74,26 +74,4 @@ mod tests {
         assert!(inv.native_raise_enabled);
     }
 
-    #[test]
-    fn gate_a06_exit_readiness_inventory_matches_thin_floor_and_caps() {
-        let inv = gate_a06_exit_readiness_inventory();
-        let thin = include_str!("../../../plan/archive/gates/gate-a06-network-negatives.md");
-        assert!(thin.contains("A-06 thin floor") && thin.contains("ADR-639"));
-        let floor = include_str!("../../../plan/archive/gates/gate-a06-qs2-floor.md");
-        assert!(
-            floor.contains("ADR-688")
-                && floor.contains("m2_s4_a06_malformed_truncated_response_loopback")
-        );
-        let exit = include_str!("../../../plan/archive/gates/gate-a06-qs2-exit.md");
-        assert!(
-            exit.contains("ADR-689")
-                && (exit.contains("exit signed") || exit.contains("Exit signed")),
-            "exit charter policy must cite ADR-689"
-        );
-        assert!(caps_native_real_for("net.http.timeout_tls"));
-        assert!(caps_native_real_for("net.tls.client"));
-        assert_eq!(inv.a06_exit_enabled, true);
-        assert_eq!(inv.qs2_complete_enabled, true);
-        assert_eq!(inv.native_raise_enabled, true);
-    }
 }

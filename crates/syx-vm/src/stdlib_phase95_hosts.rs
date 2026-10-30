@@ -7,8 +7,7 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase94_hosts::{
-    gc_churn_stdout_lines, host_gui_button_create, host_gui_label_create, host_gui_on_click,
-    host_gui_pixel_read, host_gui_run_loop_once, host_gui_text_field_create, host_gui_touch_event,
+    gc_churn_stdout_lines, host_gui_touch_event,
     host_gui_touch_inject, host_orm_delete_where, host_orm_find_where, host_orm_update_where,
     host_sql_begin_transaction, host_sql_bind_multi, host_sql_bind_step,
     host_sql_commit_transaction, host_sql_migrate, host_sql_rollback_transaction, host_xml_xpath,
@@ -22,7 +21,6 @@ use crate::stdlib_phase91_hosts::{
     host_gui_winit_window_create as hashmap_window_create,
 };
 
-use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
 
 static ORM_PREPARED_ROWS: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 

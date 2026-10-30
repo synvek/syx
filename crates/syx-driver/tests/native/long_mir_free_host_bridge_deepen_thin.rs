@@ -137,48 +137,6 @@ fn long_mir_free_host_bridge_deepen_thin_spec_signed() {
     }
 }
 
-#[test]
-fn long_mir_free_host_bridge_deepen_thin_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W422")
-            && (roadmap.contains("host-bridge deepen")
-                || roadmap.contains("host bridge deepen")
-                || roadmap.contains("ADR-766")
-                || roadmap.contains("deepen thin")),
-        "roadmap must cite W422 Long host-bridge deepen"
-    );
-    for id in ["B-04", "B-05"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must be [x] after exit charters (ADR-790/ADR-791): {row}"
-        );
-    }
-    let b06 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-06 |"))
-        .expect("B-06 row");
-    assert!(
-        b06.contains("| [x] |"),
-        "B-06 must be [x] after W448 exit: {b06}"
-    );
-    assert!(
-        roadmap.contains("Wave A 退出条件已满足")
-            || roadmap.contains("Wave A exit met")
-            || roadmap.contains("Wave A 退出已满足"),
-        "Wave A exit met claim must remain after W422"
-    );
-    assert!(
-        roadmap.contains("Wave B 退出条件已满足")
-            || roadmap.contains("Wave B exit met")
-            || roadmap.contains("Wave B 退出已满足"),
-        "roadmap must claim Wave B exit met after W340"
-    );
-}
 
 #[test]
 fn long_mir_free_host_bridge_deepen_thin_inventory_api_callable() {

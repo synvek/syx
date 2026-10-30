@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_assignments)]
+#![allow(unused_doc_comments)]
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, LazyLock, Mutex};
@@ -7,7 +11,7 @@ use smol_str::SmolStr;
 #[cfg(feature = "interpreter")]
 use syx_codegen::{CompiledProgram, FunctionUnit, Instruction};
 use syx_diagnostics::{SyxDiagnostic, SyxResult};
-use syx_stdlib::{host_fn_id_by_name, method_from_index, HostFnId, MethodId, NumericKind};
+use syx_stdlib::{method_from_index, HostFnId, MethodId, NumericKind};
 
 pub mod actor_mailbox;
 mod async_iter_hosts;
@@ -1426,7 +1430,7 @@ impl VmInstance {
             Instruction::SimdI8Mul { lanes, element } => {
                 self.exec_simd_binop(*lanes, *element, SimdBinOp::Mul)?;
             }
-            Instruction::SimdI8And { lanes, element } => {
+            Instruction::SimdI8And { lanes: _, element: _ } => {
                 let b = self.stack.pop().unwrap_or(Value::Nil);
                 let a = self.stack.pop().unwrap_or(Value::Nil);
                 if let Some(r) = syx_runtime_core::simd_and(&a, &b) {

@@ -58,6 +58,7 @@ fn decimal_digits(v: &Value) -> Option<String> {
     }
 }
 
+#[allow(dead_code)] // retained for bigint host helpers / future parse paths
 fn parse_i128(v: &Value) -> Option<i128> {
     decimal_digits(v)?.parse().ok()
 }

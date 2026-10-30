@@ -1,7 +1,6 @@
 import Math
 
 func main() {
-    let sum = add(1, 2)
+    let sum = Math.add(1, 2)
     print(sum)
 }
-

@@ -1,0 +1,7 @@
+// S1-06 probe: let-bound Array must not accept mutating append.
+// Expected: semantic/check failure (deepen may refine code); must NOT succeed silently.
+func main() {
+    let a = [1, 2]
+    a.append(3)
+    print(a.count)
+}

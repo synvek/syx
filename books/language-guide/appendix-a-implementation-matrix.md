@@ -29,10 +29,10 @@ This appendix points at the unified master feature-status table, to avoid duplic
 
 | Back end | Scope | Status |
 |------|------|------|
-| **VM** (default) | Interpretation + GC | **GA** |
-| **Native (LLVM)** | MIR → LLVM IR → static linking | **GA** (Phase 77 sole backend) |
-| **WASM** | Direct MIR compilation + wasmtime host running the SYX VM | **GA** |
-| Cranelift | MIR → Cranelift IR | **Removed** (Phase 77) |
+| **VM** (default) | Interpretation + GC | **GA** (default `syx run` path) |
+| **Native (LLVM)** | MIR → LLVM IR → static linking | **partial** — requires `--features full-native`; without it `build --native` fail-closed |
+| **WASM** | Direct MIR compilation + wasmtime host running the SYX VM | **partial** — emit must pass `wasmparser::validate`; hello smoke tracked in CI |
+| Cranelift | MIR → Cranelift IR | **Removed** (Phase 77; JIT tier-2 remains opt-in) |
 
 ## Status Tiers
 

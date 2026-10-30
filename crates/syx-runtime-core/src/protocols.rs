@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use syx_stdlib::type_name_with_alias;
 
-use crate::hasher::{combine_value, hash_value};
+use crate::hasher::hash_value;
 use crate::numeric::{display_numeric, value_kind};
 use crate::Value;
 

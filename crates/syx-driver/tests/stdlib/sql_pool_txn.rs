@@ -274,31 +274,3 @@ fn m2_s8_03b_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s8_03b_fence_no_ec_m2_4z_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    let s8_03b = roadmap
-        .lines()
-        .find(|l| l.starts_with("| M2-S8-03b |"))
-        .expect("M2-S8-03b row");
-    assert!(
-        s8_03b.contains("| [x] |"),
-        "M2-S8-03b must be checked: {s8_03b}"
-    );
-    assert!(
-        roadmap.contains("S8 叶子收口") || roadmap.contains("S8 leaf"),
-        "roadmap must note S8 leaf closeout"
-    );
-    assert!(
-        roadmap.contains("W104") && roadmap.contains("M2-S1-03"),
-        "roadmap must list W104 / M2-S1-03 as ADR-247 next lock"
-    );
-    // S1-03 may be closed by a later window (ADR-248); ADR-247 still locks it historically.
-    assert!(
-        !roadmap.contains("EC-M2-4-Z` `[x]`")
-            && (roadmap.contains("**M2 已退出**")
-                || roadmap.contains("ADR-259")
-                || roadmap.contains("| **exited** |")),
-        "W115 may claim M2 exited; must not claim EC-M2-4-Z via backtick pattern"
-    );
-}

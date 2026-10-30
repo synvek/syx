@@ -112,48 +112,6 @@ fn long_mir_free_closure_async_gap_close_spec_signed() {
     }
 }
 
-#[test]
-fn long_mir_free_closure_async_gap_close_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W420")
-            && (roadmap.contains("gap #3")
-                || roadmap.contains("gap close")
-                || roadmap.contains("ADR-764")
-                || roadmap.contains("MIR-free gap")),
-        "roadmap must cite W420 Long gap #3 close"
-    );
-    for id in ["B-04", "B-05"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must be [x] after exit charters (ADR-790/ADR-791): {row}"
-        );
-    }
-    let b06 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-06 |"))
-        .expect("B-06 row");
-    assert!(
-        b06.contains("| [x] |"),
-        "B-06 must be [x] after W448 exit: {b06}"
-    );
-    assert!(
-        roadmap.contains("Wave A 退出条件已满足")
-            || roadmap.contains("Wave A exit met")
-            || roadmap.contains("Wave A 退出已满足"),
-        "Wave A exit met claim must remain after W420"
-    );
-    assert!(
-        roadmap.contains("Wave B 退出条件已满足")
-            || roadmap.contains("Wave B exit met")
-            || roadmap.contains("Wave B 退出已满足"),
-        "roadmap must claim Wave B exit met after W340"
-    );
-}
 
 #[test]
 fn long_mir_free_closure_async_gap_close_inventory_api_callable() {

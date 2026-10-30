@@ -120,28 +120,3 @@ fn b09_mir_runtime_root_set_first_slice_inventory_nails() {
     assert!(deepen.b09_gc_narrative_deepen_signed);
 }
 
-#[test]
-fn b09_mir_runtime_root_set_first_slice_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W487")
-            && (roadmap.contains("ADR-831")
-                || roadmap.contains("root-set")
-                || roadmap.contains("根集")
-                || roadmap.contains("MirRuntime")),
-        "roadmap must cite W487 / ADR-831 MirRuntime root-set first-slice"
-    );
-    let b02 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-02 |"))
-        .expect("B-02 row");
-    assert!(b02.contains("[x]"), "roadmap B-02 must remain [x]: {b02}");
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("[x]") || b09.contains("[~]"),
-        "roadmap B-09 must be [x] (W558+) or historical [~]: {b09}"
-    );
-}

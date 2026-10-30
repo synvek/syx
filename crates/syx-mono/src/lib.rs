@@ -176,7 +176,7 @@ pub fn monomorphize_module(
                     span,
                     access,
                     attrs,
-                    name,
+                    name: _,
                     type_params,
                     params,
                     return_type,
@@ -231,7 +231,7 @@ pub fn monomorphize_module(
                     span,
                     access,
                     attrs,
-                    name,
+                    name: _,
                     type_params,
                     where_clause,
                     fields,
@@ -265,7 +265,7 @@ pub fn monomorphize_module(
                 Decl::Enum {
                     span,
                     access,
-                    name,
+                    name: _,
                     type_params,
                     cases,
                     ..
@@ -303,7 +303,7 @@ pub fn monomorphize_module(
                 Decl::FinalClass {
                     span,
                     access,
-                    name,
+                    name: _,
                     type_params,
                     variants,
                     ..
@@ -593,7 +593,7 @@ pub fn propagate_witness_where(
     if type_params
         .iter()
         .zip(type_args.iter())
-        .any(|(param, arg)| param.as_str() == constraint.as_str())
+        .any(|(param, _arg)| param.as_str() == constraint.as_str())
     {
         return type_args
             .iter()

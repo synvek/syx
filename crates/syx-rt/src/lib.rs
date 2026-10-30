@@ -1,5 +1,7 @@
 //! C ABI runtime for Cranelift-generated SYX executables.
 
+#![allow(dead_code)]
+#![allow(unused_imports)]
 mod gate_a06_exit_readiness;
 mod abi;
 mod gate_b09_gc_narrative;

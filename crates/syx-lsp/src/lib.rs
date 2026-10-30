@@ -1,12 +1,14 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 use std::collections::{HashMap, HashSet};
 use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 
 use serde_json::{json, Value};
 use syx_driver::{
-    analyze_document_for_lsp, definition_for_symbol, find_references_in_module,
+    analyze_document_for_lsp, find_references_in_module,
     find_references_in_project, go_to_type_for_symbol, import_module_suggestions,
-    patch_source_for_completion_semantic, patch_source_for_member_completion,
+    patch_source_for_completion_semantic,
     interpolation_identifier_context, receiver_for_completion, receiver_type_at_position, span_to_lsp_range,
     lsp_position_to_byte_offset, stdlib_export_signature, workspace_symbols_for_project,
     DriverOptions,

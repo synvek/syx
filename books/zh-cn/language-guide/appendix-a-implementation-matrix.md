@@ -30,10 +30,10 @@
 
 | 后端 | 范围 | 状态 |
 |------|------|------|
-| **VM**（默认） | 解释执行 + GC | **GA** |
-| **Native (LLVM)** | MIR → LLVM IR → 静态链接 | **GA**（Phase 77 sole backend） |
-| **WASM** | MIR 直编译 + wasmtime host 跑 SYX VM | **GA** |
-| Cranelift | MIR → Cranelift IR | **已移除**（Phase 77） |
+| **VM**（默认） | 解释执行 + GC | **GA**（默认 `syx run` 路径） |
+| **Native (LLVM)** | MIR → LLVM IR → 静态链接 | **partial** — 需 `--features full-native`；缺省时 `build --native` fail-closed |
+| **WASM** | MIR 直编译 + wasmtime host 跑 SYX VM | **partial** — emit 后须通过 `wasmparser::validate`；hello 冒烟由 CI 跟踪 |
+| Cranelift | MIR → Cranelift IR | **已移除**（Phase 77；JIT tier-2 仍为 opt-in） |
 
 ## 状态档位
 

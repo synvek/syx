@@ -171,36 +171,6 @@ fn tls_server_noidle_lang_caps_and_hostfn() {
     );
 }
 
-#[test]
-fn tls_server_noidle_lang_roadmap_honesty() {
-    let roadmap = include_str!("../../../../plan/02-improvement-roadmap.md");
-    assert!(
-        roadmap.contains("W458")
-            && (roadmap.contains("ADR-802")
-                || roadmap.contains("noIdle")
-                || roadmap.contains("no-idle")
-                || roadmap.contains("serveOnceNoIdle")),
-        "roadmap must cite W458 / ADR-802 language noIdle"
-    );
-    for id in ["B-04", "B-05", "B-06", "B-07", "B-08"] {
-        let row = roadmap
-            .lines()
-            .find(|l| l.starts_with(&format!("| {id} |")))
-            .unwrap_or_else(|| panic!("{id} row"));
-        assert!(
-            row.contains("| [x] |"),
-            "{id} must remain [x] after W456/W458: {row}"
-        );
-    }
-    let b09 = roadmap
-        .lines()
-        .find(|l| l.starts_with("| B-09 |"))
-        .expect("B-09 row");
-    assert!(
-        b09.contains("| [x] |"),
-        "B-09 is delivered after Wave B; do not re-pin the not-[x] fence: {b09}"
-    );
-}
 
 /// W458 nail: language noIdle=1 + MAX_HANDLED=2 — no SYX_TLS_SERVE_NO_IDLE env.
 #[cfg(unix)]

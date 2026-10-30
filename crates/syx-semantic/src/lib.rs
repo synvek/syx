@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use indexmap::{IndexMap, IndexSet};
 use smol_str::SmolStr;
 use syx_ast::{
-    AccessLevel, BinOp, CallArg, Decl, Expr, Literal, Module, Param, ParamLabel, Stmt, TypeExpr,
+    AccessLevel, BinOp, CallArg, Decl, Expr, Literal, Module, ParamLabel, Stmt, TypeExpr,
     UnaryOp,
 };
 use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
@@ -19,9 +19,11 @@ use type_checker::{check_assignable, is_compatible};
 pub const MAX_COLLECTED_DIAGNOSTICS: usize = 64;
 
 // Phase 87/88: optional downcast (`as?`) semantic surface (AsOptional).
+#[allow(dead_code)]
 pub(crate) fn as_optional_surface() {}
 
 // Phase 86/87/88: `select { case ... }` lowers via __syx_channel_select / __syx_channel_select_default.
+#[allow(dead_code)]
 pub(crate) const CHANNEL_SELECT_SURFACE: &str = "__syx_channel_select";
 use import_resolver::check_import_member_access as check_import_access;
 use syx_stdlib::{
@@ -33,9 +35,8 @@ use syx_stdlib::{
     lookup_type_method, method_return_type, register_builtins, resolve_alias, type_conforms,
     is_comparable_type, is_manifest_host_op,
     operator_overload_forbidden_type, is_numeric_builtin_type, is_text_builtin_type,
-    is_collection_builtin_type,
-    retired_ops_module_names, widen_for_binary, HostFnId, MethodId, NumericKind, ARRAY_METHODS, DICT_METHODS,
-    HTTP_RESPONSE_METHODS, SET_METHODS, STRING_METHODS, TYPE_METHODS, is_builtin_type,
+    is_collection_builtin_type, widen_for_binary, HostFnId, MethodId, NumericKind, ARRAY_METHODS, DICT_METHODS,
+    HTTP_RESPONSE_METHODS, SET_METHODS, STRING_METHODS, TYPE_METHODS,
 };
 
 fn is_forbidden_internal_import(name: &str) -> bool {
@@ -368,7 +369,7 @@ pub fn global_actor_v12_sending_enabled() -> bool {
         .unwrap_or(global_actor_v11_sending_enabled())
 }
 
-pub fn global_actor_v12_dynamic_weight(endpoint: &str, load_pct: u32) -> u32 {
+pub fn global_actor_v12_dynamic_weight(_endpoint: &str, load_pct: u32) -> u32 {
     if !global_actor_v12_sending_enabled() {
         return 100;
     }
@@ -2683,7 +2684,10 @@ impl SemanticAnalyzer {
                     }
                 }
                 Decl::Init { .. } | Decl::Deinit { .. } | Decl::TopLevelStmt { .. } => {}
-                Decl::TypeAlias { .. } | Decl::MacroDecl { .. } | Decl::MacroSiteInvoke { .. } | Decl::Subscript { .. } | Decl::OperatorFunc { .. } => {}
+                Decl::MacroDecl { .. }
+                | Decl::MacroSiteInvoke { .. }
+                | Decl::Subscript { .. }
+                | Decl::OperatorFunc { .. } => {}
                 Decl::Export { item, .. } => {
                     self.collect_decls(std::slice::from_ref(item.as_ref()))?;
                 }
@@ -4420,7 +4424,7 @@ impl SemanticAnalyzer {
                 let elem_ty = self.unify_element_types(&elem_types);
                 Ok(TypeId::Array(Box::new(elem_ty)))
             }
-            Expr::Await { expr, span } => {
+            Expr::Await { expr, span: _ } => {
                 if !self.mut_borrows.is_empty() {
                     self.errors.push(
                         SyxDiagnostic::error(
@@ -7072,6 +7076,7 @@ impl SemanticAnalyzer {
         self.is_non_sendable_type(&ty)
     }
 
+    #[allow(dead_code)] // retained for Sendable / IDE type queries
     fn binding_type(&self, name: &SmolStr) -> TypeId {
         self.scope
             .lookup(name)
@@ -7282,8 +7287,8 @@ impl SemanticAnalyzer {
                 } => {
                     // Metatype name for `Int.min` Ident resolution prefer-path stays via
                     // globals → Numeric; members are keyed by surface name below.
-                    let mut methods = self.class_methods.remove(name).unwrap_or_default();
-                    let mut fields = self.dataclass_fields.remove(name).unwrap_or_default();
+                    let mut methods = self.class_methods.swap_remove(name).unwrap_or_default();
+                    let mut fields = self.dataclass_fields.swap_remove(name).unwrap_or_default();
                     let mut prop_getters: IndexMap<SmolStr, TypeId> = IndexMap::new();
                     let mut prop_setters: HashSet<SmolStr> = HashSet::new();
                     for member in members {
@@ -7357,7 +7362,7 @@ impl SemanticAnalyzer {
                 } => {
                     let mut ext = self
                         .type_extension_methods
-                        .remove(type_name)
+                        .swap_remove(type_name)
                         .unwrap_or_default();
                     let mut prop_getters: IndexMap<SmolStr, TypeId> = IndexMap::new();
                     let mut prop_setters: HashSet<SmolStr> = HashSet::new();

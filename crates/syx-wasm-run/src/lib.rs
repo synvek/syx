@@ -8,8 +8,8 @@ use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
 use syx_diagnostics::{SyxDiagnostic, SyxResult};
-use syx_mir::{MirModule, MirOp};
-use syx_wasm_emit::{aot, host};
+use syx_mir::MirModule;
+use syx_wasm_emit::host;
 use wasmtime::{Caller, Config, Engine, Linker, Module, Store};
 
 // Phase 21 CT1 / Phase 22 CY1: WASM threads MVP + prod opt-in worker queue.
@@ -77,7 +77,7 @@ impl WasiHost {
             return false;
         };
         let offset = ptr as usize;
-        let mut data = memory.data_mut(caller);
+        let data = memory.data_mut(caller);
         if offset.saturating_add(4) > data.len() {
             return false;
         }

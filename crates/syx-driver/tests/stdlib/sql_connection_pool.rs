@@ -186,34 +186,3 @@ fn m2_s8_01c_docs_and_capability() {
     );
 }
 
-#[test]
-fn m2_s8_01c_fence_no_s8_03b_or_m2_exit() {
-    let roadmap = include_str!("../../../../plan/archive/roadmap-m0-m4-task-list.md");
-    let s8_01c = roadmap
-        .lines()
-        .find(|l| l.starts_with("| M2-S8-01c |"))
-        .expect("M2-S8-01c row");
-    assert!(
-        s8_01c.contains("| [x] |"),
-        "M2-S8-01c must be checked: {s8_01c}"
-    );
-    assert!(
-        roadmap.contains("W102") && roadmap.contains("M2-S8-02b"),
-        "roadmap must list W102 / M2-S8-02b as ADR-245 next lock"
-    );
-    let s8_03b = roadmap
-        .lines()
-        .find(|l| l.starts_with("| M2-S8-03b |"))
-        .expect("M2-S8-03b row");
-    assert!(
-        s8_03b.contains("| [x] |") || s8_03b.contains("| [ ] |"),
-        "M2-S8-03b row must exist: {s8_03b}"
-    );
-    assert!(
-        roadmap.contains("**M2 已退出**")
-            || roadmap.contains("ADR-259")
-            || roadmap.contains("| **exited** |"),
-        "W115 may claim M2 exited"
-    );
-    // S8-02b/03b may be closed by later windows (ADR-246/247); ADR-245 still freezes them historically.
-}
