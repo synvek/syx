@@ -219,6 +219,17 @@ impl Lexer {
                 }
             }
             ':' => self.add_token(TokenKind::Colon),
+            // S1-I3: closure shorthand `$0` / `$1` → Identifier("$0").
+            '$' => {
+                if !self.peek().is_ascii_digit() {
+                    return self.error("Expected digit after '$' in closure shorthand");
+                }
+                while self.peek().is_ascii_digit() {
+                    self.advance();
+                }
+                let text: String = self.chars[self.start..self.current].iter().collect();
+                self.add_token(TokenKind::Identifier(SmolStr::new(text)));
+            }
             '\'' => {
                 if !is_ident_start(self.peek()) {
                     return self.error("Expected lifetime name after '\\''");

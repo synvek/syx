@@ -1,0 +1,26 @@
+// S1-I3: Ch09 switch / associated-value destructuring (brace cases).
+enum NetworkResult {
+    case success(String)
+    case failure(code: Int, message: String)
+}
+
+func describe(_ r: NetworkResult) -> String {
+    switch (r) {
+    case .success(let data) {
+        return data
+    }
+    case .failure(code: let c, message: let m) {
+        return m
+    }
+    default {
+        return "?"
+    }
+    }
+}
+
+func main() {
+    let r1 = NetworkResult.success("OK")
+    print(describe(r1))
+    let r2 = NetworkResult.failure(code: 404, message: "Not Found")
+    print(describe(r2))
+}

@@ -1866,15 +1866,25 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
         }
         Expr::VariantPattern {
             variant,
-            binding,
+            bindings,
             ..
         } => {
-            // W723 / C-06: VariantPattern 首片 — `.name` / `.name(let x)`.
+            // W723 / C-06: VariantPattern — `.name` / `.name(let x)` / labeled binds.
             out.push('.');
             out.push_str(variant);
-            if let Some(name) = binding {
-                out.push_str("(let ");
-                out.push_str(name);
+            if !bindings.is_empty() {
+                out.push('(');
+                for (i, (label, name)) in bindings.iter().enumerate() {
+                    if i > 0 {
+                        out.push_str(", ");
+                    }
+                    if let Some(lab) = label {
+                        out.push_str(lab);
+                        out.push_str(": ");
+                    }
+                    out.push_str("let ");
+                    out.push_str(name);
+                }
                 out.push(')');
             }
             Ok(())

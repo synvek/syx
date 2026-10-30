@@ -210,10 +210,12 @@ pub enum Expr {
         start: i64,
         end: i64,
     },
+    /// Enum/case pattern: `.ok` / `.success(let data)` / `.failure(code: let c, message: let m)`.
+    /// Each binding is `(optional_label, name)`.
     VariantPattern {
         span: Span,
         variant: SmolStr,
-        binding: Option<SmolStr>,
+        bindings: Vec<(Option<SmolStr>, SmolStr)>,
     },
     TuplePattern {
         span: Span,
@@ -543,6 +545,8 @@ pub enum Decl {
         span: Span,
         access: AccessLevel,
         name: SmolStr,
+        /// S1-I3: `struct Box<T>` type parameters (semantic/mono may still be thin).
+        type_params: Vec<SmolStr>,
         /// Stored fields (`var`/`let name: Type [= init]`). Init expressions live on matching
         /// `VarGlobal` entries in `members` when present.
         fields: Vec<(SmolStr, TypeExpr)>,

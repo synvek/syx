@@ -1372,6 +1372,7 @@ impl SemanticAnalyzer {
 
     fn record_instantiation(&mut self, fn_name: SmolStr, type_args: Vec<SmolStr>) {
         // ADR-324: never record bare identifier names as type args (mangling hazard).
+        // Normalize `Int`→`Int64` so MIR Call mangling matches mono instances.
         let type_args: Vec<SmolStr> = type_args
             .into_iter()
             .map(|t| {
@@ -1380,7 +1381,7 @@ impl SemanticAnalyzer {
                     || t.contains('<')
                     || t.contains('[')
                 {
-                    t
+                    normalize_type_arg_name(t)
                 } else {
                     // Lowercase bare names are values, not types — treat as Unknown.
                     SmolStr::new("Unknown")
@@ -2121,6 +2122,17 @@ impl SemanticAnalyzer {
                         self.generic_functions.insert(
                             name.clone(),
                             (type_params.clone(), where_clause.clone()),
+                        );
+                        if let Some(rt) = return_type {
+                            self.function_return_types
+                                .insert(name.clone(), type_expr_to_id(rt));
+                        }
+                        self.function_param_labels.insert(
+                            name.clone(),
+                            params
+                                .iter()
+                                .map(|p| (p.external_label.clone(), p.name.clone()))
+                                .collect(),
                         );
                         self.globals.insert(
                             name.clone(),
@@ -3561,13 +3573,15 @@ impl SemanticAnalyzer {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
                     };
-                    if let Expr::VariantPattern { binding: Some(bind), .. } = pattern {
-                        case_scope.define(Symbol {
-                            name: bind.clone(),
-                            ty: TypeId::Unknown,
-                            mutable: false,
-                            access: AccessLevel::Internal,
-                        })?;
+                    if let Expr::VariantPattern { bindings, .. } = pattern {
+                        for (_label, bind) in bindings {
+                            case_scope.define(Symbol {
+                                name: bind.clone(),
+                                ty: TypeId::Unknown,
+                                mutable: false,
+                                access: AccessLevel::Internal,
+                            })?;
+                        }
                     }
                     if let Expr::TuplePattern { bindings, .. } = pattern {
                         for bind in bindings {
@@ -3640,13 +3654,15 @@ impl SemanticAnalyzer {
                             .with_code("S015"),
                     );
                 }
-                if let Expr::VariantPattern { binding: Some(bind), .. } = pattern {
-                    self.scope.define(Symbol {
-                        name: bind.clone(),
-                        ty: TypeId::Unknown,
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                if let Expr::VariantPattern { bindings, .. } = pattern {
+                    for (_label, bind) in bindings {
+                        self.scope.define(Symbol {
+                            name: bind.clone(),
+                            ty: TypeId::Unknown,
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        })?;
+                    }
                 }
                 if let Expr::TuplePattern { bindings, .. } = pattern {
                     for bind in bindings {
@@ -4962,8 +4978,9 @@ impl SemanticAnalyzer {
                 {
                     let type_args = self.infer_call_type_args(type_params.len(), args);
                     self.validate_generic_instantiation(&fn_name, &type_args);
+                    let ret = self.instantiate_generic_return(&fn_name, &type_params, &type_args);
                     self.record_instantiation(fn_name, type_args);
-                    return Ok(TypeId::Void);
+                    return Ok(ret);
                 }
                 if let Some(rt) = self.function_return_types.get(name) {
                     return Ok(rt.clone());
@@ -6238,6 +6255,49 @@ impl SemanticAnalyzer {
             return;
         };
         self.validate_generic_instantiation_with(fn_name, &type_params, &where_clause, type_args);
+    }
+
+    /// Substitute generic return type (`T` → concrete) for check/inference.
+    fn instantiate_generic_return(
+        &self,
+        fn_name: &SmolStr,
+        type_params: &[SmolStr],
+        type_args: &[SmolStr],
+    ) -> TypeId {
+        let Some(rt) = self.function_return_types.get(fn_name) else {
+            return type_args
+                .first()
+                .map(|t| TypeId::Named(t.clone()))
+                .unwrap_or(TypeId::Unknown);
+        };
+        Self::subst_type_id(rt, type_params, type_args)
+    }
+
+    fn subst_type_id(ty: &TypeId, type_params: &[SmolStr], type_args: &[SmolStr]) -> TypeId {
+        match ty {
+            TypeId::Named(n) | TypeId::GenericParam(n) => {
+                if let Some(idx) = type_params.iter().position(|p| p == n) {
+                    if let Some(arg) = type_args.get(idx) {
+                        return TypeId::Named(arg.clone());
+                    }
+                }
+                ty.clone()
+            }
+            TypeId::Optional(inner) => {
+                TypeId::Optional(Box::new(Self::subst_type_id(inner, type_params, type_args)))
+            }
+            TypeId::Array(inner) => {
+                TypeId::Array(Box::new(Self::subst_type_id(inner, type_params, type_args)))
+            }
+            TypeId::Set(inner) => {
+                TypeId::Set(Box::new(Self::subst_type_id(inner, type_params, type_args)))
+            }
+            TypeId::Dictionary { key, value } => TypeId::Dictionary {
+                key: Box::new(Self::subst_type_id(key, type_params, type_args)),
+                value: Box::new(Self::subst_type_id(value, type_params, type_args)),
+            },
+            other => other.clone(),
+        }
     }
 
     fn validate_reflect_specialization_call(

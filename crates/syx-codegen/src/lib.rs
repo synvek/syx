@@ -4277,12 +4277,18 @@ impl CodeGenerator {
         case_slot: u32,
         out: &mut Vec<Instruction>,
     ) {
-        if let Expr::VariantPattern { binding: Some(bind), .. } = pattern {
-            let bind_slot = self.alloc_local(bind);
-            out.push(Instruction::LoadLocal(case_slot));
-            out.push(Instruction::ConstStr("value".into()));
-            out.push(Instruction::ObjectGet);
-            out.push(Instruction::StoreLocal(bind_slot));
+        if let Expr::VariantPattern { bindings, .. } = pattern {
+            for (i, (label, bind)) in bindings.iter().enumerate() {
+                let bind_slot = self.alloc_local(bind);
+                out.push(Instruction::LoadLocal(case_slot));
+                let field = label
+                    .as_ref()
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| format!("_{i}"));
+                out.push(Instruction::ConstStr(field));
+                out.push(Instruction::ObjectGet);
+                out.push(Instruction::StoreLocal(bind_slot));
+            }
         }
         if let Expr::TuplePattern { bindings, .. } = pattern {
             for (i, bind) in bindings.iter().enumerate() {

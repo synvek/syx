@@ -1,0 +1,14 @@
+// S1-I3 / S1-05: book Ch24 `func id<T>(x: T) -> T`.
+func id<T>(x: T) -> T {
+    return x
+}
+
+func idEq<T: Equatable>(x: T) -> T {
+    return x
+}
+
+func main() {
+    print(id(x: 42))
+    print(id(x: "hi"))
+    print(idEq(x: 7))
+}

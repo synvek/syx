@@ -61,7 +61,7 @@ func describe(_ r: NetworkResult) -> String {
 
 ### Destructuring Named Associated Values
 
-```syx
+```syx,error=L001
 case .failure(code: let c, message: let m) { … }    // Named
 case .failure(let c, let m) { … }                  // Positional
 case let .success(data) { … }                       // Single-parameter shorthand
@@ -69,7 +69,7 @@ case let .success(data) { … }                       // Single-parameter shorth
 
 ### `where` Guards
 
-```syx
+```syx,error=L001
 case .success(let data) where (data.count > 0) { … }
 case .failure(let m) where (m.hasPrefix("5")) { … }
 ```
@@ -79,6 +79,11 @@ See [Chapter 6, Control Flow](06-control-flow.md).
 ## if case
 
 ```syx
+enum NetworkResult {
+    case success(String)
+    case failure(String)
+}
+let result = NetworkResult.success("ok")
 if case .success(let data) = result {
     print(data)
 } else {
@@ -210,7 +215,7 @@ Limits: the full set of generic associated values / arbitrary nesting / custom c
 
 Enums and `final class` closed domains get automatic exhaustiveness checking in `switch`; incomplete case coverage → **S007**.
 
-```syx
+```syx,error=S007
 enum Color { case red, green, blue }
 
 func describe(_ c: Color) -> String {

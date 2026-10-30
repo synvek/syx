@@ -83,6 +83,8 @@ pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
     errors: Vec<SyxDiagnostic>,
+    /// Extra decls synthesized while parsing one logical decl (enum methods → Extension, etc.).
+    pending_decls: Vec<Decl>,
 }
 
 fn is_known_protocol_name(name: &str) -> bool {
@@ -114,7 +116,12 @@ impl Parser {
             tokens,
             current: 0,
             errors: Vec::new(),
+            pending_decls: Vec::new(),
         }
+    }
+
+    fn take_pending_decls(&mut self) -> Vec<Decl> {
+        std::mem::take(&mut self.pending_decls)
     }
 
     pub fn parse(source: SourceFile) -> SyxResult<Module> {
@@ -161,12 +168,14 @@ impl Parser {
             }
             if self.is_decl_start() {
                 decls.push(self.parse_decl()?);
+                decls.append(&mut self.take_pending_decls());
             } else {
                 let stmt = self.parse_stmt()?;
                 decls.push(Decl::TopLevelStmt {
                     span: stmt_span(&stmt),
                     stmt,
                 });
+                decls.append(&mut self.take_pending_decls());
             }
         }
         Ok(Module {
@@ -195,8 +204,12 @@ impl Parser {
                 })
             };
             match parsed {
-                Ok(d) => decls.push(d),
+                Ok(d) => {
+                    decls.push(d);
+                    decls.append(&mut self.take_pending_decls());
+                }
                 Err(e) => {
+                    self.pending_decls.clear();
                     self.push_parse_diagnostic(e);
                     if self.is_decl_start() {
                         // Already on the next declaration (e.g. missing `{` before next `func`).
@@ -567,7 +580,7 @@ impl Parser {
         is_override: bool,
         is_final: bool,
     ) -> SyxResult<Decl> {
-        let type_params = self.parse_type_params()?;
+        let (type_params, mut where_clause) = self.parse_type_params()?;
         self.consume(TokenKind::LParen, "Expected '(' after function name")?;
         let params = self.parse_params()?;
         self.consume(TokenKind::RParen, "Expected ')' after parameters")?;
@@ -605,7 +618,7 @@ impl Parser {
         } else {
             None
         };
-        let where_clause = self.parse_where_clause()?;
+        where_clause.extend(self.parse_where_clause()?);
         self.consume(TokenKind::LBrace, "Expected '{' before function body")?;
         let body = self.parse_block_stmts()?;
         let span = Span::merge(start, self.previous().span);
@@ -627,18 +640,30 @@ impl Parser {
         })
     }
 
-    fn parse_type_params(&mut self) -> SyxResult<Vec<SmolStr>> {
+    /// Type params with optional inline constraints: `<T>`, `<T: Equatable>`, `<T: P, U>`.
+    /// Inline constraints are returned as WherePreds (merged by callers into where_clause).
+    fn parse_type_params(&mut self) -> SyxResult<(Vec<SmolStr>, Vec<WherePred>)> {
         let mut params = Vec::new();
+        let mut inline = Vec::new();
         if self.match_kind(TokenKind::Less) {
             loop {
-                params.push(self.consume_identifier("Expected type parameter name")?);
+                let name = self.consume_identifier("Expected type parameter name")?;
+                if self.match_kind(TokenKind::Colon) {
+                    let constraint =
+                        self.consume_identifier("Expected protocol constraint after ':'")?;
+                    inline.push(WherePred {
+                        type_name: name.clone(),
+                        constraint,
+                    });
+                }
+                params.push(name);
                 if !self.match_kind(TokenKind::Comma) {
                     break;
                 }
             }
             self.consume_rangle("Expected '>' after type parameters")?;
         }
-        Ok(params)
+        Ok((params, inline))
     }
 
     fn parse_where_clause(&mut self) -> SyxResult<Vec<WherePred>> {
@@ -663,7 +688,7 @@ impl Parser {
     fn parse_enum(&mut self, access: AccessLevel, attrs: Vec<syx_ast::Attribute>) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected enum name")?;
-        let type_params = self.parse_type_params()?;
+        let (type_params, _inline_constraints) = self.parse_type_params()?;
         // S1-I2: optional conformance list (`enum E: Error`) — parse-accept; semantic thin.
         if self.match_kind(TokenKind::Colon) {
             loop {
@@ -675,11 +700,21 @@ impl Parser {
         }
         self.consume(TokenKind::LBrace, "Expected '{' after enum name")?;
         let mut cases = Vec::new();
+        let mut methods = Vec::new();
         let mut anon_field_i = 0u32;
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
             self.skip_newlines();
             if self.check(TokenKind::RBrace) {
                 break;
+            }
+            // Book: methods after cases (`func isFinal() …`) → Extension on the enum type.
+            if matches!(
+                self.peek().kind,
+                TokenKind::Func | TokenKind::Mutating | TokenKind::Public | TokenKind::Private
+                    | TokenKind::Internal | TokenKind::FilePrivate | TokenKind::At
+            ) {
+                methods.push(self.parse_class_member()?);
+                continue;
             }
             // Book requires `case`; legacy fixtures without `case` still accepted.
             let _ = self.match_kind(TokenKind::Case);
@@ -688,13 +723,8 @@ impl Parser {
             let mut value = None;
             if self.match_kind(TokenKind::LParen) {
                 while !self.check(TokenKind::RParen) {
-                    // Named `code: Int` or unlabeled associated `String` / `T`.
-                    if matches!(self.peek().kind, TokenKind::Identifier(_))
-                        && matches!(
-                            self.peek_ahead(1).map(|t| &t.kind),
-                            Some(TokenKind::Colon)
-                        )
-                    {
+                    // Named `code: Int` / `data: String` (soft kw) or unlabeled `String` / `T`.
+                    if self.peek_is_label_colon() {
                         let field = self.consume_identifier("Expected associated field name")?;
                         self.consume(TokenKind::Colon, "Expected ':' after associated field")?;
                         associated_fields.push((field, self.parse_type()?));
@@ -715,12 +745,48 @@ impl Parser {
             }
             cases.push((case_name, value, associated_fields));
             // Optional trailing comma between cases (book style).
-            let _ = self.match_kind(TokenKind::Comma);
+            // Multi-name `case ok, err, pending` — more identifiers after comma.
+            while self.match_kind(TokenKind::Comma) {
+                self.skip_newlines();
+                if self.check(TokenKind::RBrace)
+                    || matches!(
+                        self.peek().kind,
+                        TokenKind::Case
+                            | TokenKind::Func
+                            | TokenKind::Mutating
+                            | TokenKind::Public
+                            | TokenKind::Private
+                            | TokenKind::Internal
+                            | TokenKind::FilePrivate
+                            | TokenKind::At
+                    )
+                {
+                    break;
+                }
+                if matches!(self.peek().kind, TokenKind::Identifier(_))
+                    || Self::soft_keyword_ident(&self.peek().kind).is_some()
+                {
+                    let extra = self.consume_identifier("Expected enum case name")?;
+                    cases.push((extra, None, Vec::new()));
+                } else {
+                    break;
+                }
+            }
             self.skip_newlines();
         }
         self.consume(TokenKind::RBrace, "Expected '}' after enum cases")?;
+        let end = self.previous().span;
+        if !methods.is_empty() {
+            self.pending_decls.push(Decl::Extension {
+                span: Span::merge(start, end),
+                type_name: name.clone(),
+                conformances: Vec::new(),
+                where_clause: Vec::new(),
+                methods,
+            });
+        }
         Ok(Decl::Enum {
-            span: Span::merge(start, self.previous().span),
+            span: Span::merge(start, end),
             access,
             attrs,
             name,
@@ -770,7 +836,7 @@ impl Parser {
             self.consume(TokenKind::Func, "Expected 'func' after operator")?;
             let op = self.parse_operator_symbol()?;
             let start = self.previous().span;
-            let _type_params = self.parse_type_params()?;
+            let (_type_params, _) = self.parse_type_params()?;
             self.consume(TokenKind::LParen, "Expected '(' after operator")?;
             let params = self.parse_params()?;
             self.consume(TokenKind::RParen, "Expected ')' after parameters")?;
@@ -1115,7 +1181,7 @@ impl Parser {
     fn parse_data_class(&mut self, access: AccessLevel, attrs: Vec<Attribute>) -> SyxResult<Decl> {
         let start = self.previous().span;
         let name = self.consume_identifier("Expected data class name")?;
-        let type_params = self.parse_type_params()?;
+        let (type_params, mut where_clause) = self.parse_type_params()?;
         self.consume(TokenKind::LParen, "Expected '(' after data class name")?;
         let mut fields = Vec::new();
         if !self.check(TokenKind::RParen) {
@@ -1130,7 +1196,7 @@ impl Parser {
             }
         }
         self.consume(TokenKind::RParen, "Expected ')' after data class fields")?;
-        let where_clause = self.parse_where_clause()?;
+        where_clause.extend(self.parse_where_clause()?);
         self.skip_newlines();
         Ok(Decl::DataClass {
             span: Span::merge(start, self.previous().span),
@@ -1146,7 +1212,7 @@ impl Parser {
     fn parse_final_class(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.previous().span;
         let name = self.consume_identifier("Expected final class name")?;
-        let type_params = self.parse_type_params()?;
+        let (type_params, _) = self.parse_type_params()?;
         self.consume(TokenKind::LBrace, "Expected '{' after final class")?;
         let mut variants = Vec::new();
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
@@ -1328,7 +1394,8 @@ impl Parser {
     fn parse_struct(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected struct name")?;
-        // S1-02 first slice: optional protocol conformances (`struct Foo: Bar`); generics deferred.
+        let (type_params, _inline) = self.parse_type_params()?;
+        // S1-02 first slice: optional protocol conformances (`struct Foo: Bar`).
         let conformances = if self.match_kind(TokenKind::Colon) {
             let mut list = Vec::new();
             loop {
@@ -1388,6 +1455,7 @@ impl Parser {
             span,
             access,
             name,
+            type_params,
             fields,
             members,
         })
@@ -1396,6 +1464,71 @@ impl Parser {
     fn parse_global_var(&mut self, access: AccessLevel, attrs: Vec<Attribute>, is_lazy: bool, is_override: bool) -> SyxResult<Decl> {
         let start = self.advance().span;
         let mutable = matches!(self.previous().kind, TokenKind::Var);
+        // Top-level `let (x, y) = …` — desugar like stmt tuple destructure.
+        if self.match_kind(TokenKind::LParen) {
+            let mut bindings = Vec::new();
+            if !self.check(TokenKind::RParen) {
+                loop {
+                    bindings.push(self.consume_identifier("Expected binding name in tuple pattern")?);
+                    if !self.match_kind(TokenKind::Comma) {
+                        break;
+                    }
+                }
+            }
+            self.consume(TokenKind::RParen, "Expected ')' after tuple pattern")?;
+            let ty = if self.match_kind(TokenKind::Colon) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            let init = if self.match_kind(TokenKind::Assign) {
+                Some(self.parse_expr()?)
+            } else {
+                None
+            };
+            self.skip_newlines();
+            let end = self.previous().span;
+            let tmp = SmolStr::new(format!("__tuple_{}_{}", start.start, bindings.len()));
+            for (i, bind) in bindings.iter().enumerate() {
+                self.pending_decls.push(Decl::VarGlobal {
+                    span: Span::merge(start, end),
+                    access,
+                    attrs: Vec::new(),
+                    mutable,
+                    name: bind.clone(),
+                    ty: None,
+                    init: Some(Expr::Member {
+                        span: end,
+                        object: Box::new(Expr::Ident {
+                            span: end,
+                            name: tmp.clone(),
+                        }),
+                        name: SmolStr::new(i.to_string()),
+                    }),
+                    will_set: None,
+                    did_set: None,
+                    computed_getter: None,
+                    computed_setter: None,
+                    is_override: false,
+                    is_lazy: false,
+                });
+            }
+            return Ok(Decl::VarGlobal {
+                span: Span::merge(start, end),
+                access,
+                attrs,
+                mutable: false,
+                name: tmp,
+                ty,
+                init,
+                will_set: None,
+                did_set: None,
+                computed_getter: None,
+                computed_setter: None,
+                is_override,
+                is_lazy,
+            });
+        }
         let name = self.consume_identifier("Expected variable name")?;
         let ty = if self.match_kind(TokenKind::Colon) {
             Some(self.parse_type()?)
@@ -1955,36 +2088,47 @@ impl Parser {
                 } else {
                     None
                 };
-                self.consume(TokenKind::Colon, "Expected ':' after case")?;
-                let mut stmts = Vec::new();
-                while !self.check(TokenKind::Case)
-                    && !self.check(TokenKind::Default)
-                    && !self.check(TokenKind::RBrace)
-                {
-                    self.skip_newlines();
-                    if self.check(TokenKind::Case)
-                        || self.check(TokenKind::Default)
-                        || self.check(TokenKind::RBrace)
+                // Book style `case .ok { … }` or classic `case .ok: …`.
+                let stmts = if self.match_kind(TokenKind::LBrace) {
+                    self.parse_block_stmts()?
+                } else {
+                    self.consume(TokenKind::Colon, "Expected ':' or '{' after case")?;
+                    let mut stmts = Vec::new();
+                    while !self.check(TokenKind::Case)
+                        && !self.check(TokenKind::Default)
+                        && !self.check(TokenKind::RBrace)
                     {
-                        break;
+                        self.skip_newlines();
+                        if self.check(TokenKind::Case)
+                            || self.check(TokenKind::Default)
+                            || self.check(TokenKind::RBrace)
+                        {
+                            break;
+                        }
+                        stmts.push(self.parse_stmt()?);
                     }
-                    stmts.push(self.parse_stmt()?);
-                }
+                    stmts
+                };
                 cases.push(syx_ast::SwitchCase {
                     pattern,
                     guard,
                     body: stmts,
                 });
             } else if self.match_kind(TokenKind::Default) {
-                self.consume(TokenKind::Colon, "Expected ':' after default")?;
-                let mut stmts = Vec::new();
-                while !self.check(TokenKind::RBrace) {
-                    self.skip_newlines();
-                    if self.check(TokenKind::RBrace) {
-                        break;
+                let stmts = if self.match_kind(TokenKind::LBrace) {
+                    self.parse_block_stmts()?
+                } else {
+                    self.consume(TokenKind::Colon, "Expected ':' or '{' after default")?;
+                    let mut stmts = Vec::new();
+                    while !self.check(TokenKind::RBrace) {
+                        self.skip_newlines();
+                        if self.check(TokenKind::RBrace) {
+                            break;
+                        }
+                        stmts.push(self.parse_stmt()?);
                     }
-                    stmts.push(self.parse_stmt()?);
-                }
+                    stmts
+                };
                 default = Some(stmts);
             } else {
                 break;
@@ -2532,16 +2676,30 @@ impl Parser {
         }
         if self.match_kind(TokenKind::Dot) {
             let variant = self.consume_identifier("Expected variant name after '.'")?;
-            let mut binding = None;
+            let mut bindings = Vec::new();
             if self.match_kind(TokenKind::LParen) {
-                self.consume(TokenKind::Let, "Expected 'let' in variant binding")?;
-                binding = Some(self.consume_identifier("Expected binding name")?);
+                // `.success(let data)` | `.failure(code: let c, message: let m)` | `.fail(let a, let b)`
+                while !self.check(TokenKind::RParen) {
+                    let label = if self.peek_is_label_colon() {
+                        let lab = self.consume_identifier("Expected associated label")?;
+                        self.consume(TokenKind::Colon, "Expected ':' after associated label")?;
+                        Some(lab)
+                    } else {
+                        None
+                    };
+                    self.consume(TokenKind::Let, "Expected 'let' in variant binding")?;
+                    let name = self.consume_identifier("Expected binding name")?;
+                    bindings.push((label, name));
+                    if !self.match_kind(TokenKind::Comma) {
+                        break;
+                    }
+                }
                 self.consume(TokenKind::RParen, "Expected ')' after variant binding")?;
             }
             return Ok(Expr::VariantPattern {
                 span: self.previous().span,
                 variant,
-                binding,
+                bindings,
             });
         }
         if let TokenKind::Integer(start, _) = &self.peek().kind {
@@ -3134,6 +3292,34 @@ impl Parser {
                         index: Box::new(index),
                     };
                 }
+                // S1-I3: trailing closure `nums.map { $0 * 2 }` / `reduce(0) { $0 + $1 }`.
+                TokenKind::LBrace if self.looks_like_brace_closure() => {
+                    let clo = self.parse_primary()?;
+                    let span = Span::merge(expr_span(&expr), expr_span(&clo));
+                    let arg = CallArg {
+                        label: None,
+                        value: clo,
+                    };
+                    expr = match expr {
+                        Expr::Call {
+                            span: _,
+                            callee,
+                            mut args,
+                        } => {
+                            args.push(arg);
+                            Expr::Call {
+                                span,
+                                callee,
+                                args,
+                            }
+                        }
+                        other => Expr::Call {
+                            span,
+                            callee: Box::new(other),
+                            args: vec![arg],
+                        },
+                    };
+                }
                 _ => break,
             }
         }
@@ -3332,6 +3518,9 @@ impl Parser {
                 if self.check(TokenKind::LParen) {
                     return self.parse_swift_closure(span);
                 }
+                if self.looks_like_brace_closure() {
+                    return self.parse_brace_closure(span);
+                }
                 self.parse_dict_literal(span)
             }
             _ => self.error_at(token.clone(), "Expected expression"),
@@ -3435,6 +3624,159 @@ impl Parser {
             }
         }
         Ok(params)
+    }
+
+    /// Non-trivia token `n` steps after current peek (0 = peek itself).
+    fn peek_non_trivia_kind(&self, n: usize) -> Option<&TokenKind> {
+        let mut idx = self.peek_index();
+        let mut seen = 0usize;
+        while idx < self.tokens.len() {
+            if Self::is_trivia_kind(&self.tokens[idx].kind) {
+                idx += 1;
+                continue;
+            }
+            if seen == n {
+                return Some(&self.tokens[idx].kind);
+            }
+            seen += 1;
+            idx += 1;
+        }
+        None
+    }
+
+    /// `{ $0 * 2 }` / `{ x in x + 1 }` / `{ x, y in … }` (not a dict `{ k: v }`).
+    /// When called from postfix, `peek` is still `{`; when from primary, `{` was consumed.
+    fn looks_like_brace_closure(&self) -> bool {
+        let mut i = if matches!(self.peek().kind, TokenKind::LBrace) {
+            1
+        } else {
+            0
+        };
+        match self.peek_non_trivia_kind(i) {
+            Some(TokenKind::Identifier(n)) if n.starts_with('$') => true,
+            Some(TokenKind::Pipe) | Some(TokenKind::LParen) => true,
+            Some(TokenKind::Identifier(_)) => loop {
+                match self.peek_non_trivia_kind(i) {
+                    Some(TokenKind::Identifier(_)) => {
+                        i += 1;
+                        match self.peek_non_trivia_kind(i) {
+                            Some(TokenKind::Comma) => {
+                                i += 1;
+                                continue;
+                            }
+                            Some(TokenKind::In) => return true,
+                            _ => return false,
+                        }
+                    }
+                    _ => return false,
+                }
+            },
+            _ => false,
+        }
+    }
+
+    fn parse_brace_closure(&mut self, start_span: Span) -> SyxResult<Expr> {
+        // `{ $0 … }` shorthand — body is an expression (or block stmts until `}`).
+        if matches!(&self.peek().kind, TokenKind::Identifier(n) if n.starts_with('$')) {
+            let body_expr = self.parse_expr()?;
+            self.consume(TokenKind::RBrace, "Expected '}' after closure shorthand")?;
+            let max_idx = Self::max_shorthand_index(&body_expr).unwrap_or(0);
+            let params: Vec<Param> = (0..=max_idx)
+                .map(|i| Param {
+                    name: SmolStr::new(format!("${i}")),
+                    external_label: ParamLabel::Same,
+                    ty: None,
+                    default: None,
+                    isolated: false,
+                    sending: false,
+                    attrs: vec![],
+                })
+                .collect();
+            return Ok(Expr::Closure {
+                span: Span::merge(start_span, self.previous().span),
+                params,
+                return_type: None,
+                body: ClosureBody::Expr(Box::new(body_expr)),
+            });
+        }
+        // `{ x in … }` / `{ x, y in … }`
+        let mut params = Vec::new();
+        loop {
+            let name = self.consume_identifier("Expected closure parameter name")?;
+            params.push(Param {
+                name,
+                external_label: ParamLabel::Same,
+                ty: None,
+                default: None,
+                isolated: false,
+                sending: false,
+                attrs: vec![],
+            });
+            if !self.match_kind(TokenKind::Comma) {
+                break;
+            }
+        }
+        self.consume(TokenKind::In, "Expected 'in' in brace closure")?;
+        let body = if self.check(TokenKind::LBrace) {
+            self.advance();
+            ClosureBody::Block(self.parse_block_stmts()?)
+        } else {
+            let expr = self.parse_expr()?;
+            self.consume(TokenKind::RBrace, "Expected '}' after brace closure")?;
+            ClosureBody::Expr(Box::new(expr))
+        };
+        Ok(Expr::Closure {
+            span: Span::merge(start_span, self.previous().span),
+            params,
+            return_type: None,
+            body,
+        })
+    }
+
+    fn max_shorthand_index(expr: &Expr) -> Option<u32> {
+        let mut max = None;
+        fn walk(e: &Expr, max: &mut Option<u32>) {
+            match e {
+                Expr::Ident { name, .. } => {
+                    if let Some(rest) = name.strip_prefix('$') {
+                        if let Ok(i) = rest.parse::<u32>() {
+                            *max = Some(max.map_or(i, |m| m.max(i)));
+                        }
+                    }
+                }
+                Expr::Binary { left, right, .. } => {
+                    walk(left, max);
+                    walk(right, max);
+                }
+                Expr::Unary { expr, .. }
+                | Expr::Group { expr, .. }
+                | Expr::ForceUnwrap { expr, .. }
+                | Expr::OptionalCast { expr, .. }
+                | Expr::Cast { expr, .. }
+                | Expr::Is { expr, .. } => walk(expr, max),
+                Expr::Call { callee, args, .. } => {
+                    walk(callee, max);
+                    for a in args {
+                        walk(&a.value, max);
+                    }
+                }
+                Expr::Member { object, .. } | Expr::OptionalChain { object, .. } => {
+                    walk(object, max);
+                }
+                Expr::Index { object, index, .. } => {
+                    walk(object, max);
+                    walk(index, max);
+                }
+                Expr::Array { elements, .. } => {
+                    for el in elements {
+                        walk(el, max);
+                    }
+                }
+                _ => {}
+            }
+        }
+        walk(expr, &mut max);
+        max
     }
 
     fn finish_dict_literal(
@@ -3714,6 +4056,17 @@ impl Parser {
         }
     }
 
+    /// `name:` label start — Identifier or soft keyword (`data: String`, etc.).
+    fn peek_is_label_colon(&self) -> bool {
+        let is_name = matches!(self.peek().kind, TokenKind::Identifier(_))
+            || Self::soft_keyword_ident(&self.peek().kind).is_some();
+        is_name
+            && matches!(
+                self.peek_ahead(1).map(|t| &t.kind),
+                Some(TokenKind::Colon)
+            )
+    }
+
     fn consume_identifier(&mut self, message: &str) -> SyxResult<SmolStr> {
         match &self.peek().kind {
             TokenKind::Identifier(name) => {
@@ -3780,7 +4133,7 @@ impl Parser {
                 | TokenKind::Try
                 | TokenKind::Amp
                 | TokenKind::SelfKw
-        )
+        ) || Self::soft_keyword_ident(&self.peek().kind).is_some()
     }
 
     fn is_trivia_kind(kind: &TokenKind) -> bool {

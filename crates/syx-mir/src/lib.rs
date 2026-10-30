@@ -3567,55 +3567,65 @@ fn bind_pattern(pattern: &Expr, case_slot: u32, ctx: &mut LowerCtx, block: u32) 
 fn bind_variant_pattern(pattern: &Expr, case_slot: u32, ctx: &mut LowerCtx, block: u32) {
     if let Expr::VariantPattern {
         variant,
-        binding: Some(bind),
+        bindings,
         ..
     } = pattern
     {
-        let field = ctx
+        if bindings.is_empty() {
+            return;
+        }
+        let fields: Vec<SmolStr> = ctx
             .module
             .enum_associated_fields
             .iter()
             .find_map(|((_, case), fields)| {
-                if case == variant && !fields.is_empty() {
-                    Some(fields[0].clone())
+                if case == variant {
+                    Some(fields.clone())
                 } else {
                     None
                 }
             })
-            .unwrap_or_else(|| SmolStr::new("value"));
-        let bind_slot = ctx.alloc_local(bind);
-        ctx.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::LoadLocal(case_slot),
-                span: None,
-            },
-        );
-        ctx.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::ConstStr(field.to_string()),
-                span: None,
-            },
-        );
-        ctx.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::ObjectGet,
-                span: None,
-            },
-        );
-        ctx.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::StoreLocal(bind_slot),
-                span: None,
-            },
-        );
+            .unwrap_or_default();
+        for (i, (label, bind)) in bindings.iter().enumerate() {
+            // Unlabeled assoc fields are stored as `_0`, `_1`, … (S1-I2 enum parse).
+            let field = label
+                .clone()
+                .or_else(|| fields.get(i).cloned())
+                .unwrap_or_else(|| SmolStr::new(format!("_{i}")));
+            let bind_slot = ctx.alloc_local(bind);
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(case_slot),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstStr(field.to_string()),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ObjectGet,
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::StoreLocal(bind_slot),
+                    span: None,
+                },
+            );
+        }
     }
 }
 

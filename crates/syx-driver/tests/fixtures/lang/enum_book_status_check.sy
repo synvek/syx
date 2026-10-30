@@ -1,0 +1,11 @@
+// S1-I3: enum_book Status.ok check (not parse-only).
+enum Status {
+    case ok
+    case err
+    case pending
+}
+
+func main() {
+    let s = Status.ok
+    print(s)
+}
