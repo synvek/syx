@@ -10,7 +10,6 @@
 | 项目清单 | `syx.toml` |
 | 工具链 | `syx` CLI（`syx-cli`） |
 
-> **现行公开能力：** [docs/adr/capabilities-summary.md](docs/adr/capabilities-summary.md)  
 > **使用指南：** [docs/9_UsageGuide.md](docs/9_UsageGuide.md)  
 > **语言书籍：** [books/](books/) · **教程：** [tutorial/](tutorial/)
 

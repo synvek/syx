@@ -10,7 +10,6 @@
 | Project manifest | `syx.toml` |
 | Toolchain | `syx` CLI (`syx-cli`) |
 
-> **Public capabilities:** [docs/adr/capabilities-summary.md](docs/adr/capabilities-summary.md)  
 > **Usage guide:** [docs/9_UsageGuide.md](docs/9_UsageGuide.md)  
 > **Language books:** [books/](books/) · **Tutorial:** [tutorial/](tutorial/)
 
