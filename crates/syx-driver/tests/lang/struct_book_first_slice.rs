@@ -1,13 +1,16 @@
-//! S1-02 first slice: book-style `struct` parse (+ thin run where shells allow).
-//! S1-06 probe: `let` + mutating `append` must not succeed.
+//! S1-I2: book-style `struct` check (+ run) and S1-06 let+mutating reject.
 
 use syx_ast::Decl;
 use syx_diagnostics::SourceFile;
-use syx_driver::{compile_file_with_options, DriverOptions};
+use syx_driver::{compile_file_with_options, run_file_printed, DriverOptions};
 use syx_parser::Parser;
 
 fn fixture(rel: &str) -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("tests/fixtures/{rel}"))
+}
+
+fn opts() -> DriverOptions {
+    DriverOptions::default()
 }
 
 fn parse_file(rel: &str) -> syx_ast::Module {
@@ -61,35 +64,40 @@ fn s1_02_struct_counter_parses_mutating_and_init_default() {
 }
 
 #[test]
-fn s1_02_struct_point_parses_end_to_end_source() {
-    // First slice KPI is parse (book fences stop dying at P001). Semantic labeled
-    // `Point(x:…)` / init shells deepen in S1-I2 — do not require compile yet.
-    let module = parse_file("lang/struct_book_point.sy");
+fn s1_02_struct_point_check_and_run() {
+    let path = fixture("lang/struct_book_point.sy");
+    compile_file_with_options(&path, &opts()).expect("Point check/compile");
+    let (code, lines) = run_file_printed(&path, &opts()).expect("Point run");
+    assert_eq!(code, 0, "Point exit code");
+    let out = lines.join("\n");
+    assert!(out.contains('1'), "expected x printed, got {out:?}");
+    assert!(out.contains('2'), "expected y printed, got {out:?}");
+}
+
+#[test]
+fn s1_02_struct_counter_check_and_run() {
+    let path = fixture("lang/struct_book_counter.sy");
+    compile_file_with_options(&path, &opts()).expect("Counter check/compile");
+    let (code, lines) = run_file_printed(&path, &opts()).expect("Counter run");
+    assert_eq!(code, 0, "Counter exit code");
+    let out = lines.join("\n");
     assert!(
-        module.decls.iter().any(|d| matches!(d, Decl::Struct { name, .. } if name == "Point"))
-    );
-    assert!(
-        module.decls.iter().any(|d| matches!(d, Decl::Function { name, .. } if name == "main"))
+        out.contains('1'),
+        "expected value 1 after increment, got {out:?}"
     );
 }
 
 #[test]
-fn s1_06_let_append_must_fail_probe() {
+fn s1_06_let_append_must_fail() {
     let path = fixture("lang/let_append_must_fail.sy");
-    let options = DriverOptions::default();
-    let compiled = compile_file_with_options(&path, &options);
-    // Probe: either compile/check fails, or (legacy hole) we still assert runtime must not
-    // silently accept — prefer compile Err. Soft-pass with ignore if still accepting until deepen.
-    if compiled.is_ok() {
-        // Document residual hole for S1-I2; do not claim S1-06 [x].
-        eprintln!(
-            "S1-06 residual: let+[].append still compiles; deepen in S1-I2 (probe fixture retained)"
-        );
-    } else {
-        let err = compiled.unwrap_err().to_string();
-        assert!(
-            !err.is_empty(),
-            "expected a diagnostic when let-bound array is mutated"
-        );
-    }
+    let compiled = compile_file_with_options(&path, &opts());
+    assert!(
+        compiled.is_err(),
+        "let-bound Array.append must fail semantic check (S060)"
+    );
+    let err = compiled.unwrap_err().to_string();
+    assert!(
+        err.contains("S060") || err.contains("mutating") || err.contains("immutable"),
+        "expected S060 / mutating diagnostic, got: {err}"
+    );
 }

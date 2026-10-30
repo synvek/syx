@@ -989,6 +989,8 @@ pub struct SemanticAnalyzer {
     protocol_names: HashSet<SmolStr>,
     dataclass_names: HashSet<SmolStr>,
     dataclass_fields: IndexMap<SmolStr, Vec<(SmolStr, TypeId)>>,
+    /// S1-I2: `(type, method)` marked `mutating` / known mutating collection ops.
+    mutating_methods: HashSet<(SmolStr, SmolStr)>,
     class_names: HashSet<SmolStr>,
     /// Computed properties with a getter but no setter (`let name { get { … } }`).
     getter_only_properties: HashSet<(SmolStr, SmolStr)>,
@@ -2475,7 +2477,96 @@ impl SemanticAnalyzer {
                         },
                     );
                 }
-                Decl::Struct { name, access, .. } => {
+                Decl::Struct {
+                    name,
+                    access,
+                    fields,
+                    members,
+                    ..
+                } => {
+                    // S1-I2: Struct joins DataClass construction / field lookup path.
+                    self.dataclass_names.insert(name.clone());
+                    let mut field_types: Vec<(SmolStr, TypeId)> = fields
+                        .iter()
+                        .map(|(f, ty)| (f.clone(), type_expr_to_id(ty)))
+                        .collect();
+                    let mut methods: Vec<(SmolStr, TypeId)> = Vec::new();
+                    for member in members {
+                        if let Decl::VarGlobal {
+                            name: field,
+                            ty: Some(ty),
+                            ..
+                        } = member
+                        {
+                            let field_ty = type_expr_to_id(ty);
+                            if let Some(slot) =
+                                field_types.iter_mut().find(|(f, _)| f == field)
+                            {
+                                slot.1 = field_ty;
+                            } else {
+                                field_types.push((field.clone(), field_ty));
+                            }
+                        }
+                        if let Decl::Function {
+                            name: method,
+                            return_type,
+                            params,
+                            attrs,
+                            ..
+                        } = member
+                        {
+                            let ret = return_type
+                                .as_ref()
+                                .map(type_expr_to_id)
+                                .unwrap_or(TypeId::Void);
+                            methods.push((method.clone(), ret.clone()));
+                            if attrs.iter().any(|a| a.name.as_str() == "mutating") {
+                                self.mutating_methods
+                                    .insert((name.clone(), method.clone()));
+                            }
+                            let method_name = SmolStr::new(format!("{name}_{method}"));
+                            self.function_param_labels.insert(
+                                method_name.clone(),
+                                params
+                                    .iter()
+                                    .map(|p| (p.external_label.clone(), p.name.clone()))
+                                    .collect(),
+                            );
+                            self.function_return_types
+                                .insert(method_name, ret);
+                        }
+                        if let Decl::Init { params, .. } = member {
+                            let init_name = SmolStr::new(format!("{name}_init"));
+                            self.function_param_labels.insert(
+                                init_name,
+                                params
+                                    .iter()
+                                    .map(|p| (p.external_label.clone(), p.name.clone()))
+                                    .collect(),
+                            );
+                        }
+                    }
+                    if !field_types.is_empty() {
+                        self.dataclass_fields
+                            .insert(name.clone(), field_types.clone());
+                    }
+                    // Memberwise init labels (book `Point(x:y:)` / positional).
+                    if !self
+                        .function_param_labels
+                        .contains_key(&SmolStr::new(format!("{name}_init")))
+                    {
+                        let init_name = SmolStr::new(format!("{name}_init"));
+                        self.function_param_labels.insert(
+                            init_name,
+                            field_types
+                                .iter()
+                                .map(|(f, _)| (ParamLabel::Same, f.clone()))
+                                .collect(),
+                        );
+                    }
+                    if !methods.is_empty() {
+                        self.class_methods.insert(name.clone(), methods);
+                    }
                     self.globals.insert(
                         name.clone(),
                         Symbol {
@@ -2944,11 +3035,18 @@ impl SemanticAnalyzer {
                 }
                 Ok(())
             }
-            Decl::Struct { fields, name, .. } => {
+            Decl::Struct {
+                fields,
+                name,
+                members,
+                ..
+            } => {
                 for (_, ty) in fields {
                     let _ = type_expr_to_id(ty);
                 }
-                let _ = name;
+                for member in members {
+                    self.analyze_type_member(name, member, false)?;
+                }
                 Ok(())
             }
             Decl::Enum { cases, .. } => {
@@ -3833,19 +3931,23 @@ impl SemanticAnalyzer {
                     );
                 }
                 self.check_main_actor_after_await(name);
-                let ty = self
+                if let Some(ty) = self
                     .scope
                     .lookup(name)
                     .or_else(|| self.globals.get(name))
                     .map(|s| s.ty.clone())
-                    .ok_or_else(|| {
-                        self.error_at(
-                            format!("Undefined identifier '{name}'"),
-                            *span,
-                            "S002",
-                        )
-                    })?;
-                Ok(self.deref_type(&ty))
+                {
+                    return Ok(self.deref_type(&ty));
+                }
+                // S1-I2: bare stored property in struct/class method (`value = value + 1`).
+                if let Some(ty) = self.lookup_enclosing_type_field(name) {
+                    return Ok(ty);
+                }
+                Err(self.error_at(
+                    format!("Undefined identifier '{name}'"),
+                    *span,
+                    "S002",
+                ))
             }
             Expr::Borrow { expr, mutable, .. } => {
                 if *mutable {
@@ -4149,17 +4251,22 @@ impl SemanticAnalyzer {
             }
             Expr::Assign { name, value, span, .. } => {
                 self.check_main_actor_after_await(name);
-                let (mutable, sym_ty) = match self
+                let (mutable, sym_ty, is_enclosing_field) = match self
                     .scope
                     .lookup(name)
                     .or_else(|| self.globals.get(name))
                 {
-                    Some(sym) => (sym.mutable, sym.ty.clone()),
+                    Some(sym) => (sym.mutable, sym.ty.clone(), false),
                     None => {
-                        return Err(
-                            SyxDiagnostic::error(format!("Undefined identifier '{name}'"))
-                                .with_code("S002"),
-                        );
+                        if let Some(field_ty) = self.lookup_enclosing_type_field(name) {
+                            // Stored `var` property via bare name in method body.
+                            (true, field_ty, true)
+                        } else {
+                            return Err(
+                                SyxDiagnostic::error(format!("Undefined identifier '{name}'"))
+                                    .with_code("S002"),
+                            );
+                        }
                     }
                 };
                 if !mutable {
@@ -4183,7 +4290,15 @@ impl SemanticAnalyzer {
                 // Reassignment rebinds the name; prior move of the old value no longer applies.
                 self.moved_bindings.remove(name);
                 self.mut_borrows.remove(name);
-                if matches!(expected, TypeId::Unknown) {
+                if is_enclosing_field {
+                    self.check_assignable_with_literal(
+                        expected,
+                        ty,
+                        name,
+                        Some(value),
+                        *span,
+                    )?;
+                } else if matches!(expected, TypeId::Unknown) {
                     if let Some(binding) = self.scope.lookup_mut(name) {
                         binding.ty = ty.clone();
                     }
@@ -4544,6 +4659,70 @@ impl SemanticAnalyzer {
         diag
     }
 
+    /// Bare stored property of the enclosing struct/class (book `value = value + 1`).
+    fn lookup_enclosing_type_field(&self, name: &SmolStr) -> Option<TypeId> {
+        let type_name = self.current_class_context.as_ref()?;
+        self.dataclass_fields
+            .get(type_name)
+            .and_then(|fields| fields.iter().find(|(f, _)| f == name).map(|(_, ty)| ty.clone()))
+    }
+
+    /// S1-06 / S060: `let` bindings cannot invoke mutating methods (incl. `Array.append`).
+    /// Distinct from MainActor `S020`.
+    fn check_mutating_call_on_immutable(
+        &mut self,
+        object: &Expr,
+        obj_ty: &TypeId,
+        method: &str,
+        span: syx_diagnostics::Span,
+    ) {
+        // Keep this list to in-place mutators. Do NOT include Core copy-returning
+        // facades like `Array.reverse()` / `sorted()` (packages/core … array.sy).
+        let known_collection_mutating = matches!(
+            method,
+            "append"
+                | "insert"
+                | "remove"
+                | "removeAll"
+                | "removeFirst"
+                | "removeLast"
+                | "popLast"
+        );
+        let marked_mutating = match obj_ty {
+            TypeId::Named(type_name) => self
+                .mutating_methods
+                .contains(&(type_name.clone(), SmolStr::new(method))),
+            _ => false,
+        };
+        if !known_collection_mutating && !marked_mutating {
+            return;
+        }
+        let Some(binding) = Self::mutating_receiver_binding(object) else {
+            return;
+        };
+        let Some(sym) = self.scope.lookup(&binding) else {
+            return;
+        };
+        if sym.mutable {
+            return;
+        }
+        self.errors.push(self.error_at(
+            format!(
+                "Cannot call mutating method '{method}' on immutable binding '{binding}'"
+            ),
+            span,
+            "S060",
+        ));
+    }
+
+    fn mutating_receiver_binding(object: &Expr) -> Option<SmolStr> {
+        match object {
+            Expr::Ident { name, .. } => Some(name.clone()),
+            // `self.field.append(...)` — mutate through stored property; not a let-binding reject.
+            _ => None,
+        }
+    }
+
     fn is_callable_function(&self, name: &SmolStr) -> bool {
         if self.function_return_types.contains_key(name)
             || self.function_params.contains_key(name)
@@ -4757,6 +4936,13 @@ impl SemanticAnalyzer {
                 if self.class_names.contains(name) {
                     let init_name = SmolStr::new(format!("{name}_init"));
                     self.check_call_argument_labels(&init_name, args, *span);
+                } else if self.dataclass_names.contains(name) {
+                    // Struct/DataClass: empty call uses memberwise defaults (Counter());
+                    // labeled/partial calls still check labels when args present.
+                    if !args.is_empty() {
+                        let init_name = SmolStr::new(format!("{name}_init"));
+                        self.check_call_argument_labels(&init_name, args, *span);
+                    }
                 }
                 if let Some(params) = self.function_params.get(name).cloned() {
                     for (arg, param_ty) in args.iter().zip(params.iter()) {
@@ -4896,6 +5082,8 @@ impl SemanticAnalyzer {
                     }
                     _ => None,
                 };
+                // S1-06: reject mutating methods / Array.append on `let` bindings.
+                self.check_mutating_call_on_immutable(object, &obj_ty, name.as_str(), *span);
                 if let Some((elem, role)) = collection_elem {
                     let found =
                         self.analyze_expr_with_expected(&args[0].value, Some(&elem))?;

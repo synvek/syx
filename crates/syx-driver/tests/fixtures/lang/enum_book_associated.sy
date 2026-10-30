@@ -1,0 +1,9 @@
+// S1-I2: book Ch09 associated values — unlabeled + named; optional Error conformance.
+enum NetworkResult: Error {
+    case success(String)
+    case failure(code: Int, message: String)
+}
+
+func main() {
+    print("ok")
+}

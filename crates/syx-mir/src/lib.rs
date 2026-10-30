@@ -689,6 +689,10 @@ struct ModuleIndex {
     types_with_deinit: IndexSet<SmolStr>,
     generic_templates: IndexSet<SmolStr>,
     dataclass_names: IndexSet<SmolStr>,
+    /// Field order for DataClass/Struct memberwise init (MIR pads missing args).
+    dataclass_fields: IndexMap<SmolStr, Vec<SmolStr>>,
+    /// `(type, field)` → default int literal for omitted memberwise args (Counter value=0).
+    dataclass_field_default_i64: IndexMap<(SmolStr, SmolStr), i128>,
     enum_classes: IndexSet<SmolStr>,
     final_classes: IndexSet<SmolStr>,
     enum_case_tags: IndexMap<(SmolStr, SmolStr), i64>,
@@ -831,8 +835,38 @@ impl ModuleIndex {
         };
         for decl in &module.decls {
             match decl {
-                Decl::DataClass { name, .. } | Decl::Struct { name, .. } => {
+                Decl::DataClass { name, fields, .. } => {
                     idx.dataclass_names.insert(name.clone());
+                    idx.dataclass_fields.insert(
+                        name.clone(),
+                        fields.iter().map(|(f, _)| f.clone()).collect(),
+                    );
+                }
+                Decl::Struct {
+                    name,
+                    fields,
+                    members,
+                    ..
+                } => {
+                    idx.dataclass_names.insert(name.clone());
+                    idx.dataclass_fields.insert(
+                        name.clone(),
+                        fields.iter().map(|(f, _)| f.clone()).collect(),
+                    );
+                    for member in members {
+                        if let Decl::VarGlobal {
+                            name: field,
+                            init: Some(Expr::Literal {
+                                value: Literal::Integer { value, .. },
+                                ..
+                            }),
+                            ..
+                        } = member
+                        {
+                            idx.dataclass_field_default_i64
+                                .insert((name.clone(), field.clone()), *value);
+                        }
+                    }
                 }
                 Decl::VarGlobal {
                     attrs,
@@ -1441,9 +1475,132 @@ impl LowerCtx {
                     span: None,
                 },
             );
+        } else if self.lower_enclosing_field_load(dest, name, block) {
+            // S1-I2: bare struct/class field in method body.
         } else {
             self.set_error(format!("Unknown variable '{name}'"));
         }
+    }
+
+    /// `Counter_increment`: bare `value` → `self.value` ObjectGet.
+    fn lower_enclosing_field_load(&mut self, dest: u32, name: &SmolStr, block: u32) -> bool {
+        let Some(type_name) = class_name_from_mangled(self.func_name.as_str()) else {
+            return false;
+        };
+        let is_field = self
+            .module
+            .dataclass_fields
+            .get(&type_name)
+            .is_some_and(|fs| fs.iter().any(|f| f == name))
+            || self
+                .module
+                .class_types
+                .get(&type_name)
+                .is_some_and(|fs| fs.iter().any(|f| f == name));
+        if !is_field {
+            return false;
+        }
+        let Some(&self_slot) = self.locals.get(&SmolStr::new("self")) else {
+            return false;
+        };
+        self.emit(
+            block,
+            MirInstr {
+                dest: Some(dest),
+                op: MirOp::LoadLocal(self_slot),
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::ConstStr(name.to_string()),
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: Some(dest),
+                op: MirOp::ObjectGet,
+                span: None,
+            },
+        );
+        true
+    }
+
+    /// Bare field store: stack has RHS; emit `self.field = rhs` + write back `self`.
+    fn lower_enclosing_field_store(&mut self, name: &SmolStr, block: u32) -> bool {
+        let Some(type_name) = class_name_from_mangled(self.func_name.as_str()) else {
+            return false;
+        };
+        let is_field = self
+            .module
+            .dataclass_fields
+            .get(&type_name)
+            .is_some_and(|fs| fs.iter().any(|f| f == name))
+            || self
+                .module
+                .class_types
+                .get(&type_name)
+                .is_some_and(|fs| fs.iter().any(|f| f == name));
+        if !is_field {
+            return false;
+        }
+        let Some(&self_slot) = self.locals.get(&SmolStr::new("self")) else {
+            return false;
+        };
+        let temp = self.alloc_local(&SmolStr::new(format!("__syx_field_{name}")));
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::StoreLocal(temp),
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::LoadLocal(self_slot),
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::LoadLocal(temp),
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::ConstStr(name.to_string()),
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::ObjectSet,
+                span: None,
+            },
+        );
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::StoreLocal(self_slot),
+                span: None,
+            },
+        );
+        true
     }
 
     fn lower_store_binding(&mut self, name: &SmolStr, block: u32) {
@@ -1534,6 +1691,8 @@ impl LowerCtx {
                     span: None,
                 },
             );
+        } else if self.lower_enclosing_field_store(name, block) {
+            // S1-I2: bare struct/class field store.
         } else {
             self.set_error(format!("Unknown variable '{name}'"));
         }
@@ -1882,6 +2041,24 @@ pub fn lower_module_with_extra_extensions_and_kinds(
                     &mut mir,
                     type_name,
                     methods,
+                    false,
+                    &[],
+                    &module_idx,
+                    &imports,
+                    &globals,
+                    Rc::clone(&closure_ids),
+                )?;
+            }
+            // S1-I2: Struct methods (e.g. Counter.increment) via same member lower as Class.
+            Decl::Struct {
+                name,
+                members,
+                ..
+            } => {
+                lower_type_members(
+                    &mut mir,
+                    name,
+                    members,
                     false,
                     &[],
                     &module_idx,
@@ -5483,9 +5660,49 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                         || ctx.module.class_types.contains_key(name)
                     {
                         if !lower_args_early {
-                            for arg in args {
-                                let r = ctx.fresh_reg();
-                                lower_expr(&arg.value, r, ctx, block);
+                            if let Some(fields) = ctx.module.dataclass_fields.get(name).cloned() {
+                                // S1-I2: memberwise / defaults — match codegen ordered padding.
+                                for field in &fields {
+                                    let arg = args
+                                        .iter()
+                                        .find(|a| a.label.as_deref() == Some(field.as_str()))
+                                        .or_else(|| {
+                                            let idx = fields.iter().position(|f| f == field)?;
+                                            args.get(idx).filter(|a| a.label.is_none())
+                                        });
+                                    let r = ctx.fresh_reg();
+                                    if let Some(arg) = arg {
+                                        lower_expr(&arg.value, r, ctx, block);
+                                    } else if let Some(v) = ctx
+                                        .module
+                                        .dataclass_field_default_i64
+                                        .get(&(name.clone(), field.clone()))
+                                        .copied()
+                                    {
+                                        ctx.emit(
+                                            block,
+                                            MirInstr {
+                                                dest: Some(r),
+                                                op: MirOp::ConstI32(v as i32),
+                                                span: None,
+                                            },
+                                        );
+                                    } else {
+                                        ctx.emit(
+                                            block,
+                                            MirInstr {
+                                                dest: Some(r),
+                                                op: MirOp::ConstNil,
+                                                span: None,
+                                            },
+                                        );
+                                    }
+                                }
+                            } else {
+                                for arg in args {
+                                    let r = ctx.fresh_reg();
+                                    lower_expr(&arg.value, r, ctx, block);
+                                }
                             }
                         }
                         let init_fn = SmolStr::new(format!("{name}_init"));
@@ -6427,6 +6644,7 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                             return;
                         }
                         if ctx.module.class_types.contains_key(&base)
+                            || ctx.module.dataclass_names.contains(&base)
                             || ctx.module.enum_classes.contains(&base)
                             || ctx.module
                                 .extension_methods

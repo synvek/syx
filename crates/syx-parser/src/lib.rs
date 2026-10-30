@@ -664,21 +664,46 @@ impl Parser {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected enum name")?;
         let type_params = self.parse_type_params()?;
+        // S1-I2: optional conformance list (`enum E: Error`) — parse-accept; semantic thin.
+        if self.match_kind(TokenKind::Colon) {
+            loop {
+                let _ = self.consume_identifier("Expected conformance name")?;
+                if !self.match_kind(TokenKind::Comma) {
+                    break;
+                }
+            }
+        }
         self.consume(TokenKind::LBrace, "Expected '{' after enum name")?;
         let mut cases = Vec::new();
+        let mut anon_field_i = 0u32;
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
             self.skip_newlines();
             if self.check(TokenKind::RBrace) {
                 break;
             }
+            // Book requires `case`; legacy fixtures without `case` still accepted.
+            let _ = self.match_kind(TokenKind::Case);
             let case_name = self.consume_identifier("Expected enum case name")?;
             let mut associated_fields = Vec::new();
             let mut value = None;
             if self.match_kind(TokenKind::LParen) {
                 while !self.check(TokenKind::RParen) {
-                    let field = self.consume_identifier("Expected associated field name")?;
-                    self.consume(TokenKind::Colon, "Expected ':' after associated field")?;
-                    associated_fields.push((field, self.parse_type()?));
+                    // Named `code: Int` or unlabeled associated `String` / `T`.
+                    if matches!(self.peek().kind, TokenKind::Identifier(_))
+                        && matches!(
+                            self.peek_ahead(1).map(|t| &t.kind),
+                            Some(TokenKind::Colon)
+                        )
+                    {
+                        let field = self.consume_identifier("Expected associated field name")?;
+                        self.consume(TokenKind::Colon, "Expected ':' after associated field")?;
+                        associated_fields.push((field, self.parse_type()?));
+                    } else {
+                        let ty = self.parse_type()?;
+                        let field = SmolStr::new(format!("_{anon_field_i}"));
+                        anon_field_i += 1;
+                        associated_fields.push((field, ty));
+                    }
                     if !self.match_kind(TokenKind::Comma) {
                         break;
                     }
@@ -689,6 +714,9 @@ impl Parser {
                 value = Some(self.parse_expr()?);
             }
             cases.push((case_name, value, associated_fields));
+            // Optional trailing comma between cases (book style).
+            let _ = self.match_kind(TokenKind::Comma);
+            self.skip_newlines();
         }
         self.consume(TokenKind::RBrace, "Expected '}' after enum cases")?;
         Ok(Decl::Enum {

@@ -291,6 +291,8 @@ pub struct CodeGenerator {
     compiling_fn: SmolStr,
     dataclass_names: indexmap::IndexSet<SmolStr>,
     dataclass_fields: indexmap::IndexMap<SmolStr, Vec<SmolStr>>,
+    /// S1-I2: `(type, field)` → default i32 for omitted memberwise init args.
+    dataclass_field_defaults: indexmap::IndexMap<(SmolStr, SmolStr), i32>,
     final_classes: indexmap::IndexMap<SmolStr, Vec<(SmolStr, Vec<SmolStr>)>>,
     enum_classes: indexmap::IndexMap<SmolStr, Vec<(SmolStr, Option<i64>)>>,
     extension_methods: indexmap::IndexSet<(SmolStr, SmolStr)>,
@@ -557,6 +559,7 @@ impl CodeGenerator {
             compiling_fn: SmolStr::new(""),
             dataclass_names: indexmap::IndexSet::new(),
             dataclass_fields: indexmap::IndexMap::new(),
+            dataclass_field_defaults: indexmap::IndexMap::new(),
             final_classes: indexmap::IndexMap::new(),
             enum_classes: indexmap::IndexMap::new(),
             extension_methods: indexmap::IndexSet::new(),
@@ -1034,6 +1037,7 @@ impl CodeGenerator {
             compiling_fn: SmolStr::new(""),
             dataclass_names: indexmap::IndexSet::new(),
             dataclass_fields: indexmap::IndexMap::new(),
+            dataclass_field_defaults: indexmap::IndexMap::new(),
             final_classes: indexmap::IndexMap::new(),
             enum_classes: indexmap::IndexMap::new(),
             extension_methods: indexmap::IndexSet::new(),
@@ -1082,12 +1086,31 @@ impl CodeGenerator {
                         fields.iter().map(|(f, _)| f.clone()).collect(),
                     );
                 }
-                Decl::Struct { name, fields, .. } => {
+                Decl::Struct {
+                    name,
+                    fields,
+                    members,
+                    ..
+                } => {
                     self.dataclass_names.insert(name.clone());
                     self.dataclass_fields.insert(
                         name.clone(),
                         fields.iter().map(|(f, _)| f.clone()).collect(),
                     );
+                    for member in members {
+                        if let Decl::VarGlobal {
+                            name: field,
+                            init: Some(Expr::Literal {
+                                value: Literal::Integer { value, .. },
+                                ..
+                            }),
+                            ..
+                        } = member
+                        {
+                            self.dataclass_field_defaults
+                                .insert((name.clone(), field.clone()), *value as i32);
+                        }
+                    }
                 }
                 Decl::Enum {
                     name,
@@ -1594,11 +1617,18 @@ impl CodeGenerator {
                     });
                 }
             }
-            Decl::Struct { name, fields, .. } => {
+            Decl::Struct {
+                name,
+                fields,
+                members,
+                ..
+            } => {
                 self.compile_dataclass_init(name, fields)?;
                 self.compile_dataclass_describe(name, fields)?;
                 self.compile_dataclass_copy(name, fields)?;
                 self.compile_dataclass_hash_into(name, fields)?;
+                // S1-I2: mutating methods etc. (Counter.increment).
+                self.compile_type_members(name, members, false, &[])?;
             }
             Decl::Enum { name, cases, .. } => {
                 for (case, _value, fields) in cases {
@@ -3481,7 +3511,7 @@ impl CodeGenerator {
                     }
                     if self.dataclass_names.contains(callee_name) {
                         if let Some(fields) = self.dataclass_fields.get(callee_name).cloned() {
-                            self.compile_ordered_call_args(args, &fields, out)?;
+                            self.compile_ordered_call_args(callee_name, args, &fields, out)?;
                         } else {
                             self.compile_call_args(args, out)?;
                         }
@@ -4183,6 +4213,7 @@ impl CodeGenerator {
 
     fn compile_ordered_call_args(
         &mut self,
+        type_name: &SmolStr,
         args: &[CallArg],
         fields: &[SmolStr],
         out: &mut Vec<Instruction>,
@@ -4197,6 +4228,12 @@ impl CodeGenerator {
                 });
             if let Some(arg) = arg {
                 self.compile_expr(&arg.value, out)?;
+            } else if let Some(default) = self
+                .dataclass_field_defaults
+                .get(&(type_name.clone(), field.clone()))
+            {
+                // S1-I2: struct memberwise default (Counter value = 0).
+                out.push(Instruction::ConstI32(*default));
             } else {
                 out.push(Instruction::ConstNil);
             }

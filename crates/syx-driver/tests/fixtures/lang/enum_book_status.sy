@@ -1,0 +1,10 @@
+// S1-I2: book Ch09 simple enum with `case` keyword.
+enum Status {
+    case ok
+    case err
+    case pending
+}
+
+func main() {
+    print("ok")
+}
