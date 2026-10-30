@@ -1,4 +1,4 @@
-// sgate/sha1.sy
+// sgate/sha1_lib/sha1.sy
 // ---------------------------------------------------------------
 // Pure-SYX SHA-1 implementation.
 //

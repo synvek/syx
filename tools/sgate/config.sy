@@ -3,7 +3,7 @@ import IO
 public var CONFIG: Object = JSON.decode("{}")
 
 /// Cross-module assignment to `CONFIG` is rejected by the checker;
-/// other modules must call this setter instead of `config.CONFIG = …`.
+/// other modules must call this setter instead of `CONFIG = …`.
 public func setConfig(obj: Object) {
     CONFIG = obj
 }
@@ -23,9 +23,9 @@ func jBool(v: Any, fallback: Bool) -> Bool {
 }
 
 public func loadConfig(path: String) -> Bool {
-    if !File.exists(path)
+    if !File.exists("\(path)")
     return false
-    let txt = File.read(path)
+    let txt = File.read("\(path)")
     let parsed = JSON.decode(text: txt)
     setConfig(obj: parsed)
     return true
@@ -56,27 +56,27 @@ public func server_worker_name() -> String {
 }
 
 public func tlsEnabled() -> Bool {
-    return jBool(v: CONFIG.server.tls.enabled, fallback: false)
+    return jBool(v: CONFIG.server.enabled, fallback: false)
 }
 
 public func tlsPort() -> Int {
-    return jInt(v: CONFIG.server.tls.port, fallback: 8443)
+    return jInt(v: CONFIG.server.port, fallback: 8443)
 }
 
 public func tlsCertPath() -> String {
-    return jStr(v: CONFIG.server.tls.cert)
+    return jStr(v: CONFIG.server.cert)
 }
 
 public func tlsKeyPath() -> String {
-    return jStr(v: CONFIG.server.tls.key)
+    return jStr(v: CONFIG.server.key)
 }
 
 public func tlsBackendPort() -> Int {
-    return jInt(v: CONFIG.server.tls.backend_port, fallback: 8080)
+    return jInt(v: CONFIG.server.backend_port, fallback: 8080)
 }
 
 public func tlsMode() -> String {
-    let m = jStr(v: CONFIG.server.tls.mode)
+    let m = jStr(v: CONFIG.server.mode)
     if m == "" {
         return "sidecar"
     }

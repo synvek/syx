@@ -1,4 +1,3 @@
-import config
 import IO
 import Log
 import DateTime
@@ -8,9 +7,6 @@ var RELOAD_LAST_MTIME: Int = 0
 var RELOAD_LAST_CHECK_MS: Int = 0
 var RELOAD_RELOADS: Int = 0
 
-func jInt(v: Any, fallback: Int) -> Int {
-    return (v as? Int) ?? fallback
-}
 
 public func reloadBind(path: String) {
     // Bisect: assign path only — avoid File.stat / DateTime during bind.
@@ -24,9 +20,9 @@ func nowMs() -> Int {
 func statMtime(path: String) -> Int {
     if path == ""
     return 0
-    if !File.exists(path)
+    if !File.exists("\(path)")
     return 0
-    let st = File.stat(path)
+    let st = File.stat("\(path)")
     return jInt(v: st.modifiedMs, fallback: 0)
 }
 
@@ -35,9 +31,9 @@ public func reloadApply() -> Bool {
         Log.warn("reload: no path bound, ignoring apply()")
         return false
     }
-    let txt = File.read(RELOAD_PATH)
+    let txt = File.read("\(RELOAD_PATH)")
     let parsed = JSON.decode(text: txt)
-    config.setConfig(obj: parsed)
+    setConfig(obj: parsed)
     RELOAD_RELOADS = RELOAD_RELOADS + 1
     Log.info("reload: config reloaded from \(RELOAD_PATH) (rev #\(RELOAD_RELOADS))")
     return true

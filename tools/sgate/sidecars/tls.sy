@@ -3,20 +3,19 @@
 // TLS termination helpers for sgate.
 //
 // Product native path (W1249 / ADR-1595) lives in `tls_native.sy`:
-// Env.set SYX_HTTP_SERVE_TLS_* + Http.serve on tls.port.
+// Env.set SYX_HTTP_SERVE_TLS_* + Http.serve on port.
 // This module retains:
 //
 //   1. Sidecar spawn helpers (socat / stunnel) for dual-port
 //      deployments when Process.spawn is available.
 //   2. Historical honesty placeholder: `__syx_tls_serve` under
-//      `if false` (tls_server_ga_deepen). ≠ net.tls.server HostFn GA.
+//      `if false` (tls_server_ga_deepen). ≠ net.server HostFn GA.
 //
 // main.sy does not import this module today (Process.spawn is
 // unavailable in current runtime builds); sidecar remain skip-
 // logged from main. Native product TLS does not need this file.
 // ---------------------------------------------------------------
 
-import config
 import IO
 import Process
 import Log
@@ -30,16 +29,16 @@ public func tlsContextLoad(certPath: String, keyPath: String) -> Object {
         Log.error("tls: cert/key path missing")
         return ctx
     }
-    if !File.exists(certPath) {
+    if !File.exists("\(certPath)") {
         Log.error("tls: cert file not found: \(certPath)")
         return ctx
     }
-    if !File.exists(keyPath) {
+    if !File.exists("\(keyPath)") {
         Log.error("tls: key file not found: \(keyPath)")
         return ctx
     }
-    let cert = File.read(certPath)
-    let key = File.read(keyPath)
+    let cert = File.read("\(certPath)")
+    let key = File.read("\(keyPath)")
     if cert == "" || key == "" {
         Log.error("tls: cert or key file is empty")
         return ctx
@@ -132,11 +131,11 @@ public func tlsSpawnSidecar(
     return Process.spawn(command: cmd, args: args)
 }
 
-// -------- Historical net.tls.server HostFn placeholder --------
+// -------- Historical net.server HostFn placeholder --------
 
 // Honesty retain for tls_server_ga_deepen: keep `__syx_tls_serve`
 // under `if false`. This is NOT the W1249 native product path
-// (that path uses tls_native.sy + Http.serve). ≠ net.tls.server GA.
+// (that path uses sy + Http.serve). ≠ net.server GA.
 public func tlsServe(
     addr: String, port: Int, ctx: Object, handler: String
 ) -> Bool {
@@ -155,14 +154,14 @@ public func tlsServe(
 // -------- Sidecar bring-up (when Process.spawn works) --------
 
 public func tlsStartSidecarFromConfig(listenAddr: String, backendPort: Int) -> Bool {
-    if !config.tlsEnabled() {
+    if !tlsEnabled() {
         Log.info("tls: disabled in config")
         return false
     }
     let addr = "\(listenAddr)"
-    let cert = config.tlsCertPath()
-    let key = config.tlsKeyPath()
-    let port = config.tlsPort()
+    let cert = tlsCertPath()
+    let key = tlsKeyPath()
+    let port = tlsPort()
     let ctx = tlsContextLoad(certPath: cert, keyPath: key)
     let loadedFlag = "\(ctx.loaded)"
     if loadedFlag != "true" {
@@ -190,20 +189,20 @@ public func tlsStartSidecarFromConfig(listenAddr: String, backendPort: Int) -> B
 }
 
 // High-level entry retained for callers that import this module.
-// Native product path: tls_native.tlsPrepareNativeFromConfig + Http.serve.
+// Native product path: tlsPrepareNativeFromConfig + Http.serve.
 public func tlsStartFromConfig(listenAddr: String, backendPort: Int) -> Bool {
-    if !config.tlsEnabled() {
+    if !tlsEnabled() {
         Log.info("tls: disabled in config")
         return false
     }
-    let mode = config.tlsMode()
+    let mode = tlsMode()
     if mode == "native" {
         let addr = "\(listenAddr)"
-        let port = config.tlsPort()
+        let port = tlsPort()
         let _ignored = tlsServe(
             addr: "\(addr)", port: port, ctx: JSON.decode("{\"loaded\":true}"), handler: "handle"
         )
-        Log.warn("tls: native product path is tls_native.sy + Http.serve; tlsStartFromConfig(native) is a no-op")
+        Log.warn("tls: native product path is sy + Http.serve; tlsStartFromConfig(native) is a no-op")
         return false
     }
     return tlsStartSidecarFromConfig(listenAddr: listenAddr, backendPort: backendPort)

@@ -6,7 +6,7 @@
 // routes so the gateway can be exercised end-to-end without a
 // real backend. PORT and NODE are taken from argv:
 //
-//   syx run tools/sgate/mock_upstream.sy -- 9001 node-a
+//   syx run tools/sgate/mock_upstream -- 9001 node-a
 //
 // Routes:
 //   ANY  / /whoami     → identity card

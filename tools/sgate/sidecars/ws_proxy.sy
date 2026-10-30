@@ -1,9 +1,9 @@
-// sgate/ws_proxy.sy
+// sgate/sy
 // ---------------------------------------------------------------
 // Dedicated-port WebSocket sidecar for sgate `ws_routes`.
 //
 // Same-port HTTP Upgrade on the main `Http.serve` listener is
-// handled in-process: `router.sy` returns `upgradeUpstream` and
+// handled in-process: `sy` returns `upgradeUpstream` and
 // the VM dials + tunnels opaque bytes after 101 (frames pass
 // through intact; no in-process frame codec / Sec-WebSocket-Accept).
 // Third-slice evidence: stdlib masked text-frame round-trip nail.
@@ -17,16 +17,16 @@
 //   websocat -s 5001 ws://upstream-host:upstream-port/
 //
 // `websocat` speaks WebSocket on one end and forwards to the
-// upstream. The `-s` flag means "server mode" (accept inbound
+//  The `-s` flag means "server mode" (accept inbound
 // WebSocket connections on the listed port).
 //
 // sgate's `ws_routes` config table maps inbound paths to
 // upstream pools. For each entry we spawn one `websocat`
 // process; the matched inbound WS connection is then proxied
 // by that process to a chosen upstream server (round-robin via
-// the shared `upstream.sy` counter).
+// the shared `sy` counter).
 //
-// The module deliberately mirrors the shape of `tls.sy`:
+// The module deliberately mirrors the shape of `sy`:
 //   * `wsBuildArgs(...)` builds the argv without
 //     actually running anything — pure, easy to test.
 //   * `wsSpawnSidecar(...)` does the actual spawn.
@@ -38,8 +38,6 @@
 // keeps serving even if WebSocket startup fails.
 // ---------------------------------------------------------------
 
-import config
-import upstream
 import Process
 import Log
 import IO
@@ -139,23 +137,24 @@ public func wsSpawnSidecar(
 }
 
 // Choose an upstream "host:port" for the given route index.
-// We piggy-back on the upstream.sy round-robin counter so
+// We piggy-back on the sy round-robin counter so
 // the WS load balancing matches the HTTP one. The caller is
 // expected to wrap this in `ws://` (or `wss://`) when feeding
 // it to the sidecar.
 public func wsPickUpstream(i: Int) -> String {
-    let poolName = config.wsRouteUpstream(i: i)
+    let poolName = wsRouteUpstream(i: i)
     if poolName == "" { return "" }
-    return upstream.pickServer(name: poolName)
+    return pickServer(name: poolName)
 }
 
 // Compute the path to forward to the upstream, after the
 // configured prefix is stripped from the matched route.
 public func wsStrippedPath(routeIdx: Int, rawPath: String) -> String {
-    let strip = config.wsRouteStripPrefix(i: routeIdx)
-    if strip == "" { return rawPath }
-    if !config.startsWith(text: rawPath, prefix: strip) { return rawPath }
-    let rest = rawPath.substring(strip.count, rawPath.count)
+    let strip = wsRouteStripPrefix(i: routeIdx)
+    let src = "\(rawPath)"
+    if strip == "" { return src }
+    if !startsWith(text: "\(src)", prefix: "\(strip)") { return "\(src)" }
+    let rest = "\(src)".substring("\(strip)".count, "\(src)".count)
     if rest == "" { return "/" }
     return rest
 }
@@ -163,7 +162,7 @@ public func wsStrippedPath(routeIdx: Int, rawPath: String) -> String {
 // High-level entry: walk `ws_routes`, spawn one sidecar per
 // entry. Returns the number of sidecars successfully started.
 public func wsStartFromConfig(listenAddr: String) -> Int {
-    let n = config.wsRouteCount()
+    let n = wsRouteCount()
     if n == 0 {
         Log.info("ws: no ws_routes configured")
         return 0
@@ -177,7 +176,7 @@ public func wsStartFromConfig(listenAddr: String) -> Int {
     var started = 0
     var i = 0
     while i < n {
-        let path = config.wsRoutePath(i: i)
+        let path = wsRoutePath(i: i)
         if path == "" {
             i = i + 1
             continue
@@ -191,13 +190,13 @@ public func wsStartFromConfig(listenAddr: String) -> Int {
         // — see wsListenPortFromRoute below.
         let listenPort = wsListenPortFromRoute(i: i)
         if listenPort <= 0 {
-            Log.warn("ws: route [\(config.wsRouteName(i: i))] has no listen port; skipping")
+            Log.warn("ws: route [\(wsRouteName(i: i))] has no listen port; skipping")
             i = i + 1
             continue
         }
         let upstreamAddr = wsPickUpstream(i: i)
         if upstreamAddr == "" {
-            Log.warn("ws: route [\(config.wsRouteName(i: i))] has no upstream pool; skipping")
+            Log.warn("ws: route [\(wsRouteName(i: i))] has no upstream pool; skipping")
             i = i + 1
             continue
         }
@@ -219,14 +218,14 @@ public func wsStartFromConfig(listenAddr: String) -> Int {
 
 // Read a per-route listen port. We extend the JSON schema
 // with an optional `listen_port` field on each ws_route. The
-// fallback is the configured `server.tls.port` (or 5001 if
+// fallback is the configured `server.port` (or 5001 if
 // even that is missing) so the demo still runs.
 public func wsListenPortFromRoute(i: Int) -> Int {
-    let v = config.wsRouteListenPort(i: i)
+    let v = wsRouteListenPort(i: i)
     if v > 0 { return v }
-    // Try tls.port as a generic fallback. If neither is
+    // Try port as a generic fallback. If neither is
     // set, use 5001 (the mock's default WS port).
-    let p = config.tlsPort()
+    let p = tlsPort()
     if p > 0 && p != 8443 { return p }
     return 5001
 }

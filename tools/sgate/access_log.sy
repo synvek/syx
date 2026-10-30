@@ -1,7 +1,7 @@
-// sgate/access_log.sy
+// sgate/sy
 // ---------------------------------------------------------------
 // Access log + error log helpers for sgate.
-// Named access_log.sy (not log.sy) so it does not case-fold-collide
+// Named sy (not log.sy) so it does not case-fold-collide
 // with the stdlib `Log` package on macOS.
 //
 // Two log formats are supported:

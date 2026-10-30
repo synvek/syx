@@ -32,7 +32,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SGATE_DIR="$SCRIPT_DIR"
 SGATE_JSON="$SGATE_DIR/sgate.json"
-MOCK="$SGATE_DIR/mock_upstream.sy"
+MOCK="$SGATE_DIR/mock_upstream"
 
 # --- pick a syx binary --------------------------------------------
 

@@ -12,9 +12,11 @@ file serving, and access logging.
 > - Built for SYX 116.0 (manifest phase 138).
 > - Designed against `docs/9_UsageGuide.md` HTTP server API and
 >   `packages/{net,io,datetime,log}` stdlib surfaces.
-> - `sgate` is a *tools/* entry — no `syx.toml`, no multi-package
->   workspace. All sources live in this directory and are loaded by
->   `syx run tools/sgate/main.sy [CONFIG_PATH]`.
+> - `sgate` is a *tools/* package (`syx.toml`). Same-directory `.sy`
+>   files share one namespace (no file-as-module `import`).
+>   Run with `syx run tools/sgate` (config via `SYX_SGATE_CONFIG` or
+>   default `sgate.json`). Mock upstream is a nested package:
+>   `tools/sgate/mock_upstream`.
 
 ## Features
 
@@ -191,7 +193,9 @@ tools/sgate/
 ├── tls.sy            // TLS sidecar helpers (socat / stunnel) + historical __syx_tls_serve / if false honesty
 ├── ws_proxy.sy       // WebSocket pass-through sidecar (websocat) — full handshake + frame codec is forward-declared
 ├── sha1.sy           // pure-SYX SHA-1 (kept around for the eventual in-process WS handshake)
-├── mock_upstream.sy  // tiny SYX mock backend (used by test.sh)
+├── mock_upstream/    // nested package: tiny SYX mock backend (test.sh)
+├── sidecars/         // optional tls/ws spawn helpers (not in main package)
+├── sha1_lib/         // optional SHA-1 helper package (WS handshake later)
 ├── sgate.json         // default config (this directory)
 ├── sgate.test.json    // config used by the extended (--full) test section
 ├── public/            // static file root
@@ -1105,7 +1109,7 @@ The script will:
 
 1. Pick the first `syx` binary it finds (`target/release/syx`
    preferred, then `target/debug/syx`; override with `SYX=...`).
-2. Launch `mock_upstream.sy` three times — once per port —
+2. Launch `mock_upstream` three times — once per port —
    in the background, with `MOCK_PORT=3001 MOCK_NODE_ID=api-a`
    and so on. Each mock stamps its identity into every reply
    so we can prove round-robin actually rotates.
@@ -1147,9 +1151,9 @@ script — handy for poking at sgate by hand:
 
 ```bash
 # Three terminals (or backgrounded with &):
-MOCK_PORT=3001 MOCK_NODE_ID=api-a syx run tools/sgate/mock_upstream.sy
-MOCK_PORT=3002 MOCK_NODE_ID=api-b syx run tools/sgate/mock_upstream.sy
-MOCK_PORT=4000 MOCK_NODE_ID=web-a syx run tools/sgate/mock_upstream.sy
+MOCK_PORT=3001 MOCK_NODE_ID=api-a syx run tools/sgate/mock_upstream
+MOCK_PORT=3002 MOCK_NODE_ID=api-b syx run tools/sgate/mock_upstream
+MOCK_PORT=4000 MOCK_NODE_ID=web-a syx run tools/sgate/mock_upstream
 
 # then
 syx run tools/sgate

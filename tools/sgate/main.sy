@@ -18,9 +18,6 @@
 //   5. Hand off to Http.serve with `handle` as the request callback.
 // ---------------------------------------------------------------
 
-import config
-import router
-import tls_native
 import Net
 import Process
 import Log
@@ -28,47 +25,47 @@ import IO
 import Env
 
 func printBanner() {
-    let worker = config.server_worker_name()
-    let listen = config.server_listen()
-    let port = config.server_port()
+    let worker = server_worker_name()
+    let listen = server_listen()
+    let port = server_port()
     Log.info("sgate \(worker) starting on \(listen):\(port)")
-    let tlsOn = config.tlsEnabled()
+    let tlsOn = tlsEnabled()
     if tlsOn == true {
-        let tp = config.tlsPort()
-        let tm = config.tlsMode()
+        let tp = tlsPort()
+        let tm = tlsMode()
         Log.info("    tls: enabled, port=\(tp), mode=\(tm)")
     }
     if tlsOn == false {
         Log.info("    tls: disabled")
     }
-    let hrOn = config.hotReloadEnabled()
+    let hrOn = hotReloadEnabled()
     if hrOn == true {
-        let iv = config.hotReloadIntervalMs()
+        let iv = hotReloadIntervalMs()
         Log.info("    hot_reload: enabled, interval=\(iv)ms")
     }
     if hrOn == false {
         Log.info("    hot_reload: disabled")
     }
-    let nLoc = config.locationCount()
+    let nLoc = locationCount()
     var i = 0
     while i < nLoc {
-        let n = config.locationName(i: i)
-        let e = config.locationExact(i: i)
-        let p = config.locationPrefix(i: i)
-        let u = config.locationUpstream(i: i)
-        let r = config.locationRoot(i: i)
+        let n = locationName(i: i)
+        let e = locationExact(i: i)
+        let p = locationPrefix(i: i)
+        let u = locationUpstream(i: i)
+        let r = locationRoot(i: i)
         Log.info("    [\(n)] exact=\(e) prefix=\(p) upstream=\(u) root=\(r)")
         i = i + 1
     }
-    let nUp = config.upstreamCount()
+    let nUp = upstreamCount()
     Log.info("    upstreams: \(nUp)")
     var j = 0
     while j < nUp {
-        let n = config.upstreamName(idx: j)
+        let n = upstreamName(idx: j)
         Log.info("      [\(j)] \(n)")
         j = j + 1
     }
-    Log.info("    error pages: 404=\"\(config.error_body_for(status: 404))\" 502=\"\(config.error_body_for(status: 502))\" 504=\"\(config.error_body_for(status: 504))\"")
+    Log.info("    error pages: 404=\"\(error_body_for(status: 404))\" 502=\"\(error_body_for(status: 502))\" 504=\"\(error_body_for(status: 504))\"")
 }
 
 func endsWithJson(s: String) -> Bool {
@@ -84,8 +81,17 @@ func endsWithJson(s: String) -> Bool {
 
 func resolveConfigPath() -> String {
     // Prefer explicit env (syx run only accepts one PATH).
-    let fromEnv = Env.get("SYX_SGATE_CONFIG")
-    while fromEnv != "" {
+    // Env.get may yield Nil when unset — stringify and reject empty/"nil".
+    let envKey = "SYX_SGATE_CONFIG"
+    let envRaw = Env.get(envKey)
+    let fromEnv = "" + "\(envRaw)"
+    var takeEnv = "0"
+    if fromEnv != "" {
+        if fromEnv != "nil" {
+            takeEnv = "1"
+        }
+    }
+    while takeEnv == "1" {
         return fromEnv
     }
     // Process.args() is the full CLI argv (e.g. syx, run, path, …).
@@ -120,28 +126,28 @@ func resolveConfigPath() -> String {
 func main() {
     let cfgPath = resolveConfigPath()
     Log.info("sgate: loading config from \(cfgPath)")
-    let ok = config.loadConfig(path: cfgPath)
+    let ok = loadConfig(path: cfgPath)
     if !ok {
         Log.error("sgate: failed to load config at \(cfgPath)")
         return
     }
 
-    // NOTE: reload.reloadBind currently corrupts module globals in the VM
-    // when assigning RELOAD_PATH (wipes config.CONFIG). Hot-reload is
+    // NOTE: reloadBind currently corrupts module globals in the VM
+    // when assigning RELOAD_PATH (wipes CONFIG). Hot-reload is
     // therefore deferred; config is loaded once at startup.
 
-    let listen = config.server_listen()
-    var port = config.server_port()
+    let listen = server_listen()
+    var port = server_port()
 
-    // W1249 / ADR-1595: native TLS → PEM env + serve tls.port.
+    // W1249 / ADR-1595: native TLS → PEM env + serve port.
     // Sidecar: Process.spawn unavailable in this runtime — honest skip
-    // (tls.sy retains socat/stunnel for docs / future; ws_routes unchanged).
-    if config.tlsEnabled() {
-        let mode = config.tlsMode()
+    // (sy retains socat/stunnel for docs / future; ws_routes unchanged).
+    if tlsEnabled() {
+        let mode = tlsMode()
         if mode == "native" {
-            let ready = tls_native.tlsPrepareNativeFromConfig()
+            let ready = tlsPrepareNativeFromConfig()
             if ready {
-                port = config.tlsPort()
+                port = tlsPort()
                 Log.info("sgate: TLS native — Http.serve HTTPS on \(listen):\(port) (in-process rustls)")
             }
             if !ready {
@@ -152,7 +158,7 @@ func main() {
             Log.info("tls/ws sidecars: skipped (Process.spawn unavailable in this runtime); plain Http.serve on \(listen):\(port)")
         }
     }
-    if !config.tlsEnabled() {
+    if !tlsEnabled() {
         Log.info("tls: disabled")
     }
 

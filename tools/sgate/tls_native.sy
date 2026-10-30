@@ -1,54 +1,53 @@
-// sgate/tls_native.sy
+// sgate/sy
 // ---------------------------------------------------------------
 // W1249 / ADR-1595: in-process TLS prep for Http.serve.
 //
 // Sets SYX_HTTP_SERVE_TLS_CERT / SYX_HTTP_SERVE_TLS_KEY from
-// config PEM paths. Caller then Http.serve(listen, tls.port).
+// config PEM paths. Caller then Http.serve(listen, port).
 //
 // Intentionally does NOT import Process / spawn (legacy
 // Process.spawn is unavailable in current runtime builds —
-// sidecar stays in tls.sy for docs / future revive).
-// ≠ net.tls.server HostFn GA; ≠ websocat ws_routes.
+// sidecar stays in sy for docs / future revive).
+// ≠ net.server HostFn GA; ≠ websocat ws_routes.
 // ---------------------------------------------------------------
 
-import config
 import IO
 import Log
 import Env
 
 public func tlsPrepareNativeFromConfig() -> Bool {
-    if !config.tlsEnabled() {
+    if !tlsEnabled() {
         Log.info("tls_native: disabled in config")
         return false
     }
-    let mode = config.tlsMode()
+    let mode = tlsMode()
     if mode != "native" {
         Log.error("tls_native: expected mode=native, got \(mode)")
         return false
     }
-    let cert = config.tlsCertPath()
-    let key = config.tlsKeyPath()
+    let cert = tlsCertPath()
+    let key = tlsKeyPath()
     if cert == "" || key == "" {
         Log.error("tls_native: cert/key path missing")
         return false
     }
-    if !File.exists(cert) {
+    if !File.exists("\(cert)") {
         Log.error("tls_native: cert file not found: \(cert)")
         return false
     }
-    if !File.exists(key) {
+    if !File.exists("\(key)") {
         Log.error("tls_native: key file not found: \(key)")
         return false
     }
-    let certBody = File.read(cert)
-    let keyBody = File.read(key)
+    let certBody = File.read("\(cert)")
+    let keyBody = File.read("\(key)")
     if certBody == "" || keyBody == "" {
         Log.error("tls_native: cert or key file is empty")
         return false
     }
     Env.set("SYX_HTTP_SERVE_TLS_CERT", "\(cert)")
     Env.set("SYX_HTTP_SERVE_TLS_KEY", "\(key)")
-    let tp = config.tlsPort()
+    let tp = tlsPort()
     Log.info("tls_native: prepared Http.serve PEM env port=\(tp) cert=\(cert)")
     return true
 }

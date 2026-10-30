@@ -1,0 +1,3 @@
+name = "sgate-mock-upstream"
+version = "0.1.0"
+main = "main.sy"
