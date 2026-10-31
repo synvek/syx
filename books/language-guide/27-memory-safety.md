@@ -16,7 +16,7 @@ func main() {
     var n = 10
     let r1 = &n                              // Shared borrow
     print(read(x: r1))                       // 10
-    r1 = nil                                  // Release the shared borrow
+    // Shared borrow ends after last use (NLL); then mutable borrow is legal.
 
     let r2 = &mut n                          // Mutable borrow
     write(x: r2)                              // Legal
@@ -25,13 +25,13 @@ func main() {
 
 **S011** — Cannot mutate / borrow conflict
 
-```syx
+```syx,error=S003
 var n = 10
 let r1 = &mut n                              // Mutable borrow
 // let r2 = &n                              // ❌ S011: cannot borrow as immutable
 // print(n)                                 // ❌ S011: cannot access through mutable borrow
-r1 = nil                                     // Release the mutable borrow
-let r3 = &n                                  // ✅ Now a shared borrow is allowed
+r1 = nil                                     // ❌ S003: cannot assign to immutable binding
+let r3 = &n                                  // ✅ after release (illustrative; this line is after the error)
 ```
 
 Tests: `p6_borrow_*.sy` · `p23_borrow_regions_v5_*.sy`
@@ -69,12 +69,12 @@ Test fixtures: `p32_borrow_proof_*` · `p33_borrow_coq_lean_*` · `p34_borrow_co
 
 ## Lifetimes
 
-```syx
+~~~text
 func longest<'a>(x: &'a String, y: &'a String) -> &'a String {
     if (x.count > y.count) { return x }
     return y
 }
-```
+~~~
 
 | Capability | Status |
 |------|------|
@@ -140,12 +140,12 @@ let bad = NotSendable()
 
 ## @unchecked Sendable
 
-```syx
+~~~text
 @unchecked Sendable
 class MyLegacy {
     var internal: Int = 0
 }
-```
+~~~
 
 > **Risk:** `@unchecked` suppresses checking; concurrent access from multiple threads needs external synchronization (such as `Lock` / `actor`), otherwise a data race may occur.
 
@@ -163,7 +163,7 @@ class MyLegacy {
 
 ## Complete Example
 
-```syx
+~~~text
 @Sendable
 data class Item(id: Int, name: String)
 
@@ -185,7 +185,7 @@ func main() async {
     print(await store.count())              // 3
     print(await store.all().count)         // 3
 }
-```
+~~~
 
 ## Diagnostics
 

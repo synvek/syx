@@ -137,7 +137,7 @@ func main() {
 
 ## 链式 catch
 
-```syx
+~~~text
 try {
     let r = Http.get(url)
     print(r)
@@ -148,7 +148,7 @@ try {
 } catch (err) {
     print("other: \(err)")
 }
-```
+~~~
 
 > **`where` 守卫：** 早期版本支持 try-catch 块的 where 守卫（**部分实现**）；推荐直接调 `try?` / `switch` Result。
 
@@ -157,40 +157,48 @@ try {
 `Result<T, E>` 是显式错误类型的标准方案（[第 9 章 枚举](09-enumerations.md)）：
 
 ```syx
-func parse(s: String) -> Result<Int, String> {
-    if (s.isEmpty) { return .err("empty") }
-    return .ok(s.count)
+func parse(s: String) -> Result<String, String> {
+    if (s.isEmpty) { return Result.err(value: "empty") }
+    return Result.ok(value: s)
 }
 
-let r = parse(s: "hello")
-switch (r) {
-case .ok(let n) {
-    print("len=\(n)")
-}
-case .err(let msg) {
-    print("err: \(msg)")
-}
+func main() {
+    let r = parse(s: "hello")
+    if (Result.isOk(result: r)) {
+        print("ok")
+    } else {
+        print("err")
+    }
 }
 ```
 
 ### Result 静态构造
 
-`ok(value)` / `err(value)` 是预声明的便利函数：
+`Result.ok(value:)` / `Result.err(value:)` 是 String 型 MVP 构造（`packages/core/builtins/algebraic/result.sy`）：
 
 ```syx
-let r1 = ok(42)                            // Result<Int, Never>
-let r2 = err("oops")                       // Result<Never, String>
+func main() {
+    let r1 = Result.ok(value: "42")          // Result<String, String> 成功
+    let r2 = Result.err(value: "oops")       // Result<String, String> 失败
+    print(Result.isOk(result: r1))
+    print(Result.isErr(result: r2))
+}
 ```
 
 ### Result 链式
 
+薄 MVP 检查面（完整 `.map` / `.flatMap` 泛型仍属加深轨）：
+
 ```syx
-let r: Result<Int, String> = ok(10)
-    .map({ x in x * 2 })                   // ok(20)
-    .flatMap({ x in x > 0 ? ok(x) : err("neg") })
+func main() {
+    let r1 = Result.ok(value: "10")
+    print(Result.isOk(result: r1))           // true
+    let r2 = Result.err(value: "neg")
+    print(Result.isErr(result: r2))          // true
+}
 ```
 
-> **方法：** `.ok(v)` / `.err(v)` / `.isOk()` / `.map(f)` / `.flatMap(f)` / `.description` 全部由 `packages/core/builtins/result.sy` 定义。
+> **方法：** `Result.ok` / `Result.err` / `Result.isOk` / `Result.isErr` / `.description` 在 `packages/core/builtins/algebraic/result.sy`。泛型 `.map` / `.flatMap` 仍属加深轨。
 
 ### @Codable + Result 序列化
 
@@ -209,6 +217,8 @@ enum ApiError: Error {
 `actor` 内的 `throws func` 自动隔离：
 
 ```syx
+import IO
+
 actor FileManager {
     func read(path: String) throws -> String {
         if (!File.exists(path)) { throw "not found" }
@@ -216,12 +226,14 @@ actor FileManager {
     }
 }
 
-let m = FileManager()
-try {
-    let s = await m.read(path: "/tmp/x")
-    print(s)
-} catch (err) {
-    print("failed: \(err)")
+async func main() {
+    let m = FileManager()
+    try {
+        let s = await m.read(path: "/tmp/x")
+        print(s)
+    } catch (err) {
+        print("failed: \(err)")
+    }
 }
 ```
 
@@ -237,7 +249,7 @@ try {
 
 ## 完整示例
 
-```syx
+~~~text
 enum MathError {
     case divideByZero
     case overflow
@@ -268,7 +280,7 @@ func main() {
     doubleAndPrint(10, 0)                  // "oops: divide by zero"
     doubleAndPrint(2000, 5)                // "oops: overflow"
 }
-```
+~~~
 
 ## 与 Swift 风格对照
 

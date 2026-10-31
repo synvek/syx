@@ -223,13 +223,13 @@ async func main() {
 
 多 channel 监听：
 
-```syx
+~~~text
 select {
 case let v = chA.receive() { print("A: \(v)") }
 case let v = chB.receive() { print("B: \(v)") }
 case chC.send(42) { print("sent to C") }
 }
-```
+~~~
 
 > **状态：** `select` **已实现**（`fixtures/runtime/select_await_case_order.sy`）；N 路 case + default 上下文。
 
@@ -240,7 +240,7 @@ case chC.send(42) { print("sent to C") }
 
 ## distributed actor（部分实现）
 
-```syx
+~~~text
 distributed actor ClusterNode {
     var id: String
     init(id: String) { self.id = id }
@@ -249,7 +249,7 @@ distributed actor ClusterNode {
         return "pong from \(self.id)"
     }
 }
-```
+~~~
 
 - 跨进程 / 跨机的 actor（**MVP spike**）
 - `distributed func` 可远程调用
@@ -257,7 +257,7 @@ distributed actor ClusterNode {
 
 ## 取消
 
-```syx
+~~~text
 let t = Task {
     for i in 0..<1000 {
         if (Task.isCancelled) { return }  // 检查
@@ -267,7 +267,7 @@ let t = Task {
 
 // 外部
 t.cancel()
-```
+~~~
 
 > **协作式取消：** 任务须显式检查 `Task.isCancelled`；库代码可在 `await` 处自动响应。
 

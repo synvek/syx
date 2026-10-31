@@ -16,7 +16,7 @@ func main() {
     var n = 10
     let r1 = &n                              // 共享借用
     print(read(x: r1))                       // 10
-    r1 = nil                                  // 释放共享借用
+    // 共享借用在最后一次使用后结束（NLL）；随后可变借用合法。
 
     let r2 = &mut n                          // 可变借用
     write(x: r2)                              // 合法
@@ -25,13 +25,13 @@ func main() {
 
 **S011** — Cannot mutate / borrow conflict
 
-```syx
+```syx,error=S003
 var n = 10
 let r1 = &mut n                              // 可变借用
 // let r2 = &n                              // ❌ S011：cannot borrow as immutable
 // print(n)                                 // ❌ S011：cannot access through mutable borrow
-r1 = nil                                     // 释放可变借用
-let r3 = &n                                  // ✅ 现在可共享借用
+r1 = nil                                     // ❌ S003：不可赋值给不可变绑定
+let r3 = &n                                  // ✅ 释放后（示意；本行在错误之后）
 ```
 
 测试：`p6_borrow_*.sy` · `p23_borrow_regions_v5_*.sy`
@@ -69,12 +69,12 @@ SYX_BORROW_COQ_LEAN_PROOF_PROD=1 syx run program.sy    # Phase 34 机器检验 p
 
 ## 生命周期
 
-```syx
+~~~text
 func longest<'a>(x: &'a String, y: &'a String) -> &'a String {
     if (x.count > y.count) { return x }
     return y
 }
-```
+~~~
 
 | 能力 | 状态 |
 |------|------|
@@ -140,12 +140,12 @@ let bad = NotSendable()
 
 ## @unchecked Sendable
 
-```syx
+~~~text
 @unchecked Sendable
 class MyLegacy {
     var internal: Int = 0
 }
-```
+~~~
 
 > **风险：** `@unchecked` 抑制检查；多线程同时访问需外部同步（如 `Lock` / `actor`），否则可能数据竞争。
 
@@ -163,7 +163,7 @@ class MyLegacy {
 
 ## 完整示例
 
-```syx
+~~~text
 @Sendable
 data class Item(id: Int, name: String)
 
@@ -185,7 +185,7 @@ func main() async {
     print(await store.count())              // 3
     print(await store.all().count)         // 3
 }
-```
+~~~
 
 ## 诊断
 

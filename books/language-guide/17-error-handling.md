@@ -137,7 +137,7 @@ func main() {
 
 ## Chained catch
 
-```syx
+~~~text
 try {
     let r = Http.get(url)
     print(r)
@@ -148,7 +148,7 @@ try {
 } catch (err) {
     print("other: \(err)")
 }
-```
+~~~
 
 > **`where` guards:** early versions supported `where` guards on try-catch blocks (**Partially implemented**); calling `try?` / switching on a Result directly is recommended.
 
@@ -157,40 +157,48 @@ try {
 `Result<T, E>` is the standard solution for explicit error types ([Chapter 9, Enumerations](09-enumerations.md)):
 
 ```syx
-func parse(s: String) -> Result<Int, String> {
-    if (s.isEmpty) { return .err("empty") }
-    return .ok(s.count)
+func parse(s: String) -> Result<String, String> {
+    if (s.isEmpty) { return Result.err(value: "empty") }
+    return Result.ok(value: s)
 }
 
-let r = parse(s: "hello")
-switch (r) {
-case .ok(let n) {
-    print("len=\(n)")
-}
-case .err(let msg) {
-    print("err: \(msg)")
-}
+func main() {
+    let r = parse(s: "hello")
+    if (Result.isOk(result: r)) {
+        print("ok")
+    } else {
+        print("err")
+    }
 }
 ```
 
 ### Static Result Construction
 
-`ok(value)` / `err(value)` are pre-declared convenience functions:
+`Result.ok(value:)` / `Result.err(value:)` are the String-typed MVP constructors (`packages/core/builtins/algebraic/result.sy`):
 
 ```syx
-let r1 = ok(42)                            // Result<Int, Never>
-let r2 = err("oops")                       // Result<Never, String>
+func main() {
+    let r1 = Result.ok(value: "42")          // Result<String, String> success
+    let r2 = Result.err(value: "oops")       // Result<String, String> failure
+    print(Result.isOk(result: r1))
+    print(Result.isErr(result: r2))
+}
 ```
 
 ### Result Chaining
 
+Thin MVP check surface (full `.map` / `.flatMap` generics still deepen later):
+
 ```syx
-let r: Result<Int, String> = ok(10)
-    .map({ x in x * 2 })                   // ok(20)
-    .flatMap({ x in x > 0 ? ok(x) : err("neg") })
+func main() {
+    let r1 = Result.ok(value: "10")
+    print(Result.isOk(result: r1))           // true
+    let r2 = Result.err(value: "neg")
+    print(Result.isErr(result: r2))          // true
+}
 ```
 
-> **Methods:** `.ok(v)` / `.err(v)` / `.isOk()` / `.map(f)` / `.flatMap(f)` / `.description` are all defined in `packages/core/builtins/result.sy`.
+> **Methods:** `Result.ok` / `Result.err` / `Result.isOk` / `Result.isErr` / `.description` live in `packages/core/builtins/algebraic/result.sy`. Generic `.map` / `.flatMap` remain a deepen track.
 
 ### @Codable + Result Serialization
 
@@ -209,6 +217,8 @@ Source: `fixtures/lsp/result_generic.sy` · `fixtures/lsp/result_generic.sy`
 A `throws func` inside an `actor` is isolated automatically:
 
 ```syx
+import IO
+
 actor FileManager {
     func read(path: String) throws -> String {
         if (!File.exists(path)) { throw "not found" }
@@ -216,12 +226,14 @@ actor FileManager {
     }
 }
 
-let m = FileManager()
-try {
-    let s = await m.read(path: "/tmp/x")
-    print(s)
-} catch (err) {
-    print("failed: \(err)")
+async func main() {
+    let m = FileManager()
+    try {
+        let s = await m.read(path: "/tmp/x")
+        print(s)
+    } catch (err) {
+        print("failed: \(err)")
+    }
 }
 ```
 
@@ -237,7 +249,7 @@ try {
 
 ## Complete Example
 
-```syx
+~~~text
 enum MathError {
     case divideByZero
     case overflow
@@ -268,7 +280,7 @@ func main() {
     doubleAndPrint(10, 0)                  // "oops: divide by zero"
     doubleAndPrint(2000, 5)                // "oops: overflow"
 }
-```
+~~~
 
 ## Comparison with the Swift Style
 

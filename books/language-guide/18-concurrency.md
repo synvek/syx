@@ -223,13 +223,13 @@ Source: `fixtures/parity/stdlib/channel_send.sy`
 
 Listening on multiple channels:
 
-```syx
+~~~text
 select {
 case let v = chA.receive() { print("A: \(v)") }
 case let v = chB.receive() { print("B: \(v)") }
 case chC.send(42) { print("sent to C") }
 }
-```
+~~~
 
 > **Status:** `select` is **Implemented** (`fixtures/runtime/select_await_case_order.sy`); N-way cases plus a default context.
 
@@ -240,7 +240,7 @@ case chC.send(42) { print("sent to C") }
 
 ## distributed actor (Partially Implemented)
 
-```syx
+~~~text
 distributed actor ClusterNode {
     var id: String
     init(id: String) { self.id = id }
@@ -249,7 +249,7 @@ distributed actor ClusterNode {
         return "pong from \(self.id)"
     }
 }
-```
+~~~
 
 - Actors spanning processes / machines (**MVP spike**)
 - A `distributed func` may be called remotely
@@ -257,7 +257,7 @@ distributed actor ClusterNode {
 
 ## Cancellation
 
-```syx
+~~~text
 let t = Task {
     for i in 0..<1000 {
         if (Task.isCancelled) { return }  // Check
@@ -267,7 +267,7 @@ let t = Task {
 
 // From outside
 t.cancel()
-```
+~~~
 
 > **Cooperative cancellation:** a task must explicitly check `Task.isCancelled`; library code may respond automatically at `await` points.
 

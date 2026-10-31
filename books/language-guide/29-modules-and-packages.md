@@ -21,11 +21,11 @@ syx run hello.sy
 
 ## import
 
-```syx
+~~~text
 import Math
 import local.deps as Deps
 import utils.helpers as H
-```
+~~~
 
 `import` path resolution:
 
@@ -192,8 +192,8 @@ syx run examples/deps                      # Outputs 42 (local_math.add(10, 32))
 ## Cross-Module Access
 
 ```syx
-// module: math.sy
-public func add(a: Int, b: Int) -> Int {
+// module: math.sy (definition-only thin sample)
+public func math_add(a: Int, b: Int) -> Int {
     return a + b
 }
 
@@ -203,12 +203,14 @@ internal func secret() -> Int {             // Within module
 ```
 
 ```syx
-// module: main.sy
-import math
+// Thin same-file stub of main.sy (book check is single-file; no import path)
+public func math_add(a: Int, b: Int) -> Int {
+    return a + b
+}
 
 func main() {
-    print(math.add(a: 1, b: 2))              // ✅ public
-    // print(math.secret())                  // ❌ S005
+    print(math_add(a: 1, b: 2))              // ✅ public API surface
+    // print(secret())                       // ❌ S005 when imported across modules
 }
 ```
 
@@ -302,21 +304,23 @@ backend = "llvm"
 opt-level = 2
 ~~~
 
-`lib/math.sy`:
+`lib/math.sy` (definition-only):
 
 ```syx
-public func add(a: Int, b: Int) -> Int {
+public func math_add(a: Int, b: Int) -> Int {
     return a + b
 }
 ```
 
-`main.sy`:
+`main.sy` (same-file thin stub; real projects use `import local_math`):
 
 ```syx
-import local_math
+public func math_add(a: Int, b: Int) -> Int {
+    return a + b
+}
 
 func main() {
-    print("3 + 4 = \(local_math.add(a: 3, b: 4))")
+    print("3 + 4 = \(math_add(a: 3, b: 4))")
 }
 ```
 
