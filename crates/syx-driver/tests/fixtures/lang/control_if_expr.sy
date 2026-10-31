@@ -1,0 +1,5 @@
+func main() {
+    let x = 1
+    let label = if x > 0 { "pos" } else { "non-pos" }
+    print(label)
+}

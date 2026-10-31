@@ -2738,7 +2738,24 @@ fn build_mir_from_graph(
         &int_kinds,
     )?;
     for func in entry_mir.functions {
-        if !mir.functions.iter().any(|f| f.name == func.name) {
+        if let Some(pos) = mir.functions.iter().position(|f| f.name == func.name) {
+            // S1-I7: extension convenience `init() { self.init(x:0,y:0) }` embeds
+            // ConstNumeric field literals — replace the memberwise shell so `Point()`
+            // works. Do NOT replace with Struct's empty 0-arg synthetic init.
+            if func.name.ends_with("_init") && func.param_count == 0 {
+                let has_lit_fields = func.blocks.iter().any(|b| {
+                    b.instructions.iter().any(|i| {
+                        matches!(
+                            i.op,
+                            syx_mir::MirOp::ConstNumeric { .. } | syx_mir::MirOp::ConstI32(_)
+                        )
+                    })
+                });
+                if has_lit_fields {
+                    mir.functions[pos] = func;
+                }
+            }
+        } else {
             mir.functions.push(func);
         }
     }

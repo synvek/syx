@@ -326,11 +326,13 @@ demoOptional()
 ## throw
 
 ```syx
+import IO
+
 func loadFile(path: String) throws -> String {
     if !File.exists(path) {
-        throw "not found: \(path)"
+        throw "not found"
     }
-    return File.read(path)
+    return File.read(path: path)
 }
 ```
 
@@ -369,19 +371,18 @@ outer: for item in items {
 import IO
 
 func classify(path: String) -> String {
-    if !File.exists(path) {
-        return "missing"
-    }
+    if File.exists(path) {
+        let content = File.read(path: path)
+        let n = content.count
 
-    let content = File.read(path)
-    let n = content.count
-
-    switch n {
-    case 0 { return "empty" }
-    case 1..<100 { return "tiny" }
-    case 100..<10_000 { return "medium" }
-    default { return "large" }
+        switch n {
+        case 0 { return "empty" }
+        case 1..<100 { return "tiny" }
+        case 100..<10_000 { return "medium" }
+        default { return "large" }
+        }
     }
+    return "missing"
 }
 
 func main() {

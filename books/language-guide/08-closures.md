@@ -221,6 +221,11 @@ A closure may be passed across functions as a parameter; captured objects are no
 ## Complete Example
 
 ```syx
+func makeCounter(start: Int) -> () -> Int {
+    var n = start
+    return { n = n + 1; n }
+}
+
 func main() {
     // HOF
     let nums = [1, 2, 3, 4, 5]
@@ -232,10 +237,6 @@ func main() {
     print("sum=\(stats.sum) avg=\(stats.avg) max=\(stats.max)")
 
     // Capture
-    func makeCounter(start: Int) -> () -> Int {
-        var n = start
-        return { n = n + 1; n }
-    }
     let c = makeCounter(start: 10)
     print(c())      // 11
     print(c())      // 12

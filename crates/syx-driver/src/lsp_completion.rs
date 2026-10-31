@@ -43,6 +43,7 @@ fn expr_span(expr: &Expr) -> Span {
         Expr::Literal { span, .. }
         | Expr::Ident { span, .. }
         | Expr::Binary { span, .. }
+        | Expr::Ternary { span, .. }
         | Expr::Unary { span, .. }
         | Expr::Call { span, .. }
         | Expr::Member { span, .. }
@@ -60,6 +61,7 @@ fn expr_span(expr: &Expr) -> Span {
         | Expr::ForceUnwrap { span, .. }
         | Expr::HalfOpenRange { span, .. }
         | Expr::ClosedRange { span, .. }
+        | Expr::RangeDyn { span, .. }
         | Expr::VariantPattern { span, .. }
         | Expr::TuplePattern { span, .. }
         | Expr::TaskBlock { span, .. }

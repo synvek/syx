@@ -4157,6 +4157,46 @@ impl CodeGenerator {
                 out.push(Instruction::ConstStr("inclusive".into()));
                 out.push(Instruction::DictBuild(3));
             }
+            Expr::RangeDyn {
+                start,
+                end,
+                inclusive,
+                ..
+            } => {
+                self.compile_expr(start, out)?;
+                out.push(Instruction::ConstStr("start".into()));
+                self.compile_expr(end, out)?;
+                out.push(Instruction::ConstStr("end".into()));
+                if *inclusive {
+                    out.push(Instruction::ConstBool(true));
+                    out.push(Instruction::ConstStr("inclusive".into()));
+                    out.push(Instruction::DictBuild(3));
+                } else {
+                    out.push(Instruction::DictBuild(2));
+                }
+            }
+            Expr::Ternary {
+                condition,
+                then_branch,
+                else_branch,
+                ..
+            } => {
+                self.compile_expr(condition, out)?;
+                let jump_else = out.len();
+                out.push(Instruction::JumpIfFalse(0));
+                self.compile_expr(then_branch, out)?;
+                let jump_end = out.len();
+                out.push(Instruction::Jump(0));
+                let else_label = out.len();
+                if let Instruction::JumpIfFalse(ref mut t) = out[jump_else] {
+                    *t = else_label;
+                }
+                self.compile_expr(else_branch, out)?;
+                let end = out.len();
+                if let Instruction::Jump(ref mut t) = out[jump_end] {
+                    *t = end;
+                }
+            }
             Expr::VariantPattern { .. } | Expr::TuplePattern { .. } => {}
             Expr::Super { .. } => {
                 self.compile_load_binding(&SmolStr::new("self"), out)?;

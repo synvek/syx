@@ -4229,6 +4229,25 @@ impl SemanticAnalyzer {
                     BinOp::NilCoalesce => Ok(rt),
                 }
             }
+            Expr::Ternary {
+                condition,
+                then_branch,
+                else_branch,
+                ..
+            } => {
+                self.analyze_expr(condition)?;
+                let then_ty = self.analyze_expr(then_branch)?;
+                let else_ty = self.analyze_expr(else_branch)?;
+                if is_compatible(&then_ty, &else_ty) || is_compatible(&else_ty, &then_ty) {
+                    Ok(then_ty)
+                } else if matches!(then_ty, TypeId::Unknown) {
+                    Ok(else_ty)
+                } else if matches!(else_ty, TypeId::Unknown) {
+                    Ok(then_ty)
+                } else {
+                    Ok(then_ty)
+                }
+            }
             Expr::Unary { op, expr, .. } => {
                 if *op == UnaryOp::Try {
                     self.try_depth += 1;
@@ -4668,7 +4687,14 @@ impl SemanticAnalyzer {
                 Ok(TypeId::Optional(Box::new(TypeId::Unknown)))
             }
             Expr::ForceUnwrap { expr, .. } => self.analyze_expr(expr),
-            Expr::HalfOpenRange { .. } | Expr::ClosedRange { .. } => Ok(TypeId::Named(SmolStr::new("Range"))),
+            Expr::HalfOpenRange { .. } | Expr::ClosedRange { .. } => {
+                Ok(TypeId::Named(SmolStr::new("Range")))
+            }
+            Expr::RangeDyn { start, end, .. } => {
+                self.analyze_expr(start)?;
+                self.analyze_expr(end)?;
+                Ok(TypeId::Named(SmolStr::new("Range")))
+            }
             Expr::VariantPattern { .. } | Expr::TuplePattern { .. } => Ok(TypeId::Unknown),
         }
     }
@@ -8305,6 +8331,7 @@ fn expr_span(expr: &Expr) -> syx_diagnostics::Span {
         Expr::Literal { span, .. }
         | Expr::Ident { span, .. }
         | Expr::Binary { span, .. }
+        | Expr::Ternary { span, .. }
         | Expr::Unary { span, .. }
         | Expr::Call { span, .. }
         | Expr::Member { span, .. }
@@ -8321,6 +8348,7 @@ fn expr_span(expr: &Expr) -> syx_diagnostics::Span {
         | Expr::ForceUnwrap { span, .. }
         | Expr::HalfOpenRange { span, .. }
         | Expr::ClosedRange { span, .. }
+        | Expr::RangeDyn { span, .. }
         | Expr::VariantPattern { span, .. }
         | Expr::TuplePattern { span, .. }
         | Expr::TaskBlock { span, .. }

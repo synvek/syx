@@ -140,6 +140,17 @@ fn subst_param(expr: &Expr, param: &str, arg: &Expr) -> Expr {
             op: *op,
             right: Box::new(subst_param(right, param, arg)),
         },
+        Expr::Ternary {
+            span,
+            condition,
+            then_branch,
+            else_branch,
+        } => Expr::Ternary {
+            span: *span,
+            condition: Box::new(subst_param(condition, param, arg)),
+            then_branch: Box::new(subst_param(then_branch, param, arg)),
+            else_branch: Box::new(subst_param(else_branch, param, arg)),
+        },
         Expr::Unary { span, op, expr } => Expr::Unary {
             span: *span,
             op: *op,

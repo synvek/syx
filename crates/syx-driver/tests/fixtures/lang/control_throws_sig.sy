@@ -1,0 +1,10 @@
+func loadFile(path: String) throws -> String {
+    if path == "" {
+        throw "not found: \(path)"
+    }
+    return path
+}
+
+func main() {
+    print("ok")
+}

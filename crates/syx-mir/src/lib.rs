@@ -966,18 +966,18 @@ impl ModuleIndex {
                     for member in members {
                         if let Decl::VarGlobal {
                             name: field,
-                            ty: Some(TypeExpr::Named {
-                                name: field_ty, ..
-                            }),
+                            ty: Some(field_ty),
                             ..
                         } = member
                         {
                             let key = syx_ast::var_global_stored_field_name(member)
                                 .unwrap_or_else(|| field.clone());
-                            idx.class_field_types
-                                .entry(name.clone())
-                                .or_default()
-                                .insert(key, field_ty.clone());
+                            if let Some(ty_name) = mir_type_expr_name(field_ty) {
+                                idx.class_field_types
+                                    .entry(name.clone())
+                                    .or_default()
+                                    .insert(key, ty_name);
+                            }
                         }
                     }
                     if members.iter().any(|m| matches!(m, Decl::Deinit { .. })) {
@@ -1103,24 +1103,38 @@ impl ModuleIndex {
                             ..
                         } = method
                         {
-                            idx.extension_methods
-                                .insert((type_name.clone(), name.clone()));
-                            if let Some(ret) = return_type.as_ref().and_then(mir_type_expr_name) {
-                                idx.extension_method_returns
-                                    .insert((type_name.clone(), name.clone()), ret);
+                            // S1-I7: `extension Int` also answers `Int64`/`Int32` receivers.
+                            for ty_alias in platform_int_extension_aliases(type_name) {
+                                idx.extension_methods
+                                    .insert((ty_alias.clone(), name.clone()));
+                                if let Some(ret) = return_type.as_ref().and_then(mir_type_expr_name)
+                                {
+                                    idx.extension_method_returns
+                                        .insert((ty_alias.clone(), name.clone()), ret);
+                                }
+                                if attrs.iter().any(|a| a.name.as_str() == "static") {
+                                    idx.static_class_methods
+                                        .insert((ty_alias.clone(), name.clone()));
+                                }
+                                if let Some(field) = name.as_str().strip_prefix("__get_") {
+                                    idx.property_getters
+                                        .insert((ty_alias.clone(), SmolStr::new(field)));
+                                }
+                                if let Some(field) = name.as_str().strip_prefix("__set_") {
+                                    idx.property_setters
+                                        .insert((ty_alias.clone(), SmolStr::new(field)));
+                                }
                             }
-                            if attrs.iter().any(|a| a.name.as_str() == "static") {
-                                idx.static_class_methods
-                                    .insert((type_name.clone(), name.clone()));
-                            }
-                            // Phase 136: extension computed accessors participate in property get/set.
-                            if let Some(field) = name.as_str().strip_prefix("__get_") {
-                                idx.property_getters
-                                    .insert((type_name.clone(), SmolStr::new(field)));
-                            }
-                            if let Some(field) = name.as_str().strip_prefix("__set_") {
-                                idx.property_setters
-                                    .insert((type_name.clone(), SmolStr::new(field)));
+                        }
+                        // S1-I7: `extension Point { init() { self.init(x: 0, y: 0) } }`
+                        // → memberwise defaults so `Point()` pads 0,0 (shell init stays).
+                        if let Decl::Init { params, body, .. } = method {
+                            if params.is_empty() {
+                                register_extension_init_literal_defaults(
+                                    &mut idx,
+                                    type_name,
+                                    body,
+                                );
                             }
                         }
                     }
@@ -2193,6 +2207,25 @@ fn lower_type_members(
                 mir.functions.extend(closures);
             }
             Decl::Init { params, body, .. } => {
+                // S1-I7: extension `init() { self.init(x: 0, y: 0) }` → zero-arg shell
+                // with literal fields (avoids recursive Call to same Point_init).
+                if params.is_empty() {
+                    if let Some(lit_fields) = extension_init_literal_fields(body) {
+                        let init_name = SmolStr::new(format!("{type_name}_init"));
+                        let shell =
+                            lower_extension_convenience_init_shell(type_name, &lit_fields);
+                        if let Some(pos) = mir
+                            .functions
+                            .iter()
+                            .position(|f| f.name == init_name)
+                        {
+                            mir.functions[pos] = shell;
+                        } else {
+                            mir.functions.push(shell);
+                        }
+                        continue;
+                    }
+                }
                 pending_inits.push((params, body));
             }
             Decl::Deinit { body, .. } => {
@@ -4723,6 +4756,61 @@ fn lower_range_contains_mir(
     );
 }
 
+fn lower_range_dict_dyn(
+    ctx: &mut LowerCtx,
+    block: u32,
+    dest: u32,
+    start: &Expr,
+    end: &Expr,
+    inclusive: bool,
+) {
+    let pair_count = if inclusive { 3 } else { 2 };
+    lower_expr(start, dest, ctx, block);
+    ctx.emit(
+        block,
+        MirInstr {
+            dest: None,
+            op: MirOp::ConstStr("start".into()),
+            span: None,
+        },
+    );
+    lower_expr(end, dest, ctx, block);
+    ctx.emit(
+        block,
+        MirInstr {
+            dest: None,
+            op: MirOp::ConstStr("end".into()),
+            span: None,
+        },
+    );
+    if inclusive {
+        ctx.emit(
+            block,
+            MirInstr {
+                dest: Some(dest),
+                op: MirOp::ConstBool(true),
+                span: None,
+            },
+        );
+        ctx.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::ConstStr("inclusive".into()),
+                span: None,
+            },
+        );
+    }
+    ctx.emit(
+        block,
+        MirInstr {
+            dest: Some(dest),
+            op: MirOp::DictBuild(pair_count),
+            span: None,
+        },
+    );
+}
+
 fn lower_range_dict(
     ctx: &mut LowerCtx,
     block: u32,
@@ -5017,6 +5105,57 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
         },
         Expr::Ident { name, .. } => {
             ctx.lower_load_binding(dest, name, block);
+        }
+        Expr::Ternary {
+            condition,
+            then_branch,
+            else_branch,
+            ..
+        } => {
+            // S1-I7: `cond ? then : else` → JumpIfFalse + merge.
+            lower_expr(condition, dest, ctx, block);
+            let then_block = ctx.fresh_block();
+            let else_block = ctx.fresh_block();
+            let end_block = ctx.fresh_block();
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::JumpIfFalse(else_block),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::Jump(then_block),
+                    span: None,
+                },
+            );
+            ctx.link(block, then_block);
+            ctx.link(block, else_block);
+            lower_expr(then_branch, dest, ctx, then_block);
+            ctx.emit(
+                then_block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::Jump(end_block),
+                    span: None,
+                },
+            );
+            ctx.link(then_block, end_block);
+            lower_expr(else_branch, dest, ctx, else_block);
+            ctx.emit(
+                else_block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::Jump(end_block),
+                    span: None,
+                },
+            );
+            ctx.link(else_block, end_block);
+            ctx.active_block = end_block;
         }
         Expr::Binary { left, op, right, .. } => {
             if *op == BinOp::NilCoalesce {
@@ -6879,6 +7018,45 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                             );
                             return;
                         }
+                        // S1-I7: `obj.callback(x)` when `callback` is a Closure field.
+                        if let Some(field_ty) = ctx
+                            .module
+                            .class_field_types
+                            .get(&base)
+                            .and_then(|m| m.get(name))
+                        {
+                            if field_ty.as_str() == "Closure" {
+                                for arg in args {
+                                    lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
+                                }
+                                lower_expr(object, dest, ctx, block);
+                                ctx.emit(
+                                    block,
+                                    MirInstr {
+                                        dest: None,
+                                        op: MirOp::ConstStr(name.to_string()),
+                                        span: None,
+                                    },
+                                );
+                                ctx.emit(
+                                    block,
+                                    MirInstr {
+                                        dest: Some(dest),
+                                        op: MirOp::ObjectGet,
+                                        span: None,
+                                    },
+                                );
+                                ctx.emit(
+                                    block,
+                                    MirInstr {
+                                        dest: Some(dest),
+                                        op: MirOp::CallClosure,
+                                        span: None,
+                                    },
+                                );
+                                return;
+                            }
+                        }
                         if ctx.module.class_types.contains_key(&base)
                             || ctx.module.dataclass_names.contains(&base)
                             || ctx.module.enum_classes.contains(&base)
@@ -6891,7 +7069,9 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                                 // Unwrap non-Ident receivers (e.g. `self.logger.tag()`) so
                                 // virtual dispatch sees Object.__type. Leave Ident cells as
                                 // MutRefCell so `self.field =` write-back updates the caller's cell.
+                                // S1-I7: never unwrap platform value types (`3.doubled()`).
                                 if ctx.module.class_types.contains_key(&base)
+                                    && !is_platform_value_type(base.as_str())
                                     && !matches!(object.as_ref(), Expr::Ident { .. })
                                 {
                                     ctx.emit_unwrap_syx_ref(block);
@@ -6911,6 +7091,7 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                                     }
                                 }
                             }
+                            call_name = remap_platform_int_extension_call(&call_name);
                             ctx.emit(
                                 block,
                                 MirInstr {
@@ -8345,6 +8526,14 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
         Expr::ClosedRange { start, end, .. } => {
             lower_range_dict(ctx, block, dest, *start, *end, true);
         }
+        Expr::RangeDyn {
+            start,
+            end,
+            inclusive,
+            ..
+        } => {
+            lower_range_dict_dyn(ctx, block, dest, start, end, *inclusive);
+        }
         Expr::Super { .. } => {
             ctx.lower_load_binding_raw(&SmolStr::new("self"), block);
         }
@@ -8714,6 +8903,20 @@ fn infer_expr_init_type(expr: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
             value: Literal::Integer { suffix, .. },
             ..
         } if suffix.as_deref() == Some("n") => Some(SmolStr::new("BigInt")),
+        // S1-I7: `let x = 3; x.doubled()` — bind platform int so extension Call resolves.
+        Expr::Literal {
+            value: Literal::Integer { suffix, .. },
+            ..
+        } => Some(SmolStr::new(
+            suffix
+                .as_deref()
+                .map(|s| s.trim_end_matches('i').trim_end_matches('u'))
+                .unwrap_or(if cfg!(target_pointer_width = "64") {
+                    "Int64"
+                } else {
+                    "Int32"
+                }),
+        )),
         Expr::Literal {
             value: Literal::Dict(_),
             ..
@@ -9034,6 +9237,108 @@ fn emit_float_to_int_numeric_cast_if_needed(
     true
 }
 
+/// S1-I7: `self.init(x: 0, y: 0)` → ordered `(field, value)` pairs.
+fn extension_init_literal_fields(body: &[Stmt]) -> Option<Vec<(SmolStr, i128)>> {
+    for stmt in body {
+        let Stmt::Expr { expr, .. } = stmt else {
+            continue;
+        };
+        let Expr::Call { callee, args, .. } = expr else {
+            continue;
+        };
+        let Expr::Member { object, name, .. } = callee.as_ref() else {
+            continue;
+        };
+        if name.as_str() != "init" {
+            continue;
+        }
+        let is_self = matches!(
+            object.as_ref(),
+            Expr::Ident { name, .. } if name.as_str() == "self"
+        );
+        if !is_self {
+            continue;
+        }
+        let mut out = Vec::new();
+        for arg in args {
+            let label = arg.label.as_ref()?;
+            let Expr::Literal {
+                value: Literal::Integer { value, .. },
+                ..
+            } = &arg.value
+            else {
+                return None;
+            };
+            out.push((label.clone(), *value));
+        }
+        if !out.is_empty() {
+            return Some(out);
+        }
+    }
+    None
+}
+
+/// S1-I7: pull `self.init(x: 0, y: 0)` literals into memberwise default pad table.
+fn register_extension_init_literal_defaults(
+    idx: &mut ModuleIndex,
+    type_name: &SmolStr,
+    body: &[Stmt],
+) {
+    if let Some(fields) = extension_init_literal_fields(body) {
+        for (field, value) in fields {
+            idx.dataclass_field_default_i64
+                .insert((type_name.clone(), field), value);
+        }
+    }
+}
+
+fn lower_extension_convenience_init_shell(
+    type_name: &SmolStr,
+    lit_fields: &[(SmolStr, i128)],
+) -> MirFunction {
+    let mut ins = Vec::new();
+    for (field, value) in lit_fields {
+        ins.push(mir_op(MirOp::ConstNumeric {
+            kind: PLATFORM_INT.to_byte(),
+            bits: *value as u64,
+        }));
+        ins.push(mir_op(MirOp::ConstStr(field.to_string())));
+    }
+    ins.push(mir_op(MirOp::ConstStr(type_name.to_string())));
+    ins.push(mir_op(MirOp::ConstStr("__type".to_string())));
+    ins.push(mir_op(MirOp::DictBuild((lit_fields.len() + 1) as u32)));
+    ins.push(mir_op(MirOp::Return));
+    mir_shell_fn(
+        SmolStr::new(format!("{type_name}_init")),
+        0,
+        0,
+        ins,
+    )
+}
+
+/// S1-I7: `extension Int` method tables also key under platform Int64/Int32.
+fn platform_int_extension_aliases(type_name: &SmolStr) -> Vec<SmolStr> {
+    match type_name.as_str() {
+        "Int" => vec![
+            type_name.clone(),
+            SmolStr::new("Int64"),
+            SmolStr::new("Int32"),
+        ],
+        "Int64" | "Int32" => vec![type_name.clone(), SmolStr::new("Int")],
+        _ => vec![type_name.clone()],
+    }
+}
+
+/// Literal receivers type as Int64/Int32; `extension Int` mangles as `Int_*`.
+fn remap_platform_int_extension_call(name: &SmolStr) -> SmolStr {
+    for (from, to) in [("Int64_", "Int_"), ("Int32_", "Int_")] {
+        if let Some(rest) = name.as_str().strip_prefix(from) {
+            return SmolStr::new(format!("{to}{rest}"));
+        }
+    }
+    name.clone()
+}
+
 fn mir_type_expr_name(ty: &TypeExpr) -> Option<SmolStr> {
     match ty {
         TypeExpr::Named { name, generics } if !generics.is_empty() => {
@@ -9060,6 +9365,8 @@ fn mir_type_expr_name(ty: &TypeExpr) -> Option<SmolStr> {
                 _ => Some(SmolStr::new("Dictionary")),
             }
         }
+        // S1-I7: `(Int) -> Void` stored properties dispatch via CallClosure.
+        TypeExpr::Function { .. } => Some(SmolStr::new("Closure")),
         _ => None,
     }
 }
@@ -9096,17 +9403,9 @@ fn infer_static_method_type_args(args: &[CallArg], ctx: &LowerCtx) -> Vec<SmolSt
     vec![SmolStr::new("Unknown")]
 }
 
-fn instance_self_mut_ref_method(name: &SmolStr, module: &ModuleIndex) -> bool {
-    let Some((type_name, rest)) = syx_ast::parse_mangled_instance_method(name.as_str()) else {
-        return false;
-    };
-    if rest.as_str() == "init" || rest.as_str() == "deinit" {
-        return false;
-    }
-    // Core value / bag surfaces are not MutRefCell-wrapped class instances.
-    // Treating them as such ObjectGet(`__syx_ref`)→Nil and breaks `array.count` / hosts.
-    if matches!(
-        type_name.as_str(),
+fn is_platform_value_type(name: &str) -> bool {
+    matches!(
+        name,
         "Array"
             | "Set"
             | "Dictionary"
@@ -9116,7 +9415,35 @@ fn instance_self_mut_ref_method(name: &SmolStr, module: &ModuleIndex) -> bool {
             | "Deque"
             | "Result"
             | "BigInt"
-    ) {
+            | "Int"
+            | "Int8"
+            | "Int16"
+            | "Int32"
+            | "Int64"
+            | "UInt"
+            | "UInt8"
+            | "UInt16"
+            | "UInt32"
+            | "UInt64"
+            | "Float"
+            | "Float32"
+            | "Float64"
+            | "Double"
+            | "Bool"
+    )
+}
+
+fn instance_self_mut_ref_method(name: &SmolStr, module: &ModuleIndex) -> bool {
+    let Some((type_name, rest)) = syx_ast::parse_mangled_instance_method(name.as_str()) else {
+        return false;
+    };
+    if rest.as_str() == "init" || rest.as_str() == "deinit" {
+        return false;
+    }
+    // Core value / bag surfaces are not MutRefCell-wrapped class instances.
+    // Treating them as such ObjectGet(`__syx_ref`)→Nil and breaks `array.count` / hosts.
+    // S1-I7: platform ints in `extension Int` must keep bare numeric `self`.
+    if is_platform_value_type(type_name.as_str()) {
         return false;
     }
     module.class_types.contains_key(&type_name) || module.actor_types.contains(&type_name)
@@ -17341,6 +17668,103 @@ func main() { }
 
     /// W471 / ADR-815: Class init/method/deinit/nested lower via MIR
     /// `lower_type_members` / `lower_class_init` (Class-only migrate path).
+    #[test]
+    fn s1_i7_int_extension_call_on_int64_literal() {
+        let source = SourceFile::new(
+            "t.sy",
+            r#"
+extension Int {
+    func doubled() -> Int { return self + self }
+}
+func main() {
+    print(3.doubled())
+}
+"#,
+        );
+        let module = Parser::parse(source).unwrap();
+        let idx = ModuleIndex::from_module(&module);
+        assert!(
+            idx.extension_methods
+                .contains(&(SmolStr::new("Int64"), SmolStr::new("doubled"))),
+            "Int64,doubled missing: {:?}",
+            idx.extension_methods.iter().filter(|(t,_)| t.as_str().starts_with("Int")).collect::<Vec<_>>()
+        );
+        let mir = lower_module(&module).unwrap();
+        let main = mir.functions.iter().find(|f| f.name == "main").expect("main");
+        let ops: Vec<_> = main.blocks[0]
+            .instructions
+            .iter()
+            .map(|i| format!("{:?}", i.op))
+            .collect();
+        assert!(
+            ops.iter().any(|op| op.contains("Int_doubled")),
+            "expected Call Int_doubled in main, got {ops:?}"
+        );
+    }
+
+
+    #[test]
+    fn s1_i7_extension_point_convenience_init_lowers() {
+        let source = SourceFile::new(
+            "t.sy",
+            r#"
+struct Point {
+    var x: Int
+    var y: Int
+}
+extension Point {
+    init() {
+        self.init(x: 0, y: 0)
+    }
+}
+func main() {
+    let p = Point()
+    print(p.x)
+}
+"#,
+        );
+        let module = Parser::parse(source).unwrap();
+        let idx = ModuleIndex::from_module(&module);
+        let fields = idx.dataclass_fields.get(&SmolStr::new("Point")).cloned().unwrap();
+        assert_eq!(fields, vec![SmolStr::new("x"), SmolStr::new("y")]);
+        assert!(idx.dataclass_names.contains(&SmolStr::new("Point")));
+        assert_eq!(
+            idx.dataclass_field_default_i64
+                .get(&(SmolStr::new("Point"), SmolStr::new("x")))
+                .copied(),
+            Some(0)
+        );
+        let mir = lower_module(&module).unwrap();
+        // Prefer 0-arg convenience init with literal fields.
+        let init = mir
+            .functions
+            .iter()
+            .rev()
+            .find(|f| f.name == "Point_init")
+            .expect("Point_init");
+        assert_eq!(init.param_count, 0, "convenience init should be 0-arg");
+        let init_ops: Vec<_> = init.blocks[0]
+            .instructions
+            .iter()
+            .map(|i| format!("{:?}", i.op))
+            .collect();
+        assert!(
+            init_ops.iter().any(|o| o.contains("ConstNumeric")),
+            "expected literal fields in convenience init: {init_ops:?}"
+        );
+        let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
+        let ops: Vec<_> = main.blocks[0]
+            .instructions
+            .iter()
+            .map(|i| format!("{:?}", i.op))
+            .collect();
+        assert!(
+            ops.iter().any(|o| o.contains("Point_init")),
+            "main should Call Point_init: {ops:?}"
+        );
+    }
+
+
     #[test]
     fn lowers_class_members_parity_for_native_w471() {
         let source = SourceFile::new(

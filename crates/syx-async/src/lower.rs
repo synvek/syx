@@ -990,6 +990,7 @@ impl ExprSpan for Expr {
             Expr::Literal { span, .. }
             | Expr::Ident { span, .. }
             | Expr::Binary { span, .. }
+            | Expr::Ternary { span, .. }
             | Expr::Unary { span, .. }
             | Expr::Call { span, .. }
             | Expr::Member { span, .. }
@@ -1005,6 +1006,7 @@ impl ExprSpan for Expr {
             | Expr::ForceUnwrap { span, .. }
             | Expr::HalfOpenRange { span, .. }
             | Expr::ClosedRange { span, .. }
+            | Expr::RangeDyn { span, .. }
             | Expr::VariantPattern { span, .. }
             | Expr::TuplePattern { span, .. }
             | Expr::Closure { span, .. }

@@ -131,6 +131,13 @@ pub enum Expr {
         op: BinOp,
         right: Box<Expr>,
     },
+    /// S1-I7: `cond ? then : else` ternary.
+    Ternary {
+        span: Span,
+        condition: Box<Expr>,
+        then_branch: Box<Expr>,
+        else_branch: Box<Expr>,
+    },
     Unary {
         span: Span,
         op: UnaryOp,
@@ -209,6 +216,13 @@ pub enum Expr {
         span: Span,
         start: i64,
         end: i64,
+    },
+    /// S1-I7: `0..<self` / `a...b` with expression bounds (for-in / values).
+    RangeDyn {
+        span: Span,
+        start: Box<Expr>,
+        end: Box<Expr>,
+        inclusive: bool,
     },
     /// Enum/case pattern: `.ok` / `.success(let data)` / `.failure(code: let c, message: let m)`.
     /// Each binding is `(optional_label, name)`.
@@ -710,6 +724,16 @@ pub trait ExprVisitor<T> {
             Expr::Ident { name, .. } => self.visit_ident(name),
             Expr::Super { .. } => self.visit_ident(&SmolStr::new("super")),
             Expr::Binary { left, op, right, .. } => self.visit_binary(left, *op, right),
+            Expr::Ternary {
+                condition,
+                then_branch,
+                else_branch,
+                ..
+            } => {
+                let _ = self.walk_expr(condition);
+                let _ = self.walk_expr(then_branch);
+                self.walk_expr(else_branch)
+            }
             Expr::Unary { op, expr, .. } => self.visit_unary(*op, expr),
             Expr::Call { callee, args, .. } => self.visit_call(callee, args),
             Expr::Member { object, name, .. } => self.visit_member(object, name),
@@ -735,6 +759,10 @@ pub trait ExprVisitor<T> {
             Expr::Await { expr, .. } => self.visit_group(expr),
             Expr::OptionalChain { object, .. } => self.visit_group(object),
             Expr::ForceUnwrap { expr, .. } => self.visit_group(expr),
+            Expr::RangeDyn { start, end, .. } => {
+                let _ = self.walk_expr(start);
+                self.walk_expr(end)
+            }
             Expr::Closure { body, .. } => self.visit_group(match body {
                 ClosureBody::Expr(e) => e,
                 ClosureBody::Block(stmts) => {

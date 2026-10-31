@@ -1,0 +1,19 @@
+// S1-I7: stored closure property, callLater, ternary in $0 shorthand.
+class Handler {
+    var callback: (Int) -> Void = { _ in }
+}
+
+func callLater(f: () -> String) {
+    let s = f()
+    print(s)
+}
+
+func main() {
+    let h = Handler()
+    h.callback = { x in print(x) }
+    h.callback(42)
+    callLater(f: { return "later" })
+    let nums = [1, 2, 3, 4, 5]
+    let max = nums.reduce(Int.min) { $0 > $1 ? $0 : $1 }
+    print(max)
+}

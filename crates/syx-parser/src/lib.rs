@@ -85,6 +85,8 @@ pub struct Parser {
     errors: Vec<SyxDiagnostic>,
     /// Extra decls synthesized while parsing one logical decl (enum methods → Extension, etc.).
     pending_decls: Vec<Decl>,
+    /// S1-I7: disable trailing `{ … }` after Call so `for x in Counter() { … }` keeps the brace as body.
+    allow_trailing_closure: bool,
 }
 
 fn is_known_protocol_name(name: &str) -> bool {
@@ -117,6 +119,7 @@ impl Parser {
             current: 0,
             errors: Vec::new(),
             pending_decls: Vec::new(),
+            allow_trailing_closure: true,
         }
     }
 
@@ -608,28 +611,41 @@ impl Parser {
         self.consume(TokenKind::LParen, "Expected '(' after function name")?;
         let params = self.parse_params()?;
         self.consume(TokenKind::RParen, "Expected ')' after parameters")?;
-        let return_type = if self.match_kind(TokenKind::Arrow) {
-            Some(self.parse_type()?)
-        } else {
-            None
-        };
-        let throws_type = if self.match_kind(TokenKind::Throws) {
+        // S1-I7: `throws -> T` (Swift order) as well as `-> T throws`.
+        let parse_throws_type = |p: &mut Self| -> SyxResult<TypeExpr> {
             if matches!(
-                self.peek().kind,
+                p.peek().kind,
                 TokenKind::Identifier(_)
                     | TokenKind::Less
                     | TokenKind::LParen
                     | TokenKind::LBracket
             ) {
-                Some(self.parse_type()?)
+                p.parse_type()
             } else {
-                Some(TypeExpr::Named {
+                Ok(TypeExpr::Named {
                     name: SmolStr::new("String"),
                     generics: Vec::new(),
                 })
             }
+        };
+        let (return_type, throws_type) = if self.match_kind(TokenKind::Throws) {
+            let throws_type = Some(parse_throws_type(self)?);
+            let return_type = if self.match_kind(TokenKind::Arrow) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            (return_type, throws_type)
+        } else if self.match_kind(TokenKind::Arrow) {
+            let return_type = Some(self.parse_type()?);
+            let throws_type = if self.match_kind(TokenKind::Throws) {
+                Some(parse_throws_type(self)?)
+            } else {
+                None
+            };
+            (return_type, throws_type)
         } else {
-            None
+            (None, None)
         };
         let effect = if self.match_kind(TokenKind::Requires) {
             Some(match self.advance().kind {
@@ -708,12 +724,18 @@ impl Parser {
             loop {
                 let name = self.consume_identifier("Expected type parameter name")?;
                 if self.match_kind(TokenKind::Colon) {
-                    let constraint =
-                        self.consume_identifier("Expected protocol constraint after ':'")?;
-                    inline.push(WherePred {
-                        type_name: name.clone(),
-                        constraint,
-                    });
+                    // S1-I7: `T: A & B` → multiple WherePreds.
+                    loop {
+                        let constraint =
+                            self.consume_identifier("Expected protocol constraint after ':'")?;
+                        inline.push(WherePred {
+                            type_name: name.clone(),
+                            constraint,
+                        });
+                        if !self.match_kind(TokenKind::Amp) {
+                            break;
+                        }
+                    }
                 }
                 let default = if self.match_kind(TokenKind::Assign) {
                     Some(self.parse_type()?)
@@ -737,11 +759,18 @@ impl Parser {
             loop {
                 let type_name = self.consume_identifier("Expected type name in where clause")?;
                 self.consume(TokenKind::Colon, "Expected ':' in where clause")?;
-                let constraint = self.consume_identifier("Expected constraint in where clause")?;
-                preds.push(WherePred {
-                    type_name,
-                    constraint,
-                });
+                // S1-I7: `where T: A & B`
+                loop {
+                    let constraint =
+                        self.consume_identifier("Expected constraint in where clause")?;
+                    preds.push(WherePred {
+                        type_name: type_name.clone(),
+                        constraint,
+                    });
+                    if !self.match_kind(TokenKind::Amp) {
+                        break;
+                    }
+                }
                 if !self.match_kind(TokenKind::Comma) {
                     break;
                 }
@@ -1237,8 +1266,12 @@ impl Parser {
         if matches!(&self.peek().kind, TokenKind::Var | TokenKind::Let) {
             return self.parse_global_var(access, attrs, false, false);
         }
+        // S1-I7: convenience `init` inside extension.
+        if self.check(TokenKind::Init) {
+            return self.parse_init(access);
+        }
         if !self.check(TokenKind::Func) {
-            return self.error("Expected 'func' or computed 'var'/'let' in extension");
+            return self.error("Expected 'func', 'init', or computed 'var'/'let' in extension");
         }
         self.parse_function(access, false, attrs)
     }
@@ -1616,28 +1649,30 @@ impl Parser {
         let mut did_set = None;
         if self.check(TokenKind::LBrace) {
             self.advance();
-            if !matches!(
+            if matches!(
                 &self.peek().kind,
                 TokenKind::Identifier(label) if label.as_str() == "get"
             ) {
-                return self.error("Expected 'get' in computed property body");
-            }
-            self.advance();
-            self.consume(TokenKind::LBrace, "Expected '{' before computed property getter")?;
-            // `parse_block_stmts` consumes the getter's closing `}`.
-            computed_getter = Some(self.parse_block_stmts()?);
-            if matches!(
-                &self.peek().kind,
-                TokenKind::Identifier(label) if label.as_str() == "set"
-            ) {
-                if !mutable {
-                    return self.error("Computed property setter requires 'var'");
-                }
                 self.advance();
-                self.consume(TokenKind::LBrace, "Expected '{' before computed property setter")?;
-                computed_setter = Some(self.parse_block_stmts()?);
+                self.consume(TokenKind::LBrace, "Expected '{' before computed property getter")?;
+                // `parse_block_stmts` consumes the getter's closing `}`.
+                computed_getter = Some(self.parse_block_stmts()?);
+                if matches!(
+                    &self.peek().kind,
+                    TokenKind::Identifier(label) if label.as_str() == "set"
+                ) {
+                    if !mutable {
+                        return self.error("Computed property setter requires 'var'");
+                    }
+                    self.advance();
+                    self.consume(TokenKind::LBrace, "Expected '{' before computed property setter")?;
+                    computed_setter = Some(self.parse_block_stmts()?);
+                }
+                self.consume(TokenKind::RBrace, "Expected '}' after computed property")?;
+            } else {
+                // S1-I7: `{ return … }` get-only shorthand (no explicit `get`).
+                computed_getter = Some(self.parse_block_stmts()?);
             }
-            self.consume(TokenKind::RBrace, "Expected '}' after computed property")?;
         } else {
             init = if self.match_kind(TokenKind::Assign) {
                 Some(self.parse_expr()?)
@@ -2894,7 +2929,11 @@ impl Parser {
         let is_async_iter = self.match_kind(TokenKind::Await);
         let name = self.consume_identifier("Expected loop variable")?;
         self.consume(TokenKind::In, "Expected 'in' in for loop")?;
+        // S1-I7: `for x in Counter() { … }` — do not treat the loop body brace as trailing closure.
+        let prev = self.allow_trailing_closure;
+        self.allow_trailing_closure = false;
         let iterable = self.parse_expr()?;
+        self.allow_trailing_closure = prev;
         self.consume(TokenKind::LBrace, "Expected '{' after for-in")?;
         let body = self.parse_block_stmts()?;
         Ok(Stmt::ForIn {
@@ -3115,6 +3154,11 @@ impl Parser {
                 self.advance();
                 Ok(name)
             }
+            // S1-I7: `self.init(...)` — `init` is a keyword, not an identifier.
+            TokenKind::Init => {
+                self.advance();
+                Ok(SmolStr::new("init"))
+            }
             TokenKind::Integer(v, _) => {
                 let name = SmolStr::new(v.to_string());
                 self.advance();
@@ -3124,8 +3168,68 @@ impl Parser {
         }
     }
 
+    /// True when `peek` is `?` and the following token looks like a ternary then-branch.
+    fn looks_like_ternary_tail(&self) -> bool {
+        if !matches!(self.peek().kind, TokenKind::Question) {
+            return false;
+        }
+        matches!(
+            self.peek_non_trivia_kind(1),
+            Some(
+                TokenKind::Identifier(_)
+                    | TokenKind::Integer(_, _)
+                    | TokenKind::Double(_, _)
+                    | TokenKind::String(_)
+                    | TokenKind::Bool(_)
+                    | TokenKind::Nil
+                    | TokenKind::LParen
+                    | TokenKind::LBrace
+                    | TokenKind::LBracket
+                    | TokenKind::Minus
+                    | TokenKind::Bang
+            )
+        )
+    }
+
     fn parse_expr(&mut self) -> SyxResult<Expr> {
-        self.parse_precedence(0)
+        // S1-I7: `let label = if x > 0 { "pos" } else { "non-pos" }`
+        if self.check(TokenKind::If) {
+            return self.parse_if_expr();
+        }
+        // S1-I7: `a ? b : c` after comparison/or chain (not postfix `?` try).
+        let condition = self.parse_precedence(0)?;
+        if !self.looks_like_ternary_tail() {
+            return Ok(condition);
+        }
+        self.advance(); // consume `?`
+        let then_branch = self.parse_expr()?;
+        self.consume(TokenKind::Colon, "Expected ':' in ternary expression")?;
+        let else_branch = self.parse_expr()?;
+        Ok(Expr::Ternary {
+            span: Span::merge(expr_span(&condition), expr_span(&else_branch)),
+            condition: Box::new(condition),
+            then_branch: Box::new(then_branch),
+            else_branch: Box::new(else_branch),
+        })
+    }
+
+    /// S1-I7: if-expression → Ternary (single-expr branches in braces).
+    fn parse_if_expr(&mut self) -> SyxResult<Expr> {
+        let start = self.advance().span; // `if`
+        let condition = self.parse_precedence(0)?;
+        self.consume(TokenKind::LBrace, "Expected '{' after if-expression condition")?;
+        let then_branch = self.parse_expr()?;
+        self.consume(TokenKind::RBrace, "Expected '}' after if-expression then branch")?;
+        self.consume(TokenKind::Else, "if-expression requires else branch")?;
+        self.consume(TokenKind::LBrace, "Expected '{' after else in if-expression")?;
+        let else_branch = self.parse_expr()?;
+        self.consume(TokenKind::RBrace, "Expected '}' after if-expression else branch")?;
+        Ok(Expr::Ternary {
+            span: Span::merge(start, self.previous().span),
+            condition: Box::new(condition),
+            then_branch: Box::new(then_branch),
+            else_branch: Box::new(else_branch),
+        })
     }
 
     fn parse_precedence(&mut self, min_prec: u8) -> SyxResult<Expr> {
@@ -3336,7 +3440,8 @@ impl Parser {
                         name,
                     };
                 }
-                TokenKind::Question => {
+                // S1-I7: bare `?` is postfix Try only when not starting `cond ? then : else`.
+                TokenKind::Question if !self.looks_like_ternary_tail() => {
                     let token = self.advance().clone();
                     let span = Span::merge(expr_span(&expr), token.span);
                     expr = Expr::Unary {
@@ -3400,8 +3505,10 @@ impl Parser {
                 }
                 // S1-I3/I4: trailing closure `nums.map { $0 * 2 }` / `reduce(0) { $0 + $1 }`.
                 // Only after Call/Member — never bare `items {` (for-in body).
+                // S1-I7: also off while parsing for-in iterable (`Counter() {` is loop body).
                 TokenKind::LBrace
-                    if self.looks_like_brace_closure()
+                    if self.allow_trailing_closure
+                        && self.looks_like_brace_closure()
                         && matches!(expr, Expr::Call { .. } | Expr::Member { .. } | Expr::OptionalChain { .. }) =>
                 {
                     let clo = self.parse_primary()?;
@@ -3474,33 +3581,52 @@ impl Parser {
         match token.kind {
             TokenKind::Integer(v, suffix) => {
                 if self.match_kind(TokenKind::DotDotLess) {
-                    let end = match &self.peek().kind {
-                        TokenKind::Integer(end_v, _) => {
-                            let end_v = *end_v;
-                            self.advance();
-                            end_v
-                        }
-                        _ => return self.error("Expected integer after '..<' in range"),
-                    };
-                    return Ok(Expr::HalfOpenRange {
-                        span: Span::merge(span, self.previous().span),
-                        start: v as i64,
-                        end: end as i64,
+                    // S1-I7: `0..<self` / `0..<n` — integer end stays HalfOpenRange.
+                    if let TokenKind::Integer(end_v, _) = &self.peek().kind {
+                        let end_v = *end_v;
+                        self.advance();
+                        return Ok(Expr::HalfOpenRange {
+                            span: Span::merge(span, self.previous().span),
+                            start: v as i64,
+                            end: end_v as i64,
+                        });
+                    }
+                    let end = self.parse_expr()?;
+                    return Ok(Expr::RangeDyn {
+                        span: Span::merge(span, expr_span(&end)),
+                        start: Box::new(Expr::Literal {
+                            span,
+                            value: Literal::Integer {
+                                value: v,
+                                suffix: suffix.clone(),
+                            },
+                        }),
+                        end: Box::new(end),
+                        inclusive: false,
                     });
                 }
                 if self.match_kind(TokenKind::DotDotDot) {
-                    let end = match &self.peek().kind {
-                        TokenKind::Integer(end_v, _) => {
-                            let end_v = *end_v;
-                            self.advance();
-                            end_v
-                        }
-                        _ => return self.error("Expected integer after '...' in range"),
-                    };
-                    return Ok(Expr::ClosedRange {
-                        span: Span::merge(span, self.previous().span),
-                        start: v as i64,
-                        end: end as i64,
+                    if let TokenKind::Integer(end_v, _) = &self.peek().kind {
+                        let end_v = *end_v;
+                        self.advance();
+                        return Ok(Expr::ClosedRange {
+                            span: Span::merge(span, self.previous().span),
+                            start: v as i64,
+                            end: end_v as i64,
+                        });
+                    }
+                    let end = self.parse_expr()?;
+                    return Ok(Expr::RangeDyn {
+                        span: Span::merge(span, expr_span(&end)),
+                        start: Box::new(Expr::Literal {
+                            span,
+                            value: Literal::Integer {
+                                value: v,
+                                suffix: suffix.clone(),
+                            },
+                        }),
+                        end: Box::new(end),
+                        inclusive: true,
                     });
                 }
                 Ok(Expr::Literal {
@@ -3772,6 +3898,22 @@ impl Parser {
         match self.peek_non_trivia_kind(i) {
             Some(TokenKind::Identifier(n)) if n.starts_with('$') => true,
             Some(TokenKind::Pipe) | Some(TokenKind::LParen) => true,
+            // S1-I7: `{ return "later" }` / `{ if … }` statement-bodied closures.
+            Some(
+                TokenKind::Return
+                    | TokenKind::If
+                    | TokenKind::While
+                    | TokenKind::For
+                    | TokenKind::Var
+                    | TokenKind::Let
+                    | TokenKind::Guard
+                    | TokenKind::Switch
+                    | TokenKind::Throw
+                    | TokenKind::Break
+                    | TokenKind::Continue
+                    | TokenKind::Try
+                    | TokenKind::Repeat,
+            ) => true,
             Some(TokenKind::Identifier(_)) => {
                 // `{ x: v }` dict vs `{ x in … }` / `{ x = … }` / `{ print(…) }` closure.
                 match self.peek_non_trivia_kind(i + 1) {
@@ -3865,6 +4007,16 @@ impl Parser {
             }
         }
         self.consume(TokenKind::In, "Expected 'in' in brace closure")?;
+        // S1-I7: `{ _ in }` / `{ x in }` — empty body (Void / discard).
+        if self.check(TokenKind::RBrace) {
+            self.advance();
+            return Ok(Expr::Closure {
+                span: Span::merge(start_span, self.previous().span),
+                params,
+                return_type: None,
+                body: ClosureBody::Block(Vec::new()),
+            });
+        }
         let body = if self.check(TokenKind::LBrace) {
             self.advance();
             ClosureBody::Block(self.parse_block_stmts()?)
@@ -3909,6 +4061,16 @@ impl Parser {
                 Expr::Binary { left, right, .. } => {
                     walk(left, max);
                     walk(right, max);
+                }
+                Expr::Ternary {
+                    condition,
+                    then_branch,
+                    else_branch,
+                    ..
+                } => {
+                    walk(condition, max);
+                    walk(then_branch, max);
+                    walk(else_branch, max);
                 }
                 Expr::Unary { expr, .. }
                 | Expr::Group { expr, .. }
@@ -4558,6 +4720,7 @@ fn expr_span(expr: &Expr) -> Span {
         | Expr::Ident { span, .. }
         | Expr::Super { span, .. }
         | Expr::Binary { span, .. }
+        | Expr::Ternary { span, .. }
         | Expr::Unary { span, .. }
         | Expr::Call { span, .. }
         | Expr::Member { span, .. }
@@ -4574,6 +4737,7 @@ fn expr_span(expr: &Expr) -> Span {
         | Expr::ForceUnwrap { span, .. }
         | Expr::HalfOpenRange { span, .. }
         | Expr::ClosedRange { span, .. }
+        | Expr::RangeDyn { span, .. }
         | Expr::VariantPattern { span, .. }
         | Expr::TuplePattern { span, .. }
         | Expr::Closure { span, .. }
