@@ -14,7 +14,7 @@ func main() {
         print(Path.exists(path))
     } catch (e) {
         print("UNEXPECTED")
-        print(e.message)
+        print(e)
     }
 }
 

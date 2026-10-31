@@ -12,8 +12,8 @@ if [[ ! -x "$SYX" ]]; then
   SYX=./target/debug/syx
 fi
 
-# Frozen allowlist (S0 green paths + single-file demos already green on VM).
-# S1-I17 expanded ≥12; still VM-only — not examples-full / three-backend GA.
+# Frozen allowlist (VM single-file runnable inventory).
+# S1-I19 ≥20; still VM-only — not examples-full / three-backend GA.
 ALLOWLIST=(
   examples/hello.sy
   examples/io_demo.sy
@@ -31,6 +31,15 @@ ALLOWLIST=(
   examples/observability_demo.sy
   examples/class_demo.sy
   examples/collection_demo.sy
+  examples/test.sy
+  examples/path_tool/main.sy
+  examples/file_tool/main.sy
+  examples/path_microbench/main.sy
+  examples/concurrency_control/main.sy
+  examples/os_info/main.sy
+  examples/sql_tool/main.sy
+  examples/stmt_token_macro/main.sy
+  examples/token_expr_macro/main.sy
 )
 
 echo "== S1-10 examples VM allowlist contract =="

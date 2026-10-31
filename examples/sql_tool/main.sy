@@ -12,7 +12,7 @@ func main() {
         print("closed")
     } catch (e) {
         print("UNEXPECTED")
-        print(e.message)
+        print(e)
     }
 }
 
