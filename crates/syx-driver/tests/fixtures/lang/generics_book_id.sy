@@ -1,4 +1,4 @@
-// S1-I3 / S1-05: book Ch24 `func id<T>(x: T) -> T`.
+// S1-I3 / S1-05: book Ch24 `func id<T>(x: T) -> T` + Equatable witness.
 func id<T>(x: T) -> T {
     return x
 }
@@ -7,8 +7,21 @@ func idEq<T: Equatable>(x: T) -> T {
     return x
 }
 
+func valuesEqual<T: Equatable>(a: T, b: T) -> Bool {
+    return a == b
+}
+
+func first<T>(_ arr: Array<T>) -> T? {
+    if (arr.count == 0) { return nil }
+    return arr[0]
+}
+
 func main() {
     print(id(x: 42))
     print(id(x: "hi"))
     print(idEq(x: 7))
+    print(valuesEqual(a: 1, b: 1))
+    let arr: Array<Int> = [1, 2, 3]
+    print(first(arr))
+    print(first([1.0, 2.0]))
 }

@@ -3557,6 +3557,20 @@ impl CodeGenerator {
                 }
                 self.compile_call_args(args, out)?;
                 if let Expr::Ident { name: callee_name, .. } = callee.as_ref() {
+                    // S1-I4: local/param/global closure value — args then closure, CallClosure.
+                    if !self.has_function(callee_name) {
+                        if let Some(&slot) = self.locals.get(callee_name) {
+                            out.push(Instruction::LoadLocal(slot));
+                            out.push(Instruction::CallClosure);
+                            return Ok(());
+                        }
+                        if let Some(idx) = self.program.globals.iter().position(|g| g == callee_name)
+                        {
+                            out.push(Instruction::LoadGlobal(idx as u32));
+                            out.push(Instruction::CallClosure);
+                            return Ok(());
+                        }
+                    }
                     let idx = self.require_function_index(callee_name)?;
                     out.push(Instruction::Call(idx));
                 } else {

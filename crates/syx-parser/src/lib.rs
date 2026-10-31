@@ -3292,8 +3292,12 @@ impl Parser {
                         index: Box::new(index),
                     };
                 }
-                // S1-I3: trailing closure `nums.map { $0 * 2 }` / `reduce(0) { $0 + $1 }`.
-                TokenKind::LBrace if self.looks_like_brace_closure() => {
+                // S1-I3/I4: trailing closure `nums.map { $0 * 2 }` / `reduce(0) { $0 + $1 }`.
+                // Only after Call/Member — never bare `items {` (for-in body).
+                TokenKind::LBrace
+                    if self.looks_like_brace_closure()
+                        && matches!(expr, Expr::Call { .. } | Expr::Member { .. } | Expr::OptionalChain { .. }) =>
+                {
                     let clo = self.parse_primary()?;
                     let span = Span::merge(expr_span(&expr), expr_span(&clo));
                     let arg = CallArg {
@@ -3581,13 +3585,20 @@ impl Parser {
             None
         };
         self.consume(TokenKind::In, "Expected 'in' in closure")?;
+        // Prefer expression body so `in a + b` returns the value (not Expr-stmt + Pop).
         let body = if self.check(TokenKind::LBrace) {
             self.advance();
             let stmts = self.parse_block_stmts()?;
             ClosureBody::Block(stmts)
         } else {
-            let stmt = self.parse_stmt()?;
-            ClosureBody::Block(vec![stmt])
+            let expr = self.parse_expr()?;
+            self.consume(TokenKind::RBrace, "Expected '}' after closure")?;
+            return Ok(Expr::Closure {
+                span: Span::merge(start_span, self.previous().span),
+                params,
+                return_type,
+                body: ClosureBody::Expr(Box::new(expr)),
+            });
         };
         self.consume(TokenKind::RBrace, "Expected '}' after closure")?;
         Ok(Expr::Closure {
@@ -3644,7 +3655,7 @@ impl Parser {
         None
     }
 
-    /// `{ $0 * 2 }` / `{ x in x + 1 }` / `{ x, y in … }` (not a dict `{ k: v }`).
+    /// `{ $0 * 2 }` / `{ x in x + 1 }` / `{ print("hi") }` (not a dict `{ k: v }`).
     /// When called from postfix, `peek` is still `{`; when from primary, `{` was consumed.
     fn looks_like_brace_closure(&self) -> bool {
         let mut i = if matches!(self.peek().kind, TokenKind::LBrace) {
@@ -3655,22 +3666,39 @@ impl Parser {
         match self.peek_non_trivia_kind(i) {
             Some(TokenKind::Identifier(n)) if n.starts_with('$') => true,
             Some(TokenKind::Pipe) | Some(TokenKind::LParen) => true,
-            Some(TokenKind::Identifier(_)) => loop {
-                match self.peek_non_trivia_kind(i) {
-                    Some(TokenKind::Identifier(_)) => {
-                        i += 1;
-                        match self.peek_non_trivia_kind(i) {
-                            Some(TokenKind::Comma) => {
-                                i += 1;
-                                continue;
+            Some(TokenKind::Identifier(_)) => {
+                // `{ x: v }` dict vs `{ x in … }` / `{ x = … }` / `{ print(…) }` closure.
+                match self.peek_non_trivia_kind(i + 1) {
+                    Some(TokenKind::Colon) => false,
+                    Some(TokenKind::In) => true,
+                    Some(TokenKind::Comma) => {
+                        // `{ x, y in … }`
+                        i += 2;
+                        loop {
+                            match self.peek_non_trivia_kind(i) {
+                                Some(TokenKind::Identifier(_)) => {
+                                    i += 1;
+                                    match self.peek_non_trivia_kind(i) {
+                                        Some(TokenKind::Comma) => {
+                                            i += 1;
+                                            continue;
+                                        }
+                                        Some(TokenKind::In) => return true,
+                                        _ => return false,
+                                    }
+                                }
+                                _ => return false,
                             }
-                            Some(TokenKind::In) => return true,
-                            _ => return false,
                         }
                     }
-                    _ => return false,
+                    // Zero-param / body starts with identifier (call, assign, …).
+                    _ => true,
                 }
-            },
+            }
+            // `{ "k": v }` is a dict; bare string expr rare as closure start.
+            Some(TokenKind::String(_)) | Some(TokenKind::Integer(_, _)) => {
+                !matches!(self.peek_non_trivia_kind(i + 1), Some(TokenKind::Colon))
+            }
             _ => false,
         }
     }
@@ -3697,6 +3725,20 @@ impl Parser {
                 params,
                 return_type: None,
                 body: ClosureBody::Expr(Box::new(body_expr)),
+            });
+        }
+        // Zero-param `{ print("hi") }` / `{ n = n + 1; n }` — no `in`.
+        let zero_param = !matches!(
+            (self.peek_non_trivia_kind(0), self.peek_non_trivia_kind(1)),
+            (Some(TokenKind::Identifier(_)), Some(TokenKind::In | TokenKind::Comma))
+        );
+        if zero_param {
+            let stmts = self.parse_stmts_until_rbrace()?;
+            return Ok(Expr::Closure {
+                span: Span::merge(start_span, self.previous().span),
+                params: Vec::new(),
+                return_type: None,
+                body: ClosureBody::Block(stmts),
             });
         }
         // `{ x in … }` / `{ x, y in … }`
@@ -3731,6 +3773,20 @@ impl Parser {
             return_type: None,
             body,
         })
+    }
+
+    fn parse_stmts_until_rbrace(&mut self) -> SyxResult<Vec<Stmt>> {
+        let mut stmts = Vec::new();
+        while !self.check(TokenKind::RBrace) && !self.is_at_end() {
+            self.skip_newlines();
+            if self.check(TokenKind::RBrace) {
+                break;
+            }
+            stmts.push(self.parse_stmt()?);
+            self.skip_newlines();
+        }
+        self.consume(TokenKind::RBrace, "Expected '}' after closure body")?;
+        Ok(stmts)
     }
 
     fn max_shorthand_index(expr: &Expr) -> Option<u32> {

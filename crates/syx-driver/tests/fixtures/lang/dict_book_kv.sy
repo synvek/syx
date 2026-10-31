@@ -1,0 +1,7 @@
+// S1-I4 / S1-04: dictionary type `[K: V]` + value literal `[k: v]`.
+func main() {
+    let scores: [String: Int] = ["a": 1, "b": 2]
+    let empty: [Int: String] = [:]
+    print(scores["a"])
+    print(empty.count)
+}

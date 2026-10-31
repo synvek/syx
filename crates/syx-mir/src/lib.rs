@@ -722,6 +722,8 @@ struct ModuleIndex {
     /// Span-start → NumericKind from semantic contextual typing
     /// (`let x: Int8 = 8`, `let y: Double = 1`). Empty when unused.
     contextual_numeric_kinds: IndexMap<u32, NumericKind>,
+    /// Top-level `let`/`var` annotated types (`arr: Array<Int>` → for mono mangling).
+    global_types: IndexMap<SmolStr, SmolStr>,
 }
 
 impl ModuleIndex {
@@ -874,8 +876,12 @@ impl ModuleIndex {
                     mutable,
                     will_set,
                     did_set,
+                    ty,
                     ..
                 } => {
+                    if let Some(type_name) = ty.as_ref().and_then(mir_type_expr_name) {
+                        idx.global_types.insert(name.clone(), type_name);
+                    }
                     if let Some(attr) = attrs.iter().find(|a| a.name.as_str() == "syx_static_var") {
                         if attr.args.len() >= 2 {
                             let type_key = match &attr.args[0] {
@@ -2988,12 +2994,14 @@ pub fn lower_varglobal_inits(module: &Module) -> SyxResult<Vec<MirFunction>> {
     }
 
     let init_name = SmolStr::new("__init_global");
+    // High water mark so `__mir_closure_N` from inits never collide with
+    // per-function counters that also start at 0 (S1-I4 CallClosure).
     let mut ctx = LowerCtx::new(
         init_name.clone(),
         module_idx,
         imports,
         globals,
-        Rc::new(Cell::new(0u32)),
+        Rc::new(Cell::new(100_000u32)),
     );
     let entry = ctx.fresh_block();
     ctx.active_block = entry;
@@ -3028,12 +3036,13 @@ pub fn lower_varglobal_inits(module: &Module) -> SyxResult<Vec<MirFunction>> {
     if let Some(d) = ctx.take_error_diagnostic() {
         return Err(d);
     }
+    let mut out = std::mem::take(&mut ctx.pending_closures);
     let blocks = ctx.blocks;
     let instructions = flatten_blocks(&blocks);
     let local_count = ctx.locals.len() as u32;
     let local_names = mir_local_names_for_slots(&ctx.locals, local_count);
     let local_types = mir_local_types_for_slots(&ctx.locals, &ctx.local_types, local_count);
-    Ok(vec![MirFunction {
+    out.push(MirFunction {
         name: init_name,
         param_count: 0,
         local_count,
@@ -3044,7 +3053,8 @@ pub fn lower_varglobal_inits(module: &Module) -> SyxResult<Vec<MirFunction>> {
         local_types,
         init_body_pc: 0,
         init_wrap_pc: 0,
-    }])
+    });
+    Ok(out)
 }
 
 /// Enum case init shells for native/WASM (mirrors codegen `{Enum}_{case}_init`).
@@ -5741,6 +5751,63 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                                 MirInstr {
                                     dest: Some(dest),
                                     op: MirOp::CallHost(host_fn_index(HostFnId::ServiceResolveDynamic)),
+                                    span: None,
+                                },
+                            );
+                            return;
+                        }
+                    }
+                    // S1-I4: `let f = { … }; f(x)` — value call, not named function.
+                    let not_named_fn = !ctx.module.function_params.contains_key(name)
+                        && !ctx.module.generic_templates.contains(name)
+                        && host_fn_id_by_name(name).is_none()
+                        && host_fn_index_by_name(name).is_none();
+                    if not_named_fn {
+                        if let Some(&slot) = ctx.locals.get(name) {
+                            if !lower_args_early {
+                                for arg in args {
+                                    let r = ctx.fresh_reg();
+                                    lower_expr(&arg.value, r, ctx, block);
+                                }
+                            }
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: None,
+                                    op: MirOp::LoadLocal(slot),
+                                    span: None,
+                                },
+                            );
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: Some(dest),
+                                    op: MirOp::CallClosure,
+                                    span: None,
+                                },
+                            );
+                            return;
+                        }
+                        if let Some(slot) = ctx.global_slot(name) {
+                            if !lower_args_early {
+                                for arg in args {
+                                    let r = ctx.fresh_reg();
+                                    lower_expr(&arg.value, r, ctx, block);
+                                }
+                            }
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: None,
+                                    op: MirOp::LoadGlobal(slot),
+                                    span: None,
+                                },
+                            );
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: Some(dest),
+                                    op: MirOp::CallClosure,
                                     span: None,
                                 },
                             );
@@ -8850,6 +8917,8 @@ fn normalize_type_arg(name: SmolStr) -> SmolStr {
         } else {
             "UInt32"
         }),
+        // Bare float literals lower as "Float"; semantic mono uses Float64 (`type_name_with_alias`).
+        "Float" | "Double" => SmolStr::new("Float64"),
         other => SmolStr::new(other),
     }
 }
@@ -9067,20 +9136,41 @@ fn infer_expr_type_name(expr: &Expr) -> SmolStr {
 }
 
 /// ADR-324: generic call mangling must use binding/array types, not Ident text (`xs` ≠ type).
+fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
+    ty.as_str()
+        .strip_prefix("Array<")
+        .and_then(|s| s.strip_suffix('>'))
+        .or_else(|| {
+            ty.as_str()
+                .strip_prefix("Set<")
+                .and_then(|s| s.strip_suffix('>'))
+        })
+        .map(|inner| normalize_type_arg(SmolStr::new(inner)))
+}
+
 fn infer_generic_arg_type_name(expr: &Expr, ctx: &LowerCtx) -> SmolStr {
     match expr {
         Expr::Ident { name, .. } => {
-            if let Some(ty) = ctx.local_types.get(name) {
+            let ty = ctx
+                .local_types
+                .get(name)
+                .or_else(|| ctx.module.global_types.get(name));
+            if let Some(ty) = ty {
+                // `first(arr)` with `arr: Array<Int>` → type arg Int, not Array<…>.
+                if let Some(elem) = unwrap_collection_elem_type_arg(ty) {
+                    return elem;
+                }
                 return normalize_nested_type_arg(ty.clone());
             }
             SmolStr::new("Unknown")
         }
         Expr::Array { elements, .. } => {
+            // `func f<T>(items: Array<T>)` — type arg is the element, not `Array<…>`.
             let elem = elements
                 .first()
                 .map(|e| infer_generic_arg_type_name(e, ctx))
                 .unwrap_or_else(|| SmolStr::new("Unknown"));
-            normalize_nested_type_arg(SmolStr::new(format!("Array<{elem}>")))
+            normalize_type_arg(elem)
         }
         other => normalize_nested_type_arg(infer_expr_type_name(other)),
     }

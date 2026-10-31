@@ -1048,6 +1048,8 @@ pub struct SemanticAnalyzer {
     local_ref_bindings: HashSet<SmolStr>,
     /// Phase 17: analyzing an `async` function body.
     current_function_is_async: bool,
+    /// S1-I4: generic params constrained `: Equatable` / `where T: Equatable` in current fn.
+    current_equatable_params: HashSet<SmolStr>,
     /// Phase 20: `@MainActor` async mutable locals in scope.
     main_actor_mutable_locals: HashSet<SmolStr>,
     /// Phase 20: snapshot of mutable locals at the last `await` in `@MainActor` async fn.
@@ -2152,14 +2154,20 @@ impl SemanticAnalyzer {
                     name,
                     mutable,
                     ty,
+                    init,
                     access,
                     ..
                 } => {
+                    let inferred = if matches!(init, Some(Expr::Closure { .. })) {
+                        TypeId::Named(SmolStr::new("Closure"))
+                    } else {
+                        TypeId::Unknown
+                    };
                     self.globals.insert(
                         name.clone(),
                         Symbol {
                             name: name.clone(),
-                            ty: ty.as_ref().map(type_expr_to_id).unwrap_or(TypeId::Unknown),
+                            ty: ty.as_ref().map(type_expr_to_id).unwrap_or(inferred),
                             mutable: *mutable,
                             access: *access,
                         },
@@ -2747,6 +2755,7 @@ impl SemanticAnalyzer {
                 Decl::Enum {
                     name,
                     access,
+                    attrs,
                     type_params,
                     cases,
                     ..
@@ -2765,6 +2774,13 @@ impl SemanticAnalyzer {
                         }
                     }
                     self.enum_cases.insert(name.clone(), case_names.clone());
+                    // S1-I4: `@Equatable enum` → protocol table (tag/case `==`).
+                    if attrs.iter().any(|a| a.name.as_str() == "Equatable") {
+                        self.type_conformances
+                            .entry(name.clone())
+                            .or_default()
+                            .push(SmolStr::new("Equatable"));
+                    }
                     self.globals.insert(
                         name.clone(),
                         Symbol {
@@ -2855,6 +2871,12 @@ impl SemanticAnalyzer {
                 self.current_function = Some(name.clone());
                 let prev_async = self.current_function_is_async;
                 self.current_function_is_async = *is_async;
+                let prev_eq_params = std::mem::take(&mut self.current_equatable_params);
+                for pred in where_clause {
+                    if pred.constraint.as_str() == "Equatable" {
+                        self.current_equatable_params.insert(pred.type_name.clone());
+                    }
+                }
                 let prev_local_refs = std::mem::take(&mut self.local_ref_bindings);
                 let prev_main_actor_mutable = std::mem::take(&mut self.main_actor_mutable_locals);
                 let prev_main_actor_frozen = std::mem::take(&mut self.main_actor_frozen_at_await);
@@ -2931,6 +2953,7 @@ impl SemanticAnalyzer {
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 self.current_function = prev_fn;
                 self.current_function_is_async = prev_async;
+                self.current_equatable_params = prev_eq_params;
                 self.local_ref_bindings = prev_local_refs;
                 self.main_actor_mutable_locals = prev_main_actor_mutable;
                 self.main_actor_frozen_at_await = prev_main_actor_frozen;
@@ -2951,7 +2974,16 @@ impl SemanticAnalyzer {
                         self.validate_type_expr(t);
                         self.resolve_type_expr(t)
                     });
-                    let expr_ty = self.analyze_expr_with_expected(expr, expected.as_ref())?;
+                    let analyzed = self.analyze_expr_with_expected(expr, expected.as_ref())?;
+                    let expr_ty = if matches!(expr, Expr::Closure { .. }) {
+                        TypeId::Named(SmolStr::new("Closure"))
+                    } else {
+                        analyzed
+                    };
+                    let final_ty = expected.clone().unwrap_or(expr_ty.clone());
+                    if let Some(sym) = self.globals.get_mut(name) {
+                        sym.ty = final_ty;
+                    }
                     if let Some(expected) = expected {
                         self.check_assignable_with_literal(
                             expected,
@@ -3264,7 +3296,14 @@ impl SemanticAnalyzer {
                 });
                 let (inferred, expr_ty) = if let Some(expr) = init {
                     let ty = self.analyze_expr_with_expected(expr, annotated.as_ref())?;
-                    (ty.clone(), ty)
+                    // Closure expr analyze returns body result (for Array.map U);
+                    // stored bindings must remain callable (`inc(1)`).
+                    if matches!(expr, Expr::Closure { .. }) {
+                        let clos = TypeId::Named(SmolStr::new("Closure"));
+                        (clos.clone(), clos)
+                    } else {
+                        (ty.clone(), ty)
+                    }
                 } else {
                     (TypeId::Unknown, TypeId::Unknown)
                 };
@@ -5002,7 +5041,18 @@ impl SemanticAnalyzer {
                         ));
                     }
                 }
+                // Local / param / global holding a closure: `let f = { x in … }; f(1)`.
                 if !self.is_callable_function(name) {
+                    let binding_ty = self
+                        .scope
+                        .lookup(name)
+                        .or_else(|| self.globals.get(name))
+                        .map(|s| &s.ty);
+                    if binding_ty.is_some_and(|ty| {
+                        matches!(ty, TypeId::Named(n) if n.as_str() == "Closure")
+                    }) {
+                        return Ok(TypeId::Unknown);
+                    }
                     return Err(self.error_at(
                         format!("Undefined function '{name}'"),
                         *span,
@@ -6169,8 +6219,25 @@ impl SemanticAnalyzer {
         if let (TypeId::Named(ln), TypeId::Named(rn)) = (lt, rt) {
             if ln == rn
                 && (self.class_names.contains(ln)
-                    || self.dataclass_names.contains(ln))
+                    || self.dataclass_names.contains(ln)
+                    || self.enum_cases.contains_key(ln))
             {
+                // Same nominal / enum type: allow when Equatable conformance holds.
+                if self.type_satisfies_protocol(ln.as_str(), "Equatable")
+                    || self.dataclass_names.contains(ln)
+                {
+                    return;
+                }
+            }
+        }
+        if let (TypeId::GenericParam(a), TypeId::GenericParam(b)) = (lt, rt) {
+            if a == b && self.current_equatable_params.contains(a) {
+                return;
+            }
+        }
+        // Param types `a: T` resolve as Named("T"), not GenericParam.
+        if let (TypeId::Named(a), TypeId::Named(b)) = (lt, rt) {
+            if a == b && self.current_equatable_params.contains(a) {
                 return;
             }
         }
@@ -6192,7 +6259,11 @@ impl SemanticAnalyzer {
         if rname == "Unknown" && is_equatable_type(lname.as_str()) {
             return;
         }
-        if !is_equatable_type(lname.as_str()) || !is_equatable_type(rname.as_str()) {
+        let l_ok = is_equatable_type(lname.as_str())
+            || self.type_satisfies_protocol(lname.as_str(), "Equatable");
+        let r_ok = is_equatable_type(rname.as_str())
+            || self.type_satisfies_protocol(rname.as_str(), "Equatable");
+        if !l_ok || !r_ok {
             self.errors.push(
                 SyxDiagnostic::error(format!(
                     "Types '{lname}' and '{rname}' are not both Equatable for '=='"
@@ -6904,13 +6975,20 @@ impl SemanticAnalyzer {
         for (i, arg) in args.iter().enumerate() {
             if i < type_args.len() && type_args[i].as_str() == "Unknown" {
                 if let Some(ty) = self.expr_types.get(&expr_span_start(&arg.value)) {
-                    type_args[i] = type_id_to_name(ty);
+                    // Prefer element of `Array<T>` / `Set<T>` when binding a lone type param.
+                    type_args[i] = match ty {
+                        TypeId::Array(inner) | TypeId::Set(inner) => type_id_to_name(inner),
+                        other => type_id_to_name(other),
+                    };
                 } else {
                     type_args[i] = self.infer_expr_type_name(&arg.value);
                 }
             }
         }
         type_args
+            .into_iter()
+            .map(normalize_type_arg_name)
+            .collect()
     }
 
     fn infer_expr_type_name(&self, expr: &Expr) -> SmolStr {
@@ -8010,7 +8088,8 @@ pub fn type_expr_to_id_with_aliases(
             }
         }
         TypeExpr::Void => TypeId::Void,
-        TypeExpr::Function { .. } => TypeId::Unknown,
+        // S1-I4: function types `(T) -> U` / closures share a callable surface type.
+        TypeExpr::Function { .. } => TypeId::Named(SmolStr::new("Closure")),
         TypeExpr::Tuple { elements } => TypeId::Tuple {
             elements: elements
                 .iter()
