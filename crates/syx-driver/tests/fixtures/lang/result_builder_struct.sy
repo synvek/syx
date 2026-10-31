@@ -1,0 +1,18 @@
+@resultBuilder
+struct ArrayBuilder {
+    static func buildBlock(_ a: Int, _ b: Int, _ c: Int) -> Array<Int> {
+        return [a, b, c]
+    }
+}
+
+@ArrayBuilder
+func makeList() -> Array<Int> {
+    1
+    2
+    3
+}
+
+func main() {
+    let arr = makeList()
+    print(arr)
+}

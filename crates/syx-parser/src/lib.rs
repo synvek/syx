@@ -302,6 +302,8 @@ impl Parser {
                     self.parse_data_class(AccessLevel::Internal, attrs)
                 }
                 TokenKind::Class => self.parse_class(AccessLevel::Internal, attrs),
+                // S1-I9: `@resultBuilder struct ArrayBuilder { … }`
+                TokenKind::Struct => self.parse_struct(AccessLevel::Internal, attrs),
                 TokenKind::Enum => self.parse_enum(AccessLevel::Internal, attrs),
                 TokenKind::Macro => self.parse_macro_decl(AccessLevel::Internal),
                 TokenKind::Hash => self.parse_user_macro_decl_with_attrs(attrs),
@@ -309,6 +311,7 @@ impl Parser {
                     let access = self.parse_access();
                     match &self.peek().kind {
                         TokenKind::Class => self.parse_class(access, attrs),
+                        TokenKind::Struct => self.parse_struct(access, attrs),
                         TokenKind::Protocol => self.parse_protocol(access),
                         _ => self.error("Expected 'class' or 'protocol' after attribute and access modifier"),
                     }
@@ -347,7 +350,7 @@ impl Parser {
                 self.parse_global_actor(AccessLevel::Internal)
             }
             TokenKind::Actor => self.parse_actor(AccessLevel::Internal),
-            TokenKind::Struct => self.parse_struct(AccessLevel::Internal),
+            TokenKind::Struct => self.parse_struct(AccessLevel::Internal, vec![]),
             TokenKind::Protocol => self.parse_protocol(AccessLevel::Internal),
             TokenKind::Enum => self.parse_enum(AccessLevel::Internal, vec![]),
             TokenKind::Var | TokenKind::Let => self.parse_global_var(AccessLevel::Internal, vec![], false, false),
@@ -453,7 +456,7 @@ impl Parser {
                 self.parse_global_actor(access)
             }
             TokenKind::Actor => self.parse_actor(access),
-            TokenKind::Struct => self.parse_struct(access),
+            TokenKind::Struct => self.parse_struct(access, vec![]),
             TokenKind::Var | TokenKind::Let => self.parse_global_var(access, vec![], false, false),
             TokenKind::Typealias if syx_semantic::typealias_parser_enabled() => {
                 self.parse_typealias(access)
@@ -1024,7 +1027,7 @@ impl Parser {
             TokenKind::Subscript => self.parse_subscript_member(access),
             TokenKind::Var | TokenKind::Let => self.parse_global_var(access, attrs, is_lazy, false),
             TokenKind::Class => self.parse_class(access, attrs),
-            TokenKind::Struct => self.parse_struct(access),
+            TokenKind::Struct => self.parse_struct(access, attrs),
             TokenKind::Enum => self.parse_enum(access, attrs),
             TokenKind::Final => {
                 self.advance();
@@ -1497,7 +1500,7 @@ impl Parser {
         })
     }
 
-    fn parse_struct(&mut self, access: AccessLevel) -> SyxResult<Decl> {
+    fn parse_struct(&mut self, access: AccessLevel, attrs: Vec<Attribute>) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected struct name")?;
         let (type_params, _inline, type_param_defaults) = self.parse_type_params_with_defaults()?;
@@ -1560,6 +1563,7 @@ impl Parser {
         Ok(Decl::Struct {
             span,
             access,
+            attrs,
             name,
             type_params,
             type_param_defaults,
@@ -3166,6 +3170,7 @@ impl Parser {
 
     fn check_identifier_name(&self) -> bool {
         matches!(&self.peek().kind, TokenKind::Identifier(_))
+            || Self::soft_keyword_ident(&self.peek().kind).is_some()
     }
 
     fn parse_paren_expr(&mut self, start_span: Span) -> SyxResult<Expr> {
@@ -3215,6 +3220,30 @@ impl Parser {
         Ok((label, expr))
     }
 
+    /// S1-I9: contents of `[…]` in `recv[…]` — one expr, or comma list / labeled args as Tuple.
+    fn parse_index_contents(&mut self) -> SyxResult<Expr> {
+        let start = self.peek().span;
+        let first = self.parse_tuple_literal_element()?;
+        if !self.check(TokenKind::Comma) {
+            // Single unlabeled index stays a bare expression (Array/Dict paths).
+            if first.0.is_none() {
+                return Ok(first.1);
+            }
+            return Ok(Expr::Tuple {
+                span: Span::merge(start, expr_span(&first.1)),
+                elements: vec![first],
+            });
+        }
+        let mut elements = vec![first];
+        while self.match_kind(TokenKind::Comma) {
+            elements.push(self.parse_tuple_literal_element()?);
+        }
+        Ok(Expr::Tuple {
+            span: Span::merge(start, self.previous().span),
+            elements,
+        })
+    }
+
     fn consume_member_name(&mut self, context: &str) -> SyxResult<SmolStr> {
         match &self.peek().kind {
             TokenKind::Identifier(name) => {
@@ -3222,10 +3251,11 @@ impl Parser {
                 self.advance();
                 Ok(name)
             }
-            // S1-I7: `self.init(...)` — `init` is a keyword, not an identifier.
-            TokenKind::Init => {
+            // Soft keywords as members: `self.data`, `obj.type`, …
+            kind if Self::soft_keyword_ident(kind).is_some() => {
+                let name = SmolStr::new(Self::soft_keyword_ident(kind).unwrap());
                 self.advance();
-                Ok(SmolStr::new("init"))
+                Ok(name)
             }
             TokenKind::Integer(v, _) => {
                 let name = SmolStr::new(v.to_string());
@@ -3562,7 +3592,8 @@ impl Parser {
                 }
                 TokenKind::LBracket => {
                     self.advance();
-                    let index = self.parse_expr()?;
+                    // S1-I9: `m[row, col]` / `a[safe: i, default: d]` → Index with tuple / call-arg list.
+                    let index = self.parse_index_contents()?;
                     self.consume(TokenKind::RBracket, "Expected ']' after index")?;
                     let span = Span::merge(expr_span(&expr), self.previous().span);
                     expr = Expr::Index {
@@ -4607,6 +4638,8 @@ impl Parser {
             TokenKind::Deinit => Some("deinit"),
             TokenKind::Select => Some("select"),
             TokenKind::Timeout => Some("timeout"),
+            // S1-I9: `subscript(…, default d: Int)` / `obj.default`
+            TokenKind::Default => Some("default"),
             _ => None,
         }
     }

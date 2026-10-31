@@ -151,7 +151,7 @@ pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {
     walk_decls(&mut module.decls);
 }
 pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
-    use syx_ast::{AccessLevel, Decl, Expr, Param, ParamLabel, Stmt, TypeExpr};
+    use syx_ast::{AccessLevel, Decl, Param, ParamLabel};
 
     fn desugar_in_decls(decls: &mut Vec<Decl>, enclosing: Option<smol_str::SmolStr>) -> SyxResult<()> {
         let mut extra = Vec::new();
@@ -165,22 +165,11 @@ pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
                 ..
             } = decl
             {
+                // S1-I9: do not inject `self` into AST params — class method analysis already
+                // defines `self` in scope (matches property getter desugar).
                 let get_name = smol_str::SmolStr::new("__subscript_get");
-                let mut get_params = vec![Param {
-                    name: smol_str::SmolStr::new("self"),
-                    external_label: ParamLabel::Omitted,
-                    ty: enclosing
-                        .as_ref()
-                        .map(|n| TypeExpr::Named {
-                            name: n.clone(),
-                            generics: vec![],
-                        }),
-                    default: None,
-                    isolated: false,
-                    sending: false,
-                    attrs: vec![],
-                }];
-                get_params.extend(params.clone());
+                let get_params = params.clone();
+                let _ = enclosing;
                 extra.push(Decl::Function {
                     span: *span,
                     access: AccessLevel::Internal,
@@ -194,25 +183,11 @@ pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
                     where_clause: vec![],
                     body: getter.clone(),
                     is_async: false,
-                is_override: false,
-                is_final: false,
+                    is_override: false,
+                    is_final: false,
                 });
                 if let Some(set_body) = setter {
-                    let mut set_params = vec![Param {
-                        name: smol_str::SmolStr::new("self"),
-                        external_label: ParamLabel::Omitted,
-                        ty: enclosing
-                            .as_ref()
-                            .map(|n| TypeExpr::Named {
-                                name: n.clone(),
-                                generics: vec![],
-                            }),
-                        default: None,
-                        isolated: false,
-                        sending: false,
-                        attrs: vec![],
-                    }];
-                    set_params.extend(params.clone());
+                    let mut set_params = params.clone();
                     set_params.push(Param {
                         name: smol_str::SmolStr::new("newValue"),
                         external_label: ParamLabel::Same,
@@ -222,14 +197,7 @@ pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
                         sending: false,
                         attrs: vec![],
                     });
-                    let mut set_stmts = set_body.clone();
-                    set_stmts.push(Stmt::Return {
-                        span: *span,
-                        value: Some(Expr::Ident {
-                            span: *span,
-                            name: smol_str::SmolStr::new("self"),
-                        }),
-                    });
+                    let set_stmts = set_body.clone();
                     extra.push(Decl::Function {
                         span: *span,
                         access: AccessLevel::Internal,
@@ -237,17 +205,14 @@ pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
                         name: smol_str::SmolStr::new("__subscript_set"),
                         type_params: vec![],
                         params: set_params,
-                        return_type: enclosing.as_ref().map(|n| TypeExpr::Named {
-                            name: n.clone(),
-                            generics: vec![],
-                        }),
+                        return_type: None,
                         throws_type: None,
                         effect: None,
                         where_clause: vec![],
                         body: set_stmts,
                         is_async: false,
-                    is_override: false,
-                is_final: false,
+                        is_override: false,
+                        is_final: false,
                     });
                 }
                 false
@@ -664,6 +629,7 @@ pub fn desugar_property_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
     Ok(())
 }
 /// Phase 60: wrap top-level executable statements into `__syx_main_top_level()` (main file only).
+/// S1-I9: if the top-level body uses `await`, mark the wrapper (and `main`) `async` and await the call.
 pub fn desugar_top_level_stmts(module: &mut syx_ast::Module) -> SyxResult<()> {
     use syx_ast::{AccessLevel, Decl, Expr, Stmt};
 
@@ -680,31 +646,34 @@ pub fn desugar_top_level_stmts(module: &mut syx_ast::Module) -> SyxResult<()> {
         return Ok(());
     }
 
+    let needs_async = syx_async::count_await_in_stmts(&top_stmts) > 0;
+    let wrapper_span = top_stmts
+        .first()
+        .map(|s| match s {
+            Stmt::Expr { span, .. }
+            | Stmt::Print { span, .. }
+            | Stmt::VarDecl { span, .. }
+            | Stmt::Return { span, .. }
+            | Stmt::If { span, .. }
+            | Stmt::IfLet { span, .. }
+            | Stmt::IfCase { span, .. }
+            | Stmt::GuardLet { span, .. }
+            | Stmt::Switch { span, .. }
+            | Stmt::While { span, .. }
+            | Stmt::ForIn { span, .. }
+            | Stmt::Try { span, .. }
+            | Stmt::Throw { span, .. }
+            | Stmt::RepeatWhile { span, .. }
+            | Stmt::Break { span, .. }
+            | Stmt::Continue { span, .. }
+            | Stmt::Block { span, .. }
+            | Stmt::Seq { span, .. }
+            | Stmt::MacroInvoke { span, .. } => *span,
+        })
+        .unwrap_or(syx_diagnostics::Span::DUMMY);
+
     let wrapper = Decl::Function {
-        span: top_stmts
-            .first()
-            .map(|s| match s {
-                Stmt::Expr { span, .. }
-                | Stmt::Print { span, .. }
-                | Stmt::VarDecl { span, .. }
-                | Stmt::Return { span, .. }
-                | Stmt::If { span, .. }
-                | Stmt::IfLet { span, .. }
-                | Stmt::IfCase { span, .. }
-                | Stmt::GuardLet { span, .. }
-                | Stmt::Switch { span, .. }
-                | Stmt::While { span, .. }
-                | Stmt::ForIn { span, .. }
-                | Stmt::Try { span, .. }
-                | Stmt::Throw { span, .. }
-                | Stmt::RepeatWhile { span, .. }
-                | Stmt::Break { span, .. }
-                | Stmt::Continue { span, .. }
-                | Stmt::Block { span, .. }
-                | Stmt::Seq { span, .. }
-                | Stmt::MacroInvoke { span, .. } => *span,
-            })
-            .unwrap_or(syx_diagnostics::Span::DUMMY),
+        span: wrapper_span,
         access: AccessLevel::Internal,
         attrs: vec![],
         name: SmolStr::new("__syx_main_top_level"),
@@ -715,28 +684,45 @@ pub fn desugar_top_level_stmts(module: &mut syx_ast::Module) -> SyxResult<()> {
         effect: None,
         where_clause: vec![],
         body: top_stmts,
-        is_async: false,
-    is_override: false,
-                is_final: false,
+        is_async: needs_async,
+        is_override: false,
+        is_final: false,
     };
 
+    let call_expr = Expr::Call {
+        span: syx_diagnostics::Span::DUMMY,
+        callee: Box::new(Expr::Ident {
+            span: syx_diagnostics::Span::DUMMY,
+            name: SmolStr::new("__syx_main_top_level"),
+        }),
+        args: vec![],
+    };
     let call = Stmt::Expr {
         span: syx_diagnostics::Span::DUMMY,
-        expr: Expr::Call {
-            span: syx_diagnostics::Span::DUMMY,
-            callee: Box::new(Expr::Ident {
+        expr: if needs_async {
+            Expr::Await {
                 span: syx_diagnostics::Span::DUMMY,
-                name: SmolStr::new("__syx_main_top_level"),
-            }),
-            args: vec![],
+                expr: Box::new(call_expr),
+            }
+        } else {
+            call_expr
         },
     };
 
     let mut injected = false;
     for decl in &mut module.decls {
-        if let Decl::Function { name, body, .. } = decl {
+        if let Decl::Function {
+            name,
+            body,
+            is_async,
+            ..
+        } = decl
+        {
             if name == "main" {
                 body.insert(0, call.clone());
+                if needs_async {
+                    *is_async = true;
+                }
                 injected = true;
                 break;
             }
@@ -755,9 +741,9 @@ pub fn desugar_top_level_stmts(module: &mut syx_ast::Module) -> SyxResult<()> {
             effect: None,
             where_clause: vec![],
             body: vec![call],
-            is_async: false,
-        is_override: false,
-                is_final: false,
+            is_async: needs_async,
+            is_override: false,
+            is_final: false,
         });
     }
 

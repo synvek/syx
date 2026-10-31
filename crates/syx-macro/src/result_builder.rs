@@ -357,29 +357,61 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
         Ok(())
     }
 
-    fn walk(decls: &mut [Decl]) -> SyxResult<()> {
+    fn is_result_builder_attr(name: &str) -> bool {
+        matches!(
+            name,
+            "resultBuilder" | "ResultBuilder" | "resultbuilder"
+        )
+    }
+
+    /// S1-I9: types marked `@resultBuilder` (struct/class) whose name can annotate funcs (`@ArrayBuilder`).
+    fn collect_builder_type_names(decls: &[Decl], out: &mut std::collections::HashSet<SmolStr>) {
+        for decl in decls {
+            match decl {
+                Decl::Struct { name, attrs, members, .. } => {
+                    if attrs.iter().any(|a| is_result_builder_attr(a.name.as_str())) {
+                        out.insert(name.clone());
+                    }
+                    collect_builder_type_names(members, out);
+                }
+                Decl::Class { name, attrs, members, .. } => {
+                    if attrs.iter().any(|a| is_result_builder_attr(a.name.as_str())) {
+                        out.insert(name.clone());
+                    }
+                    collect_builder_type_names(members, out);
+                }
+                Decl::Extension { methods, .. } => collect_builder_type_names(methods, out),
+                Decl::Protocol { methods, .. } => collect_builder_type_names(methods, out),
+                _ => {}
+            }
+        }
+    }
+
+    fn walk(decls: &mut [Decl], builders: &std::collections::HashSet<SmolStr>) -> SyxResult<()> {
         for decl in decls {
             match decl {
                 Decl::Function { attrs, body, .. } => {
-                    if attrs.iter().any(|a| {
-                        matches!(
-                            a.name.as_str(),
-                            "resultBuilder" | "ResultBuilder" | "resultbuilder"
-                        )
-                    }) {
+                    let apply = attrs.iter().any(|a| {
+                        is_result_builder_attr(a.name.as_str())
+                            || builders.contains(&a.name)
+                    });
+                    if apply {
                         desugar_body(body)?;
                     }
                 }
-                Decl::Class { members, .. } => walk(members)?,
-                Decl::Extension { methods, .. } => walk(methods)?,
-                Decl::Protocol { methods, .. } => walk(methods)?,
+                Decl::Class { members, .. } => walk(members, builders)?,
+                Decl::Struct { members, .. } => walk(members, builders)?,
+                Decl::Extension { methods, .. } => walk(methods, builders)?,
+                Decl::Protocol { methods, .. } => walk(methods, builders)?,
                 _ => {}
             }
         }
         Ok(())
     }
 
-    walk(&mut module.decls)?;
+    let mut builders = std::collections::HashSet::new();
+    collect_builder_type_names(&module.decls, &mut builders);
+    walk(&mut module.decls, &builders)?;
     Ok(())
 }
 

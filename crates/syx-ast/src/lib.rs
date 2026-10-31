@@ -570,6 +570,8 @@ pub enum Decl {
     Struct {
         span: Span,
         access: AccessLevel,
+        /// S1-I9: e.g. `@resultBuilder` on `struct ArrayBuilder`.
+        attrs: Vec<Attribute>,
         name: SmolStr,
         /// S1-I3: `struct Box<T>` type parameters (semantic/mono may still be thin).
         type_params: Vec<SmolStr>,

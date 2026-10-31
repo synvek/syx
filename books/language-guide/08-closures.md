@@ -144,8 +144,16 @@ Task.detached {
 ## Closures and Channels
 
 ```syx
-let ch = Channel<Int>()
-ch.send { v in print("got: \(v)") }         // Receive closure (semantics pending; Phase 132 behavior)
+class Channel {
+    func send(_ handler: (Int) -> Void) {
+        handler(0)                          // Demo: invoke receive-style closure
+    }
+}
+
+func main() {
+    let ch = Channel()
+    ch.send { v in print("got: \(v)") }
+}
 ```
 
 See [Chapter 18, Concurrency](18-concurrency.md).
@@ -155,7 +163,9 @@ See [Chapter 18, Concurrency](18-concurrency.md).
 ```syx
 @resultBuilder
 struct ArrayBuilder {
-    static func buildBlock<T>(_ items: T...) -> Array<T> { return items }
+    static func buildBlock(_ a: Int, _ b: Int, _ c: Int) -> Array<Int> {
+        return [a, b, c]
+    }
 }
 
 @ArrayBuilder
@@ -164,7 +174,11 @@ func makeList() -> Array<Int> {
     2
     3
 }
-let arr = makeList()                        // [1, 2, 3]
+
+func main() {
+    let arr = makeList()                    // [1, 2, 3]
+    print(arr)
+}
 ```
 
 See [Chapter 19, Macros](19-macros.md).

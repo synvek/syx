@@ -7287,7 +7287,14 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                     )) {
                         let ext_name = SmolStr::new(format!("{base}___subscript_get"));
                         lower_expr(object, ctx.fresh_reg(), ctx, block);
-                        lower_expr(index, ctx.fresh_reg(), ctx, block);
+                        // S1-I9: `m[a, b]` → Tuple indices lowered as separate args.
+                        if let Expr::Tuple { elements, .. } = index.as_ref() {
+                            for (_, el) in elements {
+                                lower_expr(el, ctx.fresh_reg(), ctx, block);
+                            }
+                        } else {
+                            lower_expr(index, ctx.fresh_reg(), ctx, block);
+                        }
                         ctx.emit(
                             block,
                             MirInstr {
@@ -8453,7 +8460,13 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                     )) {
                         let ext_name = SmolStr::new(format!("{base}___subscript_set"));
                         lower_expr(object, ctx.fresh_reg(), ctx, block);
-                        lower_expr(index, ctx.fresh_reg(), ctx, block);
+                        if let Expr::Tuple { elements, .. } = index.as_ref() {
+                            for (_, el) in elements {
+                                lower_expr(el, ctx.fresh_reg(), ctx, block);
+                            }
+                        } else {
+                            lower_expr(index, ctx.fresh_reg(), ctx, block);
+                        }
                         lower_expr(value, ctx.fresh_reg(), ctx, block);
                         ctx.emit(
                             block,

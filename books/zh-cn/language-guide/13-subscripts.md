@@ -25,13 +25,15 @@ print(items)                               // [10, 99, 30]
 ## 字典 / Object 下标
 
 ```syx
-let m = ["a": 1, "b": 2]
-print(m["a"])                              // 1（Optional<Int>）
-m["c"] = 3
-print(m.count)                            // 3
+func main() {
+    let m = ["a": 1, "b": 2]
+    print(m["a"])                          // 1（Optional<Int>）
+    m["c"] = 3
+    print(m.count)                         // 3
 
-let obj = { "name": "SYX", "version": 110 }
-print(obj["name"])                         // "SYX"
+    let obj: Object = { "name": "SYX", "version": 110 }
+    print(obj["name"])                     // "SYX"
+}
 ```
 
 > **Optional 返回：** `dict[k]` 始终返回 `Optional<V>`，因为「键不存在」与「值为 nil」运行时无法区分。
@@ -72,16 +74,18 @@ class Matrix {
     }
 
     subscript(row: Int, col: Int) -> Int {
-        get { return data[row][col] }
-        set { data[row][col] = newValue }
+        get { return self.data[row][col] }
+        set { self.data[row][col] = newValue }
     }
 }
 
-let m = Matrix(rows: 2, cols: 2)
-m[0, 0] = 1
-m[1, 1] = 4
-print(m[0, 0])                             // 1
-print(m[1, 1])                             // 4
+func main() {
+    let m = Matrix(rows: 2, cols: 2)
+    m[0, 0] = 1
+    m[1, 1] = 4
+    print(m[0, 0])                         // 1
+    print(m[1, 1])                         // 4
+}
 ```
 
 | 元素 | 说明 |
@@ -99,15 +103,17 @@ print(m[1, 1])                             // 4
 class Grid {
     var cells: Array<String> = ["a", "b", "c", "d"]
     subscript(i: Int) -> String {
-        get { return cells[i] }
-        set { cells[i] = newValue }
+        get { return self.cells[i] }
+        set { self.cells[i] = newValue }
     }
 }
 
-let g = Grid()
-print(g[0])                                // "a"
-g[0] = "x"
-print(g[0])                                // "x"
+func main() {
+    let g = Grid()
+    print(g[0])                            // "a"
+    g[0] = "x"
+    print(g[0])                            // "x"
+}
 ```
 
 ## KeyPath 下标（Phase 46–48）
@@ -174,31 +180,37 @@ class SafeArray {
     private var maxIndex: Int = 0
 
     func append(_ x: Int) {
-        data.append(x)
-        maxIndex = data.count - 1
+        self.data.append(x)
+        self.maxIndex = self.data.count - 1
     }
 
     subscript(i: Int) -> Int? {             // get-only
         get {
-            if (i < 0) { return nil }
-            if (i > maxIndex) { return nil }
-            return data[i]
+            if i < 0 { return nil }
+            if i > self.maxIndex { return nil }
+            return self.data[i]
         }
     }
 
     subscript(safe i: Int, default d: Int) -> Int {
-        get { return self[i] ?? d }
+        get {
+            if i < 0 { return d }
+            if i > self.maxIndex { return d }
+            return self.data[i]
+        }
     }
 }
 
-let a = SafeArray()
-a.append(1)
-a.append(2)
-a.append(3)
+func main() {
+    var a = SafeArray()
+    a.append(1)
+    a.append(2)
+    a.append(3)
 
-print(a[0])                                 // Optional(1)
-print(a[10])                                // nil
-print(a[safe: 10, default: -1])             // -1
+    print(a[0])                             // Optional(1)
+    print(a[10])                            // nil
+    print(a[safe: 10, default: -1])         // -1
+}
 ```
 
 > **多标签参数：** 下标支持多参数（`subscript(row: Int, col: Int)`），也可多 label（`subscript(safe i: Int, default d: Int)`）。

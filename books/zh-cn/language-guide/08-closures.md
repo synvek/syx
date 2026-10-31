@@ -144,8 +144,16 @@ Task.detached {
 ## 闭包与 Channel
 
 ```syx
-let ch = Channel<Int>()
-ch.send { v in print("got: \(v)") }         // 接收闭包（待实现语义；Phase 132 行为）
+class Channel {
+    func send(_ handler: (Int) -> Void) {
+        handler(0)                          // 演示：调用接收风格闭包
+    }
+}
+
+func main() {
+    let ch = Channel()
+    ch.send { v in print("got: \(v)") }
+}
 ```
 
 详见 [第 18 章 并发](18-concurrency.md#channel--select)。
@@ -155,7 +163,9 @@ ch.send { v in print("got: \(v)") }         // 接收闭包（待实现语义；
 ```syx
 @resultBuilder
 struct ArrayBuilder {
-    static func buildBlock<T>(_ items: T...) -> Array<T> { return items }
+    static func buildBlock(_ a: Int, _ b: Int, _ c: Int) -> Array<Int> {
+        return [a, b, c]
+    }
 }
 
 @ArrayBuilder
@@ -164,7 +174,11 @@ func makeList() -> Array<Int> {
     2
     3
 }
-let arr = makeList()                        // [1, 2, 3]
+
+func main() {
+    let arr = makeList()                    // [1, 2, 3]
+    print(arr)
+}
 ```
 
 详见 [第 19 章 宏](19-macros.md#resultbuilder-phase-119--engine-管线--phase-123-hostcallclosure-修栈)。

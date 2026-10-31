@@ -221,8 +221,8 @@ protocol Counter {
 
 actor MyCounter: Counter {
     var value: Int = 0
-    func increment() { value = value + 1 }
-    func current() -> Int { return value }
+    func increment() { self.value = self.value + 1 }
+    func current() -> Int { return self.value }
 }
 
 let c: any Counter = MyCounter()
