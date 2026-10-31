@@ -536,6 +536,10 @@ pub enum Decl {
         access: AccessLevel,
         attrs: Vec<Attribute>,
         name: SmolStr,
+        /// S1-I6: `class Holder<T>` / `class Holder<T = Int>` type parameters.
+        type_params: Vec<SmolStr>,
+        /// S1-I6: default type args parallel to `type_params` (`T = Int` → `Some(Int)`).
+        type_param_defaults: Vec<Option<TypeExpr>>,
         /// Phase 64: single inheritance superclass (`class Dog: Animal`).
         superclass: Option<SmolStr>,
         conformances: Vec<SmolStr>,
@@ -547,6 +551,8 @@ pub enum Decl {
         name: SmolStr,
         /// S1-I3: `struct Box<T>` type parameters (semantic/mono may still be thin).
         type_params: Vec<SmolStr>,
+        /// S1-I6: default type args parallel to `type_params`.
+        type_param_defaults: Vec<Option<TypeExpr>>,
         /// Stored fields (`var`/`let name: Type [= init]`). Init expressions live on matching
         /// `VarGlobal` entries in `members` when present.
         fields: Vec<(SmolStr, TypeExpr)>,
@@ -613,6 +619,8 @@ pub enum Decl {
         name: SmolStr,
         /// S1-I5: `actor Holder<T>` type parameters (mono may still be thin).
         type_params: Vec<SmolStr>,
+        /// S1-I6: default type args parallel to `type_params`.
+        type_param_defaults: Vec<Option<TypeExpr>>,
         conformances: Vec<SmolStr>,
         members: Vec<Decl>,
     },

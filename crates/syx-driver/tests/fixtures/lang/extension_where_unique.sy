@@ -1,0 +1,14 @@
+// S1-I6: extension where Element: Equatable at call site + body.
+extension Array where Element: Equatable {
+    func unique() -> Array<Element> {
+        var seen: Array<Element> = []
+        for item in self {
+            if (!seen.contains(item)) { seen.append(item) }
+        }
+        return seen
+    }
+}
+
+func main() {
+    print([1, 2, 2, 3].unique())
+}

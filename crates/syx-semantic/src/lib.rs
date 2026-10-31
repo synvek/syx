@@ -1050,6 +1050,8 @@ pub struct SemanticAnalyzer {
     current_function_is_async: bool,
     /// S1-I4: generic params constrained `: Equatable` / `where T: Equatable` in current fn.
     current_equatable_params: HashSet<SmolStr>,
+    /// S1-I6: open type params of the function currently under analysis (`T`, `U`, …).
+    current_type_params: HashSet<SmolStr>,
     /// Phase 20: `@MainActor` async mutable locals in scope.
     main_actor_mutable_locals: HashSet<SmolStr>,
     /// Phase 20: snapshot of mutable locals at the last `await` in `@MainActor` async fn.
@@ -2872,6 +2874,10 @@ impl SemanticAnalyzer {
                 let prev_async = self.current_function_is_async;
                 self.current_function_is_async = *is_async;
                 let prev_eq_params = std::mem::take(&mut self.current_equatable_params);
+                let prev_type_params = std::mem::take(&mut self.current_type_params);
+                for tp in type_params {
+                    self.current_type_params.insert(tp.clone());
+                }
                 for pred in where_clause {
                     if pred.constraint.as_str() == "Equatable" {
                         self.current_equatable_params.insert(pred.type_name.clone());
@@ -2954,6 +2960,7 @@ impl SemanticAnalyzer {
                 self.current_function = prev_fn;
                 self.current_function_is_async = prev_async;
                 self.current_equatable_params = prev_eq_params;
+                self.current_type_params = prev_type_params;
                 self.local_ref_bindings = prev_local_refs;
                 self.main_actor_mutable_locals = prev_main_actor_mutable;
                 self.main_actor_frozen_at_await = prev_main_actor_frozen;
@@ -3251,6 +3258,15 @@ impl SemanticAnalyzer {
     }
 
     fn validate_dict_key_hashable(&mut self, key_ty: &TypeId) {
+        // S1-I6: open formals (`Element`/`Key`/current type params) — checked at call site.
+        if self.is_open_generic_elem(key_ty)
+            || matches!(
+                type_id_to_name(key_ty).as_str(),
+                "Element" | "Key" | "Value"
+            )
+        {
+            return;
+        }
         let key_name = type_id_to_name(key_ty);
         if !is_hashable_type(key_name.as_str())
             && !self.type_id_satisfies_protocol(key_ty, "Hashable")
@@ -3266,6 +3282,15 @@ impl SemanticAnalyzer {
     }
 
     fn validate_set_elem_hashable(&mut self, elem_ty: &TypeId) {
+        // S1-I6: `Set<Element>` inside `extension Array where Element: Hashable`.
+        if self.is_open_generic_elem(elem_ty)
+            || matches!(
+                type_id_to_name(elem_ty).as_str(),
+                "Element" | "Key" | "Value"
+            )
+        {
+            return;
+        }
         let elem_name = type_id_to_name(elem_ty);
         if !is_hashable_type(elem_name.as_str())
             && !self.type_id_satisfies_protocol(elem_ty, "Hashable")
@@ -5133,17 +5158,17 @@ impl SemanticAnalyzer {
                 }
                 let collection_elem = match (&obj_ty, name.as_str(), args.len()) {
                     (TypeId::Set(elem), "insert" | "remove" | "contains", 1)
-                        if !matches!(elem.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) =>
+                        if !self.is_open_generic_elem(elem.as_ref()) =>
                     {
                         Some((elem.as_ref().clone(), "item"))
                     }
                     (TypeId::Array(elem), "append" | "contains", 1)
-                        if !matches!(elem.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) =>
+                        if !self.is_open_generic_elem(elem.as_ref()) =>
                     {
                         Some((elem.as_ref().clone(), "item"))
                     }
                     (TypeId::Dictionary { key, .. }, "containsKey" | "remove", 1)
-                        if !matches!(key.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) =>
+                        if !self.is_open_generic_elem(key.as_ref()) =>
                     {
                         Some((key.as_ref().clone(), "key"))
                     }
@@ -6592,6 +6617,13 @@ impl SemanticAnalyzer {
                 .get(&pred.type_name)
                 .map(|s| s.as_str())
                 .unwrap_or("Unknown");
+            // S1-I6: inside `extension Array where Element: P`, `self`/`seen` are still
+            // `Array<Element>` — defer formal placeholders; call sites substitute Int/….
+            if arg_ty == pred.type_name.as_str()
+                || matches!(arg_ty, "Element" | "Key" | "Value")
+            {
+                continue;
+            }
             if Self::is_associated_type_constraint(pred.constraint.as_str()) {
                 if arg_ty != pred.constraint.as_str() {
                     self.errors.push(self.error_at(
@@ -6931,6 +6963,15 @@ impl SemanticAnalyzer {
         true
     }
 
+    /// Element type is still an open formal (`T`/`U`/GenericParam) — skip concrete checks.
+    fn is_open_generic_elem(&self, ty: &TypeId) -> bool {
+        match ty {
+            TypeId::Unknown | TypeId::GenericParam(_) => true,
+            TypeId::Named(n) => self.current_type_params.contains(n),
+            _ => false,
+        }
+    }
+
     fn infer_class_method_type_args(
         &mut self,
         type_param_count: usize,
@@ -7005,6 +7046,27 @@ impl SemanticAnalyzer {
                 *slot = int_name.clone();
             }
         }
+        // S1-I6: `map(items: [1,2,3], f: { x in x * 2 })` → T=Int64, U was Unknown;
+        // fill remaining Unknown from known slots / platform Int (align MIR Closure→Int).
+        if type_args.iter().any(|t| t.as_str() == "Unknown")
+            && args.iter().any(|a| matches!(a.value, Expr::Closure { .. }))
+        {
+            let int_name = SmolStr::new(if cfg!(target_pointer_width = "64") {
+                "Int64"
+            } else {
+                "Int32"
+            });
+            let fill = type_args
+                .iter()
+                .find(|t| t.as_str() != "Unknown")
+                .cloned()
+                .unwrap_or(int_name);
+            for slot in &mut type_args {
+                if slot.as_str() == "Unknown" {
+                    *slot = fill.clone();
+                }
+            }
+        }
         type_args
             .into_iter()
             .map(normalize_type_arg_name)
@@ -7035,6 +7097,28 @@ impl SemanticAnalyzer {
                     .map(|e| self.infer_expr_type_name(e))
                     .unwrap_or_else(|| SmolStr::new("Unknown"));
                 SmolStr::new(format!("Array<{elem}>"))
+            }
+            // S1-I6: closure result feeds `map<T,U>` U (and similar) type-arg slots.
+            Expr::Closure { body, .. } => match body {
+                syx_ast::ClosureBody::Expr(e) => self.infer_expr_type_name(e),
+                syx_ast::ClosureBody::Block(stmts) => stmts
+                    .iter()
+                    .rev()
+                    .find_map(|s| match s {
+                        Stmt::Return { value: Some(v), .. } | Stmt::Expr { expr: v, .. } => {
+                            Some(self.infer_expr_type_name(v))
+                        }
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| SmolStr::new("Unknown")),
+            },
+            Expr::Binary { left, right, .. } => {
+                let l = self.infer_expr_type_name(left);
+                if l.as_str() != "Unknown" {
+                    l
+                } else {
+                    self.infer_expr_type_name(right)
+                }
             }
             _ => SmolStr::new("Unknown"),
         }

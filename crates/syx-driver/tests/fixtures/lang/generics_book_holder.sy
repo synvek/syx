@@ -1,0 +1,18 @@
+// S1-I6: class Holder<T = Int> + Holder<Int>(…) / Holder(…) ctor.
+class Holder<T = Int> {
+    var value: T
+    init(v: T) { self.value = v }
+}
+
+actor BoxActor<T> {
+    var value: T?
+    init() { self.value = nil }
+}
+
+func main() {
+    let h1 = Holder<Int>(v: 1)
+    let h2 = Holder(v: 2)
+    print(h1.value)
+    print(h2.value)
+    let _a = BoxActor<Int>()
+}

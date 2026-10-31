@@ -92,6 +92,10 @@ class IntStack: Container {
 ## Protocols as Types
 
 ```syx
+protocol Describable {
+    func description() -> String { return "witness" }
+}
+class Foo: Describable {}
 let desc: any Describable = Foo()
 print(desc.description())                    // Dispatched through the witness table
 ```

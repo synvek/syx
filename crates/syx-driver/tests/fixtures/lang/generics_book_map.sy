@@ -1,0 +1,11 @@
+// S1-I6: map<T,U> body — item: T, f(item): U.
+func map<T, U>(items: Array<T>, f: (T) -> U) -> Array<U> {
+    var result: Array<U> = []
+    for item in items { result.append(f(item)) }
+    return result
+}
+
+func main() {
+    let doubled = map(items: [1, 2, 3], f: { x in x * 2 })
+    print(doubled)
+}

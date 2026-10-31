@@ -247,6 +247,8 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
         }
         Decl::Class {
             name,
+            type_params,
+            type_param_defaults,
             superclass,
             conformances,
             members,
@@ -259,6 +261,20 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             format_access(*access, out);
             out.push_str("class ");
             out.push_str(name);
+            if !type_params.is_empty() {
+                out.push('<');
+                for (i, p) in type_params.iter().enumerate() {
+                    if i > 0 {
+                        out.push_str(", ");
+                    }
+                    out.push_str(p);
+                    if let Some(Some(def)) = type_param_defaults.get(i) {
+                        out.push_str(" = ");
+                        format_type_expr(def, out)?;
+                    }
+                }
+                out.push('>');
+            }
             let mut after_colon = false;
             if let Some(super_name) = superclass {
                 out.push_str(": ");

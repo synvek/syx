@@ -713,6 +713,8 @@ struct ModuleIndex {
     protocol_names: IndexSet<SmolStr>,
     /// Phase 126: protocol name → method names (witness slot setup + dispatch).
     protocol_methods: IndexMap<SmolStr, Vec<SmolStr>>,
+    /// S1-I6: protocol default method bodies `(protocol, method)` → `(params, body)`.
+    protocol_default_methods: IndexMap<(SmolStr, SmolStr), (Vec<syx_ast::Param>, Vec<Stmt>)>,
     property_observers:
         IndexMap<(SmolStr, SmolStr), (Option<Vec<Stmt>>, Option<Vec<Stmt>>)>,
     /// Phase 134: `(type, field)` with desugared `__get_{field}` accessor.
@@ -932,16 +934,27 @@ impl ModuleIndex {
                 }
                 Decl::Protocol { name, methods, .. } => {
                     idx.protocol_names.insert(name.clone());
-                    let method_names: Vec<SmolStr> = methods
-                        .iter()
-                        .filter_map(|m| {
-                            if let Decl::Function { name: method, .. } = m {
-                                Some(method.clone())
-                            } else {
-                                None
+                    let mut method_names: Vec<SmolStr> = Vec::new();
+                    for m in methods {
+                        if let Decl::Function {
+                            name: method,
+                            params,
+                            body,
+                            ..
+                        } = m
+                        {
+                            if !method_names.iter().any(|n| n == method) {
+                                method_names.push(method.clone());
                             }
-                        })
-                        .collect();
+                            // Prefer the declaration that carries a default body.
+                            if !body.is_empty() {
+                                idx.protocol_default_methods.insert(
+                                    (name.clone(), method.clone()),
+                                    (params.clone(), body.clone()),
+                                );
+                            }
+                        }
+                    }
                     idx.protocol_methods.insert(name.clone(), method_names);
                 }
                 Decl::Class { name, members, .. } | Decl::Actor { name, members, .. } => {
@@ -2305,7 +2318,71 @@ fn lower_type_members(
             }
         }
     }
+    // S1-I6: inherit protocol default bodies as `{Type}_{method}` when the type omits them.
+    emit_inherited_protocol_defaults(
+        mir,
+        type_name,
+        members,
+        is_actor,
+        conformances,
+        module_idx,
+        imports,
+        globals,
+        Rc::clone(&closure_ids),
+    )?;
     append_protocol_stub_functions(mir, &module_idx);
+    Ok(())
+}
+
+fn emit_inherited_protocol_defaults(
+    mir: &mut MirModule,
+    type_name: &SmolStr,
+    members: &[Decl],
+    is_actor: bool,
+    conformances: &[SmolStr],
+    module_idx: &ModuleIndex,
+    imports: &IndexSet<SmolStr>,
+    globals: &[SmolStr],
+    closure_ids: Rc<Cell<u32>>,
+) -> SyxResult<()> {
+    for protocol in conformances {
+        let Some(methods) = module_idx.protocol_methods.get(protocol) else {
+            continue;
+        };
+        for method in methods {
+            let method_name = SmolStr::new(format!("{type_name}_{method}"));
+            if mir.functions.iter().any(|f| f.name == method_name) {
+                continue;
+            }
+            if members.iter().any(|m| {
+                matches!(m, Decl::Function { name, .. } if name == method)
+            }) {
+                continue;
+            }
+            let Some((params, body)) = module_idx
+                .protocol_default_methods
+                .get(&(protocol.clone(), method.clone()))
+            else {
+                continue;
+            };
+            let typed_self = is_actor || matches!(type_name.as_str(), "Object" | "Dictionary");
+            let mut all_params = vec![self_param_typed(typed_self.then_some(type_name))];
+            all_params.extend_from_slice(params);
+            let (func, closures) = lower_function_with_params(
+                &method_name,
+                &all_params,
+                body,
+                module_idx,
+                false,
+                imports,
+                globals,
+                &[],
+                Rc::clone(&closure_ids),
+            )?;
+            mir.functions.push(func);
+            mir.functions.extend(closures);
+        }
+    }
     Ok(())
 }
 

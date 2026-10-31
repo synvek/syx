@@ -675,8 +675,35 @@ impl Parser {
     /// Type params with optional inline constraints: `<T>`, `<T: Equatable>`, `<T: P, U>`.
     /// Inline constraints are returned as WherePreds (merged by callers into where_clause).
     fn parse_type_params(&mut self) -> SyxResult<(Vec<SmolStr>, Vec<WherePred>)> {
+        let (params, inline, _defaults) = self.parse_type_params_with_defaults()?;
+        Ok((params, inline))
+    }
+
+    /// S1-I6: try to consume `<Type, …>` for `Holder<Int>(…)`. Returns false on failure
+    /// without reporting (caller restores `current`).
+    fn try_skip_generic_type_args(&mut self) -> bool {
+        if !self.match_kind(TokenKind::Less) {
+            return false;
+        }
+        loop {
+            if self.parse_type().is_err() {
+                return false;
+            }
+            if self.match_kind(TokenKind::Comma) {
+                continue;
+            }
+            break;
+        }
+        self.consume_rangle("").is_ok()
+    }
+
+    /// S1-I6: `T` / `T: P` / `T = Int` / `T: P = Int` type-parameter lists.
+    fn parse_type_params_with_defaults(
+        &mut self,
+    ) -> SyxResult<(Vec<SmolStr>, Vec<WherePred>, Vec<Option<TypeExpr>>)> {
         let mut params = Vec::new();
         let mut inline = Vec::new();
+        let mut defaults = Vec::new();
         if self.match_kind(TokenKind::Less) {
             loop {
                 let name = self.consume_identifier("Expected type parameter name")?;
@@ -688,14 +715,20 @@ impl Parser {
                         constraint,
                     });
                 }
+                let default = if self.match_kind(TokenKind::Assign) {
+                    Some(self.parse_type()?)
+                } else {
+                    None
+                };
                 params.push(name);
+                defaults.push(default);
                 if !self.match_kind(TokenKind::Comma) {
                     break;
                 }
             }
             self.consume_rangle("Expected '>' after type parameters")?;
         }
-        Ok((params, inline))
+        Ok((params, inline, defaults))
     }
 
     fn parse_where_clause(&mut self) -> SyxResult<Vec<WherePred>> {
@@ -1336,8 +1369,8 @@ impl Parser {
     fn parse_actor(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected actor name")?;
-        // S1-I5: `actor Holder<T>` — align with struct/class type-param parse (no defaults).
-        let (type_params, _inline) = self.parse_type_params()?;
+        // S1-I5/I6: `actor Holder<T>` / `actor Holder<T = Int>`.
+        let (type_params, _inline, type_param_defaults) = self.parse_type_params_with_defaults()?;
         let conformances = self.parse_conformances()?;
         self.consume(TokenKind::LBrace, "Expected '{' after actor name")?;
         let mut members = Vec::new();
@@ -1358,6 +1391,7 @@ impl Parser {
             access,
             name,
             type_params,
+            type_param_defaults,
             conformances,
             members,
         })
@@ -1399,6 +1433,8 @@ impl Parser {
             self.peek().span
         };
         let name = self.consume_identifier("Expected class name")?;
+        // S1-I6: `class Holder<T>` / `class Holder<T = Int>` before superclass/conformances.
+        let (type_params, _inline, type_param_defaults) = self.parse_type_params_with_defaults()?;
         let (superclass, conformances) = self.parse_class_super_and_conformances()?;
         self.consume(TokenKind::LBrace, "Expected '{' after class name")?;
         let mut members = Vec::new();
@@ -1420,6 +1456,8 @@ impl Parser {
             access,
             attrs,
             name,
+            type_params,
+            type_param_defaults,
             superclass,
             conformances,
             members,
@@ -1429,7 +1467,7 @@ impl Parser {
     fn parse_struct(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected struct name")?;
-        let (type_params, _inline) = self.parse_type_params()?;
+        let (type_params, _inline, type_param_defaults) = self.parse_type_params_with_defaults()?;
         // S1-02 first slice: optional protocol conformances (`struct Foo: Bar`).
         let conformances = if self.match_kind(TokenKind::Colon) {
             let mut list = Vec::new();
@@ -1491,6 +1529,7 @@ impl Parser {
             access,
             name,
             type_params,
+            type_param_defaults,
             fields,
             members,
         })
@@ -3242,6 +3281,17 @@ impl Parser {
         }
         loop {
             match &self.peek().kind {
+                // S1-I6: `Holder<Int>(…)` / `Holder<Int>()` — type args before call;
+                // only commit when `<…>` is followed by `(`, else leave `<` for binary.
+                TokenKind::Less if matches!(&expr, Expr::Ident { .. }) => {
+                    let save = self.current;
+                    if self.try_skip_generic_type_args() && self.check(TokenKind::LParen) {
+                        // Type args consumed; next iteration builds Call on bare Ident.
+                        continue;
+                    }
+                    self.current = save;
+                    break;
+                }
                 TokenKind::LParen => {
                     self.advance();
                     let args = self.parse_args()?;

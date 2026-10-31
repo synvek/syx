@@ -1,0 +1,16 @@
+// S1-I6: protocol default method body inherited by empty conforming class.
+protocol Describable {
+    func description() -> String
+    func description() -> String { return "<no description>" }
+}
+
+class Foo: Describable {}
+
+class Bar: Describable {
+    func description() -> String { return "bar" }
+}
+
+func main() {
+    print(Foo().description())
+    print(Bar().description())
+}

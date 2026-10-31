@@ -15,7 +15,8 @@ SYX 控制流与 Swift 风格一致：块用 `{ }` 包裹，模式匹配靠 `swi
 
 ## if / else
 
-```syx
+```syx,fragment
+let x = 1
 if x > 0 {
     print("positive")
 } else if x == 0 {
@@ -34,7 +35,8 @@ if x > 0 {
 
 > **「if 表达式」：** Phase 100+ 起 `if` 可作表达式返回值；用于赋值时两分支必须存在且类型相同。
 
-```syx
+```syx,fragment
+let x = 1
 let label = if x > 0 { "pos" } else { "non-pos" }
 ```
 
@@ -66,7 +68,7 @@ repeat {
 
 ## for-in
 
-```syx
+```syx,fragment
 for item in [1, 2, 3] {
     print(item)
 }
@@ -78,11 +80,9 @@ for c in "abc" {
 for i in 0..<10 {
     print(i)
 }
-
-for await x in asyncSequence {
-    print(x)
-}
 ```
+
+> **`for await`：** `for await x in asyncSeq { … }` 逐个等待异步元素；详见 [第 18 章 并发](18-concurrency.md)。本章不做 doctest。
 
 可迭代的源：
 
@@ -103,7 +103,9 @@ for await x in asyncSequence {
 
 ## break / continue
 
-```syx
+```syx,fragment
+var done = false
+var skip = false
 while true {
     if done {
         break         // 跳出最近循环
@@ -111,6 +113,7 @@ while true {
     if skip {
         continue      // 进入下一轮
     }
+    break
 }
 ```
 

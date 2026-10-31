@@ -92,6 +92,10 @@ class IntStack: Container {
 ## 协议作为类型
 
 ```syx
+protocol Describable {
+    func description() -> String { return "witness" }
+}
+class Foo: Describable {}
 let desc: any Describable = Foo()
 print(desc.description())                    // 通过 witness 表调度
 ```

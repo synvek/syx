@@ -15,7 +15,8 @@ SYX control flow follows the Swift style: blocks are wrapped in `{ }`, and patte
 
 ## if / else
 
-```syx
+```syx,fragment
+let x = 1
 if x > 0 {
     print("positive")
 } else if x == 0 {
@@ -34,7 +35,8 @@ if x > 0 {
 
 > **"if expressions":** since Phase 100+, `if` may return a value as an expression; when used in an assignment, both branches must exist and have the same type.
 
-```syx
+```syx,fragment
+let x = 1
 let label = if x > 0 { "pos" } else { "non-pos" }
 ```
 
@@ -66,7 +68,7 @@ The loop body executes **at least** once; the condition is checked after each it
 
 ## for-in
 
-```syx
+```syx,fragment
 for item in [1, 2, 3] {
     print(item)
 }
@@ -78,11 +80,9 @@ for c in "abc" {
 for i in 0..<10 {
     print(i)
 }
-
-for await x in asyncSequence {
-    print(x)
-}
 ```
+
+> **`for await`:** `for await x in asyncSeq { … }` awaits each asynchronous element; see [Chapter 18, Concurrency](18-concurrency.md). Not doctested in this chapter.
 
 Iterable sources:
 
@@ -103,7 +103,9 @@ Iterable sources:
 
 ## break / continue
 
-```syx
+```syx,fragment
+var done = false
+var skip = false
 while true {
     if done {
         break         // Exit the nearest loop
@@ -111,6 +113,7 @@ while true {
     if skip {
         continue      // Go to the next round
     }
+    break
 }
 ```
 
