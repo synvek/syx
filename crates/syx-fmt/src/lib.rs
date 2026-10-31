@@ -313,6 +313,7 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
         }
         Decl::Actor {
             name,
+            type_params,
             conformances,
             members,
             access,
@@ -322,6 +323,16 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             format_access(*access, out);
             out.push_str("actor ");
             out.push_str(name);
+            if !type_params.is_empty() {
+                out.push('<');
+                for (i, p) in type_params.iter().enumerate() {
+                    if i > 0 {
+                        out.push_str(", ");
+                    }
+                    out.push_str(p);
+                }
+                out.push('>');
+            }
             if !conformances.is_empty() {
                 out.push_str(": ");
                 for (i, c) in conformances.iter().enumerate() {

@@ -1,0 +1,56 @@
+// S1-I5: case let / where / if case / multi-pattern / Swift-style guard let.
+enum Box {
+    case ok(data: String)
+    case err(e: String)
+}
+
+func maybeDouble(x: Int?) -> Int {
+    guard let v = x else {
+        return 0
+    }
+    return v * 2
+}
+
+func main() {
+    let n = 4
+    switch n {
+    case let x where x < 0 {
+        print("neg")
+    }
+    case let x where x % 2 == 0 {
+        print("even")
+    }
+    case let x {
+        print("odd")
+    }
+    }
+
+    let value = Box.ok(data: "hi")
+    switch value {
+    case .ok(let data) {
+        print(data)
+    }
+    case .err(let e) where e.count > 0 {
+        print(e)
+    }
+    default {
+        print("other")
+    }
+    }
+
+    let num = 5
+    switch num {
+    case 2, 3, 5, 7 {
+        print("prime")
+    }
+    default {
+        print("other")
+    }
+    }
+
+    if case .ok(let data) = value {
+        print(data)
+    }
+
+    print(maybeDouble(x: 21))
+}

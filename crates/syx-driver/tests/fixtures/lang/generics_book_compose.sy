@@ -1,0 +1,14 @@
+// S1-I5: compose mono + actor type params parse.
+func compose<A, B, C>(f: (B) -> C, g: (A) -> B) -> (A) -> C {
+    return { x in f(g(x)) }
+}
+
+actor BoxActor<T> {
+    var value: T?
+    init() { self.value = nil }
+}
+
+func main() {
+    let f = compose(f: { x in x + 1 }, g: { x in x * 2 })
+    print(f(3))
+}

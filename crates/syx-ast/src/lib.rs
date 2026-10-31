@@ -611,6 +611,8 @@ pub enum Decl {
         span: Span,
         access: AccessLevel,
         name: SmolStr,
+        /// S1-I5: `actor Holder<T>` type parameters (mono may still be thin).
+        type_params: Vec<SmolStr>,
         conformances: Vec<SmolStr>,
         members: Vec<Decl>,
     },

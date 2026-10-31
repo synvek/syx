@@ -55,14 +55,16 @@ HOFs go through the `__syx_array_map` / `__syx_array_filter` / `__syx_array_redu
 
 The last closure in a parameter list may move outside the `()`:
 
-```syx
+```syx,fragment
+let nums = [1, 2, 3, 4, 5]
 let evens = nums.filter { x in x % 2 == 0 }           // Equivalent to nums.filter({ x in x % 2 == 0 })
 let dbl   = nums.map { x in x * 2 }                   // Trailing
 ```
 
 If the closure is the **only** parameter, the `()` may also be omitted:
 
-```syx
+```syx,fragment
+let nums = [1, 2, 3, 4, 5]
 let dbl = nums.map { x in x * 2 }                     // Trailing
 ```
 
@@ -169,7 +171,8 @@ See [Chapter 19, Macros](19-macros.md).
 
 ## Closure Shorthand `$0` / `$1`
 
-```syx
+```syx,fragment
+let nums = [1, 2, 3, 4, 5]
 let doubled = nums.map { $0 * 2 }          // Equivalent to { x in x * 2 }
 let sum     = nums.reduce(0) { $0 + $1 }   // acc + element
 ```

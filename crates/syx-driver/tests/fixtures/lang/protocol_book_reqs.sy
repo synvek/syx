@@ -1,0 +1,25 @@
+// S1-I5 / S1-04: protocol signature-only requirements + property { get }.
+protocol Describable {
+    func description() -> String
+}
+
+protocol Named {
+    var name: String { get }
+    func describe() -> String
+}
+
+protocol Container {
+    associatedtype Item
+    func add(_ item: Item)
+    func get(at: Int) -> Item
+}
+
+class User: Named {
+    let name: String
+    init(name: String) { self.name = name }
+    func describe() -> String { return "User(\(name))" }
+}
+
+func main() {
+    print(User(name: "a").describe())
+}

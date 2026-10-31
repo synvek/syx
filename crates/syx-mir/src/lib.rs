@@ -688,6 +688,8 @@ struct ModuleIndex {
     /// Phase 101: types that declare an explicit `deinit`.
     types_with_deinit: IndexSet<SmolStr>,
     generic_templates: IndexSet<SmolStr>,
+    /// S1-I5: type-parameter arity for mono mangling (`compose<A,B,C>` → 3).
+    generic_template_arity: IndexMap<SmolStr, usize>,
     dataclass_names: IndexSet<SmolStr>,
     /// Field order for DataClass/Struct memberwise init (MIR pads missing args).
     dataclass_fields: IndexMap<SmolStr, Vec<SmolStr>>,
@@ -925,6 +927,8 @@ impl ModuleIndex {
                 }
                 Decl::Function { name, type_params, .. } if !type_params.is_empty() => {
                     idx.generic_templates.insert(name.clone());
+                    idx.generic_template_arity
+                        .insert(name.clone(), type_params.len());
                 }
                 Decl::Protocol { name, methods, .. } => {
                     idx.protocol_names.insert(name.clone());
@@ -3304,6 +3308,17 @@ fn lower_switch_pattern_match(
                 },
             );
         }
+        Expr::VariantPattern { variant, .. } if variant.as_str() == "__let" => {
+            // `case let x` always matches; binding copies the subject.
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstBool(true),
+                    span: None,
+                },
+            );
+        }
         Expr::VariantPattern { variant, .. } => {
             let tag = ctx
                 .module
@@ -3582,6 +3597,29 @@ fn bind_variant_pattern(pattern: &Expr, case_slot: u32, ctx: &mut LowerCtx, bloc
     } = pattern
     {
         if bindings.is_empty() {
+            return;
+        }
+        // S1-I5: `case let x` — bind the whole subject.
+        if variant.as_str() == "__let" {
+            for (_label, bind) in bindings {
+                let bind_slot = ctx.alloc_local(bind);
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::LoadLocal(case_slot),
+                        span: None,
+                    },
+                );
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::StoreLocal(bind_slot),
+                        span: None,
+                    },
+                );
+            }
             return;
         }
         let fields: Vec<SmolStr> = ctx
@@ -4382,6 +4420,21 @@ fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                     },
                 );
                 bind_pattern(&case.pattern, case_slot, ctx, current_block);
+                // S1-I5: `where` guard after bindings so `case .err(let e) where e.count > 0` works.
+                if let Some(guard) = &case.guard {
+                    let guard_reg = ctx.fresh_reg();
+                    lower_expr(guard, guard_reg, ctx, current_block);
+                    let guard_block = ctx.active_block;
+                    ctx.emit(
+                        guard_block,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::JumpIfFalse(next_block),
+                            span: None,
+                        },
+                    );
+                    current_block = guard_block;
+                }
                 for s in &case.body {
                     lower_stmt(s, ctx, current_block);
                 }
@@ -4401,16 +4454,28 @@ fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                 for s in body {
                     lower_stmt(s, ctx, current_block);
                 }
+                ctx.emit(
+                    current_block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::Jump(end_block),
+                        span: None,
+                    },
+                );
+                ctx.link(current_block, end_block);
+            } else if current_block != end_block {
+                // No default: last case already uses `end_block` as its failure
+                // target; do not emit Jump(end) on end itself (infinite loop).
+                ctx.emit(
+                    current_block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::Jump(end_block),
+                        span: None,
+                    },
+                );
+                ctx.link(current_block, end_block);
             }
-            ctx.emit(
-                current_block,
-                MirInstr {
-                    dest: None,
-                    op: MirOp::Jump(end_block),
-                    span: None,
-                },
-            );
-            ctx.link(current_block, end_block);
             ctx.active_block = end_block;
         }
         Stmt::IfCase {
@@ -5816,11 +5881,28 @@ fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32) {
                     }
                     let call_name = if ctx.module.generic_templates.contains(name) {
                         // Prefer local binding types (ADR-324: Ident ≠ type name).
-                        let type_args: Vec<SmolStr> = args
+                        let mut type_args: Vec<SmolStr> = args
                             .iter()
-                            .take(1)
                             .map(|a| infer_generic_arg_type_name(&a.value, ctx))
                             .collect();
+                        // S1-I5: pad to declared arity (`compose<A,B,C>` + 2 closures).
+                        let arity = ctx
+                            .module
+                            .generic_template_arity
+                            .get(name)
+                            .copied()
+                            .unwrap_or(type_args.len().max(1));
+                        let fill = type_args
+                            .iter()
+                            .find(|t| t.as_str() != "Unknown")
+                            .cloned()
+                            .unwrap_or_else(|| SmolStr::new("Unknown"));
+                        while type_args.len() < arity {
+                            type_args.push(fill.clone());
+                        }
+                        if type_args.len() > arity {
+                            type_args.truncate(arity);
+                        }
                         mangle_name(name.as_str(), &type_args)
                     } else {
                         name.clone()
@@ -9150,6 +9232,12 @@ fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
 
 fn infer_generic_arg_type_name(expr: &Expr, ctx: &LowerCtx) -> SmolStr {
     match expr {
+        // S1-I5: align with semantic compose/map closure mono fill (platform Int).
+        Expr::Closure { .. } => SmolStr::new(if cfg!(target_pointer_width = "64") {
+            "Int64"
+        } else {
+            "Int32"
+        }),
         Expr::Ident { name, .. } => {
             let ty = ctx
                 .local_types

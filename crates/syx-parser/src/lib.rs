@@ -580,6 +580,30 @@ impl Parser {
         is_override: bool,
         is_final: bool,
     ) -> SyxResult<Decl> {
+        self.parse_function_with_name_opts(
+            access,
+            is_async,
+            attrs,
+            start,
+            name,
+            is_override,
+            is_final,
+            true,
+        )
+    }
+
+    /// S1-I5: protocol requirements may be signature-only (`func f() -> T` with no `{` body).
+    fn parse_function_with_name_opts(
+        &mut self,
+        access: AccessLevel,
+        is_async: bool,
+        attrs: Vec<Attribute>,
+        start: Span,
+        name: SmolStr,
+        is_override: bool,
+        is_final: bool,
+        body_required: bool,
+    ) -> SyxResult<Decl> {
         let (type_params, mut where_clause) = self.parse_type_params()?;
         self.consume(TokenKind::LParen, "Expected '(' after function name")?;
         let params = self.parse_params()?;
@@ -619,8 +643,16 @@ impl Parser {
             None
         };
         where_clause.extend(self.parse_where_clause()?);
-        self.consume(TokenKind::LBrace, "Expected '{' before function body")?;
-        let body = self.parse_block_stmts()?;
+        let body = if self.check(TokenKind::LBrace) {
+            self.advance();
+            self.parse_block_stmts()?
+        } else if body_required {
+            return self.error("Expected '{' before function body");
+        } else {
+            // Protocol requirement / default-less signature.
+            self.match_kind(TokenKind::Semicolon);
+            Vec::new()
+        };
         let span = Span::merge(start, self.previous().span);
         Ok(Decl::Function {
             span,
@@ -1304,6 +1336,8 @@ impl Parser {
     fn parse_actor(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected actor name")?;
+        // S1-I5: `actor Holder<T>` — align with struct/class type-param parse (no defaults).
+        let (type_params, _inline) = self.parse_type_params()?;
         let conformances = self.parse_conformances()?;
         self.consume(TokenKind::LBrace, "Expected '{' after actor name")?;
         let mut members = Vec::new();
@@ -1323,6 +1357,7 @@ impl Parser {
             span: Span::merge(start, self.previous().span),
             access,
             name,
+            type_params,
             conformances,
             members,
         })
@@ -2062,8 +2097,14 @@ impl Parser {
         self.consume(TokenKind::Else, "Expected 'else' after guard let")?;
         self.consume(TokenKind::LBrace, "Expected '{' after guard else")?;
         let else_branch = self.parse_block_stmts()?;
-        self.consume(TokenKind::LBrace, "Expected '{' after guard let")?;
-        let body = self.parse_block_stmts()?;
+        // S1-I5: book/Swift style has no success brace — continuation is following stmts.
+        // Legacy SYX form still accepts an optional `{ … }` success body after `else`.
+        let body = if self.check(TokenKind::LBrace) {
+            self.advance();
+            self.parse_block_stmts()?
+        } else {
+            Vec::new()
+        };
         Ok(Stmt::GuardLet {
             span: Span::merge(start, self.previous().span),
             name,
@@ -2082,7 +2123,11 @@ impl Parser {
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
             self.skip_newlines();
             if self.match_kind(TokenKind::Case) {
-                let pattern = self.parse_switch_pattern()?;
+                // S1-I5: `case 2, 3, 5` multi-pattern → duplicate arms sharing body/guard.
+                let mut patterns = vec![self.parse_switch_pattern()?];
+                while self.match_kind(TokenKind::Comma) {
+                    patterns.push(self.parse_switch_pattern()?);
+                }
                 let guard = if self.match_kind(TokenKind::Where) {
                     Some(self.parse_expr()?)
                 } else {
@@ -2109,11 +2154,13 @@ impl Parser {
                     }
                     stmts
                 };
-                cases.push(syx_ast::SwitchCase {
-                    pattern,
-                    guard,
-                    body: stmts,
-                });
+                for pattern in patterns {
+                    cases.push(syx_ast::SwitchCase {
+                        pattern,
+                        guard: guard.clone(),
+                        body: stmts.clone(),
+                    });
+                }
             } else if self.match_kind(TokenKind::Default) {
                 let stmts = if self.match_kind(TokenKind::LBrace) {
                     self.parse_block_stmts()?
@@ -2654,6 +2701,15 @@ impl Parser {
     }
 
     fn parse_switch_pattern(&mut self) -> SyxResult<Expr> {
+        // S1-I5: `case let x` / `case let x where …` — bind whole subject (`__let` marker).
+        if self.match_kind(TokenKind::Let) {
+            let name = self.consume_identifier("Expected binding name after 'case let'")?;
+            return Ok(Expr::VariantPattern {
+                span: self.previous().span,
+                variant: SmolStr::new("__let"),
+                bindings: vec![(None, name)],
+            });
+        }
         if self.match_kind(TokenKind::LParen) {
             let mut bindings = Vec::new();
             if !self.check(TokenKind::RParen) {
@@ -3935,7 +3991,36 @@ impl Parser {
                 associated_types.push((assoc_name, constraint));
                 continue;
             }
-            methods.push(self.parse_function(AccessLevel::Internal, false, Vec::new())?);
+            // S1-I5: `var name: T { get }` / `{ get set }` property requirements.
+            if matches!(&self.peek().kind, TokenKind::Var | TokenKind::Let) {
+                methods.push(self.parse_protocol_property_requirement()?);
+                continue;
+            }
+            // S1-I5: `func ==(...)` operator requirements inside protocols.
+            if self.check_identifier("operator") {
+                methods.push(self.parse_protocol_operator_requirement()?);
+                continue;
+            }
+            if !self.check(TokenKind::Func) {
+                return self.error("Expected 'func', 'var', 'let', or 'associatedtype' in protocol");
+            }
+            let start = self.advance().span;
+            // `func ==(lhs: Self, rhs: Self)` — operator as bare name after func.
+            let fname = if let Some(op) = self.try_parse_operator_as_name() {
+                op
+            } else {
+                self.consume_identifier("Expected function name")?
+            };
+            methods.push(self.parse_function_with_name_opts(
+                AccessLevel::Internal,
+                false,
+                Vec::new(),
+                start,
+                fname,
+                false,
+                false,
+                false,
+            )?);
         }
         self.consume(TokenKind::RBrace, "Expected '}' after protocol body")?;
         Ok(Decl::Protocol {
@@ -3946,6 +4031,117 @@ impl Parser {
             associated_types,
             methods,
         })
+    }
+
+    /// Protocol `var`/`let` requirement: `var name: Type { get }` or `{ get set }` (no bodies).
+    fn parse_protocol_property_requirement(&mut self) -> SyxResult<Decl> {
+        let start = self.peek().span;
+        let mutable = self.match_kind(TokenKind::Var);
+        if !mutable {
+            self.consume(TokenKind::Let, "Expected 'var' or 'let'")?;
+        }
+        let name = self.consume_identifier("Expected property name")?;
+        self.consume(TokenKind::Colon, "Expected ':' after property name")?;
+        let ty = self.parse_type()?;
+        self.consume(TokenKind::LBrace, "Expected '{' after protocol property type")?;
+        // `{ get }` or `{ get set }` — accessors are markers only.
+        if !matches!(
+            &self.peek().kind,
+            TokenKind::Identifier(label) if label.as_str() == "get"
+        ) {
+            return self.error("Expected 'get' in protocol property requirement");
+        }
+        self.advance();
+        let mut has_set = false;
+        if matches!(
+            &self.peek().kind,
+            TokenKind::Identifier(label) if label.as_str() == "set"
+        ) {
+            if !mutable {
+                return self.error("Protocol '{ get set }' property requires 'var'");
+            }
+            self.advance();
+            has_set = true;
+        }
+        self.consume(TokenKind::RBrace, "Expected '}' after protocol property accessors")?;
+        self.skip_newlines();
+        Ok(Decl::VarGlobal {
+            span: Span::merge(start, self.previous().span),
+            access: AccessLevel::Internal,
+            attrs: if has_set {
+                vec![syx_ast::Attribute {
+                    name: SmolStr::new("protocol_get_set"),
+                    args: vec![],
+                }]
+            } else {
+                vec![syx_ast::Attribute {
+                    name: SmolStr::new("protocol_get"),
+                    args: vec![],
+                }]
+            },
+            mutable,
+            name,
+            ty: Some(ty),
+            init: None,
+            will_set: None,
+            did_set: None,
+            // Empty marker: requirement has no implementation body.
+            computed_getter: Some(Vec::new()),
+            computed_setter: if has_set { Some(Vec::new()) } else { None },
+            is_override: false,
+            is_lazy: false,
+        })
+    }
+
+    fn parse_protocol_operator_requirement(&mut self) -> SyxResult<Decl> {
+        let start = self.advance().span; // 'operator'
+        self.consume(TokenKind::Func, "Expected 'func' after operator")?;
+        let op = self.parse_operator_symbol()?;
+        let (_type_params, _) = self.parse_type_params()?;
+        self.consume(TokenKind::LParen, "Expected '(' after operator")?;
+        let params = self.parse_params()?;
+        self.consume(TokenKind::RParen, "Expected ')' after parameters")?;
+        let return_type = if self.match_kind(TokenKind::Arrow) {
+            Some(self.parse_type()?)
+        } else {
+            None
+        };
+        let body = if self.check(TokenKind::LBrace) {
+            self.advance();
+            self.parse_block_stmts()?
+        } else {
+            self.match_kind(TokenKind::Semicolon);
+            Vec::new()
+        };
+        Ok(Decl::OperatorFunc {
+            span: Span::merge(start, self.previous().span),
+            access: AccessLevel::Internal,
+            attrs: Vec::new(),
+            op,
+            params,
+            return_type,
+            body,
+        })
+    }
+
+    fn try_parse_operator_as_name(&mut self) -> Option<SmolStr> {
+        // Mirror `parse_operator_symbol` without erroring on non-ops.
+        let op = match &self.peek().kind {
+            TokenKind::EqualEqual => Some("=="),
+            TokenKind::NotEqual => Some("!="),
+            TokenKind::LessEqual => Some("<="),
+            TokenKind::GreaterEqual => Some(">="),
+            TokenKind::Less => Some("<"),
+            TokenKind::Greater => Some(">"),
+            TokenKind::Plus => Some("+"),
+            TokenKind::Minus => Some("-"),
+            TokenKind::Star => Some("*"),
+            TokenKind::Slash => Some("/"),
+            TokenKind::Percent => Some("%"),
+            _ => None,
+        }?;
+        self.advance();
+        Some(SmolStr::new(op))
     }
 
     fn check_identifier(&self, text: &str) -> bool {

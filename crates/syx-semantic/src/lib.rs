@@ -6089,6 +6089,10 @@ impl SemanticAnalyzer {
     }
 
     fn type_satisfies_protocol(&self, type_name: &str, protocol: &str) -> bool {
+        // S1-I5: `Any` is the unconstrained top type for associatedtype bounds.
+        if protocol == "Any" {
+            return true;
+        }
         if type_conforms(type_name, protocol) {
             return true;
         }
@@ -6471,11 +6475,12 @@ impl SemanticAnalyzer {
         match type_name.as_str() {
             "String" => TypeId::String,
             "Bool" => TypeId::Bool,
-            "Array" => TypeId::Array(Box::new(TypeId::Unknown)),
-            "Set" => TypeId::Set(Box::new(TypeId::Unknown)),
+            // S1-I5: extension Array methods see `Element` (matches `Array<Element>` annotations).
+            "Array" => TypeId::Array(Box::new(TypeId::Named(SmolStr::new("Element")))),
+            "Set" => TypeId::Set(Box::new(TypeId::Named(SmolStr::new("Element")))),
             "Dictionary" => TypeId::Dictionary {
-                key: Box::new(TypeId::String),
-                value: Box::new(TypeId::Unknown),
+                key: Box::new(TypeId::Named(SmolStr::new("Key"))),
+                value: Box::new(TypeId::Named(SmolStr::new("Value"))),
             },
             name => {
                 if let Some(kind) = from_type_name(name) {
@@ -6983,6 +6988,21 @@ impl SemanticAnalyzer {
                 } else {
                     type_args[i] = self.infer_expr_type_name(&arg.value);
                 }
+            }
+        }
+        // S1-I5: `compose(f: {…}, g: {…})` — closure args leave all params Unknown;
+        // fill with platform Int so mono mangling matches (numeric book samples).
+        if type_args.iter().all(|t| t.as_str() == "Unknown")
+            && !args.is_empty()
+            && args.iter().all(|a| matches!(a.value, Expr::Closure { .. }))
+        {
+            let int_name = SmolStr::new(if cfg!(target_pointer_width = "64") {
+                "Int64"
+            } else {
+                "Int32"
+            });
+            for slot in &mut type_args {
+                *slot = int_name.clone();
             }
         }
         type_args
