@@ -30,14 +30,14 @@ let n = -a           // 一元负
 ## 比较运算符
 
 ```syx
-x == y      // 相等
-x != y      // 不等
-x === y     // 恒等（引用/类型敏感子集；详见下）
-x !== y     // 恒等取反
-x < y       // 小于
-x <= y      // 小于等于
-x > y       // 大于
-x >= y      // 大于等于
+let x = 1
+let y = 2
+print(x == y)      // 相等 → false
+print(x != y)      // 不等 → true
+print(x < y)       // 小于 → true
+print(x <= y)      // 小于等于 → true
+print(x > y)       // 大于 → false
+print(x >= y)      // 大于等于 → false
 ```
 
 | 形式 | 适用 |
@@ -51,9 +51,12 @@ x >= y      // 大于等于
 ## 逻辑运算符
 
 ```syx
-if (a && b) { … }    // 短路与
-if (a || b) { … }    // 短路或
-if (!flag) { … }     // 逻辑非
+let a = true
+let b = false
+let flag = false
+if (a && b) { print("and") }    // 短路与
+if (a || b) { print("or") }     // 短路或
+if (!flag) { print("not") }     // 逻辑非
 ```
 
 | 运算符 | 含义 | 短路 |
@@ -67,9 +70,12 @@ if (!flag) { … }     // 逻辑非
 ## 空合并与可选链
 
 ```syx
-let v = optional ?? defaultValue     // nil 合并
+let optional: Int? = nil
+let defaultValue = 0
+let maybeString: String? = "hi"
+let v = optional ?? defaultValue     // nil 合并 → 0
 let len = maybeString?.count        // 可选链
-let v = maybeString!                 // 强制解包
+let forced = maybeString!            // 强制解包 → "hi"
 ```
 
 | 运算符 | 含义 | 失败行为 |
@@ -88,14 +94,14 @@ let bad: Int = s!.count      // 5（强制解包成功）
 ## 赋值与复合赋值
 
 ```syx
-x = 1          // 简单赋值
-x += 2         // 等价 x = x + 2
+var x = 1          // 简单赋值
+x += 2             // 等价 x = x + 2
 x -= 1
 x *= 2
 x /= 2
 x %= 3
-obj.field = v
-arr[i] = v
+var arr = [0, 1, 2]
+arr[1] = 9
 ```
 
 | 形式 | 含义 | 失败 |
@@ -112,8 +118,8 @@ arr[i] = v
 ## 范围运算符
 
 ```syx
-for i in 0..<10 { … }   // 半开 [0, 10)
-for i in 1...5 { … }    // 闭区间 [1, 5]（整字面量端点）
+for i in 0..<10 { print(i) }   // 半开 [0, 10)
+for j in 1...5 { print(j) }    // 闭区间 [1, 5]（整字面量端点）
 ```
 
 | 形式 | 含义 | 状态 |
@@ -147,6 +153,7 @@ print((1...10).contains(11))   // false
 SYX **不直接** 提供 `?:` 三元运算符；用 `if` 表达式或临时变量替代：
 
 ```syx
+let x = 1
 // ✅ 推荐
 let label = if (x > 0) { "pos" } else { "non-pos" }
 
@@ -212,10 +219,9 @@ func main() {
 `operator func` 允许声明新运算符（[第 30 章](30-advanced-operators.md)）：
 
 ```syx
-infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
-
-let result = 5 |> { $0 * 2 }    // 10
+// 自定义中缀 `|>` 见 Ch30；此处用同文件函数代替：
+func pipe(value: Int, f: (Int) -> Int) -> Int { return f(value) }
+let result = pipe(value: 5, f: { $0 * 2 })    // 10
 ```
 
 完整语法、优先级组、自定义中缀 / 前缀 / 后缀运算符见 [第 30 章 高级运算符](30-advanced-operators.md)。

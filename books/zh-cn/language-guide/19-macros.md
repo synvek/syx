@@ -145,6 +145,19 @@ func main() {
 - **137+ 债务** — 完整 token 语法宏 / token-stream API、完整 AspectJ 式 AOP（否定 / 切面类 / 通配 join point / 全表达式与优先级全集）、完整 Spring 容器、ThreadPoolExecutor 全集（DiscardOldest / Actor 共享池等）
 
 ```syx
+import Di
+
+@Service
+class DepLogger {
+  init() {}
+  func tag() -> String { return "dep-logger" }
+}
+
+class BeanGreeter {
+  var logger: DepLogger
+  init(logger: DepLogger) { self.logger = logger }
+}
+
 @Service
 class Audited {
   init() {}
@@ -241,9 +254,12 @@ func main() {
 | `#stringify(expr)` | 表达式位 → 字符串字面量（M9 builtin pass） |
 
 ```syx
-#assert(1 + 1 == 2)
-#for(3, print("x"))
-let s = #stringify(1 + 1)   // "1 + 1"
+func main() {
+  #assert(1 + 1 == 2)
+  #for(3, print("x"))
+  let s = #stringify(1 + 1)   // "1 + 1"
+  print(s)
+}
 ```
 
 测试：`fixtures/macros/macro_engine.sy`、`fixtures/macros/macro_engine.sy`、`fixtures/lsp/freestanding_decl.sy`
@@ -291,7 +307,7 @@ CLI：`--no-property-wrapper` 可关闭。测试：`fixtures/macros/attached_wra
 @attached(member, named, greet, "print(\"member:{name}\")")
 data class Greeter(name: String)
 
-@attached(peer, names: prefixed(_describe))
+@attached(peer, named, _describe)
 data class Point(x: Int, y: Int)
 ```
 

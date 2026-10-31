@@ -45,12 +45,13 @@ internal func helper() -> Int {              // 跨模块不可见
 ```
 
 ```syx
-// 模块 B：main.sy
-import math
+// 单文件代替「模块 B import math」（书样 check 为单文件）
+public func mathAdd(a: Int, b: Int) -> Int { return a + b }
+internal func helper() -> Int { return 42 }
 
 func main() {
-    print(math.add(a: 1, b: 2))              // ✅ public
-    // print(math.helper())                  // ❌ S005：cross-module access to internal
+    print(mathAdd(a: 1, b: 2))               // ✅ public
+    // helper()                              // ❌ 真实跨模块边界为 S005
 }
 ```
 
@@ -111,10 +112,14 @@ public func exposed() {
 ```
 
 ```syx
-// file: main.sy
-import util
-// util.helper()                             // ❌ fileprivate
-util.exposed()                              // ✅
+// 单文件代替 util 的消费者
+fileprivate func helper() { }
+public func exposed() { helper() }
+
+func main() {
+    // helper()                              // ❌ 跨文件 fileprivate
+    exposed()                                // ✅
+}
 ```
 
 ## `private` 在类型内
@@ -123,7 +128,7 @@ util.exposed()                              // ✅
 class Counter {
     private var count: Int = 0
 
-    func increment() { count = count + 1 }   // 类内访问
+    func increment() { self.count = self.count + 1 }   // 类内访问
 }
 
 // let c = Counter()
@@ -162,14 +167,11 @@ public enum Status {
 `extension` 可在模块 B 中扩展模块 A 的类型（**Phase 60+**）：
 
 ```syx
-// 模块 A
+// 单文件代替：模块 A 类型 + 模块 B extension
 public class User { public init() {} }
 
-// 模块 B
-import a
-
-extension a.User {
-    public func extra() { print("extra") }   // 跨模块扩展
+extension User {
+    public func extra() { print("extra") }   // 扩展（真实包中可跨模块）
 }
 ```
 
@@ -218,15 +220,25 @@ fileprivate func internalHelper() -> String {
 ```
 
 ```syx
-// module: app
-import userlib
+// 单文件代替 app import userlib
+public class User {
+    public let id: Int
+    public let name: String
+    fileprivate var password: String
+    public init(id: Int, name: String, password: String) {
+        self.id = id
+        self.name = name
+        self.password = password
+    }
+    public func changePassword(_ new: String) { self.password = new }
+}
+public func greet(_ u: User) -> String { return "Hello, \(u.name)!" }
 
 func main() {
-    let u = User(id: 1, name: "Alice", password: "secret")
-    print(greet(u))                          // ✅ public
+    var u = User(id: 1, name: "Alice", password: "secret")
     u.changePassword("new")                  // ✅ public 方法
-    // u.password                            // ❌ fileprivate
-    // userlib.internalHelper()              // ❌ fileprivate
+    print(greet(u))                          // ✅ public
+    // u.password                            // ❌ 跨文件 fileprivate
 }
 ```
 

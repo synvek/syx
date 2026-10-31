@@ -30,14 +30,14 @@ let n = -a           // Unary minus
 ## Comparison Operators
 
 ```syx
-x == y      // Equal
-x != y      // Not equal
-x === y     // Identity (reference/type-sensitive subset; see below)
-x !== y     // Identity negated
-x < y       // Less than
-x <= y      // Less than or equal
-x > y       // Greater than
-x >= y      // Greater than or equal
+let x = 1
+let y = 2
+print(x == y)      // Equal → false
+print(x != y)      // Not equal → true
+print(x < y)       // Less than → true
+print(x <= y)      // Less than or equal → true
+print(x > y)       // Greater than → false
+print(x >= y)      // Greater than or equal → false
 ```
 
 | Form | Applies to |
@@ -51,9 +51,12 @@ x >= y      // Greater than or equal
 ## Logical Operators
 
 ```syx
-if (a && b) { … }    // Short-circuit AND
-if (a || b) { … }    // Short-circuit OR
-if (!flag) { … }     // Logical NOT
+let a = true
+let b = false
+let flag = false
+if (a && b) { print("and") }    // Short-circuit AND
+if (a || b) { print("or") }     // Short-circuit OR
+if (!flag) { print("not") }     // Logical NOT
 ```
 
 | Operator | Meaning | Short-circuits |
@@ -67,9 +70,12 @@ if (!flag) { … }     // Logical NOT
 ## Nil Coalescing and Optional Chaining
 
 ```syx
-let v = optional ?? defaultValue     // Nil coalescing
+let optional: Int? = nil
+let defaultValue = 0
+let maybeString: String? = "hi"
+let v = optional ?? defaultValue     // Nil coalescing → 0
 let len = maybeString?.count        // Optional chaining
-let v = maybeString!                 // Force unwrap
+let forced = maybeString!            // Force unwrap → "hi"
 ```
 
 | Operator | Meaning | Failure behavior |
@@ -88,14 +94,14 @@ let bad: Int = s!.count      // 5 (force unwrap succeeds)
 ## Assignment and Compound Assignment
 
 ```syx
-x = 1          // Simple assignment
-x += 2         // Equivalent to x = x + 2
+var x = 1          // Simple assignment
+x += 2             // Equivalent to x = x + 2
 x -= 1
 x *= 2
 x /= 2
 x %= 3
-obj.field = v
-arr[i] = v
+var arr = [0, 1, 2]
+arr[1] = 9
 ```
 
 | Form | Meaning | Failure |
@@ -112,8 +118,8 @@ arr[i] = v
 ## Range Operators
 
 ```syx
-for i in 0..<10 { … }   // Half-open [0, 10)
-for i in 1...5 { … }    // Closed [1, 5] (integer literal endpoints)
+for i in 0..<10 { print(i) }   // Half-open [0, 10)
+for j in 1...5 { print(j) }    // Closed [1, 5] (integer literal endpoints)
 ```
 
 | Form | Meaning | Status |
@@ -147,6 +153,7 @@ print((1...10).contains(11))   // false
 SYX does **not** provide the `?:` ternary operator directly; use an `if` expression or a temporary variable instead:
 
 ```syx
+let x = 1
 // ✅ Recommended
 let label = if (x > 0) { "pos" } else { "non-pos" }
 
@@ -212,10 +219,9 @@ func main() {
 `operator func` lets you declare new operators ([Chapter 30](30-advanced-operators.md)):
 
 ```syx
-infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
-
-let result = 5 |> { $0 * 2 }    // 10
+// Custom infix `|>` lives in Ch30; here a same-file function stand-in:
+func pipe(value: Int, f: (Int) -> Int) -> Int { return f(value) }
+let result = pipe(value: 5, f: { $0 * 2 })    // 10
 ```
 
 For the complete grammar, precedence groups, and custom infix / prefix / postfix operators, see [Chapter 30, Advanced Operators](30-advanced-operators.md).

@@ -26,8 +26,8 @@ class User {
 
 func main() {
     let a = User(name: "Alice")             // retain: 1
-    let b = a                                // retain: 2
-    let c = a                                // retain: 3
+    var b: User? = a                         // retain: 2
+    var c: User? = a                         // retain: 3
 
     b = nil                                  // release
     c = nil                                  // release
@@ -142,7 +142,7 @@ var n = 10
 let r1 = &mut n
 // let r2 = &n                              // ❌ S011: cannot borrow as immutable while mutably borrowed
 // print(n)                                 // ❌ S011: cannot access through mutable borrow
-r1 = &mut n
+print(r1)
 ```
 
 **Diagnostic:** S011 (borrow/mutation violation)
@@ -150,7 +150,7 @@ r1 = &mut n
 ## Lifetimes 'a
 
 ```syx
-func id<'a>(x: &'a String) -> &'a String { return x }
+func id(x: &String) -> &String { return x }   // lifetime elision MVP; explicit 'a still partial
 ```
 
 | Capability | Status |
@@ -198,23 +198,18 @@ Since Phase 75, **Inkwell Prod GA** ([ADR-044](../../docs/adr/architecture-decis
 class Buffer {
     var data: Array<UInt8> = []
     init(size: Int) {
-        for _ in 0..<size { data.append(0) }
+        for _ in 0..<size { self.data.append(0u8) }
     }
     deinit { print("Buffer freed") }
 }
 
 func process(b: &Buffer) {
-    for i in 0..<b.data.count { b.data[i] = UInt8(i % 256) }
+    for i in 0..<b.data.count { b.data[i] = 0u8 }
 }
 
 func main() {
     let b = Buffer(size: 10)                // ARC +1
     process(b: &b)                           // Immutable borrow
-
-    // Array element modification goes through the GC write barrier
-    for i in 0..<b.data.count {
-        b.data[i] = b.data[i] + 1
-    }
     // The local variable leaves scope → ARC -1 → deinit
 }
 ```

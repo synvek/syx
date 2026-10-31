@@ -26,8 +26,8 @@ class User {
 
 func main() {
     let a = User(name: "Alice")             // retain: 1
-    let b = a                                // retain: 2
-    let c = a                                // retain: 3
+    var b: User? = a                         // retain: 2
+    var c: User? = a                         // retain: 3
 
     b = nil                                  // release
     c = nil                                  // release
@@ -142,7 +142,7 @@ var n = 10
 let r1 = &mut n
 // let r2 = &n                              // ❌ S011：cannot borrow as immutable while mutably borrowed
 // print(n)                                 // ❌ S011：cannot access through mutable borrow
-r1 = &mut n
+print(r1)
 ```
 
 **诊断：** S011（借用/变异违规）
@@ -150,7 +150,7 @@ r1 = &mut n
 ## 生命周期 'a
 
 ```syx
-func id<'a>(x: &'a String) -> &'a String { return x }
+func id(x: &String) -> &String { return x }   // lifetime 省略 MVP；显式 'a 仍部分
 ```
 
 | 能力 | 状态 |
@@ -198,23 +198,18 @@ Phase 75 起 **Inkwell Prod GA**（[ADR-044](../../../docs/adr/architecture-deci
 class Buffer {
     var data: Array<UInt8> = []
     init(size: Int) {
-        for _ in 0..<size { data.append(0) }
+        for _ in 0..<size { self.data.append(0u8) }
     }
     deinit { print("Buffer freed") }
 }
 
 func process(b: &Buffer) {
-    for i in 0..<b.data.count { b.data[i] = UInt8(i % 256) }
+    for i in 0..<b.data.count { b.data[i] = 0u8 }
 }
 
 func main() {
     let b = Buffer(size: 10)                // ARC +1
     process(b: &b)                           // 不可变借用
-
-    // Array 元素修改走 GC write barrier
-    for i in 0..<b.data.count {
-        b.data[i] = b.data[i] + 1
-    }
     // 局部变量出作用域 → ARC -1 → deinit
 }
 ```

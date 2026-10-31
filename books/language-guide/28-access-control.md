@@ -45,12 +45,13 @@ internal func helper() -> Int {              // Not visible across modules
 ```
 
 ```syx
-// Module B: main.sy
-import math
+// Same-file stand-in for Module B importing math (book check is single-file).
+public func mathAdd(a: Int, b: Int) -> Int { return a + b }
+internal func helper() -> Int { return 42 }
 
 func main() {
-    print(math.add(a: 1, b: 2))              // ✅ public
-    // print(math.helper())                  // ❌ S005: cross-module access to internal
+    print(mathAdd(a: 1, b: 2))               // ✅ public
+    // helper()                              // ❌ S005 across a real module boundary
 }
 ```
 
@@ -111,10 +112,14 @@ public func exposed() {
 ```
 
 ```syx
-// file: main.sy
-import util
-// util.helper()                             // ❌ fileprivate
-util.exposed()                              // ✅
+// Same-file stand-in for a consumer of util.exposed()
+fileprivate func helper() { }
+public func exposed() { helper() }
+
+func main() {
+    // helper()                              // ❌ fileprivate from another file
+    exposed()                                // ✅
+}
 ```
 
 ## `private` Inside a Type
@@ -123,7 +128,7 @@ util.exposed()                              // ✅
 class Counter {
     private var count: Int = 0
 
-    func increment() { count = count + 1 }   // Access within the class
+    func increment() { self.count = self.count + 1 }   // Access within the class
 }
 
 // let c = Counter()
@@ -162,14 +167,11 @@ public enum Status {
 An `extension` in module B may extend a type from module A (**Phase 60+**):
 
 ```syx
-// Module A
+// Same-file stand-in: Module A type + Module B extension
 public class User { public init() {} }
 
-// Module B
-import a
-
-extension a.User {
-    public func extra() { print("extra") }   // Cross-module extension
+extension User {
+    public func extra() { print("extra") }   // Extension (cross-module in a real package)
 }
 ```
 
@@ -218,15 +220,25 @@ fileprivate func internalHelper() -> String {
 ```
 
 ```syx
-// module: app
-import userlib
+// Same-file stand-in for app importing userlib
+public class User {
+    public let id: Int
+    public let name: String
+    fileprivate var password: String
+    public init(id: Int, name: String, password: String) {
+        self.id = id
+        self.name = name
+        self.password = password
+    }
+    public func changePassword(_ new: String) { self.password = new }
+}
+public func greet(_ u: User) -> String { return "Hello, \(u.name)!" }
 
 func main() {
-    let u = User(id: 1, name: "Alice", password: "secret")
-    print(greet(u))                          // ✅ public
+    var u = User(id: 1, name: "Alice", password: "secret")
     u.changePassword("new")                  // ✅ public method
-    // u.password                            // ❌ fileprivate
-    // userlib.internalHelper()              // ❌ fileprivate
+    print(greet(u))                          // ✅ public
+    // u.password                            // ❌ fileprivate across a real file boundary
 }
 ```
 

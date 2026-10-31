@@ -145,6 +145,19 @@ func main() {
 - **137+ debt** — complete token syntax macros / token-stream API, complete AspectJ-style AOP (negation / aspect classes / wildcard join points / the full expression and precedence set), a complete Spring container, the full ThreadPoolExecutor set (DiscardOldest / Actor shared pool, …)
 
 ```syx
+import Di
+
+@Service
+class DepLogger {
+  init() {}
+  func tag() -> String { return "dep-logger" }
+}
+
+class BeanGreeter {
+  var logger: DepLogger
+  init(logger: DepLogger) { self.logger = logger }
+}
+
 @Service
 class Audited {
   init() {}
@@ -241,9 +254,12 @@ Tests: `fixtures/lsp/freestanding_decl.sy`, `fixtures/macros/json_plugin_prod.sy
 | `#stringify(expr)` | Expression position → string literal (M9 builtin pass) |
 
 ```syx
-#assert(1 + 1 == 2)
-#for(3, print("x"))
-let s = #stringify(1 + 1)   // "1 + 1"
+func main() {
+  #assert(1 + 1 == 2)
+  #for(3, print("x"))
+  let s = #stringify(1 + 1)   // "1 + 1"
+  print(s)
+}
 ```
 
 Tests: `fixtures/macros/macro_engine.sy`, `fixtures/macros/macro_engine.sy`, `fixtures/lsp/freestanding_decl.sy`
@@ -291,7 +307,7 @@ CLI: `--no-property-wrapper` disables it. Test: `fixtures/macros/attached_wrappe
 @attached(member, named, greet, "print(\"member:{name}\")")
 data class Greeter(name: String)
 
-@attached(peer, names: prefixed(_describe))
+@attached(peer, named, _describe)
 data class Point(x: Int, y: Int)
 ```
 
