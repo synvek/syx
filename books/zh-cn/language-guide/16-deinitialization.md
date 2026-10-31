@@ -49,11 +49,12 @@ class Counter {
     deinit { Counter.count = Counter.count - 1 }
 }
 
-do {
+func demo() {
     let a = Counter()
     let b = Counter()
     print(Counter.count)                   // 2
-}                                          // a, b 释放
+}                                          // demo 返回时 a, b 释放
+demo()
 print(Counter.count)                       // 0
 ```
 
@@ -76,19 +77,19 @@ Swift 的 ARC 是 **确定性** 的：refcount 归零时立即 `deinit`。SYX �
 确定性资源（文件、socket、锁）推荐用 **显式 close / release**：
 
 ```syx
+import IO
+
 class File {
     let path: String
     var handle: Any? = nil
     init(path: String) { self.path = path }
 
-    func open() { self.handle = FileHandle.open(path, "r") }
+    func open() { self.handle = FileHandle.open(self.path, "r") }
     func close() {
-        if let h = handle {
-            FileHandle.close(h)
-            self.handle = nil
-        }
+        FileHandle.close(self.handle)
+        self.handle = nil
     }
-    deinit { close() }                     // 兜底
+    deinit { self.close() }                // 兜底
 }
 
 func main() {
@@ -126,10 +127,10 @@ actor 内部状态在 actor 隔离上下文中，`deinit` 触发时 actor 本身
 ```syx
 actor Counter {
     var value: Int = 0
-    init() { value = 0 }
+    init() { self.value = 0 }
 
-    func increment() { value = value + 1 }
-    deinit { print("counter bye, last value=\(value)") }
+    func increment() { self.value = self.value + 1 }
+    deinit { print("counter bye, last value=\(self.value)") }
 }
 ```
 

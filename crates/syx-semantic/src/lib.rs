@@ -1969,10 +1969,34 @@ impl SemanticAnalyzer {
                     }
                 }
             }
-            Decl::Struct { name, access, .. } => {
+            Decl::Struct {
+                name,
+                access,
+                fields,
+                members,
+                ..
+            } => {
                 let qualified = SmolStr::new(format!("{outer}_{name}"));
                 self.register_nested_type_path(outer, name, &qualified);
                 self.class_names.insert(qualified.clone());
+                let mut field_types: Vec<(SmolStr, TypeId)> = fields
+                    .iter()
+                    .map(|(n, t)| (n.clone(), type_expr_to_id(t)))
+                    .collect();
+                for member in members {
+                    if let Decl::VarGlobal {
+                        name: field,
+                        ty: Some(ty),
+                        ..
+                    } = member
+                    {
+                        field_types.push((field.clone(), type_expr_to_id(ty)));
+                    }
+                }
+                if !field_types.is_empty() {
+                    self.dataclass_fields
+                        .insert(qualified.clone(), field_types);
+                }
                 self.globals.insert(
                     qualified.clone(),
                     Symbol {
@@ -2702,6 +2726,17 @@ impl SemanticAnalyzer {
                     let mut ext_prop_getters: IndexMap<SmolStr, TypeId> = IndexMap::new();
                     let mut ext_prop_setters: IndexSet<SmolStr> = IndexSet::new();
                     for method in methods {
+                        // S1-I12: nested types declared inside `extension Outer { struct Inner … }`.
+                        if matches!(
+                            method,
+                            Decl::Class { .. }
+                                | Decl::Struct { .. }
+                                | Decl::Enum { .. }
+                                | Decl::FinalClass { .. }
+                        ) {
+                            self.collect_nested_type_decl(type_name, method);
+                            continue;
+                        }
                         if let Decl::Function {
                             name,
                             access,
@@ -4751,7 +4786,14 @@ impl SemanticAnalyzer {
                 self.analyze_expr(object)?;
                 Ok(TypeId::Optional(Box::new(TypeId::Unknown)))
             }
-            Expr::ForceUnwrap { expr, .. } => self.analyze_expr(expr),
+            // S1-I12: `present!.count` — force-unwrap peels one Optional layer.
+            Expr::ForceUnwrap { expr, .. } => {
+                let ty = self.analyze_expr(expr)?;
+                match ty {
+                    TypeId::Optional(inner) => Ok(*inner),
+                    other => Ok(other),
+                }
+            }
             Expr::HalfOpenRange { .. } | Expr::ClosedRange { .. } => {
                 Ok(TypeId::Named(SmolStr::new("Range")))
             }
@@ -5796,10 +5838,15 @@ impl SemanticAnalyzer {
                     elem_expected.as_ref(),
                     TypeId::Named(n) if self.class_names.contains(n)
                 );
-                if is_proto_elem || is_class_elem || elements.is_empty() {
+                // S1-I12: `Array<Any>` / `Array<Object>` mixed literals (book Ch05).
+                let is_erasure_elem = matches!(
+                    elem_expected.as_ref(),
+                    TypeId::Named(n) if matches!(n.as_str(), "Any" | "Object")
+                );
+                if is_proto_elem || is_class_elem || is_erasure_elem || elements.is_empty() {
                     for el in elements {
                         let found = self.analyze_expr(el)?;
-                        if matches!(found, TypeId::Unknown) {
+                        if is_erasure_elem || matches!(found, TypeId::Unknown) {
                             continue;
                         }
                         let ok = found == **elem_expected

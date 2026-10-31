@@ -44,7 +44,7 @@ nums[1] = 99                                // ✅ 可变
 
 ```syx
 let a = [1, 2, 3]                       // 推断 Array<Int>
-let b: Array<Float> = [1.0, 2.0]        // 显式
+let b: Array<Float64> = [1.0, 2.0]      // 显式
 let c: Array<Int> = []                  // 空数组必须标注或给初值
 ```
 
@@ -189,6 +189,7 @@ print(obj["stable"])      // true
 > **类型擦除：** `Object` 不带字段类型；读出值需用 `as?` 转换（详见 [第 20 章](20-type-casting.md)）。`.keys()` 经 `__syx_dict_keys`，facade/sema 均为 `Array<String>`；`.values()` 经 `__syx_dict_values`，facade/sema 均为 `Array<Object>`（≠ 裸 `Array` / ≠ `Array<Int>`）。
 
 ```syx
+let obj: Object = { "name": "SYX", "version": 110, "stable": true }
 let v = obj["version"]
 if let n = v as? Int {
     print("version is \(n)")
@@ -243,9 +244,11 @@ func main() {
 | `Array<String>`（`File.readLines()`） | `String` | 行 |
 
 ```syx
+import IO
+
 for item in [1, 2, 3] { print(item) }       // 1 2 3
 for c in "abc" { print(c) }                  // a b c
-for (k, v) in ["x": 1, "y": 2] { print(k) }  // x y
+for k in ["x": 1, "y": 2].keys() { print(k) }  // x y
 for i in 0..<3 { print(i) }                  // 0 1 2
 for line in File.readLines("a.txt") { print(line) }
 ```
@@ -257,11 +260,12 @@ for line in File.readLines("a.txt") { print(line) }
 ```syx
 import IO
 
+let path = "bytes.bin"
 File.writeBytes(path, [0u8, 255u8, 42u8])
 let bytes: Array<UInt8> = File.readBytes(path)
 
 let h = FileHandle.open(path, "r")
-let chunk: Array<UInt8> = FileHandle.read(h, 4096)
+let _ = FileHandle.read(h, 4096)
 FileHandle.close(h)
 ```
 

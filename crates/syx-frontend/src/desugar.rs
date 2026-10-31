@@ -7,8 +7,114 @@ pub fn expand_macros(module: syx_ast::Module) -> SyxResult<syx_ast::Module> {
     let mut module = syx_macro::expand_module(module)?;
     desugar_subscript_decls(&mut module)?;
     desugar_property_decls(&mut module)?;
+    desugar_hoist_extension_nested_types(&mut module);
     desugar_qualified_ctor_calls(&mut module);
     Ok(module)
+}
+
+/// S1-I12: `extension Point { struct Polar { … } }` → top-level `Point_Polar` + extension methods.
+/// Qualified `Point.Polar()` already desugars to `Point_Polar()`; codegen needs a real decl.
+pub fn desugar_hoist_extension_nested_types(module: &mut syx_ast::Module) {
+    use syx_ast::Decl;
+
+    let mut hoisted: Vec<Decl> = Vec::new();
+    for decl in &mut module.decls {
+        let Decl::Extension {
+            type_name,
+            methods,
+            ..
+        } = decl
+        else {
+            continue;
+        };
+        let mut kept = Vec::new();
+        for member in std::mem::take(methods) {
+            match member {
+                Decl::Struct {
+                    span,
+                    access,
+                    attrs,
+                    name,
+                    type_params,
+                    type_param_defaults,
+                    fields,
+                    members,
+                } => {
+                    let mangled = SmolStr::new(format!("{type_name}_{name}"));
+                    hoisted.push(Decl::Struct {
+                        span,
+                        access,
+                        attrs,
+                        name: mangled,
+                        type_params,
+                        type_param_defaults,
+                        fields,
+                        members,
+                    });
+                }
+                Decl::Class {
+                    span,
+                    access,
+                    attrs,
+                    name,
+                    type_params,
+                    type_param_defaults,
+                    superclass,
+                    conformances,
+                    members,
+                } => {
+                    let mangled = SmolStr::new(format!("{type_name}_{name}"));
+                    hoisted.push(Decl::Class {
+                        span,
+                        access,
+                        attrs,
+                        name: mangled,
+                        type_params,
+                        type_param_defaults,
+                        superclass,
+                        conformances,
+                        members,
+                    });
+                }
+                Decl::Enum {
+                    span,
+                    access,
+                    attrs,
+                    name,
+                    type_params,
+                    cases,
+                } => {
+                    let mangled = SmolStr::new(format!("{type_name}_{name}"));
+                    hoisted.push(Decl::Enum {
+                        span,
+                        access,
+                        attrs,
+                        name: mangled,
+                        type_params,
+                        cases,
+                    });
+                }
+                other => kept.push(other),
+            }
+        }
+        *methods = kept;
+    }
+    if !hoisted.is_empty() {
+        // Insert before extensions so ctors exist when extension methods type-check/lower.
+        let mut out = Vec::with_capacity(module.decls.len() + hoisted.len());
+        let mut inserted = false;
+        for decl in std::mem::take(&mut module.decls) {
+            if !inserted && matches!(decl, Decl::Extension { .. }) {
+                out.extend(hoisted.drain(..));
+                inserted = true;
+            }
+            out.push(decl);
+        }
+        if !inserted {
+            out.extend(hoisted);
+        }
+        module.decls = out;
+    }
 }
 /// SYX 39.0: `Outer.Inner()` / `mod.Outer.Inner()` → mangled constructor name.
 pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {

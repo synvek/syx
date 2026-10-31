@@ -49,11 +49,12 @@ class Counter {
     deinit { Counter.count = Counter.count - 1 }
 }
 
-do {
+func demo() {
     let a = Counter()
     let b = Counter()
     print(Counter.count)                   // 2
-}                                          // a, b released
+}                                          // a, b released when demo returns
+demo()
 print(Counter.count)                       // 0
 ```
 
@@ -76,19 +77,19 @@ Swift's ARC is **deterministic**: `deinit` runs immediately when the refcount re
 For deterministic resources (files, sockets, locks), prefer an **explicit close / release**:
 
 ```syx
+import IO
+
 class File {
     let path: String
     var handle: Any? = nil
     init(path: String) { self.path = path }
 
-    func open() { self.handle = FileHandle.open(path, "r") }
+    func open() { self.handle = FileHandle.open(self.path, "r") }
     func close() {
-        if let h = handle {
-            FileHandle.close(h)
-            self.handle = nil
-        }
+        FileHandle.close(self.handle)
+        self.handle = nil
     }
-    deinit { close() }                     // Fallback
+    deinit { self.close() }                // Fallback
 }
 
 func main() {
@@ -126,10 +127,10 @@ Inside an actor, state lives in the actor isolation context; when `deinit` fires
 ```syx
 actor Counter {
     var value: Int = 0
-    init() { value = 0 }
+    init() { self.value = 0 }
 
-    func increment() { value = value + 1 }
-    deinit { print("counter bye, last value=\(value)") }
+    func increment() { self.value = self.value + 1 }
+    deinit { print("counter bye, last value=\(self.value)") }
 }
 ```
 

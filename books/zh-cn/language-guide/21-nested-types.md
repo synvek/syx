@@ -38,6 +38,12 @@ func main() {
 类型注解同样使用点路径（内部映射为 `Outer_Inner`）：
 
 ```syx
+class Outer {
+    class Inner {
+        func value() -> Int { return 7 }
+    }
+}
+
 var x: Outer.Inner = Outer.Inner()
 ```
 
@@ -101,10 +107,10 @@ extension Point {
         var theta: Double
     }
 
-    func toPolar() -> Polar {
-        let r = Double((x * x + y * y).squareRoot())
-        let theta = Double(x) / Double(y)
-        return Polar(r: r, theta: theta)
+    func toPolar() -> Point.Polar {
+        let r = Double(self.x * self.x + self.y * self.y)
+        let theta = Double(self.x) / Double(self.y)
+        return Point.Polar(r: r, theta: theta)
     }
 }
 ```

@@ -948,7 +948,7 @@ impl Parser {
         } else {
             AccessLevel::Internal
         };
-        let attrs = self.parse_attributes()?;
+        let mut attrs = self.parse_attributes()?;
         if self.check_identifier("operator") {
             self.advance();
             self.consume(TokenKind::Func, "Expected 'func' after operator")?;
@@ -992,7 +992,6 @@ impl Parser {
         }
         // S1-02: `mutating func` — record as `@mutating` attr (semantic S020 deepen → S1-06/I2).
         if self.match_kind(TokenKind::Mutating) {
-            let mut attrs = attrs;
             attrs.push(Attribute {
                 name: SmolStr::new("mutating"),
                 args: vec![],
@@ -1041,6 +1040,25 @@ impl Parser {
         let is_lazy = self.match_identifier("lazy");
         if is_lazy && !self.check(TokenKind::Var) {
             return self.error("Expected 'var' after lazy");
+        }
+        // S1-I12: `weak var` / `unowned var` in class/actor bodies (book Ch16).
+        let is_weak = self.match_kind(TokenKind::Weak);
+        let is_unowned = !is_weak && self.match_identifier("unowned");
+        if (is_weak || is_unowned)
+            && !matches!(self.peek().kind, TokenKind::Var | TokenKind::Let)
+        {
+            return self.error("Expected 'var' or 'let' after weak/unowned");
+        }
+        if is_weak {
+            attrs.push(Attribute {
+                name: SmolStr::new("weak"),
+                args: vec![],
+            });
+        } else if is_unowned {
+            attrs.push(Attribute {
+                name: SmolStr::new("unowned"),
+                args: vec![],
+            });
         }
         match &self.peek().kind {
             TokenKind::Init => self.parse_init(access),
@@ -1294,8 +1312,18 @@ impl Parser {
         if self.check(TokenKind::Init) {
             return self.parse_init(access);
         }
+        // S1-I12: nested `struct` / `class` / `enum` inside extension (book Ch21).
+        if self.check(TokenKind::Struct) {
+            return self.parse_struct(access, attrs);
+        }
+        if self.check(TokenKind::Class) {
+            return self.parse_class(access, attrs);
+        }
+        if self.check(TokenKind::Enum) {
+            return self.parse_enum(access, attrs);
+        }
         if !self.check(TokenKind::Func) {
-            return self.error("Expected 'func', 'init', or computed 'var'/'let' in extension");
+            return self.error("Expected 'func', 'init', nested type, or computed 'var'/'let' in extension");
         }
         self.parse_function(access, false, attrs)
     }

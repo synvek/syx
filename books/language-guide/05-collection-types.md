@@ -44,7 +44,7 @@ There is also a facade `.binarySearch` (still `item: Int`). **Not implemented** 
 
 ```syx
 let a = [1, 2, 3]                       // Infers Array<Int>
-let b: Array<Float> = [1.0, 2.0]        // Explicit
+let b: Array<Float64> = [1.0, 2.0]      // Explicit
 let c: Array<Int> = []                  // An empty array must be annotated or initialized
 ```
 
@@ -189,6 +189,7 @@ print(obj["stable"])      // true
 > **Type erasure:** `Object` carries no field types; a value read out must be converted with `as?` (see [Chapter 20](20-type-casting.md)). `.keys()` goes through `__syx_dict_keys`, with `Array<String>` in both facade and sema; `.values()` goes through `__syx_dict_values`, with `Array<Object>` in both facade and sema (≠ bare `Array` / ≠ `Array<Int>`).
 
 ```syx
+let obj: Object = { "name": "SYX", "version": 110, "stable": true }
 let v = obj["version"]
 if let n = v as? Int {
     print("version is \(n)")
@@ -243,9 +244,11 @@ func main() {
 | `Array<String>` (`File.readLines()`) | `String` | Lines |
 
 ```syx
+import IO
+
 for item in [1, 2, 3] { print(item) }       // 1 2 3
 for c in "abc" { print(c) }                  // a b c
-for (k, v) in ["x": 1, "y": 2] { print(k) }  // x y
+for k in ["x": 1, "y": 2].keys() { print(k) }  // x y
 for i in 0..<3 { print(i) }                  // 0 1 2
 for line in File.readLines("a.txt") { print(line) }
 ```
@@ -257,11 +260,12 @@ After `import IO`, whole files can be read and written as `Array` bytes (element
 ```syx
 import IO
 
+let path = "bytes.bin"
 File.writeBytes(path, [0u8, 255u8, 42u8])
 let bytes: Array<UInt8> = File.readBytes(path)
 
 let h = FileHandle.open(path, "r")
-let chunk: Array<UInt8> = FileHandle.read(h, 4096)
+let _ = FileHandle.read(h, 4096)
 FileHandle.close(h)
 ```
 

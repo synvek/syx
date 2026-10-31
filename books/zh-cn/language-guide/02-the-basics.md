@@ -133,7 +133,7 @@ let present: String? = "hi"
 typealias Handle = UInt64
 typealias Handler = (Int) -> String
 
-func register(h: Handle) { … }
+func register(h: Handle) {}
 let f: Handler = { n in "id=\(n)" }
 ```
 
