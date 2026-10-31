@@ -267,7 +267,7 @@ actor Counter {
 
     init(value: Int) { self.value = value }
 
-    func increment() { value = value + 1 }
+    func increment() { self.value = self.value + 1 }
 }
 
 let c = await Counter(value: 0)            // actor init 也可 await
@@ -280,7 +280,7 @@ class Vehicle {
     var wheels: Int
     init(wheels: Int) { self.wheels = wheels }
 
-    func describe() -> String { return "wheels=\(wheels)" }
+    func describe() -> String { return "wheels=\(self.wheels)" }
 }
 
 class Car: Vehicle {
@@ -292,7 +292,7 @@ class Car: Vehicle {
     }
 
     override func describe() -> String {
-        return "\(brand) car, \(super.describe())"
+        return "\(self.brand) car, \(super.describe())"
     }
 }
 
@@ -302,6 +302,10 @@ class Truck: Vehicle {
     init(payload: Int) {
         self.payload = payload
         super.init(wheels: 6)
+    }
+
+    override func describe() -> String {
+        return super.describe()
     }
 }
 

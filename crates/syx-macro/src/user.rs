@@ -813,11 +813,15 @@ fn subst_decl(decl: &Decl, param: &str, arg: &Expr) -> Decl {
             access,
             params,
             body,
+            failable,
+            throws,
         } => Decl::Init {
             span: *span,
             access: *access,
             params: subst_params_list(params, param, arg),
             body: body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
+            failable: *failable,
+            throws: *throws,
         },
         Decl::Deinit { span, access, body } => Decl::Deinit {
             span: *span,

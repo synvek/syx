@@ -302,13 +302,23 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             params,
             body,
             access,
+            failable,
+            throws,
             ..
         } => {
             out.push_str(&pad);
             format_access(*access, out);
-            out.push_str("init(");
+            out.push_str("init");
+            if *failable {
+                out.push('?');
+            }
+            out.push('(');
             format_params(params, out)?;
-            out.push_str(") {\n");
+            out.push(')');
+            if *throws {
+                out.push_str(" throws");
+            }
+            out.push_str(" {\n");
             for stmt in body {
                 format_stmt(stmt, out, indent + 1)?;
             }

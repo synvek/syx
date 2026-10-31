@@ -992,6 +992,8 @@ pub struct SemanticAnalyzer {
     /// S1-I2: `(type, method)` marked `mutating` / known mutating collection ops.
     mutating_methods: HashSet<(SmolStr, SmolStr)>,
     class_names: HashSet<SmolStr>,
+    /// S1-I10: classes whose designated `init?` / `init!` makes `Type(...)` return Optional.
+    failable_inits: HashSet<SmolStr>,
     /// Computed properties with a getter but no setter (`let name { get { … } }`).
     getter_only_properties: HashSet<(SmolStr, SmolStr)>,
     /// Phase 121: `@Service` / `@Component` types for typed `__syx_service_resolve`.
@@ -2345,7 +2347,12 @@ impl SemanticAnalyzer {
                         self.dataclass_fields.insert(name.clone(), fields);
                     }
                     for member in members {
-                        if let Decl::Init { params, .. } = member {
+                        if let Decl::Init {
+                            params,
+                            failable,
+                            ..
+                        } = member
+                        {
                             let init_name = SmolStr::new(format!("{name}_init"));
                             self.function_param_labels.insert(
                                 init_name,
@@ -2354,6 +2361,9 @@ impl SemanticAnalyzer {
                                     .map(|p| (p.external_label.clone(), p.name.clone()))
                                     .collect(),
                             );
+                            if *failable {
+                                self.failable_inits.insert(name.clone());
+                            }
                         }
                         if let Decl::Function {
                             name: method,
@@ -5140,7 +5150,7 @@ impl SemanticAnalyzer {
                         ));
                     }
                 }
-                // Local / param / global holding a closure: `let f = { x in … }; f(1)`.
+                // Local / param / global holding a closure or KeyPath: `f(1)` / `kp(root)`.
                 if !self.is_callable_function(name) {
                     let binding_ty = self
                         .scope
@@ -5148,8 +5158,14 @@ impl SemanticAnalyzer {
                         .or_else(|| self.globals.get(name))
                         .map(|s| &s.ty);
                     if binding_ty.is_some_and(|ty| {
-                        matches!(ty, TypeId::Named(n) if n.as_str() == "Closure")
+                        matches!(
+                            ty,
+                            TypeId::Named(n) if matches!(n.as_str(), "Closure" | "KeyPath")
+                        )
                     }) {
+                        for arg in args {
+                            self.analyze_expr(&arg.value)?;
+                        }
                         return Ok(TypeId::Unknown);
                     }
                     return Err(self.error_at(
@@ -5157,6 +5173,17 @@ impl SemanticAnalyzer {
                         *span,
                         "S002",
                     ));
+                }
+                // S1-I10: `init?` / `init!` → `Type(...)` yields Optional<Type>.
+                if self.class_names.contains(name) || self.actor_types.contains(name) {
+                    let named = TypeId::Named(name.clone());
+                    if self.failable_inits.contains(name) {
+                        return Ok(TypeId::Optional(Box::new(named)));
+                    }
+                    return Ok(named);
+                }
+                if self.dataclass_names.contains(name) {
+                    return Ok(TypeId::Named(name.clone()));
                 }
                 let global_ty = self.globals.get(name).map(|sym| sym.ty.clone());
                 if let Some(ty) = global_ty {
@@ -5748,7 +5775,7 @@ impl SemanticAnalyzer {
                 }
             }
         }
-        // S1-I8: `[Circle(), Square()]` under `: Array<Shape>` / `Array<any Shape>`.
+        // S1-I8/I10: `[Circle(), Square()]` under `: Array<Shape>` (protocol or class).
         if let Some(TypeId::Array(elem_expected)) = expected {
             if let Expr::Array { elements, span, .. } = expr {
                 let is_proto_elem = match elem_expected.as_ref() {
@@ -5758,16 +5785,25 @@ impl SemanticAnalyzer {
                     }
                     _ => false,
                 };
-                if is_proto_elem || elements.is_empty() {
+                let is_class_elem = matches!(
+                    elem_expected.as_ref(),
+                    TypeId::Named(n) if self.class_names.contains(n)
+                );
+                if is_proto_elem || is_class_elem || elements.is_empty() {
                     for el in elements {
                         let found = self.analyze_expr(el)?;
                         if matches!(found, TypeId::Unknown) {
                             continue;
                         }
-                        if found != **elem_expected
-                            && !is_compatible(elem_expected, &found)
-                            && !self.type_satisfies_as_protocol_bound(elem_expected, &found)
-                        {
+                        let ok = found == **elem_expected
+                            || is_compatible(elem_expected, &found)
+                            || self.type_satisfies_as_protocol_bound(elem_expected, &found)
+                            || matches!(
+                                (elem_expected.as_ref(), &found),
+                                (TypeId::Named(base), TypeId::Named(sub))
+                                    if self.is_subclass_of(sub.as_str(), base.as_str())
+                            );
+                        if !ok {
                             self.errors.push(self.error_at(
                                 format!(
                                     "Collection elements have inconsistent types: expected {}, found {}",
@@ -5810,8 +5846,14 @@ impl SemanticAnalyzer {
         if self.type_satisfies_as_protocol_bound(expected, found) {
             return true;
         }
+        if let (TypeId::Named(base), TypeId::Named(sub)) = (expected, found) {
+            if self.is_subclass_of(sub.as_str(), base.as_str()) {
+                return true;
+            }
+        }
         if let (TypeId::Array(a), TypeId::Array(b)) = (expected, found) {
-            return self.type_satisfies_as_protocol_bound(a, b);
+            return self.is_compatible(a, b)
+                || self.type_satisfies_as_protocol_bound(a, b);
         }
         false
     }

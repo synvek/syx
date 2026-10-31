@@ -667,6 +667,10 @@ pub enum Decl {
         access: AccessLevel,
         params: Vec<Param>,
         body: Vec<Stmt>,
+        /// S1-I10: `init?` / `init!` failable initializer.
+        failable: bool,
+        /// S1-I10: `init(...) throws` (type optional; thin parse).
+        throws: bool,
     },
     Deinit {
         span: Span,

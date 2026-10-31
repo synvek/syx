@@ -894,9 +894,21 @@ impl Parser {
 
     fn parse_init(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
+        // `init?` / `init!` failable (IUO) — marker only for S1-I10 check surface.
+        let failable = matches!(
+            self.peek().kind,
+            TokenKind::Question | TokenKind::Bang
+        );
+        if failable {
+            self.advance();
+        }
         self.consume(TokenKind::LParen, "Expected '(' after init")?;
         let params = self.parse_params()?;
         self.consume(TokenKind::RParen, "Expected ')' after init parameters")?;
+        let throws = self.match_kind(TokenKind::Throws);
+        if throws && self.match_kind(TokenKind::Arrow) {
+            let _ = self.parse_type()?;
+        }
         self.consume(TokenKind::LBrace, "Expected '{' before init body")?;
         let body = self.parse_block_stmts()?;
         Ok(Decl::Init {
@@ -904,6 +916,8 @@ impl Parser {
             access,
             params,
             body,
+            failable,
+            throws,
         })
     }
 
@@ -1314,7 +1328,38 @@ impl Parser {
         let start = self.previous().span;
         let name = self.consume_identifier("Expected final class name")?;
         let (type_params, _) = self.parse_type_params()?;
+        // OOP `final class Token { let …; init … }` vs ADT `final class Result { Ok(…) Err(…) }`.
         self.consume(TokenKind::LBrace, "Expected '{' after final class")?;
+        self.skip_newlines();
+        if self.looks_like_oop_final_class_member() {
+            let mut members = Vec::new();
+            while !self.check(TokenKind::RBrace) && !self.is_at_end() {
+                self.skip_newlines();
+                if self.check(TokenKind::RBrace) {
+                    break;
+                }
+                while self.match_kind(TokenKind::Semicolon) {}
+                if self.check(TokenKind::RBrace) {
+                    break;
+                }
+                members.push(self.parse_class_member()?);
+            }
+            self.consume(TokenKind::RBrace, "Expected '}' after final class")?;
+            return Ok(Decl::Class {
+                span: Span::merge(start, self.previous().span),
+                access,
+                attrs: vec![Attribute {
+                    name: SmolStr::new("final"),
+                    args: vec![],
+                }],
+                name,
+                type_params,
+                type_param_defaults: Vec::new(),
+                superclass: None,
+                conformances: Vec::new(),
+                members,
+            });
+        }
         let mut variants = Vec::new();
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
             self.skip_newlines();
@@ -1344,6 +1389,30 @@ impl Parser {
             type_params,
             variants,
         })
+    }
+
+    /// True when `final class` body starts with OOP members (`let`/`var`/`init`/`func`/…).
+    fn looks_like_oop_final_class_member(&self) -> bool {
+        matches!(
+            self.peek().kind,
+            TokenKind::Var
+                | TokenKind::Let
+                | TokenKind::Init
+                | TokenKind::Deinit
+                | TokenKind::Func
+                | TokenKind::Async
+                | TokenKind::Static
+                | TokenKind::Public
+                | TokenKind::Private
+                | TokenKind::Internal
+                | TokenKind::FilePrivate
+                | TokenKind::Subscript
+                | TokenKind::Final
+                | TokenKind::Mutating
+                | TokenKind::At
+        ) || self.check_identifier("override")
+            || self.check_identifier("lazy")
+            || self.check_identifier("operator")
     }
 
     fn parse_conformances(&mut self) -> SyxResult<Vec<SmolStr>> {
@@ -1683,21 +1752,49 @@ impl Parser {
             } else {
                 None
             };
-            if matches!(
-                &self.peek().kind,
-                TokenKind::Identifier(name) if name.as_str() == "willSet"
-            ) {
+            // Swift-style braced observers after init: `var x: Int = 0 { willSet {…} didSet {…} }`
+            if self.check(TokenKind::LBrace) {
                 self.advance();
-                self.consume(TokenKind::LBrace, "Expected '{' after willSet")?;
-                will_set = Some(self.parse_block_stmts()?);
-            }
-            if matches!(
-                &self.peek().kind,
-                TokenKind::Identifier(name) if name.as_str() == "didSet"
-            ) {
-                self.advance();
-                self.consume(TokenKind::LBrace, "Expected '{' after didSet")?;
-                did_set = Some(self.parse_block_stmts()?);
+                self.skip_newlines();
+                if matches!(
+                    &self.peek().kind,
+                    TokenKind::Identifier(name) if name.as_str() == "willSet"
+                ) {
+                    self.advance();
+                    self.consume(TokenKind::LBrace, "Expected '{' after willSet")?;
+                    will_set = Some(self.parse_block_stmts()?);
+                    self.skip_newlines();
+                }
+                if matches!(
+                    &self.peek().kind,
+                    TokenKind::Identifier(name) if name.as_str() == "didSet"
+                ) {
+                    self.advance();
+                    self.consume(TokenKind::LBrace, "Expected '{' after didSet")?;
+                    did_set = Some(self.parse_block_stmts()?);
+                    self.skip_newlines();
+                }
+                self.consume(
+                    TokenKind::RBrace,
+                    "Expected '}' after property observers",
+                )?;
+            } else {
+                if matches!(
+                    &self.peek().kind,
+                    TokenKind::Identifier(name) if name.as_str() == "willSet"
+                ) {
+                    self.advance();
+                    self.consume(TokenKind::LBrace, "Expected '{' after willSet")?;
+                    will_set = Some(self.parse_block_stmts()?);
+                }
+                if matches!(
+                    &self.peek().kind,
+                    TokenKind::Identifier(name) if name.as_str() == "didSet"
+                ) {
+                    self.advance();
+                    self.consume(TokenKind::LBrace, "Expected '{' after didSet")?;
+                    did_set = Some(self.parse_block_stmts()?);
+                }
             }
         }
         self.skip_newlines();
@@ -3364,6 +3461,13 @@ impl Parser {
             }
             TokenKind::Try => {
                 let token = self.advance().clone();
+                // S1-I10: `try?` / `try!` — optional / IUO try (same UnaryOp::Try for check).
+                if matches!(
+                    self.peek().kind,
+                    TokenKind::Question | TokenKind::Bang
+                ) {
+                    self.advance();
+                }
                 let expr = self.parse_unary()?;
                 Ok(Expr::Unary {
                     span: Span::merge(token.span, expr_span(&expr)),
@@ -3397,64 +3501,54 @@ impl Parser {
             }
             TokenKind::Backslash => {
                 let token = self.advance().clone();
-                let root_type = self.consume_identifier("Expected identifier after '\\'")?;
+                // `\Array<Int>.[0]` / `\Person.name` / `\Box.value?.description` / `\Type?.prop`
+                let mut root_type = self.consume_identifier("Expected identifier after '\\'")?;
+                if self.match_kind(TokenKind::Less) {
+                    let mut generics = String::new();
+                    loop {
+                        let g = self.parse_type()?;
+                        if !generics.is_empty() {
+                            generics.push_str(", ");
+                        }
+                        generics.push_str(&type_expr_keypath_name(&g));
+                        if !self.match_kind(TokenKind::Comma) {
+                            break;
+                        }
+                    }
+                    self.consume_rangle("Expected '>' after key path generic arguments")?;
+                    root_type = SmolStr::new(format!("{root_type}<{generics}>"));
+                }
+                let mut optional = false;
+                // Root optional: `\Type?.prop` (Question before the first path Dot).
+                if matches!(self.peek().kind, TokenKind::Question) {
+                    optional = true;
+                    self.advance();
+                }
                 if !self.check(TokenKind::Dot) {
                     return Ok(Expr::Ident {
                         span: Span::merge(token.span, self.previous().span),
                         name: smol_str::SmolStr::new(format!("\\{root_type}")),
                     });
                 }
-                let optional = matches!(self.peek().kind, TokenKind::Question);
-                if optional {
-                    self.advance();
-                }
                 self.consume(TokenKind::Dot, "Expected '.' in key path")?;
-                let mut property = if matches!(self.peek().kind, TokenKind::LBracket) {
-                    self.advance();
-                    let idx = match &self.peek().kind {
-                        TokenKind::Integer(v, _) => {
-                            let v = *v;
-                            self.advance();
-                            v.to_string()
-                        }
-                        TokenKind::Identifier(s) => {
-                            let s = s.clone();
-                            self.advance();
-                            s.to_string()
-                        }
-                        _ => {
-                            return self.error("Expected index in key path subscript");
-                        }
-                    };
-                    self.consume(TokenKind::RBracket, "Expected ']' after key path index")?;
-                    SmolStr::new(format!("[{idx}]"))
-                } else {
-                    self.consume_identifier("Expected property name in key path")?
-                };
-                while self.match_kind(TokenKind::Dot) {
-                    if matches!(self.peek().kind, TokenKind::LBracket) {
-                        self.advance();
-                        let idx = match &self.peek().kind {
-                            TokenKind::Integer(v, _) => {
-                                let v = *v;
-                                self.advance();
-                                v.to_string()
-                            }
-                            TokenKind::Identifier(s) => {
-                                let s = s.clone();
-                                self.advance();
-                                s.to_string()
-                            }
-                            _ => {
-                                return self.error("Expected index in key path subscript");
-                            }
-                        };
-                        self.consume(TokenKind::RBracket, "Expected ']' after key path index")?;
-                        property = SmolStr::new(format!("{property}.[{idx}]"));
-                    } else {
-                        let next = self.consume_identifier("Expected property name in key path")?;
+                let mut property = self.parse_keypath_segment()?;
+                loop {
+                    // Mid-path optional: `value?.description`
+                    if matches!(self.peek().kind, TokenKind::Question)
+                        && matches!(self.peek_nth(1).kind, TokenKind::Dot)
+                    {
+                        optional = true;
+                        self.advance(); // ?
+                        self.advance(); // .
+                        let next = self.parse_keypath_segment()?;
                         property = SmolStr::new(format!("{property}.{next}"));
+                        continue;
                     }
+                    if !self.match_kind(TokenKind::Dot) {
+                        break;
+                    }
+                    let next = self.parse_keypath_segment()?;
+                    property = SmolStr::new(format!("{property}.{next}"));
                 }
                 Ok(Expr::KeyPath {
                     span: Span::merge(token.span, self.previous().span),
@@ -4765,8 +4859,50 @@ impl Parser {
         &self.tokens[self.peek_index()]
     }
 
+    /// Peek the n-th non-trivia token ahead (0 == [`Self::peek`]).
+    fn peek_nth(&self, n: usize) -> &Token {
+        let mut idx = self.peek_index();
+        let mut seen = 0usize;
+        while seen < n {
+            idx += 1;
+            while idx < self.tokens.len() && Self::is_trivia_kind(&self.tokens[idx].kind) {
+                idx += 1;
+            }
+            if idx >= self.tokens.len() {
+                return self.tokens.last().expect("token stream non-empty");
+            }
+            seen += 1;
+        }
+        &self.tokens[idx.min(self.tokens.len().saturating_sub(1))]
+    }
+
     fn is_at_end(&self) -> bool {
         matches!(self.peek().kind, TokenKind::Eof)
+    }
+
+    fn parse_keypath_segment(&mut self) -> SyxResult<SmolStr> {
+        if matches!(self.peek().kind, TokenKind::LBracket) {
+            self.advance();
+            let idx = match &self.peek().kind {
+                TokenKind::Integer(v, _) => {
+                    let v = *v;
+                    self.advance();
+                    v.to_string()
+                }
+                TokenKind::Identifier(s) => {
+                    let s = s.clone();
+                    self.advance();
+                    s.to_string()
+                }
+                _ => {
+                    return self.error("Expected index in key path subscript");
+                }
+            };
+            self.consume(TokenKind::RBracket, "Expected ']' after key path index")?;
+            Ok(SmolStr::new(format!("[{idx}]")))
+        } else {
+            self.consume_identifier("Expected property name in key path")
+        }
     }
 
     fn skip_newlines(&mut self) {
@@ -4790,6 +4926,33 @@ impl Parser {
             token.span,
             "here",
         ))
+    }
+}
+
+/// Compact type name for KeyPath roots (`Array<Int>`, nested generics).
+fn type_expr_keypath_name(ty: &TypeExpr) -> String {
+    match ty {
+        TypeExpr::Named { name, generics } => {
+            if generics.is_empty() {
+                name.to_string()
+            } else {
+                let inner = generics
+                    .iter()
+                    .map(type_expr_keypath_name)
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{name}<{inner}>")
+            }
+        }
+        TypeExpr::Array(inner) => format!("[{}]", type_expr_keypath_name(inner)),
+        TypeExpr::Dictionary { key, value } => format!(
+            "Dictionary<{}, {}>",
+            type_expr_keypath_name(key),
+            type_expr_keypath_name(value)
+        ),
+        TypeExpr::Optional(inner) => format!("{}?", type_expr_keypath_name(inner)),
+        TypeExpr::Void => "Void".to_string(),
+        other => format!("{other:?}"),
     }
 }
 

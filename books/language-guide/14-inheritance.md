@@ -222,19 +222,20 @@ class User: Greetable {                    // No override
 
 ## Inheritance and Actors
 
-An `actor` cannot be inherited (**Not implemented**); inside an actor you may freely compose with classes:
+An `actor` cannot be inherited (**Not implemented**); actors freely compose with top-level classes (nested `class` inside `actor` remains a later slice):
 
 ```syx
+class Session {
+    let id: String
+    init(id: String) { self.id = id }
+}
+
 actor Manager {
     var sessions: Array<Session> = []
-    private class Session {
-        let id: String
-        init(id: String) { self.id = id }
-    }
 
     func open() -> Session {
         let s = Session(id: "x")
-        sessions.append(s)
+        self.sessions.append(s)
         return s
     }
 }
@@ -249,7 +250,7 @@ class Shape {
 
     func area() -> Double { return 0.0 }
     func describe() -> String {
-        return "\(color) shape, area=\(area())"
+        return "\(self.color) shape, area=\(self.area())"
     }
 }
 
@@ -262,7 +263,7 @@ class Circle: Shape {
     }
 
     override func area() -> Double {
-        return 3.14159 * radius * radius
+        return 3.14159 * self.radius * self.radius
     }
 }
 
@@ -277,7 +278,7 @@ class Rectangle: Shape {
     }
 
     override func area() -> Double {
-        return width * height
+        return self.width * self.height
     }
 }
 

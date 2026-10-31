@@ -254,3 +254,56 @@ func main() {
         "stderr={stderr}"
     );
 }
+
+#[test]
+fn s1_i10_keypath_array_generic_and_callable_check() {
+    // S1-I10: `\Array<Int>.[0]` / property KeyPath call / mid-path `?.` must check.
+    assert_eq!(
+        compile_fail_code(
+            r#"
+func main() {
+    let arr = [1, 2, 3]
+    let kp = \Array<Int>.[0]
+    print(kp(arr))
+    print((\Array<Int>.[0])(arr))
+}
+"#
+        ),
+        None,
+        "array KeyPath check"
+    );
+    assert_eq!(
+        compile_fail_code(
+            r#"
+class Person {
+    let name: String
+    init(name: String) { self.name = name }
+}
+func main() {
+    let p = Person(name: "Alice")
+    let nameKp = \Person.name
+    print(nameKp(p))
+}
+"#
+        ),
+        None,
+        "property KeyPath callable check"
+    );
+    assert_eq!(
+        compile_fail_code(
+            r#"
+class Box {
+    let value: Int?
+    init(value: Int?) { self.value = value }
+}
+func main() {
+    let b = Box(value: 42)
+    let vKp = \Box.value?.description
+    print(vKp(b))
+}
+"#
+        ),
+        None,
+        "optional mid-path KeyPath check"
+    );
+}
