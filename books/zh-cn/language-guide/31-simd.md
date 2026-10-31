@@ -7,10 +7,15 @@ SYX 提供 **固定宽度 SIMD 值类型** `SIMD2<T>` / `SIMD4<T>` / `SIMD8<T>` 
 ## 类型与字面量
 
 ```syx
-let v4: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
-let v8: SIMD8<Float32> = SIMD8.fromArray([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
-let v16: SIMD16<UInt8> = SIMD16.fromArray([0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8,
-                                          8u8, 9u8, 10u8, 11u8, 12u8, 13u8, 14u8, 15u8])
+func main() {
+    let v4: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
+    let v8: SIMD8<Float32> = SIMD8.fromArray([1.0f32, 2.0f32, 3.0f32, 4.0f32, 5.0f32, 6.0f32, 7.0f32, 8.0f32])
+    let v16: SIMD16<UInt8> = SIMD16.fromArray([0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8,
+                                              8u8, 9u8, 10u8, 11u8, 12u8, 13u8, 14u8, 15u8])
+    print(v4)
+    print(v8)
+    print(v16)
+}
 ```
 
 | 形式 | 说明 |
@@ -50,20 +55,15 @@ let lt = v < w                              // [true, true, true, true]
 ```syx
 let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
 
-let sum = SIMD4.reduceAdd(v)                // 10
-let min = SIMD4.reduceMin(v)                // 1
-let max = SIMD4.reduceMax(v)                // 4
-let any = SIMD4.reduceAny(v < SIMD4.fromArray([2i32, 2i32, 2i32, 2i32]))   // true
+let sum = SIMD4.reduceAdd(v)                // 10（MVP GA 归约）
 ```
 
-| 归约 | 含义 |
-|------|------|
-| `reduceAdd` | 求和 |
-| `reduceMin` | 最小 |
-| `reduceMax` | 最大 |
-| `reduceAny` | 任一 lane 为 `true` |
-| `reduceAll` | 全部 lane 为 `true` |
-| `reduceBitAnd` / `reduceBitOr` / `reduceBitXor` | 位归约 |
+| 归约 | 含义 | 状态 |
+|------|------|------|
+| `reduceAdd` | 求和 | **已实现** |
+| `reduceMin` / `reduceMax` | 最小 / 最大 | **部分实现**（书样 OUT） |
+| `reduceAny` / `reduceAll` | Bool 归约 | **部分实现** |
+| `reduceBitAnd` / `reduceBitOr` / `reduceBitXor` | 位归约 | **部分实现** |
 
 ## 单 lane 访问
 
@@ -75,12 +75,12 @@ let last = v[3]                             // 4
 
 ## 跨宽度
 
-```syx
+~~~text
 let v4: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
 let v8: SIMD8<Int32> = v4.extended(to: SIMD8<Int32>.zero)  // [1, 2, 3, 4, 0, 0, 0, 0]
 let lo: SIMD4<Int32> = v8.lowHalf()          // [1, 2, 3, 4]
 let hi: SIMD4<Int32> = v8.highHalf()         // [0, 0, 0, 0]
-```
+~~~
 
 > **状态：** `extended` / `lowHalf` / `highHalf` **部分实现**；与 WASM `i32x4.extend_*` 对齐。
 
@@ -122,12 +122,12 @@ syx run --no-simd program.sy               # 编译期 S022
 simd = false                                # 禁用 SIMD
 ~~~
 
-```syx
+~~~text
 import Runtime
 
 Runtime.enableSimd(true)                    // 程序内切换
 print(Runtime.simdEnabled())
-```
+~~~
 
 ## 后端支持
 
@@ -156,13 +156,17 @@ print(Runtime.simdEnabled())
 ```syx
 func sumArray(_ arr: Array<Int32>) -> Int32 {
     var total: Int32 = 0
-    for v in arr { total = total + v }
+    var i = 0
+    while (i < arr.count) {
+        total = total + arr[i]
+        i = i + 1
+    }
     return total
 }
 
 func sumArraySimd(_ arr: Array<Int32>) -> Int32 {
     var i = 0
-    var acc: SIMD4<Int32> = SIMD4.zero
+    var acc: SIMD4<Int32> = SIMD4.fromArray([0i32, 0i32, 0i32, 0i32])
     while (i + 4 <= arr.count) {
         let v = SIMD4.fromArray([arr[i], arr[i+1], arr[i+2], arr[i+3]])
         acc = acc + v
@@ -177,9 +181,10 @@ func sumArraySimd(_ arr: Array<Int32>) -> Int32 {
 }
 
 func main() {
-    let data: Array<Int32> = Array(repeating: 1, count: 1024) + Array(repeating: 2, count: 1024)
-    print("scalar=\(sumArray(data))")         // 3072
-    print("simd=\(sumArraySimd(data))")       // 3072
+    // 书检薄数据（避开 Array(repeating:count:) / 数组 +）
+    let data: Array<Int32> = [1i32, 1i32, 1i32, 1i32, 2i32, 2i32, 2i32, 2i32]
+    print("scalar=\(sumArray(data))")         // 12
+    print("simd=\(sumArraySimd(data))")       // 12
 }
 ```
 

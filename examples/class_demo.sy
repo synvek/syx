@@ -27,7 +27,7 @@ func main() {
         sum = sum + x
     }
     print(sum)
-    let sorted = [3, 1, 2].sorted()
+    var sorted = [3, 1, 2].sorted()
     sorted.append(5)
     print(sorted.count)
 }

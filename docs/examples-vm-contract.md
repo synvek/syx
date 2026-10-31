@@ -1,6 +1,6 @@
 # Examples VM allowlist contract (S1-10)
 
-**Status:** expanded (S1-I17). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
+**Status:** expanded (S1-I18, **16** files). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
 
 ## Scope
 
@@ -11,7 +11,7 @@ This slice freezes a **VM-only** allowlist of single-file demos and asserts:
 
 Script: [`scripts/examples_vm_contract.sh`](../scripts/examples_vm_contract.sh)
 
-## Allowlist (frozen, 14 files)
+## Allowlist (frozen, 16 files)
 
 | File | Notes |
 |------|--------|
@@ -29,12 +29,14 @@ Script: [`scripts/examples_vm_contract.sh`](../scripts/examples_vm_contract.sh)
 | `examples/log_fields.sy` | S1-I17 expand |
 | `examples/hello2.sy` | S1-I17 expand |
 | `examples/observability_demo.sy` | S1-I17 expand |
+| `examples/class_demo.sy` | S1-I18：`var` for mutating `append` (S060) |
+| `examples/collection_demo.sy` | S1-I18：`var` for Set/Dict mutation (S060) |
 
 ## Honest boundaries
 
 - **In:** default VM `check` + `run` for the allowlist above.
 - **Out:** native / wasm full matrix; project-dir examples (`examples/deps`, tools, plugins, `gui_demo`); claiming “examples runnable rate full” or stage-1 exit.
-- Demos that fail `let`+mutating (`class_demo`, `collection_demo`) stay **off** the list until fixed.
+- Still **off** list: `gui_demo`, `httpclient`/`httpserver`, testing shells without runnable `main`.
 - S0 backend smoke (`scripts/s0_backend_smoke.sh`) still covers hello native/wasm fail-closed separately; it is **not** this contract.
 
 ## How to run

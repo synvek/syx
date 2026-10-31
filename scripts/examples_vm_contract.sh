@@ -29,6 +29,8 @@ ALLOWLIST=(
   examples/log_fields.sy
   examples/hello2.sy
   examples/observability_demo.sy
+  examples/class_demo.sy
+  examples/collection_demo.sy
 )
 
 echo "== S1-10 examples VM allowlist contract =="

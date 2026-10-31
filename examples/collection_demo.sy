@@ -27,7 +27,7 @@ func test005() {
     let int2: Double = 8.0
 
     print("Array demo 5")
-    let s2: Array<Double> = []
+    var s2: Array<Double> = []
     print(s2.count)
     s2.append(2)
     print(s2.count)
@@ -42,7 +42,7 @@ func test004() {
     let int2: Double = 8.0
 
     print("Set demo 4")
-    let s1: Set<Double> = []
+    var s1: Set<Double> = []
     print(s1.count)
     s1.insert(2)
     print(s1.count)
@@ -57,7 +57,7 @@ func test003() {
     let f2: Float = 8.0f32
 
     print("Set demo 3")
-    let s1: Set<Float> = []
+    var s1: Set<Float> = []
     print(s1.count)
     s1.insert(2)
     print(s1.count)
@@ -72,16 +72,16 @@ func test002() {
     let int2: Int = 8
 
     print("Set demo")
-    let s1: Set<Int> = [1, 2,3]
+    var s1: Set<Int> = [1, 2,3]
     print(s1.count)
     s1.insert(2)
     print(s1.count)
-    let s2: Set<Int> = Set()
+    var s2: Set<Int> = Set()
     s2.insert(1)
     s2.insert(1)
     s2.insert(3)
     print(s2.count)
-    let s3: Set<Int> = []
+    var s3: Set<Int> = []
     s3.insert(1)
     s3.insert(2)
     s3.insert(1)
@@ -90,8 +90,9 @@ func test002() {
 
 func test001() {
     print("Dictionary demo")
-    let d: Dictionary<String, Int> = {"a": 1, "b": 2}
+    var d: Dictionary<String, Int> = {"a": 1, "b": 2}
     d["abc"] = 33
+
     print(d.count)    
     print("Array demo")
     let c: Array<Int> = [3,4]
