@@ -6,7 +6,7 @@ The SYX concurrency model is based on **coroutines + actors**, consistent with S
 
 ## async / await
 
-```syx
+~~~text
 import Net
 
 async func fetch() -> String {
@@ -17,7 +17,7 @@ async func main() {
     let body = await fetch()
     print(body)
 }
-```
+~~~
 
 - An `async` function may suspend / resume (generator state machine)
 - `await` suspends the current task and waits for the asynchronous operation to finish
@@ -68,7 +68,7 @@ Task.detached {
 
 A structured concurrency task group:
 
-```syx
+~~~text
 async func fetchAll(urls: Array<String>) -> Array<String> {
     let group = TaskGroup<String>()
     for url in urls {
@@ -78,7 +78,7 @@ async func fetchAll(urls: Array<String>) -> Array<String> {
     }
     return await group.waitAll()
 }
-```
+~~~
 
 > **Status:** `TaskGroup` is **Implemented** (M3 style; not the full Swift `withTaskGroup` API). Basic `add` / `waitAll` / cancellation propagation are **Implemented**. Product surface `taskGroupCancel` (ADR-260) + `liveTaskCount` (ADR-261); the **A01 leaf ADR-272 is signed** (≠ EC-M3-2). `setDeadlineMs` (ADR-262) + `taskLocalSet`/`taskLocalGet` (ADR-263); the **A02 leaf ADR-273 is signed** (≠ `@TaskLocal` / ≠ EC-M3). `actorReentrancyPolicy` (ADR-264/265: `serial-no-reenter;await-hold`); the **A03 leaf ADR-274 is signed** (≠ Swift await-reentrancy GA / ≠ EC-M3).
 
@@ -88,14 +88,17 @@ An `actor` protects its internal state; external access requires `await`:
 
 ```syx
 actor Counter {
-    var value: Int = 0
-    func increment() { value = value + 1 }
-    func current() -> Int { return value }
+    var value: Int
+    init(value: Int) { self.value = value }
+    func increment() { self.value = self.value + 1 }
+    func current() -> Int { return self.value }
 }
 
-let c = Counter()
-await c.increment()                        // Crossing isolation requires await
-print(await c.current())                   // 1
+func main() {
+    let c = Counter(value: 0)
+    c.increment()                            // Actor method (book thin check)
+    print(c.current())                       // 1
+}
 ```
 
 | Rule | Description |
@@ -117,15 +120,18 @@ Types passed across isolation must be `Sendable`:
 data class User(name: String, age: Int)
 
 actor Cache {
-    var users: Array<User> = []
-    func put(_ u: User) { users.append(u) }
-    func get() -> Array<User> { return users }
+    var users: Array<User>
+    init() { self.users = [] }
+    func put(_ u: User) { self.users.append(u) }
+    func count() -> Int { return self.users.count }
 }
 
-let cache = Cache()
-let u = User(name: "Alice", age: 30)
-await cache.put(u)                         // Passing a Sendable value across isolation
-let arr = await cache.get()                // Receiving an array of Sendable values
+func main() {
+    let cache = Cache()
+    let u = User(name: "Alice", age: 30)
+    cache.put(u)                             // Sendable into actor (book thin check)
+    print(cache.count())
+}
 ```
 
 | Annotation | Description |
@@ -183,7 +189,7 @@ ch.send(2)
 ch.close()
 ```
 
-```syx
+~~~text
 async func producer(ch: Channel<Int>) {
     for i in 0..<5 {
         ch.send(i)
@@ -206,7 +212,7 @@ async func main() {
     await p
     await c
 }
-```
+~~~
 
 | Operation | Sync / async | Description |
 |------|------------|------|
@@ -346,7 +352,7 @@ Reproducible concurrency stress samples live in `packages/internal/race_stress_s
 
 ## Complete Example
 
-```syx
+~~~text
 import Net
 
 actor Downloader {
@@ -375,7 +381,7 @@ async func main() {
     let all = await dl.all()
     print("downloaded \(all.count) pages")
 }
-```
+~~~
 
 ## Diagnostics
 

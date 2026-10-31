@@ -6,7 +6,7 @@ SYX 并发模型基于 **协程 + actor**，与 Swift Concurrency 风格一致�
 
 ## async / await
 
-```syx
+~~~text
 import Net
 
 async func fetch() -> String {
@@ -17,7 +17,7 @@ async func main() {
     let body = await fetch()
     print(body)
 }
-```
+~~~
 
 - `async` 函数可暂停 / 恢复（生成器状态机）
 - `await` 暂停当前任务，等待异步操作完成
@@ -68,7 +68,7 @@ Task.detached {
 
 结构化并发任务组：
 
-```syx
+~~~text
 async func fetchAll(urls: Array<String>) -> Array<String> {
     let group = TaskGroup<String>()
     for url in urls {
@@ -78,7 +78,7 @@ async func fetchAll(urls: Array<String>) -> Array<String> {
     }
     return await group.waitAll()
 }
-```
+~~~
 
 > **状态：** `TaskGroup` **已实现**（M3 风格；非完整 Swift `withTaskGroup` API）。基础 `add` / `waitAll` / 取消传播 **已实现**。产品面 `taskGroupCancel`（ADR-260）+ `liveTaskCount`（ADR-261）；**A01 叶子 ADR-272 已签**（≠ EC-M3-2）。`setDeadlineMs`（ADR-262）+ `taskLocalSet`/`taskLocalGet`（ADR-263）；**A02 叶子 ADR-273 已签**（≠ `@TaskLocal` / ≠ EC-M3）。`actorReentrancyPolicy`（ADR-264/265：`serial-no-reenter;await-hold`）；**A03 叶子 ADR-274 已签**（≠ Swift await-reentrancy GA / ≠ EC-M3）。
 
@@ -88,14 +88,17 @@ async func fetchAll(urls: Array<String>) -> Array<String> {
 
 ```syx
 actor Counter {
-    var value: Int = 0
-    func increment() { value = value + 1 }
-    func current() -> Int { return value }
+    var value: Int
+    init(value: Int) { self.value = value }
+    func increment() { self.value = self.value + 1 }
+    func current() -> Int { return self.value }
 }
 
-let c = Counter()
-await c.increment()                        // 跨隔离必须 await
-print(await c.current())                   // 1
+func main() {
+    let c = Counter(value: 0)
+    c.increment()                            // actor 方法（书检薄样）
+    print(c.current())                       // 1
+}
 ```
 
 | 规则 | 说明 |
@@ -117,15 +120,18 @@ print(await c.current())                   // 1
 data class User(name: String, age: Int)
 
 actor Cache {
-    var users: Array<User> = []
-    func put(_ u: User) { users.append(u) }
-    func get() -> Array<User> { return users }
+    var users: Array<User>
+    init() { self.users = [] }
+    func put(_ u: User) { self.users.append(u) }
+    func count() -> Int { return self.users.count }
 }
 
-let cache = Cache()
-let u = User(name: "Alice", age: 30)
-await cache.put(u)                         // 跨隔离传 Sendable 值
-let arr = await cache.get()                // 接收 Sendable 值数组
+func main() {
+    let cache = Cache()
+    let u = User(name: "Alice", age: 30)
+    cache.put(u)                             // 向 actor 传入 Sendable（书检薄样）
+    print(cache.count())
+}
 ```
 
 | 注解 | 说明 |
@@ -183,7 +189,7 @@ ch.send(2)
 ch.close()
 ```
 
-```syx
+~~~text
 async func producer(ch: Channel<Int>) {
     for i in 0..<5 {
         ch.send(i)
@@ -206,7 +212,7 @@ async func main() {
     await p
     await c
 }
-```
+~~~
 
 | 操作 | 同步 / 异步 | 说明 |
 |------|------------|------|
@@ -346,7 +352,7 @@ Concurrency.setMailboxCapacity(256)
 
 ## 完整示例
 
-```syx
+~~~text
 import Net
 
 actor Downloader {
@@ -375,7 +381,7 @@ async func main() {
     let all = await dl.all()
     print("downloaded \(all.count) pages")
 }
-```
+~~~
 
 ## 诊断
 

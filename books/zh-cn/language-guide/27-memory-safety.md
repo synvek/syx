@@ -92,13 +92,18 @@ actor 外直接访问 actor 状态 → **A002** / **C001**：
 
 ```syx
 actor Counter {
-    var value: Int = 0
-    func increment() { value = value + 1 }
+    var value: Int
+    init(value: Int) { self.value = value }
+    func increment() { self.value = self.value + 1 }
+    func get() -> Int { return self.value }
 }
 
-let c = Counter()
-// print(c.value)                            // ❌ A002：cross-actor access without await
-print(await c.value)                        // ✅ 跨隔离必须 await
+func main() {
+    let c = Counter(value: 0)
+    // print(c.value)                        // ❌ A002：跨 actor 直接读字段
+    c.increment()                            // ✅ actor 方法调用（书检薄样）
+    print(c.get())
+}
 ```
 
 详见 [第 18 章 并发](18-concurrency.md#actor-隔离)。
@@ -112,13 +117,18 @@ print(await c.value)                        // ✅ 跨隔离必须 await
 data class User(name: String, age: Int)
 
 actor Cache {
-    var users: Array<User> = []
-    func put(_ u: User) { users.append(u) } // User 满足 Sendable
+    var users: Array<User>
+    init() { self.users = [] }
+    func put(_ u: User) { self.users.append(u) } // User 满足 Sendable
+    func count() -> Int { return self.users.count }
 }
 
-let cache = Cache()
-let u = User(name: "Alice", age: 30)
-await cache.put(u)                          // 跨隔离传 Sendable 值
+func main() {
+    let cache = Cache()
+    let u = User(name: "Alice", age: 30)
+    cache.put(u)                             // 向 actor 传入 Sendable（书检薄样）
+    print(cache.count())
+}
 ```
 
 | 注解 | 状态 | 说明 |

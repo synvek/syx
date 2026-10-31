@@ -92,13 +92,18 @@ Accessing actor state directly from outside → **A002** / **C001**:
 
 ```syx
 actor Counter {
-    var value: Int = 0
-    func increment() { value = value + 1 }
+    var value: Int
+    init(value: Int) { self.value = value }
+    func increment() { self.value = self.value + 1 }
+    func get() -> Int { return self.value }
 }
 
-let c = Counter()
-// print(c.value)                            // ❌ A002: cross-actor access without await
-print(await c.value)                        // ✅ Crossing isolation requires await
+func main() {
+    let c = Counter(value: 0)
+    // print(c.value)                        // ❌ A002: cross-actor field without isolation hop
+    c.increment()                            // ✅ method call on actor (book thin check)
+    print(c.get())
+}
 ```
 
 See [Chapter 18, Concurrency](18-concurrency.md#actor-isolation).
@@ -112,13 +117,18 @@ A type passed across isolation must be `Sendable`:
 data class User(name: String, age: Int)
 
 actor Cache {
-    var users: Array<User> = []
-    func put(_ u: User) { users.append(u) } // User satisfies Sendable
+    var users: Array<User>
+    init() { self.users = [] }
+    func put(_ u: User) { self.users.append(u) } // User satisfies Sendable
+    func count() -> Int { return self.users.count }
 }
 
-let cache = Cache()
-let u = User(name: "Alice", age: 30)
-await cache.put(u)                          // Passing a Sendable value across isolation
+func main() {
+    let cache = Cache()
+    let u = User(name: "Alice", age: 30)
+    cache.put(u)                             // Sendable value into actor (book thin check)
+    print(cache.count())
+}
 ```
 
 | Annotation | Status | Description |
