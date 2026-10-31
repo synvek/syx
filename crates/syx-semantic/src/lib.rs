@@ -1666,7 +1666,11 @@ impl SemanticAnalyzer {
             }
             TypeId::Set(_) => lookup_set_method(method).is_some(),
             TypeId::Dictionary { .. } => lookup_dict_method(method).is_some(),
-            TypeId::String => lookup_string_method(method).is_some(),
+            TypeId::String => {
+                lookup_string_method(method).is_some()
+                    // S1-I11: book `source.isEmpty` (extension property; not in STRING_METHODS).
+                    || method == "isEmpty"
+            }
             _ => false,
         };
         if known {
@@ -1704,6 +1708,9 @@ impl SemanticAnalyzer {
             }
         }
         if matches!(object_ty, TypeId::String) {
+            if method == "isEmpty" {
+                return TypeId::Bool;
+            }
             if let Some(m) = lookup_string_method(method) {
                 return type_name_to_id(method_return_type(m));
             }

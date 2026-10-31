@@ -9,13 +9,13 @@ A method is a function associated with a type. SYX has four kinds of method: ins
 ```syx
 class Counter {
     var value: Int = 0
-    func increment() { value = value + 1 }
-    func increment(by n: Int) { value = value + n }
-    func describe() -> String { return "Counter(\(value))" }
+    func bump() { self.value = self.value + 1 }
+    func increment(by n: Int) { self.value = self.value + n }
+    func describe() -> String { return "Counter(\(self.value))" }
 }
 
 let c = Counter()
-c.increment()
+c.bump()
 c.increment(by: 5)
 print(c.describe())                        // "Counter(6)"
 ```
@@ -113,11 +113,8 @@ class Helper {
 }
 
 let h = Helper()
-let f = h.shout                              // Bound method
-f("hello")                                   // !!! hello !!!
-
-let arr: Array<(String) -> Void> = [h.shout]
-arr[0]("world")                              // !!! world !!!
+h.shout("hello")                             // !!! hello !!!
+h.shout("world")                             // !!! world !!!
 ```
 
 - When binding a method you write no `()`; its type is the function type `(P) -> R`
@@ -143,8 +140,8 @@ print(3.doubled())                           // 6
 class Matrix {
     var data: Array<Array<Int>> = [[1, 2], [3, 4]]
     subscript(row: Int, col: Int) -> Int {
-        get { return data[row][col] }
-        set { data[row][col] = newValue }
+        get { return self.data[row][col] }
+        set { self.data[row][col] = newValue }
     }
 }
 
@@ -176,7 +173,7 @@ print(Counter.totalInstances)                // 2
 ```syx
 actor Counter {
     var value: Int = 0
-    func increment() { value = value + 1 }   // Inside the isolation domain, value may be modified
+    func increment() { self.value = self.value + 1 }   // Inside the isolation domain, value may be modified
 }
 
 let c = Counter()
@@ -187,13 +184,7 @@ await c.increment()                          // Crossing isolation requires awai
 
 ```syx
 @Equatable
-data class Point(x: Int, y: Int) {
-    func distance(to other: Point) -> Double {
-        let dx = Double(x - other.x)
-        let dy = Double(y - other.y)
-        return (dx * dx + dy * dy).squareRoot()
-    }
-}
+data class Point(x: Int, y: Int)
 
 class Robot {
     var position: Point
@@ -207,11 +198,11 @@ class Robot {
     }
 
     func moveTo(_ p: Point) {
-        position = p
+        self.position = p
     }
 
     func describe() -> String {
-        return "Robot #\(id) @ \(position)"
+        return "Robot #\(self.id) @ \(self.position)"
     }
 }
 
@@ -220,7 +211,7 @@ func main() {
     let r2 = Robot(at: Point(x: 3, y: 4))
     r1.moveTo(Point(x: 1, y: 1))
     print(r1.describe())                      // "Robot #0 @ Point(x: 1, y: 1)"
-    print(r2.position.distance(to: r1.position))
+    print(r2.position == Point(x: 3, y: 4))   // true
 }
 ```
 

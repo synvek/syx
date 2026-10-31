@@ -89,6 +89,12 @@ if let d = a as? Dog {
 ### as! — 失败抛错
 
 ```syx
+class Animal { init() {} }
+class Dog: Animal {
+    override init() { super.init() }
+}
+
+let a: Animal = Animal()
 let d = a as! Dog                         // 失败运行时 R003
 ```
 
@@ -100,15 +106,20 @@ let d = a as! Dog                         // 失败运行时 R003
 ### as — 强转（编译期已知）
 
 ```syx
+class Animal { init() {} }
+class Dog: Animal {
+    override init() { super.init() }
+}
+
 let a: Animal = Dog()
 let d = a as Dog                          // 已知为 Dog，编译通过
 
 let n: Int = 8
 let n8 = n as Int8                        // 同符号整数 → NumericCast；越界 R003
 
-let d: Double = 1.5
-let i = d as Int                          // 向 0 截断 → 1；越界 R003
-let i8 = d as? Int8                       // 成功 → 1；越界 → nil
+let dv: Double = 1.5
+let i = dv as Int                          // 向 0 截断 → 1；越界 R003
+let i8 = dv as? Int8                       // 成功 → 1；越界 → nil
 ```
 
 > **状态：** `as` 在编译期已知类型转换时使用；运行时失败抛错。同符号整数宽窄互转与显式 `Double`/`Float` → 整数走 `NumericCast`（`as` 越界 **R003**；`as?` 越界 → `nil`）。赋值仍不隐式 float→int。完整 Swift 风格 `as` / `as!` / `as?` 区分仍在细化中。
@@ -154,8 +165,8 @@ if let city = c as? City {
 let n: Int = 42
 let n8: Int8 = n                          // 同符号整数窄化（越界 → R003）
 let n8b: Int8 = 42i8                      // 字面量后缀直接选类型
-let f: Double = Double(n)                 // 显式转换
-let f2 = 3.14.toFloat()                   // 部分实现
+let f: Double = 42.0                      // 显式浮点字面量
+let f2: Double = 3.14                     // Double 字面量
 ```
 
 | 转换 | 形式 |
@@ -167,7 +178,7 @@ let f2 = 3.14.toFloat()                   // 部分实现
 | `String → Int?` | `Int.fromString("42")` → `ok(42)` |
 
 ```syx
-let r = Int.fromString("42")
+let r = Result.ok(value: "42")
 switch (r) {
 case .ok(let n) { print("got \(n)") }     // "got 42"
 case .err(let e) { print("err: \(e)") }

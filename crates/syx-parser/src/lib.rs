@@ -804,11 +804,17 @@ impl Parser {
             if self.check(TokenKind::RBrace) {
                 break;
             }
-            // Book: methods after cases (`func isFinal() …`) → Extension on the enum type.
+            // Book: methods / `init` after cases → Extension on the enum type.
             if matches!(
                 self.peek().kind,
-                TokenKind::Func | TokenKind::Mutating | TokenKind::Public | TokenKind::Private
-                    | TokenKind::Internal | TokenKind::FilePrivate | TokenKind::At
+                TokenKind::Func
+                    | TokenKind::Init
+                    | TokenKind::Mutating
+                    | TokenKind::Public
+                    | TokenKind::Private
+                    | TokenKind::Internal
+                    | TokenKind::FilePrivate
+                    | TokenKind::At
             ) {
                 methods.push(self.parse_class_member()?);
                 continue;
@@ -850,6 +856,7 @@ impl Parser {
                         self.peek().kind,
                         TokenKind::Case
                             | TokenKind::Func
+                            | TokenKind::Init
                             | TokenKind::Mutating
                             | TokenKind::Public
                             | TokenKind::Private
@@ -3654,6 +3661,19 @@ impl Parser {
                         target,
                     };
                 }
+                // S1-I11: `as! Type` forced cast (same AST as hard `as` for check/runtime R003).
+                TokenKind::As if matches!(self.tokens.get(self.peek_index() + 1).map(|t| &t.kind), Some(TokenKind::Bang)) => {
+                    let start = expr_span(&expr);
+                    self.advance();
+                    self.advance();
+                    let target = self.parse_type()?;
+                    let span = Span::merge(start, self.previous().span);
+                    expr = Expr::Cast {
+                        span,
+                        expr: Box::new(expr),
+                        target,
+                    };
+                }
                 TokenKind::As => {
                     let start = expr_span(&expr);
                     self.advance();
@@ -3952,6 +3972,18 @@ impl Parser {
                 }
                 self.parse_dict_literal(span)
             }
+            // S1-I11: `.http` / `.custom(x)` implicit member (enum init `self = .case`).
+            TokenKind::Dot => {
+                let name = self.consume_identifier("Expected member name after '.'")?;
+                Ok(Expr::Member {
+                    span: Span::merge(span, self.previous().span),
+                    object: Box::new(Expr::Ident {
+                        span,
+                        name: SmolStr::new("Self"),
+                    }),
+                    name,
+                })
+            }
             _ => self.error_at(token.clone(), "Expected expression"),
         }
     }
@@ -4111,6 +4143,8 @@ impl Parser {
         match self.peek_non_trivia_kind(i) {
             Some(TokenKind::Identifier(n)) if n.starts_with('$') => true,
             Some(TokenKind::Pipe) | Some(TokenKind::LParen) => true,
+            // S1-I11: `{ [self] in … }` capture list (not a dict).
+            Some(TokenKind::LBracket) => true,
             // S1-I7: `{ return "later" }` / `{ if … }` statement-bodied closures.
             Some(
                 TokenKind::Return
@@ -4165,6 +4199,33 @@ impl Parser {
     }
 
     fn parse_brace_closure(&mut self, start_span: Span) -> SyxResult<Expr> {
+        // S1-I11: `{ [self] in … }` / `{ [weak self] in … }` — skip capture list (thin).
+        if self.match_kind(TokenKind::LBracket) {
+            while !self.check(TokenKind::RBracket) && !self.is_at_end() {
+                self.advance();
+            }
+            self.consume(TokenKind::RBracket, "Expected ']' after capture list")?;
+            self.skip_newlines();
+            if self.match_kind(TokenKind::In) {
+                let body = if self.check(TokenKind::RBrace) {
+                    self.advance();
+                    ClosureBody::Block(Vec::new())
+                } else if self.looks_like_closure_stmt_body() {
+                    ClosureBody::Block(self.parse_stmts_until_rbrace()?)
+                } else {
+                    let expr = self.parse_expr()?;
+                    self.consume(TokenKind::RBrace, "Expected '}' after capture-list closure")?;
+                    ClosureBody::Expr(Box::new(expr))
+                };
+                return Ok(Expr::Closure {
+                    span: Span::merge(start_span, self.previous().span),
+                    params: Vec::new(),
+                    return_type: None,
+                    body,
+                });
+            }
+            // `{ [captures] (x: T) in … }` — fall through to remaining param forms.
+        }
         // `{ $0 … }` shorthand — body is an expression (or block stmts until `}`).
         if matches!(&self.peek().kind, TokenKind::Identifier(n) if n.starts_with('$')) {
             let body_expr = self.parse_expr()?;

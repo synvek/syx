@@ -132,6 +132,11 @@ func main() {
 无 Swift 式自动 `copy`（**未实现**）；当前用显式构造 / `with`：
 
 ```syx
+struct Point {
+    var x: Int
+    var y: Int
+}
+
 func with(_ p: Point, x: Int) -> Point {
     return Point(x: x, y: p.y)
 }
@@ -157,8 +162,8 @@ enum Result<T, E> {
 ```syx
 actor Counter {
     var value: Int = 0
-    func increment() { value = value + 1 }
-    func current() -> Int { return value }
+    func increment() { self.value = self.value + 1 }
+    func current() -> Int { return self.value }
 }
 
 let c = Counter()
@@ -207,18 +212,14 @@ class Account {
     }
 
     func deposit(_ amount: Int) {
-        balance = balance + amount
+        self.balance = self.balance + amount
     }
 }
 
 actor Bank {
     var accounts: Array<Account> = []
-    func open(_ a: Account) { accounts.append(a) }
-    func total() -> Int {
-        var sum = 0
-        for a in accounts { sum = sum + a.balance }
-        return sum
-    }
+    func open(_ a: Account) { self.accounts.append(a) }
+    func count() -> Int { return self.accounts.count }
 }
 
 func main() {

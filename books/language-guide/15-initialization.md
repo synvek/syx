@@ -252,9 +252,9 @@ enum Port {
     case custom(Int)
 
     init(value: Int) {
-        if (value == 80) { self = .http }
-        else if (value == 443) { self = .https }
-        else { self = .custom(value) }
+        if (value == 80) { self = Port.http }
+        else if (value == 443) { self = Port.https }
+        else { self = Port.custom(value) }
     }
 }
 ```

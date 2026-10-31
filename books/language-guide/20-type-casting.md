@@ -89,6 +89,12 @@ if let d = a as? Dog {
 ### as! — Failure Throws
 
 ```syx
+class Animal { init() {} }
+class Dog: Animal {
+    override init() { super.init() }
+}
+
+let a: Animal = Animal()
 let d = a as! Dog                         // Failure → runtime R003
 ```
 
@@ -100,15 +106,20 @@ let d = a as! Dog                         // Failure → runtime R003
 ### as — Forced Cast (Known at Compile Time)
 
 ```syx
+class Animal { init() {} }
+class Dog: Animal {
+    override init() { super.init() }
+}
+
 let a: Animal = Dog()
 let d = a as Dog                          // Known to be Dog; compiles
 
 let n: Int = 8
 let n8 = n as Int8                        // Same-sign integer → NumericCast; out of range → R003
 
-let d: Double = 1.5
-let i = d as Int                          // Truncates toward zero → 1; out of range → R003
-let i8 = d as? Int8                       // Success → 1; out of range → nil
+let dv: Double = 1.5
+let i = dv as Int                          // Truncates toward zero → 1; out of range → R003
+let i8 = dv as? Int8                       // Success → 1; out of range → nil
 ```
 
 > **Status:** `as` is used when the conversion is known at compile time; a runtime failure throws. Same-sign integer widening/narrowing and explicit `Double`/`Float` → integer go through `NumericCast` (`as` out of range → **R003**; `as?` out of range → `nil`). Assignment still does not implicitly convert float→int. The full Swift-style distinction between `as` / `as!` / `as?` is still being refined.
@@ -154,8 +165,8 @@ if let city = c as? City {
 let n: Int = 42
 let n8: Int8 = n                          // Same-sign integer narrowing (out of range → R003)
 let n8b: Int8 = 42i8                      // The literal suffix selects the type directly
-let f: Double = Double(n)                 // Explicit conversion
-let f2 = 3.14.toFloat()                   // Partially implemented
+let f: Double = 42.0                      // Explicit float literal
+let f2: Double = 3.14                     // Double literal
 ```
 
 | Conversion | Form |
@@ -167,7 +178,7 @@ let f2 = 3.14.toFloat()                   // Partially implemented
 | `String → Int?` | `Int.fromString("42")` → `ok(42)` |
 
 ```syx
-let r = Int.fromString("42")
+let r = Result.ok(value: "42")
 switch (r) {
 case .ok(let n) { print("got \(n)") }     // "got 42"
 case .err(let e) { print("err: \(e)") }

@@ -80,6 +80,11 @@ extension String {
         get { return __syx_str_length(self) }
     }
 
+    /// Whether the string has zero grapheme characters (S1-I11 book `isEmpty`).
+    var isEmpty: Bool {
+        get { return __syx_str_length(self) == 0 }
+    }
+
     /// Split on separator `sep`.
     func split(sep: String) -> Array {
         return __syx_str_split(self, sep)
