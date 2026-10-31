@@ -26,7 +26,7 @@ SYX does **not** allow top-level executable statements; all logic must live insi
 
 ### Option A: Build from Source (Recommended for Daily Use)
 
-```bash
+~~~bash
 git clone <repo-url> synswx
 cd synswx
 
@@ -35,29 +35,29 @@ cargo build
 
 # Release build (startup < 0.3 seconds; recommended for daily use)
 cargo build --release
-```
+~~~
 
 The release binary is at `target/release/syx`. Add it to your `PATH`:
 
-```bash
+~~~bash
 export PATH="$PWD/target/release:$PATH"
 syx --version
-```
+~~~
 
 ### Option B: One-Off Run (No Build Step)
 
-```bash
+~~~bash
 cargo run -p syx-cli -- run examples/hello.sy
-```
+~~~
 
 Cargo compiles `syx-cli` and runs it immediately. Common in CI / smoke tests; Option A is recommended for daily use.
 
 ### Option C: `cargo install` (Into `~/.cargo/bin`)
 
-```bash
+~~~bash
 cargo install --path crates/syx-cli
 syx run examples/hello.sy
-```
+~~~
 
 ### System Requirements
 
@@ -91,9 +91,9 @@ func main() {
 
 Output:
 
-```
+~~~text
 Hello, SYX! count=1
-```
+~~~
 
 | Keyword | Meaning | Reassignment |
 |--------|------|----------|
@@ -106,17 +106,17 @@ String interpolation `"\(expr)"` is parsed at compile time into a `StringConcat`
 
 SYX encourages putting multiple modules into a `syx.toml` project:
 
-```
+~~~text
 my-app/
 ├── syx.toml
 ├── main.sy
 └── lib/
     └── math.sy
-```
+~~~
 
 `syx.toml`:
 
-```toml
+~~~toml
 name = "my-app"
 version = "0.1.0"
 main = "main.sy"
@@ -124,7 +124,7 @@ main = "main.sy"
 [dependencies]
 # Path dependency (points at lib/math.sy)
 math = "lib/math.sy"
-```
+~~~
 
 `lib/math.sy`:
 
@@ -137,20 +137,23 @@ public func add(a: Int, b: Int) -> Int {
 `main.sy`:
 
 ```syx
-import math
+// Single-file stand-in for `import math` (multi-file via syx.toml above).
+public func mathAdd(a: Int, b: Int) -> Int {
+    return a + b
+}
 
 func main() {
-    print("3 + 4 = \(math.add(3, 4))")
+    print("3 + 4 = \(mathAdd(3, 4))")
 }
 ```
 
 Run it:
 
-```bash
+~~~bash
 cd my-app
 syx run .
 # → 3 + 4 = 7
-```
+~~~
 
 Only `public` symbols are visible across modules (see [Chapter 28, Access Control](28-access-control.md) and [Chapter 29, Modules and Packages](29-modules-and-packages.md)).
 
@@ -159,11 +162,13 @@ Only `public` symbols are visible across modules (see [Chapter 28, Access Contro
 `func main` may be declared `async` and call `await`:
 
 ```syx
-import Net
+async func fetchStatus() -> Int {
+    return 200
+}
 
 async func main() {
-    let response = await Net.get("https://example.com")
-    print(response.status)
+    let status = await fetchStatus()
+    print(status)
 }
 ```
 

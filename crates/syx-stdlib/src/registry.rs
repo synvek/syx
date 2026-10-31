@@ -3702,7 +3702,7 @@ pub static STRING_METHODS: LazyLock<IndexMap<&'static str, MethodId>> = LazyLock
         ("hasPrefix", MethodId::StrHasPrefix),
         ("lowercased", MethodId::StrLowercased),
         ("uppercased", MethodId::StrUppercased),
-        ("replacingOccurrences", MethodId::StrReplacingOccurrences),
+        // S1-I14: `replacingOccurrences` is a Core extension (split/joined); not CallHost (HostFn frozen @ 629).
         ("count", MethodId::StrCount),
         ("substring", MethodId::StrSubstring),
         ("matches", MethodId::StrMatches),

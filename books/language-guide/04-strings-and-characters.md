@@ -8,6 +8,7 @@ Strings are one of the areas where SYX differs most from Swift. This chapter exp
 
 ```syx
 let s = "Hello"
+let name = "World"
 let msg = "Hello, \(name)!"        // Interpolation
 let multi = "a" + "b" + "c"        // String concatenation
 let multiline = "line one\nline two"
@@ -145,7 +146,7 @@ let a = "Hello"
 let b = ", World"
 let c = a + b                       // "Hello, World"
 let d = "\(a)\(b)!"                 // Concatenation via interpolation
-let e = String.concat([a, b, "!"])  // Array form
+let e = a + b + "!"                 // Same as joining fragments with +
 ```
 
 The `+` operator on `String` is the low-level lowering of the `StringConcat` instruction (**not** a Core Host function); at runtime it is inlined into a byte copy.
@@ -163,11 +164,11 @@ The `+` operator on `String` is the low-level lowering of the `StringConcat` ins
 ## Regex Literals
 
 ```syx
-let p = /\d+/                       // Regex literal
-let matches = "abc123def".matches(p)
-for m in matches { print(m) }       // "123"
+let matches = "abc123def".matches("\\d+")   // Pattern string (regex literal `/…/` MIR still partial)
+for m in matches { print(m) }               // "123"
 
-let ci = /hello/i                   // Case insensitive (compile-time marker)
+let helloHits = "Hello hello".matches("hello")
+print(helloHits.count)
 ```
 
 | Form | Status | Description |
@@ -187,16 +188,19 @@ let s = "a,b,c"
 let parts = s.split(",")                  // ["a", "b", "c"]
 let joined = parts.joined("-")            // "a-b-c"
 
-let chars: Array<Character> = Array(s)    // Array of grapheme clusters
-let back = chars.joined("")               // "abc"
+var graphemes: Array<String> = []
+for ch in s {
+    graphemes.append(ch)                  // Grapheme clusters via for-in
+}
+let back = graphemes.joined("")           // "a,b,c"
 ```
 
 | Direction | Method |
 |------|------|
 | String → Array<String> | `s.split(sep)` |
 | Array<String> → String | `arr.joined(sep)` |
-| String → Array<Character> | `Array(s)` (standard library) |
-| Array<Character> → String | `chars.joined("")` |
+| String → grapheme list | `for ch in s` (append into `Array`) |
+| Grapheme list → String | `graphemes.joined("")` |
 
 ## Complete Example
 
@@ -218,12 +222,14 @@ func main() {
         print(m)
     }
 
-    let digits: Array<Character> = Array("0123456789")
+    var digits: Array<String> = []
+    for ch in "0123456789" {
+        digits.append(ch)
+    }
     print(digits.count)              // 10
     print(digits[0])                  // "0"
 }
 ```
-
 ## Internal APIs (Core Extensions)
 
 The String witnesses (`hash` / `description` / `debugDescription`) are implemented through Core extensions → Host functions (see [Chapter 32, Operators vs Core Host](32-operators-vs-host.md)):

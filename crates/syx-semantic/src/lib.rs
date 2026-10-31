@@ -1670,6 +1670,9 @@ impl SemanticAnalyzer {
                 lookup_string_method(method).is_some()
                     // S1-I11: book `source.isEmpty` (extension property; not in STRING_METHODS).
                     || method == "isEmpty"
+                    // S1-I14: Core extensions (no HostFn+1): hasSuffix / replacingOccurrences.
+                    || method == "hasSuffix"
+                    || method == "replacingOccurrences"
             }
             _ => false,
         };
@@ -1708,8 +1711,11 @@ impl SemanticAnalyzer {
             }
         }
         if matches!(object_ty, TypeId::String) {
-            if method == "isEmpty" {
+            if method == "isEmpty" || method == "hasSuffix" {
                 return TypeId::Bool;
+            }
+            if method == "replacingOccurrences" {
+                return TypeId::String;
             }
             if let Some(m) = lookup_string_method(method) {
                 return type_name_to_id(method_return_type(m));

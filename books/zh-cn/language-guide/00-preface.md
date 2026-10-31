@@ -16,7 +16,7 @@ SYX 提供：
 
 ## 编译流水线
 
-```
+~~~text
 Source (.sy, UTF-8)
   → syx-lexer (Token 流)
   → syx-parser (AST, 递归下降)
@@ -24,7 +24,7 @@ Source (.sy, UTF-8)
   → syx-macro (固定点展开)
   → syx-mir (统一 IR)
   → syx-vm | syx-llvm | syx-wasm-emit
-```
+~~~
 
 见 [docs/5_CompleteTechnicalDocumentation.md](../../../docs/5_CompleteTechnicalDocumentation.md) · [docs/3_SemanticAnalysis.md](../../../docs/3_SemanticAnalysis.md)。
 
@@ -47,8 +47,16 @@ Source (.sy, UTF-8)
 
 除非另有说明，示例可在仓库根目录用：
 
-```bash
+~~~bash
 cargo run -p syx-cli -- run path/to/example.sy
+~~~
+
+最小可 check 片段：
+
+```syx
+func main() {
+    print("SYX")
+}
 ```
 
 ### 与参考文档的关系

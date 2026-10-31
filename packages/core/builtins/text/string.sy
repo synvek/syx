@@ -18,6 +18,16 @@ public class String: Equatable, Hashable, CustomStringConvertible, Comparable {
         return __syx_str_has_prefix(text, prefix)
     }
 
+    /// Whether `text` ends with `suffix` (composed via `.count` / `.substring`; no new HostFn).
+    public static func hasSuffix(text: String, suffix: String) -> Bool {
+        let n = text.count
+        let m = suffix.count
+        if m > n {
+            return false
+        }
+        return text.substring(n - m, n) == suffix
+    }
+
     /// Lowercase copy.
     public static func lowercased(text: String) -> String {
         return __syx_str_lowercased(text)
@@ -98,6 +108,16 @@ extension String {
     /// Whether this string starts with `prefix`.
     func hasPrefix(prefix: String) -> Bool {
         return __syx_str_has_prefix(self, prefix)
+    }
+
+    /// Whether this string ends with `suffix`.
+    func hasSuffix(suffix: String) -> Bool {
+        return String.hasSuffix(text: self, suffix: suffix)
+    }
+
+    /// Replace all occurrences of `target` with `replacement` (split/joined composition; HostFn-frozen).
+    func replacingOccurrences(target: String, replacement: String) -> String {
+        return self.split(target).joined(replacement)
     }
 
     /// Lowercase copy.

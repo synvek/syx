@@ -18,9 +18,9 @@ func adds() {
 
 把文件放在项目的 `tests/` 下（可嵌套），然后：
 
-```bash
+~~~bash
 syx test .
-```
+~~~
 
 ## 发现规则
 

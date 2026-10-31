@@ -34,42 +34,19 @@ print(a >> 1)                               // 6
 
 ### 自定义前缀 / 后缀 / 中缀运算符
 
-```syx
-// 前缀
+~~~text
+// 自定义运算符声明（本窗不深挖解析；仅示意）
 prefix operator !
-func !<T>(value: Optional<T>) -> Bool {
-    return value == nil
-}
-
-let x: Int? = nil
-print(!x)                                   // true（自定义）
-
-// 后缀
 postfix operator **
-func **<T>(value: T) -> T where T: Numeric {
-    return value * value
-}
-
-print(3**)                                  // 9
-
-// 中缀
 infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T {
-    return f(value)
-}
-
-print(5 |> { $0 * 2 })                      // 10
-```
+~~~
 
 ### 优先级 / 结合性
 
-```syx
+~~~text
 infix operator ^^ { precedence: 100, associativity: right }
-func ^^<T>(a: T, b: T) -> T where T: Numeric {
-    // 右结合的「幂」运算符
-    return a * a
-}
-```
+func ^^<T>(a: T, b: T) -> T where T: Numeric { return a * a }
+~~~
 
 | 字段 | 取值 | 含义 |
 |------|------|------|
@@ -81,18 +58,11 @@ func ^^<T>(a: T, b: T) -> T where T: Numeric {
 
 ### 运算符函数与协议约束
 
-```syx
+~~~text
 infix operator <*> { precedence: 60 }
-func <*> <T: Numeric>(a: Array<T>, b: Array<T>) -> Array<T> {
-    var r: Array<T> = []
-    for i in 0..<a.count {
-        r.append(a[i] * b[i])
-    }
-    return r
-}
-
+func <*> <T: Numeric>(a: Array<T>, b: Array<T>) -> Array<T> { … }
 let r = [1, 2, 3] <*> [4, 5, 6]            // [4, 10, 18]
-```
+~~~
 
 > **状态：** `operator func` **GA**（Phase 41+），三后端（VM / 统一 MIR / WASM）parity。
 
@@ -157,26 +127,26 @@ let v = opt ?? 0                            // 0
 let v2 = opt ?? (1 + 2)                    // 3（右侧是表达式）
 ```
 
-> **`??` 优先级：** 低于比较与逻辑；推荐加括号：
-> ```syx
-> let r = (a ?? 0) + 1
-> ```
+> **`??` 优先级：** 低于比较与逻辑；推荐加括号：`let r = (a ?? 0) + 1`。
 
 ## if let / guard let
 
 ```syx
-// if let
-if let x = optional {
-    print("got: \(x)")
-} else {
-    print("nil")
-}
+func main() {
+    let optional: Int? = 1
+    // if let
+    if let x = optional {
+        print("got: \(x)")
+    } else {
+        print("nil")
+    }
 
-// guard let（必须早退）
-guard let y = optional else {
-    return
+    // guard let（必须早退）
+    guard let y = optional else {
+        return
+    }
+    print(y)                                // 此处 y 非 Optional
 }
-print(y)                                    // 此处 y 非 Optional
 ```
 
 > **`else` 必须退出：** `guard let` 的 `else` 块若不 `return` / `throw` / `break` / `continue` → 编译错误 **S020**。
@@ -184,25 +154,41 @@ print(y)                                    // 此处 y 非 Optional
 ## try ?
 
 ```syx
-let v = risky()?                            // String?（失败 nil）
-let v2 = try! risky()                       // String（失败 panic）
+func risky() throws -> String {
+    return "ok"
+}
+
+func main() {
+    let v = risky()?                        // String?（失败 nil）
+    let v2 = try! risky()                   // String（失败 panic）
+    print(v)
+    print(v2)
+}
 ```
 
 ## 模式匹配
 
 ```syx
-switch (result) {
-case .ok(let v) where (v > 0) {
-    print("ok: \(v)")
-}
-case .err(let e) {
-    print("err: \(e)")
-}
-default { }
+enum Result {
+    case ok(Int)
+    case err(String)
 }
 
-if case .err(let e) = result {
-    print("err: \(e)")
+func main() {
+    let result = Result.ok(1)
+    switch (result) {
+    case .ok(let v) where (v > 0) {
+        print("ok: \(v)")
+    }
+    case .err(let e) {
+        print("err: \(e)")
+    }
+    default { }
+    }
+
+    if case .err(let e) = result {
+        print("err: \(e)")
+    }
 }
 ```
 
@@ -225,10 +211,10 @@ print(a === c)                              // true（同一引用）
 ## 自定义 Equatable / Comparable
 
 ```syx
-struct Point: Equatable {
+@Equatable
+struct Point {
     var x: Int
     var y: Int
-    func ==(other: Point) -> Bool { return x == other.x && y == other.y }
 }
 
 struct Score: Comparable {
@@ -259,29 +245,16 @@ struct Score: Comparable {
 
 ## 完整示例
 
-```syx
+~~~text
+// 自定义运算符 + unicode √ — 仅示意（本窗 OUT）
 infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
-
 infix operator <^> { precedence: 60 }
-func <^> <T>(a: Array<T>, b: Array<T>) -> Array<T> where T: Numeric {
-    var r: Array<T> = []
-    for i in 0..<a.count { r.append(a[i] * b[i]) }
-    return r
-}
-
 prefix operator √
-func √(value: Double) -> Double {
-    return value.squareRoot()
-}
-
 func main() {
-    let r = 5 |> { $0 * 2 } |> { $0 + 1 }  // 11
-    let dot = [1.0, 2.0, 3.0] <^> [4.0, 5.0, 6.0]  // [4.0, 10.0, 18.0]
-    let side = √(16.0)                      // 4.0
-    print("r=\(r) dot=\(dot) side=\(side)")
+    let r = 5 |> { $0 * 2 } |> { $0 + 1 }
+    let side = √(16.0)
 }
-```
+~~~
 
 ## 诊断
 

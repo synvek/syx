@@ -26,7 +26,7 @@ SYX **不允许** 顶层可执行语句；所有逻辑都必须在 `func` 内（
 
 ### 方式 A：从源码构建（推荐日常）
 
-```bash
+~~~bash
 git clone <repo-url> synswx
 cd synswx
 
@@ -35,29 +35,29 @@ cargo build
 
 # 发布版（启动 < 0.3 秒；推荐日常）
 cargo build --release
-```
+~~~
 
 发布版二进制在 `target/release/syx`。把它加入 `PATH`：
 
-```bash
+~~~bash
 export PATH="$PWD/target/release:$PATH"
 syx --version
-```
+~~~
 
 ### 方式 B：单次运行（无需构建）
 
-```bash
+~~~bash
 cargo run -p syx-cli -- run examples/hello.sy
-```
+~~~
 
 Cargo 会编译 `syx-cli` 并立刻执行。CI / smoke test 常用；日常推荐方式 A。
 
 ### 方式 C：`cargo install`（安装到 `~/.cargo/bin`）
 
-```bash
+~~~bash
 cargo install --path crates/syx-cli
 syx run examples/hello.sy
-```
+~~~
 
 ### 系统要求
 
@@ -91,9 +91,9 @@ func main() {
 
 输出：
 
-```
+~~~text
 Hello, SYX! count=1
-```
+~~~
 
 | 关键字 | 含义 | 重新赋值 |
 |--------|------|----------|
@@ -106,17 +106,17 @@ Hello, SYX! count=1
 
 SYX 鼓励把多模块放进 `syx.toml` 项目：
 
-```
+~~~text
 my-app/
 ├── syx.toml
 ├── main.sy
 └── lib/
     └── math.sy
-```
+~~~
 
 `syx.toml`：
 
-```toml
+~~~toml
 name = "my-app"
 version = "0.1.0"
 main = "main.sy"
@@ -124,7 +124,7 @@ main = "main.sy"
 [dependencies]
 # 路径依赖（指向 lib/math.sy）
 math = "lib/math.sy"
-```
+~~~
 
 `lib/math.sy`：
 
@@ -137,20 +137,23 @@ public func add(a: Int, b: Int) -> Int {
 `main.sy`：
 
 ```syx
-import math
+// 单文件代替 `import math`（多文件见上方 syx.toml）。
+public func mathAdd(a: Int, b: Int) -> Int {
+    return a + b
+}
 
 func main() {
-    print("3 + 4 = \(math.add(3, 4))")
+    print("3 + 4 = \(mathAdd(3, 4))")
 }
 ```
 
 运行：
 
-```bash
+~~~bash
 cd my-app
 syx run .
 # → 3 + 4 = 7
-```
+~~~
 
 跨模块仅 `public` 符号可见（详见 [第 28 章 访问控制](28-access-control.md) 与 [第 29 章 模块与包](29-modules-and-packages.md)）。
 
@@ -159,11 +162,13 @@ syx run .
 `func main` 可声明 `async`，调用 `await`：
 
 ```syx
-import Net
+async func fetchStatus() -> Int {
+    return 200
+}
 
 async func main() {
-    let response = await Net.get("https://example.com")
-    print(response.status)
+    let status = await fetchStatus()
+    print(status)
 }
 ```
 

@@ -18,9 +18,9 @@ func adds() {
 
 Put the file under the project's `tests/` directory (nesting is allowed), then:
 
-```bash
+~~~bash
 syx test .
-```
+~~~
 
 ## Discovery Rules
 

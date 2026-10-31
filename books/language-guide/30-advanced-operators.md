@@ -34,42 +34,19 @@ print(a >> 1)                               // 6
 
 ### Custom Prefix / Postfix / Infix Operators
 
-```syx
-// Prefix
+~~~text
+// Custom operator declarations (parser deep dig OUT this window; illustrative only)
 prefix operator !
-func !<T>(value: Optional<T>) -> Bool {
-    return value == nil
-}
-
-let x: Int? = nil
-print(!x)                                   // true (custom)
-
-// Postfix
 postfix operator **
-func **<T>(value: T) -> T where T: Numeric {
-    return value * value
-}
-
-print(3**)                                  // 9
-
-// Infix
 infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T {
-    return f(value)
-}
-
-print(5 |> { $0 * 2 })                      // 10
-```
+~~~
 
 ### Precedence / Associativity
 
-```syx
+~~~text
 infix operator ^^ { precedence: 100, associativity: right }
-func ^^<T>(a: T, b: T) -> T where T: Numeric {
-    // A right-associative "power" operator
-    return a * a
-}
-```
+func ^^<T>(a: T, b: T) -> T where T: Numeric { return a * a }
+~~~
 
 | Field | Value | Meaning |
 |------|------|------|
@@ -81,18 +58,11 @@ func ^^<T>(a: T, b: T) -> T where T: Numeric {
 
 ### Operator Functions and Protocol Constraints
 
-```syx
+~~~text
 infix operator <*> { precedence: 60 }
-func <*> <T: Numeric>(a: Array<T>, b: Array<T>) -> Array<T> {
-    var r: Array<T> = []
-    for i in 0..<a.count {
-        r.append(a[i] * b[i])
-    }
-    return r
-}
-
+func <*> <T: Numeric>(a: Array<T>, b: Array<T>) -> Array<T> { … }
 let r = [1, 2, 3] <*> [4, 5, 6]            // [4, 10, 18]
-```
+~~~
 
 > **Status:** `operator func` is **GA** (Phase 41+), with parity across the three back ends (VM / unified MIR / WASM).
 
@@ -157,26 +127,26 @@ let v = opt ?? 0                            // 0
 let v2 = opt ?? (1 + 2)                    // 3 (the right side is an expression)
 ```
 
-> **`??` precedence:** lower than comparison and logical; parentheses are recommended:
-> ```syx
-> let r = (a ?? 0) + 1
-> ```
+> **`??` precedence:** lower than comparison and logical; parentheses are recommended: `let r = (a ?? 0) + 1`.
 
 ## if let / guard let
 
 ```syx
-// if let
-if let x = optional {
-    print("got: \(x)")
-} else {
-    print("nil")
-}
+func main() {
+    let optional: Int? = 1
+    // if let
+    if let x = optional {
+        print("got: \(x)")
+    } else {
+        print("nil")
+    }
 
-// guard let (must exit early)
-guard let y = optional else {
-    return
+    // guard let (must exit early)
+    guard let y = optional else {
+        return
+    }
+    print(y)                                // Here y is not Optional
 }
-print(y)                                    // Here y is not Optional
 ```
 
 > **`else` must exit:** if a `guard let`'s `else` block does not `return` / `throw` / `break` / `continue` → compile error **S020**.
@@ -184,25 +154,41 @@ print(y)                                    // Here y is not Optional
 ## try ?
 
 ```syx
-let v = risky()?                            // String? (nil on failure)
-let v2 = try! risky()                       // String (panics on failure)
+func risky() throws -> String {
+    return "ok"
+}
+
+func main() {
+    let v = risky()?                        // String? (nil on failure)
+    let v2 = try! risky()                   // String (panics on failure)
+    print(v)
+    print(v2)
+}
 ```
 
 ## Pattern Matching
 
 ```syx
-switch (result) {
-case .ok(let v) where (v > 0) {
-    print("ok: \(v)")
-}
-case .err(let e) {
-    print("err: \(e)")
-}
-default { }
+enum Result {
+    case ok(Int)
+    case err(String)
 }
 
-if case .err(let e) = result {
-    print("err: \(e)")
+func main() {
+    let result = Result.ok(1)
+    switch (result) {
+    case .ok(let v) where (v > 0) {
+        print("ok: \(v)")
+    }
+    case .err(let e) {
+        print("err: \(e)")
+    }
+    default { }
+    }
+
+    if case .err(let e) = result {
+        print("err: \(e)")
+    }
 }
 ```
 
@@ -225,10 +211,10 @@ print(a === c)                              // true (same reference)
 ## Custom Equatable / Comparable
 
 ```syx
-struct Point: Equatable {
+@Equatable
+struct Point {
     var x: Int
     var y: Int
-    func ==(other: Point) -> Bool { return x == other.x && y == other.y }
 }
 
 struct Score: Comparable {
@@ -259,29 +245,16 @@ struct Score: Comparable {
 
 ## Complete Example
 
-```syx
+~~~text
+// Custom operators + unicode √ — illustrative only (OUT this window)
 infix operator |> { precedence: 50, associativity: left }
-func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
-
 infix operator <^> { precedence: 60 }
-func <^> <T>(a: Array<T>, b: Array<T>) -> Array<T> where T: Numeric {
-    var r: Array<T> = []
-    for i in 0..<a.count { r.append(a[i] * b[i]) }
-    return r
-}
-
 prefix operator √
-func √(value: Double) -> Double {
-    return value.squareRoot()
-}
-
 func main() {
-    let r = 5 |> { $0 * 2 } |> { $0 + 1 }  // 11
-    let dot = [1.0, 2.0, 3.0] <^> [4.0, 5.0, 6.0]  // [4.0, 10.0, 18.0]
-    let side = √(16.0)                      // 4.0
-    print("r=\(r) dot=\(dot) side=\(side)")
+    let r = 5 |> { $0 * 2 } |> { $0 + 1 }
+    let side = √(16.0)
 }
-```
+~~~
 
 ## Diagnostics
 

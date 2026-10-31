@@ -16,7 +16,7 @@ SYX provides:
 
 ## The Compilation Pipeline
 
-```
+~~~text
 Source (.sy, UTF-8)
   → syx-lexer (Token stream)
   → syx-parser (AST, recursive descent)
@@ -24,7 +24,7 @@ Source (.sy, UTF-8)
   → syx-macro (fixed-point expansion)
   → syx-mir (unified IR)
   → syx-vm | syx-llvm | syx-wasm-emit
-```
+~~~
 
 See [docs/5_CompleteTechnicalDocumentation.md](../../docs/5_CompleteTechnicalDocumentation.md) · [docs/3_SemanticAnalysis.md](../../docs/3_SemanticAnalysis.md).
 
@@ -47,8 +47,16 @@ The single master table: [shared/implementation-status.md](../shared/implementat
 
 Unless stated otherwise, examples can be run from the repository root with:
 
-```bash
+~~~bash
 cargo run -p syx-cli -- run path/to/example.sy
+~~~
+
+The smallest checkable fragment:
+
+```syx
+func main() {
+    print("SYX")
+}
 ```
 
 ### Relationship to Other Reference Documents

@@ -8,6 +8,7 @@
 
 ```syx
 let s = "Hello"
+let name = "World"
 let msg = "Hello, \(name)!"        // 插值
 let multi = "a" + "b" + "c"        // 字符串拼接
 let multiline = "line one\nline two"
@@ -145,7 +146,7 @@ let a = "Hello"
 let b = ", World"
 let c = a + b                       // "Hello, World"
 let d = "\(a)\(b)!"                 // 插值拼接
-let e = String.concat([a, b, "!"])  // 数组形式
+let e = a + b + "!"                 // 与 + 拼接片段相同
 ```
 
 `+` 运算符在 String 上是 `StringConcat` 指令的低级 lowering（**非** Core Host 函数）；运行时内联为字节拷贝。
@@ -163,11 +164,11 @@ let e = String.concat([a, b, "!"])  // 数组形式
 ## 正则字面量
 
 ```syx
-let p = /\d+/                       // 正则字面量
-let matches = "abc123def".matches(p)
-for m in matches { print(m) }       // "123"
+let matches = "abc123def".matches("\\d+")   // 模式字符串（正则字面量 `/…/` MIR 仍部分）
+for m in matches { print(m) }               // "123"
 
-let ci = /hello/i                   // 大小写不敏感（编译期标记）
+let helloHits = "Hello hello".matches("hello")
+print(helloHits.count)
 ```
 
 | 形式 | 状态 | 说明 |
@@ -187,16 +188,19 @@ let s = "a,b,c"
 let parts = s.split(",")                  // ["a", "b", "c"]
 let joined = parts.joined("-")            // "a-b-c"
 
-let chars: Array<Character> = Array(s)    // 字素簇数组
-let back = chars.joined("")               // "abc"
+var graphemes: Array<String> = []
+for ch in s {
+    graphemes.append(ch)                  // 经 for-in 收集字素簇
+}
+let back = graphemes.joined("")           // "a,b,c"
 ```
 
 | 方向 | 方法 |
 |------|------|
 | String → Array<String> | `s.split(sep)` |
 | Array<String> → String | `arr.joined(sep)` |
-| String → Array<Character> | `Array(s)`（标准库） |
-| Array<Character> → String | `chars.joined("")` |
+| String → 字素列表 | `for ch in s`（append 进 `Array`） |
+| 字素列表 → String | `graphemes.joined("")` |
 
 ## 完整示例
 
@@ -218,7 +222,10 @@ func main() {
         print(m)
     }
 
-    let digits: Array<Character> = Array("0123456789")
+    var digits: Array<String> = []
+    for ch in "0123456789" {
+        digits.append(ch)
+    }
     print(digits.count)              // 10
     print(digits[0])                  // "0"
 }
