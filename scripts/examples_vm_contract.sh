@@ -13,7 +13,7 @@ if [[ ! -x "$SYX" ]]; then
 fi
 
 # Frozen allowlist (VM single-file runnable inventory).
-# S1-I19 ≥20; still VM-only — not examples-full / three-backend GA.
+# S1-I20: drop gitignored hello2.sy; +decl_param/codable; still VM-only — not examples-full / three-backend GA.
 ALLOWLIST=(
   examples/hello.sy
   examples/io_demo.sy
@@ -27,7 +27,6 @@ ALLOWLIST=(
   examples/json_demo.sy
   examples/json_adv_demo.sy
   examples/log_fields.sy
-  examples/hello2.sy
   examples/observability_demo.sy
   examples/class_demo.sy
   examples/collection_demo.sy
@@ -40,6 +39,8 @@ ALLOWLIST=(
   examples/sql_tool/main.sy
   examples/stmt_token_macro/main.sy
   examples/token_expr_macro/main.sy
+  examples/decl_param_macro/main.sy
+  examples/codable_associated_enum/main.sy
 )
 
 echo "== S1-10 examples VM allowlist contract =="

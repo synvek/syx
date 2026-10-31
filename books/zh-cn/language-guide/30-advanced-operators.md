@@ -241,7 +241,7 @@ struct Score: Comparable {
 | 空合并 `??` | **已实现** |
 | `===` | **MVP 子集** |
 | `#available` | **未实现** |
-| 溢出行为 | 恒二补回绕（≠ Swift 默认 overflow trap；≠ 已交付的 debug **R011** panic） |
+| 溢出行为 | 恒二补回绕（≠ Swift 默认 trap；**R011** panic **未交付**；**`&+`/`&-`/`&*` 未实现**；一元 `-Int.min` 回绕，**非** trap GA） |
 
 ## 完整示例
 

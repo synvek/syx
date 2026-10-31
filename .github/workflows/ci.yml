@@ -101,6 +101,11 @@ jobs:
           cargo build -p syx-cli
           bash scripts/s0_backend_smoke.sh
 
+      - name: S1-10 examples VM allowlist contract
+        run: |
+          cargo build -p syx-cli
+          bash scripts/examples_vm_contract.sh
+
       - name: Capability manifest freshness (M0-C)
 
         run: python3 scripts/gen_capabilities.py --check

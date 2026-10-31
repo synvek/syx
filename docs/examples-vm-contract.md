@@ -1,6 +1,6 @@
 # Examples VM allowlist contract (S1-10)
 
-**Status:** expanded (S1-I19, **25** files). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
+**Status:** CI-gated (S1-I20, **26** files). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
 
 ## Scope
 
@@ -9,11 +9,12 @@ This slice freezes a **VM-only** allowlist and asserts:
 1. `syx check <file>` succeeds
 2. `syx run <file>` succeeds on the **default VM** backend
 
-Script: [`scripts/examples_vm_contract.sh`](../scripts/examples_vm_contract.sh)
+Script: [`scripts/examples_vm_contract.sh`](../scripts/examples_vm_contract.sh)  
+CI: `.github/workflows/ci.yml` runs the script after `cargo build -p syx-cli` (alongside S0 smoke).
 
 ## VM single-file runnable inventory
 
-**In-inventory (this allowlist):** top-level demos that `check`+`run` on VM, plus selected single-file `examples/*/main.sy` tools/macros already green locally.
+**In-inventory (this allowlist):** tracked single-file demos / `examples/*/main.sy` that `check`+`run` on VM in a clean clone.
 
 **Out of inventory (explicit):**
 
@@ -22,14 +23,18 @@ Script: [`scripts/examples_vm_contract.sh`](../scripts/examples_vm_contract.sh)
 | GUI / SynUI | `gui_demo.sy`, `service_di/` | feature-off / non-VM product surface |
 | HTTP server / client | `httpserver_demo.sy`, `httpclient_demo.sy`, `http_*_tool/` | blocking serve / network flaky |
 | Network demos | `io_net_demo.sy` | external HTTP |
+| TCP microbench | `tcp_microbench/` | noisy localhost reject loops; not contract material |
+| SQL microbench | `sql_microbench/` | bench harness; `sql_tool` already covers SQL thin path |
+| LinAlg / faerlin | `linalg/*` | HostFn / plugin path; HostFn+1 frozen |
 | Plugins / HostFn | `plugin_demo/`, `rust_plugin_demo/` | HostFn+1 frozen; not VM-contract |
 | WASM backends | `wasm_web/`, `wasm_wasi/` | not default VM |
 | Multi-module | `deps/`, `macro_package/` | project install / import path |
 | Testing shell | `test_demo.sy` | no runnable `main` for contract |
+| Gitignored local | `hello2.sy` | listed in `.gitignore`; removed from allowlist (S1-I20) |
 
 Claiming “examples runnable rate full” requires clearing Out + three-backend matrix — **still owed**.
 
-## Allowlist (frozen, 25 files)
+## Allowlist (frozen, 26 files)
 
 | File | Notes |
 |------|--------|
@@ -45,11 +50,10 @@ Claiming “examples runnable rate full” requires clearing Out + three-backend
 | `examples/json_demo.sy` | S1-I17 |
 | `examples/json_adv_demo.sy` | S1-I17 |
 | `examples/log_fields.sy` | S1-I17 |
-| `examples/hello2.sy` | S1-I17 |
 | `examples/observability_demo.sy` | S1-I17 |
 | `examples/class_demo.sy` | S1-I18 S060 |
 | `examples/collection_demo.sy` | S1-I18 S060 |
-| `examples/test.sy` | S1-I19 (`async main`, ~2s sleep) |
+| `examples/test.sy` | S1-I19 |
 | `examples/path_tool/main.sy` | S1-I19 |
 | `examples/file_tool/main.sy` | S1-I19 |
 | `examples/path_microbench/main.sy` | S1-I19 |
@@ -58,12 +62,14 @@ Claiming “examples runnable rate full” requires clearing Out + three-backend
 | `examples/sql_tool/main.sy` | S1-I19 |
 | `examples/stmt_token_macro/main.sy` | S1-I19 |
 | `examples/token_expr_macro/main.sy` | S1-I19 |
+| `examples/decl_param_macro/main.sy` | S1-I20 |
+| `examples/codable_associated_enum/main.sy` | S1-I20 |
 
 ## Honest boundaries
 
-- **In:** default VM `check` + `run` for the allowlist above.
-- **Out:** native / wasm full matrix; Out-of-inventory table; stage-1 exit claim.
-- S0 backend smoke (`scripts/s0_backend_smoke.sh`) covers hello native/wasm fail-closed separately; it is **not** this contract.
+- **In:** default VM `check` + `run` for the allowlist above; CI enforcement of that script.
+- **Out:** native / wasm full matrix; Out-of-inventory table; stage-1 exit claim; `book_pass_rate.py` CI hard gate (still draft).
+- S0 backend smoke (`scripts/s0_backend_smoke.sh`) covers hello native/wasm fail-closed separately.
 
 ## How to run
 

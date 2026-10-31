@@ -241,7 +241,7 @@ struct Score: Comparable {
 | Nil coalescing `??` | **Implemented** |
 | `===` | **MVP subset** |
 | `#available` | **Not implemented** |
-| Overflow behavior | Always two's-complement wrapping (≠ Swift's default overflow trap; ≠ the delivered debug **R011** panic) |
+| Overflow behavior | Always two's-complement wrapping (≠ Swift default trap; **R011** panic **not delivered**; **`&+`/`&-`/`&*` not implemented**; unary `-Int.min` wraps, **not** trap GA) |
 
 ## Complete Example
 

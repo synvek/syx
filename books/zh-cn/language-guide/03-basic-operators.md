@@ -21,7 +21,7 @@ let n = -a           // 一元负
 | `-x` | 一元负 | 数值 |
 | `+x` | 一元正（语法允许） | 数值 |
 
-> **溢出：** VM / MIR / WASM 路径整数算术与定宽运算 **恒按二补回绕**（`wrapping_*` 地板；与 debug/release 无关）。书本曾写的 debug **R011** panic **未交付**。请在写循环/位运算时显式检查边界，或换更大类型。
+> **溢出：** VM / MIR / WASM 路径整数算术与定宽运算 **恒按二补回绕**（`wrapping_*` 地板；与 debug/release 无关）。书本曾写的 debug **R011** panic **未交付**。Swift 风格回绕算符 **`&+` / `&-` / `&*` 未实现**。一元 **`-Int.min` 不 trap**（回绕；非 overflow-trap GA——对齐 gate A-04）。请在写循环/位运算时显式检查边界，或换更大类型。
 >
 > **除零：** 整数 `/0` 或 `%0` 触发 **R012 division by zero**；浮点除零结果为 `inf` / `nan`。
 
@@ -247,7 +247,7 @@ let result = pipe(value: 5, f: { $0 * 2 })    // 10
 |----|-----|
 | `===` | 支持，引用/类型敏感子集 |
 | 自定义运算符 | **GA**（`operator func` + 三后端 parity） |
-| 溢出 | 恒二补回绕（≠ Swift 默认 trap；整数溢出 Display **R011** 未交付） |
+| 溢出 | 恒二补回绕（≠ Swift 默认 trap；**R011** 未交付；**`&+`/`&-`/`&*` 未实现**；`-Int.min` 回绕非 trap GA） |
 
 ---
 

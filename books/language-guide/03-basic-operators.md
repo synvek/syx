@@ -21,7 +21,7 @@ let n = -a           // Unary minus
 | `-x` | Unary minus | Numeric |
 | `+x` | Unary plus (syntactically allowed) | Numeric |
 
-> **Overflow:** integer arithmetic on the VM / MIR / WASM paths and fixed-width operations **always wrap two's complement** (`wrapping_*` is the floor; independent of debug/release). The debug **R011** panic once described in this book was **not delivered**. Check bounds explicitly when writing loops/bit operations, or move to a wider type.
+> **Overflow:** integer arithmetic on the VM / MIR / WASM paths and fixed-width operations **always wrap two's complement** (`wrapping_*` is the floor; independent of debug/release). The debug **R011** panic once described in this book was **not delivered**. Swift-style wrapping operators **`&+` / `&-` / `&*` are not implemented**. Unary **`-Int.min` does not trap** (wraps; not overflow-trap GA — aligned with gate A-04). Check bounds explicitly when writing loops/bit operations, or move to a wider type.
 >
 > **Division by zero:** integer `/0` or `%0` triggers **R012 division by zero**; float division by zero yields `inf` / `nan`.
 
@@ -247,7 +247,7 @@ For complete diagnostics, see [Appendix B: Diagnostic Code Index](appendix-b-dia
 |----|-----|
 | `===` | Supported, with a reference/type-sensitive subset |
 | Custom operators | **GA** (`operator func` + three-back-end parity) |
-| Overflow | Always two's-complement wrapping (≠ Swift's default trap; the Display for integer overflow **R011** was not delivered) |
+| Overflow | Always two's-complement wrapping (≠ Swift default trap; **R011** not delivered; **`&+`/`&-`/`&*` not implemented**; `-Int.min` wraps, not trap GA) |
 
 ---
 
