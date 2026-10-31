@@ -8,12 +8,12 @@ SYX 的特殊能力（I/O、JSON、哈希、SIMD 等）最终通过 **Host 函�
 
 ## 能力分层
 
-```
+~~~text
 SYX 源码（import / __syx_plugin_*）
     → 语义分析 + MIR: MirOp::CallHost(n)
     → call_host(n) → 静态 Host 表 或 插件槽
     → 插件 .so 内 C/Rust 回调
-```
+~~~
 
 | 层 | 说明 |
 |----|------|
@@ -25,10 +25,10 @@ SYX 源码（import / __syx_plugin_*）
 
 ## 启用插件（运行时）
 
-```bash
+~~~bash
 export SYX_HOST_PLUGIN_PATH=/path/to/libecho_plugin.so:/path/to/libmycrypto.so
 syx run app.sy
-```
+~~~
 
 Native 可执行文件在 `syx_rt_init_plugins()` 阶段加载（`syx build --native` 后 `./app` 同样生效）。
 
@@ -36,7 +36,7 @@ Native 可执行文件在 `syx_rt_init_plugins()` 阶段加载（`syx build --na
 
 SYX 侧调用插件 Host（命名空间 `__syx_plugin_{id}_{fn}`）：
 
-```syx
+```syx,error=S002
 func main() {
     let msg = __syx_plugin_echo_echo("hello")
     print(msg)
@@ -51,14 +51,14 @@ func main() {
 
 项目 `syx.toml` 可声明插件 manifest：
 
-```toml
+~~~toml
 [plugins]
 paths = ["./plugins/mycrypto/plugin.json"]
-```
+~~~
 
 `plugin.json` 示例：
 
-```json
+~~~json
 {
   "id": "mycrypto",
   "api_version": 1,
@@ -73,7 +73,7 @@ paths = ["./plugins/mycrypto/plugin.json"]
   "capabilities": ["crypto"],
   "min_syx_version": "27.0"
 }
-```
+~~~
 
 编译期与运行期插件集合不一致 → **`H002`**。索引顺序写入 **`syx-plugin-lock.json`**（与 `syx.lock` 独立）。
 
@@ -83,15 +83,15 @@ paths = ["./plugins/mycrypto/plugin.json"]
 
 插件导出 `syx_plugin_init()`，Host 回调签名为：
 
-```c
+~~~c
 typedef void (*syx_host_fn)(const char* in, char* out, size_t out_cap);
-```
+~~~
 
 Loader 从 SYX 栈取出字符串参数，调用 C 函数，再将 `out` 写回结果。
 
-```c
+~~~c
 SYX_PLUGIN_EXPORT syx_plugin_info* syx_plugin_init(void);
-```
+~~~
 
 示例 fixture：`crates/syx-host-plugin/tests/fixtures/echo_plugin`
 
@@ -138,11 +138,11 @@ SYX_PLUGIN_EXPORT syx_plugin_info* syx_plugin_init(void);
 
 宿主应用可通过 Embed API 设置插件路径：
 
-```c
+~~~c
 syx_embed_v2_set_plugin_paths(
     "/path/to/lib1.so:/path/to/lib2.so"
 );
-```
+~~~
 
 与 [Embed API](../../../docs/9_UsageGuide.md#embed-apiphase-1415) 沙箱策略联动。若加密在宿主侧完成、SYX 只做编排，Embed + HTTP/文件 仍可能比插件更简单。
 
@@ -162,7 +162,7 @@ syx_embed_v2_set_plugin_paths(
 
 `echo_plugin.c`：
 
-```c
+~~~c
 #include "syx_plugin.h"
 #include <string.h>
 #include <stdio.h>
@@ -189,18 +189,18 @@ SYX_PLUGIN_EXPORT syx_plugin_info* syx_plugin_init(void) {
     };
     return &info;
 }
-```
+~~~
 
 ### 2. 编译
 
-```bash
+~~~bash
 clang -shared -fPIC -o libecho_plugin.so echo_plugin.c \
     -I crates/syx-host-plugin/include
-```
+~~~
 
 ### 3. 写 `plugin.json`
 
-```json
+~~~json
 {
   "id": "echo",
   "api_version": 1,
@@ -215,20 +215,20 @@ clang -shared -fPIC -o libecho_plugin.so echo_plugin.c \
   "capabilities": ["example"],
   "min_syx_version": "27.0"
 }
-```
+~~~
 
 ### 4. SYX 端调用
 
 `syx.toml`：
 
-```toml
+~~~toml
 [plugins]
 paths = ["./echo_plugin.json"]
-```
+~~~
 
 `main.sy`：
 
-```syx
+```syx,error=S002
 func main() {
     let msg = __syx_plugin_echo_echo("hello")
     print(msg)                              // "echo: hello"
@@ -237,10 +237,10 @@ func main() {
 
 ### 5. 运行
 
-```bash
+~~~bash
 export SYX_HOST_PLUGIN_PATH=./libecho_plugin.so
 syx run .
-```
+~~~
 
 ## 诊断码
 

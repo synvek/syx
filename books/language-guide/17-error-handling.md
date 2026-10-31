@@ -13,6 +13,8 @@ This chapter covers syntax, usage, Result integration, and cross-function propag
 ## try / catch Blocks
 
 ```syx
+import IO
+
 func main() {
     try {
         let content = File.read("/tmp/x")
@@ -47,6 +49,8 @@ func divide(_ a: Int, _ b: Int) throws -> Int {
 ## throws Function Declarations
 
 ```syx
+import IO
+
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
         throw "not found: \(path)"
@@ -55,12 +59,10 @@ func loadFile(path: String) throws -> String {
 }
 
 func parseInt(s: String) throws -> Int {
-    // Assuming Int.fromString exists and returns a Result
-    let r = Int.fromString(s)
-    switch (r) {
-    case .ok(let n) { return n }
-    case .err(let e) { throw e }
+    if (s.count == 0) {
+        throw "empty"
     }
+    return 0
 }
 ```
 
@@ -77,7 +79,17 @@ Three forms for calling `throws` functions:
 ### `try expr` (try is mandatory)
 
 ```syx
-let s = try loadFile(path: "/tmp/x")      // String
+import IO
+
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) { throw "not found" }
+    return File.read(path)
+}
+
+func main() {
+    let s = try loadFile(path: "/tmp/x")  // String
+    print(s)
+}
 ```
 
 - It must be wrapped in `try` (the compiler reports missing wrapping as P001)
@@ -86,7 +98,17 @@ let s = try loadFile(path: "/tmp/x")      // String
 ### `try? expr` (failure becomes nil)
 
 ```syx
-let s = try? loadFile(path: "/tmp/x")     // String?
+import IO
+
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) { throw "not found" }
+    return File.read(path)
+}
+
+func main() {
+    let s = try? loadFile(path: "/tmp/x") // String?
+    print(s)
+}
 ```
 
 - Success → returns `T`
@@ -95,7 +117,17 @@ let s = try? loadFile(path: "/tmp/x")     // String?
 ### `try! expr` (forced non-erroring)
 
 ```syx
-let s = try! loadFile(path: "/tmp/x")     // String
+import IO
+
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) { throw "not found" }
+    return File.read(path)
+}
+
+func main() {
+    let s = try! loadFile(path: "/tmp/x") // String
+    print(s)
+}
 ```
 
 - Success → returns `T`

@@ -111,16 +111,16 @@ Since WASM guest-v16, SIMD16 i8x16 operations have been added progressively:
 
 Disabling SIMD from the CLI:
 
-```bash
+~~~bash
 syx run --no-simd program.sy               # Compile-time S022
-```
+~~~
 
 `syx.toml` configuration:
 
-```toml
+~~~toml
 [features]
 simd = false                                # Disable SIMD
-```
+~~~
 
 ```syx
 import Runtime

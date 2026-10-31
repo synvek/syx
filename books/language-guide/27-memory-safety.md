@@ -59,11 +59,11 @@ Phase 32 introduced the **borrow machine-proof harness** (`borrow_regions_machin
 
 Enabling:
 
-```bash
+~~~bash
 SYX_BORROW_MACHINE_PROOF=1 syx run program.sy
 SYX_BORROW_COQ_LEAN_EXPORT=1 syx run program.sy        # Phase 33 Coq/Lean export
 SYX_BORROW_COQ_LEAN_PROOF_PROD=1 syx run program.sy    # Phase 34 machine-checked prod
-```
+~~~
 
 Test fixtures: `p32_borrow_proof_*` · `p33_borrow_coq_lean_*` · `p34_borrow_coq_lean_proof_*`
 

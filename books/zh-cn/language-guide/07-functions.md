@@ -11,19 +11,19 @@ func greet(name: String) {
     print("Hello, \(name)")
 }
 
-func add(a: Int, b: Int) -> Int {
+func sumInts(a: Int, b: Int) -> Int {
     return a + b
 }
 
 func main() {
     greet(name: "SYX")               // "Hello, SYX"
-    print(add(a: 1, b: 2))           // 3
+    print(sumInts(a: 1, b: 2))       // 3
 }
 ```
 
 > **命名参数：** 调用带标签的参数时 **必须** 写 `label: value`。形参可用 `_ name` 省略外部标签（调用处只能位置传参）；可用 `label name` 指定与内部名不同的外部标签（调用处必须写 `label:`，不能写内部名）。
 
-```syx
+```syx,error=S042
 func greet(name: String) { print("Hello, \(name)") }
 func move(to destination: String) { }
 func join(_ task: String) -> String { return task }
@@ -87,14 +87,24 @@ private func hidden() { }                 // 文件 / 作用域内
 详见 [第 28 章 访问控制](28-access-control.md)。
 
 ```syx
-import math                               // 跨模块
-math.add(a: 1, b: 2)                      // ✅ public
-// math.internal_helper()                // ❌ S005：跨模块访问 internal
+// 单文件代替跨模块 `import math`（见 Ch28/Ch29）。
+public func mathAdd(a: Int, b: Int) -> Int {
+    return a + b
+}
+
+func main() {
+    print(mathAdd(a: 1, b: 2))            // ✅ public
+    // math.internal_helper()            // ❌ S005：跨模块访问 internal
+}
 ```
 
 ## async 函数
 
 ```syx
+async func httpGet(_ url: String) -> String {
+    return "ok"
+}
+
 async func fetch() -> String {
     return await httpGet("https://example.com")
 }
@@ -103,6 +113,9 @@ async func fetch() -> String {
 `async` 关键字把函数标记为 **协程**；函数体内可使用 `await`：
 
 ```syx
+async func fetchA() -> String { return "a" }
+async func fetchB() -> String { return "b" }
+
 async func fetchTwo() -> (String, String) {
     let a = await fetchA()
     let b = await fetchB()
@@ -121,6 +134,9 @@ async func fetchTwo() -> (String, String) {
 并行启动多个子任务，等所有完成：
 
 ```syx
+async func fetchA() -> Int { return 1 }
+async func fetchB() -> Int { return 2 }
+
 async func parallel() -> Int {
     async let a = fetchA()              // 启动子任务
     async let b = fetchB()              // 启动子任务
@@ -135,6 +151,8 @@ async func parallel() -> Int {
 ## throws 函数
 
 ```syx
+import IO
+
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
         throw "not found: \(path)"
@@ -156,15 +174,26 @@ func loadFile(path: String) throws -> String {
 调用：
 
 ```syx
-let s = try loadFile(path: "/tmp/x")            // 表达式级 try
-let s2 = try? loadFile(path: "/tmp/x")          // String?（nil 表示错误）
-let s3 = try! loadFile(path: "/tmp/x")          // String（错误 panic）
+import IO
 
-try {
-    let s = loadFile(path: "/tmp/x")
-    print(s)
-} catch (err) {
-    print("failed: \(err)")
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) {
+        throw "not found: \(path)"
+    }
+    return File.read(path)
+}
+
+func main() {
+    let s = try loadFile(path: "/tmp/x")        // 表达式级 try
+    let s2 = try? loadFile(path: "/tmp/x")      // String?（nil 表示错误）
+    let s3 = try! loadFile(path: "/tmp/x")      // String（错误 panic）
+
+    try {
+        let t = loadFile(path: "/tmp/x")
+        print(t)
+    } catch (err) {
+        print("failed: \(err)")
+    }
 }
 ```
 
@@ -175,6 +204,8 @@ try {
 标记函数「纯」（无副作用）或「IO」：
 
 ```syx
+import IO
+
 func pure(x: Int) -> Int requires Pure {
     return x + 1
 }
@@ -216,12 +247,11 @@ func eq<T>(a: T, b: T) -> Bool where T: Equatable {
 
 自定义运算符（**GA**）：
 
-```syx
+~~~text
 infix operator |> { precedence: 50, associativity: left }
 func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
-
 let r = 5 |> { $0 * 2 }      // 10
-```
+~~~
 
 详见 [第 30 章 高级运算符](30-advanced-operators.md)。
 
@@ -243,12 +273,12 @@ print(apply(g: f, x: 4))                      // 8
 
 ## 嵌套函数
 
-```syx
+~~~text
 func outer() -> Int {
     func inner(x: Int) -> Int { return x * 2 }
     return inner(x: 21)                       // 42
 }
-```
+~~~
 
 内部函数可捕获外层 `let`/`var`（详见 [第 8 章 闭包](08-closures.md)）。
 

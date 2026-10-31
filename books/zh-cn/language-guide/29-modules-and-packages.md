@@ -15,9 +15,9 @@ func main() {
 }
 ```
 
-```bash
+~~~bash
 syx run hello.sy
-```
+~~~
 
 ## import
 
@@ -37,7 +37,7 @@ import utils.helpers as H
 
 ## 多文件项目
 
-```
+~~~text
 myapp/
 ├── syx.toml
 ├── syx.lock
@@ -51,11 +51,11 @@ myapp/
         ├── plugin.json
         └── lib/
             └── libmycrypto.so
-```
+~~~
 
 ## syx.toml 完整字段
 
-```toml
+~~~toml
 # === 包元信息 ===
 name = "myapp"                              # 项目名
 version = "0.1.0"                            # 版本（SemVer）
@@ -112,39 +112,39 @@ gc = true
 [profiles]
 default = ["dev"]
 prod = ["prod"]
-```
+~~~
 
 ## 依赖类型
 
 ### 路径依赖
 
-```toml
+~~~toml
 [dependencies]
 utils = "../utils/main.sy"                 # 简单形式
 [dependencies.complex]
 version = "1.0.0"
 path = "../complex"                          # 目录（需 syx.toml）
-```
+~~~
 
 ### git 依赖
 
-```toml
+~~~toml
 [dependencies.lib]
 version = "^0.2"
 git = "https://github.com/org/lib.git"
 rev = "v0.2.1"                               # tag / commit SHA
-```
+~~~
 
 ### registry 依赖
 
-```toml
+~~~toml
 [registry]
 default = "https://packages.sy.dev"
 
 [dependencies.http-client]
 version = "^1.0"
 checksum = "sha256:..."                     # 可选，强制锁
-```
+~~~
 
 > **registry：** 需先设置 `[registry].default`；否则使用环境变量 `SYX_REGISTRY`。
 
@@ -152,7 +152,7 @@ checksum = "sha256:..."                     # 可选，强制锁
 
 执行 `syx install` / `syx add` / `syx update` 后生成。**编译带依赖的项目前必须先 install**（否则报 **P001**）：
 
-```toml
+~~~toml
 [packages.local_math]
 source = "path"
 version = "1.0.0"
@@ -170,7 +170,7 @@ registry = "https://packages.sy.dev"
 version = "1.0.3"
 checksum = "sha256:..."
 dir = ".sy/vendor/http-client-1.0.3"
-```
+~~~
 
 Git / registry 包安装到 `.sy/vendor/`（已加入 `.gitignore`）。Path 依赖仅记录路径，不复制源码。
 
@@ -184,10 +184,10 @@ Git / registry 包安装到 `.sy/vendor/`（已加入 `.gitignore`）。Path 依
 | `syx update [path]` | 重新解析并安装全部依赖 |
 | `syx publish [path] [--registry URL]` | 发布包到 registry |
 
-```bash
+~~~bash
 syx install examples/deps                  # 生成 syx.lock
 syx run examples/deps                      # 输出 42（local_math.add(10, 32)）
-```
+~~~
 
 ## 跨模块访问
 
@@ -216,24 +216,24 @@ func main() {
 
 ## 多模块项目示例
 
-```bash
+~~~bash
 # examples/deps/
 syx install examples/deps
 syx run examples/deps                      # 42
-```
+~~~
 
 ## 插件 manifest（Phase 49+）
 
 `syx.toml` 可声明插件 manifest：
 
-```toml
+~~~toml
 [plugins]
 paths = ["./plugins/mycrypto/plugin.json"]
-```
+~~~
 
 `plugin.json` 示例：
 
-```json
+~~~json
 {
   "id": "mycrypto",
   "api_version": 1,
@@ -248,16 +248,16 @@ paths = ["./plugins/mycrypto/plugin.json"]
   "capabilities": ["crypto"],
   "min_syx_version": "27.0"
 }
-```
+~~~
 
 详见 [第 33 章 运行时扩展](33-runtime-extensions.md)。
 
 ## 宏包 schema（Phase 120 GA）
 
-```toml
+~~~toml
 [macros]
 exports = ["Codable", "Hashable"]
-```
+~~~
 
 Phase 120 起 `[macros].exports` schema 与 `SyxManifest` 对齐；`examples/macro_package/` 演示。
 
@@ -265,14 +265,14 @@ Phase 120 起 `[macros].exports` schema 与 `SyxManifest` 对齐；`examples/mac
 
 编译产物缓存在项目根 `target/cache/`（MIR/module bincode，指纹 `syx-cache-v110`）。编译行为异常时：
 
-```bash
+~~~bash
 rm -rf target/cache
 syx check .
-```
+~~~
 
 ## 完整示例
 
-```
+~~~text
 my-app/
 ├── syx.toml
 ├── syx.lock
@@ -283,11 +283,11 @@ my-app/
 └── tests/
     ├── case_a.sy
     └── case_b.sy
-```
+~~~
 
 `syx.toml`：
 
-```toml
+~~~toml
 name = "my-app"
 version = "0.2.0"
 main = "main.sy"
@@ -300,7 +300,7 @@ path = "lib/math.sy"
 target = "native"
 backend = "llvm"
 opt-level = 2
-```
+~~~
 
 `lib/math.sy`：
 

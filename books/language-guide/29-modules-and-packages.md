@@ -15,9 +15,9 @@ func main() {
 }
 ```
 
-```bash
+~~~bash
 syx run hello.sy
-```
+~~~
 
 ## import
 
@@ -37,7 +37,7 @@ import utils.helpers as H
 
 ## Multi-File Projects
 
-```
+~~~text
 myapp/
 ├── syx.toml
 ├── syx.lock
@@ -51,11 +51,11 @@ myapp/
         ├── plugin.json
         └── lib/
             └── libmycrypto.so
-```
+~~~
 
 ## Complete syx.toml Field Set
 
-```toml
+~~~toml
 # === Package metadata ===
 name = "myapp"                              # Project name
 version = "0.1.0"                            # Version (SemVer)
@@ -112,39 +112,39 @@ gc = true
 [profiles]
 default = ["dev"]
 prod = ["prod"]
-```
+~~~
 
 ## Dependency Types
 
 ### Path Dependencies
 
-```toml
+~~~toml
 [dependencies]
 utils = "../utils/main.sy"                 # Simple form
 [dependencies.complex]
 version = "1.0.0"
 path = "../complex"                          # Directory (needs syx.toml)
-```
+~~~
 
 ### git Dependencies
 
-```toml
+~~~toml
 [dependencies.lib]
 version = "^0.2"
 git = "https://github.com/org/lib.git"
 rev = "v0.2.1"                               # tag / commit SHA
-```
+~~~
 
 ### registry Dependencies
 
-```toml
+~~~toml
 [registry]
 default = "https://packages.sy.dev"
 
 [dependencies.http-client]
 version = "^1.0"
 checksum = "sha256:..."                     # Optional, force lock
-```
+~~~
 
 > **registry:** you must set `[registry].default` first; otherwise the environment variable `SYX_REGISTRY` is used.
 
@@ -152,7 +152,7 @@ checksum = "sha256:..."                     # Optional, force lock
 
 Generated after `syx install` / `syx add` / `syx update`. **You must install before compiling a project with dependencies** (otherwise **P001**):
 
-```toml
+~~~toml
 [packages.local_math]
 source = "path"
 version = "1.0.0"
@@ -170,7 +170,7 @@ registry = "https://packages.sy.dev"
 version = "1.0.3"
 checksum = "sha256:..."
 dir = ".sy/vendor/http-client-1.0.3"
-```
+~~~
 
 Git / registry packages are installed into `.sy/vendor/` (already in `.gitignore`). Path dependencies only record the path; the source is not copied.
 
@@ -184,10 +184,10 @@ Git / registry packages are installed into `.sy/vendor/` (already in `.gitignore
 | `syx update [path]` | Re-resolves and installs all dependencies |
 | `syx publish [path] [--registry URL]` | Publishes a package to the registry |
 
-```bash
+~~~bash
 syx install examples/deps                  # Generates syx.lock
 syx run examples/deps                      # Outputs 42 (local_math.add(10, 32))
-```
+~~~
 
 ## Cross-Module Access
 
@@ -216,24 +216,24 @@ See [Chapter 28, Access Control](28-access-control.md).
 
 ## Multi-Module Project Example
 
-```bash
+~~~bash
 # examples/deps/
 syx install examples/deps
 syx run examples/deps                      # 42
-```
+~~~
 
 ## Plugin Manifests (Phase 49+)
 
 `syx.toml` may declare plugin manifests:
 
-```toml
+~~~toml
 [plugins]
 paths = ["./plugins/mycrypto/plugin.json"]
-```
+~~~
 
 `plugin.json` example:
 
-```json
+~~~json
 {
   "id": "mycrypto",
   "api_version": 1,
@@ -248,16 +248,16 @@ paths = ["./plugins/mycrypto/plugin.json"]
   "capabilities": ["crypto"],
   "min_syx_version": "27.0"
 }
-```
+~~~
 
 See [Chapter 33, Runtime Extensions](33-runtime-extensions.md).
 
 ## Macro Package Schema (Phase 120 GA)
 
-```toml
+~~~toml
 [macros]
 exports = ["Codable", "Hashable"]
-```
+~~~
 
 Since Phase 120, the `[macros].exports` schema is aligned with `SyxManifest`; see `examples/macro_package/`.
 
@@ -265,14 +265,14 @@ Since Phase 120, the `[macros].exports` schema is aligned with `SyxManifest`; se
 
 Compilation artifacts are cached in the project root `target/cache/` (MIR/module bincode, fingerprint `syx-cache-v110`). When compilation behaves abnormally:
 
-```bash
+~~~bash
 rm -rf target/cache
 syx check .
-```
+~~~
 
 ## Complete Example
 
-```
+~~~text
 my-app/
 ├── syx.toml
 ├── syx.lock
@@ -283,11 +283,11 @@ my-app/
 └── tests/
     ├── case_a.sy
     └── case_b.sy
-```
+~~~
 
 `syx.toml`:
 
-```toml
+~~~toml
 name = "my-app"
 version = "0.2.0"
 main = "main.sy"
@@ -300,7 +300,7 @@ path = "lib/math.sy"
 target = "native"
 backend = "llvm"
 opt-level = 2
-```
+~~~
 
 `lib/math.sy`:
 

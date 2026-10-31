@@ -16,10 +16,17 @@ SYX 将 **builtin 能力** 分为两层：用户语法在多数情况下不变�
 ## Operator Intrinsic（语言面硬编码）
 
 ```syx
-let s = a + b
-x += 1
-if (a == b) { … }
-let lt = a < b
+func main() {
+    var a = 1
+    var b = 2
+    var x = 0
+    let s = a + b
+    x += 1
+    if (a == b) { print("eq") }
+    let lt = a < b
+    print(s)
+    print(lt)
+}
 ```
 
 这些表达式 lowering 为 `NumericAdd` / `NumericEq` / `NumericLt` 等 MIR 操作码，由 codegen / LLVM 编译为对应原生指令（addsd / cmpeq 等）。**不** 走 Core extension；**不** 经 Host 调用。
@@ -54,38 +61,23 @@ let lt = a < b
 
 非运算符 builtin 能力在 Core 中可读地声明，并调用按类型命名的 Host 函数 `__syx_{surface}_{op}`：
 
-```syx
+~~~text
 // Core（packages/core/builtins/numeric/int8.sy，示意）
-public static func min() -> Int8 { return -128i8 }   // 类型下界
-public static func max() -> Int8 { return 127i8 }    // 类型上界
-public static func abs(x: Int8) -> Int8 {
-    return __syx_i8_abs(x)
-}
-public static func clamp(x: Int8, lo: Int8, hi: Int8) -> Int8 {
-    return __syx_i8_min(__syx_i8_max(x, lo), hi)
-}
-
-extension Int8 {
-    func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
-    }
-    func description() -> String {
-        return __syx_value_description(self)
-    }
-    func debugDescription() -> String {
-        return __syx_value_debug_description(self)
-    }
-}
-```
+public static func min() -> Int8 { return -128i8 }
+public static func abs(x: Int8) -> Int8 { return __syx_i8_abs(x) }
+~~~
 
 ```syx
-// 用户侧写法
-let lo = Int8.min                                // 类型下界
-let hi = Int8.max
-let m = Math.min(3, 5)                           // 二元比较 → Host
-let a = Int8.abs(x: -3i8)                        // 走 Host
-print(x.description)                             // 走 extension → Host
-x.hash(into: h)
+func main() {
+    let lo = Int8.min
+    let hi = Int8.max
+    let m = Math.min(3, 5)
+    let a = Int8.abs(x: -3i8)
+    print(lo)
+    print(hi)
+    print(m)
+    print(a)
+}
 ```
 
 ## 命名契约（ADR-066 / ADR-067）
@@ -154,18 +146,12 @@ x.hash(into: h)
 ## 集合 HOF
 
 ```syx
-extension Array {
-    func map(transform: (Element) -> Element) -> Array<Element> {
-        return __syx_array_map(self, transform)
-    }
-
-    func filter(predicate: (Element) -> Bool) -> Array<Element> {
-        return __syx_array_filter(self, predicate)
-    }
-
-    func reduce(_ initial: Element, _ combine: (Element, Element) -> Element) -> Element {
-        return __syx_array_reduce(self, initial, combine)
-    }
+func main() {
+    let xs: Array<Int> = [1, 2, 3]
+    let ys = xs.map({ x in x * 2 })
+    let zs = ys.filter({ x in x > 2 })
+    print(ys.count)
+    print(zs.count)
 }
 ```
 
@@ -173,46 +159,20 @@ extension Array {
 
 ## BigInt MVP
 
-```syx
+~~~text
 extension BigInt {
-    public static func fromString(_ s: String) -> BigInt {
-        return __syx_bigint_from_string(s)
-    }
-
-    public func toString() -> String {
-        return __syx_bigint_to_string(self)
-    }
-
-    public static func add(_ a: BigInt, _ b: BigInt) -> BigInt {
-        return __syx_bigint_add(a, b)
-    }
+    public static func fromString(_ s: String) -> BigInt { return __syx_bigint_from_string(s) }
 }
-```
+~~~
 
 > **状态：** `BigInt` 基础算术 MVP（add / sub / mul / div / cmp / fromString / toString）。
 
 ## Result 泛型（final class）
 
-```syx
-// packages/core/builtins/result.sy
-final class Result<T, E> {
-    public let value: T?
-    public let error: E?
-
-    private init(ok: T) { self.value = ok; self.error = nil }
-    private init(err: E) { self.value = nil; self.error = err }
-
-    public static func ok(_ v: T) -> Result<T, E> {
-        return Result(ok: v)
-    }
-
-    public static func err(_ e: E) -> Result<T, E> {
-        return Result(err: e)
-    }
-
-    public func isOk() -> Bool { return value != nil }
-}
-```
+~~~text
+// packages/core/builtins/result.sy（示意；Result 为 prelude，勿重复声明）
+final class Result<T, E> { … }
+~~~
 
 > **状态：** `Result<T, E>` 是 final class（**Phase 46 GA**），提供 `static ok` / `static err` / `isOk` 等基础 API；扩展（如 `map` / `flatMap`）见各应用。
 

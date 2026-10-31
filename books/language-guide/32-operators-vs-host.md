@@ -16,10 +16,17 @@ SYX splits **builtin capability** into two layers: user syntax mostly stays the 
 ## Operator Intrinsic (Language-Surface Hard-Coded)
 
 ```syx
-let s = a + b
-x += 1
-if (a == b) { … }
-let lt = a < b
+func main() {
+    var a = 1
+    var b = 2
+    var x = 0
+    let s = a + b
+    x += 1
+    if (a == b) { print("eq") }
+    let lt = a < b
+    print(s)
+    print(lt)
+}
 ```
 
 These expressions lower to `NumericAdd` / `NumericEq` / `NumericLt` and other MIR opcodes, compiled by codegen / LLVM into the corresponding native instructions (addsd / cmpeq, …). They do **not** go through a Core extension; they do **not** go through a Host call.
@@ -54,38 +61,26 @@ These expressions lower to `NumericAdd` / `NumericEq` / `NumericLt` and other MI
 
 Non-operator builtin capabilities are declared readably in Core and call per-type named Host functions `__syx_{surface}_{op}`:
 
-```syx
+~~~text
 // Core (packages/core/builtins/numeric/int8.sy, illustrative)
-public static func min() -> Int8 { return -128i8 }   // Type lower bound
-public static func max() -> Int8 { return 127i8 }    // Type upper bound
-public static func abs(x: Int8) -> Int8 {
-    return __syx_i8_abs(x)
-}
-public static func clamp(x: Int8, lo: Int8, hi: Int8) -> Int8 {
-    return __syx_i8_min(__syx_i8_max(x, lo), hi)
-}
-
+public static func min() -> Int8 { return -128i8 }
+public static func abs(x: Int8) -> Int8 { return __syx_i8_abs(x) }
 extension Int8 {
-    func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
-    }
-    func description() -> String {
-        return __syx_value_description(self)
-    }
-    func debugDescription() -> String {
-        return __syx_value_debug_description(self)
-    }
+    func description() -> String { return __syx_value_description(self) }
 }
-```
+~~~
 
 ```syx
-// User-side usage
-let lo = Int8.min                                // Type lower bound
-let hi = Int8.max
-let m = Math.min(3, 5)                           // Binary comparison → Host
-let a = Int8.abs(x: -3i8)                        // Goes through Host
-print(x.description)                             // Goes through extension → Host
-x.hash(into: h)
+func main() {
+    let lo = Int8.min                            // Type lower bound
+    let hi = Int8.max
+    let m = Math.min(3, 5)                       // Binary comparison → Host
+    let a = Int8.abs(x: -3i8)                    // Goes through Host
+    print(lo)
+    print(hi)
+    print(m)
+    print(a)
+}
 ```
 
 ## Naming Contract (ADR-066 / ADR-067)
@@ -154,18 +149,12 @@ x.hash(into: h)
 ## Collection HOFs
 
 ```syx
-extension Array {
-    func map(transform: (Element) -> Element) -> Array<Element> {
-        return __syx_array_map(self, transform)
-    }
-
-    func filter(predicate: (Element) -> Bool) -> Array<Element> {
-        return __syx_array_filter(self, predicate)
-    }
-
-    func reduce(_ initial: Element, _ combine: (Element, Element) -> Element) -> Element {
-        return __syx_array_reduce(self, initial, combine)
-    }
+func main() {
+    let xs: Array<Int> = [1, 2, 3]
+    let ys = xs.map({ x in x * 2 })
+    let zs = ys.filter({ x in x > 2 })
+    print(ys.count)
+    print(zs.count)
 }
 ```
 
@@ -173,46 +162,21 @@ extension Array {
 
 ## BigInt MVP
 
-```syx
+~~~text
 extension BigInt {
-    public static func fromString(_ s: String) -> BigInt {
-        return __syx_bigint_from_string(s)
-    }
-
-    public func toString() -> String {
-        return __syx_bigint_to_string(self)
-    }
-
-    public static func add(_ a: BigInt, _ b: BigInt) -> BigInt {
-        return __syx_bigint_add(a, b)
-    }
+    public static func fromString(_ s: String) -> BigInt { return __syx_bigint_from_string(s) }
+    public func toString() -> String { return __syx_bigint_to_string(self) }
 }
-```
+~~~
 
 > **Status:** `BigInt` basic arithmetic MVP (add / sub / mul / div / cmp / fromString / toString).
 
 ## Result Generics (final class)
 
-```syx
-// packages/core/builtins/result.sy
-final class Result<T, E> {
-    public let value: T?
-    public let error: E?
-
-    private init(ok: T) { self.value = ok; self.error = nil }
-    private init(err: E) { self.value = nil; self.error = err }
-
-    public static func ok(_ v: T) -> Result<T, E> {
-        return Result(ok: v)
-    }
-
-    public static func err(_ e: E) -> Result<T, E> {
-        return Result(err: e)
-    }
-
-    public func isOk() -> Bool { return value != nil }
-}
-```
+~~~text
+// packages/core/builtins/result.sy (illustrative; Result is prelude — do not redeclare)
+final class Result<T, E> { … }
+~~~
 
 > **Status:** `Result<T, E>` is a final class (**Phase 46 GA**) providing `static ok` / `static err` / `isOk` and other basic APIs; extensions (such as `map` / `flatMap`) are left to each application.
 
@@ -232,26 +196,19 @@ final class Result<T, E> {
 ## Complete Example
 
 ```syx
-// Core layer (packages/core/builtins/numeric/int8.sy)
-public static let min: Int8 = -128i8
-public static func abs(x: Int8) -> Int8 { return __syx_i8_abs(x) }
+func main() {
+    let a: Int8 = 5i8
+    let b: Int8 = 3i8
+    print(Int8.min)                           // type lower bound (Host/static)
+    print(Math.min(Int(a), Int(b)))           // binary comparison → Host
+    print(a.description)                      // extension → Host
 
-extension Int8 {
-    func description() -> String {
-        return __syx_value_description(self)
-    }
+    // Operators are still Intrinsic
+    let sum = a + b                           // Intrinsic
+    let ok = a < b                            // Intrinsic
+    print(sum)
+    print(ok)
 }
-
-// User code
-let a: Int8 = 5i8
-let b: Int8 = 3i8
-print(Int8.min)                               // -128 (type lower bound)
-print(Math.min(Int(a), Int(b)))               // 3 (binary comparison → Host)
-print(a.description)                          // "5" (goes through Host)
-
-// Operators are still Intrinsic
-let sum = a + b                               // 8 (Intrinsic)
-let ok = a < b                                // false (Intrinsic)
 ```
 
 ## Further Reading

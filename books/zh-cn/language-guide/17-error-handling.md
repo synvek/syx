@@ -13,6 +13,8 @@ SYX 提供三种错误传播路径：
 ## try / catch 块
 
 ```syx
+import IO
+
 func main() {
     try {
         let content = File.read("/tmp/x")
@@ -47,6 +49,8 @@ func divide(_ a: Int, _ b: Int) throws -> Int {
 ## throws 函数声明
 
 ```syx
+import IO
+
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
         throw "not found: \(path)"
@@ -55,12 +59,10 @@ func loadFile(path: String) throws -> String {
 }
 
 func parseInt(s: String) throws -> Int {
-    // 假定有 Int.fromString，返回 Result
-    let r = Int.fromString(s)
-    switch (r) {
-    case .ok(let n) { return n }
-    case .err(let e) { throw e }
+    if (s.count == 0) {
+        throw "empty"
     }
+    return 0
 }
 ```
 
@@ -77,7 +79,17 @@ func parseInt(s: String) throws -> Int {
 ### `try expr`（必须 try）
 
 ```syx
-let s = try loadFile(path: "/tmp/x")      // String
+import IO
+
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) { throw "not found" }
+    return File.read(path)
+}
+
+func main() {
+    let s = try loadFile(path: "/tmp/x")  // String
+    print(s)
+}
 ```
 
 - 必须用 `try` 包裹（编译器提示 P001 包装缺失）
@@ -86,7 +98,17 @@ let s = try loadFile(path: "/tmp/x")      // String
 ### `try? expr`（失败转 nil）
 
 ```syx
-let s = try? loadFile(path: "/tmp/x")     // String?
+import IO
+
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) { throw "not found" }
+    return File.read(path)
+}
+
+func main() {
+    let s = try? loadFile(path: "/tmp/x") // String?
+    print(s)
+}
 ```
 
 - 成功 → 返回 `T`
@@ -95,7 +117,17 @@ let s = try? loadFile(path: "/tmp/x")     // String?
 ### `try! expr`（强制无错）
 
 ```syx
-let s = try! loadFile(path: "/tmp/x")     // String
+import IO
+
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) { throw "not found" }
+    return File.read(path)
+}
+
+func main() {
+    let s = try! loadFile(path: "/tmp/x") // String
+    print(s)
+}
 ```
 
 - 成功 → 返回 `T`

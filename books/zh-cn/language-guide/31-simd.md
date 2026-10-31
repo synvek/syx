@@ -111,16 +111,16 @@ WASM guest-v16 起，SIMD16 i8x16 操作逐步加齐：
 
 CLI 禁用 SIMD：
 
-```bash
+~~~bash
 syx run --no-simd program.sy               # 编译期 S022
-```
+~~~
 
 `syx.toml` 配置：
 
-```toml
+~~~toml
 [features]
 simd = false                                # 禁用 SIMD
-```
+~~~
 
 ```syx
 import Runtime

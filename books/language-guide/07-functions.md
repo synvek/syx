@@ -11,19 +11,19 @@ func greet(name: String) {
     print("Hello, \(name)")
 }
 
-func add(a: Int, b: Int) -> Int {
+func sumInts(a: Int, b: Int) -> Int {
     return a + b
 }
 
 func main() {
     greet(name: "SYX")               // "Hello, SYX"
-    print(add(a: 1, b: 2))           // 3
+    print(sumInts(a: 1, b: 2))       // 3
 }
 ```
 
 > **Named parameters:** when calling a labeled parameter you **must** write `label: value`. A formal parameter may use `_ name` to drop the external label (then calls can only pass it positionally); it may use `label name` to give an external label different from the internal name (then calls must write `label:` and cannot write the internal name).
 
-```syx
+```syx,error=S042
 func greet(name: String) { print("Hello, \(name)") }
 func move(to destination: String) { }
 func join(_ task: String) -> String { return task }
@@ -87,14 +87,24 @@ private func hidden() { }                 // Within the file / scope
 See [Chapter 28, Access Control](28-access-control.md).
 
 ```syx
-import math                               // Cross-module
-math.add(a: 1, b: 2)                      // ✅ public
-// math.internal_helper()                // ❌ S005: accessing internal across modules
+// Single-file stand-in for cross-module `import math` (see Ch28/Ch29).
+public func mathAdd(a: Int, b: Int) -> Int {
+    return a + b
+}
+
+func main() {
+    print(mathAdd(a: 1, b: 2))            // ✅ public
+    // math.internal_helper()            // ❌ S005: accessing internal across modules
+}
 ```
 
 ## async Functions
 
 ```syx
+async func httpGet(_ url: String) -> String {
+    return "ok"
+}
+
 async func fetch() -> String {
     return await httpGet("https://example.com")
 }
@@ -103,6 +113,9 @@ async func fetch() -> String {
 The `async` keyword marks a function as a **coroutine**; inside its body you may use `await`:
 
 ```syx
+async func fetchA() -> String { return "a" }
+async func fetchB() -> String { return "b" }
+
 async func fetchTwo() -> (String, String) {
     let a = await fetchA()
     let b = await fetchB()
@@ -121,6 +134,9 @@ async func fetchTwo() -> (String, String) {
 Start multiple subtasks in parallel and wait for all of them:
 
 ```syx
+async func fetchA() -> Int { return 1 }
+async func fetchB() -> Int { return 2 }
+
 async func parallel() -> Int {
     async let a = fetchA()              // Start a subtask
     async let b = fetchB()              // Start a subtask
@@ -135,6 +151,8 @@ async func parallel() -> Int {
 ## throws Functions
 
 ```syx
+import IO
+
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
         throw "not found: \(path)"
@@ -156,15 +174,26 @@ func loadFile(path: String) throws -> String {
 Calling:
 
 ```syx
-let s = try loadFile(path: "/tmp/x")            // Expression-level try
-let s2 = try? loadFile(path: "/tmp/x")          // String? (nil means error)
-let s3 = try! loadFile(path: "/tmp/x")          // String (panics on error)
+import IO
 
-try {
-    let s = loadFile(path: "/tmp/x")
-    print(s)
-} catch (err) {
-    print("failed: \(err)")
+func loadFile(path: String) throws -> String {
+    if (!File.exists(path)) {
+        throw "not found: \(path)"
+    }
+    return File.read(path)
+}
+
+func main() {
+    let s = try loadFile(path: "/tmp/x")        // Expression-level try
+    let s2 = try? loadFile(path: "/tmp/x")      // String? (nil means error)
+    let s3 = try! loadFile(path: "/tmp/x")      // String (panics on error)
+
+    try {
+        let t = loadFile(path: "/tmp/x")
+        print(t)
+    } catch (err) {
+        print("failed: \(err)")
+    }
 }
 ```
 
@@ -175,6 +204,8 @@ See [Chapter 17, Error Handling](17-error-handling.md).
 Mark a function as "pure" (no side effects) or "IO":
 
 ```syx
+import IO
+
 func pure(x: Int) -> Int requires Pure {
     return x + 1
 }
@@ -216,12 +247,11 @@ See [Chapter 24, Generics](24-generics.md) and [Language Reference: Generic Para
 
 Custom operators (**GA**):
 
-```syx
+~~~text
 infix operator |> { precedence: 50, associativity: left }
 func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
-
 let r = 5 |> { $0 * 2 }      // 10
-```
+~~~
 
 See [Chapter 30, Advanced Operators](30-advanced-operators.md).
 
@@ -243,12 +273,12 @@ The function type `(P) -> R` is first class: it may serve as a variable, paramet
 
 ## Nested Functions
 
-```syx
+~~~text
 func outer() -> Int {
     func inner(x: Int) -> Int { return x * 2 }
     return inner(x: 21)                       // 42
 }
-```
+~~~
 
 Inner functions may capture outer `let`/`var` bindings (see [Chapter 8, Closures](08-closures.md)).
 

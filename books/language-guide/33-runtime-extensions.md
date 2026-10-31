@@ -8,12 +8,12 @@ For the user-facing narrative of embedded packages (`import Linalg` / `Os` / `Lo
 
 ## Capability Layers
 
-```
+~~~text
 SYX source (import / __syx_plugin_*)
     → Semantic analysis + MIR: MirOp::CallHost(n)
     → call_host(n) → static Host table or plugin slot
     → C/Rust callbacks inside the plugin .so
-```
+~~~
 
 | Layer | Description |
 |----|------|
@@ -25,10 +25,10 @@ SYX source (import / __syx_plugin_*)
 
 ## Enabling Plugins (Runtime)
 
-```bash
+~~~bash
 export SYX_HOST_PLUGIN_PATH=/path/to/libecho_plugin.so:/path/to/libmycrypto.so
 syx run app.sy
-```
+~~~
 
 Native executables load them during the `syx_rt_init_plugins()` phase (after `syx build --native`, `./app` works the same way).
 
@@ -36,7 +36,7 @@ Native executables load them during the `syx_rt_init_plugins()` phase (after `sy
 
 Calling a plugin Host from the SYX side (namespace `__syx_plugin_{id}_{fn}`):
 
-```syx
+```syx,error=S002
 func main() {
     let msg = __syx_plugin_echo_echo("hello")
     print(msg)
@@ -51,14 +51,14 @@ func main() {
 
 A project `syx.toml` may declare plugin manifests:
 
-```toml
+~~~toml
 [plugins]
 paths = ["./plugins/mycrypto/plugin.json"]
-```
+~~~
 
 `plugin.json` example:
 
-```json
+~~~json
 {
   "id": "mycrypto",
   "api_version": 1,
@@ -73,7 +73,7 @@ paths = ["./plugins/mycrypto/plugin.json"]
   "capabilities": ["crypto"],
   "min_syx_version": "27.0"
 }
-```
+~~~
 
 If the compile-time and runtime plugin sets differ → **`H002`**. The index order is written into **`syx-plugin-lock.json`** (independent of `syx.lock`).
 
@@ -83,15 +83,15 @@ Header: `crates/syx-host-plugin/include/syx_plugin.h`
 
 A plugin exports `syx_plugin_init()`, and the Host callback signature is:
 
-```c
+~~~c
 typedef void (*syx_host_fn)(const char* in, char* out, size_t out_cap);
-```
+~~~
 
 The loader takes string arguments from the SYX stack, calls the C function, and writes `out` back as the result.
 
-```c
+~~~c
 SYX_PLUGIN_EXPORT syx_plugin_info* syx_plugin_init(void);
-```
+~~~
 
 Example fixture: `crates/syx-host-plugin/tests/fixtures/echo_plugin`
 
@@ -140,11 +140,11 @@ Plugins run in the **same process** as `syx`, which is equivalent to running loc
 
 A host application can set plugin paths through the Embed API:
 
-```c
+~~~c
 syx_embed_v2_set_plugin_paths(
     "/path/to/lib1.so:/path/to/lib2.so"
 );
-```
+~~~
 
 This works together with the [Embed API](../../docs/9_UsageGuide.md#embed-apiphase-1415) sandbox policy. If encryption is done on the host side and SYX only orchestrates, Embed + HTTP/file may still be simpler than a plugin.
 
@@ -164,7 +164,7 @@ For the maintainer static-extension checklist, see [plan/topics/hostfn-extension
 
 `echo_plugin.c`:
 
-```c
+~~~c
 #include "syx_plugin.h"
 #include <string.h>
 #include <stdio.h>
@@ -191,18 +191,18 @@ SYX_PLUGIN_EXPORT syx_plugin_info* syx_plugin_init(void) {
     };
     return &info;
 }
-```
+~~~
 
 ### 2. Compile
 
-```bash
+~~~bash
 clang -shared -fPIC -o libecho_plugin.so echo_plugin.c \
     -I crates/syx-host-plugin/include
-```
+~~~
 
 ### 3. Write `plugin.json`
 
-```json
+~~~json
 {
   "id": "echo",
   "api_version": 1,
@@ -217,20 +217,20 @@ clang -shared -fPIC -o libecho_plugin.so echo_plugin.c \
   "capabilities": ["example"],
   "min_syx_version": "27.0"
 }
-```
+~~~
 
 ### 4. Call It from the SYX Side
 
 `syx.toml`:
 
-```toml
+~~~toml
 [plugins]
 paths = ["./echo_plugin.json"]
-```
+~~~
 
 `main.sy`:
 
-```syx
+```syx,error=S002
 func main() {
     let msg = __syx_plugin_echo_echo("hello")
     print(msg)                              // "echo: hello"
@@ -239,10 +239,10 @@ func main() {
 
 ### 5. Run
 
-```bash
+~~~bash
 export SYX_HOST_PLUGIN_PATH=./libecho_plugin.so
 syx run .
-```
+~~~
 
 ## Diagnostic Codes
 
