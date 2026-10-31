@@ -243,10 +243,20 @@ fn expand_external_in_stmts(
                     else_branch,
                 });
             }
-            Stmt::While { span, mut condition, mut body } => {
+            Stmt::While {
+                span,
+                mut condition,
+                mut body,
+                label,
+            } => {
                 expand_external_in_expr(&mut condition, expander)?;
                 expand_external_in_stmts(&mut body, expander)?;
-                out.push(Stmt::While { span, condition, body });
+                out.push(Stmt::While {
+                    span,
+                    condition,
+                    body,
+                    label,
+                });
             }
             Stmt::ForIn {
                 span,
@@ -254,6 +264,7 @@ fn expand_external_in_stmts(
                 mut iterable,
                 mut body,
                 is_async_iter,
+                label,
             } => {
                 expand_external_in_expr(&mut iterable, expander)?;
                 expand_external_in_stmts(&mut body, expander)?;
@@ -263,6 +274,7 @@ fn expand_external_in_stmts(
                     iterable,
                     body,
                     is_async_iter,
+                    label,
                 });
             }
             Stmt::Expr { span, mut expr } => {

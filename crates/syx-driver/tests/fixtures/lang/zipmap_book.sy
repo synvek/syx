@@ -1,0 +1,15 @@
+func zipMap<A, B, C>(_ a: Array<A>, _ b: Array<B>, _ f: (A, B) -> C) -> Array<C> {
+    let n = a.count < b.count ? a.count : b.count
+    var result: Array<C> = []
+    for i in 0..<n {
+        result.append(f(a[i], b[i]))
+    }
+    return result
+}
+
+func main() {
+    let r = zipMap([1, 2, 3], ["a", "b", "c"]) { n, s in
+        return "\(n)-\(s)"
+    }
+    print(r)
+}

@@ -171,7 +171,7 @@ let x = 100.clamp(0, 10)                  // 10
 
 ```syx
 public extension Int {
-    public func toHex() -> String { ... }   // Must be annotated explicitly
+    public func toHex() -> String { return "" }   // Must be annotated explicitly
 }
 ```
 

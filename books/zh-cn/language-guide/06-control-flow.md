@@ -1,6 +1,6 @@
 # 控制流
 
-**实现状态：** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / `switch` / `where 守卫` / `if case` / `if let` / `guard let` **全部已实现**；标签 break/continue（label）**部分实现**；fallthrough **拒绝**
+**实现状态：** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / 标签 `break`/`continue` / `switch` / `where 守卫` / `if case` / `if let` / `guard let` **全部已实现**；fallthrough **拒绝**
 
 SYX 控制流与 Swift 风格一致：块用 `{ }` 包裹，模式匹配靠 `switch` + `where` 完成。本章按控制结构分类讲解。
 
@@ -121,8 +121,8 @@ while true {
 |------|------|
 | `break` | 跳出 **最近一层** 循环或 `switch` |
 | `continue` | 跳到 **最近一层** 循环下一轮 |
-| `break label` | 跳出指定标签的循环（**部分实现**） |
-| `continue label` | 跳到指定标签的循环下一轮（**部分实现**） |
+| `break label` | 跳出指定标签的循环（**已实现**） |
+| `continue label` | 跳到指定标签的循环下一轮（**已实现**） |
 
 > **标签（label）：** 语法 `label: while (cond) { … break label … }`；SYX 标签在嵌套循环里识别，但跨函数 / 闭包识别仍演进中。
 
@@ -353,15 +353,22 @@ func maybeDouble(x: Int?) -> Int {
 
 ## 控制流与闭包
 
-闭包可携带控制流（如 `for` / `if`），但 **break / continue** 默认只作用于最近循环（不能跨闭包边界）。如需跳出闭包外层循环，用 **label**（**部分实现**）：
+闭包可携带控制流（如 `for` / `if`），但 **break / continue** 默认只作用于最近循环（不能跨闭包边界）。如需跳出外层循环，用 **label**：
 
 ```syx
-outer: for item in items {
-    for sub in item.subs {
-        if sub.shouldStop {
-            break outer                    // ⚠️ 标签支持演进中
+func firstStop(groups: Array<Array<Int>>) -> Int {
+    outer: for group in groups {
+        for n in group {
+            if n < 0 {
+                break outer
+            }
         }
     }
+    return 0
+}
+
+func main() {
+    print(firstStop(groups: [[1, 2], [-1, 9]]))
 }
 ```
 

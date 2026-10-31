@@ -1097,11 +1097,13 @@ fn rewrite_returns_to_proceed(span: syx_diagnostics::Span, proceed: &str, stmts:
                 span: while_span,
                 condition,
                 body,
+                label,
             } => {
                 out.push(Stmt::While {
                     span: while_span,
                     condition,
                     body: rewrite_returns_to_proceed(span, proceed, body),
+                    label,
                 });
             }
             Stmt::Try {

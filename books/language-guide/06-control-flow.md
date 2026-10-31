@@ -1,6 +1,6 @@
 # Control Flow
 
-**Implementation status:** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / `switch` / `where` guards / `if case` / `if let` / `guard let` are **all Implemented**; labeled `break`/`continue` (label) **Partially implemented**; fallthrough **Rejected**
+**Implementation status:** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / labeled `break`/`continue` / `switch` / `where` guards / `if case` / `if let` / `guard let` are **all Implemented**; fallthrough **Rejected**
 
 SYX control flow follows the Swift style: blocks are wrapped in `{ }`, and pattern matching is done with `switch` + `where`. This chapter explains each control structure by category.
 
@@ -121,8 +121,8 @@ while true {
 |------|------|
 | `break` | Exits the **innermost** loop or `switch` |
 | `continue` | Jumps to the next round of the **innermost** loop |
-| `break label` | Exits the loop with the given label (**Partially implemented**) |
-| `continue label` | Jumps to the next round of the labeled loop (**Partially implemented**) |
+| `break label` | Exits the loop with the given label (**Implemented**) |
+| `continue label` | Jumps to the next round of the labeled loop (**Implemented**) |
 
 > **Labels:** the syntax is `label: while (cond) { … break label … }`; SYX recognizes labels in nested loops, but recognition across functions / closures is still evolving.
 
@@ -353,15 +353,22 @@ func maybeDouble(x: Int?) -> Int {
 
 ## Control Flow and Closures
 
-A closure may carry control flow (such as `for` / `if`), but **break / continue** apply only to the nearest loop by default (they cannot cross closure boundaries). To break out of a loop outside the closure, use a **label** (**Partially implemented**):
+A closure may carry control flow (such as `for` / `if`), but **break / continue** apply only to the nearest loop by default (they cannot cross closure boundaries). To break out of an outer loop, use a **label**:
 
 ```syx
-outer: for item in items {
-    for sub in item.subs {
-        if sub.shouldStop {
-            break outer                    // ⚠️ Label support is still evolving
+func firstStop(groups: Array<Array<Int>>) -> Int {
+    outer: for group in groups {
+        for n in group {
+            if n < 0 {
+                break outer
+            }
         }
     }
+    return 0
+}
+
+func main() {
+    print(firstStop(groups: [[1, 2], [-1, 9]]))
 }
 ```
 

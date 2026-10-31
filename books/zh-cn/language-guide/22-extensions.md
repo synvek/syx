@@ -171,7 +171,7 @@ let x = 100.clamp(0, 10)                  // 10
 
 ```syx
 public extension Int {
-    public func toHex() -> String { ... }   // 必须显式标注
+    public func toHex() -> String { return "" }   // 必须显式标注
 }
 ```
 

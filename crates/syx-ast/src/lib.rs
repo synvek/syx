@@ -336,6 +336,8 @@ pub enum Stmt {
         span: Span,
         condition: Expr,
         body: Vec<Stmt>,
+        /// S1-I8: optional loop label (`outer: while …`).
+        label: Option<SmolStr>,
     },
     ForIn {
         span: Span,
@@ -344,6 +346,8 @@ pub enum Stmt {
         body: Vec<Stmt>,
         /// `for await x in …` async sequence iteration (Phase 9 AL3).
         is_async_iter: bool,
+        /// S1-I8: optional loop label (`outer: for …`).
+        label: Option<SmolStr>,
     },
     Block {
         span: Span,
@@ -356,9 +360,13 @@ pub enum Stmt {
     },
     Break {
         span: Span,
+        /// S1-I8: `break outer`.
+        label: Option<SmolStr>,
     },
     Continue {
         span: Span,
+        /// S1-I8: `continue outer`.
+        label: Option<SmolStr>,
     },
     Try {
         span: Span,

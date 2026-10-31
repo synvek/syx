@@ -416,6 +416,7 @@ use crate::warnings::push_macro_warning;
                             span,
                             condition: cond,
                             body: body_stmts,
+                            label: None,
                         });
                     } else if name.as_str() == "compileTime" {
                         if args.is_empty() {
@@ -544,6 +545,7 @@ use crate::warnings::push_macro_warning;
                             span,
                             condition,
                             body: while_body,
+                            label: None,
                         });
                     } else if name.as_str() == "warning" {
                         let msg = macro_message_arg(args, span, "warning")?;
@@ -590,10 +592,16 @@ use crate::warnings::push_macro_warning;
                     span,
                     condition,
                     mut body,
+                    label,
                     ..
                 } => {
                     expand_stmts(&mut body)?;
-                    out.push(Stmt::While { span, condition, body });
+                    out.push(Stmt::While {
+                        span,
+                        condition,
+                        body,
+                        label,
+                    });
                 }
                 Stmt::ForIn {
                     span,
@@ -601,6 +609,7 @@ use crate::warnings::push_macro_warning;
                     iterable,
                     mut body,
                     is_async_iter,
+                    label,
                     ..
                 } => {
                     expand_stmts(&mut body)?;
@@ -610,6 +619,7 @@ use crate::warnings::push_macro_warning;
                         iterable,
                         body,
                         is_async_iter,
+                        label,
                     });
                 }
                 Stmt::Try {

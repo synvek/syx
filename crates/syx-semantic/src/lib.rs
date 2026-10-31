@@ -1829,6 +1829,14 @@ impl SemanticAnalyzer {
                 return ty;
             }
         }
+        // S1-I8: `any P` / `some P` member lookup via protocol requirements.
+        if let TypeId::OpaqueAny(inner) | TypeId::OpaqueSome(inner) = object_ty {
+            if let TypeId::Named(n) = inner.as_ref() {
+                if let Some(ty) = self.lookup_surface_member_type(n, method) {
+                    return ty;
+                }
+            }
+        }
         if method == "json" {
             return type_name_to_id("Object");
         }
@@ -3012,6 +3020,46 @@ impl SemanticAnalyzer {
                             .map(|(n, c)| (n.clone(), c.clone()))
                             .collect(),
                     );
+                }
+                // S1-I8: surface protocol requirements so `Array<Shape>` / `s.area()` type-check.
+                let mut proto_methods: Vec<(SmolStr, TypeId)> = Vec::new();
+                for m in methods {
+                    match m {
+                        Decl::Function {
+                            name: method,
+                            return_type,
+                            ..
+                        } => {
+                            let ret = return_type
+                                .as_ref()
+                                .map(type_expr_to_id)
+                                .unwrap_or(TypeId::Void);
+                            proto_methods.push((method.clone(), ret.clone()));
+                            let mangled = SmolStr::new(format!("{name}_{method}"));
+                            self.function_return_types
+                                .insert(mangled.clone(), ret.clone());
+                            self.globals.insert(
+                                mangled,
+                                Symbol {
+                                    name: SmolStr::new(format!("{name}_{method}")),
+                                    ty: ret,
+                                    mutable: false,
+                                    access: AccessLevel::Internal,
+                                },
+                            );
+                        }
+                        Decl::VarGlobal {
+                            name: prop,
+                            ty: Some(ty),
+                            ..
+                        } => {
+                            proto_methods.push((prop.clone(), type_expr_to_id(ty)));
+                        }
+                        _ => {}
+                    }
+                }
+                if !proto_methods.is_empty() {
+                    self.class_methods.insert(name.clone(), proto_methods);
                 }
                 let has_next = methods.iter().any(|m| {
                     matches!(
@@ -5446,6 +5494,15 @@ impl SemanticAnalyzer {
                 return Ok(());
             }
         }
+        // S1-I8: bare protocol type as annotation (`Array<Shape>`, `Shape`).
+        if self.type_satisfies_as_protocol_bound(&expected, &found) {
+            return Ok(());
+        }
+        if let (TypeId::Array(exp_e), TypeId::Array(found_e)) = (&expected, &found) {
+            if self.type_satisfies_as_protocol_bound(exp_e, found_e) {
+                return Ok(());
+            }
+        }
         match check_assignable(expected, found, name) {
             Ok(()) => Ok(()),
             Err(err) => {
@@ -5453,6 +5510,22 @@ impl SemanticAnalyzer {
                 Err(self.error_at(err.message, span, code))
             }
         }
+    }
+
+    /// `found` may be used where `expected` is a (local) protocol requirement
+    /// or `any`/`some` existential of that protocol.
+    fn type_satisfies_as_protocol_bound(&self, expected: &TypeId, found: &TypeId) -> bool {
+        let proto_name = match expected {
+            TypeId::Named(proto) if self.protocol_names.contains(proto) => proto.as_str(),
+            TypeId::OpaqueAny(inner) | TypeId::OpaqueSome(inner) => {
+                match inner.as_ref() {
+                    TypeId::Named(proto) if self.protocol_names.contains(proto) => proto.as_str(),
+                    _ => return false,
+                }
+            }
+            _ => return false,
+        };
+        self.type_id_satisfies_protocol(found, proto_name)
     }
 
     fn is_subclass_of(&self, sub: &str, base: &str) -> bool {
@@ -5675,6 +5748,43 @@ impl SemanticAnalyzer {
                 }
             }
         }
+        // S1-I8: `[Circle(), Square()]` under `: Array<Shape>` / `Array<any Shape>`.
+        if let Some(TypeId::Array(elem_expected)) = expected {
+            if let Expr::Array { elements, span, .. } = expr {
+                let is_proto_elem = match elem_expected.as_ref() {
+                    TypeId::Named(n) if self.protocol_names.contains(n) => true,
+                    TypeId::OpaqueAny(inner) | TypeId::OpaqueSome(inner) => {
+                        matches!(inner.as_ref(), TypeId::Named(n) if self.protocol_names.contains(n))
+                    }
+                    _ => false,
+                };
+                if is_proto_elem || elements.is_empty() {
+                    for el in elements {
+                        let found = self.analyze_expr(el)?;
+                        if matches!(found, TypeId::Unknown) {
+                            continue;
+                        }
+                        if found != **elem_expected
+                            && !is_compatible(elem_expected, &found)
+                            && !self.type_satisfies_as_protocol_bound(elem_expected, &found)
+                        {
+                            self.errors.push(self.error_at(
+                                format!(
+                                    "Collection elements have inconsistent types: expected {}, found {}",
+                                    type_id_to_name(elem_expected),
+                                    type_id_to_name(&found)
+                                ),
+                                *span,
+                                "S014",
+                            ));
+                        }
+                    }
+                    let ty = TypeId::Array(elem_expected.clone());
+                    self.record_expr_type(expr, ty.clone());
+                    return Ok(ty);
+                }
+            }
+        }
         // Unsuffixed integer literal under an integer or float annotation → contextual type
         // (e.g. `let x: Int8 = 8`, `let y: Double = 1`). Suffixed literals keep literal_numeric_type.
         if let Some(TypeId::Numeric(kind)) = expected {
@@ -5694,7 +5804,16 @@ impl SemanticAnalyzer {
     }
 
     fn is_compatible(&self, expected: &TypeId, found: &TypeId) -> bool {
-        is_compatible(expected, found)
+        if is_compatible(expected, found) {
+            return true;
+        }
+        if self.type_satisfies_as_protocol_bound(expected, found) {
+            return true;
+        }
+        if let (TypeId::Array(a), TypeId::Array(b)) = (expected, found) {
+            return self.type_satisfies_as_protocol_bound(a, b);
+        }
+        false
     }
 
     fn analyze_type_member(
@@ -6142,6 +6261,10 @@ impl SemanticAnalyzer {
     fn type_satisfies_protocol(&self, type_name: &str, protocol: &str) -> bool {
         // S1-I5: `Any` is the unconstrained top type for associatedtype bounds.
         if protocol == "Any" {
+            return true;
+        }
+        // S1-I8: `where Element: User` — same-type / class bound (not only protocols).
+        if type_name == protocol {
             return true;
         }
         if type_conforms(type_name, protocol) {
@@ -6919,9 +7042,13 @@ impl SemanticAnalyzer {
 
     /// Phase 22: user-defined module protocols satisfy where-clause constraints.
     fn is_protocol_constraint(&self, name: &str) -> bool {
+        let n = SmolStr::new(name);
+        // S1-I8: `extension Array where Element: User` — class/data class as type bound.
         Self::known_protocol(name)
-            || self.protocol_assoc_types.contains_key(&SmolStr::new(name))
-            || self.protocol_names.contains(&SmolStr::new(name))
+            || self.protocol_assoc_types.contains_key(&n)
+            || self.protocol_names.contains(&n)
+            || self.class_names.contains(&n)
+            || self.dataclass_names.contains(&n)
     }
 
     fn apply_module_default_isolation(&mut self, module: &Module) {
@@ -7072,8 +7199,21 @@ impl SemanticAnalyzer {
                 *slot = int_name.clone();
             }
         }
-        // S1-I6: `map(items: [1,2,3], f: { x in x * 2 })` → T=Int64, U was Unknown;
-        // fill remaining Unknown from known slots / platform Int (align MIR Closure→Int).
+        // S1-I6/I8: fill Unknown slots — prefer each closure arg's result type
+        // (`zipMap` C from `{ n, s in "…" }` → String) before copying A/Int.
+        if type_args.iter().any(|t| t.as_str() == "Unknown") {
+            for (i, arg) in args.iter().enumerate() {
+                if i < type_args.len()
+                    && type_args[i].as_str() == "Unknown"
+                    && matches!(arg.value, Expr::Closure { .. })
+                {
+                    let inferred = self.infer_expr_type_name(&arg.value);
+                    if inferred.as_str() != "Unknown" {
+                        type_args[i] = inferred;
+                    }
+                }
+            }
+        }
         if type_args.iter().any(|t| t.as_str() == "Unknown")
             && args.iter().any(|a| matches!(a.value, Expr::Closure { .. }))
         {

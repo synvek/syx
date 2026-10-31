@@ -231,6 +231,7 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
                     body,
                     span: s,
                     is_async_iter: false,
+                    label,
                 } => {
                     let (side, tail) = for_in_builder_tail(body.as_slice());
                     if let Some(elem) = tail {
@@ -267,6 +268,7 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
                             body: body.clone(),
                             span: s,
                             is_async_iter: false,
+                            label,
                         });
                     }
                 }

@@ -355,10 +355,12 @@ fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
             span,
             condition,
             body,
+            label,
         } => Stmt::While {
             span: *span,
             condition: subst_param(condition, param, arg),
             body: body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
+            label: label.clone(),
         },
         Stmt::RepeatWhile {
             span,
@@ -375,12 +377,14 @@ fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
             iterable,
             body,
             is_async_iter,
+            label,
         } => Stmt::ForIn {
             span: *span,
             name: name.clone(),
             iterable: subst_param(iterable, param, arg),
             body: body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
             is_async_iter: *is_async_iter,
+            label: label.clone(),
         },
         Stmt::Try {
             span,
@@ -1342,12 +1346,14 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                     span,
                     condition,
                     mut body,
+                    label,
                 } => {
                     expand_stmts_user(&mut body, defs, depth, stack)?;
                     out.push(Stmt::While {
                         span,
                         condition,
                         body,
+                        label,
                     });
                 }
                 Stmt::RepeatWhile {
@@ -1368,6 +1374,7 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                     iterable,
                     mut body,
                     is_async_iter,
+                    label,
                 } => {
                     expand_stmts_user(&mut body, defs, depth, stack)?;
                     out.push(Stmt::ForIn {
@@ -1376,6 +1383,7 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                         iterable,
                         body,
                         is_async_iter,
+                        label,
                     });
                 }
                 Stmt::Try {
@@ -1464,12 +1472,14 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                     span,
                     condition,
                     mut body,
+                    label,
                 } => {
                     reject_unknown_macros(&mut body)?;
                     out.push(Stmt::While {
                         span,
                         condition,
                         body,
+                        label,
                     });
                 }
                 other => out.push(other),

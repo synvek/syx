@@ -1810,8 +1810,8 @@ impl Parser {
             TokenKind::Guard => self.parse_guard_let(),
             TokenKind::Switch => self.parse_switch(),
             TokenKind::Select => self.parse_select(),
-            TokenKind::While => self.parse_while(),
-            TokenKind::For => self.parse_for_in(),
+            TokenKind::While => self.parse_while(None),
+            TokenKind::For => self.parse_for_in(None),
             TokenKind::Try => self.parse_try(),
             TokenKind::Throw => {
                 let start = self.advance().span;
@@ -1822,17 +1822,33 @@ impl Parser {
                     expr,
                 })
             }
-            TokenKind::Repeat => self.parse_repeat_while(),
+            TokenKind::Repeat => self.parse_repeat_while(None),
             TokenKind::Hash => self.parse_macro_invoke(),
             TokenKind::Break => {
                 let span = self.advance().span;
+                let label = match &self.peek().kind {
+                    TokenKind::Identifier(name) => {
+                        let n = name.clone();
+                        self.advance();
+                        Some(n)
+                    }
+                    _ => None,
+                };
                 self.skip_newlines();
-                Ok(Stmt::Break { span })
+                Ok(Stmt::Break { span, label })
             }
             TokenKind::Continue => {
                 let span = self.advance().span;
+                let label = match &self.peek().kind {
+                    TokenKind::Identifier(name) => {
+                        let n = name.clone();
+                        self.advance();
+                        Some(n)
+                    }
+                    _ => None,
+                };
                 self.skip_newlines();
-                Ok(Stmt::Continue { span })
+                Ok(Stmt::Continue { span, label })
             }
             TokenKind::LBrace => {
                 let start = self.advance().span;
@@ -1841,6 +1857,48 @@ impl Parser {
                     span: Span::merge(start, self.previous().span),
                     stmts,
                 })
+            }
+            TokenKind::Identifier(_) => {
+                // S1-I8: `outer: for` / `outer: while` / `outer: repeat`
+                if matches!(
+                    self.peek_ahead(1).map(|t| &t.kind),
+                    Some(TokenKind::Colon)
+                ) && matches!(
+                    self.peek_ahead(2).map(|t| &t.kind),
+                    Some(TokenKind::For) | Some(TokenKind::While) | Some(TokenKind::Repeat)
+                ) {
+                    let label = self.consume_identifier("Expected loop label")?;
+                    self.consume(TokenKind::Colon, "Expected ':' after loop label")?;
+                    self.skip_newlines();
+                    return match &self.peek().kind {
+                        TokenKind::For => self.parse_for_in(Some(label)),
+                        TokenKind::While => self.parse_while(Some(label)),
+                        TokenKind::Repeat => self.parse_repeat_while(Some(label)),
+                        _ => Err(SyxDiagnostic::error("Expected for/while/repeat after label")
+                            .with_code("P001")),
+                    };
+                }
+                let expr = self.parse_expr()?;
+                let span = expr_span(&expr);
+                if self.match_kind(TokenKind::Semicolon) {
+                    // optional semicolon
+                }
+                self.skip_newlines();
+                if is_print_call(&expr) {
+                    if let Expr::Call { args, .. } = expr {
+                        return Ok(Stmt::Print {
+                            span,
+                            expr: args
+                                .first()
+                                .map(|a| a.value.clone())
+                                .unwrap_or(Expr::Literal {
+                                    span,
+                                    value: Literal::String(String::new()),
+                                }),
+                        });
+                    }
+                }
+                Ok(Stmt::Expr { span, expr })
             }
             _ => {
                 let expr = self.parse_expr()?;
@@ -2147,7 +2205,11 @@ impl Parser {
                 else_branch,
             });
         }
+        // S1-I8: `if obj.prop { … }` — do not treat the then-brace as trailing closure.
+        let prev = self.allow_trailing_closure;
+        self.allow_trailing_closure = false;
         let condition = self.parse_expr()?;
+        self.allow_trailing_closure = prev;
         let then_branch = self.parse_stmt_or_block()?;
         let else_branch = if self.match_kind(TokenKind::Else) {
             Some(self.parse_stmt_or_block()?)
@@ -2889,14 +2951,18 @@ impl Parser {
         self.parse_expr()
     }
 
-    fn parse_while(&mut self) -> SyxResult<Stmt> {
+    fn parse_while(&mut self, label: Option<SmolStr>) -> SyxResult<Stmt> {
         let start = self.advance().span;
+        let prev = self.allow_trailing_closure;
+        self.allow_trailing_closure = false;
         let condition = self.parse_expr()?;
+        self.allow_trailing_closure = prev;
         let body = self.parse_stmt_or_block()?;
         Ok(Stmt::While {
             span: Span::merge(start, self.previous().span),
             condition,
             body,
+            label,
         })
     }
 
@@ -2924,7 +2990,7 @@ impl Parser {
         })
     }
 
-    fn parse_for_in(&mut self) -> SyxResult<Stmt> {
+    fn parse_for_in(&mut self, label: Option<SmolStr>) -> SyxResult<Stmt> {
         let start = self.advance().span;
         let is_async_iter = self.match_kind(TokenKind::Await);
         let name = self.consume_identifier("Expected loop variable")?;
@@ -2942,10 +3008,12 @@ impl Parser {
             iterable,
             body,
             is_async_iter,
+            label,
         })
     }
 
-    fn parse_repeat_while(&mut self) -> SyxResult<Stmt> {
+    fn parse_repeat_while(&mut self, label: Option<SmolStr>) -> SyxResult<Stmt> {
+        let _label = label; // accepted; RepeatWhile has no label field yet
         let start = self.advance().span;
         self.consume(TokenKind::LBrace, "Expected '{' after repeat")?;
         let body = self.parse_block_stmts()?;
@@ -3887,6 +3955,26 @@ impl Parser {
         None
     }
 
+    /// S1-I8: after `{ params in`, body starts with a statement keyword (`return` / `if` / …).
+    fn looks_like_closure_stmt_body(&self) -> bool {
+        matches!(
+            self.peek().kind,
+            TokenKind::Return
+                | TokenKind::If
+                | TokenKind::While
+                | TokenKind::For
+                | TokenKind::Var
+                | TokenKind::Let
+                | TokenKind::Guard
+                | TokenKind::Switch
+                | TokenKind::Throw
+                | TokenKind::Break
+                | TokenKind::Continue
+                | TokenKind::Try
+                | TokenKind::Repeat
+        )
+    }
+
     /// `{ $0 * 2 }` / `{ x in x + 1 }` / `{ print("hi") }` (not a dict `{ k: v }`).
     /// When called from postfix, `peek` is still `{`; when from primary, `{` was consumed.
     fn looks_like_brace_closure(&self) -> bool {
@@ -4017,9 +4105,12 @@ impl Parser {
                 body: ClosureBody::Block(Vec::new()),
             });
         }
+        // S1-I8: `{ n, s in return "…" }` — statement body after `in` (not an expression).
         let body = if self.check(TokenKind::LBrace) {
             self.advance();
             ClosureBody::Block(self.parse_block_stmts()?)
+        } else if self.looks_like_closure_stmt_body() {
+            ClosureBody::Block(self.parse_stmts_until_rbrace()?)
         } else {
             let expr = self.parse_expr()?;
             self.consume(TokenKind::RBrace, "Expected '}' after brace closure")?;
@@ -4768,8 +4859,8 @@ fn stmt_span(stmt: &Stmt) -> Span {
         | Stmt::Try { span, .. }
         | Stmt::Throw { span, .. }
         | Stmt::RepeatWhile { span, .. }
-        | Stmt::Break { span }
-        | Stmt::Continue { span }
+        | Stmt::Break { span, .. }
+        | Stmt::Continue { span, .. }
         | Stmt::Block { span, .. }
         | Stmt::Seq { span, .. }
         | Stmt::MacroInvoke { span, .. } => *span,

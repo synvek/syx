@@ -54,8 +54,20 @@ Tests: `fixtures/format/opaque_some_mvp` · `fixtures/parity/protocol_witness.sy
 `any` is a container for "some kind of `P`"; dispatch at runtime goes through a witness table:
 
 ```syx
-let s: any Shape = Circle(r: 2.0)
-print(s.area())                             // 12.56636
+protocol Shape {
+    func area() -> Double
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func main() {
+    let s: any Shape = Circle(r: 2.0)
+    print(s.area())                         // 12.56636
+}
 ```
 
 | Behavior | Description |
@@ -66,12 +78,30 @@ print(s.area())                             // 12.56636
 | Performance | Indirect dispatch (witness table) |
 
 ```syx
-let shapes: Array<any Shape> = [
-    Square(s: 2.0),
-    Circle(r: 3.0)
-]
-for s in shapes {
-    print(s.area())                         // 4.0, 28.27431
+protocol Shape {
+    func area() -> Double
+}
+
+class Square: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return s * s }
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func main() {
+    let shapes: Array<any Shape> = [
+        Square(s: 2.0),
+        Circle(r: 3.0)
+    ]
+    for s in shapes {
+        print(s.area())                     // 4.0, 28.27431
+    }
 }
 ```
 
@@ -97,22 +127,55 @@ Test: `fixtures/parity/protocol_witness.sy`
 | Polymorphic collections / factories | `any P` |
 
 ```syx
-// Factory: returns multiple implementations → the closure returns `any P`
+protocol Shape {
+    func area() -> Double
+}
+
+class Square: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return s * s }
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+// Factory: returns multiple implementations → `any P`
 func makeShape(kind: String) -> any Shape {
-    if (kind == "circle") { return Circle(r: 1.0) }
+    if kind == "circle" { return Circle(r: 1.0) }
     return Square(s: 1.0)
 }
 
-// API: returns a single implementation → the function returns `some P`
+// API: returns a single implementation → `some P`
 func defaultShape() -> some Shape { return Square(s: 1.0) }
+
+func main() {
+    print(makeShape(kind: "circle").area())
+    print(defaultShape().area())
+}
 ```
 
 ## Casting `any P`
 
 ```syx
-let s: any Shape = Circle(r: 2.0)
-if let c = s as? Circle {
-    print("circle r=\(c.r)")                // "circle r=2.0"
+protocol Shape {
+    func area() -> Double
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func main() {
+    let s: any Shape = Circle(r: 2.0)
+    if let c = s as? Circle {
+        print("circle r=\(c.r)")            // "circle r=2.0"
+    }
 }
 ```
 
@@ -140,12 +203,14 @@ protocol Drawable {
 class Button: Drawable { func draw() { print("[btn]") } }
 class Text: Drawable { func draw() { print("[text]") } }
 
-let ui: Array<any Drawable> = [
-    Button(),
-    Text(),
-    Button()
-]
-for el in ui { el.draw() }
+func main() {
+    let ui: Array<any Drawable> = [
+        Button(),
+        Text(),
+        Button()
+    ]
+    for el in ui { el.draw() }
+}
 ```
 
 ## Combining with Generics
@@ -164,10 +229,22 @@ At runtime `any P` stores:
 - A witness table (a function pointer for each `P` method)
 
 ```syx
-let p: any Named = User(name: "Alice")
-// Memory layout:
-//   [ value | witness table ptr ]
-// Dispatch: p.name() → witness_table.name(value)
+protocol Named {
+    func name() -> String
+}
+
+class User: Named {
+    var n: String
+    init(name: String) { self.n = name }
+    func name() -> String { return self.n }
+}
+
+func main() {
+    let p: any Named = User(name: "Alice")
+    print(p.name())
+    // Memory layout: [ value | witness table ptr ]
+    // Dispatch: p.name() → witness_table.name(value)
+}
 ```
 
 > **Code generation:** the `CallWitness` instruction goes through the witness table; see `syx-codegen`.
@@ -186,7 +263,7 @@ class ConsoleLogger: Logger {
 class FileLogger: Logger {
     let path: String
     init(path: String) { self.path = path }
-    func log(_ msg: String) { File.write(path, "\(msg)\n") }
+    func log(_ msg: String) { print("[file:\(path)] \(msg)") }
 }
 
 // Factory: returns any P (multiple implementations)

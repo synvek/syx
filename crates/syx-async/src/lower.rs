@@ -532,6 +532,7 @@ fn desugar_for_await_in_stmts(stmts: &mut Vec<Stmt>) -> SyxResult<()> {
                 iterable,
                 body,
                 is_async_iter: true,
+                ..
             } => {
                 let expanded = desugar_for_await_stmt(*span, name, iterable, body);
                 *stmt = Stmt::Block {
@@ -668,6 +669,7 @@ fn desugar_for_await_stmt(
                 }),
             },
             body: loop_body,
+            label: None,
         },
     ]
 }

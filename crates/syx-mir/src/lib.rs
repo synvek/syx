@@ -753,10 +753,12 @@ impl ModuleIndex {
                 .property_getters
                 .contains(&(t.clone(), field.clone()))
             {
-                return Some(SmolStr::new(format!(
+                // S1-I8: `4.isEven` types as Int64 but getter mangles as `Int___get_isEven`.
+                let raw = SmolStr::new(format!(
                     "{t}_{}",
                     syx_ast::var_global_getter_method(field)
-                )));
+                ));
+                return Some(remap_platform_int_extension_call(&raw));
             }
             cur = self.class_superclasses.get(&t).cloned();
         }
@@ -770,10 +772,11 @@ impl ModuleIndex {
                 .property_setters
                 .contains(&(t.clone(), field.clone()))
             {
-                return Some(SmolStr::new(format!(
+                let raw = SmolStr::new(format!(
                     "{t}_{}",
                     syx_ast::var_global_setter_method(field)
-                )));
+                ));
+                return Some(remap_platform_int_extension_call(&raw));
             }
             cur = self.class_superclasses.get(&t).cloned();
         }
@@ -9604,7 +9607,7 @@ fn infer_expr_type_name(expr: &Expr) -> SmolStr {
                     .unwrap_or("Float"),
             ),
             Literal::Bool(_) => SmolStr::new("Bool"),
-            Literal::String(_) => SmolStr::new("String"),
+            Literal::String(_) | Literal::Interpolated(_) => SmolStr::new("String"),
             Literal::BigInt(_) => SmolStr::new("BigInt"),
             _ => SmolStr::new("Unknown"),
         },
@@ -9634,14 +9637,36 @@ fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
         .map(|inner| normalize_type_arg(SmolStr::new(inner)))
 }
 
+fn infer_closure_result_type_name(body: &ClosureBody, ctx: &LowerCtx) -> SmolStr {
+    match body {
+        ClosureBody::Expr(e) => infer_generic_arg_type_name(e, ctx),
+        ClosureBody::Block(stmts) => stmts
+            .iter()
+            .rev()
+            .find_map(|s| match s {
+                Stmt::Return { value: Some(v), .. } | Stmt::Expr { expr: v, .. } => {
+                    Some(infer_generic_arg_type_name(v, ctx))
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| SmolStr::new("Unknown")),
+    }
+}
+
 fn infer_generic_arg_type_name(expr: &Expr, ctx: &LowerCtx) -> SmolStr {
     match expr {
-        // S1-I5: align with semantic compose/map closure mono fill (platform Int).
-        Expr::Closure { .. } => SmolStr::new(if cfg!(target_pointer_width = "64") {
-            "Int64"
-        } else {
-            "Int32"
-        }),
+        // S1-I8: zipMap/map U/C from closure body result (not always platform Int).
+        Expr::Closure { body, .. } => {
+            let inferred = infer_closure_result_type_name(body, ctx);
+            if inferred.as_str() != "Unknown" {
+                return normalize_type_arg(inferred);
+            }
+            SmolStr::new(if cfg!(target_pointer_width = "64") {
+                "Int64"
+            } else {
+                "Int32"
+            })
+        }
         Expr::Ident { name, .. } => {
             let ty = ctx
                 .local_types

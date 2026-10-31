@@ -1,0 +1,14 @@
+func firstStop(groups: Array<Array<Int>>) -> Int {
+    outer: for group in groups {
+        for n in group {
+            if n < 0 {
+                break outer
+            }
+        }
+    }
+    return 0
+}
+
+func main() {
+    print(firstStop(groups: [[1, 2], [-1, 9]]))
+}

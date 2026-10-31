@@ -698,8 +698,8 @@ pub fn desugar_top_level_stmts(module: &mut syx_ast::Module) -> SyxResult<()> {
                 | Stmt::Try { span, .. }
                 | Stmt::Throw { span, .. }
                 | Stmt::RepeatWhile { span, .. }
-                | Stmt::Break { span }
-                | Stmt::Continue { span }
+                | Stmt::Break { span, .. }
+                | Stmt::Continue { span, .. }
                 | Stmt::Block { span, .. }
                 | Stmt::Seq { span, .. }
                 | Stmt::MacroInvoke { span, .. } => *span,

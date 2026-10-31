@@ -54,8 +54,20 @@ func main() {
 `any` 是「某种 `P`」的容器；运行时用 witness 表动态分派：
 
 ```syx
-let s: any Shape = Circle(r: 2.0)
-print(s.area())                             // 12.56636
+protocol Shape {
+    func area() -> Double
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func main() {
+    let s: any Shape = Circle(r: 2.0)
+    print(s.area())                         // 12.56636
+}
 ```
 
 | 行为 | 说明 |
@@ -66,12 +78,30 @@ print(s.area())                             // 12.56636
 | 性能 | 间接调度（witness table） |
 
 ```syx
-let shapes: Array<any Shape> = [
-    Square(s: 2.0),
-    Circle(r: 3.0)
-]
-for s in shapes {
-    print(s.area())                         // 4.0, 28.27431
+protocol Shape {
+    func area() -> Double
+}
+
+class Square: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return s * s }
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func main() {
+    let shapes: Array<any Shape> = [
+        Square(s: 2.0),
+        Circle(r: 3.0)
+    ]
+    for s in shapes {
+        print(s.area())                     // 4.0, 28.27431
+    }
 }
 ```
 
@@ -97,22 +127,55 @@ for s in shapes {
 | 多态集合 / 工厂 | `any P` |
 
 ```syx
-// 工厂：返回多种实现 → 闭包返回 `any P`
+protocol Shape {
+    func area() -> Double
+}
+
+class Square: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return s * s }
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+// 工厂：返回多种实现 → `any P`
 func makeShape(kind: String) -> any Shape {
-    if (kind == "circle") { return Circle(r: 1.0) }
+    if kind == "circle" { return Circle(r: 1.0) }
     return Square(s: 1.0)
 }
 
-// API：返回单一实现 → 函数返回 `some P`
+// API：返回单一实现 → `some P`
 func defaultShape() -> some Shape { return Square(s: 1.0) }
+
+func main() {
+    print(makeShape(kind: "circle").area())
+    print(defaultShape().area())
+}
 ```
 
 ## `any P` 的 cast
 
 ```syx
-let s: any Shape = Circle(r: 2.0)
-if let c = s as? Circle {
-    print("circle r=\(c.r)")                // "circle r=2.0"
+protocol Shape {
+    func area() -> Double
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * r * r }
+}
+
+func main() {
+    let s: any Shape = Circle(r: 2.0)
+    if let c = s as? Circle {
+        print("circle r=\(c.r)")            // "circle r=2.0"
+    }
 }
 ```
 
@@ -140,12 +203,14 @@ protocol Drawable {
 class Button: Drawable { func draw() { print("[btn]") } }
 class Text: Drawable { func draw() { print("[text]") } }
 
-let ui: Array<any Drawable> = [
-    Button(),
-    Text(),
-    Button()
-]
-for el in ui { el.draw() }
+func main() {
+    let ui: Array<any Drawable> = [
+        Button(),
+        Text(),
+        Button()
+    ]
+    for el in ui { el.draw() }
+}
 ```
 
 ## 与泛型结合
@@ -163,10 +228,22 @@ func makePair<T: Equatable>(_ a: T, _ b: T) -> some Equatable {
 - witness 表（每个 `P` 方法的函数指针）
 
 ```syx
-let p: any Named = User(name: "Alice")
-// 内存布局：
-//   [ value | witness table ptr ]
-// 调度：p.name() → witness_table.name(value)
+protocol Named {
+    func name() -> String
+}
+
+class User: Named {
+    var n: String
+    init(name: String) { self.n = name }
+    func name() -> String { return self.n }
+}
+
+func main() {
+    let p: any Named = User(name: "Alice")
+    print(p.name())
+    // 内存布局：[ value | witness table ptr ]
+    // 调度：p.name() → witness_table.name(value)
+}
 ```
 
 > **代码生成：** `CallWitness` 指令走 witness 表；详见 `syx-codegen`。
@@ -185,7 +262,7 @@ class ConsoleLogger: Logger {
 class FileLogger: Logger {
     let path: String
     init(path: String) { self.path = path }
-    func log(_ msg: String) { File.write(path, "\(msg)\n") }
+    func log(_ msg: String) { print("[file:\(path)] \(msg)") }
 }
 
 // 工厂：返回 any P（多种实现）
