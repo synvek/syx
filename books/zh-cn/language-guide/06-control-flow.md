@@ -128,7 +128,25 @@ while true {
 `switch` 是 SYX 表达多路分支的核心；支持 **模式 + 守卫 + exhaustiveness**：
 
 ```syx
+enum Box {
+    case ok(data: String)
+    case err(e: String)
+}
+let value = Box.ok(data: "hi")
 switch value {
+case .ok(let data) {
+    print(data)
+}
+case .err(let e) where e.count > 0 {
+    print(e)
+}
+default {
+    print("other")
+}
+}
+
+let num = 5
+switch num {
 case 1 {
     print("one")
 }
@@ -137,12 +155,6 @@ case 2, 3, 5, 7 {
 }
 case 0..<10 {
     print("single digit")
-}
-case .ok(let data) {
-    print(data)
-}
-case .err(let e) where e.count > 0 {
-    print(e)
 }
 default {
     print("other")
@@ -162,6 +174,7 @@ default {
 ### switch 块语法（重要）
 
 ```syx
+let x = 1
 switch x {
 case 1 {           // 花括号包裹 case 体；与 Swift 不同
     print("one")
@@ -177,6 +190,13 @@ case 2 {
 ### 模式（详细）
 
 ```syx
+enum Outcome {
+    case ok(value: String)
+    case err(message: String)
+    case failure(code: Int, message: String)
+    case empty
+}
+let result = Outcome.ok(value: "hi")
 switch result {
 case .ok(let value) {                      // 解构变体
     print("ok: \(value)")
@@ -201,6 +221,7 @@ default {
 ### 范围 case
 
 ```syx
+let n = 42
 switch n {
 case 0..<10 { print("single digit") }
 case 10..<100 { print("two digits") }
@@ -232,6 +253,7 @@ func describe(_ c: Color) -> String {
 ### 守卫 `where`
 
 ```syx
+let n = 4
 switch n {
 case let x where x < 0 {
     print("negative: \(x)")
@@ -254,6 +276,11 @@ case let x {
 ## if case
 
 ```syx
+enum Box {
+    case ok(data: String)
+    case err
+}
+let result = Box.ok(data: "hi")
 if case .ok(let data) = result {
     print(data)
 } else {
@@ -268,16 +295,20 @@ if case .ok(let data) = result {
 解包 `Optional`：
 
 ```syx
-if let x = optional {
-    print("got: \(x)")
-} else {
-    print("nil")
-}
+func demoOptional() {
+    let optional: Int? = 1
+    if let x = optional {
+        print("got: \(x)")
+    } else {
+        print("nil")
+    }
 
-guard let y = optional else {
-    return                              // 早退（else 必须退出：return / throw / break / continue）
+    guard let y = optional else {
+        return                              // 早退（else 必须退出：return / throw / break / continue）
+    }
+    print("y is \(y)")                       // 此处 y 已被解包，非 Optional
 }
-print("y is \(y)")                       // 此处 y 已被解包，非 Optional
+demoOptional()
 ```
 
 | 形式 | 行为 |

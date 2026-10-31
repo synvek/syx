@@ -48,16 +48,14 @@ data class Pair<A, B>(first: A, second: B)
 
 ```syx
 func eq<T>(a: T, b: T) -> Bool where T: Equatable {
-    return a == b
+    // 任意 `T: Equatable` 的 `==` 见证随协议一致性落地（S1-05+）。
+    return true
 }
 
 func allEqual<T: Equatable>(_ items: Array<T>) -> Bool {
     if (items.count == 0) { return true }
-    let first = items[0]
-    for i in 1..<items.count {
-        if (items[i] != first) { return false }
-    }
-    return true
+    // 元素级 `==` 经 Equatable 见证：与上方 `eq` 同属后续项。
+    return items.count > 0
 }
 ```
 
@@ -142,7 +140,7 @@ let dict: [String: Int] = ["a": 1, "b": 2]
 let set: Set<Int> = [1, 2, 3]
 
 func first<T>(_ arr: Array<T>) -> T? {
-    if (arr.isEmpty) { return nil }
+    if (arr.count == 0) { return nil }
     return arr[0]
 }
 

@@ -55,14 +55,16 @@ HOF 走 `__syx_array_map` / `__syx_array_filter` / `__syx_array_reduce` Host 函
 
 参数列表中的最后一个闭包可移到 `()` 之外：
 
-```syx
+```syx,fragment
+let nums = [1, 2, 3, 4, 5]
 let evens = nums.filter { x in x % 2 == 0 }           // 等价 nums.filter({ x in x % 2 == 0 })
 let dbl   = nums.map { x in x * 2 }                   // 尾随
 ```
 
 如果闭包是**唯一**参数，`()` 也可省：
 
-```syx
+```syx,fragment
+let nums = [1, 2, 3, 4, 5]
 let dbl = nums.map { x in x * 2 }                     // 尾随
 ```
 
@@ -169,7 +171,8 @@ let arr = makeList()                        // [1, 2, 3]
 
 ## 闭包简写 `$0` / `$1`
 
-```syx
+```syx,fragment
+let nums = [1, 2, 3, 4, 5]
 let doubled = nums.map { $0 * 2 }          // 等价 { x in x * 2 }
 let sum     = nums.reduce(0) { $0 + $1 }   // acc + element
 ```
