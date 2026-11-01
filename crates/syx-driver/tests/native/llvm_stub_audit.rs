@@ -1,9 +1,10 @@
-//! Phase 91 + M0-A07 + W313–W315: public syx-rt stub audit / align / declare-diff inventories.
-//! Counts / POP≠GA / capability cross / emit-declare diff nails; no stub semantic rewrite.
+//! Phase 91 + M0-A07 + W313–W314: public syx-rt stub audit / align inventories.
+//! Counts / POP≠GA / capability cross nails; no stub semantic rewrite.
+//! S2-I14: W315 declare-diff companion removed with orphan clear upstream feed.
 
 use syx_rt::{
     classify_llvm_stub_block, llvm_stub_audit_report, llvm_stub_capability_align_inventory,
-    llvm_stub_declare_diff_inventory, LlvmStubKind,
+    LlvmStubKind,
 };
 
 #[test]
@@ -88,34 +89,4 @@ fn w314_llvm_stub_capability_align_inventory_floors() {
         a.hostfn_bound_wired
     );
     eprintln!("align inventory: {a:?}");
-}
-
-#[test]
-fn w315_llvm_stub_declare_diff_inventory_floors() {
-    let r = llvm_stub_audit_report();
-    let d = llvm_stub_declare_diff_inventory();
-    assert_eq!(
-        d.defined_count, r.total,
-        "defined_count must match audit total"
-    );
-    assert!(
-        d.declared_count >= 300,
-        "declared_count={}",
-        d.declared_count
-    );
-    assert!(d.defined_count >= 80, "defined_count={}", d.defined_count);
-    assert!(
-        d.missing_in_stubs >= 1,
-        "missing_in_stubs={}",
-        d.missing_in_stubs
-    );
-    assert!(d.extra_in_stubs >= 1, "extra_in_stubs={}", d.extra_in_stubs);
-    assert_eq!(d.missing_not_in_rt, 0, "missing_not_in_rt must be 0: {d:?}");
-    // Honesty: missing_in_stubs ≠ unlinkable (abi covers most).
-    assert!(
-        d.abi_cover_count >= 1,
-        "abi_cover_count={}",
-        d.abi_cover_count
-    );
-    eprintln!("declare-diff inventory: {d:?}");
 }

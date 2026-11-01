@@ -6,7 +6,6 @@ mod matrix_fingerprint;
 #[path = "../support/construction_progress.rs"]
 mod construction_progress;
 
-mod gate_b04_absolute_thresholds;
 mod gate_b07_real_hostfn_lowering_file_read_wire;
 mod gate_b07_real_hostfn_lowering_tcp_handle_release_wire;
 mod gate_b07_real_hostfn_lowering_tcp_read_wire;
@@ -78,8 +77,6 @@ mod syx_bench_cli_allowlist;
 mod language_exports_export_list_trailing_comma;
 mod llvm_phi_clang;
 mod llvm_stub_audit;
-mod mir_residual_abi_narrow_cleanup;
-mod mir_residual_honesty;
 
 mod native_build_lto;
 mod native_build_profile;

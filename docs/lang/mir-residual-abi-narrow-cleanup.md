@@ -1,5 +1,7 @@
 # MIR residual ABI narrow cleanup (W484 / ADR-828)
 
+> **S2-I10：** product `MirResidualAbiNarrowCleanupInventory` / `mir_residual_abi_narrow_cleanup_inventory` **已退役迁出**（过程治理签字结构不再链入 `syx-rt`）。下文为历史证据叙事，**≠** 现行产品 API。
+>
 > **Status:** **residual ABI narrow cleanup signed** (ADR-828 / W484) — production IR omits `declare @syx_rt_load_mir_blob`; production shim/C stub use compact-only (no dead sidecar encode).  
 > Cross-index: [`mir-residual-honesty.md`](mir-residual-honesty.md) / ADR-803 (historical floor); [`long-mir-free-emit-omit.md`](long-mir-free-emit-omit.md) / W413; [`long-mir-free-sidecar-omit-emit.md`](long-mir-free-sidecar-omit-emit.md) / W431; [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md).  
 > Roadmap B-02 **`[x]`**; B-09 **`[~]`**. MIR blob distance **0** (unchanged — ≠ this window removed production blob).  

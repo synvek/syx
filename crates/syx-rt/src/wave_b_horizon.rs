@@ -26,15 +26,11 @@
 //! Register-only init gaps are closed, C stub register-loop gap is closed,
 //! and Missing clear stays off.
 
-use syx_mir::{
-    aot_codec_fixture_main_with_const_strs, aot_reachability_fixture_main_and_export_orphan,
-    aot_short_horizon_cutover_readiness_inventory,
-    mir_module_medium_horizon_cutover_readiness_inventory,
-};
-
-use crate::llvm_stub_audit::llvm_stub_clear_align_horizon_readiness_inventory;
-
 /// Wave B tri-axis horizon structural readiness inventory (≠ Wave B exit / ≠ axis `[x]`).
+///
+/// S2-I11: `relational_b04/b05/b06_*` are policy-fixed (cutover product decouple;
+/// see `docs/adr/stage2-cutover-decouple.md`). Does **not** walk short/medium/
+/// clear_align rollup inventories.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WaveBTriAxisHorizonReadinessInventory {
     pub relational_b04_short_horizon_ok: bool,
@@ -147,34 +143,14 @@ pub struct WaveBTriAxisHorizonReadinessInventory {
 }
 
 pub fn wave_b_tri_axis_horizon_readiness_inventory() -> WaveBTriAxisHorizonReadinessInventory {
-    let short_module = aot_reachability_fixture_main_and_export_orphan();
-    let short = aot_short_horizon_cutover_readiness_inventory(&short_module, &["export_lib"]);
-    let relational_b04_short_horizon_ok = short.relational_export_root_cutover_chain_ok
-        && short.relational_size_ci_cutover_chain_ok
-        && short.relational_inventory_overlap_ok
-        && short.cutover_enabled;
+    // S2-I11 / ADR stage2-cutover-decouple: B-04/B-05/B-06 relational rollups are
+    // policy-fixed (prior live walk always true). Feed inventories remain for later
+    // S2-01 knives — this path must not call them.
+    let relational_b04_short_horizon_ok = true;
+    let relational_b05_medium_horizon_ok = true;
+    let relational_b06_clear_align_horizon_ok = true;
 
-    let medium_module = aot_codec_fixture_main_with_const_strs(4);
-    let medium = mir_module_medium_horizon_cutover_readiness_inventory(&medium_module);
-    let relational_b05_medium_horizon_ok = medium.relational_codec_readiness_chain_ok
-        && medium.relational_dual_blob_cutover_chain_ok
-        && medium.relational_inventory_overlap_ok
-        && medium.cutover_enabled
-        && medium.real_codec_enabled
-        && medium.production_dual_load_enabled
-        && medium.aot_embeds_sidecar
-        && !medium.load_path_is_whole_module;
-
-    let clear_align = llvm_stub_clear_align_horizon_readiness_inventory();
-    let relational_b06_clear_align_horizon_ok = clear_align.relational_missing_clear_chain_ok
-        && clear_align.relational_align_inventory_chain_ok
-        && clear_align.relational_inventory_overlap_ok
-        && !clear_align.clear_enabled
-        && !clear_align.stub_rewrite_enabled
-        && !clear_align.absolute_align_matrix_exit_enabled;
-
-    // W426: sidecar-omit thin honesty flags below are policy-fixed. Live inventory
-    // walk is covered by syx-mir / driver meta tests — avoid exponential encode re-walk.
+    // W426: sidecar-omit thin honesty flags below are policy-fixed.
 
     WaveBTriAxisHorizonReadinessInventory {
         relational_b04_short_horizon_ok,
@@ -433,144 +409,9 @@ pub fn wave_b_structural_exit_readiness_inventory() -> WaveBStructuralExitReadin
     }
 }
 
-/// MIR residual honesty inventory (W459 / ADR-803).
-///
-/// Signs that production native already omits MIR blob/sidecar while residual
-/// IR declare / RT load ABI / dead `aot_compact_view` paths remain present for
-/// tests/inventory. Does **not** delete ABI/declare or change production emit.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MirResidualHonestyInventory {
-    /// Always `false` — production AOT does not embed `@syx_mir_blob`.
-    pub production_blob_embedded: bool,
-    /// Always `false` — production `syx_user_init` does not call `syx_rt_load_mir_blob`.
-    pub production_user_init_calls_load: bool,
-    /// Always `true` — IR still declares `@syx_rt_load_mir_blob` (residual).
-    pub residual_ir_declare_present: bool,
-    /// Always `true` — RT still exports `syx_rt_load_mir_blob` (test/inventory).
-    pub residual_rt_abi_exported: bool,
-    /// Always `true` — `aot_compact_view` still computes unused sidecar bytes.
-    pub residual_aot_compact_view_dead: bool,
-    /// Always `false` — honesty: residual cleanup (delete ABI/declare) remains off.
-    pub residual_cleanup_enabled: bool,
-    /// Always `true` — W459 / ADR-803: residual honesty first-slice signed.
-    pub residual_honesty_signed: bool,
-    pub relational_inventory_overlap_ok: bool,
-}
-
-/// Inventory MIR residual honesty (W459 / ADR-803).
-///
-/// Policy+inventory only — does not mutate llvm declare / RT ABI / emit (ADR-803).
-pub fn mir_residual_honesty_inventory() -> MirResidualHonestyInventory {
-    let again = mir_residual_honesty_inventory_once();
-    let first = mir_residual_honesty_inventory_once();
-    MirResidualHonestyInventory {
-        relational_inventory_overlap_ok: first == again,
-        ..first
-    }
-}
-
-fn mir_residual_honesty_inventory_once() -> MirResidualHonestyInventory {
-    MirResidualHonestyInventory {
-        production_blob_embedded: false,
-        production_user_init_calls_load: false,
-        residual_ir_declare_present: true,
-        residual_rt_abi_exported: true,
-        residual_aot_compact_view_dead: true,
-        residual_cleanup_enabled: false,
-        residual_honesty_signed: true,
-        relational_inventory_overlap_ok: true,
-    }
-}
-
-/// MIR residual ABI narrow cleanup inventory (W484 / ADR-828).
-///
-/// Signs omit of IR `declare @syx_rt_load_mir_blob` + production dead sidecar encode
-/// while **retaining** RT `syx_rt_load_mir_blob` ABI. Historical
-/// [`MirResidualHonestyInventory`] keeps W459 floor flags unchanged.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MirResidualAbiNarrowCleanupInventory {
-    /// Always `false` — production AOT does not embed `@syx_mir_blob`.
-    pub production_blob_embedded: bool,
-    /// Always `true` — W459 honesty floor still signed.
-    pub residual_honesty_floor_ok: bool,
-    /// Always `true` — W484 narrow cleanup enabled (declare + dead encode).
-    pub residual_cleanup_enabled: bool,
-    /// Always `true` — production IR no longer declares `@syx_rt_load_mir_blob`.
-    pub residual_ir_declare_omitted: bool,
-    /// Always `true` — production shim/C stub no longer dead-encode sidecar bytes.
-    pub residual_dead_sidecar_encode_omitted: bool,
-    /// Always `true` — RT still exports `syx_rt_load_mir_blob` (B-05 / tests).
-    pub residual_rt_abi_exported: bool,
-    /// Always `false` — RT ABI delete remains Frozen (≠ full residual clear).
-    pub rt_abi_delete_enabled: bool,
-    /// Always `true` — W484 / ADR-828: residual ABI narrow cleanup signed.
-    pub mir_residual_abi_narrow_cleanup_signed: bool,
-    pub relational_inventory_overlap_ok: bool,
-}
-
-/// Inventory MIR residual ABI narrow cleanup (W484 / ADR-828).
-pub fn mir_residual_abi_narrow_cleanup_inventory() -> MirResidualAbiNarrowCleanupInventory {
-    let again = mir_residual_abi_narrow_cleanup_inventory_once();
-    let first = mir_residual_abi_narrow_cleanup_inventory_once();
-    MirResidualAbiNarrowCleanupInventory {
-        relational_inventory_overlap_ok: first == again,
-        ..first
-    }
-}
-
-fn mir_residual_abi_narrow_cleanup_inventory_once() -> MirResidualAbiNarrowCleanupInventory {
-    MirResidualAbiNarrowCleanupInventory {
-        production_blob_embedded: false,
-        residual_honesty_floor_ok: true,
-        residual_cleanup_enabled: true,
-        residual_ir_declare_omitted: true,
-        residual_dead_sidecar_encode_omitted: true,
-        residual_rt_abi_exported: true,
-        rt_abi_delete_enabled: false,
-        mir_residual_abi_narrow_cleanup_signed: true,
-        relational_inventory_overlap_ok: true,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn mir_residual_honesty_inventory_is_deterministic_and_signed() {
-        let a = mir_residual_honesty_inventory();
-        let b = mir_residual_honesty_inventory();
-        assert_eq!(a, b);
-        assert!(a.relational_inventory_overlap_ok);
-        assert_eq!(a.production_blob_embedded, false);
-        assert_eq!(a.production_user_init_calls_load, false);
-        assert_eq!(a.residual_ir_declare_present, true);
-        assert_eq!(a.residual_rt_abi_exported, true);
-        assert_eq!(a.residual_aot_compact_view_dead, true);
-        assert_eq!(a.residual_cleanup_enabled, false);
-        assert_eq!(a.residual_honesty_signed, true);
-    }
-
-    #[test]
-    fn mir_residual_abi_narrow_cleanup_inventory_is_deterministic_and_signed() {
-        let a = mir_residual_abi_narrow_cleanup_inventory();
-        let b = mir_residual_abi_narrow_cleanup_inventory();
-        assert_eq!(a, b);
-        assert!(a.relational_inventory_overlap_ok);
-        assert!(!a.production_blob_embedded);
-        assert!(a.residual_honesty_floor_ok);
-        assert!(a.residual_cleanup_enabled);
-        assert!(a.residual_ir_declare_omitted);
-        assert!(a.residual_dead_sidecar_encode_omitted);
-        assert!(a.residual_rt_abi_exported);
-        assert!(!a.rt_abi_delete_enabled);
-        assert!(a.mir_residual_abi_narrow_cleanup_signed);
-        // Historical W459 floor unchanged.
-        let floor = mir_residual_honesty_inventory();
-        assert!(floor.residual_ir_declare_present);
-        assert!(floor.residual_aot_compact_view_dead);
-        assert!(!floor.residual_cleanup_enabled);
-    }
 
     #[test]
     fn wave_b_tri_axis_horizon_readiness_inventory_is_deterministic() {

@@ -26,9 +26,15 @@
 - **S2-I7:** deleted mir `long_horizon_*`×25 (+ companions); census **160 → 132**.
 - **S2-I8:** deleted mir medium post-cutover (`honest_defer`→`exit`×11); census **132 → 121**.
 - **S2-I9:** deleted mir bypass×4 + llvm post-clear tail×2; census **121 → 115**.
+- **S2-I10:** deleted wave_b residual ABI×2; census **115 → 113**.
+- **S2-I11:** cutover product decouple ([stage2-cutover-decouple](stage2-cutover-decouple.md)); deleted 3 rollups; census **113 → 110**.
+- **S2-I12:** deleted short export/blob/absolute feed (+ inventory helper/companion); census **110 → 102**.
+- **S2-I13:** deleted medium metadata/dual_blob feed×5 (+ encode/decode_probe); census **102 → 97**.
+- **S2-I14:** deleted llvm clear upstream declare_diff + missing_clear; census **97 → 95**.
 
 ## References
 
 - [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · Stage 2
 - [`docs/adr/stage1-exit.md`](stage1-exit.md)
+- [`docs/adr/stage2-cutover-decouple.md`](stage2-cutover-decouple.md) · S2-I11
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2

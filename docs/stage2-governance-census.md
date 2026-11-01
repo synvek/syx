@@ -124,6 +124,71 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 1068 | −7 |
 
+## S2-I10 after ninth knife (2026-11-01)
+
+**Slice:** deleted wave_b residual ABI pair (`mir_residual_honesty` + `mir_residual_abi_narrow_cleanup`, 2) + companion native tests. **Kept** `wave_b_tri_axis_*` / `wave_b_structural_exit_*`, short/medium `cutover_readiness`, llvm `clear_align`, HostFn×8, `gate_b09`, `absolute_threshold`.
+
+| Metric | Count | Δ vs S2-I9 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **113** | **−2** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1053 | −15 |
+
+## S2-I11 after tenth knife (2026-11-01)
+
+**Slice:** cutover product decouple ([ADR](adr/stage2-cutover-decouple.md)): `wave_b` hard-codes `relational_b04/b05/b06`; deleted 3 rollups (`aot_short_horizon_cutover_readiness` / `mir_module_medium_horizon_cutover_readiness` / `llvm_stub_clear_align_horizon_readiness`). **Kept** feed chains, HostFn×8, `capability_align`, `gate_b09`, `absolute_threshold`, `wave_b_tri_axis_*` / structural.
+
+| Metric | Count | Δ vs S2-I10 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **110** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1045 | −8 |
+
+## S2-I12 after eleventh knife (2026-11-01)
+
+**Slice:** deleted short export/blob/absolute feed×6 + inventory-only helper `encode_module_compact_only_for_inventory` + companion `gate_b04_absolute_thresholds` (`b04_absolute_thresholds_live_inventory`). **Kept** `aot_blob_size_report` / size fixtures / emit·compact production APIs; medium dual_blob feed; llvm clear upstream; HostFn/`capability_align`; `gate_b09`; wave_b tri/structural.
+
+| Metric | Count | Δ vs S2-I11 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **102** | **−8** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1045 | 0 |
+
+## S2-I13 after twelfth knife (2026-11-01)
+
+**Slice:** deleted medium metadata/dual_blob feed×5 (`metadata_table` / `dual_blob_shape` / `codec_readiness` / `aot_embed` / `cutover_readiness`) + encode/decode_probe helpers. **Kept** sidecar/dual_blob/AOT embed production APIs + wire tests; llvm clear upstream; HostFn/`capability_align`; `gate_b09`; wave_b tri/structural.
+
+| Metric | Count | Δ vs S2-I12 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **97** | **−5** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1032 | −13 |
+
+## S2-I14 after thirteenth knife (2026-11-01)
+
+**Slice:** deleted llvm clear upstream `declare_diff` + `missing_clear_readiness` (+ collect helpers / unit / driver W315). **Kept** `capability_align` / HostFn×8 / audit_report; wave_b tri/structural; `gate_b09`; product LLVM emit.
+
+| Metric | Count | Δ vs S2-I13 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **95** | **−2** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1030 | −2 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

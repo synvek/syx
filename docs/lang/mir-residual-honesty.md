@@ -1,5 +1,7 @@
 # MIR residual honesty first-slice (W459 / ADR-803)
 
+> **S2-I10：** product `MirResidualHonestyInventory` / `mir_residual_honesty_inventory` **已退役迁出**（过程治理签字结构不再链入 `syx-rt`）。下文为历史证据叙事，**≠** 现行产品 API。
+
 ## Status
 
 **MIR residual honesty first-slice met** (policy+inventory): production native already omits `@syx_mir_blob` / `@syx_metadata_sidecar` and `syx_user_init` does not call `syx_rt_load_mir_blob`; residual IR declare / RT ABI / dead encode were **honestly signed** at W459 — **not** deleted that window. HostFn count **554**; B-07 **`[x]`** (narrow) unchanged; ≠ language exports / ≠ daemon GA / ≠ delete ABI.
