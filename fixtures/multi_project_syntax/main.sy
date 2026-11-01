@@ -1,0 +1,2 @@
+// Entry for the project nail; parse-clean. Errors live in broken_*.sy.
+func main() {}

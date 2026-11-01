@@ -646,18 +646,20 @@ fn run() -> miette::Result<()> {
         }
         Commands::Check { path } => {
             let path = resolve_path(path);
-            if path.is_dir() {
-                check_project_with_options(&path, &options).into_diagnostic()?;
+            let check_result = if path.is_dir() {
+                // S1-I24: project check aggregates parse multi-diag across .sy files.
+                check_project_with_options(&path, &options)
             } else {
-                // S1-I21: single-file check surfaces capped parse multi-diag (P001…).
-                match check_file_with_options(&path, &options) {
-                    Ok(_) => {}
-                    Err(diags) => {
-                        for d in &diags {
-                            eprintln!("{d}");
-                        }
-                        process::exit(1);
+                // S1-I21/I22: single-file check surfaces capped parse (+ semantic) multi-diag.
+                check_file_with_options(&path, &options).map(|_| ())
+            };
+            match check_result {
+                Ok(()) => {}
+                Err(diags) => {
+                    for d in &diags {
+                        eprintln!("{d}");
                     }
+                    process::exit(1);
                 }
             }
             println!("Check passed for {}", path.display());

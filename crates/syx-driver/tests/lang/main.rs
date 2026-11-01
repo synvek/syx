@@ -52,3 +52,4 @@ mod s1_i8_language_deepen;
 mod s1_i9_language_deepen;
 mod s1_i21_check_multi_parse;
 mod s1_i22_check_multi_semantic;
+mod s1_i24_check_project_multi_parse;

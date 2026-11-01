@@ -1,24 +1,25 @@
-# Multi-diagnostics (S1-08 thin honesty)
+# Multi-diagnostics (S1-08 scoped)
 
-**Status:** thin CLI parse **+ semantic** GA started (S1-I22). **Not** S1-08 complete. Project check / build·run multi-diag still out.
+**Status:** CLI check multi-diag scoped GA (S1-I24). See [ADR](adr/stage1-s1-08-cli-multidiag-scope.md). **Not** build/run multi-diag. **Not** stage-1 exit.
 
 ## Surfaces
 
 | Surface | Behavior |
 |---------|----------|
-| **LSP** / `analyze_document_for_lsp` | Uses `Parser::parse_collecting` (+ semantic collecting where wired). Can report **multiple** P001 / S00x in one document. |
-| **`syx check` (single file)** | Uses `check_file_with_options` → `parse_collecting` + full linked compile. On linked **failure**, thin `expand_macros` + `analyze_collecting*` may replace the first-error with **≥2** real semantic diags (S045 from undedesugared top-level stmts filtered). Linked compile success always wins. |
-| **`syx check` (project) / build / run / default compile** | Still **first-error** (`Parser::parse` / first semantic abort). One hard failure stops the pipeline. |
+| **LSP** / `analyze_document_for_lsp` | Uses `Parser::parse_collecting` (+ semantic collecting where wired). Multiple P001 / S00x in one document. |
+| **`syx check` (single file)** | `check_file_with_options` → `parse_collecting` + linked compile; on failure may enrich with semantic collecting (≥2 real diags; S045 filtered). |
+| **`syx check` (project / directory)** | `check_project_with_options` → walk package `.sy` with `parse_collecting`, aggregate capped diags; if clean, linked `compile_project`. Cross-file parse multi-diag. |
+| **build / run / default compile** | Still **first-error**. |
 
 ## Nail fixtures
 
-- [`fixtures/multi_syntax_errors.sy`](../fixtures/multi_syntax_errors.sy) — two funcs missing `{` bodies; expected ≥2× P001.
-- [`fixtures/multi_semantic_errors.sy`](../fixtures/multi_semantic_errors.sy) — two independent undefined identifiers; expected ≥2 semantic diags (typically S002).
-- Alias kept: `fixtures/test_multi_syntax_errors.sy` (same content as syntax nail).
+- [`fixtures/multi_syntax_errors.sy`](../fixtures/multi_syntax_errors.sy) — ≥2× P001 (single file).
+- [`fixtures/multi_semantic_errors.sy`](../fixtures/multi_semantic_errors.sy) — ≥2 semantic diags (typically S002).
+- [`fixtures/multi_project_syntax/`](../fixtures/multi_project_syntax/) — ≥2× P001 across `broken_a.sy` / `broken_b.sy`.
+- Alias kept: `fixtures/test_multi_syntax_errors.sy`.
 
-Parser unit test: `parse_collecting_fixture_multi_syntax_errors_sy` in `crates/syx-parser`.  
-Driver nails: `s1_i21_check_file_multi_syntax_*` / `s1_i22_check_file_multi_semantic_*` in `crates/syx-driver/tests/lang`.
+Driver nails: `s1_i21_*` / `s1_i22_*` / `s1_i24_check_project_multi_syntax_*` in `crates/syx-driver/tests/lang`.
 
 ## Honest boundary
 
-S1-08 remains `[~]`: CLI **single-file** parse+semantic multi-diag thin face has started; delivering S1-08 `[x]` still needs project-level and/or full-pipeline (build·run) coverage. Until then: **multi-diag = LSP + single-file `syx check`**; **project check / build / run = first-error**.
+S1-08 **scoped `[x]`**: LSP + single-file check (parse+semantic thin) + **project check parse multi-diag**. Still deferred: build/run/default-compile multi-diag; project-level semantic collecting matrix. **≠ stage-1 exit**.

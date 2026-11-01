@@ -211,7 +211,7 @@ use syx_meta::{
 };
 use syx_mir::{lower_module, optimize, MirOp};
 use syx_mono::monomorphize_module;
-use syx_parser::Parser;
+use syx_parser::{Parser, MAX_COLLECTED_PARSE_DIAGNOSTICS};
 use syx_semantic::{type_expr_to_id, SemanticAnalyzer, TypeId};
 use syx_vm::WasmVM;
 
@@ -9036,12 +9036,69 @@ fn resolve_module(
     Err(SyxDiagnostic::error(format!("Module '{path_str}' not found")).with_code("M001"))
 }
 
-pub fn check_project(root: &Path) -> SyxResult<()> {
+pub fn check_project(root: &Path) -> Result<(), Vec<SyxDiagnostic>> {
     check_project_with_options(root, &DriverOptions::default())
 }
 
-pub fn check_project_with_options(root: &Path, options: &DriverOptions) -> SyxResult<()> {
-    compile_project_with_options(root, options)?;
+/// Project `syx check`: aggregate capped parse multi-diag across package `.sy` files, then
+/// linked compile if parse-clean. Build / run stay first-error. Semantic multi-diag remains
+/// single-file (`check_file_with_options`).
+pub fn check_project_with_options(
+    root: &Path,
+    options: &DriverOptions,
+) -> Result<(), Vec<SyxDiagnostic>> {
+    let mut diags = Vec::new();
+    collect_project_parse_diagnostics(root, &mut diags).map_err(|e| vec![e])?;
+    if !diags.is_empty() {
+        return Err(diags);
+    }
+    compile_project_with_options(root, options).map(|_| ()).map_err(|e| vec![e])
+}
+
+/// Walk package `.sy` files (same skip rules as service scan) and append parse_collecting diags.
+fn collect_project_parse_diagnostics(
+    dir: &Path,
+    out: &mut Vec<SyxDiagnostic>,
+) -> SyxResult<()> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir)
+        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", dir.display())))?
+    {
+        if out.len() >= MAX_COLLECTED_PARSE_DIAGNOSTICS {
+            break;
+        }
+        let entry =
+            entry.map_err(|e| SyxDiagnostic::error(format!("Failed to read entry: {e}")))?;
+        let path = entry.path();
+        if path.is_dir() {
+            if path.file_name().is_some_and(|n| {
+                n == "tests" || n == "target" || n == ".sy-cache" || n == "node_modules"
+            }) {
+                continue;
+            }
+            if path.join("syx.toml").is_file() {
+                continue;
+            }
+            collect_project_parse_diagnostics(&path, out)?;
+            continue;
+        }
+        if path.extension().and_then(|e| e.to_str()) != Some("sy") {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).map_err(|e| {
+            SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display()))
+        })?;
+        let source = SourceFile::new(path.display().to_string(), text);
+        let outcome = Parser::parse_collecting(source);
+        for err in outcome.errors {
+            if out.len() >= MAX_COLLECTED_PARSE_DIAGNOSTICS {
+                break;
+            }
+            out.push(err);
+        }
+    }
     Ok(())
 }
 

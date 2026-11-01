@@ -1,0 +1,2 @@
+// Independent syntax error for project multi-diag nail.
+func broken_a()
