@@ -1,0 +1,8 @@
+// Permanent nail fixture: multiple independent semantic errors in one file.
+// Single-file `syx check` / check_file_with_options must report ≥2 diagnostics at once.
+// Not a runnable program — do not expect `syx run` to succeed.
+
+func main() {
+  print(undefined_aaa)
+  print(undefined_bbb)
+}

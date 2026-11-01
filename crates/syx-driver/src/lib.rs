@@ -9045,10 +9045,13 @@ pub fn check_project_with_options(root: &Path, options: &DriverOptions) -> SyxRe
     Ok(())
 }
 
-/// Single-file `syx check`: parse with capped multi-diag (`parse_collecting`), then compile.
+/// Single-file `syx check`: capped parse multi-diag; on linked compile failure, enrich with
+/// capped semantic collecting when it yields ≥2 real diagnostics.
 ///
-/// On syntax errors returns **all** collected diagnostics (not first-error only).
-/// Project check / build / run keep first-error parse. Semantic multi-diag is still out of scope.
+/// Linked compile remains authoritative for success (imports / desugar / prelude).
+/// Thin collecting skips `S045` (raw top-level stmts before desugar) so book `error=`
+/// tags and import-aware failures keep the compile first-error when multi-diag is weak.
+/// Project / build / run stay first-error.
 pub fn check_file_with_options(
     path: &Path,
     options: &DriverOptions,
@@ -9060,11 +9063,40 @@ pub fn check_file_with_options(
         ))]
     })?;
     let source = SourceFile::new(path.display().to_string(), text);
-    let outcome = Parser::parse_collecting(source);
+    let outcome = Parser::parse_collecting(source.clone());
     if !outcome.errors.is_empty() {
         return Err(outcome.errors);
     }
-    compile_file_with_options(path, options).map_err(|e| vec![e])
+    match compile_file_with_options(path, options) {
+        Ok(unit) => Ok(unit),
+        Err(compile_err) => {
+            let module = match expand_macros(outcome.module) {
+                Ok(m) => m,
+                Err(_) => return Err(vec![compile_err]),
+            };
+            let analyzer = SemanticAnalyzer::analyze_collecting_with_options(
+                &module,
+                &[],
+                false,
+                None,
+                &[],
+                Some(&source),
+                &IndexMap::new(),
+                false,
+            );
+            // Raw AST may flag top-level stmts as S045 before pipeline desugar — ignore those.
+            let useful: Vec<_> = analyzer
+                .errors
+                .into_iter()
+                .filter(|e| e.code.as_deref() != Some("S045"))
+                .collect();
+            if useful.len() >= 2 {
+                Err(useful)
+            } else {
+                Err(vec![compile_err])
+            }
+        }
+    }
 }
 
 /// Per-case status for `syx test` reports (W932 / ADR-1276).
