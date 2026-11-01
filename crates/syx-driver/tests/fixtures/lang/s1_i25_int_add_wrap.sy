@@ -1,0 +1,5 @@
+// S1-I25 nail: default VM integer + wraps (two's complement); must not trap.
+// See docs/adr/stage1-s1-07-overflow-wrap-scope.md
+func main() {
+    print(9223372036854775807 + 1)
+}
