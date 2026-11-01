@@ -6,16 +6,6 @@ mod matrix_fingerprint;
 #[path = "../support/construction_progress.rs"]
 mod construction_progress;
 
-mod gate_b01_actor_mir_shell_migrate;
-mod gate_b01_class_mir_shell_migrate;
-mod gate_b01_extension_mir_shell_migrate;
-mod gate_b01_finalclass_mir_shell_migrate;
-mod gate_b01_noop_residual_honesty;
-mod gate_b01_struct_mir_shell_migrate;
-mod gate_b01_varglobal_mir_shell_migrate;
-mod gate_b02_compile_api_delete;
-mod gate_b02_compile_into_first_slice;
-mod gate_b02_deprecate_gate_strict;
 mod gate_b04_absolute_thresholds;
 mod gate_b04_default_multi_root;
 mod gate_b04_multi_root_wire_deepen;
@@ -130,8 +120,6 @@ mod long_mir_free_sidecar_omit_emit;
 mod long_mir_free_sidecar_omit_register_only_wire;
 mod long_mir_free_sidecar_omit_thin;
 mod long_mir_free_sidecar_omit_wire;
-mod math_llvm_ga_exit_first_slice;
-mod math_residual_maintenance_first_slice;
 mod mir_residual_abi_narrow_cleanup;
 mod mir_residual_honesty;
 
@@ -149,7 +137,6 @@ mod native_strict_parity;
 mod native_strict_parity_env;
 mod native_string_interp;
 mod native_tier2_full_matrix;
-mod platform_residual_maintenance_first_slice;
 mod wave_b_exit_readiness_thin;
 mod wave_b_exit_thin;
 mod wave_b_horizon_thin;

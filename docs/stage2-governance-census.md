@@ -33,6 +33,32 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 2073 | −89 |
 
+## S2-I3 after second knife (2026-11-01)
+
+**Slice:** deleted `syx-driver` W955–W965 `syx_math_llvm_*` inventory chain; removed companion test `math_llvm_ga_exit_first_slice` (+ orphaned I2 `mod` lines for residual maintenance tests). **Kept** `tests/stdlib/math.rs` behavior smokes; `*_report.rs` / `lang_props` / `gate_b09` / `gate_a06`.
+
+| Metric | Count | Δ vs S2-I2 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **203** | **−11** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 2018 | −55 |
+
+## S2-I4 after third knife (2026-11-01)
+
+**Slice:** truncated `syx-codegen` gate_b01+gate_b02 inventory tail (~L5580→EOF); removed 10 companion native tests. **≠** S2-03 / B-01·B-02 product exit. **Kept** `gate_b09` / mir horizon / `*_report` / `lang_props`.
+
+| Metric | Count | Δ vs S2-I3 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **186** | **−17** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1884 | −134 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

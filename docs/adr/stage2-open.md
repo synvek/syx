@@ -19,6 +19,8 @@
 - `plan/01` / `plan/02` mark Stage-2 as **`[~]`** (window label advances per slice).
 - S2-01 stays **`[~]`** until product binaries no longer link process-governance inventory/fingerprint/gate narratives (acceptance in plan/02).
 - **S2-I2:** deleted driver W932–W954 inventory chain; census `inventory_fn` **237 → 214** ([census](../stage2-governance-census.md)).
+- **S2-I3:** deleted driver W955–W965 `syx_math_llvm_*` chain; census **214 → 203**.
+- **S2-I4:** truncated codegen gate_b01+b02 inventory tail; census **203 → 186**（≠ S2-03 / B-01·B-02 产品收官）.
 
 ## References
 
