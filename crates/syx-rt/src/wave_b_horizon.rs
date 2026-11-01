@@ -535,11 +535,6 @@ fn mir_residual_abi_narrow_cleanup_inventory_once() -> MirResidualAbiNarrowClean
 #[cfg(test)]
 mod tests {
     use super::*;
-    use syx_mir::{
-        mir_module_long_horizon_delete_syx_mir_blob_enabled_first_slice_inventory,
-        mir_module_long_horizon_mir_free_first_slice_inventory,
-        mir_module_long_horizon_named_hostfn_stub_call_host_clear_first_slice_inventory,
-    };
 
     #[test]
     fn mir_residual_honesty_inventory_is_deterministic_and_signed() {
@@ -639,72 +634,6 @@ mod tests {
         assert_eq!(a.sidecar_constant_still_embedded, false);
         assert_eq!(a.missing_clear_enabled, false);
     }
-
-    #[test]
-    fn wave_b_tri_axis_matches_long_mir_free_inventory() {
-        let inv = wave_b_tri_axis_horizon_readiness_inventory();
-        let module = aot_codec_fixture_main_with_const_strs(4);
-        let mir_free = mir_module_long_horizon_mir_free_first_slice_inventory(&module);
-        assert_eq!(
-            inv.mir_free_first_slice_signed,
-            mir_free.mir_free_first_slice_signed
-        );
-        assert_eq!(
-            inv.sidecar_omit_emit_first_slice_signed,
-            mir_free.sidecar_omit_emit_first_slice_signed
-        );
-        assert_eq!(
-            inv.sidecar_constant_still_embedded,
-            mir_free.sidecar_constant_still_embedded
-        );
-        assert_eq!(inv.mir_free_enabled, mir_free.mir_free_enabled);
-        assert_eq!(inv.blob_still_embedded, mir_free.blob_still_embedded);
-    }
-
-    #[test]
-    fn wave_b_tri_axis_matches_named_stub_clear_inventory() {
-        let inv = wave_b_tri_axis_horizon_readiness_inventory();
-        let module = aot_codec_fixture_main_with_const_strs(4);
-        let clear = mir_module_long_horizon_named_hostfn_stub_call_host_clear_first_slice_inventory(
-            &module,
-        );
-        assert_eq!(
-            inv.named_hostfn_stub_call_host_clear_signed,
-            clear.named_hostfn_stub_call_host_clear_signed
-        );
-        assert_eq!(
-            inv.named_hostfn_stub_call_host_gap_open,
-            clear.named_hostfn_stub_call_host_gap_open
-        );
-        assert_eq!(inv.mir_free_enabled, clear.mir_free_enabled);
-        assert_eq!(
-            inv.host_bridge_pure_native_gap_open,
-            clear.host_bridge_pure_native_gap_open
-        );
-    }
-
-    #[test]
-    fn wave_b_tri_axis_matches_delete_blob_enabled_inventory() {
-        let inv = wave_b_tri_axis_horizon_readiness_inventory();
-        let module = aot_codec_fixture_main_with_const_strs(4);
-        let delete =
-            mir_module_long_horizon_delete_syx_mir_blob_enabled_first_slice_inventory(&module);
-        assert_eq!(
-            inv.delete_syx_mir_blob_enabled_first_slice_signed,
-            delete.delete_syx_mir_blob_enabled_first_slice_signed
-        );
-        assert_eq!(
-            inv.delete_syx_mir_blob_enabled,
-            delete.delete_syx_mir_blob_enabled
-        );
-        assert_eq!(inv.mir_free_enabled, delete.mir_free_enabled);
-        assert_eq!(
-            inv.named_hostfn_stub_call_host_clear_signed,
-            delete.named_hostfn_stub_call_host_clear_signed
-        );
-        assert_eq!(inv.blob_still_embedded, delete.blob_still_embedded);
-    }
-
     #[test]
     fn wave_b_structural_exit_readiness_inventory_is_deterministic() {
         let a = wave_b_structural_exit_readiness_inventory();

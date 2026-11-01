@@ -212,76 +212,10 @@ pub fn diagnostic_codes(diags: &[SyxDiagnostic]) -> Vec<String> {
     codes
 }
 
-/// B-03 FrontendPipeline entry-matrix inventory (W461 / ADR-805).
-///
-/// Signs that the six driver entries × `StopAfter`/`FrontendOptions` configuration
-/// surface is documented. Does **not** mutate Pipeline API or deliver frontend exports.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct FrontendPipelineEntryMatrixInventory {
-    pub relational_inventory_overlap_ok: bool,
-    /// Always `true` — W461 / ADR-805: entry matrix charter signed.
-    pub b03_pipeline_entry_matrix_signed: bool,
-    /// Always `6` — file / project / embed / LSP / REPL / browser.
-    pub documented_entry_count: usize,
-    /// Always `true` — Expanded / Prepared / Semantic / Mir documented.
-    pub stop_after_variants_documented: bool,
-    /// Always `true` — `FrontendPipeline` / `StopAfter` / `FrontendOptions` present.
-    pub frontend_pipeline_api_present: bool,
-    /// Always `false` — honesty: this window does not mutate Pipeline API.
-    pub pipeline_api_mutation_enabled: bool,
-    /// Always `true` — narrow roadmap B-03 `[x]` (matrix doc acceptance only).
-    pub b03_axis_exit_enabled: bool,
-}
-
-/// Inventory B-03 FrontendPipeline entry matrix (W461 / ADR-805).
-///
-/// Policy+inventory only — does not mutate `FrontendPipeline` / `StopAfter` (ADR-805).
-pub fn frontend_pipeline_entry_matrix_inventory() -> FrontendPipelineEntryMatrixInventory {
-    let again = frontend_pipeline_entry_matrix_inventory_once();
-    let first = frontend_pipeline_entry_matrix_inventory_once();
-    FrontendPipelineEntryMatrixInventory {
-        relational_inventory_overlap_ok: first == again,
-        ..first
-    }
-}
-
-fn frontend_pipeline_entry_matrix_inventory_once() -> FrontendPipelineEntryMatrixInventory {
-    // Structural presence of StopAfter variants (compile-time enum).
-    let _ = [
-        StopAfter::Expanded,
-        StopAfter::Prepared,
-        StopAfter::Semantic,
-        StopAfter::Mir,
-    ];
-    let _ = FrontendPipeline;
-    FrontendPipelineEntryMatrixInventory {
-        relational_inventory_overlap_ok: true,
-        b03_pipeline_entry_matrix_signed: true,
-        documented_entry_count: 6,
-        stop_after_variants_documented: true,
-        frontend_pipeline_api_present: true,
-        pipeline_api_mutation_enabled: false,
-        b03_axis_exit_enabled: true,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn frontend_pipeline_entry_matrix_inventory_is_deterministic_and_signed() {
-        let a = frontend_pipeline_entry_matrix_inventory();
-        let b = frontend_pipeline_entry_matrix_inventory();
-        assert_eq!(a, b);
-        assert!(a.relational_inventory_overlap_ok);
-        assert!(a.b03_pipeline_entry_matrix_signed);
-        assert_eq!(a.documented_entry_count, 6);
-        assert!(a.stop_after_variants_documented);
-        assert!(a.frontend_pipeline_api_present);
-        assert!(!a.pipeline_api_mutation_enabled);
-        assert!(a.b03_axis_exit_enabled);
-    }
 
     #[test]
     fn pipeline_order_fingerprint() {

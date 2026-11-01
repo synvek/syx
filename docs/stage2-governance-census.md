@@ -59,6 +59,45 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 1884 | −134 |
 
+## S2-I5 after fourth knife (2026-11-01)
+
+**Slice:** deleted unused small packs — `gate_a06` + `profiles_sdk` (link) + `lsp_editor_interop_*` + `frontend_pipeline_entry_matrix` (+ companion driver test). **Kept** `gate_b09` / llvm_stub / wave_b / mir / `*_report`.
+
+| Metric | Count | Δ vs S2-I4 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **178** | **−8** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1854 | −30 |
+
+## S2-I6 after fifth knife (2026-11-01)
+
+**Slice:** deleted `syx-mir` short post-cutover tail (`honest_defer`→`exit`) + full `language_exports_*` inventory chain; removed 4 `gate_b04_*` companions (kept `absolute_thresholds`) + 5 language_exports signing companions; kept trailing-comma **parser** behavior test. **Kept** `aot_short_horizon_cutover_readiness` (wave_b product read) / absolute_threshold / b09 / llvm_stub / medium·long.
+
+| Metric | Count | Δ vs S2-I5 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **160** | **−18** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1802 | −52 |
+
+## S2-I7 after sixth knife (2026-11-01)
+
+**Slice:** deleted full `mir_module_long_horizon_*` inventory chain (25); removed 25 `long_mir_free_*` companions + 3 wave_b long-match unit tests. **Kept** short/medium `cutover_readiness`, llvm `clear_align`, wave_b hardcoded long flags, `gate_b09`.
+
+| Metric | Count | Δ vs S2-I6 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **132** | **−28** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1152 | −650 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

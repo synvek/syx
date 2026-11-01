@@ -21,6 +21,9 @@
 - **S2-I2:** deleted driver W932–W954 inventory chain; census `inventory_fn` **237 → 214** ([census](../stage2-governance-census.md)).
 - **S2-I3:** deleted driver W955–W965 `syx_math_llvm_*` chain; census **214 → 203**.
 - **S2-I4:** truncated codegen gate_b01+b02 inventory tail; census **203 → 186**（≠ S2-03 / B-01·B-02 产品收官）.
+- **S2-I5:** deleted a06 + profiles_sdk + lsp editor interop + frontend entry-matrix; census **186 → 178**.
+- **S2-I6:** deleted mir short post-cutover tail + `language_exports_*`; census **178 → 160**（kept `cutover_readiness` for wave_b）.
+- **S2-I7:** deleted mir `long_horizon_*`×25 (+ companions); census **160 → 132**.
 
 ## References
 
