@@ -8,7 +8,6 @@ mod bridge;
 mod link;
 mod llvm_stub_audit;
 mod llvm_stubs;
-mod wave_b_horizon;
 
 pub use abi::{
     aot_execution_segment_omitted, install_metadata_sidecar_view,
@@ -199,8 +198,4 @@ pub use llvm_stub_audit::{
     GateHostFnRealLoweringHorizonSecondSliceWireInventory, GateHostFnRealLoweringHorizonThinInventory,
     GateHostFnRealLoweringHorizonThirdSliceWireInventory, LlvmStubAuditReport,
     LlvmStubCapabilityAlignInventory, LlvmStubKind,
-};
-pub use wave_b_horizon::{
-    wave_b_structural_exit_readiness_inventory, wave_b_tri_axis_horizon_readiness_inventory,
-    WaveBStructuralExitReadinessInventory, WaveBTriAxisHorizonReadinessInventory,
 };

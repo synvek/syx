@@ -31,10 +31,13 @@
 - **S2-I12:** deleted short export/blob/absolute feed (+ inventory helper/companion); census **110 → 102**.
 - **S2-I13:** deleted medium metadata/dual_blob feed×5 (+ encode/decode_probe); census **102 → 97**.
 - **S2-I14:** deleted llvm clear upstream declare_diff + missing_clear; census **97 → 95**.
+- **S2-I15:** renamed 10 driver test-named `*_inventory` false positives; census **95 → 85** (product `src/` still ≈85).
+- **S2-I16:** retired wave_b readiness inventories ([stage2-wave-b-inventory-retire](stage2-wave-b-inventory-retire.md)); census **85 → 83**.
 
 ## References
 
 - [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · Stage 2
 - [`docs/adr/stage1-exit.md`](stage1-exit.md)
 - [`docs/adr/stage2-cutover-decouple.md`](stage2-cutover-decouple.md) · S2-I11
+- [`docs/adr/stage2-wave-b-inventory-retire.md`](stage2-wave-b-inventory-retire.md) · S2-I16
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2

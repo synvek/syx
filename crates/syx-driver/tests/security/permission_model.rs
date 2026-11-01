@@ -30,7 +30,7 @@ fn m3_e01_permission_model_policy_doc() {
 }
 
 #[test]
-fn m3_e01_permission_model_ci_and_inventory() {
+fn m3_e01_permission_model_ci_and_signed() {
     let ci = include_str!("../../../../.github/workflows/ci.yml");
     assert!(
         ci.contains("--test security"),

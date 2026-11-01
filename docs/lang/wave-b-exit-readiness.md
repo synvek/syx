@@ -1,6 +1,9 @@
 # Wave B Structural Exit Readiness (Wave A W336 + W337/W338/W339 triad + W340 exit charter)
 
-> **Status:** **Wave B structural exit readiness signed** (ADR-680 / W336) — exit triad documented and measurable via public `WaveBStructuralExitReadinessInventory` / `wave_b_structural_exit_readiness_inventory`.  
+> **Status (S2-I16):** **soft-archived / product inventory retired** — see [stage2-wave-b-inventory-retire](../adr/stage2-wave-b-inventory-retire.md). Public `WaveBStructuralExitReadinessInventory` / `wave_b_structural_exit_readiness_inventory` **no longer** ship in product `src/`. W340 exit charter remains in [`wave-b-exit.md`](wave-b-exit.md); historical W336 readiness floor below is archival.
+>
+> **Historical status:** **Wave B structural exit readiness signed** (ADR-680 / W336) — exit triad documented and measurable via public `WaveBStructuralExitReadinessInventory` / `wave_b_structural_exit_readiness_inventory`.  
+
 > **W340 cross-index:** Wave B structural exit charter signed ([`wave-b-exit.md`](wave-b-exit.md) / ADR-684). Progress may claim **Wave B 退出条件已满足**.  
 > **W339 cross-index:** B-05 Medium 诚实延后签收 signed ([`wave-b-exit-triad-b05-defer.md`](wave-b-exit-triad-b05-defer.md) / ADR-683); triad row 2 met via defer.  
 > **W338 cross-index:** B-04 Short 诚实延后签收 signed ([`wave-b-exit-triad-b04-defer.md`](wave-b-exit-triad-b04-defer.md) / ADR-682); triad row 1 met via defer.  

@@ -321,7 +321,7 @@ fn m2_s7_03_docs_claim_stream_fence() {
 }
 
 #[test]
-fn m2_s7_03_host_inventory() {
+fn m2_s7_03_host_caps_nails() {
     let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
     for name in [
         "JsonStreamOpenWriter",

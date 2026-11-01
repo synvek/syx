@@ -327,7 +327,7 @@ fn m2_s7_02_docs_claim_encoder_fence_streaming() {
 }
 
 #[test]
-fn m2_s7_02_host_inventory() {
+fn m2_s7_02_host_caps_nails() {
     let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
     for name in ["JsonEncoderEncode", "JsonDecoderDecode"] {
         assert!(

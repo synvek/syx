@@ -92,6 +92,4 @@ mod native_strict_parity;
 mod native_strict_parity_env;
 mod native_string_interp;
 mod native_tier2_full_matrix;
-mod wave_b_exit_readiness_thin;
 mod wave_b_exit_thin;
-mod wave_b_horizon_thin;

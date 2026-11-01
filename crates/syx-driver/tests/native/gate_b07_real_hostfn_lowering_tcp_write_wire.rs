@@ -74,7 +74,7 @@ fn b07_real_hostfn_lowering_tcp_write_wire_spec_signed() {
 }
 
 #[test]
-fn b07_real_hostfn_lowering_tcp_write_wire_live_inventory() {
+fn b07_real_hostfn_lowering_tcp_write_wire_live_nails() {
     use syx_rt::gate_hostfn_real_lowering_horizon_fourth_slice_wire_inventory;
     let inv = gate_hostfn_real_lowering_horizon_fourth_slice_wire_inventory();
     assert!(inv.b07_real_lowering_fourth_slice_wire_signed);

@@ -2,7 +2,7 @@
 // was: m4_b03_nongoal
 
 #[test]
-fn m4_b03_nongoal_ci_and_inventory() {
+fn m4_b03_nongoal_ci_and_signed() {
     let ci = include_str!("../../../../.github/workflows/ci.yml");
     assert!(
         ci.contains("--test lang"),

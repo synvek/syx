@@ -11,7 +11,7 @@
 | **B-05 Medium 生产交付或诚实延后签收** | **诚实延后签收 met** | ADR-683 / [`wave-b-exit-triad-b05-defer.md`](wave-b-exit-triad-b05-defer.md) + `mir_module_medium_horizon_honest_defer_inventory`（~~`gate_b05_medium_honest_defer_thin.rs`~~ F-10 W587） |
 | **B-06 Missing 清零或诚实延后签收** | **诚实延后签收 met** | ADR-681 / [`wave-b-exit-triad-b06-defer.md`](wave-b-exit-triad-b06-defer.md) + `llvm_stub_missing_clear_honest_defer_inventory`（~~`gate_b06_missing_clear_honest_defer_thin.rs`~~ F-10 W585） |
 
-Readiness floor (not the charter itself): ADR-680 / [`wave-b-exit-readiness.md`](wave-b-exit-readiness.md) + `WaveBStructuralExitReadinessInventory` (`wave_b_exit_enabled=false`; readiness ≠ charter).
+Readiness floor (not the charter itself): ADR-680 / [`wave-b-exit-readiness.md`](wave-b-exit-readiness.md) — **S2-I16:** product `WaveBStructuralExitReadinessInventory` **retired** ([stage2-wave-b-inventory-retire](../adr/stage2-wave-b-inventory-retire.md)); readiness ≠ charter; doc soft-archived.
 
 ## Exit charter definition
 

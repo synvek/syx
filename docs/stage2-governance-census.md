@@ -189,6 +189,32 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 1030 | −2 |
 
+## S2-I15 after fourteenth knife (2026-11-02)
+
+**Slice:** renamed 10 driver test-side false-positive `fn *_inventory` (b07 `*_live_nails`×5, m2 `*_host_caps_nails`×3, m3/m4 `*_ci_and_signed`×2). **No product `src/` inventory deleted.** Remaining ≈85 are product-surface (`gate_b09`≈74 + HostFn/align≈9 + wave_b×2).
+
+| Metric | Count | Δ vs S2-I14 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **85** | **−10** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1030 | 0 |
+
+## S2-I16 after fifteenth knife (2026-11-02)
+
+**Slice:** retired wave_b tri+structural readiness inventories ([stage2-wave-b-inventory-retire](adr/stage2-wave-b-inventory-retire.md)) + companion thin tests. **Kept** `gate_b09` / HostFn×8 / `capability_align`; W340 exit charter evidence.
+
+| Metric | Count | Δ vs S2-I15 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **83** | **−2** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1013 | −17 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

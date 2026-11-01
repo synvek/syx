@@ -1,6 +1,9 @@
 # Wave B Tri-Axis Horizon Structural Readiness (Wave A W335)
 
-> **Status:** **Wave B tri-axis horizon structural readiness signed** (ADR-679 / W335) — B-04 Short + B-05 Medium + B-06 clear×align horizon inventories aggregated by public `WaveBTriAxisHorizonReadinessInventory` / `wave_b_tri_axis_horizon_readiness_inventory`.  
+> **Status (S2-I16):** **soft-archived / product inventory retired** — see [stage2-wave-b-inventory-retire](../adr/stage2-wave-b-inventory-retire.md). Public `WaveBTriAxisHorizonReadinessInventory` / `wave_b_tri_axis_horizon_readiness_inventory` **no longer** ship in product `src/`. Historical W335 charter below is archival.
+>
+> **Historical status:** **Wave B tri-axis horizon structural readiness signed** (ADR-679 / W335) — B-04 Short + B-05 Medium + B-06 clear×align horizon inventories aggregated by public `WaveBTriAxisHorizonReadinessInventory` / `wave_b_tri_axis_horizon_readiness_inventory`.  
+
 > **W340 cross-index:** Wave B structural exit charter signed ([`wave-b-exit.md`](wave-b-exit.md) / ADR-684); Progress may claim **Wave B 退出条件已满足**; axes remain `[~]`.
 > **W339 cross-index:** B-05 Medium 诚实延后签收 signed ([`wave-b-exit-triad-b05-defer.md`](wave-b-exit-triad-b05-defer.md) / ADR-683); exit triad 3/3 defer met; **Not** Wave B exit met (W340+).
 > **W338 cross-index:** B-04 Short 诚实延后签收 signed ([`wave-b-exit-triad-b04-defer.md`](wave-b-exit-triad-b04-defer.md) / ADR-682); exit triad row 1 defer met; B-05 triad still unmet; **Not** Wave B exit met.
