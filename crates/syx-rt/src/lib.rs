@@ -192,8 +192,7 @@ pub use llvm_stub_audit::{
     gate_hostfn_real_lowering_horizon_thin_inventory,
     gate_hostfn_real_lowering_horizon_third_slice_wire_inventory, llvm_stub_audit_report,
     llvm_stub_capability_align_inventory, llvm_stub_clear_align_horizon_readiness_inventory,
-    llvm_stub_declare_diff_inventory, llvm_stub_missing_align_horizon_exit_inventory,
-    llvm_stub_missing_clear_honest_defer_inventory, llvm_stub_missing_clear_readiness_inventory,
+    llvm_stub_declare_diff_inventory, llvm_stub_missing_clear_readiness_inventory,
     GateHostFnRealLoweringHorizonDeepenThinInventory, GateHostFnRealLoweringHorizonExitInventory,
     GateHostFnRealLoweringHorizonFifthSliceWireInventory,
     GateHostFnRealLoweringHorizonFirstSliceWireInventory,
@@ -201,8 +200,7 @@ pub use llvm_stub_audit::{
     GateHostFnRealLoweringHorizonSecondSliceWireInventory, GateHostFnRealLoweringHorizonThinInventory,
     GateHostFnRealLoweringHorizonThirdSliceWireInventory, LlvmStubAuditReport,
     LlvmStubCapabilityAlignInventory, LlvmStubClearAlignHorizonReadinessInventory,
-    LlvmStubDeclareDiffInventory, LlvmStubKind, LlvmStubMissingAlignHorizonExitInventory,
-    LlvmStubMissingClearHonestDeferInventory, LlvmStubMissingClearReadinessInventory,
+    LlvmStubDeclareDiffInventory, LlvmStubKind, LlvmStubMissingClearReadinessInventory,
 };
 pub use wave_b_horizon::{
     mir_residual_abi_narrow_cleanup_inventory, mir_residual_honesty_inventory,

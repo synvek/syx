@@ -24,6 +24,8 @@
 - **S2-I5:** deleted a06 + profiles_sdk + lsp editor interop + frontend entry-matrix; census **186 → 178**.
 - **S2-I6:** deleted mir short post-cutover tail + `language_exports_*`; census **178 → 160**（kept `cutover_readiness` for wave_b）.
 - **S2-I7:** deleted mir `long_horizon_*`×25 (+ companions); census **160 → 132**.
+- **S2-I8:** deleted mir medium post-cutover (`honest_defer`→`exit`×11); census **132 → 121**.
+- **S2-I9:** deleted mir bypass×4 + llvm post-clear tail×2; census **121 → 115**.
 
 ## References
 

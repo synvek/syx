@@ -7,13 +7,6 @@ mod matrix_fingerprint;
 mod construction_progress;
 
 mod gate_b04_absolute_thresholds;
-mod gate_b05_aot_sidecar_embed;
-mod gate_b05_dual_blob_production_wire;
-mod gate_b05_dual_load_runtime;
-mod gate_b05_execution_omit;
-mod gate_b05_production_cutover_flip;
-mod gate_b05_real_codec_first_slice;
-mod gate_b05_sidecar_primary;
 mod gate_b07_real_hostfn_lowering_file_read_wire;
 mod gate_b07_real_hostfn_lowering_tcp_handle_release_wire;
 mod gate_b07_real_hostfn_lowering_tcp_read_wire;

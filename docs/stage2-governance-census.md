@@ -98,6 +98,32 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 1152 | −650 |
 
+## S2-I8 after seventh knife (2026-11-01)
+
+**Slice:** deleted mir medium post-cutover tail (`honest_defer`→`exit`, 11); removed 7 `gate_b05_*` companions. **Kept** `mir_module_medium_horizon_cutover_readiness` (wave_b product), short cutover, llvm `clear_align`, `gate_b09`.
+
+| Metric | Count | Δ vs S2-I7 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **121** | **−11** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1075 | −77 |
+
+## S2-I9 after eighth knife (2026-11-01)
+
+**Slice:** deleted mir bypass pack (`layout` / `codec_partition` / `debug_strip` / `native_omit`, 4) + llvm post-clear tail (`honest_defer` / `align_horizon_exit`, 2). **Kept** production helpers `module_with_debug_locals_stripped` / `module_with_native_instructions_omitted`, short/medium `cutover_readiness`, llvm `clear_align`, HostFn×8, `gate_b09`.
+
+| Metric | Count | Δ vs S2-I8 |
+|--------|------:|-----------:|
+| `fn *_inventory` matches | **115** | **−6** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1068 | −7 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.
