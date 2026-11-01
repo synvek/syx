@@ -120,6 +120,71 @@ jobs:
 
 
 
+  # S1-I23 / S1-09 scoped: en language-guide book KPI hard gate (≠ stage-1 exit).
+  book-pass:
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 25
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build syx-cli
+
+        run: cargo build -p syx-cli
+
+      - name: S1-09 en book_pass_rate hard gate
+
+        run: |
+          OUT="${RUNNER_TEMP}/book_pass.json"
+          python3 scripts/book_pass_rate.py --syx ./target/debug/syx --json "$OUT"
+          python3 - "$OUT" <<'PY'
+          import json, sys
+          path = sys.argv[1]
+          d = json.load(open(path))
+          passed = d.get("passed")
+          total = d.get("total")
+          rate = d.get("rate_pct")
+          parse_fail = d.get("parse_fail_approx")
+          print(f"book_pass_gate: {passed}/{total} rate_pct={rate} parse_fail_approx={parse_fail}")
+          ok = (
+              passed == total
+              and total is not None
+              and total > 0
+              and rate == 100.0
+              and parse_fail == 0
+          )
+          if not ok:
+              print(
+                  "S1-09 hard gate FAIL: require passed==total, rate_pct==100, parse_fail_approx==0",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          print("S1-09 hard gate PASS")
+          PY
+
+      - name: Upload book_pass JSON
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: book-pass-en
+
+          path: ${{ runner.temp }}/book_pass.json
+
+          if-no-files-found: warn
+
+
+
   windows-smoke:
 
     runs-on: windows-latest

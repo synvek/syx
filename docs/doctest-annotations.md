@@ -1,6 +1,7 @@
-# Doctest / book code-block annotations (S1-09 draft)
+# Doctest / book code-block annotations (S1-09)
 
-Stage-1 draft for marking fences in `books/language-guide`. The baseline runner is [`scripts/book_pass_rate.py`](../scripts/book_pass_rate.py). Full `syx doctest` / CI productization deepens later; CI may start with a **check-only** subset.
+Fence annotations for `books/language-guide`. Runner: [`scripts/book_pass_rate.py`](../scripts/book_pass_rate.py).  
+**S1-09 scoped `[x]`:** en CI hard gate — see [ADR](adr/stage1-s1-09-book-kpi-ci-scope.md). zh matrix / full `syx doctest` productization still deferred. **≠ stage-1 exit.**
 
 ## Fence tags
 

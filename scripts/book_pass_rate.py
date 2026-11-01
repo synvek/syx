@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""S1-I1: book code-block pass-rate baseline (language-guide).
+"""S1-I1 / S1-09: book code-block pass-rate (language-guide).
 
 Extracts fenced ```sy / ```syx / ```swift blocks from books/language-guide
 (and optional --zh), runs `syx check` on each, prints totals.
 
-Annotations (S1-09 draft; see docs/doctest-annotations.md):
+Annotations (see docs/doctest-annotations.md):
   ```sy                 — full check (default)
   ```sy,check           — same as sy (explicit)
   ```sy,fragment        — wrap in `func main() { ... }` when no main present
   ```sy,error=CODE      — expect check failure containing CODE (counts as pass if matched)
+
+CI (S1-I23 scoped): en-only hard gate in .github/workflows/ci.yml job `book-pass`
+(require 100% + parse_fail_approx=0). Scope ADR: docs/adr/stage1-s1-09-book-kpi-ci-scope.md.
+`--zh` is not CI-gated.
 
 Usage:
   python3 scripts/book_pass_rate.py [--syx PATH] [--zh] [--limit N] [--json OUT]
