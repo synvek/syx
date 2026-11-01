@@ -13,7 +13,8 @@
 | [stage1-s1-09-book-kpi-ci-scope.md](stage1-s1-09-book-kpi-ci-scope.md) | **S1-09 scoped**：en `book_pass_rate` CI 硬闸（100% + parse_fail=0）；≠ zh 矩阵 / 阶段1退出 | 公开 |
 | [stage1-s1-10-vm-inventory-scope.md](stage1-s1-10-vm-inventory-scope.md) | **S1-10 scoped**：VM allowlist + CI = 验收完成；≠ 拉满 / 三后端 / 阶段1退出 | 公开 |
 | [stage1-exit-examples-leg.md](stage1-exit-examples-leg.md) | **阶段1退出 examples 腿**：S1-10 VM + S0 三后端薄冒烟；≠ 拉满 / ≠ allowlist 全三后端 | 公开 |
-| [stage1-exit.md](stage1-exit.md) | **阶段1退出（S1-I27）**：三件套证据齐；S1-04/05 等为退出后余项；≠ 阶段2开工 / 产品 GA | 公开 |
+| [stage1-exit.md](stage1-exit.md) | **阶段1退出（S1-I27）**：三件套证据齐；S1-04/05 等为退出后余项；≠ 产品 GA | 公开 |
+| [stage2-open.md](stage2-open.md) | **阶段2开工（S2-I1）**：S2-01…07 轴；首刀 = 治理面普查基线；≠ S2-01 满勾 / ≠ 阶段2退出 | 公开 |
 | [architecture-decisions.md](architecture-decisions.md) | 历史全量决议（**过渡**；非现行主叙事） | 公开过渡 |
 | 私有仓 `ledger/adr-window-stream.md` | 窗级 Decision 流水 | **仅内部** |
 | 私有仓 `ledger/architecture-decisions.full.md` | ADR 全量副本 | **仅内部** |
