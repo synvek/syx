@@ -1,6 +1,8 @@
 # Examples VM allowlist contract (S1-10)
 
-**Status:** CI-gated (S1-I20/I21, **26** files). **S1-10 scoped `[x]`** per [ADR: VM inventory scope](adr/stage1-s1-10-vm-inventory-scope.md). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
+**Status:** CI-gated (S1-I20/I21, **26** files). **S1-10 scoped `[x]`** per [ADR: VM inventory scope](adr/stage1-s1-10-vm-inventory-scope.md). **Not** stage-1 exit by itself. **Not** three-backend GA. **Not** “examples runnable rate full”.
+
+Stage-1 **exit examples leg** also requires S0 three-backend thin smoke (hello / hot_loop) — see [ADR: exit examples leg](adr/stage1-exit-examples-leg.md). This VM contract ≠ that smoke.
 
 ## Scope
 
