@@ -13,12 +13,12 @@
    - Claiming examples **拉满** / promoting Out-table demos;
    - Running **native/wasm for all 26** allowlist files;
    - Equating this ADR with a Stage-1 exit announcement.
-3. **Stage-1 exit honesty.** With book KPI + parse=0 + this examples leg, the **triad is charter-complete**. **This ADR alone does not flip plan SSOT to “阶段 1 退出”** — that requires an explicit later SSOT window. S1-04 / S1-05 (diamond / mono) may remain `[~]` as Stage-1 residual or post-exit deepen.
+3. **Stage-1 exit honesty.** With book KPI + parse=0 + this examples leg, the **triad is charter-complete**. Plan SSOT flip to “阶段 1 退出” is recorded in [stage1-exit.md](stage1-exit.md) (S1-I27). S1-04 / S1-05 remain `[~]` as **post-exit residual**.
 
 ## Consequences
 
-- `plan/02` exit旁注 cites this ADR for the examples leg; keep “≠ 拉满 / ≠ allowlist 全三后端 / ≠ 本窗退出宣称” until SSOT exit flip.
-- Local one-shot: [`scripts/stage1_exit_examples_leg.sh`](../../scripts/stage1_exit_examples_leg.sh) (VM contract + S0 smoke). CI already runs both pieces separately — no mandatory CI change.
+- `plan/02` cites this ADR for the examples leg of the exited Stage-1 triad; keep “≠ 拉满 / ≠ allowlist 全三后端”.
+- Local one-shot: [`scripts/stage1_exit_examples_leg.sh`](../../scripts/stage1_exit_examples_leg.sh) (VM contract + S0 smoke). CI already runs both pieces separately.
 
 ## References
 
