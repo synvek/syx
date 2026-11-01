@@ -1,6 +1,6 @@
 # Examples VM allowlist contract (S1-10)
 
-**Status:** CI-gated (S1-I20, **26** files). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
+**Status:** CI-gated (S1-I20/I21, **26** files). **S1-10 scoped `[x]`** per [ADR: VM inventory scope](adr/stage1-s1-10-vm-inventory-scope.md). **Not** stage-1 exit. **Not** three-backend GA. **Not** “examples runnable rate full”.
 
 ## Scope
 
@@ -67,8 +67,8 @@ Claiming “examples runnable rate full” requires clearing Out + three-backend
 
 ## Honest boundaries
 
-- **In:** default VM `check` + `run` for the allowlist above; CI enforcement of that script.
-- **Out:** native / wasm full matrix; Out-of-inventory table; stage-1 exit claim; `book_pass_rate.py` CI hard gate (still draft).
+- **In (S1-10 scoped):** default VM `check` + `run` for the allowlist above; CI enforcement of that script; OUT table. See [ADR](adr/stage1-s1-10-vm-inventory-scope.md).
+- **Out / defer:** native / wasm full matrix; Out-of-inventory table promotion; stage-1 exit claim; `book_pass_rate.py` CI hard gate (still draft).
 - S0 backend smoke (`scripts/s0_backend_smoke.sh`) covers hello native/wasm fail-closed separately.
 
 ## How to run

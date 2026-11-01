@@ -9045,6 +9045,28 @@ pub fn check_project_with_options(root: &Path, options: &DriverOptions) -> SyxRe
     Ok(())
 }
 
+/// Single-file `syx check`: parse with capped multi-diag (`parse_collecting`), then compile.
+///
+/// On syntax errors returns **all** collected diagnostics (not first-error only).
+/// Project check / build / run keep first-error parse. Semantic multi-diag is still out of scope.
+pub fn check_file_with_options(
+    path: &Path,
+    options: &DriverOptions,
+) -> Result<ModuleUnit, Vec<SyxDiagnostic>> {
+    let text = std::fs::read_to_string(path).map_err(|e| {
+        vec![SyxDiagnostic::error(format!(
+            "Failed to read {}: {e}",
+            path.display()
+        ))]
+    })?;
+    let source = SourceFile::new(path.display().to_string(), text);
+    let outcome = Parser::parse_collecting(source);
+    if !outcome.errors.is_empty() {
+        return Err(outcome.errors);
+    }
+    compile_file_with_options(path, options).map_err(|e| vec![e])
+}
+
 /// Per-case status for `syx test` reports (W932 / ADR-1276).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]

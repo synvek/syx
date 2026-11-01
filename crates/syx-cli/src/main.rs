@@ -8,8 +8,9 @@ use syx_config::{self, NativeBackendChoice, SyxRuntimeConfig};
 use syx_driver::{
     add_dependency, build_native_executable, build_native_executable_file,
     build_native_file_with_options, build_native_with_options,
-    build_wasm_file_with_options, build_wasm_with_options, check_project_with_options,
-    compile_file_with_options, compile_project_with_options, debug_dap, debug_interactive,
+    build_wasm_file_with_options, build_wasm_with_options, check_file_with_options,
+    check_project_with_options, compile_file_with_options, compile_project_with_options,
+    debug_dap, debug_interactive,
     default_emit_output, default_emit_stem, default_native_executable,
     default_native_executable_for_source, default_native_object, default_native_object_for_source,
     doc_project, emit_with_options, write_emit_all,
@@ -648,7 +649,16 @@ fn run() -> miette::Result<()> {
             if path.is_dir() {
                 check_project_with_options(&path, &options).into_diagnostic()?;
             } else {
-                compile_file_with_options(&path, &options).into_diagnostic()?;
+                // S1-I21: single-file check surfaces capped parse multi-diag (P001…).
+                match check_file_with_options(&path, &options) {
+                    Ok(_) => {}
+                    Err(diags) => {
+                        for d in &diags {
+                            eprintln!("{d}");
+                        }
+                        process::exit(1);
+                    }
+                }
             }
             println!("Check passed for {}", path.display());
         }
