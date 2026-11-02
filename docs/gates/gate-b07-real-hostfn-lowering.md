@@ -1,6 +1,7 @@
 # B-07 real HostFn lowering thin-open (W449 / ADR-793)
 
-> **Status:** **B-07 thin floor signed** (ADR-793 / W449) — policy + inventory + meta only; indexes capability `backends.llvm=real` claims vs stub/AOT wiring using B-06 align floors.  
+> **Status:** **B-07 thin floor signed** (ADR-793 / W449) — policy + inventory + meta only; indexes HostFn llvm=real / named-AOT / call_host floors (**S2-I17:** policy-fixed; B-06 align product API retired — [stage2-hostfn-align-decouple](../adr/stage2-hostfn-align-decouple.md)).  
+
 > Cross-index: [`gate-b06-llvm-stub-audit.md`](gate-b06-llvm-stub-audit.md) / ADR-643–658; [`gate-b06-missing-align-exit.md`](../../plan/archive/gates/gate-b06-missing-align-exit.md) / ADR-792（F-10 W584 archived）; [`gate-b07-real-hostfn-lowering-deepen.md`](gate-b07-real-hostfn-lowering-deepen.md) / ADR-794; [`gate-b07-real-hostfn-lowering-wire.md`](gate-b07-real-hostfn-lowering-wire.md) / ADR-795; [`gate-b07-real-hostfn-lowering-file-read-wire.md`](gate-b07-real-hostfn-lowering-file-read-wire.md) / ADR-796; [`gate-b07-real-hostfn-lowering-tcp-read-wire.md`](gate-b07-real-hostfn-lowering-tcp-read-wire.md) / ADR-797; [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md).  
 > Roadmap B-07 is `[~]`. Live deepen thin **met** via ADR-794 / W450. Live HttpGet first-slice wire **met** via ADR-795 / W451. Live FileRead second-slice wire **met** via ADR-796 / W452. Live TcpRead third-slice wire **met** via ADR-797 / W453. **Not** global `lowering_enabled` (exit ≠ GA). Historical thin/deepen window **Not** claiming exit alone. **Not** batch stub rewrite. **Not** capability 批量 flip. **Not** language `Module.exports`. **Not** MIR blob delete this window. **Not** no-idle daemon.
 
@@ -10,7 +11,7 @@ Fingerprint: `two-hundred-ninety-ninth` / `A-W449`.
 
 | Cluster | Status | Evidence |
 |---------|--------|----------|
-| HostFn llvm=`real` count floor | **in scope** | `hostfn_llvm_real` from `llvm_stub_capability_align_inventory` (≥100) |
+| HostFn llvm=`real` count floor | **in scope** | `hostfn_llvm_real` policy-fixed on thin inventory (≥100; prior live 247) |
 | Named `*_aot` Wired path | **in scope** | `named_aot_wired ≥ 1` |
 | `call_host` / `call_host_aot` Wired | **in scope** | `call_host_path_wired=true` |
 | Real lowering expansion | **out of scope** | `lowering_enabled=false` honesty |

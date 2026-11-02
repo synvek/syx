@@ -215,6 +215,110 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 1013 | −17 |
 
+## S2-I17 after sixteenth knife (2026-11-02)
+
+**Slice:** HostFn←capability_align decouple ([stage2-hostfn-align-decouple](adr/stage2-hostfn-align-decouple.md)); deleted align inventory + W314 companion. **Kept** HostFn×8 / `audit_report` / `gate_b09`.
+
+| Metric | Count | Δ vs S2-I16 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **82** | **−1** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 1013 | 0 |
+
+## S2-I18 after seventeenth knife (2026-11-02)
+
+**Slice:** b09 product-flag tip decouple ([stage2-b09-product-flag-decouple](adr/stage2-b09-product-flag-decouple.md)); five flags policy-fixed `true`; deleted tip product inventories×4 + companions. **Kept** b09 construction chain / HostFn×8 / flag API names.
+
+| Metric | Count | Δ vs S2-I17 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **78** | **−4** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 953 | −60 |
+
+## S2-I19 after eighteenth knife (2026-11-02)
+
+**Slice:** b09 construction tip peel 两联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted mutrefcell+reentry peel inventories×6 + companions. **Kept** dual_track 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I18 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **72** | **−6** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 863 | −90 |
+
+## S2-I20 after nineteenth knife (2026-11-02)
+
+**Slice:** b09 construction tip dual_track+mirop 两联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted dual_track collapse + mirop residual peel inventories×6 + companions. **Kept** objectref peel 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I19 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **66** | **−6** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 769 | −94 |
+
+## S2-I21 after twentieth knife (2026-11-02)
+
+**Slice:** b09 construction tip objectref peel 三联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted peel readiness/delete/post_peel_refresh inventories×3 + companion. **Kept** deep_field 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I20 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **63** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 714 | −55 |
+
+## S2-I22 after twenty-first knife (2026-11-02)
+
+**Slice:** b09 construction tip deep_field+strip_rc 两联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted deep_field + strip_rc inventories×4 + companions. **Kept** handle 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I21 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **59** | **−4** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 653 | −61 |
+
+## S2-I23 after twenty-second knife (2026-11-02)
+
+**Slice:** b09 construction tip handle 三联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted post_handle_refresh + handle delete + handle retire inventories×3 + companion. **Kept** nested_field 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I22 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **56** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 604 | −49 |
+
+## S2-I24 after twenty-third knife (2026-11-02)
+
+**Slice:** b09 construction tip nested_field ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted nested_field_dual_track_first_slice inventory×1 + companion. **Kept** refresh_thin 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I23 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **55** | **−1** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 589 | −15 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

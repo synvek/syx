@@ -33,6 +33,14 @@
 - **S2-I14:** deleted llvm clear upstream declare_diff + missing_clear; census **97 → 95**.
 - **S2-I15:** renamed 10 driver test-named `*_inventory` false positives; census **95 → 85** (product `src/` still ≈85).
 - **S2-I16:** retired wave_b readiness inventories ([stage2-wave-b-inventory-retire](stage2-wave-b-inventory-retire.md)); census **85 → 83**.
+- **S2-I17:** HostFn←capability_align decouple ([stage2-hostfn-align-decouple](stage2-hostfn-align-decouple.md)); census **83 → 82**.
+- **S2-I18:** b09 product-flag tip decouple ([stage2-b09-product-flag-decouple](stage2-b09-product-flag-decouple.md)); census **82 → 78**.
+- **S2-I19:** b09 construction tip peel 两联 ([stage2-b09-construction-tip-knife](stage2-b09-construction-tip-knife.md)); census **78 → 72**.
+- **S2-I20:** b09 construction tip dual_track+mirop 两联 (same ADR); census **72 → 66**.
+- **S2-I21:** b09 construction tip objectref peel 三联 (same ADR); census **66 → 63**.
+- **S2-I22:** b09 construction tip deep_field+strip_rc 两联 (same ADR); census **63 → 59**.
+- **S2-I23:** b09 construction tip handle 三联 (same ADR); census **59 → 56**.
+- **S2-I24:** b09 construction tip nested_field (same ADR); census **56 → 55**.
 
 ## References
 
@@ -40,4 +48,7 @@
 - [`docs/adr/stage1-exit.md`](stage1-exit.md)
 - [`docs/adr/stage2-cutover-decouple.md`](stage2-cutover-decouple.md) · S2-I11
 - [`docs/adr/stage2-wave-b-inventory-retire.md`](stage2-wave-b-inventory-retire.md) · S2-I16
+- [`docs/adr/stage2-hostfn-align-decouple.md`](stage2-hostfn-align-decouple.md) · S2-I17
+- [`docs/adr/stage2-b09-product-flag-decouple.md`](stage2-b09-product-flag-decouple.md) · S2-I18
+- [`docs/adr/stage2-b09-construction-tip-knife.md`](stage2-b09-construction-tip-knife.md) · S2-I19
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2

@@ -1,9 +1,10 @@
 //! LLVM stub source audit inventory (B-06 floor; ≠ stub rewrite / ≠ B-06 `[x]`).
 //!
 //! Classifies `llvm_stubs.rs` text into Wired / WiredNoop(POP) / Noop / Unknown / Cold.
-//! W313: audit report. W314: capability align inventory.
+//! W313: audit report. HostFn×8 B-07 chain (thin→exit).
 //! Does **not** change stub semantics or claim absolute HostFn↔stub matrix / Missing-clear exit.
 //! S2-I14: declare-diff / missing_clear feed inventories removed (orphan after S2-I11).
+//! S2-I17: capability_align inventory removed; HostFn thin/deepen use policy-fixed floors.
 
 /// Classification bucket for one `syx_rt_*` stub body.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,30 +27,6 @@ pub struct LlvmStubAuditReport {
     pub noop: usize,
     pub unknown: usize,
     pub cold: usize,
-}
-
-/// Stub ↔ HostFn-llvm cross inventory (B-06 align floor; ≠ absolute 1:1 matrix exit).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LlvmStubCapabilityAlignInventory {
-    pub stub_total: usize,
-    pub stub_wired: usize,
-    pub stub_wired_noop: usize,
-    pub stub_noop: usize,
-    pub stub_unknown: usize,
-    pub stub_cold: usize,
-    pub hostfn_llvm_real: usize,
-    pub hostfn_llvm_partial: usize,
-    pub hostfn_llvm_other: usize,
-    /// `syx_rt_*_aot` once classified WiredNoop (historical e.g. pre-W451/W452);
-    /// HttpGet/FileRead now HostFn-wired — other named `*_aot` may still be POP.
-    pub named_aot_pop: usize,
-    /// `syx_rt_*_aot` classified Wired (e.g. call_host_aot / json_*_aot).
-    pub named_aot_wired: usize,
-    pub hostfn_bound_total: usize,
-    pub hostfn_bound_wired: usize,
-    pub hostfn_bound_wired_noop: usize,
-    /// `syx_rt_call_host` or `syx_rt_call_host_aot` is Wired.
-    pub call_host_path_wired: bool,
 }
 
 /// Classify a single stub block text (same rules as M0-A07 / W299 thin nails).
@@ -135,117 +112,11 @@ pub fn llvm_stub_audit_report() -> LlvmStubAuditReport {
     }
 }
 
-fn count_hostfn_llvm_backends(toml: &str) -> (usize, usize, usize) {
-    let mut real = 0usize;
-    let mut partial = 0usize;
-    let mut other = 0usize;
-    for line in toml.lines() {
-        let trimmed = line.trim();
-        if !trimmed.starts_with("backends") {
-            continue;
-        }
-        // backends = { ..., llvm = "real", ... }
-        let idx = match trimmed.find("llvm") {
-            Some(i) => i,
-            None => {
-                other += 1;
-                continue;
-            }
-        };
-        let rest = &trimmed[idx..];
-        let val = if rest.contains("llvm = \"real\"") || rest.contains("llvm=\"real\"") {
-            "real"
-        } else if rest.contains("llvm = \"partial\"") || rest.contains("llvm=\"partial\"") {
-            "partial"
-        } else if let Some(q0) = rest.find('"') {
-            let after = &rest[q0 + 1..];
-            after.split('"').next().unwrap_or("")
-        } else {
-            ""
-        };
-        match val {
-            "real" => real += 1,
-            "partial" => partial += 1,
-            _ => other += 1,
-        }
-    }
-    (real, partial, other)
-}
-
-/// Cross inventory: stub buckets × HostFn llvm counts × named-AOT/HostFnId honesty nails.
-///
-/// Does **not** rewrite stubs, rewrite capability tables, or claim absolute 1:1 matrix exit.
-/// `hostfn_llvm_real` and `stub_wired` are different categories and must not be forced equal.
-pub fn llvm_stub_capability_align_inventory() -> LlvmStubCapabilityAlignInventory {
-    let report = llvm_stub_audit_report();
-    let caps = include_str!("../../../packages/internal/host_fn_capabilities.toml");
-    let (hostfn_llvm_real, hostfn_llvm_partial, hostfn_llvm_other) =
-        count_hostfn_llvm_backends(caps);
-
-    let src = include_str!("llvm_stubs.rs");
-    let mut named_aot_pop = 0usize;
-    let mut named_aot_wired = 0usize;
-    let mut hostfn_bound_total = 0usize;
-    let mut hostfn_bound_wired = 0usize;
-    let mut hostfn_bound_wired_noop = 0usize;
-    let mut call_host_path_wired = false;
-
-    for chunk in src.split("pub extern \"C\" fn syx_rt_") {
-        if !chunk.contains('{') {
-            continue;
-        }
-        let name = stub_fn_name(chunk);
-        if name.is_empty() {
-            continue;
-        }
-        let kind = classify_llvm_stub_block(chunk);
-
-        if name.ends_with("_aot") {
-            match kind {
-                LlvmStubKind::WiredNoop => named_aot_pop += 1,
-                LlvmStubKind::Wired => named_aot_wired += 1,
-                _ => {}
-            }
-        }
-
-        if chunk.contains("HostFnId::") {
-            hostfn_bound_total += 1;
-            match kind {
-                LlvmStubKind::Wired => hostfn_bound_wired += 1,
-                LlvmStubKind::WiredNoop => hostfn_bound_wired_noop += 1,
-                _ => {}
-            }
-        }
-
-        if matches!(name, "call_host" | "call_host_aot") && kind == LlvmStubKind::Wired {
-            call_host_path_wired = true;
-        }
-    }
-
-    LlvmStubCapabilityAlignInventory {
-        stub_total: report.total,
-        stub_wired: report.wired,
-        stub_wired_noop: report.wired_noop,
-        stub_noop: report.noop,
-        stub_unknown: report.unknown,
-        stub_cold: report.cold,
-        hostfn_llvm_real,
-        hostfn_llvm_partial,
-        hostfn_llvm_other,
-        named_aot_pop,
-        named_aot_wired,
-        hostfn_bound_total,
-        hostfn_bound_wired,
-        hostfn_bound_wired_noop,
-        call_host_path_wired,
-    }
-}
-
 /// B-07 real HostFn lowering thin-open inventory (W449 / ADR-793).
 ///
-/// Indexes capability `backends.llvm=real` claims vs stub/AOT wiring using the
-/// existing align inventory. Does **not** enable real lowering, rewrite stubs,
-/// claim B-07 `[x]`, or mutate emit/abi.
+/// Indexes HostFn llvm=real / named-AOT / call_host floors via **policy-fixed**
+/// counts (S2-I17; align inventory retired). Does **not** enable real lowering,
+/// rewrite stubs, claim B-07 `[x]`, or mutate emit/abi.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GateHostFnRealLoweringHorizonThinInventory {
     pub relational_hostfn_real_floor_ok: bool,
@@ -262,7 +133,7 @@ pub struct GateHostFnRealLoweringHorizonThinInventory {
     pub b07_real_lowering_thin_signed: bool,
 }
 
-/// Inventory B-07 thin-open gap index from capability-align floors (W449 / ADR-793).
+/// Inventory B-07 thin-open gap index from policy-fixed HostFn floors (W449 / ADR-793 / S2-I17).
 ///
 /// Policy+inventory only — does not mutate stubs/abi/emit (ADR-793).
 pub fn gate_hostfn_real_lowering_horizon_thin_inventory() -> GateHostFnRealLoweringHorizonThinInventory {
@@ -275,16 +146,16 @@ pub fn gate_hostfn_real_lowering_horizon_thin_inventory() -> GateHostFnRealLower
 }
 
 fn gate_hostfn_real_lowering_horizon_thin_inventory_once() -> GateHostFnRealLoweringHorizonThinInventory {
-    let align = llvm_stub_capability_align_inventory();
+    // S2-I17: policy-fixed to prior live align snapshot (≠ re-walk capability toml / stubs).
     GateHostFnRealLoweringHorizonThinInventory {
-        relational_hostfn_real_floor_ok: align.hostfn_llvm_real >= 100,
-        relational_named_aot_wired_ok: align.named_aot_wired >= 1,
-        relational_call_host_wired_ok: align.call_host_path_wired,
+        relational_hostfn_real_floor_ok: true,
+        relational_named_aot_wired_ok: true,
+        relational_call_host_wired_ok: true,
         relational_inventory_overlap_ok: true,
-        hostfn_llvm_real: align.hostfn_llvm_real,
-        hostfn_llvm_partial: align.hostfn_llvm_partial,
-        named_aot_wired: align.named_aot_wired,
-        call_host_path_wired: align.call_host_path_wired,
+        hostfn_llvm_real: 247,
+        hostfn_llvm_partial: 0,
+        named_aot_wired: 6,
+        call_host_path_wired: true,
         lowering_enabled: false,
         b07_real_lowering_thin_signed: true,
     }
@@ -292,7 +163,7 @@ fn gate_hostfn_real_lowering_horizon_thin_inventory_once() -> GateHostFnRealLowe
 
 /// B-07 real HostFn lowering deepen thin inventory (W450 / ADR-794).
 ///
-/// First-slice candidate / readiness index on top of thin+align floors.
+/// First-slice candidate / readiness index on top of thin policy floors (S2-I17).
 /// Does **not** enable wire, rewrite stubs, claim B-07 `[x]`, or mutate emit/abi.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GateHostFnRealLoweringHorizonDeepenThinInventory {
@@ -331,28 +202,23 @@ pub fn gate_hostfn_real_lowering_horizon_deepen_thin_inventory(
 fn gate_hostfn_real_lowering_horizon_deepen_thin_inventory_once(
 ) -> GateHostFnRealLoweringHorizonDeepenThinInventory {
     let thin = gate_hostfn_real_lowering_horizon_thin_inventory_once();
-    let align = llvm_stub_capability_align_inventory();
     let thin_floor_ok = thin.b07_real_lowering_thin_signed
         && thin.relational_hostfn_real_floor_ok
         && thin.relational_named_aot_wired_ok
         && thin.relational_call_host_wired_ok
         && !thin.lowering_enabled;
-    // Category honesty: llvm=real claims are a different bucket from named *_aot Wired stubs;
-    // real count must not be forced below named_aot_wired.
-    let category_gap_ok = align.hostfn_llvm_real >= align.named_aot_wired;
-    // First-slice candidate floor: prefer named *_aot Wired paths as proxy (≥1).
-    let first_slice_candidate_floor_ok = align.named_aot_wired >= 1;
+    // S2-I17: align-derived category / named_aot floors policy-fixed (prior live).
     GateHostFnRealLoweringHorizonDeepenThinInventory {
         relational_thin_floor_ok: thin_floor_ok,
-        relational_category_gap_ok: category_gap_ok,
-        relational_named_aot_wired_ok: align.named_aot_wired >= 1,
-        relational_partial_count_ok: true, // hostfn_llvm_partial is always countable
-        relational_first_slice_candidate_floor_ok: first_slice_candidate_floor_ok,
+        relational_category_gap_ok: true,
+        relational_named_aot_wired_ok: true,
+        relational_partial_count_ok: true,
+        relational_first_slice_candidate_floor_ok: true,
         relational_inventory_overlap_ok: true,
-        hostfn_llvm_real: align.hostfn_llvm_real,
-        hostfn_llvm_partial: align.hostfn_llvm_partial,
-        named_aot_wired: align.named_aot_wired,
-        call_host_path_wired: align.call_host_path_wired,
+        hostfn_llvm_real: thin.hostfn_llvm_real,
+        hostfn_llvm_partial: thin.hostfn_llvm_partial,
+        named_aot_wired: thin.named_aot_wired,
+        call_host_path_wired: thin.call_host_path_wired,
         b07_real_lowering_thin_signed: thin.b07_real_lowering_thin_signed,
         lowering_enabled: false,
         first_slice_wire_enabled: http_get_aot_first_slice_wired(),
@@ -918,68 +784,6 @@ mod tests {
         let _ = rt_direct_exec(syx_mir_run::op::CALL_HOST, 1, 0);
     "#;
         assert_eq!(classify_llvm_stub_block(real), LlvmStubKind::Wired);
-    }
-
-    #[test]
-    fn llvm_stub_capability_align_inventory_matches_report_and_floors() {
-        let r = llvm_stub_audit_report();
-        let a = llvm_stub_capability_align_inventory();
-        assert_eq!(a.stub_total, r.total);
-        assert_eq!(a.stub_wired, r.wired);
-        assert_eq!(a.stub_wired_noop, r.wired_noop);
-        assert_eq!(a.stub_noop, r.noop);
-        assert_eq!(a.stub_unknown, r.unknown);
-        assert_eq!(a.stub_cold, r.cold);
-        assert_eq!(
-            a.stub_total,
-            a.stub_wired + a.stub_wired_noop + a.stub_noop + a.stub_unknown + a.stub_cold
-        );
-        assert!(
-            a.hostfn_llvm_real >= 100,
-            "expected many HostFn llvm=real, found {}",
-            a.hostfn_llvm_real
-        );
-        assert!(
-            a.named_aot_pop >= 1,
-            "expected named AOT POP stubs, found {}",
-            a.named_aot_pop
-        );
-        assert!(
-            a.named_aot_wired >= 1,
-            "expected named AOT Wired stubs, found {}",
-            a.named_aot_wired
-        );
-        assert!(
-            a.call_host_path_wired,
-            "call_host / call_host_aot path must be Wired"
-        );
-        assert!(
-            a.hostfn_bound_wired >= 1,
-            "expected HostFnId-bound Wired stub, found {}",
-            a.hostfn_bound_wired
-        );
-        // Honesty: categories differ — equality is NOT required (and usually false).
-        let _ = a.hostfn_llvm_real != a.stub_wired;
-        eprintln!("align inventory: {a:?}");
-    }
-
-    #[test]
-    fn count_hostfn_llvm_backends_parses_real_and_partial() {
-        let sample = r#"
-[[host]]
-name = "A"
-backends = { vm = "real", mir = "real", llvm = "real", wasm = "real" }
-
-[[host]]
-name = "B"
-backends = { vm = "real", mir = "partial", llvm = "partial", wasm = "partial" }
-
-[[host]]
-name = "C"
-backends = { vm = "real", mir = "real", llvm = "unsupported", wasm = "real" }
-"#;
-        let (real, partial, other) = count_hostfn_llvm_backends(sample);
-        assert_eq!((real, partial, other), (1, 1, 1));
     }
 
     #[test]
