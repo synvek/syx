@@ -27,6 +27,15 @@
 - **S2-I22:** deep_field+strip_rc tip packs×4 deleted; census **63 → 59**; new tip ≈ handle 三联.
 - **S2-I23:** handle tip pack×3 deleted; census **59 → 56**; new tip ≈ nested_field.
 - **S2-I24:** nested_field tip pack×1 deleted; census **56 → 55**; new tip ≈ refresh_thin.
+- **S2-I25:** refresh+wrap+value tip packs×3 deleted; census **55 → 52**; new tip ≈ storelocal_deinits.
+- **S2-I26:** death-path tip packs×4 deleted; census **52 → 48**; new tip ≈ rc_release_opcode.
+- **S2-I27:** opcode retire tip packs×3 deleted; census **48 → 45**; new tip ≈ rc_retire_readiness_thin.
+- **S2-I28:** retire-readiness tip packs×3 deleted; census **45 → 42**; new tip ≈ rc_migrate_readiness_thin.
+- **S2-I29:** migrate_readiness tip pack×1 deleted; census **42 → 41**; new tip ≈ ssa_loadlocal_heap_slots.
+- **S2-I30:** heap_slots tip packs×3 deleted; census **41 → 38**; new tip ≈ llvm_objectref_wrap_emit_retire.
+- **S2-I31:** llvm wrap emit tip pack×1 deleted; census **38 → 37**; new tip ≈ arrayget_heap_slots.
+- **S2-I32:** arrayget+residual_birth tip packs×2 deleted; census **37 → 35**; new tip ≈ llvm_wasm_objectref_rc_emit_retire.
+- **S2-I33:** llvm_wasm emit-retire tip pack×1 deleted; census **35 → 34**; new tip ≈ retain_catch_all_heap_slots.
 - Open: [stage2-open](stage2-open.md).
 
 ## References

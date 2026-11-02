@@ -41,6 +41,15 @@
 - **S2-I22:** b09 construction tip deep_field+strip_rc 两联 (same ADR); census **63 → 59**.
 - **S2-I23:** b09 construction tip handle 三联 (same ADR); census **59 → 56**.
 - **S2-I24:** b09 construction tip nested_field (same ADR); census **56 → 55**.
+- **S2-I25:** b09 construction tip refresh+wrap+value 三联 (same ADR); census **55 → 52**.
+- **S2-I26:** b09 construction tip death-path 四联 (same ADR); census **52 → 48**.
+- **S2-I27:** b09 construction tip opcode retire 三联 (same ADR); census **48 → 45**.
+- **S2-I28:** b09 construction tip retire-readiness 三联 (same ADR); census **45 → 42**.
+- **S2-I29:** b09 construction tip migrate_readiness 单枚 (same ADR); census **42 → 41**.
+- **S2-I30:** b09 construction tip heap_slots 三联 (same ADR); census **41 → 38**.
+- **S2-I31:** b09 construction tip llvm wrap emit 单枚 (same ADR); census **38 → 37**.
+- **S2-I32:** b09 construction tip arrayget+residual_birth 两联 (same ADR); census **37 → 35**.
+- **S2-I33:** b09 construction tip llvm_wasm emit-retire 单枚 (same ADR); census **35 → 34**.
 
 ## References
 

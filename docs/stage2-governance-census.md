@@ -319,6 +319,123 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 589 | −15 |
 
+## S2-I25 after twenty-fourth knife (2026-11-02)
+
+**Slice:** b09 construction tip refresh+wrap+value 三联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted refresh_thin + wrap delete + value_rc_api delete inventories×3 + companions. **Kept** storelocal_deinits 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I24 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **52** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 550 | −39 |
+
+## S2-I26 after twenty-fifth knife (2026-11-02)
+
+**Slice:** b09 construction tip death-path 四联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted storelocal_deinits + gc_type_deinit + deinits/storelocal heap_unroot inventories×4 + companions. **Kept** rc_release 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I25 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **48** | **−4** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 496 | −54 |
+
+## S2-I27 after twenty-sixth knife (2026-11-02)
+
+**Slice:** b09 construction tip opcode retire 三联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted rc_release_opcode + rc_dup_loadlocal + rc_retain_opcode retire first-slice inventories×3 + companions. **Kept** rc_retire_readiness 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I26 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **45** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 455 | −41 |
+
+## S2-I28 after twenty-seventh knife (2026-11-02)
+
+**Slice:** b09 construction tip retire-readiness 三联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted rc_retire_readiness + rt_abi retain_release/wrap retire readiness inventories×3. **Kept** rc_migrate_readiness 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I27 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **42** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 417 | −38 |
+
+## S2-I29 after twenty-eighth knife (2026-11-02)
+
+**Slice:** b09 construction tip migrate_readiness 单枚 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted rc_migrate_readiness_thin inventory×1. **Kept** ssa_loadlocal heap_slots 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I28 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **41** | **−1** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 403 | −14 |
+
+## S2-I30 after twenty-ninth knife (2026-11-02)
+
+**Slice:** b09 construction tip heap_slots 三联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted ssa_loadlocal + loadglobal + objectset heap_slots inventories×3 + companions. **Kept** llvm wrap emit 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I29 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **38** | **−3** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 364 | −39 |
+
+## S2-I31 after thirtieth knife (2026-11-02)
+
+**Slice:** b09 construction tip llvm wrap emit 单枚 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted llvm_objectref_wrap_emit_retire inventory×1 + companion. **Kept** arrayget heap_slots 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I30 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **37** | **−1** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 350 | −14 |
+
+## S2-I32 after thirty-first knife (2026-11-02)
+
+**Slice:** b09 construction tip arrayget+residual_birth heap_slots 两联 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted arrayget + residual_birth inventories×2 + companions. **Kept** llvm_wasm emit retire 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I31 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **35** | **−2** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 322 | −28 |
+
+## S2-I33 after thirty-second knife (2026-11-02)
+
+**Slice:** b09 construction tip llvm_wasm emit-retire 单枚 ([stage2-b09-construction-tip-knife](adr/stage2-b09-construction-tip-knife.md)); deleted llvm_wasm_objectref_rc_emit_retire inventory×1 + companion. **Kept** retain_catch_all heap_slots 及以下 / `gc_narrative_thin` / HostFn×8 / 五枚 policy-fixed flag API.
+
+| Metric | Count | Δ vs S2-I32 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **34** | **−1** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 308 | −14 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.
