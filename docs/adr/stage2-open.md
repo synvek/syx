@@ -50,6 +50,21 @@
 - **S2-I31:** b09 construction tip llvm wrap emit 单枚 (same ADR); census **38 → 37**.
 - **S2-I32:** b09 construction tip arrayget+residual_birth 两联 (same ADR); census **37 → 35**.
 - **S2-I33:** b09 construction tip llvm_wasm emit-retire 单枚 (same ADR); census **35 → 34**.
+- **S2-I34:** b09 construction tip retain/method/actor 三联 (same ADR); census **34 → 31**.
+- **S2-I35:** b09 construction tip call-return 两联 (same ADR); census **31 → 29**.
+- **S2-I36:** b09 construction tip mutrefcell CallHost 两联 (same ADR); census **29 → 27**.
+- **S2-I37:** b09 construction tip mutrefcell DictBuild 两联 (same ADR); census **27 → 25**.
+- **S2-I38:** b09 construction tip objectref CallHost 两联 (same ADR); census **25 → 23**.
+- **S2-I39:** b09 construction tip objectref DictBuild 单枚 (same ADR); census **23 → 22**.
+- **S2-I40:** b09 construction tip objectref vm_heap_slots 单枚 (same ADR); census **22 → 21**.
+- **S2-I41:** b09 construction tip objectref vm_managed_heap_probe 单枚 (same ADR); census **21 → 20**.
+- **S2-I42:** b09 construction tip objectref_rc_migrate 单枚 (same ADR); census **20 → 19**.
+- **S2-I43:** b09 construction tip memory_pool_dead_shell 单枚 (same ADR); census **19 → 18**.
+- **S2-I44:** b09 construction tip storage_cleanup 单枚 (same ADR); census **18 → 17**.
+- **S2-I45:** b09 construction tip 四联 (same ADR; default Δ3–4); census **17 → 13**.
+- **S2-I46:** b09 construction tip 四联 (same ADR); census **13 → 9**.
+- **S2-I47:** orphan thin + HostFn tip 三联 ([stage2-hostfn-construction-tip-knife](stage2-hostfn-construction-tip-knife.md)); census **9 → 5**.
+- **S2-I48:** HostFn tip 四联 (same ADR); census **5 → 1**.
 
 ## References
 
@@ -60,4 +75,5 @@
 - [`docs/adr/stage2-hostfn-align-decouple.md`](stage2-hostfn-align-decouple.md) · S2-I17
 - [`docs/adr/stage2-b09-product-flag-decouple.md`](stage2-b09-product-flag-decouple.md) · S2-I18
 - [`docs/adr/stage2-b09-construction-tip-knife.md`](stage2-b09-construction-tip-knife.md) · S2-I19
+- [`docs/adr/stage2-hostfn-construction-tip-knife.md`](stage2-hostfn-construction-tip-knife.md) · S2-I47
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2

@@ -36,6 +36,20 @@
 - **S2-I31:** llvm wrap emit tip pack×1 deleted; census **38 → 37**; new tip ≈ arrayget_heap_slots.
 - **S2-I32:** arrayget+residual_birth tip packs×2 deleted; census **37 → 35**; new tip ≈ llvm_wasm_objectref_rc_emit_retire.
 - **S2-I33:** llvm_wasm emit-retire tip pack×1 deleted; census **35 → 34**; new tip ≈ retain_catch_all_heap_slots.
+- **S2-I34:** retain/method/actor tip packs×3 deleted; census **34 → 31**; new tip ≈ mir_run_call_return_heap_slots.
+- **S2-I35:** call-return tip packs×2 deleted; census **31 → 29**; new tip ≈ mutrefcell_mir_run_callhost_heap_slots.
+- **S2-I36:** mutrefcell CallHost tip packs×2 deleted; census **29 → 27**; new tip ≈ mutrefcell_mir_run_dictbuild_align.
+- **S2-I37:** mutrefcell DictBuild tip packs×2 deleted; census **27 → 25**; new tip ≈ objectref_mir_run_callhost_heap_slots.
+- **S2-I38:** objectref CallHost tip packs×2 deleted; census **25 → 23**; new tip ≈ objectref_mir_run_dictbuild_align.
+- **S2-I39:** objectref DictBuild tip pack×1 deleted; census **23 → 22**; new tip ≈ objectref_vm_heap_slots.
+- **S2-I40:** objectref vm_heap_slots tip pack×1 deleted; census **22 → 21**; new tip ≈ objectref_vm_managed_heap_probe.
+- **S2-I41:** objectref vm_managed_heap_probe tip pack×1 deleted; census **21 → 20**; new tip ≈ objectref_rc_migrate.
+- **S2-I42:** objectref_rc_migrate tip pack×1 deleted; census **20 → 19**; new tip ≈ memory_pool_dead_shell.
+- **S2-I43:** memory_pool_dead_shell tip pack×1 deleted; census **19 → 18**; new tip ≈ storage_cleanup.
+- **S2-I44:** storage_cleanup tip pack×1 deleted; census **18 → 17**; new tip ≈ enable_readiness.
+- **S2-I45:** tip packs×4 deleted (enable_readiness+storage_honesty+fully_converged+dual_heap); census **17 → 13**; new tip ≈ actor_mailbox; **later windows default tip packs Δ3–4**.
+- **S2-I46:** tip packs×4 deleted (actor_mailbox+vm_gccollect+mir_runtime_root_set+gc_narrative_deepen); census **13 → 9**; remaining ≈ gc_narrative_thin + HostFn×8.
+- **S2-I47:** orphan thin + HostFn tip packs moved to [stage2-hostfn-construction-tip-knife](stage2-hostfn-construction-tip-knife.md); census **9 → 5**.
 - Open: [stage2-open](stage2-open.md).
 
 ## References
