@@ -4,8 +4,6 @@
 #![allow(unreachable_patterns)]
 #![allow(unused_assignments)]
 pub mod aot_matrix;
-pub mod gc_report;
-pub mod inkwell_report;
 
 /// Ensure host binaries resolve `syx_user_*` required by `syx_rt_start`.
 ///
@@ -28,11 +26,7 @@ static FORCE_HOST_RT_STUBS: (extern "C" fn(), extern "C" fn() -> i32) = (
     host_rt_stubs::syx_user_main,
 );
 
-pub mod cache_remote_report;
 pub mod capabilities_report;
-pub mod gc_generational_report;
-pub mod gc_relocate_report;
-pub mod gui_backend_report;
 mod host_rt_stubs;
 pub mod hosted_capabilities;
 pub mod lang_props_v2;
@@ -42,10 +36,6 @@ pub mod lang_props_v5;
 pub mod lang_props_v6;
 pub mod lang_surface_v1;
 pub mod marketing_capabilities;
-pub mod native_profile_report;
-pub mod native_sdk_report;
-pub mod rt_exec_report;
-pub mod rt_runtime_report;
 pub mod website_capabilities;
 
 /// Phase 96: dlopen `libsyx_gui` before visible GUI run.
@@ -56,22 +46,7 @@ pub fn ensure_gui_loaded() -> bool {
 pub fn require_gui_dylib_if_visible() {
     syx_vm::require_gui_dylib_if_visible()
 }
-pub mod actor_ipc_report;
-pub mod dict_runtime_report;
-pub mod dist_actor_cluster_report;
-pub mod dist_cdn_route_report;
-pub mod dist_failover_report;
 pub mod embedded_std;
-pub mod farm_billing_report;
-pub mod farm_report;
-pub mod heap_bridge_prod_report;
-pub mod heap_bridge_report;
-pub mod heap_host_report;
-pub mod heapslot_parity_report;
-pub mod hsm_rotation_report;
-pub mod native_exec_op_report;
-pub mod reflect_report;
-pub mod rt_v7_report;
 
 pub use build_syx::{
     farm_lease_expired, farm_lease_reset, farm_queue_last_hit, farm_worker_dequeue,
@@ -4942,59 +4917,6 @@ fn heap_v91_phase119_dx_fingerprint() -> String {
     format!("{:x}", hasher.finalize())
 }
 
-/// Phase 118 Track A: OS-all-apis + OT subst + VF wght + doctor v6.
-fn heap_v90_phase118_track_a_gui_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"gui-skia-paragraph-v6:os-ot-aligned");
-    hasher.update(b"gui-font-system-v5:os-only-all-apis");
-    hasher.update(b"gui-ot-features-v2:subst-proven");
-    hasher.update(b"gui-font-vf-v1:wght-mvp");
-    hasher.update(b"gui-emoji-v9:font-radial-and-sweep");
-    hasher.update(b"gui-doctor-engine-v6:phase118");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
-/// Phase 118 Track B: simd guest-v11 zero-scratch + SIMD16 pilots.
-fn heap_v90_phase118_track_b_wasm_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"wasm-simd128-guest-v11:zero-scratch-simd16");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
-/// Phase 118 Track C: Farm OS dual-process + follower-view + durable token epoch.
-fn heap_v90_phase118_track_c_farm_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"farm-lease-multidc-v5:os-dual-process");
-    hasher.update(b"farm-lease-registry-v4:follower-view");
-    hasher.update(b"farm-lease-token-v2:durable-epoch");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
-/// Phase 118 Track D: BGP peer-exchange + sibling-process PoP + select no-env.
-fn heap_v90_phase118_track_d_dist_select_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"dist-cdn-bgp-v2:peer-exchange");
-    hasher.update(b"dist-cdn-pop-v5:sibling-process");
-    hasher.update(b"select-deadline-strict-v1:no-env");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
 /// Phase 118 DX: audit 4100/2800, fill EXCLUDE, LSP semantic v20, driver CR240, stdlib 96.0 pin.
 fn heap_v90_phase118_dx_fingerprint() -> String {
     use sha2::{Digest, Sha256};
@@ -5790,18 +5712,6 @@ fn heap_v79_phase107_track_c_select_reflect_fingerprint() -> String {
     format!("{:x}", hasher.finalize())
 }
 
-/// Phase 104 Track A: Unicode/CJK TextField + IME + drawn caret (historical v76 segment).
-fn heap_v76_phase104_track_a_gui_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"gui-cjk-ime-v1:unicode-caret-ime");
-    hasher.update(b"gui-font-cjk-subset-v1:no-ascii-only-input");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
 /// Phase 104 DX: audit floors, LSP semantic v6, driver gate CR100, stdlib pin.
 fn heap_v76_phase104_dx_fingerprint() -> String {
     use sha2::{Digest, Sha256};
@@ -5810,45 +5720,6 @@ fn heap_v76_phase104_dx_fingerprint() -> String {
     hasher.update(b"lsp-semantic-v6:phase104-22-plus-real");
     hasher.update(b"driver-gate-cr100-v1:phase104-real-behavioral");
     hasher.update(b"stdlib-parity-pin-v1:83.0");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
-/// Phase 104 Track C: select-default sugar + reflect witness mandatory.
-fn heap_v76_phase104_track_c_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"select-default-stack-v1:sugar-matches-host");
-    hasher.update(b"reflect-witness-mandatory-v1:no-synthesize-true");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
-/// Phase 104 Track D: cross-node farm lease authority + locals v10 (no TLS slab hot path).
-fn heap_v76_phase104_track_d_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"farm-lease-auth-v1:cross-node-ttl");
-    hasher.update(b"native-llvm-locals-v10:no-tls-slab");
-    for id in syx_stdlib::HostFnId::all() {
-        hasher.update(id.name().as_bytes());
-    }
-    format!("{:x}", hasher.finalize())
-}
-
-/// Phase 104 Track B: SIMD/i128 guest imports; mir_exec allowlist empty.
-fn heap_v76_phase104_track_b_wasm_fingerprint() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"wasm-simd-guest-v1:no-mir-exec-simd");
-    hasher.update(b"wasm-i128-guest-v1:no-mir-exec-const128");
-    hasher.update(b"wasm-allowlist-empty-v1:phase104");
-    hasher.update(b"wasm-simd-full-v1:aot-ops-complete");
-    hasher.update(b"wasm-no-mir-exec-catchall-v1:phase105");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
     }

@@ -377,6 +377,4 @@ fn dist_bgp_peer_global_cdn_sla_purged_completely() {
     assert!(!resolver.contains("global_cdn_sla"));
     let pkg = include_str!("../../../syx-pkg/src/lib.rs");
     assert!(!pkg.contains("enforce_global_cdn_sla"));
-    let billing = include_str!("../../src/farm_billing_report.rs");
-    assert!(!billing.contains("global_cdn_sla"));
 }

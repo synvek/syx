@@ -106,13 +106,8 @@ fn p79_generic_fn_parse() {
 }
 
 #[test]
-fn p79_gc_relocate_report() {
-    assert!(include_str!("../../syx-driver/src/gc_relocate_report.rs").contains("GcRelocateReport"));
-}
-
-#[test]
-fn p79_doctor_rt_runtime_cli() {
-    assert!(include_str!("../../syx-cli/src/main.rs").contains("rt_runtime_report"));
+fn p79_gc_relocate_api() {
+    assert!(include_str!("../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
 }
 
 #[test]

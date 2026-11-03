@@ -1,7 +1,10 @@
 //! Phase 117 Track A — all-widgets ink + OS-only FontMgr + font COLR Sweep + OT calt + doctor v5.
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
-use syx_vm::{ensure_gui_loaded, gui_dlopen_loaded, reset_phase98_state};
+use syx_vm::{
+    ensure_gui_loaded, gui_dlopen_loaded, gui_doctor_coverage_fingerprint, gui_emoji_fingerprint,
+    reset_phase98_state,
+};
 
 #[test]
 fn p117_gui_fingerprints_in_tree() {
@@ -49,20 +52,15 @@ fn p117_gui_fingerprints_in_tree() {
 
 #[test]
 fn p117_gui_doctor_backend_report_engine() {
-    use syx_driver::gui_backend_report::run_gui_backend_report;
     reset_phase98_state();
-    let report_fresh = run_gui_backend_report();
-    assert_eq!(report_fresh.phase, 117);
-
     ensure_gui_loaded();
-    let report = run_gui_backend_report();
     if gui_dlopen_loaded() {
         assert_eq!(
-            report.doctor_coverage_fingerprint,
+            gui_doctor_coverage_fingerprint(),
             "gui-doctor-engine-v5:phase117"
         );
         assert_eq!(
-            report.emoji_fingerprint,
+            gui_emoji_fingerprint(),
             "gui-emoji-v9:font-radial-and-sweep"
         );
     }

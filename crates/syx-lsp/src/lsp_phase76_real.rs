@@ -66,18 +66,6 @@ fn p76_build_farm_remote_target() {
 }
 
 #[test]
-fn p76_cache_remote_report_module() {
-    let src = include_str!("../../syx-driver/src/cache_remote_report.rs");
-    assert!(src.contains("CacheRemoteReport"));
-}
-
-#[test]
-fn p76_rt_exec_report_module() {
-    let src = include_str!("../../syx-driver/src/rt_exec_report.rs");
-    assert!(src.contains("RtExecReport"));
-}
-
-#[test]
 fn p76_heap_array_parse() {
     assert!(p76_doc_ok("func main() { let a = [1, 2, 3]; print(a[0]) }"));
 }
@@ -117,18 +105,6 @@ fn p76_adr054_distributed_cache() {
     )
     .unwrap();
     assert!(adr.contains("ADR-054") || adr.contains("lock v10"));
-}
-
-#[test]
-fn p76_doctor_cache_remote_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("cache_remote_report") || src.contains("cache-remote-report"));
-}
-
-#[test]
-fn p76_doctor_rt_exec_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("rt_exec_report") || src.contains("rt-exec-report"));
 }
 
 #[test]

@@ -38,11 +38,6 @@ fn p78_inkwell_module_v4() {
 }
 
 #[test]
-fn p78_rt_runtime_report_module() {
-    assert!(include_str!("../../syx-driver/src/rt_runtime_report.rs").contains("RtRuntimeReport"));
-}
-
-#[test]
 fn p78_borrow_external_export() {
     assert!(include_str!("../../syx-semantic/src/lib.rs").contains("borrow_regions_export_external_proof_files"));
 }
@@ -58,8 +53,8 @@ fn p78_plugin_epoch_poison() {
 }
 
 #[test]
-fn p78_gc_relocate_report() {
-    assert!(include_str!("../../syx-driver/src/gc_relocate_report.rs").contains("GcRelocateReport"));
+fn p78_gc_relocate_api() {
+    assert!(include_str!("../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
 }
 
 #[test]
@@ -116,11 +111,6 @@ fn p78_rt_heap_relocate_abi() {
 #[test]
 fn p78_plugin_bundle_sha256_field() {
     assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("plugin_bundle_sha256"));
-}
-
-#[test]
-fn p78_doctor_rt_runtime_cli() {
-    assert!(include_str!("../../syx-cli/src/main.rs").contains("rt_runtime_report"));
 }
 
 #[test]

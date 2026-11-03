@@ -60,9 +60,3 @@ fn p98_gc_generational_wasm_stdout() {
 fn p98_gc_generational_fingerprint() {
     assert!(include_str!("../../src/lib.rs").contains("gc-generational-v13-quad-v1"));
 }
-
-#[test]
-fn p98_gc_generational_doctor_alias() {
-    let cli = include_str!("../../../syx-cli/src/main.rs");
-    assert!(cli.contains("gc-gen-report") || cli.contains("gc_gen_report"));
-}

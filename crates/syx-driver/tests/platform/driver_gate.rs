@@ -712,9 +712,8 @@ fn p98_driver_gzip_array_i32_roundtrip() {
 }
 
 #[test]
-fn p98_driver_reflect_report() {
-    let report = syx_driver::reflect_report::run_reflect_report();
-    assert!(report.specialization_api);
+fn p98_driver_reflect_specialization_api() {
+    assert!(include_str!("../../../syx-meta/src/lib.rs").contains("reflect_specialization"));
 }
 
 #[test]
@@ -1132,7 +1131,7 @@ fn p98_driver_llvm_alloca_emit() {
 
 #[test]
 fn p98_driver_gui_backend_report_pixel() {
-    assert!(include_str!("../../src/gui_backend_report.rs").contains("sample_center_pixel"));
+    assert!(include_str!("../../../syx-vm/src/lib.rs").contains("gui_sample_center_pixel"));
 }
 
 #[test]
@@ -3676,10 +3675,6 @@ fn p104_driver_cache_v76_tag() {
 #[test]
 fn p104_driver_heap_v76_fingerprint() {
     let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("heap_v76_phase104_track_a_gui_fingerprint"));
-    assert!(lib.contains("heap_v76_phase104_track_b_wasm_fingerprint"));
-    assert!(lib.contains("heap_v76_phase104_track_c_fingerprint"));
-    assert!(lib.contains("heap_v76_phase104_track_d_fingerprint"));
     assert!(lib.contains("heap_v76_phase104_dx_fingerprint"));
 }
 
@@ -3713,15 +3708,12 @@ fn p104_stdlib_parity_pin_fingerprint() {
 #[test]
 fn p105_gui_ttf_cache_fingerprint() {
     let lib = include_str!("../../src/lib.rs");
-    let report = include_str!("../../src/gui_backend_report.rs");
-    assert!(lib.contains("gui-ttf-subset-v1:fontdue-cjk") || report.contains("gui-ttf-subset-v1:fontdue-cjk"));
+    assert!(lib.contains("gui-ttf-subset-v1:fontdue-cjk"));
     assert!(
-        report.contains("gui-doctor-coverage-v1:phase105")
-            || report.contains("gui-doctor-cap-v1:phase106")
-            || report.contains("gui-doctor-real-v1:phase107")
-    );
-    assert!(
-        report.contains("phase: 105") || report.contains("phase: 106")
+        lib.contains("gui-doctor-coverage-v1:phase105")
+            || lib.contains("gui-doctor-cap-v1:phase106")
+            || lib.contains("gui-doctor-real-v1:phase107")
+            || lib.contains("gui-doctor-engine-v5:phase117")
     );
 }
 
@@ -3729,7 +3721,7 @@ fn p105_gui_ttf_cache_fingerprint() {
 fn p104_gui_cjk_cache_fingerprint() {
     let lib = include_str!("../../src/lib.rs");
     assert!(lib.contains("gui-cjk-ime-v1:unicode-caret-ime"));
-    assert!(include_str!("../../src/gui_backend_report.rs").contains("fontdue-ttf-subset-v1"));
+    assert!(lib.contains("gui-ttf-subset-v1:fontdue-cjk"));
 }
 
 #[test]

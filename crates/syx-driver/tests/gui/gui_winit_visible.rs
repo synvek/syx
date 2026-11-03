@@ -2,11 +2,15 @@
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 use syx_vm::{
-    ensure_gui_loaded, gui_dlopen_loaded, gui_sample_center_pixel, host_gui_button_create,
-    host_gui_click_inject, host_gui_key_inject, host_gui_label_create, host_gui_layout_create,
-    host_gui_on_click, host_gui_text_field_create, host_gui_widget_get_text,
-    host_gui_winit_event_pump_phase97, host_gui_winit_run_loop_once_phase97,
-    host_gui_winit_window_create, reset_phase98_state, visible_window_count,
+    ensure_gui_loaded, gui_caret_metric_px, gui_caret_supported, gui_cjk_subset_char_count,
+    gui_dlopen_loaded, gui_doctor_coverage_fingerprint, gui_font_fallback_fingerprint,
+    gui_glyph_coverage_percent, gui_harfbuzz_fingerprint, gui_ime_commit_supported,
+    gui_ime_preedit_fingerprint, gui_ime_preedit_supported, gui_sample_center_pixel, gui_shaped,
+    gui_ttf_subset_fingerprint, host_gui_button_create, host_gui_click_inject, host_gui_key_inject,
+    host_gui_label_create, host_gui_layout_create, host_gui_on_click, host_gui_text_field_create,
+    host_gui_widget_get_text, host_gui_winit_event_pump_phase97,
+    host_gui_winit_run_loop_once_phase97, host_gui_winit_window_create, reset_phase98_state,
+    visible_window_count,
 };
 use syx_runtime_core::Value;
 
@@ -398,86 +402,85 @@ fn p104_gui_cjk_ime_fingerprint() {
 
 #[test]
 fn p106_gui_doctor_backend_report_subset_chars() {
-    use syx_driver::gui_backend_report::run_gui_backend_report;
     reset_phase98_state();
     ensure_gui_loaded();
-    let report = run_gui_backend_report();
-    assert!(report.phase == 106 || report.phase == 107 || report.phase == 108);
-    assert_eq!(report.ttf_fingerprint, "gui-ttf-expand-v1:cjk64-plus");
+    if !gui_dlopen_loaded() {
+        return;
+    }
+    assert_eq!(gui_ttf_subset_fingerprint(), "gui-ttf-expand-v1:cjk64-plus");
     assert_eq!(
-        report.ime_preedit_fingerprint,
+        gui_ime_preedit_fingerprint(),
         "gui-ime-highlight-v1:preedit-invert"
     );
+    let doctor_fp = gui_doctor_coverage_fingerprint();
     assert!(
-        report.doctor_coverage_fingerprint == "gui-doctor-cap-v1:phase106"
-            || report.doctor_coverage_fingerprint == "gui-doctor-real-v1:phase107"
-            || report.doctor_coverage_fingerprint == "gui-doctor-egui-v1:phase108"
-            || report.doctor_coverage_fingerprint == "gui-doctor-wgpu-v1:phase109"
+        doctor_fp == "gui-doctor-cap-v1:phase106"
+            || doctor_fp == "gui-doctor-real-v1:phase107"
+            || doctor_fp == "gui-doctor-egui-v1:phase108"
+            || doctor_fp == "gui-doctor-wgpu-v1:phase109"
+            || doctor_fp == "gui-doctor-engine-v5:phase117"
     );
-    if gui_dlopen_loaded() {
-        assert!(report.subset_chars >= 64);
-        assert!(report.glyph_coverage_percent >= 100);
-        assert!(report.ime_preedit_supported);
-        assert!(report.ime_commit_supported);
-        assert!(report.caret_supported);
-        assert!(report.caret_metric_px > 0);
-    }
+    assert!(gui_cjk_subset_char_count() >= 64);
+    assert!(gui_glyph_coverage_percent() >= 100);
+    assert!(gui_ime_preedit_supported());
+    assert!(gui_ime_commit_supported());
+    assert!(gui_caret_supported());
+    assert!(gui_caret_metric_px() > 0);
 }
 
 #[test]
 fn p105_gui_doctor_backend_report_coverage() {
-    use syx_driver::gui_backend_report::run_gui_backend_report;
     reset_phase98_state();
     ensure_gui_loaded();
-    let report = run_gui_backend_report();
-    assert!(report.phase == 106 || report.phase == 107 || report.phase == 108);
-    assert_eq!(report.ttf_fingerprint, "gui-ttf-expand-v1:cjk64-plus");
+    if !gui_dlopen_loaded() {
+        return;
+    }
+    assert_eq!(gui_ttf_subset_fingerprint(), "gui-ttf-expand-v1:cjk64-plus");
     assert_eq!(
-        report.ime_preedit_fingerprint,
+        gui_ime_preedit_fingerprint(),
         "gui-ime-highlight-v1:preedit-invert"
     );
+    let doctor_fp = gui_doctor_coverage_fingerprint();
     assert!(
-        report.doctor_coverage_fingerprint == "gui-doctor-cap-v1:phase106"
-            || report.doctor_coverage_fingerprint == "gui-doctor-real-v1:phase107"
-            || report.doctor_coverage_fingerprint == "gui-doctor-egui-v1:phase108"
-            || report.doctor_coverage_fingerprint == "gui-doctor-wgpu-v1:phase109"
+        doctor_fp == "gui-doctor-cap-v1:phase106"
+            || doctor_fp == "gui-doctor-real-v1:phase107"
+            || doctor_fp == "gui-doctor-egui-v1:phase108"
+            || doctor_fp == "gui-doctor-wgpu-v1:phase109"
+            || doctor_fp == "gui-doctor-engine-v5:phase117"
     );
-    if gui_dlopen_loaded() {
-        assert!(report.glyph_coverage_percent >= 100);
-        assert!(report.caret_metric_px > 0);
-    }
+    assert!(gui_glyph_coverage_percent() >= 100);
+    assert!(gui_caret_metric_px() > 0);
 }
 
 #[test]
 fn p107_gui_doctor_backend_report_shaped() {
-    use syx_driver::gui_backend_report::run_gui_backend_report;
     reset_phase98_state();
     ensure_gui_loaded();
-    let report = run_gui_backend_report();
-    assert!(report.phase == 107 || report.phase == 108 || report.phase == 109);
-    assert!(
-        report.harfbuzz_fingerprint == "gui-harfbuzz-v1:shape-mvp"
-            || report.harfbuzz_fingerprint == "gui-hb-paint-v1:string-shape"
-    );
+    if !gui_dlopen_loaded() {
+        return;
+    }
+    let hb = gui_harfbuzz_fingerprint();
+    assert!(hb == "gui-harfbuzz-v1:shape-mvp" || hb == "gui-hb-paint-v1:string-shape");
     assert_eq!(
-        report.font_fallback_fingerprint,
+        gui_font_fallback_fingerprint(),
         "gui-font-fallback-v1:system-cjk"
     );
+    let doctor_fp = gui_doctor_coverage_fingerprint();
     assert!(
-        report.doctor_coverage_fingerprint == "gui-doctor-real-v1:phase107"
-            || report.doctor_coverage_fingerprint == "gui-doctor-egui-v1:phase108"
-            || report.doctor_coverage_fingerprint == "gui-doctor-wgpu-v1:phase109"
+        doctor_fp == "gui-doctor-real-v1:phase107"
+            || doctor_fp == "gui-doctor-egui-v1:phase108"
+            || doctor_fp == "gui-doctor-wgpu-v1:phase109"
+            || doctor_fp == "gui-doctor-engine-v5:phase117"
     );
-    if gui_dlopen_loaded() {
-        assert!(report.shaped, "doctor must report shaped=true");
-        assert!(report.subset_chars >= 64);
-        assert!(report.ime_preedit_supported);
-        assert!(report.caret_metric_px > 0);
-        assert_ne!(
-            report.caret_metric_px, 10,
-            "caret must be metrics-derived, not hardcoded 10"
-        );
-    }
+    assert!(gui_shaped(), "gui shaped probe must be true");
+    assert!(gui_cjk_subset_char_count() >= 64);
+    assert!(gui_ime_preedit_supported());
+    assert!(gui_caret_metric_px() > 0);
+    assert_ne!(
+        gui_caret_metric_px(),
+        10,
+        "caret must be metrics-derived, not hardcoded 10"
+    );
 }
 
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]

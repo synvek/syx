@@ -112,55 +112,6 @@ pub fn llvm_stub_audit_report() -> LlvmStubAuditReport {
     }
 }
 
-/// B-07 real HostFn lowering thin-open inventory (W449 / ADR-793).
-///
-/// Indexes HostFn llvm=real / named-AOT / call_host floors via **policy-fixed**
-/// counts (S2-I17; align inventory retired). Does **not** enable real lowering,
-/// rewrite stubs, claim B-07 `[x]`, or mutate emit/abi.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct GateHostFnRealLoweringHorizonThinInventory {
-    pub relational_hostfn_real_floor_ok: bool,
-    pub relational_named_aot_wired_ok: bool,
-    pub relational_call_host_wired_ok: bool,
-    pub relational_inventory_overlap_ok: bool,
-    pub hostfn_llvm_real: usize,
-    pub hostfn_llvm_partial: usize,
-    pub named_aot_wired: usize,
-    pub call_host_path_wired: bool,
-    /// Always `false` — honesty: real HostFn lowering expansion remains off.
-    pub lowering_enabled: bool,
-    /// Always `true` — W449 / ADR-793: B-07 thin-open inventory is signed.
-    pub b07_real_lowering_thin_signed: bool,
-}
-
-/// Inventory B-07 thin-open gap index from policy-fixed HostFn floors (W449 / ADR-793 / S2-I17).
-///
-/// Policy+inventory only — does not mutate stubs/abi/emit (ADR-793).
-pub fn gate_hostfn_real_lowering_horizon_thin_inventory() -> GateHostFnRealLoweringHorizonThinInventory {
-    let again = gate_hostfn_real_lowering_horizon_thin_inventory_once();
-    let first = gate_hostfn_real_lowering_horizon_thin_inventory_once();
-    GateHostFnRealLoweringHorizonThinInventory {
-        relational_inventory_overlap_ok: first == again,
-        ..first
-    }
-}
-
-fn gate_hostfn_real_lowering_horizon_thin_inventory_once() -> GateHostFnRealLoweringHorizonThinInventory {
-    // S2-I17: policy-fixed to prior live align snapshot (≠ re-walk capability toml / stubs).
-    GateHostFnRealLoweringHorizonThinInventory {
-        relational_hostfn_real_floor_ok: true,
-        relational_named_aot_wired_ok: true,
-        relational_call_host_wired_ok: true,
-        relational_inventory_overlap_ok: true,
-        hostfn_llvm_real: 247,
-        hostfn_llvm_partial: 0,
-        named_aot_wired: 6,
-        call_host_path_wired: true,
-        lowering_enabled: false,
-        b07_real_lowering_thin_signed: true,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -211,35 +162,6 @@ mod tests {
         let _ = rt_direct_exec(syx_mir_run::op::CALL_HOST, 1, 0);
     "#;
         assert_eq!(classify_llvm_stub_block(real), LlvmStubKind::Wired);
-    }
-
-    #[test]
-    fn gate_hostfn_real_lowering_horizon_thin_inventory_preds_and_honesty() {
-        let inv = gate_hostfn_real_lowering_horizon_thin_inventory();
-        assert!(
-            inv.b07_real_lowering_thin_signed,
-            "B-07 thin must be signed (W449 / ADR-793): {inv:?}"
-        );
-        assert!(
-            inv.relational_hostfn_real_floor_ok,
-            "hostfn llvm=real floor must hold: {inv:?}"
-        );
-        assert!(
-            inv.relational_named_aot_wired_ok,
-            "named aot wired must hold: {inv:?}"
-        );
-        assert!(
-            inv.relational_call_host_wired_ok,
-            "call_host wired must hold: {inv:?}"
-        );
-        assert!(inv.relational_inventory_overlap_ok);
-        assert!(inv.hostfn_llvm_real >= 100, "{inv:?}");
-        assert!(inv.named_aot_wired >= 1, "{inv:?}");
-        assert!(inv.call_host_path_wired);
-        assert!(
-            !inv.lowering_enabled,
-            "real lowering must remain off (thin only): {inv:?}"
-        );
     }
 
 }

@@ -12,8 +12,7 @@ fn p98_reflect_witness_mandatory_register_and_info() {
 
 #[test]
 fn p98_reflect_witness_mandatory_report_api() {
-    let report = syx_driver::reflect_report::run_reflect_report();
-    assert!(report.specialization_api);
+    assert!(include_str!("../../../syx-meta/src/lib.rs").contains("reflect_specialization"));
 }
 
 #[test]
@@ -51,12 +50,6 @@ fn p98_reflect_witness_mandatory_compile_missing_witness_errors() {
 }"#;
     let result = compile_embedded(src, &DriverOptions::default());
     assert!(result.is_ok(), "reflect host call must compile: {result:?}");
-}
-
-#[test]
-fn p98_reflect_witness_mandatory_doctor_reflect_report_cli() {
-    let src = include_str!("../../src/reflect_report.rs");
-    assert!(src.contains("run_reflect_report"));
 }
 
 #[test]

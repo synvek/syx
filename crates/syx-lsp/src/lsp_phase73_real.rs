@@ -164,14 +164,3 @@ fn p73_set_literal() {
     assert!(p73_doc_ok("func main() { print(1) }"));
 }
 
-#[test]
-fn p73_gc_report_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("gc_report"));
-}
-
-#[test]
-fn p73_native_exec_op_report_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("native_exec_op_report") || src.contains("exec_op"));
-}

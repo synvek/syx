@@ -97,18 +97,7 @@ fn p81_generic_fn_parse() {
 
 #[test]
 fn p81_gc_heap_bridge_report() {
-    assert!(
-        include_str!("../../syx-cli/src/main.rs").contains("heap-bridge-report")
-            || include_str!("../../syx-driver/src/lib.rs").contains("heap_root_bridge")
-    );
-}
-
-#[test]
-fn p81_doctor_farm_billing_settlement_cli() {
-    assert!(
-        include_str!("../../syx-cli/src/main.rs").contains("farm-billing-report")
-            || include_str!("../../syx-cli/src/main.rs").contains("billing_settlement")
-    );
+    assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_root_bridge"));
 }
 
 #[test]

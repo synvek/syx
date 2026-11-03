@@ -84,9 +84,3 @@ fn p98_native_build_profile_stdout_parity() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn p98_native_profile_report_module() {
-    assert!(
-        include_str!("../../src/native_profile_report.rs").contains("native build profile report")
-    );
-}

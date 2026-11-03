@@ -65,6 +65,16 @@
 - **S2-I46:** b09 construction tip 四联 (same ADR); census **13 → 9**.
 - **S2-I47:** orphan thin + HostFn tip 三联 ([stage2-hostfn-construction-tip-knife](stage2-hostfn-construction-tip-knife.md)); census **9 → 5**.
 - **S2-I48:** HostFn tip 四联 (same ADR); census **5 → 1**.
+- **S2-I49:** HostFn thin 末刀 (same ADR); census **1 → 0** (inventory KPI zero; ≠ S2-01 `[x]`).
+- **S2-I50:** doctor-report tip 四联 ([stage2-doctor-report-tip-knife](stage2-doctor-report-tip-knife.md)); report census **26 → 22**.
+- **S2-I51:** doctor-report tip 四联 (same ADR); report census **22 → 18**.
+- **S2-I52:** doctor-report tip 四联 (same ADR); report census **18 → 14**.
+- **S2-I53:** doctor-report LSP-nail 四联 ([stage2-doctor-report-lsp-nail-knife](stage2-doctor-report-lsp-nail-knife.md)); report census **14 → 10**.
+- **S2-I54:** tip 末枚 + driver-src-nail 三联 ([stage2-doctor-report-driver-src-nail-knife](stage2-doctor-report-driver-src-nail-knife.md)); report census **10 → 6**.
+- **S2-I55:** LSP 末枚 + run-test-nail 三联 ([stage2-doctor-report-run-test-nail-knife](stage2-doctor-report-run-test-nail-knife.md)); report census **6 → 2**.
+- **S2-I56:** run-test-nail 末枚 `gui_backend_report` (same ADR); report census **2 → 1**.
+- **S2-I57:** fingerprint orphan tip 四联 ([stage2-fingerprint-tip-knife](stage2-fingerprint-tip-knife.md)); `fingerprint_fn` **655 → 651**.
+- **S2-I58:** fingerprint tip nail-co-delete 四联 (same ADR); `heap_v76_phase104` track a–d; `fingerprint_fn` **651 → 647**.
 
 ## References
 
@@ -76,4 +86,9 @@
 - [`docs/adr/stage2-b09-product-flag-decouple.md`](stage2-b09-product-flag-decouple.md) · S2-I18
 - [`docs/adr/stage2-b09-construction-tip-knife.md`](stage2-b09-construction-tip-knife.md) · S2-I19
 - [`docs/adr/stage2-hostfn-construction-tip-knife.md`](stage2-hostfn-construction-tip-knife.md) · S2-I47
+- [`docs/adr/stage2-doctor-report-tip-knife.md`](stage2-doctor-report-tip-knife.md) · S2-I50
+- [`docs/adr/stage2-doctor-report-lsp-nail-knife.md`](stage2-doctor-report-lsp-nail-knife.md) · S2-I53
+- [`docs/adr/stage2-doctor-report-driver-src-nail-knife.md`](stage2-doctor-report-driver-src-nail-knife.md) · S2-I54
+- [`docs/adr/stage2-doctor-report-run-test-nail-knife.md`](stage2-doctor-report-run-test-nail-knife.md) · S2-I55
+- [`docs/adr/stage2-fingerprint-tip-knife.md`](stage2-fingerprint-tip-knife.md) · S2-I57
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2

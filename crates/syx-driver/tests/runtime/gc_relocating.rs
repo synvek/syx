@@ -43,9 +43,8 @@ fn p98_gc_relocating_churn_stdout() {
 }
 
 #[test]
-fn p98_gc_relocating_doctor_report() {
-    let r = syx_driver::gc_relocate_report::run_gc_relocate_report();
-    assert!(r.relocate_api);
+fn p98_gc_relocating_relocate_global_api() {
+    assert!(include_str!("../../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
 }
 
 #[test]

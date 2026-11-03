@@ -15,35 +15,10 @@ use syx_driver::{
     default_native_executable_for_source, default_native_object, default_native_object_for_source,
     doc_project, emit_with_options, write_emit_all,
     aot_matrix::{print_doctor_summary, run_aot_matrix},
-    gc_report::{print_gc_report, run_gc_report},
-    inkwell_report::{print_inkwell_report, run_inkwell_report},
-    cache_remote_report::{print_cache_remote_report, run_cache_remote_report},
-    rt_exec_report::{print_rt_exec_report, run_rt_exec_report},
-    heap_host_report::{print_heap_host_report, run_heap_host_report},
-    farm_report::{print_farm_report, run_farm_report},
-    reflect_report::{print_reflect_report, run_reflect_report},
-    rt_runtime_report::{print_rt_runtime_report, run_rt_runtime_report},
-    gc_relocate_report::{print_gc_relocate_report, run_gc_relocate_report},
-    gc_generational_report::{print_gc_generational_report, run_gc_generational_report},
-    native_profile_report::{print_native_profile_report, run_native_profile_report},
-    native_sdk_report::{print_native_sdk_report, run_native_sdk_report},
-    gui_backend_report::{print_gui_backend_report, run_gui_backend_report},
     capabilities_report::{
         print_capabilities_report, print_ir_capabilities_report, run_capabilities_report,
         run_ir_capabilities_report,
     },
-    farm_billing_report::{print_farm_billing_report, run_farm_billing_report},
-    dist_actor_cluster_report::{print_dist_actor_cluster_report, run_dist_actor_cluster_report},
-    dist_cdn_route_report::{print_dist_cdn_route_report, run_dist_cdn_route_report},
-    heap_bridge_report::{print_heap_bridge_report, run_heap_bridge_report},
-    heapslot_parity_report::{print_heapslot_parity_report, run_heapslot_parity_report},
-    heap_bridge_prod_report::{print_heap_bridge_prod_report, run_heap_bridge_prod_report},
-    rt_v7_report::{print_rt_v7_report, run_rt_v7_report},
-    dist_failover_report::{print_dist_failover_report, run_dist_failover_report},
-    hsm_rotation_report::{print_hsm_rotation_report, run_hsm_rotation_report},
-    dict_runtime_report::{print_dict_runtime_report, run_dict_runtime_report},
-    actor_ipc_report::{print_actor_ipc_report, run_actor_ipc_report},
-    native_exec_op_report::{print_native_exec_op_report, run_native_exec_op_report},
     EmitFormat,
     format_project, format_check_path, install_project, lint_project, parse_module_dirs, publish_package_with_token,
     repl_eval,
@@ -298,90 +273,12 @@ enum Commands {
         /// Print WASM AOT strict/full matrix tier breakdown
         #[arg(long)]
         aot_matrix: bool,
-        /// Print memory / GC / ARC layout report
-        #[arg(long)]
-        gc_report: bool,
-        /// Print native LLVM exec_op ratio per fixture
-        #[arg(long)]
-        native_exec_op_report: bool,
-        /// Print inkwell / LLVM IR backend report
-        #[arg(long)]
-        inkwell_report: bool,
-        /// Print distributed cache remote push/fetch report
-        #[arg(long)]
-        cache_remote_report: bool,
-        /// Print RT-internal exec fallback count
-        #[arg(long)]
-        rt_exec_report: bool,
-        /// Print heap host materialize report
-        #[arg(long)]
-        heap_host_report: bool,
-        /// Print build farm queue report
-        #[arg(long)]
-        farm_report: bool,
-        /// Print generic specialization reflect report
-        #[arg(long)]
-        reflect_report: bool,
-        /// Print RT runtime exec after native run
-        #[arg(long)]
-        rt_runtime_report: bool,
-        /// Print GC relocate report
-        #[arg(long)]
-        gc_relocate_report: bool,
-        /// Print dict runtime stdout digest
-        #[arg(long)]
-        dict_runtime_report: bool,
-        /// Print actor IPC smoke report
-        #[arg(long)]
-        actor_ipc_report: bool,
-        /// Print native debug/release profile report
-        #[arg(long)]
-        native_profile_report: bool,
-        /// Print GUI backend report
-        #[arg(long)]
-        gui_backend_report: bool,
         /// Print capability matrix from packages/internal/capabilities.toml
         #[arg(long)]
         capabilities: bool,
         /// Print MirOp/HostFn IR capability summary
         #[arg(long)]
         ir_capabilities: bool,
-        /// Print generational GC report
-        #[arg(long)]
-        gc_generational_report: bool,
-        /// Alias for `--gc-generational-report`
-        #[arg(long)]
-        gc_gen_report: bool,
-        /// Print farm billing meter report
-        #[arg(long)]
-        farm_billing_report: bool,
-        /// Print dist actor multi-region cluster report
-        #[arg(long)]
-        dist_actor_cluster_report: bool,
-        /// Print heap cross-process bridge report
-        #[arg(long)]
-        heap_bridge_report: bool,
-        /// Print HeapSlot write-back parity report
-        #[arg(long)]
-        heapslot_parity_report: bool,
-        /// Print heap production bridge report
-        #[arg(long)]
-        heap_bridge_prod_report: bool,
-        /// Print RT native stack report
-        #[arg(long)]
-        rt_v7_report: bool,
-        /// Print dist cross-continent failover report
-        #[arg(long)]
-        dist_failover_report: bool,
-        /// Print HSM key-rotation cron report
-        #[arg(long)]
-        hsm_rotation_report: bool,
-        /// Print dist actor global CDN route report
-        #[arg(long)]
-        dist_cdn_route_report: bool,
-        /// Check native SDK layout (static syx_rt; optional SYX_SYSROOT)
-        #[arg(long)]
-        native_sdk: bool,
     },
 }
 
@@ -1140,131 +1037,20 @@ build = "build.syb"
         }
         Commands::Doctor {
             aot_matrix,
-            gc_report,
-            native_exec_op_report,
-            inkwell_report,
-            cache_remote_report,
-            rt_exec_report,
-            heap_host_report,
-            farm_report,
-            reflect_report,
-            rt_runtime_report,
-            gc_relocate_report,
-            dict_runtime_report,
-            actor_ipc_report,
-            gc_generational_report,
-            gc_gen_report,
-            native_profile_report,
-            gui_backend_report,
             capabilities,
             ir_capabilities,
-            farm_billing_report,
-            dist_actor_cluster_report,
-            heap_bridge_report,
-            heapslot_parity_report,
-            heap_bridge_prod_report,
-            rt_v7_report,
-            dist_failover_report,
-            hsm_rotation_report,
-            dist_cdn_route_report,
-            native_sdk,
         } => {
-            if native_sdk {
-                let report = run_native_sdk_report();
-                print_native_sdk_report(&report);
-                if !report.ok {
-                    process::exit(1);
-                }
-            } else if aot_matrix {
+            if aot_matrix {
                 let report = run_aot_matrix(true);
                 print_doctor_summary(&report);
-            } else if gc_report {
-                let report = run_gc_report();
-                print_gc_report(&report);
-            } else if native_exec_op_report {
-                let report = run_native_exec_op_report();
-                print_native_exec_op_report(&report);
-            } else if inkwell_report {
-                let report = run_inkwell_report();
-                print_inkwell_report(&report);
-            } else if cache_remote_report {
-                let report = run_cache_remote_report();
-                print_cache_remote_report(&report);
-            } else if rt_exec_report {
-                let report = run_rt_exec_report("main_sync");
-                print_rt_exec_report(&report);
-            } else if heap_host_report {
-                let report = run_heap_host_report();
-                print_heap_host_report(&report);
-            } else if farm_report {
-                let report = run_farm_report();
-                print_farm_report(&report);
-            } else if reflect_report {
-                let report = run_reflect_report();
-                print_reflect_report(&report);
-                if !report.ok {
-                    process::exit(1);
-                }
-            } else if rt_runtime_report {
-                let path = std::path::PathBuf::from("examples/main_sync.sy");
-                let report = run_rt_runtime_report(&path);
-                print_rt_runtime_report(&report);
-            } else if gc_relocate_report {
-                let report = run_gc_relocate_report();
-                print_gc_relocate_report(&report);
-            } else if dict_runtime_report {
-                let path = std::path::PathBuf::from(
-                    "crates/syx-driver/tests/fixtures/memory/heap_dict_slot_unified.sy",
-                );
-                let report = run_dict_runtime_report(&path);
-                print_dict_runtime_report(&report);
-            } else if actor_ipc_report {
-                let report = run_actor_ipc_report();
-                print_actor_ipc_report(&report);
-            } else if gc_generational_report || gc_gen_report {
-                let report = run_gc_generational_report();
-                print_gc_generational_report(&report);
-            } else if native_profile_report {
-                let report = run_native_profile_report();
-                print_native_profile_report(&report);
-            } else if gui_backend_report {
-                let report = run_gui_backend_report();
-                print_gui_backend_report(&report);
             } else if capabilities {
                 let report = run_capabilities_report();
                 print_capabilities_report(&report);
             } else if ir_capabilities {
                 let report = run_ir_capabilities_report();
                 print_ir_capabilities_report(&report);
-            } else if farm_billing_report {
-                let report = run_farm_billing_report();
-                print_farm_billing_report(&report);
-            } else if dist_actor_cluster_report {
-                let report = run_dist_actor_cluster_report();
-                print_dist_actor_cluster_report(&report);
-            } else if heap_bridge_report {
-                let report = run_heap_bridge_report();
-                print_heap_bridge_report(&report);
-            } else if heapslot_parity_report {
-                let report = run_heapslot_parity_report();
-                print_heapslot_parity_report(&report);
-            } else if heap_bridge_prod_report {
-                let report = run_heap_bridge_prod_report();
-                print_heap_bridge_prod_report(&report);
-            } else if rt_v7_report {
-                let report = run_rt_v7_report();
-                print_rt_v7_report(&report);
-            } else if dist_failover_report {
-                let report = run_dist_failover_report();
-                print_dist_failover_report(&report);
-            } else if hsm_rotation_report {
-                let report = run_hsm_rotation_report();
-                print_hsm_rotation_report(&report);
-            } else if dist_cdn_route_report {
-                let report = run_dist_cdn_route_report();
-                print_dist_cdn_route_report(&report);
             } else {
-                println!("syx doctor: use --native-sdk, --aot-matrix, --gc-report, --native-exec-op-report, --inkwell-report, --cache-remote-report, --rt-exec-report, --heap-host-report, --farm-report, --reflect-report, --rt-runtime-report, --gc-relocate-report, --dict-runtime-report, --actor-ipc-report, --gc-generational-report, --farm-billing-report, --dist-actor-cluster-report, --heap-bridge-report, --heapslot-parity-report, --heap-bridge-prod-report, --rt-v7-report, --dist-failover-report, --hsm-rotation-report, --dist-cdn-route-report, --gui-backend-report, --capabilities, or --ir-capabilities");
+                println!("syx doctor: use --aot-matrix, --capabilities, or --ir-capabilities");
             }
         }
     }

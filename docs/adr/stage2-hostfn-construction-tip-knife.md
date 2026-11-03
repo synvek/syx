@@ -24,6 +24,7 @@
 - Historical Wave / gate docs may still name deleted symbols as archival evidence.
 - **S2-I47:** orphan thin + HostFn tip 三联 deleted; census **9 → 5**; new tip ≈ HostFn `third`.
 - **S2-I48:** tip packs×4 deleted (third+second+first+deepen); census **5 → 1**; remaining ≈ HostFn `thin`.
+- **S2-I49:** HostFn thin 末刀 deleted; census **1 → 0**; HostFn inventory chain exhausted (≠ S2-01 `[x]`).
 - Open: [stage2-open](stage2-open.md).
 
 ## References

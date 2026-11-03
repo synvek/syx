@@ -101,22 +101,6 @@ fn p80_generic_fn_parse() {
 }
 
 #[test]
-fn p80_gc_generational_report() {
-    assert!(
-        include_str!("../../syx-cli/src/main.rs").contains("gc-generational-report")
-            || include_str!("../../syx-driver/src/lib.rs").contains("gc_generational")
-    );
-}
-
-#[test]
-fn p80_doctor_farm_billing_cli() {
-    assert!(
-        include_str!("../../syx-cli/src/main.rs").contains("farm-billing-report")
-            || include_str!("../../syx-cli/src/main.rs").contains("farm_billing")
-    );
-}
-
-#[test]
 fn p80_browser_tier2d_fingerprint() {
     assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2d-v1"));
 }

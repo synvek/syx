@@ -631,6 +631,136 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 2 | −14 |
 
+## S2-I49 after forty-eighth knife (2026-11-03)
+
+**Slice:** HostFn thin 末刀 ([stage2-hostfn-construction-tip-knife](adr/stage2-hostfn-construction-tip-knife.md)); deleted `gate_hostfn_real_lowering_horizon_thin_inventory`×1. **Kept** `llvm_stub_audit_report` / `classify_llvm_stub_block` / 五枚 policy-fixed flag. Census script hardened for zero-match `rg` (pipefail). **inventory KPI = 0 ≠ S2-01 `[x]`** (fingerprint/report remain).
+
+| Metric | Count | Δ vs S2-I48 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | **−1** |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | 26 | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | −2 |
+
+## S2-I50 after forty-ninth knife (2026-11-03)
+
+**Slice:** doctor-report tip 四联 ([stage2-doctor-report-tip-knife](adr/stage2-doctor-report-tip-knife.md)); deleted actor_ipc + dict_runtime + dist_failover + rt_v7 reports×4 + CLI flags. **Kept** `capabilities_report` / remaining reports / fingerprint / 五枚 flag / `llvm_stub_audit_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I49 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **22** | **−4** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I51 after fiftieth knife (2026-11-03)
+
+**Slice:** doctor-report tip 四联 ([stage2-doctor-report-tip-knife](adr/stage2-doctor-report-tip-knife.md)); deleted dist_actor_cluster + heap_bridge_prod + heapslot_parity + native_sdk reports×4 + CLI flags. **Kept** `capabilities_report` / remaining reports / fingerprint / 五枚 flag. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I50 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **18** | **−4** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I52 after fifty-first knife (2026-11-03)
+
+**Slice:** doctor-report tip 四联 ([stage2-doctor-report-tip-knife](adr/stage2-doctor-report-tip-knife.md)); deleted gc + native_exec_op + inkwell + gc_generational reports×4 + CLI flags (`--gc-gen-report` alias) + LSP phase73/74/75/80 nails + driver `p98_gc_generational_doctor_alias`. **Kept** `capabilities_report` / `heap_bridge_report` / remaining coupled reports. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I51 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **14** | **−4** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I53 after fifty-second knife (2026-11-03)
+
+**Slice:** doctor-report LSP-nail 四联 ([stage2-doctor-report-lsp-nail-knife](adr/stage2-doctor-report-lsp-nail-knife.md)); deleted cache_remote + rt_exec + heap_host + farm reports×4 + CLI flags + LSP phase76/77 module/CLI nails. **Kept** `capabilities_report` / `heap_bridge_report` / remaining coupled reports. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I52 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **10** | **−4** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I54 after fifty-third knife (2026-11-03)
+
+**Slice:** tip 末枚 + doctor-report driver-src-nail 三联 ([stage2-doctor-report-driver-src-nail-knife](adr/stage2-doctor-report-driver-src-nail-knife.md)); deleted heap_bridge + native_profile + farm_billing + dist_cdn reports×4 + CLI flags + LSP phase80/81 nails + driver include_str nails. **Kept** `capabilities_report` / `rt_runtime_report` / remaining `run_*` coupled reports. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I53 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **6** | **−4** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I55 after fifty-fourth knife (2026-11-03)
+
+**Slice:** LSP 末枚 + doctor-report run-test-nail 三联 ([stage2-doctor-report-run-test-nail-knife](adr/stage2-doctor-report-run-test-nail-knife.md)); deleted rt_runtime + gc_relocate + reflect + hsm_rotation reports×4 + CLI flags + LSP phase77/78/79 nails + driver `run_*` nails retargeted. **Kept** `capabilities_report` / `gui_backend_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I54 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **2** | **−4** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I56 after fifty-fifth knife (2026-11-03)
+
+**Slice:** doctor-report run-test-nail 末枚 ([stage2-doctor-report-run-test-nail-knife](adr/stage2-doctor-report-run-test-nail-knife.md)); deleted `gui_backend_report` + CLI flag + GUI/driver nails retargeted to `syx_vm::gui_*`. **Kept** `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I55 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | 655 | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **1** | **−1** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I57 after fifty-sixth knife (2026-11-03)
+
+**Slice:** fingerprint orphan tip 四联 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `heap_v90_phase118` track a–d `*_fingerprint`×4 (zero readers; not on cache aggregator). **Kept** `heap_v90_phase118_dx_fingerprint` / aggregator chain / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I56 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **651** | **−4** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I58 after fifty-seventh knife (2026-11-03)
+
+**Slice:** fingerprint tip 四联 + nail co-delete ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `heap_v76_phase104` track a–d `*_fingerprint`×4; narrowed `p104_driver_heap_v76_fingerprint` to `dx` only. **Kept** `heap_v76_phase104_dx_fingerprint` / `heap_v90_phase118_dx_fingerprint` / aggregator chain / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I57 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **647** | **−4** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

@@ -13,8 +13,6 @@ use syx_driver::{
     farm_lease_pkcs11_session_pin_verify, farm_lease_pkcs11_slot_list,
     farm_lease_test_lock, ENV_FARM_PKCS11_KEY_LABEL_FILE, ENV_FARM_PKCS11_PIN_FILE,
 };
-use syx_driver::hsm_rotation_report::run_hsm_rotation_report;
-
 static P135_FARM_LABEL_BUILD: Mutex<()> = Mutex::new(());
 
 #[test]
@@ -37,9 +35,8 @@ fn p135_farm_token_v18_hsm_key_label_fingerprint() {
 
 #[test]
 fn p135_farm_hsm_key_label_doctor_export() {
-    let report = run_hsm_rotation_report();
-    assert!(report.hsm_key_label);
-    assert_eq!(report.hsm_key_label_export, "hsm-key-label");
+    assert!(farm_lease_pkcs11_hsm_key_label_mvp_ready());
+    assert_eq!(farm_lease_hsm_key_label_doctor_export(), "hsm-key-label");
 }
 
 #[test]

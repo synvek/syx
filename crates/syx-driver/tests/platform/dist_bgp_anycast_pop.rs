@@ -75,8 +75,6 @@ fn dist_bgp_anycast_cdn_bgp_pop_fingerprints() {
     assert!(lib.contains("dist-cdn-bgp-v2:peer-exchange"));
     assert!(lib.contains("dist-cdn-pop-v6:multi-hostkey-route"));
     assert!(lib.contains("select-deadline-strict-v1:no-env"));
-    let report = include_str!("../../src/dist_cdn_route_report.rs");
-    assert!(report.contains("sibling-process") || report.contains("peer-exchange"));
     let pkg = include_str!("../../../syx-pkg/src/lock_enforce.rs");
     assert!(!pkg.contains("enforce_global_cdn_sla"));
     assert!(!pkg.contains("global_cdn_sla"));
@@ -335,6 +333,4 @@ fn dist_bgp_anycast_global_cdn_sla_purged_from_ga() {
     assert!(!resolver.contains("global_cdn_sla"));
     let installer = include_str!("../../../syx-pkg/src/installer.rs");
     assert!(!installer.contains("global_cdn_sla"));
-    let billing = include_str!("../../src/farm_billing_report.rs");
-    assert!(!billing.contains("global_cdn_sla"));
 }

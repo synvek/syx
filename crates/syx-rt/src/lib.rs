@@ -45,7 +45,5 @@ pub use link::{
     user_object_undef_allowed, LinkOptions, NativeSdkLayoutReport,
 };
 pub use llvm_stub_audit::{
-    classify_llvm_stub_block, gate_hostfn_real_lowering_horizon_thin_inventory,
-    llvm_stub_audit_report, GateHostFnRealLoweringHorizonThinInventory, LlvmStubAuditReport,
-    LlvmStubKind,
+    classify_llvm_stub_block, llvm_stub_audit_report, LlvmStubAuditReport, LlvmStubKind,
 };

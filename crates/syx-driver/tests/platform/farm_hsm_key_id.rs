@@ -12,8 +12,6 @@ use syx_driver::{
     farm_lease_pkcs11_session_pin_persist, farm_lease_pkcs11_slot_list, farm_lease_test_lock,
     ENV_FARM_PKCS11_KEY_ID_FILE, ENV_FARM_PKCS11_KEY_LABEL_FILE, ENV_FARM_PKCS11_PIN_FILE,
 };
-use syx_driver::hsm_rotation_report::run_hsm_rotation_report;
-
 static P136_FARM_KEY_ID_BUILD: Mutex<()> = Mutex::new(());
 
 #[test]
@@ -37,9 +35,8 @@ fn farm_hsm_token_v19_hsm_key_id_fingerprint() {
 
 #[test]
 fn farm_hsm_key_id_doctor_export() {
-    let report = run_hsm_rotation_report();
-    assert!(report.hsm_key_id);
-    assert_eq!(report.hsm_key_id_export, "hsm-key-id");
+    assert!(farm_lease_pkcs11_hsm_key_id_mvp_ready());
+    assert_eq!(farm_lease_hsm_key_id_doctor_export(), "hsm-key-id");
 }
 
 #[test]

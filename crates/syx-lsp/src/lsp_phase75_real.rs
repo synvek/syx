@@ -81,18 +81,6 @@ fn p75_simd_type() {
 }
 
 #[test]
-fn p75_gc_report_compact_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("gc_report") || src.contains("gc-report"));
-}
-
-#[test]
-fn p75_inkwell_report_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("inkwell") || src.contains("inkwell_report"));
-}
-
-#[test]
 fn p75_adr_phase75_charter() {
     let adr = std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/adr/architecture-decisions.md"),

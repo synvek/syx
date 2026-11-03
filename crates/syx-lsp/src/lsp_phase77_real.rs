@@ -59,18 +59,6 @@ fn p77_reflect_specialization() {
 }
 
 #[test]
-fn p77_heap_host_report_module() {
-    let src = include_str!("../../syx-driver/src/heap_host_report.rs");
-    assert!(src.contains("HeapHostReport"));
-}
-
-#[test]
-fn p77_farm_report_module() {
-    let src = include_str!("../../syx-driver/src/farm_report.rs");
-    assert!(src.contains("FarmReport"));
-}
-
-#[test]
 fn p77_vm_array_set_heap() {
     let src = include_str!("../../syx-vm/src/lib.rs");
     assert!(src.contains("alloc_heap_slot"));
@@ -80,24 +68,6 @@ fn p77_vm_array_set_heap() {
 fn p77_build_farm_queue() {
     let src = include_str!("../../syx-driver/src/build_syx.rs");
     assert!(src.contains("farm_queue_url") || src.contains("SYX_BUILD_FARM_QUEUE"));
-}
-
-#[test]
-fn p77_doctor_heap_host_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("heap_host_report") || src.contains("heap-host-report"));
-}
-
-#[test]
-fn p77_doctor_farm_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("farm_report") || src.contains("farm-report"));
-}
-
-#[test]
-fn p77_doctor_reflect_cli() {
-    let src = include_str!("../../syx-cli/src/main.rs");
-    assert!(src.contains("reflect_report") || src.contains("reflect-report"));
 }
 
 #[test]
