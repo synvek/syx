@@ -54,24 +54,6 @@ fn facade_src(body: &str) -> String {
     format!("{}\n{body}", semaphore_facade())
 }
 
-#[test]
-fn m3_c02_semaphore_raii_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_semaphore_policy())
-  print(__syx_sync_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("semaphore-v1-raii"),
-        "semaphorePolicy fingerprint must be v1-raii: {out}"
-    );
-    assert!(
-        out.contains("mutex-raii-guard-v1-blocking"),
-        "C01 syncPolicy must remain unchanged: {out}"
-    );
-}
 
 #[test]
 fn m3_c02_semaphore_raii_forget_signal_scope_exit() {

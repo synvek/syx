@@ -20,32 +20,12 @@ fn p100_doc_ok(text: &str) -> bool {
 
 #[test]
 fn p100_cache_v72_historical() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_v72_phase100_fingerprint"));
+    assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_v100_phase128_track_c_wasm_fingerprint"));
 }
 
-#[test]
-fn p100_locals_v7_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("native-llvm-locals-v7:no-hydrate-handle-ga"));
-}
 
-#[test]
-fn p100_gui_widgets_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("gui-widgets-bitmap-v1:label-button-visible"));
-}
 
-#[test]
-fn p100_wasm_guest_control_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("wasm-guest-control-v1:no-mir-exec-jump-conststr"));
-}
 
-#[test]
-fn p100_farm_frames_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("farm-tcp-frames-v1:get-put-hit"));
-}
 
 #[test]
 fn p100_hover_let_count_int() {

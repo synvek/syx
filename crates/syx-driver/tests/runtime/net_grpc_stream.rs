@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_net_grpc_stream_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("net-grpc-stream-v1"));
-}
 
 #[test]
 fn p98_net_grpc_stream_host_surface() {

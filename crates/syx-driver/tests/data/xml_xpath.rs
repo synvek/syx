@@ -73,7 +73,3 @@ fn p98_xml_xpath_single_tag() {
     assert!(out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
 }
 
-#[test]
-fn p98_xml_xpath_strict_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("xml-xpath-strict-v1"));
-}

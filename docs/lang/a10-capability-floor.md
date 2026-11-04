@@ -13,7 +13,7 @@
 | Cluster | Status | Evidence |
 |---------|--------|----------|
 | **权威源 schema + gen + CI** | **met** | `packages/internal/capabilities.toml` + `scripts/gen_capabilities.py` + `--check` + CI |
-| **Books + Doctor 同源** | **met** | `books/shared/capabilities-generated.md` + `capabilities_report.rs` + `syx doctor --capabilities` |
+| **Books + Doctor 同源** | **met** | `books/shared/capabilities-generated.md` + `capabilities.rs` + `syx doctor --capabilities` |
 | **LSP 同源 deepen** | **partial met** | `syx.capabilities` + `lsp_a10_capabilities_same_source_count_and_lookup`（ADR-703） |
 | **网站同源消费** | **met** (narrow) | W378 exit（ADR-722）；inventory+deepen；hosted inventory thin W379；hosted full site **unmet** |
 | **Residual native raise** | **Frozen** | listener / pool / row / deque `wasm=unsupported` |

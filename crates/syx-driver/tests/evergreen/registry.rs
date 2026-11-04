@@ -949,5 +949,3 @@ func main() { print(cdnlib70.answer()) }"#,
 
     std::env::remove_var("SYX_REGISTRY_CDN");
 }
-
-/// C-05 thin doc nail (W682 / ADR-1026): publish→verify env + flow keywords.

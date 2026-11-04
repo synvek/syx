@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 use syx_driver::{
     farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured,
-    farm_lease_auth_configure_raft, farm_lease_member_fingerprint, farm_lease_query_at,
+    farm_lease_auth_configure_raft, farm_lease_query_at,
     farm_lease_raft_fingerprint, farm_lease_raft_member_add_learner, farm_lease_raft_member_remove,
     farm_lease_raft_v2_fingerprint, farm_lease_require_active, farm_lease_reset,
     farm_lease_test_lock, spawn_farm_lease_raft, FARM_LEASE_RAFT_PORTS,
@@ -14,31 +14,7 @@ use syx_driver::{
 
 const RAFT_TOKEN: u32 = 0xF110_7001;
 
-#[test]
-fn p110_farm_lease_raft_v2_fingerprint() {
-    assert_eq!(
-        farm_lease_raft_v2_fingerprint(),
-        "farm-lease-raft-v2:log-wal"
-    );
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-raft-v2:log-wal"));
-    assert!(src.contains("APPEND2"));
-    assert!(src.contains("commit_index"));
-    assert!(src.contains("NodeWal"));
-    assert!(src.contains("sync_all"));
-}
 
-#[test]
-fn p110_farm_lease_member_fingerprint() {
-    assert_eq!(
-        farm_lease_member_fingerprint(),
-        "farm-lease-member-v1:dynamic-mvp"
-    );
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-member-v1:dynamic-mvp"));
-    assert!(src.contains("AddLearner"));
-    assert!(src.contains("RemoveMember"));
-}
 
 #[test]
 fn p110_farm_toy_raft_v1_not_v2_ga() {

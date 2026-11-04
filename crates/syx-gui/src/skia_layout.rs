@@ -34,11 +34,11 @@ const SYSTEM_FALLBACK_TTF: &[u8] = include_bytes!("../assets/cjk_fallback_oob.tt
 const FAMILY: &str = "SYXParagraph";
 const PARAGRAPH_INK: Color = Color::from_argb(255, 238, 238, 238);
 
-pub fn skia_layout_fingerprint() -> &'static str {
+pub fn skia_layout_digest() -> &'static str {
     SKIA_LAYOUT_FINGERPRINT
 }
 
-pub fn font_system_fingerprint() -> &'static str {
+pub fn font_system_digest() -> &'static str {
     FONT_SYSTEM_FINGERPRINT
 }
 

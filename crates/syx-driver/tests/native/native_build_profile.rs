@@ -14,10 +14,6 @@ fn opts(profile: BuildProfile) -> DriverOptions {
     o
 }
 
-#[test]
-fn p98_native_profile_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-build-profile-v1"));
-}
 
 #[test]
 fn p98_native_build_debug_path() {

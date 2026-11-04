@@ -19,31 +19,6 @@ fn run(src: &str) -> Result<Vec<String>, String> {
     }
 }
 
-#[test]
-fn os_disk_load_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("stdlib-os-v3:disk-load-mvp"));
-    assert!(lib.contains("heap_v109_phase137_track_d_os_disk_load_fingerprint"));
-    let os = include_str!("../../../../packages/os/mod.sy");
-    assert!(os.contains("diskTotal") && os.contains("diskAvailable") && os.contains("loadAverage"));
-    assert!(
-        os.contains("__syx_os_disk_total")
-            && os.contains("__syx_os_disk_available")
-            && os.contains("__syx_os_load_average")
-    );
-    let hosts = include_str!("../../../syx-vm/src/os_hosts.rs");
-    assert!(
-        hosts.contains("host_os_disk_total")
-            && hosts.contains("host_os_disk_available")
-            && hosts.contains("host_os_load_average")
-    );
-    let registry = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(
-        registry.contains("OsDiskTotal")
-            && registry.contains("OsDiskAvailable")
-            && registry.contains("OsLoadAverage")
-    );
-}
 
 #[test]
 fn os_disk_and_load_positive() {

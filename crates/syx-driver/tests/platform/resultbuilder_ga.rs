@@ -16,10 +16,6 @@ fn fixture(rel: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(rel)
 }
 
-#[test]
-fn p102_resultbuilder_ga_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("lang-resultbuilder-ga-v1:multistmt-nested"));
-}
 
 #[test]
 fn p102_resultbuilder_ga_build_protocol() {

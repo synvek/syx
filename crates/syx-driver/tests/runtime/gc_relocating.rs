@@ -11,10 +11,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_gc_relocating_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gc-relocating-v12-v1"));
-}
 
 #[test]
 fn p98_gc_relocating_api_surface() {

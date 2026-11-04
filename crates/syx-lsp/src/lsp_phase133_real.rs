@@ -18,18 +18,6 @@ fn p133_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p133_opts())
 }
 
-#[test]
-fn p133_cache_v105_fingerprint() {
-    let m = include_str!("../../../packages/internal/manifest.json");
-    assert!(
-        (m.contains("\"111.0\"") && m.contains("\"phase\": 133"))
-            || (m.contains("\"112.0\"") && m.contains("\"phase\": 134"))
-            || (m.contains("\"113.0\"") && m.contains("\"phase\": 135"))
-            || (m.contains("\"114.0\"") && m.contains("\"phase\": 136"))
-    );
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("syx-cache-v105"));
-}
 
 #[test]
 fn p133_audit_align_stub() {

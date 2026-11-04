@@ -2,7 +2,7 @@
 // was: m3_a04_fairness
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
-use syx_vm::{reset_select_fair_cursor, select_fair_fingerprint};
+use syx_vm::{reset_select_fair_cursor, select_fair_digest};
 
 fn run(src: &str) -> Vec<String> {
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -13,7 +13,7 @@ fn run(src: &str) -> Vec<String> {
 #[test]
 fn m3_a04_fairness_select_rr_even_split() {
     assert_eq!(
-        select_fair_fingerprint(),
+        select_fair_digest(),
         "select-fair-v1:round-robin",
         "Phase 107 RR fingerprint must remain"
     );

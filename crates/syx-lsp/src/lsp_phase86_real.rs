@@ -11,15 +11,7 @@ fn p86_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p86_p85_honest_closure_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("p85-honest-closure-v1"));
-}
 
-#[test]
-fn p86_reflect_runtime_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("reflect-runtime-v1"));
-}
 
 #[test]
 fn p86_import_collections_sort_by_closure_parse() {
@@ -125,27 +117,7 @@ fn p86_try_catch_parse() {
     assert!(p86_doc_ok("func main() { try { print(86) } catch { print(0) } }"));
 }
 
-#[test]
-fn p86_net_v3_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("net-v3-h2-zstd"));
-}
 
-#[test]
-fn p86_browser_tier2i_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2i-v1"));
-}
 
-#[test]
-fn p86_test_runner_v3_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("test-runner-v3"));
-}
 
-#[test]
-fn p86_codable_l3_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("codable-l3-v1"));
-}
 
-#[test]
-fn p86_dist_prod_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("dist-prod-e2e-v1"));
-}

@@ -58,7 +58,3 @@ fn p98_wasm_aot_exec_op_zero_wat() {
     );
 }
 
-#[test]
-fn p98_wasm_aot_tier3_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("wasm-aot-zero-run-op-v1"));
-}

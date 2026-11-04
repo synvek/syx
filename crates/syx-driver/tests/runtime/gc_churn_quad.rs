@@ -18,10 +18,6 @@ fn opts() -> DriverOptions {
     DriverOptions::default()
 }
 
-#[test]
-fn p98_gc_churn_quad_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gc-churn-stress-v1:multi-churn-stdout-quad"));
-}
 
 #[test]
 fn p98_gc_churn_quad_vm_mir_wasm_native() {

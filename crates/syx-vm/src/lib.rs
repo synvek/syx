@@ -144,9 +144,9 @@ pub use channel_hosts::try_poll_channel_recv;
 pub use channel_hosts::{
     host_channel_create, host_channel_select_mixed_await, mixed_await_select_timeout_ms,
     register_mixed_await_cancel_probe, reset_select_fair_cursor,
-    select_deadline_strict_fingerprint, select_deadline_unify_fingerprint, select_fair_cursor,
-    select_fair_fingerprint, select_mixed_await_fingerprint, select_mixed_timeout_fingerprint,
-    select_mixed_unified_fingerprint, select_timeout_syntax_fingerprint,
+    select_deadline_strict_digest, select_deadline_unify_digest, select_fair_cursor,
+    select_fair_digest, select_mixed_await_digest, select_mixed_timeout_digest,
+    select_mixed_unified_digest, select_timeout_syntax_digest,
 };
 #[cfg(feature = "http")]
 pub use gui_invoke::register_native_gui_handler;

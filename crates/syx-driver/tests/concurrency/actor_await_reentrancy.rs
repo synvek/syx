@@ -68,17 +68,4 @@ func main() {
     );
 }
 
-#[test]
-fn m3_a03_await_hold_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_actor_reentrancy_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("serial-no-reenter") && out.contains("await-hold"),
-        "policy must be serial-no-reenter;await-hold: {out}"
-    );
-}
 

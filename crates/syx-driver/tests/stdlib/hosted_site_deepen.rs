@@ -63,7 +63,7 @@ fn hosted_site_deepen_spec_signed() {
 
 #[test]
 fn hosted_site_deepen_nail_behavior() {
-    use syx_driver::capabilities_report::run_capabilities_report;
+    use syx_driver::capabilities::run_capabilities_report;
     use syx_driver::hosted_capabilities::{
         capabilities_for_hosted, render_hosted_capabilities_page, write_hosted_capabilities_fixture,
     };

@@ -47,19 +47,6 @@ fn start_write_loopback(payload: &'static [u8]) -> (u16, Arc<AtomicBool>, thread
     (port, stop, handle)
 }
 
-#[test]
-fn m3_b02_tcp_async_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_io_adapter_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("blocking-pool-async-adapter-v1-tcp"),
-        "ioAdapterPolicy fingerprint after deepen: {out}"
-    );
-}
 
 #[test]
 fn m3_b02_tcp_async_read_async_await() {

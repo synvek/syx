@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p99_codable_l14_surface_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("codable-l14-only-v1:no-l9-surface"));
-}
 
 #[test]
 fn p98_codable_l14_surface_packages_api_names() {

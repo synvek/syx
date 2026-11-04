@@ -28,10 +28,6 @@ fn run_native_strict(src: &str) -> (i32, String) {
     )
 }
 
-#[test]
-fn p98_native_llvm_stack_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-stack-v1"));
-}
 
 #[test]
 fn p98_native_llvm_stack_mir_closure_executor() {

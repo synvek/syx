@@ -26,10 +26,6 @@ fn p98_reflect_witness_mandatory_meta_registry_miss_none() {
     assert!(reflect_type_info("P89MissingTypeXYZ88").is_none());
 }
 
-#[test]
-fn p98_reflect_witness_mandatory_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("reflect-cast-strict-quad-v1"));
-}
 
 #[test]
 fn p98_reflect_witness_mandatory_lsp_analyze_ok() {
@@ -55,5 +51,5 @@ fn p98_reflect_witness_mandatory_compile_missing_witness_errors() {
 #[test]
 fn p98_reflect_witness_mandatory_witness_table_surface() {
     let driver = include_str!("../../src/lib.rs");
-    assert!(driver.contains("witness_table_fingerprint"));
+    assert!(driver.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
 }

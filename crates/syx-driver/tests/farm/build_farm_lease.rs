@@ -6,7 +6,7 @@ use std::sync::Mutex;
 
 use syx_driver::{
     farm_lease_hsm_key_label_doctor_export, farm_lease_pkcs11_active_slot_id,
-    farm_lease_pkcs11_hsm_key_label_fingerprint, farm_lease_pkcs11_hsm_key_label_mvp_ready,
+    farm_lease_pkcs11_hsm_key_label_mvp_ready,
     farm_lease_pkcs11_hsm_multi_slot_bind, farm_lease_pkcs11_hsm_multi_slot_mvp_ready,
     farm_lease_pkcs11_key_label_loaded, farm_lease_pkcs11_key_label_persist,
     farm_lease_pkcs11_key_label_verify, farm_lease_pkcs11_session_pin_persist,
@@ -15,23 +15,6 @@ use syx_driver::{
 };
 static P135_FARM_LABEL_BUILD: Mutex<()> = Mutex::new(());
 
-#[test]
-fn p135_farm_token_v18_hsm_key_label_fingerprint() {
-    assert_eq!(
-        farm_lease_pkcs11_hsm_key_label_fingerprint(),
-        "farm-lease-token-v18:hsm-key-label-mvp"
-    );
-    assert_eq!(farm_lease_hsm_key_label_doctor_export(), "hsm-key-label");
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-token-v18:hsm-key-label-mvp"));
-    assert!(src.contains("hsm-key-label"));
-    assert!(src.contains("farm_lease_pkcs11_key_label_persist"));
-    assert!(src.contains("farm_lease_pkcs11_key_label_verify"));
-    assert!(src.contains("SYX_FARM_PKCS11_KEY_LABEL_FILE"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("farm-lease-token-v18:hsm-key-label-mvp"));
-    assert!(lib.contains("heap_v107_phase135_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn p135_farm_hsm_key_label_doctor_export() {

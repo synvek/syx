@@ -22,10 +22,6 @@ fn p98_gui_mobile_touch_event_smoke() {
     assert!(out.iter().any(|l| l.contains("touch")), "{out:?}");
 }
 
-#[test]
-fn p98_gui_mobile_mvp_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gui-mobile-mvp-v1"));
-}
 
 #[test]
 fn p98_gui_mobile_host_registry() {

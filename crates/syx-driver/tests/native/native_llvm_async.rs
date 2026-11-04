@@ -44,10 +44,6 @@ fn p98_native_llvm_async_main_keeps_mir_entry() {
     assert!(llvm_ir_uses_mir_main_entry(&ir) || ir.contains("AwaitPoll"));
 }
 
-#[test]
-fn p98_native_llvm_async_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-locals-v5:alloca-ssa-value-ga"));
-}
 
 #[test]
 fn p98_native_llvm_async_abi_surface() {

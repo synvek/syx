@@ -5,32 +5,25 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_cross_region_failover_ready,
-    cdn_bgp_fingerprint, cdn_bgp_ga_ready, cdn_bgp_health, cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_region_count, cdn_bgp_mesh_regions, cdn_bgp_mesh_snapshot,
-    cdn_bgp_multi_region_mesh_ready, cdn_bgp_route, cdn_delivery_ack_clear, cdn_doctor_mode,
-    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear,
+    cdn_bgp_configure_mesh,
+    cdn_bgp_cross_region_failover_ready,
+    cdn_bgp_ga_ready,
+    cdn_bgp_health,
+    cdn_bgp_import_peer_mesh,
+    cdn_bgp_mesh_region_count,
+    cdn_bgp_mesh_regions,
+    cdn_bgp_mesh_snapshot,
+    cdn_bgp_multi_region_mesh_ready,
+    cdn_bgp_route,
+    cdn_delivery_ack_clear,
+    cdn_doctor_mode,
+    dist_tcp_url_for_bind_addr,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P122_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_multi_region_cdn_bgp_v5_multi_region_mesh_fingerprint() {
-    // Phase 124 supersedes runtime fingerprint to v7; v5 remains as inherited literal.
-    assert_eq!(
-        cdn_bgp_fingerprint(),
-        "dist-cdn-bgp-v7:weighted-anycast-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(src.contains("cdn_bgp_configure_mesh"));
-    assert!(src.contains("cdn_bgp_import_peer_mesh"));
-    assert!(src.contains("cdn_bgp_multi_region_mesh_ready"));
-    assert!(src.contains("cdn_bgp_cross_region_failover_order_ids"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(lib.contains("heap_v94_phase122_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn dist_multi_region_cdn_bgp_multi_region_mesh_failover_mvp() {

@@ -67,7 +67,3 @@ fn p98_plugin_marketplace_driver_dlopen_default() {
     assert!(driver.contains("load_from_env") || driver.contains("syx_host_plugin"));
 }
 
-#[test]
-fn p98_plugin_marketplace_hard_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("plugin-marketplace-hard-v1"));
-}

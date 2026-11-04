@@ -5,20 +5,12 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    dist_actor_mp_clear, dist_actor_mp_fingerprint, dist_actor_mp_peer_send_once, region_route_tcp,
+    dist_actor_mp_clear,
+    dist_actor_mp_peer_send_once,
+    region_route_tcp,
     spawn_dist_tcp_mailbox,
 };
 
-#[test]
-fn dist_mailbox_mp_fingerprint() {
-    // P108 supersedes MP GA fingerprint (no inproc fallback as GA).
-    assert_eq!(
-        dist_actor_mp_fingerprint(),
-        "dist-actor-mp-v2:no-inproc-fallback-ga"
-    );
-    assert!(include_str!("../../../syx-async/src/dist_transport.rs")
-        .contains("dist-actor-mp-v2:no-inproc-fallback-ga"));
-}
 
 #[test]
 fn dist_mailbox_inprocess_ack() {

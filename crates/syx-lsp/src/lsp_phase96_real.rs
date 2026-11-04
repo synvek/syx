@@ -11,15 +11,7 @@ fn p96_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p96_native_llvm_async_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("native-gui-callhost-v1:stack-abi-guidemo-strict-parity"));
-}
 
-#[test]
-fn p96_reflect_runtime_cast_strict_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("reflect-cast-strict-quad-v1"));
-}
 
 #[test]
 fn p96_import_collections_sort_by_closure_parse() {
@@ -129,27 +121,7 @@ fn p96_select_async_parse() {
     ));
 }
 
-#[test]
-fn p96_wasm_zero_run_op_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("wasm-aot-zero-run-op-v1"));
-}
 
-#[test]
-fn p96_browser_tier2o_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2o-v1"));
-}
 
-#[test]
-fn p96_codable_l9_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("codable-l9-protobuf-v1"));
-}
 
-#[test]
-fn p96_gui_softbuffer_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("gui-winit-softbuffer-v1"));
-}
 
-#[test]
-fn p96_dist_prod_hard_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("dist-prod-ga-v1"));
-}

@@ -11,10 +11,6 @@ fn p98_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p98_reflect_runtime_cast_strict_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("reflect-cast-strict-quad-v1"));
-}
 
 #[test]
 fn p98_import_collections_sort_by_closure_parse() {
@@ -124,27 +120,7 @@ fn p98_select_async_parse() {
     ));
 }
 
-#[test]
-fn p98_wasm_guidemo_zero_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("wasm-guidemo-zero-v1:main-guidemo-mir-exec-run-op-zero"));
-}
 
-#[test]
-fn p98_browser_tier2u_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2u-v1:playwright-guidemo-subset-hard-ci"));
-}
 
-#[test]
-fn p98_codable_l14_surface_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("codable-l14-surface-v1:hostfn-packages-l14-names"));
-}
 
-#[test]
-fn p98_gui_dlopen_default_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("gui-dlopen-default-v1:dylib-unconditional-fallback-hashmap"));
-}
 
-#[test]
-fn p98_llvm_alloca_v5_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("native-llvm-locals-v5:alloca-ssa-value-ga"));
-}

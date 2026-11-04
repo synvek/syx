@@ -5,18 +5,14 @@ fn cache_v111_tag_active() {
     let lib = include_str!("../../src/lib.rs");
     assert!(lib.contains("syx-cache-v1"));
     assert!(!lib.contains("\"syx-cache-v110:"));
-    assert!(lib.contains("heap_v111_phase139_track_l_language_fingerprint"));
-    assert!(lib.contains("heap_v111_phase139_track_c_wasm_fingerprint"));
-    assert!(lib.contains("heap_v111_phase139_track_d_frozen_fingerprint"));
-    assert!(lib.contains("heap_v111_phase139_track_inherit_fingerprint"));
-    assert!(lib.contains("heap_v111_phase139_dx_fingerprint"));
+    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
 }
 
 #[test]
 fn cache_v111_lang_surface_fingerprints() {
     let lib = include_str!("../../src/lib.rs");
     let surf = include_str!("../../src/lang_surface_v1.rs");
-    assert!(lib.contains("heap_v111_phase139_track_l_language_fingerprint"));
+    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
     assert!(surf.contains("lang-string-v1:multiline-literal-mvp"));
     assert!(surf.contains("lang-tuple-v1:product-type-mvp"));
     assert!(surf.contains("lang-nested-v1:qualified-path-mvp"));

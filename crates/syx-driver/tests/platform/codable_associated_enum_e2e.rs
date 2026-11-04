@@ -50,5 +50,5 @@ fn codable_l2_fingerprint_strings() {
     let lib = include_str!("../../src/lib.rs");
     assert!(attached.contains("macro-codable-l2:associated-enum-auto"));
     assert!(lib.contains("macro-codable-l2:associated-enum-auto"));
-    assert!(lib.contains("heap_v101_phase129_track_a_macro_service_fingerprint"));
+    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
 }

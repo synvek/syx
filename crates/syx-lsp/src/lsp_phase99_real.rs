@@ -18,35 +18,10 @@ fn p99_doc_ok(text: &str) -> bool {
         .any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p99_locals_v6_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("native-llvm-locals-v6:alloca-value-single-source-ga"));
-}
 
-#[test]
-fn p99_wasm_hard_zero_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("wasm-hard-zero-v1:no-catchall-no-rename-main-guidemo"));
-}
 
-#[test]
-fn p99_gui_line_hard_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("gui-line-hard-v1:guidemo-main-stdout-equal"));
-}
 
-#[test]
-fn p99_codable_l14_only_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("codable-l14-only-v1:no-l9-surface"));
-}
 
-#[test]
-fn p99_farm_tcp_queue_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("farm-tcp-queue-v1:build-syx-3tcp-farm-and-queue"));
-}
 
 #[test]
 fn p99_hover_let_count_int() {

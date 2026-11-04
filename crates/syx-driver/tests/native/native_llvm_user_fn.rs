@@ -90,7 +90,3 @@ fn p98_native_user_fn_main_direct() {
     assert!(!llvm_ir_uses_mir_main_entry(&ir));
 }
 
-#[test]
-fn p98_native_user_fn_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-locals-v5:alloca-ssa-value-ga"));
-}

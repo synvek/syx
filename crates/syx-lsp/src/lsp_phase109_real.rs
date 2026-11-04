@@ -22,7 +22,7 @@ fn p109_dist_anycast_source_gate() {
 fn p109_select_mixed_await_source_gate() {
     let parser = include_str!("../../syx-parser/src/lib.rs");
     assert!(parser.contains("SELECT_MIXED_AWAIT_FINGERPRINT"));
-    assert!(parser.contains("select_mixed_await_fingerprint"));
+    assert!(parser.contains("select_mixed_await_digest"));
 }
 
 #[test]

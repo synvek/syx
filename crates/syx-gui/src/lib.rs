@@ -189,20 +189,20 @@ pub fn gui_backend_name() -> &'static str {
     }
 }
 
-pub fn gui_font_cjk_subset_fingerprint() -> &'static str {
-    cjk_font::ttf_subset_fingerprint()
+pub fn gui_font_cjk_subset_digest() -> &'static str {
+    cjk_font::ttf_subset_digest()
 }
 
-pub fn gui_harfbuzz_fingerprint() -> &'static str {
-    shape::harfbuzz_fingerprint()
+pub fn gui_harfbuzz_digest() -> &'static str {
+    shape::harfbuzz_digest()
 }
 
-pub fn gui_hb_paint_fingerprint() -> &'static str {
-    shape::hb_paint_fingerprint()
+pub fn gui_hb_paint_digest() -> &'static str {
+    shape::hb_paint_digest()
 }
 
-pub fn gui_font_fallback_fingerprint() -> &'static str {
-    shape::font_fallback_fingerprint()
+pub fn gui_font_fallback_digest() -> &'static str {
+    shape::font_fallback_digest()
 }
 
 pub fn gui_ime_preedit_fingerprint() -> &'static str {
@@ -217,14 +217,14 @@ pub fn gui_egui_wgpu_fingerprint() -> &'static str {
     egui_backend::EGUI_WGPU_FINGERPRINT
 }
 
-pub fn gui_emoji_fingerprint() -> &'static str {
-    emoji::emoji_fingerprint()
+pub fn gui_emoji_digest() -> &'static str {
+    emoji::emoji_digest()
 }
 
-pub fn gui_skia_glyph_fingerprint() -> &'static str {
+pub fn gui_skia_glyph_digest() -> &'static str {
     #[cfg(feature = "skia-glyph")]
     {
-        return skia_glyph::skia_glyph_fingerprint();
+        return skia_glyph::skia_glyph_digest();
     }
     #[cfg(not(feature = "skia-glyph"))]
     {
@@ -243,10 +243,10 @@ pub fn gui_skia_glyph_used() -> bool {
     }
 }
 
-pub fn gui_skia_layout_fingerprint() -> &'static str {
+pub fn gui_skia_layout_digest() -> &'static str {
     #[cfg(feature = "skia-glyph")]
     {
-        return skia_layout::skia_layout_fingerprint();
+        return skia_layout::skia_layout_digest();
     }
     #[cfg(not(feature = "skia-glyph"))]
     {
@@ -435,8 +435,8 @@ pub fn gui_pump_reentrancy_fingerprint() -> &'static str {
     egui_backend::PUMP_REENTRANCY_FINGERPRINT
 }
 
-pub fn gui_wgpu_composite_fingerprint() -> &'static str {
-    wgpu_present::wgpu_composite_fingerprint()
+pub fn gui_wgpu_composite_digest() -> &'static str {
+    wgpu_present::wgpu_composite_digest()
 }
 
 pub fn gui_wgpu_composite_used() -> bool {
@@ -456,12 +456,12 @@ pub fn gui_doctor_engine_tag() -> &'static str {
 }
 
 #[cfg(feature = "skia-glyph")]
-pub fn gui_font_system_fingerprint() -> &'static str {
-    skia_layout::font_system_fingerprint()
+pub fn gui_font_system_digest() -> &'static str {
+    skia_layout::font_system_digest()
 }
 
 #[cfg(not(feature = "skia-glyph"))]
-pub fn gui_font_system_fingerprint() -> &'static str {
+pub fn gui_font_system_digest() -> &'static str {
     ""
 }
 
@@ -499,8 +499,8 @@ pub fn gui_paint_shaped() -> bool {
     shape::paint_shaped()
 }
 
-pub fn gui_ot_features_fingerprint() -> &'static str {
-    shape::ot_features_fingerprint()
+pub fn gui_ot_features_digest() -> &'static str {
+    shape::ot_features_digest()
 }
 
 pub fn gui_ot_calt_used() -> bool {
@@ -559,16 +559,16 @@ pub fn gui_default_paint_fontmgr_used() -> bool {
     shape::default_paint_fontmgr_used()
 }
 
-pub fn gui_dylib_ot_vf_parity_fingerprint() -> &'static str {
-    shape::dylib_ot_vf_parity_fingerprint()
+pub fn gui_dylib_ot_vf_parity_digest() -> &'static str {
+    shape::dylib_ot_vf_parity_digest()
 }
 
-pub fn gui_vf_wght_fingerprint() -> &'static str {
-    shape::vf_wght_fingerprint()
+pub fn gui_vf_wght_digest() -> &'static str {
+    shape::vf_wght_digest()
 }
 
-pub fn gui_vf_multi_axis_fingerprint() -> &'static str {
-    shape::vf_multi_axis_fingerprint()
+pub fn gui_vf_multi_axis_digest() -> &'static str {
+    shape::vf_multi_axis_digest()
 }
 
 pub fn gui_prove_vf_multi_axis() -> bool {
@@ -579,8 +579,8 @@ pub fn gui_vf_multi_axis_used() -> bool {
     shape::vf_multi_axis_used()
 }
 
-pub fn gui_vf_axes_ge3_fingerprint() -> &'static str {
-    shape::vf_axes_ge3_fingerprint()
+pub fn gui_vf_axes_ge3_digest() -> &'static str {
+    shape::vf_axes_ge3_digest()
 }
 
 pub fn gui_prove_vf_axes_ge3() -> bool {
@@ -591,8 +591,8 @@ pub fn gui_vf_axes_ge3_used() -> bool {
     shape::vf_axes_ge3_used()
 }
 
-pub fn gui_vf_paint_variations_fingerprint() -> &'static str {
-    shape::vf_paint_variations_fingerprint()
+pub fn gui_vf_paint_variations_digest() -> &'static str {
+    shape::vf_paint_variations_digest()
 }
 
 pub fn gui_prove_vf_paint_variations() -> bool {
@@ -2247,7 +2247,7 @@ mod tests {
     fn p105_gui_ttf_fingerprints() {
         assert!(super::gui_backend_name().contains("egui-wgpu"));
         assert_eq!(
-            super::gui_font_cjk_subset_fingerprint(),
+            super::gui_font_cjk_subset_digest(),
             "gui-ttf-expand-v1:cjk64-plus"
         );
         assert_eq!(
@@ -2353,7 +2353,7 @@ mod tests {
     #[test]
     fn p104_gui_cjk_fingerprints() {
         assert_eq!(
-            super::gui_font_cjk_subset_fingerprint(),
+            super::gui_font_cjk_subset_digest(),
             "gui-ttf-expand-v1:cjk64-plus"
         );
     }
@@ -2460,7 +2460,7 @@ mod tests {
     fn p106_gui_cjk_subset_at_least_64() {
         assert!(cjk_font::ci_subset_unique_char_count() >= 64);
         assert!(super::gui_cjk_subset_char_count() >= 64);
-        assert_eq!(super::gui_font_cjk_subset_fingerprint(), "gui-ttf-expand-v1:cjk64-plus");
+        assert_eq!(super::gui_font_cjk_subset_digest(), "gui-ttf-expand-v1:cjk64-plus");
     }
 
     #[test]
@@ -2573,9 +2573,9 @@ mod tests {
 
     #[test]
     fn p107_gui_fingerprints() {
-        assert_eq!(super::gui_harfbuzz_fingerprint(), "gui-harfbuzz-v1:shape-mvp");
+        assert_eq!(super::gui_harfbuzz_digest(), "gui-harfbuzz-v1:shape-mvp");
         assert_eq!(
-            super::gui_font_fallback_fingerprint(),
+            super::gui_font_fallback_digest(),
             "gui-font-fallback-v1:system-cjk"
         );
         assert_eq!(
@@ -2900,10 +2900,10 @@ mod tests {
             "gui-egui-wgpu-v1:winit-present"
         );
         assert_eq!(
-            super::gui_hb_paint_fingerprint(),
+            super::gui_hb_paint_digest(),
             "gui-hb-paint-v1:string-shape"
         );
-        assert_eq!(super::gui_emoji_fingerprint(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
             super::gui_vertical_rl_fingerprint(),
             "gui-vertical-unify-v1:hb-advance"
@@ -2995,10 +2995,10 @@ mod tests {
     #[test]
     fn p110_gui_fingerprints() {
         assert_eq!(
-            super::gui_wgpu_composite_fingerprint(),
+            super::gui_wgpu_composite_digest(),
             "gui-wgpu-composite-v1:hb-emoji-tex"
         );
-        assert_eq!(super::gui_emoji_fingerprint(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
             super::gui_vertical_rl_fingerprint(),
             "gui-vertical-unify-v1:hb-advance"
@@ -3145,10 +3145,10 @@ mod tests {
     #[test]
     fn p111_gui_fingerprints() {
         assert_eq!(
-            super::gui_skia_glyph_fingerprint(),
+            super::gui_skia_glyph_digest(),
             "gui-skia-glyph-v1:raster-mvp"
         );
-        assert_eq!(super::gui_emoji_fingerprint(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
             super::gui_vertical_rl_fingerprint(),
             "gui-vertical-unify-v1:hb-advance"
@@ -3161,7 +3161,7 @@ mod tests {
         assert!(!egui.contains("skip CPU vertical stack"));
         assert!(include_str!("emoji.rs").contains("fill_path"));
         assert!(!include_str!("emoji.rs").contains("fill_bbox"));
-        assert!(include_str!("skia_glyph.rs").contains("skia_glyph_fingerprint"));
+        assert!(include_str!("skia_glyph.rs").contains("skia_glyph_digest"));
     }
 
     #[test]
@@ -3251,10 +3251,10 @@ mod tests {
     #[test]
     fn p112_gui_fingerprints() {
         assert_eq!(
-            super::gui_skia_layout_fingerprint(),
+            super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
-        assert_eq!(super::gui_emoji_fingerprint(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
             super::gui_vertical_rl_fingerprint(),
             "gui-vertical-unify-v1:hb-advance"
@@ -3382,10 +3382,10 @@ mod tests {
     #[test]
     fn p113_gui_fingerprints() {
         assert_eq!(
-            super::gui_skia_layout_fingerprint(),
+            super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
-        assert_eq!(super::gui_emoji_fingerprint(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
             super::gui_doctor_coverage_fingerprint(),
             "gui-doctor-engine-v6:phase118"
@@ -3505,11 +3505,11 @@ mod tests {
     #[test]
     fn p114_gui_paragraph_paint_and_font_mgr() {
         assert_eq!(
-            super::gui_skia_layout_fingerprint(),
+            super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
         assert_eq!(
-            super::gui_font_system_fingerprint(),
+            super::gui_font_system_digest(),
             "gui-font-system-v5:os-only-all-apis"
         );
         let layout = include_str!("skia_layout.rs");
@@ -3535,7 +3535,7 @@ mod tests {
             "gui-doctor-engine-v6:phase118"
         );
         assert_eq!(
-            super::gui_emoji_fingerprint(),
+            super::gui_emoji_digest(),
             "gui-emoji-v9:font-radial-and-sweep"
         );
         let mut stack = vec![Value::Str("p115-single".into())];
@@ -3589,19 +3589,19 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_skia_layout_fingerprint(),
+            super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
         assert_eq!(
-            super::gui_font_system_fingerprint(),
+            super::gui_font_system_digest(),
             "gui-font-system-v5:os-only-all-apis"
         );
         assert_eq!(
-            super::gui_emoji_fingerprint(),
+            super::gui_emoji_digest(),
             "gui-emoji-v9:font-radial-and-sweep"
         );
         assert_eq!(
-            super::gui_ot_features_fingerprint(),
+            super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert_eq!(
@@ -3684,19 +3684,19 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_skia_layout_fingerprint(),
+            super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
         assert_eq!(
-            super::gui_font_system_fingerprint(),
+            super::gui_font_system_digest(),
             "gui-font-system-v5:os-only-all-apis"
         );
         assert_eq!(
-            super::gui_ot_features_fingerprint(),
+            super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert_eq!(
-            super::gui_vf_wght_fingerprint(),
+            super::gui_vf_wght_digest(),
             "gui-font-vf-v1:wght-mvp"
         );
         assert_eq!(
@@ -3744,11 +3744,11 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_ot_features_fingerprint(),
+            super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert_eq!(
-            super::gui_vf_multi_axis_fingerprint(),
+            super::gui_vf_multi_axis_digest(),
             "gui-font-vf-v2:multi-axis-mvp"
         );
         assert!(
@@ -3774,11 +3774,11 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_ot_features_fingerprint(),
+            super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert_eq!(
-            super::gui_dylib_ot_vf_parity_fingerprint(),
+            super::gui_dylib_ot_vf_parity_digest(),
             "gui-dylib-parity-v1:ot-vf-export"
         );
         assert!(
@@ -3854,7 +3854,7 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_ot_features_fingerprint(),
+            super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert!(include_str!("shape.rs").contains("DEFAULT_PAINT_OT_FAMILY"));
@@ -3882,11 +3882,11 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_ot_features_fingerprint(),
+            super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert_eq!(
-            super::gui_vf_paint_variations_fingerprint(),
+            super::gui_vf_paint_variations_digest(),
             "gui-font-vf-v4:paint-variations-mvp"
         );
         assert!(

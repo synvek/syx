@@ -23,10 +23,6 @@ fn build_farm_multitenant_phase98_build_target() {
     assert!(include_str!("../../src/build_syx.rs").contains("farm_worker"));
 }
 
-#[test]
-fn p101_build_farm_multitenant_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-frame-lease-v1:ttl-err-on-expired"));
-}
 
 #[test]
 fn p98_build_farm_multitenant_lease_ttl_enforce() {

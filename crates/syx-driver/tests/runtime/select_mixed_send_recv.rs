@@ -1,7 +1,7 @@
 //! Select mixed send/recv — unified tagged array poll + fair RR.
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
-use syx_vm::{reset_select_fair_cursor, select_fair_fingerprint, select_mixed_unified_fingerprint};
+use syx_vm::{reset_select_fair_cursor, select_fair_digest, select_mixed_unified_digest};
 
 fn run(src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -91,13 +91,13 @@ fn select_mixed_fair_rr_both_ready() {
 
 #[test]
 fn select_mixed_fingerprints_present() {
-    assert_eq!(select_fair_fingerprint(), "select-fair-v1:round-robin");
+    assert_eq!(select_fair_digest(), "select-fair-v1:round-robin");
     assert_eq!(
-        select_mixed_unified_fingerprint(),
+        select_mixed_unified_digest(),
         "select-mixed-unified-v1:tagged-array-poll"
     );
     assert_eq!(
-        syx_parser::select_mixed_unified_fingerprint(),
+        syx_parser::select_mixed_unified_digest(),
         "select-mixed-unified-v1:tagged-array-poll"
     );
 

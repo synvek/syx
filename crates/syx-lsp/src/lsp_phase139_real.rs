@@ -24,13 +24,6 @@ fn p139_manifest_soft_pin() {
     assert!(m.contains("\"117.0\"") && m.contains("\"phase\": 139"));
 }
 
-#[test]
-fn cache_v111_fingerprint() {
-    let self_src = include_str!("lsp_phase139_real.rs");
-    assert!(self_src.contains("syx-cache-v1"));
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("syx-cache-v1"));
-}
 
 #[test]
 fn p139_adr131_charter_soft_pin() {

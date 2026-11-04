@@ -15,7 +15,7 @@ use syx_driver::{
     default_native_executable_for_source, default_native_object, default_native_object_for_source,
     doc_project, emit_with_options, write_emit_all,
     aot_matrix::{print_doctor_summary, run_aot_matrix},
-    capabilities_report::{
+    capabilities::{
         print_capabilities_report, print_ir_capabilities_report, run_capabilities_report,
         run_ir_capabilities_report,
     },

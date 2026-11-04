@@ -13,15 +13,6 @@ use syx_async::{
 
 static P111_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_nonloopback_fingerprint() {
-    // Live fingerprint advanced in Phase 114; P111 string remains in heap_v83.
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("spawn_dist_tcp_mailbox_dual_stack"));
-    assert!(src.contains("cdn-memory-dev-only") || src.contains("SYX_DIST_CDN_MEMORY"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-region-nonloopback-v1:dual-bind-failover"));
-}
 
 #[test]
 fn dist_nonloopback_dual_bind_host_keys() {

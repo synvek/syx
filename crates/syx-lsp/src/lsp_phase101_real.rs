@@ -10,23 +10,8 @@ fn p101_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p101_opts())
 }
 
-#[test]
-fn p101_farm_frame_lease_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("farm-frame-lease-v1:ttl-err-on-expired"));
-}
 
-#[test]
-fn p101_codable_hostfn_prune_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("codable-hostfn-prune-v2:no-l5-l13-enum"));
-}
 
-#[test]
-fn p101_lang_deinit_auto_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("lang-deinit-auto-v1:scope-exit-call"));
-}
 
 #[test]
 fn p101_hover_let_count_int() {

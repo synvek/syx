@@ -761,6 +761,461 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
 
+## S2-I59 after fifty-eighth knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×31 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in `syx-lsp` `lsp_phase86_real`…`lsp_phase90_real` (Δ31; default test-noise pack Δ16–32). **Kept** cache aggregator / `capabilities_report` / driver product fingerprints. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I58 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **616** | **−31** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I60 after fifty-ninth knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×34 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in `syx-lsp` `lsp_phase91_real`…`lsp_phase95_real`. **Kept** cache aggregator / `capabilities_report` / driver product fingerprints. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I59 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **582** | **−34** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I61 after sixtieth knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×29 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in `syx-lsp` `lsp_phase96_real`…`lsp_phase100_real`. **Kept** cache aggregator / `capabilities_report` / phase101+ leftovers. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I60 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **553** | **−29** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I62 after sixty-first knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×24 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted remaining `#[test] fn *_fingerprint` in `syx-lsp` phase79–85 / 101–103 / 131–139. **LSP `lsp_phase*_real.rs` exact `*_fingerprint` test-noise axis closed.** **Kept** driver `tests/**` fingerprint tests / cache aggregator / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I61 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **529** | **−24** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I63 after sixty-second knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×29 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in driver `driver_gate.rs`×16 + `property_observers.rs`×8 + `native_gui_parity.rs`×5. **Driver tests fingerprint test-noise axis opened.** **Kept** remaining driver test nails / cache aggregator / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I62 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **500** | **−29** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I64 after sixty-third knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×30 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in driver `tests/farm`×18 + `tests/gui`×7 + `tests/wasm`×5. **Kept** platform/runtime/data/native/concurrency nails / cache aggregator / `capabilities_report` / product `farm_lease_*`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I63 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **470** | **−30** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I65 after sixty-fourth knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×29 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in driver `tests/runtime`×15 + `tests/data`×14. **Kept** platform/native/concurrency nails / cache aggregator / `capabilities_report` / product `farm_lease_*`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I64 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **441** | **−29** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I66 after sixty-fifth knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×36 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in driver `tests/platform`×36. **Kept** native/concurrency nails / cache aggregator / `capabilities_report` / product `farm_lease_*`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I65 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **405** | **−36** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I67 after sixty-sixth knife (2026-11-03)
+
+**Slice:** fingerprint census test-noise tip×22 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted `#[test] fn *_fingerprint` in driver `tests/native`×13 + `tests/concurrency`×9. **Driver `tests/**` fingerprint test-noise axis closed.** **Kept** cache aggregator / `capabilities_report` / product `farm_lease_*` / non-driver nails. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I66 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **383** | **−22** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I68 after sixty-seventh knife (2026-11-03)
+
+**Slice:** fingerprint tip orphan+sparse×5 ([stage2-fingerprint-tip-knife](adr/stage2-fingerprint-tip-knife.md)); deleted product orphans×3 (`heap_v75_phase103_track_a` / `heap_v76_phase104_dx` / `heap_v90_phase118_dx`) + non-driver `#[test] *_fingerprint`×2 (`pipeline_order` / `p120_macros_exports_schema`). **Tip-knife orphan axis closed.** Aggregator unchanged (fold deferred). inventory still **0**.
+
+| Metric | Count | Δ vs S2-I67 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **378** | **−5** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I69 after sixty-eighth knife (2026-11-03)
+
+**Slice:** fingerprint aggregator fold Δ6 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v3`/`v4`/`v48`–`v51` hasher bytes into `heap_v52_phase80_fingerprint`; deleted ×6 defs + aligned `compute_cache_version_tag` `format!`. **Kept** soft-nail band (v58+) / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I68 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **372** | **−6** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I70 after sixty-ninth knife (2026-11-03)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v53`…`v68` hasher statements into `heap_v69_phase97_fingerprint`; deleted ×16 defs + aligned `format!`; retargeted `driver_gate` soft-nail v58→v69. **Kept** `heap_v52` / `heap_v70+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I69 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **356** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I71 after seventieth knife (2026-11-03)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v70`…`v75` + `v77`/`v78` tracks+dx into `heap_v79_phase107_track_a_gui_fingerprint`; deleted ×16 + aligned `format!`; retargeted soft-nails (driver_gate×5 + lsp×1). **Kept** `heap_v52`/`v69` / `heap_v79` other tracks+dx / `heap_v111_*` / `farm_lease_*` defs / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I70 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **340** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I72 after seventy-first knife (2026-11-03)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v79` b/c/d/dx + `v80`/`v81` a…dx + `v82` a/b into `heap_v82_phase110_track_c_farm_fingerprint`; deleted ×16 + aligned `format!`. Soft-nail-free band. **Kept** `heap_v52`/`v69`/`v79_track_a` / `v82` track_d+dx / `v83+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I71 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **324** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I73 after seventy-second knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v82` d+dx + `v83`/`v84` a…dx + `v85` a–d into `heap_v85_phase113_dx_fingerprint`; deleted ×16 + aligned `format!`. Soft-nail-free band. **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c` / `v86+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I72 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **308** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I74 after seventy-third knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v86`/`v87`/`v88` a…dx + `v89_track_a` into `heap_v89_phase117_track_b_wasm_fingerprint`; deleted ×16 + aligned `format!`. Soft-nail-free band. **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx` / `v89` c/d/dx / `v90+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I73 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **292** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I75 after seventy-fourth knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v89` c/d/dx + `v91`/`v92` a…dx + `v93` a/b/c into `heap_v93_phase121_track_d_farm_dist_fingerprint`; deleted ×16 + aligned `format!`; soft-nail retarget (`evergreen/smoke` v91_b → merge target; `service_di_mvp` v92 prefix → merge target). **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx`/`v89_track_b` / `v93_dx` / `v94+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I74 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **276** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I76 after seventy-fifth knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v93_dx` + `v94`/`v95`/`v96` a…dx into `heap_v97_phase125_track_a_macro_service_fingerprint`; deleted ×16 + aligned `format!`. Soft-nail-free band. **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx`/`v89_track_b`/`v93_track_d` / `v97` b/c/d/dx / `v98+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I75 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **260** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I77 after seventy-sixth knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v97` b…dx + `v98`/`v99` a…dx + `v100` a/b into `heap_v100_phase128_track_c_wasm_fingerprint`; deleted ×16 + aligned `format!`. Soft-nail-free band. **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx`/`v89_track_b`/`v93_track_d`/`v97_track_a` / `v100` d/dx / `v101+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I76 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **244** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I78 after seventy-seventh knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v100` d/dx + `v101`/`v102` a…dx + `v104` a–d into `heap_v104_phase132_dx_fingerprint` (agg order); deleted ×16 + aligned `format!`; soft-nail retarget (`codable_associated_enum_e2e` v101_a → merge target; `token_expr_mvp` v102_a → merge target). **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx`/`v89_track_b`/`v93_track_d`/`v97_track_a`/`v100_track_c` / `v103` / `v105+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I77 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **228** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I79 after seventy-eighth knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v103` a…dx + `v105` a…e/dx + `v106` a…e into `heap_v106_phase134_dx_fingerprint` (agg order); deleted ×16 + aligned `format!`. Soft-nail-free band. **Kept** `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx`/`v89_track_b`/`v93_track_d`/`v97_track_a`/`v100_track_c`/`v104_dx` / `v107+` / `heap_v111_*` / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I78 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **212** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I80 after seventy-ninth knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ16 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v107` a…dx + `v108` a/c/d/e/dx + `v109` a/c/d/e/dx into `heap_v110_phase138_track_a_props_fingerprint`; deleted ×16 + aligned `format!`; soft-nail retarget (`cache_v108`/`cache_v109` tag_active → merge target). **Kept** prior tips / `v110` c/d/e/dx / **`heap_v111_*`** / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I79 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **196** | **−16** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I81 after eightieth knife (2026-11-04)
+
+**Slice:** fingerprint aggregator fold Δ4 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v110` c/d/e/dx into adjacent kept `heap_v110_phase138_track_a_props_fingerprint`; deleted ×4 + aligned `format!`; soft-nail narrowed (`cache_v110_tag_active` keep track_a only). **Kept** prior tips / **全部 `heap_v111_*`** / `farm_lease_*` / `capabilities_report`. Contiguous foldable tips before `v111` **exhausted**. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I80 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **192** | **−4** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I82 after eighty-first knife (2026-11-04)
+
+**Slice:** fingerprint aggregator earlier kept-tip re-fold Δ8 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v52`/`v69`/`v79_track_a`/`v82_track_c`/`v85_dx`/`v89_track_b`/`v93_track_d`/`v97_track_a` into `heap_v100_phase128_track_c_wasm_fingerprint`; deleted ×8 + aligned `format!`; soft-nail retarget (driver_gate v69/v79_a; lsp v79_a; smoke/service_di v93_d → merge target). **Kept** foundation×12 / `v100_c` / `v104_dx` / `v106_dx` / `v110_a` / **`heap_v111_*`** / `farm_lease_*` / `capabilities_report`. inventory still **0**.
+
+| Metric | Count | Δ vs S2-I81 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **184** | **−8** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I83 after eighty-second knife (2026-11-04)
+
+**Slice:** fingerprint aggregator earlier kept-tip re-fold Δ3 ([stage2-fingerprint-aggregator-fold](adr/stage2-fingerprint-aggregator-fold.md)); merged `heap_v104_dx` / `v106_dx` / `v110_a` into `heap_v100_phase128_track_c_wasm_fingerprint`; deleted ×3 + aligned `format!` (23→20); soft-nail retarget (codable/token_expr v104; driver_gate + cache_v108–110 v110_a → merge target). **Kept** foundation×12 / `v100_c` / **`heap_v111_*`** / `farm_lease_*` / `capabilities_report`. inventory still **0**. Pre-`v111` earlier-tip re-fold axis **exhausted**.
+
+| Metric | Count | Δ vs S2-I82 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **181** | **−3** |
+| `crates/syx-driver/src/*_report.rs` files | **1** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I84 after eighty-third knife (2026-11-04)
+
+**Slice:** capabilities product surface 另策 ([stage2-capabilities-report-surface](adr/stage2-capabilities-report-surface.md)); renamed `capabilities_report.rs` → `capabilities.rs` + `pub mod capabilities`; retargeted CLI/LSP/website·hosted·marketing imports + capability_thin/floor path nails + A-10/website doc paths. **Kept** `run_capabilities_report` / doctor flags / LSP / fingerprint tower / foundation / `heap_v111_*` / `farm_lease_*`. inventory still **0**. Report KPI axis **exhausted** (`*_report.rs` = 0).
+
+| Metric | Count | Δ vs S2-I83 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **181** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | **−1** |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I85 after eighty-fourth knife (2026-11-04)
+
+**Slice:** fingerprint v111 aggregator fold Δ4 ([stage2-fingerprint-v111-fold](adr/stage2-fingerprint-v111-fold.md)); merged `heap_v111` c/d/inherit/dx into `heap_v111_phase139_track_l_language_fingerprint`; deleted ×4 + aligned `format!` (20→16); soft-nail narrowed (`cache_v111_tag_active` keep track_l only). **Kept** foundation×12 / `v100_c` / `track_l` / `farm_lease_*` / capabilities API / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I84 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **177** | **−4** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I86 after eighty-fifth knife (2026-11-04)
+
+**Slice:** fingerprint foundation aggregator fold Δ12 ([stage2-fingerprint-foundation-fold](adr/stage2-fingerprint-foundation-fold.md)); merged foundation×12 into `heap_v100_phase128_track_c_wasm_fingerprint`; deleted ×12 `*_fingerprint` + aligned `format!` (16→4); renamed `module_hash` helpers to `*_digest` / `host_feature_tag`; soft-nail retarget (reflect_witness + inheritance → merge target). **Kept** `v100_c` / `track_l` / `farm_lease_*` / capabilities API / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I85 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **165** | **−12** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I87 after eighty-sixth knife (2026-11-04)
+
+**Slice:** fingerprint track_l aggregator fold Δ1 ([stage2-fingerprint-track-l-fold](adr/stage2-fingerprint-track-l-fold.md)); merged `heap_v111_phase139_track_l_language_fingerprint` into `heap_v100_phase128_track_c_wasm_fingerprint`; deleted ×1 + aligned `format!` (4→3); soft-nail retarget (`cache_v111_tag_active` + `cache_v111_lang_surface_fingerprints` → merge target). **Kept** `v100_c` / `farm_lease_*` / capabilities API / `lang_props_v*` / product sea. On-agg single tip. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I86 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **164** | **−1** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I88 after eighty-seventh knife (2026-11-04)
+
+**Slice:** product-sea cdn_bgp sticky/peer-announce rename ×11 ([stage2-fingerprint-product-sea-cdn-bgp-rename](adr/stage2-fingerprint-product-sea-cdn-bgp-rename.md)); `*_fingerprint` → `*_digest` in `syx-async` `dist_transport` + lib re-exports + same-crate call sites. **Kept** `v100_c` / `farm_lease_*` / capabilities API / `lang_props_v*` / other unlisted cdn_bgp / gui C-ABI. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I87 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **153** | **−11** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I89 after eighty-eighth knife (2026-11-04)
+
+**Slice:** product-sea async dist/cdn gate rename ×8 ([stage2-fingerprint-product-sea-async-dist-rename](adr/stage2-fingerprint-product-sea-async-dist-rename.md)); `*_fingerprint` → `*_digest` in `syx-async` `dist_transport` + lib re-exports + same-crate call sites + driver platform soft-nails (`dist_bgp_anycast_pop`, `dist_bgp_peer_exchange`). **Kept** `v100_c` / `farm_lease_*` / capabilities API / `lang_props_v*` / gui C-ABI / `select_*`. `syx-async` product-sea fingerprint surface **0**. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I88 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **145** | **−8** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I90 after eighty-ninth knife (2026-11-04)
+
+**Slice:** product-sea select channel rename ×14 ([stage2-fingerprint-product-sea-select-channel-rename](adr/stage2-fingerprint-product-sea-select-channel-rename.md)); 8 symbols `*_fingerprint` → `*_digest` in `syx-parser` (×7) + `syx-vm` `channel_hosts` (×7) + vm lib re-exports + driver soft-nails (`channel_fairness`, `select_mixed_send_recv`, `select_deadline_strict`) + LSP `lsp_phase109_real` string probe. **Kept** `v100_c` / `farm_lease_*` / capabilities API / `lang_props_v*` / gui C-ABI / `SELECT_*_FINGERPRINT` consts. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I89 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **131** | **−14** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I91 after ninetieth knife (2026-11-04)
+
+**Slice:** product-sea gui shape-core rename ×9 ([stage2-fingerprint-product-sea-gui-shape-rename](adr/stage2-fingerprint-product-sea-gui-shape-rename.md)); `*_fingerprint` → `*_digest` in `syx-gui` `shape.rs` + `lib.rs` `shape::` call sites only. **Kept** `gui_*_fingerprint` façades / `syx_gui_dylib_*` C-ABI / dlopen / leaf / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I90 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **122** | **−9** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I92 after ninety-first knife (2026-11-04)
+
+**Slice:** product-sea gui shape façade rename ×9 ([stage2-fingerprint-product-sea-gui-shape-facade-rename](adr/stage2-fingerprint-product-sea-gui-shape-facade-rename.md)); `gui_*_fingerprint` → `gui_*_digest` in `syx-gui` `lib.rs` defs + same-file tests. **Kept** `syx_gui_dylib_*` C-ABI / dlopen / VM `stdlib_phase97` hosts / leaf / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I91 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **113** | **−9** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I93 after ninety-second knife (2026-11-04)
+
+**Slice:** product-sea gui render leaf rename ×14 ([stage2-fingerprint-product-sea-gui-leaf-rename](adr/stage2-fingerprint-product-sea-gui-leaf-rename.md)); leaf defs×7 (`cjk_font`/`emoji`/`skia_*`/`wgpu_present`) + façades×7 census rows in `lib.rs` (`*_fingerprint` → `*_digest`). **Kept** `syx_gui_dylib_*` C-ABI / dlopen / VM hosts / non-leaf façades / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I92 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **99** | **−14** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

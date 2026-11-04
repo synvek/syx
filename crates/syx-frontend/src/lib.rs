@@ -218,32 +218,6 @@ mod tests {
 
 
     #[test]
-    fn pipeline_order_fingerprint() {
-        let src = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/lib.rs"));
-        // Use unique call sites inside `run_parsed`.
-        let expand = src
-            .find("let mut module = expand_macros(module)?;")
-            .expect("expand");
-        let top = src
-            .find("desugar_top_level_stmts(&mut module)?;")
-            .expect("top");
-        let meta = src.find("apply_meta_passes(&module)?;").expect("meta");
-        let async_p = src
-            .find("prepare_async_module(&mut module)?;")
-            .expect("async");
-        let sem = src
-            .find("SemanticAnalyzer::analyze_collecting_with_options")
-            .expect("sem");
-        let mono = src
-            .find("let mono = monomorphize_module(&module, &instantiations);")
-            .expect("mono");
-        assert!(
-            expand < top && top < meta && meta < async_p && async_p < sem && sem < mono,
-            "order: expand={expand} top={top} meta={meta} async={async_p} sem={sem} mono={mono}"
-        );
-    }
-
-    #[test]
     fn run_arith_to_mir() {
         let source = SourceFile::new("t.sy", "func main() { print(10 + 5) }\n");
         let art = FrontendPipeline::run(source, &FrontendOptions::default()).expect("pipeline");

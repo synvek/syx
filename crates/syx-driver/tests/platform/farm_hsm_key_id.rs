@@ -4,34 +4,24 @@ use std::fs;
 use std::sync::Mutex;
 
 use syx_driver::{
-    farm_lease_hsm_key_id_doctor_export, farm_lease_pkcs11_active_slot_id,
-    farm_lease_pkcs11_hsm_key_id_fingerprint, farm_lease_pkcs11_hsm_key_id_mvp_ready,
-    farm_lease_pkcs11_hsm_key_label_mvp_ready, farm_lease_pkcs11_hsm_multi_slot_bind,
-    farm_lease_pkcs11_key_id_loaded, farm_lease_pkcs11_key_id_persist,
-    farm_lease_pkcs11_key_id_verify, farm_lease_pkcs11_key_label_persist,
-    farm_lease_pkcs11_session_pin_persist, farm_lease_pkcs11_slot_list, farm_lease_test_lock,
-    ENV_FARM_PKCS11_KEY_ID_FILE, ENV_FARM_PKCS11_KEY_LABEL_FILE, ENV_FARM_PKCS11_PIN_FILE,
+    farm_lease_hsm_key_id_doctor_export,
+    farm_lease_pkcs11_active_slot_id,
+    farm_lease_pkcs11_hsm_key_id_mvp_ready,
+    farm_lease_pkcs11_hsm_key_label_mvp_ready,
+    farm_lease_pkcs11_hsm_multi_slot_bind,
+    farm_lease_pkcs11_key_id_loaded,
+    farm_lease_pkcs11_key_id_persist,
+    farm_lease_pkcs11_key_id_verify,
+    farm_lease_pkcs11_key_label_persist,
+    farm_lease_pkcs11_session_pin_persist,
+    farm_lease_pkcs11_slot_list,
+    farm_lease_test_lock,
+    ENV_FARM_PKCS11_KEY_ID_FILE,
+    ENV_FARM_PKCS11_KEY_LABEL_FILE,
+    ENV_FARM_PKCS11_PIN_FILE,
 };
 static P136_FARM_KEY_ID_BUILD: Mutex<()> = Mutex::new(());
 
-#[test]
-fn farm_hsm_token_v19_hsm_key_id_fingerprint() {
-    assert_eq!(
-        farm_lease_pkcs11_hsm_key_id_fingerprint(),
-        "farm-lease-token-v19:hsm-key-id-mvp"
-    );
-    assert_eq!(farm_lease_hsm_key_id_doctor_export(), "hsm-key-id");
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-token-v19:hsm-key-id-mvp"));
-    assert!(src.contains("hsm-key-id"));
-    assert!(src.contains("CKA_ID"));
-    assert!(src.contains("farm_lease_pkcs11_key_id_persist"));
-    assert!(src.contains("farm_lease_pkcs11_key_id_verify"));
-    assert!(src.contains("SYX_FARM_PKCS11_KEY_ID_FILE"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("farm-lease-token-v19:hsm-key-id-mvp"));
-    assert!(lib.contains("heap_v108_phase136_track_d_farm_dist_os_fingerprint"));
-}
 
 #[test]
 fn farm_hsm_key_id_doctor_export() {

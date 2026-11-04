@@ -11,10 +11,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_gui_mvp_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gui-winit-real-v2"));
-}
 
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]

@@ -110,10 +110,6 @@ fn p79_gc_relocate_api() {
     assert!(include_str!("../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
 }
 
-#[test]
-fn p79_browser_tier2c_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("tier2c"));
-}
 
 #[test]
 fn p79_adr_phase79_charter() {

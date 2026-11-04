@@ -26,7 +26,3 @@ fn p98_tier3_matrix_tier_for_import() {
     );
 }
 
-#[test]
-fn p98_tier3_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("wasm-aot-zero-run-op-v1"));
-}

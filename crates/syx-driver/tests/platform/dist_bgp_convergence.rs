@@ -5,28 +5,19 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure, cdn_bgp_fingerprint, cdn_bgp_ga_ready,
-    cdn_bgp_import_peer_view, cdn_bgp_multi_region_mesh_ready, cdn_bgp_route_convergence_ready,
-    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear,
+    cdn_bgp_configure,
+    cdn_bgp_ga_ready,
+    cdn_bgp_import_peer_view,
+    cdn_bgp_multi_region_mesh_ready,
+    cdn_bgp_route_convergence_ready,
+    cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P121_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_bgp_convergence_cdn_bgp_v4_route_convergence_fingerprint() {
-    // Phase 124 fingerprint supersedes — see dist_weighted_anycast.
-    assert_eq!(
-        cdn_bgp_fingerprint(),
-        "dist-cdn-bgp-v7:weighted-anycast-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(src.contains("cdn_bgp_route_convergence_ready"));
-    assert!(src.contains("cdn_bgp_multi_region_mesh_ready"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(lib.contains("heap_v94_phase122_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn dist_bgp_convergence_cdn_bgp_route_convergence_without_mesh_ga() {

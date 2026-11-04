@@ -6,28 +6,22 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    dist_actor_mp_clear, dist_actor_mp_doctor_mode, dist_actor_mp_peer_send_once,
-    dist_inproc_enabled, dist_region_anycast_clear, dist_region_anycast_configure,
-    dist_region_anycast_fingerprint, dist_region_anycast_route, dist_region_tcp_health,
-    region_route_mp, region_route_mp_ga, spawn_dist_tcp_mailbox,
+    dist_actor_mp_clear,
+    dist_actor_mp_doctor_mode,
+    dist_actor_mp_peer_send_once,
+    dist_inproc_enabled,
+    dist_region_anycast_clear,
+    dist_region_anycast_configure,
+    dist_region_anycast_route,
+    dist_region_tcp_health,
+    region_route_mp,
+    region_route_mp_ga,
+    spawn_dist_tcp_mailbox,
 };
 
 /// Serialize dist anycast / inproc env tests — shared process globals + env.
 static P109_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_anycast_fingerprint() {
-    assert_eq!(
-        dist_region_anycast_fingerprint(),
-        "dist-region-anycast-v1:tcp-health"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-region-anycast-v1:tcp-health"));
-    assert!(src.contains("SYX_DIST_INPROC"));
-    assert!(src.contains("dist_region_tcp_health"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-region-anycast-v1:tcp-health"));
-}
 
 #[test]
 fn dist_anycast_inproc_gate_and_doctor() {

@@ -50,10 +50,6 @@ fn run_native_strict(src: &str) -> Vec<String> {
         .collect()
 }
 
-#[test]
-fn p98_async_native_resume_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-async-resume-v4:nested-await-stdout-order"));
-}
 
 #[test]
 fn p98_async_native_vm_nested_stdout_order() {

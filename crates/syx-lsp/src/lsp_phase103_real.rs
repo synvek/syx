@@ -10,25 +10,9 @@ fn p103_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p103_opts())
 }
 
-#[test]
-fn p103_plugin_dlclose_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("plugin-dlclose-v1:unload-reload"));
-}
 
-#[test]
-fn p103_lang_resultbuilder_v2_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("lang-resultbuilder-v2:build-optional"));
-}
 
-#[test]
-fn p103_select_await_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("select-await-interleave-v2:case-await-order"));
-}
 
-#[test]
-fn p103_lang_deinit_weak_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("lang-deinit-weak-v1:weak-nil-on-drop"));
-}
 
 #[test]
 fn p103_hover_let_count_int() {

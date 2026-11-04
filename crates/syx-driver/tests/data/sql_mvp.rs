@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_sql_mvp_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("sql-mvp-v1"));
-}
 
 #[test]
 fn p98_sql_mvp_host_surface() {

@@ -41,31 +41,31 @@ pub const SELECT_DEADLINE_STRICT_FINGERPRINT: &str = "select-deadline-strict-v1:
 /// Legacy alias name kept for call sites; value is the Phase 108 unified fingerprint.
 pub const SELECT_MIXED_POLL_FINGERPRINT: &str = SELECT_MIXED_UNIFIED_FINGERPRINT;
 
-pub fn select_mixed_poll_fingerprint() -> &'static str {
+pub fn select_mixed_poll_digest() -> &'static str {
     SELECT_MIXED_UNIFIED_FINGERPRINT
 }
 
-pub fn select_mixed_unified_fingerprint() -> &'static str {
+pub fn select_mixed_unified_digest() -> &'static str {
     SELECT_MIXED_UNIFIED_FINGERPRINT
 }
 
-pub fn select_mixed_await_fingerprint() -> &'static str {
+pub fn select_mixed_await_digest() -> &'static str {
     SELECT_MIXED_AWAIT_FINGERPRINT
 }
 
-pub fn select_mixed_timeout_fingerprint() -> &'static str {
+pub fn select_mixed_timeout_digest() -> &'static str {
     SELECT_MIXED_TIMEOUT_FINGERPRINT
 }
 
-pub fn select_timeout_syntax_fingerprint() -> &'static str {
+pub fn select_timeout_syntax_digest() -> &'static str {
     SELECT_TIMEOUT_SYNTAX_FINGERPRINT
 }
 
-pub fn select_deadline_unify_fingerprint() -> &'static str {
+pub fn select_deadline_unify_digest() -> &'static str {
     SELECT_DEADLINE_UNIFY_FINGERPRINT
 }
 
-pub fn select_deadline_strict_fingerprint() -> &'static str {
+pub fn select_deadline_strict_digest() -> &'static str {
     SELECT_DEADLINE_STRICT_FINGERPRINT
 }
 
@@ -5389,7 +5389,7 @@ mod tests {
             "mixed select must not lower to per-arm try_send: {dump}"
         );
         assert_eq!(
-            select_mixed_unified_fingerprint(),
+            select_mixed_unified_digest(),
             "select-mixed-unified-v1:tagged-array-poll"
         );
     }

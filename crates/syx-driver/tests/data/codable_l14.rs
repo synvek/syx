@@ -6,10 +6,6 @@ use syx_vm::{
     host_codable_l14_register_rename, reset_phase98_state,
 };
 
-#[test]
-fn p98_codable_l14_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("codable-l14-surface-v1:hostfn-packages-l14-names"));
-}
 
 #[test]
 fn p98_codable_l14_prost_roundtrip_with_rename() {

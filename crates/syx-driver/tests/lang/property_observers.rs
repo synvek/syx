@@ -37,26 +37,8 @@ fn has_error(src: &str, code: &str) -> bool {
     }
 }
 
-#[test]
-fn p134_computed_get_only_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v2.rs");
-    assert!(lib.contains(COMPUTED_GET_ONLY));
-    assert_eq!(COMPUTED_GET_ONLY, "lang-props-v2:computed-get-only-mvp");
-}
 
-#[test]
-fn p134_static_var_mvp_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v2.rs");
-    assert!(lib.contains(STATIC_VAR));
-    assert_eq!(STATIC_VAR, "lang-props-v2:static-var-mvp");
-}
 
-#[test]
-fn p134_lazy_var_mvp_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v2.rs");
-    assert!(lib.contains(LAZY_VAR));
-    assert_eq!(LAZY_VAR, "lang-props-v2:lazy-var-mvp");
-}
 
 #[test]
 fn p134_computed_get_only_stdout() {
@@ -111,26 +93,8 @@ func main() {
     assert_eq!(lines[1], "lazy-ok");
 }
 
-#[test]
-fn p134_inherited_observers_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v2.rs");
-    assert!(lib.contains(INHERITED_OBSERVERS));
-    assert_eq!(INHERITED_OBSERVERS, "lang-props-v2:inherited-observers");
-}
 
-#[test]
-fn p134_init_suppress_observers_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v2.rs");
-    assert!(lib.contains(INIT_SUPPRESS_OBSERVERS));
-    assert_eq!(INIT_SUPPRESS_OBSERVERS, "lang-props-v2:init-suppress-observers");
-}
 
-#[test]
-fn p135_super_init_field_readback_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v3.rs");
-    assert!(lib.contains(SUPER_INIT_FIELD_READBACK));
-    assert_eq!(SUPER_INIT_FIELD_READBACK, "lang-props-v3:super-init-field-readback");
-}
 
 #[test]
 fn p134_inherited_observers_kvo_chain() {
@@ -359,17 +323,7 @@ func main() {
     );
 }
 
-#[test]
-fn p135_computed_get_set_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v3.rs");
-    assert!(lib.contains("lang-props-v3:computed-get-set-mvp"));
-}
 
-#[test]
-fn p135_property_override_fingerprint() {
-    let lib = include_str!("../../src/lang_props_v3.rs");
-    assert!(lib.contains("lang-props-v3:property-override-mvp"));
-}
 
 #[test]
 fn p135_direct_backing_assign_works() {

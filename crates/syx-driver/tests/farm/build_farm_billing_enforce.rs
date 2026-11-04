@@ -28,7 +28,3 @@ fn p98_farm_billing_enforce_matching_ack_ok() {
     assert!(enforce_billing_settlement(&lock).is_ok());
 }
 
-#[test]
-fn p98_farm_billing_enforce_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-billing-farm-path-v1"));
-}

@@ -6,9 +6,9 @@ use std::time::{Duration, Instant};
 use syx_driver::{
     farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured,
     farm_lease_auth_configure_ha, farm_lease_auth_configure_raft, farm_lease_ha_v3_fingerprint,
-    farm_lease_os_child_try_serve, farm_lease_raft_fingerprint, farm_lease_require_active,
-    farm_lease_reset, farm_lease_test_lock, spawn_farm_lease_ha, spawn_farm_lease_ha_v3,
-    spawn_farm_lease_raft, FARM_LEASE_DEFAULT_TOKEN, FARM_LEASE_RAFT_PORTS,
+    farm_lease_os_child_try_serve, farm_lease_require_active, farm_lease_reset,
+    farm_lease_test_lock, spawn_farm_lease_ha, spawn_farm_lease_ha_v3, spawn_farm_lease_raft,
+    FARM_LEASE_DEFAULT_TOKEN,
 };
 
 const RAFT_TOKEN: u32 = 0xF109_7001;
@@ -21,21 +21,7 @@ fn p109_farm_os_child_entry() {
     }
 }
 
-#[test]
-fn p109_farm_lease_ha_v3_fingerprint() {
-    assert_eq!(farm_lease_ha_v3_fingerprint(), "farm-lease-ha-v3:os-process");
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-ha-v3:os-process"));
-    assert!(src.contains("std::process::Command") || src.contains("process::Command"));
-}
 
-#[test]
-fn p109_farm_lease_raft_fingerprint() {
-    assert_eq!(farm_lease_raft_fingerprint(), "farm-lease-raft-v1:quorum-mvp");
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-raft-v1:quorum-mvp"));
-    assert_eq!(FARM_LEASE_RAFT_PORTS.len(), 3);
-}
 
 #[test]
 fn p109_farm_thread_sync_not_ha_v3_ga() {

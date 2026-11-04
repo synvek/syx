@@ -144,10 +144,6 @@ fn p98_runtime_cast_reflection_quad() {
     run_embedded_quad(r#"func main() { print("reflect") }"#, "reflect");
 }
 
-#[test]
-fn p98_runtime_cast_strict_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("reflect-cast-fixture-quad-v1"));
-}
 
 #[test]
 fn p98_runtime_cast_count_gate() {

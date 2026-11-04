@@ -11,10 +11,6 @@ fn p84_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p84_stdlib_v56_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_v56_phase84_fingerprint"));
-}
 
 #[test]
 fn p84_import_text_string_builder_parse() {

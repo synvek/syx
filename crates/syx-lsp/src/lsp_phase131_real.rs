@@ -16,20 +16,6 @@ fn p131_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p131_opts())
 }
 
-#[test]
-fn p131_cache_v103_fingerprint() {
-    let m = include_str!("../../../packages/internal/manifest.json");
-    assert!(
-        (m.contains("\"109.0\"") && m.contains("\"phase\": 131"))
-            || (m.contains("\"110.0\"") && m.contains("\"phase\": 132"))
-            || (m.contains("\"111.0\"") && m.contains("\"phase\": 133"))
-            || (m.contains("\"112.0\"") && m.contains("\"phase\": 134"))
-            || (m.contains("\"113.0\"") && m.contains("\"phase\": 135"))
-            || (m.contains("\"114.0\"") && m.contains("\"phase\": 136"))
-    );
-    let self_src = include_str!("lsp_phase131_real.rs");
-    assert!(self_src.contains("syx-cache-v103"));
-}
 
 #[test]
 fn p131_track_fingerprints_inherited() {

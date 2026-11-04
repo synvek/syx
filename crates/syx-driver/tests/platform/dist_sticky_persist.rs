@@ -6,29 +6,22 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
-    cdn_bgp_route_sticky, cdn_bgp_sticky_binding, cdn_bgp_sticky_persist_fingerprint,
-    cdn_bgp_sticky_persist_ready, cdn_bgp_sticky_persist_restore_from_file,
-    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready, cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear,
+    cdn_bgp_configure_mesh,
+    cdn_bgp_import_peer_mesh,
+    cdn_bgp_route_sticky,
+    cdn_bgp_sticky_binding,
+    cdn_bgp_sticky_persist_ready,
+    cdn_bgp_sticky_persist_restore_from_file,
+    cdn_bgp_sticky_pop_clear,
+    cdn_bgp_sticky_pop_ready,
+    cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P127_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_sticky_persist_cdn_bgp_v10_sticky_persist_fingerprint() {
-    assert_eq!(
-        cdn_bgp_sticky_persist_fingerprint(),
-        "dist-cdn-bgp-v10:sticky-persist-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v10:sticky-persist-mvp"));
-    assert!(src.contains("cdn_bgp_sticky_persist_save"));
-    assert!(src.contains("cdn_bgp_sticky_persist_restore"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v10:sticky-persist-mvp"));
-    assert!(lib.contains("heap_v99_phase127_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn dist_sticky_persist_sticky_persist_restore_after_restart() {

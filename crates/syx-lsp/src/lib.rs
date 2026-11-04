@@ -224,7 +224,7 @@ fn initialize_capabilities() -> Value {
 
 /// A-10 / ADR-703: LSP same-source capability report via doctor API (no second JSON embed).
 fn capabilities_for_lsp(id: Option<&str>) -> Value {
-    let report = syx_driver::capabilities_report::run_capabilities_report();
+    let report = syx_driver::capabilities::run_capabilities_report();
     match id {
         None => json!({
             "schema": report.schema,
@@ -7238,7 +7238,7 @@ func main() {
         );
 
         let summary = capabilities_for_lsp(None);
-        let report = syx_driver::capabilities_report::run_capabilities_report();
+        let report = syx_driver::capabilities::run_capabilities_report();
         assert_eq!(summary["schema"], "syx-capability-v0");
         assert_eq!(
             summary["count"].as_u64().unwrap() as usize,

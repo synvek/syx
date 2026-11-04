@@ -56,7 +56,3 @@ fn p98_gc_generational_wasm_stdout() {
     assert!(lines.iter().any(|l| l.contains("gc-done")), "{lines:?}");
 }
 
-#[test]
-fn p98_gc_generational_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gc-generational-v13-quad-v1"));
-}

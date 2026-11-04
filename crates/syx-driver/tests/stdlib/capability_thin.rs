@@ -12,7 +12,7 @@ fn capability_thin_evidence_files_exist() {
         "packages/internal/capabilities.generated.json",
         "books/shared/capabilities-generated.md",
         "scripts/gen_capabilities.py",
-        "crates/syx-driver/src/capabilities_report.rs",
+        "crates/syx-driver/src/capabilities.rs",
         "crates/syx-lsp/src/lib.rs",
     ] {
         let path = format!("{root}{rel}");
@@ -28,7 +28,7 @@ fn capability_thin_evidence_files_exist() {
             && caps.contains("[[capability]]"),
         "capabilities.toml must remain the authoritative v0 source"
     );
-    let report = include_str!("../../src/capabilities_report.rs");
+    let report = include_str!("../../src/capabilities.rs");
     assert!(
         report.contains("capabilities.generated.json"),
         "doctor report must embed generated JSON same-source"

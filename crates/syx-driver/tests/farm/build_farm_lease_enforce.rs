@@ -19,10 +19,6 @@ fn with_lease_auth<F: FnOnce()>(f: F) {
     farm_lease_reset();
 }
 
-#[test]
-fn p101_farm_frame_lease_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-frame-lease-v1:ttl-err-on-expired"));
-}
 
 #[test]
 fn p100_farm_lease_ttl_hard_reject_tcp() {

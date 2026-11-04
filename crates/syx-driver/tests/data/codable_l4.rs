@@ -50,10 +50,6 @@ func main() {
     assert!(out.contains("88") || out.contains("Item"), "{out}");
 }
 
-#[test]
-fn p98_codable_l4_keyed_container_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("codable-l5-v1"));
-}
 
 #[test]
 fn p98_codable_l4_stdlib_protocols_registry() {

@@ -27,7 +27,7 @@ pub const CJK_GLYPH_W: u32 = 14;
 pub const CJK_GLYPH_H: u32 = 14;
 pub const CJK_ADVANCE: u32 = 15;
 
-pub fn ttf_subset_fingerprint() -> &'static str {
+pub fn ttf_subset_digest() -> &'static str {
     "gui-ttf-expand-v1:cjk64-plus"
 }
 

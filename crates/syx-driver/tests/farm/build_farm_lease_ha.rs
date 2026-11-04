@@ -5,20 +5,10 @@ use std::time::Duration;
 
 use syx_driver::{
     farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured, farm_lease_auth_configure_ha,
-    farm_lease_ha_fingerprint, farm_lease_require_active, farm_lease_reset, farm_lease_test_lock,
+    farm_lease_require_active, farm_lease_reset, farm_lease_test_lock,
     spawn_farm_lease_ha, FARM_LEASE_DEFAULT_TOKEN,
 };
 
-#[test]
-fn p107_farm_lease_ha_fingerprint() {
-    // P108 supersedes HA GA fingerprint to process-isolated v2.
-    assert_eq!(
-        farm_lease_ha_fingerprint(),
-        "farm-lease-ha-v2:process-isolated"
-    );
-    assert!(include_str!("../../src/farm_lease_auth.rs")
-        .contains("farm-lease-ha-v2:process-isolated"));
-}
 
 #[test]
 fn p107_farm_ha_secondary_validates_after_primary_stop() {

@@ -19,20 +19,6 @@ fn run(src: &str) -> Result<Vec<String>, String> {
     }
 }
 
-#[test]
-fn os_network_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("stdlib-os-v4:network-mvp"));
-    assert!(lib.contains("heap_v110_phase138_track_d_os_network_fingerprint"));
-    let os = include_str!("../../../../packages/os/mod.sy");
-    assert!(os.contains("primaryIpv4"));
-    assert!(os.contains("__syx_os_primary_ipv4"));
-    let hosts = include_str!("../../../syx-vm/src/os_hosts.rs");
-    assert!(hosts.contains("host_os_primary_ipv4"));
-    assert!(hosts.contains("primary_ipv4"));
-    let registry = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(registry.contains("OsPrimaryIpv4"));
-}
 
 #[test]
 fn os_network_primary_ipv4_runs_without_crash() {

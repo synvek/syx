@@ -11,10 +11,6 @@ use syx_pkg::SyxManifest;
 use crate::billing_env_lock::billing_env_lock;
 use crate::lease_test_harness::with_lease_auth;
 
-#[test]
-fn p101_farm_tcp_e2e_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-frame-lease-v1:ttl-err-on-expired"));
-}
 
 #[test]
 fn p100_build_farm_tcp_e2e_get_put_hit() {

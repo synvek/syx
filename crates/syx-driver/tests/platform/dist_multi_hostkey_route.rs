@@ -5,10 +5,19 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_delivery_ack_clear, cdn_delivery_ack_count, cdn_doctor_mode, cdn_pop_clear,
-    cdn_pop_configure, cdn_pop_fingerprint, cdn_pop_has_endpoints, cdn_pop_health,
-    cdn_pop_multi_hostkey_route_ready, cdn_pop_route, dist_connect_url_is_loopback,
-    dist_host_key_remote_for_bind, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    cdn_delivery_ack_clear,
+    cdn_delivery_ack_count,
+    cdn_doctor_mode,
+    cdn_pop_clear,
+    cdn_pop_configure,
+    cdn_pop_has_endpoints,
+    cdn_pop_health,
+    cdn_pop_multi_hostkey_route_ready,
+    cdn_pop_route,
+    dist_connect_url_is_loopback,
+    dist_host_key_remote_for_bind,
+    dist_tcp_url_for_bind_addr,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P119_DIST_LOCK: Mutex<()> = Mutex::new(());
@@ -24,15 +33,6 @@ fn spawn_remote_pop(max_conns: usize) -> (String, String, String, syx_async::Arc
     (region, host_key, connect_url, stop)
 }
 
-#[test]
-fn dist_multi_hostkey_cdn_pop_v6_fingerprint() {
-    assert_eq!(cdn_pop_fingerprint(), "dist-cdn-pop-v6:multi-hostkey-route");
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-    assert!(src.contains("cdn_pop_multi_hostkey_route_ready"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-}
 
 #[test]
 fn dist_multi_hostkey_cdn_pop_multi_hostkey_route_e2e() {

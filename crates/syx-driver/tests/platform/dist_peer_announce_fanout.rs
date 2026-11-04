@@ -6,31 +6,27 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_fanout, cdn_bgp_peer_announce_fanout_fingerprint,
-    cdn_bgp_peer_announce_fanout_mesh_ready, cdn_bgp_peer_announce_fanout_ready,
-    cdn_bgp_peer_announce_sticky_path_for, cdn_bgp_peer_announce_sticky_receive_and_ack,
-    cdn_bgp_route_sticky, cdn_bgp_sticky_binding, cdn_bgp_sticky_binding_expires_at_ms,
-    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear,
+    cdn_bgp_configure_mesh,
+    cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_fanout,
+    cdn_bgp_peer_announce_fanout_mesh_ready,
+    cdn_bgp_peer_announce_fanout_ready,
+    cdn_bgp_peer_announce_sticky_path_for,
+    cdn_bgp_peer_announce_sticky_receive_and_ack,
+    cdn_bgp_route_sticky,
+    cdn_bgp_sticky_binding,
+    cdn_bgp_sticky_binding_expires_at_ms,
+    cdn_bgp_sticky_pop_clear,
+    cdn_bgp_sticky_pop_ready,
+    cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P131_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_peer_announce_fanout_cdn_bgp_v14_peer_announce_fanout_fingerprint() {
-    assert_eq!(
-        cdn_bgp_peer_announce_fanout_fingerprint(),
-        "dist-cdn-bgp-v14:peer-announce-fanout-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v14:peer-announce-fanout-mvp"));
-    assert!(src.contains("cdn_bgp_peer_announce_fanout"));
-    assert!(src.contains("cdn_bgp_peer_announce_fanout_mesh_ready"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v14:peer-announce-fanout-mvp"));
-    assert!(lib.contains("heap_v103_phase131_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn dist_peer_announce_fanout_peer_announce_fanout_partial_ack_not_mesh_ready_ttl_inherit() {

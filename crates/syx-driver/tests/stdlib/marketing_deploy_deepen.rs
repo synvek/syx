@@ -85,7 +85,7 @@ fn marketing_deploy_deepen_spec_signed() {
 
 #[test]
 fn marketing_deploy_deepen_nail_behavior() {
-    use syx_driver::capabilities_report::run_capabilities_report;
+    use syx_driver::capabilities::run_capabilities_report;
     use syx_driver::marketing_capabilities::{
         capabilities_for_marketing, render_marketing_capabilities_page,
         write_marketing_capabilities_fixture,

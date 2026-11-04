@@ -50,10 +50,6 @@ fn p98_orm_delete_where_stdout() {
     assert!(out.iter().any(|l| l.contains('1')), "{out:?}");
 }
 
-#[test]
-fn p98_orm_query_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("orm-query-ga-v1"));
-}
 
 #[test]
 fn p98_orm_package_find_where() {

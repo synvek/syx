@@ -1,6 +1,6 @@
 //! Capability manifest honesty nails (source TOML ↔ generated JSON/docs).
 
-use syx_driver::capabilities_report::{
+use syx_driver::capabilities::{
     print_capabilities_report, print_ir_capabilities_report, run_capabilities_report,
     run_ir_capabilities_report,
 };

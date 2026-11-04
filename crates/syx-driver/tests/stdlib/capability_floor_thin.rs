@@ -11,7 +11,7 @@ fn capability_floor_thin_evidence_files_exist() {
         "packages/internal/capabilities.generated.json",
         "books/shared/capabilities-generated.md",
         "scripts/gen_capabilities.py",
-        "crates/syx-driver/src/capabilities_report.rs",
+        "crates/syx-driver/src/capabilities.rs",
         "crates/syx-driver/tests/stdlib/capability_thin.rs",
         "crates/syx-lsp/src/lib.rs",
     ] {

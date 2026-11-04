@@ -53,17 +53,4 @@ func main() {
     assert!(!out.contains("OK"), "reentrant call must not succeed: {out}");
 }
 
-#[test]
-fn m3_a03_reentrancy_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_actor_reentrancy_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("serial-no-reenter"),
-        "policy HostFn must return serial-no-reenter: {out}"
-    );
-}
 

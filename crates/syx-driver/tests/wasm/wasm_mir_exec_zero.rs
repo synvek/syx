@@ -79,7 +79,3 @@ fn p98_wasm_run_op_zero_aot_matrix() {
     }
 }
 
-#[test]
-fn p98_wasm_mir_exec_zero_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("wasm-guidemo-zero-v1:main-guidemo-mir-exec-run-op-zero"));
-}

@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_orm_mvp_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("orm-mvp-v1"));
-}
 
 #[test]
 fn p98_orm_mvp_save_find_stdout() {

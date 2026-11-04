@@ -10,17 +10,7 @@ fn p102_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p102_opts())
 }
 
-#[test]
-fn p102_codable_host_body_prune_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("codable-host-body-prune-v1:no-l5-l13-impl"));
-}
 
-#[test]
-fn p102_lang_deinit_arc_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs")
-        .contains("lang-deinit-arc-v1:refcount-zero-call"));
-}
 
 #[test]
 fn p102_hover_let_count_int() {

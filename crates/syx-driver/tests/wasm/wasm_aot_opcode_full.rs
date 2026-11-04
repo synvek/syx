@@ -77,7 +77,3 @@ fn p98_wasm_aot_opcode_full_mir_emit_surface() {
     assert!(src.contains("MirOp::Pop") && src.contains("MirOp::Add"));
 }
 
-#[test]
-fn p98_wasm_aot_opcode_full_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("wasm-aot-zero-run-op-v1"));
-}

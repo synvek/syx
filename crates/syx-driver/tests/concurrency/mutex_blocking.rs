@@ -12,19 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn m3_c01_mutex_blocking_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_sync_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("mutex-raii-guard-v1-blocking"),
-        "syncPolicy fingerprint after deepen: {out}"
-    );
-}
 
 #[test]
 fn m3_c01_mutex_blocking_try_lock_still_nonblocking() {

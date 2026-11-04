@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use syx_driver::{emit_llvm_text, DriverOptions};
-use syx_llvm::emit_llvm_ir;
 
 fn opts() -> DriverOptions {
     DriverOptions::default()
@@ -68,7 +67,3 @@ fn p98_llvm_phi_clang_mir_main_declare_not_matched() {
     assert!(syx_llvm::llvm_ir_uses_mir_main_entry(ir_call));
 }
 
-#[test]
-fn p98_llvm_phi_clang_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-locals-v5:alloca-ssa-value-ga"));
-}

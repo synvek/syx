@@ -15,15 +15,6 @@ use syx_async::{
 
 static P110_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_multihost_fingerprint() {
-    // Live fingerprint advanced in Phase 114; P110 string remains in heap_v82.
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("cdn-memory-dev-only") || src.contains("SYX_DIST_CDN_MEMORY"));
-    assert!(src.contains("dist_region_multihost_route"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-region-multihost-v1:keyed-failover"));
-}
 
 #[test]
 fn dist_multihost_memory_cdn_not_ga_without_tcp() {

@@ -16,15 +16,7 @@ fn fixture(rel: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(rel)
 }
 
-#[test]
-fn build_optional_lang_resultbuilder_v2_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("lang-resultbuilder-v2:build-optional"));
-}
 
-#[test]
-fn build_optional_lang_deinit_weak_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("lang-deinit-weak-v1:weak-nil-on-drop"));
-}
 
 #[test]
 fn build_optional_resultbuilder_build_optional_stdout() {

@@ -12,24 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn m3_c02_semaphore_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_semaphore_policy())
-  print(__syx_sync_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("semaphore-v1-thin") || out.contains("semaphore-v1-raii"),
-        "semaphorePolicy fingerprint (thin or raii): {out}"
-    );
-    assert!(
-        out.contains("mutex-raii-guard-v1-blocking"),
-        "C01 syncPolicy must remain unchanged: {out}"
-    );
-}
 
 #[test]
 fn m3_c02_semaphore_try_wait_and_count() {

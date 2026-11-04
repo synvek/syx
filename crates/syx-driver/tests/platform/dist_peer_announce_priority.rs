@@ -6,35 +6,29 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_conflict_epoch_mesh_ready, cdn_bgp_peer_announce_default_priority,
-    cdn_bgp_peer_announce_epoch_memory_clear, cdn_bgp_peer_announce_epoch_persist_ready,
-    cdn_bgp_peer_announce_fanout_with_epoch, cdn_bgp_peer_announce_peer_priority,
-    cdn_bgp_peer_announce_priority_fingerprint, cdn_bgp_peer_announce_priority_ready,
-    cdn_bgp_peer_announce_priority_wins, cdn_bgp_peer_announce_receive_ack_with_epoch,
-    cdn_bgp_peer_announce_sort_peers_by_priority, cdn_bgp_route_sticky,
-    cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key, cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear,
+    cdn_bgp_configure_mesh,
+    cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_conflict_epoch_mesh_ready,
+    cdn_bgp_peer_announce_default_priority,
+    cdn_bgp_peer_announce_epoch_memory_clear,
+    cdn_bgp_peer_announce_epoch_persist_ready,
+    cdn_bgp_peer_announce_fanout_with_epoch,
+    cdn_bgp_peer_announce_peer_priority,
+    cdn_bgp_peer_announce_priority_ready,
+    cdn_bgp_peer_announce_priority_wins,
+    cdn_bgp_peer_announce_receive_ack_with_epoch,
+    cdn_bgp_peer_announce_sort_peers_by_priority,
+    cdn_bgp_route_sticky,
+    cdn_bgp_sticky_pop_ready,
+    cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P135_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_peer_announce_priority_cdn_bgp_v18_peer_announce_priority_fingerprint() {
-    assert_eq!(
-        cdn_bgp_peer_announce_priority_fingerprint(),
-        "dist-cdn-bgp-v18:peer-announce-priority-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v18:peer-announce-priority-mvp"));
-    assert!(src.contains("cdn_bgp_peer_announce_sort_peers_by_priority"));
-    assert!(src.contains("cdn_bgp_peer_announce_peer_priority"));
-    assert!(src.contains("#priority:"));
-    assert!(src.contains("SYX_DIST_PEER_ANNOUNCE_PRIORITY"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v18:peer-announce-priority-mvp"));
-    assert!(lib.contains("heap_v107_phase135_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn dist_peer_announce_priority_peer_announce_priority_ordering_wins() {

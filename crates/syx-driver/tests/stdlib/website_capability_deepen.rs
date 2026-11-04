@@ -63,7 +63,7 @@ fn website_capability_deepen_nail_behavior() {
     use syx_driver::website_capabilities::{
         capabilities_for_website, render_capabilities_html_snippet,
     };
-    use syx_driver::capabilities_report::run_capabilities_report;
+    use syx_driver::capabilities::run_capabilities_report;
 
     let summary = capabilities_for_website(None);
     let report = run_capabilities_report();

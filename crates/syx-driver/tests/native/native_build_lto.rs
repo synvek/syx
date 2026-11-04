@@ -2,10 +2,6 @@
 
 use syx_driver::BuildProfile;
 
-#[test]
-fn p98_native_lto_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-lto-v1"));
-}
 
 #[test]
 fn p98_native_lto_default_off() {

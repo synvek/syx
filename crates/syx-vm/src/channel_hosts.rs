@@ -60,7 +60,7 @@ thread_local! {
 }
 
 /// Phase 107 fingerprint: fair multi-ready select.
-pub fn select_fair_fingerprint() -> &'static str {
+pub fn select_fair_digest() -> &'static str {
     "select-fair-v1:round-robin"
 }
 
@@ -91,14 +91,14 @@ const SELECT_DIR_KEY: &str = "__syx_select_dir";
 /// 4. legacy send-marked channel with only `__syx_select_send_value`
 pub const SELECT_MIXED_UNIFIED_FINGERPRINT: &str = "select-mixed-unified-v1:tagged-array-poll";
 
-pub fn select_mixed_unified_fingerprint() -> &'static str {
+pub fn select_mixed_unified_digest() -> &'static str {
     SELECT_MIXED_UNIFIED_FINGERPRINT
 }
 
 /// Phase 109: mixed select + await interleave hard gate.
 pub const SELECT_MIXED_AWAIT_FINGERPRINT: &str = "select-mixed-await-v1:interleave";
 
-pub fn select_mixed_await_fingerprint() -> &'static str {
+pub fn select_mixed_await_digest() -> &'static str {
     SELECT_MIXED_AWAIT_FINGERPRINT
 }
 
@@ -114,19 +114,19 @@ pub const SELECT_DEADLINE_UNIFY_FINGERPRINT: &str = "select-deadline-unify-v1:la
 /// Phase 113: mixed+await requires syntax timeout/deadline; env fallback hard-banned.
 pub const SELECT_DEADLINE_STRICT_FINGERPRINT: &str = "select-deadline-strict-v1:no-env";
 
-pub fn select_mixed_timeout_fingerprint() -> &'static str {
+pub fn select_mixed_timeout_digest() -> &'static str {
     SELECT_MIXED_TIMEOUT_FINGERPRINT
 }
 
-pub fn select_timeout_syntax_fingerprint() -> &'static str {
+pub fn select_timeout_syntax_digest() -> &'static str {
     SELECT_TIMEOUT_SYNTAX_FINGERPRINT
 }
 
-pub fn select_deadline_unify_fingerprint() -> &'static str {
+pub fn select_deadline_unify_digest() -> &'static str {
     SELECT_DEADLINE_UNIFY_FINGERPRINT
 }
 
-pub fn select_deadline_strict_fingerprint() -> &'static str {
+pub fn select_deadline_strict_digest() -> &'static str {
     SELECT_DEADLINE_STRICT_FINGERPRINT
 }
 
@@ -725,7 +725,7 @@ mod tests {
     #[test]
     fn select_fair_round_robin_alternates_when_both_ready() {
         reset_select_fair_cursor(0);
-        assert_eq!(select_fair_fingerprint(), "select-fair-v1:round-robin");
+        assert_eq!(select_fair_digest(), "select-fair-v1:round-robin");
 
         let mut stack = Vec::new();
         stack.push(Value::I32(1));
@@ -809,7 +809,7 @@ mod tests {
     fn select_mixed_tagged_array_fair_poll() {
         reset_select_fair_cursor(0);
         assert_eq!(
-            select_mixed_unified_fingerprint(),
+            select_mixed_unified_digest(),
             "select-mixed-unified-v1:tagged-array-poll"
         );
 

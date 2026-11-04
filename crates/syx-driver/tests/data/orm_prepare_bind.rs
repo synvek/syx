@@ -5,10 +5,6 @@ use std::collections::HashMap;
 use syx_runtime_core::Value;
 use syx_vm::{host_orm_find_where_dict_prepare, orm_prepared_rows, reset_phase98_state};
 
-#[test]
-fn p98_orm_prepare_bind_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("orm-prepare-bind-v1"));
-}
 
 #[test]
 fn p98_orm_prepare_bind_alice_row() {

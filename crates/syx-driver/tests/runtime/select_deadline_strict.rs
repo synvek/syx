@@ -2,8 +2,8 @@
 
 use syx_driver::{compile_and_run_embedded, compile_embedded, DriverOptions};
 use syx_vm::{
-    select_deadline_strict_fingerprint, select_deadline_unify_fingerprint,
-    select_timeout_syntax_fingerprint,
+    select_deadline_strict_digest, select_deadline_unify_digest,
+    select_timeout_syntax_digest,
 };
 
 fn run(src: &str) -> Vec<String> {
@@ -70,20 +70,20 @@ async func main() {
 }"#;
 
 #[test]
-fn select_deadline_strict_fingerprints_present() {
+fn select_deadline_strict_digests_present() {
     assert_eq!(
-        select_deadline_strict_fingerprint(),
+        select_deadline_strict_digest(),
         "select-deadline-strict-v1:no-env"
     );
     assert_eq!(
-        syx_parser::select_deadline_strict_fingerprint(),
+        syx_parser::select_deadline_strict_digest(),
         "select-deadline-strict-v1:no-env"
     );
     assert_eq!(
-        select_timeout_syntax_fingerprint(),
+        select_timeout_syntax_digest(),
         "select-timeout-syntax-v1:lang-arm"
     );
-    let _ = select_deadline_unify_fingerprint();
+    let _ = select_deadline_unify_digest();
     let lib = include_str!("../../src/lib.rs");
     assert!(lib.contains("select-deadline-strict-v1:no-env"));
     assert!(lib.contains("dist-cdn-bgp-v2:peer-exchange"));

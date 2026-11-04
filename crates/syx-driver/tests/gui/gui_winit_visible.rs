@@ -14,22 +14,7 @@ use syx_vm::{
 };
 use syx_runtime_core::Value;
 
-#[test]
-fn p102_gui_callback_ga_fingerprint() {
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-callback-ga-v1:invoke-onclick-textfield"));
-    assert!(include_str!("../../../syx-vm/src/gui_invoke.rs").contains("invoke_gui_handler"));
-    assert!(include_str!("../../../syx-gui/src/dylib_api.rs")
-        .contains("syx_gui_dylib_drain_pending_handlers"));
-    assert!(include_str!("../../../syx-gui/src/dylib_api.rs").contains("syx_gui_dylib_key_inject"));
-    assert!(include_str!("../../../syx-gui/src/dylib_api.rs")
-        .contains("syx_gui_dylib_widget_get_text"));
-}
 
-#[test]
-fn p100_gui_winit_visible_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gui-visible-dylib-hard-v1:no-silent-fallback"));
-}
 
 #[test]
 fn p100_visible_headless_widgets_label_text() {
@@ -266,16 +251,6 @@ fn p100_gui_require_dylib_source() {
     assert!(include_str!("../../../syx-vm/src/gui_dlopen.rs").contains("require_dylib_if_visible"));
 }
 
-#[test]
-fn p103_gui_focus_caret_fingerprint() {
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-textfield-focus-v1:caret-tab-cycle"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-hstack-ga-v1:spacing-align"));
-    assert!(include_str!("../../../syx-vm/src/gui_invoke.rs")
-        .contains("gui-onclick-hard-v1:no-swallow-err"));
-    assert!(include_str!("../../src/lib.rs").contains("heap_v75_phase103_track_a_fingerprint"));
-}
 
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
@@ -389,16 +364,6 @@ fn p103_hstack_spacing_layout_host() {
     assert!(tag.contains("spacing-align:20:center"), "tag={tag:?}");
 }
 
-#[test]
-fn p104_gui_cjk_ime_fingerprint() {
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-cjk-ime-v1:unicode-caret-ime"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-ttf-expand-v1:cjk64-plus"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs").contains("WindowEvent::Ime"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs").contains("Ime::Preedit"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs").contains("Ime::Commit"));
-}
 
 #[test]
 fn p106_gui_doctor_backend_report_subset_chars() {

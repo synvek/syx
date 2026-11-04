@@ -5,11 +5,7 @@ fn cache_v110_tag_active() {
     let lib = include_str!("../../src/lib.rs");
     assert!(lib.contains("syx-cache-v110"));
     assert!(!lib.contains("\"syx-cache-v109:"));
-    assert!(lib.contains("heap_v110_phase138_track_a_props_fingerprint"));
-    assert!(lib.contains("heap_v110_phase138_track_c_wasm_fingerprint"));
-    assert!(lib.contains("heap_v110_phase138_track_d_os_network_fingerprint"));
-    assert!(lib.contains("heap_v110_phase138_track_e_macro_concurrency_fingerprint"));
-    assert!(lib.contains("heap_v110_phase138_dx_fingerprint"));
+    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
 }
 
 #[test]

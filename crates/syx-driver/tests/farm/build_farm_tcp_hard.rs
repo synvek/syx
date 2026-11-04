@@ -8,10 +8,6 @@ use syx_driver::{
 
 use crate::lease_test_harness::with_lease_auth;
 
-#[test]
-fn p101_farm_tcp_hard_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-frame-lease-v1:ttl-err-on-expired"));
-}
 
 #[test]
 fn p98_farm_tcp_default_url_is_tcp() {

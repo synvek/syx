@@ -514,7 +514,7 @@ pub fn ot_default_paint_proven() -> bool {
     OT_DEFAULT_PAINT_PROVEN.load(Ordering::Relaxed)
 }
 
-pub fn dylib_ot_vf_parity_fingerprint() -> &'static str {
+pub fn dylib_ot_vf_parity_digest() -> &'static str {
     DYLIB_OT_VF_PARITY_FINGERPRINT
 }
 
@@ -542,7 +542,7 @@ pub fn vf_paint_variations_used() -> bool {
     VF_PAINT_VARIATIONS_USED.load(Ordering::Relaxed)
 }
 
-pub fn vf_paint_variations_fingerprint() -> &'static str {
+pub fn vf_paint_variations_digest() -> &'static str {
     VF_PAINT_VARIATIONS_FINGERPRINT
 }
 
@@ -614,11 +614,11 @@ pub fn vf_axes_ge3_used() -> bool {
     VF_AXES_GE3_USED.load(Ordering::Relaxed)
 }
 
-pub fn vf_axes_ge3_fingerprint() -> &'static str {
+pub fn vf_axes_ge3_digest() -> &'static str {
     VF_PAINT_VARIATIONS_FINGERPRINT
 }
 
-pub fn vf_multi_axis_fingerprint() -> &'static str {
+pub fn vf_multi_axis_digest() -> &'static str {
     VF_MULTI_AXIS_FINGERPRINT
 }
 
@@ -626,11 +626,11 @@ pub fn vf_wght_used() -> bool {
     VF_WGHT_USED.load(Ordering::Relaxed)
 }
 
-pub fn vf_wght_fingerprint() -> &'static str {
+pub fn vf_wght_digest() -> &'static str {
     VF_WGHT_FINGERPRINT
 }
 
-pub fn ot_features_fingerprint() -> &'static str {
+pub fn ot_features_digest() -> &'static str {
     OT_FEATURES_FINGERPRINT
 }
 
@@ -638,15 +638,15 @@ pub fn ot_calt_used() -> bool {
     OT_CALT_USED.load(Ordering::Relaxed)
 }
 
-pub fn harfbuzz_fingerprint() -> &'static str {
+pub fn harfbuzz_digest() -> &'static str {
     "gui-harfbuzz-v1:shape-mvp"
 }
 
-pub fn hb_paint_fingerprint() -> &'static str {
+pub fn hb_paint_digest() -> &'static str {
     HB_PAINT_FINGERPRINT
 }
 
-pub fn font_fallback_fingerprint() -> &'static str {
+pub fn font_fallback_digest() -> &'static str {
     "gui-font-fallback-v1:system-cjk"
 }
 

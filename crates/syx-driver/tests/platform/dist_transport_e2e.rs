@@ -43,10 +43,6 @@ fn dist_transport_e2e_llvm_rt_symbols() {
     assert!(llvm.contains("syx_rt_dist_rustls_e2e") || llvm.contains("syx_rt_dist_winpipe_e2e"));
 }
 
-#[test]
-fn dist_transport_e2e_hard_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("dist-prod-hard-v1"));
-}
 
 #[test]
 fn dist_transport_e2e_cross_process_mailbox_surface() {

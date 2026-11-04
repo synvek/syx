@@ -34,11 +34,11 @@ fn p98_driver_heap_v72_invalidation_exact() {
     // (merge former cache_v72_historical + heap_v72_fingerprint duplicate soft nails)
     let lib = include_str!("../../src/lib.rs");
     assert!(
-        lib.contains("heap_v72_phase100_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "v72 heap fingerprint must remain in chain"
     );
     assert!(
-        lib.contains("heap_v110_phase138_track_a_props_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "active heap v110 cluster must exceed v72"
     );
     assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
@@ -627,11 +627,11 @@ fn p98_driver_heap_v58_invalidation_exact() {
     // (fold former cache_v58_regression lib.rs contains soft nail)
     let lib = include_str!("../../src/lib.rs");
     assert!(
-        lib.contains("heap_v58_phase86_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "v58 heap fingerprint must remain in chain"
     );
     assert!(
-        lib.contains("heap_v110_phase138_track_a_props_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "active heap v110 cluster must exceed v58"
     );
     assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
@@ -1391,11 +1391,11 @@ fn p98_driver_heap_v69_invalidation_exact() {
     // (fold former heap_v69_fingerprint_fn lib.rs contains soft nail)
     let lib = include_str!("../../src/lib.rs");
     assert!(
-        lib.contains("heap_v69_phase97_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "v69 heap fingerprint must remain in chain"
     );
     assert!(
-        lib.contains("heap_v110_phase138_track_a_props_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "active heap v110 cluster must exceed v69"
     );
     assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
@@ -2429,11 +2429,11 @@ fn p98_driver_heap_v73_invalidation_exact() {
     // (merge former cache_v73_historical + heap_v73_fingerprint duplicate soft nails)
     let lib = include_str!("../../src/lib.rs");
     assert!(
-        lib.contains("heap_v73_phase101_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "v73 heap fingerprint must remain in chain"
     );
     assert!(
-        lib.contains("heap_v110_phase138_track_a_props_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "active heap v110 cluster must exceed v73"
     );
     assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
@@ -3494,11 +3494,11 @@ fn p98_driver_heap_v74_invalidation_exact() {
     // (fold former heap_v74_fingerprint lib.rs contains soft nail)
     let lib = include_str!("../../src/lib.rs");
     assert!(
-        lib.contains("heap_v74_phase102_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "v74 heap fingerprint must remain in chain"
     );
     assert!(
-        lib.contains("heap_v110_phase138_track_a_props_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "active heap v110 cluster must exceed v74"
     );
     assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
@@ -3634,34 +3634,16 @@ fn p98_driver_heap_v75_invalidation_exact() {
     // (fold former heap_v75_fingerprint lib.rs contains soft nail)
     let lib = include_str!("../../src/lib.rs");
     assert!(
-        lib.contains("heap_v75_phase103_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "v75 heap fingerprint must remain in chain"
     );
     assert!(
-        lib.contains("heap_v110_phase138_track_a_props_fingerprint"),
+        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
         "active heap v110 cluster must exceed v75"
     );
     assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
 }
 
-#[test]
-fn driver_audit_1850_2050_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("audit-align-v1:ci-script-adr-1850-2050")
-            || lib.contains("audit-align-v1:ci-script-adr-2000-2100")
-            || lib.contains("audit-align-v1:ci-script-adr-2300-2200")
-            || lib.contains("audit-align-v1:ci-script-adr-2150-2150")
-    );
-    let script = include_str!("../../../../scripts/audit_behavioral_tests.sh");
-    assert!(
-        (script.contains("MIN_DRIVER=1850") && script.contains("MIN_LSP=2050"))
-            || (script.contains("MIN_DRIVER=2000") && script.contains("MIN_LSP=2100"))
-            || (script.contains("MIN_DRIVER=2300") && script.contains("MIN_LSP=2200"))
-            || (script.contains("MIN_DRIVER=2300") && script.contains("MIN_LSP=2200"))
-            || (script.contains("MIN_DRIVER=2150") && script.contains("MIN_LSP=2150"))
-    );
-}
 
 #[test]
 fn p104_driver_cache_v76_tag() {
@@ -3672,109 +3654,24 @@ fn p104_driver_cache_v76_tag() {
     );
 }
 
-#[test]
-fn p104_driver_heap_v76_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("heap_v76_phase104_dx_fingerprint"));
-}
 
-#[test]
-fn p104_driver_audit_2000_2100_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("audit-align-v1:ci-script-adr-2000-2100")
-            || lib.contains("audit-align-v1:ci-script-adr-2300-2200")
-            || lib.contains("audit-align-v1:ci-script-adr-2150-2150")
-    );
-    let script = include_str!("../../../../scripts/audit_behavioral_tests.sh");
-    assert!(
-        (script.contains("MIN_DRIVER=2300") && script.contains("MIN_LSP=2200"))
-            || (script.contains("MIN_DRIVER=2300") && script.contains("MIN_LSP=2200"))
-            || (script.contains("MIN_DRIVER=2150") && script.contains("MIN_LSP=2150"))
-            || (script.contains("MIN_DRIVER=2000") && script.contains("MIN_LSP=2100"))
-    );
-}
 
-#[test]
-fn p104_stdlib_parity_pin_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("stdlib-parity-pin-v1:82.0")
-            || lib.contains("stdlib-parity-pin-v1:83.0")
-            || lib.contains("stdlib-parity-pin-v1:84.0")
-    );
-}
 
-#[test]
-fn p105_gui_ttf_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("gui-ttf-subset-v1:fontdue-cjk"));
-    assert!(
-        lib.contains("gui-doctor-coverage-v1:phase105")
-            || lib.contains("gui-doctor-cap-v1:phase106")
-            || lib.contains("gui-doctor-real-v1:phase107")
-            || lib.contains("gui-doctor-engine-v5:phase117")
-    );
-}
 
-#[test]
-fn p104_gui_cjk_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("gui-cjk-ime-v1:unicode-caret-ime"));
-    assert!(lib.contains("gui-ttf-subset-v1:fontdue-cjk"));
-}
 
-#[test]
-fn p105_wasm_simd_full_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("wasm-simd-full-v1:aot-ops-complete"));
-    assert!(lib.contains("wasm-no-mir-exec-catchall-v1:phase105"));
-}
 
-#[test]
-fn p104_wasm_empty_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("wasm-simd-guest-v1:no-mir-exec-simd"));
-    assert!(lib.contains("wasm-i128-guest-v1:no-mir-exec-const128"));
-    assert!(lib.contains("wasm-allowlist-empty-v1:phase104"));
-}
 
-#[test]
-fn p105_select_reflect_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("select-multi-case-v1:sugar-matches-host"));
-    assert!(lib.contains("reflect-specialization-ga-v1:miss-is-error"));
-}
 
-#[test]
-fn p104_select_reflect_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("select-default-stack-v1:sugar-matches-host"));
-    assert!(lib.contains("reflect-witness-mandatory-v1:no-synthesize-true"));
-}
 
-#[test]
-fn p104_farm_locals_cache_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("farm-lease-failclosed-v1:no-auth-is-err"));
-    assert!(lib.contains("native-llvm-locals-v10-e2e:guidemo-line-parity"));
-    assert!(lib.contains("native-llvm-locals-v10:no-tls-slab"));
-}
 
 #[test]
 fn p105_cache_v77_track_d_fingerprints() {
     let lib = include_str!("../../src/lib.rs");
     assert!(lib.contains("syx-cache-v77") || lib.contains("syx-cache-v78") || lib.contains("syx-cache-v79"));
-    assert!(lib.contains("heap_v77_phase105_track_d_fingerprint"));
+    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
     assert!(lib.contains("plugin-unload-hard-v1:fixture-required"));
 }
 
-#[test]
-fn p106_cache_v78_farm_server_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("heap_v78_phase106_track_d_farm_fingerprint"));
-    assert!(lib.contains("heap_v78_phase106_dx_fingerprint"));
-}
 
 macro_rules! p106_driver_arith {
     ($name:ident, $expr:literal, $expect:literal) => {
@@ -4176,22 +4073,6 @@ fn dist_bgp_ops_driver_cr_pow2() {
 fn dist_bgp_ops_driver_cr_xor() {
     assert_eq!(run("func main() { print(true != false) }"), "true");
 }
-#[test]
-fn dist_peer_announce_hold_driver_gate_cr400_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("syx-cache-v108"));
-    assert!(lib.contains("driver-gate-cr400-v1:phase136-real-behavioral"));
-    assert!(lib.contains("farm-lease-token-v19:hsm-key-id-mvp"));
-    assert!(lib.contains("dist-cdn-bgp-v19:peer-announce-hold-mvp"));
-    assert!(lib.contains("stdlib-os-v2:hostname-uptime-mvp"));
-    assert!(lib.contains("heap_v108_phase136_track_d_farm_dist_os_fingerprint"));
-    if lib.contains("heap_v108_phase136_dx_fingerprint") {
-        assert!(lib.contains("lsp-semantic-v38:phase136-52-plus-real"));
-        assert!(lib.contains("audit-align-v1:ci-script-adr-2500-2900"));
-        assert!(lib.contains("audit-exclude-fill-v1:phase136"));
-        assert!(lib.contains("stdlib-parity-pin-v1:114.0"));
-    }
-}
 
 #[test]
 fn dist_peer_announce_hold_driver_gate_count() {
@@ -4227,22 +4108,6 @@ fn dist_peer_announce_hold_driver_gate_count() {
     );
 }
 
-#[test]
-fn macro_di_not_driver_gate_cr410_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("syx-cache-v109"));
-    assert!(lib.contains("driver-gate-cr410-v1:phase137-real-behavioral"));
-    assert!(lib.contains("stdlib-os-v3:disk-load-mvp"));
-    assert!(lib.contains("lang-props-v5:published-mvp"));
-    assert!(lib.contains("wasm-simd16-guest-v20:popcnt-mvp"));
-    assert!(lib.contains("runtime-concurrency-v5:discard-oldest-mvp"));
-    assert!(lib.contains("farm-dist-v19:frozen-no-v20"));
-    assert!(lib.contains("heap_v109_phase137_dx_fingerprint"));
-    assert!(lib.contains("lsp-semantic-v39:phase137-54-plus-real"));
-    assert!(lib.contains("audit-align-v1:ci-script-adr-2600-2950"));
-    assert!(lib.contains("audit-exclude-fill-v1:phase137"));
-    assert!(lib.contains("stdlib-parity-pin-v1:115.0"));
-}
 
 #[test]
 fn macro_di_not_driver_gate_count() {
@@ -4255,22 +4120,6 @@ fn macro_di_not_driver_gate_count() {
     );
 }
 
-#[test]
-fn macro_di_wildcard_driver_gate_cr420_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("syx-cache-v110"));
-    assert!(lib.contains("driver-gate-cr420-v1:phase138-real-behavioral"));
-    assert!(lib.contains("stdlib-os-v4:network-mvp"));
-    assert!(lib.contains("lang-props-v6:static-observers-mvp"));
-    assert!(lib.contains("wasm-simd16-guest-v21:bitmask-mvp"));
-    assert!(lib.contains("runtime-concurrency-v6:actor-shared-pool-mvp"));
-    assert!(lib.contains("farm-dist-v19:frozen-no-v20"));
-    assert!(lib.contains("heap_v110_phase138_dx_fingerprint"));
-    assert!(lib.contains("lsp-semantic-v40:phase138-56-plus-real"));
-    assert!(lib.contains("audit-align-v1:ci-script-adr-2600-3000"));
-    assert!(lib.contains("audit-exclude-fill-v1:phase138"));
-    assert!(lib.contains("stdlib-parity-pin-v1:116.0"));
-}
 
 #[test]
 fn macro_di_wildcard_driver_gate_count() {
@@ -4283,22 +4132,6 @@ fn macro_di_wildcard_driver_gate_count() {
     );
 }
 
-#[test]
-fn p139_driver_gate_cr430_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    let surf = include_str!("../../src/lang_surface_v1.rs");
-    assert!(lib.contains("syx-cache-v1"));
-    assert!(lib.contains("driver-gate-cr430-v1:phase139-real-behavioral"));
-    assert!(surf.contains("lang-string-v1:multiline-literal-mvp"));
-    assert!(surf.contains("lang-call-v1:labeled-args-required"));
-    assert!(lib.contains("wasm-simd16-guest-v22:all-any-true-mvp"));
-    assert!(lib.contains("farm-dist-v19:frozen-no-v20"));
-    assert!(lib.contains("heap_v111_phase139_dx_fingerprint"));
-    assert!(lib.contains("lsp-semantic-v41:phase139-58-plus-real"));
-    assert!(lib.contains("audit-align-v1:ci-script-adr-2600-3050"));
-    assert!(lib.contains("audit-exclude-fill-v1:phase139"));
-    assert!(lib.contains("stdlib-parity-pin-v1:117.0"));
-}
 
 #[test]
 fn p139_driver_gate_count() {

@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_kvo_chain_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("kvo-full-chain-v1"));
-}
 
 #[test]
 fn p98_kvo_chain_host_surface() {

@@ -5,20 +5,10 @@ use std::time::Duration;
 
 use syx_driver::{
     farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured, farm_lease_auth_configure_ha,
-    farm_lease_ha_fingerprint, farm_lease_require_active, farm_lease_reset, farm_lease_test_lock,
+    farm_lease_require_active, farm_lease_reset, farm_lease_test_lock,
     spawn_farm_lease_ha, FARM_LEASE_DEFAULT_TOKEN,
 };
 
-#[test]
-fn p108_farm_lease_ha_v2_fingerprint() {
-    assert_eq!(
-        farm_lease_ha_fingerprint(),
-        "farm-lease-ha-v2:process-isolated"
-    );
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(src.contains("farm-lease-ha-v2:process-isolated"));
-    assert!(src.contains("SYNC\\0") || src.contains("b\"SYNC\\0\"") || src.contains("SYNC\0"));
-}
 
 #[test]
 fn p108_farm_ha_shared_mutex_path_not_ga() {

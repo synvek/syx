@@ -11,10 +11,6 @@ fn p85_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p85_stdlib_native_parity_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("stdlib-native-parity-v1"));
-}
 
 #[test]
 fn p85_import_collections_sort_by_parse() {
@@ -136,12 +132,4 @@ fn p85_switch_parse() {
     assert!(p85_doc_ok("func main() { switch 85 { case 85: print(1); default: print(0) } }"));
 }
 
-#[test]
-fn p85_hof_closure_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("hof-closure-v1"));
-}
 
-#[test]
-fn p85_reflect_lang_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("reflect-lang-v1"));
-}

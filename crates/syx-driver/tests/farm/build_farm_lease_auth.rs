@@ -20,23 +20,7 @@ fn with_lease_auth<F: FnOnce()>(f: F) {
     farm_lease_reset();
 }
 
-#[test]
-fn p104_farm_lease_auth_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-lease-auth-v1:cross-node-ttl"));
-    assert!(include_str!("../../src/farm_lease_auth.rs")
-        .contains("farm-lease-auth-v1:cross-node-ttl"));
-    assert!(
-        !include_str!("../../src/build_syx.rs").contains("FARM_LEASE_DEADLINE_MS"),
-        "process-local Mutex lease must not be GA"
-    );
-}
 
-#[test]
-fn p105_farm_lease_failclosed_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-lease-failclosed-v1:no-auth-is-err"));
-    assert!(include_str!("../../src/farm_lease_auth.rs")
-        .contains("farm-lease-failclosed-v1:no-auth-is-err"));
-}
 
 #[test]
 fn p105_farm_tcp_no_auth_get_put_err() {

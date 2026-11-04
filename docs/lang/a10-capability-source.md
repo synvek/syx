@@ -17,7 +17,7 @@
 | **权威源 schema** | **in scope** | `packages/internal/capabilities.toml` + [`capability-manifest-v0.md`](../capability-manifest-v0.md) |
 | **生成器 + CI freshness** | **in scope** | `scripts/gen_capabilities.py` + `--check` + CI |
 | **Books 同源矩阵** | **in scope** | `books/shared/capabilities-generated.md` |
-| **Doctor 同源 JSON** | **in scope** | `packages/internal/capabilities.generated.json` + `crates/syx-driver/src/capabilities_report.rs` + `syx doctor --capabilities` |
+| **Doctor 同源 JSON** | **in scope** | `packages/internal/capabilities.generated.json` + `crates/syx-driver/src/capabilities.rs` + `syx doctor --capabilities` |
 | **LSP 消费同一源** | **partial met** | `syx-lsp` `syx.capabilities` → `capabilities_for_lsp` → `run_capabilities_report()`；nail `lsp_a10_capabilities_same_source_count_and_lookup` (ADR-703) |
 | **网站消费同一源** | **met** (narrow) | W378 website + W381 hosted product met exit（ADR-722/725）；inventory+deepen；**仍 ≠** marketing full site |
 | **Residual native raise** | **Frozen** | listener / pool / row / deque `wasm=unsupported` |

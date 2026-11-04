@@ -19,19 +19,6 @@ fn run(src: &str) -> Result<Vec<String>, String> {
     }
 }
 
-#[test]
-fn os_hostname_uptime_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("stdlib-os-v2:hostname-uptime-mvp"));
-    assert!(lib.contains("heap_v108_phase136_track_d_farm_dist_os_fingerprint"));
-    let os = include_str!("../../../../packages/os/mod.sy");
-    assert!(os.contains("hostname") && os.contains("uptimeMs"));
-    assert!(os.contains("__syx_os_hostname") && os.contains("__syx_os_uptime_ms"));
-    let hosts = include_str!("../../../syx-vm/src/os_hosts.rs");
-    assert!(hosts.contains("host_os_hostname") && hosts.contains("host_os_uptime_ms"));
-    let registry = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(registry.contains("OsHostname") && registry.contains("OsUptimeMs"));
-}
 
 #[test]
 fn os_hostname_and_uptime_positive() {

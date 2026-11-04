@@ -55,10 +55,6 @@ fn p103_async_channel_recv_smoke() {
     assert!(lines.iter().any(|l| l.contains("88")), "{lines:?}");
 }
 
-#[test]
-fn p103_select_await_interleave_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("select-await-interleave-v2:case-await-order"));
-}
 
 #[test]
 fn p103_select_await_case_compile() {

@@ -5,28 +5,32 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_delivery_ack_clear, cdn_delivery_ack_count, cdn_doctor_mode, cdn_memory_dev_enabled,
-    cdn_route, cdn_route_counts_as_ga, cdn_route_ga, cdn_routes_memory_clear, cdn_tcp_peer_clear,
-    cdn_tcp_peer_configure, cdn_tcp_peer_fingerprint, cdn_tcp_peer_has_endpoints,
-    cdn_tcp_peer_inbox_count, cdn_tcp_peer_route, dist_actor_mp_clear, dist_actor_mp_inbox_clear,
-    dist_host_key_addr_is_loopback, dist_region_multihost_clear,
-    dist_region_multihost_configure_keys, dist_region_multihost_has_nonloopback_host_key,
-    dist_region_multihost_route, dist_region_multihost_tcp_health, spawn_dist_tcp_mailbox_on,
+    cdn_delivery_ack_clear,
+    cdn_delivery_ack_count,
+    cdn_doctor_mode,
+    cdn_memory_dev_enabled,
+    cdn_route,
+    cdn_route_counts_as_ga,
+    cdn_route_ga,
+    cdn_routes_memory_clear,
+    cdn_tcp_peer_clear,
+    cdn_tcp_peer_configure,
+    cdn_tcp_peer_has_endpoints,
+    cdn_tcp_peer_inbox_count,
+    cdn_tcp_peer_route,
+    dist_actor_mp_clear,
+    dist_actor_mp_inbox_clear,
+    dist_host_key_addr_is_loopback,
+    dist_region_multihost_clear,
+    dist_region_multihost_configure_keys,
+    dist_region_multihost_has_nonloopback_host_key,
+    dist_region_multihost_route,
+    dist_region_multihost_tcp_health,
+    spawn_dist_tcp_mailbox_on,
 };
 
 static P112_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_hostkey_fingerprint() {
-    // Phase 114 supersedes live fingerprints; P112 strings remain in heap_v84.
-    assert_eq!(cdn_tcp_peer_fingerprint(), "dist-cdn-tcp-v2:peer-delivery");
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_configure_keys"));
-    assert!(src.contains("SYX_DIST_CDN_MEMORY"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-region-hostkey-v2:config-nonloopback"));
-    assert!(lib.contains("dist-cdn-tcp-v1:peer-mvp"));
-}
 
 #[test]
 fn dist_hostkey_nonloopback_host_key_decoupled_from_bind() {

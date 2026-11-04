@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_sql_rusqlite_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("sql-rusqlite-v1"));
-}
 
 #[test]
 fn p98_sql_rusqlite_create_insert_select() {

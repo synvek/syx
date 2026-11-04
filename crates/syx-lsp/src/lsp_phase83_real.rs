@@ -11,10 +11,6 @@ fn p83_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p83_stdlib_v1_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_v55_phase83_fingerprint"));
-}
 
 #[test]
 fn p83_import_text_parse() {

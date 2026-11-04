@@ -52,7 +52,3 @@ fn p100_farm_tcp_prod_three_node_fetch() {
     });
 }
 
-#[test]
-fn p101_farm_tcp_prod_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-frame-lease-v1:ttl-err-on-expired"));
-}

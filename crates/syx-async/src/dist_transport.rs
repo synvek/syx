@@ -96,7 +96,7 @@ pub fn dist_actor_tls_rustls_enabled() -> bool {
         .unwrap_or(dist_actor_tls_real_enabled())
 }
 
-pub fn dist_actor_tls_rustls_pin_fingerprint() -> &'static str {
+pub fn dist_actor_tls_rustls_pin_digest() -> &'static str {
     "sha256:phase29-self-signed-pin"
 }
 
@@ -540,7 +540,7 @@ fn tls_send_real(from: i64, to: i64, payload: &str) -> bool {
         return true;
     }
     if dist_actor_tls_rustls_enabled() {
-        let pin = dist_actor_tls_rustls_pin_fingerprint();
+        let pin = dist_actor_tls_rustls_pin_digest();
         tls_real_frames().lock().push_back((
             format!("{endpoint}?pin={pin}"),
             from,
@@ -939,57 +939,57 @@ pub fn cdn_bgp_sticky_ttl_ms() -> u64 {
 }
 
 /// Phase 126 gate fingerprint: sticky PoP TTL + expiry rebind (not carrier BGP).
-pub fn cdn_bgp_sticky_ttl_fingerprint() -> &'static str {
+pub fn cdn_bgp_sticky_ttl_digest() -> &'static str {
     "dist-cdn-bgp-v9:sticky-ttl-mvp"
 }
 
 /// Phase 127 gate fingerprint: sticky binding file persist/restore (not carrier BGP).
-pub fn cdn_bgp_sticky_persist_fingerprint() -> &'static str {
+pub fn cdn_bgp_sticky_persist_digest() -> &'static str {
     "dist-cdn-bgp-v10:sticky-persist-mvp"
 }
 
 /// Phase 128 gate fingerprint: sticky multi-file/shard-key snapshots (not carrier BGP).
-pub fn cdn_bgp_sticky_multi_snapshot_fingerprint() -> &'static str {
+pub fn cdn_bgp_sticky_multi_snapshot_digest() -> &'static str {
     "dist-cdn-bgp-v11:sticky-multi-snapshot-mvp"
 }
 
 /// Phase 129 gate fingerprint: peer-announce sticky shard affinity (not carrier BGP).
-pub fn cdn_bgp_peer_announce_sticky_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_sticky_digest() -> &'static str {
     "dist-cdn-bgp-v12:peer-announce-sticky-mvp"
 }
 
 /// Phase 130 gate fingerprint: peer-announce ack after affinity apply (not carrier BGP).
-pub fn cdn_bgp_peer_announce_ack_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_ack_digest() -> &'static str {
     "dist-cdn-bgp-v13:peer-announce-ack-mvp"
 }
 
 /// Phase 131 gate fingerprint: peer-announce fanout to ≥2 peers; mesh-ready only when ALL acks (not carrier BGP).
-pub fn cdn_bgp_peer_announce_fanout_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_fanout_digest() -> &'static str {
     "dist-cdn-bgp-v14:peer-announce-fanout-mvp"
 }
 
 /// Phase 132 gate fingerprint: peer-announce conflict-epoch; higher epoch wins; mesh-ready on winning fanout all-ack (not carrier BGP).
-pub fn cdn_bgp_peer_announce_conflict_epoch_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_conflict_epoch_digest() -> &'static str {
     "dist-cdn-bgp-v15:peer-announce-conflict-epoch-mvp"
 }
 
 /// Phase 133 gate fingerprint: winning conflict-epoch durable persist/restore (not carrier BGP).
-pub fn cdn_bgp_peer_announce_epoch_persist_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_epoch_persist_digest() -> &'static str {
     "dist-cdn-bgp-v16:peer-announce-epoch-persist-mvp"
 }
 
 /// Phase 134 gate fingerprint: peer-announce wire TTL + stale peer expiry (not carrier BGP).
-pub fn cdn_bgp_peer_announce_ttl_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_ttl_digest() -> &'static str {
     "dist-cdn-bgp-v17:peer-announce-ttl-mvp"
 }
 
 /// Phase 135 gate fingerprint: peer-announce priority ordering (higher wins; not carrier BGP).
-pub fn cdn_bgp_peer_announce_priority_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_priority_digest() -> &'static str {
     "dist-cdn-bgp-v18:peer-announce-priority-mvp"
 }
 
 /// Phase 136 gate fingerprint: peer-announce hold/dampen (suppress re-announce within hold window; not carrier BGP).
-pub fn cdn_bgp_peer_announce_hold_fingerprint() -> &'static str {
+pub fn cdn_bgp_peer_announce_hold_digest() -> &'static str {
     "dist-cdn-bgp-v19:peer-announce-hold-mvp"
 }
 
@@ -1004,7 +1004,7 @@ pub fn cdn_bgp_peer_announce_ttl_ms() -> u64 {
 
 /// Phase 134: peer-announce TTL surface readiness (epoch-persist + TTL env; not carrier BGP).
 pub fn cdn_bgp_peer_announce_ttl_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_ttl_fingerprint();
+    let _ = cdn_bgp_peer_announce_ttl_digest();
     cdn_bgp_peer_announce_epoch_persist_ready()
 }
 
@@ -1032,7 +1032,7 @@ fn cdn_bgp_peer_announce_peer_priority_env_key(peer_id: &str) -> String {
 
 /// Per-peer announce priority from BGP view weight, env override, or default (Phase 135; not carrier BGP).
 pub fn cdn_bgp_peer_announce_peer_priority(peer_id: &str) -> u32 {
-    let _ = cdn_bgp_peer_announce_priority_fingerprint();
+    let _ = cdn_bgp_peer_announce_priority_digest();
     let key = cdn_bgp_peer_announce_peer_priority_env_key(peer_id);
     if let Ok(v) = std::env::var(&key) {
         if let Ok(pri) = v.parse::<u32>() {
@@ -1049,13 +1049,13 @@ pub fn cdn_bgp_peer_announce_peer_priority(peer_id: &str) -> u32 {
 
 /// Phase 135: peer-announce priority surface readiness (TTL + priority; not carrier BGP).
 pub fn cdn_bgp_peer_announce_priority_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_priority_fingerprint();
+    let _ = cdn_bgp_peer_announce_priority_digest();
     cdn_bgp_peer_announce_ttl_ready()
 }
 
 /// Sort peer ids by announce priority descending (higher priority first; tie-break lexicographic).
 pub fn cdn_bgp_peer_announce_sort_peers_by_priority(peer_ids: &[&str]) -> Vec<String> {
-    let _ = cdn_bgp_peer_announce_priority_fingerprint();
+    let _ = cdn_bgp_peer_announce_priority_digest();
     let mut ranked: Vec<(u32, &str)> = peer_ids
         .iter()
         .map(|p| (cdn_bgp_peer_announce_peer_priority(p), *p))
@@ -1066,7 +1066,7 @@ pub fn cdn_bgp_peer_announce_sort_peers_by_priority(peer_ids: &[&str]) -> Vec<St
 
 /// True when `a` outranks `b` by announce priority (higher wins).
 pub fn cdn_bgp_peer_announce_priority_wins(a: u32, b: u32) -> bool {
-    let _ = cdn_bgp_peer_announce_priority_fingerprint();
+    let _ = cdn_bgp_peer_announce_priority_digest();
     a > b
 }
 
@@ -1090,13 +1090,13 @@ fn cdn_bgp_peer_announce_hold_key(peer_id: &str, shard_key: &str) -> String {
 
 /// Clear in-memory peer-announce hold/dampen timestamps (tests).
 pub fn cdn_bgp_peer_announce_hold_memory_clear() {
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     cdn_bgp_peer_announce_hold_table().lock().clear();
 }
 
 /// True when a peer+shard is inside the hold/dampen window after a prior announce.
 pub fn cdn_bgp_peer_announce_hold_active(peer_id: &str, shard_key: &str) -> bool {
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     let key = cdn_bgp_peer_announce_hold_key(peer_id, shard_key);
     let Some(last) = cdn_bgp_peer_announce_hold_table().lock().get(&key).copied() else {
         return false;
@@ -1107,7 +1107,7 @@ pub fn cdn_bgp_peer_announce_hold_active(peer_id: &str, shard_key: &str) -> bool
 
 /// Record that `peer_id`/`shard_key` was announced (starts hold/dampen window).
 pub fn cdn_bgp_peer_announce_hold_mark(peer_id: &str, shard_key: &str) {
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     let key = cdn_bgp_peer_announce_hold_key(peer_id, shard_key);
     cdn_bgp_peer_announce_hold_table()
         .lock()
@@ -1116,7 +1116,7 @@ pub fn cdn_bgp_peer_announce_hold_mark(peer_id: &str, shard_key: &str) {
 
 /// Filter out peers currently under announce hold/dampen (Phase 136; not carrier BGP).
 pub fn cdn_bgp_peer_announce_filter_held_peers(peer_ids: &[&str], shard_key: &str) -> Vec<String> {
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     peer_ids
         .iter()
         .filter(|p| !cdn_bgp_peer_announce_hold_active(p, shard_key))
@@ -1126,7 +1126,7 @@ pub fn cdn_bgp_peer_announce_filter_held_peers(peer_ids: &[&str], shard_key: &st
 
 /// Phase 136: peer-announce hold surface readiness (priority + hold env; not carrier BGP).
 pub fn cdn_bgp_peer_announce_hold_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     cdn_bgp_peer_announce_priority_ready() && cdn_bgp_peer_announce_hold_ms() > 0
 }
 
@@ -1293,25 +1293,25 @@ fn cdn_bgp_sticky_multi_snapshot_restore_shard(shard_key: &str) {
 
 /// Phase 127 alias: sticky persist MVP readiness (file path + restore surface; not carrier BGP).
 pub fn cdn_bgp_sticky_persist_ready() -> bool {
-    let _ = cdn_bgp_sticky_persist_fingerprint();
+    let _ = cdn_bgp_sticky_persist_digest();
     cdn_bgp_sticky_pop_ready() && cdn_bgp_sticky_persist_path().is_some()
 }
 
 /// Restore sticky bindings from persist file (Phase 127; not carrier BGP).
 pub fn cdn_bgp_sticky_persist_restore_from_file() {
-    let _ = cdn_bgp_sticky_persist_fingerprint();
+    let _ = cdn_bgp_sticky_persist_digest();
     cdn_bgp_sticky_persist_restore();
 }
 
 /// Phase 128: multi-snapshot MVP readiness (dir + sticky pop; not carrier BGP).
 pub fn cdn_bgp_sticky_multi_snapshot_ready() -> bool {
-    let _ = cdn_bgp_sticky_multi_snapshot_fingerprint();
+    let _ = cdn_bgp_sticky_multi_snapshot_digest();
     cdn_bgp_sticky_pop_ready() && cdn_bgp_sticky_multi_snapshot_dir().is_some()
 }
 
 /// Restore sticky bindings for one shard key after restart (TTL inherited; not carrier BGP).
 pub fn cdn_bgp_sticky_multi_snapshot_restore_by_key(shard_key: &str) {
-    let _ = cdn_bgp_sticky_multi_snapshot_fingerprint();
+    let _ = cdn_bgp_sticky_multi_snapshot_digest();
     cdn_bgp_sticky_multi_snapshot_restore_shard(shard_key);
 }
 
@@ -1371,7 +1371,7 @@ fn cdn_bgp_peer_announce_ack_path(dir: &str, peer_id: &str, shard_key: &str) -> 
 
 /// Encode sticky bindings for a shard into a peer-announce wire (TTL inherited).
 pub fn cdn_bgp_peer_announce_sticky_encode(shard_key: &str) -> String {
-    let _ = cdn_bgp_peer_announce_sticky_fingerprint();
+    let _ = cdn_bgp_peer_announce_sticky_digest();
     let now = cdn_bgp_sticky_now_ms();
     let mut lines = Vec::new();
     for (key, binding) in cdn_bgp_sticky_bindings().lock().iter() {
@@ -1390,18 +1390,18 @@ pub fn cdn_bgp_peer_announce_sticky_encode(shard_key: &str) -> String {
 
 /// Announce sticky shard affinity to a peer (writes process-observable wire under announce dir).
 pub fn cdn_bgp_peer_announce_sticky(peer_id: &str, shard_key: &str) -> Result<String, String> {
-    let _ = cdn_bgp_peer_announce_sticky_fingerprint();
+    let _ = cdn_bgp_peer_announce_sticky_digest();
     if peer_id.trim().is_empty() || shard_key.trim().is_empty() {
         return Err(format!(
             "peer-announce-sticky requires peer_id + shard_key ({})",
-            cdn_bgp_peer_announce_sticky_fingerprint()
+            cdn_bgp_peer_announce_sticky_digest()
         ));
     }
     let wire = cdn_bgp_peer_announce_sticky_encode(shard_key);
     if wire.is_empty() {
         return Err(format!(
             "peer-announce-sticky no live bindings for shard {shard_key} ({})",
-            cdn_bgp_peer_announce_sticky_fingerprint()
+            cdn_bgp_peer_announce_sticky_digest()
         ));
     }
     if let Some(dir) = cdn_bgp_peer_announce_sticky_dir() {
@@ -1410,7 +1410,7 @@ pub fn cdn_bgp_peer_announce_sticky(peer_id: &str, shard_key: &str) -> Result<St
         std::fs::write(&path, &wire).map_err(|e| {
             format!(
                 "peer-announce-sticky write {path}: {e} ({})",
-                cdn_bgp_peer_announce_sticky_fingerprint()
+                cdn_bgp_peer_announce_sticky_digest()
             )
         })?;
     }
@@ -1419,11 +1419,11 @@ pub fn cdn_bgp_peer_announce_sticky(peer_id: &str, shard_key: &str) -> Result<St
 
 /// Receive peer-announce sticky wire; restore/route affinity with TTL inherit.
 pub fn cdn_bgp_peer_announce_sticky_receive(wire: &str) -> Result<usize, String> {
-    let _ = cdn_bgp_peer_announce_sticky_fingerprint();
+    let _ = cdn_bgp_peer_announce_sticky_digest();
     if wire.trim().is_empty() {
         return Err(format!(
             "peer-announce-sticky empty wire ({})",
-            cdn_bgp_peer_announce_sticky_fingerprint()
+            cdn_bgp_peer_announce_sticky_digest()
         ));
     }
     let now = cdn_bgp_sticky_now_ms();
@@ -1455,7 +1455,7 @@ pub fn cdn_bgp_peer_announce_sticky_receive(wire: &str) -> Result<usize, String>
     if restored == 0 {
         return Err(format!(
             "peer-announce-sticky restored zero bindings ({})",
-            cdn_bgp_peer_announce_sticky_fingerprint()
+            cdn_bgp_peer_announce_sticky_digest()
         ));
     }
     drop(slot);
@@ -1469,17 +1469,17 @@ pub fn cdn_bgp_peer_announce_write_ack(
     shard_key: &str,
     wire: &str,
 ) -> Result<String, String> {
-    let _ = cdn_bgp_peer_announce_ack_fingerprint();
+    let _ = cdn_bgp_peer_announce_ack_digest();
     if peer_id.trim().is_empty() || shard_key.trim().is_empty() {
         return Err(format!(
             "peer-announce-ack requires peer_id + shard_key ({})",
-            cdn_bgp_peer_announce_ack_fingerprint()
+            cdn_bgp_peer_announce_ack_digest()
         ));
     }
     let dir = cdn_bgp_peer_announce_sticky_dir().ok_or_else(|| {
         format!(
             "peer-announce-ack dir missing ({})",
-            cdn_bgp_peer_announce_ack_fingerprint()
+            cdn_bgp_peer_announce_ack_digest()
         )
     })?;
     let _ = std::fs::create_dir_all(&dir);
@@ -1488,7 +1488,7 @@ pub fn cdn_bgp_peer_announce_write_ack(
     std::fs::write(&path, &body).map_err(|e| {
         format!(
             "peer-announce-ack write {path}: {e} ({})",
-            cdn_bgp_peer_announce_ack_fingerprint()
+            cdn_bgp_peer_announce_ack_digest()
         )
     })?;
     Ok(path)
@@ -1500,7 +1500,7 @@ pub fn cdn_bgp_peer_announce_sticky_receive_and_ack(
     shard_key: &str,
     wire: &str,
 ) -> Result<usize, String> {
-    let _ = cdn_bgp_peer_announce_ack_fingerprint();
+    let _ = cdn_bgp_peer_announce_ack_digest();
     let restored = cdn_bgp_peer_announce_sticky_receive(wire)?;
     cdn_bgp_peer_announce_write_ack(peer_id, shard_key, wire)?;
     Ok(restored)
@@ -1511,19 +1511,19 @@ pub fn cdn_bgp_peer_announce_sticky_receive_from_peer(
     peer_id: &str,
     shard_key: &str,
 ) -> Result<usize, String> {
-    let _ = cdn_bgp_peer_announce_sticky_fingerprint();
-    let _ = cdn_bgp_peer_announce_ack_fingerprint();
+    let _ = cdn_bgp_peer_announce_sticky_digest();
+    let _ = cdn_bgp_peer_announce_ack_digest();
     let dir = cdn_bgp_peer_announce_sticky_dir().ok_or_else(|| {
         format!(
             "peer-announce-sticky dir missing ({})",
-            cdn_bgp_peer_announce_sticky_fingerprint()
+            cdn_bgp_peer_announce_sticky_digest()
         )
     })?;
     let path = cdn_bgp_peer_announce_path(&dir, peer_id, shard_key);
     let wire = std::fs::read_to_string(&path).map_err(|e| {
         format!(
             "peer-announce-sticky read {path}: {e} ({})",
-            cdn_bgp_peer_announce_sticky_fingerprint()
+            cdn_bgp_peer_announce_sticky_digest()
         )
     })?;
     cdn_bgp_peer_announce_sticky_receive_and_ack(peer_id, shard_key, &wire)
@@ -1531,19 +1531,19 @@ pub fn cdn_bgp_peer_announce_sticky_receive_from_peer(
 
 /// Phase 129: peer-announce sticky MVP readiness (not carrier BGP).
 pub fn cdn_bgp_peer_announce_sticky_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_sticky_fingerprint();
+    let _ = cdn_bgp_peer_announce_sticky_digest();
     cdn_bgp_sticky_pop_ready() && cdn_bgp_peer_announce_sticky_dir().is_some()
 }
 
 /// Phase 130: peer-announce ack surface readiness (not carrier BGP).
 pub fn cdn_bgp_peer_announce_ack_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_ack_fingerprint();
+    let _ = cdn_bgp_peer_announce_ack_digest();
     cdn_bgp_peer_announce_sticky_ready()
 }
 
 /// True when announce exists and receiver has written ack (mesh-ready); unacked announce is not mesh-ready.
 pub fn cdn_bgp_peer_announce_ack_mesh_ready(peer_id: &str, shard_key: &str) -> bool {
-    let _ = cdn_bgp_peer_announce_ack_fingerprint();
+    let _ = cdn_bgp_peer_announce_ack_digest();
     if !cdn_bgp_sticky_pop_ready() {
         return false;
     }
@@ -1572,17 +1572,17 @@ pub fn cdn_bgp_peer_announce_fanout(
     peer_ids: &[&str],
     shard_key: &str,
 ) -> Result<Vec<(String, String)>, String> {
-    let _ = cdn_bgp_peer_announce_fanout_fingerprint();
+    let _ = cdn_bgp_peer_announce_fanout_digest();
     if peer_ids.len() < 2 {
         return Err(format!(
             "peer-announce-fanout requires ≥2 peers ({})",
-            cdn_bgp_peer_announce_fanout_fingerprint()
+            cdn_bgp_peer_announce_fanout_digest()
         ));
     }
     if shard_key.trim().is_empty() {
         return Err(format!(
             "peer-announce-fanout requires shard_key ({})",
-            cdn_bgp_peer_announce_fanout_fingerprint()
+            cdn_bgp_peer_announce_fanout_digest()
         ));
     }
     let mut out = Vec::with_capacity(peer_ids.len());
@@ -1590,7 +1590,7 @@ pub fn cdn_bgp_peer_announce_fanout(
         if peer_id.trim().is_empty() {
             return Err(format!(
                 "peer-announce-fanout empty peer_id ({})",
-                cdn_bgp_peer_announce_fanout_fingerprint()
+                cdn_bgp_peer_announce_fanout_digest()
             ));
         }
         let wire = cdn_bgp_peer_announce_sticky(peer_id, shard_key)?;
@@ -1601,14 +1601,14 @@ pub fn cdn_bgp_peer_announce_fanout(
 
 /// Phase 131: peer-announce fanout surface readiness (not carrier BGP).
 pub fn cdn_bgp_peer_announce_fanout_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_fanout_fingerprint();
+    let _ = cdn_bgp_peer_announce_fanout_digest();
     cdn_bgp_peer_announce_ack_ready()
 }
 
 /// True only when announce exists and **all** peers have written acks (mesh-ready).
 /// Partial fanout ack is not mesh-ready.
 pub fn cdn_bgp_peer_announce_fanout_mesh_ready(peer_ids: &[&str], shard_key: &str) -> bool {
-    let _ = cdn_bgp_peer_announce_fanout_fingerprint();
+    let _ = cdn_bgp_peer_announce_fanout_digest();
     if peer_ids.len() < 2 {
         return false;
     }
@@ -1682,25 +1682,25 @@ fn cdn_bgp_peer_announce_epoch_ensure_persist_restored() {
 
 /// Clear in-memory winning epochs (persist file untouched; restart simulation).
 pub fn cdn_bgp_peer_announce_epoch_memory_clear() {
-    let _ = cdn_bgp_peer_announce_epoch_persist_fingerprint();
+    let _ = cdn_bgp_peer_announce_epoch_persist_digest();
     cdn_bgp_peer_announce_epoch_table().lock().clear();
 }
 
 /// Phase 133: durable epoch persist readiness (conflict-epoch + persist path).
 pub fn cdn_bgp_peer_announce_epoch_persist_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_epoch_persist_fingerprint();
+    let _ = cdn_bgp_peer_announce_epoch_persist_digest();
     cdn_bgp_peer_announce_conflict_epoch_ready() && cdn_bgp_peer_announce_epoch_persist_path().is_some()
 }
 
 /// Explicit restore of winning epochs from persist file (restart simulation).
 pub fn cdn_bgp_peer_announce_epoch_persist_restore_from_file() {
-    let _ = cdn_bgp_peer_announce_epoch_persist_fingerprint();
+    let _ = cdn_bgp_peer_announce_epoch_persist_digest();
     cdn_bgp_peer_announce_epoch_persist_restore();
 }
 
 /// True when a peer's on-disk announce wire for a shard has expired (Phase 134 TTL; not carrier BGP).
 pub fn cdn_bgp_peer_announce_peer_wire_expired(peer_id: &str, shard_key: &str) -> bool {
-    let _ = cdn_bgp_peer_announce_ttl_fingerprint();
+    let _ = cdn_bgp_peer_announce_ttl_digest();
     let Some(dir) = cdn_bgp_peer_announce_sticky_dir() else {
         return false;
     };
@@ -1713,7 +1713,7 @@ pub fn cdn_bgp_peer_announce_peer_wire_expired(peer_id: &str, shard_key: &str) -
 
 /// Remove expired peer announce + ack files for a shard; returns count purged (Phase 134; not carrier BGP).
 pub fn cdn_bgp_peer_announce_purge_expired_peers(peer_ids: &[&str], shard_key: &str) -> usize {
-    let _ = cdn_bgp_peer_announce_ttl_fingerprint();
+    let _ = cdn_bgp_peer_announce_ttl_digest();
     let Some(dir) = cdn_bgp_peer_announce_sticky_dir() else {
         return 0;
     };
@@ -1803,7 +1803,7 @@ pub fn cdn_bgp_peer_announce_parse_hold_wire(wire: &str) -> Option<u64> {
 }
 
 fn cdn_bgp_peer_announce_wire_expired(wire: &str) -> bool {
-    let _ = cdn_bgp_peer_announce_ttl_fingerprint();
+    let _ = cdn_bgp_peer_announce_ttl_digest();
     let Some(expires) = cdn_bgp_peer_announce_parse_expires_wire(wire) else {
         return false;
     };
@@ -1815,9 +1815,9 @@ fn cdn_bgp_peer_announce_attach_ttl_headers(epoch: u64, body: &str) -> String {
 }
 
 fn cdn_bgp_peer_announce_attach_wire_headers(epoch: u64, priority: u32, body: &str) -> String {
-    let _ = cdn_bgp_peer_announce_ttl_fingerprint();
-    let _ = cdn_bgp_peer_announce_priority_fingerprint();
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_ttl_digest();
+    let _ = cdn_bgp_peer_announce_priority_digest();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     let expires_at_ms = cdn_bgp_sticky_now_ms().saturating_add(cdn_bgp_peer_announce_ttl_ms());
     format!(
         "{}\n{}\n{}\n{}\n{}",
@@ -1880,8 +1880,8 @@ fn cdn_bgp_peer_announce_clear_shard_acks(dir: &str, peer_ids: &[&str], shard_ke
 
 /// Current winning announce epoch for a shard (0 if none).
 pub fn cdn_bgp_peer_announce_winning_epoch(shard_key: &str) -> u64 {
-    let _ = cdn_bgp_peer_announce_conflict_epoch_fingerprint();
-    let _ = cdn_bgp_peer_announce_epoch_persist_fingerprint();
+    let _ = cdn_bgp_peer_announce_conflict_epoch_digest();
+    let _ = cdn_bgp_peer_announce_epoch_persist_digest();
     cdn_bgp_peer_announce_epoch_ensure_persist_restored();
     cdn_bgp_peer_announce_epoch_table()
         .lock()
@@ -1896,30 +1896,30 @@ pub fn cdn_bgp_peer_announce_fanout_with_epoch(
     shard_key: &str,
     epoch: u64,
 ) -> Result<Vec<(String, String)>, String> {
-    let _ = cdn_bgp_peer_announce_conflict_epoch_fingerprint();
+    let _ = cdn_bgp_peer_announce_conflict_epoch_digest();
     if peer_ids.len() < 2 {
         return Err(format!(
             "peer-announce-conflict-epoch requires ≥2 peers ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         ));
     }
     if shard_key.trim().is_empty() {
         return Err(format!(
             "peer-announce-conflict-epoch requires shard_key ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         ));
     }
     if epoch == 0 {
         return Err(format!(
             "peer-announce-conflict-epoch requires epoch > 0 ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         ));
     }
     let winning = cdn_bgp_peer_announce_winning_epoch(shard_key);
     if epoch < winning {
         return Err(format!(
             "peer-announce-conflict-epoch reject stale epoch {epoch} < winning {winning} ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         ));
     }
     if epoch > winning {
@@ -1935,17 +1935,17 @@ pub fn cdn_bgp_peer_announce_fanout_with_epoch(
     if body.is_empty() {
         return Err(format!(
             "peer-announce-conflict-epoch no live bindings for shard {shard_key} ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         ));
     }
-    let _ = cdn_bgp_peer_announce_hold_fingerprint();
+    let _ = cdn_bgp_peer_announce_hold_digest();
     let sorted_peers = cdn_bgp_peer_announce_sort_peers_by_priority(peer_ids);
     let sorted_refs: Vec<&str> = sorted_peers.iter().map(|s| s.as_str()).collect();
     let unmuted = cdn_bgp_peer_announce_filter_held_peers(&sorted_refs, shard_key);
     if unmuted.is_empty() {
         return Err(format!(
             "peer-announce-hold dampen all peers ({})",
-            cdn_bgp_peer_announce_hold_fingerprint()
+            cdn_bgp_peer_announce_hold_digest()
         ));
     }
     let mut out = Vec::with_capacity(unmuted.len());
@@ -1953,7 +1953,7 @@ pub fn cdn_bgp_peer_announce_fanout_with_epoch(
         if peer_id.trim().is_empty() {
             return Err(format!(
                 "peer-announce-conflict-epoch empty peer_id ({})",
-                cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+                cdn_bgp_peer_announce_conflict_epoch_digest()
             ));
         }
         let priority = cdn_bgp_peer_announce_peer_priority(&peer_id);
@@ -1965,7 +1965,7 @@ pub fn cdn_bgp_peer_announce_fanout_with_epoch(
             std::fs::write(&path, &peer_wire).map_err(|e| {
                 format!(
                     "peer-announce-conflict-epoch write {path}: {e} ({})",
-                    cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+                    cdn_bgp_peer_announce_conflict_epoch_digest()
                 )
             })?;
         }
@@ -1981,24 +1981,24 @@ pub fn cdn_bgp_peer_announce_receive_ack_with_epoch(
     shard_key: &str,
     wire: &str,
 ) -> Result<usize, String> {
-    let _ = cdn_bgp_peer_announce_conflict_epoch_fingerprint();
+    let _ = cdn_bgp_peer_announce_conflict_epoch_digest();
     let (epoch, body) = cdn_bgp_peer_announce_parse_epoch_wire(wire).ok_or_else(|| {
         format!(
             "peer-announce-conflict-epoch missing epoch header ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         )
     })?;
     if cdn_bgp_peer_announce_wire_expired(wire) {
         return Err(format!(
             "peer-announce-ttl reject expired wire ({})",
-            cdn_bgp_peer_announce_ttl_fingerprint()
+            cdn_bgp_peer_announce_ttl_digest()
         ));
     }
     let winning = cdn_bgp_peer_announce_winning_epoch(shard_key);
     if epoch < winning {
         return Err(format!(
             "peer-announce-conflict-epoch reject stale ack epoch {epoch} < winning {winning} ({})",
-            cdn_bgp_peer_announce_conflict_epoch_fingerprint()
+            cdn_bgp_peer_announce_conflict_epoch_digest()
         ));
     }
     if epoch > winning {
@@ -2016,7 +2016,7 @@ pub fn cdn_bgp_peer_announce_receive_ack_with_epoch(
 
 /// Phase 132: conflict-epoch surface readiness (not carrier BGP).
 pub fn cdn_bgp_peer_announce_conflict_epoch_ready() -> bool {
-    let _ = cdn_bgp_peer_announce_conflict_epoch_fingerprint();
+    let _ = cdn_bgp_peer_announce_conflict_epoch_digest();
     cdn_bgp_peer_announce_fanout_ready()
 }
 
@@ -2025,7 +2025,7 @@ pub fn cdn_bgp_peer_announce_conflict_epoch_mesh_ready(
     peer_ids: &[&str],
     shard_key: &str,
 ) -> bool {
-    let _ = cdn_bgp_peer_announce_conflict_epoch_fingerprint();
+    let _ = cdn_bgp_peer_announce_conflict_epoch_digest();
     if peer_ids.len() < 2 {
         return false;
     }
@@ -2143,7 +2143,7 @@ fn cdn_bgp_merged_mesh_rows() -> Vec<(String, CdnBgpRow)> {
 }
 
 /// Phase 125 gate fingerprint: client-key sticky PoP over weighted anycast mesh (not carrier BGP).
-pub fn cdn_bgp_fingerprint() -> &'static str {
+pub fn cdn_bgp_digest() -> &'static str {
     "dist-cdn-bgp-v8:sticky-pop-mvp"
 }
 
@@ -2287,7 +2287,7 @@ pub fn cdn_bgp_ops_snapshot() -> CdnBgpOpsSnapshot {
     let peer_ids = cdn_bgp_list_peer_ids();
     let pop_health = cdn_bgp_peer_health_map();
     CdnBgpOpsSnapshot {
-        fingerprint: cdn_bgp_fingerprint(),
+        fingerprint: cdn_bgp_digest(),
         peer_ids: peer_ids.clone(),
         imported_peer_count: cdn_bgp_peer_view_count(),
         local_endpoint_count: cdn_bgp_endpoint_count(),
@@ -2310,7 +2310,7 @@ pub fn cdn_bgp_convergence_snapshot(preferred: &str) -> CdnBgpConvergenceSnapsho
     let peer_ids = cdn_bgp_list_peer_ids();
     let pop_health = cdn_bgp_peer_health_map();
     CdnBgpConvergenceSnapshot {
-        fingerprint: cdn_bgp_fingerprint(),
+        fingerprint: cdn_bgp_digest(),
         peer_ids: peer_ids.clone(),
         pop_health: pop_health.clone(),
         failover_order: cdn_bgp_failover_order_ids(preferred),
@@ -2324,7 +2324,7 @@ pub fn cdn_bgp_mesh_snapshot(preferred_region: &str, preferred_pop: &str) -> Cdn
     let peer_ids = cdn_bgp_list_peer_ids();
     let pop_health = cdn_bgp_peer_health_map();
     CdnBgpMeshSnapshot {
-        fingerprint: cdn_bgp_fingerprint(),
+        fingerprint: cdn_bgp_digest(),
         mesh_regions: cdn_bgp_mesh_regions(),
         peer_ids: peer_ids.clone(),
         pop_health: pop_health.clone(),
@@ -2359,7 +2359,7 @@ pub fn cdn_bgp_cross_region_failover_order_ids(
 
 /// Phase 122 hard gate: ≥2 mesh regions + merged views + cross-region failover (not carrier BGP).
 pub fn cdn_bgp_multi_region_mesh_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     if cdn_bgp_mesh_region_count() < 2 {
         return false;
     }
@@ -2406,7 +2406,7 @@ pub fn cdn_bgp_mesh_pop_ids() -> Vec<String> {
 
 /// Phase 123 hard gate: ≥3 PoPs + multi-region mesh anycast route (not carrier BGP).
 pub fn cdn_bgp_multi_pop_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     if !cdn_bgp_multi_region_mesh_ready() {
         return false;
     }
@@ -2458,7 +2458,7 @@ pub fn cdn_bgp_weights_differentiated() -> bool {
 
 /// Phase 124 hard gate: multi-PoP mesh + differentiated weights + health-based weighted route (not carrier BGP).
 pub fn cdn_bgp_weighted_anycast_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     if !cdn_bgp_multi_pop_ready() {
         return false;
     }
@@ -2476,7 +2476,7 @@ pub fn cdn_bgp_weighted_anycast_mvp_ready() -> bool {
 
 /// Phase 125 hard gate: weighted anycast mesh + sticky client-key routing surface (not carrier BGP).
 pub fn cdn_bgp_sticky_pop_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     cdn_bgp_weighted_anycast_ready()
 }
 
@@ -2508,7 +2508,7 @@ pub fn cdn_bgp_sticky_binding_expires_at_ms(client_key: &str) -> Option<u64> {
 
 /// Phase 126 alias: sticky PoP TTL MVP readiness (not carrier BGP).
 pub fn cdn_bgp_sticky_ttl_ready() -> bool {
-    let _ = cdn_bgp_sticky_ttl_fingerprint();
+    let _ = cdn_bgp_sticky_ttl_digest();
     cdn_bgp_sticky_pop_ready()
 }
 
@@ -2526,13 +2526,13 @@ pub fn cdn_bgp_cross_region_failover_ready() -> bool {
 
 /// True when peer-exchange GA is satisfied and ops surfaces are populated.
 pub fn cdn_bgp_ops_visibility_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     cdn_bgp_peer_exchange_done() && !cdn_bgp_list_peer_ids().is_empty()
 }
 
 /// Phase 121 hard gate: merged peer views probed + failover order computable (not carrier BGP).
 pub fn cdn_bgp_route_convergence_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     if !cdn_bgp_ops_visibility_ready() {
         return false;
     }
@@ -2579,7 +2579,7 @@ pub fn cdn_bgp_has_endpoints() -> bool {
 
 /// GA layer: sticky PoP over weighted anycast mesh (not carrier BGP).
 pub fn cdn_bgp_ga_ready() -> bool {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     cdn_bgp_sticky_pop_ready()
 }
 
@@ -2654,7 +2654,7 @@ pub fn cdn_bgp_route(
     to: i64,
     payload: impl Into<String>,
 ) -> Result<(String, String), String> {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     let payload = payload.into();
     if !cdn_bgp_weighted_anycast_ready() {
         return Err(
@@ -2723,7 +2723,7 @@ pub fn cdn_bgp_route_sticky(
     to: i64,
     payload: impl Into<String>,
 ) -> Result<(String, String), String> {
-    let _ = cdn_bgp_fingerprint();
+    let _ = cdn_bgp_digest();
     let payload = payload.into();
     if client_key.trim().is_empty() {
         return Err(
@@ -2773,7 +2773,7 @@ fn cdn_delivery_ack_registry() -> &'static Mutex<VecDeque<(String, String, i64, 
 }
 
 /// Phase 119 gate fingerprint: multi-hostkey PoP route (≥2 distinct remote hostkeys; sibling optional).
-pub fn cdn_pop_fingerprint() -> &'static str {
+pub fn cdn_pop_digest() -> &'static str {
     "dist-cdn-pop-v6:multi-hostkey-route"
 }
 
@@ -3021,14 +3021,14 @@ fn cdn_pop_multi_hostkey_config_ready() -> bool {
 
 /// Phase 119 GA: multi-hostkey config + successful route proof (sibling mechanism optional).
 pub fn cdn_pop_multi_hostkey_route_ready() -> bool {
-    let _ = cdn_pop_fingerprint();
+    let _ = cdn_pop_digest();
     cdn_pop_multi_hostkey_config_ready()
         && CDN_POP_MULTI_HOSTKEY_ROUTE_PROOF.load(Ordering::Relaxed)
 }
 
 /// Legacy alias — sibling-process narrative is not pop-v6 GA.
 pub fn cdn_pop_sibling_process_ready() -> bool {
-    let _ = cdn_pop_fingerprint();
+    let _ = cdn_pop_digest();
     cdn_pop_has_endpoints() && cdn_pop_sibling_serve_pids_ready()
 }
 
@@ -3098,7 +3098,7 @@ pub fn cdn_pop_route(
     to: i64,
     payload: impl Into<String>,
 ) -> Result<(String, String), String> {
-    let _ = cdn_pop_fingerprint();
+    let _ = cdn_pop_digest();
     let payload = payload.into();
     if !cdn_pop_multi_hostkey_config_ready() {
         return Err(
@@ -3203,7 +3203,7 @@ pub fn cdn_tcp_peer_route(
     to: i64,
     payload: impl Into<String>,
 ) -> Result<(String, String), String> {
-    let _ = cdn_tcp_peer_fingerprint();
+    let _ = cdn_tcp_peer_digest();
     let payload = payload.into();
     let order = cdn_tcp_peer_failover_order(preferred);
     if order.is_empty() {
@@ -3352,7 +3352,7 @@ fn parse_route_frame(bytes: &[u8]) -> Option<(String, i64, i64, String)> {
 }
 
 /// Phase 108 gate fingerprint: TCP mailbox GA without in-process region_route fallback.
-pub fn dist_actor_mp_fingerprint() -> &'static str {
+pub fn dist_actor_mp_digest() -> &'static str {
     "dist-actor-mp-v2:no-inproc-fallback-ga"
 }
 
@@ -3705,7 +3705,7 @@ fn region_anycast_endpoints() -> &'static Mutex<Vec<(String, String)>> {
 }
 
 /// Phase 109 gate fingerprint: multi-region TCP health probe + failover routing.
-pub fn dist_region_anycast_fingerprint() -> &'static str {
+pub fn dist_region_anycast_digest() -> &'static str {
     "dist-region-anycast-v1:tcp-health"
 }
 
@@ -3836,17 +3836,17 @@ fn region_multihost_endpoints() -> &'static Mutex<Vec<(String, String, String, S
 }
 
 /// Phase 116 gate fingerprint: host key must be concrete non-loopback IP with verified listener.
-pub fn dist_region_nonloopback_fingerprint() -> &'static str {
+pub fn dist_region_nonloopback_digest() -> &'static str {
     "dist-region-hostkey-v6:concrete-ip"
 }
 
 /// Phase 113 gate fingerprint: multi-host keyed region TCP health + runtime-bound host keys.
-pub fn dist_region_multihost_fingerprint() -> &'static str {
-    dist_region_nonloopback_fingerprint()
+pub fn dist_region_multihost_digest() -> &'static str {
+    dist_region_nonloopback_digest()
 }
 
 /// Phase 113: TCP CDN peer delivery via peer TCP pull/ack (not process-local VecDeque GA).
-pub fn cdn_tcp_peer_fingerprint() -> &'static str {
+pub fn cdn_tcp_peer_digest() -> &'static str {
     "dist-cdn-tcp-v2:peer-delivery"
 }
 
@@ -3938,7 +3938,7 @@ pub fn dist_region_multihost_has_nonloopback_host_key() -> bool {
 
 /// Phase 115 GA: ≥1 configured host key that is runtime-bound with live listener, bind-eq-key, non-loopback.
 pub fn dist_region_multihost_has_runtime_bound_host_key() -> bool {
-    let _ = dist_region_nonloopback_fingerprint();
+    let _ = dist_region_nonloopback_digest();
     let binds = runtime_bound_host_keys().lock();
     region_multihost_endpoints().lock().iter().any(|(_, _, addr, _)| {
         dist_host_key_runtime_bind_addr_is_ga(addr, &binds)
@@ -4149,10 +4149,10 @@ mod dist_transport_tests {
 
     #[test]
     fn p118_fingerprint_literals_present() {
-        assert_eq!(cdn_pop_fingerprint(), "dist-cdn-pop-v6:multi-hostkey-route");
-        assert_eq!(cdn_bgp_fingerprint(), "dist-cdn-bgp-v8:sticky-pop-mvp");
+        assert_eq!(cdn_pop_digest(), "dist-cdn-pop-v6:multi-hostkey-route");
+        assert_eq!(cdn_bgp_digest(), "dist-cdn-bgp-v8:sticky-pop-mvp");
         assert_eq!(
-            dist_region_nonloopback_fingerprint(),
+            dist_region_nonloopback_digest(),
             "dist-region-hostkey-v6:concrete-ip"
         );
     }

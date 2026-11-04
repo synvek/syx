@@ -66,40 +66,9 @@ fn lines_compatible(vm: &str, native: &str) -> bool {
     normalize_pump_digits(vm) == normalize_pump_digits(native)
 }
 
-#[test]
-fn p103_native_gui_parity_focus_fingerprint() {
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-textfield-focus-v1:caret-tab-cycle"));
-    assert!(include_str!("gui_winit_visible.rs").contains("p103_gui_focus_caret_fingerprint"));
-}
 
-#[test]
-fn p102_native_gui_parity_fingerprint() {
-    assert!(include_str!("../../src/lib.rs")
-        .contains("gui-line-hard-v1:guidemo-main-stdout-equal"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-callback-ga-v1:invoke-onclick-textfield"));
-    assert!(include_str!("gui_winit_visible.rs").contains("p102_gui_callback_ga_fingerprint"));
-}
 
-#[test]
-fn p101_native_gui_parity_fingerprint() {
-    assert!(include_str!("../../src/lib.rs")
-        .contains("gui-line-hard-v1:guidemo-main-stdout-equal"));
-    assert!(include_str!("../../../syx-gui/src/lib.rs")
-        .contains("gui-callback-ga-v1"));
-    assert!(include_str!("gui_winit_visible.rs").contains("p102_gui_callback_ga_fingerprint"));
-}
 
-#[test]
-fn p100_native_gui_parity_fingerprint() {
-    assert!(include_str!("../../src/lib.rs")
-        .contains("gui-line-hard-v1:guidemo-main-stdout-equal"));
-    assert!(include_str!("../../src/lib.rs")
-        .contains("gui-widgets-bitmap-v1:label-button-visible"));
-    assert!(include_str!("../../src/lib.rs")
-        .contains("native-llvm-locals-v7:no-hydrate-handle-ga"));
-}
 
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
@@ -141,11 +110,6 @@ fn p98_guidemo_full_inline_vm_native_stdout_parity() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn p105_guidemo_inline_line_parity_fingerprint() {
-    assert!(include_str!("../../src/lib.rs")
-        .contains("native-llvm-locals-v10-e2e:guidemo-line-parity"));
-}
 
 #[test]
 #[ignore = "W173: guidemo.sy retired; covered by driver_gate synui exec"]

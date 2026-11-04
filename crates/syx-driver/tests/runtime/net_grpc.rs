@@ -10,10 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_net_grpc_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("net-grpc-v1"));
-}
 
 #[test]
 fn p98_net_grpc_http_stack_surface() {

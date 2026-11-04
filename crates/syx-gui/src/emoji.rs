@@ -779,7 +779,7 @@ pub fn reset_emoji_stats() {
     CBDT_GLYPH_CACHE.lock().unwrap().clear();
 }
 
-pub fn emoji_fingerprint() -> &'static str {
+pub fn emoji_digest() -> &'static str {
     EMOJI_FINGERPRINT
 }
 

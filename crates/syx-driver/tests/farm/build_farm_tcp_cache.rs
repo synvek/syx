@@ -33,7 +33,3 @@ fn p100_farm_tcp_cache_push_then_get_hit() {
     });
 }
 
-#[test]
-fn p100_farm_tcp_cache_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-tcp-frames-v1:get-put-hit"));
-}

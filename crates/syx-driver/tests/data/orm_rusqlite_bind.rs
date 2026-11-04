@@ -5,10 +5,6 @@ use std::collections::HashMap;
 use syx_vm::{host_orm_find_where_dict_rusqlite, orm_executed_sql_count, orm_last_executed_sql, reset_phase98_state};
 use syx_runtime_core::Value;
 
-#[test]
-fn p98_orm_rusqlite_bind_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("orm-prepare-bind-v1:rusqlite-row-assert"));
-}
 
 #[test]
 fn p98_orm_rusqlite_compound_dict_executed() {

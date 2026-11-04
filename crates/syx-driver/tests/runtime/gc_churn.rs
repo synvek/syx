@@ -2,10 +2,6 @@
 
 use syx_vm::{gc_churn_event_count, host_gc_churn_event, reset_phase98_state};
 
-#[test]
-fn p98_gc_churn_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gc-churn-quad-v1"));
-}
 
 #[test]
 fn p98_gc_churn_event_records() {

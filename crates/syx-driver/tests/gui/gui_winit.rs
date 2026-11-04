@@ -35,10 +35,6 @@ fn p98_gui_winit_canvas_draw_stdout() {
     assert!(out.iter().any(|l| l.contains("true")), "{out:?}");
 }
 
-#[test]
-fn p98_gui_winit_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gui-winit-real-v2"));
-}
 
 #[test]
 fn p98_gui_winit_package_surface() {

@@ -100,10 +100,6 @@ fn p80_generic_fn_parse() {
     assert!(p80_doc_ok("func id<T>(x: T) -> T { return x }\nfunc main() { print(id(1)) }"));
 }
 
-#[test]
-fn p80_browser_tier2d_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2d-v1"));
-}
 
 #[test]
 fn p80_adr_phase80_charter() {

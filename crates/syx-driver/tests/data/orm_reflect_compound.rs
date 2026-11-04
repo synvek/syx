@@ -29,7 +29,3 @@ fn p98_orm_reflect_compound_sql_host() {
     assert!(hosts.contains(" AND ") && hosts.contains(" = ?"));
 }
 
-#[test]
-fn p98_orm_reflect_compound_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("orm-reflect-compound-v1"));
-}

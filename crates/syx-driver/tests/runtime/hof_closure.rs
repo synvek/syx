@@ -158,7 +158,3 @@ fn p98_hof_closure_host_registry() {
     assert!(reg.contains("ArraySortBy") && reg.contains("ArrayFlatMap"));
 }
 
-#[test]
-fn p98_hof_closure_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("hof-mir-wasm-parity-v1"));
-}

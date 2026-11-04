@@ -7,7 +7,7 @@ use std::path::Path;
 
 use serde_json::{json, Value};
 
-use crate::capabilities_report::run_capabilities_report;
+use crate::capabilities::run_capabilities_report;
 
 /// Same-source summary or row lookup for a marketing-facing fixture consumer.
 /// Always goes through `run_capabilities_report()` (no second JSON embed).

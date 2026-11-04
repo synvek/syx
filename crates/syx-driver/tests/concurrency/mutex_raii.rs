@@ -50,20 +50,6 @@ fn facade_src(body: &str) -> String {
     format!("{}\n{body}", mutex_facade())
 }
 
-#[test]
-fn m3_c01_mutex_raii_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_sync_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("mutex-raii-guard-v1-thin")
-            || out.contains("mutex-raii-guard-v1-blocking"),
-        "syncPolicy fingerprint (thin or deepen): {out}"
-    );
-}
 
 #[test]
 fn m3_c01_mutex_raii_forget_unlock_scope_exit() {

@@ -32,7 +32,7 @@ pub struct GlyphBitmap {
     pub alpha: Vec<u8>,
 }
 
-pub fn skia_glyph_fingerprint() -> &'static str {
+pub fn skia_glyph_digest() -> &'static str {
     SKIA_GLYPH_FINGERPRINT
 }
 

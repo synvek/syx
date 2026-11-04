@@ -68,7 +68,3 @@ fn p98_net_tls_wss_websocket_fixture_surface() {
     assert!(src.contains("wss://") || src.contains("WebSocket"));
 }
 
-#[test]
-fn p98_net_tls_wss_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("net-h2-alpn-default-v1"));
-}

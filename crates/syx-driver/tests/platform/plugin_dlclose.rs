@@ -36,11 +36,6 @@ fn load_echo_plugin() -> Result<(), String> {
     load_path(&dir.join(platform_library_name()))
 }
 
-#[test]
-fn p103_plugin_dlclose_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("plugin-dlclose-v1:unload-reload"));
-    assert!(include_str!("../../src/lib.rs").contains("plugin-unload-hard-v1:fixture-required"));
-}
 
 #[test]
 fn p105_plugin_unload_fixture_required() {

@@ -44,5 +44,5 @@ fn token_expr_fingerprint_strings() {
     let lib = include_str!("../../src/lib.rs");
     assert!(user_rs.contains("macro-token-v1:expr-token-mvp"));
     assert!(lib.contains("macro-token-v1:expr-token-mvp"));
-    assert!(lib.contains("heap_v102_phase130_track_a_macro_service_fingerprint"));
+    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
 }

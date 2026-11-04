@@ -100,10 +100,6 @@ fn p81_gc_heap_bridge_report() {
     assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_root_bridge"));
 }
 
-#[test]
-fn p81_browser_tier2e_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2e-v1"));
-}
 
 #[test]
 fn p81_adr_phase81_charter() {

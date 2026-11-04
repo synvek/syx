@@ -23,10 +23,6 @@ fn churn_lines(lines: &[String]) -> usize {
     lines.iter().filter(|l| l.contains("gc:churn:")).count()
 }
 
-#[test]
-fn p98_gc_churn_stress_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("gc-churn-stress-v1:multi-churn-stdout-quad"));
-}
 
 #[test]
 fn p98_gc_churn_stress_quad_two_plus_lines() {

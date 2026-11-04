@@ -15,7 +15,7 @@
 | **权威源 schema** | **cross-met** (A-10) | `packages/internal/capabilities.toml` + [`capability-manifest-v0.md`](../capability-manifest-v0.md) |
 | **生成器 + CI freshness** | **cross-met** (A-10) | `scripts/gen_capabilities.py` + `--check` + CI |
 | **Books 同源矩阵** | **cross-met** (A-10) | `books/shared/capabilities-generated.md` |
-| **Doctor 同源 JSON** | **cross-met** (A-10) | `capabilities.generated.json` + `capabilities_report.rs` + `syx doctor --capabilities` |
+| **Doctor 同源 JSON** | **cross-met** (A-10) | `capabilities.generated.json` + `capabilities.rs` + `syx doctor --capabilities` |
 | **LSP 消费同一源** | **cross-partial-met** (A-10/W359) | `syx.capabilities` → `capabilities_for_lsp` → `run_capabilities_report()` |
 | **独立 website 消费者** | **met** (W378 narrow) | inventory W376 + deepen W377 (partial sufficient) + exit ADR-722；`capabilities_for_website` + HTML nail |
 | **Website inventory thin** | **met** (W376) | this document + `website_capability_thin.rs` + ADR-720 |

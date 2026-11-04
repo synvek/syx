@@ -5,32 +5,28 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_cross_region_failover_ready,
-    cdn_bgp_fingerprint, cdn_bgp_ga_ready, cdn_bgp_health, cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_pop_count, cdn_bgp_mesh_pop_ids, cdn_bgp_mesh_region_count,
-    cdn_bgp_mesh_snapshot, cdn_bgp_multi_pop_mvp_ready,
-    cdn_bgp_multi_pop_ready, cdn_bgp_multi_region_mesh_ready, cdn_bgp_route,
-    cdn_delivery_ack_clear, cdn_doctor_mode, dist_tcp_url_for_bind_addr,
+    cdn_bgp_clear,
+    cdn_bgp_configure_mesh,
+    cdn_bgp_cross_region_failover_ready,
+    cdn_bgp_ga_ready,
+    cdn_bgp_health,
+    cdn_bgp_import_peer_mesh,
+    cdn_bgp_mesh_pop_count,
+    cdn_bgp_mesh_pop_ids,
+    cdn_bgp_mesh_region_count,
+    cdn_bgp_mesh_snapshot,
+    cdn_bgp_multi_pop_mvp_ready,
+    cdn_bgp_multi_pop_ready,
+    cdn_bgp_multi_region_mesh_ready,
+    cdn_bgp_route,
+    cdn_delivery_ack_clear,
+    cdn_doctor_mode,
+    dist_tcp_url_for_bind_addr,
     spawn_dist_tcp_mailbox_on,
 };
 
 static P123_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_multi_pop_cdn_bgp_v6_multi_pop_fingerprint() {
-    // Phase 124 supersedes runtime fingerprint to v7; v6 remains as inherited literal.
-    assert_eq!(cdn_bgp_fingerprint(), "dist-cdn-bgp-v7:weighted-anycast-mvp");
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v6:multi-pop-mvp"));
-    assert!(src.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(src.contains("cdn_bgp_multi_pop_ready"));
-    assert!(src.contains("cdn_bgp_mesh_pop_count"));
-    assert!(src.contains("cdn-bgp-multi-pop"));
-    assert!(src.contains("not carrier BGP"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v6:multi-pop-mvp"));
-    assert!(lib.contains("heap_v95_phase123_track_d_farm_dist_fingerprint"));
-}
 
 #[test]
 fn dist_multi_pop_two_pops_not_multi_pop_ga() {

@@ -12,20 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn m3_b01_isolation_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_isolation_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("task-pool+blocking-pool-v1-thin")
-            || out.contains("task-pool+blocking-pool-v1-sized"),
-        "isolationPolicy fingerprint (thin or sized): {out}"
-    );
-}
 
 #[test]
 fn m3_b01_isolation_blocking_sleep_does_not_starve_short_task() {

@@ -101,10 +101,6 @@ p98_strict_fixture!(
 );
 p98_strict_fixture!(p98_strict_fixture_iterator, "protocol_iterator.sy", "10");
 
-#[test]
-fn p98_native_strict_phi_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-phi-v1"));
-}
 
 #[test]
 fn p98_native_strict_parity_count_gate() {

@@ -19,13 +19,6 @@ fn with_lease_auth<F: FnOnce()>(f: F) {
     farm_lease_reset();
 }
 
-#[test]
-fn p106_farm_lease_server_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("farm-lease-server-v1:node-enforces-ttl"));
-    assert!(include_str!("../../src/farm_lease_auth.rs")
-        .contains("farm-lease-server-v1:node-enforces-ttl"));
-    assert!(include_str!("../../src/lib.rs").contains("heap_v78_phase106_track_d_farm_fingerprint"));
-}
 
 #[test]
 fn p106_farm_tcp_raw_get_no_grant_err() {

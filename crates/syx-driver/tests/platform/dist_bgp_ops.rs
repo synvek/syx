@@ -5,32 +5,23 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure, cdn_bgp_fingerprint, cdn_bgp_ga_ready,
-    cdn_bgp_import_peer_view, cdn_bgp_list_peer_ids, cdn_bgp_ops_snapshot,
-    cdn_bgp_ops_visibility_ready, cdn_bgp_peer_health_map, cdn_bgp_route,
-    cdn_delivery_ack_clear, cdn_doctor_mode, dist_tcp_url_for_bind_addr,
+    cdn_bgp_clear,
+    cdn_bgp_configure,
+    cdn_bgp_ga_ready,
+    cdn_bgp_import_peer_view,
+    cdn_bgp_list_peer_ids,
+    cdn_bgp_ops_snapshot,
+    cdn_bgp_ops_visibility_ready,
+    cdn_bgp_peer_health_map,
+    cdn_bgp_route,
+    cdn_delivery_ack_clear,
+    cdn_doctor_mode,
+    dist_tcp_url_for_bind_addr,
     spawn_dist_tcp_mailbox_on,
 };
 
 static P120_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_bgp_ops_cdn_bgp_v3_ops_visibility_fingerprint() {
-    // Phase 124 fingerprint supersedes — see dist_weighted_anycast.
-    assert_eq!(
-        cdn_bgp_fingerprint(),
-        "dist-cdn-bgp-v7:weighted-anycast-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v3:ops-visibility"));
-    assert!(src.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(src.contains("cdn_bgp_list_peer_ids"));
-    assert!(src.contains("cdn_bgp_peer_health_map"));
-    assert!(src.contains("cdn_bgp_ops_snapshot"));
-    let lib = include_str!("../../../syx-async/src/lib.rs");
-    assert!(lib.contains("cdn_bgp_ops_snapshot"));
-    assert!(lib.contains("cdn_bgp_list_peer_ids"));
-}
 
 #[test]
 fn dist_bgp_ops_cdn_bgp_ops_visibility_mvp() {

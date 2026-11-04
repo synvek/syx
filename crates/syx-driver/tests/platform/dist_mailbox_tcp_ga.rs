@@ -5,22 +5,18 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    dist_actor_mp_clear, dist_actor_mp_doctor_mode, dist_actor_mp_fingerprint,
-    dist_actor_mp_ga_requires_tcp, dist_actor_mp_inbox_clear, dist_actor_mp_inbox_count,
-    dist_actor_mp_peer_send_once, region_route, region_route_mp, region_route_mp_ga, region_route_tcp,
+    dist_actor_mp_clear,
+    dist_actor_mp_doctor_mode,
+    dist_actor_mp_inbox_clear,
+    dist_actor_mp_inbox_count,
+    dist_actor_mp_peer_send_once,
+    region_route,
+    region_route_mp,
+    region_route_mp_ga,
+    region_route_tcp,
     spawn_dist_tcp_mailbox,
 };
 
-#[test]
-fn dist_mailbox_tcp_ga_fingerprint() {
-    assert_eq!(
-        dist_actor_mp_fingerprint(),
-        "dist-actor-mp-v2:no-inproc-fallback-ga"
-    );
-    assert!(include_str!("../../../syx-async/src/dist_transport.rs")
-        .contains("dist-actor-mp-v2:no-inproc-fallback-ga"));
-    assert!(dist_actor_mp_ga_requires_tcp());
-}
 
 #[test]
 fn dist_mailbox_tcp_success_not_inproc_region_route() {

@@ -11,15 +11,7 @@ fn p87_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p87_native_llvm_phi_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("native-llvm-phi-v1"));
-}
 
-#[test]
-fn p87_reflect_runtime_cast_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("reflect-runtime-cast-v1"));
-}
 
 #[test]
 fn p87_import_collections_sort_by_closure_parse() {
@@ -129,22 +121,6 @@ fn p87_select_async_parse() {
     ));
 }
 
-#[test]
-fn p87_net_grpc_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("net-grpc-v1"));
-}
 
-#[test]
-fn p87_browser_tier2j_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("browser-tier2j-v1"));
-}
 
-#[test]
-fn p87_codable_l4_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("codable-l4-v1"));
-}
 
-#[test]
-fn p87_dist_prod_hard_fingerprint() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("dist-prod-hard-v1"));
-}

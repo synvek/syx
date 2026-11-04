@@ -14,7 +14,7 @@
    - `rt_v7_report`
 3. **Expected census (S2-I50):** `syx_driver_src_report_rs` **26 → 22 (−4)**; `inventory_fn_matches` stays **0**.
 4. **Later windows may continue tip packs under this ADR** (default Δ3–4) without a new decision document, while keeping `capabilities_report` / LSP- or test-coupled reports / fingerprint towers / five flags / `llvm_stub_audit_report` OUT unless separately decided.
-5. **MUST STAY:** `capabilities_report`; reports with LSP/`include_str`/behavioral test coupling; fingerprint / lang_props mass; five B-09 product flags; `llvm_stub_audit_report`.
+5. **MUST STAY:** capabilities product API (historically `capabilities_report`; after S2-I84 module `capabilities` — see [stage2-capabilities-report-surface](stage2-capabilities-report-surface.md)); reports with LSP/`include_str`/behavioral test coupling; fingerprint / lang_props mass; five B-09 product flags; `llvm_stub_audit_report`.
 6. **Non-claims:** ≠ S2-01 `[x]` / ≠ Stage-2 exit / ≠ retiring entire `syx doctor` / ≠ HostFn+1 / ≠ emit·ABI rewrite.
 
 ## Consequences
@@ -26,10 +26,12 @@
 - **S2-I52:** tip packs×4 deleted (gc+native_exec_op+inkwell+gc_generational); report census **18 → 14**; LSP CLI-string nails retired with flags.
 - **S2-I53+:** pure tip packs exhausted except `heap_bridge_report`; LSP-`include_str`/CLI-string-only nails move to [stage2-doctor-report-lsp-nail-knife](stage2-doctor-report-lsp-nail-knife.md).
 - **S2-I54:** tip 末枚 `heap_bridge_report` deleted; driver `include_str` source nails move to [stage2-doctor-report-driver-src-nail-knife](stage2-doctor-report-driver-src-nail-knife.md).
+- **S2-I84:** remaining `capabilities_report.rs` renamed to `capabilities.rs` (product surface 另策); report census **1 → 0**; tip-knife axis closed.
 - Open: [stage2-open](stage2-open.md).
 
 ## References
 
 - [stage2-open](stage2-open.md)
+- [stage2-capabilities-report-surface](stage2-capabilities-report-surface.md) · S2-I84
 - [stage2-governance-census](../stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

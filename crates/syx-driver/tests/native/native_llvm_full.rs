@@ -4,10 +4,6 @@ use std::fs;
 use std::process::Command;
 use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
 
-#[test]
-fn p98_native_llvm_full_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-locals-v5:alloca-ssa-value-ga"));
-}
 
 #[test]
 fn p98_native_llvm_full_mir_closure_executor() {

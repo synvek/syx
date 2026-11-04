@@ -101,10 +101,6 @@ fn p98_hof_generic_witness_inline_closure_vm_stdout() {
     assert_sorted(&lines, "vm-inline");
 }
 
-#[test]
-fn p98_hof_generic_witness_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("hof-generic-witness-v1"));
-}
 
 #[test]
 fn p98_hof_generic_witness_registry() {

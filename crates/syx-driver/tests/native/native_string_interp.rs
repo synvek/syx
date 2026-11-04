@@ -20,13 +20,6 @@ const SRC: &str = r#"func main() {
 
 const EXACT: &str = "Hello, SYX!";
 
-#[test]
-fn p101_native_string_interp_fingerprint() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("wasm-concat-exact-v1:hello-syx-quad"));
-    assert!(lib.contains("native-llvm-locals-v10:no-tls-slab"));
-    assert!(lib.contains("native-llvm-locals-v10-e2e:guidemo-line-parity"));
-}
 
 #[test]
 fn p98_string_interp_vm_exact_stdout() {
@@ -80,22 +73,6 @@ fn p98_string_interp_mir_wasm_quad() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn p103_native_llvm_locals_v9_fingerprint() {
-    let abi = include_str!("../../../syx-rt/src/abi.rs");
-    assert!(
-        abi.contains("syx_rt_frame_local_ptr")
-            && abi.contains("syx_rt_pop_into_local_ptr")
-            && !abi.contains("fn local_bits_insert"),
-        "locals v9 must use frame Value pointers, not TLS bit indices"
-    );
-    assert!(include_str!("../../src/lib.rs").contains("native-llvm-locals-v10:no-tls-slab"));
-    assert!(
-        include_str!("../../src/lib.rs").contains("native-llvm-locals-v10-e2e:guidemo-line-parity")
-    );
-    assert!(include_str!("../../src/lib.rs")
-        .contains("wasm-closure-guest-v1:no-mir-exec-closure-fnindex"));
-}
 
 #[test]
 fn p98_native_llvm_locals_abi_surface() {

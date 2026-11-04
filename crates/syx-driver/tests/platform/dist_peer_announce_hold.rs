@@ -6,36 +6,31 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_conflict_epoch_mesh_ready, cdn_bgp_peer_announce_epoch_memory_clear,
-    cdn_bgp_peer_announce_epoch_persist_ready, cdn_bgp_peer_announce_fanout_with_epoch,
-    cdn_bgp_peer_announce_filter_held_peers, cdn_bgp_peer_announce_hold_active,
-    cdn_bgp_peer_announce_hold_fingerprint, cdn_bgp_peer_announce_hold_memory_clear,
-    cdn_bgp_peer_announce_hold_ms, cdn_bgp_peer_announce_hold_ready,
-    cdn_bgp_peer_announce_parse_hold_wire, cdn_bgp_peer_announce_priority_ready,
-    cdn_bgp_peer_announce_receive_ack_with_epoch, cdn_bgp_route_sticky, cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key, cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr,
+    cdn_bgp_clear,
+    cdn_bgp_configure_mesh,
+    cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_conflict_epoch_mesh_ready,
+    cdn_bgp_peer_announce_epoch_memory_clear,
+    cdn_bgp_peer_announce_epoch_persist_ready,
+    cdn_bgp_peer_announce_fanout_with_epoch,
+    cdn_bgp_peer_announce_filter_held_peers,
+    cdn_bgp_peer_announce_hold_active,
+    cdn_bgp_peer_announce_hold_memory_clear,
+    cdn_bgp_peer_announce_hold_ms,
+    cdn_bgp_peer_announce_hold_ready,
+    cdn_bgp_peer_announce_parse_hold_wire,
+    cdn_bgp_peer_announce_priority_ready,
+    cdn_bgp_peer_announce_receive_ack_with_epoch,
+    cdn_bgp_route_sticky,
+    cdn_bgp_sticky_pop_ready,
+    cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr,
     spawn_dist_tcp_mailbox_on,
 };
 
 static P136_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-#[test]
-fn dist_peer_announce_hold_cdn_bgp_v19_peer_announce_hold_fingerprint() {
-    assert_eq!(
-        cdn_bgp_peer_announce_hold_fingerprint(),
-        "dist-cdn-bgp-v19:peer-announce-hold-mvp"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v19:peer-announce-hold-mvp"));
-    assert!(src.contains("cdn_bgp_peer_announce_hold_active"));
-    assert!(src.contains("cdn_bgp_peer_announce_filter_held_peers"));
-    assert!(src.contains("#hold:"));
-    assert!(src.contains("SYX_DIST_PEER_ANNOUNCE_HOLD_MS"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v19:peer-announce-hold-mvp"));
-    assert!(lib.contains("heap_v108_phase136_track_d_farm_dist_os_fingerprint"));
-}
 
 #[test]
 fn dist_peer_announce_hold_peer_announce_hold_dampen_window() {

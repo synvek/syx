@@ -69,7 +69,7 @@ fn service_di_fingerprint_strings_in_driver() {
         lib.contains("macro-service-v1:attr-scan")
             || lib.contains("macro-package-v2:exports-schema")
             || lib.contains("runtime-service-v1:singleton-container")
-            || lib.contains("heap_v92_phase120")
+            || lib.contains("heap_v100_phase128_track_c_wasm_fingerprint")
     );
 }
 

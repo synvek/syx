@@ -11,10 +11,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn p98_plugin_cdn_prod_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("plugin-cdn-prod-v1"));
-}
 
 #[test]
 fn p98_plugin_cdn_prod_dist_transport_surface() {

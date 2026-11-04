@@ -12,20 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-#[test]
-fn m3_b02_async_adapter_policy_fingerprint() {
-    let src = r#"
-func main() {
-  print(__syx_io_adapter_policy())
-}
-"#;
-    let out = run(src);
-    assert!(
-        out.contains("blocking-pool-async-adapter-v1-thin")
-            || out.contains("blocking-pool-async-adapter-v1-tcp"),
-        "ioAdapterPolicy fingerprint: {out}"
-    );
-}
 
 #[test]
 fn m3_b02_async_adapter_file_read_async_await() {

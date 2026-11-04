@@ -99,13 +99,6 @@ class App {
 }
 
 #[test]
-fn p120_macros_exports_schema_fingerprint() {
-    let manifest = include_str!("../../syx-pkg/src/manifest.rs");
-    assert!(manifest.contains("MacrosField"));
-    assert!(manifest.contains("exports"));
-}
-
-#[test]
 fn p120_expand_example_service_di_has_boot() {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),

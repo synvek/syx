@@ -35,11 +35,11 @@ struct CompositeUniforms {
     bg: [f32; 4],
 }
 
-pub fn wgpu_present_fingerprint() -> &'static str {
+pub fn wgpu_present_digest() -> &'static str {
     WGPU_PRESENT_FINGERPRINT
 }
 
-pub fn wgpu_composite_fingerprint() -> &'static str {
+pub fn wgpu_composite_digest() -> &'static str {
     WGPU_COMPOSITE_FINGERPRINT
 }
 

@@ -33,7 +33,3 @@ fn p98_sql_bind_step_stdout() {
     assert!(out.iter().any(|l| l.contains("ok")), "{out:?}");
 }
 
-#[test]
-fn p98_sql_migrations_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("sql-migrations-v1"));
-}

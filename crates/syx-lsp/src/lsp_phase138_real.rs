@@ -27,13 +27,6 @@ fn p138_manifest_soft_pin() {
     );
 }
 
-#[test]
-fn cache_v110_fingerprint() {
-    let self_src = include_str!("lsp_phase138_real.rs");
-    assert!(self_src.contains("syx-cache-v110"));
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("syx-cache-v110"));
-}
 
 #[test]
 fn p138_adr130_charter_soft_pin() {

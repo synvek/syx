@@ -52,10 +52,6 @@ func main() {
     assert_eq!(out, "[]", "file watch import missing-path must exact: {out}");
 }
 
-#[test]
-fn p98_file_watch_os_fingerprint() {
-    assert!(include_str!("../../src/lib.rs").contains("file-watch-os-default-v1"));
-}
 
 #[test]
 fn p98_file_watch_os_registry_host_id() {

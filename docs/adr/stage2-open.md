@@ -75,6 +75,41 @@
 - **S2-I56:** run-test-nail 末枚 `gui_backend_report` (same ADR); report census **2 → 1**.
 - **S2-I57:** fingerprint orphan tip 四联 ([stage2-fingerprint-tip-knife](stage2-fingerprint-tip-knife.md)); `fingerprint_fn` **655 → 651**.
 - **S2-I58:** fingerprint tip nail-co-delete 四联 (same ADR); `heap_v76_phase104` track a–d; `fingerprint_fn` **651 → 647**.
+- **S2-I59:** fingerprint census test-noise tip×31 (same ADR; LSP phase86–90 `#[test] *_fingerprint`); `fingerprint_fn` **647 → 616**; later test-noise default **Δ16–32**.
+- **S2-I60:** fingerprint census test-noise tip×34 (same ADR; LSP phase91–95); `fingerprint_fn` **616 → 582**.
+- **S2-I61:** fingerprint census test-noise tip×29 (same ADR; LSP phase96–100); `fingerprint_fn` **582 → 553**.
+- **S2-I62:** fingerprint census test-noise tip×24 (same ADR; LSP remaining phase79–85/101–103/131–139); `fingerprint_fn` **553 → 529**; LSP phase-real `*_fingerprint` test-noise axis closed.
+- **S2-I63:** fingerprint census test-noise tip×29 (same ADR; driver `driver_gate` + `property_observers` + `native_gui_parity`); `fingerprint_fn` **529 → 500**; driver tests fingerprint test-noise axis opened.
+- **S2-I64:** fingerprint census test-noise tip×30 (same ADR; driver `tests/farm` + `gui` + `wasm`); `fingerprint_fn` **500 → 470**.
+- **S2-I65:** fingerprint census test-noise tip×29 (same ADR; driver `tests/runtime` + `data`); `fingerprint_fn` **470 → 441**.
+- **S2-I66:** fingerprint census test-noise tip×36 (same ADR; driver `tests/platform`); `fingerprint_fn` **441 → 405**.
+- **S2-I67:** fingerprint census test-noise tip×22 (same ADR; driver `tests/native` + `concurrency`); `fingerprint_fn` **405 → 383**; driver tests fingerprint test-noise axis closed.
+- **S2-I68:** fingerprint tip orphan+sparse×5 (same ADR; orphan×3 + frontend/macro nails×2); `fingerprint_fn` **383 → 378**; tip-knife orphan axis closed; aggregator fold deferred.
+- **S2-I69:** fingerprint aggregator fold Δ6 ([stage2-fingerprint-aggregator-fold](stage2-fingerprint-aggregator-fold.md); v3/v4/v48–v51 → `heap_v52`); `fingerprint_fn` **378 → 372**.
+- **S2-I70:** fingerprint aggregator fold Δ16 (same ADR; v53…v68 → `heap_v69`; soft-nail retarget); `fingerprint_fn` **372 → 356**.
+- **S2-I71:** fingerprint aggregator fold Δ16 (same ADR; v70…v78_dx → `heap_v79_track_a`; soft-nail retarget×6); `fingerprint_fn` **356 → 340**.
+- **S2-I72:** fingerprint aggregator fold Δ16 (same ADR; v79_b…v82_b → `heap_v82_track_c`; soft-nail-free); `fingerprint_fn` **340 → 324**.
+- **S2-I73:** fingerprint aggregator fold Δ16 (same ADR; v82_d…v85_d → `heap_v85_dx`; soft-nail-free); `fingerprint_fn` **324 → 308**.
+- **S2-I74:** fingerprint aggregator fold Δ16 (same ADR; v86_a…v89_a → `heap_v89_track_b`; soft-nail-free); `fingerprint_fn` **308 → 292**.
+- **S2-I75:** fingerprint aggregator fold Δ16 (same ADR; v89_c…v93_c → `heap_v93_track_d`; soft-nail retarget); `fingerprint_fn` **292 → 276**.
+- **S2-I76:** fingerprint aggregator fold Δ16 (same ADR; v93_dx…v96_dx → `heap_v97_track_a`; soft-nail-free); `fingerprint_fn` **276 → 260**.
+- **S2-I77:** fingerprint aggregator fold Δ16 (same ADR; v97_b…v100_b → `heap_v100_track_c`; soft-nail-free); `fingerprint_fn` **260 → 244**.
+- **S2-I78:** fingerprint aggregator fold Δ16 (same ADR; v100_d…v104_d → `heap_v104_dx`; soft-nail retarget); `fingerprint_fn` **244 → 228**.
+- **S2-I79:** fingerprint aggregator fold Δ16 (same ADR; v103_a…v106_e → `heap_v106_dx`; soft-nail-free); `fingerprint_fn` **228 → 212**.
+- **S2-I80:** fingerprint aggregator fold Δ16 (same ADR; v107_a…v109_dx → `heap_v110_track_a`; soft-nail retarget); `fingerprint_fn` **212 → 196**.
+- **S2-I81:** fingerprint aggregator fold Δ4 (same ADR; v110 c/d/e/dx → `heap_v110_track_a`; soft-nail narrowed); `fingerprint_fn` **196 → 192**; contiguous pre-`v111` foldable tips exhausted.
+- **S2-I82:** earlier kept-tip re-fold Δ8 (same ADR; v52…v97_a → `heap_v100_track_c`; soft-nail retarget); `fingerprint_fn` **192 → 184**.
+- **S2-I83:** earlier kept-tip re-fold Δ3 (same ADR; v104_dx/v106_dx/v110_a → `heap_v100_track_c`; soft-nail retarget); `fingerprint_fn` **184 → 181**; pre-`v111` earlier-tip axis exhausted.
+- **S2-I84:** capabilities product surface 另策 ([stage2-capabilities-report-surface](stage2-capabilities-report-surface.md); `capabilities_report.rs` → `capabilities.rs`); `syx_driver_src_report_rs` **1 → 0**; `fingerprint_fn` **181**.
+- **S2-I85:** fingerprint v111 fold Δ4 ([stage2-fingerprint-v111-fold](stage2-fingerprint-v111-fold.md); c/d/inherit/dx → `track_l`; soft-nail narrowed); `fingerprint_fn` **181 → 177**.
+- **S2-I86:** fingerprint foundation fold Δ12 ([stage2-fingerprint-foundation-fold](stage2-fingerprint-foundation-fold.md); foundation×12 → `v100_c`; soft-nail retarget); `fingerprint_fn` **177 → 165**.
+- **S2-I87:** fingerprint track_l fold Δ1 ([stage2-fingerprint-track-l-fold](stage2-fingerprint-track-l-fold.md); `track_l` → `v100_c`; soft-nail retarget); `fingerprint_fn` **165 → 164**; on-agg single tip.
+- **S2-I88:** product-sea cdn_bgp rename Δ11 ([stage2-fingerprint-product-sea-cdn-bgp-rename](stage2-fingerprint-product-sea-cdn-bgp-rename.md); sticky/peer-announce `*_fingerprint` → `*_digest`); `fingerprint_fn` **164 → 153**.
+- **S2-I89:** product-sea async dist/cdn gate rename Δ8 ([stage2-fingerprint-product-sea-async-dist-rename](stage2-fingerprint-product-sea-async-dist-rename.md); main gates `*_fingerprint` → `*_digest`); `fingerprint_fn` **153 → 145**; syx-async product-sea fingerprint surface cleared.
+- **S2-I90:** product-sea select channel rename Δ14 ([stage2-fingerprint-product-sea-select-channel-rename](stage2-fingerprint-product-sea-select-channel-rename.md); parser+vm `select_*_fingerprint` → `*_digest`); `fingerprint_fn` **145 → 131**.
+- **S2-I91:** product-sea gui shape-core rename Δ9 ([stage2-fingerprint-product-sea-gui-shape-rename](stage2-fingerprint-product-sea-gui-shape-rename.md); shape `*_fingerprint` → `*_digest`; façades kept); `fingerprint_fn` **131 → 122**.
+- **S2-I92:** product-sea gui shape façade rename Δ9 ([stage2-fingerprint-product-sea-gui-shape-facade-rename](stage2-fingerprint-product-sea-gui-shape-facade-rename.md); `gui_*_fingerprint` → `gui_*_digest`; C-ABI/VM host kept); `fingerprint_fn` **122 → 113**.
+- **S2-I93:** product-sea gui render leaf rename Δ14 ([stage2-fingerprint-product-sea-gui-leaf-rename](stage2-fingerprint-product-sea-gui-leaf-rename.md); leaf+façade `*_fingerprint` → `*_digest`; C-ABI/VM host kept); `fingerprint_fn` **113 → 99**.
 
 ## References
 
@@ -91,4 +126,19 @@
 - [`docs/adr/stage2-doctor-report-driver-src-nail-knife.md`](stage2-doctor-report-driver-src-nail-knife.md) · S2-I54
 - [`docs/adr/stage2-doctor-report-run-test-nail-knife.md`](stage2-doctor-report-run-test-nail-knife.md) · S2-I55
 - [`docs/adr/stage2-fingerprint-tip-knife.md`](stage2-fingerprint-tip-knife.md) · S2-I57
+- [`docs/adr/stage2-fingerprint-aggregator-fold.md`](stage2-fingerprint-aggregator-fold.md) · S2-I69
+- [`docs/adr/stage2-capabilities-report-surface.md`](stage2-capabilities-report-surface.md) · S2-I84
+- [`docs/adr/stage2-fingerprint-v111-fold.md`](stage2-fingerprint-v111-fold.md) · S2-I85
+- [`docs/adr/stage2-fingerprint-foundation-fold.md`](stage2-fingerprint-foundation-fold.md) · S2-I86
+- [`docs/adr/stage2-fingerprint-track-l-fold.md`](stage2-fingerprint-track-l-fold.md) · S2-I87
+- [`docs/adr/stage2-fingerprint-product-sea-cdn-bgp-rename.md`](stage2-fingerprint-product-sea-cdn-bgp-rename.md) · S2-I88
+- [`docs/adr/stage2-fingerprint-product-sea-async-dist-rename.md`](stage2-fingerprint-product-sea-async-dist-rename.md) · S2-I89
+- [`docs/adr/stage2-fingerprint-product-sea-select-channel-rename.md`](stage2-fingerprint-product-sea-select-channel-rename.md) · S2-I90
+- [`docs/adr/stage2-fingerprint-product-sea-gui-shape-rename.md`](stage2-fingerprint-product-sea-gui-shape-rename.md) · S2-I91
+- [`docs/adr/stage2-fingerprint-product-sea-gui-shape-facade-rename.md`](stage2-fingerprint-product-sea-gui-shape-facade-rename.md) · S2-I92
+- [`docs/adr/stage2-fingerprint-product-sea-gui-leaf-rename.md`](stage2-fingerprint-product-sea-gui-leaf-rename.md) · S2-I93
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
+
+
+
+
