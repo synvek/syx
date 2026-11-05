@@ -13,7 +13,6 @@ use syx_async::{
 
 static P111_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-
 #[test]
 fn dist_nonloopback_dual_bind_host_keys() {
     let _guard = P111_DIST_LOCK.lock().unwrap();
@@ -102,11 +101,3 @@ fn dist_nonloopback_memory_cdn_not_ga() {
     );
 }
 
-#[test]
-fn dist_nonloopback_source_gate() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_failover_order"));
-    assert!(src.contains("spawn_dist_tcp_mailbox_on"));
-    assert!(src.contains("[::1]:0"));
-    assert!(src.contains("dist_bind_addr_is_non_loopback_v4"));
-}

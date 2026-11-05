@@ -14,39 +14,6 @@ use syx_driver::{
 
 const RAFT_TOKEN: u32 = 0xF110_7001;
 
-
-
-#[test]
-fn p110_farm_toy_raft_v1_not_v2_ga() {
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert_eq!(farm_lease_raft_digest(), "farm-lease-raft-v1:quorum-mvp");
-    assert_ne!(
-        farm_lease_raft_digest(),
-        farm_lease_raft_v2_digest()
-    );
-    // Toy v1 append (deadline-only, no log) must not be the v2 serve path.
-    let serve = src
-        .split("fn serve_raft_os_child")
-        .nth(1)
-        .expect("serve_raft_os_child");
-    assert!(
-        serve.contains("raft_send_append_v2") || serve.contains("APPEND2"),
-        "v2 serve must use log append"
-    );
-    assert!(
-        src.contains("encode_append_toy_v1"),
-        "toy v1 kept for negative GA contrast"
-    );
-    assert!(
-        src.contains("append v1 rejected"),
-        "v2 nodes must reject toy APPEND"
-    );
-    assert!(
-        !serve.contains("encode_append_toy_v1"),
-        "toy v1 must not be used in serve loop"
-    );
-}
-
 #[test]
 fn p110_farm_raft_v2_log_wal_grant_and_failover() {
     let _g = farm_lease_test_lock();

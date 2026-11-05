@@ -3,7 +3,6 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 mod abi;
-mod gate_b09_gc_narrative;
 mod bridge;
 mod link;
 mod llvm_stub_audit;
@@ -25,13 +24,6 @@ pub use abi::{
     syx_rt_push_from_local_ptr, syx_rt_push_i32, syx_rt_push_nil, syx_rt_push_numeric,
     syx_rt_push_numeric64, syx_rt_push_str,
     syx_rt_run_main_fn, syx_rt_start, syx_rt_string_pool_base, syx_rt_take_catch, syx_rt_throw,
-};
-pub use gate_b09_gc_narrative::{
-    objectref_rc_migrate_enabled,
-    storage_cleanup_enabled,
-    unified_mir_runtime_heap_enabled,
-    b09_axis_exit_enabled,
-    gc_ga_claimed,
 };
 pub use bridge::{
     default_vm_runtime, install_native_module, install_native_task_hosts,

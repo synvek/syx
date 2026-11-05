@@ -36,7 +36,6 @@ fn load_echo_plugin() -> Result<(), String> {
     load_path(&dir.join(platform_library_name()))
 }
 
-
 #[test]
 fn p105_plugin_unload_fixture_required() {
     let dir = echo_fixture_dir();
@@ -46,20 +45,6 @@ fn p105_plugin_unload_fixture_required() {
         "echo plugin dylib fixture required for CI: {}",
         lib.display()
     );
-}
-
-#[test]
-fn p103_plugin_loader_no_mem_forget() {
-    let src = include_str!("../../../syx-host-plugin/src/loader.rs");
-    assert!(!src.contains("mem::forget(lib)"), "unload must drop Library");
-    assert!(src.contains("register_loaded_library"));
-}
-
-#[test]
-fn p103_plugin_macro_no_mem_forget() {
-    let src = include_str!("../../../syx-host-plugin/src/macro_plugin.rs");
-    assert!(!src.contains("mem::forget(lib)"), "macro plugin must retain Library for dlclose");
-    assert!(src.contains("register_loaded_library"));
 }
 
 #[test]

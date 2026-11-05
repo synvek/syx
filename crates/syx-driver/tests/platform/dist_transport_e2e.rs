@@ -7,20 +7,6 @@ use syx_async::{
 use syx_driver::{dist_rustls_crate_e2e_prod_enabled, dist_winpipe_e2e_prod_enabled};
 
 #[test]
-fn dist_transport_e2e_winpipe_transport_module() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_winpipe_e2e_frame_smoke"));
-    assert!(src.contains("win_pipe") || src.contains("NamedPipe"));
-}
-
-#[test]
-fn dist_transport_e2e_rustls_transport_module() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_rustls_e2e_handshake_smoke"));
-    assert!(src.contains("rustls") || src.contains("TLS"));
-}
-
-#[test]
 fn dist_transport_e2e_winpipe_frame_stdout() {
     assert!(dist_winpipe_e2e_frame_smoke(1, 88));
 }
@@ -35,12 +21,6 @@ fn dist_transport_e2e_driver_prod_flags() {
     let _ = dist_rustls_crate_e2e_prod_enabled();
     let _ = dist_winpipe_e2e_prod_enabled();
     assert!(dist_rustls_e2e_prod_default_enabled() || dist_winpipe_e2e_prod_default_enabled());
-}
-
-#[test]
-fn dist_transport_e2e_llvm_rt_symbols() {
-    let llvm = include_str!("../../../syx-llvm/src/lib.rs");
-    assert!(llvm.contains("syx_rt_dist_rustls_e2e") || llvm.contains("syx_rt_dist_winpipe_e2e"));
 }
 
 #[test]

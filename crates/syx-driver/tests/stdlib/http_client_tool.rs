@@ -85,28 +85,6 @@ fn start_health_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
 }
 
 #[test]
-fn ec_m2_1_http_client_source_uses_official_http() {
-    let example = include_str!("../../../../examples/http_tool/main.sy");
-    assert!(
-        example.contains("import Net") && example.contains("Http.get"),
-        "example must use import Net + Http.get: {example}"
-    );
-    assert!(
-        example.contains("refused") && example.contains("SYX_EC_M2_1_HTTP_BASE"),
-        "example must cover refuse + env base: {example}"
-    );
-    assert!(
-        !example.contains("__syx_http_"),
-        "example must not call bare http hosts: {example}"
-    );
-    let net = include_str!("../../../../packages/net/mod.sy");
-    assert!(
-        net.contains("public class Http") && net.contains("func get"),
-        "Http facade required: {net}"
-    );
-}
-
-#[test]
 fn ec_m2_1_http_client_refuse_catchable() {
     // Wave A W65 / ADR-409 / A-03: Http.get refuse product exact (example unchanged).
     let _clear = EnvGuard::remove("SYX_EC_M2_1_HTTP_BASE");

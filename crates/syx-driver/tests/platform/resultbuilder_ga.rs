@@ -16,20 +16,6 @@ fn fixture(rel: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(rel)
 }
 
-
-#[test]
-fn p102_resultbuilder_ga_build_protocol() {
-    let macro_src = include_str!("../../../syx-macro/src/result_builder.rs");
-    assert!(macro_src.contains("__syx_result_builder_buildEither"));
-    assert!(macro_src.contains("__syx_result_builder_buildBlock"));
-    assert!(macro_src.contains("__syx_result_builder_buildArray"));
-    assert!(macro_src.contains("__syx_result_builder_buildOptional"));
-    assert!(
-        include_str!("../../../syx-macro/src/lib.rs").contains("desugar_result_builders"),
-        "resultBuilder must be wired into syx-macro expand_module pipeline"
-    );
-}
-
 #[test]
 fn p103_resultbuilder_build_optional_stdout() {
     // Wave A W2 / ADR-346 / A-03: exact lines (was contains "42"/"99")

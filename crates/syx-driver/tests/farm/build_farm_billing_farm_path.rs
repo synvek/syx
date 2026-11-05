@@ -27,12 +27,6 @@ fn p98_farm_billing_farm_path_matching_ack_ok() {
     assert!(enforce_billing_settlement(&lock).is_ok());
 }
 
-
-#[test]
-fn p98_farm_billing_farm_path_worker_surface() {
-    assert!(include_str!("../../src/build_syx.rs").contains("farm_worker_run_cycle"));
-}
-
 #[test]
 fn p100_farm_billing_path_exit_nonzero_tcp_queue() {
     let _g = billing_env_lock();

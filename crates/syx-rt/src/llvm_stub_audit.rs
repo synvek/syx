@@ -1,10 +1,12 @@
-//! LLVM stub source audit inventory (B-06 floor; ≠ stub rewrite / ≠ B-06 `[x]`).
+//! LLVM stub source audit (B-06 product floor; ≠ stub rewrite).
 //!
 //! Classifies `llvm_stubs.rs` text into Wired / WiredNoop(POP) / Noop / Unknown / Cold.
 //! W313: audit report. HostFn×8 B-07 chain (thin→exit).
 //! Does **not** change stub semantics or claim absolute HostFn↔stub matrix / Missing-clear exit.
 //! S2-I14: declare-diff / missing_clear feed inventories removed (orphan after S2-I11).
 //! S2-I17: capability_align inventory removed; HostFn thin/deepen use policy-fixed floors.
+//! S2-I134: accepted as **B-06 product capability** (not S2-01 process-governance) —
+//! see `docs/adr/stage2-llvm-stub-audit-product-accept.md`.
 
 /// Classification bucket for one `syx_rt_*` stub body.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

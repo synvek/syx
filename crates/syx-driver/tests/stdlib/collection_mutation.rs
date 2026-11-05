@@ -8,15 +8,6 @@ use syx_driver::{
     DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -233,73 +224,6 @@ fn m2_s1_02_array_set_at_persists_wasm() {
         lines_joined(&lines),
         "1\n8\n3\n7\n7",
         "wasm Array setAt must exact: {lines:?}"
-    );
-}
-
-#[test]
-fn m2_s1_02_product_mutation_implemented() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "collections.mutation");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "collections.mutation must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s1_02_collection_mutation"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-224") || block.contains("M2-S1-02") || block.contains("ADR-545"),
-        "notes must cite ADR-224 or ADR-545: {block}"
-    );
-    assert!(
-        block.contains("Deque") || block.contains("M2-S1-04") || block.contains("subscript-insert"),
-        "notes must keep honesty fence: {block}"
-    );
-}
-
-#[test]
-fn m2_s1_02_product_mutation_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "collections.mutation");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "collections.mutation native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("ADR-545") || block.contains("W201"),
-        "collections.mutation notes must cite ADR-545: {block}"
-    );
-    assert!(
-        block.contains("m2_s1_02_dict_remove_persists_native")
-            && block.contains("m2_s1_02_array_subscript_assign_native"),
-        "tests must list native nails: {block}"
-    );
-}
-
-#[test]
-fn m2_s1_02_dict_product_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "collections.dict");
-    assert!(
-        block.contains("native = \"real\""),
-        "collections.dict must declare native=real (ADR-564): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "collections.dict must declare wasm=real (ADR-564): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "collections.dict must keep status=implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-564"),
-        "notes must cite ADR-564: {block}"
-    );
-    assert!(
-        block.contains("m2_s1_02_dict_remove_persists_native"),
-        "tests must include native mir nail: {block}"
     );
 }
 

@@ -218,16 +218,6 @@ fn manifest_phase69_iterator_gate() {
 }
 
 #[test]
-fn cache_tag_iterator_suite() {
-    // Historical Phase 69 probe used syx-cache-v41; keep MIR cache tag present for iterator suite.
-    let src = include_str!("../../src/lib.rs");
-    assert!(
-        src.contains("syx-cache-v1") || src.contains("syx-cache-v"),
-        "driver must declare MIR cache version tag"
-    );
-}
-
-#[test]
 fn for_in_set_literal_via_array_path() {
     assert!(run(
         r#"func main() {

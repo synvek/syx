@@ -19,12 +19,6 @@ fn build_farm_multitenant_phase98_lease_ttl_default() {
 }
 
 #[test]
-fn build_farm_multitenant_phase98_build_target() {
-    assert!(include_str!("../../src/build_syx.rs").contains("farm_worker"));
-}
-
-
-#[test]
 fn p98_build_farm_multitenant_lease_ttl_enforce() {
     let lock = syx_pkg::SyxLockfile::default();
     assert!(lock.farm_lease_ttl_secs > 0);

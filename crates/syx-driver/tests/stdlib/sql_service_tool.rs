@@ -22,36 +22,6 @@ fn run_embed(src: &str) -> String {
 }
 
 #[test]
-fn ec_m2_1_sql_service_source_uses_official_sql() {
-    let example = include_str!("../../../../examples/sql_tool/main.sy");
-    assert!(
-        example.contains("import Sql")
-            && example.contains("Sql.open")
-            && example.contains("execOn")
-            && example.contains("queryOn"),
-        "example must use import Sql + open/execOn/queryOn: {example}"
-    );
-    assert!(
-        example.contains("try") && example.contains("catch"),
-        "example must try/catch: {example}"
-    );
-    assert!(
-        !example.contains("__syx_sql_"),
-        "example must not call bare sql hosts: {example}"
-    );
-    let sql = include_str!("../../../../packages/data/sql.sy");
-    assert!(
-        sql.contains("SqlError") && sql.contains("throws"),
-        "Sql facade throws SqlError"
-    );
-    let emb = include_str!("../../src/embedded_std.rs");
-    assert!(
-        emb.contains("(\"Sql\", SQL_SOURCE)") || emb.contains("\"Sql\""),
-        "Sql must be importable in embedded_std"
-    );
-}
-
-#[test]
 fn ec_m2_1_sql_service_memory_crud_ok() {
     // Wave A W63 / ADR-407 / A-03: Sql service memory CRUD product exact (example unchanged).
     let (code, printed) =

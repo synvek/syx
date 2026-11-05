@@ -183,27 +183,3 @@ fn edge_actor_serial_mutate_wasm() {
     assert_eq!(out, SERIAL_MUTATE_EXPECTED, "wasm serial mutate: {out}");
 }
 
-#[test]
-fn edge_spec_doc_cites_adr631() {
-    let spec = include_str!("../../../../docs/gates/gate-a04-edge-semantics.md");
-    assert!(
-        spec.contains("ADR-631") && (spec.contains("actor ordering") || spec.contains("Actor")),
-        "a04-edge-semantics.md must cite ADR-631 actor ordering"
-    );
-    assert!(
-        !spec.contains("actor ordering | deferred")
-            && !spec.contains("| actor ordering | deferred"),
-        "spec must not leave actor deferred: remaining deferred domains forbidden"
-    );
-    assert!(
-        spec.contains("ADR-632") && spec.contains("Q-L4 floor"),
-        "spec must cite ADR-632 Q-L4 floor signed"
-    );
-    assert!(
-        spec.contains("Not** Wave A")
-            || spec.contains("**Not** Wave A")
-            || spec.contains("Not Wave A"),
-        "spec must remain Not Wave A exit"
-    );
-}
-

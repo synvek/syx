@@ -23,25 +23,6 @@ fn tmp_path(name: &str) -> PathBuf {
 }
 
 #[test]
-fn ec_m2_3_file_leak_facade_source_has_open_close_throws() {
-    let src = include_str!("../../../../packages/io/file_handle.sy");
-    assert!(
-        src.contains("open(path: String, mode: String) -> Int throws")
-            || src.contains("-> Int throws"),
-        "open must throws: {src}"
-    );
-    assert!(
-        src.contains("func close(handle: Int) throws") || src.contains("close(handle: Int) throws"),
-        "close must throws"
-    );
-    let hosts = include_str!("../../../syx-vm/src/hosts.rs");
-    assert!(
-        hosts.contains("pub fn file_handle_live_count"),
-        "file_handle_live_count must be exported for nails"
-    );
-}
-
-#[test]
 fn ec_m2_3_file_leak_open_close_returns_to_baseline() {
     // Wave A W48 / ADR-392 / A-03: FileHandle open+close product exact (drop print(h)).
     let path = tmp_path("ok.bin");

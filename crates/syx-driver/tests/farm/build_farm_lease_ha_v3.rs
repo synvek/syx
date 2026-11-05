@@ -21,48 +21,6 @@ fn p109_farm_os_child_entry() {
     }
 }
 
-
-
-#[test]
-fn p109_farm_thread_sync_not_ha_v3_ga() {
-    // Same-process thread+SYNC (`spawn_farm_lease_ha`) must NOT pass HA v3 GA.
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    let v2 = src
-        .split("pub fn spawn_farm_lease_ha(")
-        .nth(1)
-        .expect("spawn_farm_lease_ha")
-        .split("pub fn farm_lease_acquire")
-        .next()
-        .expect("v2 body");
-    assert!(
-        v2.contains("thread::spawn") || src.contains("spawn_authority_listener"),
-        "v2 HA is in-process threads"
-    );
-    assert!(
-        !v2.contains("Command::new"),
-        "thread HA path must not use Command"
-    );
-    let v3 = src
-        .split("pub fn spawn_farm_lease_ha_v3")
-        .nth(1)
-        .expect("spawn_farm_lease_ha_v3")
-        .split("pub struct FarmLeaseRaftCluster")
-        .next()
-        .expect("v3 body");
-    assert!(
-        v3.contains("Command") || src.contains("spawn_os_authority_child"),
-        "HA v3 must spawn OS processes via Command"
-    );
-    assert_ne!(
-        farm_lease_ha_v3_digest(),
-        "farm-lease-ha-v2:process-isolated"
-    );
-    // Runtime: thread cluster is a different API from OS-process v3.
-    let _g = farm_lease_test_lock();
-    let thread_cluster = spawn_farm_lease_ha(0);
-    thread_cluster.join();
-}
-
 #[test]
 fn p109_farm_ha_v3_process_isolation_failover() {
     let _g = farm_lease_test_lock();

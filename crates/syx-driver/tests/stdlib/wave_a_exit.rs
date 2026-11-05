@@ -35,28 +35,3 @@ fn wave_a_exit_evidence_files_exist() {
     }
 }
 
-#[test]
-fn wave_a_exit_spec_signed() {
-    let spec = include_str!("../../../../docs/lang/wave-a-exit.md");
-    assert!(
-        spec.contains("ADR-642") && spec.contains("Wave A exit signed"),
-        "spec must cite ADR-642 Wave A exit signed: missing markers"
-    );
-    assert!(
-        spec.contains("Q-L2") && spec.contains("Q-S1") && spec.contains("differential"),
-        "spec must cite plan/02 exit triad"
-    );
-    assert!(
-        spec.contains("## Frozen")
-            && (spec.contains("native=partial")
-                || spec.contains("Q-L5")
-                || spec.contains("B-04")
-                || spec.contains("wasm skip")),
-        "spec Frozen must keep residual / Q-L5 / B / wasm-skip fences"
-    );
-    assert!(
-        !spec.contains("all A-* `[x]` signed") && !spec.contains("全体轴 `[x]` signed"),
-        "spec must not claim all A-* exit"
-    );
-}
-

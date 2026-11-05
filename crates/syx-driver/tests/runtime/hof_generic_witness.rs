@@ -101,9 +101,3 @@ fn p98_hof_generic_witness_inline_closure_vm_stdout() {
     assert_sorted(&lines, "vm-inline");
 }
 
-
-#[test]
-fn p98_hof_generic_witness_registry() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("ArraySortBy"));
-}

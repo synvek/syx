@@ -293,14 +293,3 @@ fn dist_bgp_anycast_hostkey_v6_concrete_bind_eq_key_route() {
     dist_region_multihost_clear();
 }
 
-#[test]
-fn dist_bgp_anycast_global_cdn_sla_purged_from_ga() {
-    let lock = include_str!("../../../syx-pkg/src/lockfile.rs");
-    assert!(!lock.contains("global_cdn_sla_tier"));
-    let enforce = include_str!("../../../syx-pkg/src/lock_enforce.rs");
-    assert!(!enforce.contains("enforce_global_cdn_sla"));
-    let resolver = include_str!("../../../syx-pkg/src/resolver.rs");
-    assert!(!resolver.contains("global_cdn_sla"));
-    let installer = include_str!("../../../syx-pkg/src/installer.rs");
-    assert!(!installer.contains("global_cdn_sla"));
-}

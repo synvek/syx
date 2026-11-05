@@ -40,14 +40,3 @@ func main() {
     assert_eq!(out, "[]", "file watch import missing-path must exact: {out}");
 }
 
-#[test]
-fn p98_file_watch_os_registry_host_id() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("FileWatch") && reg.contains("__syx_file_watch"));
-}
-
-#[test]
-fn p98_file_watch_os_no_mock_only_pass() {
-    let src = include_str!("../../../syx-vm/src/stdlib_phase84_hosts.rs");
-    assert!(src.contains("host_file_watch"));
-}

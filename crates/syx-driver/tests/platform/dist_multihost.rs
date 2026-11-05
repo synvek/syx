@@ -15,7 +15,6 @@ use syx_async::{
 
 static P110_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-
 #[test]
 fn dist_multihost_memory_cdn_not_ga_without_tcp() {
     let _guard = P110_DIST_LOCK.lock().unwrap();
@@ -144,21 +143,3 @@ fn dist_multihost_cross_process_ack() {
     dist_region_multihost_clear();
 }
 
-#[test]
-fn dist_multihost_source_gate() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_failover_order"));
-    assert!(src.contains("SYX_DIST_CDN_MEMORY"));
-    assert!(src.contains("cdn_route_counts_as_ga"));
-    let cdn_fn = src
-        .split("pub fn cdn_route(")
-        .nth(1)
-        .expect("cdn_route(")
-        .split("pub fn cdn_route_ga")
-        .next()
-        .expect("cdn_route body");
-    assert!(
-        cdn_fn.contains("cdn_memory_dev_enabled"),
-        "cdn_route must gate memory VecDeque on explicit dev opt-in"
-    );
-}

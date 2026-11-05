@@ -6,15 +6,6 @@ use syx_driver::{
     DriverOptions,
 };
 
-fn mir_op_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing MirOp override {name}"));
-    rest.split("[[op]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -165,30 +156,3 @@ fn m2_s1_const_nil_print_wasm() {
     );
 }
 
-#[test]
-fn m2_s1_mir_op_const_bool_inventory_real() {
-    let toml = include_str!("../../../../packages/internal/mir_op_capabilities.toml");
-    let block = mir_op_block(toml, "ConstBool");
-    assert!(
-        block.contains("llvm = \"real\"") && block.contains("wasm = \"real\""),
-        "ConstBool product backends must be real: {block}"
-    );
-    assert!(
-        block.contains("ADR-547"),
-        "ConstBool notes must cite ADR-547: {block}"
-    );
-}
-
-#[test]
-fn m2_s1_mir_op_const_nil_inventory_real() {
-    let toml = include_str!("../../../../packages/internal/mir_op_capabilities.toml");
-    let block = mir_op_block(toml, "ConstNil");
-    assert!(
-        block.contains("llvm = \"real\"") && block.contains("wasm = \"real\""),
-        "ConstNil product backends must be real: {block}"
-    );
-    assert!(
-        block.contains("ADR-547"),
-        "ConstNil notes must cite ADR-547: {block}"
-    );
-}

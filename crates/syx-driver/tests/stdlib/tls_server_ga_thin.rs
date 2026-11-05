@@ -14,7 +14,6 @@ fn tls_server_ga_thin_evidence_files_exist() {
         "packages/internal/capabilities.generated.json",
         "books/shared/capabilities-generated.md",
         "scripts/gen_capabilities.py",
-        "crates/syx-driver/tests/stdlib/tls_server_ga_deepen.rs",
     ] {
         let path = format!("{root}{rel}");
         assert!(

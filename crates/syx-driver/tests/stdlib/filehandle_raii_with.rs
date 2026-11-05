@@ -194,41 +194,6 @@ func main() {{
 }
 
 #[test]
-fn m2_s3_02b_protocol_files_static() {
-    let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../packages/core/protocols/");
-    for name in ["reader.sy", "writer.sy", "seekable.sy", "closeable.sy"] {
-        let path = format!("{root}{name}");
-        let src = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path}: {e}"));
-        assert!(
-            src.contains("public protocol"),
-            "{name} must declare a protocol"
-        );
-    }
-    let fh = include_str!("../../../../packages/io/file_handle.sy");
-    assert!(
-        fh.contains("class FileResource")
-            && (fh.contains("Reader/Writer/Seekable/Closeable")
-                || fh.contains("implements Reader")),
-        "FileResource + IO protocol markers required: {fh}"
-    );
-    assert!(
-        fh.contains("func withOpen(path: String, mode: String, body: Object)"),
-        "withOpen must exist: {fh}"
-    );
-    assert!(
-        fh.contains("openResource(path: String, mode: String)"),
-        "openResource must exist"
-    );
-    let hosts = include_str!("../../../syx-vm/src/hosts.rs");
-    assert!(
-        hosts.contains("host_file_close_quiet")
-            && hosts.contains("host_file_with_open")
-            && hosts.contains("host_file_with_open_fail"),
-        "quiet close + with_open + with_open_fail hosts required"
-    );
-}
-
-#[test]
 fn m2_s3_02b_with_open_success_live_count() {
     // Wave A W49 / ADR-393 / A-03: withOpen success product exact (drop print(n)).
     let path = tmp_path("ok.bin");
@@ -412,24 +377,6 @@ fn m2_s3_02b_host_inject_fail_live_count_wasm() {
         "wasm host inject fail must not leak"
     );
     let _ = fs::remove_file(&path);
-}
-
-#[test]
-fn m2_s3_02b_product_raii_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.file.raii");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "io.file.raii native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("ADR-546"),
-        "notes must cite ADR-546: {block}"
-    );
-    assert!(
-        block.contains("m2_s3_02b_with_open_success_live_count_native"),
-        "tests must list native nail: {block}"
-    );
 }
 
 #[test]

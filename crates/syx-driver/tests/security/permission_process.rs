@@ -69,11 +69,3 @@ func main() {
     });
 }
 
-#[test]
-fn qs1_d04_permission_process_cli_flag() {
-    let cli = include_str!("../../../../crates/syx-cli/src/main.rs");
-    assert!(
-        cli.contains("allow-process"),
-        "CLI must expose --allow-process"
-    );
-}

@@ -155,29 +155,3 @@ fn edge_nan_ieee_eq_wasm() {
     );
 }
 
-#[test]
-fn edge_spec_doc_cites_adr629() {
-    let spec = include_str!("../../../../docs/gates/gate-a04-edge-semantics.md");
-    assert!(
-        spec.contains("ADR-629") && spec.contains("NaN"),
-        "a04-edge-semantics.md must cite ADR-629 NaN: {spec}"
-    );
-    assert!(
-        spec.contains("IEEE") || spec.contains("=="),
-        "NaN section must describe IEEE eq floor"
-    );
-    assert!(!spec.contains("| actor ordering | deferred") && !spec.contains("actor ordering | deferred"),
-        "spec must not leave actor deferred"
-    );
-    assert!(
-        spec.contains("ADR-632") && spec.contains("Q-L4 floor"),
-        "spec must cite ADR-632 Q-L4 floor signed"
-    );
-    assert!(
-        spec.contains("Not** Wave A")
-            || spec.contains("**Not** Wave A")
-            || spec.contains("Not Wave A"),
-        "spec must remain Not Wave A exit"
-    );
-}
-

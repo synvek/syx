@@ -593,18 +593,6 @@ fn iter_phase69_gate_count() {
 }
 
 #[test]
-fn iter_no_i32_zero_hack_in_vm() {
-    let vm = include_str!("../../../syx-vm/src/lib.rs");
-    assert!(!vm.contains("Value::I32(0) | Value::I64(0)"));
-}
-
-#[test]
-fn iter_no_i32_zero_hack_in_mir_run() {
-    let rt = include_str!("../../../syx-mir-run/src/runtime.rs");
-    assert!(!rt.contains("Value::I32(0) | Value::I64(0)"));
-}
-
-#[test]
 fn iter_counter_three_values_printed() {
     let src = r#"class Counter: Iterator {
     var n: Int

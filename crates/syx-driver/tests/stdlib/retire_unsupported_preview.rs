@@ -10,15 +10,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -69,63 +60,6 @@ fn lines_joined(lines: &[String]) -> String {
         .filter(|l| !l.is_empty())
         .collect::<Vec<_>>()
         .join("\n")
-}
-
-#[test]
-fn m2_s5_04_no_unsupported_parse_hack() {
-    let src = include_str!("../../../../packages/datetime/mod.sy");
-    assert!(
-        !src.contains("parse(\"unsupported\")") && !src.contains("parse(\"unsupported\")"),
-        "DateTime.now must not call parse(\"unsupported\"): {src}"
-    );
-    assert!(
-        src.contains("__syx_datetime_now"),
-        "DateTime.now must call DateTimeNow host: {src}"
-    );
-    let stubs = include_str!("../../../../crates/syx-vm/src/script_hosts.rs");
-    assert!(
-        !stubs.contains("text == \"unsupported\""),
-        "host_datetime_parse must not special-case unsupported: {stubs}"
-    );
-}
-
-#[test]
-fn m2_s5_04_product_calendar_implemented() {
-    // Wave A W284 / ADR-628: datetime.calendar native+wasm=real + status=implemented.
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "datetime.calendar");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "datetime.calendar must be implemented after W284: {block}"
-    );
-    assert!(
-        block.contains("native = \"real\""),
-        "datetime.calendar native must be real (ADR-628): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "datetime.calendar wasm must be real (ADR-628): {block}"
-    );
-    assert!(
-        !block.contains("native = \"noop\""),
-        "datetime.calendar must not remain native=noop: {block}"
-    );
-    assert!(
-        block.contains("ADR-628") && block.contains("W284"),
-        "notes must cite ADR-628+W284: {block}"
-    );
-    assert!(
-        block.contains("m2_s5_04_retire_unsupported_preview"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-222") || block.contains("M2-S5-04"),
-        "notes must cite ADR-222 lineage: {block}"
-    );
-    assert!(
-        block.contains("IANA") || block.contains("timezone"),
-        "notes must keep IANA honesty fence: {block}"
-    );
 }
 
 #[test]

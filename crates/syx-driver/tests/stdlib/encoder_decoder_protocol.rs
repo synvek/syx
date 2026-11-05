@@ -9,15 +9,6 @@ use syx_driver::{
     compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -155,79 +146,6 @@ func main() {
 }
 
 #[test]
-fn m2_s7_01_docs_claim_protocol() {
-    let usage = include_str!("../../../../docs/9_UsageGuide.md");
-    assert!(
-        usage.contains("ADR-230")
-            && usage.contains("Encoder")
-            && (usage.contains("M2-S7-02") || usage.contains("JSONEncoder")),
-        "UsageGuide must document coding protocol + S7-02 fence"
-    );
-    let lr = include_str!("../../../../books/language-reference/09-protocols-and-conformances.md");
-    assert!(
-        lr.contains("ADR-230")
-            && lr.contains("Codable: Encodable, Decodable")
-            && lr.contains("Encoder"),
-        "language-reference 09 must document protocol surface"
-    );
-}
-
-#[test]
-fn m2_s7_01_product_coding_protocol() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "data.coding.protocol");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "data.coding.protocol must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s7_01_encoder_decoder_protocol"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-230")
-            || block.contains("M2-S7-01")
-            || block.contains("ADR-561"),
-        "notes must cite ADR-230 or ADR-561: {block}"
-    );
-    assert!(
-        block.contains("S7-02")
-            || block.contains("JSONEncoder")
-            || block.contains("streaming")
-            || block.contains("IANA")
-            || block.contains("JSONStream")
-            || block.contains("@Codable"),
-        "notes must keep honesty fence: {block}"
-    );
-}
-
-#[test]
-fn m2_s7_01_coding_protocol_product_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "data.coding.protocol");
-    assert!(
-        block.contains("native = \"real\""),
-        "data.coding.protocol must declare native=real (ADR-561): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "data.coding.protocol must declare wasm=real (ADR-561): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "data.coding.protocol must keep status=implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-561"),
-        "notes must cite ADR-561: {block}"
-    );
-    assert!(
-        block.contains("m2_s7_01_json_roundtrip_native_mir"),
-        "tests must include native mir nail: {block}"
-    );
-}
-
-#[test]
 fn m2_s7_01_inventory_meta() {
     let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
     assert!(
@@ -240,11 +158,3 @@ fn m2_s7_01_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s7_01_known_protocol_static() {
-    let src = include_str!("../../../syx-stdlib/src/protocols.rs");
-    assert!(
-        src.contains("\"Encoder\"") && src.contains("\"Decoder\""),
-        "known_protocol must list Encoder/Decoder"
-    );
-}

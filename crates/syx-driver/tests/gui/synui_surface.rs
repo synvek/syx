@@ -72,31 +72,6 @@ func main() {
 }
 
 #[test]
-fn p135_synui_web_mobile_surface_deepen() {
-    let web = include_str!("../../../../packages/ui/web.sy");
-    assert!(web.contains("__syx_synui_navigation"));
-    assert!(web.contains("__syx_synui_bind_navigation"));
-    assert!(web.contains("__syx_synui_tab_view"));
-    assert!(web.contains("__syx_synui_bind_tab_view"));
-    assert!(web.contains("__syx_synui_render_fingerprint"));
-    assert!(web.contains("public func navigation("));
-    assert!(web.contains("public func bindNavigation("));
-    assert!(web.contains("public func renderFingerprint()"));
-    assert!(web.contains("gui-synui-v12:web-mobile-surface-deepen"));
-    assert!(web.contains("public func pump()"));
-    assert!(web.contains("public func run()"));
-
-    let mobile = include_str!("../../../../packages/ui/mobile.sy");
-    assert!(mobile.contains("__syx_synui_navigation"));
-    assert!(mobile.contains("__syx_synui_bind_navigation"));
-    assert!(mobile.contains("__syx_synui_tab_view"));
-    assert!(mobile.contains("__syx_synui_bind_tab_view"));
-    assert!(mobile.contains("__syx_synui_render_fingerprint"));
-    assert!(mobile.contains("gui-synui-v12:web-mobile-surface-deepen"));
-    assert!(mobile.contains("Phase 136+"));
-}
-
-#[test]
 fn p135_synui_web_mobile_surface_e2e_embedded() {
     let _guard = P135_SYNUI_ENV_LOCK.lock().unwrap();
     reset_synui_state();
@@ -133,15 +108,6 @@ func main() {
         "{out}"
     );
     assert!(out.contains("synui-pump:ok"), "{out}");
-}
-
-#[test]
-fn p135_synui_host_registry_v12() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("SynuiNavigation"));
-    assert!(reg.contains("SynuiBindNavigation"));
-    assert!(reg.contains("__syx_synui_navigation"));
-    assert!(reg.contains("__syx_synui_bind_navigation"));
 }
 
 #[test]

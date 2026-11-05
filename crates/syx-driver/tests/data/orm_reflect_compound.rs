@@ -23,9 +23,3 @@ fn p98_orm_reflect_compound_and_smoke() {
     assert!(out.contains("compound-ok"), "{out}");
 }
 
-#[test]
-fn p98_orm_reflect_compound_sql_host() {
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase98_hosts.rs");
-    assert!(hosts.contains(" AND ") && hosts.contains(" = ?"));
-}
-

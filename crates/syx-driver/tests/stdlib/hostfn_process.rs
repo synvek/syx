@@ -20,39 +20,6 @@ fn facade_src(body: &str) -> String {
 }
 
 #[test]
-fn hostfn_process_matrix_toml_lists_process_batch() {
-    let matrix = include_str!("../../../../packages/internal/hostfn_qs1_matrix.toml");
-    assert!(
-        matrix.contains("host = \"ProcessBuilderSpawn\"")
-            && matrix.contains("host = \"ProcessBuilderCreate\"")
-            && matrix.contains("host = \"ChildWait\""),
-        "matrix missing ProcessBuilder/ChildWait rows"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_digest();
-    assert!(
-        matrix.contains("ProcessBuilderCreate")
-            && matrix.contains("llvm = \"covered\""),
-        "W16 ProcessBuilderCreate llvm cell must be present"
-    );
-    assert!(
-        matrix.contains("ProcessBuilderSpawn") && matrix.contains("wasm = \"covered\""),
-        "W24 ProcessBuilderSpawn wasm cell must be present"
-    );
-    assert!(
-        matrix.contains("ChildWait") && matrix.contains("wasm = \"covered\""),
-        "W25 ChildWait wasm cell must be present"
-    );
-    assert!(
-        matrix.contains("ProcessBuilderCreate") && matrix.contains("wasm = \"covered\""),
-        "W26 ProcessBuilderCreate wasm cell must be present"
-    );
-    assert!(
-        matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
-        "Process batch must claim vm+mir covered"
-    );
-}
-
-#[test]
 fn hostfn_process_spawn_missing_cmd_fail_exact() {
     // Wave A W189 / ADR-533: spawn CallHost→facade; caught ProcessError.code == 4.
     let out = run(&facade_src(

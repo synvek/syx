@@ -53,29 +53,6 @@ fn start_ok_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
 }
 
 #[test]
-fn hostfn_http_matrix_toml_lists_http_batch() {
-    let matrix = include_str!("../../../../packages/internal/hostfn_qs1_matrix.toml");
-    // W2 Http fingerprint may be superseded as primary; Http rows remain.
-    assert!(
-        matrix.contains("host = \"HttpGet\""),
-        "matrix missing HttpGet"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_digest();
-    assert!(
-        matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
-        "Http batch must claim vm+mir covered"
-    );
-    assert!(
-        matrix.contains("llvm = \"covered\""),
-        "W10 HttpGet llvm cell / fingerprint must be present"
-    );
-    assert!(
-        matrix.contains("HttpGet") && matrix.contains("wasm = \"covered\""),
-        "W22 HttpGet wasm cell must be present"
-    );
-}
-
-#[test]
 fn hostfn_http_get_connect_refused_io_err() {
     let out = run(
         r#"
@@ -306,39 +283,6 @@ func main() {{
     );
 }
 
-
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
-#[test]
-fn hostfn_http_get_host_llvm_real() {
-    // Wave A W247 / ADR-591 — inventory llvm=real meta (behavior: qs1_http_get_loopback_native_llvm).
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "HttpGet");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "HttpGet must declare llvm=real (ADR-591): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "HttpGet must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "HttpGet must declare wasm=real (ADR-614): {block}"
-    );
-    assert!(
-        block.contains("ADR-614") && block.contains("ADR-591"),
-        "HttpGet notes must cite ADR-614 + ADR-591: {block}"
-    );
-}
-
 /// Wave A W248 / ADR-592 / A-05 — HttpPost llvm loopback-success (native CallHost).
 #[cfg(unix)]
 #[test]
@@ -428,29 +372,6 @@ func main() {{
         lines,
         vec!["200".to_string(), "ok".to_string()],
         "HttpPost wasm loopback must exact-success: {lines:?}"
-    );
-}
-
-#[test]
-fn hostfn_http_post_host_llvm_real() {
-    // Wave A W248 / ADR-592 llvm + Wave A W271 / ADR-615 wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "HttpPost");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "HttpPost must declare llvm=real (ADR-592): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "HttpPost must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "HttpPost must declare wasm=real (ADR-615): {block}"
-    );
-    assert!(
-        block.contains("ADR-615") && block.contains("ADR-592"),
-        "HttpPost notes must cite ADR-615 + ADR-592: {block}"
     );
 }
 
@@ -548,25 +469,3 @@ func main() {{
     );
 }
 
-#[test]
-fn hostfn_http_request_host_llvm_real() {
-    // Wave A W249 / ADR-593 llvm + Wave A W271 / ADR-615 wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "HttpRequest");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "HttpRequest must declare llvm=real (ADR-593): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "HttpRequest must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "HttpRequest must declare wasm=real (ADR-615): {block}"
-    );
-    assert!(
-        block.contains("ADR-615") && block.contains("ADR-593"),
-        "HttpRequest notes must cite ADR-615 + ADR-593: {block}"
-    );
-}

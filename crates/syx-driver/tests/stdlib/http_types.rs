@@ -163,37 +163,6 @@ fn m2_s4_01_facade_returns_http_response_not_object() {
 }
 
 #[test]
-fn m2_s4_01_url_parse_returns_url_not_object() {
-    let url = include_str!("../../../../packages/net/url.sy");
-    assert!(
-        url.contains("func parse(text: String) -> Url"),
-        "Url.parse must return Url: {url}"
-    );
-    assert!(
-        !url.contains("-> Object"),
-        "Url.parse must not return Object: {url}"
-    );
-}
-
-#[test]
-fn m2_s4_01_named_type_files_exist() {
-    let http_resp = include_str!("../../../../packages/io/types/http_response.sy");
-    assert!(
-        http_resp.contains("class HTTPResponse"),
-        "HTTPResponse type required: {http_resp}"
-    );
-    let types = include_str!("../../../../packages/net/http_types.sy");
-    assert!(
-        types.contains("HttpRequest")
-            && types.contains("HttpHeaders")
-            && types.contains("HttpBody"),
-        "HttpRequest/Headers/Body required: {types}"
-    );
-    let url = include_str!("../../../../packages/net/url.sy");
-    assert!(url.contains("class Url"), "Url class required: {url}");
-}
-
-#[test]
 fn m2_s4_01_make_response_accessors() {
     // Wave A W64 / ADR-408 / A-03: Http.response accessors product exact (no loopback).
     let out = run_ok(&net_facade_src(MAKE_RESPONSE_BODY));
@@ -262,32 +231,6 @@ fn m2_s4_01_url_parse_fields_wasm() {
         &net_facade_src(URL_PARSE_BODY),
     ));
     assert_eq!(out, "example.com\n/a\nq=1", "Url.parse wasm must exact: {out}");
-}
-
-#[test]
-fn m2_s4_01_http_types_product_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "net.http.types");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "net.http.types native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "net.http.types mir must stay real: {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "net.http.types status must stay implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-560"),
-        "notes must cite ADR-560: {block}"
-    );
-    assert!(
-        block.contains("m2_s4_01_make_response_accessors_native_mir"),
-        "tests must list response native mir nail: {block}"
-    );
 }
 
 #[test]

@@ -152,9 +152,3 @@ fn p98_hof_flat_map_named_fn_native_stdout() {
     assert_lines_contain(&lines, "6", "native");
 }
 
-#[test]
-fn p98_hof_closure_host_registry() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("ArraySortBy") && reg.contains("ArrayFlatMap"));
-}
-

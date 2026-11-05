@@ -71,9 +71,3 @@ fn p98_wasm_aot_opcode_full_hot_path_zero_run_op() {
     assert_eq!(measure_aot_run_op_count(&wasm), 0);
 }
 
-#[test]
-fn p98_wasm_aot_opcode_full_mir_emit_surface() {
-    let src = include_str!("../../../syx-wasm-emit/src/mir_emit.rs");
-    assert!(src.contains("MirOp::Pop") && src.contains("MirOp::Add"));
-}
-

@@ -30,16 +30,6 @@ fn run_wasm_mandatory(bytes: &[u8], expected: i32) {
 }
 
 #[test]
-fn compile_run_tier_matrix_hosts() {
-    let src = include_str!("../../../syx-wasm-emit/src/tier_matrix.rs");
-    assert!(
-        src.contains("TIER2K_NAMES") || src.contains("TIER2H_NAMES"),
-        "expected tier matrix for browser hosts"
-    );
-    assert!(src.contains("__syx_fmt_print") || src.contains("__syx_string_builder_new"));
-}
-
-#[test]
 fn compile_run_closure() {
     with_browser_aot(|| {
         let src = format!(
@@ -130,11 +120,6 @@ fn compile_run_try_catch() {
         let bytes = compile_source_to_wasm_bytes("compile_run_try.sy", &src).expect("wasm");
         run_wasm_mandatory(&bytes, 88);
     });
-}
-
-#[test]
-fn compile_run_driver_marker() {
-    assert!(include_str!("../../src/lib.rs").contains("browser-tier2k-v1"));
 }
 
 #[test]

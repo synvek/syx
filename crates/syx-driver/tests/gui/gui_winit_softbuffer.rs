@@ -51,7 +51,3 @@ fn p98_gui_winit_softbuffer_window_create() {
     assert!(out.iter().any(|l| l.contains("winit")), "{out:?}");
 }
 
-#[test]
-fn p98_gui_winit_softbuffer_hosts_module() {
-    assert!(include_str!("../../../syx-vm/src/lib.rs").contains("stdlib_phase98_hosts"));
-}

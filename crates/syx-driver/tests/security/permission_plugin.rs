@@ -118,11 +118,3 @@ allow_plugin = true
     assert!(grants.allow_plugin);
 }
 
-#[test]
-fn qs1_d04_permission_plugin_cli_flag() {
-    let cli = include_str!("../../../../crates/syx-cli/src/main.rs");
-    assert!(
-        cli.contains("allow-plugin"),
-        "CLI must expose --allow-plugin"
-    );
-}

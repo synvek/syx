@@ -31,7 +31,6 @@ use syx_async::{
 
 static P112_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-
 #[test]
 fn dist_hostkey_nonloopback_host_key_decoupled_from_bind() {
     let _guard = P112_DIST_LOCK.lock().unwrap();
@@ -159,12 +158,3 @@ fn dist_hostkey_memory_cdn_not_ga() {
     );
 }
 
-#[test]
-fn dist_hostkey_source_gate() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_failover_order"));
-    assert!(src.contains("dist_host_key_addr_is_loopback"));
-    assert!(src.contains("dist_region_multihost_has_nonloopback_host_key"));
-    assert!(src.contains("cdn_tcp_peer_route"));
-    assert!(src.contains("spawn_dist_tcp_mailbox_on"));
-}

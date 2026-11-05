@@ -24,13 +24,3 @@ fn p98_gc_relocating_churn_stdout() {
     }
 }
 
-#[test]
-fn p98_gc_relocating_relocate_global_api() {
-    assert!(include_str!("../../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
-}
-
-#[test]
-fn p98_gc_relocating_native_stub_wired() {
-    let stubs = include_str!("../../../syx-rt/src/llvm_stubs.rs");
-    assert!(stubs.contains("syx_rt_gc_relocating") && stubs.contains("rt_direct_exec"));
-}

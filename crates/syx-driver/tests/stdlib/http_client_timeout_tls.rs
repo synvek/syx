@@ -482,15 +482,6 @@ func main() {{
 }
 
 #[test]
-fn m2_s4_02b_r012_is_true_timeout_only() {
-    let http = include_str!("../../../syx-vm/src/http.rs");
-    assert!(
-        http.contains("e.is_timeout()") && http.contains("ADR-235"),
-        "R012 must be gated on is_timeout (ADR-235)"
-    );
-}
-
-#[test]
 fn m2_s4_02b_docs_and_capability() {
     let usage = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(

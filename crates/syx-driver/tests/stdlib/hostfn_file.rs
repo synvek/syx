@@ -24,28 +24,6 @@ fn tmp_path(name: &str) -> PathBuf {
 }
 
 #[test]
-fn hostfn_file_matrix_toml_lists_file_batch() {
-    let matrix = include_str!("../../../../packages/internal/hostfn_qs1_matrix.toml");
-    // W1 File fingerprint superseded as primary by W2 Http fingerprint; File rows remain.
-    assert!(
-        matrix.contains("host = \"FileOpen\"")
-            && matrix.contains("host = \"FileClose\"")
-            && matrix.contains("host = \"FileRead\"")
-            && matrix.contains("host = \"FileWrite\""),
-        "File batch rows must remain in matrix"
-    );
-    assert!(
-        matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
-        "File batch must claim vm+mir covered"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_digest();
-    assert!(
-        matrix.contains("FileWrite") && matrix.contains("wasm = \"covered\""),
-        "W21 FileWrite wasm cell must be present"
-    );
-}
-
-#[test]
 fn hostfn_file_open_write_read_close_success() {
     let path = tmp_path("success");
     let path_s = path.to_string_lossy().replace('\\', "\\\\");
@@ -530,40 +508,5 @@ func main() {
         vec!["caught".to_string()],
         "FileWrite llvm bad-handle must exact-catch: {lines:?}"
     );
-}
-
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let marker = format!("name = \"{name}\"");
-    let start = toml
-        .find(&marker)
-        .unwrap_or_else(|| panic!("host {name} missing"));
-    let rest = &toml[start..];
-    let end = rest.find("\n[[host]]").unwrap_or(rest.len());
-    &rest[..end]
-}
-
-#[test]
-fn hostfn_file_hosts_wasm_real_w268() {
-    // Wave A W268 / ADR-612 — FileOpen/Close/Read/Write wasm=real (behavior nails: qs1_*_wasm)
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FileOpen", "FileClose", "FileRead", "FileWrite"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-612): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("ADR-612"),
-            "{name} notes must cite ADR-612: {block}"
-        );
-    }
 }
 

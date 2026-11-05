@@ -23,7 +23,3 @@ fn p98_sql_rusqlite_create_insert_select() {
     assert!(out.contains("1"), "{out}");
 }
 
-#[test]
-fn p98_sql_rusqlite_host_module() {
-    assert!(include_str!("../../../syx-vm/src/stdlib_phase98_hosts.rs").contains("rusqlite"));
-}

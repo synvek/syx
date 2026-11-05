@@ -4,7 +4,6 @@ use std::fs;
 use std::sync::Mutex;
 
 use syx_driver::{emit_wasm_bytes, DriverOptions};
-use syx_wasm_emit::PHASE118_TRACK_B_WASM_FINGERPRINTS;
 
 fn opts() -> DriverOptions {
     let mut o = DriverOptions::default();
@@ -46,93 +45,6 @@ fn assert_i32_stdout(lines: &[String], expected: &str, label: &str) {
         !lines.iter().any(|l| l.trim() == "0"),
         "{label} must not soft-accept 0, got {lines:?}"
     );
-}
-
-#[test]
-fn p118_wasm_track_b_fingerprints_in_driver_cache() {
-    let lib = include_str!("../../src/lib.rs");
-    for fp in PHASE118_TRACK_B_WASM_FINGERPRINTS {
-        assert!(lib.contains(fp), "missing cache fingerprint {fp}");
-    }
-    let emit = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-wasm-emit/src/exec.rs"
-    ));
-    for fp in PHASE118_TRACK_B_WASM_FINGERPRINTS {
-        assert!(emit.contains(fp), "missing emit fingerprint {fp}");
-    }
-    let mir_emit = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-wasm-emit/src/mir_emit.rs"
-    ));
-    for fp in PHASE118_TRACK_B_WASM_FINGERPRINTS {
-        assert!(mir_emit.contains(fp), "missing mir_emit fingerprint {fp}");
-    }
-}
-
-#[test]
-fn p118_wasm_simd128_pilot_source_covers_guest_v11() {
-    let mir_emit = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-wasm-emit/src/mir_emit.rs"
-    ));
-    assert!(mir_emit.contains("emit_simd_binop_v128_nospill"));
-    assert!(mir_emit.contains("emit_simd_guest_pop_v128"));
-    assert!(mir_emit.contains("emit_simd_guest_push_v128"));
-    assert!(mir_emit.contains("collect_guest_v11_cmp_imports"));
-    assert!(mir_emit.contains("emit_simd_add_i16x8_pilot"));
-    assert!(mir_emit.contains("emit_simd_mul_i16x8_pilot"));
-    assert!(mir_emit.contains("emit_simd_add_i8x16_pilot"));
-    assert!(mir_emit.contains("emit_simd_sub_i8x16_pilot"));
-    assert!(mir_emit.contains("I16x8Add"));
-    assert!(mir_emit.contains("I16x8Mul"));
-    assert!(mir_emit.contains("I8x16Add"));
-    assert!(mir_emit.contains("I8x16Sub"));
-    assert!(mir_emit.contains("wasm-simd128-guest-v11:zero-scratch-simd16"));
-    assert!(
-        !mir_emit.contains("fn emit_simd_wasm_spill("),
-        "guest-v11 must not revive emit_simd_wasm_spill helper"
-    );
-    assert!(
-        !mir_emit.contains("fn emit_simd_wasm_fill("),
-        "guest-v11 must not revive emit_simd_wasm_fill helper"
-    );
-
-    let cmp_collect = mir_emit
-        .split("fn collect_guest_v11_cmp_imports")
-        .nth(1)
-        .and_then(|s| s.split("fn ").next())
-        .unwrap_or("");
-    assert!(
-        cmp_collect.contains("SimdGuestPushV128") && cmp_collect.contains("SimdGuestPopV128"),
-        "cmp collect must use stack-native guest push/pop"
-    );
-    let simd128_branch = cmp_collect
-        .split("} else {")
-        .nth(1)
-        .unwrap_or("");
-    assert!(
-        !simd128_branch.contains("SimdWasmSpill") && !simd128_branch.contains("SimdWasmFill"),
-        "simd128 cmp path must not insert unused spill/fill imports: {simd128_branch}"
-    );
-
-    let load_pilot = mir_emit
-        .split("fn emit_simd_load_v128_pilot")
-        .nth(1)
-        .and_then(|s| s.split("fn emit_simd_store_v128_pilot").next())
-        .unwrap_or("");
-    assert!(
-        !load_pilot.contains("emit_v128_load_from_scratch")
-            && !load_pilot.contains("V128Load"),
-        "guest-v11 load pilot must not use linear-memory v128 scratch"
-    );
-
-    let stdlib = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../packages/core/simd.sy"));
-    assert!(stdlib.contains("public class SIMD8"));
-    assert!(stdlib.contains("__syx_simd_i16_mul"));
-    assert!(stdlib.contains("public class SIMD16"));
-    assert!(stdlib.contains("__syx_simd_i8_add"));
-    assert!(stdlib.contains("__syx_simd_i8_sub"));
 }
 
 #[test]
@@ -205,24 +117,3 @@ fn p118_wasm_simd128_simd16_add_sub_stdout_hard() {
     });
 }
 
-#[test]
-fn p118_wasm_simd128_stack_native_no_scratch_only_abi() {
-    let mir_emit = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-wasm-emit/src/mir_emit.rs"
-    ));
-    let binop = mir_emit
-        .split("fn emit_simd_binop_v128_nospill")
-        .nth(1)
-        .and_then(|s| s.split("fn emit_simd_unary_v128_nospill").next())
-        .unwrap_or("");
-    assert!(
-        binop.contains("emit_simd_guest_pop_v128") && binop.contains("emit_simd_guest_push_v128"),
-        "binop must use stack-native pop/push"
-    );
-    assert!(
-        !binop.contains("emit_v128_load_from_scratch")
-            && !binop.contains("emit_v128_store_to_scratch"),
-        "guest-v11 binop success path must not round-trip via linear-memory scratch alone"
-    );
-}

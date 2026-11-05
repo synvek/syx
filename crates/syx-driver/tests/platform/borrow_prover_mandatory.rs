@@ -6,13 +6,6 @@ use syx_semantic::{
 };
 
 #[test]
-fn p98_borrow_mandatory_function_exists() {
-    let src = include_str!("../../../syx-semantic/src/lib.rs");
-    assert!(src.contains("borrow_prover_docker_exec"));
-    assert!(src.contains("borrow_regions_replay_external"));
-}
-
-#[test]
 fn p98_borrow_mandatory_coq_lean_compile_hook() {
     std::env::set_var("SYX_BORROW_COQ_LEAN", "1");
     let coq = borrow_prover_docker_exec(&[(
@@ -62,11 +55,3 @@ fn p98_borrow_mandatory_graph_phase98_tags() {
     assert!(obs.iter().any(|o| o.contains("borrow_graph")));
 }
 
-#[test]
-fn p98_borrow_mandatory_sha256_not_prefix() {
-    let src = include_str!("../../../syx-semantic/src/lib.rs");
-    assert!(
-        src.contains("SHA256") || src.contains("sha256") || src.contains("replay_external"),
-        "proof artifact must use SHA256 validation"
-    );
-}

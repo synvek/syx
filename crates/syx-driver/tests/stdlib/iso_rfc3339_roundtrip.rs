@@ -14,15 +14,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -190,49 +181,6 @@ fn m2_s5_03_date_only_parse_wasm() {
     assert_eq!(
         out, "2020-02-29",
         "wasm date-only parse must exact: {out}"
-    );
-}
-
-#[test]
-fn m2_s5_03_product_columns() {
-    // Wave A W284 / ADR-628: datetime.calendar dual-backend real + status=implemented.
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "datetime.calendar");
-    assert!(
-        block.contains("vm = \"real\""),
-        "datetime.calendar vm must be real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "datetime.calendar mir must be real: {block}"
-    );
-    assert!(
-        block.contains("native = \"real\""),
-        "datetime.calendar native must be real (ADR-628): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "datetime.calendar wasm must be real (ADR-628): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "datetime.calendar must be implemented (ADR-628): {block}"
-    );
-    assert!(
-        block.contains("ADR-628") && block.contains("W284"),
-        "notes must cite ADR-628+W284: {block}"
-    );
-    assert!(
-        block.contains("m2_s5_03_iso_rfc3339_roundtrip"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-221")
-            || block.contains("M2-S5-03")
-            || block.contains("ADR-222")
-            || block.contains("M2-S5-04")
-            || block.contains("RFC3339"),
-        "notes must cite ISO/RFC3339 honesty lineage: {block}"
     );
 }
 

@@ -13,15 +13,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> Result<Vec<String>, String> {
     compile_and_run_embedded(src, &DriverOptions::default())
         .map(|r| r.printed)
@@ -88,29 +79,6 @@ fn start_send_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
         drop(held);
     });
     (port, stop, handle)
-}
-
-#[test]
-fn hostfn_tcp_matrix_toml_lists_tcp_batch() {
-    let matrix = include_str!("../../../../packages/internal/hostfn_qs1_matrix.toml");
-    // W3 Tcp fingerprint may be superseded as primary; Tcp rows remain.
-    assert!(
-        matrix.contains("host = \"TcpConnect\""),
-        "matrix missing TcpConnect"
-    );
-    crate::matrix_fingerprint::assert_live_matrix_digest();
-    assert!(
-        matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
-        "Tcp batch must claim vm+mir covered"
-    );
-    assert!(
-        matrix.contains("llvm = \"covered\""),
-        "W11 TcpConnect llvm cell / fingerprint must be present"
-    );
-    assert!(
-        matrix.contains("TcpConnect") && matrix.contains("wasm = \"covered\""),
-        "W23 TcpConnect wasm cell must be present"
-    );
 }
 
 #[test]
@@ -230,7 +198,6 @@ func main() {
         "TcpConnect wasm refuse must exact-catch with code: {lines:?}"
     );
 }
-
 
 #[test]
 fn hostfn_tcp_connect_loopback_release_exact() {
@@ -441,28 +408,6 @@ func main() {{
     );
 }
 
-#[test]
-fn hostfn_tcp_listener_accept_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "TcpListenerAccept");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "TcpListenerAccept must declare llvm=real (ADR-727): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "TcpListenerAccept must declare wasm=real (ADR-728): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "TcpListenerAccept must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("ADR-728") && block.contains("ADR-727"),
-        "TcpListenerAccept notes must cite ADR-728 + ADR-727: {block}"
-    );
-}
-
 /// Wave A W384 / ADR-728 — TcpListenerAccept wasm first-slice loopback exact ACCEPTED/CLOSED.
 #[test]
 fn hostfn_tcp_listener_accept_wasm() {
@@ -553,35 +498,5 @@ func main() {
         vec!["OPENED".to_string(), "CLOSED".to_string()],
         "TcpListen+Close wasm must exact OPENED/CLOSED: {lines:?}"
     );
-}
-
-/// Wave A W274 / ADR-618 — Tcp×4 HostFn wasm=real meta flip.
-#[test]
-fn hostfn_tcp_host_wasm_real_w274() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for (name, llvm_adr) in [
-        ("TcpConnect", "ADR-207"),
-        ("TcpRead", "ADR-219"),
-        ("TcpWrite", "ADR-217"),
-        ("TcpHandleRelease", "ADR-212"),
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-618): {block}"
-        );
-        assert!(
-            block.contains("ADR-618") && block.contains(llvm_adr),
-            "{name} notes must cite ADR-618 + {llvm_adr}: {block}"
-        );
-    }
 }
 

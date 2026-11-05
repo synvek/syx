@@ -1,5 +1,7 @@
 # B-06 LLVM Stub Audit (Wave B W299 thin + W313 report + W314 align + W315 declare-diff + W331 Missing residual / clear-readiness + W334 Missing clear×align horizon readiness + W337 Missing 清零诚实延后)
 
+> **S2-I134 cross-index:** Stage-2 reclassifies live `llvm_stub_audit` as **B-06 product capability** ([stage2-llvm-stub-audit-product-accept](../adr/stage2-llvm-stub-audit-product-accept.md)) — **does not** change this gate’s Scope, count floors, POP honesty, or public API surface.
+>
 > **Status:** **B-06 thin floor signed** (ADR-643 / W299) + **W313 audit report deepen signed** (ADR-657) + **W314 align inventory deepen signed** (ADR-658; **S2-I17 product API retired** — [stage2-hostfn-align-decouple](../adr/stage2-hostfn-align-decouple.md)) + **W315 declare-diff inventory deepen signed** (ADR-659 / historical; S2-I14 product API retired) + **W331 Missing residual / clear-readiness inventory signed** (ADR-675 / historical; S2-I14 retired) + **W334 Missing clear×align horizon readiness inventory signed** (ADR-678 / historical) + **W337 Missing 清零诚实延后签收 signed** (ADR-681 / historical).  
 > **W340 cross-index:** Wave B structural exit charter signed ([`wave-b-exit.md`](../lang/wave-b-exit.md) / ADR-684); Progress may claim **Wave B 退出条件已满足**; live B-06 is `[x]` via ADR-792 narrow exit.
 > Stub classification, HostFn-llvm cross counts, emit-declare↔stubs diff, Missing clear-readiness, clear×align horizon readiness, and Missing clear honest defer are public syx-rt APIs (no stub semantic change).  

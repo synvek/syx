@@ -66,36 +66,6 @@ func main() {
 }
 
 #[test]
-fn m2_error_tcp_facade_source_has_throws_not_status_fail_assign() {
-    let src = include_str!("../../../../packages/net/tcp.sy");
-    assert!(src.contains("throws"), "connect must be throws: missing throws");
-    assert!(src.contains("NetworkError"), "NetworkError type required");
-    assert!(
-        !src.contains("status = \"fail\""),
-        "must not assign status=fail on connect failure"
-    );
-    // ADR-151: legacy sentinel fields removed.
-    assert!(
-        !src.contains("var ok") && !src.contains("ok: Bool"),
-        "legacy ok field must be removed: {src}"
-    );
-    assert!(
-        !src.contains("var status") && !src.contains("status: String"),
-        "legacy status field must be removed: {src}"
-    );
-    assert!(!src.contains("ok = true") && !src.contains("ok = false"), "no ok assignments");
-    assert!(
-        src.contains("func read(maxBytes: Int) -> String throws")
-            || src.contains("-> String throws"),
-        "read must throws"
-    );
-    assert!(
-        src.contains("func write(data: String) -> Int throws") || src.contains("-> Int throws"),
-        "write must throws Int"
-    );
-}
-
-#[test]
 fn m2_error_tcp_read_unknown_handle_throws() {
     // Facade wraps host Err as NetworkError; host Display is the stable R012 floor.
     // Ensure MVP path (unknown handle), not "disabled".

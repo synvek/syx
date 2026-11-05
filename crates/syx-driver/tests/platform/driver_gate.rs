@@ -929,33 +929,6 @@ fn p98_driver_llvm_multi_link_hello_exit_zero_exact_exec() {
 }
 
 #[test]
-fn p98_driver_gui_dlopen_default_fallback_exact() {
-    // Wave A W169 / ADR-513 / A-03 — gui-dlopen-default-v1 fallback exact
-    // Probe pivot: public gui_backend_name() when unloaded is hashmap-headless
-    // (not gui_dlopen::dlopen_backend_name's "hashmap-dlopen-fallback")
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("gui-dlopen-default-v1:dylib-unconditional-fallback-hashmap"),
-        "gui-dlopen-default fingerprint must remain in chain"
-    );
-    let _ = syx_driver::ensure_gui_loaded();
-    if !syx_vm::gui_dlopen_loaded() {
-        let name = syx_vm::gui_backend_name();
-        assert!(
-            name == "syx-gui-interactive-v1:hashmap-headless"
-                || name == "syx-gui-interactive-v1:dlopen-pending",
-            "unloaded dylib must use known headless/pending fallback: {name}"
-        );
-    } else {
-        assert!(
-            !syx_vm::gui_backend_name().is_empty(),
-            "loaded dylib backend name must be non-empty"
-        );
-    }
-    assert!(fixture("tests/gui/gui_winit_softbuffer.rs").exists());
-}
-
-#[test]
 fn p98_driver_l14_encode_host_behavior() {
     // Wave A W17 / ADR-361 / A-03: product encode→decode exact (type then value; not VM stack soft).
     let out = run(
@@ -3457,7 +3430,6 @@ fn dist_peer_announce_hold_driver_gate_count() {
     );
 }
 
-
 #[test]
 fn macro_di_not_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
@@ -3469,7 +3441,6 @@ fn macro_di_not_driver_gate_count() {
     );
 }
 
-
 #[test]
 fn macro_di_wildcard_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
@@ -3480,7 +3451,6 @@ fn macro_di_wildcard_driver_gate_count() {
         "expected p138 CR fingerprint gate"
     );
 }
-
 
 #[test]
 fn p139_driver_gate_count() {

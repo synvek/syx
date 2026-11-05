@@ -39,18 +39,6 @@ func main() {
 }
 
 #[test]
-fn p98_codable_l4_stdlib_protocols_registry() {
-    let protos = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(protos.contains("CodableEncode") && protos.contains("CodableDecode"));
-}
-
-#[test]
-fn p98_codable_l4_semantic_witness_check() {
-    let sem = include_str!("../../../syx-semantic/src/lib.rs");
-    assert!(sem.contains("check_dataclass_codable_witness"));
-}
-
-#[test]
 fn p98_codable_l4_attached_macro_fixture_compiles() {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))

@@ -22,7 +22,6 @@ use syx_async::{
 /// Serialize dist anycast / inproc env tests — shared process globals + env.
 static P109_DIST_LOCK: Mutex<()> = Mutex::new(());
 
-
 #[test]
 fn dist_anycast_inproc_gate_and_doctor() {
     let _guard = P109_DIST_LOCK.lock().unwrap();
@@ -146,21 +145,3 @@ fn dist_anycast_kill_region_failover() {
     dist_actor_mp_clear();
 }
 
-#[test]
-fn dist_anycast_source_gate() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_anycast_route"));
-    assert!(src.contains("dist_tcp_endpoint_alive"));
-    assert!(src.contains("SYX_DIST_INPROC"));
-    let mp = src
-        .split("pub fn region_route_mp(")
-        .nth(1)
-        .expect("region_route_mp(")
-        .split("pub fn dist_actor_mp_peer_send_once")
-        .next()
-        .expect("mp body");
-    assert!(
-        mp.contains("dist_inproc_enabled"),
-        "region_route_mp must gate inproc on SYX_DIST_INPROC"
-    );
-}

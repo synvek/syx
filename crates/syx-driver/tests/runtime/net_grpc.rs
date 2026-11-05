@@ -45,8 +45,3 @@ fn p98_net_grpc_process_exec_echo() {
     assert!(out.contains("grpc-p88"), "{out}");
 }
 
-#[test]
-fn p98_net_grpc_llvm_rt_tcp_symbols() {
-    let llvm = include_str!("../../../syx-rt/src/llvm_stubs.rs");
-    assert!(llvm.contains("syx_rt_tcp") || llvm.contains("syx_rt_http"));
-}

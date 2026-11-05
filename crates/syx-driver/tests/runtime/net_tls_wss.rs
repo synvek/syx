@@ -12,13 +12,6 @@ fn run(src: &str) -> String {
 }
 
 #[test]
-fn p98_net_tls_wss_rustls_transport_module() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_rustls_e2e_handshake_smoke"));
-    assert!(src.contains("rustls") || src.contains("TLS"));
-}
-
-#[test]
 fn p98_net_tls_wss_handshake_smoke() {
     assert!(dist_rustls_e2e_handshake_smoke("sha256:phase98-p88-tls-pin"));
 }
@@ -26,12 +19,6 @@ fn p98_net_tls_wss_handshake_smoke() {
 #[test]
 fn p98_net_tls_wss_driver_prod_flag() {
     let _ = dist_rustls_crate_e2e_prod_enabled();
-}
-
-#[test]
-fn p98_net_tls_wss_llvm_rt_symbols() {
-    let llvm = include_str!("../../../syx-rt/src/llvm_stubs.rs");
-    assert!(llvm.contains("syx_rt_rustls") || llvm.contains("syx_rt_tls"));
 }
 
 #[test]

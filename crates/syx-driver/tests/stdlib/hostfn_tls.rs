@@ -13,15 +13,6 @@ use rustls::pki_types::{CertificateDer, ServerName};
 use rustls::ClientConfig;
 use syx_driver::{build_native_executable, run_wasm_source_printed, DriverOptions};
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn tls_client_appdata_probe(
     port: u16,
     client_cfg: Arc<ClientConfig>,
@@ -571,55 +562,3 @@ func main() {{
     );
 }
 
-#[test]
-fn hostfn_tls_serve_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "TlsServe");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "TlsServe must declare llvm=real (ADR-737): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "TlsServe must declare wasm=real (ADR-738): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "TlsServe must be status=implemented (ADR-785 / W441): {block}"
-    );
-    assert!(
-        block.contains("ADR-738") && block.contains("ADR-737"),
-        "TlsServe notes must cite ADR-738 + ADR-737: {block}"
-    );
-    assert!(
-        block.contains("ADR-782")
-            && (block.contains("ALPN") || block.contains("syx/1")),
-        "TlsServe notes must cite ADR-782 ALPN first-slice: {block}"
-    );
-    assert!(
-        block.contains("ADR-785"),
-        "TlsServe notes must cite ADR-785 HostFn status raise: {block}"
-    );
-    assert!(
-        block.contains("ADR-786")
-            && (block.contains("unbounded") || block.contains("idle")),
-        "TlsServe notes must cite ADR-786 unbounded first-slice: {block}"
-    );
-    assert!(
-        block.contains("ADR-787")
-            && block.contains("SYX_TLS_SERVE_ALPN"),
-        "TlsServe notes must cite ADR-787 configurable ALPN: {block}"
-    );
-    assert!(
-        block.contains("ADR-788")
-            && (block.contains("concurrent") || block.contains("thread-per-conn")),
-        "TlsServe notes must cite ADR-788 concurrent: {block}"
-    );
-    assert!(
-        block.contains("ADR-789")
-            && (block.contains("language ALPN")
-                || block.contains("5th arg")
-                || block.contains("serveOnceAlpn")),
-        "TlsServe notes must cite ADR-789 language ALPN: {block}"
-    );
-}

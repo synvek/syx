@@ -8,7 +8,6 @@ fn tls_server_ga_exit_evidence_files_exist() {
         "docs/lang/tls-server-ga-exit.md",
         "docs/lang/tls-server-ga-vectors.md",
         "crates/syx-driver/tests/stdlib/tls_server_ga_thin.rs",
-        "crates/syx-driver/tests/stdlib/tls_server_ga_deepen.rs",
         "packages/internal/capabilities.toml",
         "crates/syx-stdlib/src/registry.rs",
         "tools/sgate/sidecars/tls.sy",
@@ -19,11 +18,12 @@ fn tls_server_ga_exit_evidence_files_exist() {
             "TLS floor exit requires evidence file: {path}"
         );
     }
-    let deepen = include_str!("tls_server_ga_deepen.rs");
+    // S2-I128: deepen soft nail retired; HostFn-gap deepen history retained in vectors SSOT.
+    let vectors = include_str!("../../../../docs/lang/tls-server-ga-vectors.md");
     assert!(
-        deepen.contains("tls_server_ga_deepen_evidence_files_exist")
-            || deepen.contains("ADR-731"),
-        "exit evidence must retain W387 HostFn-gap deepen meta"
+        vectors.contains("ADR-731")
+            && (vectors.contains("HostFn-gap") || vectors.contains("honesty deepen")),
+        "exit evidence must retain W387 HostFn-gap deepen meta in vectors SSOT"
     );
 }
 

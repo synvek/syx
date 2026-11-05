@@ -81,31 +81,6 @@ fn http_get_health(port: u16) -> (u16, String) {
 }
 
 #[test]
-fn ec_m2_1_http_server_source_uses_official_serve() {
-    let example = example_template();
-    assert!(
-        example.contains("import Net")
-            && example.contains("Http.serve")
-            && example.contains("/health"),
-        "example must use Http.serve + /health: {example}"
-    );
-    assert!(
-        !example.contains("__syx_http_"),
-        "example must not call bare http hosts: {example}"
-    );
-    let net = include_str!("../../../../packages/net/mod.sy");
-    assert!(
-        net.contains("func serve") && net.contains("Http"),
-        "Http.serve facade required"
-    );
-    let host = include_str!("../../../syx-vm/src/http.rs");
-    assert!(
-        host.contains("SYX_HTTP_SERVE_MAX_REQUESTS"),
-        "host must honor SYX_HTTP_SERVE_MAX_REQUESTS"
-    );
-}
-
-#[test]
 fn ec_m2_1_http_server_health_loopback() {
     let port = free_port();
     let _max_env = EnvGuard::set("SYX_HTTP_SERVE_MAX_REQUESTS", "1");

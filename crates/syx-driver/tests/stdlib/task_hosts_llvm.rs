@@ -6,15 +6,6 @@ use std::process::Command;
 
 use syx_driver::{build_native_executable, DriverOptions};
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -164,35 +155,3 @@ fn task_live_count_orphan_join_native_llvm() {
     );
 }
 
-#[test]
-fn task_hosts_llvm_real_meta() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "TaskLocalSet",
-        "TaskLocalGet",
-        "TaskSetDeadlineMs",
-        "TaskLiveCount",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-605): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-619): {block}"
-        );
-        assert!(
-            block.contains("ADR-605"),
-            "{name} notes must cite ADR-605: {block}"
-        );
-        assert!(
-            block.contains("ADR-619"),
-            "{name} notes must cite ADR-619: {block}"
-        );
-    }
-}

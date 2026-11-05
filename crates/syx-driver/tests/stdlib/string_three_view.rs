@@ -17,15 +17,6 @@ use syx_driver::{
     run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -361,73 +352,6 @@ func main() {
     );
     // Wave A W84 / ADR-428 / A-03: isSingleScalar honesty product exact.
     assert_eq!(out, "true\nfalse\nfalse", "isSingleScalar must exact: {out}");
-}
-
-#[test]
-fn m2_s2_01_hosts_no_empty_feature_off_static() {
-    let hosts = include_str!("../../../syx-vm/src/hosts.rs");
-    assert!(
-        hosts.contains("host_str_unicode_scalar_count")
-            && hosts.contains("host_str_utf8_bytes")
-            && hosts.contains("host_character_is_single_scalar"),
-        "hosts must define three-view hosts"
-    );
-    let lib = include_str!("../../../syx-vm/src/lib.rs");
-    assert!(
-        lib.contains("graphemes_vec") && lib.contains("ADR-226"),
-        "MakeIterator String for-in must use graphemes: check lib.rs"
-    );
-}
-
-#[test]
-fn m2_s2_01_product_three_view() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "text.three_view");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "text.three_view must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s2_01_string_three_view"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-226") || block.contains("M2-S2-01"),
-        "notes must cite ADR-226: {block}"
-    );
-    assert!(
-        block.contains("M2-S2-02")
-            || block.contains("Index")
-            || block.contains("normalization")
-            || block.contains("IANA"),
-        "notes must keep honesty fence: {block}"
-    );
-}
-
-#[test]
-fn m2_s2_01_product_three_view_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "text.three_view");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "text.three_view native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "text.three_view mir must stay real: {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "text.three_view status must stay implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-551"),
-        "notes must cite ADR-551: {block}"
-    );
-    assert!(
-        block.contains("m2_s2_01_grapheme_length_and_subscript_native"),
-        "tests must list native nail: {block}"
-    );
 }
 
 #[test]

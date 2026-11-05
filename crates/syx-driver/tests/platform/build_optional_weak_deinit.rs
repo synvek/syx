@@ -16,20 +16,12 @@ fn fixture(rel: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(rel)
 }
 
-
-
 #[test]
 fn build_optional_resultbuilder_build_optional_stdout() {
     // Wave A W2 / ADR-346 / A-03: exact lines (mirror resultbuilder_ga.rs)
     let src = std::fs::read_to_string(fixture("tests/fixtures/lang/resultbuilder_build_optional.sy")).unwrap();
     let out = run(&src);
     assert_eq!(out, "2\n42\n99", "buildOptional exact stdout: {out}");
-}
-
-#[test]
-fn build_optional_resultbuilder_build_optional_host_registered() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("__syx_result_builder_buildOptional"));
 }
 
 #[test]
@@ -55,9 +47,3 @@ func main() {
     assert_eq!(run(src), "true");
 }
 
-#[test]
-fn build_optional_weak_hosts_registry() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("__syx_weak_from"));
-    assert!(reg.contains("__syx_weak_alive"));
-}

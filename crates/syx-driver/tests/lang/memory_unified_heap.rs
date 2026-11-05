@@ -23,12 +23,6 @@ fn run_embed(path: &PathBuf) -> Vec<String> {
 }
 
 #[test]
-fn unified_heap_managed_heap_enabled() {
-    let src = include_str!("../../../syx-runtime-core/src/managed_heap.rs");
-    assert!(src.contains("SYX_UNIFIED_HEAP"));
-}
-
-#[test]
 fn unified_heap_vm_retain_fixture() {
     syx_host_plugin::register_echo_plugin_in_process();
     let (_, lines) = run_file_printed(&fixture("unified_heap_retain.sy"), &opts()).unwrap();
@@ -76,12 +70,6 @@ fn unified_heap_arc_regression() {
 }
 
 #[test]
-fn unified_heap_collect_global_smoke() {
-    let src = include_str!("../../../syx-runtime-core/src/managed_heap.rs");
-    assert!(src.contains("collect_global"));
-}
-
-#[test]
 fn unified_heap_actor_roots_fixture() {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = fixture("heap_actor_roots.sy");
@@ -89,8 +77,3 @@ fn unified_heap_actor_roots_fixture() {
     assert!(lines.iter().any(|l| l.trim() == "7"), "{lines:?}");
 }
 
-#[test]
-fn unified_heap_mir_run_slots() {
-    let src = include_str!("../../../syx-mir-run/src/runtime.rs");
-    assert!(src.contains("heap_slots"));
-}

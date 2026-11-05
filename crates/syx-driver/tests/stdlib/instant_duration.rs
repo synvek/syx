@@ -11,15 +11,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     compile_and_run_embedded(src, &DriverOptions::default())
         .expect("run")
@@ -30,44 +21,6 @@ fn run(src: &str) -> String {
 fn datetime_src(body: &str) -> String {
     let dt = include_str!("../../../../packages/datetime/mod.sy");
     format!("{dt}\n{body}")
-}
-
-#[test]
-fn m2_s5_01_product_columns() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "datetime.clock");
-    assert!(
-        block.contains("Instant"),
-        "datetime.clock surface must mention Instant: {block}"
-    );
-    assert!(
-        block.contains("native = \"real\""),
-        "datetime.clock must declare native=real (ADR-600): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "datetime.clock must declare wasm=real (ADR-622): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "datetime.clock status must stay implemented: {block}"
-    );
-    assert!(
-        (block.contains("ADR-600") || block.contains("ADR-220")) && block.contains("W256"),
-        "datetime.clock notes must cite ADR-600+220: {block}"
-    );
-    assert!(
-        block.contains("ADR-622") && block.contains("W278"),
-        "datetime.clock notes must cite ADR-622+W278: {block}"
-    );
-    assert!(
-        block.contains("m2_s5_01_instant_duration"),
-        "datetime.clock tests must include nail: {block}"
-    );
-    assert!(
-        !block.contains("Monotonic/wall ms + Duration arithmetic"),
-        "must not keep pre-separation dishonest notes: {block}"
-    );
 }
 
 #[test]

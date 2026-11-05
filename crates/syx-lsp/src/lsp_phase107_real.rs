@@ -205,8 +205,6 @@ fn p107_diagnostic_unknown_type_again() {
 
 #[test]
 fn p107_lsp_semantic_v9_contract() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("lsp-semantic-v9:phase107-24-plus-real"));
     let src = include_str!("lsp_phase107_real.rs");
     let tests = src.matches("#[test]").count();
     assert!(

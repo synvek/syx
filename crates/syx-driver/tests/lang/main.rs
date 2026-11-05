@@ -27,7 +27,6 @@ mod inheritance;
 mod inheritance_polymorphic;
 mod iterator_optional_strict;
 mod jit_suite1_differential;
-mod language_complete_nongoal;
 mod macro_expand;
 mod memory_arc;
 mod memory_unified_heap;

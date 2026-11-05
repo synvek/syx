@@ -11,12 +11,6 @@ fn run(src: &str) -> String {
 }
 
 #[test]
-fn p98_net_http2_vm_http_impl() {
-    let src = include_str!("../../../syx-vm/src/http.rs");
-    assert!(src.contains("execute_http_request") && src.contains("host_http_get"));
-}
-
-#[test]
 fn p98_net_http2_embedded_http_get_stdout() {
     let out = run(
         r#"func main() {
@@ -58,15 +52,6 @@ fn p98_net_http2_tcp_connect_stdout() {
         "{out}"
     );
     assert!(!out.contains("tcp-ok"), "{out}");
-}
-
-#[test]
-fn p98_net_http2_encoding_gzip_hosts() {
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase85_hosts.rs");
-    assert!(
-        hosts.contains("host_encoding_gzip_compress")
-            && hosts.contains("host_encoding_gzip_decompress")
-    );
 }
 
 #[test]

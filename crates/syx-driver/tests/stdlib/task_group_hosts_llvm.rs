@@ -6,15 +6,6 @@ use std::time::Instant;
 
 use syx_driver::{build_native_executable, DriverOptions};
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String, std::time::Duration) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -90,31 +81,3 @@ fn task_group_cancel_wait_native_llvm() {
     assert!(!stdout.contains("JOIN_OK"), "{stdout}");
 }
 
-#[test]
-fn task_group_hosts_llvm_real_meta() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "TaskGroupCreate",
-        "TaskGroupAdd",
-        "TaskGroupWait",
-        "TaskGroupCancel",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-607): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-620): {block}"
-        );
-        assert!(
-            block.contains("ADR-620") && block.contains("ADR-607"),
-            "{name} notes must cite ADR-620+607: {block}"
-        );
-    }
-}

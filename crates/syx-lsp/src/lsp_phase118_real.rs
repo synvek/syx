@@ -222,8 +222,6 @@ fn p118_lsp_semantic_v20_contract() {
         tests >= 24,
         "phase118 LSP matrix must be ≥24 tests, found {tests}"
     );
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("lsp-semantic-v20:phase118-24-plus-real"));
     let pad_a = concat!("fn p118_", "sem_gate");
     let pad_b = concat!("fn p118_", "sem_probe");
     let pad_c = concat!("fn p118_", "hover_extra");

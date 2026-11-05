@@ -26,9 +26,7 @@ fn tls_server_hostfn_thin_evidence_files_exist() {
         "crates/syx-vm/src/hosts.rs",
         "packages/net/tls.sy",
         "crates/syx-driver/tests/stdlib/tls_server_ga_thin.rs",
-        "crates/syx-driver/tests/stdlib/tls_server_ga_deepen.rs",
         "crates/syx-driver/tests/stdlib/tls_server_ga_exit.rs",
-        "crates/syx-driver/tests/stdlib/tls_server_hostfn_deepen.rs",
     ] {
         let path = format!("{root}{rel}");
         assert!(

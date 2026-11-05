@@ -2,7 +2,7 @@
 // was: m3_e02_permission_grants
 //! ADR-311: permission denials use S024; fingerprint may advance to allow-net-fs-toml.
 
-use syx_config::{PermissionGrants, SyxRuntimeConfig};
+use syx_config::PermissionGrants;
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 fn with_permission<F: FnOnce()>(sandbox: bool, allow_net: bool, f: F) {

@@ -116,8 +116,3 @@ allow_process = true
     assert!(!grants.allow_process);
 }
 
-#[test]
-fn qs1_d04_permission_env_cli_flag() {
-    let cli = include_str!("../../../../crates/syx-cli/src/main.rs");
-    assert!(cli.contains("allow-env"), "CLI must expose --allow-env");
-}

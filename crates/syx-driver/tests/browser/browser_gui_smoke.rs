@@ -1,11 +1,6 @@
 //! Browser GUI package + embedded SQL smoke.
 
 #[test]
-fn gui_smoke_driver_marker() {
-    assert!(include_str!("../../src/lib.rs").contains("browser-tier2p-v1"));
-}
-
-#[test]
 fn gui_smoke_ui_package_present() {
     let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/ui/mod.sy");
     assert!(p.is_file());

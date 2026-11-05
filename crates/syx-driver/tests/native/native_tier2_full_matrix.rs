@@ -21,13 +21,6 @@ fn assert_fixture_zero(rel: &str) {
 }
 
 #[test]
-fn native_tier2_matrix_doc_no_partial() {
-    let doc = include_str!("../../../../docs/wasm_native_opcode_matrix.md");
-    assert!(!doc.contains("| partial |"));
-    assert!(doc.contains("Heap"));
-}
-
-#[test]
 fn native_tier2_heap_retain_zero() {
     assert_fixture_zero("tests/fixtures/memory/unified_heap_retain.sy");
 }

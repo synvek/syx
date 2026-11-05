@@ -14,8 +14,6 @@ use syx_vm::{
 };
 use syx_runtime_core::Value;
 
-
-
 #[test]
 fn p100_visible_headless_widgets_label_text() {
     reset_phase98_state();
@@ -221,14 +219,6 @@ fn p102_textfield_host_gettext_after_inject() {
 }
 
 #[test]
-fn p100_gui_winit_softbuffer_hosts_module() {
-    assert!(
-        include_str!("../../../syx-gui/src/lib.rs").contains("GLYPH5X7_TABLE")
-            || include_str!("../../../syx-gui/src/ascii_font.rs").contains("GLYPH5X7_TABLE")
-    );
-}
-
-#[test]
 fn p100_gui_headless_red_pixel_numeric() {
     reset_phase98_state();
     std::env::remove_var("SYX_GUI_VISIBLE");
@@ -245,12 +235,6 @@ fn p100_gui_headless_red_pixel_numeric() {
         "center pixel must be red ARGB ±1: {px}"
     );
 }
-
-#[test]
-fn p100_gui_require_dylib_source() {
-    assert!(include_str!("../../../syx-vm/src/gui_dlopen.rs").contains("require_dylib_if_visible"));
-}
-
 
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
@@ -363,7 +347,6 @@ fn p103_hstack_spacing_layout_host() {
     let tag = stack.pop().unwrap().as_str();
     assert!(tag.contains("spacing-align:20:center"), "tag={tag:?}");
 }
-
 
 #[test]
 fn p106_gui_doctor_backend_report_subset_chars() {

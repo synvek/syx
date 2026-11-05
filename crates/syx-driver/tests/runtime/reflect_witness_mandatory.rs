@@ -11,17 +11,6 @@ fn p98_reflect_witness_mandatory_register_and_info() {
 }
 
 #[test]
-fn p98_reflect_witness_mandatory_report_api() {
-    assert!(include_str!("../../../syx-meta/src/lib.rs").contains("reflect_specialization"));
-}
-
-#[test]
-fn p98_reflect_witness_mandatory_semantic_reflect_type_lower() {
-    let sem = include_str!("../../../syx-semantic/src/lib.rs");
-    assert!(sem.contains("reflect_type_lower"));
-}
-
-#[test]
 fn p98_reflect_witness_mandatory_meta_registry_miss_none() {
     assert!(reflect_type_info("P89MissingTypeXYZ88").is_none());
 }

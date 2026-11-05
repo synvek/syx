@@ -50,10 +50,3 @@ fn p98_orm_delete_where_stdout() {
     assert!(out.iter().any(|l| l.contains('1')), "{out:?}");
 }
 
-
-#[test]
-fn p98_orm_package_find_where() {
-    let orm = include_str!("../../../../packages/data/orm.sy");
-    assert!(orm.contains("findWhere"));
-    assert!(orm.contains("deleteWhere"));
-}

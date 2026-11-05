@@ -28,14 +28,6 @@ fn run_native_strict(src: &str) -> (i32, String) {
     )
 }
 
-
-#[test]
-fn p98_native_llvm_stack_mir_closure_executor() {
-    let abi = include_str!("../../../syx-rt/src/abi.rs");
-    assert!(abi.contains("execute_native_mir_closure"));
-    assert!(abi.contains("set_mir_closure_executor"));
-}
-
 #[test]
 fn p98_native_llvm_stack_sort_by_strict_stdout() {
     let src = r#"func main() {

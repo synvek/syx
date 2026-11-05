@@ -17,15 +17,6 @@ use syx_driver::{
     run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -325,58 +316,6 @@ fn m2_s2_03_docs_honesty() {
     assert!(
         !ch04.contains("ASCII 小写化"),
         "language-guide must not claim ASCII-only lowercased"
-    );
-}
-
-#[test]
-fn m2_s2_03_product_normalization() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "text.normalization");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "text.normalization must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s2_03_string_normalization")
-            || block.contains("m2_s2_03_nfc_compose_native"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-556") || block.contains("ADR-228") || block.contains("M2-S2-03"),
-        "notes must cite ADR-556 or ADR-228: {block}"
-    );
-    assert!(
-        block.contains("M2-S2-04")
-            || block.contains("XID")
-            || block.contains("NFKC")
-            || block.contains("IANA"),
-        "notes must keep honesty fence: {block}"
-    );
-}
-
-#[test]
-fn m2_s2_03_product_normalization_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "text.normalization");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "text.normalization native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "text.normalization mir must stay real: {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "text.normalization status must stay implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-556"),
-        "notes must cite ADR-556: {block}"
-    );
-    assert!(
-        block.contains("m2_s2_03_nfc_compose_native"),
-        "tests must list native nail: {block}"
     );
 }
 

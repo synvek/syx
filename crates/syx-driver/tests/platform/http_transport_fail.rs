@@ -25,12 +25,3 @@ fn http_fail_connect_refused_is_error() {
     );
 }
 
-#[test]
-fn http_fail_package_documents_fail_closed() {
-    let crypto = include_str!("../../../../docs/11_NetworkStdlib.md");
-    // Soft doc anchor — NetworkStdlib should not claim status=0 success for failures.
-    assert!(
-        !crypto.contains("status=0 means success") && !crypto.contains("status = 0 success"),
-        "docs must not claim status=0 success"
-    );
-}

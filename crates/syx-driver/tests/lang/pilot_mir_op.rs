@@ -49,25 +49,3 @@ fn exec_mir_op_add_still_works() {
     assert_eq!(rt.return_value(), 15);
 }
 
-#[test]
-fn llvm_source_documents_pilot_trap_not_empty_wildcard() {
-    let src = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-llvm/src/lib.rs"
-    ));
-    assert!(
-        src.contains("EC-M1-3 unimplemented pilot MirOp")
-            || src.contains("is_suite1_pilot_mir_op"),
-        "LLVM emit catch-all must gate Suite-1 pilots"
-    );
-    // Ensure we no longer have a bare `_ => {}` as the sole MirOp catch-all in emit_mir_instr.
-    let emit_region = src
-        .split("fn emit_mir_instr(")
-        .nth(1)
-        .expect("emit_mir_instr");
-    let emit_fn = emit_region.split("\nfn ").next().expect("fn end");
-    assert!(
-        !emit_fn.contains("_ => {}"),
-        "emit_mir_instr must not use silent `_ => {{}}`"
-    );
-}

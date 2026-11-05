@@ -6,6 +6,8 @@
 Moved from `docs/lang/b0*.md` in **W560 / ADR-904** (Wave F **F-04**).  
 Historical ADR Decision text may still mention `docs/lang/b0*` or pre-rename paths; live paths and `include_str` nails use **`docs/gates/`** from W560 onward.
 
+**S2-I133:** product module `syx-rt::gate_b09_gc_narrative` **retired** — Evidence that pointed at that module is archived via [`../adr/stage2-gate-b09-narrative-peel.md`](../adr/stage2-gate-b09-narrative-peel.md) (historical gate md Contract fields unchanged).
+
 ## Naming convention
 
 ### Wave B（W562–W568 / ADR-906–912 · F-06）— **已交**

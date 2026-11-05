@@ -8,7 +8,6 @@ use syx_driver::{
 
 use crate::lease_test_harness::with_lease_auth;
 
-
 #[test]
 fn p98_farm_tcp_default_url_is_tcp() {
     let url = default_farm_cache_url();
@@ -36,8 +35,3 @@ fn p100_farm_tcp_hardened_three_node_fetch() {
     });
 }
 
-#[test]
-fn p100_farm_billing_path_worker_checks_ack() {
-    assert!(include_str!("../../src/build_syx.rs").contains("SYX_FARM_BILLING_PATH"));
-    assert!(include_str!("../../src/build_syx.rs").contains("SYX_BILLING_SETTLEMENT_ACK"));
-}

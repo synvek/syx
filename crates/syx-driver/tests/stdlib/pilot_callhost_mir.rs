@@ -4,15 +4,6 @@ use syx_driver::{
     run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
-fn mir_op_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing MirOp override {name}"));
-    rest.split("[[op]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -75,16 +66,3 @@ fn m2_s1_callhost_scalar_count_wasm() {
     assert_eq!(out, "2", "wasm CallHost scalar count must exact: {out}");
 }
 
-#[test]
-fn m2_s1_mir_op_callhost_inventory_real() {
-    let toml = include_str!("../../../../packages/internal/mir_op_capabilities.toml");
-    let block = mir_op_block(toml, "CallHost");
-    assert!(
-        block.contains("llvm = \"real\"") && block.contains("wasm = \"real\""),
-        "CallHost product backends must be real: {block}"
-    );
-    assert!(
-        block.contains("ADR-553"),
-        "CallHost notes must cite ADR-553: {block}"
-    );
-}

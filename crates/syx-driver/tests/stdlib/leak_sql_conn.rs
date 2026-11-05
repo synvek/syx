@@ -19,26 +19,6 @@ fn facade_src(body: &str) -> String {
 }
 
 #[test]
-fn ec_m2_3_sql_leak_facade_source_has_open_close_throws() {
-    let src = include_str!("../../../../packages/data/sql.sy");
-    assert!(
-        src.contains("open(dsn: String) -> Int throws")
-            || (src.contains("func open") && src.contains("throws")),
-        "open must throws: {src}"
-    );
-    assert!(
-        src.contains("close(connId: Int) throws")
-            || src.contains("func close(connId: Int) throws"),
-        "close must throws"
-    );
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase89_hosts.rs");
-    assert!(
-        hosts.contains("pub fn sql_conn_live_count"),
-        "sql_conn_live_count must be exported for nails"
-    );
-}
-
-#[test]
 fn ec_m2_3_sql_leak_open_close_returns_to_baseline() {
     // Wave A W52 / ADR-396 / A-03: Sql open+close product exact (drop print(c)).
     reset_rusqlite_store();

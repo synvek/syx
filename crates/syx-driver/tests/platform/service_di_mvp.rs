@@ -56,13 +56,6 @@ func main() { print(1) }
 }
 
 #[test]
-fn service_di_macros_exports_schema_in_manifest() {
-    let manifest = include_str!("../../../syx-pkg/src/manifest.rs");
-    assert!(manifest.contains("MacrosField"));
-    assert!(manifest.contains("[macros].exports") || manifest.contains("exports"));
-}
-
-#[test]
 fn service_di_cli_path_service_di_example() {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/service_di/main.sy");

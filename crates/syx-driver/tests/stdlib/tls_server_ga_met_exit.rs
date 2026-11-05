@@ -17,7 +17,6 @@ fn tls_server_ga_met_exit_evidence_files_exist() {
         "docs/lang/tls-server-ga-vectors.md",
         "docs/lang/tls-server-ga-exit.md",
         "crates/syx-driver/tests/stdlib/tls_server_hostfn_thin.rs",
-        "crates/syx-driver/tests/stdlib/tls_server_hostfn_deepen.rs",
         "crates/syx-driver/tests/stdlib/hostfn_tls.rs",
         "packages/internal/host_fn_capabilities.toml",
         "packages/internal/capabilities.toml",

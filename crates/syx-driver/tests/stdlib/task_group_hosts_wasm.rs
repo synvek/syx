@@ -5,15 +5,6 @@ use std::time::Instant;
 
 use syx_driver::{run_wasm_source_printed, DriverOptions};
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_wasm(src: &str) -> (Vec<String>, std::time::Duration) {
     syx_host_plugin::register_echo_plugin_in_process();
     std::env::remove_var("SYX_WASM_ZERO_MIR_EXEC");
@@ -89,31 +80,3 @@ fn task_group_cancel_wait_wasm() {
     assert!(!stdout.contains("JOIN_OK"), "{stdout}");
 }
 
-#[test]
-fn task_group_hosts_wasm_real_meta() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "TaskGroupCreate",
-        "TaskGroupAdd",
-        "TaskGroupWait",
-        "TaskGroupCancel",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-620): {block}"
-        );
-        assert!(
-            block.contains("ADR-620") && block.contains("ADR-607"),
-            "{name} notes must cite ADR-620+607: {block}"
-        );
-    }
-}

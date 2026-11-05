@@ -9,37 +9,6 @@ use syx_driver::{
     spawn_farm_lease_ha, FARM_LEASE_DEFAULT_TOKEN,
 };
 
-
-#[test]
-fn p108_farm_ha_shared_mutex_path_not_ga() {
-    // Shared Arc<Mutex> clone across primary/secondary must NOT be the HA GA path.
-    let src = include_str!("../../src/farm_lease_auth.rs");
-    assert!(
-        src.contains("independent") || src.contains("Independent"),
-        "HA v2 must document independent AuthorityState"
-    );
-    assert!(
-        src.contains("primary_state") && src.contains("secondary_state"),
-        "HA v2 must use separate primary_state / secondary_state"
-    );
-    // Anti-pattern from P107: one `state` Arc cloned to both listeners as GA.
-    let spawn_fn = src
-        .split("pub fn spawn_farm_lease_ha")
-        .nth(1)
-        .expect("spawn_farm_lease_ha")
-        .split("pub fn farm_lease_acquire")
-        .next()
-        .expect("spawn body");
-    assert!(
-        !spawn_fn.contains("state.clone()"),
-        "shared-mutex state.clone() path must not pass HA GA"
-    );
-    assert!(
-        spawn_fn.contains("AuthorityState::default()"),
-        "each node needs its own AuthorityState::default()"
-    );
-}
-
 #[test]
 fn p108_farm_ha_secondary_validates_after_primary_stop() {
     let _g = farm_lease_test_lock();

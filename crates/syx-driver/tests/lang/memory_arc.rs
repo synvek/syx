@@ -95,25 +95,6 @@ fn arc_cycle_vm_sum_bounded() {
 }
 
 #[test]
-fn arc_mir_op_retain_release_absent() {
-    // Wave A W544 / ADR-888: MirOp ObjectRefRetain/Release peeled.
-    let src = include_str!("../../../syx-mir/src/lib.rs");
-    assert!(!src.contains("\n    ObjectRefRetain,"));
-    assert!(!src.contains("\n    ObjectRefRelease,"));
-}
-
-#[test]
-fn arc_runtime_core_retain_api() {
-    // Wave A W529+: Value::object_ref_retain API deleted; dual-track birth remains.
-    let src = include_str!("../../../syx-runtime-core/src/value.rs");
-    assert!(
-        !src.contains("fn object_ref_retain")
-            && (src.contains("object_ref_from_map") || src.contains("ObjectRef")),
-        "object_ref_retain API deleted; ObjectRef dual-track birth must remain"
-    );
-}
-
-#[test]
 fn arc_gate_count() {
     let src = include_str!("memory_arc.rs");
     let n = src.matches("#[test]").count();

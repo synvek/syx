@@ -3,15 +3,6 @@
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -94,64 +85,6 @@ func main() {
     assert_eq!(
         msg, "embed.sy:3:7: [L001] Unexpected character '😀'",
         "emoji ident start must exact: {msg}"
-    );
-}
-
-#[test]
-fn m2_s2_04_docs_claim_xid() {
-    let lex = include_str!("../../../../docs/1_LexicalAnalysis.md");
-    assert!(
-        lex.contains("XID_Start") && lex.contains("ADR-229"),
-        "LexicalAnalysis must document XID + ADR-229"
-    );
-    assert!(
-        !lex.contains("首字符：ASCII 字母或 `_`"),
-        "LexicalAnalysis must not claim ASCII-only idents"
-    );
-    let lr = include_str!("../../../../books/language-reference/01-lexical-structure.md");
-    assert!(
-        lr.contains("ADR-229") && lr.contains("XID_Start"),
-        "language-reference must note ADR-229 XID"
-    );
-    let usage = include_str!("../../../../docs/9_UsageGuide.md");
-    assert!(
-        usage.contains("ADR-229")
-            && (usage.contains("XID") || usage.contains("unicode_identifiers")),
-        "UsageGuide must document XID identifiers"
-    );
-}
-
-#[test]
-fn m2_s2_04_lexer_static_xid() {
-    let src = include_str!("../../../syx-lexer/src/lib.rs");
-    assert!(
-        src.contains("unicode_xid") && src.contains("is_xid_start") && src.contains("ADR-229"),
-        "lexer must use unicode-xid for ident start/continue"
-    );
-}
-
-#[test]
-fn m2_s2_04_product_unicode_identifiers() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "language.unicode_identifiers");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "language.unicode_identifiers must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s2_04_unicode_xid_identifiers"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-229") || block.contains("M2-S2-04"),
-        "notes must cite ADR-229: {block}"
-    );
-    assert!(
-        block.contains("IANA")
-            || block.contains("confusable")
-            || block.contains("NFC")
-            || block.contains("EC-M2-4-Z"),
-        "notes must keep honesty fence: {block}"
     );
 }
 

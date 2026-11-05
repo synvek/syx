@@ -211,8 +211,6 @@ fn p115_lsp_semantic_v17_contract() {
         tests >= 24,
         "phase115 LSP matrix must be ≥24 tests, found {tests}"
     );
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("lsp-semantic-v17:phase115-24-plus-real"));
     let pad_a = concat!("fn p115_", "sem_gate");
     let pad_b = concat!("fn p115_", "sem_probe");
     let pad_c = concat!("fn p115_", "hover_extra");

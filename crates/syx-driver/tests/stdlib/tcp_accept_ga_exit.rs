@@ -8,7 +8,6 @@ fn tcp_accept_ga_exit_evidence_files_exist() {
         "docs/lang/tcp-accept-ga-exit.md",
         "docs/lang/tcp-accept-ga-vectors.md",
         "crates/syx-driver/tests/stdlib/tcp_accept_ga_thin.rs",
-        "crates/syx-driver/tests/stdlib/tcp_accept_ga_deepen.rs",
         "crates/syx-driver/tests/stdlib/hostfn_tcp.rs",
         "packages/internal/host_fn_capabilities.toml",
     ] {

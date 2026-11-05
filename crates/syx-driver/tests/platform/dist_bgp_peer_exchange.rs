@@ -345,15 +345,3 @@ fn dist_bgp_peer_cdn_pop_sibling_supervisor_e2e() {
     let _ = fs::remove_file(&result_path);
 }
 
-#[test]
-fn dist_bgp_peer_global_cdn_sla_purged_completely() {
-    let lock = include_str!("../../../syx-pkg/src/lockfile.rs");
-    assert!(!lock.contains("global_cdn_sla_tier"));
-    let enforce = include_str!("../../../syx-pkg/src/lock_enforce.rs");
-    assert!(!enforce.contains("enforce_global_cdn_sla"));
-    assert!(!enforce.contains("global_cdn_sla"));
-    let resolver = include_str!("../../../syx-pkg/src/resolver.rs");
-    assert!(!resolver.contains("global_cdn_sla"));
-    let pkg = include_str!("../../../syx-pkg/src/lib.rs");
-    assert!(!pkg.contains("enforce_global_cdn_sla"));
-}

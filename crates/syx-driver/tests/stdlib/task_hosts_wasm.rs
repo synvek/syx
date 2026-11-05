@@ -4,15 +4,6 @@ use std::fs;
 
 use syx_driver::{run_wasm_source_printed, DriverOptions};
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_wasm(src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     std::env::remove_var("SYX_WASM_ZERO_MIR_EXEC");
@@ -144,31 +135,3 @@ fn task_live_count_orphan_join_wasm() {
     );
 }
 
-#[test]
-fn task_hosts_wasm_real_meta() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "TaskLocalSet",
-        "TaskLocalGet",
-        "TaskSetDeadlineMs",
-        "TaskLiveCount",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-619): {block}"
-        );
-        assert!(
-            block.contains("ADR-619") && block.contains("ADR-605"),
-            "{name} notes must cite ADR-619+605: {block}"
-        );
-    }
-}

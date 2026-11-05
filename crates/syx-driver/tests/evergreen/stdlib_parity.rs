@@ -16,19 +16,6 @@ func main() {
 }
 
 #[test]
-fn cache_tag_present_in_driver() {
-    let src = include_str!("../../src/lib.rs");
-    assert!(src.contains("syx-cache-v"));
-}
-
-#[test]
-fn unified_mir_pipeline_enabled() {
-    let src = include_str!("../../src/lib.rs");
-    assert!(src.contains("use_mir_pipeline()"));
-}
-
-
-#[test]
 fn manifest_phase_pin() {
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();

@@ -4,7 +4,6 @@ use std::fs;
 use std::sync::Mutex;
 
 use syx_driver::{emit_wasm_bytes, DriverOptions};
-use syx_wasm_emit::PHASE139_TRACK_C_WASM_FINGERPRINTS;
 
 fn opts() -> DriverOptions {
     let mut o = DriverOptions::default();
@@ -42,62 +41,6 @@ fn assert_bool_stdout(lines: &[String], expected: &str, label: &str) {
         lines.iter().any(|l| l.trim() == expected),
         "{label} expected {expected}, got {lines:?}"
     );
-}
-
-#[test]
-fn p139_wasm_track_c_fingerprints_in_driver_cache() {
-    let lib = include_str!("../../src/lib.rs");
-    for fp in PHASE139_TRACK_C_WASM_FINGERPRINTS {
-        assert!(lib.contains(fp), "missing cache fingerprint {fp}");
-    }
-    let mir_emit = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-wasm-emit/src/mir_emit.rs"
-    ));
-    assert!(mir_emit.contains("emit_simd_all_true_i8x16_pilot"));
-    assert!(mir_emit.contains("emit_simd_any_true_i8x16_pilot"));
-    assert!(mir_emit.contains("wasm-simd16-guest-v22:all-any-true-mvp"));
-    assert!(mir_emit.contains("I8x16AllTrue"));
-    assert!(mir_emit.contains("V128AnyTrue"));
-}
-
-#[test]
-fn p139_wasm_simd16_all_any_true_source_covers_ops_and_rt_symbol() {
-    let llvm = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-llvm/src/lib.rs"
-    ));
-    assert!(llvm.contains("declare void @syx_rt_simd_i8_all_true()"));
-    assert!(llvm.contains("call void @syx_rt_simd_i8_all_true()"));
-    assert!(llvm.contains("declare void @syx_rt_simd_i8_any_true()"));
-    assert!(llvm.contains("call void @syx_rt_simd_i8_any_true()"));
-
-    let abi = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../syx-rt/src/abi.rs"
-    ));
-    assert!(
-        abi.contains("rt_stack_op_void!(syx_rt_simd_i8_all_true, syx_mir_run::SIMD_I8_ALL_TRUE)"),
-        "syx-rt must export SimdI8AllTrue link symbol"
-    );
-    assert!(
-        abi.contains("rt_stack_op_void!(syx_rt_simd_i8_any_true, syx_mir_run::SIMD_I8_ANY_TRUE)"),
-        "syx-rt must export SimdI8AnyTrue link symbol"
-    );
-
-    let stdlib = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../packages/core/simd.sy"));
-    assert!(stdlib.contains("__syx_simd_i8_all_true"));
-    assert!(stdlib.contains("__syx_simd_i8_any_true"));
-    assert!(stdlib.contains("public static func allTrue"));
-    assert!(stdlib.contains("public static func anyTrue"));
-    let simd16 = stdlib
-        .split("public class SIMD16")
-        .nth(1)
-        .unwrap_or("");
-    assert!(simd16.contains("allTrue"));
-    assert!(simd16.contains("__syx_simd_i8_all_true(v)"));
-    assert!(simd16.contains("anyTrue"));
-    assert!(simd16.contains("__syx_simd_i8_any_true(v)"));
 }
 
 #[test]

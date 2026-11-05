@@ -1,10 +1,6 @@
 //! Select deadline/timeout strict semantics (lang timeout + deadline).
 
 use syx_driver::{compile_and_run_embedded, compile_embedded, DriverOptions};
-use syx_vm::{
-    select_deadline_strict_digest, select_deadline_unify_digest,
-    select_timeout_syntax_digest,
-};
 
 fn run(src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -68,40 +64,6 @@ async func main() {
             print("s")
     }
 }"#;
-
-#[test]
-fn select_deadline_strict_digests_present() {
-    assert_eq!(
-        select_deadline_strict_digest(),
-        "select-deadline-strict-v1:no-env"
-    );
-    assert_eq!(
-        syx_parser::select_deadline_strict_digest(),
-        "select-deadline-strict-v1:no-env"
-    );
-    assert_eq!(
-        select_timeout_syntax_digest(),
-        "select-timeout-syntax-v1:lang-arm"
-    );
-    let _ = select_deadline_unify_digest();
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("select-deadline-strict-v1:no-env"));
-    assert!(lib.contains("dist-cdn-bgp-v2:peer-exchange"));
-    assert!(lib.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-    assert!(lib.contains("driver-gate-cr240-v1:phase118-real-behavioral"));
-    let dist = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(dist.contains("cdn-bgp-peer-exchange"));
-    assert!(dist.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-    assert!(dist.contains("cdn_bgp_import_peer_view"));
-    assert!(dist.contains("dist_pop_register_sibling_process_peer"));
-    assert!(!dist.contains("global_cdn_route_table"));
-    let parser = include_str!("../../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_DEADLINE_STRICT_DIGEST"));
-    assert!(!parser.contains("fn select_mixed_await_timeout_ms_literal"));
-    let hosts = include_str!("../../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("SELECT_DEADLINE_STRICT_DIGEST"));
-    assert!(hosts.contains("hard-banned"));
-}
 
 #[test]
 fn select_deadline_mixed_await_lang_timeout() {

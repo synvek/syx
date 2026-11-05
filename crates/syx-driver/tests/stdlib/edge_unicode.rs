@@ -160,29 +160,3 @@ fn edge_case_map_honesty_wasm() {
     );
 }
 
-#[test]
-fn edge_spec_doc_cites_adr630() {
-    let spec = include_str!("../../../../docs/gates/gate-a04-edge-semantics.md");
-    assert!(
-        spec.contains("ADR-630") && spec.contains("Unicode"),
-        "a04-edge-semantics.md must cite ADR-630 Unicode: {spec}"
-    );
-    assert!(
-        spec.contains("UTF-8") || spec.contains("NFC"),
-        "Unicode section must describe UTF-8≠NFC / NFC floor"
-    );
-    assert!(!spec.contains("| actor ordering | deferred") && !spec.contains("actor ordering | deferred"),
-        "spec must not leave actor deferred"
-    );
-    assert!(
-        spec.contains("ADR-632") && spec.contains("Q-L4 floor"),
-        "spec must cite ADR-632 Q-L4 floor signed"
-    );
-    assert!(
-        spec.contains("Not** Wave A")
-            || spec.contains("**Not** Wave A")
-            || spec.contains("Not Wave A"),
-        "spec must remain Not Wave A exit"
-    );
-}
-

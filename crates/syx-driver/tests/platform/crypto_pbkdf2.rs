@@ -27,9 +27,3 @@ func main() {
     );
 }
 
-#[test]
-fn pbkdf2_package_documents_experimental() {
-    let src = include_str!("../../../../packages/crypto/mod.sy");
-    assert!(src.contains("experimental"));
-    assert!(src.contains("dkLen"));
-}

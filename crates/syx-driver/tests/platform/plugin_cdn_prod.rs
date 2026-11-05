@@ -24,7 +24,3 @@ fn p98_plugin_cdn_prod_reinstall_after_poison() {
     assert!(out.contains("cdn-p89") || out.contains("echo"), "{out}");
 }
 
-#[test]
-fn p98_plugin_cdn_prod_registry_lock_field() {
-    assert!(include_str!("../../../syx-pkg/src/lib.rs").contains("marketplace_plugin_epoch"));
-}

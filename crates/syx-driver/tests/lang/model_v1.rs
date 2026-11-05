@@ -56,12 +56,3 @@ fn m1_w3_taskgroup_cancel_all_cancels_group_token() {
     assert!(group.parent_cancel.is_cancelled());
 }
 
-#[test]
-fn m1_w3_weak_hosts_registered() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("__syx_weak_from"));
-    assert!(reg.contains("__syx_weak_alive"));
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/lang/weak_nil_on_drop.sy");
-    assert!(path.is_file(), "weak conformance fixture for future green");
-}

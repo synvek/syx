@@ -51,41 +51,6 @@ fn start_accept_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
 }
 
 #[test]
-fn ec_m2_3_tcp_leak_facade_source_has_connect_close() {
-    let src = include_str!("../../../../packages/net/tcp.sy");
-    assert!(
-        src.contains("connect(host: String, port: Int) -> TcpStream throws")
-            || (src.contains("func connect") && src.contains("throws")),
-        "connect must throws: {src}"
-    );
-    assert!(
-        src.contains("static func closeHandle(handle: Int)")
-            || src.contains("func closeHandle(handle: Int)"),
-        "static closeHandle(handle:) required: {src}"
-    );
-    assert!(src.contains("__syx_tcp_handle_release"), "close must call release host");
-    // Nail uses direct CallHost release (embed path); facade closeHandle documents the same host.
-    assert!(
-        include_str!("leak_tcp_socket.rs").contains("__syx_tcp_handle_release"),
-        "nail must exercise host_tcp_handle_release"
-    );
-    let hosts = include_str!("../../../syx-vm/src/hosts.rs");
-    assert!(
-        hosts.contains("pub fn tcp_stream_live_count"),
-        "tcp_stream_live_count must be exported for nails"
-    );
-    let release = hosts
-        .split("pub fn host_tcp_handle_release")
-        .nth(1)
-        .expect("host_tcp_handle_release");
-    let body = release.split("pub fn ").next().unwrap_or(release);
-    assert!(
-        body.contains("remove"),
-        "host_tcp_handle_release must remove from TCP_STREAMS: {body}"
-    );
-}
-
-#[test]
 fn ec_m2_3_tcp_leak_connect_close_returns_to_baseline() {
     // Wave A W66 / ADR-410 / A-03: Tcp connect+close product exact (drop print(handle)).
     let (port, stop, join) = start_accept_loopback();

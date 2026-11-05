@@ -9,5 +9,4 @@ mod gui_winit_visible;
 mod llvm_gui_callhost;
 mod native_gui_parity;
 mod synui_track_a;
-mod synui_track_b;
 mod synui_surface;

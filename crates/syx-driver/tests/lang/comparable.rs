@@ -31,12 +31,6 @@ fn has_error(src: &str, code: &str) -> bool {
 }
 
 #[test]
-fn cache_v38_tag_in_driver() {
-    let src = include_str!("../../src/lib.rs");
-    assert!(src.contains("syx-cache-v38"));
-}
-
-#[test]
 fn manifest_phase66() {
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();

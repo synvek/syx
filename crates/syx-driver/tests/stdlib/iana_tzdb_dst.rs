@@ -14,15 +14,6 @@ use syx_driver::{
     run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -271,71 +262,6 @@ func main() {
         out,
         "caught\nDateTime: unknown IANA timezone \"Not/AZone\" (no tzdb match)",
         "unknown zone U001 must exact: {out}"
-    );
-}
-
-#[test]
-fn m2_s5_02_docs_claim_iana() {
-    let usage = include_str!("../../../../docs/9_UsageGuide.md");
-    assert!(
-        usage.contains("ADR-233")
-            && usage.contains("timezoneOffset")
-            && usage.contains("America/New_York")
-            && (usage.contains("leap second") || usage.contains("EC-M2-4-Z")),
-        "UsageGuide must document IANA MVP + fences"
-    );
-}
-
-#[test]
-fn m2_s5_02_product_timezone() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "datetime.timezone");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "datetime.timezone must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s5_02_iana_tzdb_dst"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-233")
-            || block.contains("M2-S5-02")
-            || block.contains("ADR-565"),
-        "notes must cite ADR-233 or ADR-565: {block}"
-    );
-    assert!(
-        block.contains("leap second")
-            || block.contains("EC-M2-4-Z")
-            || block.contains("full tz")
-            || block.contains("llvm DateTime"),
-        "notes must keep honesty fence: {block}"
-    );
-}
-
-#[test]
-fn m2_s5_02_timezone_product_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "datetime.timezone");
-    assert!(
-        block.contains("native = \"real\""),
-        "datetime.timezone must declare native=real (ADR-565): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "datetime.timezone must declare wasm=real (ADR-565): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "datetime.timezone must keep status=implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-565"),
-        "notes must cite ADR-565: {block}"
-    );
-    assert!(
-        block.contains("m2_s5_02_ny_dst_offsets_native_mir"),
-        "tests must include native mir nail: {block}"
     );
 }
 

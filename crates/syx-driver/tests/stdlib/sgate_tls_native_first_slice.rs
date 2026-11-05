@@ -33,38 +33,6 @@ fn wait_tcp(addr: &str, timeout: Duration) -> bool {
 }
 
 #[test]
-fn sgate_tls_native_first_slice_source_wiring() {
-    let tls_native = include_str!("../../../../tools/sgate/tls_native.sy");
-    assert!(
-        tls_native.contains("SYX_HTTP_SERVE_TLS_CERT")
-            && tls_native.contains("SYX_HTTP_SERVE_TLS_KEY")
-            && tls_native.contains("Env.set")
-            && tls_native.contains("tlsPrepareNativeFromConfig"),
-        "tls_native.sy must Env.set SYX_HTTP_SERVE_TLS_* for Http.serve"
-    );
-    let main = include_str!("../../../../tools/sgate/main.sy");
-    assert!(
-        main.contains("tls_native")
-            && main.contains("tlsPrepareNativeFromConfig")
-            && main.contains("SYX_SGATE_CONFIG")
-            && main.contains("mode == \"native\""),
-        "main.sy must wire native TLS prepare + SYX_SGATE_CONFIG"
-    );
-    let tls = include_str!("../../../../tools/sgate/sidecars/tls.sy");
-    assert!(
-        tls.contains("__syx_tls_serve") && tls.contains("if false"),
-        "sidecars/tls.sy must retain __syx_tls_serve honesty under if false (≠ product native path)"
-    );
-    let readme = include_str!("../../../../tools/sgate/README.md");
-    assert!(
-        readme.contains("W1249")
-            && readme.contains("tls_native.sy")
-            && readme.contains("mode: \"native\""),
-        "sgate README must document W1249 native TLS product path"
-    );
-}
-
-#[test]
 fn sgate_tls_native_first_slice_https_health_live() {
     let root = repo_root();
     let Some(syx) = find_syx(&root) else {

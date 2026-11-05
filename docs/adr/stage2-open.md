@@ -17,7 +17,7 @@
 ## Consequences
 
 - `plan/01` / `plan/02` mark Stage-2 as **`[~]`** (window label advances per slice).
-- S2-01 stays **`[~]`** until product binaries no longer link process-governance inventory/fingerprint/gate narratives (acceptance in plan/02).
+- S2-01 stayed **`[~]`** until product binaries no longer link process-governance inventory/fingerprint/gate narratives; **S2-I135** claimed S2-01/S2-02 `[x]` ([claim ADR](stage2-s2-01-s2-02-claim.md)) while Stage-2 remains `[~]`.
 - **S2-I2:** deleted driver W932–W954 inventory chain; census `inventory_fn` **237 → 214** ([census](../stage2-governance-census.md)).
 - **S2-I3:** deleted driver W955–W965 `syx_math_llvm_*` chain; census **214 → 203**.
 - **S2-I4:** truncated codegen gate_b01+b02 inventory tail; census **203 → 186**（≠ S2-03 / B-01·B-02 产品收官）.
@@ -143,6 +143,15 @@
 - **S2-I124:** platform fingerprint/surface soft retire ≈−31 tests ([stage2-platform-fingerprint-surface-soft-retire](stage2-platform-fingerprint-surface-soft-retire.md)); KEEP cache_v111 tip; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
 - **S2-I125:** cross-crate surface/fp/playwright soft retire ≈−43 tests ([stage2-cross-crate-surface-soft-retire](stage2-cross-crate-surface-soft-retire.md); gui/runtime/data/native/browser); KEEP cache_v111 tip; soft residual → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
 - **S2-I126:** stdlib M2 cap/ci_wires soft retire ≈−79 tests ([stage2-stdlib-m2-cap-ci-wires-soft-retire](stage2-stdlib-m2-cap-ci-wires-soft-retire.md); host_fn_cap+ci_wires+registry/surface+security); KEEP inventory/docs_and_capability; residual hostfn_sql/etc. → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I127:** stdlib residual+product-caps soft retire ≈−66 tests ([stage2-stdlib-residual-product-caps-soft-retire](stage2-stdlib-residual-product-caps-soft-retire.md); residual_*_thin×28 + m2 product/mir×38); KEEP inventory/docs_and_capability; residual hostfn_*/tls_net → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I128:** stdlib hostfn+tls-feature soft retire ≈−80 tests ([stage2-stdlib-hostfn-cap-pins-tls-feature-soft-retire](stage2-stdlib-hostfn-cap-pins-tls-feature-soft-retire.md); hostfn×38 + tls feature×42); KEEP tls charter×9; residual misc → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I129:** stdlib misc soft retire ≈−67 tests ([stage2-stdlib-misc-soft-retire](stage2-stdlib-misc-soft-retire.md); product/m2/misc/net); KEEP tip≈53; deletable soft≈0; soft primary path largely closed → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I130:** platform residual soft retire ≈−27 tests ([stage2-platform-residual-soft-retire](stage2-platform-residual-soft-retire.md)); [claim-readiness inventory](stage2-claim-readiness-inventory.md) opened (incomplete); residual cross-crate≈72 / LSP≈6 / S2-01 gate peel deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I131:** cross-crate residual soft retire ≈−71 tests ([stage2-cross-crate-residual-soft-retire](stage2-cross-crate-residual-soft-retire.md)); cross-crate deletable≈0; claim inventory still incomplete; residual LSP≈6 / S2-01 gate peel deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I132:** LSP contract lib-pin retire ≈−7 nested pins ([stage2-lsp-contract-lib-pin-retire](stage2-lsp-contract-lib-pin-retire.md)); soft OUT≈0; claim inventory still incomplete (S2-01 gate); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I133:** S2-01 peel `gate_b09_gc_narrative` ([stage2-gate-b09-narrative-peel](stage2-gate-b09-narrative-peel.md)); claim gate blockers 2→1 (`llvm_stub_audit`); claim inventory still incomplete; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I134:** ADR-accept `llvm_stub_audit` as B-06 product ([stage2-llvm-stub-audit-product-accept](stage2-llvm-stub-audit-product-accept.md)); claim inventory → **complete**; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]` (满勾 dedicated window).
+- **S2-I135:** S2-01·S2-02 plan claim ([stage2-s2-01-s2-02-claim](stage2-s2-01-s2-02-claim.md)); census KPI still **0**; S2-01 `[x]`; S2-02 `[x]`; Stage-2 `[~]`（余 S2-03…；≠ 退出）.
 
 ## References
 
@@ -203,6 +212,16 @@
 - [`docs/adr/stage2-platform-fingerprint-surface-soft-retire.md`](stage2-platform-fingerprint-surface-soft-retire.md) · S2-I124
 - [`docs/adr/stage2-cross-crate-surface-soft-retire.md`](stage2-cross-crate-surface-soft-retire.md) · S2-I125
 - [`docs/adr/stage2-stdlib-m2-cap-ci-wires-soft-retire.md`](stage2-stdlib-m2-cap-ci-wires-soft-retire.md) · S2-I126
+- [`docs/adr/stage2-stdlib-residual-product-caps-soft-retire.md`](stage2-stdlib-residual-product-caps-soft-retire.md) · S2-I127
+- [`docs/adr/stage2-stdlib-hostfn-cap-pins-tls-feature-soft-retire.md`](stage2-stdlib-hostfn-cap-pins-tls-feature-soft-retire.md) · S2-I128
+- [`docs/adr/stage2-stdlib-misc-soft-retire.md`](stage2-stdlib-misc-soft-retire.md) · S2-I129
+- [`docs/adr/stage2-platform-residual-soft-retire.md`](stage2-platform-residual-soft-retire.md) · S2-I130
+- [`docs/adr/stage2-claim-readiness-inventory.md`](stage2-claim-readiness-inventory.md) · S2-I130
+- [`docs/adr/stage2-cross-crate-residual-soft-retire.md`](stage2-cross-crate-residual-soft-retire.md) · S2-I131
+- [`docs/adr/stage2-lsp-contract-lib-pin-retire.md`](stage2-lsp-contract-lib-pin-retire.md) · S2-I132
+- [`docs/adr/stage2-gate-b09-narrative-peel.md`](stage2-gate-b09-narrative-peel.md) · S2-I133
+- [`docs/adr/stage2-llvm-stub-audit-product-accept.md`](stage2-llvm-stub-audit-product-accept.md) · S2-I134
+- [`docs/adr/stage2-s2-01-s2-02-claim.md`](stage2-s2-01-s2-02-claim.md) · S2-I135
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

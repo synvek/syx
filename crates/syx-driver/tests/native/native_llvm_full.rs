@@ -4,14 +4,6 @@ use std::fs;
 use std::process::Command;
 use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
 
-
-#[test]
-fn p98_native_llvm_full_mir_closure_executor() {
-    let abi = include_str!("../../../syx-rt/src/abi.rs");
-    assert!(abi.contains("execute_native_mir_closure"));
-    assert!(abi.contains("set_mir_closure_preferred"));
-}
-
 #[test]
 fn p98_native_llvm_full_sort_by_vm_stdout() {
     syx_host_plugin::register_echo_plugin_in_process();

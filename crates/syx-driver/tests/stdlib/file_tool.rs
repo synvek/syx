@@ -15,36 +15,6 @@ fn run_example() -> String {
 }
 
 #[test]
-fn ec_m2_1_file_tool_source_uses_path_and_filehandle_throws() {
-    let example = include_str!("../../../../examples/file_tool/main.sy");
-    assert!(
-        example.contains("Path.join") && example.contains("FileHandle.open"),
-        "example must use Path.join + FileHandle.open: {example}"
-    );
-    assert!(
-        example.contains("try") && example.contains("catch"),
-        "example must try/catch IO path: {example}"
-    );
-    assert!(
-        !example.contains("__syx_file_") && !example.contains("__syx_path_"),
-        "example must not call bare file/path hosts: {example}"
-    );
-
-    let fh = include_str!("../../../../packages/io/file_handle.sy");
-    assert!(
-        fh.contains("IOError") && fh.contains("throws"),
-        "FileHandle facade throws IOError"
-    );
-    let path = include_str!("../../../../packages/core/path.sy");
-    assert!(
-        path.contains("func join")
-            && path.contains("func normalize")
-            && path.contains("func exists"),
-        "Path facade required: {path}"
-    );
-}
-
-#[test]
 fn ec_m2_1_file_tool_roundtrip_ok_exists() {
     // Wave A W72 / ADR-416 / A-03: file_tool example roundtrip product exact.
     let out = run_example();

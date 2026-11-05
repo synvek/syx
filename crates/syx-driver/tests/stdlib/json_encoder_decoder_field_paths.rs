@@ -14,15 +14,6 @@ use syx_driver::{
     run_wasm_source_printed, DriverOptions,
 };
 
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -283,23 +274,6 @@ fn m2_s7_02_box_decode_native_llvm() {
 }
 
 #[test]
-fn m2_s7_02_docs_claim_encoder_fence_streaming() {
-    let usage = include_str!("../../../../docs/9_UsageGuide.md");
-    assert!(
-        usage.contains("ADR-231")
-            && usage.contains("JSONEncoder")
-            && usage.contains("codingPath")
-            && (usage.contains("M2-S7-03") || usage.contains("streaming")),
-        "UsageGuide must document JSONEncoder + S7-03 fence"
-    );
-    let lr = include_str!("../../../../books/language-reference/09-protocols-and-conformances.md");
-    assert!(
-        lr.contains("ADR-231") && lr.contains("codingPath") && lr.contains("M2-S7-03"),
-        "language-reference 09 must document S7-02 + streaming fence"
-    );
-}
-
-#[test]
 fn m2_s7_02_json_encode_decode_native_llvm() {
     let (code, stdout) = run_native_strict(DYNAMIC_JSON_ROUNDTRIP);
     let out = stdout
@@ -321,61 +295,6 @@ fn m2_s7_02_json_encode_decode_wasm() {
     assert_eq!(
         out, "42\n42",
         "wasm json_encode/decode 42 must exact: {out}"
-    );
-}
-
-#[test]
-fn m2_s7_02_product_json_encoder() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "data.coding.json_encoder");
-    assert!(
-        block.contains("status = \"implemented\""),
-        "data.coding.json_encoder must be implemented: {block}"
-    );
-    assert!(
-        block.contains("m2_s7_02_json_encoder_decoder_field_paths"),
-        "tests must include nail: {block}"
-    );
-    assert!(
-        block.contains("ADR-231")
-            || block.contains("M2-S7-02")
-            || block.contains("ADR-562"),
-        "notes must cite ADR-231 or ADR-562: {block}"
-    );
-    assert!(
-        block.contains("streaming")
-            || block.contains("S7-03")
-            || block.contains("CodingKeys")
-            || block.contains("IANA")
-            || block.contains("JSONStream")
-            || block.contains("nested/codingPath"),
-        "notes must keep honesty fence: {block}"
-    );
-}
-
-#[test]
-fn m2_s7_02_json_encoder_product_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "data.coding.json_encoder");
-    assert!(
-        block.contains("native = \"real\""),
-        "data.coding.json_encoder must declare native=real (ADR-562): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "data.coding.json_encoder must declare wasm=real (ADR-562): {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "data.coding.json_encoder must keep status=implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-562"),
-        "notes must cite ADR-562: {block}"
-    );
-    assert!(
-        block.contains("m2_s7_02_box_roundtrip_native_mir"),
-        "tests must include native mir nail: {block}"
     );
 }
 
