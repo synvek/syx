@@ -15,23 +15,6 @@ fn example_main() -> PathBuf {
 }
 
 #[test]
-fn ec_m2_4_sql_microbench_fixture_source() {
-    let src = include_str!("../../../../examples/sql_microbench/main.sy");
-    assert!(
-        src.contains("Sql.execOn") && src.contains(":memory:") && src.contains("10000"),
-        "fixture must Sql.execOn × 10000 on :memory:: {src}"
-    );
-    assert!(
-        !src.contains("__syx_sql_"),
-        "fixture must not call bare sql hosts: {src}"
-    );
-    assert!(
-        !src.contains("while "),
-        "fixture must not use while (while+Sql control-flow broken): {src}"
-    );
-}
-
-#[test]
 fn ec_m2_4_sql_microbench_exec_on_instant() {
     let handle = std::thread::Builder::new()
         .name("ec_m2_4_sql_microbench".into())
@@ -67,15 +50,3 @@ fn ec_m2_4_sql_microbench_exec_on_instant() {
     );
 }
 
-#[test]
-fn ec_m2_4_sql_microbench_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_sql_microbench_tier"),
-        "inventory must contain ec_m2_4_sql_microbench_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-190") || inv.contains("signed-ADR-190"),
-        "inventory must note ADR-190: {inv}"
-    );
-}

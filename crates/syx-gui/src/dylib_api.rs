@@ -356,62 +356,62 @@ pub extern "C" fn syx_gui_dylib_drain_pending_handlers(
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_ttf_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_ttf_digest() -> *const c_char {
     c"gui-ttf-expand-v1:cjk64-plus".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_ime_preedit_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_ime_preedit_digest() -> *const c_char {
     c"gui-ime-highlight-v1:preedit-invert".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_doctor_coverage_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_doctor_coverage_digest() -> *const c_char {
     c"gui-doctor-engine-v6:phase118".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_egui_wgpu_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_egui_wgpu_digest() -> *const c_char {
     c"gui-egui-wgpu-v1:winit-present".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_hb_paint_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_hb_paint_digest() -> *const c_char {
     c"gui-hb-paint-v1:string-shape".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_emoji_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_emoji_digest() -> *const c_char {
     c"gui-emoji-v9:font-radial-and-sweep".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_ot_features_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_ot_features_digest() -> *const c_char {
     c"gui-ot-features-v7:os-fontmgr-default-paint".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_ot_vf_export_parity_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_ot_vf_export_parity_digest() -> *const c_char {
     c"gui-dylib-parity-v1:ot-vf-export".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_vf_wght_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_vf_wght_digest() -> *const c_char {
     c"gui-font-vf-v1:wght-mvp".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_vf_multi_axis_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_vf_multi_axis_digest() -> *const c_char {
     c"gui-font-vf-v2:multi-axis-mvp".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_vf_axes_ge3_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_vf_axes_ge3_digest() -> *const c_char {
     c"gui-font-vf-v4:paint-variations-mvp".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_vf_paint_variations_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_vf_paint_variations_digest() -> *const c_char {
     c"gui-font-vf-v4:paint-variations-mvp".as_ptr()
 }
 
@@ -516,17 +516,17 @@ pub extern "C" fn syx_gui_dylib_ot_calt_used() -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_vertical_rl_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_vertical_rl_digest() -> *const c_char {
     c"gui-vertical-unify-v1:hb-advance".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_harfbuzz_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_harfbuzz_digest() -> *const c_char {
     c"gui-harfbuzz-v1:shape-mvp".as_ptr()
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_font_fallback_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_font_fallback_digest() -> *const c_char {
     c"gui-font-fallback-v1:system-cjk".as_ptr()
 }
 
@@ -576,7 +576,7 @@ pub extern "C" fn syx_gui_dylib_caret_metric_px() -> u32 {
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_wgpu_composite_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_wgpu_composite_digest() -> *const c_char {
     c"gui-wgpu-composite-v1:hb-emoji-tex".as_ptr()
 }
 
@@ -617,7 +617,7 @@ pub extern "C" fn syx_gui_dylib_doctor_present_mode() -> *const c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_font_system_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_font_system_digest() -> *const c_char {
     c"gui-font-system-v5:os-only-all-apis".as_ptr()
 }
 
@@ -640,7 +640,7 @@ pub extern "C" fn syx_gui_dylib_paragraph_paint_used() -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_skia_layout_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_skia_layout_digest() -> *const c_char {
     c"gui-skia-paragraph-v6:os-ot-aligned".as_ptr()
 }
 
@@ -660,7 +660,7 @@ pub extern "C" fn syx_gui_dylib_vertical_unify_used() -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_skia_glyph_fingerprint() -> *const c_char {
+pub extern "C" fn syx_gui_dylib_skia_glyph_digest() -> *const c_char {
     c"gui-skia-glyph-v1:raster-mvp".as_ptr()
 }
 

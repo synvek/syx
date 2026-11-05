@@ -38,7 +38,7 @@ func main() {
         print(10000)
     } catch (e) {
         print("UNEXPECTED")
-        print(e.message)
+        print(e)
     }
 }
 

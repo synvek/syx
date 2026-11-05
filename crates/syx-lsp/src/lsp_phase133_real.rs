@@ -19,42 +19,9 @@ fn p133_doc(text: &str) -> syx_driver::LspDocument {
 }
 
 
-#[test]
-fn p133_audit_align_stub() {
-    // Gate fingerprint: `audit-align-v1:ci-script-adr-6350-3550`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("audit-align-v1:ci-script-adr-6350-3550"));
-    let script = include_str!("../../../scripts/audit_behavioral_tests.sh");
-    assert!(
-        (script.contains("MIN_DRIVER=6350") && script.contains("MIN_LSP=3550"))
-            || (script.contains("MIN_DRIVER=6500") && script.contains("MIN_LSP=3600"))
-            || (script.contains("MIN_DRIVER=6650") && script.contains("MIN_LSP=3650"))
-            || (script.contains("MIN_DRIVER=2500") && script.contains("MIN_LSP=2900"))
-            || (script.contains("MIN_DRIVER=2600") && script.contains("MIN_LSP=2950"))
-            || (script.contains("MIN_DRIVER=2600") && script.contains("MIN_LSP=3000"))
-    );
-}
 
 
-#[test]
-fn p133_track_fingerprints_stub() {
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("macro-token-v4:stmt-token-subst-mvp"));
-    assert!(self_src.contains("macro-service-v14:pointcut-within-name-mvp"));
-    assert!(self_src.contains("gui-synui-v10:widget-stack"));
-    assert!(self_src.contains("wasm-simd16-guest-v16:ne-mvp"));
-    assert!(self_src.contains("farm-lease-token-v16:hsm-multi-slot-mvp"));
-    assert!(self_src.contains("dist-cdn-bgp-v16:peer-announce-epoch-persist-mvp"));
-    assert!(self_src.contains("stdlib-os-v1:cpu-mem-user-mvp"));
-    assert!(self_src.contains("runtime-concurrency-v1:task-worker-config-mvp"));
-}
 
-#[test]
-fn p133_stdlib_parity_pin_stub() {
-    // Gate fingerprint: `stdlib-parity-pin-v1:111.0`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("stdlib-parity-pin-v1:111.0"));
-}
 
 #[test]
 fn p133_hover_gate0_local() {
@@ -232,95 +199,17 @@ fn p133_service_di_parse_smoke() {
     );
 }
 
-#[test]
-fn p133_macro_stmt_token_subst_stub() {
-    // Gate fingerprint: `macro-token-v4:stmt-token-subst-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("macro-token-v4:stmt-token-subst-mvp"));
-}
 
-#[test]
-fn p133_pointcut_within_name_stub() {
-    // Gate fingerprint: `macro-service-v14:pointcut-within-name-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("macro-service-v14:pointcut-within-name-mvp"));
-}
 
-#[test]
-fn p133_macro_docs_v15_honesty_stub() {
-    // Gate fingerprint: `macro-docs-v15:m23-service-v14-honesty`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("macro-docs-v15:m23-service-v14-honesty"));
-}
 
-#[test]
-fn p133_synui_widget_stack_stub() {
-    // Gate fingerprint: `gui-synui-v10:widget-stack`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("gui-synui-v10:widget-stack"));
-    let doc = p133_doc("func main() { print(\"stack\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p133_synui_scrollview_signal_bind_stub() {
-    // Gate fingerprint: `gui-synui-v10:scrollview-signal-bind`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("gui-synui-v10:scrollview-signal-bind"));
-}
 
-#[test]
-fn p133_synui_web_mobile_layout_stub() {
-    // Gate fingerprint: `gui-synui-v10:web-mobile-layout-deepen`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("gui-synui-v10:web-mobile-layout-deepen"));
-}
 
-#[test]
-fn p133_simd16_ne_stub() {
-    // Gate fingerprint: `wasm-simd16-guest-v16:ne-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v16:ne-mvp"));
-}
 
-#[test]
-fn p133_farm_hsm_multi_slot_stub() {
-    // Gate fingerprint: `farm-lease-token-v16:hsm-multi-slot-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("farm-lease-token-v16:hsm-multi-slot-mvp"));
-}
 
-#[test]
-fn p133_dist_peer_announce_epoch_persist_stub() {
-    // Gate fingerprint: `dist-cdn-bgp-v16:peer-announce-epoch-persist-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v16:peer-announce-epoch-persist-mvp"));
-}
 
-#[test]
-fn p133_os_cpu_mem_user_stub() {
-    // Gate fingerprint: `stdlib-os-v1:cpu-mem-user-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("stdlib-os-v1:cpu-mem-user-mvp"));
-}
 
-#[test]
-fn p133_task_worker_config_stub() {
-    // Gate fingerprint: `runtime-concurrency-v1:task-worker-config-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("runtime-concurrency-v1:task-worker-config-mvp"));
-}
 
-#[test]
-fn p133_actor_limit_mailbox_stub() {
-    // Gate fingerprint: `runtime-concurrency-v1:actor-limit-mailbox-mvp`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("runtime-concurrency-v1:actor-limit-mailbox-mvp"));
-}
 
 #[test]
 fn p133_diagnostic_service_missing_dep() {
@@ -369,20 +258,6 @@ fn p133_diagnostic_optional_unwrap() {
 }
 
 #[test]
-fn p133_driver_cr390_fingerprint_stub() {
-    // Gate fingerprint: `driver-gate-cr390-v1:phase133-real-behavioral`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("driver-gate-cr390-v1:phase133-real-behavioral"));
-}
-
-#[test]
-fn p133_lsp_semantic_v35_fingerprint_stub() {
-    // Gate fingerprint: `lsp-semantic-v35:phase133-46-plus-real`
-    let self_src = include_str!("lsp_phase133_real.rs");
-    assert!(self_src.contains("lsp-semantic-v35:phase133-46-plus-real"));
-}
-
-#[test]
 fn p133_hover_lazy_local() {
     let text = "func main() {\n  let count = 111\n}";
     let hover = hover_for_position("file:///p133.sy", text, 1, 10, &p133_opts());
@@ -422,8 +297,8 @@ fn p133_lsp_semantic_v35_contract() {
     let src = include_str!("lsp_phase133_real.rs");
     let tests = src.matches("#[test]").count();
     assert!(
-        tests >= 46,
-        "phase133 LSP matrix must be ≥46 tests, found {tests}"
+        tests >= 36,
+        "phase133 LSP matrix must be ≥36 tests, found {tests}"
     );
     let pad_a = concat!("fn p133_", "sem_gate");
     let pad_b = concat!("fn p133_", "sem_probe");

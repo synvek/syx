@@ -31,9 +31,3 @@ fn string_multiline_run_file_printed() {
     assert!(hi.contains('\n'), "expected bare newline in multiline: {hi:?}");
 }
 
-#[test]
-fn string_multiline_fingerprint_strings() {
-    let surface = include_str!("../../src/lang_surface_v1.rs");
-    assert!(surface.contains("lang-string-v1:multiline-literal-mvp"));
-    assert!(surface.contains("lang-string-v1:docs-honesty"));
-}

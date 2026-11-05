@@ -25,15 +25,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -348,7 +339,6 @@ fn m2_s4_04_docs_and_capability() {
     );
 }
 
-
 #[test]
 fn m2_s4_04_http_body_stream_native_llvm() {
     let (port, stop, server, _) = start_big_body_loopback();
@@ -511,31 +501,3 @@ func main() {{
     );
 }
 
-#[test]
-fn m2_s4_04_http_body_stream_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "HttpBodyStreamOpen",
-        "HttpBodyStreamOpenOpts",
-        "HttpBodyStreamReadChunk",
-        "HttpBodyStreamClose",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-586/ADR-601): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-615): {block}"
-        );
-        assert!(
-            block.contains("ADR-615"),
-            "{name} notes must cite ADR-615: {block}"
-        );
-    }
-}

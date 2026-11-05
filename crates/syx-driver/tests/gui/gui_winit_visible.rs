@@ -3,10 +3,10 @@
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 use syx_vm::{
     ensure_gui_loaded, gui_caret_metric_px, gui_caret_supported, gui_cjk_subset_char_count,
-    gui_dlopen_loaded, gui_doctor_coverage_fingerprint, gui_font_fallback_fingerprint,
-    gui_glyph_coverage_percent, gui_harfbuzz_fingerprint, gui_ime_commit_supported,
-    gui_ime_preedit_fingerprint, gui_ime_preedit_supported, gui_sample_center_pixel, gui_shaped,
-    gui_ttf_subset_fingerprint, host_gui_button_create, host_gui_click_inject, host_gui_key_inject,
+    gui_dlopen_loaded, gui_doctor_coverage_digest, gui_font_fallback_digest,
+    gui_glyph_coverage_percent, gui_harfbuzz_digest, gui_ime_commit_supported,
+    gui_ime_preedit_digest, gui_ime_preedit_supported, gui_sample_center_pixel, gui_shaped,
+    gui_ttf_subset_digest, host_gui_button_create, host_gui_click_inject, host_gui_key_inject,
     host_gui_label_create, host_gui_layout_create, host_gui_on_click, host_gui_text_field_create,
     host_gui_widget_get_text, host_gui_winit_event_pump_phase97,
     host_gui_winit_run_loop_once_phase97, host_gui_winit_window_create, reset_phase98_state,
@@ -372,12 +372,12 @@ fn p106_gui_doctor_backend_report_subset_chars() {
     if !gui_dlopen_loaded() {
         return;
     }
-    assert_eq!(gui_ttf_subset_fingerprint(), "gui-ttf-expand-v1:cjk64-plus");
+    assert_eq!(gui_ttf_subset_digest(), "gui-ttf-expand-v1:cjk64-plus");
     assert_eq!(
-        gui_ime_preedit_fingerprint(),
+        gui_ime_preedit_digest(),
         "gui-ime-highlight-v1:preedit-invert"
     );
-    let doctor_fp = gui_doctor_coverage_fingerprint();
+    let doctor_fp = gui_doctor_coverage_digest();
     assert!(
         doctor_fp == "gui-doctor-cap-v1:phase106"
             || doctor_fp == "gui-doctor-real-v1:phase107"
@@ -400,12 +400,12 @@ fn p105_gui_doctor_backend_report_coverage() {
     if !gui_dlopen_loaded() {
         return;
     }
-    assert_eq!(gui_ttf_subset_fingerprint(), "gui-ttf-expand-v1:cjk64-plus");
+    assert_eq!(gui_ttf_subset_digest(), "gui-ttf-expand-v1:cjk64-plus");
     assert_eq!(
-        gui_ime_preedit_fingerprint(),
+        gui_ime_preedit_digest(),
         "gui-ime-highlight-v1:preedit-invert"
     );
-    let doctor_fp = gui_doctor_coverage_fingerprint();
+    let doctor_fp = gui_doctor_coverage_digest();
     assert!(
         doctor_fp == "gui-doctor-cap-v1:phase106"
             || doctor_fp == "gui-doctor-real-v1:phase107"
@@ -424,13 +424,13 @@ fn p107_gui_doctor_backend_report_shaped() {
     if !gui_dlopen_loaded() {
         return;
     }
-    let hb = gui_harfbuzz_fingerprint();
+    let hb = gui_harfbuzz_digest();
     assert!(hb == "gui-harfbuzz-v1:shape-mvp" || hb == "gui-hb-paint-v1:string-shape");
     assert_eq!(
-        gui_font_fallback_fingerprint(),
+        gui_font_fallback_digest(),
         "gui-font-fallback-v1:system-cjk"
     );
-    let doctor_fp = gui_doctor_coverage_fingerprint();
+    let doctor_fp = gui_doctor_coverage_digest();
     assert!(
         doctor_fp == "gui-doctor-real-v1:phase107"
             || doctor_fp == "gui-doctor-egui-v1:phase108"

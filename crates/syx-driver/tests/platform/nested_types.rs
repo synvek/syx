@@ -26,9 +26,3 @@ fn nested_types_run_file_printed() {
     assert_eq!(lines[2].trim(), "9", "Outer.Middle.Deep: {printed:?}");
 }
 
-#[test]
-fn nested_types_fingerprint_strings() {
-    let surface = include_str!("../../src/lang_surface_v1.rs");
-    assert!(surface.contains("lang-nested-v1:qualified-path-mvp"));
-    assert!(surface.contains("lang-nested-v1:docs-honesty"));
-}

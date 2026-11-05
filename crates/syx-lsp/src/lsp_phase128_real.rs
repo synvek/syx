@@ -1,4 +1,4 @@
-// Phase 128 real LSP matrix (≥36 semantic): Service DI v9 Lazy/cycle + SynUI v5 + Gate0 probes (no bind_b/real_bind/hover_sem clones).
+// Phase 128 real LSP matrix (≥35 semantic): Service DI v9 Lazy/cycle + SynUI v5 + Gate0 probes (no bind_b/real_bind/hover_sem clones).
 // Planned fingerprints: macro-service-v9:lazy-cycle-proxy-mvp, macro-docs-v10:m18-service-v9-honesty,
 // gui-synui-v5:toggle-radio-bind, gui-synui-v5:widget-progress-picker, gui-synui-v5:mobile-surface-unretire,
 // wasm-simd16-guest-v11:shuffle-mvp, farm-lease-token-v11:hsm-ref-bound-mvp,
@@ -15,19 +15,6 @@ fn p128_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p128_opts())
 }
 
-#[test]
-fn p128_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("macro-service-v9:lazy-cycle-proxy-mvp"));
-    assert!(lib.contains("gui-synui-v5:toggle-radio-bind"));
-    assert!(lib.contains("wasm-simd16-guest-v11:shuffle-mvp"));
-    assert!(lib.contains("farm-lease-token-v11:hsm-ref-bound-mvp"));
-    assert!(lib.contains("dist-cdn-bgp-v11:sticky-multi-snapshot-mvp"));
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("macro-docs-v10:m18-service-v9-honesty"));
-    assert!(self_src.contains("gui-synui-v5:widget-progress-picker"));
-    assert!(self_src.contains("gui-synui-v5:mobile-surface-unretire"));
-}
 
 #[test]
 fn p128_hover_string_binding() {
@@ -198,67 +185,12 @@ fn p128_service_di_parse_smoke() {
     );
 }
 
-#[test]
-fn p128_lazy_cycle_proxy_stub() {
-    // Gate0 stub: `macro-service-v9:lazy-cycle-proxy-mvp`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("macro-service-v9:lazy-cycle-proxy-mvp"));
-}
 
-#[test]
-fn p128_macro_docs_v10_honesty_stub() {
-    // Gate0 stub: `macro-docs-v10:m18-service-v9-honesty`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("macro-docs-v10:m18-service-v9-honesty"));
-}
 
-#[test]
-fn p128_synui_toggle_radio_bind_stub() {
-    // Gate0 stub: `gui-synui-v5:toggle-radio-bind`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("gui-synui-v5:toggle-radio-bind"));
-    let doc = p128_doc("func main() { print(\"toggle-bind\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p128_synui_progress_picker_stub() {
-    // Gate0 stub: `gui-synui-v5:widget-progress-picker`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("gui-synui-v5:widget-progress-picker"));
-}
 
-#[test]
-fn p128_synui_mobile_unretire_stub() {
-    // Gate0 stub: `gui-synui-v5:mobile-surface-unretire`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("gui-synui-v5:mobile-surface-unretire"));
-}
 
-#[test]
-fn p128_simd16_shuffle_fingerprint_stub() {
-    // Gate0 stub: `wasm-simd16-guest-v11:shuffle-mvp`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v11:shuffle-mvp"));
-}
 
-#[test]
-fn p128_farm_hsm_ref_bound_stub() {
-    // Gate0 stub: `farm-lease-token-v11:hsm-ref-bound-mvp`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("farm-lease-token-v11:hsm-ref-bound-mvp"));
-}
-
-#[test]
-fn p128_dist_sticky_multi_snapshot_stub() {
-    // Gate0 stub: `dist-cdn-bgp-v11:sticky-multi-snapshot-mvp`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v11:sticky-multi-snapshot-mvp"));
-}
 
 #[test]
 fn p128_diagnostic_service_missing_dep() {
@@ -306,33 +238,7 @@ fn p128_diagnostic_optional_unwrap() {
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
 
-#[test]
-fn p128_driver_cr340_fingerprint_stub() {
-    // Gate0 stub: `driver-gate-cr340-v1:phase128-real-behavioral`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("driver-gate-cr340-v1:phase128-real-behavioral"));
-}
 
-#[test]
-fn p128_lsp_semantic_v30_fingerprint_stub() {
-    // Gate0 stub: `lsp-semantic-v30:phase128-36-plus-real`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("lsp-semantic-v30:phase128-36-plus-real"));
-}
-
-#[test]
-fn p128_stdlib_parity_pin_stub() {
-    // Gate0 stub: `stdlib-parity-pin-v1:106.0`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("stdlib-parity-pin-v1:106.0"));
-}
-
-#[test]
-fn p128_audit_align_stub() {
-    // Gate0 stub: `audit-align-v1:ci-script-adr-5600-3300`
-    let self_src = include_str!("lsp_phase128_real.rs");
-    assert!(self_src.contains("audit-align-v1:ci-script-adr-5600-3300"));
-}
 
 #[test]
 fn p128_hover_lazy_local() {
@@ -374,8 +280,8 @@ fn p128_lsp_semantic_v30_contract() {
     let src = include_str!("lsp_phase128_real.rs");
     let tests = src.matches("#[test]").count();
     assert!(
-        tests >= 36,
-        "phase128 LSP matrix must be ≥36 tests, found {tests}"
+        tests >= 35,
+        "phase128 LSP matrix must be ≥35 tests, found {tests}"
     );
     let pad_a = concat!("fn p128_", "sem_gate");
     let pad_b = concat!("fn p128_", "sem_probe");

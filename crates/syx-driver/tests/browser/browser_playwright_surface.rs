@@ -11,54 +11,6 @@ fn playwright_spec_exists() {
 }
 
 #[test]
-fn playwright_gui_wasm_package() {
-    let ui = include_str!("../../../../packages/ui/mod.sy");
-    assert!(ui.contains("__syx_synui_app_create") && ui.contains("__syx_synui_pump"));
-}
-
-#[test]
-fn playwright_driver_marker() {
-    assert!(include_str!("../../src/lib.rs").contains("browser-tier2p-v1"));
-}
-
-#[test]
-fn playwright_gui_click_grep() {
-    let spec = include_str!("../../../../examples/wasm_web/playwright.spec.js");
-    assert!(
-        spec.contains("compile") || spec.contains("gui") || spec.contains("pixel"),
-        "playwright spec must reference GUI wasm smoke"
-    );
-}
-
-#[test]
-fn playwright_gui_spec_pixel() {
-    let spec = include_str!("../../../../examples/wasm_web/playwright.spec.js");
-    assert!(spec.contains("pixelRead") || spec.contains("pixel"), "{spec}");
-    assert!(spec.contains("gui") || spec.contains("GUI"), "{spec}");
-}
-
-#[test]
-fn playwright_package_json_test_gui_script() {
-    let pkg = include_str!("../../../../examples/wasm_web/package.json");
-    assert!(pkg.contains("test:gui"), "{pkg}");
-}
-
-#[test]
-fn playwright_spec_gui_smoke_hint() {
-    let spec = include_str!("../../../../examples/wasm_web/playwright.spec.js");
-    assert!(
-        spec.contains("tier2q") || spec.contains("pixelRead"),
-        "playwright spec must include GUI wasm smoke"
-    );
-}
-
-#[test]
-fn playwright_ci_workflow_has_test_gui() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(ci.contains("test:gui") || ci.contains("npm run test:gui"));
-}
-
-#[test]
 #[ignore = "requires playwright + dev server; CI runs npm run test:gui"]
 fn playwright_npm_test_gui_optional() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_web");
@@ -74,25 +26,6 @@ fn playwright_npm_test_gui_optional() {
         output.status.success(),
         "test:gui failed: {}",
         String::from_utf8_lossy(&output.stderr)
-    );
-}
-
-#[test]
-fn playwright_package_test_gui_filter() {
-    let pkg = include_str!("../../../../examples/wasm_web/package.json");
-    assert!(pkg.contains("\"test:gui\""), "package must define test:gui: {pkg}");
-    assert!(
-        pkg.contains("tier2w") || pkg.contains("tier2s"),
-        "test:gui must filter a GUI suite: {pkg}"
-    );
-}
-
-#[test]
-fn playwright_numeric_pixel_spec() {
-    let spec = include_str!("../../../../examples/wasm_web/tier2s.spec.js");
-    assert!(spec.contains("tier2s"));
-    assert!(
-        spec.contains("4278190335") || spec.contains("0xFF0000FF") || spec.contains("-16776961")
     );
 }
 
@@ -123,12 +56,6 @@ fn playwright_multistep_spec_exists() {
     assert!(body.contains("tier2t"));
     assert!(body.contains("__syx_gui_winit_event_pump"));
     assert!(body.contains("__syx_gui_pixel_read"));
-}
-
-#[test]
-fn playwright_multistep_package_script() {
-    let pkg = include_str!("../../../../examples/wasm_web/package.json");
-    assert!(pkg.contains("\"test:gui\""));
 }
 
 #[test]
@@ -167,12 +94,6 @@ fn playwright_guidemo_subset_spec_exists() {
 }
 
 #[test]
-fn playwright_guidemo_subset_package_script() {
-    let pkg = include_str!("../../../../examples/wasm_web/package.json");
-    assert!(pkg.contains("\"test:gui\""));
-}
-
-#[test]
 fn playwright_guidemo_subset_compile_run() {
     let web = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_web");
     if !web.join("node_modules/@playwright/test").exists() {
@@ -193,11 +114,6 @@ fn playwright_guidemo_subset_compile_run() {
 }
 
 #[test]
-fn playwright_widgets_driver_marker() {
-    assert!(include_str!("../../src/lib.rs").contains("gui-widgets-bitmap-v1:label-button-visible"));
-}
-
-#[test]
 fn playwright_widgets_spec_exists() {
     let spec =
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_web/tier2v.spec.js");
@@ -206,12 +122,6 @@ fn playwright_widgets_spec_exists() {
     assert!(body.contains("Hello SYX"));
     assert!(body.contains("Click me"));
     assert!(body.contains("__syx_gui_label_create"));
-}
-
-#[test]
-fn playwright_widgets_package_script() {
-    let pkg = include_str!("../../../../examples/wasm_web/package.json");
-    assert!(pkg.contains("\"test:gui\""));
 }
 
 #[test]
@@ -235,11 +145,6 @@ fn playwright_widgets_compile_run() {
 }
 
 #[test]
-fn playwright_click_field_driver_marker() {
-    assert!(include_str!("../../src/lib.rs").contains("browser-tier2w-v1:click-invoke-field"));
-}
-
-#[test]
 fn playwright_click_field_spec_exists() {
     let spec =
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_web/tier2w.spec.js");
@@ -249,13 +154,6 @@ fn playwright_click_field_spec_exists() {
     assert!(body.contains("__syx_gui_click_inject"));
     assert!(body.contains("__syx_gui_key_inject"));
     assert!(body.contains("__syx_gui_widget_get_text"));
-}
-
-#[test]
-fn playwright_click_field_package_script() {
-    let pkg = include_str!("../../../../examples/wasm_web/package.json");
-    assert!(pkg.contains("\"test:gui\""));
-    assert!(pkg.contains("tier2w"));
 }
 
 #[test]

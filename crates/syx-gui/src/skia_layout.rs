@@ -25,8 +25,8 @@ static VERTICAL_PARAGRAPH_USED: AtomicBool = AtomicBool::new(false);
 static FONT_MGR_OS: AtomicBool = AtomicBool::new(false);
 static FONT_MGR_BUNDLED: AtomicBool = AtomicBool::new(false);
 
-pub const SKIA_LAYOUT_FINGERPRINT: &str = "gui-skia-paragraph-v6:os-ot-aligned";
-pub const FONT_SYSTEM_FINGERPRINT: &str = "gui-font-system-v5:os-only-all-apis";
+pub const SKIA_LAYOUT_DIGEST: &str = "gui-skia-paragraph-v6:os-ot-aligned";
+pub const FONT_SYSTEM_DIGEST: &str = "gui-font-system-v5:os-only-all-apis";
 
 const PRIMARY_TTF: &[u8] = include_bytes!("../assets/cjk_subset.ttf");
 /// Bundled stand-in for CI when OS FontMgr lacks the OOB glyph (`龍` absent from cjk_subset).
@@ -35,11 +35,11 @@ const FAMILY: &str = "SYXParagraph";
 const PARAGRAPH_INK: Color = Color::from_argb(255, 238, 238, 238);
 
 pub fn skia_layout_digest() -> &'static str {
-    SKIA_LAYOUT_FINGERPRINT
+    SKIA_LAYOUT_DIGEST
 }
 
 pub fn font_system_digest() -> &'static str {
-    FONT_SYSTEM_FINGERPRINT
+    FONT_SYSTEM_DIGEST
 }
 
 pub fn layout_used() -> bool {

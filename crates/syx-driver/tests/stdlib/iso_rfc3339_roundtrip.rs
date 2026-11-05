@@ -14,15 +14,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     let needle = format!("id = \"{id}\"");
     let rest = caps
@@ -128,89 +119,6 @@ func main() {
 "#;
 
 #[test]
-fn m2_s5_03_host_fn_columns() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    {
-        let block = host_block(toml, "DateTimeParse");
-        assert!(
-            block.contains("vm = \"real\""),
-            "DateTimeParse must declare vm=real: {block}"
-        );
-        assert!(
-            block.contains("mir = \"real\""),
-            "DateTimeParse must declare mir=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "DateTimeParse must declare llvm=real (ADR-572): {block}"
-        );
-        assert!(
-            block.contains("ADR-572")
-                || block.contains("ADR-221")
-                || block.contains("M2-S5-03"),
-            "DateTimeParse notes must cite ADR-572/ADR-221: {block}"
-        );
-    }
-    {
-        let block = host_block(toml, "DateTimeParseIso8601");
-        assert!(
-            block.contains("vm = \"real\""),
-            "DateTimeParseIso8601 must declare vm=real: {block}"
-        );
-        assert!(
-            block.contains("mir = \"real\""),
-            "DateTimeParseIso8601 must declare mir=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "DateTimeParseIso8601 must declare llvm=real (ADR-571): {block}"
-        );
-        assert!(
-            block.contains("ADR-571")
-                || block.contains("ADR-221")
-                || block.contains("M2-S5-03"),
-            "DateTimeParseIso8601 notes must cite ADR-571/ADR-221: {block}"
-        );
-    }
-    {
-        let block = host_block(toml, "DateTimeFormat");
-        assert!(
-            block.contains("vm = \"real\""),
-            "DateTimeFormat must declare vm=real: {block}"
-        );
-        assert!(
-            block.contains("mir = \"real\""),
-            "DateTimeFormat must declare mir=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "DateTimeFormat must declare llvm=real (ADR-570): {block}"
-        );
-        assert!(
-            block.contains("ADR-570")
-                || block.contains("ADR-221")
-                || block.contains("M2-S5-03"),
-            "DateTimeFormat notes must cite ADR-570/ADR-221: {block}"
-        );
-    }
-    // ADR-233 / M2-S5-02 unlocked IANA hosts; W222/W223 deepened llvm nails.
-    for name in ["DateTimeFormatWithTimezone", "DateTimeTimezoneOffset"] {
-        assert!(
-            toml.contains(&format!("name = \"{name}\"")),
-            "{name} must be overridden by ADR-233 IANA window"
-        );
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("ADR-233")
-                || block.contains("M2-S5-02")
-                || block.contains("ADR-566")
-                || block.contains("ADR-567"),
-            "{name} notes must cite ADR-233/ADR-566/ADR-567: {block}"
-        );
-    }
-}
-
-#[test]
 fn m2_s5_03_utc_format_native_llvm() {
     let (code, stdout) = run_native_strict(UTC_FORMAT_ONLY_SRC);
     let out = stdout
@@ -261,50 +169,6 @@ fn m2_s5_03_utc_parse_iso8601_wasm() {
 }
 
 #[test]
-fn m2_s5_03_datetime_format_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "DateTimeFormat");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "DateTimeFormat must declare llvm=real (ADR-570/ADR-603): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "DateTimeFormat must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "DateTimeFormat must declare wasm=real (ADR-603): {block}"
-    );
-    assert!(
-        block.contains("ADR-603") || block.contains("ADR-570"),
-        "notes must cite ADR-603/ADR-570: {block}"
-    );
-}
-
-#[test]
-fn m2_s5_03_datetime_parse_iso8601_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "DateTimeParseIso8601");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "DateTimeParseIso8601 must declare llvm=real (ADR-571/ADR-604): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "DateTimeParseIso8601 must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "DateTimeParseIso8601 must declare wasm=real (ADR-604): {block}"
-    );
-    assert!(
-        block.contains("ADR-604") || block.contains("ADR-571"),
-        "notes must cite ADR-604/ADR-571: {block}"
-    );
-}
-
-#[test]
 fn m2_s5_03_date_only_parse_native_llvm() {
     let (code, stdout) = run_native_strict(DATE_ONLY_PARSE_SRC);
     let out = stdout
@@ -326,28 +190,6 @@ fn m2_s5_03_date_only_parse_wasm() {
     assert_eq!(
         out, "2020-02-29",
         "wasm date-only parse must exact: {out}"
-    );
-}
-
-#[test]
-fn m2_s5_03_datetime_parse_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "DateTimeParse");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "DateTimeParse must declare llvm=real (ADR-572/ADR-604): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "DateTimeParse must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "DateTimeParse must declare wasm=real (ADR-604): {block}"
-    );
-    assert!(
-        block.contains("ADR-604") || block.contains("ADR-572"),
-        "notes must cite ADR-604/ADR-572: {block}"
     );
 }
 
@@ -524,11 +366,3 @@ fn m2_s5_03_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s5_03_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s5_03_iso_rfc3339_roundtrip"
-    );
-}

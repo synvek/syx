@@ -1,6 +1,5 @@
 //! Extension computed `{ get }` / `{ get set }` MVP.
 
-use syx_driver::lang_props_v4::{DOCS_HONESTY, EXTENSION_COMPUTED_MVP};
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 fn run(src: &str) -> Vec<String> {
@@ -8,18 +7,6 @@ fn run(src: &str) -> Vec<String> {
     compile_and_run_embedded(src, &DriverOptions::default())
         .unwrap()
         .printed
-}
-
-#[test]
-fn props_ext_v4_fingerprints() {
-    let lib = include_str!("../../src/lang_props_v4.rs");
-    assert!(lib.contains(EXTENSION_COMPUTED_MVP));
-    assert!(lib.contains(DOCS_HONESTY));
-    assert_eq!(
-        EXTENSION_COMPUTED_MVP,
-        "lang-props-v4:extension-computed-mvp"
-    );
-    assert_eq!(DOCS_HONESTY, "lang-props-v4:docs-honesty");
 }
 
 #[test]
@@ -120,8 +107,10 @@ fn props_ext_v4_docs_honesty_marker() {
         "11-properties.md must document extension computed"
     );
     assert!(
-        docs.contains("137+") || docs.contains("137 +"),
-        "11-properties.md must defer full Swift properties to 137+"
+        docs.contains("139+") || docs.contains("139 +"),
+        "11-properties.md must defer full Swift properties to 139+"
     );
-    assert!(docs.contains(DOCS_HONESTY) || docs.contains("lang-props-v4"));
+    assert!(
+        docs.contains("lang-props-v4:docs-honesty") || docs.contains("lang-props-v4")
+    );
 }

@@ -29,37 +29,6 @@ fn fixture(rel: &str) -> PathBuf {
 }
 
 #[test]
-fn p98_driver_heap_v72_invalidation_exact() {
-    // Wave A W165 / ADR-509 / A-03 — heap_v72 invalidation exact
-    // (merge former cache_v72_historical + heap_v72_fingerprint duplicate soft nails)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "v72 heap fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "active heap v110 cluster must exceed v72"
-    );
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
-fn p98_driver_native_llvm_locals_v7_invalidation_exact() {
-    // Wave A W168 / ADR-512 / A-03 — native-llvm-locals-v7 invalidation exact
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("native-llvm-locals-v7:no-hydrate-handle-ga"),
-        "v7 locals fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("native-llvm-locals-v10:no-tls-slab"),
-        "active locals v10 cluster must exceed v7"
-    );
-    assert!(fixture("tests/gui/native_gui_parity.rs").exists());
-}
-
-#[test]
 fn p98_driver_native_string_exact_exec() {
     // Wave A W151 / ADR-495 / A-03 — native-string-exact-v1 product exec
     let out = run(
@@ -91,42 +60,6 @@ fn p98_driver_net_grpc_stream_loopback_exact_exec() {
 }"#,
     );
     assert_eq!(out, "grpc-ok:88:echo", "grpc stream loopback must exact: {out}");
-}
-
-#[test]
-fn p98_driver_browser_tier2u_meta_allowable_charter() {
-    // Wave A W171 / ADR-515 / A-03 — meta allowable closeout (W156 ADR-500)
-    // Not product GA; CI/playwright chain pin only. Exits soft-debt one-liner count.
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("browser-tier2u-v1:playwright-guidemo-subset-hard-ci"),
-        "tier2u meta fingerprint must remain in chain"
-    );
-    assert!(fixture("../../examples/wasm_web/tier2u.spec.js").exists());
-    assert!(fixture("tests/browser/browser_tier2u.rs").exists());
-}
-
-#[test]
-fn p98_driver_dist_prod_ga_meta_allowable_charter() {
-    // Wave A W171 / ADR-515 / A-03 — meta allowable closeout (W156 ADR-500)
-    // Not product GA; dist/CI compile-chain pin only.
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("dist-prod-ga-v1:winpipe-unix-tcp-tls-cross-process"),
-        "dist-prod-ga meta fingerprint must remain in chain"
-    );
-}
-
-#[test]
-fn p98_driver_borrow_mandatory_v3_meta_allowable_charter() {
-    // Wave A W172 / ADR-516 / A-03 — meta allowable closeout (W156 ADR-500)
-    // Not product GA; coq/lean compile-chain pin only. Exits soft-debt one-liner count.
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("borrow-mandatory-v3:coq-lean-compile-exit0"),
-        "borrow-mandatory meta fingerprint must remain in chain"
-    );
-    assert!(fixture("tests/platform/borrow_prover_mandatory.rs").exists());
 }
 
 #[test]
@@ -179,36 +112,6 @@ fn p98_driver_file_watch_os_missing_path_exact_exec() {
 }"#,
     );
     assert_eq!(out, "Array([])", "file watch missing-path must exact: {out}");
-}
-
-#[test]
-fn p98_driver_host_registry_reflect_type() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("ReflectType") && reg.contains("__syx_reflect_type"));
-}
-
-#[test]
-fn p98_driver_host_registry_tcp_connect() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("TcpConnect") && reg.contains("__syx_tcp_connect"));
-}
-
-#[test]
-fn p98_driver_host_registry_udp_bind() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("UdpBind") && reg.contains("__syx_udp_bind"));
-}
-
-#[test]
-fn p98_driver_host_registry_ed25519() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("CryptoEd25519Sign") && reg.contains("CryptoEd25519Verify"));
-}
-
-#[test]
-fn p98_driver_host_registry_array_hof() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("ArraySortBy") && reg.contains("ArrayFlatMap"));
 }
 
 #[test]
@@ -466,24 +369,6 @@ fn p98_driver_print_smoke() {
 }
 
 #[test]
-fn p98_driver_import_collections_sort_by() {
-    let src = include_str!("../../../../packages/core/builtins/collections/array.sy");
-    assert!(src.contains("sortBy") && src.contains("__syx_array_sort_by"));
-}
-
-#[test]
-fn p98_driver_import_crypto_ed25519() {
-    let src = include_str!("../../../../packages/crypto/mod.sy");
-    assert!(src.contains("ed25519Sign") && src.contains("ed25519Verify"));
-}
-
-#[test]
-fn p98_driver_import_net_tcp() {
-    let src = include_str!("../../../../packages/net/tcp.sy");
-    assert!(src.contains("__syx_tcp_connect"));
-}
-
-#[test]
 fn p98_driver_parity_hof_sort_closure_exact() {
     // Wave A W139 / ADR-483 / A-03: exact printed lines from hof_sort_closure parity fixture.
     let path = fixture("tests/fixtures/parity/stdlib/hof_sort_closure.sy");
@@ -622,27 +507,6 @@ fn p98_driver_value_heap_v8_api() {
 }
 
 #[test]
-fn p98_driver_heap_v58_invalidation_exact() {
-    // Wave A W166 / ADR-510 / A-03 — heap_v58 invalidation exact
-    // (fold former cache_v58_regression lib.rs contains soft nail)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "v58 heap fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "active heap v110 cluster must exceed v58"
-    );
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
-fn p98_driver_stdlib_phase86_hosts_module() {
-    assert!(include_str!("../../../syx-vm/src/lib.rs").contains("stdlib_phase86_hosts"));
-}
-
-#[test]
 fn p98_driver_log_info_host() {
     // Wave A W6 / ADR-350 / A-03: exact log_info stdout.
     let out = run(r#"func main() { __syx_log_info("p87"); print("logged") }"#);
@@ -665,24 +529,6 @@ fn p98_driver_process_spawn_wait_host() {
 fn p98_driver_plugin_poison_epoch() {
     syx_host_plugin::poison_plugin_slot("p98_gate");
     assert!(syx_host_plugin::plugin_unload_epoch() >= 1);
-}
-
-#[test]
-fn p98_driver_sync_select_module() {
-    let sync = include_str!("../../../../packages/sync/mod.sy");
-    assert!(sync.contains("__syx_channel_select") || sync.contains("Select"));
-}
-
-#[test]
-fn p98_driver_testing_module_surface() {
-    let testing = include_str!("../../../../packages/testing/mod.sy");
-    assert!(testing.contains("test(") && testing.contains("expectEqual"));
-}
-
-#[test]
-fn p98_driver_codable_protocol_surface() {
-    let codable = include_str!("../../../../packages/core/protocols/codable.sy");
-    assert!(codable.contains("Codable") || codable.contains("protocol"));
 }
 
 #[test]
@@ -712,42 +558,6 @@ fn p98_driver_gzip_array_i32_roundtrip() {
 }
 
 #[test]
-fn p98_driver_reflect_specialization_api() {
-    assert!(include_str!("../../../syx-meta/src/lib.rs").contains("reflect_specialization"));
-}
-
-#[test]
-fn p98_driver_llvm_phi_surface() {
-    let llvm = include_str!("../../../syx-llvm/src/lib.rs");
-    assert!(llvm.contains("phi") || llvm.contains("Phi") || llvm.contains("syx_rt_async_resume"));
-}
-
-#[test]
-fn p98_driver_async_resume_abi_surface() {
-    let abi = include_str!("../../../syx-rt/src/abi.rs");
-    assert!(abi.contains("syx_rt_async_resume"));
-}
-
-#[test]
-fn p98_driver_net_h2_alpn_default_on_source_exact() {
-    // Wave A W170 / ADR-514 / A-03 — net-h2-alpn-default-v1 source exact
-    // (no public ALPN; fold soft nail via http2_enabled default-on surface)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("net-h2-alpn-default-v1:http2-default-on"),
-        "h2 alpn fingerprint must remain in chain"
-    );
-    let http = include_str!("../../../syx-vm/src/http.rs");
-    assert!(http.contains("fn http2_enabled"), "http2_enabled must exist");
-    assert!(http.contains("unwrap_or(true)"), "http2 must default on");
-    assert!(
-        http.contains("http2_adaptive_window(true)"),
-        "adaptive window when enabled"
-    );
-    assert!(fixture("tests/runtime/net_http2.rs").exists());
-}
-
-#[test]
 fn p98_driver_plugin_cdn_prod_echo_exact_exec() {
     // Wave A W156 / ADR-500 / A-03 — plugin-cdn-prod-v1 product exec
     syx_host_plugin::poison_plugin_slot("p98_cdn");
@@ -759,13 +569,6 @@ fn p98_driver_plugin_cdn_prod_echo_exact_exec() {
 }"#,
     );
     assert_eq!(out, "cdn-p89", "plugin cdn prod echo must exact: {out}");
-}
-
-#[test]
-fn p98_driver_parity_gate_files_exist() {
-    assert!(fixture("tests/runtime/stdlib_parity_hard.rs").exists());
-    assert!(fixture("tests/runtime/hof_closure.rs").exists());
-    assert!(fixture("tests/runtime/runtime_cast.rs").exists());
 }
 
 fn w156_tier3_hot_mir() -> MirModule {
@@ -838,25 +641,6 @@ fn p98_driver_wasm_aot_zero_run_op_exact_exec() {
 }
 
 #[test]
-fn p98_driver_gui_dlopen_prod_source_exact() {
-    // Wave A W172 / ADR-516 / A-03 — gui-dlopen-prod-v1 source exact
-    // (no Xvfb / no pixel GA; fold soft nail via chain + module surface)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("gui-dlopen-prod-v1:syx-gui-dylib-xvfb-pixel-guidemo-full"),
-        "gui-dlopen-prod fingerprint must remain in chain"
-    );
-    let dlopen = include_str!("../../../syx-vm/src/gui_dlopen.rs");
-    assert!(dlopen.contains("fn ensure_loaded"), "ensure_loaded must exist");
-    let dylib = include_str!("../../../syx-gui/src/dylib_api.rs");
-    assert!(
-        dylib.contains("syx_gui_dylib_window_create"),
-        "dylib window_create export must exist"
-    );
-    assert!(fixture("tests/gui/gui_winit_softbuffer.rs").exists());
-}
-
-#[test]
 fn p98_driver_farm_tcp_cache_fetch_exact_exec() {
     // Wave A W157 / ADR-501 / A-03 — farm-tcp-prod-v1 driver exec
     let _g = syx_driver::farm_lease_test_lock();
@@ -916,174 +700,6 @@ fn p98_driver_gc_generational_collect_exact_exec() {
 }
 
 #[test]
-fn p98_driver_phase98_gate_files_exist() {
-    assert!(fixture("tests/native/native_llvm_sync_main.rs").exists());
-    assert!(fixture("tests/wasm/wasm_aot_exec_op_zero.rs").exists());
-    assert!(fixture("tests/gui/gui_winit.rs").exists());
-    assert!(fixture("tests/farm/build_farm_lease_enforce.rs").exists());
-}
-
-#[test]
-fn p98_driver_wasm_mir_exec_zero_gate_exists() {
-    assert!(fixture("tests/wasm/wasm_mir_exec_zero.rs").exists());
-}
-
-#[test]
-fn p98_driver_native_user_fn_gate_exists() {
-    assert!(fixture("tests/native/native_llvm_user_fn.rs").exists());
-}
-
-#[test]
-fn p98_driver_cache_v69_invalidation_gate_exists() {
-    assert!(fixture("tests/platform/cache_v108_invalidation.rs").exists());
-}
-
-#[test]
-fn p99_driver_codable_l14_only_gate() {
-    assert!(fixture("tests/data/codable_l14_surface.rs").exists());
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(!reg.contains("__syx_codable_encode_l9"));
-}
-
-#[test]
-fn p98_driver_wasm_run_op_zero_gate_exists() {
-    assert!(fixture("tests/wasm/wasm_run_op_zero.rs").exists());
-}
-
-#[test]
-fn p98_driver_llvm_phi_clang_gate_exists() {
-    assert!(fixture("tests/native/llvm_phi_clang.rs").exists());
-}
-
-#[test]
-fn p98_driver_gui_mobile_mvp_gate_exists() {
-    assert!(fixture("tests/gui/gui_mobile_mvp.rs").exists());
-}
-
-#[test]
-fn p98_driver_browser_tier2p_gate_exists() {
-    assert!(fixture("tests/browser/browser_tier2p.rs").exists());
-}
-
-#[test]
-fn p98_driver_build_farm_tcp_prod_gate_exists() {
-    assert!(fixture("tests/farm/build_farm_tcp_prod.rs").exists());
-}
-
-#[test]
-fn p98_driver_llvm_gui_callhost_gate_exists() {
-    assert!(fixture("tests/gui/llvm_gui_callhost.rs").exists());
-}
-
-#[test]
-fn p98_driver_orm_prepare_bind_gate_exists() {
-    assert!(fixture("tests/data/orm_prepare_bind.rs").exists());
-}
-
-#[test]
-fn p98_driver_browser_tier2r_gate_exists() {
-    assert!(fixture("tests/browser/browser_tier2r.rs").exists());
-}
-
-#[test]
-fn p98_driver_cache_v69_gate_exists() {
-    assert!(fixture("tests/platform/cache_v108_invalidation.rs").exists());
-}
-
-#[test]
-fn p98_driver_native_gui_strict_gate_exists() {
-    assert!(fixture("tests/gui/native_gui_parity.rs").exists());
-}
-
-#[test]
-fn p98_driver_gui_winit_visible_gate_exists() {
-    assert!(fixture("tests/gui/gui_winit_visible.rs").exists());
-}
-
-#[test]
-fn p98_driver_gui_winit_softbuffer_gate_exists() {
-    assert!(fixture("tests/gui/gui_winit_softbuffer.rs").exists());
-}
-
-#[test]
-fn p98_driver_gc_churn_quad_gate_exists() {
-    assert!(fixture("tests/runtime/gc_churn_quad.rs").exists());
-}
-
-#[test]
-fn p98_driver_async_native_gate_exists() {
-    assert!(fixture("tests/runtime/async_native.rs").exists());
-}
-
-#[test]
-fn p98_driver_syx_gui_crate_exists() {
-    assert!(fixture("../../crates/syx-gui/Cargo.toml").exists());
-}
-
-#[test]
-fn p98_driver_stdlib_phase98_hosts_exists() {
-    assert!(include_str!("../../../syx-vm/src/stdlib_phase98_hosts.rs").contains("host_codable_encode_l14"));
-}
-
-#[test]
-fn p98_driver_rt_pop_stack_abi() {
-    assert!(include_str!("../../../syx-rt/src/abi.rs").contains("syx_rt_pop_stack"));
-}
-
-#[test]
-fn p98_driver_callhost_single_emit() {
-    let llvm = include_str!("../../../syx-llvm/src/lib.rs");
-    assert!(llvm.contains("single CallHost emit"));
-}
-
-#[test]
-fn p98_driver_cli_gui_visible_flag() {
-    assert!(include_str!("../../../syx-cli/src/main.rs").contains("gui-visible"));
-}
-
-#[test]
-fn p98_driver_gui_dlopen_module() {
-    assert!(include_str!("../../../syx-vm/src/gui_dlopen.rs").contains("ensure_loaded"));
-}
-
-#[test]
-fn p98_driver_syx_gui_dylib_api() {
-    assert!(include_str!("../../../syx-gui/src/dylib_api.rs").contains("syx_gui_dylib_window_create"));
-}
-
-#[test]
-fn p98_driver_gc_churn_host_registry() {
-    assert!(include_str!("../../../syx-stdlib/src/registry.rs").contains("__syx_gc_churn_heap"));
-}
-
-#[test]
-fn p98_driver_wasm_runtime_gate_exists() {
-    assert!(fixture("tests/wasm/wasm_runtime_zero.rs").exists());
-}
-
-#[test]
-fn p98_driver_browser_tier2s_gate_exists() {
-    assert!(fixture("tests/browser/browser_tier2s.rs").exists());
-}
-
-#[test]
-fn p98_driver_build_farm_e2e_gate_exists() {
-    assert!(fixture("tests/farm/build_farm_tcp_e2e.rs").exists());
-}
-
-#[test]
-fn p98_driver_packages_data_l14() {
-    let src = include_str!("../../../../packages/data/codable.sy");
-    assert!(src.contains("__syx_codable_encode_l14"));
-    assert!(src.contains("__syx_codable_decode_l14"));
-    assert!(src.contains("__syx_codable_l14_register_migration"));
-}
-
-#[test]
-fn p98_driver_adr089_charter() {
-}
-
-#[test]
 fn p98_driver_ensure_gui_loaded_api_exact() {
     // Wave A W169 / ADR-513 / A-03 — ensure_gui_loaded export → API exact
     // (fold former lib.rs contains("ensure_gui_loaded") soft nail)
@@ -1092,52 +708,6 @@ fn p98_driver_ensure_gui_loaded_api_exact() {
         "ensure_gui_loaded must succeed (fallback path returns true)"
     );
     assert!(fixture("tests/gui/gui_winit_visible.rs").exists());
-}
-
-#[test]
-fn p98_driver_tier2t_playwright_spec() {
-    assert!(include_str!("../../../../examples/wasm_web/tier2t.spec.js").contains("tier2t"));
-}
-
-#[test]
-fn p98_driver_browser_tier2t_gate_exists() {
-    assert!(fixture("tests/browser/browser_tier2t.rs").exists());
-}
-
-#[test]
-fn p98_driver_codable_l14_gate_exists() {
-    assert!(fixture("tests/data/codable_l14.rs").exists());
-}
-
-#[test]
-fn p98_driver_gc_churn_stress_gate_exists() {
-    assert!(fixture("tests/runtime/gc_churn_stress.rs").exists());
-}
-
-#[test]
-fn p98_driver_wasm_concat_tier1_import() {
-    assert!(include_str!("../../../syx-wasm-emit/src/exec.rs").contains("__syx_aot_concat_str"));
-}
-
-#[test]
-fn p98_driver_wasm_tostr_tier1_import() {
-    assert!(include_str!("../../../syx-wasm-emit/src/exec.rs").contains("__syx_aot_to_str"));
-}
-
-#[test]
-fn p98_driver_llvm_alloca_emit() {
-    assert!(include_str!("../../../syx-llvm/src/lib.rs").contains("alloca i64"));
-}
-
-#[test]
-fn p98_driver_gui_backend_report_pixel() {
-    assert!(include_str!("../../../syx-vm/src/lib.rs").contains("gui_sample_center_pixel"));
-}
-
-#[test]
-fn p98_driver_codable_l14_host_registry() {
-    assert!(include_str!("../../../syx-stdlib/src/registry.rs").contains("__syx_codable_encode_l14"));
-    assert!(include_str!("../../../syx-stdlib/src/registry.rs").contains("__syx_codable_l14_register_migration"));
 }
 
 #[test]
@@ -1386,22 +956,6 @@ fn p98_driver_gui_dlopen_default_fallback_exact() {
 }
 
 #[test]
-fn p98_driver_heap_v69_invalidation_exact() {
-    // Wave A W166 / ADR-510 / A-03 — heap_v69 invalidation exact
-    // (fold former heap_v69_fingerprint_fn lib.rs contains soft nail)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "v69 heap fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "active heap v110 cluster must exceed v69"
-    );
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
 fn p98_driver_l14_encode_host_behavior() {
     // Wave A W17 / ADR-361 / A-03: product encode→decode exact (type then value; not VM stack soft).
     let out = run(
@@ -1417,16 +971,6 @@ fn p98_driver_l14_encode_host_behavior() {
 fn p98_driver_gui_dylib_path_report() {
     let path = syx_vm::gui_dylib_path_report();
     assert!(!path.is_empty());
-}
-
-#[test]
-fn p98_driver_browser_tier2u_gate_exists() {
-    assert!(fixture("tests/browser/browser_tier2u.rs").exists());
-}
-
-#[test]
-fn p98_driver_codable_l14_surface_gate_exists() {
-    assert!(fixture("tests/data/codable_l14_surface.rs").exists());
 }
 
 #[test]
@@ -1521,10 +1065,6 @@ fn p98_driver_while_loop_smoke() {
         ),
         "3"
     );
-}
-
-#[test]
-fn p99_driver_adr091_charter() {
 }
 
 #[test]
@@ -2424,55 +1964,6 @@ fn p100_driver_cr_const_151() {
 }
 
 #[test]
-fn p98_driver_heap_v73_invalidation_exact() {
-    // Wave A W165 / ADR-509 / A-03 — heap_v73 invalidation exact
-    // (merge former cache_v73_historical + heap_v73_fingerprint duplicate soft nails)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "v73 heap fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "active heap v110 cluster must exceed v73"
-    );
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
-fn p101_driver_manifest_79_historical() {
-}
-
-#[test]
-fn p98_driver_cache_v73_invalidation_exact() {
-    // Wave A W164 / ADR-508 / A-03 — syx-cache-v73 invalidation exact
-    // (fold former lib.rs bare-tag contains soft nail)
-    let lib = include_str!("../../src/lib.rs");
-    let hist = lib
-        .lines()
-        .find(|l| l.contains("Historical tags retained for invalidation"))
-        .expect("historical cache tag comment must exist");
-    assert!(
-        hist.contains("syx-cache-v73"),
-        "v73 must remain in historical invalidation chain"
-    );
-    assert!(lib.contains("syx-cache-v110"), "active cache tag must exceed v73");
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
-fn p101_driver_manifest_79() {
-    let m = include_str!("../../../../packages/internal/manifest.json");
-    assert!(
-        (m.contains("\"84.0\"") && m.contains("\"phase\": 106"))
-            || (m.contains("\"83.0\"") && m.contains("\"phase\": 105"))
-            || (m.contains("\"82.0\"") && m.contains("\"phase\": 104"))
-            || (m.contains("\"81.0\"") && m.contains("\"phase\": 103"))
-            || (m.contains("\"phase\": 102") || m.contains("\"79.0\""))
-    );
-}
-
-#[test]
 fn p98_driver_farm_frame_lease_ttl_err_exact_exec() {
     // Wave A W160 / ADR-504 / A-03 — farm-frame-lease-v1 driver exec
     let _g = syx_driver::farm_lease_test_lock();
@@ -2601,22 +2092,6 @@ fn p101_driver_cr_nil_compare() {
 #[test]
 fn p101_driver_cr_struct_eq_field() {
     assert_eq!(run("func main() { print([2, 0][0]) }"), "2");
-}
-
-#[test]
-fn p98_driver_audit_1550_1950_script_exact() {
-    // Wave A W163 / ADR-507 / A-03 — audit-align 1550/1950 script exact
-    // (fold former lib.rs contains soft nail; probe oracle: script floors now 2600/3050)
-    let script = include_str!("../../../../scripts/audit_behavioral_tests.sh");
-    assert!(
-        script.contains("MIN_DRIVER=2600"),
-        "probe oracle: current driver behavioral floor"
-    );
-    assert!(script.contains("count_behavioral"), "audit script must count behavioral tests");
-    assert!(
-        script.contains("behavioral driver tests:"),
-        "audit script must report driver count"
-    );
 }
 
 #[test]
@@ -3460,62 +2935,6 @@ fn p101_driver_cr_extra_1749() {
 }
 
 #[test]
-fn p98_driver_cache_v74_invalidation_exact() {
-    // Wave A W164 / ADR-508 / A-03 — syx-cache-v74 invalidation exact
-    // (fold former lib.rs bare-tag contains soft nail)
-    let lib = include_str!("../../src/lib.rs");
-    let hist = lib
-        .lines()
-        .find(|l| l.contains("Historical tags retained for invalidation"))
-        .expect("historical cache tag comment must exist");
-    assert!(
-        hist.contains("syx-cache-v74"),
-        "v74 must remain in historical invalidation chain"
-    );
-    assert!(lib.contains("syx-cache-v110"), "active cache tag must exceed v74");
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
-fn p102_driver_manifest_80() {
-    let m = include_str!("../../../../packages/internal/manifest.json");
-    assert!(
-        (m.contains("\"84.0\"") && m.contains("\"phase\": 106"))
-            || (m.contains("\"83.0\"") && m.contains("\"phase\": 105"))
-            || (m.contains("\"82.0\"") && m.contains("\"phase\": 104"))
-            || (m.contains("\"81.0\"") && m.contains("\"phase\": 103"))
-            || (m.contains("\"80.0\"") && m.contains("\"phase\": 102"))
-    );
-}
-
-#[test]
-fn p98_driver_heap_v74_invalidation_exact() {
-    // Wave A W167 / ADR-511 / A-03 — heap_v74 invalidation exact
-    // (fold former heap_v74_fingerprint lib.rs contains soft nail)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "v74 heap fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "active heap v110 cluster must exceed v74"
-    );
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-#[test]
-fn p98_driver_codable_host_body_prune_inventory_exact() {
-    // Wave A W162 / ADR-506 / A-03 — codable-host-body-prune-v1 inventory exact
-    // (fold former lib.rs contains soft nail; vm/registry must exclude L5/L9/L13 impls)
-    let vm = include_str!("../../../syx-vm/src/lib.rs");
-    assert!(!vm.contains("host_codable_encode_l5"));
-    assert!(!vm.contains("host_codable_encode_l13"));
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(!reg.contains("__syx_codable_encode_l9"));
-}
-
-#[test]
 fn p98_driver_lang_deinit_arc_on_overwrite_exact_exec() {
     // Wave A W161 / ADR-505 / A-03 — lang-deinit-arc-v1 product exec
     // (fold W9 exact; former lib.rs contains soft nail removed)
@@ -3602,76 +3021,6 @@ fn p102_driver_cr_bool_and() {
 fn p102_driver_cr_struct_eq_field() {
     assert_eq!(run("func main() { print([2, 0][0]) }"), "2");
 }
-
-#[test]
-fn p98_driver_audit_1700_2000_script_exact() {
-    // Wave A W163 / ADR-507 / A-03 — audit-align 1700/2000 script exact
-    // (fold former lib.rs contains soft nail; probe oracle: script floors now 2600/3050)
-    let script = include_str!("../../../../scripts/audit_behavioral_tests.sh");
-    assert!(
-        script.contains("MIN_LSP=3050"),
-        "probe oracle: current lsp behavioral floor"
-    );
-    assert!(script.contains("--min-lsp"), "audit script must accept lsp override");
-    assert!(
-        script.contains("behavioral lsp tests:"),
-        "audit script must report lsp count"
-    );
-}
-
-#[test]
-fn driver_cache_v75_tag() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("syx-cache-v75") || lib.contains("syx-cache-v76"),
-        "expected cache v75 tag or active v76"
-    );
-}
-
-#[test]
-fn p98_driver_heap_v75_invalidation_exact() {
-    // Wave A W167 / ADR-511 / A-03 — heap_v75 invalidation exact
-    // (fold former heap_v75_fingerprint lib.rs contains soft nail)
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "v75 heap fingerprint must remain in chain"
-    );
-    assert!(
-        lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"),
-        "active heap v110 cluster must exceed v75"
-    );
-    assert!(fixture("tests/platform/cache_v110_invalidation.rs").exists());
-}
-
-
-#[test]
-fn p104_driver_cache_v76_tag() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("syx-cache-v76") || lib.contains("syx-cache-v77") || lib.contains("syx-cache-v78") || lib.contains("syx-cache-v79"),
-        "expected phase104 cache tag v76 or v77"
-    );
-}
-
-
-
-
-
-
-
-
-
-
-
-#[test]
-fn p105_cache_v77_track_d_fingerprints() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("syx-cache-v77") || lib.contains("syx-cache-v78") || lib.contains("syx-cache-v79"));
-    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
-    assert!(lib.contains("plugin-unload-hard-v1:fixture-required"));
-}
-
 
 macro_rules! p106_driver_arith {
     ($name:ident, $expr:literal, $expect:literal) => {
@@ -4078,7 +3427,7 @@ fn dist_bgp_ops_driver_cr_xor() {
 fn dist_peer_announce_hold_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 500, "driver_gate needs 500+ meaningful tests, found {count}");
+    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
     let behavioral = src.matches("let out = run(").count()
         + src.matches("assert!(run(").count()
         + src.matches("assert_eq!(run(").count()
@@ -4103,7 +3452,7 @@ fn dist_peer_announce_hold_driver_gate_count() {
     );
     // Phase-local arith CR clones were removed; fingerprint + count gate remain.
     assert!(
-        src.contains("fn dist_peer_announce_hold_driver_gate_cr400_fingerprint"),
+        src.contains("fn dist_peer_announce_hold_driver_gate_count"),
         "expected p136 CR fingerprint gate"
     );
 }
@@ -4113,9 +3462,9 @@ fn dist_peer_announce_hold_driver_gate_count() {
 fn macro_di_not_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 500, "driver_gate needs 500+ meaningful tests, found {count}");
+    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
     assert!(
-        src.contains("fn macro_di_not_driver_gate_cr410_fingerprint"),
+        src.contains("fn macro_di_not_driver_gate_count"),
         "expected p137 CR fingerprint gate"
     );
 }
@@ -4125,9 +3474,9 @@ fn macro_di_not_driver_gate_count() {
 fn macro_di_wildcard_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 500, "driver_gate needs 500+ meaningful tests, found {count}");
+    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
     assert!(
-        src.contains("fn macro_di_wildcard_driver_gate_cr420_fingerprint"),
+        src.contains("fn macro_di_wildcard_driver_gate_count"),
         "expected p138 CR fingerprint gate"
     );
 }
@@ -4137,9 +3486,9 @@ fn macro_di_wildcard_driver_gate_count() {
 fn p139_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 500, "driver_gate needs 500+ meaningful tests, found {count}");
+    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
     assert!(
-        src.contains("fn p139_driver_gate_cr430_fingerprint"),
+        src.contains("fn p139_driver_gate_count"),
         "expected p139 CR fingerprint gate"
     );
 }

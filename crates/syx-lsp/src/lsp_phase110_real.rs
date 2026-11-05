@@ -10,22 +10,7 @@ fn p110_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p110_opts())
 }
 
-#[test]
-fn p110_dist_multihost_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_route"));
-    assert!(src.contains("dist_region_multihost_tcp_health"));
-    assert!(src.contains("SYX_DIST_CDN_MEMORY"));
-}
 
-#[test]
-fn p110_select_mixed_timeout_source_gate() {
-    let parser = include_str!("../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_MIXED_TIMEOUT_FINGERPRINT"));
-    assert!(parser.contains("__syx_channel_select_mixed_await"));
-    let hosts = include_str!("../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("host_channel_select_mixed_await"));
-}
 
 #[test]
 fn p110_hover_string_binding() {

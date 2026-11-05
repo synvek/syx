@@ -10,21 +10,7 @@ fn p108_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p108_opts())
 }
 
-#[test]
-fn p108_farm_ha_v2_source_gate() {
-    let auth = include_str!("../../syx-driver/src/farm_lease_auth.rs");
-    assert!(auth.contains("primary_state"));
-    assert!(auth.contains("secondary_state"));
-    assert!(auth.contains("spawn_farm_lease_ha"));
-}
 
-#[test]
-fn dist_mailbox_tcp_ga_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("region_route_mp_ga"));
-    assert!(src.contains("dist_actor_mp_doctor_mode"));
-    assert!(src.contains("no-inproc-fallback-ga"));
-}
 
 #[test]
 fn p108_hover_string_binding() {

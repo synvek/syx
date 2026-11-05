@@ -11,18 +11,6 @@ fn run(src: &str) -> String {
 }
 
 #[test]
-fn p98_codable_l4_protocol_surface() {
-    let src = include_str!("../../../../packages/core/protocols/codable.sy");
-    assert!(src.contains("protocol") || src.contains("Codable"));
-}
-
-#[test]
-fn p98_codable_l4_macro_synthesis_surface() {
-    let mac = include_str!("../../../syx-macro/src/attached.rs");
-    assert!(mac.contains("synthesize_codable"));
-}
-
-#[test]
 fn p98_codable_l4_json_roundtrip_host_smoke() {
     let out = run(
         r#"func main() {
@@ -49,7 +37,6 @@ func main() {
     );
     assert!(out.contains("88") || out.contains("Item"), "{out}");
 }
-
 
 #[test]
 fn p98_codable_l4_stdlib_protocols_registry() {

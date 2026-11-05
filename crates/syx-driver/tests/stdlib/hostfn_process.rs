@@ -28,7 +28,7 @@ fn hostfn_process_matrix_toml_lists_process_batch() {
             && matrix.contains("host = \"ChildWait\""),
         "matrix missing ProcessBuilder/ChildWait rows"
     );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
+    crate::matrix_fingerprint::assert_live_matrix_digest();
     assert!(
         matrix.contains("ProcessBuilderCreate")
             && matrix.contains("llvm = \"covered\""),

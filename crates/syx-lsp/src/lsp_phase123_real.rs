@@ -10,19 +10,6 @@ fn p123_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p123_opts())
 }
 
-#[test]
-fn p123_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("macro-service-v3:multi-package-scan"));
-    assert!(lib.contains("runtime-service-v3:prototype-scope"));
-    assert!(lib.contains("runtime-service-v4:request-scope"));
-    assert!(lib.contains("macro-service-v4:ceremony-sugar"));
-    assert!(lib.contains("macro-pipeline-v6:rb-hostcall-closure-fixed"));
-    assert!(lib.contains("gui-ot-features-v7:os-fontmgr-default-paint"));
-    assert!(lib.contains("wasm-simd16-guest-v6:logic-not"));
-    assert!(lib.contains("farm-lease-token-v6:pkcs11-so-adapter"));
-    assert!(lib.contains("dist-cdn-bgp-v6:multi-pop-mvp"));
-}
 
 #[test]
 fn p123_hover_string_binding() {

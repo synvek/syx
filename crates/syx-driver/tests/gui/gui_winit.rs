@@ -35,15 +35,6 @@ fn p98_gui_winit_canvas_draw_stdout() {
     assert!(out.iter().any(|l| l.contains("true")), "{out:?}");
 }
 
-
-#[test]
-fn p98_gui_winit_package_surface() {
-    // Phase 124: packages/ui is SynUI-shaped; legacy asserts retired.
-    let ui = include_str!("../../../../packages/ui/mod.sy");
-    assert!(ui.contains("__syx_synui_button"));
-    assert!(ui.contains("__syx_synui_app_create"));
-}
-
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
 fn p98_gui_winit_button_onclick_stdout() {

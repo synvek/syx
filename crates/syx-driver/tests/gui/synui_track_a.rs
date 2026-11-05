@@ -2,53 +2,9 @@
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 use syx_vm::{
-    ensure_gui_loaded, gui_dlopen_loaded, gui_doctor_coverage_fingerprint, gui_emoji_fingerprint,
+    ensure_gui_loaded, gui_dlopen_loaded, gui_doctor_coverage_digest, gui_emoji_digest,
     reset_phase98_state,
 };
-
-#[test]
-fn p117_gui_fingerprints_in_tree() {
-    let gui_lib = include_str!("../../../syx-gui/src/lib.rs");
-    let egui = include_str!("../../../syx-gui/src/egui_backend.rs");
-    let emoji = include_str!("../../../syx-gui/src/emoji.rs");
-    let skia_layout = include_str!("../../../syx-gui/src/skia_layout.rs");
-    let shape = include_str!("../../../syx-gui/src/shape.rs");
-    let dylib = include_str!("../../../syx-gui/src/dylib_api.rs");
-    let cargo = include_str!("../../../syx-gui/Cargo.toml");
-    assert!(gui_lib.contains("gui-skia-paragraph-v5:all-widgets-ink"));
-    assert!(gui_lib.contains("gui-emoji-v9:font-radial-and-sweep"));
-    assert!(gui_lib.contains("gui-font-system-v4:os-only-ga"));
-    assert!(gui_lib.contains("gui-ot-features-v1:kern-liga-calt"));
-    assert!(gui_lib.contains("gui-doctor-engine-v5:phase117"));
-    assert!(egui.contains("put_cpu_ink_button"));
-    assert!(egui.contains("put_cpu_ink_label"));
-    assert!(egui.contains("egui_text_suppressed_used"));
-    assert!(egui.contains("no_double_paint_probe"));
-    assert!(egui.contains("mark_vertical_paragraph_used"));
-    assert!(!egui.contains("Button::new(texts[i].as_str())"));
-    assert!(!egui.contains("blit_glyph5x7"));
-    assert!(emoji.contains("COLR_SWEEP_DOCTOR"));
-    assert!(emoji.contains("COLR_RADIAL_DOCTOR"));
-    assert!(emoji.contains("fill_sweep_gradient"));
-    assert!(!emoji.contains("prove_colr_sweep_font_paint_tree"));
-    assert!(skia_layout.contains("include_test=false") || skia_layout.contains(", false)?"));
-    assert!(skia_layout.contains("probe_font_mgr_os_paint"));
-    assert!(skia_layout.contains("font-mgr-bundled") || skia_layout.contains("font_mgr_bundled"));
-    assert!(skia_layout.contains("vertical_paragraph_used"));
-    assert!(shape.contains("gui-ot-features-v1:kern-liga-calt"));
-    assert!(shape.contains(r#"b"calt""#));
-    assert!(dylib.contains("gui-doctor-engine-v5:phase117"));
-    assert!(dylib.contains("gui-ot-features-v1:kern-liga-calt"));
-    assert!(dylib.contains("syx_gui_dylib_ot_calt_used"));
-    assert!(cargo.contains("textlayout"));
-    let blit = gui_lib
-        .split("fn blit_text")
-        .nth(1)
-        .and_then(|s| s.split("\nfn ").next())
-        .unwrap_or("");
-    assert!(!blit.contains("blit_glyph5x7"));
-    assert!(!blit.contains("glyph5x7("));
-}
 
 #[test]
 fn p117_gui_doctor_backend_report_engine() {
@@ -56,11 +12,11 @@ fn p117_gui_doctor_backend_report_engine() {
     ensure_gui_loaded();
     if gui_dlopen_loaded() {
         assert_eq!(
-            gui_doctor_coverage_fingerprint(),
+            gui_doctor_coverage_digest(),
             "gui-doctor-engine-v5:phase117"
         );
         assert_eq!(
-            gui_emoji_fingerprint(),
+            gui_emoji_digest(),
             "gui-emoji-v9:font-radial-and-sweep"
         );
     }

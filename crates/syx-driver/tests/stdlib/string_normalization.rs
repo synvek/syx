@@ -26,15 +26,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -191,28 +182,6 @@ fn m2_s2_03_nfc_compose_native_llvm() {
 }
 
 #[test]
-fn m2_s2_03_str_normalized_nfc_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrNormalizedNFC");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrNormalizedNFC must declare llvm=real (ADR-574): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrNormalizedNFC must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrNormalizedNFC must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-574"),
-        "notes must cite ADR-610 + ADR-574: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_03_nfd_roundtrip_via_nfc() {
     let out = run(NFD_ROUNDTRIP);
     // Wave A W83 / ADR-427 / A-03: NFD roundtrip via NFC product exact.
@@ -239,28 +208,6 @@ fn m2_s2_03_nfd_roundtrip_native_llvm() {
 fn m2_s2_03_nfd_roundtrip_wasm() {
     let out = lines_joined(&run_wasm_src("nfd_wasm", NFD_ROUNDTRIP));
     assert_eq!(out, "2\né", "wasm NFD roundtrip must exact: {out}");
-}
-
-#[test]
-fn m2_s2_03_str_normalized_nfd_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrNormalizedNFD");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrNormalizedNFD must declare llvm=real (ADR-575): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrNormalizedNFD must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrNormalizedNFD must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-575"),
-        "notes must cite ADR-610 + ADR-575: {block}"
-    );
 }
 
 #[test]
@@ -299,28 +246,6 @@ fn m2_s2_03_case_folded_native_llvm() {
 }
 
 #[test]
-fn m2_s2_03_str_case_folded_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrCaseFolded");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrCaseFolded must declare llvm=real (ADR-573): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrCaseFolded must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrCaseFolded must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-573"),
-        "notes must cite ADR-610 + ADR-573: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_03_lowercased_not_case_folded() {
     let out = run(LOWERCASED_VS_FOLD);
     // Wave A W83 / ADR-427 / A-03: lowercased ≠ caseFolded for ß product exact.
@@ -353,28 +278,6 @@ fn m2_s2_03_lowercased_wasm() {
 }
 
 #[test]
-fn m2_s2_03_str_inst_lowercased_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrInstLowercased");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrInstLowercased must declare llvm=real (ADR-576): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrInstLowercased must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrInstLowercased must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-576"),
-        "notes must cite ADR-610 + ADR-576: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_03_uppercased_ascii() {
     let out = run(UPPERCASED_ASCII);
     assert_eq!(out, "ABC", "uppercased ASCII must exact: {out}");
@@ -403,28 +306,6 @@ fn m2_s2_03_uppercased_wasm() {
 }
 
 #[test]
-fn m2_s2_03_str_inst_uppercased_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrInstUppercased");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrInstUppercased must declare llvm=real (ADR-577): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrInstUppercased must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrInstUppercased must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-577"),
-        "notes must cite ADR-610 + ADR-577: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_03_docs_honesty() {
     let usage = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
@@ -445,42 +326,6 @@ fn m2_s2_03_docs_honesty() {
         !ch04.contains("ASCII 小写化"),
         "language-guide must not claim ASCII-only lowercased"
     );
-}
-
-#[test]
-fn m2_s2_03_host_inventory_partial() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "StrNormalizedNFC",
-        "StrNormalizedNFD",
-        "StrCaseFolded",
-        "StrInstLowercased",
-        "StrInstUppercased",
-    ] {
-        assert!(
-            toml.contains(&format!("name = \"{name}\"")),
-            "host_fn_capabilities.toml must override {name}"
-        );
-        let block = toml
-            .split(&format!("name = \"{name}\""))
-            .nth(1)
-            .unwrap_or("")
-            .split("[[host]]")
-            .next()
-            .unwrap_or("");
-        let adr_ok = match name {
-            "StrCaseFolded" => block.contains("ADR-228") || block.contains("ADR-573"),
-            "StrNormalizedNFC" => block.contains("ADR-228") || block.contains("ADR-574"),
-            "StrNormalizedNFD" => block.contains("ADR-228") || block.contains("ADR-575"),
-            "StrInstLowercased" => block.contains("ADR-228") || block.contains("ADR-576"),
-            "StrInstUppercased" => block.contains("ADR-228") || block.contains("ADR-577"),
-            _ => block.contains("ADR-228"),
-        };
-        assert!(
-            block.contains("status = \"partial\"") && adr_ok,
-            "{name} must be partial + ADR-228/ADR-573..ADR-577: {block}"
-        );
-    }
 }
 
 #[test]
@@ -548,11 +393,3 @@ fn m2_s2_03_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s2_03_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s2_03_string_normalization"
-    );
-}

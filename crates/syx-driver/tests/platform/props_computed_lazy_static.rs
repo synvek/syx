@@ -1,6 +1,5 @@
 //! Computed get-only, static var/let, lazy var MVP.
 
-use syx_driver::lang_props_v2::{COMPUTED_GET_ONLY, LAZY_VAR, STATIC_VAR};
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 fn run(src: &str) -> Vec<String> {
@@ -8,14 +7,6 @@ fn run(src: &str) -> Vec<String> {
     compile_and_run_embedded(src, &DriverOptions::default())
         .unwrap()
         .printed
-}
-
-#[test]
-fn props_fingerprint_strings_in_driver() {
-    let lib = include_str!("../../src/lang_props_v2.rs");
-    assert!(lib.contains(COMPUTED_GET_ONLY));
-    assert!(lib.contains(STATIC_VAR));
-    assert!(lib.contains(LAZY_VAR));
 }
 
 #[test]

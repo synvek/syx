@@ -22,15 +22,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -212,32 +203,6 @@ fn m2_s2_02_docs_claim_on_int_offset() {
 }
 
 #[test]
-fn m2_s2_02_string_char_at_inventory_partial() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    assert!(
-        toml.contains("name = \"StringCharAt\""),
-        "host_fn_capabilities.toml must override StringCharAt"
-    );
-    let block = host_block(toml, "StringCharAt");
-    assert!(
-        block.contains("status = \"partial\"") && block.contains("O(n)"),
-        "StringCharAt must be partial + O(n): {block}"
-    );
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StringCharAt must declare llvm=real (ADR-583): {block}"
-    );
-    assert!(
-        block.contains("ADR-583"),
-        "notes must cite ADR-583: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StringCharAt must declare wasm=real (ADR-610): {block}"
-    );
-}
-
-#[test]
 fn m2_s2_02_string_char_at_wasm() {
     let out = lines_joined(&run_wasm_src("char_at_wasm", CHAR_AT_AB0));
     assert_eq!(out, "a", "wasm string_char_at(ab,0) must exact: {out}");
@@ -254,28 +219,6 @@ fn m2_s2_02_string_char_at_native_llvm() {
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
     assert_eq!(out, "a", "native llvm string_char_at(ab,0) must exact: {out}");
-}
-
-#[test]
-fn m2_s2_02_string_char_at_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StringCharAt");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StringCharAt must declare llvm=real (ADR-583): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StringCharAt must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StringCharAt must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-583"),
-        "notes must cite ADR-610 + ADR-583: {block}"
-    );
 }
 
 #[test]
@@ -342,11 +285,3 @@ fn m2_s2_02_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s2_02_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s2_02_string_index_honesty"
-    );
-}

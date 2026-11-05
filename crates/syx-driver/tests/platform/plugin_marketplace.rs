@@ -37,12 +37,6 @@ fn p98_plugin_marketplace_load_from_env_stdout() {
 }
 
 #[test]
-fn p98_plugin_marketplace_lockfile_surface() {
-    let src = include_str!("../../../syx-host-plugin/src/loader.rs");
-    assert!(src.contains("syx-plugin-lock.json") || src.contains("syx.lock"));
-}
-
-#[test]
 fn p98_plugin_marketplace_epoch_write_back() {
     let src = include_str!("../../../syx-host-plugin/src/registry.rs");
     assert!(src.contains("poison_plugin_slot"));

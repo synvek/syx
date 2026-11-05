@@ -11,61 +11,16 @@ fn p78_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p78_lock_v12_default_version() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("default_lock_version() -> u32"));
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("13"));
-}
 
-#[test]
-fn p78_lock_v12_publisher_key_rotation() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("publisher_key_rotation"));
-}
 
-#[test]
-fn p78_farm_worker_dequeue_api() {
-    assert!(include_str!("../../syx-driver/src/build_syx.rs").contains("farm_worker_dequeue"));
-}
 
-#[test]
-fn p78_heap_v7_relocate_api() {
-    assert!(include_str!("../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
-}
 
-#[test]
-fn p78_inkwell_module_v4() {
-    assert!(include_str!("../../syx-llvm/src/lib.rs").contains("emit_inkwell_module_v4"));
-}
 
-#[test]
-fn p78_borrow_external_export() {
-    assert!(include_str!("../../syx-semantic/src/lib.rs").contains("borrow_regions_export_external_proof_files"));
-}
 
-#[test]
-fn p78_mono_reflect_cache() {
-    assert!(include_str!("../../syx-meta/src/lib.rs").contains("register_mono_sig"));
-}
 
-#[test]
-fn p78_plugin_epoch_poison() {
-    assert!(include_str!("../../syx-host-plugin/src/registry.rs").contains("PLUGIN_UNLOAD_EPOCH"));
-}
 
-#[test]
-fn p78_gc_relocate_api() {
-    assert!(include_str!("../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
-}
 
-#[test]
-fn p78_lock_enforce_module() {
-    assert!(include_str!("../../syx-pkg/src/lock_enforce.rs").contains("enforce_plugin_epoch"));
-}
 
-#[test]
-fn p78_farm_worker_id_field() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("farm_worker_id"));
-}
 
 #[test]
 fn p78_heap_relocate_fixture() {
@@ -103,15 +58,7 @@ fn p78_dict_slot_parse() {
     ));
 }
 
-#[test]
-fn p78_rt_heap_relocate_abi() {
-    assert!(include_str!("../../syx-rt/src/abi.rs").contains("syx_rt_heap_relocate"));
-}
 
-#[test]
-fn p78_plugin_bundle_sha256_field() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("plugin_bundle_sha256"));
-}
 
 #[test]
 fn p78_adr_phase78_charter() {

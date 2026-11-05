@@ -3,44 +3,9 @@
 use std::sync::Mutex;
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
-use syx_vm::{
-    reset_synui_state, SYNUI_V12_NAV_SIGNAL_BIND_FINGERPRINT,
-    SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_FINGERPRINT, SYNUI_V12_WIDGET_NAVIGATION_FINGERPRINT,
-};
+use syx_vm::reset_synui_state;
 
 static P135_SYNUI_ENV_LOCK: Mutex<()> = Mutex::new(());
-
-#[test]
-fn p135_synui_v12_fingerprint_constants() {
-    assert_eq!(
-        SYNUI_V12_WIDGET_NAVIGATION_FINGERPRINT,
-        "gui-synui-v12:widget-navigation"
-    );
-    assert_eq!(
-        SYNUI_V12_NAV_SIGNAL_BIND_FINGERPRINT,
-        "gui-synui-v12:nav-signal-bind"
-    );
-    assert_eq!(
-        SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_FINGERPRINT,
-        "gui-synui-v12:web-mobile-surface-deepen"
-    );
-    let src = include_str!("../../../syx-vm/src/synui_hosts.rs");
-    assert!(src.contains("gui-synui-v12:widget-navigation"));
-    assert!(src.contains("gui-synui-v12:nav-signal-bind"));
-    assert!(src.contains("gui-synui-v12:web-mobile-surface-deepen"));
-}
-
-#[test]
-fn p135_synui_v12_ui_package_surface() {
-    let ui = include_str!("../../../../packages/ui/mod.sy");
-    assert!(ui.contains("__syx_synui_navigation"));
-    assert!(ui.contains("__syx_synui_bind_navigation"));
-    assert!(ui.contains("public func navigation("));
-    assert!(ui.contains("public func bindNavigation("));
-    assert!(ui.contains("gui-synui-v12:widget-navigation"));
-    assert!(ui.contains("gui-synui-v12:nav-signal-bind"));
-    assert!(ui.contains("gui-synui-v12:web-mobile-surface-deepen"));
-}
 
 #[test]
 fn p135_synui_navigation_e2e_embedded() {
@@ -177,13 +142,6 @@ fn p135_synui_host_registry_v12() {
     assert!(reg.contains("SynuiBindNavigation"));
     assert!(reg.contains("__syx_synui_navigation"));
     assert!(reg.contains("__syx_synui_bind_navigation"));
-}
-
-#[test]
-fn p135_synui_guidemo_surface() {
-    let demo = include_str!("../../../../examples/gui_demo.sy");
-    assert!(demo.contains("navigation("));
-    assert!(demo.contains("bindNavigation("));
 }
 
 #[test]

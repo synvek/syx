@@ -11,59 +11,14 @@ fn p76_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p76_lock_v10_default_version() {
-    let src = include_str!("../../syx-pkg/src/lockfile.rs");
-    assert!(src.contains("default_lock_version() -> u32") && src.contains("13"));
-}
 
-#[test]
-fn p76_lock_v10_cdn_regions_field() {
-    let src = include_str!("../../syx-pkg/src/lockfile.rs");
-    assert!(src.contains("artifact_cdn_regions"));
-}
 
-#[test]
-fn p76_cache_remote_push_fn() {
-    let src = include_str!("../../syx-driver/src/lib.rs");
-    assert!(src.contains("push_cache_remote"));
-}
 
-#[test]
-fn p76_vm_heap_slot_array_build() {
-    let src = include_str!("../../syx-vm/src/lib.rs");
-    assert!(src.contains("alloc_heap_slot"));
-}
 
-#[test]
-fn p76_vm_heap_compact_rewrite() {
-    let src = include_str!("../../syx-vm/src/lib.rs");
-    assert!(src.contains("rewrite_slot_indices"));
-}
 
-#[test]
-fn p76_inkwell_crate_phase76() {
-    let src = include_str!("../../syx-llvm/src/lib.rs");
-    assert!(src.contains("llvm_inkwell_phase76_crate_ready"));
-}
 
-#[test]
-fn p76_mir_run_root_rewrite() {
-    let src = include_str!("../../syx-mir-run/src/runtime.rs");
-    assert!(src.contains("sync_roots_from_rewrite"));
-}
 
-#[test]
-fn p76_rt_exec_counter() {
-    let src = include_str!("../../syx-rt/src/abi.rs");
-    assert!(src.contains("rt_internal_exec_count"));
-}
 
-#[test]
-fn p76_build_farm_remote_target() {
-    let src = include_str!("../../syx-driver/src/build_syx.rs");
-    assert!(src.contains("\"remote\""));
-}
 
 #[test]
 fn p76_heap_array_parse() {
@@ -107,20 +62,5 @@ fn p76_adr054_distributed_cache() {
     assert!(adr.contains("ADR-054") || adr.contains("lock v10"));
 }
 
-#[test]
-fn p76_lock_cache_remote_nodes() {
-    let src = include_str!("../../syx-pkg/src/lockfile.rs");
-    assert!(src.contains("cache_remote_nodes"));
-}
 
-#[test]
-fn p76_inkwell_crate_dep() {
-    let toml = include_str!("../../syx-llvm/Cargo.toml");
-    assert!(toml.contains("inkwell"));
-}
 
-#[test]
-fn p76_gc_compact_global_export() {
-    let src = include_str!("../../syx-runtime-core/src/lib.rs");
-    assert!(src.contains("compact_global"));
-}

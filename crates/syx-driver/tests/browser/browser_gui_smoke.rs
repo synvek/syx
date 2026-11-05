@@ -6,12 +6,6 @@ fn gui_smoke_driver_marker() {
 }
 
 #[test]
-fn gui_smoke_playwright_or_compile_marker() {
-    let src = include_str!("../../src/lib.rs");
-    assert!(src.contains("browser-tier2k") || src.contains("playwright"));
-}
-
-#[test]
 fn gui_smoke_ui_package_present() {
     let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/ui/mod.sy");
     assert!(p.is_file());

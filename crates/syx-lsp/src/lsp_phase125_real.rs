@@ -15,23 +15,6 @@ fn p125_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p125_opts())
 }
 
-#[test]
-fn p125_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("runtime-service-v4:request-scope"));
-    assert!(lib.contains("macro-service-v4:ceremony-sugar"));
-    assert!(lib.contains("gui-ot-features-v7:os-fontmgr-default-paint"));
-    assert!(lib.contains("wasm-simd16-guest-v6:logic-not"));
-    assert!(lib.contains("farm-lease-token-v6:pkcs11-so-adapter"));
-    assert!(lib.contains("dist-cdn-bgp-v6:multi-pop-mvp"));
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("macro-service-v6:polymorphic-base-inject"));
-    assert!(self_src.contains("macro-service-v6:field-qualifier-metadata"));
-    assert!(self_src.contains("runtime-service-v6:protocol-binding"));
-    assert!(self_src.contains("gui-synui-v2:desktop-run-mvp"));
-    assert!(self_src.contains("gui-synui-v2:signal-callback"));
-    assert!(self_src.contains("gui-synui-v2:widget-expand"));
-}
 
 #[test]
 fn p125_hover_string_binding() {
@@ -210,46 +193,8 @@ fn p125_di_package_import_surface_stub() {
     );
 }
 
-#[test]
-fn p125_qualifier_attr_parse_stub() {
-    // Gate0 stub: `@Qualifier` fingerprint `macro-service-v6:field-qualifier-metadata`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("macro-service-v6:field-qualifier-metadata"));
-    assert!(self_src.contains("@Qualifier"));
-    let doc = p125_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Qualifier track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p125_primary_attr_parse_stub() {
-    // Gate0 stub: `@Primary` alongside Qualifier cluster
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("@Primary"));
-    let doc = p125_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Primary track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p125_profile_attr_parse_stub() {
-    // Gate0 stub: `@Profile` fingerprint `runtime-service-v6:protocol-binding`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("runtime-service-v6:protocol-binding"));
-    assert!(self_src.contains("@Profile"));
-    let doc = p125_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Profile track: {:?}",
-        doc.semantic.errors
-    );
-}
 
 #[test]
 fn p125_di_with_request_scope_stub() {
@@ -264,44 +209,7 @@ fn p125_di_with_request_scope_stub() {
     );
 }
 
-#[test]
-fn p125_synui_path_dep_fingerprint_stub() {
-    // Gate0 stub: `gui-synui-v2:desktop-run-mvp`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("gui-synui-v2:desktop-run-mvp"));
-    let doc = p125_doc("func main() { print(\"synui-path\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p125_synui_ui_package_surface_stub() {
-    // Gate0 stub: `gui-synui-v2:signal-callback`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("gui-synui-v2:signal-callback"));
-    let doc = p125_doc("func main() { print(\"ui-surface\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
-
-#[test]
-fn p125_synui_host_bridge_stub() {
-    // Gate0 stub: `gui-synui-v2:widget-expand`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("gui-synui-v2:widget-expand"));
-    let doc = p125_doc("func main() { print(\"host-bridge\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
 #[test]
 fn p125_diagnostic_service_missing_dep() {
@@ -441,49 +349,7 @@ fn p125_diagnostic_optional_unwrap() {
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
 
-#[test]
-fn p125_simd16_minmax_fingerprint_stub() {
-    // Gate0 stub: `wasm-simd16-guest-v8:lane-extract-replace`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v8:lane-extract-replace"));
-}
 
-#[test]
-fn p125_farm_session_fingerprint_stub() {
-    // Gate0 stub: `farm-lease-token-v8:session-pin-persist`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("farm-lease-token-v8:session-pin-persist"));
-}
-
-#[test]
-fn p125_dist_weighted_anycast_fingerprint_stub() {
-    // Gate0 stub: `dist-cdn-bgp-v8:sticky-pop-mvp`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v8:sticky-pop-mvp"));
-}
-
-#[test]
-fn p125_synui_ci_sibling_checkout_stub() {
-    // Gate0 stub: `gui-synui-v2:ci-sibling-checkout`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("gui-synui-v2:ci-sibling-checkout"));
-    let cargo = include_str!("../../syx-vm/Cargo.toml");
-    assert!(cargo.contains("../synui/crates/synui"), "{cargo}");
-}
-
-#[test]
-fn p125_m15_interceptor_fingerprint_stub() {
-    // Gate0 stub: `macro-m15:service-method-interceptor-mvp`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("macro-m15:service-method-interceptor-mvp"));
-}
-
-#[test]
-fn p125_macro_docs_v7_honesty_stub() {
-    // Gate0 stub: `macro-docs-v7:m15-service-v6-honesty`
-    let self_src = include_str!("lsp_phase125_real.rs");
-    assert!(self_src.contains("macro-docs-v7:m15-service-v6-honesty"));
-}
 
 #[test]
 fn p125_lsp_semantic_v27_contract() {

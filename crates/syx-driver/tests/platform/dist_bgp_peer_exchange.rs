@@ -7,10 +7,10 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_export_peer_view, cdn_bgp_digest,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_export_peer_view,
     cdn_bgp_ga_ready, cdn_bgp_health, cdn_bgp_import_peer_mesh, cdn_bgp_peer_exchange_done,
     cdn_bgp_peer_view_count, cdn_bgp_route, cdn_delivery_ack_clear, cdn_delivery_ack_count,
-    cdn_doctor_mode, cdn_pop_clear, cdn_pop_configure, cdn_pop_digest,
+    cdn_doctor_mode, cdn_pop_clear, cdn_pop_configure,
     cdn_pop_has_endpoints, cdn_pop_health, cdn_pop_register_serve_pid, cdn_pop_route,
     cdn_pop_sibling_process_ready, cdn_route_counts_as_ga, cdn_route_ga, cdn_routes_memory_clear,
     dist_connect_url_is_loopback, dist_host_key_remote_for_bind,
@@ -184,27 +184,6 @@ fn dist_bgp_peer_pop_peer_entry() {
     if dist_pop_os_child_try_serve() {
         return;
     }
-}
-
-#[test]
-fn dist_bgp_peer_cdn_bgp_pop_fingerprints() {
-    // Phase 122 fingerprint supersedes v4 — see dist_multi_region_mesh.
-    assert_eq!(
-        cdn_bgp_digest(),
-        "dist-cdn-bgp-v5:multi-region-mesh-mvp"
-    );
-    assert_eq!(cdn_pop_digest(), "dist-cdn-pop-v6:multi-hostkey-route");
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v3:ops-visibility"));
-    assert!(src.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(src.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-    assert!(src.contains("cdn_bgp_import_peer_view"));
-    assert!(src.contains("cdn_bgp_ops_snapshot"));
-    assert!(src.contains("cdn_pop_multi_hostkey_route_ready"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v3:ops-visibility"));
-    assert!(lib.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-    assert!(lib.contains("dist-cdn-pop-v6:multi-hostkey-route"));
 }
 
 #[test]

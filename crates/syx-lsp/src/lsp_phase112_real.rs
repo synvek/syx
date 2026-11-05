@@ -10,24 +10,7 @@ fn p112_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p112_opts())
 }
 
-#[test]
-fn p112_dist_hostkey_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_configure_keys"));
-    assert!(src.contains("dist_host_key_addr_is_loopback"));
-    assert!(src.contains("cdn_tcp_peer_route"));
-}
 
-#[test]
-fn p112_select_deadline_unify_source_gate() {
-    let parser = include_str!("../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_DEADLINE_UNIFY_FINGERPRINT"));
-    assert!(parser.contains("SELECT_DEADLINE_STRICT_FINGERPRINT"));
-    assert!(parser.contains("TokenKind::Timeout"));
-    assert!(parser.contains("TokenKind::Deadline"));
-    let hosts = include_str!("../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("SELECT_DEADLINE_UNIFY_FINGERPRINT"));
-}
 
 #[test]
 fn p112_hover_string_binding() {

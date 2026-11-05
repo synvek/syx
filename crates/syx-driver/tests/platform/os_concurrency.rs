@@ -153,13 +153,3 @@ func main() {
     assert_eq!(printed[3].trim(), "0");
 }
 
-#[test]
-fn os_concurrency_package_surfaces() {
-    let os = include_str!("../../../../packages/os/mod.sy");
-    assert!(os.contains("cpuCount") && os.contains("memoryTotal") && os.contains("userName"));
-    let concurrency = include_str!("../../../../packages/core/concurrency.sy");
-    assert!(concurrency.contains("setWorkerCount") && concurrency.contains("setMaxActors"));
-    assert!(concurrency.contains("setMailboxCapacity"));
-    let sync = include_str!("../../../../packages/sync/mod.sy");
-    assert!(sync.contains("func length") && sync.contains("func capacity"));
-}

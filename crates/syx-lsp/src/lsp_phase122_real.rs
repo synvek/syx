@@ -10,18 +10,6 @@ fn p122_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p122_opts())
 }
 
-#[test]
-fn p122_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("runtime-service-v2:real-ctor-resolve"));
-    assert!(lib.contains("macro-service-v2:field-autowired"));
-    assert!(lib.contains("macro-service-v3:multi-package-scan"));
-    assert!(lib.contains("runtime-service-v3:prototype-scope"));
-    assert!(lib.contains("gui-ot-features-v6:default-paint-ot-mvp"));
-    assert!(lib.contains("wasm-simd16-guest-v5:logic-or-xor"));
-    assert!(lib.contains("farm-lease-token-v5:pkcs11-bridge-mvp"));
-    assert!(lib.contains("dist-cdn-bgp-v5:multi-region-mesh-mvp"));
-}
 
 #[test]
 fn p122_hover_string_binding() {

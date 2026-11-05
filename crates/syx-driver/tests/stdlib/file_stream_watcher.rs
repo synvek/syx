@@ -25,15 +25,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -371,7 +362,6 @@ fn m2_s3_03_docs_and_capability() {
         "File.watch must be documented as ≠ lifecycle"
     );
 }
-
 
 #[test]
 fn m2_error_file_stream_open_missing_path_display_throws() {
@@ -791,30 +781,6 @@ func main() {{
 }
 
 #[test]
-fn m2_s3_03_file_stream_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FileStreamOpen", "FileStreamReadChunk", "FileStreamClose"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-585): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-611): {block}"
-        );
-        assert!(
-            block.contains("ADR-611") && block.contains("ADR-585"),
-            "{name} notes must cite ADR-611 + ADR-585: {block}"
-        );
-    }
-}
-
-#[test]
 fn m2_s3_03_file_watcher_native_llvm() {
     let path = tmp_path("watch_llvm.bin");
     let _ = fs::remove_file(&path);
@@ -909,48 +875,3 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn m2_s3_03_file_watcher_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FileWatcherOpen", "FileWatcherPoll", "FileWatcherClose"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-588): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-613): {block}"
-        );
-        assert!(
-            block.contains("ADR-613") && block.contains("ADR-588"),
-            "{name} notes must cite ADR-613 + ADR-588: {block}"
-        );
-    }
-}
-
-#[test]
-fn m2_s3_03_file_close_quiet_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "FileCloseQuiet");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "FileCloseQuiet must declare llvm=real (ADR-588): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "FileCloseQuiet must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "FileCloseQuiet must declare wasm=real (ADR-613): {block}"
-    );
-    assert!(
-        block.contains("ADR-613") && block.contains("ADR-588"),
-        "FileCloseQuiet notes must cite ADR-613 + ADR-588: {block}"
-    );
-}

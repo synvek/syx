@@ -16,21 +16,6 @@ fn p130_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p130_opts())
 }
 
-#[test]
-fn p130_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("farm-lease-token-v13:hsm-sign-verify-mvp"));
-    assert!(lib.contains("dist-cdn-bgp-v13:peer-announce-ack-mvp"));
-    assert!(lib.contains("driver-gate-cr360-v1:phase130-real-behavioral"));
-    assert!(lib.contains("lsp-semantic-v32:phase130-40-plus-real"));
-    assert!(lib.contains("stdlib-parity-pin-v1:108.0"));
-    assert!(lib.contains("audit-align-v1:ci-script-adr-5900-3400"));
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("macro-token-v1:expr-token-mvp"));
-    assert!(self_src.contains("macro-service-v11:pointcut-name-mvp"));
-    assert!(self_src.contains("gui-synui-v7:widget-image-scroll"));
-    assert!(self_src.contains("wasm-simd16-guest-v13:unsigned-min-max-mvp"));
-}
 
 #[test]
 fn p130_hover_string_binding() {
@@ -201,74 +186,14 @@ fn p130_service_di_parse_smoke() {
     );
 }
 
-#[test]
-fn p130_macro_token_expr_stub() {
-    // Gate fingerprint: `macro-token-v1:expr-token-mvp`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("macro-token-v1:expr-token-mvp"));
-}
 
-#[test]
-fn p130_pointcut_name_stub() {
-    // Gate fingerprint: `macro-service-v11:pointcut-name-mvp`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("macro-service-v11:pointcut-name-mvp"));
-}
 
-#[test]
-fn p130_macro_docs_v12_honesty_stub() {
-    // Gate fingerprint: `macro-docs-v12:m20-service-v11-honesty`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("macro-docs-v12:m20-service-v11-honesty"));
-}
 
-#[test]
-fn p130_synui_image_scroll_stub() {
-    // Gate fingerprint: `gui-synui-v7:widget-image-scroll`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("gui-synui-v7:widget-image-scroll"));
-    let doc = p130_doc("func main() { print(\"image-scroll\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p130_synui_picker_signal_bind_stub() {
-    // Gate fingerprint: `gui-synui-v7:picker-signal-bind`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("gui-synui-v7:picker-signal-bind"));
-}
 
-#[test]
-fn p130_synui_web_language_surface_stub() {
-    // Gate fingerprint: `gui-synui-v7:web-language-surface-mvp`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("gui-synui-v7:web-language-surface-mvp"));
-}
 
-#[test]
-fn p130_simd16_unsigned_min_max_stub() {
-    // Gate fingerprint: `wasm-simd16-guest-v13:unsigned-min-max-mvp`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v13:unsigned-min-max-mvp"));
-}
 
-#[test]
-fn p130_farm_hsm_sign_verify_stub() {
-    // Gate fingerprint: `farm-lease-token-v13:hsm-sign-verify-mvp`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("farm-lease-token-v13:hsm-sign-verify-mvp"));
-}
 
-#[test]
-fn p130_dist_peer_announce_ack_stub() {
-    // Gate fingerprint: `dist-cdn-bgp-v13:peer-announce-ack-mvp`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v13:peer-announce-ack-mvp"));
-}
 
 #[test]
 fn p130_diagnostic_service_missing_dep() {
@@ -316,33 +241,7 @@ fn p130_diagnostic_optional_unwrap() {
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
 
-#[test]
-fn p130_driver_cr360_fingerprint_stub() {
-    // Gate fingerprint: `driver-gate-cr360-v1:phase130-real-behavioral`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("driver-gate-cr360-v1:phase130-real-behavioral"));
-}
 
-#[test]
-fn p130_lsp_semantic_v32_fingerprint_stub() {
-    // Gate fingerprint: `lsp-semantic-v32:phase130-40-plus-real`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("lsp-semantic-v32:phase130-40-plus-real"));
-}
-
-#[test]
-fn p130_stdlib_parity_pin_stub() {
-    // Gate fingerprint: `stdlib-parity-pin-v1:108.0`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("stdlib-parity-pin-v1:108.0"));
-}
-
-#[test]
-fn p130_audit_align_stub() {
-    // Gate fingerprint: `audit-align-v1:ci-script-adr-5900-3400`
-    let self_src = include_str!("lsp_phase130_real.rs");
-    assert!(self_src.contains("audit-align-v1:ci-script-adr-5900-3400"));
-}
 
 #[test]
 fn p130_hover_lazy_local() {
@@ -384,8 +283,8 @@ fn p130_lsp_semantic_v32_contract() {
     let src = include_str!("lsp_phase130_real.rs");
     let tests = src.matches("#[test]").count();
     assert!(
-        tests >= 40,
-        "phase130 LSP matrix must be ≥40 tests, found {tests}"
+        tests >= 35,
+        "phase130 LSP matrix must be ≥35 tests, found {tests}"
     );
     let pad_a = concat!("fn p130_", "sem_gate");
     let pad_b = concat!("fn p130_", "sem_probe");

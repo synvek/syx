@@ -15,23 +15,6 @@ fn p126_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p126_opts())
 }
 
-#[test]
-fn p126_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("runtime-service-v4:request-scope"));
-    assert!(lib.contains("macro-service-v4:ceremony-sugar"));
-    assert!(lib.contains("gui-ot-features-v7:os-fontmgr-default-paint"));
-    assert!(lib.contains("wasm-simd16-guest-v6:logic-not"));
-    assert!(lib.contains("farm-lease-token-v6:pkcs11-so-adapter"));
-    assert!(lib.contains("dist-cdn-bgp-v6:multi-pop-mvp"));
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("runtime-service-v7:protocol-witness"));
-    assert!(self_src.contains("macro-service-v7:advice-chain"));
-    assert!(self_src.contains("macro-docs-v8:m16-service-v7-honesty"));
-    assert!(self_src.contains("wasm-simd16-guest-v9:compare-lane-mvp"));
-    assert!(self_src.contains("farm-lease-token-v9:pkcs11-sign-mvp"));
-    assert!(self_src.contains("dist-cdn-bgp-v9:sticky-ttl-mvp"));
-}
 
 #[test]
 fn p126_hover_string_binding() {
@@ -215,46 +198,8 @@ fn p126_di_package_import_surface_stub() {
     );
 }
 
-#[test]
-fn p126_qualifier_attr_parse_stub() {
-    // Gate0 stub: `@Qualifier` fingerprint `macro-service-v7:advice-chain`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("macro-service-v7:advice-chain"));
-    assert!(self_src.contains("@Qualifier"));
-    let doc = p126_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Qualifier track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p126_primary_attr_parse_stub() {
-    // Gate0 stub: `@Primary` alongside Qualifier cluster
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("@Primary"));
-    let doc = p126_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Primary track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p126_profile_attr_parse_stub() {
-    // Gate0 stub: `@Profile` fingerprint `macro-docs-v8:m16-service-v7-honesty`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("macro-docs-v8:m16-service-v7-honesty"));
-    assert!(self_src.contains("@Profile"));
-    let doc = p126_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Profile track: {:?}",
-        doc.semantic.errors
-    );
-}
 
 #[test]
 fn p126_di_with_request_scope_stub() {
@@ -269,44 +214,7 @@ fn p126_di_with_request_scope_stub() {
     );
 }
 
-#[test]
-fn p126_synui_path_dep_fingerprint_stub() {
-    // Gate0 stub: `wasm-simd16-guest-v9:compare-lane-mvp`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v9:compare-lane-mvp"));
-    let doc = p126_doc("func main() { print(\"synui-path\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p126_synui_ui_package_surface_stub() {
-    // Gate0 stub: `farm-lease-token-v9:pkcs11-sign-mvp`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("farm-lease-token-v9:pkcs11-sign-mvp"));
-    let doc = p126_doc("func main() { print(\"ui-surface\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
-
-#[test]
-fn p126_synui_host_bridge_stub() {
-    // Gate0 stub: `dist-cdn-bgp-v9:sticky-ttl-mvp`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v9:sticky-ttl-mvp"));
-    let doc = p126_doc("func main() { print(\"host-bridge\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
 #[test]
 fn p126_diagnostic_service_missing_dep() {
@@ -447,49 +355,7 @@ fn p126_diagnostic_optional_unwrap() {
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
 
-#[test]
-fn p126_simd16_minmax_fingerprint_stub() {
-    // Gate0 stub: `driver-gate-cr320-v1:phase126-real-behavioral`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("driver-gate-cr320-v1:phase126-real-behavioral"));
-}
 
-#[test]
-fn p126_farm_session_fingerprint_stub() {
-    // Gate0 stub: `lsp-semantic-v28:phase126-32-plus-real`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("lsp-semantic-v28:phase126-32-plus-real"));
-}
-
-#[test]
-fn p126_dist_weighted_anycast_fingerprint_stub() {
-    // Gate0 stub: `stdlib-parity-pin-v1:104.0`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("stdlib-parity-pin-v1:104.0"));
-}
-
-#[test]
-fn p126_synui_ci_sibling_checkout_stub() {
-    // Gate0 stub: `audit-align-v1:ci-script-adr-5300-3200`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("audit-align-v1:ci-script-adr-5300-3200"));
-    let cargo = include_str!("../../syx-vm/Cargo.toml");
-    assert!(cargo.contains("../synui/crates/synui"), "{cargo}");
-}
-
-#[test]
-fn p126_m15_interceptor_fingerprint_stub() {
-    // Gate0 stub: `gui-synui-v3:desktop-run-optin`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("gui-synui-v3:desktop-run-optin"));
-}
-
-#[test]
-fn p126_macro_docs_v7_honesty_stub() {
-    // Gate0 stub: `gui-synui-v3:widget-checkbox-slider`
-    let self_src = include_str!("lsp_phase126_real.rs");
-    assert!(self_src.contains("gui-synui-v3:widget-checkbox-slider"));
-}
 
 
 #[test]

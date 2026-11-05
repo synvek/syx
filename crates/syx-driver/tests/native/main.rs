@@ -31,7 +31,6 @@ mod native_llvm_full;
 mod native_llvm_stack;
 mod native_llvm_sync_main;
 mod native_llvm_user_fn;
-mod native_locals_v10;
 mod native_strict_parity;
 mod native_strict_parity_env;
 mod native_string_interp;

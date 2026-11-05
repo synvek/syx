@@ -29,11 +29,6 @@ static FORCE_HOST_RT_STUBS: (extern "C" fn(), extern "C" fn() -> i32) = (
 pub mod capabilities;
 mod host_rt_stubs;
 pub mod hosted_capabilities;
-pub mod lang_props_v2;
-pub mod lang_props_v3;
-pub mod lang_props_v4;
-pub mod lang_props_v5;
-pub mod lang_props_v6;
 pub mod lang_surface_v1;
 pub mod marketing_capabilities;
 pub mod website_capabilities;
@@ -58,7 +53,7 @@ pub use farm_lease_auth::{
     farm_lease_auth_clear_configured, farm_lease_auth_configure, farm_lease_auth_configure_ha,
     farm_lease_auth_configure_raft, farm_lease_auth_is_configured,
     farm_lease_bind_host_is_loopback, farm_lease_cluster_os_dual_process_ga,
-    farm_lease_concrete_local_ipv4, farm_lease_ha_fingerprint, farm_lease_ha_v3_fingerprint,
+    farm_lease_concrete_local_ipv4, farm_lease_ha_digest, farm_lease_ha_v3_digest,
     farm_lease_host_is_documentation, farm_lease_hsm_digest_bound_doctor_export,
     farm_lease_hsm_digest_streaming_doctor_export, farm_lease_hsm_key_id_doctor_export,
     farm_lease_hsm_key_label_doctor_export, farm_lease_hsm_multi_slot_doctor_export,
@@ -66,62 +61,62 @@ pub use farm_lease_auth::{
     farm_lease_hsm_sign_bound_doctor_export, farm_lease_hsm_sign_verify_doctor_export,
     farm_lease_kms_bridge_adapter_name, farm_lease_kms_bridge_mvp_ready,
     farm_lease_kms_bridge_sign_rotate, farm_lease_legacy_grant_tenant,
-    farm_lease_legacy_loopback_member_urls_non_ga, farm_lease_member_fingerprint,
+    farm_lease_legacy_loopback_member_urls_non_ga, farm_lease_member_digest,
     farm_lease_member_regions_cross_host_ga, farm_lease_member_regions_os_dual_process_ga,
-    farm_lease_member_regions_real_connect_ga, farm_lease_members_v2_fingerprint,
-    farm_lease_multidc_discover_active, farm_lease_multidc_fingerprint,
-    farm_lease_multidc_probe_timeout, farm_lease_multihost_fingerprint,
+    farm_lease_member_regions_real_connect_ga, farm_lease_members_v2_digest,
+    farm_lease_multidc_discover_active, farm_lease_multidc_digest,
+    farm_lease_multidc_probe_timeout, farm_lease_multihost_digest,
     farm_lease_os_child_try_serve, farm_lease_pkcs11_active_slot_id,
-    farm_lease_pkcs11_bridge_adapter_name, farm_lease_pkcs11_bridge_fingerprint,
+    farm_lease_pkcs11_bridge_adapter_name, farm_lease_pkcs11_bridge_digest,
     farm_lease_pkcs11_bridge_mvp_ready, farm_lease_pkcs11_bridge_sign_rotate,
-    farm_lease_pkcs11_hsm_digest_bound, farm_lease_pkcs11_hsm_digest_bound_fingerprint,
+    farm_lease_pkcs11_hsm_digest_bound, farm_lease_pkcs11_hsm_digest_bound_digest,
     farm_lease_pkcs11_hsm_digest_bound_mvp_ready, farm_lease_pkcs11_hsm_digest_final,
     farm_lease_pkcs11_hsm_digest_init, farm_lease_pkcs11_hsm_digest_sign_bound,
     farm_lease_pkcs11_hsm_digest_sign_verify, farm_lease_pkcs11_hsm_digest_streaming,
-    farm_lease_pkcs11_hsm_digest_streaming_fingerprint,
+    farm_lease_pkcs11_hsm_digest_streaming_digest,
     farm_lease_pkcs11_hsm_digest_streaming_mvp_ready, farm_lease_pkcs11_hsm_digest_update,
-    farm_lease_pkcs11_hsm_key_id_fingerprint, farm_lease_pkcs11_hsm_key_id_mvp_ready,
-    farm_lease_pkcs11_hsm_key_label_fingerprint, farm_lease_pkcs11_hsm_key_label_mvp_ready,
+    farm_lease_pkcs11_hsm_key_id_digest, farm_lease_pkcs11_hsm_key_id_mvp_ready,
+    farm_lease_pkcs11_hsm_key_label_digest, farm_lease_pkcs11_hsm_key_label_mvp_ready,
     farm_lease_pkcs11_hsm_multi_slot_bind, farm_lease_pkcs11_hsm_multi_slot_digest_streaming,
-    farm_lease_pkcs11_hsm_multi_slot_fingerprint, farm_lease_pkcs11_hsm_multi_slot_mvp_ready,
+    farm_lease_pkcs11_hsm_multi_slot_digest, farm_lease_pkcs11_hsm_multi_slot_mvp_ready,
     farm_lease_pkcs11_hsm_multi_slot_rotate, farm_lease_pkcs11_hsm_multi_slot_sign_bound,
     farm_lease_pkcs11_hsm_ref_bind, farm_lease_pkcs11_hsm_ref_bound,
-    farm_lease_pkcs11_hsm_ref_bound_fingerprint, farm_lease_pkcs11_hsm_ref_bound_for_slot,
+    farm_lease_pkcs11_hsm_ref_bound_digest, farm_lease_pkcs11_hsm_ref_bound_for_slot,
     farm_lease_pkcs11_hsm_ref_bound_mvp_ready, farm_lease_pkcs11_hsm_ref_bound_validate,
-    farm_lease_pkcs11_hsm_session_pin_fingerprint, farm_lease_pkcs11_hsm_session_pin_mvp_ready,
-    farm_lease_pkcs11_hsm_sign_bound, farm_lease_pkcs11_hsm_sign_bound_fingerprint,
+    farm_lease_pkcs11_hsm_session_pin_digest, farm_lease_pkcs11_hsm_session_pin_mvp_ready,
+    farm_lease_pkcs11_hsm_sign_bound, farm_lease_pkcs11_hsm_sign_bound_digest,
     farm_lease_pkcs11_hsm_sign_bound_mvp_ready, farm_lease_pkcs11_hsm_sign_verify,
-    farm_lease_pkcs11_hsm_sign_verify_fingerprint, farm_lease_pkcs11_hsm_sign_verify_mvp_ready,
+    farm_lease_pkcs11_hsm_sign_verify_digest, farm_lease_pkcs11_hsm_sign_verify_mvp_ready,
     farm_lease_pkcs11_key_id_loaded, farm_lease_pkcs11_key_id_path,
     farm_lease_pkcs11_key_id_persist, farm_lease_pkcs11_key_id_verify,
     farm_lease_pkcs11_key_label_loaded, farm_lease_pkcs11_key_label_path,
     farm_lease_pkcs11_key_label_persist, farm_lease_pkcs11_key_label_verify,
     farm_lease_pkcs11_session_close, farm_lease_pkcs11_session_close_count,
-    farm_lease_pkcs11_session_close_fingerprint, farm_lease_pkcs11_session_close_mvp_ready,
-    farm_lease_pkcs11_session_fingerprint, farm_lease_pkcs11_session_handle,
+    farm_lease_pkcs11_session_close_digest, farm_lease_pkcs11_session_close_mvp_ready,
+    farm_lease_pkcs11_session_digest, farm_lease_pkcs11_session_handle,
     farm_lease_pkcs11_session_mvp_ready, farm_lease_pkcs11_session_pin_loaded,
     farm_lease_pkcs11_session_pin_path, farm_lease_pkcs11_session_pin_persist,
-    farm_lease_pkcs11_session_pin_persist_fingerprint, farm_lease_pkcs11_session_pin_persist_ready,
+    farm_lease_pkcs11_session_pin_persist_digest, farm_lease_pkcs11_session_pin_persist_ready,
     farm_lease_pkcs11_session_pin_persisted, farm_lease_pkcs11_session_pin_verify,
     farm_lease_pkcs11_session_rotate_count, farm_lease_pkcs11_session_slot_id,
-    farm_lease_pkcs11_sign_mvp_fingerprint, farm_lease_pkcs11_slot_list,
+    farm_lease_pkcs11_sign_mvp_digest, farm_lease_pkcs11_slot_list,
     farm_lease_pkcs11_slot_select, farm_lease_pkcs11_so_adapter_loaded,
-    farm_lease_pkcs11_so_fingerprint, farm_lease_pkcs11_so_symbol_table,
+    farm_lease_pkcs11_so_digest, farm_lease_pkcs11_so_symbol_table,
     farm_lease_probe_member_health, farm_lease_query_at, farm_lease_query_at_tenant,
-    farm_lease_query_at_tenant_token, farm_lease_raft_fingerprint,
+    farm_lease_query_at_tenant_token, farm_lease_raft_digest,
     farm_lease_raft_member_add_learner, farm_lease_raft_member_remove, farm_lease_raft_members_at,
-    farm_lease_raft_v2_fingerprint, farm_lease_read_token_epoch_file,
-    farm_lease_registry_consensus_sync, farm_lease_registry_fingerprint,
+    farm_lease_raft_v2_digest, farm_lease_read_token_epoch_file,
+    farm_lease_registry_consensus_sync, farm_lease_registry_digest,
     farm_lease_registry_follower_view, farm_lease_registry_health_sync,
     farm_lease_registry_multi_follower_sync, farm_lease_registry_reload_probe,
-    farm_lease_require_active, farm_lease_rotate_tenant_token, farm_lease_runtime_fingerprint,
-    farm_lease_tenant_fingerprint, farm_lease_tenant_v2_fingerprint,
-    farm_lease_tenant_v3_fingerprint, farm_lease_tenant_v4_fingerprint,
-    farm_lease_token_epoch_path, farm_lease_token_fingerprint,
+    farm_lease_require_active, farm_lease_rotate_tenant_token, farm_lease_runtime_digest,
+    farm_lease_tenant_digest, farm_lease_tenant_v2_digest,
+    farm_lease_tenant_v3_digest, farm_lease_tenant_v4_digest,
+    farm_lease_token_epoch_path, farm_lease_token_digest,
     farm_lease_token_hsm_ref_accept_lock, farm_lease_token_hsm_ref_mvp_ready,
     farm_lease_token_hsm_ref_resolve, farm_lease_validate_snap_authority_fields,
-    farm_lease_wal_checkpoint, farm_lease_wal_compact_fingerprint, farm_lease_wal_crc_fingerprint,
-    farm_lease_wal_read_snapshot, farm_lease_wal_replay, farm_lease_wal_snap_fingerprint,
+    farm_lease_wal_checkpoint, farm_lease_wal_compact_digest, farm_lease_wal_crc_digest,
+    farm_lease_wal_read_snapshot, farm_lease_wal_replay, farm_lease_wal_snap_digest,
     farm_lease_wal_snapshot_log_len, farm_lease_wal_validate_snapshot_authority,
     load_runtime_member_binds, load_runtime_member_regions, parse_region_tagged_members,
     spawn_farm_lease_authority, spawn_farm_lease_ha, spawn_farm_lease_ha_v3, spawn_farm_lease_raft,
@@ -2079,7 +2074,7 @@ fn native_build_stamp_path(root: &Path, output: &Path) -> PathBuf {
     project_cache_dir(root).join(format!("native_{:x}.stamp", hasher.finalize()))
 }
 
-fn native_input_fingerprint(path: &Path, options: &DriverOptions) -> String {
+fn native_input_digest(path: &Path, options: &DriverOptions) -> String {
     use sha2::{Digest, Sha256};
     let text = std::fs::read_to_string(path).unwrap_or_default();
     let mut hasher = Sha256::new();
@@ -2101,7 +2096,7 @@ fn native_build_stamp_payload(source: &Path, options: &DriverOptions) -> String 
         .to_string();
     format!(
         "{}\n{}\n{}",
-        native_input_fingerprint(source, options),
+        native_input_digest(source, options),
         source_key,
         options.build_profile.cache_tag()
     )
@@ -2134,7 +2129,7 @@ fn native_build_up_to_date(
         let fp = lines.next().unwrap_or("");
         let stamped_source = lines.next().unwrap_or("");
         let stamped_profile = lines.next().unwrap_or("");
-        fp == native_input_fingerprint(source, options)
+        fp == native_input_digest(source, options)
             && stamped_source == source_key
             && stamped_profile == options.build_profile.cache_tag()
     })
@@ -2951,7 +2946,7 @@ fn compute_cache_version_tag() -> String {
         "syx-cache-v1:{}:{}:{}",
         env!("CARGO_PKG_VERSION"),
         rustc_version_tag(),
-        heap_v100_phase128_track_c_wasm_fingerprint()
+        heap_v100_phase128_track_c_wasm_digest()
     )
 }
 /// Phase 131 Track A: Macro M21 decl-param subst MVP + Service DI v12 execution pointcut MVP.
@@ -2981,7 +2976,7 @@ fn compute_cache_version_tag() -> String {
 /// Phase 128 Track C (+ folded v104_dx/v106_dx/v110_a kept tips): invalidation bytes preserved in tip order.
 /// Phase 128 Track C (+ folded foundation×12): invalidation bytes preserved in tip order.
 /// Phase 128 Track C (+ folded track_l): invalidation bytes preserved in tip order.
-fn heap_v100_phase128_track_c_wasm_fingerprint() -> String {
+fn heap_v100_phase128_track_c_wasm_digest() -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     hasher.update(host_feature_tag().as_bytes());
@@ -3378,9 +3373,9 @@ fn heap_v100_phase128_track_c_wasm_fingerprint() -> String {
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
     }
-    hasher.update(crate::farm_lease_auth::farm_lease_server_fingerprint().as_bytes());
-    hasher.update(crate::farm_lease_auth::farm_lease_failclosed_fingerprint().as_bytes());
-    hasher.update(crate::farm_lease_auth::farm_lease_auth_fingerprint().as_bytes());
+    hasher.update(crate::farm_lease_auth::farm_lease_server_digest().as_bytes());
+    hasher.update(crate::farm_lease_auth::farm_lease_failclosed_digest().as_bytes());
+    hasher.update(crate::farm_lease_auth::farm_lease_auth_digest().as_bytes());
     hasher.update(b"farm-lease-ha-v2:process-isolated");
     hasher.update(b"dist-actor-mp-v2:no-inproc-fallback-ga");
     for id in syx_stdlib::HostFnId::all() {
@@ -4771,7 +4766,7 @@ fn plugin_manifest_hash(root: &Path) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-fn unified_mir_fn_count_fingerprint() -> String {
+fn unified_mir_fn_count_digest() -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     hasher.update(crate::embedded_std::internal_manifest_json().as_bytes());
@@ -4891,11 +4886,11 @@ fn module_hash(path: &Path, root: &Path, deps: &[(String, String)]) -> String {
     hasher.update(cache_version_tag().as_bytes());
     hasher.update(build_syx_plan_hash(root).as_bytes());
     hasher.update(plugin_manifest_hash(root).as_bytes());
-    hasher.update(unified_mir_fn_count_fingerprint().as_bytes());
+    hasher.update(unified_mir_fn_count_digest().as_bytes());
     hasher.update(witness_table_digest().as_bytes());
     hasher.update(vtable_layout_digest().as_bytes());
     hasher.update(wasm_aot_tier_digest().as_bytes());
-    hasher.update(dependency_tree_fingerprint(deps).as_bytes());
+    hasher.update(dependency_tree_digest(deps).as_bytes());
     format!("{:x}", hasher.finalize())
 }
 
@@ -4932,7 +4927,7 @@ fn dependency_hashes_still_valid(deps: &[(String, String)]) -> bool {
     })
 }
 
-fn dependency_tree_fingerprint(deps: &[(String, String)]) -> String {
+fn dependency_tree_digest(deps: &[(String, String)]) -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     for (path, hash) in deps {
@@ -5426,7 +5421,7 @@ impl CachedModuleUnit {
             },
             dependency_tree_hash: {
                 let deps = dependency_hashes_from_graph(graph, &unit.path);
-                dependency_tree_fingerprint(&deps)
+                dependency_tree_digest(&deps)
             },
             cache_version_tag: cache_version_tag(),
             program: unit.program.clone(),

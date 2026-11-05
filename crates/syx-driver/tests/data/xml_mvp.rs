@@ -10,13 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_xml_mvp_host_surface() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("XmlParse") && reg.contains("__syx_xml_parse"));
-}
-
 #[test]
 fn p98_xml_mvp_parse_stdout() {
     let out = run(

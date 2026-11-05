@@ -10,19 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_net_grpc_http_stack_surface() {
-    let http = include_str!("../../../syx-vm/src/http.rs");
-    assert!(http.contains("execute_http_request") || http.contains("host_http_get"));
-}
-
-#[test]
-fn p98_net_grpc_net_module_surface() {
-    let net = include_str!("../../../../packages/net/mod.sy");
-    assert!(net.contains("Http") || net.contains("__syx_http_request"));
-}
-
 #[test]
 fn p98_net_grpc_tcp_connect_stack() {
     let out = run(

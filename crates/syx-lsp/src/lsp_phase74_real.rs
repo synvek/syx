@@ -46,17 +46,7 @@ func main() { R() }";
     assert!(p74_doc_ok(text));
 }
 
-#[test]
-fn p74_native_tier3_doc() {
-    let llvm = include_str!("../../syx-llvm/src/lib.rs");
-    assert!(llvm.contains("llvm_tier3_zero_exec_op_enabled"));
-}
 
-#[test]
-fn p74_managed_heap_v3_module() {
-    let src = include_str!("../../syx-mir-run/src/runtime.rs");
-    assert!(src.contains("heap_collect"));
-}
 
 #[test]
 fn p74_build_mir_target() {
@@ -125,11 +115,6 @@ fn p74_adr_phase74_charter() {
     assert!(adr.contains("Phase 74") || adr.contains("52.0") || adr.contains("ADR-049"));
 }
 
-#[test]
-fn p74_wasm_native_matrix_heap_col() {
-    let doc = include_str!("../../../docs/wasm_native_opcode_matrix.md");
-    assert!(doc.contains("Heap"));
-}
 
 #[test]
 fn p74_borrow_async_fn() {

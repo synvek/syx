@@ -46,8 +46,3 @@ fn token_decl_example_runs() {
     );
 }
 
-#[test]
-fn token_decl_fingerprint_strings() {
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    assert!(user_rs.contains("macro-token-v2:decl-param-subst-mvp"));
-}

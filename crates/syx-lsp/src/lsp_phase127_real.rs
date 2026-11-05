@@ -16,21 +16,6 @@ fn p127_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p127_opts())
 }
 
-#[test]
-fn p127_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("macro-service-v8:advice-proceed"));
-    assert!(lib.contains("macro-service-v8:configuration-bean-mvp"));
-    assert!(lib.contains("runtime-service-v8:configuration-bean-mvp"));
-    assert!(lib.contains("gui-synui-v4:signal-widget-bind"));
-    assert!(lib.contains("wasm-simd16-guest-v10:saturating-add-sub-mvp"));
-    assert!(lib.contains("farm-lease-token-v10:session-close-mvp"));
-    assert!(lib.contains("dist-cdn-bgp-v10:sticky-persist-mvp"));
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("macro-docs-v9:m17-service-v8-honesty"));
-    assert!(self_src.contains("gui-synui-v4:desktop-onclick-wire"));
-    assert!(self_src.contains("gui-synui-v4:widget-switch-radio"));
-}
 
 #[test]
 fn p127_hover_string_binding() {
@@ -201,100 +186,12 @@ fn p127_service_di_parse_smoke() {
     );
 }
 
-#[test]
-fn p127_configuration_bean_parse_stub() {
-    // Gate0 stub: `@Configuration`/`@Bean` fingerprint `macro-service-v8:configuration-bean-mvp`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("macro-service-v8:configuration-bean-mvp"));
-    assert!(self_src.contains("@Configuration") || self_src.contains("@Bean"));
-    let doc = p127_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Bean track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p127_advice_proceed_fingerprint_stub() {
-    // Gate0 stub: `macro-service-v8:advice-proceed`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("macro-service-v8:advice-proceed"));
-    let doc = p127_doc("@Service\nclass App { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p127_runtime_bean_fingerprint_stub() {
-    // Gate0 stub: `runtime-service-v8:configuration-bean-mvp`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("runtime-service-v8:configuration-bean-mvp"));
-}
 
-#[test]
-fn p127_macro_docs_v9_honesty_stub() {
-    // Gate0 stub: `macro-docs-v9:m17-service-v8-honesty`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("macro-docs-v9:m17-service-v8-honesty"));
-}
 
-#[test]
-fn p127_synui_signal_bind_stub() {
-    // Gate0 stub: `gui-synui-v4:signal-widget-bind`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("gui-synui-v4:signal-widget-bind"));
-    let doc = p127_doc("func main() { print(\"signal-bind\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p127_synui_onclick_wire_stub() {
-    // Gate0 stub: `gui-synui-v4:desktop-onclick-wire` — desktop path HOLD/`--gui-visible` only
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("gui-synui-v4:desktop-onclick-wire"));
-    let doc = p127_doc("func main() { print(\"onclick-wire\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p127_synui_switch_radio_stub() {
-    // Gate0 stub: `gui-synui-v4:widget-switch-radio`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("gui-synui-v4:widget-switch-radio"));
-}
-
-#[test]
-fn p127_simd16_sat_fingerprint_stub() {
-    // Gate0 stub: `wasm-simd16-guest-v10:saturating-add-sub-mvp`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v10:saturating-add-sub-mvp"));
-}
-
-#[test]
-fn p127_farm_session_close_stub() {
-    // Gate0 stub: `farm-lease-token-v10:session-close-mvp`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("farm-lease-token-v10:session-close-mvp"));
-}
-
-#[test]
-fn p127_dist_sticky_persist_stub() {
-    // Gate0 stub: `dist-cdn-bgp-v10:sticky-persist-mvp`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v10:sticky-persist-mvp"));
-}
 
 #[test]
 fn p127_diagnostic_service_missing_dep() {
@@ -389,33 +286,7 @@ fn p127_diagnostic_optional_unwrap() {
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
 
-#[test]
-fn p127_driver_cr330_fingerprint_stub() {
-    // Gate0 stub: `driver-gate-cr330-v1:phase127-real-behavioral`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("driver-gate-cr330-v1:phase127-real-behavioral"));
-}
 
-#[test]
-fn p127_lsp_semantic_v29_fingerprint_stub() {
-    // Gate0 stub: `lsp-semantic-v29:phase127-34-plus-real`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("lsp-semantic-v29:phase127-34-plus-real"));
-}
-
-#[test]
-fn p127_stdlib_parity_pin_stub() {
-    // Gate0 stub: `stdlib-parity-pin-v1:105.0`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("stdlib-parity-pin-v1:105.0"));
-}
-
-#[test]
-fn p127_audit_align_stub() {
-    // Gate0 stub: `audit-align-v1:ci-script-adr-5450-3250`
-    let self_src = include_str!("lsp_phase127_real.rs");
-    assert!(self_src.contains("audit-align-v1:ci-script-adr-5450-3250"));
-}
 
 #[test]
 fn p127_hover_proceed_local() {

@@ -16,15 +16,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -190,7 +181,6 @@ fn m2_s6_03_docs_and_capability() {
     );
 }
 
-
 #[cfg(unix)]
 #[test]
 fn m2_s6_03_term_native_llvm() {
@@ -221,24 +211,3 @@ func main() {
     );
 }
 
-#[test]
-fn m2_s6_03_child_signal_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "ChildSignal");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "ChildSignal must declare llvm=real (ADR-590): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "ChildSignal must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"unsupported\""),
-        "ChildSignal must keep wasm=unsupported: {block}"
-    );
-    assert!(
-        block.contains("ADR-590") && block.contains("ADR-244"),
-        "ChildSignal notes must cite ADR-590 + ADR-244: {block}"
-    );
-}

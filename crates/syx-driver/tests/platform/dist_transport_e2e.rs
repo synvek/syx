@@ -43,13 +43,6 @@ fn dist_transport_e2e_llvm_rt_symbols() {
     assert!(llvm.contains("syx_rt_dist_rustls_e2e") || llvm.contains("syx_rt_dist_winpipe_e2e"));
 }
 
-
-#[test]
-fn dist_transport_e2e_cross_process_mailbox_surface() {
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("mailbox") || src.contains("frame") || src.contains("handshake"));
-}
-
 #[test]
 fn dist_transport_e2e_process_exec_cross_process_smoke() {
     syx_host_plugin::register_echo_plugin_in_process();

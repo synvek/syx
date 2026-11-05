@@ -31,7 +31,7 @@ pub fn macro_sandbox_mode() -> &'static str {
     }
 }
 
-pub fn macro_external_plugin_prod_fingerprint() -> &'static str {
+pub fn macro_external_plugin_prod_digest() -> &'static str {
     "macro-external-v2:plugin-prod"
 }
 

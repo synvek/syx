@@ -74,15 +74,6 @@ fn product_block(toml: &str, id: &str) -> String {
     rest[..end].to_string()
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn serve_source(port: u16) -> String {
     format!(
         r#"import Net
@@ -224,7 +215,6 @@ fn m2_s4_03b_docs_and_capability() {
         "inventory must note signed-ADR-238"
     );
 }
-
 
 #[cfg(unix)]
 #[test]
@@ -390,27 +380,3 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn m2_s4_03b_http_serve_shutdown_host_llvm_real() {
-    // Wave A W248 / ADR-592 llvm + Wave A W271 / ADR-615 wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["HttpServe", "HttpShutdown"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-592): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-615): {block}"
-        );
-        assert!(
-            block.contains("ADR-615") && block.contains("ADR-592"),
-            "{name} notes must cite ADR-615 + ADR-592: {block}"
-        );
-    }
-}

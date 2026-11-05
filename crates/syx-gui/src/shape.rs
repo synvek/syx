@@ -32,14 +32,14 @@ static PRIMARY_FONT: OnceLock<Font> = OnceLock::new();
 static FALLBACK_OOB_FONT: OnceLock<Font> = OnceLock::new();
 static SYSTEM_FALLBACK: OnceLock<Option<(Vec<u8>, Font)>> = OnceLock::new();
 
-pub const HB_PAINT_FINGERPRINT: &str = "gui-hb-paint-v1:string-shape";
+pub const HB_PAINT_DIGEST: &str = "gui-hb-paint-v1:string-shape";
 
-pub const OT_FEATURES_FINGERPRINT: &str = "gui-ot-features-v7:os-fontmgr-default-paint";
-pub const DYLIB_OT_VF_PARITY_FINGERPRINT: &str = "gui-dylib-parity-v1:ot-vf-export";
-pub const VF_WGHT_FINGERPRINT: &str = "gui-font-vf-v1:wght-mvp";
-pub const VF_MULTI_AXIS_FINGERPRINT: &str = "gui-font-vf-v2:multi-axis-mvp";
-pub const VF_AXES_GE3_FINGERPRINT: &str = "gui-font-vf-v3:axes-ge3-mvp";
-pub const VF_PAINT_VARIATIONS_FINGERPRINT: &str = "gui-font-vf-v4:paint-variations-mvp";
+pub const OT_FEATURES_DIGEST: &str = "gui-ot-features-v7:os-fontmgr-default-paint";
+pub const DYLIB_OT_VF_PARITY_DIGEST: &str = "gui-dylib-parity-v1:ot-vf-export";
+pub const VF_WGHT_DIGEST: &str = "gui-font-vf-v1:wght-mvp";
+pub const VF_MULTI_AXIS_DIGEST: &str = "gui-font-vf-v2:multi-axis-mvp";
+pub const VF_AXES_GE3_DIGEST: &str = "gui-font-vf-v3:axes-ge3-mvp";
+pub const VF_PAINT_VARIATIONS_DIGEST: &str = "gui-font-vf-v4:paint-variations-mvp";
 
 static OT_CALT_USED: AtomicBool = AtomicBool::new(false);
 static OT_SUBST_PROVEN: AtomicBool = AtomicBool::new(false);
@@ -515,7 +515,7 @@ pub fn ot_default_paint_proven() -> bool {
 }
 
 pub fn dylib_ot_vf_parity_digest() -> &'static str {
-    DYLIB_OT_VF_PARITY_FINGERPRINT
+    DYLIB_OT_VF_PARITY_DIGEST
 }
 
 /// Phase 121: VF paint-variations MVP — wght axis must move paint-path advances.
@@ -543,7 +543,7 @@ pub fn vf_paint_variations_used() -> bool {
 }
 
 pub fn vf_paint_variations_digest() -> &'static str {
-    VF_PAINT_VARIATIONS_FINGERPRINT
+    VF_PAINT_VARIATIONS_DIGEST
 }
 
 fn vf_axis_count(ttf: &[u8]) -> usize {
@@ -615,11 +615,11 @@ pub fn vf_axes_ge3_used() -> bool {
 }
 
 pub fn vf_axes_ge3_digest() -> &'static str {
-    VF_PAINT_VARIATIONS_FINGERPRINT
+    VF_PAINT_VARIATIONS_DIGEST
 }
 
 pub fn vf_multi_axis_digest() -> &'static str {
-    VF_MULTI_AXIS_FINGERPRINT
+    VF_MULTI_AXIS_DIGEST
 }
 
 pub fn vf_wght_used() -> bool {
@@ -627,11 +627,11 @@ pub fn vf_wght_used() -> bool {
 }
 
 pub fn vf_wght_digest() -> &'static str {
-    VF_WGHT_FINGERPRINT
+    VF_WGHT_DIGEST
 }
 
 pub fn ot_features_digest() -> &'static str {
-    OT_FEATURES_FINGERPRINT
+    OT_FEATURES_DIGEST
 }
 
 pub fn ot_calt_used() -> bool {
@@ -643,7 +643,7 @@ pub fn harfbuzz_digest() -> &'static str {
 }
 
 pub fn hb_paint_digest() -> &'static str {
-    HB_PAINT_FINGERPRINT
+    HB_PAINT_DIGEST
 }
 
 pub fn font_fallback_digest() -> &'static str {

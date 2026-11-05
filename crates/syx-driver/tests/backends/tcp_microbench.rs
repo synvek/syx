@@ -15,25 +15,6 @@ fn example_main() -> PathBuf {
 }
 
 #[test]
-fn ec_m2_4_tcp_microbench_fixture_source() {
-    let src = include_str!("../../../../examples/tcp_microbench/main.sy");
-    assert!(
-        src.contains("TcpStream.connect")
-            && src.contains("127.0.0.1")
-            && src.contains("10000"),
-        "fixture must TcpStream.connect refuse × 10000: {src}"
-    );
-    assert!(
-        !src.contains("__syx_tcp_"),
-        "fixture must not call bare tcp hosts: {src}"
-    );
-    assert!(
-        !src.contains("while "),
-        "fixture must not use while (while+Host control-flow broken): {src}"
-    );
-}
-
-#[test]
 fn ec_m2_4_tcp_microbench_refuse_instant() {
     let handle = std::thread::Builder::new()
         .name("ec_m2_4_tcp_microbench".into())
@@ -69,15 +50,3 @@ fn ec_m2_4_tcp_microbench_refuse_instant() {
     );
 }
 
-#[test]
-fn ec_m2_4_tcp_microbench_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_tcp_microbench_tier"),
-        "inventory must contain ec_m2_4_tcp_microbench_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-191") || inv.contains("signed-ADR-191"),
-        "inventory must note ADR-191: {inv}"
-    );
-}

@@ -291,7 +291,7 @@ func main() {
 fn cache_v38_in_driver_for_inheritance_gate() {
     let src = include_str!("../../src/lib.rs");
     assert!(src.contains("syx-cache-v38"));
-    assert!(src.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
+    assert!(src.contains("heap_v100_phase128_track_c_wasm_digest"));
 }
 
 #[test]

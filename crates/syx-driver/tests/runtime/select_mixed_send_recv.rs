@@ -1,7 +1,7 @@
 //! Select mixed send/recv — unified tagged array poll + fair RR.
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
-use syx_vm::{reset_select_fair_cursor, select_fair_digest, select_mixed_unified_digest};
+use syx_vm::reset_select_fair_cursor;
 
 fn run(src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -86,43 +86,6 @@ fn select_mixed_fair_rr_both_ready() {
         (c11, c_send),
         (10, 10),
         "fair RR from seed 0 must split evenly: 11={c11} send={c_send} lines={lines:?}"
-    );
-}
-
-#[test]
-fn select_mixed_fingerprints_present() {
-    assert_eq!(select_fair_digest(), "select-fair-v1:round-robin");
-    assert_eq!(
-        select_mixed_unified_digest(),
-        "select-mixed-unified-v1:tagged-array-poll"
-    );
-    assert_eq!(
-        syx_parser::select_mixed_unified_digest(),
-        "select-mixed-unified-v1:tagged-array-poll"
-    );
-
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("select-mixed-unified-v1:tagged-array-poll"));
-
-    let hosts = include_str!("../../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("select-mixed-unified-v1:tagged-array-poll"));
-    assert!(hosts.contains("host_select_tag"));
-    assert!(hosts.contains("__syx_select_dir"));
-
-    let parser = include_str!("../../../syx-parser/src/lib.rs");
-    assert!(parser.contains("select-mixed-unified-v1:tagged-array-poll"));
-    assert!(parser.contains("select_tagged_arm_expr"));
-    assert!(parser.contains("__syx_select_tag"));
-    assert!(parser.contains("__syx_sel_arr"));
-    assert!(parser.contains("__syx_channel_select_default"));
-    assert!(
-        parser.contains("never `while true` + Break"),
-        "multi-case must keep no-while lowering"
-    );
-    // Per-arm try_send must not remain the mixed GA path.
-    assert!(
-        !parser.contains("via per-arm try_send"),
-        "mixed GA must not document per-arm try_send"
     );
 }
 

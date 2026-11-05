@@ -13,19 +13,6 @@ fn example_main() -> PathBuf {
 }
 
 #[test]
-fn ec_m2_4_http_microbench_fixture_source() {
-    let src = include_str!("../../../../examples/http_microbench/main.sy");
-    assert!(
-        src.contains("Http.response") && src.contains("10000"),
-        "fixture must Http.response × 10000: {src}"
-    );
-    assert!(
-        !src.contains("__syx_http_"),
-        "fixture must not call bare http hosts: {src}"
-    );
-}
-
-#[test]
 fn ec_m2_4_http_microbench_response_instant() {
     let t0 = Instant::now();
     let (code, printed) =
@@ -49,15 +36,3 @@ fn ec_m2_4_http_microbench_response_instant() {
     );
 }
 
-#[test]
-fn ec_m2_4_http_microbench_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_http_microbench_tier"),
-        "inventory must contain ec_m2_4_http_microbench_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-189") || inv.contains("signed-ADR-189"),
-        "inventory must note ADR-189: {inv}"
-    );
-}

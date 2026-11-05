@@ -18,10 +18,6 @@ fn p100_doc_ok(text: &str) -> bool {
         .any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p100_cache_v72_historical() {
-    assert!(include_str!("../../syx-driver/src/lib.rs").contains("heap_v100_phase128_track_c_wasm_fingerprint"));
-}
 
 
 

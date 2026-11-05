@@ -269,11 +269,3 @@ fn m2_s1_01_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s1_01_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s1_01_collection_sequence_iterator"
-    );
-}

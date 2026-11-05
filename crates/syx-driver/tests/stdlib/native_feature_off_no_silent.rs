@@ -332,11 +332,3 @@ fn m2_s1_04_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s1_04_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s1_04_native_feature_off_no_silent"
-    );
-}

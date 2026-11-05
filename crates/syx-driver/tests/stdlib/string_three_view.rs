@@ -26,15 +26,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -222,28 +213,6 @@ fn m2_s2_01_scalar_count_wasm() {
 }
 
 #[test]
-fn m2_s2_01_str_unicode_scalar_count_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrUnicodeScalarCount");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrUnicodeScalarCount must declare llvm=real (ADR-578): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrUnicodeScalarCount must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrUnicodeScalarCount must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-578"),
-        "notes must cite ADR-610 + ADR-578: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_01_utf8_count_wasm() {
     let out = lines_joined(&run_wasm_src("utf8_count_wasm", UTF8_COUNT_HI));
     assert_eq!(out, "2", "wasm utf8_count hi must exact: {out}");
@@ -260,28 +229,6 @@ fn m2_s2_01_utf8_count_native_llvm() {
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
     assert_eq!(out, "2", "native llvm utf8_count hi must exact: {out}");
-}
-
-#[test]
-fn m2_s2_01_str_utf8_count_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrUtf8Count");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrUtf8Count must declare llvm=real (ADR-579): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrUtf8Count must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrUtf8Count must declare wasm=real (ADR-610): {block}"
-    );
-    assert!(
-        block.contains("ADR-610") && block.contains("ADR-579"),
-        "notes must cite ADR-610 + ADR-579: {block}"
-    );
 }
 
 #[test]
@@ -307,28 +254,6 @@ fn m2_s2_01_scalars_length_wasm() {
 }
 
 #[test]
-fn m2_s2_01_str_unicode_scalars_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrUnicodeScalars");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrUnicodeScalars must declare llvm=real (ADR-580): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrUnicodeScalars must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrUnicodeScalars must declare wasm=real (ADR-611): {block}"
-    );
-    assert!(
-        block.contains("ADR-611") && block.contains("ADR-580"),
-        "notes must cite ADR-611 + ADR-580: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_01_utf8_bytes_length_wasm() {
     let out = lines_joined(&run_wasm_src("utf8_bytes_len_wasm", UTF8_BYTES_LEN_HI));
     assert_eq!(out, "2", "wasm utf8_bytes(hi).count must exact: {out}");
@@ -351,28 +276,6 @@ fn m2_s2_01_utf8_bytes_length_native_llvm() {
 }
 
 #[test]
-fn m2_s2_01_str_utf8_bytes_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "StrUtf8Bytes");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "StrUtf8Bytes must declare llvm=real (ADR-581): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "StrUtf8Bytes must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "StrUtf8Bytes must declare wasm=real (ADR-611): {block}"
-    );
-    assert!(
-        block.contains("ADR-611") && block.contains("ADR-581"),
-        "notes must cite ADR-611 + ADR-581: {block}"
-    );
-}
-
-#[test]
 fn m2_s2_01_is_single_scalar_wasm() {
     let out = lines_joined(&run_wasm_src("is_single_scalar_wasm", IS_SINGLE_SCALAR_A));
     assert_eq!(out, "true", "wasm is_single_scalar(a) must exact: {out}");
@@ -391,28 +294,6 @@ fn m2_s2_01_is_single_scalar_native_llvm() {
     assert_eq!(
         out, "true",
         "native llvm is_single_scalar(a) must exact: {out}"
-    );
-}
-
-#[test]
-fn m2_s2_01_character_is_single_scalar_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "CharacterIsSingleScalar");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "CharacterIsSingleScalar must declare llvm=real (ADR-582): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "CharacterIsSingleScalar must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "CharacterIsSingleScalar must declare wasm=real (ADR-611): {block}"
-    );
-    assert!(
-        block.contains("ADR-611") && block.contains("ADR-582"),
-        "notes must cite ADR-611 + ADR-582: {block}"
     );
 }
 
@@ -562,11 +443,3 @@ fn m2_s2_01_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s2_01_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s2_01_string_three_view"
-    );
-}

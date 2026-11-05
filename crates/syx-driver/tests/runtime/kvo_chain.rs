@@ -10,13 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_kvo_chain_host_surface() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("KvoObserve") && reg.contains("__syx_kvo_observe"));
-}
-
 #[test]
 fn p98_kvo_chain_observe_stdout() {
     let out = run(

@@ -14,7 +14,7 @@ use std::sync::{Mutex, OnceLock};
 use smol_str::SmolStr;
 use syx_ast::{Decl, Module};
 
-use super::{dependency_hashes_still_valid, dependency_tree_fingerprint, hash_source, ModuleUnit};
+use super::{dependency_hashes_still_valid, dependency_tree_digest, hash_source, ModuleUnit};
 
 /// Stable key for a top-level declaration in a module file.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -96,7 +96,7 @@ impl ModuleQueryCache {
             return None;
         }
         let source_hash = hash_source(source);
-        let tree_hash = dependency_tree_fingerprint(dependency_hashes);
+        let tree_hash = dependency_tree_digest(dependency_hashes);
         let key = Self::cache_key(path, &source_hash, &tree_hash);
         self.entries.get(&key).and_then(|hit| {
             if hit.source_hash == source_hash && hit.dependency_tree_hash == tree_hash {
@@ -109,7 +109,7 @@ impl ModuleQueryCache {
 
     pub fn store(&mut self, unit: ModuleUnit, dependency_hashes: &[(String, String)]) {
         let source_hash = hash_source(&unit.source.contents);
-        let tree_hash = dependency_tree_fingerprint(dependency_hashes);
+        let tree_hash = dependency_tree_digest(dependency_hashes);
         let key = Self::cache_key(&unit.path, &source_hash, &tree_hash);
         self.entries.insert(
             key,

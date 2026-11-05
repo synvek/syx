@@ -50,10 +50,10 @@ fn sgate_tls_native_first_slice_source_wiring() {
             && main.contains("mode == \"native\""),
         "main.sy must wire native TLS prepare + SYX_SGATE_CONFIG"
     );
-    let tls = include_str!("../../../../tools/sgate/tls.sy");
+    let tls = include_str!("../../../../tools/sgate/sidecars/tls.sy");
     assert!(
         tls.contains("__syx_tls_serve") && tls.contains("if false"),
-        "tls.sy must retain __syx_tls_serve honesty under if false (≠ product native path)"
+        "sidecars/tls.sy must retain __syx_tls_serve honesty under if false (≠ product native path)"
     );
     let readme = include_str!("../../../../tools/sgate/README.md");
     assert!(

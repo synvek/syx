@@ -89,45 +89,45 @@ const SELECT_DIR_KEY: &str = "__syx_select_dir";
 /// 3. channel object with `__syx_select_dir` (0|1) and optional `__syx_select_send_value`
 ///    (sugar path: homogeneous `Object[]` so semantic S014 accepts the array)
 /// 4. legacy send-marked channel with only `__syx_select_send_value`
-pub const SELECT_MIXED_UNIFIED_FINGERPRINT: &str = "select-mixed-unified-v1:tagged-array-poll";
+pub const SELECT_MIXED_UNIFIED_DIGEST: &str = "select-mixed-unified-v1:tagged-array-poll";
 
 pub fn select_mixed_unified_digest() -> &'static str {
-    SELECT_MIXED_UNIFIED_FINGERPRINT
+    SELECT_MIXED_UNIFIED_DIGEST
 }
 
 /// Phase 109: mixed select + await interleave hard gate.
-pub const SELECT_MIXED_AWAIT_FINGERPRINT: &str = "select-mixed-await-v1:interleave";
+pub const SELECT_MIXED_AWAIT_DIGEST: &str = "select-mixed-await-v1:interleave";
 
 pub fn select_mixed_await_digest() -> &'static str {
-    SELECT_MIXED_AWAIT_FINGERPRINT
+    SELECT_MIXED_AWAIT_DIGEST
 }
 
 /// Phase 110: mixed select + await requires cancel or deadline hard gate.
-pub const SELECT_MIXED_TIMEOUT_FINGERPRINT: &str = "select-mixed-timeout-v1:cancel-or-deadline";
+pub const SELECT_MIXED_TIMEOUT_DIGEST: &str = "select-mixed-timeout-v1:cancel-or-deadline";
 
 /// Phase 111: language-level `timeout(ms):` / `deadline ms:` select arms (not env-only GA).
-pub const SELECT_TIMEOUT_SYNTAX_FINGERPRINT: &str = "select-timeout-syntax-v1:lang-arm";
+pub const SELECT_TIMEOUT_SYNTAX_DIGEST: &str = "select-timeout-syntax-v1:lang-arm";
 
 /// Phase 112 (historical): mixed+await unified with language timeout/deadline ms.
-pub const SELECT_DEADLINE_UNIFY_FINGERPRINT: &str = "select-deadline-unify-v1:lang-over-env";
+pub const SELECT_DEADLINE_UNIFY_DIGEST: &str = "select-deadline-unify-v1:lang-over-env";
 
 /// Phase 113: mixed+await requires syntax timeout/deadline; env fallback hard-banned.
-pub const SELECT_DEADLINE_STRICT_FINGERPRINT: &str = "select-deadline-strict-v1:no-env";
+pub const SELECT_DEADLINE_STRICT_DIGEST: &str = "select-deadline-strict-v1:no-env";
 
 pub fn select_mixed_timeout_digest() -> &'static str {
-    SELECT_MIXED_TIMEOUT_FINGERPRINT
+    SELECT_MIXED_TIMEOUT_DIGEST
 }
 
 pub fn select_timeout_syntax_digest() -> &'static str {
-    SELECT_TIMEOUT_SYNTAX_FINGERPRINT
+    SELECT_TIMEOUT_SYNTAX_DIGEST
 }
 
 pub fn select_deadline_unify_digest() -> &'static str {
-    SELECT_DEADLINE_UNIFY_FINGERPRINT
+    SELECT_DEADLINE_UNIFY_DIGEST
 }
 
 pub fn select_deadline_strict_digest() -> &'static str {
-    SELECT_DEADLINE_STRICT_FINGERPRINT
+    SELECT_DEADLINE_STRICT_DIGEST
 }
 
 static MIXED_AWAIT_CANCEL_PROBE: OnceLock<fn() -> bool> = OnceLock::new();
@@ -144,7 +144,7 @@ fn mixed_await_is_cancelled() -> bool {
 /// Phase 113: env fallback removed (`select-deadline-strict-v1:no-env`).
 /// Kept as a hard-ban probe — calling this is not a GA timeout source.
 pub fn mixed_await_select_timeout_ms() -> u64 {
-    let _ = SELECT_DEADLINE_STRICT_FINGERPRINT;
+    let _ = SELECT_DEADLINE_STRICT_DIGEST;
     // Hard-ban: SYX_SELECT_MIXED_TIMEOUT_MS must not supply GA deadlines.
     if std::env::var("SYX_SELECT_MIXED_TIMEOUT_MS").is_ok() {
         panic!(
@@ -535,7 +535,7 @@ pub fn host_channel_select_default(stack: &mut Vec<Value>) -> SyxResult<()> {
 /// Phase 18/107: channel select with millisecond timeout (stack: ms, ch1, ch2, … or ms, array).
 /// Fair round-robin when multiple ops are ready. Array form returns `[index, value]`.
 pub fn host_channel_select_timeout(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = SELECT_TIMEOUT_SYNTAX_FINGERPRINT;
+    let _ = SELECT_TIMEOUT_SYNTAX_DIGEST;
     let ms = stack.pop().unwrap_or(Value::I32(0)).as_i64().max(0) as u64;
     let top = stack.pop().unwrap_or(Value::Nil);
     let (channels, indexed) = if let Some(items) = Value::materialize_array(top.clone()) {
@@ -567,9 +567,9 @@ pub fn host_channel_select_timeout(stack: &mut Vec<Value>) -> SyxResult<()> {
 /// Stack: `channels` array, `fallback`, `timeout_ms`. Returns same shape as
 /// [`host_channel_select_default`] (indexed `[index, value]` or miss as `["-1", fallback]`).
 pub fn host_channel_select_mixed_await(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = SELECT_MIXED_TIMEOUT_FINGERPRINT;
-    let _ = SELECT_DEADLINE_UNIFY_FINGERPRINT;
-    let _ = SELECT_DEADLINE_STRICT_FINGERPRINT;
+    let _ = SELECT_MIXED_TIMEOUT_DIGEST;
+    let _ = SELECT_DEADLINE_UNIFY_DIGEST;
+    let _ = SELECT_DEADLINE_STRICT_DIGEST;
     let ms = stack.pop().unwrap_or(Value::I32(0)).as_i64().max(0) as u64;
     let default_value = stack.pop().unwrap_or(Value::Nil);
     let top = stack.pop().unwrap_or(Value::Nil);

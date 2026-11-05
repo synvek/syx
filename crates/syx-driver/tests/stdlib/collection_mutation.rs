@@ -304,15 +304,6 @@ fn m2_s1_02_dict_product_backends_real() {
 }
 
 #[test]
-fn m2_s1_02_set_surface_exposes_mutation() {
-    let src = include_str!("../../../../packages/core/builtins/collections/set.sy");
-    assert!(
-        src.contains("__syx_set_insert") && src.contains("__syx_set_remove"),
-        "set.sy must expose insert/remove hosts: {src}"
-    );
-}
-
-#[test]
 fn m2_s1_02_inventory_meta() {
     let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
     assert!(
@@ -325,11 +316,3 @@ fn m2_s1_02_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s1_02_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s1_02_collection_mutation"
-    );
-}

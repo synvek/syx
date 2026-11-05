@@ -98,7 +98,7 @@ fn hostfn_tcp_matrix_toml_lists_tcp_batch() {
         matrix.contains("host = \"TcpConnect\""),
         "matrix missing TcpConnect"
     );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
+    crate::matrix_fingerprint::assert_live_matrix_digest();
     assert!(
         matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
         "Tcp batch must claim vm+mir covered"

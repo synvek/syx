@@ -10,13 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_net_grpc_stream_host_surface() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("GrpcStreamClient") && reg.contains("__syx_grpc_stream_client"));
-}
-
 #[test]
 fn p98_net_grpc_stream_loopback_stdout() {
     let out = run(

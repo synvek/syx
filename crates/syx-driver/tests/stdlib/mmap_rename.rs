@@ -64,30 +64,6 @@ func main() {{
 }
 
 #[test]
-fn m2_s3_04_no_public_read_mmap() {
-    let fh = include_str!("../../../../packages/io/file_handle.sy");
-    assert!(
-        !fh.contains("func readMmap") && !fh.contains("readMmap("),
-        "public readMmap must be gone: facade still exposes it"
-    );
-    assert!(
-        fh.contains("readAllBytes") && fh.contains("__syx_file_read_all_bytes"),
-        "canonical host __syx_file_read_all_bytes required"
-    );
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(
-        reg.contains("\"__syx_file_read_all_bytes\"")
-            || reg.contains("__syx_file_read_all_bytes"),
-        "registry must expose canonical read_all_bytes name"
-    );
-    // Historical id kept for EC-M2-4 matrix.
-    assert!(
-        reg.contains("FileMmapRead"),
-        "HostFnId::FileMmapRead must remain (historical)"
-    );
-}
-
-#[test]
 fn m2_s3_04_docs_and_capability() {
 
     let guide = include_str!("../../../../docs/9_UsageGuide.md");

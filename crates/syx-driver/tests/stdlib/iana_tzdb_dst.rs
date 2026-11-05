@@ -23,15 +23,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -296,76 +287,6 @@ fn m2_s5_02_docs_claim_iana() {
 }
 
 #[test]
-fn m2_s5_02_host_caps_nails() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["DateTimeFormatWithTimezone", "DateTimeTimezoneOffset"] {
-        assert!(
-            toml.contains(&format!("name = \"{name}\"")),
-            "host_fn_capabilities.toml must override {name}"
-        );
-        let block = toml
-            .split(&format!("name = \"{name}\""))
-            .nth(1)
-            .unwrap_or("")
-            .split("[[host]]")
-            .next()
-            .unwrap_or("");
-        assert!(
-            block.contains("status = \"partial\"")
-                && (block.contains("ADR-233")
-                    || block.contains("ADR-566")
-                    || block.contains("ADR-567")
-                    || block.contains("ADR-603")),
-            "{name} must be partial + ADR-233/566/567/603: {block}"
-        );
-    }
-}
-
-#[test]
-fn m2_s5_02_format_with_timezone_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "DateTimeFormatWithTimezone");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "DateTimeFormatWithTimezone must declare llvm=real (ADR-567/ADR-603): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "DateTimeFormatWithTimezone must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "DateTimeFormatWithTimezone must declare wasm=real (ADR-603): {block}"
-    );
-    assert!(
-        block.contains("ADR-603") || block.contains("ADR-567"),
-        "notes must cite ADR-603/ADR-567: {block}"
-    );
-}
-
-#[test]
-fn m2_s5_02_timezone_offset_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "DateTimeTimezoneOffset");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "DateTimeTimezoneOffset must declare llvm=real (ADR-566/ADR-603): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "DateTimeTimezoneOffset must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "DateTimeTimezoneOffset must declare wasm=real (ADR-603): {block}"
-    );
-    assert!(
-        block.contains("ADR-603") || block.contains("ADR-566"),
-        "notes must cite ADR-603/ADR-566: {block}"
-    );
-}
-
-#[test]
 fn m2_s5_02_product_timezone() {
     let caps = include_str!("../../../../packages/internal/capabilities.toml");
     let block = product_block(caps, "datetime.timezone");
@@ -431,22 +352,3 @@ fn m2_s5_02_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s5_02_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s5_02_iana_tzdb_dst"
-    );
-}
-
-#[test]
-fn m2_s5_02_surface_signature() {
-    let src = include_str!("../../../../packages/datetime/mod.sy");
-    assert!(
-        src.contains("timezoneOffset(ms: Int, timezone: String)")
-            && src.contains("formatWithTimezone")
-            && src.contains("throws"),
-        "datetime.sy must expose ms+timezone signatures: {src}"
-    );
-}

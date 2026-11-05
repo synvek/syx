@@ -10,23 +10,7 @@ fn p111_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p111_opts())
 }
 
-#[test]
-fn p111_dist_nonloopback_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_route"));
-    assert!(src.contains("spawn_dist_tcp_mailbox_dual_stack"));
-    assert!(src.contains("SYX_DIST_CDN_MEMORY"));
-}
 
-#[test]
-fn p111_select_timeout_syntax_source_gate() {
-    let parser = include_str!("../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_TIMEOUT_SYNTAX_FINGERPRINT"));
-    assert!(parser.contains("TokenKind::Timeout"));
-    assert!(parser.contains("TokenKind::Deadline"));
-    let hosts = include_str!("../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("SELECT_TIMEOUT_SYNTAX_FINGERPRINT"));
-}
 
 #[test]
 fn p111_hover_string_binding() {

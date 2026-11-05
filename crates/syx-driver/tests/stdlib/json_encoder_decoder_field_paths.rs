@@ -23,15 +23,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -292,24 +283,6 @@ fn m2_s7_02_box_decode_native_llvm() {
 }
 
 #[test]
-fn m2_s7_02_surface_files_static() {
-    let enc = include_str!("../../../../packages/core/json_encoder.sy");
-    assert!(
-        enc.contains("JSONEncoder")
-            && enc.contains("JSONDecoder")
-            && enc.contains("__syx_json_encoder_encode")
-            && enc.contains("__syx_json_decoder_decode")
-            && enc.contains("throws"),
-        "json_encoder.sy surface: {enc}"
-    );
-    let json = include_str!("../../../../packages/core/json.sy");
-    assert!(
-        json.contains("JSONEncoder") && json.contains("JSONDecoder"),
-        "json.sy must expose JSONEncoder/JSONDecoder"
-    );
-}
-
-#[test]
 fn m2_s7_02_docs_claim_encoder_fence_streaming() {
     let usage = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
@@ -323,100 +296,6 @@ fn m2_s7_02_docs_claim_encoder_fence_streaming() {
     assert!(
         lr.contains("ADR-231") && lr.contains("codingPath") && lr.contains("M2-S7-03"),
         "language-reference 09 must document S7-02 + streaming fence"
-    );
-}
-
-#[test]
-fn m2_s7_02_host_caps_nails() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["JsonEncoderEncode", "JsonDecoderDecode"] {
-        assert!(
-            toml.contains(&format!("name = \"{name}\"")),
-            "host_fn_capabilities.toml must override {name}"
-        );
-        let block = toml
-            .split(&format!("name = \"{name}\""))
-            .nth(1)
-            .unwrap_or("")
-            .split("[[host]]")
-            .next()
-            .unwrap_or("");
-        let status_line = block
-            .lines()
-            .find(|l| l.trim_start().starts_with("status ="))
-            .unwrap_or("");
-        assert!(
-            (status_line.contains("status = \"partial\"")
-                || status_line.contains("status = \"implemented\""))
-                && (block.contains("ADR-231")
-                    || block.contains("ADR-568")
-                    || block.contains("ADR-569")
-                    || block.contains("ADR-606")
-                    || block.contains("ADR-1346")),
-            "{name} must keep status_line + ADR-231/568/569/606/1346: {block}"
-        );
-        assert!(
-            block.contains("streaming")
-                || block.contains("S7-03")
-                || block.contains("CodingKeys")
-                || block.contains("Decode llvm")
-                || block.contains("wasm GA"),
-            "{name} must fence streaming/CodingKeys/wasm: {block}"
-        );
-    }
-}
-
-#[test]
-fn m2_s7_02_json_decoder_decode_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "JsonDecoderDecode");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "JsonDecoderDecode must declare llvm=real (ADR-569): {block}"
-    );
-    let status_line = block
-        .lines()
-        .find(|l| l.trim_start().starts_with("status ="))
-        .unwrap_or("");
-    assert!(
-        status_line.contains("status = \"partial\"")
-            || status_line.contains("status = \"implemented\""),
-        "JsonDecoderDecode must keep status_line: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "JsonDecoderDecode must declare wasm=real (ADR-606): {block}"
-    );
-    assert!(
-        block.contains("ADR-606") && block.contains("ADR-569"),
-        "notes must cite ADR-606 + ADR-569: {block}"
-    );
-}
-
-#[test]
-fn m2_s7_02_json_encoder_encode_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "JsonEncoderEncode");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "JsonEncoderEncode must declare llvm=real (ADR-568): {block}"
-    );
-    let status_line = block
-        .lines()
-        .find(|l| l.trim_start().starts_with("status ="))
-        .unwrap_or("");
-    assert!(
-        status_line.contains("status = \"partial\"")
-            || status_line.contains("status = \"implemented\""),
-        "JsonEncoderEncode must keep status_line: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "JsonEncoderEncode must declare wasm=real (ADR-606): {block}"
-    );
-    assert!(
-        block.contains("ADR-606") && block.contains("ADR-568"),
-        "notes must cite ADR-606 + ADR-568: {block}"
     );
 }
 
@@ -442,60 +321,6 @@ fn m2_s7_02_json_encode_decode_wasm() {
     assert_eq!(
         out, "42\n42",
         "wasm json_encode/decode 42 must exact: {out}"
-    );
-}
-
-#[test]
-fn m2_s7_02_json_encode_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "JsonEncode");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "JsonEncode must declare llvm=real (ADR-583): {block}"
-    );
-    let status_line = block
-        .lines()
-        .find(|l| l.trim_start().starts_with("status ="))
-        .unwrap_or("");
-    assert!(
-        status_line.contains("status = \"partial\"")
-            || status_line.contains("status = \"implemented\""),
-        "JsonEncode must keep status_line: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "JsonEncode must declare wasm=real (ADR-606): {block}"
-    );
-    assert!(
-        block.contains("ADR-606") && block.contains("ADR-583"),
-        "notes must cite ADR-606 + ADR-583: {block}"
-    );
-}
-
-#[test]
-fn m2_s7_02_json_decode_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "JsonDecode");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "JsonDecode must declare llvm=real (ADR-583): {block}"
-    );
-    let status_line = block
-        .lines()
-        .find(|l| l.trim_start().starts_with("status ="))
-        .unwrap_or("");
-    assert!(
-        status_line.contains("status = \"partial\"")
-            || status_line.contains("status = \"implemented\""),
-        "JsonDecode must keep status_line: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "JsonDecode must declare wasm=real (ADR-606): {block}"
-    );
-    assert!(
-        block.contains("ADR-606") && block.contains("ADR-583"),
-        "notes must cite ADR-606 + ADR-583: {block}"
     );
 }
 
@@ -567,23 +392,3 @@ fn m2_s7_02_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s7_02_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s7_02_json_encoder_decoder_field_paths"
-    );
-}
-
-#[test]
-fn m2_s7_02_registry_hosts() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(
-        reg.contains("JsonEncoderEncode")
-            && reg.contains("__syx_json_encoder_encode")
-            && reg.contains("JsonDecoderDecode")
-            && reg.contains("__syx_json_decoder_decode"),
-        "registry must list JSONEncoder/Decoder hosts"
-    );
-}

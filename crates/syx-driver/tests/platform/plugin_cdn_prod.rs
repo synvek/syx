@@ -11,12 +11,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_plugin_cdn_prod_dist_transport_surface() {
-    assert!(include_str!("../../../syx-async/src/dist_transport.rs").contains("cdn"));
-}
-
 #[test]
 fn p98_plugin_cdn_prod_reinstall_after_poison() {
     poison_plugin_slot("p98_cdn");

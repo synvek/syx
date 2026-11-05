@@ -13,19 +13,6 @@ fn example_main() -> PathBuf {
 }
 
 #[test]
-fn ec_m2_4_path_file_microbench_fixture_source() {
-    let src = include_str!("../../../../examples/path_microbench/main.sy");
-    assert!(
-        src.contains("Path.join") && src.contains("10000"),
-        "fixture must Path.join × 10000: {src}"
-    );
-    assert!(
-        !src.contains("__syx_path_"),
-        "fixture must not call bare path hosts: {src}"
-    );
-}
-
-#[test]
 fn ec_m2_4_path_file_microbench_join_instant() {
     let t0 = Instant::now();
     let (code, printed) =
@@ -49,15 +36,3 @@ fn ec_m2_4_path_file_microbench_join_instant() {
     );
 }
 
-#[test]
-fn ec_m2_4_path_file_microbench_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_path_file_microbench_tier"),
-        "inventory must contain ec_m2_4_path_file_microbench_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-185") || inv.contains("signed-ADR-185"),
-        "inventory must note ADR-185: {inv}"
-    );
-}

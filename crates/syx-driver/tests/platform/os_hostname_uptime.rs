@@ -19,7 +19,6 @@ fn run(src: &str) -> Result<Vec<String>, String> {
     }
 }
 
-
 #[test]
 fn os_hostname_and_uptime_positive() {
     let printed = run(&with_os(
@@ -47,14 +46,3 @@ func main() {
     assert!(cpu > 0, "cpuCount should remain positive, got {cpu}");
 }
 
-#[test]
-fn os_hostname_remains_importable_surface() {
-    let manifest = include_str!("../../../../packages/internal/manifest.json");
-    assert!(
-        manifest.contains("\"Os\"") || manifest.contains("Os"),
-        "Os must remain in importable_modules"
-    );
-    let os = include_str!("../../../../packages/os/mod.sy");
-    assert!(os.contains("public class Os"));
-    assert!(os.contains("cpuCount") && os.contains("hostname") && os.contains("uptimeMs"));
-}

@@ -96,10 +96,10 @@ fn select_deadline_strict_digests_present() {
     assert!(dist.contains("dist_pop_register_sibling_process_peer"));
     assert!(!dist.contains("global_cdn_route_table"));
     let parser = include_str!("../../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_DEADLINE_STRICT_FINGERPRINT"));
+    assert!(parser.contains("SELECT_DEADLINE_STRICT_DIGEST"));
     assert!(!parser.contains("fn select_mixed_await_timeout_ms_literal"));
     let hosts = include_str!("../../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("SELECT_DEADLINE_STRICT_FINGERPRINT"));
+    assert!(hosts.contains("SELECT_DEADLINE_STRICT_DIGEST"));
     assert!(hosts.contains("hard-banned"));
 }
 
@@ -121,7 +121,7 @@ fn select_deadline_mixed_await_lang_deadline() {
     );
     assert!(SELECT_MIXED_AWAIT_STRICT_DEADLINE_SRC.contains("deadline 15:"));
     assert!(include_str!("../../../syx-vm/src/channel_hosts.rs")
-        .contains("SELECT_DEADLINE_STRICT_FINGERPRINT"));
+        .contains("SELECT_DEADLINE_STRICT_DIGEST"));
 }
 
 #[test]

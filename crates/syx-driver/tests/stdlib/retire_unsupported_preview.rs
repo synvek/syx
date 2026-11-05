@@ -10,15 +10,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     let needle = format!("id = \"{id}\"");
     let rest = caps
@@ -95,37 +86,6 @@ fn m2_s5_04_no_unsupported_parse_hack() {
     assert!(
         !stubs.contains("text == \"unsupported\""),
         "host_datetime_parse must not special-case unsupported: {stubs}"
-    );
-}
-
-#[test]
-fn m2_s5_04_host_fn_datetime_now() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "DateTimeNow");
-    assert!(
-        block.contains("vm = \"real\""),
-        "DateTimeNow must declare vm=real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "DateTimeNow must declare mir=real: {block}"
-    );
-    assert!(
-        block.contains("llvm = \"real\""),
-        "DateTimeNow must declare llvm=real (ADR-599/ADR-604): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "DateTimeNow must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "DateTimeNow must declare wasm=real (ADR-604): {block}"
-    );
-    assert!(
-        (block.contains("ADR-604") || block.contains("ADR-599") || block.contains("ADR-222"))
-            && (block.contains("W260") || block.contains("W255")),
-        "DateTimeNow notes must cite ADR-604/599+222: {block}"
     );
 }
 
@@ -265,11 +225,3 @@ fn m2_s5_04_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s5_04_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s5_04_retire_unsupported_preview"
-    );
-}

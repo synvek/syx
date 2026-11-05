@@ -112,21 +112,3 @@ fn macro_di_wildcard_pool_probe_actor_shared_pool_observable() {
     syx_async::probe_actor_shared_pool_mvp().expect("actor shared pool probe should succeed");
 }
 
-#[test]
-fn macro_di_wildcard_track_e_fingerprint_strings() {
-    let service_rs = include_str!("../../../syx-macro/src/service.rs");
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let runtime_rs = include_str!("../../../syx-async/src/runtime.rs");
-    let docs = include_str!("../../../../books/language-guide/19-macros.md");
-    let lib = include_str!("../../src/lib.rs");
-    let concurrency = include_str!("../../../../packages/core/concurrency.sy");
-    assert!(service_rs.contains("macro-service-v19:pointcut-within-wildcard-mvp"));
-    assert!(user_rs.contains("macro-token-v9:token-rewrite-mvp"));
-    assert!(runtime_rs.contains("runtime-concurrency-v6:actor-shared-pool-mvp"));
-    assert!(docs.contains("macro-docs-v20:m28-service-v19-honesty"));
-    assert!(lib.contains("macro-service-v19:pointcut-within-wildcard-mvp"));
-    assert!(lib.contains("macro-token-v9:token-rewrite-mvp"));
-    assert!(lib.contains("runtime-concurrency-v6:actor-shared-pool-mvp"));
-    assert!(lib.contains("macro-docs-v20:m28-service-v19-honesty"));
-    assert!(concurrency.contains("setActorSharedPoolEnabled"));
-}

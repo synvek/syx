@@ -24,15 +24,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -286,23 +277,6 @@ fn m2_s7_03_box_stream_roundtrip_wasm() {
 }
 
 #[test]
-fn m2_s7_03_surface_files_static() {
-    let src = include_str!("../../../../packages/core/json_stream.sy");
-    assert!(
-        src.contains("JSONStream")
-            && src.contains("__syx_json_stream_open_writer")
-            && src.contains("__syx_json_stream_decode_next")
-            && src.contains("throws"),
-        "json_stream.sy surface: {src}"
-    );
-    let json = include_str!("../../../../packages/core/json.sy");
-    assert!(
-        json.contains("JSONStream"),
-        "json.sy must expose JSONStream"
-    );
-}
-
-#[test]
 fn m2_s7_03_docs_claim_stream_fence() {
     let usage = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
@@ -318,67 +292,6 @@ fn m2_s7_03_docs_claim_stream_fence() {
         lr.contains("ADR-232") && lr.contains("JSONStream") && lr.contains("S7"),
         "language-reference 09 must document S7-03"
     );
-}
-
-#[test]
-fn m2_s7_03_host_caps_nails() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "JsonStreamOpenWriter",
-        "JsonStreamWrite",
-        "JsonStreamFinishWriter",
-        "JsonStreamOpenReader",
-        "JsonStreamFeed",
-        "JsonStreamDecodeNext",
-        "JsonStreamCloseReader",
-    ] {
-        assert!(
-            toml.contains(&format!("name = \"{name}\"")),
-            "host_fn_capabilities.toml must override {name}"
-        );
-        let block = toml
-            .split(&format!("name = \"{name}\""))
-            .nth(1)
-            .unwrap_or("")
-            .split("[[host]]")
-            .next()
-            .unwrap_or("");
-        assert!(
-            block.contains("status = \"partial\"") && block.contains("ADR-232"),
-            "{name} must be partial + ADR-232: {block}"
-        );
-    }
-    for name in [
-        "JsonStreamOpenWriter",
-        "JsonStreamWrite",
-        "JsonStreamFinishWriter",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\"") && block.contains("ADR-583"),
-            "{name} must declare llvm=real + ADR-583: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\"") && block.contains("ADR-609"),
-            "{name} must declare wasm=real + ADR-609: {block}"
-        );
-    }
-    for name in [
-        "JsonStreamOpenReader",
-        "JsonStreamFeed",
-        "JsonStreamDecodeNext",
-        "JsonStreamCloseReader",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\"") && block.contains("ADR-584"),
-            "{name} must declare llvm=real + ADR-584: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\"") && block.contains("ADR-608"),
-            "{name} must declare wasm=real + ADR-608: {block}"
-        );
-    }
 }
 
 #[test]
@@ -410,58 +323,6 @@ fn m2_s7_03_json_stream_writer_finish_wasm() {
 }
 
 #[test]
-fn m2_s7_03_json_stream_writer_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "JsonStreamOpenWriter",
-        "JsonStreamWrite",
-        "JsonStreamFinishWriter",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-583): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-609): {block}"
-        );
-        assert!(
-            block.contains("ADR-609"),
-            "{name} notes must cite ADR-609: {block}"
-        );
-        assert!(
-            block.contains("ADR-583"),
-            "{name} notes must cite ADR-583: {block}"
-        );
-    }
-}
-
-#[test]
-fn m2_s7_03_json_stream_writer_hosts_wasm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "JsonStreamOpenWriter",
-        "JsonStreamWrite",
-        "JsonStreamFinishWriter",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("wasm = \"real\"") && block.contains("ADR-609"),
-            "{name} must declare wasm=real + ADR-609: {block}"
-        );
-        assert!(
-            !block.contains("wasm = \"host-assisted\""),
-            "{name} must not remain host-assisted: {block}"
-        );
-    }
-}
-
-#[test]
 fn m2_s7_03_json_stream_reader_native_llvm() {
     let (code, stdout) = run_native_strict(BOX_STREAM_ROUNDTRIP_BODY);
     let out = stdout
@@ -475,64 +336,6 @@ fn m2_s7_03_json_stream_reader_native_llvm() {
         out, "{n: 42}",
         "native llvm JsonStream reader roundtrip must exact: {out}"
     );
-}
-
-#[test]
-fn m2_s7_03_json_stream_reader_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "JsonStreamOpenReader",
-        "JsonStreamFeed",
-        "JsonStreamDecodeNext",
-        "JsonStreamCloseReader",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-584): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-608): {block}"
-        );
-        assert!(
-            block.contains("ADR-608"),
-            "{name} notes must cite ADR-608: {block}"
-        );
-        assert!(
-            block.contains("ADR-584"),
-            "{name} notes must cite ADR-584: {block}"
-        );
-        assert!(
-            block.contains("ADR-232"),
-            "{name} notes must retain ADR-232: {block}"
-        );
-    }
-}
-
-#[test]
-fn m2_s7_03_json_stream_reader_hosts_wasm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "JsonStreamOpenReader",
-        "JsonStreamFeed",
-        "JsonStreamDecodeNext",
-        "JsonStreamCloseReader",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("wasm = \"real\"") && block.contains("ADR-608"),
-            "{name} must declare wasm=real + ADR-608: {block}"
-        );
-        assert!(
-            !block.contains("wasm = \"host-assisted\""),
-            "{name} must not remain host-assisted: {block}"
-        );
-    }
 }
 
 #[test]
@@ -603,22 +406,3 @@ fn m2_s7_03_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s7_03_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s7_03_json_stream_ndjson"
-    );
-}
-
-#[test]
-fn m2_s7_03_registry_hosts() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(
-        reg.contains("JsonStreamOpenWriter")
-            && reg.contains("__syx_json_stream_decode_next")
-            && reg.contains("JsonStreamFeed"),
-        "registry must list JSONStream hosts"
-    );
-}

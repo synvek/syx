@@ -131,25 +131,3 @@ fn macro_di_or_pool_probe_core_max_keepalive_observable() {
         .expect("core/max/keepAlive probe should succeed");
 }
 
-#[test]
-fn macro_di_or_track_e_fingerprint_strings() {
-    let service_rs = include_str!("../../../syx-macro/src/service.rs");
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let runtime_rs = include_str!("../../../syx-async/src/runtime.rs");
-    let docs = include_str!("../../../../books/language-guide/19-macros.md");
-    let lib = include_str!("../../src/lib.rs");
-    let concurrency = include_str!("../../../../packages/core/concurrency.sy");
-    assert!(service_rs.contains("macro-service-v17:pointcut-or-compose-mvp"));
-    assert!(user_rs.contains("macro-token-v7:token-stream-mvp"));
-    assert!(runtime_rs.contains("runtime-concurrency-v4:core-max-keepalive-mvp"));
-    assert!(docs.contains("macro-docs-v20:m28-service-v19-honesty"));
-    assert!(lib.contains("macro-service-v17:pointcut-or-compose-mvp"));
-    assert!(lib.contains("macro-token-v7:token-stream-mvp"));
-    assert!(lib.contains("runtime-concurrency-v4:core-max-keepalive-mvp"));
-    assert!(lib.contains("macro-docs-v20:m28-service-v19-honesty"));
-    assert!(
-        concurrency.contains("setCorePoolSize")
-            && concurrency.contains("setMaximumPoolSize")
-            && concurrency.contains("setKeepAliveMs")
-    );
-}

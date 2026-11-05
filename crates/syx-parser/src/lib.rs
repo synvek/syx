@@ -21,52 +21,52 @@ struct SelectCase {
 
 /// Phase 108: mixed send+recv select lowers to one tagged `__syx_channel_select` array poll.
 /// Tagged arm convention: `[dir, channel, payload?]` with dir 0=recv, 1=send.
-pub const SELECT_MIXED_UNIFIED_FINGERPRINT: &str = "select-mixed-unified-v1:tagged-array-poll";
+pub const SELECT_MIXED_UNIFIED_DIGEST: &str = "select-mixed-unified-v1:tagged-array-poll";
 
 /// Phase 109: mixed select case bodies may interleave `await` (hard gate).
-pub const SELECT_MIXED_AWAIT_FINGERPRINT: &str = "select-mixed-await-v1:interleave";
+pub const SELECT_MIXED_AWAIT_DIGEST: &str = "select-mixed-await-v1:interleave";
 
 /// Phase 110: mixed+await select poll must honor cancel or deadline timeout.
-pub const SELECT_MIXED_TIMEOUT_FINGERPRINT: &str = "select-mixed-timeout-v1:cancel-or-deadline";
+pub const SELECT_MIXED_TIMEOUT_DIGEST: &str = "select-mixed-timeout-v1:cancel-or-deadline";
 
 /// Phase 111: language-level `timeout(ms):` / `deadline ms:` select arms (not env-only GA).
-pub const SELECT_TIMEOUT_SYNTAX_FINGERPRINT: &str = "select-timeout-syntax-v1:lang-arm";
+pub const SELECT_TIMEOUT_SYNTAX_DIGEST: &str = "select-timeout-syntax-v1:lang-arm";
 
 /// Phase 112 (historical): mixed+await unified with language timeout/deadline ms.
-pub const SELECT_DEADLINE_UNIFY_FINGERPRINT: &str = "select-deadline-unify-v1:lang-over-env";
+pub const SELECT_DEADLINE_UNIFY_DIGEST: &str = "select-deadline-unify-v1:lang-over-env";
 
 /// Phase 113: mixed+await requires syntax timeout/deadline; env fallback hard-banned.
-pub const SELECT_DEADLINE_STRICT_FINGERPRINT: &str = "select-deadline-strict-v1:no-env";
+pub const SELECT_DEADLINE_STRICT_DIGEST: &str = "select-deadline-strict-v1:no-env";
 
 /// Legacy alias name kept for call sites; value is the Phase 108 unified fingerprint.
-pub const SELECT_MIXED_POLL_FINGERPRINT: &str = SELECT_MIXED_UNIFIED_FINGERPRINT;
+pub const SELECT_MIXED_POLL_DIGEST: &str = SELECT_MIXED_UNIFIED_DIGEST;
 
 pub fn select_mixed_poll_digest() -> &'static str {
-    SELECT_MIXED_UNIFIED_FINGERPRINT
+    SELECT_MIXED_UNIFIED_DIGEST
 }
 
 pub fn select_mixed_unified_digest() -> &'static str {
-    SELECT_MIXED_UNIFIED_FINGERPRINT
+    SELECT_MIXED_UNIFIED_DIGEST
 }
 
 pub fn select_mixed_await_digest() -> &'static str {
-    SELECT_MIXED_AWAIT_FINGERPRINT
+    SELECT_MIXED_AWAIT_DIGEST
 }
 
 pub fn select_mixed_timeout_digest() -> &'static str {
-    SELECT_MIXED_TIMEOUT_FINGERPRINT
+    SELECT_MIXED_TIMEOUT_DIGEST
 }
 
 pub fn select_timeout_syntax_digest() -> &'static str {
-    SELECT_TIMEOUT_SYNTAX_FINGERPRINT
+    SELECT_TIMEOUT_SYNTAX_DIGEST
 }
 
 pub fn select_deadline_unify_digest() -> &'static str {
-    SELECT_DEADLINE_UNIFY_FINGERPRINT
+    SELECT_DEADLINE_UNIFY_DIGEST
 }
 
 pub fn select_deadline_strict_digest() -> &'static str {
-    SELECT_DEADLINE_STRICT_FINGERPRINT
+    SELECT_DEADLINE_STRICT_DIGEST
 }
 
 /// Cap on syntax diagnostics retained in collecting mode (LSP).
@@ -2586,11 +2586,11 @@ impl Parser {
         // Phase 112: mixed+await + syntax timeout/deadline unifies language ms over env.
         // Phase 113: env fallback hard-banned; mixed+await without timeout/deadline does not compile
         // (`select-deadline-strict-v1:no-env`).
-        let _ = SELECT_MIXED_UNIFIED_FINGERPRINT;
-        let _ = SELECT_MIXED_AWAIT_FINGERPRINT;
+        let _ = SELECT_MIXED_UNIFIED_DIGEST;
+        let _ = SELECT_MIXED_AWAIT_DIGEST;
         let mixed_await = select_cases_have_await(cases);
         if mixed_await {
-            let _ = SELECT_MIXED_TIMEOUT_FINGERPRINT;
+            let _ = SELECT_MIXED_TIMEOUT_DIGEST;
         }
         let lang_timeout_ms = timeout_arm.as_ref().map(|(ms, _)| ms.clone());
         if mixed_await && lang_timeout_ms.is_none() {
@@ -2601,10 +2601,10 @@ impl Parser {
             .with_span(&self.source, span, "select"));
         }
         if timeout_arm.is_some() {
-            let _ = SELECT_TIMEOUT_SYNTAX_FINGERPRINT;
+            let _ = SELECT_TIMEOUT_SYNTAX_DIGEST;
             if mixed_await {
-                let _ = SELECT_DEADLINE_UNIFY_FINGERPRINT;
-                let _ = SELECT_DEADLINE_STRICT_FINGERPRINT;
+                let _ = SELECT_DEADLINE_UNIFY_DIGEST;
+                let _ = SELECT_DEADLINE_STRICT_DIGEST;
             }
         }
         let mixed_await_lang_timeout = mixed_await && lang_timeout_ms.is_some();

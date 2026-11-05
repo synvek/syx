@@ -43,12 +43,3 @@ fn token_decl_hygiene_example_run_file() {
     );
 }
 
-#[test]
-fn token_decl_hygiene_fingerprint_strings() {
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let hygiene_rs = include_str!("../../../syx-macro/src/hygiene.rs");
-    let lib = include_str!("../../src/lib.rs");
-    assert!(user_rs.contains("macro-token-v3:decl-hygiene-mvp"));
-    assert!(hygiene_rs.contains("macro-token-v3:decl-hygiene-mvp"));
-    assert!(lib.contains("macro-token-v3:decl-hygiene-mvp"));
-}

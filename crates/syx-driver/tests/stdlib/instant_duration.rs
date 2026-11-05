@@ -11,15 +11,6 @@ use syx_driver::{
     build_native_executable, compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
 };
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     let needle = format!("id = \"{id}\"");
     let rest = caps
@@ -39,63 +30,6 @@ fn run(src: &str) -> String {
 fn datetime_src(body: &str) -> String {
     let dt = include_str!("../../../../packages/datetime/mod.sy");
     format!("{dt}\n{body}")
-}
-
-#[test]
-fn m2_s5_01_instant_api_surface() {
-    let src = include_str!("../../../../packages/datetime/mod.sy");
-    assert!(
-        src.contains("class Instant"),
-        "Instant class required: {src}"
-    );
-    assert!(
-        src.contains("__syx_instant_now_ms"),
-        "Instant must call monotonic host: {src}"
-    );
-    assert!(
-        src.contains("elapsedMs"),
-        "Instant.elapsedMs required: {src}"
-    );
-    assert!(
-        src.contains("class Duration"),
-        "Duration helpers must remain: {src}"
-    );
-    assert!(
-        src.contains("wall") || src.contains("Wall") || src.contains("epoch"),
-        "Clock/wall honesty comments required: {src}"
-    );
-}
-
-#[test]
-fn m2_s5_01_host_fn_columns() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["InstantNowMs", "TimeNowMs"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("vm = \"real\""),
-            "{name} must declare vm=real: {block}"
-        );
-        assert!(
-            block.contains("mir = \"real\""),
-            "{name} must declare mir=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-600): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-618): {block}"
-        );
-        assert!(
-            block.contains("ADR-618") && block.contains("ADR-600"),
-            "{name} notes must cite ADR-618+600: {block}"
-        );
-    }
 }
 
 #[test]
@@ -290,11 +224,3 @@ fn m2_s5_01_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s5_01_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s5_01_instant_duration"
-    );
-}

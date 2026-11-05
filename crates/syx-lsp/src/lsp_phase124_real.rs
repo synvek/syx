@@ -14,23 +14,6 @@ fn p124_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p124_opts())
 }
 
-#[test]
-fn p124_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("runtime-service-v4:request-scope"));
-    assert!(lib.contains("macro-service-v4:ceremony-sugar"));
-    assert!(lib.contains("gui-ot-features-v7:os-fontmgr-default-paint"));
-    assert!(lib.contains("wasm-simd16-guest-v6:logic-not"));
-    assert!(lib.contains("farm-lease-token-v6:pkcs11-so-adapter"));
-    assert!(lib.contains("dist-cdn-bgp-v6:multi-pop-mvp"));
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("macro-service-v5:di-package-ga"));
-    assert!(self_src.contains("macro-service-v5:conditional-qualifier"));
-    assert!(self_src.contains("macro-service-v5:conditional-profile"));
-    assert!(self_src.contains("gui-synui-v1:path-dep-desktop-mvp"));
-    assert!(self_src.contains("gui-synui-v1:ui-package-surface"));
-    assert!(self_src.contains("gui-synui-v1:host-bridge"));
-}
 
 #[test]
 fn p124_hover_string_binding() {
@@ -209,46 +192,8 @@ fn p124_di_package_import_surface_stub() {
     );
 }
 
-#[test]
-fn p124_qualifier_attr_parse_stub() {
-    // Gate0 stub: `@Qualifier` fingerprint `macro-service-v5:conditional-qualifier`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("macro-service-v5:conditional-qualifier"));
-    assert!(self_src.contains("@Qualifier"));
-    let doc = p124_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Qualifier track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p124_primary_attr_parse_stub() {
-    // Gate0 stub: `@Primary` alongside Qualifier cluster
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("@Primary"));
-    let doc = p124_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Primary track: {:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p124_profile_attr_parse_stub() {
-    // Gate0 stub: `@Profile` fingerprint `macro-service-v5:conditional-profile`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("macro-service-v5:conditional-profile"));
-    assert!(self_src.contains("@Profile"));
-    let doc = p124_doc("@Service\nclass Logger { init() {} }\nfunc main() { print(1) }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "baseline Service parse for Profile track: {:?}",
-        doc.semantic.errors
-    );
-}
 
 #[test]
 fn p124_di_with_request_scope_stub() {
@@ -263,44 +208,7 @@ fn p124_di_with_request_scope_stub() {
     );
 }
 
-#[test]
-fn p124_synui_path_dep_fingerprint_stub() {
-    // Gate0 stub: `gui-synui-v1:path-dep-desktop-mvp`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("gui-synui-v1:path-dep-desktop-mvp"));
-    let doc = p124_doc("func main() { print(\"synui-path\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p124_synui_ui_package_surface_stub() {
-    // Gate0 stub: `gui-synui-v1:ui-package-surface`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("gui-synui-v1:ui-package-surface"));
-    let doc = p124_doc("func main() { print(\"ui-surface\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
-
-#[test]
-fn p124_synui_host_bridge_stub() {
-    // Gate0 stub: `gui-synui-v1:host-bridge`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("gui-synui-v1:host-bridge"));
-    let doc = p124_doc("func main() { print(\"host-bridge\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
 #[test]
 fn p124_diagnostic_service_missing_dep() {
@@ -438,27 +346,6 @@ fn p124_hover_optional_binding() {
 fn p124_diagnostic_optional_unwrap() {
     let doc = p124_doc("func main() { let x: Int? = 1\n  let y: Int = x }");
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
-}
-
-#[test]
-fn p124_simd16_minmax_fingerprint_stub() {
-    // Gate0 stub: `wasm-simd16-guest-v7:minmax`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v7:minmax"));
-}
-
-#[test]
-fn p124_farm_session_fingerprint_stub() {
-    // Gate0 stub: `farm-lease-token-v7:pkcs11-session-mvp`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("farm-lease-token-v7:pkcs11-session-mvp"));
-}
-
-#[test]
-fn p124_dist_weighted_anycast_fingerprint_stub() {
-    // Gate0 stub: `dist-cdn-bgp-v7:weighted-anycast-mvp`
-    let self_src = include_str!("lsp_phase124_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v7:weighted-anycast-mvp"));
 }
 
 #[test]

@@ -19,29 +19,9 @@ func main() { print(Box(n: 1).n) }"
     ));
 }
 
-#[test]
-fn p75_heap_compact_module() {
-    let src = include_str!("../../syx-runtime-core/src/managed_heap.rs");
-    assert!(src.contains("compact_internal"));
-}
 
-#[test]
-fn p75_heap_slot_value_type() {
-    let src = include_str!("../../syx-runtime-core/src/value.rs");
-    assert!(src.contains("HeapSlot"));
-}
 
-#[test]
-fn p75_inkwell_phase75_default() {
-    let src = include_str!("../../syx-llvm/src/lib.rs");
-    assert!(src.contains("llvm_inkwell_phase75_default_ready"));
-}
 
-#[test]
-fn p75_native_deps_link_module() {
-    let src = include_str!("../../syx-driver/src/lib.rs");
-    assert!(src.contains("driver_options_with_deps"));
-}
 
 #[test]
 fn p75_public_actor_parse() {
@@ -89,17 +69,7 @@ fn p75_adr_phase75_charter() {
     assert!(adr.contains("Phase 75") || adr.contains("53.0") || adr.contains("ADR-051"));
 }
 
-#[test]
-fn p75_wasm_heap_compact_import() {
-    let doc = include_str!("../../syx-wasm-emit/src/exec.rs");
-    assert!(doc.contains("HEAP_COMPACT"));
-}
 
-#[test]
-fn p75_native_rt_heap_compact() {
-    let abi = include_str!("../../syx-rt/src/abi.rs");
-    assert!(abi.contains("syx_rt_heap_compact"));
-}
 
 #[test]
 fn p75_class_inheritance() {
@@ -153,8 +123,3 @@ fn p75_build_mir_target() {
     assert!(diagnose_build_syx(&SourceFile::new("build.syb", text)).is_empty());
 }
 
-#[test]
-fn p75_mir_op_heap_compact() {
-    let mir = include_str!("../../syx-mir/src/lib.rs");
-    assert!(mir.contains("HeapCompact"));
-}

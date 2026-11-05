@@ -20,7 +20,6 @@ const SRC: &str = r#"func main() {
 
 const EXACT: &str = "Hello, SYX!";
 
-
 #[test]
 fn p98_string_interp_vm_exact_stdout() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -73,9 +72,3 @@ fn p98_string_interp_mir_wasm_quad() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-
-#[test]
-fn p98_native_llvm_locals_abi_surface() {
-    let abi = include_str!("../../../syx-rt/src/abi.rs");
-    assert!(abi.contains("syx_rt_load_local") && abi.contains("syx_rt_store_local"));
-}

@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 use syx_driver::{
     farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured,
-    farm_lease_auth_configure_ha, farm_lease_auth_configure_raft, farm_lease_ha_v3_fingerprint,
+    farm_lease_auth_configure_ha, farm_lease_auth_configure_raft, farm_lease_ha_v3_digest,
     farm_lease_os_child_try_serve, farm_lease_require_active, farm_lease_reset,
     farm_lease_test_lock, spawn_farm_lease_ha, spawn_farm_lease_ha_v3, spawn_farm_lease_raft,
     FARM_LEASE_DEFAULT_TOKEN,
@@ -54,7 +54,7 @@ fn p109_farm_thread_sync_not_ha_v3_ga() {
         "HA v3 must spawn OS processes via Command"
     );
     assert_ne!(
-        farm_lease_ha_v3_fingerprint(),
+        farm_lease_ha_v3_digest(),
         "farm-lease-ha-v2:process-isolated"
     );
     // Runtime: thread cluster is a different API from OS-process v3.

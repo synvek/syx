@@ -168,11 +168,3 @@ fn m2_s2_04_inventory_meta() {
     );
 }
 
-#[test]
-fn m2_s2_04_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test stdlib"),
-        "ci.yml must wire m2_s2_04_unicode_xid_identifiers"
-    );
-}

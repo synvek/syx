@@ -30,16 +30,16 @@ use crate::skia_glyph;
 use crate::skia_layout;
 use crate::{Widget, WidgetKind, WritingMode};
 
-pub const EGUI_WGPU_FINGERPRINT: &str = "gui-egui-wgpu-v1:winit-present";
-pub const HB_PAINT_FINGERPRINT: &str = "gui-hb-paint-v1:string-shape";
-pub const EMOJI_FINGERPRINT: &str = "gui-emoji-v9:font-radial-and-sweep";
-pub const VERTICAL_RL_FINGERPRINT: &str = "gui-vertical-unify-v1:hb-advance";
-pub const DOCTOR_WGPU_FINGERPRINT: &str = "gui-doctor-engine-v6:phase118";
-pub const PUMP_REENTRANCY_FINGERPRINT: &str = "gui-pump-reentrancy-v1:dirty-defer";
+pub const EGUI_WGPU_DIGEST: &str = "gui-egui-wgpu-v1:winit-present";
+pub const HB_PAINT_DIGEST: &str = "gui-hb-paint-v1:string-shape";
+pub const EMOJI_DIGEST: &str = "gui-emoji-v9:font-radial-and-sweep";
+pub const VERTICAL_RL_DIGEST: &str = "gui-vertical-unify-v1:hb-advance";
+pub const DOCTOR_WGPU_DIGEST: &str = "gui-doctor-engine-v6:phase118";
+pub const PUMP_REENTRANCY_DIGEST: &str = "gui-pump-reentrancy-v1:dirty-defer";
 
 /// Legacy alias — Phase 109 present GA is wgpu, not softbuffer.
-pub const EGUI_MVP_FINGERPRINT: &str = EGUI_WGPU_FINGERPRINT;
-pub const DOCTOR_EGUI_FINGERPRINT: &str = DOCTOR_WGPU_FINGERPRINT;
+pub const EGUI_MVP_DIGEST: &str = EGUI_WGPU_DIGEST;
+pub const DOCTOR_EGUI_DIGEST: &str = DOCTOR_WGPU_DIGEST;
 
 static FONTS_INJECTED: AtomicBool = AtomicBool::new(false);
 static EGUI_WINIT_BRIDGED: AtomicBool = AtomicBool::new(false);

@@ -61,11 +61,11 @@ struct GuiDylib {
     drain_pending: DrainPendingFn,
     button_clicked: ButtonClickedFn,
     button_take_clicked: ButtonTakeClickedFn,
-    ttf_fingerprint: FingerprintFn,
-    ime_preedit_fingerprint: FingerprintFn,
-    doctor_coverage_fingerprint: FingerprintFn,
-    harfbuzz_fingerprint: FingerprintFn,
-    font_fallback_fingerprint: FingerprintFn,
+    ttf_digest: FingerprintFn,
+    ime_preedit_digest: FingerprintFn,
+    doctor_coverage_digest: FingerprintFn,
+    harfbuzz_digest: FingerprintFn,
+    font_fallback_digest: FingerprintFn,
     glyph_coverage_percent: U32Fn,
     cjk_subset_char_count: U32Fn,
     caret_metric_px: U32Fn,
@@ -76,16 +76,16 @@ struct GuiDylib {
     shaped: BoolFn,
     paint_shaped: BoolFn,
     ime_preedit_inject: ImePreeditInjectFn,
-    wgpu_composite_fingerprint: FingerprintFn,
+    wgpu_composite_digest: FingerprintFn,
     wgpu_present_used: BoolFn,
     wgpu_composite_used: BoolFn,
     emoji_engine: FingerprintFn,
     doctor_engine_tag: FingerprintFn,
     vertical_rl_layout_used: BoolFn,
     doctor_present_mode: FingerprintFn,
-    emoji_fingerprint: FingerprintFn,
-    vertical_rl_fingerprint: FingerprintFn,
-    skia_glyph_fingerprint: FingerprintFn,
+    emoji_digest: FingerprintFn,
+    vertical_rl_digest: FingerprintFn,
+    skia_glyph_digest: FingerprintFn,
     skia_glyph_used: BoolFn,
     paragraph_paint_used: BoolFn,
     vertical_ink_used: BoolFn,
@@ -190,13 +190,13 @@ fn load_dylib(path: &Path) -> Option<GuiDylib> {
             drain_pending: *lib.get(b"syx_gui_dylib_drain_pending_handlers").ok()?,
             button_clicked: *lib.get(b"syx_gui_dylib_button_clicked").ok()?,
             button_take_clicked: *lib.get(b"syx_gui_dylib_button_take_clicked").ok()?,
-            ttf_fingerprint: *lib.get(b"syx_gui_dylib_ttf_fingerprint").ok()?,
-            ime_preedit_fingerprint: *lib.get(b"syx_gui_dylib_ime_preedit_fingerprint").ok()?,
-            doctor_coverage_fingerprint: *lib
-                .get(b"syx_gui_dylib_doctor_coverage_fingerprint")
+            ttf_digest: *lib.get(b"syx_gui_dylib_ttf_digest").ok()?,
+            ime_preedit_digest: *lib.get(b"syx_gui_dylib_ime_preedit_digest").ok()?,
+            doctor_coverage_digest: *lib
+                .get(b"syx_gui_dylib_doctor_coverage_digest")
                 .ok()?,
-            harfbuzz_fingerprint: *lib.get(b"syx_gui_dylib_harfbuzz_fingerprint").ok()?,
-            font_fallback_fingerprint: *lib.get(b"syx_gui_dylib_font_fallback_fingerprint").ok()?,
+            harfbuzz_digest: *lib.get(b"syx_gui_dylib_harfbuzz_digest").ok()?,
+            font_fallback_digest: *lib.get(b"syx_gui_dylib_font_fallback_digest").ok()?,
             glyph_coverage_percent: *lib.get(b"syx_gui_dylib_glyph_coverage_percent").ok()?,
             cjk_subset_char_count: *lib.get(b"syx_gui_dylib_cjk_subset_char_count").ok()?,
             caret_metric_px: *lib.get(b"syx_gui_dylib_caret_metric_px").ok()?,
@@ -207,8 +207,8 @@ fn load_dylib(path: &Path) -> Option<GuiDylib> {
             shaped: *lib.get(b"syx_gui_dylib_shaped").ok()?,
             paint_shaped: *lib.get(b"syx_gui_dylib_paint_shaped").ok()?,
             ime_preedit_inject: *lib.get(b"syx_gui_dylib_ime_preedit_inject").ok()?,
-            wgpu_composite_fingerprint: *lib
-                .get(b"syx_gui_dylib_wgpu_composite_fingerprint")
+            wgpu_composite_digest: *lib
+                .get(b"syx_gui_dylib_wgpu_composite_digest")
                 .ok()?,
             wgpu_present_used: *lib.get(b"syx_gui_dylib_wgpu_present_used").ok()?,
             wgpu_composite_used: *lib.get(b"syx_gui_dylib_wgpu_composite_used").ok()?,
@@ -216,9 +216,9 @@ fn load_dylib(path: &Path) -> Option<GuiDylib> {
             doctor_engine_tag: *lib.get(b"syx_gui_dylib_doctor_engine_tag").ok()?,
             vertical_rl_layout_used: *lib.get(b"syx_gui_dylib_vertical_rl_layout_used").ok()?,
             doctor_present_mode: *lib.get(b"syx_gui_dylib_doctor_present_mode").ok()?,
-            emoji_fingerprint: *lib.get(b"syx_gui_dylib_emoji_fingerprint").ok()?,
-            vertical_rl_fingerprint: *lib.get(b"syx_gui_dylib_vertical_rl_fingerprint").ok()?,
-            skia_glyph_fingerprint: *lib.get(b"syx_gui_dylib_skia_glyph_fingerprint").ok()?,
+            emoji_digest: *lib.get(b"syx_gui_dylib_emoji_digest").ok()?,
+            vertical_rl_digest: *lib.get(b"syx_gui_dylib_vertical_rl_digest").ok()?,
+            skia_glyph_digest: *lib.get(b"syx_gui_dylib_skia_glyph_digest").ok()?,
             skia_glyph_used: *lib.get(b"syx_gui_dylib_skia_glyph_used").ok()?,
             paragraph_paint_used: *lib.get(b"syx_gui_dylib_paragraph_paint_used").ok()?,
             vertical_ink_used: *lib.get(b"syx_gui_dylib_vertical_ink_used").ok()?,
@@ -635,7 +635,7 @@ pub fn drain_pending_handlers(win_id: &str) -> Vec<String> {
     }
 }
 
-fn read_fingerprint(f: FingerprintFn) -> String {
+fn read_digest(f: FingerprintFn) -> String {
     unsafe {
         let ptr = f();
         if ptr.is_null() {
@@ -645,48 +645,48 @@ fn read_fingerprint(f: FingerprintFn) -> String {
     }
 }
 
-pub fn dlopen_ttf_fingerprint() -> String {
+pub fn dlopen_ttf_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.ttf_fingerprint))
+        .map(|d| read_digest(d.ttf_digest))
         .unwrap_or_default()
 }
 
-pub fn dlopen_ime_preedit_fingerprint() -> String {
+pub fn dlopen_ime_preedit_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.ime_preedit_fingerprint))
+        .map(|d| read_digest(d.ime_preedit_digest))
         .unwrap_or_default()
 }
 
-pub fn dlopen_doctor_coverage_fingerprint() -> String {
+pub fn dlopen_doctor_coverage_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.doctor_coverage_fingerprint))
+        .map(|d| read_digest(d.doctor_coverage_digest))
         .unwrap_or_default()
 }
 
-pub fn dlopen_harfbuzz_fingerprint() -> String {
+pub fn dlopen_harfbuzz_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.harfbuzz_fingerprint))
+        .map(|d| read_digest(d.harfbuzz_digest))
         .unwrap_or_default()
 }
 
-pub fn dlopen_font_fallback_fingerprint() -> String {
+pub fn dlopen_font_fallback_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.font_fallback_fingerprint))
+        .map(|d| read_digest(d.font_fallback_digest))
         .unwrap_or_default()
 }
 
@@ -771,30 +771,30 @@ pub fn dlopen_caret_supported() -> bool {
         .unwrap_or(false)
 }
 
-pub fn dlopen_wgpu_composite_fingerprint() -> String {
+pub fn dlopen_wgpu_composite_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.wgpu_composite_fingerprint))
+        .map(|d| read_digest(d.wgpu_composite_digest))
         .unwrap_or_default()
 }
 
-pub fn dlopen_emoji_fingerprint() -> String {
+pub fn dlopen_emoji_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.emoji_fingerprint))
+        .map(|d| read_digest(d.emoji_digest))
         .unwrap_or_default()
 }
 
-pub fn dlopen_vertical_rl_fingerprint() -> String {
+pub fn dlopen_vertical_rl_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.vertical_rl_fingerprint))
+        .map(|d| read_digest(d.vertical_rl_digest))
         .unwrap_or_default()
 }
 
@@ -821,7 +821,7 @@ pub fn dlopen_emoji_engine() -> String {
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.emoji_engine))
+        .map(|d| read_digest(d.emoji_engine))
         .unwrap_or_default()
 }
 
@@ -830,7 +830,7 @@ pub fn dlopen_doctor_engine_tag() -> String {
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.doctor_engine_tag))
+        .map(|d| read_digest(d.doctor_engine_tag))
         .unwrap_or_default()
 }
 
@@ -848,16 +848,16 @@ pub fn dlopen_doctor_present_mode() -> String {
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.doctor_present_mode))
+        .map(|d| read_digest(d.doctor_present_mode))
         .unwrap_or_default()
 }
 
-pub fn dlopen_skia_glyph_fingerprint() -> String {
+pub fn dlopen_skia_glyph_digest() -> String {
     GUI_DYLIB
         .lock()
         .unwrap()
         .as_ref()
-        .map(|d| read_fingerprint(d.skia_glyph_fingerprint))
+        .map(|d| read_digest(d.skia_glyph_digest))
         .unwrap_or_default()
 }
 

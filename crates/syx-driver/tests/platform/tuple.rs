@@ -31,10 +31,3 @@ fn tuple_run_file_printed() {
     assert_eq!(lines[7].trim(), "2", "switch tuple y: {printed:?}");
 }
 
-#[test]
-fn tuple_fingerprint_strings() {
-    let surface = include_str!("../../src/lang_surface_v1.rs");
-    assert!(surface.contains("lang-tuple-v1:product-type-mvp"));
-    assert!(surface.contains("lang-tuple-v1:named-elements-mvp"));
-    assert!(surface.contains("lang-tuple-v1:docs-honesty"));
-}

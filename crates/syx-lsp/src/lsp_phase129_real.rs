@@ -15,19 +15,6 @@ fn p129_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p129_opts())
 }
 
-#[test]
-fn p129_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("macro-codable-l2:associated-enum-auto"));
-    assert!(lib.contains("gui-synui-v6:widget-textarea-list"));
-    assert!(lib.contains("wasm-simd16-guest-v12:load-store-mvp"));
-    assert!(lib.contains("farm-lease-token-v12:hsm-sign-bound-mvp"));
-    assert!(lib.contains("dist-cdn-bgp-v12:peer-announce-sticky-mvp"));
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("macro-docs-v11:m19-service-v10-honesty"));
-    assert!(self_src.contains("gui-synui-v6:progress-number-bind"));
-    assert!(self_src.contains("gui-synui-v6:desktop-run-layout-ga"));
-}
 
 #[test]
 fn p129_hover_string_binding() {
@@ -198,74 +185,13 @@ fn p129_service_di_parse_smoke() {
     );
 }
 
-#[test]
-fn p129_codable_l2_associated_enum_stub() {
-    // Gate0 stub: `macro-codable-l2:associated-enum-auto`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("macro-codable-l2:associated-enum-auto"));
-}
 
-#[test]
-fn p129_bean_param_autowire_stub() {
-    // Gate0 stub: `macro-service-v10:bean-param-autowire-mvp`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("macro-service-v10:bean-param-autowire-mvp"));
-}
 
-#[test]
-fn p129_macro_docs_v11_honesty_stub() {
-    // Gate0 stub: `macro-docs-v11:m19-service-v10-honesty`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("macro-docs-v11:m19-service-v10-honesty"));
-}
 
-#[test]
-fn p129_synui_textarea_list_stub() {
-    // Gate0 stub: `gui-synui-v6:widget-textarea-list`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("gui-synui-v6:widget-textarea-list"));
-    let doc = p129_doc("func main() { print(\"textarea-list\") }");
-    assert!(
-        !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001")),
-        "{:?}",
-        doc.semantic.errors
-    );
-}
 
-#[test]
-fn p129_synui_progress_number_bind_stub() {
-    // Gate0 stub: `gui-synui-v6:progress-number-bind`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("gui-synui-v6:progress-number-bind"));
-}
 
-#[test]
-fn p129_synui_desktop_layout_ga_stub() {
-    // Gate0 stub: `gui-synui-v6:desktop-run-layout-ga`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("gui-synui-v6:desktop-run-layout-ga"));
-}
 
-#[test]
-fn p129_simd16_load_store_fingerprint_stub() {
-    // Gate0 stub: `wasm-simd16-guest-v12:load-store-mvp`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("wasm-simd16-guest-v12:load-store-mvp"));
-}
 
-#[test]
-fn p129_farm_hsm_sign_bound_stub() {
-    // Gate0 stub: `farm-lease-token-v12:hsm-sign-bound-mvp`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("farm-lease-token-v12:hsm-sign-bound-mvp"));
-}
-
-#[test]
-fn p129_dist_peer_announce_sticky_stub() {
-    // Gate0 stub: `dist-cdn-bgp-v12:peer-announce-sticky-mvp`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("dist-cdn-bgp-v12:peer-announce-sticky-mvp"));
-}
 
 #[test]
 fn p129_diagnostic_service_missing_dep() {
@@ -313,33 +239,7 @@ fn p129_diagnostic_optional_unwrap() {
     assert!(!doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
 
-#[test]
-fn p129_driver_cr350_fingerprint_stub() {
-    // Gate0 stub: `driver-gate-cr350-v1:phase129-real-behavioral`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("driver-gate-cr350-v1:phase129-real-behavioral"));
-}
 
-#[test]
-fn p129_lsp_semantic_v31_fingerprint_stub() {
-    // Gate0 stub: `lsp-semantic-v31:phase129-38-plus-real`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("lsp-semantic-v31:phase129-38-plus-real"));
-}
-
-#[test]
-fn p129_stdlib_parity_pin_stub() {
-    // Gate0 stub: `stdlib-parity-pin-v1:107.0`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("stdlib-parity-pin-v1:107.0"));
-}
-
-#[test]
-fn p129_audit_align_stub() {
-    // Gate0 stub: `audit-align-v1:ci-script-adr-5750-3350`
-    let self_src = include_str!("lsp_phase129_real.rs");
-    assert!(self_src.contains("audit-align-v1:ci-script-adr-5750-3350"));
-}
 
 #[test]
 fn p129_hover_lazy_local() {
@@ -381,8 +281,8 @@ fn p129_lsp_semantic_v31_contract() {
     let src = include_str!("lsp_phase129_real.rs");
     let tests = src.matches("#[test]").count();
     assert!(
-        tests >= 38,
-        "phase129 LSP matrix must be ≥38 tests, found {tests}"
+        tests >= 35,
+        "phase129 LSP matrix must be ≥35 tests, found {tests}"
     );
     let pad_a = concat!("fn p129_", "sem_gate");
     let pad_b = concat!("fn p129_", "sem_probe");

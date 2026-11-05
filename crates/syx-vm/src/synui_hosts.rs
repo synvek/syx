@@ -20,76 +20,76 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
 /// Cache-v96 / Phase 124 GA host-bridge fingerprint.
-pub const SYNUI_HOST_BRIDGE_FINGERPRINT: &str = "gui-synui-v1:host-bridge";
+pub const SYNUI_HOST_BRIDGE_DIGEST: &str = "gui-synui-v1:host-bridge";
 
 /// Path-dep / desktop MVP fingerprint (compile-time proof lives in Cargo.toml + this module).
-pub const SYNUI_PATH_DEP_FINGERPRINT: &str = "gui-synui-v1:path-dep-desktop-mvp";
+pub const SYNUI_PATH_DEP_DIGEST: &str = "gui-synui-v1:path-dep-desktop-mvp";
 
 /// UI package surface fingerprint.
-pub const SYNUI_UI_PACKAGE_FINGERPRINT: &str = "gui-synui-v1:ui-package-surface";
+pub const SYNUI_UI_PACKAGE_DIGEST: &str = "gui-synui-v1:ui-package-surface";
 
 /// Phase 125 v2 fingerprints.
-pub const SYNUI_V2_DESKTOP_RUN_FINGERPRINT: &str = "gui-synui-v2:desktop-run-mvp";
-pub const SYNUI_V2_SIGNAL_CALLBACK_FINGERPRINT: &str = "gui-synui-v2:signal-callback";
-pub const SYNUI_V2_WIDGET_EXPAND_FINGERPRINT: &str = "gui-synui-v2:widget-expand";
-pub const SYNUI_V2_CI_SIBLING_CHECKOUT_FINGERPRINT: &str = "gui-synui-v2:ci-sibling-checkout";
+pub const SYNUI_V2_DESKTOP_RUN_DIGEST: &str = "gui-synui-v2:desktop-run-mvp";
+pub const SYNUI_V2_SIGNAL_CALLBACK_DIGEST: &str = "gui-synui-v2:signal-callback";
+pub const SYNUI_V2_WIDGET_EXPAND_DIGEST: &str = "gui-synui-v2:widget-expand";
+pub const SYNUI_V2_CI_SIBLING_CHECKOUT_DIGEST: &str = "gui-synui-v2:ci-sibling-checkout";
 
 /// Phase 126 v3 fingerprints.
-pub const SYNUI_V3_DESKTOP_RUN_FINGERPRINT: &str = "gui-synui-v3:desktop-run-optin";
-pub const SYNUI_V3_WIDGET_CHECKBOX_SLIDER_FINGERPRINT: &str = "gui-synui-v3:widget-checkbox-slider";
+pub const SYNUI_V3_DESKTOP_RUN_DIGEST: &str = "gui-synui-v3:desktop-run-optin";
+pub const SYNUI_V3_WIDGET_CHECKBOX_SLIDER_DIGEST: &str = "gui-synui-v3:widget-checkbox-slider";
 
 /// Phase 127 v4 fingerprints.
-pub const SYNUI_V4_SIGNAL_WIDGET_BIND_FINGERPRINT: &str = "gui-synui-v4:signal-widget-bind";
-pub const SYNUI_V4_DESKTOP_ONCLICK_WIRE_FINGERPRINT: &str = "gui-synui-v4:desktop-onclick-wire";
-pub const SYNUI_V4_WIDGET_SWITCH_RADIO_FINGERPRINT: &str = "gui-synui-v4:widget-switch-radio";
+pub const SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST: &str = "gui-synui-v4:signal-widget-bind";
+pub const SYNUI_V4_DESKTOP_ONCLICK_WIRE_DIGEST: &str = "gui-synui-v4:desktop-onclick-wire";
+pub const SYNUI_V4_WIDGET_SWITCH_RADIO_DIGEST: &str = "gui-synui-v4:widget-switch-radio";
 
 /// Phase 128 v5 fingerprints.
-pub const SYNUI_V5_TOGGLE_RADIO_BIND_FINGERPRINT: &str = "gui-synui-v5:toggle-radio-bind";
-pub const SYNUI_V5_WIDGET_PROGRESS_PICKER_FINGERPRINT: &str = "gui-synui-v5:widget-progress-picker";
-pub const SYNUI_V5_MOBILE_SURFACE_UNRETIRE_FINGERPRINT: &str =
+pub const SYNUI_V5_TOGGLE_RADIO_BIND_DIGEST: &str = "gui-synui-v5:toggle-radio-bind";
+pub const SYNUI_V5_WIDGET_PROGRESS_PICKER_DIGEST: &str = "gui-synui-v5:widget-progress-picker";
+pub const SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST: &str =
     "gui-synui-v5:mobile-surface-unretire";
 
 /// Phase 129 v6 fingerprints.
-pub const SYNUI_V6_WIDGET_TEXTAREA_LIST_FINGERPRINT: &str = "gui-synui-v6:widget-textarea-list";
-pub const SYNUI_V6_PROGRESS_NUMBER_BIND_FINGERPRINT: &str = "gui-synui-v6:progress-number-bind";
+pub const SYNUI_V6_WIDGET_TEXTAREA_LIST_DIGEST: &str = "gui-synui-v6:widget-textarea-list";
+pub const SYNUI_V6_PROGRESS_NUMBER_BIND_DIGEST: &str = "gui-synui-v6:progress-number-bind";
 /// Desktop `run()` layout GA: Row→Column + Scroll + `rekey_from` stable keys.
-pub const SYNUI_V6_DESKTOP_RUN_LAYOUT_GA_FINGERPRINT: &str = "gui-synui-v6:desktop-run-layout-ga";
+pub const SYNUI_V6_DESKTOP_RUN_LAYOUT_GA_DIGEST: &str = "gui-synui-v6:desktop-run-layout-ga";
 
 /// Phase 130 v7 fingerprints.
-pub const SYNUI_V7_WIDGET_IMAGE_SCROLL_FINGERPRINT: &str = "gui-synui-v7:widget-image-scroll";
-pub const SYNUI_V7_PICKER_SIGNAL_BIND_FINGERPRINT: &str = "gui-synui-v7:picker-signal-bind";
-pub const SYNUI_V7_WEB_LANGUAGE_SURFACE_MVP_FINGERPRINT: &str =
+pub const SYNUI_V7_WIDGET_IMAGE_SCROLL_DIGEST: &str = "gui-synui-v7:widget-image-scroll";
+pub const SYNUI_V7_PICKER_SIGNAL_BIND_DIGEST: &str = "gui-synui-v7:picker-signal-bind";
+pub const SYNUI_V7_WEB_LANGUAGE_SURFACE_MVP_DIGEST: &str =
     "gui-synui-v7:web-language-surface-mvp";
 
 /// Phase 131 v8 fingerprints.
-pub const SYNUI_V8_TEXTAREA_LIST_BIND_FINGERPRINT: &str = "gui-synui-v8:textarea-list-bind";
-pub const SYNUI_V8_WIDGET_SPACER_FINGERPRINT: &str = "gui-synui-v8:widget-spacer";
-pub const SYNUI_V8_WEB_MOBILE_SURFACE_DEEPEN_FINGERPRINT: &str =
+pub const SYNUI_V8_TEXTAREA_LIST_BIND_DIGEST: &str = "gui-synui-v8:textarea-list-bind";
+pub const SYNUI_V8_WIDGET_SPACER_DIGEST: &str = "gui-synui-v8:widget-spacer";
+pub const SYNUI_V8_WEB_MOBILE_SURFACE_DEEPEN_DIGEST: &str =
     "gui-synui-v8:web-mobile-surface-deepen";
 
 /// Phase 132 v9 fingerprints.
-pub const SYNUI_V9_IMAGE_SIGNAL_BIND_FINGERPRINT: &str = "gui-synui-v9:image-signal-bind";
-pub const SYNUI_V9_WIDGET_DIVIDER_FINGERPRINT: &str = "gui-synui-v9:widget-divider";
-pub const SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_FINGERPRINT: &str =
+pub const SYNUI_V9_IMAGE_SIGNAL_BIND_DIGEST: &str = "gui-synui-v9:image-signal-bind";
+pub const SYNUI_V9_WIDGET_DIVIDER_DIGEST: &str = "gui-synui-v9:widget-divider";
+pub const SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST: &str =
     "gui-synui-v9:web-mobile-controls-deepen";
 
 /// Phase 133 v10 fingerprints.
-pub const SYNUI_V10_WIDGET_STACK_FINGERPRINT: &str = "gui-synui-v10:widget-stack";
-pub const SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_FINGERPRINT: &str =
+pub const SYNUI_V10_WIDGET_STACK_DIGEST: &str = "gui-synui-v10:widget-stack";
+pub const SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST: &str =
     "gui-synui-v10:scrollview-signal-bind";
-pub const SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_FINGERPRINT: &str =
+pub const SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_DIGEST: &str =
     "gui-synui-v10:web-mobile-layout-deepen";
 
 /// Phase 134 v11 fingerprints.
-pub const SYNUI_V11_WIDGET_TABVIEW_FINGERPRINT: &str = "gui-synui-v11:widget-tabview";
-pub const SYNUI_V11_TAB_SIGNAL_BIND_FINGERPRINT: &str = "gui-synui-v11:tab-signal-bind";
-pub const SYNUI_V11_WEB_MOBILE_CONTROLS_DEEPEN_FINGERPRINT: &str =
+pub const SYNUI_V11_WIDGET_TABVIEW_DIGEST: &str = "gui-synui-v11:widget-tabview";
+pub const SYNUI_V11_TAB_SIGNAL_BIND_DIGEST: &str = "gui-synui-v11:tab-signal-bind";
+pub const SYNUI_V11_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST: &str =
     "gui-synui-v11:web-mobile-controls-deepen";
 
 /// Phase 135 v12 fingerprints.
-pub const SYNUI_V12_WIDGET_NAVIGATION_FINGERPRINT: &str = "gui-synui-v12:widget-navigation";
-pub const SYNUI_V12_NAV_SIGNAL_BIND_FINGERPRINT: &str = "gui-synui-v12:nav-signal-bind";
-pub const SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_FINGERPRINT: &str =
+pub const SYNUI_V12_WIDGET_NAVIGATION_DIGEST: &str = "gui-synui-v12:widget-navigation";
+pub const SYNUI_V12_NAV_SIGNAL_BIND_DIGEST: &str = "gui-synui-v12:nav-signal-bind";
+pub const SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_DIGEST: &str =
     "gui-synui-v12:web-mobile-surface-deepen";
 
 const RETIRED: &str = "retired; use SynUI surface";
@@ -215,7 +215,7 @@ fn list_sticky_with_selected(sticky: Option<&str>, selected: usize) -> String {
     }
 }
 
-fn view_structural_fingerprint(v: &View, st: &SynUiState) -> String {
+fn view_structural_digest(v: &View, st: &SynUiState) -> String {
     match v {
         View::Label { text, .. } => {
             if let Some(rest) = text.strip_prefix(DIVIDER_SENTINEL) {
@@ -245,7 +245,7 @@ fn view_structural_fingerprint(v: &View, st: &SynUiState) -> String {
         View::Column { children, key, .. } if st.stack_keys.contains(key) => {
             let inner: Vec<_> = children
                 .iter()
-                .map(|c| view_structural_fingerprint(c, st))
+                .map(|c| view_structural_digest(c, st))
                 .collect();
             format!("stack[{}]", inner.join(","))
         }
@@ -253,7 +253,7 @@ fn view_structural_fingerprint(v: &View, st: &SynUiState) -> String {
             let sel = st.tab_selected_by_key.get(key).copied().unwrap_or(0);
             let inner: Vec<_> = children
                 .iter()
-                .map(|c| view_structural_fingerprint(c, st))
+                .map(|c| view_structural_digest(c, st))
                 .collect();
             format!("tabview[sel={sel}][{}]", inner.join(","))
         }
@@ -261,7 +261,7 @@ fn view_structural_fingerprint(v: &View, st: &SynUiState) -> String {
             let depth = st.nav_depth_by_key.get(key).copied().unwrap_or(0);
             let inner: Vec<_> = children
                 .iter()
-                .map(|c| view_structural_fingerprint(c, st))
+                .map(|c| view_structural_digest(c, st))
                 .collect();
             format!("navigation[depth={depth}][{}]", inner.join(","))
         }
@@ -271,14 +271,14 @@ fn view_structural_fingerprint(v: &View, st: &SynUiState) -> String {
         View::Column { children, .. } => {
             let inner: Vec<_> = children
                 .iter()
-                .map(|c| view_structural_fingerprint(c, st))
+                .map(|c| view_structural_digest(c, st))
                 .collect();
             format!("column[{}]", inner.join(","))
         }
         View::Row { children, .. } => {
             let inner: Vec<_> = children
                 .iter()
-                .map(|c| view_structural_fingerprint(c, st))
+                .map(|c| view_structural_digest(c, st))
                 .collect();
             format!("row[{}]", inner.join(","))
         }
@@ -313,7 +313,7 @@ fn view_structural_fingerprint(v: &View, st: &SynUiState) -> String {
         View::Scroll { children, key, .. } => {
             let inner: Vec<_> = children
                 .iter()
-                .map(|c| view_structural_fingerprint(c, st))
+                .map(|c| view_structural_digest(c, st))
                 .collect();
             let offset = st.scroll_offsets_by_key.get(key).copied().unwrap_or(0.0);
             if offset != 0.0 {
@@ -670,7 +670,7 @@ fn view_from_snap(snap: &ViewSnap) -> View {
 /// the visible tree can collapse to the title label only.
 /// Fingerprint: `gui-synui-v6:desktop-run-layout-ga` (Column + Scroll + rekey_from).
 fn desktop_root_from_snap(snap: &ViewSnap, title: &str) -> View {
-    let _ = SYNUI_V6_DESKTOP_RUN_LAYOUT_GA_FINGERPRINT;
+    let _ = SYNUI_V6_DESKTOP_RUN_LAYOUT_GA_DIGEST;
     let body = view_from_snap(snap);
     let root = View::column(vec![
         View::label(format!("SYX SynUI — {title}")),
@@ -719,14 +719,14 @@ fn synui_display_likely_available() -> bool {
     true
 }
 
-fn structural_render_fingerprint(state: &SynUiState) -> String {
+fn structural_render_digest(state: &SynUiState) -> String {
     let mut parts: Vec<String> = state.signals.keys().map(|k| format!("sig:{k}")).collect();
     parts.sort();
     let tree = state
         .root
         .as_ref()
         .and_then(|h| state.views.get(h))
-        .map(|v| view_structural_fingerprint(v, state))
+        .map(|v| view_structural_digest(v, state))
         .unwrap_or_else(|| "empty".into());
     let mut fp = format!("structural:{tree}:signals={}", parts.join("+"));
     // Optional deeper count when headless opt-in (not wgpu HeadlessRenderer CI).
@@ -763,13 +763,13 @@ pub fn reset_synui_state() {
     STATE.with(|s| *s.borrow_mut() = SynUiState::default());
 }
 
-pub fn synui_fingerprint() -> &'static str {
-    SYNUI_HOST_BRIDGE_FINGERPRINT
+pub fn synui_digest() -> &'static str {
+    SYNUI_HOST_BRIDGE_DIGEST
 }
 
-pub fn host_synui_fingerprint(stack: &mut Vec<Value>) -> SyxResult<()> {
+pub fn host_synui_digest(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    stack.push(Value::Str(SYNUI_HOST_BRIDGE_FINGERPRINT.into()));
+    stack.push(Value::Str(SYNUI_HOST_BRIDGE_DIGEST.into()));
     Ok(())
 }
 
@@ -811,7 +811,7 @@ pub fn host_synui_signal_set(stack: &mut Vec<Value>) -> SyxResult<()> {
     let status = with_state_mut(|st| {
         if let Some(sig) = st.signals.get(&handle) {
             sig.set(value.clone());
-            format!("{SYNUI_V2_SIGNAL_CALLBACK_FINGERPRINT}:set:{handle}")
+            format!("{SYNUI_V2_SIGNAL_CALLBACK_DIGEST}:set:{handle}")
         } else {
             format!("synui-signal:missing:{handle}")
         }
@@ -828,7 +828,7 @@ pub fn host_synui_label(stack: &mut Vec<Value>) -> SyxResult<()> {
         handle
     });
     // Mobile surface (`packages/ui/mobile.sy`) forwards label/button/column here.
-    let _ = SYNUI_V5_MOBILE_SURFACE_UNRETIRE_FINGERPRINT;
+    let _ = SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -857,7 +857,7 @@ pub fn host_synui_button_on_click(stack: &mut Vec<Value>) -> SyxResult<()> {
                 .insert(text.clone(), handler.clone());
         }
         st.button_handlers.insert(handle.clone(), handler.clone());
-        format!("{SYNUI_V2_SIGNAL_CALLBACK_FINGERPRINT}:registered:{handle}:{handler}")
+        format!("{SYNUI_V2_SIGNAL_CALLBACK_DIGEST}:registered:{handle}:{handler}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -873,7 +873,7 @@ pub fn host_synui_button_click(stack: &mut Vec<Value>) -> SyxResult<()> {
         match crate::gui_invoke::invoke_gui_handler(&handler) {
             Ok(_) => {
                 st.click_invokes = st.click_invokes.saturating_add(1);
-                format!("{SYNUI_V2_SIGNAL_CALLBACK_FINGERPRINT}:invoked:{handler}")
+                format!("{SYNUI_V2_SIGNAL_CALLBACK_DIGEST}:invoked:{handler}")
             }
             Err(e) => format!("error:{}", e),
         }
@@ -903,7 +903,7 @@ pub fn host_synui_checkbox(stack: &mut Vec<Value>) -> SyxResult<()> {
             .insert(handle.clone(), View::checkbox(label, checked));
         handle
     });
-    let _ = SYNUI_V3_WIDGET_CHECKBOX_SLIDER_FINGERPRINT;
+    let _ = SYNUI_V3_WIDGET_CHECKBOX_SLIDER_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -918,7 +918,7 @@ pub fn host_synui_slider(stack: &mut Vec<Value>) -> SyxResult<()> {
             .insert(handle.clone(), View::slider(value, min, max));
         handle
     });
-    let _ = SYNUI_V3_WIDGET_CHECKBOX_SLIDER_FINGERPRINT;
+    let _ = SYNUI_V3_WIDGET_CHECKBOX_SLIDER_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -930,7 +930,7 @@ pub fn host_synui_switch(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.views.insert(handle.clone(), View::switch(on));
         handle
     });
-    let _ = SYNUI_V4_WIDGET_SWITCH_RADIO_FINGERPRINT;
+    let _ = SYNUI_V4_WIDGET_SWITCH_RADIO_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -944,7 +944,7 @@ pub fn host_synui_radio(stack: &mut Vec<Value>) -> SyxResult<()> {
             .insert(handle.clone(), View::radio(label, selected));
         handle
     });
-    let _ = SYNUI_V4_WIDGET_SWITCH_RADIO_FINGERPRINT;
+    let _ = SYNUI_V4_WIDGET_SWITCH_RADIO_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -958,7 +958,7 @@ pub fn host_synui_progress(stack: &mut Vec<Value>) -> SyxResult<()> {
             .insert(handle.clone(), View::linear_progress(value));
         handle
     });
-    let _ = SYNUI_V5_WIDGET_PROGRESS_PICKER_FINGERPRINT;
+    let _ = SYNUI_V5_WIDGET_PROGRESS_PICKER_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -985,7 +985,7 @@ pub fn host_synui_picker(stack: &mut Vec<Value>) -> SyxResult<()> {
             .insert(handle.clone(), View::dropdown(options, selected));
         handle
     });
-    let _ = SYNUI_V5_WIDGET_PROGRESS_PICKER_FINGERPRINT;
+    let _ = SYNUI_V5_WIDGET_PROGRESS_PICKER_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -998,7 +998,7 @@ pub fn host_synui_text_area(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.views.insert(handle.clone(), View::text_area(text));
         handle
     });
-    let _ = SYNUI_V6_WIDGET_TEXTAREA_LIST_FINGERPRINT;
+    let _ = SYNUI_V6_WIDGET_TEXTAREA_LIST_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1028,7 +1028,7 @@ pub fn host_synui_list(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.views.insert(handle.clone(), lv);
         handle
     });
-    let _ = SYNUI_V6_WIDGET_TEXTAREA_LIST_FINGERPRINT;
+    let _ = SYNUI_V6_WIDGET_TEXTAREA_LIST_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1062,7 +1062,7 @@ pub fn host_synui_signal_bool_set(stack: &mut Vec<Value>) -> SyxResult<()> {
     let status = with_state_mut(|st| {
         if let Some(sig) = st.signals_bool.get(&handle) {
             sig.set(value);
-            format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_FINGERPRINT}:bool-set:{handle}")
+            format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST}:bool-set:{handle}")
         } else {
             format!("synui-bsignal:missing:{handle}")
         }
@@ -1095,7 +1095,7 @@ pub fn host_synui_signal_number_set(stack: &mut Vec<Value>) -> SyxResult<()> {
     let status = with_state_mut(|st| {
         if let Some(sig) = st.signals_f32.get(&handle) {
             sig.set(value);
-            format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_FINGERPRINT}:number-set:{handle}")
+            format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST}:number-set:{handle}")
         } else {
             format!("synui-nsignal:missing:{handle}")
         }
@@ -1122,7 +1122,7 @@ pub fn host_synui_bind_text_field(stack: &mut Vec<Value>) -> SyxResult<()> {
         *text = Some(signal.get());
         st.bound_views
             .insert(view_handle.clone(), format!("text:{sig_handle}"));
-        format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_FINGERPRINT}:textfield:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST}:textfield:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1149,7 +1149,7 @@ pub fn host_synui_bind_checkbox(stack: &mut Vec<Value>) -> SyxResult<()> {
         *checked = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("bool:{sig_handle}"));
-        format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_FINGERPRINT}:checkbox:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST}:checkbox:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1176,7 +1176,7 @@ pub fn host_synui_bind_slider(stack: &mut Vec<Value>) -> SyxResult<()> {
         *value = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("number:{sig_handle}"));
-        format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_FINGERPRINT}:slider:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST}:slider:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1204,7 +1204,7 @@ pub fn host_synui_bind_switch(stack: &mut Vec<Value>) -> SyxResult<()> {
         *on = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("bool:{sig_handle}"));
-        format!("{SYNUI_V5_TOGGLE_RADIO_BIND_FINGERPRINT}:switch:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V5_TOGGLE_RADIO_BIND_DIGEST}:switch:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1232,7 +1232,7 @@ pub fn host_synui_bind_radio(stack: &mut Vec<Value>) -> SyxResult<()> {
         *selected = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("bool:{sig_handle}"));
-        format!("{SYNUI_V5_TOGGLE_RADIO_BIND_FINGERPRINT}:radio:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V5_TOGGLE_RADIO_BIND_DIGEST}:radio:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1260,7 +1260,7 @@ pub fn host_synui_bind_progress(stack: &mut Vec<Value>) -> SyxResult<()> {
         *value = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("number:{sig_handle}"));
-        format!("{SYNUI_V6_PROGRESS_NUMBER_BIND_FINGERPRINT}:progress:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V6_PROGRESS_NUMBER_BIND_DIGEST}:progress:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1274,7 +1274,7 @@ pub fn host_synui_image(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.views.insert(handle.clone(), View::image(source));
         handle
     });
-    let _ = SYNUI_V7_WIDGET_IMAGE_SCROLL_FINGERPRINT;
+    let _ = SYNUI_V7_WIDGET_IMAGE_SCROLL_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1290,7 +1290,7 @@ pub fn host_synui_scroll_view(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.root = Some(handle.clone());
         handle
     });
-    let _ = SYNUI_V7_WIDGET_IMAGE_SCROLL_FINGERPRINT;
+    let _ = SYNUI_V7_WIDGET_IMAGE_SCROLL_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1328,7 +1328,7 @@ pub fn host_synui_bind_picker(stack: &mut Vec<Value>) -> SyxResult<()> {
         };
         st.bound_views
             .insert(view_handle.clone(), format!("number:{sig_handle}"));
-        format!("{SYNUI_V7_PICKER_SIGNAL_BIND_FINGERPRINT}:picker:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V7_PICKER_SIGNAL_BIND_DIGEST}:picker:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1353,7 +1353,7 @@ pub fn host_synui_bind_text_area(stack: &mut Vec<Value>) -> SyxResult<()> {
         *text = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("text:{sig_handle}"));
-        format!("{SYNUI_V8_TEXTAREA_LIST_BIND_FINGERPRINT}:textarea:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V8_TEXTAREA_LIST_BIND_DIGEST}:textarea:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1396,7 +1396,7 @@ pub fn host_synui_bind_list(stack: &mut Vec<Value>) -> SyxResult<()> {
         ));
         st.bound_views
             .insert(view_handle.clone(), format!("number:{sig_handle}"));
-        format!("{SYNUI_V8_TEXTAREA_LIST_BIND_FINGERPRINT}:list:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V8_TEXTAREA_LIST_BIND_DIGEST}:list:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1419,7 +1419,7 @@ pub fn host_synui_bind_image(stack: &mut Vec<Value>) -> SyxResult<()> {
         *source = signal.get();
         st.bound_views
             .insert(view_handle.clone(), format!("text:{sig_handle}"));
-        format!("{SYNUI_V9_IMAGE_SIGNAL_BIND_FINGERPRINT}:image:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V9_IMAGE_SIGNAL_BIND_DIGEST}:image:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1435,8 +1435,8 @@ pub fn host_synui_spacer(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.views.insert(handle.clone(), View::label(label));
         handle
     });
-    let _ = SYNUI_V8_WIDGET_SPACER_FINGERPRINT;
-    let _ = SYNUI_V8_WEB_MOBILE_SURFACE_DEEPEN_FINGERPRINT;
+    let _ = SYNUI_V8_WIDGET_SPACER_DIGEST;
+    let _ = SYNUI_V8_WEB_MOBILE_SURFACE_DEEPEN_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1450,8 +1450,8 @@ pub fn host_synui_divider(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.views.insert(handle.clone(), View::label(label));
         handle
     });
-    let _ = SYNUI_V9_WIDGET_DIVIDER_FINGERPRINT;
-    let _ = SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_FINGERPRINT;
+    let _ = SYNUI_V9_WIDGET_DIVIDER_DIGEST;
+    let _ = SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1534,8 +1534,8 @@ pub fn host_synui_stack(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.root = Some(handle.clone());
         handle
     });
-    let _ = SYNUI_V10_WIDGET_STACK_FINGERPRINT;
-    let _ = SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_FINGERPRINT;
+    let _ = SYNUI_V10_WIDGET_STACK_DIGEST;
+    let _ = SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1583,7 +1583,7 @@ pub fn host_synui_bind_scroll_view(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.scroll_offsets_by_key.insert(*key, signal.get());
         st.bound_views
             .insert(view_handle.clone(), format!("scroll-offset:{sig_handle}"));
-        format!("{SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_FINGERPRINT}:scroll:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST}:scroll:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1614,8 +1614,8 @@ pub fn host_synui_tab_view(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.root = Some(handle.clone());
         handle
     });
-    let _ = SYNUI_V11_WIDGET_TABVIEW_FINGERPRINT;
-    let _ = SYNUI_V11_WEB_MOBILE_CONTROLS_DEEPEN_FINGERPRINT;
+    let _ = SYNUI_V11_WIDGET_TABVIEW_DIGEST;
+    let _ = SYNUI_V11_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1645,7 +1645,7 @@ pub fn host_synui_bind_tab_view(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.tab_selected_by_key.insert(*key, *selected);
         st.bound_views
             .insert(view_handle.clone(), format!("tab-index:{sig_handle}"));
-        format!("{SYNUI_V11_TAB_SIGNAL_BIND_FINGERPRINT}:tabview:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V11_TAB_SIGNAL_BIND_DIGEST}:tabview:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1676,8 +1676,8 @@ pub fn host_synui_navigation(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.root = Some(handle.clone());
         handle
     });
-    let _ = SYNUI_V12_WIDGET_NAVIGATION_FINGERPRINT;
-    let _ = SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_FINGERPRINT;
+    let _ = SYNUI_V12_WIDGET_NAVIGATION_DIGEST;
+    let _ = SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_DIGEST;
     stack.push(Value::Str(handle));
     Ok(())
 }
@@ -1713,7 +1713,7 @@ pub fn host_synui_bind_navigation(stack: &mut Vec<Value>) -> SyxResult<()> {
         st.nav_depth_by_key.insert(*key, depth);
         st.bound_views
             .insert(view_handle.clone(), format!("nav-depth:{sig_handle}"));
-        format!("{SYNUI_V12_NAV_SIGNAL_BIND_FINGERPRINT}:navigation:{view_handle}:{sig_handle}")
+        format!("{SYNUI_V12_NAV_SIGNAL_BIND_DIGEST}:navigation:{view_handle}:{sig_handle}")
     });
     stack.push(Value::Str(status));
     Ok(())
@@ -1744,19 +1744,19 @@ pub fn host_synui_row(stack: &mut Vec<Value>) -> SyxResult<()> {
         handle
     });
     stack.push(Value::Str(format!(
-        "{SYNUI_V2_WIDGET_EXPAND_FINGERPRINT}:{handle}"
+        "{SYNUI_V2_WIDGET_EXPAND_DIGEST}:{handle}"
     )));
     Ok(())
 }
 
 /// Structural render fingerprint for CI (no wgpu HeadlessRenderer).
-pub fn host_synui_render_fingerprint(stack: &mut Vec<Value>) -> SyxResult<()> {
+pub fn host_synui_render_digest(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
     let fp = with_state_mut(|st| {
         refresh_scroll_offsets(st);
         refresh_tab_selection(st);
         refresh_nav_depth(st);
-        structural_render_fingerprint(st)
+        structural_render_digest(st)
     });
     stack.push(Value::Str(fp));
     Ok(())
@@ -1772,11 +1772,11 @@ pub fn host_synui_run(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
     let enabled = synui_desktop_run_requested();
     let status = if !enabled {
-        format!("{SYNUI_V3_DESKTOP_RUN_FINGERPRINT}:skipped:ci-safe")
+        format!("{SYNUI_V3_DESKTOP_RUN_DIGEST}:skipped:ci-safe")
     } else if !synui_display_likely_available() {
-        format!("{SYNUI_V3_DESKTOP_RUN_FINGERPRINT}:display-unavailable")
+        format!("{SYNUI_V3_DESKTOP_RUN_DIGEST}:display-unavailable")
     } else if synui_desktop_hold_requested() {
-        let _ = SYNUI_V4_DESKTOP_ONCLICK_WIRE_FINGERPRINT;
+        let _ = SYNUI_V4_DESKTOP_ONCLICK_WIRE_DIGEST;
         let snap = with_state_mut(|st| snapshot_root_for_run(st));
         let title = with_state_mut(|st| st.title.get());
         let result = (|| {
@@ -1787,13 +1787,13 @@ pub fn host_synui_run(stack: &mut Vec<Value>) -> SyxResult<()> {
             synui::run_app(app)
         })();
         match result {
-            Ok(()) => format!("{SYNUI_V3_DESKTOP_RUN_FINGERPRINT}:entered-event-loop:closed"),
-            Err(e) => format!("{SYNUI_V3_DESKTOP_RUN_FINGERPRINT}:run-error:{e}"),
+            Ok(()) => format!("{SYNUI_V3_DESKTOP_RUN_DIGEST}:entered-event-loop:closed"),
+            Err(e) => format!("{SYNUI_V3_DESKTOP_RUN_DIGEST}:run-error:{e}"),
         }
     } else {
         // Smoke path (`SYX_SYNUI_RUN=1` alone): do not spawn AppKit off-main.
         format!(
-            "{SYNUI_V3_DESKTOP_RUN_FINGERPRINT}:entered-event-loop:ready:use---gui-visible-or-SYX_GUI_HOLD=1"
+            "{SYNUI_V3_DESKTOP_RUN_DIGEST}:entered-event-loop:ready:use---gui-visible-or-SYX_GUI_HOLD=1"
         )
     };
     stack.push(Value::Str(status));
@@ -2047,8 +2047,8 @@ mod tests {
         let pump = stack.pop().unwrap().as_str();
         assert!(pump.contains("label+button"), "{pump}");
 
-        host_synui_fingerprint(&mut stack).unwrap();
-        assert_eq!(stack.pop().unwrap().as_str(), SYNUI_HOST_BRIDGE_FINGERPRINT);
+        host_synui_digest(&mut stack).unwrap();
+        assert_eq!(stack.pop().unwrap().as_str(), SYNUI_HOST_BRIDGE_DIGEST);
     }
 
     #[test]
@@ -2081,7 +2081,7 @@ mod tests {
         let row = stack.pop().unwrap().as_str();
         assert!(row.contains("widget-expand"));
 
-        host_synui_render_fingerprint(&mut stack).unwrap();
+        host_synui_render_digest(&mut stack).unwrap();
         let fp = stack.pop().unwrap().as_str();
         assert!(fp.contains("structural:row["));
         assert!(fp.contains("textfield("));
@@ -2118,7 +2118,7 @@ mod tests {
         host_synui_row(&mut stack).unwrap();
         let _row = stack.pop().unwrap().as_str();
 
-        host_synui_render_fingerprint(&mut stack).unwrap();
+        host_synui_render_digest(&mut stack).unwrap();
         let fp = stack.pop().unwrap().as_str();
         assert!(fp.contains("checkbox("));
         assert!(fp.contains("slider("));

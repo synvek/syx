@@ -12,8 +12,8 @@ use egui::{ClippedPrimitive, TexturesDelta};
 use egui_wgpu::{Renderer, ScreenDescriptor};
 use winit::window::Window;
 
-pub const WGPU_PRESENT_FINGERPRINT: &str = "gui-egui-wgpu-v1:winit-present";
-pub const WGPU_COMPOSITE_FINGERPRINT: &str = "gui-wgpu-composite-v1:hb-emoji-tex";
+pub const WGPU_PRESENT_DIGEST: &str = "gui-egui-wgpu-v1:winit-present";
+pub const WGPU_COMPOSITE_DIGEST: &str = "gui-wgpu-composite-v1:hb-emoji-tex";
 
 static WGPU_PRESENT_OK: AtomicBool = AtomicBool::new(false);
 static WGPU_COMPOSITE_OK: AtomicBool = AtomicBool::new(false);
@@ -36,11 +36,11 @@ struct CompositeUniforms {
 }
 
 pub fn wgpu_present_digest() -> &'static str {
-    WGPU_PRESENT_FINGERPRINT
+    WGPU_PRESENT_DIGEST
 }
 
 pub fn wgpu_composite_digest() -> &'static str {
-    WGPU_COMPOSITE_FINGERPRINT
+    WGPU_COMPOSITE_DIGEST
 }
 
 pub fn softbuffer_fallback_requested() -> bool {

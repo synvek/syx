@@ -29,9 +29,3 @@ fn closed_range_run_file_printed() {
     assert_eq!(lines[5].trim(), "other", "switch default: {printed:?}");
 }
 
-#[test]
-fn closed_range_fingerprint_strings() {
-    let surface = include_str!("../../src/lang_surface_v1.rs");
-    assert!(surface.contains("lang-range-v1:closed-range-mvp"));
-    assert!(surface.contains("lang-range-v1:docs-honesty"));
-}

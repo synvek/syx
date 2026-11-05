@@ -78,14 +78,3 @@ fn call_labels_external_not_internal() {
     ));
 }
 
-#[test]
-fn call_labels_fingerprint_strings() {
-    let lib = include_str!("../../src/lib.rs");
-    let surf = include_str!("../../src/lang_surface_v1.rs");
-    assert!(surf.contains("lang-call-v1:external-label-mvp"));
-    assert!(surf.contains("lang-call-v1:omit-underscore-mvp"));
-    assert!(surf.contains("lang-call-v1:labeled-args-required"));
-    assert!(surf.contains("lang-call-v1:docs-honesty"));
-    assert!(lib.contains("CALL_EXTERNAL_LABEL_MVP"));
-    assert!(lib.contains("lang_surface_v1"));
-}

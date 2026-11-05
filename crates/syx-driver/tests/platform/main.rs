@@ -7,9 +7,6 @@
 //! - plugins / borrow / resultbuilder — evergreen platform surfaces
 
 // --- cache invalidation contracts ---
-mod cache_v108_invalidation;
-mod cache_v109_invalidation;
-mod cache_v110_invalidation;
 mod cache_v111_invalidation;
 
 // --- dist / CDN ---

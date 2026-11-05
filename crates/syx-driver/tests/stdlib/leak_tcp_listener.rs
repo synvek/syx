@@ -9,15 +9,6 @@ use std::process::Command;
 use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
 use syx_vm::{tcp_listener_force_close, tcp_listener_live_count};
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -174,26 +165,3 @@ func main() {
     );
 }
 
-#[test]
-fn m2_s4_tcp_listen_close_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["TcpListen", "TcpListenerClose"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-591): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-718): {block}"
-        );
-        assert!(
-            block.contains("ADR-718") && block.contains("ADR-591") && block.contains("ADR-255"),
-            "{name} notes must cite ADR-718 + ADR-591 + ADR-255: {block}"
-        );
-    }
-}

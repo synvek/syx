@@ -385,50 +385,50 @@ pub fn gui_glyph_coverage_percent() -> u32 {
     0
 }
 
-pub fn gui_ttf_subset_fingerprint() -> String {
+pub fn gui_ttf_subset_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_ttf_fingerprint();
+        return crate::gui_dlopen::dlopen_ttf_digest();
     }
     String::new()
 }
 
-pub fn gui_ime_preedit_fingerprint() -> String {
+pub fn gui_ime_preedit_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_ime_preedit_fingerprint();
+        return crate::gui_dlopen::dlopen_ime_preedit_digest();
     }
     String::new()
 }
 
-pub fn gui_doctor_coverage_fingerprint() -> String {
+pub fn gui_doctor_coverage_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_doctor_coverage_fingerprint();
+        return crate::gui_dlopen::dlopen_doctor_coverage_digest();
     }
     String::new()
 }
 
-pub fn gui_wgpu_composite_fingerprint() -> String {
+pub fn gui_wgpu_composite_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_wgpu_composite_fingerprint();
+        return crate::gui_dlopen::dlopen_wgpu_composite_digest();
     }
     String::new()
 }
 
-pub fn gui_emoji_fingerprint() -> String {
+pub fn gui_emoji_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_emoji_fingerprint();
+        return crate::gui_dlopen::dlopen_emoji_digest();
     }
     String::new()
 }
 
-pub fn gui_vertical_rl_fingerprint() -> String {
+pub fn gui_vertical_rl_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_vertical_rl_fingerprint();
+        return crate::gui_dlopen::dlopen_vertical_rl_digest();
     }
     String::new()
 }
@@ -481,10 +481,10 @@ pub fn gui_doctor_present_mode() -> String {
     String::new()
 }
 
-pub fn gui_skia_glyph_fingerprint() -> String {
+pub fn gui_skia_glyph_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_skia_glyph_fingerprint();
+        return crate::gui_dlopen::dlopen_skia_glyph_digest();
     }
     String::new()
 }
@@ -617,18 +617,18 @@ pub fn gui_colr_grad_used() -> bool {
     false
 }
 
-pub fn gui_harfbuzz_fingerprint() -> String {
+pub fn gui_harfbuzz_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_harfbuzz_fingerprint();
+        return crate::gui_dlopen::dlopen_harfbuzz_digest();
     }
     String::new()
 }
 
-pub fn gui_font_fallback_fingerprint() -> String {
+pub fn gui_font_fallback_digest() -> String {
     #[cfg(feature = "gui-dlopen")]
     if crate::gui_dlopen::dlopen_loaded() {
-        return crate::gui_dlopen::dlopen_font_fallback_fingerprint();
+        return crate::gui_dlopen::dlopen_font_fallback_digest();
     }
     String::new()
 }

@@ -70,7 +70,7 @@ pub use external_protocol::{
     ExternalMacroExpander, InProcessMacroExpander, PluginMacroExpander, MacroExpandRequest, MacroExpandResponse,
 };
 pub use external_sandbox::{
-    is_macro_sandbox_child_argv, macro_external_plugin_prod_fingerprint, macro_in_process_enabled,
+    is_macro_sandbox_child_argv, macro_external_plugin_prod_digest, macro_in_process_enabled,
     macro_sandbox_child_main, macro_sandbox_mode, wasm_external_macro_disabled,
 };
 pub use warnings::take_macro_warnings;

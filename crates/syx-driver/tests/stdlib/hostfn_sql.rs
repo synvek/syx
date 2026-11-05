@@ -34,7 +34,7 @@ fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
 #[test]
 fn hostfn_sql_matrix_toml_lists_sql_batch() {
     let matrix = include_str!("../../../../packages/internal/hostfn_qs1_matrix.toml");
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
+    crate::matrix_fingerprint::assert_live_matrix_digest();
     assert!(
         matrix.contains("host = \"SqlOpen\"") && matrix.contains("host = \"SqlClose\""),
         "matrix missing SqlOpen/SqlClose"

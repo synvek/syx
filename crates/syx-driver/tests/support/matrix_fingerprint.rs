@@ -17,17 +17,17 @@ fn quoted_field(src: &str, key: &str) -> &'static str {
 }
 
 /// Live `wave` / `fingerprint` from public hostfn_qs1_matrix.toml.
-pub fn matrix_wave_and_fingerprint() -> (&'static str, &'static str) {
+pub fn matrix_wave_and_digest() -> (&'static str, &'static str) {
     (quoted_field(MATRIX, "wave"), quoted_field(MATRIX, "fingerprint"))
 }
 
 /// Nail: public matrix keeps schema + stable non-tip identity.
-pub fn assert_live_matrix_fingerprint() {
+pub fn assert_live_matrix_digest() {
     assert!(
         MATRIX.contains("schema_version = 1") || MATRIX.contains("schema_version=1"),
         "hostfn_qs1_matrix.toml must declare schema_version"
     );
-    let (wave, fp) = matrix_wave_and_fingerprint();
+    let (wave, fp) = matrix_wave_and_digest();
     assert!(
         !wave.is_empty() && !wave.starts_with("A-W"),
         "public matrix wave must not be tip A-W*, got {wave:?}"

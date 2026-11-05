@@ -34,10 +34,3 @@ fn token_decl_deepen_token_run_file_printed() {
     );
 }
 
-#[test]
-fn token_decl_deepen_token_fingerprint_strings() {
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let lib = include_str!("../../src/lib.rs");
-    assert!(user_rs.contains("macro-token-v6:decl-token-subst-mvp"));
-    assert!(lib.contains("macro-token-v6:decl-token-subst-mvp"));
-}

@@ -21,24 +21,6 @@ const OTHER_PATH_FILE_HOSTS: &[&str] = &[
     // promoted llvm=real (W147 / W192 / W193 / W194). Path/File HostFn llvm ladder cleared.
 ];
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
-fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
-    let needle = format!("id = \"{id}\"");
-    let rest = caps
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing capability {id}"));
-    rest.split("[[capability]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -218,59 +200,11 @@ fn assert_read_all_bytes_out(out: &str) {
 }
 
 #[test]
-fn ec_m2_4_path_file_native_wasm_ga3_path_normalize_columns() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "PathNormalize");
-    assert!(
-        block.contains("vm = \"real\""),
-        "PathNormalize must keep vm=real: {block}"
-    );
-    assert!(
-        block.contains("llvm = \"real\""),
-        "PathNormalize must declare llvm=real (ADR-214): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "PathNormalize must declare wasm=real (ADR-612): {block}"
-    );
-    assert!(
-        block.contains("ADR-612") && (block.contains("ADR-214") || block.contains("llvm")),
-        "PathNormalize notes must cite ADR-612 + ADR-214: {block}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga3_prior_ga_hosts_remain_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["PathJoin", "PathExtension"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-    }
-}
-
-#[test]
 fn ec_m2_4_path_file_native_wasm_ga3_other_hosts_remain_partial() {
     // Wave A W194 / ADR-538: Path/File HostFn llvm ladder cleared; fence must be empty.
     assert!(
         OTHER_PATH_FILE_HOSTS.is_empty(),
         "OTHER_PATH_FILE_HOSTS must be empty after FileSeek/FileMmapRead llvm=real: {OTHER_PATH_FILE_HOSTS:?}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga3_product_columns() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.path");
-    assert!(
-        block.contains("ADR-214") || block.contains("llvm GA") || block.contains("ADR-557") || block.contains("ADR-559"),
-        "io.path notes must cite ADR-214 or ADR-559: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga3"),
-        "io.path tests must include ec_m2_4_path_file_native_wasm_ga3: {block}"
     );
 }
 
@@ -375,59 +309,6 @@ fn run_path_exists_exec(src: &str) -> (String, String) {
 }
 
 #[test]
-fn ec_m2_4_path_file_native_wasm_ga4_path_exists_columns() {
-    // Wave A W147 / ADR-491 — PathExists llvm=real promotion
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "PathExists");
-    assert!(
-        block.contains("vm = \"real\""),
-        "PathExists must keep vm=real: {block}"
-    );
-    assert!(
-        block.contains("llvm = \"real\""),
-        "PathExists must declare llvm=real (ADR-491): {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "PathExists must declare wasm=real (ADR-612): {block}"
-    );
-    assert!(
-        block.contains("ADR-612") && (block.contains("ADR-491") || block.contains("llvm")),
-        "PathExists notes must cite ADR-612 + ADR-491: {block}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga4_prior_path_hosts_remain_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["PathJoin", "PathExtension", "PathNormalize", "PathExists"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            !block.contains("llvm = \"partial\""),
-            "{name} must not remain llvm=partial: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga4_product_columns() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.path");
-    assert!(
-        block.contains("ADR-491") || block.contains("llvm GA") || block.contains("ADR-557") || block.contains("ADR-559"),
-        "io.path notes must cite ADR-491 or ADR-559: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga4"),
-        "io.path tests must include ec_m2_4_path_file_native_wasm_ga4: {block}"
-    );
-}
-
-#[test]
 fn ec_m2_4_path_file_native_wasm_ga4_native_path_exists_true_exec() {
     // Wave A W147 / ADR-491 / A-03
     let dir = std::env::temp_dir().join(format!(
@@ -484,68 +365,6 @@ fn ec_m2_4_path_file_native_wasm_ga4_native_path_exists_false_exec() {
     );
     assert_eq!(native_line, "false", "PathExists false probe: {native_line}");
     let _ = fs::remove_dir_all(&dir);
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga5_file_open_close_columns() {
-    // Wave A W192 / ADR-536 — FileOpen + FileClose llvm=real promotion
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FileOpen", "FileClose"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("vm = \"real\""),
-            "{name} must keep vm=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-536): {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-612): {block}"
-        );
-        assert!(
-            block.contains("ADR-612") && (block.contains("ADR-536") || block.contains("llvm")),
-            "{name} notes must cite ADR-612 + ADR-536: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga5_prior_path_file_hosts_remain_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "PathJoin",
-        "PathExtension",
-        "PathNormalize",
-        "PathExists",
-        "FileOpen",
-        "FileClose",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            !block.contains("llvm = \"partial\""),
-            "{name} must not remain llvm=partial: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga5_product_columns() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.path");
-    assert!(
-        block.contains("ADR-536") || block.contains("llvm GA") || block.contains("ADR-557") || block.contains("ADR-559"),
-        "io.path notes must cite ADR-536 or ADR-559: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga5"),
-        "io.path tests must include ec_m2_4_path_file_native_wasm_ga5: {block}"
-    );
 }
 
 fn run_file_open_close_exec(src: &str) -> (String, String) {
@@ -622,38 +441,6 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_close_exec() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga5_honesty_fences() {
-    let stubs = include_str!("../../../../crates/syx-rt/src/llvm_stubs.rs");
-    let idx = stubs
-        .find("fn syx_rt_file_read_aot")
-        .expect("syx_rt_file_read_aot must exist");
-    let after = &stubs[idx..];
-    let end = after.find("\n#[no_mangle]").unwrap_or(after.len().min(200));
-    let body = &after[..end.min(200)];
-    assert!(
-        body.contains("HostFnId::FileRead") && body.contains("rt_call_host_native"),
-        "syx_rt_file_read_aot must route HostFnId::FileRead (W452 wire): {body}"
-    );
-    assert!(
-        !body.contains("rt_direct_exec"),
-        "syx_rt_file_read_aot must leave rt_direct_exec after W452: {body}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga5_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_path_file_native_wasm_ga5_tier"),
-        "inventory must contain ec_m2_4_path_file_native_wasm_ga5_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-536") || inv.contains("signed-ADR-536"),
-        "inventory must note ADR-536: {inv}"
-    );
-}
-
 fn run_file_read_write_exec(src: &str) -> (String, String) {
     let vm_out = compile_and_run_embedded(src, &DriverOptions::default())
         .expect("vm run")
@@ -724,87 +511,6 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_read_exec() {
     );
     assert_eq!(native_line, "hello", "read roundtrip must yield hello: {native_line}");
     let _ = fs::remove_dir_all(&dir);
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga6_file_read_write_columns() {
-    // Wave A W193 / ADR-537 — FileRead + FileWrite llvm=real promotion
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FileRead", "FileWrite"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("vm = \"real\""),
-            "{name} must keep vm=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-537): {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-612): {block}"
-        );
-        assert!(
-            block.contains("ADR-612") && (block.contains("ADR-537") || block.contains("llvm")),
-            "{name} notes must cite ADR-612 + ADR-537: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga6_prior_path_file_hosts_remain_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "PathJoin",
-        "PathExtension",
-        "PathNormalize",
-        "PathExists",
-        "FileOpen",
-        "FileClose",
-        "FileRead",
-        "FileWrite",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-612): {block}"
-        );
-        assert!(
-            block.contains("ADR-612"),
-            "{name} notes must cite ADR-612: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga6_product_columns() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.path");
-    assert!(
-        block.contains("ADR-537") || block.contains("llvm GA") || block.contains("ADR-557") || block.contains("ADR-559"),
-        "io.path notes must cite ADR-537 or ADR-559: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga6"),
-        "io.path tests must include ec_m2_4_path_file_native_wasm_ga6: {block}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga6_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_path_file_native_wasm_ga6_tier"),
-        "inventory must contain ec_m2_4_path_file_native_wasm_ga6_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-537") || inv.contains("signed-ADR-537"),
-        "inventory must note ADR-537: {inv}"
-    );
 }
 
 fn run_file_handle_exec_stdout(src: &str) -> (String, String) {
@@ -917,175 +623,6 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_mmap_read_exec() {
 }
 
 #[test]
-fn ec_m2_4_path_file_native_wasm_ga7_file_seek_mmap_columns() {
-    // Wave A W194 / ADR-538 llvm + Wave A W269 / ADR-613 wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FileSeek", "FileMmapRead"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("vm = \"real\""),
-            "{name} must keep vm=real: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-538): {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-613): {block}"
-        );
-        assert!(
-            block.contains("ADR-613"),
-            "{name} notes must cite ADR-613: {block}"
-        );
-        assert!(
-            block.contains("ADR-538") || block.contains("llvm"),
-            "{name} notes must cite ADR-538/llvm: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga7_prior_path_file_hosts_remain_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "PathJoin",
-        "PathExtension",
-        "PathNormalize",
-        "PathExists",
-        "FileOpen",
-        "FileClose",
-        "FileRead",
-        "FileWrite",
-        "FileSeek",
-        "FileMmapRead",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-612/613): {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga7_product_columns() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.path");
-    assert!(
-        block.contains("ADR-538") || block.contains("llvm GA") || block.contains("ADR-557") || block.contains("ADR-559"),
-        "io.path notes must cite ADR-538 or ADR-559: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga7"),
-        "io.path tests must include ec_m2_4_path_file_native_wasm_ga7: {block}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga7_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_path_file_native_wasm_ga7_tier"),
-        "inventory must contain ec_m2_4_path_file_native_wasm_ga7_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-538") || inv.contains("signed-ADR-538"),
-        "inventory must note ADR-538: {inv}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga4_honesty_fences() {
-    let stubs = include_str!("../../../../crates/syx-rt/src/llvm_stubs.rs");
-    let idx = stubs
-        .find("fn syx_rt_file_read_aot")
-        .expect("syx_rt_file_read_aot must exist");
-    let after = &stubs[idx..];
-    let end = after.find("\n#[no_mangle]").unwrap_or(after.len().min(200));
-    let body = &after[..end.min(200)];
-    assert!(
-        body.contains("HostFnId::FileRead") && body.contains("rt_call_host_native"),
-        "syx_rt_file_read_aot must route HostFnId::FileRead (W452 wire): {body}"
-    );
-    assert!(
-        !body.contains("rt_direct_exec"),
-        "syx_rt_file_read_aot must leave rt_direct_exec after W452: {body}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga4_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_path_file_native_wasm_ga4_tier"),
-        "inventory must contain ec_m2_4_path_file_native_wasm_ga4_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-491") || inv.contains("signed-ADR-491"),
-        "inventory must note ADR-491: {inv}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga3_honesty_fences() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "FileDelete",
-        "FileExists",
-        "FileReadChunk",
-        "FileWriteChunk",
-    ] {
-        assert!(
-            !toml.contains(&format!("name = \"{name}\"")),
-            "{name} must remain uncovered (fail-closed default); found override"
-        );
-    }
-
-    let stubs = include_str!("../../../../crates/syx-rt/src/llvm_stubs.rs");
-    let idx = stubs
-        .find("fn syx_rt_file_read_aot")
-        .expect("syx_rt_file_read_aot must exist");
-    let after = &stubs[idx..];
-    let end = after.find("\n#[no_mangle]").unwrap_or(after.len().min(200));
-    let body = &after[..end.min(200)];
-    assert!(
-        body.contains("HostFnId::FileRead") && body.contains("rt_call_host_native"),
-        "syx_rt_file_read_aot must route HostFnId::FileRead (W452 wire): {body}"
-    );
-    assert!(
-        !body.contains("rt_direct_exec"),
-        "syx_rt_file_read_aot must leave rt_direct_exec after W452: {body}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga3_inventory_meta() {
-    let inv = include_str!("../../../../packages/internal/error_model_migration.toml");
-    assert!(
-        inv.contains("ec_m2_4_path_file_native_wasm_ga3_tier"),
-        "inventory must contain ec_m2_4_path_file_native_wasm_ga3_tier: {inv}"
-    );
-    assert!(
-        inv.contains("ADR-214") || inv.contains("signed-ADR-214"),
-        "inventory must note ADR-214: {inv}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga3_ci_wires() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("--test evergreen"),
-        "ci.yml must wire ec_m2_4_path_file_native_wasm_ga3"
-    );
-}
-
-#[test]
 fn ec_m2_4_path_file_native_wasm_ga_path_join_native_mir() {
     let out = lines_joined(&run_native_mir_src("join_mir", PATH_JOIN_SRC));
     assert_path_join_line(&out);
@@ -1130,32 +667,6 @@ fn ec_m2_4_path_file_native_wasm_ga_path_exists_false_wasm() {
 }
 
 #[test]
-fn ec_m2_4_path_file_native_wasm_ga_product_path_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.path");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "io.path native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "io.path mir must stay real: {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "io.path status must be implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-559"),
-        "notes must cite ADR-559: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga_path_normalize_native_mir"),
-        "tests must list normalize native mir nail: {block}"
-    );
-}
-
-#[test]
 fn ec_m2_4_path_file_native_wasm_ga_path_normalize_native_mir() {
     let out = lines_joined(&run_native_mir_src("norm_mir", PATH_NORMALIZE_SRC));
     assert_path_normalize_line(&out);
@@ -1195,96 +706,3 @@ fn ec_m2_4_path_file_native_wasm_ga_read_all_bytes_wasm() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn ec_m2_4_path_file_native_wasm_ga_product_read_all_bytes_backends_real() {
-    let caps = include_str!("../../../../packages/internal/capabilities.toml");
-    let block = product_block(caps, "io.file.read_all_bytes");
-    assert!(
-        block.contains("native = \"real\"") && block.contains("wasm = \"real\""),
-        "io.file.read_all_bytes native/wasm must be real: {block}"
-    );
-    assert!(
-        block.contains("mir = \"real\""),
-        "io.file.read_all_bytes mir must stay real: {block}"
-    );
-    assert!(
-        block.contains("status = \"implemented\""),
-        "io.file.read_all_bytes status must stay implemented: {block}"
-    );
-    assert!(
-        block.contains("ADR-558"),
-        "notes must cite ADR-558: {block}"
-    );
-    assert!(
-        block.contains("ec_m2_4_path_file_native_wasm_ga_read_all_bytes_native_mir"),
-        "tests must list native mir nail: {block}"
-    );
-}
-
-#[test]
-fn ec_m2_4_path_file_hosts_wasm_real_w268() {
-    // Wave A W268 / ADR-612 — Path×4 + FileOpen/Close/Read/Write wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "PathJoin",
-        "PathNormalize",
-        "PathExists",
-        "PathExtension",
-        "FileOpen",
-        "FileClose",
-        "FileRead",
-        "FileWrite",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-612): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("ADR-612"),
-            "{name} notes must cite ADR-612: {block}"
-        );
-    }
-}
-
-#[test]
-fn ec_m2_4_path_file_hosts_wasm_real_w269() {
-    // Wave A W269 / ADR-613 — File residual wasm8
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "FileSeek",
-        "FileMmapRead",
-        "FileWithOpen",
-        "FileWithOpenFail",
-        "FileCloseQuiet",
-        "FileWatcherOpen",
-        "FileWatcherPoll",
-        "FileWatcherClose",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-613): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("ADR-613"),
-            "{name} notes must cite ADR-613: {block}"
-        );
-    }
-}

@@ -1,21 +1,7 @@
 //! Phase 91: Relocating GC v12 churn + relocate_count hard.
 
-use syx_driver::{compile_and_run_embedded, DriverOptions};
+use syx_driver::DriverOptions;
 use syx_runtime_core::{relocate_count, reset_relocate_count};
-
-fn run(src: &str) -> String {
-    syx_host_plugin::register_echo_plugin_in_process();
-    compile_and_run_embedded(src, &DriverOptions::default())
-        .unwrap()
-        .printed
-        .join("\n")
-}
-
-
-#[test]
-fn p98_gc_relocating_api_surface() {
-    assert!(include_str!("../../../syx-runtime-core/src/managed_heap.rs").contains("relocate_global"));
-}
 
 #[test]
 fn p98_gc_relocating_count_smoke() {

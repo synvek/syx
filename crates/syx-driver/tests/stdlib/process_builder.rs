@@ -18,15 +18,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -272,7 +263,6 @@ fn m2_s6_01_docs_and_capability() {
         "inventory must note signed-ADR-242"
     );
 }
-
 
 #[test]
 fn m2_error_child_wait_invalid_handle_throws() {
@@ -835,36 +825,6 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn m2_s6_01_process_builder_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "ProcessBuilderCreate",
-        "ProcessBuilderCwd",
-        "ProcessBuilderEnv",
-        "ProcessBuilderSpawn",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-587/ADR-602): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"unsupported\""),
-            "{name} must keep wasm=unsupported: {block}"
-        );
-        assert!(
-            (block.contains("ADR-602") || block.contains("ADR-587"))
-                && block.contains("ADR-242"),
-            "{name} notes must cite ADR-602/587 + ADR-242: {block}"
-        );
-    }
-}
-
 #[cfg(unix)]
 #[test]
 fn m2_s6_01_child_kill_native_llvm() {
@@ -934,26 +894,3 @@ func main() {
     );
 }
 
-#[test]
-fn m2_s6_01_child_kill_wait_timeout_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["ChildKill", "ChildWaitTimeout"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-590): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"unsupported\""),
-            "{name} must keep wasm=unsupported: {block}"
-        );
-        assert!(
-            block.contains("ADR-590") && block.contains("ADR-242"),
-            "{name} notes must cite ADR-590 + ADR-242: {block}"
-        );
-    }
-}

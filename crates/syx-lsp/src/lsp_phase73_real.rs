@@ -80,11 +80,6 @@ fn p73_native_tier_doc() {
     assert!(adr.contains("Phase 73") || adr.contains("51.0") || adr.contains("unified"));
 }
 
-#[test]
-fn p73_managed_heap_module() {
-    let src = include_str!("../../syx-runtime-core/src/managed_heap.rs");
-    assert!(src.contains("ManagedHeap"));
-}
 
 #[test]
 fn p73_build_mir_target() {

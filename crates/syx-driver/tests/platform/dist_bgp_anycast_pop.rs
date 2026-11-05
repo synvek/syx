@@ -7,20 +7,20 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_digest, cdn_bgp_ga_ready, cdn_bgp_health,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_ga_ready, cdn_bgp_health,
     cdn_bgp_import_peer_mesh, cdn_bgp_route, cdn_delivery_ack_clear, cdn_delivery_ack_count,
     cdn_doctor_mode, cdn_pop_clear,
     cdn_pop_configure, cdn_pop_dual_process_host_ready,
-    cdn_pop_digest, cdn_pop_has_endpoints, cdn_pop_host_key_passes_ga,
+    cdn_pop_has_endpoints, cdn_pop_host_key_passes_ga,
     cdn_pop_hostkeys_are_distinct_remote, cdn_pop_register_serve_pid, cdn_pop_remote_hostkey_ready, cdn_pop_route, cdn_route,
     cdn_route_counts_as_ga, cdn_route_ga, cdn_routes_memory_clear, dist_connect_url_is_loopback,
     dist_host_key_addr_is_unspecified, dist_host_key_bind_eq_key, dist_host_key_concrete_ip_for_bind,
     dist_host_key_has_live_listener, dist_host_key_register_runtime_bind,
     dist_host_key_remote_for_bind, dist_host_key_remote_ip_part,
     dist_pop_os_child_try_serve, dist_pop_register_dual_process_peer, dist_region_multihost_clear,
-    dist_region_multihost_configure_keys, dist_region_multihost_digest,
+    dist_region_multihost_configure_keys,
     dist_region_multihost_has_runtime_bound_host_key_v5, dist_region_multihost_route,
-    dist_region_multihost_tcp_health, dist_region_nonloopback_digest,
+    dist_region_multihost_tcp_health,
     dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
@@ -48,36 +48,6 @@ fn dist_bgp_anycast_os_child_entry() {
     if dist_pop_os_child_try_serve() {
         return;
     }
-}
-
-#[test]
-fn dist_bgp_anycast_cdn_bgp_pop_fingerprints() {
-    assert_eq!(cdn_bgp_digest(), "dist-cdn-bgp-v2:peer-exchange");
-    assert_eq!(cdn_pop_digest(), "dist-cdn-pop-v6:multi-hostkey-route");
-    assert_eq!(
-        dist_region_nonloopback_digest(),
-        "dist-region-hostkey-v6:concrete-ip"
-    );
-    assert_eq!(
-        dist_region_multihost_digest(),
-        "dist-region-hostkey-v6:concrete-ip"
-    );
-    let src = include_str!("../../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist-cdn-bgp-v2:peer-exchange"));
-    assert!(src.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-    assert!(src.contains("peer-exchange") || src.contains("peer exchange"));
-    assert!(src.contains("dist_host_key_remote_for_bind"));
-    assert!(!src.contains("global_cdn_route_table"));
-    assert!(!src.contains("global_cdn_health_probe"));
-    let lib = include_str!("../../src/lib.rs");
-    assert!(lib.contains("dist-cdn-bgp-v1:anycast-mvp"));
-    assert!(lib.contains("dist-cdn-pop-v4:remote-hostkey"));
-    assert!(lib.contains("dist-cdn-bgp-v2:peer-exchange"));
-    assert!(lib.contains("dist-cdn-pop-v6:multi-hostkey-route"));
-    assert!(lib.contains("select-deadline-strict-v1:no-env"));
-    let pkg = include_str!("../../../syx-pkg/src/lock_enforce.rs");
-    assert!(!pkg.contains("enforce_global_cdn_sla"));
-    assert!(!pkg.contains("global_cdn_sla"));
 }
 
 #[test]

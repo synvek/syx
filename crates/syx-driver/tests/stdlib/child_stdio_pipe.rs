@@ -18,15 +18,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn run_native_strict(src: &str) -> (i32, String) {
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -245,7 +236,6 @@ fn m2_s6_02b_docs_and_capability() {
     );
 }
 
-
 #[test]
 fn m2_error_child_pipe_close_invalid_handle_throws() {
     let err = run_err(
@@ -443,46 +433,6 @@ func main() {{
     );
 }
 
-#[test]
-fn m2_s6_02b_child_stdout_pipe_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "ChildWait",
-        "ChildStdout",
-        "ChildPipeReadChunk",
-        "ChildPipeClose",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-589): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"unsupported\""),
-            "{name} must keep wasm=unsupported: {block}"
-        );
-        assert!(
-            block.contains("ADR-589"),
-            "{name} notes must cite ADR-589: {block}"
-        );
-        if name == "ChildWait" {
-            assert!(
-                block.contains("ADR-242"),
-                "ChildWait notes must cite ADR-242: {block}"
-            );
-        } else {
-            assert!(
-                block.contains("ADR-243"),
-                "{name} notes must cite ADR-243: {block}"
-            );
-        }
-    }
-}
-
 #[cfg(unix)]
 #[test]
 fn m2_s6_02b_stdin_echo_native_llvm() {
@@ -523,30 +473,6 @@ func main() {
         out, "OK\n3\n3\n0",
         "native llvm ChildStdin+PipeWrite echo must exact: {out}"
     );
-}
-
-#[test]
-fn m2_s6_02b_child_stdin_write_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["ChildStdin", "ChildPipeWrite"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-590): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"unsupported\""),
-            "{name} must keep wasm=unsupported: {block}"
-        );
-        assert!(
-            block.contains("ADR-590") && block.contains("ADR-243"),
-            "{name} notes must cite ADR-590 + ADR-243: {block}"
-        );
-    }
 }
 
 #[cfg(unix)]
@@ -590,24 +516,3 @@ func main() {{
     );
 }
 
-#[test]
-fn m2_s6_02b_child_stderr_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "ChildStderr");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "ChildStderr must declare llvm=real (ADR-591): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "ChildStderr must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"unsupported\""),
-        "ChildStderr must keep wasm=unsupported: {block}"
-    );
-    assert!(
-        block.contains("ADR-591") && block.contains("ADR-243"),
-        "ChildStderr notes must cite ADR-591 + ADR-243: {block}"
-    );
-}

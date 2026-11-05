@@ -12,7 +12,7 @@ fn tls_server_ga_deepen_evidence_files_exist() {
         "packages/internal/capabilities.toml",
         "crates/syx-stdlib/src/registry.rs",
         "crates/syx-vm/src/hosts.rs",
-        "tools/sgate/tls.sy",
+        "tools/sgate/sidecars/tls.sy",
         "crates/syx-driver/tests/stdlib/tls_server_ga_thin.rs",
     ] {
         let path = format!("{root}{rel}");
@@ -28,10 +28,10 @@ fn tls_server_ga_deepen_evidence_files_exist() {
         registry.contains("TcpListenerAccept") && registry.contains("__syx_tcp_listener_accept"),
         "registry must retain TcpListenerAccept as contrast (≠ TLS GA)"
     );
-    let sgate = include_str!("../../../../tools/sgate/tls.sy");
+    let sgate = include_str!("../../../../tools/sgate/sidecars/tls.sy");
     assert!(
         sgate.contains("__syx_tls_serve") && sgate.contains("if false"),
-        "sgate tls.sy must retain __syx_tls_serve placeholder under if false"
+        "sgate sidecars/tls.sy must retain __syx_tls_serve placeholder under if false"
     );
     let caps = include_str!("../../../../packages/internal/capabilities.toml");
     assert!(

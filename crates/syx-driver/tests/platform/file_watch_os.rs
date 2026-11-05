@@ -11,18 +11,6 @@ fn run(src: &str) -> String {
 }
 
 #[test]
-fn p98_file_watch_os_io_module_surface() {
-    let io = include_str!("../../../../packages/io/mod.sy");
-    assert!(io.contains("File.watch") && io.contains("__syx_file_watch"));
-}
-
-#[test]
-fn p98_file_watch_os_host_impl_surface() {
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase84_hosts.rs");
-    assert!(hosts.contains("host_file_watch"));
-}
-
-#[test]
 fn p98_file_watch_os_stdout() {
     // Wave A W20 / ADR-364 / A-03: missing-path watch product exact (not contains soft).
     let out = run(
@@ -51,7 +39,6 @@ func main() {
     );
     assert_eq!(out, "[]", "file watch import missing-path must exact: {out}");
 }
-
 
 #[test]
 fn p98_file_watch_os_registry_host_id() {

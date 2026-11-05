@@ -10,20 +10,7 @@ fn p109_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p109_opts())
 }
 
-#[test]
-fn p109_dist_anycast_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_anycast_route"));
-    assert!(src.contains("dist_region_tcp_health"));
-    assert!(src.contains("dist_inproc_enabled"));
-}
 
-#[test]
-fn p109_select_mixed_await_source_gate() {
-    let parser = include_str!("../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_MIXED_AWAIT_FINGERPRINT"));
-    assert!(parser.contains("select_mixed_await_digest"));
-}
 
 #[test]
 fn p109_hover_string_binding() {

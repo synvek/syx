@@ -11,12 +11,6 @@ fn run(src: &str) -> String {
 }
 
 #[test]
-fn p98_net_http2_http_module_surface() {
-    let net = include_str!("../../../../packages/net/mod.sy");
-    assert!(net.contains("Http.fetch") && net.contains("__syx_http_request"));
-}
-
-#[test]
 fn p98_net_http2_vm_http_impl() {
     let src = include_str!("../../../syx-vm/src/http.rs");
     assert!(src.contains("execute_http_request") && src.contains("host_http_get"));
@@ -64,12 +58,6 @@ fn p98_net_http2_tcp_connect_stdout() {
         "{out}"
     );
     assert!(!out.contains("tcp-ok"), "{out}");
-}
-
-#[test]
-fn p98_net_http2_alpn_h2_surface() {
-    let http = include_str!("../../../syx-vm/src/http.rs");
-    assert!(http.contains("SYX_HTTP2") || http.contains("h2") || http.contains("ALPN"));
 }
 
 #[test]

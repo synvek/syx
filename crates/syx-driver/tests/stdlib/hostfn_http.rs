@@ -60,7 +60,7 @@ fn hostfn_http_matrix_toml_lists_http_batch() {
         matrix.contains("host = \"HttpGet\""),
         "matrix missing HttpGet"
     );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
+    crate::matrix_fingerprint::assert_live_matrix_digest();
     assert!(
         matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
         "Http batch must claim vm+mir covered"

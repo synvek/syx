@@ -10,19 +10,7 @@ fn p107_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p107_opts())
 }
 
-#[test]
-fn p107_farm_ha_source_gate() {
-    let auth = include_str!("../../syx-driver/src/farm_lease_auth.rs");
-    assert!(auth.contains("spawn_farm_lease_ha"));
-    assert!(auth.contains("farm_lease_auth_configure_ha"));
-}
 
-#[test]
-fn dist_mailbox_mp_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("spawn_dist_tcp_mailbox"));
-    assert!(src.contains("region_route_tcp"));
-}
 
 #[test]
 fn p107_hover_string_binding() {

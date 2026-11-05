@@ -19,7 +19,6 @@ fn run(src: &str) -> Result<Vec<String>, String> {
     }
 }
 
-
 #[test]
 fn os_network_primary_ipv4_runs_without_crash() {
     let printed = run(&with_os(
@@ -54,18 +53,3 @@ func main() {
     }
 }
 
-#[test]
-fn os_network_remains_importable_surface() {
-    let manifest = include_str!("../../../../packages/internal/manifest.json");
-    assert!(
-        manifest.contains("\"Os\"") || manifest.contains("Os"),
-        "Os must remain in importable_modules"
-    );
-    let os = include_str!("../../../../packages/os/mod.sy");
-    assert!(os.contains("public class Os"));
-    assert!(
-        os.contains("primaryIpv4")
-            && os.contains("diskTotal")
-            && os.contains("hostname")
-    );
-}

@@ -205,16 +205,16 @@ pub fn gui_font_fallback_digest() -> &'static str {
     shape::font_fallback_digest()
 }
 
-pub fn gui_ime_preedit_fingerprint() -> &'static str {
+pub fn gui_ime_preedit_digest() -> &'static str {
     "gui-ime-highlight-v1:preedit-invert"
 }
 
-pub fn gui_egui_mvp_fingerprint() -> &'static str {
-    egui_backend::EGUI_WGPU_FINGERPRINT
+pub fn gui_egui_mvp_digest() -> &'static str {
+    egui_backend::EGUI_WGPU_DIGEST
 }
 
-pub fn gui_egui_wgpu_fingerprint() -> &'static str {
-    egui_backend::EGUI_WGPU_FINGERPRINT
+pub fn gui_egui_wgpu_digest() -> &'static str {
+    egui_backend::EGUI_WGPU_DIGEST
 }
 
 pub fn gui_emoji_digest() -> &'static str {
@@ -427,12 +427,12 @@ pub fn gui_doctor_widgets() -> String {
     parts.join(":")
 }
 
-pub fn gui_vertical_rl_fingerprint() -> &'static str {
-    egui_backend::VERTICAL_RL_FINGERPRINT
+pub fn gui_vertical_rl_digest() -> &'static str {
+    egui_backend::VERTICAL_RL_DIGEST
 }
 
-pub fn gui_pump_reentrancy_fingerprint() -> &'static str {
-    egui_backend::PUMP_REENTRANCY_FINGERPRINT
+pub fn gui_pump_reentrancy_digest() -> &'static str {
+    egui_backend::PUMP_REENTRANCY_DIGEST
 }
 
 pub fn gui_wgpu_composite_digest() -> &'static str {
@@ -483,8 +483,8 @@ pub fn probe_wgpu_composite_readback_chroma(pixels: &[u32], width: u32, height: 
     wgpu_present::probe_composite_readback_chroma(pixels, width, height)
 }
 
-pub fn gui_doctor_coverage_fingerprint() -> &'static str {
-    egui_backend::DOCTOR_WGPU_FINGERPRINT
+pub fn gui_doctor_coverage_digest() -> &'static str {
+    egui_backend::DOCTOR_WGPU_DIGEST
 }
 
 pub fn gui_doctor_present_mode() -> &'static str {
@@ -1761,7 +1761,7 @@ pub fn host_gui_label_set_writing_mode(stack: &mut Vec<Value>) -> SyxResult<()> 
     };
     if ok {
         present_gui_window(&win_id);
-        stack.push(Value::Str(egui_backend::VERTICAL_RL_FINGERPRINT.into()));
+        stack.push(Value::Str(egui_backend::VERTICAL_RL_DIGEST.into()));
         return Ok(());
     }
     stack.push(Value::Str(String::new()));
@@ -2251,11 +2251,11 @@ mod tests {
             "gui-ttf-expand-v1:cjk64-plus"
         );
         assert_eq!(
-            super::gui_ime_preedit_fingerprint(),
+            super::gui_ime_preedit_digest(),
             "gui-ime-highlight-v1:preedit-invert"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let src = include_str!("lib.rs");
@@ -2567,8 +2567,8 @@ mod tests {
         assert!(super::gui_ime_preedit_supported());
         assert!(super::gui_ime_commit_supported());
         assert!(super::gui_caret_supported());
-        assert_eq!(super::gui_ime_preedit_fingerprint(), "gui-ime-highlight-v1:preedit-invert");
-        assert_eq!(super::gui_doctor_coverage_fingerprint(), "gui-doctor-engine-v6:phase118");
+        assert_eq!(super::gui_ime_preedit_digest(), "gui-ime-highlight-v1:preedit-invert");
+        assert_eq!(super::gui_doctor_coverage_digest(), "gui-doctor-engine-v6:phase118");
     }
 
     #[test]
@@ -2579,7 +2579,7 @@ mod tests {
             "gui-font-fallback-v1:system-cjk"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let src = include_str!("lib.rs");
@@ -2654,7 +2654,7 @@ mod tests {
         let src = include_str!("lib.rs");
         assert!(
             !src.contains(
-                "gui_ime_preedit_fingerprint() == \"gui-ime-highlight-v1:preedit-invert\""
+                "gui_ime_preedit_digest() == \"gui-ime-highlight-v1:preedit-invert\""
             ),
             "ime_preedit_supported must not be fingerprint string equality alone"
         );
@@ -2754,15 +2754,15 @@ mod tests {
     #[test]
     fn p108_gui_fingerprints() {
         assert_eq!(
-            super::gui_egui_mvp_fingerprint(),
+            super::gui_egui_mvp_digest(),
             "gui-egui-wgpu-v1:winit-present"
         );
         assert_eq!(
-            super::gui_pump_reentrancy_fingerprint(),
+            super::gui_pump_reentrancy_digest(),
             "gui-pump-reentrancy-v1:dirty-defer"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let src = include_str!("lib.rs");
@@ -2849,7 +2849,7 @@ mod tests {
         host_gui_widget_get_text(&mut stack).unwrap();
         assert_eq!(stack.pop().unwrap().as_str(), "a");
         assert_eq!(
-            super::gui_pump_reentrancy_fingerprint(),
+            super::gui_pump_reentrancy_digest(),
             "gui-pump-reentrancy-v1:dirty-defer"
         );
         reset_test_gui();
@@ -2887,7 +2887,7 @@ mod tests {
         assert_eq!(stack.pop().unwrap().as_str(), "xyz");
         assert!(super::gui_egui_frames(&win) >= 1);
         assert_eq!(
-            super::gui_egui_mvp_fingerprint(),
+            super::gui_egui_mvp_digest(),
             "gui-egui-wgpu-v1:winit-present"
         );
         reset_test_gui();
@@ -2896,7 +2896,7 @@ mod tests {
     #[test]
     fn p109_gui_fingerprints() {
         assert_eq!(
-            super::gui_egui_wgpu_fingerprint(),
+            super::gui_egui_wgpu_digest(),
             "gui-egui-wgpu-v1:winit-present"
         );
         assert_eq!(
@@ -2905,11 +2905,11 @@ mod tests {
         );
         assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
-            super::gui_vertical_rl_fingerprint(),
+            super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let egui = include_str!("egui_backend.rs");
@@ -2986,7 +2986,7 @@ mod tests {
         assert!(super::label_set_writing_mode(&win, &label, "vertical-rl"));
         assert!(egui_backend::vertical_rl_used());
         assert_eq!(
-            super::gui_vertical_rl_fingerprint(),
+            super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
         );
         reset_test_gui();
@@ -3000,11 +3000,11 @@ mod tests {
         );
         assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
-            super::gui_vertical_rl_fingerprint(),
+            super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         assert_eq!(super::gui_emoji_engine(), "cbdt");
@@ -3097,7 +3097,7 @@ mod tests {
     #[test]
     fn p110_gui_doctor_live_fields() {
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         shape::reset_shape_stats();
@@ -3150,11 +3150,11 @@ mod tests {
         );
         assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
-            super::gui_vertical_rl_fingerprint(),
+            super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let egui = include_str!("egui_backend.rs");
@@ -3256,11 +3256,11 @@ mod tests {
         );
         assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
-            super::gui_vertical_rl_fingerprint(),
+            super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let src = include_str!("lib.rs");
@@ -3387,7 +3387,7 @@ mod tests {
         );
         assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let layout = include_str!("skia_layout.rs");
@@ -3496,7 +3496,7 @@ mod tests {
         assert!(widgets.contains("cbdt"), "widgets: {widgets}");
         assert!(!widgets.contains("cbdt-or-colr"), "ban sticky OR tag: {widgets}");
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         reset_test_gui();
@@ -3531,7 +3531,7 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         assert_eq!(
@@ -3605,7 +3605,7 @@ mod tests {
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         let mut stack = vec![Value::Str("p117-btn".into())];
@@ -3700,7 +3700,7 @@ mod tests {
             "gui-font-vf-v1:wght-mvp"
         );
         assert_eq!(
-            super::gui_doctor_coverage_fingerprint(),
+            super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
         );
         assert!(

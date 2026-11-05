@@ -16,7 +16,7 @@ use skia_safe::{
 use ttf_parser::colr::{CompositeMode, GradientExtend, Painter, Paint as ColrPaint};
 use ttf_parser::{Face, GlyphId, OutlineBuilder, RasterImageFormat, RgbaColor, Transform};
 
-pub const EMOJI_FINGERPRINT: &str = "gui-emoji-v9:font-radial-and-sweep";
+pub const EMOJI_DIGEST: &str = "gui-emoji-v9:font-radial-and-sweep";
 
 /// Grinning face U+1F600.
 pub const EMOJI_GRIN: char = '\u{1F600}';
@@ -780,7 +780,7 @@ pub fn reset_emoji_stats() {
 }
 
 pub fn emoji_digest() -> &'static str {
-    EMOJI_FINGERPRINT
+    EMOJI_DIGEST
 }
 
 pub fn emoji_pixel(x: u32, y: u32) -> u32 {

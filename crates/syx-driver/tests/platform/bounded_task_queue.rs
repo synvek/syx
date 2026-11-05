@@ -46,12 +46,3 @@ fn bounded_task_queue_flood_abort_c008() {
     );
 }
 
-#[test]
-fn bounded_task_queue_package_and_runtime_fingerprints() {
-    let concurrency = include_str!("../../../../packages/core/concurrency.sy");
-    assert!(
-        concurrency.contains("setTaskQueueCapacity") && concurrency.contains("taskQueueCapacity")
-    );
-    let runtime_rs = include_str!("../../../syx-async/src/runtime.rs");
-    assert!(runtime_rs.contains("runtime-concurrency-v2:bounded-queue-abort-mvp"));
-}

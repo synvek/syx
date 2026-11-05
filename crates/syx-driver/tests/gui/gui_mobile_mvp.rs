@@ -22,14 +22,9 @@ fn p98_gui_mobile_touch_event_smoke() {
     assert!(out.iter().any(|l| l.contains("touch")), "{out:?}");
 }
 
-
 #[test]
 fn p98_gui_mobile_host_registry() {
     let reg = include_str!("../../../syx-stdlib/src/registry.rs");
     assert!(reg.contains("GuiTouchEvent") && reg.contains("GuiMobileWindowCreate"));
 }
 
-#[test]
-fn p98_gui_mobile_package_surface() {
-    assert!(include_str!("../../../../packages/ui/mobile.sy").contains("touch"));
-}

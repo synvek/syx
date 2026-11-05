@@ -54,10 +54,3 @@ fn service_di_and_pointcut_hits_within_and_args() {
     );
 }
 
-#[test]
-fn service_di_and_v16_fingerprint_strings() {
-    let service_rs = include_str!("../../../syx-macro/src/service.rs");
-    let lib = include_str!("../../src/lib.rs");
-    assert!(service_rs.contains("macro-service-v16:pointcut-and-compose-mvp"));
-    assert!(lib.contains("macro-service-v16:pointcut-and-compose-mvp"));
-}

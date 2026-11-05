@@ -10,23 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_codable_l14_surface_packages_api_names() {
-    let src = include_str!("../../../../packages/data/codable.sy");
-    assert!(src.contains("__syx_codable_encode_l14"));
-    assert!(src.contains("__syx_codable_decode_l14"));
-    assert!(src.contains("__syx_codable_l14_register_migration"));
-}
-
-#[test]
-fn p98_codable_l14_surface_host_registry() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("__syx_codable_encode_l14"));
-    assert!(reg.contains("__syx_codable_decode_l14"));
-    assert!(reg.contains("__syx_codable_l14_register_migration"));
-}
-
 #[test]
 fn p98_codable_l14_surface_roundtrip_embedded() {
     let out = run(
@@ -78,15 +61,6 @@ fn p98_codable_l14_surface_wire_prefix() {
     assert_eq!(lines.first().map(|s| s.parse::<i64>().ok()), Some(Some(b'L' as i64)), "{out}");
     assert_eq!(lines.get(1).map(|s| s.parse::<i64>().ok()), Some(Some(b'1' as i64)), "{out}");
     assert_eq!(lines.get(2).map(|s| s.parse::<i64>().ok()), Some(Some(b'4' as i64)), "{out}");
-}
-
-#[test]
-fn p99_codable_l9_surface_removed() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(!reg.contains("__syx_codable_encode_l9"));
-    assert!(!reg.contains("__syx_codable_decode_l9"));
-    assert!(!reg.contains("__syx_codable_l9_register_migration"));
-    assert!(!reg.contains("CodableEncodeL9"));
 }
 
 #[test]

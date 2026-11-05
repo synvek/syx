@@ -22,15 +22,6 @@ fn product_block<'a>(caps: &'a str, id: &str) -> &'a str {
     rest.split("[[capability]]").next().unwrap_or(rest)
 }
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -488,7 +479,6 @@ fn m2_s3_02b_docs_and_capability() {
     );
 }
 
-
 #[cfg(unix)]
 #[test]
 fn m2_s3_02b_with_open_fail_native_llvm() {
@@ -558,47 +548,3 @@ func main() {{
     let _ = fs::remove_file(&path);
 }
 
-#[test]
-fn m2_s3_02b_file_with_open_fail_host_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let block = host_block(toml, "FileWithOpenFail");
-    assert!(
-        block.contains("llvm = \"real\""),
-        "FileWithOpenFail must declare llvm=real (ADR-591): {block}"
-    );
-    assert!(
-        block.contains("status = \"partial\""),
-        "FileWithOpenFail must keep status=partial: {block}"
-    );
-    assert!(
-        block.contains("wasm = \"real\""),
-        "FileWithOpenFail must declare wasm=real (ADR-613): {block}"
-    );
-    assert!(
-        block.contains("ADR-613") && block.contains("ADR-591"),
-        "FileWithOpenFail notes must cite ADR-613 + ADR-591: {block}"
-    );
-}
-
-#[test]
-fn m2_s3_02b_file_with_open_host_llvm_real() {
-    // Wave A W248 / ADR-592 llvm + Wave A W269 / ADR-613 wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    let open = host_block(toml, "FileWithOpen");
-    assert!(
-        open.contains("llvm = \"real\""),
-        "FileWithOpen must declare llvm=real (ADR-592): {open}"
-    );
-    assert!(
-        open.contains("status = \"partial\""),
-        "FileWithOpen must keep status=partial: {open}"
-    );
-    assert!(
-        open.contains("wasm = \"real\""),
-        "FileWithOpen must declare wasm=real (ADR-613): {open}"
-    );
-    assert!(
-        open.contains("ADR-613") && open.contains("ADR-592"),
-        "FileWithOpen notes must cite ADR-613 + ADR-592: {open}"
-    );
-}

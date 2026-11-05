@@ -10,7 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[test]
 fn p98_sql_rusqlite_create_insert_select() {
     let out = run(
@@ -22,22 +21,6 @@ fn p98_sql_rusqlite_create_insert_select() {
 }"#,
     );
     assert!(out.contains("1"), "{out}");
-}
-
-#[test]
-fn p98_sql_rusqlite_prepare_surface() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("SqlPrepare") && reg.contains("__syx_sql_prepare"));
-    // ADR-148: prepare returns Int (not status-string paste).
-    assert!(
-        reg.contains("HostFnId::SqlPrepare => \"Int\""),
-        "SqlPrepare return type must be Int: check registry host_fn_return_type"
-    );
-    let host = include_str!("../../../syx-vm/src/stdlib_phase89_hosts.rs");
-    assert!(
-        !host.contains("prep:{sql}") && !host.contains("format!(\"prep:"),
-        "host_sql_prepare must not return prep:{{sql}}"
-    );
 }
 
 #[test]

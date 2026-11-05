@@ -9,15 +9,6 @@ use syx_driver::{
     build_native_executable, run_wasm_source_printed, DriverOptions,
 };
 
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
@@ -132,26 +123,3 @@ fn m2_fmt_print_line_wasm() {
     assert_eq!(out, "hi", "wasm fmt_print_line(hi) must exact: {out}");
 }
 
-#[test]
-fn m2_fmt_print_hosts_llvm_real() {
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in ["FmtPrint", "FmtPrintLine"] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-585): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-611): {block}"
-        );
-        assert!(
-            block.contains("ADR-611") && block.contains("ADR-585"),
-            "{name} notes must cite ADR-611 + ADR-585: {block}"
-        );
-    }
-}

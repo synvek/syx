@@ -38,7 +38,7 @@ fn hostfn_file_matrix_toml_lists_file_batch() {
         matrix.contains("vm = \"covered\"") && matrix.contains("mir = \"covered\""),
         "File batch must claim vm+mir covered"
     );
-    crate::matrix_fingerprint::assert_live_matrix_fingerprint();
+    crate::matrix_fingerprint::assert_live_matrix_digest();
     assert!(
         matrix.contains("FileWrite") && matrix.contains("wasm = \"covered\""),
         "W21 FileWrite wasm cell must be present"

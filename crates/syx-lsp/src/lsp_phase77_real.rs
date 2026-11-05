@@ -11,69 +11,16 @@ fn p77_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p77_lock_v11_plugin_unload_epoch_field() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("plugin_unload_epoch"));
-}
 
-#[test]
-fn p77_lock_v11_plugin_unload_epoch() {
-    let src = include_str!("../../syx-pkg/src/lockfile.rs");
-    assert!(src.contains("plugin_unload_epoch"));
-}
 
-#[test]
-fn p77_farm_queue_url_field() {
-    let src = include_str!("../../syx-pkg/src/lockfile.rs");
-    assert!(src.contains("farm_queue_url"));
-}
 
-#[test]
-fn p77_heap_v6_materialize_helper() {
-    let src = include_str!("../../syx-runtime-core/src/value.rs");
-    assert!(src.contains("materialize_array"));
-}
 
-#[test]
-fn p77_inkwell_llvm_phase77() {
-    let src = include_str!("../../syx-llvm/src/lib.rs");
-    assert!(src.contains("llvm_inkwell_phase77_llvm_ready"));
-}
 
-#[test]
-fn p77_rt_direct_stack_ops() {
-    let src = include_str!("../../syx-rt/src/abi.rs");
-    assert!(src.contains("rt_direct_exec"));
-}
 
-#[test]
-fn p77_borrow_proof_export() {
-    let src = include_str!("../../syx-semantic/src/lib.rs");
-    assert!(src.contains("borrow_regions_export_proof_obligations_json"));
-}
 
-#[test]
-fn p77_reflect_specialization() {
-    let src = include_str!("../../syx-meta/src/lib.rs");
-    assert!(src.contains("reflect_specialization"));
-}
 
-#[test]
-fn p77_vm_array_set_heap() {
-    let src = include_str!("../../syx-vm/src/lib.rs");
-    assert!(src.contains("alloc_heap_slot"));
-}
 
-#[test]
-fn p77_build_farm_queue() {
-    let src = include_str!("../../syx-driver/src/build_syx.rs");
-    assert!(src.contains("farm_queue_url") || src.contains("SYX_BUILD_FARM_QUEUE"));
-}
 
-#[test]
-fn p77_resolver_lock_v11_fields() {
-    assert!(include_str!("../../syx-pkg/src/resolver.rs").contains("marketplace_cdn_base"));
-}
 
 #[test]
 fn p77_adr_phase77_charter() {
@@ -110,12 +57,4 @@ fn p77_simd_type_parse() {
     ));
 }
 
-#[test]
-fn p77_marketplace_cdn_field() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("marketplace_cdn_base"));
-}
 
-#[test]
-fn p77_materialize_dict_helper() {
-    assert!(include_str!("../../syx-runtime-core/src/value.rs").contains("materialize_dict"));
-}

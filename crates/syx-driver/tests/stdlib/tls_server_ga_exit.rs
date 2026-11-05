@@ -11,7 +11,7 @@ fn tls_server_ga_exit_evidence_files_exist() {
         "crates/syx-driver/tests/stdlib/tls_server_ga_deepen.rs",
         "packages/internal/capabilities.toml",
         "crates/syx-stdlib/src/registry.rs",
-        "tools/sgate/tls.sy",
+        "tools/sgate/sidecars/tls.sy",
     ] {
         let path = format!("{root}{rel}");
         assert!(

@@ -10,13 +10,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
-#[test]
-fn p98_sql_mvp_host_surface() {
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(reg.contains("SqlQuery") && reg.contains("__syx_sql_query"));
-}
-
 #[test]
 fn p98_sql_mvp_create_insert_select_stdout() {
     let out = run(

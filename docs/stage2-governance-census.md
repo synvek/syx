@@ -1216,6 +1216,279 @@ bash scripts/s2_governance_census.sh
 | `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
 | `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
 
+## S2-I94 after ninety-third knife (2026-11-04)
+
+**Slice:** product-sea VM stdlib_phase97 gui host rename ×9 ([stage2-fingerprint-product-sea-vm-stdlib97-host-rename](adr/stage2-fingerprint-product-sea-vm-stdlib97-host-rename.md)); `gui_*_fingerprint` → `gui_*_digest` in `stdlib_phase97_hosts` + vm lib re-exports + driver gui soft-nails. Bodies still call `dlopen_*_fingerprint`. **Kept** C-ABI / dlopen wrappers / syx-gui 余 façade / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I93 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **90** | **−9** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I95 after ninety-fourth knife (2026-11-04)
+
+**Slice:** product-sea VM `gui_dlopen` Rust wrapper rename ×10 ([stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename](adr/stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename.md)); 9× `dlopen_*_fingerprint` → `dlopen_*_digest` + `read_fingerprint` → `read_digest`; soft-nail `stdlib_phase97_hosts` call sites. **Kept** dlsym `b"syx_gui_dylib_*_fingerprint"` / C-ABI / syx-gui 余 façade / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I94 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **80** | **−10** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I96 after ninety-fifth knife (2026-11-04)
+
+**Slice:** product-sea syx-gui remaining façade rename ×6 ([stage2-fingerprint-product-sea-gui-remaining-facade-rename](adr/stage2-fingerprint-product-sea-gui-remaining-facade-rename.md)); `gui_{ime_preedit,egui_mvp,egui_wgpu,vertical_rl,pump_reentrancy,doctor_coverage}_fingerprint` → `*_digest` in `lib.rs` + same-file tests. **Kept** C-ABI×19 / dlsym / synui / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I95 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **74** | **−6** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I97 after ninety-sixth knife (2026-11-04)
+
+**Slice:** product-sea VM synui rename ×7 ([stage2-fingerprint-product-sea-vm-synui-rename](adr/stage2-fingerprint-product-sea-vm-synui-rename.md)); 5 unique Rust symbols → `*_digest` (real+stub = Δ7); soft-nail hosts/lib. **Kept** `__syx_synui_*` HostFn strings / `HostFnId` / `SYNUI_*_FINGERPRINT` const / C-ABI / `farm_lease_*` / `v100_c` / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I96 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **67** | **−7** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I98 after ninety-seventh knife (2026-11-04)
+
+**Slice:** product-sea driver generate helper rename ×3 ([stage2-fingerprint-product-sea-generate-rename](adr/stage2-fingerprint-product-sea-generate-rename.md)); `native_input` / `unified_mir_fn_count` / `dependency_tree` `*_fingerprint` → `*_digest` in `lib.rs` + `query.rs` soft-nail. **Kept** C-ABI×19 / `farm_lease_*` / `heap_v100_*` / orphan×2 / test-noise / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I97 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **64** | **−3** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I99 after ninety-eighth knife (2026-11-04)
+
+**Slice:** product-sea orphan tip rename ×2 ([stage2-fingerprint-product-sea-orphan-rename](adr/stage2-fingerprint-product-sea-orphan-rename.md)); `reflect_witness_honest` / `macro_external_plugin_prod` `*_fingerprint` → `*_digest`. **Kept** hasher bytes / C-ABI×19 / `farm_lease_*` / `heap_v100_*` / test-noise / `lang_props_v*`. inventory still **0**; report still **0**.
+
+| Metric | Count | Δ vs S2-I98 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **62** | **−2** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I100 after ninety-ninth knife (2026-11-04)
+
+**Slice:** test-noise ×6 ([stage2-fingerprint-test-noise-rename](adr/stage2-fingerprint-test-noise-rename.md)); matrix helpers → `*_digest` + driver_gate probe needles retarget to `*_count`. **Kept** C-ABI×19 / `farm_lease_*`×36 / `heap_v100_*`×1 / `lang_props_v*`. inventory still **0**; report still **0**. Remaining fingerprint_fn = MUST STAY floor.
+
+| Metric | Count | Δ vs S2-I99 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **56** | **−6** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I101 after hundredth knife (2026-11-04)
+
+**Slice:** farm_lease digest rename ×36 ([stage2-fingerprint-farm-lease-digest-rename](adr/stage2-fingerprint-farm-lease-digest-rename.md)); all `farm_lease_*_fingerprint` → `farm_lease_*_digest` in `farm_lease_auth.rs` + lib/tests soft-nail; gate return literals kept. **Kept** C-ABI×19 / `heap_v100_*`×1 / `lang_props_v*`. inventory still **0**; report still **0**. Remaining fingerprint_fn = C-ABI + heap.
+
+| Metric | Count | Δ vs S2-I100 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | 241 | 0 |
+| `fn *_fingerprint` matches | **20** | **−36** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I102 after hundred-first knife (2026-11-04)
+
+**Slice:** fingerprint_const gui leaf rename ([stage2-fingerprint-const-gui-leaf-rename](adr/stage2-fingerprint-const-gui-leaf-rename.md)); syx-gui leaf `*_FINGERPRINT` → `*_DIGEST` (shape/egui/wgpu/skia/emoji + lib refs); string literals kept. **Kept** C-ABI×19 / heap_v100 / VM·parser const / `lang_props_v*`. inventory still **0**; report still **0**; `fingerprint_fn` still **20**.
+
+| Metric | Count | Δ vs S2-I101 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **201** | **−40** |
+| `fn *_fingerprint` matches | **20** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I103 after hundred-second knife (2026-11-04)
+
+**Slice:** fingerprint_const VM synui rename ([stage2-fingerprint-const-vm-synui-rename](adr/stage2-fingerprint-const-vm-synui-rename.md)); 36× `SYNUI_*_FINGERPRINT` → `SYNUI_*_DIGEST` in real+stub+lib + `synui_surface` soft-nail; literals kept. **Kept** HostFn `__syx_synui_*` / `HostFnId` / SELECT const / C-ABI / heap. inventory still **0**; report still **0**; `fingerprint_fn` still **20**.
+
+| Metric | Count | Δ vs S2-I102 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **55** | **−146** |
+| `fn *_fingerprint` matches | **20** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I104 after hundred-third knife (2026-11-05)
+
+**Slice:** fingerprint_const SELECT rename ([stage2-fingerprint-const-select-rename](adr/stage2-fingerprint-const-select-rename.md)); 7× `SELECT_*_FINGERPRINT` → `SELECT_*_DIGEST` in parser + `channel_hosts` + soft-nail (lsp 109–116 + `select_deadline_strict`); literals kept. **Kept** C-ABI×19 / heap_v100 / HostFn / `lang_props_v*`. inventory still **0**; report still **0**; `fingerprint_fn` still **20**. **const axis cleared.**
+
+| Metric | Count | Δ vs S2-I103 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | **−55** |
+| `fn *_fingerprint` matches | **20** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I105 after hundred-fourth knife (2026-11-05)
+
+**Slice:** fingerprint_fn heap tip digest rename ([stage2-fingerprint-heap-tip-digest-rename](adr/stage2-fingerprint-heap-tip-digest-rename.md)); `heap_v100_phase128_track_c_wasm_fingerprint` → `*_digest` (def + caller + soft-nail); hasher bytes / tip body kept. **Kept** C-ABI×19 / `lang_props_v*`. inventory still **0**; report still **0**; `fingerprint_const` still **0**.
+
+| Metric | Count | Δ vs S2-I104 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **19** | **−1** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I106 after hundred-fifth knife (2026-11-05)
+
+**Slice:** fingerprint_fn C-ABI/dlsym digest rename ([stage2-fingerprint-cabi-dylib-digest-rename](adr/stage2-fingerprint-cabi-dylib-digest-rename.md)); 19× `syx_gui_dylib_*_fingerprint` → `*_digest` + 9× dlsym/fields in `gui_dlopen`; `c"…"` literals kept. **Kept** `lang_props_v*` / HostFn strings. inventory still **0**; report still **0**; `fingerprint_const` still **0**. **fn axis cleared.**
+
+| Metric | Count | Δ vs S2-I105 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | **−19** |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | 5 | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I107 after hundred-sixth knife (2026-11-05)
+
+**Slice:** lang_props product retire ([stage2-lang-props-retire](adr/stage2-lang-props-retire.md)); deleted `lang_props_v2…v6` + `pub mod`; soft-nail retarget to `lib.rs` literals; hasher `b"lang-props-v*:…"` **kept**. inventory/report/fingerprint still **0**. **lang_props KPI cleared.**
+
+| Metric | Count | Δ vs S2-I106 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | **−5** |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I108 after hundred-seventh knife (2026-11-05)
+
+**Slice:** S2-02 open — props fingerprint soft-nail retire ([stage2-s2-02-open](adr/stage2-s2-02-open.md)); deleted 5× `props_*` `include_str!(lib.rs)+contains(lang-props…)` tests; behavior + docs honesty + `cache_v*` kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I107 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I109 after hundred-eighth knife (2026-11-05)
+
+**Slice:** S2-02 cache soft-nail retire ([stage2-cache-soft-nail-retire](adr/stage2-cache-soft-nail-retire.md)); deleted `cache_v108`–`v110_invalidation.rs` (≈−21 pure fingerprint soft-nails); retargeted `driver_gate` fixtures → `cache_v111_invalidation.rs`; tip kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I108 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I110 after hundred-ninth knife (2026-11-05)
+
+**Slice:** S2-02 driver_gate exists soft-nail retire ([stage2-driver-gate-exists-soft-nail-retire](adr/stage2-driver-gate-exists-soft-nail-retire.md)); deleted ≈28 `*_gate_exists` / files_exist / crate_exists + 3 empty charters + dead `browser_tier2u_meta_allowable` (≈−32); `cache_v111` + behavioral kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I109 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I111 after hundred-tenth knife (2026-11-05)
+
+**Slice:** S2-02 driver_gate invalidation-exact soft-nail retire ([stage2-driver-gate-invalidation-exact-retire](adr/stage2-driver-gate-invalidation-exact-retire.md)); deleted heap/cache `*_invalidation_exact`×8 + cache tag soft×3 (≈−11); `cache_v111` + `native_llvm_locals_v7` + behavioral kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I110 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I112 after hundred-eleventh knife (2026-11-05)
+
+**Slice:** S2-02 driver_gate host_registry soft-nail retire ([stage2-driver-gate-host-registry-soft-nail-retire](adr/stage2-driver-gate-host-registry-soft-nail-retire.md)); deleted `host_registry_*`×5 (`include_str!(registry)+contains`); `*_host` / parity behavioral kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I111 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I113 after hundred-twelfth knife (2026-11-05)
+
+**Slice:** S2-02 driver_gate meta-allowable + native_locals soft-nail retire ([stage2-driver-gate-meta-allowable-native-locals-retire](adr/stage2-driver-gate-meta-allowable-native-locals-retire.md)); deleted `dist_prod_ga` / `borrow_mandatory` meta×2 + `native_llvm_locals_v7` (≈−3); `soft_debt_zero` kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I112 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
+## S2-I114 after hundred-thirteenth knife (2026-11-05)
+
+**Slice:** S2-02 driver_gate include_str surface retire + floor relax ([stage2-driver-gate-include-str-surface-retire](adr/stage2-driver-gate-include-str-surface-retire.md)); `#[test]` floor **500→450** (behavioral≥350 kept); deleted import/surface/abi include_str soft×25; `soft_debt_zero` kept. **Census KPI unchanged (all 0).** ≠ S2-01 `[x]` / ≠ S2-02 `[x]`.
+
+| Metric | Count | Δ vs S2-I113 |
+|--------|------:|------------:|
+| `fn *_inventory` matches | **0** | 0 |
+| `_FINGERPRINT` / `FINGERPRINT:` const-ish matches | **0** | 0 |
+| `fn *_fingerprint` matches | **0** | 0 |
+| `crates/syx-driver/src/*_report.rs` files | **0** | 0 |
+| `crates/syx-driver/src/lang_props_v*.rs` files | **0** | 0 |
+| `Always \`true\`` / `Always \`false\`` comment matches | 0 | 0 |
+
 ## Non-claims
 
 - **≠** S2-01 `[x]` / Stage-2 exit.

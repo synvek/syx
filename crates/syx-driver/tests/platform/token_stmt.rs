@@ -51,10 +51,3 @@ fn token_stmt_example_run_file() {
     );
 }
 
-#[test]
-fn token_stmt_fingerprint_strings() {
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let lib = include_str!("../../src/lib.rs");
-    assert!(user_rs.contains("macro-token-v4:stmt-token-subst-mvp"));
-    assert!(lib.contains("macro-token-v4:stmt-token-subst-mvp"));
-}

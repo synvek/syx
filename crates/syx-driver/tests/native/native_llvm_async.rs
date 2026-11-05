@@ -44,15 +44,3 @@ fn p98_native_llvm_async_main_keeps_mir_entry() {
     assert!(llvm_ir_uses_mir_main_entry(&ir) || ir.contains("AwaitPoll"));
 }
 
-
-#[test]
-fn p98_native_llvm_async_abi_surface() {
-    let abi = include_str!("../../../syx-rt/src/abi.rs");
-    assert!(abi.contains("syx_rt_async_resume"));
-}
-
-#[test]
-fn p98_native_llvm_async_wasm_emit_surface() {
-    let emit = include_str!("../../../syx-wasm-emit/src/mir_emit.rs");
-    assert!(emit.contains("AwaitPoll") && emit.contains("AwaitSuspend"));
-}

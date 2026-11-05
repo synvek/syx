@@ -110,6 +110,39 @@
 - **S2-I91:** product-sea gui shape-core rename Δ9 ([stage2-fingerprint-product-sea-gui-shape-rename](stage2-fingerprint-product-sea-gui-shape-rename.md); shape `*_fingerprint` → `*_digest`; façades kept); `fingerprint_fn` **131 → 122**.
 - **S2-I92:** product-sea gui shape façade rename Δ9 ([stage2-fingerprint-product-sea-gui-shape-facade-rename](stage2-fingerprint-product-sea-gui-shape-facade-rename.md); `gui_*_fingerprint` → `gui_*_digest`; C-ABI/VM host kept); `fingerprint_fn` **122 → 113**.
 - **S2-I93:** product-sea gui render leaf rename Δ14 ([stage2-fingerprint-product-sea-gui-leaf-rename](stage2-fingerprint-product-sea-gui-leaf-rename.md); leaf+façade `*_fingerprint` → `*_digest`; C-ABI/VM host kept); `fingerprint_fn` **113 → 99**.
+- **S2-I94:** product-sea VM stdlib_phase97 host rename Δ9 ([stage2-fingerprint-product-sea-vm-stdlib97-host-rename](stage2-fingerprint-product-sea-vm-stdlib97-host-rename.md); `gui_*_fingerprint` → `gui_*_digest`; dlopen/C-ABI kept); `fingerprint_fn` **99 → 90**.
+- **S2-I95:** product-sea VM gui_dlopen wrapper rename Δ10 ([stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename](stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename.md); `dlopen_*_fingerprint`/`read_fingerprint` → `*_digest`; C-ABI/dlsym kept); `fingerprint_fn` **90 → 80**.
+- **S2-I96:** product-sea gui remaining façade rename Δ6 ([stage2-fingerprint-product-sea-gui-remaining-facade-rename](stage2-fingerprint-product-sea-gui-remaining-facade-rename.md); `gui_*_fingerprint` → `gui_*_digest`; C-ABI kept); `fingerprint_fn` **80 → 74**.
+- **S2-I97:** product-sea VM synui rename Δ7 ([stage2-fingerprint-product-sea-vm-synui-rename](stage2-fingerprint-product-sea-vm-synui-rename.md); synui Rust `*_fingerprint` → `*_digest`; HostFn strings kept); `fingerprint_fn` **74 → 67**.
+- **S2-I98:** product-sea generate helper rename Δ3 ([stage2-fingerprint-product-sea-generate-rename](stage2-fingerprint-product-sea-generate-rename.md); `native_input`/`unified_mir_fn_count`/`dependency_tree` → `*_digest`); `fingerprint_fn` **67 → 64**.
+- **S2-I99:** product-sea orphan tip rename Δ2 ([stage2-fingerprint-product-sea-orphan-rename](stage2-fingerprint-product-sea-orphan-rename.md); `reflect_witness_honest`/`macro_external_plugin_prod` → `*_digest`); `fingerprint_fn` **64 → 62**.
+- **S2-I100:** test-noise Δ6 ([stage2-fingerprint-test-noise-rename](stage2-fingerprint-test-noise-rename.md); matrix `*_digest` + driver_gate needle→`*_count`); `fingerprint_fn` **62 → 56** (MUST STAY floor).
+- **S2-I101:** farm_lease digest rename Δ36 ([stage2-fingerprint-farm-lease-digest-rename](stage2-fingerprint-farm-lease-digest-rename.md); `farm_lease_*_fingerprint` → `*_digest`); `fingerprint_fn` **56 → 20**.
+- **S2-I102:** fingerprint_const gui leaf rename Δ40 ([stage2-fingerprint-const-gui-leaf-rename](stage2-fingerprint-const-gui-leaf-rename.md); `*_FINGERPRINT` → `*_DIGEST`); `fingerprint_const` **241 → 201**; `fingerprint_fn` **20**.
+- **S2-I103:** fingerprint_const VM synui rename Δ146 ([stage2-fingerprint-const-vm-synui-rename](stage2-fingerprint-const-vm-synui-rename.md); `SYNUI_*_FINGERPRINT` → `*_DIGEST`); `fingerprint_const` **201 → 55**; `fingerprint_fn` **20**.
+- **S2-I104:** fingerprint_const SELECT rename Δ55 ([stage2-fingerprint-const-select-rename](stage2-fingerprint-const-select-rename.md); `SELECT_*_FINGERPRINT` → `*_DIGEST`); `fingerprint_const` **55 → 0**; `fingerprint_fn` **20**.
+- **S2-I105:** fingerprint_fn heap tip digest rename Δ1 ([stage2-fingerprint-heap-tip-digest-rename](stage2-fingerprint-heap-tip-digest-rename.md); `heap_v100_*_fingerprint` → `*_digest`); `fingerprint_fn` **20 → 19**; `fingerprint_const` **0**.
+- **S2-I106:** fingerprint_fn C-ABI/dlsym digest rename Δ19 ([stage2-fingerprint-cabi-dylib-digest-rename](stage2-fingerprint-cabi-dylib-digest-rename.md); `syx_gui_dylib_*_fingerprint` → `*_digest`); `fingerprint_fn` **19 → 0**; `fingerprint_const` **0**.
+- **S2-I107:** lang_props product retire Δ5 ([stage2-lang-props-retire](stage2-lang-props-retire.md); delete `lang_props_v2…v6`); `syx_driver_src_lang_props_v` **5 → 0**; fingerprint axes **0**.
+- **S2-I108:** S2-02 open — props fingerprint soft-nail Δ5 tests ([stage2-s2-02-open](stage2-s2-02-open.md)); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I109:** cache soft-nail retire Δ3 files / ≈−21 tests ([stage2-cache-soft-nail-retire](stage2-cache-soft-nail-retire.md); delete `cache_v108`–`v110`; keep `v111`; retarget `driver_gate` fixtures); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I110:** driver_gate exists soft-nail retire ≈−32 tests ([stage2-driver-gate-exists-soft-nail-retire](stage2-driver-gate-exists-soft-nail-retire.md); `*_gate_exists` / empty charter / dead tier2u meta); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I111:** driver_gate invalidation-exact soft-nail retire ≈−11 tests ([stage2-driver-gate-invalidation-exact-retire](stage2-driver-gate-invalidation-exact-retire.md); heap/cache `*_invalidation_exact`×8 + cache tag soft×3); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I112:** driver_gate host_registry soft-nail retire ≈−5 tests ([stage2-driver-gate-host-registry-soft-nail-retire](stage2-driver-gate-host-registry-soft-nail-retire.md); `host_registry_*`×5); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I113:** driver_gate meta-allowable + native_locals soft-nail retire ≈−3 tests ([stage2-driver-gate-meta-allowable-native-locals-retire](stage2-driver-gate-meta-allowable-native-locals-retire.md); meta×2 + `native_llvm_locals_v7`; keep `soft_debt_zero`); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I114:** driver_gate include_str surface retire ≈−25 tests + floor 500→450 ([stage2-driver-gate-include-str-surface-retire](stage2-driver-gate-include-str-surface-retire.md); keep behavioral≥350 / `soft_debt_zero`); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I115:** driver_gate manifest/audit/codable residual soft retire ≈−7 tests ([stage2-driver-gate-manifest-audit-codable-residual-retire](stage2-driver-gate-manifest-audit-codable-residual-retire.md); floor stays 450); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I116:** backends honesty_fences + colocated inventory_meta/ci_wires soft retire ≈−28 tests ([stage2-backends-honesty-fences-retire](stage2-backends-honesty-fences-retire.md)); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I117:** backends criterion + microbench soft retire ≈−24 tests ([stage2-backends-criterion-microbench-soft-retire](stage2-backends-criterion-microbench-soft-retire.md); keep smoke_ok/instant); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I118:** backends hostfn_availability + ga6/ga7 inventory_meta soft retire ≈−18 tests ([stage2-backends-hostfn-availability-ga67-meta-retire](stage2-backends-hostfn-availability-ga67-meta-retire.md)); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I119:** LSP `*_fingerprint_stub` retire ≈−45 tests + phase134/135/138/139 floor relax ([stage2-lsp-fingerprint-stub-retire](stage2-lsp-fingerprint-stub-retire.md)); census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I120:** LSP pure `*_stub` + `*_soft_pin` retire ≈−149 tests + phase129–139 floor relax ([stage2-lsp-pure-stub-retire](stage2-lsp-pure-stub-retire.md)); hybrid×36 kept; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I121:** LSP historical pure include_str soft retire ≈−117 tests + phase129–131 floor relax ([stage2-lsp-historical-pure-soft-retire](stage2-lsp-historical-pure-soft-retire.md)); hybrid×36 kept; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I122:** backends wasm column/doc pin soft retire ≈−47 tests ([stage2-backends-wasm-column-doc-pin-retire](stage2-backends-wasm-column-doc-pin-retire.md)); keep `run_*`; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I123:** LSP hybrid fingerprint stub retire ≈−26 tests + phase128–135 floor relax ([stage2-lsp-hybrid-fingerprint-stub-retire](stage2-lsp-hybrid-fingerprint-stub-retire.md)); KEEP DI×6+v13×4; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I124:** platform fingerprint/surface soft retire ≈−31 tests ([stage2-platform-fingerprint-surface-soft-retire](stage2-platform-fingerprint-surface-soft-retire.md)); KEEP cache_v111 tip; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I125:** cross-crate surface/fp/playwright soft retire ≈−43 tests ([stage2-cross-crate-surface-soft-retire](stage2-cross-crate-surface-soft-retire.md); gui/runtime/data/native/browser); KEEP cache_v111 tip; soft residual → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
+- **S2-I126:** stdlib M2 cap/ci_wires soft retire ≈−79 tests ([stage2-stdlib-m2-cap-ci-wires-soft-retire](stage2-stdlib-m2-cap-ci-wires-soft-retire.md); host_fn_cap+ci_wires+registry/surface+security); KEEP inventory/docs_and_capability; residual hostfn_sql/etc. → claim-readiness deferred; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
 
 ## References
 
@@ -137,7 +170,41 @@
 - [`docs/adr/stage2-fingerprint-product-sea-gui-shape-rename.md`](stage2-fingerprint-product-sea-gui-shape-rename.md) · S2-I91
 - [`docs/adr/stage2-fingerprint-product-sea-gui-shape-facade-rename.md`](stage2-fingerprint-product-sea-gui-shape-facade-rename.md) · S2-I92
 - [`docs/adr/stage2-fingerprint-product-sea-gui-leaf-rename.md`](stage2-fingerprint-product-sea-gui-leaf-rename.md) · S2-I93
+- [`docs/adr/stage2-fingerprint-product-sea-vm-stdlib97-host-rename.md`](stage2-fingerprint-product-sea-vm-stdlib97-host-rename.md) · S2-I94
+- [`docs/adr/stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename.md`](stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename.md) · S2-I95
+- [`docs/adr/stage2-fingerprint-product-sea-gui-remaining-facade-rename.md`](stage2-fingerprint-product-sea-gui-remaining-facade-rename.md) · S2-I96
+- [`docs/adr/stage2-fingerprint-product-sea-vm-synui-rename.md`](stage2-fingerprint-product-sea-vm-synui-rename.md) · S2-I97
+- [`docs/adr/stage2-fingerprint-product-sea-generate-rename.md`](stage2-fingerprint-product-sea-generate-rename.md) · S2-I98
+- [`docs/adr/stage2-fingerprint-product-sea-orphan-rename.md`](stage2-fingerprint-product-sea-orphan-rename.md) · S2-I99
+- [`docs/adr/stage2-fingerprint-test-noise-rename.md`](stage2-fingerprint-test-noise-rename.md) · S2-I100
+- [`docs/adr/stage2-fingerprint-farm-lease-digest-rename.md`](stage2-fingerprint-farm-lease-digest-rename.md) · S2-I101
+- [`docs/adr/stage2-fingerprint-const-gui-leaf-rename.md`](stage2-fingerprint-const-gui-leaf-rename.md) · S2-I102
+- [`docs/adr/stage2-fingerprint-const-vm-synui-rename.md`](stage2-fingerprint-const-vm-synui-rename.md) · S2-I103
+- [`docs/adr/stage2-fingerprint-const-select-rename.md`](stage2-fingerprint-const-select-rename.md) · S2-I104
+- [`docs/adr/stage2-fingerprint-heap-tip-digest-rename.md`](stage2-fingerprint-heap-tip-digest-rename.md) · S2-I105
+- [`docs/adr/stage2-fingerprint-cabi-dylib-digest-rename.md`](stage2-fingerprint-cabi-dylib-digest-rename.md) · S2-I106
+- [`docs/adr/stage2-lang-props-retire.md`](stage2-lang-props-retire.md) · S2-I107
+- [`docs/adr/stage2-s2-02-open.md`](stage2-s2-02-open.md) · S2-I108
+- [`docs/adr/stage2-cache-soft-nail-retire.md`](stage2-cache-soft-nail-retire.md) · S2-I109
+- [`docs/adr/stage2-driver-gate-exists-soft-nail-retire.md`](stage2-driver-gate-exists-soft-nail-retire.md) · S2-I110
+- [`docs/adr/stage2-driver-gate-invalidation-exact-retire.md`](stage2-driver-gate-invalidation-exact-retire.md) · S2-I111
+- [`docs/adr/stage2-driver-gate-host-registry-soft-nail-retire.md`](stage2-driver-gate-host-registry-soft-nail-retire.md) · S2-I112
+- [`docs/adr/stage2-driver-gate-meta-allowable-native-locals-retire.md`](stage2-driver-gate-meta-allowable-native-locals-retire.md) · S2-I113
+- [`docs/adr/stage2-driver-gate-include-str-surface-retire.md`](stage2-driver-gate-include-str-surface-retire.md) · S2-I114
+- [`docs/adr/stage2-driver-gate-manifest-audit-codable-residual-retire.md`](stage2-driver-gate-manifest-audit-codable-residual-retire.md) · S2-I115
+- [`docs/adr/stage2-backends-honesty-fences-retire.md`](stage2-backends-honesty-fences-retire.md) · S2-I116
+- [`docs/adr/stage2-backends-criterion-microbench-soft-retire.md`](stage2-backends-criterion-microbench-soft-retire.md) · S2-I117
+- [`docs/adr/stage2-backends-hostfn-availability-ga67-meta-retire.md`](stage2-backends-hostfn-availability-ga67-meta-retire.md) · S2-I118
+- [`docs/adr/stage2-lsp-fingerprint-stub-retire.md`](stage2-lsp-fingerprint-stub-retire.md) · S2-I119
+- [`docs/adr/stage2-lsp-pure-stub-retire.md`](stage2-lsp-pure-stub-retire.md) · S2-I120
+- [`docs/adr/stage2-lsp-historical-pure-soft-retire.md`](stage2-lsp-historical-pure-soft-retire.md) · S2-I121
+- [`docs/adr/stage2-backends-wasm-column-doc-pin-retire.md`](stage2-backends-wasm-column-doc-pin-retire.md) · S2-I122
+- [`docs/adr/stage2-lsp-hybrid-fingerprint-stub-retire.md`](stage2-lsp-hybrid-fingerprint-stub-retire.md) · S2-I123
+- [`docs/adr/stage2-platform-fingerprint-surface-soft-retire.md`](stage2-platform-fingerprint-surface-soft-retire.md) · S2-I124
+- [`docs/adr/stage2-cross-crate-surface-soft-retire.md`](stage2-cross-crate-surface-soft-retire.md) · S2-I125
+- [`docs/adr/stage2-stdlib-m2-cap-ci-wires-soft-retire.md`](stage2-stdlib-m2-cap-ci-wires-soft-retire.md) · S2-I126
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
+
 
 
 

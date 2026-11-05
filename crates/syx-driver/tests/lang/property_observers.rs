@@ -2,10 +2,6 @@
 // was: property_observers
 //! Phase 134: inherited observers + init suppress.
 
-use syx_driver::lang_props_v2::{
-    COMPUTED_GET_ONLY, INIT_SUPPRESS_OBSERVERS, INHERITED_OBSERVERS, LAZY_VAR, STATIC_VAR,
-};
-use syx_driver::lang_props_v3::SUPER_INIT_FIELD_READBACK;
 use syx_driver::{compile_and_run_embedded, run_file_printed, DriverOptions};
 use syx_parser::Parser;
 use syx_semantic::SemanticAnalyzer;

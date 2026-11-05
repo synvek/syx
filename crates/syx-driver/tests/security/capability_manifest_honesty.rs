@@ -62,15 +62,3 @@ fn doctor_reports_smoke() {
     assert!(ir.host_count > 0);
 }
 
-#[test]
-fn ci_wires_capability_generators() {
-    let ci = include_str!("../../../../.github/workflows/ci.yml");
-    assert!(
-        ci.contains("gen_capabilities.py --check"),
-        "ci must freshness-check product capability manifest"
-    );
-    assert!(
-        ci.contains("gen_ir_capabilities.py --check"),
-        "ci must freshness-check HostFn/MirOp capability tables"
-    );
-}

@@ -1,6 +1,5 @@
 //! Computed `{ get set }` + property override MVP.
 
-use syx_driver::lang_props_v3::{COMPUTED_GET_SET_MVP, DOCS_HONESTY, PROPERTY_OVERRIDE_MVP};
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 fn run(src: &str) -> Vec<String> {
@@ -28,16 +27,6 @@ func main() {}
         preview.contains("__set_value"),
         "expected desugared setter in module: {preview}"
     );
-}
-
-#[test]
-fn props_override_v3_fingerprints_in_driver() {
-    let lib = include_str!("../../src/lang_props_v3.rs");
-    assert!(lib.contains(COMPUTED_GET_SET_MVP));
-    assert!(lib.contains(PROPERTY_OVERRIDE_MVP));
-    assert!(lib.contains(DOCS_HONESTY));
-    assert_eq!(COMPUTED_GET_SET_MVP, "lang-props-v3:computed-get-set-mvp");
-    assert_eq!(PROPERTY_OVERRIDE_MVP, "lang-props-v3:property-override-mvp");
 }
 
 #[test]

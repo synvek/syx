@@ -17,7 +17,7 @@ func main() {
         print(5)
     } catch (e) {
         print("UNEXPECTED")
-        print(e.message)
+        print(e)
     }
 }
 

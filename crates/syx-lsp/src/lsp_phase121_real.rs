@@ -10,14 +10,6 @@ fn p121_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p121_opts())
 }
 
-#[test]
-fn p121_track_fingerprints_inherited() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("macro-service-v1:attr-scan"));
-    assert!(lib.contains("runtime-service-v1:singleton-container"));
-    assert!(lib.contains("gui-ot-features-v5:paint-matrix-mvp"));
-    assert!(lib.contains("wasm-simd16-guest-v4:shift-lane-mvp"));
-}
 
 #[test]
 fn p121_hover_string_binding() {

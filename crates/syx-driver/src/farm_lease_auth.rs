@@ -813,138 +813,138 @@ pub fn farm_lease_reset() {
 }
 
 /// Phase 104 gate: cross-node lease authority contract string.
-pub fn farm_lease_auth_fingerprint() -> &'static str {
+pub fn farm_lease_auth_digest() -> &'static str {
     "farm-lease-auth-v1:cross-node-ttl"
 }
 
 /// Phase 105 gate: missing authority or failed query is ERR (not fail-open).
-pub fn farm_lease_failclosed_fingerprint() -> &'static str {
+pub fn farm_lease_failclosed_digest() -> &'static str {
     "farm-lease-failclosed-v1:no-auth-is-err"
 }
 
 /// Phase 106 gate: farm TCP node GET/PUT enforce authority TTL (not client-only).
-pub fn farm_lease_server_fingerprint() -> &'static str {
+pub fn farm_lease_server_digest() -> &'static str {
     "farm-lease-server-v1:node-enforces-ttl"
 }
 
 /// Phase 108 gate: process-isolated dual authority (independent state + SYNC).
 /// Same-process thread+SYNC — **not** Phase 109 HA v3 GA (`farm-lease-ha-v3:os-process`).
-pub fn farm_lease_ha_fingerprint() -> &'static str {
+pub fn farm_lease_ha_digest() -> &'static str {
     "farm-lease-ha-v2:process-isolated"
 }
 
 /// Phase 109 gate: OS-process primary/secondary via `std::process::Command`.
-pub fn farm_lease_ha_v3_fingerprint() -> &'static str {
+pub fn farm_lease_ha_v3_digest() -> &'static str {
     "farm-lease-ha-v3:os-process"
 }
 
 /// Phase 109 gate: 3-node Raft quorum MVP (GRANT needs majority).
-pub fn farm_lease_raft_fingerprint() -> &'static str {
+pub fn farm_lease_raft_digest() -> &'static str {
     "farm-lease-raft-v1:quorum-mvp"
 }
 
 /// Phase 110 gate: Raft v2 replicated log + WAL fsync + commitIndex catch-up.
-pub fn farm_lease_raft_v2_fingerprint() -> &'static str {
+pub fn farm_lease_raft_v2_digest() -> &'static str {
     "farm-lease-raft-v2:log-wal"
 }
 
 /// Phase 110 gate: dynamic membership (AddLearner / Remove) with quorum updates.
-pub fn farm_lease_member_fingerprint() -> &'static str {
+pub fn farm_lease_member_digest() -> &'static str {
     "farm-lease-member-v1:dynamic-mvp"
 }
 
 /// Phase 111 gate: configurable host:port Raft members (not hardcoded loopback ports GA).
-pub fn farm_lease_multihost_fingerprint() -> &'static str {
+pub fn farm_lease_multihost_digest() -> &'static str {
     "farm-lease-multihost-v1:config-members"
 }
 
 /// Phase 111 gate: tenant-scoped GRANT/QUERY isolation MVP.
-pub fn farm_lease_tenant_fingerprint() -> &'static str {
+pub fn farm_lease_tenant_digest() -> &'static str {
     "farm-lease-tenant-v1:isolation-mvp"
 }
 
 /// Phase 111 gate: WAL record CRC; corrupt replay rejected.
-pub fn farm_lease_wal_crc_fingerprint() -> &'static str {
+pub fn farm_lease_wal_crc_digest() -> &'static str {
     "farm-lease-wal-crc-v1:reject-corrupt"
 }
 
 /// Phase 112 gate: runtime host:port member config (env/file JSON — not compile-time binds GA).
-pub fn farm_lease_runtime_fingerprint() -> &'static str {
+pub fn farm_lease_runtime_digest() -> &'static str {
     "farm-lease-runtime-v1:config-members"
 }
 
 /// Phase 112 gate: tenant-scoped GRANT/QUERY require matching token on runtime GA path.
-pub fn farm_lease_tenant_v2_fingerprint() -> &'static str {
+pub fn farm_lease_tenant_v2_digest() -> &'static str {
     "farm-lease-tenant-v2:token-mvp"
 }
 
 /// Phase 112 gate: WAL snapshot checkpoint + incremental replay on restart.
-pub fn farm_lease_wal_snap_fingerprint() -> &'static str {
+pub fn farm_lease_wal_snap_digest() -> &'static str {
     "farm-lease-wal-snap-v1:checkpoint-replay"
 }
 
 /// Phase 113 gate: production/default raft GRANT rejects legacy anonymous GRANT (token default).
-pub fn farm_lease_tenant_v3_fingerprint() -> &'static str {
+pub fn farm_lease_tenant_v3_digest() -> &'static str {
     "farm-lease-tenant-v3:token-default"
 }
 
 /// Phase 113 gate: checkpoint snapshot omits discardable log; restart = snap + incremental.
-pub fn farm_lease_wal_compact_fingerprint() -> &'static str {
+pub fn farm_lease_wal_compact_digest() -> &'static str {
     "farm-lease-wal-compact-v1:snap-truncate-log"
 }
 
 /// Phase 113 gate: variable member list (`Vec`, len ≥ 3 — not fixed `[String;3]` GA).
-pub fn farm_lease_members_v2_fingerprint() -> &'static str {
+pub fn farm_lease_members_v2_digest() -> &'static str {
     "farm-lease-members-v2:dyn-list"
 }
 
 /// Phase 114 gate: all GRANT paths (HA + authority + Raft) require tenant token.
-pub fn farm_lease_tenant_v4_fingerprint() -> &'static str {
+pub fn farm_lease_tenant_v4_digest() -> &'static str {
     "farm-lease-tenant-v4:token-all-paths-multidc"
 }
 
 /// Phase 118 gate: multi-DC with ≥2 independent OS processes (not same-process multi-bind GA).
-pub fn farm_lease_multidc_fingerprint() -> &'static str {
+pub fn farm_lease_multidc_digest() -> &'static str {
     "farm-lease-multidc-v5:os-dual-process"
 }
 
 /// Phase 119 gate: consensus-sync + ≥2 follower MEMBER views match leader.
-pub fn farm_lease_registry_fingerprint() -> &'static str {
+pub fn farm_lease_registry_digest() -> &'static str {
     "farm-lease-registry-v5:multi-follower-sync"
 }
 
 /// Phase 125 gate fingerprint: PKCS#11 session PIN/slot persist across rotate (stub path; not hardware GA).
-pub fn farm_lease_pkcs11_bridge_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_bridge_digest() -> &'static str {
     "farm-lease-token-v8:session-pin-persist"
 }
 
 /// Phase 125 gate alias: PKCS#11 session PIN persist via `.so`/`.dylib` adapter (not hardware GA).
-pub fn farm_lease_pkcs11_so_fingerprint() -> &'static str {
-    farm_lease_pkcs11_bridge_fingerprint()
+pub fn farm_lease_pkcs11_so_digest() -> &'static str {
+    farm_lease_pkcs11_bridge_digest()
 }
 
 /// Phase 125 session-path alias (OpenSession/Login + PIN persist stub; not hardware GA).
-pub fn farm_lease_pkcs11_session_fingerprint() -> &'static str {
-    farm_lease_pkcs11_bridge_fingerprint()
+pub fn farm_lease_pkcs11_session_digest() -> &'static str {
+    farm_lease_pkcs11_bridge_digest()
 }
 
 /// Phase 125 session PIN persist alias (reuses OpenSession/Login state across rotate; not hardware GA).
-pub fn farm_lease_pkcs11_session_pin_persist_fingerprint() -> &'static str {
-    farm_lease_pkcs11_bridge_fingerprint()
+pub fn farm_lease_pkcs11_session_pin_persist_digest() -> &'static str {
+    farm_lease_pkcs11_bridge_digest()
 }
 
 /// Phase 126 gate fingerprint: PKCS#11 `C_Sign` on rotate (stub `.so`/mock; not hardware GA).
-pub fn farm_lease_pkcs11_sign_mvp_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_sign_mvp_digest() -> &'static str {
     "farm-lease-token-v9:pkcs11-sign-mvp"
 }
 
 /// Phase 127 gate fingerprint: PKCS#11 Logout/CloseSession on explicit close / teardown (stub; not hardware GA).
-pub fn farm_lease_pkcs11_session_close_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_session_close_digest() -> &'static str {
     "farm-lease-token-v10:session-close-mvp"
 }
 
 /// Phase 128 gate fingerprint: PKCS#11 session HSM-ref bind via `C_GetAttributeValue` (stub; not hardware GA).
-pub fn farm_lease_pkcs11_hsm_ref_bound_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_ref_bound_digest() -> &'static str {
     "farm-lease-token-v11:hsm-ref-bound-mvp"
 }
 
@@ -954,7 +954,7 @@ pub fn farm_lease_hsm_ref_bound_doctor_export() -> &'static str {
 }
 
 /// Phase 129 gate fingerprint: PKCS#11 `C_Sign` bound to validated hsm-ref (stub; not hardware GA).
-pub fn farm_lease_pkcs11_hsm_sign_bound_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_sign_bound_digest() -> &'static str {
     "farm-lease-token-v12:hsm-sign-bound-mvp"
 }
 
@@ -964,7 +964,7 @@ pub fn farm_lease_hsm_sign_bound_doctor_export() -> &'static str {
 }
 
 /// Phase 130 gate fingerprint: PKCS#11 `C_Verify` after bound `C_Sign` for same hsm-ref (stub; not hardware GA).
-pub fn farm_lease_pkcs11_hsm_sign_verify_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_sign_verify_digest() -> &'static str {
     "farm-lease-token-v13:hsm-sign-verify-mvp"
 }
 
@@ -974,7 +974,7 @@ pub fn farm_lease_hsm_sign_verify_doctor_export() -> &'static str {
 }
 
 /// Phase 131 gate fingerprint: PKCS#11 `C_Digest` bound to validated hsm-ref; Sign/Verify same digest+ref (stub; not hardware GA).
-pub fn farm_lease_pkcs11_hsm_digest_bound_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_digest_bound_digest() -> &'static str {
     "farm-lease-token-v14:hsm-digest-bound-mvp"
 }
 
@@ -984,7 +984,7 @@ pub fn farm_lease_hsm_digest_bound_doctor_export() -> &'static str {
 }
 
 /// Phase 132 gate fingerprint: PKCS#11 `C_DigestInit`/`Update`/`Final` streaming bound to hsm-ref (stub; not hardware GA).
-pub fn farm_lease_pkcs11_hsm_digest_streaming_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_digest_streaming_digest() -> &'static str {
     "farm-lease-token-v15:hsm-digest-streaming-mvp"
 }
 
@@ -994,7 +994,7 @@ pub fn farm_lease_hsm_digest_streaming_doctor_export() -> &'static str {
 }
 
 /// Phase 133 gate fingerprint: PKCS#11 multi-slot (≥2); rotate/digest/sign bound to chosen slot (stub; not hardware GA).
-pub fn farm_lease_pkcs11_hsm_multi_slot_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_multi_slot_digest() -> &'static str {
     "farm-lease-token-v16:hsm-multi-slot-mvp"
 }
 
@@ -1004,7 +1004,7 @@ pub fn farm_lease_hsm_multi_slot_doctor_export() -> &'static str {
 }
 
 /// Phase 134 gate fingerprint: PKCS#11 session PIN persist/check on stub HSM path (not hardware GA).
-pub fn farm_lease_pkcs11_hsm_session_pin_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_session_pin_digest() -> &'static str {
     "farm-lease-token-v17:hsm-session-pin-mvp"
 }
 
@@ -1014,7 +1014,7 @@ pub fn farm_lease_hsm_session_pin_doctor_export() -> &'static str {
 }
 
 /// Phase 135 gate fingerprint: PKCS#11 key label bind/check on stub HSM path (not hardware GA).
-pub fn farm_lease_pkcs11_hsm_key_label_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_key_label_digest() -> &'static str {
     "farm-lease-token-v18:hsm-key-label-mvp"
 }
 
@@ -1024,7 +1024,7 @@ pub fn farm_lease_hsm_key_label_doctor_export() -> &'static str {
 }
 
 /// Phase 136 gate fingerprint: PKCS#11 CKA_ID-shaped key id bind/check on stub HSM path (not hardware GA).
-pub fn farm_lease_pkcs11_hsm_key_id_fingerprint() -> &'static str {
+pub fn farm_lease_pkcs11_hsm_key_id_digest() -> &'static str {
     "farm-lease-token-v19:hsm-key-id-mvp"
 }
 
@@ -1034,8 +1034,8 @@ pub fn farm_lease_hsm_key_id_doctor_export() -> &'static str {
 }
 
 /// Phase 125 gate: tenant token rotate requires PKCS#11 session adapter sign ack (mock, `.so`, or file-slot; PIN/slot persist across rotate; not hardware GA).
-pub fn farm_lease_token_fingerprint() -> &'static str {
-    farm_lease_pkcs11_bridge_fingerprint()
+pub fn farm_lease_token_digest() -> &'static str {
+    farm_lease_pkcs11_bridge_digest()
 }
 
 const FARM_PKCS11_BRIDGE_MOCK_REF: &str = "pkcs11-bridge-mock-v1";
@@ -1314,7 +1314,7 @@ impl FarmPkcs11Bridge for FarmPkcs11SoBridgeAdapter {
         if ack == 0 {
             return Err(format!(
                 "pkcs11-so C_Sign ack must be non-zero ({})",
-                farm_lease_pkcs11_sign_mvp_fingerprint()
+                farm_lease_pkcs11_sign_mvp_digest()
             ));
         }
         Ok(self.slot_label.clone())
@@ -1421,14 +1421,14 @@ fn farm_lease_pkcs11_so_close_session(
     if logout_rc != 0 {
         return Err(format!(
             "pkcs11-so C_Logout failed rc={logout_rc} ({})",
-            farm_lease_pkcs11_session_close_fingerprint()
+            farm_lease_pkcs11_session_close_digest()
         ));
     }
     let close_rc = unsafe { close_fn(session) };
     if close_rc != 0 {
         return Err(format!(
             "pkcs11-so C_CloseSession failed rc={close_rc} ({})",
-            farm_lease_pkcs11_session_close_fingerprint()
+            farm_lease_pkcs11_session_close_digest()
         ));
     }
     Ok(())
@@ -1461,21 +1461,21 @@ fn farm_lease_pkcs11_so_get_attribute_hsm_ref(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_GetAttributeValue failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+            farm_lease_pkcs11_hsm_ref_bound_digest()
         ));
     }
     let len = attrs[0].value_len as usize;
     if len == 0 || len > buf.len() {
         return Err(format!(
             "pkcs11-so C_GetAttributeValue returned invalid hsm-ref len ({})",
-            farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+            farm_lease_pkcs11_hsm_ref_bound_digest()
         ));
     }
     let s = std::str::from_utf8(&buf[..len])
         .map_err(|_| {
             format!(
                 "pkcs11-so C_GetAttributeValue hsm-ref not utf-8 ({})",
-                farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+                farm_lease_pkcs11_hsm_ref_bound_digest()
             )
         })?
         .trim()
@@ -1483,7 +1483,7 @@ fn farm_lease_pkcs11_so_get_attribute_hsm_ref(
     if s.is_empty() {
         return Err(format!(
             "pkcs11-so C_GetAttributeValue empty hsm-ref ({})",
-            farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+            farm_lease_pkcs11_hsm_ref_bound_digest()
         ));
     }
     Ok(s)
@@ -1536,13 +1536,13 @@ fn farm_lease_pkcs11_so_invoke_sign(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_Sign failed rc={rc} ({})",
-            farm_lease_pkcs11_sign_mvp_fingerprint()
+            farm_lease_pkcs11_sign_mvp_digest()
         ));
     }
     if signature_len == 0 {
         return Err(format!(
             "pkcs11-so C_Sign returned zero-length ack ({})",
-            farm_lease_pkcs11_sign_mvp_fingerprint()
+            farm_lease_pkcs11_sign_mvp_digest()
         ));
     }
     let len = signature_len as usize;
@@ -1577,7 +1577,7 @@ fn farm_lease_pkcs11_so_invoke_verify(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_Verify failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     }
     Ok(())
@@ -1609,7 +1609,7 @@ fn farm_lease_pkcs11_mock_verify_ack(
     if signature != expected.as_slice() {
         return Err(format!(
             "hsm-sign-verify forged signature ({})",
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     }
     Ok(())
@@ -1695,7 +1695,7 @@ pub fn farm_lease_pkcs11_so_adapter_loaded() -> bool {
 
 /// Active PKCS#11 session handle after OpenSession stub (`.so` or mock; not hardware GA).
 pub fn farm_lease_pkcs11_session_handle() -> Result<u64, String> {
-    let _ = farm_lease_pkcs11_session_fingerprint();
+    let _ = farm_lease_pkcs11_session_digest();
     if farm_lease_pkcs11_use_mock() {
         if !FARM_PKCS11_PIN_PERSISTED.load(Ordering::Relaxed) {
             FARM_PKCS11_PIN_PERSISTED.store(true, Ordering::Relaxed);
@@ -1710,7 +1710,7 @@ pub fn farm_lease_pkcs11_session_handle() -> Result<u64, String> {
         if !FARM_PKCS11_SESSION_ACTIVE.load(Ordering::Relaxed) {
             return Err(format!(
                 "pkcs11-so session closed ({})",
-                farm_lease_pkcs11_session_close_fingerprint()
+                farm_lease_pkcs11_session_close_digest()
             ));
         }
         let bridge = FARM_PKCS11_SO_LOADED
@@ -1731,13 +1731,13 @@ pub fn farm_lease_pkcs11_session_handle() -> Result<u64, String> {
 
 /// True when PKCS#11 OpenSession/Login session path MVP is satisfied (mock still ok; not hardware GA).
 pub fn farm_lease_pkcs11_session_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_session_fingerprint();
+    let _ = farm_lease_pkcs11_session_digest();
     farm_lease_pkcs11_bridge_mvp_ready() && farm_lease_pkcs11_session_handle().is_ok()
 }
 
 /// True when PKCS#11 PIN/slot state is persisted after OpenSession/Login (reused across rotate; not hardware GA).
 pub fn farm_lease_pkcs11_session_pin_persisted() -> bool {
-    let _ = farm_lease_pkcs11_session_pin_persist_fingerprint();
+    let _ = farm_lease_pkcs11_session_pin_persist_digest();
     if farm_lease_pkcs11_use_mock() || farm_lease_pkcs11_file_slot_path().is_some() {
         return farm_lease_pkcs11_session_mvp_ready()
             || FARM_PKCS11_PIN_PERSISTED.load(Ordering::Relaxed);
@@ -1777,14 +1777,14 @@ fn farm_lease_pkcs11_session_pin_load_from_file() -> Result<(), String> {
     let pin = std::fs::read_to_string(&path).map_err(|e| {
         format!(
             "hsm-session-pin load {path}: {e} ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         )
     })?;
     let pin = pin.trim().to_string();
     if pin.is_empty() {
         return Err(format!(
             "hsm-session-pin file {path} is empty ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         ));
     }
     *FARM_PKCS11_SESSION_PIN_VALUE.lock().unwrap() = Some(pin);
@@ -1794,18 +1794,18 @@ fn farm_lease_pkcs11_session_pin_load_from_file() -> Result<(), String> {
 
 /// Persist session PIN to file + in-memory (stub HSM; not hardware GA).
 pub fn farm_lease_pkcs11_session_pin_persist(pin: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     let _ = farm_lease_hsm_session_pin_doctor_export();
     if pin.trim().is_empty() {
         return Err(format!(
             "hsm-session-pin reject empty PIN ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         ));
     }
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-session-pin requires active session MVP ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         ));
     }
     *FARM_PKCS11_SESSION_PIN_VALUE.lock().unwrap() = Some(pin.trim().to_string());
@@ -1814,7 +1814,7 @@ pub fn farm_lease_pkcs11_session_pin_persist(pin: &str) -> Result<(), String> {
         std::fs::write(&path, pin.trim()).map_err(|e| {
             format!(
                 "hsm-session-pin persist write {path}: {e} ({})",
-                farm_lease_pkcs11_hsm_session_pin_fingerprint()
+                farm_lease_pkcs11_hsm_session_pin_digest()
             )
         })?;
     }
@@ -1823,11 +1823,11 @@ pub fn farm_lease_pkcs11_session_pin_persist(pin: &str) -> Result<(), String> {
 
 /// Check session PIN against persisted value (stub; not hardware GA).
 pub fn farm_lease_pkcs11_session_pin_verify(pin: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     if pin.trim().is_empty() {
         return Err(format!(
             "hsm-session-pin reject empty PIN verify ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         ));
     }
     farm_lease_pkcs11_session_pin_load_from_file()?;
@@ -1835,13 +1835,13 @@ pub fn farm_lease_pkcs11_session_pin_verify(pin: &str) -> Result<(), String> {
     let stored = guard.as_deref().ok_or_else(|| {
         format!(
             "hsm-session-pin reject unbound PIN ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         )
     })?;
     if stored != pin.trim() {
         return Err(format!(
             "hsm-session-pin mismatch ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         ));
     }
     Ok(())
@@ -1849,7 +1849,7 @@ pub fn farm_lease_pkcs11_session_pin_verify(pin: &str) -> Result<(), String> {
 
 /// True when a session PIN is loaded from memory or persist file (stub; not hardware GA).
 pub fn farm_lease_pkcs11_session_pin_loaded() -> bool {
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     let _ = farm_lease_pkcs11_session_pin_load_from_file();
     FARM_PKCS11_SESSION_PIN_VALUE
         .lock()
@@ -1859,7 +1859,7 @@ pub fn farm_lease_pkcs11_session_pin_loaded() -> bool {
 }
 
 fn farm_lease_pkcs11_session_pin_require_for_multi_slot() -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     // Phase 134: enforce only when PIN file env is configured or v17 persist already loaded.
     if farm_lease_pkcs11_session_pin_path().is_none() && !farm_lease_pkcs11_session_pin_loaded() {
         return Ok(());
@@ -1868,7 +1868,7 @@ fn farm_lease_pkcs11_session_pin_require_for_multi_slot() -> Result<(), String> 
     if farm_lease_pkcs11_session_pin_path().is_some() && !farm_lease_pkcs11_session_pin_loaded() {
         return Err(format!(
             "hsm-session-pin required but not loaded ({})",
-            farm_lease_pkcs11_hsm_session_pin_fingerprint()
+            farm_lease_pkcs11_hsm_session_pin_digest()
         ));
     }
     if farm_lease_pkcs11_session_pin_loaded() {
@@ -1884,13 +1884,13 @@ fn farm_lease_pkcs11_session_pin_require_for_multi_slot() -> Result<(), String> 
     }
     Err(format!(
         "hsm-session-pin not persisted for multi-slot op ({})",
-        farm_lease_pkcs11_hsm_session_pin_fingerprint()
+        farm_lease_pkcs11_hsm_session_pin_digest()
     ))
 }
 
 /// Phase 134 gate: HSM session PIN MVP readiness (multi-slot + persisted PIN; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_session_pin_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     let _ = farm_lease_hsm_session_pin_doctor_export();
     farm_lease_pkcs11_hsm_multi_slot_mvp_ready() && farm_lease_pkcs11_session_pin_loaded()
 }
@@ -1918,14 +1918,14 @@ fn farm_lease_pkcs11_key_label_load_from_file() -> Result<(), String> {
     let label = std::fs::read_to_string(&path).map_err(|e| {
         format!(
             "hsm-key-label load {path}: {e} ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         )
     })?;
     let label = label.trim().to_string();
     if label.is_empty() {
         return Err(format!(
             "hsm-key-label file {path} is empty ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         ));
     }
     *FARM_PKCS11_KEY_LABEL_VALUE.lock().unwrap() = Some(label);
@@ -1934,18 +1934,18 @@ fn farm_lease_pkcs11_key_label_load_from_file() -> Result<(), String> {
 
 /// Persist PKCS#11 key label to file + in-memory (stub HSM; not hardware GA).
 pub fn farm_lease_pkcs11_key_label_persist(label: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_key_label_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_label_digest();
     let _ = farm_lease_hsm_key_label_doctor_export();
     if label.trim().is_empty() {
         return Err(format!(
             "hsm-key-label reject empty label ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         ));
     }
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-key-label requires active session MVP ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         ));
     }
     *FARM_PKCS11_KEY_LABEL_VALUE.lock().unwrap() = Some(label.trim().to_string());
@@ -1953,7 +1953,7 @@ pub fn farm_lease_pkcs11_key_label_persist(label: &str) -> Result<(), String> {
         std::fs::write(&path, label.trim()).map_err(|e| {
             format!(
                 "hsm-key-label persist write {path}: {e} ({})",
-                farm_lease_pkcs11_hsm_key_label_fingerprint()
+                farm_lease_pkcs11_hsm_key_label_digest()
             )
         })?;
     }
@@ -1962,11 +1962,11 @@ pub fn farm_lease_pkcs11_key_label_persist(label: &str) -> Result<(), String> {
 
 /// Check key label against persisted value (stub; not hardware GA).
 pub fn farm_lease_pkcs11_key_label_verify(label: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_key_label_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_label_digest();
     if label.trim().is_empty() {
         return Err(format!(
             "hsm-key-label reject empty label verify ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         ));
     }
     farm_lease_pkcs11_key_label_load_from_file()?;
@@ -1974,13 +1974,13 @@ pub fn farm_lease_pkcs11_key_label_verify(label: &str) -> Result<(), String> {
     let stored = guard.as_deref().ok_or_else(|| {
         format!(
             "hsm-key-label reject unbound label ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         )
     })?;
     if stored != label.trim() {
         return Err(format!(
             "hsm-key-label mismatch ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         ));
     }
     Ok(())
@@ -1988,7 +1988,7 @@ pub fn farm_lease_pkcs11_key_label_verify(label: &str) -> Result<(), String> {
 
 /// True when a key label is loaded from memory or persist file (stub; not hardware GA).
 pub fn farm_lease_pkcs11_key_label_loaded() -> bool {
-    let _ = farm_lease_pkcs11_hsm_key_label_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_label_digest();
     let _ = farm_lease_pkcs11_key_label_load_from_file();
     FARM_PKCS11_KEY_LABEL_VALUE
         .lock()
@@ -1998,7 +1998,7 @@ pub fn farm_lease_pkcs11_key_label_loaded() -> bool {
 }
 
 fn farm_lease_pkcs11_key_label_require_for_multi_slot() -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_key_label_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_label_digest();
     if farm_lease_pkcs11_key_label_path().is_none() && !farm_lease_pkcs11_key_label_loaded() {
         return Ok(());
     }
@@ -2006,7 +2006,7 @@ fn farm_lease_pkcs11_key_label_require_for_multi_slot() -> Result<(), String> {
     if farm_lease_pkcs11_key_label_path().is_some() && !farm_lease_pkcs11_key_label_loaded() {
         return Err(format!(
             "hsm-key-label required but not loaded ({})",
-            farm_lease_pkcs11_hsm_key_label_fingerprint()
+            farm_lease_pkcs11_hsm_key_label_digest()
         ));
     }
     if farm_lease_pkcs11_key_label_loaded() {
@@ -2019,13 +2019,13 @@ fn farm_lease_pkcs11_key_label_require_for_multi_slot() -> Result<(), String> {
     }
     Err(format!(
         "hsm-key-label not persisted for multi-slot op ({})",
-        farm_lease_pkcs11_hsm_key_label_fingerprint()
+        farm_lease_pkcs11_hsm_key_label_digest()
     ))
 }
 
 /// Phase 135 gate: HSM key label MVP readiness (multi-slot + persisted label; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_key_label_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_key_label_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_label_digest();
     let _ = farm_lease_hsm_key_label_doctor_export();
     farm_lease_pkcs11_hsm_multi_slot_mvp_ready() && farm_lease_pkcs11_key_label_loaded()
 }
@@ -2036,7 +2036,7 @@ fn farm_lease_pkcs11_normalize_cka_id(raw: &str) -> Result<String, String> {
     if trimmed.is_empty() {
         return Err(format!(
             "hsm-key-id reject empty CKA_ID ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         ));
     }
     let hex: String = trimmed
@@ -2047,7 +2047,7 @@ fn farm_lease_pkcs11_normalize_cka_id(raw: &str) -> Result<String, String> {
     if hex.is_empty() || hex.len() % 2 != 0 || !hex.chars().all(|c| c.is_ascii_hexdigit()) {
         return Err(format!(
             "hsm-key-id reject non-CKA_ID shape ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         ));
     }
     Ok(hex)
@@ -2076,7 +2076,7 @@ fn farm_lease_pkcs11_key_id_load_from_file() -> Result<(), String> {
     let raw = std::fs::read_to_string(&path).map_err(|e| {
         format!(
             "hsm-key-id load {path}: {e} ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         )
     })?;
     let id = farm_lease_pkcs11_normalize_cka_id(&raw)?;
@@ -2086,13 +2086,13 @@ fn farm_lease_pkcs11_key_id_load_from_file() -> Result<(), String> {
 
 /// Persist PKCS#11 CKA_ID-shaped key id to file + in-memory (stub HSM; not hardware GA).
 pub fn farm_lease_pkcs11_key_id_persist(key_id: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_key_id_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_id_digest();
     let _ = farm_lease_hsm_key_id_doctor_export();
     let id = farm_lease_pkcs11_normalize_cka_id(key_id)?;
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-key-id requires active session MVP ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         ));
     }
     *FARM_PKCS11_KEY_ID_VALUE.lock().unwrap() = Some(id.clone());
@@ -2100,7 +2100,7 @@ pub fn farm_lease_pkcs11_key_id_persist(key_id: &str) -> Result<(), String> {
         std::fs::write(&path, &id).map_err(|e| {
             format!(
                 "hsm-key-id persist write {path}: {e} ({})",
-                farm_lease_pkcs11_hsm_key_id_fingerprint()
+                farm_lease_pkcs11_hsm_key_id_digest()
             )
         })?;
     }
@@ -2109,20 +2109,20 @@ pub fn farm_lease_pkcs11_key_id_persist(key_id: &str) -> Result<(), String> {
 
 /// Check key id against persisted CKA_ID-shaped value (stub; not hardware GA).
 pub fn farm_lease_pkcs11_key_id_verify(key_id: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_key_id_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_id_digest();
     let want = farm_lease_pkcs11_normalize_cka_id(key_id)?;
     farm_lease_pkcs11_key_id_load_from_file()?;
     let guard = FARM_PKCS11_KEY_ID_VALUE.lock().unwrap();
     let stored = guard.as_deref().ok_or_else(|| {
         format!(
             "hsm-key-id reject unbound CKA_ID ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         )
     })?;
     if stored != want {
         return Err(format!(
             "hsm-key-id mismatch ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         ));
     }
     Ok(())
@@ -2130,7 +2130,7 @@ pub fn farm_lease_pkcs11_key_id_verify(key_id: &str) -> Result<(), String> {
 
 /// True when a CKA_ID-shaped key id is loaded from memory or persist file (stub; not hardware GA).
 pub fn farm_lease_pkcs11_key_id_loaded() -> bool {
-    let _ = farm_lease_pkcs11_hsm_key_id_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_id_digest();
     let _ = farm_lease_pkcs11_key_id_load_from_file();
     FARM_PKCS11_KEY_ID_VALUE
         .lock()
@@ -2140,7 +2140,7 @@ pub fn farm_lease_pkcs11_key_id_loaded() -> bool {
 }
 
 fn farm_lease_pkcs11_key_id_require_for_multi_slot() -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_key_id_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_id_digest();
     if farm_lease_pkcs11_key_id_path().is_none() && !farm_lease_pkcs11_key_id_loaded() {
         return Ok(());
     }
@@ -2148,7 +2148,7 @@ fn farm_lease_pkcs11_key_id_require_for_multi_slot() -> Result<(), String> {
     if farm_lease_pkcs11_key_id_path().is_some() && !farm_lease_pkcs11_key_id_loaded() {
         return Err(format!(
             "hsm-key-id required but not loaded ({})",
-            farm_lease_pkcs11_hsm_key_id_fingerprint()
+            farm_lease_pkcs11_hsm_key_id_digest()
         ));
     }
     if farm_lease_pkcs11_key_id_loaded() {
@@ -2161,13 +2161,13 @@ fn farm_lease_pkcs11_key_id_require_for_multi_slot() -> Result<(), String> {
     }
     Err(format!(
         "hsm-key-id not persisted for multi-slot op ({})",
-        farm_lease_pkcs11_hsm_key_id_fingerprint()
+        farm_lease_pkcs11_hsm_key_id_digest()
     ))
 }
 
 /// Phase 136 gate: HSM key id MVP readiness (key-label + persisted CKA_ID; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_key_id_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_key_id_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_key_id_digest();
     let _ = farm_lease_hsm_key_id_doctor_export();
     farm_lease_pkcs11_hsm_key_label_mvp_ready() && farm_lease_pkcs11_key_id_loaded()
 }
@@ -2184,7 +2184,7 @@ pub fn farm_lease_pkcs11_session_slot_id() -> u64 {
 
 /// Explicit PKCS#11 session teardown: `C_Logout` + `C_CloseSession` (stub `.so`/mock; not hardware GA).
 pub fn farm_lease_pkcs11_session_close() -> Result<(), String> {
-    let _ = farm_lease_pkcs11_session_close_fingerprint();
+    let _ = farm_lease_pkcs11_session_close_digest();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err("pkcs11 session close requires active session MVP (not hardware GA)".into());
     }
@@ -2214,7 +2214,7 @@ pub fn farm_lease_pkcs11_session_close() -> Result<(), String> {
 
 /// Phase 127 gate: session-close MVP readiness (Logout/CloseSession stub path; not hardware GA).
 pub fn farm_lease_pkcs11_session_close_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_session_close_fingerprint();
+    let _ = farm_lease_pkcs11_session_close_digest();
     farm_lease_pkcs11_session_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_Logout")
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_CloseSession")
@@ -2227,12 +2227,12 @@ pub fn farm_lease_pkcs11_session_close_count() -> u32 {
 
 /// Bind HSM-ref to the active PKCS#11 session via `C_GetAttributeValue` (stub; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_ref_bind() -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_ref_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_ref_bound_digest();
     let _ = farm_lease_hsm_ref_bound_doctor_export();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-ref-bound requires active PKCS#11 session ({})",
-            farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+            farm_lease_pkcs11_hsm_ref_bound_digest()
         ));
     }
     if farm_lease_pkcs11_use_mock() || farm_lease_pkcs11_file_slot_path().is_some() {
@@ -2262,23 +2262,23 @@ pub fn farm_lease_pkcs11_hsm_ref_bind() -> Result<String, String> {
     }
     Err(format!(
         "hsm-ref-bound requires mock, shared library, or file-slot ({})",
-        farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+        farm_lease_pkcs11_hsm_ref_bound_digest()
     ))
 }
 
 /// Currently bound HSM-ref after session bind (stub; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_ref_bound() -> Option<String> {
-    let _ = farm_lease_pkcs11_hsm_ref_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_ref_bound_digest();
     FARM_PKCS11_HSM_REF_BOUND.lock().unwrap().clone()
 }
 
 /// Validate a wire/lease HSM-ref against the session-bound attribute; reject forged refs.
 pub fn farm_lease_pkcs11_hsm_ref_bound_validate(wire_ref: &str) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_ref_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_ref_bound_digest();
     if wire_ref.trim().is_empty() {
         return Err(format!(
             "hsm-ref-bound reject empty wire ref ({})",
-            farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+            farm_lease_pkcs11_hsm_ref_bound_digest()
         ));
     }
     let bound = match farm_lease_pkcs11_hsm_ref_bound() {
@@ -2288,7 +2288,7 @@ pub fn farm_lease_pkcs11_hsm_ref_bound_validate(wire_ref: &str) -> Result<(), St
     if wire_ref != bound {
         return Err(format!(
             "hsm-ref-bound forged/mismatch: wire {wire_ref} != bound {bound} ({})",
-            farm_lease_pkcs11_hsm_ref_bound_fingerprint()
+            farm_lease_pkcs11_hsm_ref_bound_digest()
         ));
     }
     Ok(())
@@ -2296,7 +2296,7 @@ pub fn farm_lease_pkcs11_hsm_ref_bound_validate(wire_ref: &str) -> Result<(), St
 
 /// Phase 128 gate: HSM-ref bind MVP readiness (`C_GetAttributeValue` + reject forged; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_ref_bound_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_ref_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_ref_bound_digest();
     let _ = farm_lease_hsm_ref_bound_doctor_export();
     farm_lease_pkcs11_session_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_GetAttributeValue")
@@ -2311,12 +2311,12 @@ pub fn farm_lease_pkcs11_hsm_sign_bound(
     new_token: u32,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_sign_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_sign_bound_digest();
     let _ = farm_lease_hsm_sign_bound_doctor_export();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-sign-bound reject unbound session ({})",
-            farm_lease_pkcs11_hsm_sign_bound_fingerprint()
+            farm_lease_pkcs11_hsm_sign_bound_digest()
         ));
     }
     let bound = match farm_lease_pkcs11_hsm_ref_bound() {
@@ -2324,7 +2324,7 @@ pub fn farm_lease_pkcs11_hsm_sign_bound(
         _ => {
             return Err(format!(
                 "hsm-sign-bound reject unbound hsm-ref ({})",
-                farm_lease_pkcs11_hsm_sign_bound_fingerprint()
+                farm_lease_pkcs11_hsm_sign_bound_digest()
             ));
         }
     };
@@ -2332,7 +2332,7 @@ pub fn farm_lease_pkcs11_hsm_sign_bound(
         if claimed.trim().is_empty() || claimed != bound {
             return Err(format!(
                 "hsm-sign-bound forged/mismatch: claimed {claimed} != bound {bound} ({})",
-                farm_lease_pkcs11_hsm_sign_bound_fingerprint()
+                farm_lease_pkcs11_hsm_sign_bound_digest()
             ));
         }
     }
@@ -2340,7 +2340,7 @@ pub fn farm_lease_pkcs11_hsm_sign_bound(
     farm_lease_pkcs11_hsm_ref_bound_validate(&bound).map_err(|e| {
         format!(
             "hsm-sign-bound validate failed: {e} ({})",
-            farm_lease_pkcs11_hsm_sign_bound_fingerprint()
+            farm_lease_pkcs11_hsm_sign_bound_digest()
         )
     })?;
     let signature = farm_lease_pkcs11_produce_signature(tenant_id, old_token, new_token)?;
@@ -2356,7 +2356,7 @@ pub fn farm_lease_pkcs11_hsm_sign_bound(
         {
             return Err(format!(
                 "hsm-sign-bound digest mismatch/forge ({})",
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         }
         let digest_hex = farm_lease_pkcs11_digest_hex(&d.digest);
@@ -2413,7 +2413,7 @@ fn farm_lease_pkcs11_produce_signature(
 
 /// Phase 129 gate: HSM-sign-bound MVP readiness (`C_Sign` + validated hsm-ref; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_sign_bound_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_sign_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_sign_bound_digest();
     let _ = farm_lease_hsm_sign_bound_doctor_export();
     farm_lease_pkcs11_hsm_ref_bound_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_Sign")
@@ -2429,12 +2429,12 @@ pub fn farm_lease_pkcs11_hsm_sign_verify(
     signature_wire: &str,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_sign_verify_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_sign_verify_digest();
     let _ = farm_lease_hsm_sign_verify_doctor_export();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-sign-verify reject unbound session ({})",
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     }
     let bound = match farm_lease_pkcs11_hsm_ref_bound() {
@@ -2442,7 +2442,7 @@ pub fn farm_lease_pkcs11_hsm_sign_verify(
         _ => {
             return Err(format!(
                 "hsm-sign-verify reject unbound hsm-ref ({})",
-                farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+                farm_lease_pkcs11_hsm_sign_verify_digest()
             ));
         }
     };
@@ -2450,7 +2450,7 @@ pub fn farm_lease_pkcs11_hsm_sign_verify(
         if claimed.trim().is_empty() || claimed != bound {
             return Err(format!(
                 "hsm-sign-verify forged/mismatch: claimed {claimed} != bound {bound} ({})",
-                farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+                farm_lease_pkcs11_hsm_sign_verify_digest()
             ));
         }
     }
@@ -2458,14 +2458,14 @@ pub fn farm_lease_pkcs11_hsm_sign_verify(
     let Some(last) = last else {
         return Err(format!(
             "hsm-sign-verify reject: no prior bound C_Sign ({})",
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     };
     if last.hsm_ref != bound {
         return Err(format!(
             "hsm-sign-verify wrong ref: last {} != bound {bound} ({})",
             last.hsm_ref,
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     }
     if signature_wire != last.wire
@@ -2475,13 +2475,13 @@ pub fn farm_lease_pkcs11_hsm_sign_verify(
     {
         return Err(format!(
             "hsm-sign-verify forged signature wire ({})",
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     }
     if !signature_wire.contains(&bound) || !signature_wire.contains("hsm-sign-bound") {
         return Err(format!(
             "hsm-sign-verify forged/mismatch wire missing bound ref ({})",
-            farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+            farm_lease_pkcs11_hsm_sign_verify_digest()
         ));
     }
     // Phase 131: when prior C_Digest was bound into the sign, verify must carry same digest+ref.
@@ -2491,19 +2491,19 @@ pub fn farm_lease_pkcs11_hsm_sign_verify(
         if !signature_wire.contains(&digest_marker) {
             return Err(format!(
                 "hsm-sign-verify forged digest mismatch ({})",
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         }
         let Some(ref dw) = last.digest_wire else {
             return Err(format!(
                 "hsm-sign-verify forged digest unbound ({})",
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         };
         if !dw.contains(&bound) || !dw.contains("hsm-digest-bound") {
             return Err(format!(
                 "hsm-sign-verify forged digest wire ({})",
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         }
     }
@@ -2543,13 +2543,13 @@ fn farm_lease_pkcs11_invoke_verify(
     }
     Err(format!(
         "hsm-sign-verify requires mock, shared library, or file-slot ({})",
-        farm_lease_pkcs11_hsm_sign_verify_fingerprint()
+        farm_lease_pkcs11_hsm_sign_verify_digest()
     ))
 }
 
 /// Phase 130 gate: HSM sign→verify MVP readiness (`C_Sign`+`C_Verify`+hsm-ref; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_sign_verify_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_sign_verify_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_sign_verify_digest();
     let _ = farm_lease_hsm_sign_verify_doctor_export();
     farm_lease_pkcs11_hsm_sign_bound_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_Verify")
@@ -2587,7 +2587,7 @@ fn farm_lease_pkcs11_produce_digest(
     }
     Err(format!(
         "hsm-digest-bound requires mock, shared library, or file-slot ({})",
-        farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+        farm_lease_pkcs11_hsm_digest_bound_digest()
     ))
 }
 
@@ -2619,7 +2619,7 @@ fn farm_lease_pkcs11_so_invoke_digest(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_Digest failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         ));
     }
     Ok(digest[..digest_len as usize].to_vec())
@@ -2633,12 +2633,12 @@ pub fn farm_lease_pkcs11_hsm_digest_bound(
     new_token: u32,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_digest_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_bound_digest();
     let _ = farm_lease_hsm_digest_bound_doctor_export();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-digest-bound reject unbound session ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         ));
     }
     let bound = match farm_lease_pkcs11_hsm_ref_bound() {
@@ -2646,7 +2646,7 @@ pub fn farm_lease_pkcs11_hsm_digest_bound(
         _ => {
             return Err(format!(
                 "hsm-digest-bound reject unbound hsm-ref ({})",
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         }
     };
@@ -2654,14 +2654,14 @@ pub fn farm_lease_pkcs11_hsm_digest_bound(
         if claimed.trim().is_empty() || claimed != bound {
             return Err(format!(
                 "hsm-digest-bound forged/mismatch: claimed {claimed} != bound {bound} ({})",
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         }
     }
     farm_lease_pkcs11_hsm_ref_bound_validate(&bound).map_err(|e| {
         format!(
             "hsm-digest-bound validate failed: {e} ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         )
     })?;
     let digest = farm_lease_pkcs11_produce_digest(tenant_id, old_token, new_token)?;
@@ -2685,18 +2685,18 @@ pub fn farm_lease_pkcs11_hsm_digest_sign_bound(
     new_token: u32,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_digest_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_bound_digest();
     let last = FARM_PKCS11_LAST_DIGEST.lock().unwrap().clone();
     let Some(last) = last else {
         return Err(format!(
             "hsm-digest-bound reject: no prior C_Digest ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         ));
     };
     if last.tenant_id != tenant_id || last.old_token != old_token || last.new_token != new_token {
         return Err(format!(
             "hsm-digest-bound forged digest payload mismatch ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         ));
     }
     if let Some(claimed) = claimed_hsm_ref {
@@ -2704,7 +2704,7 @@ pub fn farm_lease_pkcs11_hsm_digest_sign_bound(
             return Err(format!(
                 "hsm-digest-bound forged/mismatch: claimed {claimed} != digest-ref {} ({})",
                 last.hsm_ref,
-                farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+                farm_lease_pkcs11_hsm_digest_bound_digest()
             ));
         }
     }
@@ -2719,19 +2719,19 @@ pub fn farm_lease_pkcs11_hsm_digest_sign_verify(
     signature_wire: &str,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_digest_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_bound_digest();
     let last_digest = FARM_PKCS11_LAST_DIGEST.lock().unwrap().clone();
     let Some(last_digest) = last_digest else {
         return Err(format!(
             "hsm-digest-bound reject: no prior C_Digest for verify ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         ));
     };
     let digest_hex = farm_lease_pkcs11_digest_hex(&last_digest.digest);
     if !signature_wire.contains(&format!("digest:{digest_hex}")) {
         return Err(format!(
             "hsm-digest-bound forged digest on verify ({})",
-            farm_lease_pkcs11_hsm_digest_bound_fingerprint()
+            farm_lease_pkcs11_hsm_digest_bound_digest()
         ));
     }
     let verified = farm_lease_pkcs11_hsm_sign_verify(
@@ -2749,7 +2749,7 @@ pub fn farm_lease_pkcs11_hsm_digest_sign_verify(
 
 /// Phase 131 gate: HSM digest-bound MVP readiness (`C_Digest`+Sign/Verify+hsm-ref; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_digest_bound_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_digest_bound_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_bound_digest();
     let _ = farm_lease_hsm_digest_bound_doctor_export();
     farm_lease_pkcs11_hsm_sign_verify_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_Digest")
@@ -2759,11 +2759,11 @@ pub fn farm_lease_pkcs11_hsm_digest_bound_mvp_ready() -> bool {
 fn farm_lease_pkcs11_require_bound_ref_for_stream(
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_digest_streaming_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_streaming_digest();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-digest-streaming reject unbound session ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     let bound = match farm_lease_pkcs11_hsm_ref_bound() {
@@ -2771,7 +2771,7 @@ fn farm_lease_pkcs11_require_bound_ref_for_stream(
         _ => {
             return Err(format!(
                 "hsm-digest-streaming reject unbound hsm-ref ({})",
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
     };
@@ -2779,14 +2779,14 @@ fn farm_lease_pkcs11_require_bound_ref_for_stream(
         if claimed.trim().is_empty() || claimed != bound {
             return Err(format!(
                 "hsm-digest-streaming forged/mismatch: claimed {claimed} != bound {bound} ({})",
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
     }
     farm_lease_pkcs11_hsm_ref_bound_validate(&bound).map_err(|e| {
         format!(
             "hsm-digest-streaming validate failed: {e} ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         )
     })?;
     Ok(bound)
@@ -2806,7 +2806,7 @@ fn farm_lease_pkcs11_so_digest_init(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_DigestInit failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     Ok(())
@@ -2828,7 +2828,7 @@ fn farm_lease_pkcs11_so_digest_update(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_DigestUpdate failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     Ok(())
@@ -2850,7 +2850,7 @@ fn farm_lease_pkcs11_so_digest_final(
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_DigestFinal failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     Ok(digest[..digest_len as usize].to_vec())
@@ -2858,7 +2858,7 @@ fn farm_lease_pkcs11_so_digest_final(
 
 /// Phase 132: `C_DigestInit` bound to validated hsm-ref (stub; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_digest_init(claimed_hsm_ref: Option<&str>) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_digest_streaming_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_streaming_digest();
     let _ = farm_lease_hsm_digest_streaming_doctor_export();
     let bound = farm_lease_pkcs11_require_bound_ref_for_stream(claimed_hsm_ref)?;
     if farm_lease_pkcs11_use_mock() || farm_lease_pkcs11_file_slot_path().is_some() {
@@ -2892,7 +2892,7 @@ pub fn farm_lease_pkcs11_hsm_digest_init(claimed_hsm_ref: Option<&str>) -> Resul
     }
     Err(format!(
         "hsm-digest-streaming requires mock, shared library, or file-slot ({})",
-        farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+        farm_lease_pkcs11_hsm_digest_streaming_digest()
     ))
 }
 
@@ -2901,11 +2901,11 @@ pub fn farm_lease_pkcs11_hsm_digest_update(
     part: &[u8],
     claimed_hsm_ref: Option<&str>,
 ) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_digest_streaming_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_streaming_digest();
     if part.is_empty() {
         return Err(format!(
             "hsm-digest-streaming reject empty update ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     let bound = farm_lease_pkcs11_require_bound_ref_for_stream(claimed_hsm_ref)?;
@@ -2914,7 +2914,7 @@ pub fn farm_lease_pkcs11_hsm_digest_update(
         if !slot.active {
             return Err(format!(
                 "hsm-digest-streaming reject unbound stream (no DigestInit) ({})",
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
         if slot.hsm_ref != bound {
@@ -2922,7 +2922,7 @@ pub fn farm_lease_pkcs11_hsm_digest_update(
             return Err(format!(
                 "hsm-digest-streaming forged mid-stream: claimed {bound} != stream-ref {} ({})",
                 slot.hsm_ref,
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
         if let Some(claimed) = claimed_hsm_ref {
@@ -2930,7 +2930,7 @@ pub fn farm_lease_pkcs11_hsm_digest_update(
                 slot.forged = true;
                 return Err(format!(
                     "hsm-digest-streaming forged mid-stream wrong ref ({})",
-                    farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                    farm_lease_pkcs11_hsm_digest_streaming_digest()
                 ));
             }
         }
@@ -2957,7 +2957,7 @@ pub fn farm_lease_pkcs11_hsm_digest_final(
     new_token: u32,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_digest_streaming_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_streaming_digest();
     let _ = farm_lease_hsm_digest_streaming_doctor_export();
     let bound = farm_lease_pkcs11_require_bound_ref_for_stream(claimed_hsm_ref)?;
     let (chunks, stream_ref, forged) = {
@@ -2965,19 +2965,19 @@ pub fn farm_lease_pkcs11_hsm_digest_final(
         if !slot.active {
             return Err(format!(
                 "hsm-digest-streaming reject unbound stream (no DigestInit) ({})",
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
         if slot.forged {
             return Err(format!(
                 "hsm-digest-streaming forged mid-stream reject Final ({})",
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
         if slot.hsm_ref != bound {
             return Err(format!(
                 "hsm-digest-streaming forged/mismatch Final ({})",
-                farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+                farm_lease_pkcs11_hsm_digest_streaming_digest()
             ));
         }
         (slot.chunks.clone(), slot.hsm_ref.clone(), slot.forged)
@@ -2987,7 +2987,7 @@ pub fn farm_lease_pkcs11_hsm_digest_final(
     if chunks != expected {
         return Err(format!(
             "hsm-digest-streaming forged payload mismatch vs rotate ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     let digest = if farm_lease_pkcs11_so_path().is_some()
@@ -3011,7 +3011,7 @@ pub fn farm_lease_pkcs11_hsm_digest_final(
     if digest != oneshot {
         return Err(format!(
             "hsm-digest-streaming multi-chunk != one-shot C_Digest ({})",
-            farm_lease_pkcs11_hsm_digest_streaming_fingerprint()
+            farm_lease_pkcs11_hsm_digest_streaming_digest()
         ));
     }
     let digest_hex = farm_lease_pkcs11_digest_hex(&digest);
@@ -3039,7 +3039,7 @@ pub fn farm_lease_pkcs11_hsm_digest_streaming(
     chunks: &[&[u8]],
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_digest_streaming_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_streaming_digest();
     farm_lease_pkcs11_hsm_digest_init(claimed_hsm_ref)?;
     for part in chunks {
         farm_lease_pkcs11_hsm_digest_update(part, claimed_hsm_ref)?;
@@ -3049,7 +3049,7 @@ pub fn farm_lease_pkcs11_hsm_digest_streaming(
 
 /// Phase 132 gate: HSM digest-streaming MVP readiness (Init/Update/Final + hsm-ref; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_digest_streaming_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_digest_streaming_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_digest_streaming_digest();
     let _ = farm_lease_hsm_digest_streaming_doctor_export();
     farm_lease_pkcs11_hsm_digest_bound_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_DigestInit")
@@ -3071,13 +3071,13 @@ fn farm_lease_pkcs11_so_get_slot_list(library: &libloading::Library) -> Result<V
     if rc != 0 {
         return Err(format!(
             "pkcs11-so C_GetSlotList count failed rc={rc} ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     if count < 2 {
         return Err(format!(
             "pkcs11-so C_GetSlotList requires ≥2 slots, got {count} ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     let mut slots = vec![0u64; count as usize];
@@ -3086,7 +3086,7 @@ fn farm_lease_pkcs11_so_get_slot_list(library: &libloading::Library) -> Result<V
     if rc2 != 0 {
         return Err(format!(
             "pkcs11-so C_GetSlotList list failed rc={rc2} ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     slots.truncate(count2 as usize);
@@ -3095,7 +3095,7 @@ fn farm_lease_pkcs11_so_get_slot_list(library: &libloading::Library) -> Result<V
 
 /// Enumerate PKCS#11 slots (`C_GetSlotList`); mock/file-slot expose ≥2 stub slots (not hardware GA).
 pub fn farm_lease_pkcs11_slot_list() -> Result<Vec<u64>, String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     let _ = farm_lease_hsm_multi_slot_doctor_export();
     if farm_lease_pkcs11_use_mock() || farm_lease_pkcs11_file_slot_path().is_some() {
         return Ok(vec![0, 1]);
@@ -3111,24 +3111,24 @@ pub fn farm_lease_pkcs11_slot_list() -> Result<Vec<u64>, String> {
     // Default mock multi-slot surface when bridge env unset (tests set mock explicitly).
     Err(format!(
         "hsm-multi-slot requires mock, shared library, or file-slot ({})",
-        farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+        farm_lease_pkcs11_hsm_multi_slot_digest()
     ))
 }
 
 /// Select active PKCS#11 slot for rotate/digest/sign binding (stub; not hardware GA).
 pub fn farm_lease_pkcs11_slot_select(slot_id: u64) -> Result<(), String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-multi-slot reject unbound session ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     let slots = farm_lease_pkcs11_slot_list()?;
     if !slots.contains(&slot_id) {
         return Err(format!(
             "hsm-multi-slot wrong-slot: {slot_id} not in {slots:?} ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     *FARM_PKCS11_MULTI_SLOT_ACTIVE.lock().unwrap() = Some(slot_id);
@@ -3138,15 +3138,15 @@ pub fn farm_lease_pkcs11_slot_select(slot_id: u64) -> Result<(), String> {
 
 /// Currently selected multi-slot id (None if unbound/unselected).
 pub fn farm_lease_pkcs11_active_slot_id() -> Option<u64> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     *FARM_PKCS11_MULTI_SLOT_ACTIVE.lock().unwrap()
 }
 
 /// Bind HSM-ref for a chosen slot; selects the slot and stores per-slot ref (stub; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_multi_slot_bind(slot_id: u64) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     let _ = farm_lease_hsm_multi_slot_doctor_export();
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     farm_lease_pkcs11_slot_select(slot_id)?;
     farm_lease_pkcs11_session_pin_require_for_multi_slot()?;
     farm_lease_pkcs11_key_label_require_for_multi_slot()?;
@@ -3163,7 +3163,7 @@ pub fn farm_lease_pkcs11_hsm_multi_slot_bind(slot_id: u64) -> Result<String, Str
 
 /// Bound HSM-ref for a specific slot, if previously multi-slot-bound.
 pub fn farm_lease_pkcs11_hsm_ref_bound_for_slot(slot_id: u64) -> Option<String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     farm_lease_pkcs11_multi_slot_refs()
         .as_ref()
         .and_then(|m| m.get(&slot_id).cloned())
@@ -3173,12 +3173,12 @@ fn farm_lease_pkcs11_require_multi_slot(
     slot_id: u64,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(format!(
             "hsm-multi-slot reject unbound session ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     farm_lease_pkcs11_session_pin_require_for_multi_slot()?;
@@ -3187,13 +3187,13 @@ fn farm_lease_pkcs11_require_multi_slot(
     let active = farm_lease_pkcs11_active_slot_id().ok_or_else(|| {
         format!(
             "hsm-multi-slot reject unbound slot (no select) ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         )
     })?;
     if slot_id != active {
         return Err(format!(
             "hsm-multi-slot wrong-slot: claimed {slot_id} != active {active} ({})",
-            farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+            farm_lease_pkcs11_hsm_multi_slot_digest()
         ));
     }
     let bound = match farm_lease_pkcs11_hsm_ref_bound_for_slot(slot_id) {
@@ -3201,7 +3201,7 @@ fn farm_lease_pkcs11_require_multi_slot(
         _ => {
             return Err(format!(
                 "hsm-multi-slot reject unbound hsm-ref for slot {slot_id} ({})",
-                farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+                farm_lease_pkcs11_hsm_multi_slot_digest()
             ));
         }
     };
@@ -3215,12 +3215,12 @@ fn farm_lease_pkcs11_require_multi_slot(
             if cross {
                 return Err(format!(
                     "hsm-multi-slot cross-slot forge: claimed {claimed} for slot {slot_id} ({})",
-                    farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+                    farm_lease_pkcs11_hsm_multi_slot_digest()
                 ));
             }
             return Err(format!(
                 "hsm-multi-slot forged/mismatch: claimed {claimed} != bound {bound} ({})",
-                farm_lease_pkcs11_hsm_multi_slot_fingerprint()
+                farm_lease_pkcs11_hsm_multi_slot_digest()
             ));
         }
     }
@@ -3236,7 +3236,7 @@ pub fn farm_lease_pkcs11_hsm_multi_slot_sign_bound(
     new_token: u32,
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     let _ = farm_lease_hsm_multi_slot_doctor_export();
     let bound = farm_lease_pkcs11_require_multi_slot(slot_id, claimed_hsm_ref)?;
     let wire = farm_lease_pkcs11_hsm_sign_bound(tenant_id, old_token, new_token, Some(&bound))?;
@@ -3255,7 +3255,7 @@ pub fn farm_lease_pkcs11_hsm_multi_slot_digest_streaming(
     chunks: &[&[u8]],
     claimed_hsm_ref: Option<&str>,
 ) -> Result<String, String> {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     let _ = farm_lease_hsm_multi_slot_doctor_export();
     let bound = farm_lease_pkcs11_require_multi_slot(slot_id, claimed_hsm_ref)?;
     let wire = farm_lease_pkcs11_hsm_digest_streaming(
@@ -3290,7 +3290,7 @@ pub fn farm_lease_pkcs11_hsm_multi_slot_rotate(
 
 /// Phase 133 gate: HSM multi-slot MVP readiness (≥2 slots + select/bind; not hardware GA).
 pub fn farm_lease_pkcs11_hsm_multi_slot_mvp_ready() -> bool {
-    let _ = farm_lease_pkcs11_hsm_multi_slot_fingerprint();
+    let _ = farm_lease_pkcs11_hsm_multi_slot_digest();
     let _ = farm_lease_hsm_multi_slot_doctor_export();
     farm_lease_pkcs11_hsm_digest_streaming_mvp_ready()
         && FARM_PKCS11_SO_SYMBOL_TABLE.contains(&"C_GetSlotList")
@@ -3302,8 +3302,8 @@ pub fn farm_lease_pkcs11_hsm_multi_slot_mvp_ready() -> bool {
 }
 
 fn farm_lease_pkcs11_session_pin_reuse_on_rotate() -> Result<(), String> {
-    let _ = farm_lease_pkcs11_session_pin_persist_fingerprint();
-    let _ = farm_lease_pkcs11_hsm_session_pin_fingerprint();
+    let _ = farm_lease_pkcs11_session_pin_persist_digest();
+    let _ = farm_lease_pkcs11_hsm_session_pin_digest();
     if !farm_lease_pkcs11_session_mvp_ready() {
         return Err(
             "pkcs11 session MVP required before rotate sign (farm-lease-token-v8:session-pin-persist; not hardware GA)".into(),
@@ -3343,7 +3343,7 @@ fn farm_lease_pkcs11_file_slot_path() -> Option<String> {
 }
 
 fn farm_lease_pkcs11_bridge_impl() -> Result<Box<dyn FarmPkcs11Bridge>, String> {
-    let _ = farm_lease_pkcs11_bridge_fingerprint();
+    let _ = farm_lease_pkcs11_bridge_digest();
     if farm_lease_pkcs11_use_mock() {
         return Ok(Box::new(FarmPkcs11MockBridge));
     }
@@ -3430,7 +3430,7 @@ pub fn farm_lease_token_hsm_ref_mvp_ready() -> bool {
 
 /// Validate lockfile `hsm_key_ref` against env (same contract as `syx_pkg::enforce_hsm_key_ref`).
 pub fn farm_lease_token_hsm_ref_accept_lock(lock_hsm: Option<&str>) -> Result<(), String> {
-    let _ = farm_lease_token_fingerprint();
+    let _ = farm_lease_token_digest();
     let Some(lock_ref) = lock_hsm.filter(|s| !s.is_empty()) else {
         return Err("hsm-ref MVP requires non-empty lockfile hsm_key_ref".into());
     };
@@ -6587,7 +6587,7 @@ pub fn farm_lease_rotate_tenant_token(
     old_token: u32,
     new_token: u32,
 ) -> Result<(), String> {
-    let _ = farm_lease_token_fingerprint();
+    let _ = farm_lease_token_digest();
     let pkcs11_ref = farm_lease_pkcs11_bridge_sign_rotate(tenant_id, old_token, new_token)?;
     let req = encode_rotate_token(tenant_id, old_token, new_token, &pkcs11_ref);
     let payload = lease_auth_rpc(&req)?;

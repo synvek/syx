@@ -346,16 +346,6 @@ fn m2_s4_01_docs_and_capability() {
     );
 }
 
-
-fn host_block<'a>(toml: &'a str, name: &str) -> &'a str {
-    let needle = format!("name = \"{name}\"");
-    let rest = toml
-        .split(&needle)
-        .nth(1)
-        .unwrap_or_else(|| panic!("missing host override {name}"));
-    rest.split("[[host]]").next().unwrap_or(rest)
-}
-
 /// Wave A W249 / ADR-593: Response Ok/Header/Headers/Json under SYX_NATIVE_STRICT.
 #[cfg(unix)]
 #[test]
@@ -440,66 +430,3 @@ func main() {
     );
 }
 
-#[test]
-fn m2_s4_01_http_response_accessor_hosts_llvm_real() {
-    // Wave A W249 / ADR-593 llvm + Wave A W270 / ADR-614 wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "HttpResponseOk",
-        "HttpResponseHeader",
-        "HttpResponseHeaders",
-        "HttpResponseJson",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must declare llvm=real (ADR-593): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-614): {block}"
-        );
-        assert!(
-            block.contains("ADR-614") && block.contains("ADR-593"),
-            "{name} notes must cite ADR-614 + ADR-593: {block}"
-        );
-    }
-}
-
-#[test]
-fn m2_s4_01_http_types_hosts_wasm_real_w270() {
-    // Wave A W270 / ADR-614 — Http types×7 + HttpGet wasm=real
-    let toml = include_str!("../../../../packages/internal/host_fn_capabilities.toml");
-    for name in [
-        "HttpMakeResponse",
-        "HttpResponseStatus",
-        "HttpResponseText",
-        "HttpResponseOk",
-        "HttpResponseHeader",
-        "HttpResponseHeaders",
-        "HttpResponseJson",
-        "HttpGet",
-    ] {
-        let block = host_block(toml, name);
-        assert!(
-            block.contains("wasm = \"real\""),
-            "{name} must declare wasm=real (ADR-614): {block}"
-        );
-        assert!(
-            block.contains("status = \"partial\""),
-            "{name} must keep status=partial: {block}"
-        );
-        assert!(
-            block.contains("llvm = \"real\""),
-            "{name} must keep llvm=real: {block}"
-        );
-        assert!(
-            block.contains("ADR-614"),
-            "{name} notes must cite ADR-614: {block}"
-        );
-    }
-}

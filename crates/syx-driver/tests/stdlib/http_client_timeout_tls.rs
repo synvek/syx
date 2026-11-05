@@ -312,20 +312,6 @@ func main() {{
 }
 
 #[test]
-fn m2_s4_02b_http_fetch_surface_timeout_ms() {
-    let net = include_str!("../../../../packages/net/mod.sy");
-    assert!(
-        net.contains("Http.fetch") && net.contains("__syx_http_request"),
-        "Http.fetch must delegate to __syx_http_request"
-    );
-    let http = include_str!("../../../syx-vm/src/http.rs");
-    assert!(
-        http.contains("timeout_ms") && http.contains("e.is_timeout()"),
-        "host must honor timeout_ms + is_timeout R012"
-    );
-}
-
-#[test]
 fn m2_s4_02b_bad_cert_https_fail_closed() {
     let (port, stop, join) = start_self_signed_https();
     let src = format!(

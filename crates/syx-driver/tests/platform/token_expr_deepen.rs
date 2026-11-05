@@ -43,10 +43,3 @@ fn token_expr_deepen_token_example_run_file() {
     );
 }
 
-#[test]
-fn token_expr_deepen_token_fingerprint_strings() {
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let lib = include_str!("../../src/lib.rs");
-    assert!(user_rs.contains("macro-token-v5:expr-token-subst-mvp"));
-    assert!(lib.contains("macro-token-v5:expr-token-subst-mvp"));
-}

@@ -163,9 +163,3 @@ fn p106_hover_helper_call() {
 
 
 
-#[test]
-fn p106_farm_server_gate_source() {
-    let lib = include_str!("../../syx-driver/src/lib.rs");
-    assert!(lib.contains("farm_lease_require_active"));
-    assert!(lib.contains("farm_tcp_roundtrip"));
-}

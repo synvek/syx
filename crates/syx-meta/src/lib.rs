@@ -247,7 +247,7 @@ fn runtime_mono_cache_from_disk(fn_name: &str, type_args: &[&str]) -> Option<Mir
 }
 
 /// Phase 107: honest witness fingerprint — never synthesize `has_witness: true`.
-pub fn reflect_witness_honest_fingerprint() -> &'static str {
+pub fn reflect_witness_honest_digest() -> &'static str {
     "reflect-witness-honest-v1:no-synthesize"
 }
 
@@ -727,9 +727,9 @@ mod tests {
     }
 
     #[test]
-    fn reflect_witness_honest_fingerprint_string() {
+    fn reflect_witness_honest_digest_string() {
         assert_eq!(
-            reflect_witness_honest_fingerprint(),
+            reflect_witness_honest_digest(),
             "reflect-witness-honest-v1:no-synthesize"
         );
     }

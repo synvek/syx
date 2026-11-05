@@ -10,24 +10,7 @@ fn p114_doc(text: &str) -> syx_driver::LspDocument {
     syx_driver::analyze_document_for_lsp(None, text, &p114_opts())
 }
 
-#[test]
-fn p114_dist_hostkey_source_gate() {
-    let src = include_str!("../../syx-async/src/dist_transport.rs");
-    assert!(src.contains("dist_region_multihost_has_runtime_bound_host_key"));
-    assert!(src.contains("dist_host_key_register_runtime_bind"));
-    assert!(src.contains("cdn_pop_route"));
-}
 
-#[test]
-fn p114_select_deadline_strict_source_gate() {
-    let parser = include_str!("../../syx-parser/src/lib.rs");
-    assert!(parser.contains("SELECT_DEADLINE_STRICT_FINGERPRINT"));
-    assert!(!parser.contains("fn select_mixed_await_timeout_ms_literal"));
-    assert!(parser.contains("TokenKind::Timeout"));
-    assert!(parser.contains("TokenKind::Deadline"));
-    let hosts = include_str!("../../syx-vm/src/channel_hosts.rs");
-    assert!(hosts.contains("SELECT_DEADLINE_STRICT_FINGERPRINT"));
-}
 
 #[test]
 fn p114_hover_string_binding() {

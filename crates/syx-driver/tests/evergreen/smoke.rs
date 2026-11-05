@@ -43,7 +43,7 @@ fn cache_v91() {
     )
     .unwrap();
     assert!(src.contains("syx-cache-v91"));
-    assert!(src.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
+    assert!(src.contains("heap_v100_phase128_track_c_wasm_digest"));
 }
 
 #[test]

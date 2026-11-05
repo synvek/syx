@@ -98,21 +98,3 @@ fn macro_di_not_pool_probe_discard_oldest_observable() {
         .expect("discardOldest probe should succeed");
 }
 
-#[test]
-fn macro_di_not_track_e_fingerprint_strings() {
-    let service_rs = include_str!("../../../syx-macro/src/service.rs");
-    let user_rs = include_str!("../../../syx-macro/src/user.rs");
-    let runtime_rs = include_str!("../../../syx-async/src/runtime.rs");
-    let docs = include_str!("../../../../books/language-guide/19-macros.md");
-    let lib = include_str!("../../src/lib.rs");
-    let concurrency = include_str!("../../../../packages/core/concurrency.sy");
-    assert!(service_rs.contains("macro-service-v18:pointcut-not-within-mvp"));
-    assert!(user_rs.contains("macro-token-v8:decl-expand-mvp"));
-    assert!(runtime_rs.contains("runtime-concurrency-v5:discard-oldest-mvp"));
-    assert!(docs.contains("macro-docs-v20:m28-service-v19-honesty"));
-    assert!(lib.contains("macro-service-v18:pointcut-not-within-mvp"));
-    assert!(lib.contains("macro-token-v8:decl-expand-mvp"));
-    assert!(lib.contains("runtime-concurrency-v5:discard-oldest-mvp"));
-    assert!(lib.contains("macro-docs-v20:m28-service-v19-honesty"));
-    assert!(concurrency.contains("discardOldest"));
-}

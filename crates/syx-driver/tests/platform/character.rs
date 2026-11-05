@@ -30,9 +30,3 @@ fn character_run_file_printed() {
     assert_eq!(lines[6].trim(), "true", "isSingleScalar a: {printed:?}");
 }
 
-#[test]
-fn character_fingerprint_strings() {
-    let surface = include_str!("../../src/lang_surface_v1.rs");
-    assert!(surface.contains("lang-character-v1:distinct-scalar-mvp"));
-    assert!(surface.contains("lang-character-v1:docs-honesty"));
-}

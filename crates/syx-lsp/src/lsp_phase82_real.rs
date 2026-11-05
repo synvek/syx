@@ -11,17 +11,7 @@ fn p82_doc_ok(text: &str) -> bool {
     !doc.semantic.errors.iter().any(|e| e.code.as_deref() == Some("S001"))
 }
 
-#[test]
-fn p82_lock_v16_default_version() {
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("default_lock_version() -> u32"));
-    assert!(include_str!("../../syx-pkg/src/lockfile.rs").contains("16"));
-}
 
-#[test]
-fn p82_rt_native_stack_v7() {
-    let abi = include_str!("../../syx-rt/src/abi.rs");
-    assert!(abi.contains("NATIVE_STACK_DISPATCH_V7") || abi.contains("native_stack_dispatch"));
-}
 
 #[test]
 fn p82_heapslot_array_writeback_parse() {

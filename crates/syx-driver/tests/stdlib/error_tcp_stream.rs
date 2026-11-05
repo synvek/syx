@@ -42,26 +42,6 @@ impl Drop for EnvGuard {
 }
 
 #[test]
-fn m2_error_tcp_stream_hosts_source_no_status_paste() {
-    let hosts = include_str!("../../../syx-vm/src/hosts.rs");
-    assert!(
-        !hosts.contains("\"tcp-stream-ok\"")
-            && !hosts.contains("\"tcp-stream-invalid\"")
-            && !hosts.contains("\"tcp-stream-disabled\"")
-            && !hosts.contains("\"tcp-handle-ok\"")
-            && !hosts.contains("\"tcp-handle-invalid\""),
-        "host_tcp_stream* must not paste status string literals"
-    );
-    let reg = include_str!("../../../syx-stdlib/src/registry.rs");
-    assert!(
-        reg.contains("HostFnId::TcpStream => \"Int\"")
-            && reg.contains("HostFnId::TcpStreamTls => \"Int\"")
-            && reg.contains("HostFnId::TcpStreamHandle => \"Int\""),
-        "TcpStream* return types must be Int"
-    );
-}
-
-#[test]
 fn m2_error_tcp_stream_valid_returns_int() {
     let out = run(
         r#"

@@ -19,7 +19,7 @@ fn cache() -> &'static Mutex<HashMap<CacheKey, GlyphBitmap>> {
     GLYPH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-pub const SKIA_GLYPH_FINGERPRINT: &str = "gui-skia-glyph-v1:raster-mvp";
+pub const SKIA_GLYPH_DIGEST: &str = "gui-skia-glyph-v1:raster-mvp";
 
 #[derive(Clone, Debug)]
 pub struct GlyphBitmap {
@@ -33,7 +33,7 @@ pub struct GlyphBitmap {
 }
 
 pub fn skia_glyph_digest() -> &'static str {
-    SKIA_GLYPH_FINGERPRINT
+    SKIA_GLYPH_DIGEST
 }
 
 pub fn skia_glyph_used() -> bool {

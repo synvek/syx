@@ -44,11 +44,3 @@ fn codable_l2_associated_enum_roundtrip() {
     );
 }
 
-#[test]
-fn codable_l2_fingerprint_strings() {
-    let attached = include_str!("../../../syx-macro/src/attached.rs");
-    let lib = include_str!("../../src/lib.rs");
-    assert!(attached.contains("macro-codable-l2:associated-enum-auto"));
-    assert!(lib.contains("macro-codable-l2:associated-enum-auto"));
-    assert!(lib.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
-}

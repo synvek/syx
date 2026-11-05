@@ -40,12 +40,3 @@ fn caller_runs_bounded_queue_flood_caller_runs_observable() {
     syx_async::probe_bounded_queue_caller_runs_mvp().expect("CallerRuns overflow should succeed");
 }
 
-#[test]
-fn caller_runs_package_and_runtime_fingerprints() {
-    let concurrency = include_str!("../../../../packages/core/concurrency.sy");
-    assert!(
-        concurrency.contains("setTaskRejectPolicy") && concurrency.contains("taskRejectPolicy")
-    );
-    let runtime_rs = include_str!("../../../syx-async/src/runtime.rs");
-    assert!(runtime_rs.contains("runtime-concurrency-v3:caller-runs-mvp"));
-}

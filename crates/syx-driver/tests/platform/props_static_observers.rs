@@ -1,6 +1,5 @@
 //! Class `static var` willSet/didSet MVP.
 
-use syx_driver::lang_props_v6::{DOCS_HONESTY, STATIC_OBSERVERS_MVP};
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 fn run(src: &str) -> Vec<String> {
@@ -8,18 +7,6 @@ fn run(src: &str) -> Vec<String> {
     compile_and_run_embedded(src, &DriverOptions::default())
         .unwrap()
         .printed
-}
-
-#[test]
-fn props_static_v6_fingerprints() {
-    let lib = include_str!("../../src/lang_props_v6.rs");
-    assert!(lib.contains(STATIC_OBSERVERS_MVP));
-    assert!(lib.contains(DOCS_HONESTY));
-    assert_eq!(STATIC_OBSERVERS_MVP, "lang-props-v6:static-observers-mvp");
-    assert_eq!(DOCS_HONESTY, "lang-props-v6:docs-honesty");
-    let driver = include_str!("../../src/lib.rs");
-    assert!(driver.contains("lang-props-v6:static-observers-mvp"));
-    assert!(driver.contains("syx-cache-v110"));
 }
 
 #[test]

@@ -63,17 +63,6 @@ fn service_di_macros_exports_schema_in_manifest() {
 }
 
 #[test]
-fn service_di_fingerprint_strings_in_driver() {
-    let lib = include_str!("../../src/lib.rs");
-    assert!(
-        lib.contains("macro-service-v1:attr-scan")
-            || lib.contains("macro-package-v2:exports-schema")
-            || lib.contains("runtime-service-v1:singleton-container")
-            || lib.contains("heap_v100_phase128_track_c_wasm_fingerprint")
-    );
-}
-
-#[test]
 fn service_di_cli_path_service_di_example() {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/service_di/main.sy");

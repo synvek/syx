@@ -26,7 +26,6 @@ fn p98_reflect_witness_mandatory_meta_registry_miss_none() {
     assert!(reflect_type_info("P89MissingTypeXYZ88").is_none());
 }
 
-
 #[test]
 fn p98_reflect_witness_mandatory_lsp_analyze_ok() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -48,8 +47,3 @@ fn p98_reflect_witness_mandatory_compile_missing_witness_errors() {
     assert!(result.is_ok(), "reflect host call must compile: {result:?}");
 }
 
-#[test]
-fn p98_reflect_witness_mandatory_witness_table_surface() {
-    let driver = include_str!("../../src/lib.rs");
-    assert!(driver.contains("heap_v100_phase128_track_c_wasm_fingerprint"));
-}
