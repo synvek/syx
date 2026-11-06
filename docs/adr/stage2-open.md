@@ -181,6 +181,32 @@
 - **S2-I162:** S2-04 lower probe expand ([stage2-s2-04-cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md)); W791–797 let/var/return; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ while/typed / ≠ 改 FrontendPipeline / ≠ 退出）.
 - **S2-I163:** S2-04 dual-grammar freeze charter ([stage2-s2-04-dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md)); stop default `take_*` expand; KPI freeze; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 改 FrontendPipeline / ≠ 删 syx-cst / ≠ 退出）.
 - **S2-I164:** S2-04 plan claim ([stage2-s2-04-claim](stage2-s2-04-claim.md)); S2-04 `[x]` scoped; Stage-2 `[~]`（≠ 退出 / ≠ Frontend 已共树 / ≠ 删 syx-cst）.
+- **S2-I165:** S2-05 open ([stage2-s2-05-open](stage2-s2-05-open.md)); file-split census; S2-05 `[~]`; Stage-2 `[~]`（≠ S2-05 `[x]` / ≠ 本窗大拆 / ≠ 退出）.
+- **S2-I166:** S2-05 mir_types extract ([stage2-s2-05-mir-types-extract](stage2-s2-05-mir-types-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I167:** S2-05 mir_codec extract ([stage2-s2-05-mir-codec-extract](stage2-s2-05-mir-codec-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I168:** S2-05 mir_aot extract ([stage2-s2-05-mir-aot-extract](stage2-s2-05-mir-aot-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I169:** S2-05 mir_opt extract ([stage2-s2-05-mir-opt-extract](stage2-s2-05-mir-opt-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I170:** S2-05 mir_module_index extract ([stage2-s2-05-mir-module-index-extract](stage2-s2-05-mir-module-index-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I171:** S2-05 mir_lower_ctx extract ([stage2-s2-05-mir-lower-ctx-extract](stage2-s2-05-mir-lower-ctx-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I172:** S2-05 mir_lower_expr_literal extract ([stage2-s2-05-mir-lower-expr-literal-extract](stage2-s2-05-mir-lower-expr-literal-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I173:** S2-05 mir_lower_expr_call_ident extract ([stage2-s2-05-mir-lower-expr-call-ident-extract](stage2-s2-05-mir-lower-expr-call-ident-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I174:** S2-05 mir_lower_expr_call_member extract ([stage2-s2-05-mir-lower-expr-call-member-extract](stage2-s2-05-mir-lower-expr-call-member-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I175:** S2-05 mir_lower_expr_member extract ([stage2-s2-05-mir-lower-expr-member-extract](stage2-s2-05-mir-lower-expr-member-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I176:** S2-05 mir_lower_expr_member_assign extract ([stage2-s2-05-mir-lower-expr-member-assign-extract](stage2-s2-05-mir-lower-expr-member-assign-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I177:** S2-05 mir_lower_expr_index_assign extract ([stage2-s2-05-mir-lower-expr-index-assign-extract](stage2-s2-05-mir-lower-expr-index-assign-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I178:** S2-05 mir_lower_expr_binary extract ([stage2-s2-05-mir-lower-expr-binary-extract](stage2-s2-05-mir-lower-expr-binary-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I179:** S2-05 mir_lower_expr_unary extract ([stage2-s2-05-mir-lower-expr-unary-extract](stage2-s2-05-mir-lower-expr-unary-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I180:** S2-05 mir_lower_expr_closure extract ([stage2-s2-05-mir-lower-expr-closure-extract](stage2-s2-05-mir-lower-expr-closure-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I181:** S2-05 mir_lower_expr_index extract ([stage2-s2-05-mir-lower-expr-index-extract](stage2-s2-05-mir-lower-expr-index-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I182:** S2-05 mir_lower_expr_task_block extract ([stage2-s2-05-mir-lower-expr-task-block-extract](stage2-s2-05-mir-lower-expr-task-block-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I183:** S2-05 mir_lower_expr_compound_assign extract ([stage2-s2-05-mir-lower-expr-compound-assign-extract](stage2-s2-05-mir-lower-expr-compound-assign-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I184–I188:** S2-05 mir_lower_expr Ternary→Is batch extract ([stage2-s2-05-mir-lower-expr-ternary-to-is-batch](stage2-s2-05-mir-lower-expr-ternary-to-is-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I189–I194:** S2-05 mir_lower_expr Call→MacroInvoke batch extract ([stage2-s2-05-mir-lower-expr-call-to-macro-batch](stage2-s2-05-mir-lower-expr-call-to-macro-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I195–I200:** S2-05 mir_lower_expr Range→Super batch extract ([stage2-s2-05-mir-lower-expr-range-to-super-batch](stage2-s2-05-mir-lower-expr-range-to-super-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I201–I204:** S2-05 mir free_vars→shells batch extract ([stage2-s2-05-mir-free-vars-to-shells-batch](stage2-s2-05-mir-free-vars-to-shells-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I205–I208:** S2-05 mir type_members→infer batch extract ([stage2-s2-05-mir-type-members-to-infer-batch](stage2-s2-05-mir-type-members-to-infer-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I209–I212:** S2-05 mir SIMD→support batch extract ([stage2-s2-05-mir-simd-to-support-batch](stage2-s2-05-mir-simd-to-support-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I213–I214:** S2-05 mir lower_expr→orchestrator close-out ([stage2-s2-05-mir-lower-expr-to-module-batch](stage2-s2-05-mir-lower-expr-to-module-batch.md)); mir production peel exhausted; S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 
 ## References
 
@@ -281,6 +307,32 @@
 - [`docs/adr/stage2-s2-04-cst-lower-probe-expand.md`](stage2-s2-04-cst-lower-probe-expand.md) · S2-I162
 - [`docs/adr/stage2-s2-04-dual-grammar-freeze-charter.md`](stage2-s2-04-dual-grammar-freeze-charter.md) · S2-I163
 - [`docs/adr/stage2-s2-04-claim.md`](stage2-s2-04-claim.md) · S2-I164
+- [`docs/adr/stage2-s2-05-open.md`](stage2-s2-05-open.md) · S2-I165
+- [`docs/adr/stage2-s2-05-mir-types-extract.md`](stage2-s2-05-mir-types-extract.md) · S2-I166
+- [`docs/adr/stage2-s2-05-mir-codec-extract.md`](stage2-s2-05-mir-codec-extract.md) · S2-I167
+- [`docs/adr/stage2-s2-05-mir-aot-extract.md`](stage2-s2-05-mir-aot-extract.md) · S2-I168
+- [`docs/adr/stage2-s2-05-mir-opt-extract.md`](stage2-s2-05-mir-opt-extract.md) · S2-I169
+- [`docs/adr/stage2-s2-05-mir-module-index-extract.md`](stage2-s2-05-mir-module-index-extract.md) · S2-I170
+- [`docs/adr/stage2-s2-05-mir-lower-ctx-extract.md`](stage2-s2-05-mir-lower-ctx-extract.md) · S2-I171
+- [`docs/adr/stage2-s2-05-mir-lower-expr-literal-extract.md`](stage2-s2-05-mir-lower-expr-literal-extract.md) · S2-I172
+- [`docs/adr/stage2-s2-05-mir-lower-expr-call-ident-extract.md`](stage2-s2-05-mir-lower-expr-call-ident-extract.md) · S2-I173
+- [`docs/adr/stage2-s2-05-mir-lower-expr-call-member-extract.md`](stage2-s2-05-mir-lower-expr-call-member-extract.md) · S2-I174
+- [`docs/adr/stage2-s2-05-mir-lower-expr-member-extract.md`](stage2-s2-05-mir-lower-expr-member-extract.md) · S2-I175
+- [`docs/adr/stage2-s2-05-mir-lower-expr-member-assign-extract.md`](stage2-s2-05-mir-lower-expr-member-assign-extract.md) · S2-I176
+- [`docs/adr/stage2-s2-05-mir-lower-expr-index-assign-extract.md`](stage2-s2-05-mir-lower-expr-index-assign-extract.md) · S2-I177
+- [`docs/adr/stage2-s2-05-mir-lower-expr-binary-extract.md`](stage2-s2-05-mir-lower-expr-binary-extract.md) · S2-I178
+- [`docs/adr/stage2-s2-05-mir-lower-expr-unary-extract.md`](stage2-s2-05-mir-lower-expr-unary-extract.md) · S2-I179
+- [`docs/adr/stage2-s2-05-mir-lower-expr-closure-extract.md`](stage2-s2-05-mir-lower-expr-closure-extract.md) · S2-I180
+- [`docs/adr/stage2-s2-05-mir-lower-expr-index-extract.md`](stage2-s2-05-mir-lower-expr-index-extract.md) · S2-I181
+- [`docs/adr/stage2-s2-05-mir-lower-expr-task-block-extract.md`](stage2-s2-05-mir-lower-expr-task-block-extract.md) · S2-I182
+- [`docs/adr/stage2-s2-05-mir-lower-expr-compound-assign-extract.md`](stage2-s2-05-mir-lower-expr-compound-assign-extract.md) · S2-I183
+- [`docs/adr/stage2-s2-05-mir-lower-expr-ternary-to-is-batch.md`](stage2-s2-05-mir-lower-expr-ternary-to-is-batch.md) · S2-I184–I188
+- [`docs/adr/stage2-s2-05-mir-lower-expr-call-to-macro-batch.md`](stage2-s2-05-mir-lower-expr-call-to-macro-batch.md) · S2-I189–I194
+- [`docs/adr/stage2-s2-05-mir-lower-expr-range-to-super-batch.md`](stage2-s2-05-mir-lower-expr-range-to-super-batch.md) · S2-I195–I200
+- [`docs/adr/stage2-s2-05-mir-free-vars-to-shells-batch.md`](stage2-s2-05-mir-free-vars-to-shells-batch.md) · S2-I201–I204
+- [`docs/adr/stage2-s2-05-mir-type-members-to-infer-batch.md`](stage2-s2-05-mir-type-members-to-infer-batch.md) · S2-I205–I208
+- [`docs/adr/stage2-s2-05-mir-simd-to-support-batch.md`](stage2-s2-05-mir-simd-to-support-batch.md) · S2-I209–I212
+- [`docs/adr/stage2-s2-05-mir-lower-expr-to-module-batch.md`](stage2-s2-05-mir-lower-expr-to-module-batch.md) · S2-I213–I214
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

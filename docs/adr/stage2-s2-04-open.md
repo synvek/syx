@@ -56,7 +56,7 @@ Baseline numbers and entry points: [stage2-parser-census](../stage2-parser-censu
 - **S2-I162:** [cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md) — W791–797 let/var/return (**≠** while/typed / ≠ FrontendPipeline / ≠ S2-04 `[x]`).
 - **S2-I163:** [dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md) — stop default `take_*` expand; KPI freeze (**≠** S2-04 `[x]` / ≠ Frontend migrate).
 - **S2-I164:** [s2-04-claim](stage2-s2-04-claim.md) — plan **S2-04 `[x]`** scoped (**≠** Stage-2 exit / ≠ Frontend already on CST).
-- Next default = **S2-05** open or Frontend migrate — **not** Stage-2 exit.
+- **S2-I165:** [s2-05-open](stage2-s2-05-open.md) — S2-05 → `[~]` census open; next = **S2-I166 `syx-mir` first extract** (**≠** S2-05 `[x]` / ≠ Stage-2 exit).
 - Open: [stage2-open](stage2-open.md).
 
 ## References

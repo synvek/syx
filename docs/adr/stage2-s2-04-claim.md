@@ -28,6 +28,7 @@
 
 - S2-04 plan-claimed; Stage-2 stays `[~]` (S2-01…04 `[x]`; S2-05…07 open).
 - Default next = **S2-05** open (file-split) or Frontend CST migrate ADR — **not** Stage-2 exit.
+- **S2-I165:** [s2-05-open](stage2-s2-05-open.md) landed — S2-05 → `[~]` (census); next construction = **S2-I166 `syx-mir` first extract**（≠ S2-05 `[x]` / ≠ Stage-2 exit）.
 - Open: [stage2-open](stage2-open.md).
 
 ## References
