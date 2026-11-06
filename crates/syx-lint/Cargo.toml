@@ -10,6 +10,7 @@ authors.workspace = true
 [dependencies]
 syx-ast = { workspace = true }
 syx-parser = { workspace = true }
+syx-cst = { workspace = true }
 syx-diagnostics = { workspace = true }
 indexmap = { workspace = true }
 smol_str = { workspace = true }

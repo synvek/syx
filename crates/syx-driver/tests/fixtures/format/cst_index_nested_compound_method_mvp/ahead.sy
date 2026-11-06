@@ -1,7 +1,7 @@
 // ahead
 class Box {
-  var items: Int
-  func scale(i: Int, j: Int, n: Int) {
+    var items: Int
+    func scale(i: Int, j: Int, n: Int) {
     /* mid */
     buf[i][j] *= n
   }

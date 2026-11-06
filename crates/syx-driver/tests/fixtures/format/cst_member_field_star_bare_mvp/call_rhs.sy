@@ -1,6 +1,6 @@
 class Box {
-  var count: Int
-  init() {
-    self.count *= next()
+    var count: Int
+    init() {
+        self.count *= next()
   }
 }

@@ -1,8 +1,8 @@
 /// docs
 class Box {
-  var name: String
-  init(name: String) {
-    box.name = name
+    var name: String
+    init(name: String) {
+        box.name = name
   }
 }
 /* trail */

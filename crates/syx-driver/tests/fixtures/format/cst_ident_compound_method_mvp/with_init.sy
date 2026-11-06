@@ -1,10 +1,10 @@
 // ahead
 class Box {
-  var count: Int
-  init() {
-    print(1)
+    var count: Int
+    init() {
+        print(1)
   }
-  func scale(n: Int) {
+    func scale(n: Int) {
     count *= n
   }
 }

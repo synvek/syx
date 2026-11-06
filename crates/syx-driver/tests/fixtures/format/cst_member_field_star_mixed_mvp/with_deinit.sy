@@ -1,9 +1,9 @@
 class Box {
-  var count: Int
-  init() {
-    self.count *= 2
+    var count: Int
+    init() {
+        self.count *= 2
   }
-  deinit {
-    print(1)
+    deinit {
+        print(1)
   }
 }

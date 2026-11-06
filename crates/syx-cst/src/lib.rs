@@ -82,6 +82,8 @@
 //! W869 / ADR-1213: bundle — while-cond stacked `------------------` (Neg depth≤18); still no `-------------------` / `!!!!` / paren depth>2.
 //! W870 / ADR-1214: bundle — Neg cap frozen at ≤18; while-cond stacked `!!!!` (Bang depth≤4); still no `!!!!!` / `-------------------` / paren depth>2.
 //! W871 / ADR-1215: bundle — paren nest cap frozen at ≤3 (`(((x)))`); Neg≤18 and Bang≤4 still frozen; still no `((((…))))` / `!!!!!` / `-------------------`.
+//! S2-I154 / ADR stage2-s2-04-cst-subset-if-let: `if let Ident = <simple|call-simple>` (if-let-simple) in subset; `if case` still out.
+//! S2-I155 / ADR stage2-s2-04-cst-subset-guard-let: `guard let Ident = <simple|call-simple> else {…} [{…}]?` in subset; `if case` / range still out.
 
 use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
 use syx_lexer::{Lexer, Token, TokenKind};
@@ -1232,7 +1234,7 @@ fn take_logic_simple_budget(tokens: &[&Token], i: usize, paren_budget: usize) ->
     }
 }
 
-/// Inner while/if body stmt: print / let / var / return / while-simple / if-simple (W836 + W877).
+/// Inner while/if body stmt: print / let / var / return / while-simple / if-simple / if-let-simple / guard-let-simple (W836 + W877 + S2-I154/I155).
 fn take_while_body_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     // W901: while/if braced bodies share the full simple-stmt surface (try/catch,
     // bare call, compound assign, …) so Production Scope examples stay CST-green
@@ -1317,15 +1319,19 @@ fn take_while_simple(body: &[&Token]) -> Option<usize> {
 }
 
 /// Consume if-simple at `body[0..]`:
-/// `if` cond (`{` stmts `}` | print|let|var|return) [`else` (`{` stmts `}` | print|let|var|return|if-simple)].
-/// Cond matches while-simple. Rejects `if case` / `if let` (W877; M0 still AST F001).
-/// Brace-less `else` may be another if-simple (`else if`). Returns tokens consumed, or `None`.
+/// `if` cond (`{` stmts `}` | print|let|var|return) [`else` (`{` stmts `}` | print|let|var|return|if-simple|if-let-simple)].
+/// Cond matches while-simple. Rejects `if case` only (W877; S2-I154: `if let` → `take_if_let_simple`).
+/// Brace-less `else` may be another if-simple / if-let-simple (`else if`). Returns tokens consumed, or `None`.
 fn take_if_simple(body: &[&Token]) -> Option<usize> {
     if body.is_empty() || body[0].kind != TokenKind::If {
         return None;
     }
-    // Reject if case / if let (do not steal M0 / if-let into CST).
-    if body.len() > 1 && matches!(body[1].kind, TokenKind::Case | TokenKind::Let) {
+    // Reject if case (M0 still AST F001). `if let` is handled by take_if_let_simple.
+    if body.len() > 1 && body[1].kind == TokenKind::Case {
+        return None;
+    }
+    // Do not steal if-let into if-simple cond path.
+    if body.len() > 1 && body[1].kind == TokenKind::Let {
         return None;
     }
     let mut j = 1usize;
@@ -1363,6 +1369,9 @@ fn take_if_simple(body: &[&Token]) -> Option<usize> {
             j += 1;
         } else if let Some(end) = take_braceless_while_body(body, j) {
             j = end;
+        } else if let Some(n) = take_if_let_simple(&body[j..]) {
+            // else if let …
+            j += n;
         } else if let Some(n) = take_if_simple(&body[j..]) {
             // else if …
             j += n;
@@ -1373,7 +1382,138 @@ fn take_if_simple(body: &[&Token]) -> Option<usize> {
     Some(j)
 }
 
-/// One simple stmt at `sig[i..]`: print / let / var / return[-simple] / self|member.field[=|+=] / while-simple / if-simple (W835–W890).
+/// Consume if-let-simple at `body[0..]` (S2-I154 / parallel W877):
+/// `if let Ident = <simple|call-simple>` (`{` stmts `}` | print|let|var|return)
+/// [`else` (`{` stmts `}` | print|let|var|return|if-let-simple|if-simple)].
+/// Rejects `if case`. Brace-less `else` may be if-let / if-simple. Returns tokens consumed, or `None`.
+fn take_if_let_simple(body: &[&Token]) -> Option<usize> {
+    if body.len() < 5 || body[0].kind != TokenKind::If || body[1].kind != TokenKind::Let {
+        return None;
+    }
+    if !matches!(body[2].kind, TokenKind::Identifier(_)) {
+        return None;
+    }
+    if body[3].kind != TokenKind::Assign {
+        return None;
+    }
+    let mut j = 4usize;
+    // RHS: call-simple | simple value (Ident(…) must succeed as call).
+    j = if let Some(end) = take_call_simple(body, j) {
+        end
+    } else if j < body.len() && is_simple_value(&body[j].kind) {
+        if matches!(body[j].kind, TokenKind::Identifier(_))
+            && j + 1 < body.len()
+            && matches!(body[j + 1].kind, TokenKind::LParen | TokenKind::Dot)
+        {
+            return None;
+        }
+        j + 1
+    } else {
+        return None;
+    };
+    // Then body (same as if-simple).
+    if j < body.len() && body[j].kind == TokenKind::LBrace {
+        j += 1;
+        while j < body.len() && body[j].kind != TokenKind::RBrace {
+            let Some(next) = take_while_body_stmt(body, j) else {
+                return None;
+            };
+            j = next;
+        }
+        if j >= body.len() || body[j].kind != TokenKind::RBrace {
+            return None;
+        }
+        j += 1;
+    } else {
+        j = take_braceless_while_body(body, j)?;
+    }
+    // Optional else.
+    if j < body.len() && body[j].kind == TokenKind::Else {
+        j += 1;
+        if j < body.len() && body[j].kind == TokenKind::LBrace {
+            j += 1;
+            while j < body.len() && body[j].kind != TokenKind::RBrace {
+                let Some(next) = take_while_body_stmt(body, j) else {
+                    return None;
+                };
+                j = next;
+            }
+            if j >= body.len() || body[j].kind != TokenKind::RBrace {
+                return None;
+            }
+            j += 1;
+        } else if let Some(end) = take_braceless_while_body(body, j) {
+            j = end;
+        } else if let Some(n) = take_if_let_simple(&body[j..]) {
+            j += n;
+        } else if let Some(n) = take_if_simple(&body[j..]) {
+            j += n;
+        } else {
+            return None;
+        }
+    }
+    Some(j)
+}
+
+/// Consume a braced stmt list starting at `body[j]` (`{` stmts `}`). Returns index after `}`, or `None`.
+fn take_braced_simple_stmts(body: &[&Token], j: usize) -> Option<usize> {
+    if j >= body.len() || body[j].kind != TokenKind::LBrace {
+        return None;
+    }
+    let mut k = j + 1;
+    while k < body.len() && body[k].kind != TokenKind::RBrace {
+        let Some(next) = take_while_body_stmt(body, k) else {
+            return None;
+        };
+        k = next;
+    }
+    if k >= body.len() || body[k].kind != TokenKind::RBrace {
+        return None;
+    }
+    Some(k + 1)
+}
+
+/// Consume guard-let-simple at `body[0..]` (S2-I155 / parallel I154):
+/// `guard let Ident = <simple|call-simple> else { stmts }` [`{` success stmts `}`]?
+/// Matches AST `parse_guard_let` optional trailing success brace. Returns tokens consumed, or `None`.
+fn take_guard_let_simple(body: &[&Token]) -> Option<usize> {
+    if body.len() < 6 || body[0].kind != TokenKind::Guard || body[1].kind != TokenKind::Let {
+        return None;
+    }
+    if !matches!(body[2].kind, TokenKind::Identifier(_)) {
+        return None;
+    }
+    if body[3].kind != TokenKind::Assign {
+        return None;
+    }
+    let mut j = 4usize;
+    j = if let Some(end) = take_call_simple(body, j) {
+        end
+    } else if j < body.len() && is_simple_value(&body[j].kind) {
+        if matches!(body[j].kind, TokenKind::Identifier(_))
+            && j + 1 < body.len()
+            && matches!(body[j + 1].kind, TokenKind::LParen | TokenKind::Dot)
+        {
+            return None;
+        }
+        j + 1
+    } else {
+        return None;
+    };
+    // Mandatory `else { … }`.
+    if j >= body.len() || body[j].kind != TokenKind::Else {
+        return None;
+    }
+    j += 1;
+    j = take_braced_simple_stmts(body, j)?;
+    // Optional trailing success `{ … }` (legacy SYX / W721 fixtures).
+    if j < body.len() && body[j].kind == TokenKind::LBrace {
+        j = take_braced_simple_stmts(body, j)?;
+    }
+    Some(j)
+}
+
+/// One simple stmt at `sig[i..]`: print / let / var / return[-simple] / self|member.field[=|+=] / while-simple / if-simple / if-let-simple / guard-let-simple (W835–W890 + S2-I154/I155).
 /// Returns index after the stmt, or `None`.
 fn take_simple_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     if i >= sig.len() {
@@ -1427,6 +1567,14 @@ fn take_simple_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     if let Some(n) = take_while_simple(rest) {
         return Some(i + n);
     }
+    // S2-I154: if-let-simple (before if-simple so `if let` is not rejected as bare if).
+    if let Some(n) = take_if_let_simple(rest) {
+        return Some(i + n);
+    }
+    // S2-I155: guard-let-simple.
+    if let Some(n) = take_guard_let_simple(rest) {
+        return Some(i + n);
+    }
     // W877: if-simple (optional else / else-if).
     if let Some(n) = take_if_simple(rest) {
         return Some(i + n);
@@ -1443,7 +1591,7 @@ fn take_simple_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     None
 }
 
-/// Body: empty, or 1..N consecutive print / let / var / return / self|member.field= / while-simple / if-simple stmts.
+/// Body: empty, or 1..N consecutive print / let / var / return / self|member.field= / while-simple / if-simple / if-let-simple / guard-let-simple stmts.
 fn is_simple_stmts_body(body: &[&Token]) -> bool {
     if body.is_empty() {
         return true;
@@ -2322,7 +2470,7 @@ fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
             let body = &sig[body_start..body_end];
             if !is_simple_stmts_body(body) {
                 return Err(SyxDiagnostic::error(
-                    "syx-cst: subset body must be trivia-only or print(<simple|call-simple>) / let|var <ident> [: type] = <simple|call-simple> / return [<simple|call-simple>] stmts / while-simple / if-simple (braced or brace-less; optional else / else-if; call|compare|unary-!|!!|!!!|!!!!|unary-Neg|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|paren-group(nest≤3)|logic(left-assoc &&|||, paren|!|!!|!!!|!!!!|-|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|compare|call|simple ops); no depth>2 call / ((((…)))) / !!!!! / ------------------- / if case / if let)",
+                    "syx-cst: subset body must be trivia-only or print(<simple|call-simple>) / let|var <ident> [: type] = <simple|call-simple> / return [<simple|call-simple>] stmts / while-simple / if-simple / if-let-simple / guard-let-simple (braced or brace-less; optional else / else-if; call|compare|unary-!|!!|!!!|!!!!|unary-Neg|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|paren-group(nest≤3)|logic(left-assoc &&|||, paren|!|!!|!!!|!!!!|-|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|compare|call|simple ops); no depth>2 call / ((((…)))) / !!!!! / ------------------- / if case)",
                 )
                 .with_code("CST001"));
             }
@@ -2359,7 +2507,7 @@ fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
             continue;
         }
         return Err(SyxDiagnostic::error(
-            "syx-cst: subset allows `[export] [access] [static|async] func name([params]) [-> Ret] { … }` and/or `export { [Ident [as Ident][,…]] }` and/or `[access?] class Ident [: Ident(, Ident)*]? { var Ident: Ident[?]|init(…)|deinit|func… }` and/or `[access?] data class Ident[<T>](…) [where …]` / `[access?] final class Ident[<T>] [where …] { variants }` and/or `@builtin(\"…\")` + `extension Ident { func… }` interleaved with top-level print/let/var/return[<simple|call-simple>]/while-simple/if-simple only (no depth>2 call / ((((…)))) / !!!!! / ------------------- / static+async stack / if case / if let / member-index compound)",
+            "syx-cst: subset allows `[export] [access] [static|async] func name([params]) [-> Ret] { … }` and/or `export { [Ident [as Ident][,…]] }` and/or `[access?] class Ident [: Ident(, Ident)*]? { var Ident: Ident[?]|init(…)|deinit|func… }` and/or `[access?] data class Ident[<T>](…) [where …]` / `[access?] final class Ident[<T>] [where …] { variants }` and/or `@builtin(\"…\")` + `extension Ident { func… }` interleaved with top-level print/let/var/return[<simple|call-simple>]/while-simple/if-simple/if-let-simple/guard-let-simple only (no depth>2 call / ((((…)))) / !!!!! / ------------------- / static+async stack / if case / member-index compound)",
         )
         .with_code("CST001"));
     }
@@ -2381,6 +2529,124 @@ pub fn format_cst(root: &CstRoot) -> String {
     out
 }
 
+/// Apply missing-WS insert or 2→4 normalize for one post-Newline site.
+/// Returns true when the leading Whitespace token was rewritten (caller must skip it).
+fn reindent_leading_after_newline(
+    tokens: &[GreenToken],
+    i: usize,
+    depth: usize,
+    open_depth: usize,
+    out: &mut String,
+) -> bool {
+    if depth < open_depth {
+        return false;
+    }
+    let levels = depth - open_depth + 1;
+    let Some(next) = tokens.get(i + 1) else {
+        return false;
+    };
+    if next.kind == TokenKind::Whitespace {
+        // Skip lines whose next token is `}`.
+        let closes = matches!(
+            tokens.get(i + 2).map(|t| &t.kind),
+            Some(TokenKind::RBrace)
+        );
+        if closes {
+            return false;
+        }
+        let lex = next.lexeme.as_str();
+        if lex.chars().all(|c| c == ' ') && lex.len() == levels * 2 {
+            for _ in 0..levels {
+                out.push_str("    ");
+            }
+            return true;
+        }
+        return false;
+    }
+    if !is_trivia(&next.kind) && next.kind != TokenKind::RBrace {
+        for _ in 0..levels {
+            out.push_str("    ");
+        }
+    }
+    false
+}
+
+/// Opt-in CST reindent (S2-I145…I148): FunctionDecl + class stored-member tracks —
+/// insert or 2→4-normalize leading indent to `(depth - open + 1) × 4` spaces
+/// (skip `}` lines). Method bodies prefer the func stack. Default [`format_cst`]
+/// remains concat-only — **≠** reindent GA / **≠** product path.
+pub fn format_cst_reindent(root: &CstRoot) -> String {
+    let tokens = &root.green.tokens;
+    let mut out = String::new();
+    let mut depth: usize = 0;
+    // Stack of absolute brace depths for open FunctionDecl bodies (S2-I146).
+    let mut func_body_depths: Vec<usize> = Vec::new();
+    let mut expect_func_lbrace = false;
+    // Stack of absolute brace depths for open class bodies (S2-I148).
+    let mut class_body_depths: Vec<usize> = Vec::new();
+    let mut expect_class_lbrace = false;
+
+    let mut i = 0;
+    while i < tokens.len() {
+        let tok = &tokens[i];
+
+        match tok.kind {
+            TokenKind::Func => {
+                expect_func_lbrace = true;
+                expect_class_lbrace = false;
+                out.push_str(&tok.lexeme);
+            }
+            TokenKind::Class => {
+                expect_func_lbrace = false;
+                expect_class_lbrace = true;
+                out.push_str(&tok.lexeme);
+            }
+            TokenKind::LBrace => {
+                depth += 1;
+                if expect_func_lbrace {
+                    func_body_depths.push(depth);
+                    expect_func_lbrace = false;
+                    expect_class_lbrace = false;
+                } else if expect_class_lbrace {
+                    class_body_depths.push(depth);
+                    expect_class_lbrace = false;
+                }
+                out.push_str(&tok.lexeme);
+            }
+            TokenKind::RBrace => {
+                if func_body_depths.last().copied() == Some(depth) {
+                    func_body_depths.pop();
+                }
+                if class_body_depths.last().copied() == Some(depth) {
+                    class_body_depths.pop();
+                }
+                depth = depth.saturating_sub(1);
+                out.push_str(&tok.lexeme);
+            }
+            TokenKind::Newline => {
+                out.push_str(&tok.lexeme);
+                let skip_leading_ws = if let Some(&d0) = func_body_depths.last() {
+                    // Method / FunctionDecl track wins over class members.
+                    reindent_leading_after_newline(tokens, i, depth, d0, &mut out)
+                } else if let Some(&c0) = class_body_depths.last() {
+                    reindent_leading_after_newline(tokens, i, depth, c0, &mut out)
+                } else {
+                    false
+                };
+                if skip_leading_ws {
+                    i += 2; // Newline + rewritten Whitespace
+                    continue;
+                }
+            }
+            _ => {
+                out.push_str(&tok.lexeme);
+            }
+        }
+        i += 1;
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2395,6 +2661,233 @@ mod tests {
         assert!(out.contains("// ahead"));
         assert!(out.contains("// inside"));
         assert!(out.contains("/* trail */"));
+    }
+
+    #[test]
+    fn format_cst_reindent_inserts_missing_func_body_indent() {
+        let src = "func main() {\nprint(1)\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse");
+        assert_eq!(format_cst(&root), src, "default format_cst stays concat");
+        let out = format_cst_reindent(&root);
+        assert_eq!(out, "func main() {\n    print(1)\n}\n");
+    }
+
+    #[test]
+    fn format_cst_reindent_preserves_four_space_indent() {
+        let four = "func main() {\n    print(1)\n}\n";
+        let file = SourceFile::new("t.sy", four);
+        let root = parse_cst_subset(&file).expect("parse");
+        assert_eq!(format_cst_reindent(&root), four);
+        assert_eq!(format_cst(&root), four);
+    }
+
+    #[test]
+    fn format_cst_reindent_normalizes_two_space_to_four() {
+        // S2-I147: leading 2-space at levels=1 → 4 spaces.
+        let src = "func main() {\n  print(1)\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse");
+        assert_eq!(format_cst(&root), src, "default format_cst stays concat");
+        assert_eq!(format_cst_reindent(&root), "func main() {\n    print(1)\n}\n");
+    }
+
+    #[test]
+    fn format_cst_reindent_class_stored_inserts_missing_indent() {
+        // S2-I148: class stored-member missing WS → 4 spaces.
+        let src = "class Node {\nvar name: String\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse class");
+        assert_eq!(format_cst(&root), src, "default format_cst stays concat");
+        assert_eq!(
+            format_cst_reindent(&root),
+            "class Node {\n    var name: String\n}\n"
+        );
+    }
+
+    #[test]
+    fn format_cst_reindent_class_stored_2to4_normalize() {
+        let src = "class Node {\n  var name: String\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse class");
+        assert_eq!(
+            format_cst_reindent(&root),
+            "class Node {\n    var name: String\n}\n"
+        );
+    }
+
+    #[test]
+    fn format_cst_reindent_class_method_prefers_func_track() {
+        // Stored / method-header lines use class track; method body uses func track
+        // (relative to method d0 → 4 spaces, not absolute depth×4).
+        let src = "class Box {\nvar name: String\nfunc tag() {\nprint(1)\n}\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse class+method");
+        assert_eq!(
+            format_cst_reindent(&root),
+            "class Box {\n    var name: String\n    func tag() {\n    print(1)\n}\n}\n"
+        );
+    }
+
+    #[test]
+    fn format_cst_reindent_nested_if_relative_indent() {
+        // S2-I146: missing WS inside nested braces → (depth - d0 + 1) × 4.
+        let src = "func main() {\nif true {\nprint(1)\n}\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse nested if");
+        assert_eq!(format_cst(&root), src, "default format_cst stays concat");
+        let out = format_cst_reindent(&root);
+        assert_eq!(out, "func main() {\n    if true {\n        print(1)\n}\n}\n");
+    }
+
+    #[test]
+    fn format_cst_reindent_nested_2to4_normalize() {
+        // S2-I147: 2-space style at levels 1/2 → 4/8; `}` line with 2 spaces left alone.
+        let src = "func main() {\n  if true {\n    print(1)\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("parse");
+        assert_eq!(
+            format_cst_reindent(&root),
+            "func main() {\n    if true {\n        print(1)\n  }\n}\n"
+        );
+    }
+
+    #[test]
+    fn format_cst_reindent_nested_func_restores_outer() {
+        // Nested func is outside CST subset parse — hand-build green tokens to nail stack restore.
+        // Relative to innermost d0: inner body gets 4 spaces; after pop, outer body still 4.
+        let root = CstRoot {
+            source_name: "t.sy".into(),
+            green: GreenNode {
+                tokens: vec![
+                    GreenToken {
+                        kind: TokenKind::Func,
+                        lexeme: "func".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Whitespace,
+                        lexeme: " ".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Identifier("outer".into()),
+                        lexeme: "outer".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::LParen,
+                        lexeme: "(".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::RParen,
+                        lexeme: ")".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Whitespace,
+                        lexeme: " ".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::LBrace,
+                        lexeme: "{".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Newline,
+                        lexeme: "\n".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Func,
+                        lexeme: "func".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Whitespace,
+                        lexeme: " ".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Identifier("inner".into()),
+                        lexeme: "inner".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::LParen,
+                        lexeme: "(".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::RParen,
+                        lexeme: ")".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Whitespace,
+                        lexeme: " ".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::LBrace,
+                        lexeme: "{".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Newline,
+                        lexeme: "\n".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Identifier("print".into()),
+                        lexeme: "print".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::LParen,
+                        lexeme: "(".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Integer(1, None),
+                        lexeme: "1".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::RParen,
+                        lexeme: ")".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Newline,
+                        lexeme: "\n".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::RBrace,
+                        lexeme: "}".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Newline,
+                        lexeme: "\n".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Identifier("print".into()),
+                        lexeme: "print".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::LParen,
+                        lexeme: "(".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Integer(2, None),
+                        lexeme: "2".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::RParen,
+                        lexeme: ")".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Newline,
+                        lexeme: "\n".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::RBrace,
+                        lexeme: "}".into(),
+                    },
+                    GreenToken {
+                        kind: TokenKind::Newline,
+                        lexeme: "\n".into(),
+                    },
+                ],
+            },
+        };
+        let out = format_cst_reindent(&root);
+        assert_eq!(
+            out,
+            "func outer() {\n    func inner() {\n    print(1)\n}\n    print(2)\n}\n"
+        );
     }
 
     #[test]
@@ -5886,13 +6379,37 @@ mod tests {
     }
 
     #[test]
-    fn subset_rejects_if_let() {
-        let file = SourceFile::new(
-            "t.sy",
-            "func main() {\n  if let x = y {\n    print(1)\n  }\n}\n",
-        );
-        let err = parse_cst_subset(&file).expect_err("if let must CST001");
-        assert_eq!(err.code.as_deref(), Some("CST001"));
+    fn subset_if_let_simple_roundtrip() {
+        // S2-I154: if-let-simple now in subset (parallel W877).
+        let src = "func main() {\n  if let x = y {\n    print(1)\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("if let simple must parse");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_if_let_else_and_call_rhs_roundtrip() {
+        let src = "func main() {\n  if let v = getOpt() {\n    print(v)\n  } else {\n    print(\"nil\")\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("if let else/call");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_guard_let_simple_roundtrip() {
+        // S2-I155: guard-let-simple (W721 shape with success brace).
+        let src = "func main() {\n  guard let x = y else {\n    return\n  }\n  {\n    print(x)\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("guard let simple must parse");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_guard_let_call_rhs_roundtrip() {
+        let src = "func main() {\n  guard let v = getOpt() else {\n    return\n  }\n  {\n    print(v)\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("guard let call rhs");
+        assert_eq!(format_cst(&root), src);
     }
 
     #[test]

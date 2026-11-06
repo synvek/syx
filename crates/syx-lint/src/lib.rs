@@ -10,9 +10,28 @@ pub struct LintIssue {
     pub code: String,
 }
 
+/// AST-only lint (tests / `SYX_FMT_AST` hatch / rollback).
 pub fn lint_source(source: &SourceFile) -> SyxResult<Vec<LintIssue>> {
     let module = Parser::parse(source.clone())?;
     Ok(lint_module(source, &module))
+}
+
+/// S2-I153 / ADR stage2-s2-04-lint-cst-first: CST-first parse **policy** aligned with
+/// `format_source_auto`. L001–L009 still run on AST `Module` after the probe
+/// (**≠** lint-on-CST / ≠ shared lossless tree).
+///
+/// - `SYX_FMT_AST=1` → [`lint_source`] (shared hatch with fmt).
+/// - else `parse_cst_subset`; on Ok or `CST001` → [`lint_source`]; other errors propagate.
+pub fn lint_source_auto(source: &SourceFile) -> SyxResult<Vec<LintIssue>> {
+    match std::env::var("SYX_FMT_AST") {
+        Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => return lint_source(source),
+        _ => {}
+    }
+    match syx_cst::parse_cst_subset(source) {
+        Ok(_) => lint_source(source),
+        Err(e) if e.code.as_deref() == Some("CST001") => lint_source(source),
+        Err(e) => Err(e),
+    }
 }
 
 pub fn lint_module(source: &SourceFile, module: &Module) -> Vec<LintIssue> {
@@ -215,6 +234,24 @@ mod tests {
         let source = SourceFile::new("t.sy", "func BadName() {}");
         let issues = lint_source(&source).unwrap();
         assert!(issues.iter().any(|i| i.code == "L001"));
+    }
+
+    #[test]
+    fn lint_source_auto_preserves_rules_on_cst_subset() {
+        // CST-parseable body + L011 marker + L001 casing.
+        let source = SourceFile::new(
+            "t.sy",
+            "// TODO: review\nfunc BadName() {\n    print(1)\n}\n",
+        );
+        let issues = lint_source_auto(&source).expect("auto lint");
+        assert!(
+            issues.iter().any(|i| i.code == "L001"),
+            "expected L001; got {issues:?}"
+        );
+        assert!(
+            issues.iter().any(|i| i.code == "L011"),
+            "expected L011; got {issues:?}"
+        );
     }
 
     #[test]

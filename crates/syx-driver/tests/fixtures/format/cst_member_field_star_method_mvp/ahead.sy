@@ -1,7 +1,7 @@
 // ahead
 class Box {
-  var count: Int
-  func scale(n: Int) {
+    var count: Int
+    func scale(n: Int) {
     /* mid */
     box.count *= n
   }

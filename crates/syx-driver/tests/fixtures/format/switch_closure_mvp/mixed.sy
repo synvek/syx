@@ -44,9 +44,7 @@ func main() {
         print(18)
     case #foo():
         print(19)
-    case { (a) in
-        a
-    } where true:
+    case { (a) in a } where true:
         print(20)
     default:
         print(21)

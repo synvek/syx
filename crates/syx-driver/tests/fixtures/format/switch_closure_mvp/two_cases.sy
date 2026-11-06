@@ -1,12 +1,8 @@
 func main() {
     switch x {
-    case { (a) in
-        a
-    }:
+    case { (a) in a }:
         print(1)
-    case { (b) in
-        b
-    }:
+    case { (b) in b }:
         print(2)
     default:
         print(0)

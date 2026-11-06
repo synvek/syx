@@ -39,7 +39,7 @@ fn fmt_dry_run_rejects_unsupported() {
 
 #[test]
 fn fmt_cst_print_body_trivia_roundtrip() {
-    let src = "// ahead\nfunc main() {\n  // inside\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // inside\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst print body");
     assert_eq!(out, src);
@@ -49,7 +49,7 @@ fn fmt_cst_print_body_trivia_roundtrip() {
 #[test]
 fn fmt_cst_print_deepen_roundtrip() {
     // W790 / ADR-1134: print(ident|string) + multi-print with trivia byte-identical.
-    let src = "// ahead\nfunc main() {\n  // inside\n  print(1)\n  print(x)\n  print(\"hi\")\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // inside\n    print(1)\n    print(x)\n    print(\"hi\")\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst print deepen");
     assert_eq!(out, src);
@@ -67,7 +67,7 @@ fn fmt_cst_print_deepen_roundtrip() {
 #[test]
 fn fmt_cst_let_bind_roundtrip() {
     // W791 / ADR-1135: let[+print] with trivia byte-identical; reject call RHS.
-    let src = "// ahead\nfunc main() {\n  // bind\n  let x = 1\n  let s = \"hi\"\n  print(x)\n  print(s)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // bind\n    let x = 1\n    let s = \"hi\"\n    print(x)\n    print(s)\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst let bind");
     assert_eq!(out, src);
@@ -85,7 +85,7 @@ fn fmt_cst_let_bind_roundtrip() {
 #[test]
 fn fmt_cst_return_simple_roundtrip() {
     // W792 / ADR-1136: return[+let/print] with trivia byte-identical; reject call RHS.
-    let src = "// ahead\nfunc main() {\n  // bind\n  let x = 1\n  print(x)\n  return x\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // bind\n    let x = 1\n    print(x)\n    return x\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst return simple");
     assert_eq!(out, src);
@@ -103,7 +103,7 @@ fn fmt_cst_return_simple_roundtrip() {
 #[test]
 fn fmt_cst_bare_return_roundtrip() {
     // W797 / ADR-1141: bare return[+print/var] with trivia byte-identical; reject call RHS / while.
-    let src = "// ahead\nfunc main() {\n  // done\n  var x = 1\n  print(x)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // done\n    var x = 1\n    print(x)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst bare return");
     assert_eq!(out, src);
@@ -113,7 +113,7 @@ fn fmt_cst_bare_return_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let semi = "// a\nfunc main() {\n  // b\n  return;\n}\n/* c */\n";
+    let semi = "// a\nfunc main() {\n    // b\n    return;\n}\n/* c */\n";
     let file_semi = SourceFile::new("semi.sy", semi);
     let out_semi = format_source_cst(&file_semi).expect("cst bare return;");
     assert_eq!(out_semi, semi);
@@ -130,7 +130,7 @@ fn fmt_cst_bare_return_roundtrip() {
 #[test]
 fn fmt_cst_multi_func_roundtrip() {
     // W798 / ADR-1142: 2+ zero-arg funcs[+print/var/return] with trivia; reject call / param / while.
-    let src = "// ahead\nfunc helper() {\n  // a\n  print(1)\n}\nfunc main() {\n  // b\n  var x = 1\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc helper() {\n    // a\n    print(1)\n}\nfunc main() {\n    // b\n    var x = 1\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst multi func");
     assert_eq!(out, src);
@@ -160,7 +160,7 @@ fn fmt_cst_typed_bind_roundtrip() {
     // W799 / ADR-1143: typed let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
     // `: (&Ident)->Ident` accepted since W805; `: (Ident?)->Ident` since W806 —
     // see fmt_cst_typed_function_param_optional_roundtrip.
-    let src = "// ahead\nfunc main() {\n  // typed\n  let x: Int = 1\n  var s: String = \"hi\"\n  print(x)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // typed\n    let x: Int = 1\n    var s: String = \"hi\"\n    print(x)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed bind");
     assert_eq!(out, src);
@@ -183,7 +183,7 @@ fn fmt_cst_typed_bind_roundtrip() {
 #[test]
 fn fmt_cst_typed_optional_roundtrip() {
     // W800 / ADR-1144: typed optional let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // optional type\n  let x: Int? = nil\n  var s: String? = \"hi\"\n  print(x)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // optional type\n    let x: Int? = nil\n    var s: String? = \"hi\"\n    print(x)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed optional");
     assert_eq!(out, src);
@@ -206,7 +206,7 @@ fn fmt_cst_typed_optional_roundtrip() {
 #[test]
 fn fmt_cst_typed_reference_roundtrip() {
     // W801 / ADR-1145: typed ref let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // ref type\n  let x: &Int = y\n  var s: &String = t\n  print(x)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // ref type\n    let x: &Int = y\n    var s: &String = t\n    print(x)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed reference");
     assert_eq!(out, src);
@@ -229,7 +229,7 @@ fn fmt_cst_typed_reference_roundtrip() {
 #[test]
 fn fmt_cst_typed_mut_reference_roundtrip() {
     // W802 / ADR-1146: typed mut-ref let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // mut ref\n  let x: &mut Int = y\n  var s: &mut String = t\n  print(x)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // mut ref\n    let x: &mut Int = y\n    var s: &mut String = t\n    print(x)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed mut reference");
     assert_eq!(out, src);
@@ -252,7 +252,7 @@ fn fmt_cst_typed_mut_reference_roundtrip() {
 #[test]
 fn fmt_cst_typed_lifetime_reference_roundtrip() {
     // W803 / ADR-1147: typed lifetime-ref let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // lifetime ref\n  let x: &'a Int = y\n  var s: &'a mut String = t\n  print(x)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // lifetime ref\n    let x: &'a Int = y\n    var s: &'a mut String = t\n    print(x)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed lifetime reference");
     assert_eq!(out, src);
@@ -275,7 +275,7 @@ fn fmt_cst_typed_lifetime_reference_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_type_roundtrip() {
     // W804 / ADR-1148: typed function-type let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // func type\n  let f: (Int) -> Int = id\n  var g: (Int, String) -> Bool = h\n  let u: () -> Void = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // func type\n    let f: (Int) -> Int = id\n    var g: (Int, String) -> Bool = h\n    let u: () -> Void = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function type");
     assert_eq!(out, src);
@@ -299,7 +299,7 @@ fn fmt_cst_typed_function_type_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_param_reference_roundtrip() {
     // W805 / ADR-1149: Function param Reference let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // func param ref\n  let f: (&Int) -> Int = id\n  var g: (Int, &mut String) -> Bool = h\n  let u: (&'a Int) -> Void = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // func param ref\n    let f: (&Int) -> Int = id\n    var g: (Int, &mut String) -> Bool = h\n    let u: (&'a Int) -> Void = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function param reference");
     assert_eq!(out, src);
@@ -323,7 +323,7 @@ fn fmt_cst_typed_function_param_reference_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_param_optional_roundtrip() {
     // W806 / ADR-1150: Function param Optional let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // func param optional\n  let f: (Int?) -> Int = id\n  var g: (String?, &mut Int) -> Bool = h\n  let u: (Int?, String?) -> Void = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // func param optional\n    let f: (Int?) -> Int = id\n    var g: (String?, &mut Int) -> Bool = h\n    let u: (Int?, String?) -> Void = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function param optional");
     assert_eq!(out, src);
@@ -347,7 +347,7 @@ fn fmt_cst_typed_function_param_optional_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_return_reference_roundtrip() {
     // W807 / ADR-1151: Function return Reference let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // func return ref\n  let f: (Int) -> &Int = id\n  var g: (String?) -> &mut String = h\n  let u: () -> &'a Int = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // func return ref\n    let f: (Int) -> &Int = id\n    var g: (String?) -> &mut String = h\n    let u: () -> &'a Int = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function return reference");
     assert_eq!(out, src);
@@ -371,7 +371,7 @@ fn fmt_cst_typed_function_return_reference_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_return_optional_roundtrip() {
     // W808 / ADR-1152: Function return Optional let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // func return optional\n  let f: (Int) -> Int? = id\n  var g: (String?) -> String? = h\n  let u: () -> Void? = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // func return optional\n    let f: (Int) -> Int? = id\n    var g: (String?) -> String? = h\n    let u: () -> Void? = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function return optional");
     assert_eq!(out, src);
@@ -396,7 +396,7 @@ fn fmt_cst_typed_function_return_optional_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_param_nested_roundtrip() {
     // W809 / ADR-1153: nested Function param let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // nested function param\n  let f: ((Int) -> Int) -> Int = id\n  var g: ((String?) -> String?) -> Void = h\n  let u: (() -> Void) -> Int? = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // nested function param\n    let f: ((Int) -> Int) -> Int = id\n    var g: ((String?) -> String?) -> Void = h\n    let u: (() -> Void) -> Int? = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function param nested");
     assert_eq!(out, src);
@@ -420,7 +420,7 @@ fn fmt_cst_typed_function_param_nested_roundtrip() {
 #[test]
 fn fmt_cst_typed_function_return_nested_roundtrip() {
     // W810 / ADR-1154: nested Function return let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // nested function return\n  let f: (Int) -> ((Int) -> Int) = id\n  var g: (String?) -> (() -> Void) = h\n  let u: () -> ((Int?) -> Int?) = k\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // nested function return\n    let f: (Int) -> ((Int) -> Int) = id\n    var g: (String?) -> (() -> Void) = h\n    let u: () -> ((Int?) -> Int?) = k\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed function return nested");
     assert_eq!(out, src);
@@ -446,7 +446,7 @@ fn fmt_cst_typed_function_return_nested_roundtrip() {
 #[test]
 fn fmt_cst_typed_amp_optional_roundtrip() {
     // W811 / ADR-1155: Amp+`?` bind/Function let/var[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // amp optional\n  let a: &Int? = p\n  var b: &mut String? = q\n  let f: (&Int?) -> Int = id\n  var g: (Int) -> &mut String? = h\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // amp optional\n    let a: &Int? = p\n    var b: &mut String? = q\n    let f: (&Int?) -> Int = id\n    var g: (Int) -> &mut String? = h\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed amp optional");
     assert_eq!(out, src);
@@ -473,7 +473,7 @@ fn fmt_cst_typed_amp_optional_roundtrip() {
 #[test]
 fn fmt_cst_typed_generic_roundtrip() {
     // W812 / ADR-1156: Foo<Int>[?] bind/Function[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // typed generic\n  let a: Foo<Int> = p\n  var b: Bar<String>? = q\n  let f: (Foo<Int>) -> Int = id\n  var g: (Int) -> Bar<String> = h\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // typed generic\n    let a: Foo<Int> = p\n    var b: Bar<String>? = q\n    let f: (Foo<Int>) -> Int = id\n    var g: (Int) -> Bar<String> = h\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed generic");
     assert_eq!(out, src);
@@ -500,7 +500,7 @@ fn fmt_cst_typed_generic_roundtrip() {
 #[test]
 fn fmt_cst_typed_nested_generic_roundtrip() {
     // W813 / ADR-1157: Foo<Int>[?] bind/Function[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // nested generic\n  let a: Foo<Int> = p\n  var b: Box<String>? = q\n  let f: (Foo<Int>) -> Int = id\n  var g: (Int) -> Box<String> = h\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // nested generic\n    let a: Foo<Int> = p\n    var b: Box<String>? = q\n    let f: (Foo<Int>) -> Int = id\n    var g: (Int) -> Box<String> = h\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed nested generic");
     assert_eq!(out, src);
@@ -527,7 +527,7 @@ fn fmt_cst_typed_nested_generic_roundtrip() {
 #[test]
 fn fmt_cst_typed_multi_arg_generic_roundtrip() {
     // W814 / ADR-1158: Foo<A,B>[?] bind/Function[+print/return] with trivia; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc main() {\n  // multi-arg generic\n  let a: Foo<A> = p\n  var b: Dict<String, Int>? = q\n  let f: (Foo<A>) -> Int = id\n  var g: (Int) -> Dict<String, Int> = h\n  print(f)\n  return\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // multi-arg generic\n    let a: Foo<A> = p\n    var b: Dict<String, Int>? = q\n    let f: (Foo<A>) -> Int = id\n    var g: (Int) -> Dict<String, Int> = h\n    print(f)\n    return\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed multi-arg generic");
     assert_eq!(out, src);
@@ -554,7 +554,7 @@ fn fmt_cst_typed_multi_arg_generic_roundtrip() {
 #[test]
 fn fmt_cst_toplevel_simple_roundtrip() {
     // W815 / ADR-1159: ahead/between/trail simple + zero-arg funcs; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nprint(0)\nfunc helper() {\n  let n: Int = 1\n}\n// between\nlet x: Foo<A, B> = p\nvar y: Dict<String, Int>? = q\nprint(x)\nfunc main() {\n  print(y)\n  return\n}\nreturn\n/* trail */\n";
+    let src = "// ahead\nprint(0)\nfunc helper() {\n    let n: Int = 1\n}\n// between\nlet x: Foo<A, B> = p\nvar y: Dict<String, Int>? = q\nprint(x)\nfunc main() {\n    print(y)\n    return\n}\nreturn\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst toplevel simple");
     assert_eq!(out, src);
@@ -581,7 +581,7 @@ fn fmt_cst_toplevel_simple_roundtrip() {
 #[test]
 fn fmt_cst_param_func_roundtrip() {
     // W816 / ADR-1160: bare Ident params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x) {\n  // param\n  print(x)\n  return x\n}\nfunc add(a, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x) {\n    // param\n    print(x)\n    return x\n}\nfunc add(a, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst param func");
     assert_eq!(out, src);
@@ -605,7 +605,7 @@ fn fmt_cst_param_func_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_roundtrip() {
     // W817 / ADR-1161: Ident[: Ident] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: Int) {\n  // typed param\n  print(x)\n  return x\n}\nfunc add(a: Int, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) {\n    // typed param\n    print(x)\n    return x\n}\nfunc add(a: Int, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed param");
     assert_eq!(out, src);
@@ -630,7 +630,7 @@ fn fmt_cst_typed_param_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_optional_roundtrip() {
     // W818 / ADR-1162: Ident[: Ident[?]] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: Int?) {\n  // typed param optional\n  print(x)\n  return x\n}\nfunc add(a: Int?, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int?) {\n    // typed param optional\n    print(x)\n    return x\n}\nfunc add(a: Int?, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed param optional");
     assert_eq!(out, src);
@@ -655,7 +655,7 @@ fn fmt_cst_typed_param_optional_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_amp_roundtrip() {
     // W819 / ADR-1163: Ident[: Ident[?]| &Ident] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: &Int) {\n  // typed param amp\n  print(x)\n  return x\n}\nfunc add(a: &Int, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: &Int) {\n    // typed param amp\n    print(x)\n    return x\n}\nfunc add(a: &Int, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed param amp");
     assert_eq!(out, src);
@@ -680,7 +680,7 @@ fn fmt_cst_typed_param_amp_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_mut_amp_roundtrip() {
     // W820 / ADR-1164: Ident[: Ident[?]| &Ident| &mut Ident] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: &mut Int) {\n  // typed param mut amp\n  print(x)\n  return x\n}\nfunc add(a: &mut Int, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: &mut Int) {\n    // typed param mut amp\n    print(x)\n    return x\n}\nfunc add(a: &mut Int, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst typed param mut amp");
     assert_eq!(out, src);
@@ -703,7 +703,7 @@ fn fmt_cst_typed_param_mut_amp_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_lifetime_amp_roundtrip() {
     // W821 / ADR-1165: Ident[: Ident[?]| &Ident| &mut Ident| &'a Ident| &'a mut Ident] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: &'a Int) {\n  // typed param lifetime amp\n  print(x)\n  return x\n}\nfunc add(a: &'a mut Int, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: &'a Int) {\n    // typed param lifetime amp\n    print(x)\n    return x\n}\nfunc add(a: &'a mut Int, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst typed param lifetime amp");
     assert_eq!(out, src);
@@ -721,7 +721,7 @@ fn fmt_cst_typed_param_lifetime_amp_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_amp_optional_roundtrip() {
     // W822 / ADR-1166: Ident[: &Ident[?]| &mut Ident[?]| &'a Ident[?]| &'a mut Ident[?]] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: &Int?) {\n  // typed param amp optional\n  print(x)\n  return x\n}\nfunc add(a: &mut Int?, b: &'a Int?) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: &Int?) {\n    // typed param amp optional\n    print(x)\n    return x\n}\nfunc add(a: &mut Int?, b: &'a Int?) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst typed param amp optional");
     assert_eq!(out, src);
@@ -739,7 +739,7 @@ fn fmt_cst_typed_param_amp_optional_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_generic_roundtrip() {
     // W823 / ADR-1167: Ident[: Ident[<Ident>][?]| Amp[?]…] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: Foo<Int>) {\n  // typed param generic\n  print(x)\n  return x\n}\nfunc add(a: List<Int>?, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Foo<Int>) {\n    // typed param generic\n    print(x)\n    return x\n}\nfunc add(a: List<Int>?, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst typed param generic");
     assert_eq!(out, src);
@@ -757,7 +757,7 @@ fn fmt_cst_typed_param_generic_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_nested_generic_roundtrip() {
     // W824 / ADR-1168: Ident[: Ident[<NestedNamed>][?]| Amp[?]…] params + simple body[+toplevel]; reject call / Amp-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: Foo<Int>) {\n  // typed param nested generic\n  print(x)\n  return x\n}\nfunc add(a: Box<Int>?, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Foo<Int>) {\n    // typed param nested generic\n    print(x)\n    return x\n}\nfunc add(a: Box<Int>?, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst typed param nested generic");
     assert_eq!(out, src);
@@ -775,7 +775,7 @@ fn fmt_cst_typed_param_nested_generic_roundtrip() {
 #[test]
 fn fmt_cst_typed_param_multi_arg_generic_roundtrip() {
     // W825 / ADR-1169: Ident[: Ident[<Named(, Named)*>][?]| Amp[?]…] params + simple body[+toplevel]; reject call / Function-as-generic-arg typed param.
-    let src = "// ahead\nfunc id(x: Foo<A, B>) {\n  // typed param multi-arg generic\n  print(x)\n  return x\n}\nfunc add(a: Dict<String, Int>?, b) {\n  let s = a\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Foo<A, B>) {\n    // typed param multi-arg generic\n    print(x)\n    return x\n}\nfunc add(a: Dict<String, Int>?, b) {\n    let s = a\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst typed param multi-arg generic");
     assert_eq!(out, src);
@@ -793,7 +793,7 @@ fn fmt_cst_typed_param_multi_arg_generic_roundtrip() {
 #[test]
 fn fmt_cst_func_return_roundtrip() {
     // W826 / ADR-1170: func … [-> Ident[?]] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> Int {\n  // func return\n  print(x)\n  return x\n}\nfunc none() -> Void? {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> Int {\n    // func return\n    print(x)\n    return x\n}\nfunc none() -> Void? {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return");
     assert_eq!(out, src);
@@ -814,7 +814,7 @@ fn fmt_cst_func_return_roundtrip() {
 #[test]
 fn fmt_cst_func_return_amp_roundtrip() {
     // W827 / ADR-1171: func … [-> Ident[?]| &Ident] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> &Int {\n  // func return amp\n  print(x)\n  return x\n}\nfunc bare() -> &String {\n  return\n}\nfunc none() -> Void? {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> &Int {\n    // func return amp\n    print(x)\n    return x\n}\nfunc bare() -> &String {\n    return\n}\nfunc none() -> Void? {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return amp");
     assert_eq!(out, src);
@@ -836,7 +836,7 @@ fn fmt_cst_func_return_amp_roundtrip() {
 #[test]
 fn fmt_cst_func_return_mut_amp_roundtrip() {
     // W828 / ADR-1172: func … [-> Ident[?]| &Ident| &mut Ident] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> &mut Int {\n  // func return mut amp\n  print(x)\n  return x\n}\nfunc bare() -> &mut String {\n  return\n}\nfunc amp() -> &Int {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> &mut Int {\n    // func return mut amp\n    print(x)\n    return x\n}\nfunc bare() -> &mut String {\n    return\n}\nfunc amp() -> &Int {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return mut amp");
     assert_eq!(out, src);
@@ -858,7 +858,7 @@ fn fmt_cst_func_return_mut_amp_roundtrip() {
 #[test]
 fn fmt_cst_func_return_lifetime_amp_roundtrip() {
     // W829 / ADR-1173: func … [-> Ident[?]| &Ident| &mut Ident| &'a Ident| &'a mut Ident] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> &'a Int {\n  // func return lifetime amp\n  print(x)\n  return x\n}\nfunc mut_life() -> &'b mut String {\n  return\n}\nfunc amp() -> &Int {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> &'a Int {\n    // func return lifetime amp\n    print(x)\n    return x\n}\nfunc mut_life() -> &'b mut String {\n    return\n}\nfunc amp() -> &Int {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return lifetime amp");
     assert_eq!(out, src);
@@ -880,7 +880,7 @@ fn fmt_cst_func_return_lifetime_amp_roundtrip() {
 #[test]
 fn fmt_cst_func_return_amp_optional_roundtrip() {
     // W830 / ADR-1174: func … [-> Ident[?]| &Ident[?]| &mut Ident[?]| &'a Ident[?]| &'a mut Ident[?]] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> &Int? {\n  // func return amp optional\n  print(x)\n  return x\n}\nfunc mut_opt() -> &mut String? {\n  return\n}\nfunc life() -> &'a Int? {\n  return\n}\nfunc mut_life() -> &'b mut String? {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> &Int? {\n    // func return amp optional\n    print(x)\n    return x\n}\nfunc mut_opt() -> &mut String? {\n    return\n}\nfunc life() -> &'a Int? {\n    return\n}\nfunc mut_life() -> &'b mut String? {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return amp optional");
     assert_eq!(out, src);
@@ -903,7 +903,7 @@ fn fmt_cst_func_return_amp_optional_roundtrip() {
 #[test]
 fn fmt_cst_func_return_generic_roundtrip() {
     // W831 / ADR-1175: func … [-> Ident[<Ident>][?]| Amp 族[?]] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> Foo<Int> {\n  // func return generic\n  print(x)\n  return x\n}\nfunc opt() -> Bar<String>? {\n  return\n}\nfunc amp() -> &Int? {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> Foo<Int> {\n    // func return generic\n    print(x)\n    return x\n}\nfunc opt() -> Bar<String>? {\n    return\n}\nfunc amp() -> &Int? {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return generic");
     assert_eq!(out, src);
@@ -931,7 +931,7 @@ fn fmt_cst_func_return_generic_roundtrip() {
 #[test]
 fn fmt_cst_func_return_nested_generic_roundtrip() {
     // W832 / ADR-1176: func … [-> Ident[<NestedNamed>][?]| Amp 族[?]] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> Foo<Int> {\n  // func return nested generic\n  print(x)\n  return x\n}\nfunc opt() -> Box<String>? {\n  return\n}\nfunc flat() -> Foo<Int> {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> Foo<Int> {\n    // func return nested generic\n    print(x)\n    return x\n}\nfunc opt() -> Box<String>? {\n    return\n}\nfunc flat() -> Foo<Int> {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return nested generic");
     assert_eq!(out, src);
@@ -954,7 +954,7 @@ fn fmt_cst_func_return_nested_generic_roundtrip() {
 #[test]
 fn fmt_cst_func_return_multi_arg_generic_roundtrip() {
     // W833 / ADR-1177 face1: func … [-> Ident[<Arg(, Arg)*>][?]| Amp 族[?]] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> Foo<A> {\n  // func return multi-arg generic\n  print(x)\n  return x\n}\nfunc opt() -> Dict<String, Int>? {\n  return\n}\nfunc nested() -> Foo<Int> {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> Foo<A> {\n    // func return multi-arg generic\n    print(x)\n    return x\n}\nfunc opt() -> Dict<String, Int>? {\n    return\n}\nfunc nested() -> Foo<Int> {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return multi-arg generic");
     assert_eq!(out, src);
@@ -973,7 +973,7 @@ fn fmt_cst_func_return_multi_arg_generic_roundtrip() {
 #[test]
 fn fmt_cst_func_return_function_roundtrip() {
     // W833 / ADR-1177 face2: func … [-> Function| Ident[?]| Amp 族[?]] + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Int) -> (Int) -> Bool {\n  // func return function\n  print(x)\n  return x\n}\nfunc unit() -> () {\n  return\n}\nfunc named() -> Int {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Int) -> (Int) -> Bool {\n    // func return function\n    print(x)\n    return x\n}\nfunc unit() -> () {\n    return\n}\nfunc named() -> Int {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst func return function");
     assert_eq!(out, src);
@@ -992,7 +992,7 @@ fn fmt_cst_func_return_function_roundtrip() {
 #[test]
 fn fmt_cst_amp_as_generic_arg_roundtrip() {
     // W833 / ADR-1177 face3: Amp-as-generic-arg param/return + simple body[+toplevel]; reject call / Function-as-generic-arg.
-    let src = "// ahead\nfunc id(x: Foo<&Int>) {\n  // amp as generic arg\n  print(x)\n  return x\n}\nfunc ret() -> Bar<&T> {\n  return\n}\nfunc mutp(x: Box<&mut String>) {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Foo<&Int>) {\n    // amp as generic arg\n    print(x)\n    return x\n}\nfunc ret() -> Bar<&T> {\n    return\n}\nfunc mutp(x: Box<&mut String>) {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst amp as generic arg");
     assert_eq!(out, src);
@@ -1012,7 +1012,7 @@ fn fmt_cst_amp_as_generic_arg_roundtrip() {
 #[test]
 fn fmt_cst_function_as_generic_arg_roundtrip() {
     // W834 / ADR-1178 face1: Function-as-generic-arg param/return + simple body[+toplevel]; reject chained logic.
-    let src = "// ahead\nfunc id(x: Foo<(Int)->Bool>) {\n  // function as generic arg\n  print(x)\n  return x\n}\nfunc ret() -> Bar<()> {\n  return\n}\nfunc nest(x: Box<(Int)->((Int)->Bool)>) {\n  return\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc id(x: Foo<(Int)->Bool>) {\n    // function as generic arg\n    print(x)\n    return x\n}\nfunc ret() -> Bar<()> {\n    return\n}\nfunc nest(x: Box<(Int)->((Int)->Bool)>) {\n    return\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst function as generic arg");
     assert_eq!(out, src);
@@ -1031,7 +1031,7 @@ fn fmt_cst_function_as_generic_arg_roundtrip() {
 #[test]
 fn fmt_cst_print_call_roundtrip() {
     // W834 / ADR-1178 face2: print(call-simple) + simple body[+toplevel]; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  // print call\n  print(foo())\n  print(g(1))\n  print(h(x, y))\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // print call\n    print(foo())\n    print(g(1))\n    print(h(x, y))\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst print call");
     assert_eq!(out, src);
@@ -1050,7 +1050,7 @@ fn fmt_cst_print_call_roundtrip() {
 #[test]
 fn fmt_cst_call_rhs_roundtrip() {
     // W834 / ADR-1178 face3: let/var/return call-simple + simple body[+toplevel]; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  // call rhs\n  let x = foo()\n  var y = g(1)\n  print(h(x, y))\n  return k()\n}\nprint(0)\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // call rhs\n    let x = foo()\n    var y = g(1)\n    print(h(x, y))\n    return k()\n}\nprint(0)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst call rhs");
     assert_eq!(out, src);
@@ -1071,7 +1071,7 @@ fn fmt_cst_call_rhs_roundtrip() {
 #[test]
 fn fmt_cst_while_ident_cond_roundtrip() {
     // W835 / ADR-1179 face1: while true|ident + print/let body; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  while true {\n    print(1)\n  }\n  while flag {\n    let x = 1\n    print(x)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while true {\n        print(1)\n  }\n    while flag {\n        let x = 1\n        print(x)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while ident cond");
     assert_eq!(out, src);
@@ -1085,7 +1085,7 @@ fn fmt_cst_while_ident_cond_roundtrip() {
 #[test]
 fn fmt_cst_while_call_cond_roundtrip() {
     // W835 face2: while ready()|tick(1) + body; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  while ready() {\n    print(1)\n  }\n  while tick(1) {\n    var y = 2\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ready() {\n        print(1)\n  }\n    while tick(1) {\n        var y = 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while call cond");
     assert_eq!(out, src);
@@ -1099,7 +1099,7 @@ fn fmt_cst_while_call_cond_roundtrip() {
 #[test]
 fn fmt_cst_while_mixed_roundtrip() {
     // W835 face3: mixed + toplevel while; reject still-out-of-subset faces.
-    let src = "// ahead\nwhile go {\n  print(0)\n}\nfunc main() {\n  while true {\n    print(1)\n    return\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nwhile go {\n  print(0)\n}\nfunc main() {\n    while true {\n        print(1)\n        return\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while mixed");
     assert_eq!(out, src);
@@ -1116,7 +1116,7 @@ fn fmt_cst_while_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_nested_roundtrip() {
     // W836 / ADR-1180 face1: nested while; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  while true {\n    while flag {\n      print(1)\n    }\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while true {\n        while flag {\n            print(1)\n    }\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while nested");
     assert_eq!(out, src);
@@ -1130,7 +1130,7 @@ fn fmt_cst_while_nested_roundtrip() {
 #[test]
 fn fmt_cst_while_compare_cond_roundtrip() {
     // W836 face2: compare cond; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  while x < n {\n    print(x)\n  }\n  while a >= b {\n    print(a)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while x < n {\n        print(x)\n  }\n    while a >= b {\n        print(a)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while compare");
     assert_eq!(out, src);
@@ -1144,7 +1144,7 @@ fn fmt_cst_while_compare_cond_roundtrip() {
 #[test]
 fn fmt_cst_while_deeper_mixed_roundtrip() {
     // W836 face3: nested×compare + toplevel; reject still-out-of-subset faces.
-    let src = "// ahead\nwhile go {\n  while i < n {\n    print(i)\n  }\n}\nfunc main() {\n  while ready() {\n    while flag {\n      print(1)\n    }\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nwhile go {\n  while i < n {\n    print(i)\n  }\n}\nfunc main() {\n    while ready() {\n        while flag {\n            print(1)\n    }\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while deeper mixed");
     assert_eq!(out, src);
@@ -1162,7 +1162,7 @@ fn fmt_cst_while_deeper_mixed_roundtrip() {
 #[test]
 fn fmt_cst_effect_pure_roundtrip() {
     // W837 / ADR-1181 face1: requires Pure; reject chained logic.
-    let src = "// ahead\nfunc main() requires Pure {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() requires Pure {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst effect pure");
     assert_eq!(out, src);
@@ -1175,7 +1175,7 @@ fn fmt_cst_effect_pure_roundtrip() {
 #[test]
 fn fmt_cst_effect_io_roundtrip() {
     // W837 face2: requires IO + params/return; reject chained logic.
-    let src = "// ahead\nfunc go(x: Int) -> Int requires IO {\n  print(x)\n  return x\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go(x: Int) -> Int requires IO {\n    print(x)\n    return x\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst effect io");
     assert_eq!(out, src);
@@ -1188,7 +1188,7 @@ fn fmt_cst_effect_io_roundtrip() {
 #[test]
 fn fmt_cst_effect_mixed_roundtrip() {
     // W837 face3: Pure×IO + while; reject chained logic.
-    let src = "// ahead\nfunc pure() requires Pure {\n  print(0)\n}\nfunc io() requires IO {\n  while true {\n    print(1)\n  }\n}\nprint(2)\n/* trail */\n";
+    let src = "// ahead\nfunc pure() requires Pure {\n    print(0)\n}\nfunc io() requires IO {\n    while true {\n        print(1)\n  }\n}\nprint(2)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst effect mixed");
     assert_eq!(out, src);
@@ -1203,7 +1203,7 @@ fn fmt_cst_effect_mixed_roundtrip() {
 #[test]
 fn fmt_cst_where_bare_roundtrip() {
     // W841 / ADR-1185 face1: bare where; reject chained logic.
-    let src = "// ahead\nfunc id<T>(x: T) where T: Equatable {\n  print(x)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc id<T>(x: T) where T: Equatable {\n    print(x)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst where bare");
     assert_eq!(out, src);
@@ -1216,7 +1216,7 @@ fn fmt_cst_where_bare_roundtrip() {
 #[test]
 fn fmt_cst_where_clause_roundtrip() {
     // W841 face2: multi preds / return / requires; reject chained logic.
-    let src = "// ahead\nfunc pair<A, B>(a: A, b: B) where A: Equatable, B: Hashable {\n  print(a)\n}\nfunc id<T>(x: T) -> T requires Pure where T: Equatable {\n  return x\n}\n/* trail */\n";
+    let src = "// ahead\nfunc pair<A, B>(a: A, b: B) where A: Equatable, B: Hashable {\n    print(a)\n}\nfunc id<T>(x: T) -> T requires Pure where T: Equatable {\n    return x\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst where clause");
     assert_eq!(out, src);
@@ -1229,7 +1229,7 @@ fn fmt_cst_where_clause_roundtrip() {
 #[test]
 fn fmt_cst_where_mixed_roundtrip() {
     // W841 face3: where × throws × effect × nested-call; reject chained logic.
-    let src = "// ahead\nfunc id<T>(x: T) throws requires Pure where T: Equatable {\n  print(foo(bar()))\n}\nfunc go<U>() where U: Bound {\n  while ready() {\n    let x = f(g())\n    print(x)\n  }\n}\nprint(1)\n/* trail */\n";
+    let src = "// ahead\nfunc id<T>(x: T) throws requires Pure where T: Equatable {\n    print(foo(bar()))\n}\nfunc go<U>() where U: Bound {\n    while ready() {\n        let x = f(g())\n        print(x)\n  }\n}\nprint(1)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst where mixed");
     assert_eq!(out, src);
@@ -1246,7 +1246,7 @@ fn fmt_cst_where_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_and_roundtrip() {
     // W844 / ADR-1188 face1: && braced; reject chained.
-    let src = "// ahead\nfunc main() {\n  while a && b {\n    print(1)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while a && b {\n        print(1)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic and");
     assert_eq!(out, src);
@@ -1259,7 +1259,7 @@ fn fmt_cst_while_logic_and_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_or_roundtrip() {
     // W844 face2: || + brace-less &&; reject compare×logic.
-    let src = "// ahead\nfunc main() {\n  while x || y {\n    print(1)\n  }\n  while a && b\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while x || y {\n        print(1)\n  }\n    while a && b\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic or");
     assert_eq!(out, src);
@@ -1272,7 +1272,7 @@ fn fmt_cst_while_logic_or_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_mixed_roundtrip() {
     // W844 face3: logic × effect/where/depth2; reject depth>2.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while a && b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while x || y\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while a && b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while x || y\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic mixed");
     assert_eq!(out, src);
@@ -1285,7 +1285,7 @@ fn fmt_cst_while_logic_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_chain_roundtrip() {
     // W845 / ADR-1189 face1: same-op chain; reject mixed-ops.
-    let src = "// ahead\nfunc main() {\n  while a && b && c {\n    print(1)\n  }\n  while x || y || z\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while a && b && c {\n        print(1)\n  }\n    while x || y || z\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic chain");
     assert_eq!(out, src);
@@ -1298,7 +1298,7 @@ fn fmt_cst_while_logic_chain_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_cmp_roundtrip() {
     // W845 face2: compare×logic; reject unary !.
-    let src = "// ahead\nfunc main() {\n  while a < b && c {\n    print(1)\n  }\n  while x >= n || flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while a < b && c {\n        print(1)\n  }\n    while x >= n || flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic cmp");
     assert_eq!(out, src);
@@ -1311,7 +1311,7 @@ fn fmt_cst_while_logic_cmp_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_deep_mixed_roundtrip() {
     // W845 face3: chain × cmp×logic × effect/where/depth2; reject depth>2.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while a && b && c {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while i < n || flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while a && b && c {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while i < n || flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic deep mixed");
     assert_eq!(out, src);
@@ -1324,7 +1324,7 @@ fn fmt_cst_while_logic_deep_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_mixedops_roundtrip() {
     // W846 / ADR-1190 face1: mixed-ops left-assoc; reject unary !.
-    let src = "// ahead\nfunc main() {\n  while a && b || c {\n    print(1)\n  }\n  while x || y && z\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while a && b || c {\n        print(1)\n  }\n    while x || y && z\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic mixedops");
     assert_eq!(out, src);
@@ -1337,7 +1337,7 @@ fn fmt_cst_while_logic_mixedops_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_call_roundtrip() {
     // W846 face2: call×logic; reject paren.
-    let src = "// ahead\nfunc main() {\n  while ready() && flag {\n    print(1)\n  }\n  while tick(1) || done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ready() && flag {\n        print(1)\n  }\n    while tick(1) || done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic call");
     assert_eq!(out, src);
@@ -1350,7 +1350,7 @@ fn fmt_cst_while_logic_call_roundtrip() {
 #[test]
 fn fmt_cst_while_logic_final_mixed_roundtrip() {
     // W846 face3: mixed-ops × call×logic × effect/where/depth2; reject depth>2.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while i < n || tick(1)\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while i < n || tick(1)\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic final mixed");
     assert_eq!(out, src);
@@ -1363,7 +1363,7 @@ fn fmt_cst_while_logic_final_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_unary_bare_roundtrip() {
     // W847 / ADR-1191 face1: bare unary !; reject Neg.
-    let src = "// ahead\nfunc main() {\n  while !flag {\n    print(1)\n  }\n  while !done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !flag {\n        print(1)\n  }\n    while !done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while unary bare");
     assert_eq!(out, src);
@@ -1376,7 +1376,7 @@ fn fmt_cst_while_unary_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_unary_logic_roundtrip() {
     // W847 face2: unary×logic; reject !! .
-    let src = "// ahead\nfunc main() {\n  while !a && b {\n    print(1)\n  }\n  while !ready() || done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !a && b {\n        print(1)\n  }\n    while !ready() || done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while unary logic");
     assert_eq!(out, src);
@@ -1389,7 +1389,7 @@ fn fmt_cst_while_unary_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_unary_mixed_roundtrip() {
     // W847 face3: unary × effect/where/depth2; reject Neg.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while !ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while !flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while !ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while !flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while unary mixed");
     assert_eq!(out, src);
@@ -1402,7 +1402,7 @@ fn fmt_cst_while_unary_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_paren_bare_roundtrip() {
     // W848 / ADR-1192 face1: bare paren / paren×logic; reject Neg.
-    let src = "// ahead\nfunc main() {\n  while (a && b) || c {\n    print(1)\n  }\n  while a && (b || c)\n  print(1)\n  while (flag)\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while (a && b) || c {\n        print(1)\n  }\n    while a && (b || c)\n    print(1)\n    while (flag)\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren bare");
     assert_eq!(out, src);
@@ -1415,7 +1415,7 @@ fn fmt_cst_while_paren_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_paren_unary_roundtrip() {
     // W848 face2: paren×unary·call; reject nested paren.
-    let src = "// ahead\nfunc main() {\n  while !(a && b) {\n    print(1)\n  }\n  while (!ready() && flag)\n  print(1)\n  while (tick(1) || done)\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !(a && b) {\n        print(1)\n  }\n    while (!ready() && flag)\n    print(1)\n    while (tick(1) || done)\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren unary");
     assert_eq!(out, src);
@@ -1428,7 +1428,7 @@ fn fmt_cst_while_paren_unary_roundtrip() {
 #[test]
 fn fmt_cst_while_paren_mixed_roundtrip() {
     // W848 face3: paren × effect/where/depth2; reject !! .
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while (a && b) || ready() {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while !(x || y)\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while (a && b) || ready() {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while !(x || y)\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren mixed");
     assert_eq!(out, src);
@@ -1441,7 +1441,7 @@ fn fmt_cst_while_paren_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg_bare_roundtrip() {
     // W849 / ADR-1193 face1: bare Neg `-`; reject !! .
-    let src = "// ahead\nfunc main() {\n  while -n {\n    print(1)\n  }\n  while -done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -n {\n        print(1)\n  }\n    while -done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg bare");
     assert_eq!(out, src);
@@ -1454,7 +1454,7 @@ fn fmt_cst_while_neg_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg_logic_roundtrip() {
     // W849 face2: Neg×logic·call; reject -- .
-    let src = "// ahead\nfunc main() {\n  while -a && b {\n    print(1)\n  }\n  while -ready() || done\n  print(1)\n  while (-n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -a && b {\n        print(1)\n  }\n    while -ready() || done\n    print(1)\n    while (-n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg logic");
     assert_eq!(out, src);
@@ -1467,7 +1467,7 @@ fn fmt_cst_while_neg_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg_mixed_roundtrip() {
     // W849 face3: Neg × effect/where/depth2; reject nested paren.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while -ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while -flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while -ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while -flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg mixed");
     assert_eq!(out, src);
@@ -1480,7 +1480,7 @@ fn fmt_cst_while_neg_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_bang2_bare_roundtrip() {
     // W850 / ADR-1194 face1: bare `!!`; reject -- .
-    let src = "// ahead\nfunc main() {\n  while !!flag {\n    print(1)\n  }\n  while !!done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !!flag {\n        print(1)\n  }\n    while !!done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while bang2 bare");
     assert_eq!(out, src);
@@ -1493,7 +1493,7 @@ fn fmt_cst_while_bang2_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_bang2_logic_roundtrip() {
     // W850 face2: !!×logic·call; reject -- .
-    let src = "// ahead\nfunc main() {\n  while !!a && b {\n    print(1)\n  }\n  while !!ready() || done\n  print(1)\n  while (!!flag) && x\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !!a && b {\n        print(1)\n  }\n    while !!ready() || done\n    print(1)\n    while (!!flag) && x\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while bang2 logic");
     assert_eq!(out, src);
@@ -1506,7 +1506,7 @@ fn fmt_cst_while_bang2_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_bang2_mixed_roundtrip() {
     // W850 face3: !! × effect/where/depth2; reject -- .
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while !!ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while !!flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while !!ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while !!flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while bang2 mixed");
     assert_eq!(out, src);
@@ -1519,7 +1519,7 @@ fn fmt_cst_while_bang2_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_paren2_bare_roundtrip() {
     // W851 / ADR-1195 face1: bare nested paren depth=2; reject ((((…)))).
-    let src = "// ahead\nfunc main() {\n  while ((flag)) {\n    print(1)\n  }\n  while ((done))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ((flag)) {\n        print(1)\n  }\n    while ((done))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren2 bare");
     assert_eq!(out, src);
@@ -1532,7 +1532,7 @@ fn fmt_cst_while_paren2_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_paren2_logic_roundtrip() {
     // W851 face2: nest×logic·call / bang nest; reject -- .
-    let src = "// ahead\nfunc main() {\n  while ((a && b)) || c {\n    print(1)\n  }\n  while ((tick(1)))\n  print(1)\n  while !(!(ready()))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ((a && b)) || c {\n        print(1)\n  }\n    while ((tick(1)))\n    print(1)\n    while !(!(ready()))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren2 logic");
     assert_eq!(out, src);
@@ -1545,7 +1545,7 @@ fn fmt_cst_while_paren2_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_paren2_mixed_roundtrip() {
     // W851 face3: nest × effect/where/depth2/!!·Neg; reject -- .
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ((!!ready())) && a || -b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ((flag))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ((!!ready())) && a || -b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ((flag))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren2 mixed");
     assert_eq!(out, src);
@@ -1558,7 +1558,7 @@ fn fmt_cst_while_paren2_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_paren3_bare_roundtrip() {
     // W871 / ADR-1215 face1: bare nested paren depth=3; reject ((((…)))).
-    let src = "// ahead\nfunc main() {\n  while (((flag))) {\n    print(1)\n  }\n  while (((done)))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while (((flag))) {\n        print(1)\n  }\n    while (((done)))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren3 bare");
     assert_eq!(out, src);
@@ -1571,7 +1571,7 @@ fn fmt_cst_while_paren3_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_paren3_logic_roundtrip() {
     // W871 face2.
-    let src = "// ahead\nfunc main() {\n  while (((a && b))) || c {\n    print(1)\n  }\n  while (((tick(1))))\n  print(1)\n  while !(((ready())))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while (((a && b))) || c {\n        print(1)\n  }\n    while (((tick(1))))\n    print(1)\n    while !(((ready())))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren3 logic");
     assert_eq!(out, src);
@@ -1583,7 +1583,7 @@ fn fmt_cst_while_paren3_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_paren3_mixed_roundtrip() {
     // W871 face3.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while (((!!!!ready()))) && a || -b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while (((flag)))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while (((!!!!ready()))) && a || -b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while (((flag)))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while paren3 mixed");
     assert_eq!(out, src);
@@ -1596,7 +1596,7 @@ fn fmt_cst_while_paren3_mixed_roundtrip() {
 fn fmt_cst_comment_line_roundtrip() {
     // W872 / ADR-1216 face1: file-level + body line comments; AST still drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nfunc main() {\n  // inside\n  print(1)\n  // mid\n  let x = 1\n}\n";
+    let src = "// ahead\nfunc main() {\n    // inside\n    print(1)\n    // mid\n    let x = 1\n}\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst comment line");
     assert_eq!(out, src);
@@ -1615,7 +1615,7 @@ fn fmt_cst_comment_line_roundtrip() {
 fn fmt_cst_comment_stmt_roundtrip() {
     // W872 face2: line×stmt·while / inline block before paren.
     use syx_fmt::format_source;
-    let src = "// ahead\nfunc main() {\n  let x = 1 // trail-let\n  while flag // trail-while\n  print(1)\n  while /*c*/ (((a)))\n  print(2)\n}\n";
+    let src = "// ahead\nfunc main() {\n    let x = 1 // trail-let\n    while flag // trail-while\n    print(1)\n    while /*c*/ (((a)))\n    print(2)\n}\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst comment stmt");
     assert_eq!(out, src);
@@ -1632,7 +1632,7 @@ fn fmt_cst_comment_stmt_roundtrip() {
 fn fmt_cst_comment_mixed_roundtrip() {
     // W872 face3: // + /* */ × effect/where/depth2/!!!!·Neg.
     use syx_fmt::format_source;
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  // body\n  while (((!!!!ready()))) && a || -b /* mid */\n  print(foo(bar(baz())))\n}\nfunc main() {\n  /* block */\n  while (((flag)))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    // body\n    while (((!!!!ready()))) && a || -b /* mid */\n    print(foo(bar(baz())))\n}\nfunc main() {\n    /* block */\n    while (((flag)))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst comment mixed");
     assert_eq!(out, src);
@@ -1647,7 +1647,7 @@ fn fmt_cst_comment_mixed_roundtrip() {
 #[test]
 fn fmt_default_cst_preserves_comments() {
     // W873 / ADR-1217 face1: default format_dry_run (no env) preserves line comments.
-    let src = "// ahead\nfunc main() {\n  // inside\n  print(1)\n  // mid\n  let x = 1\n}\n";
+    let src = "// ahead\nfunc main() {\n    // inside\n    print(1)\n    // mid\n    let x = 1\n}\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default CST-first dry-run");
     assert!(!report.would_change, "subset+comments must be byte-stable");
@@ -1702,7 +1702,7 @@ fn fmt_default_cst_fallback_ast_f001() {
 #[test]
 fn fmt_default_cst_mixed_comment_mvp() {
     // W873 face3: mixed comment fixture stable under default dry-run.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  // body\n  while (((!!!!ready()))) && a || -b /* mid */\n  print(foo(bar(baz())))\n}\nfunc main() {\n  /* block */\n  while (((flag)))\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    // body\n    while (((!!!!ready()))) && a || -b /* mid */\n    print(foo(bar(baz())))\n}\nfunc main() {\n    /* block */\n    while (((flag)))\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("mixed.sy", src);
     let report = format_dry_run(&file).expect("default mixed comment");
     assert!(!report.would_change);
@@ -1714,7 +1714,7 @@ fn fmt_default_cst_mixed_comment_mvp() {
 fn fmt_cst_func_access_public_dry_run() {
     // W875 / ADR-1219 face1: public func + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\npublic func api() {\n  // body\n  print(1)\n}\n/* trail */\n";
+    let src = "/// docs\npublic func api() {\n    // body\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default public access");
     assert!(!report.would_change);
@@ -1735,7 +1735,7 @@ fn fmt_cst_func_access_public_dry_run() {
 fn fmt_cst_func_access_private_dry_run() {
     // W875 face2: private / internal / fileprivate + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nprivate func a() {\n  print(1)\n}\ninternal func b() {\n  /* mid */\n  print(2)\n}\nfileprivate func c() {\n  print(3)\n}\n";
+    let src = "// ahead\nprivate func a() {\n    print(1)\n}\ninternal func b() {\n    /* mid */\n    print(2)\n}\nfileprivate func c() {\n    print(3)\n}\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default private family");
     assert!(!report.would_change);
@@ -1760,7 +1760,7 @@ fn fmt_cst_func_access_private_dry_run() {
 fn fmt_cst_func_access_mixed_dry_run() {
     // W875 face3: access × throws/effect/where/while + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic func go<T>() throws requires Pure where T: Bound {\n  // body\n  while flag /* mid */\n  print(1)\n}\nprivate func main() {\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic func go<T>() throws requires Pure where T: Bound {\n    // body\n    while flag /* mid */\n    print(1)\n}\nprivate func main() {\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default access mixed");
     assert!(!report.would_change);
@@ -1782,7 +1782,7 @@ fn fmt_cst_func_static_dry_run() {
     // W876 / ADR-1220 face1: static func + docs; default CST preserves.
     // Top-level `static func` is not AST-parseable (P001); evidence = CST path vs AST fail.
     use syx_fmt::format_source;
-    let src = "/// docs\nstatic func api() {\n  // body\n  print(1)\n}\n/* trail */\n";
+    let src = "/// docs\nstatic func api() {\n    // body\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default static");
     assert!(!report.would_change);
@@ -1800,7 +1800,7 @@ fn fmt_cst_func_static_dry_run() {
 fn fmt_cst_func_async_dry_run() {
     // W876 face2: async func + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nasync func a() {\n  print(1)\n}\nasync func b() {\n  /* mid */\n  print(2)\n}\n";
+    let src = "// ahead\nasync func a() {\n    print(1)\n}\nasync func b() {\n    /* mid */\n    print(2)\n}\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default async");
     assert!(!report.would_change);
@@ -1820,7 +1820,7 @@ fn fmt_cst_func_static_async_mixed_dry_run() {
     // W876 face3: access × static/async × throws/effect/where/while + comments.
     // `public static` / mix is not fully AST-parseable at top level; CST preserves.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic static func go<T>() throws requires Pure where T: Bound {\n  // body\n  while flag /* mid */\n  print(1)\n}\nprivate async func main() {\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic static func go<T>() throws requires Pure where T: Bound {\n    // body\n    while flag /* mid */\n    print(1)\n}\nprivate async func main() {\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default static/async mixed");
     assert!(!report.would_change);
@@ -1836,7 +1836,7 @@ fn fmt_cst_func_static_async_mixed_dry_run() {
     // Async-only still parses on AST and drops comments (contrast).
     let async_only = SourceFile::new(
         "a.sy",
-        "// ahead\nprivate async func main() {\n  /* mid */\n  print(2)\n}\n",
+        "// ahead\nprivate async func main() {\n    /* mid */\n    print(2)\n}\n",
     );
     let ast = format_source(&async_only).expect("async-only AST");
     assert!(
@@ -1849,7 +1849,7 @@ fn fmt_cst_func_static_async_mixed_dry_run() {
 fn fmt_cst_if_bare_dry_run() {
     // W877 / ADR-1221 face1: if bare + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nfunc main() {\n  // body\n  if flag {\n    print(1)\n  }\n  if ready\n  print(2)\n}\n/* trail */\n";
+    let src = "/// docs\nfunc main() {\n    // body\n    if flag {\n        print(1)\n  }\n    if ready\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default if bare");
     assert!(!report.would_change);
@@ -1873,7 +1873,7 @@ fn fmt_cst_if_bare_dry_run() {
 fn fmt_cst_if_else_dry_run() {
     // W877 face2: if/else + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nfunc main() {\n  if a {\n    print(1)\n  } else {\n    /* mid */\n    print(2)\n  }\n}\n";
+    let src = "// ahead\nfunc main() {\n    if a {\n        print(1)\n  } else {\n        /* mid */\n        print(2)\n  }\n}\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default if else");
     assert!(!report.would_change);
@@ -1886,19 +1886,20 @@ fn fmt_cst_if_else_dry_run() {
         !ast.contains("// ahead") && !ast.contains("/* mid */"),
         "AST must drop comments; got {ast:?}"
     );
+    // S2-I154: if-let-simple is in CST subset (was CST001 under W877).
     let let_src = SourceFile::new(
         "l.sy",
-        "func main() {\n  if let x = y {\n    print(1)\n  }\n}\n",
+        "func main() {\n    if let x = y {\n        print(1)\n    }\n}\n",
     );
-    let err = format_source_cst(&let_src).expect_err("if let must CST001");
-    assert_eq!(err.code.as_deref(), Some("CST001"));
+    let let_out = format_source_cst(&let_src).expect("if let simple must CST Ok");
+    assert!(let_out.contains("if let x = y"), "got {let_out:?}");
 }
 
 #[test]
 fn fmt_cst_if_mixed_dry_run() {
     // W877 face3: if × logic/while/else-if/access + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic func go() {\n  // body\n  if a && b {\n    while flag /* mid */\n    print(1)\n  } else if c {\n    print(2)\n  } else {\n    print(3)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\npublic func go() {\n    // body\n    if a && b {\n        while flag /* mid */\n        print(1)\n  } else if c {\n        print(2)\n  } else {\n        print(3)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default if mixed");
     assert!(!report.would_change);
@@ -1919,7 +1920,7 @@ fn fmt_cst_if_mixed_dry_run() {
 fn fmt_cst_func_export_bare_dry_run() {
     // W878 / ADR-1222 face1: export func + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nexport func api() {\n  // body\n  print(1)\n}\n/* trail */\n";
+    let src = "/// docs\nexport func api() {\n    // body\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default export bare");
     assert!(!report.would_change);
@@ -1941,7 +1942,7 @@ fn fmt_cst_func_export_mod_dry_run() {
     // W878 face2: export static / export async + comments.
     // Top-level `export static` is not AST-parseable (P001); async contrast drops comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nexport static func a() {\n  print(1)\n}\nexport async func b() {\n  /* mid */\n  print(2)\n}\n";
+    let src = "// ahead\nexport static func a() {\n    print(1)\n}\nexport async func b() {\n    /* mid */\n    print(2)\n}\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default export mod");
     assert!(!report.would_change);
@@ -1954,7 +1955,7 @@ fn fmt_cst_func_export_mod_dry_run() {
     assert_eq!(ast_err.code.as_deref(), Some("P001"));
     let async_only = SourceFile::new(
         "a.sy",
-        "// ahead\nexport async func main() {\n  /* mid */\n  print(2)\n}\n",
+        "// ahead\nexport async func main() {\n    /* mid */\n    print(2)\n}\n",
     );
     let ast = format_source(&async_only).expect("export async AST");
     assert!(
@@ -1971,7 +1972,7 @@ fn fmt_cst_func_export_mod_dry_run() {
 fn fmt_cst_func_export_mixed_dry_run() {
     // W878 face3: export × throws/effect/where/while/if + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nexport func go<T>() throws requires Pure where T: Bound {\n  // body\n  while flag /* mid */\n  print(1)\n}\nexport func main() {\n  if ready {\n    print(2)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nexport func go<T>() throws requires Pure where T: Bound {\n    // body\n    while flag /* mid */\n    print(1)\n}\nexport func main() {\n    if ready {\n        print(2)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default export mixed");
     assert!(!report.would_change);
@@ -1992,7 +1993,7 @@ fn fmt_cst_func_export_mixed_dry_run() {
 fn fmt_cst_class_bare_dry_run() {
     // W879 / ADR-1223 face1: empty / stored class + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var name: String\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var name: String\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class bare");
     assert!(!report.would_change);
@@ -2013,7 +2014,7 @@ fn fmt_cst_class_bare_dry_run() {
 fn fmt_cst_class_members_dry_run() {
     // W879 face2: class + var + method + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var name: String\n  func tag() {\n    /* mid */\n    print(1)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var name: String\n    func tag() {\n    /* mid */\n    print(1)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class members");
     assert!(!report.would_change);
@@ -2041,7 +2042,7 @@ fn fmt_cst_class_members_dry_run() {
 fn fmt_cst_class_mixed_dry_run() {
     // W879 face3: public class × method × top-level func + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Box {\n  var name: String?\n  func tag() {\n    // body\n    print(1)\n  }\n}\nfunc main() {\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Box {\n    var name: String?\n    func tag() {\n    // body\n    print(1)\n  }\n}\nfunc main() {\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class mixed");
     assert!(!report.would_change);
@@ -2062,7 +2063,7 @@ fn fmt_cst_class_mixed_dry_run() {
 fn fmt_cst_class_inherit_dry_run() {
     // W880 / ADR-1224 face1: single superclass + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Sub: Box {\n  var name: String\n  func tag() {\n    print(1)\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Sub: Box {\n    var name: String\n    func tag() {\n    print(1)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class inherit");
     assert!(!report.would_change);
@@ -2083,7 +2084,7 @@ fn fmt_cst_class_inherit_dry_run() {
 fn fmt_cst_class_init_dry_run() {
     // W880 face2: init + comments; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var name: String\n  init(name: String) {\n    /* mid */\n    print(1)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var name: String\n    init(name: String) {\n        /* mid */\n        print(1)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class init");
     assert!(!report.would_change);
@@ -2108,7 +2109,7 @@ fn fmt_cst_class_init_dry_run() {
 fn fmt_cst_class_deep_mixed_dry_run() {
     // W880 face3: public inherit × init × top-level func + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box {\n  var name: String?\n  init(name: String) {\n    // body\n    print(1)\n  }\n  func tag() {\n    print(2)\n  }\n}\nfunc main() {\n  print(3)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box {\n    var name: String?\n    init(name: String) {\n        // body\n        print(1)\n  }\n    func tag() {\n    print(2)\n  }\n}\nfunc main() {\n    print(3)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class deep mixed");
     assert!(!report.would_change);
@@ -2152,7 +2153,7 @@ fn fmt_cst_data_class_dry_run() {
 fn fmt_cst_final_class_dry_run() {
     // W881 face2: thin final class + comments; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nfinal class Token {\n  Ident\n  Number(value: Int)\n}\n/* trail */\n";
+    let src = "// ahead\nfinal class Token {\n    Ident\n    Number(value: Int)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default final class");
     assert!(!report.would_change);
@@ -2180,7 +2181,7 @@ fn fmt_cst_final_class_dry_run() {
 fn fmt_cst_data_final_mixed_dry_run() {
     // W881 face3: public data × final × top-level func + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic data class Point(x: Int)\nfinal class Shape {\n  point\n  circle(r: Int)\n}\nfunc main() {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\npublic data class Point(x: Int)\nfinal class Shape {\n    point\n    circle(r: Int)\n}\nfunc main() {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default data/final mixed");
     assert!(!report.would_change);
@@ -2251,7 +2252,7 @@ fn fmt_cst_data_class_where_dry_run() {
 fn fmt_cst_data_final_gw_mixed_dry_run() {
     // W882 face3: data where × final tp × top-level func + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic data class Box<T>(value: T) where T: Equatable\nfinal class Wrap<U> {\n  wrap(value: U)\n}\nfunc main() {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\npublic data class Box<T>(value: T) where T: Equatable\nfinal class Wrap<U> {\n    wrap(value: U)\n}\nfunc main() {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default data/final gw mixed");
     assert!(!report.would_change);
@@ -2322,7 +2323,7 @@ fn fmt_cst_export_list_multi_dry_run() {
 fn fmt_cst_export_list_mixed_dry_run() {
     // W883 face3: export list × export func × data + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nexport { Point }\ndata class Point(x: Int)\nexport func main() {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nexport { Point }\ndata class Point(x: Int)\nexport func main() {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default export list mixed");
     assert!(!report.would_change);
@@ -2344,7 +2345,7 @@ fn fmt_cst_final_where_bare_dry_run() {
     // W884 / ADR-1228 face1: final+where bare + docs; default CST preserves.
     // AST/parser has no FinalClass where (P001); comment path is CST-only.
     use syx_fmt::format_source;
-    let src = "/// docs\nfinal class Box<T> where T: Equatable {\n  wrap(value: T)\n}\n/* trail */\n";
+    let src = "/// docs\nfinal class Box<T> where T: Equatable {\n    wrap(value: T)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default final where bare");
     assert!(!report.would_change);
@@ -2364,7 +2365,7 @@ fn fmt_cst_final_where_bare_dry_run() {
 fn fmt_cst_final_where_multi_dry_run() {
     // W884 face2: multi-pred where + public + comments; AST P001 (no FinalClass where).
     use syx_fmt::format_source;
-    let src = "// ahead\npublic final class Pair<A, B> where A: Equatable, B: Hashable {\n  pair(a: A, b: B)\n}\n/* trail */\n";
+    let src = "// ahead\npublic final class Pair<A, B> where A: Equatable, B: Hashable {\n    pair(a: A, b: B)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default final where multi");
     assert!(!report.would_change);
@@ -2388,7 +2389,7 @@ fn fmt_cst_final_where_multi_dry_run() {
 fn fmt_cst_final_where_mixed_dry_run() {
     // W884 face3: final+where × data where × export list + comments; AST P001 on final where.
     use syx_fmt::format_source;
-    let src = "// ahead\nexport { Box }\npublic data class Box<T>(value: T) where T: Equatable\nfinal class Wrap<U> where U: Hashable {\n  wrap(value: U)\n}\nfunc main() {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nexport { Box }\npublic data class Box<T>(value: T) where T: Equatable\nfinal class Wrap<U> where U: Hashable {\n    wrap(value: U)\n}\nfunc main() {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default final where mixed");
     assert!(!report.would_change);
@@ -2450,7 +2451,7 @@ fn fmt_cst_export_empty_dry_run() {
 fn fmt_cst_export_as_empty_mixed_dry_run() {
     // W885 face3: as × empty × thin list × data/func + comments; AST P001 on as/empty.
     use syx_fmt::format_source;
-    let src = "// ahead\nexport { }\nexport { foo as bar }\nexport { Point }\ndata class Point(x: Int)\nexport func main() {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nexport { }\nexport { foo as bar }\nexport { Point }\ndata class Point(x: Int)\nexport func main() {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default export as empty mixed");
     assert!(!report.would_change);
@@ -2468,7 +2469,7 @@ fn fmt_cst_export_as_empty_mixed_dry_run() {
 fn fmt_cst_class_multi_conf_dry_run() {
     // W886 / ADR-1230 face1: multi-conformance + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Sub: Box, Greeter {\n  var name: String\n}\n/* trail */\n";
+    let src = "/// docs\nclass Sub: Box, Greeter {\n    var name: String\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class multi conf");
     assert!(!report.would_change);
@@ -2494,7 +2495,7 @@ fn fmt_cst_class_multi_conf_dry_run() {
 fn fmt_cst_class_deinit_dry_run() {
     // W886 face2: deinit + comments; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var name: String\n  deinit {\n    /* mid */\n    print(1)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var name: String\n    deinit {\n        /* mid */\n        print(1)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class deinit");
     assert!(!report.would_change);
@@ -2522,7 +2523,7 @@ fn fmt_cst_class_deinit_dry_run() {
 fn fmt_cst_class_multi_deinit_mixed_dry_run() {
     // W886 face3: multi × deinit × init × top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var name: String?\n  init(name: String) {\n    print(1)\n  }\n  deinit {\n    print(2)\n  }\n}\nfunc main() {\n  print(3)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var name: String?\n    init(name: String) {\n        print(1)\n  }\n    deinit {\n        print(2)\n  }\n}\nfunc main() {\n    print(3)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default class multi deinit mixed");
     assert!(!report.would_change);
@@ -2543,7 +2544,7 @@ fn fmt_cst_class_multi_deinit_mixed_dry_run() {
 fn fmt_cst_self_field_bare_dry_run() {
     // W887 / ADR-1231 face1: init self.field= + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var name: String\n  init(name: String) {\n    self.name = name\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var name: String\n    init(name: String) {\n        self.name = name\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default self field bare");
     assert!(!report.would_change);
@@ -2569,7 +2570,7 @@ fn fmt_cst_self_field_bare_dry_run() {
 fn fmt_cst_self_field_method_dry_run() {
     // W887 face2: method self.field= + comments; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var name: String\n  func setName(name: String) {\n    /* mid */\n    self.name = name\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var name: String\n    func setName(name: String) {\n    /* mid */\n    self.name = name\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default self field method");
     assert!(!report.would_change);
@@ -2597,7 +2598,7 @@ fn fmt_cst_self_field_method_dry_run() {
 fn fmt_cst_self_field_mixed_dry_run() {
     // W887 face3: init×method×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var name: String?\n  init(name: String) {\n    // body\n    self.name = name\n  }\n  func retag(tag: String) {\n    self.name = tag\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var name: String?\n    init(name: String) {\n        // body\n        self.name = name\n  }\n    func retag(tag: String) {\n    self.name = tag\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default self field mixed");
     assert!(!report.would_change);
@@ -2618,7 +2619,7 @@ fn fmt_cst_self_field_mixed_dry_run() {
 fn fmt_cst_nested_self_field_bare_dry_run() {
     // W888 / ADR-1232 face1: init nested self.a.b= + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var name: String\n  init(name: String) {\n    self.inner.name = name\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var name: String\n    init(name: String) {\n        self.inner.name = name\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default nested self field bare");
     assert!(!report.would_change);
@@ -2644,7 +2645,7 @@ fn fmt_cst_nested_self_field_bare_dry_run() {
 fn fmt_cst_nested_self_field_method_dry_run() {
     // W888 face2: method nested self.a.b= + comments; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var name: String\n  func setName(name: String) {\n    /* mid */\n    self.inner.name = name\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var name: String\n    func setName(name: String) {\n    /* mid */\n    self.inner.name = name\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default nested self field method");
     assert!(!report.would_change);
@@ -2672,7 +2673,7 @@ fn fmt_cst_nested_self_field_method_dry_run() {
 fn fmt_cst_nested_self_field_mixed_dry_run() {
     // W888 face3: nested×单层×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var name: String?\n  init(name: String) {\n    // body\n    self.inner.name = name\n  }\n  func retag(tag: String) {\n    self.name = tag\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var name: String?\n    init(name: String) {\n        // body\n        self.inner.name = name\n  }\n    func retag(tag: String) {\n    self.name = tag\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default nested self field mixed");
     assert!(!report.would_change);
@@ -2694,7 +2695,7 @@ fn fmt_cst_nested_self_field_mixed_dry_run() {
 fn fmt_cst_member_field_bare_dry_run() {
     // W889 / ADR-1233 face1: init non-self member assign + docs; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var name: String\n  init(name: String) {\n    box.name = name\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var name: String\n    init(name: String) {\n        box.name = name\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field bare");
     assert!(!report.would_change);
@@ -2720,7 +2721,7 @@ fn fmt_cst_member_field_bare_dry_run() {
 fn fmt_cst_member_field_method_dry_run() {
     // W889 face2: method non-self member assign + comments; default CST preserves; AST drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var name: String\n  func setName(name: String) {\n    /* mid */\n    other.name = name\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var name: String\n    func setName(name: String) {\n    /* mid */\n    other.name = name\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field method");
     assert!(!report.would_change);
@@ -2748,7 +2749,7 @@ fn fmt_cst_member_field_method_dry_run() {
 fn fmt_cst_member_field_mixed_dry_run() {
     // W889 face3: non-self×self×nested×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var name: String?\n  init(name: String) {\n    // body\n    box.name = name\n  }\n  func retag(tag: String) {\n    self.inner.name = tag\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var name: String?\n    init(name: String) {\n        // body\n        box.name = name\n  }\n    func retag(tag: String) {\n    self.inner.name = tag\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field mixed");
     assert!(!report.would_change);
@@ -2769,7 +2770,7 @@ fn fmt_cst_member_field_mixed_dry_run() {
 fn fmt_cst_member_field_plus_bare_dry_run() {
     // W890 / ADR-1234 face1: init self.count += + docs; default CST preserves; AST rejects MemberCompoundAssign.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var count: Int\n  init() {\n    self.count += 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        self.count += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field plus bare");
     assert!(!report.would_change);
@@ -2791,7 +2792,7 @@ fn fmt_cst_member_field_plus_bare_dry_run() {
 fn fmt_cst_member_field_plus_method_dry_run() {
     // W890 face2: method box.x += + comments; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var count: Int\n  func bump(n: Int) {\n    /* mid */\n    box.count += n\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var count: Int\n    func bump(n: Int) {\n    /* mid */\n    box.count += n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field plus method");
     assert!(!report.would_change);
@@ -2815,7 +2816,7 @@ fn fmt_cst_member_field_plus_method_dry_run() {
 fn fmt_cst_member_field_plus_mixed_dry_run() {
     // W890 face3: self×non-self×nested×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var count: Int?\n  init() {\n    // body\n    self.count += 1\n  }\n  func bump(n: Int) {\n    box.inner.count += n\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var count: Int?\n    init() {\n        // body\n        self.count += 1\n  }\n    func bump(n: Int) {\n    box.inner.count += n\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field plus mixed");
     assert!(!report.would_change);
@@ -2832,7 +2833,7 @@ fn fmt_cst_member_field_plus_mixed_dry_run() {
 fn fmt_cst_member_field_minus_bare_dry_run() {
     // W891 / ADR-1235 face1: init self.count -= + docs; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var count: Int\n  init() {\n    self.count -= 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        self.count -= 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field minus bare");
     assert!(!report.would_change);
@@ -2854,7 +2855,7 @@ fn fmt_cst_member_field_minus_bare_dry_run() {
 fn fmt_cst_member_field_minus_method_dry_run() {
     // W891 face2: method box.x -= + comments; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var count: Int\n  func drop(n: Int) {\n    /* mid */\n    box.count -= n\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var count: Int\n    func drop(n: Int) {\n    /* mid */\n    box.count -= n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field minus method");
     assert!(!report.would_change);
@@ -2878,7 +2879,7 @@ fn fmt_cst_member_field_minus_method_dry_run() {
 fn fmt_cst_member_field_minus_mixed_dry_run() {
     // W891 face3: self×non-self×nested×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var count: Int?\n  init() {\n    // body\n    self.count -= 1\n  }\n  func drop(n: Int) {\n    box.inner.count -= n\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var count: Int?\n    init() {\n        // body\n        self.count -= 1\n  }\n    func drop(n: Int) {\n    box.inner.count -= n\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field minus mixed");
     assert!(!report.would_change);
@@ -2895,7 +2896,7 @@ fn fmt_cst_member_field_minus_mixed_dry_run() {
 fn fmt_cst_member_field_star_bare_dry_run() {
     // W892 / ADR-1236 face1: init self.count *= + docs; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var count: Int\n  init() {\n    self.count *= 2\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        self.count *= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field star bare");
     assert!(!report.would_change);
@@ -2917,7 +2918,7 @@ fn fmt_cst_member_field_star_bare_dry_run() {
 fn fmt_cst_member_field_star_method_dry_run() {
     // W892 face2: method box.x *= / /= + comments; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var count: Int\n  func scale(n: Int) {\n    /* mid */\n    box.count *= n\n    box.count /= 2\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var count: Int\n    func scale(n: Int) {\n    /* mid */\n    box.count *= n\n    box.count /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field star method");
     assert!(!report.would_change);
@@ -2941,7 +2942,7 @@ fn fmt_cst_member_field_star_method_dry_run() {
 fn fmt_cst_member_field_star_mixed_dry_run() {
     // W892 face3: self×non-self×nested×%=×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var count: Int?\n  init() {\n    // body\n    self.count *= 2\n  }\n  func scale(n: Int) {\n    box.inner.count %= n\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var count: Int?\n    init() {\n        // body\n        self.count *= 2\n  }\n    func scale(n: Int) {\n    box.inner.count %= n\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member field star mixed");
     assert!(!report.would_change);
@@ -2958,7 +2959,7 @@ fn fmt_cst_member_field_star_mixed_dry_run() {
 fn fmt_cst_ident_compound_bare_dry_run() {
     // W893 / ADR-1237 face1: init count += + docs; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var count: Int\n  init() {\n    count += 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        count += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default ident compound bare");
     assert!(!report.would_change);
@@ -2984,7 +2985,7 @@ fn fmt_cst_ident_compound_bare_dry_run() {
 fn fmt_cst_ident_compound_method_dry_run() {
     // W893 face2: method count *= / /= + comments; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var count: Int\n  func scale(n: Int) {\n    /* mid */\n    count *= n\n    count /= 2\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var count: Int\n    func scale(n: Int) {\n    /* mid */\n    count *= n\n    count /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default ident compound method");
     assert!(!report.would_change);
@@ -3012,7 +3013,7 @@ fn fmt_cst_ident_compound_method_dry_run() {
 fn fmt_cst_ident_compound_mixed_dry_run() {
     // W893 face3: ident×member×nested×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var count: Int?\n  init() {\n    // body\n    count += 1\n  }\n  func scale(n: Int) {\n    box.inner.count %= n\n    count *= 2\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var count: Int?\n    init() {\n        // body\n        count += 1\n  }\n    func scale(n: Int) {\n    box.inner.count %= n\n    count *= 2\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default ident compound mixed");
     assert!(!report.would_change);
@@ -3032,7 +3033,7 @@ fn fmt_cst_ident_compound_mixed_dry_run() {
 fn fmt_cst_index_assign_bare_dry_run() {
     // W894 / ADR-1238 face1: init a[0] = + docs; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var items: Int\n  init() {\n    a[0] = 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        a[0] = 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index assign bare");
     assert!(!report.would_change);
@@ -3058,7 +3059,7 @@ fn fmt_cst_index_assign_bare_dry_run() {
 fn fmt_cst_index_assign_method_dry_run() {
     // W894 face2: method xs[i] = + comments; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var items: Int\n  func set(i: Int, n: Int) {\n    /* mid */\n    xs[i] = n\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var items: Int\n    func set(i: Int, n: Int) {\n    /* mid */\n    xs[i] = n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index assign method");
     assert!(!report.would_change);
@@ -3086,7 +3087,7 @@ fn fmt_cst_index_assign_method_dry_run() {
 fn fmt_cst_index_assign_mixed_dry_run() {
     // W894 face3: index×ident-compound×member×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var items: Int?\n  init() {\n    // body\n    a[0] = 1\n  }\n  func set(i: Int, n: Int) {\n    xs[i] = n\n    count *= 2\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var items: Int?\n    init() {\n        // body\n        a[0] = 1\n  }\n    func set(i: Int, n: Int) {\n    xs[i] = n\n    count *= 2\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index assign mixed");
     assert!(!report.would_change);
@@ -3109,7 +3110,7 @@ fn fmt_cst_index_assign_mixed_dry_run() {
 fn fmt_cst_index_compound_bare_dry_run() {
     // W895 / ADR-1239 face1: init a[0] += + docs; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var items: Int\n  init() {\n    a[0] += 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        a[0] += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index compound bare");
     assert!(!report.would_change);
@@ -3131,7 +3132,7 @@ fn fmt_cst_index_compound_bare_dry_run() {
 fn fmt_cst_index_compound_method_dry_run() {
     // W895 face2: method xs[i] *= / /= + comments; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var items: Int\n  func scale(i: Int, n: Int) {\n    /* mid */\n    xs[i] *= n\n    xs[i] /= 2\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var items: Int\n    func scale(i: Int, n: Int) {\n    /* mid */\n    xs[i] *= n\n    xs[i] /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index compound method");
     assert!(!report.would_change);
@@ -3155,7 +3156,7 @@ fn fmt_cst_index_compound_method_dry_run() {
 fn fmt_cst_index_compound_mixed_dry_run() {
     // W895 face3: index compound×ident-compound×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var items: Int?\n  init() {\n    // body\n    a[0] += 1\n  }\n  func scale(i: Int, n: Int) {\n    xs[i] %= n\n    count *= 2\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var items: Int?\n    init() {\n        // body\n        a[0] += 1\n  }\n    func scale(i: Int, n: Int) {\n    xs[i] %= n\n    count *= 2\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index compound mixed");
     assert!(!report.would_change);
@@ -3173,7 +3174,7 @@ fn fmt_cst_index_compound_mixed_dry_run() {
 fn fmt_cst_index_nested_bare_dry_run() {
     // W896 / ADR-1240 face1: init a[0][1] = + docs; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var items: Int\n  init() {\n    a[0][1] = 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        a[0][1] = 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index nested bare");
     assert!(!report.would_change);
@@ -3199,7 +3200,7 @@ fn fmt_cst_index_nested_bare_dry_run() {
 fn fmt_cst_index_nested_method_dry_run() {
     // W896 face2: method buf[i][j] = + comments; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var items: Int\n  func set(i: Int, j: Int, n: Int) {\n    /* mid */\n    buf[i][j] = n\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var items: Int\n    func set(i: Int, j: Int, n: Int) {\n    /* mid */\n    buf[i][j] = n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index nested method");
     assert!(!report.would_change);
@@ -3227,7 +3228,7 @@ fn fmt_cst_index_nested_method_dry_run() {
 fn fmt_cst_index_nested_mixed_dry_run() {
     // W896 face3: nested=×index-compound×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var items: Int?\n  init() {\n    // body\n    a[0][1] = 1\n  }\n  func scale(i: Int, j: Int, n: Int) {\n    buf[i][j] = n\n    xs[i] += 1\n    count *= 2\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var items: Int?\n    init() {\n        // body\n        a[0][1] = 1\n  }\n    func scale(i: Int, j: Int, n: Int) {\n    buf[i][j] = n\n    xs[i] += 1\n    count *= 2\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default index nested mixed");
     assert!(!report.would_change);
@@ -3247,7 +3248,7 @@ fn fmt_cst_index_nested_mixed_dry_run() {
 fn fmt_cst_member_index_assign_bare_dry_run() {
     // W897 / ADR-1241 face1: init self.xs[0] = + docs; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var items: Int\n  init() {\n    self.xs[0] = 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        self.xs[0] = 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member-index bare");
     assert!(!report.would_change);
@@ -3273,7 +3274,7 @@ fn fmt_cst_member_index_assign_bare_dry_run() {
 fn fmt_cst_member_index_assign_method_dry_run() {
     // W897 face2: method box.items[i] = + comments; default CST preserves; AST drops comments.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var items: Int\n  func set(i: Int, n: Int) {\n    /* mid */\n    box.items[i] = n\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var items: Int\n    func set(i: Int, n: Int) {\n    /* mid */\n    box.items[i] = n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member-index method");
     assert!(!report.would_change);
@@ -3301,7 +3302,7 @@ fn fmt_cst_member_index_assign_method_dry_run() {
 fn fmt_cst_member_index_assign_mixed_dry_run() {
     // W897 face3: member-index=×nested×index-compound×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var items: Int?\n  init() {\n    // body\n    self.xs[0] = 1\n  }\n  func scale(i: Int, j: Int, n: Int) {\n    box.items[i] = n\n    a[0][1] = 2\n    xs[i] += 1\n    count *= 2\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var items: Int?\n    init() {\n        // body\n        self.xs[0] = 1\n  }\n    func scale(i: Int, j: Int, n: Int) {\n    box.items[i] = n\n    a[0][1] = 2\n    xs[i] += 1\n    count *= 2\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default member-index mixed");
     assert!(!report.would_change);
@@ -3321,7 +3322,7 @@ fn fmt_cst_member_index_assign_mixed_dry_run() {
 fn fmt_cst_index_nested_compound_bare_dry_run() {
     // W898 / ADR-1242 face1: init a[0][1] += + docs; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "/// docs\nclass Box {\n  var items: Int\n  init() {\n    a[0][1] += 1\n  }\n}\n/* trail */\n";
+    let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        a[0][1] += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default nested compound bare");
     assert!(!report.would_change);
@@ -3343,7 +3344,7 @@ fn fmt_cst_index_nested_compound_bare_dry_run() {
 fn fmt_cst_index_nested_compound_method_dry_run() {
     // W898 face2: method buf[i][j] *= / /= + comments; default CST preserves; AST rejects.
     use syx_fmt::format_source;
-    let src = "// ahead\nclass Box {\n  var items: Int\n  func scale(i: Int, j: Int, n: Int) {\n    /* mid */\n    buf[i][j] *= n\n    buf[i][j] /= 2\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nclass Box {\n    var items: Int\n    func scale(i: Int, j: Int, n: Int) {\n    /* mid */\n    buf[i][j] *= n\n    buf[i][j] /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default nested compound method");
     assert!(!report.would_change);
@@ -3367,7 +3368,7 @@ fn fmt_cst_index_nested_compound_method_dry_run() {
 fn fmt_cst_index_nested_compound_mixed_dry_run() {
     // W898 face3: nested-compound×member-index=×multi/deinit×top-level + comments.
     use syx_fmt::format_source;
-    let src = "// ahead\npublic class Sub: Box, Greeter {\n  var items: Int?\n  init() {\n    // body\n    a[0][1] += 1\n  }\n  func scale(i: Int, j: Int, n: Int) {\n    buf[i][j] %= n\n    self.xs[0] = 2\n    count *= 2\n  }\n  deinit {\n    print(1)\n  }\n}\nfunc main() {\n  /* mid */\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\npublic class Sub: Box, Greeter {\n    var items: Int?\n    init() {\n        // body\n        a[0][1] += 1\n  }\n    func scale(i: Int, j: Int, n: Int) {\n    buf[i][j] %= n\n    self.xs[0] = 2\n    count *= 2\n  }\n    deinit {\n        print(1)\n  }\n}\nfunc main() {\n    /* mid */\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default nested compound mixed");
     assert!(!report.would_change);
@@ -3385,7 +3386,7 @@ fn fmt_cst_index_nested_compound_mixed_dry_run() {
 #[test]
 fn fmt_cst_while_bang3_bare_roundtrip() {
     // W852 / ADR-1196 face1: bare `!!!`; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while !!!flag {\n    print(1)\n  }\n  while !!!done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !!!flag {\n        print(1)\n  }\n    while !!!done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while bang3 bare");
     assert_eq!(out, src);
@@ -3398,7 +3399,7 @@ fn fmt_cst_while_bang3_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_bang3_logic_roundtrip() {
     // W852 face2: !!!×logic·call; reject -- .
-    let src = "// ahead\nfunc main() {\n  while !!!a && b {\n    print(1)\n  }\n  while !!!ready() || done\n  print(1)\n  while (!!!flag) && x\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while !!!a && b {\n        print(1)\n  }\n    while !!!ready() || done\n    print(1)\n    while (!!!flag) && x\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while bang3 logic");
     assert_eq!(out, src);
@@ -3411,7 +3412,7 @@ fn fmt_cst_while_bang3_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_bang3_mixed_roundtrip() {
     // W852 face3: !!! × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while !!!ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while !!!flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while !!!ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while !!!flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while bang3 mixed");
     assert_eq!(out, src);
@@ -3424,7 +3425,7 @@ fn fmt_cst_while_bang3_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg2_bare_roundtrip() {
     // W853 / ADR-1197 face1: bare stacked `--`; reject `---`.
-    let src = "// ahead\nfunc main() {\n  while --n {\n    print(1)\n  }\n  while --done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while --n {\n        print(1)\n  }\n    while --done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg2 bare");
     assert_eq!(out, src);
@@ -3437,7 +3438,7 @@ fn fmt_cst_while_neg2_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg2_logic_roundtrip() {
     // W853 face2: --×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while --a && b {\n    print(1)\n  }\n  while --ready() || done\n  print(1)\n  while (--n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while --a && b {\n        print(1)\n  }\n    while --ready() || done\n    print(1)\n    while (--n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg2 logic");
     assert_eq!(out, src);
@@ -3450,7 +3451,7 @@ fn fmt_cst_while_neg2_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg2_mixed_roundtrip() {
     // W853 face3: -- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while --ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while --n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while --ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while --n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg2 mixed");
     assert_eq!(out, src);
@@ -3463,7 +3464,7 @@ fn fmt_cst_while_neg2_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg3_bare_roundtrip() {
     // W854 / ADR-1198 face1: bare stacked `---`; reject `----`.
-    let src = "// ahead\nfunc main() {\n  while ---n {\n    print(1)\n  }\n  while ---done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ---n {\n        print(1)\n  }\n    while ---done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg3 bare");
     assert_eq!(out, src);
@@ -3476,7 +3477,7 @@ fn fmt_cst_while_neg3_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg3_logic_roundtrip() {
     // W854 face2: ---×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ---a && b {\n    print(1)\n  }\n  while ---ready() || done\n  print(1)\n  while (---n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ---a && b {\n        print(1)\n  }\n    while ---ready() || done\n    print(1)\n    while (---n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg3 logic");
     assert_eq!(out, src);
@@ -3489,7 +3490,7 @@ fn fmt_cst_while_neg3_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg3_mixed_roundtrip() {
     // W854 face3: --- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ---ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ---n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ---ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ---n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg3 mixed");
     assert_eq!(out, src);
@@ -3502,7 +3503,7 @@ fn fmt_cst_while_neg3_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg4_bare_roundtrip() {
     // W855 / ADR-1199 face1: bare stacked `----`; reject `------` (W856 dry-run tip).
-    let src = "// ahead\nfunc main() {\n  while ----n {\n    print(1)\n  }\n  while ----done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ----n {\n        print(1)\n  }\n    while ----done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg4 bare");
     assert_eq!(out, src);
@@ -3515,7 +3516,7 @@ fn fmt_cst_while_neg4_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg4_logic_roundtrip() {
     // W855 face2: ----×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ----a && b {\n    print(1)\n  }\n  while ----ready() || done\n  print(1)\n  while (----n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ----a && b {\n        print(1)\n  }\n    while ----ready() || done\n    print(1)\n    while (----n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg4 logic");
     assert_eq!(out, src);
@@ -3528,7 +3529,7 @@ fn fmt_cst_while_neg4_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg4_mixed_roundtrip() {
     // W855 face3: ---- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ----ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ----n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ----ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ----n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg4 mixed");
     assert_eq!(out, src);
@@ -3541,7 +3542,7 @@ fn fmt_cst_while_neg4_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg5_bare_roundtrip() {
     // W856 / ADR-1200 face1: bare stacked `-----`; reject `-------` (W857 dry-run tip).
-    let src = "// ahead\nfunc main() {\n  while -----n {\n    print(1)\n  }\n  while -----done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -----n {\n        print(1)\n  }\n    while -----done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg5 bare");
     assert_eq!(out, src);
@@ -3554,7 +3555,7 @@ fn fmt_cst_while_neg5_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg5_logic_roundtrip() {
     // W856 face2: -----×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while -----a && b {\n    print(1)\n  }\n  while -----ready() || done\n  print(1)\n  while (-----n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -----a && b {\n        print(1)\n  }\n    while -----ready() || done\n    print(1)\n    while (-----n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg5 logic");
     assert_eq!(out, src);
@@ -3567,7 +3568,7 @@ fn fmt_cst_while_neg5_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg5_mixed_roundtrip() {
     // W856 face3: ----- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while -----ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while -----n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while -----ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while -----n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg5 mixed");
     assert_eq!(out, src);
@@ -3580,7 +3581,7 @@ fn fmt_cst_while_neg5_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg6_bare_roundtrip() {
     // W857 / ADR-1201 face1: bare stacked `------`; reject `--------` (W858 dry-run tip).
-    let src = "// ahead\nfunc main() {\n  while ------n {\n    print(1)\n  }\n  while ------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ------n {\n        print(1)\n  }\n    while ------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg6 bare");
     assert_eq!(out, src);
@@ -3593,7 +3594,7 @@ fn fmt_cst_while_neg6_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg6_logic_roundtrip() {
     // W857 face2: ------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ------a && b {\n    print(1)\n  }\n  while ------ready() || done\n  print(1)\n  while (------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ------a && b {\n        print(1)\n  }\n    while ------ready() || done\n    print(1)\n    while (------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg6 logic");
     assert_eq!(out, src);
@@ -3606,7 +3607,7 @@ fn fmt_cst_while_neg6_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg6_mixed_roundtrip() {
     // W857 face3: ------ × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg6 mixed");
     assert_eq!(out, src);
@@ -3619,7 +3620,7 @@ fn fmt_cst_while_neg6_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg7_bare_roundtrip() {
     // W858 / ADR-1202 face1: bare stacked `-------`; reject `--------`.
-    let src = "// ahead\nfunc main() {\n  while -------n {\n    print(1)\n  }\n  while -------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -------n {\n        print(1)\n  }\n    while -------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg7 bare");
     assert_eq!(out, src);
@@ -3632,7 +3633,7 @@ fn fmt_cst_while_neg7_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg7_logic_roundtrip() {
     // W858 face2: -------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while -------a && b {\n    print(1)\n  }\n  while -------ready() || done\n  print(1)\n  while (-------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -------a && b {\n        print(1)\n  }\n    while -------ready() || done\n    print(1)\n    while (-------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg7 logic");
     assert_eq!(out, src);
@@ -3645,7 +3646,7 @@ fn fmt_cst_while_neg7_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg7_mixed_roundtrip() {
     // W858 face3: ------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while -------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while -------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while -------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while -------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg7 mixed");
     assert_eq!(out, src);
@@ -3658,7 +3659,7 @@ fn fmt_cst_while_neg7_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg8_bare_roundtrip() {
     // W859 / ADR-1203 face1: bare stacked `--------`; reject `---------`.
-    let src = "// ahead\nfunc main() {\n  while --------n {\n    print(1)\n  }\n  while --------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while --------n {\n        print(1)\n  }\n    while --------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg8 bare");
     assert_eq!(out, src);
@@ -3671,7 +3672,7 @@ fn fmt_cst_while_neg8_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg8_logic_roundtrip() {
     // W859 face2: --------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while --------a && b {\n    print(1)\n  }\n  while --------ready() || done\n  print(1)\n  while (--------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while --------a && b {\n        print(1)\n  }\n    while --------ready() || done\n    print(1)\n    while (--------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg8 logic");
     assert_eq!(out, src);
@@ -3684,7 +3685,7 @@ fn fmt_cst_while_neg8_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg8_mixed_roundtrip() {
     // W859 face3: -------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while --------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while --------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while --------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while --------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg8 mixed");
     assert_eq!(out, src);
@@ -3697,7 +3698,7 @@ fn fmt_cst_while_neg8_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg9_bare_roundtrip() {
     // W860 / ADR-1204 face1: bare stacked `---------`; reject `----------`.
-    let src = "// ahead\nfunc main() {\n  while ---------n {\n    print(1)\n  }\n  while ---------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ---------n {\n        print(1)\n  }\n    while ---------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg9 bare");
     assert_eq!(out, src);
@@ -3710,7 +3711,7 @@ fn fmt_cst_while_neg9_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg9_logic_roundtrip() {
     // W860 face2: ---------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ---------a && b {\n    print(1)\n  }\n  while ---------ready() || done\n  print(1)\n  while (---------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ---------a && b {\n        print(1)\n  }\n    while ---------ready() || done\n    print(1)\n    while (---------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg9 logic");
     assert_eq!(out, src);
@@ -3723,7 +3724,7 @@ fn fmt_cst_while_neg9_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg9_mixed_roundtrip() {
     // W860 face3: --------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ---------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ---------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ---------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ---------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg9 mixed");
     assert_eq!(out, src);
@@ -3736,7 +3737,7 @@ fn fmt_cst_while_neg9_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg10_bare_roundtrip() {
     // W861 / ADR-1205 face1: bare stacked `----------`; reject `-----------`.
-    let src = "// ahead\nfunc main() {\n  while ----------n {\n    print(1)\n  }\n  while ----------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ----------n {\n        print(1)\n  }\n    while ----------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg10 bare");
     assert_eq!(out, src);
@@ -3749,7 +3750,7 @@ fn fmt_cst_while_neg10_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg10_logic_roundtrip() {
     // W861 face2: ----------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ----------a && b {\n    print(1)\n  }\n  while ----------ready() || done\n  print(1)\n  while (----------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ----------a && b {\n        print(1)\n  }\n    while ----------ready() || done\n    print(1)\n    while (----------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg10 logic");
     assert_eq!(out, src);
@@ -3762,7 +3763,7 @@ fn fmt_cst_while_neg10_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg10_mixed_roundtrip() {
     // W861 face3: ---------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ----------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ----------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ----------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ----------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg10 mixed");
     assert_eq!(out, src);
@@ -3775,7 +3776,7 @@ fn fmt_cst_while_neg10_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg11_bare_roundtrip() {
     // W862 / ADR-1206 face1: bare stacked `-----------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while -----------n {\n    print(1)\n  }\n  while -----------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -----------n {\n        print(1)\n  }\n    while -----------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg11 bare");
     assert_eq!(out, src);
@@ -3788,7 +3789,7 @@ fn fmt_cst_while_neg11_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg11_logic_roundtrip() {
     // W862 face2: -----------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while -----------a && b {\n    print(1)\n  }\n  while -----------ready() || done\n  print(1)\n  while (-----------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -----------a && b {\n        print(1)\n  }\n    while -----------ready() || done\n    print(1)\n    while (-----------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg11 logic");
     assert_eq!(out, src);
@@ -3801,7 +3802,7 @@ fn fmt_cst_while_neg11_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg11_mixed_roundtrip() {
     // W862 face3: ----------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while -----------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while -----------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while -----------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while -----------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg11 mixed");
     assert_eq!(out, src);
@@ -3814,7 +3815,7 @@ fn fmt_cst_while_neg11_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg12_bare_roundtrip() {
     // W863 / ADR-1207 face1: bare stacked `------------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while ------------n {\n    print(1)\n  }\n  while ------------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ------------n {\n        print(1)\n  }\n    while ------------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg12 bare");
     assert_eq!(out, src);
@@ -3827,7 +3828,7 @@ fn fmt_cst_while_neg12_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg12_logic_roundtrip() {
     // W863 face2: ------------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ------------a && b {\n    print(1)\n  }\n  while ------------ready() || done\n  print(1)\n  while (------------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ------------a && b {\n        print(1)\n  }\n    while ------------ready() || done\n    print(1)\n    while (------------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg12 logic");
     assert_eq!(out, src);
@@ -3840,7 +3841,7 @@ fn fmt_cst_while_neg12_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg12_mixed_roundtrip() {
     // W863 face3: ------------ × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ------------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ------------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ------------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ------------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg12 mixed");
     assert_eq!(out, src);
@@ -3853,7 +3854,7 @@ fn fmt_cst_while_neg12_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg13_bare_roundtrip() {
     // W864 / ADR-1208 face1: bare stacked `-------------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while -------------n {\n    print(1)\n  }\n  while -------------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -------------n {\n        print(1)\n  }\n    while -------------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg13 bare");
     assert_eq!(out, src);
@@ -3866,7 +3867,7 @@ fn fmt_cst_while_neg13_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg13_logic_roundtrip() {
     // W864 face2: -------------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while -------------a && b {\n    print(1)\n  }\n  while -------------ready() || done\n  print(1)\n  while (-------------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -------------a && b {\n        print(1)\n  }\n    while -------------ready() || done\n    print(1)\n    while (-------------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg13 logic");
     assert_eq!(out, src);
@@ -3879,7 +3880,7 @@ fn fmt_cst_while_neg13_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg13_mixed_roundtrip() {
     // W864 face3: ------------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while -------------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while -------------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while -------------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while -------------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg13 mixed");
     assert_eq!(out, src);
@@ -3892,7 +3893,7 @@ fn fmt_cst_while_neg13_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg14_bare_roundtrip() {
     // W865 / ADR-1209 face1: bare stacked `--------------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while --------------n {\n    print(1)\n  }\n  while --------------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while --------------n {\n        print(1)\n  }\n    while --------------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg14 bare");
     assert_eq!(out, src);
@@ -3905,7 +3906,7 @@ fn fmt_cst_while_neg14_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg14_logic_roundtrip() {
     // W865 face2: --------------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while --------------a && b {\n    print(1)\n  }\n  while --------------ready() || done\n  print(1)\n  while (--------------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while --------------a && b {\n        print(1)\n  }\n    while --------------ready() || done\n    print(1)\n    while (--------------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg14 logic");
     assert_eq!(out, src);
@@ -3918,7 +3919,7 @@ fn fmt_cst_while_neg14_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg14_mixed_roundtrip() {
     // W865 face3: -------------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while --------------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while --------------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while --------------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while --------------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg14 mixed");
     assert_eq!(out, src);
@@ -3931,7 +3932,7 @@ fn fmt_cst_while_neg14_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg15_bare_roundtrip() {
     // W866 / ADR-1210 face1: bare stacked `---------------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while ---------------n {\n    print(1)\n  }\n  while ---------------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ---------------n {\n        print(1)\n  }\n    while ---------------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg15 bare");
     assert_eq!(out, src);
@@ -3944,7 +3945,7 @@ fn fmt_cst_while_neg15_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg15_logic_roundtrip() {
     // W866 face2: ---------------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ---------------a && b {\n    print(1)\n  }\n  while ---------------ready() || done\n  print(1)\n  while (---------------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ---------------a && b {\n        print(1)\n  }\n    while ---------------ready() || done\n    print(1)\n    while (---------------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg15 logic");
     assert_eq!(out, src);
@@ -3957,7 +3958,7 @@ fn fmt_cst_while_neg15_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg15_mixed_roundtrip() {
     // W866 face3: --------------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ---------------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ---------------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ---------------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ---------------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg15 mixed");
     assert_eq!(out, src);
@@ -3970,7 +3971,7 @@ fn fmt_cst_while_neg15_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg16_bare_roundtrip() {
     // W867 / ADR-1211 face1: bare stacked `----------------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while ----------------n {\n    print(1)\n  }\n  while ----------------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ----------------n {\n        print(1)\n  }\n    while ----------------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg16 bare");
     assert_eq!(out, src);
@@ -3983,7 +3984,7 @@ fn fmt_cst_while_neg16_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg16_logic_roundtrip() {
     // W867 face2: ----------------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while ----------------a && b {\n    print(1)\n  }\n  while ----------------ready() || done\n  print(1)\n  while (----------------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ----------------a && b {\n        print(1)\n  }\n    while ----------------ready() || done\n    print(1)\n    while (----------------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg16 logic");
     assert_eq!(out, src);
@@ -3996,7 +3997,7 @@ fn fmt_cst_while_neg16_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg16_mixed_roundtrip() {
     // W867 face3: ---------------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while ----------------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while ----------------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while ----------------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while ----------------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg16 mixed");
     assert_eq!(out, src);
@@ -4009,7 +4010,7 @@ fn fmt_cst_while_neg16_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_neg17_bare_roundtrip() {
     // W868 / ADR-1212 face1: bare stacked `-----------------`; reject `------------------`.
-    let src = "// ahead\nfunc main() {\n  while -----------------n {\n    print(1)\n  }\n  while -----------------done\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -----------------n {\n        print(1)\n  }\n    while -----------------done\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg17 bare");
     assert_eq!(out, src);
@@ -4022,7 +4023,7 @@ fn fmt_cst_while_neg17_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_neg17_logic_roundtrip() {
     // W868 face2: -----------------×logic·call; reject `!!!!`.
-    let src = "// ahead\nfunc main() {\n  while -----------------a && b {\n    print(1)\n  }\n  while -----------------ready() || done\n  print(1)\n  while (-----------------n) && flag\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while -----------------a && b {\n        print(1)\n  }\n    while -----------------ready() || done\n    print(1)\n    while (-----------------n) && flag\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg17 logic");
     assert_eq!(out, src);
@@ -4035,7 +4036,7 @@ fn fmt_cst_while_neg17_logic_roundtrip() {
 #[test]
 fn fmt_cst_while_neg17_mixed_roundtrip() {
     // W868 face3: ----------------- × effect/where/depth2; reject ((((…)))).
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while -----------------ready() && a || b {\n    print(foo(bar(baz())))\n  }\n}\nfunc main() {\n  while -----------------n\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while -----------------ready() && a || b {\n        print(foo(bar(baz())))\n  }\n}\nfunc main() {\n    while -----------------n\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while neg17 mixed");
     assert_eq!(out, src);
@@ -4048,7 +4049,7 @@ fn fmt_cst_while_neg17_mixed_roundtrip() {
 #[test]
 fn fmt_cst_while_braceless_bare_roundtrip() {
     // W843 / ADR-1187 face1: brace-less bare; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  while true\n  print(1)\n  while flag\n  print(x)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while true\n    print(1)\n    while flag\n    print(x)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while braceless bare");
     assert_eq!(out, src);
@@ -4061,7 +4062,7 @@ fn fmt_cst_while_braceless_bare_roundtrip() {
 #[test]
 fn fmt_cst_while_braceless_cond_roundtrip() {
     // W843 face2: call/compare brace-less; reject depth>2.
-    let src = "// ahead\nfunc main() {\n  while ready()\n  print(1)\n  while x < n\n  print(x)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    while ready()\n    print(1)\n    while x < n\n    print(x)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while braceless cond");
     assert_eq!(out, src);
@@ -4074,7 +4075,7 @@ fn fmt_cst_while_braceless_cond_roundtrip() {
 #[test]
 fn fmt_cst_while_braceless_mixed_roundtrip() {
     // W843 face3: brace-less × braced/effect/where; reject nested braceless while.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  while true\n  print(foo(bar(baz())))\n}\nfunc main() {\n  while ready() {\n    print(1)\n  }\n  while flag\n  print(2)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    while true\n    print(foo(bar(baz())))\n}\nfunc main() {\n    while ready() {\n        print(1)\n  }\n    while flag\n    print(2)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while braceless mixed");
     assert_eq!(out, src);
@@ -4087,7 +4088,7 @@ fn fmt_cst_while_braceless_mixed_roundtrip() {
 #[test]
 fn fmt_cst_depth2_call_print_roundtrip() {
     // W842 / ADR-1186 face1: print depth=2; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  print(foo(bar(baz())))\n  print(g(h(1)))\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    print(foo(bar(baz())))\n    print(g(h(1)))\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst depth2 call print");
     assert_eq!(out, src);
@@ -4100,7 +4101,7 @@ fn fmt_cst_depth2_call_print_roundtrip() {
 #[test]
 fn fmt_cst_depth2_call_rhs_roundtrip() {
     // W842 face2: RHS depth=2; reject depth>2.
-    let src = "// ahead\nfunc main() {\n  let x = foo(bar(baz()))\n  var y = g(h(1))\n  return f(k(m()))\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    let x = foo(bar(baz()))\n    var y = g(h(1))\n    return f(k(m()))\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst depth2 call rhs");
     assert_eq!(out, src);
@@ -4113,7 +4114,7 @@ fn fmt_cst_depth2_call_rhs_roundtrip() {
 #[test]
 fn fmt_cst_depth2_call_mixed_roundtrip() {
     // W842 face3: depth=2 × while/effect/where; reject chained logic.
-    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n  print(foo(bar(baz())))\n}\nfunc main() {\n  while ready() {\n    let x = f(g(h()))\n    print(x)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go<T>() requires Pure where T: Bound {\n    print(foo(bar(baz())))\n}\nfunc main() {\n    while ready() {\n        let x = f(g(h()))\n        print(x)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst depth2 call mixed");
     assert_eq!(out, src);
@@ -4127,7 +4128,7 @@ fn fmt_cst_depth2_call_mixed_roundtrip() {
 #[test]
 fn fmt_cst_type_params_single_roundtrip() {
     // W840 / ADR-1184 face1: single type param; reject chained logic.
-    let src = "// ahead\nfunc id<T>(x: T) {\n  print(x)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc id<T>(x: T) {\n    print(x)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst type_params single");
     assert_eq!(out, src);
@@ -4140,7 +4141,7 @@ fn fmt_cst_type_params_single_roundtrip() {
 #[test]
 fn fmt_cst_type_params_multi_roundtrip() {
     // W840 face2: multi TP + return/throws; reject chained logic.
-    let src = "// ahead\nfunc pair<A, B>(a: A, b: B) {\n  print(a)\n}\nfunc id<T>(x: T) -> T throws {\n  return x\n}\n/* trail */\n";
+    let src = "// ahead\nfunc pair<A, B>(a: A, b: B) {\n    print(a)\n}\nfunc id<T>(x: T) -> T throws {\n    return x\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst type_params multi");
     assert_eq!(out, src);
@@ -4154,7 +4155,7 @@ fn fmt_cst_type_params_multi_roundtrip() {
 #[test]
 fn fmt_cst_type_params_mixed_roundtrip() {
     // W840 face3: type_params × throws × effect × nested-call; reject chained logic.
-    let src = "// ahead\nfunc id<T>(x: T) throws requires Pure {\n  print(foo(bar()))\n}\nfunc go<U>() {\n  while ready() {\n    let x = f(g())\n    print(x)\n  }\n}\nprint(1)\n/* trail */\n";
+    let src = "// ahead\nfunc id<T>(x: T) throws requires Pure {\n    print(foo(bar()))\n}\nfunc go<U>() {\n    while ready() {\n        let x = f(g())\n        print(x)\n  }\n}\nprint(1)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst type_params mixed");
     assert_eq!(out, src);
@@ -4168,7 +4169,7 @@ fn fmt_cst_type_params_mixed_roundtrip() {
 #[test]
 fn fmt_cst_throws_bare_roundtrip() {
     // W839 / ADR-1183 face1: bare throws; reject chained logic.
-    let src = "// ahead\nfunc boom() throws {\n  print(1)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc boom() throws {\n    print(1)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst throws bare");
     assert_eq!(out, src);
@@ -4181,7 +4182,7 @@ fn fmt_cst_throws_bare_roundtrip() {
 #[test]
 fn fmt_cst_throws_clause_roundtrip() {
     // W839 face2: throws + return / requires; reject chained logic.
-    let src = "// ahead\nfunc fail() -> Int throws {\n  return 1\n}\nfunc g() throws requires Pure {\n  print(0)\n}\n/* trail */\n";
+    let src = "// ahead\nfunc fail() -> Int throws {\n    return 1\n}\nfunc g() throws requires Pure {\n    print(0)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst throws clause");
     assert_eq!(out, src);
@@ -4195,7 +4196,7 @@ fn fmt_cst_throws_clause_roundtrip() {
 #[test]
 fn fmt_cst_throws_mixed_roundtrip() {
     // W839 face3: throws × nested-call × while × effect; reject chained logic.
-    let src = "// ahead\nfunc boom() throws {\n  print(foo(bar()))\n}\nfunc go() throws requires IO {\n  while ready() {\n    let x = f(g())\n    print(x)\n  }\n}\nprint(1)\n/* trail */\n";
+    let src = "// ahead\nfunc boom() throws {\n    print(foo(bar()))\n}\nfunc go() throws requires IO {\n    while ready() {\n        let x = f(g())\n        print(x)\n  }\n}\nprint(1)\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst throws mixed");
     assert_eq!(out, src);
@@ -4209,7 +4210,7 @@ fn fmt_cst_throws_mixed_roundtrip() {
 #[test]
 fn fmt_cst_nested_call_print_roundtrip() {
     // W838 / ADR-1182 face1: print nested-call depth≤1; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  print(foo(bar()))\n  print(g(h(1)))\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    print(foo(bar()))\n    print(g(h(1)))\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst nested call print");
     assert_eq!(out, src);
@@ -4222,7 +4223,7 @@ fn fmt_cst_nested_call_print_roundtrip() {
 #[test]
 fn fmt_cst_nested_call_rhs_roundtrip() {
     // W838 face2: let/var/return nested call; reject chained logic.
-    let src = "// ahead\nfunc main() {\n  let x = foo(bar())\n  var y = g(h(1))\n  return f(k())\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    let x = foo(bar())\n    var y = g(h(1))\n    return f(k())\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst nested call rhs");
     assert_eq!(out, src);
@@ -4235,7 +4236,7 @@ fn fmt_cst_nested_call_rhs_roundtrip() {
 #[test]
 fn fmt_cst_nested_call_mixed_roundtrip() {
     // W838 face3: nested call + while + effect; reject chained logic.
-    let src = "// ahead\nfunc go() requires Pure {\n  print(foo(bar()))\n}\nfunc main() {\n  while ready() {\n    let x = f(g())\n    print(x)\n  }\n}\n/* trail */\n";
+    let src = "// ahead\nfunc go() requires Pure {\n    print(foo(bar()))\n}\nfunc main() {\n    while ready() {\n        let x = f(g())\n        print(x)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst nested call mixed");
     assert_eq!(out, src);
@@ -4249,7 +4250,7 @@ fn fmt_cst_nested_call_mixed_roundtrip() {
 #[test]
 fn fmt_cst_double_simple_roundtrip() {
     // W793 / ADR-1137: Double ∈ simple for print/let/return + trivia byte-identical.
-    let src = "// ahead\nfunc main() {\n  // float\n  let x = 1.5\n  print(x)\n  print(2.0)\n  return 3.14\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // float\n    let x = 1.5\n    print(x)\n    print(2.0)\n    return 3.14\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst double simple");
     assert_eq!(out, src);
@@ -4267,7 +4268,7 @@ fn fmt_cst_double_simple_roundtrip() {
 #[test]
 fn fmt_cst_bool_simple_roundtrip() {
     // W794 / ADR-1138: Bool ∈ simple for print/let/return + trivia byte-identical.
-    let src = "// ahead\nfunc main() {\n  // flag\n  let x = true\n  print(x)\n  print(false)\n  return true\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // flag\n    let x = true\n    print(x)\n    print(false)\n    return true\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst bool simple");
     assert_eq!(out, src);
@@ -4285,7 +4286,7 @@ fn fmt_cst_bool_simple_roundtrip() {
 #[test]
 fn fmt_cst_nil_simple_roundtrip() {
     // W795 / ADR-1139: Nil ∈ simple for print/let/return + trivia byte-identical.
-    let src = "// ahead\nfunc main() {\n  // empty\n  let x = nil\n  print(x)\n  print(nil)\n  return nil\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // empty\n    let x = nil\n    print(x)\n    print(nil)\n    return nil\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst nil simple");
     assert_eq!(out, src);
@@ -4303,7 +4304,7 @@ fn fmt_cst_nil_simple_roundtrip() {
 #[test]
 fn fmt_cst_var_bind_roundtrip() {
     // W796 / ADR-1140: var[+let/print/return] with trivia byte-identical; reject call RHS.
-    let src = "// ahead\nfunc main() {\n  // mut\n  var x = 1\n  let y = true\n  print(x)\n  return nil\n}\n/* trail */\n";
+    let src = "// ahead\nfunc main() {\n    // mut\n    var x = 1\n    let y = true\n    print(x)\n    return nil\n}\n/* trail */\n";
     let file = SourceFile::new("fixture.sy", src);
     let out = format_source_cst(&file).expect("cst var bind");
     assert_eq!(out, src);
@@ -5165,9 +5166,10 @@ fn fmt_try_dry_run() {
 #[test]
 fn fmt_closure_dry_run() {
     // W709 / ADR-1053: Expr::Closure idempotent; does not reconstruct `-> Ret`.
+    // Typed-param + `return` stmt is P001; use expr-body (parser-accepted) form.
     let src = r#"func main() {
     let f = { (a: Int) in
-        return a
+        a
     }
     print(1)
 }
@@ -5175,7 +5177,7 @@ fn fmt_closure_dry_run() {
     let file = SourceFile::new("closure.sy", src);
     let report = format_dry_run(&file).expect("Closure must format");
     assert!(report.formatted.contains("{ (a: Int) in"));
-    assert!(report.formatted.contains("return a"));
+    assert!(report.formatted.contains("a"));
     assert!(!report.formatted.contains("->"), "must not reconstruct -> Ret");
     let again = SourceFile::new("closure.sy", report.formatted.as_str());
     let r2 = format_dry_run(&again).expect("idempotent");

@@ -1,10 +1,10 @@
 // ahead
 class Box {
-  var count: Int
-  init() {
-    print(1)
+    var count: Int
+    init() {
+        print(1)
   }
-  func drop(n: Int) {
+    func drop(n: Int) {
     box.count -= n
   }
 }

@@ -76,6 +76,7 @@ mod dict_remove;
 mod crypto_pbkdf2;
 mod tcp_stream_handle;
 mod fmt_fail_closed;
+mod fmt_write_align;
 mod fmt_check;
 mod datetime_gregorian;
 mod http_transport_fail;

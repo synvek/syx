@@ -1,8 +1,8 @@
 /// docs
 class Box {
-  var count: Int
-  init() {
-    self.count += 1
+    var count: Int
+    init() {
+        self.count += 1
   }
 }
 /* trail */

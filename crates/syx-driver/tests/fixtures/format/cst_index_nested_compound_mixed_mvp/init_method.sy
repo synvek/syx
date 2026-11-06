@@ -1,10 +1,10 @@
 // ahead
 class Box {
-  var items: Int
-  init() {
-    a[0][1] += 0
+    var items: Int
+    init() {
+        a[0][1] += 0
   }
-  func scale(i: Int, j: Int, n: Int) {
+    func scale(i: Int, j: Int, n: Int) {
     /* mid */
     buf[i][j] *= n
   }

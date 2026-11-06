@@ -1,7 +1,7 @@
 class Box {
-  var items: Int
-  var other: Int
-  func setBoth(i: Int, j: Int, n: Int) {
+    var items: Int
+    var other: Int
+    func setBoth(i: Int, j: Int, n: Int) {
     xs[i] = n
     ys[j] = n
   }

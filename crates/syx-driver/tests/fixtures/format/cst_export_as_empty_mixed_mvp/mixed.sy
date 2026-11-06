@@ -4,7 +4,7 @@ export { foo as bar }
 export { Point }
 data class Point(x: Int)
 export func main() {
-  /* mid */
-  print(1)
+    /* mid */
+    print(1)
 }
 /* trail */

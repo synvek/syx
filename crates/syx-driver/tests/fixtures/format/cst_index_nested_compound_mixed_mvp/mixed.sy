@@ -1,21 +1,21 @@
 // ahead
 public class Sub: Box, Greeter {
-  var items: Int?
-  init() {
-    // body
-    a[0][1] += 1
+    var items: Int?
+    init() {
+        // body
+        a[0][1] += 1
   }
-  func scale(i: Int, j: Int, n: Int) {
+    func scale(i: Int, j: Int, n: Int) {
     buf[i][j] %= n
     self.xs[0] = 2
     count *= 2
   }
-  deinit {
-    print(1)
+    deinit {
+        print(1)
   }
 }
 func main() {
-  /* mid */
-  print(2)
+    /* mid */
+    print(2)
 }
 /* trail */

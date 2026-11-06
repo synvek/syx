@@ -1,10 +1,10 @@
 // ahead
 class Box {
-  var name: String
-  init(name: String) {
-    print(1)
+    var name: String
+    init(name: String) {
+        print(1)
   }
-  func setName(name: String) {
+    func setName(name: String) {
     self.name = name
   }
 }

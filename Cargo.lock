@@ -7602,6 +7602,7 @@ dependencies = [
  "indexmap",
  "smol_str 0.3.6",
  "syx-ast",
+ "syx-cst",
  "syx-diagnostics",
  "syx-parser",
 ]

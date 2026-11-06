@@ -1,10 +1,10 @@
 // ahead
 class Sub: Box, Greeter {
-  var x: Int
-  init() {
-    x *= 2
+    var x: Int
+    init() {
+        x *= 2
   }
 }
 func main() {
-  print(1)
+    print(1)
 }

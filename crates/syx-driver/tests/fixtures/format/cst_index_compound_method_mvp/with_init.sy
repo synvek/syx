@@ -1,10 +1,10 @@
 // ahead
 class Box {
-  var items: Int
-  init() {
-    print(1)
+    var items: Int
+    init() {
+        print(1)
   }
-  func scale(i: Int, n: Int) {
+    func scale(i: Int, n: Int) {
     xs[i] *= n
   }
 }

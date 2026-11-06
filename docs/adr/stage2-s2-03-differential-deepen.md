@@ -24,7 +24,7 @@
 ## Consequences
 
 - Gap「Differential bound」→ **bound (Suite-1 VM+MIR)**; plan S2-03 claimed in [S2-I142](stage2-s2-03-claim.md).
-- Next default = **S2-04** open — **not** Stage-2 exit.
+- Next default was **S2-04** open — done in [S2-I143](stage2-s2-04-open.md); Stage-2 stays `[~]`.
 - Open: [stage2-s2-03-open](stage2-s2-03-open.md) · [stage2-open](stage2-open.md).
 
 ## References

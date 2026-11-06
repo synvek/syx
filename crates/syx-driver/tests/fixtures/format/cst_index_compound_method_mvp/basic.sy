@@ -1,6 +1,6 @@
 class Box {
-  var items: Int
-  func scale(i: Int, n: Int) {
+    var items: Int
+    func scale(i: Int, n: Int) {
     xs[i] *= n
   }
 }

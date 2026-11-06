@@ -1,10 +1,10 @@
 // ahead
 class Sub: Box {
-  deinit {
-    /* mid */
-    print(1)
+    deinit {
+        /* mid */
+        print(1)
   }
 }
 func main() {
-  print(2)
+    print(2)
 }

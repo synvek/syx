@@ -43,7 +43,7 @@
 - **S2-I140:** [compile-decl delete](stage2-s2-03-compile-decl-delete.md) — corpse cluster removed; `compile_function_decl` kept.
 - **S2-I141:** [differential deepen](stage2-s2-03-differential-deepen.md) — Suite-1 VM⟷MIR floor bound; wasm honesty OUT.
 - **S2-I142:** [claim](stage2-s2-03-claim.md) — plan S2-03 `[x]`; Stage-2 stays `[~]`.
-- Next default = **S2-04** open — **not** Stage-2 exit.
+- Next default was **S2-04** open — done in [S2-I143](stage2-s2-04-open.md); Stage-2 stays `[~]`.
 - Open: [stage2-open](stage2-open.md).
 
 ## References

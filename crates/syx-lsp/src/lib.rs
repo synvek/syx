@@ -112,6 +112,38 @@ fn document_text(documents: &HashMap<String, DocumentState>, uri: &str) -> Strin
         .unwrap_or_default()
 }
 
+/// Full-document LSP range covering `text` (for a single replace TextEdit).
+fn full_document_lsp_range(text: &str) -> (usize, usize, usize, usize) {
+    let mut end_line = 0usize;
+    let mut end_char = 0usize;
+    for (i, line) in text.split('\n').enumerate() {
+        end_line = i;
+        end_char = line.chars().count();
+    }
+    (0, 0, end_line, end_char)
+}
+
+/// S2-I152: `textDocument/formatting` → driver `format_document_for_lsp` (dry_run/auto SSOT).
+/// On failure returns JSON `null` (no partial rewrite).
+fn formatting_for_document(uri: &str, text: &str) -> Value {
+    let name = uri_to_path(uri)
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "buffer.sy".into());
+    match syx_driver::format_document_for_lsp(&name, text) {
+        Ok(formatted) => {
+            let (sl, sc, el, ec) = full_document_lsp_range(text);
+            json!([{
+                "range": {
+                    "start": { "line": sl, "character": sc },
+                    "end": { "line": el, "character": ec }
+                },
+                "newText": formatted
+            }])
+        }
+        Err(_) => Value::Null,
+    }
+}
+
 /// ADR-143: thin `$/cancelRequest` registry (sync loop — register + suppress response).
 #[derive(Debug, Default, Clone)]
 pub struct CancelRegistry {
@@ -209,6 +241,7 @@ fn initialize_capabilities() -> Value {
             "codeActionProvider": true,
             "semanticTokensProvider": { "legend": semantic_tokens_legend() },
             "inlayHintProvider": true,
+            "documentFormattingProvider": true,
             "executeCommandProvider": {
                 "commands": [
                     "syx.actorRoutes",
@@ -463,6 +496,15 @@ pub fn run_stdio() -> io::Result<()> {
                     .unwrap_or(0) as usize;
                 let text = document_text(&documents, uri);
                 inlay_hints_for_document(uri, &text, line, &options)
+            }
+            // S2-I152: DocumentFormatting → format_document_for_lsp (CLI write/--check SSOT).
+            "textDocument/formatting" => {
+                let uri = message
+                    .pointer("/params/textDocument/uri")
+                    .and_then(|u| u.as_str())
+                    .unwrap_or("");
+                let text = document_text(&documents, uri);
+                formatting_for_document(uri, &text)
             }
             "workspace/executeCommand" => {
                 let command = message
@@ -4081,6 +4123,44 @@ func main() {
             "signatureHelpProvider": { "triggerCharacters": ["(", ","] }
         });
         assert!(caps["signatureHelpProvider"].is_object());
+    }
+
+    #[test]
+    fn document_formatting_capability_advertised() {
+        let caps = initialize_capabilities();
+        assert_eq!(
+            caps["capabilities"]["documentFormattingProvider"],
+            json!(true),
+            "S2-I152 must advertise documentFormattingProvider"
+        );
+    }
+
+    #[test]
+    fn document_formatting_preserves_comments_on_cst_subset() {
+        let text = "// ahead\nfunc main() {\n    // inside\n    print(1)\n}\n/* trail */\n";
+        let edits = formatting_for_document("file:///t.sy", text);
+        assert!(edits.is_array(), "expected TextEdit[]; got {edits}");
+        let new_text = edits[0]["newText"].as_str().expect("newText");
+        assert!(
+            new_text.contains("// ahead")
+                && new_text.contains("// inside")
+                && new_text.contains("/* trail */"),
+            "LSP format must preserve comments; got {new_text:?}"
+        );
+        let again = formatting_for_document("file:///t.sy", new_text);
+        assert_eq!(
+            again[0]["newText"].as_str().unwrap(),
+            new_text,
+            "format(format(x)) must be idempotent"
+        );
+    }
+
+    #[test]
+    fn document_formatting_null_on_unsupported() {
+        // if-case KeyPath → F001 (fail-closed); must not return partial edits.
+        let text = "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n";
+        let edits = formatting_for_document("file:///t.sy", text);
+        assert!(edits.is_null(), "unsupported must return null; got {edits}");
     }
 
     #[test]

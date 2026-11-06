@@ -159,6 +159,19 @@
 - **S2-I140:** S2-03 compile_decl delete ([stage2-s2-03-compile-decl-delete](stage2-s2-03-compile-decl-delete.md)); corpse cluster removed; `compile_function_decl` kept; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 差分加深宣称 / ≠ 退出）.
 - **S2-I141:** S2-03 differential deepen ([stage2-s2-03-differential-deepen](stage2-s2-03-differential-deepen.md)); Suite-1 VM⟷MIR floor bound; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 修 wasm / ≠ 退出）.
 - **S2-I142:** S2-03 plan claim ([stage2-s2-03-claim](stage2-s2-03-claim.md)); S2-03 `[x]`; Stage-2 `[~]`（≠ 退出 / ≠ 修 wasm / ≠ 开 S2-04 施工）.
+- **S2-I143:** S2-04 open + parser census ([stage2-s2-04-open](stage2-s2-04-open.md)); S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I144:** S2-04 convergence strategy ([stage2-s2-04-convergence-strategy](stage2-s2-04-convergence-strategy.md)); fmt-first; CST reindent prerequisite; S2-04 `[~]`; Stage-2 `[~]`（≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I145:** S2-04 CST reindent FunctionDecl first knife ([stage2-s2-04-cst-reindent-func-body](stage2-s2-04-cst-reindent-func-body.md)); opt-in `format_cst_reindent`; S2-04 `[~]`; Stage-2 `[~]`（≠ reindent GA / ≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I146:** S2-04 CST reindent FunctionDecl nested deepen ([stage2-s2-04-cst-reindent-func-nested](stage2-s2-04-cst-reindent-func-nested.md)); relative depth + stack; S2-04 `[~]`; Stage-2 `[~]`（≠ reindent GA / ≠ 2→4 / ≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I147:** S2-04 CST reindent FunctionDecl 2→4 normalize ([stage2-s2-04-cst-reindent-func-2to4](stage2-s2-04-cst-reindent-func-2to4.md)); S2-04 `[~]`; Stage-2 `[~]`（≠ reindent GA / ≠ class / ≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I148:** S2-04 CST reindent class stored-member track ([stage2-s2-04-cst-reindent-class-stored](stage2-s2-04-cst-reindent-class-stored.md)); S2-04 `[~]`; Stage-2 `[~]`（≠ reindent GA / ≠ env gate / ≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I149:** S2-04 CST reindent env experiment gate ([stage2-s2-04-cst-reindent-env-gate](stage2-s2-04-cst-reindent-env-gate.md)); `SYX_FMT_CST_REINDENT`; S2-04 `[~]`; Stage-2 `[~]`（≠ reindent GA / ≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I150:** S2-04 CST reindent GA ([stage2-s2-04-cst-reindent-ga](stage2-s2-04-cst-reindent-ga.md)); `format_source_cst`→`format_cst_reindent`; S2-04 `[~]`; Stage-2 `[~]`（≠ write 迁入 / ≠ 改 format_file / ≠ `[x]` / ≠ 退出）.
+- **S2-I151:** S2-04 fmt write migration ([stage2-s2-04-fmt-write-migration](stage2-s2-04-fmt-write-migration.md)); `format_file`→`format_dry_run`/auto; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ LSP / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I152:** S2-04 LSP DocumentFormatting ([stage2-s2-04-lsp-document-formatting](stage2-s2-04-lsp-document-formatting.md)); `textDocument/formatting`→`format_document_for_lsp`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ lint 共树 / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I153:** S2-04 lint CST-first ([stage2-s2-04-lint-cst-first](stage2-s2-04-lint-cst-first.md)); `lint_source_auto`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ lint-on-CST / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I154:** S2-04 CST subset if-let-simple ([stage2-s2-04-cst-subset-if-let](stage2-s2-04-cst-subset-if-let.md)); `take_if_let_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ if case / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I155:** S2-04 CST subset guard-let-simple ([stage2-s2-04-cst-subset-guard-let](stage2-s2-04-cst-subset-guard-let.md)); `take_guard_let_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ if case / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
 
 ## References
 
@@ -236,6 +249,20 @@
 - [`docs/adr/stage2-s2-03-compile-decl-delete.md`](stage2-s2-03-compile-decl-delete.md) · S2-I140
 - [`docs/adr/stage2-s2-03-differential-deepen.md`](stage2-s2-03-differential-deepen.md) · S2-I141
 - [`docs/adr/stage2-s2-03-claim.md`](stage2-s2-03-claim.md) · S2-I142
+- [`docs/adr/stage2-s2-04-open.md`](stage2-s2-04-open.md) · S2-I143
+- [`docs/stage2-parser-census.md`](../stage2-parser-census.md) · S2-I143
+- [`docs/adr/stage2-s2-04-convergence-strategy.md`](stage2-s2-04-convergence-strategy.md) · S2-I144
+- [`docs/adr/stage2-s2-04-cst-reindent-func-body.md`](stage2-s2-04-cst-reindent-func-body.md) · S2-I145
+- [`docs/adr/stage2-s2-04-cst-reindent-func-nested.md`](stage2-s2-04-cst-reindent-func-nested.md) · S2-I146
+- [`docs/adr/stage2-s2-04-cst-reindent-func-2to4.md`](stage2-s2-04-cst-reindent-func-2to4.md) · S2-I147
+- [`docs/adr/stage2-s2-04-cst-reindent-class-stored.md`](stage2-s2-04-cst-reindent-class-stored.md) · S2-I148
+- [`docs/adr/stage2-s2-04-cst-reindent-env-gate.md`](stage2-s2-04-cst-reindent-env-gate.md) · S2-I149
+- [`docs/adr/stage2-s2-04-cst-reindent-ga.md`](stage2-s2-04-cst-reindent-ga.md) · S2-I150
+- [`docs/adr/stage2-s2-04-fmt-write-migration.md`](stage2-s2-04-fmt-write-migration.md) · S2-I151
+- [`docs/adr/stage2-s2-04-lsp-document-formatting.md`](stage2-s2-04-lsp-document-formatting.md) · S2-I152
+- [`docs/adr/stage2-s2-04-lint-cst-first.md`](stage2-s2-04-lint-cst-first.md) · S2-I153
+- [`docs/adr/stage2-s2-04-cst-subset-if-let.md`](stage2-s2-04-cst-subset-if-let.md) · S2-I154
+- [`docs/adr/stage2-s2-04-cst-subset-guard-let.md`](stage2-s2-04-cst-subset-guard-let.md) · S2-I155
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

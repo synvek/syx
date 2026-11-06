@@ -25,7 +25,7 @@
 
 ## Consequences
 
-- S2-03 plan-claimed; Stage-2 default next = **S2-04** (unified CST→AST parser) open window.
+- S2-03 plan-claimed; Stage-2 default next was **S2-04** open — done in [S2-I143](stage2-s2-04-open.md).
 - Open: [stage2-open](stage2-open.md).
 
 ## References

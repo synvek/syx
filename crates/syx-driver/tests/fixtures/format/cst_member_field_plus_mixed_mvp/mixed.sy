@@ -1,19 +1,19 @@
 // ahead
 public class Sub: Box, Greeter {
-  var count: Int?
-  init() {
-    // body
-    self.count += 1
+    var count: Int?
+    init() {
+        // body
+        self.count += 1
   }
-  func bump(n: Int) {
+    func bump(n: Int) {
     box.inner.count += n
   }
-  deinit {
-    print(1)
+    deinit {
+        print(1)
   }
 }
 func main() {
-  /* mid */
-  print(2)
+    /* mid */
+    print(2)
 }
 /* trail */

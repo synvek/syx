@@ -17,9 +17,12 @@ pub fn format_source(source: &SourceFile) -> SyxResult<String> {
 /// ADR-142 / M1-E04: lossless CST subset formatter (trivia-preserving).
 ///
 /// Used by [`format_source_auto`] (W873 CST-first) and explicit CST-only callers.
+/// S2-I150 reindent GA: always `format_cst_reindent` after subset parse.
+/// Lexeme-concat SSOT remains [`syx_cst::format_cst`] / [`format_dry_run_cst`].
+/// `SYX_FMT_CST_REINDENT` is superseded (ignored). Write migrated in S2-I151 via driver `format_dry_run`.
 pub fn format_source_cst(source: &SourceFile) -> SyxResult<String> {
     let root = syx_cst::parse_cst_subset(source)?;
-    Ok(syx_cst::format_cst(&root))
+    Ok(syx_cst::format_cst_reindent(&root))
 }
 
 /// W873 / ADR-1217: CST-first with AST fallback on `CST001`.
@@ -27,6 +30,7 @@ pub fn format_source_cst(source: &SourceFile) -> SyxResult<String> {
 /// - `SYX_FMT_AST=1` → force AST (rollback / negative fixtures).
 /// - else try CST; on `CST001` fall back to AST; other errors propagate.
 /// - `SYX_FMT_CST` is ignored (superseded by default CST-first).
+/// - CST success path uses reindent GA via [`format_source_cst`] (S2-I150).
 pub fn format_source_auto(source: &SourceFile) -> SyxResult<String> {
     match std::env::var("SYX_FMT_AST") {
         Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => return format_source(source),
@@ -67,13 +71,16 @@ pub fn format_dry_run(source: &SourceFile) -> SyxResult<DryRunReport> {
     })
 }
 
-/// W872 / ADR-1216: CST-only dry-run (no env — safe for parallel tests).
+/// W872 / ADR-1216: CST-only dry-run (concat — safe for parallel tests).
 ///
-/// Failures (CST001 / parse) return `Err` — caller must not write.
+/// Always uses `format_cst` concat (does **not** call [`format_source_cst`] /
+/// reindent GA). Failures (CST001 / parse) return `Err` — caller must not write.
 pub fn format_dry_run_cst(source: &SourceFile) -> SyxResult<DryRunReport> {
-    let once = format_source_cst(source)?;
+    let root = syx_cst::parse_cst_subset(source)?;
+    let once = syx_cst::format_cst(&root);
     let again_src = SourceFile::new(source.name.clone(), once.as_str());
-    let twice = format_source_cst(&again_src)?;
+    let again_root = syx_cst::parse_cst_subset(&again_src)?;
+    let twice = syx_cst::format_cst(&again_root);
     if once != twice {
         return Err(SyxDiagnostic::error(
             "syx-fmt: CST dry-run idempotency failed (format_cst(format_cst(x)) != format_cst(x))",
@@ -2072,16 +2079,15 @@ mod tests {
     }
 
     #[test]
-    fn m0_a02_rejects_subscript_setter_decl_fail_closed() {
-        // W693: observers supported; subscript setter remains M0-A02 F001.
+    fn formats_subscript_getter_and_setter() {
+        // W694: get+set subscript is supported (no longer M0-A02 F001).
         let source = SourceFile::new(
             "t.sy",
             "class Box {\n    subscript(i: Int) -> Int {\n        get { return 0 }\n        set { print(1) }\n    }\n}\nfunc main() { print(1) }",
         );
-        let err = format_source(&source).expect_err("subscript setter must fail closed");
-        assert!(
-            err.message.contains("unsupported") || err.code.as_deref() == Some("F001"),
-            "{err:?}"
-        );
+        let out = format_source(&source).expect("subscript get+set must format");
+        assert!(out.contains("subscript("));
+        assert!(out.contains("get {") || out.contains("get {\n"));
+        assert!(out.contains("set {") || out.contains("set {\n"));
     }
 }

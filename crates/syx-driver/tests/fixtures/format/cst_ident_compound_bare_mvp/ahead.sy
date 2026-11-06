@@ -1,8 +1,8 @@
 // ahead
 class Box {
-  var count: Int
-  init() {
-    /* mid */
-    count += 1
+    var count: Int
+    init() {
+        /* mid */
+        count += 1
   }
 }

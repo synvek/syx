@@ -1,7 +1,7 @@
 class Box {
-  var count: Int
-  var total: Int
-  func dropBoth(a: Int, b: Int) {
+    var count: Int
+    var total: Int
+    func dropBoth(a: Int, b: Int) {
     box.count -= a
     box.total -= b
   }

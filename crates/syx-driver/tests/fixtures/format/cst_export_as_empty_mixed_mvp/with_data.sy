@@ -2,6 +2,6 @@
 export { Box as Wrap }
 data class Box(value: Int)
 func main() {
-  /* mid */
-  print(1)
+    /* mid */
+    print(1)
 }

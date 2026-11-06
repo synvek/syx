@@ -1,7 +1,5 @@
 func main() {
-    let f = { (x: Int) in
-        print(x)
-    }
+    let f = { (x: Int) in print(x) }
     f(1)
 }
 

@@ -1,7 +1,7 @@
 /// docs
 class Box {
-  deinit {
-    print(1)
+    deinit {
+        print(1)
   }
 }
 /* trail */

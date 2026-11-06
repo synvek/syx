@@ -1,8 +1,8 @@
 // ahead
 class Box {
-  var name: String
-  init(name: String) {
-    /* mid */
-    box.name = name
+    var name: String
+    init(name: String) {
+        /* mid */
+        box.name = name
   }
 }

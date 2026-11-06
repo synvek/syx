@@ -170,12 +170,12 @@ use syx_async::SyxRuntime;
 use syx_codegen::{CodeGenerator, CompiledProgram};
 use syx_debug::DebugSession;
 use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
-use syx_fmt::format_source;
+use syx_fmt::format_dry_run;
 pub use syx_frontend::{
     apply_meta_passes, desugar_top_level_stmts, diagnostic_codes, expand_macros, mir_module_hash,
     prepare_async_module, FrontendArtifact, FrontendOptions, FrontendPipeline, StopAfter,
 };
-use syx_lint::lint_source;
+use syx_lint::lint_source_auto;
 use syx_meta::{
     reflect_type, register_data_classes, TypeMetadata,
 };
@@ -600,20 +600,20 @@ fn format_file(path: &Path) -> SyxResult<()> {
     }
     let text = std::fs::read_to_string(path)
         .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
-    let had_comments = text.contains("//") || text.contains("/*");
     let source = SourceFile::new(path.display().to_string(), text);
-    // Write path uses the AST pretty-printer (`format_source`).
-    // `syx-cst` / `format_source_auto` are for comment-preserving round-trip
-    // (`syx format --check`); they concatenate lexemes and do not reindent.
-    let formatted = format_source(&source)?;
-    if had_comments && !(formatted.contains("//") || formatted.contains("/*")) {
-        eprintln!(
-            "warning: `syx format` dropped comments (AST pretty-printer); \
-             CST path preserves comments but does not reindent yet"
-        );
-    }
-    std::fs::write(path, formatted)
+    // S2-I151 / ADR stage2-s2-04-fmt-write-migration: write shares `--check` SSOT
+    // (`format_dry_run` → `format_source_auto`; CST reindent GA + fail-closed).
+    let report = format_dry_run(&source)?;
+    std::fs::write(path, report.formatted)
         .map_err(|e| SyxDiagnostic::error(format!("Failed to write {}: {e}", path.display())))
+}
+
+/// S2-I152 / ADR stage2-s2-04-lsp-document-formatting: buffer format for LSP
+/// (`textDocument/formatting`) — same SSOT as CLI write/`--check` (`format_dry_run`).
+pub fn format_document_for_lsp(name: &str, contents: &str) -> SyxResult<String> {
+    let source = SourceFile::new(name, contents);
+    let report = format_dry_run(&source)?;
+    Ok(report.formatted)
 }
 
 /// W683 / C-06: aggregate for `syx format --check` (never writes).
@@ -749,7 +749,15 @@ fn lint_file(path: &Path) -> SyxResult<Vec<syx_lint::LintIssue>> {
     let text = std::fs::read_to_string(path)
         .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
     let source = SourceFile::new(path.display().to_string(), text);
-    lint_source(&source)
+    // S2-I153 / ADR stage2-s2-04-lint-cst-first: CST-first policy (aligned with fmt).
+    lint_source_auto(&source)
+}
+
+/// S2-I153: buffer lint for future LSP / tests — same auto policy as CLI `syx lint`.
+/// Does **not** publish LSP diagnostics this window.
+pub fn lint_document_for_lsp(name: &str, contents: &str) -> SyxResult<Vec<syx_lint::LintIssue>> {
+    let source = SourceFile::new(name, contents);
+    lint_source_auto(&source)
 }
 
 pub fn debug_project(root: &Path) -> SyxResult<DebugSession> {

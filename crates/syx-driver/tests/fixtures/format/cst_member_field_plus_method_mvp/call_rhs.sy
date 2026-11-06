@@ -1,6 +1,6 @@
 class Box {
-  var count: Int
-  func bump() {
+    var count: Int
+    func bump() {
     box.count += next()
   }
 }

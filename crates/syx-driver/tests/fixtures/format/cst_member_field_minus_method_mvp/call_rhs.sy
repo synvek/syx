@@ -1,6 +1,6 @@
 class Box {
-  var count: Int
-  func drop() {
+    var count: Int
+    func drop() {
     box.count -= next()
   }
 }

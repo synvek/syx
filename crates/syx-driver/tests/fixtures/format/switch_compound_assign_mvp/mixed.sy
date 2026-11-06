@@ -44,9 +44,7 @@ func main() {
         print(18)
     case #foo():
         print(19)
-    case { (a) in
-        a
-    }:
+    case { (a) in a }:
         print(20)
     case Task {
         print(21)

@@ -1,12 +1,12 @@
 // ahead
 class Box {
-  var name: String
-  init(name: String) {
-    self.inner.name = name
+    var name: String
+    init(name: String) {
+        self.inner.name = name
   }
 }
 func main() {
-  /* mid */
-  print(1)
+    /* mid */
+    print(1)
 }
 /* trail */

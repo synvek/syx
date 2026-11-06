@@ -1,7 +1,7 @@
 // ahead
 export { }
 export func main() {
-  /* mid */
-  print(1)
+    /* mid */
+    print(1)
 }
 /* trail */

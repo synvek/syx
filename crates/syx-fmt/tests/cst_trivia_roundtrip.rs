@@ -3,7 +3,7 @@
 use syx_diagnostics::SourceFile;
 use syx_fmt::{format_source, format_source_cst};
 
-const FIXTURE: &str = "// ahead\nfunc main() {\n  // inside\n}\n/* trail */\n";
+const FIXTURE: &str = "// ahead\nfunc main() {\n    // inside\n}\n/* trail */\n";
 
 #[test]
 fn cst_trivia_cst_trivia_roundtrip_byte_identical() {
