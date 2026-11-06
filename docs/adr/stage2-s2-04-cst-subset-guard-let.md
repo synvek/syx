@@ -18,7 +18,7 @@
 |-------|----------|
 | Grammar knife | `take_guard_let_simple` in `syx-cst` |
 | Fixtures | `guard_let_mvp` basic / call_rhs / two_guards / multi_else → `parse_cst_subset` Ok |
-| `if case` | still CST001 |
+| KeyPath `if case` | still CST001（dot-variant landed in I156） |
 | Contract | `s2_04_cst_subset_guard_let_contract` |
 
 ## Consequences
@@ -26,7 +26,8 @@
 - S2-04 stays `[~]`; Stage-2 stays `[~]`.
 - `format_source_auto` / `lint_source_auto` CST-success path covers simple `guard let` (no forced AST fallback for those shapes).
 - `mixed.sy` (range in success body) may still CST001 — honest AST fallback retained.
-- Next default = more CST deepen (if-case-simple / range-in-call) or Frontend share tree → retire dual `syx-cst` → dedicated **S2-04 `[x]`** claim — **not** Stage-2 exit.
+- **S2-I156 landed:** [cst-subset-if-case](stage2-s2-04-cst-subset-if-case.md) — `take_if_case_simple` (**≠** KeyPath / ≠ S2-04 `[x]`).
+- Next default = range-in-call or Frontend share tree → retire dual `syx-cst` → dedicated **S2-04 `[x]`** claim — **not** Stage-2 exit.
 - Prior: [cst-subset-if-let](stage2-s2-04-cst-subset-if-let.md) · S2-I154.
 
 ## References

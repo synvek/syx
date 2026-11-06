@@ -35,7 +35,16 @@
 - **S2-I153:** [lint-cst-first](stage2-s2-04-lint-cst-first.md) — `lint_source_auto` (**≠** lint-on-CST / ≠ S2-04 `[x]`).
 - **S2-I154:** [cst-subset-if-let](stage2-s2-04-cst-subset-if-let.md) — `take_if_let_simple` (**≠** if case / ≠ Frontend / ≠ S2-04 `[x]`).
 - **S2-I155:** [cst-subset-guard-let](stage2-s2-04-cst-subset-guard-let.md) — `take_guard_let_simple` (**≠** if case / ≠ Frontend / ≠ S2-04 `[x]`).
-- Next default = more CST deepen (if-case / range) or Frontend share tree → retire dual `syx-cst` → **S2-04 `[x]`** claim — **not** Stage-2 exit.
+- **S2-I156:** [cst-subset-if-case](stage2-s2-04-cst-subset-if-case.md) — `take_if_case_simple` (**≠** KeyPath / ≠ Frontend / ≠ S2-04 `[x]`).
+- **S2-I157:** [cst-subset-range-in-call](stage2-s2-04-cst-subset-range-in-call.md) — `take_integer_range_simple` (**≠** RangeDyn / ≠ Frontend / ≠ S2-04 `[x]`).
+- **S2-I158:** [cst-subset-optional-chain](stage2-s2-04-cst-subset-optional-chain.md) — `take_optional_chain_simple` (**≠** force-unwrap / ≠ Frontend / ≠ S2-04 `[x]`).
+- **S2-I159:** [frontend-share-tree-evaluation](stage2-s2-04-frontend-share-tree-evaluation.md) — second axis locked: CST→AST lower (**≠** FrontendPipeline impl / ≠ S2-04 `[x]`).
+- **S2-I160:** [cst-lower-probe](stage2-s2-04-cst-lower-probe.md) — thin lower probe landed (**≠** FrontendPipeline / ≠ S2-04 `[x]`).
+- **S2-I161:** [lint-lower-path](stage2-s2-04-lint-lower-path.md) — lint consumes lower (**≠** FrontendPipeline / ≠ expand probe / ≠ S2-04 `[x]`).
+- **S2-I162:** [cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md) — W791–797 simple-stmt expand (**≠** while/typed / ≠ S2-04 `[x]`).
+- **S2-I163:** [dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md) — freeze charter locked (**≠** S2-04 `[x]` / ≠ Frontend migrate).
+- **S2-I164:** [s2-04-claim](stage2-s2-04-claim.md) — plan **S2-04 `[x]`** scoped (**≠** Stage-2 exit).
+- Next default = **S2-05** open or Frontend migrate — **not** Stage-2 exit.
 - Open: [stage2-s2-04-open](stage2-s2-04-open.md) · [stage2-open](stage2-open.md).
 
 ## References
@@ -53,5 +62,14 @@
 - [stage2-s2-04-lint-cst-first](stage2-s2-04-lint-cst-first.md) · S2-I153
 - [stage2-s2-04-cst-subset-if-let](stage2-s2-04-cst-subset-if-let.md) · S2-I154
 - [stage2-s2-04-cst-subset-guard-let](stage2-s2-04-cst-subset-guard-let.md) · S2-I155
+- [stage2-s2-04-cst-subset-if-case](stage2-s2-04-cst-subset-if-case.md) · S2-I156
+- [stage2-s2-04-cst-subset-range-in-call](stage2-s2-04-cst-subset-range-in-call.md) · S2-I157
+- [stage2-s2-04-cst-subset-optional-chain](stage2-s2-04-cst-subset-optional-chain.md) · S2-I158
+- [stage2-s2-04-frontend-share-tree-evaluation](stage2-s2-04-frontend-share-tree-evaluation.md) · S2-I159
+- [stage2-s2-04-cst-lower-probe](stage2-s2-04-cst-lower-probe.md) · S2-I160
+- [stage2-s2-04-lint-lower-path](stage2-s2-04-lint-lower-path.md) · S2-I161
+- [stage2-s2-04-cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md) · S2-I162
+- [stage2-s2-04-dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md) · S2-I163
+- [stage2-s2-04-claim](stage2-s2-04-claim.md) · S2-I164
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04
 - W873 / ADR-1217 (`format_source_auto`); driver `format_file` comments

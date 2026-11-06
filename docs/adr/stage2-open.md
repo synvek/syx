@@ -172,6 +172,15 @@
 - **S2-I153:** S2-04 lint CST-first ([stage2-s2-04-lint-cst-first](stage2-s2-04-lint-cst-first.md)); `lint_source_auto`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ lint-on-CST / ≠ 删 syx-cst / ≠ 退出）.
 - **S2-I154:** S2-04 CST subset if-let-simple ([stage2-s2-04-cst-subset-if-let](stage2-s2-04-cst-subset-if-let.md)); `take_if_let_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ if case / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
 - **S2-I155:** S2-04 CST subset guard-let-simple ([stage2-s2-04-cst-subset-guard-let](stage2-s2-04-cst-subset-guard-let.md)); `take_guard_let_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ if case / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I156:** S2-04 CST subset if-case-simple ([stage2-s2-04-cst-subset-if-case](stage2-s2-04-cst-subset-if-case.md)); `take_if_case_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ KeyPath / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I157:** S2-04 CST subset range-in-call-simple ([stage2-s2-04-cst-subset-range-in-call](stage2-s2-04-cst-subset-range-in-call.md)); `take_integer_range_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ RangeDyn / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I158:** S2-04 CST subset optional-chain-simple ([stage2-s2-04-cst-subset-optional-chain](stage2-s2-04-cst-subset-optional-chain.md)); `take_optional_chain_simple`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ force-unwrap / ≠ Frontend / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I159:** S2-04 Frontend share-tree evaluation ([stage2-s2-04-frontend-share-tree-evaluation](stage2-s2-04-frontend-share-tree-evaluation.md)); CST→AST lower axis locked; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 改 FrontendPipeline / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I160:** S2-04 CST→AST lower probe ([stage2-s2-04-cst-lower-probe](stage2-s2-04-cst-lower-probe.md)); `lower_cst_subset_probe` + Parser Module parity; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 改 FrontendPipeline / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I161:** S2-04 lint CST-success→lower ([stage2-s2-04-lint-lower-path](stage2-s2-04-lint-lower-path.md)); `lint_source_auto` → `lower_cst_subset_probe`; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 改 FrontendPipeline / ≠ 扩 probe / ≠ 退出）.
+- **S2-I162:** S2-04 lower probe expand ([stage2-s2-04-cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md)); W791–797 let/var/return; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ while/typed / ≠ 改 FrontendPipeline / ≠ 退出）.
+- **S2-I163:** S2-04 dual-grammar freeze charter ([stage2-s2-04-dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md)); stop default `take_*` expand; KPI freeze; S2-04 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 改 FrontendPipeline / ≠ 删 syx-cst / ≠ 退出）.
+- **S2-I164:** S2-04 plan claim ([stage2-s2-04-claim](stage2-s2-04-claim.md)); S2-04 `[x]` scoped; Stage-2 `[~]`（≠ 退出 / ≠ Frontend 已共树 / ≠ 删 syx-cst）.
 
 ## References
 
@@ -263,6 +272,15 @@
 - [`docs/adr/stage2-s2-04-lint-cst-first.md`](stage2-s2-04-lint-cst-first.md) · S2-I153
 - [`docs/adr/stage2-s2-04-cst-subset-if-let.md`](stage2-s2-04-cst-subset-if-let.md) · S2-I154
 - [`docs/adr/stage2-s2-04-cst-subset-guard-let.md`](stage2-s2-04-cst-subset-guard-let.md) · S2-I155
+- [`docs/adr/stage2-s2-04-cst-subset-if-case.md`](stage2-s2-04-cst-subset-if-case.md) · S2-I156
+- [`docs/adr/stage2-s2-04-cst-subset-range-in-call.md`](stage2-s2-04-cst-subset-range-in-call.md) · S2-I157
+- [`docs/adr/stage2-s2-04-cst-subset-optional-chain.md`](stage2-s2-04-cst-subset-optional-chain.md) · S2-I158
+- [`docs/adr/stage2-s2-04-frontend-share-tree-evaluation.md`](stage2-s2-04-frontend-share-tree-evaluation.md) · S2-I159
+- [`docs/adr/stage2-s2-04-cst-lower-probe.md`](stage2-s2-04-cst-lower-probe.md) · S2-I160
+- [`docs/adr/stage2-s2-04-lint-lower-path.md`](stage2-s2-04-lint-lower-path.md) · S2-I161
+- [`docs/adr/stage2-s2-04-cst-lower-probe-expand.md`](stage2-s2-04-cst-lower-probe-expand.md) · S2-I162
+- [`docs/adr/stage2-s2-04-dual-grammar-freeze-charter.md`](stage2-s2-04-dual-grammar-freeze-charter.md) · S2-I163
+- [`docs/adr/stage2-s2-04-claim.md`](stage2-s2-04-claim.md) · S2-I164
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

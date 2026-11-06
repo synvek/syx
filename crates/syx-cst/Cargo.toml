@@ -8,6 +8,7 @@ license.workspace = true
 authors.workspace = true
 
 [dependencies]
+syx-ast = { workspace = true }
 syx-diagnostics = { workspace = true }
 syx-lexer = { workspace = true }
 smol_str = { workspace = true }

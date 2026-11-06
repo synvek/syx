@@ -16,19 +16,25 @@ pub fn lint_source(source: &SourceFile) -> SyxResult<Vec<LintIssue>> {
     Ok(lint_module(source, &module))
 }
 
-/// S2-I153 / ADR stage2-s2-04-lint-cst-first: CST-first parse **policy** aligned with
-/// `format_source_auto`. L001–L009 still run on AST `Module` after the probe
-/// (**≠** lint-on-CST / ≠ shared lossless tree).
+/// S2-I153 / ADR stage2-s2-04-lint-cst-first + S2-I161 / ADR stage2-s2-04-lint-lower-path:
+/// CST-first parse **policy** aligned with `format_source_auto`. L001–L009 still run on
+/// AST `Module` — via **CST→AST lower** on the I160 probe face, else `Parser::parse`
+/// (**≠** lint-on-CST / ≠ shared lossless tree / ≠ FrontendPipeline).
 ///
 /// - `SYX_FMT_AST=1` → [`lint_source`] (shared hatch with fmt).
-/// - else `parse_cst_subset`; on Ok or `CST001` → [`lint_source`]; other errors propagate.
+/// - else `parse_cst_subset`:
+///   - Ok → `lower_cst_subset_probe` → [`lint_module`]; lower Err (`LWR001`…) → [`lint_source`].
+///   - `CST001` → [`lint_source`]; other CST errors propagate.
 pub fn lint_source_auto(source: &SourceFile) -> SyxResult<Vec<LintIssue>> {
     match std::env::var("SYX_FMT_AST") {
         Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => return lint_source(source),
         _ => {}
     }
     match syx_cst::parse_cst_subset(source) {
-        Ok(_) => lint_source(source),
+        Ok(root) => match syx_cst::lower_cst_subset_probe(&root) {
+            Ok(module) => Ok(lint_module(source, &module)),
+            Err(_) => lint_source(source),
+        },
         Err(e) if e.code.as_deref() == Some("CST001") => lint_source(source),
         Err(e) => Err(e),
     }
@@ -238,7 +244,7 @@ mod tests {
 
     #[test]
     fn lint_source_auto_preserves_rules_on_cst_subset() {
-        // CST-parseable body + L011 marker + L001 casing.
+        // CST-parseable body + L011 marker + L001 casing (non-`main` → LWR001 → Parser).
         let source = SourceFile::new(
             "t.sy",
             "// TODO: review\nfunc BadName() {\n    print(1)\n}\n",
@@ -252,6 +258,16 @@ mod tests {
             issues.iter().any(|i| i.code == "L011"),
             "expected L011; got {issues:?}"
         );
+    }
+
+    #[test]
+    fn lint_source_auto_probe_face_matches_lint_source() {
+        // I160 probe face: lower path must match Parser-backed lint_source.
+        let source = SourceFile::new("t.sy", "// TODO: x\nfunc main() {\n    print(1)\n}\n");
+        let via_auto = lint_source_auto(&source).expect("auto");
+        let via_parser = lint_source(&source).expect("parser");
+        assert_eq!(via_auto, via_parser);
+        assert!(via_auto.iter().any(|i| i.code == "L011"));
     }
 
     #[test]

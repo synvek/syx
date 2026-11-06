@@ -1,4 +1,5 @@
 //! ADR-142 / M1-E04: lossless CST skeleton — trivia-preserving subset for `func main()`.
+//! S2-I160 / ADR stage2-s2-04-cst-lower-probe: thin CST→AST lower probe (`lower_cst_subset_probe`).
 //! W683 / ADR-1027: body may hold a single `print(<int>)` stmt (C-06 first slice).
 //! W790 / ADR-1134: body may hold 0..N `print(<int|ident|string>)` stmts (comment-preserving deepen).
 //! W791 / ADR-1135: body may interleave `let <ident> = <simple>` with print stmts.
@@ -84,9 +85,15 @@
 //! W871 / ADR-1215: bundle — paren nest cap frozen at ≤3 (`(((x)))`); Neg≤18 and Bang≤4 still frozen; still no `((((…))))` / `!!!!!` / `-------------------`.
 //! S2-I154 / ADR stage2-s2-04-cst-subset-if-let: `if let Ident = <simple|call-simple>` (if-let-simple) in subset; `if case` still out.
 //! S2-I155 / ADR stage2-s2-04-cst-subset-guard-let: `guard let Ident = <simple|call-simple> else {…} [{…}]?` in subset; `if case` / range still out.
+//! S2-I156 / ADR stage2-s2-04-cst-subset-if-case: `if case .Ident[(let Ident…)]? = <simple|call-simple>` in subset; KeyPath / range still out.
+//! S2-I157 / ADR stage2-s2-04-cst-subset-range-in-call: `Integer ...|..< Integer` as print/call/return arg; RangeDyn / optional-chain still out.
+//! S2-I158 / ADR stage2-s2-04-cst-subset-optional-chain: `Ident?.Ident` as print/call/return arg; multi-hop / force-unwrap still out.
 
 use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
 use syx_lexer::{Lexer, Token, TokenKind};
+
+mod lower_probe;
+pub use lower_probe::{lower_cst_subset_probe, lower_cst_subset_probe_from_source};
 
 /// Leading/trailing trivia attached conceptually to a token stream position.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -114,7 +121,7 @@ pub struct CstRoot {
     pub green: GreenNode,
 }
 
-fn is_trivia(kind: &TokenKind) -> bool {
+pub(crate) fn is_trivia(kind: &TokenKind) -> bool {
     matches!(
         kind,
         TokenKind::Newline
@@ -171,6 +178,49 @@ fn is_simple_value(kind: &TokenKind) -> bool {
     )
 }
 
+/// Consume integer range-simple at `tokens[j..]`: `Integer` (`...`|`..<`) `Integer` (S2-I157).
+/// Does **not** cover RangeDyn / non-integer ends. Returns index after the range, or `None`.
+fn take_integer_range_simple(tokens: &[&Token], j: usize) -> Option<usize> {
+    if j + 2 >= tokens.len() {
+        return None;
+    }
+    if !matches!(tokens[j].kind, TokenKind::Integer(_, _)) {
+        return None;
+    }
+    if !matches!(
+        tokens[j + 1].kind,
+        TokenKind::DotDotDot | TokenKind::DotDotLess
+    ) {
+        return None;
+    }
+    if !matches!(tokens[j + 2].kind, TokenKind::Integer(_, _)) {
+        return None;
+    }
+    Some(j + 3)
+}
+
+/// Consume optional-chain-simple at `tokens[j..]`: `Ident` `?` `.` `Ident` (S2-I158 / W716).
+/// Single hop only — no `a?.b?.c`, no chain-then-call. Returns index after the chain, or `None`.
+fn take_optional_chain_simple(tokens: &[&Token], j: usize) -> Option<usize> {
+    if j + 3 >= tokens.len() {
+        return None;
+    }
+    if !matches!(tokens[j].kind, TokenKind::Identifier(_)) {
+        return None;
+    }
+    if tokens[j + 1].kind != TokenKind::Question {
+        return None;
+    }
+    if tokens[j + 2].kind != TokenKind::Dot {
+        return None;
+    }
+    if !matches!(tokens[j + 3].kind, TokenKind::Identifier(_)) {
+        return None;
+    }
+    // Reject immediate multi-hop / call continuation at this take (caller needs RParen etc.).
+    Some(j + 4)
+}
+
 /// Optional external-label prefix `Ident :` before a call arg (W900).
 fn take_call_arg_label(tokens: &[&Token], j: usize) -> usize {
     if j + 1 < tokens.len()
@@ -200,13 +250,24 @@ fn take_call_arg(tokens: &[&Token], j: usize, depth: usize) -> Option<usize> {
     if let Some(end) = take_self_member_access(tokens, j) {
         return Some(end);
     }
+    // S2-I157: integer range as call arg (before bare simple so `1...3` is not truncated).
+    if let Some(end) = take_integer_range_simple(tokens, j) {
+        return Some(end);
+    }
+    // S2-I158: Ident?.Ident as call arg.
+    if let Some(end) = take_optional_chain_simple(tokens, j) {
+        return Some(end);
+    }
     if j >= tokens.len() || !is_simple_value(&tokens[j].kind) {
         return None;
     }
-    // Ident followed by `(` / `.` is a call/member — only allowed via recursion above.
+    // Ident followed by `(` / `.` / `?` is call/member/optional — only via dedicated takes.
     if matches!(tokens[j].kind, TokenKind::Identifier(_))
         && j + 1 < tokens.len()
-        && matches!(tokens[j + 1].kind, TokenKind::LParen | TokenKind::Dot)
+        && matches!(
+            tokens[j + 1].kind,
+            TokenKind::LParen | TokenKind::Dot | TokenKind::Question
+        )
     {
         return None;
     }
@@ -366,13 +427,19 @@ fn take_print_simple_call(body: &[&Token]) -> Option<usize> {
         return None;
     }
     // W834: prefer call-simple arg (`print(f())` / `print(g(1))`).
+    // S2-I157: integer range before bare simple (`print(1...3)` / `print(1..<3)`).
+    // S2-I158: optional-chain before bare simple (`print(x?.y)`).
     let after_arg = if let Some(end) = take_call_simple(body, 2) {
         end
+    } else if let Some(end) = take_integer_range_simple(body, 2) {
+        end
+    } else if let Some(end) = take_optional_chain_simple(body, 2) {
+        end
     } else if is_simple_value(&body[2].kind) {
-        // Bare Ident (not followed by `(`) / literal.
+        // Bare Ident (not followed by `(` / `?`) / literal.
         if matches!(body[2].kind, TokenKind::Identifier(_))
             && body.len() > 3
-            && body[3].kind == TokenKind::LParen
+            && matches!(body[3].kind, TokenKind::LParen | TokenKind::Question)
         {
             return None;
         }
@@ -715,11 +782,30 @@ fn take_return_simple(body: &[&Token]) -> Option<usize> {
             Some(end)
         };
     }
+    // S2-I157: `return` <integer-range> [`;`]
+    if let Some(end) = take_integer_range_simple(body, 1) {
+        return if body.len() > end && body[end].kind == TokenKind::Semicolon {
+            Some(end + 1)
+        } else {
+            Some(end)
+        };
+    }
+    // S2-I158: `return` <optional-chain> [`;`]
+    if let Some(end) = take_optional_chain_simple(body, 1) {
+        return if body.len() > end && body[end].kind == TokenKind::Semicolon {
+            Some(end + 1)
+        } else {
+            Some(end)
+        };
+    }
     // `return` <simple> [`;`]
     if body.len() >= 2 && is_simple_value(&body[1].kind) {
         if matches!(body[1].kind, TokenKind::Identifier(_))
             && body.len() >= 3
-            && matches!(body[2].kind, TokenKind::LParen | TokenKind::Dot)
+            && matches!(
+                body[2].kind,
+                TokenKind::LParen | TokenKind::Dot | TokenKind::Question
+            )
         {
             return None;
         }
@@ -1234,7 +1320,7 @@ fn take_logic_simple_budget(tokens: &[&Token], i: usize, paren_budget: usize) ->
     }
 }
 
-/// Inner while/if body stmt: print / let / var / return / while-simple / if-simple / if-let-simple / guard-let-simple (W836 + W877 + S2-I154/I155).
+/// Inner while/if body stmt: print / let / var / return / while / if / if-let / if-case / guard-let (W836 + W877 + S2-I154…I156).
 fn take_while_body_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     // W901: while/if braced bodies share the full simple-stmt surface (try/catch,
     // bare call, compound assign, …) so Production Scope examples stay CST-green
@@ -1319,19 +1405,15 @@ fn take_while_simple(body: &[&Token]) -> Option<usize> {
 }
 
 /// Consume if-simple at `body[0..]`:
-/// `if` cond (`{` stmts `}` | print|let|var|return) [`else` (`{` stmts `}` | print|let|var|return|if-simple|if-let-simple)].
-/// Cond matches while-simple. Rejects `if case` only (W877; S2-I154: `if let` → `take_if_let_simple`).
-/// Brace-less `else` may be another if-simple / if-let-simple (`else if`). Returns tokens consumed, or `None`.
+/// `if` cond (`{` stmts `}` | print|let|var|return) [`else` (`{` stmts `}` | print|let|var|return|if-simple|if-let|if-case)].
+/// Cond matches while-simple. Rejects `if case` / `if let` here (handled by dedicated takes).
+/// Brace-less `else` may be if-case / if-let / if-simple. Returns tokens consumed, or `None`.
 fn take_if_simple(body: &[&Token]) -> Option<usize> {
     if body.is_empty() || body[0].kind != TokenKind::If {
         return None;
     }
-    // Reject if case (M0 still AST F001). `if let` is handled by take_if_let_simple.
-    if body.len() > 1 && body[1].kind == TokenKind::Case {
-        return None;
-    }
-    // Do not steal if-let into if-simple cond path.
-    if body.len() > 1 && body[1].kind == TokenKind::Let {
+    // Reject if case / if let (dedicated takes).
+    if body.len() > 1 && matches!(body[1].kind, TokenKind::Case | TokenKind::Let) {
         return None;
     }
     let mut j = 1usize;
@@ -1369,11 +1451,11 @@ fn take_if_simple(body: &[&Token]) -> Option<usize> {
             j += 1;
         } else if let Some(end) = take_braceless_while_body(body, j) {
             j = end;
+        } else if let Some(n) = take_if_case_simple(&body[j..]) {
+            j += n;
         } else if let Some(n) = take_if_let_simple(&body[j..]) {
-            // else if let …
             j += n;
         } else if let Some(n) = take_if_simple(&body[j..]) {
-            // else if …
             j += n;
         } else {
             return None;
@@ -1444,6 +1526,117 @@ fn take_if_let_simple(body: &[&Token]) -> Option<usize> {
             j += 1;
         } else if let Some(end) = take_braceless_while_body(body, j) {
             j = end;
+        } else if let Some(n) = take_if_case_simple(&body[j..]) {
+            j += n;
+        } else if let Some(n) = take_if_let_simple(&body[j..]) {
+            j += n;
+        } else if let Some(n) = take_if_simple(&body[j..]) {
+            j += n;
+        } else {
+            return None;
+        }
+    }
+    Some(j)
+}
+
+/// Consume if-case variant pattern at `body[j..]`: `.Ident` [`(` `let` Ident (`,` `let` Ident)* `)`]?
+/// Rejects KeyPath / labels / bare idents / tuple. Returns index after pattern, or `None`.
+fn take_if_case_variant_pattern(body: &[&Token], j: usize) -> Option<usize> {
+    if j + 1 >= body.len() || body[j].kind != TokenKind::Dot {
+        return None;
+    }
+    if !matches!(body[j + 1].kind, TokenKind::Identifier(_)) {
+        return None;
+    }
+    let mut k = j + 2;
+    if k < body.len() && body[k].kind == TokenKind::LParen {
+        k += 1;
+        while k < body.len() && body[k].kind != TokenKind::RParen {
+            // Reject associated labels (`name: let x`).
+            if matches!(body[k].kind, TokenKind::Identifier(_))
+                && k + 1 < body.len()
+                && body[k + 1].kind == TokenKind::Colon
+            {
+                return None;
+            }
+            if body[k].kind != TokenKind::Let {
+                return None;
+            }
+            k += 1;
+            if k >= body.len() || !matches!(body[k].kind, TokenKind::Identifier(_)) {
+                return None;
+            }
+            k += 1;
+            if k < body.len() && body[k].kind == TokenKind::Comma {
+                k += 1;
+            }
+        }
+        if k >= body.len() || body[k].kind != TokenKind::RParen {
+            return None;
+        }
+        k += 1;
+    }
+    Some(k)
+}
+
+/// Consume if-case-simple at `body[0..]` (S2-I156 / parallel I154):
+/// `if case` `.Ident[(let Ident…)]?` `=` `<simple|call-simple>` then/else (same as if-let-simple).
+/// KeyPath / tuple / case-let remain out of subset. Returns tokens consumed, or `None`.
+fn take_if_case_simple(body: &[&Token]) -> Option<usize> {
+    if body.len() < 5 || body[0].kind != TokenKind::If || body[1].kind != TokenKind::Case {
+        return None;
+    }
+    let mut j = take_if_case_variant_pattern(body, 2)?;
+    if j >= body.len() || body[j].kind != TokenKind::Assign {
+        return None;
+    }
+    j += 1;
+    j = if let Some(end) = take_call_simple(body, j) {
+        end
+    } else if j < body.len() && is_simple_value(&body[j].kind) {
+        if matches!(body[j].kind, TokenKind::Identifier(_))
+            && j + 1 < body.len()
+            && matches!(body[j + 1].kind, TokenKind::LParen | TokenKind::Dot)
+        {
+            return None;
+        }
+        j + 1
+    } else {
+        return None;
+    };
+    if j < body.len() && body[j].kind == TokenKind::LBrace {
+        j += 1;
+        while j < body.len() && body[j].kind != TokenKind::RBrace {
+            let Some(next) = take_while_body_stmt(body, j) else {
+                return None;
+            };
+            j = next;
+        }
+        if j >= body.len() || body[j].kind != TokenKind::RBrace {
+            return None;
+        }
+        j += 1;
+    } else {
+        j = take_braceless_while_body(body, j)?;
+    }
+    if j < body.len() && body[j].kind == TokenKind::Else {
+        j += 1;
+        if j < body.len() && body[j].kind == TokenKind::LBrace {
+            j += 1;
+            while j < body.len() && body[j].kind != TokenKind::RBrace {
+                let Some(next) = take_while_body_stmt(body, j) else {
+                    return None;
+                };
+                j = next;
+            }
+            if j >= body.len() || body[j].kind != TokenKind::RBrace {
+                return None;
+            }
+            j += 1;
+        } else if let Some(end) = take_braceless_while_body(body, j) {
+            j = end;
+        } else if let Some(n) = take_if_case_simple(&body[j..]) {
+            j += n;
         } else if let Some(n) = take_if_let_simple(&body[j..]) {
             j += n;
         } else if let Some(n) = take_if_simple(&body[j..]) {
@@ -1513,7 +1706,7 @@ fn take_guard_let_simple(body: &[&Token]) -> Option<usize> {
     Some(j)
 }
 
-/// One simple stmt at `sig[i..]`: print / let / var / return[-simple] / self|member.field[=|+=] / while-simple / if-simple / if-let-simple / guard-let-simple (W835–W890 + S2-I154/I155).
+/// One simple stmt at `sig[i..]`: print / let / var / return / while / if / if-let / if-case / guard-let (W835–W890 + S2-I154…I156).
 /// Returns index after the stmt, or `None`.
 fn take_simple_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     if i >= sig.len() {
@@ -1571,6 +1764,10 @@ fn take_simple_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     if let Some(n) = take_if_let_simple(rest) {
         return Some(i + n);
     }
+    // S2-I156: if-case-simple (dot-variant; before if-simple).
+    if let Some(n) = take_if_case_simple(rest) {
+        return Some(i + n);
+    }
     // S2-I155: guard-let-simple.
     if let Some(n) = take_guard_let_simple(rest) {
         return Some(i + n);
@@ -1591,7 +1788,7 @@ fn take_simple_stmt(sig: &[&Token], i: usize) -> Option<usize> {
     None
 }
 
-/// Body: empty, or 1..N consecutive print / let / var / return / self|member.field= / while-simple / if-simple / if-let-simple / guard-let-simple stmts.
+/// Body: empty, or 1..N consecutive simple stmts (incl. if-let / if-case / guard-let).
 fn is_simple_stmts_body(body: &[&Token]) -> bool {
     if body.is_empty() {
         return true;
@@ -2470,7 +2667,7 @@ fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
             let body = &sig[body_start..body_end];
             if !is_simple_stmts_body(body) {
                 return Err(SyxDiagnostic::error(
-                    "syx-cst: subset body must be trivia-only or print(<simple|call-simple>) / let|var <ident> [: type] = <simple|call-simple> / return [<simple|call-simple>] stmts / while-simple / if-simple / if-let-simple / guard-let-simple (braced or brace-less; optional else / else-if; call|compare|unary-!|!!|!!!|!!!!|unary-Neg|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|paren-group(nest≤3)|logic(left-assoc &&|||, paren|!|!!|!!!|!!!!|-|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|compare|call|simple ops); no depth>2 call / ((((…)))) / !!!!! / ------------------- / if case)",
+                    "syx-cst: subset body must be trivia-only or print(<simple|call-simple>) / let|var <ident> [: type] = <simple|call-simple> / return [<simple|call-simple>] stmts / while-simple / if-simple / if-let-simple / if-case-simple / guard-let-simple (braced or brace-less; optional else / else-if; call|compare|unary-!|!!|!!!|!!!!|unary-Neg|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|paren-group(nest≤3)|logic(left-assoc &&|||, paren|!|!!|!!!|!!!!|-|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|compare|call|simple ops); no depth>2 call / ((((…)))) / !!!!! / ------------------- / if case KeyPath)",
                 )
                 .with_code("CST001"));
             }
@@ -2507,7 +2704,7 @@ fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
             continue;
         }
         return Err(SyxDiagnostic::error(
-            "syx-cst: subset allows `[export] [access] [static|async] func name([params]) [-> Ret] { … }` and/or `export { [Ident [as Ident][,…]] }` and/or `[access?] class Ident [: Ident(, Ident)*]? { var Ident: Ident[?]|init(…)|deinit|func… }` and/or `[access?] data class Ident[<T>](…) [where …]` / `[access?] final class Ident[<T>] [where …] { variants }` and/or `@builtin(\"…\")` + `extension Ident { func… }` interleaved with top-level print/let/var/return[<simple|call-simple>]/while-simple/if-simple/if-let-simple/guard-let-simple only (no depth>2 call / ((((…)))) / !!!!! / ------------------- / static+async stack / if case / member-index compound)",
+            "syx-cst: subset allows `[export] [access] [static|async] func name([params]) [-> Ret] { … }` and/or `export { [Ident [as Ident][,…]] }` and/or `[access?] class Ident [: Ident(, Ident)*]? { var Ident: Ident[?]|init(…)|deinit|func… }` and/or `[access?] data class Ident[<T>](…) [where …]` / `[access?] final class Ident[<T>] [where …] { variants }` and/or `@builtin(\"…\")` + `extension Ident { func… }` interleaved with top-level print/let/var/return[<simple|call-simple>]/while-simple/if-simple/if-let-simple/if-case-simple/guard-let-simple only (no depth>2 call / ((((…)))) / !!!!! / ------------------- / static+async stack / if case KeyPath / member-index compound)",
         )
         .with_code("CST001"));
     }
@@ -6368,13 +6565,63 @@ mod tests {
     }
 
     #[test]
-    fn subset_rejects_if_case() {
-        // W877: if case remains out of subset (M0 still AST F001).
+    fn subset_rejects_if_case_keypath() {
+        // S2-I156: KeyPath if case remains out of subset.
         let file = SourceFile::new(
             "t.sy",
             "func main() {\n  if case \\Foo.bar = x {\n    print(1)\n  }\n}\n",
         );
-        let err = parse_cst_subset(&file).expect_err("if case must CST001");
+        let err = parse_cst_subset(&file).expect_err("if case KeyPath must CST001");
+        assert_eq!(err.code.as_deref(), Some("CST001"));
+    }
+
+    #[test]
+    fn subset_if_case_simple_roundtrip() {
+        // S2-I156: dot-variant if-case-simple in subset.
+        let src = "func main() {\n  if case .ok(let x) = opt {\n    print(x)\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("if case simple must parse");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_if_case_no_binding_and_else_roundtrip() {
+        let src = "func main() {\n  if case .failure = r {\n    print(1)\n  } else {\n    print(0)\n  }\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("if case no_binding/else");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_integer_range_in_print_roundtrip() {
+        // S2-I157: closed + half-open integer range as print arg.
+        let src = "func main() {\n  print(1...3)\n  print(1..<3)\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("range in print must parse");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_integer_range_in_return_roundtrip() {
+        let src = "func main() {\n  return 0...10\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("range in return");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_optional_chain_in_print_roundtrip() {
+        // S2-I158: single-hop Ident?.Ident as print arg.
+        let src = "func main() {\n  print(x?.y)\n}\n";
+        let file = SourceFile::new("t.sy", src);
+        let root = parse_cst_subset(&file).expect("optional chain must parse");
+        assert_eq!(format_cst(&root), src);
+    }
+
+    #[test]
+    fn subset_rejects_force_unwrap_bang() {
+        let file = SourceFile::new("t.sy", "func main() {\n  print(1!)\n}\n");
+        let err = parse_cst_subset(&file).expect_err("force unwrap must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
 
