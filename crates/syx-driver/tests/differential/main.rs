@@ -612,3 +612,28 @@ pub fn diff_exact(rel: &str) {
         }
     }
 }
+
+/// S2-I141 / ADR stage2-s2-03-differential-deepen: Suite-1 S2-03 floor — VM + MIR
+/// only (exact oracle). Wasm/native are honesty OUT (Darwin wasm fail-closed
+/// pre-existing; ≠ flip suite1 skip.wasm; ≠ S2-03 [x]).
+pub fn diff_exact_vm_mir(rel: &str) {
+    let path = fixtures_root().join(rel);
+    let raw = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let oracle = load_oracle(&path);
+    let src = prepare_src(&raw, &oracle, None);
+
+    if !oracle.skip.vm {
+        before_run(rel);
+        diff_trace(&format!("{rel} start vm (s2-03 floor)"));
+        let result = run_vm(src.clone());
+        diff_trace(&format!("{rel} end vm ok={}", result.is_ok()));
+        assert_backend("vm", rel, result, None, &oracle);
+    }
+    if !oracle.skip.mir {
+        before_run(rel);
+        diff_trace(&format!("{rel} start mir (s2-03 floor)"));
+        let (result, dir) = run_mir(rel, src);
+        diff_trace(&format!("{rel} end mir ok={}", result.is_ok()));
+        assert_backend("mir", rel, result, dir, &oracle);
+    }
+}

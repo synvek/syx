@@ -46,8 +46,11 @@ Fingerprint: `three-hundred-and-twenty-third` / `A-W473` (honesty); exit clearan
 | 10 | Deinit | `Deinit` | no-op (top-level) |
 | 11 | Subscript | `Subscript` | no-op |
 
-`active_ast_type_shell_count=0`. Count **11** remains meaningful: these Decl variants still enter `compile_type_shells` → `compile_decl`.
+`active_ast_type_shell_count=0`. Count **11** remains the historical W473 residual table (Decl variants that *would* have entered `compile_decl`).
 
+**S2-I137 footnote:** [`stage2-s2-03-type-shell-hollow`](../adr/stage2-s2-03-type-shell-hollow.md) hollowed `compile_type_shells` → `Ok(())` — **path entry = 0**.
+
+**S2-I138 footnote:** [`stage2-s2-03-type-shell-delete`](../adr/stage2-s2-03-type-shell-delete.md) **deleted** the hollow call+fn. MIR path no longer has a type-shell hook. This is S2-03 construction, **≠** a new B-01 `[x]` / **≠** claiming the 11 Decl variants were deleted from the AST / **≠** purge of `compile_decl`.
 ## Gap table (hard)
 
 | Gap | Present? | Meaning |
@@ -70,11 +73,11 @@ Fingerprint: `three-hundred-and-twenty-third` / `A-W473` (honesty); exit clearan
 
 ## Evidence
 
-- [`crates/syx-codegen/src/lib.rs`](../../crates/syx-codegen/src/lib.rs) `GateB01NoopResidualHonestyInventory` / `compile_decl` `_ => {}` / `B01_RESIDUAL_AST_SHELL_CLUSTER_COUNT=11`
-- Meta: `gate_b01_noop_residual_honesty.rs`
-- Exit: [`gate-b01-mir-consumer-exit.md`](../../plan/archive/gates/gate-b01-mir-consumer-exit.md) / ~~`gate_b01_mir_consumer_exit.rs`~~ retired（F-10 W594）；proof = `GateB01MirConsumerHorizonExitInventory`
+- [`crates/syx-codegen/src/lib.rs`](../../crates/syx-codegen/src/lib.rs) `compile_decl` residual `_ => {}` / type-shell skip list（`GateB01NoopResidualHonestyInventory` removed from product `src/` in S2-I4）
+- Meta: ~~`gate_b01_noop_residual_honesty.rs`~~ retired；**post S2-I136…I138** product proof = [`s2_03_mir_consumer_contract`](../../crates/syx-driver/tests/lang/s2_03_mir_consumer_contract.rs)（含 delete absent 钉）+ this SSOT（≠ restore src inventory）
+- Exit: [`gate-b01-mir-consumer-exit.md`](../../plan/archive/gates/gate-b01-mir-consumer-exit.md) / ~~`gate_b01_mir_consumer_exit.rs`~~ retired（F-10 W594）
 - Floor: [`gate-b01-actor-mir-shell-migrate.md`](gate-b01-actor-mir-shell-migrate.md) / [`gate-b01-mir-consumer-deepen-thin.md`](gate-b01-mir-consumer-deepen-thin.md)
-- Cross: [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) B-01, [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md)
+- Cross: [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) B-01 / S2-03, [`stage2-s2-03-open`](../adr/stage2-s2-03-open.md), [`stage2-s2-03-type-shell-hollow`](../adr/stage2-s2-03-type-shell-hollow.md), [`stage2-s2-03-type-shell-delete`](../adr/stage2-s2-03-type-shell-delete.md), [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md)
 
 ## Frozen
 

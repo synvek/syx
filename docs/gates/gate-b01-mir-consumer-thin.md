@@ -40,9 +40,9 @@ Fingerprint: `three-hundred-and-thirteenth` / `A-W463`.
 
 ## Evidence
 
-- [`crates/syx-codegen/src/lib.rs`](../../crates/syx-codegen/src/lib.rs) `GateB01MirConsumerThinInventory` / `compile_with_mir` / `compile_type_shells`
-- Meta: ~~`gate_b01_mir_consumer_thin.rs`~~ retired（F-10 W595）；proof = this SSOT + `GateB01MirConsumerThinInventory`
-- Cross: [`frontend-pipeline-entry-matrix.md`](../lang/frontend-pipeline-entry-matrix.md), [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) B-01, [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md)
+- [`crates/syx-codegen/src/lib.rs`](../../crates/syx-codegen/src/lib.rs) `compile_with_mir` / `compile_type_shells`（`GateB01MirConsumerThinInventory` removed from product `src/` in S2-I4）
+- Meta: ~~`gate_b01_mir_consumer_thin.rs`~~ retired（F-10 W595）；**post S2-I136 proof** = this SSOT + behavioral [`s2_03_mir_consumer_contract.rs`](../../crates/syx-driver/tests/lang/s2_03_mir_consumer_contract.rs)（≠ restore src inventory）
+- Cross: [`frontend-pipeline-entry-matrix.md`](../lang/frontend-pipeline-entry-matrix.md), [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) B-01 / S2-03, [`stage2-s2-03-open`](../adr/stage2-s2-03-open.md), [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md)
 
 ## Frozen
 

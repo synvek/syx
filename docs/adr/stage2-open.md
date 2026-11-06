@@ -152,6 +152,13 @@
 - **S2-I133:** S2-01 peel `gate_b09_gc_narrative` ([stage2-gate-b09-narrative-peel](stage2-gate-b09-narrative-peel.md)); claim gate blockers 2→1 (`llvm_stub_audit`); claim inventory still incomplete; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]`.
 - **S2-I134:** ADR-accept `llvm_stub_audit` as B-06 product ([stage2-llvm-stub-audit-product-accept](stage2-llvm-stub-audit-product-accept.md)); claim inventory → **complete**; census KPI still **0**; S2-02 `[~]`; S2-01 `[~]` (满勾 dedicated window).
 - **S2-I135:** S2-01·S2-02 plan claim ([stage2-s2-01-s2-02-claim](stage2-s2-01-s2-02-claim.md)); census KPI still **0**; S2-01 `[x]`; S2-02 `[x]`; Stage-2 `[~]`（余 S2-03…；≠ 退出）.
+- **S2-I136:** S2-03 open ([stage2-s2-03-open](stage2-s2-03-open.md)); behavioral `s2_03_mir_consumer_contract` + differential floor; S2-03 `[~]`; Stage-2 `[~]`（≠ S2-03 `[x]` / ≠ 删 type-shell / ≠ 退出）.
+- **S2-I137:** S2-03 type-shell hollow ([stage2-s2-03-type-shell-hollow](stage2-s2-03-type-shell-hollow.md)); `compile_type_shells`→`Ok(())` path entry 0; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 删 fn / ≠ 清 `compile_decl` / ≠ 退出）.
+- **S2-I138:** S2-03 type-shell delete ([stage2-s2-03-type-shell-delete](stage2-s2-03-type-shell-delete.md)); call+fn removed; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 清 `compile_decl` / ≠ 退出）.
+- **S2-I139:** S2-03 compile_module delete ([stage2-s2-03-compile-module-delete](stage2-s2-03-compile-module-delete.md)); trio removed; `compile_decl` corpse kept; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 清 `compile_decl` / ≠ 退出）.
+- **S2-I140:** S2-03 compile_decl delete ([stage2-s2-03-compile-decl-delete](stage2-s2-03-compile-decl-delete.md)); corpse cluster removed; `compile_function_decl` kept; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 差分加深宣称 / ≠ 退出）.
+- **S2-I141:** S2-03 differential deepen ([stage2-s2-03-differential-deepen](stage2-s2-03-differential-deepen.md)); Suite-1 VM⟷MIR floor bound; S2-03 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 修 wasm / ≠ 退出）.
+- **S2-I142:** S2-03 plan claim ([stage2-s2-03-claim](stage2-s2-03-claim.md)); S2-03 `[x]`; Stage-2 `[~]`（≠ 退出 / ≠ 修 wasm / ≠ 开 S2-04 施工）.
 
 ## References
 
@@ -222,6 +229,13 @@
 - [`docs/adr/stage2-gate-b09-narrative-peel.md`](stage2-gate-b09-narrative-peel.md) · S2-I133
 - [`docs/adr/stage2-llvm-stub-audit-product-accept.md`](stage2-llvm-stub-audit-product-accept.md) · S2-I134
 - [`docs/adr/stage2-s2-01-s2-02-claim.md`](stage2-s2-01-s2-02-claim.md) · S2-I135
+- [`docs/adr/stage2-s2-03-open.md`](stage2-s2-03-open.md) · S2-I136
+- [`docs/adr/stage2-s2-03-type-shell-hollow.md`](stage2-s2-03-type-shell-hollow.md) · S2-I137
+- [`docs/adr/stage2-s2-03-type-shell-delete.md`](stage2-s2-03-type-shell-delete.md) · S2-I138
+- [`docs/adr/stage2-s2-03-compile-module-delete.md`](stage2-s2-03-compile-module-delete.md) · S2-I139
+- [`docs/adr/stage2-s2-03-compile-decl-delete.md`](stage2-s2-03-compile-decl-delete.md) · S2-I140
+- [`docs/adr/stage2-s2-03-differential-deepen.md`](stage2-s2-03-differential-deepen.md) · S2-I141
+- [`docs/adr/stage2-s2-03-claim.md`](stage2-s2-03-claim.md) · S2-I142
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

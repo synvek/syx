@@ -25,7 +25,7 @@ Exports auto-discovery / B-09 unified heap / residual ABI cleanup / private help
 | Public entry delete | **signed** (W482 / ADR-826) | this document + `GateB02CompileApiDeleteInventory` |
 | `compile_with_mir` retained | **met** | `syx-codegen` + driver production path |
 
-**Evidence nails:** `crates/syx-driver/tests/native/gate_b02_compile_api_delete.rs` + `gate_b02_compile_api_delete_inventory`.
+**Evidence nails (historical):** ~~`gate_b02_compile_api_delete.rs`~~ + inventory removed from product path (S2-I4). **Post S2-I136:** behavioral [`s2_03_public_ast_compile_api_absent`](../../crates/syx-driver/tests/lang/s2_03_mir_consumer_contract.rs) + this SSOT（≠ restore src inventory）. See [`stage2-s2-03-open`](../adr/stage2-s2-03-open.md).
 
 ## Contract (hard)
 

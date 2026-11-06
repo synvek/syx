@@ -20,7 +20,7 @@
 
 ## Consequences
 
-- Next default = **S2-03** open window；**not** Stage-2 exit；**not** further soft OUT knives.
+- S2-03 opened under [S2-I136](stage2-s2-03-open.md) (`[~]`); next default = S2-03 construction（type-shell / private AST）；**not** Stage-2 exit；**not** further soft OUT knives.
 - Open: [stage2-open](stage2-open.md).
 
 ## References
