@@ -26,7 +26,7 @@
 ## Consequences
 
 - S2-06 plan-claimed; Stage-2 stays `[~]` (S2-01…06 `[x]`; S2-07 open).
-- Decision §4 locked next = **S2-07 open**; default next window = **S2-I263 S2-07 open** — not Stage-2 exit.
+- Decision §4 locked next = **S2-07 open**; **landed** as [s2-07-open](stage2-s2-07-open.md)（S2-I263）；next = **S2-I264 inject CARGO_PKG_VERSION**.
 - Prior: [s2-06-exclude-syx-gui](stage2-s2-06-exclude-syx-gui.md) · S2-I261.
 
 ## References

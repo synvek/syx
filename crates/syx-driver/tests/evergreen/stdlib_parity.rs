@@ -22,5 +22,11 @@ fn manifest_phase_pin() {
     let phase = m["phase"].as_u64().unwrap_or(0);
     assert_eq!(phase, 139, "expected phase 139, got {phase}");
     let version = m["version"].as_str().unwrap_or("");
-    assert_eq!(version, "117.0", "expected manifest version 117.0, got {version}");
+    // S2-I264: public version follows crate semver (CARGO_PKG_VERSION).
+    assert_eq!(
+        version,
+        env!("CARGO_PKG_VERSION"),
+        "expected manifest version {}, got {version}",
+        env!("CARGO_PKG_VERSION")
+    );
 }

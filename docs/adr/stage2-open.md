@@ -231,6 +231,9 @@
 - **S2-I260:** S2-06 open — workspace slim census ([stage2-s2-06-open](stage2-s2-06-open.md)); S2-06 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I261:** S2-06 exclude syx-gui from default workspace ([stage2-s2-06-exclude-syx-gui](stage2-s2-06-exclude-syx-gui.md)); S2-06 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）；next = S2-I262 claim.
 - **S2-I262:** S2-06 plan claim ([stage2-s2-06-claim](stage2-s2-06-claim.md)); S2-06 `[x]` scoped; Stage-2 `[~]`（≠ 退出）；next = S2-07 open.
+- **S2-I263:** S2-07 open — version census ([stage2-s2-07-open](stage2-s2-07-open.md)); S2-07 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）；next = S2-I264 inject CARGO_PKG_VERSION.
+- **S2-I264:** S2-07 inject CARGO_PKG_VERSION ([stage2-s2-07-inject-cargo-pkg-version](stage2-s2-07-inject-cargo-pkg-version.md)); S2-07 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）；next = S2-I265 claim.
+- **S2-I265:** S2-07 plan claim ([stage2-s2-07-claim](stage2-s2-07-claim.md)); S2-07 `[x]` scoped; Stage-2 `[~]`（≠ 退出）；next = S2-I266 Stage-2 exit.
 
 ## References
 
@@ -381,6 +384,9 @@
 - [`docs/adr/stage2-s2-06-open.md`](stage2-s2-06-open.md) · S2-I260
 - [`docs/adr/stage2-s2-06-exclude-syx-gui.md`](stage2-s2-06-exclude-syx-gui.md) · S2-I261
 - [`docs/adr/stage2-s2-06-claim.md`](stage2-s2-06-claim.md) · S2-I262
+- [`docs/adr/stage2-s2-07-open.md`](stage2-s2-07-open.md) · S2-I263
+- [`docs/adr/stage2-s2-07-inject-cargo-pkg-version.md`](stage2-s2-07-inject-cargo-pkg-version.md) · S2-I264
+- [`docs/adr/stage2-s2-07-claim.md`](stage2-s2-07-claim.md) · S2-I265
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

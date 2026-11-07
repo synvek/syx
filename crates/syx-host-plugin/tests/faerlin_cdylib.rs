@@ -169,7 +169,7 @@ fn faerlin_manifest(library_file_name: &str) -> PluginManifest {
                 params: vec!["a: Int".into(), "b: Int".into()],
             },
         ],
-        min_syx_version: Some("117.0".into()),
+        min_syx_version: Some("0.1.3".into()),
         capabilities: vec!["linalg".into()],
         signature: None,
     }

@@ -508,10 +508,12 @@ fn manifest_json(prelude_modules: &[&str]) -> String {
         .collect::<Vec<_>>()
         .join(", ");
 
+    // S2-I264: public version = crate semver (workspace 0.1.3); phase stays internal.
+    let pkg_version = env!("CARGO_PKG_VERSION");
     format!(
         "{{\n\
            \"phase\": 139,\n\
-           \"version\": \"117.0\",\n\
+           \"version\": \"{pkg_version}\",\n\
            \"source\": \"crates/syx-driver/build.rs + builtin_kind\",\n\
            \"entries\": [\n{}\n  ],\n\
            \"prelude_modules\": [{prelude_json}],\n\

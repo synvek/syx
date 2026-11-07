@@ -120,3 +120,6 @@ mod s2_05_claim_contract;
 mod s2_06_workspace_census_contract;
 mod s2_06_exclude_syx_gui_contract;
 mod s2_06_claim_contract;
+mod s2_07_version_census_contract;
+mod s2_07_inject_cargo_pkg_version_contract;
+mod s2_07_claim_contract;

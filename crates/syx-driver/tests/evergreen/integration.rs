@@ -22,8 +22,9 @@ fn run(rel: &str) -> (i32, Vec<String>) {
 fn manifest_v41() {
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();
-    assert_eq!(m["phase"], 63);
-    assert_eq!(m["version"], "41.0");
+    // S2-I264: align with current public semver; phase remains internal census value.
+    assert_eq!(m["phase"], 139);
+    assert_eq!(m["version"], env!("CARGO_PKG_VERSION"));
 }
 
 #[test]

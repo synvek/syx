@@ -17,7 +17,8 @@ fn manifest_current() {
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();
     assert_eq!(m["phase"], 139);
-    assert_eq!(m["version"], "117.0");
+    // S2-I264: public version follows crate semver (CARGO_PKG_VERSION).
+    assert_eq!(m["version"], env!("CARGO_PKG_VERSION"));
 }
 
 #[test]
