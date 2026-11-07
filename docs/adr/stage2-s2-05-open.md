@@ -32,8 +32,9 @@ Baseline numbers: [stage2-file-split-census](../stage2-file-split-census.md).
 
 ## Consequences
 
-- S2-05 moves `[ ]` → `[~]`; Stage-2 stays `[~]`.
-- Default next construction window = **S2-I166 `syx-mir` first extract** — not Frontend migrate, not S2-06.
+- S2-05 moved `[ ]` → `[~]` at open; **S2-I259** claimed S2-05 `[x]` scoped ([stage2-s2-05-claim](stage2-s2-05-claim.md)); Stage-2 stays `[~]`.
+- Construction ladder completed through I258 peels + I259 claim; default next = **S2-06 open** — not Stage-2 exit.
+- Historical next at open = **S2-I166 `syx-mir` first extract** — landed; see census ladder.
 - **S2-I166:** [mir-types-extract](stage2-s2-05-mir-types-extract.md) landed — `mir_types.rs`; next = **S2-I167 codec/blob**（≠ S2-05 `[x]` / ≠ Stage-2 exit）.
 - **S2-I167:** [mir-codec-extract](stage2-s2-05-mir-codec-extract.md) landed — `mir_codec.rs`; next = **S2-I168 AOT shaken/compact**（≠ S2-05 `[x]` / ≠ Stage-2 exit）.
 - **S2-I168:** [mir-aot-extract](stage2-s2-05-mir-aot-extract.md) landed — `mir_aot.rs`; next = **S2-I169 mir_opt**（≠ S2-05 `[x]` / ≠ Stage-2 exit）.

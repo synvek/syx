@@ -214,6 +214,20 @@
 - **S2-I227–I229:** S2-05 driver format→cache→wasm batch extract ([stage2-s2-05-driver-format-to-wasm-batch](stage2-s2-05-driver-format-to-wasm-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I230–I232:** S2-05 driver compile→gates→debug batch extract ([stage2-s2-05-driver-compile-to-debug-batch](stage2-s2-05-driver-compile-to-debug-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I233–I235:** S2-05 driver production close-out batch extract ([stage2-s2-05-driver-production-closeout-batch](stage2-s2-05-driver-production-closeout-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I236–I237:** S2-05 semantic types→codec batch extract ([stage2-s2-05-semantic-types-to-codec-batch](stage2-s2-05-semantic-types-to-codec-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I238:** S2-05 semantic feature_gates extract ([stage2-s2-05-semantic-feature-gates-extract](stage2-s2-05-semantic-feature-gates-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I239–I240:** S2-05 semantic analyzer entry→builtins batch extract ([stage2-s2-05-semantic-analyzer-entry-to-builtins-batch](stage2-s2-05-semantic-analyzer-entry-to-builtins-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I241:** S2-05 semantic collect_decls extract ([stage2-s2-05-semantic-collect-decls-extract](stage2-s2-05-semantic-collect-decls-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I242–I243:** S2-05 semantic analyze_decl→stmt batch extract ([stage2-s2-05-semantic-analyze-decl-to-stmt-batch](stage2-s2-05-semantic-analyze-decl-to-stmt-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I244:** S2-05 semantic analyze_expr extract ([stage2-s2-05-semantic-analyze-expr-extract](stage2-s2-05-semantic-analyze-expr-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I245:** S2-05 semantic analyze_call extract ([stage2-s2-05-semantic-analyze-call-extract](stage2-s2-05-semantic-analyze-call-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I246:** S2-05 semantic analyze_type_member extract ([stage2-s2-05-semantic-analyze-type-member-extract](stage2-s2-05-semantic-analyze-type-member-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I247–I248:** S2-05 semantic production close-out batch ([stage2-s2-05-semantic-production-closeout-batch](stage2-s2-05-semantic-production-closeout-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I249:** S2-05 semantic helpers extract ([stage2-s2-05-semantic-helpers-extract](stage2-s2-05-semantic-helpers-extract.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I250–I252:** S2-05 semantic_analyzer core-faces batch ([stage2-s2-05-semantic-analyzer-core-faces-batch](stage2-s2-05-semantic-analyzer-core-faces-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I253–I255:** S2-05 semantic_analyzer decl/call/member batch ([stage2-s2-05-semantic-analyzer-decl-call-member-batch](stage2-s2-05-semantic-analyzer-decl-call-member-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I256–I258:** S2-05 semantic_analyzer concurrency/IDE/infer batch ([stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch](stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I259:** S2-05 plan claim ([stage2-s2-05-claim](stage2-s2-05-claim.md)); S2-05 `[x]` scoped; Stage-2 `[~]`（≠ 退出）；next = S2-06 open.
 
 ## References
 
@@ -347,6 +361,20 @@
 - [`docs/adr/stage2-s2-05-driver-format-to-wasm-batch.md`](stage2-s2-05-driver-format-to-wasm-batch.md) · S2-I227–I229
 - [`docs/adr/stage2-s2-05-driver-compile-to-debug-batch.md`](stage2-s2-05-driver-compile-to-debug-batch.md) · S2-I230–I232
 - [`docs/adr/stage2-s2-05-driver-production-closeout-batch.md`](stage2-s2-05-driver-production-closeout-batch.md) · S2-I233–I235
+- [`docs/adr/stage2-s2-05-semantic-types-to-codec-batch.md`](stage2-s2-05-semantic-types-to-codec-batch.md) · S2-I236–I237
+- [`docs/adr/stage2-s2-05-semantic-feature-gates-extract.md`](stage2-s2-05-semantic-feature-gates-extract.md) · S2-I238
+- [`docs/adr/stage2-s2-05-semantic-analyzer-entry-to-builtins-batch.md`](stage2-s2-05-semantic-analyzer-entry-to-builtins-batch.md) · S2-I239–I240
+- [`docs/adr/stage2-s2-05-semantic-collect-decls-extract.md`](stage2-s2-05-semantic-collect-decls-extract.md) · S2-I241
+- [`docs/adr/stage2-s2-05-semantic-analyze-decl-to-stmt-batch.md`](stage2-s2-05-semantic-analyze-decl-to-stmt-batch.md) · S2-I242–I243
+- [`docs/adr/stage2-s2-05-semantic-analyze-expr-extract.md`](stage2-s2-05-semantic-analyze-expr-extract.md) · S2-I244
+- [`docs/adr/stage2-s2-05-semantic-analyze-call-extract.md`](stage2-s2-05-semantic-analyze-call-extract.md) · S2-I245
+- [`docs/adr/stage2-s2-05-semantic-analyze-type-member-extract.md`](stage2-s2-05-semantic-analyze-type-member-extract.md) · S2-I246
+- [`docs/adr/stage2-s2-05-semantic-production-closeout-batch.md`](stage2-s2-05-semantic-production-closeout-batch.md) · S2-I247–I248
+- [`docs/adr/stage2-s2-05-semantic-helpers-extract.md`](stage2-s2-05-semantic-helpers-extract.md) · S2-I249
+- [`docs/adr/stage2-s2-05-semantic-analyzer-core-faces-batch.md`](stage2-s2-05-semantic-analyzer-core-faces-batch.md) · S2-I250–I252
+- [`docs/adr/stage2-s2-05-semantic-analyzer-decl-call-member-batch.md`](stage2-s2-05-semantic-analyzer-decl-call-member-batch.md) · S2-I253–I255
+- [`docs/adr/stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md`](stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md) · S2-I256–I258
+- [`docs/adr/stage2-s2-05-claim.md`](stage2-s2-05-claim.md) · S2-I259
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

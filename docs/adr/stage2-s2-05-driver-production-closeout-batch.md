@@ -28,8 +28,7 @@
 ## Consequences
 
 - S2-05 stays `[~]`; Stage-2 stays `[~]`.
-- Default next construction window = **S2-I236 syx-semantic 首抽**.
-- Driver movable production definitions cleared; hub + tests remain; semantic untouched.
+- **S2-I236–I237 landed:** [semantic-types-to-codec-batch](stage2-s2-05-semantic-types-to-codec-batch.md) — semantic_types / semantic_type_codec left into modules; next default = **S2-I238 semantic feature_gates**.
 - Prior: [driver-compile-to-debug-batch](stage2-s2-05-driver-compile-to-debug-batch.md) · S2-I230–I232.
 
 ## References

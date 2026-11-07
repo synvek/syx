@@ -1,13 +1,9 @@
 # Stage-2 file-split census (S2-05)
 
-**ADR:** [stage2-s2-05-open](adr/stage2-s2-05-open.md) · **Window:** S2-I165（baseline）· **Current:** S2-I235  
+**ADR:** [stage2-s2-05-open](adr/stage2-s2-05-open.md) · **Window:** S2-I165（baseline）· **Current:** S2-I259 · **Claim:** [stage2-s2-05-claim](adr/stage2-s2-05-claim.md)（S2-05 `[x]` scoped）
 
- 
- 
-
- 
 **Goal (S2-05):** split giant `lib.rs` faces in `syx-mir` / `syx-driver` / `syx-semantic` into maintainable modules.  
-**This census:** honest LOC + sidecar inventory — **≠** split complete / **≠** S2-05 `[x]`.
+**This census:** honest LOC + sidecar inventory — production peels claimed scoped `[x]`；**≠** Stage-2 exit / **≠** tests migrated.
 
 ## Command
 
@@ -392,13 +388,198 @@ ADR: [stage2-s2-05-driver-compile-to-debug-batch](adr/stage2-s2-05-driver-compil
 
 ADR: [stage2-s2-05-driver-production-closeout-batch](adr/stage2-s2-05-driver-production-closeout-batch.md).
 
+## S2-I236–I237 after semantic types→codec batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **8555** (−334 vs I235/open 8889) |
+| Batch sidecars LOC | semantic_types **134** · semantic_type_codec **233** |
+| Combined three `lib.rs` LOC | **11740** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **5** (+2: semantic_types/semantic_type_codec) |
+| Honesty floor (`syx-semantic` lib) | **8500** (new; was open ≥8000) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-types-to-codec-batch](adr/stage2-s2-05-semantic-types-to-codec-batch.md).
+
+## S2-I238 after semantic feature_gates extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **7796** (−759 vs I237) |
+| Sidecar LOC | feature_gates **765** |
+| Combined three `lib.rs` LOC | **10981** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **6** (+1: feature_gates) |
+| Honesty floor (`syx-semantic` lib) | **7700** (was 8500) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-feature-gates-extract](adr/stage2-s2-05-semantic-feature-gates-extract.md).
+
+## S2-I239–I240 after semantic analyzer entry→builtins batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **6851** (−945 vs I238) |
+| Sidecar LOC | semantic_analyzer **969** |
+| Combined three `lib.rs` LOC | **10036** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (+1: semantic_analyzer) |
+| Honesty floor (`syx-semantic` lib) | **6800** (was 7700) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyzer-entry-to-builtins-batch](adr/stage2-s2-05-semantic-analyzer-entry-to-builtins-batch.md).
+
+## S2-I241 after semantic collect_decls extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **5872** (−979 vs I240) |
+| Sidecar LOC | semantic_analyzer **1948** |
+| Combined three `lib.rs` LOC | **9057** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (unchanged; same-file growth) |
+| Honesty floor (`syx-semantic` lib) | **5800** (was 6800) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-collect-decls-extract](adr/stage2-s2-05-semantic-collect-decls-extract.md).
+
+## S2-I242–I243 after semantic analyze_decl→stmt batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **4862** (−1010 vs I241) |
+| Sidecar LOC | semantic_analyzer **2960** |
+| Combined three `lib.rs` LOC | **8047** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (unchanged; same-file growth) |
+| Honesty floor (`syx-semantic` lib) | **4800** (was 5800) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyze-decl-to-stmt-batch](adr/stage2-s2-05-semantic-analyze-decl-to-stmt-batch.md).
+
+## S2-I244 after semantic analyze_expr extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **3958** (−904 vs I243) |
+| Sidecar LOC | semantic_analyzer **3867** |
+| Combined three `lib.rs` LOC | **7143** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (unchanged; same-file growth) |
+| Honesty floor (`syx-semantic` lib) | **3800** (was 4800) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyze-expr-extract](adr/stage2-s2-05-semantic-analyze-expr-extract.md).
+
+## S2-I245 after semantic analyze_call extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **2872** (−1086 vs I244) |
+| Sidecar LOC | semantic_analyzer **4958** |
+| Combined three `lib.rs` LOC | **6057** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (unchanged; same-file growth) |
+| Honesty floor (`syx-semantic` lib) | **2800** (was 3800) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyze-call-extract](adr/stage2-s2-05-semantic-analyze-call-extract.md).
+
+## S2-I246 after semantic analyze_type_member extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **1850** (−1022 vs I245) |
+| Sidecar LOC | semantic_analyzer **5984** |
+| Combined three `lib.rs` LOC | **5035** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (unchanged; same-file growth) |
+| Honesty floor (`syx-semantic` lib) | **1800** (was 2800) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyze-type-member-extract](adr/stage2-s2-05-semantic-analyze-type-member-extract.md).
+
+## S2-I247–I248 after semantic production close-out batch (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **549** (−1301 vs I246) |
+| Sidecar LOC | semantic_analyzer **7287** |
+| Combined three `lib.rs` LOC | **3734** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **7** (unchanged; same-file growth) |
+| Honesty floor (`syx-semantic` lib) | **500** (was 1800) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-production-closeout-batch](adr/stage2-s2-05-semantic-production-closeout-batch.md).
+
+## S2-I249 after semantic helpers extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/lib.rs` LOC | **320** (−229 vs I248) |
+| Sidecar LOC | semantic_helpers **218** |
+| Combined three `lib.rs` LOC | **3505** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **8** (+1: semantic_helpers) |
+| Honesty floor (`syx-semantic` lib) | **300** (was 500) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-helpers-extract](adr/stage2-s2-05-semantic-helpers-extract.md).
+
+## S2-I250–I252 after semantic_analyzer core-faces batch (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/semantic_analyzer.rs` LOC | **4876** (−2411 vs I249) |
+| Batch sidecars LOC | collect_decls **1008** · analyze_expr **924** · analyze_stmt **534** |
+| `crates/syx-semantic/src/lib.rs` LOC | **322** |
+| Combined three `lib.rs` LOC | **3507** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **11** (+3) |
+| Honesty floor (`semantic_analyzer`) | **4500** (new; plan mid 5500, landed 4876) |
+| Honesty floor (`syx-semantic` lib) | **300** (unchanged) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyzer-core-faces-batch](adr/stage2-s2-05-semantic-analyzer-core-faces-batch.md).
+
+## S2-I253–I255 after analyzer decl/call/member batch (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/semantic_analyzer.rs` LOC | **2266** (−2610 vs I252) |
+| Batch sidecars LOC | decl **511** · call **1131** · type_member **1026** |
+| `crates/syx-semantic/src/lib.rs` LOC | **325** |
+| Combined three `lib.rs` LOC | **3510** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **14** (+3) |
+| Honesty floor (`semantic_analyzer`) | **2000** (was 4500) |
+| Honesty floor (`syx-semantic` lib) | **300** (unchanged) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyzer-decl-call-member-batch](adr/stage2-s2-05-semantic-analyzer-decl-call-member-batch.md).
+
+## S2-I256–I258 after analyzer concurrency/IDE/infer batch (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-semantic/src/semantic_analyzer.rs` LOC | **962** (−1304 vs I255) |
+| Batch sidecars LOC | concurrency **471** · ide **392** · infer_host **489** |
+| `crates/syx-semantic/src/lib.rs` LOC | **328** |
+| Combined three `lib.rs` LOC | **3513** |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **17** (+3) |
+| Honesty floor (`semantic_analyzer`) | **800** (was 2000) |
+| Honesty floor (`syx-semantic` lib) | **300** (unchanged) |
+| Honesty floor (`syx-driver` lib) | **1100** (unchanged) |
+
+ADR: [stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch](adr/stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md).
+
+## S2-I259 S2-05 scoped claim (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| Claim | **S2-05 `[x]` scoped** ([claim ADR](adr/stage2-s2-05-claim.md)) |
+| Combined three `lib.rs` LOC | **3513** (baseline 31222；−89%) |
+| `semantic_analyzer.rs` LOC | **962** (entry/builtins hub OK) |
+| `syx-semantic` sidecar `.rs` (excl. lib/bin) | **17** |
+| Stage-2 | still `[~]`；next = **S2-06 open** |
+
 ## Honesty notes
 
 | Crate | Already extracted (examples) | Remaining debt |
 |-------|------------------------------|----------------|
-| `syx-mir` | …/lower_expr+module | **生产尾面耗尽；tests 仍堆 lib** |
-| `syx-driver` | …/compile·gates·debug/**close-out** | **可搬生产 fn/const 簇已清空；hub + `#[cfg(test)]` + host_rt stubs 常驻** — **next knife = I236 syx-semantic 首抽**（≠ lib peel 全面耗尽宣称 / ≠ S2-05 `[x]`） |
-| `syx-semantic` | thin helpers | Core checker / lowers still in `lib.rs` |
+| `syx-mir` | …/lower_expr+module | **生产尾面耗尽；tests 仍堆 lib（claim-OK）** |
+| `syx-driver` | …/close-out | **生产耗尽；hub + tests + host_rt stubs（claim-OK）** |
+| `syx-semantic` | … + **concurrency/IDE/infer** | **hub = entry/builtins（claim-OK）** — **S2-05 claimed；≠ 阶段2退出** |
 
 ## Ladder (locked at open)
 
@@ -473,7 +654,30 @@ ADR: [stage2-s2-05-driver-production-closeout-batch](adr/stage2-s2-05-driver-pro
 69. **S2-I233:** driver `doc_project` — **landed** (batch).
 70. **S2-I234:** driver `cranelift_stubs` — **landed** (batch).
 71. **S2-I235:** driver `thin_host` — **landed** (batch); movable production fn clusters cleared.
-72. **S2-I236:** syx-semantic 首抽 → further semantic knives → dedicated **S2-05 `[x]` claim**.
+72. **S2-I236:** semantic `semantic_types` — **landed** (batch).
+73. **S2-I237:** semantic `semantic_type_codec` — **landed** (batch).
+74. **S2-I238:** semantic `feature_gates` — **landed**.
+75. **S2-I239:** semantic `SemanticAnalyzer` entry — **landed** (batch).
+76. **S2-I240:** semantic analyzer builtins/support — **landed** (batch).
+77. **S2-I241:** semantic `collect_decls` — **landed**.
+78. **S2-I242:** semantic `analyze_decl` (+ satellites) — **landed** (batch).
+79. **S2-I243:** semantic `analyze_stmt` — **landed** (batch).
+80. **S2-I244:** semantic `analyze_expr` + inner — **landed**.
+81. **S2-I245:** semantic `analyze_call` (+ pattern/with_expected) — **landed**.
+82. **S2-I246:** semantic `analyze_type_member` (+ protocol/extension) — **landed**.
+83. **S2-I247:** semantic infer/host + concurrency — **landed** (batch).
+84. **S2-I248:** semantic IDE surface — **landed** (batch); production impl exhausted.
+85. **S2-I249:** semantic free-helpers → `semantic_helpers.rs` — **landed**.
+86. **S2-I250:** analyzer `collect_decls` face → `semantic_collect_decls.rs` — **landed** (batch).
+87. **S2-I251:** analyzer `analyze_expr` face → `semantic_analyze_expr.rs` — **landed** (batch).
+88. **S2-I252:** analyzer `analyze_stmt` face → `semantic_analyze_stmt.rs` — **landed** (batch).
+89. **S2-I253:** analyzer `analyze_decl` face → `semantic_analyze_decl.rs` — **landed** (batch).
+90. **S2-I254:** analyzer `analyze_call` face → `semantic_analyze_call.rs` — **landed** (batch).
+91. **S2-I255:** analyzer `analyze_type_member` face → `semantic_analyze_type_member.rs` — **landed** (batch).
+92. **S2-I256:** analyzer concurrency → `semantic_concurrency.rs` — **landed** (batch).
+93. **S2-I257:** analyzer IDE → `semantic_ide.rs` — **landed** (batch).
+94. **S2-I258:** analyzer infer/host → `semantic_infer_host.rs` — **landed** (batch).
+95. **S2-I259:** dedicated **S2-05 `[x]` claim** — **landed**（scoped；≠ Stage-2 exit）；next = **S2-06 open**.
 
 ## References
 
@@ -510,5 +714,19 @@ ADR: [stage2-s2-05-driver-production-closeout-batch](adr/stage2-s2-05-driver-pro
 - [stage2-s2-05-driver-format-to-wasm-batch](adr/stage2-s2-05-driver-format-to-wasm-batch.md) · S2-I227–I229
 - [stage2-s2-05-driver-compile-to-debug-batch](adr/stage2-s2-05-driver-compile-to-debug-batch.md) · S2-I230–I232
 - [stage2-s2-05-driver-production-closeout-batch](adr/stage2-s2-05-driver-production-closeout-batch.md) · S2-I233–I235
+- [stage2-s2-05-semantic-types-to-codec-batch](adr/stage2-s2-05-semantic-types-to-codec-batch.md) · S2-I236–I237
+- [stage2-s2-05-semantic-feature-gates-extract](adr/stage2-s2-05-semantic-feature-gates-extract.md) · S2-I238
+- [stage2-s2-05-semantic-analyzer-entry-to-builtins-batch](adr/stage2-s2-05-semantic-analyzer-entry-to-builtins-batch.md) · S2-I239–I240
+- [stage2-s2-05-semantic-collect-decls-extract](adr/stage2-s2-05-semantic-collect-decls-extract.md) · S2-I241
+- [stage2-s2-05-semantic-analyze-decl-to-stmt-batch](adr/stage2-s2-05-semantic-analyze-decl-to-stmt-batch.md) · S2-I242–I243
+- [stage2-s2-05-semantic-analyze-expr-extract](adr/stage2-s2-05-semantic-analyze-expr-extract.md) · S2-I244
+- [stage2-s2-05-semantic-analyze-call-extract](adr/stage2-s2-05-semantic-analyze-call-extract.md) · S2-I245
+- [stage2-s2-05-semantic-analyze-type-member-extract](adr/stage2-s2-05-semantic-analyze-type-member-extract.md) · S2-I246
+- [stage2-s2-05-semantic-production-closeout-batch](adr/stage2-s2-05-semantic-production-closeout-batch.md) · S2-I247–I248
+- [stage2-s2-05-semantic-helpers-extract](adr/stage2-s2-05-semantic-helpers-extract.md) · S2-I249
+- [stage2-s2-05-semantic-analyzer-core-faces-batch](adr/stage2-s2-05-semantic-analyzer-core-faces-batch.md) · S2-I250–I252
+- [stage2-s2-05-semantic-analyzer-decl-call-member-batch](adr/stage2-s2-05-semantic-analyzer-decl-call-member-batch.md) · S2-I253–I255
+- [stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch](adr/stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md) · S2-I256–I258
+- [stage2-s2-05-claim](adr/stage2-s2-05-claim.md) · S2-I259
 - [plan/02](../plan/02-improvement-roadmap.md) S2-05
 
