@@ -117,3 +117,6 @@ mod s2_05_semantic_analyzer_core_faces_batch_contract;
 mod s2_05_semantic_analyzer_decl_call_member_batch_contract;
 mod s2_05_semantic_analyzer_concurrency_ide_infer_batch_contract;
 mod s2_05_claim_contract;
+mod s2_06_workspace_census_contract;
+mod s2_06_exclude_syx_gui_contract;
+mod s2_06_claim_contract;

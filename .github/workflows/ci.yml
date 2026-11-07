@@ -39,12 +39,13 @@ jobs:
 
       - name: S0-08 rustc warnings (default features, libs)
 
-        run: RUSTFLAGS="-Dwarnings" cargo check --workspace --lib --exclude syx-gui --exclude syx-synui
+        # S2-I261: syx-gui is workspace-excluded; keep historical syx-synui exclude name if present.
+        run: RUSTFLAGS="-Dwarnings" cargo check --workspace --lib --exclude syx-synui
 
       - name: Clippy
 
         # Style/perf Clippy stays soft; rustc -Dwarnings is the S0-08 hard gate above.
-        run: cargo clippy --workspace --lib --exclude syx-gui --exclude syx-synui -- -D clippy::correctness -A clippy::result_large_err
+        run: cargo clippy --workspace --lib --exclude syx-synui -- -D clippy::correctness -A clippy::result_large_err
 
       - name: Behavioral test count smoke floor (C-10 — not release KPI)
 
@@ -424,7 +425,8 @@ jobs:
 
       - name: Build syx-gui cdylib
 
-        run: cargo build -p syx-gui
+        # S2-I262: syx-gui is workspace-excluded; build via manifest-path.
+        run: cargo build --manifest-path crates/syx-gui/Cargo.toml
 
       - name: Phase 126 GUI interactive + visible gates (xvfb)
 

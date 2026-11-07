@@ -1,11 +1,12 @@
 [package]
 name = "syx-gui"
 description = "Isolated winit/egui-wgpu GUI backend for SYX (no libsyx_rt pollution)"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
+# S2-I261: excluded from workspace — cannot use workspace inheritance.
+version = "0.1.3"
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+authors = ["SYX Core Team"]
 
 [lib]
 crate-type = ["rlib", "cdylib"]
@@ -17,14 +18,14 @@ default = ["skia-glyph"]
 skia-glyph = ["dep:skia-safe"]
 
 [dependencies]
-syx-diagnostics = { workspace = true }
-syx-runtime-core = { workspace = true }
-parking_lot = { workspace = true }
+syx-diagnostics = { path = "../syx-diagnostics" }
+syx-runtime-core = { path = "../syx-runtime-core" }
+parking_lot = "0.12"
 winit = "0.29"
 # Softbuffer is optional present fallback (`SYX_GUI_SOFTBUFFER=1`); not the GA path.
 softbuffer = "0.4"
 fontdue = "0.9.3"
-rustybuzz = { workspace = true }
+rustybuzz = "0.20.1"
 egui = "0.28"
 egui-winit = { version = "0.28", default-features = false }
 egui-wgpu = "0.28"

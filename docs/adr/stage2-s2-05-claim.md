@@ -26,7 +26,7 @@
 ## Consequences
 
 - S2-05 plan-claimed; Stage-2 stays `[~]` (S2-01…05 `[x]`; S2-06…07 open).
-- Default next construction window = **S2-06 open** (workspace slim) — **not** Stage-2 exit.
+- Decision §4 locked next = **S2-06 open**; **landed** as [s2-06-open](stage2-s2-06-open.md)（S2-I260）→ [s2-06-exclude-syx-gui](stage2-s2-06-exclude-syx-gui.md)（S2-I261）→ [s2-06-claim](stage2-s2-06-claim.md)（S2-I262）；next = **S2-I263 S2-07 open**.
 - Prior: [concurrency-ide-infer-batch](stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md) · S2-I256–I258.
 
 ## References

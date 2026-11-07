@@ -27,6 +27,7 @@ run_suite gui p105_
 run_suite native p105_
 run_suite platform p105_
 cargo test -p syx-lsp p105_ -- --test-threads="$THREADS"
-cargo test -p syx-gui p105_ -- --test-threads="$THREADS"
+# S2-I261: syx-gui is workspace-excluded; test via manifest-path.
+cargo test --manifest-path crates/syx-gui/Cargo.toml p105_ -- --test-threads="$THREADS"
 bash scripts/audit_behavioral_tests.sh
 echo "OK: Phase 105 gates finished"

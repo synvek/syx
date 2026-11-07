@@ -228,6 +228,9 @@
 - **S2-I253–I255:** S2-05 semantic_analyzer decl/call/member batch ([stage2-s2-05-semantic-analyzer-decl-call-member-batch](stage2-s2-05-semantic-analyzer-decl-call-member-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I256–I258:** S2-05 semantic_analyzer concurrency/IDE/infer batch ([stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch](stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I259:** S2-05 plan claim ([stage2-s2-05-claim](stage2-s2-05-claim.md)); S2-05 `[x]` scoped; Stage-2 `[~]`（≠ 退出）；next = S2-06 open.
+- **S2-I260:** S2-06 open — workspace slim census ([stage2-s2-06-open](stage2-s2-06-open.md)); S2-06 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I261:** S2-06 exclude syx-gui from default workspace ([stage2-s2-06-exclude-syx-gui](stage2-s2-06-exclude-syx-gui.md)); S2-06 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）；next = S2-I262 claim.
+- **S2-I262:** S2-06 plan claim ([stage2-s2-06-claim](stage2-s2-06-claim.md)); S2-06 `[x]` scoped; Stage-2 `[~]`（≠ 退出）；next = S2-07 open.
 
 ## References
 
@@ -375,6 +378,9 @@
 - [`docs/adr/stage2-s2-05-semantic-analyzer-decl-call-member-batch.md`](stage2-s2-05-semantic-analyzer-decl-call-member-batch.md) · S2-I253–I255
 - [`docs/adr/stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md`](stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md) · S2-I256–I258
 - [`docs/adr/stage2-s2-05-claim.md`](stage2-s2-05-claim.md) · S2-I259
+- [`docs/adr/stage2-s2-06-open.md`](stage2-s2-06-open.md) · S2-I260
+- [`docs/adr/stage2-s2-06-exclude-syx-gui.md`](stage2-s2-06-exclude-syx-gui.md) · S2-I261
+- [`docs/adr/stage2-s2-06-claim.md`](stage2-s2-06-claim.md) · S2-I262
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

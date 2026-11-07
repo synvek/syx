@@ -1,5 +1,7 @@
 [workspace]
 members = ["crates/*"]
+# S2-I261: GUI product crate stays on disk for path/feature opt-in, but leaves default workspace.
+exclude = ["crates/syx-gui"]
 resolver = "2"
 
 [workspace.package]
