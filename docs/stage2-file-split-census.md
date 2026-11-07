@@ -1,6 +1,6 @@
 # Stage-2 file-split census (S2-05)
 
-**ADR:** [stage2-s2-05-open](adr/stage2-s2-05-open.md) · **Window:** S2-I165（baseline）· **Current:** S2-I214  
+**ADR:** [stage2-s2-05-open](adr/stage2-s2-05-open.md) · **Window:** S2-I165（baseline）· **Current:** S2-I235  
 
  
  
@@ -308,12 +308,96 @@ ADR: [stage2-s2-05-mir-simd-to-support-batch](adr/stage2-s2-05-mir-simd-to-suppo
 
 ADR: [stage2-s2-05-mir-lower-expr-to-module-batch](adr/stage2-s2-05-mir-lower-expr-to-module-batch.md). **MIR production peel exhausted.**
 
+## S2-I215–I217 after driver fingerprint→lsp batch extract (2026-11-06)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **5766** (−3351 vs I214) |
+| Batch sidecars LOC | fingerprint **2021** · farm_tcp **406** · lsp_ide **1073** |
+| Combined three `lib.rs` LOC | **16670** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **20** (+3: cache_fingerprint/farm_tcp/lsp_ide) |
+| Honesty floor (`syx-driver` lib) | **5500** (was 8000) |
+
+ADR: [stage2-s2-05-driver-fingerprint-to-lsp-batch](adr/stage2-s2-05-driver-fingerprint-to-lsp-batch.md).
+
+## S2-I218–I220 after driver mir_unify→test→compile batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **4141** (−1625 vs I217) |
+| Batch sidecars LOC | mir_unify **529** · test_runner **715** · compile_linked **455** |
+| Combined three `lib.rs` LOC | **15045** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **23** (+3: mir_unify/test_runner/compile_linked) |
+| Honesty floor (`syx-driver` lib) | **4000** (was 5500) |
+
+ADR: [stage2-s2-05-driver-mir-unify-to-compile-batch](adr/stage2-s2-05-driver-mir-unify-to-compile-batch.md).
+
+## S2-I221–I223 after driver compile_ctx→prelude→native batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **2716** (−1425 vs I220) |
+| Batch sidecars LOC | compile_file_context **286** · prelude_glue **840** · native_build **380** |
+| Combined three `lib.rs` LOC | **13620** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **26** (+3: compile_file_context/prelude_glue/native_build) |
+| Honesty floor (`syx-driver` lib) | **2500** (was 4000) |
+
+ADR: [stage2-s2-05-driver-compile-ctx-to-native-batch](adr/stage2-s2-05-driver-compile-ctx-to-native-batch.md).
+
+## S2-I224–I226 after driver options→check→run batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **2119** (−597 vs I223) |
+| Batch sidecars LOC | driver_options **267** · check_project **132** · run_exec **255** |
+| Combined three `lib.rs` LOC | **13023** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **29** (+3: driver_options/check_project/run_exec) |
+| Honesty floor (`syx-driver` lib) | **2000** (was 2500) |
+
+ADR: [stage2-s2-05-driver-options-to-run-batch](adr/stage2-s2-05-driver-options-to-run-batch.md).
+
+## S2-I227–I229 after driver format→cache→wasm batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **1613** (−506 vs I226) |
+| Batch sidecars LOC | format_lint **187** · compile_cache **184** · run_wasm **196** |
+| Combined three `lib.rs` LOC | **12517** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **32** (+3: format_lint/compile_cache/run_wasm) |
+| Honesty floor (`syx-driver` lib) | **1500** (was 2000) |
+
+ADR: [stage2-s2-05-driver-format-to-wasm-batch](adr/stage2-s2-05-driver-format-to-wasm-batch.md).
+
+## S2-I230–I232 after driver compile→gates→debug batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **1282** (−331 vs I229) |
+| Batch sidecars LOC | compile_to_program **176** · feature_gates **138** · debug_repl **94** |
+| Combined three `lib.rs` LOC | **12186** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **35** (+3: compile_to_program/feature_gates/debug_repl) |
+| Honesty floor (`syx-driver` lib) | **1200** (was 1500) |
+
+ADR: [stage2-s2-05-driver-compile-to-debug-batch](adr/stage2-s2-05-driver-compile-to-debug-batch.md).
+
+## S2-I233–I235 after driver production close-out batch extract (2026-11-07)
+
+| Metric | Value |
+|--------|------:|
+| `crates/syx-driver/src/lib.rs` LOC | **1170** (−112 vs I232) |
+| Batch sidecars LOC | doc_project **28** · cranelift_stubs **40** · thin_host **91** |
+| Combined three `lib.rs` LOC | **12074** |
+| `syx-driver` sidecar `.rs` (excl. lib/bin) | **38** (+3: doc_project/cranelift_stubs/thin_host) |
+| Honesty floor (`syx-driver` lib) | **1100** (was 1200) |
+
+ADR: [stage2-s2-05-driver-production-closeout-batch](adr/stage2-s2-05-driver-production-closeout-batch.md).
+
 ## Honesty notes
 
 | Crate | Already extracted (examples) | Remaining debt |
 |-------|------------------------------|----------------|
-| `syx-mir` | …/SIMD…support/**lower_expr+module** | **生产尾面耗尽；tests 仍堆 lib；driver/semantic 未开** — **next knife = I215 syx-driver 首抽** |
-| `syx-driver` | Many modules; `farm_lease_auth.rs` alone ~6.7k | `lib.rs` still ~9k |
+| `syx-mir` | …/lower_expr+module | **生产尾面耗尽；tests 仍堆 lib** |
+| `syx-driver` | …/compile·gates·debug/**close-out** | **可搬生产 fn/const 簇已清空；hub + `#[cfg(test)]` + host_rt stubs 常驻** — **next knife = I236 syx-semantic 首抽**（≠ lib peel 全面耗尽宣称 / ≠ S2-05 `[x]`） |
 | `syx-semantic` | thin helpers | Core checker / lowers still in `lib.rs` |
 
 ## Ladder (locked at open)
@@ -368,7 +452,28 @@ ADR: [stage2-s2-05-mir-lower-expr-to-module-batch](adr/stage2-s2-05-mir-lower-ex
 48. **S2-I212:** lower support (flatten/locals/keypath) — **landed** (batch).
 49. **S2-I213:** `lower_expr` shell — **landed** (batch).
 50. **S2-I214:** `lower_module*` orchestrator — **landed** (batch); **mir production peel exhausted**.
-51. **S2-I215:** syx-driver 首抽 → further knives / claim eval → dedicated **S2-05 `[x]` claim**.
+51. **S2-I215:** driver `cache_fingerprint` — **landed** (batch).
+52. **S2-I216:** driver `farm_tcp` — **landed** (batch).
+53. **S2-I217:** driver `lsp_ide` — **landed** (batch).
+54. **S2-I218:** driver `mir_unify` — **landed** (batch).
+55. **S2-I219:** driver `test_runner` — **landed** (batch).
+56. **S2-I220:** driver `compile_linked` — **landed** (batch).
+57. **S2-I221:** driver `compile_file_context` — **landed** (batch).
+58. **S2-I222:** driver `prelude_glue` — **landed** (batch).
+59. **S2-I223:** driver `native_build` — **landed** (batch).
+60. **S2-I224:** driver `driver_options` hub — **landed** (batch).
+61. **S2-I225:** driver `check_project` — **landed** (batch).
+62. **S2-I226:** driver `run_exec` — **landed** (batch).
+63. **S2-I227:** driver `format_lint` — **landed** (batch).
+64. **S2-I228:** driver `compile_cache` — **landed** (batch).
+65. **S2-I229:** driver `run_wasm` — **landed** (batch).
+66. **S2-I230:** driver `compile_to_program` — **landed** (batch).
+67. **S2-I231:** driver `feature_gates` — **landed** (batch).
+68. **S2-I232:** driver `debug_repl` — **landed** (batch).
+69. **S2-I233:** driver `doc_project` — **landed** (batch).
+70. **S2-I234:** driver `cranelift_stubs` — **landed** (batch).
+71. **S2-I235:** driver `thin_host` — **landed** (batch); movable production fn clusters cleared.
+72. **S2-I236:** syx-semantic 首抽 → further semantic knives → dedicated **S2-05 `[x]` claim**.
 
 ## References
 
@@ -398,5 +503,12 @@ ADR: [stage2-s2-05-mir-lower-expr-to-module-batch](adr/stage2-s2-05-mir-lower-ex
 - [stage2-s2-05-mir-type-members-to-infer-batch](adr/stage2-s2-05-mir-type-members-to-infer-batch.md) · S2-I205–I208
 - [stage2-s2-05-mir-simd-to-support-batch](adr/stage2-s2-05-mir-simd-to-support-batch.md) · S2-I209–I212
 - [stage2-s2-05-mir-lower-expr-to-module-batch](adr/stage2-s2-05-mir-lower-expr-to-module-batch.md) · S2-I213–I214
+- [stage2-s2-05-driver-fingerprint-to-lsp-batch](adr/stage2-s2-05-driver-fingerprint-to-lsp-batch.md) · S2-I215–I217
+- [stage2-s2-05-driver-mir-unify-to-compile-batch](adr/stage2-s2-05-driver-mir-unify-to-compile-batch.md) · S2-I218–I220
+- [stage2-s2-05-driver-compile-ctx-to-native-batch](adr/stage2-s2-05-driver-compile-ctx-to-native-batch.md) · S2-I221–I223
+- [stage2-s2-05-driver-options-to-run-batch](adr/stage2-s2-05-driver-options-to-run-batch.md) · S2-I224–I226
+- [stage2-s2-05-driver-format-to-wasm-batch](adr/stage2-s2-05-driver-format-to-wasm-batch.md) · S2-I227–I229
+- [stage2-s2-05-driver-compile-to-debug-batch](adr/stage2-s2-05-driver-compile-to-debug-batch.md) · S2-I230–I232
+- [stage2-s2-05-driver-production-closeout-batch](adr/stage2-s2-05-driver-production-closeout-batch.md) · S2-I233–I235
 - [plan/02](../plan/02-improvement-roadmap.md) S2-05
 

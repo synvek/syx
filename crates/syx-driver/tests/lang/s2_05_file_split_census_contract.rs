@@ -68,8 +68,8 @@ fn s2_05_file_split_census_baseline() {
         "syx-mir lib.rs must still be giant while S2-05 remains [~]"
     );
     assert!(
-        driver.lines().count() >= 8000,
-        "syx-driver lib.rs must still be large at open baseline"
+        driver.lines().count() >= 1100,
+        "syx-driver lib.rs must still be large while S2-05 remains [~]"
     );
     assert!(
         semantic.lines().count() >= 8000,

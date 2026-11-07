@@ -207,6 +207,13 @@
 - **S2-I205–I208:** S2-05 mir type_members→infer batch extract ([stage2-s2-05-mir-type-members-to-infer-batch](stage2-s2-05-mir-type-members-to-infer-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I209–I212:** S2-05 mir SIMD→support batch extract ([stage2-s2-05-mir-simd-to-support-batch](stage2-s2-05-mir-simd-to-support-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 - **S2-I213–I214:** S2-05 mir lower_expr→orchestrator close-out ([stage2-s2-05-mir-lower-expr-to-module-batch](stage2-s2-05-mir-lower-expr-to-module-batch.md)); mir production peel exhausted; S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I215–I217:** S2-05 driver fingerprint→lsp batch extract ([stage2-s2-05-driver-fingerprint-to-lsp-batch](stage2-s2-05-driver-fingerprint-to-lsp-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I218–I220:** S2-05 driver mir_unify→test→compile batch extract ([stage2-s2-05-driver-mir-unify-to-compile-batch](stage2-s2-05-driver-mir-unify-to-compile-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I221–I223:** S2-05 driver compile_ctx→prelude→native batch extract ([stage2-s2-05-driver-compile-ctx-to-native-batch](stage2-s2-05-driver-compile-ctx-to-native-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I224–I226:** S2-05 driver options→check→run batch extract ([stage2-s2-05-driver-options-to-run-batch](stage2-s2-05-driver-options-to-run-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I227–I229:** S2-05 driver format→cache→wasm batch extract ([stage2-s2-05-driver-format-to-wasm-batch](stage2-s2-05-driver-format-to-wasm-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I230–I232:** S2-05 driver compile→gates→debug batch extract ([stage2-s2-05-driver-compile-to-debug-batch](stage2-s2-05-driver-compile-to-debug-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
+- **S2-I233–I235:** S2-05 driver production close-out batch extract ([stage2-s2-05-driver-production-closeout-batch](stage2-s2-05-driver-production-closeout-batch.md)); S2-05 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）.
 
 ## References
 
@@ -333,6 +340,13 @@
 - [`docs/adr/stage2-s2-05-mir-type-members-to-infer-batch.md`](stage2-s2-05-mir-type-members-to-infer-batch.md) · S2-I205–I208
 - [`docs/adr/stage2-s2-05-mir-simd-to-support-batch.md`](stage2-s2-05-mir-simd-to-support-batch.md) · S2-I209–I212
 - [`docs/adr/stage2-s2-05-mir-lower-expr-to-module-batch.md`](stage2-s2-05-mir-lower-expr-to-module-batch.md) · S2-I213–I214
+- [`docs/adr/stage2-s2-05-driver-fingerprint-to-lsp-batch.md`](stage2-s2-05-driver-fingerprint-to-lsp-batch.md) · S2-I215–I217
+- [`docs/adr/stage2-s2-05-driver-mir-unify-to-compile-batch.md`](stage2-s2-05-driver-mir-unify-to-compile-batch.md) · S2-I218–I220
+- [`docs/adr/stage2-s2-05-driver-compile-ctx-to-native-batch.md`](stage2-s2-05-driver-compile-ctx-to-native-batch.md) · S2-I221–I223
+- [`docs/adr/stage2-s2-05-driver-options-to-run-batch.md`](stage2-s2-05-driver-options-to-run-batch.md) · S2-I224–I226
+- [`docs/adr/stage2-s2-05-driver-format-to-wasm-batch.md`](stage2-s2-05-driver-format-to-wasm-batch.md) · S2-I227–I229
+- [`docs/adr/stage2-s2-05-driver-compile-to-debug-batch.md`](stage2-s2-05-driver-compile-to-debug-batch.md) · S2-I230–I232
+- [`docs/adr/stage2-s2-05-driver-production-closeout-batch.md`](stage2-s2-05-driver-production-closeout-batch.md) · S2-I233–I235
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 

@@ -27,7 +27,7 @@
 
 - S2-05 stays `[~]`; Stage-2 stays `[~]`.
 - **MIR production peel exhausted** (≠ S2-05 complete; driver/semantic/tests remain).
-- Default next construction window = **S2-I215 syx-driver 首抽**.
+- **S2-I215–I217 landed:** [driver-fingerprint-to-lsp-batch](stage2-s2-05-driver-fingerprint-to-lsp-batch.md) — fingerprint/farm_tcp/lsp_ide left into modules; next default = **S2-I218 `mir_unify`**.
 - Prior: [mir-simd-to-support-batch](stage2-s2-05-mir-simd-to-support-batch.md) · S2-I209–I212.
 
 ## References
