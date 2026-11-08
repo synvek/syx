@@ -3,7 +3,7 @@
 **ADR:** [open](adr/stage3-s3-06-open.md) · [s045-lsp-desugar](adr/stage3-s3-06-s045-lsp-desugar.md) · [residual-scope](adr/stage3-s3-06-residual-scope.md) · [**claim**](adr/stage3-s3-06-claim.md) · **Window:** S3-I81 · **Current:** S3-I81 · **Claimed:** scoped `[x]`
 
 **Goal (S3-06 scoped `[x]`):** Primary = I79 desugar hinge + sample fixtures LSP 对齐；rename / signature / hover / full fence = **deferred supersede-only**.  
-**This census:** S3-I81 scoped claim — S3-06 **`[x]`**；Stage-3 仍 **`[~]`**（**6/7**）；**≠** Stage-3 exit / **≠** 本窗 S3-07 施工.
+**This census:** S3-I81 scoped claim — S3-06 **`[x]`**；Stage-3 仍 **`[~]`**（**7/7**）；**≠** Stage-3 exit / **≠** 本窗 S3-07 施工.
 
 ## Command
 
@@ -22,7 +22,7 @@ bash scripts/s3_06_lsp_book_census.sh
 | Signature help book 验收 | **Deferred** | supersede-only |
 | Hover 书块产品轴 | **Deferred** | S3-02 demangle elsewhere |
 | Full fence LSP sweep | **Deferred** | supersede-only |
-| S3-07 init / Stage-3 exit | **No（OUT）** / **Next** | I82 open |
+| S3-07 init / Stage-3 exit | **Claimed** / **No（OUT）** | I85 S3-07 `[x]`；exit = I86 open |
 
 ## KPIs（S3-I81 · Claim · 2026-11-08）
 
@@ -42,16 +42,20 @@ bash scripts/s3_06_lsp_book_census.sh
 | 轴 | 状态 |
 |----|------|
 | S3-06 | **`[x]`** scoped；rename/sig/fence deferred |
-| Stage-3 | 仍 **`[~]`**（**6/7**；余 S3-07） |
-| Next | **S3-I82** S3-07 open — ≠ Stage-3 exit |
+| Stage-3 | 仍 **`[~]`**（**7/7**；余 exit ADR） |
+| Next | **S3-I82…I85** S3-07 ladder **landed**（claim）；默认 = **S3-I86** Stage-3 exit open — ≠ Stage-3 exit |
 
 ## Ladder (locked)
 
 1. **S3-I78:** S3-06 open — landed.
 2. **S3-I79:** S045 LSP desugar — landed.
 3. **S3-I80:** residual-scope — landed.
-4. **S3-I81:** S3-06 scoped claim — **this window**.
-5. **S3-I82:** S3-07 open — next（≠ Stage-3 exit）。
+4. **S3-I81:** S3-06 scoped claim — **this window**（claimed）。
+5. **S3-I82:** S3-07 open — **landed**（[init-template census](stage3-init-template-census.md)）。
+6. **S3-I83:** S3-07 default-vm construct — **landed**.
+7. **S3-I84:** S3-07 residual-scope — **landed**.
+8. **S3-I85:** S3-07 scoped claim — **landed**.
+9. **S3-I86:** Stage-3 exit open — next（≠ Stage-3 exit this window）。
 
 ## Non-claims
 

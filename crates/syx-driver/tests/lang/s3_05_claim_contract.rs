@@ -1,5 +1,5 @@
 //! S3-I77 S3-05 scoped plan claim contracts.
-//! Nails: claim ADR + plan/02 S3-05 [x]; scoped Non-claims; Stage-3 still [~] 6/7.
+//! Nails: claim ADR + plan/02 S3-05 [x]; scoped Non-claims; Stage-3 still [~] 7/7.
 //! See docs/adr/stage3-s3-05-claim.md.
 
 fn repo_file(rel: &str) -> String {
@@ -68,8 +68,8 @@ fn s3_05_plan_claim_locked() {
         "Stage-3 must stay [~]; got: {stage3}"
     );
     assert!(
-        plan02.contains("6/7"),
-        "plan/02 must publish Stage-3 6/7"
+        plan02.contains("7/7"),
+        "plan/02 must publish Stage-3 7/7"
     );
     assert!(
         plan02.contains("S3-I80")
@@ -91,8 +91,8 @@ fn s3_05_plan_claim_locked() {
         "census must mark Claimed scoped [x]"
     );
     assert!(
-        census.contains("6/7"),
-        "census must publish Stage-3 6/7"
+        census.contains("7/7"),
+        "census must publish Stage-3 7/7"
     );
     assert!(
         census.contains("S3-I80") && census.contains("S3-I81"),
@@ -111,8 +111,8 @@ fn s3_05_plan_claim_locked() {
         "plan/01 must reflect S3-I77 S3-05 [x]"
     );
     assert!(
-        plan01.contains("6/7"),
-        "plan/01 must publish Stage-3 6/7"
+        plan01.contains("7/7"),
+        "plan/01 must publish Stage-3 7/7"
     );
     assert!(
         plan01.contains("S3-I80")
@@ -150,12 +150,12 @@ fn s3_05_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I82"),
-        "script ladder must be I77→I82:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I86"),
+        "script ladder must be I77→I86:\n{stdout}"
     );
     assert!(
-        stdout.contains("s3_05_status=x") && stdout.contains("stage3_checklist=6/7"),
-        "script must emit claimed status / 6/7:\n{stdout}"
+        stdout.contains("s3_05_status=x") && stdout.contains("stage3_checklist=7/7"),
+        "script must emit claimed status / 7/7:\n{stdout}"
     );
     let claim = stdout
         .lines()

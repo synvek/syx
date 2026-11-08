@@ -243,7 +243,8 @@ enum Commands {
     /// Initialize a new SYX project from a template
     Init {
         path: PathBuf,
-        #[arg(long, default_value = "native")]
+        // S3-I83: default aligns with trusted VM / `syx run` path (not LLVM native).
+        #[arg(long, default_value = "vm")]
         template: String,
     },
     /// Generate API documentation from a `.sy` file or directory of sources
@@ -892,6 +893,33 @@ func main() {
 }
 "#,
                 ),
+                // S3-I83: explicit vm arm — default trusted backend scaffold.
+                "vm" => (
+                    r#"func main() {
+    print("vm")
+}
+"#,
+                    r#"build {
+    compileOptions {
+        optLevel = release
+    }
+}
+"#,
+                ),
+                // Explicit native scaffold (opt-in; default build ≠ verified runnable).
+                "native" => (
+                    r#"func main() {
+    print("native")
+}
+"#,
+                    r#"build {
+    compileOptions {
+        optLevel = release
+    }
+}
+"#,
+                ),
+                // Unknown template names keep native-shaped scaffold (no hard fail).
                 _ => (
                     r#"func main() {
     print("native")

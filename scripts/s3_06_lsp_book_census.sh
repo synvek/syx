@@ -19,7 +19,7 @@ count_rg() {
   '
 }
 
-stage3_lsp_census_helper=$(count_rg 'S3-I78|S3-I79|S3-I80|S3-I81|S3-I82|stage3-lsp-book-census|stage3-s3-06-open|stage3-s3-06-s045|stage3-s3-06-residual-scope|stage3-s3-06-claim' \
+stage3_lsp_census_helper=$(count_rg 'S3-I78|S3-I79|S3-I80|S3-I81|S3-I82|S3-I83|S3-I84|S3-I85|stage3-lsp-book-census|stage3-s3-06-open|stage3-s3-06-s045|stage3-s3-06-residual-scope|stage3-s3-06-claim|stage3-s3-07-open|stage3-s3-07-residual-scope' \
   docs/adr/stage3-s3-06-open.md docs/adr/stage3-s3-06-s045-lsp-desugar.md \
   docs/adr/stage3-s3-06-residual-scope.md docs/adr/stage3-s3-06-claim.md \
   docs/stage3-lsp-book-census.md scripts/s3_06_lsp_book_census.sh)
@@ -77,7 +77,7 @@ echo "book_fixture_sample_n=$book_fixture_sample_n"
 echo "s045_lsp_desugar_nail_count=$s045_lsp_desugar_nail_count"
 echo "book_lsp_semantic_mismatch_count=$book_lsp_semantic_mismatch_count"
 echo "current=S3-I81"
-echo "next=S3-I82"
+echo "next=S3-I86"
 echo "s3_06_status=x"
-echo "stage3_checklist=6/7"
+echo "stage3_checklist=7/7"
 echo "nonclaim=Stage-3-exit,S3-07-construct,book-zero-fp-literal,rename-sig-hover-knife,full-fence-sweep,S3-05-lint-knife,S3-04-fib-wall"

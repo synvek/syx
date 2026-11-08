@@ -162,3 +162,7 @@ mod s3_06_lsp_census_contract;
 mod s3_06_s045_lsp_desugar_contract;
 mod s3_06_residual_scope_contract;
 mod s3_06_claim_contract;
+mod s3_07_init_template_census_contract;
+mod s3_07_default_vm_contract;
+mod s3_07_residual_scope_contract;
+mod s3_07_claim_contract;

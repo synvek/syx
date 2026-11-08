@@ -1,5 +1,5 @@
 //! S3-I75 S3-05 claim-prep contracts.
-//! Scaffolding hinge · post-I77: S3-05 [x] · Stage-3 still [~] 6/7.
+//! Scaffolding hinge · post-I77: S3-05 [x] · Stage-3 still [~] 7/7.
 //! See docs/adr/stage3-s3-05-claim-prep.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -59,7 +59,7 @@ fn s3_05_claim_prep_adr_and_census() {
         census.contains("S3-I76") && census.contains("S3-I77") && census.contains("S3-I78"),
         "census ladder must name I76 / I77 / I78"
     );
-    assert!(census.contains("6/7"), "census must publish Stage-3 6/7");
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
     assert!(
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
@@ -97,12 +97,12 @@ fn s3_05_claim_prep_adr_and_census() {
         plan02.contains("S3-I75") && plan02.contains("S3-I76") && plan02.contains("S3-I77"),
         "plan/02 must cite I75 / I76 / I77"
     );
-    assert!(plan02.contains("6/7"), "plan/02 must publish Stage-3 6/7");
+    assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I77") && plan01.contains("6/7"),
-        "plan/01 must cite I77 / 6/7"
+        plan01.contains("S3-I77") && plan01.contains("7/7"),
+        "plan/01 must cite I77 / 7/7"
     );
 }
 
@@ -121,8 +121,8 @@ fn s3_05_claim_prep_census_script_emits_hinge() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I82"),
-        "script ladder must be I77→I82:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I86"),
+        "script ladder must be I77→I86:\n{stdout}"
     );
     assert!(
         stdout.contains("claim_prep_helper=") && stdout.contains("scoped_fixture_helper="),

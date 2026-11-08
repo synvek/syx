@@ -3,7 +3,7 @@
 **ADR:** [open](adr/stage3-s3-05-open.md) · [l007-l012-false-positive](adr/stage3-s3-05-l007-l012-false-positive.md) · [struct-extension-type-member](adr/stage3-s3-05-struct-extension-type-member.md) · [claim-prep](adr/stage3-s3-05-claim-prep.md) · [residual-scope](adr/stage3-s3-05-residual-scope.md) · [**claim**](adr/stage3-s3-05-claim.md) · **Window:** S3-I77 · **Current:** S3-I77 · **Claimed:** scoped `[x]`
 
 **Goal (S3-05 scoped `[x]`):** Primary 误报轴清零 + I73/I74 铰链 + I75/I76 脚手架；L010–L011 / L012 Stmt / 全 CST lint = **deferred supersede-only**。  
-**This census:** S3-I77 scoped claim — S3-05 **`[x]`**；Stage-3 仍 **`[~]`**（**6/7**）；S3-06 **`[x]`** claimed（**S3-I81**；见 [lsp-book census](stage3-lsp-book-census.md)）。
+**This census:** S3-I77 scoped claim — S3-05 **`[x]`**；Stage-3 仍 **`[~]`**（**7/7**）；S3-06 **`[x]`**（**S3-I81**）；S3-07 **`[x]`**（**S3-I85**；见 [init-template census](stage3-init-template-census.md)）。
 
 ## Command
 
@@ -22,7 +22,7 @@ bash scripts/s3_05_lint_ast_census.sh
 | L012 Stmt AST | **Deferred** | supersede-only |
 | Full CST lint / S2-04 Frontend | **Deferred** | supersede-only |
 | S3-06 LSP | **Claimed** | I81 scoped `[x]`；见 lsp-book census |
-| S3-07 init / HostFn / Wave / Stage-3 exit | **Next / No（OUT）** | I82 open next；≠ Stage-3 exit |
+| S3-07 init / HostFn / Wave / Stage-3 exit | **Claimed / No（OUT）** | I85 S3-07 `[x]`；exit = I86 open；≠ Stage-3 exit |
 
 ## KPIs（S3-I77 · Claim · 2026-11-08）
 
@@ -48,8 +48,8 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 | 轴 | 状态 |
 |----|------|
 | S3-05 | **`[x]`** scoped；hybrid deferred |
-| Stage-3 | 仍 **`[~]`**（**6/7**；余 S3-07） |
-| Next | **S3-I78…I81** S3-06 ladder **landed**（claim）；默认 = **S3-I82** S3-07 open — ≠ Stage-3 exit |
+| Stage-3 | 仍 **`[~]`**（**7/7**；余 exit ADR） |
+| Next | **S3-I78…I85** S3-06/S3-07 ladder **landed**；默认 = **S3-I86** Stage-3 exit open — ≠ Stage-3 exit |
 
 ## Ladder (locked)
 
@@ -63,7 +63,11 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 8. **S3-I79:** S3-06 S045 desugar — **landed**.
 9. **S3-I80:** S3-06 residual-scope — **landed**（[lsp-book census](stage3-lsp-book-census.md)）。
 10. **S3-I81:** S3-06 scoped claim — **landed**（[lsp-book census](stage3-lsp-book-census.md)）。
-11. **S3-I82:** S3-07 open — next（≠ Stage-3 exit）。
+11. **S3-I82:** S3-07 open — **landed**（[init-template census](stage3-init-template-census.md)）。
+12. **S3-I83:** S3-07 default-vm construct — **landed**.
+13. **S3-I84:** S3-07 residual-scope — **landed**.
+14. **S3-I85:** S3-07 scoped claim — **landed**.
+15. **S3-I86:** Stage-3 exit open — next（≠ Stage-3 exit this window）。
 
 ## Non-claims
 

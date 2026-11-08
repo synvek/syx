@@ -1,5 +1,5 @@
 //! S3-I81 S3-06 scoped plan claim contracts.
-//! Nails: claim ADR + plan/02 S3-06 [x]; scoped Non-claims; Stage-3 still [~] 6/7.
+//! Nails: claim ADR + plan/02 S3-06 [x]; scoped Non-claims; Stage-3 still [~] 7/7.
 //! See docs/adr/stage3-s3-06-claim.md.
 
 fn repo_file(rel: &str) -> String {
@@ -39,9 +39,26 @@ fn s3_06_plan_claim_locked() {
         "ADR must cite I80 residual-scope prior"
     );
     assert!(
-        adr.contains("S3-I82")
-            || (adr.contains("S3-07") && adr.contains("open")),
-        "ADR must lock next = S3-07 open / I82"
+        adr.contains("S3-I82") || adr.contains("stage3-s3-07-open"),
+        "ADR must cite landed I82"
+    );
+    assert!(
+        adr.contains("S3-I83") || adr.contains("stage3-s3-07-default-vm"),
+        "ADR must cite landed I83"
+    );
+    assert!(
+        adr.contains("S3-I84") || adr.contains("stage3-s3-07-residual-scope"),
+        "ADR must cite landed I84"
+    );
+    assert!(
+        adr.contains("S3-I85")
+            || (adr.contains("claim") && adr.contains("S3-07")),
+        "ADR must cite S3-I85 claim ladder / I86 next"
+    );
+    assert!(
+        adr.contains("S3-I86")
+            || (adr.contains("exit") && adr.contains("open")),
+        "ADR Consequences must lock next = Stage-3 exit open / I86"
     );
 
     let plan02 = repo_file("plan/02-improvement-roadmap.md");
@@ -66,13 +83,16 @@ fn s3_06_plan_claim_locked() {
         "Stage-3 must stay [~]; got: {stage3}"
     );
     assert!(
-        plan02.contains("6/7"),
-        "plan/02 must publish Stage-3 6/7"
+        plan02.contains("7/7"),
+        "plan/02 must publish Stage-3 7/7"
     );
     assert!(
         plan02.contains("S3-I82")
-            || (plan02.contains("S3-07") && plan02.contains("open")),
-        "plan/02 must lock next = S3-07 open / I82"
+            && plan02.contains("S3-I83")
+            && plan02.contains("S3-I84")
+            && plan02.contains("S3-I85")
+            && plan02.contains("S3-I86"),
+        "plan/02 must cite I82…I85"
     );
 
     let census = repo_file("docs/stage3-lsp-book-census.md");
@@ -89,12 +109,16 @@ fn s3_06_plan_claim_locked() {
         "census must mark Claimed scoped [x]"
     );
     assert!(
-        census.contains("6/7"),
-        "census must publish Stage-3 6/7"
+        census.contains("7/7"),
+        "census must publish Stage-3 7/7"
     );
     assert!(
-        census.contains("S3-I82") || census.contains("S3-07"),
-        "census ladder must next = S3-07 / I82"
+        census.contains("S3-I82")
+            && census.contains("S3-I83")
+            && census.contains("S3-I84")
+            && census.contains("S3-I85")
+            && census.contains("S3-I86"),
+        "census ladder must cite I82…I85"
     );
 
     let prior = repo_file("docs/adr/stage3-s3-06-residual-scope.md");
@@ -109,13 +133,16 @@ fn s3_06_plan_claim_locked() {
         "plan/01 must reflect S3-I81 S3-06 [x]"
     );
     assert!(
-        plan01.contains("6/7"),
-        "plan/01 must publish Stage-3 6/7"
+        plan01.contains("7/7"),
+        "plan/01 must publish Stage-3 7/7"
     );
     assert!(
         plan01.contains("S3-I82")
-            || (plan01.contains("S3-07") && plan01.contains("open")),
-        "plan/01 must lock next = S3-07 open / I82"
+            && plan01.contains("S3-I83")
+            && plan01.contains("S3-I84")
+            && plan01.contains("S3-I85")
+            && plan01.contains("S3-I86"),
+        "plan/01 must cite I82…I85"
     );
 }
 
@@ -148,12 +175,12 @@ fn s3_06_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I82"),
-        "script ladder must be I81→I82:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I86"),
+        "script ladder must be I81→I86:\n{stdout}"
     );
     assert!(
-        stdout.contains("s3_06_status=x") && stdout.contains("stage3_checklist=6/7"),
-        "script must emit claimed status / 6/7:\n{stdout}"
+        stdout.contains("s3_06_status=x") && stdout.contains("stage3_checklist=7/7"),
+        "script must emit claimed status / 7/7:\n{stdout}"
     );
     let claim = stdout
         .lines()

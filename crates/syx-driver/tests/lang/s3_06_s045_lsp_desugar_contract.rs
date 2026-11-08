@@ -1,5 +1,5 @@
 //! S3-I79 S3-06 S045 LSP desugar parity knife contracts.
-//! Hinge landed · post-I81: S3-06 [x] · Stage-3 still [~] 6/7.
+//! Hinge landed · post-I81: S3-06 [x] · Stage-3 still [~] 7/7.
 //! See docs/adr/stage3-s3-06-s045-lsp-desugar.md · docs/stage3-lsp-book-census.md.
 
 use std::path::Path;
@@ -62,10 +62,14 @@ fn s3_06_s045_lsp_desugar_adr_and_census() {
         census.contains("s045_lsp_desugar_nail_count")
             && census.contains("S3-I80")
             && census.contains("S3-I81")
-            && census.contains("S3-I82"),
-        "census must publish I79 KPI and I80…I82 ladder"
+            && census.contains("S3-I82")
+            && census.contains("S3-I83")
+            && census.contains("S3-I84")
+            && census.contains("S3-I85")
+            && census.contains("S3-I86"),
+        "census must publish I79 KPI and I80…I85 ladder"
     );
-    assert!(census.contains("6/7"), "census must publish Stage-3 6/7");
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
 
     let lint = repo_file("crates/syx-driver/src/lsp_ide.rs");
     assert!(
@@ -96,12 +100,12 @@ fn s3_06_s045_lsp_desugar_adr_and_census() {
         plan02.contains("S3-I79") && plan02.contains("S3-I80") && plan02.contains("S3-I81"),
         "plan/02 must cite I79…I81"
     );
-    assert!(plan02.contains("6/7"), "plan/02 must publish Stage-3 6/7");
+    assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I79") && plan01.contains("S3-I80") && plan01.contains("6/7"),
-        "plan/01 must cite I79 / I80 / 6/7"
+        plan01.contains("S3-I79") && plan01.contains("S3-I80") && plan01.contains("7/7"),
+        "plan/01 must cite I79 / I80 / 7/7"
     );
 }
 
@@ -155,8 +159,8 @@ fn s3_06_s045_lsp_desugar_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I82"),
-        "script ladder must be I81→I82:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I86"),
+        "script ladder must be I81→I86:\n{stdout}"
     );
     assert!(
         stdout.contains("s045_lsp_desugar_helper=")

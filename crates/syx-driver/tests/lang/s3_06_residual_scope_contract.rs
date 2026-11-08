@@ -1,5 +1,5 @@
 //! S3-I80 S3-06 residual-scope (scoped acceptance + deferred rename/sig/fence) contracts.
-//! Hinge landed · post-I81: S3-06 [x] · Stage-3 still [~] 6/7 · ≠ Stage-3 exit.
+//! Hinge landed · post-I81: S3-06 [x] · Stage-3 still [~] 7/7 · ≠ Stage-3 exit.
 //! See docs/adr/stage3-s3-06-residual-scope.md · docs/stage3-lsp-book-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -54,10 +54,15 @@ fn s3_06_residual_scope_adr_and_census() {
         "census must publish I80 KPIs / scoped goal"
     );
     assert!(
-        census.contains("S3-I81") && census.contains("S3-I82"),
-        "census ladder must name S3-I81 / S3-I82"
+        census.contains("S3-I81")
+            && census.contains("S3-I82")
+            && census.contains("S3-I83")
+            && census.contains("S3-I84")
+            && census.contains("S3-I85")
+            && census.contains("S3-I86"),
+        "census ladder must name S3-I81…I85"
     );
-    assert!(census.contains("6/7"), "census must publish Stage-3 6/7");
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
     assert!(
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
@@ -86,15 +91,21 @@ fn s3_06_residual_scope_adr_and_census() {
         "S3-06 row must publish scoped acceptance; got: {s306}"
     );
     assert!(
-        plan02.contains("S3-I80") && plan02.contains("S3-I81") && plan02.contains("S3-I82"),
-        "plan/02 must cite I80…I82"
+        plan02.contains("S3-I80")
+            && plan02.contains("S3-I81")
+            && plan02.contains("S3-I82")
+            && plan02.contains("S3-I83")
+            && plan02.contains("S3-I84")
+            && plan02.contains("S3-I85")
+            && plan02.contains("S3-I86"),
+        "plan/02 must cite I80…I85"
     );
-    assert!(plan02.contains("6/7"), "plan/02 must publish Stage-3 6/7");
+    assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I81") && plan01.contains("S3-I82") && plan01.contains("6/7"),
-        "plan/01 must cite I81 / I82 / 6/7"
+        plan01.contains("S3-I81") && plan01.contains("S3-I82") && plan01.contains("7/7"),
+        "plan/01 must cite I81 / I82 / 7/7"
     );
 }
 
@@ -113,8 +124,8 @@ fn s3_06_residual_scope_census_script_emits_hinge() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I82"),
-        "script ladder must be I81→I82:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I86"),
+        "script ladder must be I81→I86:\n{stdout}"
     );
     assert!(
         stdout.contains("residual_scope_helper="),

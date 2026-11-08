@@ -1,5 +1,5 @@
 //! S3-I74 S3-05 Struct/Extension type-member contracts.
-//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 6/7.
+//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 7/7.
 //! See docs/adr/stage3-s3-05-struct-extension-type-member.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -45,7 +45,7 @@ fn s3_05_struct_extension_adr_and_census() {
         census.contains("S3-I74") && census.contains("S3-I76") && census.contains("S3-I77"),
         "census must name I74 / I76 / I77"
     );
-    assert!(census.contains("6/7"), "census must publish Stage-3 6/7");
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
 
     let lint = repo_file("crates/syx-lint/src/lib.rs");
     assert!(
@@ -80,7 +80,7 @@ fn s3_05_struct_extension_adr_and_census() {
             && plan02.contains("S3-I77"),
         "plan/02 must cite I74…I77"
     );
-    assert!(plan02.contains("6/7"), "plan/02 must publish Stage-3 6/7");
+    assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
 
     assert!(
         repo_file("examples/struct_demo.sy").contains("struct Point"),
@@ -104,8 +104,8 @@ fn s3_05_struct_extension_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I82"),
-        "script ladder must be I77→I82:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I86"),
+        "script ladder must be I77→I86:\n{stdout}"
     );
     assert!(
         stdout.contains("struct_type_member_helper="),
