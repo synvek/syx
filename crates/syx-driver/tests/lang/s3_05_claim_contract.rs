@@ -1,5 +1,5 @@
 //! S3-I77 S3-05 scoped plan claim contracts.
-//! Nails: claim ADR + plan/02 S3-05 [x]; scoped Non-claims; Stage-3 still [~] 5/7.
+//! Nails: claim ADR + plan/02 S3-05 [x]; scoped Non-claims; Stage-3 still [~] 6/7.
 //! See docs/adr/stage3-s3-05-claim.md.
 
 fn repo_file(rel: &str) -> String {
@@ -40,8 +40,10 @@ fn s3_05_plan_claim_locked() {
     );
     assert!(
         adr.contains("S3-I78")
-            || (adr.contains("S3-06") && adr.contains("open")),
-        "ADR must lock next = S3-06 open / I78"
+            && (adr.contains("S3-I79")
+                || adr.contains("S3-06")
+                || adr.contains("stage3-s3-06-open")),
+        "ADR must cite landed I78 and I79 / S3-06 ladder"
     );
 
     let plan02 = repo_file("plan/02-improvement-roadmap.md");
@@ -66,13 +68,13 @@ fn s3_05_plan_claim_locked() {
         "Stage-3 must stay [~]; got: {stage3}"
     );
     assert!(
-        plan02.contains("5/7"),
-        "plan/02 must publish Stage-3 5/7"
+        plan02.contains("6/7"),
+        "plan/02 must publish Stage-3 6/7"
     );
     assert!(
-        plan02.contains("S3-I78")
-            || (plan02.contains("S3-06") && plan02.contains("open")),
-        "plan/02 must lock next = S3-06 open / I78"
+        plan02.contains("S3-I80")
+            && (plan02.contains("S3-I81") || plan02.contains("S3-06")),
+        "plan/02 must cite I80 / I81"
     );
 
     let census = repo_file("docs/stage3-lint-ast-census.md");
@@ -89,12 +91,12 @@ fn s3_05_plan_claim_locked() {
         "census must mark Claimed scoped [x]"
     );
     assert!(
-        census.contains("5/7"),
-        "census must publish Stage-3 5/7"
+        census.contains("6/7"),
+        "census must publish Stage-3 6/7"
     );
     assert!(
-        census.contains("S3-I78") || census.contains("S3-06"),
-        "census ladder must next = S3-06 / I78"
+        census.contains("S3-I80") && census.contains("S3-I81"),
+        "census ladder must cite I80 / I81"
     );
 
     let prior = repo_file("docs/adr/stage3-s3-05-residual-scope.md");
@@ -109,13 +111,13 @@ fn s3_05_plan_claim_locked() {
         "plan/01 must reflect S3-I77 S3-05 [x]"
     );
     assert!(
-        plan01.contains("5/7"),
-        "plan/01 must publish Stage-3 5/7"
+        plan01.contains("6/7"),
+        "plan/01 must publish Stage-3 6/7"
     );
     assert!(
-        plan01.contains("S3-I78")
-            || (plan01.contains("S3-06") && plan01.contains("open")),
-        "plan/01 must lock next = S3-06 open / I78"
+        plan01.contains("S3-I80")
+            && (plan01.contains("S3-I81") || plan01.contains("S3-06")),
+        "plan/01 must cite I80 / I81"
     );
 }
 
@@ -148,12 +150,12 @@ fn s3_05_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I78"),
-        "script ladder must be I77→I78:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I82"),
+        "script ladder must be I77→I82:\n{stdout}"
     );
     assert!(
-        stdout.contains("s3_05_status=x") && stdout.contains("stage3_checklist=5/7"),
-        "script must emit claimed status / 5/7:\n{stdout}"
+        stdout.contains("s3_05_status=x") && stdout.contains("stage3_checklist=6/7"),
+        "script must emit claimed status / 6/7:\n{stdout}"
     );
     let claim = stdout
         .lines()

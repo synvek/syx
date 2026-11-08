@@ -1,5 +1,5 @@
 //! S3-I76 S3-05 residual-scope (scoped acceptance + deferred hybrid) contracts.
-//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 5/7 · ≠ Stage-3 exit.
+//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 6/7 · ≠ Stage-3 exit.
 //! See docs/adr/stage3-s3-05-residual-scope.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -54,10 +54,10 @@ fn s3_05_residual_scope_adr_and_census() {
         "census must publish I76 KPIs / scoped goal"
     );
     assert!(
-        census.contains("S3-I78"),
-        "census ladder must name S3-I78 next"
+        census.contains("S3-I80") && census.contains("S3-I81"),
+        "census ladder must name S3-I80 / S3-I81"
     );
-    assert!(census.contains("5/7"), "census must publish Stage-3 5/7");
+    assert!(census.contains("6/7"), "census must publish Stage-3 6/7");
     assert!(
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
@@ -90,15 +90,15 @@ fn s3_05_residual_scope_adr_and_census() {
         "plan/02 must cite I76"
     );
     assert!(
-        plan02.contains("S3-I78"),
-        "plan/02 must lock next = S3-I78"
+        plan02.contains("S3-I80") && plan02.contains("S3-I81"),
+        "plan/02 must cite I80 / I81"
     );
-    assert!(plan02.contains("5/7"), "plan/02 must publish Stage-3 5/7");
+    assert!(plan02.contains("6/7"), "plan/02 must publish Stage-3 6/7");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I76") && plan01.contains("S3-I77") && plan01.contains("5/7"),
-        "plan/01 must cite I76 / I77 / 5/7"
+        plan01.contains("S3-I77") && plan01.contains("6/7"),
+        "plan/01 must cite I77 / 6/7"
     );
 }
 
@@ -117,8 +117,8 @@ fn s3_05_residual_scope_census_script_emits_hinge() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I78"),
-        "script ladder must be I77→I78:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I82"),
+        "script ladder must be I77→I82:\n{stdout}"
     );
     assert!(
         stdout.contains("residual_scope_helper="),

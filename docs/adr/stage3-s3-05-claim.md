@@ -30,15 +30,18 @@ Under Hard OUT（≠ AST-ize L010–L012 / ≠ full CST lint rewrite / ≠ S2-04
 ## Consequences
 
 - S3-05 plan-claimed `[x]`; Stage-3 stays `[~]`（checklist **5/7 ≈ 71%**）.
-- Default next = **S3-I78**（S3-06 open — LSP）— not Stage-3 exit.
+- **S3-I78 landed** as [stage3-s3-06-open](stage3-s3-06-open.md)（S3-06 open — LSP census）。
+- Default next = **S3-I79** construct — not Stage-3 exit.
 - Prior: [stage3-s3-05-residual-scope](stage3-s3-05-residual-scope.md) · S3-I76 · open [S3-I72](stage3-s3-05-open.md).
-- Census Current → **S3-I77** · Claimed scoped `[x]`.
+- Lint-ast census Current → **S3-I77** · Claimed scoped `[x]`；LSP-book census Current → **S3-I78**.
 
 ## References
 
+- [stage3-s3-06-open](stage3-s3-06-open.md) · S3-I78
 - [stage3-s3-05-residual-scope](stage3-s3-05-residual-scope.md) · S3-I76
 - [stage3-s3-05-claim-prep](stage3-s3-05-claim-prep.md) · S3-I75
 - [stage3-s3-05-open](stage3-s3-05-open.md) · S3-I72
 - [stage3-s3-04-claim](stage3-s3-04-claim.md) · S3-I71（claim 窗形态）
 - [stage3-lint-ast-census](../stage3-lint-ast-census.md)
+- [stage3-lsp-book-census](../stage3-lsp-book-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-05

@@ -9,8 +9,8 @@ use crate::{
     core_prelude_generic_class_methods, core_prelude_import_symbols, ensure_project_lock,
     expand_core_value_builtin_modules, expand_macros, export_symbols,
     inject_core_collection_builtins, inject_imported_dataclass_decls, prepare_async_module,
-    project_cache_dir, register_imported_macros_from_parsed, resolve_module, DriverOptions,
-    ModuleGraph,
+    project_cache_dir, register_imported_macros_from_parsed, resolve_module,
+    should_desugar_top_level_stmts, DriverOptions, ModuleGraph,
 };
 use indexmap::IndexMap;
 use smol_str::SmolStr;
@@ -221,9 +221,16 @@ pub fn analyze_document_for_lsp(
             &empty_graph,
         );
         // M1-A03: fail-closed frontend passes via FrontendPipeline (Prepared).
+        // S3-I79: align top-level desugar with compile (`should_desugar_top_level_stmts`)
+        // so freestanding / main buffers do not false-positive S045 under LSP.
+        let desugar_top_level = match path {
+            Some(p) => should_desugar_top_level_stmts(p, &manifest),
+            // Untitled buffer ≡ freestanding script (compile orphan .sy → desugar).
+            None => true,
+        };
         let prep_opts = FrontendOptions {
             stop_after: StopAfter::Prepared,
-            desugar_top_level: false,
+            desugar_top_level,
             source: Some(source.clone()),
             ..FrontendOptions::default()
         };

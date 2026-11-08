@@ -7317,7 +7317,7 @@ dependencies = [
 
 [[package]]
 name = "syx-ast"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "smol_str 0.3.6",
  "syx-diagnostics",
@@ -7325,7 +7325,7 @@ dependencies = [
 
 [[package]]
 name = "syx-async"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "crossbeam-channel",
  "parking_lot",
@@ -7341,7 +7341,7 @@ dependencies = [
 
 [[package]]
 name = "syx-cli"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "clap",
  "miette",
@@ -7356,7 +7356,7 @@ dependencies = [
 
 [[package]]
 name = "syx-codegen"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "serde",
@@ -7372,7 +7372,7 @@ dependencies = [
 
 [[package]]
 name = "syx-compiler-wasm"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "getrandom 0.2.17",
  "serde",
@@ -7391,11 +7391,11 @@ dependencies = [
 
 [[package]]
 name = "syx-config"
-version = "0.1.3"
+version = "0.2.0"
 
 [[package]]
 name = "syx-cranelift-jit"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "cranelift-codegen 0.116.1",
  "cranelift-frontend 0.116.1",
@@ -7408,7 +7408,7 @@ dependencies = [
 
 [[package]]
 name = "syx-cst"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "smol_str 0.3.6",
  "syx-ast",
@@ -7418,7 +7418,7 @@ dependencies = [
 
 [[package]]
 name = "syx-debug"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "serde",
@@ -7436,7 +7436,7 @@ dependencies = [
 
 [[package]]
 name = "syx-diagnostics"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "miette",
  "thiserror 2.0.19",
@@ -7444,7 +7444,7 @@ dependencies = [
 
 [[package]]
 name = "syx-doc"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "smol_str 0.3.6",
  "syx-ast",
@@ -7454,7 +7454,7 @@ dependencies = [
 
 [[package]]
 name = "syx-driver"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "bincode",
  "cc",
@@ -7509,7 +7509,7 @@ dependencies = [
 
 [[package]]
 name = "syx-fmt"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "syx-ast",
  "syx-cst",
@@ -7519,7 +7519,7 @@ dependencies = [
 
 [[package]]
 name = "syx-frontend"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "sha2",
@@ -7558,7 +7558,7 @@ dependencies = [
 
 [[package]]
 name = "syx-hir"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "sha2",
  "smol_str 0.3.6",
@@ -7573,7 +7573,7 @@ dependencies = [
 
 [[package]]
 name = "syx-host-plugin"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "ed25519-dalek",
  "faer",
@@ -7591,7 +7591,7 @@ dependencies = [
 
 [[package]]
 name = "syx-lexer"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "smol_str 0.3.6",
  "syx-diagnostics",
@@ -7600,7 +7600,7 @@ dependencies = [
 
 [[package]]
 name = "syx-lint"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "smol_str 0.3.6",
@@ -7612,7 +7612,7 @@ dependencies = [
 
 [[package]]
 name = "syx-lld"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "cc",
  "syx-llvm-prefix",
@@ -7620,7 +7620,7 @@ dependencies = [
 
 [[package]]
 name = "syx-llvm"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "inkwell",
  "syx-diagnostics",
@@ -7630,11 +7630,11 @@ dependencies = [
 
 [[package]]
 name = "syx-llvm-prefix"
-version = "0.1.3"
+version = "0.2.0"
 
 [[package]]
 name = "syx-lsp"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -7647,7 +7647,7 @@ dependencies = [
 
 [[package]]
 name = "syx-macro"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "serde",
@@ -7664,7 +7664,7 @@ dependencies = [
 
 [[package]]
 name = "syx-meta"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "smol_str 0.3.6",
@@ -7677,7 +7677,7 @@ dependencies = [
 
 [[package]]
 name = "syx-mir"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "bincode",
  "indexmap",
@@ -7693,7 +7693,7 @@ dependencies = [
 
 [[package]]
 name = "syx-mir-run"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "syx-ast",
  "syx-diagnostics",
@@ -7707,7 +7707,7 @@ dependencies = [
 
 [[package]]
 name = "syx-mono"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "smol_str 0.3.6",
@@ -7718,7 +7718,7 @@ dependencies = [
 
 [[package]]
 name = "syx-parser"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "smol_str 0.3.6",
  "syx-ast",
@@ -7729,7 +7729,7 @@ dependencies = [
 
 [[package]]
 name = "syx-pkg"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "ed25519-dalek",
  "flate2",
@@ -7747,7 +7747,7 @@ dependencies = [
 
 [[package]]
 name = "syx-rt"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "cc",
  "crossbeam-channel",
@@ -7766,7 +7766,7 @@ dependencies = [
 
 [[package]]
 name = "syx-runtime-core"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "smol_str 0.3.6",
  "syx-diagnostics",
@@ -7776,7 +7776,7 @@ dependencies = [
 
 [[package]]
 name = "syx-semantic"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "serde_json",
@@ -7791,7 +7791,7 @@ dependencies = [
 
 [[package]]
 name = "syx-stdlib"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "indexmap",
  "smol_str 0.3.6",
@@ -7799,7 +7799,7 @@ dependencies = [
 
 [[package]]
 name = "syx-vm"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "aes-gcm",
  "bytes",
@@ -7850,7 +7850,7 @@ dependencies = [
 
 [[package]]
 name = "syx-wasm-emit"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "syx-config",
  "syx-diagnostics",
@@ -7866,7 +7866,7 @@ dependencies = [
 
 [[package]]
 name = "syx-wasm-run"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "crossbeam-channel",
  "syx-async",

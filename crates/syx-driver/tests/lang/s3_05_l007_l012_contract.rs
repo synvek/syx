@@ -1,5 +1,5 @@
 //! S3-I73 S3-05 L007/L012 false-positive knife contracts.
-//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 5/7.
+//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 6/7.
 //! See docs/adr/stage3-s3-05-l007-l012-false-positive.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -44,7 +44,7 @@ fn s3_05_l007_l012_adr_and_census() {
         census.contains("S3-I73") && census.contains("class_demo_l007_count"),
         "census must retain I73 / class_demo KPIs"
     );
-    assert!(census.contains("5/7"), "census must publish Stage-3 5/7");
+    assert!(census.contains("6/7"), "census must publish Stage-3 6/7");
 
     let lint = repo_file("crates/syx-lint/src/lib.rs");
     assert!(
@@ -80,7 +80,7 @@ fn s3_05_l007_l012_adr_and_census() {
         plan02.contains("S3-I73") && plan02.contains("S3-I74"),
         "plan/02 must cite I73 and I74"
     );
-    assert!(plan02.contains("5/7"), "plan/02 must publish Stage-3 5/7");
+    assert!(plan02.contains("6/7"), "plan/02 must publish Stage-3 6/7");
 }
 
 #[test]
@@ -99,8 +99,8 @@ fn s3_05_l007_l012_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I78"),
-        "script ladder must be I77→I78:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I82"),
+        "script ladder must be I77→I82:\n{stdout}"
     );
     assert!(
         stdout.contains("l007_l012_knife_helper="),
