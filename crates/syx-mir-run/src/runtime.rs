@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicI64, Ordering};
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use crate::mir_run_diag::mir_run_error_at;
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use syx_mir::{MirFunction, MirOp};
 use syx_runtime_core::{
     display_numeric, numeric_cmp, platform_int_value, simd_abs, simd_all_true, simd_and,
@@ -1071,11 +1072,7 @@ impl MirRuntime {
                 if self.locals.len() <= a as usize {
                     self.locals.resize(a as usize + 1, Value::Nil);
                 }
-                let should_unroot = self
-                    .locals
-                    .get(a as usize)
-                    .map(|o| o != &v)
-                    .unwrap_or(true);
+                let should_unroot = self.locals.get(a as usize).map(|o| o != &v).unwrap_or(true);
                 let old = std::mem::replace(&mut self.locals[a as usize], v);
                 if should_unroot {
                     self.maybe_untrack_objectref_value(&old);
@@ -1187,7 +1184,7 @@ impl MirRuntime {
                 match try_numeric_cast(fk, tk, &v) {
                     Ok(casted) => self.stack.push(casted),
                     Err(msg) => {
-                        return Err(SyxDiagnostic::error(msg).with_code("R003"));
+                        return Err(mir_run_error_at(msg, None, Span::DUMMY, "R003"));
                     }
                 }
             }
@@ -1336,10 +1333,9 @@ impl MirRuntime {
             mir_op,
             MirOp::Call(_) | MirOp::Jump(_) | MirOp::JumpIfFalse(_) | MirOp::Return
         ) {
-            return Err(SyxDiagnostic::error(format!(
+            return Err(mir_run_error_at(format!(
                 "EC-M1-3: Suite-1 pilot MirOp is control-flow; use run_mir_function, not exec_mir_op: {mir_op:?}"
-            ))
-            .with_code("E_MIR_PILOT"));
+            ), None, Span::DUMMY, "E_MIR_PILOT"));
         }
         let (op_code, a, b) = mir_op_immediates(mir_op, memory, self);
         self.exec(op_code, a, b, 0, memory)?;
@@ -1550,10 +1546,9 @@ impl MirRuntime {
         };
         // ADR-225 / M2-S1-04: illegal receiver/closure → U001 (never `[]`/`Nil` success).
         let hof_err = |op: &str| {
-            syx_diagnostics::SyxDiagnostic::error(format!(
+            mir_run_error_at(format!(
                 "unsupported array HOF '{op}': requires Array receiver and Closure (feature-off or illegal shape)"
-            ))
-            .with_code("U001")
+            ), None, Span::DUMMY, "U001")
         };
         let Value::Array(items) = receiver else {
             let op = match op {
@@ -1821,10 +1816,7 @@ impl MirRuntime {
                 return Ok(());
             }
             // ADR-225 / M2-S1-04: no fallthrough to empty-array success.
-            return Err(syx_diagnostics::SyxDiagnostic::error(
-                "unsupported array HOF 'filter': requires Array receiver and Closure (feature-off or illegal shape)",
-            )
-            .with_code("U001"));
+            return Err(mir_run_error_at("unsupported array HOF 'filter': requires Array receiver and Closure (feature-off or illegal shape)", None, Span::DUMMY, "U001"));
         }
         if method == syx_stdlib::MethodId::ArrMap {
             if let (Value::Array(items), Some(Value::Closure { fn_index, captures })) =
@@ -1842,10 +1834,7 @@ impl MirRuntime {
                 self.stack.push(Value::Array(mapped));
                 return Ok(());
             }
-            return Err(syx_diagnostics::SyxDiagnostic::error(
-                "unsupported array HOF 'map': requires Array receiver and Closure (feature-off or illegal shape)",
-            )
-            .with_code("U001"));
+            return Err(mir_run_error_at("unsupported array HOF 'map': requires Array receiver and Closure (feature-off or illegal shape)", None, Span::DUMMY, "U001"));
         }
         if method == syx_stdlib::MethodId::ArrReduce {
             let result = syx_vm::try_call_array_method_for_mir(
@@ -2068,11 +2057,12 @@ impl MirRuntime {
             Value::Array(items) => {
                 let i = idx.as_i32();
                 if i < 0 || (i as usize) >= items.len() {
-                    return Err(SyxDiagnostic::error(format!(
-                        "Array index {i} out of bounds (count {})",
-                        items.len()
-                    ))
-                    .with_code("R003"));
+                    return Err(mir_run_error_at(
+                        format!("Array index {i} out of bounds (count {})", items.len()),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    ));
                 }
                 items[i as usize].clone()
             }
@@ -2081,10 +2071,12 @@ impl MirRuntime {
                 match syx_vm::try_grapheme_at(&s, i) {
                     Ok(g) => Value::Character(g),
                     Err((i, count)) => {
-                        return Err(SyxDiagnostic::error(format!(
-                            "String index {i} out of bounds (count {count})"
-                        ))
-                        .with_code("R003"));
+                        return Err(mir_run_error_at(
+                            format!("String index {i} out of bounds (count {count})"),
+                            None,
+                            Span::DUMMY,
+                            "R003",
+                        ));
                     }
                 }
             }
@@ -2102,11 +2094,12 @@ impl MirRuntime {
         if let Value::Array(mut items) = arr {
             let i = idx.as_i32();
             if i < 0 || (i as usize) >= items.len() {
-                return Err(SyxDiagnostic::error(format!(
-                    "Array index {i} out of bounds (count {})",
-                    items.len()
-                ))
-                .with_code("R003"));
+                return Err(mir_run_error_at(
+                    format!("Array index {i} out of bounds (count {})", items.len()),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
             items[i as usize] = val;
             let updated = Value::Array(items);

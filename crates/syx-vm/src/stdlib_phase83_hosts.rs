@@ -11,8 +11,10 @@ use std::time::Instant;
 use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey};
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_runtime_core::{platform_int_value, value_debug_description, value_description, Value};
+
+use crate::vm_error_at;
 
 /// ADR-282: held flag + Condvar; Arc so waiters release the global table before parking.
 struct SyxMutexEntry {
@@ -830,7 +832,8 @@ pub fn host_base64_encode(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 pub fn host_base64_decode(stack: &mut Vec<Value>) -> SyxResult<()> {
     let s = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
-    let bytes = base64_decode(&s).ok_or_else(|| SyxDiagnostic::error("invalid base64 input"))?;
+    let bytes = base64_decode(&s)
+        .ok_or_else(|| vm_error_at("invalid base64 input", None, Span::DUMMY, "R003"))?;
     stack.push(Value::Str(String::from_utf8_lossy(&bytes).into_owned()));
     Ok(())
 }
@@ -843,7 +846,8 @@ pub fn host_hex_encode(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 pub fn host_hex_decode(stack: &mut Vec<Value>) -> SyxResult<()> {
     let s = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
-    let bytes = hex_to_bytes(&s).ok_or_else(|| SyxDiagnostic::error("invalid hex input"))?;
+    let bytes = hex_to_bytes(&s)
+        .ok_or_else(|| vm_error_at("invalid hex input", None, Span::DUMMY, "R003"))?;
     stack.push(Value::Str(String::from_utf8_lossy(&bytes).into_owned()));
     Ok(())
 }
@@ -1451,7 +1455,8 @@ pub fn host_process_exit_code(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(feature = "file")]
 pub fn host_file_stat(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
-    let meta = std::fs::metadata(&path).map_err(|e| SyxDiagnostic::error(format!("stat: {e}")))?;
+    let meta = std::fs::metadata(&path)
+        .map_err(|e| vm_error_at(format!("stat: {e}"), None, Span::DUMMY, "R003"))?;
     let mut obj = HashMap::new();
     obj.insert("size".into(), platform_int_value(meta.len() as i64));
     obj.insert("isFile".into(), Value::Bool(meta.is_file()));
@@ -1477,13 +1482,16 @@ pub fn host_file_symlink(stack: &mut Vec<Value>) -> SyxResult<()> {
     #[cfg(unix)]
     {
         std::os::unix::fs::symlink(&target, &link)
-            .map_err(|e| SyxDiagnostic::error(format!("symlink: {e}")))?;
+            .map_err(|e| vm_error_at(format!("symlink: {e}"), None, Span::DUMMY, "R003"))?;
     }
     #[cfg(not(unix))]
     {
         let _ = (target, link);
-        return Err(SyxDiagnostic::error(
+        return Err(vm_error_at(
             "symlink not supported on this platform",
+            None,
+            Span::DUMMY,
+            "R003",
         ));
     }
     stack.push(Value::Bool(true));
@@ -1493,8 +1501,8 @@ pub fn host_file_symlink(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(feature = "file")]
 pub fn host_file_read_link(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
-    let target =
-        std::fs::read_link(&path).map_err(|e| SyxDiagnostic::error(format!("readLink: {e}")))?;
+    let target = std::fs::read_link(&path)
+        .map_err(|e| vm_error_at(format!("readLink: {e}"), None, Span::DUMMY, "R003"))?;
     stack.push(Value::Str(target.to_string_lossy().into_owned()));
     Ok(())
 }
@@ -1508,12 +1516,17 @@ pub fn host_file_chmod(stack: &mut Vec<Value>) -> SyxResult<()> {
         use std::os::unix::fs::PermissionsExt;
         let perms = std::fs::Permissions::from_mode(mode);
         std::fs::set_permissions(&path, perms)
-            .map_err(|e| SyxDiagnostic::error(format!("chmod: {e}")))?;
+            .map_err(|e| vm_error_at(format!("chmod: {e}"), None, Span::DUMMY, "R003"))?;
     }
     #[cfg(not(unix))]
     {
         let _ = (mode, path);
-        return Err(SyxDiagnostic::error("chmod not supported on this platform"));
+        return Err(vm_error_at(
+            "chmod not supported on this platform",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Bool(true));
     Ok(())
@@ -1521,29 +1534,41 @@ pub fn host_file_chmod(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 #[cfg(not(feature = "file"))]
 pub fn host_file_stat(_stack: &mut Vec<Value>) -> SyxResult<()> {
-    Err(SyxDiagnostic::error(
+    Err(vm_error_at(
         "file host disabled (enable `file` feature)",
+        None,
+        Span::DUMMY,
+        "R003",
     ))
 }
 
 #[cfg(not(feature = "file"))]
 pub fn host_file_symlink(_stack: &mut Vec<Value>) -> SyxResult<()> {
-    Err(SyxDiagnostic::error(
+    Err(vm_error_at(
         "file host disabled (enable `file` feature)",
+        None,
+        Span::DUMMY,
+        "R003",
     ))
 }
 
 #[cfg(not(feature = "file"))]
 pub fn host_file_read_link(_stack: &mut Vec<Value>) -> SyxResult<()> {
-    Err(SyxDiagnostic::error(
+    Err(vm_error_at(
         "file host disabled (enable `file` feature)",
+        None,
+        Span::DUMMY,
+        "R003",
     ))
 }
 
 #[cfg(not(feature = "file"))]
 pub fn host_file_chmod(_stack: &mut Vec<Value>) -> SyxResult<()> {
-    Err(SyxDiagnostic::error(
+    Err(vm_error_at(
         "file host disabled (enable `file` feature)",
+        None,
+        Span::DUMMY,
+        "R003",
     ))
 }
 
@@ -1661,8 +1686,11 @@ pub fn host_crypto_ed25519_sign(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut seed = [0u8; 32];
     let take = key_bytes.len().min(32);
     if take == 0 {
-        return Err(SyxDiagnostic::error(
+        return Err(vm_error_at(
             "ed25519 signing key must be non-empty",
+            None,
+            Span::DUMMY,
+            "R003",
         ));
     }
     seed[..take].copy_from_slice(&key_bytes[..take]);
@@ -2064,7 +2092,12 @@ pub fn host_testing_assert(stack: &mut Vec<Value>) -> SyxResult<()> {
         .as_str();
     let cond = stack.pop().unwrap_or(Value::Bool(false)).as_bool();
     if !cond {
-        return Err(SyxDiagnostic::error(format!("assertion failed: {msg}")));
+        return Err(vm_error_at(
+            format!("assertion failed: {msg}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -2078,11 +2111,16 @@ pub fn host_testing_assert_eq(stack: &mut Vec<Value>) -> SyxResult<()> {
     let expected = stack.pop().unwrap_or(Value::Nil);
     let actual = stack.pop().unwrap_or(Value::Nil);
     if !syx_runtime_core::value_equals(&actual, &expected) {
-        return Err(SyxDiagnostic::error(format!(
-            "assertEq failed: {msg} — expected {}, got {}",
-            value_debug_description(&expected),
-            value_debug_description(&actual)
-        )));
+        return Err(vm_error_at(
+            format!(
+                "assertEq failed: {msg} — expected {}, got {}",
+                value_debug_description(&expected),
+                value_debug_description(&actual)
+            ),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())

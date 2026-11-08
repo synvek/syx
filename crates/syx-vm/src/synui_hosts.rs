@@ -46,8 +46,7 @@ pub const SYNUI_V4_WIDGET_SWITCH_RADIO_DIGEST: &str = "gui-synui-v4:widget-switc
 /// Phase 128 v5 fingerprints.
 pub const SYNUI_V5_TOGGLE_RADIO_BIND_DIGEST: &str = "gui-synui-v5:toggle-radio-bind";
 pub const SYNUI_V5_WIDGET_PROGRESS_PICKER_DIGEST: &str = "gui-synui-v5:widget-progress-picker";
-pub const SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST: &str =
-    "gui-synui-v5:mobile-surface-unretire";
+pub const SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST: &str = "gui-synui-v5:mobile-surface-unretire";
 
 /// Phase 129 v6 fingerprints.
 pub const SYNUI_V6_WIDGET_TEXTAREA_LIST_DIGEST: &str = "gui-synui-v6:widget-textarea-list";
@@ -58,8 +57,7 @@ pub const SYNUI_V6_DESKTOP_RUN_LAYOUT_GA_DIGEST: &str = "gui-synui-v6:desktop-ru
 /// Phase 130 v7 fingerprints.
 pub const SYNUI_V7_WIDGET_IMAGE_SCROLL_DIGEST: &str = "gui-synui-v7:widget-image-scroll";
 pub const SYNUI_V7_PICKER_SIGNAL_BIND_DIGEST: &str = "gui-synui-v7:picker-signal-bind";
-pub const SYNUI_V7_WEB_LANGUAGE_SURFACE_MVP_DIGEST: &str =
-    "gui-synui-v7:web-language-surface-mvp";
+pub const SYNUI_V7_WEB_LANGUAGE_SURFACE_MVP_DIGEST: &str = "gui-synui-v7:web-language-surface-mvp";
 
 /// Phase 131 v8 fingerprints.
 pub const SYNUI_V8_TEXTAREA_LIST_BIND_DIGEST: &str = "gui-synui-v8:textarea-list-bind";
@@ -75,8 +73,7 @@ pub const SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST: &str =
 
 /// Phase 133 v10 fingerprints.
 pub const SYNUI_V10_WIDGET_STACK_DIGEST: &str = "gui-synui-v10:widget-stack";
-pub const SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST: &str =
-    "gui-synui-v10:scrollview-signal-bind";
+pub const SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST: &str = "gui-synui-v10:scrollview-signal-bind";
 pub const SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_DIGEST: &str =
     "gui-synui-v10:web-mobile-layout-deepen";
 

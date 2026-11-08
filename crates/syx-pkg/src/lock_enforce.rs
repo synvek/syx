@@ -1,8 +1,9 @@
 //! Phase 78: lock v12 marketplace + plugin epoch enforcement on install.
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::lockfile::SyxLockfile;
+use crate::pkg_error_at;
 
 /// Reject install when env plugin epoch is stale vs lockfile.
 pub fn enforce_plugin_epoch(lock: &SyxLockfile) -> SyxResult<()> {
@@ -14,11 +15,15 @@ pub fn enforce_plugin_epoch(lock: &SyxLockfile) -> SyxResult<()> {
         .and_then(|s| s.parse().ok())
         .unwrap_or(0);
     if env_epoch < lock.plugin_unload_epoch {
-        return Err(SyxDiagnostic::error(format!(
-            "plugin unload epoch stale: lock requires {} but env has {}",
-            lock.plugin_unload_epoch, env_epoch
-        ))
-        .with_code("S412"));
+        return Err(pkg_error_at(
+            format!(
+                "plugin unload epoch stale: lock requires {} but env has {}",
+                lock.plugin_unload_epoch, env_epoch
+            ),
+            None,
+            Span::DUMMY,
+            "S412",
+        ));
     }
     Ok(())
 }
@@ -31,10 +36,12 @@ pub fn enforce_marketplace_cdn(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let env = std::env::var("SYX_MARKETPLACE_CDN").unwrap_or_default();
         if env.is_empty() {
-            return Err(SyxDiagnostic::error(format!(
-                "marketplace CDN required: lock specifies {cdn}"
-            ))
-            .with_code("S413"));
+            return Err(pkg_error_at(
+                format!("marketplace CDN required: lock specifies {cdn}"),
+                None,
+                Span::DUMMY,
+                "S413",
+            ));
         }
     }
     Ok(())
@@ -54,10 +61,12 @@ pub fn enforce_tenant(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let env = std::env::var("SYX_TENANT_ID").unwrap_or_default();
         if !env.is_empty() && env != *tenant {
-            return Err(SyxDiagnostic::error(format!(
-                "tenant mismatch: lock requires {tenant} but env has {env}"
-            ))
-            .with_code("S414"));
+            return Err(pkg_error_at(
+                format!("tenant mismatch: lock requires {tenant} but env has {env}"),
+                None,
+                Span::DUMMY,
+                "S414",
+            ));
         }
     }
     Ok(())
@@ -71,10 +80,12 @@ pub fn enforce_rotation_cron(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let ack = std::env::var("SYX_ROTATION_CRON_ACK").unwrap_or_default();
         if ack != *spec {
-            return Err(SyxDiagnostic::error(format!(
-                "rotation cron stale: lock requires ack {spec}"
-            ))
-            .with_code("S415"));
+            return Err(pkg_error_at(
+                format!("rotation cron stale: lock requires ack {spec}"),
+                None,
+                Span::DUMMY,
+                "S415",
+            ));
         }
     }
     Ok(())
@@ -95,10 +106,12 @@ pub fn enforce_hsm_key_ref(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let env = std::env::var("SYX_HSM_KEY_REF").unwrap_or_default();
         if !env.is_empty() && env != *hsm {
-            return Err(SyxDiagnostic::error(format!(
-                "HSM key ref stale: lock requires {hsm} but env has {env}"
-            ))
-            .with_code("S416"));
+            return Err(pkg_error_at(
+                format!("HSM key ref stale: lock requires {hsm} but env has {env}"),
+                None,
+                Span::DUMMY,
+                "S416",
+            ));
         }
     }
     Ok(())
@@ -112,10 +125,12 @@ pub fn enforce_billing_meter(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let ack = std::env::var("SYX_BILLING_METER_ACK").unwrap_or_default();
         if ack != *meter {
-            return Err(SyxDiagnostic::error(format!(
-                "billing meter stale: lock requires ack {meter}"
-            ))
-            .with_code("S417"));
+            return Err(pkg_error_at(
+                format!("billing meter stale: lock requires ack {meter}"),
+                None,
+                Span::DUMMY,
+                "S417",
+            ));
         }
     }
     Ok(())
@@ -136,10 +151,12 @@ pub fn enforce_hsm_rotation_cron(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let ack = std::env::var("SYX_HSM_ROTATION_CRON_ACK").unwrap_or_default();
         if ack != *job {
-            return Err(SyxDiagnostic::error(format!(
-                "HSM rotation cron stale: lock requires ack {job}"
-            ))
-            .with_code("S419"));
+            return Err(pkg_error_at(
+                format!("HSM rotation cron stale: lock requires ack {job}"),
+                None,
+                Span::DUMMY,
+                "S419",
+            ));
         }
     }
     Ok(())
@@ -153,10 +170,12 @@ pub fn enforce_billing_settlement(lock: &SyxLockfile) -> SyxResult<()> {
         }
         let env = std::env::var("SYX_BILLING_SETTLEMENT_ACK").unwrap_or_default();
         if env != *settlement {
-            return Err(SyxDiagnostic::error(format!(
-                "billing settlement stale: lock requires ack {settlement}"
-            ))
-            .with_code("S420"));
+            return Err(pkg_error_at(
+                format!("billing settlement stale: lock requires ack {settlement}"),
+                None,
+                Span::DUMMY,
+                "S420",
+            ));
         }
     }
     Ok(())
@@ -172,11 +191,15 @@ pub fn enforce_marketplace_plugin_epoch(lock: &SyxLockfile) -> SyxResult<()> {
         .and_then(|s| s.parse().ok())
         .unwrap_or(0);
     if env_epoch < lock.marketplace_plugin_epoch {
-        return Err(SyxDiagnostic::error(format!(
-            "marketplace plugin epoch stale: lock requires {} but env has {}",
-            lock.marketplace_plugin_epoch, env_epoch
-        ))
-        .with_code("S421"));
+        return Err(pkg_error_at(
+            format!(
+                "marketplace plugin epoch stale: lock requires {} but env has {}",
+                lock.marketplace_plugin_epoch, env_epoch
+            ),
+            None,
+            Span::DUMMY,
+            "S421",
+        ));
     }
     Ok(())
 }
@@ -199,11 +222,15 @@ pub fn enforce_marketplace_publish_epoch(lock: &SyxLockfile) -> SyxResult<()> {
         .and_then(|s| s.parse().ok())
         .unwrap_or(0);
     if env_epoch < lock.marketplace_publish_epoch {
-        return Err(SyxDiagnostic::error(format!(
-            "marketplace publish epoch stale: lock requires {} but env has {}",
-            lock.marketplace_publish_epoch, env_epoch
-        ))
-        .with_code("S422"));
+        return Err(pkg_error_at(
+            format!(
+                "marketplace publish epoch stale: lock requires {} but env has {}",
+                lock.marketplace_publish_epoch, env_epoch
+            ),
+            None,
+            Span::DUMMY,
+            "S422",
+        ));
     }
     Ok(())
 }

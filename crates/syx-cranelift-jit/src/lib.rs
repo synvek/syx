@@ -1,5 +1,7 @@
 //! ADR-140 / M1 W4: Cranelift JIT tier-2 — Suite-1 pilot MirOp true lowering + native invoke.
 
+mod jit_diag;
+
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
@@ -11,7 +13,8 @@ use cranelift_codegen::settings::{self, Configurable};
 use cranelift_frontend::{FunctionBuilder, FunctionBuilderContext, Variable};
 use cranelift_jit::{JITBuilder, JITModule};
 use cranelift_module::{FuncId, Linkage, Module};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use jit_diag::jit_error_at;
+use syx_diagnostics::{Span, SyxResult};
 use syx_mir::{MirFunction, MirInstr, MirModule, MirOp};
 use target_lexicon::Triple;
 
@@ -103,14 +106,14 @@ fn ensure_state(state: &mut Option<JitState>) -> SyxResult<&mut JitState> {
 fn new_jit_state() -> SyxResult<JitState> {
     let triple = Triple::host();
     let isa_builder = cranelift_codegen::isa::lookup(triple)
-        .map_err(|e| SyxDiagnostic::error(format!("ISA lookup failed: {e}")))?;
+        .map_err(|e| jit_error_at(format!("ISA lookup failed: {e}"), None, Span::DUMMY, "J001"))?;
     let mut flag_builder = settings::builder();
     flag_builder
         .set("opt_level", "speed")
-        .map_err(|e| SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| jit_error_at(e.to_string(), None, Span::DUMMY, "J001"))?;
     let isa = isa_builder
         .finish(settings::Flags::new(flag_builder))
-        .map_err(|e| SyxDiagnostic::error(format!("ISA build failed: {e}")))?;
+        .map_err(|e| jit_error_at(format!("ISA build failed: {e}"), None, Span::DUMMY, "J001"))?;
 
     let mut jit_builder = JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
     jit_builder.symbol("syx_vm_deopt", syx_vm_deopt_trampoline as *const u8);
@@ -181,7 +184,7 @@ pub fn unsupported_mir_op_reason(op: &MirOp) -> Option<String> {
 fn check_function_supported(func: &MirFunction) -> SyxResult<()> {
     for insn in mir_ops_iter(func) {
         if let Some(reason) = unsupported_mir_op_reason(&insn.op) {
-            return Err(SyxDiagnostic::error(reason));
+            return Err(jit_error_at(reason, None, Span::DUMMY, "J001"));
         }
     }
     Ok(())
@@ -192,7 +195,7 @@ pub fn compile_hot_function(module: &MirModule, func_name: &str) -> SyxResult<Ji
     {
         let guard = jit_state_lock()
             .lock()
-            .map_err(|_| SyxDiagnostic::error("JIT state lock poisoned"))?;
+            .map_err(|_| jit_error_at("JIT state lock poisoned", None, Span::DUMMY, "J001"))?;
         if let Some(st) = guard.as_ref() {
             if let Some(entry) = st.entries.get(func_name) {
                 return Ok(entry.clone());
@@ -204,7 +207,14 @@ pub fn compile_hot_function(module: &MirModule, func_name: &str) -> SyxResult<Ji
         .functions
         .iter()
         .find(|f| f.name == func_name)
-        .ok_or_else(|| SyxDiagnostic::error(format!("JIT: unknown function {func_name}")))?
+        .ok_or_else(|| {
+            jit_error_at(
+                format!("JIT: unknown function {func_name}"),
+                None,
+                Span::DUMMY,
+                "J001",
+            )
+        })?
         .clone();
 
     check_function_supported(&mir_fn)?;
@@ -220,7 +230,7 @@ pub fn compile_hot_function(module: &MirModule, func_name: &str) -> SyxResult<Ji
 
     let mut guard = jit_state_lock()
         .lock()
-        .map_err(|_| SyxDiagnostic::error("JIT state lock poisoned"))?;
+        .map_err(|_| jit_error_at("JIT state lock poisoned", None, Span::DUMMY, "J001"))?;
     let state = ensure_state(&mut guard)?;
 
     if let Some(entry) = state.entries.get(func_name) {
@@ -235,7 +245,7 @@ pub fn compile_hot_function(module: &MirModule, func_name: &str) -> SyxResult<Ji
         let id = state
             .module
             .declare_function(&export_name, Linkage::Export, &sig)
-            .map_err(|e| SyxDiagnostic::error(format!("JIT declare: {e}")))?;
+            .map_err(|e| jit_error_at(format!("JIT declare: {e}"), None, Span::DUMMY, "J001"))?;
         state.func_ids.insert(func_name.to_string(), id);
         id
     };
@@ -248,12 +258,26 @@ pub fn compile_hot_function(module: &MirModule, func_name: &str) -> SyxResult<Ji
                     .functions
                     .iter()
                     .find(|f| f.name == cname)
-                    .ok_or_else(|| SyxDiagnostic::error(format!("JIT: unknown callee {cname}")))?;
+                    .ok_or_else(|| {
+                        jit_error_at(
+                            format!("JIT: unknown callee {cname}"),
+                            None,
+                            Span::DUMMY,
+                            "J001",
+                        )
+                    })?;
                 let csig = signature_for(cfn.param_count);
                 let cid = state
                     .module
                     .declare_function(&format!("syx_jit_{cname}"), Linkage::Export, &csig)
-                    .map_err(|e| SyxDiagnostic::error(format!("JIT declare callee: {e}")))?;
+                    .map_err(|e| {
+                        jit_error_at(
+                            format!("JIT declare callee: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "J001",
+                        )
+                    })?;
                 state.func_ids.insert(cname.to_string(), cid);
             }
         }
@@ -276,17 +300,25 @@ pub fn compile_hot_function(module: &MirModule, func_name: &str) -> SyxResult<Ji
     state
         .module
         .define_function(func_id, &mut ctx)
-        .map_err(|e| SyxDiagnostic::error(format!("JIT define: {e}")))?;
+        .map_err(|e| jit_error_at(format!("JIT define: {e}"), None, Span::DUMMY, "J001"))?;
     state.module.clear_context(&mut ctx);
     state
         .module
         .finalize_definitions()
-        .map_err(|e| SyxDiagnostic::error(format!("JIT finalize: {e}")))?;
+        .map_err(|e| jit_error_at(format!("JIT finalize: {e}"), None, Span::DUMMY, "J001"))?;
 
     let code_ptr = state.module.get_finalized_function(func_id);
-    let code_len = ctx.compiled_code().map(|c| c.code_buffer().len()).unwrap_or(0);
+    let code_len = ctx
+        .compiled_code()
+        .map(|c| c.code_buffer().len())
+        .unwrap_or(0);
     if code_ptr.is_null() {
-        return Err(SyxDiagnostic::error("JIT: null code pointer"));
+        return Err(jit_error_at(
+            "JIT: null code pointer",
+            None,
+            Span::DUMMY,
+            "J001",
+        ));
     }
 
     let entry = JitNativeEntry {
@@ -353,7 +385,15 @@ fn lower_blocks(
         let mut stack: Vec<ClifValue> = Vec::new();
         let mut terminated = false;
         for insn in &b.instructions {
-            if emit_insn(jit_module, module, builder, func_ids, &clif_blocks, &mut stack, insn)? {
+            if emit_insn(
+                jit_module,
+                module,
+                builder,
+                func_ids,
+                &clif_blocks,
+                &mut stack,
+                insn,
+            )? {
                 terminated = true;
                 break;
             }
@@ -395,8 +435,11 @@ fn lower_flat(
     let mut terminated = false;
     for insn in &mir_fn.instructions {
         if matches!(insn.op, MirOp::Jump(_) | MirOp::JumpIfFalse(_)) {
-            return Err(SyxDiagnostic::error(
+            return Err(jit_error_at(
                 "UnsupportedMirOp(Jump_flat_without_blocks)",
+                None,
+                Span::DUMMY,
+                "J001",
             ));
         }
         if emit_insn(
@@ -532,7 +575,12 @@ fn emit_insn(
         }
         MirOp::Jump(target) => {
             let dest = *clif_blocks.get(target).ok_or_else(|| {
-                SyxDiagnostic::error(format!("JIT: unknown jump target {target}"))
+                jit_error_at(
+                    format!("JIT: unknown jump target {target}"),
+                    None,
+                    Span::DUMMY,
+                    "J001",
+                )
             })?;
             builder.ins().jump(dest, &[]);
             return Ok(true);
@@ -540,7 +588,12 @@ fn emit_insn(
         MirOp::JumpIfFalse(target) => {
             let cond = pop(builder, stack);
             let false_dest = *clif_blocks.get(target).ok_or_else(|| {
-                SyxDiagnostic::error(format!("JIT: unknown jump target {target}"))
+                jit_error_at(
+                    format!("JIT: unknown jump target {target}"),
+                    None,
+                    Span::DUMMY,
+                    "J001",
+                )
             })?;
             let cont = builder.create_block();
             // cond != 0 → continue; cond == 0 → false_dest
@@ -554,16 +607,28 @@ fn emit_insn(
                 .functions
                 .iter()
                 .find(|f| f.name == name.as_str())
-                .ok_or_else(|| SyxDiagnostic::error(format!("JIT: unknown callee {name}")))?;
+                .ok_or_else(|| {
+                    jit_error_at(
+                        format!("JIT: unknown callee {name}"),
+                        None,
+                        Span::DUMMY,
+                        "J001",
+                    )
+                })?;
             let n = cfn.param_count as usize;
             let mut args = Vec::with_capacity(n);
             for _ in 0..n {
                 args.push(pop(builder, stack));
             }
             args.reverse();
-            let fid = *func_ids
-                .get(name.as_str())
-                .ok_or_else(|| SyxDiagnostic::error(format!("JIT: undeclared callee {name}")))?;
+            let fid = *func_ids.get(name.as_str()).ok_or_else(|| {
+                jit_error_at(
+                    format!("JIT: undeclared callee {name}"),
+                    None,
+                    Span::DUMMY,
+                    "J001",
+                )
+            })?;
             let fref = jit_module.declare_func_in_func(fid, &mut builder.func);
             let call = builder.ins().call(fref, &args);
             let rets = builder.inst_results(call);
@@ -579,9 +644,12 @@ fn emit_insn(
             return Ok(true);
         }
         other => {
-            return Err(SyxDiagnostic::error(
+            return Err(jit_error_at(
                 unsupported_mir_op_reason(other)
                     .unwrap_or_else(|| format!("UnsupportedMirOp({other:?})")),
+                None,
+                Span::DUMMY,
+                "J001",
             ));
         }
     }
@@ -591,15 +659,25 @@ fn emit_insn(
 /// Call a finalized native entry with i32 args. Increments `jit_native_call_count`.
 pub fn invoke_native(entry: &JitNativeEntry, args: &[i32]) -> SyxResult<i32> {
     if !entry.native || entry.code_ptr == 0 {
-        return Err(SyxDiagnostic::error("JIT: entry not native"));
+        return Err(jit_error_at(
+            "JIT: entry not native",
+            None,
+            Span::DUMMY,
+            "J001",
+        ));
     }
     if args.len() != entry.param_count as usize {
-        return Err(SyxDiagnostic::error(format!(
-            "JIT: arity mismatch for {}: expected {}, got {}",
-            entry.func_name,
-            entry.param_count,
-            args.len()
-        )));
+        return Err(jit_error_at(
+            format!(
+                "JIT: arity mismatch for {}: expected {}, got {}",
+                entry.func_name,
+                entry.param_count,
+                args.len()
+            ),
+            None,
+            Span::DUMMY,
+            "J001",
+        ));
     }
     NATIVE_CALL_COUNT.fetch_add(1, Ordering::Relaxed);
     let ptr = entry.code_ptr as *const u8;
@@ -626,9 +704,12 @@ pub fn invoke_native(entry: &JitNativeEntry, args: &[i32]) -> SyxResult<i32> {
                 f(args[0], args[1], args[2], args[3])
             }
             n => {
-                return Err(SyxDiagnostic::error(format!(
-                    "JIT: unsupported arity {n} (max 4 in M1 W4)"
-                )));
+                return Err(jit_error_at(
+                    format!("JIT: unsupported arity {n} (max 4 in M1 W4)"),
+                    None,
+                    Span::DUMMY,
+                    "J001",
+                ));
             }
         }
     };
@@ -771,12 +852,9 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("print must fail");
-        assert!(
-            err.to_string().contains("UnsupportedMirOp(Print)"),
-            "{err}"
-        );
+        assert!(err.to_string().contains("UnsupportedMirOp(Print)"), "{err}");
     }
 
     #[test]
@@ -811,7 +889,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("CallHost must fail");
         assert!(
             err.to_string().contains("UnsupportedMirOp(CallHost)"),
@@ -851,7 +929,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("ConstStr must fail");
         assert!(
             err.to_string().contains("UnsupportedMirOp(ConstStr)"),
@@ -901,7 +979,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("ArrayBuild must fail");
         assert!(
             err.to_string().contains("UnsupportedMirOp(ArrayBuild"),
@@ -951,7 +1029,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("DictBuild must fail");
         assert!(
             err.to_string().contains("UnsupportedMirOp(DictBuild"),
@@ -993,7 +1071,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("Jump_flat must fail");
         assert!(
             err.to_string()
@@ -1044,7 +1122,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("SetBuild must fail");
         assert!(
             err.to_string().contains("UnsupportedMirOp(SetBuild"),
@@ -1084,7 +1162,7 @@ mod tests {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let err = compile_hot_function(&module, "main").expect_err("LoadGlobal must fail");
         assert!(
             err.to_string().contains("UnsupportedMirOp(LoadGlobal"),

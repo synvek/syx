@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 #![allow(unreachable_patterns)]
 #![allow(unused_imports)]
+mod fmt_diag;
+
+use fmt_diag::fmt_error_at;
 use syx_ast::{
-    ClosureBody,
-    AccessLevel, Attribute, AttributeArg, BinOp, CompoundAssignOp, Decl, Expr, FunctionEffect,
-    Literal, MacroImplementation, Module, Stmt, StringPart, UnaryOp,
+    AccessLevel, Attribute, AttributeArg, BinOp, ClosureBody, CompoundAssignOp, Decl, Expr,
+    FunctionEffect, Literal, MacroImplementation, Module, Stmt, StringPart, UnaryOp,
 };
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_parser::Parser;
 
 pub fn format_source(source: &SourceFile) -> SyxResult<String> {
@@ -60,10 +62,12 @@ pub fn format_dry_run(source: &SourceFile) -> SyxResult<DryRunReport> {
     let again_src = SourceFile::new(source.name.clone(), once.as_str());
     let twice = format_source_auto(&again_src)?;
     if once != twice {
-        return Err(SyxDiagnostic::error(
+        return Err(fmt_error_at(
             "syx-fmt: dry-run idempotency failed (format(format(x)) != format(x))",
-        )
-        .with_code("F002"));
+            None,
+            Span::DUMMY,
+            "F002",
+        ));
     }
     Ok(DryRunReport {
         would_change: once.as_str() != source.contents.as_ref(),
@@ -82,10 +86,12 @@ pub fn format_dry_run_cst(source: &SourceFile) -> SyxResult<DryRunReport> {
     let again_root = syx_cst::parse_cst_subset(&again_src)?;
     let twice = syx_cst::format_cst(&again_root);
     if once != twice {
-        return Err(SyxDiagnostic::error(
+        return Err(fmt_error_at(
             "syx-fmt: CST dry-run idempotency failed (format_cst(format_cst(x)) != format_cst(x))",
-        )
-        .with_code("F002"));
+            None,
+            Span::DUMMY,
+            "F002",
+        ));
     }
     Ok(DryRunReport {
         would_change: once.as_str() != source.contents.as_ref(),
@@ -103,10 +109,12 @@ pub fn format_module(module: &Module) -> SyxResult<String> {
 }
 
 fn unsupported(what: &str) -> SyxDiagnostic {
-    SyxDiagnostic::error(format!(
-        "syx-fmt: unsupported {what} (M0-A02 fail-closed; refusing to rewrite source)"
-    ))
-    .with_code("F001")
+    fmt_error_at(
+        format!("syx-fmt: unsupported {what} (M0-A02 fail-closed; refusing to rewrite source)"),
+        None,
+        Span::DUMMY,
+        "F001",
+    )
 }
 
 /// Parser desugar of `is <Type>` in switch/if-case patterns uses `Ident("__switch_subject")`.
@@ -675,10 +683,7 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             Ok(())
         }
         Decl::TypeAlias {
-            name,
-            access,
-            ty,
-            ..
+            name, access, ty, ..
         } => {
             out.push_str(&pad);
             format_access(*access, out);
@@ -1116,7 +1121,10 @@ fn format_type_expr(ty: &syx_ast::TypeExpr, out: &mut String) -> SyxResult<()> {
             }
             format_type_expr(inner, out)
         }
-        other => Err(unsupported(&format!("type {:?}", std::mem::discriminant(other)))),
+        other => Err(unsupported(&format!(
+            "type {:?}",
+            std::mem::discriminant(other)
+        ))),
     }
 }
 
@@ -1211,7 +1219,9 @@ fn format_stmt(stmt: &Stmt, out: &mut String, indent: usize) -> SyxResult<()> {
             }
             Ok(())
         }
-        Stmt::While { condition, body, .. } => {
+        Stmt::While {
+            condition, body, ..
+        } => {
             out.push_str(&pad);
             out.push_str("while ");
             format_expr(condition, out, indent)?;
@@ -1463,9 +1473,7 @@ fn format_stmt(stmt: &Stmt, out: &mut String, indent: usize) -> SyxResult<()> {
             Ok(())
         }
         Stmt::RepeatWhile {
-            body,
-            condition,
-            ..
+            body, condition, ..
         } => {
             // W722 / C-06: RepeatWhile 首片 — `repeat { … } while cond`（恒花括号）.
             out.push_str(&pad);
@@ -1561,7 +1569,10 @@ fn format_stmt(stmt: &Stmt, out: &mut String, indent: usize) -> SyxResult<()> {
             }
             None => Err(unsupported("statement Seq")),
         },
-        other => Err(unsupported(&format!("statement {:?}", std::mem::discriminant(other)))),
+        other => Err(unsupported(&format!(
+            "statement {:?}",
+            std::mem::discriminant(other)
+        ))),
     }
 }
 
@@ -1597,9 +1608,7 @@ fn match_tuple_destructure_seq<'a>(
                 ty: None,
                 init:
                     Some(Expr::Member {
-                        object,
-                        name: idx,
-                        ..
+                        object, name: idx, ..
                     }),
                 mutable,
                 ..
@@ -1703,7 +1712,9 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
             out.push_str(name);
             Ok(())
         }
-        Expr::Binary { left, op, right, .. } => {
+        Expr::Binary {
+            left, op, right, ..
+        } => {
             format_expr(left, out, indent)?;
             out.push(' ');
             out.push_str(match op {
@@ -1909,9 +1920,7 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
             Ok(())
         }
         Expr::VariantPattern {
-            variant,
-            bindings,
-            ..
+            variant, bindings, ..
         } => {
             // W723 / C-06: VariantPattern — `.name` / `.name(let x)` / labeled binds.
             out.push('.');
@@ -1945,11 +1954,7 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
             out.push(')');
             Ok(())
         }
-        Expr::TaskBlock {
-            detached,
-            body,
-            ..
-        } => {
+        Expr::TaskBlock { detached, body, .. } => {
             // W725 / C-06: TaskBlock 首片 — `Task {…}` / `Task.detached {…}`.
             let pad = "    ".repeat(indent);
             if *detached {
@@ -1965,11 +1970,7 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
             out.push('}');
             Ok(())
         }
-        Expr::Borrow {
-            mutable,
-            expr,
-            ..
-        } => {
+        Expr::Borrow { mutable, expr, .. } => {
             // W726 / C-06: Borrow 首片 — `&expr` / `&mut expr`.
             if *mutable {
                 out.push_str("&mut ");
@@ -1995,10 +1996,7 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
             Ok(())
         }
         Expr::CompoundAssign {
-            name,
-            op,
-            value,
-            ..
+            name, op, value, ..
         } => {
             // W728 / C-06: CompoundAssign 首片 — `name op= value`.
             out.push_str(name);
@@ -2052,7 +2050,10 @@ fn format_expr(expr: &Expr, out: &mut String, indent: usize) -> SyxResult<()> {
             out.push_str("super");
             Ok(())
         }
-        other => Err(unsupported(&format!("expression {:?}", std::mem::discriminant(other)))),
+        other => Err(unsupported(&format!(
+            "expression {:?}",
+            std::mem::discriminant(other)
+        ))),
     }
 }
 

@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+mod lint_diag;
+
+use lint_diag::lint_error_at;
 use syx_ast::{Decl, Expr, Module, Stmt};
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_parser::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -165,7 +168,9 @@ fn lint_stmt(stmt: &Stmt, issues: &mut Vec<LintIssue>, fn_name: &smol_str::SmolS
                 lint_stmt(s, issues, fn_name);
             }
         }
-        Stmt::Try { body, catch_body, .. } => {
+        Stmt::Try {
+            body, catch_body, ..
+        } => {
             for s in body {
                 lint_stmt(s, issues, fn_name);
             }
@@ -187,10 +192,7 @@ fn body_has_await(stmts: &[Stmt]) -> bool {
             then_branch,
             else_branch,
             ..
-        } => {
-            body_has_await(then_branch)
-                || else_branch.as_ref().is_some_and(|b| body_has_await(b))
-        }
+        } => body_has_await(then_branch) || else_branch.as_ref().is_some_and(|b| body_has_await(b)),
         Stmt::While { body, .. } | Stmt::ForIn { body, .. } => body_has_await(body),
         _ => false,
     })
@@ -226,7 +228,12 @@ fn lint_source_text(source: &SourceFile, issues: &mut Vec<LintIssue>) {
 pub fn lint_source_strict(source: &SourceFile) -> SyxResult<()> {
     let issues = lint_source(source)?;
     if let Some(issue) = issues.first() {
-        return Err(SyxDiagnostic::error(&issue.message).with_code(&issue.code));
+        return Err(lint_error_at(
+            &issue.message,
+            None,
+            Span::DUMMY,
+            &issue.code,
+        ));
     }
     Ok(())
 }

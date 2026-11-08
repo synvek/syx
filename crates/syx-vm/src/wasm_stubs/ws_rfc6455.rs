@@ -17,8 +17,7 @@ pub fn rfc6455_close_exchange(conn_id: i64) -> bool {
     false
 }
 
-pub fn rfc6455_close(conn_id: i64) {
-}
+pub fn rfc6455_close(conn_id: i64) {}
 pub fn e01_rfc6455_loopback_roundtrip_ok() -> bool {
     false
 }
@@ -58,4 +57,3 @@ pub fn rfc6455_connect_wss(url: &str) -> Option<i64> {
 pub fn rfc6455_send_any(conn_id: i64, message: &str) -> bool {
     false
 }
-

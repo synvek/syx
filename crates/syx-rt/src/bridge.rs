@@ -5,9 +5,10 @@ use std::sync::{Arc, Mutex, Once};
 use std::thread;
 use std::time::Duration;
 
+use crate::rt_diag::rt_error_at;
 #[cfg(feature = "async-runtime")]
 use crossbeam_channel::{Receiver, Sender};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_mir::MirModule;
 use syx_mir_run::{run_mir_function_with_args, MirRuntime};
 use syx_runtime_core::{RuntimeBridge, Value, VmRuntime};
@@ -262,12 +263,19 @@ pub(crate) fn run_mir_by_name(
 ) -> SyxResult<Value> {
     let module = ctx
         .module()
-        .ok_or_else(|| SyxDiagnostic::error("MIR module not loaded"))?;
+        .ok_or_else(|| rt_error_at("MIR module not loaded", None, Span::DUMMY, "R010"))?;
     let func = module
         .functions
         .iter()
         .find(|f| f.name == name)
-        .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function '{name}'")))?
+        .ok_or_else(|| {
+            rt_error_at(
+                format!("Unknown function '{name}'"),
+                None,
+                Span::DUMMY,
+                "R010",
+            )
+        })?
         .clone();
     let mut rt = MirRuntime::new();
     prepare_mir_runtime(&mut rt, &module, Arc::clone(ctx));
@@ -327,12 +335,19 @@ fn ensure_native_actor(ctx: &Arc<NativeRunContext>, actor_id: i64) -> Sender<Nat
 fn spawn_mir_task(ctx: Arc<NativeRunContext>, name: &str, args: Vec<Value>) -> SyxResult<Value> {
     let module = ctx
         .module()
-        .ok_or_else(|| SyxDiagnostic::error("MIR module not loaded"))?;
+        .ok_or_else(|| rt_error_at("MIR module not loaded", None, Span::DUMMY, "R010"))?;
     let func = module
         .functions
         .iter()
         .find(|f| f.name == name)
-        .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function '{name}'")))?
+        .ok_or_else(|| {
+            rt_error_at(
+                format!("Unknown function '{name}'"),
+                None,
+                Span::DUMMY,
+                "R010",
+            )
+        })?
         .clone();
     let module = Arc::clone(&module);
     let (done_tx, done_rx): (Sender<SyxResult<Value>>, Receiver<SyxResult<Value>>) =
@@ -346,13 +361,18 @@ fn spawn_mir_task(ctx: Arc<NativeRunContext>, name: &str, args: Vec<Value>) -> S
         // ADR-607: worker must see native ctx + cancel token (sleep / CallHost path).
         set_current_ctx(Arc::clone(&ctx_thread));
         if cancel.is_cancelled() {
-            let _ = done_tx.send(Err(SyxDiagnostic::error("Task cancelled").with_code("C004")));
+            let _ = done_tx.send(Err(rt_error_at(
+                "Task cancelled",
+                None,
+                Span::DUMMY,
+                "C004",
+            )));
             return;
         }
         syx_async::set_current_task_cancel(cancel.clone());
         let result = (|| {
             if syx_async::task_should_stop() {
-                return Err(SyxDiagnostic::error("Task cancelled").with_code("C004"));
+                return Err(rt_error_at("Task cancelled", None, Span::DUMMY, "C004"));
             }
             let mut rt = MirRuntime::new();
             prepare_mir_runtime(&mut rt, &module, ctx_thread);
@@ -397,12 +417,10 @@ impl RuntimeBridge for NativeMirBridge {
         #[cfg(feature = "async-runtime")]
         {
             let id = syx_async::task_id_from_value(task_value)
-                .ok_or_else(|| SyxDiagnostic::error("Expected task handle"))?;
-            let handle = self
-                .ctx
-                .tasks
-                .get(id)
-                .ok_or_else(|| SyxDiagnostic::error(format!("Unknown task id {id}")))?;
+                .ok_or_else(|| rt_error_at("Expected task handle", None, Span::DUMMY, "R010"))?;
+            let handle = self.ctx.tasks.get(id).ok_or_else(|| {
+                rt_error_at(format!("Unknown task id {id}"), None, Span::DUMMY, "R010")
+            })?;
             // ADR-261 / ADR-605: join reaps from live_count (align VM join_task).
             let result = handle.join();
             handle.mark_reaped();
@@ -419,7 +437,7 @@ impl RuntimeBridge for NativeMirBridge {
         #[cfg(feature = "async-runtime")]
         {
             let id = syx_async::task_id_from_value(task_value)
-                .ok_or_else(|| SyxDiagnostic::error("Expected task handle"))?;
+                .ok_or_else(|| rt_error_at("Expected task handle", None, Span::DUMMY, "R010"))?;
             if let Some(handle) = self.ctx.tasks.get(id) {
                 handle.cancel.cancel();
             }
@@ -439,7 +457,7 @@ impl RuntimeBridge for NativeMirBridge {
         while remaining > 0 {
             #[cfg(feature = "async-runtime")]
             if syx_async::task_should_stop() {
-                return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+                return Err(rt_error_at("Task was cancelled", None, Span::DUMMY, "C004"));
             }
             let slice = remaining.min(SLICE_MS);
             thread::sleep(Duration::from_millis(slice));
@@ -482,11 +500,17 @@ impl RuntimeBridge for NativeMirBridge {
                 // ADR-631: args already include receiver (mir-run full param drain).
                 return run_mir_by_name(&self.ctx, method_name, args);
             }
-            let actor_id = syx_vm::actor_id_from_value(actor_value)
-                .ok_or_else(|| SyxDiagnostic::error("Expected actor reference"))?;
+            let actor_id = syx_vm::actor_id_from_value(actor_value).ok_or_else(|| {
+                rt_error_at("Expected actor reference", None, Span::DUMMY, "R010")
+            })?;
             // ADR-631 / ADR-264: deny sync same-instance reentrancy (anti-deadlock).
             if syx_async::current_processing_actor() == Some(actor_id) {
-                return Err(SyxDiagnostic::error("Actor reentrancy denied").with_code("C009"));
+                return Err(rt_error_at(
+                    "Actor reentrancy denied",
+                    None,
+                    Span::DUMMY,
+                    "C009",
+                ));
             }
             let (reply_tx, reply_rx) = crossbeam_channel::unbounded();
             let tx = ensure_native_actor(&self.ctx, actor_id);
@@ -495,10 +519,13 @@ impl RuntimeBridge for NativeMirBridge {
                 args,
                 reply: reply_tx,
             })
-            .map_err(|_| SyxDiagnostic::error("Actor mailbox closed").with_code("C006"))?;
-            return reply_rx
-                .recv()
-                .unwrap_or(Err(SyxDiagnostic::error("Actor reply channel closed")));
+            .map_err(|_| rt_error_at("Actor mailbox closed", None, Span::DUMMY, "C006"))?;
+            return reply_rx.recv().unwrap_or(Err(rt_error_at(
+                "Actor reply channel closed",
+                None,
+                Span::DUMMY,
+                "R010",
+            )));
         }
         #[cfg(not(feature = "async-runtime"))]
         {
@@ -586,21 +613,21 @@ fn native_host_task_group_add(stack: &mut Vec<Value>) -> SyxResult<()> {
     let task = stack.pop().unwrap_or(Value::Nil);
     let group_val = stack.pop().unwrap_or(Value::Nil);
     let task_id = syx_async::task_id_from_value(&task)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task"))?;
+        .ok_or_else(|| rt_error_at("Expected task", None, Span::DUMMY, "R010"))?;
     let group_id = syx_async::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| rt_error_at("Expected task group", None, Span::DUMMY, "R010"))?;
     with_current_ctx(|ctx| {
         let handle = ctx
             .tasks
             .get(task_id)
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task"))?;
+            .ok_or_else(|| rt_error_at("Unknown task", None, Span::DUMMY, "R010"))?;
         let group = ctx
             .groups
             .lock()
             .expect("native ctx groups lock")
             .get(&group_id)
             .cloned()
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+            .ok_or_else(|| rt_error_at("Unknown task group", None, Span::DUMMY, "R010"))?;
         group.add(handle);
         Ok(())
     })?;
@@ -612,7 +639,7 @@ fn native_host_task_group_add(stack: &mut Vec<Value>) -> SyxResult<()> {
 fn native_host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
     let group_val = stack.pop().unwrap_or(Value::Nil);
     let group_id = syx_async::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| rt_error_at("Expected task group", None, Span::DUMMY, "R010"))?;
     with_current_ctx(|ctx| {
         let group = ctx
             .groups
@@ -620,7 +647,7 @@ fn native_host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
             .expect("native ctx groups lock")
             .get(&group_id)
             .cloned()
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+            .ok_or_else(|| rt_error_at("Unknown task group", None, Span::DUMMY, "R010"))?;
         group.wait_all()
     })?;
     stack.push(Value::Nil);
@@ -631,7 +658,7 @@ fn native_host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
 fn native_host_task_group_cancel(stack: &mut Vec<Value>) -> SyxResult<()> {
     let group_val = stack.pop().unwrap_or(Value::Nil);
     let group_id = syx_async::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| rt_error_at("Expected task group", None, Span::DUMMY, "R010"))?;
     with_current_ctx(|ctx| {
         let group = ctx
             .groups
@@ -639,7 +666,7 @@ fn native_host_task_group_cancel(stack: &mut Vec<Value>) -> SyxResult<()> {
             .expect("native ctx groups lock")
             .get(&group_id)
             .cloned()
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+            .ok_or_else(|| rt_error_at("Unknown task group", None, Span::DUMMY, "R010"))?;
         group.cancel_all();
         Ok(())
     })?;

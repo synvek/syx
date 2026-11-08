@@ -405,6 +405,8 @@ pub fn enrich_semantic_spans(source: &SourceFile, errors: &mut [SyxDiagnostic]) 
                     code: err.code.clone(),
                     source: None,
                     primary_span: None,
+        label: None,
+        help: None,
                 }
                 .with_span(source, Span::new(off, needle.len()), name);
             }

@@ -1,7 +1,8 @@
 //! Parse attached macro body fragments into AST (ADR-070 M3).
 
+use crate::macro_error_at;
 use syx_ast::{Decl, Stmt};
-use syx_diagnostics::{SourceFile, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_parser::Parser;
 
 /// Parse attached `body:` template as statement list.
@@ -49,7 +50,10 @@ pub fn parse_extension_member(src: &str) -> SyxResult<Decl> {
             }
         }
     }
-    Err(syx_diagnostics::SyxDiagnostic::error(
+    Err(macro_error_at(
         "failed to parse extension member fragment",
+        None,
+        Span::DUMMY,
+        "M041",
     ))
 }

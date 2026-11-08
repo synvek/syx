@@ -2,14 +2,14 @@
 //! Extracted in S2-I226 (zero semantics).
 
 use crate::{
-    compile_linked_with_options, compile_project_with_options, compile_to_program, DriverOptions,
-    ModuleUnit,
+    compile_linked_with_options, compile_project_with_options, compile_to_program, driver_error_at,
+    DriverOptions, ModuleUnit,
 };
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use syx_async::SyxRuntime;
 use syx_codegen::CompiledProgram;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_frontend::{FrontendOptions, FrontendPipeline, StopAfter};
 use syx_vm::WasmVM;
 
@@ -41,9 +41,14 @@ pub fn compile_file_from_source(name: &str, source: &str) -> SyxResult<ModuleUni
     };
     opts.source = Some(file.clone());
     let art = FrontendPipeline::run(file.clone(), &opts)?;
-    let semantic = art
-        .semantic
-        .ok_or_else(|| SyxDiagnostic::error("FrontendPipeline returned no semantic artifact"))?;
+    let semantic = art.semantic.ok_or_else(|| {
+        driver_error_at(
+            "FrontendPipeline returned no semantic artifact",
+            Some(&file),
+            Span::new(0, file.contents.len()),
+            "F001",
+        )
+    })?;
     let mut program = CompiledProgram::default();
     let empty_prelude = indexmap::IndexSet::new();
     compile_to_program(
@@ -76,10 +81,15 @@ pub fn compile_embedded(source: &str, options: &DriverOptions) -> SyxResult<()> 
         ..FrontendOptions::default()
     };
     opts.source = Some(file.clone());
-    let art = FrontendPipeline::run(file, &opts)?;
-    let semantic = art
-        .semantic
-        .ok_or_else(|| SyxDiagnostic::error("FrontendPipeline returned no semantic artifact"))?;
+    let art = FrontendPipeline::run(file.clone(), &opts)?;
+    let semantic = art.semantic.ok_or_else(|| {
+        driver_error_at(
+            "FrontendPipeline returned no semantic artifact",
+            Some(&file),
+            Span::new(0, file.contents.len()),
+            "F001",
+        )
+    })?;
     let mut program = CompiledProgram::default();
     let empty_prelude = indexmap::IndexSet::new();
     compile_to_program(
@@ -107,10 +117,15 @@ pub fn compile_and_run_embedded(source: &str, options: &DriverOptions) -> SyxRes
         ..FrontendOptions::default()
     };
     opts.source = Some(file.clone());
-    let art = FrontendPipeline::run(file, &opts)?;
-    let semantic = art
-        .semantic
-        .ok_or_else(|| SyxDiagnostic::error("FrontendPipeline returned no semantic artifact"))?;
+    let art = FrontendPipeline::run(file.clone(), &opts)?;
+    let semantic = art.semantic.ok_or_else(|| {
+        driver_error_at(
+            "FrontendPipeline returned no semantic artifact",
+            Some(&file),
+            Span::new(0, file.contents.len()),
+            "F001",
+        )
+    })?;
     semantic.register_reflect_types();
     let mut program = CompiledProgram::default();
     let empty_prelude = indexmap::IndexSet::new();
@@ -218,7 +233,10 @@ fn run_compiled_program(program: CompiledProgram) -> SyxResult<()> {
     run_compiled_program_with_strict(program, false)
 }
 
-pub(crate) fn run_compiled_program_with_strict(program: CompiledProgram, strict: bool) -> SyxResult<()> {
+pub(crate) fn run_compiled_program_with_strict(
+    program: CompiledProgram,
+    strict: bool,
+) -> SyxResult<()> {
     let _ = syx_host_plugin::load_from_env();
     ensure_vm_plugin_dispatch();
     syx_vm::reset_service_container();

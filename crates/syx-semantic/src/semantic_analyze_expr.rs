@@ -11,7 +11,7 @@ use smol_str::SmolStr;
 use syx_ast::{
     AccessLevel, BinOp, Expr, Literal, TypeExpr, UnaryOp,
 };
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::SyxResult;
 use syx_stdlib::{
     default_float_kind, default_integer_kind, from_suffix, int_range, resolve_alias,
 };
@@ -110,18 +110,24 @@ impl SemanticAnalyzer {
         if let Expr::Ident { name, .. } = expr {
             if let Some(bind_lt) = self.binding_lifetimes.get(name) {
                 if bind_lt != ret_lt {
-                    self.errors.push(
-                        SyxDiagnostic::error(format!(
+                    self.errors.push(self.error_at(
+                        format!(
                             "Lifetime '{bind_lt}' does not outlive '{ret_lt}' in return"
-                        ))
-                        .with_code("S011"),
-                    );
+                        ),
+                        expr_span(expr),
+                        "S011",
+                    ));
                 }
             }
         }
     }
 
-    pub(crate) fn check_literal_in_range(&mut self, value: &Literal, expected: &TypeId) {
+    pub(crate) fn check_literal_in_range(
+        &mut self,
+        value: &Literal,
+        expected: &TypeId,
+        span: syx_diagnostics::Span,
+    ) {
         let TypeId::Numeric(kind) = expected else {
             return;
         };
@@ -132,18 +138,23 @@ impl SemanticAnalyzer {
         if let Literal::Integer { value: v, .. } = value {
             let v128 = *v as i128;
             if v128 < min || v128 > max {
-                self.errors.push(
-                    SyxDiagnostic::error(format!(
+                self.errors.push(self.error_at(
+                    format!(
                         "Integer literal {v} is out of range for type {}",
                         type_id_to_name(expected)
-                    ))
-                    .with_code("S011"),
-                );
+                    ),
+                    span,
+                    "S011",
+                ));
             }
         }
     }
 
-    pub(crate) fn unify_element_types(&mut self, types: &[TypeId]) -> TypeId {
+    pub(crate) fn unify_element_types(
+        &mut self,
+        types: &[TypeId],
+        span: syx_diagnostics::Span,
+    ) -> TypeId {
         let mut elem = TypeId::Unknown;
         for t in types {
             if matches!(t, TypeId::Unknown) {
@@ -154,14 +165,15 @@ impl SemanticAnalyzer {
                 continue;
             }
             if elem != *t && !self.is_compatible(&elem, t) && !self.is_compatible(t, &elem) {
-                self.errors.push(
-                    SyxDiagnostic::error(format!(
+                self.errors.push(self.error_at(
+                    format!(
                         "Collection elements have inconsistent types: expected {}, found {}",
                         type_id_to_name(&elem),
                         type_id_to_name(t)
-                    ))
-                    .with_code("S014"),
-                );
+                    ),
+                    span,
+                    "S014",
+                ));
             }
         }
         elem
@@ -185,13 +197,13 @@ impl SemanticAnalyzer {
                         key_types.push(self.analyze_expr(k)?);
                         value_types.push(self.analyze_expr(v)?);
                     }
-                    let key_ty = self.unify_element_types(&key_types);
+                    let key_ty = self.unify_element_types(&key_types, expr_span(expr));
                     // Empty `{}` / `[:]` unify to Unknown; Hashable is checked against the
                     // annotation when present (`analyze_expr_with_expected`), not here.
                     if !matches!(key_ty, TypeId::Unknown) {
-                        self.validate_dict_key_hashable(&key_ty);
+                        self.validate_dict_key_hashable(&key_ty, expr_span(expr));
                     }
-                    let val_ty = self.unify_element_types(&value_types);
+                    let val_ty = self.unify_element_types(&value_types, expr_span(expr));
                     TypeId::Dictionary {
                         key: Box::new(key_ty),
                         value: Box::new(val_ty),
@@ -220,12 +232,13 @@ impl SemanticAnalyzer {
                     ));
                 }
                 if self.moved_bindings.contains(name) {
-                    return Err(
-                        SyxDiagnostic::error(format!("Use of moved value '{name}'"))
-                            .with_code("S011"),
-                    );
+                    return Err(self.error_at(
+                        format!("Use of moved value '{name}'"),
+                        *span,
+                        "S011",
+                    ));
                 }
-                self.check_main_actor_after_await(name);
+                self.check_main_actor_after_await(name, *span);
                 if let Some(ty) = self
                     .scope
                     .lookup(name)
@@ -244,21 +257,28 @@ impl SemanticAnalyzer {
                     "S002",
                 ))
             }
-            Expr::Borrow { expr, mutable, .. } => {
+            Expr::Borrow {
+                expr: borrowed,
+                mutable,
+                ..
+            } => {
                 if *mutable {
-                    if let Expr::Ident { name, .. } = expr.as_ref() {
+                    if let Expr::Ident { name, .. } = borrowed.as_ref() {
                         if self.mut_borrows.contains(name) {
-                            return Err(SyxDiagnostic::error(format!(
-                                "Cannot borrow '{name}' as mutable more than once"
-                            ))
-                            .with_code("S011"));
+                            return Err(self.error_at(
+                                format!(
+                                    "Cannot borrow '{name}' as mutable more than once"
+                                ),
+                                expr_span(expr),
+                                "S011",
+                            ));
                         }
                         self.mut_borrows.insert(name.clone());
                     }
-                    let inner = self.analyze_expr(expr)?;
+                    let inner = self.analyze_expr(borrowed)?;
                     Ok(TypeId::MutReference(Box::new(inner)))
                 } else {
-                    let inner = self.analyze_expr(expr)?;
+                    let inner = self.analyze_expr(borrowed)?;
                     Ok(TypeId::Reference(Box::new(inner)))
                 }
             }
@@ -365,7 +385,7 @@ impl SemanticAnalyzer {
                     *op,
                     BinOp::Eq | BinOp::NotEq | BinOp::IdenticalEq | BinOp::IdenticalNe
                 ) {
-                    self.check_equatable_binary(*op, &lt, &rt);
+                    self.check_equatable_binary(*op, &lt, &rt, *span);
                 }
                 match op {
                     BinOp::Add => {
@@ -380,22 +400,22 @@ impl SemanticAnalyzer {
                         if let (Some((la, ea)), Some((lb, eb))) = (lt.as_simd(), rt.as_simd()) {
                             if la == lb && ea == eb {
                                 if !syx_config::simd_enabled() {
-                                    self.errors.push(
-                                        SyxDiagnostic::error(
-                                            "SIMD operations require SIMD to be enabled",
-                                        )
-                                        .with_code("S022"),
-                                    );
+                                    self.errors.push(self.error_at(
+                                        "SIMD operations require SIMD to be enabled",
+                                        *span,
+                                        "S022",
+                                    ));
                                 }
                                 return Ok(TypeId::Simd {
                                     lanes: la,
                                     element: ea,
                                 });
                             }
-                            self.errors.push(
-                                SyxDiagnostic::error("SIMD operands must have matching lane width and element type")
-                                    .with_code("S014"),
-                            );
+                            self.errors.push(self.error_at(
+                                "SIMD operands must have matching lane width and element type",
+                                *span,
+                                "S014",
+                            ));
                             return Ok(TypeId::Unknown);
                         }
                         Ok(self.promote_numeric_binop(lt, rt, *span))
@@ -412,22 +432,22 @@ impl SemanticAnalyzer {
                         if let (Some((la, ea)), Some((lb, eb))) = (lt.as_simd(), rt.as_simd()) {
                             if la == lb && ea == eb {
                                 if !syx_config::simd_enabled() {
-                                    self.errors.push(
-                                        SyxDiagnostic::error(
-                                            "SIMD operations require SIMD to be enabled",
-                                        )
-                                        .with_code("S022"),
-                                    );
+                                    self.errors.push(self.error_at(
+                                        "SIMD operations require SIMD to be enabled",
+                                        *span,
+                                        "S022",
+                                    ));
                                 }
                                 return Ok(TypeId::Simd {
                                     lanes: la,
                                     element: ea,
                                 });
                             }
-                            self.errors.push(
-                                SyxDiagnostic::error("SIMD operands must have matching lane width and element type")
-                                    .with_code("S014"),
-                            );
+                            self.errors.push(self.error_at(
+                                "SIMD operands must have matching lane width and element type",
+                                *span,
+                                "S014",
+                            ));
                             return Ok(TypeId::Unknown);
                         }
                         Ok(self.promote_numeric_binop(lt, rt, *span))
@@ -496,7 +516,7 @@ impl SemanticAnalyzer {
             Expr::Member { object, name, span, .. } => {
                 let obj_ty = self.analyze_expr(object)?;
                 if let Expr::Ident { name: module, .. } = object.as_ref() {
-                    self.check_import_member_access(module.as_str(), name.as_str())?;
+                    self.check_import_member_access(module.as_str(), name.as_str(), *span)?;
                 }
                 if let TypeId::Named(enum_name) = &obj_ty {
                     if self
@@ -508,7 +528,7 @@ impl SemanticAnalyzer {
                     }
                 }
                 self.check_retired_size_alias(&obj_ty, name.as_str(), *span)?;
-                self.check_actor_field_access(object, name, &obj_ty);
+                self.check_actor_field_access(object, name, &obj_ty, *span);
                 self.check_extension_member_where(&obj_ty, name, *span);
                 self.check_known_collection_member(&obj_ty, name.as_str(), *span);
                 Ok(self.infer_member_type(&obj_ty, name))
@@ -564,7 +584,7 @@ impl SemanticAnalyzer {
                 }
             }
             Expr::Assign { name, value, span, .. } => {
-                self.check_main_actor_after_await(name);
+                self.check_main_actor_after_await(name, *span);
                 let (mutable, sym_ty, is_enclosing_field) = match self
                     .scope
                     .lookup(name)
@@ -576,24 +596,29 @@ impl SemanticAnalyzer {
                             // Stored `var` property via bare name in method body.
                             (true, field_ty, true)
                         } else {
-                            return Err(
-                                SyxDiagnostic::error(format!("Undefined identifier '{name}'"))
-                                    .with_code("S002"),
-                            );
+                            return Err(self.error_at(
+                                format!("Undefined identifier '{name}'"),
+                                *span,
+                                "S002",
+                            ));
                         }
                     }
                 };
                 if !mutable {
                     if matches!(sym_ty, TypeId::Reference(_)) {
-                        return Err(SyxDiagnostic::error(format!(
-                            "Cannot mutate through read-only borrow parameter '{name}'"
-                        ))
-                        .with_code("S011"));
+                        return Err(self.error_at(
+                            format!(
+                                "Cannot mutate through read-only borrow parameter '{name}'"
+                            ),
+                            *span,
+                            "S011",
+                        ));
                     }
-                    return Err(
-                        SyxDiagnostic::error(format!("Cannot assign to immutable '{name}'"))
-                            .with_code("S003"),
-                    );
+                    return Err(self.error_at(
+                        format!("Cannot assign to immutable '{name}'"),
+                        *span,
+                        "S003",
+                    ));
                 }
                 let expected = self.assign_expected_type(&sym_ty);
                 let ty = if matches!(expected, TypeId::Unknown) {
@@ -628,21 +653,25 @@ impl SemanticAnalyzer {
                 }
                 Ok(TypeId::Void)
             }
-            Expr::CompoundAssign { name, value, .. } => {
-                self.check_main_actor_after_await(name);
+            Expr::CompoundAssign { name, value, span, .. } => {
+                self.check_main_actor_after_await(name, *span);
                 let ty = self.analyze_expr(value)?;
                 if let Some(sym) = self.scope.lookup(name).or_else(|| self.globals.get(name)) {
                     if !sym.mutable {
                         if matches!(sym.ty, TypeId::Reference(_)) {
-                            return Err(SyxDiagnostic::error(format!(
-                                "Cannot mutate through read-only borrow parameter '{name}'"
-                            ))
-                            .with_code("S011"));
+                            return Err(self.error_at(
+                                format!(
+                                    "Cannot mutate through read-only borrow parameter '{name}'"
+                                ),
+                                *span,
+                                "S011",
+                            ));
                         }
-                        return Err(
-                            SyxDiagnostic::error(format!("Cannot assign to immutable '{name}'"))
-                                .with_code("S003"),
-                        );
+                        return Err(self.error_at(
+                            format!("Cannot assign to immutable '{name}'"),
+                            *span,
+                            "S003",
+                        ));
                     }
                     let expected = self.assign_expected_type(&sym.ty);
                     if matches!(expected, TypeId::Numeric(_)) {
@@ -651,17 +680,18 @@ impl SemanticAnalyzer {
                         self.check_assignable(expected, ty, name, expr_span(value))?;
                     }
                 } else {
-                    return Err(
-                        SyxDiagnostic::error(format!("Undefined identifier '{name}'"))
-                            .with_code("S002"),
-                    );
+                    return Err(self.error_at(
+                        format!("Undefined identifier '{name}'"),
+                        *span,
+                        "S002",
+                    ));
                 }
                 Ok(TypeId::Void)
             }
             Expr::MemberAssign { object, name, value, span, .. } => {
                 let obj_ty = self.analyze_expr(object)?;
                 if let Some(obj_ty) = self.expr_type(object) {
-                    self.check_actor_field_access(object, name, &obj_ty);
+                    self.check_actor_field_access(object, name, &obj_ty, *span);
                     if let TypeId::Named(type_name) = &obj_ty {
                         if self
                             .getter_only_properties
@@ -760,27 +790,28 @@ impl SemanticAnalyzer {
                 params,
                 body,
                 return_type,
+                span,
                 ..
             } => {
                 if !self.mut_borrows.is_empty() {
-                    self.errors.push(
-                        SyxDiagnostic::error(
-                            "Closure cannot capture an active `&mut` borrow from an outer region",
-                        )
-                        .with_code("S011"),
-                    );
+                    self.errors.push(self.error_at(
+                        "Closure cannot capture an active `&mut` borrow from an outer region",
+                        expr_span(expr),
+                        "S011",
+                    ));
                 }
                 if borrow_regions_v7_enabled()
                     && self.current_function_is_async
                     && !self.immutable_ref_bindings.is_empty()
                 {
-                    for name in &self.immutable_ref_bindings {
-                        self.errors.push(
-                            SyxDiagnostic::error(format!(
+                    for name in self.immutable_ref_bindings.clone() {
+                        self.errors.push(self.error_at(
+                            format!(
                                 "Immutable borrow '{name}' cannot be captured in nested async closure region"
-                            ))
-                            .with_code("S011"),
-                        );
+                            ),
+                            expr_span(expr),
+                            "S011",
+                        ));
                     }
                 }
                 let annotated = return_type.as_ref().map(type_expr_to_id);
@@ -790,16 +821,20 @@ impl SemanticAnalyzer {
                     ..Default::default()
                 };
                 for param in params {
-                    closure_scope.define(Symbol {
-                        name: param.name.clone(),
-                        ty: param
-                            .ty
-                            .as_ref()
-                            .map(type_expr_to_id)
-                            .unwrap_or(TypeId::Unknown),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut closure_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param
+                                .ty
+                                .as_ref()
+                                .map(type_expr_to_id)
+                                .unwrap_or(TypeId::Unknown),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                 }
                 std::mem::swap(&mut self.scope, &mut closure_scope);
                 // Expression type of a closure is its result type (for HOF inference).
@@ -850,39 +885,38 @@ impl SemanticAnalyzer {
                 for el in elements {
                     elem_types.push(self.analyze_expr(el)?);
                 }
-                let elem_ty = self.unify_element_types(&elem_types);
+                let elem_ty = self.unify_element_types(&elem_types, expr_span(expr));
                 Ok(TypeId::Array(Box::new(elem_ty)))
             }
-            Expr::Await { expr, span: _ } => {
+            Expr::Await { expr: awaited, span } => {
                 if !self.mut_borrows.is_empty() {
-                    self.errors.push(
-                        SyxDiagnostic::error(
-                            "Cannot await while an active `&mut` borrow is in scope",
-                        )
-                        .with_code("S011"),
-                    );
+                    self.errors.push(self.error_at(
+                        "Cannot await while an active `&mut` borrow is in scope",
+                        *span,
+                        "S011",
+                    ));
                 }
                 if self.current_function_is_async && !self.local_ref_bindings.is_empty() {
-                    for name in &self.local_ref_bindings {
-                        self.errors.push(
-                            SyxDiagnostic::error(format!(
-                                "Reference '{name}' cannot cross await boundary"
-                            ))
-                            .with_code("S017"),
-                        );
+                    for name in self.local_ref_bindings.clone() {
+                        self.errors.push(self.error_at(
+                            format!("Reference '{name}' cannot cross await boundary"),
+                            *span,
+                            "S017",
+                        ));
                     }
                 }
                 if borrow_regions_v6_enabled()
                     && self.current_function_is_async
                     && !self.immutable_ref_bindings.is_empty()
                 {
-                    for name in &self.immutable_ref_bindings {
-                        self.errors.push(
-                            SyxDiagnostic::error(format!(
+                    for name in self.immutable_ref_bindings.clone() {
+                        self.errors.push(self.error_at(
+                            format!(
                                 "Immutable borrow '{name}' cannot be reborrowed across await boundary"
-                            ))
-                            .with_code("S011"),
-                        );
+                            ),
+                            *span,
+                            "S011",
+                        ));
                     }
                 }
                 if !self.skip_main_actor_await_check
@@ -895,7 +929,7 @@ impl SemanticAnalyzer {
                     self.main_actor_frozen_at_await = self.main_actor_mutable_locals.clone();
                     self.main_actor_await_crossed = true;
                 }
-                self.analyze_expr(expr)
+                self.analyze_expr(awaited)
             }
             Expr::OptionalChain { object, .. } => {
                 self.analyze_expr(object)?;

@@ -5,17 +5,19 @@ use std::sync::{Arc, Mutex, Once};
 use std::thread;
 use std::time::Duration;
 
+use crate::wasm_run_error_at;
 use crossbeam_channel::{Receiver, Sender};
 use syx_async::{TaskGroup, TaskHandle, TaskRegistry};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_mir::MirModule;
 use syx_mir_run::{run_mir_function_with_args, MirRuntime};
 use syx_runtime_core::{platform_int_value, RuntimeBridge, Value, VmRuntime};
 use syx_vm::actor_id_from_value;
 use syx_vm::{
     register_actor_reentrancy_policy_host, register_bridge_task_group_ops,
-    register_bridge_task_live_count, register_task_group_cancel_host, register_task_live_count_host,
-    register_task_local_hosts, register_task_set_deadline_ms_host, BridgeTaskGroupOps,
+    register_bridge_task_live_count, register_task_group_cancel_host,
+    register_task_live_count_host, register_task_local_hosts, register_task_set_deadline_ms_host,
+    BridgeTaskGroupOps,
 };
 
 struct ActorJob {
@@ -164,21 +166,21 @@ fn wasm_host_task_group_add(stack: &mut Vec<Value>) -> SyxResult<()> {
     let task = stack.pop().unwrap_or(Value::Nil);
     let group_val = stack.pop().unwrap_or(Value::Nil);
     let task_id = syx_async::task_id_from_value(&task)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task"))?;
+        .ok_or_else(|| wasm_run_error_at("Expected task", None, Span::DUMMY, "C011"))?;
     let group_id = syx_async::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| wasm_run_error_at("Expected task group", None, Span::DUMMY, "C012"))?;
     with_current_ctx(|ctx| {
         let handle = ctx
             .tasks
             .get(task_id)
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task"))?;
+            .ok_or_else(|| wasm_run_error_at("Unknown task", None, Span::DUMMY, "C013"))?;
         let group = ctx
             .groups
             .lock()
             .expect("wasm ctx groups lock")
             .get(&group_id)
             .cloned()
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+            .ok_or_else(|| wasm_run_error_at("Unknown task group", None, Span::DUMMY, "C014"))?;
         group.add(handle);
         Ok(())
     })?;
@@ -189,7 +191,7 @@ fn wasm_host_task_group_add(stack: &mut Vec<Value>) -> SyxResult<()> {
 fn wasm_host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
     let group_val = stack.pop().unwrap_or(Value::Nil);
     let group_id = syx_async::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| wasm_run_error_at("Expected task group", None, Span::DUMMY, "C012"))?;
     with_current_ctx(|ctx| {
         let group = ctx
             .groups
@@ -197,7 +199,7 @@ fn wasm_host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
             .expect("wasm ctx groups lock")
             .get(&group_id)
             .cloned()
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+            .ok_or_else(|| wasm_run_error_at("Unknown task group", None, Span::DUMMY, "C014"))?;
         group.wait_all()
     })?;
     stack.push(Value::Nil);
@@ -207,7 +209,7 @@ fn wasm_host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
 fn wasm_host_task_group_cancel(stack: &mut Vec<Value>) -> SyxResult<()> {
     let group_val = stack.pop().unwrap_or(Value::Nil);
     let group_id = syx_async::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| wasm_run_error_at("Expected task group", None, Span::DUMMY, "C012"))?;
     with_current_ctx(|ctx| {
         let group = ctx
             .groups
@@ -215,7 +217,7 @@ fn wasm_host_task_group_cancel(stack: &mut Vec<Value>) -> SyxResult<()> {
             .expect("wasm ctx groups lock")
             .get(&group_id)
             .cloned()
-            .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+            .ok_or_else(|| wasm_run_error_at("Unknown task group", None, Span::DUMMY, "C014"))?;
         group.cancel_all();
         Ok(())
     })?;
@@ -273,12 +275,19 @@ fn prepare_mir_runtime(rt: &mut MirRuntime, module: &MirModule, ctx: Arc<WasmRun
 fn run_mir_by_name(ctx: &Arc<WasmRunContext>, name: &str, args: Vec<Value>) -> SyxResult<Value> {
     let module = ctx
         .module()
-        .ok_or_else(|| SyxDiagnostic::error("MIR module not loaded"))?;
+        .ok_or_else(|| wasm_run_error_at("MIR module not loaded", None, Span::DUMMY, "C010"))?;
     let func = module
         .functions
         .iter()
         .find(|f| f.name == name)
-        .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function '{name}'")))?
+        .ok_or_else(|| {
+            wasm_run_error_at(
+                format!("Unknown function '{name}'"),
+                None,
+                Span::DUMMY,
+                "C017",
+            )
+        })?
         .clone();
     let mut rt = MirRuntime::new();
     prepare_mir_runtime(&mut rt, &module, Arc::clone(ctx));
@@ -288,12 +297,19 @@ fn run_mir_by_name(ctx: &Arc<WasmRunContext>, name: &str, args: Vec<Value>) -> S
 fn spawn_mir_task(ctx: Arc<WasmRunContext>, name: &str, args: Vec<Value>) -> SyxResult<Value> {
     let module = ctx
         .module()
-        .ok_or_else(|| SyxDiagnostic::error("MIR module not loaded"))?;
+        .ok_or_else(|| wasm_run_error_at("MIR module not loaded", None, Span::DUMMY, "C010"))?;
     let func = module
         .functions
         .iter()
         .find(|f| f.name == name)
-        .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function '{name}'")))?
+        .ok_or_else(|| {
+            wasm_run_error_at(
+                format!("Unknown function '{name}'"),
+                None,
+                Span::DUMMY,
+                "C017",
+            )
+        })?
         .clone();
     let module = Arc::clone(&module);
     let (done_tx, done_rx): (Sender<SyxResult<Value>>, Receiver<SyxResult<Value>>) =
@@ -306,15 +322,23 @@ fn spawn_mir_task(ctx: Arc<WasmRunContext>, name: &str, args: Vec<Value>) -> Syx
         // ADR-620: worker must see wasm ctx + cancel token (sleep / CallHost path).
         set_current_ctx(Arc::clone(&ctx_thread));
         if cancel.is_cancelled() {
-            let _ = done_tx.send(Err(
-                SyxDiagnostic::error("Task cancelled").with_code("C004")
-            ));
+            let _ = done_tx.send(Err(wasm_run_error_at(
+                "Task cancelled",
+                None,
+                Span::DUMMY,
+                "C004",
+            )));
             return;
         }
         syx_async::set_current_task_cancel(cancel.clone());
         let result = (|| {
             if syx_async::task_should_stop() {
-                return Err(SyxDiagnostic::error("Task cancelled").with_code("C004"));
+                return Err(wasm_run_error_at(
+                    "Task cancelled",
+                    None,
+                    Span::DUMMY,
+                    "C004",
+                ));
             }
             let mut rt = MirRuntime::new();
             prepare_mir_runtime(&mut rt, &module, ctx_thread);
@@ -338,11 +362,7 @@ fn ensure_actor(ctx: &Arc<WasmRunContext>, actor_id: i64) -> Sender<ActorJob> {
         let mut actor_states: HashMap<i64, Value> = HashMap::new();
         while let Ok(job) = rx.recv() {
             let result = (|| {
-                let actor_id = job
-                    .args
-                    .first()
-                    .and_then(actor_id_from_value)
-                    .unwrap_or(0);
+                let actor_id = job.args.first().and_then(actor_id_from_value).unwrap_or(0);
                 // ADR-631: enter serial-no-reenter TLS for mailbox dispatch (C009).
                 if actor_id != 0 {
                     syx_async::enter_processing_actor(actor_id);
@@ -396,12 +416,10 @@ impl RuntimeBridge for WasmMirBridge {
 
     fn join_task_value(&self, task_value: &Value) -> SyxResult<Value> {
         let id = syx_async::task_id_from_value(task_value)
-            .ok_or_else(|| SyxDiagnostic::error("Expected task handle"))?;
-        let handle = self
-            .ctx
-            .tasks
-            .get(id)
-            .ok_or_else(|| SyxDiagnostic::error(format!("Unknown task id {id}")))?;
+            .ok_or_else(|| wasm_run_error_at("Expected task handle", None, Span::DUMMY, "C011"))?;
+        let handle = self.ctx.tasks.get(id).ok_or_else(|| {
+            wasm_run_error_at(format!("Unknown task id {id}"), None, Span::DUMMY, "C018")
+        })?;
         // ADR-261 / ADR-619: join reaps from live_count (align native llvm).
         let result = handle.join();
         handle.mark_reaped();
@@ -410,7 +428,7 @@ impl RuntimeBridge for WasmMirBridge {
 
     fn cancel_task_value(&self, task_value: &Value) -> SyxResult<()> {
         let id = syx_async::task_id_from_value(task_value)
-            .ok_or_else(|| SyxDiagnostic::error("Expected task handle"))?;
+            .ok_or_else(|| wasm_run_error_at("Expected task handle", None, Span::DUMMY, "C011"))?;
         if let Some(handle) = self.ctx.tasks.get(id) {
             handle.cancel.cancel();
         }
@@ -423,7 +441,12 @@ impl RuntimeBridge for WasmMirBridge {
         let mut remaining = ms.max(0) as u64;
         while remaining > 0 {
             if syx_async::task_should_stop() {
-                return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+                return Err(wasm_run_error_at(
+                    "Task was cancelled",
+                    None,
+                    Span::DUMMY,
+                    "C004",
+                ));
             }
             let slice = remaining.min(SLICE_MS);
             thread::sleep(Duration::from_millis(slice));
@@ -452,11 +475,17 @@ impl RuntimeBridge for WasmMirBridge {
         method_name: &str,
         args: Vec<Value>,
     ) -> SyxResult<Value> {
-        let actor_id = actor_id_from_value(actor_value)
-            .ok_or_else(|| SyxDiagnostic::error("Expected actor reference"))?;
+        let actor_id = actor_id_from_value(actor_value).ok_or_else(|| {
+            wasm_run_error_at("Expected actor reference", None, Span::DUMMY, "C021")
+        })?;
         // ADR-631 / ADR-264: deny sync same-instance reentrancy (anti-deadlock).
         if syx_async::current_processing_actor() == Some(actor_id) {
-            return Err(SyxDiagnostic::error("Actor reentrancy denied").with_code("C009"));
+            return Err(wasm_run_error_at(
+                "Actor reentrancy denied",
+                None,
+                Span::DUMMY,
+                "C009",
+            ));
         }
         let (reply_tx, reply_rx) = crossbeam_channel::unbounded();
         let tx = ensure_actor(&self.ctx, actor_id);
@@ -465,10 +494,13 @@ impl RuntimeBridge for WasmMirBridge {
             args,
             reply: reply_tx,
         })
-        .map_err(|_| SyxDiagnostic::error("Actor mailbox closed").with_code("C006"))?;
-        reply_rx
-            .recv()
-            .unwrap_or(Err(SyxDiagnostic::error("Actor reply channel closed")))
+        .map_err(|_| wasm_run_error_at("Actor mailbox closed", None, Span::DUMMY, "C006"))?;
+        reply_rx.recv().unwrap_or(Err(wasm_run_error_at(
+            "Actor reply channel closed",
+            None,
+            Span::DUMMY,
+            "C006",
+        )))
     }
 }
 

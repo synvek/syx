@@ -4,7 +4,7 @@
 **Open baseline:** [stage2-s2-07-open](adr/stage2-s2-07-open.md) · S2-I263 · **Inject:** [stage2-s2-07-inject-cargo-pkg-version](adr/stage2-s2-07-inject-cargo-pkg-version.md) · S2-I264
 
 **Goal (S2-07):** single **public** version = crate semver (`0.x.y`); phase / marketing `117.0` internal-only or ungated.  
-**Status:** S2-07 **`[x]`** scoped (S2-I265) — **≠** Stage-2 exit.
+**Status:** S2-07 **`[x]`** scoped (S2-I265) · Stage-2 **exited** ([stage2-exit](adr/stage2-exit.md) · S2-I266).
 
 ## Command
 
@@ -36,7 +36,7 @@ bash scripts/s2_07_version_census.sh
 | Metric | Value |
 |--------|------:|
 | Plan S2-07 | **`[x]`** scoped |
-| Stage-2 | **`[~]`** (exit pending) |
+| Stage-2 | **`[x]` 退出**（S2-I266） |
 | Public SSOT | crate semver / `CARGO_PKG_VERSION` = **`0.1.3`** |
 | Residual OK | phase 139; fingerprint salts; docs/books「SYX 117.0」narrative |
 
@@ -61,13 +61,13 @@ bash scripts/s2_07_version_census.sh
 1. **S2-I263:** version census + open ADR — landed.
 2. **S2-I264:** inject public surfaces from `CARGO_PKG_VERSION` — landed.
 3. **S2-I265:** dedicated **S2-07 `[x]` claim** — **this window**; ≠ Stage-2 exit.
-4. Next default: **S2-I266 Stage-2 exit**.
+4. **S2-I266:** Stage-2 exit — landed；next = **Stage-3 open**.
 
-## Non-claims (post-claim honesty)
+## Non-claims (post-exit honesty)
 
-- **≠** Stage-2 exit this window  
-- **≠** mass docs/books rewrite required for scoped `[x]`  
-- **≠** HostFn+1 / product umbrella unpark / F-08 / Stage-3 construction this window  
+- **≠** Stage-3 construction this window  
+- **≠** mass docs/books rewrite required for scoped S2-07 `[x]`  
+- **≠** HostFn+1 / product umbrella unpark / F-08  
 
 ## References
 

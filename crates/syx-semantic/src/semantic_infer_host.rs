@@ -10,7 +10,7 @@ use smol_str::SmolStr;
 use syx_ast::{
     CallArg, Decl, Expr, Literal, Module, Stmt, TypeExpr,
 };
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::SyxResult;
 use syx_stdlib::{
     widen_for_binary,
     HostFnId, NumericKind,
@@ -286,6 +286,7 @@ impl SemanticAnalyzer {
         expected: &TypeId,
         found: &TypeId,
         name: &str,
+        span: syx_diagnostics::Span,
     ) -> bool {
         let protocol = match expected {
             TypeId::OpaqueAny(inner) | TypeId::OpaqueSome(inner) => inner.as_ref(),
@@ -302,14 +303,15 @@ impl SemanticAnalyzer {
         if self.type_id_satisfies_protocol(found, protocol_name.as_str()) {
             return true;
         }
-        self.errors.push(
-            SyxDiagnostic::error(format!(
+        self.errors.push(self.error_at(
+            format!(
                 "Type '{}' does not conform to protocol '{}' for '{name}'",
                 type_id_to_name(found),
                 protocol_name
-            ))
-            .with_code("S014"),
-        );
+            ),
+            span,
+            "S014",
+        ));
         true
     }
 

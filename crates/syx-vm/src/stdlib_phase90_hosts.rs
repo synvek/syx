@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 use crate::stdlib_phase89_hosts::{host_sql_query_rusqlite, reset_rusqlite_store};
@@ -24,8 +26,7 @@ static MIGRATION_VERSION: LazyLock<Mutex<u32>> = LazyLock::new(|| Mutex::new(0))
 
 /// Reset Phase 90 SQL/GUI state between tests.
 #[cfg(target_arch = "wasm32")]
-pub fn reset_phase90_state() {
-}
+pub fn reset_phase90_state() {}
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn reset_phase90_state() {
@@ -40,19 +41,24 @@ pub fn reset_phase90_state() {
 #[cfg(target_arch = "wasm32")]
 pub fn host_sql_migrate(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn host_sql_migrate(stack: &mut Vec<Value>) -> SyxResult<()> {
     let sql = pop_str(stack);
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     let _ =
         conn.execute_batch("CREATE TABLE IF NOT EXISTS _syx_schema (version INTEGER NOT NULL);");
     conn.execute(&sql, [])
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let ver = conn
         .query_row(
             "SELECT COALESCE(MAX(version), 0) FROM _syx_schema",
@@ -73,7 +79,12 @@ pub fn host_sql_migrate(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_sql_bind_step(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -81,11 +92,11 @@ pub fn host_sql_bind_step(stack: &mut Vec<Value>) -> SyxResult<()> {
     let bind_val = pop_str(stack);
     let sql = pop_str(stack);
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     let changed = conn
         .execute(&sql, rusqlite::params![bind_val])
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     stack.push(Value::I32(changed as i32));
     Ok(())
 }
@@ -94,7 +105,12 @@ pub fn host_sql_bind_step(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -114,7 +130,12 @@ pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_orm_update_where(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -126,7 +147,7 @@ pub fn host_orm_update_where(stack: &mut Vec<Value>) -> SyxResult<()> {
     let table = pop_str(stack);
     let sql = format!("UPDATE {table} SET {new_col} = ? WHERE {where_col} = ?");
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     let changed = conn
         .execute(&sql, rusqlite::params![new_val, where_val])
@@ -139,7 +160,12 @@ pub fn host_orm_update_where(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_orm_delete_where(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -149,7 +175,7 @@ pub fn host_orm_delete_where(stack: &mut Vec<Value>) -> SyxResult<()> {
     let table = pop_str(stack);
     let sql = format!("DELETE FROM {table} WHERE {col} = ?");
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     let changed = conn.execute(&sql, rusqlite::params![val]).unwrap_or(0);
     stack.push(Value::I32(changed as i32));

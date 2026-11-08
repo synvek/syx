@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use syx_codegen::CompiledProgram;
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 /// Phase 36 / ADR-140: tier-2 native entry metadata.
@@ -166,7 +168,12 @@ impl JitCompiler {
             return Ok(None);
         }
         let meta = self.native_meta.get(func).cloned().ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error(format!("JIT: missing meta for {func}"))
+            vm_error_at(
+                format!("JIT: missing meta for {func}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         let iargs: Vec<i32> = args.iter().map(|v| v.as_i32()).collect();
         let entry = syx_cranelift_jit::JitNativeEntry {

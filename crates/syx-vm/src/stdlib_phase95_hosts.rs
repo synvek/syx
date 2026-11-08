@@ -3,15 +3,16 @@
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase94_hosts::{
-    gc_churn_stdout_lines, host_gui_touch_event,
-    host_gui_touch_inject, host_orm_delete_where, host_orm_find_where, host_orm_update_where,
-    host_sql_begin_transaction, host_sql_bind_multi, host_sql_bind_step,
-    host_sql_commit_transaction, host_sql_migrate, host_sql_rollback_transaction, host_xml_xpath,
-    orm_bound_value_count, reset_phase94_state,
+    gc_churn_stdout_lines, host_gui_touch_event, host_gui_touch_inject, host_orm_delete_where,
+    host_orm_find_where, host_orm_update_where, host_sql_begin_transaction, host_sql_bind_multi,
+    host_sql_bind_step, host_sql_commit_transaction, host_sql_migrate,
+    host_sql_rollback_transaction, host_xml_xpath, orm_bound_value_count, reset_phase94_state,
 };
 
 use crate::stdlib_phase91_hosts::{
@@ -20,7 +21,6 @@ use crate::stdlib_phase91_hosts::{
     host_gui_winit_event_pump as hashmap_event_pump,
     host_gui_winit_window_create as hashmap_window_create,
 };
-
 
 static ORM_PREPARED_ROWS: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
@@ -42,7 +42,12 @@ pub fn reset_phase95_state() {
 #[cfg(target_arch = "wasm32")]
 pub fn host_orm_find_where_dict_prepare(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -63,31 +68,31 @@ pub fn host_orm_find_where_dict_prepare(stack: &mut Vec<Value>) -> SyxResult<()>
         format!("SELECT * FROM {table} WHERE {}", clauses.join(" AND "))
     };
     let conn = rusqlite::Connection::open_in_memory()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("orm prepare: {e}")))?;
+        .map_err(|e| vm_error_at(format!("orm prepare: {e}"), None, Span::DUMMY, "R003"))?;
     conn.execute(
         &format!("CREATE TABLE {table} (name TEXT, age INTEGER)"),
         [],
     )
-    .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("orm ddl: {e}")))?;
+    .map_err(|e| vm_error_at(format!("orm ddl: {e}"), None, Span::DUMMY, "R003"))?;
     for (name, age) in [("alice", 30), ("bob", 25)] {
         conn.execute(
             &format!("INSERT INTO {table} (name, age) VALUES (?1, ?2)"),
             rusqlite::params![name, age],
         )
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("orm seed: {e}")))?;
+        .map_err(|e| vm_error_at(format!("orm seed: {e}"), None, Span::DUMMY, "R003"))?;
     }
     let mut stmt = conn
         .prepare(&sql)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("prepare: {e}")))?;
+        .map_err(|e| vm_error_at(format!("prepare: {e}"), None, Span::DUMMY, "R003"))?;
     let rows: Vec<String> = if binds.is_empty() {
         stmt.query_map([], |row| row.get::<_, String>(0))
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("query: {e}")))?
+            .map_err(|e| vm_error_at(format!("query: {e}"), None, Span::DUMMY, "R003"))?
             .filter_map(|r| r.ok())
             .collect()
     } else {
         let name = binds.first().cloned().unwrap_or_default();
         stmt.query_map(rusqlite::params![name], |row| row.get::<_, String>(0))
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("bind query: {e}")))?
+            .map_err(|e| vm_error_at(format!("bind query: {e}"), None, Span::DUMMY, "R003"))?
             .filter_map(|r| r.ok())
             .collect()
     };

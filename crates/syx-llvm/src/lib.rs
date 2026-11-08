@@ -72,7 +72,10 @@ fn emit_llvm_string_globals(out: &mut String) {
     }
 }
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+mod llvm_diag;
+use llvm_diag::llvm_error_at;
+
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use syx_mir::{MirFunction, MirModule, MirOp};
 
 /// Phase 20: LLVM parity gate mode (`SYX_LLVM_PARITY_GATE=smoke|strict|0`).
@@ -183,7 +186,8 @@ pub fn llvm_parity_gate_default_backend_on_ready() -> bool {
 
 pub fn llvm_parity_gate_default_backend_on_weeks() -> u32 {
     if llvm_inkwell_default_ga_ready()
-        || (llvm_strict_green_weeks() >= llvm_inkwell_default_ga_weeks() && llvm_aot_phase8_enabled())
+        || (llvm_strict_green_weeks() >= llvm_inkwell_default_ga_weeks()
+            && llvm_aot_phase8_enabled())
     {
         llvm_inkwell_default_ga_weeks()
     } else {
@@ -207,7 +211,8 @@ pub fn llvm_cli_default_backend_weeks() -> u32 {
 
 pub fn llvm_cli_default_backend_on_weeks() -> u32 {
     if llvm_inkwell_default_ga_ready()
-        || (llvm_strict_green_weeks() >= llvm_inkwell_default_ga_weeks() && llvm_aot_phase8_enabled())
+        || (llvm_strict_green_weeks() >= llvm_inkwell_default_ga_weeks()
+            && llvm_aot_phase8_enabled())
     {
         llvm_inkwell_default_ga_weeks()
     } else {
@@ -912,9 +917,12 @@ pub fn assert_llvm_parity_strict_module(ir: &str) -> SyxResult<()> {
     if missing.is_empty() {
         Ok(())
     } else {
-        Err(SyxDiagnostic::error(format!(
-            "LLVM Top-100 runtime subset missing symbols: {missing:?}"
-        )))
+        Err(llvm_error_at(
+            format!("LLVM Top-100 runtime subset missing symbols: {missing:?}"),
+            None,
+            Span::DUMMY,
+            "L005",
+        ))
     }
 }
 
@@ -939,10 +947,9 @@ pub fn llvm_parity_runtime_execute_smoke(module: &MirModule) -> SyxResult<()> {
     {
         missing.push("print:call void @syx_rt_print()");
     }
-    if mir_module_uses_op(
-        module,
-        &|op| matches!(op, MirOp::ArrayBuild(_) | MirOp::DictBuild(_)),
-    ) && !ir.contains("syx_rt_push_collection")
+    if mir_module_uses_op(module, &|op| {
+        matches!(op, MirOp::ArrayBuild(_) | MirOp::DictBuild(_))
+    }) && !ir.contains("syx_rt_push_collection")
     {
         missing.push("enum:syx_rt_push_collection");
     }
@@ -951,22 +958,20 @@ pub fn llvm_parity_runtime_execute_smoke(module: &MirModule) -> SyxResult<()> {
     {
         missing.push("witness:call i32 @syx_rt_call_witness");
     }
-    if mir_module_uses_op(
-        module,
-        &|op| matches!(
+    if mir_module_uses_op(module, &|op| {
+        matches!(
             op,
             MirOp::BeginTry(_) | MirOp::EndTry | MirOp::Catch | MirOp::Throw
-        ),
-    ) && !ir.contains("@syx_rt_begin_try")
+        )
+    }) && !ir.contains("@syx_rt_begin_try")
         && !ir.contains("@syx_rt_end_try")
         && !ir.contains("@syx_rt_catch")
     {
         missing.push("try:begin/end/catch runtime");
     }
-    if mir_module_uses_op(
-        module,
-        &|op| matches!(op, MirOp::AwaitPoll | MirOp::AwaitSuspend { .. }),
-    ) && !ir.contains("@syx_rt_await_poll")
+    if mir_module_uses_op(module, &|op| {
+        matches!(op, MirOp::AwaitPoll | MirOp::AwaitSuspend { .. })
+    }) && !ir.contains("@syx_rt_await_poll")
         && !ir.contains("@syx_rt_await_suspend")
     {
         missing.push("async:await_poll/suspend runtime");
@@ -992,9 +997,12 @@ pub fn llvm_parity_runtime_execute_smoke(module: &MirModule) -> SyxResult<()> {
     if missing.is_empty() {
         Ok(())
     } else {
-        Err(SyxDiagnostic::error(format!(
-            "LLVM Top-100 runtime smoke missing patterns: {missing:?}"
-        )))
+        Err(llvm_error_at(
+            format!("LLVM Top-100 runtime smoke missing patterns: {missing:?}"),
+            None,
+            Span::DUMMY,
+            "L005",
+        ))
     }
 }
 
@@ -1012,14 +1020,27 @@ pub mod inkwell_backend {
             let _ = module;
             return emit_inkwell_object_v6(module);
         }
-        if inkwell_prod_enabled() || inkwell_default_enabled() || inkwell_candidate_enabled() || inkwell_crate_enabled() {
-            if inkwell_crate_enabled() && super::llvm_inkwell_phase78_module_ready() && !super::llvm_text_emit_enabled() {
+        if inkwell_prod_enabled()
+            || inkwell_default_enabled()
+            || inkwell_candidate_enabled()
+            || inkwell_crate_enabled()
+        {
+            if inkwell_crate_enabled()
+                && super::llvm_inkwell_phase78_module_ready()
+                && !super::llvm_text_emit_enabled()
+            {
                 return super::emit_inkwell_module_v4(module);
             }
-            if inkwell_crate_enabled() && super::llvm_inkwell_phase77_llvm_ready() && !super::llvm_text_emit_enabled() {
+            if inkwell_crate_enabled()
+                && super::llvm_inkwell_phase77_llvm_ready()
+                && !super::llvm_text_emit_enabled()
+            {
                 return super::emit_inkwell_llvm_module(module);
             }
-            if inkwell_crate_enabled() && super::llvm_inkwell_phase76_crate_ready() && !super::llvm_text_emit_enabled() {
+            if inkwell_crate_enabled()
+                && super::llvm_inkwell_phase76_crate_ready()
+                && !super::llvm_text_emit_enabled()
+            {
                 return super::emit_inkwell_crate_module(module);
             }
             let mut ir = emit_llvm_ir(module)?;
@@ -1031,9 +1052,7 @@ pub mod inkwell_backend {
             return Ok(ir.into_bytes());
         }
         if !inkwell_spike_enabled() {
-            return Err(SyxDiagnostic::error(
-                "inkwell disabled; set SYX_INKWELL_SPIKE=1, SYX_INKWELL_CANDIDATE=1, SYX_INKWELL_DEFAULT=1, or SYX_INKWELL_PROD=1",
-            ));
+            return Err(llvm_error_at("inkwell disabled; set SYX_INKWELL_SPIKE=1, SYX_INKWELL_CANDIDATE=1, SYX_INKWELL_DEFAULT=1, or SYX_INKWELL_PROD=1", None, Span::DUMMY, "L001"));
         }
         let _ = module;
         Ok(b"\x7fELF\x02\x01\x01\x00inkwell-spike-p31".to_vec())
@@ -1048,8 +1067,11 @@ pub fn compile_inkwell_module_v4(module: &MirModule) -> SyxResult<Vec<u8>> {
 /// Phase 78: inkwell object-direct ELF/object bytes when `SYX_INKWELL_OBJECT=1`.
 pub fn compile_inkwell_object_direct(module: &MirModule) -> SyxResult<Vec<u8>> {
     if !inkwell_object_direct_enabled() {
-        return Err(SyxDiagnostic::error(
+        return Err(llvm_error_at(
             "inkwell object direct disabled; set SYX_INKWELL_OBJECT=1",
+            None,
+            Span::DUMMY,
+            "L001",
         ));
     }
     emit_inkwell_object_v6(module)
@@ -1062,18 +1084,28 @@ fn emit_inkwell_object_v6(module: &MirModule) -> SyxResult<Vec<u8>> {
         use inkwell::context::Context;
         use inkwell::memory_buffer::MemoryBuffer;
         use inkwell::targets::{
-            FileType, InitializationConfig, RelocMode, CodeModel, Target, TargetMachine,
+            CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine,
         };
         use inkwell::OptimizationLevel;
 
         // Host object-direct only needs the native backend. initialize_all also
         // pulls targets missing from official Windows LLVM packages (LNK2019).
         Target::initialize_native(&InitializationConfig::default()).map_err(|e| {
-            SyxDiagnostic::error(format!("inkwell native target init failed: {e}"))
+            llvm_error_at(
+                format!("inkwell native target init failed: {e}"),
+                None,
+                Span::DUMMY,
+                "L002",
+            )
         })?;
         let triple = TargetMachine::get_default_triple();
         let target = Target::from_triple(&triple).map_err(|e| {
-            SyxDiagnostic::error(format!("inkwell target triple failed: {e}"))
+            llvm_error_at(
+                format!("inkwell target triple failed: {e}"),
+                None,
+                Span::DUMMY,
+                "L002",
+            )
         })?;
         let opt = if *LLVM_COMPILE_RELEASE.lock().unwrap() {
             OptimizationLevel::Aggressive
@@ -1089,7 +1121,14 @@ fn emit_inkwell_object_v6(module: &MirModule) -> SyxResult<Vec<u8>> {
                 RelocMode::PIC,
                 CodeModel::Default,
             )
-            .ok_or_else(|| SyxDiagnostic::error("inkwell TargetMachine create failed"))?;
+            .ok_or_else(|| {
+                llvm_error_at(
+                    "inkwell TargetMachine create failed",
+                    None,
+                    Span::DUMMY,
+                    "L002",
+                )
+            })?;
         let mut ir = emit_llvm_ir(module)?;
         append_aot_runtime_shim(module, &mut ir)?;
         let context = Context::create();
@@ -1097,29 +1136,50 @@ fn emit_inkwell_object_v6(module: &MirModule) -> SyxResult<Vec<u8>> {
         let mut ir_bytes = ir.into_bytes();
         ir_bytes.push(0);
         let memory = MemoryBuffer::create_from_memory_range_copy(&ir_bytes, "syx.ll");
-        let llvm_module = context
-            .create_module_from_ir(memory)
-            .map_err(|e| SyxDiagnostic::error(format!("inkwell parse IR failed: {e}")))?;
+        let llvm_module = context.create_module_from_ir(memory).map_err(|e| {
+            llvm_error_at(
+                format!("inkwell parse IR failed: {e}"),
+                None,
+                Span::DUMMY,
+                "L002",
+            )
+        })?;
         llvm_module.set_triple(&triple);
         llvm_module.set_data_layout(&machine.get_target_data().get_data_layout());
         if llvm_module.get_function("syx_user_main").is_none() {
-            return Err(SyxDiagnostic::error(
+            return Err(llvm_error_at(
                 "inkwell object-direct: parsed module missing syx_user_main (shim not applied)",
+                None,
+                Span::DUMMY,
+                "L002",
             ));
         }
         let buffer = machine
             .write_to_memory_buffer(&llvm_module, FileType::Object)
-            .map_err(|e| SyxDiagnostic::error(format!("inkwell write_object failed: {e}")))?;
+            .map_err(|e| {
+                llvm_error_at(
+                    format!("inkwell write_object failed: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "L003",
+                )
+            })?;
         let bytes = buffer.as_slice().to_vec();
         if !is_native_object_bytes(&bytes) {
-            return Err(SyxDiagnostic::error(
+            return Err(llvm_error_at(
                 "inkwell object-direct did not produce a native object file",
+                None,
+                Span::DUMMY,
+                "L003",
             ));
         }
         let hay = String::from_utf8_lossy(&bytes);
         if !(hay.contains("syx_user_main") || hay.contains("_syx_user_main")) {
-            return Err(SyxDiagnostic::error(
+            return Err(llvm_error_at(
                 "inkwell object-direct: object bytes missing syx_user_main symbol",
+                None,
+                Span::DUMMY,
+                "L003",
             ));
         }
         return Ok(bytes);
@@ -1128,8 +1188,11 @@ fn emit_inkwell_object_v6(module: &MirModule) -> SyxResult<Vec<u8>> {
     {
         let _ = module;
         if inkwell_mandatory_link_enabled() {
-            return Err(SyxDiagnostic::error(
+            return Err(llvm_error_at(
                 "inkwell mandatory link requires llvm feature; rebuild with --features llvm",
+                None,
+                Span::DUMMY,
+                "L001",
             ));
         }
         Ok(minimal_elf_object_v6())
@@ -1150,8 +1213,8 @@ pub fn inkwell_mandatory_link_enabled() -> bool {
 #[cfg(not(feature = "llvm"))]
 fn minimal_elf_object_v6() -> Vec<u8> {
     let mut bytes = vec![
-        0x7f, b'E', b'L', b'F', 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0x3e, 0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0x7f, b'E', b'L', b'F', 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0x3e, 0, 1, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ];
     bytes.extend_from_slice(b"inkwell-llvm-v6-real-object-phase80");
     bytes
@@ -1827,11 +1890,7 @@ fn emit_register_phis(
     regs
 }
 
-fn emit_function(
-    func: &MirFunction,
-    out: &mut String,
-    fn_name_to_index: &HashMap<String, u32>,
-) {
+fn emit_function(func: &MirFunction, out: &mut String, fn_name_to_index: &HashMap<String, u32>) {
     let fname = sanitize_llvm_symbol(func.name.as_str());
     out.push_str(&format!("define i32 @{fname}() {{\n"));
     let mut regs: HashMap<u32, String> = HashMap::new();
@@ -2045,7 +2104,10 @@ fn emit_function(
         }
     }
 
-    if !func.instructions.iter().any(|i| matches!(i.op, MirOp::Return))
+    if !func
+        .instructions
+        .iter()
+        .any(|i| matches!(i.op, MirOp::Return))
         && !func
             .blocks
             .iter()
@@ -2106,9 +2168,7 @@ fn emit_mir_instr(
                 len_plus = len + 1
             ));
             let iptr = fresh_tmp(next_tmp);
-            out.push_str(&format!(
-                "  {iptr} = ptrtoint i8* {sptr} to i64\n"
-            ));
+            out.push_str(&format!("  {iptr} = ptrtoint i8* {sptr} to i64\n"));
             out.push_str(&format!(
                 "  call void @syx_rt_push_str(i64 {iptr}, i32 {len})\n",
             ));
@@ -2326,11 +2386,17 @@ fn emit_mir_instr(
             set_reg(regs, last_value, instr.dest, tmp.clone());
         }
         MirOp::Jump(target) => {
-            let label = labels.get(target).cloned().unwrap_or_else(|| format!("b{target}"));
+            let label = labels
+                .get(target)
+                .cloned()
+                .unwrap_or_else(|| format!("b{target}"));
             out.push_str(&format!("  br label %{label}\n"));
         }
         MirOp::JumpIfFalse(target) => {
-            let taken = labels.get(target).cloned().unwrap_or_else(|| format!("b{target}"));
+            let taken = labels
+                .get(target)
+                .cloned()
+                .unwrap_or_else(|| format!("b{target}"));
             // Wave A W11: HashMap::values().last() is unordered — use last written SSA.
             let cond = last_value.clone().unwrap_or_else(|| "%0".into());
             let cmp = fresh_tmp(next_tmp);
@@ -2348,7 +2414,10 @@ fn emit_mir_instr(
             };
         }
         MirOp::JumpIfNil(target) => {
-            let taken = labels.get(target).cloned().unwrap_or_else(|| format!("b{target}"));
+            let taken = labels
+                .get(target)
+                .cloned()
+                .unwrap_or_else(|| format!("b{target}"));
             let cond = last_value.clone().unwrap_or_else(|| "%0".into());
             let cmp = fresh_tmp(next_tmp);
             out.push_str(&format!("  {cmp} = icmp eq i32 {cond}, 0\n"));
@@ -2383,7 +2452,10 @@ fn emit_mir_instr(
             return Some(cont);
         }
         MirOp::BindResult(target) => {
-            let label = labels.get(target).cloned().unwrap_or_else(|| format!("b{target}"));
+            let label = labels
+                .get(target)
+                .cloned()
+                .unwrap_or_else(|| format!("b{target}"));
             out.push_str(&format!("  br label %{label} ; bind_result\n"));
         }
         MirOp::MakeClosure(name, captures) => {
@@ -2402,7 +2474,9 @@ fn emit_mir_instr(
             if llvm_aot_phase3_enabled() {
                 out.push_str(&format!("  {tmp} = call i32 @syx_rt_call_closure(i32 0)\n"));
             } else {
-                out.push_str(&format!("  {tmp} = call i32 @syx_rt_call_host(i32 0) ; closure\n"));
+                out.push_str(&format!(
+                    "  {tmp} = call i32 @syx_rt_call_host(i32 0) ; closure\n"
+                ));
             }
             set_reg(regs, last_value, instr.dest, tmp.clone());
         }
@@ -2463,17 +2537,23 @@ fn emit_mir_instr(
         }
         MirOp::ActorCall(id) => {
             let tmp = fresh_tmp(next_tmp);
-            out.push_str(&format!("  {tmp} = call i32 @syx_rt_actor_call(i32 {id}, i32 0)\n"));
+            out.push_str(&format!(
+                "  {tmp} = call i32 @syx_rt_actor_call(i32 {id}, i32 0)\n"
+            ));
             set_reg(regs, last_value, instr.dest, tmp.clone());
         }
         MirOp::ActorSend(id) => {
             let tmp = fresh_tmp(next_tmp);
-            out.push_str(&format!("  {tmp} = call i32 @syx_rt_actor_send(i32 {id}, i32 0)\n"));
+            out.push_str(&format!(
+                "  {tmp} = call i32 @syx_rt_actor_send(i32 {id}, i32 0)\n"
+            ));
             set_reg(regs, last_value, instr.dest, tmp.clone());
         }
         MirOp::TaskSpawn(id) => {
             let tmp = fresh_tmp(next_tmp);
-            out.push_str(&format!("  {tmp} = call i32 @syx_rt_task_spawn(i32 {id})\n"));
+            out.push_str(&format!(
+                "  {tmp} = call i32 @syx_rt_task_spawn(i32 {id})\n"
+            ));
             set_reg(regs, last_value, instr.dest, tmp.clone());
         }
         MirOp::MakeIterator => {
@@ -2558,41 +2638,109 @@ fn emit_mir_instr(
         MirOp::SimdF64Add => {
             out.push_str("  call void @syx_rt_simd_f64_add()\n");
         }
-        MirOp::SimdI16Add => { out.push_str("  call void @syx_rt_simd_i16_add()\n"); }
-        MirOp::SimdI16Sub => { out.push_str("  call void @syx_rt_simd_i16_sub()\n"); }
-        MirOp::SimdI16Mul => { out.push_str("  call void @syx_rt_simd_i16_mul()\n"); }
-        MirOp::SimdI8Add => { out.push_str("  call void @syx_rt_simd_i8_add()\n"); }
-        MirOp::SimdI8Sub => { out.push_str("  call void @syx_rt_simd_i8_sub()\n"); }
-        MirOp::SimdI8Mul => { out.push_str("  call void @syx_rt_simd_i8_mul()\n"); }
-        MirOp::SimdI8And => { out.push_str("  call void @syx_rt_simd_i8_and()\n"); }
-        MirOp::SimdI8Or => { out.push_str("  call void @syx_rt_simd_i8_or()\n"); }
-        MirOp::SimdI8Xor => { out.push_str("  call void @syx_rt_simd_i8_xor()\n"); }
-        MirOp::SimdI8Not => { out.push_str("  call void @syx_rt_simd_i8_not()\n"); }
-        MirOp::SimdI8Min => { out.push_str("  call void @syx_rt_simd_i8_min()\n"); }
-        MirOp::SimdI8Max => { out.push_str("  call void @syx_rt_simd_i8_max()\n"); }
-        MirOp::SimdI8UMin => { out.push_str("  call void @syx_rt_simd_i8_umin()\n"); }
-        MirOp::SimdI8UMax => { out.push_str("  call void @syx_rt_simd_i8_umax()\n"); }
-        MirOp::SimdI8Abs => { out.push_str("  call void @syx_rt_simd_i8_abs()\n"); }
-        MirOp::SimdI8Neg => { out.push_str("  call void @syx_rt_simd_i8_neg()\n"); }
-        MirOp::SimdI8Extract => { out.push_str("  call void @syx_rt_simd_i8_extract()\n"); }
-        MirOp::SimdI8Replace => { out.push_str("  call void @syx_rt_simd_i8_replace()\n"); }
-        MirOp::SimdI8Eq => { out.push_str("  call void @syx_rt_simd_i8_eq()\n"); }
-        MirOp::SimdI8Ne => { out.push_str("  call void @syx_rt_simd_i8_ne()\n"); }
-        MirOp::SimdI8Le => { out.push_str("  call void @syx_rt_simd_i8_le()\n"); }
-        MirOp::SimdI8Ge => { out.push_str("  call void @syx_rt_simd_i8_ge()\n"); }
-        MirOp::SimdI8AvgrU => { out.push_str("  call void @syx_rt_simd_i8_avgr_u()\n"); }
-        MirOp::SimdI8Popcnt => { out.push_str("  call void @syx_rt_simd_i8_popcnt()\n"); }
-        MirOp::SimdI8Bitmask => { out.push_str("  call void @syx_rt_simd_i8_bitmask()\n"); }
-        MirOp::SimdI8AllTrue => { out.push_str("  call void @syx_rt_simd_i8_all_true()\n"); }
-        MirOp::SimdI8AnyTrue => { out.push_str("  call void @syx_rt_simd_i8_any_true()\n"); }
-        MirOp::SimdI8Lt => { out.push_str("  call void @syx_rt_simd_i8_lt()\n"); }
-        MirOp::SimdI8Gt => { out.push_str("  call void @syx_rt_simd_i8_gt()\n"); }
-        MirOp::SimdI8AddSat => { out.push_str("  call void @syx_rt_simd_i8_add_sat()\n"); }
-        MirOp::SimdI8SubSat => { out.push_str("  call void @syx_rt_simd_i8_sub_sat()\n"); }
-        MirOp::SimdI8Shl => { out.push_str("  call void @syx_rt_simd_i8_shl()\n"); }
-        MirOp::SimdI8Shr => { out.push_str("  call void @syx_rt_simd_i8_shr()\n"); }
+        MirOp::SimdI16Add => {
+            out.push_str("  call void @syx_rt_simd_i16_add()\n");
+        }
+        MirOp::SimdI16Sub => {
+            out.push_str("  call void @syx_rt_simd_i16_sub()\n");
+        }
+        MirOp::SimdI16Mul => {
+            out.push_str("  call void @syx_rt_simd_i16_mul()\n");
+        }
+        MirOp::SimdI8Add => {
+            out.push_str("  call void @syx_rt_simd_i8_add()\n");
+        }
+        MirOp::SimdI8Sub => {
+            out.push_str("  call void @syx_rt_simd_i8_sub()\n");
+        }
+        MirOp::SimdI8Mul => {
+            out.push_str("  call void @syx_rt_simd_i8_mul()\n");
+        }
+        MirOp::SimdI8And => {
+            out.push_str("  call void @syx_rt_simd_i8_and()\n");
+        }
+        MirOp::SimdI8Or => {
+            out.push_str("  call void @syx_rt_simd_i8_or()\n");
+        }
+        MirOp::SimdI8Xor => {
+            out.push_str("  call void @syx_rt_simd_i8_xor()\n");
+        }
+        MirOp::SimdI8Not => {
+            out.push_str("  call void @syx_rt_simd_i8_not()\n");
+        }
+        MirOp::SimdI8Min => {
+            out.push_str("  call void @syx_rt_simd_i8_min()\n");
+        }
+        MirOp::SimdI8Max => {
+            out.push_str("  call void @syx_rt_simd_i8_max()\n");
+        }
+        MirOp::SimdI8UMin => {
+            out.push_str("  call void @syx_rt_simd_i8_umin()\n");
+        }
+        MirOp::SimdI8UMax => {
+            out.push_str("  call void @syx_rt_simd_i8_umax()\n");
+        }
+        MirOp::SimdI8Abs => {
+            out.push_str("  call void @syx_rt_simd_i8_abs()\n");
+        }
+        MirOp::SimdI8Neg => {
+            out.push_str("  call void @syx_rt_simd_i8_neg()\n");
+        }
+        MirOp::SimdI8Extract => {
+            out.push_str("  call void @syx_rt_simd_i8_extract()\n");
+        }
+        MirOp::SimdI8Replace => {
+            out.push_str("  call void @syx_rt_simd_i8_replace()\n");
+        }
+        MirOp::SimdI8Eq => {
+            out.push_str("  call void @syx_rt_simd_i8_eq()\n");
+        }
+        MirOp::SimdI8Ne => {
+            out.push_str("  call void @syx_rt_simd_i8_ne()\n");
+        }
+        MirOp::SimdI8Le => {
+            out.push_str("  call void @syx_rt_simd_i8_le()\n");
+        }
+        MirOp::SimdI8Ge => {
+            out.push_str("  call void @syx_rt_simd_i8_ge()\n");
+        }
+        MirOp::SimdI8AvgrU => {
+            out.push_str("  call void @syx_rt_simd_i8_avgr_u()\n");
+        }
+        MirOp::SimdI8Popcnt => {
+            out.push_str("  call void @syx_rt_simd_i8_popcnt()\n");
+        }
+        MirOp::SimdI8Bitmask => {
+            out.push_str("  call void @syx_rt_simd_i8_bitmask()\n");
+        }
+        MirOp::SimdI8AllTrue => {
+            out.push_str("  call void @syx_rt_simd_i8_all_true()\n");
+        }
+        MirOp::SimdI8AnyTrue => {
+            out.push_str("  call void @syx_rt_simd_i8_any_true()\n");
+        }
+        MirOp::SimdI8Lt => {
+            out.push_str("  call void @syx_rt_simd_i8_lt()\n");
+        }
+        MirOp::SimdI8Gt => {
+            out.push_str("  call void @syx_rt_simd_i8_gt()\n");
+        }
+        MirOp::SimdI8AddSat => {
+            out.push_str("  call void @syx_rt_simd_i8_add_sat()\n");
+        }
+        MirOp::SimdI8SubSat => {
+            out.push_str("  call void @syx_rt_simd_i8_sub_sat()\n");
+        }
+        MirOp::SimdI8Shl => {
+            out.push_str("  call void @syx_rt_simd_i8_shl()\n");
+        }
+        MirOp::SimdI8Shr => {
+            out.push_str("  call void @syx_rt_simd_i8_shr()\n");
+        }
         MirOp::SimdI8Shuffle { mode } => {
-            out.push_str(&format!("  call void @syx_rt_simd_i8_shuffle(i32 {mode})\n"));
+            out.push_str(&format!(
+                "  call void @syx_rt_simd_i8_shuffle(i32 {mode})\n"
+            ));
         }
         MirOp::SimdI64Add => {
             out.push_str("  call void @syx_rt_simd_i64_add()\n");
@@ -2624,8 +2772,7 @@ fn emit_mir_instr(
             // W955 / ADR-1299: full 64-bit bits via push_numeric64 (legacy push_numeric truncates f64).
             out.push_str(&format!(
                 "  call void @syx_rt_push_numeric64(i32 {}, i64 {})\n",
-                *kind as i32,
-                *bits as i64
+                *kind as i32, *bits as i64
             ));
             let tmp = fresh_tmp(next_tmp);
             let bits_lo = (*bits & 0xffff_ffff) as i32;
@@ -2772,10 +2919,13 @@ fn compile_native_inner(module: &MirModule) -> SyxResult<Vec<u8>> {
     #[cfg(not(feature = "llvm"))]
     {
         let _ = module;
-        return Err(SyxDiagnostic::error(
+        return Err(llvm_error_at(
             "syx build --native requires a toolchain built with `--features full-native` \
              (LLVM/inkwell + LLD). This build was compiled without it; refusing to emit \
              an incomplete native binary. Rebuild: cargo build -p syx-cli --features full-native",
+            None,
+            Span::DUMMY,
+            "L006",
         ));
     }
 
@@ -2789,10 +2939,15 @@ fn compile_native_inner(module: &MirModule) -> SyxResult<Vec<u8>> {
                     return Ok(obj);
                 }
                 Err(e) if native_stub_fallback_forbidden() => {
-                    return Err(SyxDiagnostic::error(format!(
-                        "inkwell object-direct failed (clang IR fallback disabled): {}",
-                        e.message
-                    )));
+                    return Err(llvm_error_at(
+                        format!(
+                            "inkwell object-direct failed (clang IR fallback disabled): {}",
+                            e.message
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "L006",
+                    ));
                 }
                 Err(_) => {}
             }
@@ -2831,11 +2986,16 @@ fn compile_native_inner(module: &MirModule) -> SyxResult<Vec<u8>> {
                     return Ok(bytes);
                 }
                 Err(e) if native_stub_fallback_forbidden() => {
-                    return Err(SyxDiagnostic::error(format!(
-                        "Native LLVM tier-1 compile failed; C stub fallback disabled \
+                    return Err(llvm_error_at(
+                        format!(
+                            "Native LLVM tier-1 compile failed; C stub fallback disabled \
                          (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0): {}",
-                        e.message
-                    )));
+                            e.message
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "L006",
+                    ));
                 }
                 Err(_) => {}
             }
@@ -2843,9 +3003,7 @@ fn compile_native_inner(module: &MirModule) -> SyxResult<Vec<u8>> {
 
         set_last_compile_aot(false);
         if native_stub_fallback_forbidden() {
-            return Err(SyxDiagnostic::error(
-                "Native LLVM tier-1 compile failed; C stub fallback disabled (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0)",
-            ));
+            return Err(llvm_error_at("Native LLVM tier-1 compile failed; C stub fallback disabled (SYX_NATIVE_STRICT=1 or SYX_NATIVE_C_STUB=0)", None, Span::DUMMY, "L006"));
         }
         warn_native_c_stub_fallback_once();
         compile_native_c_stub(module)
@@ -2858,8 +3016,11 @@ fn compile_native_aot_ir(module: &MirModule) -> SyxResult<Vec<u8>> {
     append_aot_runtime_shim(module, &mut ir)?;
     let bytes = compile_ir_to_object(&ir)?;
     if !is_native_object_bytes(&bytes) {
-        return Err(SyxDiagnostic::error(
+        return Err(llvm_error_at(
             "LLVM AOT path did not produce a native object file",
+            None,
+            Span::DUMMY,
+            "L006",
         ));
     }
     Ok(bytes)
@@ -2910,8 +3071,7 @@ pub fn mir_function_needs_mir_entry(func: &MirFunction) -> bool {
 /// Phase 90: exported for driver gates — sync main LLVM IR must not reference MIR main runner.
 /// Phase 92: match only `call i32 @syx_rt_run_main_fn`, ignore `declare`.
 pub fn llvm_ir_uses_mir_main_entry(ir: &str) -> bool {
-    ir.contains("call i32 @syx_rt_run_main_fn")
-        || ir.contains("call void @syx_rt_run_main_fn")
+    ir.contains("call i32 @syx_rt_run_main_fn") || ir.contains("call void @syx_rt_run_main_fn")
 }
 
 /// Phase 91: multi-fn sync LLVM IR must not call MIR interpreter for user functions.
@@ -3062,51 +3222,75 @@ fn compile_c_to_object(c_src: &str) -> SyxResult<Vec<u8>> {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to spawn clang: {e}")))?;
+        .map_err(|e| {
+            llvm_error_at(
+                format!("Failed to spawn clang: {e}"),
+                None,
+                Span::DUMMY,
+                "L004",
+            )
+        })?;
 
     child
         .stdin
         .as_mut()
-        .ok_or_else(|| SyxDiagnostic::error("Failed to open clang stdin"))?
+        .ok_or_else(|| llvm_error_at("Failed to open clang stdin", None, Span::DUMMY, "L004"))?
         .write_all(c_src.as_bytes())
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to write C source to clang: {e}")))?;
+        .map_err(|e| {
+            llvm_error_at(
+                format!("Failed to write C source to clang: {e}"),
+                None,
+                Span::DUMMY,
+                "L004",
+            )
+        })?;
 
-    let output = child
-        .wait_with_output()
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to wait for clang: {e}")))?;
+    let output = child.wait_with_output().map_err(|e| {
+        llvm_error_at(
+            format!("Failed to wait for clang: {e}"),
+            None,
+            Span::DUMMY,
+            "L004",
+        )
+    })?;
 
     if output.status.success() && !output.stdout.is_empty() {
         Ok(output.stdout)
     } else {
-        Err(SyxDiagnostic::error(format!(
-            "clang failed to compile native stub: {}",
-            String::from_utf8_lossy(&output.stderr)
-        )))
+        Err(llvm_error_at(
+            format!(
+                "clang failed to compile native stub: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
+            None,
+            Span::DUMMY,
+            "L004",
+        ))
     }
 }
 
 fn compile_ir_bytes_to_object(bytes: &[u8]) -> SyxResult<Vec<u8>> {
-    let ir = std::str::from_utf8(bytes)
-        .map_err(|e| SyxDiagnostic::error(format!("inkwell IR is not UTF-8: {e}")))?;
+    let ir = std::str::from_utf8(bytes).map_err(|e| {
+        llvm_error_at(
+            format!("inkwell IR is not UTF-8: {e}"),
+            None,
+            Span::DUMMY,
+            "L002",
+        )
+    })?;
     compile_ir_to_object(ir)
 }
 
 fn compile_ir_to_object(ir: &str) -> SyxResult<Vec<u8>> {
     // Ensure runtime entry symbols exist when callers pass bare `emit_llvm_ir` text.
     if !(ir.contains("define i32 @syx_user_main") || ir.contains("define void @syx_user_init")) {
-        return Err(SyxDiagnostic::error(
-            "compile_ir_to_object: IR missing syx_user_main shim; use compile_native_aot_ir / object-direct",
-        ));
+        return Err(llvm_error_at("compile_ir_to_object: IR missing syx_user_main shim; use compile_native_aot_ir / object-direct", None, Span::DUMMY, "L006"));
     }
     let release = *LLVM_COMPILE_RELEASE.lock().unwrap();
     let args = ["-x", "ir", "-c", "-o", "-", "-"];
     let debug_args = ["-O0", "-g"];
     let release_args = ["-O2", "-DNDEBUG"];
-    let profile_args: &[&str] = if release {
-        &release_args
-    } else {
-        &debug_args
-    };
+    let profile_args: &[&str] = if release { &release_args } else { &debug_args };
     let mut child = host_clang_command()
         .args(args)
         .args(profile_args)
@@ -3114,26 +3298,50 @@ fn compile_ir_to_object(ir: &str) -> SyxResult<Vec<u8>> {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to spawn clang: {e}")))?;
+        .map_err(|e| {
+            llvm_error_at(
+                format!("Failed to spawn clang: {e}"),
+                None,
+                Span::DUMMY,
+                "L004",
+            )
+        })?;
 
     child
         .stdin
         .as_mut()
-        .ok_or_else(|| SyxDiagnostic::error("Failed to open clang stdin"))?
+        .ok_or_else(|| llvm_error_at("Failed to open clang stdin", None, Span::DUMMY, "L004"))?
         .write_all(ir.as_bytes())
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to write LLVM IR to clang: {e}")))?;
+        .map_err(|e| {
+            llvm_error_at(
+                format!("Failed to write LLVM IR to clang: {e}"),
+                None,
+                Span::DUMMY,
+                "L004",
+            )
+        })?;
 
-    let output = child
-        .wait_with_output()
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to wait for clang: {e}")))?;
+    let output = child.wait_with_output().map_err(|e| {
+        llvm_error_at(
+            format!("Failed to wait for clang: {e}"),
+            None,
+            Span::DUMMY,
+            "L004",
+        )
+    })?;
 
     if output.status.success() && !output.stdout.is_empty() {
         Ok(output.stdout)
     } else {
-        Err(SyxDiagnostic::error(format!(
-            "clang failed to compile LLVM IR: {}",
-            String::from_utf8_lossy(&output.stderr)
-        )))
+        Err(llvm_error_at(
+            format!(
+                "clang failed to compile LLVM IR: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
+            None,
+            Span::DUMMY,
+            "L004",
+        ))
     }
 }
 
@@ -3158,11 +3366,11 @@ mod tests {
                 }],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let ir = emit_llvm_ir(&module).unwrap();
         assert!(ir.contains("define i32 @main"));
         assert!(ir.contains("syx_rt_call_host"));
@@ -3228,18 +3436,12 @@ mod tests {
 
     #[test]
     fn mir_function_needs_mir_entry_actor_only_is_false_after_w419() {
-        let actor = mir_fn_with_ops(
-            "main",
-            vec![MirOp::ActorCall("ping".into()), MirOp::Return],
-        );
+        let actor = mir_fn_with_ops("main", vec![MirOp::ActorCall("ping".into()), MirOp::Return]);
         assert!(
             !mir_function_needs_mir_entry(&actor),
             "ActorCall must not force MIR main entry after W419"
         );
-        let send = mir_fn_with_ops(
-            "main",
-            vec![MirOp::ActorSend("msg".into()), MirOp::Return],
-        );
+        let send = mir_fn_with_ops("main", vec![MirOp::ActorSend("msg".into()), MirOp::Return]);
         assert!(!mir_function_needs_mir_entry(&send));
         let reg = mir_fn_with_ops("main", vec![MirOp::ActorRegister, MirOp::Return]);
         assert!(!mir_function_needs_mir_entry(&reg));
@@ -3288,11 +3490,11 @@ mod tests {
                 instructions: vec![],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let ir = emit_llvm_ir(&module).unwrap();
         assert!(ir.contains("syx_rt_call_host"));
         assert!(ir.contains("syx_rt_call_witness"));
@@ -3367,7 +3569,7 @@ mod tests {
                 },
             ],
             ..Default::default()
-};
+        };
         let ir = emit_llvm_ir(&module).unwrap();
         assert!(
             ir.contains("syx_rt_make_closure(i32 1, i32 2)"),
@@ -3402,11 +3604,11 @@ mod tests {
                 instructions: vec![],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         std::env::remove_var("SYX_NATIVE_STRICT");
         std::env::remove_var("SYX_NATIVE_C_STUB");
         let bytes = compile_native(&module).unwrap();
@@ -3445,11 +3647,11 @@ mod tests {
                 ],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let mut full = emit_llvm_ir(&module).unwrap();
         append_aot_runtime_shim(&module, &mut full).unwrap();
         let obj = compile_ir_to_object(&full);
@@ -3491,11 +3693,11 @@ mod tests {
                 ],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let ir = emit_llvm_ir(&module).unwrap();
         assert!(
             ir.contains("syx_rt_push_nil"),
@@ -3537,11 +3739,11 @@ mod tests {
                 ],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let ir = emit_llvm_ir(&module).unwrap();
         assert!(
             ir.contains("syx_rt_push_bool"),
@@ -3581,11 +3783,11 @@ mod tests {
                 ],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let ir = emit_llvm_ir(&module).unwrap();
         assert!(ir.contains("syx_rt_print"));
         assert!(ir.contains("syx_rt_push_collection"));
@@ -3640,11 +3842,11 @@ mod tests {
                 ],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-})
+        })
         .unwrap();
         assert!(ir.contains("syx_rt_print"));
         assert!(ir.contains("syx_rt_push_collection"));
@@ -3679,11 +3881,11 @@ mod tests {
                 ],
                 local_names: vec![],
                 local_types: vec![],
-            init_body_pc: 0,
-            init_wrap_pc: 0,
+                init_body_pc: 0,
+                init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         llvm_parity_runtime_execute_smoke(&module).expect("runtime smoke");
         std::env::remove_var("SYX_LLVM_PARITY_GATE");
     }
@@ -3921,7 +4123,9 @@ mod tests {
         let mut ir = emit_llvm_ir(&module).unwrap();
         append_aot_runtime_shim(&module, &mut ir).unwrap();
         assert!(
-            ir.contains("call void @syx_rt_register_native_fn(i32 1, i64 ptrtoint (ptr @used to i64))"),
+            ir.contains(
+                "call void @syx_rt_register_native_fn(i32 1, i64 ptrtoint (ptr @used to i64))"
+            ),
             "used must register at compact index 1: {ir}"
         );
         assert!(
@@ -4005,8 +4209,7 @@ mod tests {
         let mut ir = emit_llvm_ir(&module).unwrap();
         append_aot_runtime_shim(&module, &mut ir).unwrap();
         assert!(
-            ir.contains("syx_rt_install_empty_runtime")
-                && ir.contains("syx_rt_register_native_fn"),
+            ir.contains("syx_rt_install_empty_runtime") && ir.contains("syx_rt_register_native_fn"),
             "shim must empty-install + register (W431): missing markers"
         );
         assert!(

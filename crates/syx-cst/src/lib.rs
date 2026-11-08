@@ -89,8 +89,11 @@
 //! S2-I157 / ADR stage2-s2-04-cst-subset-range-in-call: `Integer ...|..< Integer` as print/call/return arg; RangeDyn / optional-chain still out.
 //! S2-I158 / ADR stage2-s2-04-cst-subset-optional-chain: `Ident?.Ident` as print/call/return arg; multi-hop / force-unwrap still out.
 
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_lexer::{Lexer, Token, TokenKind};
+
+mod cst_diag;
+use cst_diag::cst_error_at;
 
 mod lower_probe;
 pub use lower_probe::{lower_cst_subset_probe, lower_cst_subset_probe_from_source};
@@ -133,10 +136,7 @@ pub(crate) fn is_trivia(kind: &TokenKind) -> bool {
 }
 
 fn significant(tokens: &[Token]) -> Vec<&Token> {
-    tokens
-        .iter()
-        .filter(|t| !is_trivia(&t.kind))
-        .collect()
+    tokens.iter().filter(|t| !is_trivia(&t.kind)).collect()
 }
 
 /// Parse a **subset** CST: optional trivia + 1..N `func <name>([Ident[: Ident[<Named(, Named)*>][?]| &Ident[?]| &mut Ident[?]| &'a Ident[?]| &'a mut Ident[?]…](, …)*]) [-> Ident[<NestedNamed>][?]| &Ident[?]| &mut Ident[?]| &'a Ident[?]| &'a mut Ident[?]] { … }`
@@ -558,7 +558,7 @@ fn take_function_type_expr(tokens: &[&Token], i: usize) -> Option<usize> {
         }
     }
     j += 1; // consume RParen
-    // optional `-> Ident[<Ident>][?]` | Amp[?] Reference | nested Function (W808–W812)
+            // optional `-> Ident[<Ident>][?]` | Amp[?] Reference | nested Function (W808–W812)
     if j < tokens.len() && tokens[j].kind == TokenKind::Arrow {
         j += 1;
         if j >= tokens.len() {
@@ -914,8 +914,8 @@ fn take_field_compound_assign(body: &[&Token]) -> Option<usize> {
     if body.is_empty() {
         return None;
     }
-    let start_ok = body[0].kind == TokenKind::SelfKw
-        || matches!(body[0].kind, TokenKind::Identifier(_));
+    let start_ok =
+        body[0].kind == TokenKind::SelfKw || matches!(body[0].kind, TokenKind::Identifier(_));
     if !start_ok {
         return None;
     }
@@ -1074,12 +1074,7 @@ fn take_index_assign(body: &[&Token]) -> Option<usize> {
 /// W897: `(SelfKw | Ident) (. Ident)+ [ <simple> ] = <simple|call-simple> [`;`]?`
 /// Member-index Assign only (no compound / no nested second dim on member object).
 fn take_member_index_assign(body: &[&Token]) -> Option<usize> {
-    if body.is_empty()
-        || !matches!(
-            body[0].kind,
-            TokenKind::SelfKw | TokenKind::Identifier(_)
-        )
-    {
+    if body.is_empty() || !matches!(body[0].kind, TokenKind::SelfKw | TokenKind::Identifier(_)) {
         return None;
     }
     let mut i = 1usize;
@@ -1946,10 +1941,7 @@ fn take_func_shell(sig: &[&Token], i: usize) -> Option<(usize, usize, usize)> {
     if j < sig.len()
         && matches!(
             sig[j].kind,
-            TokenKind::Public
-                | TokenKind::Private
-                | TokenKind::Internal
-                | TokenKind::FilePrivate
+            TokenKind::Public | TokenKind::Private | TokenKind::Internal | TokenKind::FilePrivate
         )
     {
         j += 1;
@@ -2159,10 +2151,7 @@ fn take_class_stored_var(sig: &[&Token], i: usize) -> Option<usize> {
     if j < sig.len()
         && matches!(
             sig[j].kind,
-            TokenKind::Public
-                | TokenKind::Private
-                | TokenKind::Internal
-                | TokenKind::FilePrivate
+            TokenKind::Public | TokenKind::Private | TokenKind::Internal | TokenKind::FilePrivate
         )
     {
         j += 1;
@@ -2387,10 +2376,7 @@ fn take_data_class_shell(sig: &[&Token], i: usize) -> Option<usize> {
     if j < sig.len()
         && matches!(
             sig[j].kind,
-            TokenKind::Public
-                | TokenKind::Private
-                | TokenKind::Internal
-                | TokenKind::FilePrivate
+            TokenKind::Public | TokenKind::Private | TokenKind::Internal | TokenKind::FilePrivate
         )
     {
         j += 1;
@@ -2422,10 +2408,7 @@ fn take_final_class_shell(sig: &[&Token], i: usize) -> Option<usize> {
     if j < sig.len()
         && matches!(
             sig[j].kind,
-            TokenKind::Public
-                | TokenKind::Private
-                | TokenKind::Internal
-                | TokenKind::FilePrivate
+            TokenKind::Public | TokenKind::Private | TokenKind::Internal | TokenKind::FilePrivate
         )
     {
         j += 1;
@@ -2474,10 +2457,7 @@ fn take_class_shell(sig: &[&Token], i: usize) -> Option<usize> {
     if j < sig.len()
         && matches!(
             sig[j].kind,
-            TokenKind::Public
-                | TokenKind::Private
-                | TokenKind::Internal
-                | TokenKind::FilePrivate
+            TokenKind::Public | TokenKind::Private | TokenKind::Internal | TokenKind::FilePrivate
         )
     {
         j += 1;
@@ -2636,10 +2616,7 @@ fn take_export_list_shell(sig: &[&Token], i: usize) -> Option<usize> {
 fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
     let sig: Vec<&Token> = significant(tokens);
     if sig.is_empty() {
-        return Err(SyxDiagnostic::error(
-            "syx-cst: subset requires 1..N `[export] [access] [static|async] func …` and/or `[access?] class Ident { … }` and/or data|final class and/or `export {…}` (optionally interleaved with top-level simple stmts)",
-        )
-        .with_code("CST001"));
+        return Err(cst_error_at("syx-cst: subset requires 1..N `[export] [access] [static|async] func …` and/or `[access?] class Ident { … }` and/or data|final class and/or `export {…}` (optionally interleaved with top-level simple stmts)", None, Span::DUMMY, "CST001"));
     }
     let mut i = 0usize;
     let mut funcs = 0usize;
@@ -2666,10 +2643,7 @@ fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
         if let Some((body_start, body_end, next)) = take_func_shell(&sig, i) {
             let body = &sig[body_start..body_end];
             if !is_simple_stmts_body(body) {
-                return Err(SyxDiagnostic::error(
-                    "syx-cst: subset body must be trivia-only or print(<simple|call-simple>) / let|var <ident> [: type] = <simple|call-simple> / return [<simple|call-simple>] stmts / while-simple / if-simple / if-let-simple / if-case-simple / guard-let-simple (braced or brace-less; optional else / else-if; call|compare|unary-!|!!|!!!|!!!!|unary-Neg|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|paren-group(nest≤3)|logic(left-assoc &&|||, paren|!|!!|!!!|!!!!|-|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|compare|call|simple ops); no depth>2 call / ((((…)))) / !!!!! / ------------------- / if case KeyPath)",
-                )
-                .with_code("CST001"));
+                return Err(cst_error_at("syx-cst: subset body must be trivia-only or print(<simple|call-simple>) / let|var <ident> [: type] = <simple|call-simple> / return [<simple|call-simple>] stmts / while-simple / if-simple / if-let-simple / if-case-simple / guard-let-simple (braced or brace-less; optional else / else-if; call|compare|unary-!|!!|!!!|!!!!|unary-Neg|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|paren-group(nest≤3)|logic(left-assoc &&|||, paren|!|!!|!!!|!!!!|-|--|---|----|-----|------|-------|--------|---------|----------|-----------|------------|-------------|--------------|---------------|----------------|-----------------|------------------|compare|call|simple ops); no depth>2 call / ((((…)))) / !!!!! / ------------------- / if case KeyPath)", None, Span::DUMMY, "CST001"));
             }
             funcs += 1;
             i = next;
@@ -2703,16 +2677,10 @@ fn validate_func_main_subset(tokens: &[Token]) -> SyxResult<()> {
             i = next;
             continue;
         }
-        return Err(SyxDiagnostic::error(
-            "syx-cst: subset allows `[export] [access] [static|async] func name([params]) [-> Ret] { … }` and/or `export { [Ident [as Ident][,…]] }` and/or `[access?] class Ident [: Ident(, Ident)*]? { var Ident: Ident[?]|init(…)|deinit|func… }` and/or `[access?] data class Ident[<T>](…) [where …]` / `[access?] final class Ident[<T>] [where …] { variants }` and/or `@builtin(\"…\")` + `extension Ident { func… }` interleaved with top-level print/let/var/return[<simple|call-simple>]/while-simple/if-simple/if-let-simple/if-case-simple/guard-let-simple only (no depth>2 call / ((((…)))) / !!!!! / ------------------- / static+async stack / if case KeyPath / member-index compound)",
-        )
-        .with_code("CST001"));
+        return Err(cst_error_at("syx-cst: subset allows `[export] [access] [static|async] func name([params]) [-> Ret] { … }` and/or `export { [Ident [as Ident][,…]] }` and/or `[access?] class Ident [: Ident(, Ident)*]? { var Ident: Ident[?]|init(…)|deinit|func… }` and/or `[access?] data class Ident[<T>](…) [where …]` / `[access?] final class Ident[<T>] [where …] { variants }` and/or `@builtin(\"…\")` + `extension Ident { func… }` interleaved with top-level print/let/var/return[<simple|call-simple>]/while-simple/if-simple/if-let-simple/if-case-simple/guard-let-simple only (no depth>2 call / ((((…)))) / !!!!! / ------------------- / static+async stack / if case KeyPath / member-index compound)", None, Span::DUMMY, "CST001"));
     }
     if funcs + classes + exports + extensions == 0 {
-        return Err(SyxDiagnostic::error(
-            "syx-cst: subset requires 1..N `[export] [access] [static|async] func …` and/or `[access?] class Ident { … }` and/or data|final class and/or `export {…}` and/or `extension` (optionally interleaved with top-level simple stmts / `@builtin`)",
-        )
-        .with_code("CST001"));
+        return Err(cst_error_at("syx-cst: subset requires 1..N `[export] [access] [static|async] func …` and/or `[access?] class Ident { … }` and/or data|final class and/or `export {…}` and/or `extension` (optionally interleaved with top-level simple stmts / `@builtin`)", None, Span::DUMMY, "CST001"));
     }
     Ok(())
 }
@@ -2744,10 +2712,7 @@ fn reindent_leading_after_newline(
     };
     if next.kind == TokenKind::Whitespace {
         // Skip lines whose next token is `}`.
-        let closes = matches!(
-            tokens.get(i + 2).map(|t| &t.kind),
-            Some(TokenKind::RBrace)
-        );
+        let closes = matches!(tokens.get(i + 2).map(|t| &t.kind), Some(TokenKind::RBrace));
         if closes {
             return false;
         }
@@ -2886,7 +2851,10 @@ mod tests {
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse");
         assert_eq!(format_cst(&root), src, "default format_cst stays concat");
-        assert_eq!(format_cst_reindent(&root), "func main() {\n    print(1)\n}\n");
+        assert_eq!(
+            format_cst_reindent(&root),
+            "func main() {\n    print(1)\n}\n"
+        );
     }
 
     #[test]
@@ -2934,7 +2902,10 @@ mod tests {
         let root = parse_cst_subset(&file).expect("parse nested if");
         assert_eq!(format_cst(&root), src, "default format_cst stays concat");
         let out = format_cst_reindent(&root);
-        assert_eq!(out, "func main() {\n    if true {\n        print(1)\n}\n}\n");
+        assert_eq!(
+            out,
+            "func main() {\n    if true {\n        print(1)\n}\n}\n"
+        );
     }
 
     #[test]
@@ -3090,7 +3061,10 @@ mod tests {
     #[test]
     fn subset_rejects_body_statements() {
         // Non-subset (Neg) remains out of subset (W848 reject face).
-        let file = SourceFile::new("t.sy", "func main() { while -------------------n { print(1) } }\n");
+        let file = SourceFile::new(
+            "t.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         let err = parse_cst_subset(&file).expect_err("quint neg must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
@@ -3139,7 +3113,8 @@ mod tests {
 
     #[test]
     fn subset_let_bind_roundtrip() {
-        let src = "// ahead\nfunc main() {\n  // bind\n  let x = 1\n  let s = \"hi\"\n}\n/* trail */\n";
+        let src =
+            "// ahead\nfunc main() {\n  // bind\n  let x = 1\n  let s = \"hi\"\n}\n/* trail */\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse let bind");
         let out = format_cst(&root);
@@ -3247,7 +3222,10 @@ mod tests {
 
     #[test]
     fn subset_rejects_non_print_stmt_in_multi() {
-        let file = SourceFile::new("t.sy", "func main() { while -------------------n { print(1) } }\n");
+        let file = SourceFile::new(
+            "t.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         let err = parse_cst_subset(&file).expect_err("quint neg must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
@@ -3311,7 +3289,10 @@ mod tests {
     #[test]
     fn subset_rejects_nested_call_as_arg() {
         // Was nested-call; reject face is Neg (W848).
-        let file = SourceFile::new("t.sy", "func main() { while -------------------n { print(1) } }\n");
+        let file = SourceFile::new(
+            "t.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         let err = parse_cst_subset(&file).expect_err("quint neg must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
@@ -3634,7 +3615,8 @@ mod tests {
 
     #[test]
     fn subset_typed_bind_multi_func_roundtrip() {
-        let src = "func helper() {\n  let n: Int = 1\n}\nfunc main() {\n  var x: Int = 2\n  return\n}\n";
+        let src =
+            "func helper() {\n  let n: Int = 1\n}\nfunc main() {\n  var x: Int = 2\n  return\n}\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse typed multi func");
         assert_eq!(format_cst(&root), src);
@@ -3764,7 +3746,8 @@ mod tests {
     fn subset_typed_function_param_reference_multi_func_roundtrip() {
         let src = "func helper() {\n  let n: (&mut Int) -> Int = id\n}\nfunc main() {\n  var x: (&'b mut String) -> Bool = z\n  return\n}\n";
         let file = SourceFile::new("t.sy", src);
-        let root = parse_cst_subset(&file).expect("parse typed function param reference multi func");
+        let root =
+            parse_cst_subset(&file).expect("parse typed function param reference multi func");
         assert_eq!(format_cst(&root), src);
     }
 
@@ -4082,7 +4065,10 @@ mod tests {
     #[test]
     fn subset_rejects_depth_gt1_after_function_as_generic_arg() {
         // Triple bang remains CST001 (dry-run primary reject face).
-        let file = SourceFile::new("t.sy", "func main() { while -------------------n { print(1) } }\n");
+        let file = SourceFile::new(
+            "t.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         let err = parse_cst_subset(&file).expect_err("quint neg must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
@@ -4231,7 +4217,10 @@ mod tests {
     #[test]
     fn subset_rejects_depth_gt1_after_call_simple() {
         // Triple bang remains CST001 this wave.
-        let file = SourceFile::new("t.sy", "func main() { while -------------------n { print(1) } }\n");
+        let file = SourceFile::new(
+            "t.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         let err = parse_cst_subset(&file).expect_err("quint neg must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
@@ -4319,7 +4308,10 @@ mod tests {
     #[test]
     fn subset_rejects_while_double_neg() {
         // W869: Neg depth>18 (`-------------------`) rejected.
-        let file = SourceFile::new("t.sy", "func main() { while -------------------n { print(1) } }\n");
+        let file = SourceFile::new(
+            "t.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         let err = parse_cst_subset(&file).expect_err("octodec neg must CST001");
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
@@ -4340,12 +4332,11 @@ mod tests {
         assert_eq!(err.code.as_deref(), Some("CST001"));
     }
 
-
-
     #[test]
     fn subset_nested_call_print_roundtrip() {
         // W838 / ADR-1182: print(foo(bar())) depth≤1.
-        let src = "// ahead\nfunc main() {\n  print(foo(bar()))\n  print(g(h(1)))\n}\n/* trail */\n";
+        let src =
+            "// ahead\nfunc main() {\n  print(foo(bar()))\n  print(g(h(1)))\n}\n/* trail */\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse nested call print");
         let out = format_cst(&root);
@@ -4377,9 +4368,6 @@ mod tests {
         assert!(out.contains("print(foo(bar()))"));
         assert!(out.contains("let x = f(g())"));
     }
-
-
-
 
     #[test]
     fn subset_while_logic_and_roundtrip() {
@@ -4734,8 +4722,10 @@ mod tests {
             parse_cst_subset(&bang5).expect_err("bang5").code.as_deref(),
             Some("CST001")
         );
-        let neg19 =
-            SourceFile::new("n.sy", "func main() { while -------------------n { print(1) } }\n");
+        let neg19 = SourceFile::new(
+            "n.sy",
+            "func main() { while -------------------n { print(1) } }\n",
+        );
         assert_eq!(
             parse_cst_subset(&neg19).expect_err("neg19").code.as_deref(),
             Some("CST001")
@@ -4768,7 +4758,6 @@ mod tests {
         assert!(out.contains("/* block */"));
         assert!(out.contains("/* trail */"));
     }
-
 
     #[test]
     fn subset_while_bang3_bare_roundtrip() {
@@ -4843,7 +4832,6 @@ mod tests {
         assert!(out.contains("while !!!!ready() && a || b"));
         assert!(out.contains("while !!!!flag"));
     }
-
 
     #[test]
     fn subset_while_neg2_bare_roundtrip() {
@@ -5474,7 +5462,6 @@ mod tests {
         assert!(out.contains("while ------------------n"));
     }
 
-
     #[test]
     fn subset_while_braceless_bare_roundtrip() {
         // W843 / ADR-1187 face1: brace-less bare cond.
@@ -5514,7 +5501,8 @@ mod tests {
     #[test]
     fn subset_depth2_call_print_roundtrip() {
         // W842 / ADR-1186 face1: print(foo(bar(baz()))) depth≤2.
-        let src = "// ahead\nfunc main() {\n  print(foo(bar(baz())))\n  print(g(h(1)))\n}\n/* trail */\n";
+        let src =
+            "// ahead\nfunc main() {\n  print(foo(bar(baz())))\n  print(g(h(1)))\n}\n/* trail */\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse depth2 call print");
         let out = format_cst(&root);
@@ -5741,7 +5729,8 @@ mod tests {
     fn subset_typed_function_return_reference_multi_func_roundtrip() {
         let src = "func helper() {\n  let n: (Int) -> &mut Int = id\n}\nfunc main() {\n  var x: () -> &'b String = z\n  return\n}\n";
         let file = SourceFile::new("t.sy", src);
-        let root = parse_cst_subset(&file).expect("parse typed function return reference multi func");
+        let root =
+            parse_cst_subset(&file).expect("parse typed function return reference multi func");
         assert_eq!(format_cst(&root), src);
     }
 
@@ -5763,7 +5752,8 @@ mod tests {
     fn subset_typed_function_return_optional_multi_func_roundtrip() {
         let src = "func helper() {\n  let n: (Int) -> Int? = id\n}\nfunc main() {\n  var x: () -> Bool? = z\n  return\n}\n";
         let file = SourceFile::new("t.sy", src);
-        let root = parse_cst_subset(&file).expect("parse typed function return optional multi func");
+        let root =
+            parse_cst_subset(&file).expect("parse typed function return optional multi func");
         assert_eq!(format_cst(&root), src);
     }
 
@@ -6015,7 +6005,10 @@ mod tests {
             "t.sy",
             "class Box {\n  var name: String\n  init(name: String) {\n    box.name = name\n  }\n}\n",
         );
-        assert!(parse_cst_subset(&ok).is_ok(), "non-self member assign must parse");
+        assert!(
+            parse_cst_subset(&ok).is_ok(),
+            "non-self member assign must parse"
+        );
         let compound = SourceFile::new(
             "c.sy",
             "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
@@ -6445,7 +6438,10 @@ mod tests {
         assert!(out.contains("data class Box<T>") && out.contains("/// docs"));
         let multi = "// ahead\ndata class Pair<A, B>(a: A, b: B)\n";
         let file2 = SourceFile::new("p.sy", multi);
-        assert_eq!(format_cst(&parse_cst_subset(&file2).expect("pair tp")), multi);
+        assert_eq!(
+            format_cst(&parse_cst_subset(&file2).expect("pair tp")),
+            multi
+        );
     }
 
     #[test]
@@ -6469,7 +6465,8 @@ mod tests {
     #[test]
     fn subset_final_where_bare_roundtrip() {
         // W884 / ADR-1228 face1: final class where + docs.
-        let src = "/// docs\nfinal class Box<T> where T: Equatable {\n  wrap(value: T)\n}\n/* trail */\n";
+        let src =
+            "/// docs\nfinal class Box<T> where T: Equatable {\n  wrap(value: T)\n}\n/* trail */\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse final where bare");
         let out = format_cst(&root);
@@ -6518,7 +6515,10 @@ mod tests {
             "s.sy",
             "class Box {\n  var name: String\n  init(name: String) {\n    box.name = name\n  }\n}\n",
         );
-        assert!(parse_cst_subset(&ok).is_ok(), "non-self member assign must parse");
+        assert!(
+            parse_cst_subset(&ok).is_ok(),
+            "non-self member assign must parse"
+        );
         let compound = SourceFile::new(
             "c.sy",
             "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
@@ -6645,7 +6645,8 @@ mod tests {
     #[test]
     fn subset_guard_let_simple_roundtrip() {
         // S2-I155: guard-let-simple (W721 shape with success brace).
-        let src = "func main() {\n  guard let x = y else {\n    return\n  }\n  {\n    print(x)\n  }\n}\n";
+        let src =
+            "func main() {\n  guard let x = y else {\n    return\n  }\n  {\n    print(x)\n  }\n}\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("guard let simple must parse");
         assert_eq!(format_cst(&root), src);

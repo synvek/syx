@@ -5,11 +5,14 @@ use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use regex::Regex;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 use syx_meta::reflect_type;
 use syx_stdlib::{
-    from_type_name, is_float, is_integer,
-    lookup_bigint_host, lookup_collection_host, lookup_numeric_host, lookup_result_host, BigIntHostOp, CollectionHostOp, HostFnId, MethodId, NumericHostOp, ResultHostOp,
+    from_type_name, is_float, is_integer, lookup_bigint_host, lookup_collection_host,
+    lookup_numeric_host, lookup_result_host, BigIntHostOp, CollectionHostOp, HostFnId, MethodId,
+    NumericHostOp, ResultHostOp,
 };
 
 use crate::http;
@@ -125,10 +128,14 @@ fn hof_closure_arg(args: &[Value]) -> Option<(u32, Vec<Value>)> {
 
 /// ADR-225 / M2-S1-04: HOF illegal shape or interpreter feature-off → U001 (never `[]`/`Nil` success).
 fn array_hof_unsupported(op: &str) -> SyxDiagnostic {
-    SyxDiagnostic::error(format!(
+    vm_error_at(
+            format!(
         "unsupported array HOF '{op}': requires Array receiver and Closure (feature-off or illegal shape)"
-    ))
-    .with_code("U001")
+    ),
+            None,
+            Span::DUMMY,
+            "U001",
+        )
 }
 
 #[cfg(feature = "interpreter")]
@@ -353,9 +360,7 @@ fn call_set_method(method: MethodId, receiver: &Value, args: &[Value]) -> Value 
         MethodId::SetInsert => {
             let item = args.first().cloned().unwrap_or(Value::Nil);
             let mut set = items.to_vec();
-            let inserted = !set
-                .iter()
-                .any(|v| syx_runtime_core::value_equals(v, &item));
+            let inserted = !set.iter().any(|v| syx_runtime_core::value_equals(v, &item));
             if inserted {
                 set.push(item);
             }
@@ -408,11 +413,7 @@ fn call_set_method(method: MethodId, receiver: &Value, args: &[Value]) -> Value 
             };
             let inter: Vec<Value> = items
                 .iter()
-                .filter(|v| {
-                    other
-                        .iter()
-                        .any(|o| syx_runtime_core::value_equals(o, v))
-                })
+                .filter(|v| other.iter().any(|o| syx_runtime_core::value_equals(o, v)))
                 .cloned()
                 .collect();
             Value::Set(inter)
@@ -472,7 +473,12 @@ pub fn call_string_method(method: MethodId, receiver: &Value, args: &[Value]) ->
 pub fn host_file_read(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let content = std::fs::read_to_string(&path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read file '{path}': {e}")).with_code("R001")
+        vm_error_at(
+            format!("Failed to read file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
     })?;
     stack.push(Value::Str(content));
     Ok(())
@@ -506,7 +512,12 @@ pub fn host_file_read_async(stack: &mut Vec<Value>) -> SyxResult<()> {
     let (tx, rx) = std::sync::mpsc::channel();
     crate::blocking_execute::execute_on_blocking_pool(Box::new(move || {
         let result = std::fs::read_to_string(&path).map(Value::Str).map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to read file '{path}': {e}")).with_code("R001")
+            vm_error_at(
+                format!("Failed to read file '{path}': {e}"),
+                None,
+                Span::DUMMY,
+                "R001",
+            )
         });
         let _ = tx.send(result);
     }));
@@ -525,17 +536,24 @@ pub fn try_poll_file_read(value: &Value) -> Option<SyxResult<Value>> {
             FILE_ASYNC_PENDING.lock().unwrap().insert(id, rx);
             None
         }
-        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(SyxDiagnostic::error(
+        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(vm_error_at(
             "File async read worker dropped",
-        )
-        .with_code("R001"))),
+            None,
+            Span::DUMMY,
+            "R001",
+        ))),
     }
 }
 
 pub fn host_file_read_lines(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let content = std::fs::read_to_string(&path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read file '{path}': {e}")).with_code("R001")
+        vm_error_at(
+            format!("Failed to read file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
     })?;
     let lines: Vec<Value> = content.lines().map(|l| Value::Str(l.to_string())).collect();
     stack.push(Value::Array(lines));
@@ -546,7 +564,12 @@ pub fn host_file_write(stack: &mut Vec<Value>) -> SyxResult<()> {
     let content = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     std::fs::write(&path, content).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to write file '{path}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to write file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -561,10 +584,20 @@ pub fn host_file_append(stack: &mut Vec<Value>) -> SyxResult<()> {
         .append(true)
         .open(&path)
         .map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to append file '{path}': {e}")).with_code("R002")
+            vm_error_at(
+                format!("Failed to append file '{path}': {e}"),
+                None,
+                Span::DUMMY,
+                "R002",
+            )
         })?;
     file.write_all(content.as_bytes()).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to append file '{path}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to append file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -579,7 +612,12 @@ pub fn host_file_exists(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_file_delete(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     std::fs::remove_file(&path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to delete file '{path}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to delete file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -589,7 +627,12 @@ pub fn host_file_copy(stack: &mut Vec<Value>) -> SyxResult<()> {
     let to = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let from = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     std::fs::copy(&from, &to).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to copy '{from}' to '{to}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to copy '{from}' to '{to}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -599,7 +642,12 @@ pub fn host_file_move(stack: &mut Vec<Value>) -> SyxResult<()> {
     let to = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let from = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     std::fs::rename(&from, &to).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to move '{from}' to '{to}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to move '{from}' to '{to}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -616,7 +664,12 @@ fn array_to_bytes(array: &Value) -> Vec<u8> {
 pub fn host_file_read_bytes(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let bytes = std::fs::read(&path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read file '{path}': {e}")).with_code("R001")
+        vm_error_at(
+            format!("Failed to read file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
     })?;
     stack.push(Value::Array(
         bytes.into_iter().map(|b| Value::U8(b)).collect(),
@@ -628,7 +681,12 @@ pub fn host_file_write_bytes(stack: &mut Vec<Value>) -> SyxResult<()> {
     let data = stack.pop().unwrap_or(Value::Array(vec![]));
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     std::fs::write(&path, array_to_bytes(&data)).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to write file '{path}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to write file '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -768,7 +826,12 @@ pub fn host_file_open(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mode = stack.pop().unwrap_or(Value::Str("r".into())).as_str();
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let file = open_file_with_mode(&path, &mode).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to open '{path}': {e}")).with_code("R003")
+        vm_error_at(
+            format!("Failed to open '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let id = NEXT_FILE_HANDLE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     FILE_HANDLES.lock().insert(id, file);
@@ -799,7 +862,12 @@ pub fn host_file_stream_open(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mode = stack.pop().unwrap_or(Value::Str("r".into())).as_str();
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let file = open_file_with_mode(&path, &mode).map_err(|e| {
-        SyxDiagnostic::error(format!("FileStream open failed '{path}': {e}")).with_code("R003")
+        vm_error_at(
+            format!("FileStream open failed '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let id = NEXT_FILE_STREAM.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     FILE_STREAM_SESSIONS.lock().insert(id, file);
@@ -813,7 +881,12 @@ pub fn host_file_stream_read_chunk(stack: &mut Vec<Value>) -> SyxResult<()> {
     let max_bytes = stack.pop().unwrap_or(Value::I32(4096)).as_i64().max(0) as usize;
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i64();
     let mut file = FILE_STREAM_SESSIONS.lock().remove(&handle).ok_or_else(|| {
-        SyxDiagnostic::error(format!("FileStream invalid handle {handle}")).with_code("R003")
+        vm_error_at(
+            format!("FileStream invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     if max_bytes == 0 {
         FILE_STREAM_SESSIONS.lock().insert(handle, file);
@@ -822,7 +895,12 @@ pub fn host_file_stream_read_chunk(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     let mut buf = vec![0u8; max_bytes];
     let n = file.read(&mut buf).map_err(|e| {
-        SyxDiagnostic::error(format!("FileStream read failed: {e}")).with_code("R001")
+        vm_error_at(
+            format!("FileStream read failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
     })?;
     buf.truncate(n);
     FILE_STREAM_SESSIONS.lock().insert(handle, file);
@@ -835,9 +913,12 @@ pub fn host_file_stream_close(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i64();
     let removed = FILE_STREAM_SESSIONS.lock().remove(&handle).is_some();
     if !removed {
-        return Err(
-            SyxDiagnostic::error(format!("FileStream invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("FileStream invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -865,9 +946,12 @@ pub fn host_file_watcher_poll(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i64();
     let mut sessions = FILE_WATCH_SESSIONS.lock();
     let Some(session) = sessions.get_mut(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("FileWatcher invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("FileWatcher invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let events: Vec<Value> = session.pending.drain(..).map(Value::Str).collect();
     stack.push(Value::Array(events));
@@ -879,9 +963,12 @@ pub fn host_file_watcher_close(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i64();
     let removed = FILE_WATCH_SESSIONS.lock().remove(&handle).is_some();
     if !removed {
-        return Err(
-            SyxDiagnostic::error(format!("FileWatcher invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("FileWatcher invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -892,11 +979,21 @@ pub fn host_file_read_chunk(stack: &mut Vec<Value>) -> SyxResult<()> {
     let max_bytes = stack.pop().unwrap_or(Value::I32(4096)).as_i32().max(0) as usize;
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i32();
     let mut file = FILE_HANDLES.lock().remove(&handle).ok_or_else(|| {
-        SyxDiagnostic::error(format!("Invalid file handle {handle}")).with_code("R003")
+        vm_error_at(
+            format!("Invalid file handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let mut buf = vec![0u8; max_bytes];
     let n = file.read(&mut buf).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read handle {handle}: {e}")).with_code("R001")
+        vm_error_at(
+            format!("Failed to read handle {handle}: {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
     })?;
     buf.truncate(n);
     FILE_HANDLES.lock().insert(handle, file);
@@ -909,11 +1006,21 @@ pub fn host_file_write_chunk(stack: &mut Vec<Value>) -> SyxResult<()> {
     let data = stack.pop().unwrap_or(Value::Array(vec![]));
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i32();
     let mut file = FILE_HANDLES.lock().remove(&handle).ok_or_else(|| {
-        SyxDiagnostic::error(format!("Invalid file handle {handle}")).with_code("R003")
+        vm_error_at(
+            format!("Invalid file handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let bytes = array_to_bytes(&data);
     let n = file.write(&bytes).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to write handle {handle}: {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to write handle {handle}: {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     FILE_HANDLES.lock().insert(handle, file);
     stack.push(Value::I32(n as i32));
@@ -924,9 +1031,12 @@ pub fn host_file_close(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i32();
     let removed = FILE_HANDLES.lock().remove(&handle).is_some();
     if !removed {
-        return Err(
-            SyxDiagnostic::error(format!("Invalid file handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("Invalid file handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Bool(true));
     Ok(())
@@ -947,7 +1057,12 @@ pub fn host_file_with_open(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mode = stack.pop().unwrap_or(Value::Str("r".into())).as_str();
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let file = open_file_with_mode(&path, &mode).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to open '{path}': {e}")).with_code("R003")
+        vm_error_at(
+            format!("Failed to open '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let id = NEXT_FILE_HANDLE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     FILE_HANDLES.lock().insert(id, file);
@@ -977,7 +1092,12 @@ pub fn host_file_with_open(stack: &mut Vec<Value>) -> SyxResult<()> {
             stack.push(Value::I32(n as i32));
             Ok(())
         }
-        _ => Err(SyxDiagnostic::error("withOpen body failed".to_string()).with_code("R001")),
+        _ => Err(vm_error_at(
+            "withOpen body failed".to_string(),
+            None,
+            Span::DUMMY,
+            "R001",
+        )),
     }
 }
 
@@ -986,12 +1106,22 @@ pub fn host_file_with_open_fail(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mode = stack.pop().unwrap_or(Value::Str("r".into())).as_str();
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let file = open_file_with_mode(&path, &mode).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to open '{path}': {e}")).with_code("R003")
+        vm_error_at(
+            format!("Failed to open '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let id = NEXT_FILE_HANDLE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     FILE_HANDLES.lock().insert(id, file);
     let _ = FILE_HANDLES.lock().remove(&id);
-    Err(SyxDiagnostic::error("withOpen body failed (host inject)".to_string()).with_code("R001"))
+    Err(vm_error_at(
+        "withOpen body failed (host inject)".to_string(),
+        None,
+        Span::DUMMY,
+        "R001",
+    ))
 }
 
 /// M2 W34 / ADR-178: live `FILE_HANDLES` count for EC-M2-3 FileHandle leak nails (test/ops only).
@@ -1035,14 +1165,22 @@ pub fn host_file_seek(stack: &mut Vec<Value>) -> SyxResult<()> {
     let offset = stack.pop().unwrap_or(Value::I32(0)).as_i32();
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i32();
     let mut file = FILE_HANDLES.lock().remove(&handle).ok_or_else(|| {
-        SyxDiagnostic::error(format!("Invalid file handle {handle}")).with_code("R003")
+        vm_error_at(
+            format!("Invalid file handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     // ADR-152: fail-closed Err (no Bool(false) sentinel). Success pushes Bool(true) like close.
     if let Err(e) = file.seek(SeekFrom::Start(offset.max(0) as u64)) {
         FILE_HANDLES.lock().insert(handle, file);
-        return Err(
-            SyxDiagnostic::error(format!("Failed to seek handle {handle}: {e}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("Failed to seek handle {handle}: {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     FILE_HANDLES.lock().insert(handle, file);
     stack.push(Value::Bool(true));
@@ -1056,12 +1194,21 @@ pub fn host_file_mmap_read(stack: &mut Vec<Value>) -> SyxResult<()> {
     use std::io::Read;
     let handle = stack.pop().unwrap_or(Value::I32(0)).as_i32();
     let mut file = FILE_HANDLES.lock().remove(&handle).ok_or_else(|| {
-        SyxDiagnostic::error(format!("Invalid file handle {handle}")).with_code("R003")
+        vm_error_at(
+            format!("Invalid file handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read-all-bytes handle {handle}: {e}"))
-            .with_code("R001")
+        vm_error_at(
+            format!("Failed to read-all-bytes handle {handle}: {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
     })?;
     FILE_HANDLES.lock().insert(handle, file);
     stack.push(Value::Array(buf.into_iter().map(Value::U8).collect()));
@@ -1080,9 +1227,12 @@ pub fn host_keypath_get(stack: &mut Vec<Value>) -> SyxResult<()> {
                     stack.push(Value::Nil);
                     return Ok(());
                 }
-                return Err(SyxDiagnostic::error(format!(
-                    "KeyPath root type mismatch: expected {root_type}, found {actual}"
-                )));
+                return Err(vm_error_at(
+                    format!("KeyPath root type mismatch: expected {root_type}, found {actual}"),
+                    None,
+                    Span::DUMMY,
+                    "V082",
+                ));
             }
         }
     } else if !optional && !matches!(receiver, Value::Nil) {
@@ -1122,8 +1272,8 @@ pub fn host_as_optional(stack: &mut Vec<Value>) -> SyxResult<()> {
         syx_runtime_core::value_kind(&value),
         from_type_name(&target),
     ) {
-        let numeric_try = (is_integer(from_k) && is_integer(to_k))
-            || (is_float(from_k) && is_integer(to_k));
+        let numeric_try =
+            (is_integer(from_k) && is_integer(to_k)) || (is_float(from_k) && is_integer(to_k));
         if numeric_try {
             match try_numeric_cast(from_k, to_k, &value) {
                 Ok(v) => stack.push(v),
@@ -1159,7 +1309,12 @@ pub fn host_type_cast(stack: &mut Vec<Value>) -> SyxResult<()> {
         stack.push(value);
         Ok(())
     } else {
-        Err(SyxDiagnostic::error(format!("Cast to '{target}' failed")).with_code("R003"))
+        Err(vm_error_at(
+            format!("Cast to '{target}' failed"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ))
     }
 }
 
@@ -1170,7 +1325,12 @@ fn runtime_type_matches(type_name: &str, value: &Value) -> bool {
 pub fn host_dir_create(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     std::fs::create_dir_all(&path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to create directory '{path}': {e}")).with_code("R002")
+        vm_error_at(
+            format!("Failed to create directory '{path}': {e}"),
+            None,
+            Span::DUMMY,
+            "R002",
+        )
     })?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -1180,8 +1340,12 @@ pub fn host_dir_list(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let entries: Vec<Value> = std::fs::read_dir(&path)
         .map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to list directory '{path}': {e}"))
-                .with_code("R002")
+            vm_error_at(
+                format!("Failed to list directory '{path}': {e}"),
+                None,
+                Span::DUMMY,
+                "R002",
+            )
         })?
         .filter_map(|e| e.ok())
         .map(|e| Value::Str(e.file_name().to_string_lossy().into_owned()))
@@ -1211,10 +1375,14 @@ pub fn host_http_response_json(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_read_line(stack: &mut Vec<Value>) -> SyxResult<()> {
     use std::io::{self, BufRead};
     let mut line = String::new();
-    io::stdin()
-        .lock()
-        .read_line(&mut line)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read line: {e}")).with_code("R008"))?;
+    io::stdin().lock().read_line(&mut line).map_err(|e| {
+        vm_error_at(
+            format!("Failed to read line: {e}"),
+            None,
+            Span::DUMMY,
+            "R008",
+        )
+    })?;
     if line.ends_with('\n') {
         line.pop();
         if line.ends_with('\r') {
@@ -1229,7 +1397,12 @@ pub fn host_regex_match(stack: &mut Vec<Value>) -> SyxResult<()> {
     let text = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let pattern = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let re = Regex::new(&pattern).map_err(|e| {
-        SyxDiagnostic::error(format!("Invalid regex '{pattern}': {e}")).with_code("R006")
+        vm_error_at(
+            format!("Invalid regex '{pattern}': {e}"),
+            None,
+            Span::DUMMY,
+            "R006",
+        )
     })?;
     let matches: Vec<Value> = re
         .find_iter(&text)
@@ -1355,16 +1528,28 @@ pub fn host_object_identifier(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 pub fn host_json_encode(stack: &mut Vec<Value>) -> SyxResult<()> {
     let v = stack.pop().unwrap_or(Value::Nil);
-    let json = serde_json::to_string(&value_to_json(&v))
-        .map_err(|e| SyxDiagnostic::error(format!("JSON encode failed: {e}")).with_code("R009"))?;
+    let json = serde_json::to_string(&value_to_json(&v)).map_err(|e| {
+        vm_error_at(
+            format!("JSON encode failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R009",
+        )
+    })?;
     stack.push(Value::Str(json));
     Ok(())
 }
 
 pub fn host_json_decode(stack: &mut Vec<Value>) -> SyxResult<()> {
     let text = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
-    let parsed: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|e| SyxDiagnostic::error(format!("JSON decode failed: {e}")).with_code("R005"))?;
+    let parsed: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+        vm_error_at(
+            format!("JSON decode failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R005",
+        )
+    })?;
     stack.push(json_to_value(&parsed));
     Ok(())
 }
@@ -1427,7 +1612,7 @@ pub fn host_crypto_hmac_sha256(stack: &mut Vec<Value>) -> SyxResult<()> {
     let data = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let key = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let mut mac = Hmac::<Sha256>::new_from_slice(key.as_bytes())
-        .map_err(|e| SyxDiagnostic::error(format!("HMAC key error: {e}")))?;
+        .map_err(|e| vm_error_at(format!("HMAC key error: {e}"), None, Span::DUMMY, "V083"))?;
     mac.update(data.as_bytes());
     stack.push(Value::Str(bytes_to_hex(
         mac.finalize().into_bytes().as_ref(),
@@ -1445,23 +1630,34 @@ pub fn host_crypto_aes_gcm_encrypt(stack: &mut Vec<Value>) -> SyxResult<()> {
     let key_str = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let key_bytes = hex_to_bytes(key_str.as_str()).unwrap_or_else(|| key_str.as_bytes().to_vec());
     if key_bytes.len() != 32 {
-        return Err(SyxDiagnostic::error(
+        return Err(vm_error_at(
             "AES-GCM key must be 32 bytes (64 hex chars or 32 raw bytes)",
+            None,
+            Span::DUMMY,
+            "V084",
         ));
     }
     let nonce_bytes =
         hex_to_bytes(nonce_str.as_str()).unwrap_or_else(|| nonce_str.as_bytes().to_vec());
     if nonce_bytes.len() != 12 {
-        return Err(SyxDiagnostic::error(
+        return Err(vm_error_at(
             "AES-GCM nonce must be 12 bytes (24 hex chars or 12 raw bytes)",
+            None,
+            Span::DUMMY,
+            "V085",
         ));
     }
     let cipher = Aes256Gcm::new_from_slice(&key_bytes)
-        .map_err(|e| SyxDiagnostic::error(format!("AES-GCM key error: {e}")))?;
+        .map_err(|e| vm_error_at(format!("AES-GCM key error: {e}"), None, Span::DUMMY, "V086"))?;
     let nonce = Nonce::from_slice(&nonce_bytes);
-    let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_bytes())
-        .map_err(|e| SyxDiagnostic::error(format!("AES-GCM encrypt failed: {e}")))?;
+    let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes()).map_err(|e| {
+        vm_error_at(
+            format!("AES-GCM encrypt failed: {e}"),
+            None,
+            Span::DUMMY,
+            "V087",
+        )
+    })?;
     stack.push(Value::Str(bytes_to_hex(&ciphertext)));
     Ok(())
 }
@@ -2078,10 +2274,12 @@ pub fn host_string_char_at(stack: &mut Vec<Value>) -> SyxResult<()> {
             stack.push(Value::Character(g));
             Ok(())
         }
-        Err((i, count)) => Err(SyxDiagnostic::error(format!(
-            "String index {i} out of bounds (count {count})"
-        ))
-        .with_code("R003")),
+        Err((i, count)) => Err(vm_error_at(
+            format!("String index {i} out of bounds (count {count})"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )),
     }
 }
 
@@ -2096,11 +2294,12 @@ pub fn host_array_set_at(stack: &mut Vec<Value>) -> SyxResult<()> {
     };
     if let Value::Array(mut items) = resolved {
         if idx < 0 || (idx as usize) >= items.len() {
-            return Err(SyxDiagnostic::error(format!(
-                "Array index {idx} out of bounds (count {})",
-                items.len()
-            ))
-            .with_code("R003"));
+            return Err(vm_error_at(
+                format!("Array index {idx} out of bounds (count {})", items.len()),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
         items[idx as usize] = val;
         let updated = Value::Array(items);
@@ -2222,9 +2421,7 @@ pub fn dispatch_collection_host(name: &str, stack: &mut Vec<Value>) -> SyxResult
             let inserted = match &resolved {
                 Value::Set(items) => {
                     let mut set = items.clone();
-                    let ok = !set
-                        .iter()
-                        .any(|x| syx_runtime_core::value_equals(x, &item));
+                    let ok = !set.iter().any(|x| syx_runtime_core::value_equals(x, &item));
                     if ok {
                         set.push(item);
                     }
@@ -2304,11 +2501,7 @@ pub fn dispatch_collection_host(name: &str, stack: &mut Vec<Value>) -> SyxResult
             };
             let inter: Vec<Value> = left
                 .iter()
-                .filter(|v| {
-                    right
-                        .iter()
-                        .any(|o| syx_runtime_core::value_equals(o, v))
-                })
+                .filter(|v| right.iter().any(|o| syx_runtime_core::value_equals(o, v)))
                 .cloned()
                 .collect();
             stack.push(Value::Set(inter));
@@ -3452,10 +3645,15 @@ pub fn host_tcp_read(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(true);
     if !enabled {
-        return Err(SyxDiagnostic::error("tcp read: disabled").with_code("R012"));
+        return Err(vm_error_at("tcp read: disabled", None, Span::DUMMY, "R012"));
     }
     if max_bytes <= 0 || handle < 0 {
-        return Err(SyxDiagnostic::error("tcp read: invalid arguments").with_code("R012"));
+        return Err(vm_error_at(
+            "tcp read: invalid arguments",
+            None,
+            Span::DUMMY,
+            "R012",
+        ));
     }
     let mut streams = tcp_streams().lock().unwrap();
     if let Some(stream) = streams.get_mut(&handle) {
@@ -3465,7 +3663,12 @@ pub fn host_tcp_read(stack: &mut Vec<Value>) -> SyxResult<()> {
         stack.push(Value::Str(payload.into()));
         Ok(())
     } else {
-        Err(SyxDiagnostic::error("tcp read: unknown handle").with_code("R012"))
+        Err(vm_error_at(
+            "tcp read: unknown handle",
+            None,
+            Span::DUMMY,
+            "R012",
+        ))
     }
 }
 
@@ -3495,18 +3698,38 @@ pub fn host_tcp_read_async(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(true);
     if !enabled {
-        return Err(SyxDiagnostic::error("tcp read async: disabled").with_code("R012"));
+        return Err(vm_error_at(
+            "tcp read async: disabled",
+            None,
+            Span::DUMMY,
+            "R012",
+        ));
     }
     if max_bytes <= 0 || handle < 0 {
-        return Err(SyxDiagnostic::error("tcp read async: invalid arguments").with_code("R012"));
+        return Err(vm_error_at(
+            "tcp read async: invalid arguments",
+            None,
+            Span::DUMMY,
+            "R012",
+        ));
     }
     let cloned = {
         let streams = tcp_streams().lock().unwrap();
         let Some(stream) = streams.get(&handle) else {
-            return Err(SyxDiagnostic::error("tcp read async: unknown handle").with_code("R012"));
+            return Err(vm_error_at(
+                "tcp read async: unknown handle",
+                None,
+                Span::DUMMY,
+                "R012",
+            ));
         };
         stream.try_clone().map_err(|e| {
-            SyxDiagnostic::error(format!("tcp read async: clone failed: {e}")).with_code("R012")
+            vm_error_at(
+                format!("tcp read async: clone failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R012",
+            )
         })?
     };
     let (tx, rx) = std::sync::mpsc::channel();
@@ -3532,10 +3755,12 @@ pub fn try_poll_tcp_read(value: &Value) -> Option<SyxResult<Value>> {
             TCP_ASYNC_PENDING.lock().unwrap().insert(id, rx);
             None
         }
-        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(SyxDiagnostic::error(
+        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(vm_error_at(
             "Tcp async read worker dropped",
-        )
-        .with_code("R012"))),
+            None,
+            Span::DUMMY,
+            "R012",
+        ))),
     }
 }
 
@@ -3549,10 +3774,20 @@ pub fn host_tcp_write(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(true);
     if !enabled {
-        return Err(SyxDiagnostic::error("tcp write: disabled").with_code("R012"));
+        return Err(vm_error_at(
+            "tcp write: disabled",
+            None,
+            Span::DUMMY,
+            "R012",
+        ));
     }
     if nbytes <= 0 || handle < 0 {
-        return Err(SyxDiagnostic::error("tcp write: invalid arguments").with_code("R012"));
+        return Err(vm_error_at(
+            "tcp write: invalid arguments",
+            None,
+            Span::DUMMY,
+            "R012",
+        ));
     }
     let mut streams = tcp_streams().lock().unwrap();
     if let Some(stream) = streams.get_mut(&handle) {
@@ -3560,7 +3795,12 @@ pub fn host_tcp_write(stack: &mut Vec<Value>) -> SyxResult<()> {
         stack.push(platform_int_value(n as i64));
         Ok(())
     } else {
-        Err(SyxDiagnostic::error("tcp write: unknown handle").with_code("R012"))
+        Err(vm_error_at(
+            "tcp write: unknown handle",
+            None,
+            Span::DUMMY,
+            "R012",
+        ))
     }
 }
 
@@ -3571,10 +3811,20 @@ pub fn host_tcp_stream(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(true);
     if !enabled {
-        return Err(SyxDiagnostic::error("tcp stream smoke disabled").with_code("R003"));
+        return Err(vm_error_at(
+            "tcp stream smoke disabled",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if nbytes <= 0 {
-        return Err(SyxDiagnostic::error("tcp stream smoke invalid nbytes").with_code("R003"));
+        return Err(vm_error_at(
+            "tcp stream smoke invalid nbytes",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::I32(nbytes));
     Ok(())
@@ -3587,10 +3837,20 @@ pub fn host_tcp_stream_tls(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(true);
     if !enabled {
-        return Err(SyxDiagnostic::error("tcp stream tls smoke disabled").with_code("R003"));
+        return Err(vm_error_at(
+            "tcp stream tls smoke disabled",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if nbytes <= 0 {
-        return Err(SyxDiagnostic::error("tcp stream tls smoke invalid nbytes").with_code("R003"));
+        return Err(vm_error_at(
+            "tcp stream tls smoke invalid nbytes",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::I32(nbytes));
     Ok(())
@@ -3603,12 +3863,20 @@ pub fn host_tcp_stream_handle(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(true);
     if !enabled {
-        return Err(SyxDiagnostic::error("tcp stream handle smoke disabled").with_code("R003"));
+        return Err(vm_error_at(
+            "tcp stream handle smoke disabled",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if nbytes <= 0 {
-        return Err(
-            SyxDiagnostic::error("tcp stream handle smoke invalid nbytes").with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "tcp stream handle smoke invalid nbytes",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::I32(nbytes));
     Ok(())
@@ -3625,12 +3893,20 @@ pub fn host_net_backpressure(stack: &mut Vec<Value>) -> SyxResult<()> {
         .and_then(|v| v.parse().ok())
         .unwrap_or(8192);
     if !enabled {
-        return Err(SyxDiagnostic::error("net backpressure smoke disabled").with_code("R003"));
+        return Err(vm_error_at(
+            "net backpressure smoke disabled",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if nbytes <= 0 {
-        return Err(
-            SyxDiagnostic::error("net backpressure smoke invalid nbytes").with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "net backpressure smoke invalid nbytes",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     // false = would throttle; true = under high-water (not a production backpressure GA).
     stack.push(Value::Bool(nbytes < high_water));
@@ -3718,9 +3994,12 @@ pub fn host_tcp_listener_close(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|mut g| g.remove(&handle).is_some())
         .unwrap_or(false);
     if !removed {
-        return Err(
-            SyxDiagnostic::error(format!("TcpListener invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("TcpListener invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -3739,9 +4018,12 @@ pub fn host_tcp_listener_accept(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     let listeners = tcp_listeners().lock().unwrap();
     let Some(listener) = listeners.get(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("TcpListener invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("TcpListener invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     match listener.accept() {
         Ok((stream, _)) => {
@@ -3779,10 +4061,12 @@ pub fn host_tcp_listener_accept(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_tls_serve(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error(
+    Err(vm_error_at(
         "tls serve unavailable on wasm32",
-    )
-    .with_code("V081"))
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]

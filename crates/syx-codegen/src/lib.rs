@@ -1,18 +1,30 @@
+use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 use std::collections::HashSet;
 use syx_ast::{
     BinOp, CallArg, ClosureBody, CompoundAssignOp, Decl, Expr, Literal, Module, Stmt, TypeExpr,
     UnaryOp,
 };
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_mir::{MirFunction, MirModule, MirOp};
 use syx_mono::mangle_name;
-use syx_stdlib::{host_fn_index, host_fn_index_by_name, host_fn_id_by_name, is_manifest_host_op, lookup_array_method, lookup_dict_method, lookup_http_response_method, lookup_set_method, lookup_sql_row_method, lookup_string_method, lookup_type_method, manifest_host_name, method_return_type, from_suffix, default_float_kind, float_literal_bits, from_type_name, HostFnId, PLATFORM_INT, is_equatable_type, widen_for_binary, bit_width, resolve_alias, is_unsigned};
-use syx_semantic::{expr_span_start, normalize_type_arg_name, type_id_collection_base, type_id_to_name, type_name_dispatch_base, TypeId};
-use serde::{Deserialize, Serialize};
+use syx_semantic::{
+    expr_span_start, normalize_type_arg_name, type_id_collection_base, type_id_to_name,
+    type_name_dispatch_base, TypeId,
+};
+use syx_stdlib::{
+    bit_width, default_float_kind, float_literal_bits, from_suffix, from_type_name,
+    host_fn_id_by_name, host_fn_index, host_fn_index_by_name, is_equatable_type,
+    is_manifest_host_op, is_unsigned, lookup_array_method, lookup_dict_method,
+    lookup_http_response_method, lookup_set_method, lookup_sql_row_method, lookup_string_method,
+    lookup_type_method, manifest_host_name, method_return_type, resolve_alias, widen_for_binary,
+    HostFnId, PLATFORM_INT,
+};
 
+mod codegen_diag;
 mod syxbc_text;
 
+use codegen_diag::codegen_error_at;
 pub use syxbc_text::format_compiled_program;
 
 const MUT_REF_KEY: &str = "__syx_ref";
@@ -32,8 +44,15 @@ pub enum Instruction {
     // Stack / constants
     ConstI32(i32),
     ConstF64(f64),
-    ConstNumeric { kind: u8, bits: u64 },
-    ConstNumeric128 { kind: u8, lo: u64, hi: u64 },
+    ConstNumeric {
+        kind: u8,
+        bits: u64,
+    },
+    ConstNumeric128 {
+        kind: u8,
+        lo: u64,
+        hi: u64,
+    },
     NumericAdd(u8),
     NumericSub(u8),
     NumericMul(u8),
@@ -52,72 +71,269 @@ pub enum Instruction {
     NumericLe(u8),
     NumericGt(u8),
     NumericGe(u8),
-    NumericCast { from: u8, to: u8 },
+    NumericCast {
+        from: u8,
+        to: u8,
+    },
     SetBuild(u32),
-    SimdAdd { lanes: u8, element: u8 },
-    SimdSub { lanes: u8, element: u8 },
-    SimdMul { lanes: u8, element: u8 },
-    SimdDiv { lanes: u8, element: u8 },
-    SimdEq { lanes: u8, element: u8 },
-    SimdLt { lanes: u8, element: u8 },
-    SimdGt { lanes: u8, element: u8 },
-    SimdNe { lanes: u8, element: u8 },
-    SimdLe { lanes: u8, element: u8 },
-    SimdGe { lanes: u8, element: u8 },
-    SimdAnd { lanes: u8, element: u8 },
-    SimdOr { lanes: u8, element: u8 },
-    SimdXor { lanes: u8, element: u8 },
-    SimdNot { lanes: u8, element: u8 },
-    SimdShl { lanes: u8, element: u8 },
-    SimdShr { lanes: u8, element: u8 },
-    SimdMin { lanes: u8, element: u8 },
-    SimdMax { lanes: u8, element: u8 },
-    SimdF32Add { lanes: u8, element: u8 },
-    SimdF32Sub { lanes: u8, element: u8 },
-    SimdF32Mul { lanes: u8, element: u8 },
-    SimdF32Div { lanes: u8, element: u8 },
-    SimdF64Add { lanes: u8, element: u8 },
-    SimdI16Add { lanes: u8, element: u8 },
-    SimdI16Sub { lanes: u8, element: u8 },
-    SimdI16Mul { lanes: u8, element: u8 },
-    SimdI8Add { lanes: u8, element: u8 },
-    SimdI8Sub { lanes: u8, element: u8 },
-    SimdI8Mul { lanes: u8, element: u8 },
-    SimdI8And { lanes: u8, element: u8 },
-    SimdI8Or { lanes: u8, element: u8 },
-    SimdI8Xor { lanes: u8, element: u8 },
-    SimdI8Not { lanes: u8, element: u8 },
-    SimdI8Min { lanes: u8, element: u8 },
-    SimdI8Max { lanes: u8, element: u8 },
-    SimdI8UMin { lanes: u8, element: u8 },
-    SimdI8UMax { lanes: u8, element: u8 },
-    SimdI8Abs { lanes: u8, element: u8 },
-    SimdI8Neg { lanes: u8, element: u8 },
-    SimdI8Extract { lanes: u8, element: u8 },
-    SimdI8Replace { lanes: u8, element: u8 },
-    SimdI8Eq { lanes: u8, element: u8 },
-    SimdI8Ne { lanes: u8, element: u8 },
-    SimdI8Le { lanes: u8, element: u8 },
-    SimdI8Ge { lanes: u8, element: u8 },
-    SimdI8AvgrU { lanes: u8, element: u8 },
-    SimdI8Popcnt { lanes: u8, element: u8 },
-    SimdI8Bitmask { lanes: u8, element: u8 },
-    SimdI8AllTrue { lanes: u8, element: u8 },
-    SimdI8AnyTrue { lanes: u8, element: u8 },
-    SimdI8Lt { lanes: u8, element: u8 },
-    SimdI8Gt { lanes: u8, element: u8 },
-    SimdI8AddSat { lanes: u8, element: u8 },
-    SimdI8SubSat { lanes: u8, element: u8 },
-    SimdI8Shl { lanes: u8, element: u8 },
-    SimdI8Shr { lanes: u8, element: u8 },
-    SimdI64Add { lanes: u8, element: u8 },
-    SimdF64Sub { lanes: u8, element: u8 },
-    SimdF64Mul { lanes: u8, element: u8 },
-    SimdF64Div { lanes: u8, element: u8 },
-    SimdReduceAdd { lanes: u8, element: u8 },
-    SimdLoad { lanes: u8, element: u8, offset: u32 },
-    SimdStore { lanes: u8, element: u8, offset: u32 },
-    SimdBroadcast { lanes: u8, element: u8 },
+    SimdAdd {
+        lanes: u8,
+        element: u8,
+    },
+    SimdSub {
+        lanes: u8,
+        element: u8,
+    },
+    SimdMul {
+        lanes: u8,
+        element: u8,
+    },
+    SimdDiv {
+        lanes: u8,
+        element: u8,
+    },
+    SimdEq {
+        lanes: u8,
+        element: u8,
+    },
+    SimdLt {
+        lanes: u8,
+        element: u8,
+    },
+    SimdGt {
+        lanes: u8,
+        element: u8,
+    },
+    SimdNe {
+        lanes: u8,
+        element: u8,
+    },
+    SimdLe {
+        lanes: u8,
+        element: u8,
+    },
+    SimdGe {
+        lanes: u8,
+        element: u8,
+    },
+    SimdAnd {
+        lanes: u8,
+        element: u8,
+    },
+    SimdOr {
+        lanes: u8,
+        element: u8,
+    },
+    SimdXor {
+        lanes: u8,
+        element: u8,
+    },
+    SimdNot {
+        lanes: u8,
+        element: u8,
+    },
+    SimdShl {
+        lanes: u8,
+        element: u8,
+    },
+    SimdShr {
+        lanes: u8,
+        element: u8,
+    },
+    SimdMin {
+        lanes: u8,
+        element: u8,
+    },
+    SimdMax {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF32Add {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF32Sub {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF32Mul {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF32Div {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF64Add {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI16Add {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI16Sub {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI16Mul {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Add {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Sub {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Mul {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8And {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Or {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Xor {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Not {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Min {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Max {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8UMin {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8UMax {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Abs {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Neg {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Extract {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Replace {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Eq {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Ne {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Le {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Ge {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8AvgrU {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Popcnt {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Bitmask {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8AllTrue {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8AnyTrue {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Lt {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Gt {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8AddSat {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8SubSat {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Shl {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI8Shr {
+        lanes: u8,
+        element: u8,
+    },
+    SimdI64Add {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF64Sub {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF64Mul {
+        lanes: u8,
+        element: u8,
+    },
+    SimdF64Div {
+        lanes: u8,
+        element: u8,
+    },
+    SimdReduceAdd {
+        lanes: u8,
+        element: u8,
+    },
+    SimdLoad {
+        lanes: u8,
+        element: u8,
+        offset: u32,
+    },
+    SimdStore {
+        lanes: u8,
+        element: u8,
+        offset: u32,
+    },
+    SimdBroadcast {
+        lanes: u8,
+        element: u8,
+    },
     ConstStr(String),
     ConstBool(bool),
     ConstNil,
@@ -200,7 +416,10 @@ pub enum Instruction {
     IteratorNext,
     IteratorDone,
     AwaitPoll,
-    AwaitSuspend { resume_fn: u32, state: u32 },
+    AwaitSuspend {
+        resume_fn: u32,
+        state: u32,
+    },
     ActorSend(u32),
     TaskSpawn(u32),
     TaskJoin,
@@ -303,8 +522,10 @@ pub struct CodeGenerator {
     class_vtables: indexmap::IndexMap<SmolStr, indexmap::IndexMap<SmolStr, SmolStr>>,
     /// Phase 65: methods marked `final` (class, method).
     final_methods: indexmap::IndexSet<(SmolStr, SmolStr)>,
-    property_observers:
-        indexmap::IndexMap<(SmolStr, SmolStr), (Option<Vec<syx_ast::Stmt>>, Option<Vec<syx_ast::Stmt>>)>,
+    property_observers: indexmap::IndexMap<
+        (SmolStr, SmolStr),
+        (Option<Vec<syx_ast::Stmt>>, Option<Vec<syx_ast::Stmt>>),
+    >,
     generic_templates: indexmap::IndexSet<SmolStr>,
     generic_enum_templates: indexmap::IndexSet<SmolStr>,
     generic_final_templates: indexmap::IndexSet<SmolStr>,
@@ -332,10 +553,7 @@ impl CodeGenerator {
         if !func.instructions.is_empty() {
             func.instructions.len()
         } else {
-            func.blocks
-                .iter()
-                .map(|b| b.instructions.len())
-                .sum()
+            func.blocks.iter().map(|b| b.instructions.len()).sum()
         }
     }
 
@@ -358,7 +576,10 @@ impl CodeGenerator {
         if old_ins == 0 {
             return true;
         }
-        let old_score = existing.param_count.saturating_mul(1000).saturating_add(old_ins);
+        let old_score = existing
+            .param_count
+            .saturating_mul(1000)
+            .saturating_add(old_ins);
         let new_score = new_param_count
             .saturating_mul(1000)
             .saturating_add(new_instruction_count as u32);
@@ -624,10 +845,7 @@ impl CodeGenerator {
         }
         // M1-B03: merge MIR dataclass/enum shells before bodies; skip AST shells for those.
         let mut mir_work = mir.clone();
-        syx_mir::merge_mir_functions(
-            &mut mir_work,
-            syx_mir::lower_dataclass_shells(module),
-        );
+        syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_dataclass_shells(module));
         syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_enum_shells(module));
         // W468 / ADR-812: FinalClass variant-init shells from MIR.
         syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_finalclass_shells(module));
@@ -645,7 +863,8 @@ impl CodeGenerator {
             &mut gen.program,
             gen.source_name.as_str(),
         )?;
-        let mut best_mir: indexmap::IndexMap<SmolStr, syx_mir::MirFunction> = indexmap::IndexMap::new();
+        let mut best_mir: indexmap::IndexMap<SmolStr, syx_mir::MirFunction> =
+            indexmap::IndexMap::new();
         for f in &mir_work.functions {
             let ins_len = Self::mir_function_instruction_count(f);
             if ins_len < 4 {
@@ -671,13 +890,14 @@ impl CodeGenerator {
     fn collect_opaque_witnesses(module: &Module, program: &mut CompiledProgram) {
         for decl in &module.decls {
             if let Decl::Function {
-                name,
-                return_type,
-                ..
+                name, return_type, ..
             } = decl
             {
                 if let Some(TypeExpr::OpaqueSome(proto)) = return_type.as_ref() {
-                    if let TypeExpr::Named { name: proto_name, .. } = proto.as_ref() {
+                    if let TypeExpr::Named {
+                        name: proto_name, ..
+                    } = proto.as_ref()
+                    {
                         program
                             .opaque_witnesses
                             .insert(name.clone(), proto_name.clone());
@@ -694,7 +914,12 @@ impl CodeGenerator {
             .position(|f| f.name == *name)
             .map(|i| i as u32)
             .ok_or_else(|| {
-                SyxDiagnostic::error(format!("Unknown function '{name}'")).with_code("C020")
+                codegen_error_at(
+                    format!("Unknown function '{name}'"),
+                    None,
+                    Span::DUMMY,
+                    "C020",
+                )
             })
     }
 
@@ -806,39 +1031,138 @@ impl CodeGenerator {
                 lanes: 4,
                 element: syx_stdlib::NumericKind::F32.to_byte(),
             },
-            MirOp::SimdI16Add => Instruction::SimdI16Add { lanes: 8, element: syx_stdlib::NumericKind::I16.to_byte() },
-            MirOp::SimdI16Sub => Instruction::SimdI16Sub { lanes: 8, element: syx_stdlib::NumericKind::I16.to_byte() },
-            MirOp::SimdI16Mul => Instruction::SimdI16Mul { lanes: 8, element: syx_stdlib::NumericKind::I16.to_byte() },
-            MirOp::SimdI8Add => Instruction::SimdI8Add { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Sub => Instruction::SimdI8Sub { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Mul => Instruction::SimdI8Mul { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8And => Instruction::SimdI8And { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Or => Instruction::SimdI8Or { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Xor => Instruction::SimdI8Xor { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Not => Instruction::SimdI8Not { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Min => Instruction::SimdI8Min { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Max => Instruction::SimdI8Max { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8UMin => Instruction::SimdI8UMin { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8UMax => Instruction::SimdI8UMax { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Abs => Instruction::SimdI8Abs { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Neg => Instruction::SimdI8Neg { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Extract => Instruction::SimdI8Extract { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Replace => Instruction::SimdI8Replace { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Eq => Instruction::SimdI8Eq { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Ne => Instruction::SimdI8Ne { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Le => Instruction::SimdI8Le { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Ge => Instruction::SimdI8Ge { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8AvgrU => Instruction::SimdI8AvgrU { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Popcnt => Instruction::SimdI8Popcnt { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Bitmask => Instruction::SimdI8Bitmask { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8AllTrue => Instruction::SimdI8AllTrue { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8AnyTrue => Instruction::SimdI8AnyTrue { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Lt => Instruction::SimdI8Lt { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Gt => Instruction::SimdI8Gt { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8AddSat => Instruction::SimdI8AddSat { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8SubSat => Instruction::SimdI8SubSat { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Shl => Instruction::SimdI8Shl { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
-            MirOp::SimdI8Shr => Instruction::SimdI8Shr { lanes: 16, element: syx_stdlib::NumericKind::I8.to_byte() },
+            MirOp::SimdI16Add => Instruction::SimdI16Add {
+                lanes: 8,
+                element: syx_stdlib::NumericKind::I16.to_byte(),
+            },
+            MirOp::SimdI16Sub => Instruction::SimdI16Sub {
+                lanes: 8,
+                element: syx_stdlib::NumericKind::I16.to_byte(),
+            },
+            MirOp::SimdI16Mul => Instruction::SimdI16Mul {
+                lanes: 8,
+                element: syx_stdlib::NumericKind::I16.to_byte(),
+            },
+            MirOp::SimdI8Add => Instruction::SimdI8Add {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Sub => Instruction::SimdI8Sub {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Mul => Instruction::SimdI8Mul {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8And => Instruction::SimdI8And {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Or => Instruction::SimdI8Or {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Xor => Instruction::SimdI8Xor {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Not => Instruction::SimdI8Not {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Min => Instruction::SimdI8Min {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Max => Instruction::SimdI8Max {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8UMin => Instruction::SimdI8UMin {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8UMax => Instruction::SimdI8UMax {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Abs => Instruction::SimdI8Abs {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Neg => Instruction::SimdI8Neg {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Extract => Instruction::SimdI8Extract {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Replace => Instruction::SimdI8Replace {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Eq => Instruction::SimdI8Eq {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Ne => Instruction::SimdI8Ne {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Le => Instruction::SimdI8Le {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Ge => Instruction::SimdI8Ge {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8AvgrU => Instruction::SimdI8AvgrU {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Popcnt => Instruction::SimdI8Popcnt {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Bitmask => Instruction::SimdI8Bitmask {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8AllTrue => Instruction::SimdI8AllTrue {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8AnyTrue => Instruction::SimdI8AnyTrue {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Lt => Instruction::SimdI8Lt {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Gt => Instruction::SimdI8Gt {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8AddSat => Instruction::SimdI8AddSat {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8SubSat => Instruction::SimdI8SubSat {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Shl => Instruction::SimdI8Shl {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
+            MirOp::SimdI8Shr => Instruction::SimdI8Shr {
+                lanes: 16,
+                element: syx_stdlib::NumericKind::I8.to_byte(),
+            },
             MirOp::SimdI64Add => Instruction::SimdI64Add {
                 lanes: 2,
                 element: syx_stdlib::NumericKind::I64.to_byte(),
@@ -966,18 +1290,20 @@ impl CodeGenerator {
             MirOp::TaskJoin => Instruction::TaskJoin,
             MirOp::Return => Instruction::Return,
             MirOp::SimdShuffle { .. } => {
-                return Err(
-                    SyxDiagnostic::error("SimdShuffle must be expanded before mir_op_to_instruction")
-                        .with_code("C020"),
-                );
+                return Err(codegen_error_at(
+                    "SimdShuffle must be expanded before mir_op_to_instruction",
+                    None,
+                    Span::DUMMY,
+                    "C020",
+                ));
             }
             MirOp::SimdI8Shuffle { .. } => {
-                return Err(
-                    SyxDiagnostic::error(
-                        "SimdI8Shuffle must be expanded before mir_op_to_instruction",
-                    )
-                    .with_code("C020"),
-                );
+                return Err(codegen_error_at(
+                    "SimdI8Shuffle must be expanded before mir_op_to_instruction",
+                    None,
+                    Span::DUMMY,
+                    "C020",
+                ));
             }
             MirOp::NumericCast { from, to } => Instruction::NumericCast {
                 from: *from,
@@ -1072,10 +1398,11 @@ impl CodeGenerator {
                     for member in members {
                         if let Decl::VarGlobal {
                             name: field,
-                            init: Some(Expr::Literal {
-                                value: Literal::Integer { value, .. },
-                                ..
-                            }),
+                            init:
+                                Some(Expr::Literal {
+                                    value: Literal::Integer { value, .. },
+                                    ..
+                                }),
                             ..
                         } = member
                         {
@@ -1132,7 +1459,9 @@ impl CodeGenerator {
                             .collect(),
                     );
                 }
-                Decl::Extension { type_name, methods, .. } => {
+                Decl::Extension {
+                    type_name, methods, ..
+                } => {
                     for method in methods {
                         if let Decl::Function { name, .. } = method {
                             self.extension_methods
@@ -1215,9 +1544,8 @@ impl CodeGenerator {
                             if !type_params.is_empty()
                                 && attrs.iter().any(|a| a.name.as_str() == "static")
                             {
-                                self.generic_templates.insert(SmolStr::new(format!(
-                                    "{name}_{method}"
-                                )));
+                                self.generic_templates
+                                    .insert(SmolStr::new(format!("{name}_{method}")));
                             }
                             let mangled = SmolStr::new(format!("{name}_{method}"));
                             vtable.insert(method.clone(), mangled);
@@ -1242,14 +1570,17 @@ impl CodeGenerator {
                     self.class_types.insert(name.clone(), fields);
                     self.actor_types.insert(name.clone());
                 }
-                Decl::Function { name, type_params, params, .. } => {
+                Decl::Function {
+                    name,
+                    type_params,
+                    params,
+                    ..
+                } => {
                     if !type_params.is_empty() {
                         self.generic_templates.insert(name.clone());
                     }
-                    self.function_param_types.insert(
-                        name.clone(),
-                        params.iter().map(|p| p.ty.clone()).collect(),
-                    );
+                    self.function_param_types
+                        .insert(name.clone(), params.iter().map(|p| p.ty.clone()).collect());
                 }
                 Decl::Protocol { name, methods, .. } => {
                     let method_names: Vec<SmolStr> = methods
@@ -1302,22 +1633,25 @@ impl CodeGenerator {
         }
     }
 
-    fn collect_import_namespaces_from_semantic(&mut self, semantic: &syx_semantic::SemanticAnalyzer) {
+    fn collect_import_namespaces_from_semantic(
+        &mut self,
+        semantic: &syx_semantic::SemanticAnalyzer,
+    ) {
         for (mod_name, symbols) in &semantic.import_exports {
             self.imports.insert(mod_name.clone());
             for (name, ty) in symbols {
                 if let syx_semantic::TypeId::Named(n) = ty {
                     if name == n {
                         self.imports.insert(name.clone());
-                        self.class_types.entry(name.clone()).or_insert_with(Vec::new);
+                        self.class_types
+                            .entry(name.clone())
+                            .or_insert_with(Vec::new);
                     }
                 }
                 if let Some(meta) = syx_meta::reflect_type(name.as_str()) {
                     self.dataclass_names.insert(name.clone());
-                    self.dataclass_fields.insert(
-                        name.clone(),
-                        meta.fields.iter().cloned().collect(),
-                    );
+                    self.dataclass_fields
+                        .insert(name.clone(), meta.fields.iter().cloned().collect());
                 }
             }
         }
@@ -1334,7 +1668,9 @@ impl CodeGenerator {
                 self.var_types
                     .insert(name.clone(), Self::type_expr_name(ty));
             }
-            TypeExpr::Named { name: type_name, .. } => {
+            TypeExpr::Named {
+                name: type_name, ..
+            } => {
                 self.var_types.insert(name.clone(), type_name.clone());
             }
             TypeExpr::Array(inner) => {
@@ -1370,13 +1706,15 @@ impl CodeGenerator {
             if let Some(ty) = &param.ty {
                 self.register_param_var_type(&param.name, ty);
             }
-            if param.ty.as_ref().is_some_and(|t| matches!(t, TypeExpr::Reference(_, true, _))) {
+            if param
+                .ty
+                .as_ref()
+                .is_some_and(|t| matches!(t, TypeExpr::Reference(_, true, _)))
+            {
                 self.mut_ref_params.insert(param.name.clone());
             }
         }
-        if params
-            .first()
-            .is_some_and(|p| p.name.as_str() == "self")
+        if params.first().is_some_and(|p| p.name.as_str() == "self")
             && self.instance_self_mut_ref_method(name)
         {
             self.mut_ref_params.insert(SmolStr::new("self"));
@@ -1397,9 +1735,7 @@ impl CodeGenerator {
             self.compile_stmt(stmt, &mut fn_instructions, &mut span_sink)?;
         }
         self.emit_scope_deinit_locals(&mut fn_instructions)?;
-        let has_explicit_return = body
-            .iter()
-            .any(|s| matches!(s, Stmt::Return { .. }));
+        let has_explicit_return = body.iter().any(|s| matches!(s, Stmt::Return { .. }));
         let returns_self = !has_explicit_return
             && params
                 .first()
@@ -1492,9 +1828,9 @@ impl CodeGenerator {
         if name.as_str() == "self" {
             return true;
         }
-        self.var_types.get(name).is_some_and(|t| {
-            self.class_types.contains_key(t) || self.actor_types.contains(t)
-        })
+        self.var_types
+            .get(name)
+            .is_some_and(|t| self.class_types.contains_key(t) || self.actor_types.contains(t))
     }
 
     fn compile_mut_ref_cell_writeback(
@@ -1557,7 +1893,10 @@ impl CodeGenerator {
                         }
                     }
                     if let Expr::Call { callee, .. } = expr {
-                        if let Expr::Ident { name: type_name, .. } = callee.as_ref() {
+                        if let Expr::Ident {
+                            name: type_name, ..
+                        } = callee.as_ref()
+                        {
                             if self.actor_types.contains(type_name) {
                                 self.var_types.insert(name.clone(), type_name.clone());
                             } else if self.dataclass_names.contains(type_name) {
@@ -1646,7 +1985,9 @@ impl CodeGenerator {
                     }
                 }
             }
-            Stmt::While { condition, body, .. } => {
+            Stmt::While {
+                condition, body, ..
+            } => {
                 let while_span = stmt_span(stmt);
                 let setup_start = out.len();
                 let loop_start = out.len();
@@ -1674,7 +2015,12 @@ impl CodeGenerator {
                 }
                 return Ok(());
             }
-            Stmt::ForIn { name, iterable, body, .. } => {
+            Stmt::ForIn {
+                name,
+                iterable,
+                body,
+                ..
+            } => {
                 let for_span = stmt_span(stmt);
                 let setup_start = out.len();
                 self.compile_expr(iterable, out)?;
@@ -1909,7 +2255,9 @@ impl CodeGenerator {
                 self.compile_expr(expr, out)?;
                 out.push(Instruction::ThrowError);
             }
-            Stmt::RepeatWhile { body, condition, .. } => {
+            Stmt::RepeatWhile {
+                body, condition, ..
+            } => {
                 let loop_start = out.len();
                 out.push(Instruction::Loop);
                 for s in body {
@@ -2026,7 +2374,9 @@ impl CodeGenerator {
             Expr::Ident { name, .. } => {
                 self.compile_load_binding(name, out)?;
             }
-            Expr::Binary { left, op, right, .. } => {
+            Expr::Binary {
+                left, op, right, ..
+            } => {
                 if *op == BinOp::NilCoalesce {
                     // JumpIfNil pops nil / keeps non-nil — avoid Dup+Pop (Some-path leak).
                     self.compile_expr(left, out)?;
@@ -2164,7 +2514,9 @@ impl CodeGenerator {
                         if let Some(arg) = args.first() {
                             if let Expr::TypeSelf { type_name, .. } = &arg.value {
                                 out.push(Instruction::ConstStr(type_name.to_string()));
-                                out.push(Instruction::CallHost(host_fn_index(HostFnId::ReflectType)));
+                                out.push(Instruction::CallHost(host_fn_index(
+                                    HostFnId::ReflectType,
+                                )));
                                 return Ok(());
                             }
                         }
@@ -2178,13 +2530,13 @@ impl CodeGenerator {
                 {
                     if matches!(object.as_ref(), Expr::Super { .. }) {
                         if let Some(class) = Self::fn_enclosing_class(&self.compiling_fn) {
-                            if let Some(super_class) = self.class_superclasses.get(&class).cloned() {
+                            if let Some(super_class) = self.class_superclasses.get(&class).cloned()
+                            {
                                 self.compile_load_binding(&SmolStr::new("self"), out)?;
                                 for arg in args {
                                     self.compile_expr(&arg.value, out)?;
                                 }
-                                let fn_name =
-                                    SmolStr::new(format!("{super_class}_{method}"));
+                                let fn_name = SmolStr::new(format!("{super_class}_{method}"));
                                 out.push(Instruction::CallSuper(self.function_index(&fn_name)));
                                 // Phase 135 A0: `super.init` may return an updated ObjectRef /
                                 // MutRefCell; write it back so subclass field readback sees parent stores.
@@ -2236,9 +2588,7 @@ impl CodeGenerator {
                     return Ok(());
                 }
                 if let Expr::Member { object, name, .. } = callee.as_ref() {
-                    if name == "hash"
-                        && args.len() == 1
-                        && args[0].label.as_deref() == Some("into")
+                    if name == "hash" && args.len() == 1 && args[0].label.as_deref() == Some("into")
                     {
                         if let Some(type_name) = self.infer_expr_type(object) {
                             // Prefer dataclass shell `{T}_hash_into`, then user `func hash` → `{T}_hash`.
@@ -2255,7 +2605,10 @@ impl CodeGenerator {
                                 self.compile_expr(object, out)?;
                                 self.compile_expr(&args[0].value, out)?;
                                 out.push(Instruction::Call(self.function_index(&hash_fn)));
-                                if let Expr::Ident { name: hasher_name, .. } = &args[0].value {
+                                if let Expr::Ident {
+                                    name: hasher_name, ..
+                                } = &args[0].value
+                                {
                                     if let Some(&slot) = self.locals.get(hasher_name) {
                                         out.push(Instruction::StoreLocal(slot));
                                     }
@@ -2264,7 +2617,10 @@ impl CodeGenerator {
                                 return Ok(());
                             }
                             let base = type_name_dispatch_base(&type_name);
-                            if self.extension_methods.contains(&(base.clone(), name.clone())) {
+                            if self
+                                .extension_methods
+                                .contains(&(base.clone(), name.clone()))
+                            {
                                 let ext_name = SmolStr::new(format!("{base}_{name}"));
                                 let is_type_name_call = matches!(
                                     object.as_ref(),
@@ -2281,10 +2637,9 @@ impl CodeGenerator {
                                 return Ok(());
                             }
                             // Phase 46: no HasherCombine fallback for arbitrary types.
-                            return Err(SyxDiagnostic::error(format!(
-                                "type '{type_name}' has no hash(into:) implementation; use a Core Hashable extension, data class + @Hashable, or define func hash(into:)"
-                            ))
-                            .with_code("C020"));
+                            return Err(codegen_error_at(format!(
+                                    "type '{type_name}' has no hash(into:) implementation; use a Core Hashable extension, data class + @Hashable, or define func hash(into:)"
+                                ), None, Span::DUMMY, "C020"));
                         }
                     }
                     if let Some(type_name) = self.infer_expr_type(object) {
@@ -2292,12 +2647,16 @@ impl CodeGenerator {
                             if name == "combine" && args.len() == 1 {
                                 self.compile_expr(object, out)?;
                                 self.compile_expr(&args[0].value, out)?;
-                                out.push(Instruction::CallHost(host_fn_index(HostFnId::HasherCombine)));
+                                out.push(Instruction::CallHost(host_fn_index(
+                                    HostFnId::HasherCombine,
+                                )));
                                 return Ok(());
                             }
                             if name == "finalize" && args.is_empty() {
                                 self.compile_expr(object, out)?;
-                                out.push(Instruction::CallHost(host_fn_index(HostFnId::HasherFinalize)));
+                                out.push(Instruction::CallHost(host_fn_index(
+                                    HostFnId::HasherFinalize,
+                                )));
                                 return Ok(());
                             }
                         }
@@ -2392,22 +2751,20 @@ impl CodeGenerator {
                             for arg in args {
                                 self.compile_expr(&arg.value, out)?;
                             }
-                            out.push(Instruction::Call(
-                                self.require_function_index(&qualified)?,
-                            ));
+                            out.push(Instruction::Call(self.require_function_index(&qualified)?));
                             return Ok(());
                         }
                         if self.generic_templates.contains(&qualified) {
                             return self.compile_generic_qualified_call(&qualified, args, out);
                         }
-                        if self.imports.contains(mod_name) || self.class_types.contains_key(mod_name) {
+                        if self.imports.contains(mod_name)
+                            || self.class_types.contains_key(mod_name)
+                        {
                             if let Some(mangled) = self.resolve_static_monomorph(&qualified, args) {
                                 for arg in args {
                                     self.compile_expr(&arg.value, out)?;
                                 }
-                                out.push(Instruction::Call(
-                                    self.require_function_index(&mangled)?,
-                                ));
+                                out.push(Instruction::Call(self.require_function_index(&mangled)?));
                                 return Ok(());
                             }
                         }
@@ -2449,8 +2806,7 @@ impl CodeGenerator {
                                 for arg in args {
                                     self.compile_expr(&arg.value, out)?;
                                 }
-                                let init_name =
-                                    SmolStr::new(format!("{nested_ty}_init"));
+                                let init_name = SmolStr::new(format!("{nested_ty}_init"));
                                 out.push(Instruction::Call(self.function_index(&init_name)));
                                 return Ok(());
                             }
@@ -2465,7 +2821,8 @@ impl CodeGenerator {
                             for arg in args {
                                 self.compile_expr(&arg.value, out)?;
                             }
-                            let method = lookup_http_response_method(name.as_str()).expect("checked");
+                            let method =
+                                lookup_http_response_method(name.as_str()).expect("checked");
                             out.push(Instruction::MethodCall(method.index()));
                             return Ok(());
                         }
@@ -2485,8 +2842,8 @@ impl CodeGenerator {
                             }
                             if is_type_name_call {
                                 // Static SqlRow.getInt(row:, name:) → CallHost.
-                                if let Some(host) = lookup_type_method("SqlRow", name.as_str())
-                                    .and_then(|m| m.host)
+                                if let Some(host) =
+                                    lookup_type_method("SqlRow", name.as_str()).and_then(|m| m.host)
                                 {
                                     out.push(Instruction::CallHost(host_fn_index(host)));
                                     return Ok(());
@@ -2533,7 +2890,9 @@ impl CodeGenerator {
                                 out.push(Instruction::CallHost(host_fn_index(
                                     HostFnId::ValueDebugDescription,
                                 )));
-                            } else if self.protocol_methods.contains_key(&SmolStr::new(base.as_str()))
+                            } else if self
+                                .protocol_methods
+                                .contains_key(&SmolStr::new(base.as_str()))
                                 && !is_type_name_call
                             {
                                 self.emit_witness_protocol_call(
@@ -2548,7 +2907,9 @@ impl CodeGenerator {
                             }
                             return Ok(());
                         }
-                        if self.extension_methods.contains(&(base.clone(), name.clone()))
+                        if self
+                            .extension_methods
+                            .contains(&(base.clone(), name.clone()))
                             || self.has_function(&ext_name)
                         {
                             let is_type_name_call = matches!(
@@ -2556,7 +2917,9 @@ impl CodeGenerator {
                                 Expr::Ident { name: recv, .. } if recv == &type_name
                             );
                             if !is_type_name_call
-                                && self.protocol_methods.contains_key(&SmolStr::new(base.as_str()))
+                                && self
+                                    .protocol_methods
+                                    .contains_key(&SmolStr::new(base.as_str()))
                             {
                                 self.emit_witness_protocol_call(
                                     object,
@@ -2608,7 +2971,10 @@ impl CodeGenerator {
                             return Ok(());
                         }
                         let base = SmolStr::new("Array");
-                        if self.extension_methods.contains(&(base.clone(), name.clone())) {
+                        if self
+                            .extension_methods
+                            .contains(&(base.clone(), name.clone()))
+                        {
                             if name.as_str() == "description" {
                                 out.push(Instruction::CallHost(host_fn_index(
                                     HostFnId::ValueDescription,
@@ -2665,7 +3031,10 @@ impl CodeGenerator {
                         }
                     }
                 }
-                if let Expr::Ident { name: callee_name, .. } = callee.as_ref() {
+                if let Expr::Ident {
+                    name: callee_name, ..
+                } = callee.as_ref()
+                {
                     if self.class_types.contains_key(callee_name) {
                         // Builtin `Set` is `Value::Set`; empty `Set()` → SetBuild(0).
                         if callee_name.as_str() == "Set" && args.is_empty() {
@@ -2694,9 +3063,20 @@ impl CodeGenerator {
                     }
                 }
                 if let Expr::Member { object, .. } = callee.as_ref() {
-                    if let Expr::Member { object, name: method, .. } = callee.as_ref() {
-                        if let Expr::Ident { name: type_name, .. } = object.as_ref() {
-                            if self.extension_methods.contains(&(type_name.clone(), method.clone())) {
+                    if let Expr::Member {
+                        object,
+                        name: method,
+                        ..
+                    } = callee.as_ref()
+                    {
+                        if let Expr::Ident {
+                            name: type_name, ..
+                        } = object.as_ref()
+                        {
+                            if self
+                                .extension_methods
+                                .contains(&(type_name.clone(), method.clone()))
+                            {
                                 self.compile_call_args(args, out)?;
                                 let ext_name = SmolStr::new(format!("{type_name}_{method}"));
                                 out.push(Instruction::Call(self.function_index(&ext_name)));
@@ -2704,10 +3084,13 @@ impl CodeGenerator {
                             }
                         }
                     }
-                    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+                    if let Expr::Ident {
+                        name: type_name, ..
+                    } = object.as_ref()
+                    {
                         if self.enum_classes.contains_key(type_name)
                             || self.generic_enum_templates.contains(type_name)
-                        || self.generic_final_templates.contains(type_name)
+                            || self.generic_final_templates.contains(type_name)
                         {
                             return self.compile_call_with_mut_refs(callee, args, out);
                         }
@@ -2724,7 +3107,10 @@ impl CodeGenerator {
                     }
                 }
                 self.compile_call_args(args, out)?;
-                if let Expr::Ident { name: callee_name, .. } = callee.as_ref() {
+                if let Expr::Ident {
+                    name: callee_name, ..
+                } = callee.as_ref()
+                {
                     // S1-I4: local/param/global closure value — args then closure, CallClosure.
                     if !self.has_function(callee_name) {
                         if let Some(&slot) = self.locals.get(callee_name) {
@@ -2732,7 +3118,8 @@ impl CodeGenerator {
                             out.push(Instruction::CallClosure);
                             return Ok(());
                         }
-                        if let Some(idx) = self.program.globals.iter().position(|g| g == callee_name)
+                        if let Some(idx) =
+                            self.program.globals.iter().position(|g| g == callee_name)
                         {
                             out.push(Instruction::LoadGlobal(idx as u32));
                             out.push(Instruction::CallClosure);
@@ -2747,7 +3134,10 @@ impl CodeGenerator {
                         .functions
                         .iter()
                         .position(|f| {
-                            if let Expr::Ident { name: callee_name, .. } = callee.as_ref() {
+                            if let Expr::Ident {
+                                name: callee_name, ..
+                            } = callee.as_ref()
+                            {
                                 f.name == *callee_name
                             } else {
                                 false
@@ -2758,7 +3148,10 @@ impl CodeGenerator {
                 }
             }
             Expr::Member { object, name, .. } => {
-                if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+                if let Expr::Ident {
+                    name: type_name, ..
+                } = object.as_ref()
+                {
                     let nested_ty = SmolStr::new(format!("{type_name}_{name}"));
                     if self.class_types.contains_key(&nested_ty) {
                         let init_name = SmolStr::new(format!("{nested_ty}_init"));
@@ -2784,11 +3177,13 @@ impl CodeGenerator {
                             return Ok(());
                         }
                         let base = type_name_dispatch_base(&type_name);
-                        if self.extension_methods.contains(&(
-                            base.clone(),
-                            SmolStr::new("description"),
-                        )) {
-                            out.push(Instruction::CallHost(host_fn_index(HostFnId::ValueDescription)));
+                        if self
+                            .extension_methods
+                            .contains(&(base.clone(), SmolStr::new("description")))
+                        {
+                            out.push(Instruction::CallHost(host_fn_index(
+                                HostFnId::ValueDescription,
+                            )));
                             return Ok(());
                         }
                     }
@@ -2796,10 +3191,10 @@ impl CodeGenerator {
                 if name == "debugDescription" {
                     if let Some(type_name) = self.infer_expr_type(object) {
                         let base = type_name_dispatch_base(&type_name);
-                        if self.extension_methods.contains(&(
-                            base.clone(),
-                            SmolStr::new("debugDescription"),
-                        )) {
+                        if self
+                            .extension_methods
+                            .contains(&(base.clone(), SmolStr::new("debugDescription")))
+                        {
                             out.push(Instruction::CallHost(host_fn_index(
                                 HostFnId::ValueDebugDescription,
                             )));
@@ -2836,7 +3231,10 @@ impl CodeGenerator {
                         return Ok(());
                     }
                     let base = SmolStr::new("Array");
-                    if self.extension_methods.contains(&(base.clone(), name.clone())) {
+                    if self
+                        .extension_methods
+                        .contains(&(base.clone(), name.clone()))
+                    {
                         match name.as_str() {
                             "description" => {
                                 out.push(Instruction::CallHost(host_fn_index(
@@ -2895,8 +3293,11 @@ impl CodeGenerator {
             Expr::Group { expr, .. } => self.compile_expr(expr, out)?,
             Expr::Borrow { expr, .. } => self.compile_expr(expr, out)?,
             Expr::KeyPath { .. } => {
-                return Err(SyxDiagnostic::error(
+                return Err(codegen_error_at(
                     "Key path must be applied to a value, e.g. (\\Person.name)(obj)",
+                    None,
+                    Span::DUMMY,
+                    "G001",
                 ));
             }
             Expr::MacroInvoke { .. } => {
@@ -2948,10 +3349,10 @@ impl CodeGenerator {
                     out.push(Instruction::ObjectGet);
                 } else if let Some(type_name) = self.infer_expr_type(object) {
                     let base = type_name_dispatch_base(&type_name);
-                    if self.extension_methods.contains(&(
-                        base.clone(),
-                        smol_str::SmolStr::new("__subscript_get"),
-                    )) {
+                    if self
+                        .extension_methods
+                        .contains(&(base.clone(), smol_str::SmolStr::new("__subscript_get")))
+                    {
                         let get_fn = SmolStr::new(format!("{base}___subscript_get"));
                         out.push(Instruction::Call(self.function_index(&get_fn)));
                     } else {
@@ -2978,8 +3379,11 @@ impl CodeGenerator {
                         state,
                     });
                 } else {
-                    return Err(SyxDiagnostic::error(
+                    return Err(codegen_error_at(
                         "await is only allowed inside async functions",
+                        None,
+                        Span::DUMMY,
+                        "G002",
                     ));
                 }
             }
@@ -3055,7 +3459,12 @@ impl CodeGenerator {
                     *t = end_label;
                 }
             }
-            Expr::CompoundAssign { name, op, value, span } => {
+            Expr::CompoundAssign {
+                name,
+                op,
+                value,
+                span,
+            } => {
                 let bin_op = compound_to_bin(*op);
                 let desugared = Expr::Assign {
                     span: *span,
@@ -3072,8 +3481,16 @@ impl CodeGenerator {
                 };
                 self.compile_expr(&desugared, out)?;
             }
-            Expr::MemberAssign { object, name, value, .. } => {
-                if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+            Expr::MemberAssign {
+                object,
+                name,
+                value,
+                ..
+            } => {
+                if let Expr::Ident {
+                    name: type_name, ..
+                } = object.as_ref()
+                {
                     if self.class_types.contains_key(type_name) {
                         let global_name = syx_ast::static_var_global_name(type_name, name);
                         if let Some(idx) =
@@ -3207,8 +3624,18 @@ impl CodeGenerator {
                     }
                 }
             }
-            Expr::IndexAssign { object, index, value, .. } => {
-                if let Expr::Member { object: base, name: field, .. } = object.as_ref() {
+            Expr::IndexAssign {
+                object,
+                index,
+                value,
+                ..
+            } => {
+                if let Expr::Member {
+                    object: base,
+                    name: field,
+                    ..
+                } = object.as_ref()
+                {
                     if let Expr::Ident { name: recv, .. } = base.as_ref() {
                         if self.locals.contains_key(recv) {
                             self.compile_expr(base, out)?;
@@ -3228,10 +3655,10 @@ impl CodeGenerator {
                 }
                 if let Some(type_name) = self.infer_expr_type(object) {
                     let base = type_name_dispatch_base(&type_name);
-                    if self.extension_methods.contains(&(
-                        base.clone(),
-                        smol_str::SmolStr::new("__subscript_set"),
-                    )) {
+                    if self
+                        .extension_methods
+                        .contains(&(base.clone(), smol_str::SmolStr::new("__subscript_set")))
+                    {
                         self.compile_expr(object, out)?;
                         self.compile_expr(index, out)?;
                         self.compile_expr(value, out)?;
@@ -3247,12 +3674,10 @@ impl CodeGenerator {
                 }
                 // Object / Dictionary use ObjectSet (string keys); arrays use ArraySet.
                 let obj_ty = self.infer_expr_type(object);
-                let use_object_set = obj_ty
-                    .as_ref()
-                    .is_some_and(|t| {
-                        let s = t.as_str();
-                        s == "Object" || s == "Dictionary" || s.starts_with("Dictionary<")
-                    });
+                let use_object_set = obj_ty.as_ref().is_some_and(|t| {
+                    let s = t.as_str();
+                    s == "Object" || s == "Dictionary" || s.starts_with("Dictionary<")
+                });
                 if use_object_set {
                     self.compile_expr(object, out)?;
                     self.compile_expr(value, out)?;
@@ -3271,10 +3696,7 @@ impl CodeGenerator {
                 }
             }
             Expr::Closure {
-                params,
-                body,
-                span,
-                ..
+                params, body, span, ..
             } => {
                 let closure_name = SmolStr::new(format!("__closure_{}", self.closure_counter));
                 self.closure_counter += 1;
@@ -3465,7 +3887,10 @@ impl CodeGenerator {
 
     fn resolve_call(&self, callee: &Expr) -> Option<(HostFnId, bool)> {
         if let Expr::Member { object, name, .. } = callee {
-            if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+            if let Expr::Ident {
+                name: type_name, ..
+            } = object.as_ref()
+            {
                 if matches!(type_name.as_str(), "Result" | "BigInt") {
                     return None;
                 }
@@ -3484,7 +3909,10 @@ impl CodeGenerator {
                 "headers" => return Some((HostFnId::HttpResponseHeaders, true)),
                 _ => {}
             }
-            if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+            if let Expr::Ident {
+                name: type_name, ..
+            } = object.as_ref()
+            {
                 if let Some(tm) = lookup_type_method(type_name, name) {
                     return tm.host.map(|h| (h, false));
                 }
@@ -3603,11 +4031,7 @@ impl CodeGenerator {
         self.infer_call_type_arg_names(args)
     }
 
-    fn resolve_static_monomorph(
-        &self,
-        qualified: &SmolStr,
-        args: &[CallArg],
-    ) -> Option<SmolStr> {
+    fn resolve_static_monomorph(&self, qualified: &SmolStr, args: &[CallArg]) -> Option<SmolStr> {
         if let Some((_, type_args)) = self
             .instantiations
             .iter()
@@ -3729,7 +4153,10 @@ impl CodeGenerator {
                     if name == "split" || name == "matches" || name == "readLines" {
                         return Some(SmolStr::new("Array"));
                     }
-                    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+                    if let Expr::Ident {
+                        name: type_name, ..
+                    } = object.as_ref()
+                    {
                         if matches!(type_name.as_str(), "Http" | "HTTP")
                             && matches!(
                                 name.as_str(),
@@ -3776,19 +4203,15 @@ impl CodeGenerator {
     }
 
     fn infer_expr_type_from_semantic(&self, expr: &Expr) -> Option<SmolStr> {
-        self.expr_types
-            .get(&expr_span_start(expr))
-            .map(|ty| {
-                type_id_collection_base(ty)
-                    .map(SmolStr::new)
-                    .unwrap_or_else(|| type_id_to_name(ty))
-            })
+        self.expr_types.get(&expr_span_start(expr)).map(|ty| {
+            type_id_collection_base(ty)
+                .map(SmolStr::new)
+                .unwrap_or_else(|| type_id_to_name(ty))
+        })
     }
 
     fn type_name_is_dict(name: &str) -> bool {
-        name == "Object"
-            || name == "Dictionary"
-            || name.starts_with("Dictionary<")
+        name == "Object" || name == "Dictionary" || name.starts_with("Dictionary<")
     }
 
     fn type_name_is_set(name: &str) -> bool {
@@ -3821,7 +4244,10 @@ impl CodeGenerator {
             return true;
         }
         // Chained `a + b + c`: nested Add of string-like operands is ConcatStr.
-        if let Expr::Binary { left, op, right, .. } = expr {
+        if let Expr::Binary {
+            left, op, right, ..
+        } = expr
+        {
             if matches!(op, BinOp::Add)
                 && (self.expr_is_string_like(left) || self.expr_is_string_like(right))
             {
@@ -3843,7 +4269,10 @@ impl CodeGenerator {
         }
         let base = SmolStr::new(type_base);
         let name = SmolStr::new(method);
-        if self.extension_methods.contains(&(base.clone(), name.clone())) {
+        if self
+            .extension_methods
+            .contains(&(base.clone(), name.clone()))
+        {
             if method == "debugDescription" {
                 out.push(Instruction::CallHost(host_fn_index(
                     HostFnId::ValueDebugDescription,
@@ -3866,10 +4295,13 @@ impl CodeGenerator {
                 return true;
             }
         }
-        if self.extension_methods.contains(&(base.clone(), name.clone())) {
-            out.push(Instruction::Call(self.function_index(&SmolStr::new(format!(
-                "{type_base}_{method}"
-            )))));
+        if self
+            .extension_methods
+            .contains(&(base.clone(), name.clone()))
+        {
+            out.push(Instruction::Call(
+                self.function_index(&SmolStr::new(format!("{type_base}_{method}"))),
+            ));
             return true;
         }
         false
@@ -3918,10 +4350,15 @@ impl CodeGenerator {
     }
 
     fn expr_is_dict_like(&self, expr: &Expr) -> bool {
-        matches!(expr, Expr::Literal { value: Literal::Dict(_), .. })
-            || self
-                .infer_expr_type(expr)
-                .is_some_and(|t| Self::type_name_is_dict(t.as_str()))
+        matches!(
+            expr,
+            Expr::Literal {
+                value: Literal::Dict(_),
+                ..
+            }
+        ) || self
+            .infer_expr_type(expr)
+            .is_some_and(|t| Self::type_name_is_dict(t.as_str()))
             || matches!(
                 expr,
                 Expr::Ident { name, .. } if self
@@ -3950,7 +4387,12 @@ impl CodeGenerator {
             .position(|f| f.name == *name)
             .map(|i| i as u32)
             .ok_or_else(|| {
-                SyxDiagnostic::error(format!("Unknown function '{name}'")).with_code("C020")
+                codegen_error_at(
+                    format!("Unknown function '{name}'"),
+                    None,
+                    Span::DUMMY,
+                    "C020",
+                )
             })
     }
 
@@ -4033,13 +4475,11 @@ impl CodeGenerator {
             syx_ast::TypeExpr::Optional(inner) => {
                 SmolStr::new(format!("{}?", Self::type_expr_name(inner)))
             }
-            syx_ast::TypeExpr::Dictionary { key, value, .. } => {
-                SmolStr::new(format!(
-                    "Dictionary<{}, {}>",
-                    Self::type_expr_name(key),
-                    Self::type_expr_name(value)
-                ))
-            }
+            syx_ast::TypeExpr::Dictionary { key, value, .. } => SmolStr::new(format!(
+                "Dictionary<{}, {}>",
+                Self::type_expr_name(key),
+                Self::type_expr_name(value)
+            )),
             _ => SmolStr::new("Unknown"),
         }
     }
@@ -4055,7 +4495,11 @@ impl CodeGenerator {
         self.mut_ref_params.contains(name)
     }
 
-    fn compile_load_binding(&mut self, name: &SmolStr, out: &mut Vec<Instruction>) -> SyxResult<()> {
+    fn compile_load_binding(
+        &mut self,
+        name: &SmolStr,
+        out: &mut Vec<Instruction>,
+    ) -> SyxResult<()> {
         let resolved = self.resolve_binding_name(name).clone();
         if self.uses_mut_ref_cell(&resolved) {
             if let Some(&slot) = self.locals.get(&resolved) {
@@ -4070,7 +4514,12 @@ impl CodeGenerator {
         } else if let Some(idx) = self.program.globals.iter().position(|g| g == &resolved) {
             out.push(Instruction::LoadGlobal(idx as u32));
         } else {
-            return Err(SyxDiagnostic::error(format!("Unknown variable '{name}'")));
+            return Err(codegen_error_at(
+                format!("Unknown variable '{name}'"),
+                None,
+                Span::DUMMY,
+                "G003",
+            ));
         }
         Ok(())
     }
@@ -4212,9 +4661,7 @@ impl CodeGenerator {
 
         let mut unbox_targets: Vec<(SmolStr, u32)> = Vec::new();
         for (i, arg) in args.iter().enumerate() {
-            let is_mut_param = param_types
-                .get(i)
-                .is_some_and(Self::param_is_mut_reference);
+            let is_mut_param = param_types.get(i).is_some_and(Self::param_is_mut_reference);
             if is_mut_param {
                 if let Expr::Borrow {
                     expr,
@@ -4257,7 +4704,10 @@ impl CodeGenerator {
             ..
         } = callee
         {
-            if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+            if let Expr::Ident {
+                name: type_name, ..
+            } = object.as_ref()
+            {
                 let type_args = if self.generic_enum_templates.contains(type_name)
                     || self.generic_final_templates.contains(type_name)
                 {
@@ -4274,7 +4724,12 @@ impl CodeGenerator {
                 self.compile_call_args(args, out)?;
                 out.push(Instruction::Call(self.function_index(&init_name)));
             } else {
-                return Err(SyxDiagnostic::error("Unsupported member call callee"));
+                return Err(codegen_error_at(
+                    "Unsupported member call callee",
+                    None,
+                    Span::DUMMY,
+                    "G004",
+                ));
             }
         } else {
             self.compile_expr(callee, out)?;
@@ -4306,7 +4761,7 @@ fn entry_point_from_module(module: &Module) -> SmolStr {
 }
 
 impl CodeGenerator {
-        #[allow(dead_code)]
+    #[allow(dead_code)]
     fn method_has_vtable_slot(&self, class: &str, method: &str) -> bool {
         self.class_vtables
             .get(&SmolStr::new(class))
@@ -4337,13 +4792,15 @@ impl CodeGenerator {
         }
         out.push(Instruction::LoadLocal(recv_slot));
         out.push(Instruction::Dup);
-        out.push(Instruction::ConstStr(format!("__witness_{protocol}_{method}")));
+        out.push(Instruction::ConstStr(format!(
+            "__witness_{protocol}_{method}"
+        )));
         out.push(Instruction::ObjectGet);
         out.push(Instruction::CallIndirect((1 + args.len()) as u32));
         Ok(())
     }
 
-        #[allow(dead_code)]
+    #[allow(dead_code)]
     fn emit_vtable_instance_call(
         &mut self,
         object: &Expr,
@@ -4388,9 +4845,8 @@ impl CodeGenerator {
                 return true;
             }
         }
-        self.infer_expr_type(expr).is_some_and(|t| {
-            t.starts_with("some ") || t.starts_with("any ")
-        })
+        self.infer_expr_type(expr)
+            .is_some_and(|t| t.starts_with("some ") || t.starts_with("any "))
     }
 
     fn opaque_equatable_witness_index(&self) -> u32 {
@@ -4429,7 +4885,8 @@ impl CodeGenerator {
         }
         if let (Some(lt), Some(rt)) = (&left_type, &right_type) {
             if is_equatable_type(lt.as_str()) && is_equatable_type(rt.as_str()) {
-                if let (Some(lk), Some(rk)) = (from_type_name(lt.as_str()), from_type_name(rt.as_str()))
+                if let (Some(lk), Some(rk)) =
+                    (from_type_name(lt.as_str()), from_type_name(rt.as_str()))
                 {
                     if let Some(nk) = widen_for_binary(lk, rk) {
                         return if ne {
@@ -4568,7 +5025,9 @@ fn collect_closure_free_vars(
                 }
             }
             Expr::Await { expr, .. } => visit_expr(expr, bound, outer_locals, seen, free),
-            Expr::OptionalChain { object, .. } => visit_expr(object, bound, outer_locals, seen, free),
+            Expr::OptionalChain { object, .. } => {
+                visit_expr(object, bound, outer_locals, seen, free)
+            }
             Expr::ForceUnwrap { expr, .. } => visit_expr(expr, bound, outer_locals, seen, free),
             Expr::Closure { params, body, .. } => {
                 let mut nested_bound = bound.clone();
@@ -4606,13 +5065,20 @@ fn collect_closure_free_vars(
                     }
                     bound.insert(name.clone());
                 }
-                Stmt::ForIn { name, iterable, body, .. } => {
+                Stmt::ForIn {
+                    name,
+                    iterable,
+                    body,
+                    ..
+                } => {
                     visit_expr(iterable, bound, outer_locals, seen, free);
                     bound.insert(name.clone());
                     visit_stmts(body, bound, outer_locals, seen, free);
                     bound.remove(name);
                 }
-                Stmt::Return { value: Some(v), .. } => visit_expr(v, bound, outer_locals, seen, free),
+                Stmt::Return { value: Some(v), .. } => {
+                    visit_expr(v, bound, outer_locals, seen, free)
+                }
                 Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } => {
                     visit_expr(expr, bound, outer_locals, seen, free);
                 }
@@ -4628,18 +5094,30 @@ fn collect_closure_free_vars(
                         visit_stmts(e, bound, outer_locals, seen, free);
                     }
                 }
-                Stmt::While { condition, body, .. } => {
+                Stmt::While {
+                    condition, body, ..
+                } => {
                     visit_expr(condition, bound, outer_locals, seen, free);
                     visit_stmts(body, bound, outer_locals, seen, free);
                 }
                 Stmt::Block { stmts, .. } => visit_stmts(stmts, bound, outer_locals, seen, free),
-                Stmt::Try { body, catch_name, catch_body, .. } => {
+                Stmt::Try {
+                    body,
+                    catch_name,
+                    catch_body,
+                    ..
+                } => {
                     visit_stmts(body, bound, outer_locals, seen, free);
                     bound.insert(catch_name.clone());
                     visit_stmts(catch_body, bound, outer_locals, seen, free);
                     bound.remove(catch_name);
                 }
-                Stmt::Switch { subject, cases, default, .. } => {
+                Stmt::Switch {
+                    subject,
+                    cases,
+                    default,
+                    ..
+                } => {
                     visit_expr(subject, bound, outer_locals, seen, free);
                     for case in cases {
                         if let Some(g) = &case.guard {
@@ -4665,18 +5143,27 @@ fn collect_closure_free_vars(
                         visit_stmts(e, bound, outer_locals, seen, free);
                     }
                 }
-                Stmt::IfLet { pattern, body, else_branch, .. } => {
+                Stmt::IfLet {
+                    pattern,
+                    body,
+                    else_branch,
+                    ..
+                } => {
                     visit_expr(pattern, bound, outer_locals, seen, free);
                     visit_stmts(body, bound, outer_locals, seen, free);
                     if let Some(e) = else_branch {
                         visit_stmts(e, bound, outer_locals, seen, free);
                     }
                 }
-                Stmt::GuardLet { body, else_branch, .. } => {
+                Stmt::GuardLet {
+                    body, else_branch, ..
+                } => {
                     visit_stmts(body, bound, outer_locals, seen, free);
                     visit_stmts(else_branch, bound, outer_locals, seen, free);
                 }
-                Stmt::RepeatWhile { body, condition, .. } => {
+                Stmt::RepeatWhile {
+                    body, condition, ..
+                } => {
                     visit_stmts(body, bound, outer_locals, seen, free);
                     visit_expr(condition, bound, outer_locals, seen, free);
                 }
@@ -4688,7 +5175,9 @@ fn collect_closure_free_vars(
 
     match body {
         ClosureBody::Expr(e) => visit_expr(e, &bound, outer_locals, &mut seen, &mut free),
-        ClosureBody::Block(stmts) => visit_stmts(stmts, &mut bound, outer_locals, &mut seen, &mut free),
+        ClosureBody::Block(stmts) => {
+            visit_stmts(stmts, &mut bound, outer_locals, &mut seen, &mut free)
+        }
     }
     free
 }
@@ -4744,4 +5233,3 @@ fn append_with_span(
         spans.push(Some(span));
     }
 }
-

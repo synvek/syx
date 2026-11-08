@@ -4,11 +4,14 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase90_hosts::{
-    host_orm_delete_where, host_orm_update_where, host_sql_bind_step, host_sql_migrate, reset_phase90_state,
+    host_orm_delete_where, host_orm_update_where, host_sql_bind_step, host_sql_migrate,
+    reset_phase90_state,
 };
 
 use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
@@ -39,16 +42,21 @@ static SQL_TXN_ACTIVE: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false
 #[cfg(target_arch = "wasm32")]
 pub fn host_sql_begin_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn host_sql_begin_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     conn.execute_batch("BEGIN IMMEDIATE;")
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     if let Ok(mut g) = SQL_TXN_ACTIVE.lock() {
         *g = true;
     }
@@ -60,16 +68,21 @@ pub fn host_sql_begin_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_sql_commit_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn host_sql_commit_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     conn.execute_batch("COMMIT;")
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     if let Ok(mut g) = SQL_TXN_ACTIVE.lock() {
         *g = false;
     }
@@ -81,7 +94,12 @@ pub fn host_sql_commit_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]

@@ -158,9 +158,7 @@ pub(crate) fn accept_key(client_key_b64: &str) -> String {
 
 /// After 101: read one client-masked text frame, echo as unmasked server text.
 /// W1182 first slice — ≠ full codec.
-pub(crate) fn echo_one_client_text_frame(
-    stream: &mut (impl Read + Write),
-) -> std::io::Result<()> {
+pub(crate) fn echo_one_client_text_frame(stream: &mut (impl Read + Write)) -> std::io::Result<()> {
     echo_one_client_data_frame(stream, 0x1, 0x81)
 }
 
@@ -341,8 +339,7 @@ fn reject_illegal_close_status(payload: &[u8]) -> std::io::Result<()> {
         return Ok(());
     }
     let status = u16::from_be_bytes([payload[0], payload[1]]);
-    let illegal =
-        (0..=999).contains(&status) || matches!(status, 1004 | 1005 | 1006 | 1015);
+    let illegal = (0..=999).contains(&status) || matches!(status, 1004 | 1005 | 1006 | 1015);
     if illegal {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
@@ -403,9 +400,7 @@ fn reject_unsolicited_client_pong(opcode: u8) -> std::io::Result<()> {
     Ok(())
 }
 
-fn read_client_ws_frame(
-    stream: &mut (impl Read + Write),
-) -> std::io::Result<(bool, u8, Vec<u8>)> {
+fn read_client_ws_frame(stream: &mut (impl Read + Write)) -> std::io::Result<(bool, u8, Vec<u8>)> {
     let mut hdr = [0u8; 2];
     read_exact_io(stream, &mut hdr)?;
     reject_nonzero_rsv(hdr[0])?;
@@ -478,9 +473,7 @@ pub(crate) fn echo_one_client_binary_frame(
 
 /// W1185 / ADR-1531: read client ping (opcode 9) → reply unmasked pong (`0x8A` + same payload).
 /// ≠ fragment / ≠ keepalive matrix / ≠ full codec.
-pub(crate) fn reply_client_ping_with_pong(
-    stream: &mut (impl Read + Write),
-) -> std::io::Result<()> {
+pub(crate) fn reply_client_ping_with_pong(stream: &mut (impl Read + Write)) -> std::io::Result<()> {
     let mut hdr = [0u8; 2];
     read_exact_io(stream, &mut hdr)?;
     reject_nonzero_rsv(hdr[0])?;
@@ -882,12 +875,12 @@ fn handshake(stream: &mut TcpStream, host: &str, path: &str) -> std::io::Result<
             "ws upgrade rejected",
         ));
     }
-    let accept_ok = text
-        .lines()
-        .any(|l| l.to_ascii_lowercase().starts_with("sec-websocket-accept:") && {
+    let accept_ok = text.lines().any(|l| {
+        l.to_ascii_lowercase().starts_with("sec-websocket-accept:") && {
             let v = l.split_once(':').map(|(_, v)| v.trim()).unwrap_or("");
             v.eq_ignore_ascii_case(&expect)
-        });
+        }
+    });
     if !accept_ok {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
@@ -904,9 +897,7 @@ pub fn rfc6455_connect(url: &str) -> Option<i64> {
     let mut addrs = addr.to_socket_addrs().ok()?;
     let sock_addr = addrs.next()?;
     let mut stream = TcpStream::connect_timeout(&sock_addr, Duration::from_secs(3)).ok()?;
-    stream
-        .set_read_timeout(Some(Duration::from_secs(3)))
-        .ok()?;
+    stream.set_read_timeout(Some(Duration::from_secs(3))).ok()?;
     stream
         .set_write_timeout(Some(Duration::from_secs(3)))
         .ok()?;
@@ -1131,21 +1122,17 @@ fn serve_negative_handshake(mut stream: TcpStream, kind: NegHandshakeKind) -> st
         }
     }
     let resp = match kind {
-        NegHandshakeKind::BadAccept => {
-            "HTTP/1.1 101 Switching Protocols\r\n\
+        NegHandshakeKind::BadAccept => "HTTP/1.1 101 Switching Protocols\r\n\
              Upgrade: websocket\r\n\
              Connection: Upgrade\r\n\
              Sec-WebSocket-Accept: AAAAAAAAAAAAAAAAAAAAAAAAAAA=\r\n\
              \r\n"
-                .to_string()
-        }
-        NegHandshakeKind::Non101 => {
-            "HTTP/1.1 400 Bad Request\r\n\
+            .to_string(),
+        NegHandshakeKind::Non101 => "HTTP/1.1 400 Bad Request\r\n\
              Content-Length: 0\r\n\
              Connection: close\r\n\
              \r\n"
-                .to_string()
-        }
+            .to_string(),
     };
     stream.write_all(resp.as_bytes())?;
     stream.flush()?;
@@ -1362,12 +1349,12 @@ fn handshake_io(stream: &mut (impl Read + Write), host: &str, path: &str) -> std
             "ws upgrade rejected",
         ));
     }
-    let accept_ok = text
-        .lines()
-        .any(|l| l.to_ascii_lowercase().starts_with("sec-websocket-accept:") && {
+    let accept_ok = text.lines().any(|l| {
+        l.to_ascii_lowercase().starts_with("sec-websocket-accept:") && {
             let v = l.split_once(':').map(|(_, v)| v.trim()).unwrap_or("");
             v.eq_ignore_ascii_case(&expect)
-        });
+        }
+    });
     if !accept_ok {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
@@ -1427,13 +1414,11 @@ pub fn e01_rfc6455_wss_loopback_wired_ok() -> bool {
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -1527,7 +1512,7 @@ pub fn e01_rfc6455_wss_first_slice_ok() -> bool {
 /// `SYX_WS_WSS_TEST_ROOT` PEM path, or returns `None` (fail-closed).
 /// ≠ product GA / ≠ danger_accept_invalid_certs for arbitrary hosts.
 pub fn rfc6455_connect_wss(url: &str) -> Option<i64> {
-    use rustls::pki_types::{CertificateDer, ServerName, pem::PemObject};
+    use rustls::pki_types::{pem::PemObject, CertificateDer, ServerName};
     use rustls::{ClientConfig, RootCertStore};
     use std::sync::Arc;
 

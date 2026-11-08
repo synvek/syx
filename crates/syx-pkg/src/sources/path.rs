@@ -1,10 +1,11 @@
 use std::path::Path;
 
 use semver::Version;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::lockfile::{LockPackage, PackageSource};
 use crate::manifest::{check_version_req, load_manifest, DependencySpec};
+use crate::pkg_error_at;
 
 pub fn resolve_path_dependency(
     project_root: &Path,
@@ -13,19 +14,34 @@ pub fn resolve_path_dependency(
     spec: &DependencySpec,
 ) -> SyxResult<LockPackage> {
     let path_str = spec.resolve_path().ok_or_else(|| {
-        SyxDiagnostic::error(format!("Path dependency '{dep_name}' has no path"))
+        pkg_error_at(
+            format!("Path dependency '{dep_name}' has no path"),
+            None,
+            Span::DUMMY,
+            "P040",
+        )
     })?;
     let abs = resolve_base.join(path_str);
     let canonical = abs.canonicalize().unwrap_or(abs);
     if !canonical.exists() {
-        return Err(SyxDiagnostic::error(format!(
-            "Path dependency '{dep_name}' not found at {}",
-            canonical.display()
-        )));
+        return Err(pkg_error_at(
+            format!(
+                "Path dependency '{dep_name}' not found at {}",
+                canonical.display()
+            ),
+            None,
+            Span::DUMMY,
+            "P040",
+        ));
     }
-    let req = spec
-        .version_req()?
-        .ok_or_else(|| SyxDiagnostic::error(format!("Path dependency '{dep_name}' needs version")))?;
+    let req = spec.version_req()?.ok_or_else(|| {
+        pkg_error_at(
+            format!("Path dependency '{dep_name}' needs version"),
+            None,
+            Span::DUMMY,
+            "P040",
+        )
+    })?;
     let version = check_version_req(&canonical, &req, dep_name)?;
     let rel = path_relative_to_project(project_root, &canonical);
     Ok(LockPackage {
@@ -84,7 +100,12 @@ pub mod pathdiff {
 pub fn package_manifest_at(root: &Path) -> SyxResult<(String, Version)> {
     let manifest = load_manifest(root)?;
     let version = Version::parse(&manifest.version).map_err(|e| {
-        SyxDiagnostic::error(format!("Invalid version in {}: {e}", root.display()))
+        pkg_error_at(
+            format!("Invalid version in {}: {e}", root.display()),
+            None,
+            Span::DUMMY,
+            "P041",
+        )
     })?;
     Ok((manifest.name, version))
 }

@@ -6,8 +6,10 @@
 
 use std::collections::HashMap;
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_runtime_core::Value;
+
+use crate::vm_error_at;
 
 #[derive(Default, Clone)]
 struct ServiceEntry {
@@ -323,13 +325,19 @@ pub fn host_service_begin_request(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
     with_container_mut(|c| {
         if !c.sealed {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "service container not sealed; call __syx_service_boot / __syx_service_seal first",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         if c.request_frame.is_some() {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "request frame already active; nested request frames are not supported in MVP",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         c.request_frame = Some(HashMap::new());
@@ -342,7 +350,7 @@ pub fn host_service_end_request(stack: &mut Vec<Value>) -> SyxResult<()> {
     let frame = with_container_mut(|c| {
         c.request_frame
             .take()
-            .ok_or_else(|| SyxDiagnostic::error("no active request frame to end"))
+            .ok_or_else(|| vm_error_at("no active request frame to end", None, Span::DUMMY, "R003"))
     })?;
     with_container(|c| run_request_frame_predestroy(c, &frame))
 }
@@ -391,8 +399,11 @@ pub fn host_service_register(stack: &mut Vec<Value>) -> SyxResult<()> {
     let type_name = pop_string(stack, "type")?;
     with_container_mut(|c| {
         if c.sealed {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "service container sealed; cannot register",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         if !c.registry.contains_key(&type_name) {
@@ -437,8 +448,11 @@ pub fn host_service_register_witness(stack: &mut Vec<Value>) -> SyxResult<()> {
     };
     with_container_mut(|c| {
         if c.sealed {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "service container sealed; cannot register witness",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         let meta_primary = syx_meta::service_di_peek_entries()
@@ -484,14 +498,20 @@ pub fn host_service_add_dep(stack: &mut Vec<Value>) -> SyxResult<()> {
     let type_name = pop_string(stack, "type")?;
     with_container_mut(|c| {
         if c.sealed {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "service container sealed; cannot add dep",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         let Some(entry) = c.registry.get_mut(&type_name) else {
-            return Err(SyxDiagnostic::error(format!(
-                "unknown service '{type_name}' for add_dep"
-            )));
+            return Err(vm_error_at(
+                format!("unknown service '{type_name}' for add_dep"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         };
         if !entry.deps.contains(&dep) {
             entry.deps.push(dep);
@@ -525,9 +545,12 @@ pub fn host_service_seal(stack: &mut Vec<Value>) -> SyxResult<()> {
                     continue;
                 }
                 if resolve_binding_key(c, dep).is_err() {
-                    return Err(SyxDiagnostic::error(format!(
-                        "service '{name}' missing dependency '{dep}'"
-                    )));
+                    return Err(vm_error_at(
+                        format!("service '{name}' missing dependency '{dep}'"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    ));
                 }
             }
         }
@@ -572,9 +595,12 @@ fn visit_cycle(
         if cycle_has_lazy_break(stack, node, lazy_map) {
             return Ok(());
         }
-        return Err(SyxDiagnostic::error(format!(
-            "service dependency cycle involving '{node}'"
-        )));
+        return Err(vm_error_at(
+            format!("service dependency cycle involving '{node}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if seen.get(node).copied().unwrap_or(false) {
         return Ok(());
@@ -586,9 +612,12 @@ fn visit_cycle(
                 if cycle_has_lazy_break(stack, d, lazy_map) {
                     continue;
                 }
-                return Err(SyxDiagnostic::error(format!(
-                    "service dependency cycle involving '{d}'"
-                )));
+                return Err(vm_error_at(
+                    format!("service dependency cycle involving '{d}'"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
             visit_cycle(d, graph, lazy_map, stack, seen)?;
         }
@@ -606,9 +635,14 @@ pub fn host_service_resolve(stack: &mut Vec<Value>) -> SyxResult<()> {
 }
 
 pub fn host_service_put(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let mut instance = stack
-        .pop()
-        .ok_or_else(|| SyxDiagnostic::error("service put expected instance value"))?;
+    let mut instance = stack.pop().ok_or_else(|| {
+        vm_error_at(
+            "service put expected instance value",
+            None,
+            Span::DUMMY,
+            "R003",
+        )
+    })?;
     let type_name = pop_string(stack, "type")?;
     // Refresh registry from meta so field_autowires / qualifiers are present even when
     // the SYX boot only emitted bare `__syx_service_register` calls.
@@ -621,8 +655,11 @@ pub fn host_service_put(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     with_container_mut(|c| {
         if c.sealed {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "service container sealed; cannot put instance",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         c.singletons.insert(type_name, instance);
@@ -678,7 +715,7 @@ pub fn materialize_lazy_receiver(receiver: Value) -> SyxResult<Value> {
     }
     let target = inner
         .object_ref_type_name()
-        .ok_or_else(|| SyxDiagnostic::error("lazy proxy missing __type"))?;
+        .ok_or_else(|| vm_error_at("lazy proxy missing __type", None, Span::DUMMY, "R003"))?;
     resolve_one(&target)
 }
 
@@ -694,8 +731,11 @@ fn invoke_user_fn_inner(fn_name: &str, args: &[Value], reject_nil: bool) -> SyxR
     use crate::program_ctx::{with_active_vm, with_program_ctx};
 
     let Some(ctx) = with_program_ctx(|c| c.clone()) else {
-        return Err(SyxDiagnostic::error(
+        return Err(vm_error_at(
             "service resolve requires active program context",
+            None,
+            Span::DUMMY,
+            "R003",
         ));
     };
     let func = ctx
@@ -704,9 +744,12 @@ fn invoke_user_fn_inner(fn_name: &str, args: &[Value], reject_nil: bool) -> SyxR
         .iter()
         .find(|f| f.name == fn_name)
         .ok_or_else(|| {
-            SyxDiagnostic::error(format!(
-                "service constructor '{fn_name}' not found in program"
-            ))
+            vm_error_at(
+                format!("service constructor '{fn_name}' not found in program"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
     if let Some(result) = with_active_vm(|vm| {
         let saved_stack = std::mem::take(&mut vm.stack);
@@ -716,9 +759,12 @@ fn invoke_user_fn_inner(fn_name: &str, args: &[Value], reject_nil: bool) -> SyxR
         vm.locals = saved_locals;
         let result = run?;
         if reject_nil && matches!(result, Value::Nil) {
-            return Err(SyxDiagnostic::error(format!(
-                "service constructor '{fn_name}' returned nil"
-            )));
+            return Err(vm_error_at(
+                format!("service constructor '{fn_name}' returned nil"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
         Ok(result)
     }) {
@@ -728,9 +774,12 @@ fn invoke_user_fn_inner(fn_name: &str, args: &[Value], reject_nil: bool) -> SyxR
     vm.runtime = ctx.runtime.clone();
     let result = vm.run_function_with_args(func, &ctx.program, args)?;
     if reject_nil && matches!(result, Value::Nil) {
-        return Err(SyxDiagnostic::error(format!(
-            "service constructor '{fn_name}' returned nil"
-        )));
+        return Err(vm_error_at(
+            format!("service constructor '{fn_name}' returned nil"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     Ok(result)
 }
@@ -817,9 +866,9 @@ fn resolve_field_autowire_singleton(key: &str, dep_type: &str, field: &str) -> S
                     }
                 }
                 let keys: Vec<String> = with_container(|c| c.singletons.keys().cloned().collect());
-                Err(SyxDiagnostic::error(format!(
+                Err(vm_error_at(format!(
                     "field inject '{field}: {key}' missing singleton before seal (dep_type={dep_type}, have {keys:?})"
-                )))
+                ), None, Span::DUMMY, "R003"))
             }
         }
     }
@@ -857,9 +906,12 @@ fn resolve_binding_key(c: &ServiceContainer, key: &str) -> SyxResult<String> {
         .filter(|(name, e)| entry_provides(e, name, key))
         .collect();
     if candidates.is_empty() {
-        return Err(SyxDiagnostic::error(format!(
-            "service '{key}' is not registered"
-        )));
+        return Err(vm_error_at(
+            format!("service '{key}' is not registered"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if candidates.len() == 1 {
         return Ok(candidates[0].0.clone());
@@ -867,13 +919,21 @@ fn resolve_binding_key(c: &ServiceContainer, key: &str) -> SyxResult<String> {
     let primaries: Vec<_> = candidates.iter().filter(|(_, e)| e.primary).collect();
     match primaries.as_slice() {
         [(name, _)] => Ok((*name).clone()),
-        [] => Err(SyxDiagnostic::error(format!(
-            "ambiguous service binding '{key}' among {} without @Primary or @Qualifier",
-            candidates.len()
-        ))),
-        _ => Err(SyxDiagnostic::error(format!(
-            "ambiguous @Primary services for binding '{key}'"
-        ))),
+        [] => Err(vm_error_at(
+            format!(
+                "ambiguous service binding '{key}' among {} without @Primary or @Qualifier",
+                candidates.len()
+            ),
+            None,
+            Span::DUMMY,
+            "R003",
+        )),
+        _ => Err(vm_error_at(
+            format!("ambiguous @Primary services for binding '{key}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )),
     }
 }
 
@@ -894,22 +954,30 @@ fn resolve_one(type_name: &str) -> SyxResult<Value> {
     }
     let phase1 = with_container_mut(|c| -> SyxResult<Phase1> {
         if !c.sealed {
-            return Err(SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "service container not sealed; call __syx_service_boot / __syx_service_seal first",
+                None,
+                Span::DUMMY,
+                "R003",
             ));
         }
         let concrete = resolve_binding_key(c, type_name)?;
         let entry = c.registry.get(&concrete).cloned().ok_or_else(|| {
-            SyxDiagnostic::error(format!("service '{concrete}' is not registered"))
+            vm_error_at(
+                format!("service '{concrete}' is not registered"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         let prototype = is_prototype_scope(&entry.scope);
         let request = is_request_scope(&entry.scope);
 
         if request {
             let Some(frame) = c.request_frame.as_ref() else {
-                return Err(SyxDiagnostic::error(format!(
+                return Err(vm_error_at(format!(
                     "request-scoped service '{concrete}' requires an active request frame; call __syx_service_begin_request first"
-                )));
+                ), None, Span::DUMMY, "R003"));
             };
             if let Some(v) = frame.get(&concrete) {
                 if lazy_flag_true(v) {
@@ -933,9 +1001,12 @@ fn resolve_one(type_name: &str) -> SyxResult<Value> {
                 return Ok(Phase1::Cached(v.clone()));
             }
             if entry.kind == "Bean" && !entry.lazy {
-                return Err(SyxDiagnostic::error(format!(
-                    "@Bean '{concrete}' was not materialized during boot"
-                )));
+                return Err(vm_error_at(
+                    format!("@Bean '{concrete}' was not materialized during boot"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
         }
 
@@ -954,9 +1025,12 @@ fn resolve_one(type_name: &str) -> SyxResult<Value> {
                 c.singletons.insert(concrete.clone(), proxy.clone());
                 return Ok(Phase1::Cached(proxy));
             }
-            return Err(SyxDiagnostic::error(format!(
-                "service resolve cycle at '{concrete}'"
-            )));
+            return Err(vm_error_at(
+                format!("service resolve cycle at '{concrete}'"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
         c.resolving.push(concrete.clone());
         Ok(Phase1::Construct {
@@ -1038,14 +1112,20 @@ fn construct_service_body(concrete: &str, entry: &ServiceEntry) -> SyxResult<Val
 
 fn construct_bean(concrete: &str, entry: &ServiceEntry) -> SyxResult<Value> {
     let config = entry.bean_config.as_deref().ok_or_else(|| {
-        SyxDiagnostic::error(format!(
-            "@Bean '{concrete}' missing factory config metadata for lazy resolve"
-        ))
+        vm_error_at(
+            format!("@Bean '{concrete}' missing factory config metadata for lazy resolve"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let method = entry.bean_method.as_deref().ok_or_else(|| {
-        SyxDiagnostic::error(format!(
-            "@Bean '{concrete}' missing factory method metadata for lazy resolve"
-        ))
+        vm_error_at(
+            format!("@Bean '{concrete}' missing factory method metadata for lazy resolve"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let config_init = find_user_fn_name(config, "init", entry.module_stem.as_deref());
     let config_inst = invoke_user_fn(&config_init, &[])?;
@@ -1086,10 +1166,19 @@ fn ensure_dep_value(type_name: &str, inject_qualifier: Option<&str>) -> SyxResul
 
 fn pop_string(stack: &mut Vec<Value>, label: &str) -> SyxResult<String> {
     let Some(v) = stack.pop() else {
-        return Err(SyxDiagnostic::error(format!(
-            "service host expected String {label}, got empty stack"
-        )));
+        return Err(vm_error_at(
+            format!("service host expected String {label}, got empty stack"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
-    Value::materialize_str(v)
-        .ok_or_else(|| SyxDiagnostic::error(format!("service host expected String {label}")))
+    Value::materialize_str(v).ok_or_else(|| {
+        vm_error_at(
+            format!("service host expected String {label}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
+    })
 }

@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 
-use crate::embedded_std;
+use crate::{driver_error_at, embedded_std};
 
 #[derive(Debug, Clone)]
 pub enum ModuleRef {
@@ -44,7 +44,12 @@ impl ModuleRef {
         match self {
             Self::File(path) => {
                 let text = std::fs::read_to_string(path).map_err(|e| {
-                    SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display()))
+                    driver_error_at(
+                        format!("Failed to read {}: {e}", path.display()),
+                        None,
+                        Span::DUMMY,
+                        "D001",
+                    )
                 })?;
                 let key = path.canonicalize().unwrap_or_else(|_| path.clone());
                 Ok((key, SourceFile::new(path.display().to_string(), text)))

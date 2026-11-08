@@ -5,14 +5,12 @@ use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
     attr_has_ident_arg, borrow_regions_v7_sending_enabled,
     global_actor_v4_cross_module_enabled, global_actor_v5_sendable_enabled,
-    global_actor_v6_sending_enabled, has_attr,
-    module_uses_task_detach, TypeId,
+    global_actor_v6_sending_enabled, has_attr, module_first_task_detach_span, TypeId,
 };
 use smol_str::SmolStr;
 use syx_ast::{
     Decl, Expr, Module, Stmt,
 };
-use syx_diagnostics::SyxDiagnostic;
 
 impl SemanticAnalyzer {
     pub fn check_concurrency_rules(&mut self, module: &Module) {
@@ -28,13 +26,14 @@ impl SemanticAnalyzer {
             return;
         }
         let has_non_sendable = !self.class_names.is_empty();
-        if has_non_sendable && module_uses_task_detach(module) {
-            self.errors.push(
-                SyxDiagnostic::error(
+        if has_non_sendable {
+            if let Some(span) = module_first_task_detach_span(module) {
+                self.errors.push(self.error_at(
                     "Task.detached / __syx_task_detach cannot be used with non-Sendable class types in strict concurrency mode",
-                )
-                .with_code("C003"),
-            );
+                    span,
+                    "C003",
+                ));
+            }
         }
     }
 
@@ -173,19 +172,20 @@ impl SemanticAnalyzer {
         enclosing_actor: Option<&SmolStr>,
     ) {
         match expr {
-            Expr::Call { callee, args, .. } => {
+            Expr::Call { callee, args, span, .. } => {
                 if let Expr::Ident { name, .. } = callee.as_ref() {
                     if let Some(required) = self.function_global_actor.get(name) {
                         if !caller_nonisolated
                             && !self.caller_in_actor(caller_actor, required)
                             && self.strict_concurrency
                         {
-                            self.errors.push(
-                                SyxDiagnostic::error(format!(
+                            self.errors.push(self.error_at(
+                                format!(
                                     "Call to @{required} function '{name}' from non-{required} context"
-                                ))
-                                .with_code("C001"),
-                            );
+                                ),
+                                *span,
+                                "C001",
+                            ));
                         }
                     }
                 }
@@ -199,12 +199,13 @@ impl SemanticAnalyzer {
                                 if !self.caller_in_actor(caller_actor, required)
                                     && self.strict_concurrency
                                 {
-                                    self.errors.push(
-                                        SyxDiagnostic::error(format!(
+                                    self.errors.push(self.error_at(
+                                        format!(
                                             "Call to @{required} function '{module}.{member}' from non-{required} context"
-                                        ))
-                                        .with_code("C001"),
-                                    );
+                                        ),
+                                        *span,
+                                        "C001",
+                                    ));
                                 }
                             }
                         }
@@ -229,12 +230,13 @@ impl SemanticAnalyzer {
                         && !caller_nonisolated
                         && self.strict_concurrency
                     {
-                        self.errors.push(
-                            SyxDiagnostic::error(format!(
+                        self.errors.push(self.error_at(
+                            format!(
                                 "Call to @nonisolated(nonsending) '{name}' crosses actor isolation"
-                            ))
-                            .with_code("C005"),
-                        );
+                            ),
+                            *span,
+                            "C005",
+                        ));
                     }
                 }
                 if let Expr::Member { object, name: method, .. } = callee.as_ref() {
@@ -244,12 +246,13 @@ impl SemanticAnalyzer {
                                 && enclosing_actor != Some(&actor_name)
                             {
                                 if self.strict_concurrency {
-                                    self.errors.push(
-                                        SyxDiagnostic::error(format!(
+                                    self.errors.push(self.error_at(
+                                        format!(
                                             "Cross-actor call to method '{method}' on actor '{actor_name}'"
-                                        ))
-                                        .with_code("C002"),
-                                    );
+                                        ),
+                                        *span,
+                                        "C002",
+                                    ));
                                 }
                                 if let Some(sending_flags) = self
                                     .actor_method_sending
@@ -332,14 +335,15 @@ impl SemanticAnalyzer {
 
     fn check_sending_arg(&mut self, expr: &Expr, context: &str) {
         match expr {
-            Expr::Ident { name, .. } => {
+            Expr::Ident { name, span, .. } => {
                 if self.is_non_sendable_binding(name) {
-                    self.errors.push(
-                        SyxDiagnostic::error(format!(
+                    self.errors.push(self.error_at(
+                        format!(
                             "Non-Sendable value '{name}' cannot cross isolation boundary via `sending` parameter in {context}"
-                        ))
-                        .with_code("C004"),
-                    );
+                        ),
+                        *span,
+                        "C004",
+                    ));
                 }
             }
             _ => {}
@@ -348,28 +352,30 @@ impl SemanticAnalyzer {
 
     fn check_capture_expr(&mut self, expr: &Expr) {
         match expr {
-            Expr::Ident { name, .. } => {
+            Expr::Ident { name, span, .. } => {
                 if self.is_non_sendable_binding(name) && self.strict_concurrency {
-                    self.errors.push(
-                        SyxDiagnostic::error(format!(
+                    self.errors.push(self.error_at(
+                        format!(
                             "Non-Sendable value '{name}' captured in Task.detached context"
-                        ))
-                        .with_code("C003"),
-                    );
+                        ),
+                        *span,
+                        "C003",
+                    ));
                 }
             }
-            Expr::Member { object, name, .. } => {
+            Expr::Member { object, name, span, .. } => {
                 if let Some(TypeId::Named(type_name)) = self.expr_type(object) {
                     if self.class_names.contains(&type_name)
                         && !self.sendable_types.contains(&type_name)
                         && self.strict_concurrency
                     {
-                        self.errors.push(
-                            SyxDiagnostic::error(format!(
+                        self.errors.push(self.error_at(
+                            format!(
                                 "Non-Sendable field access '{name}' on '{type_name}' in Task.detached context"
-                            ))
-                            .with_code("C003"),
-                        );
+                            ),
+                            *span,
+                            "C003",
+                        ));
                     }
                 }
                 self.check_capture_expr(object);

@@ -1,15 +1,17 @@
+mod atomics;
 mod bridge;
 mod mir_runtime;
-mod atomics;
+mod wasm_run_diag;
 
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use syx_mir::MirModule;
 use syx_wasm_emit::host;
+pub(crate) use wasm_run_diag::wasm_run_error_at;
 use wasmtime::{Caller, Config, Engine, Linker, Module, Store};
 
 // Phase 21 CT1 / Phase 22 CY1: WASM threads MVP + prod opt-in worker queue.
@@ -17,14 +19,17 @@ pub const WASM_THREADS_MVP: &str = atomics::WASM_THREADS_MVP;
 pub use atomics::{
     get_message, post_message, wasm_thread_worker_consume_fuel, wasm_thread_worker_fuel_remaining,
     wasm_thread_worker_reset_fuel, wasm_threads_mvp_enabled, wasm_threads_nightly_default_enabled,
-    wasm_threads_prod_enabled, wasm_threads_release_default, wasm_threads_release_default_evaluated,
-    wasm_threads_release_prod_hardened, SharedAtomicsBuffer, WorkerMessage,
+    wasm_threads_prod_enabled, wasm_threads_release_default,
+    wasm_threads_release_default_evaluated, wasm_threads_release_prod_hardened,
+    SharedAtomicsBuffer, WorkerMessage,
 };
 
 // Phase 20 CO4 R&D spike retained for reference.
 pub const WASM_THREADS_RD_SPIKE: &str = "SharedArrayBuffer+Atomics research only (Phase 20)";
 
-pub use bridge::{install_mir_module, install_wasm_task_hosts, wasm_vm_runtime_for, WasmRunContext};
+pub use bridge::{
+    install_mir_module, install_wasm_task_hosts, wasm_vm_runtime_for, WasmRunContext,
+};
 pub use mir_runtime::MirRuntime;
 
 /// Phase 56: WASM guest can proxy dynamic host plugins through the WASI host.
@@ -50,7 +55,12 @@ impl WasiHost {
     pub fn new() -> SyxResult<Self> {
         Ok(Self {
             temp_dir: tempfile::tempdir().map_err(|e| {
-                SyxDiagnostic::error(format!("Failed to create WASI temp dir: {e}"))
+                wasm_run_error_at(
+                    format!("Failed to create WASI temp dir: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "W500",
+                )
             })?,
             open_files: HashMap::new(),
             next_fd: 3,
@@ -61,7 +71,11 @@ impl WasiHost {
         self.temp_dir.path()
     }
 
-    fn read_path_from_memory(caller: &mut Caller<'_, WasmStore>, ptr: i32, len: i32) -> Option<String> {
+    fn read_path_from_memory(
+        caller: &mut Caller<'_, WasmStore>,
+        ptr: i32,
+        len: i32,
+    ) -> Option<String> {
         let memory = caller.get_export("memory")?.into_memory()?;
         let data = memory.data(&mut *caller);
         let start = ptr as usize;
@@ -85,7 +99,11 @@ impl WasiHost {
         true
     }
 
-    fn read_iovs(caller: &mut Caller<'_, WasmStore>, iovs: i32, iovs_len: i32) -> Vec<(usize, usize)> {
+    fn read_iovs(
+        caller: &mut Caller<'_, WasmStore>,
+        iovs: i32,
+        iovs_len: i32,
+    ) -> Vec<(usize, usize)> {
         let Some(memory) = caller.get_export("memory").and_then(|e| e.into_memory()) else {
             return Vec::new();
         };
@@ -246,9 +264,12 @@ fn mir_uses_actors(module: &MirModule) -> bool {
     use syx_mir::MirOp;
     module.functions.iter().any(|f| {
         f.blocks.iter().any(|b| {
-            b.instructions
-                .iter()
-                .any(|i| matches!(i.op, MirOp::ActorCall(_) | MirOp::ActorSend(_) | MirOp::ActorRegister))
+            b.instructions.iter().any(|i| {
+                matches!(
+                    i.op,
+                    MirOp::ActorCall(_) | MirOp::ActorSend(_) | MirOp::ActorRegister
+                )
+            })
         })
     })
 }
@@ -275,16 +296,28 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 0
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link environ_sizes_get: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link environ_sizes_get: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
             "environ_get",
-            |_caller: Caller<'_, WasmStore>, _environ: i32, _environ_buf: i32| -> i32 {
-                0
-            },
+            |_caller: Caller<'_, WasmStore>, _environ: i32, _environ_buf: i32| -> i32 { 0 },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link environ_get: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link environ_get: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -298,7 +331,8 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              _fs_rights_base: i64,
              _fs_rights_inheriting: i64,
              _fs_flags: i32,
-             fd_out: i32| -> i32 {
+             fd_out: i32|
+             -> i32 {
                 let Some(wasi) = caller.data().wasi.clone() else {
                     return 28;
                 };
@@ -308,7 +342,14 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 host.path_open(&mut caller, dirfd, path_ptr, path_len, 0, fd_out)
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link path_open: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link path_open: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -317,7 +358,8 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              fd: i32,
              iovs: i32,
              iovs_len: i32,
-             nread: i32| -> i32 {
+             nread: i32|
+             -> i32 {
                 let Some(wasi) = caller.data().wasi.clone() else {
                     return 28;
                 };
@@ -327,7 +369,14 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 host.fd_read(&mut caller, fd, iovs, iovs_len, nread)
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link fd_read: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link fd_read: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -336,7 +385,8 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              fd: i32,
              iovs: i32,
              iovs_len: i32,
-             nwritten: i32| -> i32 {
+             nwritten: i32|
+             -> i32 {
                 let Some(wasi) = caller.data().wasi.clone() else {
                     return 28;
                 };
@@ -346,7 +396,14 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 host.fd_write(&mut caller, fd, iovs, iovs_len, nwritten)
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link fd_write: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link fd_write: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -365,25 +422,46 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 }
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link fd_close: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link fd_close: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
             "clock_time_get",
-            |_caller: Caller<'_, WasmStore>, _clock_id: i32, _precision: i64, _time_ptr: i32| -> i32 {
-                0
-            },
+            |_caller: Caller<'_, WasmStore>,
+             _clock_id: i32,
+             _precision: i64,
+             _time_ptr: i32|
+             -> i32 { 0 },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link clock_time_get: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link clock_time_get: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
             "random_get",
-            |_caller: Caller<'_, WasmStore>, _buf: i32, _buf_len: i32| -> i32 {
-                0
-            },
+            |_caller: Caller<'_, WasmStore>, _buf: i32, _buf_len: i32| -> i32 { 0 },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link random_get: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link random_get: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -392,11 +470,17 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              _in: i32,
              _out: i32,
              _nsubscriptions: i32,
-             _nevents: i32| -> i32 {
-                0
-            },
+             _nevents: i32|
+             -> i32 { 0 },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link poll_oneoff: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link poll_oneoff: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -405,11 +489,19 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              _af: i32,
              _sock_type: i32,
              _protocol: i32,
-             _fd_out: i32| -> i32 {
+             _fd_out: i32|
+             -> i32 {
                 52 // ENOSYS-style stub for Phase 20 Top-10 parity
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link sock_open: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link sock_open: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -419,11 +511,17 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              _iovs: i32,
              _iovs_len: i32,
              _flags: i32,
-             _nwritten: i32| -> i32 {
-                52
-            },
+             _nwritten: i32|
+             -> i32 { 52 },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link sock_send: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link sock_send: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "wasi_snapshot_preview1",
@@ -433,11 +531,17 @@ fn link_wasi_preview1(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
              _iovs: i32,
              _iovs_len: i32,
              _flags: i32,
-             _nread: i32| -> i32 {
-                52
-            },
+             _nread: i32|
+             -> i32 { 52 },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link sock_recv: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link sock_recv: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     link_wasm_gc_stub(linker)?;
     Ok(())
 }
@@ -484,7 +588,9 @@ pub fn wasi_gc_phase24_enabled() -> bool {
 }
 
 pub fn gc_collect_incremental_sweep() -> i32 {
-    let n = GC_BUMP_NEXT.load(std::sync::atomic::Ordering::SeqCst).saturating_sub(1);
+    let n = GC_BUMP_NEXT
+        .load(std::sync::atomic::Ordering::SeqCst)
+        .saturating_sub(1);
     GC_SWEEP_COUNT.store(n, std::sync::atomic::Ordering::SeqCst);
     n
 }
@@ -585,8 +691,7 @@ pub fn wasi_gc_phase30_prod_default() -> bool {
         .unwrap_or(false)
 }
 
-static GC_WRITE_BARRIER_COUNT: std::sync::atomic::AtomicI32 =
-    std::sync::atomic::AtomicI32::new(0);
+static GC_WRITE_BARRIER_COUNT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
 
 pub fn gc_write_barrier_mark(slot: i32) -> i32 {
     GC_WRITE_BARRIER_COUNT.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
@@ -821,9 +926,7 @@ pub fn gc_card_table_count() -> i32 {
 }
 
 pub fn gc_remembered_set_prod_collect() -> i32 {
-    gc_generational_prod_collect()
-        + gc_remembered_set_count()
-        + gc_card_table_count()
+    gc_generational_prod_collect() + gc_remembered_set_count() + gc_card_table_count()
 }
 
 pub fn gc_sweep_incremental_budget() -> i32 {
@@ -879,9 +982,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         use syx_mir_run::run_mir_function_with_args;
                         use syx_runtime_core::Value;
                         let mut owned = Vec::new();
-                        let memory: &mut [u8] = if let Some(mem) = caller
-                            .get_export("memory")
-                            .and_then(|e| e.into_memory())
+                        let memory: &mut [u8] = if let Some(mem) =
+                            caller.get_export("memory").and_then(|e| e.into_memory())
                         {
                             let len = mem.data_size(&caller) as usize;
                             let ptr = mem.data_ptr(&caller);
@@ -893,8 +995,7 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         let b = rt.stack.pop().unwrap_or(Value::Nil);
                         let a = rt.stack.pop().unwrap_or(Value::Nil);
                         if let Some(func) = rt.functions.get(fn_idx as usize).cloned() {
-                            if let Ok(cmp) =
-                                run_mir_function_with_args(&func, rt, memory, &[a, b])
+                            if let Ok(cmp) = run_mir_function_with_args(&func, rt, memory, &[a, b])
                             {
                                 rt.stack.push(cmp.clone());
                                 return cmp.as_i64() as i32;
@@ -903,16 +1004,34 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         0
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::END_FN {
             let import_name = import.name().to_string();
             linker
-                .func_wrap(host::MODULE, import.name(), move |mut caller: Caller<'_, WasmStore>| {
-                    caller.data_mut().rt.end_function();
-                })
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .func_wrap(
+                    host::MODULE,
+                    import.name(),
+                    move |mut caller: Caller<'_, WasmStore>| {
+                        caller.data_mut().rt.end_function();
+                    },
+                )
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::TAKE_RT_I32 {
@@ -934,7 +1053,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         }
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::STACK_OP {
@@ -945,9 +1071,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                     import.name(),
                     move |mut caller: Caller<'_, WasmStore>, op_code: i32| {
                         let mut owned = Vec::new();
-                        let memory: &mut [u8] = if let Some(mem) = caller
-                            .get_export("memory")
-                            .and_then(|e| e.into_memory())
+                        let memory: &mut [u8] = if let Some(mem) =
+                            caller.get_export("memory").and_then(|e| e.into_memory())
                         {
                             let len = mem.data_size(&caller) as usize;
                             let ptr = mem.data_ptr(&caller);
@@ -962,7 +1087,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             .unwrap_or_else(|e| panic!("aot stack_op: {e}"));
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::TAKE_RT_F64 {
@@ -985,7 +1117,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         }
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::TAKE_RT_F32 {
@@ -1008,7 +1147,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         }
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::PUSH_RT_F64 {
@@ -1025,7 +1171,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             .push(syx_runtime_core::Value::F64(value));
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::PUSH_RT_F32 {
@@ -1042,7 +1195,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             .push(syx_runtime_core::Value::F32(value));
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::TAKE_RT_I64 {
@@ -1061,7 +1221,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             .as_i64()
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::PUSH_RT_I64 {
@@ -1078,7 +1245,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             .push(syx_runtime_core::Value::I64(value));
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::SIMD_GUEST_POP_V128 {
@@ -1092,7 +1266,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         wasmtime::V128::from(bits)
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::SIMD_GUEST_PUSH_V128 {
@@ -1101,14 +1282,23 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                 .func_wrap(
                     host::MODULE,
                     import.name(),
-                    move |mut caller: Caller<'_, WasmStore>, element: i32, value: wasmtime::V128| {
+                    move |mut caller: Caller<'_, WasmStore>,
+                          element: i32,
+                          value: wasmtime::V128| {
                         let _ = caller
                             .data_mut()
                             .rt
                             .simd_guest_push_v128_bits(element, value.as_u128());
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::EXEC_OP || import.name() == aot::RUN_OP {
@@ -1119,9 +1309,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                     import.name(),
                     move |mut caller: Caller<'_, WasmStore>, op: i32, a: i32, b: i32| -> i32 {
                         let mut owned = Vec::new();
-                        let memory: &mut [u8] = if let Some(mem) = caller
-                            .get_export("memory")
-                            .and_then(|e| e.into_memory())
+                        let memory: &mut [u8] = if let Some(mem) =
+                            caller.get_export("memory").and_then(|e| e.into_memory())
                         {
                             let len = mem.data_size(&caller) as usize;
                             let ptr = mem.data_ptr(&caller);
@@ -1136,26 +1325,55 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             .unwrap_or_else(|e| panic!("aot exec_op: {e}"))
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::HEAP_COLLECT {
             let import_name = import.name().to_string();
             linker
-                .func_wrap(host::MODULE, import.name(), move |_caller: Caller<'_, WasmStore>| {
-                    let _ = gc_unified_heap_collect();
-                    let _ = syx_runtime_core::collect_global(&[]);
-                })
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .func_wrap(
+                    host::MODULE,
+                    import.name(),
+                    move |_caller: Caller<'_, WasmStore>| {
+                        let _ = gc_unified_heap_collect();
+                        let _ = syx_runtime_core::collect_global(&[]);
+                    },
+                )
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         if import.name() == aot::HEAP_COMPACT {
             let import_name = import.name().to_string();
             linker
-                .func_wrap(host::MODULE, import.name(), move |mut caller: Caller<'_, WasmStore>| {
-                    caller.data_mut().rt.heap_compact();
-                })
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .func_wrap(
+                    host::MODULE,
+                    import.name(),
+                    move |mut caller: Caller<'_, WasmStore>| {
+                        caller.data_mut().rt.heap_compact();
+                    },
+                )
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         // Wave A W18 / ADR-362: after call_indirect, poll framed pending catch (passthrough i32).
@@ -1174,7 +1392,14 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         }
                     },
                 )
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}")))?;
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
             continue;
         }
         let op_code = match import.name() {
@@ -1268,17 +1493,22 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
         };
 
         match import.name() {
-            aot::LOAD_GLOBAL | aot::ARRAY_BUILD | aot::DICT_BUILD | aot::SET_BUILD | aot::CALL_HOST
-            | aot::SIMD_LOAD | aot::SIMD_STORE | aot::SIMD_SHUFFLE => {
+            aot::LOAD_GLOBAL
+            | aot::ARRAY_BUILD
+            | aot::DICT_BUILD
+            | aot::SET_BUILD
+            | aot::CALL_HOST
+            | aot::SIMD_LOAD
+            | aot::SIMD_STORE
+            | aot::SIMD_SHUFFLE => {
                 linker
                     .func_wrap(
                         host::MODULE,
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, a: i32| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1301,19 +1531,27 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
-            aot::STORE_GLOBAL | aot::STORE_LOCAL | aot::SET_FN_INDEX | aot::PUSH_RT_I32 | aot::PUSH_RT_BOOL => {
+            aot::STORE_GLOBAL
+            | aot::STORE_LOCAL
+            | aot::SET_FN_INDEX
+            | aot::PUSH_RT_I32
+            | aot::PUSH_RT_BOOL => {
                 linker
                     .func_wrap(
                         host::MODULE,
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, a: i32| {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1325,7 +1563,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::PUSH_RT_NIL => {
@@ -1335,9 +1578,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>| {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1349,7 +1591,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::LOAD_LOCAL => {
@@ -1359,9 +1606,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, a: i32| {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1373,7 +1619,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::CONST_STR => {
@@ -1383,9 +1634,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, off: i32, len: i32| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1401,7 +1651,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::CONCAT_STR => {
@@ -1413,9 +1668,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, _left: i32, _right: i32| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1431,7 +1685,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::TO_STR => {
@@ -1441,9 +1700,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, _v: i32| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1459,19 +1717,27 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
-            aot::MAKE_CLOSURE | aot::AWAIT_SUSPEND | aot::BEGIN_TRY | aot::BEGIN_FN | aot::CALL_FN => {
+            aot::MAKE_CLOSURE
+            | aot::AWAIT_SUSPEND
+            | aot::BEGIN_TRY
+            | aot::BEGIN_FN
+            | aot::CALL_FN => {
                 linker
                     .func_wrap(
                         host::MODULE,
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, a: i32, b: i32| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1487,7 +1753,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             // ADR-631: Actor*/TaskSpawn name offsets address MirRuntime.string_pool, not wasm memory.
@@ -1506,7 +1777,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::PRINT => {
@@ -1516,9 +1792,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, _val: i32| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1535,30 +1810,69 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
-            aot::MAKE_ITERATOR | aot::ITERATOR_NEXT | aot::ARRAY_GET | aot::ARRAY_SET
-            | aot::OBJECT_GET | aot::OBJECT_SET | aot::VALUE_EQ | aot::VALUE_NE | aot::REF_EQ
-            | aot::REF_NE | aot::ARRAY_SORTED | aot::CALL_CLOSURE | aot::AWAIT_POLL
+            aot::MAKE_ITERATOR
+            | aot::ITERATOR_NEXT
+            | aot::ARRAY_GET
+            | aot::ARRAY_SET
+            | aot::OBJECT_GET
+            | aot::OBJECT_SET
+            | aot::VALUE_EQ
+            | aot::VALUE_NE
+            | aot::REF_EQ
+            | aot::REF_NE
+            | aot::ARRAY_SORTED
+            | aot::CALL_CLOSURE
+            | aot::AWAIT_POLL
             | aot::GET_RETURN
-            | aot::ACTOR_REGISTER | aot::TASK_JOIN | aot::CATCH | aot::THROW | aot::END_TRY
-            | aot::SIMD_ADD | aot::SIMD_SUB | aot::SIMD_MUL | aot::SIMD_DIV | aot::SIMD_EQ
-            | aot::SIMD_LT | aot::SIMD_GT | aot::SIMD_NE | aot::SIMD_LE | aot::SIMD_GE
-            | aot::SIMD_AND | aot::SIMD_OR | aot::SIMD_XOR | aot::SIMD_NOT | aot::SIMD_SHL
-            | aot::SIMD_SHR | aot::SIMD_MIN | aot::SIMD_MAX | aot::SIMD_F32_ADD
-            | aot::SIMD_F32_SUB | aot::SIMD_F32_MUL | aot::SIMD_F32_DIV | aot::SIMD_F64_ADD
-            | aot::SIMD_F64_SUB | aot::SIMD_F64_MUL | aot::SIMD_F64_DIV
-            | aot::SIMD_I16_ADD | aot::SIMD_I64_ADD => {
+            | aot::ACTOR_REGISTER
+            | aot::TASK_JOIN
+            | aot::CATCH
+            | aot::THROW
+            | aot::END_TRY
+            | aot::SIMD_ADD
+            | aot::SIMD_SUB
+            | aot::SIMD_MUL
+            | aot::SIMD_DIV
+            | aot::SIMD_EQ
+            | aot::SIMD_LT
+            | aot::SIMD_GT
+            | aot::SIMD_NE
+            | aot::SIMD_LE
+            | aot::SIMD_GE
+            | aot::SIMD_AND
+            | aot::SIMD_OR
+            | aot::SIMD_XOR
+            | aot::SIMD_NOT
+            | aot::SIMD_SHL
+            | aot::SIMD_SHR
+            | aot::SIMD_MIN
+            | aot::SIMD_MAX
+            | aot::SIMD_F32_ADD
+            | aot::SIMD_F32_SUB
+            | aot::SIMD_F32_MUL
+            | aot::SIMD_F32_DIV
+            | aot::SIMD_F64_ADD
+            | aot::SIMD_F64_SUB
+            | aot::SIMD_F64_MUL
+            | aot::SIMD_F64_DIV
+            | aot::SIMD_I16_ADD
+            | aot::SIMD_I64_ADD => {
                 linker
                     .func_wrap(
                         host::MODULE,
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>| -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1574,7 +1888,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::SIMD_WASM_SPILL | aot::SIMD_WASM_FILL | aot::PUSH_RT_NUMERIC => {
@@ -1584,9 +1903,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         import.name(),
                         move |mut caller: Caller<'_, WasmStore>, slot: i32, scratch: i32| {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1594,14 +1912,16 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             } else {
                                 &mut owned
                             };
-                            let _ = caller
-                                .data_mut()
-                                .rt
-                                .exec(op_code, slot, scratch, 0, memory);
+                            let _ = caller.data_mut().rt.exec(op_code, slot, scratch, 0, memory);
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             aot::CONST_NUMERIC128 => {
@@ -1617,9 +1937,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                               hi1: i32|
                               -> i32 {
                             let mut owned = Vec::new();
-                            let memory: &mut [u8] = if let Some(mem) = caller
-                                .get_export("memory")
-                                .and_then(|e| e.into_memory())
+                            let memory: &mut [u8] = if let Some(mem) =
+                                caller.get_export("memory").and_then(|e| e.into_memory())
                             {
                                 let len = mem.data_size(&caller) as usize;
                                 let ptr = mem.data_ptr(&caller);
@@ -1635,7 +1954,12 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         },
                     )
                     .map_err(|e| {
-                        SyxDiagnostic::error(format!("Failed to link `{import_name}`: {e}"))
+                        wasm_run_error_at(
+                            format!("Failed to link `{import_name}`: {e}"),
+                            None,
+                            Span::DUMMY,
+                            "W501",
+                        )
                     })?;
             }
             _ => {}
@@ -1656,7 +1980,12 @@ fn link_syx_host_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) -
             continue;
         }
         let host_idx = host_fn_index_by_name(import.name()).ok_or_else(|| {
-            SyxDiagnostic::error(format!("unknown WASM host import `{}`", import.name()))
+            wasm_run_error_at(
+                format!("unknown WASM host import `{}`", import.name()),
+                None,
+                Span::DUMMY,
+                "W502",
+            )
         })?;
         linker
             .func_wrap(
@@ -1664,9 +1993,8 @@ fn link_syx_host_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) -
                 import.name(),
                 move |mut caller: Caller<'_, WasmStore>| -> i32 {
                     let mut owned = Vec::new();
-                    let memory: &mut [u8] = if let Some(mem) = caller
-                        .get_export("memory")
-                        .and_then(|e| e.into_memory())
+                    let memory: &mut [u8] = if let Some(mem) =
+                        caller.get_export("memory").and_then(|e| e.into_memory())
                     {
                         let len = mem.data_size(&caller) as usize;
                         let ptr = mem.data_ptr(&caller);
@@ -1695,10 +2023,12 @@ fn link_syx_host_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) -
                 },
             )
             .map_err(|e| {
-                SyxDiagnostic::error(format!(
-                    "Failed to link host import `{}`: {e}",
-                    import.name()
-                ))
+                wasm_run_error_at(
+                    format!("Failed to link host import `{}`: {e}", import.name()),
+                    None,
+                    Span::DUMMY,
+                    "W501",
+                )
             })?;
     }
     Ok(())
@@ -1755,7 +2085,14 @@ fn link_wasm_gc_stub(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 }
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link syx_gc.alloc: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link syx_gc.alloc: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
         .func_wrap(
             "syx_gc",
@@ -1797,7 +2134,14 @@ fn link_wasm_gc_stub(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 }
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link syx_gc.collect: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link syx_gc.collect: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     Ok(())
 }
 
@@ -1812,27 +2156,50 @@ fn link_wasm_threads_mvp(linker: &mut Linker<WasmStore>) -> SyxResult<()> {
                 delta
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link sab_atomic_add: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link sab_atomic_add: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     linker
-        .func_wrap("syx_threads", "sab_len", |_caller: Caller<'_, WasmStore>, ptr: i32| -> i32 {
-            let _ = ptr;
-            1
-        })
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link sab_len: {e}")))?;
+        .func_wrap(
+            "syx_threads",
+            "sab_len",
+            |_caller: Caller<'_, WasmStore>, ptr: i32| -> i32 {
+                let _ = ptr;
+                1
+            },
+        )
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link sab_len: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
     Ok(())
 }
 
 fn run_mir_entry_capture(module: &MirModule, entry: &str) -> SyxResult<WasmRunResult> {
     let mir = Arc::new(module.clone());
     let (mut rt, ctx) = init_wasm_rt(mir);
-    let module = ctx
-        .module()
-        .expect("mir installed");
+    let module = ctx.module().expect("mir installed");
     let main = module
         .functions
         .iter()
         .find(|f| f.name == entry)
-        .ok_or_else(|| SyxDiagnostic::error(format!("No MIR function '{entry}'")))?;
+        .ok_or_else(|| {
+            wasm_run_error_at(
+                format!("No MIR function '{entry}'"),
+                None,
+                Span::DUMMY,
+                "W507",
+            )
+        })?;
     syx_vm::set_mir_closure_executor(syx_mir_run::execute_mir_closure);
     syx_vm::set_mir_closure_preferred(true);
     syx_mir_run::pin_active_mir_runtime(&mut rt);
@@ -1863,10 +2230,7 @@ fn mir_exec_dispatch(caller: &mut Caller<'_, WasmStore>, op: i32, a: i32, b: i32
         op_code,
         syx_mir_run::op::SIMD_WASM_SPILL | syx_mir_run::op::SIMD_WASM_FILL
     ) {
-        if let Some(mem) = caller
-            .get_export("memory")
-            .and_then(|e| e.into_memory())
-        {
+        if let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) {
             let len = mem.data_size(&mut *caller) as usize;
             let ptr = mem.data_ptr(&mut *caller);
             unsafe { std::slice::from_raw_parts_mut(ptr, len) }
@@ -1875,10 +2239,7 @@ fn mir_exec_dispatch(caller: &mut Caller<'_, WasmStore>, op: i32, a: i32, b: i32
         }
     } else if uses_interpreter_string_pool(op_code) {
         &mut owned
-    } else if let Some(mem) = caller
-        .get_export("memory")
-        .and_then(|e| e.into_memory())
-    {
+    } else if let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) {
         let len = mem.data_size(&mut *caller) as usize;
         let ptr = mem.data_ptr(&mut *caller);
         unsafe { std::slice::from_raw_parts_mut(ptr, len) }
@@ -1925,7 +2286,12 @@ pub fn run_wasm_capture(
     }
     let engine = wasm_engine();
     let wasm_module = Module::new(&engine, wasm).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to load WASM module: {e:?}"))
+        wasm_run_error_at(
+            format!("Failed to load WASM module: {e:?}"),
+            None,
+            Span::DUMMY,
+            "W503",
+        )
     })?;
     let (rt, ctx) = if let Some(mir) = module {
         init_wasm_rt(Arc::new(mir.clone()))
@@ -1937,12 +2303,15 @@ pub fn run_wasm_capture(
     } else {
         None
     };
-    let mut store = Store::new(&engine, WasmStore {
-        rt,
-        ctx: Arc::clone(&ctx),
-        wasi: wasi_host,
-        host_fail: None,
-    });
+    let mut store = Store::new(
+        &engine,
+        WasmStore {
+            rt,
+            ctx: Arc::clone(&ctx),
+            wasi: wasi_host,
+            host_fail: None,
+        },
+    );
     let mut linker = Linker::new(&engine);
 
     linker
@@ -1953,7 +2322,14 @@ pub fn run_wasm_capture(
                 mir_exec_dispatch(&mut caller, op, a, b)
             },
         )
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link mir_exec: {e}")))?;
+        .map_err(|e| {
+            wasm_run_error_at(
+                format!("Failed to link mir_exec: {e}"),
+                None,
+                Span::DUMMY,
+                "W501",
+            )
+        })?;
 
     if wasi_enabled() {
         link_wasi_preview1(&mut linker)?;
@@ -1969,21 +2345,34 @@ pub fn run_wasm_capture(
 
     // Wave A W534 / ADR-878: handle C ABI link retired (no emit consumers).
 
-    let instance = linker
-        .instantiate(&mut store, &wasm_module)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to instantiate WASM module: {e}")))?;
+    let instance = linker.instantiate(&mut store, &wasm_module).map_err(|e| {
+        wasm_run_error_at(
+            format!("Failed to instantiate WASM module: {e}"),
+            None,
+            Span::DUMMY,
+            "W504",
+        )
+    })?;
     let func = instance
         .get_typed_func::<(), i32>(&mut store, entry)
         .map_err(|e| {
-            SyxDiagnostic::error(format!(
-                "Failed to resolve exported function '{entry}': {e}"
-            ))
+            wasm_run_error_at(
+                format!("Failed to resolve exported function '{entry}': {e}"),
+                None,
+                Span::DUMMY,
+                "W505",
+            )
         })?;
     syx_vm::set_mir_closure_executor(syx_mir_run::execute_mir_closure);
     syx_vm::set_mir_closure_preferred(true);
     syx_mir_run::pin_active_mir_runtime(&mut store.data_mut().rt);
     let exit_code = func.call(&mut store, ()).map_err(|e| {
-        SyxDiagnostic::error(format!("WASM trap while invoking '{entry}': {e}"))
+        wasm_run_error_at(
+            format!("WASM trap while invoking '{entry}': {e}"),
+            None,
+            Span::DUMMY,
+            "W506",
+        )
     })?;
     syx_mir_run::unpin_active_mir_runtime();
     syx_vm::clear_mir_closure_executor();
@@ -2077,11 +2466,7 @@ func main() {
                 match &instr.op {
                     MirOp::Return => break,
                     MirOp::Call(name) => {
-                        let idx = mir
-                            .functions
-                            .iter()
-                            .position(|f| f.name == *name)
-                            .unwrap();
+                        let idx = mir.functions.iter().position(|f| f.name == *name).unwrap();
                         rt.exec(op::CALL_FN, idx as i32, 0, 0, &mut [])
                             .expect("call");
                         if name.as_str() == "Counter_init" {
@@ -2174,7 +2559,11 @@ func main() {
         let wasm = emit_wasm(&mir).unwrap();
         let result = run_wasm_capture(&wasm, "main", Some(&mir)).unwrap();
         assert_eq!(result.exit_code, 0);
-        assert!(result.printed.iter().any(|l| l == "42"), "{:?}", result.printed);
+        assert!(
+            result.printed.iter().any(|l| l == "42"),
+            "{:?}",
+            result.printed
+        );
     }
 
     #[test]
@@ -2203,14 +2592,8 @@ func main() {
             .position(|f| f.name == "Counter_init")
             .expect("Counter_init");
         rt.begin_function(1);
-        rt.exec_mir_op(
-            &MirOp::ConstNumeric {
-                kind: 3,
-                bits: 0,
-            },
-            &mut [],
-        )
-        .expect("const");
+        rt.exec_mir_op(&MirOp::ConstNumeric { kind: 3, bits: 0 }, &mut [])
+            .expect("const");
         rt.call_fn(idx, &mut []).expect("init");
         let actor = rt.stack.last().expect("actor on stack");
         assert!(
@@ -2258,7 +2641,10 @@ func main() {
             },
         ]);
         let wasm = emit_wasm(&module).unwrap();
-        assert_eq!(run_wasm_with_module(&wasm, "main", Some(&module)).unwrap(), 42);
+        assert_eq!(
+            run_wasm_with_module(&wasm, "main", Some(&module)).unwrap(),
+            42
+        );
     }
 
     #[test]
@@ -2437,7 +2823,7 @@ func main() {
                 init_wrap_pc: 0,
             }],
             ..Default::default()
-};
+        };
         let wasm = emit_wasm(&module).unwrap();
         run_wasm_with_module(&wasm, "main", Some(&module)).unwrap();
     }

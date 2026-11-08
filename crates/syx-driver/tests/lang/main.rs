@@ -123,3 +123,6 @@ mod s2_06_claim_contract;
 mod s2_07_version_census_contract;
 mod s2_07_inject_cargo_pkg_version_contract;
 mod s2_07_claim_contract;
+mod s2_stage2_exit_contract;
+mod s3_01_span_census_contract;
+mod s3_01_claim_contract;

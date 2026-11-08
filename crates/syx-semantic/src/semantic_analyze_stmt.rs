@@ -3,7 +3,7 @@
 
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
-    borrow_regions_v7_enabled, Scope,
+    borrow_regions_v7_enabled, expr_span, Scope,
     Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
 };
 use smol_str::SmolStr;
@@ -11,7 +11,7 @@ use std::collections::HashSet;
 use syx_ast::{
     AccessLevel, Expr, Literal, Stmt,
 };
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::SyxResult;
 
 impl SemanticAnalyzer {
     pub(crate) fn analyze_block(&mut self, stmts: &[Stmt]) -> SyxResult<()> {
@@ -45,7 +45,7 @@ impl SemanticAnalyzer {
                 ..
             } => {
                 let annotated = ty.as_ref().map(|t| {
-                    self.validate_type_expr(t);
+                    self.validate_type_expr(t, *span);
                     self.resolve_type_expr(t)
                 });
                 let (inferred, expr_ty) = if let Some(expr) = init {
@@ -78,12 +78,15 @@ impl SemanticAnalyzer {
                         *span,
                     )?;
                 }
-                self.scope.define(Symbol {
-                    name: name.clone(),
-                    ty: final_ty.clone(),
-                    mutable: *mutable,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_symbol(
+                    Symbol {
+                        name: name.clone(),
+                        ty: final_ty.clone(),
+                        mutable: *mutable,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 self.track_binding(name.clone(), final_ty.clone(), span.start);
                 if self.current_function_is_async
                     && matches!(final_ty, TypeId::Reference(_) | TypeId::MutReference(_))
@@ -97,12 +100,13 @@ impl SemanticAnalyzer {
                                 if self.borrow_region_depth > 0
                                     && self.immutable_ref_bindings.contains(src)
                                 {
-                                    self.errors.push(
-                                        SyxDiagnostic::error(format!(
+                                    self.errors.push(self.error_at(
+                                        format!(
                                             "Cannot borrow '{src}' as mutable while an immutable borrow is active in this region"
-                                        ))
-                                        .with_code("S011"),
-                                    );
+                                        ),
+                                        *span,
+                                        "S011",
+                                    ));
                                 }
                             }
                         } else if let Expr::Ident { name: src, .. } = expr.as_ref() {
@@ -110,12 +114,13 @@ impl SemanticAnalyzer {
                                 && self.current_function_is_async
                                 && self.borrow_region_depth >= 2
                             {
-                                self.errors.push(
-                                    SyxDiagnostic::error(format!(
+                                self.errors.push(self.error_at(
+                                    format!(
                                         "Nested async borrow region cannot reborrow '{src}' immutably"
-                                    ))
-                                    .with_code("S011"),
-                                );
+                                    ),
+                                    *span,
+                                    "S011",
+                                ));
                             }
                             if self.borrow_region_depth > 1 {
                                 if let Some(lt) = ty
@@ -125,13 +130,14 @@ impl SemanticAnalyzer {
                                     if !self.active_lifetime_labels.is_empty()
                                         && !self.active_lifetime_labels.contains(&lt)
                                     {
-                                        self.errors.push(
-                                            SyxDiagnostic::error(format!(
+                                        self.errors.push(self.error_at(
+                                            format!(
                                                 "Conflicting borrow regions '{lt}' vs active {:?}",
                                                 self.active_lifetime_labels
-                                            ))
-                                            .with_code("S011"),
-                                        );
+                                            ),
+                                            *span,
+                                            "S011",
+                                        ));
                                     }
                                     self.active_lifetime_labels.insert(lt);
                                 }
@@ -159,12 +165,13 @@ impl SemanticAnalyzer {
                     if let Expr::Borrow { expr, .. } = v {
                         if let Expr::Ident { name, .. } = expr.as_ref() {
                             if self.scope.lookup(name).is_some() {
-                                self.errors.push(
-                                    SyxDiagnostic::error(format!(
+                                self.errors.push(self.error_at(
+                                    format!(
                                         "Cannot return reference to local binding '{name}'"
-                                    ))
-                                    .with_code("S011"),
-                                );
+                                    ),
+                                    expr_span(v),
+                                    "S011",
+                                ));
                             }
                         }
                     }
@@ -225,12 +232,15 @@ impl SemanticAnalyzer {
                         TypeId::Unknown
                     }
                 };
-                self.scope.define(Symbol {
-                    name: name.clone(),
-                    ty: elem_ty,
-                    mutable: false,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_symbol(
+                    Symbol {
+                        name: name.clone(),
+                        ty: elem_ty,
+                        mutable: false,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 self.analyze_block(body)?;
                 Ok(())
             }
@@ -296,12 +306,16 @@ impl SemanticAnalyzer {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
                 };
-                catch_scope.define(Symbol {
-                    name: catch_name.clone(),
-                    ty: catch_ty.clone(),
-                    mutable: false,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_in_scope(
+                    &mut catch_scope,
+                    Symbol {
+                        name: catch_name.clone(),
+                        ty: catch_ty.clone(),
+                        mutable: false,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 // Persist for IDE hover after the catch scope is popped (locals
                 // must beat host globals such as Math constant host `e`).
                 self.track_binding(catch_name.clone(), catch_ty, span.start);
@@ -311,6 +325,7 @@ impl SemanticAnalyzer {
                 Ok(())
             }
             Stmt::Switch {
+                span,
                 subject,
                 cases,
                 default,
@@ -330,17 +345,18 @@ impl SemanticAnalyzer {
                                 .cloned()
                                 .collect();
                             if !missing.is_empty() {
-                                self.errors.push(
-                                    SyxDiagnostic::error(format!(
+                                self.errors.push(self.error_at(
+                                    format!(
                                         "Switch on enum '{enum_name}' is not exhaustive; missing case(s): {}",
                                         missing
                                             .iter()
                                             .map(|c| c.as_str())
                                             .collect::<Vec<_>>()
                                             .join(", ")
-                                    ))
-                                    .with_code("S007"),
-                                );
+                                    ),
+                                    expr_span(subject),
+                                    "S007",
+                                ));
                             }
                         }
                     }
@@ -354,10 +370,11 @@ impl SemanticAnalyzer {
                         TypeId::Array(_) | TypeId::Tuple { .. } | TypeId::Unknown
                     )
                 {
-                    self.errors.push(
-                        SyxDiagnostic::error("Tuple pattern requires an array/tuple subject")
-                            .with_code("S015"),
-                    );
+                    self.errors.push(self.error_at(
+                        "Tuple pattern requires an array/tuple subject",
+                        expr_span(subject),
+                        "S015",
+                    ));
                 }
                 for case in cases {
                     let pattern = &case.pattern;
@@ -368,34 +385,41 @@ impl SemanticAnalyzer {
                     };
                     if let Expr::VariantPattern { bindings, .. } = pattern {
                         for (_label, bind) in bindings {
-                            case_scope.define(Symbol {
-                                name: bind.clone(),
-                                ty: TypeId::Unknown,
-                                mutable: false,
-                                access: AccessLevel::Internal,
-                            })?;
+                            self.define_in_scope(
+                                &mut case_scope,
+                                Symbol {
+                                    name: bind.clone(),
+                                    ty: TypeId::Unknown,
+                                    mutable: false,
+                                    access: AccessLevel::Internal,
+                                },
+                                *span,
+                            )?;
                         }
                     }
                     if let Expr::TuplePattern { bindings, .. } = pattern {
                         for bind in bindings {
-                            case_scope.define(Symbol {
-                                name: bind.clone(),
-                                ty: TypeId::Unknown,
-                                mutable: false,
-                                access: AccessLevel::Internal,
-                            })?;
+                            self.define_in_scope(
+                                &mut case_scope,
+                                Symbol {
+                                    name: bind.clone(),
+                                    ty: TypeId::Unknown,
+                                    mutable: false,
+                                    access: AccessLevel::Internal,
+                                },
+                                *span,
+                            )?;
                         }
                     }
                     std::mem::swap(&mut self.scope, &mut case_scope);
                     if let Some(guard) = &case.guard {
                         let guard_ty = self.analyze_expr(guard)?;
                         if guard_ty != TypeId::Bool {
-                            self.errors.push(
-                                SyxDiagnostic::error(
-                                    "Switch case 'where' guard must be a Bool expression",
-                                )
-                                .with_code("S013"),
-                            );
+                            self.errors.push(self.error_at(
+                                "Switch case 'where' guard must be a Bool expression",
+                                expr_span(guard),
+                                "S013",
+                            ));
                         }
                     }
                     self.analyze_block(body)?;
@@ -415,12 +439,11 @@ impl SemanticAnalyzer {
                             )
                     });
                     if all_have_where && !has_plain_literal {
-                        self.errors.push(
-                            SyxDiagnostic::error(
-                                "Switch with only 'where' guards requires a default case for exhaustiveness",
-                            )
-                            .with_code("S013"),
-                        );
+                        self.errors.push(self.error_at(
+                            "Switch with only 'where' guards requires a default case for exhaustiveness",
+                            expr_span(subject),
+                            "S013",
+                        ));
                     }
                 }
                 if let Some(body) = default {
@@ -429,6 +452,7 @@ impl SemanticAnalyzer {
                 Ok(())
             }
             Stmt::IfCase {
+                span,
                 pattern,
                 subject,
                 body,
@@ -442,29 +466,36 @@ impl SemanticAnalyzer {
                         TypeId::Array(_) | TypeId::Tuple { .. } | TypeId::Unknown
                     )
                 {
-                    self.errors.push(
-                        SyxDiagnostic::error("Tuple pattern requires an array/tuple subject")
-                            .with_code("S015"),
-                    );
+                    self.errors.push(self.error_at(
+                        "Tuple pattern requires an array/tuple subject",
+                        expr_span(subject),
+                        "S015",
+                    ));
                 }
                 if let Expr::VariantPattern { bindings, .. } = pattern {
                     for (_label, bind) in bindings {
-                        self.scope.define(Symbol {
-                            name: bind.clone(),
-                            ty: TypeId::Unknown,
-                            mutable: false,
-                            access: AccessLevel::Internal,
-                        })?;
+                        self.define_symbol(
+                            Symbol {
+                                name: bind.clone(),
+                                ty: TypeId::Unknown,
+                                mutable: false,
+                                access: AccessLevel::Internal,
+                            },
+                            *span,
+                        )?;
                     }
                 }
                 if let Expr::TuplePattern { bindings, .. } = pattern {
                     for bind in bindings {
-                        self.scope.define(Symbol {
-                            name: bind.clone(),
-                            ty: TypeId::Unknown,
-                            mutable: false,
-                            access: AccessLevel::Internal,
-                        })?;
+                        self.define_symbol(
+                            Symbol {
+                                name: bind.clone(),
+                                ty: TypeId::Unknown,
+                                mutable: false,
+                                access: AccessLevel::Internal,
+                            },
+                            *span,
+                        )?;
                     }
                 }
                 self.analyze_block(body)?;
@@ -474,6 +505,7 @@ impl SemanticAnalyzer {
                 Ok(())
             }
             Stmt::IfLet {
+                span,
                 name,
                 pattern,
                 body,
@@ -482,12 +514,15 @@ impl SemanticAnalyzer {
             } => {
                 let bind_ty = self.infer_pattern_type(pattern)?;
                 self.analyze_expr(pattern)?;
-                self.scope.define(Symbol {
-                    name: name.clone(),
-                    ty: bind_ty,
-                    mutable: false,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_symbol(
+                    Symbol {
+                        name: name.clone(),
+                        ty: bind_ty,
+                        mutable: false,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 self.analyze_block(body)?;
                 if let Some(else_b) = else_branch {
                     self.analyze_block(else_b)?;
@@ -495,6 +530,7 @@ impl SemanticAnalyzer {
                 Ok(())
             }
             Stmt::GuardLet {
+                span,
                 name,
                 pattern,
                 body,
@@ -503,12 +539,15 @@ impl SemanticAnalyzer {
             } => {
                 let bind_ty = self.infer_pattern_type(pattern)?;
                 self.analyze_expr(pattern)?;
-                self.scope.define(Symbol {
-                    name: name.clone(),
-                    ty: bind_ty,
-                    mutable: false,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_symbol(
+                    Symbol {
+                        name: name.clone(),
+                        ty: bind_ty,
+                        mutable: false,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 self.analyze_block(else_branch)?;
                 self.analyze_block(body)?;
                 Ok(())

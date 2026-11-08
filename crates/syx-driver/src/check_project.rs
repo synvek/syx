@@ -2,11 +2,12 @@
 //! Extracted in S2-I225 (zero semantics).
 
 use crate::{
-    compile_file_with_options, compile_project_with_options, DriverOptions, ModuleUnit,
+    compile_file_with_options, compile_project_with_options, driver_error_at, DriverOptions,
+    ModuleUnit,
 };
 use indexmap::IndexMap;
 use std::path::Path;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_frontend::expand_macros;
 use syx_parser::{Parser, MAX_COLLECTED_PARSE_DIAGNOSTICS};
 use syx_semantic::SemanticAnalyzer;
@@ -27,25 +28,35 @@ pub fn check_project_with_options(
     if !diags.is_empty() {
         return Err(diags);
     }
-    compile_project_with_options(root, options).map(|_| ()).map_err(|e| vec![e])
+    compile_project_with_options(root, options)
+        .map(|_| ())
+        .map_err(|e| vec![e])
 }
 
 /// Walk package `.sy` files (same skip rules as service scan) and append parse_collecting diags.
-fn collect_project_parse_diagnostics(
-    dir: &Path,
-    out: &mut Vec<SyxDiagnostic>,
-) -> SyxResult<()> {
+fn collect_project_parse_diagnostics(dir: &Path, out: &mut Vec<SyxDiagnostic>) -> SyxResult<()> {
     if !dir.is_dir() {
         return Ok(());
     }
-    for entry in std::fs::read_dir(dir)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", dir.display())))?
-    {
+    for entry in std::fs::read_dir(dir).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", dir.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })? {
         if out.len() >= MAX_COLLECTED_PARSE_DIAGNOSTICS {
             break;
         }
-        let entry =
-            entry.map_err(|e| SyxDiagnostic::error(format!("Failed to read entry: {e}")))?;
+        let entry = entry.map_err(|e| {
+            driver_error_at(
+                format!("Failed to read entry: {e}"),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
+        })?;
         let path = entry.path();
         if path.is_dir() {
             if path.file_name().is_some_and(|n| {
@@ -63,7 +74,12 @@ fn collect_project_parse_diagnostics(
             continue;
         }
         let text = std::fs::read_to_string(&path).map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display()))
+            driver_error_at(
+                format!("Failed to read {}: {e}", path.display()),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
         })?;
         let source = SourceFile::new(path.display().to_string(), text);
         let outcome = Parser::parse_collecting(source);
@@ -89,10 +105,12 @@ pub fn check_file_with_options(
     options: &DriverOptions,
 ) -> Result<ModuleUnit, Vec<SyxDiagnostic>> {
     let text = std::fs::read_to_string(path).map_err(|e| {
-        vec![SyxDiagnostic::error(format!(
-            "Failed to read {}: {e}",
-            path.display()
-        ))]
+        vec![driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )]
     })?;
     let source = SourceFile::new(path.display().to_string(), text);
     let outcome = Parser::parse_collecting(source.clone());

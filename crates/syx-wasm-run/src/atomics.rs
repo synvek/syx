@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
-use std::sync::{Mutex, OnceLock};
 use std::sync::atomic::{AtomicI32, Ordering};
+use std::sync::{Mutex, OnceLock};
 
 /// Phase 21 CT1 / Phase 22 CY1: MVP SharedArrayBuffer + Atomics host hook (single-threaded host simulation).
 pub struct SharedAtomicsBuffer {
@@ -37,21 +37,15 @@ fn worker_messages() -> &'static Mutex<VecDeque<WorkerMessage>> {
 }
 
 pub fn post_message(worker_id: i32, payload: impl Into<String>) {
-    worker_messages()
-        .lock()
-        .unwrap()
-        .push_back(WorkerMessage {
-            worker_id,
-            payload: payload.into(),
-        });
+    worker_messages().lock().unwrap().push_back(WorkerMessage {
+        worker_id,
+        payload: payload.into(),
+    });
 }
 
 pub fn get_message(worker_id: i32) -> Option<String> {
     let mut queue = worker_messages().lock().unwrap();
-    if let Some(pos) = queue
-        .iter()
-        .position(|m| m.worker_id == worker_id)
-    {
+    if let Some(pos) = queue.iter().position(|m| m.worker_id == worker_id) {
         return queue.remove(pos).map(|m| m.payload);
     }
     None

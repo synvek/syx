@@ -4,6 +4,7 @@ pub use mir_text::format_mir_module;
 mod mir_types;
 pub use mir_types::{MirOp, MirInstr, MirBlock, MirFunction, MirModule, is_suite1_pilot_mir_op, mir_module_aot_export_root_refs};
 
+mod mir_diag;
 mod mir_codec;
 pub use mir_codec::{
     encode_module, decode_module,

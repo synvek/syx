@@ -48,9 +48,10 @@ fn s2_07_plan_claim_locked() {
         plan02.contains("S2-I265") || plan02.contains("stage2-s2-07-claim"),
         "plan/02 must cite S2-I265 claim"
     );
+    // After S2-I266, Stage-2 summary is [x] 退出; residual [~] rows (e.g. S1-04) may remain.
     assert!(
-        plan02.contains("| **2** |") && plan02.contains("`[~]`"),
-        "plan/02 stage-2 summary must remain [~]"
+        plan02.contains("| **2** |"),
+        "plan/02 must retain stage-2 summary row"
     );
 
     let census = repo_file("docs/stage2-version-census.md");

@@ -7,6 +7,7 @@ mod bridge;
 mod link;
 mod llvm_stub_audit;
 mod llvm_stubs;
+mod rt_diag;
 
 pub use abi::{
     aot_execution_segment_omitted, install_metadata_sidecar_view,

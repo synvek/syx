@@ -1,8 +1,8 @@
 use smol_str::SmolStr;
-use syx_ast::{
-    AccessLevel, BinOp, CallArg, Decl, Expr, Module, Param, ParamLabel, Stmt, TypeExpr,
-};
-use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+use syx_ast::{AccessLevel, BinOp, CallArg, Decl, Expr, Module, Param, ParamLabel, Stmt, TypeExpr};
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::async_error_at;
 
 const SLEEP_WORKER: &str = "__syx_async_sleep_worker";
 
@@ -49,7 +49,13 @@ pub fn lower_async_module(module: &mut Module) -> SyxResult<()> {
             Decl::Export { item, .. } => item.as_mut(),
             other => other,
         };
-        if let Decl::Function { name, body, is_async: false, .. } = body_fn {
+        if let Decl::Function {
+            name,
+            body,
+            is_async: false,
+            ..
+        } = body_fn
+        {
             if !name.as_str().starts_with("__async_") && !name.as_str().starts_with("__syx_") {
                 lower_async_let_in_stmts(body, &mut 0);
             }
@@ -73,10 +79,14 @@ pub fn validate_no_unlowered_loop_await(module: &Module) -> SyxResult<()> {
         } = decl
         {
             if find_await_in_loop(body).is_some() {
-                return Err(SyxDiagnostic::error(format!(
-                    "Function '{name}' uses await inside a loop without async state machine"
-                ))
-                .with_code("A003"));
+                return Err(async_error_at(
+                    format!(
+                        "Function '{name}' uses await inside a loop without async state machine"
+                    ),
+                    None,
+                    Span::DUMMY,
+                    "A003",
+                ));
             }
         }
     }
@@ -121,19 +131,20 @@ fn find_await_in_stmts(stmts: &[Stmt]) -> Option<Span> {
 
 fn find_await_in_stmt(stmt: &Stmt) -> Option<Span> {
     match stmt {
-        Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
-            find_await_in_expr(expr)
-        }
-        Stmt::VarDecl { init: Some(expr), .. } => find_await_in_expr(expr),
+        Stmt::Expr { expr, .. }
+        | Stmt::Print { expr, .. }
+        | Stmt::Return {
+            value: Some(expr), ..
+        } => find_await_in_expr(expr),
+        Stmt::VarDecl {
+            init: Some(expr), ..
+        } => find_await_in_expr(expr),
         Stmt::If {
             then_branch,
             else_branch,
             ..
-        } => find_await_in_stmts(then_branch).or_else(|| {
-            else_branch
-                .as_ref()
-                .and_then(|b| find_await_in_stmts(b))
-        }),
+        } => find_await_in_stmts(then_branch)
+            .or_else(|| else_branch.as_ref().and_then(|b| find_await_in_stmts(b))),
         Stmt::Block { stmts, .. } | Stmt::Seq { stmts, .. } => find_await_in_stmts(stmts),
         Stmt::While { body, .. } | Stmt::ForIn { body, .. } => find_await_in_stmts(body),
         _ => None,
@@ -147,11 +158,12 @@ fn find_await_in_expr(expr: &Expr) -> Option<Span> {
             find_await_in_expr(left).or_else(|| find_await_in_expr(right))
         }
         Expr::Unary { expr, .. } => find_await_in_expr(expr),
-        Expr::Call { callee, args, .. } => find_await_in_expr(callee).or_else(|| {
-            args.iter().find_map(|a| find_await_in_expr(&a.value))
-        }),
+        Expr::Call { callee, args, .. } => find_await_in_expr(callee)
+            .or_else(|| args.iter().find_map(|a| find_await_in_expr(&a.value))),
         Expr::Member { object, .. } | Expr::Index { object, .. } => find_await_in_expr(object),
-        Expr::Assign { value, .. } | Expr::CompoundAssign { value, .. } => find_await_in_expr(value),
+        Expr::Assign { value, .. } | Expr::CompoundAssign { value, .. } => {
+            find_await_in_expr(value)
+        }
         Expr::Group { expr, .. } => find_await_in_expr(expr),
         Expr::Tuple { elements, .. } => elements.iter().find_map(|(_, e)| find_await_in_expr(e)),
         Expr::Array { elements, .. } => elements.iter().find_map(find_await_in_expr),
@@ -224,8 +236,8 @@ fn maybe_lower_cf_body(body: &mut Vec<Stmt>, extra_decls: &mut Vec<Decl>, suffix
                 seg_body
             },
             is_async: true,
-        is_override: false,
-        is_final: false,
+            is_override: false,
+            is_final: false,
         });
     }
     *body = build_segment_dispatcher(Span::DUMMY, &hoisted, &segments, segment_count);
@@ -404,8 +416,8 @@ fn lower_async_segments(decl: &mut Decl) -> Option<Vec<Decl>> {
             where_clause: where_clause.clone(),
             body: seg_body,
             is_async: *is_async,
-        is_override: false,
-        is_final: false,
+            is_override: false,
+            is_final: false,
         });
     }
     *body = build_segment_dispatcher(*span, &hoisted, &segments, segment_count);
@@ -469,9 +481,10 @@ fn hoist_segment_locals(segments: &[Vec<Stmt>]) -> (Vec<Stmt>, Vec<Vec<Stmt>>) {
                     ty,
                     init,
                 } => {
-                    if !hoisted.iter().any(|h| {
-                        matches!(h, Stmt::VarDecl { name: n, .. } if n == &name)
-                    }) {
+                    if !hoisted
+                        .iter()
+                        .any(|h| matches!(h, Stmt::VarDecl { name: n, .. } if n == &name))
+                    {
                         hoisted.push(Stmt::VarDecl {
                             span,
                             mutable: true,
@@ -558,12 +571,7 @@ fn desugar_for_await_in_stmts(stmts: &mut Vec<Stmt>) -> SyxResult<()> {
     Ok(())
 }
 
-fn desugar_for_await_stmt(
-    span: Span,
-    name: &SmolStr,
-    iterable: &Expr,
-    body: &[Stmt],
-) -> Vec<Stmt> {
+fn desugar_for_await_stmt(span: Span, name: &SmolStr, iterable: &Expr, body: &[Stmt]) -> Vec<Stmt> {
     let iter_name = SmolStr::new(format!("__syx_async_iter_{name}"));
     let item_name = SmolStr::new(format!("__syx_async_item_{name}"));
     let done_flag = SmolStr::new(format!("__syx_async_done_{name}"));
@@ -724,7 +732,7 @@ fn async_sleep_worker_decl() -> Decl {
             },
         }],
         is_async: false,
-    is_override: false,
+        is_override: false,
         is_final: false,
     }
 }
@@ -752,10 +760,14 @@ fn count_await_in_stmts(stmts: &[Stmt]) -> usize {
 
 fn count_await_in_stmt(stmt: &Stmt) -> usize {
     match stmt {
-        Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
-            count_await_in_expr(expr)
-        }
-        Stmt::VarDecl { init: Some(expr), .. } => count_await_in_expr(expr),
+        Stmt::Expr { expr, .. }
+        | Stmt::Print { expr, .. }
+        | Stmt::Return {
+            value: Some(expr), ..
+        } => count_await_in_expr(expr),
+        Stmt::VarDecl {
+            init: Some(expr), ..
+        } => count_await_in_expr(expr),
         Stmt::If {
             condition,
             then_branch,
@@ -770,9 +782,9 @@ fn count_await_in_stmt(stmt: &Stmt) -> usize {
             n
         }
         Stmt::Block { stmts, .. } | Stmt::Seq { stmts, .. } => count_await_in_stmts(stmts),
-        Stmt::While { condition, body, .. } => {
-            count_await_in_expr(condition) + count_await_in_stmts(body)
-        }
+        Stmt::While {
+            condition, body, ..
+        } => count_await_in_expr(condition) + count_await_in_stmts(body),
         Stmt::ForIn { iterable, body, .. } => {
             count_await_in_expr(iterable) + count_await_in_stmts(body)
         }
@@ -783,9 +795,7 @@ fn count_await_in_stmt(stmt: &Stmt) -> usize {
 fn count_await_in_expr(expr: &Expr) -> usize {
     match expr {
         Expr::Await { .. } => 1,
-        Expr::Binary { left, right, .. } => {
-            count_await_in_expr(left) + count_await_in_expr(right)
-        }
+        Expr::Binary { left, right, .. } => count_await_in_expr(left) + count_await_in_expr(right),
         Expr::Unary { expr, .. } => count_await_in_expr(expr),
         Expr::Call { callee, args, .. } => {
             let mut c = count_await_in_expr(callee);
@@ -795,7 +805,9 @@ fn count_await_in_expr(expr: &Expr) -> usize {
             c
         }
         Expr::Member { object, .. } | Expr::Index { object, .. } => count_await_in_expr(object),
-        Expr::Assign { value, .. } | Expr::CompoundAssign { value, .. } => count_await_in_expr(value),
+        Expr::Assign { value, .. } | Expr::CompoundAssign { value, .. } => {
+            count_await_in_expr(value)
+        }
         Expr::MemberAssign { object, value, .. } | Expr::IndexAssign { object, value, .. } => {
             count_await_in_expr(object) + count_await_in_expr(value)
         }
@@ -827,10 +839,14 @@ fn rewrite_async_sleep_awaits(stmts: &mut [Stmt]) -> bool {
 
 fn rewrite_async_sleep_in_stmt(stmt: &mut Stmt) -> bool {
     match stmt {
-        Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
-            rewrite_async_sleep_in_expr(expr)
-        }
-        Stmt::VarDecl { init: Some(expr), .. } => rewrite_async_sleep_in_expr(expr),
+        Stmt::Expr { expr, .. }
+        | Stmt::Print { expr, .. }
+        | Stmt::Return {
+            value: Some(expr), ..
+        } => rewrite_async_sleep_in_expr(expr),
+        Stmt::VarDecl {
+            init: Some(expr), ..
+        } => rewrite_async_sleep_in_expr(expr),
         Stmt::If {
             condition,
             then_branch,
@@ -845,7 +861,9 @@ fn rewrite_async_sleep_in_stmt(stmt: &mut Stmt) -> bool {
             changed
         }
         Stmt::Block { stmts, .. } | Stmt::Seq { stmts, .. } => rewrite_async_sleep_awaits(stmts),
-        Stmt::While { condition, body, .. } => {
+        Stmt::While {
+            condition, body, ..
+        } => {
             let mut changed = rewrite_async_sleep_in_expr(condition);
             changed |= rewrite_async_sleep_awaits(body);
             changed
@@ -1058,7 +1076,9 @@ mod tests {
                 None
             })
             .unwrap();
-        assert!(matches!(f.first(), Some(Stmt::VarDecl { name, .. }) if name.as_str() == "__syx_async_state"));
+        assert!(
+            matches!(f.first(), Some(Stmt::VarDecl { name, .. }) if name.as_str() == "__syx_async_state")
+        );
         assert!(f.iter().any(|s| matches!(s, Stmt::If { .. })));
         assert!(module.decls.iter().any(|d| {
             matches!(d, Decl::Function { name, .. } if name.as_str() == "__async_f_seg_0")
@@ -1067,10 +1087,7 @@ mod tests {
 
     #[test]
     fn single_await_skips_segment_lowering() {
-        let source = SourceFile::new(
-            "t.sy",
-            "async func f() { await g() }",
-        );
+        let source = SourceFile::new("t.sy", "async func f() { await g() }");
         let mut module = Parser::parse(source).unwrap();
         lower_async_module(&mut module).unwrap();
         assert!(!module.decls.iter().any(|d| {

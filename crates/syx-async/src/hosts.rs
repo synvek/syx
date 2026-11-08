@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::async_error_at;
 use syx_vm::{
-    platform_int_value, register_actor_shared_pool_hosts, register_concurrency_control_hosts,
-    register_task_group_cancel_host, register_task_hosts, register_task_live_count_host,
-    register_task_local_hosts, register_actor_reentrancy_policy_host,
-    register_blocking_isolation_hosts, register_blocking_pool_sizing_hosts,
-    register_blocking_execute, register_io_adapter_policy_host, register_task_pool_sizing_hosts,
+    platform_int_value, register_actor_reentrancy_policy_host, register_actor_shared_pool_hosts,
+    register_blocking_execute, register_blocking_isolation_hosts,
+    register_blocking_pool_sizing_hosts, register_concurrency_control_hosts,
+    register_io_adapter_policy_host, register_task_group_cancel_host, register_task_hosts,
+    register_task_live_count_host, register_task_local_hosts, register_task_pool_sizing_hosts,
     register_task_set_deadline_ms_host, register_trace_context_providers, Value,
 };
 
@@ -15,21 +17,18 @@ use crate::runtime::{
     configured_blocking_pool_size, configured_core_pool_size, configured_keep_alive_ms,
     configured_live_worker_count, configured_max_pool_size, configured_task_queue_capacity,
     configured_task_reject_policy, configured_worker_count, current_processing_actor,
-    current_runtime, isolation_policy, io_adapter_policy, mailbox_capacity, max_actors,
+    current_runtime, io_adapter_policy, isolation_policy, mailbox_capacity, max_actors,
     set_actor_shared_pool_enabled, set_actor_shared_pool_size, set_configured_blocking_pool_size,
     set_configured_core_pool_size, set_configured_keep_alive_ms, set_configured_max_pool_size,
     set_configured_task_queue_capacity, set_configured_task_reject_policy,
-    set_configured_worker_count, set_mailbox_capacity, set_max_actors, TaskRejectPolicy,
-    SyxRuntime,
+    set_configured_worker_count, set_mailbox_capacity, set_max_actors, SyxRuntime,
+    TaskRejectPolicy,
 };
 use crate::task::task_id_from_value;
 
 pub fn install_hosts() {
     syx_vm::register_mixed_await_cancel_probe(|| crate::task::task_should_stop());
-    register_trace_context_providers(
-        crate::task::current_task_id,
-        current_processing_actor,
-    );
+    register_trace_context_providers(crate::task::current_task_id, current_processing_actor);
     register_blocking_execute(|job| {
         if let Some(rt) = current_runtime() {
             rt.execute_on_blocking_pool(job);
@@ -156,12 +155,16 @@ fn host_task_detach(stack: &mut Vec<Value>) -> SyxResult<()> {
         (Some(n), _, _, _) => (n, vec![]),
         (_, Some(n), _, _) => (n, vec![]),
         _ => {
-            return Err(SyxDiagnostic::error(format!(
-                "TaskDetach expected function name, top={top:?} bottom={bottom:?}"
-            )));
+            return Err(async_error_at(
+                format!("TaskDetach expected function name, top={top:?} bottom={bottom:?}"),
+                None,
+                Span::DUMMY,
+                "C015",
+            ));
         }
     };
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let handle = rt.spawn_detached_by_name(&name, args)?;
     stack.push(handle.to_value());
     Ok(())
@@ -169,7 +172,8 @@ fn host_task_detach(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 fn host_task_join(stack: &mut Vec<Value>) -> SyxResult<()> {
     let task = stack.pop().unwrap_or(Value::Nil);
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let value = rt.vm_runtime().join_task_value(&task)?;
     let mut map = HashMap::new();
     map.insert("__done".into(), Value::Bool(true));
@@ -180,7 +184,8 @@ fn host_task_join(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 fn host_task_cancel(stack: &mut Vec<Value>) -> SyxResult<()> {
     let task = stack.pop().unwrap_or(Value::Nil);
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     rt.vm_runtime().cancel_task_value(&task)?;
     stack.push(Value::Bool(true));
     Ok(())
@@ -193,7 +198,12 @@ fn host_task_sleep(stack: &mut Vec<Value>) -> SyxResult<()> {
     } else {
         crate::runtime::await_sleep_ms(ms.max(0) as u64);
         if crate::task::task_should_stop() {
-            return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+            return Err(async_error_at(
+                "Task was cancelled",
+                None,
+                Span::DUMMY,
+                "C004",
+            ));
         }
     }
     stack.push(Value::Nil);
@@ -202,7 +212,8 @@ fn host_task_sleep(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 fn host_main_actor_run(stack: &mut Vec<Value>) -> SyxResult<()> {
     let name = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let value = rt.vm_runtime().main_actor_run_fn(&name, vec![])?;
     stack.push(value);
     Ok(())
@@ -210,7 +221,8 @@ fn host_main_actor_run(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 fn host_await_task(stack: &mut Vec<Value>) -> SyxResult<()> {
     let task = stack.pop().unwrap_or(Value::Nil);
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let value = rt.vm_runtime().await_task_value(&task)?;
     stack.push(value);
     Ok(())
@@ -223,7 +235,8 @@ fn host_task_group_create(stack: &mut Vec<Value>) -> SyxResult<()> {
             return (ops.create)(stack);
         }
     }
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let parent = crate::task::current_task_cancel().unwrap_or_default();
     let (id, group) = rt.create_task_group(parent);
     stack.push(group.to_value_with_id(id));
@@ -238,20 +251,22 @@ fn host_task_group_add(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     let task = stack.pop().unwrap_or(Value::Nil);
     let group_val = stack.pop().unwrap_or(Value::Nil);
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
-    let task_id = task_id_from_value(&task).ok_or_else(|| SyxDiagnostic::error("Expected task"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
+    let task_id = task_id_from_value(&task)
+        .ok_or_else(|| async_error_at("Expected task", None, Span::DUMMY, "C011"))?;
     let group_id = crate::task::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| async_error_at("Expected task group", None, Span::DUMMY, "C012"))?;
     let handle = rt
         .tasks
         .get(task_id)
-        .ok_or_else(|| SyxDiagnostic::error("Unknown task"))?;
+        .ok_or_else(|| async_error_at("Unknown task", None, Span::DUMMY, "C013"))?;
     let group = rt
         .groups
         .lock()
         .get(&group_id)
         .cloned()
-        .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+        .ok_or_else(|| async_error_at("Unknown task group", None, Span::DUMMY, "C014"))?;
     group.add(handle);
     stack.push(Value::Bool(true));
     Ok(())
@@ -264,15 +279,16 @@ fn host_task_group_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
         }
     }
     let group_val = stack.pop().unwrap_or(Value::Nil);
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let group_id = crate::task::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| async_error_at("Expected task group", None, Span::DUMMY, "C012"))?;
     let group = rt
         .groups
         .lock()
         .get(&group_id)
         .cloned()
-        .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+        .ok_or_else(|| async_error_at("Unknown task group", None, Span::DUMMY, "C014"))?;
     group.wait_all()?;
     stack.push(Value::Nil);
     Ok(())
@@ -285,15 +301,16 @@ fn host_task_group_cancel(stack: &mut Vec<Value>) -> SyxResult<()> {
         }
     }
     let group_val = stack.pop().unwrap_or(Value::Nil);
-    let rt = current_runtime().ok_or_else(|| SyxDiagnostic::error("No runtime"))?;
+    let rt =
+        current_runtime().ok_or_else(|| async_error_at("No runtime", None, Span::DUMMY, "C010"))?;
     let group_id = crate::task::group_id_from_value(&group_val)
-        .ok_or_else(|| SyxDiagnostic::error("Expected task group"))?;
+        .ok_or_else(|| async_error_at("Expected task group", None, Span::DUMMY, "C012"))?;
     let group = rt
         .groups
         .lock()
         .get(&group_id)
         .cloned()
-        .ok_or_else(|| SyxDiagnostic::error("Unknown task group"))?;
+        .ok_or_else(|| async_error_at("Unknown task group", None, Span::DUMMY, "C014"))?;
     group.cancel_all();
     stack.push(Value::Nil);
     Ok(())
@@ -347,7 +364,12 @@ fn host_blocking_sleep(stack: &mut Vec<Value>) -> SyxResult<()> {
         crate::runtime::await_sleep_ms(ms.max(0) as u64);
     }
     if crate::task::task_should_stop() {
-        return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+        return Err(async_error_at(
+            "Task was cancelled",
+            None,
+            Span::DUMMY,
+            "C004",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -408,9 +430,7 @@ fn host_task_set_reject_policy(stack: &mut Vec<Value>) -> SyxResult<()> {
     let policy = match raw.trim().to_ascii_lowercase().as_str() {
         "abort" => TaskRejectPolicy::Abort,
         "callerruns" | "caller_runs" | "caller-runs" => TaskRejectPolicy::CallerRuns,
-        "discardoldest" | "discard_oldest" | "discard-oldest" => {
-            TaskRejectPolicy::DiscardOldest
-        }
+        "discardoldest" | "discard_oldest" | "discard-oldest" => TaskRejectPolicy::DiscardOldest,
         _ => TaskRejectPolicy::Abort,
     };
     let set = set_configured_task_reject_policy(policy);
@@ -419,9 +439,7 @@ fn host_task_set_reject_policy(stack: &mut Vec<Value>) -> SyxResult<()> {
 }
 
 fn host_task_reject_policy(stack: &mut Vec<Value>) -> SyxResult<()> {
-    stack.push(Value::Str(
-        configured_task_reject_policy().as_str().into(),
-    ));
+    stack.push(Value::Str(configured_task_reject_policy().as_str().into()));
     Ok(())
 }
 
@@ -506,6 +524,8 @@ fn host_actor_set_shared_pool_size(stack: &mut Vec<Value>) -> SyxResult<()> {
 }
 
 fn host_actor_shared_pool_size(stack: &mut Vec<Value>) -> SyxResult<()> {
-    stack.push(platform_int_value(configured_actor_shared_pool_size() as i64));
+    stack.push(platform_int_value(
+        configured_actor_shared_pool_size() as i64
+    ));
     Ok(())
 }

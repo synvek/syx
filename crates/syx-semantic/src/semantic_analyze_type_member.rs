@@ -12,7 +12,7 @@ use std::collections::HashSet;
 use syx_ast::{
     AccessLevel, BinOp, CallArg, Decl, Expr, Stmt, TypeExpr,
 };
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::SyxResult;
 use syx_stdlib::{
     from_type_name,
     is_collection_builtin_type, is_comparable_type, is_equatable_type, is_numeric_builtin_type, is_text_builtin_type, operator_overload_forbidden_type,
@@ -38,24 +38,32 @@ impl SemanticAnalyzer {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
                 };
-                fn_scope.define(Symbol {
-                    name: SmolStr::new("self"),
-                    ty: TypeId::Named(type_name.clone()),
-                    mutable: true,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_in_scope(
+                    &mut fn_scope,
+                    Symbol {
+                        name: SmolStr::new("self"),
+                        ty: TypeId::Named(type_name.clone()),
+                        mutable: true,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 for param in params {
                     let param_ty = param
                         .ty
                         .as_ref()
                         .map(type_expr_to_id)
                         .unwrap_or(TypeId::Unknown);
-                    fn_scope.define(Symbol {
-                        name: param.name.clone(),
-                        ty: param_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     self.track_binding(param.name.clone(), param_ty, span.start);
                 }
                 std::mem::swap(&mut self.scope, &mut fn_scope);
@@ -63,17 +71,21 @@ impl SemanticAnalyzer {
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 r
             }
-            Decl::Deinit { body, .. } => {
+            Decl::Deinit { span, body, .. } => {
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
                 };
-                fn_scope.define(Symbol {
-                    name: SmolStr::new("self"),
-                    ty: TypeId::Named(type_name.clone()),
-                    mutable: true,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_in_scope(
+                    &mut fn_scope,
+                    Symbol {
+                        name: SmolStr::new("self"),
+                        ty: TypeId::Named(type_name.clone()),
+                        mutable: true,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 std::mem::swap(&mut self.scope, &mut fn_scope);
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
@@ -149,12 +161,13 @@ impl SemanticAnalyzer {
                     if let Some(type_expr) = ty {
                         let field_ty = type_expr_to_id(type_expr);
                         if self.strict_concurrency && self.is_non_sendable_type(&field_ty) {
-                            self.errors.push(
-                                SyxDiagnostic::error(format!(
+                            self.errors.push(self.error_at(
+                                format!(
                                     "Actor '{type_name}' cannot store non-Sendable field '{name}'"
-                                ))
-                                .with_code("C007"),
-                            );
+                                ),
+                                *span,
+                                "C007",
+                            ));
                         }
                     }
                 }
@@ -170,18 +183,26 @@ impl SemanticAnalyzer {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
                     };
-                    obs_scope.define(Symbol {
-                        name: SmolStr::new("newValue"),
-                        ty: field_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
-                    obs_scope.define(Symbol {
-                        name: SmolStr::new("oldValue"),
-                        ty: field_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut obs_scope,
+                        Symbol {
+                            name: SmolStr::new("newValue"),
+                            ty: field_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
+                    self.define_in_scope(
+                        &mut obs_scope,
+                        Symbol {
+                            name: SmolStr::new("oldValue"),
+                            ty: field_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     std::mem::swap(&mut self.scope, &mut obs_scope);
                     self.analyze_block(stmts)?;
                     self.scope = *self.scope.parent.take().unwrap_or_default();
@@ -191,18 +212,26 @@ impl SemanticAnalyzer {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
                     };
-                    obs_scope.define(Symbol {
-                        name: SmolStr::new("oldValue"),
-                        ty: field_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
-                    obs_scope.define(Symbol {
-                        name: SmolStr::new("newValue"),
-                        ty: field_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut obs_scope,
+                        Symbol {
+                            name: SmolStr::new("oldValue"),
+                            ty: field_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
+                    self.define_in_scope(
+                        &mut obs_scope,
+                        Symbol {
+                            name: SmolStr::new("newValue"),
+                            ty: field_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     std::mem::swap(&mut self.scope, &mut obs_scope);
                     self.analyze_block(stmts)?;
                     self.scope = *self.scope.parent.take().unwrap_or_default();
@@ -212,12 +241,16 @@ impl SemanticAnalyzer {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
                     };
-                    get_scope.define(Symbol {
-                        name: SmolStr::new("self"),
-                        ty: TypeId::Named(type_name.clone()),
-                        mutable: true,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut get_scope,
+                        Symbol {
+                            name: SmolStr::new("self"),
+                            ty: TypeId::Named(type_name.clone()),
+                            mutable: true,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     std::mem::swap(&mut self.scope, &mut get_scope);
                     self.analyze_block(stmts)?;
                     self.scope = *self.scope.parent.take().unwrap_or_default();
@@ -227,18 +260,26 @@ impl SemanticAnalyzer {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
                     };
-                    set_scope.define(Symbol {
-                        name: SmolStr::new("self"),
-                        ty: TypeId::Named(type_name.clone()),
-                        mutable: true,
-                        access: AccessLevel::Internal,
-                    })?;
-                    set_scope.define(Symbol {
-                        name: SmolStr::new("newValue"),
-                        ty: field_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut set_scope,
+                        Symbol {
+                            name: SmolStr::new("self"),
+                            ty: TypeId::Named(type_name.clone()),
+                            mutable: true,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
+                    self.define_in_scope(
+                        &mut set_scope,
+                        Symbol {
+                            name: SmolStr::new("newValue"),
+                            ty: field_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     std::mem::swap(&mut self.scope, &mut set_scope);
                     self.analyze_block(stmts)?;
                     self.scope = *self.scope.parent.take().unwrap_or_default();
@@ -347,24 +388,32 @@ impl SemanticAnalyzer {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
                 };
-                fn_scope.define(Symbol {
-                    name: SmolStr::new("self"),
-                    ty: TypeId::Named(type_name.clone()),
-                    mutable: true,
-                    access: AccessLevel::Internal,
-                })?;
+                self.define_in_scope(
+                    &mut fn_scope,
+                    Symbol {
+                        name: SmolStr::new("self"),
+                        ty: TypeId::Named(type_name.clone()),
+                        mutable: true,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
                 for param in params {
                     let param_ty = param
                         .ty
                         .as_ref()
                         .map(type_expr_to_id)
                         .unwrap_or(TypeId::Unknown);
-                    fn_scope.define(Symbol {
-                        name: param.name.clone(),
-                        ty: param_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     self.track_binding(param.name.clone(), param_ty, span.start);
                 }
                 std::mem::swap(&mut self.scope, &mut fn_scope);
@@ -429,7 +478,13 @@ impl SemanticAnalyzer {
         ))
     }
 
-    pub(crate) fn check_actor_field_access(&mut self, object: &Expr, field: &str, obj_ty: &TypeId) {
+    pub(crate) fn check_actor_field_access(
+        &mut self,
+        object: &Expr,
+        field: &str,
+        obj_ty: &TypeId,
+        span: syx_diagnostics::Span,
+    ) {
         let TypeId::Named(type_name) = obj_ty else {
             return;
         };
@@ -446,12 +501,13 @@ impl SemanticAnalyzer {
         let allowed = self.current_actor_context.as_ref() == Some(type_name)
             && Self::is_self_expr(object);
         if !allowed {
-            self.errors.push(
-                SyxDiagnostic::error(format!(
+            self.errors.push(self.error_at(
+                format!(
                     "Cross-actor access to field '{field}' on actor '{type_name}' is not allowed"
-                ))
-                .with_code("S008"),
-            );
+                ),
+                span,
+                "S008",
+            ));
         }
     }
 
@@ -578,7 +634,13 @@ impl SemanticAnalyzer {
             || self.conditional_conformance_holds_ty(ty, protocol)
     }
 
-    pub(crate) fn check_equatable_binary(&mut self, op: BinOp, lt: &TypeId, rt: &TypeId) {
+    pub(crate) fn check_equatable_binary(
+        &mut self,
+        op: BinOp,
+        lt: &TypeId,
+        rt: &TypeId,
+        span: syx_diagnostics::Span,
+    ) {
         if matches!(op, BinOp::IdenticalEq | BinOp::IdenticalNe) {
             return;
         }
@@ -589,12 +651,11 @@ impl SemanticAnalyzer {
             if let Some(fn_name) = &self.current_function {
                 let on_main = self.caller_global_actor(fn_name).as_deref() == Some("MainActor");
                 if !on_main {
-                    self.errors.push(
-                        SyxDiagnostic::error(
-                            "MainActor-isolated Equatable conformance requires MainActor context",
-                        )
-                        .with_code("C006"),
-                    );
+                    self.errors.push(self.error_at(
+                        "MainActor-isolated Equatable conformance requires MainActor context",
+                        span,
+                        "C006",
+                    ));
                 }
             }
         }
@@ -646,12 +707,11 @@ impl SemanticAnalyzer {
         let r_ok = is_equatable_type(rname.as_str())
             || self.type_satisfies_protocol(rname.as_str(), "Equatable");
         if !l_ok || !r_ok {
-            self.errors.push(
-                SyxDiagnostic::error(format!(
-                    "Types '{lname}' and '{rname}' are not both Equatable for '=='"
-                ))
-                .with_code("S016"),
-            );
+            self.errors.push(self.error_at(
+                format!("Types '{lname}' and '{rname}' are not both Equatable for '=='"),
+                span,
+                "S016",
+            ));
         }
     }
 
@@ -665,16 +725,16 @@ impl SemanticAnalyzer {
                         mutable: true,
                         ..
                     }),
+                    span,
                     ..
                 } => {
                     if let Expr::Ident { name, .. } = expr.as_ref() {
                         if !param_names.contains(name) && self.all_bindings.contains_key(name) {
-                            self.errors.push(
-                                SyxDiagnostic::error(format!(
-                                    "Cannot return reference to local binding '{name}'"
-                                ))
-                                .with_code("S011"),
-                            );
+                            self.errors.push(self.error_at(
+                                format!("Cannot return reference to local binding '{name}'"),
+                                *span,
+                                "S011",
+                            ));
                         }
                     }
                 }
@@ -703,11 +763,22 @@ impl SemanticAnalyzer {
         }
     }
 
-    pub(crate) fn validate_generic_instantiation(&mut self, fn_name: &SmolStr, type_args: &[SmolStr]) {
+    pub(crate) fn validate_generic_instantiation(
+        &mut self,
+        fn_name: &SmolStr,
+        type_args: &[SmolStr],
+        span: syx_diagnostics::Span,
+    ) {
         let Some((type_params, where_clause)) = self.generic_functions.get(fn_name).cloned() else {
             return;
         };
-        self.validate_generic_instantiation_with(fn_name, &type_params, &where_clause, type_args);
+        self.validate_generic_instantiation_with(
+            fn_name,
+            &type_params,
+            &where_clause,
+            type_args,
+            span,
+        );
     }
 
     /// Substitute generic return type (`T` → concrete) for check/inference.
@@ -807,6 +878,7 @@ impl SemanticAnalyzer {
         type_params: &[SmolStr],
         where_clause: &[syx_ast::WherePred],
         type_args: &[SmolStr],
+        span: syx_diagnostics::Span,
     ) {
         for pred in where_clause {
             let Some(idx) = type_params.iter().position(|p| p == &pred.type_name) else {
@@ -818,22 +890,24 @@ impl SemanticAnalyzer {
                 .unwrap_or("Unknown");
             if Self::is_associated_type_constraint(pred.constraint.as_str()) {
                 if arg_ty != pred.constraint.as_str() {
-                    self.errors.push(
-                        SyxDiagnostic::error(format!(
+                    self.errors.push(self.error_at(
+                        format!(
                             "Associated type '{arg_ty}' does not match required '{}' for generic '{generic_name}'",
                             pred.constraint
-                        ))
-                        .with_code("S012"),
-                    );
+                        ),
+                        span,
+                        "S012",
+                    ));
                 }
             } else if !self.type_satisfies_protocol(arg_ty, pred.constraint.as_str()) {
-                self.errors.push(
-                    SyxDiagnostic::error(format!(
+                self.errors.push(self.error_at(
+                    format!(
                         "Type '{arg_ty}' does not satisfy where constraint '{}: {}' for generic '{generic_name}'",
                         pred.type_name, pred.constraint
-                    ))
-                    .with_code("S010"),
-                );
+                    ),
+                    span,
+                    "S010",
+                ));
             }
         }
     }
@@ -889,12 +963,16 @@ impl SemanticAnalyzer {
                     ..Default::default()
                 };
                 if !has_self {
-                    fn_scope.define(Symbol {
-                        name: SmolStr::new("self"),
-                        ty: Self::extension_receiver_type(type_name),
-                        mutable: true,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: SmolStr::new("self"),
+                            ty: Self::extension_receiver_type(type_name),
+                            mutable: true,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                 }
                 for param in params {
                     let param_ty = param
@@ -902,12 +980,16 @@ impl SemanticAnalyzer {
                         .as_ref()
                         .map(type_expr_to_id)
                         .unwrap_or(TypeId::Unknown);
-                    fn_scope.define(Symbol {
-                        name: param.name.clone(),
-                        ty: param_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     self.track_binding(param.name.clone(), param_ty, span.start);
                 }
                 std::mem::swap(&mut self.scope, &mut fn_scope);

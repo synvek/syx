@@ -1,11 +1,14 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+mod debug_diag;
+
 use std::io::{self, BufRead, Write};
 
+use debug_diag::debug_error_at;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use syx_codegen::{CompiledProgram, Instruction};
-use syx_diagnostics::{SourceFile, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 
 fn simd_lane_value_i32(bits: &[u8; 64], lane: u8) -> Option<syx_vm::Value> {
     let off = lane as usize * 4;
@@ -151,7 +154,11 @@ impl DebugSession {
             return Self::value_child_entries(&inner);
         }
         match v {
-            Value::Simd { lanes, element: _, bits } => {
+            Value::Simd {
+                lanes,
+                element: _,
+                bits,
+            } => {
                 let mut out = Vec::new();
                 for lane in 0..*lanes {
                     if let Some(lane_val) = simd_lane_value_i32(bits, lane) {
@@ -175,13 +182,9 @@ impl DebugSession {
         }
     }
 
-    fn value_child_entries_with_program(
-        &self,
-        v: &syx_vm::Value,
-    ) -> Vec<(String, syx_vm::Value)> {
+    fn value_child_entries_with_program(&self, v: &syx_vm::Value) -> Vec<(String, syx_vm::Value)> {
         let mut out = Self::value_child_entries(v);
-        let seen: std::collections::HashSet<String> =
-            out.iter().map(|(k, _)| k.clone()).collect();
+        let seen: std::collections::HashSet<String> = out.iter().map(|(k, _)| k.clone()).collect();
         for (name, val) in self.computed_property_entries(v) {
             if !seen.contains(&name) {
                 out.push((name, val));
@@ -197,8 +200,18 @@ impl DebugSession {
         let ty = Self::value_type_name(v);
         if matches!(
             ty.as_str(),
-            "Object" | "Nil" | "MutRefCell" | "Array" | "Set" | "Dictionary" | "String" | "Int"
-                | "Bool" | "Float" | "Closure" | "Iterator"
+            "Object"
+                | "Nil"
+                | "MutRefCell"
+                | "Array"
+                | "Set"
+                | "Dictionary"
+                | "String"
+                | "Int"
+                | "Bool"
+                | "Float"
+                | "Closure"
+                | "Iterator"
         ) {
             return Vec::new();
         }
@@ -351,12 +364,7 @@ impl DebugSession {
             return None;
         }
         let line_starts: Vec<usize> = std::iter::once(0)
-            .chain(
-                self.source
-                    .contents
-                    .match_indices('\n')
-                    .map(|(i, _)| i + 1),
-            )
+            .chain(self.source.contents.match_indices('\n').map(|(i, _)| i + 1))
             .collect();
         Some(
             line_starts
@@ -591,9 +599,9 @@ impl DebugSession {
         let value = self.resolve_local_value(base.trim())?;
         use syx_vm::Value;
         match value {
-            Value::Object(map) | Value::Dict(map) => map
-                .get(field.trim())
-                .map(syx_vm::value_description),
+            Value::Object(map) | Value::Dict(map) => {
+                map.get(field.trim()).map(syx_vm::value_description)
+            }
             Value::Array(items) => {
                 if field.trim() == "count" {
                     Some(items.len().to_string())
@@ -667,7 +675,10 @@ impl DebugSession {
         if func.instructions.len() == 4
             && matches!(func.instructions[0], Instruction::LoadLocal(0))
             && matches!(func.instructions[1], Instruction::LoadLocal(0))
-            && matches!(func.instructions[2], Instruction::I32Add | Instruction::NumericAdd(_))
+            && matches!(
+                func.instructions[2],
+                Instruction::I32Add | Instruction::NumericAdd(_)
+            )
             && matches!(func.instructions[3], Instruction::Return)
             && args.len() == 1
         {
@@ -742,12 +753,7 @@ impl DebugSession {
                 "AsyncState".into(),
                 0,
             ));
-            vars.push((
-                "__task_group".into(),
-                label.clone(),
-                "TaskLabel".into(),
-                0,
-            ));
+            vars.push(("__task_group".into(), label.clone(), "TaskLabel".into(), 0));
         }
         for (param, inst) in &self.generic_type_params {
             vars.push((
@@ -792,12 +798,12 @@ impl DebugSession {
         let vm = self
             .vm
             .as_mut()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("VM not initialized"))?;
+            .ok_or_else(|| debug_error_at("VM not initialized", None, Span::DUMMY, "D001"))?;
         let callee = self
             .program
             .functions
             .get(callee_idx)
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("Unknown callee"))?;
+            .ok_or_else(|| debug_error_at("Unknown callee", None, Span::DUMMY, "D001"))?;
         let arg_count = callee.param_count as usize;
         let start = vm.stack.len().saturating_sub(arg_count);
         let args: Vec<syx_vm::Value> = vm.stack.drain(start..).collect();
@@ -806,7 +812,8 @@ impl DebugSession {
             return_pc: call_pc + 1,
             caller_locals: vm.locals.clone(),
         });
-        vm.locals.resize(callee.local_count as usize, syx_vm::Value::Nil);
+        vm.locals
+            .resize(callee.local_count as usize, syx_vm::Value::Nil);
         for (i, arg) in args.iter().enumerate() {
             if i < vm.locals.len() {
                 vm.locals[i] = arg.clone();
@@ -821,11 +828,10 @@ impl DebugSession {
         let vm = self
             .vm
             .as_mut()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("VM not initialized"))?;
-        let frame = self
-            .call_frames
-            .pop()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("return without call frame"))?;
+            .ok_or_else(|| debug_error_at("VM not initialized", None, Span::DUMMY, "D001"))?;
+        let frame = self.call_frames.pop().ok_or_else(|| {
+            debug_error_at("return without call frame", None, Span::DUMMY, "D001")
+        })?;
         let result = vm.stack.pop().unwrap_or(syx_vm::Value::Nil);
         vm.locals = frame.caller_locals;
         vm.stack.push(result);
@@ -838,14 +844,14 @@ impl DebugSession {
         let vm = self
             .vm
             .as_mut()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("VM not initialized"))?;
+            .ok_or_else(|| debug_error_at("VM not initialized", None, Span::DUMMY, "D001"))?;
         let fn_idx = self.function_index;
         let func = self
             .program
             .functions
             .get(fn_idx)
             .cloned()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("No active function"))?;
+            .ok_or_else(|| debug_error_at("No active function", None, Span::DUMMY, "D001"))?;
         let pc = self.pc;
 
         if pc >= func.instructions.len() {
@@ -908,7 +914,7 @@ impl DebugSession {
             .functions
             .get(fn_idx)
             .cloned()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("No active function"))?;
+            .ok_or_else(|| debug_error_at("No active function", None, Span::DUMMY, "D001"))?;
         let mut pc = self.pc;
         while pc < func.instructions.len() {
             if matches!(func.instructions[pc], Instruction::Return) {
@@ -1040,7 +1046,7 @@ impl DebugSession {
             .functions
             .get(fn_idx)
             .cloned()
-            .ok_or_else(|| syx_diagnostics::SyxDiagnostic::error("No active function"))?;
+            .ok_or_else(|| debug_error_at("No active function", None, Span::DUMMY, "D001"))?;
         let mut vm = self.vm.take().unwrap_or_default();
         let mut pc = self.pc;
         while pc < func.instructions.len() {
@@ -1227,10 +1233,7 @@ impl DebugSession {
         if Self::paths_same_source(self.source.name.as_str(), path) {
             return Some(self.source.contents.to_string());
         }
-        let mut candidates: Vec<String> = vec![
-            path.to_string(),
-            Self::normalize_source_path(path),
-        ];
+        let mut candidates: Vec<String> = vec![path.to_string(), Self::normalize_source_path(path)];
         if let Some(session_dir) = std::path::Path::new(self.source.name.as_str()).parent() {
             let p = std::path::Path::new(path);
             if p.is_relative() {
@@ -1505,11 +1508,11 @@ pub fn run_interactive_session(session: &mut DebugSession) -> SyxResult<()> {
         print!("(debug) ");
         io::stdout()
             .flush()
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+            .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
         let mut line = String::new();
         if io::stdin()
             .read_line(&mut line)
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?
+            .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?
             == 0
         {
             break;
@@ -1560,12 +1563,7 @@ pub fn run_interactive_session(session: &mut DebugSession) -> SyxResult<()> {
 pub fn build_source_map(source: &SourceFile, program: &CompiledProgram) -> SourceMap {
     let mut map = SourceMap::default();
     let line_starts: Vec<usize> = std::iter::once(0)
-        .chain(
-            source
-                .contents
-                .match_indices('\n')
-                .map(|(i, _)| i + 1),
-        )
+        .chain(source.contents.match_indices('\n').map(|(i, _)| i + 1))
         .collect();
     let line_of = |offset: u32| -> usize {
         line_starts
@@ -1673,7 +1671,7 @@ fn read_dap_message(reader: &mut impl BufRead) -> SyxResult<Option<Value>> {
         let mut line = String::new();
         if reader
             .read_line(&mut line)
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?
+            .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?
             == 0
         {
             return Ok(None);
@@ -1694,20 +1692,20 @@ fn read_dap_message(reader: &mut impl BufRead) -> SyxResult<Option<Value>> {
     let mut body = vec![0u8; content_length];
     reader
         .read_exact(&mut body)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
     let value: Value = serde_json::from_slice(&body)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
     Ok(Some(value))
 }
 
 fn write_dap_message(stdout: &mut impl Write, value: &Value) -> SyxResult<()> {
     let body = serde_json::to_string(value)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
     write!(stdout, "Content-Length: {}\r\n\r\n{}", body.len(), body)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
     stdout
         .flush()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
     Ok(())
 }
 
@@ -1737,7 +1735,12 @@ fn emit_terminated(stdout: &mut impl Write, seq: &mut u64) -> SyxResult<()> {
     write_dap_message(stdout, &event)
 }
 
-fn emit_output(stdout: &mut impl Write, seq: &mut u64, category: &str, output: &str) -> SyxResult<()> {
+fn emit_output(
+    stdout: &mut impl Write,
+    seq: &mut u64,
+    category: &str,
+    output: &str,
+) -> SyxResult<()> {
     let event = serde_json::json!({
         "seq": *seq,
         "type": "event",
@@ -1762,7 +1765,7 @@ pub fn run_dap_compile_failed(err: &syx_diagnostics::SyxDiagnostic) -> SyxResult
     let message = format!("{err}\n");
     while let Some(value) = read_dap_message(&mut reader)? {
         let req: DapRequest = serde_json::from_value(value)
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+            .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
         if req.msg_type != "request" {
             continue;
         }
@@ -1829,7 +1832,7 @@ pub fn run_dap_server(session: &mut DebugSession) -> SyxResult<()> {
     let mut stop_on_entry = true;
     while let Some(value) = read_dap_message(&mut reader)? {
         let req: DapRequest = serde_json::from_value(value)
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+            .map_err(|e| debug_error_at(e.to_string(), None, Span::DUMMY, "D001"))?;
         if req.msg_type == "request" {
             let command = req.command.clone().unwrap_or_default();
             let mut send_stopped = None;
@@ -1950,7 +1953,7 @@ pub fn run_dap_server(session: &mut DebugSession) -> SyxResult<()> {
                         session.apply_set_breakpoints(breakpoints)
                     };
                     serde_json::json!({ "breakpoints": results })
-                },
+                }
                 "breakpointLocations" => {
                     let start = req
                         .arguments
@@ -1971,7 +1974,7 @@ pub fn run_dap_server(session: &mut DebugSession) -> SyxResult<()> {
                         .map(|line| serde_json::json!({ "line": line, "column": 1 }))
                         .collect();
                     serde_json::json!({ "breakpoints": locations })
-                },
+                }
                 "evaluate" => {
                     let expr = req
                         .arguments
@@ -2136,7 +2139,11 @@ mod tests {
         let mut session = syx_driver::debug_path(&path).expect("debug file");
         session.prepare_entry();
         let func = &session.program.functions[session.function_index];
-        let span_count = func.instruction_spans.iter().filter(|s| s.is_some()).count();
+        let span_count = func
+            .instruction_spans
+            .iter()
+            .filter(|s| s.is_some())
+            .count();
         assert!(
             span_count > 0,
             "expected instruction_spans on entry fn, got 0 ({} instructions)",
@@ -2180,7 +2187,11 @@ mod tests {
         let mut session = syx_driver::debug_path(&path).expect("debug async main");
         session.prepare_entry();
         let func = &session.program.functions[session.function_index];
-        let span_count = func.instruction_spans.iter().filter(|s| s.is_some()).count();
+        let span_count = func
+            .instruction_spans
+            .iter()
+            .filter(|s| s.is_some())
+            .count();
         assert!(
             span_count > 0,
             "MIR async main must carry instruction_spans, got 0 ({} instructions)",
@@ -2220,7 +2231,7 @@ mod tests {
             local_names: Vec::new(),
             local_types: Vec::new(),
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2236,7 +2247,10 @@ mod tests {
         assert!(run_until_break(&mut session, None).expect("first break"));
         assert_eq!(session.pc, 0);
         assert!(run_until_break(&mut session, Some((0, 0))).expect("second break"));
-        assert_eq!(session.pc, 2, "continue should run past pc 0 and stop at pc 2");
+        assert_eq!(
+            session.pc, 2,
+            "continue should run past pc 0 and stop at pc 2"
+        );
     }
 
     #[test]
@@ -2247,16 +2261,10 @@ mod tests {
             local_count: 2,
             instructions: vec![Instruction::Return],
             instruction_spans: vec![None],
-            local_names: vec![
-                SmolStr::new("x"),
-                SmolStr::new("y"),
-            ],
-            local_types: vec![
-                SmolStr::new("Unknown"),
-                SmolStr::new("Unknown"),
-            ],
+            local_names: vec![SmolStr::new("x"), SmolStr::new("y")],
+            local_types: vec![SmolStr::new("Unknown"), SmolStr::new("Unknown")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2289,7 +2297,7 @@ mod tests {
             local_names: Vec::new(),
             local_types: Vec::new(),
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2312,16 +2320,13 @@ mod tests {
             "/a/examples/main.sy",
             "/b/examples/main.sy",
         ));
-        assert!(DebugSession::paths_same_source(
-            "/a/b/hello.sy",
-            "hello.sy",
-        ));
+        assert!(DebugSession::paths_same_source("/a/b/hello.sy", "hello.sy",));
     }
 
     #[test]
     fn set_breakpoints_ignores_foreign_source_path() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../examples/hello.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/hello.sy");
         let mut session = syx_driver::debug_path(&path).expect("hello");
         session.prepare_entry();
         session.apply_set_breakpoints(&[serde_json::json!({ "line": 2 })]);
@@ -2374,14 +2379,10 @@ mod tests {
                 .collect::<Vec<_>>()
         );
         // Different lines per file; must not bleed by line number alone.
-        let main_bps = session.apply_set_breakpoints_for_source(
-            &main_path,
-            &[serde_json::json!({ "line": 4 })],
-        );
-        let math_bps = session.apply_set_breakpoints_for_source(
-            &math_path,
-            &[serde_json::json!({ "line": 2 })],
-        );
+        let main_bps = session
+            .apply_set_breakpoints_for_source(&main_path, &[serde_json::json!({ "line": 4 })]);
+        let math_bps = session
+            .apply_set_breakpoints_for_source(&math_path, &[serde_json::json!({ "line": 2 })]);
         assert!(
             main_bps
                 .iter()
@@ -2395,10 +2396,8 @@ mod tests {
             "local_math.sy line 2 should verify; got {math_bps:?}"
         );
         // Updating main.sy alone must not drop local_math requested lines.
-        let _ = session.apply_set_breakpoints_for_source(
-            &main_path,
-            &[serde_json::json!({ "line": 4 })],
-        );
+        let _ = session
+            .apply_set_breakpoints_for_source(&main_path, &[serde_json::json!({ "line": 4 })]);
         assert!(
             session
                 .breakpoints
@@ -2443,7 +2442,7 @@ mod tests {
             local_names: Vec::new(),
             local_types: Vec::new(),
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2466,7 +2465,7 @@ mod tests {
             local_names: Vec::new(),
             local_types: Vec::new(),
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2490,7 +2489,7 @@ mod tests {
             local_names: Vec::new(),
             local_types: Vec::new(),
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2513,16 +2512,16 @@ mod tests {
             name: SmolStr::new("main"),
             param_count: 0,
             local_count: 0,
-            instructions: vec![Instruction::ConstI32(1), Instruction::Print, Instruction::Return],
-            instruction_spans: vec![
-                None,
-                Some((print_offset, 5)),
-                None,
+            instructions: vec![
+                Instruction::ConstI32(1),
+                Instruction::Print,
+                Instruction::Return,
             ],
+            instruction_spans: vec![None, Some((print_offset, 5)), None],
             local_names: Vec::new(),
             local_types: Vec::new(),
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2601,19 +2600,20 @@ mod tests {
         )
         .unwrap();
         let exe = dir.path().join("app");
-        syx_driver::build_native_executable(dir.path(), &syx_driver::DriverOptions::default(), &exe)
-            .expect("native build");
+        syx_driver::build_native_executable(
+            dir.path(),
+            &syx_driver::DriverOptions::default(),
+            &exe,
+        )
+        .expect("native build");
         assert!(exe.exists(), "native binary should exist");
         let source = syx_diagnostics::SourceFile::new(path.to_string_lossy(), source_text);
-        let expected = expected_line_for_offset(&source, source.contents.find("print").unwrap() as u32);
+        let expected =
+            expected_line_for_offset(&source, source.contents.find("print").unwrap() as u32);
         assert_pc_line_parity_for_fixture("p4_hof", "main", "print", expected);
     }
 
-    fn session_for_fixture(
-        fixture: &str,
-        entry: &str,
-        needle: &str,
-    ) -> (DebugSession, usize, u32) {
+    fn session_for_fixture(fixture: &str, entry: &str, needle: &str) -> (DebugSession, usize, u32) {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join(format!("../syx-driver/tests/{fixture}.sy"));
         let unit = syx_driver::compile_file(&path).expect("fixture should compile");
@@ -2640,7 +2640,11 @@ mod tests {
             if let Some((start, len)) = *span {
                 let mapped_line = session.line_for_pc_in_fn(fn_idx, pc);
                 if start == print_offset && len == needle.len() as u32 {
-                    assert_eq!(mapped_line, Some(line), "first {needle} maps to line {line}");
+                    assert_eq!(
+                        mapped_line,
+                        Some(line),
+                        "first {needle} maps to line {line}"
+                    );
                 }
                 if mapped_line.is_some() {
                     mapped += 1;
@@ -2704,7 +2708,7 @@ mod tests {
             local_names: vec![SmolStr::new("count")],
             local_types: vec![SmolStr::new("Int")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2732,7 +2736,7 @@ mod tests {
             local_names: vec![SmolStr::new("x")],
             local_types: vec![SmolStr::new("Int")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2806,7 +2810,7 @@ mod tests {
             local_names: vec![SmolStr::new("a"), SmolStr::new("b")],
             local_types: vec![SmolStr::new("Int"), SmolStr::new("Int")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2852,7 +2856,7 @@ mod tests {
             local_names: vec![SmolStr::new("obj")],
             local_types: vec![SmolStr::new("Greeter")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2885,7 +2889,7 @@ mod tests {
             local_names: vec![SmolStr::new("x")],
             local_types: vec![SmolStr::new("Int")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let main = FunctionUnit {
@@ -2897,7 +2901,7 @@ mod tests {
             local_names: vec![SmolStr::new("n")],
             local_types: vec![SmolStr::new("Int")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2925,7 +2929,7 @@ mod tests {
             local_names: vec![SmolStr::new("a"), SmolStr::new("b")],
             local_types: vec![SmolStr::new("Int"), SmolStr::new("Int")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2953,7 +2957,7 @@ mod tests {
             local_names: vec![SmolStr::new("xs")],
             local_types: vec![SmolStr::new("Array<Int>")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -2963,7 +2967,8 @@ mod tests {
         let source = SourceFile::new("t.sy", "func main() {}");
         let mut session = DebugSession::new(source, program);
         let mut vm = syx_vm::WasmVM::default();
-        vm.locals.push(Value::Array(vec![Value::I32(1), Value::I32(2)]));
+        vm.locals
+            .push(Value::Array(vec![Value::I32(1), Value::I32(2)]));
         session.vm = Some(vm);
         assert_eq!(session.evaluate_expression("xs.count"), Some("2".into()));
     }
@@ -2999,7 +3004,7 @@ mod tests {
             local_names: vec![SmolStr::new("xs")],
             local_types: vec![SmolStr::new("Array<Int>")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -3009,7 +3014,8 @@ mod tests {
         let source = SourceFile::new("t.sy", "func main() {}");
         let mut session = DebugSession::new(source, program);
         let mut vm = syx_vm::WasmVM::default();
-        vm.locals.push(Value::Array(vec![Value::I32(10), Value::I32(20)]));
+        vm.locals
+            .push(Value::Array(vec![Value::I32(10), Value::I32(20)]));
         session.vm = Some(vm);
         assert_eq!(session.evaluate_expression("xs[0]"), Some("10".into()));
         assert_eq!(session.evaluate_expression("xs[1]"), Some("20".into()));
@@ -3027,7 +3033,7 @@ mod tests {
             local_names: vec![SmolStr::new("color")],
             local_types: vec![SmolStr::new("String")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -3053,7 +3059,7 @@ mod tests {
             local_names: vec![],
             local_types: vec![],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         };
         let program = CompiledProgram {
@@ -3068,7 +3074,10 @@ mod tests {
             session.evaluate_expression("async_state"),
             Some("suspended @ fetch_data".into())
         );
-        assert_eq!(session.evaluate_expression("task_group"), Some("fetch_data".into()));
+        assert_eq!(
+            session.evaluate_expression("task_group"),
+            Some("fetch_data".into())
+        );
     }
 
     #[test]
@@ -3089,10 +3098,7 @@ mod tests {
         );
         session.function_index = 1;
         if let Some(main_fn) = session.program.functions.get_mut(1) {
-            main_fn.local_names = vec![
-                SmolStr::new("items"),
-                SmolStr::new("n"),
-            ];
+            main_fn.local_names = vec![SmolStr::new("items"), SmolStr::new("n")];
         }
         let mut vm = syx_vm::WasmVM::default();
         vm.locals.push(syx_vm::Value::Array(vec![
@@ -3131,9 +3137,9 @@ mod tests {
                 local_names: vec![SmolStr::new("adder")],
                 local_types: vec![SmolStr::new("Closure")],
                 source_name: SmolStr::new(""),
-                        init_body_pc: 0,
-            init_wrap_pc: 0,
-        });
+                init_body_pc: 0,
+                init_wrap_pc: 0,
+            });
         }
         let mut vm = syx_vm::WasmVM::default();
         vm.locals.push(Value::Closure {
@@ -3162,7 +3168,7 @@ mod tests {
             local_names: vec![SmolStr::new("f")],
             local_types: vec![SmolStr::new("Closure")],
             source_name: SmolStr::new(""),
-                    init_body_pc: 0,
+            init_body_pc: 0,
             init_wrap_pc: 0,
         });
         session.function_index = 0;
@@ -3182,10 +3188,8 @@ mod tests {
             syx_diagnostics::SourceFile::new("t.sy", "func id<T>(x: T) {}"),
             CompiledProgram::default(),
         );
-        session.generic_type_params = vec![
-            ("T".into(), "Int".into()),
-            ("E".into(), "String".into()),
-        ];
+        session.generic_type_params =
+            vec![("T".into(), "Int".into()), ("E".into(), "String".into())];
         assert_eq!(session.evaluate_expression("$T"), Some("Int".into()));
         assert_eq!(session.evaluate_expression("$E"), Some("String".into()));
         assert_eq!(session.evaluate_expression("__type_T"), Some("Int".into()));
@@ -3205,10 +3209,7 @@ mod tests {
         session.function_index = 1;
         session.generic_type_params = vec![("T".into(), "Int".into())];
         if let Some(main_fn) = session.program.functions.get_mut(1) {
-            main_fn.local_names = vec![
-                SmolStr::new("capturer"),
-                SmolStr::new("result"),
-            ];
+            main_fn.local_names = vec![SmolStr::new("capturer"), SmolStr::new("result")];
         }
         let mut vm = syx_vm::WasmVM::default();
         vm.locals.push(Value::Closure {
@@ -3315,9 +3316,7 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("Counter".into());
-        assert!(
-            session.evaluate_expression("async_state").is_some() || fn_count > 1
-        );
+        assert!(session.evaluate_expression("async_state").is_some() || fn_count > 1);
     }
 
     #[test]
@@ -3339,9 +3338,7 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("OneShot".into());
-        assert!(
-            session.evaluate_expression("async_state").is_some() || fn_count > 1
-        );
+        assert!(session.evaluate_expression("async_state").is_some() || fn_count > 1);
     }
 
     #[test]
@@ -3373,9 +3370,7 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("OneShot".into());
-        assert!(
-            session.evaluate_expression("async_state").is_some() || fn_count > 1
-        );
+        assert!(session.evaluate_expression("async_state").is_some() || fn_count > 1);
     }
 
     #[test]
@@ -3418,9 +3413,7 @@ mod tests {
         );
         session.async_stack_label = Some("Mailbox".into());
         assert!(has_main);
-        assert!(
-            session.evaluate_expression("async_state").is_some() || fn_count > 1
-        );
+        assert!(session.evaluate_expression("async_state").is_some() || fn_count > 1);
     }
 
     #[test]
@@ -3436,7 +3429,6 @@ mod tests {
         session.async_stack_label = Some("dist-uds-process".into());
         assert!(session.async_stack_label.is_some());
     }
-
 
     #[test]
     fn dap_v20_tls_real_attach() {
@@ -3481,11 +3473,19 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("Mailbox".into());
-        session.breakpoints.breakpoints.insert((0, 1), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert!(session.breakpoints.breakpoints.get(&(0, 1)).map(|b| b.enabled).unwrap_or(false));
+        session.breakpoints.breakpoints.insert(
+            (0, 1),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
+        assert!(session
+            .breakpoints
+            .breakpoints
+            .get(&(0, 1))
+            .map(|b| b.enabled)
+            .unwrap_or(false));
     }
 
     #[test]
@@ -3504,13 +3504,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-relocating-compaction-phase30".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("gc-relocating-compaction-phase30")
-                && session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, 0))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3525,9 +3533,7 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("dist-tls-rustls-prod".into());
-        assert!(
-            has_main && session.async_stack_label.as_deref() == Some("dist-tls-rustls-prod")
-        );
+        assert!(has_main && session.async_stack_label.as_deref() == Some("dist-tls-rustls-prod"));
     }
 
     #[test]
@@ -3545,13 +3551,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("route-multiprocess-phase30".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("route-multiprocess-phase30")
-                && session.breakpoints.breakpoints.get(&(0, route_line)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, route_line))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3561,16 +3575,22 @@ mod tests {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/p28_distributed_actor_tls_real.sy");
         let unit = syx_driver::compile_file(&path).unwrap();
-        let send_line = text.lines().position(|l| l.contains("dist_send")).unwrap_or(2);
+        let send_line = text
+            .lines()
+            .position(|l| l.contains("dist_send"))
+            .unwrap_or(2);
         let mut session = DebugSession::new(
             syx_diagnostics::SourceFile::new("p30_mp_bp.sy", text),
             unit.program,
         );
         session.async_stack_label = Some("syx-mp-session-map".into());
-        session.breakpoints.breakpoints.insert((0, send_line), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, send_line),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         let bp = session.breakpoints.breakpoints.get(&(0, send_line));
         assert!(
             bp.map(|b| b.enabled).unwrap_or(false)
@@ -3589,7 +3609,10 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("dist-win-pipe-multiprocess".into());
-        assert_eq!(session.async_stack_label.as_deref(), Some("dist-win-pipe-multiprocess"));
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("dist-win-pipe-multiprocess")
+        );
     }
 
     #[test]
@@ -3603,11 +3626,19 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("global-actor-v10".into());
-        session.breakpoints.breakpoints.insert((0, 2), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert!(session.breakpoints.breakpoints.get(&(0, 2)).map(|b| b.enabled).unwrap_or(false));
+        session.breakpoints.breakpoints.insert(
+            (0, 2),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
+        assert!(session
+            .breakpoints
+            .breakpoints
+            .get(&(0, 2))
+            .map(|b| b.enabled)
+            .unwrap_or(false));
     }
 
     #[test]
@@ -3624,7 +3655,10 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("net-ring-buffer-phase30".into());
-        assert_eq!(session.async_stack_label.as_deref(), Some("net-ring-buffer-phase30"));
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("net-ring-buffer-phase30")
+        );
     }
 
     #[test]
@@ -3637,7 +3671,10 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("adr-036-llvm-default".into());
-        assert_eq!(session.async_stack_label.as_deref(), Some("adr-036-llvm-default"));
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("adr-036-llvm-default")
+        );
     }
 
     #[test]
@@ -3650,7 +3687,10 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("registry-phase11-failover".into());
-        assert_eq!(session.async_stack_label.as_deref(), Some("registry-phase11-failover"));
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("registry-phase11-failover")
+        );
     }
 
     #[test]
@@ -3664,13 +3704,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-generational-phase31".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("gc-generational-phase31")
-                && session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, 0))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3685,11 +3733,17 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-generational-young-heap".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: Some("generational".into()),
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("gc-generational-young-heap"));
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: Some("generational".into()),
+            },
+        );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("gc-generational-young-heap")
+        );
     }
 
     #[test]
@@ -3723,13 +3777,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("route-federated-multi-repo-v3".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("route-federated-multi-repo-v3")
-                && session.breakpoints.breakpoints.get(&(0, route_line)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, route_line))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3744,11 +3806,17 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-remembered-set-phase32".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: Some("remembered-set".into()),
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("gc-remembered-set-phase32"));
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: Some("remembered-set".into()),
+            },
+        );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("gc-remembered-set-phase32")
+        );
     }
 
     #[test]
@@ -3762,13 +3830,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-remembered-set-young-old".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("gc-remembered-set-young-old")
-                && session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, 0))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3784,7 +3860,9 @@ mod tests {
         );
         session.async_stack_label = Some("dist-tls-rustls-crate-prod-phase32".into());
         assert!(
-            has_main && session.async_stack_label.as_deref() == Some("dist-tls-rustls-crate-prod-phase32")
+            has_main
+                && session.async_stack_label.as_deref()
+                    == Some("dist-tls-rustls-crate-prod-phase32")
         );
     }
 
@@ -3803,13 +3881,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("route-federated-multi-repo-v3".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: Some("multi-repo".into()),
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: Some("multi-repo".into()),
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("route-federated-multi-repo-v3")
-                && session.breakpoints.breakpoints.get(&(0, route_line)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, route_line))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3819,15 +3905,24 @@ mod tests {
             .join("../syx-driver/tests/p28_distributed_actor_tls_real.sy");
         let unit = syx_driver::compile_file(&path).unwrap();
         let mut session = DebugSession::new(
-            syx_diagnostics::SourceFile::new("p31_phase6_aot.sy", "func main() { print(\"llvm-aot-phase6\") }"),
+            syx_diagnostics::SourceFile::new(
+                "p31_phase6_aot.sy",
+                "func main() { print(\"llvm-aot-phase6\") }",
+            ),
             unit.program,
         );
         session.async_stack_label = Some("llvm-aot-phase6-gc-intrinsics".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("llvm-aot-phase6-gc-intrinsics"));
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("llvm-aot-phase6-gc-intrinsics")
+        );
     }
 
     #[test]
@@ -3836,15 +3931,24 @@ mod tests {
             .join("../syx-driver/tests/p28_distributed_actor_tls_real.sy");
         let unit = syx_driver::compile_file(&path).unwrap();
         let mut session = DebugSession::new(
-            syx_diagnostics::SourceFile::new("p32_phase7_aot.sy", "func main() { print(\"llvm-aot-phase7\") }"),
+            syx_diagnostics::SourceFile::new(
+                "p32_phase7_aot.sy",
+                "func main() { print(\"llvm-aot-phase7\") }",
+            ),
             unit.program,
         );
         session.async_stack_label = Some("llvm-aot-phase7-gc-full-path".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("llvm-aot-phase7-gc-full-path"));
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("llvm-aot-phase7-gc-full-path")
+        );
     }
 
     #[test]
@@ -3863,14 +3967,23 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-native-vm-run-phase33".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("gc-native-vm-run-phase33"));
-        assert!(
-            session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
         );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("gc-native-vm-run-phase33")
+        );
+        assert!(session
+            .breakpoints
+            .breakpoints
+            .get(&(0, 0))
+            .map(|b| b.enabled)
+            .unwrap_or(false));
     }
 
     #[test]
@@ -3884,13 +3997,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-native-remembered-set-phase33".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("gc-native-remembered-set-phase33")
-                && session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, 0))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3906,7 +4027,9 @@ mod tests {
         );
         session.async_stack_label = Some("dist-tls-rustls-crate-prod-phase33".into());
         assert!(
-            has_main && session.async_stack_label.as_deref() == Some("dist-tls-rustls-crate-prod-phase33")
+            has_main
+                && session.async_stack_label.as_deref()
+                    == Some("dist-tls-rustls-crate-prod-phase33")
         );
     }
 
@@ -3925,13 +4048,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("route-federated-multi-org-v4".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("route-federated-multi-org-v4")
-                && session.breakpoints.breakpoints.get(&(0, route_line)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, route_line))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -3941,19 +4072,28 @@ mod tests {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/p28_distributed_actor_uds_prod.sy");
         let unit = syx_driver::compile_file(&path).unwrap();
-        let route_line = text.lines().position(|l| l.contains("dist_send")).unwrap_or(2);
+        let route_line = text
+            .lines()
+            .position(|l| l.contains("dist_send"))
+            .unwrap_or(2);
         let mut session = DebugSession::new(
             syx_diagnostics::SourceFile::new("p33_multi_org_bp.sy", text),
             unit.program,
         );
         session.async_stack_label = Some("route-federated-multi-org-v4".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: Some("multiOrg".into()),
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: Some("multiOrg".into()),
+            },
+        );
         let bp = session.breakpoints.breakpoints.get(&(0, route_line));
         assert!(bp.map(|b| b.enabled).unwrap_or(false));
-        assert_eq!(session.async_stack_label.as_deref(), Some("route-federated-multi-org-v4"));
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("route-federated-multi-org-v4")
+        );
     }
 
     #[test]
@@ -3962,15 +4102,24 @@ mod tests {
             .join("../syx-driver/tests/p28_distributed_actor_tls_real.sy");
         let unit = syx_driver::compile_file(&path).unwrap();
         let mut session = DebugSession::new(
-            syx_diagnostics::SourceFile::new("p33_phase8_aot.sy", "func main() { print(\"llvm-aot-phase8-vm-native-gc\") }"),
+            syx_diagnostics::SourceFile::new(
+                "p33_phase8_aot.sy",
+                "func main() { print(\"llvm-aot-phase8-vm-native-gc\") }",
+            ),
             unit.program,
         );
         session.async_stack_label = Some("llvm-aot-phase8-vm-native-gc".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("llvm-aot-phase8-vm-native-gc"));
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("llvm-aot-phase8-vm-native-gc")
+        );
     }
 
     #[test]
@@ -3989,14 +4138,23 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-unified-tri-backend-phase34".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert_eq!(session.async_stack_label.as_deref(), Some("gc-unified-tri-backend-phase34"));
-        assert!(
-            session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
         );
+        assert_eq!(
+            session.async_stack_label.as_deref(),
+            Some("gc-unified-tri-backend-phase34")
+        );
+        assert!(session
+            .breakpoints
+            .breakpoints
+            .get(&(0, 0))
+            .map(|b| b.enabled)
+            .unwrap_or(false));
     }
 
     #[test]
@@ -4010,13 +4168,21 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-unified-remembered-set-phase34".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("gc-unified-remembered-set-phase34")
-                && session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+                && session
+                    .breakpoints
+                    .breakpoints
+                    .get(&(0, 0))
+                    .map(|b| b.enabled)
+                    .unwrap_or(false)
         );
     }
 
@@ -4053,10 +4219,13 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("route-federated-multi-region-v5".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert!(
             session.async_stack_label.as_deref() == Some("route-federated-multi-region-v5")
                 && session
@@ -4074,16 +4243,22 @@ mod tests {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/p28_distributed_actor_uds_prod.sy");
         let unit = syx_driver::compile_file(&path).unwrap();
-        let route_line = text.lines().position(|l| l.contains("dist_send")).unwrap_or(2);
+        let route_line = text
+            .lines()
+            .position(|l| l.contains("dist_send"))
+            .unwrap_or(2);
         let mut session = DebugSession::new(
             syx_diagnostics::SourceFile::new("p34_multi_region_bp.sy", text),
             unit.program,
         );
         session.async_stack_label = Some("route-federated-multi-region-v5".into());
-        session.breakpoints.breakpoints.insert((0, route_line), Breakpoint {
-            enabled: true,
-            condition: Some("multiRegion".into()),
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, route_line),
+            Breakpoint {
+                enabled: true,
+                condition: Some("multiRegion".into()),
+            },
+        );
         let bp = session.breakpoints.breakpoints.get(&(0, route_line));
         assert!(bp.map(|b| b.enabled).unwrap_or(false));
         assert_eq!(
@@ -4105,10 +4280,13 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("llvm-aot-phase9-unified-gc".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert_eq!(
             session.async_stack_label.as_deref(),
             Some("llvm-aot-phase9-unified-gc")
@@ -4131,10 +4309,13 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("gc-unified-promotion-phase35".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
         assert_eq!(
             session.async_stack_label.as_deref(),
             Some("gc-unified-promotion-phase35")
@@ -4240,13 +4421,19 @@ mod tests {
             unit.program,
         );
         session.async_stack_label = Some("typealias-prod-default-phase35".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert!(
-            session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false)
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
         );
+        assert!(session
+            .breakpoints
+            .breakpoints
+            .get(&(0, 0))
+            .map(|b| b.enabled)
+            .unwrap_or(false));
     }
 
     #[test]
@@ -4266,7 +4453,9 @@ func main() {
             &syx_driver::DriverOptions::default(),
         );
         assert!(
-            diags.iter().any(|e| e.message.contains("Missing argument label 'name:'")),
+            diags
+                .iter()
+                .any(|e| e.message.contains("Missing argument label 'name:'")),
             "expected missing label diagnostic: {:?}",
             diags
         );
@@ -4274,11 +4463,15 @@ func main() {
 
     #[test]
     fn main_example_greeter_breakpoints_and_labels() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
         let session = syx_driver::debug_path(&path).expect("debug main.sy");
         let (fn_idx, pc) = session.resolve_breakpoint_line(12).expect("line 12");
         let fn_name = session.program.functions[fn_idx].name.as_str();
-        assert_eq!(fn_name, "Greeter_hello", "line 12 must map to hello, not import");
+        assert_eq!(
+            fn_name, "Greeter_hello",
+            "line 12 must map to hello, not import"
+        );
         assert!(
             session.resolve_breakpoint_line(8).is_some(),
             "Greeter.init body should map"
@@ -4300,7 +4493,8 @@ func main() {
 
     #[test]
     fn main_example_continue_hits_greeter_hello_breakpoint() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
         let mut session = syx_driver::debug_path(&path).expect("debug main.sy");
         let hello_idx = session
             .program
@@ -4308,7 +4502,9 @@ func main() {
             .iter()
             .position(|f| f.name == "Greeter_hello")
             .expect("Greeter_hello");
-        let (bp_fn, bp_pc) = session.resolve_breakpoint_line(12).expect("breakpoint line");
+        let (bp_fn, bp_pc) = session
+            .resolve_breakpoint_line(12)
+            .expect("breakpoint line");
         assert_eq!(bp_fn, hello_idx);
         session.set_breakpoint(bp_fn, bp_pc);
         session.prepare_entry();
@@ -4322,7 +4518,8 @@ func main() {
 
     #[test]
     fn main_example_continue_hits_greeter_greet_breakpoint() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
         let mut session = syx_driver::debug_path(&path).expect("debug main.sy");
         let greet_idx = session
             .program
@@ -4339,7 +4536,10 @@ func main() {
         let (bp_fn, bp_pc) = session
             .resolve_breakpoint_line(31)
             .expect("g.greet() call line");
-        assert_eq!(bp_fn, main_idx, "breakpoint on g.greet() should map to main");
+        assert_eq!(
+            bp_fn, main_idx,
+            "breakpoint on g.greet() should map to main"
+        );
         session.set_breakpoint(greet_idx, 0);
         session.set_breakpoint(bp_fn, bp_pc);
         session.prepare_entry();
@@ -4357,7 +4557,8 @@ func main() {
 
     #[test]
     fn main_example_greet_breakpoint_maps_to_extension() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
         let session = syx_driver::debug_path(&path).expect("debug main.sy");
         let greet_idx = session
             .program
@@ -4365,15 +4566,21 @@ func main() {
             .iter()
             .position(|f| f.name == "Greeter_greet")
             .expect("Greeter_greet");
-        let (fn_idx, pc) = session.resolve_breakpoint_line(18).expect("greet body line");
-        assert_eq!(session.program.functions[fn_idx].name.as_str(), "Greeter_greet");
+        let (fn_idx, pc) = session
+            .resolve_breakpoint_line(18)
+            .expect("greet body line");
+        assert_eq!(
+            session.program.functions[fn_idx].name.as_str(),
+            "Greeter_greet"
+        );
         assert_eq!(fn_idx, greet_idx);
         let _ = pc;
     }
 
     #[test]
     fn main_example_step_into_greeter_hello() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
         let mut session = syx_driver::debug_path(&path).expect("debug main.sy");
         session.prepare_entry();
         session.vm = Some(syx_vm::WasmVM::default());
@@ -4396,7 +4603,12 @@ func main() {
             .enumerate()
             .find_map(|(pc, ins)| match ins {
                 Instruction::Call(idx) => {
-                    if session.program.functions.get(*idx as usize).is_some_and(|f| f.name == "Greeter_hello") {
+                    if session
+                        .program
+                        .functions
+                        .get(*idx as usize)
+                        .is_some_and(|f| f.name == "Greeter_hello")
+                    {
                         Some(pc)
                     } else {
                         None
@@ -4414,7 +4626,8 @@ func main() {
 
     #[test]
     fn main_example_step_into_run_print() {
-        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
+        let path =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/main.sy");
         let mut session = syx_driver::debug_path(&path).expect("debug main.sy");
         session.prepare_entry();
         session.vm = Some(syx_vm::WasmVM::default());
@@ -4449,11 +4662,19 @@ func main() {
             unit.program,
         );
         session.async_stack_label = Some("jit-tier2-deopt-phase36".into());
-        session.breakpoints.breakpoints.insert((0, 0), Breakpoint {
-            enabled: true,
-            condition: None,
-        });
-        assert!(session.breakpoints.breakpoints.get(&(0, 0)).map(|b| b.enabled).unwrap_or(false));
+        session.breakpoints.breakpoints.insert(
+            (0, 0),
+            Breakpoint {
+                enabled: true,
+                condition: None,
+            },
+        );
+        assert!(session
+            .breakpoints
+            .breakpoints
+            .get(&(0, 0))
+            .map(|b| b.enabled)
+            .unwrap_or(false));
     }
 
     #[test]
@@ -4466,7 +4687,11 @@ func main() {
             unit.program,
         );
         session.async_stack_label = Some("inkwell-crate-adr048-phase36".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("inkwell"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("inkwell"));
     }
 
     #[test]
@@ -4476,7 +4701,11 @@ func main() {
             syx_codegen::CompiledProgram::default(),
         );
         session.async_stack_label = Some("gc-compaction-phase11-v28".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("compaction"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("compaction"));
     }
 
     #[test]
@@ -4498,7 +4727,11 @@ func main() {
             syx_codegen::CompiledProgram::default(),
         );
         session.async_stack_label = Some("registry-phase17-crdt-prod-v28".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("phase17"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("phase17"));
     }
 
     #[test]
@@ -4508,7 +4741,11 @@ func main() {
             syx_codegen::CompiledProgram::default(),
         );
         session.async_stack_label = Some("llvm-aot-phase11-compaction-v28".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("phase11"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("phase11"));
     }
 
     #[test]
@@ -4518,7 +4755,11 @@ func main() {
             syx_codegen::CompiledProgram::default(),
         );
         session.async_stack_label = Some("jit-safepoint-gc-cycle-v28".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("safepoint"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("safepoint"));
     }
 
     #[test]
@@ -4540,7 +4781,11 @@ func main() {
             syx_codegen::CompiledProgram::default(),
         );
         session.async_stack_label = Some("federated-live-v7-crdt-prod".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("v7"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("v7"));
     }
 
     #[test]
@@ -4565,7 +4810,11 @@ func main() {
             syx_codegen::CompiledProgram::default(),
         );
         session.async_stack_label = Some("jit-safepoint-inline-v29".into());
-        assert!(session.async_stack_label.as_deref().unwrap_or("").contains("safepoint"));
+        assert!(session
+            .async_stack_label
+            .as_deref()
+            .unwrap_or("")
+            .contains("safepoint"));
     }
 
     #[test]

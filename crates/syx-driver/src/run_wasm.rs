@@ -4,11 +4,11 @@
 use crate::cache_fingerprint::driver_options_with_deps;
 use crate::module_ref::ModuleRef;
 use crate::{
-    build_unified_mir, compile_module_recursive, compile_project_with_options, ensure_project_lock,
-    DriverOptions, ModuleGraph,
+    build_unified_mir, compile_module_recursive, compile_project_with_options, driver_error_at,
+    ensure_project_lock, DriverOptions, ModuleGraph,
 };
 use std::path::Path;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_pkg::{load_manifest, load_resolved_packages};
 
 pub fn run_wasm_bytes(wasm: &[u8], entry: &str) -> SyxResult<i32> {
@@ -32,8 +32,14 @@ pub fn run_wasm_file_with_options(
     entry: &str,
     options: &DriverOptions,
 ) -> SyxResult<i32> {
-    let wasm = std::fs::read(path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
+    let wasm = std::fs::read(path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
         let syx = path.with_file_name(stem).with_extension("sy");
         if syx.exists() {
@@ -180,7 +186,9 @@ pub fn run_native_mir_file_printed(
         .functions
         .iter()
         .find(|f| f.name == "main")
-        .ok_or_else(|| SyxDiagnostic::error("No main function in MIR module"))?;
+        .ok_or_else(|| {
+            driver_error_at("No main function in MIR module", None, Span::DUMMY, "R001")
+        })?;
     syx_vm::set_program_ctx(syx_vm::ProgramCtx {
         program: std::sync::Arc::new(unit.program.clone()),
         runtime: None,

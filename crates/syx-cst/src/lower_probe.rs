@@ -10,10 +10,11 @@ use syx_ast::{AccessLevel, CallArg, Decl, Expr, Literal, Module, Stmt};
 use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_lexer::TokenKind;
 
+use crate::cst_diag::cst_error_at;
 use crate::{is_trivia, parse_cst_subset, CstRoot, GreenToken};
 
 fn lwr001(message: impl Into<String>) -> SyxDiagnostic {
-    SyxDiagnostic::error(message).with_code("LWR001")
+    cst_error_at(message, None, Span::DUMMY, "LWR001")
 }
 
 fn significant_green(tokens: &[GreenToken]) -> Vec<&GreenToken> {
@@ -327,9 +328,7 @@ pub fn lower_cst_subset_probe(root: &CstRoot) -> SyxResult<Module> {
     let mut body = Vec::new();
     while i < sig.len() && sig[i].kind != TokenKind::RBrace {
         let (stmt, next) = take_simple_stmt(&sig, i).ok_or_else(|| {
-            lwr001(
-                "lower probe: body allows print | untyped let/var | return [<simple>]",
-            )
+            lwr001("lower probe: body allows print | untyped let/var | return [<simple>]")
         })?;
         body.push(stmt);
         i = next;
@@ -402,10 +401,7 @@ mod tests {
 
     #[test]
     fn probe_let_print_ok() {
-        let file = SourceFile::new(
-            "t.sy",
-            "func main() {\n    let x = 1\n    print(x)\n}\n",
-        );
+        let file = SourceFile::new("t.sy", "func main() {\n    let x = 1\n    print(x)\n}\n");
         let m = lower_cst_subset_probe_from_source(&file).expect("lower");
         match &m.decls[0] {
             Decl::Function { body, .. } => {
@@ -427,18 +423,12 @@ mod tests {
 
     #[test]
     fn probe_var_return_ok() {
-        let file = SourceFile::new(
-            "t.sy",
-            "func main() {\n    var y = true\n    return y\n}\n",
-        );
+        let file = SourceFile::new("t.sy", "func main() {\n    var y = true\n    return y\n}\n");
         let m = lower_cst_subset_probe_from_source(&file).expect("lower");
         match &m.decls[0] {
             Decl::Function { body, .. } => {
                 assert_eq!(body.len(), 2);
-                assert!(matches!(
-                    &body[0],
-                    Stmt::VarDecl { mutable: true, .. }
-                ));
+                assert!(matches!(&body[0], Stmt::VarDecl { mutable: true, .. }));
                 assert!(matches!(
                     &body[1],
                     Stmt::Return {

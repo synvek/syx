@@ -4,8 +4,13 @@
 use indexmap::IndexMap;
 use smol_str::SmolStr;
 use syx_ast::AccessLevel;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
 use syx_stdlib::NumericKind;
+
+/// Duplicate binding in the current scope (mapped to S001 by SemanticAnalyzer).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ScopeError {
+    Duplicate(SmolStr),
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TypeId {
@@ -104,13 +109,9 @@ pub struct Scope {
 }
 
 impl Scope {
-    pub fn define(&mut self, symbol: Symbol) -> SyxResult<()> {
+    pub fn define(&mut self, symbol: Symbol) -> Result<(), ScopeError> {
         if self.symbols.contains_key(&symbol.name) {
-            return Err(SyxDiagnostic::error(format!(
-                "Symbol '{}' already defined in this scope",
-                symbol.name
-            ))
-            .with_code("S001"));
+            return Err(ScopeError::Duplicate(symbol.name));
         }
         self.symbols.insert(symbol.name.clone(), symbol);
         Ok(())

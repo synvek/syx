@@ -3,9 +3,12 @@
 //! Vertical slice: Suite-1 style arith / locals / call / string literals.
 //! Full language surface is out of scope; backends should prefer MIR (+ type metadata).
 
+mod hir_diag;
+
+use hir_diag::hir_error_at;
 use smol_str::SmolStr;
 use syx_ast::{BinOp, Decl, Expr, Literal, Module, Stmt};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_mir::{encode_module, lower_module, MirModule};
 use syx_mono::monomorphize_module;
 use syx_semantic::{SemanticAnalyzer, TypeId};
@@ -43,10 +46,7 @@ pub enum HirExpr {
 #[derive(Debug, Clone)]
 pub enum HirStmt {
     Expr(HirExpr),
-    Let {
-        name: SmolStr,
-        value: HirExpr,
-    },
+    Let { name: SmolStr, value: HirExpr },
     Return(Option<HirExpr>),
 }
 
@@ -77,21 +77,14 @@ pub fn from_semantic(module: &Module, semantic: &SemanticAnalyzer) -> SyxResult<
     let mut functions = Vec::new();
     for decl in &mono.decls {
         let Decl::Function {
-            name,
-            params,
-            body,
-            ..
+            name, params, body, ..
         } = decl
         else {
             continue;
         };
         let mut hir_params = Vec::new();
         for p in params {
-            let ty = p
-                .ty
-                .as_ref()
-                .map(type_expr_fallback)
-                .unwrap_or_else(ty_int);
+            let ty = p.ty.as_ref().map(type_expr_fallback).unwrap_or_else(ty_int);
             hir_params.push((p.name.clone(), ty));
         }
         let mut hir_body = Vec::new();
@@ -106,8 +99,11 @@ pub fn from_semantic(module: &Module, semantic: &SemanticAnalyzer) -> SyxResult<
         });
     }
     if functions.is_empty() {
-        return Err(SyxDiagnostic::error(
+        return Err(hir_error_at(
             "syx-hir Suite-1 slice: no function decls to lower",
+            None,
+            Span::DUMMY,
+            "H001",
         ));
     }
     Ok(HirModule { functions, mono })
@@ -144,9 +140,12 @@ fn stmt_to_hir(stmt: &Stmt) -> SyxResult<HirStmt> {
         Stmt::Return { value, .. } => Ok(HirStmt::Return(
             value.as_ref().map(expr_to_hir).transpose()?,
         )),
-        other => Err(SyxDiagnostic::error(format!(
-            "syx-hir Suite-1 slice: unsupported stmt {other:?}"
-        ))),
+        other => Err(hir_error_at(
+            format!("syx-hir Suite-1 slice: unsupported stmt {other:?}"),
+            None,
+            Span::DUMMY,
+            "H001",
+        )),
     }
 }
 
@@ -156,8 +155,11 @@ fn expr_to_hir(expr: &Expr) -> SyxResult<HirExpr> {
             Literal::Integer { value, .. } => Ok(HirExpr::Int(*value as i32, ty_int())),
             Literal::String(s) => Ok(HirExpr::Str(s.clone(), TypeId::String)),
             Literal::Bool(b) => Ok(HirExpr::Bool(*b, TypeId::Bool)),
-            _ => Err(SyxDiagnostic::error(
+            _ => Err(hir_error_at(
                 "syx-hir Suite-1 slice: unsupported literal",
+                None,
+                Span::DUMMY,
+                "H001",
             )),
         },
         Expr::Ident { name, .. } => Ok(HirExpr::Local(name.clone(), ty_object())),
@@ -173,8 +175,11 @@ fn expr_to_hir(expr: &Expr) -> SyxResult<HirExpr> {
             let name = match callee.as_ref() {
                 Expr::Ident { name, .. } => name.clone(),
                 _ => {
-                    return Err(SyxDiagnostic::error(
+                    return Err(hir_error_at(
                         "syx-hir Suite-1 slice: only simple calls",
+                        None,
+                        Span::DUMMY,
+                        "H001",
                     ))
                 }
             };
@@ -188,9 +193,12 @@ fn expr_to_hir(expr: &Expr) -> SyxResult<HirExpr> {
                 ty: ty_object(),
             })
         }
-        other => Err(SyxDiagnostic::error(format!(
-            "syx-hir Suite-1 slice: unsupported expr {other:?}"
-        ))),
+        other => Err(hir_error_at(
+            format!("syx-hir Suite-1 slice: unsupported expr {other:?}"),
+            None,
+            Span::DUMMY,
+            "H001",
+        )),
     }
 }
 

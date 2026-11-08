@@ -2,14 +2,14 @@
 //! Extracted in S2-I219 (zero semantics).
 
 use crate::{
-    collect_sy_files, compile_linked_with_options, ensure_vm_plugin_dispatch,
+    collect_sy_files, compile_linked_with_options, driver_error_at, ensure_vm_plugin_dispatch,
     run_compiled_program_with_strict, run_file_with_options, run_project_with_options,
     DriverOptions,
 };
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 use syx_ast::Decl;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_parser::Parser;
 
 /// Per-case status for `syx test` reports (W932 / ADR-1276).
@@ -81,11 +81,7 @@ impl TestReport {
                     ));
                 }
                 TestCaseStatus::Failed => {
-                    let msg = case
-                        .failure
-                        .as_deref()
-                        .map(xml_escape)
-                        .unwrap_or_default();
+                    let msg = case.failure.as_deref().map(xml_escape).unwrap_or_default();
                     xml.push_str(&format!(
                         "  <testcase name=\"{name}\" classname=\"syx\"><failure>{msg}</failure></testcase>\n"
                     ));
@@ -201,10 +197,15 @@ pub fn test_project_with_format(
     let use_project_main = !single_sy && !use_tests_dir;
 
     if root.is_file() && !single_sy {
-        return Err(SyxDiagnostic::error(format!(
-            "syx test expects a project directory or a .sy file, got {}",
-            root.display()
-        )));
+        return Err(driver_error_at(
+            format!(
+                "syx test expects a project directory or a .sy file, got {}",
+                root.display()
+            ),
+            None,
+            Span::DUMMY,
+            "D002",
+        ));
     }
 
     let mut plan_one_sy =
@@ -291,73 +292,76 @@ pub fn test_project_with_format(
     if single_sy || use_tests_dir {
         for unit in planned {
             match unit {
-                PlannedUnit::File { name, path } => {
-                    match run_file_with_options(&path, options) {
-                        Ok(()) => {
-                            let outcomes = syx_vm::take_registered_test_outcomes();
-                            if outcomes.is_empty() {
-                                index += 1;
-                                report.passed += 1;
-                                report.cases.push(TestCaseResult {
-                                    name: name.clone(),
-                                    status: TestCaseStatus::Passed,
-                                    failure: None,
-                                });
-                                if tap {
-                                    println!("ok {index} - {name}");
-                                }
-                            } else {
-                                let mut first_fail: Option<SyxDiagnostic> = None;
-                                for outcome in outcomes {
-                                    index += 1;
-                                    let case_name = format!("{name}.{}", outcome.name);
-                                    if let Some(failure) = outcome.failure {
-                                        report.failed += 1;
-                                        report.cases.push(TestCaseResult {
-                                            name: case_name.clone(),
-                                            status: TestCaseStatus::Failed,
-                                            failure: Some(failure.clone()),
-                                        });
-                                        if tap {
-                                            println!("not ok {index} - {case_name} # {failure}");
-                                        } else if !continue_on_fail && first_fail.is_none() {
-                                            first_fail = Some(SyxDiagnostic::error(failure));
-                                        }
-                                    } else {
-                                        report.passed += 1;
-                                        report.cases.push(TestCaseResult {
-                                            name: case_name.clone(),
-                                            status: TestCaseStatus::Passed,
-                                            failure: None,
-                                        });
-                                        if tap {
-                                            println!("ok {index} - {case_name}");
-                                        }
-                                    }
-                                }
-                                if let Some(err) = first_fail {
-                                    return Err(err);
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            let _ = syx_vm::take_registered_test_outcomes();
+                PlannedUnit::File { name, path } => match run_file_with_options(&path, options) {
+                    Ok(()) => {
+                        let outcomes = syx_vm::take_registered_test_outcomes();
+                        if outcomes.is_empty() {
                             index += 1;
-                            let failure = e.to_string();
-                            report.failed += 1;
+                            report.passed += 1;
                             report.cases.push(TestCaseResult {
                                 name: name.clone(),
-                                status: TestCaseStatus::Failed,
-                                failure: Some(failure.clone()),
+                                status: TestCaseStatus::Passed,
+                                failure: None,
                             });
                             if tap {
-                                println!("not ok {index} - {name} # {failure}");
-                            } else if !continue_on_fail {
-                                return Err(e);
+                                println!("ok {index} - {name}");
+                            }
+                        } else {
+                            let mut first_fail: Option<SyxDiagnostic> = None;
+                            for outcome in outcomes {
+                                index += 1;
+                                let case_name = format!("{name}.{}", outcome.name);
+                                if let Some(failure) = outcome.failure {
+                                    report.failed += 1;
+                                    report.cases.push(TestCaseResult {
+                                        name: case_name.clone(),
+                                        status: TestCaseStatus::Failed,
+                                        failure: Some(failure.clone()),
+                                    });
+                                    if tap {
+                                        println!("not ok {index} - {case_name} # {failure}");
+                                    } else if !continue_on_fail && first_fail.is_none() {
+                                        first_fail = Some(driver_error_at(
+                                            failure,
+                                            None,
+                                            Span::DUMMY,
+                                            "T001",
+                                        ));
+                                    }
+                                } else {
+                                    report.passed += 1;
+                                    report.cases.push(TestCaseResult {
+                                        name: case_name.clone(),
+                                        status: TestCaseStatus::Passed,
+                                        failure: None,
+                                    });
+                                    if tap {
+                                        println!("ok {index} - {case_name}");
+                                    }
+                                }
+                            }
+                            if let Some(err) = first_fail {
+                                return Err(err);
                             }
                         }
                     }
-                }
+                    Err(e) => {
+                        let _ = syx_vm::take_registered_test_outcomes();
+                        index += 1;
+                        let failure = e.to_string();
+                        report.failed += 1;
+                        report.cases.push(TestCaseResult {
+                            name: name.clone(),
+                            status: TestCaseStatus::Failed,
+                            failure: Some(failure.clone()),
+                        });
+                        if tap {
+                            println!("not ok {index} - {name} # {failure}");
+                        } else if !continue_on_fail {
+                            return Err(e);
+                        }
+                    }
+                },
                 PlannedUnit::AtTestFile {
                     file_stem,
                     path,
@@ -379,22 +383,21 @@ pub fn test_project_with_format(
                         if tap {
                             println!("not ok {index} - {file_stem} # {err}");
                         } else if !continue_on_fail {
-                            return Err(SyxDiagnostic::error(err));
+                            return Err(driver_error_at(err, None, Span::DUMMY, "T001"));
                         }
                         continue;
                     }
 
                     let mut setup_ok = true;
                     if let Some(ref setup_fn) = setup {
-                        let setup_registry = if let Err(e) =
-                            run_file_entry_with_options(&path, setup_fn, options)
-                        {
-                            let _ = syx_vm::take_registered_test_outcomes();
-                            Some(format!("@TestSetup ({setup_fn}): {e}"))
-                        } else {
-                            registered_test_failure_text()
-                                .map(|extra| format!("@TestSetup ({setup_fn}): {extra}"))
-                        };
+                        let setup_registry =
+                            if let Err(e) = run_file_entry_with_options(&path, setup_fn, options) {
+                                let _ = syx_vm::take_registered_test_outcomes();
+                                Some(format!("@TestSetup ({setup_fn}): {e}"))
+                            } else {
+                                registered_test_failure_text()
+                                    .map(|extra| format!("@TestSetup ({setup_fn}): {extra}"))
+                            };
                         if let Some(failure) = setup_registry {
                             setup_ok = false;
                             for (case_name, _) in &tests {
@@ -410,7 +413,7 @@ pub fn test_project_with_format(
                                 }
                             }
                             if !continue_on_fail {
-                                return Err(SyxDiagnostic::error(failure));
+                                return Err(driver_error_at(failure, None, Span::DUMMY, "T001"));
                             }
                         }
                     }
@@ -431,16 +434,14 @@ pub fn test_project_with_format(
                                     run_file_entry_with_options(&path, before_fn, options)
                                 {
                                     let _ = syx_vm::take_registered_test_outcomes();
-                                    case_failure =
-                                        Some(format!("@TestBefore ({before_fn}): {e}"));
+                                    case_failure = Some(format!("@TestBefore ({before_fn}): {e}"));
                                 } else if let Some(extra) = registered_test_failure_text() {
                                     case_failure =
                                         Some(format!("@TestBefore ({before_fn}): {extra}"));
                                 }
                             }
                             if case_failure.is_none() {
-                                if let Err(e) =
-                                    run_file_entry_with_options(&path, fn_name, options)
+                                if let Err(e) = run_file_entry_with_options(&path, fn_name, options)
                                 {
                                     let _ = syx_vm::take_registered_test_outcomes();
                                     case_failure = Some(e.to_string());
@@ -482,7 +483,8 @@ pub fn test_project_with_format(
                                 if tap {
                                     println!("not ok {index} - {case_name} # {failure}");
                                 } else if !continue_on_fail {
-                                    human_stop = Some(SyxDiagnostic::error(failure));
+                                    human_stop =
+                                        Some(driver_error_at(failure, None, Span::DUMMY, "T001"));
                                 }
                             } else {
                                 report.passed += 1;
@@ -508,7 +510,8 @@ pub fn test_project_with_format(
                                 if tap {
                                     println!("not ok {index} - {af_name} # {af}");
                                 } else if !continue_on_fail && human_stop.is_none() {
-                                    human_stop = Some(SyxDiagnostic::error(af));
+                                    human_stop =
+                                        Some(driver_error_at(af, None, Span::DUMMY, "T001"));
                                 }
                             }
                         }
@@ -538,7 +541,8 @@ pub fn test_project_with_format(
                                 if tap {
                                     println!("not ok {index} - {td_name} # {failure}");
                                 } else if !continue_on_fail && human_stop.is_none() {
-                                    human_stop = Some(SyxDiagnostic::error(failure));
+                                    human_stop =
+                                        Some(driver_error_at(failure, None, Span::DUMMY, "T001"));
                                 }
                             }
                         }
@@ -583,10 +587,12 @@ pub fn test_project_with_format(
     }
 
     if report.failed > 0 && !structured {
-        return Err(SyxDiagnostic::error(format!(
-            "{} test(s) failed",
-            report.failed
-        )));
+        return Err(driver_error_at(
+            format!("{} test(s) failed", report.failed),
+            None,
+            Span::DUMMY,
+            "T001",
+        ));
     }
     Ok(report)
 }
@@ -615,7 +621,12 @@ fn test_file_case_base(tests_dir: &Path, file: &Path) -> String {
 /// Top-level zero-arg `@Test` / hooks (PascalCase attrs, source order).
 fn discover_file_test_plan(path: &Path) -> SyxResult<FileTestPlan> {
     let text = std::fs::read_to_string(path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display()))
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
     let source = SourceFile::new(path.display().to_string(), text);
     let module = Parser::parse(source)?;
@@ -627,7 +638,10 @@ fn discover_file_test_plan(path: &Path) -> SyxResult<FileTestPlan> {
     let mut discover_error = None;
     for decl in &module.decls {
         if let Decl::Function {
-            attrs, name, params, ..
+            attrs,
+            name,
+            params,
+            ..
         } = decl
         {
             if !params.is_empty() {
@@ -640,32 +654,28 @@ fn discover_file_test_plan(path: &Path) -> SyxResult<FileTestPlan> {
             let has_teardown = attrs.iter().any(|a| a.name == "TestTeardown");
             if has_setup {
                 if setup.is_some() {
-                    discover_error =
-                        Some("multiple @TestSetup functions in one file".into());
+                    discover_error = Some("multiple @TestSetup functions in one file".into());
                 } else {
                     setup = Some(name.to_string());
                 }
             }
             if has_before {
                 if before.is_some() {
-                    discover_error =
-                        Some("multiple @TestBefore functions in one file".into());
+                    discover_error = Some("multiple @TestBefore functions in one file".into());
                 } else {
                     before = Some(name.to_string());
                 }
             }
             if has_after {
                 if after.is_some() {
-                    discover_error =
-                        Some("multiple @TestAfter functions in one file".into());
+                    discover_error = Some("multiple @TestAfter functions in one file".into());
                 } else {
                     after = Some(name.to_string());
                 }
             }
             if has_teardown {
                 if teardown.is_some() {
-                    discover_error =
-                        Some("multiple @TestTeardown functions in one file".into());
+                    discover_error = Some("multiple @TestTeardown functions in one file".into());
                 } else {
                     teardown = Some(name.to_string());
                 }
@@ -702,11 +712,7 @@ fn registered_test_failure_text() -> Option<String> {
 }
 
 /// Compile and run a specific entry function (used for `@test` cases).
-fn run_file_entry_with_options(
-    path: &Path,
-    entry: &str,
-    options: &DriverOptions,
-) -> SyxResult<()> {
+fn run_file_entry_with_options(path: &Path, entry: &str, options: &DriverOptions) -> SyxResult<()> {
     let _ = syx_host_plugin::load_from_env();
     ensure_vm_plugin_dispatch();
     let mut unit = compile_linked_with_options(path, options)?;

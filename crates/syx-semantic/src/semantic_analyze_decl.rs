@@ -11,7 +11,7 @@ use smol_str::SmolStr;
 use syx_ast::{
     AccessLevel, Decl, Expr, TypeExpr,
 };
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::SyxResult;
 use syx_stdlib::is_hashable_type;
 
 impl SemanticAnalyzer {
@@ -95,27 +95,34 @@ impl SemanticAnalyzer {
                     ..Default::default()
                 };
                 for tp in type_params {
-                    fn_scope.define(Symbol {
-                        name: tp.clone(),
-                        ty: TypeId::GenericParam(tp.clone()),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: tp.clone(),
+                            ty: TypeId::GenericParam(tp.clone()),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                 }
                 for pred in where_clause {
                     if !self.is_protocol_constraint(pred.constraint.as_str())
                         && !Self::is_associated_type_constraint(pred.constraint.as_str())
                     {
-                        return Err(SyxDiagnostic::error(format!(
-                            "Unknown protocol constraint '{}' in where clause",
-                            pred.constraint
-                        ))
-                        .with_code("S009"));
+                        return Err(self.error_at(
+                            format!(
+                                "Unknown protocol constraint '{}' in where clause",
+                                pred.constraint
+                            ),
+                            *span,
+                            "S009",
+                        ));
                     }
                 }
                 for param in &params {
                     if let Some(ty) = &param.ty {
-                        self.validate_type_expr(ty);
+                        self.validate_type_expr(ty, *span);
                     }
                     let param_ty = param
                         .ty
@@ -126,12 +133,16 @@ impl SemanticAnalyzer {
                     if let Some(lt) = param.ty.as_ref().and_then(Self::infer_elided_lifetime) {
                         self.binding_lifetimes.insert(param.name.clone(), lt);
                     }
-                    fn_scope.define(Symbol {
-                        name: param.name.clone(),
-                        ty: param_ty.clone(),
-                        mutable: param_mutable,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param_ty.clone(),
+                            mutable: param_mutable,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     self.track_binding(param.name.clone(), param_ty, span.start);
                 }
                 std::mem::swap(&mut self.scope, &mut fn_scope);
@@ -161,7 +172,7 @@ impl SemanticAnalyzer {
             } => {
                 if let Some(expr) = init {
                     let expected = ty.as_ref().map(|t| {
-                        self.validate_type_expr(t);
+                        self.validate_type_expr(t, *span);
                         self.resolve_type_expr(t)
                     });
                     let analyzed = self.analyze_expr_with_expected(expr, expected.as_ref())?;
@@ -186,7 +197,7 @@ impl SemanticAnalyzer {
                 }
                 Ok(())
             }
-            Decl::Protocol { methods, name, associated_types, .. } => {
+            Decl::Protocol { methods, name, associated_types, span, .. } => {
                 if !associated_types.is_empty() {
                     self.protocol_assoc_types.insert(
                         name.clone(),
@@ -272,10 +283,11 @@ impl SemanticAnalyzer {
                         )
                     });
                     if !has_compare {
-                        return Err(SyxDiagnostic::error(
+                        return Err(self.error_at(
                             "Protocol 'Comparable' must declare func compare(other: Self) -> Int",
-                        )
-                        .with_code("S006"));
+                            *span,
+                            "S006",
+                        ));
                     }
                 }
                 // ADR-322/324: assoc-type-only or method-bearing protocols need not declare Iterator next().
@@ -285,10 +297,11 @@ impl SemanticAnalyzer {
                     && associated_types.is_empty()
                     && methods.is_empty()
                 {
-                    return Err(SyxDiagnostic::error(format!(
-                        "Protocol '{name}' must declare func next()"
-                    ))
-                    .with_code("S006"));
+                    return Err(self.error_at(
+                        format!("Protocol '{name}' must declare func next()"),
+                        *span,
+                        "S006",
+                    ));
                 }
                 Ok(())
             }
@@ -342,12 +355,16 @@ impl SemanticAnalyzer {
                         .as_ref()
                         .map(type_expr_to_id)
                         .unwrap_or(TypeId::Unknown);
-                    fn_scope.define(Symbol {
-                        name: param.name.clone(),
-                        ty: param_ty.clone(),
-                        mutable: false,
-                        access: AccessLevel::Internal,
-                    })?;
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
                     self.track_binding(param.name.clone(), param_ty, span.start);
                 }
                 std::mem::swap(&mut self.scope, &mut fn_scope);
@@ -364,14 +381,19 @@ impl SemanticAnalyzer {
                 type_name,
                 where_clause,
                 methods,
+                span,
                 ..
             } => {
                 for pred in where_clause {
                     if !self.is_protocol_constraint(pred.constraint.as_str()) {
-                        return Err(SyxDiagnostic::error(format!(
-                            "unknown protocol constraint '{}' in extension where",
-                            pred.constraint
-                        )));
+                        return Err(self.error_at(
+                            format!(
+                                "unknown protocol constraint '{}' in extension where",
+                                pred.constraint
+                            ),
+                            *span,
+                            "S009",
+                        ));
                     }
                 }
                 for method in methods {
@@ -399,69 +421,71 @@ impl SemanticAnalyzer {
         self.subscript_return_types.get(type_name).cloned()
     }
 
-    pub(crate) fn validate_type_expr(&mut self, ty: &TypeExpr) {
+    pub(crate) fn validate_type_expr(&mut self, ty: &TypeExpr, span: syx_diagnostics::Span) {
         match ty {
             TypeExpr::Named { name, generics } => {
                 if name.as_str() == "Array" && generics.is_empty() {
-                    self.errors.push(
-                        SyxDiagnostic::error(
-                            "Array requires a type argument; use Array<T> (e.g. Array<Int>)",
-                        )
-                        .with_code("S040"),
-                    );
+                    self.errors.push(self.error_at(
+                        "Array requires a type argument; use Array<T> (e.g. Array<Int>)",
+                        span,
+                        "S040",
+                    ));
                 }
                 if name.as_str() == "Dictionary"
                     && !generics.is_empty()
                     && generics.len() < 2
                 {
-                    self.errors.push(
-                        SyxDiagnostic::error(
-                            "Dictionary requires key and value type arguments: Dictionary<K, V> where K: Hashable",
-                        )
-                        .with_code("S041"),
-                    );
+                    self.errors.push(self.error_at(
+                        "Dictionary requires key and value type arguments: Dictionary<K, V> where K: Hashable",
+                        span,
+                        "S041",
+                    ));
                 }
                 for g in generics {
-                    self.validate_type_expr(g);
+                    self.validate_type_expr(g, span);
                 }
                 if name.as_str() == "Dictionary" && generics.len() >= 2 {
                     let key_ty = self.resolve_type_expr(&generics[0]);
-                    self.validate_dict_key_hashable(&key_ty);
+                    self.validate_dict_key_hashable(&key_ty, span);
                 }
                 if name.as_str() == "Set" && generics.len() == 1 {
                     let elem_ty = self.resolve_type_expr(&generics[0]);
-                    self.validate_set_elem_hashable(&elem_ty);
+                    self.validate_set_elem_hashable(&elem_ty, span);
                 }
             }
             TypeExpr::Optional(inner)
             | TypeExpr::Array(inner)
             | TypeExpr::OpaqueSome(inner)
-            | TypeExpr::OpaqueAny(inner) => self.validate_type_expr(inner),
+            | TypeExpr::OpaqueAny(inner) => self.validate_type_expr(inner, span),
             TypeExpr::Dictionary { key, value } => {
-                self.validate_type_expr(key);
-                self.validate_type_expr(value);
+                self.validate_type_expr(key, span);
+                self.validate_type_expr(value, span);
                 let key_ty = self.resolve_type_expr(key);
-                self.validate_dict_key_hashable(&key_ty);
+                self.validate_dict_key_hashable(&key_ty, span);
             }
-            TypeExpr::Reference(inner, _, _) => self.validate_type_expr(inner),
+            TypeExpr::Reference(inner, _, _) => self.validate_type_expr(inner, span),
             TypeExpr::Function { params, returns } => {
                 for p in params {
-                    self.validate_type_expr(p);
+                    self.validate_type_expr(p, span);
                 }
                 if let Some(r) = returns {
-                    self.validate_type_expr(r);
+                    self.validate_type_expr(r, span);
                 }
             }
             TypeExpr::Tuple { elements } => {
                 for (_, el) in elements {
-                    self.validate_type_expr(el);
+                    self.validate_type_expr(el, span);
                 }
             }
             TypeExpr::Void => {}
         }
     }
 
-    pub(crate) fn validate_dict_key_hashable(&mut self, key_ty: &TypeId) {
+    pub(crate) fn validate_dict_key_hashable(
+        &mut self,
+        key_ty: &TypeId,
+        span: syx_diagnostics::Span,
+    ) {
         // S1-I6: open formals (`Element`/`Key`/current type params) — checked at call site.
         if self.is_open_generic_elem(key_ty)
             || matches!(
@@ -475,17 +499,22 @@ impl SemanticAnalyzer {
         if !is_hashable_type(key_name.as_str())
             && !self.type_id_satisfies_protocol(key_ty, "Hashable")
         {
-            self.errors.push(
-                SyxDiagnostic::error(format!(
+            self.errors.push(self.error_at(
+                format!(
                     "Dictionary key type '{}' does not satisfy Hashable",
                     key_name
-                ))
-                .with_code("S042"),
-            );
+                ),
+                span,
+                "S042",
+            ));
         }
     }
 
-    pub(crate) fn validate_set_elem_hashable(&mut self, elem_ty: &TypeId) {
+    pub(crate) fn validate_set_elem_hashable(
+        &mut self,
+        elem_ty: &TypeId,
+        span: syx_diagnostics::Span,
+    ) {
         // S1-I6: `Set<Element>` inside `extension Array where Element: Hashable`.
         if self.is_open_generic_elem(elem_ty)
             || matches!(
@@ -499,13 +528,14 @@ impl SemanticAnalyzer {
         if !is_hashable_type(elem_name.as_str())
             && !self.type_id_satisfies_protocol(elem_ty, "Hashable")
         {
-            self.errors.push(
-                SyxDiagnostic::error(format!(
+            self.errors.push(self.error_at(
+                format!(
                     "Set element type '{}' does not satisfy Hashable",
                     elem_name
-                ))
-                .with_code("S015"),
-            );
+                ),
+                span,
+                "S015",
+            ));
         }
     }
 }

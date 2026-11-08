@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 pub mod op;
+mod mir_run_diag;
 mod runtime;
 
 pub use op::*;

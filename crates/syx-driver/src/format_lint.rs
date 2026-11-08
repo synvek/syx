@@ -1,8 +1,9 @@
 //! SYX driver format / lint face.
 //! Extracted in S2-I227 (zero semantics).
 
+use crate::driver_error_at;
 use std::path::Path;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_fmt::format_dry_run;
 use syx_lint::lint_source_auto;
 use syx_pkg::load_manifest;
@@ -19,19 +20,36 @@ pub fn format_project(path: &Path) -> SyxResult<()> {
 
 fn format_file(path: &Path) -> SyxResult<()> {
     if path.extension().and_then(|e| e.to_str()) != Some("sy") {
-        return Err(SyxDiagnostic::error(format!(
-            "format expects a .sy file or project directory, got {}",
-            path.display()
-        )));
+        return Err(driver_error_at(
+            format!(
+                "format expects a .sy file or project directory, got {}",
+                path.display()
+            ),
+            None,
+            Span::DUMMY,
+            "D002",
+        ));
     }
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
+    let text = std::fs::read_to_string(path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     let source = SourceFile::new(path.display().to_string(), text);
     // S2-I151 / ADR stage2-s2-04-fmt-write-migration: write shares `--check` SSOT
     // (`format_dry_run` → `format_source_auto`; CST reindent GA + fail-closed).
     let report = format_dry_run(&source)?;
-    std::fs::write(path, report.formatted)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to write {}: {e}", path.display())))
+    std::fs::write(path, report.formatted).map_err(|e| {
+        driver_error_at(
+            format!("Failed to write {}: {e}", path.display()),
+            Some(&source),
+            Span::new(0, source.contents.len()),
+            "D001",
+        )
+    })
 }
 
 /// S2-I152 / ADR stage2-s2-04-lsp-document-formatting: buffer format for LSP
@@ -62,24 +80,40 @@ pub(crate) fn collect_sy_files(path: &Path) -> SyxResult<Vec<std::path::PathBuf>
         if path.extension().and_then(|e| e.to_str()) == Some("sy") {
             return Ok(vec![path.to_path_buf()]);
         }
-        return Err(SyxDiagnostic::error(format!(
-            "expected a .sy file or directory, got {}",
-            path.display()
-        )));
+        return Err(driver_error_at(
+            format!("expected a .sy file or directory, got {}", path.display()),
+            None,
+            Span::DUMMY,
+            "D002",
+        ));
     }
     if !path.is_dir() {
-        return Err(SyxDiagnostic::error(format!(
-            "path not found: {}",
-            path.display()
-        )));
+        return Err(driver_error_at(
+            format!("path not found: {}", path.display()),
+            None,
+            Span::DUMMY,
+            "D004",
+        ));
     }
     let mut out = Vec::new();
     fn walk(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> SyxResult<()> {
-        let entries = std::fs::read_dir(dir)
-            .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", dir.display())))?;
+        let entries = std::fs::read_dir(dir).map_err(|e| {
+            driver_error_at(
+                format!("Failed to read {}: {e}", dir.display()),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
+        })?;
         for entry in entries {
-            let entry = entry
-                .map_err(|e| SyxDiagnostic::error(format!("Failed to read dir entry: {e}")))?;
+            let entry = entry.map_err(|e| {
+                driver_error_at(
+                    format!("Failed to read dir entry: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "D001",
+                )
+            })?;
             let p = entry.path();
             if p.is_dir() {
                 let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
@@ -167,13 +201,24 @@ pub fn lint_project(path: &Path) -> SyxResult<Vec<syx_lint::LintIssue>> {
 
 fn lint_file(path: &Path) -> SyxResult<Vec<syx_lint::LintIssue>> {
     if path.extension().and_then(|e| e.to_str()) != Some("sy") {
-        return Err(SyxDiagnostic::error(format!(
-            "lint expects a .sy file or project directory, got {}",
-            path.display()
-        )));
+        return Err(driver_error_at(
+            format!(
+                "lint expects a .sy file or project directory, got {}",
+                path.display()
+            ),
+            None,
+            Span::DUMMY,
+            "D002",
+        ));
     }
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
+    let text = std::fs::read_to_string(path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     let source = SourceFile::new(path.display().to_string(), text);
     // S2-I153 / ADR stage2-s2-04-lint-cst-first: CST-first policy (aligned with fmt).
     lint_source_auto(&source)

@@ -18,7 +18,9 @@ use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
 use reqwest::blocking::RequestBuilder;
 use reqwest::Method;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 use syx_stdlib::MethodId;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, ReadBuf};
 use tokio::net::TcpListener;
@@ -44,7 +46,12 @@ fn invoke_http_handler(handler_name: &str, req_obj: Value) -> SyxResult<Value> {
             .iter()
             .find(|f| f.name == handler_name)
             .ok_or_else(|| {
-                SyxDiagnostic::error(format!("Unknown handler function '{handler_name}'"))
+                vm_error_at(
+                    format!("Unknown handler function '{handler_name}'"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })?;
         let mut vm = crate::VmInstance::new();
         vm.runtime = ctx.runtime.clone();
@@ -53,7 +60,12 @@ fn invoke_http_handler(handler_name: &str, req_obj: Value) -> SyxResult<Value> {
     if let Some(handler) = NATIVE_HTTP_HANDLER.get() {
         return handler(handler_name, &req_obj);
     }
-    Err(SyxDiagnostic::error("HTTP serve requires active program context").with_code("R012"))
+    Err(vm_error_at(
+        "HTTP serve requires active program context",
+        None,
+        Span::DUMMY,
+        "R012",
+    ))
 }
 
 /// Run the SYX/MIR handler off the serve/`CallHost` thread.
@@ -82,7 +94,12 @@ fn invoke_http_handler_isolated(
         let _ = tx.send(result);
     });
     rx.recv().unwrap_or_else(|_| {
-        Err(SyxDiagnostic::error("HTTP handler thread disconnected").with_code("R012"))
+        Err(vm_error_at(
+            "HTTP handler thread disconnected",
+            None,
+            Span::DUMMY,
+            "R012",
+        ))
     })
 }
 
@@ -101,9 +118,7 @@ fn extra_root_pem_path() -> Option<String> {
 }
 
 /// Apply CI/diagnostic extra root when `SYX_HTTP_EXTRA_ROOT_PEM` is set.
-fn apply_extra_root(
-    builder: reqwest::blocking::ClientBuilder,
-) -> reqwest::blocking::ClientBuilder {
+fn apply_extra_root(builder: reqwest::blocking::ClientBuilder) -> reqwest::blocking::ClientBuilder {
     let Some(path) = extra_root_pem_path() else {
         return builder;
     };
@@ -148,7 +163,7 @@ fn http_client_for_request(timeout_ms: Option<i64>) -> SyxResult<reqwest::blocki
         }
         builder
             .build()
-            .map_err(|e| SyxDiagnostic::error(format!("HTTP client error: {e}")).with_code("R011"))
+            .map_err(|e| vm_error_at(format!("HTTP client error: {e}"), None, Span::DUMMY, "R011"))
     } else {
         Ok(HTTP_CLIENT.clone())
     }
@@ -245,15 +260,23 @@ pub fn execute_http_request(url: &str, options: &Value) -> SyxResult<Value> {
         Value::Object(m) | Value::Dict(m) => m,
         Value::Nil => &HashMap::new(),
         _ => {
-            return Err(
-                SyxDiagnostic::error("HTTP request options must be an object").with_code("R003"),
-            );
+            return Err(vm_error_at(
+                "HTTP request options must be an object",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     };
 
     let method_str = object_field_str(opts, "method").unwrap_or_else(|| "GET".into());
     let method = Method::from_bytes(method_str.to_uppercase().as_bytes()).map_err(|_| {
-        SyxDiagnostic::error(format!("Invalid HTTP method '{method_str}'")).with_code("R003")
+        vm_error_at(
+            format!("Invalid HTTP method '{method_str}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
 
     let final_url = if let Some(query) = opts.get("query") {
@@ -288,19 +311,27 @@ pub fn execute_http_request(url: &str, options: &Value) -> SyxResult<Value> {
             // ADR-235 / M2-S4-02b: R012 only for true timeouts (not every error when timeout_ms set).
             // Wave A W94 / ADR-438: stabilize Display (no URL/port from reqwest `{e}`).
             if e.is_timeout() {
-                return Err(
-                    SyxDiagnostic::error("HTTP request timed out".to_string()).with_code("R012")
-                );
+                return Err(vm_error_at(
+                    "HTTP request timed out".to_string(),
+                    None,
+                    Span::DUMMY,
+                    "R012",
+                ));
             }
             // Wave A W95 / ADR-439: stabilize Display (no reqwest `{e}` / cert detail).
-            return Err(SyxDiagnostic::error("HTTP request failed".to_string()).with_code("R003"));
+            return Err(vm_error_at(
+                "HTTP request failed".to_string(),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     };
     let status = response.status().as_u16() as i32;
     let headers = response_headers(&response);
     let bytes = response
         .bytes()
-        .map_err(|e| SyxDiagnostic::error(format!("HTTP read failed: {e}")).with_code("R003"))?;
+        .map_err(|e| vm_error_at(format!("HTTP read failed: {e}"), None, Span::DUMMY, "R003"))?;
     let body_bytes = decompress_response_body(&bytes, &headers);
     let text = String::from_utf8_lossy(&body_bytes).into_owned();
     Ok(http_response(
@@ -327,15 +358,23 @@ fn send_http_request_keeping_response(
         Value::Object(m) | Value::Dict(m) => m,
         Value::Nil => &HashMap::new(),
         _ => {
-            return Err(
-                SyxDiagnostic::error("HTTP request options must be an object").with_code("R003"),
-            );
+            return Err(vm_error_at(
+                "HTTP request options must be an object",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     };
 
     let method_str = object_field_str(opts, "method").unwrap_or_else(|| "GET".into());
     let method = Method::from_bytes(method_str.to_uppercase().as_bytes()).map_err(|_| {
-        SyxDiagnostic::error(format!("Invalid HTTP method '{method_str}'")).with_code("R003")
+        vm_error_at(
+            format!("Invalid HTTP method '{method_str}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
 
     let final_url = if let Some(query) = opts.get("query") {
@@ -367,12 +406,20 @@ fn send_http_request_keeping_response(
         Err(e) => {
             // Wave A W94 / ADR-438: stabilize Display (no URL/port from reqwest `{e}`).
             if e.is_timeout() {
-                return Err(
-                    SyxDiagnostic::error("HTTP request timed out".to_string()).with_code("R012")
-                );
+                return Err(vm_error_at(
+                    "HTTP request timed out".to_string(),
+                    None,
+                    Span::DUMMY,
+                    "R012",
+                ));
             }
             // Wave A W95 / ADR-439: stabilize Display (no reqwest `{e}` / cert detail).
-            return Err(SyxDiagnostic::error("HTTP request failed".to_string()).with_code("R003"));
+            return Err(vm_error_at(
+                "HTTP request failed".to_string(),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     };
     let status = response.status().as_u16() as i32;
@@ -424,14 +471,21 @@ pub fn host_http_body_stream_read_chunk(stack: &mut Vec<Value>) -> SyxResult<()>
         .lock()
         .expect("HTTP_BODY_STREAM_SESSIONS poisoned");
     let Some(session) = sessions.get_mut(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("HttpBodyStream invalid handle {handle}"))
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("HttpBodyStream invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let mut buf = vec![0u8; max_bytes];
     let n = std::io::Read::read(&mut session.response, &mut buf).map_err(|e| {
-        SyxDiagnostic::error(format!("HTTP body stream read failed: {e}")).with_code("R003")
+        vm_error_at(
+            format!("HTTP body stream read failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     buf.truncate(n);
     stack.push(Value::Str(String::from_utf8_lossy(&buf).into_owned()));
@@ -447,10 +501,12 @@ pub fn host_http_body_stream_close(stack: &mut Vec<Value>) -> SyxResult<()> {
         .remove(&handle)
         .is_some();
     if !removed {
-        return Err(
-            SyxDiagnostic::error(format!("HttpBodyStream invalid handle {handle}"))
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("HttpBodyStream invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -548,7 +604,7 @@ fn response_headers_map(v: &Value) -> HashMap<String, Value> {
 pub fn parse_response_json(v: &Value) -> SyxResult<Value> {
     let body = response_body(v);
     let parsed: serde_json::Value = serde_json::from_str(&body)
-        .map_err(|e| SyxDiagnostic::error(format!("JSON parse failed: {e}")).with_code("R005"))?;
+        .map_err(|e| vm_error_at(format!("JSON parse failed: {e}"), None, Span::DUMMY, "R005"))?;
     Ok(json_to_value(&parsed))
 }
 
@@ -651,10 +707,12 @@ pub fn try_poll_http_request(value: &Value) -> Option<SyxResult<Value>> {
             HTTP_ASYNC_PENDING.lock().unwrap().insert(id, rx);
             None
         }
-        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(SyxDiagnostic::error(
+        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(vm_error_at(
             "HTTP async request worker dropped",
-        )
-        .with_code("R003"))),
+            None,
+            Span::DUMMY,
+            "R003",
+        ))),
     }
 }
 
@@ -825,7 +883,12 @@ pub fn host_http_serve(stack: &mut Vec<Value>) -> SyxResult<()> {
         .enable_all()
         .build()
         .map_err(|e| {
-            SyxDiagnostic::error(format!("HTTP serve runtime failed: {e}")).with_code("R012")
+            vm_error_at(
+                format!("HTTP serve runtime failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R012",
+            )
         })?;
     rt.block_on(http_serve_loop(addr, port, handler_name, max_requests))
 }
@@ -879,8 +942,12 @@ fn load_http_serve_tls_acceptor() -> Option<tokio_rustls::TlsAcceptor> {
     use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
     use rustls::ServerConfig;
 
-    let cert_path = std::env::var(SERVE_TLS_CERT_ENV).ok().filter(|s| !s.is_empty())?;
-    let key_path = std::env::var(SERVE_TLS_KEY_ENV).ok().filter(|s| !s.is_empty())?;
+    let cert_path = std::env::var(SERVE_TLS_CERT_ENV)
+        .ok()
+        .filter(|s| !s.is_empty())?;
+    let key_path = std::env::var(SERVE_TLS_KEY_ENV)
+        .ok()
+        .filter(|s| !s.is_empty())?;
     let certs = CertificateDer::pem_file_iter(std::path::Path::new(&cert_path))
         .ok()?
         .collect::<Result<Vec<_>, _>>()
@@ -910,7 +977,12 @@ async fn http_serve_loop(
     let listener = TcpListener::bind(format!("{addr}:{port}"))
         .await
         .map_err(|e| {
-            SyxDiagnostic::error(format!("HTTP serve bind failed: {e}")).with_code("R012")
+            vm_error_at(
+                format!("HTTP serve bind failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R012",
+            )
         })?;
     let (shutdown_tx, mut shutdown_rx) = watch::channel(false);
     register_active_http_shutdown(shutdown_tx);
@@ -1045,13 +1117,7 @@ async fn http_serve_loop(
                 if let Some(ctx) = ctx {
                     set_program_ctx(ctx);
                 }
-                handle_upgrade_connection(
-                    stream,
-                    &handler,
-                    &method,
-                    &path_and_query,
-                    header_map,
-                );
+                handle_upgrade_connection(stream, &handler, &method, &path_and_query, header_map);
                 served_c.fetch_add(1, Ordering::Relaxed);
                 clear_program_ctx();
             });
@@ -1146,11 +1212,7 @@ fn handle_upgrade_connection(
     path_and_query: &str,
     header_map: HashMap<String, Value>,
 ) {
-    let path_only = path_and_query
-        .split('?')
-        .next()
-        .unwrap_or("/")
-        .to_string();
+    let path_only = path_and_query.split('?').next().unwrap_or("/").to_string();
     let query = path_and_query
         .split_once('?')
         .map(|(_, q)| q.to_string())
@@ -1166,11 +1228,7 @@ fn handle_upgrade_connection(
     let resp_val = match invoke_http_handler_isolated(handler_name, req_obj, None) {
         Ok(v) => v,
         Err(err) => {
-            let _ = write_plain_http_response(
-                &std_stream,
-                502,
-                &format!("Bad Gateway: {err}"),
-            );
+            let _ = write_plain_http_response(&std_stream, 502, &format!("Bad Gateway: {err}"));
             return;
         }
     };
@@ -1187,14 +1245,9 @@ fn handle_upgrade_connection(
         );
         return;
     };
-    match prepare_upgrade_upstream(method, path_and_query, &header_map_for_proxy, &upstream_url)
-    {
+    match prepare_upgrade_upstream(method, path_and_query, &header_map_for_proxy, &upstream_url) {
         Err(err) => {
-            let _ = write_plain_http_response(
-                &std_stream,
-                502,
-                &format!("Bad Gateway: {err}"),
-            );
+            let _ = write_plain_http_response(&std_stream, 502, &format!("Bad Gateway: {err}"));
         }
         Ok(UpgradePrep::UpstreamFail {
             status,
@@ -1232,11 +1285,7 @@ fn handle_upgrade_terminate_std(stream: &TcpStream, headers: &HashMap<String, Va
         return;
     };
     if client_key.is_empty() {
-        let _ = write_plain_http_response(
-            stream,
-            400,
-            "Bad Request: empty Sec-WebSocket-Key",
-        );
+        let _ = write_plain_http_response(stream, 400, "Bad Request: empty Sec-WebSocket-Key");
         return;
     }
     let accept = crate::ws_rfc6455::accept_key(&client_key);
@@ -1270,11 +1319,7 @@ async fn handle_upgrade_connection_tls(
 ) {
     use tokio::io::AsyncWriteExt;
 
-    let path_only = path_and_query
-        .split('?')
-        .next()
-        .unwrap_or("/")
-        .to_string();
+    let path_only = path_and_query.split('?').next().unwrap_or("/").to_string();
     let query = path_and_query
         .split_once('?')
         .map(|(_, q)| q.to_string())
@@ -1388,9 +1433,10 @@ async fn handle_upgrade_connection_tls(
             let _ = std_tcp.set_nonblocking(false);
             let mut owned = rustls::StreamOwned::new(server_conn, std_tcp);
             let _ = client_leftover; // client waits for 101 before frames
-            let _ = crate::ws_rfc6455::echo_fragmented_text_fragmented_binary_ping_then_close_exchange(
-                &mut owned,
-            );
+            let _ =
+                crate::ws_rfc6455::echo_fragmented_text_fragmented_binary_ping_then_close_exchange(
+                    &mut owned,
+                );
         }
         TlsUpgradePrep::Ready {
             upstream,
@@ -1421,7 +1467,9 @@ async fn handle_upgrade_connection_tls(
 
 #[cfg(not(target_arch = "wasm32"))]
 enum TlsUpgradePrep {
-    Terminate { accept: String },
+    Terminate {
+        accept: String,
+    },
     Ready {
         upstream: TcpStream,
         resp_headers: Vec<(String, String)>,
@@ -1442,10 +1490,7 @@ async fn write_plain_http_response_async<W: tokio::io::AsyncWrite + Unpin>(
     body: &str,
 ) -> std::io::Result<()> {
     let mut headers = HashMap::new();
-    headers.insert(
-        "Content-Type".into(),
-        "text/plain; charset=utf-8".into(),
-    );
+    headers.insert("Content-Type".into(), "text/plain; charset=utf-8".into());
     write_http_response_full_async(stream, status, &headers, body).await
 }
 
@@ -1467,7 +1512,10 @@ async fn write_http_response_full_async<W: tokio::io::AsyncWrite + Unpin>(
     for (k, v) in headers {
         out.push_str(&format!("{k}: {v}\r\n"));
     }
-    if !headers.keys().any(|k| k.eq_ignore_ascii_case("content-length")) {
+    if !headers
+        .keys()
+        .any(|k| k.eq_ignore_ascii_case("content-length"))
+    {
         out.push_str(&format!("Content-Length: {}\r\n", body.len()));
     }
     out.push_str("Connection: close\r\n\r\n");
@@ -1497,10 +1545,7 @@ async fn write_101_switching_async<W: tokio::io::AsyncWrite + Unpin>(
 
 fn write_plain_http_response(stream: &TcpStream, status: u16, body: &str) -> std::io::Result<()> {
     let mut headers = HashMap::new();
-    headers.insert(
-        "Content-Type".into(),
-        "text/plain; charset=utf-8".into(),
-    );
+    headers.insert("Content-Type".into(), "text/plain; charset=utf-8".into());
     write_http_response_full(stream, status, &headers, body)
 }
 
@@ -1520,7 +1565,10 @@ fn write_http_response_full(
     for (k, v) in headers {
         out.push_str(&format!("{k}: {v}\r\n"));
     }
-    if !headers.keys().any(|k| k.eq_ignore_ascii_case("content-length")) {
+    if !headers
+        .keys()
+        .any(|k| k.eq_ignore_ascii_case("content-length"))
+    {
         out.push_str(&format!("Content-Length: {}\r\n", body.len()));
     }
     out.push_str("Connection: close\r\n\r\n");
@@ -1880,11 +1928,10 @@ fn find_header_end(buf: &[u8]) -> Option<usize> {
     buf.windows(4).position(|w| w == b"\r\n\r\n")
 }
 
-
 pub fn host_url_parse(stack: &mut Vec<Value>) -> SyxResult<()> {
     let text = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let parsed = url::Url::parse(&text)
-        .map_err(|e| SyxDiagnostic::error(format!("URL parse failed: {e}")).with_code("R013"))?;
+        .map_err(|e| vm_error_at(format!("URL parse failed: {e}"), None, Span::DUMMY, "R013"))?;
     let mut obj = HashMap::new();
     obj.insert("href".into(), Value::Str(parsed.as_str().to_string()));
     obj.insert(

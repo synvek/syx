@@ -3,7 +3,9 @@
 //! Keeps the same public surface as [`crate::synui_hosts`] so VM dispatch and
 //! fingerprint re-exports compile without linking the heavy `synui` path dep.
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 /// Cache-v96 / Phase 124 GA host-bridge fingerprint.
@@ -27,8 +29,7 @@ pub const SYNUI_V4_WIDGET_SWITCH_RADIO_DIGEST: &str = "gui-synui-v4:widget-switc
 /// Phase 128 v5 fingerprints.
 pub const SYNUI_V5_TOGGLE_RADIO_BIND_DIGEST: &str = "gui-synui-v5:toggle-radio-bind";
 pub const SYNUI_V5_WIDGET_PROGRESS_PICKER_DIGEST: &str = "gui-synui-v5:widget-progress-picker";
-pub const SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST: &str =
-    "gui-synui-v5:mobile-surface-unretire";
+pub const SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST: &str = "gui-synui-v5:mobile-surface-unretire";
 /// Phase 129 v6 fingerprints.
 pub const SYNUI_V6_WIDGET_TEXTAREA_LIST_DIGEST: &str = "gui-synui-v6:widget-textarea-list";
 pub const SYNUI_V6_PROGRESS_NUMBER_BIND_DIGEST: &str = "gui-synui-v6:progress-number-bind";
@@ -36,8 +37,7 @@ pub const SYNUI_V6_DESKTOP_RUN_LAYOUT_GA_DIGEST: &str = "gui-synui-v6:desktop-ru
 /// Phase 130 v7 fingerprints.
 pub const SYNUI_V7_WIDGET_IMAGE_SCROLL_DIGEST: &str = "gui-synui-v7:widget-image-scroll";
 pub const SYNUI_V7_PICKER_SIGNAL_BIND_DIGEST: &str = "gui-synui-v7:picker-signal-bind";
-pub const SYNUI_V7_WEB_LANGUAGE_SURFACE_MVP_DIGEST: &str =
-    "gui-synui-v7:web-language-surface-mvp";
+pub const SYNUI_V7_WEB_LANGUAGE_SURFACE_MVP_DIGEST: &str = "gui-synui-v7:web-language-surface-mvp";
 /// Phase 131 v8 fingerprints.
 pub const SYNUI_V8_TEXTAREA_LIST_BIND_DIGEST: &str = "gui-synui-v8:textarea-list-bind";
 pub const SYNUI_V8_WIDGET_SPACER_DIGEST: &str = "gui-synui-v8:widget-spacer";
@@ -50,8 +50,7 @@ pub const SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST: &str =
     "gui-synui-v9:web-mobile-controls-deepen";
 /// Phase 133 v10 fingerprints.
 pub const SYNUI_V10_WIDGET_STACK_DIGEST: &str = "gui-synui-v10:widget-stack";
-pub const SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST: &str =
-    "gui-synui-v10:scrollview-signal-bind";
+pub const SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST: &str = "gui-synui-v10:scrollview-signal-bind";
 pub const SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_DIGEST: &str =
     "gui-synui-v10:web-mobile-layout-deepen";
 /// Phase 134 v11 fingerprints.
@@ -69,11 +68,13 @@ const RETIRED: &str = "retired; use SynUI surface";
 const DISABLED: &str = "gui-synui:feature-disabled";
 
 fn feature_disabled() -> SyxResult<()> {
-    Err(SyxDiagnostic::error(
+    Err(vm_error_at(
         "SynUI GUI is not enabled in this build; rebuild with `--features gui-synui` \
          (requires sibling checkout `../synui`)",
-    )
-    .with_code("V080"))
+        None,
+        Span::DUMMY,
+        "V080",
+    ))
 }
 
 pub fn reset_synui_state() {}

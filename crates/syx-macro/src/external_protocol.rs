@@ -1,8 +1,9 @@
 //! ADR-070 M4: JSON protocol for external macro expansion (Phase 52).
 
+use crate::macro_error_at;
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MacroExpandRequest {
@@ -29,15 +30,23 @@ pub struct MacroExpandResponse {
 
 pub fn request_to_json(req: &MacroExpandRequest) -> SyxResult<String> {
     serde_json::to_string(req).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("macro expand request encode: {e}"))
-            .with_code("E004")
+        macro_error_at(
+            format!("macro expand request encode: {e}"),
+            None,
+            Span::DUMMY,
+            "E004",
+        )
     })
 }
 
 pub fn response_from_json(text: &str) -> SyxResult<MacroExpandResponse> {
     serde_json::from_str(text).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("macro expand response decode: {e}"))
-            .with_code("E004")
+        macro_error_at(
+            format!("macro expand response decode: {e}"),
+            None,
+            Span::DUMMY,
+            "E004",
+        )
     })
 }
 
@@ -52,9 +61,8 @@ pub struct PluginMacroExpander;
 impl ExternalMacroExpander for PluginMacroExpander {
     fn expand(&self, req: &MacroExpandRequest) -> SyxResult<MacroExpandResponse> {
         let json = request_to_json(req)?;
-        let resp_json = syx_host_plugin::expand_macro_json(&json).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(e).with_code("E004")
-        })?;
+        let resp_json = syx_host_plugin::expand_macro_json(&json)
+            .map_err(|e| macro_error_at(e, None, Span::DUMMY, "E004"))?;
         response_from_json(&resp_json)
     }
 }
@@ -62,20 +70,23 @@ impl ExternalMacroExpander for PluginMacroExpander {
 impl ExternalMacroExpander for InProcessMacroExpander {
     fn expand(&self, req: &MacroExpandRequest) -> SyxResult<MacroExpandResponse> {
         if req.api_version != 1 {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "unsupported macro expand api_version {}",
-                req.api_version
-            ))
-            .with_code("E004"));
+            return Err(macro_error_at(
+                format!("unsupported macro expand api_version {}", req.api_version),
+                None,
+                Span::DUMMY,
+                "E004",
+            ));
         }
         match req.role.as_str() {
             "member" | "accessor" | "deinit" | "extension" | "conformance" | "statement"
             | "expression" | "declaration" | "freestanding" | "" => {}
             other => {
-                return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                    "unknown macro expand role '{other}'"
-                ))
-                .with_code("E004"));
+                return Err(macro_error_at(
+                    format!("unknown macro expand role '{other}'"),
+                    None,
+                    Span::DUMMY,
+                    "E004",
+                ));
             }
         }
         match req.role.as_str() {
@@ -111,13 +122,14 @@ impl ExternalMacroExpander for InProcessMacroExpander {
         }
         match req.attachment.as_str() {
             "SmokeMemberMacro" => {
-                let member = req.members.first().map(String::as_str).unwrap_or("externalMember");
+                let member = req
+                    .members
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("externalMember");
                 if req.role == "statement" || req.role == "freestanding" {
                     Ok(MacroExpandResponse {
-                        stmts: vec![format!(
-                            "print(\"external:{}\")",
-                            req.type_name
-                        )],
+                        stmts: vec![format!("print(\"external:{}\")", req.type_name)],
                         decls: vec![],
                         expr: None,
                     })
@@ -155,7 +167,11 @@ impl ExternalMacroExpander for InProcessMacroExpander {
             }
             // Phase 119 M9: production JSON-protocol external type (cdylib / in-process).
             "JsonPluginMacro" | "ProdMemberMacro" => {
-                let member = req.members.first().map(String::as_str).unwrap_or("pluginOk");
+                let member = req
+                    .members
+                    .first()
+                    .map(String::as_str)
+                    .unwrap_or("pluginOk");
                 Ok(MacroExpandResponse {
                     stmts: vec![],
                     decls: vec![format!(
@@ -165,10 +181,12 @@ impl ExternalMacroExpander for InProcessMacroExpander {
                     expr: None,
                 })
             }
-            other => Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "unknown external macro type '{other}'"
-            ))
-            .with_code("E004")),
+            other => Err(macro_error_at(
+                format!("unknown external macro type '{other}'"),
+                None,
+                Span::DUMMY,
+                "E004",
+            )),
         }
     }
 }
@@ -195,7 +213,6 @@ pub fn expand_decls_via_protocol(
     expander: &dyn ExternalMacroExpander,
     req: &MacroExpandRequest,
 ) -> SyxResult<Vec<syx_ast::Decl>> {
-    
     let resp = expander.expand(req)?;
     if !resp.decls.is_empty() {
         let mut out = Vec::new();
@@ -221,8 +238,8 @@ pub fn expand_decls_via_protocol(
                 where_clause: vec![],
                 body,
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             });
         }
         return Ok(decls);

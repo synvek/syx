@@ -3,13 +3,13 @@
 use std::path::{Path, PathBuf};
 
 use syx_codegen::format_compiled_program;
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 use syx_mir::format_mir_module;
 
 use crate::{
     build_unified_mir, compile_file_with_options, compile_module_recursive,
-    compile_project_with_options, ensure_project_lock, load_manifest, load_resolved_packages,
-    DriverOptions, ModuleGraph, ModuleRef,
+    compile_project_with_options, driver_error_at, ensure_project_lock, load_manifest,
+    load_resolved_packages, DriverOptions, ModuleGraph, ModuleRef,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -88,8 +88,11 @@ fn build_mir_for_path(path: &Path, options: &DriverOptions) -> SyxResult<syx_mir
             &opts,
         )?
     } else {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(driver_error_at(
             "emit requires a project directory or .sy file",
+            None,
+            Span::DUMMY,
+            "D002",
         ));
     };
     build_unified_mir(&graph, &unit, parent, &opts, &manifest)
@@ -162,7 +165,12 @@ pub fn emit_with_options(
 /// Write emit artifacts to `dir` using `stem` as the file basename (e.g. `main`).
 pub fn write_emit_all(dir: &Path, stem: &str, artifacts: &EmitArtifacts) -> SyxResult<()> {
     std::fs::create_dir_all(dir).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("Failed to create {}: {e}", dir.display()))
+        driver_error_at(
+            format!("Failed to create {}: {e}", dir.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
     if let Some(s) = &artifacts.syxbc {
         write_text_file(&dir.join(format!("{stem}.syxbc")), s)?;
@@ -172,7 +180,12 @@ pub fn write_emit_all(dir: &Path, stem: &str, artifacts: &EmitArtifacts) -> SyxR
     }
     if let Some(b) = &artifacts.wasm {
         std::fs::write(dir.join(format!("{stem}.wasm")), b).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("Failed to write wasm: {e}"))
+            driver_error_at(
+                format!("Failed to write wasm: {e}"),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
         })?;
     }
     if let Some(s) = &artifacts.wat {
@@ -189,7 +202,12 @@ pub fn write_emit_all(dir: &Path, stem: &str, artifacts: &EmitArtifacts) -> SyxR
 
 fn write_text_file(path: &Path, contents: &str) -> SyxResult<()> {
     std::fs::write(path, contents).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("Failed to write {}: {e}", path.display()))
+        driver_error_at(
+            format!("Failed to write {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })
 }
 

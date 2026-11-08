@@ -1,20 +1,23 @@
 mod installer;
 pub mod lock_enforce;
 pub use lock_enforce::{
-    enforce_billing_meter, enforce_billing_settlement,
-    enforce_hsm_key_ref, enforce_hsm_rotation_cron, enforce_lock_v12, enforce_lock_v13,
-    enforce_lock_v14, enforce_lock_v15, enforce_lock_v16, enforce_marketplace_cdn,
-    enforce_marketplace_plugin_epoch, enforce_marketplace_publish_epoch,
-    enforce_plugin_epoch, enforce_rotation_cron, enforce_tenant,
+    enforce_billing_meter, enforce_billing_settlement, enforce_hsm_key_ref,
+    enforce_hsm_rotation_cron, enforce_lock_v12, enforce_lock_v13, enforce_lock_v14,
+    enforce_lock_v15, enforce_lock_v16, enforce_marketplace_cdn, enforce_marketplace_plugin_epoch,
+    enforce_marketplace_publish_epoch, enforce_plugin_epoch, enforce_rotation_cron, enforce_tenant,
 };
 mod lockfile;
 mod manifest;
 mod package;
+mod pkg_diag;
+pub(crate) use pkg_diag::pkg_error_at;
 mod registry;
 mod resolver;
 mod sources;
 
-pub use installer::{farm_billing_ledger_settlement, farm_billing_meter, farm_billing_settlement, InstallReport};
+pub use installer::{
+    farm_billing_ledger_settlement, farm_billing_meter, farm_billing_settlement, InstallReport,
+};
 pub use lockfile::{
     load_lockfile, save_lockfile, InstalledPackage, LockPackage, LockPluginEntry, PackageSource,
     SignaturePolicy, SyxLockfile,
@@ -23,15 +26,15 @@ pub use manifest::{
     default_registry_url, load_manifest, registry_url_chain, save_manifest, DependencyAddSpec,
     DependencySpec, NativeConfig, PermissionsConfig, RegistryConfig, SyxManifest,
 };
-pub use resolver::{graph_to_lockfile, resolve_dependencies, ResolvedGraph};
 pub use registry::RegistryClient;
+pub use resolver::{graph_to_lockfile, resolve_dependencies, ResolvedGraph};
 pub use sources::registry::{extract_tar_gz, prepare_vendor_extract_dest};
 
 use std::path::{Path, PathBuf};
 
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use indexmap::IndexMap;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 
 fn decode_hex(s: &str) -> Option<Vec<u8>> {
     if s.len() % 2 != 0 {
@@ -170,9 +173,9 @@ pub fn registry_cdn_phase10_signed_download_url(
         return registry_cdn_phase9_failover_url(region_index, 0)
             .map(|base| registry_signed_download_url(&base, name, version, signature));
     }
-    registry_cdn_phase8_regions().get(region_index).map(|base| {
-        registry_signed_download_url(base, name, version, signature)
-    })
+    registry_cdn_phase8_regions()
+        .get(region_index)
+        .map(|base| registry_signed_download_url(base, name, version, signature))
 }
 
 pub fn registry_cdn_phase10_failover_regions() -> &'static [&'static str] {
@@ -318,7 +321,11 @@ pub fn registry_cdn_phase15_enabled() -> bool {
         .unwrap_or(false)
 }
 
-pub fn registry_cdn_phase15_global_write_path(name: &str, version: &str, signature: &str) -> Option<String> {
+pub fn registry_cdn_phase15_global_write_path(
+    name: &str,
+    version: &str,
+    signature: &str,
+) -> Option<String> {
     if !registry_cdn_phase15_enabled() {
         return registry_cdn_phase14_offline_install_path(name, version, signature);
     }
@@ -403,7 +410,12 @@ pub fn registry_cdn_phase17_crdt_resolve_path(
     ))
 }
 
-pub fn registry_signed_download_url(base: &str, name: &str, version: &str, signature: &str) -> String {
+pub fn registry_signed_download_url(
+    base: &str,
+    name: &str,
+    version: &str,
+    signature: &str,
+) -> String {
     format!(
         "{}/v1/packages/{name}/{version}/download?signature={signature}",
         base.trim_end_matches('/')
@@ -519,12 +531,20 @@ pub fn load_publisher_signing_key() -> SyxResult<Option<SigningKey>> {
         return Ok(None);
     };
     let bytes = decode_hex(&hex).ok_or_else(|| {
-        SyxDiagnostic::error("SYX_PUBLISHER_SIGNING_KEY must be 64 hex characters (32-byte ed25519 seed)")
-            .with_code("P012")
+        pkg_error_at(
+            "SYX_PUBLISHER_SIGNING_KEY must be 64 hex characters (32-byte ed25519 seed)",
+            None,
+            Span::DUMMY,
+            "P012",
+        )
     })?;
     let seed: [u8; 32] = bytes.as_slice().try_into().map_err(|_| {
-        SyxDiagnostic::error("SYX_PUBLISHER_SIGNING_KEY must decode to exactly 32 bytes")
-            .with_code("P012")
+        pkg_error_at(
+            "SYX_PUBLISHER_SIGNING_KEY must decode to exactly 32 bytes",
+            None,
+            Span::DUMMY,
+            "P012",
+        )
     })?;
     Ok(Some(SigningKey::from_bytes(&seed)))
 }
@@ -540,10 +560,7 @@ fn resolve_publish_signature(
         return Ok(Some(sign_package_checksum(checksum, &key)));
     }
     if registry_require_signature() {
-        return Err(SyxDiagnostic::error(
-            "Unsigned publish rejected: lock v8 mandatory signature policy requires SYX_PUBLISHER_SIGNING_KEY",
-        )
-        .with_code("P012"));
+        return Err(pkg_error_at("Unsigned publish rejected: lock v8 mandatory signature policy requires SYX_PUBLISHER_SIGNING_KEY", None, Span::DUMMY, "P012"));
     }
     Ok(None)
 }
@@ -612,11 +629,15 @@ pub fn requires_lockfile(root: &Path) -> SyxResult<bool> {
 }
 
 pub fn lockfile_error(root: &Path) -> SyxDiagnostic {
-    SyxDiagnostic::error(format!(
-        "Missing or invalid syx.lock for project '{}'. Run `syx install` first.",
-        root.display()
-    ))
-    .with_code("P001")
+    pkg_error_at(
+        format!(
+            "Missing or invalid syx.lock for project '{}'. Run `syx install` first.",
+            root.display()
+        ),
+        None,
+        Span::DUMMY,
+        "P001",
+    )
 }
 
 pub fn vendor_dir(root: &Path) -> PathBuf {

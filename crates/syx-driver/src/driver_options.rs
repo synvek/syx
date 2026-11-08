@@ -2,10 +2,11 @@
 //! Extracted in S2-I224 (zero semantics).
 //! Hard constraint: no compile_*/native_build/cache_fingerprint imports.
 
+use crate::driver_error_at;
 use indexmap::IndexMap;
 use std::path::{Path, PathBuf};
 use syx_codegen::CompiledProgram;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_pkg::{InstalledPackage, SyxManifest};
 
 #[derive(Debug, Clone)]
@@ -32,13 +33,19 @@ pub enum NativeBackend {
 impl NativeBackend {
     pub fn parse(value: &str) -> SyxResult<Self> {
         match value.trim().to_ascii_lowercase().as_str() {
-            "cranelift" | "cf" => Err(SyxDiagnostic::error(
+            "cranelift" | "cf" => Err(driver_error_at(
                 "Cranelift backend removed in SYX 37.0 (Phase 59); use --backend llvm",
+                None,
+                Span::DUMMY,
+                "B001",
             )),
             "llvm" => Ok(Self::Llvm),
-            other => Err(SyxDiagnostic::error(format!(
-                "unknown native backend '{other}' (expected 'llvm')"
-            ))),
+            other => Err(driver_error_at(
+                format!("unknown native backend '{other}' (expected 'llvm')"),
+                None,
+                Span::DUMMY,
+                "B002",
+            )),
         }
     }
 

@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+mod async_diag;
+pub(crate) use async_diag::async_error_at;
 mod cancellation;
-mod lower;
 #[cfg(feature = "runtime")]
 mod dist_transport;
 #[cfg(feature = "runtime")]
 mod hosts;
+mod lower;
 #[cfg(feature = "runtime")]
 mod runtime;
 #[cfg(feature = "runtime")]
@@ -14,134 +16,117 @@ mod task;
 pub use cancellation::CancellationToken;
 #[cfg(feature = "runtime")]
 pub use dist_transport::{
+    cdn_bgp_clear, cdn_bgp_clear_peer_views, cdn_bgp_configure, cdn_bgp_configure_mesh,
+    cdn_bgp_convergence_snapshot, cdn_bgp_cross_region_failover_order_ids,
+    cdn_bgp_cross_region_failover_ready, cdn_bgp_digest, cdn_bgp_endpoint_count,
+    cdn_bgp_export_peer_view, cdn_bgp_failover_order_ids, cdn_bgp_ga_ready, cdn_bgp_has_endpoints,
+    cdn_bgp_health, cdn_bgp_import_peer_mesh, cdn_bgp_import_peer_view, cdn_bgp_list_peer_ids,
+    cdn_bgp_mesh_peer_view_count, cdn_bgp_mesh_pop_count, cdn_bgp_mesh_pop_ids,
+    cdn_bgp_mesh_region_count, cdn_bgp_mesh_regions, cdn_bgp_mesh_snapshot,
+    cdn_bgp_multi_pop_mvp_ready, cdn_bgp_multi_pop_ready, cdn_bgp_multi_region_mesh_ready,
+    cdn_bgp_ops_snapshot, cdn_bgp_ops_visibility_ready, cdn_bgp_peer_announce_ack_digest,
+    cdn_bgp_peer_announce_ack_mesh_ready, cdn_bgp_peer_announce_ack_path_for,
+    cdn_bgp_peer_announce_ack_ready, cdn_bgp_peer_announce_conflict_epoch_digest,
+    cdn_bgp_peer_announce_conflict_epoch_mesh_ready, cdn_bgp_peer_announce_conflict_epoch_ready,
+    cdn_bgp_peer_announce_default_priority, cdn_bgp_peer_announce_epoch_memory_clear,
+    cdn_bgp_peer_announce_epoch_persist_digest, cdn_bgp_peer_announce_epoch_persist_path,
+    cdn_bgp_peer_announce_epoch_persist_ready,
+    cdn_bgp_peer_announce_epoch_persist_restore_from_file, cdn_bgp_peer_announce_fanout,
+    cdn_bgp_peer_announce_fanout_digest, cdn_bgp_peer_announce_fanout_mesh_ready,
+    cdn_bgp_peer_announce_fanout_ready, cdn_bgp_peer_announce_fanout_with_epoch,
+    cdn_bgp_peer_announce_filter_held_peers, cdn_bgp_peer_announce_hold_active,
+    cdn_bgp_peer_announce_hold_digest, cdn_bgp_peer_announce_hold_mark,
+    cdn_bgp_peer_announce_hold_memory_clear, cdn_bgp_peer_announce_hold_ms,
+    cdn_bgp_peer_announce_hold_ready, cdn_bgp_peer_announce_parse_hold_wire,
+    cdn_bgp_peer_announce_peer_priority, cdn_bgp_peer_announce_peer_wire_expired,
+    cdn_bgp_peer_announce_priority_digest, cdn_bgp_peer_announce_priority_ready,
+    cdn_bgp_peer_announce_priority_wins, cdn_bgp_peer_announce_purge_expired_peers,
+    cdn_bgp_peer_announce_receive_ack_with_epoch, cdn_bgp_peer_announce_sort_peers_by_priority,
+    cdn_bgp_peer_announce_sticky, cdn_bgp_peer_announce_sticky_digest,
+    cdn_bgp_peer_announce_sticky_dir, cdn_bgp_peer_announce_sticky_encode,
+    cdn_bgp_peer_announce_sticky_path_for, cdn_bgp_peer_announce_sticky_ready,
+    cdn_bgp_peer_announce_sticky_receive, cdn_bgp_peer_announce_sticky_receive_and_ack,
+    cdn_bgp_peer_announce_sticky_receive_from_peer, cdn_bgp_peer_announce_ttl_digest,
+    cdn_bgp_peer_announce_ttl_ms, cdn_bgp_peer_announce_ttl_ready,
+    cdn_bgp_peer_announce_winning_epoch, cdn_bgp_peer_announce_write_ack,
+    cdn_bgp_peer_exchange_done, cdn_bgp_peer_health_map, cdn_bgp_peer_view_count,
+    cdn_bgp_pop_weights, cdn_bgp_route, cdn_bgp_route_convergence_ready, cdn_bgp_route_sticky,
+    cdn_bgp_sticky_binding, cdn_bgp_sticky_binding_expires_at_ms,
+    cdn_bgp_sticky_multi_snapshot_digest, cdn_bgp_sticky_multi_snapshot_dir,
+    cdn_bgp_sticky_multi_snapshot_path_for_key, cdn_bgp_sticky_multi_snapshot_ready,
+    cdn_bgp_sticky_multi_snapshot_restore_by_key, cdn_bgp_sticky_persist_digest,
+    cdn_bgp_sticky_persist_path, cdn_bgp_sticky_persist_ready,
+    cdn_bgp_sticky_persist_restore_from_file, cdn_bgp_sticky_pop_binding_count,
+    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_mvp_ready, cdn_bgp_sticky_pop_ready,
+    cdn_bgp_sticky_shard_key, cdn_bgp_sticky_ttl_digest, cdn_bgp_sticky_ttl_ms,
+    cdn_bgp_sticky_ttl_ready, cdn_bgp_weighted_anycast_mvp_ready, cdn_bgp_weighted_anycast_ready,
+    cdn_bgp_weights_differentiated, cdn_delivery_ack_clear, cdn_delivery_ack_count,
+    cdn_doctor_mode, cdn_memory_dev_enabled, cdn_pop_clear, cdn_pop_configure,
+    cdn_pop_connect_urls_non_loopback, cdn_pop_digest, cdn_pop_dual_process_host_ready,
+    cdn_pop_dual_process_peer_registered, cdn_pop_endpoint_count, cdn_pop_has_endpoints,
+    cdn_pop_health, cdn_pop_host_key_passes_ga, cdn_pop_hostkeys_are_distinct_remote,
+    cdn_pop_multi_hostkey_route_ready, cdn_pop_register_serve_pid, cdn_pop_remote_hostkey_ready,
+    cdn_pop_route, cdn_pop_serve_pid_count, cdn_pop_sibling_process_peer_registered,
+    cdn_pop_sibling_process_ready, cdn_route, cdn_route_anycast, cdn_route_counts_as_ga,
+    cdn_route_ga, cdn_routes_memory_clear, cdn_routes_memory_count, cdn_tcp_peer_clear,
+    cdn_tcp_peer_configure, cdn_tcp_peer_digest, cdn_tcp_peer_endpoint_count,
+    cdn_tcp_peer_has_endpoints, cdn_tcp_peer_inbox_count, cdn_tcp_peer_route,
+    dist_actor_cluster_health_probe, dist_actor_mp_clear, dist_actor_mp_configure,
+    dist_actor_mp_digest, dist_actor_mp_doctor_mode, dist_actor_mp_ga_requires_tcp,
+    dist_actor_mp_inbox_clear, dist_actor_mp_inbox_count, dist_actor_mp_peer_send_once,
     dist_actor_tls_rustls_chain_verify, dist_actor_tls_rustls_crate_chain_verify,
     dist_actor_tls_rustls_crate_e2e_enabled, dist_actor_tls_rustls_crate_e2e_verify,
     dist_actor_tls_rustls_crate_enabled, dist_actor_tls_rustls_crate_prod_default_on,
-    dist_actor_tls_rustls_crate_prod_enabled,
-    dist_actor_win_pipe_api_enabled, dist_actor_win_pipe_named_io_enabled,
-    dist_actor_win_pipe_prod_default_on, dist_actor_win_pipe_winapi_enabled,
-    dist_rustls_e2e_handshake_smoke, dist_rustls_e2e_prod_default_enabled,
-    dist_winpipe_e2e_frame_smoke, dist_winpipe_e2e_prod_default_enabled,
-    dist_actor_cluster_health_probe, cdn_route,
-    multi_region_route_table, region_route,
-    dist_actor_mp_clear, dist_actor_mp_configure, dist_actor_mp_doctor_mode,
-    dist_actor_mp_digest, dist_actor_mp_ga_requires_tcp, dist_actor_mp_inbox_clear,
-    dist_actor_mp_inbox_count, dist_actor_mp_peer_send_once, region_route_mp, region_route_mp_ga,
-    region_route_tcp, spawn_dist_tcp_mailbox, spawn_dist_tcp_mailbox_dual_stack, spawn_dist_tcp_mailbox_on,
-    ArcStop, dist_inproc_enabled, dist_bind_addr_is_non_loopback_v4, dist_region_nonloopback_digest,
-    DistDualStackMailboxes,
-    cdn_route_anycast, cdn_route_ga, cdn_doctor_mode, cdn_memory_dev_enabled,
-    cdn_route_counts_as_ga, cdn_routes_memory_clear, cdn_routes_memory_count,
-    cdn_bgp_clear, cdn_bgp_configure, cdn_bgp_endpoint_count, cdn_bgp_export_peer_view,
-    cdn_bgp_digest, cdn_bgp_import_peer_view, cdn_bgp_list_peer_ids, cdn_bgp_ops_snapshot,
-    cdn_bgp_ops_visibility_ready, cdn_bgp_peer_exchange_done, cdn_bgp_peer_health_map,
-    cdn_bgp_peer_view_count, cdn_bgp_clear_peer_views, CdnBgpOpsSnapshot,
-    cdn_bgp_convergence_snapshot, cdn_bgp_failover_order_ids, cdn_bgp_route_convergence_ready,
-    cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh, cdn_bgp_mesh_regions,
-    cdn_bgp_mesh_region_count, cdn_bgp_mesh_peer_view_count, cdn_bgp_mesh_snapshot,
-    cdn_bgp_multi_region_mesh_ready, cdn_bgp_cross_region_failover_ready,
-    cdn_bgp_cross_region_failover_order_ids, cdn_bgp_multi_pop_ready,
-    cdn_bgp_multi_pop_mvp_ready, cdn_bgp_mesh_pop_count, cdn_bgp_mesh_pop_ids,
-    cdn_bgp_pop_weights, cdn_bgp_weights_differentiated,
-    cdn_bgp_weighted_anycast_ready, cdn_bgp_weighted_anycast_mvp_ready,
-    cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_pop_mvp_ready, cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_binding_expires_at_ms, cdn_bgp_sticky_pop_binding_count,
-    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_ttl_digest, cdn_bgp_sticky_ttl_ms,
-    cdn_bgp_sticky_ttl_ready, cdn_bgp_sticky_persist_digest,
-    cdn_bgp_sticky_persist_path, cdn_bgp_sticky_persist_ready,
-    cdn_bgp_sticky_persist_restore_from_file, cdn_bgp_route_sticky,
-    cdn_bgp_sticky_multi_snapshot_digest, cdn_bgp_sticky_multi_snapshot_dir,
-    cdn_bgp_sticky_multi_snapshot_ready, cdn_bgp_sticky_multi_snapshot_restore_by_key,
-    cdn_bgp_sticky_multi_snapshot_path_for_key, cdn_bgp_sticky_shard_key,
-    cdn_bgp_peer_announce_sticky_digest, cdn_bgp_peer_announce_sticky_dir,
-    cdn_bgp_peer_announce_sticky_encode, cdn_bgp_peer_announce_sticky,
-    cdn_bgp_peer_announce_sticky_receive, cdn_bgp_peer_announce_sticky_receive_from_peer,
-    cdn_bgp_peer_announce_sticky_receive_and_ack, cdn_bgp_peer_announce_write_ack,
-    cdn_bgp_peer_announce_sticky_ready, cdn_bgp_peer_announce_sticky_path_for,
-    cdn_bgp_peer_announce_ack_digest, cdn_bgp_peer_announce_ack_ready,
-    cdn_bgp_peer_announce_ack_mesh_ready, cdn_bgp_peer_announce_ack_path_for,
-    cdn_bgp_peer_announce_fanout_digest, cdn_bgp_peer_announce_fanout,
-    cdn_bgp_peer_announce_fanout_ready, cdn_bgp_peer_announce_fanout_mesh_ready,
-    cdn_bgp_peer_announce_conflict_epoch_digest, cdn_bgp_peer_announce_fanout_with_epoch,
-    cdn_bgp_peer_announce_receive_ack_with_epoch, cdn_bgp_peer_announce_winning_epoch,
-    cdn_bgp_peer_announce_conflict_epoch_ready, cdn_bgp_peer_announce_conflict_epoch_mesh_ready,
-    cdn_bgp_peer_announce_epoch_persist_digest, cdn_bgp_peer_announce_epoch_persist_path,
-    cdn_bgp_peer_announce_epoch_persist_ready, cdn_bgp_peer_announce_epoch_persist_restore_from_file,
-    cdn_bgp_peer_announce_epoch_memory_clear,
-    cdn_bgp_peer_announce_ttl_digest, cdn_bgp_peer_announce_ttl_ms,
-    cdn_bgp_peer_announce_ttl_ready, cdn_bgp_peer_announce_peer_wire_expired,
-    cdn_bgp_peer_announce_purge_expired_peers,
-    cdn_bgp_peer_announce_priority_digest, cdn_bgp_peer_announce_default_priority,
-    cdn_bgp_peer_announce_peer_priority, cdn_bgp_peer_announce_priority_ready,
-    cdn_bgp_peer_announce_sort_peers_by_priority, cdn_bgp_peer_announce_priority_wins,
-    cdn_bgp_peer_announce_hold_digest, cdn_bgp_peer_announce_hold_ms,
-    cdn_bgp_peer_announce_hold_active, cdn_bgp_peer_announce_hold_mark,
-    cdn_bgp_peer_announce_filter_held_peers, cdn_bgp_peer_announce_hold_ready,
-    cdn_bgp_peer_announce_hold_memory_clear, cdn_bgp_peer_announce_parse_hold_wire,
-    CdnBgpMeshSnapshot,
-    CdnBgpConvergenceSnapshot,
-    cdn_bgp_ga_ready, cdn_bgp_has_endpoints, cdn_bgp_health, cdn_bgp_route,
-    cdn_pop_clear, cdn_pop_configure, cdn_pop_endpoint_count, cdn_pop_digest,
-    cdn_pop_multi_hostkey_route_ready,
-    cdn_pop_register_serve_pid, cdn_pop_serve_pid_count, cdn_pop_sibling_process_peer_registered,
-    cdn_pop_sibling_process_ready,
-    cdn_pop_has_endpoints, cdn_pop_health, cdn_pop_host_key_passes_ga, cdn_pop_dual_process_host_ready,
-    cdn_pop_dual_process_peer_registered, cdn_pop_remote_hostkey_ready, cdn_pop_route,
-    cdn_pop_connect_urls_non_loopback, cdn_pop_hostkeys_are_distinct_remote,
-    dist_concrete_local_ipv4, dist_connect_url_is_loopback, dist_host_key_addr_is_unspecified,
-    dist_host_key_concrete_ip_for_bind, dist_host_key_remote_for_bind, dist_host_key_remote_ip_part,
+    dist_actor_tls_rustls_crate_prod_enabled, dist_actor_win_pipe_api_enabled,
+    dist_actor_win_pipe_named_io_enabled, dist_actor_win_pipe_prod_default_on,
+    dist_actor_win_pipe_winapi_enabled, dist_bind_addr_is_non_loopback_v4,
+    dist_concrete_local_ipv4, dist_connect_url_is_loopback, dist_host_key_addr_is_documentation,
+    dist_host_key_addr_is_loopback, dist_host_key_addr_is_unspecified, dist_host_key_bind_eq_key,
+    dist_host_key_concrete_ip_for_bind, dist_host_key_has_live_listener,
+    dist_host_key_register_live_listener_bind, dist_host_key_register_runtime_bind,
+    dist_host_key_remote_for_bind, dist_host_key_remote_ip_part,
+    dist_host_key_runtime_bind_addr_is_ga, dist_host_key_runtime_binds_clear, dist_inproc_enabled,
     dist_pop_note_spawned_child, dist_pop_os_child_try_serve, dist_pop_pids_are_siblings,
     dist_pop_register_dual_process_peer, dist_pop_register_sibling_process_peer,
-    dist_tcp_url_for_bind_addr,
-    cdn_delivery_ack_clear, cdn_delivery_ack_count,
-    cdn_tcp_peer_clear, cdn_tcp_peer_configure, cdn_tcp_peer_endpoint_count,
-    cdn_tcp_peer_digest, cdn_tcp_peer_has_endpoints, cdn_tcp_peer_inbox_count,
-    cdn_tcp_peer_route,
-    dist_region_anycast_clear, dist_region_anycast_configure,
-    dist_region_anycast_endpoint_count, dist_region_anycast_digest,
-    dist_region_anycast_has_endpoints, dist_region_anycast_route, dist_region_tcp_health,
-    dist_region_default_host_key, dist_host_key_addr_is_documentation,
-    dist_host_key_addr_is_loopback, dist_host_key_bind_eq_key,
-    dist_host_key_has_live_listener, dist_host_key_register_live_listener_bind,
-    dist_host_key_register_runtime_bind,
-    dist_host_key_runtime_binds_clear,
-    dist_region_multihost_clear, dist_region_multihost_configure,
-    dist_region_multihost_configure_keys, dist_region_multihost_endpoint_count,
-    dist_region_multihost_digest, dist_region_multihost_has_nonloopback_host_key,
+    dist_region_anycast_clear, dist_region_anycast_configure, dist_region_anycast_digest,
+    dist_region_anycast_endpoint_count, dist_region_anycast_has_endpoints,
+    dist_region_anycast_route, dist_region_default_host_key, dist_region_multihost_clear,
+    dist_region_multihost_configure, dist_region_multihost_configure_keys,
+    dist_region_multihost_digest, dist_region_multihost_endpoint_count,
+    dist_region_multihost_has_endpoints, dist_region_multihost_has_nonloopback_host_key,
     dist_region_multihost_has_runtime_bound_host_key,
     dist_region_multihost_has_runtime_bound_host_key_v4,
-    dist_region_multihost_has_runtime_bound_host_key_v5,
-    dist_host_key_runtime_bind_addr_is_ga,
-    dist_region_multihost_has_endpoints, dist_region_multihost_route,
-    dist_region_multihost_tcp_health, dist_region_routing_has_tcp,
+    dist_region_multihost_has_runtime_bound_host_key_v5, dist_region_multihost_route,
+    dist_region_multihost_tcp_health, dist_region_nonloopback_digest, dist_region_routing_has_tcp,
+    dist_region_tcp_health, dist_rustls_e2e_handshake_smoke, dist_rustls_e2e_prod_default_enabled,
+    dist_tcp_url_for_bind_addr, dist_winpipe_e2e_frame_smoke,
+    dist_winpipe_e2e_prod_default_enabled, multi_region_route_table, region_route, region_route_mp,
+    region_route_mp_ga, region_route_tcp, spawn_dist_tcp_mailbox,
+    spawn_dist_tcp_mailbox_dual_stack, spawn_dist_tcp_mailbox_on, ArcStop,
+    CdnBgpConvergenceSnapshot, CdnBgpMeshSnapshot, CdnBgpOpsSnapshot, DistDualStackMailboxes,
 };
 #[cfg(feature = "runtime")]
 pub use hosts::{install_hosts, wrap_await_value};
 pub use lower::{lower_async_module, validate_no_unlowered_loop_await};
 #[cfg(feature = "runtime")]
 pub use runtime::{
-    cooperative_yield, current_runtime, current_processing_actor, enter_processing_actor,
-    leave_processing_actor, actor_reentrancy_policy,
-    dist_actor_clear_process_routes, dist_actor_clear_routes,
-    dist_actor_last_route, dist_actor_process_count, dist_actor_process_enabled, dist_actor_recv_process,
-    dist_actor_route, dist_actor_route_count, dist_actor_send_process, dist_actor_send_tls,
-    dist_actor_tls_count, dist_actor_tls_enabled, dist_actor_tls_real_count,
+    actor_reentrancy_policy, actor_shared_pool_enabled, configured_actor_shared_pool_size,
+    configured_core_pool_size, configured_keep_alive_ms, configured_max_pool_size,
+    configured_task_reject_policy, cooperative_yield, current_processing_actor, current_runtime,
+    dist_actor_clear_process_routes, dist_actor_clear_routes, dist_actor_last_route,
+    dist_actor_process_count, dist_actor_process_enabled, dist_actor_recv_process,
+    dist_actor_recv_tls, dist_actor_route, dist_actor_route_count, dist_actor_send_process,
+    dist_actor_send_tls, dist_actor_tls_count, dist_actor_tls_enabled, dist_actor_tls_real_count,
     dist_actor_tls_real_enabled, dist_actor_tls_rustls_count, dist_actor_tls_rustls_enabled,
-    dist_actor_recv_tls, dist_actor_uds_enabled, dist_actor_uds_prod_enabled,
-    dist_actor_win_pipe_enabled, dist_actor_win_pipe_prod_enabled,
-    dist_actor_tls_rustls_prod_enabled,
-    distributed_actor_mvp_enabled, mailbox_capacity, max_actors, probe_bounded_queue_abort_mvp,
+    dist_actor_tls_rustls_prod_enabled, dist_actor_uds_enabled, dist_actor_uds_prod_enabled,
+    dist_actor_win_pipe_enabled, dist_actor_win_pipe_prod_enabled, distributed_actor_mvp_enabled,
+    enter_processing_actor, leave_processing_actor, mailbox_capacity, max_actors,
+    probe_actor_shared_pool_mvp, probe_bounded_queue_abort_mvp,
     probe_bounded_queue_caller_runs_mvp, probe_bounded_queue_discard_oldest_mvp,
-    probe_core_max_keepalive_mvp, probe_actor_shared_pool_mvp,
-    set_actor_shared_pool_enabled, set_actor_shared_pool_size,
-    actor_shared_pool_enabled, configured_actor_shared_pool_size,
-    set_configured_task_queue_capacity, set_configured_task_reject_policy,
-    configured_task_reject_policy, TaskRejectPolicy,
-    set_configured_core_pool_size, set_configured_max_pool_size, set_configured_keep_alive_ms,
-    configured_core_pool_size, configured_max_pool_size, configured_keep_alive_ms,
-    set_mailbox_capacity, set_max_actors,
-    task_live_count,
-    SyxRuntime,
+    probe_core_max_keepalive_mvp, set_actor_shared_pool_enabled, set_actor_shared_pool_size,
+    set_configured_core_pool_size, set_configured_keep_alive_ms, set_configured_max_pool_size,
+    set_configured_task_queue_capacity, set_configured_task_reject_policy, set_mailbox_capacity,
+    set_max_actors, task_live_count, SyxRuntime, TaskRejectPolicy,
 };
 #[cfg(feature = "runtime")]
 pub use task::{
@@ -154,7 +139,7 @@ pub use task::{
 pub fn cooperative_yield() {}
 
 use syx_ast::{Decl, Expr, Module, Stmt};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
 pub struct Task<T> {
     pub id: u64,
@@ -272,24 +257,29 @@ fn count_await_in_stmt(stmt: &Stmt) -> u32 {
                     .map(|b| count_await_in_stmts(b))
                     .unwrap_or(0)
         }
-        Stmt::While { condition, body, .. } => {
-            count_await_in_expr(condition) + count_await_in_stmts(body)
-        }
+        Stmt::While {
+            condition, body, ..
+        } => count_await_in_expr(condition) + count_await_in_stmts(body),
         Stmt::ForIn { iterable, body, .. } => {
             count_await_in_expr(iterable) + count_await_in_stmts(body)
         }
         Stmt::Block { stmts, .. } => count_await_in_stmts(stmts),
-        Stmt::Try { body, catch_body, .. } => {
-            count_await_in_stmts(body) + count_await_in_stmts(catch_body)
-        }
-        Stmt::GuardLet { body, else_branch, .. } => {
-            count_await_in_stmts(body) + count_await_in_stmts(else_branch)
-        }
+        Stmt::Try {
+            body, catch_body, ..
+        } => count_await_in_stmts(body) + count_await_in_stmts(catch_body),
+        Stmt::GuardLet {
+            body, else_branch, ..
+        } => count_await_in_stmts(body) + count_await_in_stmts(else_branch),
         Stmt::Print { expr, .. } => count_await_in_expr(expr),
-        Stmt::RepeatWhile { body, condition, .. } => {
-            count_await_in_stmts(body) + count_await_in_expr(condition)
-        }
-        Stmt::Switch { subject, cases, default, .. } => {
+        Stmt::RepeatWhile {
+            body, condition, ..
+        } => count_await_in_stmts(body) + count_await_in_expr(condition),
+        Stmt::Switch {
+            subject,
+            cases,
+            default,
+            ..
+        } => {
             count_await_in_expr(subject)
                 + cases
                     .iter()
@@ -324,12 +314,14 @@ fn count_await_in_stmt(stmt: &Stmt) -> u32 {
 pub fn count_await_in_expr(expr: &Expr) -> u32 {
     match expr {
         Expr::Await { .. } => 1,
-        Expr::Binary { left, right, .. } => {
-            count_await_in_expr(left) + count_await_in_expr(right)
-        }
+        Expr::Binary { left, right, .. } => count_await_in_expr(left) + count_await_in_expr(right),
         Expr::Unary { expr, .. } => count_await_in_expr(expr),
         Expr::Call { callee, args, .. } => {
-            count_await_in_expr(callee) + args.iter().map(|a| count_await_in_expr(&a.value)).sum::<u32>()
+            count_await_in_expr(callee)
+                + args
+                    .iter()
+                    .map(|a| count_await_in_expr(&a.value))
+                    .sum::<u32>()
         }
         Expr::Member { object, .. } => count_await_in_expr(object),
         Expr::Index { object, index, .. } => {
@@ -366,10 +358,12 @@ pub fn validate_async_functions(module: &Module) -> SyxResult<()> {
             if *is_async {
                 let _await_count = count_await_in_stmts(body);
             } else if count_await_in_stmts(body) > 0 {
-                return Err(SyxDiagnostic::error(format!(
-                    "Function '{name}' uses await but is not async"
-                ))
-                .with_code("A002"));
+                return Err(async_error_at(
+                    format!("Function '{name}' uses await but is not async"),
+                    None,
+                    Span::DUMMY,
+                    "A002",
+                ));
             }
         }
     }

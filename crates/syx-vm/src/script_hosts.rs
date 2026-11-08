@@ -3,7 +3,9 @@ use std::sync::OnceLock;
 use std::time::{Duration, Instant as MonoInstant, SystemTime, UNIX_EPOCH};
 
 use chrono::Offset;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 
 use crate::{platform_int_value, Value};
 
@@ -76,7 +78,7 @@ pub fn host_path_extension(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_time_now_ms(stack: &mut Vec<Value>) -> SyxResult<()> {
     let ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map_err(|e| SyxDiagnostic::error(format!("Time error: {e}")))?
+        .map_err(|e| vm_error_at(format!("Time error: {e}"), None, Span::DUMMY, "R003"))?
         .as_millis() as i64;
     stack.push(platform_int_value(ms));
     Ok(())
@@ -169,10 +171,12 @@ pub fn host_datetime_timezone_offset(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 fn parse_iana_tz(name: &str) -> SyxResult<chrono_tz::Tz> {
     name.parse::<chrono_tz::Tz>().map_err(|_| {
-        SyxDiagnostic::error(format!(
-            "DateTime: unknown IANA timezone {name:?} (no tzdb match)"
-        ))
-        .with_code("U001")
+        vm_error_at(
+            format!("DateTime: unknown IANA timezone {name:?} (no tzdb match)"),
+            None,
+            Span::DUMMY,
+            "U001",
+        )
     })
 }
 
@@ -191,7 +195,12 @@ fn datetime_object_from_ms(ms: i64) -> Value {
 
 fn ms_to_datetime(ms: i64) -> SyxResult<chrono::DateTime<chrono::Utc>> {
     chrono::DateTime::from_timestamp_millis(ms).ok_or_else(|| {
-        SyxDiagnostic::error(format!("DateTime: invalid epoch ms {ms}")).with_code("U002")
+        vm_error_at(
+            format!("DateTime: invalid epoch ms {ms}"),
+            None,
+            Span::DUMMY,
+            "U002",
+        )
     })
 }
 
@@ -203,14 +212,16 @@ fn parse_rfc3339_ms(text: &str) -> SyxResult<i64> {
     if let Ok(d) = chrono::NaiveDate::parse_from_str(text, "%Y-%m-%d") {
         let dt = d
             .and_hms_opt(0, 0, 0)
-            .ok_or_else(|| SyxDiagnostic::error("DateTime: invalid date").with_code("U002"))?
+            .ok_or_else(|| vm_error_at("DateTime: invalid date", None, Span::DUMMY, "U002"))?
             .and_utc();
         return Ok(dt.timestamp_millis());
     }
-    Err(SyxDiagnostic::error(format!(
-        "DateTime.parse: expected RFC3339 or YYYY-MM-DD, got {text:?}"
+    Err(vm_error_at(
+        format!("DateTime.parse: expected RFC3339 or YYYY-MM-DD, got {text:?}"),
+        None,
+        Span::DUMMY,
+        "U002",
     ))
-    .with_code("U002"))
 }
 
 pub fn host_ordered_set_new(stack: &mut Vec<Value>) -> SyxResult<()> {

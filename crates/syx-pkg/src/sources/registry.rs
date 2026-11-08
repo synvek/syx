@@ -3,15 +3,18 @@ use std::path::{Component, Path};
 use flate2::read::GzDecoder;
 use semver::Version;
 use sha2::{Digest, Sha256};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use tar::Archive;
 
 use crate::lockfile::{try_load_lockfile, LockPackage, PackageSource, SyxLockfile};
-use crate::manifest::{check_version_req, load_manifest, registry_url_chain, DependencySpec, SyxManifest};
+use crate::manifest::{
+    check_version_req, load_manifest, registry_url_chain, DependencySpec, SyxManifest,
+};
+use crate::pkg_error_at;
 use crate::registry::{download_package, resolve_registry_version, RegistryClient};
-use crate::{install_locked, verify_package_signature_for_policy};
 use crate::sources::path::path_relative_to_project;
 use crate::vendor_dir;
+use crate::{install_locked, verify_package_signature_for_policy};
 
 pub fn resolve_registry_dependency(
     project_root: &Path,
@@ -20,7 +23,12 @@ pub fn resolve_registry_dependency(
     manifest: &SyxManifest,
 ) -> SyxResult<LockPackage> {
     let req = spec.version_req()?.ok_or_else(|| {
-        SyxDiagnostic::error(format!("Registry dependency '{dep_name}' needs version constraint"))
+        pkg_error_at(
+            format!("Registry dependency '{dep_name}' needs version constraint"),
+            None,
+            Span::DUMMY,
+            "P026",
+        )
     })?;
     let lock = try_load_lockfile(project_root).ok().flatten();
     if let Some(url) = spec.resolve_registry() {
@@ -28,13 +36,19 @@ pub fn resolve_registry_dependency(
     }
     let mut last_err = None;
     for registry_url in registry_url_chain_with_lock(manifest, lock.as_ref()) {
-        match resolve_from_registry_url(project_root, dep_name, &req, &registry_url, lock.as_ref()) {
+        match resolve_from_registry_url(project_root, dep_name, &req, &registry_url, lock.as_ref())
+        {
             Ok(pkg) => return Ok(pkg),
             Err(e) => last_err = Some(e),
         }
     }
     Err(last_err.unwrap_or_else(|| {
-        SyxDiagnostic::error("No registry URL available for package resolution")
+        pkg_error_at(
+            "No registry URL available for package resolution",
+            None,
+            Span::DUMMY,
+            "P026",
+        )
     }))
 }
 
@@ -51,17 +65,19 @@ fn registry_url_chain_with_lock(manifest: &SyxManifest, lock: Option<&SyxLockfil
 }
 
 fn effective_artifact_cdn_base(project_root: &Path, lock: Option<&SyxLockfile>) -> Option<String> {
-    lock.and_then(|l| l.artifact_cdn_base.clone()).or_else(|| {
-        std::env::var("SYX_REGISTRY_CDN")
-            .ok()
-            .filter(|value| !value.is_empty())
-    }).or_else(|| {
-        // Prefer lock on disk when env is unset during reinstall.
-        try_load_lockfile(project_root)
-            .ok()
-            .flatten()
-            .and_then(|l| l.artifact_cdn_base)
-    })
+    lock.and_then(|l| l.artifact_cdn_base.clone())
+        .or_else(|| {
+            std::env::var("SYX_REGISTRY_CDN")
+                .ok()
+                .filter(|value| !value.is_empty())
+        })
+        .or_else(|| {
+            // Prefer lock on disk when env is unset during reinstall.
+            try_load_lockfile(project_root)
+                .ok()
+                .flatten()
+                .and_then(|l| l.artifact_cdn_base)
+        })
 }
 
 fn resolve_from_registry_url(
@@ -74,38 +90,52 @@ fn resolve_from_registry_url(
     let client = RegistryClient::new(registry_url)?;
     let (version, checksum) = if install_locked() {
         let lock = lock.ok_or_else(|| {
-            SyxDiagnostic::error("SYX_INSTALL_LOCKED requires an existing syx.lock")
-                .with_code("P014")
+            pkg_error_at(
+                "SYX_INSTALL_LOCKED requires an existing syx.lock",
+                None,
+                Span::DUMMY,
+                "P014",
+            )
         })?;
         let locked = lock.packages.get(dep_name).ok_or_else(|| {
-            SyxDiagnostic::error(format!(
-                "SYX_INSTALL_LOCKED: package '{dep_name}' missing from syx.lock"
-            ))
-            .with_code("P014")
+            pkg_error_at(
+                format!("SYX_INSTALL_LOCKED: package '{dep_name}' missing from syx.lock"),
+                None,
+                Span::DUMMY,
+                "P014",
+            )
         })?;
         match &locked.source {
             PackageSource::Registry {
                 version, checksum, ..
             } => {
                 let parsed = Version::parse(version).map_err(|e| {
-                    SyxDiagnostic::error(format!(
-                        "Invalid locked registry version '{version}' for '{dep_name}': {e}"
-                    ))
-                    .with_code("P014")
+                    pkg_error_at(
+                        format!(
+                            "Invalid locked registry version '{version}' for '{dep_name}': {e}"
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "P014",
+                    )
                 })?;
                 if !req.matches(&parsed) {
-                    return Err(SyxDiagnostic::error(format!(
-                        "Locked version {version} for '{dep_name}' does not satisfy {req}"
-                    ))
-                    .with_code("P014"));
+                    return Err(pkg_error_at(
+                        format!("Locked version {version} for '{dep_name}' does not satisfy {req}"),
+                        None,
+                        Span::DUMMY,
+                        "P014",
+                    ));
                 }
                 (version.clone(), checksum.clone())
             }
             _ => {
-                return Err(SyxDiagnostic::error(format!(
-                    "SYX_INSTALL_LOCKED: '{dep_name}' is not a registry pin in syx.lock"
-                ))
-                .with_code("P014"));
+                return Err(pkg_error_at(
+                    format!("SYX_INSTALL_LOCKED: '{dep_name}' is not a registry pin in syx.lock"),
+                    None,
+                    Span::DUMMY,
+                    "P014",
+                ));
             }
         }
     } else {
@@ -114,28 +144,22 @@ fn resolve_from_registry_url(
         (version, checksum)
     };
     let signature = client.package_signature(dep_name, &version)?;
-    let bytes = download_registry_tarball(
-        &client,
-        project_root,
-        lock,
-        dep_name,
-        &version,
-    )?;
+    let bytes = download_registry_tarball(&client, project_root, lock, dep_name, &version)?;
 
     verify_checksum(&bytes, &checksum)?;
-    let policy = lock
-        .map(|l| l.signature_policy)
-        .or_else(|| {
-            try_load_lockfile(project_root)
-                .ok()
-                .flatten()
-                .map(|l| l.signature_policy)
-        });
+    let policy = lock.map(|l| l.signature_policy).or_else(|| {
+        try_load_lockfile(project_root)
+            .ok()
+            .flatten()
+            .map(|l| l.signature_policy)
+    });
     if !verify_package_signature_for_policy(&checksum, signature.as_deref(), policy) {
-        return Err(SyxDiagnostic::error(format!(
-            "Package signature verification failed for {dep_name}@{version}"
-        ))
-        .with_code("P011"));
+        return Err(pkg_error_at(
+            format!("Package signature verification failed for {dep_name}@{version}"),
+            None,
+            Span::DUMMY,
+            "P011",
+        ));
     }
 
     let vendor = vendor_dir(project_root);
@@ -145,7 +169,12 @@ fn resolve_from_registry_url(
     extract_tar_gz(&bytes, &dest)?;
 
     let version_parsed = Version::parse(&version).map_err(|e| {
-        SyxDiagnostic::error(format!("Invalid registry version '{version}': {e}"))
+        pkg_error_at(
+            format!("Invalid registry version '{version}': {e}"),
+            None,
+            Span::DUMMY,
+            "P027",
+        )
     })?;
     check_version_req(&dest, &req, dep_name)?;
     let rel_dir = path_relative_to_project(project_root, &dest);
@@ -183,16 +212,18 @@ fn verify_checksum(bytes: &[u8], expected: &str) -> SyxResult<()> {
     hasher.update(bytes);
     let actual = format!("{:x}", hasher.finalize());
     if actual != expected {
-        return Err(SyxDiagnostic::error(format!(
-            "Checksum mismatch: expected sha256:{expected}, got sha256:{actual}"
-        ))
-        .with_code("P003"));
+        return Err(pkg_error_at(
+            format!("Checksum mismatch: expected sha256:{expected}, got sha256:{actual}"),
+            None,
+            Span::DUMMY,
+            "P003",
+        ));
     }
     Ok(())
 }
 
 fn extract_security_err(message: impl Into<String>) -> SyxDiagnostic {
-    SyxDiagnostic::error(message).with_code("P013")
+    pkg_error_at(message, None, Span::DUMMY, "P013")
 }
 
 fn dest_is_symlink(path: &Path) -> bool {
@@ -241,7 +272,10 @@ fn archive_path_is_unsafe(path: &Path) -> bool {
 
 /// True when resolving `link` relative to `entry_path`'s parent would leave the extract root.
 fn link_target_escapes(entry_path: &Path, link: &Path) -> bool {
-    if link.components().any(|c| matches!(c, Component::RootDir | Component::Prefix(_))) {
+    if link
+        .components()
+        .any(|c| matches!(c, Component::RootDir | Component::Prefix(_)))
+    {
         return true;
     }
     let parent = entry_path.parent().unwrap_or_else(|| Path::new(""));
@@ -275,19 +309,39 @@ pub fn extract_tar_gz(bytes: &[u8], dest: &Path) -> SyxResult<()> {
         )));
     }
     std::fs::create_dir_all(dest).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to create {}: {e}", dest.display()))
+        pkg_error_at(
+            format!("Failed to create {}: {e}", dest.display()),
+            None,
+            Span::DUMMY,
+            "P028",
+        )
     })?;
     let decoder = GzDecoder::new(bytes);
     let mut archive = Archive::new(decoder);
     let entries = archive.entries().map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read package archive: {e}"))
+        pkg_error_at(
+            format!("Failed to read package archive: {e}"),
+            None,
+            Span::DUMMY,
+            "P028",
+        )
     })?;
     for entry in entries {
         let mut entry = entry.map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to read archive entry: {e}"))
+            pkg_error_at(
+                format!("Failed to read archive entry: {e}"),
+                None,
+                Span::DUMMY,
+                "P028",
+            )
         })?;
         let path = entry.path().map_err(|e| {
-            SyxDiagnostic::error(format!("Invalid archive entry path: {e}"))
+            pkg_error_at(
+                format!("Invalid archive entry path: {e}"),
+                None,
+                Span::DUMMY,
+                "P028",
+            )
         })?;
         if archive_path_is_unsafe(path.as_ref()) {
             return Err(extract_security_err(format!(
@@ -299,7 +353,14 @@ pub fn extract_tar_gz(bytes: &[u8], dest: &Path) -> SyxResult<()> {
         if entry_type.is_symlink() || entry_type.is_hard_link() {
             let link = entry
                 .link_name()
-                .map_err(|e| SyxDiagnostic::error(format!("Invalid archive link name: {e}")))?
+                .map_err(|e| {
+                    pkg_error_at(
+                        format!("Invalid archive link name: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "P028",
+                    )
+                })?
                 .ok_or_else(|| extract_security_err("Archive link entry missing link name"))?;
             if link_target_escapes(path.as_ref(), link.as_ref()) {
                 return Err(extract_security_err(format!(
@@ -310,10 +371,12 @@ pub fn extract_tar_gz(bytes: &[u8], dest: &Path) -> SyxResult<()> {
             }
         }
         entry.unpack_in(dest).map_err(|e| {
-            SyxDiagnostic::error(format!(
-                "Failed to extract package to {}: {e}",
-                dest.display()
-            ))
+            pkg_error_at(
+                format!("Failed to extract package to {}: {e}", dest.display()),
+                None,
+                Span::DUMMY,
+                "P028",
+            )
         })?;
     }
     Ok(())
@@ -324,13 +387,30 @@ pub fn create_tar_gz(source_dir: &Path) -> SyxResult<Vec<u8>> {
     {
         let mut tar_builder = tar::Builder::new(&mut encoder);
         tar_builder.append_dir_all(".", source_dir).map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to create tarball: {e}"))
+            pkg_error_at(
+                format!("Failed to create tarball: {e}"),
+                None,
+                Span::DUMMY,
+                "P029",
+            )
         })?;
         tar_builder.finish().map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to finish tarball: {e}"))
+            pkg_error_at(
+                format!("Failed to finish tarball: {e}"),
+                None,
+                Span::DUMMY,
+                "P029",
+            )
         })?;
     }
-    encoder.finish().map_err(|e| SyxDiagnostic::error(format!("Failed to compress tarball: {e}")))
+    encoder.finish().map_err(|e| {
+        pkg_error_at(
+            format!("Failed to compress tarball: {e}"),
+            None,
+            Span::DUMMY,
+            "P029",
+        )
+    })
 }
 
 pub fn tarball_checksum(bytes: &[u8]) -> String {
@@ -342,10 +422,12 @@ pub fn tarball_checksum(bytes: &[u8]) -> String {
 pub fn validate_package_layout(root: &Path) -> SyxResult<SyxManifest> {
     let manifest_path = root.join("syx.toml");
     if !manifest_path.exists() {
-        return Err(SyxDiagnostic::error(format!(
-            "Package missing syx.toml at {}",
-            root.display()
-        )));
+        return Err(pkg_error_at(
+            format!("Package missing syx.toml at {}", root.display()),
+            None,
+            Span::DUMMY,
+            "P030",
+        ));
     }
     load_manifest(root)
 }

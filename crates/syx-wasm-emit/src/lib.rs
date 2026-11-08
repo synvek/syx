@@ -4,6 +4,7 @@ mod exec;
 mod mir_emit;
 mod stats;
 mod tier_matrix;
+mod wasm_emit_diag;
 
 pub use exec::aot;
 pub use exec::host;

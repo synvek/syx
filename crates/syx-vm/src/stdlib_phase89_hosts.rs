@@ -3,8 +3,10 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 use syx_runtime_core::Value;
+
+use crate::vm_error_at;
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
@@ -115,13 +117,12 @@ pub fn sql_conn_force_close(id: i32) -> bool {
 /// ADR-160: open a new connection; returns handle id ≥ 1 (never 0).
 pub fn host_sql_open(stack: &mut Vec<Value>) -> SyxResult<()> {
     let dsn = pop_str(stack);
-    let conn = open_connection(&dsn).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("sql open failed: {e}")).with_code("R003")
-    })?;
+    let conn = open_connection(&dsn)
+        .map_err(|e| vm_error_at(format!("sql open failed: {e}"), None, Span::DUMMY, "R003"))?;
     let id = NEXT_CONN_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     RUSQLITE_CONNS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
         .insert(id, conn);
     stack.push(Value::I32(id));
     Ok(())
@@ -131,21 +132,25 @@ pub fn host_sql_open(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_sql_close(stack: &mut Vec<Value>) -> SyxResult<()> {
     let conn_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     if conn_id == 0 {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(vm_error_at(
             "sql close failed: cannot close implicit default connection 0",
-        )
-        .with_code("R003"));
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let removed = RUSQLITE_CONNS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
         .remove(&conn_id)
         .is_some();
     if !removed {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql close failed: unknown connection {conn_id}"
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!("sql close failed: unknown connection {conn_id}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if let Ok(mut txn) = SQL_TXN_OPEN.lock() {
         txn.remove(&conn_id);
@@ -158,15 +163,17 @@ pub fn host_sql_pool_create(stack: &mut Vec<Value>) -> SyxResult<()> {
     let max_size = stack.pop().unwrap_or(Value::I32(0)).as_i64();
     let dsn = pop_str(stack);
     if max_size < 1 {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(vm_error_at(
             "sql poolCreate failed: maxSize must be >= 1",
-        )
-        .with_code("R003"));
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let id = NEXT_POOL_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     SQL_POOLS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
         .insert(
             id,
             SqlPool {
@@ -185,12 +192,14 @@ pub fn host_sql_pool_acquire(stack: &mut Vec<Value>) -> SyxResult<()> {
     let pool_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     let mut pools = SQL_POOLS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let Some(pool) = pools.get_mut(&pool_id) else {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql poolAcquire failed: unknown pool {pool_id}"
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!("sql poolAcquire failed: unknown pool {pool_id}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     if let Some(conn_id) = pool.free.pop() {
         pool.checked_out.insert(conn_id);
@@ -199,21 +208,29 @@ pub fn host_sql_pool_acquire(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     let live = pool.free.len() + pool.checked_out.len();
     if live >= pool.max {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql poolAcquire failed: pool {pool_id} exhausted (max {})",
-            pool.max
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!(
+                "sql poolAcquire failed: pool {pool_id} exhausted (max {})",
+                pool.max
+            ),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let dsn = pool.dsn.clone();
     let conn = open_connection(&dsn).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("sql poolAcquire open failed: {e}"))
-            .with_code("R003")
+        vm_error_at(
+            format!("sql poolAcquire open failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let conn_id = NEXT_CONN_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     RUSQLITE_CONNS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
         .insert(conn_id, conn);
     pool.checked_out.insert(conn_id);
     stack.push(Value::I32(conn_id));
@@ -230,25 +247,31 @@ pub fn host_sql_pool_release(stack: &mut Vec<Value>) -> SyxResult<()> {
         .map(|g| g.contains(&conn_id))
         .unwrap_or(false)
     {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql poolRelease failed: conn {conn_id} has an open transaction"
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!("sql poolRelease failed: conn {conn_id} has an open transaction"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let mut pools = SQL_POOLS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let Some(pool) = pools.get_mut(&pool_id) else {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql poolRelease failed: unknown pool {pool_id}"
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!("sql poolRelease failed: unknown pool {pool_id}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     if !pool.checked_out.remove(&conn_id) {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql poolRelease failed: conn {conn_id} not checked out from pool {pool_id}"
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!("sql poolRelease failed: conn {conn_id} not checked out from pool {pool_id}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     pool.free.push(conn_id);
     stack.push(Value::Nil);
@@ -261,18 +284,20 @@ pub fn host_sql_pool_close(stack: &mut Vec<Value>) -> SyxResult<()> {
     let pool_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     let mut pools = SQL_POOLS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let Some(pool) = pools.remove(&pool_id) else {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "sql poolClose failed: unknown pool {pool_id}"
-        ))
-        .with_code("R003"));
+        return Err(vm_error_at(
+            format!("sql poolClose failed: unknown pool {pool_id}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let mut ids: Vec<i32> = pool.free;
     ids.extend(pool.checked_out.iter().copied());
     let mut conns = RUSQLITE_CONNS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     for id in &ids {
         let _ = conns.remove(id);
     }
@@ -292,26 +317,34 @@ fn sql_row_map(row: &Value) -> SyxResult<HashMap<String, Value>> {
     let map = match resolved {
         Value::Object(m) | Value::Dict(m) => m,
         _ => {
-            return Err(syx_diagnostics::SyxDiagnostic::error(
+            return Err(vm_error_at(
                 "SqlRow accessor requires SqlRow object",
-            )
-            .with_code("R003"));
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     };
     match map.get("__type") {
         Some(Value::Str(t)) if t == "SqlRow" => Ok(map),
-        _ => Err(
-            syx_diagnostics::SyxDiagnostic::error("SqlRow accessor requires __type=SqlRow")
-                .with_code("R003"),
-        ),
+        _ => Err(vm_error_at(
+            "SqlRow accessor requires __type=SqlRow",
+            None,
+            Span::DUMMY,
+            "R003",
+        )),
     }
 }
 
 fn sql_row_get_cell(row: &Value, name: &str) -> SyxResult<Value> {
     let map = sql_row_map(row)?;
     map.get(name).cloned().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error(format!("SqlRow missing column '{name}'"))
-            .with_code("R003")
+        vm_error_at(
+            format!("SqlRow missing column '{name}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })
 }
 
@@ -322,10 +355,12 @@ pub fn host_sql_row_get_string(stack: &mut Vec<Value>) -> SyxResult<()> {
     match sql_row_get_cell(&row, &name)? {
         Value::Str(s) => stack.push(Value::Str(s)),
         _ => {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "SqlRow.getString column '{name}' type mismatch"
-            ))
-            .with_code("R003"));
+            return Err(vm_error_at(
+                format!("SqlRow.getString column '{name}' type mismatch"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
     Ok(())
@@ -339,10 +374,12 @@ pub fn host_sql_row_get_int(stack: &mut Vec<Value>) -> SyxResult<()> {
         Value::I64(n) => stack.push(Value::I64(n)),
         Value::I32(n) => stack.push(Value::I32(n)),
         _ => {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "SqlRow.getInt column '{name}' type mismatch"
-            ))
-            .with_code("R003"));
+            return Err(vm_error_at(
+                format!("SqlRow.getInt column '{name}' type mismatch"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
     Ok(())
@@ -356,10 +393,12 @@ pub fn host_sql_row_get_float(stack: &mut Vec<Value>) -> SyxResult<()> {
         Value::F64(f) => stack.push(Value::F64(f)),
         Value::F32(f) => stack.push(Value::F64(f as f64)),
         _ => {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "SqlRow.getFloat column '{name}' type mismatch"
-            ))
-            .with_code("R003"));
+            return Err(vm_error_at(
+                format!("SqlRow.getFloat column '{name}' type mismatch"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
     Ok(())
@@ -372,10 +411,12 @@ pub fn host_sql_row_get_blob(stack: &mut Vec<Value>) -> SyxResult<()> {
     match sql_row_get_cell(&row, &name)? {
         Value::Array(items) => stack.push(Value::Array(items)),
         _ => {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "SqlRow.getBlob column '{name}' type mismatch"
-            ))
-            .with_code("R003"));
+            return Err(vm_error_at(
+                format!("SqlRow.getBlob column '{name}' type mismatch"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
     Ok(())
@@ -410,15 +451,19 @@ where
 {
     let mut guard = RUSQLITE_CONNS
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     if conn_id == 0 && !guard.contains_key(&0) {
         let conn = rusqlite::Connection::open_in_memory()
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+            .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
         guard.insert(0, conn);
     }
     let conn = guard.get_mut(&conn_id).ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error(format!("sql connection {conn_id} not found"))
-            .with_code("R003")
+        vm_error_at(
+            format!("sql connection {conn_id} not found"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     f(conn)
 }
@@ -430,8 +475,7 @@ pub fn host_sql_exec_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut changed = 0i32;
     with_conn_id(conn_id, |conn| {
         changed = conn.execute(&sql, []).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql execOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(format!("sql execOn failed: {e}"), None, Span::DUMMY, "R003")
         })? as i32;
         Ok(())
     })?;
@@ -446,20 +490,32 @@ pub fn host_sql_query_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut rows = Vec::new();
     with_conn_id(conn_id, |conn| {
         let mut stmt = conn.prepare(&sql).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql queryOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql queryOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         let col_count = stmt.column_count();
         let col_names: Vec<String> = (0..col_count)
             .map(|i| stmt.column_name(i).unwrap_or("col").to_string())
             .collect();
         let mut query = stmt.query([]).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql queryOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql queryOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         while let Some(row) = query.next().map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql queryOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql queryOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })? {
             let mut map = HashMap::new();
             map.insert("__type".into(), Value::Str("SqlRow".into()));
@@ -495,13 +551,13 @@ static PREPARED_SQL: LazyLock<Mutex<HashMap<i32, (i32, String)>>> =
 /// Phase 89: rusqlite-backed SQL exec.
 pub fn host_sql_exec_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
     let sql = pop_str(stack);
-    let mut guard = rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+    let mut guard =
+        rusqlite_conn().map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     // ADR-155: fail-closed Err (no empty-success sentinel on execute failure).
-    let changed = conn.execute(&sql, []).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("sql exec failed: {e}")).with_code("R003")
-    })?;
+    let changed = conn
+        .execute(&sql, [])
+        .map_err(|e| vm_error_at(format!("sql exec failed: {e}"), None, Span::DUMMY, "R003"))?;
     stack.push(Value::I32(changed as i32));
     Ok(())
 }
@@ -510,11 +566,11 @@ pub fn host_sql_exec_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_sql_query_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
     let sql = pop_str(stack);
     let mut guard =
-        rusqlite_conn().map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        rusqlite_conn().map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     let mut stmt = conn
         .prepare(&sql)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let col_count = stmt.column_count();
     let col_names: Vec<String> = (0..col_count)
         .map(|i| stmt.column_name(i).unwrap_or("col").to_string())
@@ -522,10 +578,10 @@ pub fn host_sql_query_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut rows = Vec::new();
     let mut query = stmt
         .query([])
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     while let Some(row) = query
         .next()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
     {
         let mut map = HashMap::new();
         map.insert("__type".into(), Value::Str("SqlRow".into()));
@@ -553,18 +609,23 @@ pub fn host_sql_query_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
 /// Phase 89 / ADR-148: SQL prepare — validate via rusqlite; return Int stmt id (never `prep:`).
 pub fn host_sql_prepare(stack: &mut Vec<Value>) -> SyxResult<()> {
     let sql = pop_str(stack);
-    let mut guard = rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+    let mut guard =
+        rusqlite_conn().map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     // Validate SQL; drop Statement immediately (do not hold Connection borrow).
     let _stmt = conn.prepare(&sql).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("sql prepare failed: {e}")).with_code("R003")
+        vm_error_at(
+            format!("sql prepare failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     drop(_stmt);
     let id = NEXT_STMT_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     PREPARED_SQL
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
         .insert(id, (0, sql));
     stack.push(Value::I32(id));
     Ok(())
@@ -576,8 +637,12 @@ pub fn host_sql_prepare_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let conn_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     with_conn_id(conn_id, |conn| {
         let _stmt = conn.prepare(&sql).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql prepareOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql prepareOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         drop(_stmt);
         Ok(())
@@ -585,7 +650,7 @@ pub fn host_sql_prepare_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let id = NEXT_STMT_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     PREPARED_SQL
         .lock()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?
         .insert(id, (conn_id, sql));
     stack.push(Value::I32(id));
     Ok(())
@@ -601,8 +666,12 @@ pub fn host_sql_bind_step_on(stack: &mut Vec<Value>) -> SyxResult<()> {
         changed = conn
             .execute(&sql, rusqlite::params![bind_val])
             .map_err(|e| {
-                syx_diagnostics::SyxDiagnostic::error(format!("sql bindStepOn failed: {e}"))
-                    .with_code("R003")
+                vm_error_at(
+                    format!("sql bindStepOn failed: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })? as i32;
         Ok(())
     })?;
@@ -618,27 +687,37 @@ pub fn host_sql_bind_prepared_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let (bound_conn, sql) = {
         let guard = PREPARED_SQL
             .lock()
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()).with_code("R003"))?;
+            .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
         guard.get(&stmt_id).cloned().ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error(format!(
-                "sql bindPreparedOn failed: unknown stmt {stmt_id}"
-            ))
-            .with_code("R003")
+            vm_error_at(
+                format!("sql bindPreparedOn failed: unknown stmt {stmt_id}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?
     };
     if bound_conn != conn_id {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
+        return Err(vm_error_at(
+            format!(
             "sql bindPreparedOn failed: stmt {stmt_id} bound to conn {bound_conn}, not {conn_id}"
-        ))
-        .with_code("R003"));
+        ),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let mut changed = 0i32;
     with_conn_id(conn_id, |conn| {
         changed = conn
             .execute(&sql, rusqlite::params![bind_val])
             .map_err(|e| {
-                syx_diagnostics::SyxDiagnostic::error(format!("sql bindPreparedOn failed: {e}"))
-                    .with_code("R003")
+                vm_error_at(
+                    format!("sql bindPreparedOn failed: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })? as i32;
         Ok(())
     })?;
@@ -651,8 +730,12 @@ pub fn host_sql_begin_transaction_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let conn_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     with_conn_id(conn_id, |conn| {
         conn.execute_batch("BEGIN IMMEDIATE;").map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql beginTransactionOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql beginTransactionOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         Ok(())
     })?;
@@ -667,8 +750,12 @@ pub fn host_sql_commit_transaction_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let conn_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     with_conn_id(conn_id, |conn| {
         conn.execute_batch("COMMIT;").map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql commitTransactionOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql commitTransactionOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         Ok(())
     })?;
@@ -683,8 +770,12 @@ pub fn host_sql_rollback_transaction_on(stack: &mut Vec<Value>) -> SyxResult<()>
     let conn_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     with_conn_id(conn_id, |conn| {
         conn.execute_batch("ROLLBACK;").map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("sql rollbackTransactionOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("sql rollbackTransactionOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         Ok(())
     })?;
@@ -722,7 +813,7 @@ pub fn host_orm_save(stack: &mut Vec<Value>) -> SyxResult<()> {
         placeholders.join(", ")
     );
     let mut guard =
-        rusqlite_conn().map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        rusqlite_conn().map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     let col_defs: Vec<String> = cols.iter().map(|c| format!("{c} TEXT")).collect();
     let _ = conn.execute(
@@ -748,10 +839,12 @@ pub fn host_orm_save_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let table = pop_str(stack);
     let conn_id = stack.pop().unwrap_or(Value::I32(0)).as_i64() as i32;
     let Some(map) = value_as_map(&record) else {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(vm_error_at(
             "orm saveOn failed: record is not an object",
-        )
-        .with_code("R003"));
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let mut cols = Vec::new();
     let mut vals = Vec::new();
@@ -763,10 +856,12 @@ pub fn host_orm_save_on(stack: &mut Vec<Value>) -> SyxResult<()> {
         vals.push(v.as_str());
     }
     if cols.is_empty() {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(vm_error_at(
             "orm saveOn failed: no columns in record",
-        )
-        .with_code("R003"));
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let placeholders: Vec<&str> = cols.iter().map(|_| "?").collect();
     let sql = format!(
@@ -781,17 +876,13 @@ pub fn host_orm_save_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     );
     with_conn_id(conn_id, |conn| {
         conn.execute(&create_sql, []).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("orm saveOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(format!("orm saveOn failed: {e}"), None, Span::DUMMY, "R003")
         })?;
         conn.execute(
             &sql,
             rusqlite::params_from_iter(vals.iter().map(|s| s.as_str())),
         )
-        .map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("orm saveOn failed: {e}"))
-                .with_code("R003")
-        })?;
+        .map_err(|e| vm_error_at(format!("orm saveOn failed: {e}"), None, Span::DUMMY, "R003"))?;
         Ok(())
     })?;
     stack.push(Value::Bool(true));
@@ -808,20 +899,32 @@ pub fn host_orm_find_where_on(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut rows = Vec::new();
     with_conn_id(conn_id, |conn| {
         let mut stmt = conn.prepare(&sql).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("orm findWhereOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("orm findWhereOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         let col_count = stmt.column_count();
         let col_names: Vec<String> = (0..col_count)
             .map(|i| stmt.column_name(i).unwrap_or("col").to_string())
             .collect();
         let mut query = stmt.query(rusqlite::params![val]).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("orm findWhereOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("orm findWhereOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         while let Some(row) = query.next().map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("orm findWhereOn failed: {e}"))
-                .with_code("R003")
+            vm_error_at(
+                format!("orm findWhereOn failed: {e}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })? {
             let mut map = HashMap::new();
             map.insert("__type".into(), Value::Str("SqlRow".into()));
@@ -863,8 +966,12 @@ pub fn host_orm_update_where_on(stack: &mut Vec<Value>) -> SyxResult<()> {
         changed = conn
             .execute(&sql, rusqlite::params![new_val, where_val])
             .map_err(|e| {
-                syx_diagnostics::SyxDiagnostic::error(format!("orm updateWhereOn failed: {e}"))
-                    .with_code("R003")
+                vm_error_at(
+                    format!("orm updateWhereOn failed: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })? as i32;
         Ok(())
     })?;
@@ -884,8 +991,12 @@ pub fn host_orm_delete_where_on(stack: &mut Vec<Value>) -> SyxResult<()> {
         changed = conn
             .execute(&sql, rusqlite::params![where_val])
             .map_err(|e| {
-                syx_diagnostics::SyxDiagnostic::error(format!("orm deleteWhereOn failed: {e}"))
-                    .with_code("R003")
+                vm_error_at(
+                    format!("orm deleteWhereOn failed: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })? as i32;
         Ok(())
     })?;

@@ -9,7 +9,9 @@ use std::sync::{LazyLock, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
@@ -241,15 +243,19 @@ fn decode_value_recursive(
     let base = strip_optional(type_name);
     if let Some(meta) = syx_meta::reflect_type(base) {
         let serde_json::Value::Object(obj) = parsed else {
-            return Err(SyxDiagnostic::error(format!(
-                "JSONDecoder expected object for type '{base}' at codingPath={}",
-                if path.is_empty() {
-                    "<root>".to_string()
-                } else {
-                    path.join(".")
-                }
-            ))
-            .with_code("R010"));
+            return Err(vm_error_at(
+                format!(
+                    "JSONDecoder expected object for type '{base}' at codingPath={}",
+                    if path.is_empty() {
+                        "<root>".to_string()
+                    } else {
+                        path.join(".")
+                    }
+                ),
+                None,
+                Span::DUMMY,
+                "R010",
+            ));
         };
         let mut map = HashMap::new();
         map.insert("__type".into(), Value::Str(base.to_string()));
@@ -275,10 +281,14 @@ fn decode_value_recursive(
                 None if optional => {}
                 None => {
                     let coding_path = coding_path_join(path, field.as_str());
-                    return Err(SyxDiagnostic::error(format!(
-                        "JSONDecoder missing required key '{field}' codingPath={coding_path}"
-                    ))
-                    .with_code("R010"));
+                    return Err(vm_error_at(
+                        format!(
+                            "JSONDecoder missing required key '{field}' codingPath={coding_path}"
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "R010",
+                    ));
                 }
             }
         }
@@ -346,8 +356,12 @@ pub fn host_json_decoder_decode(stack: &mut Vec<Value>) -> SyxResult<()> {
     let type_name = pop_str(stack);
     let json = pop_str(stack);
     let parsed: serde_json::Value = serde_json::from_str(&json).map_err(|e| {
-        SyxDiagnostic::error(format!("JSONDecoder invalid JSON codingPath=<root>: {e}"))
-            .with_code("R010")
+        vm_error_at(
+            format!("JSONDecoder invalid JSON codingPath=<root>: {e}"),
+            None,
+            Span::DUMMY,
+            "R010",
+        )
     })?;
     let value = decode_value_recursive(&type_name, &parsed, &[])?;
     stack.push(value);
@@ -366,7 +380,7 @@ static JSON_STREAM_SESSIONS: LazyLock<Mutex<HashMap<i64, JsonStreamSession>>> =
 static JSON_STREAM_NEXT_ID: AtomicI64 = AtomicI64::new(1);
 
 fn json_stream_r010(msg: impl Into<String>) -> SyxDiagnostic {
-    SyxDiagnostic::error(msg.into()).with_code("R010")
+    vm_error_at(msg.into(), None, Span::DUMMY, "R010")
 }
 
 fn pop_handle(stack: &mut Vec<Value>) -> i64 {

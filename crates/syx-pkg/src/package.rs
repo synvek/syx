@@ -1,7 +1,8 @@
 use std::path::Path;
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
+use crate::pkg_error_at;
 use crate::registry::RegistryClient;
 use crate::sources::registry::{create_tar_gz, tarball_checksum, validate_package_layout};
 
@@ -13,8 +14,11 @@ pub fn publish_package(
 ) -> SyxResult<()> {
     let manifest = validate_package_layout(root)?;
     if manifest.name.is_empty() || manifest.version.is_empty() {
-        return Err(SyxDiagnostic::error(
+        return Err(pkg_error_at(
             "Package syx.toml must have name and version for publish",
+            None,
+            Span::DUMMY,
+            "P042",
         ));
     }
     let registry = registry.to_string();

@@ -16,10 +16,13 @@
 //! `macro-service-v17:pointcut-or-compose-mvp`,
 //! `macro-service-v19:pointcut-within-wildcard-mvp`
 
+use crate::macro_error_at;
 use indexmap::IndexMap;
 use smol_str::SmolStr;
-use syx_ast::{AccessLevel, Attribute, AttributeArg, Decl, Expr, Literal, Param, ParamLabel, Stmt, TypeExpr};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_ast::{
+    AccessLevel, Attribute, AttributeArg, Decl, Expr, Literal, Param, ParamLabel, Stmt, TypeExpr,
+};
+use syx_diagnostics::{Span, SyxResult};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FieldAutowire {
@@ -79,9 +82,7 @@ fn attr_named(attrs: &[Attribute], name: &str) -> bool {
 }
 
 fn is_inject_attr(attrs: &[Attribute]) -> bool {
-    attr_named(attrs, "Inject")
-        || attr_named(attrs, "inject")
-        || attr_named(attrs, "Autowired")
+    attr_named(attrs, "Inject") || attr_named(attrs, "inject") || attr_named(attrs, "Autowired")
 }
 
 fn is_autowired_field_attr(attrs: &[Attribute]) -> bool {
@@ -101,10 +102,9 @@ fn scope_from_attrs(attrs: &[Attribute]) -> SyxResult<SmolStr> {
             None | Some("singleton") => Ok(SmolStr::new("singleton")),
             Some("prototype") => Ok(SmolStr::new("prototype")),
             Some("request") => Ok(SmolStr::new("request")),
-            Some(other) => Err(SyxDiagnostic::error(format!(
+            Some(other) => Err(macro_error_at(format!(
                 "@Scope(\"{other}\") is not supported; use \"singleton\" (default), \"prototype\", or \"request\""
-            ))
-            .with_code("E011")),
+            ), None, Span::DUMMY, "E011")),
         };
     }
     Ok(SmolStr::new("singleton"))
@@ -170,13 +170,19 @@ fn init_inject_from_params(params: &[Param]) -> (Vec<InitInject>, Vec<SmolStr>) 
 fn field_autowires_from_members(members: &[Decl]) -> Vec<FieldAutowire> {
     let mut out = Vec::new();
     for m in members {
-        let Decl::VarGlobal { name, attrs, ty, .. } = m else {
+        let Decl::VarGlobal {
+            name, attrs, ty, ..
+        } = m
+        else {
             continue;
         };
         if !is_autowired_field_attr(attrs) {
             continue;
         }
-        if let Some(TypeExpr::Named { name: type_name, .. }) = ty {
+        if let Some(TypeExpr::Named {
+            name: type_name, ..
+        }) = ty
+        {
             out.push(FieldAutowire {
                 field: name.clone(),
                 type_name: type_name.clone(),
@@ -233,16 +239,20 @@ pub fn reject_service_on_non_types(decls: &[Decl]) -> SyxResult<()> {
                     || attr_named(attrs, "service")
                     || attr_named(attrs, "component")
                 {
-                    return Err(SyxDiagnostic::error(
+                    return Err(macro_error_at(
                         "@Service/@Component may only attach to class or data class types",
-                    )
-                    .with_code("E006"));
+                        None,
+                        Span::DUMMY,
+                        "E006",
+                    ));
                 }
                 if attr_named(attrs, "PreDestroy") || attr_named(attrs, "preDestroy") {
-                    return Err(SyxDiagnostic::error(
+                    return Err(macro_error_at(
                         "@PreDestroy may only attach to @Service/@Component methods",
-                    )
-                    .with_code("E012"));
+                        None,
+                        Span::DUMMY,
+                        "E012",
+                    ));
                 }
             }
             _ => {}
@@ -358,16 +368,20 @@ pub fn collect_services(module: &syx_ast::Module) -> SyxResult<Vec<ServiceSpec>>
 fn reject_bean_on_non_configuration(decls: &[Decl]) -> SyxResult<()> {
     for decl in decls {
         let members = match decl {
-            Decl::Class { attrs, members, .. } if !is_configuration_attr(attrs) => members.as_slice(),
+            Decl::Class { attrs, members, .. } if !is_configuration_attr(attrs) => {
+                members.as_slice()
+            }
             _ => continue,
         };
         for m in members {
             if let Decl::Function { attrs, name, .. } = m {
                 if is_bean_attr(attrs) {
-                    return Err(SyxDiagnostic::error(format!(
-                        "@Bean on '{name}' requires enclosing @Configuration type"
-                    ))
-                    .with_code("E015"));
+                    return Err(macro_error_at(
+                        format!("@Bean on '{name}' requires enclosing @Configuration type"),
+                        None,
+                        Span::DUMMY,
+                        "E015",
+                    ));
                 }
             }
         }
@@ -380,7 +394,13 @@ pub fn collect_beans(module: &syx_ast::Module) -> SyxResult<Vec<BeanSpec>> {
     reject_bean_on_non_configuration(&module.decls)?;
     let mut out = Vec::new();
     for decl in &module.decls {
-        let Decl::Class { attrs, name, members, .. } = decl else {
+        let Decl::Class {
+            attrs,
+            name,
+            members,
+            ..
+        } = decl
+        else {
             continue;
         };
         if !is_configuration_attr(attrs) {
@@ -401,21 +421,27 @@ pub fn collect_beans(module: &syx_ast::Module) -> SyxResult<Vec<BeanSpec>> {
                 continue;
             }
             let Some(TypeExpr::Named { name: ret, .. }) = return_type else {
-                return Err(SyxDiagnostic::error(format!(
-                    "@Bean method '{method}' on '{name}' requires an explicit return type"
-                ))
-                .with_code("E015"));
+                return Err(macro_error_at(
+                    format!("@Bean method '{method}' on '{name}' requires an explicit return type"),
+                    None,
+                    Span::DUMMY,
+                    "E015",
+                ));
             };
             // Phase 129: every `@Bean` param is a type-resolve inject point
             // (`@Autowired` optional; `@Qualifier` honored).
             let mut inject = Vec::new();
             for p in params {
                 let Some(dep) = type_name_from_param(p) else {
-                    return Err(SyxDiagnostic::error(format!(
-                        "@Bean method '{method}' param '{}' needs an explicit named type",
-                        p.name
-                    ))
-                    .with_code("E015"));
+                    return Err(macro_error_at(
+                        format!(
+                            "@Bean method '{method}' param '{}' needs an explicit named type",
+                            p.name
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "E015",
+                    ));
                 };
                 inject.push(InitInject {
                     param: p.name.clone(),
@@ -493,10 +519,12 @@ fn topo_sort_beans(beans: &[BeanSpec]) -> SyxResult<Vec<usize>> {
         order: &mut Vec<usize>,
     ) -> SyxResult<()> {
         if stack.contains(node) {
-            return Err(SyxDiagnostic::error(format!(
-                "bean dependency cycle involving '{node}'"
-            ))
-            .with_code("E007"));
+            return Err(macro_error_at(
+                format!("bean dependency cycle involving '{node}'"),
+                None,
+                Span::DUMMY,
+                "E007",
+            ));
         }
         if seen.get(node).copied().unwrap_or(false) {
             return Ok(());
@@ -530,7 +558,10 @@ fn topo_sort_beans(beans: &[BeanSpec]) -> SyxResult<Vec<usize>> {
     Ok(order)
 }
 
-fn codegen_bean_factory_stmts(beans: &[BeanSpec], span: syx_diagnostics::Span) -> SyxResult<Vec<Stmt>> {
+fn codegen_bean_factory_stmts(
+    beans: &[BeanSpec],
+    span: syx_diagnostics::Span,
+) -> SyxResult<Vec<Stmt>> {
     let mut out = Vec::new();
     let mut configs_done = std::collections::HashSet::new();
     for idx in topo_sort_beans(beans)? {
@@ -702,9 +733,7 @@ pub enum PointcutPattern {
         right: Box<PointcutPattern>,
     },
     /// `!within(Type)` — negated inner pattern (Phase 137).
-    Not {
-        inner: Box<PointcutPattern>,
-    },
+    Not { inner: Box<PointcutPattern> },
 }
 
 fn parse_pointcut_type_name(inner: &str) -> Option<SmolStr> {
@@ -830,12 +859,10 @@ fn parse_pointcut_pattern_single(s: &str) -> Option<PointcutPattern> {
         });
     }
     if let Some(inner) = s.strip_prefix("args(").and_then(|r| r.strip_suffix(')')) {
-        return parse_pointcut_type_name(inner).map(|type_name| PointcutPattern::Args { type_name });
+        return parse_pointcut_type_name(inner)
+            .map(|type_name| PointcutPattern::Args { type_name });
     }
-    if let Some(inner) = s
-        .strip_prefix("within(")
-        .and_then(|r| r.strip_suffix(')'))
-    {
+    if let Some(inner) = s.strip_prefix("within(").and_then(|r| r.strip_suffix(')')) {
         return parse_within_pattern(inner);
     }
     if let Some(inner) = s
@@ -912,12 +939,10 @@ fn pointcut_pattern_matches_join(pat: &PointcutPattern, join: &str) -> bool {
         } => within_type_name_matches(wildcard, type_name.as_str(), jt),
         PointcutPattern::Args { .. } => false,
         PointcutPattern::And { left, right } => {
-            pointcut_pattern_matches_join(left, join)
-                && pointcut_pattern_matches_join(right, join)
+            pointcut_pattern_matches_join(left, join) && pointcut_pattern_matches_join(right, join)
         }
         PointcutPattern::Or { left, right } => {
-            pointcut_pattern_matches_join(left, join)
-                || pointcut_pattern_matches_join(right, join)
+            pointcut_pattern_matches_join(left, join) || pointcut_pattern_matches_join(right, join)
         }
         PointcutPattern::Not { inner } => !pointcut_pattern_matches_join(inner, join),
     }
@@ -940,9 +965,7 @@ fn pointcut_pattern_matches_method(
             pointcut_pattern_matches_method(left, join, params)
                 || pointcut_pattern_matches_method(right, join, params)
         }
-        PointcutPattern::Not { inner } => {
-            !pointcut_pattern_matches_method(inner, join, params)
-        }
+        PointcutPattern::Not { inner } => !pointcut_pattern_matches_method(inner, join, params),
         _ => pointcut_pattern_matches_join(pat, join),
     }
 }
@@ -986,10 +1009,7 @@ fn after_bindings_from_attrs(attrs: &[Attribute]) -> Vec<Option<SmolStr>> {
     advice_string_bindings_from_attrs(attrs, &["After", "after"])
 }
 
-fn advice_string_bindings_from_attrs(
-    attrs: &[Attribute],
-    names: &[&str],
-) -> Vec<Option<SmolStr>> {
+fn advice_string_bindings_from_attrs(attrs: &[Attribute], names: &[&str]) -> Vec<Option<SmolStr>> {
     let mut out = Vec::new();
     for a in attrs {
         if !names.iter().any(|n| a.name.as_str() == *n) {
@@ -1064,7 +1084,11 @@ fn assign_proceed_stmt(span: syx_diagnostics::Span, proceed: &str, value: Expr) 
     }
 }
 
-fn rewrite_returns_to_proceed(span: syx_diagnostics::Span, proceed: &str, stmts: Vec<Stmt>) -> Vec<Stmt> {
+fn rewrite_returns_to_proceed(
+    span: syx_diagnostics::Span,
+    proceed: &str,
+    stmts: Vec<Stmt>,
+) -> Vec<Stmt> {
     let mut out = Vec::new();
     for stmt in stmts {
         match stmt {
@@ -1083,11 +1107,13 @@ fn rewrite_returns_to_proceed(span: syx_diagnostics::Span, proceed: &str, stmts:
                     span: if_span,
                     condition,
                     then_branch: rewrite_returns_to_proceed(span, proceed, then_branch),
-                    else_branch: else_branch
-                        .map(|b| rewrite_returns_to_proceed(span, proceed, b)),
+                    else_branch: else_branch.map(|b| rewrite_returns_to_proceed(span, proceed, b)),
                 });
             }
-            Stmt::Block { span: block_span, stmts: inner } => {
+            Stmt::Block {
+                span: block_span,
+                stmts: inner,
+            } => {
                 out.push(Stmt::Block {
                     span: block_span,
                     stmts: rewrite_returns_to_proceed(span, proceed, inner),
@@ -1180,7 +1206,10 @@ fn prepend_after_advice(span: syx_diagnostics::Span, method: &str, stmts: Vec<St
                     else_branch: else_branch.map(|b| prepend_after_advice(span, method, b)),
                 });
             }
-            Stmt::Block { span: block_span, stmts: inner } => {
+            Stmt::Block {
+                span: block_span,
+                stmts: inner,
+            } => {
                 out.push(Stmt::Block {
                     span: block_span,
                     stmts: prepend_after_advice(span, method, inner),
@@ -1217,7 +1246,11 @@ pub fn expand_advice_interceptors(module: &mut syx_ast::Module) -> SyxResult<()>
             continue;
         }
         for member in members {
-            if let Decl::Function { attrs: method_attrs, .. } = member {
+            if let Decl::Function {
+                attrs: method_attrs,
+                ..
+            } = member
+            {
                 for p in pointcut_patterns_from_attrs(method_attrs) {
                     pointcuts.insert(p);
                 }
@@ -1226,7 +1259,13 @@ pub fn expand_advice_interceptors(module: &mut syx_ast::Module) -> SyxResult<()>
     }
 
     for decl in &mut module.decls {
-        let Decl::Class { attrs, name, members, .. } = decl else {
+        let Decl::Class {
+            attrs,
+            name,
+            members,
+            ..
+        } = decl
+        else {
             continue;
         };
         if !has_service_attr(attrs) {
@@ -1336,16 +1375,19 @@ fn validate_advice_bindings(
             }
             Some(pc) => {
                 if !pointcuts.contains(pc) {
-                    return Err(SyxDiagnostic::error(format!(
+                    return Err(macro_error_at(
+                        format!(
                         "@{kind}(\"{pc}\") requires a matching @Pointcut(\"{pc}\") registration"
-                    ))
-                    .with_code("E016"));
+                    ),
+                        None,
+                        Span::DUMMY,
+                        "E016",
+                    ));
                 }
                 if !pointcut_matches_method(pc.as_str(), join.as_str(), params) {
-                    return Err(SyxDiagnostic::error(format!(
+                    return Err(macro_error_at(format!(
                         "@{kind}(\"{pc}\") on '{type_name}.{method}' does not match join point '{join}' (pointcut within/execution/args-name MVP)"
-                    ))
-                    .with_code("E016"));
+                    ), None, Span::DUMMY, "E016"));
                 }
                 count += 1;
             }
@@ -1368,10 +1410,9 @@ fn reject_advice_on_non_service(decls: &[Decl]) -> SyxResult<()> {
         for m in members {
             if let Decl::Function { attrs, name, .. } = m {
                 if is_around_attr(attrs) || is_before_attr(attrs) || is_after_attr(attrs) {
-                    return Err(SyxDiagnostic::error(format!(
+                    return Err(macro_error_at(format!(
                         "@Around/@Before/@After on '{name}' requires enclosing @Service/@Component type"
-                    ))
-                    .with_code("E014"));
+                    ), None, Span::DUMMY, "E014"));
                 }
             }
         }
@@ -1384,20 +1425,26 @@ fn reject_pointcut_on_non_service(decls: &[Decl]) -> SyxResult<()> {
         let members = match decl {
             Decl::Class { attrs, members, .. } if !has_service_attr(attrs) => members.as_slice(),
             Decl::Function { attrs, name, .. } if is_pointcut_attr(attrs) => {
-                return Err(SyxDiagnostic::error(format!(
-                    "@Pointcut on '{name}' requires enclosing @Service/@Component type"
-                ))
-                .with_code("E016"));
+                return Err(macro_error_at(
+                    format!("@Pointcut on '{name}' requires enclosing @Service/@Component type"),
+                    None,
+                    Span::DUMMY,
+                    "E016",
+                ));
             }
             _ => continue,
         };
         for m in members {
             if let Decl::Function { attrs, name, .. } = m {
                 if is_pointcut_attr(attrs) {
-                    return Err(SyxDiagnostic::error(format!(
-                        "@Pointcut on '{name}' requires enclosing @Service/@Component type"
-                    ))
-                    .with_code("E016"));
+                    return Err(macro_error_at(
+                        format!(
+                            "@Pointcut on '{name}' requires enclosing @Service/@Component type"
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "E016",
+                    ));
                 }
             }
         }
@@ -1416,7 +1463,11 @@ pub fn collect_pointcuts(module: &syx_ast::Module) -> Vec<SmolStr> {
             continue;
         }
         for member in members {
-            if let Decl::Function { attrs: method_attrs, .. } = member {
+            if let Decl::Function {
+                attrs: method_attrs,
+                ..
+            } = member
+            {
                 for p in pointcut_patterns_from_attrs(method_attrs) {
                     if !out.contains(&p) {
                         out.push(p);
@@ -1478,7 +1529,11 @@ pub fn spec_to_meta_entry(s: &ServiceSpec) -> syx_meta::ServiceDiEntry {
         primary: s.primary,
         profile: s.profile.as_ref().map(|p| p.to_string()),
         binding_aliases: s.binding_aliases.iter().map(|a| a.to_string()).collect(),
-        protocol_conformances: s.protocol_conformances.iter().map(|a| a.to_string()).collect(),
+        protocol_conformances: s
+            .protocol_conformances
+            .iter()
+            .map(|a| a.to_string())
+            .collect(),
         lazy: s.lazy,
         bean_config: None,
         bean_method: None,
@@ -1579,34 +1634,41 @@ pub fn pick_binding<'a>(
     if candidates.is_empty() {
         // Exact type may still be valid as a registered service name even when not in slice
         // (cross-package); callers check known set separately.
-        return Err(SyxDiagnostic::error(format!(
-            "no @Service/@Component provides binding '{want}'"
-        ))
-        .with_code("E008"));
+        return Err(macro_error_at(
+            format!("no @Service/@Component provides binding '{want}'"),
+            None,
+            Span::DUMMY,
+            "E008",
+        ));
     }
     if let Some(q) = inject_qualifier {
         let matched: Vec<_> = candidates
             .iter()
             .copied()
             .filter(|s| {
-                s.qualifier.as_ref().is_some_and(|sq| sq.as_str() == q)
-                    || s.type_name.as_str() == q
+                s.qualifier.as_ref().is_some_and(|sq| sq.as_str() == q) || s.type_name.as_str() == q
             })
             .collect();
         return match matched.as_slice() {
             [one] => Ok(*one),
-            [] => Err(SyxDiagnostic::error(format!(
-                "no @Service/@Component matches @Qualifier(\"{q}\") for binding '{want}'"
-            ))
-            .with_code("E013")),
-            many => Err(SyxDiagnostic::error(format!(
-                "ambiguous @Qualifier(\"{q}\") for binding '{want}': {}",
-                many.iter()
-                    .map(|s| s.type_name.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ))
-            .with_code("E013")),
+            [] => Err(macro_error_at(
+                format!("no @Service/@Component matches @Qualifier(\"{q}\") for binding '{want}'"),
+                None,
+                Span::DUMMY,
+                "E013",
+            )),
+            many => Err(macro_error_at(
+                format!(
+                    "ambiguous @Qualifier(\"{q}\") for binding '{want}': {}",
+                    many.iter()
+                        .map(|s| s.type_name.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+                None,
+                Span::DUMMY,
+                "E013",
+            )),
         };
     }
     if candidates.len() == 1 {
@@ -1619,24 +1681,32 @@ pub fn pick_binding<'a>(
     let primaries: Vec<_> = candidates.iter().copied().filter(|s| s.primary).collect();
     match primaries.as_slice() {
         [one] => Ok(*one),
-        [] => Err(SyxDiagnostic::error(format!(
-            "ambiguous service binding '{want}' among {} without @Primary or @Qualifier: {}",
-            candidates.len(),
-            candidates
-                .iter()
-                .map(|s| s.type_name.as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        ))
-        .with_code("E013")),
-        many => Err(SyxDiagnostic::error(format!(
-            "ambiguous @Primary services for binding '{want}': {}",
-            many.iter()
-                .map(|s| s.type_name.as_str())
-                .collect::<Vec<_>>()
-                .join(", ")
-        ))
-        .with_code("E013")),
+        [] => Err(macro_error_at(
+            format!(
+                "ambiguous service binding '{want}' among {} without @Primary or @Qualifier: {}",
+                candidates.len(),
+                candidates
+                    .iter()
+                    .map(|s| s.type_name.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+            None,
+            Span::DUMMY,
+            "E013",
+        )),
+        many => Err(macro_error_at(
+            format!(
+                "ambiguous @Primary services for binding '{want}': {}",
+                many.iter()
+                    .map(|s| s.type_name.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+            None,
+            Span::DUMMY,
+            "E013",
+        )),
     }
 }
 
@@ -1706,9 +1776,9 @@ fn boot_construction_specs(local: &[ServiceSpec]) -> Vec<ServiceSpec> {
 /// Prefer `import Di` + `Di.resolve` / `Di.beginRequest` for application code; free `resolve` stays as short sugar.
 fn inject_resolve_sugar(module: &mut syx_ast::Module) {
     let span = syx_diagnostics::Span::DUMMY;
-    module.decls.retain(|d| {
-        !matches!(d, Decl::Function { name, .. } if name.as_str() == "resolve")
-    });
+    module
+        .decls
+        .retain(|d| !matches!(d, Decl::Function { name, .. } if name.as_str() == "resolve"));
     module.decls.push(Decl::Function {
         span,
         access: AccessLevel::Public,
@@ -1800,10 +1870,12 @@ fn topo_sort_services(services: &[ServiceSpec]) -> SyxResult<Vec<usize>> {
         order: &mut Vec<usize>,
     ) -> SyxResult<()> {
         if stack.contains(node) {
-            return Err(SyxDiagnostic::error(format!(
-                "service dependency cycle involving '{node}'"
-            ))
-            .with_code("E007"));
+            return Err(macro_error_at(
+                format!("service dependency cycle involving '{node}'"),
+                None,
+                Span::DUMMY,
+                "E007",
+            ));
         }
         if seen.get(node).copied().unwrap_or(false) {
             return Ok(());
@@ -1935,7 +2007,10 @@ fn codegen_real_construction_stmts(
             out.push(call_host(
                 span,
                 "__syx_service_put",
-                vec![string_lit(span, s.type_name.as_str()), ident_expr(span, temp.as_str())],
+                vec![
+                    string_lit(span, s.type_name.as_str()),
+                    ident_expr(span, temp.as_str()),
+                ],
             ));
         }
     }
@@ -2054,10 +2129,12 @@ pub fn check_service_cycles(services: &[ServiceSpec]) -> SyxResult<()> {
             if cycle_has_lazy(stack, node, lazy_set) {
                 return Ok(());
             }
-            return Err(SyxDiagnostic::error(format!(
-                "service dependency cycle involving '{node}'"
-            ))
-            .with_code("E007"));
+            return Err(macro_error_at(
+                format!("service dependency cycle involving '{node}'"),
+                None,
+                Span::DUMMY,
+                "E007",
+            ));
         }
         if seen.get(node).copied().unwrap_or(false) {
             return Ok(());
@@ -2069,10 +2146,12 @@ pub fn check_service_cycles(services: &[ServiceSpec]) -> SyxResult<()> {
                     if cycle_has_lazy(stack, d, lazy_set) {
                         continue;
                     }
-                    return Err(SyxDiagnostic::error(format!(
-                        "service dependency cycle involving '{d}'"
-                    ))
-                    .with_code("E007"));
+                    return Err(macro_error_at(
+                        format!("service dependency cycle involving '{d}'"),
+                        None,
+                        Span::DUMMY,
+                        "E007",
+                    ));
                 }
                 visit(d, graph, lazy_set, stack, seen)?;
             }
@@ -2096,10 +2175,8 @@ pub fn expand_service_macros(module: &mut syx_ast::Module) -> SyxResult<()> {
     rewrite_inject_bindings(&mut services)?;
     rewrite_bean_params(&mut beans, &services)?;
     check_service_cycles(&services)?;
-    let mut known: std::collections::HashSet<SmolStr> = services
-        .iter()
-        .map(|s| s.type_name.clone())
-        .collect();
+    let mut known: std::collections::HashSet<SmolStr> =
+        services.iter().map(|s| s.type_name.clone()).collect();
     for b in &beans {
         known.insert(b.return_type.clone());
     }
@@ -2118,22 +2195,20 @@ pub fn expand_service_macros(module: &mut syx_ast::Module) -> SyxResult<()> {
     for s in &services {
         for dep in &s.deps {
             if !known.contains(dep) {
-                return Err(SyxDiagnostic::error(format!(
+                return Err(macro_error_at(format!(
                     "service '{}' requires injected dependency '{}' which is not a @Service/@Component",
                     s.type_name, dep
-                ))
-                .with_code("E008"));
+                ), None, Span::DUMMY, "E008"));
             }
         }
     }
     for b in &beans {
         for inj in &b.params {
             if !known.contains(&inj.dep_type) {
-                return Err(SyxDiagnostic::error(format!(
+                return Err(macro_error_at(format!(
                     "@Bean '{}.{}' requires injected dependency '{}' which is not a @Service/@Component/@Bean",
                     b.config_type, b.method, inj.dep_type
-                ))
-                .with_code("E008"));
+                ), None, Span::DUMMY, "E008"));
             }
         }
     }
@@ -2176,9 +2251,10 @@ fn codegen_service_registry_from_specs(
         syx_meta::service_di_append(beans.iter().map(bean_to_meta_entry).collect());
     }
 
-    let has_main = module.decls.iter().any(|d| {
-        matches!(d, Decl::Function { name, .. } if name.as_str() == "main")
-    });
+    let has_main = module
+        .decls
+        .iter()
+        .any(|d| matches!(d, Decl::Function { name, .. } if name.as_str() == "main"));
     if !has_main {
         return Ok(());
     }
@@ -2209,10 +2285,7 @@ fn codegen_service_registry_from_specs(
                 vec![
                     string_lit(span, protocol.as_str()),
                     string_lit(span, s.type_name.as_str()),
-                    string_lit(
-                        span,
-                        s.qualifier.as_ref().map(|q| q.as_str()).unwrap_or(""),
-                    ),
+                    string_lit(span, s.qualifier.as_ref().map(|q| q.as_str()).unwrap_or("")),
                     string_lit(span, if s.primary { "1" } else { "" }),
                 ],
             ));
@@ -2285,10 +2358,9 @@ fn desugar_service_resolve_idents(
         match expr {
             Expr::Call { callee, args, .. } => {
                 let is_service_resolve = match callee.as_ref() {
-                    Expr::Ident { name, .. } => matches!(
-                        name.as_str(),
-                        "__syx_service_resolve" | "resolve"
-                    ),
+                    Expr::Ident { name, .. } => {
+                        matches!(name.as_str(), "__syx_service_resolve" | "resolve")
+                    }
                     Expr::Member { object, name, .. }
                         if name.as_str() == "resolve"
                             && matches!(
@@ -2340,10 +2412,15 @@ fn desugar_service_resolve_idents(
     fn rewrite_stmts(stmts: &mut [Stmt], known: &std::collections::HashSet<SmolStr>) {
         for stmt in stmts {
             match stmt {
-                Stmt::Expr { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
+                Stmt::Expr { expr, .. }
+                | Stmt::Return {
+                    value: Some(expr), ..
+                } => {
                     rewrite_expr(expr, known);
                 }
-                Stmt::VarDecl { init: Some(expr), .. } => rewrite_expr(expr, known),
+                Stmt::VarDecl {
+                    init: Some(expr), ..
+                } => rewrite_expr(expr, known),
                 Stmt::If {
                     then_branch,
                     else_branch,

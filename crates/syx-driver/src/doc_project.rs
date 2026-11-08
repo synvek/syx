@@ -1,9 +1,9 @@
 //! SYX driver doc_project face.
 //! Extracted in S2-I233 (zero semantics).
 
-use crate::collect_sy_files;
+use crate::{collect_sy_files, driver_error_at};
 use std::path::Path;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 
 /// Generate API docs for a `.sy` file or a directory of sources.
 ///
@@ -12,15 +12,22 @@ use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
 pub fn doc_project(path: &Path) -> SyxResult<String> {
     let files = collect_sy_files(path)?;
     if files.is_empty() {
-        return Err(SyxDiagnostic::error(format!(
-            "No .sy source files found under {}",
-            path.display()
-        )));
+        return Err(driver_error_at(
+            format!("No .sy source files found under {}", path.display()),
+            None,
+            Span::DUMMY,
+            "D003",
+        ));
     }
     let mut sources = Vec::with_capacity(files.len());
     for file in &files {
         let text = std::fs::read_to_string(file).map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to read {}: {e}", file.display()))
+            driver_error_at(
+                format!("Failed to read {}: {e}", file.display()),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
         })?;
         sources.push(SourceFile::new(file.display().to_string(), text));
     }

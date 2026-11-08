@@ -1,13 +1,16 @@
 //! Browser-targeted SYX compiler (FrontendPipeline → MIR → WASM bytes).
 
+mod compiler_wasm_diag;
+
 use std::ffi::c_char;
 use std::slice;
 use std::sync::Mutex;
 
+use compiler_wasm_diag::compiler_wasm_error_at;
 use getrandom::register_custom_getrandom;
 use serde::Serialize;
 use syx_config::{SyxRuntimeConfig, WasmConfig};
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_frontend::{FrontendOptions, FrontendPipeline, StopAfter};
 use syx_mir::MirModule;
 use syx_mir_run::{install_module_string_pool, MirRuntime};
@@ -118,13 +121,21 @@ pub fn compile_source_to_mir(name: &str, source: &str) -> SyxResult<MirModule> {
     };
     opts.source = Some(file.clone());
     let art = FrontendPipeline::run(file, &opts)?;
-    art.mir
-        .ok_or_else(|| SyxDiagnostic::error("FrontendPipeline returned no MIR"))
+    art.mir.ok_or_else(|| {
+        compiler_wasm_error_at(
+            "FrontendPipeline returned no MIR",
+            None,
+            Span::DUMMY,
+            "CW001",
+        )
+    })
 }
 
 /// Compile source to MIR text (legacy wasm_web glue).
 pub fn compile_source_to_mir_text(name: &str, source: &str) -> SyxResult<String> {
-    Ok(syx_mir::format_mir_module(&compile_source_to_mir(name, source)?))
+    Ok(syx_mir::format_mir_module(&compile_source_to_mir(
+        name, source,
+    )?))
 }
 
 /// Compile SYX source with structured diagnostics (no WASM on failure).
@@ -155,12 +166,22 @@ pub fn compile_source_with_diagnostics(name: &str, source: &str) -> CompileResul
         if !sem.errors.is_empty() {
             return CompileResult {
                 ok: false,
-                diagnostics: sem.errors.iter().cloned().map(diagnostic_from_err).collect(),
+                diagnostics: sem
+                    .errors
+                    .iter()
+                    .cloned()
+                    .map(diagnostic_from_err)
+                    .collect(),
             };
         }
     }
     let Some(mir) = art.mir else {
-        return CompileResult::from_error(SyxDiagnostic::error("FrontendPipeline returned no MIR"));
+        return CompileResult::from_error(compiler_wasm_error_at(
+            "FrontendPipeline returned no MIR",
+            None,
+            Span::DUMMY,
+            "CW001",
+        ));
     };
     syx_config::install_runtime_config(browser_runtime_config());
     match syx_wasm_emit::emit_wasm_with_options(&mir, true) {
@@ -350,21 +371,14 @@ mod tests {
 
     #[test]
     fn compiles_hello_main() {
-        let mir = compile_source_to_mir(
-            "main.sy",
-            r#"func main() { print("hi") }"#,
-        )
-        .expect("mir");
+        let mir = compile_source_to_mir("main.sy", r#"func main() { print("hi") }"#).expect("mir");
         assert!(mir.functions.iter().any(|f| f.name == "main"));
     }
 
     #[test]
     fn compiles_to_wasm_bytes() {
-        let bytes = compile_source_to_wasm_bytes(
-            "main.sy",
-            r#"func main() { return 42 }"#,
-        )
-        .expect("wasm");
+        let bytes =
+            compile_source_to_wasm_bytes("main.sy", r#"func main() { return 42 }"#).expect("wasm");
         assert!(bytes.len() > 8);
         assert_eq!(&bytes[0..4], b"\0asm");
     }
@@ -381,10 +395,7 @@ mod tests {
 
     #[test]
     fn diagnostics_ok_on_valid_source() {
-        let result = compile_source_with_diagnostics(
-            "main.sy",
-            r#"func main() { return 1 }"#,
-        );
+        let result = compile_source_with_diagnostics("main.sy", r#"func main() { return 1 }"#);
         assert!(result.ok);
         assert!(result.diagnostics.is_empty());
     }

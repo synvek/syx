@@ -31,6 +31,7 @@ impl SemanticAnalyzer {
         match decl {
             Decl::Class {
                 name,
+                span,
                 access,
                 members,
                 conformances,
@@ -39,6 +40,7 @@ impl SemanticAnalyzer {
                 let qualified = SmolStr::new(format!("{outer}_{name}"));
                 self.register_nested_type_path(outer, name, &qualified);
                 self.class_names.insert(qualified.clone());
+                self.type_decl_spans.insert(qualified.clone(), *span);
                 let mut methods = Vec::new();
                 for member in members {
                     if let Decl::Function {
@@ -85,6 +87,7 @@ impl SemanticAnalyzer {
             }
             Decl::Struct {
                 name,
+                span,
                 access,
                 fields,
                 members,
@@ -93,6 +96,7 @@ impl SemanticAnalyzer {
                 let qualified = SmolStr::new(format!("{outer}_{name}"));
                 self.register_nested_type_path(outer, name, &qualified);
                 self.class_names.insert(qualified.clone());
+                self.type_decl_spans.insert(qualified.clone(), *span);
                 let mut field_types: Vec<(SmolStr, TypeId)> = fields
                     .iter()
                     .map(|(n, t)| (n.clone(), type_expr_to_id(t)))
@@ -361,6 +365,7 @@ impl SemanticAnalyzer {
                         }
                     }
                     self.class_names.insert(name.clone());
+                    self.type_decl_spans.insert(name.clone(), *span);
                     let mut methods = Vec::new();
                     let mut fields: Vec<(SmolStr, TypeId)> = Vec::new();
                     let mut prop_getters: IndexMap<SmolStr, TypeId> = IndexMap::new();
@@ -644,6 +649,7 @@ impl SemanticAnalyzer {
                         fields,
                     );
                     self.dataclass_names.insert(name.clone());
+                    self.type_decl_spans.insert(name.clone(), *span);
                     let field_types: Vec<(SmolStr, TypeId)> = fields
                         .iter()
                         .map(|(f, ty)| (f.clone(), type_expr_to_id(ty)))
@@ -664,6 +670,7 @@ impl SemanticAnalyzer {
                 }
                 Decl::Struct {
                     name,
+                    span,
                     access,
                     fields,
                     members,
@@ -671,6 +678,7 @@ impl SemanticAnalyzer {
                 } => {
                     // S1-I2: Struct joins DataClass construction / field lookup path.
                     self.dataclass_names.insert(name.clone());
+                    self.type_decl_spans.insert(name.clone(), *span);
                     let mut field_types: Vec<(SmolStr, TypeId)> = fields
                         .iter()
                         .map(|(f, ty)| (f.clone(), type_expr_to_id(ty)))
@@ -987,10 +995,11 @@ impl SemanticAnalyzer {
                     self.collect_decls(std::slice::from_ref(item.as_ref()))?;
                 }
                 Decl::ExportList { .. } => {}
-                Decl::Protocol { name, .. } => {
+                Decl::Protocol { name, span, .. } => {
                     // Phase 125: local protocols used as `: Protocol` superclass syntax (protocol binding).
                     self.class_names.insert(name.clone());
                     self.protocol_names.insert(name.clone());
+                    self.type_decl_spans.insert(name.clone(), *span);
                     self.globals.insert(
                         name.clone(),
                         Symbol {

@@ -6,7 +6,9 @@ use std::path::{Path, PathBuf};
 use std::sync::{LazyLock, Mutex};
 
 use libloading::Library;
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 type BackendNameFn = unsafe extern "C" fn() -> *const c_char;
@@ -192,9 +194,7 @@ fn load_dylib(path: &Path) -> Option<GuiDylib> {
             button_take_clicked: *lib.get(b"syx_gui_dylib_button_take_clicked").ok()?,
             ttf_digest: *lib.get(b"syx_gui_dylib_ttf_digest").ok()?,
             ime_preedit_digest: *lib.get(b"syx_gui_dylib_ime_preedit_digest").ok()?,
-            doctor_coverage_digest: *lib
-                .get(b"syx_gui_dylib_doctor_coverage_digest")
-                .ok()?,
+            doctor_coverage_digest: *lib.get(b"syx_gui_dylib_doctor_coverage_digest").ok()?,
             harfbuzz_digest: *lib.get(b"syx_gui_dylib_harfbuzz_digest").ok()?,
             font_fallback_digest: *lib.get(b"syx_gui_dylib_font_fallback_digest").ok()?,
             glyph_coverage_percent: *lib.get(b"syx_gui_dylib_glyph_coverage_percent").ok()?,
@@ -207,9 +207,7 @@ fn load_dylib(path: &Path) -> Option<GuiDylib> {
             shaped: *lib.get(b"syx_gui_dylib_shaped").ok()?,
             paint_shaped: *lib.get(b"syx_gui_dylib_paint_shaped").ok()?,
             ime_preedit_inject: *lib.get(b"syx_gui_dylib_ime_preedit_inject").ok()?,
-            wgpu_composite_digest: *lib
-                .get(b"syx_gui_dylib_wgpu_composite_digest")
-                .ok()?,
+            wgpu_composite_digest: *lib.get(b"syx_gui_dylib_wgpu_composite_digest").ok()?,
             wgpu_present_used: *lib.get(b"syx_gui_dylib_wgpu_present_used").ok()?,
             wgpu_composite_used: *lib.get(b"syx_gui_dylib_wgpu_composite_used").ok()?,
             emoji_engine: *lib.get(b"syx_gui_dylib_emoji_engine").ok()?,
@@ -331,8 +329,11 @@ pub fn host_window_create(stack: &mut Vec<Value>) -> SyxResult<()> {
     let title = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     let dylib = GUI_DYLIB.lock().unwrap();
     let Some(dylib) = dylib.as_ref() else {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(vm_error_at(
             "gui dlopen not loaded",
+            None,
+            Span::DUMMY,
+            "R003",
         ));
     };
     let c_title = cstr_arg(&title);

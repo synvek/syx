@@ -10,7 +10,7 @@ use smol_str::SmolStr;
 
 #[cfg(feature = "interpreter")]
 use syx_codegen::{CompiledProgram, FunctionUnit, Instruction};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use syx_stdlib::{method_from_index, HostFnId, MethodId, NumericKind};
 
 pub mod actor_mailbox;
@@ -21,6 +21,13 @@ mod grapheme;
 #[cfg(feature = "interpreter")]
 mod gui_invoke;
 mod hosts;
+mod vm_diag;
+pub(crate) use vm_diag::{vm_error, vm_error_at};
+#[cfg(not(target_arch = "wasm32"))]
+mod grpc_wire;
+#[cfg(target_arch = "wasm32")]
+#[path = "wasm_stubs/grpc_wire.rs"]
+mod grpc_wire;
 #[cfg(feature = "http")]
 mod http;
 #[cfg(not(feature = "http"))]
@@ -31,11 +38,6 @@ mod os_hosts;
 mod program_ctx;
 mod script_hosts;
 mod wasm_threads;
-#[cfg(not(target_arch = "wasm32"))]
-mod grpc_wire;
-#[cfg(target_arch = "wasm32")]
-#[path = "wasm_stubs/grpc_wire.rs"]
-mod grpc_wire;
 mod ws;
 #[cfg(not(target_arch = "wasm32"))]
 mod ws_rfc6455;
@@ -72,9 +74,9 @@ mod synui_hosts;
 #[path = "synui_hosts_stub.rs"]
 mod synui_hosts;
 pub use stdlib_phase84_hosts::{
-    child_pipe_force_close, child_pipe_live_count, clear_registered_tests, process_child_force_close,
-    process_child_live_count, store_registered_test_outcomes, take_registered_test_outcomes,
-    RegisteredTestOutcome,
+    child_pipe_force_close, child_pipe_live_count, clear_registered_tests,
+    process_child_force_close, process_child_live_count, store_registered_test_outcomes,
+    take_registered_test_outcomes, RegisteredTestOutcome,
 };
 pub use stdlib_phase89_hosts::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
 pub use stdlib_phase94_hosts::{
@@ -90,37 +92,36 @@ pub use stdlib_phase97_hosts::{
     gui_cjk_subset_char_count, gui_colr_grad_used, gui_colr_radial_or_sweep_used,
     gui_colr_radial_used, gui_colr_sweep_used, gui_dlopen_loaded, gui_doctor_coverage_digest,
     gui_doctor_engine_tag, gui_doctor_present_mode, gui_doctor_widgets, gui_dylib_path_report,
-    gui_egui_text_suppressed_used, gui_emoji_atlas_hit, gui_emoji_engine, gui_emoji_digest,
+    gui_egui_text_suppressed_used, gui_emoji_atlas_hit, gui_emoji_digest, gui_emoji_engine,
     gui_fallback_hits, gui_font_fallback_digest, gui_font_mgr_bundled_used,
     gui_font_mgr_fallback_used, gui_font_mgr_os_used, gui_glyph_coverage_percent,
-    gui_harfbuzz_digest, gui_hb_paint_path_used, gui_ime_commit_supported,
-    gui_ime_preedit_digest, gui_ime_preedit_supported, gui_no_double_paint_probe,
-    gui_paint_shaped, gui_paragraph_paint_used, gui_sample_center_pixel, gui_shaped,
-    gui_skia_glyph_digest, gui_skia_glyph_used, gui_ttf_subset_digest,
-    gui_vertical_ascii_ink_used, gui_vertical_hb_vertical_used, gui_vertical_ink_used,
-    gui_vertical_rl_digest, gui_vertical_rl_layout_used, gui_visible_requested,
-    gui_wgpu_composite_digest, gui_wgpu_composite_used, gui_wgpu_present_used,
-    host_codable_decode_l14, host_codable_encode_l14, host_codable_l14_register_migration,
-    host_codable_l14_register_rename, host_gc_churn_heap, host_gui_button_create,
-    host_gui_button_take_clicked, host_gui_click_inject, host_gui_key_inject,
-    host_gui_label_create, host_gui_layout_configure, host_gui_layout_create, host_gui_on_click,
-    host_gui_pixel_read_phase97, host_gui_text_field_create, host_gui_widget_get_text,
-    host_gui_widget_set_text, host_gui_winit_canvas_draw_phase97,
-    host_gui_winit_event_pump_phase97, host_gui_winit_run_loop_once_phase97,
-    host_gui_winit_window_create, host_orm_find_where_dict_prepare, orm_prepared_row_count,
-    orm_prepared_rows, require_gui_dylib_if_visible, reset_phase97_state, visible_window_count,
+    gui_harfbuzz_digest, gui_hb_paint_path_used, gui_ime_commit_supported, gui_ime_preedit_digest,
+    gui_ime_preedit_supported, gui_no_double_paint_probe, gui_paint_shaped,
+    gui_paragraph_paint_used, gui_sample_center_pixel, gui_shaped, gui_skia_glyph_digest,
+    gui_skia_glyph_used, gui_ttf_subset_digest, gui_vertical_ascii_ink_used,
+    gui_vertical_hb_vertical_used, gui_vertical_ink_used, gui_vertical_rl_digest,
+    gui_vertical_rl_layout_used, gui_visible_requested, gui_wgpu_composite_digest,
+    gui_wgpu_composite_used, gui_wgpu_present_used, host_codable_decode_l14,
+    host_codable_encode_l14, host_codable_l14_register_migration, host_codable_l14_register_rename,
+    host_gc_churn_heap, host_gui_button_create, host_gui_button_take_clicked,
+    host_gui_click_inject, host_gui_key_inject, host_gui_label_create, host_gui_layout_configure,
+    host_gui_layout_create, host_gui_on_click, host_gui_pixel_read_phase97,
+    host_gui_text_field_create, host_gui_widget_get_text, host_gui_widget_set_text,
+    host_gui_winit_canvas_draw_phase97, host_gui_winit_event_pump_phase97,
+    host_gui_winit_run_loop_once_phase97, host_gui_winit_window_create,
+    host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
+    require_gui_dylib_if_visible, reset_phase97_state, visible_window_count,
 };
 pub use stdlib_phase98_hosts::reset_phase98_state;
 pub use synui_hosts::{
-    reset_synui_state, synui_digest, SYNUI_HOST_BRIDGE_DIGEST,
-    SYNUI_PATH_DEP_DIGEST, SYNUI_UI_PACKAGE_DIGEST,
-    SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST, SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_DIGEST,
-    SYNUI_V10_WIDGET_STACK_DIGEST, SYNUI_V11_TAB_SIGNAL_BIND_DIGEST,
-    SYNUI_V11_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST, SYNUI_V11_WIDGET_TABVIEW_DIGEST,
-    SYNUI_V12_NAV_SIGNAL_BIND_DIGEST, SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_DIGEST,
-    SYNUI_V12_WIDGET_NAVIGATION_DIGEST, SYNUI_V2_CI_SIBLING_CHECKOUT_DIGEST,
-    SYNUI_V2_DESKTOP_RUN_DIGEST, SYNUI_V2_SIGNAL_CALLBACK_DIGEST,
-    SYNUI_V2_WIDGET_EXPAND_DIGEST, SYNUI_V3_DESKTOP_RUN_DIGEST,
+    reset_synui_state, synui_digest, SYNUI_HOST_BRIDGE_DIGEST, SYNUI_PATH_DEP_DIGEST,
+    SYNUI_UI_PACKAGE_DIGEST, SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST,
+    SYNUI_V10_WEB_MOBILE_LAYOUT_DEEPEN_DIGEST, SYNUI_V10_WIDGET_STACK_DIGEST,
+    SYNUI_V11_TAB_SIGNAL_BIND_DIGEST, SYNUI_V11_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST,
+    SYNUI_V11_WIDGET_TABVIEW_DIGEST, SYNUI_V12_NAV_SIGNAL_BIND_DIGEST,
+    SYNUI_V12_WEB_MOBILE_SURFACE_DEEPEN_DIGEST, SYNUI_V12_WIDGET_NAVIGATION_DIGEST,
+    SYNUI_V2_CI_SIBLING_CHECKOUT_DIGEST, SYNUI_V2_DESKTOP_RUN_DIGEST,
+    SYNUI_V2_SIGNAL_CALLBACK_DIGEST, SYNUI_V2_WIDGET_EXPAND_DIGEST, SYNUI_V3_DESKTOP_RUN_DIGEST,
     SYNUI_V3_WIDGET_CHECKBOX_SLIDER_DIGEST, SYNUI_V4_DESKTOP_ONCLICK_WIRE_DIGEST,
     SYNUI_V4_SIGNAL_WIDGET_BIND_DIGEST, SYNUI_V4_WIDGET_SWITCH_RADIO_DIGEST,
     SYNUI_V5_MOBILE_SURFACE_UNRETIRE_DIGEST, SYNUI_V5_TOGGLE_RADIO_BIND_DIGEST,
@@ -143,10 +144,47 @@ pub use blocking_execute::{execute_on_blocking_pool, register_blocking_execute};
 pub use channel_hosts::try_poll_channel_recv;
 pub use channel_hosts::{
     host_channel_create, host_channel_select_mixed_await, mixed_await_select_timeout_ms,
-    register_mixed_await_cancel_probe, reset_select_fair_cursor,
-    select_deadline_strict_digest, select_deadline_unify_digest, select_fair_cursor,
-    select_fair_digest, select_mixed_await_digest, select_mixed_timeout_digest,
-    select_mixed_unified_digest, select_timeout_syntax_digest,
+    register_mixed_await_cancel_probe, reset_select_fair_cursor, select_deadline_strict_digest,
+    select_deadline_unify_digest, select_fair_cursor, select_fair_digest,
+    select_mixed_await_digest, select_mixed_timeout_digest, select_mixed_unified_digest,
+    select_timeout_syntax_digest,
+};
+pub use grpc_wire::{
+    e02_bidi_interleaved_first_slice_ok, e02_grpc_bidi_interleaved_loopback_ok,
+    e02_grpc_bidi_interleaved_wired_ok, e02_grpc_bidi_streaming_first_slice_ok,
+    e02_grpc_bidi_streaming_loopback_ok, e02_grpc_bidi_streaming_wired_ok,
+    e02_grpc_client_streaming_first_slice_ok, e02_grpc_client_streaming_loopback_ok,
+    e02_grpc_client_streaming_wired_ok, e02_grpc_interop_first_slice_ok,
+    e02_grpc_loopback_peer_echo_wired_ok, e02_grpc_negative_framing_wired_ok,
+    e02_grpc_negative_preface_fail_closed_ok, e02_grpc_negative_tests_first_slice_ok,
+    e02_grpc_negative_truncated_data_fail_closed_ok, e02_grpc_server_streaming_loopback_ok,
+    e02_grpc_server_streaming_wired_ok, e02_grpc_streaming_first_slice_ok,
+    e02_grpc_streaming_negative_framing_wired_ok,
+    e02_grpc_streaming_negative_truncated_data_fail_closed_ok,
+    e02_grpc_tls_bidi_interleaved_loopback_ok, e02_grpc_tls_bidi_interleaved_wired_ok,
+    e02_grpc_tls_bidi_streaming_loopback_ok, e02_grpc_tls_bidi_streaming_wired_ok,
+    e02_grpc_tls_client_streaming_loopback_ok, e02_grpc_tls_client_streaming_wired_ok,
+    e02_grpc_tls_loopback_wired_ok, e02_grpc_tls_server_streaming_loopback_ok,
+    e02_grpc_tls_server_streaming_wired_ok, e02_grpc_tls_window_update_connection_loopback_ok,
+    e02_grpc_tls_window_update_connection_negative_wired_ok,
+    e02_grpc_tls_window_update_connection_omit_credit_fail_closed_ok,
+    e02_grpc_tls_window_update_connection_wired_ok, e02_grpc_tls_window_update_loopback_ok,
+    e02_grpc_tls_window_update_negative_wired_ok,
+    e02_grpc_tls_window_update_omit_credit_fail_closed_ok, e02_grpc_tls_window_update_wired_ok,
+    e02_grpc_window_update_connection_loopback_ok,
+    e02_grpc_window_update_connection_negative_wired_ok,
+    e02_grpc_window_update_connection_omit_credit_fail_closed_ok,
+    e02_grpc_window_update_connection_wired_ok, e02_grpc_window_update_loopback_ok,
+    e02_grpc_window_update_negative_wired_ok, e02_grpc_window_update_omit_credit_fail_closed_ok,
+    e02_grpc_window_update_wired_ok, e02_grpc_wire_loopback_roundtrip_ok,
+    e02_grpcs_bidi_interleaved_first_slice_ok, e02_grpcs_bidi_streaming_first_slice_ok,
+    e02_grpcs_client_streaming_first_slice_ok, e02_grpcs_first_slice_ok,
+    e02_grpcs_streaming_first_slice_ok, e02_grpcs_window_update_connection_first_slice_ok,
+    e02_grpcs_window_update_connection_negative_first_slice_ok,
+    e02_grpcs_window_update_first_slice_ok, e02_grpcs_window_update_negative_first_slice_ok,
+    e02_streaming_negative_tests_first_slice_ok, e02_window_update_connection_first_slice_ok,
+    e02_window_update_connection_negative_first_slice_ok, e02_window_update_first_slice_ok,
+    e02_window_update_negative_first_slice_ok, encode_grpc_message, syx_grpc_real_enabled,
 };
 #[cfg(feature = "http")]
 pub use gui_invoke::register_native_gui_handler;
@@ -191,47 +229,6 @@ pub use task_hosts::{
     register_io_adapter_policy_host, register_task_group_cancel_host, register_task_hosts,
     register_task_live_count_host, register_task_local_hosts, register_task_pool_sizing_hosts,
     register_task_set_deadline_ms_host, register_trace_context_providers, BridgeTaskGroupOps,
-};
-pub use grpc_wire::{
-    e02_grpc_interop_first_slice_ok, e02_grpc_loopback_peer_echo_wired_ok,
-    e02_grpc_negative_framing_wired_ok, e02_grpc_negative_preface_fail_closed_ok,
-    e02_grpc_negative_tests_first_slice_ok, e02_grpc_negative_truncated_data_fail_closed_ok,
-    e02_grpc_streaming_negative_framing_wired_ok,
-    e02_grpc_streaming_negative_truncated_data_fail_closed_ok,
-    e02_streaming_negative_tests_first_slice_ok,
-    e02_bidi_interleaved_first_slice_ok, e02_grpc_bidi_interleaved_loopback_ok,
-    e02_grpc_bidi_interleaved_wired_ok, e02_grpc_bidi_streaming_first_slice_ok,
-    e02_grpc_bidi_streaming_loopback_ok, e02_grpc_bidi_streaming_wired_ok,
-    e02_grpc_client_streaming_first_slice_ok,
-    e02_grpc_client_streaming_loopback_ok, e02_grpc_client_streaming_wired_ok,
-    e02_grpc_server_streaming_loopback_ok, e02_grpc_server_streaming_wired_ok,
-    e02_grpc_streaming_first_slice_ok, e02_grpc_tls_loopback_wired_ok,
-    e02_grpc_tls_bidi_interleaved_loopback_ok, e02_grpc_tls_bidi_interleaved_wired_ok,
-    e02_grpc_tls_bidi_streaming_loopback_ok, e02_grpc_tls_bidi_streaming_wired_ok,
-    e02_grpc_tls_client_streaming_loopback_ok, e02_grpc_tls_client_streaming_wired_ok,
-    e02_grpc_tls_server_streaming_loopback_ok, e02_grpc_tls_server_streaming_wired_ok,
-    e02_grpc_tls_window_update_loopback_ok,
-    e02_grpc_tls_window_update_connection_loopback_ok,
-    e02_grpc_tls_window_update_connection_omit_credit_fail_closed_ok,
-    e02_grpc_tls_window_update_connection_negative_wired_ok,
-    e02_grpc_tls_window_update_connection_wired_ok,
-    e02_grpc_tls_window_update_omit_credit_fail_closed_ok,
-    e02_grpc_tls_window_update_negative_wired_ok, e02_grpc_tls_window_update_wired_ok,
-    e02_grpc_wire_loopback_roundtrip_ok,     e02_grpc_window_update_connection_loopback_ok,
-    e02_grpc_window_update_connection_omit_credit_fail_closed_ok,
-    e02_grpc_window_update_connection_negative_wired_ok,
-    e02_grpc_window_update_connection_wired_ok, e02_grpc_window_update_loopback_ok,
-    e02_grpc_window_update_omit_credit_fail_closed_ok,
-    e02_grpc_window_update_negative_wired_ok, e02_grpc_window_update_wired_ok,
-    e02_grpcs_bidi_interleaved_first_slice_ok, e02_grpcs_bidi_streaming_first_slice_ok,
-    e02_grpcs_client_streaming_first_slice_ok, e02_grpcs_first_slice_ok,
-    e02_grpcs_streaming_first_slice_ok, e02_grpcs_window_update_connection_first_slice_ok,
-    e02_grpcs_window_update_connection_negative_first_slice_ok,
-    e02_grpcs_window_update_first_slice_ok,
-    e02_grpcs_window_update_negative_first_slice_ok, e02_window_update_connection_first_slice_ok,
-    e02_window_update_connection_negative_first_slice_ok,
-    e02_window_update_first_slice_ok, e02_window_update_negative_first_slice_ok,
-    encode_grpc_message, syx_grpc_real_enabled,
 };
 pub use ws::{
     e01_rfc6455_interop_first_slice_ok, e01_rfc6455_loopback_roundtrip_ok,
@@ -427,7 +424,8 @@ impl VmInstance {
                 break;
             }
             for (name, body) in batch {
-                let failure = crate::stdlib_phase84_hosts::registered_body_error(self, program, &body);
+                let failure =
+                    crate::stdlib_phase84_hosts::registered_body_error(self, program, &body);
                 outcomes.push(crate::stdlib_phase84_hosts::RegisteredTestOutcome { name, failure });
             }
         }
@@ -446,7 +444,12 @@ impl VmInstance {
             .iter()
             .find(|f| f.name == program.entry_point)
             .ok_or_else(|| {
-                SyxDiagnostic::error(format!("No entry function '{}' found", program.entry_point))
+                vm_error_at(
+                    format!("No entry function '{}' found", program.entry_point),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })?;
         self.run_function(main, program)
     }
@@ -459,7 +462,7 @@ impl VmInstance {
         let v = self.run_function_with_args(func, program, &[])?;
         if let Some(err) = self.propagating_throw.take() {
             let msg = Self::uncaught_throw_message(&err);
-            return Err(SyxDiagnostic::error(msg).with_code("R007"));
+            return Err(vm_error_at(msg, None, Span::DUMMY, "R007"));
         }
         Ok(v)
     }
@@ -517,7 +520,6 @@ impl VmInstance {
         }
         roots
     }
-
 
     /// Wave A W525 / ADR-869: StoreLocal ObjectRef dual-track death-path —
     /// prune matching `heap_slots` entries and `ManagedHeap::free_slot`. Keeps
@@ -819,7 +821,7 @@ impl VmInstance {
         }
         if self.call_depth <= 1 {
             let msg = Self::uncaught_throw_message(&err);
-            return Err(SyxDiagnostic::error(msg).with_code("R007"));
+            return Err(vm_error_at(msg, None, Span::DUMMY, "R007"));
         }
         self.propagating_throw = Some(err);
         Ok(pc)
@@ -1139,9 +1141,12 @@ impl VmInstance {
                             self.stack.push((*obj).clone());
                             let func =
                                 program.functions.get(next_fn as usize).ok_or_else(|| {
-                                    SyxDiagnostic::error(format!(
-                                        "Unknown witness method index {next_fn}"
-                                    ))
+                                    vm_error_at(
+                                        format!("Unknown witness method index {next_fn}"),
+                                        None,
+                                        Span::DUMMY,
+                                        "R003",
+                                    )
                                 })?;
                             let arg_count = func.param_count as usize;
                             let start = self.stack.len().saturating_sub(arg_count);
@@ -1430,7 +1435,10 @@ impl VmInstance {
             Instruction::SimdI8Mul { lanes, element } => {
                 self.exec_simd_binop(*lanes, *element, SimdBinOp::Mul)?;
             }
-            Instruction::SimdI8And { lanes: _, element: _ } => {
+            Instruction::SimdI8And {
+                lanes: _,
+                element: _,
+            } => {
                 let b = self.stack.pop().unwrap_or(Value::Nil);
                 let a = self.stack.pop().unwrap_or(Value::Nil);
                 if let Some(r) = syx_runtime_core::simd_and(&a, &b) {
@@ -1659,7 +1667,7 @@ impl VmInstance {
                 let v = self
                     .stack
                     .last()
-                    .ok_or_else(|| SyxDiagnostic::error("empty stack"))?;
+                    .ok_or_else(|| vm_error_at("empty stack", None, Span::DUMMY, "R003"))?;
                 if let Some(sum) = syx_runtime_core::simd_reduce_add(v) {
                     self.stack.pop();
                     self.stack.push(sum);
@@ -1718,7 +1726,7 @@ impl VmInstance {
                     if let Some(r) = numeric_neg(k, &v) {
                         self.stack.push(r);
                     } else {
-                        return Err(SyxDiagnostic::error("Numeric overflow"));
+                        return Err(vm_error_at("Numeric overflow", None, Span::DUMMY, "R003"));
                     }
                 }
             }
@@ -1728,7 +1736,12 @@ impl VmInstance {
                     if let Some(r) = numeric_bitnot(k, &v) {
                         self.stack.push(r);
                     } else {
-                        return Err(SyxDiagnostic::error("Bitwise not on non-integer"));
+                        return Err(vm_error_at(
+                            "Bitwise not on non-integer",
+                            None,
+                            Span::DUMMY,
+                            "R003",
+                        ));
                     }
                 }
             }
@@ -1759,7 +1772,7 @@ impl VmInstance {
                     match try_numeric_cast(fk, tk, &v) {
                         Ok(casted) => self.stack.push(casted),
                         Err(msg) => {
-                            return Err(SyxDiagnostic::error(msg).with_code("R003"));
+                            return Err(vm_error_at(msg, None, Span::DUMMY, "R003"));
                         }
                     }
                 }
@@ -1902,11 +1915,12 @@ impl VmInstance {
                     Value::Array(items) => {
                         let i = idx.as_i32();
                         if i < 0 || (i as usize) >= items.len() {
-                            return Err(SyxDiagnostic::error(format!(
-                                "Array index {i} out of bounds (count {})",
-                                items.len()
-                            ))
-                            .with_code("R003"));
+                            return Err(vm_error_at(
+                                format!("Array index {i} out of bounds (count {})", items.len()),
+                                None,
+                                Span::DUMMY,
+                                "R003",
+                            ));
                         }
                         self.stack.push(items[i as usize].clone());
                     }
@@ -1915,10 +1929,12 @@ impl VmInstance {
                         match crate::grapheme::try_grapheme_at(&s, i) {
                             Ok(g) => self.stack.push(Value::Character(g)),
                             Err((i, count)) => {
-                                return Err(SyxDiagnostic::error(format!(
-                                    "String index {i} out of bounds (count {count})"
-                                ))
-                                .with_code("R003"));
+                                return Err(vm_error_at(
+                                    format!("String index {i} out of bounds (count {count})"),
+                                    None,
+                                    Span::DUMMY,
+                                    "R003",
+                                ));
                             }
                         }
                     }
@@ -1931,10 +1947,14 @@ impl VmInstance {
                 self.stack.push(sorted);
             }
             Instruction::CallSuper(idx) => {
-                let func = program
-                    .functions
-                    .get(*idx as usize)
-                    .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function index {idx}")))?;
+                let func = program.functions.get(*idx as usize).ok_or_else(|| {
+                    vm_error_at(
+                        format!("Unknown function index {idx}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
+                })?;
                 if func.name.ends_with("_init") && func.init_body_pc > 0 {
                     let arg_count = func.param_count as usize;
                     if self.stack.len() > arg_count {
@@ -1956,10 +1976,14 @@ impl VmInstance {
                 return self.finish_call(result, pc);
             }
             Instruction::Call(idx) => {
-                let func = program
-                    .functions
-                    .get(*idx as usize)
-                    .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function index {idx}")))?;
+                let func = program.functions.get(*idx as usize).ok_or_else(|| {
+                    vm_error_at(
+                        format!("Unknown function index {idx}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
+                })?;
                 if crate::jit::JitCompiler::fastpath_enabled()
                     || crate::jit::JitCompiler::tier2_opt_in_enabled()
                 {
@@ -1990,7 +2014,12 @@ impl VmInstance {
                 let fn_idx_val = self.stack.pop().unwrap_or(Value::I32(0));
                 let fn_idx = fn_idx_val.as_i32() as u32;
                 let func = program.functions.get(fn_idx as usize).ok_or_else(|| {
-                    SyxDiagnostic::error(format!("Unknown indirect function index {fn_idx}"))
+                    vm_error_at(
+                        format!("Unknown indirect function index {fn_idx}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
                 })?;
                 let start = self.stack.len().saturating_sub(*arg_count as usize);
                 let mut args: Vec<Value> = self.stack.drain(start..).collect();
@@ -2023,7 +2052,12 @@ impl VmInstance {
                 let closure_val = self.stack.pop().unwrap_or(Value::Nil);
                 if let Value::Closure { fn_index, captures } = closure_val {
                     let func = program.functions.get(fn_index as usize).ok_or_else(|| {
-                        SyxDiagnostic::error(format!("Unknown closure function index {fn_index}"))
+                        vm_error_at(
+                            format!("Unknown closure function index {fn_index}"),
+                            None,
+                            Span::DUMMY,
+                            "R003",
+                        )
                     })?;
                     let arg_count = func.param_count as usize;
                     let start = self.stack.len().saturating_sub(arg_count);
@@ -2040,10 +2074,14 @@ impl VmInstance {
                 self.stack.push(obj.register_actor_id(id));
             }
             Instruction::ActorCall(idx) => {
-                let func = program
-                    .functions
-                    .get(*idx as usize)
-                    .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function index {idx}")))?;
+                let func = program.functions.get(*idx as usize).ok_or_else(|| {
+                    vm_error_at(
+                        format!("Unknown function index {idx}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
+                })?;
                 let arg_count = func.param_count as usize;
                 let start = self.stack.len().saturating_sub(arg_count);
                 let args: Vec<Value> = self.stack.drain(start..).collect();
@@ -2234,10 +2272,14 @@ impl VmInstance {
                 }
             }
             Instruction::ActorSend(idx) => {
-                let func = program
-                    .functions
-                    .get(*idx as usize)
-                    .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function index {idx}")))?;
+                let func = program.functions.get(*idx as usize).ok_or_else(|| {
+                    vm_error_at(
+                        format!("Unknown function index {idx}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
+                })?;
                 let arg_count = func.param_count as usize;
                 let start = self.stack.len().saturating_sub(arg_count);
                 let args: Vec<Value> = self.stack.drain(start..).collect();
@@ -2260,10 +2302,14 @@ impl VmInstance {
                 }
             }
             Instruction::TaskSpawn(idx) => {
-                let func = program
-                    .functions
-                    .get(*idx as usize)
-                    .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function index {idx}")))?;
+                let func = program.functions.get(*idx as usize).ok_or_else(|| {
+                    vm_error_at(
+                        format!("Unknown function index {idx}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
+                })?;
                 let arg_count = func.param_count as usize;
                 let start = self.stack.len().saturating_sub(arg_count);
                 let args: Vec<Value> = self.stack.drain(start..).collect();
@@ -2286,7 +2332,12 @@ impl VmInstance {
             }
             Instruction::CallWitness(_protocol, method) => {
                 let func = program.functions.get(*method as usize).ok_or_else(|| {
-                    SyxDiagnostic::error(format!("Unknown witness method index {method}"))
+                    vm_error_at(
+                        format!("Unknown witness method index {method}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
                 })?;
                 let arg_count = func.param_count as usize;
                 let start = self.stack.len().saturating_sub(arg_count);
@@ -2302,11 +2353,12 @@ impl VmInstance {
                 if let Value::Array(mut items) = arr {
                     let i = idx.as_i32();
                     if i < 0 || (i as usize) >= items.len() {
-                        return Err(SyxDiagnostic::error(format!(
-                            "Array index {i} out of bounds (count {})",
-                            items.len()
-                        ))
-                        .with_code("R003"));
+                        return Err(vm_error_at(
+                            format!("Array index {i} out of bounds (count {})", items.len()),
+                            None,
+                            Span::DUMMY,
+                            "R003",
+                        ));
                     }
                     items[i as usize] = val;
                     let updated = Value::Array(items);
@@ -2354,8 +2406,7 @@ impl VmInstance {
                         }
                         other => other,
                     };
-                    self.stack
-                        .push(Value::write_back_heap_slot(obj, updated));
+                    self.stack.push(Value::write_back_heap_slot(obj, updated));
                 }
             }
             _ => {}
@@ -2374,7 +2425,12 @@ impl VmInstance {
             if let Some(r) = f(k, &a, &b) {
                 self.stack.push(r);
             } else {
-                return Err(SyxDiagnostic::error("Numeric overflow or division by zero"));
+                return Err(vm_error_at(
+                    "Numeric overflow or division by zero",
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
         }
         Ok(())
@@ -2386,7 +2442,12 @@ impl VmInstance {
         if let Some(r) = simd_binop(op, &a, &b) {
             self.stack.push(r);
         } else {
-            return Err(SyxDiagnostic::error("SIMD operation failed"));
+            return Err(vm_error_at(
+                "SIMD operation failed",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
         Ok(())
     }
@@ -2493,7 +2554,12 @@ impl VmInstance {
                 (&receiver, args.first())
             {
                 let func = program.functions.get(*fn_index as usize).ok_or_else(|| {
-                    SyxDiagnostic::error(format!("Unknown closure function index {fn_index}"))
+                    vm_error_at(
+                        format!("Unknown closure function index {fn_index}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
                 })?;
                 let mut mapped = Vec::with_capacity(items.len());
                 for item in items {
@@ -2508,17 +2574,19 @@ impl VmInstance {
                 return Ok(());
             }
             // ADR-225 / M2-S1-04: no fallthrough to empty-array success.
-            return Err(SyxDiagnostic::error(
-                "unsupported array HOF 'map': requires Array receiver and Closure (feature-off or illegal shape)",
-            )
-            .with_code("U001"));
+            return Err(vm_error_at("unsupported array HOF 'map': requires Array receiver and Closure (feature-off or illegal shape)", None, Span::DUMMY, "U001"));
         }
         if method == MethodId::ArrFilter {
             if let (Value::Array(items), Some(Value::Closure { fn_index, captures })) =
                 (&receiver, args.first())
             {
                 let func = program.functions.get(*fn_index as usize).ok_or_else(|| {
-                    SyxDiagnostic::error(format!("Unknown closure function index {fn_index}"))
+                    vm_error_at(
+                        format!("Unknown closure function index {fn_index}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
                 })?;
                 let mut filtered = Vec::new();
                 for item in items {
@@ -2531,17 +2599,19 @@ impl VmInstance {
                 self.stack.push(Value::Array(filtered));
                 return Ok(());
             }
-            return Err(SyxDiagnostic::error(
-                "unsupported array HOF 'filter': requires Array receiver and Closure (feature-off or illegal shape)",
-            )
-            .with_code("U001"));
+            return Err(vm_error_at("unsupported array HOF 'filter': requires Array receiver and Closure (feature-off or illegal shape)", None, Span::DUMMY, "U001"));
         }
         if method == MethodId::ArrReduce {
             if let (Value::Array(items), Some(Value::Closure { fn_index, captures })) =
                 (&receiver, args.first())
             {
                 let func = program.functions.get(*fn_index as usize).ok_or_else(|| {
-                    SyxDiagnostic::error(format!("Unknown closure function index {fn_index}"))
+                    vm_error_at(
+                        format!("Unknown closure function index {fn_index}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
                 })?;
                 if items.is_empty() {
                     self.stack.push(Value::Nil);
@@ -2559,10 +2629,7 @@ impl VmInstance {
                 self.stack.push(acc);
                 return Ok(());
             }
-            return Err(SyxDiagnostic::error(
-                "unsupported array HOF 'reduce': requires Array receiver and Closure (feature-off or illegal shape)",
-            )
-            .with_code("U001"));
+            return Err(vm_error_at("unsupported array HOF 'reduce': requires Array receiver and Closure (feature-off or illegal shape)", None, Span::DUMMY, "U001"));
         }
         if method == MethodId::ArrSorted {
             let resolved = match &receiver {
@@ -2723,7 +2790,12 @@ impl VmInstance {
         program: &CompiledProgram,
     ) -> SyxResult<std::cmp::Ordering> {
         let func = program.functions.get(witness_idx as usize).ok_or_else(|| {
-            SyxDiagnostic::error(format!("Unknown compare witness index {witness_idx}"))
+            vm_error_at(
+                format!("Unknown compare witness index {witness_idx}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
         let cmp = self.run_function_with_args(func, program, &[a.clone(), b.clone()])?;
         Ok(match cmp.as_i64().cmp(&0) {

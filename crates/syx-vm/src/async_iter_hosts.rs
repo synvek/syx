@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 
 use crate::{ensure_object_id, platform_int_value, Value};
 
@@ -42,7 +44,12 @@ pub fn host_async_iter_from(stack: &mut Vec<Value>) -> SyxResult<()> {
     let items = match iterable {
         Value::Array(items) => items,
         _ => {
-            return Err(SyxDiagnostic::error("Expected array for async iteration").with_code("A003"))
+            return Err(vm_error_at(
+                "Expected array for async iteration",
+                None,
+                Span::DUMMY,
+                "A003",
+            ))
         }
     };
     let id = NEXT_ASYNC_ITER_ID.with(|next| {
@@ -71,9 +78,14 @@ fn iter_id_from_value(v: &Value) -> SyxResult<i64> {
                 Value::I32(n) => Some(*n as i64),
                 _ => None,
             })
-            .ok_or_else(|| SyxDiagnostic::error("Expected async iterator handle").with_code("A003"))
+            .ok_or_else(|| vm_error_at("Expected async iterator handle", None, Span::DUMMY, "A003"))
     } else {
-        Err(SyxDiagnostic::error("Expected async iterator handle").with_code("A003"))
+        Err(vm_error_at(
+            "Expected async iterator handle",
+            None,
+            Span::DUMMY,
+            "A003",
+        ))
     }
 }
 
@@ -83,7 +95,12 @@ pub fn host_async_iter_next(stack: &mut Vec<Value>) -> SyxResult<()> {
     let step = ASYNC_ITERS.with(|iters| {
         let mut iters = iters.borrow_mut();
         let state = iters.get_mut(&id).ok_or_else(|| {
-            SyxDiagnostic::error(format!("Unknown async iterator id {id}")).with_code("A003")
+            vm_error_at(
+                format!("Unknown async iterator id {id}"),
+                None,
+                Span::DUMMY,
+                "A003",
+            )
         })?;
         let step = iter_step(state.idx, &state.items);
         state.idx += 1;

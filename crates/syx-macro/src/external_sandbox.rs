@@ -3,12 +3,13 @@
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::external_protocol::{
-    ExternalMacroExpander, InProcessMacroExpander, MacroExpandRequest, MacroExpandResponse,
-    request_to_json, response_from_json,
+    request_to_json, response_from_json, ExternalMacroExpander, InProcessMacroExpander,
+    MacroExpandRequest, MacroExpandResponse,
 };
+use crate::macro_error_at;
 
 /// When true, external macros expand in-process (dev/test only).
 pub fn macro_in_process_enabled() -> bool {
@@ -55,37 +56,45 @@ pub struct SandboxMacroExpander;
 impl ExternalMacroExpander for SandboxMacroExpander {
     fn expand(&self, req: &MacroExpandRequest) -> SyxResult<MacroExpandResponse> {
         expand_via_subprocess(req).map_err(|e| {
-            syx_diagnostics::SyxDiagnostic::error(format!("macro sandbox subprocess failed: {e}"))
-                .with_code("E004")
+            macro_error_at(
+                format!("macro sandbox subprocess failed: {e}"),
+                None,
+                Span::DUMMY,
+                "E004",
+            )
         })
     }
 }
 
 fn expand_via_subprocess(req: &MacroExpandRequest) -> SyxResult<MacroExpandResponse> {
     let json = request_to_json(req)?;
-    let exe = std::env::current_exe().map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+    let exe = std::env::current_exe()
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     let mut child = Command::new(exe)
         .arg("__macro_sandbox_expand__")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     if let Some(mut stdin) = child.stdin.take() {
         stdin
             .write_all(json.as_bytes())
-            .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+            .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     }
     let output = child
         .wait_with_output()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     if !output.status.success() {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(macro_error_at(
             "macro sandbox subprocess failed",
+            None,
+            Span::DUMMY,
+            "M040",
         ));
     }
     let text = String::from_utf8(output.stdout)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     response_from_json(&text)
 }
 
@@ -94,12 +103,12 @@ pub fn macro_sandbox_child_main() -> SyxResult<()> {
     let mut input = String::new();
     std::io::stdin()
         .read_to_string(&mut input)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     let req: MacroExpandRequest = serde_json::from_str(&input)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     let resp = InProcessMacroExpander.expand(&req)?;
     let out = serde_json::to_string(&resp)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| macro_error_at(e.to_string(), None, Span::DUMMY, "M039"))?;
     print!("{out}");
     Ok(())
 }

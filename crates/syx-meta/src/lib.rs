@@ -1,10 +1,13 @@
+mod meta_diag;
+
 use std::collections::HashSet;
 use std::sync::{LazyLock, Mutex};
 
 use indexmap::IndexMap;
+use meta_diag::meta_error_at;
 use smol_str::SmolStr;
 use syx_ast::{Decl, Expr, FunctionEffect, Module, Stmt};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use syx_mir::MirModule;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -166,10 +169,7 @@ pub fn note_semantic_instantiation(fn_name: &str, type_args: &[SmolStr]) {
     SEMANTIC_INSTANTIATIONS
         .lock()
         .expect("SEMANTIC_INSTANTIATIONS poisoned")
-        .insert((
-            SmolStr::new(fn_name),
-            type_args.iter().cloned().collect(),
-        ));
+        .insert((SmolStr::new(fn_name), type_args.iter().cloned().collect()));
 }
 
 fn semantic_instantiation_key(fn_name: &str, type_args: &[&str]) -> (SmolStr, Vec<SmolStr>) {
@@ -188,7 +188,10 @@ fn semantic_instantiation_hit(fn_name: &str, type_args: &[&str]) -> bool {
 }
 
 pub fn register_mono_sig(fn_name: &str, type_args: &[&str], param_count: usize, has_witness: bool) {
-    let key = (SmolStr::new(fn_name), type_args.iter().map(|s| SmolStr::new(*s)).collect());
+    let key = (
+        SmolStr::new(fn_name),
+        type_args.iter().map(|s| SmolStr::new(*s)).collect(),
+    );
     MONO_CACHE.lock().expect("MONO_CACHE poisoned").insert(
         key,
         MirMonoSig {
@@ -257,31 +260,38 @@ pub fn reflect_specialization(fn_name: &str, type_args: &[&str]) -> SyxResult<Mi
     if semantic_instantiation_hit(fn_name, type_args) {
         return match runtime_mono_cache(fn_name, type_args) {
             Some(sig) if sig.has_witness => Ok(sig),
-            Some(_) => Err(SyxDiagnostic::error(format!(
-                "reflect specialization for '{fn_name}<{}>' has no witness",
-                type_args.join(", ")
-            ))
-            .with_code("M105")),
+            Some(_) => Err(meta_error_at(
+                format!(
+                    "reflect specialization for '{fn_name}<{}>' has no witness",
+                    type_args.join(", ")
+                ),
+                None,
+                Span::DUMMY,
+                "M105",
+            )),
             None => Err(reflect_specialization_miss_error(fn_name, type_args)),
         };
     }
     match runtime_mono_cache(fn_name, type_args) {
         Some(sig) if sig.has_witness => Ok(sig),
-        Some(_) => Err(SyxDiagnostic::error(format!(
-            "reflect specialization for '{fn_name}<{}>' has no witness",
-            type_args.join(", ")
-        ))
-        .with_code("M105")),
+        Some(_) => Err(meta_error_at(
+            format!(
+                "reflect specialization for '{fn_name}<{}>' has no witness",
+                type_args.join(", ")
+            ),
+            None,
+            Span::DUMMY,
+            "M105",
+        )),
         None => Err(reflect_specialization_miss_error(fn_name, type_args)),
     }
 }
 
 pub fn reflect_specialization_miss_error(fn_name: &str, type_args: &[&str]) -> SyxDiagnostic {
-    SyxDiagnostic::error(format!(
+    meta_error_at(format!(
         "reflect specialization miss for '{fn_name}<{}>' (semantic instantiations or runtime mono cache)",
         type_args.join(", ")
-    ))
-    .with_code("M105")
+    ), None, Span::DUMMY, "M105")
 }
 
 /// Phase 106: optional lookup; semantic instantiations preferred over cache.
@@ -297,7 +307,10 @@ pub fn runtime_mono_cache(fn_name: &str, type_args: &[&str]) -> Option<MirMonoSi
     if fn_name.is_empty() {
         return None;
     }
-    let key = (SmolStr::new(fn_name), type_args.iter().map(|s| SmolStr::new(*s)).collect());
+    let key = (
+        SmolStr::new(fn_name),
+        type_args.iter().map(|s| SmolStr::new(*s)).collect(),
+    );
     if let Some(sig) = MONO_CACHE.lock().expect("MONO_CACHE poisoned").get(&key) {
         return Some(sig.clone());
     }
@@ -335,17 +348,17 @@ fn stmt_has_io(stmt: &Stmt) -> bool {
                 || stmt_list_has_io(then_branch)
                 || else_branch.as_ref().is_some_and(|b| stmt_list_has_io(b))
         }
-        Stmt::While { condition, body, .. } => expr_has_io(condition) || stmt_list_has_io(body),
-        Stmt::ForIn { iterable, body, .. } => {
-            expr_has_io(iterable) || stmt_list_has_io(body)
-        }
+        Stmt::While {
+            condition, body, ..
+        } => expr_has_io(condition) || stmt_list_has_io(body),
+        Stmt::ForIn { iterable, body, .. } => expr_has_io(iterable) || stmt_list_has_io(body),
         Stmt::Block { stmts, .. } => stmt_list_has_io(stmts),
-        Stmt::Try { body, catch_body, .. } => {
-            stmt_list_has_io(body) || stmt_list_has_io(catch_body)
-        }
-        Stmt::GuardLet { body, else_branch, .. } => {
-            stmt_list_has_io(body) || stmt_list_has_io(else_branch)
-        }
+        Stmt::Try {
+            body, catch_body, ..
+        } => stmt_list_has_io(body) || stmt_list_has_io(catch_body),
+        Stmt::GuardLet {
+            body, else_branch, ..
+        } => stmt_list_has_io(body) || stmt_list_has_io(else_branch),
         _ => false,
     }
 }
@@ -368,9 +381,12 @@ fn expr_has_io(expr: &Expr) -> bool {
         Expr::ForceUnwrap { expr, .. } => expr_has_io(expr),
         Expr::CompoundAssign { value, .. } => expr_has_io(value),
         Expr::MemberAssign { object, value, .. } => expr_has_io(object) || expr_has_io(value),
-        Expr::IndexAssign { object, index, value, .. } => {
-            expr_has_io(object) || expr_has_io(index) || expr_has_io(value)
-        }
+        Expr::IndexAssign {
+            object,
+            index,
+            value,
+            ..
+        } => expr_has_io(object) || expr_has_io(index) || expr_has_io(value),
         Expr::Closure { body, .. } => match body {
             syx_ast::ClosureBody::Expr(e) => expr_has_io(e),
             syx_ast::ClosureBody::Block(stmts) => stmt_list_has_io(stmts),
@@ -388,10 +404,7 @@ fn call_is_io(callee: &Expr) -> bool {
     match callee {
         Expr::Ident { name, .. } => {
             let n = name.as_str();
-            n.contains("http")
-                || n.contains("fetch")
-                || n == "print"
-                || n.starts_with("host_")
+            n.contains("http") || n.contains("fetch") || n == "print" || n.starts_with("host_")
         }
         Expr::Member { name, .. } => {
             let n = name.as_str();
@@ -404,9 +417,13 @@ fn call_is_io(callee: &Expr) -> bool {
 pub fn check_effects(module: &Module) -> SyxResult<Vec<(SmolStr, Effect)>> {
     let mut effects = Vec::new();
     for decl in &module.decls {
-        if let Decl::Function { name, body, effect, .. } = decl {
+        if let Decl::Function {
+            name, body, effect, ..
+        } = decl
+        {
             let inferred = inferred_effect(body);
-            let name_inferred = if name.as_str().contains("fetch") || name.as_str().contains("http") {
+            let name_inferred = if name.as_str().contains("fetch") || name.as_str().contains("http")
+            {
                 Effect::Io
             } else {
                 inferred
@@ -429,10 +446,12 @@ pub fn validate_pure_functions(module: &Module) -> SyxResult<()> {
         } = decl
         {
             if stmt_list_has_io(body) {
-                return Err(SyxDiagnostic::error(format!(
-                    "Function '{name}' requires Pure but performs IO"
-                ))
-                .with_code("E001"));
+                return Err(meta_error_at(
+                    format!("Function '{name}' requires Pure but performs IO"),
+                    None,
+                    Span::DUMMY,
+                    "E001",
+                ));
             }
         }
     }
@@ -592,7 +611,9 @@ pub fn service_di_active_profile() -> Option<String> {
         if let Some(p) = slot.borrow().clone() {
             return Some(p);
         }
-        std::env::var("SYX_DI_PROFILE").ok().filter(|s| !s.is_empty())
+        std::env::var("SYX_DI_PROFILE")
+            .ok()
+            .filter(|s| !s.is_empty())
     })
 }
 
@@ -616,10 +637,15 @@ pub fn service_di_profile_matches(service_profile: Option<&str>, active: Option<
 }
 
 /// Compile-time / test helper: register a service dependency graph and detect cycles.
-pub fn service_wiring_register_graph(graph: &[(&str, Vec<&str>)]) -> SyxResult<IndexMap<String, Vec<String>>> {
+pub fn service_wiring_register_graph(
+    graph: &[(&str, Vec<&str>)],
+) -> SyxResult<IndexMap<String, Vec<String>>> {
     let mut out: IndexMap<String, Vec<String>> = IndexMap::new();
     for (name, deps) in graph {
-        out.insert((*name).to_string(), deps.iter().map(|d| (*d).to_string()).collect());
+        out.insert(
+            (*name).to_string(),
+            deps.iter().map(|d| (*d).to_string()).collect(),
+        );
     }
     // cycle detect
     fn visit(
@@ -629,10 +655,12 @@ pub fn service_wiring_register_graph(graph: &[(&str, Vec<&str>)]) -> SyxResult<I
         seen: &mut IndexMap<String, bool>,
     ) -> SyxResult<()> {
         if stack.iter().any(|s| s == node) {
-            return Err(SyxDiagnostic::error(format!(
-                "service dependency cycle involving '{node}'"
-            ))
-            .with_code("E007"));
+            return Err(meta_error_at(
+                format!("service dependency cycle involving '{node}'"),
+                None,
+                Span::DUMMY,
+                "E007",
+            ));
         }
         if seen.get(node).copied().unwrap_or(false) {
             return Ok(());
@@ -655,10 +683,12 @@ pub fn service_wiring_register_graph(graph: &[(&str, Vec<&str>)]) -> SyxResult<I
     for (name, deps) in &out {
         for dep in deps {
             if !out.contains_key(dep) {
-                return Err(SyxDiagnostic::error(format!(
-                    "service '{name}' missing dependency '{dep}'"
-                ))
-                .with_code("E008"));
+                return Err(meta_error_at(
+                    format!("service '{name}' missing dependency '{dep}'"),
+                    None,
+                    Span::DUMMY,
+                    "E008",
+                ));
             }
         }
     }
@@ -697,11 +727,7 @@ mod tests {
 
     #[test]
     fn runtime_mono_cache_miss_returns_none() {
-        assert!(runtime_mono_cache(
-            "P104MissingMonoSigXYZ",
-            &["Int", "String"]
-        )
-        .is_none());
+        assert!(runtime_mono_cache("P104MissingMonoSigXYZ", &["Int", "String"]).is_none());
     }
 
     #[test]

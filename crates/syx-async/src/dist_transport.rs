@@ -46,7 +46,10 @@ pub fn dist_actor_cluster_health_probe(region: &str) -> bool {
         return false;
     }
     multi_region_route_table().contains(&region)
-        || multi_region_routes().lock().iter().any(|(r, ..)| r == region)
+        || multi_region_routes()
+            .lock()
+            .iter()
+            .any(|(r, ..)| r == region)
 }
 
 fn uds_frames() -> &'static Mutex<VecDeque<(i64, i64, String)>> {
@@ -222,9 +225,13 @@ pub fn dist_rustls_e2e_handshake_smoke(pin: &str) -> bool {
     if !dist_rustls_e2e_prod_default_enabled() {
         return dist_actor_tls_rustls_crate_e2e_verify(pin, 2);
     }
-    pin.starts_with("sha256:") && pin.len() >= 16
-        && (pin.contains("phase33") || pin.contains("phase35") || pin.contains("phase85")
-            || pin.contains("phase87") || pin.contains("phase88"))
+    pin.starts_with("sha256:")
+        && pin.len() >= 16
+        && (pin.contains("phase33")
+            || pin.contains("phase35")
+            || pin.contains("phase85")
+            || pin.contains("phase87")
+            || pin.contains("phase88"))
 }
 
 pub fn dist_winpipe_e2e_frame_smoke(from: i64, to: i64) -> bool {
@@ -246,9 +253,8 @@ pub fn dist_actor_tls_endpoint() -> &'static str {
 }
 
 fn uds_socket_path() -> String {
-    std::env::var("SYX_DIST_ACTOR_UDS_PATH").unwrap_or_else(|_| {
-        format!("/tmp/syx-dist-{}.sock", std::process::id())
-    })
+    std::env::var("SYX_DIST_ACTOR_UDS_PATH")
+        .unwrap_or_else(|_| format!("/tmp/syx-dist-{}.sock", std::process::id()))
 }
 
 #[cfg(unix)]
@@ -277,7 +283,9 @@ fn uds_send_prod(from: i64, to: i64, payload: &str) -> bool {
         return stream.write_all(frame.as_bytes()).is_ok();
     }
     if ensure_uds_listener() {
-        uds_frames().lock().push_back((from, to, payload.to_string()));
+        uds_frames()
+            .lock()
+            .push_back((from, to, payload.to_string()));
         true
     } else {
         false
@@ -292,7 +300,9 @@ fn uds_send_legacy(from: i64, to: i64, payload: &str) -> bool {
     if let Ok(mut stream) = UnixStream::connect(&path) {
         stream.write_all(frame.as_bytes()).is_ok()
     } else {
-        memory_frames().lock().push_back((from, to, payload.to_string()));
+        memory_frames()
+            .lock()
+            .push_back((from, to, payload.to_string()));
         true
     }
 }
@@ -309,20 +319,28 @@ fn uds_send_prod(from: i64, to: i64, payload: &str) -> bool {
         return win_pipe_named_io_send(from, to, payload);
     }
     if dist_actor_win_pipe_prod_enabled() {
-        uds_frames().lock().push_back((from, to, payload.to_string()));
+        uds_frames()
+            .lock()
+            .push_back((from, to, payload.to_string()));
         return true;
     }
     if dist_actor_win_pipe_enabled() {
-        uds_frames().lock().push_back((from, to, payload.to_string()));
+        uds_frames()
+            .lock()
+            .push_back((from, to, payload.to_string()));
         return true;
     }
-    uds_frames().lock().push_back((from, to, payload.to_string()));
+    uds_frames()
+        .lock()
+        .push_back((from, to, payload.to_string()));
     true
 }
 
 #[cfg(not(unix))]
 fn uds_send_legacy(from: i64, to: i64, payload: &str) -> bool {
-    memory_frames().lock().push_back((from, to, payload.to_string()));
+    memory_frames()
+        .lock()
+        .push_back((from, to, payload.to_string()));
     true
 }
 
@@ -378,8 +396,8 @@ fn win_pipe_winapi_send(from: i64, to: i64, payload: &str) -> bool {
         #[cfg(windows)]
         {
             use std::ffi::OsStr;
-            use std::os::windows::ffi::OsStrExt;
             use std::io::Write;
+            use std::os::windows::ffi::OsStrExt;
             let path = dist_actor_win_pipe_path();
             let wide: Vec<u16> = OsStr::new(&path).encode_wide().chain(Some(0)).collect();
             // windows-sys Named Pipe scaffold: CreateNamedPipeW + WriteFile path.
@@ -423,11 +441,7 @@ fn win_pipe_api_send(from: i64, to: i64, payload: &str) -> bool {
         use std::fs::OpenOptions;
         use std::io::Write;
         let path = dist_actor_win_pipe_path();
-        if let Ok(mut file) = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(&path)
-        {
+        if let Ok(mut file) = OpenOptions::new().write(true).create(true).open(&path) {
             return file.write_all(frame.as_bytes()).is_ok();
         }
     }
@@ -476,7 +490,9 @@ fn win_pipe_named_io_send(from: i64, to: i64, payload: &str) -> bool {
             return file.write_all(frame.as_bytes()).is_ok();
         }
     }
-    uds_frames().lock().push_back((from, to, payload.to_string()));
+    uds_frames()
+        .lock()
+        .push_back((from, to, payload.to_string()));
     true
 }
 
@@ -735,13 +751,9 @@ pub fn cdn_route(region: &str, from: i64, to: i64, payload: impl Into<String>) -
     if cdn_bgp_ga_ready() {
         return match cdn_bgp_route(region, from, to, payload.clone()) {
             Ok((active_pop, ack)) => {
-                cdn_routes().lock().push_back((
-                    active_pop,
-                    "cdn-bgp".to_string(),
-                    from,
-                    to,
-                    ack,
-                ));
+                cdn_routes()
+                    .lock()
+                    .push_back((active_pop, "cdn-bgp".to_string(), from, to, ack));
                 true
             }
             Err(_) => false,
@@ -750,13 +762,9 @@ pub fn cdn_route(region: &str, from: i64, to: i64, payload: impl Into<String>) -
     if cdn_pop_has_endpoints() {
         return match cdn_pop_route(region, from, to, payload.clone()) {
             Ok((active_pop, ack)) => {
-                cdn_routes().lock().push_back((
-                    active_pop,
-                    "cdn-pop".to_string(),
-                    from,
-                    to,
-                    ack,
-                ));
+                cdn_routes()
+                    .lock()
+                    .push_back((active_pop, "cdn-pop".to_string(), from, to, ack));
                 true
             }
             Err(_) => false,
@@ -766,13 +774,9 @@ pub fn cdn_route(region: &str, from: i64, to: i64, payload: impl Into<String>) -
         let host_key = dist_region_default_host_key(region);
         return match dist_region_multihost_route(region, &host_key, from, to, payload.clone()) {
             Ok((active_region, active_host, ack)) => {
-                cdn_routes().lock().push_back((
-                    active_region,
-                    active_host,
-                    from,
-                    to,
-                    ack,
-                ));
+                cdn_routes()
+                    .lock()
+                    .push_back((active_region, active_host, from, to, ack));
                 true
             }
             Err(_) => false,
@@ -861,8 +865,7 @@ pub fn cdn_route_ga(
             .map(|(r, ack)| (format!("{r}:cdn-tcp-peer"), ack));
     }
     if dist_region_anycast_has_endpoints() {
-        return dist_region_anycast_route(region, from, to, payload)
-            .map(|(r, ack)| (r, ack));
+        return dist_region_anycast_route(region, from, to, payload).map(|(r, ack)| (r, ack));
     }
     Err(
         "cdn GA requires CDN PoP anycast (≥2), TCP multihost, CDN TCP peer, or anycast endpoints (memory CDN is dev-only; set SYX_DIST_CDN_MEMORY=1 for in-memory)"
@@ -1689,7 +1692,8 @@ pub fn cdn_bgp_peer_announce_epoch_memory_clear() {
 /// Phase 133: durable epoch persist readiness (conflict-epoch + persist path).
 pub fn cdn_bgp_peer_announce_epoch_persist_ready() -> bool {
     let _ = cdn_bgp_peer_announce_epoch_persist_digest();
-    cdn_bgp_peer_announce_conflict_epoch_ready() && cdn_bgp_peer_announce_epoch_persist_path().is_some()
+    cdn_bgp_peer_announce_conflict_epoch_ready()
+        && cdn_bgp_peer_announce_epoch_persist_path().is_some()
 }
 
 /// Explicit restore of winning epochs from persist file (restart simulation).
@@ -1838,11 +1842,7 @@ fn cdn_bgp_peer_announce_strip_header_lines(wire: &str) -> &str {
             || trimmed.starts_with("#priority:")
             || trimmed.starts_with("#hold:")
         {
-            body_start = wire
-                .lines()
-                .take(idx + 1)
-                .map(|l| l.len() + 1)
-                .sum();
+            body_start = wire.lines().take(idx + 1).map(|l| l.len() + 1).sum();
             continue;
         }
         if trimmed.starts_with("ack\t") {
@@ -1850,13 +1850,18 @@ fn cdn_bgp_peer_announce_strip_header_lines(wire: &str) -> &str {
         }
         break;
     }
-    wire.get(body_start..).unwrap_or(wire).trim_start_matches('\n')
+    wire.get(body_start..)
+        .unwrap_or(wire)
+        .trim_start_matches('\n')
 }
 
 fn cdn_bgp_peer_announce_parse_epoch_wire(wire: &str) -> Option<(u64, &str)> {
     // Direct epoch-headed wire, or ack wrapper (`ack\tpeer\tshard\n#epoch:N\n...`).
     for line in wire.lines().map(str::trim).filter(|l| !l.is_empty()) {
-        if let Some(epoch) = line.strip_prefix("#epoch:").and_then(|s| s.parse::<u64>().ok()) {
+        if let Some(epoch) = line
+            .strip_prefix("#epoch:")
+            .and_then(|s| s.parse::<u64>().ok())
+        {
             let body = cdn_bgp_peer_announce_strip_header_lines(wire);
             return Some((epoch, body));
         }
@@ -1957,8 +1962,7 @@ pub fn cdn_bgp_peer_announce_fanout_with_epoch(
             ));
         }
         let priority = cdn_bgp_peer_announce_peer_priority(&peer_id);
-        let peer_wire =
-            cdn_bgp_peer_announce_attach_wire_headers(epoch, priority, &body);
+        let peer_wire = cdn_bgp_peer_announce_attach_wire_headers(epoch, priority, &body);
         if let Some(dir) = cdn_bgp_peer_announce_sticky_dir() {
             let _ = std::fs::create_dir_all(&dir);
             let path = cdn_bgp_peer_announce_path(&dir, &peer_id, shard_key);
@@ -2021,10 +2025,7 @@ pub fn cdn_bgp_peer_announce_conflict_epoch_ready() -> bool {
 }
 
 /// True only when **winning epoch** announce exists and **all** peers have written matching-epoch acks.
-pub fn cdn_bgp_peer_announce_conflict_epoch_mesh_ready(
-    peer_ids: &[&str],
-    shard_key: &str,
-) -> bool {
+pub fn cdn_bgp_peer_announce_conflict_epoch_mesh_ready(peer_ids: &[&str], shard_key: &str) -> bool {
     let _ = cdn_bgp_peer_announce_conflict_epoch_digest();
     if peer_ids.len() < 2 {
         return false;
@@ -2422,8 +2423,7 @@ pub fn cdn_bgp_multi_pop_ready() -> bool {
     if pops != health_pops {
         return false;
     }
-    health.iter().filter(|(_, ok)| *ok).count() >= 2
-        && cdn_bgp_cross_region_failover_ready()
+    health.iter().filter(|(_, ok)| *ok).count() >= 2 && cdn_bgp_cross_region_failover_ready()
 }
 
 /// Phase 123 alias: multi-PoP MVP readiness (not carrier BGP).
@@ -2520,8 +2520,7 @@ pub fn cdn_bgp_sticky_pop_clear() {
 
 /// True when cross-region failover order is computable across ≥2 mesh regions.
 pub fn cdn_bgp_cross_region_failover_ready() -> bool {
-    cdn_bgp_mesh_region_count() >= 2
-        && !cdn_bgp_cross_region_failover_order_ids("", "").is_empty()
+    cdn_bgp_mesh_region_count() >= 2 && !cdn_bgp_cross_region_failover_order_ids("", "").is_empty()
 }
 
 /// True when peer-exchange GA is satisfied and ops surfaces are populated.
@@ -2548,8 +2547,7 @@ pub fn cdn_bgp_route_convergence_ready() -> bool {
     if pops != health_pops {
         return false;
     }
-    health.iter().any(|(_, ok)| *ok)
-        && !cdn_bgp_failover_order_ids("").is_empty()
+    health.iter().any(|(_, ok)| *ok) && !cdn_bgp_failover_order_ids("").is_empty()
 }
 
 pub fn cdn_bgp_peer_exchange_done() -> bool {
@@ -2621,19 +2619,22 @@ fn cdn_bgp_cross_region_failover_order(
     let mut rows = cdn_bgp_merged_mesh_rows();
     // Phase 124 weighted anycast: higher weight first; preferred region/pop break ties.
     rows.sort_by(|a, b| {
-        b.1.1.cmp(&a.1.1).then_with(|| {
+        b.1 .1.cmp(&a.1 .1).then_with(|| {
             let a_region_pref = if a.0 == preferred_region { 0 } else { 1 };
             let b_region_pref = if b.0 == preferred_region { 0 } else { 1 };
             a_region_pref.cmp(&b_region_pref).then_with(|| {
-                let a_pop_pref = if a.1.2 == preferred_pop { 0 } else { 1 };
-                let b_pop_pref = if b.1.2 == preferred_pop { 0 } else { 1 };
+                let a_pop_pref = if a.1 .2 == preferred_pop { 0 } else { 1 };
+                let b_pop_pref = if b.1 .2 == preferred_pop { 0 } else { 1 };
                 a_pop_pref.cmp(&b_pop_pref)
             })
         })
     });
     let mut out = Vec::with_capacity(rows.len());
     for (region, (_, _, pop, url)) in rows {
-        if !out.iter().any(|(_, p, _): &(String, String, String)| p == &pop) {
+        if !out
+            .iter()
+            .any(|(_, p, _): &(String, String, String)| p == &pop)
+        {
             out.push((region, pop, url));
         }
     }
@@ -2893,7 +2894,10 @@ pub fn cdn_pop_connect_urls_non_loopback() -> bool {
 }
 
 fn cdn_pop_connect_urls_non_loopback_locked(slot: &[(String, String, String)]) -> bool {
-    !slot.is_empty() && slot.iter().all(|(_, _, url)| !dist_connect_url_is_loopback(url))
+    !slot.is_empty()
+        && slot
+            .iter()
+            .all(|(_, _, url)| !dist_connect_url_is_loopback(url))
 }
 
 /// GA CDN PoP requires ≥2 PoPs with distinct remote hostkeys and non-loopback connect URLs.
@@ -2979,12 +2983,7 @@ fn cdn_pop_sibling_serve_pids_ready() -> bool {
     }
     for i in 0..entries.len() {
         for j in (i + 1)..entries.len() {
-            if dist_pop_pids_are_siblings(
-                entries[i].0,
-                entries[i].1,
-                entries[j].0,
-                entries[j].1,
-            ) {
+            if dist_pop_pids_are_siblings(entries[i].0, entries[i].1, entries[j].0, entries[j].1) {
                 return true;
             }
         }
@@ -3251,7 +3250,12 @@ pub fn cross_continent_failover_region(primary: &str) -> Option<&'static str> {
 static FAILOVER_COUNT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
 /// Phase 82: cross-continent auto failover route (primary → secondary → tertiary).
-pub fn cross_continent_auto_route(region: &str, from: i64, to: i64, payload: impl Into<String>) -> bool {
+pub fn cross_continent_auto_route(
+    region: &str,
+    from: i64,
+    to: i64,
+    payload: impl Into<String>,
+) -> bool {
     let payload = payload.into();
     if cdn_health_probe(region) {
         return cdn_route(region, from, to, payload);
@@ -3499,7 +3503,10 @@ pub fn dist_pop_os_child_try_serve() -> bool {
 
 /// Spawn a TCP mailbox bound to `bind` (e.g. `127.0.0.1:0` or `0.0.0.0:0`).
 /// Registers the bound address as a live runtime host-key proof (`dist-region-hostkey-v6:concrete-ip`).
-pub fn spawn_dist_tcp_mailbox_on(bind: &str, max_conns: usize) -> (SocketAddr, JoinHandle<()>, ArcStop) {
+pub fn spawn_dist_tcp_mailbox_on(
+    bind: &str,
+    max_conns: usize,
+) -> (SocketAddr, JoinHandle<()>, ArcStop) {
     let listener = TcpListener::bind(bind).expect("dist tcp mailbox bind");
     listener
         .set_nonblocking(true)
@@ -3511,7 +3518,9 @@ pub fn spawn_dist_tcp_mailbox_on(bind: &str, max_conns: usize) -> (SocketAddr, J
     let handle = std::thread::spawn(move || {
         let deadline = Instant::now() + Duration::from_secs(5);
         let mut accepted = 0usize;
-        while accepted < max_conns && Instant::now() < deadline && !stop_flag.load(Ordering::Relaxed)
+        while accepted < max_conns
+            && Instant::now() < deadline
+            && !stop_flag.load(Ordering::Relaxed)
         {
             match listener.accept() {
                 Ok((mut stream, _)) => {
@@ -3528,9 +3537,12 @@ pub fn spawn_dist_tcp_mailbox_on(bind: &str, max_conns: usize) -> (SocketAddr, J
                             if let Some((region, from, to, payload)) = parse_route_frame(&frame) {
                                 accepted += 1;
                                 // TCP-only inbox — do not call region_route (inproc is not GA).
-                                tcp_mailbox_inbox()
-                                    .lock()
-                                    .push_back((region, from, to, payload.clone()));
+                                tcp_mailbox_inbox().lock().push_back((
+                                    region,
+                                    from,
+                                    to,
+                                    payload.clone(),
+                                ));
                                 let ack = format!("ACK\0{payload}");
                                 let _ = mp_write_frame(&mut stream, ack.as_bytes());
                             } else {
@@ -3940,9 +3952,10 @@ pub fn dist_region_multihost_has_nonloopback_host_key() -> bool {
 pub fn dist_region_multihost_has_runtime_bound_host_key() -> bool {
     let _ = dist_region_nonloopback_digest();
     let binds = runtime_bound_host_keys().lock();
-    region_multihost_endpoints().lock().iter().any(|(_, _, addr, _)| {
-        dist_host_key_runtime_bind_addr_is_ga(addr, &binds)
-    })
+    region_multihost_endpoints()
+        .lock()
+        .iter()
+        .any(|(_, _, addr, _)| dist_host_key_runtime_bind_addr_is_ga(addr, &binds))
 }
 
 /// True when `host_key_addr` is runtime-bound with live listener, concrete IP, non-loopback, not RFC5737.
@@ -4165,7 +4178,10 @@ mod dist_transport_tests {
         std::thread::sleep(Duration::from_millis(20));
         let url_a = dist_tcp_url_for_bind_addr(&addr_a);
         let url_b = dist_tcp_url_for_bind_addr(&addr_b);
-        cdn_bgp_configure_mesh("region-a", &[("203.0.113.0/24", 100, "bgp-local", url_a.as_str())]);
+        cdn_bgp_configure_mesh(
+            "region-a",
+            &[("203.0.113.0/24", 100, "bgp-local", url_a.as_str())],
+        );
         assert!(
             !cdn_bgp_ga_ready(),
             "local table alone must not pass mesh GA"
@@ -4237,9 +4253,10 @@ mod dist_transport_tests {
         let url_b = dist_tcp_url_for_bind_addr(&addr_b);
         assert!(!url_a.contains("127.0.0.1"));
         assert!(!url_b.contains("127.0.0.1"));
-        cdn_bgp_configure_mesh("us-east", &[
-            ("203.0.113.0/24", 100, "bgp-us", url_a.as_str()),
-        ]);
+        cdn_bgp_configure_mesh(
+            "us-east",
+            &[("203.0.113.0/24", 100, "bgp-us", url_a.as_str())],
+        );
         cdn_bgp_import_peer_mesh(
             "peer-eu",
             "eu-west",

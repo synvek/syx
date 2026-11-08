@@ -3,7 +3,9 @@
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase91_hosts::{
@@ -11,8 +13,8 @@ pub use crate::stdlib_phase91_hosts::{
     host_gui_pixel_read, host_gui_run_loop_once, host_gui_text_field_create,
     host_gui_winit_canvas_draw, host_gui_winit_event_pump, host_gui_winit_window_create,
     host_orm_delete_where, host_orm_update_where, host_sql_begin_transaction, host_sql_bind_step,
-    host_sql_commit_transaction, host_sql_migrate, host_xml_xpath,
-    reset_phase91_state, winit_window_count,
+    host_sql_commit_transaction, host_sql_migrate, host_xml_xpath, reset_phase91_state,
+    winit_window_count,
 };
 
 use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
@@ -36,7 +38,12 @@ static MOBILE_TOUCH_EVENTS: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mute
 #[cfg(target_arch = "wasm32")]
 pub fn host_orm_find_where_dict(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -93,16 +100,21 @@ pub fn host_sql_bind_multi(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_sql_rollback_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = stack;
-    Err(syx_diagnostics::SyxDiagnostic::error("native host unavailable on wasm32").with_code("V081"))
+    Err(vm_error_at(
+        "native host unavailable on wasm32",
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn host_sql_rollback_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     let conn = guard.as_mut().unwrap();
     conn.execute_batch("ROLLBACK;")
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))?;
+        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
     stack.push(Value::Bool(true));
     Ok(())
 }

@@ -9,7 +9,8 @@ use std::path::{Path, PathBuf};
 
 use syx_pkg::NativeConfig;
 
-use crate::DriverOptions;
+use crate::{driver_error_at, DriverOptions};
+use syx_diagnostics::Span;
 
 /// Canonical default build-config filename (`syb` = Sy Build).
 pub const DEFAULT_BUILD_CONFIG: &str = "build.syb";
@@ -20,10 +21,7 @@ pub fn is_build_config_path(path: &Path) -> bool {
 }
 
 /// Resolve build config path: `syx.toml` `build = "..."` if set, else default `build.syb` when present.
-pub fn resolve_build_config_path(
-    root: &Path,
-    manifest: &syx_pkg::SyxManifest,
-) -> Option<PathBuf> {
+pub fn resolve_build_config_path(root: &Path, manifest: &syx_pkg::SyxManifest) -> Option<PathBuf> {
     if let Some(rel) = &manifest.build {
         // Explicit path: always return it (missing file → parse error), matching prior behavior.
         return Some(root.join(rel));
@@ -105,7 +103,12 @@ fn strip_build_syx_comment(line: &str) -> &str {
 /// Minimal line/block parser for `build.syb` (declarative DSL, not full Sy).
 pub fn parse_build_syx(path: &Path) -> syx_diagnostics::SyxResult<BuildPlan> {
     let text = std::fs::read_to_string(path).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("Failed to read build.syb: {e}"))
+        driver_error_at(
+            format!("Failed to read build.syb: {e}"),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
     let mut plan = BuildPlan::default();
     let mut section = String::new();
@@ -307,11 +310,12 @@ pub fn order_build_tasks(plan: &BuildPlan) -> syx_diagnostics::SyxResult<Vec<Str
     for t in &plan.tasks {
         for d in &t.depends_on {
             if !names.contains(d.as_str()) {
-                return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                    "build.syb task '{}' depends on unknown task '{d}'",
-                    t.name
-                ))
-                .with_code("S401"));
+                return Err(driver_error_at(
+                    format!("build.syb task '{}' depends on unknown task '{d}'", t.name),
+                    None,
+                    Span::DUMMY,
+                    "S401",
+                ));
             }
         }
     }
@@ -339,10 +343,12 @@ pub fn order_build_tasks(plan: &BuildPlan) -> syx_diagnostics::SyxResult<Vec<Str
         }
     }
     if order.len() != plan.tasks.len() {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(driver_error_at(
             "build.syb task dependency cycle detected",
-        )
-        .with_code("S402"));
+            None,
+            Span::DUMMY,
+            "S402",
+        ));
     }
     Ok(order)
 }
@@ -358,34 +364,48 @@ fn execute_build_target(
 ) -> syx_diagnostics::SyxResult<()> {
     let out_dir = artifact_dir(ctx.project_root, ctx.options);
     std::fs::create_dir_all(&out_dir).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!(
-            "build task '{task_name}': failed to create {}: {e}",
-            out_dir.display()
-        ))
+        driver_error_at(
+            format!(
+                "build task '{task_name}': failed to create {}: {e}",
+                out_dir.display()
+            ),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
 
     ctx.options.in_build_syx_task = true;
     let result: syx_diagnostics::SyxResult<()> = match target {
         "mir" => crate::emit_mir_text(ctx.project_root, ctx.options).and_then(|text| {
             std::fs::write(out_dir.join("out.mir"), &text).map_err(|e| {
-                syx_diagnostics::SyxDiagnostic::error(format!(
-                    "build task '{task_name}': failed to write MIR: {e}"
-                ))
+                driver_error_at(
+                    format!("build task '{task_name}': failed to write MIR: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "D001",
+                )
             })
         }),
         "wasm" => crate::build_wasm_with_options(ctx.project_root, ctx.options).and_then(|bytes| {
             std::fs::write(out_dir.join("out.wasm"), &bytes).map_err(|e| {
-                syx_diagnostics::SyxDiagnostic::error(format!(
-                    "build task '{task_name}': failed to write WASM: {e}"
-                ))
+                driver_error_at(
+                    format!("build task '{task_name}': failed to write WASM: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "D001",
+                )
             })
         }),
         "native" => {
             crate::build_native_with_options(ctx.project_root, ctx.options).and_then(|out| {
                 std::fs::write(out_dir.join("out.o"), &out.object).map_err(|e| {
-                    syx_diagnostics::SyxDiagnostic::error(format!(
-                        "build task '{task_name}': failed to write native object: {e}"
-                    ))
+                    driver_error_at(
+                        format!("build task '{task_name}': failed to write native object: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "D001",
+                    )
                 })
             })
         }
@@ -398,10 +418,12 @@ fn execute_build_target(
         "farm_queue" => execute_farm_queue_task(task_name, ctx),
         "farm_worker" => execute_farm_worker_task(task_name, ctx),
         other => {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "build.syb task '{task_name}' has unknown target '{other}'"
-            ))
-            .with_code("S403"));
+            return Err(driver_error_at(
+                format!("build.syb task '{task_name}' has unknown target '{other}'"),
+                None,
+                Span::DUMMY,
+                "S403",
+            ));
         }
     };
     ctx.options.in_build_syx_task = false;
@@ -409,11 +431,15 @@ fn execute_build_target(
         if e.code.as_deref() == Some("S403") {
             e
         } else {
-            syx_diagnostics::SyxDiagnostic::error(format!(
-                "build.syb task '{task_name}' (target '{target}') failed: {}",
-                e.message
-            ))
-            .with_code("S404")
+            driver_error_at(
+                format!(
+                    "build.syb task '{task_name}' (target '{target}') failed: {}",
+                    e.message
+                ),
+                None,
+                Span::DUMMY,
+                "S404",
+            )
         }
     })
 }
@@ -628,10 +654,14 @@ fn execute_farm_queue_task(
                 .and_then(|p| p.farm_queue_url)
         })
         .ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error(format!(
-                "build task '{task_name}': farm_queue requires queue URL (build.syb queue= or SYX_BUILD_FARM_QUEUE)"
-            ))
-            .with_code("S406")
+            driver_error_at(
+            format!(
+                    "build task '{task_name}': farm_queue requires queue URL (build.syb queue= or SYX_BUILD_FARM_QUEUE)"
+                ),
+            None,
+            Span::DUMMY,
+            "S406",
+        )
         })?;
     execute_remote_farm_task(task_name, ctx)?;
     if let Ok(mut g) = LAST_FARM_QUEUE_HIT.lock() {
@@ -654,10 +684,12 @@ fn execute_farm_worker_task(
                 .and_then(|p| p.farm_queue_url)
         })
         .ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error(format!(
-                "build task '{task_name}': farm_worker requires queue URL"
-            ))
-            .with_code("S407")
+            driver_error_at(
+                format!("build task '{task_name}': farm_worker requires queue URL"),
+                None,
+                Span::DUMMY,
+                "S407",
+            )
         })?;
     let farm_url = std::env::var("SYX_BUILD_FARM_URL")
         .ok()
@@ -668,8 +700,14 @@ fn execute_farm_worker_task(
                 .and_then(|p| p.farm_url)
         })
         .unwrap_or_else(crate::default_farm_cache_url);
-    farm_worker_run_cycle(&queue_url, &farm_url)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("farm worker failed: {e}")))?;
+    farm_worker_run_cycle(&queue_url, &farm_url).map_err(|e| {
+        driver_error_at(
+            format!("farm worker failed: {e}"),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     Ok(())
 }
 
@@ -687,29 +725,47 @@ fn execute_remote_farm_task(
                 .and_then(|p| p.farm_url)
         })
         .ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error(format!(
-                "build task '{task_name}': remote target requires farm URL (build.syb farm= or SYX_BUILD_FARM_URL)"
-            ))
-            .with_code("S405")
+            driver_error_at(
+            format!(
+                    "build task '{task_name}': remote target requires farm URL (build.syb farm= or SYX_BUILD_FARM_URL)"
+                ),
+            None,
+            Span::DUMMY,
+            "S405",
+        )
         })?;
     let main = ctx.project_root.join("main.sy");
     if !main.exists() {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "build task '{task_name}': main.sy not found"
-        )));
+        return Err(driver_error_at(
+            format!("build task '{task_name}': main.sy not found"),
+            None,
+            Span::DUMMY,
+            "D004",
+        ));
     }
     let _ = crate::compile_with_cache(&main, ctx.project_root)?;
     let cache = crate::incremental_cache_path(ctx.project_root, &main);
     let bytes = std::fs::read(&cache).map_err(|e| {
-        syx_diagnostics::SyxDiagnostic::error(format!("farm cache read failed: {e}"))
+        driver_error_at(
+            format!("farm cache read failed: {e}"),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
     let fname = cache
         .file_name()
         .and_then(|n| n.to_str())
         .unwrap_or("module.bin");
     let dest = format!("{}/{}", farm_url.trim_end_matches('/'), fname);
-    crate::push_cache_remote(&dest, &bytes)
-        .map_err(|e| syx_diagnostics::SyxDiagnostic::error(format!("farm upload failed: {e}")))?;
+    crate::push_cache_remote(&dest, &bytes).map_err(|e| {
+        driver_error_at(
+            format!("farm upload failed: {e}"),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     if let Ok(queue_url) = std::env::var("SYX_BUILD_FARM_QUEUE") {
         if !queue_url.is_empty() {
             let qdest = format!("{}/{}", queue_url.trim_end_matches('/'), fname);
@@ -764,17 +820,12 @@ pub fn diagnose_build_syx(
                                 .map(|l| l.len() + 1)
                                 .sum::<usize>()
                                 + col;
-                            diags.push(
-                                syx_diagnostics::SyxDiagnostic::error(format!(
-                                    "build.syb task '{task_name}' has unknown target '{val}'"
-                                ))
-                                .with_code("S403")
-                                .with_span(
-                                    source,
-                                    syx_diagnostics::Span::new(offset, val.len()),
-                                    "unknown target",
-                                ),
-                            );
+                            diags.push(driver_error_at(
+                                format!("build.syb task '{task_name}' has unknown target '{val}'"),
+                                Some(source),
+                                Span::new(offset, val.len()),
+                                "S403",
+                            ));
                         }
                     } else if key == "dependsOn" {
                         task.depends_on = parse_string_array(val);
@@ -793,13 +844,17 @@ pub fn diagnose_build_syx(
     for t in &plan.tasks {
         for dep in &t.depends_on {
             if !names.contains(dep.as_str()) {
-                diags.push(
-                    syx_diagnostics::SyxDiagnostic::error(format!(
+                let dep_str = dep.as_str();
+                let offset = text.find(dep_str).unwrap_or(0);
+                diags.push(driver_error_at(
+                    format!(
                         "build.syb task '{}' depends on unknown task '{dep}'",
                         t.name
-                    ))
-                    .with_code("S401"),
-                );
+                    ),
+                    Some(source),
+                    Span::new(offset, dep_str.len()),
+                    "S401",
+                ));
             }
         }
     }

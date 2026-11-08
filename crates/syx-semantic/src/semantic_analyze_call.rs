@@ -4,9 +4,12 @@
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
     expr_span, is_compatible, is_retired_collection_methodcall, reflect_type_lower,
-    simd_lanes_from_type_name, type_collection_surface, type_id_to_name, type_name_to_id, TypeId,
+    simd_lanes_from_type_name, type_collection_surface, type_id_to_name, type_name_to_id, Scope,
+    ScopeError, Symbol, TypeId,
 };
-use crate::import_resolver::check_import_member_access as check_import_access;
+use crate::import_resolver::{
+    check_import_member_access as check_import_access, ImportAccessError,
+};
 use crate::type_checker::check_assignable;
 use smol_str::SmolStr;
 use syx_ast::{
@@ -23,13 +26,57 @@ use syx_stdlib::{
 };
 
 impl SemanticAnalyzer {
-    pub(crate) fn check_import_member_access(&self, module: &str, member: &str) -> SyxResult<()> {
+    pub(crate) fn check_import_member_access(
+        &self,
+        module: &str,
+        member: &str,
+        span: syx_diagnostics::Span,
+    ) -> SyxResult<()> {
         check_import_access(
             &self.imported_modules,
             &self.import_exports,
             module,
             member,
         )
+        .map_err(|e| match e {
+            ImportAccessError::NonPublic { module, member } => self.error_at(
+                format!("Cannot access non-public symbol '{module}.{member}'"),
+                span,
+                "S005",
+            ),
+        })
+    }
+
+    pub(crate) fn define_in_scope(
+        &mut self,
+        scope: &mut Scope,
+        symbol: Symbol,
+        span: syx_diagnostics::Span,
+    ) -> SyxResult<()> {
+        scope.define(symbol).map_err(|e| match e {
+            ScopeError::Duplicate(name) => self.error_at(
+                format!("Symbol '{name}' already defined in this scope"),
+                span,
+                "S001",
+            ),
+        })
+    }
+
+    pub(crate) fn define_symbol(
+        &mut self,
+        symbol: Symbol,
+        span: syx_diagnostics::Span,
+    ) -> SyxResult<()> {
+        let name = symbol.name.clone();
+        if self.scope.symbols.contains_key(&name) {
+            return Err(self.error_at(
+                format!("Symbol '{name}' already defined in this scope"),
+                span,
+                "S001",
+            ));
+        }
+        self.scope.symbols.insert(name, symbol);
+        Ok(())
     }
 
     fn lookup_binding_type(&self, name: &SmolStr) -> TypeId {
@@ -80,7 +127,15 @@ impl SemanticAnalyzer {
     }
 
     pub(crate) fn error_at(&self, message: impl Into<String>, span: syx_diagnostics::Span, code: &str) -> SyxDiagnostic {
-        let mut diag = SyxDiagnostic::error(message).with_code(code);
+        let mut diag = SyxDiagnostic {
+            message: message.into(),
+            severity: syx_diagnostics::Severity::Error,
+            code: Some(code.to_string()),
+            source: None,
+            primary_span: None,
+        label: None,
+        help: None,
+        };
         if span != syx_diagnostics::Span::DUMMY {
             if let Some(ref src) = self.source {
                 diag = diag.with_span(src, span, "");
@@ -339,23 +394,23 @@ impl SemanticAnalyzer {
                                 .unwrap_or(false),
                         };
                         if non_sendable {
-                            self.errors.push(
-                                SyxDiagnostic::error(
-                                    "Non-Sendable value cannot be sent on a channel",
-                                )
-                                .with_code("S019"),
-                            );
+                            self.errors.push(self.error_at(
+                                "Non-Sendable value cannot be sent on a channel",
+                                *span,
+                                "S019",
+                            ));
                         }
                     }
                     return Ok(TypeId::Void);
                 }
                 if self.throwing_functions.contains_key(name) && self.try_depth == 0 {
-                    self.errors.push(
-                        SyxDiagnostic::error(format!(
+                    self.errors.push(self.error_at(
+                        format!(
                             "Call to throwing function '{name}' must use try or appear inside a try block"
-                        ))
-                        .with_code("S018"),
-                    );
+                        ),
+                        *span,
+                        "S018",
+                    ));
                 }
                 for arg in args {
                     self.analyze_expr(&arg.value)?;
@@ -391,7 +446,7 @@ impl SemanticAnalyzer {
                 }) = self.globals.get(name).map(|s| s.ty.clone())
                 {
                     let type_args = self.infer_call_type_args(type_params.len(), args);
-                    self.validate_generic_instantiation(&fn_name, &type_args);
+                    self.validate_generic_instantiation(&fn_name, &type_args, *span);
                     let ret = self.instantiate_generic_return(&fn_name, &type_params, &type_args);
                     self.record_instantiation(fn_name, type_args);
                     return Ok(ret);
@@ -484,7 +539,7 @@ impl SemanticAnalyzer {
                 let obj_ty = self.analyze_expr(object)?;
                 self.check_retired_size_alias(&obj_ty, name.as_str(), *span)?;
                 if let Expr::Ident { name: module, .. } = object.as_ref() {
-                    self.check_import_member_access(module.as_str(), name.as_str())?;
+                    self.check_import_member_access(module.as_str(), name.as_str(), *span)?;
                     if name.chars().next().is_some_and(|c| c.is_uppercase()) {
                         for arg in args {
                             self.analyze_expr(&arg.value)?;
@@ -517,6 +572,7 @@ impl SemanticAnalyzer {
                                 &type_params,
                                 &where_clause,
                                 &type_args,
+                                *span,
                             );
                             self.record_instantiation(qualified, type_args);
                             return Ok(TypeId::Void);
@@ -709,6 +765,7 @@ impl SemanticAnalyzer {
                                 &type_params,
                                 &where_clause,
                                 &type_args,
+                                expr_span(callee),
                             );
                             self.record_instantiation(enum_name.clone(), type_args);
                         } else if let Some((type_params, where_clause)) =
@@ -725,6 +782,7 @@ impl SemanticAnalyzer {
                                 &type_params,
                                 &where_clause,
                                 &type_args,
+                                expr_span(callee),
                             );
                             self.record_instantiation(enum_name.clone(), type_args);
                         }
@@ -798,10 +856,7 @@ impl SemanticAnalyzer {
         }
         match check_assignable(expected, found, name) {
             Ok(()) => Ok(()),
-            Err(err) => {
-                let code = err.code.as_deref().unwrap_or("S004");
-                Err(self.error_at(err.message, span, code))
-            }
+            Err(err) => Err(self.error_at(err.message, span, err.code)),
         }
     }
 
@@ -841,12 +896,12 @@ impl SemanticAnalyzer {
     ) -> SyxResult<()> {
         let diag_span = init.map(expr_span).unwrap_or(decl_span);
         if matches!(expected, TypeId::OpaqueAny(_) | TypeId::OpaqueSome(_)) {
-            if self.check_opaque_protocol_assignable(&expected, &found, name) {
+            if self.check_opaque_protocol_assignable(&expected, &found, name, diag_span) {
                 return Ok(());
             }
         }
         if let Some(Expr::Literal { value, .. }) = init {
-            self.check_literal_in_range(value, &expected);
+            self.check_literal_in_range(value, &expected, diag_span);
             if matches!(expected, TypeId::Named(ref n) if n.as_str() == "Character") {
                 if let Literal::String(s) = value {
                     if s.chars().count() != 1 {
@@ -908,14 +963,14 @@ impl SemanticAnalyzer {
                 {
                     return self.check_assignable(expected, found, name, diag_span);
                 }
-                self.validate_set_elem_hashable(set_elem);
+                self.validate_set_elem_hashable(set_elem, diag_span);
                 return Ok(());
             }
             if matches!(&found, TypeId::Named(n) if n.as_str() == "Set") {
                 let TypeId::Set(set_elem) = &expected else {
                     return self.check_assignable(expected, found, name, diag_span);
                 };
-                self.validate_set_elem_hashable(set_elem);
+                self.validate_set_elem_hashable(set_elem, diag_span);
                 return Ok(());
             }
         }
@@ -941,7 +996,7 @@ impl SemanticAnalyzer {
             }) = init
             {
                 if matches!(&found, TypeId::Dictionary { .. }) {
-                    self.validate_dict_key_hashable(exp_key);
+                    self.validate_dict_key_hashable(exp_key, diag_span);
                     for (k, v) in entries {
                         let kt = self.type_of_expr(k);
                         let vt = self.type_of_expr(v);
@@ -1031,7 +1086,7 @@ impl SemanticAnalyzer {
             } = expr
             {
                 if entries.is_empty() {
-                    self.validate_dict_key_hashable(key);
+                    self.validate_dict_key_hashable(key, expr_span(expr));
                     let ty = TypeId::Dictionary {
                         key: key.clone(),
                         value: value.clone(),

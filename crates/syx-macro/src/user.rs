@@ -22,13 +22,14 @@ use indexmap::IndexMap;
 use smol_str::SmolStr;
 use std::collections::HashSet;
 use syx_ast::{AccessLevel, CallArg, Decl, Expr, Literal, Stmt};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::attached_config::macro_hygiene_enabled;
 use crate::hygiene::{
     bind_macro_params, check_macro_decl_hygiene_capture, check_macro_hygiene_capture,
     check_macro_param_shadow, fresh_expansion_id, rename_macro_body, rename_macro_decls,
 };
+use crate::macro_error_at;
 use crate::roles::{macro_has_role, role_mismatch_diag, user_macro_roles, FreestandingRole};
 use std::sync::{LazyLock, Mutex};
 
@@ -42,11 +43,12 @@ pub fn register_imported_user_macros(decls: &[Decl]) {
             if let Decl::MacroDecl {
                 name,
                 attrs,
-                implementation: syx_ast::MacroImplementation::User {
-                    params,
-                    body,
-                    decl_body,
-                },
+                implementation:
+                    syx_ast::MacroImplementation::User {
+                        params,
+                        body,
+                        decl_body,
+                    },
                 ..
             } = decl
             {
@@ -98,7 +100,9 @@ fn expr_to_string_repr(expr: &Expr) -> String {
             value: Literal::String(s),
             ..
         } => s.clone(),
-        Expr::Binary { left, op, right, .. } => {
+        Expr::Binary {
+            left, op, right, ..
+        } => {
             format!(
                 "{}{}{}",
                 expr_to_string_repr(left),
@@ -134,7 +138,12 @@ fn expr_to_string_repr(expr: &Expr) -> String {
 fn subst_param(expr: &Expr, param: &str, arg: &Expr) -> Expr {
     match expr {
         Expr::Ident { name, span } if name.as_str() == param => arg.clone(),
-        Expr::Binary { span, left, op, right } => Expr::Binary {
+        Expr::Binary {
+            span,
+            left,
+            op,
+            right,
+        } => Expr::Binary {
             span: *span,
             left: Box::new(subst_param(left, param, arg)),
             op: *op,
@@ -176,14 +185,21 @@ fn subst_param(expr: &Expr, param: &str, arg: &Expr) -> Expr {
             span: *span,
             expr: Box::new(subst_param(expr, param, arg)),
         },
-        Expr::Index { span, object, index } => Expr::Index {
+        Expr::Index {
+            span,
+            object,
+            index,
+        } => Expr::Index {
             span: *span,
             object: Box::new(subst_param(object, param, arg)),
             index: Box::new(subst_param(index, param, arg)),
         },
         Expr::Array { span, elements } => Expr::Array {
             span: *span,
-            elements: elements.iter().map(|e| subst_param(e, param, arg)).collect(),
+            elements: elements
+                .iter()
+                .map(|e| subst_param(e, param, arg))
+                .collect(),
         },
         Expr::Cast { span, expr, target } => Expr::Cast {
             span: *span,
@@ -251,7 +267,11 @@ fn subst_param(expr: &Expr, param: &str, arg: &Expr) -> Expr {
             expr: Box::new(subst_param(expr, param, arg)),
             target: target.clone(),
         },
-        Expr::Borrow { span, expr, mutable } => Expr::Borrow {
+        Expr::Borrow {
+            span,
+            expr,
+            mutable,
+        } => Expr::Borrow {
             span: *span,
             expr: Box::new(subst_param(expr, param, arg)),
             mutable: *mutable,
@@ -271,9 +291,9 @@ fn subst_param(expr: &Expr, param: &str, arg: &Expr) -> Expr {
             params: closure_params.clone(),
             return_type: return_type.clone(),
             body: match body {
-                syx_ast::ClosureBody::Expr(inner) => syx_ast::ClosureBody::Expr(Box::new(subst_param(
-                    inner, param, arg,
-                ))),
+                syx_ast::ClosureBody::Expr(inner) => {
+                    syx_ast::ClosureBody::Expr(Box::new(subst_param(inner, param, arg)))
+                }
                 syx_ast::ClosureBody::Block(stmts) => syx_ast::ClosureBody::Block(
                     stmts.iter().map(|s| subst_stmt(s, param, arg)).collect(),
                 ),
@@ -346,7 +366,10 @@ fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
         } => Stmt::If {
             span: *span,
             condition: subst_param(condition, param, arg),
-            then_branch: then_branch.iter().map(|s| subst_stmt(s, param, arg)).collect(),
+            then_branch: then_branch
+                .iter()
+                .map(|s| subst_stmt(s, param, arg))
+                .collect(),
             else_branch: else_branch
                 .as_ref()
                 .map(|b| b.iter().map(|s| subst_stmt(s, param, arg)).collect()),
@@ -397,7 +420,10 @@ fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
             body: body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
             catch_name: catch_name.clone(),
             catch_type: catch_type.clone(),
-            catch_body: catch_body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
+            catch_body: catch_body
+                .iter()
+                .map(|s| subst_stmt(s, param, arg))
+                .collect(),
         },
         Stmt::Switch {
             span,
@@ -460,7 +486,10 @@ fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
             name: name.clone(),
             pattern: subst_param(pattern, param, arg),
             body: body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
-            else_branch: else_branch.iter().map(|s| subst_stmt(s, param, arg)).collect(),
+            else_branch: else_branch
+                .iter()
+                .map(|s| subst_stmt(s, param, arg))
+                .collect(),
         },
         Stmt::MacroInvoke { span, name, args } => Stmt::MacroInvoke {
             span: *span,
@@ -887,12 +916,18 @@ fn expand_site_invokes(
             Decl::MacroSiteInvoke { name, args, .. } => {
                 if let Some(def) = defs.get(&name) {
                     if !macro_has_role(&def.roles, FreestandingRole::Declaration) {
-                        return Err(role_mismatch_diag(name.as_str(), FreestandingRole::Declaration));
+                        return Err(role_mismatch_diag(
+                            name.as_str(),
+                            FreestandingRole::Declaration,
+                        ));
                     }
                     if def.params.len() != args.len() {
-                        return Err(SyxDiagnostic::error(format!(
-                            "macro '#{name}' arity mismatch"
-                        )));
+                        return Err(macro_error_at(
+                            format!("macro '#{name}' arity mismatch"),
+                            None,
+                            Span::DUMMY,
+                            "M037",
+                        ));
                     }
                     // Phase 131: substitute ident/literal args into decl_body
                     // (macro-token-v2:decl-param-subst-mvp).
@@ -922,7 +957,12 @@ fn expand_site_invokes(
                     out.extend(expanded);
                     continue;
                 }
-                return Err(SyxDiagnostic::error(format!("Unknown macro '#{name}'")));
+                return Err(macro_error_at(
+                    format!("Unknown macro '#{name}'"),
+                    None,
+                    Span::DUMMY,
+                    "M038",
+                ));
             }
             other => out.push(other),
         }
@@ -941,11 +981,12 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
         if let Decl::MacroDecl {
             name,
             attrs,
-            implementation: syx_ast::MacroImplementation::User {
-                params,
-                body,
-                decl_body,
-            },
+            implementation:
+                syx_ast::MacroImplementation::User {
+                    params,
+                    body,
+                    decl_body,
+                },
             ..
         } = decl
         {
@@ -987,10 +1028,9 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                 value: Some(expr), ..
             }] => Ok(expr.clone()),
             [Stmt::Block { stmts, .. }] => expr_from_macro_body(name, stmts),
-            _ => Err(SyxDiagnostic::error(format!(
+            _ => Err(macro_error_at(format!(
                 "expression-position macro '#{name}' must expand to a single expression (ident/literal token subst MVP)"
-            ))
-            .with_code("E002")),
+            ), None, Span::DUMMY, "E002")),
         }
     }
 
@@ -1009,20 +1049,36 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                 }
                 if let Some(def) = defs.get(name) {
                     if !macro_has_role(&def.roles, FreestandingRole::Expression) {
-                        return Err(role_mismatch_diag(name.as_str(), FreestandingRole::Expression));
+                        return Err(role_mismatch_diag(
+                            name.as_str(),
+                            FreestandingRole::Expression,
+                        ));
                     }
                     let params = &def.params;
                     let body = &def.body;
                     if params.len() != args.len() {
-                        return Err(SyxDiagnostic::error(format!(
-                            "macro '#{name}' arity mismatch"
-                        )));
+                        return Err(macro_error_at(
+                            format!("macro '#{name}' arity mismatch"),
+                            None,
+                            Span::DUMMY,
+                            "M037",
+                        ));
                     }
                     if depth >= 16 {
-                        return Err(SyxDiagnostic::error("macro expansion depth exceeded").with_code("E002"));
+                        return Err(macro_error_at(
+                            "macro expansion depth exceeded",
+                            None,
+                            Span::DUMMY,
+                            "E002",
+                        ));
                     }
                     if stack.iter().any(|n| n == name) {
-                        return Err(SyxDiagnostic::error("cyclic macro expansion").with_code("E002"));
+                        return Err(macro_error_at(
+                            "cyclic macro expansion",
+                            None,
+                            Span::DUMMY,
+                            "E002",
+                        ));
                     }
                     stack.push(name.clone());
                     // Phase 134 M24: expression-site param subst deepen
@@ -1044,14 +1100,13 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                             .map(|(p, a)| (p.to_string(), a))
                             .collect()
                     };
-                    let binding_refs: Vec<(&str, &Expr)> = bindings
-                        .iter()
-                        .map(|(p, a)| (p.as_str(), a))
-                        .collect();
-                    let replaced =
-                        if let Ok(template) = expr_from_macro_body(name.as_str(), &body_for_template) {
-                            subst_params_into_expr(&template, &binding_refs)
-                        } else {
+                    let binding_refs: Vec<(&str, &Expr)> =
+                        bindings.iter().map(|(p, a)| (p.as_str(), a)).collect();
+                    let replaced = if let Ok(template) =
+                        expr_from_macro_body(name.as_str(), &body_for_template)
+                    {
+                        subst_params_into_expr(&template, &binding_refs)
+                    } else {
                         let mut expanded = body.clone();
                         if macro_hygiene_enabled() {
                             let eid = fresh_expansion_id();
@@ -1082,7 +1137,12 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                     && name.as_str() != "stringify"
                 {
                     let _ = span;
-                    return Err(SyxDiagnostic::error(format!("Unknown macro '#{name}'")));
+                    return Err(macro_error_at(
+                        format!("Unknown macro '#{name}'"),
+                        None,
+                        Span::DUMMY,
+                        "M038",
+                    ));
                 }
             }
             Expr::Binary { left, right, .. } => {
@@ -1122,15 +1182,17 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
         stack: &mut Vec<smol_str::SmolStr>,
     ) -> SyxResult<()> {
         match stmt {
-            Stmt::Print { expr, .. }
-            | Stmt::Expr { expr, .. }
-            | Stmt::Throw { expr, .. } => {
+            Stmt::Print { expr, .. } | Stmt::Expr { expr, .. } | Stmt::Throw { expr, .. } => {
                 expand_expr_user(expr, defs, depth, stack)?;
             }
-            Stmt::VarDecl { init: Some(expr), .. } => {
+            Stmt::VarDecl {
+                init: Some(expr), ..
+            } => {
                 expand_expr_user(expr, defs, depth, stack)?;
             }
-            Stmt::Return { value: Some(expr), .. } => {
+            Stmt::Return {
+                value: Some(expr), ..
+            } => {
                 expand_expr_user(expr, defs, depth, stack)?;
             }
             Stmt::If {
@@ -1160,9 +1222,7 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                     expand_exprs_in_stmt(s, defs, depth, stack)?;
                 }
             }
-            Stmt::ForIn {
-                iterable, body, ..
-            } => {
+            Stmt::ForIn { iterable, body, .. } => {
                 expand_expr_user(iterable, defs, depth, stack)?;
                 for s in body.iter_mut() {
                     expand_exprs_in_stmt(s, defs, depth, stack)?;
@@ -1277,20 +1337,36 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
             if let Stmt::MacroInvoke { name, args, .. } = &stmt {
                 if let Some(def) = defs.get(name) {
                     if !macro_has_role(&def.roles, FreestandingRole::Statement) {
-                        return Err(role_mismatch_diag(name.as_str(), FreestandingRole::Statement));
+                        return Err(role_mismatch_diag(
+                            name.as_str(),
+                            FreestandingRole::Statement,
+                        ));
                     }
                     let params = &def.params;
                     let body = &def.body;
                     if params.len() != args.len() {
-                        return Err(SyxDiagnostic::error(format!(
-                            "macro '#{name}' arity mismatch"
-                        )));
+                        return Err(macro_error_at(
+                            format!("macro '#{name}' arity mismatch"),
+                            None,
+                            Span::DUMMY,
+                            "M037",
+                        ));
                     }
                     if depth >= 16 {
-                        return Err(SyxDiagnostic::error("macro expansion depth exceeded").with_code("E002"));
+                        return Err(macro_error_at(
+                            "macro expansion depth exceeded",
+                            None,
+                            Span::DUMMY,
+                            "E002",
+                        ));
                     }
                     if stack.iter().any(|n| n == name) {
-                        return Err(SyxDiagnostic::error("cyclic macro expansion").with_code("E002"));
+                        return Err(macro_error_at(
+                            "cyclic macro expansion",
+                            None,
+                            Span::DUMMY,
+                            "E002",
+                        ));
                     }
                     stack.push(name.clone());
                     // Phase 133 M23: stmt-site ident/literal token subst
@@ -1321,7 +1397,9 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                 }
             }
             match stmt {
-                Stmt::Block { span, mut stmts, .. } => {
+                Stmt::Block {
+                    span, mut stmts, ..
+                } => {
                     expand_stmts_user(&mut stmts, defs, depth, stack)?;
                     out.push(Stmt::Block { span, stmts });
                 }
@@ -1442,13 +1520,20 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
         for stmt in stmts.drain(..) {
             if let Stmt::MacroInvoke { name, .. } = &stmt {
                 if crate::external::lookup_external_macro(name).is_none() {
-                    return Err(SyxDiagnostic::error(format!("Unknown macro '#{name}'")));
+                    return Err(macro_error_at(
+                        format!("Unknown macro '#{name}'"),
+                        None,
+                        Span::DUMMY,
+                        "M038",
+                    ));
                 }
                 out.push(stmt);
                 continue;
             }
             match stmt {
-                Stmt::Block { span, mut stmts, .. } => {
+                Stmt::Block {
+                    span, mut stmts, ..
+                } => {
                     reject_unknown_macros(&mut stmts)?;
                     out.push(Stmt::Block { span, stmts });
                 }

@@ -4,7 +4,8 @@ use std::os::raw::{c_char, c_int};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock};
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use crate::rt_diag::rt_error_at;
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 use syx_mir::MirModule;
 use syx_mir_run::MirRuntime;
 use syx_runtime_core::Value;
@@ -91,12 +92,11 @@ pub fn native_stack_dispatch(rt: &mut MirRuntime, op: u32, a: i32, b: i32) -> i3
         AWAIT_POLL, AWAIT_SUSPEND, BEGIN_TRY, CALL_CLOSURE, CALL_FN, CALL_HOST, CALL_WITNESS,
         CATCH, CONST_BOOL, CONST_I32, CONST_NIL, CONST_STR, DICT_BUILD, DIV, DUP, END_TRY, EQ, GE,
         GT, HEAP_COMPACT, ITERATOR_NEXT, LE, LOAD_GLOBAL, LOAD_LOCAL, LT, MAKE_CLOSURE,
-        MAKE_ITERATOR, METHOD_CALL, MOD, MUL, NE, NEG, NOT, OBJECT_GET, OBJECT_SET, OR, POP,
-        PRINT, REF_EQ, REF_NE, SET_BUILD,
-        SIMD_ADD, SIMD_AND, SIMD_DIV, SIMD_EQ, SIMD_GE, SIMD_GT, SIMD_LE, SIMD_LOAD, SIMD_LT,
-        SIMD_MUL, SIMD_NE, SIMD_NOT, SIMD_OR, SIMD_SHL, SIMD_SHR, SIMD_SHUFFLE, SIMD_STORE,
-        SIMD_SUB, SIMD_WASM_FILL, SIMD_WASM_SPILL, SIMD_XOR, STORE_GLOBAL, STORE_LOCAL, SUB,
-        TASK_JOIN, TASK_SPAWN, THROW, TO_STR, VALUE_EQ, VALUE_NE,
+        MAKE_ITERATOR, METHOD_CALL, MOD, MUL, NE, NEG, NOT, OBJECT_GET, OBJECT_SET, OR, POP, PRINT,
+        REF_EQ, REF_NE, SET_BUILD, SIMD_ADD, SIMD_AND, SIMD_DIV, SIMD_EQ, SIMD_GE, SIMD_GT,
+        SIMD_LE, SIMD_LOAD, SIMD_LT, SIMD_MUL, SIMD_NE, SIMD_NOT, SIMD_OR, SIMD_SHL, SIMD_SHR,
+        SIMD_SHUFFLE, SIMD_STORE, SIMD_SUB, SIMD_WASM_FILL, SIMD_WASM_SPILL, SIMD_XOR,
+        STORE_GLOBAL, STORE_LOCAL, SUB, TASK_JOIN, TASK_SPAWN, THROW, TO_STR, VALUE_EQ, VALUE_NE,
     };
     match op {
         CONST_I32 => {
@@ -149,11 +149,10 @@ pub fn native_stack_dispatch(rt: &mut MirRuntime, op: u32, a: i32, b: i32) -> i3
         | AWAIT_POLL | AWAIT_SUSPEND | ACTOR_CALL | ACTOR_SEND | ACTOR_REGISTER | TASK_SPAWN
         | TASK_JOIN | MAKE_CLOSURE | CALL_CLOSURE | BEGIN_TRY | END_TRY | CATCH | THROW
         | CONST_STR | TO_STR | VALUE_EQ | VALUE_NE | REF_EQ | REF_NE | LOAD_GLOBAL
-        | STORE_GLOBAL
-        | HEAP_COMPACT | SIMD_ADD | SIMD_SUB | SIMD_MUL | SIMD_DIV | SIMD_EQ | SIMD_LT
-        | SIMD_GT | SIMD_NE | SIMD_LE | SIMD_GE | SIMD_AND | SIMD_OR | SIMD_XOR | SIMD_NOT
-        | SIMD_SHL | SIMD_SHR | SIMD_LOAD | SIMD_STORE | SIMD_SHUFFLE | SIMD_WASM_SPILL
-        | SIMD_WASM_FILL => native_stack_dispatch_fallback(rt, op, a, b),
+        | STORE_GLOBAL | HEAP_COMPACT | SIMD_ADD | SIMD_SUB | SIMD_MUL | SIMD_DIV | SIMD_EQ
+        | SIMD_LT | SIMD_GT | SIMD_NE | SIMD_LE | SIMD_GE | SIMD_AND | SIMD_OR | SIMD_XOR
+        | SIMD_NOT | SIMD_SHL | SIMD_SHR | SIMD_LOAD | SIMD_STORE | SIMD_SHUFFLE
+        | SIMD_WASM_SPILL | SIMD_WASM_FILL => native_stack_dispatch_fallback(rt, op, a, b),
         _ => native_stack_dispatch_fallback(rt, op, a, b),
     }
 }
@@ -593,7 +592,14 @@ pub(crate) fn run_native_mir_handler(handler: &str, req: &Value) -> SyxResult<Va
         .get()
         .cloned()
         .or_else(|| NativeRt::with(|rt| rt.run_ctx.clone()))
-        .ok_or_else(|| SyxDiagnostic::error("MIR module not loaded for native HTTP"))?;
+        .ok_or_else(|| {
+            rt_error_at(
+                "MIR module not loaded for native HTTP",
+                None,
+                Span::DUMMY,
+                "R010",
+            )
+        })?;
     crate::bridge::run_mir_by_name(&ctx, handler, vec![req.clone()])
 }
 

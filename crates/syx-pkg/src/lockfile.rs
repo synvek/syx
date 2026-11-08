@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::pkg_error_at;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "source", rename_all = "lowercase")]
@@ -248,26 +250,41 @@ impl InstalledPackage {
 pub fn load_lockfile(root: &Path) -> SyxResult<SyxLockfile> {
     let path = root.join("syx.lock");
     if !path.exists() {
-        return Err(SyxDiagnostic::error(format!(
-            "Missing syx.lock at {}",
-            path.display()
-        ))
-        .with_code("P001"));
+        return Err(pkg_error_at(
+            format!("Missing syx.lock at {}", path.display()),
+            None,
+            Span::DUMMY,
+            "P001",
+        ));
     }
     let text = std::fs::read_to_string(&path).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read syx.lock: {e}"))
+        pkg_error_at(
+            format!("Failed to read syx.lock: {e}"),
+            None,
+            Span::DUMMY,
+            "P039",
+        )
     })?;
-    toml::from_str(&text).map_err(|e| {
-        SyxDiagnostic::error(format!("Invalid syx.lock: {e}")).with_code("P001")
-    })
+    toml::from_str(&text)
+        .map_err(|e| pkg_error_at(format!("Invalid syx.lock: {e}"), None, Span::DUMMY, "P001"))
 }
 
 pub fn save_lockfile(root: &Path, lock: &SyxLockfile) -> SyxResult<()> {
     let text = toml::to_string_pretty(lock).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to serialize syx.lock: {e}"))
+        pkg_error_at(
+            format!("Failed to serialize syx.lock: {e}"),
+            None,
+            Span::DUMMY,
+            "P039",
+        )
     })?;
     std::fs::write(root.join("syx.lock"), text).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to write syx.lock: {e}"))
+        pkg_error_at(
+            format!("Failed to write syx.lock: {e}"),
+            None,
+            Span::DUMMY,
+            "P039",
+        )
     })
 }
 

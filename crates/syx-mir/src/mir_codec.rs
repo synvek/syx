@@ -2,8 +2,9 @@
 //! Extracted in S2-I167 (zero semantics; re-exported from crate root).
 
 use smol_str::SmolStr;
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 
+use crate::mir_diag::mir_error_at;
 use crate::{MirFunction, MirInstr, MirModule, MirOp};
 
 pub fn encode_module(module: &MirModule) -> Vec<u8> {
@@ -11,7 +12,8 @@ pub fn encode_module(module: &MirModule) -> Vec<u8> {
 }
 
 pub fn decode_module(bytes: &[u8]) -> SyxResult<MirModule> {
-    bincode::deserialize(bytes).map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))
+    bincode::deserialize(bytes)
+        .map_err(|e| mir_error_at(e.to_string(), None, Span::DUMMY, "MIR001"))
 }
 
 /// Whole-module MIR blob inventory stats (B-05 encode/load honesty floor; ≠ codec split).
@@ -95,7 +97,8 @@ pub fn encode_module_metadata_sidecar(module: &MirModule) -> Vec<u8> {
 /// Round-trip partner of [`encode_module_metadata_sidecar`]. Does **not** replace
 /// [`decode_module`] / `syx_rt_load_mir_blob` whole-module load.
 pub fn decode_module_metadata_sidecar(bytes: &[u8]) -> SyxResult<MirModuleMetadataSidecarView> {
-    bincode::deserialize(bytes).map_err(|e| syx_diagnostics::SyxDiagnostic::error(e.to_string()))
+    bincode::deserialize(bytes)
+        .map_err(|e| mir_error_at(e.to_string(), None, Span::DUMMY, "MIR001"))
 }
 
 /// Production Medium dual-blob package: sidecar view + whole-module execution bytes.
@@ -114,9 +117,8 @@ const DUAL_BLOB_PACKAGE_MAGIC: &[u8; 4] = b"SYXD";
 const DUAL_BLOB_PACKAGE_VERSION: u8 = 1;
 
 fn encode_dual_blob_framed(sidecar_bytes: &[u8], execution_bytes: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(
-        16 + sidecar_bytes.len().saturating_add(execution_bytes.len()),
-    );
+    let mut out =
+        Vec::with_capacity(16 + sidecar_bytes.len().saturating_add(execution_bytes.len()));
     out.extend_from_slice(DUAL_BLOB_PACKAGE_MAGIC);
     out.push(DUAL_BLOB_PACKAGE_VERSION);
     out.extend_from_slice(&[0u8; 3]);
@@ -171,26 +173,38 @@ pub fn peel_dual_blob_package_sidecar(bytes: &[u8]) -> SyxResult<&[u8]> {
 
 fn dual_blob_package_segments(bytes: &[u8]) -> SyxResult<(usize, usize, &[u8])> {
     if bytes.len() < 16 {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(mir_error_at(
             "dual-blob package too short",
+            None,
+            Span::DUMMY,
+            "MIR001",
         ));
     }
     if &bytes[0..4] != DUAL_BLOB_PACKAGE_MAGIC {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(mir_error_at(
             "dual-blob package bad magic",
+            None,
+            Span::DUMMY,
+            "MIR001",
         ));
     }
     if bytes[4] != DUAL_BLOB_PACKAGE_VERSION {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(mir_error_at(
             "dual-blob package unsupported version",
+            None,
+            Span::DUMMY,
+            "MIR001",
         ));
     }
     let sidecar_len = u32::from_le_bytes(bytes[8..12].try_into().unwrap()) as usize;
     let execution_len = u32::from_le_bytes(bytes[12..16].try_into().unwrap()) as usize;
     let body = &bytes[16..];
     if body.len() != sidecar_len.saturating_add(execution_len) {
-        return Err(syx_diagnostics::SyxDiagnostic::error(
+        return Err(mir_error_at(
             "dual-blob package length mismatch",
+            None,
+            Span::DUMMY,
+            "MIR001",
         ));
     }
     Ok((sidecar_len, execution_len, body))
@@ -218,9 +232,7 @@ pub fn aot_embed_execution_omitted() -> bool {
 /// Build a minimal MIR module of Return stubs from sidecar `fn_names` (index alignment).
 ///
 /// Used by RT sidecar-only load when AOT embed execution is empty (W409).
-pub fn mir_module_from_sidecar_fn_stubs(
-    view: &MirModuleMetadataSidecarView,
-) -> MirModule {
+pub fn mir_module_from_sidecar_fn_stubs(view: &MirModuleMetadataSidecarView) -> MirModule {
     MirModule {
         functions: view
             .fn_names

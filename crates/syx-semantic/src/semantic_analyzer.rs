@@ -148,6 +148,8 @@ pub struct SemanticAnalyzer {
     pub(crate) import_member_actors: IndexMap<(SmolStr, SmolStr), SmolStr>,
     /// Source file for attaching diagnostic spans (line/column/filename).
     pub(crate) source: Option<SourceFile>,
+    /// Decl spans for type names (class / dataclass / protocol) used by S012 etc.
+    pub(crate) type_decl_spans: IndexMap<SmolStr, syx_diagnostics::Span>,
 }
 
 impl SemanticAnalyzer {
@@ -450,7 +452,11 @@ impl SemanticAnalyzer {
         syx_meta::note_semantic_instantiation(fn_name.as_str(), &type_args);
     }
 
-    pub(crate) fn check_main_actor_after_await(&mut self, name: &SmolStr) {
+    pub(crate) fn check_main_actor_after_await(
+        &mut self,
+        name: &SmolStr,
+        span: syx_diagnostics::Span,
+    ) {
         if self.skip_main_actor_await_check {
             return;
         }
@@ -458,12 +464,13 @@ impl SemanticAnalyzer {
             return;
         }
         if self.main_actor_await_crossed && self.main_actor_frozen_at_await.contains(name) {
-            self.errors.push(
-                SyxDiagnostic::error(format!(
+            self.errors.push(self.error_at(
+                format!(
                     "MainActor-isolated variable '{name}' cannot be used after crossing an await boundary"
-                ))
-                .with_code("S020"),
-            );
+                ),
+                span,
+                "S020",
+            ));
         }
     }
 
@@ -555,12 +562,18 @@ impl SemanticAnalyzer {
                     if let TypeExpr::Named { name: constraint_name, .. } = constraint {
                         if !self.type_satisfies_protocol(resolved.as_str(), constraint_name.as_str())
                         {
-                            self.errors.push(
-                                SyxDiagnostic::error(format!(
+                            let span = self
+                                .type_decl_spans
+                                .get(&type_name)
+                                .copied()
+                                .unwrap_or(syx_diagnostics::Span::DUMMY);
+                            self.errors.push(self.error_at(
+                                format!(
                                     "Associated type '{assoc_name}' = '{resolved}' on '{type_name}' does not satisfy '{constraint_name}' required by protocol '{protocol}'"
-                                ))
-                                .with_code("S012"),
-                            );
+                                ),
+                                span,
+                                "S012",
+                            ));
                         }
                     }
                 }
@@ -571,7 +584,7 @@ impl SemanticAnalyzer {
     pub(crate) fn check_dataclass_codable_witness(
         &mut self,
         name: &SmolStr,
-        _span: syx_diagnostics::Span,
+        span: syx_diagnostics::Span,
         attrs: &[syx_ast::Attribute],
         type_params: &[SmolStr],
         where_clause: &[syx_ast::WherePred],
@@ -595,12 +608,13 @@ impl SemanticAnalyzer {
                 pred.type_name == param && pred.constraint.as_str() == "Codable"
             });
             if !satisfied {
-                self.errors.push(
-                    SyxDiagnostic::error(format!(
+                self.errors.push(self.error_at(
+                    format!(
                         "Data class '{name}' field '{field_name}' uses type parameter '{param}' which must conform to Codable (add `where {param}: Codable`)"
-                    ))
-                    .with_code("E005"),
-                );
+                    ),
+                    span,
+                    "E005",
+                ));
             }
         }
     }

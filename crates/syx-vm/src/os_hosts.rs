@@ -8,7 +8,9 @@
 //! M2 W29 / ADR-173: loadAverage fail-closed (inject via SYX_OS_LOAD_AVERAGE_FORCE_ERR).
 //! Wave A W137 / ADR-481: hostname/primaryIpv4 fail-closed inject (SYX_OS_HOSTNAME_FORCE_ERR / SYX_OS_PRIMARY_IPV4_FORCE_ERR).
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 
 use crate::{platform_int_value, Value};
 
@@ -27,14 +29,15 @@ pub fn host_os_memory_total(stack: &mut Vec<Value>) -> SyxResult<()> {
         .filter(|s| !s.is_empty())
         .is_some()
     {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os memoryTotal forced unavailable")
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os memoryTotal forced unavailable",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
-    let bytes = memory_total_bytes().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error("os memoryTotal unavailable").with_code("R003")
-    })?;
+    let bytes = memory_total_bytes()
+        .ok_or_else(|| vm_error_at("os memoryTotal unavailable", None, Span::DUMMY, "R003"))?;
     stack.push(platform_int_value(bytes));
     Ok(())
 }
@@ -46,14 +49,15 @@ pub fn host_os_memory_available(stack: &mut Vec<Value>) -> SyxResult<()> {
         .filter(|s| !s.is_empty())
         .is_some()
     {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os memoryAvailable forced unavailable")
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os memoryAvailable forced unavailable",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
-    let bytes = memory_available_bytes().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error("os memoryAvailable unavailable").with_code("R003")
-    })?;
+    let bytes = memory_available_bytes()
+        .ok_or_else(|| vm_error_at("os memoryAvailable unavailable", None, Span::DUMMY, "R003"))?;
     stack.push(platform_int_value(bytes));
     Ok(())
 }
@@ -65,9 +69,7 @@ pub fn host_os_user_name(stack: &mut Vec<Value>) -> SyxResult<()> {
         .ok()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
-        .ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error("os userName unavailable").with_code("R003")
-        })?;
+        .ok_or_else(|| vm_error_at("os userName unavailable", None, Span::DUMMY, "R003"))?;
     stack.push(Value::Str(name));
     Ok(())
 }
@@ -79,9 +81,7 @@ pub fn host_os_home_dir(stack: &mut Vec<Value>) -> SyxResult<()> {
         .ok()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
-        .ok_or_else(|| {
-            syx_diagnostics::SyxDiagnostic::error("os homeDir unavailable").with_code("R003")
-        })?;
+        .ok_or_else(|| vm_error_at("os homeDir unavailable", None, Span::DUMMY, "R003"))?;
     stack.push(Value::Str(home));
     Ok(())
 }
@@ -94,16 +94,17 @@ pub fn host_os_hostname(stack: &mut Vec<Value>) -> SyxResult<()> {
         .filter(|s| !s.is_empty())
         .is_some()
     {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os hostname forced unavailable")
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os hostname forced unavailable",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
-    let name = hostname().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error("os hostname unavailable").with_code("R003")
-    })?;
+    let name = hostname()
+        .ok_or_else(|| vm_error_at("os hostname unavailable", None, Span::DUMMY, "R003"))?;
     if name.is_empty() {
-        return Err(syx_diagnostics::SyxDiagnostic::error("os hostname empty").with_code("R003"));
+        return Err(vm_error_at("os hostname empty", None, Span::DUMMY, "R003"));
     }
     stack.push(Value::Str(name));
     Ok(())
@@ -116,14 +117,15 @@ pub fn host_os_uptime_ms(stack: &mut Vec<Value>) -> SyxResult<()> {
         .filter(|s| !s.is_empty())
         .is_some()
     {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os uptimeMs forced unavailable")
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os uptimeMs forced unavailable",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
-    let ms = uptime_ms().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error("os uptimeMs unavailable").with_code("R003")
-    })?;
+    let ms = uptime_ms()
+        .ok_or_else(|| vm_error_at("os uptimeMs unavailable", None, Span::DUMMY, "R003"))?;
     stack.push(platform_int_value(ms));
     Ok(())
 }
@@ -132,8 +134,12 @@ pub fn host_os_disk_total(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     // ADR-158: fail-closed Err (no -1 success sentinel).
     let bytes = disk_total_bytes(&path).ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error(format!("os diskTotal failed for '{path}'"))
-            .with_code("R003")
+        vm_error_at(
+            format!("os diskTotal failed for '{path}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     stack.push(platform_int_value(bytes));
     Ok(())
@@ -143,8 +149,12 @@ pub fn host_os_disk_available(stack: &mut Vec<Value>) -> SyxResult<()> {
     let path = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     // ADR-159: fail-closed Err (no -1 success sentinel).
     let bytes = disk_available_bytes(&path).ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error(format!("os diskAvailable failed for '{path}'"))
-            .with_code("R003")
+        vm_error_at(
+            format!("os diskAvailable failed for '{path}'"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     stack.push(platform_int_value(bytes));
     Ok(())
@@ -157,14 +167,15 @@ pub fn host_os_load_average(stack: &mut Vec<Value>) -> SyxResult<()> {
         .filter(|s| !s.is_empty())
         .is_some()
     {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os loadAverage forced unavailable")
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os loadAverage forced unavailable",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
-    let scaled = load_average_scaled().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error("os loadAverage unavailable").with_code("R003")
-    })?;
+    let scaled = load_average_scaled()
+        .ok_or_else(|| vm_error_at("os loadAverage unavailable", None, Span::DUMMY, "R003"))?;
     stack.push(platform_int_value(scaled));
     Ok(())
 }
@@ -177,18 +188,22 @@ pub fn host_os_primary_ipv4(stack: &mut Vec<Value>) -> SyxResult<()> {
         .filter(|s| !s.is_empty())
         .is_some()
     {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os primaryIpv4 forced unavailable")
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os primaryIpv4 forced unavailable",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
-    let ip = primary_ipv4().ok_or_else(|| {
-        syx_diagnostics::SyxDiagnostic::error("os primaryIpv4 unavailable").with_code("R003")
-    })?;
+    let ip = primary_ipv4()
+        .ok_or_else(|| vm_error_at("os primaryIpv4 unavailable", None, Span::DUMMY, "R003"))?;
     if ip.is_empty() {
-        return Err(
-            syx_diagnostics::SyxDiagnostic::error("os primaryIpv4 empty").with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "os primaryIpv4 empty",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Str(ip));
     Ok(())

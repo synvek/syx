@@ -3,13 +3,14 @@ use std::path::{Path, PathBuf};
 
 use indexmap::IndexMap;
 use semver::Version;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::lockfile::{LockPackage, SyxLockfile};
 use crate::manifest::{
     default_registry_url, load_manifest, registry_url_chain, DependencySourceKind, DependencySpec,
     SyxManifest,
 };
+use crate::pkg_error_at;
 use crate::sources::git::resolve_git_dependency;
 use crate::sources::path::resolve_path_dependency;
 use crate::sources::registry::resolve_registry_dependency;
@@ -44,12 +45,11 @@ pub fn resolve_dependencies(project_root: &Path) -> SyxResult<ResolvedGraph> {
                 let existing_version = existing.resolved_version();
                 if let Ok(v) = Version::parse(&existing_version) {
                     if !req.matches(&v) {
-                        return Err(SyxDiagnostic::error(format!(
-                            "Semver conflict for '{0}': already resolved to {existing_version}, \
+                        return Err(pkg_error_at(format!(
+                                "Semver conflict for '{0}': already resolved to {existing_version}, \
                              new requirement {req} is incompatible",
-                            item.name
-                        ))
-                        .with_code("R001"));
+                                item.name
+                            ), None, Span::DUMMY, "R001"));
                     }
                 }
             }
@@ -127,10 +127,7 @@ pub fn graph_to_lockfile(graph: &ResolvedGraph, manifest: &SyxManifest) -> SyxLo
         .iter()
         .map(|s| s.to_string())
         .collect();
-    let resolved_region = artifact_cdn_regions
-        .first()
-        .cloned()
-        .unwrap_or_default();
+    let resolved_region = artifact_cdn_regions.first().cloned().unwrap_or_default();
     let cache_remote_nodes: Vec<String> = std::env::var("SYX_CACHE_REMOTE_NODES")
         .ok()
         .map(|s| {
@@ -185,8 +182,12 @@ pub fn graph_to_lockfile(graph: &ResolvedGraph, manifest: &SyxManifest) -> SyxLo
         rotation_cron_spec: None,
         farm_lease_ttl_secs: 300,
         farm_worker_pool: Vec::new(),
-        hsm_key_ref: std::env::var("SYX_HSM_KEY_REF").ok().filter(|s| !s.is_empty()),
-        billing_meter_id: std::env::var("SYX_BILLING_METER_ID").ok().filter(|s| !s.is_empty()),
+        hsm_key_ref: std::env::var("SYX_HSM_KEY_REF")
+            .ok()
+            .filter(|s| !s.is_empty()),
+        billing_meter_id: std::env::var("SYX_BILLING_METER_ID")
+            .ok()
+            .filter(|s| !s.is_empty()),
         hsm_rotation_cron_job: std::env::var("SYX_HSM_ROTATION_CRON_JOB")
             .ok()
             .filter(|s| !s.is_empty()),

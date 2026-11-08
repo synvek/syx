@@ -1,10 +1,11 @@
 use std::path::Path;
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::lock_enforce::enforce_lock_v16;
 use crate::lockfile::save_lockfile;
 use crate::manifest::load_manifest;
+use crate::pkg_error_at;
 use crate::resolver::{graph_to_lockfile, resolve_dependencies};
 
 #[derive(Debug, Clone, Default)]
@@ -43,10 +44,12 @@ pub fn farm_billing_settlement(lock: &crate::lockfile::SyxLockfile) -> SyxResult
             .and_then(|s| s.parse::<u32>().ok())
             .unwrap_or(u32::MAX);
         if minutes > limit {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "farm billing settlement exceeded: {minutes} > {limit}"
-            ))
-            .with_code("S422"));
+            return Err(pkg_error_at(
+                format!("farm billing settlement exceeded: {minutes} > {limit}"),
+                None,
+                Span::DUMMY,
+                "S422",
+            ));
         }
     }
     Ok(())
@@ -68,10 +71,12 @@ pub fn farm_billing_ledger_settlement(lock: &crate::lockfile::SyxLockfile) -> Sy
             .and_then(|s| s.parse::<i64>().ok())
             .unwrap_or(0);
         if balance < 0 {
-            return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-                "farm billing ledger rejected settlement {settlement}: balance {balance}"
-            ))
-            .with_code("S423"));
+            return Err(pkg_error_at(
+                format!("farm billing ledger rejected settlement {settlement}: balance {balance}"),
+                None,
+                Span::DUMMY,
+                "S423",
+            ));
         }
     }
     Ok(())
@@ -83,10 +88,12 @@ pub fn install_project(root: &Path) -> SyxResult<InstallReport> {
     let locked = crate::install_locked();
     if locked {
         let Some(ref lock) = existing else {
-            return Err(syx_diagnostics::SyxDiagnostic::error(
+            return Err(pkg_error_at(
                 "SYX_INSTALL_LOCKED requires an existing syx.lock",
-            )
-            .with_code("P014"));
+                None,
+                Span::DUMMY,
+                "P014",
+            ));
         };
         enforce_lock_v16(lock)?;
     } else if let Some(ref lock) = existing {

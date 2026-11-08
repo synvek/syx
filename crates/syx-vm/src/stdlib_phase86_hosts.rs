@@ -2,7 +2,9 @@
 
 use std::collections::HashMap;
 
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
@@ -34,10 +36,12 @@ pub fn host_encoding_zstd_compress(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_encoding_zstd_compress(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = pop_bytes(stack);
-    Err(syx_diagnostics::SyxDiagnostic::error(
+    Err(vm_error_at(
         "zstd unavailable on wasm32",
-    )
-    .with_code("V081"))
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -51,10 +55,12 @@ pub fn host_encoding_zstd_decompress(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(target_arch = "wasm32")]
 pub fn host_encoding_zstd_decompress(stack: &mut Vec<Value>) -> SyxResult<()> {
     let _ = pop_bytes(stack);
-    Err(syx_diagnostics::SyxDiagnostic::error(
+    Err(vm_error_at(
         "zstd unavailable on wasm32",
-    )
-    .with_code("V081"))
+        None,
+        Span::DUMMY,
+        "V081",
+    ))
 }
 
 pub fn host_codable_encode(stack: &mut Vec<Value>) -> SyxResult<()> {

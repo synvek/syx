@@ -6,6 +6,7 @@ use syx_ast::{Attribute, AttributeArg, Decl, Expr, Stmt, TypeExpr};
 use syx_diagnostics::SyxResult;
 
 use crate::warnings;
+use crate::macro_warning;
 
 fn is_wrapper_class(attrs: &[Attribute]) -> bool {
     attrs.iter().any(|a| {
@@ -30,10 +31,7 @@ pub(crate) fn expand_property_wrappers(module: &mut syx_ast::Module) -> SyxResul
                     )
                 }) {
                     warnings::push_macro_warning(
-                        syx_diagnostics::SyxDiagnostic::warning(
-                            "@propertyWrapper is deprecated; use @attached(wrapper)",
-                        )
-                        .with_code("W001"),
+                        macro_warning("@propertyWrapper is deprecated; use @attached(wrapper)", "W001"),
                     );
                 }
                 wrapper_types.insert(name.clone());

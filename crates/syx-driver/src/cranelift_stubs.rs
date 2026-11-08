@@ -1,7 +1,8 @@
 //! SYX driver Cranelift retirement stubs + macro warning drain.
 //! Extracted in S2-I234 (zero semantics).
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use crate::driver_error_at;
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
 
 /// Phase 59: Cranelift backend physically removed; LLVM is the sole native backend.
 pub fn cranelift_backend_retired() -> bool {
@@ -26,8 +27,11 @@ pub fn cranelift_unified_gc_promotion_codegen_enabled() -> bool {
 }
 
 pub fn compile_module_to_object(_module: &syx_mir::MirModule) -> SyxResult<Vec<u8>> {
-    Err(SyxDiagnostic::error(
+    Err(driver_error_at(
         "Cranelift backend removed in Phase 59; use LLVM (--backend llvm)",
+        None,
+        Span::DUMMY,
+        "B001",
     ))
 }
 

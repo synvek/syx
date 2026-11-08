@@ -124,54 +124,73 @@ pub(crate) fn attr_has_ident_arg(attrs: &[syx_ast::Attribute], name: &str, arg: 
 }
 
 pub(crate) fn module_uses_task_detach(module: &Module) -> bool {
-    module.decls.iter().any(|decl| {
+    module_first_task_detach_span(module).is_some()
+}
+
+/// First Task.detached / `__syx_task_detach` span in the module (S3-I4 C003 anchor).
+pub(crate) fn module_first_task_detach_span(module: &Module) -> Option<syx_diagnostics::Span> {
+    for decl in &module.decls {
         if let Decl::Function { body, .. } = decl {
-            stmts_use_task_detach(body)
-        } else {
-            false
+            if let Some(span) = stmts_first_task_detach_span(body) {
+                return Some(span);
+            }
         }
-    })
+    }
+    None
 }
 
 pub(crate) fn stmts_use_task_detach(stmts: &[Stmt]) -> bool {
-    stmts.iter().any(|s| match s {
-        Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
-            expr_uses_task_detach(expr)
-        }
-        Stmt::VarDecl { init: Some(expr), .. } => expr_uses_task_detach(expr),
-        Stmt::If {
-            then_branch,
-            else_branch,
-            ..
-        } => {
-            stmts_use_task_detach(then_branch)
-                || else_branch
+    stmts_first_task_detach_span(stmts).is_some()
+}
+
+pub(crate) fn stmts_first_task_detach_span(stmts: &[Stmt]) -> Option<syx_diagnostics::Span> {
+    for s in stmts {
+        let span = match s {
+            Stmt::Expr { expr, .. }
+            | Stmt::Print { expr, .. }
+            | Stmt::Return { value: Some(expr), .. } => expr_first_task_detach_span(expr),
+            Stmt::VarDecl { init: Some(expr), .. } => expr_first_task_detach_span(expr),
+            Stmt::If {
+                then_branch,
+                else_branch,
+                ..
+            } => stmts_first_task_detach_span(then_branch).or_else(|| {
+                else_branch
                     .as_ref()
-                    .is_some_and(|b| stmts_use_task_detach(b))
+                    .and_then(|b| stmts_first_task_detach_span(b))
+            }),
+            Stmt::Block { stmts, .. } => stmts_first_task_detach_span(stmts),
+            _ => None,
+        };
+        if span.is_some() {
+            return span;
         }
-        Stmt::Block { stmts, .. } => stmts_use_task_detach(stmts),
-        _ => false,
-    })
+    }
+    None
 }
 
 pub(crate) fn expr_uses_task_detach(expr: &Expr) -> bool {
+    expr_first_task_detach_span(expr).is_some()
+}
+
+pub(crate) fn expr_first_task_detach_span(expr: &Expr) -> Option<syx_diagnostics::Span> {
     match expr {
-        Expr::Call { callee, .. } => {
+        Expr::Call { callee, span, .. } => {
             if let Expr::Ident { name, .. } = callee.as_ref() {
                 if name.as_str() == "__syx_task_detach" {
-                    return true;
+                    return Some(*span);
                 }
             }
-            false
+            None
         }
-        Expr::TaskBlock { detached, .. } => *detached,
+        Expr::TaskBlock { detached, span, .. } if *detached => Some(*span),
         Expr::Binary { left, right, .. } => {
-            expr_uses_task_detach(left) || expr_uses_task_detach(right)
+            expr_first_task_detach_span(left).or_else(|| expr_first_task_detach_span(right))
         }
-        Expr::Unary { expr, .. } => expr_uses_task_detach(expr),
-        Expr::Group { expr, .. } => expr_uses_task_detach(expr),
-        Expr::Await { expr, .. } => expr_uses_task_detach(expr),
-        _ => false,
+        Expr::Unary { expr, .. } | Expr::Group { expr, .. } | Expr::Await { expr, .. } => {
+            expr_first_task_detach_span(expr)
+        }
+        _ => None,
     }
 }
 

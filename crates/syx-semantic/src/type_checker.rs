@@ -1,6 +1,4 @@
-use syx_ast::Expr;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
-use syx_stdlib::{is_hashable_type, is_implicit_convertible, is_integer_narrowing};
+use syx_stdlib::{is_implicit_convertible, is_integer_narrowing};
 
 use crate::{type_id_to_name, TypeId};
 
@@ -53,63 +51,24 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
     }
 }
 
-pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> SyxResult<()> {
+/// Assignability failure (mapped to a span-aware diagnostic by SemanticAnalyzer).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AssignError {
+    pub message: String,
+    pub code: &'static str,
+}
+
+pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> Result<(), AssignError> {
     if expected == found || is_compatible(&expected, &found) {
         Ok(())
     } else {
-        Err(SyxDiagnostic::error(format!(
-            "Type mismatch for '{name}': expected {}, found {}",
-            type_id_to_name(&expected),
-            type_id_to_name(&found)
-        ))
-        .with_code("S004"))
+        Err(AssignError {
+            message: format!(
+                "Type mismatch for '{name}': expected {}, found {}",
+                type_id_to_name(&expected),
+                type_id_to_name(&found)
+            ),
+            code: "S004",
+        })
     }
-}
-
-#[allow(dead_code)] // literal-range assignable check retained for deepen
-pub fn check_assignable_with_literal(
-    expected: TypeId,
-    found: TypeId,
-    name: &str,
-    init: Option<&Expr>,
-    check_literal_in_range: impl FnOnce(&syx_ast::Literal, &TypeId),
-    push_error: impl FnOnce(SyxDiagnostic),
-) -> SyxResult<()> {
-    if let Some(Expr::Literal { value, .. }) = init {
-        check_literal_in_range(value, &expected);
-    }
-    if matches!(expected, TypeId::Set(_)) {
-        if let TypeId::Array(elem) = &found {
-            let TypeId::Set(set_elem) = &expected else {
-                return check_assignable(expected, found, name);
-            };
-            if !is_compatible(set_elem, elem) && !matches!(elem.as_ref(), TypeId::Unknown) {
-                return check_assignable(expected, found, name);
-            }
-            let elem_name = type_id_to_name(set_elem);
-            if !is_hashable_type(elem_name.as_str()) {
-                push_error(SyxDiagnostic::error(format!(
-                    "Set element type '{}' does not satisfy Hashable",
-                    elem_name
-                ))
-                .with_code("S015"));
-            }
-            return Ok(());
-        }
-        if matches!(&found, TypeId::Named(n) if n.as_str() == "Set") {
-            let TypeId::Set(set_elem) = &expected else {
-                return check_assignable(expected, found, name);
-            };
-            let elem_name = type_id_to_name(set_elem);
-            if !is_hashable_type(elem_name.as_str()) {
-                push_error(SyxDiagnostic::error(format!(
-                    "Set element type '{}' does not satisfy Hashable",
-                    elem_name
-                ))
-                .with_code("S015"));
-            }
-            return Ok(());
-        }
-    }
-    check_assignable(expected, found, name)
 }

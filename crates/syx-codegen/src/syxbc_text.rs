@@ -52,24 +52,46 @@ fn format_instruction(ins: &Instruction) -> String {
         Instruction::NumericGe(k) => format!("NumericGe {k}"),
         Instruction::NumericCast { from, to } => format!("NumericCast from={from} to={to}"),
         Instruction::SetBuild(n) => format!("SetBuild {n}"),
-        Instruction::SimdAdd { lanes, element } => format!("SimdAdd lanes={lanes} element={element}"),
-        Instruction::SimdSub { lanes, element } => format!("SimdSub lanes={lanes} element={element}"),
-        Instruction::SimdMul { lanes, element } => format!("SimdMul lanes={lanes} element={element}"),
-        Instruction::SimdDiv { lanes, element } => format!("SimdDiv lanes={lanes} element={element}"),
+        Instruction::SimdAdd { lanes, element } => {
+            format!("SimdAdd lanes={lanes} element={element}")
+        }
+        Instruction::SimdSub { lanes, element } => {
+            format!("SimdSub lanes={lanes} element={element}")
+        }
+        Instruction::SimdMul { lanes, element } => {
+            format!("SimdMul lanes={lanes} element={element}")
+        }
+        Instruction::SimdDiv { lanes, element } => {
+            format!("SimdDiv lanes={lanes} element={element}")
+        }
         Instruction::SimdEq { lanes, element } => format!("SimdEq lanes={lanes} element={element}"),
         Instruction::SimdLt { lanes, element } => format!("SimdLt lanes={lanes} element={element}"),
         Instruction::SimdGt { lanes, element } => format!("SimdGt lanes={lanes} element={element}"),
         Instruction::SimdNe { lanes, element } => format!("SimdNe lanes={lanes} element={element}"),
         Instruction::SimdLe { lanes, element } => format!("SimdLe lanes={lanes} element={element}"),
         Instruction::SimdGe { lanes, element } => format!("SimdGe lanes={lanes} element={element}"),
-        Instruction::SimdAnd { lanes, element } => format!("SimdAnd lanes={lanes} element={element}"),
+        Instruction::SimdAnd { lanes, element } => {
+            format!("SimdAnd lanes={lanes} element={element}")
+        }
         Instruction::SimdOr { lanes, element } => format!("SimdOr lanes={lanes} element={element}"),
-        Instruction::SimdXor { lanes, element } => format!("SimdXor lanes={lanes} element={element}"),
-        Instruction::SimdNot { lanes, element } => format!("SimdNot lanes={lanes} element={element}"),
-        Instruction::SimdShl { lanes, element } => format!("SimdShl lanes={lanes} element={element}"),
-        Instruction::SimdShr { lanes, element } => format!("SimdShr lanes={lanes} element={element}"),
-        Instruction::SimdMin { lanes, element } => format!("SimdMin lanes={lanes} element={element}"),
-        Instruction::SimdMax { lanes, element } => format!("SimdMax lanes={lanes} element={element}"),
+        Instruction::SimdXor { lanes, element } => {
+            format!("SimdXor lanes={lanes} element={element}")
+        }
+        Instruction::SimdNot { lanes, element } => {
+            format!("SimdNot lanes={lanes} element={element}")
+        }
+        Instruction::SimdShl { lanes, element } => {
+            format!("SimdShl lanes={lanes} element={element}")
+        }
+        Instruction::SimdShr { lanes, element } => {
+            format!("SimdShr lanes={lanes} element={element}")
+        }
+        Instruction::SimdMin { lanes, element } => {
+            format!("SimdMin lanes={lanes} element={element}")
+        }
+        Instruction::SimdMax { lanes, element } => {
+            format!("SimdMax lanes={lanes} element={element}")
+        }
         Instruction::SimdF32Add { lanes, element } => {
             format!("SimdF32Add lanes={lanes} element={element}")
         }
@@ -88,38 +110,102 @@ fn format_instruction(ins: &Instruction) -> String {
         Instruction::SimdI16Add { lanes, element } => {
             format!("SimdI16Add lanes={lanes} element={element}")
         }
-                Instruction::SimdI16Sub { lanes, element } => format!("SimdI16Sub lanes={lanes} element={element}"),
-        Instruction::SimdI16Mul { lanes, element } => format!("SimdI16Mul lanes={lanes} element={element}"),
-        Instruction::SimdI8Add { lanes, element } => format!("SimdI8Add lanes={lanes} element={element}"),
-        Instruction::SimdI8Sub { lanes, element } => format!("SimdI8Sub lanes={lanes} element={element}"),
-        Instruction::SimdI8Mul { lanes, element } => format!("SimdI8Mul lanes={lanes} element={element}"),
-        Instruction::SimdI8And { lanes, element } => format!("SimdI8And lanes={lanes} element={element}"),
-        Instruction::SimdI8Or { lanes, element } => format!("SimdI8Or lanes={lanes} element={element}"),
-        Instruction::SimdI8Xor { lanes, element } => format!("SimdI8Xor lanes={lanes} element={element}"),
-        Instruction::SimdI8Not { lanes, element } => format!("SimdI8Not lanes={lanes} element={element}"),
-        Instruction::SimdI8Min { lanes, element } => format!("SimdI8Min lanes={lanes} element={element}"),
-        Instruction::SimdI8Max { lanes, element } => format!("SimdI8Max lanes={lanes} element={element}"),
-        Instruction::SimdI8UMin { lanes, element } => format!("SimdI8UMin lanes={lanes} element={element}"),
-        Instruction::SimdI8UMax { lanes, element } => format!("SimdI8UMax lanes={lanes} element={element}"),
-        Instruction::SimdI8Abs { lanes, element } => format!("SimdI8Abs lanes={lanes} element={element}"),
-        Instruction::SimdI8Neg { lanes, element } => format!("SimdI8Neg lanes={lanes} element={element}"),
-        Instruction::SimdI8Extract { lanes, element } => format!("SimdI8Extract lanes={lanes} element={element}"),
-        Instruction::SimdI8Replace { lanes, element } => format!("SimdI8Replace lanes={lanes} element={element}"),
-        Instruction::SimdI8Eq { lanes, element } => format!("SimdI8Eq lanes={lanes} element={element}"),
-        Instruction::SimdI8Ne { lanes, element } => format!("SimdI8Ne lanes={lanes} element={element}"),
-        Instruction::SimdI8Le { lanes, element } => format!("SimdI8Le lanes={lanes} element={element}"),
-        Instruction::SimdI8Ge { lanes, element } => format!("SimdI8Ge lanes={lanes} element={element}"),
-        Instruction::SimdI8AvgrU { lanes, element } => format!("SimdI8AvgrU lanes={lanes} element={element}"),
-        Instruction::SimdI8Popcnt { lanes, element } => format!("SimdI8Popcnt lanes={lanes} element={element}"),
-        Instruction::SimdI8Bitmask { lanes, element } => format!("SimdI8Bitmask lanes={lanes} element={element}"),
-        Instruction::SimdI8AllTrue { lanes, element } => format!("SimdI8AllTrue lanes={lanes} element={element}"),
-        Instruction::SimdI8AnyTrue { lanes, element } => format!("SimdI8AnyTrue lanes={lanes} element={element}"),
-        Instruction::SimdI8Lt { lanes, element } => format!("SimdI8Lt lanes={lanes} element={element}"),
-        Instruction::SimdI8Gt { lanes, element } => format!("SimdI8Gt lanes={lanes} element={element}"),
-        Instruction::SimdI8AddSat { lanes, element } => format!("SimdI8AddSat lanes={lanes} element={element}"),
-        Instruction::SimdI8SubSat { lanes, element } => format!("SimdI8SubSat lanes={lanes} element={element}"),
-        Instruction::SimdI8Shl { lanes, element } => format!("SimdI8Shl lanes={lanes} element={element}"),
-        Instruction::SimdI8Shr { lanes, element } => format!("SimdI8Shr lanes={lanes} element={element}"),
+        Instruction::SimdI16Sub { lanes, element } => {
+            format!("SimdI16Sub lanes={lanes} element={element}")
+        }
+        Instruction::SimdI16Mul { lanes, element } => {
+            format!("SimdI16Mul lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Add { lanes, element } => {
+            format!("SimdI8Add lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Sub { lanes, element } => {
+            format!("SimdI8Sub lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Mul { lanes, element } => {
+            format!("SimdI8Mul lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8And { lanes, element } => {
+            format!("SimdI8And lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Or { lanes, element } => {
+            format!("SimdI8Or lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Xor { lanes, element } => {
+            format!("SimdI8Xor lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Not { lanes, element } => {
+            format!("SimdI8Not lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Min { lanes, element } => {
+            format!("SimdI8Min lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Max { lanes, element } => {
+            format!("SimdI8Max lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8UMin { lanes, element } => {
+            format!("SimdI8UMin lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8UMax { lanes, element } => {
+            format!("SimdI8UMax lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Abs { lanes, element } => {
+            format!("SimdI8Abs lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Neg { lanes, element } => {
+            format!("SimdI8Neg lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Extract { lanes, element } => {
+            format!("SimdI8Extract lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Replace { lanes, element } => {
+            format!("SimdI8Replace lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Eq { lanes, element } => {
+            format!("SimdI8Eq lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Ne { lanes, element } => {
+            format!("SimdI8Ne lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Le { lanes, element } => {
+            format!("SimdI8Le lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Ge { lanes, element } => {
+            format!("SimdI8Ge lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8AvgrU { lanes, element } => {
+            format!("SimdI8AvgrU lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Popcnt { lanes, element } => {
+            format!("SimdI8Popcnt lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Bitmask { lanes, element } => {
+            format!("SimdI8Bitmask lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8AllTrue { lanes, element } => {
+            format!("SimdI8AllTrue lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8AnyTrue { lanes, element } => {
+            format!("SimdI8AnyTrue lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Lt { lanes, element } => {
+            format!("SimdI8Lt lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Gt { lanes, element } => {
+            format!("SimdI8Gt lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8AddSat { lanes, element } => {
+            format!("SimdI8AddSat lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8SubSat { lanes, element } => {
+            format!("SimdI8SubSat lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Shl { lanes, element } => {
+            format!("SimdI8Shl lanes={lanes} element={element}")
+        }
+        Instruction::SimdI8Shr { lanes, element } => {
+            format!("SimdI8Shr lanes={lanes} element={element}")
+        }
 
         Instruction::SimdI64Add { lanes, element } => {
             format!("SimdI64Add lanes={lanes} element={element}")
@@ -136,10 +222,18 @@ fn format_instruction(ins: &Instruction) -> String {
         Instruction::SimdReduceAdd { lanes, element } => {
             format!("SimdReduceAdd lanes={lanes} element={element}")
         }
-        Instruction::SimdLoad { lanes, element, offset } => {
+        Instruction::SimdLoad {
+            lanes,
+            element,
+            offset,
+        } => {
             format!("SimdLoad lanes={lanes} element={element} offset={offset}")
         }
-        Instruction::SimdStore { lanes, element, offset } => {
+        Instruction::SimdStore {
+            lanes,
+            element,
+            offset,
+        } => {
             format!("SimdStore lanes={lanes} element={element} offset={offset}")
         }
         Instruction::SimdBroadcast { lanes, element } => {

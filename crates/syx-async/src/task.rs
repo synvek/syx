@@ -7,7 +7,9 @@ use std::sync::Arc;
 
 use crossbeam_channel::{Receiver, Sender};
 use parking_lot::Mutex;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::async_error_at;
 use syx_vm::Value;
 
 use crate::cancellation::CancellationToken;
@@ -143,10 +145,7 @@ impl TaskHandle {
         self.reaped.load(Ordering::SeqCst)
     }
 
-    pub fn new_linked(
-        done_rx: Receiver<SyxResult<Value>>,
-        parent: CancellationToken,
-    ) -> Self {
+    pub fn new_linked(done_rx: Receiver<SyxResult<Value>>, parent: CancellationToken) -> Self {
         Self::new_with_cancel(done_rx, CancellationToken::with_parent(parent))
     }
 
@@ -156,15 +155,25 @@ impl TaskHandle {
 
     pub fn join(&self) -> SyxResult<Value> {
         if self.cancel.is_cancelled() {
-            return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+            return Err(async_error_at(
+                "Task was cancelled",
+                None,
+                Span::DUMMY,
+                "C004",
+            ));
         }
         let result = self
             .done_rx
             .recv()
-            .map_err(|_| SyxDiagnostic::error("Task channel closed").with_code("C005"))?;
+            .map_err(|_| async_error_at("Task channel closed", None, Span::DUMMY, "C005"))?;
         // If cancel raced in while waiting, prefer C004 over a late Ok body result.
         if self.cancel.is_cancelled() {
-            return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+            return Err(async_error_at(
+                "Task was cancelled",
+                None,
+                Span::DUMMY,
+                "C004",
+            ));
         }
         result
     }
@@ -278,14 +287,16 @@ impl TaskGroup {
         }
         if !aggregated.is_empty() {
             self.errors.lock().extend(aggregated.clone());
-            return Err(
-                SyxDiagnostic::error(format!(
+            return Err(async_error_at(
+                format!(
                     "TaskGroup failed with {} error(s): {}",
                     aggregated.len(),
                     aggregated.join("; ")
-                ))
-                .with_code("C007"),
-            );
+                ),
+                None,
+                Span::DUMMY,
+                "C007",
+            ));
         }
         Ok(())
     }

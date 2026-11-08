@@ -50,6 +50,7 @@ mod external;
 mod external_protocol;
 mod external_sandbox;
 mod hygiene;
+mod macro_diag;
 mod parse_fragment;
 mod registry;
 mod result_builder;
@@ -58,6 +59,8 @@ mod service;
 mod user;
 mod warnings;
 mod wrapper;
+
+pub(crate) use macro_diag::{macro_error_at, macro_warning};
 
 pub use attached_config::{attached_hygienic_v2_enabled, attached_source_template, macro_hygiene_enabled};
 pub use external::{

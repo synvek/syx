@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 use indexmap::IndexMap;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::pkg_error_at;
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct RegistryConfig {
@@ -62,7 +64,12 @@ impl DependencySpec {
             DependencySpec::Simple(_) => Ok(None),
             DependencySpec::Detailed { version, .. } => {
                 let req = VersionReq::parse(version).map_err(|e| {
-                    SyxDiagnostic::error(format!("Invalid semver requirement '{version}': {e}"))
+                    pkg_error_at(
+                        format!("Invalid semver requirement '{version}': {e}"),
+                        None,
+                        Span::DUMMY,
+                        "P036",
+                    )
                 })?;
                 Ok(Some(req))
             }
@@ -193,7 +200,10 @@ impl<'de> Deserialize<'de> for MacrosField {
         #[serde(untagged)]
         enum Raw {
             List(Vec<String>),
-            Table { #[serde(default)] exports: Vec<String> },
+            Table {
+                #[serde(default)]
+                exports: Vec<String>,
+            },
         }
         Ok(match Raw::deserialize(deserializer)? {
             Raw::List(v) => MacrosField(v),
@@ -254,9 +264,15 @@ pub fn load_manifest(root: &Path) -> SyxResult<SyxManifest> {
     let path = root.join("syx.toml");
     if path.exists() {
         let text = std::fs::read_to_string(&path).map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to read syx.toml: {e}"))
+            pkg_error_at(
+                format!("Failed to read syx.toml: {e}"),
+                None,
+                Span::DUMMY,
+                "P037",
+            )
         })?;
-        toml::from_str(&text).map_err(|e| SyxDiagnostic::error(format!("Invalid syx.toml: {e}")))
+        toml::from_str(&text)
+            .map_err(|e| pkg_error_at(format!("Invalid syx.toml: {e}"), None, Span::DUMMY, "P037"))
     } else {
         Ok(SyxManifest::default())
     }
@@ -264,10 +280,20 @@ pub fn load_manifest(root: &Path) -> SyxResult<SyxManifest> {
 
 pub fn save_manifest(root: &Path, manifest: &SyxManifest) -> SyxResult<()> {
     let text = toml::to_string_pretty(manifest).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to serialize syx.toml: {e}"))
+        pkg_error_at(
+            format!("Failed to serialize syx.toml: {e}"),
+            None,
+            Span::DUMMY,
+            "P037",
+        )
     })?;
     std::fs::write(root.join("syx.toml"), text).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to write syx.toml: {e}"))
+        pkg_error_at(
+            format!("Failed to write syx.toml: {e}"),
+            None,
+            Span::DUMMY,
+            "P037",
+        )
     })
 }
 
@@ -323,21 +349,28 @@ pub fn registry_url_chain(manifest: &SyxManifest) -> Vec<String> {
 pub fn read_package_version(root: &Path) -> SyxResult<Version> {
     let manifest = load_manifest(root)?;
     Version::parse(&manifest.version).map_err(|e| {
-        SyxDiagnostic::error(format!(
-            "Invalid version '{}' in {}: {e}",
-            manifest.version,
-            root.join("syx.toml").display()
-        ))
+        pkg_error_at(
+            format!(
+                "Invalid version '{}' in {}: {e}",
+                manifest.version,
+                root.join("syx.toml").display()
+            ),
+            None,
+            Span::DUMMY,
+            "P038",
+        )
     })
 }
 
 pub fn check_version_req(root: &Path, req: &VersionReq, dep_name: &str) -> SyxResult<Version> {
     let version = read_package_version(root)?;
     if !req.matches(&version) {
-        return Err(SyxDiagnostic::error(format!(
-            "Package '{dep_name}' version {version} does not satisfy requirement {req}"
-        ))
-        .with_code("R001"));
+        return Err(pkg_error_at(
+            format!("Package '{dep_name}' version {version} does not satisfy requirement {req}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        ));
     }
     Ok(version)
 }

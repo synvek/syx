@@ -3,10 +3,16 @@ use syx_ast::{AccessLevel, Attribute, AttributeArg, Decl, Expr, Literal, Stmt, T
 use syx_diagnostics::{Span, SyxResult};
 
 use crate::attached_config::attached_body_template_for;
+use crate::macro_error_at;
 use crate::parse_fragment::{parse_attached_body, parse_attached_decls, parse_extension_member};
 
 fn merge_witness_where(
-    entry: &mut (syx_diagnostics::Span, Vec<Decl>, Vec<SmolStr>, Vec<syx_ast::WherePred>),
+    entry: &mut (
+        syx_diagnostics::Span,
+        Vec<Decl>,
+        Vec<SmolStr>,
+        Vec<syx_ast::WherePred>,
+    ),
     type_params: &[SmolStr],
     user_where: &[syx_ast::WherePred],
     protocols: &[&str],
@@ -37,8 +43,11 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
         attached_body_template_for("peer", "SYX_ATTACHED_PEER_BODY", "print(\"peer\")");
     let custom_body_template =
         attached_body_template_for("custom", "SYX_ATTACHED_CUSTOM_BODY", "print(\"custom\")");
-    let accessor_body_template =
-        attached_body_template_for("accessor", "SYX_ATTACHED_ACCESSOR_BODY", "return self.value");
+    let accessor_body_template = attached_body_template_for(
+        "accessor",
+        "SYX_ATTACHED_ACCESSOR_BODY",
+        "return self.value",
+    );
     let deinit_body_template =
         attached_body_template_for("deinit", "SYX_ATTACHED_DEINIT_BODY", "print(\"deinit\")");
     let extension_body_template = attached_body_template_for(
@@ -49,7 +58,12 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
 
     let mut extensions: indexmap::IndexMap<
         smol_str::SmolStr,
-        (syx_diagnostics::Span, Vec<Decl>, Vec<SmolStr>, Vec<syx_ast::WherePred>),
+        (
+            syx_diagnostics::Span,
+            Vec<Decl>,
+            Vec<SmolStr>,
+            Vec<syx_ast::WherePred>,
+        ),
     > = indexmap::IndexMap::new();
     for decl in &module.decls {
         let (attrs, name, span, fields, type_params, where_clause) = match decl {
@@ -69,7 +83,9 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                 type_params.as_slice(),
                 where_clause.as_slice(),
             ),
-            Decl::Class { attrs, name, span, .. } => (attrs, name, span, None, &[][..], &[][..]),
+            Decl::Class {
+                attrs, name, span, ..
+            } => (attrs, name, span, None, &[][..], &[][..]),
             _ => continue,
         };
         if has_equatable_attr(attrs) {
@@ -78,7 +94,12 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                     .entry(name.clone())
                     .or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
                 merge_witness_where(entry, type_params, where_clause, &["Equatable"]);
-                entry.1.push(synthesize_equatable(name, fields, *span, AccessLevel::Internal));
+                entry.1.push(synthesize_equatable(
+                    name,
+                    fields,
+                    *span,
+                    AccessLevel::Internal,
+                ));
             }
         }
         if has_hashable_attr(attrs) {
@@ -96,7 +117,13 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                     .entry(name.clone())
                     .or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
                 merge_witness_where(entry, type_params, where_clause, &["Codable"]);
-                entry.1.extend(synthesize_codable(name, fields, *span, type_params, where_clause)?);
+                entry.1.extend(synthesize_codable(
+                    name,
+                    fields,
+                    *span,
+                    type_params,
+                    where_clause,
+                )?);
             }
         }
         for proto in attached_conformance_protocols(attrs) {
@@ -107,7 +134,12 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                 match proto.as_str() {
                     "Equatable" => {
                         merge_witness_where(entry, type_params, where_clause, &["Equatable"]);
-                        entry.1.push(synthesize_equatable(name, fields, *span, AccessLevel::Public));
+                        entry.1.push(synthesize_equatable(
+                            name,
+                            fields,
+                            *span,
+                            AccessLevel::Public,
+                        ));
                     }
                     "Hashable" => {
                         merge_witness_where(entry, type_params, where_clause, &["Hashable"]);
@@ -115,13 +147,18 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                     }
                     "Codable" => {
                         merge_witness_where(entry, type_params, where_clause, &["Codable"]);
-                        entry.1.extend(synthesize_codable(name, fields, *span, type_params, where_clause)?);
+                        entry.1.extend(synthesize_codable(
+                            name,
+                            fields,
+                            *span,
+                            type_params,
+                            where_clause,
+                        )?);
                     }
                     other => {
-                        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
+                        return Err(macro_error_at(format!(
                             "attached(conformance) unknown protocol '{other}' (Equatable/Hashable/Codable only)"
-                        ))
-                        .with_code("E005"));
+                        ), None, Span::DUMMY, "E005"));
                     }
                 }
             }
@@ -132,17 +169,17 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                     .into_iter()
                     .next()
                     .unwrap_or_else(|| smol_str::SmolStr::new("externalMember"));
-                let entry = extensions.entry(name.clone()).or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
+                let entry = extensions
+                    .entry(name.clone())
+                    .or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
                 let field_names: Vec<SmolStr> = fields.iter().map(|(n, _)| n.clone()).collect();
                 if spec.type_name == "CodableMacro" {
-                    entry
-                        .1
-                        .extend(crate::external::expand_external_type_decls(
-                            &spec.type_name,
-                            name,
-                            member.as_str(),
-                            &field_names,
-                        )?);
+                    entry.1.extend(crate::external::expand_external_type_decls(
+                        &spec.type_name,
+                        name,
+                        member.as_str(),
+                        &field_names,
+                    )?);
                 } else {
                     let body = crate::external::expand_external_type_macro(
                         &spec.type_name,
@@ -163,8 +200,8 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                         where_clause: vec![],
                         body,
                         is_async: false,
-                    is_override: false,
-            is_final: false,
+                        is_override: false,
+                        is_final: false,
                     });
                 }
                 let _ = fields;
@@ -177,7 +214,9 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
         let extension_slots = attached_kind_names(attrs, "extension");
         let extension_conformances = attached_extension_conformances(attrs);
         if !extension_slots.is_empty() {
-            let entry = extensions.entry(name.clone()).or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
+            let entry = extensions
+                .entry(name.clone())
+                .or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
             if !extension_conformances.is_empty() {
                 entry.2.extend(extension_conformances);
             }
@@ -197,7 +236,9 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
         if members.is_empty() && peers.is_empty() && customs.is_empty() {
             continue;
         }
-        let entry = extensions.entry(name.clone()).or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
+        let entry = extensions
+            .entry(name.clone())
+            .or_insert_with(|| (*span, Vec::new(), Vec::new(), Vec::new()));
         for member in members {
             let body_src = attached_body_from_attr(attrs, "member")
                 .unwrap_or_else(|| member_body_template.clone())
@@ -216,8 +257,8 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                 where_clause: vec![],
                 body: attached_body_stmts(*span, &body_src)?,
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             });
         }
         for (peer_name, _strategy) in peers {
@@ -240,8 +281,8 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                 where_clause: vec![],
                 body: attached_body_stmts(*span, &body_src)?,
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             });
         }
         for custom in customs {
@@ -264,8 +305,8 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
                 where_clause: vec![],
                 body: attached_body_stmts(*span, &body_src)?,
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             });
         }
     }
@@ -293,7 +334,12 @@ pub(crate) fn expand_attached_macros(module: &mut syx_ast::Module) -> SyxResult<
     }
     for decl in &mut module.decls {
         match decl {
-            Decl::Class { attrs, members, span, .. } => {
+            Decl::Class {
+                attrs,
+                members,
+                span,
+                ..
+            } => {
                 expand_attached_deinit(attrs, members, *span, &deinit_body_template)?;
                 expand_attached_accessors(members, *span, &accessor_body_template)?;
             }
@@ -372,7 +418,9 @@ fn attached_custom_names(attrs: &[syx_ast::Attribute]) -> Vec<smol_str::SmolStr>
 }
 
 /// Phase 20: `@attached(peer, named, PeerImpl)` peer metadata table entries.
-fn attached_peer_names(attrs: &[syx_ast::Attribute]) -> Vec<(smol_str::SmolStr, smol_str::SmolStr)> {
+fn attached_peer_names(
+    attrs: &[syx_ast::Attribute],
+) -> Vec<(smol_str::SmolStr, smol_str::SmolStr)> {
     attached_kind_names(attrs, "peer")
         .into_iter()
         .map(|name| (name, smol_str::SmolStr::new("named")))
@@ -430,7 +478,9 @@ fn attached_extension_conformances(attrs: &[Attribute]) -> Vec<SmolStr> {
                     after_conformances = true;
                 }
                 AttributeArg::Ident(id)
-                    if after_conformances && id.as_str() != "named" && id.as_str() != "extension" =>
+                    if after_conformances
+                        && id.as_str() != "named"
+                        && id.as_str() != "extension" =>
                 {
                     out.push(id.clone());
                 }
@@ -441,11 +491,7 @@ fn attached_extension_conformances(attrs: &[Attribute]) -> Vec<SmolStr> {
     out
 }
 
-fn attached_body_for_named(
-    attrs: &[Attribute],
-    kind: &str,
-    slot: &SmolStr,
-) -> Option<String> {
+fn attached_body_for_named(attrs: &[Attribute], kind: &str, slot: &SmolStr) -> Option<String> {
     use syx_ast::AttributeArg;
     for attr in attrs {
         if attr.name.as_str() != "attached" {
@@ -485,7 +531,11 @@ fn expand_attached_deinit(
         return Ok(());
     }
     let body_src = attached_body_from_attr(attrs, "deinit")
-        .or_else(|| slots.first().and_then(|s| attached_body_for_named(attrs, "deinit", s)))
+        .or_else(|| {
+            slots
+                .first()
+                .and_then(|s| attached_body_for_named(attrs, "deinit", s))
+        })
         .unwrap_or_else(|| default_body.to_string());
     members.push(Decl::Deinit {
         span,
@@ -553,8 +603,8 @@ fn expand_attached_accessors(
                 where_clause: vec![],
                 body: attached_body_stmts(span, &body_src)?,
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             });
         }
     }
@@ -705,8 +755,8 @@ fn synthesize_equatable(
         where_clause: vec![],
         body,
         is_async: false,
-    is_override: false,
-            is_final: false,
+        is_override: false,
+        is_final: false,
     }
 }
 
@@ -902,9 +952,7 @@ fn synthesize_enum_codable(
                     );
                 }
             } else if is_stringish(ty) {
-                concat = format!(
-                    "{concat} + \",\\\"{fname}\\\":\\\"\" + self.{fname} + \"\\\"\""
-                );
+                concat = format!("{concat} + \",\\\"{fname}\\\":\\\"\" + self.{fname} + \"\\\"\"");
             } else {
                 concat = format!("{concat} + \",\\\"{fname}\\\":\" + __syx_av{i}");
             }

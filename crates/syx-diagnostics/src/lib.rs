@@ -86,6 +86,8 @@ pub struct SyxDiagnostic {
     pub code: Option<String>,
     pub source: Option<NamedSource<String>>,
     pub primary_span: Option<SourceSpan>,
+    pub label: Option<String>,
+    pub help: Option<String>,
 }
 
 impl fmt::Display for SyxDiagnostic {
@@ -124,9 +126,15 @@ impl Diagnostic for SyxDiagnostic {
     fn labels(&self) -> Option<Box<dyn Iterator<Item = LabeledSpan> + '_>> {
         let span = self.primary_span?;
         Some(Box::new(std::iter::once(LabeledSpan::new_with_span(
-            None::<String>,
+            self.label.clone(),
             span,
         ))))
+    }
+
+    fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
+        self.help
+            .as_ref()
+            .map(|h| Box::new(h.as_str()) as Box<dyn fmt::Display>)
     }
 }
 
@@ -140,6 +148,8 @@ impl SyxDiagnostic {
             code: None,
             source: None,
             primary_span: None,
+            label: None,
+            help: None,
         }
     }
 
@@ -150,6 +160,8 @@ impl SyxDiagnostic {
             code: None,
             source: None,
             primary_span: None,
+            label: None,
+            help: None,
         }
     }
 
@@ -158,12 +170,23 @@ impl SyxDiagnostic {
         self
     }
 
-    pub fn with_span(mut self, file: &SourceFile, span: Span, _label: impl Into<String>) -> Self {
+    pub fn with_span(mut self, file: &SourceFile, span: Span, label: impl Into<String>) -> Self {
         self.source = Some(NamedSource::new(file.name.clone(), file.contents.to_string()));
         self.primary_span = Some(SourceSpan::new(
             SourceOffset::from(span.start as usize),
             span.len as usize,
         ));
+        let label = label.into();
+        self.label = if label.is_empty() {
+            None
+        } else {
+            Some(label)
+        };
+        self
+    }
+
+    pub fn with_help(mut self, help: impl Into<String>) -> Self {
+        self.help = Some(help.into());
         self
     }
 
@@ -212,6 +235,7 @@ pub type SyxResult<T> = Result<T, SyxDiagnostic>;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use miette::Diagnostic;
 
     #[test]
     fn diagnostic_location_in_display() {
@@ -222,6 +246,28 @@ mod tests {
             .with_span(&file, Span::new(join_offset, 4), "");
         assert_eq!(diag.location(), Some(("demo.sy".into(), 2, 5)));
         assert!(format!("{diag}").contains("demo.sy:2:5:"));
+        assert!(diag.label.is_none());
+    }
+
+    #[test]
+    fn with_span_nonempty_label_wired() {
+        let file = SourceFile::new("demo.sy", "select { }");
+        let diag = SyxDiagnostic::error("bad select")
+            .with_span(&file, Span::new(0, 6), "select");
+        assert_eq!(diag.label.as_deref(), Some("select"));
+        let mut labels = Diagnostic::labels(&diag).expect("labels");
+        let labeled = labels.next().expect("one label");
+        assert_eq!(labeled.label().map(str::to_string), Some("select".into()));
+    }
+
+    #[test]
+    fn with_help_surfaces_via_diagnostic_help() {
+        let diag = SyxDiagnostic::error("oops").with_help("try again");
+        assert_eq!(diag.help.as_deref(), Some("try again"));
+        assert_eq!(
+            Diagnostic::help(&diag).map(|h| h.to_string()),
+            Some("try again".into())
+        );
     }
 
     #[test]

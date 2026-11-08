@@ -10,8 +10,10 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use regex::Regex;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_runtime_core::{platform_int_value, value_description, Value};
+
+use crate::vm_error_at;
 
 static SB_NEXT_ID: AtomicI64 = AtomicI64::new(1);
 static SB_TABLE: OnceLock<Mutex<HashMap<i64, String>>> = OnceLock::new();
@@ -275,7 +277,12 @@ pub fn host_process_builder_create(stack: &mut Vec<Value>) -> SyxResult<()> {
     let args = Value::materialize_array(args_val).unwrap_or_default();
     let cmd_args: Vec<String> = args.iter().map(|v| v.as_str()).collect();
     if command.is_empty() {
-        return Err(SyxDiagnostic::error("ProcessBuilder create: empty command").with_code("R003"));
+        return Err(vm_error_at(
+            "ProcessBuilder create: empty command",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     let id = BUILDER_NEXT_ID.fetch_add(1, Ordering::Relaxed);
     builder_sessions().lock().unwrap().insert(
@@ -297,10 +304,12 @@ pub fn host_process_builder_cwd(stack: &mut Vec<Value>) -> SyxResult<()> {
     let builder = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let mut sessions = builder_sessions().lock().unwrap();
     let Some(session) = sessions.get_mut(&builder) else {
-        return Err(
-            SyxDiagnostic::error(format!("ProcessBuilder invalid handle {builder}"))
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("ProcessBuilder invalid handle {builder}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     session.cwd = if path.is_empty() { None } else { Some(path) };
     stack.push(Value::Nil);
@@ -314,13 +323,20 @@ pub fn host_process_builder_env(stack: &mut Vec<Value>) -> SyxResult<()> {
     let builder = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let mut sessions = builder_sessions().lock().unwrap();
     let Some(session) = sessions.get_mut(&builder) else {
-        return Err(
-            SyxDiagnostic::error(format!("ProcessBuilder invalid handle {builder}"))
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("ProcessBuilder invalid handle {builder}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     if key.is_empty() {
-        return Err(SyxDiagnostic::error("ProcessBuilder env: empty key").with_code("R003"));
+        return Err(vm_error_at(
+            "ProcessBuilder env: empty key",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     if let Some((_, v)) = session.env.iter_mut().find(|(k, _)| k == &key) {
         *v = value;
@@ -344,10 +360,12 @@ pub fn host_process_builder_spawn(stack: &mut Vec<Value>) -> SyxResult<()> {
         })
     };
     let Some(session) = session else {
-        return Err(
-            SyxDiagnostic::error(format!("ProcessBuilder invalid handle {builder}"))
-                .with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("ProcessBuilder invalid handle {builder}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let mut cmd = Command::new(&session.command);
     // ADR-243: stdin piped for ChildPipe.write; stdout/stderr piped for readChunk.
@@ -362,7 +380,12 @@ pub fn host_process_builder_spawn(stack: &mut Vec<Value>) -> SyxResult<()> {
         cmd.env(k, v);
     }
     let child = cmd.spawn().map_err(|e| {
-        SyxDiagnostic::error(format!("ProcessBuilder spawn failed: {e}")).with_code("R003")
+        vm_error_at(
+            format!("ProcessBuilder spawn failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     let id = CHILD_NEXT_ID.fetch_add(1, Ordering::Relaxed);
     child_table().lock().unwrap().insert(id, child);
@@ -378,12 +401,17 @@ pub fn host_child_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
         .unwrap()
         .remove(&handle)
         .ok_or_else(|| {
-            SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003")
+            vm_error_at(
+                format!("Child invalid handle {handle}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
     drop_child_pipes(&mut child);
     let status = child
         .wait()
-        .map_err(|e| SyxDiagnostic::error(format!("Child wait failed: {e}")).with_code("R003"))?;
+        .map_err(|e| vm_error_at(format!("Child wait failed: {e}"), None, Span::DUMMY, "R003"))?;
     let code = status.code().unwrap_or(-1);
     crate::stdlib_phase83_hosts::set_last_exit_code(code);
     stack.push(platform_int_value(code as i64));
@@ -398,7 +426,12 @@ pub fn host_child_kill(stack: &mut Vec<Value>) -> SyxResult<()> {
         .unwrap()
         .remove(&handle)
         .ok_or_else(|| {
-            SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003")
+            vm_error_at(
+                format!("Child invalid handle {handle}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            )
         })?;
     let _ = child.kill();
     drop_child_pipes(&mut child);
@@ -417,9 +450,12 @@ pub fn host_child_signal(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     let mut guard = child_table().lock().unwrap();
     let Some(child) = guard.get_mut(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("Child invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
 
     #[cfg(unix)]
@@ -429,19 +465,24 @@ pub fn host_child_signal(stack: &mut Vec<Value>) -> SyxResult<()> {
             "INT" => libc::SIGINT,
             "KILL" => libc::SIGKILL,
             _ => {
-                return Err(SyxDiagnostic::error(format!(
-                    "Child.signal unsupported name '{raw_name}' (use TERM/INT/KILL)"
-                ))
-                .with_code("R003"));
+                return Err(vm_error_at(
+                    format!("Child.signal unsupported name '{raw_name}' (use TERM/INT/KILL)"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
         };
         let pid = child.id() as libc::pid_t;
         let rc = unsafe { libc::kill(pid, sig) };
         if rc != 0 {
             let err = std::io::Error::last_os_error();
-            return Err(
-                SyxDiagnostic::error(format!("Child.signal failed: {err}")).with_code("R003")
-            );
+            return Err(vm_error_at(
+                format!("Child.signal failed: {err}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
 
@@ -450,20 +491,29 @@ pub fn host_child_signal(stack: &mut Vec<Value>) -> SyxResult<()> {
         match name.as_str() {
             "KILL" => {
                 child.kill().map_err(|e| {
-                    SyxDiagnostic::error(format!("Child.signal KILL failed: {e}")).with_code("R003")
+                    vm_error_at(
+                        format!("Child.signal KILL failed: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    )
                 })?;
             }
             "TERM" | "INT" => {
-                return Err(SyxDiagnostic::error(format!(
-                    "Child.signal '{raw_name}' unsupported on Windows (use KILL)"
-                ))
-                .with_code("R003"));
+                return Err(vm_error_at(
+                    format!("Child.signal '{raw_name}' unsupported on Windows (use KILL)"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
             _ => {
-                return Err(SyxDiagnostic::error(format!(
-                    "Child.signal unsupported name '{raw_name}' (use KILL on Windows)"
-                ))
-                .with_code("R003"));
+                return Err(vm_error_at(
+                    format!("Child.signal unsupported name '{raw_name}' (use KILL on Windows)"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
         }
     }
@@ -471,9 +521,12 @@ pub fn host_child_signal(stack: &mut Vec<Value>) -> SyxResult<()> {
     #[cfg(not(any(unix, windows)))]
     {
         let _ = (child, name, raw_name);
-        return Err(
-            SyxDiagnostic::error("Child.signal unsupported on this platform").with_code("R003"),
-        );
+        return Err(vm_error_at(
+            "Child.signal unsupported on this platform",
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
 
     stack.push(Value::Nil);
@@ -488,9 +541,12 @@ pub fn host_child_wait_timeout(stack: &mut Vec<Value>) -> SyxResult<()> {
     loop {
         let mut guard = child_table().lock().unwrap();
         let Some(child) = guard.get_mut(&handle) else {
-            return Err(
-                SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003"),
-            );
+            return Err(vm_error_at(
+                format!("Child invalid handle {handle}"),
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         };
         match child.try_wait() {
             Ok(Some(status)) => {
@@ -509,20 +565,24 @@ pub fn host_child_wait_timeout(stack: &mut Vec<Value>) -> SyxResult<()> {
                     let _ = child.kill();
                     drop_child_pipes(&mut child);
                     let _ = child.wait();
-                    return Err(SyxDiagnostic::error(format!(
-                        "Child waitTimeout exceeded ({timeout_ms}ms) for handle {handle}"
-                    ))
-                    .with_code("R003"));
+                    return Err(vm_error_at(
+                        format!("Child waitTimeout exceeded ({timeout_ms}ms) for handle {handle}"),
+                        None,
+                        Span::DUMMY,
+                        "R003",
+                    ));
                 }
                 drop(guard);
                 thread::sleep(Duration::from_millis(10));
             }
             Err(e) => {
                 let _ = guard.remove(&handle);
-                return Err(
-                    SyxDiagnostic::error(format!("Child waitTimeout failed: {e}"))
-                        .with_code("R003"),
-                );
+                return Err(vm_error_at(
+                    format!("Child waitTimeout failed: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                ));
             }
         }
     }
@@ -541,13 +601,20 @@ pub fn host_child_stdout(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let mut guard = child_table().lock().unwrap();
     let Some(child) = guard.get_mut(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("Child invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let out = child.stdout.take().ok_or_else(|| {
-        SyxDiagnostic::error(format!("Child stdout already taken for handle {handle}"))
-            .with_code("R003")
+        vm_error_at(
+            format!("Child stdout already taken for handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     drop(guard);
     stack.push(platform_int_value(insert_pipe(ChildPipeEnd::Stdout(out))));
@@ -559,13 +626,20 @@ pub fn host_child_stderr(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let mut guard = child_table().lock().unwrap();
     let Some(child) = guard.get_mut(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("Child invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let err = child.stderr.take().ok_or_else(|| {
-        SyxDiagnostic::error(format!("Child stderr already taken for handle {handle}"))
-            .with_code("R003")
+        vm_error_at(
+            format!("Child stderr already taken for handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     drop(guard);
     stack.push(platform_int_value(insert_pipe(ChildPipeEnd::Stderr(err))));
@@ -577,13 +651,20 @@ pub fn host_child_stdin(stack: &mut Vec<Value>) -> SyxResult<()> {
     let handle = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let mut guard = child_table().lock().unwrap();
     let Some(child) = guard.get_mut(&handle) else {
-        return Err(
-            SyxDiagnostic::error(format!("Child invalid handle {handle}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("Child invalid handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let inp = child.stdin.take().ok_or_else(|| {
-        SyxDiagnostic::error(format!("Child stdin already taken for handle {handle}"))
-            .with_code("R003")
+        vm_error_at(
+            format!("Child stdin already taken for handle {handle}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        )
     })?;
     drop(guard);
     stack.push(platform_int_value(insert_pipe(ChildPipeEnd::Stdin(inp))));
@@ -596,9 +677,12 @@ pub fn host_child_pipe_read_chunk(stack: &mut Vec<Value>) -> SyxResult<()> {
     let pipe = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let mut sessions = pipe_sessions().lock().unwrap();
     let Some(end) = sessions.get_mut(&pipe) else {
-        return Err(
-            SyxDiagnostic::error(format!("ChildPipe invalid handle {pipe}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("ChildPipe invalid handle {pipe}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     if max_bytes == 0 {
         stack.push(Value::Array(vec![]));
@@ -609,12 +693,22 @@ pub fn host_child_pipe_read_chunk(stack: &mut Vec<Value>) -> SyxResult<()> {
         ChildPipeEnd::Stdout(r) => r.read(&mut buf),
         ChildPipeEnd::Stderr(r) => r.read(&mut buf),
         ChildPipeEnd::Stdin(_) => {
-            return Err(
-                SyxDiagnostic::error("ChildPipe readChunk: stdin is write-only").with_code("R003"),
-            );
+            return Err(vm_error_at(
+                "ChildPipe readChunk: stdin is write-only",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
-    .map_err(|e| SyxDiagnostic::error(format!("ChildPipe read failed: {e}")).with_code("R001"))?;
+    .map_err(|e| {
+        vm_error_at(
+            format!("ChildPipe read failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
+    })?;
     buf.truncate(n);
     stack.push(Value::Array(buf.into_iter().map(Value::U8).collect()));
     Ok(())
@@ -627,9 +721,12 @@ pub fn host_child_pipe_write(stack: &mut Vec<Value>) -> SyxResult<()> {
     let bytes = bytes_from_value(&bytes_val);
     let mut sessions = pipe_sessions().lock().unwrap();
     let Some(end) = sessions.get_mut(&pipe) else {
-        return Err(
-            SyxDiagnostic::error(format!("ChildPipe invalid handle {pipe}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("ChildPipe invalid handle {pipe}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     };
     let n = match end {
         ChildPipeEnd::Stdin(w) => w.write(&bytes).and_then(|n| {
@@ -637,13 +734,22 @@ pub fn host_child_pipe_write(stack: &mut Vec<Value>) -> SyxResult<()> {
             Ok(n)
         }),
         ChildPipeEnd::Stdout(_) | ChildPipeEnd::Stderr(_) => {
-            return Err(
-                SyxDiagnostic::error("ChildPipe write: stdout/stderr are read-only")
-                    .with_code("R003"),
-            );
+            return Err(vm_error_at(
+                "ChildPipe write: stdout/stderr are read-only",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
     }
-    .map_err(|e| SyxDiagnostic::error(format!("ChildPipe write failed: {e}")).with_code("R001"))?;
+    .map_err(|e| {
+        vm_error_at(
+            format!("ChildPipe write failed: {e}"),
+            None,
+            Span::DUMMY,
+            "R001",
+        )
+    })?;
     stack.push(platform_int_value(n as i64));
     Ok(())
 }
@@ -653,9 +759,12 @@ pub fn host_child_pipe_close(stack: &mut Vec<Value>) -> SyxResult<()> {
     let pipe = stack.pop().unwrap_or(Value::I64(-1)).as_i64();
     let removed = pipe_sessions().lock().unwrap().remove(&pipe).is_some();
     if !removed {
-        return Err(
-            SyxDiagnostic::error(format!("ChildPipe invalid handle {pipe}")).with_code("R003"),
-        );
+        return Err(vm_error_at(
+            format!("ChildPipe invalid handle {pipe}"),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())
@@ -813,11 +922,16 @@ pub fn host_testing_expect_equal(stack: &mut Vec<Value>) -> SyxResult<()> {
     let expected = stack.pop().unwrap_or(Value::Nil);
     let actual = stack.pop().unwrap_or(Value::Nil);
     if !syx_runtime_core::value_equals(&actual, &expected) {
-        return Err(syx_diagnostics::SyxDiagnostic::error(format!(
-            "expect failed: {msg} — expected {}, got {}",
-            value_description(&expected),
-            value_description(&actual)
-        )));
+        return Err(vm_error_at(
+            format!(
+                "expect failed: {msg} — expected {}, got {}",
+                value_description(&expected),
+                value_description(&actual)
+            ),
+            None,
+            Span::DUMMY,
+            "R003",
+        ));
     }
     stack.push(Value::Nil);
     Ok(())

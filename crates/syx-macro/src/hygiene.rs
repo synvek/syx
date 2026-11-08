@@ -1,11 +1,12 @@
 //! Phase 50 ADR-070 M2: MacroParamId hygiene v2.
 //! Phase 132 M22: declaration-site body rename (`macro-token-v3:decl-hygiene-mvp`).
 
+use crate::macro_error_at;
 use smol_str::SmolStr;
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicU32, Ordering};
 use syx_ast::{Decl, Expr, Stmt};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 
 static EXPANSION_COUNTER: AtomicU32 = AtomicU32::new(0);
 
@@ -41,7 +42,12 @@ pub fn bind_macro_params(
 ) -> Vec<(SmolStr, SmolStr)> {
     params
         .iter()
-        .map(|p| (p.clone(), hygienic_param_name(macro_name, p.as_str(), expansion_id)))
+        .map(|p| {
+            (
+                p.clone(),
+                hygienic_param_name(macro_name, p.as_str(), expansion_id),
+            )
+        })
         .collect()
 }
 
@@ -83,8 +89,12 @@ fn collect_idents_stmts(stmts: &[Stmt], out: &mut HashSet<SmolStr>) {
     for stmt in stmts {
         match stmt {
             Stmt::Print { expr, .. } | Stmt::Expr { expr, .. } => collect_idents_expr(expr, out),
-            Stmt::Return { value: Some(expr), .. } => collect_idents_expr(expr, out),
-            Stmt::VarDecl { init: Some(expr), .. } => collect_idents_expr(expr, out),
+            Stmt::Return {
+                value: Some(expr), ..
+            } => collect_idents_expr(expr, out),
+            Stmt::VarDecl {
+                init: Some(expr), ..
+            } => collect_idents_expr(expr, out),
             Stmt::Block { stmts, .. } => collect_idents_stmts(stmts, out),
             Stmt::If {
                 condition,
@@ -98,7 +108,9 @@ fn collect_idents_stmts(stmts: &[Stmt], out: &mut HashSet<SmolStr>) {
                     collect_idents_stmts(eb, out);
                 }
             }
-            Stmt::While { condition, body, .. } => {
+            Stmt::While {
+                condition, body, ..
+            } => {
                 collect_idents_expr(condition, out);
                 collect_idents_stmts(body, out);
             }
@@ -144,10 +156,9 @@ fn reject_captured_idents(
             continue;
         }
         if module_bindings.contains(name) {
-            return Err(SyxDiagnostic::error(format!(
+            return Err(macro_error_at(format!(
                 "macro '{macro_name}' captures outer binding '{name}' (hygiene v2); use '\\{name}' to opt in"
-            ))
-            .with_code("E003"));
+            ), None, Span::DUMMY, "E003"));
         }
     }
     Ok(())
@@ -188,7 +199,9 @@ fn collect_idents_decls(decls: &[Decl], out: &mut HashSet<SmolStr>) {
                 collect_idents_decls(members, out);
             }
             Decl::Extension { methods, .. } => collect_idents_decls(methods, out),
-            Decl::TopLevelStmt { stmt, .. } => collect_idents_stmts(std::slice::from_ref(stmt), out),
+            Decl::TopLevelStmt { stmt, .. } => {
+                collect_idents_stmts(std::slice::from_ref(stmt), out)
+            }
             _ => {}
         }
     }
@@ -202,10 +215,12 @@ pub fn check_macro_param_shadow(
 ) -> SyxResult<()> {
     for p in params {
         if module_bindings.contains(p) {
-            return Err(SyxDiagnostic::error(format!(
-                "macro '{macro_name}' parameter '{p}' shadows outer binding (hygiene v2)"
-            ))
-            .with_code("E003"));
+            return Err(macro_error_at(
+                format!("macro '{macro_name}' parameter '{p}' shadows outer binding (hygiene v2)"),
+                None,
+                Span::DUMMY,
+                "E003",
+            ));
         }
     }
     Ok(())
@@ -227,10 +242,7 @@ pub fn rename_macro_decls(decls: &mut [Decl], renames: &[(SmolStr, SmolStr)]) {
 fn rename_decl(decl: &mut Decl, renames: &[(SmolStr, SmolStr)]) {
     match decl {
         Decl::Function {
-            name,
-            params,
-            body,
-            ..
+            name, params, body, ..
         } => {
             rename_smolstr(name, renames);
             for p in params.iter_mut() {
@@ -306,8 +318,12 @@ fn rename_smolstr(name: &mut SmolStr, renames: &[(SmolStr, SmolStr)]) {
 fn rename_stmt(stmt: &mut Stmt, renames: &[(SmolStr, SmolStr)]) {
     match stmt {
         Stmt::Print { expr, .. } | Stmt::Expr { expr, .. } => rename_expr(expr, renames),
-        Stmt::Return { value: Some(expr), .. } => rename_expr(expr, renames),
-        Stmt::VarDecl { init: Some(expr), .. } => rename_expr(expr, renames),
+        Stmt::Return {
+            value: Some(expr), ..
+        } => rename_expr(expr, renames),
+        Stmt::VarDecl {
+            init: Some(expr), ..
+        } => rename_expr(expr, renames),
         Stmt::Block { stmts, .. } => rename_macro_body(stmts, renames),
         Stmt::If {
             condition,
@@ -321,7 +337,9 @@ fn rename_stmt(stmt: &mut Stmt, renames: &[(SmolStr, SmolStr)]) {
                 rename_macro_body(eb, renames);
             }
         }
-        Stmt::While { condition, body, .. } => {
+        Stmt::While {
+            condition, body, ..
+        } => {
             rename_expr(condition, renames);
             rename_macro_body(body, renames);
         }

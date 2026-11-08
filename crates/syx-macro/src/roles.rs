@@ -1,7 +1,9 @@
 //! Phase 56: freestanding macro roles (`@freestanding(...)`).
 
+use crate::macro_error_at;
 use smol_str::SmolStr;
 use syx_ast::Attribute;
+use syx_diagnostics::Span;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FreestandingRole {
@@ -74,10 +76,14 @@ pub fn user_macro_roles(_name: &SmolStr, attrs: &[Attribute]) -> Vec<Freestandin
     }
 }
 
-pub fn role_mismatch_diag(macro_name: &str, role: FreestandingRole) -> syx_diagnostics::SyxDiagnostic {
-    syx_diagnostics::SyxDiagnostic::error(format!(
-        "macro '#{macro_name}' is not a {} macro",
-        role.as_str()
-    ))
-    .with_code("E003")
+pub fn role_mismatch_diag(
+    macro_name: &str,
+    role: FreestandingRole,
+) -> syx_diagnostics::SyxDiagnostic {
+    macro_error_at(
+        format!("macro '#{macro_name}' is not a {} macro", role.as_str()),
+        None,
+        Span::DUMMY,
+        "E003",
+    )
 }

@@ -48,7 +48,13 @@ pub fn decode_grpc_message(buf: &[u8]) -> Option<Vec<u8>> {
     Some(buf[5..5 + len].to_vec())
 }
 
-fn write_frame<S: Write>(stream: &mut S, ty: u8, flags: u8, stream_id: u32, payload: &[u8]) -> bool {
+fn write_frame<S: Write>(
+    stream: &mut S,
+    ty: u8,
+    flags: u8,
+    stream_id: u32,
+    payload: &[u8],
+) -> bool {
     let len = payload.len() as u32;
     if len > 0x00FF_FFFF {
         return false;
@@ -78,8 +84,10 @@ fn read_frame<S: Read>(stream: &mut S) -> Option<(u8, u8, u32, Vec<u8>)> {
     let len = ((hdr[0] as usize) << 16) | ((hdr[1] as usize) << 8) | (hdr[2] as usize);
     let ty = hdr[3];
     let flags = hdr[4];
-    let stream_id =
-        ((hdr[5] as u32) << 24) | ((hdr[6] as u32) << 16) | ((hdr[7] as u32) << 8) | (hdr[8] as u32);
+    let stream_id = ((hdr[5] as u32) << 24)
+        | ((hdr[6] as u32) << 16)
+        | ((hdr[7] as u32) << 8)
+        | (hdr[8] as u32);
     let stream_id = stream_id & 0x7fff_ffff;
     let payload = if len == 0 {
         Vec::new()
@@ -258,10 +266,7 @@ fn serve_one_unary_mode_io<S: Read + Write>(
         UnaryServerMode::EchoPeer => encode_grpc_message(&payload),
     };
 
-    let hdrs = hpack_block(&[
-        (":status", "200"),
-        ("content-type", "application/grpc"),
-    ]);
+    let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
     let _ = write_frame(stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs);
     let _ = write_frame(stream, FRAME_DATA, 0, 1, &resp_msg);
     let trailers = hpack_block(&[("grpc-status", "0")]);
@@ -404,13 +409,11 @@ pub fn e02_grpc_tls_loopback_wired_ok() -> bool {
 
     const MSG: &str = "syx-e02-w1154-grpcs-peer";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -545,8 +548,7 @@ pub fn e02_grpc_negative_preface_fail_closed_ok() -> bool {
                         break;
                     }
                 }
-                decode_grpc_message(&data)
-                    .map(|p| String::from_utf8_lossy(&p).into_owned())
+                decode_grpc_message(&data).map(|p| String::from_utf8_lossy(&p).into_owned())
             }
         }
     } else {
@@ -596,22 +598,13 @@ pub fn e02_grpc_negative_truncated_data_fail_closed_ok() -> bool {
                 break;
             }
         }
-        let hdrs = hpack_block(&[
-            (":status", "200"),
-            ("content-type", "application/grpc"),
-        ]);
+        let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
         let _ = write_frame(&mut stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs);
         // Truncated gRPC DATA: length=32, only 3 payload bytes (marker syx-e02-w1157-neg).
         let mut trunc = vec![0u8];
         trunc.extend_from_slice(&32u32.to_be_bytes());
         trunc.extend_from_slice(b"neg");
-        let _ = write_frame(
-            &mut stream,
-            FRAME_DATA,
-            FLAG_END_STREAM,
-            1,
-            &trunc,
-        );
+        let _ = write_frame(&mut stream, FRAME_DATA, FLAG_END_STREAM, 1, &trunc);
     });
     thread::sleep(Duration::from_millis(20));
     match grpc_wire_unary_call(port, "echo.Echo/Unary", "syx-e02-w1157-neg") {
@@ -663,10 +656,7 @@ fn serve_one_server_stream_io<S: Read + Write>(
     }
     let _ = decode_grpc_message(&req_data);
 
-    let hdrs = hpack_block(&[
-        (":status", "200"),
-        ("content-type", "application/grpc"),
-    ]);
+    let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
     let _ = write_frame(stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs);
     for i in 0..SERVER_STREAM_N {
         let body = format!("{marker_prefix}:{i}");
@@ -772,9 +762,10 @@ pub fn e02_grpc_server_streaming_loopback_ok() -> bool {
     match grpc_wire_server_stream_call(port, "echo.Echo/ServerStream", MSG) {
         Some(msgs) => {
             msgs.len() == SERVER_STREAM_N
-                && msgs.iter().enumerate().all(|(i, m)| {
-                    m == &format!("syx-e02-w1158-stream:{i}")
-                })
+                && msgs
+                    .iter()
+                    .enumerate()
+                    .all(|(i, m)| m == &format!("syx-e02-w1158-stream:{i}"))
         }
         None => false,
     }
@@ -824,10 +815,7 @@ pub fn e02_grpc_streaming_negative_truncated_data_fail_closed_ok() -> bool {
                 break;
             }
         }
-        let hdrs = hpack_block(&[
-            (":status", "200"),
-            ("content-type", "application/grpc"),
-        ]);
+        let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
         let _ = write_frame(&mut stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs);
         // DATA#0: valid gRPC message.
         let ok0 = encode_grpc_message(b"syx-e02-w1164-stream-neg:0");
@@ -836,20 +824,10 @@ pub fn e02_grpc_streaming_negative_truncated_data_fail_closed_ok() -> bool {
         let mut trunc = vec![0u8];
         trunc.extend_from_slice(&32u32.to_be_bytes());
         trunc.extend_from_slice(b"neg");
-        let _ = write_frame(
-            &mut stream,
-            FRAME_DATA,
-            FLAG_END_STREAM,
-            1,
-            &trunc,
-        );
+        let _ = write_frame(&mut stream, FRAME_DATA, FLAG_END_STREAM, 1, &trunc);
     });
     thread::sleep(Duration::from_millis(20));
-    match grpc_wire_server_stream_call(
-        port,
-        "echo.Echo/ServerStream",
-        "syx-e02-w1164-stream-neg",
-    ) {
+    match grpc_wire_server_stream_call(port, "echo.Echo/ServerStream", "syx-e02-w1164-stream-neg") {
         Some(_) => false,
         None => true,
     }
@@ -910,10 +888,7 @@ fn serve_one_client_stream_io<S: Read + Write>(
         format!("{marker_prefix}:fail")
     };
 
-    let hdrs = hpack_block(&[
-        (":status", "200"),
-        ("content-type", "application/grpc"),
-    ]);
+    let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
     let _ = write_frame(stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs);
     let msg = encode_grpc_message(resp_body.as_bytes());
     let _ = write_frame(stream, FRAME_DATA, 0, 1, &msg);
@@ -1076,10 +1051,7 @@ fn serve_one_bidi_stream_io<S: Read + Write>(
             .enumerate()
             .all(|(i, m)| m == &format!("{marker_prefix}:{i}"));
 
-    let hdrs = hpack_block(&[
-        (":status", "200"),
-        ("content-type", "application/grpc"),
-    ]);
+    let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
     let _ = write_frame(stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs);
     if ok {
         for i in 0..BIDI_STREAM_N {
@@ -1202,9 +1174,10 @@ pub fn e02_grpc_bidi_streaming_loopback_ok() -> bool {
     match grpc_wire_bidi_stream_call(port, "echo.Echo/BidiStream", &body_refs) {
         Some(msgs) => {
             msgs.len() == BIDI_STREAM_N
-                && msgs.iter().enumerate().all(|(i, m)| {
-                    m == &format!("syx-e02-w1160-bidi:{i}")
-                })
+                && msgs
+                    .iter()
+                    .enumerate()
+                    .all(|(i, m)| m == &format!("syx-e02-w1160-bidi:{i}"))
         }
         None => false,
     }
@@ -1242,10 +1215,7 @@ fn serve_one_bidi_interleaved_stream_io<S: Read + Write>(
             break;
         }
     }
-    let resp_hdrs = hpack_block(&[
-        (":status", "200"),
-        ("content-type", "application/grpc"),
-    ]);
+    let resp_hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
     let _ = write_frame(stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &resp_hdrs);
     let mut got = 0usize;
     for _ in 0..32 {
@@ -1393,9 +1363,10 @@ pub fn e02_grpc_bidi_interleaved_loopback_ok() -> bool {
     match grpc_wire_bidi_interleaved_call(port, "echo.Echo/BidiStream", &body_refs) {
         Some(msgs) => {
             msgs.len() == BIDI_STREAM_N
-                && msgs.iter().enumerate().all(|(i, m)| {
-                    m == &format!("syx-e02-w1165-interleave:{i}")
-                })
+                && msgs
+                    .iter()
+                    .enumerate()
+                    .all(|(i, m)| m == &format!("syx-e02-w1165-interleave:{i}"))
         }
         None => false,
     }
@@ -1420,13 +1391,11 @@ pub fn e02_grpc_tls_server_streaming_loopback_ok() -> bool {
     const MSG: &str = "syx-e02-w1161-grpcs-stream";
     const MARKER: &str = "syx-e02-w1161-grpcs-stream";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -1497,7 +1466,10 @@ pub fn e02_grpc_tls_server_streaming_loopback_ok() -> bool {
     match grpc_wire_server_stream_call_io(&mut tls, "echo.Echo/ServerStream", MSG, "https") {
         Some(msgs) => {
             msgs.len() == SERVER_STREAM_N
-                && msgs.iter().enumerate().all(|(i, m)| m == &format!("{MARKER}:{i}"))
+                && msgs
+                    .iter()
+                    .enumerate()
+                    .all(|(i, m)| m == &format!("{MARKER}:{i}"))
         }
         None => false,
     }
@@ -1521,13 +1493,11 @@ pub fn e02_grpc_tls_client_streaming_loopback_ok() -> bool {
 
     const MARKER: &str = "syx-e02-w1162-grpcs-client-stream";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -1599,12 +1569,7 @@ pub fn e02_grpc_tls_client_streaming_loopback_ok() -> bool {
         .collect();
     let body_refs: Vec<&str> = bodies.iter().map(|s| s.as_str()).collect();
     let mut tls = rustls::Stream::new(&mut client, &mut tcp);
-    match grpc_wire_client_stream_call_io(
-        &mut tls,
-        "echo.Echo/ClientStream",
-        &body_refs,
-        "https",
-    ) {
+    match grpc_wire_client_stream_call_io(&mut tls, "echo.Echo/ClientStream", &body_refs, "https") {
         Some(resp) => resp == format!("{MARKER}:ok"),
         None => false,
     }
@@ -1628,13 +1593,11 @@ pub fn e02_grpc_tls_bidi_streaming_loopback_ok() -> bool {
 
     const MARKER: &str = "syx-e02-w1163-grpcs-bidi";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -1706,8 +1669,7 @@ pub fn e02_grpc_tls_bidi_streaming_loopback_ok() -> bool {
         .collect();
     let body_refs: Vec<&str> = bodies.iter().map(|s| s.as_str()).collect();
     let mut tls = rustls::Stream::new(&mut client, &mut tcp);
-    match grpc_wire_bidi_stream_call_io(&mut tls, "echo.Echo/BidiStream", &body_refs, "https")
-    {
+    match grpc_wire_bidi_stream_call_io(&mut tls, "echo.Echo/BidiStream", &body_refs, "https") {
         Some(msgs) => {
             msgs.len() == BIDI_STREAM_N
                 && msgs
@@ -1737,13 +1699,11 @@ pub fn e02_grpc_tls_bidi_interleaved_loopback_ok() -> bool {
 
     const MARKER: &str = "syx-e02-w1166-grpcs-interleave";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -1815,12 +1775,8 @@ pub fn e02_grpc_tls_bidi_interleaved_loopback_ok() -> bool {
         .collect();
     let body_refs: Vec<&str> = bodies.iter().map(|s| s.as_str()).collect();
     let mut tls = rustls::Stream::new(&mut client, &mut tcp);
-    match grpc_wire_bidi_interleaved_call_io(
-        &mut tls,
-        "echo.Echo/BidiStream",
-        &body_refs,
-        "https",
-    ) {
+    match grpc_wire_bidi_interleaved_call_io(&mut tls, "echo.Echo/BidiStream", &body_refs, "https")
+    {
         Some(msgs) => {
             msgs.len() == BIDI_STREAM_N
                 && msgs
@@ -1913,10 +1869,7 @@ fn serve_one_window_update_credit_gated_io<S: Read + Write>(
     let body = String::from_utf8_lossy(&payload);
     let resp_text = format!("{resp_marker}:{body}");
     let resp_msg = encode_grpc_message(resp_text.as_bytes());
-    let hdrs = hpack_block(&[
-        (":status", "200"),
-        ("content-type", "application/grpc"),
-    ]);
+    let hdrs = hpack_block(&[(":status", "200"), ("content-type", "application/grpc")]);
     if !write_frame(stream, FRAME_HEADERS, FLAG_END_HEADERS, 1, &hdrs) {
         return Ok(());
     }
@@ -2040,13 +1993,11 @@ pub fn e02_grpc_tls_window_update_loopback_ok() -> bool {
 
     const MARKER: &str = "syx-e02-w1168-grpcs-window-update";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -2233,13 +2184,11 @@ pub fn e02_grpc_tls_window_update_omit_credit_fail_closed_ok() -> bool {
 
     let _ = "syx-e02-w1170-grpcs-window-update-neg";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -2284,7 +2233,8 @@ pub fn e02_grpc_tls_window_update_omit_credit_fail_closed_ok() -> bool {
         }
         let mut tls = rustls::Stream::new(&mut conn, &mut tcp);
         // Credit-gate peer: refuses response DATA without WINDOW_UPDATE.
-        let _ = serve_one_window_update_credit_gated_io(&mut tls, "syx-e02-w1168-grpcs-window-update");
+        let _ =
+            serve_one_window_update_credit_gated_io(&mut tls, "syx-e02-w1168-grpcs-window-update");
     });
     thread::sleep(Duration::from_millis(30));
 
@@ -2439,13 +2389,11 @@ pub fn e02_grpc_tls_window_update_connection_loopback_ok() -> bool {
 
     const MARKER: &str = "syx-e02-w1172-grpcs-window-update-conn";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -2513,12 +2461,8 @@ pub fn e02_grpc_tls_window_update_connection_loopback_ok() -> bool {
         }
     }
     let mut tls = rustls::Stream::new(&mut client, &mut tcp);
-    match grpc_wire_window_update_connection_call_io(
-        &mut tls,
-        "echo.Echo/Unary",
-        "credit",
-        "https",
-    ) {
+    match grpc_wire_window_update_connection_call_io(&mut tls, "echo.Echo/Unary", "credit", "https")
+    {
         Some(resp) => resp == format!("{MARKER}:credit"),
         None => false,
     }
@@ -2594,13 +2538,11 @@ pub fn e02_grpc_tls_window_update_connection_omit_credit_fail_closed_ok() -> boo
     let _ = "syx-e02-w1174-grpcs-window-update-conn-neg";
     const PEER_MARKER: &str = "syx-e02-w1172-grpcs-window-update-conn";
 
-    let cert = match rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ]) {
-        Ok(c) => c,
-        Err(_) => return false,
-    };
+    let cert =
+        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
     let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
     let cert_der = CertificateDer::from(cert.cert);
     let server_cfg = match ServerConfig::builder()
@@ -2709,7 +2651,10 @@ mod tests {
         let enc = encode_grpc_message(b"hello");
         assert_eq!(enc[0], 0);
         assert_eq!(&enc[1..5], &5u32.to_be_bytes());
-        assert_eq!(decode_grpc_message(&enc).as_deref(), Some(b"hello".as_slice()));
+        assert_eq!(
+            decode_grpc_message(&enc).as_deref(),
+            Some(b"hello".as_slice())
+        );
     }
 
     #[test]
@@ -2722,8 +2667,7 @@ mod tests {
         assert!(e02_grpc_interop_first_slice_ok());
         assert!(e02_grpc_loopback_peer_echo_wired_ok());
         // Distinct from construction wrapper response.
-        assert!(!e02_grpc_wire_loopback_roundtrip_ok()
-            || e02_grpc_loopback_peer_echo_wired_ok());
+        assert!(!e02_grpc_wire_loopback_roundtrip_ok() || e02_grpc_loopback_peer_echo_wired_ok());
     }
 
     #[test]

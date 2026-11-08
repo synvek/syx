@@ -2,12 +2,13 @@
 //! Extracted in S2-I232 (zero semantics).
 
 use crate::{
-    compile_file_with_options, compile_project_with_options, compile_to_program, DriverOptions,
+    compile_file_with_options, compile_project_with_options, compile_to_program, driver_error_at,
+    DriverOptions,
 };
 use std::path::Path;
 use syx_codegen::CompiledProgram;
 use syx_debug::DebugSession;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_frontend::{FrontendOptions, FrontendPipeline, StopAfter};
 use syx_vm::WasmVM;
 
@@ -17,8 +18,14 @@ pub fn debug_project(root: &Path) -> SyxResult<DebugSession> {
 
 pub fn debug_project_with_options(root: &Path, options: &DriverOptions) -> SyxResult<DebugSession> {
     let project = compile_project_with_options(root, options)?;
-    let text = std::fs::read_to_string(&project.entry.path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read entry: {e}")))?;
+    let text = std::fs::read_to_string(&project.entry.path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read entry: {e}"),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     let source = SourceFile::new(project.entry.path.display().to_string(), text);
     Ok(DebugSession::new(source, project.entry.program))
 }
@@ -29,8 +36,14 @@ pub fn debug_file(path: &Path) -> SyxResult<DebugSession> {
 
 pub fn debug_file_with_options(path: &Path, options: &DriverOptions) -> SyxResult<DebugSession> {
     let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
-    let text = std::fs::read_to_string(&path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
+    let text = std::fs::read_to_string(&path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     let source = SourceFile::new(path.display().to_string(), text);
     let unit = compile_file_with_options(&path, options)?;
     Ok(DebugSession::new(source, unit.program))
@@ -72,10 +85,15 @@ pub fn repl_eval(source: &str) -> SyxResult<()> {
         ..FrontendOptions::default()
     };
     opts.source = Some(file.clone());
-    let art = FrontendPipeline::run(file, &opts)?;
-    let semantic = art
-        .semantic
-        .ok_or_else(|| SyxDiagnostic::error("FrontendPipeline returned no semantic artifact"))?;
+    let art = FrontendPipeline::run(file.clone(), &opts)?;
+    let semantic = art.semantic.ok_or_else(|| {
+        driver_error_at(
+            "FrontendPipeline returned no semantic artifact",
+            Some(&file),
+            Span::new(0, file.contents.len()),
+            "F001",
+        )
+    })?;
     let mut program = CompiledProgram::default();
     let empty_prelude = indexmap::IndexSet::new();
     compile_to_program(

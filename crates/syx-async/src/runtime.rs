@@ -10,7 +10,7 @@
 // `runtime-concurrency-v6:actor-shared-pool-mvp`
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, AtomicU8, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::thread;
 use std::time::Duration;
@@ -18,7 +18,9 @@ use std::time::Duration;
 use crossbeam_channel::{Receiver, RecvTimeoutError, Sender};
 use parking_lot::{Mutex, RwLock};
 use syx_codegen::{CompiledProgram, FunctionUnit};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
+
+use crate::async_error_at;
 use syx_mir::MirOp;
 use syx_vm::{JitCompiler, Value, VmInstance, VmRuntime};
 
@@ -112,9 +114,9 @@ fn try_mir_fastpath(
         return None;
     }
     let has_async = mir_fn.blocks.iter().any(|b| {
-        b.instructions.iter().any(|i| {
-            matches!(i.op, MirOp::AwaitPoll | MirOp::AwaitSuspend { .. })
-        })
+        b.instructions
+            .iter()
+            .any(|i| matches!(i.op, MirOp::AwaitPoll | MirOp::AwaitSuspend { .. }))
     });
     if has_async {
         return None;
@@ -137,14 +139,11 @@ fn try_mir_fastpath(
     let has_task_hosts = mir_fn.blocks.iter().any(|b| {
         b.instructions.iter().any(|i| {
             if let MirOp::CallHost(idx) = i.op {
-                program
-                    .host_fn_names
-                    .get(idx as usize)
-                    .is_some_and(|n| {
-                        n.starts_with("__syx_task_")
-                            || n.starts_with("__syx_await_task")
-                            || n == "__syx_main_actor_run"
-                    })
+                program.host_fn_names.get(idx as usize).is_some_and(|n| {
+                    n.starts_with("__syx_task_")
+                        || n.starts_with("__syx_await_task")
+                        || n == "__syx_main_actor_run"
+                })
             } else {
                 false
             }
@@ -179,12 +178,10 @@ fn try_mir_fastpath(
         return Some(result);
     }
     let mut vm = VmInstance::default();
-    Some(
-        vm.run_function_with_args(func, program, args).map(|v| {
-            printed.extend(vm.printed.clone());
-            v
-        }),
-    )
+    Some(vm.run_function_with_args(func, program, args).map(|v| {
+        printed.extend(vm.printed.clone());
+        v
+    }))
 }
 
 struct ThreadPool {
@@ -239,43 +236,36 @@ impl ThreadPool {
         let core = self.core;
         let keep_alive_ms = self.keep_alive_ms;
         live.fetch_add(1, Ordering::Relaxed);
-        thread::spawn(move || {
-            loop {
-                let job = if !is_core && keep_alive_ms > 0 {
-                    match rx.recv_timeout(Duration::from_millis(keep_alive_ms)) {
-                        Ok(job) => job,
-                        Err(RecvTimeoutError::Timeout) => {
-                            let cur = live.load(Ordering::Relaxed);
-                            if cur > core
-                                && live
-                                    .compare_exchange(
-                                        cur,
-                                        cur - 1,
-                                        Ordering::SeqCst,
-                                        Ordering::Relaxed,
-                                    )
-                                    .is_ok()
-                            {
-                                return;
-                            }
-                            continue;
-                        }
-                        Err(RecvTimeoutError::Disconnected) => {
-                            live.fetch_sub(1, Ordering::Relaxed);
+        thread::spawn(move || loop {
+            let job = if !is_core && keep_alive_ms > 0 {
+                match rx.recv_timeout(Duration::from_millis(keep_alive_ms)) {
+                    Ok(job) => job,
+                    Err(RecvTimeoutError::Timeout) => {
+                        let cur = live.load(Ordering::Relaxed);
+                        if cur > core
+                            && live
+                                .compare_exchange(cur, cur - 1, Ordering::SeqCst, Ordering::Relaxed)
+                                .is_ok()
+                        {
                             return;
                         }
+                        continue;
                     }
-                } else {
-                    match rx.recv() {
-                        Ok(job) => job,
-                        Err(_) => {
-                            live.fetch_sub(1, Ordering::Relaxed);
-                            return;
-                        }
+                    Err(RecvTimeoutError::Disconnected) => {
+                        live.fetch_sub(1, Ordering::Relaxed);
+                        return;
                     }
-                };
-                job();
-            }
+                }
+            } else {
+                match rx.recv() {
+                    Ok(job) => job,
+                    Err(_) => {
+                        live.fetch_sub(1, Ordering::Relaxed);
+                        return;
+                    }
+                }
+            };
+            job();
         });
     }
 
@@ -306,9 +296,12 @@ impl ThreadPool {
                                 return reject_or_caller_runs(job);
                             }
                             Err(crossbeam_channel::TrySendError::Disconnected(_)) => {
-                                return Err(
-                                    SyxDiagnostic::error("Task queue closed").with_code("C008")
-                                );
+                                return Err(async_error_at(
+                                    "Task queue closed",
+                                    None,
+                                    Span::DUMMY,
+                                    "C008",
+                                ));
                             }
                         }
                     }
@@ -317,8 +310,7 @@ impl ThreadPool {
                         match tx.try_send(job) {
                             Ok(()) => return Ok(()),
                             Err(crossbeam_channel::TrySendError::Full(job)) => {
-                                if resolve_task_reject_policy() == TaskRejectPolicy::DiscardOldest
-                                {
+                                if resolve_task_reject_policy() == TaskRejectPolicy::DiscardOldest {
                                     let _ = self.shared_rx.try_recv();
                                     match tx.try_send(job) {
                                         Ok(()) => return Ok(()),
@@ -326,27 +318,35 @@ impl ThreadPool {
                                             return reject_or_caller_runs(job);
                                         }
                                         Err(crossbeam_channel::TrySendError::Disconnected(_)) => {
-                                            return Err(
-                                                SyxDiagnostic::error("Task queue closed")
-                                                    .with_code("C008")
-                                            );
+                                            return Err(async_error_at(
+                                                "Task queue closed",
+                                                None,
+                                                Span::DUMMY,
+                                                "C008",
+                                            ));
                                         }
                                     }
                                 }
                                 return reject_or_caller_runs(job);
                             }
                             Err(crossbeam_channel::TrySendError::Disconnected(_)) => {
-                                return Err(
-                                    SyxDiagnostic::error("Task queue closed").with_code("C008")
-                                );
+                                return Err(async_error_at(
+                                    "Task queue closed",
+                                    None,
+                                    Span::DUMMY,
+                                    "C008",
+                                ));
                             }
                         }
                     }
                     reject_or_caller_runs(job)
                 }
-                Err(crossbeam_channel::TrySendError::Disconnected(_)) => {
-                    Err(SyxDiagnostic::error("Task queue closed").with_code("C008"))
-                }
+                Err(crossbeam_channel::TrySendError::Disconnected(_)) => Err(async_error_at(
+                    "Task queue closed",
+                    None,
+                    Span::DUMMY,
+                    "C008",
+                )),
             },
         }
     }
@@ -367,13 +367,18 @@ fn reject_or_caller_runs(job: Box<dyn FnOnce() + Send>) -> SyxResult<()> {
             job();
             Ok(())
         }
-        TaskRejectPolicy::DiscardOldest => Err(SyxDiagnostic::error(
+        TaskRejectPolicy::DiscardOldest => Err(async_error_at(
             "Task queue full (DiscardOldest could not enqueue after drop)",
-        )
-        .with_code("C008")),
-        TaskRejectPolicy::Abort => {
-            Err(SyxDiagnostic::error("Task queue full (Abort policy)").with_code("C008"))
-        }
+            None,
+            Span::DUMMY,
+            "C008",
+        )),
+        TaskRejectPolicy::Abort => Err(async_error_at(
+            "Task queue full (Abort policy)",
+            None,
+            Span::DUMMY,
+            "C008",
+        )),
     }
 }
 
@@ -479,10 +484,12 @@ impl SyxRuntime {
             .iter()
             .find(|f| f.name == self.program.entry_point)
             .ok_or_else(|| {
-                SyxDiagnostic::error(format!(
-                    "No entry function '{}' found",
-                    self.program.entry_point
-                ))
+                async_error_at(
+                    format!("No entry function '{}' found", self.program.entry_point),
+                    None,
+                    Span::DUMMY,
+                    "C016",
+                )
             })?;
         let result = loop {
             vm.suspended = false;
@@ -540,7 +547,12 @@ impl SyxRuntime {
         let rt = Arc::clone(self);
         self.thread_pool.lock().try_spawn(move || {
             if cancel.is_cancelled() {
-                let _ = done_tx.send(Err(SyxDiagnostic::error("Task cancelled").with_code("C004")));
+                let _ = done_tx.send(Err(async_error_at(
+                    "Task cancelled",
+                    None,
+                    Span::DUMMY,
+                    "C004",
+                )));
                 return;
             }
             set_current_runtime(rt.clone());
@@ -557,7 +569,12 @@ impl SyxRuntime {
                 crate::task::clear_current_task_deadline();
                 crate::task::clear_current_task_cancel();
                 clear_current_runtime();
-                let _ = done_tx.send(Err(SyxDiagnostic::error("Task cancelled").with_code("C004")));
+                let _ = done_tx.send(Err(async_error_at(
+                    "Task cancelled",
+                    None,
+                    Span::DUMMY,
+                    "C004",
+                )));
                 return;
             }
             syx_vm::set_program_ctx(syx_vm::ProgramCtx {
@@ -566,14 +583,12 @@ impl SyxRuntime {
             });
             let result = (|| {
                 let mut vm = rt.make_vm();
-                let func = rt
-                    .program
-                    .functions
-                    .get(fn_index as usize)
-                    .ok_or_else(|| SyxDiagnostic::error("Unknown function index"))?;
+                let func = rt.program.functions.get(fn_index as usize).ok_or_else(|| {
+                    async_error_at("Unknown function index", None, Span::DUMMY, "C017")
+                })?;
                 loop {
                     if crate::task::task_should_stop() {
-                        return Err(SyxDiagnostic::error("Task cancelled").with_code("C004"));
+                        return Err(async_error_at("Task cancelled", None, Span::DUMMY, "C004"));
                     }
                     vm.suspended = false;
                     let result = vm.run_function_with_args(func, &rt.program, &args);
@@ -611,14 +626,20 @@ impl SyxRuntime {
             .iter()
             .position(|f| f.name == name)
             .map(|i| i as u32)
-            .ok_or_else(|| SyxDiagnostic::error(format!("Unknown function '{name}'")))
+            .ok_or_else(|| {
+                async_error_at(
+                    format!("Unknown function '{name}'"),
+                    None,
+                    Span::DUMMY,
+                    "C017",
+                )
+            })
     }
 
     pub fn join_task(&self, id: u64) -> SyxResult<Value> {
-        let handle = self
-            .tasks
-            .get(id)
-            .ok_or_else(|| SyxDiagnostic::error(format!("Unknown task id {id}")))?;
+        let handle = self.tasks.get(id).ok_or_else(|| {
+            async_error_at(format!("Unknown task id {id}"), None, Span::DUMMY, "C018")
+        })?;
         let result = handle.join();
         // ADR-261: explicit join reaps from live_count (same as taskGroupWait).
         handle.mark_reaped();
@@ -631,10 +652,9 @@ impl SyxRuntime {
     }
 
     pub fn cancel_task(&self, id: u64) -> SyxResult<()> {
-        let handle = self
-            .tasks
-            .get(id)
-            .ok_or_else(|| SyxDiagnostic::error(format!("Unknown task id {id}")))?;
+        let handle = self.tasks.get(id).ok_or_else(|| {
+            async_error_at(format!("Unknown task id {id}"), None, Span::DUMMY, "C018")
+        })?;
         handle.cancel.cancel();
         Ok(())
     }
@@ -644,11 +664,7 @@ impl SyxRuntime {
     }
 
     pub fn load_global(&self, idx: usize) -> Value {
-        self.globals
-            .read()
-            .get(idx)
-            .cloned()
-            .unwrap_or(Value::Nil)
+        self.globals.read().get(idx).cloned().unwrap_or(Value::Nil)
     }
 
     pub fn store_global(&self, idx: usize, value: Value) {
@@ -690,7 +706,12 @@ impl SyxRuntime {
     ) -> SyxResult<Receiver<SyxResult<Value>>> {
         // ADR-264 / M3-A03: deny sync same-instance reentrancy (anti-deadlock).
         if current_processing_actor() == Some(actor_id) {
-            return Err(SyxDiagnostic::error("Actor reentrancy denied").with_code("C009"));
+            return Err(async_error_at(
+                "Actor reentrancy denied",
+                None,
+                Span::DUMMY,
+                "C009",
+            ));
         }
         let (reply_tx, reply_rx) = crossbeam_channel::unbounded();
         let msg = ActorMessage {
@@ -700,33 +721,42 @@ impl SyxRuntime {
         };
         self.ensure_actor_registered(actor_id)?;
         if actor_shared_pool_enabled() {
-            let pool_tx = self
-                .shared_pool_tx
-                .lock()
-                .clone()
-                .ok_or_else(|| SyxDiagnostic::error("Actor shared pool not started"))?;
+            let pool_tx = self.shared_pool_tx.lock().clone().ok_or_else(|| {
+                async_error_at("Actor shared pool not started", None, Span::DUMMY, "C019")
+            })?;
             pool_tx
                 .send(SharedActorJob { actor_id, msg })
-                .map_err(|_| SyxDiagnostic::error("Actor shared pool closed").with_code("C006"))?;
+                .map_err(|_| {
+                    async_error_at("Actor shared pool closed", None, Span::DUMMY, "C006")
+                })?;
             return Ok(reply_rx);
         }
         let tx = match self.actors.lock().get(&actor_id) {
             Some(ActorDispatch::Dedicated(tx)) => tx.clone(),
-            _ => return Err(SyxDiagnostic::error("Actor executor missing").with_code("C006")),
+            _ => {
+                return Err(async_error_at(
+                    "Actor executor missing",
+                    None,
+                    Span::DUMMY,
+                    "C006",
+                ))
+            }
         };
         match tx.try_send(msg) {
             Ok(()) => Ok(reply_rx),
             Err(crossbeam_channel::TrySendError::Full(msg)) => {
                 // Bounded mailbox full: block like Channel.send (backpressure).
                 tx.send(msg).map_err(|_| {
-                    SyxDiagnostic::error("Actor mailbox closed").with_code("C006")
+                    async_error_at("Actor mailbox closed", None, Span::DUMMY, "C006")
                 })?;
                 Ok(reply_rx)
             }
-            Err(crossbeam_channel::TrySendError::Disconnected(_)) => Err(SyxDiagnostic::error(
+            Err(crossbeam_channel::TrySendError::Disconnected(_)) => Err(async_error_at(
                 "Actor mailbox closed",
-            )
-            .with_code("C006")),
+                None,
+                Span::DUMMY,
+                "C006",
+            )),
         }
     }
 
@@ -736,10 +766,12 @@ impl SyxRuntime {
         }
         let max = MAX_ACTORS.load(Ordering::Relaxed);
         if max > 0 && self.actors.lock().len() as i64 >= max {
-            return Err(SyxDiagnostic::error(format!(
-                "Actor limit exceeded (maxActors={max})"
-            ))
-            .with_code("C007"));
+            return Err(async_error_at(
+                format!("Actor limit exceeded (maxActors={max})"),
+                None,
+                Span::DUMMY,
+                "C007",
+            ));
         }
         if actor_shared_pool_enabled() {
             self.ensure_shared_actor_pool()?;
@@ -814,7 +846,7 @@ impl SyxRuntime {
             .program
             .functions
             .get(method_idx as usize)
-            .ok_or_else(|| SyxDiagnostic::error("Unknown actor method"))?;
+            .ok_or_else(|| async_error_at("Unknown actor method", None, Span::DUMMY, "C020"))?;
         let mut args = args;
         if actor_id != 0 {
             let mut states = self.actor_states.lock();
@@ -1281,8 +1313,11 @@ pub fn probe_bounded_queue_caller_runs_mvp() -> SyxResult<()> {
         } else {
             CONFIGURED_TASK_REJECT_POLICY.store(prev, Ordering::Relaxed);
         }
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "CallerRuns did not execute overflow task on submitting thread",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     if prev == 255 {
@@ -1326,13 +1361,19 @@ pub fn probe_bounded_queue_discard_oldest_mvp() -> SyxResult<()> {
         CONFIGURED_TASK_REJECT_POLICY.store(prev, Ordering::Relaxed);
     }
     if dropped {
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "DiscardOldest should drop the oldest queued task, not run it",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     if !kept {
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "DiscardOldest should enqueue and run the newest task",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     Ok(())
@@ -1376,8 +1417,11 @@ pub fn probe_core_max_keepalive_mvp() -> SyxResult<()> {
         CONFIGURED_CORE_POOL.store(prev_core, Ordering::Relaxed);
         CONFIGURED_MAX_POOL.store(prev_max, Ordering::Relaxed);
         CONFIGURED_KEEP_ALIVE_MS.store(prev_keep, Ordering::Relaxed);
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "core/max pool did not grow live workers above core",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     thread::sleep(Duration::from_millis(250));
@@ -1386,8 +1430,11 @@ pub fn probe_core_max_keepalive_mvp() -> SyxResult<()> {
     CONFIGURED_MAX_POOL.store(prev_max, Ordering::Relaxed);
     CONFIGURED_KEEP_ALIVE_MS.store(prev_keep, Ordering::Relaxed);
     if live_after_shrink > live_after_grow {
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "keepAlive idle shrink did not reduce or hold live workers",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     let _ = set_configured_core_pool_size(2);
@@ -1397,8 +1444,11 @@ pub fn probe_core_max_keepalive_mvp() -> SyxResult<()> {
         || configured_max_pool_size() != 4
         || configured_keep_alive_ms() != 100
     {
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "core/max/keepAlive size query not observable",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     Ok(())
@@ -1483,15 +1533,21 @@ pub fn probe_actor_shared_pool_mvp() -> SyxResult<()> {
     if !actor_shared_pool_enabled() {
         ACTOR_SHARED_POOL_ENABLED.store(prev_en, Ordering::Relaxed);
         ACTOR_SHARED_POOL_SIZE.store(prev_sz, Ordering::Relaxed);
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "actor shared pool enabled flag not observable",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     if resolve_actor_shared_pool_size() != 2 {
         ACTOR_SHARED_POOL_ENABLED.store(prev_en, Ordering::Relaxed);
         ACTOR_SHARED_POOL_SIZE.store(prev_sz, Ordering::Relaxed);
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "actor shared pool size not observable",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     let ran = Arc::new(AtomicUsize::new(0));
@@ -1514,15 +1570,21 @@ pub fn probe_actor_shared_pool_mvp() -> SyxResult<()> {
     ACTOR_SHARED_POOL_ENABLED.store(prev_en, Ordering::Relaxed);
     ACTOR_SHARED_POOL_SIZE.store(prev_sz, Ordering::Relaxed);
     if jobs != 4 {
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "shared pool workers did not drain queued jobs",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     set_actor_shared_pool_enabled(true);
     set_actor_shared_pool_size(3);
     if !actor_shared_pool_enabled() || configured_actor_shared_pool_size() != 3 {
-        return Err(SyxDiagnostic::error(
+        return Err(async_error_at(
             "actor shared pool host config roundtrip not observable",
+            None,
+            Span::DUMMY,
+            "C022",
         ));
     }
     set_actor_shared_pool_enabled(false);
@@ -1640,20 +1702,25 @@ impl syx_vm::RuntimeBridge for RuntimeBridgeAdapter {
 
     fn join_task_value(&self, task_value: &Value) -> SyxResult<Value> {
         let id = crate::task::task_id_from_value(task_value)
-            .ok_or_else(|| SyxDiagnostic::error("Expected task handle"))?;
+            .ok_or_else(|| async_error_at("Expected task handle", None, Span::DUMMY, "C011"))?;
         self.inner.join_task(id)
     }
 
     fn cancel_task_value(&self, task_value: &Value) -> SyxResult<()> {
         let id = crate::task::task_id_from_value(task_value)
-            .ok_or_else(|| SyxDiagnostic::error("Expected task handle"))?;
+            .ok_or_else(|| async_error_at("Expected task handle", None, Span::DUMMY, "C011"))?;
         self.inner.cancel_task(id)
     }
 
     fn task_sleep_ms(&self, ms: i64) -> SyxResult<()> {
         await_sleep_ms(ms.max(0) as u64);
         if crate::task::task_should_stop() {
-            return Err(SyxDiagnostic::error("Task was cancelled").with_code("C004"));
+            return Err(async_error_at(
+                "Task was cancelled",
+                None,
+                Span::DUMMY,
+                "C004",
+            ));
         }
         Ok(())
     }
@@ -1666,7 +1733,7 @@ impl syx_vm::RuntimeBridge for RuntimeBridgeAdapter {
             .program
             .functions
             .get(idx as usize)
-            .ok_or_else(|| SyxDiagnostic::error("Unknown function"))?;
+            .ok_or_else(|| async_error_at("Unknown function", None, Span::DUMMY, "C017"))?;
         vm.run_function_with_args(func, &self.inner.program, &args)
     }
 
@@ -1712,11 +1779,11 @@ impl syx_vm::RuntimeBridge for RuntimeBridgeAdapter {
         args: Vec<Value>,
     ) -> SyxResult<Value> {
         let actor_id = syx_vm::actor_id_from_value(actor_value)
-            .ok_or_else(|| SyxDiagnostic::error("Expected actor instance"))?;
+            .ok_or_else(|| async_error_at("Expected actor instance", None, Span::DUMMY, "C021"))?;
         let method_idx = crate::hosts::resolve_actor_method(&self.inner, method_name, actor_value)?;
         let rx = self.inner.actor_send(actor_id, method_idx, args)?;
         rx.recv()
-            .map_err(|_| SyxDiagnostic::error("Actor reply channel closed").with_code("C006"))?
+            .map_err(|_| async_error_at("Actor reply channel closed", None, Span::DUMMY, "C006"))?
     }
 }
 

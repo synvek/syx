@@ -6,13 +6,13 @@ use crate::farm_tcp::{incremental_cache_path, purge_stale_incremental_caches};
 use crate::module_ref::{embedded_module, ModuleRef};
 use crate::query;
 use crate::{
-    bincode_encode, build_syx, cache_entry_fresh, compile_file_with_context, embedded_std,
-    ensure_prelude_modules_in_graph, project_root_if_manifest_entry, CachedModuleUnit,
-    CompiledProject, DriverOptions, ModuleGraph, ModuleUnit,
+    bincode_encode, build_syx, cache_entry_fresh, compile_file_with_context, driver_error_at,
+    embedded_std, ensure_prelude_modules_in_graph, project_root_if_manifest_entry,
+    CachedModuleUnit, CompiledProject, DriverOptions, ModuleGraph, ModuleUnit,
 };
 use std::path::{Path, PathBuf};
 use syx_ast::Decl;
-use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_parser::Parser;
 use syx_pkg::{
     load_lockfile, load_manifest, load_resolved_packages, InstalledPackage, SyxManifest,
@@ -108,8 +108,14 @@ pub fn compile_file_with_options(path: &Path, options: &DriverOptions) -> SyxRes
 
 fn refresh_service_di_from_source(path: &Path) -> SyxResult<()> {
     syx_meta::service_di_clear();
-    let source = std::fs::read_to_string(path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
+    let source = std::fs::read_to_string(path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     let file = SourceFile::new(path.display().to_string(), source);
     let mut module = Parser::parse(file)?;
     syx_macro::expand_service_macros(&mut module)?;
@@ -117,8 +123,14 @@ fn refresh_service_di_from_source(path: &Path) -> SyxResult<()> {
 }
 
 fn scan_syx_file_services(path: &Path) -> SyxResult<()> {
-    let source = std::fs::read_to_string(path)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", path.display())))?;
+    let source = std::fs::read_to_string(path).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     let stem = path.file_stem().and_then(|s| s.to_str()).map(String::from);
     let file = SourceFile::new(path.display().to_string(), source);
     let module = Parser::parse(file)?;
@@ -132,11 +144,22 @@ fn scan_dir_services(dir: &Path) -> SyxResult<()> {
     if !dir.is_dir() {
         return Ok(());
     }
-    for entry in std::fs::read_dir(dir)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to read {}: {e}", dir.display())))?
-    {
-        let entry =
-            entry.map_err(|e| SyxDiagnostic::error(format!("Failed to read entry: {e}")))?;
+    for entry in std::fs::read_dir(dir).map_err(|e| {
+        driver_error_at(
+            format!("Failed to read {}: {e}", dir.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })? {
+        let entry = entry.map_err(|e| {
+            driver_error_at(
+                format!("Failed to read entry: {e}"),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
+        })?;
         let path = entry.path();
         if path.is_dir() {
             if path.file_name().is_some_and(|n| {
@@ -186,12 +209,23 @@ fn package_unit_sy_files(root: &Path, main_rel: &str) -> SyxResult<Vec<PathBuf>>
     let main_path = root.join(main_rel);
     let dir = main_path.parent().unwrap_or(root);
     let entries = std::fs::read_dir(dir).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to read package dir {}: {e}", dir.display()))
+        driver_error_at(
+            format!("Failed to read package dir {}: {e}", dir.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
     let mut files = Vec::new();
     for entry in entries {
-        let entry = entry
-            .map_err(|e| SyxDiagnostic::error(format!("Failed to read dir entry: {e}")))?;
+        let entry = entry.map_err(|e| {
+            driver_error_at(
+                format!("Failed to read dir entry: {e}"),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
+        })?;
         let p = entry.path();
         if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("sy") {
             files.push(p);
@@ -199,10 +233,12 @@ fn package_unit_sy_files(root: &Path, main_rel: &str) -> SyxResult<Vec<PathBuf>>
     }
     files.sort();
     if files.is_empty() {
-        return Err(SyxDiagnostic::error(format!(
-            "No .sy sources in package directory {}",
-            dir.display()
-        )));
+        return Err(driver_error_at(
+            format!("No .sy sources in package directory {}", dir.display()),
+            None,
+            Span::DUMMY,
+            "D003",
+        ));
     }
     // Compile main last so its `main` wins ordering-wise for entry discovery.
     if let Some(pos) = files.iter().position(|p| p == &main_path) {
@@ -248,7 +284,12 @@ fn merge_package_unit_source(root: &Path, main_rel: &str) -> SyxResult<(PathBuf,
     let mut merged = String::new();
     for file in &files {
         let text = std::fs::read_to_string(file).map_err(|e| {
-            SyxDiagnostic::error(format!("Failed to read {}: {e}", file.display()))
+            driver_error_at(
+                format!("Failed to read {}: {e}", file.display()),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
         })?;
         merged.push_str(&format!("// --- package unit: {} ---\n", file.display()));
         merged.push_str(&strip_package_local_imports(&text, &stems));
@@ -317,10 +358,18 @@ pub(crate) fn compile_module_recursive(
     let importer = module_ref.importer_path(root);
     let importer_dir = importer.parent().unwrap_or(root);
     for decl in &parsed.decls {
-        if let Decl::Import { .. } = decl {
+        if let Decl::Import { span, .. } = decl {
             if let Some(path_str) = decl.import_path_str() {
-                let import_ref =
-                    resolve_module(&path_str, importer, importer_dir, manifest, options, root)?;
+                let import_ref = resolve_module_with_span(
+                    &path_str,
+                    importer,
+                    importer_dir,
+                    manifest,
+                    options,
+                    root,
+                    Some(&source),
+                    *span,
+                )?;
                 compile_module_recursive(import_ref, root, graph, manifest, options)?;
             }
         }
@@ -378,18 +427,42 @@ fn dep_root_from_lock(pkg: &InstalledPackage, path_str: &str) -> PathBuf {
 
 pub(crate) fn resolve_module(
     path_str: &str,
+    current: &Path,
+    importer_dir: &Path,
+    manifest: &SyxManifest,
+    options: &DriverOptions,
+    project_root: &Path,
+) -> SyxResult<ModuleRef> {
+    resolve_module_with_span(
+        path_str,
+        current,
+        importer_dir,
+        manifest,
+        options,
+        project_root,
+        None,
+        Span::DUMMY,
+    )
+}
+
+pub(crate) fn resolve_module_with_span(
+    path_str: &str,
     _current: &Path,
     importer_dir: &Path,
     _manifest: &SyxManifest,
     options: &DriverOptions,
     project_root: &Path,
+    diag_source: Option<&SourceFile>,
+    diag_span: Span,
 ) -> SyxResult<ModuleRef> {
     let first_segment = path_str.split('.').next().unwrap_or(path_str);
     if embedded_std::is_forbidden_import(first_segment) {
-        return Err(SyxDiagnostic::error(format!(
-            "Module '{path_str}' is internal to the compiler and cannot be imported"
-        ))
-        .with_code("M003"));
+        return Err(driver_error_at(
+            format!("Module '{path_str}' is internal to the compiler and cannot be imported"),
+            diag_source,
+            diag_span,
+            "M003",
+        ));
     }
     if options.enable_std {
         // Prefer on-disk monorepo `packages/` for single-file importables (e.g. Os)
@@ -437,10 +510,14 @@ pub(crate) fn resolve_module(
     // Same-package multi-file projects are merged by `compile_project` instead.
     let same_dir = importer_dir.join(format!("{}.sy", path_str.replace('.', "/")));
     if same_dir.is_file() {
-        return Err(SyxDiagnostic::error(format!(
-            "Cannot import '{path_str}' as a file module; same-package `.sy` files share one namespace without import (use `syx.toml` project, or a path dependency)"
-        ))
-        .with_code("M010"));
+        return Err(driver_error_at(
+            format!(
+                "Cannot import '{path_str}' as a file module; same-package `.sy` files share one namespace without import (use `syx.toml` project, or a path dependency)"
+            ),
+            diag_source,
+            diag_span,
+            "M010",
+        ));
     }
     let mut candidates = Vec::new();
     for dir in &options.module_dirs {
@@ -451,5 +528,10 @@ pub(crate) fn resolve_module(
             return Ok(ModuleRef::from_file(candidate));
         }
     }
-    Err(SyxDiagnostic::error(format!("Module '{path_str}' not found")).with_code("M001"))
+    Err(driver_error_at(
+        format!("Module '{path_str}' not found"),
+        diag_source,
+        diag_span,
+        "M001",
+    ))
 }

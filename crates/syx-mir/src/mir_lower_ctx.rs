@@ -11,7 +11,7 @@ use std::cell::Cell;
 use std::collections::HashSet;
 use std::rc::Rc;
 use syx_ast::Expr;
-use syx_diagnostics::SyxDiagnostic;
+use syx_diagnostics::{Span, SyxDiagnostic};
 
 #[derive(Debug, Default, Clone)]
 pub(crate) struct LowerCtx {
@@ -132,7 +132,12 @@ impl LowerCtx {
 
     /// After field write on an unwrapped class instance, write inner `ObjectRef` back into
     /// the local's `MutRefCell` wrapper (boot DI field `@Autowired` assigns).
-    pub(crate) fn emit_mut_ref_cell_writeback_from_inner(&mut self, name: &SmolStr, inner_slot: u32, block: u32) {
+    pub(crate) fn emit_mut_ref_cell_writeback_from_inner(
+        &mut self,
+        name: &SmolStr,
+        inner_slot: u32,
+        block: u32,
+    ) {
         let resolved = self.resolve_binding_name(name).clone();
         let Some(&slot) = self.locals.get(&resolved) else {
             return;
@@ -347,7 +352,12 @@ impl LowerCtx {
     }
 
     /// `Counter_increment`: bare `value` → `self.value` ObjectGet.
-    pub(crate) fn lower_enclosing_field_load(&mut self, dest: u32, name: &SmolStr, block: u32) -> bool {
+    pub(crate) fn lower_enclosing_field_load(
+        &mut self,
+        dest: u32,
+        name: &SmolStr,
+        block: u32,
+    ) -> bool {
         let Some(type_name) = class_name_from_mangled(self.func_name.as_str()) else {
             return false;
         };
@@ -623,7 +633,8 @@ impl LowerCtx {
                     return None;
                 }
                 let ty = self.local_types.get(name)?.clone();
-                if self.module.class_types.contains_key(&ty) || self.module.actor_types.contains(&ty)
+                if self.module.class_types.contains_key(&ty)
+                    || self.module.actor_types.contains(&ty)
                 {
                     if self.module.has_deinit(&ty) {
                         return Some((name.clone(), ty, slot));
@@ -666,14 +677,21 @@ impl LowerCtx {
     }
 
     pub(crate) fn global_slot(&self, name: &SmolStr) -> Option<u32> {
-        self.globals.iter().position(|g| g == name).map(|i| i as u32)
+        self.globals
+            .iter()
+            .position(|g| g == name)
+            .map(|i| i as u32)
     }
 
     pub(crate) fn set_error(&mut self, message: impl Into<String>) {
         self.set_error_with_code(None, message);
     }
 
-    pub(crate) fn set_error_with_code(&mut self, code: Option<&'static str>, message: impl Into<String>) {
+    pub(crate) fn set_error_with_code(
+        &mut self,
+        code: Option<&'static str>,
+        message: impl Into<String>,
+    ) {
         if self.error.is_none() {
             self.error = Some((code, message.into()));
         }
@@ -681,11 +699,12 @@ impl LowerCtx {
 
     pub(crate) fn take_error_diagnostic(&mut self) -> Option<SyxDiagnostic> {
         let (code, message) = self.error.take()?;
-        let mut d = SyxDiagnostic::error(message);
-        if let Some(c) = code {
-            d = d.with_code(c);
-        }
-        Some(d)
+        Some(crate::mir_diag::mir_error_at(
+            message,
+            None,
+            Span::DUMMY,
+            code.unwrap_or("MIR001"),
+        ))
     }
 
     pub(crate) fn fresh_block(&mut self) -> u32 {
@@ -741,4 +760,3 @@ impl LowerCtx {
         r
     }
 }
-

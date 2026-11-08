@@ -1,8 +1,10 @@
+mod parser_diag;
+
+use parser_diag::parser_error_at;
 use smol_str::SmolStr;
 use syx_ast::{
-    AccessLevel, Attribute, AttributeArg, BinOp, CallArg, ClosureBody, CompoundAssignOp, Decl, Expr,
-    Literal,
-    Module, Param, ParamLabel, Stmt, TypeExpr, UnaryOp, WherePred,
+    AccessLevel, Attribute, AttributeArg, BinOp, CallArg, ClosureBody, CompoundAssignOp, Decl,
+    Expr, Literal, Module, Param, ParamLabel, Stmt, TypeExpr, UnaryOp, WherePred,
 };
 use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
 use syx_lexer::{InterpPart, Lexer, Token, TokenKind};
@@ -307,13 +309,18 @@ impl Parser {
                 TokenKind::Enum => self.parse_enum(AccessLevel::Internal, attrs),
                 TokenKind::Macro => self.parse_macro_decl(AccessLevel::Internal),
                 TokenKind::Hash => self.parse_user_macro_decl_with_attrs(attrs),
-                TokenKind::Public | TokenKind::Internal | TokenKind::Private | TokenKind::FilePrivate => {
+                TokenKind::Public
+                | TokenKind::Internal
+                | TokenKind::Private
+                | TokenKind::FilePrivate => {
                     let access = self.parse_access();
                     match &self.peek().kind {
                         TokenKind::Class => self.parse_class(access, attrs),
                         TokenKind::Struct => self.parse_struct(access, attrs),
                         TokenKind::Protocol => self.parse_protocol(access),
-                        _ => self.error("Expected 'class' or 'protocol' after attribute and access modifier"),
+                        _ => self.error(
+                            "Expected 'class' or 'protocol' after attribute and access modifier",
+                        ),
                     }
                 }
                 _ => self.error("Expected 'func' or 'data class' after attribute"),
@@ -322,7 +329,10 @@ impl Parser {
         match &self.peek().kind {
             TokenKind::Import => self.parse_import(),
             TokenKind::Export => self.parse_export_decl(),
-            TokenKind::Public | TokenKind::Internal | TokenKind::Private | TokenKind::FilePrivate => {
+            TokenKind::Public
+            | TokenKind::Internal
+            | TokenKind::Private
+            | TokenKind::FilePrivate => {
                 let access = self.parse_access();
                 self.parse_decl_with_access(access)
             }
@@ -353,7 +363,9 @@ impl Parser {
             TokenKind::Struct => self.parse_struct(AccessLevel::Internal, vec![]),
             TokenKind::Protocol => self.parse_protocol(AccessLevel::Internal),
             TokenKind::Enum => self.parse_enum(AccessLevel::Internal, vec![]),
-            TokenKind::Var | TokenKind::Let => self.parse_global_var(AccessLevel::Internal, vec![], false, false),
+            TokenKind::Var | TokenKind::Let => {
+                self.parse_global_var(AccessLevel::Internal, vec![], false, false)
+            }
             TokenKind::Typealias if syx_semantic::typealias_parser_enabled() => {
                 self.parse_typealias(AccessLevel::Internal)
             }
@@ -410,7 +422,9 @@ impl Parser {
                 }
             }
         }
-        let end = self.consume(TokenKind::RBrace, "Expected '}' after export list")?.span;
+        let end = self
+            .consume(TokenKind::RBrace, "Expected '}' after export list")?
+            .span;
         if names.is_empty() {
             return self.error("export list must contain at least one name");
         }
@@ -546,7 +560,8 @@ impl Parser {
                                 self.advance();
                             }
                             _ => {
-                                return self.error("Expected identifier or string in attribute args")
+                                return self
+                                    .error("Expected identifier or string in attribute args")
                             }
                         }
                         if !self.match_kind(TokenKind::Comma) {
@@ -782,7 +797,11 @@ impl Parser {
         Ok(preds)
     }
 
-    fn parse_enum(&mut self, access: AccessLevel, attrs: Vec<syx_ast::Attribute>) -> SyxResult<Decl> {
+    fn parse_enum(
+        &mut self,
+        access: AccessLevel,
+        attrs: Vec<syx_ast::Attribute>,
+    ) -> SyxResult<Decl> {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected enum name")?;
         let (type_params, _inline_constraints) = self.parse_type_params()?;
@@ -902,10 +921,7 @@ impl Parser {
     fn parse_init(&mut self, access: AccessLevel) -> SyxResult<Decl> {
         let start = self.advance().span;
         // `init?` / `init!` failable (IUO) — marker only for S1-I10 check surface.
-        let failable = matches!(
-            self.peek().kind,
-            TokenKind::Question | TokenKind::Bang
-        );
+        let failable = matches!(self.peek().kind, TokenKind::Question | TokenKind::Bang);
         if failable {
             self.advance();
         }
@@ -1044,9 +1060,7 @@ impl Parser {
         // S1-I12: `weak var` / `unowned var` in class/actor bodies (book Ch16).
         let is_weak = self.match_kind(TokenKind::Weak);
         let is_unowned = !is_weak && self.match_identifier("unowned");
-        if (is_weak || is_unowned)
-            && !matches!(self.peek().kind, TokenKind::Var | TokenKind::Let)
-        {
+        if (is_weak || is_unowned) && !matches!(self.peek().kind, TokenKind::Var | TokenKind::Let) {
             return self.error("Expected 'var' or 'let' after weak/unowned");
         }
         if is_weak {
@@ -1137,9 +1151,9 @@ impl Parser {
         self.consume(TokenKind::LBrace, "Expected '{' before macro body")?;
         let is_decl = attrs.iter().any(|a| {
             a.name.as_str() == "freestanding"
-                && a.args.iter().any(|arg| {
-                    matches!(arg, AttributeArg::Ident(s) if s.as_str() == "declaration")
-                })
+                && a.args
+                    .iter()
+                    .any(|arg| matches!(arg, AttributeArg::Ident(s) if s.as_str() == "declaration"))
         });
         let (body, decl_body) = if is_decl {
             (Vec::new(), self.parse_macro_decl_body()?)
@@ -1177,7 +1191,10 @@ impl Parser {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected macro name")?;
         self.consume(TokenKind::Assign, "Expected '=' in macro declaration")?;
-        self.consume(TokenKind::Hash, "Expected '#externalMacro' or '#builtInMacro'")?;
+        self.consume(
+            TokenKind::Hash,
+            "Expected '#externalMacro' or '#builtInMacro'",
+        )?;
         let ext = self.consume_macro_name("Expected macro name after '#")?;
         if ext.as_str() == "builtInMacro" {
             self.consume(TokenKind::LParen, "Expected '(' after builtInMacro")?;
@@ -1198,7 +1215,9 @@ impl Parser {
             });
         }
         if ext.as_str() != "externalMacro" {
-            return self.error("Expected '#externalMacro(...)' or '#builtInMacro(...)' in macro declaration");
+            return self.error(
+                "Expected '#externalMacro(...)' or '#builtInMacro(...)' in macro declaration",
+            );
         }
         self.consume(TokenKind::LParen, "Expected '(' after externalMacro")?;
         let mut module = String::new();
@@ -1323,7 +1342,9 @@ impl Parser {
             return self.parse_enum(access, attrs);
         }
         if !self.check(TokenKind::Func) {
-            return self.error("Expected 'func', 'init', nested type, or computed 'var'/'let' in extension");
+            return self.error(
+                "Expected 'func', 'init', nested type, or computed 'var'/'let' in extension",
+            );
         }
         self.parse_function(access, false, attrs)
     }
@@ -1537,9 +1558,7 @@ impl Parser {
         })
     }
 
-    fn parse_class_super_and_conformances(
-        &mut self,
-    ) -> SyxResult<(Option<SmolStr>, Vec<SmolStr>)> {
+    fn parse_class_super_and_conformances(&mut self) -> SyxResult<(Option<SmolStr>, Vec<SmolStr>)> {
         if !self.match_kind(TokenKind::Colon) {
             return Ok((None, Vec::new()));
         }
@@ -1632,10 +1651,7 @@ impl Parser {
             }
             // Legacy bare field: `x: Int` (no var/let).
             if matches!(self.peek().kind, TokenKind::Identifier(_))
-                && matches!(
-                    self.peek_ahead(1).map(|t| &t.kind),
-                    Some(TokenKind::Colon)
-                )
+                && matches!(self.peek_ahead(1).map(|t| &t.kind), Some(TokenKind::Colon))
             {
                 let field = self.consume_identifier("Expected field name")?;
                 self.consume(TokenKind::Colon, "Expected ':' after field name")?;
@@ -1676,7 +1692,13 @@ impl Parser {
         })
     }
 
-    fn parse_global_var(&mut self, access: AccessLevel, attrs: Vec<Attribute>, is_lazy: bool, is_override: bool) -> SyxResult<Decl> {
+    fn parse_global_var(
+        &mut self,
+        access: AccessLevel,
+        attrs: Vec<Attribute>,
+        is_lazy: bool,
+        is_override: bool,
+    ) -> SyxResult<Decl> {
         let start = self.advance().span;
         let mutable = matches!(self.previous().kind, TokenKind::Var);
         // Top-level `let (x, y) = …` — desugar like stmt tuple destructure.
@@ -1684,7 +1706,8 @@ impl Parser {
             let mut bindings = Vec::new();
             if !self.check(TokenKind::RParen) {
                 loop {
-                    bindings.push(self.consume_identifier("Expected binding name in tuple pattern")?);
+                    bindings
+                        .push(self.consume_identifier("Expected binding name in tuple pattern")?);
                     if !self.match_kind(TokenKind::Comma) {
                         break;
                     }
@@ -1762,7 +1785,10 @@ impl Parser {
                 TokenKind::Identifier(label) if label.as_str() == "get"
             ) {
                 self.advance();
-                self.consume(TokenKind::LBrace, "Expected '{' before computed property getter")?;
+                self.consume(
+                    TokenKind::LBrace,
+                    "Expected '{' before computed property getter",
+                )?;
                 // `parse_block_stmts` consumes the getter's closing `}`.
                 computed_getter = Some(self.parse_block_stmts()?);
                 if matches!(
@@ -1773,7 +1799,10 @@ impl Parser {
                         return self.error("Computed property setter requires 'var'");
                     }
                     self.advance();
-                    self.consume(TokenKind::LBrace, "Expected '{' before computed property setter")?;
+                    self.consume(
+                        TokenKind::LBrace,
+                        "Expected '{' before computed property setter",
+                    )?;
                     computed_setter = Some(self.parse_block_stmts()?);
                 }
                 self.consume(TokenKind::RBrace, "Expected '}' after computed property")?;
@@ -1809,10 +1838,7 @@ impl Parser {
                     did_set = Some(self.parse_block_stmts()?);
                     self.skip_newlines();
                 }
-                self.consume(
-                    TokenKind::RBrace,
-                    "Expected '}' after property observers",
-                )?;
+                self.consume(TokenKind::RBrace, "Expected '}' after property observers")?;
             } else {
                 if matches!(
                     &self.peek().kind,
@@ -1858,8 +1884,13 @@ impl Parser {
             let name = self.consume_identifier("Expected internal parameter name after '_'")?;
             return Ok((ParamLabel::Omitted, name));
         }
-        if self.check_identifier_name() && !self.check(TokenKind::Colon) && !self.check(TokenKind::Comma) && !self.check(TokenKind::RParen) {
-            let internal = self.consume_identifier("Expected internal parameter name after external label")?;
+        if self.check_identifier_name()
+            && !self.check(TokenKind::Colon)
+            && !self.check(TokenKind::Comma)
+            && !self.check(TokenKind::RParen)
+        {
+            let internal =
+                self.consume_identifier("Expected internal parameter name after external label")?;
             return Ok((ParamLabel::Named(first), internal));
         }
         Ok((ParamLabel::Same, first))
@@ -1996,13 +2027,12 @@ impl Parser {
             }
             TokenKind::Identifier(_) => {
                 // S1-I8: `outer: for` / `outer: while` / `outer: repeat`
-                if matches!(
-                    self.peek_ahead(1).map(|t| &t.kind),
-                    Some(TokenKind::Colon)
-                ) && matches!(
-                    self.peek_ahead(2).map(|t| &t.kind),
-                    Some(TokenKind::For) | Some(TokenKind::While) | Some(TokenKind::Repeat)
-                ) {
+                if matches!(self.peek_ahead(1).map(|t| &t.kind), Some(TokenKind::Colon))
+                    && matches!(
+                        self.peek_ahead(2).map(|t| &t.kind),
+                        Some(TokenKind::For) | Some(TokenKind::While) | Some(TokenKind::Repeat)
+                    )
+                {
                     let label = self.consume_identifier("Expected loop label")?;
                     self.consume(TokenKind::Colon, "Expected ':' after loop label")?;
                     self.skip_newlines();
@@ -2010,8 +2040,12 @@ impl Parser {
                         TokenKind::For => self.parse_for_in(Some(label)),
                         TokenKind::While => self.parse_while(Some(label)),
                         TokenKind::Repeat => self.parse_repeat_while(Some(label)),
-                        _ => Err(SyxDiagnostic::error("Expected for/while/repeat after label")
-                            .with_code("P001")),
+                        _ => Err(parser_error_at(
+                            "Expected for/while/repeat after label",
+                            Some(&self.source),
+                            self.peek().span,
+                            "P001",
+                        )),
                     };
                 }
                 let expr = self.parse_expr()?;
@@ -2116,12 +2150,7 @@ impl Parser {
     }
 
     fn desugar_async_let_init(init: Expr) -> Expr {
-        let Expr::Call {
-            span,
-            callee,
-            args,
-        } = init
-        else {
+        let Expr::Call { span, callee, args } = init else {
             return init;
         };
         let Expr::Ident { name, .. } = callee.as_ref() else {
@@ -2148,7 +2177,10 @@ impl Parser {
                 },
                 CallArg {
                     label: None,
-                    value: Expr::Array { span, elements: arg_values },
+                    value: Expr::Array {
+                        span,
+                        elements: arg_values,
+                    },
                 },
             ],
         }
@@ -2203,9 +2235,11 @@ impl Parser {
         if !self.check(TokenKind::RParen) {
             loop {
                 if self.match_kind(TokenKind::Let) {
-                    bindings.push(self.consume_identifier("Expected binding name in tuple pattern")?);
+                    bindings
+                        .push(self.consume_identifier("Expected binding name in tuple pattern")?);
                 } else {
-                    bindings.push(self.consume_identifier("Expected binding name in tuple pattern")?);
+                    bindings
+                        .push(self.consume_identifier("Expected binding name in tuple pattern")?);
                 }
                 if !self.match_kind(TokenKind::Comma) {
                     break;
@@ -2567,7 +2601,10 @@ impl Parser {
         timeout_arm: Option<(Expr, Vec<Stmt>)>,
     ) -> SyxResult<Vec<Stmt>> {
         if cases.is_empty() {
-            return Ok(timeout_arm.map(|(_, b)| b).or(default_body).unwrap_or_default());
+            return Ok(timeout_arm
+                .map(|(_, b)| b)
+                .or(default_body)
+                .unwrap_or_default());
         }
         if cases.len() == 1 && timeout_arm.is_none() {
             return Ok(self.lower_one_select_case(span, &cases[0], default_body));
@@ -2594,11 +2631,12 @@ impl Parser {
         }
         let lang_timeout_ms = timeout_arm.as_ref().map(|(ms, _)| ms.clone());
         if mixed_await && lang_timeout_ms.is_none() {
-            return Err(SyxDiagnostic::error(
+            return Err(parser_error_at(
                 "mixed select + await requires timeout(ms): or deadline ms: arm (SYX_SELECT_MIXED_TIMEOUT_MS env fallback removed)",
-            )
-            .with_code("P001")
-            .with_span(&self.source, span, "select"));
+                Some(&self.source),
+                span,
+                "P001",
+            ));
         }
         if timeout_arm.is_some() {
             let _ = SELECT_TIMEOUT_SYNTAX_DIGEST;
@@ -2636,8 +2674,9 @@ impl Parser {
             cases
                 .iter()
                 .map(|c| match &c.kind {
-                    SelectCaseKind::Recv { channel, .. }
-                    | SelectCaseKind::Send { channel, .. } => channel.clone(),
+                    SelectCaseKind::Recv { channel, .. } | SelectCaseKind::Send { channel, .. } => {
+                        channel.clone()
+                    }
                 })
                 .collect()
         };
@@ -2647,10 +2686,7 @@ impl Parser {
             mutable: false,
             name: SmolStr::new("__syx_sel_arr"),
             ty: None,
-            init: Some(Expr::Array {
-                span,
-                elements,
-            }),
+            init: Some(Expr::Array { span, elements }),
         });
         let _select_surface = if mixed_await {
             "__syx_channel_select_mixed_await"
@@ -2665,15 +2701,13 @@ impl Parser {
         } else {
             "__syx_channel_select_default"
         };
-        let mut select_args = vec![
-            syx_ast::CallArg {
-                label: None,
-                value: Expr::Ident {
-                    span,
-                    name: SmolStr::new("__syx_sel_arr"),
-                },
+        let mut select_args = vec![syx_ast::CallArg {
+            label: None,
+            value: Expr::Ident {
+                span,
+                name: SmolStr::new("__syx_sel_arr"),
             },
-        ];
+        }];
         if timeout_arm.is_some() && !mixed_await {
             select_args.push(syx_ast::CallArg {
                 label: None,
@@ -2758,9 +2792,7 @@ impl Parser {
         };
 
         let n = cases.len();
-        let fallback_body = timeout_arm
-            .map(|(_, body)| body)
-            .or(default_body);
+        let fallback_body = timeout_arm.map(|(_, body)| body).or(default_body);
         let mut else_chain: Option<Vec<Stmt>> = fallback_body.map(|body| {
             vec![Stmt::If {
                 span,
@@ -2960,10 +2992,7 @@ impl Parser {
                 let then_branch = case.body.clone();
                 case_stmts.push(Stmt::If {
                     span,
-                    condition: Expr::Ident {
-                        span,
-                        name: ok_tmp,
-                    },
+                    condition: Expr::Ident { span, name: ok_tmp },
                     then_branch,
                     else_branch,
                 });
@@ -2987,9 +3016,13 @@ impl Parser {
             if !self.check(TokenKind::RParen) {
                 loop {
                     if self.match_kind(TokenKind::Let) {
-                        bindings.push(self.consume_identifier("Expected binding name in tuple pattern")?);
+                        bindings.push(
+                            self.consume_identifier("Expected binding name in tuple pattern")?,
+                        );
                     } else {
-                        bindings.push(self.consume_identifier("Expected binding name in tuple pattern")?);
+                        bindings.push(
+                            self.consume_identifier("Expected binding name in tuple pattern")?,
+                        );
                     }
                     if !self.match_kind(TokenKind::Comma) {
                         break;
@@ -3288,7 +3321,9 @@ impl Parser {
 
     fn parse_type_tuple_element(&mut self) -> SyxResult<(Option<SmolStr>, TypeExpr)> {
         let label = if self.check_identifier_name()
-            && self.peek_ahead(1).is_some_and(|t| t.kind == TokenKind::Colon)
+            && self
+                .peek_ahead(1)
+                .is_some_and(|t| t.kind == TokenKind::Colon)
         {
             let name = self.consume_identifier("Expected tuple element label")?;
             self.consume(TokenKind::Colon, "Expected ':' after tuple element label")?;
@@ -3340,7 +3375,9 @@ impl Parser {
 
     fn parse_tuple_literal_element(&mut self) -> SyxResult<(Option<SmolStr>, Expr)> {
         let label = if self.check_identifier_name()
-            && self.peek_ahead(1).is_some_and(|t| t.kind == TokenKind::Colon)
+            && self
+                .peek_ahead(1)
+                .is_some_and(|t| t.kind == TokenKind::Colon)
         {
             let name = self.consume_identifier("Expected tuple element label")?;
             self.consume(TokenKind::Colon, "Expected ':' after tuple element label")?;
@@ -3447,13 +3484,25 @@ impl Parser {
     fn parse_if_expr(&mut self) -> SyxResult<Expr> {
         let start = self.advance().span; // `if`
         let condition = self.parse_precedence(0)?;
-        self.consume(TokenKind::LBrace, "Expected '{' after if-expression condition")?;
+        self.consume(
+            TokenKind::LBrace,
+            "Expected '{' after if-expression condition",
+        )?;
         let then_branch = self.parse_expr()?;
-        self.consume(TokenKind::RBrace, "Expected '}' after if-expression then branch")?;
+        self.consume(
+            TokenKind::RBrace,
+            "Expected '}' after if-expression then branch",
+        )?;
         self.consume(TokenKind::Else, "if-expression requires else branch")?;
-        self.consume(TokenKind::LBrace, "Expected '{' after else in if-expression")?;
+        self.consume(
+            TokenKind::LBrace,
+            "Expected '{' after else in if-expression",
+        )?;
         let else_branch = self.parse_expr()?;
-        self.consume(TokenKind::RBrace, "Expected '}' after if-expression else branch")?;
+        self.consume(
+            TokenKind::RBrace,
+            "Expected '}' after if-expression else branch",
+        )?;
         Ok(Expr::Ternary {
             span: Span::merge(start, self.previous().span),
             condition: Box::new(condition),
@@ -3497,10 +3546,7 @@ impl Parser {
             TokenKind::Try => {
                 let token = self.advance().clone();
                 // S1-I10: `try?` / `try!` — optional / IUO try (same UnaryOp::Try for check).
-                if matches!(
-                    self.peek().kind,
-                    TokenKind::Question | TokenKind::Bang
-                ) {
+                if matches!(self.peek().kind, TokenKind::Question | TokenKind::Bang) {
                     self.advance();
                 }
                 let expr = self.parse_unary()?;
@@ -3637,14 +3683,19 @@ impl Parser {
                 TokenKind::Dot => {
                     self.advance();
                     if self.match_kind(TokenKind::SelfKw) || self.match_kind(TokenKind::SelfType) {
-                        if let Expr::Ident { name, span: type_span } = expr {
+                        if let Expr::Ident {
+                            name,
+                            span: type_span,
+                        } = expr
+                        {
                             let span = Span::merge(type_span, self.previous().span);
                             expr = Expr::TypeSelf {
                                 span,
                                 type_name: name,
                             };
                         } else {
-                            return self.error("`.self` is only valid on a type name (e.g. Point.self)");
+                            return self
+                                .error("`.self` is only valid on a type name (e.g. Point.self)");
                         }
                     } else {
                         let name = self.consume_member_name("")?;
@@ -3656,7 +3707,12 @@ impl Parser {
                         };
                     }
                 }
-                TokenKind::Question if matches!(self.tokens.get(self.peek_index() + 1).map(|t| &t.kind), Some(TokenKind::Dot)) => {
+                TokenKind::Question
+                    if matches!(
+                        self.tokens.get(self.peek_index() + 1).map(|t| &t.kind),
+                        Some(TokenKind::Dot)
+                    ) =>
+                {
                     self.advance();
                     self.advance();
                     let name = self.consume_member_name(" after ?.")?;
@@ -3677,7 +3733,12 @@ impl Parser {
                         expr: Box::new(expr),
                     };
                 }
-                TokenKind::As if matches!(self.tokens.get(self.peek_index() + 1).map(|t| &t.kind), Some(TokenKind::Question)) => {
+                TokenKind::As
+                    if matches!(
+                        self.tokens.get(self.peek_index() + 1).map(|t| &t.kind),
+                        Some(TokenKind::Question)
+                    ) =>
+                {
                     let start = expr_span(&expr);
                     self.advance();
                     self.advance();
@@ -3690,7 +3751,12 @@ impl Parser {
                     };
                 }
                 // S1-I11: `as! Type` forced cast (same AST as hard `as` for check/runtime R003).
-                TokenKind::As if matches!(self.tokens.get(self.peek_index() + 1).map(|t| &t.kind), Some(TokenKind::Bang)) => {
+                TokenKind::As
+                    if matches!(
+                        self.tokens.get(self.peek_index() + 1).map(|t| &t.kind),
+                        Some(TokenKind::Bang)
+                    ) =>
+                {
                     let start = expr_span(&expr);
                     self.advance();
                     self.advance();
@@ -3750,7 +3816,10 @@ impl Parser {
                 TokenKind::LBrace
                     if self.allow_trailing_closure
                         && self.looks_like_brace_closure()
-                        && matches!(expr, Expr::Call { .. } | Expr::Member { .. } | Expr::OptionalChain { .. }) =>
+                        && matches!(
+                            expr,
+                            Expr::Call { .. } | Expr::Member { .. } | Expr::OptionalChain { .. }
+                        ) =>
                 {
                     let clo = self.parse_primary()?;
                     let span = Span::merge(expr_span(&expr), expr_span(&clo));
@@ -3765,11 +3834,7 @@ impl Parser {
                             mut args,
                         } => {
                             args.push(arg);
-                            Expr::Call {
-                                span,
-                                callee,
-                                args,
-                            }
+                            Expr::Call { span, callee, args }
                         }
                         other => Expr::Call {
                             span,
@@ -3790,11 +3855,7 @@ impl Parser {
                     name,
                     value: Box::new(value),
                 }),
-                Expr::Member {
-                    object,
-                    name,
-                    span,
-                } => Ok(Expr::MemberAssign {
+                Expr::Member { object, name, span } => Ok(Expr::MemberAssign {
                     span: Span::merge(span, end),
                     object,
                     name,
@@ -4106,15 +4167,15 @@ impl Parser {
             } else {
                 None
             };
-                params.push(Param {
-                    name,
-                    external_label: ParamLabel::Same,
-                    ty,
-                    default: None,
-                    isolated: false,
-                    sending: false,
-                    attrs: vec![],
-                });
+            params.push(Param {
+                name,
+                external_label: ParamLabel::Same,
+                ty,
+                default: None,
+                isolated: false,
+                sending: false,
+                attrs: vec![],
+            });
             if !self.match_kind(TokenKind::Comma) {
                 break;
             }
@@ -4176,18 +4237,18 @@ impl Parser {
             // S1-I7: `{ return "later" }` / `{ if … }` statement-bodied closures.
             Some(
                 TokenKind::Return
-                    | TokenKind::If
-                    | TokenKind::While
-                    | TokenKind::For
-                    | TokenKind::Var
-                    | TokenKind::Let
-                    | TokenKind::Guard
-                    | TokenKind::Switch
-                    | TokenKind::Throw
-                    | TokenKind::Break
-                    | TokenKind::Continue
-                    | TokenKind::Try
-                    | TokenKind::Repeat,
+                | TokenKind::If
+                | TokenKind::While
+                | TokenKind::For
+                | TokenKind::Var
+                | TokenKind::Let
+                | TokenKind::Guard
+                | TokenKind::Switch
+                | TokenKind::Throw
+                | TokenKind::Break
+                | TokenKind::Continue
+                | TokenKind::Try
+                | TokenKind::Repeat,
             ) => true,
             Some(TokenKind::Identifier(_)) => {
                 // `{ x: v }` dict vs `{ x in … }` / `{ x = … }` / `{ print(…) }` closure.
@@ -4280,7 +4341,10 @@ impl Parser {
         // Zero-param `{ print("hi") }` / `{ n = n + 1; n }` — no `in`.
         let zero_param = !matches!(
             (self.peek_non_trivia_kind(0), self.peek_non_trivia_kind(1)),
-            (Some(TokenKind::Identifier(_)), Some(TokenKind::In | TokenKind::Comma))
+            (
+                Some(TokenKind::Identifier(_)),
+                Some(TokenKind::In | TokenKind::Comma)
+            )
         );
         if zero_param {
             let stmts = self.parse_stmts_until_rbrace()?;
@@ -4432,7 +4496,10 @@ impl Parser {
         }
         if self.check(TokenKind::Colon) {
             self.advance();
-            self.consume(TokenKind::RBracket, "Expected ']' after empty dictionary '[:]'")?;
+            self.consume(
+                TokenKind::RBracket,
+                "Expected ']' after empty dictionary '[:]'",
+            )?;
             return self.finish_dict_literal(start_span, self.previous().span, vec![]);
         }
         let first = self.parse_expr()?;
@@ -4519,7 +4586,8 @@ impl Parser {
                 continue;
             }
             if !self.check(TokenKind::Func) {
-                return self.error("Expected 'func', 'var', 'let', or 'associatedtype' in protocol");
+                return self
+                    .error("Expected 'func', 'var', 'let', or 'associatedtype' in protocol");
             }
             let start = self.advance().span;
             // `func ==(lhs: Self, rhs: Self)` — operator as bare name after func.
@@ -4560,7 +4628,10 @@ impl Parser {
         let name = self.consume_identifier("Expected property name")?;
         self.consume(TokenKind::Colon, "Expected ':' after property name")?;
         let ty = self.parse_type()?;
-        self.consume(TokenKind::LBrace, "Expected '{' after protocol property type")?;
+        self.consume(
+            TokenKind::LBrace,
+            "Expected '{' after protocol property type",
+        )?;
         // `{ get }` or `{ get set }` — accessors are markers only.
         if !matches!(
             &self.peek().kind,
@@ -4580,7 +4651,10 @@ impl Parser {
             self.advance();
             has_set = true;
         }
-        self.consume(TokenKind::RBrace, "Expected '}' after protocol property accessors")?;
+        self.consume(
+            TokenKind::RBrace,
+            "Expected '}' after protocol property accessors",
+        )?;
         self.skip_newlines();
         Ok(Decl::VarGlobal {
             span: Span::merge(start, self.previous().span),
@@ -4831,11 +4905,7 @@ impl Parser {
     fn peek_is_label_colon(&self) -> bool {
         let is_name = matches!(self.peek().kind, TokenKind::Identifier(_))
             || Self::soft_keyword_ident(&self.peek().kind).is_some();
-        is_name
-            && matches!(
-                self.peek_ahead(1).map(|t| &t.kind),
-                Some(TokenKind::Colon)
-            )
+        is_name && matches!(self.peek_ahead(1).map(|t| &t.kind), Some(TokenKind::Colon))
     }
 
     fn consume_identifier(&mut self, message: &str) -> SyxResult<SmolStr> {
@@ -4995,25 +5065,28 @@ impl Parser {
     }
 
     fn skip_newlines(&mut self) {
-        while self.current < self.tokens.len() && Self::is_trivia_kind(&self.tokens[self.current].kind)
+        while self.current < self.tokens.len()
+            && Self::is_trivia_kind(&self.tokens[self.current].kind)
         {
             self.current += 1;
         }
     }
 
     fn error<T>(&self, message: &str) -> SyxResult<T> {
-        Err(SyxDiagnostic::error(message).with_code("P001").with_span(
-            &self.source,
+        Err(parser_error_at(
+            message,
+            Some(&self.source),
             self.peek().span,
-            "here",
+            "P001",
         ))
     }
 
     fn error_at<T>(&self, token: Token, message: &str) -> SyxResult<T> {
-        Err(SyxDiagnostic::error(message).with_code("P001").with_span(
-            &self.source,
+        Err(parser_error_at(
+            message,
+            Some(&self.source),
             token.span,
-            "here",
+            "P001",
         ))
     }
 }
@@ -5180,28 +5253,30 @@ fn stmt_has_await(stmt: &Stmt) -> bool {
         } => {
             expr_has_await(condition)
                 || stmts_have_await(then_branch)
-                || else_branch
-                    .as_ref()
-                    .is_some_and(|b| stmts_have_await(b))
+                || else_branch.as_ref().is_some_and(|b| stmts_have_await(b))
         }
-        Stmt::While { condition, body, .. } | Stmt::RepeatWhile { condition, body, .. } => {
-            expr_has_await(condition) || stmts_have_await(body)
+        Stmt::While {
+            condition, body, ..
         }
-        Stmt::ForIn { iterable, body, .. } => {
-            expr_has_await(iterable) || stmts_have_await(body)
-        }
+        | Stmt::RepeatWhile {
+            condition, body, ..
+        } => expr_has_await(condition) || stmts_have_await(body),
+        Stmt::ForIn { iterable, body, .. } => expr_has_await(iterable) || stmts_have_await(body),
         Stmt::Block { stmts, .. } => stmts_have_await(stmts),
-        Stmt::Try { body, catch_body, .. } => {
-            stmts_have_await(body) || stmts_have_await(catch_body)
-        }
-        Stmt::GuardLet { body, else_branch, .. } => {
-            stmts_have_await(body) || stmts_have_await(else_branch)
-        }
-        Stmt::Switch { subject, cases, default, .. } => {
+        Stmt::Try {
+            body, catch_body, ..
+        } => stmts_have_await(body) || stmts_have_await(catch_body),
+        Stmt::GuardLet {
+            body, else_branch, ..
+        } => stmts_have_await(body) || stmts_have_await(else_branch),
+        Stmt::Switch {
+            subject,
+            cases,
+            default,
+            ..
+        } => {
             expr_has_await(subject)
-                || cases
-                    .iter()
-                    .any(|c| stmts_have_await(&c.body))
+                || cases.iter().any(|c| stmts_have_await(&c.body))
                 || default.as_ref().is_some_and(|b| stmts_have_await(b))
         }
         Stmt::IfCase {
@@ -5212,9 +5287,7 @@ fn stmt_has_await(stmt: &Stmt) -> bool {
         } => {
             expr_has_await(subject)
                 || stmts_have_await(body)
-                || else_branch
-                    .as_ref()
-                    .is_some_and(|b| stmts_have_await(b))
+                || else_branch.as_ref().is_some_and(|b| stmts_have_await(b))
         }
         Stmt::Throw { expr, .. } => expr_has_await(expr),
         _ => false,
@@ -5230,9 +5303,7 @@ fn expr_has_await(expr: &Expr) -> bool {
             expr_has_await(callee) || args.iter().any(|a| expr_has_await(&a.value))
         }
         Expr::Member { object, .. } => expr_has_await(object),
-        Expr::Index { object, index, .. } => {
-            expr_has_await(object) || expr_has_await(index)
-        }
+        Expr::Index { object, index, .. } => expr_has_await(object) || expr_has_await(index),
         Expr::Assign { value, .. } | Expr::CompoundAssign { value, .. } => expr_has_await(value),
         Expr::Group { expr, .. } => expr_has_await(expr),
         Expr::Array { elements, .. } => elements.iter().any(expr_has_await),
@@ -5597,14 +5668,15 @@ func main() {}
         let module = Parser::parse(trailing).expect("trailing comma should parse");
         match &module.decls[0] {
             Decl::ExportList { names, .. } => {
-                assert_eq!(names.iter().map(|n| n.as_str()).collect::<Vec<_>>(), vec!["greet"]);
+                assert_eq!(
+                    names.iter().map(|n| n.as_str()).collect::<Vec<_>>(),
+                    vec!["greet"]
+                );
             }
             other => panic!("expected Decl::ExportList, got {other:?}"),
         }
-        let trailing_multi = SourceFile::new(
-            "t.sy",
-            "export { a, b, }\nfunc a() {}\nfunc b() {}\n",
-        );
+        let trailing_multi =
+            SourceFile::new("t.sy", "export { a, b, }\nfunc a() {}\nfunc b() {}\n");
         let module2 = Parser::parse(trailing_multi).expect("multi trailing comma should parse");
         match &module2.decls[0] {
             Decl::ExportList { names, .. } => {
@@ -5616,7 +5688,10 @@ func main() {}
             other => panic!("expected Decl::ExportList, got {other:?}"),
         }
         let empty = SourceFile::new("t.sy", "export { }\n");
-        assert!(Parser::parse(empty).is_err(), "empty export list must be rejected");
+        assert!(
+            Parser::parse(empty).is_err(),
+            "empty export list must be rejected"
+        );
     }
 
     #[test]
@@ -5639,7 +5714,8 @@ func main() {}
             outcome.errors
         );
         assert!(
-            p001.iter().any(|e| e.message.contains('{') || e.message.contains("Expected")),
+            p001.iter()
+                .any(|e| e.message.contains('{') || e.message.contains("Expected")),
             "messages={:?}",
             p001.iter().map(|e| &e.message).collect::<Vec<_>>()
         );
@@ -5647,7 +5723,10 @@ func main() {}
 
     #[test]
     fn parse_collecting_fixture_multi_syntax_errors_sy() {
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/multi_syntax_errors.sy");
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../fixtures/multi_syntax_errors.sy"
+        );
         let text = std::fs::read_to_string(path).expect("fixtures/multi_syntax_errors.sy");
         let source = SourceFile::new("multi_syntax_errors.sy", text);
         let outcome = Parser::parse_collecting(source);

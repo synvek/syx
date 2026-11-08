@@ -61,6 +61,8 @@ mod debug_repl;
 mod doc_project;
 mod cranelift_stubs;
 mod thin_host;
+mod driver_diag;
+pub(crate) use driver_diag::{driver_error, driver_error_at, driver_warning, driver_warning_at};
 
 use cache_fingerprint::{
     build_syx_plan_hash, cache_version_tag, compute_cache_version_tag,

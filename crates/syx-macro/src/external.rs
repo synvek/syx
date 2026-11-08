@@ -4,9 +4,10 @@ use indexmap::IndexMap;
 use smol_str::SmolStr;
 use std::sync::{LazyLock, Mutex};
 use syx_ast::{Decl, Expr, Module, Stmt};
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{Span, SyxResult};
 
 use crate::external_protocol::{InProcessMacroExpander, MacroExpandRequest};
+use crate::macro_error_at;
 
 #[derive(Debug, Clone)]
 pub struct ExternalMacroSpec {
@@ -58,10 +59,12 @@ pub fn collect_external_macros(module: &Module) {
 pub fn expand_external_macros(module: &mut Module) -> SyxResult<()> {
     if crate::external_sandbox::wasm_external_macro_disabled() {
         if count_freestanding_external_invokes(module) > 0 {
-            return Err(syx_diagnostics::SyxDiagnostic::error(
+            return Err(macro_error_at(
                 "external macros disabled on WASM target",
-            )
-            .with_code("E004"));
+                None,
+                Span::DUMMY,
+                "E004",
+            ));
         }
         return Ok(());
     }
@@ -75,9 +78,9 @@ fn count_freestanding_external_invokes(module: &Module) -> u32 {
 
 fn count_external_in_decl(decl: &Decl) -> u32 {
     match decl {
-        Decl::Function { body, .. }
-        | Decl::Init { body, .. }
-        | Decl::Deinit { body, .. } => count_external_in_stmts(body),
+        Decl::Function { body, .. } | Decl::Init { body, .. } | Decl::Deinit { body, .. } => {
+            count_external_in_stmts(body)
+        }
         Decl::Class { members, .. } | Decl::Actor { members, .. } => {
             members.iter().map(count_external_in_decl).sum()
         }
@@ -107,11 +110,18 @@ fn count_external_in_stmts(stmts: &[Stmt]) -> u32 {
                     n += count_external_in_stmts(eb);
                 }
             }
-            Stmt::While { body, .. } | Stmt::ForIn { body, .. } => n += count_external_in_stmts(body),
+            Stmt::While { body, .. } | Stmt::ForIn { body, .. } => {
+                n += count_external_in_stmts(body)
+            }
             Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } => {
                 n += count_external_in_expr(expr);
             }
-            Stmt::Return { value: Some(expr), .. } | Stmt::VarDecl { init: Some(expr), .. } => {
+            Stmt::Return {
+                value: Some(expr), ..
+            }
+            | Stmt::VarDecl {
+                init: Some(expr), ..
+            } => {
                 n += count_external_in_expr(expr);
             }
             Stmt::Throw { expr, .. } => n += count_external_in_expr(expr),
@@ -130,7 +140,10 @@ fn count_external_in_expr(expr: &Expr) -> u32 {
         Expr::Unary { expr, .. } | Expr::Group { expr, .. } => count_external_in_expr(expr),
         Expr::Call { callee, args, .. } => {
             count_external_in_expr(callee)
-                + args.iter().map(|a| count_external_in_expr(&a.value)).sum::<u32>()
+                + args
+                    .iter()
+                    .map(|a| count_external_in_expr(&a.value))
+                    .sum::<u32>()
         }
         Expr::Member { object, .. } => count_external_in_expr(object),
         Expr::Index { object, index, .. } => {
@@ -180,9 +193,9 @@ fn expand_external_in_decl(
     expander: &dyn crate::external_protocol::ExternalMacroExpander,
 ) -> SyxResult<()> {
     match decl {
-        Decl::Function { body, .. }
-        | Decl::Init { body, .. }
-        | Decl::Deinit { body, .. } => expand_external_in_stmts(body, expander)?,
+        Decl::Function { body, .. } | Decl::Init { body, .. } | Decl::Deinit { body, .. } => {
+            expand_external_in_stmts(body, expander)?
+        }
         Decl::Class { members, .. } | Decl::Actor { members, .. } => {
             for m in members {
                 expand_external_in_decl(m, expander)?;
@@ -212,7 +225,9 @@ fn expand_external_in_stmts(
                         .and_then(expr_string_lit)
                         .unwrap_or_else(|| "Freestanding".into());
                     let req = freestanding_request(&spec.type_name, &type_name, "statement");
-                    out.extend(crate::external_protocol::expand_via_protocol(expander, &req)?);
+                    out.extend(crate::external_protocol::expand_via_protocol(
+                        expander, &req,
+                    )?);
                     let _ = span;
                 } else {
                     out.push(Stmt::MacroInvoke { span, name, args });

@@ -24,8 +24,8 @@
 
 ## Consequences
 
-- S2-07 plan-claimed; Stage-2 stays `[~]` (S2-01…07 `[x]`; exit pending).
-- Decision §4 locked next = **Stage-2 exit**; default next window = **S2-I266 Stage-2 exit** — not Stage-3 construction.
+- S2-07 plan-claimed; Stage-2 exit **landed** as [stage2-exit](stage2-exit.md)（S2-I266）；next = **Stage-3 open**.
+- Decision §4 locked next = **Stage-2 exit**; **landed** S2-I266 — not Stage-3 construction in the claim window.
 - Prior: [s2-07-inject-cargo-pkg-version](stage2-s2-07-inject-cargo-pkg-version.md) · S2-I264.
 
 ## References

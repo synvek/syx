@@ -24,7 +24,7 @@ use type_checker::is_compatible;
 /// Prevents pathological files from flooding the editor while still showing many errors at once.
 pub const MAX_COLLECTED_DIAGNOSTICS: usize = 64;
 
-pub use semantic_types::{TypeId, Symbol, Scope};
+pub use semantic_types::{TypeId, Symbol, Scope, ScopeError};
 pub use feature_gates::*;
 pub use semantic_analyzer::SemanticAnalyzer;
 pub use semantic_type_codec::{
@@ -40,15 +40,17 @@ pub use semantic_type_codec::{
 
 pub(crate) use semantic_helpers::{
     attached_conformance_protocols, attr_has_ident_arg, default_assoc_type_for, expr_span, has_attr,
-    is_forbidden_internal_import, is_retired_collection_methodcall, module_uses_task_detach,
-    retired_ops_hint, type_collection_surface, type_expr_uses_param,
+    is_forbidden_internal_import, is_retired_collection_methodcall, module_first_task_detach_span,
+    module_uses_task_detach, retired_ops_hint, type_collection_surface, type_expr_uses_param,
 };
 pub use semantic_helpers::expr_span_start;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use syx_ast::{CallArg, Module, Param, ParamLabel, TypeExpr};
+    use syx_ast::{
+        AccessLevel, CallArg, Decl, Expr, Literal, Module, Param, ParamLabel, Stmt, TypeExpr,
+    };
     use syx_diagnostics::Span;
 
     #[test]

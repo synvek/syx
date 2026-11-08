@@ -4,7 +4,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crossbeam_channel::{Receiver, Sender, TryRecvError, TrySendError};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 
 use crate::{ensure_object_id, platform_int_value, Value};
 
@@ -161,10 +163,12 @@ fn parse_select_op(v: &Value) -> SyxResult<SelectOp> {
     // Phase 108: tagged arm `[dir, channel, payload?]` (dir 0=recv, 1=send).
     if let Some(parts) = Value::materialize_array(v.clone()) {
         if parts.is_empty() {
-            return Err(
-                SyxDiagnostic::error("Select tagged arm must be [dir, channel, payload?]")
-                    .with_code("C003"),
-            );
+            return Err(vm_error_at(
+                "Select tagged arm must be [dir, channel, payload?]",
+                None,
+                Span::DUMMY,
+                "C003",
+            ));
         }
         let dir = parts[0].as_i64();
         let channel = parts.get(1).cloned().unwrap_or(Value::Nil);
@@ -175,10 +179,12 @@ fn parse_select_op(v: &Value) -> SyxResult<SelectOp> {
                 return Ok(SelectOp::Send { channel, value });
             }
             _ => {
-                return Err(SyxDiagnostic::error(format!(
-                    "Select arm dir must be 0 (recv) or 1 (send), got {dir}"
-                ))
-                .with_code("C003"));
+                return Err(vm_error_at(
+                    format!("Select arm dir must be 0 (recv) or 1 (send), got {dir}"),
+                    None,
+                    Span::DUMMY,
+                    "C003",
+                ));
             }
         }
     }
@@ -198,10 +204,12 @@ fn parse_select_op(v: &Value) -> SyxResult<SelectOp> {
                     });
                 }
                 other => {
-                    return Err(SyxDiagnostic::error(format!(
-                        "Select arm __syx_select_dir must be 0 or 1, got {other}"
-                    ))
-                    .with_code("C003"));
+                    return Err(vm_error_at(
+                        format!("Select arm __syx_select_dir must be 0 or 1, got {other}"),
+                        None,
+                        Span::DUMMY,
+                        "C003",
+                    ));
                 }
             }
         }
@@ -235,7 +243,7 @@ fn try_select_op(op: &SelectOp) -> SyxResult<Option<Value>> {
                 Ok(()) => Ok(Some(Value::Bool(true))),
                 Err(TrySendError::Full(_)) => Ok(None),
                 Err(TrySendError::Disconnected(_)) => {
-                    Err(SyxDiagnostic::error("Channel closed").with_code("C010"))
+                    Err(vm_error_at("Channel closed", None, Span::DUMMY, "C010"))
                 }
             }
         }
@@ -298,22 +306,34 @@ fn channel_id_from_value_depth(v: &Value, depth: u8) -> SyxResult<i64> {
                 return channel_id_from_value_depth(inner, depth + 1);
             }
         }
-        Err(
-            SyxDiagnostic::error("Expected channel object with __channel_id").with_code("C003"),
-        )
+        Err(vm_error_at(
+            "Expected channel object with __channel_id",
+            None,
+            Span::DUMMY,
+            "C003",
+        ))
     } else {
-        Err(SyxDiagnostic::error("Expected channel object").with_code("C003"))
+        Err(vm_error_at(
+            "Expected channel object",
+            None,
+            Span::DUMMY,
+            "C003",
+        ))
     }
 }
 
 fn get_channel_pair(id: i64) -> SyxResult<Arc<ChannelPair>> {
     let channels = GLOBAL_CHANNELS
         .lock()
-        .map_err(|_| SyxDiagnostic::error("Channel table lock poisoned").with_code("C003"))?;
-    channels
-        .get(&id)
-        .cloned()
-        .ok_or_else(|| SyxDiagnostic::error(format!("Unknown channel id {id}")).with_code("C003"))
+        .map_err(|_| vm_error_at("Channel table lock poisoned", None, Span::DUMMY, "C003"))?;
+    channels.get(&id).cloned().ok_or_else(|| {
+        vm_error_at(
+            format!("Unknown channel id {id}"),
+            None,
+            Span::DUMMY,
+            "C003",
+        )
+    })
 }
 
 fn with_channel<F, R>(id: i64, f: F) -> SyxResult<R>
@@ -368,7 +388,7 @@ pub fn host_channel_create(stack: &mut Vec<Value>) -> SyxResult<()> {
     {
         let mut channels = GLOBAL_CHANNELS
             .lock()
-            .map_err(|_| SyxDiagnostic::error("Channel table lock poisoned").with_code("C003"))?;
+            .map_err(|_| vm_error_at("Channel table lock poisoned", None, Span::DUMMY, "C003"))?;
         channels.insert(
             id,
             Arc::new(ChannelPair {
@@ -391,7 +411,7 @@ pub fn host_channel_send(stack: &mut Vec<Value>) -> SyxResult<()> {
     let id = channel_id_from_value(&channel)?;
     let pair = get_channel_pair(id)?;
     pair.send(value)
-        .map_err(|_| SyxDiagnostic::error("Channel closed").with_code("C010"))?;
+        .map_err(|_| vm_error_at("Channel closed", None, Span::DUMMY, "C010"))?;
     stack.push(Value::Bool(true));
     Ok(())
 }
@@ -405,7 +425,7 @@ pub fn host_channel_try_send(stack: &mut Vec<Value>) -> SyxResult<()> {
         Ok(()) => stack.push(Value::Bool(true)),
         Err(TrySendError::Full(_)) => stack.push(Value::Bool(false)),
         Err(TrySendError::Disconnected(_)) => {
-            return Err(SyxDiagnostic::error("Channel closed").with_code("C010"));
+            return Err(vm_error_at("Channel closed", None, Span::DUMMY, "C010"));
         }
     }
     Ok(())
@@ -450,10 +470,12 @@ pub fn host_select_tag(stack: &mut Vec<Value>) -> SyxResult<()> {
     let mut map = match channel {
         Value::Object(m) => m,
         other => {
-            return Err(SyxDiagnostic::error(format!(
-                "__syx_select_tag expected channel object, got {other:?}"
-            ))
-            .with_code("C003"));
+            return Err(vm_error_at(
+                format!("__syx_select_tag expected channel object, got {other:?}"),
+                None,
+                Span::DUMMY,
+                "C003",
+            ));
         }
     };
     map.insert(SELECT_DIR_KEY.into(), Value::I64(dir));

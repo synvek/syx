@@ -4,13 +4,13 @@
 use crate::cache_fingerprint::{cache_version_tag, driver_options_with_deps};
 use crate::module_ref::ModuleRef;
 use crate::{
-    build_unified_mir, compile_module_recursive, compile_native_object, compile_project_with_options,
-    ensure_project_lock, native_executable_file_name, project_cache_dir, BuildProfile,
-    DriverOptions, ModuleGraph, NativeBackend,
+    build_unified_mir, compile_module_recursive, compile_native_object,
+    compile_project_with_options, driver_error_at, ensure_project_lock, native_executable_file_name,
+    project_cache_dir, BuildProfile, DriverOptions, ModuleGraph, NativeBackend,
 };
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxResult};
 use syx_pkg::{load_manifest, load_resolved_packages};
 
 pub fn build_native(root: &Path) -> SyxResult<Vec<u8>> {
@@ -117,10 +117,20 @@ fn rebuild_native_rt(options: &DriverOptions) -> SyxResult<()> {
         .args(&args)
         .current_dir(&workspace)
         .status()
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to rebuild syx-rt: {e}")))?;
+        .map_err(|e| {
+            driver_error_at(
+                format!("Failed to rebuild syx-rt: {e}"),
+                None,
+                Span::DUMMY,
+                "D001",
+            )
+        })?;
     if !status.success() {
-        return Err(SyxDiagnostic::error(
+        return Err(driver_error_at(
             "Failed to rebuild syx-rt for native link (check --minimal / --no-http / --no-file flags)",
+            None,
+            Span::DUMMY,
+            "N001",
         ));
     }
     Ok(())
@@ -151,10 +161,15 @@ fn link_native_object(
         rebuild_native_rt(options)?;
     }
     if let Err(msg) = syx_rt::audit_user_object_undefs(object) {
-        return Err(SyxDiagnostic::error(msg));
+        return Err(driver_error_at(msg, None, Span::DUMMY, "N002"));
     }
     std::fs::write(obj_path, object).map_err(|e| {
-        SyxDiagnostic::error(format!("Failed to write {}: {e}", obj_path.display()))
+        driver_error_at(
+            format!("Failed to write {}: {e}", obj_path.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
     })?;
     let mut merged = link_opts.clone();
     merged.rt_profile = options.build_profile.rt_profile_name().to_string();
@@ -178,7 +193,14 @@ fn link_native_object(
             } else {
                 syx_rt::rt_archive_path_for_profile(&merged.rt_profile)
             }
-            .map_err(|e| SyxDiagnostic::error(format!("Failed to locate syx-rt archive: {e}")))?;
+            .map_err(|e| {
+                driver_error_at(
+                    format!("Failed to locate syx-rt archive: {e}"),
+                    None,
+                    Span::DUMMY,
+                    "D001",
+                )
+            })?;
             match syx_rt::native_lld_argv(obj_path, output, &merged, &rt)
                 .and_then(|args| syx_lld::run_lld(&args))
             {
@@ -188,9 +210,12 @@ fn link_native_object(
                         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
                         .unwrap_or(false);
                     if force_lld {
-                        return Err(SyxDiagnostic::error(format!(
-                            "Failed to link native executable with LLD: {lld_err}"
-                        )));
+                        return Err(driver_error_at(
+                            format!("Failed to link native executable with LLD: {lld_err}"),
+                            None,
+                            Span::DUMMY,
+                            "N003",
+                        ));
                     }
                     // Fall through to host cc / link.exe.
                 }
@@ -198,8 +223,14 @@ fn link_native_object(
         }
     }
 
-    syx_rt::link_executable_with(obj_path, output, &merged)
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to link native executable: {e}")))?;
+    syx_rt::link_executable_with(obj_path, output, &merged).map_err(|e| {
+        driver_error_at(
+            format!("Failed to link native executable: {e}"),
+            None,
+            Span::DUMMY,
+            "N003",
+        )
+    })?;
     Ok(())
 }
 
@@ -300,8 +331,14 @@ fn write_native_build_stamp(
     if let Some(parent) = stamp.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    std::fs::write(stamp, native_build_stamp_payload(source, options))
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to write native build stamp: {e}")))?;
+    std::fs::write(stamp, native_build_stamp_payload(source, options)).map_err(|e| {
+        driver_error_at(
+            format!("Failed to write native build stamp: {e}"),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     Ok(())
 }
 
@@ -325,9 +362,14 @@ pub fn build_native_executable_file(
 pub fn run_native_project_with_options(root: &Path, options: &DriverOptions) -> SyxResult<i32> {
     let exe = root.join(native_executable_file_name("app"));
     build_native_executable(root, options, &exe)?;
-    let status = std::process::Command::new(&exe)
-        .status()
-        .map_err(|e| SyxDiagnostic::error(format!("Failed to run {}: {e}", exe.display())))?;
+    let status = std::process::Command::new(&exe).status().map_err(|e| {
+        driver_error_at(
+            format!("Failed to run {}: {e}", exe.display()),
+            None,
+            Span::DUMMY,
+            "D001",
+        )
+    })?;
     Ok(status.code().unwrap_or(1))
 }
 

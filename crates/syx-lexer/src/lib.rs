@@ -1,11 +1,13 @@
 #![allow(clippy::result_large_err)]
 
+mod lexer_diag;
 mod token;
 
 pub use token::{keyword, InterpPart, Token, TokenKind};
 
+use lexer_diag::lexer_error_at;
 use smol_str::SmolStr;
-use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, Span, SyxResult};
 
 pub struct Lexer {
     source: SourceFile,
@@ -571,10 +573,11 @@ impl Lexer {
     }
 
     fn error(&self, message: impl Into<String>) -> SyxResult<()> {
-        Err(SyxDiagnostic::error(message).with_code("L001").with_span(
-            &self.source,
+        Err(lexer_error_at(
+            message,
+            Some(&self.source),
             Span::new(self.start, (self.current - self.start).max(1)),
-            "here",
+            "L001",
         ))
     }
 
@@ -659,9 +662,7 @@ mod tests {
 
     #[test]
     fn lexes_let_binding() {
-        let tokens = Lexer::from_str("test.sy", "let x = 42")
-            .scan_all()
-            .unwrap();
+        let tokens = Lexer::from_str("test.sy", "let x = 42").scan_all().unwrap();
         let kinds: Vec<_> = tokens
             .iter()
             .map(|t| &t.kind)
@@ -679,17 +680,14 @@ mod tests {
             .scan_all()
             .unwrap();
         assert!(tokens.iter().any(|t| t.kind == TokenKind::Func));
-        assert!(tokens.iter().any(|t| matches!(&t.kind, TokenKind::String(s) if s == "hi")));
+        assert!(tokens
+            .iter()
+            .any(|t| matches!(&t.kind, TokenKind::String(s) if s == "hi")));
     }
 
     #[test]
     fn lexes_multiline_string_literal() {
-        let src = concat!(
-            "let s = \"\"\"\n",
-            "line one\n",
-            "line two\n",
-            "\"\"\"\n",
-        );
+        let src = concat!("let s = \"\"\"\n", "line one\n", "line two\n", "\"\"\"\n",);
         let tokens = Lexer::from_str("test.sy", src).scan_all().unwrap();
         assert!(
             tokens.iter().any(|t| matches!(
@@ -697,7 +695,10 @@ mod tests {
                 TokenKind::String(s) if s.contains("line one") && s.contains("line two")
             )),
             "tokens: {:?}",
-            tokens.iter().map(|t| (&t.kind, &t.lexeme)).collect::<Vec<_>>()
+            tokens
+                .iter()
+                .map(|t| (&t.kind, &t.lexeme))
+                .collect::<Vec<_>>()
         );
     }
 
@@ -719,9 +720,7 @@ mod tests {
 
     #[test]
     fn lexes_closed_range_tokens() {
-        let tokens = Lexer::from_str("test.sy", "1...5")
-            .scan_all()
-            .unwrap();
+        let tokens = Lexer::from_str("test.sy", "1...5").scan_all().unwrap();
         assert_eq!(tokens[0].kind, TokenKind::Integer(1, None));
         assert_eq!(tokens[1].kind, TokenKind::DotDotDot);
         assert_eq!(tokens[2].kind, TokenKind::Integer(5, None));
@@ -766,7 +765,10 @@ mod tests {
                 .iter()
                 .any(|t| matches!(&t.kind, TokenKind::Lifetime(s) if s == "'a")),
             "tokens: {:?}",
-            tokens.iter().map(|t| (&t.kind, &t.lexeme)).collect::<Vec<_>>()
+            tokens
+                .iter()
+                .map(|t| (&t.kind, &t.lexeme))
+                .collect::<Vec<_>>()
         );
     }
 
@@ -787,17 +789,13 @@ mod tests {
 
     #[test]
     fn lexes_whitespace_runs() {
-        let tokens = Lexer::from_str("test.sy", "func  main")
-            .scan_all()
-            .unwrap();
+        let tokens = Lexer::from_str("test.sy", "func  main").scan_all().unwrap();
         assert!(tokens.iter().any(|t| t.kind == TokenKind::Whitespace));
     }
 
     #[test]
     fn lexes_unicode_xid_greek_ident() {
-        let tokens = Lexer::from_str("test.sy", "let α = 1")
-            .scan_all()
-            .unwrap();
+        let tokens = Lexer::from_str("test.sy", "let α = 1").scan_all().unwrap();
         assert!(
             tokens
                 .iter()

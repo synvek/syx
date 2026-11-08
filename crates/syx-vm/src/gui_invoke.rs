@@ -3,7 +3,9 @@
 
 use std::sync::OnceLock;
 
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{Span, SyxDiagnostic, SyxResult};
+
+use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 use crate::program_ctx::with_program_ctx;
@@ -26,7 +28,12 @@ pub fn invoke_gui_handler(handler_name: &str) -> SyxResult<Value> {
             .iter()
             .find(|f| f.name == handler_name)
             .ok_or_else(|| {
-                SyxDiagnostic::error(format!("Unknown GUI handler function '{handler_name}'"))
+                vm_error_at(
+                    format!("Unknown GUI handler function '{handler_name}'"),
+                    None,
+                    Span::DUMMY,
+                    "R003",
+                )
             })?;
         let mut vm = crate::VmInstance::new();
         vm.runtime = ctx.runtime.clone();
@@ -35,10 +42,12 @@ pub fn invoke_gui_handler(handler_name: &str) -> SyxResult<Value> {
     if let Some(handler) = NATIVE_GUI_HANDLER.get() {
         return handler(handler_name);
     }
-    Err(
-        SyxDiagnostic::error("GUI handler invoke requires active program context")
-            .with_code("R012"),
-    )
+    Err(vm_error_at(
+        "GUI handler invoke requires active program context",
+        None,
+        Span::DUMMY,
+        "R012",
+    ))
 }
 
 pub fn drain_pending_handlers_from_gui(win_id: &str) -> Vec<String> {

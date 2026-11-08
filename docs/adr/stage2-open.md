@@ -234,6 +234,7 @@
 - **S2-I263:** S2-07 open — version census ([stage2-s2-07-open](stage2-s2-07-open.md)); S2-07 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）；next = S2-I264 inject CARGO_PKG_VERSION.
 - **S2-I264:** S2-07 inject CARGO_PKG_VERSION ([stage2-s2-07-inject-cargo-pkg-version](stage2-s2-07-inject-cargo-pkg-version.md)); S2-07 `[~]`; Stage-2 `[~]`（≠ `[x]` / ≠ 退出）；next = S2-I265 claim.
 - **S2-I265:** S2-07 plan claim ([stage2-s2-07-claim](stage2-s2-07-claim.md)); S2-07 `[x]` scoped; Stage-2 `[~]`（≠ 退出）；next = S2-I266 Stage-2 exit.
+- **S2-I266:** Stage-2 exit ([stage2-exit](stage2-exit.md)); Stage-2 `[x]` 退出；next = Stage-3 open（≠ Stage-3 施工本窗）.
 
 ## References
 
@@ -387,6 +388,7 @@
 - [`docs/adr/stage2-s2-07-open.md`](stage2-s2-07-open.md) · S2-I263
 - [`docs/adr/stage2-s2-07-inject-cargo-pkg-version.md`](stage2-s2-07-inject-cargo-pkg-version.md) · S2-I264
 - [`docs/adr/stage2-s2-07-claim.md`](stage2-s2-07-claim.md) · S2-I265
+- [`docs/adr/stage2-exit.md`](stage2-exit.md) · S2-I266
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §4.2.1 / 阶段2
 
 
