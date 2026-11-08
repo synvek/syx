@@ -10,6 +10,8 @@ authors.workspace = true
 [dependencies]
 syx-codegen = { workspace = true }
 syx-diagnostics = { workspace = true }
+syx-mono = { workspace = true }
+syx-semantic = { workspace = true }
 smol_str = { workspace = true }
 indexmap = { workspace = true }
 serde = { workspace = true }

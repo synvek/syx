@@ -1,9 +1,9 @@
 # Stage-3 diagnostic Span census (S3-01)
 
-**ADR:** … · [noise-claim-prep](adr/stage3-s3-01-noise-claim-prep.md) · [s3-01-claim](adr/stage3-s3-01-claim.md) · **Window:** S3-I41 · **Current:** S3-I41
+**ADR:** … · [s3-01-claim](adr/stage3-s3-01-claim.md) · [s3-02-open](adr/stage3-s3-02-open.md) · [demangle-semantic](adr/stage3-s3-02-demangle-semantic.md) · [debug-stack-display](adr/stage3-s3-02-debug-stack-display.md) · [runtime-type-display](adr/stage3-s3-02-runtime-type-display.md) · [meta-type-display](adr/stage3-s3-02-meta-type-display.md) · [s3-02-claim](adr/stage3-s3-02-claim.md) · **Window:** S3-I47 · **Current:** S3-I47
 
 **Goal (S3-01):** every **user-facing** diagnostic carries `Span` / `primary_span`; positionless = CI defect; miette label/help.  
-**This census:** prior face gates + filtered `positionless_helper_calls=0` — **S3-01 `[x]` claimed**（S3-I41）；**≠** Stage-3 exit.
+**This census:** prior face gates + filtered `positionless_helper_calls=0` — **S3-01 `[x]` claimed**（S3-I41）；**S3-02 `[x]` claimed**（S3-I47）；**≠** Stage-3 exit.
 
 ## Command
 
@@ -89,9 +89,15 @@ bash scripts/s3_01_span_census.sh
 ## Ladder (locked)
 
 1. S3-I1…I40 — done.
-2. **S3-I41:** S3-01 `[x]` claim — **this window**.
-3. **S3-I42:** **S3-02 open**（隐藏内部单态名）— still ≠ Stage-3 exit.
-4. Later: S3-02…07 construct / Stage-3 exit.
+2. **S3-I41:** S3-01 `[x]` claim — landed.
+3. **S3-I42:** **S3-02 open** — landed；see [mono-display census](stage3-mono-display-census.md).
+4. **S3-I43:** S3-02 demangle-semantic hinge — landed.
+5. **S3-I44:** debug stack display — **landed**.
+6. **S3-I45:** runtime `__type` user-facing — **landed**.
+7. **S3-I46:** meta type user-facing — **landed**.
+8. **S3-I47:** S3-02 scoped claim — **landed**.
+9. **Next:** **S3-03 open** — still ≠ Stage-3 exit.
+7. Later: S3-02 claim / S3-03…07 / Stage-3 exit.
 
 ## Non-claims
 

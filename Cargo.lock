@@ -7427,6 +7427,8 @@ dependencies = [
  "syx-codegen",
  "syx-diagnostics",
  "syx-driver",
+ "syx-mono",
+ "syx-semantic",
  "syx-stdlib",
  "syx-vm",
  "tempfile",
@@ -7669,6 +7671,7 @@ dependencies = [
  "syx-ast",
  "syx-diagnostics",
  "syx-mir",
+ "syx-mono",
  "syx-parser",
 ]
 
@@ -7710,6 +7713,7 @@ dependencies = [
  "smol_str 0.3.6",
  "syx-ast",
  "syx-diagnostics",
+ "syx-stdlib",
 ]
 
 [[package]]
@@ -7766,6 +7770,7 @@ version = "0.1.3"
 dependencies = [
  "smol_str 0.3.6",
  "syx-diagnostics",
+ "syx-mono",
  "syx-stdlib",
 ]
 
@@ -7780,6 +7785,7 @@ dependencies = [
  "syx-config",
  "syx-diagnostics",
  "syx-meta",
+ "syx-mono",
  "syx-stdlib",
 ]
 

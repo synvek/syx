@@ -35,11 +35,40 @@ fn s3_01_span_census_baseline() {
     assert!(
         census.contains("S3-I42")
             && (census.contains("S3-02") || census.contains("open")),
-        "census ladder must name S3-I42 S3-02 open next"
+        "census must name S3-I42 S3-02 open"
     );
     assert!(
-        census.contains("Current:** S3-I41") || census.contains("Current: S3-I41"),
-        "census Current must be S3-I41"
+        census.contains("S3-I43")
+            && (census.contains("demangle") || census.contains("construct") || census.contains("S3-02")),
+        "census must name S3-I43 demangle"
+    );
+    assert!(
+        census.contains("S3-I44")
+            && (census.contains("debug") || census.contains("stack") || census.contains("S3-02")),
+        "census must name S3-I44 debug stack"
+    );
+    assert!(
+        census.contains("S3-I45")
+            && (census.contains("runtime") || census.contains("__type")),
+        "census must name S3-I45 runtime"
+    );
+    assert!(
+        census.contains("S3-I46")
+            && (census.contains("meta") || census.contains("S3-02")),
+        "census must name S3-I46 meta"
+    );
+    assert!(
+        census.contains("S3-I47")
+            && census.contains("claim"),
+        "census must name S3-I47 claim"
+    );
+    assert!(
+        census.contains("S3-03"),
+        "census ladder must name S3-03 next"
+    );
+    assert!(
+        census.contains("Current:** S3-I47") || census.contains("Current: S3-I47"),
+        "census Current must be S3-I47"
     );
     assert!(
         census.contains("host_residual_bare") && census.contains("**0**"),
@@ -210,8 +239,32 @@ fn s3_01_span_census_baseline() {
         "stage3-open must cite landed S3-I41 claim ADR"
     );
     assert!(
-        adr.contains("S3-I42") && (adr.contains("S3-02") || adr.contains("open")),
-        "stage3-open must lock next = S3-I42 S3-02 open"
+        adr.contains("S3-I42") && adr.contains("stage3-s3-02-open"),
+        "stage3-open must cite landed S3-I42 open ADR"
+    );
+    assert!(
+        adr.contains("S3-I43") && adr.contains("stage3-s3-02-demangle-semantic"),
+        "stage3-open must cite landed S3-I43 demangle ADR"
+    );
+    assert!(
+        adr.contains("S3-I44") && adr.contains("stage3-s3-02-debug-stack-display"),
+        "stage3-open must cite landed S3-I44 debug ADR"
+    );
+    assert!(
+        adr.contains("S3-I45") && adr.contains("stage3-s3-02-runtime-type-display"),
+        "stage3-open must cite landed S3-I45 runtime ADR"
+    );
+    assert!(
+        adr.contains("S3-I46") && adr.contains("stage3-s3-02-meta-type-display"),
+        "stage3-open must cite landed S3-I46 meta ADR"
+    );
+    assert!(
+        adr.contains("S3-I47") && adr.contains("stage3-s3-02-claim"),
+        "stage3-open must cite landed S3-I47 claim ADR"
+    );
+    assert!(
+        adr.contains("S3-03"),
+        "stage3-open must lock next = S3-03"
     );
 
     let macro_adr = repo_file("docs/adr/stage3-s3-01-span-host-macro.md");
@@ -480,7 +533,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         miette_adr.contains("S3-I42") && (miette_adr.contains("S3-02") || miette_adr.contains("open")),
-        "miette ADR must lock next = S3-I42"
+        "miette ADR must cite S3-I42 open"
+    );
+    assert!(
+        miette_adr.contains("S3-I43") && (miette_adr.contains("construct") || miette_adr.contains("demangle") || miette_adr.contains("S3-02")),
+        "miette_adr must cite S3-I43"
+    );
+    assert!(
+        miette_adr.contains("S3-I44") && (miette_adr.contains("debug") || miette_adr.contains("stack") || miette_adr.contains("S3-02")),
+        "miette_adr must cite S3-I44"
+    );
+    assert!(
+        miette_adr.contains("S3-I45") && (miette_adr.contains("runtime") || miette_adr.contains("__type")),
+        "miette_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            miette_adr.contains("S3-I46") && (miette_adr.contains("meta") || miette_adr.contains("S3-02") || miette_adr.contains("claim")),
+        "miette_adr must cite S3-I46 meta"
+        );
+        assert!(
+            miette_adr.contains("S3-I47") && (miette_adr.contains("claim") || miette_adr.contains("S3-02")),
+        "miette_adr must cite S3-I47 claim"
+        );
+        assert!(
+            miette_adr.contains("S3-03"),
+        "miette_adr must lock next = S3-03"
     );
     assert!(
         miette_adr.contains("do not") && miette_adr.contains("primary_span: None")
@@ -559,7 +636,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         pos_adr.contains("S3-I42") && (pos_adr.contains("S3-02") || pos_adr.contains("open")),
-        "parser/driver ADR must lock next = S3-I42"
+        "parser/driver ADR must cite S3-I42 open"
+    );
+    assert!(
+        pos_adr.contains("S3-I43") && (pos_adr.contains("construct") || pos_adr.contains("demangle") || pos_adr.contains("S3-02")),
+        "pos_adr must cite S3-I43"
+    );
+    assert!(
+        pos_adr.contains("S3-I44") && (pos_adr.contains("debug") || pos_adr.contains("stack") || pos_adr.contains("S3-02")),
+        "pos_adr must cite S3-I44"
+    );
+    assert!(
+        pos_adr.contains("S3-I45") && (pos_adr.contains("runtime") || pos_adr.contains("__type")),
+        "pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            pos_adr.contains("S3-I46") && (pos_adr.contains("meta") || pos_adr.contains("S3-02") || pos_adr.contains("claim")),
+        "pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            pos_adr.contains("S3-I47") && (pos_adr.contains("claim") || pos_adr.contains("S3-02")),
+        "pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            pos_adr.contains("S3-03"),
+        "pos_adr must lock next = S3-03"
     );
     assert!(
         pos_adr.contains("DUMMY") && (pos_adr.contains("SourceFile") || pos_adr.contains("span")),
@@ -633,7 +734,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         compile_adr.contains("S3-I42") && (compile_adr.contains("S3-02") || compile_adr.contains("open")),
-        "compile ADR must lock next = S3-I42"
+        "compile ADR must cite S3-I42 open"
+    );
+    assert!(
+        compile_adr.contains("S3-I43") && (compile_adr.contains("construct") || compile_adr.contains("demangle") || compile_adr.contains("S3-02")),
+        "compile_adr must cite S3-I43"
+    );
+    assert!(
+        compile_adr.contains("S3-I44") && (compile_adr.contains("debug") || compile_adr.contains("stack") || compile_adr.contains("S3-02")),
+        "compile_adr must cite S3-I44"
+    );
+    assert!(
+        compile_adr.contains("S3-I45") && (compile_adr.contains("runtime") || compile_adr.contains("__type")),
+        "compile_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            compile_adr.contains("S3-I46") && (compile_adr.contains("meta") || compile_adr.contains("S3-02") || compile_adr.contains("claim")),
+        "compile_adr must cite S3-I46 meta"
+        );
+        assert!(
+            compile_adr.contains("S3-I47") && (compile_adr.contains("claim") || compile_adr.contains("S3-02")),
+        "compile_adr must cite S3-I47 claim"
+        );
+        assert!(
+            compile_adr.contains("S3-03"),
+        "compile_adr must lock next = S3-03"
     );
 
     let phase89_pos_adr = repo_file("docs/adr/stage3-s3-01-positionless-vm-phase89.md");
@@ -687,7 +812,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         phase89_pos_adr.contains("S3-I42") && (phase89_pos_adr.contains("S3-02") || phase89_pos_adr.contains("open")),
-        "phase89 positionless ADR must lock next = S3-I42"
+        "phase89 positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        phase89_pos_adr.contains("S3-I43") && (phase89_pos_adr.contains("construct") || phase89_pos_adr.contains("demangle") || phase89_pos_adr.contains("S3-02")),
+        "phase89_pos_adr must cite S3-I43"
+    );
+    assert!(
+        phase89_pos_adr.contains("S3-I44") && (phase89_pos_adr.contains("debug") || phase89_pos_adr.contains("stack") || phase89_pos_adr.contains("S3-02")),
+        "phase89_pos_adr must cite S3-I44"
+    );
+    assert!(
+        phase89_pos_adr.contains("S3-I45") && (phase89_pos_adr.contains("runtime") || phase89_pos_adr.contains("__type")),
+        "phase89_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            phase89_pos_adr.contains("S3-I46") && (phase89_pos_adr.contains("meta") || phase89_pos_adr.contains("S3-02") || phase89_pos_adr.contains("claim")),
+        "phase89_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            phase89_pos_adr.contains("S3-I47") && (phase89_pos_adr.contains("claim") || phase89_pos_adr.contains("S3-02")),
+        "phase89_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            phase89_pos_adr.contains("S3-03"),
+        "phase89_pos_adr must lock next = S3-03"
     );
     assert!(
         phase89_pos_adr.contains("DUMMY")
@@ -743,7 +892,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         phase120_pos_adr.contains("S3-I42") && (phase120_pos_adr.contains("S3-02") || phase120_pos_adr.contains("open")),
-        "phase120 positionless ADR must lock next = S3-I42"
+        "phase120 positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        phase120_pos_adr.contains("S3-I43") && (phase120_pos_adr.contains("construct") || phase120_pos_adr.contains("demangle") || phase120_pos_adr.contains("S3-02")),
+        "phase120_pos_adr must cite S3-I43"
+    );
+    assert!(
+        phase120_pos_adr.contains("S3-I44") && (phase120_pos_adr.contains("debug") || phase120_pos_adr.contains("stack") || phase120_pos_adr.contains("S3-02")),
+        "phase120_pos_adr must cite S3-I44"
+    );
+    assert!(
+        phase120_pos_adr.contains("S3-I45") && (phase120_pos_adr.contains("runtime") || phase120_pos_adr.contains("__type")),
+        "phase120_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            phase120_pos_adr.contains("S3-I46") && (phase120_pos_adr.contains("meta") || phase120_pos_adr.contains("S3-02") || phase120_pos_adr.contains("claim")),
+        "phase120_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            phase120_pos_adr.contains("S3-I47") && (phase120_pos_adr.contains("claim") || phase120_pos_adr.contains("S3-02")),
+        "phase120_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            phase120_pos_adr.contains("S3-03"),
+        "phase120_pos_adr must lock next = S3-03"
     );
     assert!(
         phase120_pos_adr.contains("DUMMY")
@@ -796,7 +969,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         lib_pos_adr.contains("S3-I42") && (lib_pos_adr.contains("S3-02") || lib_pos_adr.contains("open")),
-        "lib positionless ADR must lock next = S3-I42"
+        "lib positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        lib_pos_adr.contains("S3-I43") && (lib_pos_adr.contains("construct") || lib_pos_adr.contains("demangle") || lib_pos_adr.contains("S3-02")),
+        "lib_pos_adr must cite S3-I43"
+    );
+    assert!(
+        lib_pos_adr.contains("S3-I44") && (lib_pos_adr.contains("debug") || lib_pos_adr.contains("stack") || lib_pos_adr.contains("S3-02")),
+        "lib_pos_adr must cite S3-I44"
+    );
+    assert!(
+        lib_pos_adr.contains("S3-I45") && (lib_pos_adr.contains("runtime") || lib_pos_adr.contains("__type")),
+        "lib_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            lib_pos_adr.contains("S3-I46") && (lib_pos_adr.contains("meta") || lib_pos_adr.contains("S3-02") || lib_pos_adr.contains("claim")),
+        "lib_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            lib_pos_adr.contains("S3-I47") && (lib_pos_adr.contains("claim") || lib_pos_adr.contains("S3-02")),
+        "lib_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            lib_pos_adr.contains("S3-03"),
+        "lib_pos_adr must lock next = S3-03"
     );
 
     let mid_pos_adr = repo_file("docs/adr/stage3-s3-01-positionless-vm-mid.md");
@@ -838,7 +1035,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         mid_pos_adr.contains("S3-I42") && (mid_pos_adr.contains("S3-02") || mid_pos_adr.contains("open")),
-        "mid positionless ADR must lock next = S3-I42"
+        "mid positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        mid_pos_adr.contains("S3-I43") && (mid_pos_adr.contains("construct") || mid_pos_adr.contains("demangle") || mid_pos_adr.contains("S3-02")),
+        "mid_pos_adr must cite S3-I43"
+    );
+    assert!(
+        mid_pos_adr.contains("S3-I44") && (mid_pos_adr.contains("debug") || mid_pos_adr.contains("stack") || mid_pos_adr.contains("S3-02")),
+        "mid_pos_adr must cite S3-I44"
+    );
+    assert!(
+        mid_pos_adr.contains("S3-I45") && (mid_pos_adr.contains("runtime") || mid_pos_adr.contains("__type")),
+        "mid_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            mid_pos_adr.contains("S3-I46") && (mid_pos_adr.contains("meta") || mid_pos_adr.contains("S3-02") || mid_pos_adr.contains("claim")),
+        "mid_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            mid_pos_adr.contains("S3-I47") && (mid_pos_adr.contains("claim") || mid_pos_adr.contains("S3-02")),
+        "mid_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            mid_pos_adr.contains("S3-03"),
+        "mid_pos_adr must lock next = S3-03"
     );
 
     let pkg_pos_adr = repo_file("docs/adr/stage3-s3-01-positionless-pkg.md");
@@ -876,7 +1097,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         pkg_pos_adr.contains("S3-I42") && (pkg_pos_adr.contains("S3-02") || pkg_pos_adr.contains("open")),
-        "pkg positionless ADR must lock next = S3-I42"
+        "pkg positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        pkg_pos_adr.contains("S3-I43") && (pkg_pos_adr.contains("construct") || pkg_pos_adr.contains("demangle") || pkg_pos_adr.contains("S3-02")),
+        "pkg_pos_adr must cite S3-I43"
+    );
+    assert!(
+        pkg_pos_adr.contains("S3-I44") && (pkg_pos_adr.contains("debug") || pkg_pos_adr.contains("stack") || pkg_pos_adr.contains("S3-02")),
+        "pkg_pos_adr must cite S3-I44"
+    );
+    assert!(
+        pkg_pos_adr.contains("S3-I45") && (pkg_pos_adr.contains("runtime") || pkg_pos_adr.contains("__type")),
+        "pkg_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            pkg_pos_adr.contains("S3-I46") && (pkg_pos_adr.contains("meta") || pkg_pos_adr.contains("S3-02") || pkg_pos_adr.contains("claim")),
+        "pkg_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            pkg_pos_adr.contains("S3-I47") && (pkg_pos_adr.contains("claim") || pkg_pos_adr.contains("S3-02")),
+        "pkg_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            pkg_pos_adr.contains("S3-03"),
+        "pkg_pos_adr must lock next = S3-03"
     );
 
     let macro_pos_adr = repo_file("docs/adr/stage3-s3-01-positionless-macro.md");
@@ -910,7 +1155,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         macro_pos_adr.contains("S3-I42") && (macro_pos_adr.contains("S3-02") || macro_pos_adr.contains("open")),
-        "macro positionless ADR must lock next = S3-I42"
+        "macro positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        macro_pos_adr.contains("S3-I43") && (macro_pos_adr.contains("construct") || macro_pos_adr.contains("demangle") || macro_pos_adr.contains("S3-02")),
+        "macro_pos_adr must cite S3-I43"
+    );
+    assert!(
+        macro_pos_adr.contains("S3-I44") && (macro_pos_adr.contains("debug") || macro_pos_adr.contains("stack") || macro_pos_adr.contains("S3-02")),
+        "macro_pos_adr must cite S3-I44"
+    );
+    assert!(
+        macro_pos_adr.contains("S3-I45") && (macro_pos_adr.contains("runtime") || macro_pos_adr.contains("__type")),
+        "macro_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            macro_pos_adr.contains("S3-I46") && (macro_pos_adr.contains("meta") || macro_pos_adr.contains("S3-02") || macro_pos_adr.contains("claim")),
+        "macro_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            macro_pos_adr.contains("S3-I47") && (macro_pos_adr.contains("claim") || macro_pos_adr.contains("S3-02")),
+        "macro_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            macro_pos_adr.contains("S3-03"),
+        "macro_pos_adr must lock next = S3-03"
     );
     assert!(
         macro_pos_adr.contains("DUMMY")
@@ -946,7 +1215,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         async_llvm_pos_adr.contains("S3-I42") && (async_llvm_pos_adr.contains("S3-02") || async_llvm_pos_adr.contains("open")),
-        "async-llvm positionless ADR must lock next = S3-I42"
+        "async-llvm positionless ADR must cite S3-I42 open"
+    );
+    assert!(
+        async_llvm_pos_adr.contains("S3-I43") && (async_llvm_pos_adr.contains("construct") || async_llvm_pos_adr.contains("demangle") || async_llvm_pos_adr.contains("S3-02")),
+        "async_llvm_pos_adr must cite S3-I43"
+    );
+    assert!(
+        async_llvm_pos_adr.contains("S3-I44") && (async_llvm_pos_adr.contains("debug") || async_llvm_pos_adr.contains("stack") || async_llvm_pos_adr.contains("S3-02")),
+        "async_llvm_pos_adr must cite S3-I44"
+    );
+    assert!(
+        async_llvm_pos_adr.contains("S3-I45") && (async_llvm_pos_adr.contains("runtime") || async_llvm_pos_adr.contains("__type")),
+        "async_llvm_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            async_llvm_pos_adr.contains("S3-I46") && (async_llvm_pos_adr.contains("meta") || async_llvm_pos_adr.contains("S3-02") || async_llvm_pos_adr.contains("claim")),
+        "async_llvm_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            async_llvm_pos_adr.contains("S3-I47") && (async_llvm_pos_adr.contains("claim") || async_llvm_pos_adr.contains("S3-02")),
+        "async_llvm_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            async_llvm_pos_adr.contains("S3-03"),
+        "async_llvm_pos_adr must lock next = S3-03"
     );
     assert!(
         async_llvm_pos_adr.contains("DUMMY")
@@ -979,7 +1272,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         rt_pos_adr.contains("S3-I42") && (rt_pos_adr.contains("S3-02") || rt_pos_adr.contains("open")),
-        "rt-jit-debug ADR must lock next = S3-I42"
+        "rt-jit-debug ADR must cite S3-I42 open"
+    );
+    assert!(
+        rt_pos_adr.contains("S3-I43") && (rt_pos_adr.contains("construct") || rt_pos_adr.contains("demangle") || rt_pos_adr.contains("S3-02")),
+        "rt_pos_adr must cite S3-I43"
+    );
+    assert!(
+        rt_pos_adr.contains("S3-I44") && (rt_pos_adr.contains("debug") || rt_pos_adr.contains("stack") || rt_pos_adr.contains("S3-02")),
+        "rt_pos_adr must cite S3-I44"
+    );
+    assert!(
+        rt_pos_adr.contains("S3-I45") && (rt_pos_adr.contains("runtime") || rt_pos_adr.contains("__type")),
+        "rt_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            rt_pos_adr.contains("S3-I46") && (rt_pos_adr.contains("meta") || rt_pos_adr.contains("S3-02") || rt_pos_adr.contains("claim")),
+        "rt_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            rt_pos_adr.contains("S3-I47") && (rt_pos_adr.contains("claim") || rt_pos_adr.contains("S3-02")),
+        "rt_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            rt_pos_adr.contains("S3-03"),
+        "rt_pos_adr must lock next = S3-03"
     );
     assert!(
         rt_pos_adr.contains("DUMMY")
@@ -1006,7 +1323,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         residual_pos_adr.contains("S3-I42") && (residual_pos_adr.contains("S3-02") || residual_pos_adr.contains("open")),
-        "residual ADR must lock next = S3-I42"
+        "residual ADR must cite S3-I42 open"
+    );
+    assert!(
+        residual_pos_adr.contains("S3-I43") && (residual_pos_adr.contains("construct") || residual_pos_adr.contains("demangle") || residual_pos_adr.contains("S3-02")),
+        "residual_pos_adr must cite S3-I43"
+    );
+    assert!(
+        residual_pos_adr.contains("S3-I44") && (residual_pos_adr.contains("debug") || residual_pos_adr.contains("stack") || residual_pos_adr.contains("S3-02")),
+        "residual_pos_adr must cite S3-I44"
+    );
+    assert!(
+        residual_pos_adr.contains("S3-I45") && (residual_pos_adr.contains("runtime") || residual_pos_adr.contains("__type")),
+        "residual_pos_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            residual_pos_adr.contains("S3-I46") && (residual_pos_adr.contains("meta") || residual_pos_adr.contains("S3-02") || residual_pos_adr.contains("claim")),
+        "residual_pos_adr must cite S3-I46 meta"
+        );
+        assert!(
+            residual_pos_adr.contains("S3-I47") && (residual_pos_adr.contains("claim") || residual_pos_adr.contains("S3-02")),
+        "residual_pos_adr must cite S3-I47 claim"
+        );
+        assert!(
+            residual_pos_adr.contains("S3-03"),
+        "residual_pos_adr must lock next = S3-03"
     );
     assert!(
         residual_pos_adr.contains("DUMMY")
@@ -1029,7 +1370,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         noise_adr.contains("S3-I42") && (noise_adr.contains("S3-02") || noise_adr.contains("open")),
-        "noise ADR must lock next = S3-I42"
+        "noise ADR must cite S3-I42 open"
+    );
+    assert!(
+        noise_adr.contains("S3-I43") && (noise_adr.contains("construct") || noise_adr.contains("demangle") || noise_adr.contains("S3-02")),
+        "noise_adr must cite S3-I43"
+    );
+    assert!(
+        noise_adr.contains("S3-I44") && (noise_adr.contains("debug") || noise_adr.contains("stack") || noise_adr.contains("S3-02")),
+        "noise_adr must cite S3-I44"
+    );
+    assert!(
+        noise_adr.contains("S3-I45") && (noise_adr.contains("runtime") || noise_adr.contains("__type")),
+        "noise_adr must cite S3-I45 runtime"
+        );
+        assert!(
+            noise_adr.contains("S3-I46") && (noise_adr.contains("meta") || noise_adr.contains("S3-02") || noise_adr.contains("claim")),
+        "noise_adr must cite S3-I46 meta"
+        );
+        assert!(
+            noise_adr.contains("S3-I47") && (noise_adr.contains("claim") || noise_adr.contains("S3-02")),
+        "noise_adr must cite S3-I47 claim"
+        );
+        assert!(
+            noise_adr.contains("S3-03"),
+        "noise_adr must lock next = S3-03"
     );
     assert!(
         noise_adr.contains("lockfile_error")
@@ -1291,7 +1656,31 @@ fn s3_01_span_census_baseline() {
     );
     assert!(
         plan02.contains("S3-I42") && (plan02.contains("S3-02") || plan02.contains("open")),
-        "plan/02 must lock next = S3-I42 S3-02 open"
+        "plan/02 must cite S3-I42 open S3-02 open"
+    );
+    assert!(
+        plan02.contains("S3-I43") && (plan02.contains("construct") || plan02.contains("demangle") || plan02.contains("S3-02")),
+        "plan02 must cite S3-I43"
+    );
+    assert!(
+        plan02.contains("S3-I44") && (plan02.contains("debug") || plan02.contains("stack") || plan02.contains("S3-02")),
+        "plan02 must cite S3-I44"
+    );
+    assert!(
+        plan02.contains("S3-I45") && (plan02.contains("runtime") || plan02.contains("__type")),
+        "plan02 must cite S3-I45 runtime"
+    );
+    assert!(
+        plan02.contains("S3-I46") && plan02.contains("meta"),
+        "plan02 must cite S3-I46 meta"
+    );
+    assert!(
+        plan02.contains("S3-I47") && plan02.contains("claim"),
+        "plan02 must cite S3-I47 claim"
+    );
+    assert!(
+        plan02.contains("S3-03"),
+        "plan02 must lock next = S3-03"
     );
 
     let diag = repo_file("crates/syx-diagnostics/src/lib.rs");

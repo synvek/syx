@@ -28,7 +28,12 @@
 
 - S3-01 was `[~]` under this window; **S3-I41 landed** [stage3-s3-01-claim](stage3-s3-01-claim.md) → S3-01 `[x]`; Stage-3 stays `[~]`.
 - Claim axis ①②③ aligned under I40; ④ claim = I41.
-- Default next after I41 = **S3-I42 S3-02 open** — not Stage-3 exit.
+- **S3-I43 landed** as [stage3-s3-02-demangle-semantic](stage3-s3-02-demangle-semantic.md).
+- **S3-I44 landed** as [stage3-s3-02-debug-stack-display](stage3-s3-02-debug-stack-display.md)（debug stack display）.
+- **S3-I45 landed** as [stage3-s3-02-runtime-type-display](stage3-s3-02-runtime-type-display.md)（runtime `__type` 用户面）.
+- **S3-I46 landed** as [stage3-s3-02-meta-type-display](stage3-s3-02-meta-type-display.md)（meta 用户面）.
+- **S3-I47 landed** as [stage3-s3-02-claim](stage3-s3-02-claim.md)（S3-02 `[x]` scoped claim）.
+- Default next after I47 = **S3-03 open** — not Stage-3 exit.
 - Prior: [stage3-s3-01-positionless-residual](stage3-s3-01-positionless-residual.md) · S3-I39.
 - Census Current → **S3-I41**（via I41 claim）.
 

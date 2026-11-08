@@ -10,6 +10,7 @@ authors.workspace = true
 [dependencies]
 syx-diagnostics = { workspace = true }
 syx-ast = { workspace = true }
+syx-mono = { workspace = true }
 syx-stdlib = { workspace = true }
 syx-config = { workspace = true }
 syx-meta = { workspace = true }

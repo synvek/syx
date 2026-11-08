@@ -34,7 +34,31 @@ fn s3_01_plan_claim_locked() {
     );
     assert!(
         adr.contains("S3-I42") && (adr.contains("S3-02") || adr.contains("open")),
-        "ADR must lock next = S3-I42 S3-02 open"
+        "ADR must cite S3-I42 S3-02 open"
+    );
+    assert!(
+        adr.contains("S3-I43") && (adr.contains("demangle") || adr.contains("S3-02")),
+        "ADR must cite S3-I43 demangle"
+    );
+    assert!(
+        adr.contains("S3-I44") && (adr.contains("debug") || adr.contains("stack") || adr.contains("S3-02")),
+        "ADR must cite S3-I44 debug stack"
+    );
+    assert!(
+        adr.contains("S3-I45") && (adr.contains("runtime") || adr.contains("__type")),
+        "ADR must cite S3-I45 runtime"
+    );
+    assert!(
+        adr.contains("S3-I46") && (adr.contains("meta") || adr.contains("S3-02")),
+        "ADR must cite S3-I46 meta"
+    );
+    assert!(
+        adr.contains("S3-I47") && (adr.contains("claim") || adr.contains("S3-02")),
+        "ADR must cite S3-I47 claim"
+    );
+    assert!(
+        adr.contains("S3-03") && (adr.contains("open") || adr.contains("标准库")),
+        "ADR must lock next = S3-03"
     );
     assert!(
         adr.contains("noise") || adr.contains("I40") || adr.contains("S3-I40"),
@@ -69,12 +93,36 @@ fn s3_01_plan_claim_locked() {
         "span census must name S3-I41"
     );
     assert!(
-        census.contains("Current:** S3-I41") || census.contains("Current: S3-I41"),
-        "census Current must be S3-I41"
+        census.contains("Current:** S3-I47") || census.contains("Current: S3-I47"),
+        "census Current must be S3-I47"
     );
     assert!(
         census.contains("S3-I42") && (census.contains("S3-02") || census.contains("open")),
-        "census ladder must next = S3-I42 S3-02 open"
+        "census must name S3-I42 S3-02 open"
+    );
+    assert!(
+        census.contains("S3-I43") && (census.contains("demangle") || census.contains("S3-02")),
+        "census must name S3-I43 demangle"
+    );
+    assert!(
+        census.contains("S3-I44") && (census.contains("debug") || census.contains("stack") || census.contains("S3-02")),
+        "census must name S3-I44 debug stack"
+    );
+    assert!(
+        census.contains("S3-I45") && (census.contains("runtime") || census.contains("__type")),
+        "census must name S3-I45 runtime"
+    );
+    assert!(
+        census.contains("S3-I46") && (census.contains("meta") || census.contains("S3-02")),
+        "census must name S3-I46 meta"
+    );
+    assert!(
+        census.contains("S3-I47") && census.contains("claim"),
+        "census must name S3-I47 claim"
+    );
+    assert!(
+        census.contains("S3-03"),
+        "census ladder must next = S3-03"
     );
 
     let plan01 = repo_file("plan/01-project-status.md");
@@ -84,6 +132,30 @@ fn s3_01_plan_claim_locked() {
     );
     assert!(
         plan01.contains("S3-I42") || plan01.contains("S3-02"),
-        "plan/01 must lock next = S3-I42 S3-02 open"
+        "plan/01 must name S3-I42 S3-02"
+    );
+    assert!(
+        plan01.contains("S3-I43") || plan01.contains("demangle"),
+        "plan/01 must name S3-I43 demangle"
+    );
+    assert!(
+        plan01.contains("S3-I44") || plan01.contains("debug"),
+        "plan/01 must name S3-I44 debug"
+    );
+    assert!(
+        plan01.contains("S3-I45") || plan01.contains("runtime"),
+        "plan/01 must name S3-I45 runtime"
+    );
+    assert!(
+        plan01.contains("S3-I46") || plan01.contains("meta"),
+        "plan/01 must name S3-I46 meta"
+    );
+    assert!(
+        plan01.contains("S3-I47") || plan01.contains("claim"),
+        "plan/01 must name S3-I47 claim"
+    );
+    assert!(
+        plan01.contains("S3-03") || plan01.contains("open"),
+        "plan/01 must lock next = S3-03"
     );
 }

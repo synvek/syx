@@ -34,6 +34,11 @@ pub use semantic_type_codec::{
     type_id_collection_base,
     type_name_dispatch_base,
     normalize_type_arg_name,
+    demangle_mono_name,
+    user_facing_type_name,
+    user_facing_mir_fn_name,
+    user_facing_runtime_type_name,
+    type_id_to_ir_name,
     type_id_to_name,
     simd_lanes_from_type_name,
 };

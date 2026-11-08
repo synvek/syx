@@ -546,6 +546,7 @@ impl Value {
         current
     }
 
+    /// IR / dispatch identity type name from `__type` (may be mangled). Do **not** demangle.
     pub fn object_ref_type_name(&self) -> Option<String> {
         match self {
             Value::HeapSlot { .. } => {
@@ -593,6 +594,12 @@ impl Value {
             }
             _ => None,
         }
+    }
+
+    /// User-facing type name from `__type` (S3-I45). Demangles monomorph forms; identity unchanged.
+    pub fn object_ref_user_facing_type_name(&self) -> Option<String> {
+        self.object_ref_type_name()
+            .map(|n| syx_mono::user_facing_runtime_type_name(&n).to_string())
     }
 
     pub fn get_by_key(&self, key: &Value) -> Value {
@@ -758,6 +765,25 @@ impl Value {
 
 pub fn cooperative_yield() {
     std::thread::yield_now();
+}
+
+#[cfg(test)]
+mod runtime_type_display_tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn object_ref_identity_stays_mangled_user_facing_demangles() {
+        let v = Value::object_ref_from_map(
+            HashMap::from([("__type".into(), Value::Str("Foo_Int".into()))]),
+            true,
+        );
+        assert_eq!(v.object_ref_type_name().as_deref(), Some("Foo_Int"));
+        assert_eq!(
+            v.object_ref_user_facing_type_name().as_deref(),
+            Some("Foo<Int>")
+        );
+    }
 }
 
 #[cfg(test)]

@@ -9,5 +9,6 @@ authors.workspace = true
 
 [dependencies]
 syx-diagnostics = { workspace = true }
+syx-mono = { workspace = true }
 syx-stdlib = { workspace = true }
 smol_str = { workspace = true }

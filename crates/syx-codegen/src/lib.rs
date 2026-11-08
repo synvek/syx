@@ -9,7 +9,7 @@ use syx_diagnostics::{Span, SyxResult};
 use syx_mir::{MirFunction, MirModule, MirOp};
 use syx_mono::mangle_name;
 use syx_semantic::{
-    expr_span_start, normalize_type_arg_name, type_id_collection_base, type_id_to_name,
+    expr_span_start, normalize_type_arg_name, type_id_collection_base, type_id_to_ir_name,
     type_name_dispatch_base, TypeId,
 };
 use syx_stdlib::{
@@ -4013,7 +4013,7 @@ impl CodeGenerator {
         for arg in args {
             if let Some(ty) = self.expr_types.get(&expr_span_start(&arg.value)) {
                 if let TypeId::Array(elem) = ty {
-                    let elem_name = normalize_type_arg_name(type_id_to_name(elem));
+                    let elem_name = normalize_type_arg_name(type_id_to_ir_name(elem));
                     if elem_name.as_str() != "Unknown" {
                         return vec![elem_name];
                     }
@@ -4206,7 +4206,7 @@ impl CodeGenerator {
         self.expr_types.get(&expr_span_start(expr)).map(|ty| {
             type_id_collection_base(ty)
                 .map(SmolStr::new)
-                .unwrap_or_else(|| type_id_to_name(ty))
+                .unwrap_or_else(|| type_id_to_ir_name(ty))
         })
     }
 

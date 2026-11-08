@@ -126,3 +126,5 @@ mod s2_07_claim_contract;
 mod s2_stage2_exit_contract;
 mod s3_01_span_census_contract;
 mod s3_01_claim_contract;
+mod s3_02_claim_contract;
+mod s3_02_mono_display_census_contract;

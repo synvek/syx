@@ -118,7 +118,7 @@ impl DebugSession {
         if let Some(inner) = Value::mut_ref_cell_inner(v) {
             return Self::value_type_name(&inner);
         }
-        if let Some(name) = v.object_ref_type_name() {
+        if let Some(name) = v.object_ref_user_facing_type_name() {
             return name;
         }
         match v {
@@ -135,11 +135,13 @@ impl DebugSession {
                 .get("__type")
                 .map(|t| t.as_str())
                 .filter(|s| s != "MutRefCell")
+                .map(|s| syx_mono::user_facing_runtime_type_name(&s).to_string())
                 .unwrap_or_else(|| "Dictionary".to_string()),
             Value::Object(map) => map
                 .get("__type")
                 .map(|t| t.as_str())
                 .filter(|s| s != "MutRefCell")
+                .map(|s| syx_mono::user_facing_runtime_type_name(&s).to_string())
                 .unwrap_or_else(|| "Object".to_string()),
             Value::Nil => "Nil".into(),
             Value::Closure { .. } => "Closure".into(),
@@ -975,13 +977,15 @@ impl DebugSession {
     }
 
     pub fn stack_summary(&self) -> Vec<String> {
+        let raw = self
+            .program
+            .functions
+            .get(self.function_index)
+            .map(|f| f.name.as_str())
+            .unwrap_or("main");
         let mut frames = vec![format!(
             "fn={} pc={}",
-            self.program
-                .functions
-                .get(self.function_index)
-                .map(|f| f.name.as_str())
-                .unwrap_or("main"),
+            syx_semantic::user_facing_mir_fn_name(raw),
             self.pc
         )];
         if let Some(vm) = &self.vm {
@@ -1110,7 +1114,7 @@ impl DebugSession {
                 .program
                 .functions
                 .get(fn_idx)
-                .map(|f| f.name.to_string())
+                .map(|f| syx_semantic::user_facing_mir_fn_name(f.name.as_str()).to_string())
                 .unwrap_or_else(|| "main".into());
             frames.push(serde_json::json!({
                 "id": *id,
@@ -4514,6 +4518,43 @@ func main() {
             "should pause in Greeter_hello"
         );
         assert_eq!(session.function_index, hello_idx);
+    }
+
+    #[test]
+    fn dap_stack_frame_name_is_user_facing_mir_fn() {
+        // S3-I44: display only; MIR identity remains mangled.
+        let func = FunctionUnit {
+            name: smol_str::SmolStr::new("Greeter_hello"),
+            param_count: 0,
+            local_count: 0,
+            instructions: vec![],
+            instruction_spans: vec![],
+            local_names: vec![],
+            local_types: vec![],
+            source_name: smol_str::SmolStr::new("t.sy"),
+            init_body_pc: 0,
+            init_wrap_pc: 0,
+        };
+        let program = CompiledProgram {
+            functions: vec![func],
+            ..CompiledProgram::default()
+        };
+        let session = DebugSession::new(
+            syx_diagnostics::SourceFile::new("t.sy", "class Greeter {}"),
+            program,
+        );
+        assert_eq!(
+            session.program.functions[0].name.as_str(),
+            "Greeter_hello"
+        );
+        let dap_frames = session.stack_frames_dap();
+        let dap_name = dap_frames[0]["name"].as_str().expect("dap name");
+        assert_eq!(dap_name, "Greeter.hello");
+        let summary = session.stack_summary();
+        assert!(
+            summary[0].contains("fn=Greeter.hello"),
+            "summary: {summary:?}"
+        );
     }
 
     #[test]

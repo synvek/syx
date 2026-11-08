@@ -22,15 +22,21 @@
 1. Flip [`plan/02`](../../plan/02-improvement-roadmap.md) **S3-01 → `[x]`**.
 2. Keep **Stage-3 → `[~]`** until an explicit Stage-3 exit ADR.
 3. **Scoped `[x]` meaning:** user-facing diagnostics carry Span; real positionless helper KPIs = 0; miette label/help wired; I40 noise/policy carve-out **OK** — **not** 「zero noise names」 / **not** 「MIR IR `span: None` = 0」 / **not** 「change diagnostics ctor defaults」.
-4. Update census Current=I41；stage3-open / I40 + chain ADRs Consequences；next default = **S3-I42 S3-02 open**.
+4. Update census Current=I41；stage3-open / I40 + chain ADRs Consequences；next default = **S3-I42 S3-02 open**（**landed**）→ **S3-I43** construct.
 5. **Non-claims (hard):** ≠ Stage-3 exit this window / ≠ open or complete S3-02 construction this window / ≠ convert / ≠ HostFn+1 / ≠ F-08 / ≠ Wave / ≠ change diagnostics defaults / ≠ MIR IR semantics.
 
 ## Consequences
 
 - S3-01 plan-claimed `[x]`; Stage-3 stays `[~]`.
-- Default next = **S3-I42 S3-02 open** — not Stage-3 exit.
+- **S3-I42 landed** as [stage3-s3-02-open](stage3-s3-02-open.md)（S3-02 `[~]`）.
+- **S3-I43 landed** as [stage3-s3-02-demangle-semantic](stage3-s3-02-demangle-semantic.md)（semantic demangle hinge）.
+- **S3-I44 landed** as [stage3-s3-02-debug-stack-display](stage3-s3-02-debug-stack-display.md)（debug stack display）.
+- **S3-I45 landed** as [stage3-s3-02-runtime-type-display](stage3-s3-02-runtime-type-display.md)（runtime `__type` 用户面）.
+- **S3-I46 landed** as [stage3-s3-02-meta-type-display](stage3-s3-02-meta-type-display.md)（meta 用户面）.
+- **S3-I47 landed** as [stage3-s3-02-claim](stage3-s3-02-claim.md)（S3-02 `[x]` scoped claim）.
+- Default next after I47 = **S3-03 open** — not Stage-3 exit.
 - Prior: [stage3-s3-01-noise-claim-prep](stage3-s3-01-noise-claim-prep.md) · S3-I40.
-- Census Current → **S3-I41**.
+- Census Current → **S3-I47**.
 
 ## References
 

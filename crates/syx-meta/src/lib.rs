@@ -30,42 +30,88 @@ pub struct TypeMetadata {
     pub name: SmolStr,
     pub fields: Vec<SmolStr>,
     /// Parallel to `fields`. Trailing `?` marks Optional. Empty = unknown type.
+    /// Identity strings (may be mangled); do **not** demangle for VM `reflect_type` lookups.
     pub field_types: Vec<SmolStr>,
+}
+
+impl TypeMetadata {
+    /// User-facing field type names (S3-I46). Demangles monomorph / nested forms.
+    pub fn user_facing_field_types(&self) -> Vec<SmolStr> {
+        self.field_types
+            .iter()
+            .map(|t| user_facing_meta_type_name(t.as_str()))
+            .collect()
+    }
 }
 
 static TYPE_REGISTRY: LazyLock<Mutex<IndexMap<SmolStr, TypeMetadata>>> =
     LazyLock::new(|| Mutex::new(IndexMap::new()));
 
+/// IR / registry identity type name from TypeExpr (may be mangled). Do **not** demangle.
 fn type_expr_to_type_name(ty: &syx_ast::TypeExpr) -> String {
+    type_expr_to_type_name_core(ty, /* demangle_named */ false)
+}
+
+/// User-facing TypeExpr display name (S3-I46). Demangles Named leaves.
+pub fn type_expr_to_user_facing_type_name(ty: &syx_ast::TypeExpr) -> String {
+    type_expr_to_type_name_core(ty, /* demangle_named */ true)
+}
+
+/// User-facing meta / reflection type name (S3-I46). Alias of [`syx_mono::demangle_mono_name`].
+pub fn user_facing_meta_type_name(raw: &str) -> SmolStr {
+    syx_mono::demangle_mono_name(raw)
+}
+
+fn type_expr_to_type_name_core(ty: &syx_ast::TypeExpr, demangle_named: bool) -> String {
     use syx_ast::TypeExpr;
+    let named_leaf = |name: &SmolStr| -> String {
+        if demangle_named {
+            user_facing_meta_type_name(name.as_str()).to_string()
+        } else {
+            name.to_string()
+        }
+    };
     match ty {
         TypeExpr::Named { name, generics } => {
             if generics.is_empty() {
-                name.to_string()
+                named_leaf(name)
             } else {
+                let base = named_leaf(name);
                 let inner = generics
                     .iter()
-                    .map(type_expr_to_type_name)
+                    .map(|g| type_expr_to_type_name_core(g, demangle_named))
                     .collect::<Vec<_>>()
                     .join(", ");
-                format!("{name}<{inner}>")
+                // If demangle already expanded a mangled base, don't wrap again.
+                if base.contains('<') {
+                    base
+                } else {
+                    format!("{base}<{inner}>")
+                }
             }
         }
-        TypeExpr::Optional(inner) => format!("{}?", type_expr_to_type_name(inner)),
-        TypeExpr::Array(inner) => format!("Array<{}>", type_expr_to_type_name(inner)),
+        TypeExpr::Optional(inner) => {
+            format!("{}?", type_expr_to_type_name_core(inner, demangle_named))
+        }
+        TypeExpr::Array(inner) => {
+            format!(
+                "Array<{}>",
+                type_expr_to_type_name_core(inner, demangle_named)
+            )
+        }
         TypeExpr::Dictionary { key, value } => format!(
             "Dictionary<{}, {}>",
-            type_expr_to_type_name(key),
-            type_expr_to_type_name(value)
+            type_expr_to_type_name_core(key, demangle_named),
+            type_expr_to_type_name_core(value, demangle_named)
         ),
         TypeExpr::Tuple { elements } => {
             let inner = elements
                 .iter()
                 .map(|(label, ty)| {
                     if let Some(l) = label {
-                        format!("{l}: {}", type_expr_to_type_name(ty))
+                        format!("{l}: {}", type_expr_to_type_name_core(ty, demangle_named))
                     } else {
-                        type_expr_to_type_name(ty)
+                        type_expr_to_type_name_core(ty, demangle_named)
                     }
                 })
                 .collect::<Vec<_>>()
@@ -74,13 +120,26 @@ fn type_expr_to_type_name(ty: &syx_ast::TypeExpr) -> String {
         }
         TypeExpr::Reference(inner, is_mut, _) => {
             if *is_mut {
-                format!("&mut {}", type_expr_to_type_name(inner))
+                format!(
+                    "&mut {}",
+                    type_expr_to_type_name_core(inner, demangle_named)
+                )
             } else {
-                format!("&{}", type_expr_to_type_name(inner))
+                format!("&{}", type_expr_to_type_name_core(inner, demangle_named))
             }
         }
-        TypeExpr::OpaqueSome(inner) => format!("some {}", type_expr_to_type_name(inner)),
-        TypeExpr::OpaqueAny(inner) => format!("any {}", type_expr_to_type_name(inner)),
+        TypeExpr::OpaqueSome(inner) => {
+            format!(
+                "some {}",
+                type_expr_to_type_name_core(inner, demangle_named)
+            )
+        }
+        TypeExpr::OpaqueAny(inner) => {
+            format!(
+                "any {}",
+                type_expr_to_type_name_core(inner, demangle_named)
+            )
+        }
         TypeExpr::Function { .. } | TypeExpr::Void => String::new(),
     }
 }
@@ -716,6 +775,38 @@ mod tests {
         let meta = reflect_type("User").expect("type should be registered");
         assert_eq!(meta.name, "User");
         assert_eq!(meta.fields.len(), 2);
+    }
+
+    #[test]
+    fn identity_type_expr_stays_mangled_user_facing_demangles() {
+        use syx_ast::TypeExpr;
+        let mangled = TypeExpr::Named {
+            name: SmolStr::new("Foo_Int"),
+            generics: vec![],
+        };
+        assert_eq!(type_expr_to_type_name(&mangled), "Foo_Int");
+        assert_eq!(
+            type_expr_to_user_facing_type_name(&mangled),
+            "Foo<Int>"
+        );
+        assert_eq!(
+            user_facing_meta_type_name("Outer_Inner").as_str(),
+            "Outer.Inner"
+        );
+    }
+
+    #[test]
+    fn registry_field_types_identity_user_facing_helper_demangles() {
+        register_type_with_field_types(
+            "BoxHolder",
+            vec![(SmolStr::new("item"), SmolStr::new("Foo_Int"))],
+        );
+        let meta = reflect_type("BoxHolder").expect("registered");
+        assert_eq!(meta.field_types[0].as_str(), "Foo_Int");
+        assert_eq!(
+            meta.user_facing_field_types()[0].as_str(),
+            "Foo<Int>"
+        );
     }
 
     #[test]

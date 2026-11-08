@@ -84,14 +84,21 @@ pub fn host_reflect_specialization(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_reflect_type(stack: &mut Vec<Value>) -> SyxResult<()> {
     let name = pop_str(stack);
     let mut fields = Vec::new();
+    let mut field_types = Vec::new();
     if let Some(meta) = syx_meta::reflect_type(&name) {
         for f in &meta.fields {
             fields.push(Value::Str(f.to_string()));
         }
+        // S3-I46: user-facing demangle for reflection display; registry identity unchanged.
+        for t in meta.user_facing_field_types() {
+            field_types.push(Value::Str(t.to_string()));
+        }
     }
+    let display_name = syx_meta::user_facing_meta_type_name(&name).to_string();
     let mut map = HashMap::new();
-    map.insert("name".into(), Value::Str(name));
+    map.insert("name".into(), Value::Str(display_name));
     map.insert("fields".into(), Value::Array(fields));
+    map.insert("fieldTypes".into(), Value::Array(field_types));
     stack.push(Value::Object(map));
     Ok(())
 }

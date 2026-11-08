@@ -137,7 +137,7 @@ pub fn value_description(v: &Value) -> String {
                     .collect();
                 pairs.sort();
                 if pairs.is_empty() {
-                    v.object_ref_type_name()
+                    v.object_ref_user_facing_type_name()
                         .map(|n| format!("{n} {{}}"))
                         .unwrap_or_else(|| "{...}".into())
                 } else {

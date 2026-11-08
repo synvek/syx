@@ -12,6 +12,101 @@ pub fn mangle_name(base: &str, type_args: &[SmolStr]) -> SmolStr {
     SmolStr::new(format!("{base}_{}", suffix.join("_")))
 }
 
+/// True when `seg` looks like a monomorph type-arg suffix (inverse of [`mangle_name`]).
+pub fn is_mono_type_arg_segment(seg: &str) -> bool {
+    if seg.is_empty() {
+        return false;
+    }
+    if syx_stdlib::from_type_name(seg).is_some() {
+        return true;
+    }
+    matches!(
+        seg,
+        "Bool"
+            | "String"
+            | "Void"
+            | "Array"
+            | "Set"
+            | "Dictionary"
+            | "Object"
+            | "Character"
+            | "Unknown"
+            | "Closure"
+            | "Int"
+            | "UInt"
+            | "SIMD2"
+            | "SIMD4"
+            | "SIMD8"
+            | "SIMD16"
+    )
+}
+
+/// Demangle internal monomorph / nested names for **user-facing** display (S3-I43/I45).
+///
+/// - `Foo_Int` → `Foo<Int>` (inverse of [`mangle_name`])
+/// - `Outer_Inner` (no mono arg peel) → `Outer.Inner`
+/// - unrecognized → raw
+pub fn demangle_mono_name(raw: &str) -> SmolStr {
+    if !raw.contains('_') || raw.contains('<') || raw.contains('.') {
+        return SmolStr::new(raw);
+    }
+    let parts: Vec<&str> = raw.split('_').collect();
+    if parts.len() < 2 || parts.iter().any(|p| p.is_empty()) {
+        return SmolStr::new(raw);
+    }
+
+    let mut args: Vec<&str> = Vec::new();
+    let mut end = parts.len();
+    while end > 1 && is_mono_type_arg_segment(parts[end - 1]) {
+        args.push(parts[end - 1]);
+        end -= 1;
+    }
+    if !args.is_empty() {
+        args.reverse();
+        let base = parts[..end].join("_");
+        if base.is_empty() {
+            return SmolStr::new(raw);
+        }
+        return SmolStr::new(format!("{base}<{}>", args.join(", ")));
+    }
+
+    // Nested-type heuristic (align with nested_type_dotted_path spirit).
+    SmolStr::new(raw.replace('_', "."))
+}
+
+/// User-facing runtime / `__type` display name (S3-I45). Alias of [`demangle_mono_name`].
+pub fn user_facing_runtime_type_name(raw: &str) -> SmolStr {
+    demangle_mono_name(raw)
+}
+
+#[cfg(test)]
+mod demangle_tests {
+    use super::*;
+
+    #[test]
+    fn demangle_mono_generic_form() {
+        assert_eq!(demangle_mono_name("Foo_Int").as_str(), "Foo<Int>");
+        assert_eq!(
+            demangle_mono_name("Pair_Int_String").as_str(),
+            "Pair<Int, String>"
+        );
+        assert_eq!(demangle_mono_name("Foo").as_str(), "Foo");
+    }
+
+    #[test]
+    fn demangle_nested_dotted_heuristic() {
+        assert_eq!(demangle_mono_name("Outer_Inner").as_str(), "Outer.Inner");
+    }
+
+    #[test]
+    fn user_facing_runtime_type_name_aliases_demangle() {
+        assert_eq!(
+            user_facing_runtime_type_name("Foo_Int").as_str(),
+            "Foo<Int>"
+        );
+    }
+}
+
 fn substitute_type_expr(ty: &TypeExpr, params: &[SmolStr], args: &[SmolStr]) -> TypeExpr {
     match ty {
         TypeExpr::Named { name, generics } => {
