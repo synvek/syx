@@ -3,7 +3,7 @@
 **ADR:** [open](adr/stage3-s3-06-open.md) · [s045-lsp-desugar](adr/stage3-s3-06-s045-lsp-desugar.md) · [residual-scope](adr/stage3-s3-06-residual-scope.md) · [**claim**](adr/stage3-s3-06-claim.md) · **Window:** S3-I81 · **Current:** S3-I81 · **Claimed:** scoped `[x]`
 
 **Goal (S3-06 scoped `[x]`):** Primary = I79 desugar hinge + sample fixtures LSP 对齐；rename / signature / hover / full fence = **deferred supersede-only**.  
-**This census:** S3-I81 scoped claim — S3-06 **`[x]`**；Stage-3 仍 **`[~]`**（**7/7**）；**≠** Stage-3 exit / **≠** 本窗 S3-07 施工.
+**This census:** S3-I81 scoped claim — S3-06 **`[x]`**；Stage-3 **`[x]` 退出**（**7/7** · **S3-I87**；见 [exit census](stage3-exit-census.md)）。
 
 ## Command
 
@@ -42,8 +42,8 @@ bash scripts/s3_06_lsp_book_census.sh
 | 轴 | 状态 |
 |----|------|
 | S3-06 | **`[x]`** scoped；rename/sig/fence deferred |
-| Stage-3 | 仍 **`[~]`**（**7/7**；余 exit ADR） |
-| Next | **S3-I82…I85** S3-07 ladder **landed**（claim）；默认 = **S3-I86** Stage-3 exit open — ≠ Stage-3 exit |
+| Stage-3 | **`[x]` 退出**（S3-I87） |
+| Next | **S3-I82…I87** ladder **landed**；默认 = **Stage-4 open**（S3-I88） |
 
 ## Ladder (locked)
 
@@ -55,7 +55,9 @@ bash scripts/s3_06_lsp_book_census.sh
 6. **S3-I83:** S3-07 default-vm construct — **landed**.
 7. **S3-I84:** S3-07 residual-scope — **landed**.
 8. **S3-I85:** S3-07 scoped claim — **landed**.
-9. **S3-I86:** Stage-3 exit open — next（≠ Stage-3 exit this window）。
+9. **S3-I86:** Stage-3 exit open — **landed**.
+10. **S3-I87:** write `stage3-exit` — **landed**.
+11. **S3-I88:** Stage-4 open — next（naming only）。
 
 ## Non-claims
 

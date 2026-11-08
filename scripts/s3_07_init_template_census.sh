@@ -19,7 +19,7 @@ count_rg() {
   '
 }
 
-stage3_init_census_helper=$(count_rg 'S3-I82|S3-I83|S3-I84|S3-I85|S3-I86|stage3-init-template-census|stage3-s3-07-open|stage3-s3-07-default-vm|stage3-s3-07-residual-scope|stage3-s3-07-claim' \
+stage3_init_census_helper=$(count_rg 'S3-I82|S3-I83|S3-I84|S3-I85|S3-I86|S3-I87|S3-I88|stage3-exit|stage3-exit-open|stage3-init-template-census|stage3-s3-07-open|stage3-s3-07-default-vm|stage3-s3-07-residual-scope|stage3-s3-07-claim' \
   docs/adr/stage3-s3-07-open.md docs/adr/stage3-s3-07-default-vm.md \
   docs/adr/stage3-s3-07-residual-scope.md docs/adr/stage3-s3-07-claim.md \
   docs/stage3-init-template-census.md scripts/s3_07_init_template_census.sh \
@@ -59,7 +59,7 @@ echo "init_vm_named_template_count=$init_vm_named_template_count"
 echo "init_inline_match_arm_helper=$init_inline_match_arm_helper"
 echo "init_integration_test_count=$init_integration_test_count"
 echo "current=S3-I85"
-echo "next=S3-I86"
+echo "next=S3-I88"
 echo "s3_07_status=x"
 echo "stage3_checklist=7/7"
 echo "nonclaim=Stage-3-exit,stage3-exit-adr,UsageGuide-rewrite,Init-crate-extract,Init-product-knife,HostFn,Wave,S3-06-lsp-knife"

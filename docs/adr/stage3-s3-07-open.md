@@ -36,9 +36,10 @@ Baseline: [stage3-init-template-census](../stage3-init-template-census.md).
 - **S3-I83 landed** as [stage3-s3-07-default-vm](stage3-s3-07-default-vm.md)（default-vm construct）。
 - **S3-I84 landed** as [stage3-s3-07-residual-scope](stage3-s3-07-residual-scope.md)（residual-scope）。
 - **S3-I85 landed** as [stage3-s3-07-claim](stage3-s3-07-claim.md)（S3-07 `[x]` scoped claim）。
-- Default next = **S3-I86**（Stage-3 exit open）— not Stage-3 exit itself / not S3-07 `[x]` this open window.
+- **S3-I86 landed** as [stage3-exit-open](stage3-exit-open.md)（Stage-3 exit open）。
+- Default next = **S3-I87**（write `stage3-exit`）— not Stage-3 exit itself / not S3-07 `[x]` this open window.
 - Prior: [stage3-s3-06-claim](stage3-s3-06-claim.md) · S3-I81.
-- Init-template census Current → **S3-I85** · Claimed scoped `[x]`.
+- Init-template census Current → **S3-I85** · Claimed scoped `[x]`；exit census Current → **S3-I86**.
 
 ## References
 

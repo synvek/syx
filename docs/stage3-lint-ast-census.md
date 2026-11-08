@@ -3,7 +3,7 @@
 **ADR:** [open](adr/stage3-s3-05-open.md) · [l007-l012-false-positive](adr/stage3-s3-05-l007-l012-false-positive.md) · [struct-extension-type-member](adr/stage3-s3-05-struct-extension-type-member.md) · [claim-prep](adr/stage3-s3-05-claim-prep.md) · [residual-scope](adr/stage3-s3-05-residual-scope.md) · [**claim**](adr/stage3-s3-05-claim.md) · **Window:** S3-I77 · **Current:** S3-I77 · **Claimed:** scoped `[x]`
 
 **Goal (S3-05 scoped `[x]`):** Primary 误报轴清零 + I73/I74 铰链 + I75/I76 脚手架；L010–L011 / L012 Stmt / 全 CST lint = **deferred supersede-only**。  
-**This census:** S3-I77 scoped claim — S3-05 **`[x]`**；Stage-3 仍 **`[~]`**（**7/7**）；S3-06 **`[x]`**（**S3-I81**）；S3-07 **`[x]`**（**S3-I85**；见 [init-template census](stage3-init-template-census.md)）。
+**This census:** S3-I77 scoped claim — S3-05 **`[x]`**；Stage-3 **`[x]` 退出**（**7/7** · **S3-I87**）；S3-06 **`[x]`**（**S3-I81**）；S3-07 **`[x]`**（**S3-I85**）。
 
 ## Command
 
@@ -48,8 +48,8 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 | 轴 | 状态 |
 |----|------|
 | S3-05 | **`[x]`** scoped；hybrid deferred |
-| Stage-3 | 仍 **`[~]`**（**7/7**；余 exit ADR） |
-| Next | **S3-I78…I85** S3-06/S3-07 ladder **landed**；默认 = **S3-I86** Stage-3 exit open — ≠ Stage-3 exit |
+| Stage-3 | **`[x]` 退出**（S3-I87） |
+| Next | **S3-I78…I87** ladder **landed**；默认 = **Stage-4 open**（S3-I88） |
 
 ## Ladder (locked)
 
@@ -67,7 +67,9 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 12. **S3-I83:** S3-07 default-vm construct — **landed**.
 13. **S3-I84:** S3-07 residual-scope — **landed**.
 14. **S3-I85:** S3-07 scoped claim — **landed**.
-15. **S3-I86:** Stage-3 exit open — next（≠ Stage-3 exit this window）。
+15. **S3-I86:** Stage-3 exit open — **landed**.
+16. **S3-I87:** write `stage3-exit` — **landed**.
+17. **S3-I88:** Stage-4 open — next（naming only）。
 
 ## Non-claims
 

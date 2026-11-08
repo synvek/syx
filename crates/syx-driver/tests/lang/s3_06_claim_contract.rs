@@ -79,8 +79,8 @@ fn s3_06_plan_claim_locked() {
         .find(|l| l.contains("| **3** |"))
         .expect("plan/02 must retain stage-3 summary row");
     assert!(
-        stage3.contains("[~]") || stage3.contains("`[~]`"),
-        "Stage-3 must stay [~]; got: {stage3}"
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
     );
     assert!(
         plan02.contains("7/7"),
@@ -91,7 +91,9 @@ fn s3_06_plan_claim_locked() {
             && plan02.contains("S3-I83")
             && plan02.contains("S3-I84")
             && plan02.contains("S3-I85")
-            && plan02.contains("S3-I86"),
+            && plan02.contains("S3-I86")
+            && plan02.contains("S3-I87")
+            && (plan02.contains("S3-I88") || plan02.contains("Stage-4")),
         "plan/02 must cite I82…I85"
     );
 
@@ -117,7 +119,9 @@ fn s3_06_plan_claim_locked() {
             && census.contains("S3-I83")
             && census.contains("S3-I84")
             && census.contains("S3-I85")
-            && census.contains("S3-I86"),
+            && census.contains("S3-I86")
+            && census.contains("S3-I87")
+            && (census.contains("S3-I88") || census.contains("Stage-4")),
         "census ladder must cite I82…I85"
     );
 
@@ -141,7 +145,9 @@ fn s3_06_plan_claim_locked() {
             && plan01.contains("S3-I83")
             && plan01.contains("S3-I84")
             && plan01.contains("S3-I85")
-            && plan01.contains("S3-I86"),
+            && plan01.contains("S3-I86")
+            && plan01.contains("S3-I87")
+            && (plan01.contains("S3-I88") || plan01.contains("Stage-4")),
         "plan/01 must cite I82…I85"
     );
 }
@@ -175,8 +181,8 @@ fn s3_06_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I86"),
-        "script ladder must be I81→I86:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I88"),
+        "script ladder must be I81→I88:\n{stdout}"
     );
     assert!(
         stdout.contains("s3_06_status=x") && stdout.contains("stage3_checklist=7/7"),

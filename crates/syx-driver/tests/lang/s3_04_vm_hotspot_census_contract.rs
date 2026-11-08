@@ -188,7 +188,7 @@ fn s3_04_vm_hotspot_census_baseline() {
         .lines()
         .find(|l| l.contains("| **3** |"))
         .expect("stage-3 row");
-    assert!(stage3.contains("[~]") || stage3.contains("`[~]`"));
+    assert!(stage3.contains("[x]") && stage3.contains("退出"), "Stage-3 must be [x] 退出; got: {stage3}");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(

@@ -66,7 +66,9 @@ fn s3_06_s045_lsp_desugar_adr_and_census() {
             && census.contains("S3-I83")
             && census.contains("S3-I84")
             && census.contains("S3-I85")
-            && census.contains("S3-I86"),
+            && census.contains("S3-I86")
+            && census.contains("S3-I87")
+            && (census.contains("S3-I88") || census.contains("Stage-4")),
         "census must publish I79 KPI and I80…I85 ladder"
     );
     assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
@@ -159,8 +161,8 @@ fn s3_06_s045_lsp_desugar_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I86"),
-        "script ladder must be I81→I86:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I88"),
+        "script ladder must be I81→I88:\n{stdout}"
     );
     assert!(
         stdout.contains("s045_lsp_desugar_helper=")

@@ -26,9 +26,10 @@
 - Default init scaffold aligns with VM / `syx run`; S3-07 was `[~]` under this construct window; Stage-3 stays `[~]`（later **7/7** under S3-I85）。
 - **S3-I84 landed** as [stage3-s3-07-residual-scope](stage3-s3-07-residual-scope.md)（scoped acceptance · deferred UsageGuide/crate）。
 - **S3-I85 landed** as [stage3-s3-07-claim](stage3-s3-07-claim.md)（S3-07 `[x]` scoped claim）。
-- Default next = **S3-I86**（Stage-3 exit open）— not Stage-3 exit itself.
+- **S3-I86 landed** as [stage3-exit-open](stage3-exit-open.md)（Stage-3 exit open）。
+- Default next = **S3-I87**（write `stage3-exit`）— not Stage-3 exit itself.
 - Prior: [stage3-s3-07-open](stage3-s3-07-open.md) · S3-I82.
-- Init-template census Current → **S3-I85** · Claimed scoped `[x]`.
+- Init-template census Current → **S3-I85** · Claimed scoped `[x]`；exit census Current → **S3-I86**.
 
 ## References
 

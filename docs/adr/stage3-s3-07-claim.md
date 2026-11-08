@@ -29,12 +29,16 @@ Under Hard OUT（≠ UsageGuide 大改 / ≠ 抽 Init crate / ≠ CLI 子进程 
 ## Consequences
 
 - S3-07 plan-claimed `[x]`; Stage-3 stays `[~]`（checklist **7/7**）.
-- Default next = **S3-I86**（Stage-3 exit open）— not Stage-3 exit itself.
+- **S3-I86 landed** as [stage3-exit-open](stage3-exit-open.md)（Stage-3 exit open）。
+- **S3-I87 landed** as [stage3-exit](stage3-exit.md)（Stage-3 `[x]` 退出）。
+- Default next = **Stage-4 open**（S3-I88 naming）— not Stage-4 construction this prior window.
 - Prior: [stage3-s3-07-residual-scope](stage3-s3-07-residual-scope.md) · S3-I84 · construct [S3-I83](stage3-s3-07-default-vm.md) · open [S3-I82](stage3-s3-07-open.md).
-- Census Current → **S3-I85** · Claimed scoped `[x]`.
+- Init-template census Current → **S3-I85** · Claimed scoped `[x]`；exit census Current → **S3-I87**.
 
 ## References
 
+- [stage3-exit](stage3-exit.md) · S3-I87
+- [stage3-exit-open](stage3-exit-open.md) · S3-I86
 - [stage3-s3-07-residual-scope](stage3-s3-07-residual-scope.md) · S3-I84
 - [stage3-s3-07-default-vm](stage3-s3-07-default-vm.md) · S3-I83
 - [stage3-s3-07-open](stage3-s3-07-open.md) · S3-I82

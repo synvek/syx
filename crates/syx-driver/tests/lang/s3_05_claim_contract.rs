@@ -64,8 +64,8 @@ fn s3_05_plan_claim_locked() {
         .find(|l| l.contains("| **3** |"))
         .expect("plan/02 must retain stage-3 summary row");
     assert!(
-        stage3.contains("[~]") || stage3.contains("`[~]`"),
-        "Stage-3 must stay [~]; got: {stage3}"
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
     );
     assert!(
         plan02.contains("7/7"),
@@ -150,8 +150,8 @@ fn s3_05_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I86"),
-        "script ladder must be I77→I86:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I88"),
+        "script ladder must be I77→I88:\n{stdout}"
     );
     assert!(
         stdout.contains("s3_05_status=x") && stdout.contains("stage3_checklist=7/7"),

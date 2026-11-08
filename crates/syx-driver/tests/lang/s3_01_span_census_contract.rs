@@ -1641,7 +1641,7 @@ fn s3_01_span_census_baseline() {
         .lines()
         .find(|l| l.contains("| **3** |"))
         .expect("stage-3 row");
-    assert!(stage3.contains("[~]") || stage3.contains("`[~]`"));
+    assert!(stage3.contains("[x]") && stage3.contains("退出"), "Stage-3 must be [x] 退出; got: {stage3}");
     let s3_01 = plan02
         .lines()
         .find(|l| l.contains("| S3-01 |"))

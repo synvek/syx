@@ -17,7 +17,11 @@ fn s3_07_init_template_census_baseline() {
     assert!(census.contains("S3-I83"), "census must name S3-I83");
     assert!(census.contains("S3-I84"), "census must name S3-I84");
     assert!(census.contains("S3-I85"), "census must name S3-I85");
-    assert!(census.contains("S3-I86"), "census must name S3-I86 next");
+    assert!(
+        census.contains("S3-I86") && census.contains("S3-I87")
+            && (census.contains("S3-I88") || census.contains("Stage-4")),
+        "census must name I86 landed / I87 next"
+    );
     assert!(
         census.contains("Current:** S3-I85") || census.contains("Current: S3-I85"),
         "census Current must be S3-I85"
@@ -74,7 +78,7 @@ fn s3_07_init_template_census_baseline() {
         "census script must emit I83/I84 KPIs"
     );
     assert!(
-        script.contains("current=S3-I85") && script.contains("next=S3-I86"),
+        script.contains("current=S3-I85") && script.contains("next=S3-I88"),
         "census script must emit ladder current/next"
     );
     assert!(
@@ -101,7 +105,9 @@ fn s3_07_init_template_census_baseline() {
         plan02.contains("S3-I83")
             && plan02.contains("S3-I84")
             && plan02.contains("S3-I85")
-            && plan02.contains("S3-I86"),
+            && plan02.contains("S3-I86")
+            && plan02.contains("S3-I87")
+            && (plan02.contains("S3-I88") || plan02.contains("Stage-4")),
         "plan/02 must cite I83…I86"
     );
 
@@ -114,7 +120,9 @@ fn s3_07_init_template_census_baseline() {
         plan01.contains("S3-I83")
             && plan01.contains("S3-I84")
             && plan01.contains("S3-I85")
-            && plan01.contains("S3-I86"),
+            && plan01.contains("S3-I86")
+            && plan01.contains("S3-I87")
+            && (plan01.contains("S3-I88") || plan01.contains("Stage-4")),
         "plan/01 must cite I83…I86"
     );
 
@@ -151,7 +159,7 @@ fn s3_07_init_template_census_script_runs() {
         "script stdout missing KPIs:\n{stdout}"
     );
     assert!(
-        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I86"),
+        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I88"),
         "script must emit ladder:\n{stdout}"
     );
     assert!(

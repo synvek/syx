@@ -64,8 +64,8 @@ fn s3_04_plan_claim_locked() {
         .find(|l| l.contains("| **3** |"))
         .expect("plan/02 must retain stage-3 summary row");
     assert!(
-        stage3.contains("[~]") || stage3.contains("`[~]`"),
-        "Stage-3 must stay [~]; got: {stage3}"
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
     );
     assert!(
         plan02.contains("S3-I72")

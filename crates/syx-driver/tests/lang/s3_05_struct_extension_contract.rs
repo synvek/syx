@@ -104,8 +104,8 @@ fn s3_05_struct_extension_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I86"),
-        "script ladder must be I77→I86:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I88"),
+        "script ladder must be I77→I88:\n{stdout}"
     );
     assert!(
         stdout.contains("struct_type_member_helper="),

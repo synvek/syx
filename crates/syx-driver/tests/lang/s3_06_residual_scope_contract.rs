@@ -59,7 +59,9 @@ fn s3_06_residual_scope_adr_and_census() {
             && census.contains("S3-I83")
             && census.contains("S3-I84")
             && census.contains("S3-I85")
-            && census.contains("S3-I86"),
+            && census.contains("S3-I86")
+            && census.contains("S3-I87")
+            && (census.contains("S3-I88") || census.contains("Stage-4")),
         "census ladder must name S3-I81…I85"
     );
     assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
@@ -97,7 +99,9 @@ fn s3_06_residual_scope_adr_and_census() {
             && plan02.contains("S3-I83")
             && plan02.contains("S3-I84")
             && plan02.contains("S3-I85")
-            && plan02.contains("S3-I86"),
+            && plan02.contains("S3-I86")
+            && plan02.contains("S3-I87")
+            && (plan02.contains("S3-I88") || plan02.contains("Stage-4")),
         "plan/02 must cite I80…I85"
     );
     assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
@@ -124,8 +128,8 @@ fn s3_06_residual_scope_census_script_emits_hinge() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I86"),
-        "script ladder must be I81→I86:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I88"),
+        "script ladder must be I81→I88:\n{stdout}"
     );
     assert!(
         stdout.contains("residual_scope_helper="),

@@ -3,7 +3,7 @@
 **ADR:** [open](adr/stage3-s3-07-open.md) · [default-vm](adr/stage3-s3-07-default-vm.md) · [residual-scope](adr/stage3-s3-07-residual-scope.md) · [**claim**](adr/stage3-s3-07-claim.md) · **Window:** S3-I85 · **Current:** S3-I85 · **Claimed:** scoped `[x]`
 
 **Goal (S3-07 scoped `[x]`):** Primary = I83 default-vm hinge + sample init→run nail；UsageGuide / Init crate / CLI 子进程 / `_` hard-error = **deferred supersede-only**.  
-**This census:** S3-I85 scoped claim — S3-07 **`[x]`**；Stage-3 仍 **`[~]`**（**7/7**）；**≠** Stage-3 exit / **≠** 本窗写 exit ADR.
+**This census:** S3-I85 scoped claim — S3-07 **`[x]`**；Stage-3 **`[x]` 退出**（**7/7** · **S3-I87**；见 [exit census](stage3-exit-census.md)）。
 
 ## Command
 
@@ -44,16 +44,18 @@ bash scripts/s3_07_init_template_census.sh
 | 轴 | 状态 |
 |----|------|
 | S3-07 | **`[x]`** scoped；UsageGuide/crate deferred |
-| Stage-3 | 仍 **`[~]`**（**7/7**；余 exit ADR） |
-| Next | **S3-I86** Stage-3 exit open — ≠ Stage-3 exit this window |
+| Stage-3 | **`[x]` 退出**（S3-I87） |
+| Next | **S3-I86…I87** exit ladder **landed**；默认 = **Stage-4 open**（S3-I88） |
 
 ## Ladder (locked)
 
 1. **S3-I82:** S3-07 open — landed.
 2. **S3-I83:** default-vm construct — landed.
 3. **S3-I84:** residual-scope — landed.
-4. **S3-I85:** S3-07 scoped claim — **this window**.
-5. **S3-I86:** Stage-3 exit open — next（≠ exit this window）。
+4. **S3-I85:** S3-07 scoped claim — **claimed**（this census Current）。
+5. **S3-I86:** Stage-3 exit open — **landed**（[exit census](stage3-exit-census.md)）。
+6. **S3-I87:** write `stage3-exit` — **landed**.
+7. **S3-I88:** Stage-4 open — next（naming only）。
 
 ## Non-claims
 
