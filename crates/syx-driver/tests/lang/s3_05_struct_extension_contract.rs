@@ -1,5 +1,5 @@
 //! S3-I74 S3-05 Struct/Extension type-member contracts.
-//! Hinge landed · ≠ S3-05 [x] · ≠ Stage-3 exit.
+//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 5/7.
 //! See docs/adr/stage3-s3-05-struct-extension-type-member.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -28,13 +28,13 @@ fn s3_05_struct_extension_adr_and_census() {
     );
     assert!(
         adr.contains("≠ S3-05 `[x]`") || adr.contains("≠ S3-05 [x]"),
-        "ADR must Non-claim S3-05 [x]"
+        "ADR must Non-claim S3-05 [x] for that window"
     );
 
     let census = repo_file("docs/stage3-lint-ast-census.md");
     assert!(
-        census.contains("Current:** S3-I76") || census.contains("Current: S3-I76"),
-        "census Current must advance to S3-I76"
+        census.contains("Current:** S3-I77") || census.contains("Current: S3-I77"),
+        "census Current must advance to S3-I77"
     );
     assert!(
         census.contains("struct_type_member_helper")
@@ -45,7 +45,7 @@ fn s3_05_struct_extension_adr_and_census() {
         census.contains("S3-I74") && census.contains("S3-I76") && census.contains("S3-I77"),
         "census must name I74 / I76 / I77"
     );
-    assert!(census.contains("4/7"), "census must keep Stage-3 4/7");
+    assert!(census.contains("5/7"), "census must publish Stage-3 5/7");
 
     let lint = repo_file("crates/syx-lint/src/lib.rs");
     assert!(
@@ -70,8 +70,8 @@ fn s3_05_struct_extension_adr_and_census() {
         .find(|l| l.contains("| S3-05 |"))
         .expect("S3-05 row");
     assert!(
-        s305.contains("[~]"),
-        "S3-05 must stay [~] after I74; got: {s305}"
+        s305.contains("| [x] |") || s305.contains("| `[x]` |"),
+        "S3-05 must be [x] after claim; got: {s305}"
     );
     assert!(
         plan02.contains("S3-I74")
@@ -80,7 +80,7 @@ fn s3_05_struct_extension_adr_and_census() {
             && plan02.contains("S3-I77"),
         "plan/02 must cite I74…I77"
     );
-    assert!(plan02.contains("4/7"), "plan/02 must keep Stage-3 4/7");
+    assert!(plan02.contains("5/7"), "plan/02 must publish Stage-3 5/7");
 
     assert!(
         repo_file("examples/struct_demo.sy").contains("struct Point"),
@@ -104,8 +104,8 @@ fn s3_05_struct_extension_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I76") && stdout.contains("next=S3-I77"),
-        "script ladder must be I76→I77:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I78"),
+        "script ladder must be I77→I78:\n{stdout}"
     );
     assert!(
         stdout.contains("struct_type_member_helper="),
@@ -119,21 +119,9 @@ fn s3_05_struct_extension_census_script_cleared() {
             .and_then(|v| v.parse::<u32>().ok())
             .unwrap_or(999)
     };
-    assert_eq!(
-        parse("class_demo_l007_count="),
-        0,
-        "class_demo L007 must stay 0\n{stdout}"
-    );
-    assert_eq!(
-        parse("class_demo_l012_count="),
-        0,
-        "class_demo L012 must stay 0\n{stdout}"
-    );
-    assert_eq!(
-        parse("struct_book_point_l007_count="),
-        0,
-        "struct_book_point L007 must be 0\n{stdout}"
-    );
+    assert_eq!(parse("class_demo_l007_count="), 0);
+    assert_eq!(parse("class_demo_l012_count="), 0);
+    assert_eq!(parse("struct_book_point_l007_count="), 0);
     assert!(
         parse("struct_type_member_helper=") >= 1,
         "struct_type_member_helper must be >=1\n{stdout}"

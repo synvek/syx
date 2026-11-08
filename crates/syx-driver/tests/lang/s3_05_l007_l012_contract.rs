@@ -1,5 +1,5 @@
 //! S3-I73 S3-05 L007/L012 false-positive knife contracts.
-//! Hinge landed · ≠ S3-05 [x] · ≠ Stage-3 exit.
+//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 5/7.
 //! See docs/adr/stage3-s3-05-l007-l012-false-positive.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -32,19 +32,19 @@ fn s3_05_l007_l012_adr_and_census() {
     );
     assert!(
         adr.contains("≠ S3-05 `[x]`") || adr.contains("≠ S3-05 [x]"),
-        "ADR must Non-claim S3-05 [x]"
+        "ADR must Non-claim S3-05 [x] for that window"
     );
 
     let census = repo_file("docs/stage3-lint-ast-census.md");
     assert!(
-        census.contains("Current:** S3-I76") || census.contains("Current: S3-I76"),
-        "census Current must advance to S3-I76"
+        census.contains("Current:** S3-I77") || census.contains("Current: S3-I77"),
+        "census Current must advance to S3-I77"
     );
     assert!(
         census.contains("S3-I73") && census.contains("class_demo_l007_count"),
         "census must retain I73 / class_demo KPIs"
     );
-    assert!(census.contains("4/7"), "census must keep Stage-3 4/7");
+    assert!(census.contains("5/7"), "census must publish Stage-3 5/7");
 
     let lint = repo_file("crates/syx-lint/src/lib.rs");
     assert!(
@@ -73,14 +73,14 @@ fn s3_05_l007_l012_adr_and_census() {
         .find(|l| l.contains("| S3-05 |"))
         .expect("S3-05 row");
     assert!(
-        s305.contains("[~]"),
-        "S3-05 must stay [~]; got: {s305}"
+        s305.contains("| [x] |") || s305.contains("| `[x]` |"),
+        "S3-05 must be [x] after claim; got: {s305}"
     );
     assert!(
         plan02.contains("S3-I73") && plan02.contains("S3-I74"),
         "plan/02 must cite I73 and I74"
     );
-    assert!(plan02.contains("4/7"), "plan/02 must keep Stage-3 4/7");
+    assert!(plan02.contains("5/7"), "plan/02 must publish Stage-3 5/7");
 }
 
 #[test]
@@ -99,8 +99,8 @@ fn s3_05_l007_l012_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I76") && stdout.contains("next=S3-I77"),
-        "script ladder must be I76→I77:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I78"),
+        "script ladder must be I77→I78:\n{stdout}"
     );
     assert!(
         stdout.contains("l007_l012_knife_helper="),
@@ -118,6 +118,6 @@ fn s3_05_l007_l012_census_script_cleared() {
         .and_then(|l| l.split('=').nth(1))
         .and_then(|v| v.parse::<u32>().ok())
         .unwrap_or(999);
-    assert_eq!(l007, 0, "expects class_demo_l007_count=0, got {l007}\n{stdout}");
-    assert_eq!(l012, 0, "expects class_demo_l012_count=0, got {l012}\n{stdout}");
+    assert_eq!(l007, 0, "class_demo L007 must stay 0");
+    assert_eq!(l012, 0, "class_demo L012 must stay 0");
 }

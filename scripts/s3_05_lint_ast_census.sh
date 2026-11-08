@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# S3-I72…I76: Stage-3 lint-ast / L007·L012 census (S3-05).
-# I72 open · I73–I74 knives · I75 claim-prep · I76 residual-scope.
-# ≠ S3-05 [x] · ≠ Stage-3 exit · ≠ product lint knife this window.
-# See docs/stage3-lint-ast-census.md and docs/adr/stage3-s3-05-residual-scope.md
+# S3-I72…I77: Stage-3 lint-ast / L007·L012 census (S3-05).
+# I72 open · I73–I74 knives · I75 claim-prep · I76 residual-scope · I77 scoped claim.
+# ≠ Stage-3 exit · ≠ S3-06 construct this window · ≠ product lint knife this window.
+# See docs/stage3-lint-ast-census.md and docs/adr/stage3-s3-05-claim.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -32,11 +32,12 @@ struct_demo_fixture=$(test -f examples/struct_demo.sy && echo 1 || echo 0)
 struct_book_point_fixture=$(test -f crates/syx-driver/tests/fixtures/lang/struct_book_point.sy && echo 1 || echo 0)
 scoped_fixture_helper=$((class_demo_fixture + struct_demo_fixture + struct_book_point_fixture))
 
-stage3_lint_census_helper=$(count_rg 'S3-I72|S3-I73|S3-I74|S3-I75|S3-I76|stage3-lint-ast-census|stage3-s3-05-open|stage3-s3-05-l007-l012|stage3-s3-05-struct-extension|stage3-s3-05-claim-prep|stage3-s3-05-residual-scope' \
+stage3_lint_census_helper=$(count_rg 'S3-I72|S3-I73|S3-I74|S3-I75|S3-I76|S3-I77|stage3-lint-ast-census|stage3-s3-05-open|stage3-s3-05-l007-l012|stage3-s3-05-struct-extension|stage3-s3-05-claim-prep|stage3-s3-05-residual-scope|stage3-s3-05-claim' \
   docs/adr/stage3-s3-05-open.md docs/adr/stage3-s3-05-l007-l012-false-positive.md \
   docs/adr/stage3-s3-05-struct-extension-type-member.md \
   docs/adr/stage3-s3-05-claim-prep.md \
   docs/adr/stage3-s3-05-residual-scope.md \
+  docs/adr/stage3-s3-05-claim.md \
   docs/stage3-lint-ast-census.md scripts/s3_05_lint_ast_census.sh)
 l007_l012_knife_helper=$(count_rg 'in_type_member|S3-I73' crates/syx-lint/src/lib.rs)
 struct_type_member_helper=$(count_rg 'Decl::Struct|Decl::Extension|S3-I74' crates/syx-lint/src/lib.rs)
@@ -48,6 +49,11 @@ claim_prep_helper=$(count_rg 'S3-I75|claim-prep|claim_criteria|Primary' \
 residual_scope_helper=$(count_rg 'S3-I76|residual-scope|scoped acceptance|supersede' \
   docs/adr/stage3-s3-05-residual-scope.md docs/stage3-lint-ast-census.md \
   scripts/s3_05_lint_ast_census.sh plan/02-improvement-roadmap.md)
+# S3-I77 hinge: scoped plan claim.
+s3_05_claim_helper=$(count_rg 'S3-I77|scoped \[x\]|Claimed: scoped|stage3-s3-05-claim' \
+  docs/adr/stage3-s3-05-claim.md docs/stage3-lint-ast-census.md \
+  scripts/s3_05_lint_ast_census.sh plan/02-improvement-roadmap.md \
+  crates/syx-driver/tests/lang/s3_05_claim_contract.rs)
 
 SYX_BIN=""
 if [[ -x target/release/syx ]]; then
@@ -97,8 +103,9 @@ echo "l007_l012_knife_helper=$l007_l012_knife_helper"
 echo "struct_type_member_helper=$struct_type_member_helper"
 echo "claim_prep_helper=$claim_prep_helper"
 echo "residual_scope_helper=$residual_scope_helper"
-echo "current=S3-I76"
-echo "next=S3-I77"
-echo "s3_05_status=~"
-echo "stage3_checklist=4/7"
-echo "nonclaim=Stage-3-exit,S3-05-x,S3-06,S3-07,S3-04-fib-wall"
+echo "s3_05_claim_helper=$s3_05_claim_helper"
+echo "current=S3-I77"
+echo "next=S3-I78"
+echo "s3_05_status=x"
+echo "stage3_checklist=5/7"
+echo "nonclaim=Stage-3-exit,S3-06-construct,S3-07,hybrid-hard-gate,S3-04-fib-wall"

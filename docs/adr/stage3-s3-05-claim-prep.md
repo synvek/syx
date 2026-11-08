@@ -28,14 +28,17 @@
 
 ## Consequences
 
-- Claim-prep hinge landed；S3-05 stays `[~]`；Stage-3 stays `[~]`（**4/7**）.
+- Claim-prep hinge landed；S3-05 was `[~]` under scaffolding windows.
 - **S3-I76 landed** as [stage3-s3-05-residual-scope](stage3-s3-05-residual-scope.md)（scoped acceptance · deferred hybrid）。
-- Default next = **S3-I77** scoped claim — not Stage-3 exit.
+- **S3-I77 landed** as [stage3-s3-05-claim](stage3-s3-05-claim.md)（S3-05 `[x]` scoped claim）。
+- Default next = **S3-I78**（S3-06 open）— not Stage-3 exit.
 - Prior: [stage3-s3-05-struct-extension-type-member](stage3-s3-05-struct-extension-type-member.md) · S3-I74.
-- Lint-ast census Current → **S3-I76**.
+- Census Current → **S3-I77** · Claimed scoped `[x]`.
 
 ## References
 
+- [stage3-s3-05-claim](stage3-s3-05-claim.md) · S3-I77
+- [stage3-s3-05-residual-scope](stage3-s3-05-residual-scope.md) · S3-I76
 - [stage3-s3-05-struct-extension-type-member](stage3-s3-05-struct-extension-type-member.md) · S3-I74
 - [stage3-s3-05-l007-l012-false-positive](stage3-s3-05-l007-l012-false-positive.md) · S3-I73
 - [stage3-s3-05-open](stage3-s3-05-open.md) · S3-I72

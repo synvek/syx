@@ -1,5 +1,5 @@
 //! S3-I76 S3-05 residual-scope (scoped acceptance + deferred hybrid) contracts.
-//! Hinge landed · ≠ S3-05 [x] · ≠ Stage-3 exit · ≠ syx-lint product knife.
+//! Hinge landed · post-I77: S3-05 [x] · Stage-3 still [~] 5/7 · ≠ Stage-3 exit.
 //! See docs/adr/stage3-s3-05-residual-scope.md · docs/stage3-lint-ast-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -31,8 +31,8 @@ fn s3_05_residual_scope_adr_and_census() {
     );
     assert!(
         adr.contains("S3-I77")
-            && (adr.contains("claim") || adr.contains("`[x]`") || adr.contains("[x]")),
-        "ADR must lock next = S3-I77 scoped claim"
+            && (adr.contains("claim") || adr.contains("stage3-s3-05-claim") || adr.contains("[x]")),
+        "ADR must cite landed S3-I77 claim"
     );
     assert!(
         adr.contains("≠ S3-05 `[x]`") || adr.contains("≠ S3-05 [x]"),
@@ -45,8 +45,8 @@ fn s3_05_residual_scope_adr_and_census() {
 
     let census = repo_file("docs/stage3-lint-ast-census.md");
     assert!(
-        census.contains("Current:** S3-I76") || census.contains("Current: S3-I76"),
-        "census Current must be S3-I76"
+        census.contains("Current:** S3-I77") || census.contains("Current: S3-I77"),
+        "census Current must be S3-I77"
     );
     assert!(
         census.contains("residual_scope_helper")
@@ -54,13 +54,13 @@ fn s3_05_residual_scope_adr_and_census() {
         "census must publish I76 KPIs / scoped goal"
     );
     assert!(
-        census.contains("S3-I77"),
-        "census ladder must name S3-I77 next"
+        census.contains("S3-I78"),
+        "census ladder must name S3-I78 next"
     );
-    assert!(census.contains("4/7"), "census must keep Stage-3 4/7");
+    assert!(census.contains("5/7"), "census must publish Stage-3 5/7");
     assert!(
-        census.contains("Claimed:** no") || census.contains("Claimed: no"),
-        "census must mark Claimed: no"
+        census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
+        "census must mark Claimed scoped [x]"
     );
 
     let prior = repo_file("docs/adr/stage3-s3-05-claim-prep.md");
@@ -75,12 +75,8 @@ fn s3_05_residual_scope_adr_and_census() {
         .find(|l| l.contains("| S3-05 |"))
         .expect("S3-05 row");
     assert!(
-        s305.contains("[~]"),
-        "S3-05 must stay [~] after residual-scope; got: {s305}"
-    );
-    assert!(
-        !s305.contains("| [x] |") && !s305.contains("| `[x]` |"),
-        "S3-05 must not be [x] yet; got: {s305}"
+        s305.contains("| [x] |") || s305.contains("| `[x]` |"),
+        "S3-05 must be [x] after I77 claim; got: {s305}"
     );
     assert!(
         s305.contains("scoped")
@@ -90,15 +86,19 @@ fn s3_05_residual_scope_adr_and_census() {
         "S3-05 row must publish scoped acceptance; got: {s305}"
     );
     assert!(
-        plan02.contains("S3-I76") && plan02.contains("S3-I77"),
-        "plan/02 must cite I76 landed and I77 next"
+        plan02.contains("S3-I76") || plan02.contains("residual-scope"),
+        "plan/02 must cite I76"
     );
-    assert!(plan02.contains("4/7"), "plan/02 must keep Stage-3 4/7");
+    assert!(
+        plan02.contains("S3-I78"),
+        "plan/02 must lock next = S3-I78"
+    );
+    assert!(plan02.contains("5/7"), "plan/02 must publish Stage-3 5/7");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I76") && plan01.contains("S3-I77") && plan01.contains("4/7"),
-        "plan/01 must cite I76 / I77 / 4/7"
+        plan01.contains("S3-I76") && plan01.contains("S3-I77") && plan01.contains("5/7"),
+        "plan/01 must cite I76 / I77 / 5/7"
     );
 }
 
@@ -117,8 +117,8 @@ fn s3_05_residual_scope_census_script_emits_hinge() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I76") && stdout.contains("next=S3-I77"),
-        "script ladder must be I76→I77:\n{stdout}"
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I78"),
+        "script ladder must be I77→I78:\n{stdout}"
     );
     assert!(
         stdout.contains("residual_scope_helper="),

@@ -27,13 +27,15 @@
 
 ## Consequences
 
-- Residual-scope hinge landed；S3-05 stays `[~]`；Stage-3 stays `[~]`（**4/7**）.
-- Default next = **S3-I77** scoped claim — not Stage-3 exit.
+- Residual-scope hinge landed；S3-05 was `[~]` under this window.
+- **S3-I77 landed** as [stage3-s3-05-claim](stage3-s3-05-claim.md)（S3-05 `[x]` scoped claim）。
+- Default next = **S3-I78**（S3-06 open — LSP）— not Stage-3 exit.
 - Prior: [stage3-s3-05-claim-prep](stage3-s3-05-claim-prep.md) · S3-I75.
-- Lint-ast census Current → **S3-I76**.
+- Census Current → **S3-I77** · Claimed scoped `[x]`.
 
 ## References
 
+- [stage3-s3-05-claim](stage3-s3-05-claim.md) · S3-I77
 - [stage3-s3-05-claim-prep](stage3-s3-05-claim-prep.md) · S3-I75
 - [stage3-s3-04-residual-scope](stage3-s3-04-residual-scope.md) · S3-I70（形态模板）
 - [stage3-s3-05-open](stage3-s3-05-open.md) · S3-I72

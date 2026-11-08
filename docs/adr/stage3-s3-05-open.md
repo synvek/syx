@@ -37,9 +37,10 @@ Baseline: [stage3-lint-ast-census](../stage3-lint-ast-census.md).
 - **S3-I74 landed** as [stage3-s3-05-struct-extension-type-member](stage3-s3-05-struct-extension-type-member.md)（Struct/Extension type-member）。
 - **S3-I75 landed** as [stage3-s3-05-claim-prep](stage3-s3-05-claim-prep.md)（claim-prep）。
 - **S3-I76 landed** as [stage3-s3-05-residual-scope](stage3-s3-05-residual-scope.md)（residual-scope）。
-- Default next = **S3-I77** scoped claim — not Stage-3 exit / not S3-05 claim this path’s prior windows.
+- **S3-I77 landed** as [stage3-s3-05-claim](stage3-s3-05-claim.md)（S3-05 `[x]` scoped claim）。
+- Default next = **S3-I78**（S3-06 open — LSP）— not Stage-3 exit.
 - Prior: [stage3-s3-04-claim](stage3-s3-04-claim.md) · S3-I71.
-- Lint-ast census Current → **S3-I76**.
+- Lint-ast census Current → **S3-I77** · Claimed scoped `[x]`.
 
 ## References
 
