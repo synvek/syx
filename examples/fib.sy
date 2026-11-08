@@ -1,0 +1,9 @@
+// S3-I68 claim-prep: fib(30) wall-clock repro (S3-04 target < 0.5 s).
+// Prefer: `syx run examples/fib.sy` with release syx.
+func fib(n: Int) -> Int {
+    if (n < 2) { return n }
+    return fib(n: n - 1) + fib(n: n - 2)
+}
+func main() {
+    return fib(n: 30)
+}

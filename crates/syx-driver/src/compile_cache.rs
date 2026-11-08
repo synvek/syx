@@ -5,6 +5,7 @@ use crate::cache_fingerprint::{
     cache_version_tag, dependency_hashes_from_graph, dependency_hashes_still_valid,
     dependency_tree_digest, hash_source, module_hash,
 };
+use crate::driver_options::project_cache_dir;
 use crate::farm_tcp::{
     cache_remote_push_enabled, fetch_cache_remote, incremental_cache_path,
     purge_stale_incremental_caches, push_cache_remote_nodes, record_cache_remote_fetch,
@@ -16,9 +17,20 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use syx_codegen::CompiledProgram;
 use syx_diagnostics::{SourceFile, SyxResult};
 use syx_pkg::{load_manifest, load_resolved_packages};
+
+/// Census nail (S3-I49): dedicated prelude snapshot loads (disk).
+pub(crate) static PRELUDE_SNAPSHOT_HIT: AtomicU64 = AtomicU64::new(0);
+
+/// Census nail (S3-I54): embedded prelude snapshot loads (`include_bytes` fallback).
+pub(crate) static PRELUDE_EMBED_HIT: AtomicU64 = AtomicU64::new(0);
+
+/// S3-I54: checked-in PreludeSnapshot bincode (gen via `scripts/gen_prelude_snapshot.sh`).
+pub(crate) static EMBEDDED_PRELUDE_SNAPSHOT: &[u8] =
+    include_bytes!("../assets/prelude_snapshot.bin");
 
 pub fn compile_with_cache(path: &Path, root: &Path) -> SyxResult<ModuleUnit> {
     purge_stale_incremental_caches(root);
@@ -90,6 +102,7 @@ pub(crate) fn bincode_encode(unit: &ModuleUnit, graph: &ModuleGraph) -> Result<V
 }
 
 fn bincode_decode(bytes: &[u8]) -> Result<ModuleUnit, String> {
+    // S3-I53: roundtrip requires FunctionUnit/CompiledProgram without skip_serializing_if.
     let cached: CachedModuleUnit = bincode::deserialize(bytes).map_err(|e| e.to_string())?;
     Ok(cached.into())
 }
@@ -180,5 +193,107 @@ impl From<CachedModuleUnit> for ModuleUnit {
                 .collect(),
             program: cached.program,
         }
+    }
+}
+
+/// S3-I49: dedicated prelude/stdlib graph snapshot (≠ entry module `.bin`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct PreludeSnapshot {
+    pub cache_version_tag: String,
+    pub order: Vec<PathBuf>,
+    pub modules: Vec<CachedModuleUnit>,
+}
+
+/// Disk path for prelude snapshot under `project_cache_dir` (S3-I49).
+pub(crate) fn prelude_cache_path(root: &Path) -> PathBuf {
+    let cache_dir = project_cache_dir(root);
+    let _ = std::fs::create_dir_all(&cache_dir);
+    let tag = cache_version_tag();
+    let digest = hash_source(&tag);
+    cache_dir.join(format!("prelude_{digest}.bin"))
+}
+
+/// Apply a deserialized [`PreludeSnapshot`] into `graph` when tag matches.
+fn apply_prelude_snapshot(graph: &mut ModuleGraph, snap: PreludeSnapshot) -> bool {
+    if snap.cache_version_tag != cache_version_tag() || snap.modules.is_empty() {
+        return false;
+    }
+    for cached in snap.modules {
+        let path = cached.path.clone();
+        if graph.modules.contains_key(&path) {
+            continue;
+        }
+        let unit: ModuleUnit = cached.into();
+        graph.modules.insert(path.clone(), unit);
+    }
+    for key in snap.order {
+        if graph.modules.contains_key(&key) && !graph.order.contains(&key) {
+            graph.order.push(key);
+        }
+    }
+    // Ensure any modules missing from order still appear (defensive).
+    let missing: Vec<PathBuf> = graph
+        .modules
+        .keys()
+        .filter(|k| !graph.order.contains(k))
+        .cloned()
+        .collect();
+    graph.order.extend(missing);
+    true
+}
+
+/// Load prelude snapshot into an empty-ish graph when tag matches.
+/// Disk hit bumps [`PRELUDE_SNAPSHOT_HIT`]; embed fallback bumps [`PRELUDE_EMBED_HIT`] (S3-I54).
+pub(crate) fn load_prelude_snapshot(graph: &mut ModuleGraph, root: &Path) -> bool {
+    let path = prelude_cache_path(root);
+    if let Ok(bytes) = std::fs::read(&path) {
+        if let Ok(snap) = bincode::deserialize::<PreludeSnapshot>(&bytes) {
+            if apply_prelude_snapshot(graph, snap) {
+                PRELUDE_SNAPSHOT_HIT.fetch_add(1, Ordering::Relaxed);
+                return true;
+            }
+        }
+    }
+    // S3-I54: empty-cache cold path — try embedded PreludeSnapshot bytes.
+    if !EMBEDDED_PRELUDE_SNAPSHOT.is_empty() {
+        if let Ok(snap) = bincode::deserialize::<PreludeSnapshot>(EMBEDDED_PRELUDE_SNAPSHOT) {
+            if apply_prelude_snapshot(graph, snap) {
+                PRELUDE_EMBED_HIT.fetch_add(1, Ordering::Relaxed);
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Persist current graph prelude modules (`<stdlib>/…`) after a successful ensure.
+pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path) {
+    let tag = cache_version_tag();
+    let mut order = Vec::new();
+    let mut modules = Vec::new();
+    for key in &graph.order {
+        let Some(unit) = graph.modules.get(key) else {
+            continue;
+        };
+        let is_stdlib = key
+            .to_string_lossy()
+            .starts_with("<stdlib>/");
+        if !is_stdlib {
+            continue;
+        }
+        order.push(key.clone());
+        modules.push(CachedModuleUnit::from(unit));
+    }
+    if modules.is_empty() {
+        return;
+    }
+    let snap = PreludeSnapshot {
+        cache_version_tag: tag,
+        order,
+        modules,
+    };
+    let path = prelude_cache_path(root);
+    if let Ok(bytes) = bincode::serialize(&snap) {
+        let _ = std::fs::write(path, bytes);
     }
 }

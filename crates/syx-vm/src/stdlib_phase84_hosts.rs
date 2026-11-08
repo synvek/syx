@@ -153,7 +153,7 @@ pub(crate) fn registered_body_error(
     let Some(func) = program.functions.get(*fn_index as usize) else {
         return Some(format!("missing closure function {fn_index}"));
     };
-    match vm.run_closure_with_captures(func, program, captures, &[]) {
+    match vm.run_closure_with_captures(func, program, captures, Vec::new()) {
         Ok(_) => None,
         Err(err) => Some(err.to_string()),
     }

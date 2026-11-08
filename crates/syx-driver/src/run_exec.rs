@@ -8,7 +8,7 @@ use crate::{
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use syx_async::SyxRuntime;
-use syx_codegen::CompiledProgram;
+use syx_codegen::{trim_program_to_entry_reachability, CompiledProgram};
 use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_frontend::{FrontendOptions, FrontendPipeline, StopAfter};
 use syx_vm::WasmVM;
@@ -18,7 +18,7 @@ pub fn run_project(root: &Path) -> SyxResult<()> {
 }
 
 pub fn run_project_with_options(root: &Path, options: &DriverOptions) -> SyxResult<()> {
-    let _ = syx_host_plugin::load_from_env();
+    // S3-I52: plugin load deferred to run_compiled_program_with_strict (Once).
     ensure_vm_plugin_dispatch();
     let project = compile_project_with_options(root, options)?;
     run_compiled_program_with_strict(project.entry.program, project.manifest.concurrency.strict)
@@ -161,7 +161,7 @@ pub fn run_file(path: &Path) -> SyxResult<()> {
 }
 
 pub fn run_file_with_options(path: &Path, options: &DriverOptions) -> SyxResult<()> {
-    let _ = syx_host_plugin::load_from_env();
+    // S3-I52: plugin load deferred to run_compiled_program_with_strict (Once).
     ensure_vm_plugin_dispatch();
     let unit = compile_linked_with_options(path, options)?;
     run_compiled_program_with_strict(unit.program, options.strict_concurrency)
@@ -172,7 +172,8 @@ pub fn run_file_printed(path: &Path, options: &DriverOptions) -> SyxResult<(i32,
     let _ = syx_host_plugin::load_from_env();
     ensure_vm_plugin_dispatch();
     syx_vm::reset_service_container();
-    let unit = compile_linked_with_options(path, options)?;
+    let mut unit = compile_linked_with_options(path, options)?;
+    trim_program_to_entry_reachability(&mut unit.program);
     if program_needs_runtime(&unit.program) {
         let rt = Arc::new(SyxRuntime::new(unit.program).with_strict(options.strict_concurrency));
         let result = rt.run_program()?;
@@ -237,6 +238,9 @@ pub(crate) fn run_compiled_program_with_strict(
     program: CompiledProgram,
     strict: bool,
 ) -> SyxResult<()> {
+    // S3-I52: skip secondary trim — compile_linked / cache write already trimmed (I50).
+    // Fat-program callers (e.g. run_file_printed) trim at their own entry.
+    // S3-I52: single load_from_env entry (Once inside loader).
     let _ = syx_host_plugin::load_from_env();
     ensure_vm_plugin_dispatch();
     syx_vm::reset_service_container();

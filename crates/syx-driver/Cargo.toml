@@ -49,6 +49,9 @@ bincode = { workspace = true }
 semver = "1"
 reqwest = { workspace = true, features = ["blocking"] }
 
+[build-dependencies]
+sha2 = "0.10"
+
 [features]
 default = []
 # Opt-in QS1 tip-window Inventory ledger (private harness / qs1 CI).
@@ -77,6 +80,11 @@ harness = false
 [[bench]]
 name = "tcp_connect_criterion"
 harness = false
+
+[[bench]]
+name = "fib_criterion"
+harness = false
+
 [[bin]]
 name = "wasm_aot_matrix_gate"
 path = "src/bin/wasm_aot_matrix_gate.rs"

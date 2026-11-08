@@ -383,6 +383,14 @@ pub fn purge_stale_incremental_caches(root: &Path) {
         if path.extension().and_then(|e| e.to_str()) != Some("bin") {
             continue;
         }
+        // S3-I49: dedicated prelude snapshots use a different bincode shape.
+        if path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.starts_with("prelude_"))
+        {
+            continue;
+        }
         let Ok(bytes) = std::fs::read(&path) else {
             continue;
         };

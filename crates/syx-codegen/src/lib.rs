@@ -22,9 +22,11 @@ use syx_stdlib::{
 };
 
 mod codegen_diag;
+mod program_trim;
 mod syxbc_text;
 
 use codegen_diag::codegen_error_at;
+pub use program_trim::trim_program_to_entry_reachability;
 pub use syxbc_text::format_compiled_program;
 
 const MUT_REF_KEY: &str = "__syx_ref";
@@ -447,16 +449,17 @@ pub struct FunctionUnit {
     pub param_count: u32,
     pub local_count: u32,
     pub instructions: Vec<Instruction>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    // S3-I53: always encode for bincode — `skip_serializing_if` breaks disk cache roundtrip.
+    #[serde(default)]
     pub instruction_spans: Vec<Option<(u32, u32)>>,
     /// Source names for local slots (params + `let`/`var`), index = VM local slot.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub local_names: Vec<SmolStr>,
     /// Static types for local slots (parallel to `local_names`).
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub local_types: Vec<SmolStr>,
     /// Source file path/name for `instruction_spans` offsets (debug breakpoint mapping).
-    #[serde(default, skip_serializing_if = "SmolStr::is_empty")]
+    #[serde(default)]
     pub source_name: SmolStr,
     /// Phase 134: PC of first init body stmt (after dict/vtable setup) for `CallSuper` on `_init`.
     #[serde(default)]
@@ -464,6 +467,31 @@ pub struct FunctionUnit {
     /// Phase 134: PC of MutRefCell wrap epilogue (super init stops here).
     #[serde(default)]
     pub init_wrap_pc: u32,
+    /// S3-I64: compile-time cache — body contains `BeginTry` (VM try-free Call gate).
+    /// `#[serde(default)]` keeps S3-I53 bincode roundtrip (old cache → false).
+    #[serde(default)]
+    pub has_begin_try: bool,
+    /// S3-I67: compile-time cache — free-function Direct Call may stack-bind args.
+    /// `#[serde(default)]` keeps S3-I53 bincode roundtrip (old cache → false → slow Call).
+    #[serde(default)]
+    pub can_stack_bind: bool,
+}
+
+impl FunctionUnit {
+    /// S3-I64: scan instructions once at emit time for `BeginTry`.
+    pub fn compute_has_begin_try(instructions: &[Instruction]) -> bool {
+        instructions
+            .iter()
+            .any(|ins| matches!(ins, Instruction::BeginTry(_)))
+    }
+
+    /// S3-I67: emit-time cache for VM `call_can_stack_bind` (no Lazy/virtual/deinit).
+    pub fn compute_can_stack_bind(name: &str) -> bool {
+        if name.ends_with("_deinit") {
+            return false;
+        }
+        syx_ast::parse_mangled_instance_method(name).is_none()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -481,7 +509,8 @@ pub struct CompiledProgram {
     #[serde(skip)]
     pub mir_module: Option<syx_mir::MirModule>,
     /// Phase 13: opaque return witness table (`func` → protocol name).
-    #[serde(default, skip_serializing_if = "indexmap::IndexMap::is_empty")]
+    // S3-I53: always encode for bincode — `skip_serializing_if` breaks disk cache roundtrip.
+    #[serde(default)]
     pub opaque_witnesses: indexmap::IndexMap<SmolStr, SmolStr>,
 }
 
@@ -632,6 +661,8 @@ impl CodeGenerator {
                     source_name: SmolStr::new(source_name),
                     init_body_pc: 0,
                     init_wrap_pc: 0,
+                    has_begin_try: false,
+                    can_stack_bind: FunctionUnit::compute_can_stack_bind(func.name.as_str()),
                 });
             }
         }
@@ -650,6 +681,10 @@ impl CodeGenerator {
                             new_ins_len,
                         )
                     {
+                        existing.has_begin_try =
+                            FunctionUnit::compute_has_begin_try(&instructions);
+                        existing.can_stack_bind =
+                            FunctionUnit::compute_can_stack_bind(func.name.as_str());
                         existing.instructions = instructions;
                         existing.instruction_spans = instruction_spans;
                         existing.param_count = func.param_count;
@@ -669,6 +704,9 @@ impl CodeGenerator {
                         }
                     }
                 } else {
+                    let has_begin_try = FunctionUnit::compute_has_begin_try(&instructions);
+                    let can_stack_bind =
+                        FunctionUnit::compute_can_stack_bind(func.name.as_str());
                     program.functions.push(FunctionUnit {
                         name: func.name.clone(),
                         param_count: func.param_count,
@@ -680,6 +718,8 @@ impl CodeGenerator {
                         source_name: SmolStr::new(source_name),
                         init_body_pc: func.init_body_pc,
                         init_wrap_pc: func.init_wrap_pc,
+                        has_begin_try,
+                        can_stack_bind,
                     });
                 }
             }
@@ -759,6 +799,8 @@ impl CodeGenerator {
                     }
                     dst.init_body_pc = src.init_body_pc;
                     dst.init_wrap_pc = src.init_wrap_pc;
+                    dst.has_begin_try = src.has_begin_try;
+                    dst.can_stack_bind = src.can_stack_bind;
                 }
             }
         }
@@ -1752,6 +1794,8 @@ impl CodeGenerator {
         }
         fn_instructions.push(Instruction::Return);
         fn_spans.push(None);
+        let has_begin_try = FunctionUnit::compute_has_begin_try(&fn_instructions);
+        let can_stack_bind = FunctionUnit::compute_can_stack_bind(name.as_str());
         let unit = FunctionUnit {
             name: name.clone(),
             param_count: params.len() as u32,
@@ -1769,6 +1813,8 @@ impl CodeGenerator {
             source_name: self.source_name.clone(),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try,
+            can_stack_bind,
         };
         if let Some(idx) = self.program.functions.iter().position(|f| f.name == *name) {
             self.program.functions[idx] = unit;
@@ -4951,6 +4997,8 @@ fn ensure_opaque_equatable_witness(program: &mut CompiledProgram) {
         source_name: SmolStr::new(""),
         init_body_pc: 0,
         init_wrap_pc: 0,
+        has_begin_try: false,
+        can_stack_bind: false,
     });
 }
 

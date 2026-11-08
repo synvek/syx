@@ -24,6 +24,18 @@ pub fn compile_linked(path: &Path) -> SyxResult<ModuleUnit> {
 
 pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxResult<ModuleUnit> {
     let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let root = parent;
+    let package_main = project_root_if_manifest_entry(path).is_some();
+
+    // S3-I51 cache-first: for plain `.sy` files, probe incremental cache before
+    // plugin/manifest/purge fixed tax (hello warm path).
+    if !package_main {
+        let current_source = std::fs::read_to_string(path).unwrap_or_default();
+        if let Some(unit) = try_incremental_cache_hit(path, root, &current_source)? {
+            return Ok(unit);
+        }
+    }
+
     syx_host_plugin::register_compile_plugin_manifests(parent);
     let manifest = load_manifest(parent).unwrap_or_default();
     syx_macro::register_package_macros(manifest.macros.as_slice());
@@ -47,10 +59,8 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
         ensure_project_lock(parent, options)?;
         opts.resolved_packages = Some(load_resolved_packages(parent)?);
     }
-    let root = parent;
     purge_stale_incremental_caches(root);
     let cache = incremental_cache_path(root, path);
-    let package_main = project_root_if_manifest_entry(path).is_some();
     let current_source = if package_main {
         merge_package_unit_source(root, &manifest.main)
             .map(|(_, s)| s)
@@ -58,24 +68,8 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     } else {
         std::fs::read_to_string(path).unwrap_or_default()
     };
-    if cache.exists() {
-        if let Ok(bytes) = std::fs::read(&cache) {
-            if let Ok(cached) = bincode::deserialize::<CachedModuleUnit>(&bytes) {
-                if cache_entry_fresh(&cached, &current_source) {
-                    if let Some(unit) =
-                        query::lookup_cached(path, &current_source, &cached.dependency_hashes)
-                    {
-                        refresh_service_di_from_source(path)?;
-                        return Ok(unit);
-                    }
-                    let deps = cached.dependency_hashes.clone();
-                    let unit: ModuleUnit = cached.into();
-                    query::store_cached(unit.clone(), &deps);
-                    refresh_service_di_from_source(path)?;
-                    return Ok(unit);
-                }
-            }
-        }
+    if let Some(unit) = try_incremental_cache_hit(path, root, &current_source)? {
+        return Ok(unit);
     }
     syx_meta::service_di_clear();
     let mut graph = ModuleGraph::default();
@@ -86,7 +80,9 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     } else {
         ModuleRef::from_file(path.to_path_buf())
     };
-    let unit = compile_module_recursive(entry_ref, root, &mut graph, &manifest, &opts)?;
+    let mut unit = compile_module_recursive(entry_ref, root, &mut graph, &manifest, &opts)?;
+    // S3-I50: slim entry program before cache write / return (warm-floor hinge).
+    syx_codegen::trim_program_to_entry_reachability(&mut unit.program);
     if let Some(parent_dir) = cache.parent() {
         let _ = std::fs::create_dir_all(parent_dir);
     }
@@ -98,12 +94,58 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     Ok(unit)
 }
 
+/// S3-I51: shared incremental cache probe (no purge / plugin side effects).
+fn try_incremental_cache_hit(
+    path: &Path,
+    root: &Path,
+    current_source: &str,
+) -> SyxResult<Option<ModuleUnit>> {
+    let cache = incremental_cache_path(root, path);
+    if !cache.exists() {
+        return Ok(None);
+    }
+    let Ok(bytes) = std::fs::read(&cache) else {
+        return Ok(None);
+    };
+    let Ok(cached) = bincode::deserialize::<CachedModuleUnit>(&bytes) else {
+        return Ok(None);
+    };
+    if !cache_entry_fresh(&cached, current_source) {
+        return Ok(None);
+    }
+    if let Some(unit) = query::lookup_cached(path, current_source, &cached.dependency_hashes) {
+        maybe_refresh_service_di_from_source(path, current_source)?;
+        return Ok(Some(unit));
+    }
+    let deps = cached.dependency_hashes.clone();
+    let unit: ModuleUnit = cached.into();
+    query::store_cached(unit.clone(), &deps);
+    maybe_refresh_service_di_from_source(path, current_source)?;
+    Ok(Some(unit))
+}
+
 pub fn compile_file(path: &Path) -> SyxResult<ModuleUnit> {
     compile_linked(path)
 }
 
 pub fn compile_file_with_options(path: &Path, options: &DriverOptions) -> SyxResult<ModuleUnit> {
     compile_linked_with_options(path, options)
+}
+
+fn source_may_need_service_di(source: &str) -> bool {
+    source.contains("@Service")
+        || source.contains("@service")
+        || source.contains("service ")
+        || source.contains("ServiceContainer")
+        || source.contains("expand_service")
+}
+
+fn maybe_refresh_service_di_from_source(path: &Path, source: &str) -> SyxResult<()> {
+    if !source_may_need_service_di(source) {
+        syx_meta::service_di_clear();
+        return Ok(());
+    }
+    refresh_service_di_from_source(path)
 }
 
 fn refresh_service_di_from_source(path: &Path) -> SyxResult<()> {

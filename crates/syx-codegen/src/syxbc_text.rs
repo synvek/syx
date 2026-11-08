@@ -436,6 +436,8 @@ mod tests {
                 source_name: SmolStr::new("hello.sy"),
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                has_begin_try: false,
+                can_stack_bind: false,
             }],
             globals: vec![],
             strings: vec!["Hello, World".into()],

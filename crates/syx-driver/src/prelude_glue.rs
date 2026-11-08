@@ -1,6 +1,7 @@
 //! SYX driver prelude / inject / export glue face.
 //! Extracted in S2-I222 (zero semantics).
 
+use crate::compile_cache::{load_prelude_snapshot, store_prelude_snapshot};
 use crate::embedded_std;
 use crate::module_ref::ModuleRef;
 use crate::{
@@ -44,9 +45,13 @@ pub(crate) fn ensure_prelude_modules_in_graph(
     graph: &mut ModuleGraph,
     _manifest: &SyxManifest,
     options: &DriverOptions,
-    _project_root: &Path,
+    project_root: &Path,
 ) -> SyxResult<()> {
     if !options.enable_std {
+        return Ok(());
+    }
+    // S3-I49: dedicated prelude disk snapshot (cache_version_tag keyed).
+    if load_prelude_snapshot(graph, project_root) {
         return Ok(());
     }
     let mut prelude_imports: Vec<(SmolStr, IndexMap<SmolStr, TypeId>)> = Vec::new();
@@ -110,6 +115,7 @@ pub(crate) fn ensure_prelude_modules_in_graph(
     }
     ensure_embedded_protocols_in_graph(graph, options, &prelude_imports)?;
     ensure_reference_builtins_in_graph(graph, options, &prelude_imports)?;
+    store_prelude_snapshot(graph, project_root);
     Ok(())
 }
 

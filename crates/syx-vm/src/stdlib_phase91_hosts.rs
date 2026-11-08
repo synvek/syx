@@ -403,6 +403,7 @@ pub fn host_xml_xpath(stack: &mut Vec<Value>) -> SyxResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::reset_rusqlite_store;
 
     #[test]
     fn phase91_rusqlite_txn_smoke() {

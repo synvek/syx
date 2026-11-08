@@ -10,6 +10,10 @@ use syx_diagnostics::SyxResult;
 use syx_pkg::{load_manifest, SyxManifest};
 
 pub(crate) fn cache_version_tag() -> String {
+    // S3-I52: prefer build-time bake — zero runtime heap_v100 / HostFnId::all first-touch.
+    if let Some(baked) = option_env!("SYX_CACHE_VERSION_TAG") {
+        return baked.to_string();
+    }
     static TAG: OnceLock<String> = OnceLock::new();
     TAG.get_or_init(compute_cache_version_tag).clone()
 }
@@ -1781,19 +1785,25 @@ pub(crate) fn driver_options_with_deps(
 
 
 /// Phase 71: protocol witness table v2 (MutRefCell wrap + post-sort renumber).
+/// S3-I51: OnceLock — avoid re-hashing all embedded prelude on every `module_hash`.
 pub(crate) fn witness_table_digest() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(b"witness-v2:Iterator-next-renumber+MutRefCell-wrap:");
-    for (_, src) in crate::embedded_std::embedded_protocols() {
-        hasher.update(src.as_bytes());
-    }
-    for (_, src) in crate::embedded_std::core_prelude() {
-        if src.contains("__witness_") || src.contains("func compare") {
-            hasher.update(src.as_bytes());
-        }
-    }
-    format!("{:x}", hasher.finalize())
+    static DIGEST: OnceLock<String> = OnceLock::new();
+    DIGEST
+        .get_or_init(|| {
+            use sha2::{Digest, Sha256};
+            let mut hasher = Sha256::new();
+            hasher.update(b"witness-v2:Iterator-next-renumber+MutRefCell-wrap:");
+            for (_, src) in crate::embedded_std::embedded_protocols() {
+                hasher.update(src.as_bytes());
+            }
+            for (_, src) in crate::embedded_std::core_prelude() {
+                if src.contains("__witness_") || src.contains("func compare") {
+                    hasher.update(src.as_bytes());
+                }
+            }
+            format!("{:x}", hasher.finalize())
+        })
+        .clone()
 }
 
 
@@ -1856,35 +1866,33 @@ pub(crate) fn plugin_manifest_hash(root: &Path) -> String {
 }
 
 
+/// S3-I51: OnceLock — avoid recounting embedded prelude `func` on every `module_hash`.
 pub(crate) fn unified_mir_fn_count_digest() -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(crate::embedded_std::internal_manifest_json().as_bytes());
-    let mut fn_count = 0usize;
-    for (_, src) in crate::embedded_std::core_prelude() {
-        fn_count += src.matches("func ").count();
-    }
-    for (_, src) in crate::embedded_std::embedded_protocols() {
-        fn_count += src.matches("func ").count();
-    }
-    hasher.update(fn_count.to_string().as_bytes());
-    format!("{:x}", hasher.finalize())
+    static DIGEST: OnceLock<String> = OnceLock::new();
+    DIGEST
+        .get_or_init(|| {
+            use sha2::{Digest, Sha256};
+            let mut hasher = Sha256::new();
+            hasher.update(crate::embedded_std::internal_manifest_json().as_bytes());
+            let mut fn_count = 0usize;
+            for (_, src) in crate::embedded_std::core_prelude() {
+                fn_count += src.matches("func ").count();
+            }
+            for (_, src) in crate::embedded_std::embedded_protocols() {
+                fn_count += src.matches("func ").count();
+            }
+            hasher.update(fn_count.to_string().as_bytes());
+            format!("{:x}", hasher.finalize())
+        })
+        .clone()
 }
 
 
+/// S3-I51: compile-time rustc identity (`SYX_RUSTC_VERSION` from build.rs) — no runtime spawn.
 pub(crate) fn rustc_version_tag() -> String {
-    static TAG: OnceLock<String> = OnceLock::new();
-    TAG.get_or_init(|| {
-        std::process::Command::new("rustc")
-            .arg("-V")
-            .output()
-            .ok()
-            .and_then(|o| String::from_utf8(o.stdout).ok())
-            .unwrap_or_else(|| "unknown-rustc".into())
-            .trim()
-            .to_string()
-    })
-    .clone()
+    option_env!("SYX_RUSTC_VERSION")
+        .unwrap_or("unknown-rustc")
+        .to_string()
 }
 
 

@@ -75,8 +75,7 @@ pub fn execute_closure(
     captures: &[crate::Value],
     args: &[crate::Value],
 ) -> crate::Value {
-    use crate::{host_fn_for, WasmVM};
-    use syx_stdlib::HostFnId;
+    use crate::WasmVM;
 
     if MIR_CLOSURE_PREFERRED.with(|c| *c.borrow()) {
         return MIR_CLOSURE_EXECUTOR.with(|c| {
@@ -88,15 +87,11 @@ pub fn execute_closure(
 
     if let Some(ctx) = with_program_ctx(|ctx| ctx.clone()) {
         if let Some(func) = ctx.program.functions.get(fn_index as usize) {
+            // S3-I51: WasmVM::new is lazy-host; CallHost resolves via ensure_host_fn.
             let mut vm = WasmVM::default();
             vm.runtime = ctx.runtime.clone();
-            for id in HostFnId::all() {
-                if let Some(f) = host_fn_for(*id) {
-                    vm.host_fns.insert(id.name().into(), f);
-                }
-            }
             let v = vm
-                .run_closure_with_captures(func, &ctx.program, captures, args)
+                .run_closure_with_captures(func, &ctx.program, captures, args.to_vec())
                 .unwrap_or(crate::Value::Nil);
             if !matches!(v, crate::Value::Nil) {
                 return v;

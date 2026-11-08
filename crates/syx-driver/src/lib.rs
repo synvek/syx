@@ -331,7 +331,9 @@ pub use run_wasm::{
 
 pub use compile_cache::compile_with_cache;
 pub(crate) use compile_cache::{
-    bincode_encode, cache_entry_fresh, CachedModuleUnit,
+    bincode_encode, cache_entry_fresh, load_prelude_snapshot, prelude_cache_path,
+    store_prelude_snapshot, CachedModuleUnit, PreludeSnapshot, EMBEDDED_PRELUDE_SNAPSHOT,
+    PRELUDE_EMBED_HIT, PRELUDE_SNAPSHOT_HIT,
 };
 
 pub use driver_options::{

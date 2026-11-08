@@ -2237,6 +2237,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2270,6 +2272,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2303,6 +2307,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2448,6 +2454,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2471,6 +2479,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2495,6 +2505,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2527,6 +2539,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2714,6 +2728,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2742,6 +2758,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2816,6 +2834,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2862,6 +2882,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2895,6 +2917,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let main = FunctionUnit {
             name: SmolStr::new("main"),
@@ -2907,6 +2931,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![helper, main],
@@ -2935,6 +2961,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2963,6 +2991,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -3010,6 +3040,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -3039,6 +3071,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -3065,6 +3099,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -3143,6 +3179,8 @@ mod tests {
                 source_name: SmolStr::new(""),
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                has_begin_try: false,
+                can_stack_bind: false,
             });
         }
         let mut vm = syx_vm::WasmVM::default();
@@ -3174,6 +3212,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         });
         session.function_index = 0;
         let mut vm = syx_vm::WasmVM::default();
@@ -4534,6 +4574,8 @@ func main() {
             source_name: smol_str::SmolStr::new("t.sy"),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],

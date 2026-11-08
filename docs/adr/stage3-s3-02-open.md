@@ -39,9 +39,10 @@ Baseline: [stage3-mono-display-census](../stage3-mono-display-census.md).
 - **S3-I45 landed** as [stage3-s3-02-runtime-type-display](stage3-s3-02-runtime-type-display.md)（runtime `__type` 用户面）.
 - **S3-I46 landed** as [stage3-s3-02-meta-type-display](stage3-s3-02-meta-type-display.md)（meta 用户面）.
 - **S3-I47 landed** as [stage3-s3-02-claim](stage3-s3-02-claim.md)（S3-02 `[x]` scoped claim）.
-- Default next construction window = **S3-03 open** — not Stage-3 exit.
+- **S3-I48 landed** as [stage3-s3-03-open](stage3-s3-03-open.md)（S3-03 `[~]` open + census）.
+- Default next construction window = **S3-I49 first construct** — not Stage-3 exit.
 - Prior: [stage3-s3-01-claim](stage3-s3-01-claim.md) · S3-I41.
-- Census Current → **S3-I47**.
+- Mono-display census Current → **S3-I47**.
 
 ## References
 

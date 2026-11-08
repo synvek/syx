@@ -127,7 +127,14 @@ pub fn load_from_exe_plugin_dirs() -> Result<(), String> {
 /// Load plugins from env paths. Each path may be a `.so`/`.dylib`/`.dll` or `plugin.json`.
 /// Phase 84: when `SYX_HOST_PLUGIN_PATH` is unset, auto-load from `syx-plugin-lock.json` / `syx.lock`.
 /// Also loads install-prefix plugins from `bin/` (system) and `bin/plugins/` (user).
+/// S3-I52: OnceLock — hello warm path must not re-probe plugin dirs on every call.
 pub fn load_from_env() -> Result<(), String> {
+    use std::sync::OnceLock;
+    static CELL: OnceLock<Result<(), String>> = OnceLock::new();
+    CELL.get_or_init(load_from_env_inner).clone()
+}
+
+fn load_from_env_inner() -> Result<(), String> {
     if !plugins_enabled() {
         return Ok(());
     }

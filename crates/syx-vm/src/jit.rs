@@ -1,10 +1,48 @@
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 use syx_codegen::CompiledProgram;
 use syx_diagnostics::{Span, SyxResult};
 
 use crate::vm_error_at;
 use syx_runtime_core::Value;
+
+// S3-I66: process-local JIT env gate cache (unset=0, false=1, true=2).
+// Hot Call path must not pay `env::var` every recursion; default remains off.
+const JIT_ENV_UNSET: u8 = 0;
+const JIT_ENV_FALSE: u8 = 1;
+const JIT_ENV_TRUE: u8 = 2;
+
+static JIT_FASTPATH_GATE: AtomicU8 = AtomicU8::new(JIT_ENV_UNSET);
+static JIT_TIER2_GATE: AtomicU8 = AtomicU8::new(JIT_ENV_UNSET);
+
+/// S3-I66: clear cached `SYX_JIT_FASTPATH` / `SYX_JIT_TIER2` gates (tests that mutate env).
+#[cfg(test)]
+pub fn reset_jit_env_gates_for_test() {
+    JIT_FASTPATH_GATE.store(JIT_ENV_UNSET, Ordering::Relaxed);
+    JIT_TIER2_GATE.store(JIT_ENV_UNSET, Ordering::Relaxed);
+}
+
+fn env_flag_true(name: &str) -> bool {
+    std::env::var(name)
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
+fn load_or_init_gate(slot: &AtomicU8, compute: impl FnOnce() -> bool) -> bool {
+    match slot.load(Ordering::Relaxed) {
+        JIT_ENV_FALSE => false,
+        JIT_ENV_TRUE => true,
+        _ => {
+            let v = compute();
+            slot.store(
+                if v { JIT_ENV_TRUE } else { JIT_ENV_FALSE },
+                Ordering::Relaxed,
+            );
+            v
+        }
+    }
+}
 
 /// Phase 36 / ADR-140: tier-2 native entry metadata.
 #[derive(Debug, Clone)]
@@ -57,10 +95,9 @@ impl JitCompiler {
         }
     }
 
+    /// S3-I66: cached `SYX_JIT_FASTPATH` (default off).
     pub fn fastpath_enabled() -> bool {
-        std::env::var("SYX_JIT_FASTPATH")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false)
+        load_or_init_gate(&JIT_FASTPATH_GATE, || env_flag_true("SYX_JIT_FASTPATH"))
     }
 
     pub fn record_call(&mut self, func: &str) {
@@ -253,13 +290,14 @@ impl JitCompiler {
         false
     }
 
+    /// S3-I66: cached `SYX_JIT_TIER2` opt-in (production default still off).
     pub fn tier2_opt_in_enabled() -> bool {
-        match std::env::var("SYX_JIT_TIER2") {
+        load_or_init_gate(&JIT_TIER2_GATE, || match std::env::var("SYX_JIT_TIER2") {
             Ok(v) if v == "0" || v.eq_ignore_ascii_case("false") => false,
             Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => true,
             Ok(_) => false,
             Err(_) => Self::tier2_prod_default_enabled(),
-        }
+        })
     }
 
     pub fn effective_hot_threshold(&self) -> u32 {
@@ -336,6 +374,8 @@ mod tests {
                 source_name: Default::default(),
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                has_begin_try: false,
+                can_stack_bind: false,
             }],
             ..Default::default()
         };
@@ -349,8 +389,10 @@ mod tests {
 
     #[test]
     fn fastpath_marker_when_env_enabled() {
+        reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_JIT_TIER2");
         std::env::set_var("SYX_JIT_FASTPATH", "1");
+        reset_jit_env_gates_for_test();
         let mut jit = JitCompiler::new(2);
         let mut program = CompiledProgram {
             functions: vec![FunctionUnit {
@@ -364,6 +406,8 @@ mod tests {
                 source_name: Default::default(),
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                has_begin_try: false,
+                can_stack_bind: false,
             }],
             ..Default::default()
         };
@@ -394,45 +438,58 @@ mod tests {
         assert!(jit.maybe_compile("hot", &program).is_some());
         assert!(jit.fastpath_ready("hot"));
         std::env::remove_var("SYX_JIT_FASTPATH");
+        reset_jit_env_gates_for_test();
     }
 
     #[test]
     fn tier2_prod_default_when_unset() {
+        reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_JIT_TIER2");
         std::env::remove_var("SYX_NIGHTLY");
+        reset_jit_env_gates_for_test();
         // Re-read after clear (other tests may race; assert prod default flag itself).
         assert!(!JitCompiler::tier2_prod_default_enabled());
         // If env still polluted by parallel tests, skip opt-in check.
         if std::env::var("SYX_JIT_TIER2").is_err() {
             assert!(!JitCompiler::tier2_opt_in_enabled());
         }
+        reset_jit_env_gates_for_test();
     }
 
     #[test]
     fn tier2_nightly_default_when_unset() {
+        reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_JIT_TIER2");
         std::env::set_var("SYX_NIGHTLY", "1");
+        reset_jit_env_gates_for_test();
         if std::env::var("SYX_JIT_TIER2").is_err() {
             assert!(JitCompiler::tier2_nightly_default_enabled());
             assert!(!JitCompiler::tier2_opt_in_enabled());
         }
         std::env::remove_var("SYX_NIGHTLY");
+        reset_jit_env_gates_for_test();
     }
 
     #[test]
     fn tier2_explicit_one_enables() {
+        reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_NIGHTLY");
         std::env::set_var("SYX_JIT_TIER2", "1");
+        reset_jit_env_gates_for_test();
         assert!(JitCompiler::tier2_opt_in_enabled());
         std::env::remove_var("SYX_JIT_TIER2");
+        reset_jit_env_gates_for_test();
     }
 
     #[test]
     fn tier2_explicit_zero_disables_prod_default() {
+        reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_NIGHTLY");
         std::env::set_var("SYX_JIT_TIER2", "0");
+        reset_jit_env_gates_for_test();
         assert!(!JitCompiler::tier2_opt_in_enabled());
         std::env::remove_var("SYX_JIT_TIER2");
+        reset_jit_env_gates_for_test();
     }
 
     #[test]

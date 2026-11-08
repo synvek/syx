@@ -38,9 +38,18 @@ User-facing surfaces show generic / method forms via demangle helpers — **not*
 ## Consequences
 
 - S3-02 plan-claimed `[x]`; Stage-3 stays `[~]`.
-- Default next = **S3-03 open** — not Stage-3 exit.
+- **S3-I48 landed** as [stage3-s3-03-open](stage3-s3-03-open.md)（S3-03 `[~]` + stdlib-cache census）。
+- **S3-I49 landed** as [stage3-s3-03-prelude-snapshot](stage3-s3-03-prelude-snapshot.md)（prelude 磁盘快照 hinge）。
+- **S3-I50 landed** as [stage3-s3-03-warm-program-trim](stage3-s3-03-warm-program-trim.md)（entry reachability trim）。
+- **S3-I51 landed** as [stage3-s3-03-warm-fixed-tax](stage3-s3-03-warm-fixed-tax.md)（cache-first + OnceLock + lazy hosts）。
+- **S3-I52 landed** as [stage3-s3-03-warm-residual](stage3-s3-03-warm-residual.md)（bake tag + plugin Once + trim skip）。
+- **S3-I53 landed** as [stage3-s3-03-cache-roundtrip](stage3-s3-03-cache-roundtrip.md)（bincode roundtrip）。
+- **S3-I54 landed** as [stage3-s3-03-prelude-embed](stage3-s3-03-prelude-embed.md)（`include_bytes`）。
+- **S3-I55 landed** as [stage3-s3-03-claim](stage3-s3-03-claim.md)（S3-03 `[x]`）。
+- **S3-I56 landed** as [stage3-s3-04-open](stage3-s3-04-open.md)（S3-04 `[~]`）。
+- Default next = **S3-I57** construct — not Stage-3 exit.
 - Prior: [stage3-s3-02-meta-type-display](stage3-s3-02-meta-type-display.md) · S3-I46.
-- Census Current → **S3-I47**.
+- Mono-display census Current → **S3-I47**；stdlib-cache census Current → **S3-I55**.
 
 ## References
 

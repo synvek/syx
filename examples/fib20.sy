@@ -1,0 +1,9 @@
+// S3-I68 claim-prep: fib(20) for criterion regression (CI-friendly).
+// Wall claim target remains fib(30) via examples/fib.sy — ≠ claim this window.
+func fib(n: Int) -> Int {
+    if (n < 2) { return n }
+    return fib(n: n - 1) + fib(n: n - 2)
+}
+func main() {
+    print(fib(n: 20))
+}

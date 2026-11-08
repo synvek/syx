@@ -47,8 +47,8 @@ See [stage3-s3-02-claim](adr/stage3-s3-02-claim.md)：轴①–⑤ + intentional
 3. **S3-I44:** debug stack — landed.
 4. **S3-I45:** runtime `__type` — landed.
 5. **S3-I46:** meta type — landed.
-6. **S3-I47:** S3-02 scoped claim — **this window**.
-7. **Next:** **S3-03 open**（标准库预编译/缓存）— ≠ Stage-3 exit.
+6. **S3-I47:** S3-02 scoped claim — **this window** (claimed).
+7. **Next:** **S3-03** — [S3-I48 open](adr/stage3-s3-03-open.md) landed；下一刀 **S3-I49 construct** — ≠ Stage-3 exit.
 
 ## Non-claims
 

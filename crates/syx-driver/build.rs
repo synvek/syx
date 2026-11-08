@@ -550,6 +550,48 @@ fn remove_legacy_files(core: &Path, internal: &Path) {
     }
 }
 
+fn rustc_version_string() -> String {
+    std::process::Command::new("rustc")
+        .arg("-V")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .unwrap_or_else(|| "unknown-rustc".into())
+        .trim()
+        .to_string()
+}
+
+fn emit_rustc_version_env() {
+    // S3-I51: bake rustc identity at build time — zero runtime `rustc -V` spawn on hello warm path.
+    let ver = rustc_version_string();
+    println!("cargo:rustc-env=SYX_RUSTC_VERSION={ver}");
+    println!("cargo:rerun-if-env-changed=RUSTC");
+}
+
+fn emit_cache_version_tag_env(root: &Path) {
+    // S3-I52: bake cache tip at build time — zero runtime heap_v100 / HostFnId::all first-touch.
+    use sha2::{Digest, Sha256};
+    let pkg = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".into());
+    let rustc = rustc_version_string();
+    let mut hasher = Sha256::new();
+    hasher.update(b"syx-cache-bake-v1:");
+    for rel in [
+        "crates/syx-driver/src/cache_fingerprint.rs",
+        "crates/syx-stdlib/src/registry.rs",
+    ] {
+        let path = root.join(rel);
+        println!("cargo:rerun-if-changed={}", path.display());
+        if let Ok(bytes) = fs::read(&path) {
+            hasher.update(rel.as_bytes());
+            hasher.update(&(bytes.len() as u64).to_le_bytes());
+            hasher.update(&bytes);
+        }
+    }
+    let tip = format!("{:x}", hasher.finalize());
+    let tag = format!("syx-cache-v1:{pkg}:{rustc}:{tip}");
+    println!("cargo:rustc-env=SYX_CACHE_VERSION_TAG={tag}");
+}
+
 fn main() {
     let root = repo_root();
     let core = root.join("packages/core");
@@ -557,6 +599,15 @@ fn main() {
     let numeric_dir = core.join("builtins/numeric");
 
     println!("cargo:rerun-if-changed=build.rs");
+    // S3-I54: rebuild when embedded prelude snapshot asset changes (do not compile .sy here).
+    println!(
+        "cargo:rerun-if-changed={}",
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("assets/prelude_snapshot.bin")
+            .display()
+    );
+    emit_rustc_version_env();
+    emit_cache_version_tag_env(&root);
     rerun_if_templates_changed();
 
     remove_legacy_files(&core, &internal);

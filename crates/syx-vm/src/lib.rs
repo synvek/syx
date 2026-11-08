@@ -337,6 +337,8 @@ pub struct VmInstance {
     pub suspend_frame: Option<VmSuspendFrame>,
     /// Wave A W488 / ADR-832: nested call locals saved as GC-visible frames.
     pub locals_frames: Vec<Vec<Value>>,
+    /// S3-I58: recycled callee `locals` buffers (cleared; not GC roots).
+    locals_buf_pool: Vec<Vec<Value>>,
     /// Wave A W498 / ADR-842: ManagedHeap slot indices from DictBuild ObjectRef
     /// probe (W497). Tracked for `collect_live_roots` / `HeapCompact` (mir-run
     /// `heap_slots` parity). ≠ migrate_enabled / ≠ cleanup / ≠ B-09 `[x]`.
@@ -357,7 +359,8 @@ impl Default for VmInstance {
 #[cfg(feature = "interpreter")]
 impl VmInstance {
     pub fn new() -> Self {
-        let mut vm = Self {
+        // S3-I51: skip full HostFnId::all() registration (~630) — lazy on CallHost.
+        Self {
             stack: Vec::new(),
             locals: Vec::new(),
             globals: Vec::new(),
@@ -375,11 +378,76 @@ impl VmInstance {
             suspended: false,
             suspend_frame: None,
             locals_frames: Vec::new(),
+            locals_buf_pool: Vec::new(),
             heap_slots: Vec::new(),
             jit: crate::jit::JitCompiler::default(),
-        };
-        vm.register_default_hosts();
-        vm
+        }
+    }
+
+    /// S3-I58: checkout a cleared locals buffer (reuse capacity when possible).
+    fn checkout_locals_buf(&mut self) -> Vec<Value> {
+        self.locals_buf_pool.pop().unwrap_or_default()
+    }
+
+    /// S3-I58: return a cleared locals buffer to the pool (bounded).
+    fn recycle_locals_buf(&mut self, mut buf: Vec<Value>) {
+        buf.clear();
+        const LOCALS_BUF_POOL_CAP: usize = 64;
+        if self.locals_buf_pool.len() < LOCALS_BUF_POOL_CAP {
+            self.locals_buf_pool.push(buf);
+        }
+    }
+
+    /// S3-I58 / S3-I63: save caller locals and install a pooled callee buffer.
+    /// S3-I63: checkout + `mem::swap` (no intermediate empty `locals` via `take`).
+    /// Caller Vec still lands in `locals_frames` (GC roots unchanged).
+    fn push_caller_locals_frame(&mut self) {
+        let mut callee = self.checkout_locals_buf();
+        std::mem::swap(&mut self.locals, &mut callee);
+        self.locals_frames.push(callee); // slot holds caller
+    }
+
+    /// S3-I58 / S3-I63: recycle callee locals and restore caller frame.
+    /// S3-I63: pop + `mem::swap` then recycle the vacated callee buf.
+    fn recycle_and_restore_locals(&mut self) {
+        let mut caller = self.locals_frames.pop().unwrap_or_default();
+        std::mem::swap(&mut self.locals, &mut caller); // locals=caller; caller binding holds callee
+        self.recycle_locals_buf(caller);
+    }
+
+    /// S3-I59: copy a Value for stack — scalar field copy; heap variants still clone.
+    /// ≠ `Value: Copy` for the whole enum.
+    fn copy_value_for_stack(v: &Value) -> Value {
+        match v {
+            Value::Nil => Value::Nil,
+            Value::Bool(b) => Value::Bool(*b),
+            Value::I8(x) => Value::I8(*x),
+            Value::I16(x) => Value::I16(*x),
+            Value::I32(x) => Value::I32(*x),
+            Value::I64(x) => Value::I64(*x),
+            Value::I128(x) => Value::I128(*x),
+            Value::U8(x) => Value::U8(*x),
+            Value::U16(x) => Value::U16(*x),
+            Value::U32(x) => Value::U32(*x),
+            Value::U64(x) => Value::U64(*x),
+            Value::U128(x) => Value::U128(*x),
+            Value::F32(x) => Value::F32(*x),
+            Value::F64(x) => Value::F64(*x),
+            Value::Simd {
+                lanes,
+                element,
+                bits,
+            } => Value::Simd {
+                lanes: *lanes,
+                element: *element,
+                bits: *bits,
+            },
+            Value::HeapSlot { idx, kind } => Value::HeapSlot {
+                idx: *idx,
+                kind: *kind,
+            },
+            other => other.clone(),
+        }
     }
 }
 
@@ -391,6 +459,17 @@ impl VmInstance {
                 self.host_fns.insert(id.name().into(), f);
             }
         }
+    }
+
+    /// S3-I51: resolve one host by name into `host_fns` (lazy warm-path hinge).
+    fn ensure_host_fn(&mut self, name: &str) -> Option<HostFn> {
+        if let Some(host) = self.host_fns.get(name).copied() {
+            return Some(host);
+        }
+        let id = syx_stdlib::host_fn_id_by_name(name)?;
+        let host = hosts::host_fn_for(id)?;
+        self.host_fns.insert(name.into(), host);
+        Some(host)
     }
 
     pub fn run_program(&mut self, program: &CompiledProgram) -> SyxResult<Value> {
@@ -577,35 +656,100 @@ impl VmInstance {
         program: &CompiledProgram,
         args: &[Value],
     ) -> SyxResult<Value> {
+        // Slice entry (one-off / tests). Drain/Call hot paths use owned API directly.
+        self.run_function_with_owned_args(func, program, args.to_vec())
+    }
+
+    /// S3-I57: Call-boundary owned args — move-bind into locals (no per-arg bind clone).
+    pub fn run_function_with_owned_args(
+        &mut self,
+        func: &FunctionUnit,
+        program: &CompiledProgram,
+        args: Vec<Value>,
+    ) -> SyxResult<Value> {
         if self.suspend_frame.is_none()
             && (crate::jit::JitCompiler::fastpath_enabled()
                 || crate::jit::JitCompiler::tier2_opt_in_enabled())
         {
             self.jit.record_call(func.name.as_str());
             let _ = self.jit.maybe_compile(func.name.as_str(), program);
-            if let Some(v) = self.jit.invoke_native(func.name.as_str(), args)? {
+            if let Some(v) = self.jit.invoke_native(func.name.as_str(), &args)? {
                 return Ok(v);
             }
         }
-        let outer_locals = std::mem::take(&mut self.locals);
-        self.locals_frames.push(outer_locals);
+        self.push_caller_locals_frame();
         self.call_depth += 1;
         self.try_handler_frames.push(self.try_handlers.len());
-        let mut pc = if let Some(frame) = self.suspend_frame.take() {
-            self.locals = frame.locals;
+        let pc = if let Some(frame) = self.suspend_frame.take() {
+            // Recycle unused pooled buf before installing suspend snapshot.
+            let unused = std::mem::replace(&mut self.locals, frame.locals);
+            self.recycle_locals_buf(unused);
             self.stack = frame.stack;
             self.async_state = frame.state;
             frame.pc
         } else {
             self.locals.resize(func.local_count as usize, Value::Nil);
-            for (i, arg) in args.iter().enumerate() {
+            // S3-I57: move-bind drained Call args.
+            for (i, arg) in args.into_iter().enumerate() {
                 if i < self.locals.len() {
-                    self.locals[i] = arg.clone();
+                    self.locals[i] = arg;
                 }
             }
             0
         };
+        // Owned path always tracks try frames (slow / Lazy / virtual / resume).
+        self.run_function_body(func, program, pc, true)
+    }
+
+    /// S3-I60: Call hot path — move stack args into pooled locals with no intermediate `Vec`.
+    /// JIT / suspend resume fall back to owned-args (needs `&[Value]` or snapshot).
+    /// S3-I61: try-free — skip `try_handler_frames` push/pop when no active try and no BeginTry.
+    pub fn run_function_with_stack_args(
+        &mut self,
+        func: &FunctionUnit,
+        program: &CompiledProgram,
+        arg_count: usize,
+    ) -> SyxResult<Value> {
+        if self.suspend_frame.is_none()
+            && (crate::jit::JitCompiler::fastpath_enabled()
+                || crate::jit::JitCompiler::tier2_opt_in_enabled())
+        {
+            let start = self.stack.len().saturating_sub(arg_count);
+            let args: Vec<Value> = self.stack.drain(start..).collect();
+            return self.run_function_with_owned_args(func, program, args);
+        }
+        if self.suspend_frame.is_some() {
+            // Resume ignores Call args; still drain so the stack stays consistent.
+            let start = self.stack.len().saturating_sub(arg_count);
+            let args: Vec<Value> = self.stack.drain(start..).collect();
+            return self.run_function_with_owned_args(func, program, args);
+        }
+        self.push_caller_locals_frame();
+        self.call_depth += 1;
+        // S3-I61 try-free Call: only book a try-frame boundary when needed.
+        let track_try_frame = self.stack_args_needs_try_frame(func);
+        if track_try_frame {
+            self.try_handler_frames.push(self.try_handlers.len());
+        }
+        // S3-I62: bind args first, then Nil-pad — no full-slot resize before overwrite.
+        self.bind_stack_args_into_locals(arg_count, func.local_count as usize);
+        self.run_function_body(func, program, 0, track_try_frame)
+    }
+
+    /// Shared interpret + unwind after frame/locals are installed.
+    /// `track_try_frame`: when false (S3-I61 try-free), skip `pop_try_handler_frame`.
+    /// S3-I65: try-free → `run_function_body_tryfree` (no catch/throw polls + hot opcode match).
+    fn run_function_body(
+        &mut self,
+        func: &FunctionUnit,
+        program: &CompiledProgram,
+        mut pc: usize,
+        track_try_frame: bool,
+    ) -> SyxResult<Value> {
         self.suspended = false;
+        if !track_try_frame {
+            return self.run_function_body_tryfree(func, program, pc);
+        }
         while pc < func.instructions.len() {
             if let Some(catch_pc) = self.pending_catch.take() {
                 pc = catch_pc;
@@ -622,23 +766,212 @@ impl VmInstance {
                 break;
             }
         }
+        self.finish_function_body_unwind(func, program, true)
+    }
+
+    /// S3-I65: try-free interpret — no per-insn `pending_catch` / `propagating_throw` polls.
+    /// Hot fib/arithmetic opcodes match early; cold → `exec_instruction`.
+    fn run_function_body_tryfree(
+        &mut self,
+        func: &FunctionUnit,
+        program: &CompiledProgram,
+        mut pc: usize,
+    ) -> SyxResult<Value> {
+        let code = &func.instructions;
+        while pc < code.len() {
+            match &code[pc] {
+                Instruction::ConstI32(v) => {
+                    self.stack.push(Value::I32(*v));
+                    pc += 1;
+                }
+                Instruction::LoadLocal(i) => {
+                    let v = self
+                        .locals
+                        .get(*i as usize)
+                        .map(Self::copy_value_for_stack)
+                        .unwrap_or(Value::Nil);
+                    self.stack.push(v);
+                    pc += 1;
+                }
+                Instruction::StoreLocal(i) => {
+                    let v = self.stack.pop().unwrap_or(Value::Nil);
+                    if self.locals.len() <= *i as usize {
+                        self.locals.resize(*i as usize + 1, Value::Nil);
+                    }
+                    let should_unroot = self
+                        .locals
+                        .get(*i as usize)
+                        .map(|o| o != &v)
+                        .unwrap_or(true);
+                    let old = std::mem::replace(&mut self.locals[*i as usize], v);
+                    if should_unroot {
+                        self.maybe_untrack_objectref_value(&old);
+                    }
+                    pc += 1;
+                }
+                Instruction::I32Add => {
+                    self.binop_i32(|a, b| a + b);
+                    pc += 1;
+                }
+                Instruction::I32Sub => {
+                    self.binop_i32(|a, b| a - b);
+                    pc += 1;
+                }
+                Instruction::I32Mul => {
+                    self.binop_i32(|a, b| a * b);
+                    pc += 1;
+                }
+                Instruction::I32Div => {
+                    self.binop_i32(|a, b| a / b);
+                    pc += 1;
+                }
+                Instruction::I32Mod => {
+                    self.binop_i32(|a, b| a % b);
+                    pc += 1;
+                }
+                Instruction::I32Eq => {
+                    self.binop_bool(|a, b| a == b);
+                    pc += 1;
+                }
+                Instruction::I32Ne => {
+                    self.binop_bool(|a, b| a != b);
+                    pc += 1;
+                }
+                Instruction::I32Lt => {
+                    self.binop_i32_cmp(|a, b| a < b);
+                    pc += 1;
+                }
+                Instruction::I32Le => {
+                    self.binop_i32_cmp(|a, b| a <= b);
+                    pc += 1;
+                }
+                Instruction::I32Gt => {
+                    self.binop_i32_cmp(|a, b| a > b);
+                    pc += 1;
+                }
+                Instruction::I32Ge => {
+                    self.binop_i32_cmp(|a, b| a >= b);
+                    pc += 1;
+                }
+                Instruction::Jump(target) => {
+                    pc = *target;
+                }
+                Instruction::JumpIfFalse(target) => {
+                    let cond = self.stack.pop().unwrap_or(Value::Bool(false));
+                    if !cond.as_bool() {
+                        pc = *target;
+                    } else {
+                        pc += 1;
+                    }
+                }
+                Instruction::Dup => {
+                    let v = self
+                        .stack
+                        .last()
+                        .map(Self::copy_value_for_stack)
+                        .unwrap_or(Value::Nil);
+                    self.stack.push(v);
+                    pc += 1;
+                }
+                Instruction::Pop => {
+                    self.stack.pop();
+                    pc += 1;
+                }
+                Instruction::Return => {
+                    pc = code.len();
+                }
+                Instruction::Call(idx) => {
+                    let callee = program.functions.get(*idx as usize).ok_or_else(|| {
+                        vm_error_at(
+                            format!("Unknown function index {idx}"),
+                            None,
+                            Span::DUMMY,
+                            "R003",
+                        )
+                    })?;
+                    // Hot: stack-bind free-function Call only; slow Call → exec_instruction.
+                    if Self::call_can_stack_bind(callee) {
+                        let arg_count = callee.param_count as usize;
+                        let result =
+                            self.run_function_with_stack_args(callee, program, arg_count)?;
+                        pc = self.finish_call(result, pc)?;
+                        if self.suspended || self.propagating_throw.is_some() {
+                            break;
+                        }
+                    } else {
+                        pc = self.exec_instruction(&code[pc], program, code, pc)?;
+                        if self.suspended || self.propagating_throw.is_some() {
+                            break;
+                        }
+                    }
+                }
+                _ => {
+                    pc = self.exec_instruction(&code[pc], program, code, pc)?;
+                    if self.suspended || self.propagating_throw.is_some() {
+                        break;
+                    }
+                }
+            }
+        }
+        self.finish_function_body_unwind(func, program, false)
+    }
+
+    /// Shared post-interpret unwind for try-tracked and try-free bodies.
+    fn finish_function_body_unwind(
+        &mut self,
+        func: &FunctionUnit,
+        program: &CompiledProgram,
+        track_try_frame: bool,
+    ) -> SyxResult<Value> {
         self.call_depth = self.call_depth.saturating_sub(1);
         if self.suspended {
-            self.locals = self.locals_frames.pop().unwrap_or_default();
+            self.recycle_and_restore_locals();
             return Ok(Value::Nil);
         }
         if self.propagating_throw.is_some() {
-            self.pop_try_handler_frame();
-            self.locals = self.locals_frames.pop().unwrap_or_default();
+            if track_try_frame {
+                self.pop_try_handler_frame();
+            }
+            self.recycle_and_restore_locals();
             return Ok(Value::Nil);
         }
         if func.name == program.entry_point {
             self.run_class_deinits_if_enabled(program)?;
         }
         let result = self.stack.pop().unwrap_or(Value::Nil);
-        self.pop_try_handler_frame();
-        self.locals = self.locals_frames.pop().unwrap_or_default();
+        if track_try_frame {
+            self.pop_try_handler_frame();
+        }
+        self.recycle_and_restore_locals();
         Ok(result)
+    }
+
+    /// S3-I60: free-function Direct Call can stack-bind (no Lazy / virtual / deinit).
+    /// S3-I67: compile-time `can_stack_bind` — no per-call ends_with / mangle parse.
+    fn call_can_stack_bind(func: &FunctionUnit) -> bool {
+        func.can_stack_bind
+    }
+
+    /// S3-I61: stack-args needs a try-frame boundary if handlers are live or body has BeginTry.
+    fn stack_args_needs_try_frame(&self, func: &FunctionUnit) -> bool {
+        // S3-I64: compile-time `has_begin_try` — no per-call instruction-table scan.
+        if !self.try_handlers.is_empty() {
+            return true;
+        }
+        func.has_begin_try
+    }
+
+    /// S3-I62: drain stack args into pooled locals, then Nil-pad only remaining slots.
+    /// Avoids `resize(local_count, Nil)` then immediately overwriting `0..arg_count`.
+    fn bind_stack_args_into_locals(&mut self, arg_count: usize, local_count: usize) {
+        // Pooled buf arrives cleared (len=0); drain moves Values — no intermediate Vec (S3-I60).
+        let start = self.stack.len().saturating_sub(arg_count);
+        self.locals.extend(self.stack.drain(start..));
+        if self.locals.len() < local_count {
+            self.locals.resize(local_count, Value::Nil);
+        } else if self.locals.len() > local_count {
+            self.locals.truncate(local_count);
+        }
     }
 
     /// Phase 134: `super.init(...)` runs the superclass init body on an existing subclass `self`.
@@ -647,14 +980,14 @@ impl VmInstance {
         func: &FunctionUnit,
         program: &CompiledProgram,
         self_val: Value,
-        args: &[Value],
+        args: Vec<Value>,
     ) -> SyxResult<Value> {
-        let outer_locals = std::mem::take(&mut self.locals);
-        self.locals_frames.push(outer_locals);
+        self.push_caller_locals_frame();
         self.locals.resize(func.local_count as usize, Value::Nil);
-        for (i, arg) in args.iter().enumerate() {
+        // S3-I57: move-bind owned init args.
+        for (i, arg) in args.into_iter().enumerate() {
             if i < self.locals.len() {
-                self.locals[i] = arg.clone();
+                self.locals[i] = arg;
             }
         }
         if let Some(self_slot) = func.local_names.iter().position(|n| n == "self") {
@@ -679,11 +1012,13 @@ impl VmInstance {
             self_val
         };
         if self.suspended {
-            self.locals = self.locals_frames.pop().unwrap_or_default();
+            self.recycle_and_restore_locals();
             return Ok(result);
         }
-        // Historical: success leaves init locals in place and drops outer frame (still GC-visible via pop).
-        let _ = self.locals_frames.pop();
+        // Historical: success leaves init locals in place; recycle saved outer into pool.
+        if let Some(outer) = self.locals_frames.pop() {
+            self.recycle_locals_buf(outer);
+        }
         Ok(result)
     }
 
@@ -725,15 +1060,15 @@ impl VmInstance {
         func: &FunctionUnit,
         program: &CompiledProgram,
         captures: &[Value],
-        args: &[Value],
+        args: Vec<Value>,
     ) -> SyxResult<Value> {
-        let saved_locals = std::mem::take(&mut self.locals);
-        self.locals_frames.push(saved_locals);
+        self.push_caller_locals_frame();
         self.call_depth += 1;
         self.locals.resize(func.local_count as usize, Value::Nil);
-        for (i, arg) in args.iter().enumerate() {
+        // S3-I57: move-bind owned closure args (captures still cloned).
+        for (i, arg) in args.into_iter().enumerate() {
             if i < self.locals.len() {
-                self.locals[i] = arg.clone();
+                self.locals[i] = arg;
             }
         }
         let capture_start = func.param_count as usize;
@@ -756,7 +1091,7 @@ impl VmInstance {
                 Ok(next) => pc = next,
                 Err(err) => {
                     self.call_depth = self.call_depth.saturating_sub(1);
-                    self.locals = self.locals_frames.pop().unwrap_or_default();
+                    self.recycle_and_restore_locals();
                     return Err(err);
                 }
             }
@@ -766,11 +1101,11 @@ impl VmInstance {
         }
         self.call_depth = self.call_depth.saturating_sub(1);
         if self.propagating_throw.is_some() {
-            self.locals = self.locals_frames.pop().unwrap_or_default();
+            self.recycle_and_restore_locals();
             return Ok(Value::Nil);
         }
         let result = self.stack.pop().unwrap_or(Value::Nil);
-        self.locals = self.locals_frames.pop().unwrap_or_default();
+        self.recycle_and_restore_locals();
         Ok(result)
     }
 
@@ -880,7 +1215,7 @@ impl VmInstance {
         if crate::try_dispatch_plugin_host(name, &mut self.stack) {
             return Ok(pc + 1);
         }
-        if let Some(host) = self.host_fns.get(name).copied() {
+        if let Some(host) = self.ensure_host_fn(name) {
             if let Err(err) = host(&mut self.stack) {
                 // Preserve diagnostic code for try/catch (`err.code`), e.g. C004.
                 return self.fail_host_or_raise(err, pc);
@@ -922,34 +1257,39 @@ impl VmInstance {
                 self.stack.pop();
             }
             Instruction::Dup => {
-                // Wave A W523 / ADR-867: Dup ObjectRef RC bump retired
-                // (true-retire first-slice). Keep clone/push + W510 dual-track.
-                // Release/StoreLocal/deinit + Value API + RT ABI still live.
-                // ≠ Value RC full delete / migrate / cleanup / enable.
-                let v = self.stack.last().cloned().unwrap_or(Value::Nil);
+                // Wave A W523 / ADR-867: Dup ObjectRef RC bump retired.
+                // S3-I59: scalar fast-path via copy_value_for_stack (heap still clones).
+                let v = self
+                    .stack
+                    .last()
+                    .map(Self::copy_value_for_stack)
+                    .unwrap_or(Value::Nil);
                 self.stack.push(v);
             }
             Instruction::LoadLocal(i) => {
-                // Wave A W523 / ADR-867: LoadLocal ObjectRef RC bump retired
-                // (true-retire first-slice; parity with Dup). Keep push +
-                // W510 dual-track. SSA LoadLocal already no-retain (W517).
-                // ≠ Value RC full delete / Release strip / migrate / enable.
-                let v = self.locals.get(*i as usize).cloned().unwrap_or(Value::Nil);
+                // Wave A W523 / ADR-867: LoadLocal ObjectRef RC bump retired.
+                // S3-I59: scalar fast-path via copy_value_for_stack (heap still clones).
+                let v = self
+                    .locals
+                    .get(*i as usize)
+                    .map(Self::copy_value_for_stack)
+                    .unwrap_or(Value::Nil);
                 self.stack.push(v);
             }
             Instruction::StoreLocal(i) => {
-                // Wave A W525 / ADR-869: StoreLocal ObjectRef ManagedHeap +
-                // heap_slots unroot (death-path first-slice).
-                // Wave A W528 / ADR-872: ObjectRef RC true-retire — no
-                // release_object_ref / eager Type_deinit; finalizer via W527
-                // collect sweep. Keep maybe_untrack. ≠ Value API delete /
-                // ≠ migrate / ≠ enable.
+                // Wave A W525 / ADR-869 + W528: maybe_untrack; S3-I59 move-bind
+                // (mir-run parity — no slot `v.clone()`).
                 let v = self.stack.pop().unwrap_or(Value::Nil);
                 if self.locals.len() <= *i as usize {
                     self.locals.resize(*i as usize + 1, Value::Nil);
                 }
-                let old = std::mem::replace(&mut self.locals[*i as usize], v.clone());
-                if old != v {
+                let should_unroot = self
+                    .locals
+                    .get(*i as usize)
+                    .map(|o| o != &v)
+                    .unwrap_or(true);
+                let old = std::mem::replace(&mut self.locals[*i as usize], v);
+                if should_unroot {
                     self.maybe_untrack_objectref_value(&old);
                 }
             }
@@ -1151,7 +1491,7 @@ impl VmInstance {
                             let arg_count = func.param_count as usize;
                             let start = self.stack.len().saturating_sub(arg_count);
                             let args: Vec<Value> = self.stack.drain(start..).collect();
-                            let result = self.run_function_with_args(func, program, &args)?;
+                            let result = self.run_function_with_owned_args(func, program, args)?;
                             if matches!(result, Value::Nil) {
                                 self.stack.push(Value::Bool(false));
                             } else {
@@ -1964,7 +2304,7 @@ impl VmInstance {
                         let args: Vec<Value> = self.stack.drain(start..).collect();
                         self.stack.remove(self_idx);
                         let result =
-                            self.run_init_on_existing_self(func, program, self_val, &args)?;
+                            self.run_init_on_existing_self(func, program, self_val, args)?;
                         self.stack.push(result);
                         return Ok(pc + 1);
                     }
@@ -1972,7 +2312,7 @@ impl VmInstance {
                 let arg_count = func.param_count as usize;
                 let start = self.stack.len().saturating_sub(arg_count);
                 let args: Vec<Value> = self.stack.drain(start..).collect();
-                let result = self.run_function_with_args(func, program, &args)?;
+                let result = self.run_function_with_owned_args(func, program, args)?;
                 return self.finish_call(result, pc);
             }
             Instruction::Call(idx) => {
@@ -1990,6 +2330,11 @@ impl VmInstance {
                     let _ = self.jit.maybe_compile(func.name.as_str(), program);
                 }
                 let arg_count = func.param_count as usize;
+                // S3-I60: free-function hot path — stack→locals, no intermediate Vec.
+                if Self::call_can_stack_bind(func) {
+                    let result = self.run_function_with_stack_args(func, program, arg_count)?;
+                    return self.finish_call(result, pc);
+                }
                 let start = self.stack.len().saturating_sub(arg_count);
                 let mut args: Vec<Value> = self.stack.drain(start..).collect();
                 // Phase 128: materialize `@Lazy` proxy receivers before instance methods
@@ -2007,7 +2352,7 @@ impl VmInstance {
                     }
                 }
                 let func = self.resolve_virtual_method(func, &args, program);
-                let result = self.run_function_with_args(func, program, &args)?;
+                let result = self.run_function_with_owned_args(func, program, args)?;
                 return self.finish_call(result, pc);
             }
             Instruction::CallIndirect(arg_count) => {
@@ -2036,7 +2381,7 @@ impl VmInstance {
                     }
                 }
                 let func = self.resolve_virtual_method(func, &args, program);
-                let result = self.run_function_with_args(func, program, &args)?;
+                let result = self.run_function_with_owned_args(func, program, args)?;
                 return self.finish_call(result, pc);
             }
             Instruction::MakeClosure(fn_index, capture_count) => {
@@ -2062,7 +2407,7 @@ impl VmInstance {
                     let arg_count = func.param_count as usize;
                     let start = self.stack.len().saturating_sub(arg_count);
                     let args: Vec<Value> = self.stack.drain(start..).collect();
-                    let result = self.run_closure_with_captures(func, program, &captures, &args)?;
+                    let result = self.run_closure_with_captures(func, program, &captures, args)?;
                     return self.finish_call(result, pc);
                 } else {
                     self.stack.push(Value::Nil);
@@ -2104,7 +2449,7 @@ impl VmInstance {
                     let _depth = actor_mailbox::mailbox_enter(actor_id);
                     let lock = actor_lock_for(actor_id);
                     let _guard = lock.lock().unwrap_or_else(|e| e.into_inner());
-                    let result = self.run_function_with_args(func, program, &args);
+                    let result = self.run_function_with_owned_args(func, program, args);
                     actor_mailbox::mailbox_leave(actor_id);
                     let _ = actor_mailbox::mailbox_dequeue(actor_id);
                     let result = result?;
@@ -2295,7 +2640,7 @@ impl VmInstance {
                     let _depth = actor_mailbox::mailbox_enter(actor_id);
                     let lock = actor_lock_for(actor_id);
                     let _guard = lock.lock().unwrap_or_else(|e| e.into_inner());
-                    let result = self.run_function_with_args(func, program, &args);
+                    let result = self.run_function_with_owned_args(func, program, args);
                     actor_mailbox::mailbox_leave(actor_id);
                     let _ = actor_mailbox::mailbox_dequeue(actor_id);
                     self.stack.push(result?);
@@ -2317,7 +2662,7 @@ impl VmInstance {
                     let handle = rt.spawn_detached_fn(func.name.as_str(), args)?;
                     self.stack.push(handle);
                 } else {
-                    let result = self.run_function_with_args(func, program, &args)?;
+                    let result = self.run_function_with_owned_args(func, program, args)?;
                     self.stack.push(result);
                 }
             }
@@ -2342,7 +2687,7 @@ impl VmInstance {
                 let arg_count = func.param_count as usize;
                 let start = self.stack.len().saturating_sub(arg_count);
                 let args: Vec<Value> = self.stack.drain(start..).collect();
-                let result = self.run_function_with_args(func, program, &args)?;
+                let result = self.run_function_with_owned_args(func, program, args)?;
                 return self.finish_call(result, pc);
             }
             Instruction::ArraySet => {
@@ -2567,7 +2912,7 @@ impl VmInstance {
                         func,
                         program,
                         captures,
-                        &[item.clone()],
+                        vec![item.clone()],
                     )?);
                 }
                 self.stack.push(Value::Array(mapped));
@@ -2590,8 +2935,12 @@ impl VmInstance {
                 })?;
                 let mut filtered = Vec::new();
                 for item in items {
-                    let keep =
-                        self.run_closure_with_captures(func, program, captures, &[item.clone()])?;
+                    let keep = self.run_closure_with_captures(
+                        func,
+                        program,
+                        captures,
+                        vec![item.clone()],
+                    )?;
                     if keep.as_bool() {
                         filtered.push(item.clone());
                     }
@@ -2623,7 +2972,7 @@ impl VmInstance {
                         func,
                         program,
                         captures,
-                        &[acc, item.clone()],
+                        vec![acc, item.clone()],
                     )?;
                 }
                 self.stack.push(acc);
@@ -2879,6 +3228,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
@@ -2906,6 +3257,8 @@ mod tests {
             source_name: SmolStr::new(""),
             init_body_pc: 0,
             init_wrap_pc: 0,
+            has_begin_try: false,
+            can_stack_bind: false,
         };
         let program = CompiledProgram {
             functions: vec![func],
