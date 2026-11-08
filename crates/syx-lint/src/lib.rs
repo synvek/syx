@@ -47,16 +47,20 @@ pub fn lint_module(source: &SourceFile, module: &Module) -> Vec<LintIssue> {
     let mut issues = Vec::new();
     let mut function_names = indexmap::IndexSet::new();
     for decl in &module.decls {
-        lint_decl(decl, &mut issues, &mut function_names);
+        // S3-I73: top-level decls are not type members.
+        lint_decl(decl, &mut issues, &mut function_names, false);
     }
     lint_source_text(source, &mut issues);
     issues
 }
 
+/// `in_type_member`: true when walking type members so stored `VarGlobal`
+/// fields are not treated as module globals (S3-I73 Class/Actor · S3-I74 Struct/Extension · L007).
 fn lint_decl(
     decl: &Decl,
     issues: &mut Vec<LintIssue>,
     function_names: &mut indexmap::IndexSet<smol_str::SmolStr>,
+    in_type_member: bool,
 ) {
     match decl {
         Decl::Function {
@@ -108,7 +112,8 @@ fn lint_decl(
                     code: "L006".into(),
                 });
             }
-            if init.is_none() {
+            // S3-I73/I74: type stored fields share VarGlobal shape but are not globals.
+            if init.is_none() && !in_type_member {
                 issues.push(LintIssue {
                     message: format!("Global variable '{name}' has no initializer"),
                     code: "L007".into(),
@@ -123,13 +128,22 @@ fn lint_decl(
                 });
             }
         }
-        Decl::Class { members, .. } => {
+        Decl::Class { members, .. }
+        | Decl::Actor { members, .. }
+        | Decl::Struct { members, .. } => {
+            // S3-I73 Class/Actor · S3-I74 Struct: recurse with type-member context.
             for member in members {
-                lint_decl(member, issues, function_names);
+                lint_decl(member, issues, function_names, true);
+            }
+        }
+        Decl::Extension { methods, .. } => {
+            // S3-I74: extension methods share Decl list; keep type-member context.
+            for method in methods {
+                lint_decl(method, issues, function_names, true);
             }
         }
         Decl::Export { item, .. } => {
-            lint_decl(item, issues, function_names);
+            lint_decl(item, issues, function_names, in_type_member);
         }
         Decl::ExportList { .. } => {}
         _ => {}
@@ -216,7 +230,8 @@ fn lint_source_text(source: &SourceFile, issues: &mut Vec<LintIssue>) {
                 code: "L011".into(),
             });
         }
-        if line.trim_start().starts_with("print(") {
+        // S3-I73: only column-0 `print(` counts as top-level-style (no trim_start).
+        if line.starts_with("print(") {
             issues.push(LintIssue {
                 message: format!("Line {} uses top-level-style print", line_no + 1),
                 code: "L012".into(),
@@ -284,5 +299,84 @@ mod tests {
             "L012",
         ];
         assert!(codes.len() >= 10);
+    }
+
+    /// S3-I73: class field without init must not emit L007; indented print must not emit L012.
+    #[test]
+    fn class_field_and_indented_print_no_l007_l012() {
+        let source = SourceFile::new(
+            "class_demo_mini.sy",
+            r#"class Greeter {
+    var name: String
+    func hello() {
+        print(self.name)
+    }
+}
+
+func main() {
+    print("hi")
+}
+"#,
+        );
+        let issues = lint_source(&source).expect("lint");
+        assert!(
+            !issues.iter().any(|i| i.code == "L007"),
+            "class field must not emit L007; got {issues:?}"
+        );
+        assert!(
+            !issues.iter().any(|i| i.code == "L012"),
+            "indented print must not emit L012; got {issues:?}"
+        );
+    }
+
+    /// S3-I73: module-level uninitialized var still L007; column-0 print still L012.
+    #[test]
+    fn top_level_var_and_print_still_lint() {
+        let source = SourceFile::new("t.sy", "var orphan: Int\nprint(1)\n");
+        let issues = lint_source(&source).expect("lint");
+        assert!(
+            issues.iter().any(|i| i.code == "L007"),
+            "top-level uninitialized var must emit L007; got {issues:?}"
+        );
+        assert!(
+            issues.iter().any(|i| i.code == "L012"),
+            "column-0 print must emit L012; got {issues:?}"
+        );
+    }
+
+    /// S3-I74: struct fields without init must not emit L007; extension method still linted.
+    #[test]
+    fn struct_field_and_extension_no_l007() {
+        let source = SourceFile::new(
+            "struct_demo_mini.sy",
+            r#"struct Point {
+    var x: Int
+    var y: Int
+}
+
+extension Point {
+    func BadName() {
+        print(self.x)
+    }
+}
+
+func main() {
+    print(1)
+}
+"#,
+        );
+        let issues = lint_source(&source).expect("lint");
+        assert!(
+            !issues.iter().any(|i| i.code == "L007"),
+            "struct fields must not emit L007; got {issues:?}"
+        );
+        assert!(
+            issues.iter().any(|i| i.code == "L001"),
+            "extension method BadName should still emit L001; got {issues:?}"
+        );
+        assert!(
+            !issues.iter().any(|i| i.code == "L012"),
+            "indented print must not emit L012; got {issues:?}"
+        );
     }
 }

@@ -22,7 +22,7 @@ bash scripts/s3_04_vm_hotspot_census.sh
 | examples / criterion | Hinged (I68) | |
 | wall-strategy / residual-scope | Hinged (I69–I70) | |
 | scoped `[x]` claim | Hinged (I71) | this window |
-| S3-05 lint AST/CST | **Next workstream** | I72 open |
+| S3-05 lint AST/CST | **Next workstream** | I72 open landed · next I73 |
 | HostFn / Wave / F-08 / Stage-3 exit | **No（OUT）** | Hard OUT |
 
 ## KPIs（S3-I71 · Claim · 2026-11-08）
@@ -66,7 +66,7 @@ Machine-local（prefer release `syx`）。**≠** claim &lt;0.5。
 |----|------|
 | S3-04 | **`[x]`** scoped；字面 &lt;0.5 deferred |
 | Stage-3 | 仍 **`[~]`**（**4/7**；余 S3-05…07） |
-| Next | **S3-I72** S3-05 open — ≠ Stage-3 exit；**≠** 本窗 S3-05 施工 |
+| Next | **S3-I72** S3-05 open **landed**（[lint-ast census](stage3-lint-ast-census.md)）；下一 construct = **S3-I73** — ≠ Stage-3 exit |
 
 ## Ladder (locked)
 
@@ -85,8 +85,9 @@ Machine-local（prefer release `syx`）。**≠** claim &lt;0.5。
 13. **S3-I68:** claim-prep — landed.
 14. **S3-I69:** wall-strategy — landed.
 15. **S3-I70:** residual-scope — landed.
-16. **S3-I71:** S3-04 scoped claim — **this window**.
-17. **S3-I72:** S3-05 open — next（≠ Stage-3 exit）。
+16. **S3-I71:** S3-04 scoped claim — landed.
+17. **S3-I72:** S3-05 open — landed（[lint-ast census](stage3-lint-ast-census.md)）。
+18. **S3-I73:** S3-05 construct — next（≠ Stage-3 exit）。
 
 ## Claim criteria（met · scoped）
 

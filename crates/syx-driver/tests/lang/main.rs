@@ -152,3 +152,8 @@ mod s3_04_claim_prep_contract;
 mod s3_04_wall_strategy_contract;
 mod s3_04_residual_scope_contract;
 mod s3_04_claim_contract;
+mod s3_05_lint_ast_census_contract;
+mod s3_05_l007_l012_contract;
+mod s3_05_struct_extension_contract;
+mod s3_05_claim_prep_contract;
+mod s3_05_residual_scope_contract;
