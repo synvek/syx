@@ -132,6 +132,27 @@ func main() {
 }
 
 #[test]
+fn empty_error_marker_protocol_ok() {
+    // SA-2-02: `Error` is an empty marker — must not trip Iterator S006.
+    assert!(!has_error(
+        r#"protocol Error {
+}
+func main() {}"#,
+        "S006"
+    ));
+}
+
+#[test]
+fn empty_custom_protocol_still_s006() {
+    assert!(has_error(
+        r#"protocol NotAnIterator {
+}
+func main() {}"#,
+        "S006"
+    ));
+}
+
+#[test]
 fn iterator_manual_next() {
     let src = r#"
 class Counter {

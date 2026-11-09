@@ -256,7 +256,8 @@ impl SemanticAnalyzer {
                         } if n == "next"
                     )
                 });
-                // Marker / capability protocols (ADR-230 coding + ADR-234 IO) may be empty.
+                // Marker / capability protocols (ADR-230 coding + ADR-234 IO + SA-2-02 Error)
+                // may be empty — they must not be forced through the Iterator `next()` gate.
                 let is_builtin_value_protocol = matches!(
                     name.as_str(),
                     "Equatable"
@@ -271,6 +272,7 @@ impl SemanticAnalyzer {
                         | "Writer"
                         | "Seekable"
                         | "Closeable"
+                        | "Error"
                 );
                 if name.as_str() == "Comparable" {
                     let has_compare = methods.iter().any(|m| {
