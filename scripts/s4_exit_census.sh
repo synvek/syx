@@ -28,7 +28,7 @@ stage4_exit_helper=0
 stage4_exit_helper_hits=$(count_rg 'S3-I109|stage4-exit|exit_status=exited|\[x\] 退出' \
   docs/adr/stage4-exit.md docs/census/stage4-exit-census.md \
   scripts/s4_exit_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/credibility/stage4_exit_contract.rs)
+  crates/syx-driver/tests/credibility/ecosystem_exit_contract.rs)
 if [[ "$stage4_exit_helper_hits" -ge 1 ]]; then
   stage4_exit_helper=1
 fi

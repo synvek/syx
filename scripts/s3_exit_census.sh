@@ -22,12 +22,12 @@ count_rg() {
 stage3_exit_open_helper=$(count_rg 'S3-I86|stage3-exit-open|exit-open|exit open' \
   docs/adr/stage3-exit-open.md docs/census/stage3-exit-census.md \
   scripts/s3_exit_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/credibility/stage3_exit_open_contract.rs)
+  crates/syx-driver/tests/credibility/dx_exit_open_contract.rs)
 
 stage3_exit_helper=$(count_rg 'S3-I87|stage3-exit|exit_status=exited|\[x\] 退出' \
   docs/adr/stage3-exit.md docs/census/stage3-exit-census.md \
   scripts/s3_exit_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/credibility/stage3_exit_contract.rs)
+  crates/syx-driver/tests/credibility/dx_exit_contract.rs)
 
 stage3_claim_chain_helper=$(count_rg 'S3-I41|S3-I47|S3-I55|S3-I71|S3-I77|S3-I81|S3-I85|stage3-s3-0[1-7]-claim' \
   docs/adr/stage3-s3-01-claim.md docs/adr/stage3-s3-02-claim.md \

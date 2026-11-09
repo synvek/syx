@@ -18,7 +18,7 @@
 | Desugar hinge | `should_desugar_top_level_stmts` · `S3-I79` in [`lsp_ide.rs`](../../crates/syx-driver/src/lsp_ide.rs) |
 | Nail | top-level `print(1)` → LSP semantic codes **no S045** |
 | Book fixtures | sample `*_book_*.sy` mismatch **0** |
-| Contract | `s3_06_s045_lsp_desugar_contract` |
+| Contract | `lsp_desugar_contract` |
 | Census | Current=**S3-I79** · Claimed:** no** |
 
 ## Consequences
