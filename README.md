@@ -40,8 +40,11 @@ cargo run -p syx-cli -- run --wasm examples/hello.sy
 LLVM is the **sole** native AOT backend. For a full native toolchain build (Inkwell + vendored LLD), enable `full-native` and point at a local LLVM install as documented in the usage guide:
 
 ```bash
+# Debian/Ubuntu host deps for llvm-sys system libs (-lffi/-lz/-lxml2/-lzstd)
+sudo apt install build-essential libffi-dev zlib1g-dev libxml2-dev libzstd-dev
 # Unix / macOS:
-cargo build -p syx-cli --features full-native --release
+./scripts/build-full-native
+# or: cargo build -p syx-cli --features full-native --release
 # Windows MSVC (isolates +crt-static so syx_rt stays usable for native link):
 ./scripts/build-full-native.ps1
 

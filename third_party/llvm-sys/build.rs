@@ -412,15 +412,23 @@ fn get_system_library_dirs() -> impl IntoIterator<Item = String> {
         if let Some(p) = homebrew_prefix(None) {
             system_library_dirs.push(format!("{}/lib", p));
         }
-    } else if target_os_is("linux") && cfg!(target_feature = "crt-static") {
-        // When linking statically on Linux, we need to provide the directory
-        // with system-wide static libraries explicitly.
-        #[cfg(any(
-            target_arch = "x86_64",
-            target_arch = "powerpc64",
-            target_arch = "aarch64"
-        ))]
+    } else if target_os_is("linux") {
+        // SYX patch: rust-lld does not consult ld.so.conf the way GNU ld does, so
+        // Debian/Ubuntu multiarch dirs (libffi / zlib / libxml2) must be explicit
+        // or `full-native` fails with "unable to find library -lffi/-lz/-lxml2".
+        #[cfg(target_arch = "x86_64")]
         {
+            system_library_dirs.push("/usr/lib/x86_64-linux-gnu".to_string());
+            system_library_dirs.push("/lib/x86_64-linux-gnu".to_string());
+        }
+        #[cfg(target_arch = "aarch64")]
+        {
+            system_library_dirs.push("/usr/lib/aarch64-linux-gnu".to_string());
+            system_library_dirs.push("/lib/aarch64-linux-gnu".to_string());
+        }
+        #[cfg(any(target_arch = "x86_64", target_arch = "powerpc64", target_arch = "aarch64"))]
+        if cfg!(target_feature = "crt-static") {
+            // Static archives often live under lib64 on RPM-ish layouts.
             system_library_dirs.push("/lib64".to_string());
             system_library_dirs.push("/usr/lib64".to_string());
             system_library_dirs.push("/usr/local/lib64".to_string());

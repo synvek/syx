@@ -2,6 +2,9 @@
 # Build syx-cli with --features full-native.
 # On Windows MSVC, inject +crt-static /INCLUDE:malloc only for this invocation
 # (must not live in .cargo/config.toml — that contaminates syx_rt for native link).
+#
+# Linux host deps (Debian/Ubuntu) for llvm-sys system libs:
+#   sudo apt install build-essential libffi-dev zlib1g-dev libxml2-dev libzstd-dev
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
