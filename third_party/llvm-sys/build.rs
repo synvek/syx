@@ -333,21 +333,27 @@ fn get_system_libraries(llvm_config_path: &Path, kind: LibraryKind) -> Vec<Strin
                 }
 
                 let maybe_lib = Path::new(flag);
-                if maybe_lib.is_file() {
-                    // Library on disk, likely an absolute path to a .so. We'll add its location to
-                    // the library search path and specify the file as a link target.
-                    println!(
-                        "cargo:rustc-link-search={}",
-                        maybe_lib.parent().unwrap().display()
-                    );
+                // llvm-config may emit absolute paths (e.g. /usr/lib/.../libzstd.a). Prefer
+                // parsing the filename even when the archive is absent (common on Debian when
+                // only the shared lib is installed) so linking can fall back to -lzstd.
+                if maybe_lib.is_absolute() {
+                    if let Some(parent) = maybe_lib.parent() {
+                        if parent.is_dir() {
+                            println!("cargo:rustc-link-search={}", parent.display());
+                        }
+                    }
 
-                    // Expect a file named something like libfoo.so, or with a version libfoo.so.1.
-                    // Trim everything after and including the last .so and remove the leading 'lib'
+                    // Expect a file named something like libfoo.so, libfoo.so.1, or libfoo.a.
+                    // Trim the kind extension and remove the leading 'lib'.
                     let soname = maybe_lib
                         .file_name()
-                        .unwrap()
-                        .to_str()
-                        .expect("Library filename must be a valid string");
+                        .and_then(|s| s.to_str())
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "Unable to parse result of llvm-config --system-libs: {}",
+                                flag
+                            )
+                        });
 
                     // Check for any valid library filename, even if it's a different kind from the
                     // one we asked for. Some configurations give us a path to a static archive,
