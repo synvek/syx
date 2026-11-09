@@ -29,7 +29,8 @@ public class TcpStream {
         }
     }
     /// Async read up to `maxBytes` (throws `NetworkError`).
-    public func readAsync(maxBytes: Int) throws -> Object {
+    /// R-0-02: awaitable bag typed as `Dictionary` (≠ Object; ≠ reactor GA).
+    public func readAsync(maxBytes: Int) throws -> Dictionary {
         if self.handle < 0
         throw NetworkError.failed(code: 2, message: "tcp readAsync: invalid handle")
         do {

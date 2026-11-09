@@ -2161,7 +2161,7 @@ enum SyxHost {
         return __syx_tcp_read(handle, maxBytes)
     }
 
-    static func tcp_read_async(handle: Int, maxBytes: Int) -> Object {
+    static func tcp_read_async(handle: Int, maxBytes: Int) -> Dictionary {
         return __syx_tcp_read_async(handle, maxBytes)
     }
 

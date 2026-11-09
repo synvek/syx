@@ -623,8 +623,9 @@ public class FileHandle {
 
     /// ADR-234: RAII/`with` — host runs `body(handle: Int)` then always closes.
     /// Body must return `>= 0` on success; negative / non-Int → `SystemError` after close.
-    /// SA-6 residual: closure body still `Object` until function-typed host/closure unify.
-    public static func withOpen(path: String, mode: String, body: Object) throws -> Int {
+    /// R-1-01: public body typed `Function` (≠ Object). Call sites: `{ h in ... }` /
+    /// `{ (h: Int) -> Int in ... }` when parser supports the latter (today: prefer untyped `{ h in }`).
+    public static func withOpen(path: String, mode: String, body: Function) throws -> Int {
         do {
             return SyxHost.file_with_open(path, mode, body)
         } catch (e) {

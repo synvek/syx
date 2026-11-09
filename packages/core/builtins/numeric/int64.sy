@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `__syx_i64_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `SyxHost.i64_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 64-bit signed integer (`Int64`). Prelude; host ops via `__syx_i64_*`.
+/// 64-bit signed integer (`Int64`). Prelude; host ops via `SyxHost.i64_*`.
 @builtin("numeric.i64")
 public class Int64: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -10,9 +10,9 @@ public class Int64: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Largest representable value (type bound, not binary max).
     public static let max: Int64 = 9223372036854775807i64
 
-    /// Absolute value (host `__syx_i64_abs`).
+    /// Absolute value (host `SyxHost.i64_abs`).
     public static func abs(x: Int64) -> Int64 {
-        return __syx_i64_abs(x)
+        return SyxHost.i64_abs(x)
     }
 
     /// Signum: `-1`, `0`, or `1`.
@@ -41,9 +41,9 @@ public class Int64: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0i64
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i64_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.i64_min` / `_max`.
     public static func clamp(x: Int64, lo: Int64, hi: Int64) -> Int64 {
-        return __syx_i64_min(__syx_i64_max(x, lo), hi)
+        return SyxHost.i64_min(SyxHost.i64_max(x, lo), hi)
     }
 
 }
@@ -64,9 +64,9 @@ extension Int64 {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `__syx_i64_compare`.
+    /// Three-way compare (`Comparable`); host `SyxHost.i64_compare`.
     func compare(other: Int64) -> Int {
-        return __syx_i64_compare(self, other)
+        return SyxHost.i64_compare(self, other)
     }
 }
 

@@ -276,7 +276,7 @@ fn numeric_type_doc(spec: &NumSpec) -> String {
         "unsigned integer"
     };
     format!(
-        "{bits}-bit {kind} (`{ty}`). Prelude; host ops via `__syx_{slug}_*`.",
+        "{bits}-bit {kind} (`{ty}`). Prelude; host ops via `SyxHost.{slug}_*`.",
         bits = spec.bits,
         kind = kind,
         ty = spec.surface,

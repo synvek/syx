@@ -178,7 +178,7 @@ The difference between `Channel()` and `Channel.create(n)`: the former is the cl
 
 Instance methods: `send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` / `capacity()`. Only `Channel.create(n)` remains as a static factory.
 
-> The `Channel<Int>` generic syntax shown in tutorials is the planned form; the current MVP payload is `Object`, and types are constrained by calling convention.
+> The `Channel<Int>` generic syntax shown in tutorials is the planned form. Public `send` / `trySend` take `Sendable` (R-2); `recv` / Select still surface `Object` until a later residual window. ≠ full `Channel<T>` yet.
 
 ```syx
 import Synchronization

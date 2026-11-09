@@ -10,7 +10,7 @@ SYX 提供：
 - **类型：** 静态强类型，含 `Int8..Int64/128`、`UInt8..UInt64/128`、`Float32/64`、`SIMD2/4/8/16<T>`、`BigInt`、引用类型 `&T` / `&mut T`
 - **后端：** 默认栈式 VM（`syx run`）+ Native LLVM（`syx build --native`）+ WASM（`syx run --wasm`）；Cranelift **AOT 已移除**（JIT tier-2 实验 opt-in）
 - **模块：** `syx.toml` 项目 + `import` 路径依赖 + git/registry 依赖 + Host 插件（dlopen）
-- **标准库：** 嵌入 `Math` / `IO` / `Net` / `Crypto` / `Di` / `Os` / `Sync` / `UI` 等；Core builtins 见 [`packages/core/builtins/`](../../../packages/core/builtins/)
+- **标准库：** 嵌入 `System` / `Networking` / `Synchronization` / `Logging` / `Crypto` / `DI` / `UI` / `Math` 等（现行 `import` 名；≠ 旧 `Os`/`Net`）；Core builtins 见 [`packages/core/builtins/`](../../../packages/core/builtins/)
 
 > **重要：** SYX **不是** Swift 的子集或超集。许多名称相同，语义可能非常不同（特别在 String 字符语义、内存模型、宏、并发与跨模块 Actor 上）。
 

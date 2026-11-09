@@ -3,12 +3,12 @@
         return 3.141592653589793
     }
 
-    /// Sine of `x` (radians); host `__syx_{{SLUG}}_sin`.
+    /// Sine of `x` (radians); host `SyxHost.{{SLUG}}_sin`.
     public static func sin(x: {{TY}}) -> {{TY}} {
-        return __syx_{{SLUG}}_sin(x)
+        return SyxHost.{{SLUG}}_sin(x)
     }
 
-    /// Square root of `x`; host `__syx_{{SLUG}}_sqrt`.
+    /// Square root of `x`; host `SyxHost.{{SLUG}}_sqrt`.
     public static func sqrt(x: {{TY}}) -> {{TY}} {
-        return __syx_{{SLUG}}_sqrt(x)
+        return SyxHost.{{SLUG}}_sqrt(x)
     }

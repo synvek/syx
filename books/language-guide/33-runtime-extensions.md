@@ -4,7 +4,7 @@
 
 SYX's special capabilities (I/O, JSON, hashing, SIMD, …) ultimately enter the runtime through **Host functions**. Maintainers may register `HostFnId` statically inside the compiler repository; **application developers** can also add Hosts at runtime through **dlopen plugins**, without forking the compiler.
 
-For the user-facing narrative of embedded packages (`import Numerics` / `Os` / `Log` / `IO` …) see the [Standard Library Guide](../library-guide/00-preface.md); for Linalg examples see [examples/linalg/](../../examples/linalg/).
+For the user-facing narrative of embedded packages (`import System` / `Networking` / `Logging` / `Numerics` …) see the [Standard Library Guide](../library-guide/00-preface.md); for Linalg examples see [examples/linalg/](../../examples/linalg/).
 
 ## Capability Layers
 

@@ -178,8 +178,7 @@ class ViewModel {
 
 实例方法：`send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` / `capacity()`。静态工厂仅保留 `Channel.create(n)`。
 
-> 教程里的 `Channel<Int>` 泛型语法为规划形态；当前 MVP 载荷为 `Object`，类型由调用约定约束。
-
+> 教程里的 `Channel<Int>` 泛型语法为规划形态。公开 `send` / `trySend` 入参为 `Sendable`（R-2）；`recv` / Select 仍暴露 `Object`，待后续 residual 窗。≠ 已交付完整 `Channel<T>`。
 ```syx
 import Synchronization
 

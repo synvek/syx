@@ -20,7 +20,7 @@
 | `old_import_lines` | **0** | packages / examples / books |
 | `public_syx_hostfn_spellings` | **0** | non-`packages/internal` `__syx_*` |
 | `system_io_object_slice_cleared` | **1** | `File.stat` / `readAsync` ≠ Object |
-| `filehandle_withopen_object_residual` | **1** | `withOpen(body: Object)` still residual |
+| `filehandle_withopen_object_residual` | **0** | Cleared in R-1 (`body: Function`) |
 | `object_sig_residual_count` | **>0** (inventory) | Honest residual; **≠** full-library Object=0 |
 
 ### System/IO Object slice
@@ -29,7 +29,7 @@
 |-----|-----|-----|
 | `File.stat` | `-> Object` | `-> Dictionary` **cleared** |
 | `File.readAsync` | `-> Object` | `-> Dictionary` **cleared** |
-| `FileHandle.withOpen` | `body: Object` | **residual** (closure/host unify deferred) |
+| `FileHandle.withOpen` | `body: Object` | `body: Function` **cleared** (R-1) |
 
 Domain sources: `packages/io/mod.sy` (+ regenerate `packages/system/mod.sy` via `scripts/gen_system_mod.py`).
 
@@ -48,4 +48,4 @@ bash scripts/sa_6_exit_census.sh
 
 ## Next
 
-**post-SA Residual / 维护** — Object inventory deepen · `withOpen` unify · Channel · Collections/Testing · migrate/stability wiring（见 [sa-exit](../adr/sa-exit.md) residual 表）。
+**R-0 已交** — 见 [r-0-residual-census](r-0-residual-census.md)。下一 = **R-1**（`withOpen` / Channel）或 Residual 维护（见 [sa-exit](../adr/sa-exit.md) residual 表）。

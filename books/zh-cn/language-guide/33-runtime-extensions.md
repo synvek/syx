@@ -4,7 +4,7 @@
 
 SYX 的特殊能力（I/O、JSON、哈希、SIMD 等）最终通过 **Host 函数** 进入 runtime。维护者可在编译器仓库内静态注册 `HostFnId`；**应用开发者** 还可通过 **dlopen 插件** 在运行期追加 Host，无需 fork 编译器。
 
-嵌入包（`import Numerics` / `Os` / `Log` / `IO` …）的用户面叙事见 [标准库指南](../library-guide/00-preface.md)；Linalg 范例见 [examples/linalg/](../../../examples/linalg/)。
+嵌入包（`import System` / `Networking` / `Logging` / `Numerics` …）的用户面叙事见 [标准库指南](../library-guide/00-preface.md)；Linalg 范例见 [examples/linalg/](../../../examples/linalg/)。
 
 ## 能力分层
 

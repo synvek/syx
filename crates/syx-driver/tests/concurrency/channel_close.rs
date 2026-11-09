@@ -22,7 +22,8 @@ func main() {
   do {
     __syx_channel_send(ch, "B")
     print("SEND_OK")
-  } catch (err) {
+  } catch (err: Object) {
+    // Host C010 raises Value::Object { code, message }; bare catch defaults to String (S002).
     print("SEND_CLOSED")
     print(err.code)
   }

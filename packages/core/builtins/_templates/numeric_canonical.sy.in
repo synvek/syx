@@ -1,5 +1,5 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `__syx_{{SLUG}}_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `SyxHost.{{SLUG}}_*`. Edit templates then `cargo build -p syx-driver`.
 
 /// {{DOC}}
 @builtin("{{ID}}")

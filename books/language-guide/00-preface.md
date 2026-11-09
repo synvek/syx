@@ -10,7 +10,7 @@ SYX provides:
 - **Types:** statically and strongly typed, including `Int8..Int64/128`, `UInt8..UInt64/128`, `Float32/64`, `SIMD2/4/8/16<T>`, `BigInt`, and reference types `&T` / `&mut T`
 - **Back ends:** default stack VM (`syx run`) + Native LLVM (`syx build --native`) + WASM (`syx run --wasm`); Cranelift **AOT removed** (experimental JIT tier-2 opt-in)
 - **Modules:** a `syx.toml` project + `import` path dependencies + git/registry dependencies + Host plugins (`dlopen`)
-- **Standard library:** embedded `Math` / `IO` / `Net` / `Crypto` / `Di` / `Os` / `Sync` / `UI` and more; Core builtins in [`packages/core/builtins/`](../../packages/core/builtins/)
+- **Standard library:** embedded `System` / `Networking` / `Synchronization` / `Logging` / `Crypto` / `DI` / `UI` / `Math` and more (`import` names; ≠ legacy `Os`/`Net`); Core builtins in [`packages/core/builtins/`](../../packages/core/builtins/)
 
 > **Important:** SYX is **neither** a subset nor a superset of Swift. Many names match, but semantics may differ substantially (especially String character semantics, the memory model, macros, concurrency, and cross-module actors).
 

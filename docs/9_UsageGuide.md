@@ -485,10 +485,12 @@ The standard library is exposed via **static type methods** and **instance metho
 | `File.copy(from, to)` | Copy file |
 | `File.move(from, to)` | Move file |
 
+`FileHandle.withOpen` (ADR-234 / M2-S3-02b): RAII open → body(`Int` handle) → always close. Protocols: `Reader` / `Writer` / `Seekable` / `Closeable`. Prefer `{ h in ... }` closures (typed `(h: Int) -> Int` param-position still thin).
+
 ```syx
 func main() {
   do {
-    let n = FileHandle.withOpen(path: "/tmp/x.bin", mode: "w", body: { (h: Int) -> Int in
+    let n = FileHandle.withOpen(path: "/tmp/x.bin", mode: "w", body: { h in
       return __syx_file_write_chunk(h, [])
     })
     print(n)

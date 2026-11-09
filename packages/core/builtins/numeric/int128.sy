@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `__syx_i128_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `SyxHost.i128_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 128-bit signed integer (`Int128`). Prelude; host ops via `__syx_i128_*`.
+/// 128-bit signed integer (`Int128`). Prelude; host ops via `SyxHost.i128_*`.
 @builtin("numeric.i128")
 public class Int128: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -21,9 +21,9 @@ public class Int128: Equatable, Hashable, CustomStringConvertible, Comparable {
         }
     }
 
-    /// Absolute value (host `__syx_i128_abs`).
+    /// Absolute value (host `SyxHost.i128_abs`).
     public static func abs(x: Int128) -> Int128 {
-        return __syx_i128_abs(x)
+        return SyxHost.i128_abs(x)
     }
 
     /// Signum: `-1`, `0`, or `1`.
@@ -52,9 +52,9 @@ public class Int128: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0i128
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i128_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.i128_min` / `_max`.
     public static func clamp(x: Int128, lo: Int128, hi: Int128) -> Int128 {
-        return __syx_i128_min(__syx_i128_max(x, lo), hi)
+        return SyxHost.i128_min(SyxHost.i128_max(x, lo), hi)
     }
 
     /// Leading zero bit count for a `UInt128` bit pattern (host `SyxHost.leading_zeros128`).
@@ -79,9 +79,9 @@ extension Int128 {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `__syx_i128_compare`.
+    /// Three-way compare (`Comparable`); host `SyxHost.i128_compare`.
     func compare(other: Int128) -> Int {
-        return __syx_i128_compare(self, other)
+        return SyxHost.i128_compare(self, other)
     }
 }
 

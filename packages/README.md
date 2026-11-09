@@ -24,7 +24,7 @@ The builtin type inventory lives in [`internal/manifest.json`](internal/manifest
 | **Profiling** | `Profiling` | MVP | Wall-clock / CPU sections; not sampling/pprof GA |
 | **Testing** | `Testing` | Stable | `assert` / `assertEq` / `test` helpers for `syx test` |
 | **JSON** / **Fmt** / **OrderedSet** / **Deque** / **Math** / **Random** / **SIMD4** | matching names | Stable / MVP | CORE-adjacent importables |
-| **Observation** | `Observation` | MVP | KVO-style observe；**residual**：未必在现行 `importable_modules` |
+| **Observation** | —（非现行 `import`） | **非标附 residual** | 源码/目录可在树内；**不在** `manifest.json` `importable_modules`；SA-0-05 诚实化挂账（接入或降级 README） |
 | **internal** | — | Tooling only | Manifest, capability tables; not a user import |
 
 Status labels are coarse: **Stable** usable in apps, **MVP** usable with gaps, **Partial** / **Experimental** evolving APIs, **Deferred** not product-ready.

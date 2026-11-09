@@ -21,16 +21,16 @@ public class Channel {
         return ch
     }
 
-    /// Send `value` (blocks if bounded and full).
-    public func send(_ value: Object) {
+    /// Send `value` (blocks if bounded and full). R-2-01: `Sendable` (≠ Object).
+    public func send(_ value: Sendable) {
         SyxHost.channel_send(self.handle, value)
     }
     /// Receive one value (blocks if empty).
     public func recv() -> Object {
         return SyxHost.channel_recv(self.handle)
     }
-    /// Non-blocking send; `false` if full/closed.
-    public func trySend(_ value: Object) -> Bool {
+    /// Non-blocking send; `false` if full/closed. R-2-01: `Sendable` (≠ Object).
+    public func trySend(_ value: Sendable) -> Bool {
         return SyxHost.channel_try_send(self.handle, value)
     }
     /// Non-blocking receive; nil/sentinel if empty.

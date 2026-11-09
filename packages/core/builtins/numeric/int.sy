@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `__syx_int_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `SyxHost.int_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 64-bit signed integer (`Int`). Prelude; host ops via `__syx_int_*`.
+/// 64-bit signed integer (`Int`). Prelude; host ops via `SyxHost.int_*`.
 @builtin("numeric.int")
 public class Int: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -10,9 +10,9 @@ public class Int: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Largest representable value (type bound, not binary max).
     public static let max: Int = 9223372036854775807
 
-    /// Absolute value (host `__syx_int_abs`).
+    /// Absolute value (host `SyxHost.int_abs`).
     public static func abs(x: Int) -> Int {
-        return __syx_int_abs(x)
+        return SyxHost.int_abs(x)
     }
 
     /// Signum: `-1`, `0`, or `1`.
@@ -41,9 +41,9 @@ public class Int: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_int_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.int_min` / `_max`.
     public static func clamp(x: Int, lo: Int, hi: Int) -> Int {
-        return __syx_int_min(__syx_int_max(x, lo), hi)
+        return SyxHost.int_min(SyxHost.int_max(x, lo), hi)
     }
 
     /// Uniform random integer in the half-open range `[0, upperBound)`.
@@ -68,9 +68,9 @@ extension Int {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `__syx_int_compare`.
+    /// Three-way compare (`Comparable`); host `SyxHost.int_compare`.
     func compare(other: Int) -> Int {
-        return __syx_int_compare(self, other)
+        return SyxHost.int_compare(self, other)
     }
 }
 
