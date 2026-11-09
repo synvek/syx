@@ -78,7 +78,7 @@ fn s3_06_lsp_census_baseline() {
         "census script must emit I79–I81 KPIs"
     );
     assert!(
-        script.contains("current=S3-I81") && script.contains("next=S3-I88"),
+        script.contains("current=S3-I81") && script.contains("next=S3-I89"),
         "census script must emit ladder current/next"
     );
 
@@ -158,7 +158,7 @@ fn s3_06_lsp_census_script_runs() {
         "script stdout missing KPIs:\n{stdout}"
     );
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I88"),
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I89"),
         "script must emit ladder:\n{stdout}"
     );
     assert!(

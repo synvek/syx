@@ -60,7 +60,15 @@ fn s3_exit_adr_and_plan_locked() {
     assert!(
         adr.contains("Stage-4")
             && (adr.contains("open") || adr.contains("S3-I88")),
-        "ADR Consequences must lock next = Stage-4 open"
+        "ADR Consequences must cite Stage-4 open"
+    );
+    assert!(
+        adr.contains("S3-I88") || adr.contains("stage4-open"),
+        "ADR must cite landed Stage-4 open / I88"
+    );
+    assert!(
+        adr.contains("S3-I89") || adr.contains("construct"),
+        "ADR Consequences must lock next = S3-I89 construct"
     );
 
     let plan02 = repo_file("plan/02-improvement-roadmap.md");
@@ -78,8 +86,8 @@ fn s3_exit_adr_and_plan_locked() {
         "plan/02 must cite S3-I87 exit"
     );
     assert!(
-        plan02.contains("Stage-4") || plan02.contains("S3-I88"),
-        "plan/02 must name Stage-4 open next"
+        plan02.contains("S3-I88") && (plan02.contains("S3-I89") || plan02.contains("Stage-4")),
+        "plan/02 must cite Stage-4 open / I89"
     );
     assert!(
         plan02.contains("7/7") || plan02.contains("S3-01"),
@@ -94,8 +102,8 @@ fn s3_exit_adr_and_plan_locked() {
         "plan/01 must reflect Stage-3 [x] 退出 / S3-I87"
     );
     assert!(
-        plan01.contains("Stage-4") || plan01.contains("S3-I88"),
-        "plan/01 must lock next = Stage-4 open"
+        plan01.contains("S3-I88") && (plan01.contains("S3-I89") || plan01.contains("Stage-4")),
+        "plan/01 must cite Stage-4 open / I89"
     );
 
     let prior = repo_file("docs/adr/stage3-exit-open.md");
@@ -114,7 +122,7 @@ fn s3_exit_adr_and_plan_locked() {
         "census must mark exit_status exited"
     );
     assert!(
-        census.contains("S3-I88") || census.contains("Stage-4"),
+        census.contains("S3-I88") && (census.contains("S3-I89") || census.contains("Stage-4")),
         "census ladder must next = Stage-4 / I88"
     );
 }
@@ -148,8 +156,8 @@ fn s3_exit_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I87") && stdout.contains("next=S3-I88"),
-        "script ladder must be I87→I88:\n{stdout}"
+        stdout.contains("current=S3-I87") && stdout.contains("next=S3-I89"),
+        "script ladder must be I87→I89:\n{stdout}"
     );
     assert!(
         stdout.contains("stage3_status=x")

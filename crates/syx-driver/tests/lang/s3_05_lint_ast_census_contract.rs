@@ -54,7 +54,7 @@ fn s3_05_lint_ast_census_baseline() {
         "census script must emit I77 KPI"
     );
     assert!(
-        script.contains("current=S3-I77") && script.contains("next=S3-I88"),
+        script.contains("current=S3-I77") && script.contains("next=S3-I89"),
         "census script must emit ladder current/next"
     );
 
@@ -110,7 +110,7 @@ fn s3_05_lint_ast_census_script_runs() {
         "script stdout missing KPIs:\n{stdout}"
     );
     assert!(
-        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I88"),
+        stdout.contains("current=S3-I77") && stdout.contains("next=S3-I89"),
         "script must emit ladder:\n{stdout}"
     );
     let parse = |key: &str| {

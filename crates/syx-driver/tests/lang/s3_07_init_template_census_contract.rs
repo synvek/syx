@@ -78,7 +78,7 @@ fn s3_07_init_template_census_baseline() {
         "census script must emit I83/I84 KPIs"
     );
     assert!(
-        script.contains("current=S3-I85") && script.contains("next=S3-I88"),
+        script.contains("current=S3-I85") && script.contains("next=S3-I89"),
         "census script must emit ladder current/next"
     );
     assert!(
@@ -159,7 +159,7 @@ fn s3_07_init_template_census_script_runs() {
         "script stdout missing KPIs:\n{stdout}"
     );
     assert!(
-        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I88"),
+        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I89"),
         "script must emit ladder:\n{stdout}"
     );
     assert!(

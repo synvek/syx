@@ -57,7 +57,7 @@ fn s3_exit_open_adr_and_plan_locked() {
     let census = repo_file("docs/stage3-exit-census.md");
     assert!(
         census.contains("S3-I86") && census.contains("S3-I87")
-            && (census.contains("S3-I88") || census.contains("Stage-4")),
+            && (census.contains("S3-I88") && (census.contains("S3-I89") || census.contains("Stage-4"))),
         "exit census must name I86 open / I87 exit"
     );
     assert!(
@@ -73,7 +73,7 @@ fn s3_exit_open_adr_and_plan_locked() {
         "census must publish Stage-3 7/7"
     );
     assert!(
-        census.contains("S3-I88") || census.contains("Stage-4"),
+        census.contains("S3-I88") && (census.contains("S3-I89") || census.contains("Stage-4")),
         "census ladder must next = Stage-4 / I88"
     );
     for claim in [
@@ -119,7 +119,7 @@ fn s3_exit_open_adr_and_plan_locked() {
     assert!(
         plan02.contains("S3-I86")
             && plan02.contains("S3-I87")
-            && (plan02.contains("Stage-4") || plan02.contains("S3-I88")),
+            && (plan02.contains("S3-I88") && (plan02.contains("S3-I89") || plan02.contains("Stage-4"))),
         "plan/02 must cite I86…I87 and Stage-4 next"
     );
 
@@ -127,7 +127,7 @@ fn s3_exit_open_adr_and_plan_locked() {
     assert!(
         plan01.contains("S3-I86")
             && plan01.contains("S3-I87")
-            && (plan01.contains("Stage-4") || plan01.contains("S3-I88")),
+            && (plan01.contains("S3-I88") && (plan01.contains("S3-I89") || plan01.contains("Stage-4"))),
         "plan/01 must cite I86…I87 and Stage-4"
     );
     assert!(
@@ -164,8 +164,8 @@ fn s3_exit_open_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I87") && stdout.contains("next=S3-I88"),
-        "script ladder must be I87→I88:\n{stdout}"
+        stdout.contains("current=S3-I87") && stdout.contains("next=S3-I89"),
+        "script ladder must be I87→I89:\n{stdout}"
     );
     assert!(
         stdout.contains("stage3_status=x")

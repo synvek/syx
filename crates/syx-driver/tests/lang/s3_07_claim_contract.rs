@@ -159,8 +159,8 @@ fn s3_07_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I88"),
-        "script ladder must be I85→I88:\n{stdout}"
+        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I89"),
+        "script ladder must be I85→I89:\n{stdout}"
     );
     assert!(
         stdout.contains("s3_07_status=x") && stdout.contains("stage3_checklist=7/7"),

@@ -128,8 +128,8 @@ fn s3_06_residual_scope_census_script_emits_hinge() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I88"),
-        "script ladder must be I81→I88:\n{stdout}"
+        stdout.contains("current=S3-I81") && stdout.contains("next=S3-I89"),
+        "script ladder must be I81→I89:\n{stdout}"
     );
     assert!(
         stdout.contains("residual_scope_helper="),

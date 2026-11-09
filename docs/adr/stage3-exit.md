@@ -31,12 +31,14 @@
 
 ## Consequences
 
-- Default next credibility work is **Stage-4 open**（S3-I88 naming）— open only via a new window.
+- **S3-I88 landed** as [stage4-open](stage4-open.md)（Stage-4 `[~]` · S4-01 `[~]`）。
+- Default next = **S3-I89**（S4-01 first construct）— not Stage-4 exit / not S4-01 `[x]` this prior window.
 - Marketing / capability text may say Stage-3 exit **only** with the residual list above kept honest.
-- Exit census Current → **S3-I87** · `exit_status=exited`.
+- Exit census Current → **S3-I87** · `exit_status=exited`；Stage-4 census Current → **S3-I88**.
 
 ## References
 
+- [stage4-open](stage4-open.md) · S3-I88
 - [stage3-exit-open](stage3-exit-open.md) · S3-I86
 - [stage3-s3-07-claim](stage3-s3-07-claim.md) · S3-I85
 - [stage3-open](stage3-open.md) · S3-I1

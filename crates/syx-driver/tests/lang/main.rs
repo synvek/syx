@@ -168,3 +168,7 @@ mod s3_07_residual_scope_contract;
 mod s3_07_claim_contract;
 mod s3_exit_open_contract;
 mod s3_exit_contract;
+mod s4_01_stdlib_stability_doctest_census_contract;
+mod s4_01_stability_ssot_contract;
+mod s4_01_residual_scope_contract;
+mod s4_01_claim_contract;

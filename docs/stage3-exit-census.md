@@ -4,7 +4,7 @@
 **Prior claim chain:** [S3-01](adr/stage3-s3-01-claim.md)…[S3-07](adr/stage3-s3-07-claim.md) · open [S3-I86](adr/stage3-exit-open.md)
 
 **Goal (exit):** Stage-3 **`[x]` 退出** with Evidence In = S3-01…07 scoped claims + I86 scaffolding；deferred / parked = **post-exit Residual**.  
-**This census:** S3-I87 Stage-3 exit — Stage-3 **`[x]` 退出**；下一 = **Stage-4 open**（S3-I88 命名；≠ 本窗施工）。
+**This census:** S3-I87 Stage-3 exit — Stage-3 **`[x]` 退出**；Stage-4 open **landed**（[S3-I88](adr/stage4-open.md)）；下一 = **S3-I89** S4-01 construct。
 
 ## Command
 
@@ -66,14 +66,15 @@ bash scripts/s3_exit_census.sh
 | Checklist | **7/7** S3-01…07 `[x]` |
 | Stage-3 | **`[x]` 退出**（S3-I87） |
 | Exit | **exited** |
-| Next | **Stage-4 open**（S3-I88）— ≠ Stage-4 construction this window |
+| Next | **S3-I88** Stage-4 open **landed**；默认 = **S3-I89** S4-01 construct |
 
 ## Ladder (locked)
 
 1. **S3-I85:** S3-07 scoped claim — landed.
 2. **S3-I86:** Stage-3 exit open — landed.
 3. **S3-I87:** write `stage3-exit` — **this window**.
-4. **S3-I88:** Stage-4 open — next（naming only）。
+4. **S3-I88:** Stage-4 open — **landed**.
+5. **S3-I89:** S4-01 first construct — next。
 
 ## Non-claims
 

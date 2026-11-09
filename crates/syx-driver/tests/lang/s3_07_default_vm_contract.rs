@@ -173,8 +173,8 @@ fn s3_07_default_vm_census_script_cleared() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I88"),
-        "script ladder must be I85→I88:\n{stdout}"
+        stdout.contains("current=S3-I85") && stdout.contains("next=S3-I89"),
+        "script ladder must be I85→I89:\n{stdout}"
     );
     let parse = |key: &str| {
         stdout
