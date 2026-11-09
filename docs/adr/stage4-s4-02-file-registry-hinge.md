@@ -6,7 +6,7 @@
 
 ## Decision
 
-1. **Publish** charter [`docs/s4-02-file-registry-v0.md`](../s4-02-file-registry-v0.md)（Primary = `file://` round-trip + lock + semver；公网 GA / lock trim deferred）。
+1. **Publish** charter [`docs/census/s4-02-file-registry-v0.md`](../census/s4-02-file-registry-v0.md)（Primary = `file://` round-trip + lock + semver；公网 GA / lock trim deferred）。
 2. **Nail Primary KPIs** on existing tests（no product edit）：
    - `file_registry_integration_test_count≥1` · `registry_install_from_file_registry`
    - `file_registry_evergreen_roundtrip_count≥2` · `publish_file_registry` + `publish_install_roundtrip`
@@ -18,7 +18,7 @@
 
 | Check | Evidence |
 |-------|----------|
-| Charter | [`docs/s4-02-file-registry-v0.md`](../s4-02-file-registry-v0.md) |
+| Charter | [`docs/census/s4-02-file-registry-v0.md`](../census/s4-02-file-registry-v0.md) |
 | Census KPI | `file_registry_hinge_helper≥1` · integration/evergreen/R001 counts |
 | Contract | `s4_02_file_registry_hinge_contract` |
 | Prior | [stage4-s4-02-open](stage4-s4-02-open.md) · S3-I92 |
@@ -37,8 +37,8 @@
 - [stage4-s4-02-claim](stage4-s4-02-claim.md) · S3-I95
 - [stage4-s4-02-residual-scope](stage4-s4-02-residual-scope.md) · S3-I94
 - [stage4-s4-02-open](stage4-s4-02-open.md) · S3-I92
-- [s4-02-file-registry-v0](../s4-02-file-registry-v0.md)
-- [stage4-package-registry-census](../stage4-package-registry-census.md)
+- [s4-02-file-registry-v0](../census/s4-02-file-registry-v0.md)
+- [stage4-package-registry-census](../census/stage4-package-registry-census.md)
 - [stage4-s4-01-stability-ssot](stage4-s4-01-stability-ssot.md) · S3-I89（construct 形态）
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-02
 - [`crates/syx-pkg`](../../crates/syx-pkg)

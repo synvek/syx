@@ -2,7 +2,7 @@
 # S3-I48…I54: Stage-3 stdlib-cache / hello-startup census (S3-03).
 # I53: cache roundtrip · I54: prelude embed.
 # Does not claim S3-03 [x] this window (claim default I55).
-# See docs/stage3-stdlib-cache-census.md and docs/adr/stage3-s3-03-prelude-embed.md
+# See docs/census/stage3-stdlib-cache-census.md and docs/adr/stage3-s3-03-prelude-embed.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

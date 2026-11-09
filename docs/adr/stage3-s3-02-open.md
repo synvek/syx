@@ -14,7 +14,7 @@
 | Runtime `__type` | `object_ref_type_name` may carry internal names | Consistent user surface |
 | Internal mono / codegen | `mangle_name` **OK** as IR identity | **Out of S3-02 user-face scope** |
 
-Baseline: [stage3-mono-display-census](../stage3-mono-display-census.md).
+Baseline: [stage3-mono-display-census](../census/stage3-mono-display-census.md).
 
 ## Decision
 
@@ -27,7 +27,7 @@ Baseline: [stage3-mono-display-census](../stage3-mono-display-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Mono-display census | [`docs/stage3-mono-display-census.md`](../stage3-mono-display-census.md) · `scripts/s3_02_mono_display_census.sh` |
+| Mono-display census | [`docs/census/stage3-mono-display-census.md`](../census/stage3-mono-display-census.md) · `scripts/s3_02_mono_display_census.sh` |
 | Contract nail | `s3_02_mono_display_census_contract` |
 | Plan status | S3-02 `[~]` under this ADR · Stage-3 `[~]` · S3-01 remains `[x]` |
 
@@ -48,5 +48,5 @@ Baseline: [stage3-mono-display-census](../stage3-mono-display-census.md).
 
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-claim](stage3-s3-01-claim.md) · S3-I41
-- [stage3-mono-display-census](../stage3-mono-display-census.md)
+- [stage3-mono-display-census](../census/stage3-mono-display-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-02

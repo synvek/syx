@@ -2,7 +2,7 @@
 # S3-I108…I109: Stage-4 exit census.
 # I108 exit-open · I109 stage4-exit.
 # ≠ Stage-5 · ≠ product knives · ≠ unpark.
-# See docs/stage4-exit-census.md and docs/adr/stage4-exit.md
+# See docs/census/stage4-exit-census.md and docs/adr/stage4-exit.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -20,15 +20,15 @@ count_rg() {
 }
 
 stage4_exit_open_helper=0
-[[ -f docs/adr/stage4-exit-open.md && -f docs/stage4-exit-census.md ]] \
+[[ -f docs/adr/stage4-exit-open.md && -f docs/census/stage4-exit-census.md ]] \
   && stage4_exit_open_helper=1
 
 stage4_exit_helper=0
 [[ -f docs/adr/stage4-exit.md ]] && stage4_exit_helper=1
 stage4_exit_helper_hits=$(count_rg 'S3-I109|stage4-exit|exit_status=exited|\[x\] 退出' \
-  docs/adr/stage4-exit.md docs/stage4-exit-census.md \
+  docs/adr/stage4-exit.md docs/census/stage4-exit-census.md \
   scripts/s4_exit_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_exit_contract.rs)
+  crates/syx-driver/tests/credibility/stage4_exit_contract.rs)
 if [[ "$stage4_exit_helper_hits" -ge 1 ]]; then
   stage4_exit_helper=1
 fi
@@ -51,7 +51,7 @@ else
 fi
 
 stage4_exit_open_mentions=$(count_rg 'S3-I108|stage4-exit-open|exit-open' \
-  docs/adr/stage4-exit-open.md docs/stage4-exit-census.md \
+  docs/adr/stage4-exit-open.md docs/census/stage4-exit-census.md \
   scripts/s4_exit_census.sh plan/02-improvement-roadmap.md)
 
 emit() {

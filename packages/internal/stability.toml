@@ -1,5 +1,5 @@
 # SYX stdlib package stability SSOT v0 (S3-I89 / S4-01)
-# Schema: docs/stdlib-stability-v0.md
+# Schema: docs/census/stdlib-stability-v0.md
 # Human Status table: packages/README.md
 # Plan ternary: stable | preview | experimental
 # ≠ wired into manifest.json · ≠ syx doctest this window
@@ -8,7 +8,7 @@
 version = "0.1"
 schema = "syx-stdlib-stability-v0"
 source = "packages/README.md Status column"
-mapping = "docs/stdlib-stability-v0.md"
+mapping = "docs/census/stdlib-stability-v0.md"
 
 [[package]]
 name = "Core"

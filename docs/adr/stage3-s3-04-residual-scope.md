@@ -38,5 +38,5 @@
 - [stage3-s3-04-claim-prep](stage3-s3-04-claim-prep.md) · S3-I68
 - [stage3-s3-04-open](stage3-s3-04-open.md) · S3-I56
 - [stage1-s1-07-overflow-wrap-scope](stage1-s1-07-overflow-wrap-scope.md)（scoped acceptance 形态先例）
-- [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md)
+- [stage3-vm-hotspot-census](../census/stage3-vm-hotspot-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-04

@@ -30,5 +30,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-doctor-report-lsp-nail-knife](stage2-doctor-report-lsp-nail-knife.md)
 - [stage2-doctor-report-driver-src-nail-knife](stage2-doctor-report-driver-src-nail-knife.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

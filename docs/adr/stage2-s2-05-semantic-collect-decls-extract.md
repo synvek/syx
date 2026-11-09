@@ -19,7 +19,7 @@
 |-------|----------|
 | Module | `semantic_analyzer.rs` holds `collect_decls` |
 | Contract | `s2_05_semantic_collect_decls_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I241 row · semantic floor 5800 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I241 row · semantic floor 5800 |
 
 ## Consequences
 
@@ -32,5 +32,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-analyzer-entry-to-builtins-batch](stage2-s2-05-semantic-analyzer-entry-to-builtins-batch.md) · S2-I239–I240
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

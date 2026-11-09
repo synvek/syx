@@ -31,7 +31,7 @@ The builtin type inventory lives in [`internal/manifest.json`](internal/manifest
 
 Status labels are coarse: **Stable** usable in apps, **MVP** usable with gaps, **Partial** / **Experimental** evolving APIs, **Deferred** not product-ready.
 
-Machine-readable plan ternary (`stable` / `preview` / `experimental`) lives in [`internal/stability.toml`](internal/stability.toml)（S3-I89；mapping [`docs/stdlib-stability-v0.md`](../docs/stdlib-stability-v0.md)）. The Status column above remains the human narrative；do **not** treat this README table as the SSOT.
+Machine-readable plan ternary (`stable` / `preview` / `experimental`) lives in [`internal/stability.toml`](internal/stability.toml)（S3-I89；mapping [`docs/census/stdlib-stability-v0.md`](../docs/census/stdlib-stability-v0.md)）. The Status column above remains the human narrative；do **not** treat this README table as the SSOT.
 
 ## Generated sources (do not hand-edit)
 

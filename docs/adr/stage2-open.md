@@ -7,7 +7,7 @@
 ## Decision
 
 1. **Stage-2 is open** as of S2-I1. Default construction axis is **S2-01 → S2-07**.
-2. **First slice (this window):** S2-01 **governance surface census + baseline** only ([docs/stage2-governance-census.md](../stage2-governance-census.md) + [`scripts/s2_governance_census.sh`](../../scripts/s2_governance_census.sh)). Migration/deletion of inventory/fingerprint/report mass is **later windows**.
+2. **First slice (this window):** S2-01 **governance surface census + baseline** only ([docs/census/stage2-governance-census.md](../census/stage2-governance-census.md) + [`scripts/s2_governance_census.sh`](../../scripts/s2_governance_census.sh)). Migration/deletion of inventory/fingerprint/report mass is **later windows**.
 3. **Out / non-claims for S2-I1:**
    - Completing S2-01 `[x]` or Stage-2 exit;
    - Implementing S2-03…S2-07 in this window;
@@ -18,7 +18,7 @@
 
 - `plan/01` / `plan/02` mark Stage-2 as **`[~]`** (window label advances per slice).
 - S2-01 stayed **`[~]`** until product binaries no longer link process-governance inventory/fingerprint/gate narratives; **S2-I135** claimed S2-01/S2-02 `[x]` ([claim ADR](stage2-s2-01-s2-02-claim.md)) while Stage-2 remains `[~]`.
-- **S2-I2:** deleted driver W932–W954 inventory chain; census `inventory_fn` **237 → 214** ([census](../stage2-governance-census.md)).
+- **S2-I2:** deleted driver W932–W954 inventory chain; census `inventory_fn` **237 → 214** ([census](../census/stage2-governance-census.md)).
 - **S2-I3:** deleted driver W955–W965 `syx_math_llvm_*` chain; census **214 → 203**.
 - **S2-I4:** truncated codegen gate_b01+b02 inventory tail; census **203 → 186**（≠ S2-03 / B-01·B-02 产品收官）.
 - **S2-I5:** deleted a06 + profiles_sdk + lsp editor interop + frontend entry-matrix; census **186 → 178**.
@@ -313,7 +313,7 @@
 - [`docs/adr/stage2-s2-03-differential-deepen.md`](stage2-s2-03-differential-deepen.md) · S2-I141
 - [`docs/adr/stage2-s2-03-claim.md`](stage2-s2-03-claim.md) · S2-I142
 - [`docs/adr/stage2-s2-04-open.md`](stage2-s2-04-open.md) · S2-I143
-- [`docs/stage2-parser-census.md`](../stage2-parser-census.md) · S2-I143
+- [`docs/census/stage2-parser-census.md`](../census/stage2-parser-census.md) · S2-I143
 - [`docs/adr/stage2-s2-04-convergence-strategy.md`](stage2-s2-04-convergence-strategy.md) · S2-I144
 - [`docs/adr/stage2-s2-04-cst-reindent-func-body.md`](stage2-s2-04-cst-reindent-func-body.md) · S2-I145
 - [`docs/adr/stage2-s2-04-cst-reindent-func-nested.md`](stage2-s2-04-cst-reindent-func-nested.md) · S2-I146

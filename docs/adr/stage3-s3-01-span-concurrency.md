@@ -37,5 +37,5 @@
 - [stage3-s3-01-span-gate-semantic](stage3-s3-01-span-gate-semantic.md) · S3-I2
 - [stage3-s3-01-span-type-decl](stage3-s3-01-span-type-decl.md) · S3-I3
 - [stage3-s3-01-span-hub](stage3-s3-01-span-hub.md) · S3-I5
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

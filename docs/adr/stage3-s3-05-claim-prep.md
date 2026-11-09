@@ -43,5 +43,5 @@
 - [stage3-s3-05-l007-l012-false-positive](stage3-s3-05-l007-l012-false-positive.md) · S3-I73
 - [stage3-s3-05-open](stage3-s3-05-open.md) · S3-I72
 - [stage3-s3-04-claim-prep](stage3-s3-04-claim-prep.md) · S3-I68（形态模板）
-- [stage3-lint-ast-census](../stage3-lint-ast-census.md)
+- [stage3-lint-ast-census](../census/stage3-lint-ast-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-05

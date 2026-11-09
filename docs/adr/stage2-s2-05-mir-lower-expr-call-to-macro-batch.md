@@ -30,7 +30,7 @@
 | Helpers | Call 3 + Assign 1 `pub(crate)` in `lib.rs` |
 | Shell | `pub(crate) fn lower_expr` remains in `lib.rs` |
 | Contract | `s2_05_mir_lower_expr_call_to_macro_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I189–I194 row · floor 6000 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I189–I194 row · floor 6000 |
 
 ## Consequences
 
@@ -43,5 +43,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-lower-expr-ternary-to-is-batch](stage2-s2-05-mir-lower-expr-ternary-to-is-batch.md) · S2-I184–I188
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

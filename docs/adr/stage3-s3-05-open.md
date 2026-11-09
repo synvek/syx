@@ -13,7 +13,7 @@
 | L012 false positives | Any trimmed line starting `print(` → L012 | No L012 for nested/method `print` (or Stmt-level rule) |
 | Canonical fixture | `class_demo`: **L007≥1**, **L012≥1** (open baseline) | Fixture green on those codes |
 
-Baseline: [stage3-lint-ast-census](../stage3-lint-ast-census.md).
+Baseline: [stage3-lint-ast-census](../census/stage3-lint-ast-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-lint-ast-census](../stage3-lint-ast-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Lint-ast census | [`docs/stage3-lint-ast-census.md`](../stage3-lint-ast-census.md) · `scripts/s3_05_lint_ast_census.sh` |
+| Lint-ast census | [`docs/census/stage3-lint-ast-census.md`](../census/stage3-lint-ast-census.md) · `scripts/s3_05_lint_ast_census.sh` |
 | Contract nail | `s3_05_lint_ast_census_contract` |
 | Plan status | S3-05 `[~]` under this ADR · Stage-3 `[~]` · **4/7** · S3-01…04 `[x]` |
 
@@ -46,6 +46,6 @@ Baseline: [stage3-lint-ast-census](../stage3-lint-ast-census.md).
 
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-04-claim](stage3-s3-04-claim.md) · S3-I71
-- [stage3-lint-ast-census](../stage3-lint-ast-census.md)
+- [stage3-lint-ast-census](../census/stage3-lint-ast-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-05
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) L007/L012

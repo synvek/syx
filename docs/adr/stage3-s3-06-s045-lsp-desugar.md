@@ -34,7 +34,7 @@
 
 - [stage3-s3-06-residual-scope](stage3-s3-06-residual-scope.md) · S3-I80
 - [stage3-s3-06-open](stage3-s3-06-open.md) · S3-I78
-- [stage3-lsp-book-census](../stage3-lsp-book-census.md)
+- [stage3-lsp-book-census](../census/stage3-lsp-book-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-06
 - [`crates/syx-driver/src/lsp_ide.rs`](../../crates/syx-driver/src/lsp_ide.rs)
 - [`crates/syx-driver/src/thin_host.rs`](../../crates/syx-driver/src/thin_host.rs)

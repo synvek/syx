@@ -8,9 +8,9 @@
 
 | Axis | Evidence |
 |------|----------|
-| Open | [S3-I92](stage4-s4-02-open.md) · [census](../stage4-package-registry-census.md) |
-| Construct I93 | [`s4-02-file-registry-v0`](../s4-02-file-registry-v0.md) · file:// round-trip KPIs |
-| Residual-scope | [S3-I94](stage4-s4-02-residual-scope.md) · scoped acceptance · [scope-v0](../s4-02-registry-residual-scope-v0.md) |
+| Open | [S3-I92](stage4-s4-02-open.md) · [census](../census/stage4-package-registry-census.md) |
+| Construct I93 | [`s4-02-file-registry-v0`](../census/s4-02-file-registry-v0.md) · file:// round-trip KPIs |
+| Residual-scope | [S3-I94](stage4-s4-02-residual-scope.md) · scoped acceptance · [scope-v0](../census/s4-02-registry-residual-scope-v0.md) |
 | Primary KPI | `file_registry_hinge_helper≥1` · integration≥1 · evergreen≥2 · R001≥1 · `residual_scope_helper≥1` · `s4_02_claim_helper≥1` |
 | Contract | `s4_02_claim_contract` · `s4_02_package_registry_census_contract` |
 | Honesty OUT | **≠** Stage-4 exit · **≠** write `stage4-exit` this window · **≠** restore deferred as gate |
@@ -41,10 +41,10 @@ Under Hard OUT（≠ 改 `syx-pkg`/CLI / ≠ lock v16 全面裁剪 / ≠ 公网 
 - [stage4-s4-02-residual-scope](stage4-s4-02-residual-scope.md) · S3-I94
 - [stage4-s4-02-file-registry-hinge](stage4-s4-02-file-registry-hinge.md) · S3-I93
 - [stage4-s4-02-open](stage4-s4-02-open.md) · S3-I92
-- [s4-02-registry-residual-scope-v0](../s4-02-registry-residual-scope-v0.md)
-- [s4-02-file-registry-v0](../s4-02-file-registry-v0.md)
+- [s4-02-registry-residual-scope-v0](../census/s4-02-registry-residual-scope-v0.md)
+- [s4-02-file-registry-v0](../census/s4-02-file-registry-v0.md)
 - [stage4-s4-01-claim](stage4-s4-01-claim.md) · S3-I91（claim 窗形态）
-- [stage4-package-registry-census](../stage4-package-registry-census.md)
-- [stage4-structured-concurrency-census](../stage4-structured-concurrency-census.md)
+- [stage4-package-registry-census](../census/stage4-package-registry-census.md)
+- [stage4-structured-concurrency-census](../census/stage4-structured-concurrency-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-02
 - [`crates/syx-pkg`](../../crates/syx-pkg)

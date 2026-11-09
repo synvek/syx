@@ -20,7 +20,7 @@
 | Module | `crates/syx-semantic/src/feature_gates.rs` |
 | Re-export | `lib.rs` `mod feature_gates` + `pub use feature_gates::*` |
 | Contract | `s2_05_semantic_feature_gates_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I238 row · semantic floor 7700 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I238 row · semantic floor 7700 |
 
 ## Consequences
 
@@ -34,5 +34,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-types-to-codec-batch](stage2-s2-05-semantic-types-to-codec-batch.md) · S2-I236–I237
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

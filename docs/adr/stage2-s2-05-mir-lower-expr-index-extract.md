@@ -20,7 +20,7 @@
 | Wiring | `lib.rs` `mod mir_lower_expr_index` + delegate |
 | Shell | `pub(crate) fn lower_expr` remains in `lib.rs` |
 | Contract | `s2_05_mir_lower_expr_index_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I181 row |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I181 row |
 
 ## Consequences
 
@@ -33,5 +33,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-lower-expr-closure-extract](stage2-s2-05-mir-lower-expr-closure-extract.md) · S2-I180
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

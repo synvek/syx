@@ -25,6 +25,6 @@
 - [stage2-fingerprint-heap-tip-digest-rename](stage2-fingerprint-heap-tip-digest-rename.md) · S2-I105
 - [stage2-lang-props-retire](stage2-lang-props-retire.md) · S2-I107
 - [stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename](stage2-fingerprint-product-sea-vm-gui-dlopen-wrapper-rename.md) · S2-I95
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01
 

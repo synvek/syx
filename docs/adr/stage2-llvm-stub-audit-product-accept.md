@@ -24,5 +24,5 @@
 - [stage2-gate-b09-narrative-peel](stage2-gate-b09-narrative-peel.md) · S2-I133
 - [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md)
 - [gate-b06-llvm-stub-audit](../gates/gate-b06-llvm-stub-audit.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

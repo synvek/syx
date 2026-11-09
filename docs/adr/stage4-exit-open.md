@@ -13,7 +13,7 @@
 | Deferred supersede-only | S4-01 doctest/manifest · S4-02 public registry · S4-03 Sendable/withTaskGroup · S4-04 makeIterator/map·filter · S4-05 doctor CLI / sysroot / marketplace | **post-exit Residual**（do not block exit） |
 | Parked / prior residual | Stage-0…3 post-exit · HostFn/F-08/Wave | Remain parked / residual |
 
-Baseline: [stage4-exit-census](../stage4-exit-census.md).
+Baseline: [stage4-exit-census](../census/stage4-exit-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage4-exit-census](../stage4-exit-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Exit census | [`docs/stage4-exit-census.md`](../stage4-exit-census.md) · `scripts/s4_exit_census.sh` |
+| Exit census | [`docs/census/stage4-exit-census.md`](../census/stage4-exit-census.md) · `scripts/s4_exit_census.sh` |
 | Claim chain | S4-01 [I91](stage4-s4-01-claim.md) · S4-02 [I95](stage4-s4-02-claim.md) · S4-03 [I99](stage4-s4-03-claim.md) · S4-04 [I103](stage4-s4-04-claim.md) · S4-05 [I107](stage4-s4-05-claim.md) |
 | Contract nail | `s4_exit_open_contract` |
 | Plan status | Stage-4 `[~]` · **5/5** · exit-open under this ADR |
@@ -45,5 +45,5 @@ Baseline: [stage4-exit-census](../stage4-exit-census.md).
 - [stage3-exit-open](stage3-exit-open.md) · S3-I86（exit-open 形态）
 - [stage3-exit](stage3-exit.md) · S3-I87
 - [stage4-open](stage4-open.md) · S3-I88
-- [stage4-exit-census](../stage4-exit-census.md)
+- [stage4-exit-census](../census/stage4-exit-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) Stage-4

@@ -19,7 +19,7 @@
 | Module | `crates/syx-mir/src/mir_opt.rs` |
 | Re-export | `lib.rs` `mod mir_opt` + `pub use mir_opt::{…}` |
 | Contract | `s2_05_mir_opt_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I169 row |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I169 row |
 
 ## Consequences
 
@@ -33,5 +33,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-aot-extract](stage2-s2-05-mir-aot-extract.md) · S2-I168
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

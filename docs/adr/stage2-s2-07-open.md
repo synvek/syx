@@ -12,7 +12,7 @@
 | phase/117.0 internal | Still public in manifest + evergreen | Internal fingerprint / narrative only |
 | Crate pin divergence | **None** (already `0.1.3`) | Keep unified |
 
-Baseline: [stage2-version-census](../stage2-version-census.md).
+Baseline: [stage2-version-census](../census/stage2-version-census.md).
 
 ## Decision
 
@@ -25,7 +25,7 @@ Baseline: [stage2-version-census](../stage2-version-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Version census | [`docs/stage2-version-census.md`](../stage2-version-census.md) · `scripts/s2_07_version_census.sh` |
+| Version census | [`docs/census/stage2-version-census.md`](../census/stage2-version-census.md) · `scripts/s2_07_version_census.sh` |
 | Contract nail | `s2_07_version_census_contract` |
 | Plan status | S2-07 `[~]` under this ADR |
 
@@ -39,5 +39,5 @@ Baseline: [stage2-version-census](../stage2-version-census.md).
 
 - [stage2-open](stage2-open.md)
 - [stage2-s2-06-claim](stage2-s2-06-claim.md) · S2-I262
-- [stage2-version-census](../stage2-version-census.md)
+- [stage2-version-census](../census/stage2-version-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-07

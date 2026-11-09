@@ -32,5 +32,5 @@
 ## References
 
 - [stage3-s3-03-cache-roundtrip](stage3-s3-03-cache-roundtrip.md) · S3-I53
-- [stage3-stdlib-cache-census](../stage3-stdlib-cache-census.md)
+- [stage3-stdlib-cache-census](../census/stage3-stdlib-cache-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-03

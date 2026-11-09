@@ -19,7 +19,7 @@
 | Root exclude | `exclude = ["crates/syx-gui"]` in root `Cargo.toml` |
 | Metadata | `cargo metadata --no-deps` packages **do not** include `syx-gui` |
 | Directory + opt-in | `crates/syx-gui/` still present; vm path + `gui-syx-isolated` intact |
-| Census / contract | [stage2-workspace-census](../stage2-workspace-census.md) · `s2_06_exclude_syx_gui_contract` |
+| Census / contract | [stage2-workspace-census](../census/stage2-workspace-census.md) · `s2_06_exclude_syx_gui_contract` |
 | Plan status | S2-06 remains `[~]` |
 
 ## Consequences
@@ -33,5 +33,5 @@
 
 - [stage2-open](stage2-open.md)
 - [stage2-s2-06-open](stage2-s2-06-open.md) · S2-I260
-- [stage2-workspace-census](../stage2-workspace-census.md)
+- [stage2-workspace-census](../census/stage2-workspace-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-06

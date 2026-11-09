@@ -30,5 +30,5 @@
 - [stage2-b09-product-flag-decouple](stage2-b09-product-flag-decouple.md) · S2-I18
 - [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md)
 - [stage2-lsp-contract-lib-pin-retire](stage2-lsp-contract-lib-pin-retire.md) · S2-I132
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

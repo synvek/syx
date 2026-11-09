@@ -44,5 +44,5 @@
 
 - [stage3-s3-04-call-args-move](stage3-s3-04-call-args-move.md) · S3-I57
 - [stage3-s3-04-open](stage3-s3-04-open.md) · S3-I56
-- [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md)
+- [stage3-vm-hotspot-census](../census/stage3-vm-hotspot-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-04

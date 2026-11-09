@@ -33,5 +33,5 @@
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-span-host-vm-hosts](stage3-s3-01-span-host-vm-hosts.md) · S3-I14
 - [stage3-s3-01-span-host-vm-phase84](stage3-s3-01-span-host-vm-phase84.md) · S3-I16
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

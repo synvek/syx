@@ -76,7 +76,7 @@
 - [stage2-gate-b09-narrative-peel](stage2-gate-b09-narrative-peel.md) · S2-I133
 - [stage2-llvm-stub-audit-product-accept](stage2-llvm-stub-audit-product-accept.md) · S2-I134
 - [stage2-s2-01-s2-02-claim](stage2-s2-01-s2-02-claim.md) · S2-I135
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02
 
 

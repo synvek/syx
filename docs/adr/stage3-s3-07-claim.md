@@ -43,5 +43,5 @@ Under Hard OUT（≠ UsageGuide 大改 / ≠ 抽 Init crate / ≠ CLI 子进程 
 - [stage3-s3-07-default-vm](stage3-s3-07-default-vm.md) · S3-I83
 - [stage3-s3-07-open](stage3-s3-07-open.md) · S3-I82
 - [stage3-s3-06-claim](stage3-s3-06-claim.md) · S3-I81（claim 窗形态）
-- [stage3-init-template-census](../stage3-init-template-census.md)
+- [stage3-init-template-census](../census/stage3-init-template-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-07

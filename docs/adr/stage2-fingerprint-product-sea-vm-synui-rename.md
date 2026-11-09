@@ -30,6 +30,6 @@
 - [stage2-open](stage2-open.md)
 - [stage2-fingerprint-product-sea-gui-remaining-facade-rename](stage2-fingerprint-product-sea-gui-remaining-facade-rename.md) · S2-I96
 - [stage2-fingerprint-product-sea-generate-rename](stage2-fingerprint-product-sea-generate-rename.md) · S2-I98
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01
 

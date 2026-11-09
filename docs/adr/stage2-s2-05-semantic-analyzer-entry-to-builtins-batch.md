@@ -22,7 +22,7 @@
 | Module | `crates/syx-semantic/src/semantic_analyzer.rs` |
 | Re-export | `lib.rs` `mod semantic_analyzer` + `pub use …::SemanticAnalyzer` |
 | Contract | `s2_05_semantic_analyzer_entry_to_builtins_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I239–I240 row · semantic floor 6800 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I239–I240 row · semantic floor 6800 |
 
 ## Consequences
 
@@ -35,5 +35,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-feature-gates-extract](stage2-s2-05-semantic-feature-gates-extract.md) · S2-I238
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

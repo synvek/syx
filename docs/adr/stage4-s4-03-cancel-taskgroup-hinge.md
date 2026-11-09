@@ -6,7 +6,7 @@
 
 ## Decision
 
-1. **Publish** charter [`docs/s4-03-cancel-taskgroup-v0.md`](../s4-03-cancel-taskgroup-v0.md)（Primary = cancel + TaskGroup；Sendable/`withTaskGroup` deferred）。
+1. **Publish** charter [`docs/census/s4-03-cancel-taskgroup-v0.md`](../census/s4-03-cancel-taskgroup-v0.md)（Primary = cancel + TaskGroup；Sendable/`withTaskGroup` deferred）。
 2. **Nail Primary KPIs** on existing evidence（no product edit）：
    - `cancel_token_helper≥1` · `CancellationToken`
    - `task_group_hostfn_helper≥1` · TaskGroupCreate/Add/Wait/Cancel
@@ -19,7 +19,7 @@
 
 | Check | Evidence |
 |-------|----------|
-| Charter | [`docs/s4-03-cancel-taskgroup-v0.md`](../s4-03-cancel-taskgroup-v0.md) |
+| Charter | [`docs/census/s4-03-cancel-taskgroup-v0.md`](../census/s4-03-cancel-taskgroup-v0.md) |
 | Census KPI | `cancel_taskgroup_hinge_helper≥1` · cancel_token / TaskGroup HostFn / task_tree counts |
 | Contract | `s4_03_cancel_taskgroup_hinge_contract` |
 | Prior | [stage4-s4-03-open](stage4-s4-03-open.md) · S3-I96 |
@@ -38,9 +38,9 @@
 - [stage4-s4-03-claim](stage4-s4-03-claim.md) · S3-I99
 - [stage4-s4-03-residual-scope](stage4-s4-03-residual-scope.md) · S3-I98
 - [stage4-s4-03-open](stage4-s4-03-open.md) · S3-I96
-- [s4-03-cancel-taskgroup-v0](../s4-03-cancel-taskgroup-v0.md)
-- [s4-03-concurrency-residual-scope-v0](../s4-03-concurrency-residual-scope-v0.md)
-- [stage4-structured-concurrency-census](../stage4-structured-concurrency-census.md)
+- [s4-03-cancel-taskgroup-v0](../census/s4-03-cancel-taskgroup-v0.md)
+- [s4-03-concurrency-residual-scope-v0](../census/s4-03-concurrency-residual-scope-v0.md)
+- [stage4-structured-concurrency-census](../census/stage4-structured-concurrency-census.md)
 - [stage4-s4-02-file-registry-hinge](stage4-s4-02-file-registry-hinge.md) · S3-I93（hinge 形态）
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-03
 - [`crates/syx-async`](../../crates/syx-async)

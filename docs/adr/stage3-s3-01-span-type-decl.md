@@ -38,5 +38,5 @@
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-span-gate-semantic](stage3-s3-01-span-gate-semantic.md) · S3-I2
 - [stage3-s3-01-span-concurrency](stage3-s3-01-span-concurrency.md) · S3-I4
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # S2-I260/I261: Stage-2 workspace slim census (S2-06).
 # Does not claim S2-06 [x].
-# See docs/stage2-workspace-census.md and docs/adr/stage2-s2-06-exclude-syx-gui.md
+# See docs/census/stage2-workspace-census.md and docs/adr/stage2-s2-06-exclude-syx-gui.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

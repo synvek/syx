@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # S2-I143: Stage-2 parser dual-track census (S2-04 open baseline).
 # Does not unify parsers or delete syx-cst.
-# See docs/stage2-parser-census.md and docs/adr/stage2-s2-04-open.md
+# See docs/census/stage2-parser-census.md and docs/adr/stage2-s2-04-open.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

@@ -131,5 +131,5 @@
 - [stage2-fingerprint-v111-fold](stage2-fingerprint-v111-fold.md) · S2-I85
 - [stage2-fingerprint-foundation-fold](stage2-fingerprint-foundation-fold.md) · S2-I86
 - [stage2-fingerprint-track-l-fold](stage2-fingerprint-track-l-fold.md) · S2-I87
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

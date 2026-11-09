@@ -10,9 +10,9 @@ Do **not** confuse with legacy ID `M2-S4-05`（TLS client）.
 
 | Axis | Evidence |
 |------|----------|
-| Open | [S3-I104](stage4-s4-05-open.md) · [census](../stage4-prebuilt-release-census.md) |
-| Construct I105 | [`s4-05-doctor-native-sdk-v0`](../s4-05-doctor-native-sdk-v0.md) · layout/full-native KPIs |
-| Residual-scope | [S3-I106](stage4-s4-05-residual-scope.md) · scoped acceptance · [scope-v0](../s4-05-prebuilt-residual-scope-v0.md) |
+| Open | [S3-I104](stage4-s4-05-open.md) · [census](../census/stage4-prebuilt-release-census.md) |
+| Construct I105 | [`s4-05-doctor-native-sdk-v0`](../census/s4-05-doctor-native-sdk-v0.md) · layout/full-native KPIs |
+| Residual-scope | [S3-I106](stage4-s4-05-residual-scope.md) · scoped acceptance · [scope-v0](../census/s4-05-prebuilt-residual-scope-v0.md) |
 | Primary KPI | `doctor_native_sdk_hinge_helper≥1` · layout≥1 · unit≥1 · full-native≥1 · packaging≥1 · `residual_scope_helper≥1` · `s4_05_claim_helper≥1` |
 | Contract | `s4_05_claim_contract` · `s4_05_prebuilt_release_census_contract` |
 | Honesty OUT | **≠** Stage-4 exit · **≠** write `stage4-exit` this window · **≠** wire `doctor --native-sdk` · **≠** restore deferred as gate |
@@ -35,16 +35,16 @@ Under Hard OUT（≠ 接线 `doctor --native-sdk` / ≠ packaging/`release.yml` 
 - Default next = **S3-I109**（write `stage4-exit`）— not Stage-4 `[x] 退出` this claim / not CLI wire / not product knife.
 - Prior: [stage4-s4-05-residual-scope](stage4-s4-05-residual-scope.md) · S3-I106 · construct [S3-I105](stage4-s4-05-doctor-native-sdk-hinge.md) · open [S3-I104](stage4-s4-05-open.md).
 - Prebuilt census Current → **S3-I107** · Claimed scoped `[x]`。
-- Exit census: [stage4-exit-census](../stage4-exit-census.md) · Current **S3-I108** · exit_status=open。
+- Exit census: [stage4-exit-census](../census/stage4-exit-census.md) · Current **S3-I108** · exit_status=open。
 
 ## References
 
 - [stage4-s4-05-residual-scope](stage4-s4-05-residual-scope.md) · S3-I106
 - [stage4-s4-05-doctor-native-sdk-hinge](stage4-s4-05-doctor-native-sdk-hinge.md) · S3-I105
 - [stage4-s4-05-open](stage4-s4-05-open.md) · S3-I104
-- [s4-05-prebuilt-residual-scope-v0](../s4-05-prebuilt-residual-scope-v0.md)
-- [s4-05-doctor-native-sdk-v0](../s4-05-doctor-native-sdk-v0.md)
+- [s4-05-prebuilt-residual-scope-v0](../census/s4-05-prebuilt-residual-scope-v0.md)
+- [s4-05-doctor-native-sdk-v0](../census/s4-05-doctor-native-sdk-v0.md)
 - [stage4-s4-04-claim](stage4-s4-04-claim.md) · S3-I103（claim 窗形态）
-- [stage4-prebuilt-release-census](../stage4-prebuilt-release-census.md)
+- [stage4-prebuilt-release-census](../census/stage4-prebuilt-release-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-05
 - [stage3-exit-open](stage3-exit-open.md) · S3-I86（下一 tip 形态）

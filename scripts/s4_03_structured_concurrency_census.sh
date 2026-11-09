@@ -2,7 +2,7 @@
 # S3-I96…I99: Stage-4 / S4-03 structured concurrency census.
 # I96 open · I97 cancel/TaskGroup hinge · I98 residual-scope · I99 scoped claim.
 # ≠ Stage-4 exit · ≠ syx-async product knife · ≠ withTaskGroup GA.
-# See docs/stage4-structured-concurrency-census.md
+# See docs/census/stage4-structured-concurrency-census.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -22,36 +22,36 @@ count_rg() {
 s4_03_open_helper=$(count_rg 'S3-I96|S3-I97|S3-I98|S3-I99|S3-I100|stage4-s4-03-open|S4-03 \[~\]|S4-03 \[x\]|structured concurrency|cancel/TaskGroup' \
   docs/adr/stage4-s4-03-open.md docs/adr/stage4-s4-03-cancel-taskgroup-hinge.md \
   docs/adr/stage4-s4-03-residual-scope.md docs/adr/stage4-s4-03-claim.md \
-  docs/stage4-structured-concurrency-census.md \
+  docs/census/stage4-structured-concurrency-census.md \
   scripts/s4_03_structured_concurrency_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_03_structured_concurrency_census_contract.rs \
-  crates/syx-driver/tests/lang/s4_03_cancel_taskgroup_hinge_contract.rs \
-  crates/syx-driver/tests/lang/s4_03_residual_scope_contract.rs \
-  crates/syx-driver/tests/lang/s4_03_claim_contract.rs)
+  crates/syx-driver/tests/credibility/structured_concurrency_census_contract.rs \
+  crates/syx-driver/tests/credibility/cancel_taskgroup_hinge_contract.rs \
+  crates/syx-driver/tests/credibility/structured_concurrency_residual_scope_contract.rs \
+  crates/syx-driver/tests/credibility/structured_concurrency_claim_contract.rs)
 
 s4_03_census_helper=$(count_rg 'S4-03|structured concurrency|CancellationToken|TaskGroup|Sendable|task_tree|stage4-structured-concurrency|cancel-taskgroup|residual-scope|scoped acceptance|scoped \[x\]' \
   docs/adr/stage4-s4-03-open.md docs/adr/stage4-s4-03-cancel-taskgroup-hinge.md \
   docs/adr/stage4-s4-03-residual-scope.md docs/adr/stage4-s4-03-claim.md \
-  docs/stage4-structured-concurrency-census.md docs/s4-03-cancel-taskgroup-v0.md \
-  docs/s4-03-concurrency-residual-scope-v0.md \
+  docs/census/stage4-structured-concurrency-census.md docs/census/s4-03-cancel-taskgroup-v0.md \
+  docs/census/s4-03-concurrency-residual-scope-v0.md \
   scripts/s4_03_structured_concurrency_census.sh plan/02-improvement-roadmap.md)
 
 cancel_taskgroup_hinge_helper=$(count_rg 'S3-I97|cancel-taskgroup-hinge|s4-03-cancel-taskgroup-v0|cancel_taskgroup_hinge' \
-  docs/adr/stage4-s4-03-cancel-taskgroup-hinge.md docs/s4-03-cancel-taskgroup-v0.md \
-  docs/stage4-structured-concurrency-census.md \
+  docs/adr/stage4-s4-03-cancel-taskgroup-hinge.md docs/census/s4-03-cancel-taskgroup-v0.md \
+  docs/census/stage4-structured-concurrency-census.md \
   scripts/s4_03_structured_concurrency_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_03_cancel_taskgroup_hinge_contract.rs)
+  crates/syx-driver/tests/credibility/cancel_taskgroup_hinge_contract.rs)
 
 residual_scope_helper=$(count_rg 'S3-I98|residual-scope|scoped acceptance|supersede|concurrency-residual-scope' \
-  docs/adr/stage4-s4-03-residual-scope.md docs/s4-03-concurrency-residual-scope-v0.md \
-  docs/stage4-structured-concurrency-census.md \
+  docs/adr/stage4-s4-03-residual-scope.md docs/census/s4-03-concurrency-residual-scope-v0.md \
+  docs/census/stage4-structured-concurrency-census.md \
   scripts/s4_03_structured_concurrency_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_03_residual_scope_contract.rs)
+  crates/syx-driver/tests/credibility/structured_concurrency_residual_scope_contract.rs)
 
 s4_03_claim_helper=$(count_rg 'S3-I99|stage4-s4-03-claim|Claimed: scoped|scoped \[x\]|s4_03_claim' \
-  docs/adr/stage4-s4-03-claim.md docs/stage4-structured-concurrency-census.md \
+  docs/adr/stage4-s4-03-claim.md docs/census/stage4-structured-concurrency-census.md \
   scripts/s4_03_structured_concurrency_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_03_claim_contract.rs)
+  crates/syx-driver/tests/credibility/structured_concurrency_claim_contract.rs)
 
 cancel_token_helper=$(count_rg 'CancellationToken|struct CancellationToken' \
   crates/syx-async/src/cancellation.rs)

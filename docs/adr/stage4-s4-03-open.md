@@ -14,7 +14,7 @@
 | GC Nursery | 仓库 `Nursery` ≈ GC nursery — **≠ 并发产品** | **N/A OUT** |
 | Stage-4 claim | **无** S4-03 scoped `[x]` / **无** 本轴 census | census → construct → claim |
 
-Baseline: [stage4-structured-concurrency-census](../stage4-structured-concurrency-census.md).
+Baseline: [stage4-structured-concurrency-census](../census/stage4-structured-concurrency-census.md).
 
 ## Decision
 
@@ -28,7 +28,7 @@ Baseline: [stage4-structured-concurrency-census](../stage4-structured-concurrenc
 
 | Check | Evidence |
 |-------|----------|
-| Structured-concurrency census | [`docs/stage4-structured-concurrency-census.md`](../stage4-structured-concurrency-census.md) · `scripts/s4_03_structured_concurrency_census.sh` |
+| Structured-concurrency census | [`docs/census/stage4-structured-concurrency-census.md`](../census/stage4-structured-concurrency-census.md) · `scripts/s4_03_structured_concurrency_census.sh` |
 | Contract nail | `s4_03_structured_concurrency_census_contract` |
 | Plan status | Stage-4 `[~]` · S4-03 `[~]` · checklist **2/5** under this ADR |
 
@@ -49,8 +49,8 @@ Baseline: [stage4-structured-concurrency-census](../stage4-structured-concurrenc
 - [stage4-s4-03-cancel-taskgroup-hinge](stage4-s4-03-cancel-taskgroup-hinge.md) · S3-I97
 - [stage4-s4-02-claim](stage4-s4-02-claim.md) · S3-I95
 - [stage4-s4-02-open](stage4-s4-02-open.md) · S3-I92（开窗形态）
-- [stage4-structured-concurrency-census](../stage4-structured-concurrency-census.md)
-- [s4-03-cancel-taskgroup-v0](../s4-03-cancel-taskgroup-v0.md)
+- [stage4-structured-concurrency-census](../census/stage4-structured-concurrency-census.md)
+- [s4-03-cancel-taskgroup-v0](../census/s4-03-cancel-taskgroup-v0.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-03
 - [`crates/syx-async`](../../crates/syx-async)
 - [`crates/syx-semantic/src/semantic_concurrency.rs`](../../crates/syx-semantic/src/semantic_concurrency.rs)

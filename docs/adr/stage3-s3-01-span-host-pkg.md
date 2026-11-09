@@ -34,5 +34,5 @@
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-span-host-wasm-run](stage3-s3-01-span-host-wasm-run.md) · S3-I11
 - [stage3-s3-01-span-host-macro](stage3-s3-01-span-host-macro.md) · S3-I13
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

@@ -13,7 +13,7 @@
 | `syx-driver` | ~9k `lib.rs` + many sidecars (incl. large `farm_lease_auth`) | Shrink residual `lib.rs` orchestration |
 | `syx-semantic` | ~9k `lib.rs`; thin helper modules | Extract checker / lower clusters |
 
-Baseline numbers: [stage2-file-split-census](../stage2-file-split-census.md).
+Baseline numbers: [stage2-file-split-census](../census/stage2-file-split-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline numbers: [stage2-file-split-census](../stage2-file-split-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| File-split census | [`docs/stage2-file-split-census.md`](../stage2-file-split-census.md) · `scripts/s2_05_file_split_census.sh` |
+| File-split census | [`docs/census/stage2-file-split-census.md`](../census/stage2-file-split-census.md) · `scripts/s2_05_file_split_census.sh` |
 | Contract nail | `s2_05_file_split_census_contract` |
 | Plan status | S2-05 `[~]` under this ADR |
 
@@ -46,5 +46,5 @@ Baseline numbers: [stage2-file-split-census](../stage2-file-split-census.md).
 
 - [stage2-open](stage2-open.md)
 - [stage2-s2-04-claim](stage2-s2-04-claim.md) · S2-I164
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

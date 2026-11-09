@@ -8,7 +8,7 @@
 
 | Axis | Evidence |
 |------|----------|
-| Open baseline | [stage2-s2-07-open](stage2-s2-07-open.md) · [stage2-version-census](../stage2-version-census.md) · S2-I263 |
+| Open baseline | [stage2-s2-07-open](stage2-s2-07-open.md) · [stage2-version-census](../census/stage2-version-census.md) · S2-I263 |
 | Public inject | `build.rs` ← `CARGO_PKG_VERSION` · manifest/capabilities `0.1.3` · S2-I264 |
 | Evergreen | version asserts follow `CARGO_PKG_VERSION` |
 | Contract chain | `s2_07_version_census` · `s2_07_inject_cargo_pkg_version` · this claim |
@@ -34,5 +34,5 @@
 - [stage2-s2-07-open](stage2-s2-07-open.md) · S2-I263
 - [stage2-s2-07-inject-cargo-pkg-version](stage2-s2-07-inject-cargo-pkg-version.md) · S2-I264
 - [stage2-s2-06-claim](stage2-s2-06-claim.md) · S2-I262 (claim pattern)
-- [stage2-version-census](../stage2-version-census.md)
+- [stage2-version-census](../census/stage2-version-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-07

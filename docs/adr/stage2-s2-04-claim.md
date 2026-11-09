@@ -8,7 +8,7 @@
 
 | Axis (I159 checklist) | Evidence |
 |-----------------------|----------|
-| Documented parse strategy SSOT | [I159](stage2-s2-04-frontend-share-tree-evaluation.md) · [I163 Decision 2](stage2-s2-04-dual-grammar-freeze-charter.md) · [census Entry map](../stage2-parser-census.md) |
+| Documented parse strategy SSOT | [I159](stage2-s2-04-frontend-share-tree-evaluation.md) · [I163 Decision 2](stage2-s2-04-dual-grammar-freeze-charter.md) · [census Entry map](../census/stage2-parser-census.md) |
 | KPI freeze / stop expanding | [I163](stage2-s2-04-dual-grammar-freeze-charter.md) · `s2_04_dual_grammar_freeze_contract` · freeze baseline `combined_grammar_loc` **12381** |
 | Lint Module honesty (lower \| Parser) | [I161](stage2-s2-04-lint-lower-path.md) · `s2_04_lint_lower_path_contract` · `lint_source_auto` → `lower_cst_subset_probe` |
 | Tools CST-first | [I151–I153](stage2-s2-04-fmt-write-migration.md) · `s2_04_fmt_strategy_contract` · `s2_04_lint_cst_first_contract` · `s2_04_lsp_format_contract` |
@@ -38,5 +38,5 @@
 - [stage2-s2-04-frontend-share-tree-evaluation](stage2-s2-04-frontend-share-tree-evaluation.md) · S2-I159
 - [stage2-s2-04-dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md) · S2-I163
 - [stage2-s2-03-claim](stage2-s2-03-claim.md) · S2-I142 (claim pattern)
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04

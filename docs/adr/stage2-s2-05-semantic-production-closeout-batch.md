@@ -21,7 +21,7 @@
 |-------|----------|
 | Module | `semantic_analyzer.rs` holds `check_concurrency_rules` / `members_for_type` |
 | Contract | `s2_05_semantic_production_closeout_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I247–I248 row · semantic floor 500 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I247–I248 row · semantic floor 500 |
 
 ## Consequences
 
@@ -35,5 +35,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-analyze-type-member-extract](stage2-s2-05-semantic-analyze-type-member-extract.md) · S2-I246
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

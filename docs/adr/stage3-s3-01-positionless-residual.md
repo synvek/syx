@@ -44,5 +44,5 @@
 
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-positionless-rt-jit-debug](stage3-s3-01-positionless-rt-jit-debug.md) · S3-I38
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

@@ -13,7 +13,7 @@
 | Signature help | capabilities + 单测齐 | 书块调用处可用 |
 | 类型提示 / hover | 已接线；S3-02 demangle **Claimed** | 书块用户面类型提示可用 |
 
-Baseline: [stage3-lsp-book-census](../stage3-lsp-book-census.md).
+Baseline: [stage3-lsp-book-census](../census/stage3-lsp-book-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-lsp-book-census](../stage3-lsp-book-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| LSP-book census | [`docs/stage3-lsp-book-census.md`](../stage3-lsp-book-census.md) · `scripts/s3_06_lsp_book_census.sh` |
+| LSP-book census | [`docs/census/stage3-lsp-book-census.md`](../census/stage3-lsp-book-census.md) · `scripts/s3_06_lsp_book_census.sh` |
 | Contract nail | `s3_06_lsp_census_contract` |
 | Plan status | S3-06 `[~]` under this ADR · Stage-3 `[~]` · **5/7** · S3-01…05 `[x]` |
 
@@ -45,7 +45,7 @@ Baseline: [stage3-lsp-book-census](../stage3-lsp-book-census.md).
 - [stage3-s3-06-s045-lsp-desugar](stage3-s3-06-s045-lsp-desugar.md) · S3-I79
 - [stage3-s3-05-claim](stage3-s3-05-claim.md) · S3-I77
 - [stage3-open](stage3-open.md) · S3-I1
-- [stage3-lsp-book-census](../stage3-lsp-book-census.md)
+- [stage3-lsp-book-census](../census/stage3-lsp-book-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-06
 - [`crates/syx-lsp/src/lib.rs`](../../crates/syx-lsp/src/lib.rs)
 - [`crates/syx-driver/src/lsp_ide.rs`](../../crates/syx-driver/src/lsp_ide.rs)

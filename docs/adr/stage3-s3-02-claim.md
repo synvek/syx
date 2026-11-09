@@ -58,5 +58,5 @@ User-facing surfaces show generic / method forms via demangle helpers — **not*
 - [stage3-s3-02-debug-stack-display](stage3-s3-02-debug-stack-display.md) · S3-I44
 - [stage3-s3-02-runtime-type-display](stage3-s3-02-runtime-type-display.md) · S3-I45
 - [stage3-s3-02-meta-type-display](stage3-s3-02-meta-type-display.md) · S3-I46
-- [stage3-mono-display-census](../stage3-mono-display-census.md)
+- [stage3-mono-display-census](../census/stage3-mono-display-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-02

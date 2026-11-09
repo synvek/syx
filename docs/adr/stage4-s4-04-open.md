@@ -15,7 +15,7 @@
 | Collection Index | capabilities notes **still open** | 全量 Index 面 |
 | Stage-4 claim | **无** S4-04 scoped `[x]` / **无** 本轴 census | census → construct → claim |
 
-Baseline: [stage4-sequence-collection-census](../stage4-sequence-collection-census.md).
+Baseline: [stage4-sequence-collection-census](../census/stage4-sequence-collection-census.md).
 
 ## Decision
 
@@ -29,7 +29,7 @@ Baseline: [stage4-sequence-collection-census](../stage4-sequence-collection-cens
 
 | Check | Evidence |
 |-------|----------|
-| Sequence/collection census | [`docs/stage4-sequence-collection-census.md`](../stage4-sequence-collection-census.md) · `scripts/s4_04_sequence_collection_census.sh` |
+| Sequence/collection census | [`docs/census/stage4-sequence-collection-census.md`](../census/stage4-sequence-collection-census.md) · `scripts/s4_04_sequence_collection_census.sh` |
 | Contract nail | `s4_04_sequence_collection_census_contract` |
 | Plan status | Stage-4 `[~]` · S4-04 `[~]` · checklist **3/5** under this ADR |
 
@@ -54,7 +54,7 @@ Baseline: [stage4-sequence-collection-census](../stage4-sequence-collection-cens
 
 
 - [stage4-s4-03-open](stage4-s4-03-open.md) · S3-I96（开窗形态）
-- [stage4-sequence-collection-census](../stage4-sequence-collection-census.md)
+- [stage4-sequence-collection-census](../census/stage4-sequence-collection-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-04
 - [`packages/internal/capabilities.toml`](../../packages/internal/capabilities.toml) `collections.protocol`
 - [`crates/syx-driver/tests/stdlib/collection_sequence_iterator.rs`](../../crates/syx-driver/tests/stdlib/collection_sequence_iterator.rs)

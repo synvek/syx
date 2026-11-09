@@ -74,7 +74,7 @@ Fingerprint: `three-hundred-and-twenty-third` / `A-W473` (honesty); exit clearan
 ## Evidence
 
 - [`crates/syx-codegen/src/lib.rs`](../../crates/syx-codegen/src/lib.rs) `compile_decl` residual `_ => {}` / type-shell skip list（`GateB01NoopResidualHonestyInventory` removed from product `src/` in S2-I4）
-- Meta: ~~`gate_b01_noop_residual_honesty.rs`~~ retired；**post S2-I136…I138** product proof = [`s2_03_mir_consumer_contract`](../../crates/syx-driver/tests/lang/s2_03_mir_consumer_contract.rs)（含 delete absent 钉）+ this SSOT（≠ restore src inventory）
+- Meta: ~~`gate_b01_noop_residual_honesty.rs`~~ retired；**post S2-I136…I138** product proof = [`s2_03_mir_consumer_contract`](../../crates/syx-driver/tests/credibility/mir_consumer_contract.rs)（含 delete absent 钉）+ this SSOT（≠ restore src inventory）
 - Exit: [`gate-b01-mir-consumer-exit.md`](../../plan/archive/gates/gate-b01-mir-consumer-exit.md) / ~~`gate_b01_mir_consumer_exit.rs`~~ retired（F-10 W594）
 - Floor: [`gate-b01-actor-mir-shell-migrate.md`](gate-b01-actor-mir-shell-migrate.md) / [`gate-b01-mir-consumer-deepen-thin.md`](gate-b01-mir-consumer-deepen-thin.md)
 - Cross: [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) B-01 / S2-03, [`stage2-s2-03-open`](../adr/stage2-s2-03-open.md), [`stage2-s2-03-type-shell-hollow`](../adr/stage2-s2-03-type-shell-hollow.md), [`stage2-s2-03-type-shell-delete`](../adr/stage2-s2-03-type-shell-delete.md), [`plan/topics/mir-aot.md`](../../plan/topics/mir-aot.md)

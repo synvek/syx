@@ -35,6 +35,6 @@
 ## References
 
 - [stage3-s3-02-open](stage3-s3-02-open.md) · S3-I42
-- [stage3-mono-display-census](../stage3-mono-display-census.md)
+- [stage3-mono-display-census](../census/stage3-mono-display-census.md)
 - [stage3-open](stage3-open.md) · S3-I1
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-02

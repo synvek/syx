@@ -41,5 +41,5 @@
 - [stage2-s2-04-cst-lower-probe](stage2-s2-04-cst-lower-probe.md) · S2-I160
 - [stage2-s2-04-frontend-share-tree-evaluation](stage2-s2-04-frontend-share-tree-evaluation.md) · S2-I159
 - [stage2-s2-04-lint-cst-first](stage2-s2-04-lint-cst-first.md) · S2-I153
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04

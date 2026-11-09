@@ -14,7 +14,7 @@
 | Registry | `file://` + HTTP client；默认 `packages.sy.dev` 路径存在 | **最小注册表**（file/local index 先行） |
 | Stage-4 claim | **无** S4-02 scoped `[x]` / **无** 本轴 census | census → construct → claim |
 
-Baseline: [stage4-package-registry-census](../stage4-package-registry-census.md).
+Baseline: [stage4-package-registry-census](../census/stage4-package-registry-census.md).
 
 ## Decision
 
@@ -28,7 +28,7 @@ Baseline: [stage4-package-registry-census](../stage4-package-registry-census.md)
 
 | Check | Evidence |
 |-------|----------|
-| Package-registry census | [`docs/stage4-package-registry-census.md`](../stage4-package-registry-census.md) · `scripts/s4_02_package_registry_census.sh` |
+| Package-registry census | [`docs/census/stage4-package-registry-census.md`](../census/stage4-package-registry-census.md) · `scripts/s4_02_package_registry_census.sh` |
 | Contract nail | `s4_02_package_registry_census_contract` |
 | Plan status | Stage-4 `[~]` · S4-02 `[~]` · checklist **1/5** under this ADR |
 
@@ -49,8 +49,8 @@ Baseline: [stage4-package-registry-census](../stage4-package-registry-census.md)
 - [stage4-s4-02-file-registry-hinge](stage4-s4-02-file-registry-hinge.md) · S3-I93
 - [stage4-s4-01-claim](stage4-s4-01-claim.md) · S3-I91
 - [stage4-open](stage4-open.md) · S3-I88（开窗形态）
-- [stage4-package-registry-census](../stage4-package-registry-census.md)
-- [s4-02-file-registry-v0](../s4-02-file-registry-v0.md)
+- [stage4-package-registry-census](../census/stage4-package-registry-census.md)
+- [s4-02-file-registry-v0](../census/s4-02-file-registry-v0.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-02
 - [`crates/syx-pkg`](../../crates/syx-pkg)
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §阶段 4

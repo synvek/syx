@@ -12,7 +12,7 @@
 | GUI | `syx-gui` in members; CI check/clippy excludes it | Out of default members / `experimental/` |
 | Farm/Dist/HSM/CDN | **No** named crates | Stay out; narrative/test residual only |
 
-Baseline: [stage2-workspace-census](../stage2-workspace-census.md).
+Baseline: [stage2-workspace-census](../census/stage2-workspace-census.md).
 
 ## Decision
 
@@ -25,7 +25,7 @@ Baseline: [stage2-workspace-census](../stage2-workspace-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Workspace census | [`docs/stage2-workspace-census.md`](../stage2-workspace-census.md) · `scripts/s2_06_workspace_census.sh` |
+| Workspace census | [`docs/census/stage2-workspace-census.md`](../census/stage2-workspace-census.md) · `scripts/s2_06_workspace_census.sh` |
 | Contract nail | `s2_06_workspace_census_contract` |
 | Plan status | S2-06 `[~]` under this ADR |
 
@@ -39,5 +39,5 @@ Baseline: [stage2-workspace-census](../stage2-workspace-census.md).
 
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-claim](stage2-s2-05-claim.md) · S2-I259
-- [stage2-workspace-census](../stage2-workspace-census.md)
+- [stage2-workspace-census](../census/stage2-workspace-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-06

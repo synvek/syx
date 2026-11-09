@@ -21,7 +21,7 @@
 | Modules | two sidecars above |
 | Wiring | `lib.rs` mods + `pub use` |
 | Contract | `s2_05_semantic_types_to_codec_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I236–I237 row · semantic floor 8500 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I236–I237 row · semantic floor 8500 |
 
 ## Consequences
 
@@ -35,5 +35,5 @@
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-types-extract](stage2-s2-05-mir-types-extract.md) · S2-I166（types 先例）
 - [stage2-s2-05-driver-production-closeout-batch](stage2-s2-05-driver-production-closeout-batch.md) · S2-I233–I235
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

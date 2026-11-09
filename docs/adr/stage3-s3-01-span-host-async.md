@@ -40,5 +40,5 @@
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-span-host-llvm](stage3-s3-01-span-host-llvm.md) · S3-I8
 - [stage3-s3-01-span-host-codegen](stage3-s3-01-span-host-codegen.md) · S3-I10
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

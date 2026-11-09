@@ -2,7 +2,7 @@
 # S3-I72…I77: Stage-3 lint-ast / L007·L012 census (S3-05).
 # I72 open · I73–I74 knives · I75 claim-prep · I76 residual-scope · I77 scoped claim.
 # ≠ Stage-3 exit · ≠ S3-06 construct this window · ≠ product lint knife this window.
-# See docs/stage3-lint-ast-census.md and docs/adr/stage3-s3-05-claim.md
+# See docs/census/stage3-lint-ast-census.md and docs/adr/stage3-s3-05-claim.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -38,22 +38,22 @@ stage3_lint_census_helper=$(count_rg 'S3-I72|S3-I73|S3-I74|S3-I75|S3-I76|S3-I77|
   docs/adr/stage3-s3-05-claim-prep.md \
   docs/adr/stage3-s3-05-residual-scope.md \
   docs/adr/stage3-s3-05-claim.md \
-  docs/stage3-lint-ast-census.md scripts/s3_05_lint_ast_census.sh)
+  docs/census/stage3-lint-ast-census.md scripts/s3_05_lint_ast_census.sh)
 l007_l012_knife_helper=$(count_rg 'in_type_member|S3-I73' crates/syx-lint/src/lib.rs)
 struct_type_member_helper=$(count_rg 'Decl::Struct|Decl::Extension|S3-I74' crates/syx-lint/src/lib.rs)
 # S3-I75 hinge: claim-prep scaffolding (ADR + census + contract anchors).
 claim_prep_helper=$(count_rg 'S3-I75|claim-prep|claim_criteria|Primary' \
-  docs/adr/stage3-s3-05-claim-prep.md docs/stage3-lint-ast-census.md \
-  scripts/s3_05_lint_ast_census.sh crates/syx-driver/tests/lang/s3_05_claim_prep_contract.rs)
+  docs/adr/stage3-s3-05-claim-prep.md docs/census/stage3-lint-ast-census.md \
+  scripts/s3_05_lint_ast_census.sh crates/syx-driver/tests/credibility/lint_ast_claim_prep_contract.rs)
 # S3-I76 hinge: residual-scope (scoped acceptance + deferred hybrid).
 residual_scope_helper=$(count_rg 'S3-I76|residual-scope|scoped acceptance|supersede' \
-  docs/adr/stage3-s3-05-residual-scope.md docs/stage3-lint-ast-census.md \
+  docs/adr/stage3-s3-05-residual-scope.md docs/census/stage3-lint-ast-census.md \
   scripts/s3_05_lint_ast_census.sh plan/02-improvement-roadmap.md)
 # S3-I77 hinge: scoped plan claim.
 s3_05_claim_helper=$(count_rg 'S3-I77|scoped \[x\]|Claimed: scoped|stage3-s3-05-claim' \
-  docs/adr/stage3-s3-05-claim.md docs/stage3-lint-ast-census.md \
+  docs/adr/stage3-s3-05-claim.md docs/census/stage3-lint-ast-census.md \
   scripts/s3_05_lint_ast_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s3_05_claim_contract.rs)
+  crates/syx-driver/tests/credibility/lint_ast_claim_contract.rs)
 
 SYX_BIN=""
 if [[ -x target/release/syx ]]; then

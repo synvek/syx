@@ -8,7 +8,7 @@
 
 | Axis | Evidence |
 |------|----------|
-| Census baseline → current | [stage2-file-split-census](../stage2-file-split-census.md) · open combined **31222** → ~**3513** (−89%) |
+| Census baseline → current | [stage2-file-split-census](../census/stage2-file-split-census.md) · open combined **31222** → ~**3513** (−89%) |
 | `syx-mir` production peel | I166–I214 · production close-out; hub + tests residual OK |
 | `syx-driver` production peel | I215–I235 · [driver-production-closeout-batch](stage2-s2-05-driver-production-closeout-batch.md) |
 | `syx-semantic` lib + analyzer | I236–I249 lib/helpers · I250–I258 analyzer faces · hub = entry/builtins |
@@ -35,5 +35,5 @@
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch](stage2-s2-05-semantic-analyzer-concurrency-ide-infer-batch.md) · S2-I256–I258
 - [stage2-s2-04-claim](stage2-s2-04-claim.md) · S2-I164 (claim pattern)
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

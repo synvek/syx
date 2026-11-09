@@ -59,5 +59,5 @@
 
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-01-claim-prep](stage3-s3-01-claim-prep.md) · S3-I24
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-01

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # S2-I263/I264: Stage-2 version census (S2-07).
 # Does not claim S2-07 [x].
-# See docs/stage2-version-census.md and docs/adr/stage2-s2-07-inject-cargo-pkg-version.md
+# See docs/census/stage2-version-census.md and docs/adr/stage2-s2-07-inject-cargo-pkg-version.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

@@ -39,5 +39,5 @@
 - [stage3-s3-06-s045-lsp-desugar](stage3-s3-06-s045-lsp-desugar.md) · S3-I79
 - [stage3-s3-06-open](stage3-s3-06-open.md) · S3-I78
 - [stage3-s3-05-residual-scope](stage3-s3-05-residual-scope.md) · S3-I76（形态模板）
-- [stage3-lsp-book-census](../stage3-lsp-book-census.md)
+- [stage3-lsp-book-census](../census/stage3-lsp-book-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-06

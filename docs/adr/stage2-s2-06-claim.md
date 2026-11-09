@@ -8,7 +8,7 @@
 
 | Axis | Evidence |
 |------|----------|
-| Open baseline | [stage2-s2-06-open](stage2-s2-06-open.md) · [stage2-workspace-census](../stage2-workspace-census.md) · S2-I260 |
+| Open baseline | [stage2-s2-06-open](stage2-s2-06-open.md) · [stage2-workspace-census](../census/stage2-workspace-census.md) · S2-I260 |
 | GUI out of default workspace | Root `exclude = ["crates/syx-gui"]` · S2-I261 · metadata packages exclude `syx-gui` |
 | Farm/Dist/HSM/CDN | **0** named crates under `crates/` |
 | Opt-in residual OK | `crates/syx-gui/` on disk; `syx-vm` path + `gui-syx-isolated`; driver gui tests / narrative residual |
@@ -35,5 +35,5 @@
 - [stage2-s2-06-open](stage2-s2-06-open.md) · S2-I260
 - [stage2-s2-06-exclude-syx-gui](stage2-s2-06-exclude-syx-gui.md) · S2-I261
 - [stage2-s2-05-claim](stage2-s2-05-claim.md) · S2-I259 (claim pattern)
-- [stage2-workspace-census](../stage2-workspace-census.md)
+- [stage2-workspace-census](../census/stage2-workspace-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-06

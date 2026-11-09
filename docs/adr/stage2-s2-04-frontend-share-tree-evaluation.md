@@ -41,5 +41,5 @@
 - [stage2-s2-04-convergence-strategy](stage2-s2-04-convergence-strategy.md) · S2-I144
 - [stage2-s2-04-cst-subset-optional-chain](stage2-s2-04-cst-subset-optional-chain.md) · S2-I158
 - [stage2-s2-04-open](stage2-s2-04-open.md) · S2-I143
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # S2-I1: Stage-2 governance surface census (product crates/).
 # Baseline for S2-01 — does not delete anything.
-# See docs/stage2-governance-census.md and docs/adr/stage2-open.md
+# See docs/census/stage2-governance-census.md and docs/adr/stage2-open.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

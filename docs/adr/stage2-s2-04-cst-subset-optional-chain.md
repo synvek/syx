@@ -34,6 +34,6 @@
 
 - [stage2-s2-04-cst-subset-range-in-call](stage2-s2-04-cst-subset-range-in-call.md) · S2-I157
 - [stage2-s2-04-convergence-strategy](stage2-s2-04-convergence-strategy.md) · S2-I144
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04
 - W716 `optional_chain_mvp/`

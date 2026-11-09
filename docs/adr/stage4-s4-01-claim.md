@@ -8,9 +8,9 @@
 
 | Axis | Evidence |
 |------|----------|
-| Open | [S3-I88](stage4-open.md) · [census](../stage4-stdlib-stability-doctest-census.md) |
-| Construct I89 | [`stability.toml`](../../packages/internal/stability.toml) · [v0](../stdlib-stability-v0.md) |
-| Residual-scope | [S3-I90](stage4-s4-01-residual-scope.md) · scoped acceptance · [scope-v0](../s4-01-manifest-doctest-scope-v0.md) |
+| Open | [S3-I88](stage4-open.md) · [census](../census/stage4-stdlib-stability-doctest-census.md) |
+| Construct I89 | [`stability.toml`](../../packages/internal/stability.toml) · [v0](../census/stdlib-stability-v0.md) |
+| Residual-scope | [S3-I90](stage4-s4-01-residual-scope.md) · scoped acceptance · [scope-v0](../census/s4-01-manifest-doctest-scope-v0.md) |
 | Primary KPI | `stability_ssot_package_rows≥19` · `stability_ssot_helper≥1` · `residual_scope_helper≥1` |
 | Contract | `s4_01_claim_contract` · `s4_01_stdlib_stability_doctest_census_contract` |
 | Honesty OUT | **≠** Stage-4 exit · **≠** write `stage4-exit` this window · **≠** restore deferred as gate |
@@ -40,9 +40,9 @@ Under Hard OUT（≠ 改 `manifest.json` schema / ≠ driver 读 SSOT / ≠ 实�
 - [stage4-s4-01-residual-scope](stage4-s4-01-residual-scope.md) · S3-I90
 - [stage4-s4-01-stability-ssot](stage4-s4-01-stability-ssot.md) · S3-I89
 - [stage4-open](stage4-open.md) · S3-I88
-- [s4-01-manifest-doctest-scope-v0](../s4-01-manifest-doctest-scope-v0.md)
+- [s4-01-manifest-doctest-scope-v0](../census/s4-01-manifest-doctest-scope-v0.md)
 - [stage3-s3-07-claim](stage3-s3-07-claim.md) · S3-I85（claim 窗形态）
-- [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-doctest-census.md)
-- [stage4-package-registry-census](../stage4-package-registry-census.md)
+- [stage4-stdlib-stability-doctest-census](../census/stage4-stdlib-stability-doctest-census.md)
+- [stage4-package-registry-census](../census/stage4-package-registry-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-01
 - [`packages/internal/stability.toml`](../../packages/internal/stability.toml)

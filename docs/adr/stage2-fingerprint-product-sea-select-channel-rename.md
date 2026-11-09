@@ -39,6 +39,6 @@
 - [stage2-fingerprint-product-sea-async-dist-rename](stage2-fingerprint-product-sea-async-dist-rename.md) · S2-I89
 - [stage2-fingerprint-product-sea-cdn-bgp-rename](stage2-fingerprint-product-sea-cdn-bgp-rename.md) · S2-I88
 - [stage2-fingerprint-product-sea-gui-shape-rename](stage2-fingerprint-product-sea-gui-shape-rename.md) · S2-I91
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01
 

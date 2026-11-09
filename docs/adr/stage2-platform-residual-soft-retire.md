@@ -29,5 +29,5 @@
 - [stage2-platform-fingerprint-surface-soft-retire](stage2-platform-fingerprint-surface-soft-retire.md) · S2-I124
 - [stage2-stdlib-misc-soft-retire](stage2-stdlib-misc-soft-retire.md) · S2-I129
 - [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md) · S2-I130
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02

@@ -7,10 +7,10 @@
 ## Decision
 
 1. **Scoped acceptance (S4-04 stays `[~]` this window):** Under Hard OUT（≠ 改语义/stdlib/codegen / ≠ `makeIterator` GA / ≠ 用户 map·filter GA / ≠ Collection Index GA）, honest S4-04 completion means:
-   - **Primary:** I101 hinge holds（[`s4-04-iterator-forin-v0`](../s4-04-iterator-forin-v0.md)；自定义 Iterator for-in 多后端 + parity fixture + `collections.protocol` honesty）；
+   - **Primary:** I101 hinge holds（[`s4-04-iterator-forin-v0`](../census/s4-04-iterator-forin-v0.md)；自定义 Iterator for-in 多后端 + parity fixture + `collections.protocol` honesty）；
    - **KPI:** `custom_iterator_forin_hinge_helper≥1` · `custom_iterator_parity_fixture_helper≥1` · `iterator_forin_test_helper≥1` · `collections_protocol_helper≥1`；
    - **Scaffolding:** `s4_04_open_helper` · `s4_04_census_helper` · `residual_scope_helper` green.
-2. **Deferred / supersede-only:** `Sequence.makeIterator` · 用户类型通用 map/filter · 全量 Collection Index are **deferred**. Restoring any as a claim hard gate requires a **superseding ADR**. They are **not** blockers for scoped `[x]`. Scope charter: [s4-04-sequence-residual-scope-v0](../s4-04-sequence-residual-scope-v0.md).
+2. **Deferred / supersede-only:** `Sequence.makeIterator` · 用户类型通用 map/filter · 全量 Collection Index are **deferred**. Restoring any as a claim hard gate requires a **superseding ADR**. They are **not** blockers for scoped `[x]`. Scope charter: [s4-04-sequence-residual-scope-v0](../census/s4-04-sequence-residual-scope-v0.md).
 3. **Ladder next:** **S3-I103** = dedicated **S4-04 scoped `[x]` claim** under this acceptance — still ≠ Stage-4 exit.
 4. **Non-claims (hard):** ≠ S4-04 `[x]` this window / ≠ Stage-4 exit / ≠ HostFn+1 / ≠ F-08 / ≠ Wave / ≠ 改语义/stdlib/codegen / ≠ `makeIterator`/用户 map·filter/Index **GA** / ≠ 开 S4-05 / ≠ 旧 `M2-S4-04` HTTP / ≠ language semantics.
 
@@ -19,7 +19,7 @@
 | Check | Evidence |
 |-------|----------|
 | Scope charter | this ADR · `scoped acceptance` / `deferred` / `supersede` |
-| Residual scope | [`docs/s4-04-sequence-residual-scope-v0.md`](../s4-04-sequence-residual-scope-v0.md) |
+| Residual scope | [`docs/census/s4-04-sequence-residual-scope-v0.md`](../census/s4-04-sequence-residual-scope-v0.md) |
 | Census | `residual_scope_helper≥1` · Current=**S3-I102** |
 | Plan | S4-04 row stays `[~]` · scoped摘要 |
 | Contract | `s4_04_residual_scope_contract` |
@@ -39,9 +39,9 @@
 - [stage4-s4-04-iterator-forin-hinge](stage4-s4-04-iterator-forin-hinge.md) · S3-I101
 
 - [stage4-s4-04-open](stage4-s4-04-open.md) · S3-I100
-- [s4-04-sequence-residual-scope-v0](../s4-04-sequence-residual-scope-v0.md)
-- [s4-04-iterator-forin-v0](../s4-04-iterator-forin-v0.md)
+- [s4-04-sequence-residual-scope-v0](../census/s4-04-sequence-residual-scope-v0.md)
+- [s4-04-iterator-forin-v0](../census/s4-04-iterator-forin-v0.md)
 - [stage4-s4-03-residual-scope](stage4-s4-03-residual-scope.md) · S3-I98（形态模板）
-- [stage4-sequence-collection-census](../stage4-sequence-collection-census.md)
+- [stage4-sequence-collection-census](../census/stage4-sequence-collection-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-04
 - [`packages/internal/capabilities.toml`](../../packages/internal/capabilities.toml)

@@ -7,10 +7,10 @@
 ## Decision
 
 1. **Scoped acceptance (S4-03 stays `[~]` this window):** Under Hard OUT（≠ 改 `syx-async`/语义 / ≠ `withTaskGroup`/EC-M3 / ≠ TSAN·loom GA）, honest S4-03 completion means:
-   - **Primary:** I97 hinge holds（[`s4-03-cancel-taskgroup-v0`](../s4-03-cancel-taskgroup-v0.md)；cancel + TaskGroup HostFn + task_tree C004）；
+   - **Primary:** I97 hinge holds（[`s4-03-cancel-taskgroup-v0`](../census/s4-03-cancel-taskgroup-v0.md)；cancel + TaskGroup HostFn + task_tree C004）；
    - **KPI:** `cancel_taskgroup_hinge_helper≥1` · `cancel_token_helper≥1` · `task_group_hostfn_helper≥1` · `task_tree_cancel_test_count≥1`；
    - **Scaffolding:** `s4_03_open_helper` · `s4_03_census_helper` · `residual_scope_helper` green.
-2. **Deferred / supersede-only:** Sendable/`@unchecked` deepen · `withTaskGroup`/EC-M3 · TSAN/loom GA are **deferred**. Restoring any as a claim hard gate requires a **superseding ADR**. They are **not** blockers for scoped `[x]`. Scope charter: [s4-03-concurrency-residual-scope-v0](../s4-03-concurrency-residual-scope-v0.md).
+2. **Deferred / supersede-only:** Sendable/`@unchecked` deepen · `withTaskGroup`/EC-M3 · TSAN/loom GA are **deferred**. Restoring any as a claim hard gate requires a **superseding ADR**. They are **not** blockers for scoped `[x]`. Scope charter: [s4-03-concurrency-residual-scope-v0](../census/s4-03-concurrency-residual-scope-v0.md).
 3. **Ladder next:** **S3-I99** = dedicated **S4-03 scoped `[x]` claim** under this acceptance — still ≠ Stage-4 exit.
 4. **Non-claims (hard):** ≠ S4-03 `[x]` this window / ≠ Stage-4 exit / ≠ HostFn+1 / ≠ F-08 / ≠ Wave / ≠ 改 `syx-async`/语义 / ≠ `withTaskGroup`/EC-M3/TSAN·loom GA / ≠ 开 S4-04…05 / ≠ GC Nursery 当并发轴 / ≠ language semantics.
 
@@ -19,7 +19,7 @@
 | Check | Evidence |
 |-------|----------|
 | Scope charter | this ADR · `scoped acceptance` / `deferred` / `supersede` |
-| Residual scope | [`docs/s4-03-concurrency-residual-scope-v0.md`](../s4-03-concurrency-residual-scope-v0.md) |
+| Residual scope | [`docs/census/s4-03-concurrency-residual-scope-v0.md`](../census/s4-03-concurrency-residual-scope-v0.md) |
 | Census | `residual_scope_helper≥1` · Current=**S3-I98** |
 | Plan | S4-03 row stays `[~]` · scoped摘要 |
 | Contract | `s4_03_residual_scope_contract` |
@@ -38,9 +38,9 @@
 - [stage4-s4-03-claim](stage4-s4-03-claim.md) · S3-I99
 - [stage4-s4-03-cancel-taskgroup-hinge](stage4-s4-03-cancel-taskgroup-hinge.md) · S3-I97
 - [stage4-s4-03-open](stage4-s4-03-open.md) · S3-I96
-- [s4-03-concurrency-residual-scope-v0](../s4-03-concurrency-residual-scope-v0.md)
-- [s4-03-cancel-taskgroup-v0](../s4-03-cancel-taskgroup-v0.md)
+- [s4-03-concurrency-residual-scope-v0](../census/s4-03-concurrency-residual-scope-v0.md)
+- [s4-03-cancel-taskgroup-v0](../census/s4-03-cancel-taskgroup-v0.md)
 - [stage4-s4-02-residual-scope](stage4-s4-02-residual-scope.md) · S3-I94（形态模板）
-- [stage4-structured-concurrency-census](../stage4-structured-concurrency-census.md)
+- [stage4-structured-concurrency-census](../census/stage4-structured-concurrency-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-03
 - [`crates/syx-async`](../../crates/syx-async)

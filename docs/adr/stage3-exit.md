@@ -15,7 +15,7 @@
    - S3-05 `[x]` scoped — [s3-05-claim](stage3-s3-05-claim.md) · S3-I77
    - S3-06 `[x]` scoped — [s3-06-claim](stage3-s3-06-claim.md) · S3-I81
    - S3-07 `[x]` scoped — [s3-07-claim](stage3-s3-07-claim.md) · S3-I85
-   - Exit-open scaffolding — [stage3-exit-open](stage3-exit-open.md) · S3-I86 · [exit census](../stage3-exit-census.md)
+   - Exit-open scaffolding — [stage3-exit-open](stage3-exit-open.md) · S3-I86 · [exit census](../census/stage3-exit-census.md)
 3. **Residual (post-exit; does not block this flip):**
    - S3-04：字面 `fib(30) < 0.5`；
    - S3-05：L010–L012 text-hybrid / full CST lint / S2-04 Frontend rewrite；
@@ -44,6 +44,6 @@
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage2-exit](stage2-exit.md) · S2-I266（exit pattern）
 - [stage1-exit](stage1-exit.md) · S1-I27
-- [stage3-exit-census](../stage3-exit-census.md)
+- [stage3-exit-census](../census/stage3-exit-census.md)
 - [`plan/01-project-status.md`](../../plan/01-project-status.md)
 - [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md)

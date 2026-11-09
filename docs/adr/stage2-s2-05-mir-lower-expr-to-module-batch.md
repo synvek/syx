@@ -21,7 +21,7 @@
 | Modules | two sidecars above |
 | Wiring | `lib.rs` mods + `pub(crate) use` / `pub use` |
 | Contract | `s2_05_mir_lower_expr_to_module_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I213–I214 row · floor 2000 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I213–I214 row · floor 2000 |
 
 ## Consequences
 
@@ -35,5 +35,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-simd-to-support-batch](stage2-s2-05-mir-simd-to-support-batch.md) · S2-I209–I212
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

@@ -27,6 +27,6 @@
 - [stage2-open](stage2-open.md)
 - [stage2-fingerprint-product-sea-orphan-rename](stage2-fingerprint-product-sea-orphan-rename.md) · S2-I99
 - [stage2-fingerprint-farm-lease-digest-rename](stage2-fingerprint-farm-lease-digest-rename.md) · S2-I101
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01
 

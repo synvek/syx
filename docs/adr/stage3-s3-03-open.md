@@ -13,7 +13,7 @@
 | Stdlib load | `embedded_std` source embed → parse/semantic/MIR each graph build | Build-time serialize semantic/MIR (or equiv.) → load/lazy-load |
 | Prelude | `ensure_prelude_modules_in_graph` may (re)compile many core modules | Shared warm snapshot; hello path avoids full re-prepare |
 
-Baseline: [stage3-stdlib-cache-census](../stage3-stdlib-cache-census.md).
+Baseline: [stage3-stdlib-cache-census](../census/stage3-stdlib-cache-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-stdlib-cache-census](../stage3-stdlib-cache-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Stdlib-cache census | [`docs/stage3-stdlib-cache-census.md`](../stage3-stdlib-cache-census.md) · `scripts/s3_03_stdlib_cache_census.sh` |
+| Stdlib-cache census | [`docs/census/stage3-stdlib-cache-census.md`](../census/stage3-stdlib-cache-census.md) · `scripts/s3_03_stdlib_cache_census.sh` |
 | Contract nail | `s3_03_stdlib_cache_census_contract` |
 | Plan status | S3-03 `[x]` via I55 claim · Stage-3 `[~]` · S3-01/S3-02 `[x]` |
 
@@ -49,6 +49,6 @@ Baseline: [stage3-stdlib-cache-census](../stage3-stdlib-cache-census.md).
 
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-02-claim](stage3-s3-02-claim.md) · S3-I47
-- [stage3-stdlib-cache-census](../stage3-stdlib-cache-census.md)
+- [stage3-stdlib-cache-census](../census/stage3-stdlib-cache-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-03
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) hello KPI

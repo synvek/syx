@@ -2,7 +2,7 @@
 
 **Status:** Accepted (S2-I144) · S2-04 `[~]` · Stage-2 `[~]`  
 **Date:** 2026-11-06  
-**Context:** After [S2-I143 S2-04 open](stage2-s2-04-open.md) published the dual-track [parser census](../stage2-parser-census.md), the next ladder step is to **lock a convergence strategy** before migration knives. The primary honesty debt is fmt **write** (`format_file` → AST `format_source`) vs **`--check`** (`format_check_path` → `format_dry_run` → `format_source_auto` CST-first). Today's CST path concatenates lexemes and **does not reindent**; flipping write to CST-first would break user expectations for `syx format` layout. This window decides SSOT order only — it does **not** change `format_file`.
+**Context:** After [S2-I143 S2-04 open](stage2-s2-04-open.md) published the dual-track [parser census](../census/stage2-parser-census.md), the next ladder step is to **lock a convergence strategy** before migration knives. The primary honesty debt is fmt **write** (`format_file` → AST `format_source`) vs **`--check`** (`format_check_path` → `format_dry_run` → `format_source_auto` CST-first). Today's CST path concatenates lexemes and **does not reindent**; flipping write to CST-first would break user expectations for `syx format` layout. This window decides SSOT order only — it does **not** change `format_file`.
 
 ## Decision
 
@@ -19,7 +19,7 @@
 | Strategy locked | this ADR |
 | Write migrated (I151) | `s2_04_fmt_write_check_strategy` (driver `format_file` → `format_dry_run`) |
 | Check still auto | same test (`format_check_path` → `format_dry_run` → `format_source_auto`) |
-| Census updated | [stage2-parser-census](../stage2-parser-census.md) I144 footnote |
+| Census updated | [stage2-parser-census](../census/stage2-parser-census.md) I144 footnote |
 
 ## Consequences
 
@@ -50,7 +50,7 @@
 ## References
 
 - [stage2-s2-04-open](stage2-s2-04-open.md) · S2-I143
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [stage2-s2-04-cst-reindent-func-body](stage2-s2-04-cst-reindent-func-body.md) · S2-I145
 - [stage2-s2-04-cst-reindent-func-nested](stage2-s2-04-cst-reindent-func-nested.md) · S2-I146
 - [stage2-s2-04-cst-reindent-func-2to4](stage2-s2-04-cst-reindent-func-2to4.md) · S2-I147

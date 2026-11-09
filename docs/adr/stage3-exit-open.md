@@ -13,7 +13,7 @@
 | Deferred supersede-only | S3-04 fib&lt;0.5 · S3-05 hybrid · S3-06 rename/fence · S3-07 UsageGuide/crate | **post-exit Residual**（do not block exit） |
 | Parked / prior residual | Stage-1/2 post-exit · HostFn/F-08/Wave | Remain parked / residual |
 
-Baseline: [stage3-exit-census](../stage3-exit-census.md).
+Baseline: [stage3-exit-census](../census/stage3-exit-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-exit-census](../stage3-exit-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Exit census | [`docs/stage3-exit-census.md`](../stage3-exit-census.md) · `scripts/s3_exit_census.sh` |
+| Exit census | [`docs/census/stage3-exit-census.md`](../census/stage3-exit-census.md) · `scripts/s3_exit_census.sh` |
 | Claim chain | S3-01 [I41](stage3-s3-01-claim.md) · S3-02 [I47](stage3-s3-02-claim.md) · S3-03 [I55](stage3-s3-03-claim.md) · S3-04 [I71](stage3-s3-04-claim.md) · S3-05 [I77](stage3-s3-05-claim.md) · S3-06 [I81](stage3-s3-06-claim.md) · S3-07 [I85](stage3-s3-07-claim.md) |
 | Contract nail | `s3_exit_open_contract` |
 | Plan status | Stage-3 `[~]` · **7/7** · exit-open under this ADR |
@@ -46,6 +46,6 @@ Baseline: [stage3-exit-census](../stage3-exit-census.md).
 - [stage2-exit](stage2-exit.md) · S2-I266（exit 形态）
 - [stage1-exit](stage1-exit.md) · S1-I27
 - [stage3-open](stage3-open.md) · S3-I1
-- [stage3-exit-census](../stage3-exit-census.md)
+- [stage3-exit-census](../census/stage3-exit-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) Stage-3
 

@@ -23,7 +23,7 @@
 | Modules | four sidecars above |
 | Wiring | `lib.rs` mods + `pub(crate) use` for host/infer helpers |
 | Contract | `s2_05_mir_type_members_to_infer_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I205–I208 row · floor 2900 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I205–I208 row · floor 2900 |
 
 ## Consequences
 
@@ -36,5 +36,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-free-vars-to-shells-batch](stage2-s2-05-mir-free-vars-to-shells-batch.md) · S2-I201–I204
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

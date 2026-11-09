@@ -6,7 +6,7 @@
 
 ## Decision
 
-1. **Publish** charter [`docs/s4-04-iterator-forin-v0.md`](../s4-04-iterator-forin-v0.md)（Primary = custom Iterator for-in；`makeIterator` / 用户 map·filter / Collection Index deferred）。
+1. **Publish** charter [`docs/census/s4-04-iterator-forin-v0.md`](../census/s4-04-iterator-forin-v0.md)（Primary = custom Iterator for-in；`makeIterator` / 用户 map·filter / Collection Index deferred）。
 2. **Nail Primary KPIs** on existing evidence（no product edit）：
    - `iterator_forin_test_helper≥1` · `collection_sequence_iterator` / `protocol_iterator`
    - `custom_iterator_parity_fixture_helper≥1` · `protocol_iterator_custom.sy`
@@ -19,7 +19,7 @@
 
 | Check | Evidence |
 |-------|----------|
-| Charter | [`docs/s4-04-iterator-forin-v0.md`](../s4-04-iterator-forin-v0.md) |
+| Charter | [`docs/census/s4-04-iterator-forin-v0.md`](../census/s4-04-iterator-forin-v0.md) |
 | Census KPI | `custom_iterator_forin_hinge_helper≥1` · iterator_forin / parity fixture / collections.protocol |
 | Contract | `s4_04_iterator_forin_hinge_contract` |
 | Prior | [stage4-s4-04-open](stage4-s4-04-open.md) · S3-I100 |
@@ -40,8 +40,8 @@
 - [stage4-s4-04-open](stage4-s4-04-open.md) · S3-I100
 
 
-- [s4-04-iterator-forin-v0](../s4-04-iterator-forin-v0.md)
-- [stage4-sequence-collection-census](../stage4-sequence-collection-census.md)
+- [s4-04-iterator-forin-v0](../census/s4-04-iterator-forin-v0.md)
+- [stage4-sequence-collection-census](../census/stage4-sequence-collection-census.md)
 - [stage4-s4-03-cancel-taskgroup-hinge](stage4-s4-03-cancel-taskgroup-hinge.md) · S3-I97（hinge 形态）
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-04
 - [`crates/syx-driver/tests/stdlib/collection_sequence_iterator.rs`](../../crates/syx-driver/tests/stdlib/collection_sequence_iterator.rs)

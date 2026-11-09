@@ -19,7 +19,7 @@
 | Module | `crates/syx-mir/src/mir_codec.rs` |
 | Re-export | `lib.rs` `mod mir_codec` + `pub use mir_codec::{…}` |
 | Contract | `s2_05_mir_codec_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I167 row |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I167 row |
 
 ## Consequences
 
@@ -33,5 +33,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-types-extract](stage2-s2-05-mir-types-extract.md) · S2-I166
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

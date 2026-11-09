@@ -34,6 +34,6 @@
 - [stage2-fingerprint-product-sea-cdn-bgp-rename](stage2-fingerprint-product-sea-cdn-bgp-rename.md) · S2-I88
 - [stage2-fingerprint-product-sea-select-channel-rename](stage2-fingerprint-product-sea-select-channel-rename.md) · S2-I90
 - [stage2-fingerprint-track-l-fold](stage2-fingerprint-track-l-fold.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01
 

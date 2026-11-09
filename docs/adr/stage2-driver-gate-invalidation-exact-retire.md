@@ -22,5 +22,5 @@
 - [stage2-s2-02-open](stage2-s2-02-open.md) · S2-I108
 - [stage2-cache-soft-nail-retire](stage2-cache-soft-nail-retire.md) · S2-I109
 - [stage2-driver-gate-exists-soft-nail-retire](stage2-driver-gate-exists-soft-nail-retire.md) · S2-I110
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02

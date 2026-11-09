@@ -21,7 +21,7 @@
 |-------|----------|
 | Modules | three sidecars hold `check_concurrency_rules` / `members_for_type` / `infer_call_type_args` |
 | Contract | `s2_05_semantic_analyzer_concurrency_ide_infer_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I256–I258 · analyzer floor 800 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I256–I258 · analyzer floor 800 |
 
 ## Consequences
 
@@ -35,5 +35,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-analyzer-decl-call-member-batch](stage2-s2-05-semantic-analyzer-decl-call-member-batch.md) · S2-I253–I255
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

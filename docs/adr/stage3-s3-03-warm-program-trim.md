@@ -37,5 +37,5 @@
 ## References
 
 - [stage3-s3-03-prelude-snapshot](stage3-s3-03-prelude-snapshot.md) · S3-I49
-- [stage3-stdlib-cache-census](../stage3-stdlib-cache-census.md)
+- [stage3-stdlib-cache-census](../census/stage3-stdlib-cache-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-03

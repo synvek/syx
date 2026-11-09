@@ -2,7 +2,7 @@
 # S3-I100…I103: Stage-4 / S4-04 Sequence/Collection census.
 # I100 open · I101 hinge · I102 residual · I103 scoped claim.
 # ≠ Stage-4 exit · ≠ semantics/stdlib/codegen knife · ≠ makeIterator GA · ≠ S4-05.
-# See docs/stage4-sequence-collection-census.md
+# See docs/census/stage4-sequence-collection-census.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -22,36 +22,36 @@ count_rg() {
 s4_04_open_helper=$(count_rg 'S3-I100|S3-I101|S3-I102|S3-I103|S3-I104|stage4-s4-04-open|S4-04 \[~\]|S4-04 \[x\]|Sequence/Collection|sequence-collection' \
   docs/adr/stage4-s4-04-open.md docs/adr/stage4-s4-04-iterator-forin-hinge.md \
   docs/adr/stage4-s4-04-residual-scope.md docs/adr/stage4-s4-04-claim.md \
-  docs/stage4-sequence-collection-census.md \
+  docs/census/stage4-sequence-collection-census.md \
   scripts/s4_04_sequence_collection_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_04_sequence_collection_census_contract.rs \
-  crates/syx-driver/tests/lang/s4_04_iterator_forin_hinge_contract.rs \
-  crates/syx-driver/tests/lang/s4_04_residual_scope_contract.rs \
-  crates/syx-driver/tests/lang/s4_04_claim_contract.rs)
+  crates/syx-driver/tests/credibility/sequence_collection_census_contract.rs \
+  crates/syx-driver/tests/credibility/iterator_forin_hinge_contract.rs \
+  crates/syx-driver/tests/credibility/sequence_collection_residual_scope_contract.rs \
+  crates/syx-driver/tests/credibility/sequence_collection_claim_contract.rs)
 
 s4_04_census_helper=$(count_rg 'S4-04|Sequence|Collection|Iterator|makeIterator|map/filter|stage4-sequence-collection|iterator-forin|residual-scope|scoped \[x\]' \
   docs/adr/stage4-s4-04-open.md docs/adr/stage4-s4-04-iterator-forin-hinge.md \
   docs/adr/stage4-s4-04-residual-scope.md docs/adr/stage4-s4-04-claim.md \
-  docs/s4-04-iterator-forin-v0.md docs/s4-04-sequence-residual-scope-v0.md \
-  docs/stage4-sequence-collection-census.md \
+  docs/census/s4-04-iterator-forin-v0.md docs/census/s4-04-sequence-residual-scope-v0.md \
+  docs/census/stage4-sequence-collection-census.md \
   scripts/s4_04_sequence_collection_census.sh plan/02-improvement-roadmap.md)
 
 custom_iterator_forin_hinge_helper=$(count_rg 'S3-I101|iterator-forin-hinge|s4-04-iterator-forin-v0|custom_iterator_forin_hinge' \
-  docs/adr/stage4-s4-04-iterator-forin-hinge.md docs/s4-04-iterator-forin-v0.md \
-  docs/stage4-sequence-collection-census.md \
+  docs/adr/stage4-s4-04-iterator-forin-hinge.md docs/census/s4-04-iterator-forin-v0.md \
+  docs/census/stage4-sequence-collection-census.md \
   scripts/s4_04_sequence_collection_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_04_iterator_forin_hinge_contract.rs)
+  crates/syx-driver/tests/credibility/iterator_forin_hinge_contract.rs)
 
 residual_scope_helper=$(count_rg 'S3-I102|residual-scope|scoped acceptance|supersede|sequence-residual-scope' \
-  docs/adr/stage4-s4-04-residual-scope.md docs/s4-04-sequence-residual-scope-v0.md \
-  docs/stage4-sequence-collection-census.md \
+  docs/adr/stage4-s4-04-residual-scope.md docs/census/s4-04-sequence-residual-scope-v0.md \
+  docs/census/stage4-sequence-collection-census.md \
   scripts/s4_04_sequence_collection_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_04_residual_scope_contract.rs)
+  crates/syx-driver/tests/credibility/sequence_collection_residual_scope_contract.rs)
 
 s4_04_claim_helper=$(count_rg 'S3-I103|stage4-s4-04-claim|Claimed: scoped|scoped \[x\]|s4_04_claim' \
-  docs/adr/stage4-s4-04-claim.md docs/stage4-sequence-collection-census.md \
+  docs/adr/stage4-s4-04-claim.md docs/census/stage4-sequence-collection-census.md \
   scripts/s4_04_sequence_collection_census.sh plan/02-improvement-roadmap.md \
-  crates/syx-driver/tests/lang/s4_04_claim_contract.rs)
+  crates/syx-driver/tests/credibility/sequence_collection_claim_contract.rs)
 
 custom_iterator_parity_fixture_helper=$(count_rg 'Counter: Iterator|protocol_iterator_custom|for x in Counter' \
   crates/syx-driver/tests/fixtures/parity/protocol_iterator_custom.sy)
@@ -66,7 +66,7 @@ collections_protocol_helper=$(count_rg 'collections\.protocol|Sequence\.makeIter
 make_iterator_surface_helper=$(count_rg 'MakeIterator|makeIterator|still open' \
   packages/internal/mir_op_capabilities.toml \
   packages/internal/capabilities.toml \
-  docs/stage4-sequence-collection-census.md \
+  docs/census/stage4-sequence-collection-census.md \
   docs/adr/stage4-s4-04-open.md \
   docs/adr/stage4-s4-04-iterator-forin-hinge.md \
   docs/adr/stage4-s4-04-residual-scope.md \

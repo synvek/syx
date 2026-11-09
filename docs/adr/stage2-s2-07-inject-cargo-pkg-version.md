@@ -19,7 +19,7 @@
 | Inject | `build.rs` uses `CARGO_PKG_VERSION` |
 | Manifest | `packages/internal/manifest.json` `"version": "0.1.3"` |
 | Evergreen | `manifest_` filter green against semver |
-| Census | [stage2-version-census](../stage2-version-census.md) Current=I264 |
+| Census | [stage2-version-census](../census/stage2-version-census.md) Current=I264 |
 | Plan | S2-07 remains `[~]` |
 
 ## Consequences
@@ -33,5 +33,5 @@
 
 - [stage2-open](stage2-open.md)
 - [stage2-s2-07-open](stage2-s2-07-open.md) · S2-I263
-- [stage2-version-census](../stage2-version-census.md)
+- [stage2-version-census](../census/stage2-version-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-07

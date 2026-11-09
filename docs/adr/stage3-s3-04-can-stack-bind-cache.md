@@ -36,5 +36,5 @@
 - [stage3-s3-04-jit-env-gate-cache](stage3-s3-04-jit-env-gate-cache.md) · S3-I66
 - [stage3-s3-04-begintry-cache](stage3-s3-04-begintry-cache.md) · S3-I64
 - [stage3-s3-04-call-stack-args](stage3-s3-04-call-stack-args.md) · S3-I60
-- [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md)
+- [stage3-vm-hotspot-census](../census/stage3-vm-hotspot-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-04

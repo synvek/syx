@@ -32,12 +32,12 @@ Do **not** confuse with legacy ID `M2-S4-05`（TLS client）.
 - **S3-I107 landed** as [stage4-s4-05-claim](stage4-s4-05-claim.md)（S4-05 scoped `[x]` · Stage-4 **5/5**）。
 - Default next = **S3-I108**（Stage-4 exit-open）— not Stage-4 exit / not CLI wire / not `stage4-exit` this open.
 - Prior claim: [stage4-s4-04-claim](stage4-s4-04-claim.md) · S3-I103.
-- Census: [stage4-prebuilt-release-census](../stage4-prebuilt-release-census.md) · `Current=S3-I107` · Claimed scoped `[x]`。
+- Census: [stage4-prebuilt-release-census](../census/stage4-prebuilt-release-census.md) · `Current=S3-I107` · Claimed scoped `[x]`。
 
 ## References
 
 - [stage4-s4-04-claim](stage4-s4-04-claim.md) · S3-I103
-- [stage4-prebuilt-release-census](../stage4-prebuilt-release-census.md)
+- [stage4-prebuilt-release-census](../census/stage4-prebuilt-release-census.md)
 - [`scripts/build-full-native`](../../scripts/build-full-native)
 - [`packaging/syx-sdk`](../../packaging/syx-sdk)
 - [`crates/syx-rt/src/link.rs`](../../crates/syx-rt/src/link.rs) · `native_sdk_layout_report`

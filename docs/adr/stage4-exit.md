@@ -13,7 +13,7 @@
    - S4-03 `[x]` scoped — [s4-03-claim](stage4-s4-03-claim.md) · S3-I99
    - S4-04 `[x]` scoped — [s4-04-claim](stage4-s4-04-claim.md) · S3-I103
    - S4-05 `[x]` scoped — [s4-05-claim](stage4-s4-05-claim.md) · S3-I107
-   - Exit-open scaffolding — [stage4-exit-open](stage4-exit-open.md) · S3-I108 · [exit census](../stage4-exit-census.md)
+   - Exit-open scaffolding — [stage4-exit-open](stage4-exit-open.md) · S3-I108 · [exit census](../census/stage4-exit-census.md)
 3. **Residual (post-exit; does not block this flip):**
    - S4-01：manifest schema / doctest CLI productize；
    - S4-02：公网 registry GA / lock trim / CLI UX rewrite；
@@ -44,6 +44,6 @@
 - [stage3-exit](stage3-exit.md) · S3-I87（exit pattern）
 - [stage2-exit](stage2-exit.md) · S2-I266
 - [stage1-exit](stage1-exit.md) · S1-I27
-- [stage4-exit-census](../stage4-exit-census.md)
+- [stage4-exit-census](../census/stage4-exit-census.md)
 - [`plan/01-project-status.md`](../../plan/01-project-status.md)
 - [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md)

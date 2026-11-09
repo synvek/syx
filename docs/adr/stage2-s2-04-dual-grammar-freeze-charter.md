@@ -24,7 +24,7 @@
 | Check | Evidence |
 |-------|----------|
 | Freeze charter | this ADR Decision 1–5 |
-| KPI baseline | Decision 3 + [stage2-parser-census](../stage2-parser-census.md) Freeze baseline |
+| KPI baseline | Decision 3 + [stage2-parser-census](../census/stage2-parser-census.md) Freeze baseline |
 | Contract | `s2_04_dual_grammar_freeze_contract` |
 | Tools still CST+lower | `lint_source_auto` → `lower_cst_subset_probe` |
 | Compile still Parser | `FrontendPipeline` / no `syx-cst` in `syx-frontend` |
@@ -41,5 +41,5 @@
 - [stage2-s2-04-frontend-share-tree-evaluation](stage2-s2-04-frontend-share-tree-evaluation.md) · S2-I159
 - [stage2-s2-04-cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md) · S2-I162
 - [stage2-s2-04-lint-lower-path](stage2-s2-04-lint-lower-path.md) · S2-I161
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04

@@ -2,7 +2,7 @@
 # S3-I42…I46: Stage-3 mono-display census (S3-02).
 # Measures user-face vs internal mangled-name surfaces.
 # Does not claim S3-02 [x].
-# See docs/stage3-mono-display-census.md and docs/adr/stage3-s3-02-meta-type-display.md
+# See docs/census/stage3-mono-display-census.md and docs/adr/stage3-s3-02-meta-type-display.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

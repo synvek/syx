@@ -12,7 +12,7 @@
 | miette label/help | labels only if `primary_span` set; no `help()` | label + help |
 | IR `span: None` | ~435 in `syx-mir` | **Out of S3-01 scope** (not user diags) |
 
-Baseline: [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md).
+Baseline: [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Span census | [`docs/stage3-diagnostic-span-census.md`](../stage3-diagnostic-span-census.md) · `scripts/s3_01_span_census.sh` |
+| Span census | [`docs/census/stage3-diagnostic-span-census.md`](../census/stage3-diagnostic-span-census.md) · `scripts/s3_01_span_census.sh` |
 | Contract nail | `s3_01_span_census_contract` |
 | Plan status | Stage-3 `[~]` · S3-01 `[~]` under this ADR |
 
@@ -85,7 +85,7 @@ Baseline: [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md).
 ## References
 
 - [stage2-exit](stage2-exit.md) · S2-I266
-- [stage3-diagnostic-span-census](../stage3-diagnostic-span-census.md)
+- [stage3-diagnostic-span-census](../census/stage3-diagnostic-span-census.md)
 - [stage3-s3-01-span-gate-semantic](stage3-s3-01-span-gate-semantic.md) · S3-I2
 - [stage3-s3-01-span-type-decl](stage3-s3-01-span-type-decl.md) · S3-I3
 - [stage3-s3-01-span-concurrency](stage3-s3-01-span-concurrency.md) · S3-I4

@@ -24,5 +24,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-doctor-report-tip-knife](stage2-doctor-report-tip-knife.md)
 - [stage2-fingerprint-aggregator-fold](stage2-fingerprint-aggregator-fold.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

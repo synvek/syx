@@ -26,6 +26,6 @@
 - [stage2-fingerprint-const-gui-leaf-rename](stage2-fingerprint-const-gui-leaf-rename.md) · S2-I102
 - [stage2-fingerprint-heap-tip-digest-rename](stage2-fingerprint-heap-tip-digest-rename.md) · S2-I105
 - [stage2-fingerprint-product-sea-select-channel-rename](stage2-fingerprint-product-sea-select-channel-rename.md) · S2-I90
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01
 

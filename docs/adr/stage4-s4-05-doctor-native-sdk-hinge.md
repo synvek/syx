@@ -8,7 +8,7 @@ Do **not** confuse with legacy ID `M2-S4-05`（TLS client）.
 
 ## Decision
 
-1. **Publish** charter [`docs/s4-05-doctor-native-sdk-v0.md`](../s4-05-doctor-native-sdk-v0.md)（Primary = native SDK layout / full-native 预编译发行物；CLI 接线 / sysroot / marketplace deferred）。
+1. **Publish** charter [`docs/census/s4-05-doctor-native-sdk-v0.md`](../census/s4-05-doctor-native-sdk-v0.md)（Primary = native SDK layout / full-native 预编译发行物；CLI 接线 / sysroot / marketplace deferred）。
 2. **Nail Primary KPIs** on existing evidence（no product edit）：
    - `native_sdk_layout_helper≥1` · `fn native_sdk_layout_report` in `syx-rt`
    - `layout_report_unit_helper≥1` · `native_sdk_layout_report_runs`
@@ -22,7 +22,7 @@ Do **not** confuse with legacy ID `M2-S4-05`（TLS client）.
 
 | Check | Evidence |
 |-------|----------|
-| Charter | [`docs/s4-05-doctor-native-sdk-v0.md`](../s4-05-doctor-native-sdk-v0.md) |
+| Charter | [`docs/census/s4-05-doctor-native-sdk-v0.md`](../census/s4-05-doctor-native-sdk-v0.md) |
 | Census KPI | `doctor_native_sdk_hinge_helper≥1` · layout / full-native / packaging |
 | Contract | `s4_05_doctor_native_sdk_hinge_contract` |
 | Prior | [stage4-s4-05-open](stage4-s4-05-open.md) · S3-I104 |
@@ -39,8 +39,8 @@ Do **not** confuse with legacy ID `M2-S4-05`（TLS client）.
 ## References
 
 - [stage4-s4-05-open](stage4-s4-05-open.md) · S3-I104
-- [s4-05-doctor-native-sdk-v0](../s4-05-doctor-native-sdk-v0.md)
-- [stage4-prebuilt-release-census](../stage4-prebuilt-release-census.md)
+- [s4-05-doctor-native-sdk-v0](../census/s4-05-doctor-native-sdk-v0.md)
+- [stage4-prebuilt-release-census](../census/stage4-prebuilt-release-census.md)
 - [stage4-s4-04-iterator-forin-hinge](stage4-s4-04-iterator-forin-hinge.md) · S3-I101（hinge 形态）
 - [`crates/syx-rt/src/link.rs`](../../crates/syx-rt/src/link.rs) · `native_sdk_layout_report`
 - [`scripts/build-full-native`](../../scripts/build-full-native)

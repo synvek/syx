@@ -22,7 +22,7 @@
 | Modules | three sidecars above |
 | Wiring | `lib.rs` mods + `pub use` / `pub(crate) use` |
 | Contract | `s2_05_driver_mir_unify_to_compile_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I218–I220 row · driver floor 4000 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I218–I220 row · driver floor 4000 |
 
 ## Consequences
 
@@ -35,5 +35,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-driver-fingerprint-to-lsp-batch](stage2-s2-05-driver-fingerprint-to-lsp-batch.md) · S2-I215–I217
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

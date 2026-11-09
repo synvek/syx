@@ -42,6 +42,6 @@ Under Hard OUT（≠ AST-ize L010–L012 / ≠ full CST lint rewrite / ≠ S2-04
 - [stage3-s3-05-claim-prep](stage3-s3-05-claim-prep.md) · S3-I75
 - [stage3-s3-05-open](stage3-s3-05-open.md) · S3-I72
 - [stage3-s3-04-claim](stage3-s3-04-claim.md) · S3-I71（claim 窗形态）
-- [stage3-lint-ast-census](../stage3-lint-ast-census.md)
-- [stage3-lsp-book-census](../stage3-lsp-book-census.md)
+- [stage3-lint-ast-census](../census/stage3-lint-ast-census.md)
+- [stage3-lsp-book-census](../census/stage3-lsp-book-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-05

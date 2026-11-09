@@ -18,7 +18,7 @@
 |-------|----------|
 | Module | `semantic_helpers.rs` holds `has_attr` / `expr_span` |
 | Contract | `s2_05_semantic_helpers_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I249 row · semantic floor 300 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I249 row · semantic floor 300 |
 
 ## Consequences
 
@@ -32,5 +32,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-production-closeout-batch](stage2-s2-05-semantic-production-closeout-batch.md) · S2-I247–I248
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

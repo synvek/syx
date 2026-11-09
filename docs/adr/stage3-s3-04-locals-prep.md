@@ -40,5 +40,5 @@
 
 - [stage3-s3-04-tryfree-call](stage3-s3-04-tryfree-call.md) · S3-I61
 - [stage3-s3-04-open](stage3-s3-04-open.md) · S3-I56
-- [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md)
+- [stage3-vm-hotspot-census](../census/stage3-vm-hotspot-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-04

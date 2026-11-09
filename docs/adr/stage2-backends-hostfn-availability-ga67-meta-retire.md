@@ -27,5 +27,5 @@
 - [stage2-s2-02-open](stage2-s2-02-open.md) · S2-I108
 - [stage2-backends-honesty-fences-retire](stage2-backends-honesty-fences-retire.md) · S2-I116
 - [stage2-backends-criterion-microbench-soft-retire](stage2-backends-criterion-microbench-soft-retire.md) · S2-I117
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02

@@ -19,7 +19,7 @@
 | Module | `crates/syx-mir/src/mir_module_index.rs` |
 | Wiring | `lib.rs` `mod mir_module_index` + `use mir_module_index::{…}` |
 | Contract | `s2_05_mir_module_index_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I170 row |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I170 row |
 
 ## Consequences
 
@@ -32,5 +32,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-opt-extract](stage2-s2-05-mir-opt-extract.md) · S2-I169
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

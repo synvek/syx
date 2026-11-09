@@ -26,5 +26,5 @@
 
 - [stage2-open](stage2-open.md)
 - [stage2-hostfn-align-decouple](stage2-hostfn-align-decouple.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

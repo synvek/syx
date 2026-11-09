@@ -26,5 +26,5 @@
 - [stage2-lsp-hybrid-fingerprint-stub-retire](stage2-lsp-hybrid-fingerprint-stub-retire.md) · S2-I123
 - [stage2-cross-crate-residual-soft-retire](stage2-cross-crate-residual-soft-retire.md) · S2-I131
 - [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02

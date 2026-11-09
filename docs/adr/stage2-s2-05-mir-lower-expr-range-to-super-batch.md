@@ -27,7 +27,7 @@
 | Range helpers | defined in `mir_lower_expr_range.rs` only |
 | Shell | `pub(crate) fn lower_expr` remains in `lib.rs` |
 | Contract | `s2_05_mir_lower_expr_range_to_super_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I195–I200 row |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I195–I200 row |
 
 ## Consequences
 
@@ -40,5 +40,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-lower-expr-call-to-macro-batch](stage2-s2-05-mir-lower-expr-call-to-macro-batch.md) · S2-I189–I194
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

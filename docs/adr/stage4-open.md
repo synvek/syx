@@ -14,7 +14,7 @@
 | `syx doctest` 子命令 | **不存在**（CLI 无 Doctest） | 产品化（可后窗） |
 | 示例缺失 API | 多为标注/doctest 债，非「stdlib API 全缺」 | 补齐诚实缺口 |
 
-Baseline: [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-doctest-census.md).
+Baseline: [stage4-stdlib-stability-doctest-census](../census/stage4-stdlib-stability-doctest-census.md).
 
 ## Decision
 
@@ -28,7 +28,7 @@ Baseline: [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-do
 
 | Check | Evidence |
 |-------|----------|
-| Stability/doctest census | [`docs/stage4-stdlib-stability-doctest-census.md`](../stage4-stdlib-stability-doctest-census.md) · `scripts/s4_01_stdlib_stability_doctest_census.sh` |
+| Stability/doctest census | [`docs/census/stage4-stdlib-stability-doctest-census.md`](../census/stage4-stdlib-stability-doctest-census.md) · `scripts/s4_01_stdlib_stability_doctest_census.sh` |
 | Contract nail | `s4_01_stdlib_stability_doctest_census_contract` |
 | Plan status | Stage-4 `[~]` · S4-01 `[~]` · checklist **0/5** under this ADR |
 
@@ -51,8 +51,8 @@ Baseline: [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-do
 - [stage4-s4-01-stability-ssot](stage4-s4-01-stability-ssot.md) · S3-I89
 - [stage3-exit](stage3-exit.md) · S3-I87
 - [stage3-open](stage3-open.md) · S3-I1（开窗形态）
-- [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-doctest-census.md)
-- [stage4-package-registry-census](../stage4-package-registry-census.md)
+- [stage4-stdlib-stability-doctest-census](../census/stage4-stdlib-stability-doctest-census.md)
+- [stage4-package-registry-census](../census/stage4-package-registry-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) Stage-4 / S4-01
 - [`packages/README.md`](../../packages/README.md)
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §阶段 4

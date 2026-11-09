@@ -2,7 +2,7 @@
 
 **Status:** Accepted · ledger **complete** (S2-I134) · plan S2-01 `[x]` · S2-02 `[x]` (S2-I135) · Stage-2 `[~]`  
 **Date:** 2026-11-05  
-**Context:** Soft primary path largely closed in stdlib ([I129](stage2-stdlib-misc-soft-retire.md)); platform residual soft retired ([I130](stage2-platform-residual-soft-retire.md)); cross-crate residual soft retired ([I131](stage2-cross-crate-residual-soft-retire.md)); LSP contract lib pins retired ([I132](stage2-lsp-contract-lib-pin-retire.md)); `gate_b09_gc_narrative` peeled ([I133](stage2-gate-b09-narrative-peel.md)); `llvm_stub_audit` accepted as B-06 product capability ([I134](stage2-llvm-stub-audit-product-accept.md)). Census KPIs are **0** ([census](../stage2-governance-census.md)). Ledger **complete** for soft OUT + gate OUT as of I134; plan S2-01/S2-02 `[x]` claimed under [S2-I135 claim ADR](stage2-s2-01-s2-02-claim.md). **≠ Stage-2 exit.**
+**Context:** Soft primary path largely closed in stdlib ([I129](stage2-stdlib-misc-soft-retire.md)); platform residual soft retired ([I130](stage2-platform-residual-soft-retire.md)); cross-crate residual soft retired ([I131](stage2-cross-crate-residual-soft-retire.md)); LSP contract lib pins retired ([I132](stage2-lsp-contract-lib-pin-retire.md)); `gate_b09_gc_narrative` peeled ([I133](stage2-gate-b09-narrative-peel.md)); `llvm_stub_audit` accepted as B-06 product capability ([I134](stage2-llvm-stub-audit-product-accept.md)). Census KPIs are **0** ([census](../census/stage2-governance-census.md)). Ledger **complete** for soft OUT + gate OUT as of I134; plan S2-01/S2-02 `[x]` claimed under [S2-I135 claim ADR](stage2-s2-01-s2-02-claim.md). **≠ Stage-2 exit.**
 
 ## Decision
 
@@ -33,5 +33,5 @@
 - [stage2-gate-b09-narrative-peel](stage2-gate-b09-narrative-peel.md) · S2-I133
 - [stage2-llvm-stub-audit-product-accept](stage2-llvm-stub-audit-product-accept.md) · S2-I134
 - [stage2-s2-01-s2-02-claim](stage2-s2-01-s2-02-claim.md) · S2-I135
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01 · S2-02

@@ -36,5 +36,5 @@
 
 - [stage3-s3-02-demangle-semantic](stage3-s3-02-demangle-semantic.md) · S3-I43
 - [stage3-s3-02-open](stage3-s3-02-open.md) · S3-I42
-- [stage3-mono-display-census](../stage3-mono-display-census.md)
+- [stage3-mono-display-census](../census/stage3-mono-display-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-02

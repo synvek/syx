@@ -32,6 +32,6 @@
 
 - [stage2-s2-04-cst-subset-if-case](stage2-s2-04-cst-subset-if-case.md) · S2-I156
 - [stage2-s2-04-convergence-strategy](stage2-s2-04-convergence-strategy.md) · S2-I144
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04
 - W717 `closed_range_mvp/` · W718 `half_open_range_mvp/`

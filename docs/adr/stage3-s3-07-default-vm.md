@@ -34,6 +34,6 @@
 ## References
 
 - [stage3-s3-07-open](stage3-s3-07-open.md) · S3-I82
-- [stage3-init-template-census](../stage3-init-template-census.md)
+- [stage3-init-template-census](../census/stage3-init-template-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-07
 - [`crates/syx-cli/src/main.rs`](../../crates/syx-cli/src/main.rs)

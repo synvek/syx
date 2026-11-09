@@ -8,9 +8,9 @@
 
 | Axis | Evidence |
 |------|----------|
-| Open | [S3-I96](stage4-s4-03-open.md) · [census](../stage4-structured-concurrency-census.md) |
-| Construct I97 | [`s4-03-cancel-taskgroup-v0`](../s4-03-cancel-taskgroup-v0.md) · cancel + TaskGroup KPIs |
-| Residual-scope | [S3-I98](stage4-s4-03-residual-scope.md) · scoped acceptance · [scope-v0](../s4-03-concurrency-residual-scope-v0.md) |
+| Open | [S3-I96](stage4-s4-03-open.md) · [census](../census/stage4-structured-concurrency-census.md) |
+| Construct I97 | [`s4-03-cancel-taskgroup-v0`](../census/s4-03-cancel-taskgroup-v0.md) · cancel + TaskGroup KPIs |
+| Residual-scope | [S3-I98](stage4-s4-03-residual-scope.md) · scoped acceptance · [scope-v0](../census/s4-03-concurrency-residual-scope-v0.md) |
 | Primary KPI | `cancel_taskgroup_hinge_helper≥1` · cancel_token≥1 · TaskGroup HostFn≥1 · task_tree≥1 · `residual_scope_helper≥1` · `s4_03_claim_helper≥1` |
 | Contract | `s4_03_claim_contract` · `s4_03_structured_concurrency_census_contract` |
 | Honesty OUT | **≠** Stage-4 exit · **≠** write `stage4-exit` this window · **≠** restore deferred as gate |
@@ -41,9 +41,9 @@ Under Hard OUT（≠ 改 `syx-async`/语义 / ≠ `withTaskGroup`/EC-M3 / ≠ TS
 
 - [stage4-s4-03-cancel-taskgroup-hinge](stage4-s4-03-cancel-taskgroup-hinge.md) · S3-I97
 - [stage4-s4-03-open](stage4-s4-03-open.md) · S3-I96
-- [s4-03-concurrency-residual-scope-v0](../s4-03-concurrency-residual-scope-v0.md)
-- [s4-03-cancel-taskgroup-v0](../s4-03-cancel-taskgroup-v0.md)
+- [s4-03-concurrency-residual-scope-v0](../census/s4-03-concurrency-residual-scope-v0.md)
+- [s4-03-cancel-taskgroup-v0](../census/s4-03-cancel-taskgroup-v0.md)
 - [stage4-s4-02-claim](stage4-s4-02-claim.md) · S3-I95（claim 窗形态）
-- [stage4-structured-concurrency-census](../stage4-structured-concurrency-census.md)
+- [stage4-structured-concurrency-census](../census/stage4-structured-concurrency-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-03
 - [`crates/syx-async`](../../crates/syx-async)

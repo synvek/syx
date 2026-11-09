@@ -23,7 +23,7 @@
 | Modules | three sidecars above |
 | Wiring | `lib.rs` mods + `pub use` / `pub(crate) use` |
 | Contract | `s2_05_driver_production_closeout_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I233–I235 row · driver floor 1100 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I233–I235 row · driver floor 1100 |
 
 ## Consequences
 
@@ -36,5 +36,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-driver-compile-to-debug-batch](stage2-s2-05-driver-compile-to-debug-batch.md) · S2-I230–I232
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

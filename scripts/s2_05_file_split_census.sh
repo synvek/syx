@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # S2-I165: Stage-2 file-split census (S2-05 open baseline).
 # Does not split modules or claim S2-05 [x].
-# See docs/stage2-file-split-census.md and docs/adr/stage2-s2-05-open.md
+# See docs/census/stage2-file-split-census.md and docs/adr/stage2-s2-05-open.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

@@ -28,5 +28,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-02-open](stage2-s2-02-open.md) · S2-I108
 - [stage2-backends-hostfn-availability-ga67-meta-retire](stage2-backends-hostfn-availability-ga67-meta-retire.md) · S2-I118
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02

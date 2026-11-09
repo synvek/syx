@@ -36,5 +36,5 @@
 
 - [stage2-s2-04-lint-lower-path](stage2-s2-04-lint-lower-path.md) · S2-I161
 - [stage2-s2-04-cst-lower-probe](stage2-s2-04-cst-lower-probe.md) · S2-I160
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04

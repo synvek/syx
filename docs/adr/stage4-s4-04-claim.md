@@ -8,9 +8,9 @@
 
 | Axis | Evidence |
 |------|----------|
-| Open | [S3-I100](stage4-s4-04-open.md) · [census](../stage4-sequence-collection-census.md) |
-| Construct I101 | [`s4-04-iterator-forin-v0`](../s4-04-iterator-forin-v0.md) · for-in KPIs |
-| Residual-scope | [S3-I102](stage4-s4-04-residual-scope.md) · scoped acceptance · [scope-v0](../s4-04-sequence-residual-scope-v0.md) |
+| Open | [S3-I100](stage4-s4-04-open.md) · [census](../census/stage4-sequence-collection-census.md) |
+| Construct I101 | [`s4-04-iterator-forin-v0`](../census/s4-04-iterator-forin-v0.md) · for-in KPIs |
+| Residual-scope | [S3-I102](stage4-s4-04-residual-scope.md) · scoped acceptance · [scope-v0](../census/s4-04-sequence-residual-scope-v0.md) |
 | Primary KPI | `custom_iterator_forin_hinge_helper≥1` · parity≥1 · iterator_forin≥1 · collections.protocol≥1 · `residual_scope_helper≥1` · `s4_04_claim_helper≥1` |
 | Contract | `s4_04_claim_contract` · `s4_04_sequence_collection_census_contract` |
 | Honesty OUT | **≠** Stage-4 exit · **≠** write `stage4-exit` this window · **≠** restore deferred as gate |
@@ -33,16 +33,16 @@ Under Hard OUT（≠ 改语义/stdlib/codegen / ≠ `makeIterator` GA / ≠ 用�
 - Default next = **S3-I105**（doctor-native-sdk / full-native hinge）— not Stage-4 exit / not S4-05 claim / not `doctor --native-sdk` product wire this prior claim.
 - Prior: [stage4-s4-04-residual-scope](stage4-s4-04-residual-scope.md) · S3-I102 · construct [S3-I101](stage4-s4-04-iterator-forin-hinge.md) · open [S3-I100](stage4-s4-04-open.md).
 - Sequence/collection census Current → **S3-I103** · Claimed scoped `[x]`。
-- Prebuilt census: [stage4-prebuilt-release-census](../stage4-prebuilt-release-census.md) · Current **S3-I104** · next **S3-I105**。
+- Prebuilt census: [stage4-prebuilt-release-census](../census/stage4-prebuilt-release-census.md) · Current **S3-I104** · next **S3-I105**。
 
 ## References
 
 - [stage4-s4-04-residual-scope](stage4-s4-04-residual-scope.md) · S3-I102
 - [stage4-s4-04-iterator-forin-hinge](stage4-s4-04-iterator-forin-hinge.md) · S3-I101
 - [stage4-s4-04-open](stage4-s4-04-open.md) · S3-I100
-- [s4-04-sequence-residual-scope-v0](../s4-04-sequence-residual-scope-v0.md)
-- [s4-04-iterator-forin-v0](../s4-04-iterator-forin-v0.md)
+- [s4-04-sequence-residual-scope-v0](../census/s4-04-sequence-residual-scope-v0.md)
+- [s4-04-iterator-forin-v0](../census/s4-04-iterator-forin-v0.md)
 - [stage4-s4-03-claim](stage4-s4-03-claim.md) · S3-I99（claim 窗形态）
-- [stage4-sequence-collection-census](../stage4-sequence-collection-census.md)
+- [stage4-sequence-collection-census](../census/stage4-sequence-collection-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-04
 - [`packages/internal/capabilities.toml`](../../packages/internal/capabilities.toml)

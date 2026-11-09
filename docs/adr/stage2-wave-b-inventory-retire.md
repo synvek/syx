@@ -21,6 +21,6 @@
 
 - [stage2-open](stage2-open.md)
 - [stage2-cutover-decouple](stage2-cutover-decouple.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [wave-b-exit.md](../lang/wave-b-exit.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01

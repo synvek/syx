@@ -2,7 +2,7 @@
 # S3-I56…I71: Stage-3 VM-hotspot / fib(30) census (S3-04).
 # I57–I70 construct/policy/scope · I71 scoped [x] claim.
 # S3-04 claimed scoped [x]; next default I72 S3-05 open (≠ Stage-3 exit).
-# See docs/stage3-vm-hotspot-census.md and docs/adr/stage3-s3-04-claim.md
+# See docs/census/stage3-vm-hotspot-census.md and docs/adr/stage3-s3-04-claim.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -66,13 +66,13 @@ claim_prep_helper=$(count_rg 'S3-I68|claim-prep|fib_criterion' \
   docs/adr/stage3-s3-04-claim-prep.md crates/syx-driver/benches/fib_criterion.rs examples/fib.sy examples/fib20.sy)
 # S3-I69 hinge: wall-strategy policy (ceiling + whitelist + dual axis).
 wall_strategy_helper=$(count_rg 'S3-I69|wall-strategy|fib30_interp_ceiling' \
-  docs/adr/stage3-s3-04-wall-strategy.md docs/stage3-vm-hotspot-census.md scripts/s3_04_vm_hotspot_census.sh)
+  docs/adr/stage3-s3-04-wall-strategy.md docs/census/stage3-vm-hotspot-census.md scripts/s3_04_vm_hotspot_census.sh)
 # S3-I70 hinge: residual-scope (scoped acceptance + deferred <0.5).
 residual_scope_helper=$(count_rg 'S3-I70|residual-scope|scoped acceptance' \
-  docs/adr/stage3-s3-04-residual-scope.md docs/stage3-vm-hotspot-census.md plan/02-improvement-roadmap.md)
+  docs/adr/stage3-s3-04-residual-scope.md docs/census/stage3-vm-hotspot-census.md plan/02-improvement-roadmap.md)
 # S3-I71 hinge: scoped [x] claim.
 s3_04_claim_helper=$(count_rg 'S3-I71|stage3-s3-04-claim|Claimed: scoped' \
-  docs/adr/stage3-s3-04-claim.md docs/stage3-vm-hotspot-census.md plan/02-improvement-roadmap.md)
+  docs/adr/stage3-s3-04-claim.md docs/census/stage3-vm-hotspot-census.md plan/02-improvement-roadmap.md)
 call_path_helper=$(count_rg 'run_function_with_args|run_function_with_owned_args|run_function_with_stack_args|fn call_' \
   crates/syx-vm/src/lib.rs)
 suspend_frame_helper=$(count_rg 'VmSuspendFrame|struct VmSuspendFrame' \

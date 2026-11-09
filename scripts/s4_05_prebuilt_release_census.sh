@@ -14,14 +14,14 @@ s4_05_open_helper=0
 [[ -f docs/adr/stage4-s4-05-open.md ]] && s4_05_open_helper=1
 
 s4_05_census_helper=0
-[[ -f docs/stage4-prebuilt-release-census.md && -f scripts/s4_05_prebuilt_release_census.sh ]] && s4_05_census_helper=1
+[[ -f docs/census/stage4-prebuilt-release-census.md && -f scripts/s4_05_prebuilt_release_census.sh ]] && s4_05_census_helper=1
 
 doctor_native_sdk_hinge_helper=0
-[[ -f docs/adr/stage4-s4-05-doctor-native-sdk-hinge.md && -f docs/s4-05-doctor-native-sdk-v0.md ]] \
+[[ -f docs/adr/stage4-s4-05-doctor-native-sdk-hinge.md && -f docs/census/s4-05-doctor-native-sdk-v0.md ]] \
   && doctor_native_sdk_hinge_helper=1
 
 residual_scope_helper=0
-[[ -f docs/adr/stage4-s4-05-residual-scope.md && -f docs/s4-05-prebuilt-residual-scope-v0.md ]] \
+[[ -f docs/adr/stage4-s4-05-residual-scope.md && -f docs/census/s4-05-prebuilt-residual-scope-v0.md ]] \
   && residual_scope_helper=1
 
 s4_05_claim_helper=0

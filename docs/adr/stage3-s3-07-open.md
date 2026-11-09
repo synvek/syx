@@ -13,7 +13,7 @@
 | init→run 机械验收 | **无** init 集成测 | tempdir init + `syx run` 钉 |
 | Native 脚手架诚实 | 默认名暗示 native；默认构建 ≠ 可跑 | `--template native` 可保留但非默认 |
 
-Baseline: [stage3-init-template-census](../stage3-init-template-census.md).
+Baseline: [stage3-init-template-census](../census/stage3-init-template-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-init-template-census](../stage3-init-template-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| Init-template census | [`docs/stage3-init-template-census.md`](../stage3-init-template-census.md) · `scripts/s3_07_init_template_census.sh` |
+| Init-template census | [`docs/census/stage3-init-template-census.md`](../census/stage3-init-template-census.md) · `scripts/s3_07_init_template_census.sh` |
 | Contract nail | `s3_07_init_template_census_contract` |
 | Plan status | S3-07 `[~]` under this ADR · Stage-3 `[~]` · later **7/7** · S3-01…06 `[x]` |
 
@@ -45,7 +45,7 @@ Baseline: [stage3-init-template-census](../stage3-init-template-census.md).
 
 - [stage3-s3-06-claim](stage3-s3-06-claim.md) · S3-I81
 - [stage3-open](stage3-open.md) · S3-I1
-- [stage3-init-template-census](../stage3-init-template-census.md)
+- [stage3-init-template-census](../census/stage3-init-template-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-07
 - [`crates/syx-cli/src/main.rs`](../../crates/syx-cli/src/main.rs) `Commands::Init`
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §3.3

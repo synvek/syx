@@ -19,7 +19,7 @@
 |-------|----------|
 | Module | `semantic_analyzer.rs` holds `analyze_expr` / `analyze_expr_inner` |
 | Contract | `s2_05_semantic_analyze_expr_extract_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I244 row · semantic floor 3800 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I244 row · semantic floor 3800 |
 
 ## Consequences
 
@@ -32,5 +32,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-semantic-analyze-decl-to-stmt-batch](stage2-s2-05-semantic-analyze-decl-to-stmt-batch.md) · S2-I242–I243
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05

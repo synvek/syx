@@ -36,6 +36,6 @@
 ## References
 
 - [stage3-s3-05-open](stage3-s3-05-open.md) · S3-I72
-- [stage3-lint-ast-census](../stage3-lint-ast-census.md)
+- [stage3-lint-ast-census](../census/stage3-lint-ast-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-05
 - [`crates/syx-lint/src/lib.rs`](../../crates/syx-lint/src/lib.rs)

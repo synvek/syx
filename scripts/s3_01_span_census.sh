@@ -4,7 +4,7 @@
 # I26–I39: positionless face gates (driver/vm/…/residual) ·
 # I40: positionless_helper_calls filtered =0 (noise/policy subtracted).
 # Does not claim S3-01 [x].
-# See docs/stage3-diagnostic-span-census.md and docs/adr/stage3-s3-01-noise-claim-prep.md
+# See docs/census/stage3-diagnostic-span-census.md and docs/adr/stage3-s3-01-noise-claim-prep.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

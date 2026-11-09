@@ -10,7 +10,7 @@
 
 | Check | Evidence |
 |-------|----------|
-| Census KPIs all **0** | [`scripts/s2_governance_census.sh`](../../scripts/s2_governance_census.sh) · [census](../stage2-governance-census.md) |
+| Census KPIs all **0** | [`scripts/s2_governance_census.sh`](../../scripts/s2_governance_census.sh) · [census](../census/stage2-governance-census.md) |
 | Claim ledger complete | [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md) |
 | Gate peel / accept | `gate_b09` peeled ([I133](stage2-gate-b09-narrative-peel.md)); `llvm_stub_audit` accepted as B-06 product ([I134](stage2-llvm-stub-audit-product-accept.md)) |
 | No inventory/fingerprint as release KPI | census + claim ledger |
@@ -41,5 +41,5 @@
 - [stage2-s2-02-open](stage2-s2-02-open.md)
 - [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md)
 - [stage2-llvm-stub-audit-product-accept](stage2-llvm-stub-audit-product-accept.md) · S2-I134
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-01 · S2-02

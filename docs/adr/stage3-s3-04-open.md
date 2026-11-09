@@ -13,7 +13,7 @@
 | Call / `Value` tax | Widespread `.clone()` on call/arg paths; analysis: 传参 / `Value` 克隆 / 帧 | Cut call-path clone/frame tax |
 | JIT | Experimental `SYX_JIT_*` / `hotspot_count` · **not** production default | Optional later; **≠** this open |
 
-Baseline: [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md).
+Baseline: [stage3-vm-hotspot-census](../census/stage3-vm-hotspot-census.md).
 
 ## Decision
 
@@ -26,7 +26,7 @@ Baseline: [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md).
 
 | Check | Evidence |
 |-------|----------|
-| VM-hotspot census | [`docs/stage3-vm-hotspot-census.md`](../stage3-vm-hotspot-census.md) · `scripts/s3_04_vm_hotspot_census.sh` |
+| VM-hotspot census | [`docs/census/stage3-vm-hotspot-census.md`](../census/stage3-vm-hotspot-census.md) · `scripts/s3_04_vm_hotspot_census.sh` |
 | Contract nail | `s3_04_vm_hotspot_census_contract` |
 | Plan status | S3-04 `[~]` under this ADR · Stage-3 `[~]` · S3-01…03 `[x]` |
 
@@ -56,6 +56,6 @@ Baseline: [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md).
 
 - [stage3-open](stage3-open.md) · S3-I1
 - [stage3-s3-03-claim](stage3-s3-03-claim.md) · S3-I55
-- [stage3-vm-hotspot-census](../stage3-vm-hotspot-census.md)
+- [stage3-vm-hotspot-census](../census/stage3-vm-hotspot-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-04
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) fib KPI

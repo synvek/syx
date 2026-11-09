@@ -27,5 +27,5 @@
 - [stage2-cross-crate-surface-soft-retire](stage2-cross-crate-surface-soft-retire.md) · S2-I125
 - [stage2-platform-residual-soft-retire](stage2-platform-residual-soft-retire.md) · S2-I130
 - [stage2-claim-readiness-inventory](stage2-claim-readiness-inventory.md)
-- [stage2-governance-census](../stage2-governance-census.md)
+- [stage2-governance-census](../census/stage2-governance-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-02

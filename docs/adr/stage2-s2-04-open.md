@@ -15,7 +15,7 @@
 | fmt `--check` | **CST-first** + `CST001`→AST | same path as write (or explicit one SSOT) |
 | AST trivia | none | CST→AST (or trivia-bearing AST) |
 
-Baseline numbers and entry points: [stage2-parser-census](../stage2-parser-census.md).
+Baseline numbers and entry points: [stage2-parser-census](../census/stage2-parser-census.md).
 
 ## Decision
 
@@ -28,7 +28,7 @@ Baseline numbers and entry points: [stage2-parser-census](../stage2-parser-censu
 
 | Check | Evidence |
 |-------|----------|
-| Dual-track census | [`docs/stage2-parser-census.md`](../stage2-parser-census.md) · `scripts/s2_04_parser_census.sh` |
+| Dual-track census | [`docs/census/stage2-parser-census.md`](../census/stage2-parser-census.md) · `scripts/s2_04_parser_census.sh` |
 | Contract nail | `s2_04_parser_dual_track_baseline` |
 | Plan status | S2-04 `[~]` under this ADR |
 
@@ -84,6 +84,6 @@ Baseline numbers and entry points: [stage2-parser-census](../stage2-parser-censu
 - [stage2-s2-04-cst-lower-probe-expand](stage2-s2-04-cst-lower-probe-expand.md) · S2-I162
 - [stage2-s2-04-dual-grammar-freeze-charter](stage2-s2-04-dual-grammar-freeze-charter.md) · S2-I163
 - [stage2-s2-04-claim](stage2-s2-04-claim.md) · S2-I164
-- [stage2-parser-census](../stage2-parser-census.md)
+- [stage2-parser-census](../census/stage2-parser-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-04
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §2.4 / §4.2.3

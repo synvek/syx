@@ -23,7 +23,7 @@
 | Modules | four sidecars above |
 | Wiring | `lib.rs` mods + shell `pub use` |
 | Contract | `s2_05_mir_free_vars_to_shells_batch_contract` |
-| Census | [stage2-file-split-census](../stage2-file-split-census.md) I201–I204 row · floor 4000 |
+| Census | [stage2-file-split-census](../census/stage2-file-split-census.md) I201–I204 row · floor 4000 |
 
 ## Consequences
 
@@ -36,5 +36,5 @@
 - [stage2-open](stage2-open.md)
 - [stage2-s2-05-open](stage2-s2-05-open.md) · S2-I165
 - [stage2-s2-05-mir-lower-expr-range-to-super-batch](stage2-s2-05-mir-lower-expr-range-to-super-batch.md) · S2-I195–I200
-- [stage2-file-split-census](../stage2-file-split-census.md)
+- [stage2-file-split-census](../census/stage2-file-split-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S2-05
