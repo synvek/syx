@@ -134,7 +134,7 @@ The `TokenKind` enum is defined in `crates/syx-lexer/src/token.rs`, grouped by s
 
 | TokenKind | Lexeme | Example |
 |-----------|------|------|
-| `Try` | `try` | `try expr` or `try { } catch {}` |
+| `Try` | `try` | `try expr` or `do { } catch {}` |
 | `Throw` | `throw` | `throw error` |
 | `Throws` | `throws` | `func f() throws {}` |
 | `Catch` | `catch` | `catch (e) {}` |

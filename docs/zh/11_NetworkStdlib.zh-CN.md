@@ -18,7 +18,7 @@ Node.js / fetch 风格的 HTTP 客户端、URL 工具、blocking HTTP 服务端�
 ## HTTP 客户端
 
 ```syx
-import Net
+import Networking
 
 let resp: HTTPResponse = Http.fetch("https://api.example.com/users", {
     "method": "POST",
@@ -79,7 +79,7 @@ print(resp.headers())
 默认 `Http.get` / `fetch` **仍整缓冲**。opt-in 会话：
 
 ```syx
-import Net
+import Networking
 
 let opened = HttpBodyStream.open(url: "http://127.0.0.1:8080/big")
 let handle = opened.handle
@@ -97,7 +97,7 @@ VM 保留 `reqwest` Response，用 `std::io::Read` 增量读（该路径**不**�
 ## URL 模块
 
 ```syx
-import Net
+import Networking
 
 let u: Url = Url.parse("https://example.com/path?q=1")
 print(u.host)
@@ -118,7 +118,7 @@ print(Url.build("https://host", "/api", { "page": "1" }))
 基于 `tiny_http` 的同步 HTTP 服务器。首期仅 HTTP（无 TLS）；生产 HTTPS 请用 nginx / Caddy 等反向代理终止 TLS。
 
 ```syx
-import Net
+import Networking
 
 func handle(req: HttpRequest) -> HTTPResponse {
     if req.path == "/shutdown" {

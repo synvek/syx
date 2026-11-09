@@ -182,5 +182,5 @@ fn s4_01_claim_census_script_hinges() {
     assert!(parse("stability_ssot_helper=") >= 1);
     assert!(parse("residual_scope_helper=") >= 1);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert_eq!(parse("syx_doctest_subcommand_count="), 0);
+    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
 }

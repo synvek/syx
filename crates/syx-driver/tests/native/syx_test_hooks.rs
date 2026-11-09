@@ -12,7 +12,7 @@ fn syx_test_setup_then_tests_then_teardown_order() {
         tests.join("suite.sy"),
         format!(
             r#"
-import IO
+import System
 
 @TestSetup
 func boot() {{
@@ -61,7 +61,7 @@ fn syx_test_hooks_ignored_without_at_test() {
         tests.join("plain.sy"),
         format!(
             r#"
-import IO
+import System
 
 @TestSetup
 func boot() {{
@@ -99,7 +99,7 @@ fn syx_test_setup_failure_marks_tests_and_skips_teardown() {
         tests.join("bad.sy"),
         format!(
             r#"
-import IO
+import System
 
 @TestSetup
 func boot() {{

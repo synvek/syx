@@ -63,7 +63,9 @@ pub(crate) fn ensure_prelude_modules_in_graph(
             }
             continue;
         }
-        let source = SourceFile::new(format!("<stdlib>/{name}.sy"), (*src).to_string());
+        // SA-4-04: prelude value modules call `SyxHost.*`; prepend host before analyze.
+        let hosted = embedded_std::ensure_syx_host(src);
+        let source = SourceFile::new(format!("<stdlib>/{name}.sy"), hosted);
         let prep_opts = FrontendOptions {
             stop_after: StopAfter::Prepared,
             desugar_top_level: false,
@@ -322,7 +324,7 @@ pub(crate) fn expand_core_value_builtin_modules(options: &DriverOptions) -> Vec<
 
 /// Phase 59: inject imported dependency data classes, public classes, and type
 /// extensions into the compiling module (so Core prelude Array helpers and
-/// OrderedSet, or `import Net`, land in semantic / LSP scope).
+/// OrderedSet, or `import Networking`, land in semantic / LSP scope).
 pub(crate) fn inject_imported_dataclass_decls(
     module: &mut syx_ast::Module,
     importer: &Path,
@@ -389,8 +391,15 @@ pub(crate) fn inject_imported_dataclass_decls(
                 if is_core_typeid_surface(name.as_str()) {
                     continue;
                 }
-                // Host builtins owned by a module (e.g. HTTPResponse → Net).
-                if syx_stdlib::is_builtin_type(name.as_str()) {
+                // Host-only builtins (e.g. HTTPResponse) skip inject. SA-3-01:
+                // former module façades (`Env`/`Path`/`Time`/`Os`) are real
+                // `class` decls under `import System` and must inject even when
+                // also listed in the host builtin registry.
+                if syx_stdlib::is_builtin_type(name.as_str())
+                    && !dep_module.decls.iter().any(|d| {
+                        matches!(d, Decl::Class { name: n, access: AccessLevel::Public, .. } if n == name)
+                    })
+                {
                     continue;
                 }
                 // Module-homonym class (Crypto in `import Crypto`) stays available
@@ -401,17 +410,51 @@ pub(crate) fn inject_imported_dataclass_decls(
                 if !module.decls.iter().any(|d| {
                     matches!(d, Decl::Class { name: n, .. } if n == name)
                         || matches!(d, Decl::DataClass { name: n, .. } if n == name)
+                        || matches!(d, Decl::Enum { name: n, .. } if n == name)
                 }) {
                     module.decls.push(decl.clone());
                 }
             }
+            // SA-3-01: public enums (`ProcessInfo`, `SystemError`, `FilePath`, …) must
+            // inject like classes — caseless enum namespaces + Error pilots.
+            // SA-4-04a: also inject internal `SyxHost` so injected public façades that
+            // call `SyxHost.*` still resolve (bodies are cloned into the importer).
+            if let Decl::Enum {
+                access,
+                name,
+                ..
+            } = decl
+            {
+                let inject_enum = matches!(access, AccessLevel::Public)
+                    || (matches!(access, AccessLevel::Internal) && name.as_str() == "SyxHost");
+                if !inject_enum {
+                    continue;
+                }
+                if name == &symbol {
+                    continue;
+                }
+                if !module.decls.iter().any(|d| {
+                    matches!(d, Decl::Enum { name: n, .. } if n == name)
+                        || matches!(d, Decl::Class { name: n, .. } if n == name)
+                        || matches!(d, Decl::DataClass { name: n, .. } if n == name)
+                }) {
+                    module.decls.push(decl.clone());
+                    for ext in extension_decls_for_type(&dep_module, name) {
+                        merge_imported_extension(module, ext);
+                    }
+                }
+            }
             if let Decl::Extension { type_name, .. } = decl {
-                // Skip extensions already handled via dataclass injection above.
+                // Skip extensions already handled via dataclass / enum injection above.
                 let is_dc = dep_module
                     .decls
                     .iter()
                     .any(|d| matches!(d, Decl::DataClass { name: n, .. } if n == type_name));
-                if !is_dc {
+                let is_enum = dep_module
+                    .decls
+                    .iter()
+                    .any(|d| matches!(d, Decl::Enum { name: n, .. } if n == type_name));
+                if !is_dc && !is_enum {
                     merge_imported_extension(module, decl.clone());
                 }
             }
@@ -801,6 +844,21 @@ fn export_function_details(source: &SourceFile) -> IndexMap<SmolStr, (TypeId, St
                     exports.insert(
                         name.clone(),
                         (TypeId::Named(name.clone()), format!("data class {name}")),
+                    );
+                }
+                // SA-3-01: enums (`ProcessInfo`, `SystemError`, …) must appear in import_exports.
+                // SA-4-04: also export internal `SyxHost` so `SyxHost_*` MIR merge
+                // (methods live in a pending Extension; merge uses the SyxHost_ prefix).
+                Decl::Enum {
+                    access,
+                    name,
+                    ..
+                } if matches!(access, AccessLevel::Public)
+                    || (matches!(access, AccessLevel::Internal) && name.as_str() == "SyxHost") =>
+                {
+                    exports.insert(
+                        name.clone(),
+                        (TypeId::Named(name.clone()), format!("enum {name}")),
                     );
                 }
                 Decl::Actor { access, name, .. } if matches!(access, AccessLevel::Public) => {

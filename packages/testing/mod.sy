@@ -1,23 +1,23 @@
 // `syx test` helpers: assert / assertEq / test / expectEqual.
 // Requires `import Testing` (not auto-injected).
 
-/// Assert (host `__syx_testing_assert`).
+/// Assert (host `SyxHost.testing_assert`).
 public func assert(condition: Bool) {
-    __syx_testing_assert(condition, "assertion failed")
+    SyxHost.testing_assert(condition, "assertion failed")
 }
 
-/// Assert Eq (host `__syx_testing_assert_eq`).
+/// Assert Eq (host `SyxHost.testing_assert_eq`).
 public func assertEq(actual: Object, expected: Object) {
-    __syx_testing_assert_eq(actual, expected, "assertEq failed")
+    SyxHost.testing_assert_eq(actual, expected, "assertEq failed")
 }
 
-/// Test (host `__syx_testing_test`).
+/// Test (host `SyxHost.testing_test`).
 public func test(name: String, fn: Object) {
-    __syx_testing_test(name, fn)
+    SyxHost.testing_test(name, fn)
 }
 
-/// Expect Equal (host `__syx_testing_expect_equal`).
+/// Expect Equal (host `SyxHost.testing_expect_equal`).
 public func expectEqual(actual: Object, expected: Object) {
-    __syx_testing_expect_equal(actual, expected, "expectEqual failed")
+    SyxHost.testing_expect_equal(actual, expected, "expectEqual failed")
 }
 

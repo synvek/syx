@@ -1,4 +1,4 @@
-//! ADR-185 / M2 W41: EC-M2-4 Path/File micro-benchmark first tier (Path.join×N Instant).
+//! ADR-185 / M2 W41: EC-M2-4 Path/File micro-benchmark first tier (FilePath.join×N Instant).
 // was: ec_m2_4_path_file_microbench
 
 use std::path::PathBuf;
@@ -32,7 +32,7 @@ fn ec_m2_4_path_file_microbench_join_instant() {
 
     let per_op = elapsed / N;
     eprintln!(
-        "ec_m2_4_path_file_microbench: Path.join×{N} compile+run in {elapsed:?} (~{per_op:?}/op)"
+        "ec_m2_4_path_file_microbench: FilePath.join×{N} compile+run in {elapsed:?} (~{per_op:?}/op)"
     );
 }
 

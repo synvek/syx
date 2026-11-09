@@ -7,7 +7,7 @@ The SYX concurrency model is based on **coroutines + actors**, consistent with S
 ## async / await
 
 ~~~text
-import Net
+import Networking
 
 async func fetch() -> String {
     return await Net.get("https://example.com")
@@ -167,7 +167,7 @@ class ViewModel {
 
 ## Channel
 
-Cross-task communication. The product surface is the `Channel` class from `import Sync` (not `__syx_channel_*`):
+Cross-task communication. The product surface is the `Channel` class from `import Synchronization` (not `__syx_channel_*`):
 
 | Form | Meaning |
 |------|------|
@@ -181,7 +181,7 @@ Instance methods: `send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` 
 > The `Channel<Int>` generic syntax shown in tutorials is the planned form; the current MVP payload is `Object`, and types are constrained by calling convention.
 
 ```syx
-import Sync
+import Synchronization
 
 let ch = Channel.create(2)
 ch.send(1)                                 // Synchronous by default
@@ -353,7 +353,7 @@ Reproducible concurrency stress samples live in `packages/internal/race_stress_s
 ## Complete Example
 
 ~~~text
-import Net
+import Networking
 
 actor Downloader {
     var results: Array<String> = []

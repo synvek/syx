@@ -23,7 +23,7 @@ fn ec_m2_3_child_pipe_leak_take_close_returns_to_baseline() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     let p = Child.stdout(handle: h)
@@ -52,7 +52,7 @@ fn ec_m2_3_child_pipe_leak_take_without_close_increments() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     let p = Child.stdout(handle: h)

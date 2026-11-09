@@ -1,9 +1,9 @@
-# Log
+# Logging
 
-**Implementation status:** levels + structured field lines **Implemented**; **not** JSON logging GA.
+**Implementation status:** levels + structured field lines **Implemented**; **not** JSON logging GA. Import the module as `Logging`; the type surface is still `Log`.
 
 ```syx
-import Log
+import Logging
 
 func main() {
     Log.setMinLevel("INFO")
@@ -22,4 +22,4 @@ Example: [examples/log_fields.sy](../../examples/log_fields.sy)
 | `takeLast` | Reads out the most recent successfully emitted line (for testing filtering) |
 | `policy` | Policy fingerprint; ≠ JSON GA |
 
-`Metrics` / `Trace` / `Profiler` are adjacent observability packages; this guide does not present them as a stable `importable_modules` user surface.
+`Metrics` / `Tracing` / `Profiling` are adjacent observability packages on `importable_modules`; this chapter does not treat them as a product observability GA.

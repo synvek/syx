@@ -1,9 +1,9 @@
-# Log
+# Logging
 
-**实现状态：** 级别 + 结构化字段行 **已实现**；**不是** JSON 日志 GA。
+**实现状态：** 级别 + 结构化字段行 **已实现**；**不是** JSON 日志 GA。模块名 `import Logging`；类型面仍是 `Log`。
 
 ```syx
-import Log
+import Logging
 
 func main() {
     Log.setMinLevel("INFO")
@@ -22,4 +22,4 @@ func main() {
 | `takeLast` | 读走最近成功发出的一行（测过滤用） |
 | `policy` | 策略指纹；≠ JSON GA |
 
-`Metrics` / `Trace` / `Profiler` 是相邻可观测包，本指南不把它们写成稳定 `importable_modules` 用户面。
+`Metrics` / `Tracing` / `Profiling` 是相邻可观测包（已在 `importable_modules`）；本章不把它们写成产品可观测 GA。

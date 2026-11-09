@@ -333,8 +333,8 @@
 "internal_id": "collection.ordered_set",
 "core_path": "core/builtins/collections/ordered_set.sy",
 "numeric_kind": null,
-"prelude": true,
-"importable": false,
+"prelude": false,
+"importable": true,
 "owner_module": null,
 "auto_conformance": null,
 "host_ops": ["new", "insert", "contains"]
@@ -347,8 +347,8 @@
 "internal_id": "collection.deque",
 "core_path": "core/builtins/collections/deque.sy",
 "numeric_kind": null,
-"prelude": true,
-"importable": false,
+"prelude": false,
+"importable": true,
 "owner_module": null,
 "auto_conformance": null,
 "host_ops": ["new", "pushBack", "pushFront", "popBack", "popFront", "count", "isEmpty"]
@@ -545,13 +545,13 @@
 "numeric_kind": null,
 "prelude": false,
 "importable": false,
-"owner_module": "Net",
+"owner_module": "Networking",
 "auto_conformance": null,
 "host_ops": null
 }
   ],
-"prelude_modules": ["Math", "Int8", "Int16", "Int32", "Int64", "Int128", "UInt8", "UInt16", "UInt32", "UInt64", "UInt128", "Int", "UInt", "Float32", "Float64", "Float", "Double", "Bool", "Character", "String", "Array", "Set", "Dictionary", "OrderedSet", "Deque", "Result", "BigInt", "Hasher", "Random", "JSON", "Time", "Env", "Path", "Concurrency", "SIMD4"],
-"importable_modules": ["IO", "Net", "Crypto", "Text", "DateTime", "Sync", "Process", "Testing", "Log", "Di", "UI", "Os", "Sql", "Linalg"],
+"prelude_modules": ["Int8", "Int16", "Int32", "Int64", "Int128", "UInt8", "UInt16", "UInt32", "UInt64", "UInt128", "Int", "UInt", "Float32", "Float64", "Float", "Double", "Bool", "Character", "String", "Array", "Set", "Dictionary", "Result", "BigInt", "Hasher", "Concurrency"],
+"importable_modules": ["System", "Networking", "Crypto", "Text", "Synchronization", "SQL", "Testing", "Logging", "Tracing", "Metrics", "Profiling", "DI", "UI", "Numerics", "JSON", "Fmt", "OrderedSet", "Deque", "Math", "Random", "SIMD4"],
 "forbidden_imports": ["Internal", "_Builtin", "_Internal"],
-"retired_modules": ["Int8Ops", "Text", "Arrays", "BoolOps"]
+"retired_modules": ["Int8Ops", "Arrays", "BoolOps"]
 }

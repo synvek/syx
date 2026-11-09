@@ -363,6 +363,7 @@ pub fn monomorphize_module(
                     name: _,
                     type_params,
                     cases,
+                    conformances,
                     ..
                 } => {
                     let substituted_cases = cases
@@ -391,6 +392,7 @@ pub fn monomorphize_module(
                             attrs: vec![],
                             name: mangled,
                             type_params: vec![],
+                            conformances: conformances.clone(),
                             cases: substituted_cases,
                         },
                     ));

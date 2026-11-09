@@ -1,11 +1,29 @@
 // Shared HTTP value shells for Net / IO facades.
 
-/// HTTP header bag (data class shell).
-public data class HttpHeaders()
+/// HTTP header bag (SA-2-04: class shell).
+public class HttpHeaders {
+}
 
 /// HTTP body carrying text content.
-public data class HttpBody(text: String)
+public class HttpBody {
+    public var text: String
+
+    public init(text: String) {
+        self.text = text
+    }
+}
 
 /// HTTP request: method, path, query, body.
-public data class HttpRequest(method: String, path: String, query: String, body: String)
+public class HttpRequest {
+    public var method: String
+    public var path: String
+    public var query: String
+    public var body: String
 
+    public init(method: String, path: String, query: String, body: String) {
+        self.method = method
+        self.path = path
+        self.query = query
+        self.body = body
+    }
+}

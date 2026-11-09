@@ -93,7 +93,7 @@ func main() {
     print(after)
   }
   // Teardown: join reaps so later tests stay isolated.
-  try {
+  do {
     __syx_task_join(t)
   } catch (err) {
     print("JOIN_TEARDOWN")

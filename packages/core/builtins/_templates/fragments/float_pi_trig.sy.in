@@ -1,0 +1,14 @@
+    /// Mathematical constant π.
+    public static var pi: {{TY}} {
+        return 3.141592653589793
+    }
+
+    /// Sine of `x` (radians); host `__syx_{{SLUG}}_sin`.
+    public static func sin(x: {{TY}}) -> {{TY}} {
+        return __syx_{{SLUG}}_sin(x)
+    }
+
+    /// Square root of `x`; host `__syx_{{SLUG}}_sqrt`.
+    public static func sqrt(x: {{TY}}) -> {{TY}} {
+        return __syx_{{SLUG}}_sqrt(x)
+    }

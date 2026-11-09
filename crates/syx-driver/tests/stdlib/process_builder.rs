@@ -83,7 +83,7 @@ fn m2_s6_01_cwd_overlay() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let b = ProcessBuilder.create(command: "/bin/sh", args: ["-c", "touch marker.txt"])
     ProcessBuilder.cwd(builder: b, path: "{dir_s}")
     let h = ProcessBuilder.spawn(builder: b)
@@ -110,7 +110,7 @@ fn m2_s6_01_env_overlay() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/bin/sh", args: ["-c", "test \"$SYX_PB_KEY\" = \"v1\""])
     ProcessBuilder.env(builder: b, key: "SYX_PB_KEY", value: "v1")
     let h = ProcessBuilder.spawn(builder: b)
@@ -133,7 +133,7 @@ fn m2_s6_01_kill_and_fail_after() {
         r#"
 func main() {
   var h = -1
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/bin/sleep", args: ["30"])
     h = ProcessBuilder.spawn(builder: b)
     Child.kill(handle: h)
@@ -141,13 +141,13 @@ func main() {
   } catch (e1) {
     print("KILL_ERR")
   }
-  try {
+  do {
     Child.wait(handle: h)
     print("UNEXPECTED_WAIT")
   } catch (e2) {
     print("WAIT_FAIL")
   }
-  try {
+  do {
     Child.kill(handle: h)
     print("UNEXPECTED_KILL")
   } catch (e3) {
@@ -169,7 +169,7 @@ fn m2_s6_01_wait_timeout_kills() {
         r#"
 func main() {
   var h = -1
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/bin/sleep", args: ["30"])
     h = ProcessBuilder.spawn(builder: b)
     let code = Child.waitTimeout(handle: h, timeoutMs: 200)
@@ -178,7 +178,7 @@ func main() {
   } catch (e1) {
     print("TIMEOUT")
   }
-  try {
+  do {
     Child.wait(handle: h)
     print("UNEXPECTED_WAIT")
   } catch (e2) {
@@ -196,7 +196,7 @@ fn m2_s6_01_wait_timeout_success() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     let code = Child.waitTimeout(handle: h, timeoutMs: 5000)
@@ -792,7 +792,7 @@ fn m2_s6_01_process_builder_cwd_env_native_llvm() {
     let src = facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let b = ProcessBuilder.create(command: "/bin/sh", args: ["-c", "test \"$SYX_PB_KEY\" = \"v1\" && touch marker.txt"])
     ProcessBuilder.cwd(builder: b, path: "{dir_s}")
     ProcessBuilder.env(builder: b, key: "SYX_PB_KEY", value: "v1")
@@ -837,13 +837,13 @@ func main() {
   h = __syx_process_builder_spawn(b)
   __syx_child_kill(h)
   print("KILLED")
-  try {
+  do {
     let _ = __syx_child_wait(h)
     print("UNEXPECTED_WAIT")
   } catch (e2) {
     print("WAIT_FAIL")
   }
-  try {
+  do {
     __syx_child_kill(h)
     print("UNEXPECTED_KILL")
   } catch (e3) {

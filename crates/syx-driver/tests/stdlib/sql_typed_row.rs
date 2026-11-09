@@ -177,7 +177,7 @@ fn m2_s8_02b_get_int_string_and_mismatch() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER, name TEXT)")
     Sql.execOn(connId: c, sql: "INSERT INTO t(id, name) VALUES (7, 'alice')")
@@ -188,14 +188,14 @@ func main() {
     print("OK")
     print(id)
     print(name)
-    try {
+    do {
       let bad = SqlRow.getInt(row: row, name: "name")
       print("MISMATCH_OK")
       print(bad)
     } catch (err1) {
       print("MISMATCH_FAIL")
     }
-    try {
+    do {
       let miss = SqlRow.getString(row: row, name: "nope")
       print("MISS_OK")
       print(miss)
@@ -221,7 +221,7 @@ fn m2_s8_02b_column_names_and_is_null() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER, note TEXT)")
     Sql.execOn(connId: c, sql: "INSERT INTO t(id, note) VALUES (1, NULL)")

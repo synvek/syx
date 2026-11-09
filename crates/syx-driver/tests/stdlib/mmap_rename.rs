@@ -42,7 +42,7 @@ fn m2_s3_04_read_all_bytes_roundtrip() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let h = FileHandle.open(path: "{path_s}", mode: "r")
     let b = FileHandle.readAllBytes(handle: h)
     FileHandle.close(handle: h)

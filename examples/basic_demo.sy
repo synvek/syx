@@ -1,4 +1,6 @@
 import Crypto
+import Math
+import SIMD4
 
 class Greeter {
     var name: String
@@ -45,12 +47,14 @@ async func main() {
         print(n)
     }
     let result = Math.add(1, 2)
+    print(Double.pi)
+    print(Double.sqrt(x: 9.0))
     print(result)
     let matches = "abc123".matches("\d+")
     for m in matches {
         print(m)
     }
-    let n2 = Random.nextInt(100)
+    let n2 = Int.random(in: 100)
     let h2 = Hasher.newHasher()
     print(n2)
     print(h2)
@@ -63,7 +67,7 @@ async func main() {
     print(sum)
     runPrint()
 
-    try {
+    do {
         throw "os-info-test-exception"
     } catch (e: String) {
         print(e)

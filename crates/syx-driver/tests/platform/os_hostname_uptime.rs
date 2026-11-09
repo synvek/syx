@@ -1,4 +1,4 @@
-//! Os.hostname() / Os.uptimeMs() MVP (`stdlib-os-v2:hostname-uptime-mvp`).
+//! ProcessInfo.hostname() / ProcessInfo.uptimeMs() MVP (`stdlib-os-v2:hostname-uptime-mvp`).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
@@ -24,13 +24,13 @@ fn os_hostname_and_uptime_positive() {
     let printed = run(&with_os(
         r#"
 func main() {
-    try {
-        print(Os.hostname())
+    do {
+        print(ProcessInfo.hostname())
     } catch (e) {
         print("hostname-failed")
     }
-    print(Os.uptimeMs())
-    print(Os.cpuCount())
+    print(ProcessInfo.uptimeMs())
+    print(ProcessInfo.processorCount)
 }
 "#,
     ))

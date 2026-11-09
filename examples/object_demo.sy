@@ -1,3 +1,4 @@
+import JSON
 func main() {
     var user: Object = {
         "name": "ada",

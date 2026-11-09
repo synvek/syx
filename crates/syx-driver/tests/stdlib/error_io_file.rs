@@ -1,4 +1,4 @@
-//! FileHandle open/close/read/write/seek/readAllBytes throw IOError.
+//! FileHandle open/close/read/write/seek/readAllBytes throw SystemError.
 // was: m2_error_io_file
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
@@ -29,7 +29,7 @@ fn m2_error_io_open_missing_path_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let h = FileHandle.open(path: "/tmp/syx_m2_w3_missing_no_such_file_xyz.bin", mode: "r")
     print("UNEXPECTED_OK")
     print(h)
@@ -60,7 +60,7 @@ func main() {
 
 #[test]
 fn m2_error_io_close_invalid_handle_throws() {
-    // Facade wraps host Err as IOError; host Display is the stable R003 floor.
+    // Facade wraps host Err as SystemError; host Display is the stable R003 floor.
     let err = run_err(
         r#"
 func main() {
@@ -77,7 +77,7 @@ func main() {
 
 #[test]
 fn m2_error_io_read_invalid_handle_throws() {
-    // Facade wraps host Err as IOError; host Display is the stable R003 floor.
+    // Facade wraps host Err as SystemError; host Display is the stable R003 floor.
     let err = run_err(
         r#"
 func main() {
@@ -126,7 +126,7 @@ func main() {
 
 #[test]
 fn m2_error_io_read_all_bytes_invalid_handle_throws() {
-    // Facade wraps host Err as IOError; host Display is the stable R003 floor.
+    // Facade wraps host Err as SystemError; host Display is the stable R003 floor.
     let err = run_err(
         r#"
 func main() {

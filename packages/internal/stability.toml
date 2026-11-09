@@ -2,7 +2,7 @@
 # Schema: docs/census/stdlib-stability-v0.md
 # Human Status table: packages/README.md
 # Plan ternary: stable | preview | experimental
-# ≠ wired into manifest.json · ≠ syx doctest this window
+# SA-5-W5: import column aligned to importable_modules (≠ manifest.stability wiring)
 
 [meta]
 version = "0.1"
@@ -17,34 +17,16 @@ readme_status = "Stable / evolving"
 stability = "stable"
 
 [[package]]
-name = "Os"
-import = "Os"
+name = "System"
+import = "System"
 readme_status = "MVP"
 stability = "preview"
 
 [[package]]
-name = "Net"
-import = "Net"
+name = "Networking"
+import = "Networking"
 readme_status = "Partial"
 stability = "preview"
-
-[[package]]
-name = "IO"
-import = "IO"
-readme_status = "Stable / MVP"
-stability = "stable"
-
-[[package]]
-name = "Process"
-import = "Process"
-readme_status = "Stable / MVP"
-stability = "stable"
-
-[[package]]
-name = "Sync"
-import = "Sync"
-readme_status = "Stable"
-stability = "stable"
 
 [[package]]
 name = "Text"
@@ -53,10 +35,10 @@ readme_status = "Stable / MVP"
 stability = "stable"
 
 [[package]]
-name = "DateTime"
-import = "DateTime"
-readme_status = "MVP"
-stability = "preview"
+name = "Synchronization"
+import = "Synchronization"
+readme_status = "Stable"
+stability = "stable"
 
 [[package]]
 name = "Crypto"
@@ -66,19 +48,19 @@ stability = "experimental"
 
 [[package]]
 name = "Data"
-import = "Data"
+import = "SQL"
 readme_status = "Partial"
 stability = "preview"
 
 [[package]]
-name = "Linalg"
-import = "Linalg"
+name = "Numerics"
+import = "Numerics"
 readme_status = "Experimental"
 stability = "experimental"
 
 [[package]]
-name = "Di"
-import = "Di"
+name = "DI"
+import = "DI"
 readme_status = "Experimental"
 stability = "experimental"
 
@@ -89,14 +71,14 @@ readme_status = "Deferred"
 stability = "experimental"
 
 [[package]]
-name = "Log"
-import = "Log"
+name = "Logging"
+import = "Logging"
 readme_status = "MVP"
 stability = "preview"
 
 [[package]]
-name = "Trace"
-import = "Trace"
+name = "Tracing"
+import = "Tracing"
 readme_status = "MVP"
 stability = "preview"
 
@@ -107,8 +89,8 @@ readme_status = "MVP"
 stability = "preview"
 
 [[package]]
-name = "Profiler"
-import = "Profiler"
+name = "Profiling"
+import = "Profiling"
 readme_status = "MVP"
 stability = "preview"
 
@@ -119,10 +101,28 @@ readme_status = "Stable"
 stability = "stable"
 
 [[package]]
+name = "DateTime"
+import = ""
+readme_status = "MVP (under System aggregate)"
+stability = "preview"
+
+[[package]]
 name = "Observation"
 import = "Observation"
 readme_status = "MVP"
 stability = "preview"
+
+[[package]]
+name = "JSON"
+import = "JSON"
+readme_status = "Stable"
+stability = "stable"
+
+[[package]]
+name = "Fmt"
+import = "Fmt"
+readme_status = "Stable / MVP"
+stability = "stable"
 
 [[package]]
 name = "internal"

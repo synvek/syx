@@ -5,6 +5,7 @@
 // `obj["field"]` currently returns the whole object in SYX VM.
 // ---------------------------------------------------------------
 
+import JSON
 public func jStr(v: Any) -> String {
     return (v as? String) ?? ""
 }
@@ -49,7 +50,7 @@ public func emptyObject() -> Object {
 /// Decode JSON text; on failure return `{}`.
 public func decodeObject(text: String) -> Object {
     var out: Object = JSON.decode("{}")
-    try {
+    do {
         out = JSON.decode(text: "\(text)")
     } catch (e) {
         out = JSON.decode("{}")

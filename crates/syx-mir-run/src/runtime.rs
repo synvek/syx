@@ -1642,6 +1642,8 @@ impl MirRuntime {
     }
 
     fn call_host(&mut self, idx: u32, memory: &mut [u8]) -> SyxResult<()> {
+        // Prefer runtime `host_fn_names` (may be program-trimmed dense table) over the
+        // absolute HostFnId index space — same hinge as WasmVM::exec_call_host.
         let name = self
             .host_fn_names
             .get(idx as usize)

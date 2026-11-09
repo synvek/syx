@@ -486,7 +486,7 @@ fn m2_s4_05_self_signed_fail_closed_native_aot() {
     let src = net_facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     print(__syx_http_get("https://127.0.0.1:{port}/"))
     print("UNEXPECTED_OK")
   }} catch (err) {{

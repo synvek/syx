@@ -1,7 +1,8 @@
+import System
 func main() {
     var i = 0
     while i < 10000 {
-        let _ = Path.join(a: "a", b: "b")
+        let _ = FilePath.join(a: "a", b: "b")
         i = i + 1
     }
     print("ok")

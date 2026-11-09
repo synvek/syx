@@ -5,15 +5,14 @@
 // Sets SYX_HTTP_SERVE_TLS_CERT / SYX_HTTP_SERVE_TLS_KEY from
 // config PEM paths. Caller then Http.serve(listen, port).
 //
-// Intentionally does NOT import Process / spawn (legacy
+// Intentionally does NOT import System / spawn (legacy
 // Process.spawn is unavailable in current runtime builds —
 // sidecar stays in sy for docs / future revive).
 // ≠ net.server HostFn GA; ≠ websocat ws_routes.
 // ---------------------------------------------------------------
 
-import IO
-import Log
-import Env
+import System
+import Logging
 
 public func tlsPrepareNativeFromConfig() -> Bool {
     if !tlsEnabled() {

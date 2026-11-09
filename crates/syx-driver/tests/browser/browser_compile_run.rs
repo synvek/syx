@@ -112,7 +112,7 @@ fn compile_run_string_builder() {
 fn compile_run_try_catch() {
     with_browser_aot(|| {
         let src = format!(
-            "{}\nfunc main() -> Int {{ try {{ print(88); return 88 }} catch (e) {{ print(0); return 0 }} }}",
+            "{}\nfunc main() -> Int {{ do {{ print(88); return 88 }} catch (e) {{ print(0); return 0 }} }}",
             browser_prelude_source()
         );
         let diag = compile_source_with_prelude_diagnostics("compile_run_try.sy", &src);

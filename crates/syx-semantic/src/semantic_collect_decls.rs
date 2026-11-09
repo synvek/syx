@@ -130,6 +130,7 @@ impl SemanticAnalyzer {
                 access,
                 type_params,
                 cases,
+                conformances,
                 ..
             } => {
                 let qualified = SmolStr::new(format!("{outer}_{name}"));
@@ -148,6 +149,10 @@ impl SemanticAnalyzer {
                     }
                 }
                 self.enum_cases.insert(qualified.clone(), case_names);
+                if !conformances.is_empty() {
+                    self.type_conformances
+                        .insert(qualified.clone(), conformances.clone());
+                }
                 self.globals.insert(
                     qualified.clone(),
                     Symbol {
@@ -942,6 +947,7 @@ impl SemanticAnalyzer {
                     attrs,
                     type_params,
                     cases,
+                    conformances,
                     ..
                 } => {
                     if !type_params.is_empty() {
@@ -964,6 +970,13 @@ impl SemanticAnalyzer {
                             .entry(name.clone())
                             .or_default()
                             .push(SmolStr::new("Equatable"));
+                    }
+                    // SA-2-02: `enum E: Error` (and other protocol lists) → conformance table.
+                    if !conformances.is_empty() {
+                        self.type_conformances
+                            .entry(name.clone())
+                            .or_default()
+                            .extend(conformances.iter().cloned());
                     }
                     self.globals.insert(
                         name.clone(),

@@ -15,8 +15,8 @@
 // string interpolation in `print` handles the rest.
 // ---------------------------------------------------------------
 
-import DateTime
-import Log
+import System
+import Logging
 
 // One combined-format access log line. Fields are kept as plain
 // strings so the caller can assemble the line in any order it

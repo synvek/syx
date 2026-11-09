@@ -37,7 +37,7 @@ fn ec_m2_1_sql_service_invalid_close_caught() {
     let out = run_embed(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.close(connId: 999999)
     print("UNEXPECTED")
   } catch (err) {

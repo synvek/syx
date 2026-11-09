@@ -1,0 +1,6664 @@
+; syx-mir-text v1
+
+[function Array___get_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 694
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 694
+  Return
+  Return
+
+[function Array_append]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 629
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 629
+  Pop
+  Return
+
+[function Array_binarySearch]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 259
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 259
+  Return
+  Return
+
+[function Array_chunked]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 260
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 260
+  Return
+  Return
+
+[function Array_contains]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 692
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 692
+  Return
+  Return
+
+[function Array_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 694
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 694
+  Return
+  Return
+
+[function Array_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Array_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Array_filter]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 688
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 688
+  Return
+  Return
+
+[function Array_flatMap]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 262
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 262
+  Return
+  Return
+
+[function Array_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Array_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Array"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Array_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Array_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Array"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Array_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Array_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Array_joined]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 693
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 693
+  Return
+  Return
+
+[function Array_map]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 687
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 687
+  Return
+  Return
+
+[function Array_reduce]
+params 3 locals 3 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = CallHost 689
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = CallHost 689
+  Return
+  Return
+
+[function Array_reverse]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 691
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 691
+  Return
+  Return
+
+[function Array_setAt]
+params 3 locals 3 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r4 = LoadLocal 0
+  r5 = LoadLocal 1
+  r6 = LoadLocal 2
+  r0 = CallHost 109
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r4 = LoadLocal 0
+  r5 = LoadLocal 1
+  r6 = LoadLocal 2
+  r0 = CallHost 109
+  Return
+  Return
+
+[function Array_sortBy]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 258
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 258
+  Return
+  Return
+
+[function Array_sorted]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = ArrSorted
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = ArrSorted
+  Return
+  Return
+
+[function Array_zip]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 261
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 261
+  Return
+  Return
+
+[function BigInt_add]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 710
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 710
+  Return
+  Return
+
+[function BigInt_cmp]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 713
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 713
+  Return
+  Return
+
+[function BigInt_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 713
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 713
+  Return
+  Return
+
+[function BigInt_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function BigInt_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function BigInt_fromString]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 708
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 708
+  Return
+  Return
+
+[function BigInt_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function BigInt_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "BigInt"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex BigInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex BigInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex BigInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex BigInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "BigInt"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex BigInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex BigInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex BigInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex BigInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function BigInt_mul]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 712
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 712
+  Return
+  Return
+
+[function BigInt_sub]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 711
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 711
+  Return
+  Return
+
+[function Bool_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Bool_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Bool_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Bool_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Bool"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Bool_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Bool_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Bool"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Bool_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Bool_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Bool_name]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstStr "Bool"
+  Return
+  Return
+flat:
+  r0 = ConstStr "Bool"
+  Return
+  Return
+
+[function Character_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r4 = LoadLocal 1
+  r0 = CallHost 291
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r4 = LoadLocal 1
+  r0 = CallHost 291
+  Return
+  Return
+
+[function Character_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Character_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Character_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Character_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Character"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Character_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Character_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Character_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Character_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Character"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Character_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Character_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Character_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Character_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Character_isSingleScalar]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 139
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 139
+  Return
+  Return
+
+[function Concurrency_actorReentrancyPolicy]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 579
+  Return
+  Return
+flat:
+  r0 = CallHost 579
+  Return
+  Return
+
+[function Concurrency_actorSharedPoolEnabled]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 525
+  Return
+  Return
+flat:
+  r0 = CallHost 525
+  Return
+  Return
+
+[function Concurrency_actorSharedPoolSize]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 527
+  Return
+  Return
+flat:
+  r0 = CallHost 527
+  Return
+  Return
+
+[function Concurrency_awaitValue]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 27
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 27
+  Return
+  Return
+
+[function Concurrency_blockingPoolSize]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 583
+  Return
+  Return
+flat:
+  r0 = CallHost 583
+  Return
+  Return
+
+[function Concurrency_blockingSleep]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 580
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 580
+  Pop
+  Return
+
+[function Concurrency_cancel]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 24
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 24
+  Return
+  Return
+
+[function Concurrency_corePoolSize]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 514
+  Return
+  Return
+flat:
+  r0 = CallHost 514
+  Return
+  Return
+
+[function Concurrency_detach]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 22
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 22
+  Return
+  Return
+
+[function Concurrency_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Concurrency"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Concurrency"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  Return
+
+[function Concurrency_ioAdapterPolicy]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 585
+  Return
+  Return
+flat:
+  r0 = CallHost 585
+  Return
+  Return
+
+[function Concurrency_isolationPolicy]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 581
+  Return
+  Return
+flat:
+  r0 = CallHost 581
+  Return
+  Return
+
+[function Concurrency_join]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 23
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 23
+  Return
+  Return
+
+[function Concurrency_keepAliveMs]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 518
+  Return
+  Return
+flat:
+  r0 = CallHost 518
+  Return
+  Return
+
+[function Concurrency_liveTaskCount]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 575
+  Return
+  Return
+flat:
+  r0 = CallHost 575
+  Return
+  Return
+
+[function Concurrency_liveWorkerCount]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 519
+  Return
+  Return
+flat:
+  r0 = CallHost 519
+  Return
+  Return
+
+[function Concurrency_mailboxCapacity]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 523
+  Return
+  Return
+flat:
+  r0 = CallHost 523
+  Return
+  Return
+
+[function Concurrency_mainActorRun]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 26
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 26
+  Return
+  Return
+
+[function Concurrency_maxActors]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 521
+  Return
+  Return
+flat:
+  r0 = CallHost 521
+  Return
+  Return
+
+[function Concurrency_maximumPoolSize]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 516
+  Return
+  Return
+flat:
+  r0 = CallHost 516
+  Return
+  Return
+
+[function Concurrency_semaphorePolicy]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 594
+  Return
+  Return
+flat:
+  r0 = CallHost 594
+  Return
+  Return
+
+[function Concurrency_setActorSharedPoolEnabled]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 524
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 524
+  Return
+  Return
+
+[function Concurrency_setActorSharedPoolSize]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 526
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 526
+  Return
+  Return
+
+[function Concurrency_setBlockingPoolSize]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 582
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 582
+  Return
+  Return
+
+[function Concurrency_setCorePoolSize]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 513
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 513
+  Return
+  Return
+
+[function Concurrency_setDeadlineMs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 576
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 576
+  Pop
+  Return
+
+[function Concurrency_setKeepAliveMs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 517
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 517
+  Return
+  Return
+
+[function Concurrency_setMailboxCapacity]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 522
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 522
+  Return
+  Return
+
+[function Concurrency_setMaxActors]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 520
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 520
+  Return
+  Return
+
+[function Concurrency_setMaximumPoolSize]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 515
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 515
+  Return
+  Return
+
+[function Concurrency_setTaskQueueCapacity]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 509
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 509
+  Return
+  Return
+
+[function Concurrency_setTaskRejectPolicy]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 511
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 511
+  Return
+  Return
+
+[function Concurrency_setWorkerCount]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 507
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 507
+  Return
+  Return
+
+[function Concurrency_sleep]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 25
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 25
+  Pop
+  Return
+
+[function Concurrency_syncPolicy]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 588
+  Return
+  Return
+flat:
+  r0 = CallHost 588
+  Return
+  Return
+
+[function Concurrency_taskGroupAdd]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 29
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 29
+  Return
+  Return
+
+[function Concurrency_taskGroupCancel]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 574
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 574
+  Pop
+  Return
+
+[function Concurrency_taskGroupCreate]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 28
+  Return
+  Return
+flat:
+  r0 = CallHost 28
+  Return
+  Return
+
+[function Concurrency_taskGroupWait]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 30
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 30
+  Pop
+  Return
+
+[function Concurrency_taskLocalGet]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 578
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 578
+  Return
+  Return
+
+[function Concurrency_taskLocalSet]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 577
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 577
+  Pop
+  Return
+
+[function Concurrency_taskQueueCapacity]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 510
+  Return
+  Return
+flat:
+  r0 = CallHost 510
+  Return
+  Return
+
+[function Concurrency_taskRejectPolicy]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 512
+  Return
+  Return
+flat:
+  r0 = CallHost 512
+  Return
+  Return
+
+[function Concurrency_workerCount]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 508
+  Return
+  Return
+flat:
+  r0 = CallHost 508
+  Return
+  Return
+
+[function Dictionary___get_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  Return
+  Return
+
+[function Dictionary_containsKey]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 702
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 702
+  Return
+  Return
+
+[function Dictionary_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  Return
+  Return
+
+[function Dictionary_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Dictionary_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Dictionary_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Dictionary_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Dictionary"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Dictionary_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Dictionary_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Dictionary"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Dictionary_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Dictionary_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Dictionary_keys]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 703
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 703
+  Return
+  Return
+
+[function Dictionary_remove]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 705
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 705
+  Return
+  Return
+
+[function Dictionary_values]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 704
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 704
+  Return
+  Return
+
+[function Double___get_pi]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=11 bits=4614256656552045848
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=11 bits=4614256656552045848
+  Return
+  Return
+
+[function Double_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 173
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 173
+  Return
+  Return
+
+[function Double_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float64_bitWidth
+  Return
+  Return
+flat:
+  r0 = Call Float64_bitWidth
+  Return
+  Return
+
+[function Double_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float64_byteWidth
+  Return
+  Return
+flat:
+  r0 = Call Float64_byteWidth
+  Return
+  Return
+
+[function Double_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = Call Float64_clamp
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = Call Float64_clamp
+  Return
+  Return
+
+[function Double_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 670
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 670
+  Return
+  Return
+
+[function Double_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Double_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Double_epsilon]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float64_epsilon
+  Return
+  Return
+flat:
+  r0 = Call Float64_epsilon
+  Return
+  Return
+
+[function Double_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Double_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Double"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Double_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Double_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Double_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Double_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Double"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Double_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Double_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Double_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Double_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Double_sin]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 153
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 153
+  Return
+  Return
+
+[function Double_sqrt]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 156
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 156
+  Return
+  Return
+
+[function Double_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float64_zero
+  Return
+  Return
+flat:
+  r0 = Call Float64_zero
+  Return
+  Return
+
+[function Float32_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 201
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 201
+  Return
+  Return
+
+[function Float32_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=32
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=32
+  Return
+  Return
+
+[function Float32_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=4
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=4
+  Return
+  Return
+
+[function Float32_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 684
+  r4 = LoadLocal 2
+  r0 = CallHost 683
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 684
+  r4 = LoadLocal 2
+  r0 = CallHost 683
+  Return
+  Return
+
+[function Float32_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 669
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 669
+  Return
+  Return
+
+[function Float32_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Float32_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Float32_epsilon]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=10 bits=872415232
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=10 bits=872415232
+  Return
+  Return
+
+[function Float32_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Float32_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Float32"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Float32"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Float32_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=10 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=10 bits=0
+  Return
+  Return
+
+[function Float64___get_pi]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=11 bits=4614256656552045848
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=11 bits=4614256656552045848
+  Return
+  Return
+
+[function Float64_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 173
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 173
+  Return
+  Return
+
+[function Float64_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+
+[function Float64_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function Float64_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 686
+  r4 = LoadLocal 2
+  r0 = CallHost 685
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 686
+  r4 = LoadLocal 2
+  r0 = CallHost 685
+  Return
+  Return
+
+[function Float64_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 670
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 670
+  Return
+  Return
+
+[function Float64_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Float64_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Float64_epsilon]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=11 bits=4372995238176751616
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=11 bits=4372995238176751616
+  Return
+  Return
+
+[function Float64_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Float64_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Float64"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Float64"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Float64_sin]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 153
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 153
+  Return
+  Return
+
+[function Float64_sqrt]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 156
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 156
+  Return
+  Return
+
+[function Float64_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=11 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=11 bits=0
+  Return
+  Return
+
+[function Float_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 201
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 201
+  Return
+  Return
+
+[function Float_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float32_bitWidth
+  Return
+  Return
+flat:
+  r0 = Call Float32_bitWidth
+  Return
+  Return
+
+[function Float_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float32_byteWidth
+  Return
+  Return
+flat:
+  r0 = Call Float32_byteWidth
+  Return
+  Return
+
+[function Float_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = Call Float32_clamp
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = Call Float32_clamp
+  Return
+  Return
+
+[function Float_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 669
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 669
+  Return
+  Return
+
+[function Float_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Float_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Float_epsilon]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float32_epsilon
+  Return
+  Return
+flat:
+  r0 = Call Float32_epsilon
+  Return
+  Return
+
+[function Float_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Float_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Float"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Float"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Float_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Float_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Float_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = Call Float32_zero
+  Return
+  Return
+flat:
+  r0 = Call Float32_zero
+  Return
+  Return
+
+[function Hasher_combine]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 17
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 17
+  Return
+  Return
+
+[function Hasher_finalize]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 18
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 18
+  Return
+  Return
+
+[function Hasher_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Hasher"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Hasher"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  Return
+
+[function Hasher_newHasher]
+params 0 locals 0 entry 0
+block 0:
+  r0 = CallHost 16
+  Return
+  Return
+flat:
+  r0 = CallHost 16
+  Return
+  Return
+
+[function Hasher_objectId]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 19
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 19
+  Return
+  Return
+
+[function Int128___get_max]
+params 0 locals 2 entry 0
+block 0:
+  r0 = ConstNumeric128 kind=12 lo=1 hi=0
+  StoreLocal 0
+  r1 = LoadLocal 0
+  r2 = ConstNumeric kind=3 bits=127
+  r1 = Shl kind=12
+  StoreLocal 1
+  r2 = LoadLocal 1
+  r3 = ConstNumeric128 kind=12 lo=1 hi=0
+  r2 = Sub kind=12
+  Return
+  Return
+flat:
+  r0 = ConstNumeric128 kind=12 lo=1 hi=0
+  StoreLocal 0
+  r1 = LoadLocal 0
+  r2 = ConstNumeric kind=3 bits=127
+  r1 = Shl kind=12
+  StoreLocal 1
+  r2 = LoadLocal 1
+  r3 = ConstNumeric128 kind=12 lo=1 hi=0
+  r2 = Sub kind=12
+  Return
+  Return
+
+[function Int128___get_min]
+params 0 locals 1 entry 0
+block 0:
+  r0 = ConstNumeric128 kind=12 lo=1 hi=0
+  StoreLocal 0
+  r1 = LoadLocal 0
+  r2 = ConstNumeric kind=3 bits=127
+  r1 = Shl kind=12
+  Return
+  Return
+flat:
+  r0 = ConstNumeric128 kind=12 lo=1 hi=0
+  StoreLocal 0
+  r1 = LoadLocal 0
+  r2 = ConstNumeric kind=3 bits=127
+  r1 = Shl kind=12
+  Return
+  Return
+
+[function Int128_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 644
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 644
+  Return
+  Return
+
+[function Int128_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=128
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=128
+  Return
+  Return
+
+[function Int128_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+
+[function Int128_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 643
+  r4 = LoadLocal 2
+  r0 = CallHost 642
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 643
+  r4 = LoadLocal 2
+  r0 = CallHost 642
+  Return
+  Return
+
+[function Int128_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 1
+  r0 = CallHost 662
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 1
+  r0 = CallHost 662
+  Return
+  Return
+
+[function Int128_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Int128_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Int128_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Int128_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Int128"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Int128"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Int128_leadingZeros]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 110
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 110
+  Return
+  Return
+
+[function Int128_sign]
+params 1 locals 1 entry 0
+block 0:
+  successors 1 2
+  r0 = LoadLocal 0
+  r1 = ConstNumeric128 kind=12 lo=0 hi=0
+  r0 = Lt kind=12
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 2
+block 2:
+  successors 3 4
+  r2 = LoadLocal 0
+  r3 = ConstNumeric128 kind=12 lo=0 hi=0
+  r2 = Gt kind=12
+  JumpIfFalse block 4
+  Jump block 3
+block 3:
+  successors 4
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 4
+block 4:
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = LoadLocal 0
+  r1 = ConstNumeric128 kind=12 lo=0 hi=0
+  r0 = Lt kind=12
+  JumpIfFalse block 8
+  Jump block 5
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 8
+  r2 = LoadLocal 0
+  r3 = ConstNumeric128 kind=12 lo=0 hi=0
+  r2 = Gt kind=12
+  JumpIfFalse block 16
+  Jump block 13
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 16
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int128_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric128 kind=12 lo=0 hi=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric128 kind=12 lo=0 hi=0
+  Return
+  Return
+
+[function Int16___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=1 bits=32767
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=1 bits=32767
+  Return
+  Return
+
+[function Int16___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=1 bits=18446744073709518848
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=1 bits=18446744073709518848
+  Return
+  Return
+
+[function Int16_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 635
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 635
+  Return
+  Return
+
+[function Int16_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+
+[function Int16_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=2
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=2
+  Return
+  Return
+
+[function Int16_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 634
+  r4 = LoadLocal 2
+  r0 = CallHost 633
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 634
+  r4 = LoadLocal 2
+  r0 = CallHost 633
+  Return
+  Return
+
+[function Int16_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 659
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 659
+  Return
+  Return
+
+[function Int16_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Int16_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Int16_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Int16_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Int16"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Int16"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Int16_sign]
+params 1 locals 1 entry 0
+block 0:
+  successors 1 2
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=1 bits=0
+  r0 = Lt kind=1
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 2
+block 2:
+  successors 3 4
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=1 bits=0
+  r2 = Gt kind=1
+  JumpIfFalse block 4
+  Jump block 3
+block 3:
+  successors 4
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 4
+block 4:
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=1 bits=0
+  r0 = Lt kind=1
+  JumpIfFalse block 8
+  Jump block 5
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 8
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=1 bits=0
+  r2 = Gt kind=1
+  JumpIfFalse block 16
+  Jump block 13
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 16
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int16_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=1 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=1 bits=0
+  Return
+  Return
+
+[function Int32___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=2 bits=2147483647
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=2 bits=2147483647
+  Return
+  Return
+
+[function Int32___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=2 bits=18446744071562067968
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=2 bits=18446744071562067968
+  Return
+  Return
+
+[function Int32_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 638
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 638
+  Return
+  Return
+
+[function Int32_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=32
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=32
+  Return
+  Return
+
+[function Int32_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=4
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=4
+  Return
+  Return
+
+[function Int32_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 637
+  r4 = LoadLocal 2
+  r0 = CallHost 636
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 637
+  r4 = LoadLocal 2
+  r0 = CallHost 636
+  Return
+  Return
+
+[function Int32_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 660
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 660
+  Return
+  Return
+
+[function Int32_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Int32_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Int32_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Int32_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Int32"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Int32"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Int32_sign]
+params 1 locals 1 entry 0
+block 0:
+  successors 1 2
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=2 bits=0
+  r0 = Lt kind=2
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 2
+block 2:
+  successors 3 4
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=2 bits=0
+  r2 = Gt kind=2
+  JumpIfFalse block 4
+  Jump block 3
+block 3:
+  successors 4
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 4
+block 4:
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=2 bits=0
+  r0 = Lt kind=2
+  JumpIfFalse block 8
+  Jump block 5
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 8
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=2 bits=0
+  r2 = Gt kind=2
+  JumpIfFalse block 16
+  Jump block 13
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 16
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int32_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=2 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=2 bits=0
+  Return
+  Return
+
+[function Int64___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=9223372036854775807
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=9223372036854775807
+  Return
+  Return
+
+[function Int64___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=9223372036854775808
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=9223372036854775808
+  Return
+  Return
+
+[function Int64_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 641
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 641
+  Return
+  Return
+
+[function Int64_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+
+[function Int64_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function Int64_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 640
+  r4 = LoadLocal 2
+  r0 = CallHost 639
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 640
+  r4 = LoadLocal 2
+  r0 = CallHost 639
+  Return
+  Return
+
+[function Int64_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 661
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 661
+  Return
+  Return
+
+[function Int64_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Int64_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Int64_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Int64_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Int64"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Int64"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Int64_sign]
+params 1 locals 1 entry 0
+block 0:
+  successors 1 2
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = Lt kind=3
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 2
+block 2:
+  successors 3 4
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=3 bits=0
+  r2 = Gt kind=3
+  JumpIfFalse block 4
+  Jump block 3
+block 3:
+  successors 4
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 4
+block 4:
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = Lt kind=3
+  JumpIfFalse block 8
+  Jump block 5
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 8
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=3 bits=0
+  r2 = Gt kind=3
+  JumpIfFalse block 16
+  Jump block 13
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 16
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int64_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int8___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=0 bits=127
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=0 bits=127
+  Return
+  Return
+
+[function Int8___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=0 bits=18446744073709551488
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=0 bits=18446744073709551488
+  Return
+  Return
+
+[function Int8_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 632
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 632
+  Return
+  Return
+
+[function Int8_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function Int8_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=1
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=1
+  Return
+  Return
+
+[function Int8_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 631
+  r4 = LoadLocal 2
+  r0 = CallHost 630
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 631
+  r4 = LoadLocal 2
+  r0 = CallHost 630
+  Return
+  Return
+
+[function Int8_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 658
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 658
+  Return
+  Return
+
+[function Int8_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Int8_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Int8_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Int8_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Int8"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Int8"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Int8_sign]
+params 1 locals 1 entry 0
+block 0:
+  successors 1 2
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=0 bits=0
+  r0 = Lt kind=0
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 2
+block 2:
+  successors 3 4
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=0 bits=0
+  r2 = Gt kind=0
+  JumpIfFalse block 4
+  Jump block 3
+block 3:
+  successors 4
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 4
+block 4:
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=0 bits=0
+  r0 = Lt kind=0
+  JumpIfFalse block 8
+  Jump block 5
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 8
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=0 bits=0
+  r2 = Gt kind=0
+  JumpIfFalse block 16
+  Jump block 13
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 16
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int8_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=0 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=0 bits=0
+  Return
+  Return
+
+[function Int___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=9223372036854775807
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=9223372036854775807
+  Return
+  Return
+
+[function Int___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=9223372036854775808
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=9223372036854775808
+  Return
+  Return
+
+[function Int_abs]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 647
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 647
+  Return
+  Return
+
+[function Int_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+
+[function Int_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function Int_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 646
+  r4 = LoadLocal 2
+  r0 = CallHost 645
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 646
+  r4 = LoadLocal 2
+  r0 = CallHost 645
+  Return
+  Return
+
+[function Int_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 657
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 657
+  Return
+  Return
+
+[function Int_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Int_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Int_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Int_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Int"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Int"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Int_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex Int_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Int_random]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 97
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 97
+  Return
+  Return
+
+[function Int_sign]
+params 1 locals 1 entry 0
+block 0:
+  successors 1 2
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = Lt kind=3
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 2
+block 2:
+  successors 3 4
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=3 bits=0
+  r2 = Gt kind=3
+  JumpIfFalse block 4
+  Jump block 3
+block 3:
+  successors 4
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 4
+block 4:
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = LoadLocal 0
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = Lt kind=3
+  JumpIfFalse block 8
+  Jump block 5
+  r1 = ConstNumeric kind=3 bits=18446744073709551615
+  Return
+  Jump block 8
+  r2 = LoadLocal 0
+  r3 = ConstNumeric kind=3 bits=0
+  r2 = Gt kind=3
+  JumpIfFalse block 16
+  Jump block 13
+  r3 = ConstNumeric kind=3 bits=1
+  Return
+  Jump block 16
+  r4 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function Int_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function ObjectIdentifier_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+
+[function ObjectIdentifier_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+
+[function ObjectIdentifier_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function ObjectIdentifier_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "ObjectIdentifier"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex ObjectIdentifier_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex ObjectIdentifier_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "ObjectIdentifier"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex ObjectIdentifier_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex ObjectIdentifier_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Object___get_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  Return
+  Return
+
+[function Object___get_isEmpty]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = ValueEq
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 701
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = ValueEq
+  Return
+  Return
+
+[function Object_containsKey]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 702
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 702
+  Return
+  Return
+
+[function Object_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Object_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Object_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Object_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Object"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Object_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Object_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Object"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Object_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Object_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Object_keys]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 703
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 703
+  Return
+  Return
+
+[function Object_put]
+params 3 locals 3 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = CallHost 707
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 2
+  r0 = CallHost 707
+  Return
+  Return
+
+[function Object_remove]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 705
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 705
+  Return
+  Return
+
+[function Object_valueForKey]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 706
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 706
+  Return
+  Return
+
+[function Object_values]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 704
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 704
+  Return
+  Return
+
+[function Result_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Result_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Result_err]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 716
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 716
+  Return
+  Return
+
+[function Result_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Result_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Result"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Result"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  Return
+
+[function Result_isErr]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 718
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 718
+  Return
+  Return
+
+[function Result_isOk]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 717
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 717
+  Return
+  Return
+
+[function Result_ok]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 715
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 715
+  Return
+  Return
+
+[function Set___get_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 695
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 695
+  Return
+  Return
+
+[function Set_contains]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 696
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 696
+  Return
+  Return
+
+[function Set_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r0 = CallHost 695
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = CallHost 695
+  Return
+  Return
+
+[function Set_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function Set_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function Set_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function Set_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "Set"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Set_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Set_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "Set"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Set_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex Set_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function Set_insert]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 697
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 697
+  Return
+  Return
+
+[function Set_intersection]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 700
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 700
+  Return
+  Return
+
+[function Set_remove]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 698
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 698
+  Return
+  Return
+
+[function Set_union]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 699
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 699
+  Return
+  Return
+
+[function String___get_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 133
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 133
+  Return
+  Return
+
+[function String___get_isEmpty]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 133
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = ValueEq
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 133
+  r1 = ConstNumeric kind=3 bits=0
+  r0 = ValueEq
+  Return
+  Return
+
+[function String_caseFolded]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 142
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 142
+  Return
+  Return
+
+[function String_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 291
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 291
+  Return
+  Return
+
+[function String_count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 133
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 133
+  Return
+  Return
+
+[function String_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function String_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function String_hasPrefix]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 129
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 129
+  Return
+  Return
+
+[function String_hasSuffix]
+params 2 locals 4 entry 0
+block 0:
+  successors 1 2
+  r1 = LoadLocal 0
+  r0 = Call String___get_count
+  StoreLocal 2
+  r3 = LoadLocal 1
+  r2 = Call String___get_count
+  StoreLocal 3
+  r4 = LoadLocal 3
+  r5 = LoadLocal 2
+  r4 = Gt kind=3
+  JumpIfFalse block 2
+  Jump block 1
+block 1:
+  successors 2
+  r5 = ConstBool false
+  Return
+  Jump block 2
+block 2:
+  r7 = LoadLocal 0
+  r8 = LoadLocal 2
+  r9 = LoadLocal 3
+  r8 = Sub kind=3
+  r9 = LoadLocal 2
+  r6 = CallHost 134
+  r7 = LoadLocal 1
+  r6 = ValueEq
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r0 = Call String___get_count
+  StoreLocal 2
+  r3 = LoadLocal 1
+  r2 = Call String___get_count
+  StoreLocal 3
+  r4 = LoadLocal 3
+  r5 = LoadLocal 2
+  r4 = Gt kind=3
+  JumpIfFalse block 14
+  Jump block 11
+  r5 = ConstBool false
+  Return
+  Jump block 14
+  r7 = LoadLocal 0
+  r8 = LoadLocal 2
+  r9 = LoadLocal 3
+  r8 = Sub kind=3
+  r9 = LoadLocal 2
+  r6 = CallHost 134
+  r7 = LoadLocal 1
+  r6 = ValueEq
+  Return
+  Return
+
+[function String_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function String_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "String"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex String_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex String_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex String_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex String_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "String"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex String_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex String_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex String_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex String_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function String_lowercased]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 130
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 130
+  Return
+  Return
+
+[function String_matches]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 132
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 132
+  Return
+  Return
+
+[function String_normalizedNFC]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 140
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 140
+  Return
+  Return
+
+[function String_normalizedNFD]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 141
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 141
+  Return
+  Return
+
+[function String_replacingOccurrences]
+params 3 locals 3 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "split"
+  r1 = ObjectGet
+  r2 = LoadLocal 2
+  r0 = CallHost 693
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "split"
+  r1 = ObjectGet
+  r2 = LoadLocal 2
+  r0 = CallHost 693
+  Return
+  Return
+
+[function String_split]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 127
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r3 = LoadLocal 0
+  r4 = LoadLocal 1
+  r0 = CallHost 127
+  Return
+  Return
+
+[function String_trim]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 128
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 128
+  Return
+  Return
+
+[function String_unicodeScalarCount]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 135
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 135
+  Return
+  Return
+
+[function String_unicodeScalars]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 136
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 136
+  Return
+  Return
+
+[function String_uppercased]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 131
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 131
+  Return
+  Return
+
+[function String_utf8Bytes]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 138
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 138
+  Return
+  Return
+
+[function String_utf8Count]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 137
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 137
+  Return
+  Return
+
+[function UInt128___get_max]
+params 0 locals 2 entry 0
+block 0:
+  r0 = ConstNumeric128 kind=13 lo=0 hi=0
+  StoreLocal 0
+  r1 = ConstNumeric128 kind=13 lo=1 hi=0
+  StoreLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r2 = Sub kind=13
+  Return
+  Return
+flat:
+  r0 = ConstNumeric128 kind=13 lo=0 hi=0
+  StoreLocal 0
+  r1 = ConstNumeric128 kind=13 lo=1 hi=0
+  StoreLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r2 = Sub kind=13
+  Return
+  Return
+
+[function UInt128___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric128 kind=13 lo=0 hi=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric128 kind=13 lo=0 hi=0
+  Return
+  Return
+
+[function UInt128_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=128
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=128
+  Return
+  Return
+
+[function UInt128_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+
+[function UInt128_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 680
+  r4 = LoadLocal 2
+  r0 = CallHost 679
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 680
+  r4 = LoadLocal 2
+  r0 = CallHost 679
+  Return
+  Return
+
+[function UInt128_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 1
+  r0 = CallHost 667
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 1
+  r0 = CallHost 667
+  Return
+  Return
+
+[function UInt128_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 290
+  Return
+  Return
+
+[function UInt128_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 289
+  Return
+  Return
+
+[function UInt128_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  ConstStr "__syx_ref"
+  ObjectGet
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function UInt128_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "UInt128"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "UInt128"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt128_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt128_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function UInt128_leadingZeros]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 110
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 110
+  Return
+  Return
+
+[function UInt128_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric128 kind=13 lo=0 hi=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric128 kind=13 lo=0 hi=0
+  Return
+  Return
+
+[function UInt16___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=5 bits=65535
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=5 bits=65535
+  Return
+  Return
+
+[function UInt16___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=5 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=5 bits=0
+  Return
+  Return
+
+[function UInt16_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=16
+  Return
+  Return
+
+[function UInt16_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=2
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=2
+  Return
+  Return
+
+[function UInt16_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 674
+  r4 = LoadLocal 2
+  r0 = CallHost 673
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 674
+  r4 = LoadLocal 2
+  r0 = CallHost 673
+  Return
+  Return
+
+[function UInt16_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 664
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 664
+  Return
+  Return
+
+[function UInt16_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function UInt16_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function UInt16_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function UInt16_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "UInt16"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "UInt16"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt16_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt16_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function UInt16_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=5 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=5 bits=0
+  Return
+  Return
+
+[function UInt32___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=6 bits=4294967295
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=6 bits=4294967295
+  Return
+  Return
+
+[function UInt32___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=6 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=6 bits=0
+  Return
+  Return
+
+[function UInt32_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=32
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=32
+  Return
+  Return
+
+[function UInt32_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=4
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=4
+  Return
+  Return
+
+[function UInt32_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 676
+  r4 = LoadLocal 2
+  r0 = CallHost 675
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 676
+  r4 = LoadLocal 2
+  r0 = CallHost 675
+  Return
+  Return
+
+[function UInt32_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 665
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 665
+  Return
+  Return
+
+[function UInt32_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function UInt32_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function UInt32_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function UInt32_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "UInt32"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "UInt32"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt32_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt32_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function UInt32_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=6 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=6 bits=0
+  Return
+  Return
+
+[function UInt64___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=7 bits=18446744073709551615
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=7 bits=18446744073709551615
+  Return
+  Return
+
+[function UInt64___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=7 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=7 bits=0
+  Return
+  Return
+
+[function UInt64_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+
+[function UInt64_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function UInt64_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 678
+  r4 = LoadLocal 2
+  r0 = CallHost 677
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 678
+  r4 = LoadLocal 2
+  r0 = CallHost 677
+  Return
+  Return
+
+[function UInt64_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 666
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 666
+  Return
+  Return
+
+[function UInt64_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function UInt64_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function UInt64_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function UInt64_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "UInt64"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "UInt64"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt64_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt64_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function UInt64_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=7 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=7 bits=0
+  Return
+  Return
+
+[function UInt8___get_max]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=4 bits=255
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=4 bits=255
+  Return
+  Return
+
+[function UInt8___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=4 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=4 bits=0
+  Return
+  Return
+
+[function UInt8_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function UInt8_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=1
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=1
+  Return
+  Return
+
+[function UInt8_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 672
+  r4 = LoadLocal 2
+  r0 = CallHost 671
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 672
+  r4 = LoadLocal 2
+  r0 = CallHost 671
+  Return
+  Return
+
+[function UInt8_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 663
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 663
+  Return
+  Return
+
+[function UInt8_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function UInt8_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function UInt8_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function UInt8_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "UInt8"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "UInt8"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt8_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt8_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function UInt8_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=4 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=4 bits=0
+  Return
+  Return
+
+[function UInt___get_max]
+params 0 locals 2 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=0
+  StoreLocal 0
+  r1 = ConstNumeric kind=3 bits=1
+  StoreLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r2 = Sub kind=7
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=0
+  StoreLocal 0
+  r1 = ConstNumeric kind=3 bits=1
+  StoreLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r2 = Sub kind=7
+  Return
+  Return
+
+[function UInt___get_min]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function UInt_bitWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=64
+  Return
+  Return
+
+[function UInt_byteWidth]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=8
+  Return
+  Return
+
+[function UInt_clamp]
+params 3 locals 3 entry 0
+block 0:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 682
+  r4 = LoadLocal 2
+  r0 = CallHost 681
+  Return
+  Return
+flat:
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r1 = CallHost 682
+  r4 = LoadLocal 2
+  r0 = CallHost 681
+  Return
+  Return
+
+[function UInt_compare]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 668
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 1
+  r0 = CallHost 668
+  Return
+  Return
+
+[function UInt_debugDescription]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 290
+  Return
+  Return
+
+[function UInt_description]
+params 1 locals 1 entry 0
+block 0:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+flat:
+  r1 = LoadLocal 0
+  r2 = LoadLocal 0
+  r0 = CallHost 289
+  Return
+  Return
+
+[function UInt_hash]
+params 2 locals 2 entry 0
+block 0:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+flat:
+  r1 = LoadLocal 1
+  r2 = LoadLocal 0
+  r3 = LoadLocal 1
+  r4 = LoadLocal 0
+  r0 = CallHost 17
+  Pop
+  Return
+
+[function UInt_init]
+params 0 locals 1 entry 0
+block 0:
+  ConstStr "UInt"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+flat:
+  ConstStr "UInt"
+  ConstStr "__type"
+  DictBuild 1
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  ConstStr "__syx_ref"
+  ConstStr "MutRefCell"
+  ConstStr "__type"
+  DictBuild 2
+  StoreLocal 0
+  LoadLocal 0
+  ConstFnIndex UInt_equals
+  ConstStr "__witness_Equatable_equals"
+  ObjectSet
+  LoadLocal 0
+  ConstFnIndex UInt_compare
+  ConstStr "__witness_Comparable_compare"
+  ObjectSet
+  LoadLocal 0
+  Return
+
+[function UInt_zero]
+params 0 locals 0 entry 0
+block 0:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+flat:
+  r0 = ConstNumeric kind=3 bits=0
+  Return
+  Return
+
+[function main]
+params 0 locals 1 entry 0
+block 0:
+  successors 1 2
+  BeginTry block 1
+  r0 = ConstStr "boom"
+  Throw
+  EndTry
+  Jump block 2
+block 1:
+  successors 2
+  Catch
+  StoreLocal 0
+  r1 = LoadLocal 0
+  Print
+  Jump block 2
+block 2:
+  ConstNil
+  Return
+flat:
+  BeginTry block 5
+  r0 = ConstStr "boom"
+  Throw
+  EndTry
+  Jump block 10
+  Catch
+  StoreLocal 0
+  r1 = LoadLocal 0
+  Print
+  Jump block 10
+  ConstNil
+  Return
+

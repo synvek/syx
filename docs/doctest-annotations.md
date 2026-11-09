@@ -1,7 +1,7 @@
 # Doctest / book code-block annotations (S1-09)
 
-Fence annotations for `books/language-guide`. Runner: [`scripts/book_pass_rate.py`](../scripts/book_pass_rate.py).  
-**S1-09 scoped `[x]`:** en CI hard gate — see [ADR](adr/stage1-s1-09-book-kpi-ci-scope.md). zh matrix / full `syx doctest` productization still deferred. **≠ stage-1 exit.**
+Fence annotations for `books/language-guide` and (SA-5-05) `books/library-guide`. Runner: [`scripts/book_pass_rate.py`](../scripts/book_pass_rate.py) · CLI: `syx doctest` (default `--book library-guide --strict`).  
+**S1-09 scoped `[x]`:** en language-guide CI hard gate — see [ADR](adr/stage1-s1-09-book-kpi-ci-scope.md). **SA-5-05:** library-guide gate via `syx doctest` / `scripts/doctest_library_guide.py` (independent of language-guide KPI).
 
 ## Fence tags
 

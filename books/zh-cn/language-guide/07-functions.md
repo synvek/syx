@@ -151,7 +151,7 @@ async func parallel() -> Int {
 ## throws 函数
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
@@ -167,14 +167,14 @@ func loadFile(path: String) throws -> String {
 | `throws T` | 抛 `T` 类型（typed throws **部分实现**） |
 | `throw expr` | 在 `throws` 函数内抛异常 |
 | `try expr` | 调用 `throws` 表达式 |
-| `try { } catch { }` | 块级捕获 |
+| `do { } catch { }` | 块级捕获 |
 | `try?` | 错误时返回 `nil` 或传播 |
 | `try!` | 强制（错误时 panic） |
 
 调用：
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
@@ -188,7 +188,7 @@ func main() {
     let s2 = try? loadFile(path: "/tmp/x")      // String?（nil 表示错误）
     let s3 = try! loadFile(path: "/tmp/x")      // String（错误 panic）
 
-    try {
+    do {
         let t = loadFile(path: "/tmp/x")
         print(t)
     } catch (err) {
@@ -204,7 +204,7 @@ func main() {
 标记函数「纯」（无副作用）或「IO」：
 
 ```syx
-import IO
+import System
 
 func pure(x: Int) -> Int requires Pure {
     return x + 1

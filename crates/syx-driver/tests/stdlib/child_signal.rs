@@ -89,7 +89,7 @@ func main() {
   __syx_child_signal(h, "KILL")
   __syx_child_wait(h)
   print("WAITED")
-  try {
+  do {
     __syx_child_signal(h, "TERM")
     print("SIGNAL_OK")
   } catch (e) {
@@ -111,10 +111,10 @@ fn m2_s6_03_illegal_name_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
-    try {
+    do {
       Child.signal(handle: h, name: "FOO")
       print("BAD_OK")
     } catch (e) {

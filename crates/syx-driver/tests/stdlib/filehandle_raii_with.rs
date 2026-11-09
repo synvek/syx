@@ -152,7 +152,7 @@ fn success_src(path_s: &str) -> String {
     facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let n = FileHandle.withOpen(path: "{path_s}", mode: "w", body: {{ (h: Int) -> Int in
       return __syx_file_write_chunk(h, [])
     }})
@@ -169,7 +169,7 @@ fn throw_src(path_s: &str) -> String {
     facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let n = FileHandle.withOpen(path: "{path_s}", mode: "w", body: {{ (h: Int) -> Int in
       return 0 - 1
     }})
@@ -436,7 +436,7 @@ fn m2_s3_02b_with_open_fail_native_llvm() {
     let src = facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     print(__syx_file_with_open_fail("{path_s}", "w"))
   }} catch (err) {{
     print(err.code)
@@ -470,7 +470,7 @@ fn m2_s3_02b_with_open_native_llvm() {
     let src = format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let n = __syx_file_with_open("{path_s}", "w", {{ (h: Int) -> Int in
       return __syx_file_write_chunk(h, [])
     }})

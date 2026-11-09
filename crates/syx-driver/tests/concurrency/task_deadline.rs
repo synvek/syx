@@ -21,7 +21,7 @@ func main() {
     __syx_task_sleep(30000)
     print("SLEPT")
   }
-  try {
+  do {
     __syx_task_join(t)
     print("JOIN_OK")
   } catch (err) {
@@ -61,7 +61,7 @@ func main() {
   __syx_task_group_add(g, t)
   __syx_task_group_wait(g)
   print("WAITED")
-  try {
+  do {
     __syx_task_join(t)
     print("JOIN_OK")
   } catch (err) {

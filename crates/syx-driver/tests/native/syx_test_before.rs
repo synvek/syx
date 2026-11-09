@@ -11,7 +11,7 @@ fn syx_test_before_runs_between_setup_and_each_test() {
         tests.join("suite.sy"),
         format!(
             r#"
-import IO
+import System
 
 @TestSetup
 func boot() {{
@@ -68,7 +68,7 @@ fn syx_test_before_failure_skips_body_continues_next() {
         tests.join("bad.sy"),
         format!(
             r#"
-import IO
+import System
 
 @TestBefore
 func prep() {{

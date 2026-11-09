@@ -101,6 +101,38 @@ pub(crate) fn inject_virtual_prelude_imports(module: &mut syx_ast::Module, optio
             },
         );
     }
+    // SA-4-04: prelude/stdlib façades call `SyxHost.*`; inject the internal host
+    // enum into every enable_std module so injected method bodies resolve.
+    inject_syx_host_enum(module);
+}
+
+pub(crate) fn inject_syx_host_enum(module: &mut syx_ast::Module) {
+    use syx_ast::Decl;
+    use syx_diagnostics::SourceFile;
+    if module
+        .decls
+        .iter()
+        .any(|d| matches!(d, Decl::Enum { name, .. } if name == "SyxHost"))
+    {
+        return;
+    }
+    let source = SourceFile::new(
+        String::from("<stdlib>/SyxHost.sy"),
+        crate::embedded_std::syx_host_source().to_string(),
+    );
+    let Ok(parsed) = Parser::parse(source) else {
+        return;
+    };
+    let Ok(expanded) = expand_macros(parsed) else {
+        return;
+    };
+    if let Some(decl) = expanded
+        .decls
+        .into_iter()
+        .find(|d| matches!(d, Decl::Enum { name, .. } if name == "SyxHost"))
+    {
+        module.decls.insert(0, decl);
+    }
 }
 
 /// Merge monomorphized stdlib instances (e.g. `Array_len_Int`) referenced by `instantiations`.

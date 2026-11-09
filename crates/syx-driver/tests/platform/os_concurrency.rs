@@ -29,9 +29,9 @@ fn os_concurrency_cpu_and_user_positive() {
     let printed = run(&with_os(
         r#"
 func main() {
-    print(Os.cpuCount())
-    try {
-        print(Os.userName())
+    print(ProcessInfo.processorCount)
+    do {
+        print(ProcessInfo.userName())
     } catch (e) {
         print("userName-unavailable")
     }

@@ -153,7 +153,7 @@ class Greeter {
 #[test]
 fn p134_args_boot_codegen_still_seals() {
     let src = r#"
-import Di
+import DI
 @Service
 class Greeter {
   init() {}

@@ -77,7 +77,7 @@ Swift 的 ARC 是 **确定性** 的：refcount 归零时立即 `deinit`。SYX �
 确定性资源（文件、socket、锁）推荐用 **显式 close / release**：
 
 ```syx
-import IO
+import System
 
 class File {
     let path: String

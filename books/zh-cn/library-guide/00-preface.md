@@ -10,13 +10,13 @@
 |------|------|
 | `func` / `class` / `import` 语法 | [语言指南](../language-guide/01-getting-started.md) |
 | Host 插件 / `dlopen` | [语言指南 · 运行时扩展](../language-guide/33-runtime-extensions.md) |
-| `import Linalg` / `Os` / `Log` / `IO` | **本书** |
+| `import Numerics` / `System` / `Logging` / `Networking` | **本书** |
 | CLI、`syx.toml` | [docs/9_UsageGuide.md](../../../docs/9_UsageGuide.md) |
 
 ## 诚实约定
 
 - **已实现**：烟测或 Host 可跑的表面。
-- **部分实现**：可编译但语义不完整（Process 若干路径仍 `partial`）。
-- **未宣称**：产品 `Mat` GA、E-00、`A[i,j]`、faer `add`/`sub` host、P-SURF `[x]`。
+- **部分实现**：可编译但语义不完整（若干 process 路径仍 `partial`）。
+- **未宣称**：产品 `Mat` GA、E-00、`A[i,j]`、faer 产品 GA、P-SURF 产品排序。
 
 嵌入包源码在 [`packages/`](../../../packages/README.md)。**不要**把 `Mat` 并进 `packages/core/math.sy`。

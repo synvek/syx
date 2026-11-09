@@ -1,4 +1,4 @@
-import Log
+import Logging
 import Testing
 
 @TestSetup

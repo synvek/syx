@@ -46,7 +46,7 @@ fn m2_s8_03b_dual_checkout_sequential_txn() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let p = Sql.poolCreate(dsn: "{dsn}", maxSize: 2)
     let a = Sql.poolAcquire(poolId: p)
     let b = Sql.poolAcquire(poolId: p)
@@ -86,14 +86,14 @@ func main() {{
   let a = __syx_sql_pool_acquire(p)
   let b = __syx_sql_pool_acquire(p)
   __syx_sql_begin_transaction_on(a)
-  try {{
+  do {{
     __syx_sql_begin_transaction_on(b)
     print("BUSY_OK")
   }} catch (err1) {{
     print("BUSY_FAIL")
   }}
   __syx_sql_commit_transaction_on(a)
-  try {{
+  do {{
     __syx_sql_begin_transaction_on(b)
     print("AFTER_OK")
   }} catch (err2) {{
@@ -125,14 +125,14 @@ func main() {{
   let p = __syx_sql_pool_create("{dsn}", 1)
   let a = __syx_sql_pool_acquire(p)
   __syx_sql_begin_transaction_on(a)
-  try {{
+  do {{
     __syx_sql_pool_release(p, a)
     print("MID_OK")
   }} catch (err1) {{
     print("MID_FAIL")
   }}
   __syx_sql_commit_transaction_on(a)
-  try {{
+  do {{
     __syx_sql_pool_release(p, a)
     print("AFTER_COMMIT_OK")
   }} catch (err2) {{
@@ -140,14 +140,14 @@ func main() {{
   }}
   let b = __syx_sql_pool_acquire(p)
   __syx_sql_begin_transaction_on(b)
-  try {{
+  do {{
     __syx_sql_pool_release(p, b)
     print("MID2_OK")
   }} catch (err3) {{
     print("MID2_FAIL")
   }}
   __syx_sql_rollback_transaction_on(b)
-  try {{
+  do {{
     __syx_sql_pool_release(p, b)
     print("AFTER_ROLLBACK_OK")
   }} catch (err4) {{
@@ -180,7 +180,7 @@ func main() {{
   let a = __syx_sql_pool_acquire(p)
   __syx_sql_begin_transaction_on(a)
   __syx_sql_pool_close(p)
-  try {{
+  do {{
     let x = __syx_sql_pool_acquire(p)
     print("AFTER_OK")
     print(x)
@@ -209,11 +209,11 @@ fn m2_s8_03b_nested_begin_throws() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let p = Sql.poolCreate(dsn: "{dsn}", maxSize: 1)
     let a = Sql.poolAcquire(poolId: p)
     Sql.beginTransactionOn(connId: a)
-    try {{
+    do {{
       Sql.beginTransactionOn(connId: a)
       print("UNEXPECTED_OK")
     }} catch (err) {{

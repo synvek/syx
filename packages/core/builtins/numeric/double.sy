@@ -24,7 +24,7 @@ public class Double: Equatable, Hashable, CustomStringConvertible, Comparable {
         return Float64.clamp(x, lo, hi)
     }
 
-    /// Absolute value (host `__syx_*_abs` via delegate).
+    /// Absolute value (host `SyxHost.*_abs` via delegate).
     public static func abs(x: Double) -> Double {
         return Float64.abs(x)
     }
@@ -33,27 +33,41 @@ public class Double: Equatable, Hashable, CustomStringConvertible, Comparable {
     public static func epsilon() -> Double {
         return Float64.epsilon()
     }
+    /// Mathematical constant π.
+    public static var pi: Double {
+        return 3.141592653589793
+    }
+
+    /// Sine of `x` (radians); host `SyxHost.f64_sin`.
+    public static func sin(x: Double) -> Double {
+        return SyxHost.f64_sin(x)
+    }
+
+    /// Square root of `x`; host `SyxHost.f64_sqrt`.
+    public static func sqrt(x: Double) -> Double {
+        return SyxHost.f64_sqrt(x)
+    }
 }
 
 extension Double {
     /// Combine into a hasher (`Hashable`).
     func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
+        SyxHost.hasher_combine(hasher, self)
     }
 
     /// User-facing string conversion (`CustomStringConvertible`).
     func description() -> String {
-        return __syx_value_description(self)
+        return SyxHost.value_description(self)
     }
 
     /// Debug string conversion.
     func debugDescription() -> String {
-        return __syx_value_debug_description(self)
+        return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `__syx_f64_compare`.
+    /// Three-way compare (`Comparable`); host `SyxHost.f64_compare`.
     func compare(other: Double) -> Int {
-        return __syx_f64_compare(self, other)
+        return SyxHost.f64_compare(self, other)
     }
 }
 

@@ -1,4 +1,4 @@
-import IO
+import System
 
 func main() {
     let path = "/tmp/syx_stdlib_bytes_roundtrip.bin"

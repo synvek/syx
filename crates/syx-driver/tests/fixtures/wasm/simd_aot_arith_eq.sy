@@ -1,3 +1,4 @@
+import SIMD4
 func main() {
     let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
     let w: SIMD4<Int32> = SIMD4.fromArray([10i32, 20i32, 30i32, 40i32])

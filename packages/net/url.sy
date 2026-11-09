@@ -9,16 +9,16 @@ public class Url {
 
     /// Parse a URL string into components.
     public static func parse(text: String) -> Url {
-        return __syx_url_parse(text)
+        return SyxHost.url_parse(text)
     }
 
-    /// Encode query (host `__syx_url_encode_query`).
+    /// Encode query (host `SyxHost.url_encode_query`).
     public static func encodeQuery(query: Object) -> String {
-        return __syx_url_encode_query(query)
+        return SyxHost.url_encode_query(query)
     }
 
     /// Build a URL string from components.
     public static func build(base: String, path: String, query: Object) -> String {
-        return __syx_url_build(base, path, query)
+        return SyxHost.url_build(base, path, query)
     }
 }

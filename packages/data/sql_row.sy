@@ -3,57 +3,57 @@
 /// Requires `SqlError` from sql.sy in the same compilation unit.
 
 public class SqlRow {
-    /// Get string (throws) (host `__syx_sql_row_get_string`).
-    public static func getString(row: Object, name: String) -> String throws {
-        try {
-            return __syx_sql_row_get_string(row, name)
+    /// Get string (throws) (host `SyxHost.sql_row_get_string`).
+    public static func getString(row: Object, name: String) throws -> String {
+        do {
+            return SyxHost.sql_row_get_string(row, name)
         } catch (e) {
-            throw SqlError(code: 22, message: "SqlRow getString failed")
+            throw SqlError.failed(code: 22, message: "SqlRow getString failed")
         }
     }
 
-    /// Get int (throws) (host `__syx_sql_row_get_int`).
-    public static func getInt(row: Object, name: String) -> Int throws {
-        try {
-            return __syx_sql_row_get_int(row, name)
+    /// Get int (throws) (host `SyxHost.sql_row_get_int`).
+    public static func getInt(row: Object, name: String) throws -> Int {
+        do {
+            return SyxHost.sql_row_get_int(row, name)
         } catch (e) {
-            throw SqlError(code: 23, message: "SqlRow getInt failed")
+            throw SqlError.failed(code: 23, message: "SqlRow getInt failed")
         }
     }
 
-    /// Get float (throws) (host `__syx_sql_row_get_float`).
-    public static func getFloat(row: Object, name: String) -> Float64 throws {
-        try {
-            return __syx_sql_row_get_float(row, name)
+    /// Get float (throws) (host `SyxHost.sql_row_get_float`).
+    public static func getFloat(row: Object, name: String) throws -> Float64 {
+        do {
+            return SyxHost.sql_row_get_float(row, name)
         } catch (e) {
-            throw SqlError(code: 24, message: "SqlRow getFloat failed")
+            throw SqlError.failed(code: 24, message: "SqlRow getFloat failed")
         }
     }
 
-    /// Get blob (throws) (host `__syx_sql_row_get_blob`).
-    public static func getBlob(row: Object, name: String) -> Array throws {
-        try {
-            return __syx_sql_row_get_blob(row, name)
+    /// Get blob (throws) (host `SyxHost.sql_row_get_blob`).
+    public static func getBlob(row: Object, name: String) throws -> Array {
+        do {
+            return SyxHost.sql_row_get_blob(row, name)
         } catch (e) {
-            throw SqlError(code: 25, message: "SqlRow getBlob failed")
+            throw SqlError.failed(code: 25, message: "SqlRow getBlob failed")
         }
     }
 
     /// Missing column throws; SQL NULL → true.
-    public static func isNull(row: Object, name: String) -> Bool throws {
-        try {
-            return __syx_sql_row_is_null(row, name)
+    public static func isNull(row: Object, name: String) throws -> Bool {
+        do {
+            return SyxHost.sql_row_is_null(row, name)
         } catch (e) {
-            throw SqlError(code: 26, message: "SqlRow isNull failed")
+            throw SqlError.failed(code: 26, message: "SqlRow isNull failed")
         }
     }
 
     /// Column names excluding `__type`.
-    public static func columnNames(row: Object) -> Array throws {
-        try {
-            return __syx_sql_row_column_names(row)
+    public static func columnNames(row: Object) throws -> Array {
+        do {
+            return SyxHost.sql_row_column_names(row)
         } catch (e) {
-            throw SqlError(code: 27, message: "SqlRow columnNames failed")
+            throw SqlError.failed(code: 27, message: "SqlRow columnNames failed")
         }
     }
 }

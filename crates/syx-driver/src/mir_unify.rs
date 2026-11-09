@@ -291,6 +291,10 @@ pub(crate) fn mir_merge_stdlib_function(
     if func_name.starts_with(&format!("{module_stem}_")) {
         return true;
     }
+    // SA-4-04: always merge internal host surface methods.
+    if func_name.starts_with("SyxHost_") {
+        return true;
+    }
     if let Some((ty, _method)) = func_name.split_once('_') {
         if dep_exports.contains_key(&SmolStr::new(ty)) {
             return true;
@@ -398,6 +402,8 @@ fn build_mir_from_graph(
     // Object/Array/… extensions must be visible to semantic (e.g. `Object.put` → Object)
     // before analyze; MIR still merges witnesses via the stdlib graph.
     inject_core_collection_builtins(&mut module, options);
+    // SA-4-04: `SyxHost` must exist before semantic/MIR — injected façades call it.
+    crate::compile_to_program::inject_syx_host_enum(&mut module);
     let mut import_symbols = core_prelude_import_symbols(options);
     for decl in &module.decls {
         if let Decl::Import { .. } = decl {

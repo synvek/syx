@@ -127,7 +127,7 @@ main = "main.sy"
 
 ## 标准库要点
 
-可导入模块位于 [`packages/`](packages/)（`import Text`、`import Net` 等）。始终在作用域内的内置包括数值类型、`String` / `Array` / `Dictionary`，以及 `print` / `readLine` 等 Host 全局（见 [`packages/core/builtins/special/globals.sy`](packages/core/builtins/special/globals.sy)）。
+可导入模块位于 [`packages/`](packages/)（`import Text`、`import Networking` 等）。始终在作用域内的内置包括数值类型、`String` / `Array` / `Dictionary`，以及 `print` / `readLine` 等 Host 全局（见 [`packages/core/builtins/special/globals.sy`](packages/core/builtins/special/globals.sy)）。
 
 常见 Host 面：
 

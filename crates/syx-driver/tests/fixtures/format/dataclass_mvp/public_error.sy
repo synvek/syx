@@ -1,4 +1,4 @@
-public data class IOError(code: Int, message: String)
+public data class SystemError(code: Int, message: String)
 
 func main() {
     print(1)

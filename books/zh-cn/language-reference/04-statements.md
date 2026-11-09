@@ -203,13 +203,13 @@ try-stmt ::= 'try' block 'catch' '(' identifier (':' type)? ')' block
 > 注：`try` 块用 `{ }`；`catch` 绑定**必须**加 `()`，因为 `catch err` 形式与语句歧义（catch 是关键字 + 标识符，无括号时与 `let`/binding 冲突）。
 
 ```syx
-try {
+do {
     throw "error"
     print("no catch")
 } catch (err) {
     print(err)                              // err: String（省略类型时的默认）
 }
-try {
+do {
     throw "typed"
 } catch (err: String) {
     print(err)                              // 可选显式类型（类似 Java）

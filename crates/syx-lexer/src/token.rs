@@ -59,7 +59,8 @@ pub enum TokenKind {
     Break,
     Continue,
     Return,
-    // Error handling
+    // Error handling (SA-2-01: statement surface is `do { } catch`; `try` is expression-only)
+    Do,
     Try,
     Throw,
     Throws,
@@ -237,6 +238,7 @@ pub fn keyword(text: &str) -> Option<TokenKind> {
         "break" => TokenKind::Break,
         "continue" => TokenKind::Continue,
         "return" => TokenKind::Return,
+        "do" => TokenKind::Do,
         "try" => TokenKind::Try,
         "throw" => TokenKind::Throw,
         "throws" => TokenKind::Throws,

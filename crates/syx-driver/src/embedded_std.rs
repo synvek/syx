@@ -3,13 +3,6 @@ use std::path::PathBuf;
 /// Core prelude modules — Phase 83 SYX 61.0 (Core Authority; type names as prelude modules).
 const CORE: &[(&str, &str)] = &[
     (
-        "Math",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/math.sy"
-        )),
-    ),
-    (
         "Hasher",
         include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -171,20 +164,6 @@ const CORE: &[(&str, &str)] = &[
         )),
     ),
     (
-        "OrderedSet",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/builtins/collections/ordered_set.sy"
-        )),
-    ),
-    (
-        "Deque",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/builtins/collections/deque.sy"
-        )),
-    ),
-    (
         "Result",
         include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -199,59 +178,10 @@ const CORE: &[(&str, &str)] = &[
         )),
     ),
     (
-        "Random",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/random.sy"
-        )),
-    ),
-    (
-        "JSON",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/json.sy"
-        )),
-    ),
-    (
-        "Time",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/time.sy"
-        )),
-    ),
-    (
-        "Env",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/env.sy"
-        )),
-    ),
-    (
-        "Path",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/path.sy"
-        )),
-    ),
-    (
         "Concurrency",
         include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../../packages/core/concurrency.sy"
-        )),
-    ),
-    (
-        "SIMD4",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/core/simd.sy"
-        )),
-    ),
-    (
-        "Fmt",
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../packages/text/fmt.sy"
         )),
     ),
 ];
@@ -293,6 +223,13 @@ const PROTOCOLS: &[(&str, &str)] = &[
             "/../../packages/core/protocols/codable.sy"
         )),
     ),
+    (
+        "Error",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/protocols/error.sy"
+        )),
+    ),
 ];
 
 const REFERENCE_BUILTINS: &[(&str, &str)] = &[
@@ -331,18 +268,6 @@ const HTTP_RESPONSE_SOURCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../packages/io/types/http_response.sy"
 ));
-
-const IO_SOURCE: &str = concat!(
-    include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../packages/io/mod.sy"
-    )),
-    "\n",
-    include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../packages/io/file_handle.sy"
-    )),
-);
 
 const INTERNAL_TYPES_SOURCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -402,25 +327,74 @@ const TEXT_SOURCE: &str = include_str!(concat!(
     "/../../packages/text/mod.sy"
 ));
 
-const DATETIME_SOURCE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../packages/datetime/mod.sy"
-));
-
 const SYNC_SOURCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../packages/sync/mod.sy"
 ));
 
-const PROCESS_SOURCE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../packages/process/mod.sy"
-));
-
-const OS_SOURCE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../packages/os/mod.sy"
-));
+/// SA-3-01 / SA-4-04a: System aggregate = internal `SyxHost` then public domain sources.
+/// `__syx_*` live only in `packages/internal/system_host.sy`.
+const SYSTEM_SOURCE: &str = concat!(
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/internal/system_host.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/core/env.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/core/path.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/core/time.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/datetime/mod.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/os/mod.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/process/mod.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/process/process_builder.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/io/mod.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/io/file_handle.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/io/file_stream.sy"
+    )),
+    "\n",
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/io/file_watcher.sy"
+    )),
+);
 
 const SQL_SOURCE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -467,10 +441,10 @@ const LINALG_SOURCE: &str = include_str!(concat!(
     "/../../packages/linalg/mod.sy"
 ));
 
-/// Explicit import modules (`import IO` / `import Net` / …).
+/// Explicit import modules (`import System` / `import Networking` / …).
 const IMPORTABLE: &[(&str, &str)] = &[
-    ("IO", IO_SOURCE),
-    ("Net", NET_SOURCE),
+    ("System", SYSTEM_SOURCE),
+    ("Networking", NET_SOURCE),
     (
         "Crypto",
         include_str!(concat!(
@@ -479,19 +453,67 @@ const IMPORTABLE: &[(&str, &str)] = &[
         )),
     ),
     ("Text", TEXT_SOURCE),
-    ("DateTime", DATETIME_SOURCE),
-    ("Sync", SYNC_SOURCE),
-    ("Process", PROCESS_SOURCE),
-    ("Os", OS_SOURCE),
-    ("Sql", SQL_SOURCE),
+    ("Synchronization", SYNC_SOURCE),
+    ("SQL", SQL_SOURCE),
     ("Testing", TESTING_SOURCE),
-    ("Log", LOG_SOURCE),
-    ("Trace", TRACE_SOURCE),
+    ("Logging", LOG_SOURCE),
+    ("Tracing", TRACE_SOURCE),
     ("Metrics", METRICS_SOURCE),
-    ("Profiler", PROFILER_SOURCE),
-    ("Di", DI_SOURCE),
+    ("Profiling", PROFILER_SOURCE),
+    ("DI", DI_SOURCE),
     ("UI", UI_SOURCE),
-    ("Linalg", LINALG_SOURCE),
+    ("Numerics", LINALG_SOURCE),
+    (
+        "JSON",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/json.sy"
+        )),
+    ),
+    (
+        "Fmt",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/text/fmt.sy"
+        )),
+    ),
+    // SA-3-05 Collections merge deferred: OrderedSet/Deque stay separate importables
+    // (homonym classes shadow builtins if concatenated under `import Collections`).
+    (
+        "OrderedSet",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/builtins/collections/ordered_set.sy"
+        )),
+    ),
+    (
+        "Deque",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/builtins/collections/deque.sy"
+        )),
+    ),
+    (
+        "Math",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/math.sy"
+        )),
+    ),
+    (
+        "Random",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/random.sy"
+        )),
+    ),
+    (
+        "SIMD4",
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../packages/core/simd.sy"
+        )),
+    ),
 ];
 
 /// Names users may write after `import ` (stdlib explicit-import surface).
@@ -501,6 +523,47 @@ pub fn importable_module_names() -> impl Iterator<Item = &'static str> {
 
 pub fn core_prelude() -> &'static [(&'static str, &'static str)] {
     CORE
+}
+
+/// SA-4-04: stdlib `__syx_*` authority (no faer `plugin_*`).
+pub fn syx_host_source() -> &'static str {
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/internal/system_host.sy"
+    ))
+}
+
+/// SA-4-04: Numerics/linalg host (includes faer `plugin_*`).
+pub fn linalg_host_source() -> &'static str {
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/internal/linalg_host.sy"
+    ))
+}
+
+fn host_source_for_module(module_name: &str) -> &'static str {
+    match module_name {
+        "Numerics" => linalg_host_source(),
+        _ => syx_host_source(),
+    }
+}
+
+/// Prepend `SyxHost` when the unit does not already define it (idempotent).
+pub fn ensure_syx_host(src: &str) -> String {
+    ensure_syx_host_for("System", src)
+}
+
+/// Prepend the host surface appropriate for `module_name`.
+pub fn ensure_syx_host_for(module_name: &str, src: &str) -> String {
+    if src.contains("enum SyxHost") {
+        return src.to_string();
+    }
+    let host = host_source_for_module(module_name);
+    let mut out = String::with_capacity(host.len() + src.len() + 1);
+    out.push_str(host);
+    out.push('\n');
+    out.push_str(src);
+    out
 }
 
 pub fn embedded_protocols() -> &'static [(&'static str, &'static str)] {
@@ -610,25 +673,31 @@ pub fn virtual_path(name: &str) -> PathBuf {
 }
 
 /// Single-file importable stdlib modules under `packages/<dir>/mod.sy`.
-/// Excludes `IO` / `Net` (embedded as multi-file concatenations).
+/// `System` / `Networking` are multi-file conceptually but aggregated on disk for overlay.
 pub fn workspace_single_file_relpath(module_name: &str) -> Option<&'static str> {
     let first = module_name.split('.').next().unwrap_or(module_name);
     match first {
+        "System" => Some("packages/system/mod.sy"),
+        "Networking" => Some("packages/networking/mod.sy"),
         "Crypto" => Some("packages/crypto/mod.sy"),
         "Text" => Some("packages/text/mod.sy"),
-        "DateTime" => Some("packages/datetime/mod.sy"),
-        "Sync" => Some("packages/sync/mod.sy"),
-        "Process" => Some("packages/process/mod.sy"),
-        "Os" => Some("packages/os/mod.sy"),
-        "Sql" => Some("packages/data/sql.sy"),
+        "Synchronization" => Some("packages/sync/mod.sy"),
+        "SQL" => Some("packages/data/sql.sy"),
         "Testing" => Some("packages/testing/mod.sy"),
-        "Log" => Some("packages/log/mod.sy"),
-        "Trace" => Some("packages/trace/mod.sy"),
+        "Logging" => Some("packages/log/mod.sy"),
+        "Tracing" => Some("packages/trace/mod.sy"),
         "Metrics" => Some("packages/metrics/mod.sy"),
-        "Profiler" => Some("packages/profiler/mod.sy"),
-        "Di" => Some("packages/di/mod.sy"),
+        "Profiling" => Some("packages/profiler/mod.sy"),
+        "DI" => Some("packages/di/mod.sy"),
         "UI" => Some("packages/ui/mod.sy"),
-        "Linalg" => Some("packages/linalg/mod.sy"),
+        "Numerics" => Some("packages/linalg/mod.sy"),
+        "JSON" => Some("packages/core/json.sy"),
+        "Fmt" => Some("packages/text/fmt.sy"),
+        "OrderedSet" => Some("packages/core/builtins/collections/ordered_set.sy"),
+        "Deque" => Some("packages/core/builtins/collections/deque.sy"),
+        "Math" => Some("packages/core/math.sy"),
+        "Random" => Some("packages/core/random.sy"),
+        "SIMD4" => Some("packages/core/simd.sy"),
         _ => None,
     }
 }
@@ -679,7 +748,8 @@ pub fn is_prelude_module_name(name: &str) -> bool {
     syx_config::CORE_PRELUDE_MODULES.iter().any(|m| *m == name)
 }
 
-/// Phase 44: retired Phase 43 *Ops / Text / Arrays module names (clean break).
+/// Phase 44: retired Phase 43 *Ops / Arrays module names (clean break).
+/// SA-0-03: live `import Text` is importable — not retired.
 pub fn is_retired_prelude_name(name: &str) -> bool {
     syx_stdlib::retired_ops_module_names().contains(&name)
 }

@@ -112,7 +112,7 @@ func main() { print(D(x: 2).x) }"
 
 #[test]
 fn p73_try_catch() {
-    assert!(p73_doc_ok("func main() { try { print(1) } catch e { print(e) } }"));
+    assert!(p73_doc_ok("func main() { do { print(1) } catch e { print(e) } }"));
 }
 
 #[test]

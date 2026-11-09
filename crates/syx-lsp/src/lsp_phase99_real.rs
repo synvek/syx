@@ -138,7 +138,7 @@ fn p99_semantic_codable_struct_ok() {
 #[test]
 fn p99_semantic_select_channel_ok() {
     assert!(p99_doc_ok(
-        "import Sync\nfunc main() { let ch = Channel.create(1); ch.send(99); print(ch.recv()) }"
+        "import Synchronization\nfunc main() { let ch = Channel.create(1); ch.send(99); print(ch.recv()) }"
     ));
 }
 

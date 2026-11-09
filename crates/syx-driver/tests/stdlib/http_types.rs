@@ -78,7 +78,7 @@ fn lines_joined(lines: &[String]) -> String {
         .join("\n")
 }
 
-/// Embed does not auto-load `import Net`; prepend named types + Http/Url facades (W90 pattern).
+/// Embed does not auto-load `import Networking`; prepend named types + Http/Url facades (W90 pattern).
 fn net_facade_src(body: &str) -> String {
     let parts = [
         include_str!("../../../../packages/io/types/http_response.sy"),

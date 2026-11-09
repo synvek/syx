@@ -40,7 +40,7 @@
 | `@Profile` | **GA** | Conditional registration; `Di.setProfile` / `SYX_DI_PROFILE` (fingerprint `macro-service-v5:conditional-profile`) |
 | `@PostConstruct` / `@PreDestroy` hook MVP | **GA** | After construction + field injection / at container destroy·reset·request end |
 | Typed resolve: `"Type"` / `Type` ident | **GA** | A string literal or a registered type identifier; a dynamic variable → **E010** |
-| DI ceremony sugar + `Di` package GA | **GA** | `import Di` → `resolve` / `withRequest` / `setProfile` / …; short sugar `resolve(...)` (inherited from M14) |
+| DI ceremony sugar + `Di` package GA | **GA** | `import DI` → `resolve` / `withRequest` / `setProfile` / …; short sugar `resolve(...)` (inherited from M14) |
 | **Base-type polymorphic injection** | **GA** | Constructor/field `@Inject` resolves the concrete implementation by **base/parent type**; registry binds a superclass alias (fingerprint `macro-service-v6:polymorphic-base-inject`); **must not** rely on init side effects to fake dispatch |
 | **Protocol-typed injection / witness table** | **GA** | conformance witness registers the protocol ← `@Service` implementation (fingerprint `runtime-service-v7:protocol-witness`); M15 alias binding inherited |
 | **Field `@Qualifier` metadata** | **GA** | `@Autowired @Qualifier("…")` preserves disambiguating metadata across packages (fingerprint `macro-service-v6:field-qualifier-metadata`) |
@@ -68,7 +68,7 @@ SYX macros come in two kinds: **freestanding** (`#`) and **attached** (`@`). Dri
 A Spring-style **demonstrable subset**: singleton (default) + prototype + **request** scope + **Qualifier/Primary/Profile** + **base-type polymorphic injection** + **protocol witness table** + field `@Qualifier` metadata + **`@Around` proceed delegation / `@Before`/`@After` (including string pointcut binding)** + **`@Pointcut("Type.method")` method-name MVP** + **`execution(* T.m(..))` name-pattern MVP** + **`@Pointcut("within(Type)")` type-name-pattern MVP** + **`@Pointcut("args(Type)")` first-parameter type-name-pattern MVP** + **`@Pointcut("within(T) && args(U)")` / `within(T) || args(U)` narrow composition MVP** + **`@Configuration`/`@Bean` MVP** + **`@Bean` parameter injection MVP** + **`@Lazy` + cyclic-dependency lazy proxy MVP** + constructor/field injection + multi-package workspace scanning + `Di.withRequest`. Do not claim Spring compatibility / complete AspectJ AOP / complete token syntax macros / fully automatic wiring.
 
 ```syx
-import Di
+import DI
 
 @Qualifier("fast")
 @Service
@@ -126,7 +126,7 @@ func main() {
 - **`@Inject`** — **constructor parameter** injection; a missing dependency fails closed (**E008**); a dependency cycle without `@Lazy` is still **E007**
 - **Field `@Autowired` MVP** — stored property; assigned on the instance after resolve (no full reflection set)
 - **`@PostConstruct` / `@PreDestroy` MVP** — lifecycle hooks
-- **User-facing container** — `import Di`: `Di.resolve` / `Di.withRequest` / `Di.setProfile` / `Di.destroy`; short sugar `resolve(...)`; **application code must not call `__syx_service_*` directly**
+- **User-facing container** — `import DI`: `Di.resolve` / `Di.withRequest` / `Di.setProfile` / `Di.destroy`; short sugar `resolve(...)`; **application code must not call `__syx_service_*` directly**
 - **Base-type polymorphic injection** — `@Inject logger: Logger` resolves to the concrete implementation when `FastLogger: Logger` is registered (registry superclass alias); init side effects no longer stand in for dispatch
 - **Field `@Qualifier`** — `@Autowired @Qualifier("fast") let logger: Logger` preserves disambiguating metadata across packages
 - **`@Around` proceed** — **only** **instance methods** of `@Service`/`@Component`; expands into ordered proceed delegation (`__syx_proceed_N`) wrapping the original method body + `print("__around__:method")`; the return value is observable; may stack `@Around("Type.method")` bound to a registered `@Pointcut`
@@ -145,7 +145,7 @@ func main() {
 - **137+ debt** — complete token syntax macros / token-stream API, complete AspectJ-style AOP (negation / aspect classes / wildcard join points / the full expression and precedence set), a complete Spring container, the full ThreadPoolExecutor set (DiscardOldest / Actor shared pool, …)
 
 ```syx
-import Di
+import DI
 
 @Service
 class DepLogger {

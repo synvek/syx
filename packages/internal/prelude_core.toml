@@ -1,0 +1,67 @@
+# SYX core prelude whitelist (SA-0-02 / SA-1 active)
+# Charter: docs/adr/stdlib-swift-alignment.md
+
+[meta]
+version = "0.2"
+schema = "syx-prelude-core-v0"
+adr = "docs/adr/stdlib-swift-alignment.md"
+status = "active" # SA-1 landed: runtime injects [target]
+
+# Modules auto-visible after SA-1.
+[target]
+modules = [
+  "Int8", "Int16", "Int32", "Int64", "Int128",
+  "UInt8", "UInt16", "UInt32", "UInt64", "UInt128",
+  "Int", "UInt",
+  "Float32", "Float64", "Float", "Double",
+  "Bool", "Character", "String",
+  "Array", "Set", "Dictionary", "Result", "BigInt",
+  "Hasher",
+  "Concurrency",
+]
+
+[target.globals]
+names = ["print", "readLine", "reflect"]
+
+[target.protocols]
+names = [
+  "Equatable", "Hashable", "Comparable",
+  "CustomStringConvertible",
+  "Encodable", "Decodable", "Codable",
+  "Encoder", "Decoder",
+  "Error",
+]
+
+[target.planned_surface]
+notes = [
+  "Double.pi / Double.sin / Double.sqrt landed (SA-1-03)",
+  "Int.random(in:) landed (SA-1-04)",
+]
+
+# Left prelude in SA-1 (now IMPORTABLE under same names until SA-3 rename)
+[remove_in_sa1]
+modules = [
+  "Math",
+  "Random",
+  "JSON",
+  "Time",
+  "Env",
+  "Path",
+  "Fmt",
+  "OrderedSet",
+  "Deque",
+  "SIMD4",
+]
+
+# Must equal syx_config::CORE_PRELUDE_MODULES after SA-1
+[current_injected]
+modules = [
+  "Int8", "Int16", "Int32", "Int64", "Int128",
+  "UInt8", "UInt16", "UInt32", "UInt64", "UInt128",
+  "Int", "UInt",
+  "Float32", "Float64", "Float", "Double",
+  "Bool", "Character", "String",
+  "Array", "Set", "Dictionary", "Result", "BigInt",
+  "Hasher",
+  "Concurrency",
+]

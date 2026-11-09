@@ -394,7 +394,7 @@ fn start_terminate_serve(serve_port: u16) -> (
 ) {
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{\"upgradeTerminate\":true}}")

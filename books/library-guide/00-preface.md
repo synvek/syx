@@ -10,13 +10,13 @@ Welcome to the ***SYX Standard Library Guide***. For language syntax, see the [L
 |------|------|
 | `func` / `class` / `import` syntax | [Language Guide](../language-guide/01-getting-started.md) |
 | Host plugins / `dlopen` | [Language Guide · Runtime Extensions](../language-guide/33-runtime-extensions.md) |
-| `import Linalg` / `Os` / `Log` / `IO` | **This book** |
+| `import Numerics` / `System` / `Logging` / `Networking` | **This book** |
 | CLI, `syx.toml` | [docs/9_UsageGuide.md](../../docs/9_UsageGuide.md) |
 
 ## Honesty Conventions
 
 - **Implemented**: surfaces exercised by smoke tests or runnable through Host.
-- **Partially implemented**: compiles, but the semantics are incomplete (several `Process` paths remain `partial`).
-- **Not claimed**: product `Mat` GA, E-00, `A[i,j]`, faer `add`/`sub` host, P-SURF `[x]`.
+- **Partially implemented**: compiles, but the semantics are incomplete (several process paths remain `partial`).
+- **Not claimed**: product `Mat` GA, E-00, `A[i,j]`, faer product GA, P-SURF product ranking.
 
 The embedded package sources live in [`packages/`](../../packages/README.md). Do **not** merge `Mat` into `packages/core/math.sy`.

@@ -40,7 +40,7 @@
 | `@Profile` | **GA** | 条件注册；`Di.setProfile` / `SYX_DI_PROFILE`（指纹 `macro-service-v5:conditional-profile`） |
 | `@PostConstruct` / `@PreDestroy` 钩子 MVP | **GA** | 构造 + 字段注入后 / 容器 destroy·reset·request end 时 |
 | Typed resolve：`"Type"` / `Type` ident | **GA** | 字符串字面量或已注册类型标识符；动态变量 → **E010** |
-| DI 仪式糖化 + `Di` 包 GA | **GA** | `import Di` → `resolve` / `withRequest` / `setProfile` / …；短糖 `resolve(...)`（M14 继承） |
+| DI 仪式糖化 + `Di` 包 GA | **GA** | `import DI` → `resolve` / `withRequest` / `setProfile` / …；短糖 `resolve(...)`（M14 继承） |
 | **基类型多态注入** | **GA** | 构造/字段 `@Inject` 以**基类/父类型**解析具体实现；registry 绑定 superclass alias（指纹 `macro-service-v6:polymorphic-base-inject`）；**不得**再依赖 init 副作用冒充 dispatch |
 | **协议型注入 / witness table** | **GA** | conformance witness 注册协议 ← `@Service` 实现（指纹 `runtime-service-v7:protocol-witness`）；M15 alias binding 继承 |
 | **字段 `@Qualifier` 元数据** | **GA** | `@Autowired @Qualifier("…")` 跨包保留消歧元数据（指纹 `macro-service-v6:field-qualifier-metadata`） |
@@ -68,7 +68,7 @@ SYX 宏分为 **freestanding**（`#`）与 **attached**（`@`）。由 `engine::
 Spring 风格**可演示子集**：singleton（默认）+ prototype + **request** scope + **Qualifier/Primary/Profile** + **基类型多态注入** + **协议 witness table** + 字段 `@Qualifier` 元数据 + **`@Around` proceed 委托 / `@Before`/`@After`（含字符串 pointcut 绑定）** + **`@Pointcut("Type.method")` 方法名 MVP** + **`execution(* T.m(..))` 名模式 MVP** + **`@Pointcut("within(Type)")` 类型名模式 MVP** + **`@Pointcut("args(Type)")` 首参类型名模式 MVP** + **`@Pointcut("within(T) && args(U)")` / `within(T) || args(U)` 窄组合 MVP** + **`@Configuration`/`@Bean` MVP** + **`@Bean` 参数注入 MVP** + **`@Lazy` + 环依赖懒代理 MVP** + 构造/字段注入 + 多包 workspace 扫描 + `Di.withRequest`。不得称 Spring 兼容 / 完整 AspectJ AOP / 完整 token 语法宏 / 全自动装配。
 
 ```syx
-import Di
+import DI
 
 @Qualifier("fast")
 @Service
@@ -126,7 +126,7 @@ func main() {
 - **`@Inject`** — **构造参数** 注入；缺依赖 fail-closed（**E008**）；无 `@Lazy` 环依赖仍 **E007**
 - **字段 `@Autowired` MVP** — stored property；resolve 后在实例上赋值（无反射全集）
 - **`@PostConstruct` / `@PreDestroy` MVP** — 生命周期钩子
-- **用户面容器** — `import Di`：`Di.resolve` / `Di.withRequest` / `Di.setProfile` / `Di.destroy`；短糖 `resolve(...)`；**应用代码勿直接调用 `__syx_service_*`**
+- **用户面容器** — `import DI`：`Di.resolve` / `Di.withRequest` / `Di.setProfile` / `Di.destroy`；短糖 `resolve(...)`；**应用代码勿直接调用 `__syx_service_*`**
 - **基类型多态注入** — `@Inject logger: Logger` 当 `FastLogger: Logger` 注册时解析到具体实现（registry superclass alias）；不再以 init 副作用代替 dispatch
 - **字段 `@Qualifier`** — `@Autowired @Qualifier("fast") let logger: Logger` 跨包保留消歧元数据
 - **`@Around` proceed** — **仅** `@Service`/`@Component` **实例方法**；展开为有序包裹原方法体的 proceed 委托（`__syx_proceed_N`）+ `print("__around__:method")`；可观察返回值；可叠 `@Around("Type.method")` 绑定已注册 `@Pointcut`
@@ -145,7 +145,7 @@ func main() {
 - **137+ 债务** — 完整 token 语法宏 / token-stream API、完整 AspectJ 式 AOP（否定 / 切面类 / 通配 join point / 全表达式与优先级全集）、完整 Spring 容器、ThreadPoolExecutor 全集（DiscardOldest / Actor 共享池等）
 
 ```syx
-import Di
+import DI
 
 @Service
 class DepLogger {

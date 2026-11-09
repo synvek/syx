@@ -5145,7 +5145,7 @@ fn fmt_throw_dry_run() {
 fn fmt_try_dry_run() {
     // W708 / ADR-1052: Stmt::Try idempotent.
     let src = r#"func main() {
-    try {
+    do {
         print(1)
         throw "boom"
     } catch (err) {
@@ -5155,7 +5155,7 @@ fn fmt_try_dry_run() {
 "#;
     let file = SourceFile::new("try.sy", src);
     let report = format_dry_run(&file).expect("Try must format");
-    assert!(report.formatted.contains("try {"));
+    assert!(report.formatted.contains("do {"));
     assert!(report.formatted.contains("} catch (err) {"));
     assert!(report.formatted.contains("throw \"boom\""));
     let again = SourceFile::new("try.sy", report.formatted.as_str());

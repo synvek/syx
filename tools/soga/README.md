@@ -72,7 +72,7 @@ cargo run -p syx-cli -- run tools/soga
 同包多文件共享命名空间（无需 `import message` 这类 file module）：
 
 ```syx
-import Env
+import System
 
 func main() {
     var cfg = deepseek()

@@ -1,21 +1,22 @@
-import Net
+import Networking
+import System
 
 func main() {
-    try {
+    do {
         let _ = Http.get(url: "http://127.0.0.1:1/syx_refuse")
         print("UNEXPECTED")
     } catch (e) {
         print("refused")
     }
-    let base = Env.get("SYX_HTTP_BASE")
-    if String.count(base) > 0
-    try {
-        let resp = Http.get(url: "\(base)/health")
-        print("ok")
-        print(resp.status())
-        print(resp.text())
-    } catch (e) {
-        print("UNEXPECTED")
+    let base = Env.get(key: "SYX_HTTP_BASE")
+    if String.count(base) > 0 {
+        do {
+            let resp = Http.get(url: "\(base)/health")
+            print("ok")
+            print(resp.status)
+            print(resp.body)
+        } catch (e) {
+            print("UNEXPECTED")
+        }
     }
 }
-

@@ -1,8 +1,8 @@
 import Math
 
-import IO
+import System
 
-import Net
+import Networking
 
 func main() {
     let name = "SYX"
@@ -22,14 +22,14 @@ func main() {
         print(m)
     }
     let tempPath = "/tmp/syx_p0_demo.txt"
-    try {
+    do {
         File.write(tempPath, "demo content")
         let content = File.read(tempPath)
         print(content)
     } catch (fileErr) {
         print("file error")
     }
-    try {
+    do {
         let response = Http.get("https://httpbin.org/get")
         let json = response.json()
         print(json)

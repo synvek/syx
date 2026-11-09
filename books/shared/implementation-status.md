@@ -1,3 +1,5 @@
+> **SA 对齐期已退出（2026-11-09）：** [sa-exit](../../docs/adr/sa-exit.md) · census [sa-6-exit-census](../../docs/census/sa-6-exit-census.md)。现行用户 `import`：`System` / `Networking` / `Synchronization` / `Logging` / `Numerics` / …（见 `packages/internal/manifest.json`）。**禁止**宣称官方模块名 `Foundation`。下文大量历史窗仍写旧 `Os`/`Net`/`IO` 叙事 = **冻结账本**，≠ 现行产品面。下一 = **post-SA Residual / 维护**。
+>
 > **最近更新：** 2026-09-16 — Wave A/B 轴收官；B-09 `[x]`（窄 GC GA / W558 / ADR-902）；HostFn 554；MIR distance 0；规划 SSOT 已精简见 `plan/01`+`plan/02`；后续优先 Wave F 卫生。  
 > **历史窗日志：** 详见 [`plan/archive/02-improvement-roadmap-pre-w559-ledger.md`](../../plan/archive/02-improvement-roadmap-pre-w559-ledger.md)（冻结）。
 > **最近更新：** 2026-09-16 · W542 / ADR-886 B-09 ObjectRef RC migrate-readiness post-peel refresh thin；HostFn **554**；Wave B 轴 **B-01～B-08 `[x]`** + B-09 **`[~]`**；post-peel migrate-readiness refresh **met**（≠ migrate flip ≠ MirOp/VM peel ≠ enable ≠ B-09 `[x]`）；生产 native 无 MIR blob/sidecar（距离 **0**）
@@ -194,7 +196,7 @@
 
 ### Truth M2 W1 Error TCP facade（ADR-145 · 已交）
 
-- **NetworkError** + `TcpStream.connect` / `TcpSocket.connect` **`throws`**（签名：`-> TcpStream throws`）
+- **NetworkError** + `TcpStream.connect` / `TcpSocket.connect` **`throws`**（签名：`throws -> TcpStream`）
 - **禁** connect 失败返回 `status="fail"` 成功形对象
 - **VM：** 跨调用 throw 展开（call-depth-aware try handlers）— 嵌套 `throws` 可到达调用方 `catch`
 - **EC-M2-2：** **partial**（connect 首钉；host read/write `tcp-*-fail` 字符串仍债 → W2）
@@ -275,7 +277,7 @@
 
 ### Truth M2 W9 FileHandle.readAllBytes IOError（ADR-153 · 已交）
 
-- **Facade：** `readAllBytes(handle) -> Array<UInt8> throws` → `IOError(code: 6, …)`
+- **Facade：** `readAllBytes(handle) throws -> Array<UInt8>` → `IOError(code: 6, …)`
 - **Registry：** `FileHandle.readAllBytes` → `host: None`（防御性，防 CallHost 直绑）
 - **Host：** 未改（已 fail-closed Err）；真 mmap 仍属 M2-S3-04
 - **EC-M2-2：** 仍 **partial**（RAII / mmap / S4 深模型 / Sql bind 仍债）——**不**宣称 M2 退出
@@ -285,7 +287,7 @@
 
 ### Truth M2 W10 Sql.bindStep SqlError（ADR-154 · 已交）
 
-- **Facade：** `bindStep(sql, value) -> Int throws` → `SqlError(code: 2, …)`
+- **Facade：** `bindStep(sql, value) throws -> Int` → `SqlError(code: 2, …)`
 - **Registry：** `Sql.prepare` / `Sql.bindStep` → `host: None`（防御性）
 - **Host：** 未改（`host_sql_bind_step` 已 fail-closed Err）
 - **EC-M2-2：** 仍 **partial**（exec/query / Transaction / S4 / RAII 仍债）——**不**宣称 M2 退出
@@ -364,7 +366,7 @@
 
 ### Truth M2 W18 Sql.prepareOn（ADR-162 · 已交）
 
-- **Facade：** `Sql.prepareOn(connId, sql) -> Int throws`（code 12）
+- **Facade：** `Sql.prepareOn(connId, sql) throws -> Int`（code 12）
 - **Host：** `with_conn_id` + `conn.prepare`；`PREPARED_SQL` 仍全局文本缓存（不绑 conn）
 - **Registry：** `prepareOn` → `host: None`
 - **inventory：** +prepareOn；Remaining = bindStepOn/txn/ORM 穿线、pool、stmt-conn 绑定
@@ -374,7 +376,7 @@
 
 ### Truth M2 W19 Sql.bindStepOn（ADR-163 · 已交）
 
-- **Facade：** `Sql.bindStepOn(connId, sql, value) -> Int throws`（code 13）
+- **Facade：** `Sql.bindStepOn(connId, sql, value) throws -> Int`（code 13）
 - **Host：** `with_conn_id` + `conn.execute(sql, params![value])`；不读 `PREPARED_SQL`
 - **Registry：** `bindStepOn` → `host: None`；legacy `bindStep` 仍 conn 0
 - **inventory：** +bindStepOn；Remaining = stmt-conn 绑定、txn/ORM 穿线、pool
@@ -384,7 +386,7 @@
 
 ### Truth M2 W20 Sql.bindPreparedOn（ADR-164 · 已交）
 
-- **Facade：** `Sql.bindPreparedOn(connId, stmtId, value) -> Int throws`（code 14）
+- **Facade：** `Sql.bindPreparedOn(connId, stmtId, value) throws -> Int`（code 14）
 - **Host：** `PREPARED_SQL` 存 `(connId, sql)`；lookup + conn 校验 + `execute`；`bindStep`/`bindStepOn` 不变
 - **Registry：** `bindPreparedOn` → `host: None`
 - **inventory：** +bindPreparedOn；Remaining = txn/ORM 穿线、pool
@@ -404,7 +406,7 @@
 
 ### Truth M2 W22 Orm.saveOn（ADR-166 · 已交）
 
-- **Facade：** `saveOn(connId, table, record) -> Bool throws`（OrmError code 1）
+- **Facade：** `saveOn(connId, table, record) throws -> Bool`（OrmError code 1）
 - **Host：** `with_conn_id` + CREATE IF NOT EXISTS + INSERT；fail-closed；legacy `save` 仍 Bool/conn 0
 - **inventory：** +Orm.saveOn；Remaining = findWhereOn 等、pool；**M2-S8-04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -413,7 +415,7 @@
 
 ### Truth M2 W23 Orm.findWhereOn（ADR-167 · 已交）
 
-- **Facade：** `findWhereOn(connId, table, col, val) -> Array throws`（OrmError code 2）
+- **Facade：** `findWhereOn(connId, table, col, val) throws -> Array`（OrmError code 2）
 - **Host：** `with_conn_id` + 参数化 `SELECT … WHERE col = ?`；legacy `findWhere` 仍 Array/conn 0
 - **inventory：** +findWhereOn；Remaining = updateWhereOn/deleteWhereOn、pool；**M2-S8-04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -422,7 +424,7 @@
 
 ### Truth M2 W24 Orm.updateWhereOn（ADR-168 · 已交）
 
-- **Facade：** `updateWhereOn(connId, table, col, val, newCol, newVal) -> Int throws`（OrmError code 3）
+- **Facade：** `updateWhereOn(connId, table, col, val, newCol, newVal) throws -> Int`（OrmError code 3）
 - **Host：** `with_conn_id` + 参数化 UPDATE WHERE；fail-closed；legacy `updateWhere` 仍 Int/conn 0/`unwrap_or(0)`
 - **inventory：** +updateWhereOn；Remaining = deleteWhereOn、pool；**M2-S8-04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -431,7 +433,7 @@
 
 ### Truth M2 W25 Orm.deleteWhereOn（ADR-169 · 已交）
 
-- **Facade：** `deleteWhereOn(connId, table, col, val) -> Int throws`（OrmError code 4）
+- **Facade：** `deleteWhereOn(connId, table, col, val) throws -> Int`（OrmError code 4）
 - **Host：** `with_conn_id` + 参数化 DELETE WHERE；fail-closed；legacy `deleteWhere` 仍 Int/conn 0/`unwrap_or(0)`
 - **inventory：** +deleteWhereOn；Remaining = pool（+ os.sentinel memory*）；**M2-S8-04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -440,7 +442,7 @@
 
 ### Truth M2 W26 Os.memoryTotal（ADR-170 · 已交）
 
-- **Facade：** `Os.memoryTotal() -> Int throws`（OsError code 7）
+- **Facade：** `Os.memoryTotal() throws -> Int`（OsError code 7）
 - **Host：** `SYX_OS_MEMORY_TOTAL_FORCE_ERR` 注入钩；fail-closed（无 `-1`）；registry `host: None`
 - **inventory：** +memoryTotal；Remaining = memoryAvailable/uptime/load、pool；**M2-S8-03/04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -449,7 +451,7 @@
 
 ### Truth M2 W27 Os.memoryAvailable（ADR-171 · 已交）
 
-- **Facade：** `Os.memoryAvailable() -> Int throws`（OsError code 8）
+- **Facade：** `Os.memoryAvailable() throws -> Int`（OsError code 8）
 - **Host：** `SYX_OS_MEMORY_AVAILABLE_FORCE_ERR` 注入钩；fail-closed（无 `-1`）；registry `host: None`
 - **inventory：** +memoryAvailable；Remaining = uptimeMs/loadAverage、pool；**M2-S8-03/04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -458,7 +460,7 @@
 
 ### Truth M2 W28 Os.uptimeMs（ADR-172 · 已交）
 
-- **Facade：** `Os.uptimeMs() -> Int throws`（OsError code 9）
+- **Facade：** `Os.uptimeMs() throws -> Int`（OsError code 9）
 - **Host：** `SYX_OS_UPTIME_MS_FORCE_ERR` 注入钩；fail-closed（无 `-1`）；registry `host: None`
 - **inventory：** +uptimeMs；Remaining = loadAverage、pool；**M2-S8-03/04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -467,7 +469,7 @@
 
 ### Truth M2 W29 Os.loadAverage（ADR-173 · 已交）
 
-- **Facade：** `Os.loadAverage() -> Int throws`（OsError code 10）
+- **Facade：** `Os.loadAverage() throws -> Int`（OsError code 10）
 - **Host：** `SYX_OS_LOAD_AVERAGE_FORCE_ERR` 注入钩；fail-closed（无 `-1`）；registry `host: None`
 - **inventory：** +loadAverage；os.sentinel Int/empty 公开哨兵已清；Remaining = pool / S4 / RAII；**M2-S8-03/04 仍开**
 - **EC-M2-2：** 保持 **`[x]` 切片**；**不**宣称 M2 退出
@@ -494,7 +496,7 @@
 
 ### Truth M2 W32 EC-M2-1 sql-service slice（ADR-176 · 已交）
 
-- **Surface：** `import Sql`（[`packages/data/sql.sy`](../../packages/data/sql.sy)）
+- **Surface：** `import SQL`（[`packages/data/sql.sy`](../../packages/data/sql.sy)）
 - **Example：** `examples/sql_tool` — `:memory:` `open` / `execOn` / `queryOn` / `close`（`throws` `SqlError`）
 - **钉测：** `ec_m2_1_sql_service`（CRUD + invalid close）+ CI；无裸 `__syx_sql_*`
 - **EC-M2-1：** 总勾仍 `[ ]`；roadmap footnote **SQLite 服务切片 `[x]`**；仍开：HTTP 基础 server、Path 深契约等
@@ -4871,14 +4873,14 @@
 
 ### Wave A W144 正确性地板加深（ADR-488 · 已交）
 
-- **主轴：** A-03 parity/stdlib fixture 扩展 `run_file_printed` product exact（`channel_send.sy` → `84`，`datetime_iso.sy` → `1000`；parity/stdlib **12/14**）· A-05 矩阵指纹加深（`qs1-platform-gate-v0:parity-fixture-channel-datetime`；无新 HostFn 行）· A-02 **本窗跳过** · **无 runtime/registry/vm 变更**（`datetime_iso.sy` 补 `import DateTime`）
+- **主轴：** A-03 parity/stdlib fixture 扩展 `run_file_printed` product exact（`channel_send.sy` → `84`，`datetime_iso.sy` → `1000`；parity/stdlib **12/14**）· A-05 矩阵指纹加深（`qs1-platform-gate-v0:parity-fixture-channel-datetime`；无新 HostFn 行）· A-02 **本窗跳过** · **无 runtime/registry/vm 变更**（`datetime_iso.sy` 补 `import System`）
 - **证据：** `driver_gate.rs`（parity exact 钉新建）· `hostfn_qs1_matrix.toml` · `ga-evidence-audit.md` W144
 - **非目标：** `driver_gate.rs` `lib.rs contains` 海量改写 · Native/WASM GA inventory 深化 · `parity_gate_files_exist` runtime exists 钉 · parity/stdlib 末 2 fixture · HttpBodyStream close Display（否决）· Display 新钉 · A-02/SSA · capability · without_close · http_server 动态 port · Codable · SqlRow/Orm 新钉 · wasm / llvm qs1 钉改动 · Wave B
 - **下一窗：** Wave A W145（ADR-489）→ **已交**
 
 ### Wave A W143 正确性地板加深（ADR-487 · 已交）
 
-- **主轴：** A-03 parity/stdlib fixture 扩展 `run_file_printed` product exact（`array_sort.sy` → `1`/`2`/`3`，`mutex_lock.sy` → `locked`/`unlocked`；parity/stdlib **10/14**）· A-05 矩阵指纹加深（`qs1-platform-gate-v0:parity-fixture-array-sync`；无新 HostFn 行）· A-02 **本窗跳过** · **无 runtime/registry/vm 变更**（parser soft-keyword `select`/`timeout` + `sync/mod.sy` `__syx_value_compare` 使 `import Sync` 可编译）
+- **主轴：** A-03 parity/stdlib fixture 扩展 `run_file_printed` product exact（`array_sort.sy` → `1`/`2`/`3`，`mutex_lock.sy` → `locked`/`unlocked`；parity/stdlib **10/14**）· A-05 矩阵指纹加深（`qs1-platform-gate-v0:parity-fixture-array-sync`；无新 HostFn 行）· A-02 **本窗跳过** · **无 runtime/registry/vm 变更**（parser soft-keyword `select`/`timeout` + `sync/mod.sy` `__syx_value_compare` 使 `import Synchronization` 可编译）
 - **证据：** `driver_gate.rs`（parity exact 钉新建）· `hostfn_qs1_matrix.toml` · `ga-evidence-audit.md` W143
 - **非目标：** `driver_gate.rs` `lib.rs contains` 海量改写 · Native/WASM GA inventory 深化 · `parity_gate_files_exist` runtime exists 钉 · parity/stdlib 其余 4 fixture · HttpBodyStream close Display（否决）· Display 新钉 · A-02/SSA · capability · without_close · http_server 动态 port · Codable · SqlRow/Orm 新钉 · wasm / llvm qs1 钉改动 · Wave B
 - **下一窗：** Wave A W144（ADR-488）→ **已交**

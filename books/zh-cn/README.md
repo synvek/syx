@@ -6,7 +6,7 @@
 |------|------|------|
 | **SYX 语言指南** | [language-guide/](language-guide/) | 叙事式教程，从入门到高级特性，含完整范例与 Swift 差异 |
 | **SYX 语言参考** | [language-reference/](language-reference/) | 词法、语法、类型、声明、模式、特性（Attributes）的形式化参考 |
-| **SYX 标准库指南** | [library-guide/](library-guide/) | 嵌入包用户面：`import Linalg` / `Os` / `Log` / `IO` 等；诚实边界与仓库范例 |
+| **SYX 标准库指南** | [library-guide/](library-guide/) | 嵌入包用户面：`import Numerics` / `Os` / `Log` / `IO` 等；诚实边界与仓库范例 |
 
 共享资源：[shared/implementation-status.md](../shared/implementation-status.md)——**当前**特性实现状态总表（SYX **117.0** / Phase **139**）。
 
@@ -81,7 +81,7 @@ pandoc books/zh-cn/language-reference/SUMMARY.md \
 | [`docs/adr/architecture-decisions.md`](../../docs/adr/architecture-decisions.md) | 架构决议 SSOT |
 | `plan/topics/hostfn-extension.md` | Runtime 扩展分层与维护者清单 |
 | `docs/1–5_*.md` | 编译器实现技术文档（按 1→2→3→4→5 顺序） |
-| `packages/README.md` | 嵌入标准库（`import Di` / `import Os` / `import UI` 等） |
+| `packages/README.md` | 嵌入标准库（`import DI` / `import System` / `import UI` 等） |
 
 ## 当前 Phase 139 能力摘要
 

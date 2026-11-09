@@ -1,4 +1,4 @@
-func fail(x: Int) -> Int throws {
+func fail(x: Int) throws -> Int {
     return x
 }
 

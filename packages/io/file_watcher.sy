@@ -3,29 +3,29 @@
 
 public class FileWatcher {
     /// Open a file watcher on `path` (throws).
-    public static func open(path: String) -> Int throws {
-        try {
-            return __syx_file_watcher_open(path)
+    public static func open(path: String) throws -> Int {
+        do {
+            return SyxHost.file_watcher_open(path)
         } catch (e) {
-            throw IOError(code: 10, message: "FileWatcher open failed")
+            throw SystemError.failed(code: 10, message: "FileWatcher open failed")
         }
     }
 
     /// Poll watcher events (throws).
-    public static func poll(handle: Int) -> Array<String> throws {
-        try {
-            return __syx_file_watcher_poll(handle)
+    public static func poll(handle: Int) throws -> Array<String> {
+        do {
+            return SyxHost.file_watcher_poll(handle)
         } catch (e) {
-            throw IOError(code: 11, message: "FileWatcher poll failed")
+            throw SystemError.failed(code: 11, message: "FileWatcher poll failed")
         }
     }
 
     /// Close the file watcher (throws).
     public static func close(handle: Int) throws {
-        try {
-            __syx_file_watcher_close(handle)
+        do {
+            SyxHost.file_watcher_close(handle)
         } catch (e) {
-            throw IOError(code: 12, message: "FileWatcher close failed")
+            throw SystemError.failed(code: 12, message: "FileWatcher close failed")
         }
     }
 }

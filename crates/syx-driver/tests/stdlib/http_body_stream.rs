@@ -67,8 +67,8 @@ fn run_err(src: &str) -> String {
     }
 }
 
-/// Embed does not auto-load `import Net`; prepend facades (W92 pattern).
-/// Wave A W174: include file_handle.sy for IOError (HttpBodyStream.close throws).
+/// Embed does not auto-load `import Networking`; prepend facades (W92 pattern).
+/// Wave A W174: include file_handle.sy for SystemError (HttpBodyStream.close throws).
 fn net_facade_src(body: &str) -> String {
     let parts = [
         include_str!("../../../../packages/io/file_handle.sy"),

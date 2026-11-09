@@ -424,7 +424,8 @@ pub fn retired_ops_module_names() -> &'static [&'static str] {
         "UInt8Ops", "UInt16Ops", "UInt32Ops", "UInt64Ops", "UInt128Ops",
         "IntOps", "UIntOps",
         "Float32Ops", "Float64Ops", "FloatOps", "DoubleOps",
-        "BoolOps", "CharacterOps", "Text", "Arrays",
+        // SA-0-03: do not retire live import Text — remove legacy Text ops name clash.
+        "BoolOps", "CharacterOps", "Arrays",
     ]
 }
 

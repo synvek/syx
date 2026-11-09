@@ -151,7 +151,7 @@ async func parallel() -> Int {
 ## throws Functions
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
@@ -167,14 +167,14 @@ func loadFile(path: String) throws -> String {
 | `throws T` | Throws type `T` (typed throws **Partially implemented**) |
 | `throw expr` | Throws inside a `throws` function |
 | `try expr` | Calls a `throws` expression |
-| `try { } catch { }` | Block-level catching |
+| `do { } catch { }` | Block-level catching |
 | `try?` | Returns `nil` on error or propagates |
 | `try!` | Forced (panics on error) |
 
 Calling:
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
@@ -188,7 +188,7 @@ func main() {
     let s2 = try? loadFile(path: "/tmp/x")      // String? (nil means error)
     let s3 = try! loadFile(path: "/tmp/x")      // String (panics on error)
 
-    try {
+    do {
         let t = loadFile(path: "/tmp/x")
         print(t)
     } catch (err) {
@@ -204,7 +204,7 @@ See [Chapter 17, Error Handling](17-error-handling.md).
 Mark a function as "pure" (no side effects) or "IO":
 
 ```syx
-import IO
+import System
 
 func pure(x: Int) -> Int requires Pure {
     return x + 1

@@ -1,6 +1,6 @@
-import IO
-import Log
-import DateTime
+import System
+import Logging
+import JSON
 
 var RELOAD_PATH: String = ""
 var RELOAD_LAST_MTIME: Int = 0

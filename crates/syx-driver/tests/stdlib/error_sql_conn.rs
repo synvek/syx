@@ -33,7 +33,7 @@ fn m2_error_sql_close_invalid_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.close(connId: 999999)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -346,7 +346,7 @@ fn m2_error_sql_two_memory_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
@@ -382,13 +382,13 @@ fn m2_error_sql_prepare_on_schema_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
     let id = Sql.prepareOn(connId: a, sql: "INSERT INTO t (v) VALUES (?)")
     print("ok")
-    try {
+    do {
       let bad = Sql.prepareOn(connId: b, sql: "INSERT INTO t (v) VALUES (?)")
       print("UNEXPECTED_OK")
       print(bad)
@@ -415,9 +415,9 @@ fn m2_error_sql_prepare_on_invalid_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
-    try {
+    do {
       let id = Sql.prepareOn(connId: a, sql: "INSERT INTO nosuch_m2_w18 (v) VALUES (?)")
       print("UNEXPECTED_OK")
       print(id)
@@ -440,14 +440,14 @@ fn m2_error_sql_bind_step_on_schema_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
     let n = Sql.bindStepOn(connId: a, sql: "INSERT INTO t (v) VALUES (?)", value: "x")
     print("ok")
     print(n)
-    try {
+    do {
       let bad = Sql.bindStepOn(connId: b, sql: "INSERT INTO t (v) VALUES (?)", value: "y")
       print("UNEXPECTED_OK")
       print(bad)
@@ -474,7 +474,7 @@ fn m2_error_sql_bind_step_on_write_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
@@ -512,13 +512,13 @@ fn m2_error_sql_bind_prepared_on_conn_mismatch() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
     let stmtId = Sql.prepareOn(connId: a, sql: "INSERT INTO t (v) VALUES (?)")
     print("ok")
-    try {
+    do {
       let bad = Sql.bindPreparedOn(connId: b, stmtId: stmtId, value: "x")
       print("UNEXPECTED_OK")
       print(bad)
@@ -565,7 +565,7 @@ fn m2_error_sql_bind_prepared_on_positive() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
@@ -598,7 +598,7 @@ fn m2_error_sql_txn_on_commit_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
@@ -631,7 +631,7 @@ fn m2_error_sql_txn_on_rollback() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     Sql.execOn(connId: a, sql: "CREATE TABLE t (v TEXT)")
     Sql.beginTransactionOn(connId: a)
@@ -656,16 +656,16 @@ fn m2_error_sql_txn_on_nested_begin_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     Sql.beginTransactionOn(connId: a)
-    try {
+    do {
       Sql.beginTransactionOn(connId: a)
       print("UNEXPECTED_OK")
     } catch (e2) {
       print("caught")
     }
-    try {
+    do {
       Sql.rollbackTransactionOn(connId: a)
     } catch (e3) {
     }

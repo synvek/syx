@@ -104,7 +104,7 @@ enum WireStatus {
 | `@Before` / `@After`（无字符串） | **MVP** — 同 `@Around` 作用域；声明序自包装 |
 
 ```syx
-import Di
+import DI
 
 @Qualifier("fast")
 @Service

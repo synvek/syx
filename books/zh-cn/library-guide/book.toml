@@ -1,6 +1,6 @@
 [book]
 title = "SYX 标准库指南"
-description = "嵌入包（import Linalg / Os / Log / IO …）的用户面指南"
+description = "嵌入包（import Numerics / System / Logging / Networking …）的用户面指南"
 authors = ["SYX 核心团队"]
 language = "zh"
 src = "."

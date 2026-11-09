@@ -88,8 +88,8 @@ func main() {
   print("SHORT_JOINED")
   __syx_task_cancel(longA)
   __syx_task_cancel(longB)
-  try { __syx_task_join(longA) } catch (e1) { print("A_CANCELLED") }
-  try { __syx_task_join(longB) } catch (e2) { print("B_CANCELLED") }
+  do { __syx_task_join(longA) } catch (e1) { print("A_CANCELLED") }
+  do { __syx_task_join(longB) } catch (e2) { print("B_CANCELLED") }
 }
 "#;
     let started = Instant::now();

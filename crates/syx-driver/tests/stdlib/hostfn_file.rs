@@ -53,7 +53,7 @@ fn hostfn_file_open_missing_io_err() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let h = FileHandle.open(path: "/tmp/syx_qs1_no_such_file_wave_a_w1.bin", mode: "r")
     print("UNEXPECTED_OK")
     print(h)
@@ -68,12 +68,12 @@ func main() {
     assert_eq!(out[0], "caught");
     assert!(
         out.len() >= 2 && !out[1].is_empty(),
-        "IOError code expected: {out:?}"
+        "SystemError code expected: {out:?}"
     );
 }
 
 /// Wave A W9 / ADR-353 / A-05 — FileOpen llvm cell (native CallHost try/catch).
-/// Wave A W127 / ADR-471 / A-03: IOError.code ObjectGet native llvm exact.
+/// Wave A W127 / ADR-471 / A-03: SystemError.code ObjectGet native llvm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_file_open_missing_native_llvm() {
@@ -82,7 +82,7 @@ fn hostfn_file_open_missing_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let h = FileHandle.open(path: "/tmp/syx_qs1_no_such_file_wave_a_w1.bin", mode: "r")
     print("UNEXPECTED_OK")
     print(h)
@@ -125,7 +125,7 @@ func main() {
 }
 
 /// Wave A W18 / ADR-362 / A-05 — FileOpen wasm cell (AOT CallHost try/catch).
-/// Wave A W128 / ADR-472 / A-03: IOError.code ObjectGet wasm exact.
+/// Wave A W128 / ADR-472 / A-03: SystemError.code ObjectGet wasm exact.
 #[test]
 fn hostfn_file_open_missing_wasm() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -134,7 +134,7 @@ fn hostfn_file_open_missing_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let h = FileHandle.open(path: "/tmp/syx_qs1_no_such_file_wave_a_w1.bin", mode: "r")
     print("UNEXPECTED_OK")
     print(h)
@@ -175,7 +175,7 @@ fn hostfn_file_close_bad_handle_param_err() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     FileHandle.close(handle: 999999001)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -190,7 +190,7 @@ func main() {
 }
 
 /// Wave A W6 / ADR-350 / A-05 — FileClose llvm first cell (native CallHost try/catch).
-/// Exact catch marker matches embed nail's asserted first line. IOError.code ObjectGet on
+/// Exact catch marker matches embed nail's asserted first line. SystemError.code ObjectGet on
 /// llvm remains deepen (native data-class fields still nil) — not claimed here.
 #[cfg(unix)]
 #[test]
@@ -200,7 +200,7 @@ fn hostfn_file_close_bad_handle_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     FileHandle.close(handle: 999999001)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -250,7 +250,7 @@ fn hostfn_file_close_bad_handle_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     FileHandle.close(handle: 999999001)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -289,7 +289,7 @@ fn hostfn_file_read_bad_handle_io_err() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = FileHandle.read(handle: 999999002, maxBytes: 8)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -304,7 +304,7 @@ func main() {
 }
 
 /// Wave A W7 / ADR-351 / A-05 — FileRead llvm cell (native CallHost try/catch).
-/// Exact catch marker only — IOError.code ObjectGet on llvm remains deepen (W10+).
+/// Exact catch marker only — SystemError.code ObjectGet on llvm remains deepen (W10+).
 #[cfg(unix)]
 #[test]
 fn hostfn_file_read_bad_handle_native_llvm() {
@@ -313,7 +313,7 @@ fn hostfn_file_read_bad_handle_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = FileHandle.read(handle: 999999002, maxBytes: 8)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -363,7 +363,7 @@ fn hostfn_file_read_bad_handle_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = FileHandle.read(handle: 999999002, maxBytes: 8)
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -407,7 +407,7 @@ fn hostfn_file_write_bad_handle_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = FileHandle.write(handle: 999999003, bytes: [1u8])
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -446,7 +446,7 @@ fn hostfn_file_write_bad_handle_io_err() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = FileHandle.write(handle: 999999003, bytes: [1u8])
     print("UNEXPECTED_OK")
   } catch (err) {
@@ -461,7 +461,7 @@ func main() {
 }
 
 /// Wave A W8 / ADR-352 / A-05 — FileWrite llvm cell (native CallHost try/catch).
-/// Exact catch marker only — IOError.code ObjectGet on llvm remains deepen (W10+).
+/// Exact catch marker only — SystemError.code ObjectGet on llvm remains deepen (W10+).
 #[cfg(unix)]
 #[test]
 fn hostfn_file_write_bad_handle_native_llvm() {
@@ -470,7 +470,7 @@ fn hostfn_file_write_bad_handle_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = FileHandle.write(handle: 999999003, bytes: [1u8])
     print("UNEXPECTED_OK")
   } catch (err) {

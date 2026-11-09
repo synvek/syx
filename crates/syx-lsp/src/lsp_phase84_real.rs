@@ -36,21 +36,21 @@ fn p84_import_text_regex_compile_parse() {
 #[test]
 fn p84_import_io_file_watch_parse() {
     assert!(p84_doc_ok(
-        "import IO\nfunc main() { print(File.watch(\"/tmp\").count) }"
+        "import System\nfunc main() { print(File.watch(\"/tmp\").count) }"
     ));
 }
 
 #[test]
 fn p84_import_process_spawn_wait_parse() {
     assert!(p84_doc_ok(
-        "import Process\nfunc main() { let h = Process.spawn(\"/bin/true\", []); print(Process.wait(h)) }"
+        "import System\nfunc main() { let h = Process.spawn(\"/bin/true\", []); print(Process.wait(h)) }"
     ));
 }
 
 #[test]
 fn p84_import_process_exec_output_parse() {
     assert!(p84_doc_ok(
-        "import Process\nfunc main() { print(Process.execOutput(\"/bin/echo\", [\"p84\"])) }"
+        "import System\nfunc main() { print(Process.execOutput(\"/bin/echo\", [\"p84\"])) }"
     ));
 }
 
@@ -64,14 +64,14 @@ fn p84_import_testing_test_parse() {
 #[test]
 fn p84_import_sync_channel_close_parse() {
     assert!(p84_doc_ok(
-        "import Sync\nfunc main() { let ch = Channel.create(1); ch.close(); print(1) }"
+        "import Synchronization\nfunc main() { let ch = Channel.create(1); ch.close(); print(1) }"
     ));
 }
 
 #[test]
 fn p84_import_datetime_format_with_timezone_parse() {
     assert!(p84_doc_ok(
-        "import DateTime\nfunc main() { print(DateTime.formatWithTimezone(0, \"iso\", \"UTC\")) }"
+        "import System\nfunc main() { print(DateTime.formatWithTimezone(0, \"iso\", \"UTC\")) }"
     ));
 }
 
@@ -92,7 +92,7 @@ fn p84_grapheme_emoji_char_at_parse() {
 #[test]
 fn p84_import_sync_mutex_parse() {
     assert!(p84_doc_ok(
-        "import Sync\nfunc main() { let m = Mutex.create(); Mutex.lock(m); Mutex.unlock(m) }"
+        "import Synchronization\nfunc main() { let m = Mutex.create(); Mutex.lock(m); Mutex.unlock(m) }"
     ));
 }
 
@@ -106,19 +106,19 @@ fn p84_import_text_encoding_parse() {
 #[test]
 fn p84_import_sync_channel_send_parse() {
     assert!(p84_doc_ok(
-        "import Sync\nfunc main() { let ch = Channel.create(2); ch.send(84); print(ch.recv()) }"
+        "import Synchronization\nfunc main() { let ch = Channel.create(2); ch.send(84); print(ch.recv()) }"
     ));
 }
 
 #[test]
 fn p84_prelude_fmt_parse() {
-    assert!(p84_doc_ok("func main() { Fmt.printLine(Fmt.format(\"p84-{0}\", [84])) }"));
+    assert!(p84_doc_ok("import Fmt\nfunc main() { Fmt.printLine(Fmt.format(\"p84-{0}\", [84])) }"));
 }
 
 #[test]
 fn p84_tcp_socket_write_parse() {
     assert!(p84_doc_ok(
-        "import Net\nfunc main() { print(TcpSocket.write(\"data\")) }"
+        "import Networking\nfunc main() { print(TcpSocket.write(\"data\")) }"
     ));
 }
 
@@ -146,10 +146,10 @@ fn p84_class_init_parse() {
 
 #[test]
 fn p84_import_log_parse() {
-    assert!(p84_doc_ok("import Log\nfunc main() { Log.info(\"p84\") }"));
+    assert!(p84_doc_ok("import Logging\nfunc main() { Log.info(\"p84\") }"));
 }
 
 #[test]
 fn p84_import_net_http_parse() {
-    assert!(p84_doc_ok("import Net\nfunc main() { print(Http.get(\"http://example.com\")) }"));
+    assert!(p84_doc_ok("import Networking\nfunc main() { print(Http.get(\"http://example.com\")) }"));
 }

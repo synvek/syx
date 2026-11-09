@@ -44,7 +44,7 @@ syx test .
 | `@TestTeardown` | 该文件内所有用例之后，一次 |
 
 ```syx
-import Log
+import Logging
 import Testing
 
 @TestSetup

@@ -15,7 +15,7 @@ Syntax and standard-library cheat sheet for **`.sy` source authors**. Aligned wi
 5. [Modules](#modules)
 6. [Strings](#strings)
 7. [Arrays](#arrays)
-8. [Error handling try/catch](#error-handling-trycatch)
+8. [Error handling do/catch](#error-handling-docatch)
 9. [Optional null safety](#optional-null-safety)
 10. [Data class](#data-class)
 11. [Extension](#extension)
@@ -62,7 +62,7 @@ Unsuffixed integer literals default to platform **`Int`**. Explicit suffixes (e.
 
 **Type annotations:** `let x: Int = 10`, `let m: [String: Int] = ["a": 1]`, `let s: Set<Int> = [1, 2, 3]`
 
-> **Note:** SYX uses the `func` keyword and built-in `print()`; it is **not** a fully Swift-compatible `func`/`print` subset. `class` / `struct` / `protocol` parse, but runtime support is limited; prefer `data class` + `extension` for day-to-day code.
+> **Note:** SYX uses the `func` keyword and built-in `print()`. Prefer `struct` / `class` / `enum` (+ `extension`). `public data class` is removed (SA-2-04); non-public residual is for fixtures/`@Codable` only.
 
 ---
 
@@ -250,13 +250,13 @@ let line = readLine()
 
 ---
 
-## Error handling try/catch
+## Error handling do/catch
 
-SYX uses **`try { } catch (name) { }`**, not Swift `do-catch` / `throws`.
+SYX uses Swift-shaped **`do { } catch`** (SA-2-01). Expression `try` / `try?` / `try!` call `throws` functions. Signatures use **`throws -> T`**.
 
 ```syx
 // statement block
-try {
+do {
     File.write("/tmp/x.txt", "data")
     let content = File.read("/tmp/x.txt")
     print(content)
@@ -264,7 +264,7 @@ try {
     print("failed")
 }
 
-// expression-level try (failure → runtime error path)
+// expression-level try
 let text = try File.read(path)
 ```
 
@@ -325,24 +325,27 @@ Using `==` on types that are not `Equatable` → **S016**.
 
 ---
 
-## Data Class
+## Struct (data carrier)
 
 ```syx
-data class Point(x: Int, y: Int)
+struct Point {
+    var x: Int
+    var y: Int
+}
 
 func main() {
-    let p = Point(3, 4)
+    let p = Point(x: 3, y: 4)
     print(p.x)
-    print(p.description())   // "Point(x: 3, y: 4)"
 }
 ```
 
+> **SA-2-04:** `public data class` is rejected. Use `struct` / `class` / `enum …: Error`.
+
 | Capability | Status |
 |------|------|
-| Construct `Type(a, b)` | ✅ |
+| Construct `Type(x:a, y:b)` | ✅ |
 | Field access `p.x` | ✅ |
-| `.description()` | ✅ |
-| Auto `copy` / `==` / `hash(into:)` | ✅ Compiler-synthesized (`{Type}_copy` / structural eq / `hash(into:)`) |
+| Caseless `enum` namespace + `static var` | ✅ SA-2-03 |
 
 ---
 
@@ -511,7 +514,7 @@ Client uses `reqwest` (blocking + rustls) with HTTPS. See [11_NetworkStdlib.md](
 ```syx
 import HTTP
 
-try {
+do {
     let resp = HTTP.fetch("https://httpbin.org/get", { "timeout_ms": 10000 })
     if resp.ok() {
         print(resp.json())
@@ -704,13 +707,13 @@ syx repl
 
 | Swift | SYX |
 |-------|-----|
-| `do { try } catch` | `try { } catch (err) { }` |
-| `if cond {` | `if (cond) {` |
-| `struct` as data carrier | `data class Name(f: T)` |
+| `do { try } catch` | `do { try … } catch { }` (SA-2-01) |
+| `if cond {` | `if (cond) {` (parens optional in many forms) |
+| `struct` as data carrier | `struct` / `class` (`public data class` removed) |
 | `import Module` | `import Math` (PascalCase embedded stdlib module names) |
 | `print(_:separator:)` | `print(expr)` |
 | `@main` | `func main()` |
-| `throws` functions | Host errors + try/catch |
+| `throws -> T` | `throws -> T` (SA-2-05) |
 
 ---
 

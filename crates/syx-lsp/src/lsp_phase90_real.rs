@@ -51,7 +51,7 @@ fn p90_as_optional_cast_parse() {
 #[test]
 fn p90_import_net_http_fetch_parse() {
     assert!(p90_doc_ok(
-        "import Net\nfunc main() { print(Http.fetch(\"http://example.com\", {})) }"
+        "import Networking\nfunc main() { print(Http.fetch(\"http://example.com\", {})) }"
     ));
 }
 
@@ -72,13 +72,13 @@ fn p90_import_testing_test_parse() {
 #[test]
 fn p90_import_sync_mutex_parse() {
     assert!(p90_doc_ok(
-        "import Sync\nfunc main() { let m = Mutex.create(); Mutex.lock(m); Mutex.unlock(m) }"
+        "import Synchronization\nfunc main() { let m = Mutex.create(); Mutex.lock(m); Mutex.unlock(m) }"
     ));
 }
 
 #[test]
 fn p90_import_io_file_watch_parse() {
-    assert!(p90_doc_ok("import IO\nfunc main() { print(File.watch(\"/tmp\")) }"));
+    assert!(p90_doc_ok("import System\nfunc main() { print(File.watch(\"/tmp\")) }"));
 }
 
 #[test]
@@ -105,7 +105,7 @@ fn p90_codable_struct_parse() {
 #[test]
 fn p90_select_channel_parse() {
     assert!(p90_doc_ok(
-        "import Sync\nfunc main() { let ch = Channel.create(1); ch.send(87); print(ch.recv()) }"
+        "import Synchronization\nfunc main() { let ch = Channel.create(1); ch.send(87); print(ch.recv()) }"
     ));
 }
 
@@ -117,7 +117,7 @@ fn p90_async_fn_parse() {
 #[test]
 fn p90_select_async_parse() {
     assert!(p90_doc_ok(
-        "import Sync\nasync func worker() -> Int { return 87 }\nfunc main() { let ch = Channel.create(1); ch.send(87); print(ch.recv()) }"
+        "import Synchronization\nasync func worker() -> Int { return 87 }\nfunc main() { let ch = Channel.create(1); ch.send(87); print(ch.recv()) }"
     ));
 }
 

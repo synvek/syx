@@ -176,7 +176,7 @@ data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
 func main() {
-  try {
+  do {
     let s = "{\"name\":\"ada\"}"
     let back = __syx_json_decoder_decode(s, "User")
     print("UNEXPECTED_OK")

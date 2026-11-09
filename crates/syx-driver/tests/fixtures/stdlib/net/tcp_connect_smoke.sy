@@ -1,4 +1,4 @@
-import Net
+import Networking
 
 func main() {
     let status = TcpSocket.connect("127.0.0.1", 9)

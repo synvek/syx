@@ -1,28 +1,33 @@
 /// ADR-239 / M2-S4-04: client response body chunked-read session.
 /// ≠ server streaming; ≠ wire Transfer-Encoding product API; ≠ File S3-03; ≠ JSONStream.
+
+public enum NetworkError: Error {
+    case failed(code: Int, message: String)
+}
+
 public class HttpBodyStream {
     /// Returns Object bag: `handle` (Int), `status` (Int). Body is not buffered.
     /// Default GET; empty options (embed `{}` is Hashable-fragile — use url-only open).
     public static func open(url: String) -> Object {
-        return __syx_http_body_stream_open(url)
+        return SyxHost.http_body_stream_open(url)
     }
 
-    /// Same as open, with fetch-style options object (method/headers/timeout_ms/…).
-    public static func openWithOptions(url: String, options: Object) -> Object {
-        return __syx_http_body_stream_open_opts(url, options)
+    /// Same as open (SA-4-02: options bag removed from primary surface; use `open`).
+    public static func openWithOptions(url: String) -> Object {
+        return SyxHost.http_body_stream_open(url)
     }
 
     /// Read up to `maxBytes`; empty String means EOF.
     public static func readChunk(handle: Int, maxBytes: Int) -> String {
-        return __syx_http_body_stream_read_chunk(handle, maxBytes)
+        return SyxHost.http_body_stream_read_chunk(handle, maxBytes)
     }
 
     /// Close the body-stream session (throws).
     public static func close(handle: Int) throws {
-        try {
-            __syx_http_body_stream_close(handle)
+        do {
+            SyxHost.http_body_stream_close(handle)
         } catch (e) {
-            throw IOError(code: 2, message: "HttpBodyStream close failed")
+            throw NetworkError.failed(code: 2, message: "HttpBodyStream close failed")
         }
     }
 }

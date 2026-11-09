@@ -150,7 +150,7 @@ fn p138_token_rewrite_multi_token_decl() {
 #[test]
 fn p138_within_wildcard_boot_codegen_still_seals() {
     let src = r#"
-import Di
+import DI
 @Service
 class BillingService {
   init() {}

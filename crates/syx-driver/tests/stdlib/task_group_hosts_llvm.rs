@@ -47,7 +47,7 @@ func main() {
   __syx_task_group_cancel(g)
   __syx_task_group_wait(g)
   print("WAITED")
-  try {
+  do {
     __syx_task_join(t)
     print("JOIN_OK")
   } catch (err) {

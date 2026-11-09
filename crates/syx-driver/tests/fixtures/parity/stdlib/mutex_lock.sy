@@ -1,4 +1,4 @@
-import Sync
+import Synchronization
 
 func main() {
     let m = Mutex.create()

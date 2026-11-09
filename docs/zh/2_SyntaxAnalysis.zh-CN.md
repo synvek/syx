@@ -348,7 +348,7 @@ for item in collection {
 #### Try/Catch
 
 ```syx
-try {
+do {
     risky()
 } catch (e) {
     print(e)
@@ -604,7 +604,7 @@ fn is_print_call(expr: &Expr) -> bool {
 
 **表达式语句：** `<expr-stmt>` 后可跟可选 `;`。若 `<expr>` 为对标识符 `print` 的调用，降级为 `Stmt::Print`（见 §4.6）。
 
-**语句 vs 表达式 `try`：** 语句级 `try { } catch (id) { }` 由 `parse_try()` 解析；表达式级前缀 `try expr` 由 `parse_unary()` 解析为 `UnaryOp::Try`。
+**语句 vs 表达式 `try`：** 语句级 `do { } catch (id) { }` 由 `parse_try()` 解析；表达式级前缀 `try expr` 由 `parse_unary()` 解析为 `UnaryOp::Try`。
 
 **`return` 与 `{`：** `check_expr_start()` 已含 `LBrace`，`return { "k": v }` 可正确解析（见 §11.4）。
 
@@ -880,7 +880,7 @@ async func main() -> Int requires IO {
         let name = users[key]?.name ?? "unknown"
         print(name)
     }
-    try {
+    do {
         risky()
     } catch (e) {
         print(e)

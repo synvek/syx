@@ -12,7 +12,7 @@ data class AppError(code: Int, message: String)
 
 // 1) try / catch structure (no throw, demonstrating that the block runs)
 func tryCatchBlock() {
-    try {
+    do {
         let content = "fake-content"
         print(content)
     } catch (err) {

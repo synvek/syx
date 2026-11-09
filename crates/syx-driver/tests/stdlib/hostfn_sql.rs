@@ -24,7 +24,7 @@ fn hostfn_sql_close_invalid_fail_exact() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.close(connId: 999999)
     print("UNEXPECTED")
   } catch (err) {
@@ -43,7 +43,7 @@ fn hostfn_sql_open_memory_close_exact() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     print("opened")
     Sql.close(connId: c)
@@ -69,7 +69,7 @@ fn hostfn_sql_open_memory_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     print("opened")
     Sql.close(connId: c)
@@ -122,7 +122,7 @@ fn hostfn_sql_open_memory_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     print("opened")
     Sql.close(connId: c)
@@ -159,7 +159,7 @@ func main() {
 }
 
 /// Wave A W15 / ADR-359 / A-05 — SqlClose llvm cell (native CallHost try/catch).
-/// Wave A W132 / ADR-476 / A-03: IOError.code ObjectGet native llvm exact.
+/// Wave A W132 / ADR-476 / A-03: SystemError.code ObjectGet native llvm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_sql_close_invalid_native_llvm() {
@@ -168,7 +168,7 @@ fn hostfn_sql_close_invalid_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.close(connId: 999999)
     print("UNEXPECTED")
   } catch (err) {
@@ -210,7 +210,7 @@ func main() {
 }
 
 /// Wave A W28 / ADR-372 / A-05 — SqlClose wasm cell (AOT CallHost try/catch).
-/// Wave A W130 / ADR-474 / A-03: IOError.code ObjectGet wasm exact.
+/// Wave A W130 / ADR-474 / A-03: SystemError.code ObjectGet wasm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_sql_close_invalid_wasm() {
@@ -220,7 +220,7 @@ fn hostfn_sql_close_invalid_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.close(connId: 999999)
     print("UNEXPECTED")
   } catch (err) {

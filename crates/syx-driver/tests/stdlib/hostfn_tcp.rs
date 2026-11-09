@@ -86,7 +86,7 @@ fn hostfn_tcp_connect_refused_exact() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let s = TcpStream.connect(host: "127.0.0.1", port: 9)
     print("UNEXPECTED")
     print(s.handle)
@@ -102,7 +102,7 @@ func main() {
 }
 
 /// Wave A W11 / ADR-355 / A-05 — TcpConnect llvm cell (native CallHost try/catch).
-/// Wave A W131 / ADR-475 / A-03: IOError.code ObjectGet native llvm exact.
+/// Wave A W131 / ADR-475 / A-03: SystemError.code ObjectGet native llvm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_tcp_connect_refuse_native_llvm() {
@@ -111,7 +111,7 @@ fn hostfn_tcp_connect_refuse_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let s = TcpStream.connect(host: "127.0.0.1", port: 9)
     print("UNEXPECTED")
     print(s.handle)
@@ -154,7 +154,7 @@ func main() {
 }
 
 /// Wave A W23 / ADR-367 / A-05 — TcpConnect wasm cell (AOT CallHost try/catch).
-/// Wave A W129 / ADR-473 / A-03: IOError.code ObjectGet wasm exact.
+/// Wave A W129 / ADR-473 / A-03: SystemError.code ObjectGet wasm exact.
 #[test]
 fn hostfn_tcp_connect_refuse_wasm() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -163,7 +163,7 @@ fn hostfn_tcp_connect_refuse_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let s = TcpStream.connect(host: "127.0.0.1", port: 9)
     print("UNEXPECTED")
     print(s.handle)
@@ -206,7 +206,7 @@ fn hostfn_tcp_connect_loopback_release_exact() {
     let src = facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let s = TcpStream.connect(host: "127.0.0.1", port: {port})
     print("opened")
     __syx_tcp_handle_release(s.handle)

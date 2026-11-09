@@ -29,10 +29,9 @@ func main() {
 
 | Package | Key points |
 |----|------|
-| `DateTime` | `now` / `parseIso8601` / `format`; `Duration.seconds` returns whole milliseconds |
-| `Process` | `args` / `env` / `exec`; legacy `spawn`/`wait` may still return `-1`, use `ProcessBuilder`/`Child` on new paths |
-| `Testing` | `assert` / `assertEq` / `test` |
-| `Di` | Service DI; see [examples/service_di](../../examples/service_di/) |
-| `Sql` | See [examples/sql_tool](../../examples/sql_tool/) |
-| `Sync` | Channel / Mutex / Semaphore |
+| `Testing` | `assert` / `assertEq` / `test` (`import Testing`) |
+| `DI` | Service DI; see [examples/service_di](../../examples/service_di/) |
+| `SQL` | See [examples/sql_tool](../../examples/sql_tool/) |
+| `Synchronization` | Channel / Mutex / Semaphore |
 | `UI` | SynUI bridge; **deferred**, do not treat as a product GUI |
+| `Tracing` / `Metrics` / `Profiling` | Observability MVP; not product OTel / Prometheus / pprof GA |

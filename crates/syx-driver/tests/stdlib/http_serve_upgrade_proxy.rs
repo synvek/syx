@@ -168,7 +168,7 @@ fn start_upgrade_session_with(
     let serve_port = free_port();
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")
@@ -412,7 +412,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\
     // Vite-like HMR path on both serve request and upstream URL (sgate :8080→:9999 shape).
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")
@@ -517,7 +517,7 @@ fn http_serve_upgrade_proxy_missing_upgrade_upstream_returns_502() {
     let up_join = thread::spawn(|| {});
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")
@@ -558,7 +558,7 @@ fn http_serve_upgrade_proxy_dial_fail_returns_502() {
     let up_join = thread::spawn(|| {});
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")
@@ -602,7 +602,7 @@ fn http_serve_upgrade_proxy_empty_upgrade_upstream_returns_502() {
     let up_join = thread::spawn(|| {});
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")
@@ -643,7 +643,7 @@ fn http_serve_upgrade_proxy_handler_err_returns_502() {
     let up_join = thread::spawn(|| {});
     let src = format!(
         r#"
-import Net
+import Networking
 
 func main() {{
     print("listening")

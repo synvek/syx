@@ -19,7 +19,7 @@ func fail() throws {
 }
 
 func main() {
-    try {
+    do {
         fail()
     } catch (err) {
         print(err.code)
@@ -35,7 +35,7 @@ fn file_open_missing_src() -> String {
     format!(
         r#"{fh}
 func main() {{
-  try {{
+  do {{
     let h = FileHandle.open(path: "/tmp/syx_w281_a04_no_such_file.bin", mode: "r")
     print("UNEXPECTED_OK")
     print(h)

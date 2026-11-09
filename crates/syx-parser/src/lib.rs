@@ -805,10 +805,11 @@ impl Parser {
         let start = self.advance().span;
         let name = self.consume_identifier("Expected enum name")?;
         let (type_params, _inline_constraints) = self.parse_type_params()?;
-        // S1-I2: optional conformance list (`enum E: Error`) — parse-accept; semantic thin.
+        // SA-2-02: `enum E: Error` conformance list (stored + semantic).
+        let mut conformances = Vec::new();
         if self.match_kind(TokenKind::Colon) {
             loop {
-                let _ = self.consume_identifier("Expected conformance name")?;
+                conformances.push(self.consume_identifier("Expected conformance name")?);
                 if !self.match_kind(TokenKind::Comma) {
                     break;
                 }
@@ -823,18 +824,25 @@ impl Parser {
             if self.check(TokenKind::RBrace) {
                 break;
             }
-            // Book: methods / `init` after cases → Extension on the enum type.
+            // Book: methods / `init` / static members after cases → Extension on the enum type.
+            // SA-2-03: caseless enum namespace — `static var` / `static func` (with or without access).
             if matches!(
                 self.peek().kind,
                 TokenKind::Func
                     | TokenKind::Init
                     | TokenKind::Mutating
+                    | TokenKind::Static
+                    | TokenKind::Var
+                    | TokenKind::Let
+                    | TokenKind::Async
                     | TokenKind::Public
                     | TokenKind::Private
                     | TokenKind::Internal
                     | TokenKind::FilePrivate
                     | TokenKind::At
-            ) {
+            ) || self.check_identifier("lazy")
+                || self.check_identifier("override")
+            {
                 methods.push(self.parse_class_member()?);
                 continue;
             }
@@ -877,12 +885,18 @@ impl Parser {
                             | TokenKind::Func
                             | TokenKind::Init
                             | TokenKind::Mutating
+                            | TokenKind::Static
+                            | TokenKind::Var
+                            | TokenKind::Let
+                            | TokenKind::Async
                             | TokenKind::Public
                             | TokenKind::Private
                             | TokenKind::Internal
                             | TokenKind::FilePrivate
                             | TokenKind::At
                     )
+                    || self.check_identifier("lazy")
+                    || self.check_identifier("override")
                 {
                     break;
                 }
@@ -914,6 +928,7 @@ impl Parser {
             attrs,
             name,
             type_params,
+            conformances,
             cases,
         })
     }
@@ -1351,6 +1366,13 @@ impl Parser {
 
     fn parse_data_class(&mut self, access: AccessLevel, attrs: Vec<Attribute>) -> SyxResult<Decl> {
         let start = self.previous().span;
+        // SA-2-04: user-facing `public data class` removed — use `struct` or `enum …: Error`.
+        // Non-public remains parseable for fmt/CST fixtures + Codable residual (SA-5).
+        if matches!(access, AccessLevel::Public) {
+            return self.error(
+                "public data class is removed (SA-2-04); use struct or enum …: Error",
+            );
+        }
         let name = self.consume_identifier("Expected data class name")?;
         let (type_params, mut where_clause) = self.parse_type_params()?;
         self.consume(TokenKind::LParen, "Expected '(' after data class name")?;
@@ -1979,7 +2001,25 @@ impl Parser {
             TokenKind::Select => self.parse_select(),
             TokenKind::While => self.parse_while(None),
             TokenKind::For => self.parse_for_in(None),
-            TokenKind::Try => self.parse_try(),
+            TokenKind::Do => self.parse_do_catch(),
+            TokenKind::Try => {
+                // SA-2-01: `try` is expression-only; statement `do { }` was removed.
+                if matches!(self.peek_ahead(1).map(|t| &t.kind), Some(TokenKind::LBrace)) {
+                    return Err(parser_error_at(
+                        "statement-level try-block was removed (SA-2-01); use do { … } catch",
+                        Some(&self.source),
+                        self.peek().span,
+                        "P001",
+                    ));
+                }
+                let expr = self.parse_expr()?;
+                let span = expr_span(&expr);
+                if self.match_kind(TokenKind::Semicolon) {
+                    // optional semicolon
+                }
+                self.skip_newlines();
+                Ok(Stmt::Expr { span, expr })
+            }
             TokenKind::Throw => {
                 let start = self.advance().span;
                 let expr = self.parse_expr()?;
@@ -3135,19 +3175,37 @@ impl Parser {
         })
     }
 
-    fn parse_try(&mut self) -> SyxResult<Stmt> {
+    /// SA-2-01: Swift-shaped `do { … } catch …` (maps to `Stmt::Try` for MIR/VM).
+    /// Rejects statement-level try-blocks — `try` is expression-only (`try` / `try?` / `try!`).
+    fn parse_do_catch(&mut self) -> SyxResult<Stmt> {
         let start = self.advance().span;
-        self.consume(TokenKind::LBrace, "Expected '{' after try")?;
+        self.consume(TokenKind::LBrace, "Expected '{' after do")?;
         let body = self.parse_block_stmts()?;
-        self.consume(TokenKind::Catch, "Expected 'catch' after try block")?;
-        self.consume(TokenKind::LParen, "Expected '(' after catch")?;
-        let catch_name = self.consume_identifier("Expected catch variable name")?;
-        let catch_type = if self.match_kind(TokenKind::Colon) {
-            Some(self.parse_type()?)
+        self.consume(TokenKind::Catch, "Expected 'catch' after do block")?;
+        // Forms: `catch { }` | `catch (name[: Type]) { }` | `catch name[: Type] { }`
+        let (catch_name, catch_type) = if self.match_kind(TokenKind::LParen) {
+            let catch_name = self.consume_identifier("Expected catch variable name")?;
+            let catch_type = if self.match_kind(TokenKind::Colon) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            self.consume(TokenKind::RParen, "Expected ')' after catch variable")?;
+            (catch_name, catch_type)
+        } else if self.check_identifier_name()
+            || Self::soft_keyword_ident(&self.peek().kind).is_some()
+        {
+            let catch_name = self.consume_identifier("Expected catch variable name")?;
+            let catch_type = if self.match_kind(TokenKind::Colon) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            (catch_name, catch_type)
         } else {
-            None
+            // Swift bare `catch { }` — bind as `error`.
+            (SmolStr::new("error"), None)
         };
-        self.consume(TokenKind::RParen, "Expected ')' after catch variable")?;
         self.consume(TokenKind::LBrace, "Expected '{' after catch")?;
         let catch_body = self.parse_block_stmts()?;
         Ok(Stmt::Try {
@@ -4216,6 +4274,7 @@ impl Parser {
                 | TokenKind::Throw
                 | TokenKind::Break
                 | TokenKind::Continue
+                | TokenKind::Do
                 | TokenKind::Try
                 | TokenKind::Repeat
         )
@@ -4247,6 +4306,7 @@ impl Parser {
                 | TokenKind::Throw
                 | TokenKind::Break
                 | TokenKind::Continue
+                | TokenKind::Do
                 | TokenKind::Try
                 | TokenKind::Repeat,
             ) => true,
@@ -4897,6 +4957,8 @@ impl Parser {
             TokenKind::Timeout => Some("timeout"),
             // S1-I9: `subscript(…, default d: Int)` / `obj.default`
             TokenKind::Default => Some("default"),
+            // SA-1-04: Swift-shaped `Int.random(in:)` / `func random(in upperBound: Int)`
+            TokenKind::In => Some("in"),
             _ => None,
         }
     }

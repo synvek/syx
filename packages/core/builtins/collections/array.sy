@@ -14,7 +14,7 @@ public class Array: Equatable, Hashable, CustomStringConvertible {
 
     /// Replace the element at `index` (returns a new / updated array).
     public static func setAt<T>(items: Array<T>, index: Int, value: T) -> Array<T> {
-        return __syx_array_set_at(items, index, value)
+        return SyxHost.array_set_at(items, index, value)
     }
 
     /// Membership test.
@@ -39,83 +39,83 @@ public class Array: Equatable, Hashable, CustomStringConvertible {
 }
 
 extension Array {
-    /// Element count (host `__syx_array_len`).
+    /// Element count (host `SyxHost.array_len`).
     var count: Int {
-        get { return __syx_array_len(self) }
+        get { return SyxHost.array_len(self) }
     }
 
     /// Combine into a hasher (`Hashable`).
     func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
+        SyxHost.hasher_combine(hasher, self)
     }
 
     /// User-facing string conversion (`CustomStringConvertible`).
     func description() -> String {
-        return __syx_value_description(self)
+        return SyxHost.value_description(self)
     }
 
     /// Debug string conversion.
     func debugDescription() -> String {
-        return __syx_value_debug_description(self)
+        return SyxHost.value_debug_description(self)
     }
 
     /// Map each element through `transform`.
     func map(transform: Function) -> Array {
-        return __syx_array_map(self, transform)
+        return SyxHost.array_map(self, transform)
     }
 
     /// Keep elements for which `predicate` is true.
     func filter(predicate: Function) -> Array {
-        return __syx_array_filter(self, predicate)
+        return SyxHost.array_filter(self, predicate)
     }
 
     /// Left fold starting at `initial`.
     func reduce(initial: Int, combine: Function) -> Int {
-        return __syx_array_reduce(self, initial, combine)
+        return SyxHost.array_reduce(self, initial, combine)
     }
 
-    /// Reversed copy (host `__syx_array_reverse`).
+    /// Reversed copy (host `SyxHost.array_reverse`).
     func reverse() -> Array {
-        return __syx_array_reverse(self)
+        return SyxHost.array_reverse(self)
     }
 
-    /// Membership test (host `__syx_array_contains`).
+    /// Membership test (host `SyxHost.array_contains`).
     func contains(item: Object) -> Bool {
-        return __syx_array_contains(self, item)
+        return SyxHost.array_contains(self, item)
     }
 
     /// Join string representations with `sep`.
     func joined(sep: String) -> String {
-        return __syx_array_joined(self, sep)
+        return SyxHost.array_joined(self, sep)
     }
 
     /// Sort by comparator function.
     func sortBy(comparator: Function) -> Array {
-        return __syx_array_sort_by(self, comparator)
+        return SyxHost.array_sort_by(self, comparator)
     }
 
     /// Binary search for `item` in a sorted Int array; returns index or miss sentinel.
     func binarySearch(item: Int) -> Int {
-        return __syx_array_binary_search(self, item)
+        return SyxHost.array_binary_search(self, item)
     }
 
     /// Split into contiguous chunks of `size`.
     func chunked(size: Int) -> Array<Array> {
-        return __syx_array_chunked(self, size)
+        return SyxHost.array_chunked(self, size)
     }
 
     /// Pairwise zip with `other`.
     func zip(other: Array) -> Array {
-        return __syx_array_zip(self, other)
+        return SyxHost.array_zip(self, other)
     }
 
     /// Map then flatten one level.
     func flatMap(transform: Function) -> Array {
-        return __syx_array_flat_map(self, transform)
+        return SyxHost.array_flat_map(self, transform)
     }
 
-    /// Append `item` in place (host `__syx_array_append`).
+    /// Append `item` in place (host `SyxHost.array_append`).
     func append(item: Object) {
-        __syx_array_append(self, item)
+        SyxHost.array_append(self, item)
     }
 }

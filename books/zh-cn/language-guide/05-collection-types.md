@@ -244,7 +244,7 @@ func main() {
 | `Array<String>`（`File.readLines()`） | `String` | 行 |
 
 ```syx
-import IO
+import System
 
 for item in [1, 2, 3] { print(item) }       // 1 2 3
 for c in "abc" { print(c) }                  // a b c
@@ -255,10 +255,10 @@ for line in File.readLines("a.txt") { print(line) }
 
 ## 二进制 IO（Phase 42 / 60）
 
-`import IO` 后整文件读写 `Array` 字节（元素为 `UInt8`）：
+`import System` 后整文件读写 `Array` 字节（元素为 `UInt8`）：
 
 ```syx
-import IO
+import System
 
 let path = "bytes.bin"
 File.writeBytes(path, [0u8, 255u8, 42u8])

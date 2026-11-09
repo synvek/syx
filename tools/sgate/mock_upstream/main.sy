@@ -20,11 +20,10 @@
 // pipeline can assert which backend handled the request.
 // ---------------------------------------------------------------
 
-import Net
-import Process
-import IO
-import Log
-import DateTime
+import Networking
+import System
+import Logging
+import JSON
 
 var PORT: Int = 9001
 var NODE: String = "mock"

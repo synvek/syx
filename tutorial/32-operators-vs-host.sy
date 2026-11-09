@@ -4,6 +4,7 @@
 // note: BigInt / custom Result enum / Hasher on data class may be unavailable.
 // =============================================================================
 
+import Math
 func intrinsicLayer() {
     let a = 10
     let b = 3

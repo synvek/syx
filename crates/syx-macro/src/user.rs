@@ -884,6 +884,7 @@ fn subst_decl(decl: &Decl, param: &str, arg: &Expr) -> Decl {
             attrs,
             name,
             type_params,
+            conformances,
             cases,
         } => Decl::Enum {
             span: *span,
@@ -891,6 +892,7 @@ fn subst_decl(decl: &Decl, param: &str, arg: &Expr) -> Decl {
             attrs: attrs.clone(),
             name: name.clone(),
             type_params: type_params.clone(),
+            conformances: conformances.clone(),
             cases: cases
                 .iter()
                 .map(|(case_name, payload, fields)| {

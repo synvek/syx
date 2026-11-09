@@ -82,6 +82,7 @@ pub fn desugar_hoist_extension_nested_types(module: &mut syx_ast::Module) {
                     attrs,
                     name,
                     type_params,
+                    conformances,
                     cases,
                 } => {
                     let mangled = SmolStr::new(format!("{type_name}_{name}"));
@@ -91,6 +92,7 @@ pub fn desugar_hoist_extension_nested_types(module: &mut syx_ast::Module) {
                         attrs,
                         name: mangled,
                         type_params,
+                        conformances,
                         cases,
                     });
                 }

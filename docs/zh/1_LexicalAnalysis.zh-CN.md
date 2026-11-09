@@ -134,7 +134,7 @@ scan_token():
 
 | TokenKind | 词素 | 示例 |
 |-----------|------|------|
-| `Try` | `try` | `try expr` 或 `try { } catch {}` |
+| `Try` | `try` | `try expr` 或 `do { } catch {}` |
 | `Throw` | `throw` | `throw error` |
 | `Throws` | `throws` | `func f() throws {}` |
 | `Catch` | `catch` | `catch (e) {}` |

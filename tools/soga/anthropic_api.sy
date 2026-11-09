@@ -1,6 +1,6 @@
 // soga/anthropic_api.sy — Anthropic Messages API
 
-import Net
+import Networking
 
 public func anthropicBuildBody(model: String, maxTokens: Int, temperature: Double, history: Object) -> Object {
     let split = historyToAnthropic(history: history)
@@ -59,16 +59,16 @@ public func anthropicChatComplete(cfg: Object, history: Object) -> Object {
     let histUse = decodeObject(text: encodeJson(value: history))
     let body = anthropicBuildBody(model: "\(model)", maxTokens: maxTokens, temperature: temperature, history: histUse)
     let bodyText = encodeJson(value: body)
-    let headersText = "{\"x-api-key\":\"\(key)\",\"anthropic-version\":\"\(anthropicVersion)\",\"Content-Type\":\"application/json\",\"Accept\":\"application/json\",\"Authorization\":\"Bearer \(key)\"}"
-    let opts = decodeObject(text: "{\"method\":\"POST\",\"timeout_ms\":\(timeoutMs),\"headers\":\(headersText),\"body\":\(bodyText)}")
+    // Note: custom headers / timeout_ms not on Http.post surface yet (SA-4-02 thin).
 
     var status = 0
     var text = ""
     var transportErr = ""
-    try {
-        let resp = Http.fetch(url, opts)
-        status = jInt(v: resp.status(), fallback: 0)
-        text = "\(resp.text())"
+    do {
+        // SA-4/5: Http.fetch is GET-only; POST APIs use Http.post(url:body:).
+        let resp = Http.post(url: url, body: bodyText)
+        status = resp.status
+        text = "\(resp.body)"
     } catch (e) {
         transportErr = "http transport failed: \(e)"
     }

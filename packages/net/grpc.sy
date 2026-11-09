@@ -1,22 +1,21 @@
 // Experimental gRPC-shaped facade (not a full wire-protocol product GA).
 
-/// Client connect + unary call shell over TCP / host `__syx_grpc_unary`.
+/// Client connect + unary call shell over TCP / host `SyxHost.grpc_unary`.
 public class GrpcClient {
     /// Connect a gRPC client facade to `addr`:`port` (experimental; not wire-protocol GA).
-    public static func connect(addr: String, port: Int) -> Object {
-        let handle = __syx_tcp_connect(addr, port)
-        let client = Object()
+    public static func connect(addr: String, port: Int) -> Dictionary {
+        let handle = SyxHost.tcp_connect(addr, port)
+        var client: Dictionary = {}
         client["addr"] = addr
         client["port"] = port
         client["handle"] = handle
-        client["ok"] = handle >= 0
         client["experimental"] = "grpc-facade-not-wire-protocol"
         client["__grpc_client"] = true
         return client
     }
     /// Unary call `method` with `body` on `client`.
-    public static func call(client: Object, method: String, body: String) -> String {
-        return __syx_grpc_unary(method, body)
+    public static func call(client: Dictionary, method: String, body: String) -> String {
+        return SyxHost.grpc_unary(method, body)
     }
 }
 
@@ -24,7 +23,7 @@ public class GrpcClient {
 public class GrpcServer {
     /// Serve with `handler` on `addr`:`port` (experimental facade).
     public static func serve(addr: String, port: Int, handler: String) {
-        __syx_http_serve(addr, port, handler)
+        SyxHost.http_serve(addr, port, handler)
     }
 }
 

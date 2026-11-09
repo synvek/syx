@@ -107,7 +107,7 @@ fn facade_open_close_src(path_s: &str) -> String {
     stream_facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let h = FileStream.open(path: "{path_s}", mode: "r")
     let c = FileStream.readChunk(handle: h, maxBytes: 64)
     print(c.count)
@@ -138,7 +138,7 @@ func main() {{
   print("OK")
   print(nonempty)
   print(total)
-  try {{
+  do {{
     let again = FileStream.readChunk(handle: h, maxBytes: 8)
     print("UNEXPECTED")
     print(again.count)
@@ -154,12 +154,12 @@ fn watcher_poll_close_src(path_s: &str) -> String {
     facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let w = FileWatcher.open(path: "{path_s}")
     let ev = FileWatcher.poll(handle: w)
     print(ev.count)
     FileWatcher.close(handle: w)
-    try {{
+    do {{
       let again = FileWatcher.poll(handle: w)
       print("UNEXPECTED")
       print(again.count)
@@ -207,7 +207,7 @@ func main() {{
   print("OK")
   print(nonempty)
   print(total)
-  try {{
+  do {{
     let again = FileStream.readChunk(handle: h, maxBytes: 8)
     print("UNEXPECTED")
     print(again.count)
@@ -235,7 +235,7 @@ fn m2_s3_03_file_stream_facade_open_close() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let h = FileStream.open(path: "{path_s}", mode: "r")
     let c = FileStream.readChunk(handle: h, maxBytes: 64)
     print(c.count)
@@ -261,12 +261,12 @@ fn m2_s3_03_file_watcher_poll_and_close_fail() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let w = FileWatcher.open(path: "{path_s}")
     let ev = FileWatcher.poll(handle: w)
     print(ev.count)
     FileWatcher.close(handle: w)
-    try {{
+    do {{
       let again = FileWatcher.poll(handle: w)
       print("UNEXPECTED")
       print(again.count)
@@ -723,7 +723,7 @@ func main() {{
   let ev = __syx_file_watcher_poll(w)
   print(ev.count)
   __syx_file_watcher_close(w)
-  try {{
+  do {{
     let again = __syx_file_watcher_poll(w)
     print("UNEXPECTED")
     print(again.count)

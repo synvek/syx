@@ -1,311 +1,311 @@
-// Fixed-lane SIMD facades (host `__syx_simd_*`); guest/WASM lanes vary by width.
+// Fixed-lane SIMD facades (host `SyxHost.simd_*`); guest/WASM lanes vary by width.
 // See language-guide 31. Wider lanes: `SIMD4` / `SIMD8` / `SIMD16`.
 
 /// 2-lane SIMD (f64/i64 load/store and arithmetic MVP).
 public class SIMD2 {
-    /// Build a SIMD vector from an array (host `__syx_simd_from_array`).
+    /// Build a SIMD vector from an array (host `SyxHost.simd_from_array`).
     public static func fromArray(_ items: Array<Int>) -> Object {
-        return __syx_simd_from_array(items, 2)
+        return SyxHost.simd_from_array(items, 2)
     }
-    /// Element-wise add (F64) (host `__syx_simd_f64_add`).
+    /// Element-wise add (F64) (host `SyxHost.simd_f64_add`).
     public static func addF64(a: Object, b: Object) -> Object {
-        return __syx_simd_f64_add(a, b)
+        return SyxHost.simd_f64_add(a, b)
     }
-    /// Element-wise subtract (F64) (host `__syx_simd_f64_sub`).
+    /// Element-wise subtract (F64) (host `SyxHost.simd_f64_sub`).
     public static func subF64(a: Object, b: Object) -> Object {
-        return __syx_simd_f64_sub(a, b)
+        return SyxHost.simd_f64_sub(a, b)
     }
-    /// Element-wise multiply (F64) (host `__syx_simd_f64_mul`).
+    /// Element-wise multiply (F64) (host `SyxHost.simd_f64_mul`).
     public static func mulF64(a: Object, b: Object) -> Object {
-        return __syx_simd_f64_mul(a, b)
+        return SyxHost.simd_f64_mul(a, b)
     }
-    /// Element-wise divide (F64) (host `__syx_simd_f64_div`).
+    /// Element-wise divide (F64) (host `SyxHost.simd_f64_div`).
     public static func divF64(a: Object, b: Object) -> Object {
-        return __syx_simd_f64_div(a, b)
+        return SyxHost.simd_f64_div(a, b)
     }
-    /// Element-wise add (I64) (host `__syx_simd_i64_add`).
+    /// Element-wise add (I64) (host `SyxHost.simd_i64_add`).
     public static func addI64(a: Object, b: Object) -> Object {
-        return __syx_simd_i64_add(a, b)
+        return SyxHost.simd_i64_add(a, b)
     }
-    /// Load a SIMD vector from `items` at `offset` (host `__syx_simd_load_from_array`).
+    /// Load a SIMD vector from `items` at `offset` (host `SyxHost.simd_load_from_array`).
     public static func loadFromArray(items: Array<Float64>, offset: Int) -> Object {
-        return __syx_simd_load_from_array(items, offset, 2)
+        return SyxHost.simd_load_from_array(items, offset, 2)
     }
-    /// Store SIMD vector `v` into `items` at `offset` (host `__syx_simd_store_to_array`).
+    /// Store SIMD vector `v` into `items` at `offset` (host `SyxHost.simd_store_to_array`).
     public static func storeToArray(items: Array<Float64>, offset: Int, v: Object) -> Array<Float64> {
-        return __syx_simd_store_to_array(items, offset, v)
+        return SyxHost.simd_store_to_array(items, offset, v)
     }
-    /// Load a SIMD vector from `items` at `offset` (host `__syx_simd_load_from_array`).
+    /// Load a SIMD vector from `items` at `offset` (host `SyxHost.simd_load_from_array`).
     public static func loadFromArray(items: Array<Int64>, offset: Int) -> Object {
-        return __syx_simd_load_from_array(items, offset, 2)
+        return SyxHost.simd_load_from_array(items, offset, 2)
     }
-    /// Store SIMD vector `v` into `items` at `offset` (host `__syx_simd_store_to_array`).
+    /// Store SIMD vector `v` into `items` at `offset` (host `SyxHost.simd_store_to_array`).
     public static func storeToArray(items: Array<Int64>, offset: Int, v: Object) -> Array<Int64> {
-        return __syx_simd_store_to_array(items, offset, v)
+        return SyxHost.simd_store_to_array(items, offset, v)
     }
-    /// Horizontal sum of lanes (host `__syx_simd_reduce_add`).
+    /// Horizontal sum of lanes (host `SyxHost.simd_reduce_add`).
     public static func reduceAdd(_ v: Object) -> Int {
-        return __syx_simd_reduce_add(v)
+        return SyxHost.simd_reduce_add(v)
     }
 }
 /// 4-lane SIMD (f32/int ops, shuffle, bitwise, min/max).
 public class SIMD4 {
-    /// Build a SIMD vector from an array (host `__syx_simd_from_array`).
+    /// Build a SIMD vector from an array (host `SyxHost.simd_from_array`).
     public static func fromArray(_ items: Array<Int>) -> Object {
-        return __syx_simd_from_array(items, 4)
+        return SyxHost.simd_from_array(items, 4)
     }
-    /// Load a SIMD vector from `items` at `offset` (host `__syx_simd_load_from_array`).
+    /// Load a SIMD vector from `items` at `offset` (host `SyxHost.simd_load_from_array`).
     public static func loadFromArray(items: Array<Int>, offset: Int) -> Object {
-        return __syx_simd_load_from_array(items, offset, 4)
+        return SyxHost.simd_load_from_array(items, offset, 4)
     }
-    /// Load a SIMD vector from `items` at `offset` (host `__syx_simd_load_from_array`).
+    /// Load a SIMD vector from `items` at `offset` (host `SyxHost.simd_load_from_array`).
     public static func loadFromArray(items: Array<Float32>, offset: Int) -> Object {
-        return __syx_simd_load_from_array(items, offset, 4)
+        return SyxHost.simd_load_from_array(items, offset, 4)
     }
-    /// Store SIMD vector `v` into `items` at `offset` (host `__syx_simd_store_to_array`).
+    /// Store SIMD vector `v` into `items` at `offset` (host `SyxHost.simd_store_to_array`).
     public static func storeToArray(items: Array<Int>, offset: Int, v: Object) -> Array<Int> {
-        return __syx_simd_store_to_array(items, offset, v)
+        return SyxHost.simd_store_to_array(items, offset, v)
     }
-    /// Store SIMD vector `v` into `items` at `offset` (host `__syx_simd_store_to_array`).
+    /// Store SIMD vector `v` into `items` at `offset` (host `SyxHost.simd_store_to_array`).
     public static func storeToArray(items: Array<Float32>, offset: Int, v: Object) -> Array<Float32> {
-        return __syx_simd_store_to_array(items, offset, v)
+        return SyxHost.simd_store_to_array(items, offset, v)
     }
-    /// Lane shuffle (reverse) (host `__syx_simd_shuffle`).
+    /// Lane shuffle (reverse) (host `SyxHost.simd_shuffle`).
     public static func shuffleReverse(v: Object) -> Object {
-        return __syx_simd_shuffle(v, 0)
+        return SyxHost.simd_shuffle(v, 0)
     }
-    /// Lane shuffle (swap pairs) (host `__syx_simd_shuffle`).
+    /// Lane shuffle (swap pairs) (host `SyxHost.simd_shuffle`).
     public static func shuffleSwapPairs(v: Object) -> Object {
-        return __syx_simd_shuffle(v, 1)
+        return SyxHost.simd_shuffle(v, 1)
     }
-    /// Bitwise and across lanes (host `__syx_simd_and`).
+    /// Bitwise and across lanes (host `SyxHost.simd_and`).
     public static func and(a: Object, b: Object) -> Object {
-        return __syx_simd_and(a, b)
+        return SyxHost.simd_and(a, b)
     }
-    /// Bitwise or across lanes (host `__syx_simd_or`).
+    /// Bitwise or across lanes (host `SyxHost.simd_or`).
     public static func or(a: Object, b: Object) -> Object {
-        return __syx_simd_or(a, b)
+        return SyxHost.simd_or(a, b)
     }
-    /// Bitwise xor across lanes (host `__syx_simd_xor`).
+    /// Bitwise xor across lanes (host `SyxHost.simd_xor`).
     public static func xor(a: Object, b: Object) -> Object {
-        return __syx_simd_xor(a, b)
+        return SyxHost.simd_xor(a, b)
     }
-    /// Bitwise not across lanes (host `__syx_simd_not`).
+    /// Bitwise not across lanes (host `SyxHost.simd_not`).
     public static func not(v: Object) -> Object {
-        return __syx_simd_not(v)
+        return SyxHost.simd_not(v)
     }
-    /// Lane-wise bit shift (shl) (host `__syx_simd_shl`).
+    /// Lane-wise bit shift (shl) (host `SyxHost.simd_shl`).
     public static func shl(v: Object, amount: Int) -> Object {
-        return __syx_simd_shl(v, amount)
+        return SyxHost.simd_shl(v, amount)
     }
-    /// Lane-wise bit shift (shr) (host `__syx_simd_shr`).
+    /// Lane-wise bit shift (shr) (host `SyxHost.simd_shr`).
     public static func shr(v: Object, amount: Int) -> Object {
-        return __syx_simd_shr(v, amount)
+        return SyxHost.simd_shr(v, amount)
     }
-    /// Element-wise min (host `__syx_simd_min`).
+    /// Element-wise min (host `SyxHost.simd_min`).
     public static func min(a: Object, b: Object) -> Object {
-        return __syx_simd_min(a, b)
+        return SyxHost.simd_min(a, b)
     }
-    /// Element-wise max (host `__syx_simd_max`).
+    /// Element-wise max (host `SyxHost.simd_max`).
     public static func max(a: Object, b: Object) -> Object {
-        return __syx_simd_max(a, b)
+        return SyxHost.simd_max(a, b)
     }
-    /// Element-wise add (F32) (host `__syx_simd_f32_add`).
+    /// Element-wise add (F32) (host `SyxHost.simd_f32_add`).
     public static func addF32(a: Object, b: Object) -> Object {
-        return __syx_simd_f32_add(a, b)
+        return SyxHost.simd_f32_add(a, b)
     }
-    /// Element-wise subtract (F32) (host `__syx_simd_f32_sub`).
+    /// Element-wise subtract (F32) (host `SyxHost.simd_f32_sub`).
     public static func subF32(a: Object, b: Object) -> Object {
-        return __syx_simd_f32_sub(a, b)
+        return SyxHost.simd_f32_sub(a, b)
     }
-    /// Element-wise multiply (F32) (host `__syx_simd_f32_mul`).
+    /// Element-wise multiply (F32) (host `SyxHost.simd_f32_mul`).
     public static func mulF32(a: Object, b: Object) -> Object {
-        return __syx_simd_f32_mul(a, b)
+        return SyxHost.simd_f32_mul(a, b)
     }
-    /// Element-wise divide (F32) (host `__syx_simd_f32_div`).
+    /// Element-wise divide (F32) (host `SyxHost.simd_f32_div`).
     public static func divF32(a: Object, b: Object) -> Object {
-        return __syx_simd_f32_div(a, b)
+        return SyxHost.simd_f32_div(a, b)
     }
-    /// Horizontal sum of lanes (host `__syx_simd_reduce_add`).
+    /// Horizontal sum of lanes (host `SyxHost.simd_reduce_add`).
     public static func reduceAdd(_ v: Object) -> Int {
-        return __syx_simd_reduce_add(v)
+        return SyxHost.simd_reduce_add(v)
     }
 }
 /// Phase 118 guest-v11: SIMD8 i16×8 pilot (wasm simd128 equivalent of “i32×8”).
 public class SIMD8 {
-    /// Build a SIMD vector from an array (host `__syx_simd_from_array`).
+    /// Build a SIMD vector from an array (host `SyxHost.simd_from_array`).
     public static func fromArray(_ items: Array<Int>) -> Object {
-        return __syx_simd_from_array(items, 8)
+        return SyxHost.simd_from_array(items, 8)
     }
-    /// Element-wise add (lanes) (host `__syx_simd_i16_add`).
+    /// Element-wise add (lanes) (host `SyxHost.simd_i16_add`).
     public static func add(a: Object, b: Object) -> Object {
-        return __syx_simd_i16_add(a, b)
+        return SyxHost.simd_i16_add(a, b)
     }
-    /// Element-wise multiply (lanes) (host `__syx_simd_i16_mul`).
+    /// Element-wise multiply (lanes) (host `SyxHost.simd_i16_mul`).
     public static func mul(a: Object, b: Object) -> Object {
-        return __syx_simd_i16_mul(a, b)
+        return SyxHost.simd_i16_mul(a, b)
     }
-    /// Load a SIMD vector from `items` at `offset` (host `__syx_simd_load_from_array`).
+    /// Load a SIMD vector from `items` at `offset` (host `SyxHost.simd_load_from_array`).
     public static func loadFromArray(items: Array<Int>, offset: Int) -> Object {
-        return __syx_simd_load_from_array(items, offset, 8)
+        return SyxHost.simd_load_from_array(items, offset, 8)
     }
-    /// Store SIMD vector `v` into `items` at `offset` (host `__syx_simd_store_to_array`).
+    /// Store SIMD vector `v` into `items` at `offset` (host `SyxHost.simd_store_to_array`).
     public static func storeToArray(items: Array<Int>, offset: Int, v: Object) -> Array<Int> {
-        return __syx_simd_store_to_array(items, offset, v)
+        return SyxHost.simd_store_to_array(items, offset, v)
     }
-    /// Horizontal sum of lanes (host `__syx_simd_reduce_add`).
+    /// Horizontal sum of lanes (host `SyxHost.simd_reduce_add`).
     public static func reduceAdd(_ v: Object) -> Int {
-        return __syx_simd_reduce_add(v)
+        return SyxHost.simd_reduce_add(v)
     }
 }
 /// Phase 133 guest-v16: SIMD16 i8×16 ne MVP (+ inherited guest-v15 neg …).
 public class SIMD16 {
-    /// Build a SIMD vector from an array (host `__syx_simd_from_array`).
+    /// Build a SIMD vector from an array (host `SyxHost.simd_from_array`).
     public static func fromArray(_ items: Array<Int>) -> Object {
-        return __syx_simd_from_array(items, 16)
+        return SyxHost.simd_from_array(items, 16)
     }
-    /// Load a SIMD vector from `items` at `offset` (host `__syx_simd_load_from_array`).
+    /// Load a SIMD vector from `items` at `offset` (host `SyxHost.simd_load_from_array`).
     public static func loadFromArray(items: Array<Int>, offset: Int) -> Object {
-        return __syx_simd_load_from_array(items, offset, 16)
+        return SyxHost.simd_load_from_array(items, offset, 16)
     }
-    /// Store SIMD vector `v` into `items` at `offset` (host `__syx_simd_store_to_array`).
+    /// Store SIMD vector `v` into `items` at `offset` (host `SyxHost.simd_store_to_array`).
     public static func storeToArray(items: Array<Int>, offset: Int, v: Object) -> Array<Int> {
-        return __syx_simd_store_to_array(items, offset, v)
+        return SyxHost.simd_store_to_array(items, offset, v)
     }
-    /// Element-wise add (lanes) (host `__syx_simd_i8_add`).
+    /// Element-wise add (lanes) (host `SyxHost.simd_i8_add`).
     public static func add(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_add(a, b)
+        return SyxHost.simd_i8_add(a, b)
     }
-    /// Element-wise subtract (lanes) (host `__syx_simd_i8_sub`).
+    /// Element-wise subtract (lanes) (host `SyxHost.simd_i8_sub`).
     public static func sub(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_sub(a, b)
+        return SyxHost.simd_i8_sub(a, b)
     }
-    /// Element-wise multiply (lanes) (host `__syx_simd_i8_mul`).
+    /// Element-wise multiply (lanes) (host `SyxHost.simd_i8_mul`).
     public static func mul(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_mul(a, b)
+        return SyxHost.simd_i8_mul(a, b)
     }
-    /// Bitwise and across lanes (host `__syx_simd_i8_and`).
+    /// Bitwise and across lanes (host `SyxHost.simd_i8_and`).
     public static func and(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_and(a, b)
+        return SyxHost.simd_i8_and(a, b)
     }
-    /// Bitwise or across lanes (host `__syx_simd_i8_or`).
+    /// Bitwise or across lanes (host `SyxHost.simd_i8_or`).
     public static func or(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_or(a, b)
+        return SyxHost.simd_i8_or(a, b)
     }
-    /// Bitwise xor across lanes (host `__syx_simd_i8_xor`).
+    /// Bitwise xor across lanes (host `SyxHost.simd_i8_xor`).
     public static func xor(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_xor(a, b)
+        return SyxHost.simd_i8_xor(a, b)
     }
-    /// Bitwise not across lanes (host `__syx_simd_i8_not`).
+    /// Bitwise not across lanes (host `SyxHost.simd_i8_not`).
     public static func not(v: Object) -> Object {
-        return __syx_simd_i8_not(v)
+        return SyxHost.simd_i8_not(v)
     }
-    /// Element-wise min (host `__syx_simd_i8_min`).
+    /// Element-wise min (host `SyxHost.simd_i8_min`).
     public static func min(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_min(a, b)
+        return SyxHost.simd_i8_min(a, b)
     }
-    /// Element-wise max (host `__syx_simd_i8_max`).
+    /// Element-wise max (host `SyxHost.simd_i8_max`).
     public static func max(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_max(a, b)
+        return SyxHost.simd_i8_max(a, b)
     }
     /// Phase 130: unsigned lane min (`i8x16.min_u`).
     public static func umin(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_umin(a, b)
+        return SyxHost.simd_i8_umin(a, b)
     }
     /// Phase 130: unsigned lane max (`i8x16.max_u`).
     public static func umax(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_umax(a, b)
+        return SyxHost.simd_i8_umax(a, b)
     }
     /// Phase 131: signed lane abs (`i8x16.abs`).
     public static func abs(v: Object) -> Object {
-        return __syx_simd_i8_abs(v)
+        return SyxHost.simd_i8_abs(v)
     }
     /// Phase 132: signed lane neg (`i8x16.neg`).
     public static func neg(v: Object) -> Object {
-        return __syx_simd_i8_neg(v)
+        return SyxHost.simd_i8_neg(v)
     }
     /// Extract lane `index` from an i8x16 vector.
     public static func extract(v: Object, lane: Int) -> Int {
-        return __syx_simd_i8_extract(v, lane)
+        return SyxHost.simd_i8_extract(v, lane)
     }
     /// Replace lane `index` in an i8x16 vector.
     public static func replace(v: Object, lane: Int, value: Int) -> Object {
-        return __syx_simd_i8_replace(v, lane, value)
+        return SyxHost.simd_i8_replace(v, lane, value)
     }
     /// Lane-wise equality compare (i8x16).
     public static func eq(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_eq(a, b)
+        return SyxHost.simd_i8_eq(a, b)
     }
     /// Phase 133: lane-wise not-equal (`i8x16.ne`).
     public static func ne(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_ne(a, b)
+        return SyxHost.simd_i8_ne(a, b)
     }
     /// Phase 134: lane-wise less-or-equal (`i8x16.le_s`).
     public static func le(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_le(a, b)
+        return SyxHost.simd_i8_le(a, b)
     }
     /// Phase 135: lane-wise greater-or-equal (`i8x16.ge_s`).
     public static func ge(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_ge(a, b)
+        return SyxHost.simd_i8_ge(a, b)
     }
     /// Phase 136: unsigned rounding average (`i8x16.avgr_u`: (a+b+1)/2 per lane).
     public static func avgrU(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_avgr_u(a, b)
+        return SyxHost.simd_i8_avgr_u(a, b)
     }
     /// Phase 137: lane-wise population count (`i8x16.popcnt`).
     public static func popcnt(v: Object) -> Object {
-        return __syx_simd_i8_popcnt(v)
+        return SyxHost.simd_i8_popcnt(v)
     }
     /// Phase 138: MSB bitmask (`i8x16.bitmask`).
     public static func bitmask(v: Object) -> Int {
-        return __syx_simd_i8_bitmask(v)
+        return SyxHost.simd_i8_bitmask(v)
     }
     /// Phase 139: all lanes non-zero (`i8x16.all_true`).
     public static func allTrue(_ v: Object) -> Bool {
-        return __syx_simd_i8_all_true(v)
+        return SyxHost.simd_i8_all_true(v)
     }
     /// Phase 139: any lane non-zero (`v128.any_true` / i8x16 mask).
     public static func anyTrue(_ v: Object) -> Bool {
-        return __syx_simd_i8_any_true(v)
+        return SyxHost.simd_i8_any_true(v)
     }
     /// Lane-wise less-than compare (i8x16).
     public static func lt(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_lt(a, b)
+        return SyxHost.simd_i8_lt(a, b)
     }
     /// Lane-wise greater-than compare (i8x16).
     public static func gt(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_gt(a, b)
+        return SyxHost.simd_i8_gt(a, b)
     }
-    /// Element-wise add (Sat) (host `__syx_simd_i8_add_sat`).
+    /// Element-wise add (Sat) (host `SyxHost.simd_i8_add_sat`).
     public static func addSat(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_add_sat(a, b)
+        return SyxHost.simd_i8_add_sat(a, b)
     }
-    /// Element-wise subtract (Sat) (host `__syx_simd_i8_sub_sat`).
+    /// Element-wise subtract (Sat) (host `SyxHost.simd_i8_sub_sat`).
     public static func subSat(a: Object, b: Object) -> Object {
-        return __syx_simd_i8_sub_sat(a, b)
+        return SyxHost.simd_i8_sub_sat(a, b)
     }
     /// Phase 128: i8x16 shuffle MVP — mode 0 reverse, mode 1 swap pairs.
     public static func shuffle(v: Object, mode: Int) -> Object {
-        return __syx_simd_i8_shuffle(v, mode)
+        return SyxHost.simd_i8_shuffle(v, mode)
     }
-    /// Lane shuffle (reverse) (host `__syx_simd_i8_shuffle`).
+    /// Lane shuffle (reverse) (host `SyxHost.simd_i8_shuffle`).
     public static func shuffleReverse(v: Object) -> Object {
-        return __syx_simd_i8_shuffle(v, 0)
+        return SyxHost.simd_i8_shuffle(v, 0)
     }
-    /// Lane shuffle (swap pairs) (host `__syx_simd_i8_shuffle`).
+    /// Lane shuffle (swap pairs) (host `SyxHost.simd_i8_shuffle`).
     public static func shuffleSwapPairs(v: Object) -> Object {
-        return __syx_simd_i8_shuffle(v, 1)
+        return SyxHost.simd_i8_shuffle(v, 1)
     }
-    /// Lane-wise bit shift (shl) (host `__syx_simd_i8_shl`).
+    /// Lane-wise bit shift (shl) (host `SyxHost.simd_i8_shl`).
     public static func shl(v: Object, amount: Int) -> Object {
-        return __syx_simd_i8_shl(v, amount)
+        return SyxHost.simd_i8_shl(v, amount)
     }
-    /// Lane-wise bit shift (shr) (host `__syx_simd_i8_shr`).
+    /// Lane-wise bit shift (shr) (host `SyxHost.simd_i8_shr`).
     public static func shr(v: Object, amount: Int) -> Object {
-        return __syx_simd_i8_shr(v, amount)
+        return SyxHost.simd_i8_shr(v, amount)
     }
-    /// Horizontal sum of lanes (host `__syx_simd_reduce_add`).
+    /// Horizontal sum of lanes (host `SyxHost.simd_reduce_add`).
     public static func reduceAdd(_ v: Object) -> Int {
-        return __syx_simd_reduce_add(v)
+        return SyxHost.simd_reduce_add(v)
     }
 }

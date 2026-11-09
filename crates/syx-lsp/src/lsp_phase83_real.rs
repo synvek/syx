@@ -22,14 +22,14 @@ fn p83_import_text_parse() {
 #[test]
 fn p83_import_datetime_parse() {
     assert!(p83_doc_ok(
-        "import DateTime\nfunc main() { let dt = DateTime.parse(\"2024-01-01\"); print(dt) }"
+        "import System\nfunc main() { let dt = DateTime.parse(\"2024-01-01\"); print(dt) }"
     ));
 }
 
 #[test]
 fn p83_import_sync_parse() {
     assert!(p83_doc_ok(
-        "import Sync\nfunc main() { let ch = Channel.create(1); ch.send(1); print(ch.recv()) }"
+        "import Synchronization\nfunc main() { let ch = Channel.create(1); ch.send(1); print(ch.recv()) }"
     ));
 }
 
@@ -42,19 +42,19 @@ fn p83_import_testing_parse() {
 
 #[test]
 fn p83_import_log_parse() {
-    assert!(p83_doc_ok("import Log\nfunc main() { Log.info(\"p83\") }"));
+    assert!(p83_doc_ok("import Logging\nfunc main() { Log.info(\"p83\") }"));
 }
 
 #[test]
 fn p83_import_process_parse() {
     assert!(p83_doc_ok(
-        "import Process\nfunc main() { print(Process.env(\"PATH\").count > 0) }"
+        "import System\nfunc main() { print(Process.env(\"PATH\").count > 0) }"
     ));
 }
 
 #[test]
 fn p83_prelude_fmt_parse() {
-    assert!(p83_doc_ok("func main() { Fmt.printLine(Fmt.format(\"p83-{0}\", [83])) }"));
+    assert!(p83_doc_ok("import Fmt\nfunc main() { Fmt.printLine(Fmt.format(\"p83-{0}\", [83])) }"));
 }
 
 #[test]
@@ -79,21 +79,21 @@ fn p83_encoding_base64_parse() {
 #[test]
 fn p83_tcp_socket_parse() {
     assert!(p83_doc_ok(
-        "import Net\nfunc main() { print(TcpSocket.connect(\"127.0.0.1\", 9)) }"
+        "import Networking\nfunc main() { print(TcpSocket.connect(\"127.0.0.1\", 9)) }"
     ));
 }
 
 #[test]
 fn p83_channel_select_parse() {
     assert!(p83_doc_ok(
-        "import Sync\nfunc main() { let ch = Channel.create(0); print(Select.select([ch])) }"
+        "import Synchronization\nfunc main() { let ch = Channel.create(0); print(Select.select([ch])) }"
     ));
 }
 
 #[test]
 fn p83_datetime_iso8601_parse() {
     assert!(p83_doc_ok(
-        "import DateTime\nfunc main() { print(DateTime.parseIso8601(\"2024-01-01T00:00:00Z\")) }"
+        "import System\nfunc main() { print(DateTime.parseIso8601(\"2024-01-01T00:00:00Z\")) }"
     ));
 }
 
@@ -114,7 +114,7 @@ fn p83_dict_values_parse() {
 #[test]
 fn p83_time_parse_timestamp_parse() {
     assert!(p83_doc_ok(
-        "func main() { print(Time.parseTimestampMs(\"2024-06-01\")) }"
+        "import System\nfunc main() { print(Time.parseTimestampMs(\"2024-06-01\")) }"
     ));
 }
 
@@ -147,5 +147,5 @@ fn p83_optional_chain_parse() {
 
 #[test]
 fn p83_import_net_http_parse() {
-    assert!(p83_doc_ok("import Net\nfunc main() { print(Http.get(\"http://example.com\")) }"));
+    assert!(p83_doc_ok("import Networking\nfunc main() { print(Http.get(\"http://example.com\")) }"));
 }

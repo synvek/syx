@@ -59,7 +59,7 @@ func main() {
   }
   print("AFTER")
   print(__syx_task_live_count())
-  try {
+  do {
     __syx_task_join(t)
   } catch (err) {
     print("JOIN_TEARDOWN")

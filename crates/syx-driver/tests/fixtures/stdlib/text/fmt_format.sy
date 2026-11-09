@@ -1,4 +1,5 @@
 import Text
+import Fmt
 
 func main() {
     Fmt.printLine("hello 83")

@@ -33,7 +33,7 @@ fn m2_error_orm_save_on_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     let ok = saveOn(connId: a, table: "users", record: { "name": "alice" })
@@ -157,7 +157,7 @@ fn m2_error_orm_save_on_invalid_conn_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let ok = saveOn(connId: 999999, table: "users", record: { "name": "x" })
     print("UNEXPECTED_OK")
     print(ok)
@@ -176,7 +176,7 @@ fn m2_error_orm_find_where_on_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     saveOn(connId: a, table: "users", record: { "name": "alice" })
@@ -203,7 +203,7 @@ fn m2_error_orm_find_where_on_invalid_conn_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let rows = findWhereOn(connId: 999999, table: "users", col: "name", val: "x")
     print("UNEXPECTED_OK")
     print(rows.len())
@@ -222,7 +222,7 @@ fn m2_error_orm_update_where_on_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     saveOn(connId: a, table: "users", record: { "name": "alice" })
@@ -257,7 +257,7 @@ fn m2_error_orm_update_where_on_invalid_conn_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let n = updateWhereOn(connId: 999999, table: "users", col: "name", val: "x",
                           newCol: "name", newVal: "y")
     print("UNEXPECTED_OK")
@@ -277,7 +277,7 @@ fn m2_error_orm_delete_where_on_isolation() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let a = Sql.open(dsn: ":memory:")
     let b = Sql.open(dsn: ":memory:")
     saveOn(connId: a, table: "users", record: { "name": "alice" })
@@ -309,7 +309,7 @@ fn m2_error_orm_delete_where_on_invalid_conn_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let n = deleteWhereOn(connId: 999999, table: "users", col: "name", val: "x")
     print("UNEXPECTED_OK")
     print(n)

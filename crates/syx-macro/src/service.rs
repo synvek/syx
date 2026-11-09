@@ -1773,7 +1773,7 @@ fn boot_construction_specs(local: &[ServiceSpec]) -> Vec<ServiceSpec> {
 }
 
 /// Phase 123: user-facing `resolve(typeName)` wraps internal `__syx_service_resolve` (ceremony sugar).
-/// Prefer `import Di` + `Di.resolve` / `Di.beginRequest` for application code; free `resolve` stays as short sugar.
+/// Prefer `import DI` + `Di.resolve` / `Di.beginRequest` for application code; free `resolve` stays as short sugar.
 fn inject_resolve_sugar(module: &mut syx_ast::Module) {
     let span = syx_diagnostics::Span::DUMMY;
     module

@@ -34,7 +34,7 @@ fn tcp_stream_unknown_handle_read_fails() {
     let result = compile_and_run_embedded(
         r#"
 func main() {
-  try {
+  do {
     print(__syx_tcp_read(999999, 8))
   } catch (err) {
     print("caught")

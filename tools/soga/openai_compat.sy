@@ -1,6 +1,6 @@
 // soga/openai_compat.sy — OpenAI-compatible chat.completions
 
-import Net
+import Networking
 
 public func openaiBuildBody(model: String, maxTokens: Int, temperature: Double, history: Object, stream: Bool) -> Object {
     let arr = historyJson(history: history)
@@ -37,16 +37,16 @@ public func openaiChatComplete(cfg: Object, history: Object) -> Object {
     let histUse = decodeObject(text: encodeJson(value: history))
     let body = openaiBuildBody(model: "\(model)", maxTokens: maxTokens, temperature: temperature, history: histUse, stream: false)
     let bodyText = encodeJson(value: body)
-    let headersText = "{\"Authorization\":\"Bearer \(key)\",\"Content-Type\":\"application/json\",\"Accept\":\"application/json\"}"
-    let opts = decodeObject(text: "{\"method\":\"POST\",\"timeout_ms\":\(timeoutMs),\"headers\":\(headersText),\"body\":\(bodyText)}")
+    // Note: custom headers / timeout_ms not on Http.post surface yet (SA-4-02 thin).
 
     var status = 0
     var text = ""
     var transportErr = ""
-    try {
-        let resp = Http.fetch(url, opts)
-        status = jInt(v: resp.status(), fallback: 0)
-        text = "\(resp.text())"
+    do {
+        // SA-4/5: Http.fetch is GET-only; POST APIs use Http.post(url:body:).
+        let resp = Http.post(url: url, body: bodyText)
+        status = resp.status
+        text = "\(resp.body)"
     } catch (e) {
         transportErr = "http transport failed: \(e)"
     }

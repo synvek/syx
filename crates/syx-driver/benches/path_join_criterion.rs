@@ -1,5 +1,5 @@
 //! Path/File Criterion formal-benchmark first tier.
-//! Times `examples/path_microbench` (Path.join×10000) via `run_file_printed`.
+//! Times `examples/path_microbench` (FilePath.join×10000) via `run_file_printed`.
 
 use std::hint::black_box;
 use std::path::PathBuf;

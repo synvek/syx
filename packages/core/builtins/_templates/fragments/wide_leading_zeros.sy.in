@@ -1,5 +1,4 @@
-    /// Leading zero bit count for a `UInt128` bit pattern (via `Math`).
+    /// Leading zero bit count for a `UInt128` bit pattern (host `SyxHost.leading_zeros128`).
     public static func leadingZeros(x: UInt128) -> Int {
-        return Math.leadingZeros128(x)
+        return SyxHost.leading_zeros128(x)
     }
-

@@ -104,8 +104,8 @@ fn http_serve_overlap_slow_fast_plain_get() {
 
     let src = format!(
         r#"
-import Net
-import IO
+import Networking
+import System
 
 func handle(req: Object) -> Object {{
     let path = req.path
@@ -270,8 +270,8 @@ fn http_serve_overlap_slow_plain_and_hmr_upgrade() {
 
     let src = format!(
         r#"
-import Net
-import IO
+import Networking
+import System
 
 func handle(req: Object) -> Object {{
     let path = req.path

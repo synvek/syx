@@ -18,11 +18,9 @@
 //   5. Hand off to Http.serve with `handle` as the request callback.
 // ---------------------------------------------------------------
 
-import Net
-import Process
-import Log
-import IO
-import Env
+import Networking
+import System
+import Logging
 
 func printBanner() {
     let worker = server_worker_name()

@@ -31,7 +31,7 @@ func main() {
   __syx_task_join(shortT)
   print("SHORT_JOINED")
   __syx_task_cancel(longT)
-  try {
+  do {
     __syx_task_join(longT)
     print("LONG_JOIN_OK")
   } catch (err) {

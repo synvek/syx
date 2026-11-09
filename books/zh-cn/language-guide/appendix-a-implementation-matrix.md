@@ -1,5 +1,7 @@
 # 附录 A：实现状态矩阵
 
+> **SA 已退出（2026-11-09）：** [sa-exit](../../../docs/adr/sa-exit.md)。现行用户 `import`：`System` / `Networking` / `Synchronization` / `Logging` / … — **禁止**宣称 `Foundation`；勿写旧模块名 `Os` / `Net`。完整账本：[shared/implementation-status.md](../../shared/implementation-status.md)。
+
 本附录指向统一维护的特性状态总表，避免与 [shared/implementation-status.md](../../shared/implementation-status.md) 重复。
 
 **完整矩阵：** [books/shared/implementation-status.md](../../shared/implementation-status.md)

@@ -104,7 +104,7 @@ enum WireStatus {
 | `@Before` / `@After` (no string) | **MVP** — same scope as `@Around`; self-wrapping in declaration order |
 
 ```syx
-import Di
+import DI
 
 @Qualifier("fast")
 @Service

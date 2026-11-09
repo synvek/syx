@@ -1,4 +1,4 @@
-import DateTime
+import System
 
 func main() {
     print(Duration.seconds(1))

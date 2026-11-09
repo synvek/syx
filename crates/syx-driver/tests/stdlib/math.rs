@@ -28,7 +28,13 @@ fn write_src(label: &str, src: &str) -> std::path::PathBuf {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let path = dir.join("main.sy");
-    fs::write(&path, src).expect("write main");
+    // SA-1-03: Math left prelude — tests use explicit import.
+    let body = if src.contains("import Math") {
+        src.to_string()
+    } else {
+        format!("import Math\n{src}")
+    };
+    fs::write(&path, body).expect("write main");
     path
 }
 

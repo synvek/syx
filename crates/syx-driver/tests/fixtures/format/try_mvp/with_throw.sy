@@ -1,5 +1,5 @@
 func main() {
-    try {
+    do {
         throw "boom"
     } catch (err) {
         print(err)

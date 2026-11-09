@@ -7,6 +7,8 @@
 | 文档 | 角色 | 可见性 |
 |------|------|--------|
 | [capabilities-summary.md](capabilities-summary.md) | **现行能力主入口**（按域；无窗 tip） | 公开 |
+| [stdlib-swift-alignment.md](stdlib-swift-alignment.md) | **SA-0-01**：标准库 Swift 对齐章程（三层模型、破坏性、禁 Foundation） | 公开 |
+| [sa-2-01-do-catch.md](sa-2-01-do-catch.md) | **SA-2-01**：语言面 `do/catch`；`try` 仅表达式；破坏性删除语句级 `try { }` | 公开 |
 | [language-book-ssot.md](language-book-ssot.md) | **S1-01**：书（Swift 风格）为语言面 SSOT + 一周期兼容弃用 | 公开 |
 | [stage1-s1-07-overflow-wrap-scope.md](stage1-s1-07-overflow-wrap-scope.md) | **S1-07 scoped**：整数溢出 **wrap SSOT**；≠ trap / R011 / `&+` / 阶段1退出 | 公开 |
 | [stage1-s1-08-cli-multidiag-scope.md](stage1-s1-08-cli-multidiag-scope.md) | **S1-08 scoped**：LSP + 单文件 check + 项目 check parse 多诊；≠ build·run 多诊 / 阶段1退出 | 公开 |

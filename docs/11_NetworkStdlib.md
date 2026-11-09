@@ -18,7 +18,7 @@ Runtime values may still be Object bags + `__http_response` / MethodId. **Not** 
 ## HTTP client
 
 ```syx
-import Net
+import Networking
 
 let resp: HTTPResponse = Http.fetch("https://api.example.com/users", {
     "method": "POST",
@@ -79,7 +79,7 @@ Client uses `reqwest` + `rustls` for HTTPS GET/POST etc. Certificates are **veri
 Default `Http.get` / `fetch` still **fully buffers**. Opt-in session:
 
 ```syx
-import Net
+import Networking
 
 let opened = HttpBodyStream.open(url: "http://127.0.0.1:8080/big")
 let handle = opened.handle
@@ -97,7 +97,7 @@ The VM keeps the `reqwest` Response and reads incrementally via `std::io::Read` 
 ## URL module
 
 ```syx
-import Net
+import Networking
 
 let u: Url = Url.parse("https://example.com/path?q=1")
 print(u.host)
@@ -118,7 +118,7 @@ print(Url.build("https://host", "/api", { "page": "1" }))
 Synchronous HTTP server based on `tiny_http`. First slice is HTTP only (no TLS); for production HTTPS terminate TLS at nginx / Caddy / etc.
 
 ```syx
-import Net
+import Networking
 
 func handle(req: HttpRequest) -> HTTPResponse {
     if req.path == "/shutdown" {

@@ -105,6 +105,8 @@ pub fn compile_file_with_context(
         }
     }
 
+    // SA-4-04: inject `SyxHost` before semantic (import façades call it).
+    crate::compile_to_program::inject_syx_host_enum(&mut module);
     let semantic = SemanticAnalyzer::analyze_with_imports_strict_skip_main_actor(
         &module,
         &import_symbols,

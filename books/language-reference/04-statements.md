@@ -203,13 +203,13 @@ try-stmt ::= 'try' block 'catch' '(' identifier (':' type)? ')' block
 > Note: a `try` block uses `{ }`; `catch` bindings **must** carry `()`, because the `catch err` form is ambiguous with statements (catch is a keyword plus an identifier, which without parentheses collides with `let`/binding).
 
 ```syx
-try {
+do {
     throw "error"
     print("no catch")
 } catch (err) {
     print(err)                              // err: String (default when the type is omitted)
 }
-try {
+do {
     throw "typed"
 } catch (err: String) {
     print(err)                              // Explicit type is optional (Java-like)

@@ -1,7 +1,7 @@
-import Sql
+import SQL
 
 func main() {
-    try {
+    do {
         let c = Sql.open(dsn: ":memory:")
         Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER, name TEXT)")
         Sql.execOn(connId: c, sql: "INSERT INTO t VALUES (1, 'syx')")

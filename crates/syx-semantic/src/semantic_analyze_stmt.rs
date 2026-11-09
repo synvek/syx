@@ -552,8 +552,24 @@ impl SemanticAnalyzer {
                 self.analyze_block(body)?;
                 Ok(())
             }
-            Stmt::Throw { expr, .. } => {
-                self.analyze_expr(expr)?;
+            Stmt::Throw { expr, span } => {
+                let ty = self.analyze_expr(expr)?;
+                // SA-2-02: thrown values must be String (MVP) or conform to `Error`.
+                let ok = match &ty {
+                    TypeId::String => true,
+                    TypeId::Named(n) if matches!(n.as_str(), "String" | "Unknown" | "Any") => true,
+                    TypeId::Named(n) => self.type_satisfies_protocol(n.as_str(), "Error"),
+                    _ => false,
+                };
+                if !ok {
+                    return Err(self.error_at(
+                        format!(
+                            "thrown type must be String or conform to Error (SA-2-02); got {ty:?}"
+                        ),
+                        *span,
+                        "S002",
+                    ));
+                }
                 Ok(())
             }
             Stmt::RepeatWhile { body, condition, .. } => {

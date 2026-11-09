@@ -1,4 +1,4 @@
-import Log
+import Logging
 
 func main() {
     Log.setMinLevel("INFO")

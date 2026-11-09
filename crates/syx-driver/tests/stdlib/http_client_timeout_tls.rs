@@ -288,7 +288,7 @@ fn m2_s4_02b_timeout_hang_loopback_native_aot() {
     let src = format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let opts = __syx_json_decode("{{\"timeout_ms\":200}}")
     let _ = __syx_http_request("http://127.0.0.1:{port}/hang", opts)
     print("UNEXPECTED_OK")

@@ -45,7 +45,7 @@ fn p75_borrow_async_fn() {
 
 #[test]
 fn p75_try_catch() {
-    assert!(p75_doc_ok("func main() { try { print(1) } catch e { print(e) } }"));
+    assert!(p75_doc_ok("func main() { do { print(1) } catch e { print(e) } }"));
 }
 
 #[test]

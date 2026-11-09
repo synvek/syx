@@ -1,0 +1,215 @@
+# SYX stdlib module rename map (SA-0-04)
+# Apply in SA-3 (destructive; no old-name aliases required).
+# Charter: docs/adr/stdlib-swift-alignment.md
+# Analysis: plan/todo-003.md
+
+[meta]
+version = "0.1"
+schema = "syx-module-rename-v0"
+adr = "docs/adr/stdlib-swift-alignment.md"
+package_id_prefix = "syx-"
+import_case = "UpperCamelCase"
+
+# current_import = today's `import` name (or prelude façade)
+# target_import = future `import` / surface
+# package_id = future registry / syx.toml package name (kebab)
+# disposition = merge | rename | split | core | retire | keep
+
+[[map]]
+current_import = "Math"
+target_import = "(core)"
+package_id = "(prelude)"
+disposition = "core"
+notes = "Fold into Double.pi / free sin·sqrt; delete Math façade"
+
+[[map]]
+current_import = "Random"
+target_import = "(core)"
+package_id = "(prelude)"
+disposition = "core"
+notes = "Int.random(in:); SystemRandomNumberGenerator as needed"
+
+[[map]]
+current_import = "Time"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+notes = "Duration/Clock core later; calendar pieces may stay System or Time companion"
+
+[[map]]
+current_import = "DateTime"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+notes = "Or keep companion Time if calendar surface stays large"
+
+[[map]]
+current_import = "Env"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+
+[[map]]
+current_import = "Path"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+notes = "FilePath"
+
+[[map]]
+current_import = "Os"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+notes = "ProcessInfo"
+
+[[map]]
+current_import = "Process"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+notes = "Subprocess"
+
+[[map]]
+current_import = "IO"
+target_import = "System"
+package_id = "syx-system"
+disposition = "merge"
+notes = "FileHandle / file APIs into System"
+
+[[map]]
+current_import = "Net"
+target_import = "Networking"
+package_id = "syx-networking"
+disposition = "rename"
+notes = "HTTPClient / HTTPResponse; abbrev all-caps"
+
+[[map]]
+current_import = "Http"
+target_import = "Networking"
+package_id = "syx-networking"
+disposition = "merge"
+notes = "Type façade under Networking"
+
+[[map]]
+current_import = "Sync"
+target_import = "Synchronization"
+package_id = "syx-synchronization"
+disposition = "rename"
+
+[[map]]
+current_import = "Concurrency"
+target_import = "(core)"
+package_id = "(prelude)"
+disposition = "core"
+notes = "Remain implicit; drop as named import requirement"
+
+[[map]]
+current_import = "JSON"
+target_import = "JSON"
+package_id = "syx-json"
+disposition = "keep"
+notes = "Leave prelude in SA-1; companion module with Codable"
+
+[[map]]
+current_import = "Fmt"
+target_import = "(retire)"
+package_id = "(none)"
+disposition = "retire"
+notes = "Prefer interpolation / String(format:); Regex → core later"
+
+[[map]]
+current_import = "Text"
+target_import = "Text"
+package_id = "syx-text"
+disposition = "keep"
+notes = "Trim after Fmt retire; Regex may move core"
+
+[[map]]
+current_import = "Log"
+target_import = "Logging"
+package_id = "syx-logging"
+disposition = "rename"
+
+[[map]]
+current_import = "Trace"
+target_import = "Tracing"
+package_id = "syx-tracing"
+disposition = "rename"
+
+[[map]]
+current_import = "Metrics"
+target_import = "Metrics"
+package_id = "syx-metrics"
+disposition = "keep"
+
+[[map]]
+current_import = "Profiler"
+target_import = "Profiling"
+package_id = "syx-profiling"
+disposition = "rename"
+
+[[map]]
+current_import = "OrderedSet"
+target_import = "Collections"
+package_id = "syx-collections"
+disposition = "merge"
+
+[[map]]
+current_import = "Deque"
+target_import = "Collections"
+package_id = "syx-collections"
+disposition = "merge"
+
+[[map]]
+current_import = "Sql"
+target_import = "SQL"
+package_id = "syx-sql"
+disposition = "rename"
+notes = "Directory packages/data/; ORM not official stdlib"
+
+[[map]]
+current_import = "Crypto"
+target_import = "Crypto"
+package_id = "syx-crypto"
+disposition = "keep"
+
+[[map]]
+current_import = "Linalg"
+target_import = "Numerics"
+package_id = "syx-numerics"
+disposition = "rename"
+notes = "Or LinearAlgebra; pick Numerics in SA-3"
+
+[[map]]
+current_import = "Di"
+target_import = "DI"
+package_id = "syx-di"
+disposition = "rename"
+
+[[map]]
+current_import = "UI"
+target_import = "UI"
+package_id = "syx-ui"
+disposition = "keep"
+
+[[map]]
+current_import = "Testing"
+target_import = "Testing"
+package_id = "syx-testing"
+disposition = "keep"
+notes = "API → @Test / #expect in SA-3-09"
+
+[[map]]
+current_import = "Observation"
+target_import = "Observation"
+package_id = "syx-observation"
+disposition = "keep"
+notes = "SA-0-05 residual: wire IMPORTABLE or demote from README"
+
+[[map]]
+current_import = "SIMD4"
+target_import = "(defer)"
+package_id = "(none)"
+disposition = "retire"
+notes = "Leave prelude in SA-1; revisit companion if needed"

@@ -6,7 +6,7 @@ This directory contains three English Markdown eBooks for SYX language users and
 |------|------|------|
 | **SYX Language Guide** | [language-guide/](language-guide/) | A narrative tutorial, from the basics to advanced features, with complete examples and differences from Swift |
 | **SYX Language Reference** | [language-reference/](language-reference/) | Formal reference for lexical structure, syntax, types, declarations, patterns and attributes |
-| **SYX Standard Library Guide** | [library-guide/](library-guide/) | The embedded-package user surface: `import Linalg` / `Os` / `Log` / `IO`, …; honest boundaries and repository examples |
+| **SYX Standard Library Guide** | [library-guide/](library-guide/) | The embedded-package user surface: `import Numerics` / `Os` / `Log` / `IO`, …; honest boundaries and repository examples |
 
 Shared resource: [shared/implementation-status.md](shared/implementation-status.md) — the **current** master feature implementation status table (SYX **117.0** / Phase **139**).
 
@@ -81,7 +81,7 @@ Items prefixed with "**partial GA**" delivered a minimal working subset in that 
 | [`docs/adr/architecture-decisions.md`](../docs/adr/architecture-decisions.md) | Architecture decisions SSOT |
 | `plan/topics/hostfn-extension.md` | Runtime extension layering and the maintainer checklist |
 | `docs/1–5_*.md` | Compiler implementation technical documentation (in 1→2→3→4→5 order) |
-| `packages/README.md` | Embedded standard library (`import Di` / `import Os` / `import UI`, …) |
+| `packages/README.md` | Embedded standard library (`import DI` / `import System` / `import UI`, …) |
 
 ## Current Phase 139 Capability Summary
 

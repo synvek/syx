@@ -9,10 +9,5 @@ func main() {
         work()
     }
     Concurrency.join(t)
-    Task.detached {
-        Concurrency.sleep(30)
-        print("detached-done")
-    }
-    Concurrency.sleep(80)
     print("main-done")
 }

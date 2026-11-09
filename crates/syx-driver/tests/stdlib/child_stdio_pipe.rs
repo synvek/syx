@@ -140,7 +140,7 @@ fn m2_s6_02b_close_then_read_fails() {
         r#"
 func main() {
   var p = -1
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     p = Child.stdout(handle: h)
@@ -151,7 +151,7 @@ func main() {
   } catch (e1) {
     print("SETUP_ERR")
   }
-  try {
+  do {
     let again = ChildPipe.readChunk(pipe: p, maxBytes: 8)
     print("UNEXPECTED")
     print(again.count)
@@ -174,7 +174,7 @@ fn m2_s6_02b_untaken_wait_no_hang() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let b = ProcessBuilder.create(command: "/bin/sh", args: ["-c", "printf '%0{BODY_LEN}d' 0 | tr '0' 'B'"])
     let h = ProcessBuilder.spawn(builder: b)
     let code = Child.wait(handle: h)

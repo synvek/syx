@@ -12,7 +12,7 @@ fn syx_test_full_hook_order_junit_shaped() {
         tests.join("suite.sy"),
         format!(
             r#"
-import IO
+import System
 
 @TestSetup
 func boot() {{

@@ -295,6 +295,11 @@ fn numeric_builtin(spec: &NumSpec) -> String {
     let witness = value_witness_extension(spec.surface, Some(slug));
 
     if let Some(delegate) = spec.delegate {
+        let swift_extra = if spec.surface == "Double" {
+            load_template("fragments/double_pi_trig.sy.in")
+        } else {
+            String::new()
+        };
         return render(
             &load_template("numeric_alias.sy.in"),
             &[
@@ -303,6 +308,7 @@ fn numeric_builtin(spec: &NumSpec) -> String {
                 ("TY", spec.surface),
                 ("PROTOCOLS", COMPARABLE_VALUE_PROTOCOLS),
                 ("DELEGATE", delegate),
+                ("SWIFT_EXTRA", &swift_extra),
                 ("WITNESS", &witness),
             ],
         );
@@ -328,13 +334,20 @@ fn numeric_builtin(spec: &NumSpec) -> String {
         ));
     }
 
-    let epsilon = match numeric_epsilon_lit(spec) {
+    let mut epsilon = match numeric_epsilon_lit(spec) {
         Some(eps) => render(
             &load_template("fragments/epsilon.sy.in"),
             &[("TY", ty), ("EPS", eps)],
         ),
         None => String::new(),
     };
+    // SA-1-03: Swift-shaped π / sin / sqrt on the canonical Float64 surface.
+    if ty == "Float64" {
+        epsilon.push_str(&render(
+            &load_template("fragments/float_pi_trig.sy.in"),
+            &[("TY", ty), ("SLUG", slug)],
+        ));
+    }
 
     let mut abs_sign = String::new();
     if spec.signed && !is_float {
@@ -356,7 +369,7 @@ fn numeric_builtin(spec: &NumSpec) -> String {
 
     let bits = spec.bits.to_string();
     let bytes = (spec.bits / 8).to_string();
-    let widths_clamp = render(
+    let mut widths_clamp = render(
         &load_template("fragments/widths_clamp.sy.in"),
         &[
             ("BITS", &bits),
@@ -366,6 +379,10 @@ fn numeric_builtin(spec: &NumSpec) -> String {
             ("SLUG", slug),
         ],
     );
+    // SA-1-04: Int.random(in:) on the platform Int surface.
+    if ty == "Int" {
+        widths_clamp.push_str(&load_template("fragments/int_random.sy.in"));
+    }
 
     let wide = if spec.wide {
         load_template("fragments/wide_leading_zeros.sy.in")
@@ -485,8 +502,9 @@ fn manifest_json(prelude_modules: &[&str]) -> String {
     entries.push(manifest_entry_json("Array", "collection", "Array", None, "collection.array", "core/builtins/collections/array.sy", None, true, false, None, value_auto, Some(&["map", "filter", "reduce", "reverse", "contains", "joined", "count", "append", "sortBy", "binarySearch", "chunked", "zip", "flatMap"][..])));
     entries.push(manifest_entry_json("Set", "collection", "Set", None, "collection.set", "core/builtins/collections/set.sy", None, true, false, None, value_auto, Some(&["count", "contains", "insert", "remove"][..])));
     entries.push(manifest_entry_json("Dictionary", "collection", "Dictionary", None, "collection.dictionary", "core/builtins/collections/dictionary.sy", None, true, false, None, value_auto, Some(&["count", "contains", "keys", "values"][..])));
-    entries.push(manifest_entry_json("OrderedSet", "collection", "OrderedSet", None, "collection.ordered_set", "core/builtins/collections/ordered_set.sy", None, true, false, None, None, Some(&["new", "insert", "contains"][..])));
-    entries.push(manifest_entry_json("Deque", "collection", "Deque", None, "collection.deque", "core/builtins/collections/deque.sy", None, true, false, None, None, Some(&["new", "pushBack", "pushFront", "popBack", "popFront", "count", "isEmpty"][..])));
+    // SA-1-02: OrderedSet/Deque left prelude — importable modules.
+    entries.push(manifest_entry_json("OrderedSet", "collection", "OrderedSet", None, "collection.ordered_set", "core/builtins/collections/ordered_set.sy", None, false, true, None, None, Some(&["new", "insert", "contains"][..])));
+    entries.push(manifest_entry_json("Deque", "collection", "Deque", None, "collection.deque", "core/builtins/collections/deque.sy", None, false, true, None, None, Some(&["new", "pushBack", "pushFront", "popBack", "popFront", "count", "isEmpty"][..])));
     entries.push(manifest_entry_json("Object", "reference", "Object", None, "reference.object", "core/builtins/reference/object.sy", None, false, false, None, value_auto, None));
     entries.push(manifest_entry_json("ObjectIdentifier", "reference", "ObjectIdentifier", None, "reference.object_identifier", "core/builtins/reference/object_identifier.sy", None, false, false, None, value_auto, None));
     entries.push(manifest_entry_json("Equatable", "protocol", "Equatable", None, "protocol.equatable", "core/protocols/equatable.sy", None, false, false, None, proto_auto, None));
@@ -500,7 +518,7 @@ fn manifest_json(prelude_modules: &[&str]) -> String {
     entries.push(manifest_entry_json("Codable", "protocol", "Codable", None, "protocol.codable", "core/protocols/codable.sy", None, false, false, None, None, None));
     entries.push(manifest_entry_json("Result", "algebraic", "Result", None, "algebraic.result", "core/builtins/algebraic/result.sy", None, true, false, None, value_auto, Some(&["ok", "err", "is_ok", "is_err"][..])));
     entries.push(manifest_entry_json("BigInt", "numeric", "BigInt", None, "numeric.bigint", "core/builtins/numeric/bigint.sy", Some("bigint"), true, false, None, comparable_value_auto, Some(&["from_string", "from_i128", "add", "sub", "mul", "cmp", "description"][..])));
-    entries.push(manifest_entry_json("HTTPResponse", "host_type", "HTTPResponse", None, "host.http_response", "io/types/http_response.sy", None, false, false, Some("Net"), None, None));
+    entries.push(manifest_entry_json("HTTPResponse", "host_type", "HTTPResponse", None, "host.http_response", "io/types/http_response.sy", None, false, false, Some("Networking"), None, None));
 
     let prelude_json: String = prelude_modules
         .iter()
@@ -517,9 +535,9 @@ fn manifest_json(prelude_modules: &[&str]) -> String {
            \"source\": \"crates/syx-driver/build.rs + builtin_kind\",\n\
            \"entries\": [\n{}\n  ],\n\
            \"prelude_modules\": [{prelude_json}],\n\
-           \"importable_modules\": [\"IO\", \"Net\", \"Crypto\", \"Text\", \"DateTime\", \"Sync\", \"Process\", \"Testing\", \"Log\", \"Di\", \"UI\", \"Os\", \"Sql\", \"Linalg\"],\n\
+           \"importable_modules\": [\"System\", \"Networking\", \"Crypto\", \"Text\", \"Synchronization\", \"SQL\", \"Testing\", \"Logging\", \"Tracing\", \"Metrics\", \"Profiling\", \"DI\", \"UI\", \"Numerics\", \"JSON\", \"Fmt\", \"OrderedSet\", \"Deque\", \"Math\", \"Random\", \"SIMD4\"],\n\
            \"forbidden_imports\": [\"Internal\", \"_Builtin\", \"_Internal\"],\n\
-           \"retired_modules\": [\"Int8Ops\", \"Text\", \"Arrays\", \"BoolOps\"]\n\
+           \"retired_modules\": [\"Int8Ops\", \"Arrays\", \"BoolOps\"]\n\
          }}\n",
         entries.join(",\n")
     )
@@ -616,7 +634,7 @@ fn main() {
     // text/string.sy, reference/*, algebraic/result.sy, numeric/bigint.sy, protocols/*,
     // packages/io/types/http_response.sy, packages/internal/types.sy.
 
-    let mut prelude: Vec<&'static str> = vec!["Math"];
+    let mut prelude: Vec<&'static str> = Vec::new();
     for spec in NUMERICS {
         prelude.push(spec.surface);
         let path = numeric_dir.join(format!("{}.sy", spec.file));
@@ -629,18 +647,11 @@ fn main() {
         "Array",
         "Set",
         "Dictionary",
-        "OrderedSet",
-        "Deque",
         "Result",
         "BigInt",
         "Hasher",
-        "Random",
-        "JSON",
-        "Time",
-        "Env",
-        "Path",
+        // SA-1-01: JSON/Time/Env/Path/Fmt → IMPORTABLE (not prelude)
         "Concurrency",
-        "SIMD4",
     ]);
 
     write_if_changed(&internal.join("manifest.json"), &manifest_json(&prelude));

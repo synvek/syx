@@ -228,12 +228,22 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             out.push('(');
             format_params(params, out)?;
             out.push(')');
+            // SA-2-05: Swift order `throws -> T` (bare throws defaults to String in AST).
+            if let Some(tt) = throws_type {
+                out.push_str(" throws");
+                let show_ty = !matches!(
+                    tt,
+                    syx_ast::TypeExpr::Named { name, generics }
+                        if name == "String" && generics.is_empty()
+                );
+                if show_ty {
+                    out.push(' ');
+                    format_type_expr(tt, out)?;
+                }
+            }
             if let Some(ty) = return_type {
                 out.push_str(" -> ");
                 format_type_expr(ty, out)?;
-            }
-            if throws_type.is_some() {
-                out.push_str(" throws");
             }
             if let Some(eff) = effect {
                 match eff {
@@ -636,6 +646,7 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
             access,
             attrs,
             type_params,
+            conformances,
             cases,
             ..
         } => {
@@ -654,6 +665,15 @@ fn format_decl_at(decl: &Decl, out: &mut String, indent: usize) -> SyxResult<()>
                     out.push_str(tp);
                 }
                 out.push('>');
+            }
+            if !conformances.is_empty() {
+                out.push_str(": ");
+                for (i, c) in conformances.iter().enumerate() {
+                    if i > 0 {
+                        out.push_str(", ");
+                    }
+                    out.push_str(c);
+                }
             }
             out.push_str(" {\n");
             for (case_name, value, fields) in cases {
@@ -1304,20 +1324,24 @@ fn format_stmt(stmt: &Stmt, out: &mut String, indent: usize) -> SyxResult<()> {
             catch_body,
             ..
         } => {
-            // W708 / C-06: Try 首片 — `try { … } catch (name[: Type]) { … }`.
+            // SA-2-01: `do { … } catch (name[: Type]) { … }` (Stmt::Try).
             out.push_str(&pad);
-            out.push_str("try {\n");
+            out.push_str("do {\n");
             for s in body {
                 format_stmt(s, out, indent + 1)?;
             }
             out.push_str(&pad);
-            out.push_str("} catch (");
-            out.push_str(catch_name);
-            if let Some(ty) = catch_type {
-                out.push_str(": ");
-                format_type_expr(ty, out)?;
+            if catch_name == "error" && catch_type.is_none() {
+                out.push_str("} catch {\n");
+            } else {
+                out.push_str("} catch (");
+                out.push_str(catch_name);
+                if let Some(ty) = catch_type {
+                    out.push_str(": ");
+                    format_type_expr(ty, out)?;
+                }
+                out.push_str(") {\n");
             }
-            out.push_str(") {\n");
             for s in catch_body {
                 format_stmt(s, out, indent + 1)?;
             }

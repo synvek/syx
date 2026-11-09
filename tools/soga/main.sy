@@ -1,7 +1,7 @@
 // soga/main.sy — non-interactive LLM demo
 
-import Log
-import Env
+import Logging
+import System
 
 func printBanner() {
     Log.info("soga — SYX LLM chat library demo (non-interactive)")

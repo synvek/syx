@@ -652,6 +652,8 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
         } => {
             let catch_block = ctx.fresh_block();
             let after_block = ctx.fresh_block();
+            // SA-2-01: keep active_block aligned — Print/Expr emit to active_block, not only `block`.
+            ctx.active_block = block;
             ctx.emit(
                 block,
                 MirInstr {
@@ -661,10 +663,11 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                 },
             );
             for s in body {
-                lower_stmt(s, ctx, block);
+                lower_stmt(s, ctx, ctx.active_block);
             }
+            let body_end = ctx.active_block;
             ctx.emit(
-                block,
+                body_end,
                 MirInstr {
                     dest: None,
                     op: MirOp::EndTry,
@@ -672,15 +675,16 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                 },
             );
             ctx.emit(
-                block,
+                body_end,
                 MirInstr {
                     dest: None,
                     op: MirOp::Jump(after_block),
                     span: None,
                 },
             );
-            ctx.link(block, catch_block);
-            ctx.link(block, after_block);
+            ctx.link(body_end, catch_block);
+            ctx.link(body_end, after_block);
+            ctx.active_block = catch_block;
             ctx.emit(
                 catch_block,
                 MirInstr {
@@ -699,17 +703,18 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                 },
             );
             for s in catch_body {
-                lower_stmt(s, ctx, catch_block);
+                lower_stmt(s, ctx, ctx.active_block);
             }
+            let catch_end = ctx.active_block;
             ctx.emit(
-                catch_block,
+                catch_end,
                 MirInstr {
                     dest: None,
                     op: MirOp::Jump(after_block),
                     span: None,
                 },
             );
-            ctx.link(catch_block, after_block);
+            ctx.link(catch_end, after_block);
             ctx.active_block = after_block;
         }
         Stmt::Throw { expr, .. } => {

@@ -52,7 +52,7 @@ fn m2_error_tcp_connect_throws_not_status_fail() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let s = TcpStream.connect(host: "127.0.0.1", port: 9)
     print("UNEXPECTED_OK")
     print(s.handle)

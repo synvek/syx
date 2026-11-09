@@ -62,7 +62,7 @@ fn ec_m2_3_tcp_leak_connect_close_returns_to_baseline() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let s = TcpStream.connect(host: "127.0.0.1", port: {port})
     print("OPENED")
     __syx_tcp_handle_release(s.handle)
@@ -94,7 +94,7 @@ fn ec_m2_3_tcp_leak_connect_without_close_increments() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let s = TcpStream.connect(host: "127.0.0.1", port: {port})
     print("LEAKED")
     print(s.handle)

@@ -44,7 +44,7 @@ Each test file is compiled and run independently.
 | `@TestTeardown` | Once after all cases in the file |
 
 ```syx
-import Log
+import Logging
 import Testing
 
 @TestSetup

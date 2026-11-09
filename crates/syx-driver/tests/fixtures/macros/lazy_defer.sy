@@ -1,4 +1,4 @@
-import Di
+import DI
 
 var __lazy_factory_count: Int = 0
 

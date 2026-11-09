@@ -126,7 +126,7 @@ main = "main.sy"
 
 ## Standard library highlights
 
-Importable modules live under [`packages/`](packages/) (`import Text`, `import Net`, …). Always-in-scope builtins include numerics, `String` / `Array` / `Dictionary`, and host globals such as `print` / `readLine` (see [`packages/core/builtins/special/globals.sy`](packages/core/builtins/special/globals.sy)).
+Importable modules live under [`packages/`](packages/) (`import Text`, `import Networking`, …). Always-in-scope builtins include numerics, `String` / `Array` / `Dictionary`, and host globals such as `print` / `readLine` (see [`packages/core/builtins/special/globals.sy`](packages/core/builtins/special/globals.sy)).
 
 Common host surfaces:
 

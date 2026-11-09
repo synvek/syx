@@ -29,10 +29,9 @@ func main() {
 
 | 包 | 要点 |
 |----|------|
-| `DateTime` | `now` / `parseIso8601` / `format`；`Duration.seconds` 返回毫秒整数 |
-| `Process` | `args` / `env` / `exec`；legacy `spawn`/`wait` 仍可能返回 `-1`，新路径用 `ProcessBuilder`/`Child` |
-| `Testing` | `assert` / `assertEq` / `test` |
-| `Di` | Service DI；见 [examples/service_di](../../../examples/service_di/) |
-| `Sql` | 见 [examples/sql_tool](../../../examples/sql_tool/) |
-| `Sync` | Channel / Mutex / Semaphore |
+| `Testing` | `assert` / `assertEq` / `test`（`import Testing`） |
+| `DI` | Service DI；见 [examples/service_di](../../../examples/service_di/) |
+| `SQL` | 见 [examples/sql_tool](../../../examples/sql_tool/) |
+| `Synchronization` | Channel / Mutex / Semaphore |
 | `UI` | SynUI 桥；**deferred**，勿当产品 GUI |
+| `Tracing` / `Metrics` / `Profiling` | 可观测 MVP；非产品 OTel / Prometheus / pprof GA |

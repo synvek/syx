@@ -487,7 +487,7 @@ The standard library is exposed via **static type methods** and **instance metho
 
 ```syx
 func main() {
-  try {
+  do {
     let n = FileHandle.withOpen(path: "/tmp/x.bin", mode: "w", body: { (h: Int) -> Int in
       return __syx_file_write_chunk(h, [])
     })
@@ -508,7 +508,7 @@ func main() {
 
 ### DateTime / Clock / Instant
 
-`import DateTime` off,clocksemanticsseparate (roadmap `M2-S5-01`): 
+`import System` off,clocksemanticsseparate (roadmap `M2-S5-01`): 
 
 | API | semantics |
 |-----|------|
@@ -532,7 +532,7 @@ For timing use `Instant`; For calendar/wall clock use `Clock`/`DateTime`. Pin te
 
 ### HTTP
 
-`import Net` after import `Http` (not `HTTP`): 
+`import Networking` after import `Http` (not `HTTP`): 
 
 | Method | Description |
 |------|------|
@@ -551,7 +551,7 @@ Examples: `examples/http_tool/` (client); `examples/http_server_tool/` (server; 
 
 ### Sql（SQLite）
 
-`import Sql` after importmulti-connection facade (`throws SqlError`): 
+`import SQL` after importmulti-connection facade (`throws SqlError`): 
 
 | Method | Description |
 |------|------|
@@ -681,7 +681,7 @@ __syx_array_map([1, 2, 3], 0)
 ### try / catch Block
 
 ```syx
-try {
+do {
     File.write("/tmp/test.txt", "data")
     let content = File.read("/tmp/test.txt")
     print(content)
@@ -700,7 +700,7 @@ let content = try File.read(path)
 let content = File.read(path)?
 ```
 
-parser accepts prefix `try expr` and postfix `expr?` (same `UnaryOp::Try` node).`syx format` canonical form is **postfix** `expr?`; prefix rewritten to postfix.Statement-level `try { } catch` unchanged.failure handled as runtime error.
+parser accepts prefix `try expr` and postfix `expr?` (same `UnaryOp::Try` node).`syx format` canonical form is **postfix** `expr?`; prefix rewritten to postfix.Statement-level `do { } catch` unchanged.failure handled as runtime error.
 
 ---
 
@@ -856,10 +856,10 @@ func fetchData() -> String {
 | `@propertyWrapper` | Phase 40 GA; `--no-property-wrapper` With |
 | `#compileTime` | const-eval subset |
 | `reflect(T.self)` | `syx-meta` Rust-side reflection |
-| Service DI v14 | `import Di` → `Di.resolve` / `Di.withRequest` / `Di.setProfile` / …; sugar `resolve(...)`; `@Qualifier`/`@Primary`/`@Profile`; **protocol witness + base-type polymorphic inject**; **`@Around` proceed + `@Before`/`@After` pointcut string binding MVP** (`macro-service-v13:before-after-pointcut-bind-mvp`); **`@Pointcut("Type.method")` method-name MVP** + **`execution(* T.m(..))` name/`*` pattern MVP** + **`@Pointcut("within(Type)")` type-name pattern MVP** (`macro-service-v14:pointcut-within-name-mvp`); **`@Configuration`/`@Bean` MVP** (****only** `@Service`/`@Component` instance method advice, ≠full AspectJ / Spring → **134+**); `__syx_service_*` internal only |
+| Service DI v14 | `import DI` → `Di.resolve` / `Di.withRequest` / `Di.setProfile` / …; sugar `resolve(...)`; `@Qualifier`/`@Primary`/`@Profile`; **protocol witness + base-type polymorphic inject**; **`@Around` proceed + `@Before`/`@After` pointcut string binding MVP** (`macro-service-v13:before-after-pointcut-bind-mvp`); **`@Pointcut("Type.method")` method-name MVP** + **`execution(* T.m(..))` name/`*` pattern MVP** + **`@Pointcut("within(Type)")` type-name pattern MVP** (`macro-service-v14:pointcut-within-name-mvp`); **`@Configuration`/`@Bean` MVP** (****only** `@Service`/`@Component` instance method advice, ≠full AspectJ / Spring → **134+**); `__syx_service_*` internal only |
 
 ```syx
-import Di
+import DI
 
 @Service
 @Scope("request")
@@ -883,7 +883,7 @@ Example: `examples/service_di/` · `examples/stmt_token_macro/`.internal host st
 
 ### Os Run when Query (Phase 133–136 · partial GA)
 
-`import Os` provides `Process` (args/env/exec)** **separate** runtime query MVP: `Os.cpuCount()`, `Os.memoryTotal()` / `Os.memoryAvailable()` / `Os.uptimeMs()` / `Os.loadAverage()` (throws OsError), `Os.userName()`, `Os.homeDir()`, `Os.hostname()`, `Os.diskTotal(path)`, `Os.diskAvailable(path)`.APIs that throw have no `-1`/empty-string success sentinel.≠full sysinfo / network / cgroup → **138+**.
+`import System` provides `Process` (args/env/exec)** **separate** runtime query MVP: `Os.cpuCount()`, `Os.memoryTotal()` / `Os.memoryAvailable()` / `Os.uptimeMs()` / `Os.loadAverage()` (throws OsError), `Os.userName()`, `Os.homeDir()`, `Os.hostname()`, `Os.diskTotal(path)`, `Os.diskAvailable(path)`.APIs that throw have no `-1`/empty-string success sentinel.≠full sysinfo / network / cgroup → **138+**.
 
 Example: `examples/os_info/`.
 

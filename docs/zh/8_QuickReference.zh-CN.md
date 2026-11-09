@@ -254,11 +254,11 @@ let line = readLine()
 
 ## 错误处理 try/catch
 
-SYX 使用 **`try { } catch (name) { }`**，不是 Swift 的 `do-catch` / `throws`。
+SYX 使用 **`do { } catch (name) { }`**，不是 Swift 的 `do-catch` / `throws`。
 
 ```syx
 // 语句块
-try {
+do {
     File.write("/tmp/x.txt", "data")
     let content = File.read("/tmp/x.txt")
     print(content)
@@ -513,7 +513,7 @@ func loadConfig() -> String requires IO {
 ```syx
 import HTTP
 
-try {
+do {
     let resp = HTTP.fetch("https://httpbin.org/get", { "timeout_ms": 10000 })
     if resp.ok() {
         print(resp.json())
@@ -707,7 +707,7 @@ syx repl
 
 | Swift | SYX |
 |-------|-----|
-| `do { try } catch` | `try { } catch (err) { }` |
+| `do { try } catch` | `do { } catch (err) { }` |
 | `if cond {` | `if (cond) {` |
 | `struct` 数据载体 | `data class Name(f: T)` |
 | `import Module` | `import Math`（PascalCase 嵌入标准库模块名） |

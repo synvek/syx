@@ -69,7 +69,7 @@ func main() { print(D(x: 2).x) }"
 
 #[test]
 fn p74_try_catch() {
-    assert!(p74_doc_ok("func main() { try { print(1) } catch e { print(e) } }"));
+    assert!(p74_doc_ok("func main() { do { print(1) } catch e { print(e) } }"));
 }
 
 #[test]

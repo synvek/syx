@@ -1,9 +1,9 @@
-# Linalg（Mat）
+# Numerics（Mat）
 
 **实现状态：** packed-SYX 外表皮 **已接线**；核心 binop / unary 已接 faer（`*`/`+`/`-`/`hadamard`/`negated`/`scale`）；E-00 **产品 Mat 执行 ADR** 已交；E-00 **产品 Mat GA 收窄验收** 已交；E-00 **产品 Mat GA 收窄面宣称** 已交（；收窄宣称 ≠ 完整产品 Mat GA）；P-SURF **Mat 收窄面翻行章程** 已交；P-SURF **Mat 收窄面 soft-close** 已交（；**`P-SURF` → `[x]`**；薄完成 ≠ 完整产品 Mat GA）；P-FAER **收窄面翻行章程** 已交；P-FAER **收窄面 soft-close** 已交（；**`P-FAER` → `[x]`**；薄完成 ≠ faer 产品 GA）；P-ABI-v2 **收窄面翻行章程** 已交；P-ABI-v2 **收窄面 soft-close** 已交（；**`P-ABI-v2` → `[x]`**；薄完成 ≠ ABI v2 产品 GA）；E-00 **完整产品 Mat GA 章程** 已交（；章程 ≠ 宣称 ≠ E-00 `[x]`）；E-00 **完整产品 Mat GA 宣称** 已交（；双旗 `full_claimed` ∧ 仍 `ga_not_claimed`；宣称 ≠ soft-close ≠ 翻 honesty ≠ E-00 `[x]`）；E-00 **完整产品 Mat GA soft-close** 已交（；证据轨收口；仍 `ga_not_claimed`；soft-close ≠ 翻 honesty ≠ E-00 `[x]`）；E-00 **完整产品 Mat GA honesty flip** 已交（；新 inventory `ga_not_claimed=false`；历史旗不改写；honesty flip ≠ E-00 `[x]` ≠ 产品排序）；E-00 **产品排序执行 ADR** 已交（；仍 `ranking_not_claimed`；执行 ADR ≠ 选定排序 ≠ E-00 `[x]`）；E-00 **选定产品排序 SSOT** 已交（；WS→gRPC→更多 DB；SynUI/Farm 延后；仍 `ranking_not_claimed`；选定 SSOT ≠ soft-close ≠ 翻 honesty ≠ E-00 `[x]`）；E-00 **产品排序 soft-close** 已交（；证据轨收口；仍 `ranking_not_claimed`；soft-close ≠ 翻 honesty ≠ E-00 `[x]`）；E-00 **产品排序 honesty flip** 已交（；新 inventory `ranking_not_claimed=false`；历史旗不改写；honesty flip ≠ E-00 `[x]`）；E-00 **行勾选** 已交（；`e00_roadmap_checked=true`；`| E-00 |` **`[x]`**； **1/6**；行勾选 ≠ E-01 开工）；E-01 **执行 ADR** 已交（；授权后续 scaffold/真 WS；仍 `e01_still_frozen`；执行 ADR ≠ scaffold ≠ 真 WS GA ≠ E-01 `[x]`）；E-01 **scaffold** 已交（；钉既有 facade/mock/`SYX_WS_REAL` 薄入口；仍 `e01_still_frozen`；scaffold ≠ 真 WS GA ≠ E-01 `[x]`）；E-01 **真 WS 施工** 已交（；窄 `ws: / ` RFC6455；仍 `e01_still_frozen`；施工 ≠ 产品 GA ≠ E-01 `[x]`）；E-01 **负例** 已交（；仍 `e01_negative_tests_not_claimed`；负例≠ 全集 ≠ E-01 `[x]`）；**不是** 产品 WebSocket GA；**不是** CORE prelude；`E-00` 行已 `[x]`；`E-01` 行仍 `[ ]`；`P-ABI-v2` / `P-FAER` / `P-SURF` 收窄行已 `[x]`（旁路产品 GA honesty 仍未翻）。
 
 ```syx
-import Linalg
+import Numerics
 
 func main() {
     let a = Mat.from([1.0, 2.0, 3.0, 4.0], rows: 2, cols: 2)
@@ -31,11 +31,11 @@ func main() {
 
 ## 乘与求解
 
-- `a * b`：矩阵乘（`operator func *` → `__syx_plugin_faer_mul`），**不是** Hadamard。
-- `a + b` / `a - b`：同形加减（→ `__syx_plugin_faer_add` / `_sub`；）。
-- 逐元乘：`hadamard`（→ `__syx_plugin_faer_hadamard`；）。
-- 线性求解：`a.solve(b)`（方阵 × 右端；内部 faer dense LU）。
-- `negated` / `scale`：faer compose（zeros+`faer_sub` / filled+`faer_hadamard`；无专用 host）。
+- `a * b`：矩阵乘，**不是** Hadamard。
+- `a + b` / `a - b`：同形加减。
+- 逐元乘：`hadamard`。
+- 线性求解：`a.solve(b)`（方阵 × 右端；内部 dense LU）。
+- `negated` / `scale`：Host 后端组合路径。
 - `div` / `addScalar` 等仍走 packed 循环。
 
 ## 形状与切片
@@ -72,7 +72,7 @@ Circular（numpy `wrap`）需 L≥3 才能与 reflect 区分。行向用 3×2 `b
 
 `a` 本身仍是 `1 2 3 4`。零 pad / 常数 pad 同向 API：`padRowsBefore`、`padRowsBeforeConstant(_:_:)` 等。Replicate 对齐 numpy `mode='edge'`；Circular 对齐 `mode='wrap'`。
 
-实现约束（写扩展时）：方法体用 `__syx_plugin_faer_to`，不要 `self.packed()`；`ArraySet` 右值不要塞 MathFloat HostFn（拷贝写成 `0.0 + p[k]`）；下标左值优先 `q[i * nc + c]` / `q[k + skip]` 这种带运算符的形式。
+实现约束（写包扩展时）：方法体优先用 Host 转换辅助，不要 `self.packed()`；`ArraySet` 右值不要塞 MathFloat HostFn（拷贝写成 `0.0 + p[k]`）；下标左值优先 `q[i * nc + c]` / `q[k + skip]` 这种带运算符的形式。
 
 ## 归约与掩码
 
@@ -80,7 +80,7 @@ Circular（numpy `wrap`）需 L≥3 才能与 reflect 区分。行向用 3×2 `b
 
 ## Frozen
 
-- `import Linalg` 才能用 `Mat`；prelude **无** `Mat`
+- `import Numerics` 才能用 `Mat`；prelude **无** `Mat`
 - 不并入 `packages/core/math.sy`
 - 不宣称完整产品 Mat GA / faer 产品 GA / ABI v2 产品 GA / P-ABI-v2 `[x]` / E-00 `[x]`（`P-SURF` / `P-FAER` 收窄行已 `[x]`）
 - 不发明 `mat_ga` / `p_surf_ga` / `faer_ga` / `plugin_abi_v2_ga`

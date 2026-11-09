@@ -210,7 +210,7 @@ fn s4_01_stdlib_stability_doctest_census_script_runs() {
     assert!(parse("stability_ssot_package_rows=") >= 19);
     assert!(parse("packages_readme_status_rows=") >= 1);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert_eq!(parse("syx_doctest_subcommand_count="), 0);
+    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
     assert_eq!(parse("packages_readme_plan_ternary_preview="), 0);
     assert!(parse("doctest_annotations_doc_helper=") >= 1);
 }

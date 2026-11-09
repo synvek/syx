@@ -63,7 +63,7 @@ fn ec_m2_3_tcp_listener_leak_bind_close_returns_to_baseline() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let h = TcpListener.bind(host: "127.0.0.1", port: 0)
     print("OPENED")
     TcpListener.close(handle: h)

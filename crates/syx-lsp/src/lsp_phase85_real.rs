@@ -36,13 +36,13 @@ fn p85_import_crypto_ed25519_parse() {
 #[test]
 fn p85_import_net_tcp_connect_parse() {
     assert!(p85_doc_ok(
-        "import Net\nfunc main() { print(TcpSocket.connect(\"127.0.0.1\", 9)) }"
+        "import Networking\nfunc main() { print(TcpSocket.connect(\"127.0.0.1\", 9)) }"
     ));
 }
 
 #[test]
 fn p85_import_net_udp_bind_parse() {
-    assert!(p85_doc_ok("import Net\nfunc main() { print(UdpSocket.bind(8080)) }"));
+    assert!(p85_doc_ok("import Networking\nfunc main() { print(UdpSocket.bind(8080)) }"));
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn p85_import_text_string_builder_parse() {
 #[test]
 fn p85_import_process_exec_parse() {
     assert!(p85_doc_ok(
-        "import Process\nfunc main() { print(Process.exec(\"/usr/bin/true\", [])) }"
+        "import System\nfunc main() { print(Process.exec(\"/usr/bin/true\", [])) }"
     ));
 }
 
@@ -90,13 +90,13 @@ fn p85_closure_parse() {
 
 #[test]
 fn p85_try_catch_parse() {
-    assert!(p85_doc_ok("func main() { try { print(85) } catch { print(0) } }"));
+    assert!(p85_doc_ok("func main() { do { print(85) } catch { print(0) } }"));
 }
 
 #[test]
 fn p85_import_sync_mutex_parse() {
     assert!(p85_doc_ok(
-        "import Sync\nfunc main() { let m = Mutex.create(); Mutex.lock(m); Mutex.unlock(m) }"
+        "import Synchronization\nfunc main() { let m = Mutex.create(); Mutex.lock(m); Mutex.unlock(m) }"
     ));
 }
 
@@ -109,17 +109,17 @@ fn p85_import_testing_test_parse() {
 
 #[test]
 fn p85_import_io_file_watch_parse() {
-    assert!(p85_doc_ok("import IO\nfunc main() { print(File.watch(\"/tmp\").count) }"));
+    assert!(p85_doc_ok("import System\nfunc main() { print(File.watch(\"/tmp\").count) }"));
 }
 
 #[test]
 fn p85_prelude_fmt_parse() {
-    assert!(p85_doc_ok("func main() { Fmt.printLine(Fmt.format(\"p85-{0}\", [85])) }"));
+    assert!(p85_doc_ok("import Fmt\nfunc main() { Fmt.printLine(Fmt.format(\"p85-{0}\", [85])) }"));
 }
 
 #[test]
 fn p85_import_net_http_parse() {
-    assert!(p85_doc_ok("import Net\nfunc main() { print(Http.get(\"http://example.com\")) }"));
+    assert!(p85_doc_ok("import Networking\nfunc main() { print(Http.get(\"http://example.com\")) }"));
 }
 
 #[test]

@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `__syx_uint_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `SyxHost.uint_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 64-bit unsigned integer (`UInt`). Prelude; host ops via `__syx_uint_*`.
+/// 64-bit unsigned integer (`UInt`). Prelude; host ops via `SyxHost.uint_*`.
 @builtin("numeric.uint")
 public class UInt: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -31,9 +31,9 @@ public class UInt: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_uint_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.uint_min` / `_max`.
     public static func clamp(x: UInt, lo: UInt, hi: UInt) -> UInt {
-        return __syx_uint_min(__syx_uint_max(x, lo), hi)
+        return SyxHost.uint_min(SyxHost.uint_max(x, lo), hi)
     }
 
 }
@@ -41,22 +41,22 @@ public class UInt: Equatable, Hashable, CustomStringConvertible, Comparable {
 extension UInt {
     /// Combine into a hasher (`Hashable`).
     func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
+        SyxHost.hasher_combine(hasher, self)
     }
 
     /// User-facing string conversion (`CustomStringConvertible`).
     func description() -> String {
-        return __syx_value_description(self)
+        return SyxHost.value_description(self)
     }
 
     /// Debug string conversion.
     func debugDescription() -> String {
-        return __syx_value_debug_description(self)
+        return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `__syx_uint_compare`.
+    /// Three-way compare (`Comparable`); host `SyxHost.uint_compare`.
     func compare(other: UInt) -> Int {
-        return __syx_uint_compare(self, other)
+        return SyxHost.uint_compare(self, other)
     }
 }
 

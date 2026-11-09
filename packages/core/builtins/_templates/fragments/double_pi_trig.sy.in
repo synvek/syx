@@ -1,0 +1,14 @@
+    /// Mathematical constant π.
+    public static var pi: Double {
+        return 3.141592653589793
+    }
+
+    /// Sine of `x` (radians); host `SyxHost.f64_sin`.
+    public static func sin(x: Double) -> Double {
+        return SyxHost.f64_sin(x)
+    }
+
+    /// Square root of `x`; host `SyxHost.f64_sqrt`.
+    public static func sqrt(x: Double) -> Double {
+        return SyxHost.f64_sqrt(x)
+    }

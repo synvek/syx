@@ -7,7 +7,7 @@
 // note: Conformance macros like @Equatable are supported for data class, but this file focuses on the runnable DI path.
 // =============================================================================
 
-import Di
+import DI
 
 data class Point3D(x: Int, y: Int, z: Int)
 

@@ -1,0 +1,160 @@
+/// SA-4-04: Numerics/linalg SyxHost (includes plugin_*).
+
+enum SyxHost {
+    static func f64_abs(x: Float64) -> Float64 {
+        return __syx_f64_abs(x)
+    }
+
+    static func f64_cbrt(x: Float64) -> Float64 {
+        return __syx_f64_cbrt(x)
+    }
+
+    static func f64_ceil(x: Float64) -> Float64 {
+        return __syx_f64_ceil(x)
+    }
+
+    static func f64_compare(x: Float64, y: Float64) -> Int {
+        return __syx_f64_compare(x, y)
+    }
+
+    static func f64_copysign(mag: Float64, y: Float64) -> Float64 {
+        return __syx_f64_copysign(mag, y)
+    }
+
+    static func f64_cos(x: Float64) -> Float64 {
+        return __syx_f64_cos(x)
+    }
+
+    static func f64_erf(x: Float64) -> Float64 {
+        return __syx_f64_erf(x)
+    }
+
+    static func f64_erfc(x: Float64) -> Float64 {
+        return __syx_f64_erfc(x)
+    }
+
+    static func f64_exp(x: Float64) -> Float64 {
+        return __syx_f64_exp(x)
+    }
+
+    static func f64_exp2(x: Float64) -> Float64 {
+        return __syx_f64_exp2(x)
+    }
+
+    static func f64_floor(x: Float64) -> Float64 {
+        return __syx_f64_floor(x)
+    }
+
+    static func f64_fmod(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_fmod(x, y)
+    }
+
+    static func f64_hypot(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_hypot(x, y)
+    }
+
+    static func f64_log(x: Float64) -> Float64 {
+        return __syx_f64_log(x)
+    }
+
+    static func f64_log10(x: Float64) -> Float64 {
+        return __syx_f64_log10(x)
+    }
+
+    static func f64_log1p(x: Float64) -> Float64 {
+        return __syx_f64_log1p(x)
+    }
+
+    static func f64_log2(x: Float64) -> Float64 {
+        return __syx_f64_log2(x)
+    }
+
+    static func f64_max(a: Float64, b: Float64) -> Float64 {
+        return __syx_f64_max(a, b)
+    }
+
+    static func f64_min(a: Float64, b: Float64) -> Float64 {
+        return __syx_f64_min(a, b)
+    }
+
+    static func f64_mul_add(x: Float64, y: Float64, z: Float64) -> Float64 {
+        return __syx_f64_mul_add(x, y, z)
+    }
+
+    static func f64_pow(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_pow(x, y)
+    }
+
+    static func f64_remainder(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_remainder(x, y)
+    }
+
+    static func f64_round(x: Float64) -> Float64 {
+        return __syx_f64_round(x)
+    }
+
+    static func f64_sin(x: Float64) -> Float64 {
+        return __syx_f64_sin(x)
+    }
+
+    static func f64_sqrt(x: Float64) -> Float64 {
+        return __syx_f64_sqrt(x)
+    }
+
+    static func f64_tanh(x: Float64) -> Float64 {
+        return __syx_f64_tanh(x)
+    }
+
+    static func f64_tgamma(x: Float64) -> Float64 {
+        return __syx_f64_tgamma(x)
+    }
+
+    static func f64_trunc(x: Float64) -> Float64 {
+        return __syx_f64_trunc(x)
+    }
+
+    static func int_max(n0: Int, b: Int) -> Object {
+        return __syx_int_max(n0, b)
+    }
+
+    static func int_min(n0: Int, b: Int) -> Object {
+        return __syx_int_min(n0, b)
+    }
+
+    static func plugin_faer_add(a0: String, a1: String) -> Object {
+        return __syx_plugin_faer_add(a0, a1)
+    }
+
+    static func plugin_faer_from(packed: Array<Float64>, rows: Int, cols: Int) -> Object {
+        return __syx_plugin_faer_from(packed, rows, cols)
+    }
+
+    static func plugin_faer_hadamard(handle: Int, a1: String) -> Object {
+        return __syx_plugin_faer_hadamard(handle, a1)
+    }
+
+    static func plugin_faer_mul(a0: String, a1: String) -> Object {
+        return __syx_plugin_faer_mul(a0, a1)
+    }
+
+    static func plugin_faer_solve(handle: Int, a1: String) -> Object {
+        return __syx_plugin_faer_solve(handle, a1)
+    }
+
+    static func plugin_faer_sub(a0: String, handle: Int) -> Object {
+        return __syx_plugin_faer_sub(a0, handle)
+    }
+
+    static func plugin_faer_to(a0: String) -> Object {
+        return __syx_plugin_faer_to(a0)
+    }
+
+    static func plugin_faer_zeros(rows: Int, cols: Int) -> Object {
+        return __syx_plugin_faer_zeros(rows, cols)
+    }
+
+    static func plugin_v2probe_drop(handle: Int) -> Object {
+        return __syx_plugin_v2probe_drop(handle)
+    }
+
+}

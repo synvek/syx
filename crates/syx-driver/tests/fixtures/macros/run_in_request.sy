@@ -1,4 +1,4 @@
-import Di
+import DI
 
 var __syx_req_hits = 0
 

@@ -1,8 +1,8 @@
-import IO
+import System
 
 func main() {
-    let path = Path.normalize(Path.join("/tmp", "syx_file_tool.txt"))
-    try {
+    let path = FilePath.normalize(path: FilePath.join(a: "/tmp", b: "syx_file_tool.txt"))
+    do {
         let wh = FileHandle.open(path: path, mode: "w")
         let _ = FileHandle.write(handle: wh, bytes: [65u8, 66u8, 67u8])
         FileHandle.close(handle: wh)
@@ -11,7 +11,7 @@ func main() {
         FileHandle.close(handle: rh)
         print("ok")
         print(bytes.count)
-        print(Path.exists(path))
+        print(FilePath.exists(path: path))
     } catch (e) {
         print("UNEXPECTED")
         print(e)

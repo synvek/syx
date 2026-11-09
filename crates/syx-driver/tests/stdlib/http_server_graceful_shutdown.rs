@@ -76,7 +76,7 @@ fn product_block(toml: &str, id: &str) -> String {
 
 fn serve_source(port: u16) -> String {
     format!(
-        r#"import Net
+        r#"import Networking
 
 func handle(req: Object) -> Object {{
     let path = req.path

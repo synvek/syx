@@ -106,7 +106,7 @@ func main() {
 ```syx
 func main() {
     let path = "/tmp/data.txt"
-    try {
+    do {
         File.write(path, "line1\nline2")
         let content = File.read(path)
         print(content)
@@ -140,7 +140,7 @@ func main() {
 **Example:**
 ```syx
 func main() {
-    try {
+    do {
         let response = HTTP.get("https://httpbin.org/get")
         let json = response.json()
         print(json)

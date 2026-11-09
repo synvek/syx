@@ -24,7 +24,7 @@ fn p98_file_watch_os_stdout() {
 #[test]
 fn p98_file_watch_os_import_module_stdout() {
     // Wave A W21 / ADR-365 / A-03: File.watch product exact (IO facade surface; host arg labels
-    // required under embed — bare `import IO` / full mod.sy host calls are not embed-resolved).
+    // required under embed — bare `import System` / full mod.sy host calls are not embed-resolved).
     let out = run(
         r#"
 public class File {

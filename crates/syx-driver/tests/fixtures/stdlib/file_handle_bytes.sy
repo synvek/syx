@@ -1,9 +1,9 @@
-import IO
+import System
 
 func main() {
     let path = "/tmp/syx_stdlib_handle_bytes.bin"
     File.writeBytes(path, [10u8, 20u8, 30u8])
-    try {
+    do {
         let handle = FileHandle.open(path: path, mode: "r")
         let chunk = FileHandle.read(handle: handle, maxBytes: 16)
         FileHandle.close(handle: handle)

@@ -1,7 +1,7 @@
-// KVO-style observation MVP (`__syx_kvo_observe`).
+// KVO-style observation MVP (`SyxHost.kvo_observe`).
 
 /// Observe `key` on `object` (KVO MVP).
 public func observe(object: Object, key: String) -> Bool {
-    return __syx_kvo_observe(object, key)
+    return SyxHost.kvo_observe(object, key)
 }
 

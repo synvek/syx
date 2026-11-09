@@ -144,7 +144,7 @@ data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
 func main() {
-  try {
+  do {
     let a1 = Address(city: "SF", zip: "94102")
     let u1 = User(name: "ada", address: a1)
     let a2 = Address(city: "NY", zip: "10001")
@@ -180,7 +180,7 @@ data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
 func main() {
-  try {
+  do {
     let r = __syx_json_stream_open_reader()
     __syx_json_stream_feed(r, "{\"name\":\"ada\",\"address\":")
     __syx_json_stream_feed(r, "{\"city\":\"SF\",\"zip\":\"94102\"}}\n")
@@ -213,7 +213,7 @@ data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
 func main() {
-  try {
+  do {
     let r = __syx_json_stream_open_reader()
     __syx_json_stream_feed(r, "{\"name\":\"ada\"}\n")
     let back = __syx_json_stream_decode_next(r, "User")

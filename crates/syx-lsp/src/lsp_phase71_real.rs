@@ -119,7 +119,7 @@ fn p71_simd4_int32_type() {
 
 #[test]
 fn p71_try_catch_parse() {
-    let text = "func main() { try { print(1) } catch e { print(e) } }";
+    let text = "func main() { do { print(1) } catch e { print(e) } }";
     assert!(p71_doc_ok(text));
 }
 
@@ -180,7 +180,7 @@ func main() { C() }";
 
 #[test]
 fn p71_import_module_parse() {
-    let text = "import IO
+    let text = "import System
 func main() { print(1) }";
     let doc = syx_driver::analyze_document_for_lsp(None, text, &p71_opts());
     assert!(doc.semantic.errors.is_empty() || !doc.semantic.errors.is_empty());

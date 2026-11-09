@@ -319,7 +319,7 @@ fn p98_driver_http_get_smoke() {
     // Wave A W12 / ADR-356 / A-03: product try/catch refuse exact (not result.is_err soft gate).
     let out = run(
         r#"func main() {
-  try {
+  do {
     print(__syx_http_get("http://127.0.0.1:1/x"))
   } catch (err) {
     print("refused")

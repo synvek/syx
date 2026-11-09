@@ -30,6 +30,9 @@ cleanup() { rm -rf "$WORK"; }
 trap cleanup EXIT
 
 cp "$HELLO_SRC" "$WORK/hello.sy"
+# Prefer a binary whose embed cannot short-circuit ensure_prelude (else no prelude_*.bin).
+# Rebuild tip: after SA inject-set changes, invalidate assets/prelude_snapshot.bin then
+# `cargo build -p syx-cli --release` before this script so cold store runs.
 # Cold compile writes prelude_{digest}.bin under project cache.
 "$SYX_BIN" run "$WORK/hello.sy" >/dev/null
 

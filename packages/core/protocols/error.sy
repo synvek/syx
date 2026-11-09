@@ -1,0 +1,5 @@
+// Marker protocol for values that may be thrown (SA-2-02). Swift-shaped `Error`.
+
+/// Types that can be used with `throw` / `do`/`catch` (beyond MVP `String`).
+public protocol Error {
+}

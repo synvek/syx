@@ -1,22 +1,22 @@
 # Error Handling
 
-**Implementation status:** `try` / `catch` / `throw` / `try?` / `try!` / `Result<T, E>` **Implemented**; `throws T` typed throws **Partially implemented**; rethrows **Not implemented**
+**Implementation status:** `do` / `catch` / `throw` / expression `try` / `try?` / `try!` / `Result<T, E>` **Implemented** (SA-2-01); `throws T` typed throws **Partially implemented**; rethrows **Not implemented**
 
 SYX provides three error-propagation paths:
 
-1. **throws / try** — raising and catching exceptions (runtime errors)
+1. **throws / do-catch / try expr** — raising and catching exceptions (runtime errors)
 2. **Result<T, E>** — an explicit algebraic type
 3. **Optional** — using `nil` to mean failure (the lightest weight)
 
-This chapter covers syntax, usage, Result integration, and cross-function propagation.
+This chapter covers syntax, usage, Result integration, and cross-function propagation. Charter: [sa-2-01-do-catch](../../docs/adr/sa-2-01-do-catch.md).
 
-## try / catch Blocks
+## do / catch Blocks
 
 ```syx
-import IO
+import System
 
 func main() {
-    try {
+    do {
         let content = File.read("/tmp/x")
         print(content)
     } catch (err) {
@@ -25,9 +25,9 @@ func main() {
 }
 ```
 
-- Inside a `try { }` block you may `throw` / call `throws` functions
-- When an exception fires, control jumps **immediately** to `catch`, skipping the rest of the `try` block
-- The MVP type of `err` is `String` (more complex error types are planned)
+- Inside a `do { }` block you may `throw` / call `throws` functions
+- When an exception fires, control jumps **immediately** to `catch`, skipping the rest of the `do` block
+- The MVP type of `err` is `String` (more complex error types are planned; SA-2-02)
 
 Source: `crates/syx-driver/tests/fixtures/lsp/result_generic.sy`
 
@@ -49,7 +49,7 @@ func divide(_ a: Int, _ b: Int) throws -> Int {
 ## throws Function Declarations
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
@@ -79,7 +79,7 @@ Three forms for calling `throws` functions:
 ### `try expr` (try is mandatory)
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) { throw "not found" }
@@ -93,12 +93,12 @@ func main() {
 ```
 
 - It must be wrapped in `try` (the compiler reports missing wrapping as P001)
-- Equivalent to `try { let s = loadFile(...) }`
+- Equivalent to `do { let s = loadFile(...) }`
 
 ### `try? expr` (failure becomes nil)
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) { throw "not found" }
@@ -117,7 +117,7 @@ func main() {
 ### `try! expr` (forced non-erroring)
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) { throw "not found" }
@@ -138,7 +138,7 @@ func main() {
 ## Chained catch
 
 ~~~text
-try {
+do {
     let r = Http.get(url)
     print(r)
 } catch (err) where (err.hasPrefix("5")) {
@@ -217,7 +217,7 @@ Source: `fixtures/lsp/result_generic.sy` · `fixtures/lsp/result_generic.sy`
 A `throws func` inside an `actor` is isolated automatically:
 
 ```syx
-import IO
+import System
 
 actor FileManager {
     func read(path: String) throws -> String {
@@ -228,7 +228,7 @@ actor FileManager {
 
 async func main() {
     let m = FileManager()
-    try {
+    do {
         let s = await m.read(path: "/tmp/x")
         print(s)
     } catch (err) {
@@ -286,7 +286,7 @@ func main() {
 
 | Swift | SYX |
 |-------|-----|
-| `do { try … } catch { }` | `try { } catch { }` (no `do`) |
+| `do { try … } catch { }` | `do { } catch { }` (no `do`) |
 | The `Error` protocol | The MVP uses `String` / `Result` |
 | `throws E` typed throws | **Partially implemented** |
 | `try?` `try!` | **Implemented** |
@@ -301,7 +301,7 @@ func main() {
 |------|------|------|
 | **S020** | `throw` inside a non-`throws` function | Add `throws` |
 | **P001** | Calling a `throws` function without `try` | Add `try` / `try?` / `try!` |
-| **R007** | `try!` failed | Change to `try?` / `try { } catch` |
+| **R007** | `try!` failed | Change to `try?` / `do { } catch` |
 | **S004** | `throws` type mismatch | Fix `throws T` |
 
 ---

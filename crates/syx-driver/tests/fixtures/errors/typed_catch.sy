@@ -5,7 +5,7 @@ func fail() throws {
 }
 
 func main() {
-    try {
+    do {
         fail()
     } catch (err) {
         print(err.message)

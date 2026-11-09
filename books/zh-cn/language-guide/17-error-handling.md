@@ -13,10 +13,10 @@ SYX 提供三种错误传播路径：
 ## try / catch 块
 
 ```syx
-import IO
+import System
 
 func main() {
-    try {
+    do {
         let content = File.read("/tmp/x")
         print(content)
     } catch (err) {
@@ -25,7 +25,7 @@ func main() {
 }
 ```
 
-- `try { }` 块内可 `throw` / 调 `throws` 函数
+- `do { }` 块内可 `throw` / 调 `throws` 函数
 - 异常触发后**立即**跳到 `catch`，跳过 `try` 块剩余部分
 - `err` 类型 MVP 是 `String`（更复杂错误类型规划中）
 
@@ -49,7 +49,7 @@ func divide(_ a: Int, _ b: Int) throws -> Int {
 ## throws 函数声明
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) {
@@ -79,7 +79,7 @@ func parseInt(s: String) throws -> Int {
 ### `try expr`（必须 try）
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) { throw "not found" }
@@ -93,12 +93,12 @@ func main() {
 ```
 
 - 必须用 `try` 包裹（编译器提示 P001 包装缺失）
-- 等价于 `try { let s = loadFile(...) }`
+- 等价于 `do { let s = loadFile(...) }`
 
 ### `try? expr`（失败转 nil）
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) { throw "not found" }
@@ -117,7 +117,7 @@ func main() {
 ### `try! expr`（强制无错）
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if (!File.exists(path)) { throw "not found" }
@@ -138,7 +138,7 @@ func main() {
 ## 链式 catch
 
 ~~~text
-try {
+do {
     let r = Http.get(url)
     print(r)
 } catch (err) where (err.hasPrefix("5")) {
@@ -217,7 +217,7 @@ enum ApiError: Error {
 `actor` 内的 `throws func` 自动隔离：
 
 ```syx
-import IO
+import System
 
 actor FileManager {
     func read(path: String) throws -> String {
@@ -228,7 +228,7 @@ actor FileManager {
 
 async func main() {
     let m = FileManager()
-    try {
+    do {
         let s = await m.read(path: "/tmp/x")
         print(s)
     } catch (err) {
@@ -286,7 +286,7 @@ func main() {
 
 | Swift | SYX |
 |-------|-----|
-| `do { try … } catch { }` | `try { } catch { }`（无 `do`） |
+| `do { try … } catch { }` | `do { } catch { }`（无 `do`） |
 | `Error` 协议 | MVP 用 `String` / `Result` |
 | `throws E` typed throws | **部分实现** |
 | `try?` `try!` | **已实现** |
@@ -301,7 +301,7 @@ func main() {
 |------|------|------|
 | **S020** | 非 `throws` 函数内 `throw` | 加 `throws` |
 | **P001** | 调 `throws` 函数未 `try` | 加 `try` / `try?` / `try!` |
-| **R007** | `try!` 失败 | 改 `try?` / `try { } catch` |
+| **R007** | `try!` 失败 | 改 `try?` / `do { } catch` |
 | **S004** | `throws` 类型不匹配 | 修正 `throws T` |
 
 ---

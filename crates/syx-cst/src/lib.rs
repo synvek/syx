@@ -680,15 +680,15 @@ fn take_throw_simple(body: &[&Token]) -> Option<usize> {
     }
 }
 
-/// W900: `try { stmts } catch ( Ident ) { stmts }` — bodies must be simple-stmts.
+/// W900 / SA-2-01: `do { stmts } catch ( Ident ) { stmts }` — bodies must be simple-stmts.
 fn take_try_catch_simple(body: &[&Token]) -> Option<usize> {
-    if body.is_empty() || body[0].kind != TokenKind::Try {
+    if body.is_empty() || body[0].kind != TokenKind::Do {
         return None;
     }
     if body.len() < 2 || body[1].kind != TokenKind::LBrace {
         return None;
     }
-    // Find matching RBrace for try body.
+    // Find matching RBrace for do body.
     let mut depth = 1usize;
     let mut k = 2usize;
     while k < body.len() {
@@ -707,8 +707,8 @@ fn take_try_catch_simple(body: &[&Token]) -> Option<usize> {
     if k >= body.len() || body[k].kind != TokenKind::RBrace {
         return None;
     }
-    let try_body = &body[2..k];
-    if !is_simple_stmts_body(try_body) {
+    let do_body = &body[2..k];
+    if !is_simple_stmts_body(do_body) {
         return None;
     }
     let mut j = k + 1;
@@ -716,20 +716,25 @@ fn take_try_catch_simple(body: &[&Token]) -> Option<usize> {
         return None;
     }
     j += 1;
-    if j >= body.len() || body[j].kind != TokenKind::LParen {
-        return None;
-    }
-    j += 1;
-    if j >= body.len() || !matches!(body[j].kind, TokenKind::Identifier(_)) {
-        return None;
-    }
-    j += 1;
-    if j >= body.len() || body[j].kind != TokenKind::RParen {
-        return None;
-    }
-    j += 1;
-    if j >= body.len() || body[j].kind != TokenKind::LBrace {
-        return None;
+    // `catch { }` | `catch (ident) { }`
+    if j < body.len() && body[j].kind == TokenKind::LBrace {
+        // bare catch
+    } else {
+        if j >= body.len() || body[j].kind != TokenKind::LParen {
+            return None;
+        }
+        j += 1;
+        if j >= body.len() || !matches!(body[j].kind, TokenKind::Identifier(_)) {
+            return None;
+        }
+        j += 1;
+        if j >= body.len() || body[j].kind != TokenKind::RParen {
+            return None;
+        }
+        j += 1;
+        if j >= body.len() || body[j].kind != TokenKind::LBrace {
+            return None;
+        }
     }
     let catch_body_start = j + 1;
     depth = 1;
@@ -5590,7 +5595,7 @@ mod tests {
     #[test]
     fn subset_throws_clause_roundtrip() {
         // W839 face2: throws + return / requires.
-        let src = "// ahead\nfunc fail() -> Int throws {\n  return 1\n}\nfunc g() throws requires Pure {\n  print(0)\n}\n/* trail */\n";
+        let src = "// ahead\nfunc fail() throws -> Int {\n  return 1\n}\nfunc g() throws requires Pure {\n  print(0)\n}\n/* trail */\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse throws clause");
         let out = format_cst(&root);
@@ -5625,7 +5630,7 @@ mod tests {
     #[test]
     fn subset_type_params_multi_roundtrip() {
         // W840 face2: multi TP + return / throws.
-        let src = "// ahead\nfunc pair<A, B>(a: A, b: B) {\n  print(a)\n}\nfunc id<T>(x: T) -> T throws {\n  return x\n}\n/* trail */\n";
+        let src = "// ahead\nfunc pair<A, B>(a: A, b: B) {\n  print(a)\n}\nfunc id<T>(x: T) throws -> T {\n  return x\n}\n/* trail */\n";
         let file = SourceFile::new("t.sy", src);
         let root = parse_cst_subset(&file).expect("parse type_params multi");
         let out = format_cst(&root);
@@ -6701,8 +6706,8 @@ return __syx_dict_count(map)
         // W900: try/catch/throw for file_handle comment sample.
         let src = r#"/// ahead
 public class FileHandle {
-    public static func open(path: String) -> Int throws {
-        try {
+    public static func open(path: String) throws -> Int {
+        do {
             return __syx_file_open(path)
         } catch (e) {
             throw IOError(code: 1, message: "fail")

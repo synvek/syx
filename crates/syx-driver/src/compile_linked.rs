@@ -513,13 +513,29 @@ pub(crate) fn resolve_module_with_span(
             .or_else(|| embedded_std::find_workspace_stdlib_file(project_root, first_segment))
             .or_else(|| embedded_std::find_workspace_stdlib_file(_current, first_segment))
         {
-            return Ok(ModuleRef::from_file(disk));
+            // SA-4-04: workspace overlay is public surface only; prepend SyxHost at load.
+            let raw = std::fs::read_to_string(&disk).map_err(|e| {
+                driver_error_at(
+                    format!("Failed to read {}: {e}", disk.display()),
+                    diag_source,
+                    diag_span,
+                    "D001",
+                )
+            })?;
+            // Use `<stdlib>/Name.sy` as the graph key (not `packages/.../mod.sy`) so
+            // MIR/codegen treat the overlay as stdlib: comparison ops must not be
+            // prefixed as `mod_<` / `SyxHost_<` (SA-5 workspace Networking fix).
+            return Ok(ModuleRef::Inline {
+                key: embedded_std::virtual_path(first_segment),
+                display_name: disk.display().to_string(),
+                source: embedded_std::ensure_syx_host_for(first_segment, &raw),
+            });
         }
         if let Some((name, source)) = embedded_std::lookup_core(path_str) {
-            return Ok(ModuleRef::Embedded {
+            return Ok(ModuleRef::Inline {
                 key: embedded_std::virtual_path(name),
                 display_name: format!("<stdlib>/{name}.sy"),
-                source,
+                source: embedded_std::ensure_syx_host_for(name, source),
             });
         }
         if let Some(embedded) = embedded_module(path_str) {

@@ -567,6 +567,7 @@ impl Lexer {
                     | TokenKind::Arrow
                     | TokenKind::FatArrow
                     | TokenKind::In
+                    | TokenKind::Do
                     | TokenKind::Try
             ),
         }

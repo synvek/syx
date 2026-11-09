@@ -96,7 +96,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
 
 const NY_DST_OFFSETS_SRC: &str = r#"
 func main() {
-  try {
+  do {
     let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
     let summer = __syx_datetime_parse_iso8601("2024-07-15T12:00:00.000Z")
     let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
@@ -112,7 +112,7 @@ func main() {
 
 const NY_WINTER_OFFSET_SRC: &str = r#"
 func main() {
-  try {
+  do {
     let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
     let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
     print(__syx_datetime_timezone_offset(wMs, "America/New_York"))
@@ -125,7 +125,7 @@ func main() {
 
 const NY_WINTER_FORMAT_SRC: &str = r#"
 func main() {
-  try {
+  do {
     let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
     let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
     print(__syx_datetime_format_with_timezone(wMs, "iso", "America/New_York"))
@@ -186,7 +186,7 @@ fn m2_s5_02_format_with_timezone_ny() {
     let out = run(
         r#"
 func main() {
-  try {
+  do {
     let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
     let summer = __syx_datetime_parse_iso8601("2024-07-15T12:00:00.000Z")
     let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
@@ -247,7 +247,7 @@ fn m2_s5_02_unknown_zone_u001() {
     let out = run(
         r#"
 func main() {
-  try {
+  do {
     print(__syx_datetime_timezone_offset(0, "Not/AZone"))
     print("UNEXPECTED_OK")
   } catch (err) {

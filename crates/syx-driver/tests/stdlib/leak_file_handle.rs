@@ -33,7 +33,7 @@ fn ec_m2_3_file_leak_open_close_returns_to_baseline() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let h = FileHandle.open(path: "{path_s}", mode: "w")
     print("OPENED")
     FileHandle.close(handle: h)
@@ -63,7 +63,7 @@ fn ec_m2_3_file_leak_open_without_close_increments() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let h = FileHandle.open(path: "{path_s}", mode: "w")
     print("LEAKED")
     print(h)

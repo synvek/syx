@@ -146,5 +146,5 @@ fn s4_01_residual_scope_census_script_hinges() {
     assert!(parse("stability_ssot_helper=") >= 1);
     assert!(parse("stability_ssot_package_rows=") >= 19);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert_eq!(parse("syx_doctest_subcommand_count="), 0);
+    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
 }

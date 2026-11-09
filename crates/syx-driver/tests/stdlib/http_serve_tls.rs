@@ -131,8 +131,8 @@ fn http_serve_https_loopback_get_with_extra_root() {
 
     let src = format!(
         r#"
-import Net
-import IO
+import Networking
+import System
 
 func handle(req: Object) -> Object {{
     if req.path == "/health" {{
@@ -165,7 +165,7 @@ func main() {{
     // Client via Syx Http.get (EXTRA_ROOT already set in this process).
     let client_src = format!(
         r#"
-import Net
+import Networking
 
 func main() {{
     let resp = Http.get(url: "https://127.0.0.1:{port}/health")
@@ -340,7 +340,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\
 
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")
@@ -526,7 +526,7 @@ fn start_https_terminate_serve(
     );
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{\"upgradeTerminate\":true}}")
@@ -777,7 +777,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\
 
     let src = format!(
         r#"
-import Net
+import Networking
 
 func handle(req: Object) -> Object {{
     var o: Object = JSON.decode("{{}}")

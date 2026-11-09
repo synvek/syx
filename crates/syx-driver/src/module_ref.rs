@@ -87,9 +87,13 @@ pub fn embedded_module(path_str: &str) -> Option<ModuleRef> {
     if embedded_std::is_forbidden_import(first) {
         return None;
     }
-    embedded_std::lookup(path_str).map(|(name, source)| ModuleRef::Embedded {
-        key: embedded_std::virtual_path(name),
-        display_name: format!("<stdlib>/{name}.sy"),
-        source,
+    embedded_std::lookup(path_str).map(|(name, source)| {
+        let hosted = embedded_std::ensure_syx_host_for(name, source);
+        // Inline so SA-4 host prepend is owned (SYSTEM_SOURCE already hosts → no-op).
+        ModuleRef::Inline {
+            key: embedded_std::virtual_path(name),
+            display_name: format!("<stdlib>/{name}.sy"),
+            source: hosted,
+        }
     })
 }

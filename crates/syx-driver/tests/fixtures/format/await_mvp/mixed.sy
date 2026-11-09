@@ -1,7 +1,7 @@
 func main() {
     print(0)
     await print(1)
-    try {
+    do {
         await print(2)
     } catch (err) {
         print(3)

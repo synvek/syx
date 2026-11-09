@@ -660,6 +660,8 @@ pub enum Decl {
         attrs: Vec<Attribute>,
         name: SmolStr,
         type_params: Vec<SmolStr>,
+        /// SA-2-02: `enum E: Error, …` protocol list.
+        conformances: Vec<SmolStr>,
         cases: Vec<(SmolStr, Option<Expr>, Vec<(SmolStr, TypeExpr)>)>,
     },
     Init {

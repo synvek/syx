@@ -1,0 +1,4 @@
+    /// Uniform random integer in the half-open range `[0, upperBound)`.
+    public static func random(in upperBound: Int) -> Int {
+        return SyxHost.random_next_int64(upperBound)
+    }

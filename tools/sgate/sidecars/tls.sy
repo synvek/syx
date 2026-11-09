@@ -16,10 +16,10 @@
 // logged from main. Native product TLS does not need this file.
 // ---------------------------------------------------------------
 
-import IO
-import Process
-import Log
-import Net
+import System
+import Logging
+import Networking
+import JSON
 
 // -------- Cert / key loading --------
 

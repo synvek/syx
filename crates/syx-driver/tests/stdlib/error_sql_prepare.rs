@@ -21,7 +21,7 @@ fn m2_error_sql_prepare_invalid_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let id = Sql.prepare(sql: "NOT VALID SQL !!!")
     print("UNEXPECTED_OK")
     print(id)
@@ -40,7 +40,7 @@ fn m2_error_sql_prepare_valid_returns_int() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = Sql.prepare(sql: "SELECT 1")
     print("ok")
   } catch (err) {
@@ -58,7 +58,7 @@ fn m2_error_sql_bind_step_invalid_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let n = Sql.bindStep(sql: "NOT VALID !!!", value: "x")
     print("UNEXPECTED_OK")
     print(n)
@@ -77,7 +77,7 @@ fn m2_error_sql_bind_step_valid_returns_int() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = __syx_sql_migrate("CREATE TABLE IF NOT EXISTS u (name TEXT)")
     let n = Sql.bindStep(sql: "INSERT INTO u (name) VALUES (?)", value: "alice")
     print("ok")
@@ -97,7 +97,7 @@ fn m2_error_sql_exec_invalid_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let n = Sql.exec(sql: "NOT VALID !!!")
     print("UNEXPECTED_OK")
     print(n)
@@ -116,7 +116,7 @@ fn m2_error_sql_query_invalid_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let rows = Sql.query(sql: "NOT VALID !!!")
     print("UNEXPECTED_OK")
     print(rows)
@@ -135,7 +135,7 @@ fn m2_error_sql_exec_valid_returns_int() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let n = Sql.exec(sql: "CREATE TABLE IF NOT EXISTS m2w11_t (id INTEGER)")
     print("ok")
     print(n)
@@ -154,7 +154,7 @@ fn m2_error_sql_begin_transaction_ok() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.beginTransaction()
     print("ok")
     Sql.rollbackTransaction()
@@ -174,19 +174,19 @@ fn m2_error_sql_nested_begin_transaction_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.beginTransaction()
   } catch (e1) {
     print("UNEXPECTED_BEGIN1")
     return
   }
-  try {
+  do {
     Sql.beginTransaction()
     print("UNEXPECTED_OK")
   } catch (e2) {
     print("caught")
   }
-  try {
+  do {
     Sql.rollbackTransaction()
   } catch (e3) {
   }
@@ -202,7 +202,7 @@ fn m2_error_sql_rollback_ok_after_begin() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.beginTransaction()
     Sql.rollbackTransaction()
     print("ok")
@@ -222,7 +222,7 @@ fn m2_error_sql_commit_without_begin_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     Sql.commitTransaction()
     print("COMMIT_NOOP")
   } catch (err) {

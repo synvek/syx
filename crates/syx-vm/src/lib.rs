@@ -1186,8 +1186,14 @@ impl VmInstance {
         program: &CompiledProgram,
         pc: usize,
     ) -> SyxResult<usize> {
-        let name = syx_stdlib::host_fn_name_for_index(idx)
-            .or_else(|| program.host_fn_names.get(idx as usize).map(|s| s.as_str()))
+        // Prefer the program's host table: `program_trim` remaps CallHost indices into
+        // a dense `host_fn_names` list. Absolute `host_fn_name_for_index` would mis-bind
+        // (e.g. remapped MathFloatAbs → FileRead) and yield R001 "Failed to read file".
+        let name = program
+            .host_fn_names
+            .get(idx as usize)
+            .map(|s| s.as_str())
+            .or_else(|| syx_stdlib::host_fn_name_for_index(idx))
             .unwrap_or("");
         if name == "__syx_array_sorted" {
             let receiver = self.stack.pop().unwrap_or(Value::Nil);

@@ -1,36 +1,38 @@
 // TLS server one-shot serve helpers (cert/key PEM paths).
 
 /// Thin TLS error (ADR-138 style).
-public data class TlsError(code: Int, message: String)
+public enum TlsError: Error {
+    case failed(code: Int, message: String)
+}
 
 /// Serve-once TLS accept (optional ALPN / no-idle variants).
 public class TlsServer {
     /// Accept/serve one TLS connection (throws `TlsError`).
-    public static func serveOnce(host: String, port: Int, certPemPath: String, keyPemPath: String) -> Int throws {
-        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, "", 0)
+    public static func serveOnce(host: String, port: Int, certPemPath: String, keyPemPath: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, "", 0)
         if r < 0
-        throw TlsError(code: 1, message: "tls serveOnce failed")
+        throw TlsError.failed(code: 1, message: "tls serveOnce failed")
         return r
     }
     /// Serve once with ALPN protocol list (throws `TlsError`).
-    public static func serveOnceAlpn(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) -> Int throws {
-        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, alpn, 0)
+    public static func serveOnceAlpn(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, alpn, 0)
         if r < 0
-        throw TlsError(code: 1, message: "tls serveOnceAlpn failed")
+        throw TlsError.failed(code: 1, message: "tls serveOnceAlpn failed")
         return r
     }
     /// Serve once without idle timeout (throws `TlsError`).
-    public static func serveOnceNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String) -> Int throws {
-        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, "", 1)
+    public static func serveOnceNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, "", 1)
         if r < 0
-        throw TlsError(code: 1, message: "tls serveOnceNoIdle failed")
+        throw TlsError.failed(code: 1, message: "tls serveOnceNoIdle failed")
         return r
     }
     /// Serve once with ALPN and no idle timeout (throws `TlsError`).
-    public static func serveOnceAlpnNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) -> Int throws {
-        let r = __syx_tls_serve(host, port, certPemPath, keyPemPath, alpn, 1)
+    public static func serveOnceAlpnNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, alpn, 1)
         if r < 0
-        throw TlsError(code: 1, message: "tls serveOnceAlpnNoIdle failed")
+        throw TlsError.failed(code: 1, message: "tls serveOnceAlpnNoIdle failed")
         return r
     }
 }

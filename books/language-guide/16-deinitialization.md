@@ -77,7 +77,7 @@ Swift's ARC is **deterministic**: `deinit` runs immediately when the refcount re
 For deterministic resources (files, sockets, locks), prefer an **explicit close / release**:
 
 ```syx
-import IO
+import System
 
 class File {
     let path: String

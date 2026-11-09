@@ -1,5 +1,7 @@
 # Appendix A: Implementation Status Matrix
 
+> **SA exited (2026-11-09):** [sa-exit](../../docs/adr/sa-exit.md). Current user imports: `System` / `Networking` / `Synchronization` / `Logging` / … — **not** `Foundation`, and not legacy `Os` / `Net` module names. Full ledger: [shared/implementation-status.md](../shared/implementation-status.md).
+
 This appendix points at the unified master feature-status table, to avoid duplicating [shared/implementation-status.md](../shared/implementation-status.md).
 
 **Complete matrix:** [books/shared/implementation-status.md](../shared/implementation-status.md)

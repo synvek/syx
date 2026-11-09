@@ -21,11 +21,11 @@ fn facade_src(body: &str) -> String {
 
 #[test]
 fn hostfn_process_spawn_missing_cmd_fail_exact() {
-    // Wave A W189 / ADR-533: spawn CallHost→facade; caught ProcessError.code == 4.
+    // Wave A W189 / ADR-533: spawn CallHost→facade; caught SystemError.code == 4.
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/nonexistent/syx_qs1_missing_cmd", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     print("UNEXPECTED")
@@ -42,7 +42,7 @@ func main() {
 }
 
 /// Wave A W12 / ADR-356 / A-05 — ProcessBuilderSpawn llvm cell (native CallHost try/catch).
-/// Wave A W131 / ADR-475 / A-03: IOError.code ObjectGet native llvm exact.
+/// Wave A W131 / ADR-475 / A-03: SystemError.code ObjectGet native llvm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_process_spawn_missing_native_llvm() {
@@ -51,7 +51,7 @@ fn hostfn_process_spawn_missing_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/nonexistent/syx_qs1_missing_cmd", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     print("UNEXPECTED")
@@ -95,7 +95,7 @@ func main() {
 }
 
 /// Wave A W24 / ADR-368 / A-05 — ProcessBuilderSpawn wasm cell (AOT CallHost try/catch).
-/// Wave A W129 / ADR-473 / A-03: IOError.code ObjectGet wasm exact.
+/// Wave A W129 / ADR-473 / A-03: SystemError.code ObjectGet wasm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_process_spawn_missing_wasm() {
@@ -105,7 +105,7 @@ fn hostfn_process_spawn_missing_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/nonexistent/syx_qs1_missing_cmd", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     print("UNEXPECTED")
@@ -147,7 +147,7 @@ fn hostfn_process_spawn_true_wait_exact() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     let code = Child.wait(handle: h)
@@ -174,7 +174,7 @@ fn hostfn_process_wait_success_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     let code = Child.wait(handle: h)
@@ -228,7 +228,7 @@ fn hostfn_process_wait_success_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     let h = ProcessBuilder.spawn(builder: b)
     let code = Child.wait(handle: h)
@@ -275,7 +275,7 @@ fn hostfn_process_create_success_native_llvm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     print("created")
     let h = ProcessBuilder.spawn(builder: b)
@@ -329,7 +329,7 @@ fn hostfn_process_create_success_wasm() {
     let src = facade_src(
         r#"
 func main() {
-  try {
+  do {
     let b = ProcessBuilder.create(command: "/usr/bin/true", args: [])
     print("created")
     let h = ProcessBuilder.spawn(builder: b)

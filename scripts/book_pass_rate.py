@@ -16,6 +16,7 @@ CI (S1-I23 scoped): en-only hard gate in .github/workflows/ci.yml job `book-pass
 
 Usage:
   python3 scripts/book_pass_rate.py [--syx PATH] [--zh] [--limit N] [--json OUT]
+  python3 scripts/book_pass_rate.py --library-guide [--strict]   # SA-5-05 library-guide gate
 """
 from __future__ import annotations
 
@@ -107,6 +108,16 @@ def main() -> int:
     )
     ap.add_argument("--syx", default=None, help="path to syx binary")
     ap.add_argument("--zh", action="store_true", help="also scan books/zh-cn/language-guide")
+    ap.add_argument(
+        "--library-guide",
+        action="store_true",
+        help="SA-5-05: scan books/library-guide (en) instead of language-guide",
+    )
+    ap.add_argument(
+        "--strict",
+        action="store_true",
+        help="exit 1 when any block fails (library-guide / doctest gate)",
+    )
     ap.add_argument("--limit", type=int, default=0, help="max blocks (0 = all)")
     ap.add_argument("--timeout", type=float, default=30.0)
     ap.add_argument("--json", type=Path, default=None, help="write JSON report")
@@ -118,9 +129,14 @@ def main() -> int:
         # fall back to PATH
         syx = args.syx or "syx"
 
-    guides = [root / "books" / "language-guide"]
-    if args.zh:
-        guides.append(root / "books" / "zh-cn" / "language-guide")
+    if args.library_guide:
+        guides = [root / "books" / "library-guide"]
+        if args.zh:
+            guides.append(root / "books" / "zh-cn" / "library-guide")
+    else:
+        guides = [root / "books" / "language-guide"]
+        if args.zh:
+            guides.append(root / "books" / "zh-cn" / "language-guide")
 
     md_files: list[Path] = []
     for g in guides:
@@ -202,7 +218,15 @@ def main() -> int:
         args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print(f"wrote {args.json}")
 
-    return 0 if n > 0 else 1
+    if n == 0:
+        return 1
+    if args.strict and passed < n:
+        fails = [r for r in results if not r.ok]
+        print("--- failures ---")
+        for r in fails:
+            print(f"{r.file}#{r.index}\t{r.kind}\t{r.detail[:120]}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

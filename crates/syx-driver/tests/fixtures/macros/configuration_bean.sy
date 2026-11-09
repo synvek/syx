@@ -1,4 +1,4 @@
-import Di
+import DI
 
 class Greeter {
     init() {

@@ -1,4 +1,4 @@
-//! Os.diskTotal / Os.diskAvailable / Os.loadAverage MVP.
+//! ProcessInfo.diskTotal / ProcessInfo.diskAvailable / ProcessInfo.loadAverage MVP.
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
@@ -24,17 +24,17 @@ fn os_disk_and_load_positive() {
     let printed = run(&with_os(
         r#"
 func main() {
-    try {
-        print(Os.diskTotal(path: "/"))
+    do {
+        print(ProcessInfo.diskTotal(path: "/"))
     } catch (e) {
         print("-1")
     }
-    try {
-        print(Os.diskAvailable(path: "/"))
+    do {
+        print(ProcessInfo.diskAvailable(path: "/"))
     } catch (e) {
         print("-1")
     }
-    print(Os.loadAverage())
+    print(ProcessInfo.loadAverage())
 }
 "#,
     ))

@@ -28,7 +28,7 @@ fn ec_m2_3_sql_leak_open_close_returns_to_baseline() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     print("OPENED")
     let _ = Sql.execOn(connId: c, sql: "CREATE TABLE t (v TEXT)")
@@ -57,7 +57,7 @@ fn ec_m2_3_sql_leak_open_without_close_increments() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let c = Sql.open(dsn: ":memory:")
     print("LEAKED")
     print(c)
@@ -105,7 +105,7 @@ fn ec_m2_3_sql_leak_implicit_conn0_not_counted() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
+  do {
     let _ = Sql.exec(sql: "CREATE TABLE t0 (v TEXT)")
     print("OK")
   } catch (err) {

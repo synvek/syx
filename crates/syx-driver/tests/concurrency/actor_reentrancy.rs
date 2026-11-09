@@ -30,7 +30,7 @@ actor Counter {
 
 func main() {
   let c = Counter(value: 0)
-  try {
+  do {
     c.bump()
     print("OK")
   } catch (err) {

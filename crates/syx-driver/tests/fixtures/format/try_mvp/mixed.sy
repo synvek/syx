@@ -1,6 +1,6 @@
 func main() {
     print(0)
-    try {
+    do {
         print(1)
     } catch (err) {
         print(2)

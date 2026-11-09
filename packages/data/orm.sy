@@ -1,66 +1,68 @@
 // Thin table/record helpers over Sql (≠ full ORM / ≠ query builder GA).
 
 /// Thin ORM error (ADR-138 style; full Error hierarchy later).
-public data class OrmError(code: Int, message: String)
+public enum OrmError: Error {
+    case failed(code: Int, message: String)
+}
 
-/// Save (host `__syx_orm_save`).
+/// Save (host `SyxHost.orm_save`).
 public func save<T>(table: String, record: T) -> Bool {
-    return __syx_orm_save(table, record)
+    return SyxHost.orm_save(table, record)
 }
 
-/// Save On (throws) (host `__syx_orm_save_on`).
-public func saveOn(connId: Int, table: String, record: Any) -> Bool throws {
-    try {
-        return __syx_orm_save_on(connId, table, record)
+/// Save On (throws) (host `SyxHost.orm_save_on`).
+public func saveOn(connId: Int, table: String, record: Any) throws -> Bool {
+    do {
+        return SyxHost.orm_save_on(connId, table, record)
     } catch (e) {
-        throw OrmError(code: 1, message: "orm saveOn failed")
+        throw OrmError.failed(code: 1, message: "orm saveOn failed")
     }
 }
 
-/// Find Where (host `__syx_orm_find_where`).
+/// Find Where (host `SyxHost.orm_find_where`).
 public func findWhere(table: String, col: String, val: String) -> Array {
-    return __syx_orm_find_where(table, col, val)
+    return SyxHost.orm_find_where(table, col, val)
 }
 
-/// Find Where On (throws) (host `__syx_orm_find_where_on`).
-public func findWhereOn(connId: Int, table: String, col: String, val: String) -> Array throws {
-    try {
-        return __syx_orm_find_where_on(connId, table, col, val)
+/// Find Where On (throws) (host `SyxHost.orm_find_where_on`).
+public func findWhereOn(connId: Int, table: String, col: String, val: String) throws -> Array {
+    do {
+        return SyxHost.orm_find_where_on(connId, table, col, val)
     } catch (e) {
-        throw OrmError(code: 2, message: "orm findWhereOn failed")
+        throw OrmError.failed(code: 2, message: "orm findWhereOn failed")
     }
 }
 
-/// Update Where (host `__syx_orm_update_where`).
+/// Update Where (host `SyxHost.orm_update_where`).
 public func updateWhere(table: String, col: String, val: String, newCol: String, newVal: String) -> Int {
-    return __syx_orm_update_where(table, col, val, newCol, newVal)
+    return SyxHost.orm_update_where(table, col, val, newCol, newVal)
 }
 
-/// Update Where On (throws) (host `__syx_orm_update_where_on`).
-public func updateWhereOn(connId: Int, table: String, col: String, val: String, newCol: String, newVal: String) -> Int throws {
-    try {
-        return __syx_orm_update_where_on(connId, table, col, val, newCol, newVal)
+/// Update Where On (throws) (host `SyxHost.orm_update_where_on`).
+public func updateWhereOn(connId: Int, table: String, col: String, val: String, newCol: String, newVal: String) throws -> Int {
+    do {
+        return SyxHost.orm_update_where_on(connId, table, col, val, newCol, newVal)
     } catch (e) {
-        throw OrmError(code: 3, message: "orm updateWhereOn failed")
+        throw OrmError.failed(code: 3, message: "orm updateWhereOn failed")
     }
 }
 
-/// Delete where (host `__syx_orm_delete_where`).
+/// Delete where (host `SyxHost.orm_delete_where`).
 public func deleteWhere(table: String, col: String, val: String) -> Int {
-    return __syx_orm_delete_where(table, col, val)
+    return SyxHost.orm_delete_where(table, col, val)
 }
 
-/// Delete where On (throws) (host `__syx_orm_delete_where_on`).
-public func deleteWhereOn(connId: Int, table: String, col: String, val: String) -> Int throws {
-    try {
-        return __syx_orm_delete_where_on(connId, table, col, val)
+/// Delete where On (throws) (host `SyxHost.orm_delete_where_on`).
+public func deleteWhereOn(connId: Int, table: String, col: String, val: String) throws -> Int {
+    do {
+        return SyxHost.orm_delete_where_on(connId, table, col, val)
     } catch (e) {
-        throw OrmError(code: 4, message: "orm deleteWhereOn failed")
+        throw OrmError.failed(code: 4, message: "orm deleteWhereOn failed")
     }
 }
 
-/// Migrate (host `__syx_sql_migrate`).
+/// Migrate (host `SyxHost.sql_migrate`).
 public func migrate(sql: String) -> Int {
-    return __syx_sql_migrate(sql)
+    return SyxHost.sql_migrate(sql)
 }
 

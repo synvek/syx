@@ -139,7 +139,7 @@ fn p136_token_stream_enumerate_ident_punct_group() {
 #[test]
 fn p136_or_boot_codegen_still_seals() {
     let src = r#"
-import Di
+import DI
 @Service
 class Greeter {
   init() {}

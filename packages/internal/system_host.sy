@@ -1,0 +1,2284 @@
+/// SA-4-04: stdlib SyxHost (no faer plugin_*).
+
+enum SyxHost {
+    static func actor_mailbox_capacity() -> Int {
+        return __syx_actor_mailbox_capacity()
+    }
+
+    static func actor_max_actors() -> Int {
+        return __syx_actor_max_actors()
+    }
+
+    static func actor_reentrancy_policy() -> String {
+        return __syx_actor_reentrancy_policy()
+    }
+
+    static func actor_set_mailbox_capacity(n: Int) -> Int {
+        return __syx_actor_set_mailbox_capacity(n)
+    }
+
+    static func actor_set_max_actors(n: Int) -> Int {
+        return __syx_actor_set_max_actors(n)
+    }
+
+    static func actor_set_shared_pool_enabled(enabled: Bool) -> Bool {
+        return __syx_actor_set_shared_pool_enabled(enabled)
+    }
+
+    static func actor_set_shared_pool_size(n: Int) -> Int {
+        return __syx_actor_set_shared_pool_size(n)
+    }
+
+    static func actor_shared_pool_enabled() -> Bool {
+        return __syx_actor_shared_pool_enabled()
+    }
+
+    static func actor_shared_pool_size() -> Int {
+        return __syx_actor_shared_pool_size()
+    }
+
+    static func array_append(receiver: Object, item: Object) {
+        __syx_array_append(receiver, item)
+    }
+
+    static func array_binary_search(receiver: Object, item: Object) -> Int {
+        return __syx_array_binary_search(receiver, item)
+    }
+
+    static func array_chunked(receiver: Object, size: Int) -> Array<UInt8> {
+        return __syx_array_chunked(receiver, size)
+    }
+
+    static func array_contains(receiver: Object, item: Object) -> Object {
+        return __syx_array_contains(receiver, item)
+    }
+
+    static func array_filter(receiver: Object, predicate: Object) -> Object {
+        return __syx_array_filter(receiver, predicate)
+    }
+
+    static func array_flat_map(receiver: Object, transform: Object) -> Array<UInt8> {
+        return __syx_array_flat_map(receiver, transform)
+    }
+
+    static func array_joined(receiver: Object, sep: Object) -> Object {
+        return __syx_array_joined(receiver, sep)
+    }
+
+    static func array_len(receiver: Object) -> Int {
+        return __syx_array_len(receiver)
+    }
+
+    static func array_map(receiver: Object, transform: Object) -> Object {
+        return __syx_array_map(receiver, transform)
+    }
+
+    static func array_reduce(receiver: Object, initial: Object, combine: Object) -> Object {
+        return __syx_array_reduce(receiver, initial, combine)
+    }
+
+    static func array_reverse(receiver: Object) -> Object {
+        return __syx_array_reverse(receiver)
+    }
+
+    static func array_set_at(items: Array<String>, index: String, value: Object) -> Array<UInt8> {
+        return __syx_array_set_at(items, index, value)
+    }
+
+    static func array_sort_by(receiver: Object, comparator: Object) -> Array<UInt8> {
+        return __syx_array_sort_by(receiver, comparator)
+    }
+
+    static func array_zip(receiver: Object, other: Object) -> Array<UInt8> {
+        return __syx_array_zip(receiver, other)
+    }
+
+    static func await_task(task: String) -> Object {
+        return __syx_await_task(task)
+    }
+
+    static func base64_decode(encoded: String) -> String {
+        return __syx_base64_decode(encoded)
+    }
+
+    static func base64_encode(data: Array<UInt8>) -> String {
+        return __syx_base64_encode(data)
+    }
+
+    static func bigint_add(a: Float64, b: Float64) -> Object {
+        return __syx_bigint_add(a, b)
+    }
+
+    static func bigint_cmp(a: Float64, b: Float64) -> Object {
+        return __syx_bigint_cmp(a, b)
+    }
+
+    static func bigint_from_string(text: String) -> Object {
+        return __syx_bigint_from_string(text)
+    }
+
+    static func bigint_mul(a: Float64, b: Float64) -> Object {
+        return __syx_bigint_mul(a, b)
+    }
+
+    static func bigint_sub(a: Float64, b: Float64) -> Object {
+        return __syx_bigint_sub(a, b)
+    }
+
+    static func blocking_pool_set_size(n: Int) -> Int {
+        return __syx_blocking_pool_set_size(n)
+    }
+
+    static func blocking_pool_size() -> Int {
+        return __syx_blocking_pool_size()
+    }
+
+    static func blocking_sleep(ms: Int) {
+        __syx_blocking_sleep(ms)
+    }
+
+    static func bytes_concat(a: Float64, b: Float64) -> Array<UInt8> {
+        return __syx_bytes_concat(a, b)
+    }
+
+    static func bytes_from_array(data: Array<UInt8>) -> Array<UInt8> {
+        return __syx_bytes_from_array(data)
+    }
+
+    static func bytes_slice(data: Array<UInt8>, start: String, end: String) -> Array<UInt8> {
+        return __syx_bytes_slice(data, start, end)
+    }
+
+    static func channel_capacity(handle: Int) -> Int {
+        return __syx_channel_capacity(handle)
+    }
+
+    static func channel_close(handle: Int) -> Void {
+        return __syx_channel_close(handle)
+    }
+
+    static func channel_create(n0: Int) -> Object {
+        return __syx_channel_create(n0)
+    }
+
+    static func channel_length(handle: Int) -> Int {
+        return __syx_channel_length(handle)
+    }
+
+    static func channel_recv(handle: Int) -> Object {
+        return __syx_channel_recv(handle)
+    }
+
+    static func channel_select(channels: String) -> Object {
+        return __syx_channel_select(channels)
+    }
+
+    static func channel_select_default(channels: String, miss: String) -> Object {
+        return __syx_channel_select_default(channels, miss)
+    }
+
+    static func channel_select_timeout(channels: String, ms: Int) -> Object {
+        return __syx_channel_select_timeout(channels, ms)
+    }
+
+    static func channel_send(handle: Int, value: Object) -> Bool {
+        return __syx_channel_send(handle, value)
+    }
+
+    static func channel_try_recv(handle: Int) -> Object {
+        return __syx_channel_try_recv(handle)
+    }
+
+    static func channel_try_send(handle: Int, value: Object) -> Bool {
+        return __syx_channel_try_send(handle, value)
+    }
+
+    static func character_is_single_scalar(c: Float64) -> Bool {
+        return __syx_character_is_single_scalar(c)
+    }
+
+    static func child_kill(handle: Int) {
+        __syx_child_kill(handle)
+    }
+
+    static func child_pipe_close(pipe: Int) {
+        __syx_child_pipe_close(pipe)
+    }
+
+    static func child_pipe_read_chunk(pipe: Int, maxBytes: Int) -> Array<UInt8> {
+        return __syx_child_pipe_read_chunk(pipe, maxBytes)
+    }
+
+    static func child_pipe_write(pipe: Int, bytes: Array<UInt8>) -> Int {
+        return __syx_child_pipe_write(pipe, bytes)
+    }
+
+    static func child_signal(handle: Int, name: String) {
+        __syx_child_signal(handle, name)
+    }
+
+    static func child_stderr(handle: Int) -> Int {
+        return __syx_child_stderr(handle)
+    }
+
+    static func child_stdin(handle: Int) -> Int {
+        return __syx_child_stdin(handle)
+    }
+
+    static func child_stdout(handle: Int) -> Int {
+        return __syx_child_stdout(handle)
+    }
+
+    static func child_wait(handle: Int) -> Int {
+        return __syx_child_wait(handle)
+    }
+
+    static func child_wait_timeout(handle: Int, timeoutMs: Int) -> Int {
+        return __syx_child_wait_timeout(handle, timeoutMs)
+    }
+
+    static func codable_decode_l14(s0: String, wire: String) -> String {
+        return __syx_codable_decode_l14(s0, wire)
+    }
+
+    static func codable_encode_l14(name: String, s1: String) -> Array<UInt8> {
+        return __syx_codable_encode_l14(name, s1)
+    }
+
+    static func codable_l14_register_migration(s0: String, s1: String) -> Bool {
+        return __syx_codable_l14_register_migration(s0, s1)
+    }
+
+    static func codable_l14_register_rename(s0: String, s1: String, s2: String) -> Bool {
+        return __syx_codable_l14_register_rename(s0, s1, s2)
+    }
+
+    static func crypto_aes_gcm_encrypt(key: String, nonce: String, plaintext: String) -> String {
+        return __syx_crypto_aes_gcm_encrypt(key, nonce, plaintext)
+    }
+
+    static func crypto_ed25519_sign(key: String, message: String) -> String {
+        return __syx_crypto_ed25519_sign(key, message)
+    }
+
+    static func crypto_ed25519_verify(key: String, message: String, signature: String) -> Bool {
+        return __syx_crypto_ed25519_verify(key, message, signature)
+    }
+
+    static func crypto_hmac_sha256(key: String, message: String) -> String {
+        return __syx_crypto_hmac_sha256(key, message)
+    }
+
+    static func crypto_pbkdf2(password: String, salt: String, iterations: String, dkLen: String) -> String {
+        return __syx_crypto_pbkdf2(password, salt, iterations, dkLen)
+    }
+
+    static func crypto_sha256(s: String) -> String {
+        return __syx_crypto_sha256(s)
+    }
+
+    static func crypto_sha512(s: String) -> String {
+        return __syx_crypto_sha512(s)
+    }
+
+    static func datetime_format(ms: Int, pattern: String) -> String {
+        return __syx_datetime_format(ms, pattern)
+    }
+
+    static func datetime_format_with_timezone(ms: Int, pattern: String, timezone: String) -> String {
+        return __syx_datetime_format_with_timezone(ms, pattern, timezone)
+    }
+
+    static func datetime_now() -> Object {
+        return __syx_datetime_now()
+    }
+
+    static func datetime_parse(s: String) -> Object {
+        return __syx_datetime_parse(s)
+    }
+
+    static func datetime_parse_iso8601(text: String) -> Object {
+        return __syx_datetime_parse_iso8601(text)
+    }
+
+    static func datetime_timezone_offset(ms: Int, timezone: String) -> Int {
+        return __syx_datetime_timezone_offset(ms, timezone)
+    }
+
+    static func deque_count(items: Array<String>) -> Int {
+        return __syx_deque_count(items)
+    }
+
+    static func deque_is_empty(items: Array<String>) -> Bool {
+        return __syx_deque_is_empty(items)
+    }
+
+    static func deque_new() -> Deque {
+        return __syx_deque_new()
+    }
+
+    static func deque_pop_back(items: Array<String>) -> Object {
+        return __syx_deque_pop_back(items)
+    }
+
+    static func deque_pop_front(items: Array<String>) -> Object {
+        return __syx_deque_pop_front(items)
+    }
+
+    static func deque_push_back(items: Array<String>, item: Object) {
+        __syx_deque_push_back(items, item)
+    }
+
+    static func deque_push_front(items: Array<String>, item: Object) {
+        __syx_deque_push_front(items, item)
+    }
+
+    static func dict_contains(dict: Object, key: String) -> Object {
+        return __syx_dict_contains(dict, key)
+    }
+
+    static func dict_count(dict: Object) -> Int {
+        return __syx_dict_count(dict)
+    }
+
+    static func dict_get(receiver: Object, key: String) -> Object {
+        return __syx_dict_get(receiver, key)
+    }
+
+    static func dict_keys(dict: Object) -> Object {
+        return __syx_dict_keys(dict)
+    }
+
+    static func dict_remove(dict: Object, key: String) -> Object {
+        return __syx_dict_remove(dict, key)
+    }
+
+    static func dict_set(receiver: Object, key: String, value: Object) -> Object {
+        return __syx_dict_set(receiver, key, value)
+    }
+
+    static func dict_values(dict: Object) -> Object {
+        return __syx_dict_values(dict)
+    }
+
+    static func dir_create(path: String) -> Bool {
+        return __syx_dir_create(path)
+    }
+
+    static func dir_exists(path: String) -> Bool {
+        return __syx_dir_exists(path)
+    }
+
+    static func dir_list(path: String) -> Array<String> {
+        return __syx_dir_list(path)
+    }
+
+    static func dns_resolve(host: String) -> Array<UInt8> {
+        return __syx_dns_resolve(host)
+    }
+
+    static func dns_resolve_ip(host: String) -> String {
+        return __syx_dns_resolve_ip(host)
+    }
+
+    static func env_get(key: String) -> String {
+        return __syx_env_get(key)
+    }
+
+    static func env_set(key: String, value: Object) -> Bool {
+        return __syx_env_set(key, value)
+    }
+
+    static func f32_abs(x: Float64) -> Float32 {
+        return __syx_f32_abs(x)
+    }
+
+    static func f32_acos(x: Float64) -> Float32 {
+        return __syx_f32_acos(x)
+    }
+
+    static func f32_acosh(x: Float64) -> Float32 {
+        return __syx_f32_acosh(x)
+    }
+
+    static func f32_asin(x: Float64) -> Float32 {
+        return __syx_f32_asin(x)
+    }
+
+    static func f32_asinh(x: Float64) -> Float32 {
+        return __syx_f32_asinh(x)
+    }
+
+    static func f32_atan(x: Float64) -> Float32 {
+        return __syx_f32_atan(x)
+    }
+
+    static func f32_atan2(y: Float64, x: Float64) -> Float32 {
+        return __syx_f32_atan2(y, x)
+    }
+
+    static func f32_atanh(x: Float64) -> Float32 {
+        return __syx_f32_atanh(x)
+    }
+
+    static func f32_cbrt(x: Float64) -> Float32 {
+        return __syx_f32_cbrt(x)
+    }
+
+    static func f32_ceil(x: Float64) -> Float32 {
+        return __syx_f32_ceil(x)
+    }
+
+    static func f32_copysign(mag: Float64, sign: Float64) -> Float32 {
+        return __syx_f32_copysign(mag, sign)
+    }
+
+    static func f32_cos(x: Float64) -> Float32 {
+        return __syx_f32_cos(x)
+    }
+
+    static func f32_cosh(x: Float64) -> Float32 {
+        return __syx_f32_cosh(x)
+    }
+
+    static func f32_erf(x: Float64) -> Float32 {
+        return __syx_f32_erf(x)
+    }
+
+    static func f32_erfc(x: Float64) -> Float32 {
+        return __syx_f32_erfc(x)
+    }
+
+    static func f32_exp(x: Float64) -> Float32 {
+        return __syx_f32_exp(x)
+    }
+
+    static func f32_exp2(x: Float64) -> Float32 {
+        return __syx_f32_exp2(x)
+    }
+
+    static func f32_expm1(x: Float64) -> Float32 {
+        return __syx_f32_expm1(x)
+    }
+
+    static func f32_floor(x: Float64) -> Float32 {
+        return __syx_f32_floor(x)
+    }
+
+    static func f32_fmod(x: Float64, y: Float64) -> Float32 {
+        return __syx_f32_fmod(x, y)
+    }
+
+    static func f32_hypot(x: Float64, y: Float64) -> Float32 {
+        return __syx_f32_hypot(x, y)
+    }
+
+    static func f32_isfinite(x: Float64) -> Bool {
+        return __syx_f32_isfinite(x)
+    }
+
+    static func f32_isinf(x: Float64) -> Bool {
+        return __syx_f32_isinf(x)
+    }
+
+    static func f32_isnan(x: Float64) -> Bool {
+        return __syx_f32_isnan(x)
+    }
+
+    static func f32_lgamma(x: Float64) -> Float32 {
+        return __syx_f32_lgamma(x)
+    }
+
+    static func f32_log(x: Float64) -> Float32 {
+        return __syx_f32_log(x)
+    }
+
+    static func f32_log10(x: Float64) -> Float32 {
+        return __syx_f32_log10(x)
+    }
+
+    static func f32_log1p(x: Float64) -> Float32 {
+        return __syx_f32_log1p(x)
+    }
+
+    static func f32_log2(x: Float64) -> Float32 {
+        return __syx_f32_log2(x)
+    }
+
+    static func f32_mul_add(a: Float64, b: Float64, c: Float64) -> Float32 {
+        return __syx_f32_mul_add(a, b, c)
+    }
+
+    static func f32_next_down(x: Float64) -> Float32 {
+        return __syx_f32_next_down(x)
+    }
+
+    static func f32_next_up(x: Float64) -> Float32 {
+        return __syx_f32_next_up(x)
+    }
+
+    static func f32_pow(base: Float64, exp: Float64) -> Float32 {
+        return __syx_f32_pow(base, exp)
+    }
+
+    static func f32_remainder(x: Float64, y: Float64) -> Float32 {
+        return __syx_f32_remainder(x, y)
+    }
+
+    static func f32_round(x: Float64) -> Float32 {
+        return __syx_f32_round(x)
+    }
+
+    static func f32_sin(x: Float64) -> Float32 {
+        return __syx_f32_sin(x)
+    }
+
+    static func f32_sinh(x: Float64) -> Float32 {
+        return __syx_f32_sinh(x)
+    }
+
+    static func f32_sqrt(x: Float64) -> Float32 {
+        return __syx_f32_sqrt(x)
+    }
+
+    static func f32_tan(x: Float64) -> Float32 {
+        return __syx_f32_tan(x)
+    }
+
+    static func f32_tanh(x: Float64) -> Float32 {
+        return __syx_f32_tanh(x)
+    }
+
+    static func f32_tgamma(x: Float64) -> Float32 {
+        return __syx_f32_tgamma(x)
+    }
+
+    static func f32_trunc(x: Float64) -> Float32 {
+        return __syx_f32_trunc(x)
+    }
+
+    static func f64_abs(x: Float64) -> Float64 {
+        return __syx_f64_abs(x)
+    }
+
+    static func f64_acos(x: Float64) -> Float64 {
+        return __syx_f64_acos(x)
+    }
+
+    static func f64_acosh(x: Float64) -> Float64 {
+        return __syx_f64_acosh(x)
+    }
+
+    static func f64_asin(x: Float64) -> Float64 {
+        return __syx_f64_asin(x)
+    }
+
+    static func f64_asinh(x: Float64) -> Float64 {
+        return __syx_f64_asinh(x)
+    }
+
+    static func f64_atan(x: Float64) -> Float64 {
+        return __syx_f64_atan(x)
+    }
+
+    static func f64_atan2(y: Float64, x: Float64) -> Float64 {
+        return __syx_f64_atan2(y, x)
+    }
+
+    static func f64_atanh(x: Float64) -> Float64 {
+        return __syx_f64_atanh(x)
+    }
+
+    static func f64_cbrt(x: Float64) -> Float64 {
+        return __syx_f64_cbrt(x)
+    }
+
+    static func f64_ceil(x: Float64) -> Float64 {
+        return __syx_f64_ceil(x)
+    }
+
+    static func f64_compare(x: Float64, y: Float64) -> Int {
+        return __syx_f64_compare(x, y)
+    }
+
+    static func f64_copysign(mag: Float64, sign: Float64) -> Float64 {
+        return __syx_f64_copysign(mag, sign)
+    }
+
+    static func f64_cos(x: Float64) -> Float64 {
+        return __syx_f64_cos(x)
+    }
+
+    static func f64_cosh(x: Float64) -> Float64 {
+        return __syx_f64_cosh(x)
+    }
+
+    static func f64_erf(x: Float64) -> Float64 {
+        return __syx_f64_erf(x)
+    }
+
+    static func f64_erfc(x: Float64) -> Float64 {
+        return __syx_f64_erfc(x)
+    }
+
+    static func f64_exp(x: Float64) -> Float64 {
+        return __syx_f64_exp(x)
+    }
+
+    static func f64_exp2(x: Float64) -> Float64 {
+        return __syx_f64_exp2(x)
+    }
+
+    static func f64_expm1(x: Float64) -> Float64 {
+        return __syx_f64_expm1(x)
+    }
+
+    static func f64_floor(x: Float64) -> Float64 {
+        return __syx_f64_floor(x)
+    }
+
+    static func f64_fmod(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_fmod(x, y)
+    }
+
+    static func f64_hypot(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_hypot(x, y)
+    }
+
+    static func f64_isfinite(x: Float64) -> Bool {
+        return __syx_f64_isfinite(x)
+    }
+
+    static func f64_isinf(x: Float64) -> Bool {
+        return __syx_f64_isinf(x)
+    }
+
+    static func f64_isnan(x: Float64) -> Bool {
+        return __syx_f64_isnan(x)
+    }
+
+    static func f64_lgamma(x: Float64) -> Float64 {
+        return __syx_f64_lgamma(x)
+    }
+
+    static func f64_log(x: Float64) -> Float64 {
+        return __syx_f64_log(x)
+    }
+
+    static func f64_log10(x: Float64) -> Float64 {
+        return __syx_f64_log10(x)
+    }
+
+    static func f64_log1p(x: Float64) -> Float64 {
+        return __syx_f64_log1p(x)
+    }
+
+    static func f64_log2(x: Float64) -> Float64 {
+        return __syx_f64_log2(x)
+    }
+
+    static func f64_max(a: Float64, b: Float64) -> Float64 {
+        return __syx_f64_max(a, b)
+    }
+
+    static func f64_min(a: Float64, b: Float64) -> Float64 {
+        return __syx_f64_min(a, b)
+    }
+
+    static func f64_mul_add(a: Float64, b: Float64, c: Float64) -> Float64 {
+        return __syx_f64_mul_add(a, b, c)
+    }
+
+    static func f64_next_down(x: Float64) -> Float64 {
+        return __syx_f64_next_down(x)
+    }
+
+    static func f64_next_up(x: Float64) -> Float64 {
+        return __syx_f64_next_up(x)
+    }
+
+    static func f64_pow(base: Float64, exp: Float64) -> Float64 {
+        return __syx_f64_pow(base, exp)
+    }
+
+    static func f64_remainder(x: Float64, y: Float64) -> Float64 {
+        return __syx_f64_remainder(x, y)
+    }
+
+    static func f64_round(x: Float64) -> Float64 {
+        return __syx_f64_round(x)
+    }
+
+    static func f64_sin(x: Float64) -> Float64 {
+        return __syx_f64_sin(x)
+    }
+
+    static func f64_sinh(x: Float64) -> Float64 {
+        return __syx_f64_sinh(x)
+    }
+
+    static func f64_sqrt(x: Float64) -> Float64 {
+        return __syx_f64_sqrt(x)
+    }
+
+    static func f64_tan(x: Float64) -> Float64 {
+        return __syx_f64_tan(x)
+    }
+
+    static func f64_tanh(x: Float64) -> Float64 {
+        return __syx_f64_tanh(x)
+    }
+
+    static func f64_tgamma(x: Float64) -> Float64 {
+        return __syx_f64_tgamma(x)
+    }
+
+    static func f64_trunc(x: Float64) -> Float64 {
+        return __syx_f64_trunc(x)
+    }
+
+    static func file_append(path: String, content: String) -> Bool {
+        return __syx_file_append(path, content)
+    }
+
+    static func file_chmod(path: String, mode: Int) -> Bool {
+        return __syx_file_chmod(path, mode)
+    }
+
+    static func file_close(handle: Int) -> Bool {
+        return __syx_file_close(handle)
+    }
+
+    static func file_close_quiet(handle: Int) -> Bool {
+        return __syx_file_close_quiet(handle)
+    }
+
+    static func file_copy(from: String, to: String) -> Bool {
+        return __syx_file_copy(from, to)
+    }
+
+    static func file_delete(path: String) -> Bool {
+        return __syx_file_delete(path)
+    }
+
+    static func file_exists(path: String) -> Bool {
+        return __syx_file_exists(path)
+    }
+
+    static func file_move(from: String, to: String) -> Bool {
+        return __syx_file_move(from, to)
+    }
+
+    static func file_open(path: String, mode: Int) -> Int {
+        return __syx_file_open(path, mode)
+    }
+
+    static func file_read(path: String) -> String {
+        return __syx_file_read(path)
+    }
+
+    static func file_read_all_bytes(handle: Int) -> Array<UInt8> {
+        return __syx_file_read_all_bytes(handle)
+    }
+
+    static func file_read_async(path: String) -> Dictionary {
+        return __syx_file_read_async(path)
+    }
+
+    static func file_read_bytes(path: String) -> Array<UInt8> {
+        return __syx_file_read_bytes(path)
+    }
+
+    static func file_read_chunk(handle: Int, maxBytes: Int) -> Array<UInt8> {
+        return __syx_file_read_chunk(handle, maxBytes)
+    }
+
+    static func file_read_lines(path: String) -> Array<String> {
+        return __syx_file_read_lines(path)
+    }
+
+    static func file_read_link(path: String) -> String {
+        return __syx_file_read_link(path)
+    }
+
+    static func file_seek(handle: Int, offset: Int) -> Bool {
+        return __syx_file_seek(handle, offset)
+    }
+
+    static func file_stat(path: String) -> Dictionary {
+        return __syx_file_stat(path)
+    }
+
+    static func file_stream_close(handle: Int) {
+        __syx_file_stream_close(handle)
+    }
+
+    static func file_stream_open(path: String, mode: Int) -> Int {
+        return __syx_file_stream_open(path, mode)
+    }
+
+    static func file_stream_read_chunk(handle: Int, maxBytes: Int) -> Array<UInt8> {
+        return __syx_file_stream_read_chunk(handle, maxBytes)
+    }
+
+    static func file_symlink(target: String, linkPath: String) -> Bool {
+        return __syx_file_symlink(target, linkPath)
+    }
+
+    static func file_watch(path: String) -> Array<String> {
+        return __syx_file_watch(path)
+    }
+
+    static func file_watcher_close(handle: Int) {
+        __syx_file_watcher_close(handle)
+    }
+
+    static func file_watcher_open(path: String) -> Int {
+        return __syx_file_watcher_open(path)
+    }
+
+    static func file_watcher_poll(handle: Int) -> Array<String> {
+        return __syx_file_watcher_poll(handle)
+    }
+
+    static func file_with_open(path: String, mode: Int, body: Object) -> Int {
+        return __syx_file_with_open(path, mode, body)
+    }
+
+    static func file_write(path: String, content: String) -> Bool {
+        return __syx_file_write(path, content)
+    }
+
+    static func file_write_bytes(path: String, bytes: Array<UInt8>) -> Bool {
+        return __syx_file_write_bytes(path, bytes)
+    }
+
+    static func file_write_chunk(handle: Int, bytes: Array<UInt8>) -> Int {
+        return __syx_file_write_chunk(handle, bytes)
+    }
+
+    static func fmt_debug(value: Object) -> String {
+        return __syx_fmt_debug(value)
+    }
+
+    static func fmt_format(pattern: String, args: Array<String>) -> String {
+        return __syx_fmt_format(pattern, args)
+    }
+
+    static func fmt_print(value: Object) {
+        __syx_fmt_print(value)
+    }
+
+    static func fmt_print_line(value: Object) {
+        __syx_fmt_print_line(value)
+    }
+
+    static func grpc_unary(method: String, body: Object) -> String {
+        return __syx_grpc_unary(method, body)
+    }
+
+    static func hasher_combine(hasher: Hasher, value: Object) -> Hasher {
+        return __syx_hasher_combine(hasher, value)
+    }
+
+    static func hasher_finalize(hasher: Hasher) -> Int {
+        return __syx_hasher_finalize(hasher)
+    }
+
+    static func hasher_new() -> Hasher {
+        return __syx_hasher_new()
+    }
+
+    static func hex_decode(encoded: String) -> String {
+        return __syx_hex_decode(encoded)
+    }
+
+    static func hex_encode(data: Array<UInt8>) -> String {
+        return __syx_hex_encode(data)
+    }
+
+    static func http_body_stream_close(handle: Int) {
+        __syx_http_body_stream_close(handle)
+    }
+
+    static func http_body_stream_open(url: String) -> Object {
+        return __syx_http_body_stream_open(url)
+    }
+
+    static func http_body_stream_open_opts(url: String, options: Object) -> Object {
+        return __syx_http_body_stream_open_opts(url, options)
+    }
+
+    static func http_body_stream_read_chunk(handle: Int, maxBytes: Int) -> String {
+        return __syx_http_body_stream_read_chunk(handle, maxBytes)
+    }
+
+    static func http_get(url: String) -> HTTPResponse {
+        return __syx_http_get(url)
+    }
+
+    static func http_make_response(status: Int, body: String) -> HTTPResponse {
+        return __syx_http_make_response(status, body)
+    }
+
+    static func http_post(url: String, body: String) -> HTTPResponse {
+        return __syx_http_post(url, body)
+    }
+
+    static func http_request(url: String, options: Object) -> HTTPResponse {
+        return __syx_http_request(url, options)
+    }
+
+    static func http_serve(addr: String, port: Int, handler: String) {
+        __syx_http_serve(addr, port, handler)
+    }
+
+    static func http_serve_shutdown() {
+        __syx_http_serve_shutdown()
+    }
+
+    static func i128_abs(x: Float64) -> Int {
+        return __syx_i128_abs(x)
+    }
+
+    static func instant_now_ms() -> Int {
+        return __syx_instant_now_ms()
+    }
+
+    static func int_abs(x: Float64) -> Int {
+        return __syx_int_abs(x)
+    }
+
+    static func int_max(a: Int, b: Int) -> Object {
+        return __syx_int_max(a, b)
+    }
+
+    static func int_min(a: Int, b: Int) -> Object {
+        return __syx_int_min(a, b)
+    }
+
+    static func io_adapter_policy() -> String {
+        return __syx_io_adapter_policy()
+    }
+
+    static func isolation_policy() -> String {
+        return __syx_isolation_policy()
+    }
+
+    static func json_decode(text: String) -> Object {
+        return __syx_json_decode(text)
+    }
+
+    static func json_decoder_decode(text: String, typeName: String) -> Object {
+        return __syx_json_decoder_decode(text, typeName)
+    }
+
+    static func json_encode(value: Object) -> String {
+        return __syx_json_encode(value)
+    }
+
+    static func json_encoder_encode(value: Object, typeName: String) -> String {
+        return __syx_json_encoder_encode(value, typeName)
+    }
+
+    static func json_stream_close_reader(handle: Int) -> Void {
+        return __syx_json_stream_close_reader(handle)
+    }
+
+    static func json_stream_decode_next(handle: Int, typeName: String) -> Object {
+        return __syx_json_stream_decode_next(handle, typeName)
+    }
+
+    static func json_stream_feed(handle: Int, chunk: Array<UInt8>) -> Void {
+        return __syx_json_stream_feed(handle, chunk)
+    }
+
+    static func json_stream_finish_writer(handle: Int) -> String {
+        return __syx_json_stream_finish_writer(handle)
+    }
+
+    static func json_stream_open_reader() -> Int {
+        return __syx_json_stream_open_reader()
+    }
+
+    static func json_stream_open_writer() -> Int {
+        return __syx_json_stream_open_writer()
+    }
+
+    static func json_stream_write(handle: Int, value: Object, typeName: String) -> Void {
+        return __syx_json_stream_write(handle, value, typeName)
+    }
+
+    static func keypath_get(parsed: Object, typeName: String, field: String, flag: Bool) -> String {
+        return __syx_keypath_get(parsed, typeName, field, flag)
+    }
+
+    static func kvo_observe(object: String, key: String) -> Bool {
+        return __syx_kvo_observe(object, key)
+    }
+
+    static func leading_zeros128(x: Float64) -> Int {
+        return __syx_leading_zeros128(x)
+    }
+
+    static func log_debug(message: String) {
+        __syx_log_debug(message)
+    }
+
+    static func log_debug_fields(message: String, fields: String) -> String {
+        return __syx_log_debug_fields(message, fields)
+    }
+
+    static func log_error(message: String) {
+        __syx_log_error(message)
+    }
+
+    static func log_error_fields(message: String, fields: String) -> String {
+        return __syx_log_error_fields(message, fields)
+    }
+
+    static func log_info(message: String) {
+        __syx_log_info(message)
+    }
+
+    static func log_info_fields(message: String, fields: String) -> String {
+        return __syx_log_info_fields(message, fields)
+    }
+
+    static func log_min_level() -> String {
+        return __syx_log_min_level()
+    }
+
+    static func log_policy() -> String {
+        return __syx_log_policy()
+    }
+
+    static func log_set_min_level(level: String) -> Bool {
+        return __syx_log_set_min_level(level)
+    }
+
+    static func log_take_last() -> String {
+        return __syx_log_take_last()
+    }
+
+    static func log_warn(message: String) {
+        __syx_log_warn(message)
+    }
+
+    static func log_warn_fields(message: String, fields: String) -> String {
+        return __syx_log_warn_fields(message, fields)
+    }
+
+    static func main_actor_run(name: String) -> Object {
+        return __syx_main_actor_run(name)
+    }
+
+    static func metrics_counter_get(name: String) -> Int {
+        return __syx_metrics_counter_get(name)
+    }
+
+    static func metrics_counter_get_labels(name: String, labels: String) -> Int {
+        return __syx_metrics_counter_get_labels(name, labels)
+    }
+
+    static func metrics_counter_inc(name: String, delta: String) -> Int {
+        return __syx_metrics_counter_inc(name, delta)
+    }
+
+    static func metrics_counter_inc_labels(name: String, delta: String, labels: String) -> Int {
+        return __syx_metrics_counter_inc_labels(name, delta, labels)
+    }
+
+    static func metrics_counter_reset(name: String) -> Bool {
+        return __syx_metrics_counter_reset(name)
+    }
+
+    static func metrics_gauge_get(name: String) -> Int {
+        return __syx_metrics_gauge_get(name)
+    }
+
+    static func metrics_gauge_set(name: String, value: Object) -> Int {
+        return __syx_metrics_gauge_set(name, value)
+    }
+
+    static func metrics_policy() -> String {
+        return __syx_metrics_policy()
+    }
+
+    static func metrics_snapshot() -> String {
+        return __syx_metrics_snapshot()
+    }
+
+    static func mutex_create() -> Int {
+        return __syx_mutex_create()
+    }
+
+    static func mutex_lock_wait(mutex: String) -> Bool {
+        return __syx_mutex_lock_wait(mutex)
+    }
+
+    static func mutex_unlock(mutex: String) -> Bool {
+        return __syx_mutex_unlock(mutex)
+    }
+
+    static func mutex_unlock_quiet(mutexId: String) -> Bool {
+        return __syx_mutex_unlock_quiet(mutexId)
+    }
+
+    static func object_identifier(value: Object) -> ObjectIdentifier {
+        return __syx_object_identifier(value)
+    }
+
+    static func ordered_set_contains(set: String, item: Object) -> Bool {
+        return __syx_ordered_set_contains(set, item)
+    }
+
+    static func ordered_set_insert(set: String, item: Object) -> Object {
+        return __syx_ordered_set_insert(set, item)
+    }
+
+    static func ordered_set_new() -> Object {
+        return __syx_ordered_set_new()
+    }
+
+    static func orm_delete_where(table: String, col: String, val: String) -> Int {
+        return __syx_orm_delete_where(table, col, val)
+    }
+
+    static func orm_delete_where_on(connId: String, table: String, col: String, val: String) -> Int {
+        return __syx_orm_delete_where_on(connId, table, col, val)
+    }
+
+    static func orm_find_where(table: String, col: String, val: String) -> Array<UInt8> {
+        return __syx_orm_find_where(table, col, val)
+    }
+
+    static func orm_find_where_on(connId: String, table: String, col: String, val: String) -> Array<UInt8> {
+        return __syx_orm_find_where_on(connId, table, col, val)
+    }
+
+    static func orm_save(table: String, record: String) -> Bool {
+        return __syx_orm_save(table, record)
+    }
+
+    static func orm_save_on(connId: String, table: String, record: String) -> Bool {
+        return __syx_orm_save_on(connId, table, record)
+    }
+
+    static func orm_update_where(table: String, col: String, val: String, newCol: String, newVal: String) -> Int {
+        return __syx_orm_update_where(table, col, val, newCol, newVal)
+    }
+
+    static func orm_update_where_on(connId: String, table: String, col: String, val: String, newCol: String, newVal: String) -> Int {
+        return __syx_orm_update_where_on(connId, table, col, val, newCol, newVal)
+    }
+
+    static func os_cpu_count() -> Int {
+        return __syx_os_cpu_count()
+    }
+
+    static func os_disk_available(path: String) -> Int {
+        return __syx_os_disk_available(path)
+    }
+
+    static func os_disk_total(path: String) -> Int {
+        return __syx_os_disk_total(path)
+    }
+
+    static func os_home_dir() -> String {
+        return __syx_os_home_dir()
+    }
+
+    static func os_hostname() -> String {
+        return __syx_os_hostname()
+    }
+
+    static func os_load_average() -> Int {
+        return __syx_os_load_average()
+    }
+
+    static func os_memory_available() -> Int {
+        return __syx_os_memory_available()
+    }
+
+    static func os_memory_total() -> Int {
+        return __syx_os_memory_total()
+    }
+
+    static func os_primary_ipv4() -> String {
+        return __syx_os_primary_ipv4()
+    }
+
+    static func os_uptime_ms() -> Int {
+        return __syx_os_uptime_ms()
+    }
+
+    static func os_user_name() -> String {
+        return __syx_os_user_name()
+    }
+
+    static func path_exists(path: String) -> Bool {
+        return __syx_path_exists(path)
+    }
+
+    static func path_extension(path: String) -> String {
+        return __syx_path_extension(path)
+    }
+
+    static func path_join(a: Float64, b: Float64) -> String {
+        return __syx_path_join(a, b)
+    }
+
+    static func path_normalize(path: String) -> String {
+        return __syx_path_normalize(path)
+    }
+
+    static func process_args() -> Array<String> {
+        return __syx_process_args()
+    }
+
+    static func process_builder_create(command: String, args: Array<String>) -> Int {
+        return __syx_process_builder_create(command, args)
+    }
+
+    static func process_builder_cwd(builder: Int, path: String) {
+        __syx_process_builder_cwd(builder, path)
+    }
+
+    static func process_builder_env(builder: Int, key: String, value: Object) {
+        __syx_process_builder_env(builder, key, value)
+    }
+
+    static func process_builder_spawn(builder: Int) -> Int {
+        return __syx_process_builder_spawn(builder)
+    }
+
+    static func process_env(key: String) -> String {
+        return __syx_process_env(key)
+    }
+
+    static func process_exec(command: String, args: Array<String>) -> Int {
+        return __syx_process_exec(command, args)
+    }
+
+    static func process_exec_output(command: String, args: Array<String>) -> String {
+        return __syx_process_exec_output(command, args)
+    }
+
+    static func process_exit_code() -> Int {
+        return __syx_process_exit_code()
+    }
+
+    static func process_spawn(command: String, args: Array<String>) -> Int {
+        return __syx_process_spawn(command, args)
+    }
+
+    static func process_wait(handle: Int) -> Int {
+        return __syx_process_wait(handle)
+    }
+
+    static func profiler_cpu_elapsed(name: String) -> Int {
+        return __syx_profiler_cpu_elapsed(name)
+    }
+
+    static func profiler_cpu_start(name: String) -> Bool {
+        return __syx_profiler_cpu_start(name)
+    }
+
+    static func profiler_cpu_stop(name: String) -> Int {
+        return __syx_profiler_cpu_stop(name)
+    }
+
+    static func profiler_elapsed(name: String) -> Int {
+        return __syx_profiler_elapsed(name)
+    }
+
+    static func profiler_policy() -> String {
+        return __syx_profiler_policy()
+    }
+
+    static func profiler_reset(name: String) -> Bool {
+        return __syx_profiler_reset(name)
+    }
+
+    static func profiler_snapshot() -> String {
+        return __syx_profiler_snapshot()
+    }
+
+    static func profiler_start(name: String) -> Bool {
+        return __syx_profiler_start(name)
+    }
+
+    static func profiler_stop(name: String) -> Int {
+        return __syx_profiler_stop(name)
+    }
+
+    static func random_fill_bytes(n: Int) -> Array<UInt8> {
+        return __syx_random_fill_bytes(n)
+    }
+
+    static func random_next_int64(max: String) -> Int {
+        return __syx_random_next_int64(max)
+    }
+
+    static func random_next_uint64() -> UInt64 {
+        return __syx_random_next_uint64()
+    }
+
+    static func read_line() -> String {
+        return __syx_read_line()
+    }
+
+    static func regex_compile(pattern: String) -> String {
+        return __syx_regex_compile(pattern)
+    }
+
+    static func regex_find_all(text: String, pattern: String) -> Array<UInt8> {
+        return __syx_regex_find_all(text, pattern)
+    }
+
+    static func regex_match(text: String, pattern: String) -> Array<String> {
+        return __syx_regex_match(text, pattern)
+    }
+
+    static func regex_replace_all(text: String, pattern: String, replacement: String) -> String {
+        return __syx_regex_replace_all(text, pattern, replacement)
+    }
+
+    static func result_err(value: Object) -> Object {
+        return __syx_result_err(value)
+    }
+
+    static func result_is_err(result: String) -> Object {
+        return __syx_result_is_err(result)
+    }
+
+    static func result_is_ok(result: String) -> Object {
+        return __syx_result_is_ok(result)
+    }
+
+    static func result_ok(value: Object) -> Object {
+        return __syx_result_ok(value)
+    }
+
+    static func semaphore_create(permits: String) -> Int {
+        return __syx_semaphore_create(permits)
+    }
+
+    static func semaphore_policy() -> String {
+        return __syx_semaphore_policy()
+    }
+
+    static func semaphore_signal(sem: String) -> Bool {
+        return __syx_semaphore_signal(sem)
+    }
+
+    static func semaphore_signal_quiet(semId: String) -> Bool {
+        return __syx_semaphore_signal_quiet(semId)
+    }
+
+    static func semaphore_try_wait(sem: String) -> Bool {
+        return __syx_semaphore_try_wait(sem)
+    }
+
+    static func semaphore_wait(sem: String) -> Bool {
+        return __syx_semaphore_wait(sem)
+    }
+
+    static func service_begin_request() -> Void {
+        return __syx_service_begin_request()
+    }
+
+    static func service_destroy() -> Void {
+        return __syx_service_destroy()
+    }
+
+    static func service_end_request() -> Void {
+        return __syx_service_end_request()
+    }
+
+    static func service_reset() -> Void {
+        return __syx_service_reset()
+    }
+
+    static func service_resolve_dynamic(typeName: String) -> String {
+        return __syx_service_resolve_dynamic(typeName)
+    }
+
+    static func service_run_in_request(handlerName: String) -> Void {
+        return __syx_service_run_in_request(handlerName)
+    }
+
+    static func service_set_profile(name: String) -> Void {
+        return __syx_service_set_profile(name)
+    }
+
+    static func set_contains(items: Array<String>, item: Object) -> Object {
+        return __syx_set_contains(items, item)
+    }
+
+    static func set_count(items: Array<String>) -> Int {
+        return __syx_set_count(items)
+    }
+
+    static func set_insert(items: Array<String>, item: Object) -> Object {
+        return __syx_set_insert(items, item)
+    }
+
+    static func set_intersection(receiver: Object, other: Object) -> Object {
+        return __syx_set_intersection(receiver, other)
+    }
+
+    static func set_remove(items: Array<String>, item: Object) -> Object {
+        return __syx_set_remove(items, item)
+    }
+
+    static func set_union(receiver: Object, other: Object) -> Object {
+        return __syx_set_union(receiver, other)
+    }
+
+    static func simd_and(a: Float64, b: Float64) -> Object {
+        return __syx_simd_and(a, b)
+    }
+
+    static func simd_f32_add(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f32_add(a, b)
+    }
+
+    static func simd_f32_div(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f32_div(a, b)
+    }
+
+    static func simd_f32_mul(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f32_mul(a, b)
+    }
+
+    static func simd_f32_sub(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f32_sub(a, b)
+    }
+
+    static func simd_f64_add(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f64_add(a, b)
+    }
+
+    static func simd_f64_div(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f64_div(a, b)
+    }
+
+    static func simd_f64_mul(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f64_mul(a, b)
+    }
+
+    static func simd_f64_sub(a: Float64, b: Float64) -> Object {
+        return __syx_simd_f64_sub(a, b)
+    }
+
+    static func simd_from_array(items: Array<String>, n1: Int) -> Object {
+        return __syx_simd_from_array(items, n1)
+    }
+
+    static func simd_i16_add(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i16_add(a, b)
+    }
+
+    static func simd_i16_mul(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i16_mul(a, b)
+    }
+
+    static func simd_i64_add(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i64_add(a, b)
+    }
+
+    static func simd_i8_abs(v: String) -> Object {
+        return __syx_simd_i8_abs(v)
+    }
+
+    static func simd_i8_add(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_add(a, b)
+    }
+
+    static func simd_i8_add_sat(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_add_sat(a, b)
+    }
+
+    static func simd_i8_all_true(v: String) -> Bool {
+        return __syx_simd_i8_all_true(v)
+    }
+
+    static func simd_i8_and(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_and(a, b)
+    }
+
+    static func simd_i8_any_true(v: String) -> Bool {
+        return __syx_simd_i8_any_true(v)
+    }
+
+    static func simd_i8_avgr_u(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_avgr_u(a, b)
+    }
+
+    static func simd_i8_bitmask(v: String) -> Object {
+        return __syx_simd_i8_bitmask(v)
+    }
+
+    static func simd_i8_eq(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_eq(a, b)
+    }
+
+    static func simd_i8_extract(v: String, lane: String) -> Int {
+        return __syx_simd_i8_extract(v, lane)
+    }
+
+    static func simd_i8_ge(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_ge(a, b)
+    }
+
+    static func simd_i8_gt(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_gt(a, b)
+    }
+
+    static func simd_i8_le(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_le(a, b)
+    }
+
+    static func simd_i8_lt(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_lt(a, b)
+    }
+
+    static func simd_i8_max(a: Int, b: Int) -> Object {
+        return __syx_simd_i8_max(a, b)
+    }
+
+    static func simd_i8_min(a: Int, b: Int) -> Object {
+        return __syx_simd_i8_min(a, b)
+    }
+
+    static func simd_i8_mul(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_mul(a, b)
+    }
+
+    static func simd_i8_ne(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_ne(a, b)
+    }
+
+    static func simd_i8_neg(v: String) -> Object {
+        return __syx_simd_i8_neg(v)
+    }
+
+    static func simd_i8_not(v: String) -> Object {
+        return __syx_simd_i8_not(v)
+    }
+
+    static func simd_i8_or(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_or(a, b)
+    }
+
+    static func simd_i8_popcnt(v: String) -> Object {
+        return __syx_simd_i8_popcnt(v)
+    }
+
+    static func simd_i8_replace(v: String, lane: String, value: Object) -> Object {
+        return __syx_simd_i8_replace(v, lane, value)
+    }
+
+    static func simd_i8_shl(v: String, amount: String) -> Object {
+        return __syx_simd_i8_shl(v, amount)
+    }
+
+    static func simd_i8_shr(v: String, amount: String) -> Object {
+        return __syx_simd_i8_shr(v, amount)
+    }
+
+    static func simd_i8_shuffle(v: String, mode: Int) -> Object {
+        return __syx_simd_i8_shuffle(v, mode)
+    }
+
+    static func simd_i8_sub(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_sub(a, b)
+    }
+
+    static func simd_i8_sub_sat(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_sub_sat(a, b)
+    }
+
+    static func simd_i8_umax(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_umax(a, b)
+    }
+
+    static func simd_i8_umin(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_umin(a, b)
+    }
+
+    static func simd_i8_xor(a: Float64, b: Float64) -> Object {
+        return __syx_simd_i8_xor(a, b)
+    }
+
+    static func simd_load_from_array(items: Array<String>, offset: Int, n2: Int) -> Object {
+        return __syx_simd_load_from_array(items, offset, n2)
+    }
+
+    static func simd_max(a: Int, b: Int) -> Object {
+        return __syx_simd_max(a, b)
+    }
+
+    static func simd_min(a: Int, b: Int) -> Object {
+        return __syx_simd_min(a, b)
+    }
+
+    static func simd_not(v: String) -> Object {
+        return __syx_simd_not(v)
+    }
+
+    static func simd_or(a: Float64, b: Float64) -> Object {
+        return __syx_simd_or(a, b)
+    }
+
+    static func simd_reduce_add(v: String) -> Object {
+        return __syx_simd_reduce_add(v)
+    }
+
+    static func simd_shl(v: String, amount: String) -> Object {
+        return __syx_simd_shl(v, amount)
+    }
+
+    static func simd_shr(v: String, amount: String) -> Object {
+        return __syx_simd_shr(v, amount)
+    }
+
+    static func simd_shuffle(v: String, n1: Int) -> Object {
+        return __syx_simd_shuffle(v, n1)
+    }
+
+    static func simd_store_to_array(items: Array<String>, offset: Int, v: String) -> Array<UInt8> {
+        return __syx_simd_store_to_array(items, offset, v)
+    }
+
+    static func simd_xor(a: Float64, b: Float64) -> Object {
+        return __syx_simd_xor(a, b)
+    }
+
+    static func sql_begin_transaction() -> Bool {
+        return __syx_sql_begin_transaction()
+    }
+
+    static func sql_begin_transaction_on(connId: String) -> Void {
+        return __syx_sql_begin_transaction_on(connId)
+    }
+
+    static func sql_bind_prepared_on(connId: String, stmtId: String, value: Object) -> Int {
+        return __syx_sql_bind_prepared_on(connId, stmtId, value)
+    }
+
+    static func sql_bind_step(sql: String, value: Object) -> Int {
+        return __syx_sql_bind_step(sql, value)
+    }
+
+    static func sql_bind_step_on(connId: String, sql: String, value: Object) -> Int {
+        return __syx_sql_bind_step_on(connId, sql, value)
+    }
+
+    static func sql_close(connId: String) -> Void {
+        return __syx_sql_close(connId)
+    }
+
+    static func sql_commit_transaction() -> Bool {
+        return __syx_sql_commit_transaction()
+    }
+
+    static func sql_commit_transaction_on(connId: String) -> Void {
+        return __syx_sql_commit_transaction_on(connId)
+    }
+
+    static func sql_exec(sql: String) -> Int {
+        return __syx_sql_exec(sql)
+    }
+
+    static func sql_exec_on(connId: String, sql: String) -> Int {
+        return __syx_sql_exec_on(connId, sql)
+    }
+
+    static func sql_migrate(sql: String) -> Int {
+        return __syx_sql_migrate(sql)
+    }
+
+    static func sql_open(dsn: String) -> Int {
+        return __syx_sql_open(dsn)
+    }
+
+    static func sql_pool_acquire(poolId: String) -> Int {
+        return __syx_sql_pool_acquire(poolId)
+    }
+
+    static func sql_pool_close(poolId: String) {
+        __syx_sql_pool_close(poolId)
+    }
+
+    static func sql_pool_create(dsn: String, maxSize: String) -> Int {
+        return __syx_sql_pool_create(dsn, maxSize)
+    }
+
+    static func sql_pool_release(poolId: String, connId: String) {
+        __syx_sql_pool_release(poolId, connId)
+    }
+
+    static func sql_prepare(sql: String) -> Int {
+        return __syx_sql_prepare(sql)
+    }
+
+    static func sql_prepare_on(connId: String, sql: String) -> Int {
+        return __syx_sql_prepare_on(connId, sql)
+    }
+
+    static func sql_query(sql: String) -> Array<UInt8> {
+        return __syx_sql_query(sql)
+    }
+
+    static func sql_query_on(connId: String, sql: String) -> Array<UInt8> {
+        return __syx_sql_query_on(connId, sql)
+    }
+
+    static func sql_rollback_transaction() -> Bool {
+        return __syx_sql_rollback_transaction()
+    }
+
+    static func sql_rollback_transaction_on(connId: String) -> Void {
+        return __syx_sql_rollback_transaction_on(connId)
+    }
+
+    static func sql_row_column_names(row: Object) -> Array<String> {
+        return __syx_sql_row_column_names(row)
+    }
+
+    static func sql_row_get_blob(row: Object, name: String) -> Array<UInt8> {
+        return __syx_sql_row_get_blob(row, name)
+    }
+
+    static func sql_row_get_float(row: Object, name: String) -> Float64 {
+        return __syx_sql_row_get_float(row, name)
+    }
+
+    static func sql_row_get_int(row: Object, name: String) -> Int {
+        return __syx_sql_row_get_int(row, name)
+    }
+
+    static func sql_row_get_string(row: Object, name: String) -> String {
+        return __syx_sql_row_get_string(row, name)
+    }
+
+    static func sql_row_is_null(row: Object, name: String) -> Bool {
+        return __syx_sql_row_is_null(row, name)
+    }
+
+    static func str_case_folded(text: String) -> String {
+        return __syx_str_case_folded(text)
+    }
+
+    static func str_has_prefix(text: String, prefix: String) -> Bool {
+        return __syx_str_has_prefix(text, prefix)
+    }
+
+    static func str_length(text: String) -> Int {
+        return __syx_str_length(text)
+    }
+
+    static func str_lowercased(text: String) -> String {
+        return __syx_str_lowercased(text)
+    }
+
+    static func str_matches(text: String, pattern: String) -> Array<UInt8> {
+        return __syx_str_matches(text, pattern)
+    }
+
+    static func str_normalized_nfc(text: String) -> String {
+        return __syx_str_normalized_nfc(text)
+    }
+
+    static func str_normalized_nfd(text: String) -> String {
+        return __syx_str_normalized_nfd(text)
+    }
+
+    static func str_split(text: String, sep: Object) -> Array<UInt8> {
+        return __syx_str_split(text, sep)
+    }
+
+    static func str_trim(text: String) -> String {
+        return __syx_str_trim(text)
+    }
+
+    static func str_unicode_scalar_count(text: String) -> Int {
+        return __syx_str_unicode_scalar_count(text)
+    }
+
+    static func str_unicode_scalars(text: String) -> Array<UInt8> {
+        return __syx_str_unicode_scalars(text)
+    }
+
+    static func str_uppercased(text: String) -> String {
+        return __syx_str_uppercased(text)
+    }
+
+    static func str_utf8_bytes(text: String) -> Array<UInt8> {
+        return __syx_str_utf8_bytes(text)
+    }
+
+    static func str_utf8_count(text: String) -> Int {
+        return __syx_str_utf8_count(text)
+    }
+
+    static func string_builder_append(builder: Int, text: String) {
+        __syx_string_builder_append(builder, text)
+    }
+
+    static func string_builder_new() -> Int {
+        return __syx_string_builder_new()
+    }
+
+    static func string_builder_to_string(builder: Int) -> String {
+        return __syx_string_builder_to_string(builder)
+    }
+
+    static func sync_policy() -> String {
+        return __syx_sync_policy()
+    }
+
+    static func synui_app_create() -> String {
+        return __syx_synui_app_create()
+    }
+
+    static func synui_bind_checkbox(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_checkbox(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_image(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_image(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_list(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_list(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_navigation(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_navigation(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_picker(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_picker(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_progress(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_progress(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_radio(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_radio(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_scroll_view(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_scroll_view(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_slider(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_slider(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_switch(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_switch(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_tab_view(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_tab_view(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_text_area(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_text_area(viewHandle, signalHandle)
+    }
+
+    static func synui_bind_text_field(viewHandle: String, signalHandle: String) -> String {
+        return __syx_synui_bind_text_field(viewHandle, signalHandle)
+    }
+
+    static func synui_button(text: String) -> String {
+        return __syx_synui_button(text)
+    }
+
+    static func synui_button_click(viewHandle: String) -> String {
+        return __syx_synui_button_click(viewHandle)
+    }
+
+    static func synui_button_on_click(viewHandle: String, handlerName: String) -> String {
+        return __syx_synui_button_on_click(viewHandle, handlerName)
+    }
+
+    static func synui_checkbox(label: String, checked: String) -> String {
+        return __syx_synui_checkbox(label, checked)
+    }
+
+    static func synui_column(children: String) -> String {
+        return __syx_synui_column(children)
+    }
+
+    static func synui_divider(orientationOrThickness: String) -> String {
+        return __syx_synui_divider(orientationOrThickness)
+    }
+
+    static func synui_fingerprint() -> String {
+        return __syx_synui_fingerprint()
+    }
+
+    static func synui_image(source: String) -> String {
+        return __syx_synui_image(source)
+    }
+
+    static func synui_label(text: String) -> String {
+        return __syx_synui_label(text)
+    }
+
+    static func synui_list(items: Array<String>) -> String {
+        return __syx_synui_list(items)
+    }
+
+    static func synui_navigation(routes: String, destinations: String) -> String {
+        return __syx_synui_navigation(routes, destinations)
+    }
+
+    static func synui_picker(options: Object, selected: String) -> String {
+        return __syx_synui_picker(options, selected)
+    }
+
+    static func synui_progress(value: Object) -> String {
+        return __syx_synui_progress(value)
+    }
+
+    static func synui_pump() -> String {
+        return __syx_synui_pump()
+    }
+
+    static func synui_radio(label: String, selected: String) -> String {
+        return __syx_synui_radio(label, selected)
+    }
+
+    static func synui_render_fingerprint() -> String {
+        return __syx_synui_render_fingerprint()
+    }
+
+    static func synui_row(children: String) -> String {
+        return __syx_synui_row(children)
+    }
+
+    static func synui_run() -> String {
+        return __syx_synui_run()
+    }
+
+    static func synui_scroll_view(children: String) -> String {
+        return __syx_synui_scroll_view(children)
+    }
+
+    static func synui_signal_bool_get(handle: Int) -> String {
+        return __syx_synui_signal_bool_get(handle)
+    }
+
+    static func synui_signal_bool_new(initial: Object) -> String {
+        return __syx_synui_signal_bool_new(initial)
+    }
+
+    static func synui_signal_bool_set(handle: Int, value: Object) -> String {
+        return __syx_synui_signal_bool_set(handle, value)
+    }
+
+    static func synui_signal_get(handle: Int) -> String {
+        return __syx_synui_signal_get(handle)
+    }
+
+    static func synui_signal_new(initial: Object) -> String {
+        return __syx_synui_signal_new(initial)
+    }
+
+    static func synui_signal_number_get(handle: Int) -> String {
+        return __syx_synui_signal_number_get(handle)
+    }
+
+    static func synui_signal_number_new(initial: Object) -> String {
+        return __syx_synui_signal_number_new(initial)
+    }
+
+    static func synui_signal_number_set(handle: Int, value: Object) -> String {
+        return __syx_synui_signal_number_set(handle, value)
+    }
+
+    static func synui_signal_set(handle: Int, value: Object) -> String {
+        return __syx_synui_signal_set(handle, value)
+    }
+
+    static func synui_slider(value: Object, min: String, max: String) -> String {
+        return __syx_synui_slider(value, min, max)
+    }
+
+    static func synui_spacer(size: Int, weight: String) -> String {
+        return __syx_synui_spacer(size, weight)
+    }
+
+    static func synui_stack(children: String) -> String {
+        return __syx_synui_stack(children)
+    }
+
+    static func synui_switch(on: String) -> String {
+        return __syx_synui_switch(on)
+    }
+
+    static func synui_tab_view(tabs: String, children: String) -> String {
+        return __syx_synui_tab_view(tabs, children)
+    }
+
+    static func synui_text_area(text: String) -> String {
+        return __syx_synui_text_area(text)
+    }
+
+    static func synui_text_field(placeholder: String) -> String {
+        return __syx_synui_text_field(placeholder)
+    }
+
+    static func task_cancel(task: String) -> Bool {
+        return __syx_task_cancel(task)
+    }
+
+    static func task_core_pool_size() -> Int {
+        return __syx_task_core_pool_size()
+    }
+
+    static func task_detach(name: String) -> Object {
+        return __syx_task_detach(name)
+    }
+
+    static func task_group_add(group: String, task: String) -> Bool {
+        return __syx_task_group_add(group, task)
+    }
+
+    static func task_group_cancel(group: String) {
+        __syx_task_group_cancel(group)
+    }
+
+    static func task_group_create() -> Object {
+        return __syx_task_group_create()
+    }
+
+    static func task_group_wait(group: String) {
+        __syx_task_group_wait(group)
+    }
+
+    static func task_join(task: String) -> Object {
+        return __syx_task_join(task)
+    }
+
+    static func task_keep_alive_ms() -> Int {
+        return __syx_task_keep_alive_ms()
+    }
+
+    static func task_live_count() -> Int {
+        return __syx_task_live_count()
+    }
+
+    static func task_live_worker_count() -> Int {
+        return __syx_task_live_worker_count()
+    }
+
+    static func task_local_get(key: String) -> Object {
+        return __syx_task_local_get(key)
+    }
+
+    static func task_local_set(key: String, value: Object) {
+        __syx_task_local_set(key, value)
+    }
+
+    static func task_maximum_pool_size() -> Int {
+        return __syx_task_maximum_pool_size()
+    }
+
+    static func task_queue_capacity() -> Int {
+        return __syx_task_queue_capacity()
+    }
+
+    static func task_reject_policy() -> String {
+        return __syx_task_reject_policy()
+    }
+
+    static func task_set_core_pool_size(n: Int) -> Int {
+        return __syx_task_set_core_pool_size(n)
+    }
+
+    static func task_set_deadline_ms(ms: Int) {
+        __syx_task_set_deadline_ms(ms)
+    }
+
+    static func task_set_keep_alive_ms(ms: Int) -> Int {
+        return __syx_task_set_keep_alive_ms(ms)
+    }
+
+    static func task_set_maximum_pool_size(n: Int) -> Int {
+        return __syx_task_set_maximum_pool_size(n)
+    }
+
+    static func task_set_queue_capacity(n: Int) -> Int {
+        return __syx_task_set_queue_capacity(n)
+    }
+
+    static func task_set_reject_policy(policy: String) -> String {
+        return __syx_task_set_reject_policy(policy)
+    }
+
+    static func task_set_worker_count(n: Int) -> Int {
+        return __syx_task_set_worker_count(n)
+    }
+
+    static func task_sleep(ms: Int) {
+        __syx_task_sleep(ms)
+    }
+
+    static func task_worker_count() -> Int {
+        return __syx_task_worker_count()
+    }
+
+    static func tcp_connect(addr: String, port: Int) -> Int {
+        return __syx_tcp_connect(addr, port)
+    }
+
+    static func tcp_handle_release(handle: Int) -> Bool {
+        return __syx_tcp_handle_release(handle)
+    }
+
+    static func tcp_listen(host: String, port: Int) -> Int {
+        return __syx_tcp_listen(host, port)
+    }
+
+    static func tcp_listener_accept(handle: Int) -> Int {
+        return __syx_tcp_listener_accept(handle)
+    }
+
+    static func tcp_listener_close(handle: Int) {
+        __syx_tcp_listener_close(handle)
+    }
+
+    static func tcp_read(handle: Int, maxBytes: Int) -> String {
+        return __syx_tcp_read(handle, maxBytes)
+    }
+
+    static func tcp_read_async(handle: Int, maxBytes: Int) -> Object {
+        return __syx_tcp_read_async(handle, maxBytes)
+    }
+
+    static func tcp_write(handle: Int, data: Array<UInt8>) -> String {
+        return __syx_tcp_write(handle, data)
+    }
+
+    static func testing_assert(condition: String, s1: String) {
+        __syx_testing_assert(condition, s1)
+    }
+
+    static func testing_assert_eq(actual: String, expected: String, s2: String) {
+        __syx_testing_assert_eq(actual, expected, s2)
+    }
+
+    static func testing_expect_equal(actual: String, expected: String, s2: String) {
+        __syx_testing_expect_equal(actual, expected, s2)
+    }
+
+    static func testing_test(name: String, fn: String) {
+        __syx_testing_test(name, fn)
+    }
+
+    static func time_now_ms() -> Int {
+        return __syx_time_now_ms()
+    }
+
+    static func time_sleep_ms(ms: Int) {
+        __syx_time_sleep_ms(ms)
+    }
+
+    static func tls_serve(host: String, port: Int, certPemPath: String, keyPemPath: String, s4: String, n5: Int) -> Int {
+        return __syx_tls_serve(host, port, certPemPath, keyPemPath, s4, n5)
+    }
+
+    static func trace_context_line() -> String {
+        return __syx_trace_context_line()
+    }
+
+    static func trace_current() -> String {
+        return __syx_trace_current()
+    }
+
+    static func trace_end() -> Bool {
+        return __syx_trace_end()
+    }
+
+    static func trace_policy() -> String {
+        return __syx_trace_policy()
+    }
+
+    static func trace_start(name: String) -> String {
+        return __syx_trace_start(name)
+    }
+
+    static func udp_bind(host: String, port: Int) -> Int {
+        return __syx_udp_bind(host, port)
+    }
+
+    static func udp_recv_from(socket: String, maxBytes: Int) -> Object {
+        return __syx_udp_recv_from(socket, maxBytes)
+    }
+
+    static func udp_send_to(socket: String, host: String, port: Int, data: Array<UInt8>) -> Int {
+        return __syx_udp_send_to(socket, host, port, data)
+    }
+
+    static func url_build(base: Float64, path: String, query: Object) -> String {
+        return __syx_url_build(base, path, query)
+    }
+
+    static func url_decode(text: String) -> String {
+        return __syx_url_decode(text)
+    }
+
+    static func url_encode(text: String) -> String {
+        return __syx_url_encode(text)
+    }
+
+    static func url_encode_query(query: Object) -> String {
+        return __syx_url_encode_query(query)
+    }
+
+    static func url_parse(text: String) -> Url {
+        return __syx_url_parse(text)
+    }
+
+    static func value_compare(a0: String, s1: String) -> Int {
+        return __syx_value_compare(a0, s1)
+    }
+
+    static func value_debug_description(receiver: Object) -> String {
+        return __syx_value_debug_description(receiver)
+    }
+
+    static func value_description(receiver: Object) -> String {
+        return __syx_value_description(receiver)
+    }
+
+    static func ws_close(socket: String) -> Void {
+        return __syx_ws_close(socket)
+    }
+
+    static func ws_connect(url: String) -> Object {
+        return __syx_ws_connect(url)
+    }
+
+    static func ws_recv(socket: String) -> String {
+        return __syx_ws_recv(socket)
+    }
+
+    static func ws_send(socket: String, message: String) -> Bool {
+        return __syx_ws_send(socket, message)
+    }
+
+    static func xml_parse(text: String) -> Object {
+        return __syx_xml_parse(text)
+    }
+
+}

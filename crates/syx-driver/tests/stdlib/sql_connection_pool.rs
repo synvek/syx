@@ -50,7 +50,7 @@ func main() {{
   let a = __syx_sql_pool_acquire(p)
   let b = __syx_sql_pool_acquire(p)
   print("GOT2")
-  try {{
+  do {{
     let c = __syx_sql_pool_acquire(p)
     print("BAD_THIRD")
     print(c)
@@ -87,7 +87,7 @@ fn m2_s8_01c_interleaved_exec_on_file_dsn() {
     let out = run(&facade_src(&format!(
         r#"
 func main() {{
-  try {{
+  do {{
     let p = Sql.poolCreate(dsn: "{dsn}", maxSize: 2)
     let a = Sql.poolAcquire(poolId: p)
     let b = Sql.poolAcquire(poolId: p)
@@ -121,14 +121,14 @@ func main() {{
   let p = __syx_sql_pool_create("{dsn}", 1)
   let a = __syx_sql_pool_acquire(p)
   __syx_sql_pool_release(p, a)
-  try {{
+  do {{
     __syx_sql_pool_release(p, a)
     print("DOUBLE_OK")
   }} catch (err1) {{
     print("DOUBLE_FAIL")
   }}
   __syx_sql_pool_close(p)
-  try {{
+  do {{
     let x = __syx_sql_pool_acquire(p)
     print("AFTER_OK")
     print(x)

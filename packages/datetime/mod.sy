@@ -2,33 +2,33 @@
 
 /// Parse / format / timezone helpers over epoch milliseconds.
 public class DateTime {
-    /// Current date-time as an Object bag.
-    public static func now() -> Object {
-        return __syx_datetime_now()
+    /// Current wall-clock time as epoch milliseconds (SA-4: typed; no Object bag).
+    public static func now() -> Int {
+        return SyxHost.time_now_ms()
     }
-    /// Parse a date-time string into an Object bag.
-    public static func parse(text: String) -> Object {
-        return __syx_datetime_parse(text)
+    /// Parse a date-time string to epoch milliseconds (delegates to `Time.parseTimestampMs`).
+    public static func parse(text: String) -> Int {
+        return Time.parseTimestampMs(s: text)
     }
-    /// Parse an ISO-8601 date-time string.
-    public static func parseIso8601(text: String) -> Object {
-        return __syx_datetime_parse_iso8601(text)
+    /// Parse an ISO-8601 date-time string to epoch milliseconds.
+    public static func parseIso8601(text: String) -> Int {
+        return Time.parseTimestampMs(s: text)
     }
     /// Format epoch `ms` with `pattern`.
     public static func format(ms: Int, pattern: String) -> String {
-        return __syx_datetime_format(ms, pattern)
+        return SyxHost.datetime_format(ms, pattern)
     }
     /// Format epoch `ms` with `pattern` in `timezone` (throws).
-    public static func formatWithTimezone(ms: Int, pattern: String, timezone: String) -> String throws {
-        return __syx_datetime_format_with_timezone(ms, pattern, timezone)
+    public static func formatWithTimezone(ms: Int, pattern: String, timezone: String) throws -> String {
+        return SyxHost.datetime_format_with_timezone(ms, pattern, timezone)
     }
     /// Add `deltaMs` to epoch `ms`.
     public static func addDuration(ms: Int, deltaMs: Int) -> Int {
         return ms + deltaMs
     }
     /// Timezone offset for `ms` in `timezone` (throws).
-    public static func timezoneOffset(ms: Int, timezone: String) -> Int throws {
-        return __syx_datetime_timezone_offset(ms, timezone)
+    public static func timezoneOffset(ms: Int, timezone: String) throws -> Int {
+        return SyxHost.datetime_timezone_offset(ms, timezone)
     }
 }
 
@@ -52,11 +52,11 @@ public class Duration {
     }
 }
 
-/// Wall-clock now in milliseconds (`__syx_time_now_ms`).
+/// Wall-clock now in milliseconds (`SyxHost.time_now_ms`).
 public class Clock {
-    /// Now Ms (host `__syx_time_now_ms`).
+    /// Now Ms (host `SyxHost.time_now_ms`).
     public static func nowMs() -> Int {
-        return __syx_time_now_ms()
+        return SyxHost.time_now_ms()
     }
 }
 
@@ -64,7 +64,7 @@ public class Clock {
 public class Instant {
     /// Monotonic-ish instant now in milliseconds.
     public static func now() -> Int {
-        return __syx_instant_now_ms()
+        return SyxHost.instant_now_ms()
     }
     /// Elapsed milliseconds since `start` instant.
     public static func elapsedMs(start: Int) -> Int {

@@ -1,4 +1,4 @@
-import Net
+import Networking
 
 /// M2 W47 / ADR-191: EC-M2-4 Tcp Instant micro-benchmark first tier.
 /// TcpStream.connect refuse loop (no bare hosts; no listener).
@@ -7,7 +7,7 @@ import Net
 func main() {
     var i = 0
     while i < 100 {
-        try {
+        do {
             let _ = TcpStream.connect(host: "127.0.0.1", port: 1)
             print("UNEXPECTED")
         } catch (e) {

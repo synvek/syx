@@ -164,6 +164,18 @@ enum Commands {
     },
     /// Type-check without emitting artifacts
     Check { path: Option<PathBuf> },
+    /// Check book doctest fences (SA-5-05 MVP: en library-guide by default)
+    Doctest {
+        /// Book tree: `library-guide` (default) or `language-guide`
+        #[arg(long, default_value = "library-guide")]
+        book: String,
+        /// Also scan the zh-cn tree for the same book
+        #[arg(long)]
+        zh: bool,
+        /// Extra args forwarded to scripts/book_pass_rate.py
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
     /// Run project tests
     Test {
         path: Option<PathBuf>,
@@ -561,6 +573,41 @@ fn run() -> miette::Result<()> {
                 }
             }
             println!("Check passed for {}", path.display());
+        }
+        Commands::Doctest { book, zh, args } => {
+            let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+            let root = project_root_for(&cwd);
+            let script = root.join("scripts/book_pass_rate.py");
+            if !script.is_file() {
+                return Err(miette::miette!(
+                    "doctest runner missing: {}",
+                    script.display()
+                ));
+            }
+            let syx_bin = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("syx"));
+            let mut cmd = Command::new("python3");
+            cmd.arg(&script).arg("--syx").arg(&syx_bin).arg("--strict");
+            match book.as_str() {
+                "library-guide" => {
+                    cmd.arg("--library-guide");
+                }
+                "language-guide" => {}
+                other => {
+                    return Err(miette::miette!(
+                        "unknown --book {other}; expected library-guide or language-guide"
+                    ));
+                }
+            }
+            if zh {
+                cmd.arg("--zh");
+            }
+            for a in args {
+                cmd.arg(a);
+            }
+            let status = cmd.status().into_diagnostic()?;
+            if !status.success() {
+                process::exit(status.code().unwrap_or(1));
+            }
         }
         Commands::Test {
             path,
@@ -1122,7 +1169,7 @@ fn resolve_path(path: Option<PathBuf>) -> PathBuf {
     let path = path.unwrap_or_else(|| PathBuf::from("."));
     // Canonicalize so stdlib discovery (walk-up to monorepo `packages/`) and
     // module graph keys stay consistent. Relative `.` cannot walk up, which
-    // made `import Log` resolve as Embedded during graph build but as an
+    // made `import Logging` resolve as Embedded during graph build but as an
     // on-disk `packages/log` path during semantic analysis → S002.
     path.canonicalize().unwrap_or(path)
 }

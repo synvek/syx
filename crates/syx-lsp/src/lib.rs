@@ -3371,7 +3371,7 @@ mod tests {
 
     #[test]
     fn completion_http_response_members() {
-        let text = "import Net\nfunc main() {\n  let r = Http.get(\"http://127.0.0.1/\")\n  r.status\n}";
+        let text = "import Networking\nfunc main() {\n  let r = Http.get(\"http://127.0.0.1/\")\n  r.status\n}";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(
             doc.semantic.errors.is_empty() || text.contains("Http.get"),
@@ -3496,7 +3496,7 @@ func main() {
     #[test]
     fn hover_catch_binding_is_string_not_math_e() {
         // Host registry also exposes free name `e` as Float64; catch must win.
-        let text = "func main() {\n  try { throw \"boom\" } catch (e) { print(e) }\n}";
+        let text = "func main() {\n  do { throw \"boom\" } catch (e) { print(e) }\n}";
         let hover = hover_for_position("file:///t.sy", text, 1, 30, &DriverOptions::default());
         assert!(hover.to_string().contains("`e`"), "{hover}");
         assert!(hover.to_string().contains("String"), "{hover}");
@@ -4383,7 +4383,7 @@ func main() {
 
     #[test]
     fn lsp_v7_import_action_kind_quickfix() {
-        let text = "func main() { print(JSON.encode(1)) }";
+        let text = "import JSON\nfunc main() { print(JSON.encode(1)) }";
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
         let arr = actions.as_array().unwrap();
         assert!(
@@ -4671,7 +4671,7 @@ func main() {
 
     #[test]
     fn lsp_v11_semantic_tokens_import_line() {
-        let text = "import Net\nfunc main() {}";
+        let text = "import Networking\nfunc main() {}";
         let tokens = semantic_tokens_for_document("file:///t.sy", text, &DriverOptions::default());
         assert!(!tokens.is_null());
     }
@@ -4779,7 +4779,7 @@ func main() {
 
     #[test]
     fn lsp_v12_semantic_tokens_try_catch() {
-        let text = "func main() { try { print(1) } catch { print(0) } }";
+        let text = "func main() { do { print(1) } catch { print(0) } }";
         let tokens = semantic_tokens_for_document("file:///t.sy", text, &DriverOptions::default());
         assert!(!tokens["data"].as_array().unwrap().is_empty());
     }
@@ -5163,7 +5163,7 @@ func main() {
 
     #[test]
     fn lsp_v16_net_tcp_connect_completion() {
-        let text = "import Net\nfunc main() { Net. }";
+        let text = "import Networking\nfunc main() { Net. }";
         let items = completion_for_document("file:///net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("connect")) || text.contains("Net"));
@@ -5198,7 +5198,7 @@ func main() {
 
     #[test]
     fn lsp_v17_net_read_completion() {
-        let text = "import Net\nfunc main() { Net. }";
+        let text = "import Networking\nfunc main() { Net. }";
         let items = completion_for_document("file:///p25net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("read")) || text.contains("Net"));
@@ -5230,7 +5230,7 @@ func main() {
 
     #[test]
     fn lsp_v18_net_write_completion() {
-        let text = "import Net\nfunc main() { Net. }";
+        let text = "import Networking\nfunc main() { Net. }";
         let items = completion_for_document("file:///p26net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("write")) || text.contains("Net"));
@@ -5376,7 +5376,7 @@ func main() {
 
     #[test]
     fn lsp_v19_net_stream_completion() {
-        let text = "import Net\nfunc main() { Net. }";
+        let text = "import Networking\nfunc main() { Net. }";
         let items = completion_for_document("file:///p27net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("read")) || text.contains("Net"));
@@ -5519,7 +5519,7 @@ func main() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/net_stream_tls.sy");
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "import Net\nfunc main() { Net. }".into()
+            "import Networking\nfunc main() { Net. }".into()
         });
         let items = completion_for_document("file:///p28net.sy", &text, 2, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
@@ -5531,7 +5531,7 @@ func main() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/websocket_wss_prod.sy");
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "import Net\nfunc main() { print(\"wss-prod\") }".into()
+            "import Networking\nfunc main() { print(\"wss-prod\") }".into()
         });
         let hover = hover_for_position("file:///p28ws.sy", &text, 0, 7, &DriverOptions::default());
         assert!(hover.to_string().contains("WebSocket") || text.contains("WebSocket") || text.contains("wss"));
@@ -5665,7 +5665,7 @@ func main() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/net_stream_tls.sy");
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "import Net\nfunc main() { let s = Net.stream(); s. }".into()
+            "import Networking\nfunc main() { let s = Net.stream(); s. }".into()
         });
         let items = completion_for_document("file:///p29net.sy", &text, 1, 40, &DriverOptions::default());
         let labels = completion_labels(&items);
@@ -5983,7 +5983,7 @@ func main() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/net_stream_tls.sy");
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "import Net\nfunc main() { let s = Net.stream(); s. }".into()
+            "import Networking\nfunc main() { let s = Net.stream(); s. }".into()
         });
         let items = completion_for_document("file:///p30net.sy", &text, 1, 40, &DriverOptions::default());
         let labels = completion_labels(&items);
@@ -6800,7 +6800,7 @@ func main() {
 
     #[test]
     fn lsp_v29_io_net_import_partition() {
-        let text = "import IO\nfunc main() {}";
+        let text = "import System\nfunc main() {}";
         let comp = completion_for_document("file:///io.sy", text, 0, 0, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(labels.iter().any(|l| l.contains("IO")) || text.contains("IO"));
@@ -6852,7 +6852,7 @@ func main() {
 
     #[test]
     fn lsp_import_net_no_httpresponse_shadow() {
-        let text = "import Net\nfunc main() {\n  Url.\n}";
+        let text = "import Networking\nfunc main() {\n  Url.\n}";
         let doc = syx_driver::analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(
             !doc.semantic.errors.iter().any(|e| e.message.contains("HTTPResponse")),
@@ -6863,7 +6863,7 @@ func main() {
         let labels = completion_labels(&comp);
         assert!(
             labels.contains(&"parse".to_string()),
-            "expected Url.parse after import Net, labels: {labels:?}"
+            "expected Url.parse after import Networking, labels: {labels:?}"
         );
     }
 
@@ -6898,7 +6898,7 @@ func main() {
     /// Phase 39 LSP v30: Int128 / Random / Crypto / SIMD prelude completion.
     #[test]
     fn lsp_v30_int128_random_crypto_simd() {
-        let src = "import Crypto\nfunc main() {\n  let n = Random.nextInt(10)\n  let v: SIMD4<Int32> = SIMD4.fromArray([1i32,2i32,3i32,4i32])\n  let x: Int128 = 1i128\n  Crypto.sha256(\"x\")\n}";
+        let src = "import Crypto\nimport Random\nimport SIMD4\nfunc main() {\n  let n = Random.nextInt(10)\n  let v: SIMD4<Int32> = SIMD4.fromArray([1i32,2i32,3i32,4i32])\n  let x: Int128 = 1i128\n  Crypto.sha256(\"x\")\n}";
         let diags = syx_driver::diagnostics_for_source("main.sy", src, &DriverOptions::default());
         assert!(
             !diags.iter().any(|d| d.message.contains("Undefined identifier 'Random'")),
@@ -6946,7 +6946,7 @@ func main() {
 
     #[test]
     fn lsp_v34_int_file_readbytes_completion() {
-        let text = "import IO\nfunc main() {\n    Int.ma\n    File.re\n}";
+        let text = "import System\nfunc main() {\n    Int.ma\n    File.re\n}";
         let comp = completion_for_document(
             "file:///p42.sy",
             text,

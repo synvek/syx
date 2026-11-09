@@ -326,7 +326,7 @@ demoOptional()
 ## throw
 
 ```syx
-import IO
+import System
 
 func loadFile(path: String) throws -> String {
     if !File.exists(path) {
@@ -375,7 +375,7 @@ func main() {
 ## 完整示例
 
 ```syx
-import IO
+import System
 
 func classify(path: String) -> String {
     if File.exists(path) {
@@ -421,7 +421,7 @@ func main() {
 | 标签 `break label` | **部分实现**（演进中） |
 | `where case` | **未实现**（用 `if case` 链式） |
 | `if #available` | **未实现** |
-| `do { try … } catch { }` | 用 `try { } catch { }`（无 `do` 关键字） |
+| `do { try … } catch { }` | 用 `do { } catch { }`（无 `do` 关键字） |
 
 ---
 

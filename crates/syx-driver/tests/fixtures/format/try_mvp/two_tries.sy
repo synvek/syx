@@ -1,10 +1,10 @@
 func main() {
-    try {
+    do {
         print(1)
     } catch (a) {
         print(2)
     }
-    try {
+    do {
         print(3)
     } catch (b) {
         print(4)

@@ -7,7 +7,7 @@ SYX 并发模型基于 **协程 + actor**，与 Swift Concurrency 风格一致�
 ## async / await
 
 ~~~text
-import Net
+import Networking
 
 async func fetch() -> String {
     return await Net.get("https://example.com")
@@ -167,7 +167,7 @@ class ViewModel {
 
 ## Channel
 
-跨任务通信。产品面在 `import Sync` 的 `Channel` 类（非 `__syx_channel_*`）：
+跨任务通信。产品面在 `import Synchronization` 的 `Channel` 类（非 `__syx_channel_*`）：
 
 | 写法 | 含义 |
 |------|------|
@@ -181,7 +181,7 @@ class ViewModel {
 > 教程里的 `Channel<Int>` 泛型语法为规划形态；当前 MVP 载荷为 `Object`，类型由调用约定约束。
 
 ```syx
-import Sync
+import Synchronization
 
 let ch = Channel.create(2)
 ch.send(1)                                 // 默认同步
@@ -353,7 +353,7 @@ Concurrency.setMailboxCapacity(256)
 ## 完整示例
 
 ~~~text
-import Net
+import Networking
 
 actor Downloader {
     var results: Array<String> = []

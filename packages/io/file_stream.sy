@@ -2,30 +2,30 @@
 /// Close then readChunk must fail.
 
 public class FileStream {
-    /// Open a streaming file session (throws `IOError`).
-    public static func open(path: String, mode: String) -> Int throws {
-        try {
-            return __syx_file_stream_open(path, mode)
+    /// Open a streaming file session (throws `SystemError`).
+    public static func open(path: String, mode: String) throws -> Int {
+        do {
+            return SyxHost.file_stream_open(path, mode)
         } catch (e) {
-            throw IOError(code: 1, message: "FileStream open failed")
+            throw SystemError.failed(code: 1, message: "FileStream open failed")
         }
     }
 
     /// Empty array means EOF.
-    public static func readChunk(handle: Int, maxBytes: Int) -> Array<UInt8> throws {
-        try {
-            return __syx_file_stream_read_chunk(handle, maxBytes)
+    public static func readChunk(handle: Int, maxBytes: Int) throws -> Array<UInt8> {
+        do {
+            return SyxHost.file_stream_read_chunk(handle, maxBytes)
         } catch (e) {
-            throw IOError(code: 3, message: "FileStream read failed")
+            throw SystemError.failed(code: 3, message: "FileStream read failed")
         }
     }
 
     /// Close the file-stream session (throws).
     public static func close(handle: Int) throws {
-        try {
-            __syx_file_stream_close(handle)
+        do {
+            SyxHost.file_stream_close(handle)
         } catch (e) {
-            throw IOError(code: 2, message: "FileStream close failed")
+            throw SystemError.failed(code: 2, message: "FileStream close failed")
         }
     }
 }

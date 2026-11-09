@@ -1,43 +1,44 @@
-/// W901: advanced JSON demo — CST-first (no enum / no interpolation / no raw `\n`).
-@Codable
-data class Person(id: Int, name: String, email: String)
-
-@Codable
-data class Address(street: String, city: String, zipCode: String, country: String)
-
-@Codable
-data class Employee(person: Person, address: Address, department: String, salary: Float)
+/// SA-2-04: advanced JSON demo via `JSON.encode`/`decode` (no `data class` / `@Codable`).
+import JSON
 
 func main() {
     print("=== JSON Adv Demo for SYX Language ===")
     print("")
     print("--- Demo 1: Basic Person ---")
-    let person = Person(id: 1, name: "Alice", email: "alice@example.com")
-    let personJson = person.encode()
+    var person: Object = {
+        "id": 1,
+        "name": "Alice",
+        "email": "alice@example.com"
+    }
+    let personJson = JSON.encode(value: person)
     print("Encoded Person:")
     print(personJson)
-    let decodedPerson = Person.decode(text: personJson)
+    let decodedPerson: Object = JSON.decode(text: personJson)
     print("Decoded Person:")
     print(decodedPerson.name)
     print("")
     print("--- Demo 2: Nested Employee ---")
-    let addr = Address(
-        street: "123 Main St",
-        city: "San Francisco",
-        zipCode: "94102",
-        country: "USA"
-    )
-    let empPerson = Person(id: 2, name: "Bob", email: "bob@company.com")
-    let employee = Employee(
-        person: empPerson,
-        address: addr,
-        department: "Engineering",
-        salary: 85000.0
-    )
-    let empJson = employee.encode()
+    var empPerson: Object = {
+        "id": 2,
+        "name": "Bob",
+        "email": "bob@company.com"
+    }
+    var addr: Object = {
+        "street": "123 Main St",
+        "city": "San Francisco",
+        "zipCode": "94102",
+        "country": "USA"
+    }
+    var employee: Object = {
+        "department": "Engineering",
+        "salary": 85000.0
+    }
+    employee.person = empPerson
+    employee.address = addr
+    let empJson = JSON.encode(value: employee)
     print("Encoded Employee:")
     print(empJson)
-    let decodedEmp = Employee.decode(text: empJson)
+    let decodedEmp: Object = JSON.decode(text: empJson)
     print("Decoded Department:")
     print(decodedEmp.department)
     print("")

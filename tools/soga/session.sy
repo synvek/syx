@@ -1,5 +1,6 @@
 // soga/session.sy — multi-turn session
 
+import JSON
 public func create(cfg: Object, system: String) -> Object {
     var history = newHistory()
     if system.count > 0 {

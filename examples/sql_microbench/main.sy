@@ -1,4 +1,4 @@
-import Sql
+import SQL
 
 func insertN(c: Int, left: Int) {
     if left > 0 {
@@ -29,7 +29,7 @@ func insertGiga(c: Int, gigas: Int, megs: Int, batches: Int, chunk: Int) {
 }
 
 func main() {
-    try {
+    do {
         let c = Sql.open(dsn: ":memory:")
         Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER)")
         insertGiga(c: c, gigas: 10, megs: 5, batches: 8, chunk: 25)

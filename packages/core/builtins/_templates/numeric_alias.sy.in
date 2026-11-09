@@ -24,7 +24,7 @@ public class {{TY}}: {{PROTOCOLS}} {
         return {{DELEGATE}}.clamp(x, lo, hi)
     }
 
-    /// Absolute value (host `__syx_*_abs` via delegate).
+    /// Absolute value (host `SyxHost.*_abs` via delegate).
     public static func abs(x: {{TY}}) -> {{TY}} {
         return {{DELEGATE}}.abs(x)
     }
@@ -33,5 +33,5 @@ public class {{TY}}: {{PROTOCOLS}} {
     public static func epsilon() -> {{TY}} {
         return {{DELEGATE}}.epsilon()
     }
-}
+{{SWIFT_EXTRA}}}
 {{WITNESS}}

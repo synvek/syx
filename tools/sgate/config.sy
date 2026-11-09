@@ -1,4 +1,5 @@
-import IO
+import System
+import JSON
 
 public var CONFIG: Object = JSON.decode("{}")
 

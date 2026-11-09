@@ -4,6 +4,7 @@
 // IMPORTANT: do not call single-label helpers like `userMessage(content: x)` —
 // SYX may treat that as Type_init construction and then JSON-decode garbage.
 
+import JSON
 public func makeMessage(role: String, content: String) -> Object {
     let roleJson = JSON.encode(value: role)
     let contentJson = JSON.encode(value: content)

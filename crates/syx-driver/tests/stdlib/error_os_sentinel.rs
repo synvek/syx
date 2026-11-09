@@ -1,11 +1,11 @@
-//! Os.hostname / Os.diskTotal throw OsError (no empty/-1 sentinels).
+//! ProcessInfo.hostname / ProcessInfo.diskTotal throw SystemError (no empty/-1 sentinels).
 // was: m2_error_os_sentinel
-//! ADR-159 / M2 W15: Os.diskAvailable / Os.primaryIpv4 throw OsError (no -1/empty sentinels).
-//! ADR-161 / M2 W17: Os.userName / Os.homeDir throw OsError (no empty sentinels).
-//! ADR-170 / M2 W26: Os.memoryTotal throw OsError (SYX_OS_MEMORY_TOTAL_FORCE_ERR inject).
-//! ADR-171 / M2 W27: Os.memoryAvailable throw OsError (SYX_OS_MEMORY_AVAILABLE_FORCE_ERR inject).
-//! ADR-172 / M2 W28: Os.uptimeMs throw OsError (SYX_OS_UPTIME_MS_FORCE_ERR inject).
-//! ADR-173 / M2 W29: Os.loadAverage throw OsError (SYX_OS_LOAD_AVERAGE_FORCE_ERR inject).
+//! ADR-159 / M2 W15: ProcessInfo.diskAvailable / ProcessInfo.primaryIpv4 throw SystemError (no -1/empty sentinels).
+//! ADR-161 / M2 W17: ProcessInfo.userName / ProcessInfo.homeDir throw SystemError (no empty sentinels).
+//! ADR-170 / M2 W26: ProcessInfo.memoryTotal throw SystemError (SYX_OS_MEMORY_TOTAL_FORCE_ERR inject).
+//! ADR-171 / M2 W27: ProcessInfo.memoryAvailable throw SystemError (SYX_OS_MEMORY_AVAILABLE_FORCE_ERR inject).
+//! ADR-172 / M2 W28: ProcessInfo.uptimeMs throw SystemError (SYX_OS_UPTIME_MS_FORCE_ERR inject).
+//! ADR-173 / M2 W29: ProcessInfo.loadAverage throw SystemError (SYX_OS_LOAD_AVERAGE_FORCE_ERR inject).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
@@ -61,12 +61,12 @@ impl Drop for EnvGuard {
 
 #[test]
 fn m2_error_os_disk_total_invalid_throws() {
-    // Wave A W43 / ADR-387 / A-03: Os.diskTotal missing-path product exact.
+    // Wave A W43 / ADR-387 / A-03: ProcessInfo.diskTotal missing-path product exact.
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.diskTotal(path: "/tmp/syx_m2_w14_nosuch_xyz")
+  do {
+    let n = ProcessInfo.diskTotal(path: "/tmp/syx_m2_w14_nosuch_xyz")
     print("UNEXPECTED_OK")
     print(n)
   } catch (err) {
@@ -80,12 +80,12 @@ func main() {
 
 #[test]
 fn m2_error_os_disk_available_invalid_throws() {
-    // Wave A W43 / ADR-387 / A-03: Os.diskAvailable missing-path product exact.
+    // Wave A W43 / ADR-387 / A-03: ProcessInfo.diskAvailable missing-path product exact.
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.diskAvailable(path: "/tmp/syx_m2_w15_nosuch_xyz")
+  do {
+    let n = ProcessInfo.diskAvailable(path: "/tmp/syx_m2_w15_nosuch_xyz")
     print("UNEXPECTED_OK")
     print(n)
   } catch (err) {
@@ -102,8 +102,8 @@ fn m2_error_os_hostname_ok_or_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let h = Os.hostname()
+  do {
+    let h = ProcessInfo.hostname()
     print("ok")
     print(h)
   } catch (err) {
@@ -135,8 +135,8 @@ fn m2_error_os_primary_ipv4_ok_or_throws() {
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let ip = Os.primaryIpv4()
+  do {
+    let ip = ProcessInfo.primaryIpv4()
     print("ok")
     print(ip)
   } catch (err) {
@@ -165,14 +165,14 @@ func main() {
 
 #[test]
 fn m2_error_os_user_name_missing_throws() {
-    // Wave A W44 / ADR-388 / A-03: Os.userName missing-env product exact.
+    // Wave A W44 / ADR-388 / A-03: ProcessInfo.userName missing-env product exact.
     let _u = EnvGuard::remove("USER");
     let _n = EnvGuard::remove("USERNAME");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let u = Os.userName()
+  do {
+    let u = ProcessInfo.userName()
     print("UNEXPECTED_OK")
     print(u)
   } catch (err) {
@@ -186,14 +186,14 @@ func main() {
 
 #[test]
 fn m2_error_os_home_dir_missing_throws() {
-    // Wave A W44 / ADR-388 / A-03: Os.homeDir missing-env product exact.
+    // Wave A W44 / ADR-388 / A-03: ProcessInfo.homeDir missing-env product exact.
     let _h = EnvGuard::remove("HOME");
     let _p = EnvGuard::remove("USERPROFILE");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let d = Os.homeDir()
+  do {
+    let d = ProcessInfo.homeDir()
     print("UNEXPECTED_OK")
     print(d)
   } catch (err) {
@@ -207,13 +207,13 @@ func main() {
 
 #[test]
 fn m2_error_os_memory_total_ok() {
-    // Wave A W45 / ADR-389 / A-03: Os.memoryTotal ok-path product exact (drop print(n)).
+    // Wave A W45 / ADR-389 / A-03: ProcessInfo.memoryTotal ok-path product exact (drop print(n)).
     let _force = EnvGuard::remove("SYX_OS_MEMORY_TOTAL_FORCE_ERR");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.memoryTotal()
+  do {
+    let n = ProcessInfo.memoryTotal()
     print("ok")
   } catch (err) {
     print("UNEXPECTED")
@@ -226,13 +226,13 @@ func main() {
 
 #[test]
 fn m2_error_os_memory_total_force_err_throws() {
-    // Wave A W41 / ADR-385 / A-03: Os.memoryTotal force-err product exact.
+    // Wave A W41 / ADR-385 / A-03: ProcessInfo.memoryTotal force-err product exact.
     let _force = EnvGuard::set("SYX_OS_MEMORY_TOTAL_FORCE_ERR", "1");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.memoryTotal()
+  do {
+    let n = ProcessInfo.memoryTotal()
     print("UNEXPECTED_OK")
     print(n)
   } catch (err) {
@@ -246,13 +246,13 @@ func main() {
 
 #[test]
 fn m2_error_os_memory_available_ok() {
-    // Wave A W45 / ADR-389 / A-03: Os.memoryAvailable ok-path product exact (drop print(n)).
+    // Wave A W45 / ADR-389 / A-03: ProcessInfo.memoryAvailable ok-path product exact (drop print(n)).
     let _force = EnvGuard::remove("SYX_OS_MEMORY_AVAILABLE_FORCE_ERR");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.memoryAvailable()
+  do {
+    let n = ProcessInfo.memoryAvailable()
     print("ok")
   } catch (err) {
     print("UNEXPECTED")
@@ -265,13 +265,13 @@ func main() {
 
 #[test]
 fn m2_error_os_memory_available_force_err_throws() {
-    // Wave A W41 / ADR-385 / A-03: Os.memoryAvailable force-err product exact.
+    // Wave A W41 / ADR-385 / A-03: ProcessInfo.memoryAvailable force-err product exact.
     let _force = EnvGuard::set("SYX_OS_MEMORY_AVAILABLE_FORCE_ERR", "1");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.memoryAvailable()
+  do {
+    let n = ProcessInfo.memoryAvailable()
     print("UNEXPECTED_OK")
     print(n)
   } catch (err) {
@@ -288,12 +288,12 @@ func main() {
 
 #[test]
 fn m2_error_os_memory_available_force_err_display_throws() {
-    // Wave A W134 / ADR-478 / A-03: Os.memoryAvailable force-err Display product exact.
+    // Wave A W134 / ADR-478 / A-03: ProcessInfo.memoryAvailable force-err Display product exact.
     let _force = EnvGuard::set("SYX_OS_MEMORY_AVAILABLE_FORCE_ERR", "1");
     let err = run_err(&facade_src(
         r#"
 func main() {
-  let _ = Os.memoryAvailable()
+  let _ = ProcessInfo.memoryAvailable()
 }
 "#,
     ));
@@ -305,13 +305,13 @@ func main() {
 
 #[test]
 fn m2_error_os_uptime_ms_ok() {
-    // Wave A W46 / ADR-390 / A-03: Os.uptimeMs ok-path product exact (drop print(n)).
+    // Wave A W46 / ADR-390 / A-03: ProcessInfo.uptimeMs ok-path product exact (drop print(n)).
     let _force = EnvGuard::remove("SYX_OS_UPTIME_MS_FORCE_ERR");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.uptimeMs()
+  do {
+    let n = ProcessInfo.uptimeMs()
     print("ok")
   } catch (err) {
     print("UNEXPECTED")
@@ -324,13 +324,13 @@ func main() {
 
 #[test]
 fn m2_error_os_uptime_ms_force_err_throws() {
-    // Wave A W42 / ADR-386 / A-03: Os.uptimeMs force-err product exact.
+    // Wave A W42 / ADR-386 / A-03: ProcessInfo.uptimeMs force-err product exact.
     let _force = EnvGuard::set("SYX_OS_UPTIME_MS_FORCE_ERR", "1");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.uptimeMs()
+  do {
+    let n = ProcessInfo.uptimeMs()
     print("UNEXPECTED_OK")
     print(n)
   } catch (err) {
@@ -344,12 +344,12 @@ func main() {
 
 #[test]
 fn m2_error_os_uptime_ms_force_err_display_throws() {
-    // Wave A W133 / ADR-477 / A-03: Os.uptimeMs force-err Display product exact.
+    // Wave A W133 / ADR-477 / A-03: ProcessInfo.uptimeMs force-err Display product exact.
     let _force = EnvGuard::set("SYX_OS_UPTIME_MS_FORCE_ERR", "1");
     let err = run_err(&facade_src(
         r#"
 func main() {
-  let _ = Os.uptimeMs()
+  let _ = ProcessInfo.uptimeMs()
 }
 "#,
     ));
@@ -361,12 +361,12 @@ func main() {
 
 #[test]
 fn m2_error_os_memory_total_force_err_display_throws() {
-    // Wave A W133 / ADR-477 / A-03: Os.memoryTotal force-err Display product exact.
+    // Wave A W133 / ADR-477 / A-03: ProcessInfo.memoryTotal force-err Display product exact.
     let _force = EnvGuard::set("SYX_OS_MEMORY_TOTAL_FORCE_ERR", "1");
     let err = run_err(&facade_src(
         r#"
 func main() {
-  let _ = Os.memoryTotal()
+  let _ = ProcessInfo.memoryTotal()
 }
 "#,
     ));
@@ -378,13 +378,13 @@ func main() {
 
 #[test]
 fn m2_error_os_load_average_ok() {
-    // Wave A W46 / ADR-390 / A-03: Os.loadAverage ok-path product exact (drop print(n)).
+    // Wave A W46 / ADR-390 / A-03: ProcessInfo.loadAverage ok-path product exact (drop print(n)).
     let _force = EnvGuard::remove("SYX_OS_LOAD_AVERAGE_FORCE_ERR");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.loadAverage()
+  do {
+    let n = ProcessInfo.loadAverage()
     print("ok")
   } catch (err) {
     print("UNEXPECTED")
@@ -397,13 +397,13 @@ func main() {
 
 #[test]
 fn m2_error_os_load_average_force_err_throws() {
-    // Wave A W42 / ADR-386 / A-03: Os.loadAverage force-err product exact.
+    // Wave A W42 / ADR-386 / A-03: ProcessInfo.loadAverage force-err product exact.
     let _force = EnvGuard::set("SYX_OS_LOAD_AVERAGE_FORCE_ERR", "1");
     let out = run(&facade_src(
         r#"
 func main() {
-  try {
-    let n = Os.loadAverage()
+  do {
+    let n = ProcessInfo.loadAverage()
     print("UNEXPECTED_OK")
     print(n)
   } catch (err) {
@@ -417,12 +417,12 @@ func main() {
 
 #[test]
 fn m2_error_os_load_average_force_err_display_throws() {
-    // Wave A W134 / ADR-478 / A-03: Os.loadAverage force-err Display product exact.
+    // Wave A W134 / ADR-478 / A-03: ProcessInfo.loadAverage force-err Display product exact.
     let _force = EnvGuard::set("SYX_OS_LOAD_AVERAGE_FORCE_ERR", "1");
     let err = run_err(&facade_src(
         r#"
 func main() {
-  let _ = Os.loadAverage()
+  let _ = ProcessInfo.loadAverage()
 }
 "#,
     ));
@@ -434,12 +434,12 @@ func main() {
 
 #[test]
 fn m2_error_os_hostname_force_err_display_throws() {
-    // Wave A W137 / ADR-481 / A-03: Os.hostname force-err Display product exact.
+    // Wave A W137 / ADR-481 / A-03: ProcessInfo.hostname force-err Display product exact.
     let _force = EnvGuard::set("SYX_OS_HOSTNAME_FORCE_ERR", "1");
     let err = run_err(&facade_src(
         r#"
 func main() {
-  let _ = Os.hostname()
+  let _ = ProcessInfo.hostname()
 }
 "#,
     ));
@@ -451,12 +451,12 @@ func main() {
 
 #[test]
 fn m2_error_os_primary_ipv4_force_err_display_throws() {
-    // Wave A W137 / ADR-481 / A-03: Os.primaryIpv4 force-err Display product exact.
+    // Wave A W137 / ADR-481 / A-03: ProcessInfo.primaryIpv4 force-err Display product exact.
     let _force = EnvGuard::set("SYX_OS_PRIMARY_IPV4_FORCE_ERR", "1");
     let err = run_err(&facade_src(
         r#"
 func main() {
-  let _ = Os.primaryIpv4()
+  let _ = ProcessInfo.primaryIpv4()
 }
 "#,
     ));

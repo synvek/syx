@@ -348,7 +348,7 @@ Produces `Stmt::ForIn { name, iterable, body }`.
 #### Try/catch
 
 ```syx
-try {
+do {
     risky()
 } catch (e) {
     print(e)
@@ -604,7 +604,7 @@ The BNF below **matches** the recursive descent + precedence climbing implementa
 
 **Expression statements:** `<expr-stmt>` may be followed by optional `;`. If `<expr>` is a call to identifier `print`, lower to `Stmt::Print` (see §4.6).
 
-**Statement vs expression `try`:** Statement `try { } catch (id) { }` is parsed by `parse_try()`; expression prefix `try expr` by `parse_unary()` as `UnaryOp::Try`.
+**Statement vs expression `try`:** Statement `do { } catch (id) { }` is parsed by `parse_try()`; expression prefix `try expr` by `parse_unary()` as `UnaryOp::Try`.
 
 **`return` and `{`:** `check_expr_start()` includes `LBrace`, so `return { "k": v }` parses correctly (see §11.4).
 
@@ -880,7 +880,7 @@ async func main() -> Int requires IO {
         let name = users[key]?.name ?? "unknown"
         print(name)
     }
-    try {
+    do {
         risky()
     } catch (e) {
         print(e)

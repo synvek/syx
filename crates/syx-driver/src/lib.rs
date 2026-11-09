@@ -606,7 +606,7 @@ func main() { print(dep.value()) }"#,
 
     #[test]
     fn std_lib_math_exports_public_functions() {
-        let (_, source) = embedded_std::lookup_core("Math").expect("core Math");
+        let (_, source) = embedded_std::lookup("Math").expect("importable Math");
         let source = SourceFile::new("<stdlib>/Math.sy", source.to_string());
         let exports = export_symbols(&source);
         assert!(exports.contains_key(&SmolStr::new("add")));
@@ -614,7 +614,8 @@ func main() { print(dep.value()) }"#,
     }
 
     #[test]
-    fn core_prelude_math_not_importable() {
+    fn core_math_is_importable_after_sa1() {
+        // SA-1-03: Math left prelude and is an IMPORTABLE companion module.
         let dir = temp_dir("prelude_math_import");
         let p6 = dir.join("main.sy");
         fs::write(
@@ -623,30 +624,29 @@ func main() { print(dep.value()) }"#,
 func main() { print(Math.add(1, 2)) }"#,
         )
         .unwrap();
-        let err = resolve_module(
+        let resolved = resolve_module(
             "Math",
             &p6,
             dir.as_path(),
             &SyxManifest::default(),
             &DriverOptions::default(),
             dir.as_path(),
-        )
-        .unwrap_err();
-        assert_eq!(err.code.as_deref(), Some("M001"));
+        );
+        assert!(resolved.is_ok(), "import Math must resolve: {resolved:?}");
     }
 
     #[test]
-    fn embedded_stdlib_io_importable() {
-        let dir = temp_dir("io_import");
+    fn embedded_stdlib_system_importable() {
+        let dir = temp_dir("system_import");
         let p6 = dir.join("main.sy");
         fs::write(
             &p6,
-            r#"import IO
+            r#"import System
 func main() { }"#,
         )
         .unwrap();
         let resolved = resolve_module(
-            "IO",
+            "System",
             &p6,
             dir.as_path(),
             &SyxManifest::default(),
@@ -658,28 +658,39 @@ func main() { }"#,
     }
 
     #[test]
-    fn workspace_os_prefers_packages_mod_over_embedded() {
+    fn workspace_system_prefers_packages_mod_over_embedded() {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
         let hello = root.join("examples/hello.sy");
         assert!(hello.is_file(), "examples/hello.sy must exist");
         let resolved = resolve_module(
-            "Os",
+            "System",
             &hello,
             hello.parent().unwrap(),
             &SyxManifest::default(),
             &DriverOptions::default(),
             root.as_path(),
         )
-        .expect("Os should resolve");
+        .expect("System should resolve");
         match resolved {
-            ModuleRef::File(path) => {
+            // SA-4-04 / SA-5: disk bytes + SyxHost prepend; graph key stays `<stdlib>/System.sy`.
+            ModuleRef::Inline { key, display_name, source, .. } => {
                 assert!(
-                    path.ends_with("packages/os/mod.sy"),
-                    "expected packages/os/mod.sy, got {}",
-                    path.display()
+                    display_name.ends_with("packages/system/mod.sy"),
+                    "expected packages/system/mod.sy overlay display, got key={} display={}",
+                    key.display(),
+                    display_name
+                );
+                assert!(
+                    key.to_string_lossy().contains("<stdlib>/System"),
+                    "overlay graph key must be virtual stdlib path, got {}",
+                    key.display()
+                );
+                assert!(
+                    source.contains("enum SyxHost"),
+                    "workspace System overlay must prepend SyxHost"
                 );
             }
-            other => panic!("expected File overlay for Os, got {other:?}"),
+            other => panic!("expected Inline overlay for System, got {other:?}"),
         }
         let text = fs::read_to_string(&hello).unwrap();
         let doc = analyze_document_for_lsp(Some(hello.as_path()), &text, &DriverOptions::default());
@@ -692,17 +703,18 @@ func main() { }"#,
             .collect();
         assert!(
             s005.is_empty(),
-            "hello.sy must not S005 on Os.hostname: {s005:?}"
+            "hello.sy must not S005 on ProcessInfo.hostname: {s005:?}"
         );
     }
 
     #[test]
-    fn filesystem_math_used_without_std_prelude() {
+    fn filesystem_math_used_with_explicit_import() {
         let dir = temp_dir("prelude_math");
         let main = dir.join("main.sy");
         fs::write(
             &main,
-            r#"func main() {
+            r#"import Math
+func main() {
     print(Math.add(1, 2))
 }"#,
         )
@@ -730,10 +742,11 @@ func main() { }"#,
     }
 
     #[test]
-    fn lsp_analyze_core_prelude_math_without_import() {
+    fn lsp_analyze_math_with_explicit_import() {
+        // SA-1-03: Math is no longer prelude-injected.
         let doc = analyze_document_for_lsp(
             Some(Path::new("main.sy")),
-            "func main() { let x = Math.add(1, 2) }",
+            "import Math\nfunc main() { let x = Math.add(1, 2) }",
             &DriverOptions::default(),
         );
         assert!(

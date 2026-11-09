@@ -1,0 +1,374 @@
+/// SA-3-02: `import Networking` aggregate.
+/// Edit packages/net/*; re-run scripts/gen_networking_mod.py; sync embedded_std.
+/// Runtime/workspace load prepends packages/internal/system_host.sy (SA-4-04).
+
+// Host-backed HTTP response shell (Net / IO). Hand-authored authority.
+
+/// Minimal HTTP response: status code and body text.
+@host("host.http_response")
+public class HTTPResponse {
+    /// HTTP status code (e.g. 200).
+    public var status: Int
+
+    /// Response body as text.
+    public var body: String
+}
+
+// Shared HTTP value shells for Net / IO facades.
+
+/// HTTP header bag (SA-2-04: class shell).
+public class HttpHeaders {
+}
+
+/// HTTP body carrying text content.
+public class HttpBody {
+    public var text: String
+
+    public init(text: String) {
+        self.text = text
+    }
+}
+
+/// HTTP request: method, path, query, body.
+public class HttpRequest {
+    public var method: String
+    public var path: String
+    public var query: String
+    public var body: String
+
+    public init(method: String, path: String, query: String, body: String) {
+        self.method = method
+        self.path = path
+        self.query = query
+        self.body = body
+    }
+}
+
+/// ADR-236 / M2-S4-01: facade returns `HTTPResponse` (not糊墙 `Object`).
+/// SA-4-02: primary fetch/request/post paths are typed (no `options: Object` / `body: Object`).
+public class Http {
+    /// HTTP fetch (GET) returning `HTTPResponse`.
+    public static func fetch(url: String) -> HTTPResponse {
+        return SyxHost.http_get(url)
+    }
+
+    /// Generic HTTP GET request; returns `HTTPResponse`.
+    public static func request(url: String) -> HTTPResponse {
+        return SyxHost.http_get(url)
+    }
+
+    /// HTTP GET `url`; returns `HTTPResponse`.
+    public static func get(url: String) -> HTTPResponse {
+        return SyxHost.http_get(url)
+    }
+
+    /// HTTP POST `url` with UTF-8 `body`; returns `HTTPResponse`.
+    public static func post(url: String, body: String) -> HTTPResponse {
+        return SyxHost.http_post(url, body)
+    }
+
+    /// Build an `HTTPResponse` shell from status + body text.
+    public static func response(status: Int, body: String) -> HTTPResponse {
+        return SyxHost.http_make_response(status, body)
+    }
+
+    /// Serve HTTP on `addr`:`port` with `handler`.
+    public static func serve(addr: String, port: Int, handler: String) {
+        SyxHost.http_serve(addr, port, handler)
+    }
+
+    /// ADR-238 / M2-S4-03b: stop accepting; finish in-flight request; `serve` returns.
+    public static func shutdown() {
+        SyxHost.http_serve_shutdown()
+    }
+}
+
+/// ADR-236 / M2-S4-01: `Url.parse` returns `Url` (not糊墙 `Object`).
+/// Runtime parse bag also has `protocol` (keyword; not declared as a property).
+public class Url {
+    public var href: String
+    public var host: String
+    public var port: Int
+    public var path: String
+    public var query: String
+
+    /// Parse a URL string into components.
+    public static func parse(text: String) -> Url {
+        return SyxHost.url_parse(text)
+    }
+
+    /// Encode query (host `SyxHost.url_encode_query`).
+    public static func encodeQuery(query: Object) -> String {
+        return SyxHost.url_encode_query(query)
+    }
+
+    /// Build a URL string from components.
+    public static func build(base: String, path: String, query: Object) -> String {
+        return SyxHost.url_build(base, path, query)
+    }
+}
+
+// WebSocket client connect/send/recv/close (host `SyxHost.ws_*`).
+// ≠ product WS GA; see Net / E-01 roadmap honesty.
+
+/// Client WebSocket session over a host socket handle.
+public class WebSocket {
+    /// Connect a WebSocket client to `url`.
+    public static func connect(url: String) -> Object {
+        return SyxHost.ws_connect(url)
+    }
+
+    /// Send a text `message` on `socket`.
+    public static func send(socket: Object, message: String) -> Bool {
+        return SyxHost.ws_send(socket, message)
+    }
+
+    /// Receive one text message from `socket`.
+    public static func recv(socket: Object) -> String {
+        return SyxHost.ws_recv(socket)
+    }
+
+    /// Close the WebSocket `socket`.
+    public static func close(socket: Object) {
+        SyxHost.ws_close(socket)
+    }
+}
+
+// TCP stream / socket / listener (throws `NetworkError`).
+
+/// Thin network error (ADR-138 style).
+/// TCP failure (SA-2-02: `enum: Error`).
+public enum NetworkError: Error {
+    case failed(code: Int, message: String)
+}
+
+/// Connected TCP stream: read/write/close (instance `handle`).
+public class TcpStream {
+    public var handle: Int = -1
+    /// Connect to `host`:`port`; returns a `TcpStream` (throws `NetworkError`).
+    public static func connect(host: String, port: Int) throws -> TcpStream {
+        let h = SyxHost.tcp_connect(host, port)
+        if h < 0
+        throw NetworkError.failed(code: 1, message: "tcp connect failed")
+        let s = TcpStream()
+        s.handle = h
+        return s
+    }
+    /// Read up to `maxBytes` as String (throws `NetworkError`).
+    public func read(maxBytes: Int) throws -> String {
+        if self.handle < 0
+        throw NetworkError.failed(code: 2, message: "tcp read: invalid handle")
+        do {
+            return SyxHost.tcp_read(self.handle, maxBytes)
+        } catch (e) {
+            throw NetworkError.failed(code: 2, message: "tcp read failed")
+        }
+    }
+    /// Async read up to `maxBytes` (throws `NetworkError`).
+    public func readAsync(maxBytes: Int) throws -> Object {
+        if self.handle < 0
+        throw NetworkError.failed(code: 2, message: "tcp readAsync: invalid handle")
+        do {
+            return SyxHost.tcp_read_async(self.handle, maxBytes)
+        } catch (e) {
+            throw NetworkError.failed(code: 2, message: "tcp readAsync failed")
+        }
+    }
+    /// Write `data`; returns byte count (throws `NetworkError`).
+    public func write(data: String) throws -> Int {
+        if self.handle < 0
+        throw NetworkError.failed(code: 3, message: "tcp write: invalid handle")
+        do {
+            return SyxHost.tcp_write(self.handle, data)
+        } catch (e) {
+            throw NetworkError.failed(code: 3, message: "tcp write failed")
+        }
+    }
+    /// Release a TCP handle by id.
+    public static func closeHandle(handle: Int) {
+        SyxHost.tcp_handle_release(handle)
+    }
+    /// Close this stream and invalidate `handle`.
+    public func close() {
+        SyxHost.tcp_handle_release(self.handle)
+        self.handle = -1
+    }
+}
+
+/// Compatibility alias that returns `TcpStream.connect`.
+public class TcpSocket {
+    /// Connect via `TcpStream.connect` (compatibility alias).
+    public static func connect(host: String, port: Int) throws -> TcpStream {
+        return TcpStream.connect(host: host, port: port)
+    }
+}
+
+/// TCP listen / accept / close by handle id.
+public class TcpListener {
+    /// Listen on `host`:`port`; returns listener handle (throws).
+    public static func bind(host: String, port: Int) throws -> Int {
+        let h = SyxHost.tcp_listen(host, port)
+        if h == -1
+        throw NetworkError.failed(code: 10, message: "tcp listen failed")
+        return h
+    }
+    /// Close listener handle (throws).
+    public static func close(handle: Int) throws {
+        do {
+            SyxHost.tcp_listener_close(handle)
+        } catch (e) {
+            throw NetworkError.failed(code: 11, message: "TcpListener close failed")
+        }
+    }
+    /// Accept one connection; returns stream handle (throws).
+    public static func accept(handle: Int) throws -> Int {
+        do {
+            let s = SyxHost.tcp_listener_accept(handle)
+            if s < 0
+            throw NetworkError.failed(code: 12, message: "tcp accept failed")
+            return s
+        } catch (e) {
+            throw NetworkError.failed(code: 12, message: "tcp accept failed")
+        }
+    }
+}
+
+
+// UDP bind / sendTo / recvFrom (host `SyxHost.udp_*`).
+
+/// Connectionless datagram socket facade.
+public class UdpSocket {
+    /// Bind a UDP socket on `host`:`port`.
+    public static func bind(host: String, port: Int) -> Object {
+        return SyxHost.udp_bind(host, port)
+    }
+    /// Send `data` to `host`:`port` via `socket`.
+    public static func sendTo(socket: Object, host: String, port: Int, data: String) -> Int {
+        return SyxHost.udp_send_to(socket, host, port, data)
+    }
+    /// Receive up to `maxBytes` from `socket` (Object bag).
+    public static func recvFrom(socket: Object, maxBytes: Int) -> Object {
+        return SyxHost.udp_recv_from(socket, maxBytes)
+    }
+}
+
+
+// DNS resolution facade (host `SyxHost.dns_*`).
+
+/// Resolve hostnames to address lists or a primary IP string.
+public class Dns {
+    /// Resolve `host` to a list of address strings.
+    public static func resolve(host: String) -> Array<String> {
+        return SyxHost.dns_resolve(host)
+    }
+
+    /// Resolve `host` to a single preferred IP string.
+    public static func resolveIp(host: String) -> String {
+        return SyxHost.dns_resolve_ip(host)
+    }
+}
+
+// TLS server one-shot serve helpers (cert/key PEM paths).
+
+/// Thin TLS error (ADR-138 style).
+public enum TlsError: Error {
+    case failed(code: Int, message: String)
+}
+
+/// Serve-once TLS accept (optional ALPN / no-idle variants).
+public class TlsServer {
+    /// Accept/serve one TLS connection (throws `TlsError`).
+    public static func serveOnce(host: String, port: Int, certPemPath: String, keyPemPath: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, "", 0)
+        if r < 0
+        throw TlsError.failed(code: 1, message: "tls serveOnce failed")
+        return r
+    }
+    /// Serve once with ALPN protocol list (throws `TlsError`).
+    public static func serveOnceAlpn(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, alpn, 0)
+        if r < 0
+        throw TlsError.failed(code: 1, message: "tls serveOnceAlpn failed")
+        return r
+    }
+    /// Serve once without idle timeout (throws `TlsError`).
+    public static func serveOnceNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, "", 1)
+        if r < 0
+        throw TlsError.failed(code: 1, message: "tls serveOnceNoIdle failed")
+        return r
+    }
+    /// Serve once with ALPN and no idle timeout (throws `TlsError`).
+    public static func serveOnceAlpnNoIdle(host: String, port: Int, certPemPath: String, keyPemPath: String, alpn: String) throws -> Int {
+        let r = SyxHost.tls_serve(host, port, certPemPath, keyPemPath, alpn, 1)
+        if r < 0
+        throw TlsError.failed(code: 1, message: "tls serveOnceAlpnNoIdle failed")
+        return r
+    }
+}
+
+
+/// ADR-239 / M2-S4-04: client response body chunked-read session.
+/// ≠ server streaming; ≠ wire Transfer-Encoding product API; ≠ File S3-03; ≠ JSONStream.
+
+public enum NetworkError: Error {
+    case failed(code: Int, message: String)
+}
+
+public class HttpBodyStream {
+    /// Returns Object bag: `handle` (Int), `status` (Int). Body is not buffered.
+    /// Default GET; empty options (embed `{}` is Hashable-fragile — use url-only open).
+    public static func open(url: String) -> Object {
+        return SyxHost.http_body_stream_open(url)
+    }
+
+    /// Same as open (SA-4-02: options bag removed from primary surface; use `open`).
+    public static func openWithOptions(url: String) -> Object {
+        return SyxHost.http_body_stream_open(url)
+    }
+
+    /// Read up to `maxBytes`; empty String means EOF.
+    public static func readChunk(handle: Int, maxBytes: Int) -> String {
+        return SyxHost.http_body_stream_read_chunk(handle, maxBytes)
+    }
+
+    /// Close the body-stream session (throws).
+    public static func close(handle: Int) throws {
+        do {
+            SyxHost.http_body_stream_close(handle)
+        } catch (e) {
+            throw NetworkError.failed(code: 2, message: "HttpBodyStream close failed")
+        }
+    }
+}
+
+// Experimental gRPC-shaped facade (not a full wire-protocol product GA).
+
+/// Client connect + unary call shell over TCP / host `SyxHost.grpc_unary`.
+public class GrpcClient {
+    /// Connect a gRPC client facade to `addr`:`port` (experimental; not wire-protocol GA).
+    public static func connect(addr: String, port: Int) -> Dictionary {
+        let handle = SyxHost.tcp_connect(addr, port)
+        var client: Dictionary = {}
+        client["addr"] = addr
+        client["port"] = port
+        client["handle"] = handle
+        client["experimental"] = "grpc-facade-not-wire-protocol"
+        client["__grpc_client"] = true
+        return client
+    }
+    /// Unary call `method` with `body` on `client`.
+    public static func call(client: Dictionary, method: String, body: String) -> String {
+        return SyxHost.grpc_unary(method, body)
+    }
+}
+
+/// Experimental serve entry (currently routes through HTTP serve host).
+public class GrpcServer {
+    /// Serve with `handler` on `addr`:`port` (experimental facade).
+    public static func serve(addr: String, port: Int, handler: String) {
+        SyxHost.http_serve(addr, port, handler)
+    }
+}
+
+

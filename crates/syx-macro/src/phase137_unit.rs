@@ -136,7 +136,7 @@ fn p137_token_stream_still_enumerates() {
 #[test]
 fn p137_not_within_boot_codegen_still_seals() {
     let src = r#"
-import Di
+import DI
 @Service
 class Allowed {
   init() {}

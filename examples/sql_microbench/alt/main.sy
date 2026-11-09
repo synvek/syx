@@ -1,4 +1,4 @@
-import Sql
+import SQL
 
 func bump(c: Int, left: Int) {
     if left > 0 {
@@ -8,7 +8,7 @@ func bump(c: Int, left: Int) {
 }
 
 func main() {
-    try {
+    do {
         let c = Sql.open(dsn: ":memory:")
         Sql.execOn(connId: c, sql: "CREATE TABLE t(id INTEGER)")
         bump(c: c, left: 5)

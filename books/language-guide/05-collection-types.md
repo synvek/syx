@@ -244,7 +244,7 @@ func main() {
 | `Array<String>` (`File.readLines()`) | `String` | Lines |
 
 ```syx
-import IO
+import System
 
 for item in [1, 2, 3] { print(item) }       // 1 2 3
 for c in "abc" { print(c) }                  // a b c
@@ -255,10 +255,10 @@ for line in File.readLines("a.txt") { print(line) }
 
 ## Binary IO (Phase 42 / 60)
 
-After `import IO`, whole files can be read and written as `Array` bytes (elements are `UInt8`):
+After `import System`, whole files can be read and written as `Array` bytes (elements are `UInt8`):
 
 ```syx
-import IO
+import System
 
 let path = "bytes.bin"
 File.writeBytes(path, [0u8, 255u8, 42u8])

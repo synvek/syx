@@ -8,7 +8,7 @@ fn http_fail_connect_refused_is_error() {
     syx_host_plugin::register_echo_plugin_in_process();
     let result = compile_and_run_embedded(
         r#"func main() {
-  try {
+  do {
     print(__syx_http_get("http://127.0.0.1:1/x"))
   } catch (err) {
     print("refused")

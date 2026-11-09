@@ -1,6 +1,6 @@
 # Linalg 范例
 
-`import Linalg` 提供 packed-SYX `Mat`（句柄 + 行主序 `Array<Float64>`）。**不是** CORE prelude，**不是** 产品 Mat GA（需 E-00）。
+`import Numerics` 提供 packed-SYX `Mat`（句柄 + 行主序 `Array<Float64>`）。**不是** CORE prelude，**不是** 产品 Mat GA（需 E-00）。
 
 | 文件 | 内容 |
 |------|------|

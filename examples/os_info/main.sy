@@ -1,36 +1,35 @@
-import Os
+import System
 
 func main() {
-    print(Os.cpuCount())
-    try {
-        print(Os.memoryTotal())
+    print(ProcessInfo.processorCount)
+    do {
+        print(ProcessInfo.memoryTotal())
     } catch (e) {
         print("memoryTotal-unavailable")
     }
-    try {
-        print(Os.memoryAvailable())
+    do {
+        print(ProcessInfo.memoryAvailable())
     } catch (e) {
         print("memoryAvailable-unavailable")
     }
-    try {
-        print(Os.userName())
+    do {
+        print(ProcessInfo.userName())
     } catch (e) {
         print("userName-unavailable")
     }
-    try {
-        print(Os.homeDir())
+    do {
+        print(ProcessInfo.homeDir())
     } catch (e) {
         print("homeDir-unavailable")
     }
-    try {
-        print(Os.hostname())
+    do {
+        print(ProcessInfo.hostname())
     } catch (e) {
         print("hostname-unavailable")
     }
-    try {
-        print(Os.uptimeMs())
+    do {
+        print(ProcessInfo.uptimeMs())
     } catch (e) {
         print("uptimeMs-unavailable")
     }
 }
-

@@ -105,7 +105,7 @@ func main() { [P(x: 1)].sorted() }";
 
 #[test]
 fn p72_try_catch_parse() {
-    let text = "func main() { try { print(1) } catch e { print(e) } }";
+    let text = "func main() { do { print(1) } catch e { print(e) } }";
     assert!(p72_doc_ok(text));
 }
 
@@ -179,7 +179,7 @@ func main() { G() }";
 
 #[test]
 fn p72_import_io() {
-    let text = "import IO
+    let text = "import System
 func main() { print(1) }";
     let doc = syx_driver::analyze_document_for_lsp(None, text, &p72_opts());
     assert!(doc.semantic.errors.is_empty() || !doc.semantic.errors.is_empty());

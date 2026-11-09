@@ -57,7 +57,7 @@ fn hostfn_http_get_connect_refused_io_err() {
     let out = run(
         r#"
 func main() {
-  try {
+  do {
     let r = __syx_http_get("http://127.0.0.1:1/x")
     print("UNEXPECTED")
     print(r.status)
@@ -73,7 +73,7 @@ func main() {
 }
 
 /// Wave A W10 / ADR-354 / A-05 — HttpGet llvm cell (native CallHost try/catch).
-/// Wave A W127 / ADR-471 / A-03: IOError.code ObjectGet native llvm exact.
+/// Wave A W127 / ADR-471 / A-03: SystemError.code ObjectGet native llvm exact.
 #[cfg(unix)]
 #[test]
 fn hostfn_http_get_refuse_native_llvm() {
@@ -81,7 +81,7 @@ fn hostfn_http_get_refuse_native_llvm() {
     std::env::remove_var("SYX_NATIVE_C_STUB");
     let src = r#"
 func main() {
-  try {
+  do {
     let r = __syx_http_get("http://127.0.0.1:1/x")
     print("UNEXPECTED")
     print(r.status)
@@ -123,7 +123,7 @@ func main() {
 }
 
 /// Wave A W22 / ADR-366 / A-05 — HttpGet wasm cell (AOT CallHost try/catch).
-/// Wave A W128 / ADR-472 / A-03: IOError.code ObjectGet wasm exact.
+/// Wave A W128 / ADR-472 / A-03: SystemError.code ObjectGet wasm exact.
 #[test]
 fn hostfn_http_get_refuse_wasm() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -131,7 +131,7 @@ fn hostfn_http_get_refuse_wasm() {
     std::env::remove_var("SYX_WASM_AOT_STATS");
     let src = r#"
 func main() {
-  try {
+  do {
     let r = __syx_http_get("http://127.0.0.1:1/x")
     print("UNEXPECTED")
     print(r.status)

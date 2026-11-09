@@ -19,7 +19,7 @@ func main() {
   __syx_channel_close(ch)
   print(__syx_channel_try_recv(ch))
   print(__syx_channel_try_recv(ch))
-  try {
+  do {
     __syx_channel_send(ch, "B")
     print("SEND_OK")
   } catch (err) {

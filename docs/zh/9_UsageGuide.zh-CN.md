@@ -489,7 +489,7 @@ syx run examples/deps         # 输出 42（local_math.add(10, 32)）
 
 ```syx
 func main() {
-  try {
+  do {
     let n = FileHandle.withOpen(path: "/tmp/x.bin", mode: "w", body: { (h: Int) -> Int in
       return __syx_file_write_chunk(h, [])
     })
@@ -510,7 +510,7 @@ func main() {
 
 ### DateTime / Clock / Instant
 
-`import DateTime` 后时钟语义分离（roadmap `M2-S5-01`）：
+`import System` 后时钟语义分离（roadmap `M2-S5-01`）：
 
 | API | 语义 |
 |-----|------|
@@ -534,7 +534,7 @@ func main() {
 
 ### HTTP
 
-`import Net` 后使用 `Http`（非 `HTTP`）：
+`import Networking` 后使用 `Http`（非 `HTTP`）：
 
 | 方法 | 说明 |
 |------|------|
@@ -554,7 +554,7 @@ func main() {
 
 ### Sql（SQLite）
 
-`import Sql` 后使用多连接 facade（`throws SqlError`）：
+`import SQL` 后使用多连接 facade（`throws SqlError`）：
 
 | 方法 | 说明 |
 |------|------|
@@ -686,7 +686,7 @@ __syx_array_map([1, 2, 3], 0)
 ### try / catch 块
 
 ```syx
-try {
+do {
     File.write("/tmp/test.txt", "data")
     let content = File.read("/tmp/test.txt")
     print(content)
@@ -705,7 +705,7 @@ let content = try File.read(path)
 let content = File.read(path)?
 ```
 
-parser 接受前缀 `try expr` 与后缀 `expr?`（同一 `UnaryOp::Try` 节点）。`syx format` 规范形为**后缀** `expr?`；前缀会被改写为后缀。语句级 `try { } catch` 不受影响。失败时按运行时错误处理。
+parser 接受前缀 `try expr` 与后缀 `expr?`（同一 `UnaryOp::Try` 节点）。`syx format` 规范形为**后缀** `expr?`；前缀会被改写为后缀。语句级 `do { } catch` 不受影响。失败时按运行时错误处理。
 
 ---
 
@@ -861,10 +861,10 @@ func fetchData() -> String {
 | `@propertyWrapper` | Phase 40 GA；`--no-property-wrapper` 关闭 |
 | `#compileTime` | 常量求值子集 |
 | `reflect(T.self)` | `syx-meta` Rust 侧反射 |
-| Service DI v14 | `import Di` → `Di.resolve` / `Di.withRequest` / `Di.setProfile` / …；短糖 `resolve(...)`；`@Qualifier`/`@Primary`/`@Profile`；**协议 witness + 基类型多态 inject**；**`@Around` proceed + `@Before`/`@After` pointcut 字符串绑定 MVP**（`macro-service-v13:before-after-pointcut-bind-mvp`）；**`@Pointcut("Type.method")` 方法名 MVP** + **`execution(* T.m(..))` 名/`*` 模式 MVP** + **`@Pointcut("within(Type)")` 类型名模式 MVP**（`macro-service-v14:pointcut-within-name-mvp`）；**`@Configuration`/`@Bean` MVP**（**仅** `@Service`/`@Component` 实例方法 advice，**非**完整 AspectJ / Spring → **134+**）；`__syx_service_*` 仅内部 |
+| Service DI v14 | `import DI` → `Di.resolve` / `Di.withRequest` / `Di.setProfile` / …；短糖 `resolve(...)`；`@Qualifier`/`@Primary`/`@Profile`；**协议 witness + 基类型多态 inject**；**`@Around` proceed + `@Before`/`@After` pointcut 字符串绑定 MVP**（`macro-service-v13:before-after-pointcut-bind-mvp`）；**`@Pointcut("Type.method")` 方法名 MVP** + **`execution(* T.m(..))` 名/`*` 模式 MVP** + **`@Pointcut("within(Type)")` 类型名模式 MVP**（`macro-service-v14:pointcut-within-name-mvp`）；**`@Configuration`/`@Bean` MVP**（**仅** `@Service`/`@Component` 实例方法 advice，**非**完整 AspectJ / Spring → **134+**）；`__syx_service_*` 仅内部 |
 
 ```syx
-import Di
+import DI
 
 @Service
 @Scope("request")
@@ -888,7 +888,7 @@ func main() {
 
 ### Os 运行时查询（Phase 133–136 · partial GA）
 
-`import Os` 提供与 `Process`（args/env/exec）**分离**的运行时查询 MVP：`Os.cpuCount()`、`Os.memoryTotal()` / `Os.memoryAvailable()` / `Os.uptimeMs()` / `Os.loadAverage()`（throws OsError）、`Os.userName()`、`Os.homeDir()`、`Os.hostname()`、`Os.diskTotal(path)`、`Os.diskAvailable(path)`。已 throws 的 API 无 `-1`/空串成功哨兵。**非**完整 sysinfo / network / cgroup → **138+**。
+`import System` 提供与 `Process`（args/env/exec）**分离**的运行时查询 MVP：`Os.cpuCount()`、`Os.memoryTotal()` / `Os.memoryAvailable()` / `Os.uptimeMs()` / `Os.loadAverage()`（throws OsError）、`Os.userName()`、`Os.homeDir()`、`Os.hostname()`、`Os.diskTotal(path)`、`Os.diskAvailable(path)`。已 throws 的 API 无 `-1`/空串成功哨兵。**非**完整 sysinfo / network / cgroup → **138+**。
 
 示例：`examples/os_info/`。
 

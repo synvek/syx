@@ -1,21 +1,21 @@
-// Filesystem path string helpers (host `__syx_path_*`).
+// Filesystem path string helpers (SyxHost.path_*).
 
-/// Join / normalize / exists / extension for path strings.
-public class Path {
+/// Join / normalize / exists / extension for path strings (SA-4-01: `FilePath`).
+public enum FilePath {
     /// Join path components `a` and `b`.
     public static func join(a: String, b: String) -> String {
-    return __syx_path_join(a, b)
-}
+        return SyxHost.path_join(a, b)
+    }
     /// Normalize `path` (`.` / `..` / separators).
     public static func normalize(path: String) -> String {
-    return __syx_path_normalize(path)
-}
+        return SyxHost.path_normalize(path)
+    }
     /// Whether `path` exists on the filesystem.
     public static func exists(path: String) -> Bool {
-    return __syx_path_exists(path)
-}
+        return SyxHost.path_exists(path)
+    }
     /// File extension of `path` (without dot rules per host).
     public static func fileExtension(path: String) -> String {
-    return __syx_path_extension(path)
-}
+        return SyxHost.path_extension(path)
+    }
 }

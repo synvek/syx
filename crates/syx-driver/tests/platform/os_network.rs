@@ -1,4 +1,4 @@
-//! Os.primaryIpv4() MVP (`stdlib-os-v4:network-mvp`).
+//! ProcessInfo.primaryIpv4() MVP (`stdlib-os-v4:network-mvp`).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
@@ -24,8 +24,8 @@ fn os_network_primary_ipv4_runs_without_crash() {
     let printed = run(&with_os(
         r#"
 func main() {
-    try {
-        print(Os.primaryIpv4())
+    do {
+        print(ProcessInfo.primaryIpv4())
     } catch (e) {
         print("ipv4-unavailable")
     }

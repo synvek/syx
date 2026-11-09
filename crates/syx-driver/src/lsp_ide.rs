@@ -89,7 +89,10 @@ pub(crate) fn collect_import_symbols_for_lsp_from(
                 if let Some(importer) = importer {
                     if let Some(disk) = embedded_std::find_workspace_stdlib_file(importer, first) {
                         if let Ok(text) = std::fs::read_to_string(&disk) {
-                            let source = SourceFile::new(disk.display().to_string(), text);
+                            let source = SourceFile::new(
+                                disk.display().to_string(),
+                                embedded_std::ensure_syx_host(&text),
+                            );
                             merge_lsp_import(
                                 &mut import_symbols,
                                 SmolStr::new(first),
@@ -104,7 +107,7 @@ pub(crate) fn collect_import_symbols_for_lsp_from(
                         embedded_std::virtual_path(name)
                             .to_string_lossy()
                             .into_owned(),
-                        src,
+                        embedded_std::ensure_syx_host(src),
                     );
                     merge_lsp_import(
                         &mut import_symbols,
