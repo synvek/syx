@@ -18,8 +18,8 @@ use smol_str::SmolStr;
 use syx_ast::{CallArg, Expr};
 use syx_mono::mangle_name;
 use syx_stdlib::{
-    host_fn_index, lookup_array_method, lookup_dict_method, lookup_float32_math_host,
-    lookup_float64_math_host, lookup_string_method, HostFnId,
+    host_fn_index, host_fn_index_by_name, lookup_array_method, lookup_dict_method,
+    lookup_float32_math_host, lookup_float64_math_host, lookup_string_method, HostFnId,
 };
 
 pub(crate) fn lower_expr_call_member(
@@ -226,6 +226,29 @@ pub(crate) fn lower_expr_call_member(
                     MirInstr {
                         dest: Some(dest),
                         op: MirOp::Call(fn_name),
+                        span: None,
+                    },
+                );
+                return;
+            }
+        }
+    }
+    // SA-4-04: `SyxHost.f(...)` façades are thin `__syx_f` wrappers. Enum-name-only
+    // inject (no Extension bodies) must not emit `Call SyxHost_f` → C020 on cold prelude.
+    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+        if type_name == "SyxHost" {
+            let host_name = format!("__syx_{name}");
+            if let Some(idx) = host_fn_index_by_name(&host_name) {
+                if member_kind != MemberCallKind::ArgsEarly {
+                    for arg in args {
+                        lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
+                    }
+                }
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: Some(dest),
+                        op: MirOp::CallHost(idx),
                         span: None,
                     },
                 );

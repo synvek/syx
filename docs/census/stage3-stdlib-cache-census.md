@@ -27,7 +27,7 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 |-----|------:|-------|
 | `prelude_embed_bytes` | **≥1** | I54 |
 | `prelude_embed_hit` | **≥1** | I54 |
-| `prelude_embed_asset_bytes` | **≈3.4e6** | I54 |
+| `prelude_embed_asset_bytes` | **≈6.6e6** | I54（regen after SyxHost CallHost map） |
 | `cache_roundtrip_helper` | **≥1** | I53 |
 | `cache_tag_bake` | **≥1** | I52 |
 | `load_from_env_once` | **≥1** | I52 |

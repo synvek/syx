@@ -241,3 +241,31 @@ func main() {
         Some("S004")
     );
 }
+
+#[test]
+fn object_value_for_key_must_not_c020_syxhost_dict_get() {
+    // Regression: Enum-only SyxHost inject must not emit unresolved
+    // `Call SyxHost_dict_get` (C020) — MIR maps `SyxHost.dict_*` → CallHost(__syx_*).
+    syx_host_plugin::register_echo_plugin_in_process();
+    let result = compile_and_run_embedded(
+        r#"
+func main() {
+    var o: Object = {}
+    o = o.put(key: "a", value: 1)
+    print(o.valueForKey(key: "a"))
+}
+"#,
+        &opts(),
+    );
+    match result {
+        Ok(_) => {}
+        Err(d) => {
+            assert_ne!(
+                d.code.as_deref(),
+                Some("C020"),
+                "SyxHost.dict_get must lower to CallHost, got {d:?}"
+            );
+            panic!("unexpected compile/run error: {d:?}");
+        }
+    }
+}

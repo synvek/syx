@@ -109,6 +109,10 @@ pub(crate) fn inject_virtual_prelude_imports(module: &mut syx_ast::Module, optio
 pub(crate) fn inject_syx_host_enum(module: &mut syx_ast::Module) {
     use syx_ast::Decl;
     use syx_diagnostics::SourceFile;
+    // Name-only inject: caseless `enum SyxHost { static func … }` also parses a
+    // pending Extension with hundreds of bodies — cloning that into every module
+    // trips concurrency (S019) during cold prelude. MIR maps `SyxHost.f` →
+    // `CallHost(__syx_f)` instead (see `resolve_host_call`).
     if module
         .decls
         .iter()
