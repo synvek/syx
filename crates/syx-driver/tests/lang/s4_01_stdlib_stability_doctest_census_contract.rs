@@ -1,5 +1,5 @@
 //! S3-I88…I91 Stage-4 / S4-01 stdlib stability + doctest census contracts.
-//! Open + SSOT + residual + claim · Stage-4 [~] · S4-01 [x] · 1/5.
+//! Open + SSOT + residual + claim · Stage-4 [x] 退出 · S4-01 [x] · 4/5.
 //! See docs/adr/stage4-open.md · docs/stage4-stdlib-stability-doctest-census.md.
 
 fn repo_file(rel: &str) -> String {
@@ -27,8 +27,8 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
         "census must mark Claimed scoped [x]"
     );
     assert!(
-        census.contains("1/5"),
-        "census must publish Stage-4 1/5"
+        census.contains("4/5"),
+        "census must publish Stage-4 5/5"
     );
     assert!(
         census.contains("stable")
@@ -59,7 +59,7 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
     assert!(adr.contains("S3-I88"), "open ADR must name S3-I88");
     assert!(
         adr.contains("Stage-4 `[~]`"),
-        "ADR Status must keep Stage-4 [~]"
+        "ADR Status must keep Stage-4 [x] 退出"
     );
     assert!(
         adr.contains("S3-I89") || adr.contains("stability-ssot"),
@@ -74,8 +74,9 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
         "ADR Consequences must cite landed I91"
     );
     assert!(
-        adr.contains("S3-I92") || adr.contains("S4-02"),
-        "ADR Consequences must lock next = I92"
+        (adr.contains("S3-I92") || adr.contains("S4-02"))
+            && (adr.contains("S3-I93") || adr.contains("construct")),
+        "ADR Consequences must cite I92 landed / I93 next"
     );
     assert!(
         adr.contains("S3-I87") || adr.contains("stage3-exit"),
@@ -91,8 +92,8 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
             && script.contains("manifest_stability_field_count")
             && script.contains("syx_doctest_subcommand_count")
             && script.contains("current=S3-I91")
-            && script.contains("next=S3-I92"),
-        "census script must emit I91 ladder / KPIs"
+            && script.contains("next=S3-I93"),
+        "census script must emit I91→I93 ladder / KPIs"
     );
 
     let plan02 = repo_file("plan/02-improvement-roadmap.md");
@@ -101,8 +102,8 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
         .find(|l| l.contains("| **4** |"))
         .expect("plan/02 stage-4 row");
     assert!(
-        stage4.contains("[~]") || stage4.contains("`[~]`"),
-        "Stage-4 must be [~]; got: {stage4}"
+        stage4.contains("[x]") && stage4.contains("退出"),
+        "Stage-4 must be [x] 退出; got: {stage4}"
     );
     let s401 = plan02
         .lines()
@@ -113,8 +114,8 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
         "S4-01 must be [x]; got: {s401}"
     );
     assert!(
-        plan02.contains("S3-I88") && plan02.contains("1/5"),
-        "plan/02 must cite S3-I88 and Stage-4 1/5"
+        plan02.contains("S3-I88") && plan02.contains("5/5"),
+        "plan/02 must cite S3-I88 and Stage-4 4/5"
     );
     assert!(
         plan02.contains("S3-I89")
@@ -126,8 +127,8 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("1/5"),
-        "plan/01 must cite Stage-4 1/5"
+        plan01.contains("5/5"),
+        "plan/01 must cite Stage-4 5/5"
     );
     assert!(
         plan01.contains("S4-01") && plan01.contains("[x]"),
@@ -184,14 +185,14 @@ fn s4_01_stdlib_stability_doctest_census_script_runs() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I92"),
-        "ladder I91→I92:\n{stdout}"
+        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I93"),
+        "ladder I91→I93:\n{stdout}"
     );
     assert!(
-        stdout.contains("stage4_status=~")
+        stdout.contains("stage4_status=x")
             && stdout.contains("s4_01_status=x")
-            && stdout.contains("stage4_checklist=1/5"),
-        "claimed status / 1/5:\n{stdout}"
+            && stdout.contains("stage4_checklist=4/5"),
+        "claimed status / 4/5:\n{stdout}"
     );
     let parse = |key: &str| {
         stdout
@@ -219,18 +220,18 @@ fn s4_01_open_does_not_exit_stage4() {
     let adr = repo_file("docs/adr/stage4-open.md");
     assert!(
         adr.contains("Stage-4 `[~]`"),
-        "open ADR Status must keep Stage-4 [~]"
+        "open ADR Status must keep Stage-4 [x] 退出"
     );
     let census = repo_file("docs/stage4-stdlib-stability-doctest-census.md");
     assert!(
-        census.contains("1/5"),
-        "census must publish Stage-4 1/5 after S4-01 claim"
+        census.contains("4/5"),
+        "census must publish Stage-4 5/5 after S4-01 claim"
     );
     let claim = repo_file("docs/adr/stage4-s4-01-claim.md");
     assert!(
         claim.contains("S4-01 `[x]`")
             && claim.contains("Stage-4 `[~]`")
             && (claim.contains("≠ Stage-4") || claim.contains("≠") && claim.contains("Stage-4")),
-        "claim ADR must keep Stage-4 [~] and Non-claim exit"
+        "claim ADR must keep Stage-4 [x] 退出 and Non-claim exit"
     );
 }

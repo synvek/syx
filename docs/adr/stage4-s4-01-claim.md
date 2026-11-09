@@ -29,17 +29,20 @@ Under Hard OUT（≠ 改 `manifest.json` schema / ≠ driver 读 SSOT / ≠ 实�
 ## Consequences
 
 - S4-01 plan-claimed `[x]`; Stage-4 stays `[~]`（checklist **1/5**）.
-- Default next = **S3-I92**（S4-02 open）— not Stage-4 exit / not S4-02 construct / not `syx doctest`.
+- **S3-I92 landed** as [stage4-s4-02-open](stage4-s4-02-open.md)（S4-02 `[~]` open）。
+- Default next = **S3-I93**（S4-02 file-registry / lock-semver construct）— not S4-02 `[x]` / not Stage-4 exit / not public registry GA.
 - Prior: [stage4-s4-01-residual-scope](stage4-s4-01-residual-scope.md) · S3-I90 · construct [S3-I89](stage4-s4-01-stability-ssot.md) · open [S3-I88](stage4-open.md).
-- Census Current → **S3-I91** · Claimed scoped `[x]`.
+- Stdlib stability census Current → **S3-I91** · Claimed scoped `[x]`；package-registry census Current → **S3-I92**.
 
 ## References
 
+- [stage4-s4-02-open](stage4-s4-02-open.md) · S3-I92
 - [stage4-s4-01-residual-scope](stage4-s4-01-residual-scope.md) · S3-I90
 - [stage4-s4-01-stability-ssot](stage4-s4-01-stability-ssot.md) · S3-I89
 - [stage4-open](stage4-open.md) · S3-I88
 - [s4-01-manifest-doctest-scope-v0](../s4-01-manifest-doctest-scope-v0.md)
 - [stage3-s3-07-claim](stage3-s3-07-claim.md) · S3-I85（claim 窗形态）
 - [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-doctest-census.md)
+- [stage4-package-registry-census](../stage4-package-registry-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) S4-01
 - [`packages/internal/stability.toml`](../../packages/internal/stability.toml)

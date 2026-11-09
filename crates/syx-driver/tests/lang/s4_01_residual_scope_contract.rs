@@ -1,5 +1,5 @@
 //! S3-I90 S4-01 residual-scope contracts (post-I91 claim).
-//! Hinge landed · post-I91: S4-01 [x] · Stage-4 still [~] 1/5 · ≠ product knife.
+//! Hinge landed · post-I91: S4-01 [x] · Stage-4 [x] 退出 4/5 · ≠ product knife.
 //! See docs/adr/stage4-s4-01-residual-scope.md.
 
 fn repo_file(rel: &str) -> String {
@@ -58,8 +58,8 @@ fn s4_01_residual_scope_adr_and_files() {
         "census must publish I90 KPIs / scoped goal"
     );
     assert!(
-        census.contains("S3-I92") && census.contains("1/5"),
-        "census must name I92 next and Stage-4 1/5"
+        census.contains("S3-I92") && census.contains("4/5"),
+        "census must name I92 next and Stage-4 4/5"
     );
     assert!(
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
@@ -92,8 +92,8 @@ fn s4_01_residual_scope_adr_and_files() {
         plan02.contains("S3-I90")
             && plan02.contains("S3-I91")
             && plan02.contains("S3-I92")
-            && plan02.contains("1/5"),
-        "plan/02 must cite I90…I92 / 1/5"
+            && plan02.contains("5/5"),
+        "plan/02 must cite I90…I92 / 5/5"
     );
 
     let plan01 = repo_file("plan/01-project-status.md");
@@ -101,8 +101,8 @@ fn s4_01_residual_scope_adr_and_files() {
         plan01.contains("S3-I90")
             && plan01.contains("S3-I91")
             && plan01.contains("S3-I92")
-            && plan01.contains("1/5"),
-        "plan/01 must cite I90…I92 / 1/5"
+            && plan01.contains("5/5"),
+        "plan/01 must cite I90…I92 / 5/5"
     );
 }
 
@@ -121,13 +121,13 @@ fn s4_01_residual_scope_census_script_hinges() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I92"),
-        "ladder I91→I92:\n{stdout}"
+        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I93"),
+        "ladder I91→I93:\n{stdout}"
     );
     assert!(
-        stdout.contains("stage4_status=~")
+        stdout.contains("stage4_status=x")
             && stdout.contains("s4_01_status=x")
-            && stdout.contains("stage4_checklist=1/5"),
+            && stdout.contains("stage4_checklist=4/5"),
         "status/checklist:\n{stdout}"
     );
     assert!(

@@ -105,14 +105,14 @@ fn s4_01_stability_ssot_adr_and_files() {
         "plan/02 must cite I89…I92"
     );
     assert!(
-        plan02.contains("1/5"),
-        "plan/02 must publish Stage-4 1/5"
+        plan02.contains("5/5"),
+        "plan/02 must publish Stage-4 5/5"
     );
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I89") && plan01.contains("1/5"),
-        "plan/01 must cite I89 / 1/5"
+        plan01.contains("S3-I89") && plan01.contains("5/5"),
+        "plan/01 must cite I89 / 5/5"
     );
 }
 
@@ -131,13 +131,13 @@ fn s4_01_stability_ssot_census_script_hinges() {
     );
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I92"),
-        "ladder I91→I92:\n{stdout}"
+        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I93"),
+        "ladder I91→I93:\n{stdout}"
     );
     assert!(
-        stdout.contains("stage4_status=~")
+        stdout.contains("stage4_status=x")
             && stdout.contains("s4_01_status=x")
-            && stdout.contains("stage4_checklist=1/5"),
+            && stdout.contains("stage4_checklist=4/5"),
         "status/checklist:\n{stdout}"
     );
     let parse = |key: &str| {

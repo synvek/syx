@@ -38,18 +38,21 @@ Baseline: [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-do
 - **S3-I89 landed** as [stage4-s4-01-stability-ssot](stage4-s4-01-stability-ssot.md)（stability.toml SSOT）。
 - **S3-I90 landed** as [stage4-s4-01-residual-scope](stage4-s4-01-residual-scope.md)（scoped acceptance）。
 - **S3-I91 landed** as [stage4-s4-01-claim](stage4-s4-01-claim.md)（S4-01 `[x]`）。
-- Default next = **S3-I92**（S4-02 open）— not Stage-4 exit / not S4-02 construct.
+- **S3-I92 landed** as [stage4-s4-02-open](stage4-s4-02-open.md)（S4-02 `[~]`）。
+- Default next = **S3-I93**（S4-02 file-registry / lock-semver construct）— not S4-02 `[x]` / not Stage-4 exit.
 - Prior: [stage3-exit](stage3-exit.md) · S3-I87 · [stage3-open](stage3-open.md) · S3-I1.
-- Stdlib stability/doctest census Current → **S3-I91** · Claimed scoped `[x]`.
+- Stdlib stability/doctest census Current → **S3-I91** · Claimed scoped `[x]`；package-registry census Current → **S3-I92**.
 
 ## References
 
+- [stage4-s4-02-open](stage4-s4-02-open.md) · S3-I92
 - [stage4-s4-01-claim](stage4-s4-01-claim.md) · S3-I91
 - [stage4-s4-01-residual-scope](stage4-s4-01-residual-scope.md) · S3-I90
 - [stage4-s4-01-stability-ssot](stage4-s4-01-stability-ssot.md) · S3-I89
 - [stage3-exit](stage3-exit.md) · S3-I87
 - [stage3-open](stage3-open.md) · S3-I1（开窗形态）
 - [stage4-stdlib-stability-doctest-census](../stage4-stdlib-stability-doctest-census.md)
+- [stage4-package-registry-census](../stage4-package-registry-census.md)
 - [plan/02](../../plan/02-improvement-roadmap.md) Stage-4 / S4-01
 - [`packages/README.md`](../../packages/README.md)
 - [ProjectAnalysis](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §阶段 4

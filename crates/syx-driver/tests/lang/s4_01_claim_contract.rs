@@ -1,5 +1,5 @@
 //! S3-I91 S4-01 scoped plan claim contracts.
-//! Nails: claim ADR + plan/02 S4-01 [x]; scoped Non-claims; Stage-4 still [~] 1/5.
+//! Nails: claim ADR + plan/02 S4-01 [x]; scoped Non-claims; Stage-4 [x] 退出 4/5.
 //! See docs/adr/stage4-s4-01-claim.md.
 
 fn repo_file(rel: &str) -> String {
@@ -41,7 +41,12 @@ fn s4_01_plan_claim_locked() {
     assert!(
         adr.contains("S3-I92")
             || (adr.contains("S4-02") && adr.contains("open")),
-        "ADR must cite S3-I92 S4-02 open ladder"
+        "ADR must cite S3-I92 S4-02 open"
+    );
+    assert!(
+        adr.contains("S3-I93")
+            || (adr.contains("file-registry") || adr.contains("construct")),
+        "ADR Consequences must lock next = I93 construct"
     );
 
     let plan02 = repo_file("plan/02-improvement-roadmap.md");
@@ -62,17 +67,16 @@ fn s4_01_plan_claim_locked() {
         .find(|l| l.contains("| **4** |"))
         .expect("plan/02 must retain stage-4 summary row");
     assert!(
-        stage4.contains("[~]") || stage4.contains("`[~]`"),
-        "Stage-4 must stay [~]; got: {stage4}"
+        stage4.contains("[x]") && stage4.contains("退出"),
+        "Stage-4 must be [x] 退出; got: {stage4}"
     );
     assert!(
-        plan02.contains("1/5"),
-        "plan/02 must publish Stage-4 1/5"
+        plan02.contains("5/5"),
+        "plan/02 must publish Stage-4 5/5"
     );
     assert!(
-        plan02.contains("S3-I92")
-            || (plan02.contains("S4-02") && plan02.contains("open")),
-        "plan/02 must cite I92 S4-02 open"
+        plan02.contains("S3-I92") && plan02.contains("S3-I93"),
+        "plan/02 must cite I92 open / I93 next"
     );
 
     let census = repo_file("docs/stage4-stdlib-stability-doctest-census.md");
@@ -89,13 +93,12 @@ fn s4_01_plan_claim_locked() {
         "census must mark Claimed scoped [x]"
     );
     assert!(
-        census.contains("1/5"),
-        "census must publish Stage-4 1/5"
+        census.contains("4/5"),
+        "census must publish Stage-4 5/5"
     );
     assert!(
-        census.contains("S3-I92")
-            || (census.contains("S4-02") && census.contains("open")),
-        "census ladder must cite I92 S4-02 open"
+        census.contains("S3-I92") && census.contains("S3-I93"),
+        "census ladder must cite I92 landed / I93 next"
     );
 
     let prior = repo_file("docs/adr/stage4-s4-01-residual-scope.md");
@@ -110,13 +113,12 @@ fn s4_01_plan_claim_locked() {
         "plan/01 must reflect S3-I91 S4-01 [x]"
     );
     assert!(
-        plan01.contains("1/5"),
-        "plan/01 must publish Stage-4 1/5"
+        plan01.contains("5/5"),
+        "plan/01 must publish Stage-4 5/5"
     );
     assert!(
-        plan01.contains("S3-I92")
-            || (plan01.contains("S4-02") && plan01.contains("open")),
-        "plan/01 must lock next = S4-02 open / I92"
+        plan01.contains("S3-I92") && plan01.contains("S3-I93"),
+        "plan/01 must cite I92 / I93"
     );
 }
 
@@ -149,14 +151,14 @@ fn s4_01_claim_census_script_hinges() {
         );
     }
     assert!(
-        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I92"),
-        "script ladder must be I91→I92:\n{stdout}"
+        stdout.contains("current=S3-I91") && stdout.contains("next=S3-I93"),
+        "script ladder must be I91→I93:\n{stdout}"
     );
     assert!(
         stdout.contains("s4_01_status=x")
-            && stdout.contains("stage4_status=~")
-            && stdout.contains("stage4_checklist=1/5"),
-        "script must emit claimed status / 1/5:\n{stdout}"
+            && stdout.contains("stage4_status=x")
+            && stdout.contains("stage4_checklist=4/5"),
+        "script must emit claimed status / 4/5:\n{stdout}"
     );
     let claim = stdout
         .lines()

@@ -3,7 +3,7 @@
 **ADR:** [open](adr/stage4-open.md) · [stability-ssot](adr/stage4-s4-01-stability-ssot.md) · [residual-scope](adr/stage4-s4-01-residual-scope.md) · [**claim**](adr/stage4-s4-01-claim.md) · **Window:** S3-I91 · **Current:** S3-I91 · **Claimed:** scoped `[x]`
 
 **Goal (S4-01 scoped `[x]`):** Primary = I89 `stability.toml` plan ternary（`stable` | `preview` | `experimental`）+ I90 scoped acceptance；manifest wiring / `syx doctest` / packages doctest gate = **deferred supersede-only** — **≠** Stage-4 exit / **≠** schema / CLI product knife.  
-**This census:** S3-I91 scoped claim — Stage-4 **`[~]`** · S4-01 **`[x]`** · checklist **1/5**；下一 = **S3-I92** S4-02 open.
+**This census:** S3-I91 scoped claim — Stage-4 **`[~]`** · S4-01 **`[x]`** · checklist **4/5**（S4-02 also claimed via [I95](adr/stage4-s4-02-claim.md)）；S4-02 open **landed**（[I92](adr/stage4-s4-02-open.md)）；下一轴 tip = **S3-I96** S4-03 open。
 
 ## Command
 
@@ -47,8 +47,8 @@ bash scripts/s4_01_stdlib_stability_doctest_census.sh
 | 轴 | 状态 |
 |----|------|
 | S4-01 | **`[x]`** scoped；SSOT Primary 绿；manifest/doctest deferred supersede-only |
-| Stage-4 | **`[~]`** · **1/5** |
-| Next | **S3-I92** S4-02 open — ≠ Stage-4 exit / ≠ S4-02 construct this window |
+| Stage-4 | **`[~]`** · **4/5** |
+| Next | **S3-I96** S4-03 open（S4-02 claimed via [I95](adr/stage4-s4-02-claim.md)）— ≠ Stage-4 exit |
 
 ## Ladder (locked)
 
@@ -57,7 +57,8 @@ bash scripts/s4_01_stdlib_stability_doctest_census.sh
 3. **S3-I89:** S4-01 stability SSOT — landed.
 4. **S3-I90:** S4-01 residual-scope — landed.
 5. **S3-I91:** S4-01 scoped `[x]` claim — **this window**.
-6. **S3-I92:** S4-02 open — next。
+6. **S3-I92:** S4-02 open — landed（[stage4-s4-02-open](adr/stage4-s4-02-open.md)）。
+7. **S3-I93:** S4-02 file-registry / lock-semver construct — next。
 
 ## Non-claims
 
