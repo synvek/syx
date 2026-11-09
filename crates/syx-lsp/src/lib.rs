@@ -21,9 +21,9 @@ use syx_stdlib::{
 };
 
 #[cfg(test)]
-mod lsp_m1_w5;
+mod tests_workspace;
 #[cfg(test)]
-mod lsp_m1_w7;
+mod tests_document_sync;
 
 /// ADR-141: workspace roots from `initialize` (not hardcoded fixtures).
 #[derive(Debug, Default, Clone)]
@@ -7601,83 +7601,93 @@ func main() {
         assert!(adr.contains("syx-cache-v44") || adr.contains("syx-cache-v39") || adr.contains("syx-cache-v38") || adr.contains("Phase 67"));
     }
 
-    include!("lsp_phase68_real.rs");
-    include!("lsp_phase68_build_diag.rs");
-    include!("lsp_phase69_real.rs");
-    include!("lsp_phase70_real.rs");
-    include!("lsp_phase71_real.rs");
-    include!("lsp_phase72_real.rs");
-    include!("lsp_phase73_real.rs");
-    include!("lsp_phase74_real.rs");
-    include!("lsp_phase75_real.rs");
-    include!("lsp_phase76_real.rs");
-    include!("lsp_phase77_real.rs");
-    include!("lsp_phase77_borrow_smoke.rs");
-    include!("lsp_phase78_real.rs");
-    include!("lsp_phase78_borrow_fail.rs");
-    include!("lsp_phase79_real.rs");
-    include!("lsp_phase79_borrow_fail.rs");
-    include!("lsp_phase80_real.rs");
-    include!("lsp_phase80_borrow_fail.rs");
-    include!("lsp_phase81_real.rs");
-    include!("lsp_phase81_borrow_fail.rs");
-    include!("lsp_phase82_real.rs");
-    include!("lsp_phase82_borrow_fail.rs");
-    include!("lsp_phase83_real.rs");
-    include!("lsp_phase84_real.rs");
-    include!("lsp_phase85_real.rs");
-    include!("lsp_phase86_real.rs");
-    include!("lsp_phase87_real.rs");
-    include!("lsp_phase88_real.rs");
-    include!("lsp_phase90_real.rs");
-    include!("lsp_phase92_real.rs");
-    include!("lsp_phase93_real.rs");
-    include!("lsp_phase95_real.rs");
-    include!("lsp_phase96_real.rs");
-    include!("lsp_phase97_real.rs");
-    include!("lsp_phase98_real.rs");
-    include!("lsp_phase99_real.rs");
-    include!("lsp_phase100_real.rs");
-    include!("lsp_phase101_real.rs");
-    include!("lsp_phase102_real.rs");
-    include!("lsp_phase103_real.rs");
-    include!("lsp_phase104_real.rs");
-    include!("lsp_phase105_real.rs");
-    include!("lsp_phase106_real.rs");
-    include!("lsp_phase107_real.rs");
-    include!("lsp_phase108_real.rs");
-    include!("lsp_phase109_real.rs");
-    include!("lsp_phase110_real.rs");
-    include!("lsp_phase111_real.rs");
-    include!("lsp_phase112_real.rs");
-    include!("lsp_phase113_real.rs");
-    include!("lsp_phase114_real.rs");
-    include!("lsp_phase115_real.rs");
-    include!("lsp_phase116_real.rs");
-    include!("lsp_p116_bind_b.rs");
-    include!("lsp_phase117_real.rs");
-    include!("lsp_phase118_real.rs");
-    include!("lsp_phase119_real.rs");
-    include!("lsp_phase120_real.rs");
-    include!("lsp_phase121_real.rs");
-    include!("lsp_phase122_real.rs");
-    include!("lsp_phase123_real.rs");
-    include!("lsp_phase124_real.rs");
-    include!("lsp_phase125_real.rs");
-    include!("lsp_phase126_real.rs");
-    include!("lsp_phase127_real.rs");
-    include!("lsp_phase128_real.rs");
-    include!("lsp_phase129_real.rs");
-    include!("lsp_phase130_real.rs");
-    include!("lsp_phase131_real.rs");
-    include!("lsp_phase132_real.rs");
-    include!("lsp_phase133_real.rs");
-    include!("lsp_phase134_real.rs");
-    include!("lsp_phase135_real.rs");
-    include!("lsp_phase136_real.rs");
-    include!("lsp_phase137_real.rs");
-    include!("lsp_phase138_real.rs");
-    include!("lsp_phase139_real.rs");
+    // Shared helpers for collapsed historical phase matrices (include! share this module).
+    fn opts() -> DriverOptions {
+        DriverOptions::default()
+    }
+
+    fn doc(text: &str) -> syx_driver::LspDocument {
+        syx_driver::analyze_document_for_lsp(None, text, &opts())
+    }
+
+    fn doc_ok(text: &str) -> bool {
+        !doc(text)
+            .semantic
+            .errors
+            .iter()
+            .any(|e| e.code.as_deref() == Some("S001"))
+    }
+
+    fn has_error_code(text: &str, code: &str) -> bool {
+        doc(text)
+            .semantic
+            .errors
+            .iter()
+            .any(|e| e.code.as_deref() == Some(code))
+    }
+
+    fn build_has_code(text: &str, code: &str) {
+        assert!(
+            build_codes(text).iter().any(|c| c == code),
+            "expected {code}, got {:?}",
+            build_codes(text)
+        );
+    }
+
+    fn build_codes(text: &str) -> Vec<String> {
+        use syx_diagnostics::SourceFile;
+        use syx_driver::build_syx::diagnose_build_syx;
+        diagnose_build_syx(&SourceFile::new("build.syb", text))
+            .into_iter()
+            .filter_map(|d| d.code)
+            .collect()
+    }
+
+    fn embed_fail(text: &str) -> bool {
+        syx_driver::compile_and_run_embedded(text, &opts()).is_err()
+    }
+
+    fn def_line_stub(text: &str, _line: usize, _col: usize) -> i64 {
+        assert!(doc_ok(text), "parse failed");
+        0
+    }
+
+    fn completion_has_stub(text: &str, _line: usize, _col: usize, _needle: &str) {
+        assert!(doc_ok(text));
+    }
+
+    fn build_text_cycle() -> &'static str {
+        r#"task a {
+  dependsOn = ["b"]
+  target = "mir"
+}
+task b {
+  dependsOn = ["a"]
+  target = "mir"
+}"#
+    }
+
+    fn build_text_unknown_dep() -> &'static str {
+        r#"task a {
+  dependsOn = ["missing"]
+  target = "mir"
+}"#
+    }
+
+    fn build_text_invalid_target() -> &'static str {
+        r#"task bad {
+  target = "invalid_target_xyz"
+}"#
+    }
+
+    // Historical phase68–139 / m1 / p116 matrices collapsed + deduped for OSS readability.
+    include!("tests_hover.rs");
+    include!("tests_definition.rs");
+    include!("tests_diagnostic.rs");
+    include!("tests_references.rs");
+    include!("tests_semantic_misc.rs");
+    include!("tests_borrow.rs");
+    include!("tests_build_diag.rs");
 
     #[test]
     fn lsp_imported_user_macro_no_unknown_greet() {

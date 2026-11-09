@@ -1,11 +1,11 @@
-//! ADR-143 / M1 W7: document version gate + `$/cancelRequest` thin slice.
+//! Document sync: document version gate + `$/cancelRequest` thin slice.
 
 use super::*;
 use serde_json::json;
 use std::collections::HashMap;
 
 #[test]
-fn m1_w7_stale_did_change_dropped() {
+fn document_sync_stale_did_change_dropped() {
     let mut docs: HashMap<String, DocumentState> = HashMap::new();
     let open = json!({
         "textDocument": {
@@ -40,7 +40,7 @@ fn m1_w7_stale_did_change_dropped() {
 }
 
 #[test]
-fn m1_w7_newer_did_change_applied() {
+fn document_sync_newer_did_change_applied() {
     let mut docs: HashMap<String, DocumentState> = HashMap::new();
     let open = json!({
         "textDocument": {
@@ -62,7 +62,7 @@ fn m1_w7_newer_did_change_applied() {
 }
 
 #[test]
-fn m1_w7_should_accept_version_gate() {
+fn document_sync_should_accept_version_gate() {
     assert!(should_accept_version(None, 0));
     assert!(should_accept_version(Some(1), 2));
     assert!(!should_accept_version(Some(1), 1));
@@ -70,7 +70,7 @@ fn m1_w7_should_accept_version_gate() {
 }
 
 #[test]
-fn m1_w7_cancel_request_suppresses_response() {
+fn document_sync_cancel_request_suppresses_response() {
     let mut cancel = CancelRegistry::new();
     let id = json!(42);
     assert!(cancel.should_respond(&id), "uncancelled must respond");

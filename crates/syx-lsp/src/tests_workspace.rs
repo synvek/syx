@@ -1,4 +1,4 @@
-//! ADR-141 / M1 W5: workspace from initialize + LSP top-level array shapes.
+//! Workspace roots: workspace from initialize + LSP top-level array shapes.
 
 use super::*;
 use std::fs;
@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 fn temp_syx_project(tag: &str, main_src: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
-        "syx_m1_w5_{tag}_{}_{}",
+        "syx_workspace_{tag}_{}_{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -15,13 +15,13 @@ fn temp_syx_project(tag: &str, main_src: &str) -> PathBuf {
     ));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"m1w5\"\nmain = \"main.sy\"\n").unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"workspace\"\nmain = \"main.sy\"\n").unwrap();
     fs::write(dir.join("main.sy"), main_src).unwrap();
     dir
 }
 
 #[test]
-fn m1_w5_parse_initialize_root_uri() {
+fn workspace_parse_initialize_root_uri() {
     let params = json!({
         "rootUri": "file:///tmp/syx_ws_root",
         "capabilities": {}
@@ -32,7 +32,7 @@ fn m1_w5_parse_initialize_root_uri() {
 }
 
 #[test]
-fn m1_w5_parse_initialize_workspace_folders_fallback() {
+fn workspace_parse_initialize_workspace_folders_fallback() {
     let params = json!({
         "rootUri": null,
         "workspaceFolders": [
@@ -46,13 +46,13 @@ fn m1_w5_parse_initialize_workspace_folders_fallback() {
 }
 
 #[test]
-fn m1_w5_workspace_symbol_empty_without_roots() {
+fn workspace_workspace_symbol_empty_without_roots() {
     let syms = workspace_symbols("main", &[], &DriverOptions::default());
     assert_eq!(syms, json!([]));
 }
 
 #[test]
-fn m1_w5_initialize_sets_workspace_root_and_finds_symbol() {
+fn workspace_initialize_sets_workspace_root_and_finds_symbol() {
     let dir = temp_syx_project(
         "sym",
         "func helperAlpha() -> Int { return 1 }\nfunc main() { print(helperAlpha()) }\n",
@@ -76,20 +76,20 @@ fn m1_w5_initialize_sets_workspace_root_and_finds_symbol() {
 }
 
 #[test]
-fn m1_w5_code_action_result_is_top_level_array() {
+fn workspace_code_action_result_is_top_level_array() {
     let actions = code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
     assert!(actions.is_array(), "{actions}");
 }
 
 #[test]
-fn m1_w5_inlay_hint_result_is_top_level_array() {
+fn workspace_inlay_hint_result_is_top_level_array() {
     let hints =
         inlay_hints_for_document("file:///t.sy", "func main() { let x = 1 }", 0, &DriverOptions::default());
     assert!(hints.is_array(), "{hints}");
 }
 
 #[test]
-fn m1_w5_references_result_is_top_level_array() {
+fn workspace_references_result_is_top_level_array() {
     let refs = references_for_position(
         "file:///t.sy",
         "func main() { let x = 1\n print(x) }",
@@ -101,7 +101,7 @@ fn m1_w5_references_result_is_top_level_array() {
 }
 
 #[test]
-fn m1_w5_workspace_symbol_result_is_top_level_array() {
+fn workspace_workspace_symbol_result_is_top_level_array() {
     let dir = temp_syx_project("shape", "func main() {}\n");
     let syms = workspace_symbols("main", &[dir.clone()], &DriverOptions::default());
     assert!(syms.is_array(), "{syms}");
