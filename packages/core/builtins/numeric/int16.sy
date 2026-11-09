@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `SyxHost.i16_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `__syx_i16_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 16-bit signed integer (`Int16`). Prelude; host ops via `SyxHost.i16_*`.
+/// 16-bit signed integer (`Int16`). Prelude; host ops via `__syx_i16_*`.
 @builtin("numeric.i16")
 public class Int16: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -10,9 +10,9 @@ public class Int16: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Largest representable value (type bound, not binary max).
     public static let max: Int16 = 32767i16
 
-    /// Absolute value (host `SyxHost.i16_abs`).
+    /// Absolute value (host `__syx_i16_abs`).
     public static func abs(x: Int16) -> Int16 {
-        return SyxHost.i16_abs(x)
+        return __syx_i16_abs(x)
     }
 
     /// Signum: `-1`, `0`, or `1`.
@@ -41,9 +41,9 @@ public class Int16: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0i16
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.i16_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i16_min` / `_max`.
     public static func clamp(x: Int16, lo: Int16, hi: Int16) -> Int16 {
-        return SyxHost.i16_min(SyxHost.i16_max(x, lo), hi)
+        return __syx_i16_min(__syx_i16_max(x, lo), hi)
     }
 
 }
@@ -64,9 +64,9 @@ extension Int16 {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `SyxHost.i16_compare`.
+    /// Three-way compare (`Comparable`); host `__syx_i16_compare`.
     func compare(other: Int16) -> Int {
-        return SyxHost.i16_compare(self, other)
+        return __syx_i16_compare(self, other)
     }
 }
 

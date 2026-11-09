@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `SyxHost.u128_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `__syx_u128_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 128-bit unsigned integer (`UInt128`). Prelude; host ops via `SyxHost.u128_*`.
+/// 128-bit unsigned integer (`UInt128`). Prelude; host ops via `__syx_u128_*`.
 @builtin("numeric.u128")
 public class UInt128: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -31,9 +31,9 @@ public class UInt128: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0u128
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.u128_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_u128_min` / `_max`.
     public static func clamp(x: UInt128, lo: UInt128, hi: UInt128) -> UInt128 {
-        return SyxHost.u128_min(SyxHost.u128_max(x, lo), hi)
+        return __syx_u128_min(__syx_u128_max(x, lo), hi)
     }
 
     /// Leading zero bit count for a `UInt128` bit pattern (host `SyxHost.leading_zeros128`).
@@ -58,9 +58,9 @@ extension UInt128 {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `SyxHost.u128_compare`.
+    /// Three-way compare (`Comparable`); host `__syx_u128_compare`.
     func compare(other: UInt128) -> Int {
-        return SyxHost.u128_compare(self, other)
+        return __syx_u128_compare(self, other)
     }
 }
 

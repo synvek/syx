@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `SyxHost.u32_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `__syx_u32_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 32-bit unsigned integer (`UInt32`). Prelude; host ops via `SyxHost.u32_*`.
+/// 32-bit unsigned integer (`UInt32`). Prelude; host ops via `__syx_u32_*`.
 @builtin("numeric.u32")
 public class UInt32: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -25,9 +25,9 @@ public class UInt32: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0u32
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.u32_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_u32_min` / `_max`.
     public static func clamp(x: UInt32, lo: UInt32, hi: UInt32) -> UInt32 {
-        return SyxHost.u32_min(SyxHost.u32_max(x, lo), hi)
+        return __syx_u32_min(__syx_u32_max(x, lo), hi)
     }
 
 }
@@ -48,9 +48,9 @@ extension UInt32 {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `SyxHost.u32_compare`.
+    /// Three-way compare (`Comparable`); host `__syx_u32_compare`.
     func compare(other: UInt32) -> Int {
-        return SyxHost.u32_compare(self, other)
+        return __syx_u32_compare(self, other)
     }
 }
 

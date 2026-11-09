@@ -1,7 +1,7 @@
 // Fixed-width / platform numeric. Generated from `_templates/`; do not hand-edit.
-// Prelude value type; host ops via `SyxHost.i32_*`. Edit templates then `cargo build -p syx-driver`.
+// Prelude value type; host ops via `__syx_i32_*`. Edit templates then `cargo build -p syx-driver`.
 
-/// 32-bit signed integer (`Int32`). Prelude; host ops via `SyxHost.i32_*`.
+/// 32-bit signed integer (`Int32`). Prelude; host ops via `__syx_i32_*`.
 @builtin("numeric.i32")
 public class Int32: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Smallest representable value (type bound, not binary min).
@@ -10,9 +10,9 @@ public class Int32: Equatable, Hashable, CustomStringConvertible, Comparable {
     /// Largest representable value (type bound, not binary max).
     public static let max: Int32 = 2147483647i32
 
-    /// Absolute value (host `SyxHost.i32_abs`).
+    /// Absolute value (host `__syx_i32_abs`).
     public static func abs(x: Int32) -> Int32 {
-        return SyxHost.i32_abs(x)
+        return __syx_i32_abs(x)
     }
 
     /// Signum: `-1`, `0`, or `1`.
@@ -41,9 +41,9 @@ public class Int32: Equatable, Hashable, CustomStringConvertible, Comparable {
         return 0i32
     }
 
-    /// Clamp `x` into `[lo, hi]` (inclusive); host `SyxHost.i32_min` / `_max`.
+    /// Clamp `x` into `[lo, hi]` (inclusive); host `__syx_i32_min` / `_max`.
     public static func clamp(x: Int32, lo: Int32, hi: Int32) -> Int32 {
-        return SyxHost.i32_min(SyxHost.i32_max(x, lo), hi)
+        return __syx_i32_min(__syx_i32_max(x, lo), hi)
     }
 
 }
@@ -64,9 +64,9 @@ extension Int32 {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `SyxHost.i32_compare`.
+    /// Three-way compare (`Comparable`); host `__syx_i32_compare`.
     func compare(other: Int32) -> Int {
-        return SyxHost.i32_compare(self, other)
+        return __syx_i32_compare(self, other)
     }
 }
 

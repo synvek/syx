@@ -51,9 +51,9 @@ extension Float {
         return SyxHost.value_debug_description(self)
     }
 
-    /// Three-way compare (`Comparable`); host `SyxHost.f32_compare`.
+    /// Three-way compare (`Comparable`); host `__syx_f32_compare`.
     func compare(other: Float) -> Int {
-        return SyxHost.f32_compare(self, other)
+        return __syx_f32_compare(self, other)
     }
 }
 
