@@ -433,14 +433,12 @@ jobs:
             cp "target-full-native/${TARGET}/release/syx${{ matrix.exe_ext }}" \
               "target/${TARGET}/release/syx${{ matrix.exe_ext }}"
           else
-            # Linux: official LLVM .a embeds bitcode; rust-lld ThinLTO (rustc LLVM)
-            # then aborts on VP !prof vs LLVM 21 objects. llvm-sys emits
-            # `-Wl,--lto=off`; keep an explicit rustflag so release stays fail-closed
-            # even if that patch is missing.
+            # Linux: never pass `-Wl,--lto=off` (rust-lld rejects mode `off`).
+            # Use rustc `-C lto=off` only; see scripts/build-full-native.
             EXTRA_RUSTFLAGS=()
             case "${TARGET}" in
               *-unknown-linux-*)
-                EXTRA_RUSTFLAGS+=(-C link-arg=-Wl,--lto=off)
+                EXTRA_RUSTFLAGS+=(-C lto=off)
                 ;;
             esac
             if [ "${#EXTRA_RUSTFLAGS[@]}" -gt 0 ]; then

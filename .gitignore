@@ -19,7 +19,7 @@ crates/syx-host-plugin/tests/fixtures/macro_plugin/*.so
 # SYX project artifacts (38.0+: target/{cache,debug,release})
 examples/plugin_demo/plugins/mycrypto/*.dylib
 examples/emit/
-esamples/*.wasm
+examples/*.wasm
 examples/test.sy
 examples/hello2.sy
 examples/**/target/

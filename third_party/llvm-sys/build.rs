@@ -766,14 +766,11 @@ fn main() {
         libdir_path.clone()
     };
 
-    // SYX patch (Linux): official LLVM static archives often embed bitcode.
-    // rust-lld then runs ThinLTO using rustc's LLVM (e.g. 23.x) against those
-    // LLVM 21 objects and aborts with `VP !prof should not have duplicate
-    // profile values` (seen on AMDGPUDisassembler.cpp.o in release full-native).
-    // Disable linker LTO so objects are linked as regular relocatable code.
-    if target_os_is("linux") {
-        println!("cargo:rustc-link-arg=-Wl,--lto=off");
-    }
+    // SYX note (Linux): do not emit `-Wl,--lto=off`. rust-lld only accepts
+    // `--lto=full|thin|default` and errors with "unknown LTO mode: off", which
+    // breaks linking (including unrelated build-scripts when mirrored globally).
+    // If official LLVM .a bitcode + rust-lld ThinLTO still aborts on VP !prof
+    // vs rustc's LLVM, rebuild SYX_LLVM without -flto, or link without rust-lld.
 
     // Link LLVM libraries
     println!("cargo:rustc-link-search=native={}", link_search.display());
