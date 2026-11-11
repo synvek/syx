@@ -58,19 +58,13 @@ fn install_layout_lld_binary() -> Option<PathBuf> {
     let bin_dir = exe.parent()?;
     #[cfg(target_os = "macos")]
     let names: &[&str] = &["ld64.lld", "lld", "ld.lld"];
+    // R-39: never pick Mach-O `ld64.lld` on Linux (todo-005 C2).
     #[cfg(target_os = "linux")]
-    let names: &[&str] = &["ld.lld", "lld", "ld64.lld"];
+    let names: &[&str] = &["ld.lld", "lld"];
     #[cfg(target_os = "windows")]
     let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    let names: &[&str] = &[
-        "lld",
-        "ld.lld",
-        "ld64.lld",
-        "lld-link",
-        "lld-link.exe",
-        "lld.exe",
-    ];
+    let names: &[&str] = &["lld", "ld.lld", "lld-link", "lld-link.exe", "lld.exe"];
     for name in names {
         let p = bin_dir.join(name);
         if p.is_file() {
@@ -257,5 +251,25 @@ mod tests {
             m == "inprocess" || m == "prefix-bin" || m == "missing",
             "unexpected mode {m}"
         );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_install_layout_names_exclude_ld64() {
+        // Source-level policy: install_layout must not consider ld64 on Linux.
+        // (No binary present in typical unit test; assert via reading the resolved
+        // path when one exists next to the test binary.)
+        if let Some(path) = install_layout_lld_binary() {
+            let name = path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            assert!(
+                !name.contains("ld64"),
+                "Linux install-layout LLD must not be ld64.lld: {}",
+                path.display()
+            );
+        }
     }
 }

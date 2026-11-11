@@ -528,12 +528,13 @@ fn resolve_lld_linker() -> Option<PathBuf> {
     }
     #[cfg(target_os = "macos")]
     let names: &[&str] = &["ld64.lld", "lld", "ld.lld"];
+    // R-39: never resolve Mach-O `ld64.lld` on Linux (todo-005 C2).
     #[cfg(target_os = "linux")]
-    let names: &[&str] = &["ld.lld", "lld", "ld64.lld"];
+    let names: &[&str] = &["ld.lld", "lld"];
     #[cfg(target_os = "windows")]
     let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    let names: &[&str] = &["lld", "ld.lld", "ld64.lld", "lld-link"];
+    let names: &[&str] = &["lld", "ld.lld", "lld-link"];
     for name in names {
         if let Some(path) = find_on_path(name) {
             return Some(path);
@@ -1010,6 +1011,22 @@ fn using_lld_driver(cmd: &Command) -> bool {
     prog.contains("lld") || prog.contains("LLD") || prog.contains("syx-lld")
 }
 
+/// Strip cc-driver `-Wl,` prefixes before feeding flags to bare LLD (R-39 / todo-005 C1).
+pub fn normalize_lld_link_flag(flag: &str) -> String {
+    if let Some(rest) = flag.strip_prefix("-Wl,") {
+        // cc joins multiple linker args with commas: `-Wl,-dead_strip` / `-Wl,--gc-sections`.
+        // Bare LLD wants the raw linker form.
+        if rest.contains(',') {
+            // Take the first segment; multi-arg `-Wl,a,b` is rare in our profiles.
+            rest.split(',').next().unwrap_or(rest).to_string()
+        } else {
+            rest.to_string()
+        }
+    } else {
+        flag.to_string()
+    }
+}
+
 /// Build argv for an external/in-process LLD link of a native SYX executable.
 ///
 /// Used by `syx-driver` (`full-native`) so LLD is linked into the **CLI**, not into
@@ -1079,7 +1096,7 @@ pub fn native_lld_argv(
         }
     }
     for flag in &opts.link_flags {
-        args.push(flag.into());
+        args.push(normalize_lld_link_flag(flag).into());
     }
     #[cfg(target_os = "windows")]
     {
@@ -1179,6 +1196,11 @@ pub fn link_executable_with(user_obj: &Path, output: &Path, opts: &LinkOptions) 
     #[cfg(not(target_os = "macos"))]
     let macos_skip_lld = false;
 
+    // R-39: Linux defaults to host `cc` as the link driver; bare LLD only when
+    // SYX_FORCE_LLD=1 (todo-005 C1). macOS/Windows keep prior LLD-first policy.
+    #[cfg(target_os = "linux")]
+    let prefer_lld = force_lld && !force_cc && !disable_lld;
+    #[cfg(not(target_os = "linux"))]
     let prefer_lld = !force_cc && !disable_lld && !macos_skip_lld;
 
     ensure_windows_link_inputs()?;
@@ -1294,7 +1316,11 @@ fn link_executable_with_prefer_lld(
         }
     }
     for flag in &opts.link_flags {
-        cmd.arg(flag);
+        if lld {
+            cmd.arg(normalize_lld_link_flag(flag));
+        } else {
+            cmd.arg(flag);
+        }
     }
 
     if win_msvc {
@@ -1427,6 +1453,60 @@ mod tests {
     #[test]
     fn resolves_lld_or_none() {
         let _ = resolve_lld_linker();
+    }
+
+    #[test]
+    fn normalize_lld_strips_wl_prefix() {
+        assert_eq!(normalize_lld_link_flag("-Wl,--gc-sections"), "--gc-sections");
+        assert_eq!(normalize_lld_link_flag("-Wl,-dead_strip"), "-dead_strip");
+        assert_eq!(normalize_lld_link_flag("--gc-sections"), "--gc-sections");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_resolve_lld_never_picks_ld64() {
+        if let Some(path) = resolve_lld_linker() {
+            let name = path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            assert!(
+                !name.contains("ld64"),
+                "Linux must not resolve ld64.lld, got {}",
+                path.display()
+            );
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_native_lld_argv_strips_wl_gc_sections() {
+        let dir = tempfile::tempdir().unwrap();
+        let user = dir.path().join("user.o");
+        let rt = dir.path().join("libsyx_rt.a");
+        let out = dir.path().join("app");
+        std::fs::write(&user, b"").unwrap();
+        std::fs::write(&rt, b"!<arch>\n").unwrap();
+        let mut opts = LinkOptions::default();
+        opts.link_flags
+            .push("-Wl,--gc-sections".to_string());
+        let Ok(args) = native_lld_argv(&user, &out, &opts, &rt) else {
+            // CRT may be missing in minimal CI images; skip strip assert.
+            return;
+        };
+        let flat: Vec<String> = args
+            .iter()
+            .map(|a| a.to_string_lossy().into_owned())
+            .collect();
+        assert!(
+            !flat.iter().any(|a| a.contains("-Wl,")),
+            "bare LLD argv must not contain -Wl,: {flat:?}"
+        );
+        assert!(
+            flat.iter().any(|a| a == "--gc-sections"),
+            "expected normalized --gc-sections: {flat:?}"
+        );
     }
 
     #[cfg(target_os = "linux")]

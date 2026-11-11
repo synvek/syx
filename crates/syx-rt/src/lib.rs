@@ -33,8 +33,8 @@ pub use bridge::{
 pub use link::{
     audit_user_object_undefs, coff_undefined_externals, host_link_triple, link_executable,
     link_executable_with, link_object_bytes, native_lld_argv, native_sdk_layout_report,
-    resolve_sdk_sysroot, rt_archive_path, rt_archive_path_for_profile, sysroot_looks_usable,
-    user_object_undef_allowed, LinkOptions, NativeSdkLayoutReport,
+    normalize_lld_link_flag, resolve_sdk_sysroot, rt_archive_path, rt_archive_path_for_profile,
+    sysroot_looks_usable, user_object_undef_allowed, LinkOptions, NativeSdkLayoutReport,
 };
 pub use llvm_stub_audit::{
     classify_llvm_stub_block, llvm_stub_audit_report, LlvmStubAuditReport, LlvmStubKind,

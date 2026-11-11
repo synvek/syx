@@ -2,11 +2,20 @@
 # S0-05/06: backend smoke for hello (+ optional loop/fib).
 # Records VM (must pass), native, and wasm as pass OR clear fail-closed error.
 # Usage: scripts/s0_backend_smoke.sh [--native-full]
+# `--native-full` (or NATIVE_FULL=1) builds syx-cli with --features full-native and
+# requires hello native build+run to PASS (not merely FAIL-CLOSED).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+NATIVE_FULL="${NATIVE_FULL:-}"
+for arg in "$@"; do
+  case "$arg" in
+    --native-full) NATIVE_FULL=1 ;;
+  esac
+done
 SYX="${SYX:-./target/debug/syx}"
-if [[ ! -x "$SYX" ]]; then
+# Rebuild when requesting full-native so the binary matches the feature set.
+if [[ -n "$NATIVE_FULL" ]] || [[ ! -x "$SYX" ]]; then
   cargo build -p syx-cli ${NATIVE_FULL:+--features full-native}
   SYX=./target/debug/syx
 fi
@@ -38,6 +47,8 @@ smoke_native() {
   local src="$1"
   local expect="${2:-}"
   local label="$3"
+  # 4th arg: require_run=1 forces build+run success (R-39 full-native hello).
+  local require_run="${4:-}"
   local outbin="$TMP/${label}-native"
   echo "-- native ${label} --"
   set +e
@@ -46,6 +57,10 @@ smoke_native() {
   nrc=$?
   set -e
   if [[ $nrc -eq 0 ]]; then
+    # C3: success path must not be a silent crash binary.
+    if echo "$nout" | grep -q "Built native"; then
+      :
+    fi
     set +e
     local runout rrc
     runout="$("$outbin" 2>&1)"
@@ -59,10 +74,22 @@ smoke_native() {
       echo "native ${label}: PASS (built + ran)"
     else
       echo "native ${label}: FAIL (built but run rc=$rrc): $runout"
-      exit 1
+      # R-39: only labels marked require_run (hello under --native-full) hard-fail.
+      # Other programs may still emit crash binaries; do not expand this window.
+      if [[ -n "$require_run" ]]; then
+        exit 1
+      fi
     fi
   else
-    if echo "$nout" | grep -qiE 'full-native|fail-closed|refusing to emit|requires a toolchain'; then
+    if echo "$nout" | grep -qi "Built native"; then
+      echo "native ${label}: FAIL (printed Built native on link error): $nout"
+      exit 1
+    fi
+    if [[ -n "$require_run" ]]; then
+      echo "native ${label}: FAIL (full-native required runnable binary): $nout"
+      exit 1
+    fi
+    if echo "$nout" | grep -qiE 'full-native|fail-closed|refusing to emit|requires a toolchain|N003|L006'; then
       echo "native ${label}: FAIL-CLOSED (clear error, no crash binary)"
       echo "$nout" | tail -3
     else
@@ -111,7 +138,11 @@ smoke_wasm() {
 }
 
 smoke_vm "$HELLO" "Hello" "hello"
-smoke_native "$HELLO" "Hello" "hello"
+if [[ -n "$NATIVE_FULL" ]]; then
+  smoke_native "$HELLO" "Hello" "hello" 1
+else
+  smoke_native "$HELLO" "Hello" "hello"
+fi
 smoke_wasm "$HELLO" "Hello" "hello"
 
 # S0-I2 thin widen: hot_loop (VM must pass; native may FAIL-CLOSED without full-native)

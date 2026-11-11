@@ -91,19 +91,13 @@ pub fn resolve_lld_binary(prefix: &Path) -> Option<PathBuf> {
     let bin = prefix.join("bin");
     #[cfg(target_os = "macos")]
     let names: &[&str] = &["ld64.lld", "lld", "ld.lld"];
+    // R-39: never pick Mach-O `ld64.lld` on Linux (todo-005 C2).
     #[cfg(target_os = "linux")]
-    let names: &[&str] = &["ld.lld", "lld", "ld64.lld"];
+    let names: &[&str] = &["ld.lld", "lld"];
     #[cfg(target_os = "windows")]
     let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    let names: &[&str] = &[
-        "lld",
-        "ld.lld",
-        "ld64.lld",
-        "lld-link",
-        "lld-link.exe",
-        "lld.exe",
-    ];
+    let names: &[&str] = &["lld", "ld.lld", "lld-link", "lld-link.exe", "lld.exe"];
     for name in names {
         let p = bin.join(name);
         if p.is_file() {
@@ -131,5 +125,42 @@ mod tests {
     #[test]
     fn env_name_has_no_version_digits() {
         assert!(!SYX_LLVM_PREFIX_ENV.chars().any(|c| c.is_ascii_digit()));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_resolve_lld_binary_never_ld64() {
+        let dir = std::env::temp_dir().join(format!(
+            "syx-llvm-prefix-lld-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        let bin = dir.join("bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        // Plant a trap: only ld64.lld present → must resolve None on Linux.
+        std::fs::write(bin.join("ld64.lld"), b"#!/bin/true\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(bin.join("ld64.lld")).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(bin.join("ld64.lld"), perms).unwrap();
+        }
+        assert!(
+            resolve_lld_binary(&dir).is_none(),
+            "Linux must ignore ld64.lld under prefix"
+        );
+        // With ld.lld present, prefer that.
+        std::fs::write(bin.join("ld.lld"), b"#!/bin/true\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(bin.join("ld.lld")).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(bin.join("ld.lld"), perms).unwrap();
+        }
+        let got = resolve_lld_binary(&dir).expect("ld.lld");
+        assert_eq!(got.file_name().and_then(|s| s.to_str()), Some("ld.lld"));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
