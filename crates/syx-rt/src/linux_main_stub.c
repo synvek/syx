@@ -4,6 +4,9 @@
  * from the process entry is undefined on Linux ELF and typically segfaults.
  * Inject this object only when linking user natives (not into libsyx_rt.a /
  * the syx CLI) so CRT can call `main` as usual.
+ *
+ * LLVM emits the MIR `main` body as `syx_fn_main` (see sanitize_llvm_symbol)
+ * so this CRT `main` does not collide with the user function symbol.
  */
 extern int syx_rt_start(int argc, const char **argv);
 

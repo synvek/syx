@@ -1,4 +1,4 @@
-//! Phase 91: sync `@main` LLVM IR must not reference MIR main runner.
+//! Phase 91: sync `@syx_fn_main` LLVM IR must not reference MIR main runner.
 
 use syx_llvm::{emit_llvm_ir, llvm_ir_uses_mir_main_entry, mir_function_needs_mir_entry};
 use syx_mir::{MirBlock, MirFunction, MirInstr, MirModule, MirOp};

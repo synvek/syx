@@ -33,7 +33,7 @@ fn p98_native_llvm_direct_sync_main_shim() {
     let mut ir = emit_llvm_ir(&mir).unwrap();
     append_native_runtime_shim(&mir, &mut ir).unwrap();
     assert!(!llvm_ir_uses_mir_main_entry(&ir));
-    assert!(ir.contains("@main"));
+    assert!(ir.contains("@syx_fn_main"));
 }
 
 #[test]

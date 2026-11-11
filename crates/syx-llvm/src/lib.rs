@@ -3028,7 +3028,14 @@ fn compile_native_aot_ir(module: &MirModule) -> SyxResult<Vec<u8>> {
 
 /// Map MIR / Syx fn names to LLVM (and C-stub) symbols.
 /// Operator methods like `Mat_*` are invalid unquoted LLVM idents and illegal in C.
+///
+/// MIR `main` becomes `syx_fn_main` so it never collides with hosted CRT `main`
+/// (Linux `linux_main_stub.c`). macOS/Windows keep custom `syx_rt_start` entry, so
+/// the rename is harmless there; `syx_user_main` still calls the mangled symbol.
 fn sanitize_llvm_symbol(name: &str) -> String {
+    if name == "main" {
+        return "syx_fn_main".into();
+    }
     let mut out = String::with_capacity(name.len());
     for c in name.chars() {
         match c {
@@ -3061,7 +3068,7 @@ fn sanitize_llvm_symbol(name: &str) -> String {
     }
 }
 
-/// Phase 90: sync `@main` may call emitted `@main()` directly; async/actor paths keep MIR entry.
+/// Phase 90: sync `@syx_fn_main` may call emitted body directly; async/actor paths keep MIR entry.
 pub fn mir_function_needs_mir_entry(func: &MirFunction) -> bool {
     // W417–W419: Await*/Task*/Actor* stubs fail-closed; no MIR main entry forced.
     let _ = func;
@@ -3372,7 +3379,7 @@ mod tests {
             ..Default::default()
         };
         let ir = emit_llvm_ir(&module).unwrap();
-        assert!(ir.contains("define i32 @main"));
+        assert!(ir.contains("define i32 @syx_fn_main"));
         assert!(ir.contains("syx_rt_call_host"));
     }
 
@@ -4085,7 +4092,7 @@ mod tests {
             ..Default::default()
         };
         let ir = emit_llvm_ir(&module).unwrap();
-        assert!(ir.contains("define i32 @main()"));
+        assert!(ir.contains("define i32 @syx_fn_main()"));
         assert!(
             !ir.contains("define i32 @orphan()"),
             "orphan must not be emitted: {ir}"
@@ -4102,7 +4109,7 @@ mod tests {
             ..Default::default()
         };
         let ir = emit_llvm_ir(&module).unwrap();
-        assert!(ir.contains("define i32 @main()"));
+        assert!(ir.contains("define i32 @syx_fn_main()"));
         assert!(
             ir.contains("define i32 @orphan()"),
             "CallIndirect must fall back to full emit: {ir}"
