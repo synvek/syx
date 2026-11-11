@@ -33,14 +33,14 @@ case "$TARGET" in
     )
     ;;
   *-unknown-linux-*)
-    # Do NOT pass `-Wl,--lto=off`: rust-lld only accepts `--lto=full|thin|default`
-    # and rejects `off` ("unknown LTO mode: off"), which breaks every build-script
-    # link under this global rustflag. Disable rustc-side LTO instead; if LLVM .a
-    # bitcode still triggers linker ThinLTO / VP !prof, rebuild SYX_LLVM without
-    # -flto or opt out of rust-lld (`-Clinker-features=-lld`) for that link.
+    # Official LLVM .a often embeds bitcode. Default rust-lld then runs ThinLTO
+    # with *rustc's* LLVM (e.g. 23.x) against SYX_LLVM 21 objects → abort
+    # `VP !prof should not have duplicate profile values` (AMDGPUAsmParser…).
+    # `-Wl,--lto=off` is invalid (lld only accepts full|thin|default).
+    # Opt out of rust-lld so the host `cc`+bfd/gold link treats objects as ELF.
     ARGS+=(
       --config
-      "target.${TARGET}.rustflags=[\"-C\",\"lto=off\"]"
+      "target.${TARGET}.rustflags=[\"-C\",\"lto=off\",\"-C\",\"linker-features=-lld\"]"
     )
     ;;
 esac

@@ -766,11 +766,10 @@ fn main() {
         libdir_path.clone()
     };
 
-    // SYX note (Linux): do not emit `-Wl,--lto=off`. rust-lld only accepts
-    // `--lto=full|thin|default` and errors with "unknown LTO mode: off", which
-    // breaks linking (including unrelated build-scripts when mirrored globally).
-    // If official LLVM .a bitcode + rust-lld ThinLTO still aborts on VP !prof
-    // vs rustc's LLVM, rebuild SYX_LLVM without -flto, or link without rust-lld.
+    // SYX note (Linux): do not emit `-Wl,--lto=off` (rust-lld rejects mode
+    // `off`). Full-native builds opt out of rust-lld via
+    // `-Clinker-features=-lld` in scripts/build-full-native / release.yml so
+    // ThinLTO does not run rustc's LLVM against SYX_LLVM 21 bitcode (VP !prof).
 
     // Link LLVM libraries
     println!("cargo:rustc-link-search=native={}", link_search.display());
