@@ -16,8 +16,7 @@ fn fib20_vm(c: &mut Criterion) {
     let path = example_fib20();
     c.bench_function("fib20_vm", |b| {
         b.iter(|| {
-            let (code, printed) =
-                run_file_printed(&path, &DriverOptions::default()).expect("run");
+            let (code, printed) = run_file_printed(&path, &DriverOptions::default()).expect("run");
             assert_eq!(code, 0, "exit code must be 0");
             let out = printed.join("\n");
             assert!(

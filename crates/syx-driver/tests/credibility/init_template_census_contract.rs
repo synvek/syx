@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -18,7 +17,8 @@ fn s3_07_init_template_census_baseline() {
     assert!(census.contains("S3-I84"), "census must name S3-I84");
     assert!(census.contains("S3-I85"), "census must name S3-I85");
     assert!(
-        census.contains("S3-I86") && census.contains("S3-I87")
+        census.contains("S3-I86")
+            && census.contains("S3-I87")
             && (census.contains("S3-I88") || census.contains("Stage-4")),
         "census must name I86 landed / I87 next"
     );

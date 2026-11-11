@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -22,10 +21,7 @@ fn s3_05_l007_l012_adr_and_census() {
         adr.contains("starts_with(\"print(\"") || adr.contains("column-0") || adr.contains("L012"),
         "ADR must name L012 column-0 hinge"
     );
-    assert!(
-        adr.contains("S3-I74"),
-        "ADR must cite S3-I74 ladder"
-    );
+    assert!(adr.contains("S3-I74"), "ADR must cite S3-I74 ladder");
     assert!(
         adr.contains("≠") && adr.contains("Stage-3"),
         "ADR must Non-claim Stage-3 exit"
@@ -62,8 +58,7 @@ fn s3_05_l007_l012_adr_and_census() {
 
     let prior = repo_file("docs/adr/stage3-s3-05-open.md");
     assert!(
-        prior.contains("S3-I73")
-            || prior.contains("stage3-s3-05-l007-l012-false-positive"),
+        prior.contains("S3-I73") || prior.contains("stage3-s3-05-l007-l012-false-positive"),
         "open ADR must cite landed I73"
     );
 

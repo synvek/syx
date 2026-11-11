@@ -2,21 +2,15 @@
 //! Zero-semantics peel from semantic_analyzer.rs.
 
 use crate::semantic_analyzer::SemanticAnalyzer;
-use crate::{
-    type_expr_to_id, type_id_to_name, Scope,
-    Symbol, TypeId,
-};
+use crate::{type_expr_to_id, type_id_to_name, Scope, Symbol, TypeId};
 use indexmap::IndexMap;
 use smol_str::SmolStr;
 use std::collections::HashSet;
-use syx_ast::{
-    AccessLevel, BinOp, CallArg, Decl, Expr, Stmt, TypeExpr,
-};
+use syx_ast::{AccessLevel, BinOp, CallArg, Decl, Expr, Stmt, TypeExpr};
 use syx_diagnostics::SyxResult;
 use syx_stdlib::{
-    from_type_name,
-    is_collection_builtin_type, is_comparable_type, is_equatable_type, is_numeric_builtin_type, is_text_builtin_type, operator_overload_forbidden_type,
-    type_conforms,
+    from_type_name, is_collection_builtin_type, is_comparable_type, is_equatable_type,
+    is_numeric_builtin_type, is_text_builtin_type, operator_overload_forbidden_type, type_conforms,
 };
 
 impl SemanticAnalyzer {
@@ -33,7 +27,12 @@ impl SemanticAnalyzer {
             self.current_actor_context = Some(type_name.clone());
         }
         let result = match member {
-            Decl::Function { span, params, body, .. } | Decl::Init { span, params, body, .. } => {
+            Decl::Function {
+                span, params, body, ..
+            }
+            | Decl::Init {
+                span, params, body, ..
+            } => {
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
@@ -174,10 +173,7 @@ impl SemanticAnalyzer {
                 if let Some(expr) = init {
                     self.analyze_expr(expr)?;
                 }
-                let field_ty = ty
-                    .as_ref()
-                    .map(type_expr_to_id)
-                    .unwrap_or(TypeId::Unknown);
+                let field_ty = ty.as_ref().map(type_expr_to_id).unwrap_or(TypeId::Unknown);
                 if let Some(stmts) = will_set {
                     let mut obs_scope = Scope {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
@@ -322,9 +318,7 @@ impl SemanticAnalyzer {
             } => {
                 if operator_overload_forbidden_type(type_name.as_str()) {
                     self.errors.push(self.error_at(
-                        format!(
-                            "Operator '{op}' cannot be defined on builtin type '{type_name}'"
-                        ),
+                        format!("Operator '{op}' cannot be defined on builtin type '{type_name}'"),
                         *span,
                         "S048",
                     ));
@@ -498,8 +492,8 @@ impl SemanticAnalyzer {
         if !is_field {
             return;
         }
-        let allowed = self.current_actor_context.as_ref() == Some(type_name)
-            && Self::is_self_expr(object);
+        let allowed =
+            self.current_actor_context.as_ref() == Some(type_name) && Self::is_self_expr(object);
         if !allowed {
             self.errors.push(self.error_at(
                 format!(
@@ -538,25 +532,71 @@ impl SemanticAnalyzer {
                 || type_conforms(type_name, protocol);
         }
         let unconditional = match (type_name, protocol) {
-            ("Bool" | "Character", "Equatable" | "Hashable" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            ("String", "Equatable" | "Hashable" | "Comparable" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            ("Array", "Equatable" | "Hashable" | "Sequence" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            ("Set", "Equatable" | "Hashable" | "Sequence" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            ("Dictionary", "Equatable" | "Hashable" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            ("Object", "Equatable" | "Hashable" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            ("ObjectIdentifier", "Equatable" | "Hashable" | "CustomStringConvertible" | "CustomDebugStringConvertible") => true,
-            _ => self
-                .type_conformances
-                .get(type_name)
-                .is_some_and(|c| c.iter().any(|p| p.as_str() == protocol))
-                || self.dataclass_names.contains(&SmolStr::new(type_name))
-                    && matches!(
-                        protocol,
-                        "Equatable"
-                            | "Hashable"
-                            | "CustomStringConvertible"
-                            | "CustomDebugStringConvertible"
-                    ),
+            (
+                "Bool" | "Character",
+                "Equatable"
+                | "Hashable"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            (
+                "String",
+                "Equatable"
+                | "Hashable"
+                | "Comparable"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            (
+                "Array",
+                "Equatable"
+                | "Hashable"
+                | "Sequence"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            (
+                "Set",
+                "Equatable"
+                | "Hashable"
+                | "Sequence"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            (
+                "Dictionary",
+                "Equatable"
+                | "Hashable"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            (
+                "Object",
+                "Equatable"
+                | "Hashable"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            (
+                "ObjectIdentifier",
+                "Equatable"
+                | "Hashable"
+                | "CustomStringConvertible"
+                | "CustomDebugStringConvertible",
+            ) => true,
+            _ => {
+                self.type_conformances
+                    .get(type_name)
+                    .is_some_and(|c| c.iter().any(|p| p.as_str() == protocol))
+                    || self.dataclass_names.contains(&SmolStr::new(type_name))
+                        && matches!(
+                            protocol,
+                            "Equatable"
+                                | "Hashable"
+                                | "CustomStringConvertible"
+                                | "CustomDebugStringConvertible"
+                        )
+            }
         };
         unconditional || self.conditional_conformance_holds(type_name, protocol)
     }
@@ -611,10 +651,7 @@ impl SemanticAnalyzer {
         {
             return TypeId::Array(Box::new(Self::type_id_from_display_name(inner)));
         }
-        if let Some(inner) = name
-            .strip_prefix("Set<")
-            .and_then(|s| s.strip_suffix('>'))
-        {
+        if let Some(inner) = name.strip_prefix("Set<").and_then(|s| s.strip_suffix('>')) {
             return TypeId::Set(Box::new(Self::type_id_from_display_name(inner)));
         }
         if let Some(kind) = from_type_name(name) {
@@ -644,9 +681,8 @@ impl SemanticAnalyzer {
         if matches!(op, BinOp::IdenticalEq | BinOp::IdenticalNe) {
             return;
         }
-        let involves_main_actor = |ty: &TypeId| {
-            matches!(ty, TypeId::Named(n) if self.main_actor_types.contains(n))
-        };
+        let involves_main_actor =
+            |ty: &TypeId| matches!(ty, TypeId::Named(n) if self.main_actor_types.contains(n));
         if involves_main_actor(lt) || involves_main_actor(rt) {
             if let Some(fn_name) = &self.current_function {
                 let on_main = self.caller_global_actor(fn_name).as_deref() == Some("MainActor");
@@ -684,10 +720,8 @@ impl SemanticAnalyzer {
                 return;
             }
         }
-        if matches!(
-            lt,
-            TypeId::OpaqueSome(_) | TypeId::OpaqueAny(_)
-        ) && matches!(rt, TypeId::OpaqueSome(_) | TypeId::OpaqueAny(_))
+        if matches!(lt, TypeId::OpaqueSome(_) | TypeId::OpaqueAny(_))
+            && matches!(rt, TypeId::OpaqueSome(_) | TypeId::OpaqueAny(_))
         {
             return;
         }
@@ -720,11 +754,12 @@ impl SemanticAnalyzer {
         for stmt in stmts {
             match stmt {
                 Stmt::Return {
-                    value: Some(Expr::Borrow {
-                        expr,
-                        mutable: true,
-                        ..
-                    }),
+                    value:
+                        Some(Expr::Borrow {
+                            expr,
+                            mutable: true,
+                            ..
+                        }),
                     span,
                     ..
                 } => {
@@ -754,7 +789,9 @@ impl SemanticAnalyzer {
                 Stmt::Block { stmts, .. } => {
                     self.check_local_mut_returns(stmts, params);
                 }
-                Stmt::Try { body, catch_body, .. } => {
+                Stmt::Try {
+                    body, catch_body, ..
+                } => {
                     self.check_local_mut_returns(body, params);
                     self.check_local_mut_returns(catch_body, params);
                 }
@@ -884,10 +921,7 @@ impl SemanticAnalyzer {
             let Some(idx) = type_params.iter().position(|p| p == &pred.type_name) else {
                 continue;
             };
-            let arg_ty = type_args
-                .get(idx)
-                .map(|s| s.as_str())
-                .unwrap_or("Unknown");
+            let arg_ty = type_args.get(idx).map(|s| s.as_str()).unwrap_or("Unknown");
             if Self::is_associated_type_constraint(pred.constraint.as_str()) {
                 if arg_ty != pred.constraint.as_str() {
                     self.errors.push(self.error_at(
@@ -944,7 +978,11 @@ impl SemanticAnalyzer {
         }
     }
 
-    pub(crate) fn analyze_extension_method(&mut self, type_name: &SmolStr, member: &Decl) -> SyxResult<()> {
+    pub(crate) fn analyze_extension_method(
+        &mut self,
+        type_name: &SmolStr,
+        member: &Decl,
+    ) -> SyxResult<()> {
         match member {
             Decl::Function {
                 span,
@@ -1013,10 +1051,7 @@ impl SemanticAnalyzer {
                 m.insert(SmolStr::new("Element"), type_id_to_name(inner));
                 m
             }
-            (
-                "Dictionary",
-                TypeId::Dictionary { key, value },
-            ) => {
+            ("Dictionary", TypeId::Dictionary { key, value }) => {
                 let mut m = IndexMap::new();
                 m.insert(SmolStr::new("Key"), type_id_to_name(key));
                 m.insert(SmolStr::new("Value"), type_id_to_name(value));
@@ -1054,9 +1089,7 @@ impl SemanticAnalyzer {
                 .unwrap_or("Unknown");
             // S1-I6: inside `extension Array where Element: P`, `self`/`seen` are still
             // `Array<Element>` — defer formal placeholders; call sites substitute Int/….
-            if arg_ty == pred.type_name.as_str()
-                || matches!(arg_ty, "Element" | "Key" | "Value")
-            {
+            if arg_ty == pred.type_name.as_str() || matches!(arg_ty, "Element" | "Key" | "Value") {
                 continue;
             }
             if Self::is_associated_type_constraint(pred.constraint.as_str()) {
@@ -1089,7 +1122,8 @@ impl SemanticAnalyzer {
         }
         matches!(
             constraint,
-            "Int" | "Int8"
+            "Int"
+                | "Int8"
                 | "Int16"
                 | "Int32"
                 | "Int64"

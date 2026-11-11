@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -21,8 +20,7 @@ fn s2_05_semantic_feature_gates_extract_baseline() {
         "feature_gates must hold actor/typealias/borrow/property gate surface"
     );
     assert!(
-        gates.contains("pub fn reflect_type_lower")
-            || gates.contains("fn reflect_type_lower"),
+        gates.contains("pub fn reflect_type_lower") || gates.contains("fn reflect_type_lower"),
         "feature_gates must hold reflect_type_lower (scaffold neighbor)"
     );
 

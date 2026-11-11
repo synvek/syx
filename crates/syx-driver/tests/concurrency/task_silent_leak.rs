@@ -108,7 +108,10 @@ func main() {
 }
 "#;
     let out = run(src);
-    assert!(out.contains("LEAKED"), "unreaped detach must elevate live_count: {out}");
+    assert!(
+        out.contains("LEAKED"),
+        "unreaped detach must elevate live_count: {out}"
+    );
     assert!(!out.contains("LEAK_FAIL"), "{out}");
     assert!(
         out.contains("CLEANED"),
@@ -116,4 +119,3 @@ func main() {
     );
     assert!(!out.contains("CLEAN_FAIL"), "{out}");
 }
-

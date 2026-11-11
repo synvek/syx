@@ -32,7 +32,8 @@ fn suite1_dir() -> PathBuf {
 
 fn load_oracle(syx: &Path) -> Oracle {
     let path = syx.with_extension("oracle.json");
-    let text = fs::read_to_string(&path).unwrap_or_else(|e| panic!("oracle {}: {e}", path.display()));
+    let text =
+        fs::read_to_string(&path).unwrap_or_else(|e| panic!("oracle {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("bad oracle {}: {e}", path.display()))
 }
 
@@ -56,15 +57,15 @@ fn s2_03_suite1_vm_mir_floor() {
 
     for name in SUITE1 {
         let syx = root.join(name);
-        let src = fs::read_to_string(&syx).unwrap_or_else(|e| panic!("read {}: {e}", syx.display()));
+        let src =
+            fs::read_to_string(&syx).unwrap_or_else(|e| panic!("read {}: {e}", syx.display()));
         let oracle = load_oracle(&syx);
 
-        let vm = compile_and_run_embedded(&src, &opts)
-            .unwrap_or_else(|e| panic!("vm {name}: {e}"));
+        let vm = compile_and_run_embedded(&src, &opts).unwrap_or_else(|e| panic!("vm {name}: {e}"));
         assert_match("vm", name, vm.exit_code, &vm.printed, &oracle);
 
-        let mir = run_native_mir_file_printed(&syx, &opts)
-            .unwrap_or_else(|e| panic!("mir {name}: {e}"));
+        let mir =
+            run_native_mir_file_printed(&syx, &opts).unwrap_or_else(|e| panic!("mir {name}: {e}"));
         assert_match("mir", name, mir.0, &mir.1, &oracle);
     }
 }

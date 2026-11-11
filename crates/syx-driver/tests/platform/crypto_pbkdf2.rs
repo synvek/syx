@@ -11,14 +11,12 @@ fn run(src: &str) -> String {
 
 #[test]
 fn pbkdf2_four_arg_smoke() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let dk = __syx_crypto_pbkdf2("password", "salt", 1, 20)
   print(dk)
 }
-"#,
-    );
+"#);
     let hex = out.lines().next().unwrap_or("").trim();
     assert_eq!(
         hex.to_lowercase(),
@@ -26,4 +24,3 @@ func main() {
         "RFC6070 PBKDF2-HMAC-SHA256 vector, got {hex:?} from {out}"
     );
 }
-

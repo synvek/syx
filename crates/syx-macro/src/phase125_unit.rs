@@ -22,10 +22,7 @@ class App {
     let services = collect_services(&module).expect("collect");
     let app = services.iter().find(|s| s.type_name == "App").unwrap();
     assert_eq!(app.field_autowires.len(), 1);
-    assert_eq!(
-        app.field_autowires[0].qualifier.as_deref(),
-        Some("fast")
-    );
+    assert_eq!(app.field_autowires[0].qualifier.as_deref(), Some("fast"));
     let entry = spec_to_meta_entry(app);
     assert_eq!(entry.field_qualifiers.len(), 1);
     assert_eq!(entry.field_qualifiers[0].as_deref(), Some("fast"));
@@ -111,7 +108,8 @@ class FastPing: Pingable { func ping() -> String { return "f" } }
 #[test]
 fn p125_field_autowire_boot_contains_fast_logger_assign() {
     let src = include_str!("../../syx-driver/tests/fixtures/macros/field_qualifier.sy");
-    let mut module = syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
+    let mut module =
+        syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
     expand_service_macros(&mut module).expect("expand");
     let dump = format!("{module:?}");
     assert!(dump.contains("__syx_di_FastLogger"), "{dump}");
@@ -130,7 +128,10 @@ class FastLogger: Logger { init() {} }
     let module =
         syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
     let services = collect_services(&module).expect("collect");
-    let fast = services.iter().find(|s| s.type_name == "FastLogger").unwrap();
+    let fast = services
+        .iter()
+        .find(|s| s.type_name == "FastLogger")
+        .unwrap();
     assert!(fast.binding_aliases.iter().any(|a| a == "Logger"));
     let picked = pick_binding(&services, "Logger", Some("fast")).expect("pick");
     assert_eq!(picked.type_name, "FastLogger");

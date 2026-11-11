@@ -29,8 +29,7 @@ fn capability_exit_evidence_files_exist() {
 fn capability_exit_spec_signed() {
     let spec = include_str!("../../../../docs/lang/a10-capability-exit.md");
     assert!(
-        spec.contains("ADR-705")
-            && (spec.contains("exit signed") || spec.contains("Exit signed")),
+        spec.contains("ADR-705") && (spec.contains("exit signed") || spec.contains("Exit signed")),
         "spec must cite ADR-705 exit signed"
     );
     assert!(
@@ -69,4 +68,3 @@ fn capability_exit_spec_signed() {
         "spec must keep website / hosted product semantics"
     );
 }
-

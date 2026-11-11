@@ -49,4 +49,3 @@ fn ec_m2_4_tcp_microbench_refuse_instant() {
         "ec_m2_4_tcp_microbench: TcpStream.connect refuse×{N} compile+run in {elapsed:?} (~{per_op:?}/op)"
     );
 }
-

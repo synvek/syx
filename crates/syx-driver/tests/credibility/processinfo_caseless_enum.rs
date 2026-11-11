@@ -35,8 +35,8 @@ func main() {
 
 #[test]
 fn sa2_os_processinfo_surface_present() {
-    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../packages/os/mod.sy");
+    let path =
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/os/mod.sy");
     let src = std::fs::read_to_string(&path).expect("read packages/os/mod.sy");
     assert!(
         src.contains("enum ProcessInfo") && src.contains("processorCount"),

@@ -6,27 +6,16 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_conflict_epoch_mesh_ready,
-    cdn_bgp_peer_announce_conflict_epoch_ready,
-    cdn_bgp_peer_announce_epoch_memory_clear,
-    cdn_bgp_peer_announce_epoch_persist_ready,
-    cdn_bgp_peer_announce_epoch_persist_restore_from_file,
-    cdn_bgp_peer_announce_fanout_with_epoch,
-    cdn_bgp_peer_announce_receive_ack_with_epoch,
-    cdn_bgp_peer_announce_winning_epoch,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_conflict_epoch_mesh_ready, cdn_bgp_peer_announce_conflict_epoch_ready,
+    cdn_bgp_peer_announce_epoch_memory_clear, cdn_bgp_peer_announce_epoch_persist_ready,
+    cdn_bgp_peer_announce_epoch_persist_restore_from_file, cdn_bgp_peer_announce_fanout_with_epoch,
+    cdn_bgp_peer_announce_receive_ack_with_epoch, cdn_bgp_peer_announce_winning_epoch,
+    cdn_bgp_route_sticky, cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P133_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_peer_announce_epoch_peer_announce_epoch_persist_restart_rejects_stale_mesh_ready() {
@@ -91,8 +80,7 @@ fn dist_peer_announce_epoch_peer_announce_epoch_persist_restart_rejects_stale_me
 
     let client = "tenant-us:client-p133";
     assert_eq!(cdn_bgp_sticky_shard_key(client), "tenant-us");
-    let (pop, _) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p133-announce").expect("bind");
+    let (pop, _) = cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p133-announce").expect("bind");
     assert_eq!(pop, "bgp-us");
 
     let peers = ["peer-eu", "peer-ap"];
@@ -131,12 +119,9 @@ fn dist_peer_announce_epoch_peer_announce_epoch_persist_restart_rejects_stale_me
         .expect_err("stale epoch after restore must reject");
     assert!(stale.contains("stale"), "unexpected stale err: {stale}");
 
-    let stale_ack = cdn_bgp_peer_announce_receive_ack_with_epoch(
-        "peer-eu",
-        "tenant-us",
-        &announced_e1[0].1,
-    )
-    .expect_err("stale ack after restore must reject");
+    let stale_ack =
+        cdn_bgp_peer_announce_receive_ack_with_epoch("peer-eu", "tenant-us", &announced_e1[0].1)
+            .expect_err("stale ack after restore must reject");
     assert!(
         stale_ack.contains("stale"),
         "unexpected stale ack err: {stale_ack}"

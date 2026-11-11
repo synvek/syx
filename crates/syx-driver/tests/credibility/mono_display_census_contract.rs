@@ -7,16 +7,21 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_02_mono_display_census_baseline() {
     let census = repo_file("docs/census/stage3-mono-display-census.md");
     assert!(census.contains("S3-I42"), "census must name S3-I42 open");
-    assert!(census.contains("S3-I43"), "census must name S3-I43 demangle");
-    assert!(census.contains("S3-I44"), "census must name S3-I44 debug stack");
+    assert!(
+        census.contains("S3-I43"),
+        "census must name S3-I43 demangle"
+    );
+    assert!(
+        census.contains("S3-I44"),
+        "census must name S3-I44 debug stack"
+    );
     assert!(census.contains("S3-I45"), "census must name S3-I45 runtime");
     assert!(census.contains("S3-I46"), "census must name S3-I46 meta");
     assert!(census.contains("S3-I47"), "census must name S3-I47 claim");
@@ -44,8 +49,7 @@ fn s3_02_mono_display_census_baseline() {
     let open_adr = repo_file("docs/adr/stage3-s3-02-open.md");
     assert!(open_adr.contains("S3-I42"));
     assert!(
-        open_adr.contains("S3-I47")
-            && open_adr.contains("stage3-s3-02-claim"),
+        open_adr.contains("S3-I47") && open_adr.contains("stage3-s3-02-claim"),
         "open ADR must cite landed S3-I47 claim"
     );
     assert!(
@@ -56,8 +60,7 @@ fn s3_02_mono_display_census_baseline() {
     let meta_adr = repo_file("docs/adr/stage3-s3-02-meta-type-display.md");
     assert!(meta_adr.contains("S3-I46"), "meta-type ADR must exist");
     assert!(
-        meta_adr.contains("S3-I47")
-            && meta_adr.contains("stage3-s3-02-claim"),
+        meta_adr.contains("S3-I47") && meta_adr.contains("stage3-s3-02-claim"),
         "meta ADR must cite landed S3-I47"
     );
 
@@ -88,28 +91,23 @@ fn s3_02_mono_display_census_baseline() {
         s3_02.contains("| [x] |") || s3_02.contains("| `[x]` |"),
         "S3-02 must be [x]; got: {s3_02}"
     );
-    assert!(
-        plan02.contains("S3-I47")
-            || plan02.contains("stage3-s3-02-claim")
-    );
-    assert!(
-        plan02.contains("S3-03"),
-        "plan/02 must lock next = S3-03"
-    );
+    assert!(plan02.contains("S3-I47") || plan02.contains("stage3-s3-02-claim"));
+    assert!(plan02.contains("S3-03"), "plan/02 must lock next = S3-03");
     let stage3 = plan02
         .lines()
         .find(|l| l.contains("| **3** |"))
         .expect("stage-3 row");
-    assert!(stage3.contains("[x]") && stage3.contains("退出"), "Stage-3 must be [x] 退出; got: {stage3}");
+    assert!(
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
+    );
 }
 
 #[test]
 fn s3_02_mono_display_census_script_runs() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_02_mono_display_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run mono-display census");
     assert!(

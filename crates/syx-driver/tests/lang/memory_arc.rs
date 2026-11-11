@@ -3,7 +3,10 @@
 
 use std::path::PathBuf;
 
-use syx_driver::{compile_and_run_embedded, run_file_printed, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions};
+use syx_driver::{
+    compile_and_run_embedded, run_file_printed, run_native_mir_file_printed,
+    run_wasm_source_printed, DriverOptions,
+};
 
 fn opts() -> DriverOptions {
     DriverOptions::default()
@@ -41,14 +44,16 @@ fn arc_file_printed_retain_release() {
 #[test]
 fn arc_native_mir_retain_release() {
     syx_host_plugin::register_echo_plugin_in_process();
-    let (_, lines) = run_native_mir_file_printed(&fixture("arc_retain_release.sy"), &opts()).unwrap();
+    let (_, lines) =
+        run_native_mir_file_printed(&fixture("arc_retain_release.sy"), &opts()).unwrap();
     assert!(lines.iter().any(|l| l.trim() == "1"), "{lines:?}");
 }
 
 #[test]
 fn arc_wasm_retain_release() {
     syx_host_plugin::register_echo_plugin_in_process();
-    let (_, lines) = run_wasm_source_printed(&fixture("arc_retain_release.sy"), "main", &opts()).unwrap();
+    let (_, lines) =
+        run_wasm_source_printed(&fixture("arc_retain_release.sy"), "main", &opts()).unwrap();
     assert!(lines.iter().any(|l| l.trim() == "1"), "{lines:?}");
 }
 
@@ -91,7 +96,11 @@ func main() {
 #[test]
 fn arc_cycle_vm_sum_bounded() {
     let lines = run_embed(&fixture("arc_relocating_vm_cycle.sy"));
-    assert_eq!(lines.iter().filter(|l| l.trim() == "10").count(), 1, "{lines:?}");
+    assert_eq!(
+        lines.iter().filter(|l| l.trim() == "10").count(),
+        1,
+        "{lines:?}"
+    );
 }
 
 #[test]

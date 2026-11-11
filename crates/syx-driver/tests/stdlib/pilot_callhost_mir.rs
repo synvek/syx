@@ -1,19 +1,13 @@
 //! CallHost MirOp llvm+wasm inventory nails (Suite-1 narrow subset).
 
-use syx_driver::{
-    run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
-};
+use syx_driver::{run_native_mir_file_printed, run_wasm_source_printed, DriverOptions};
 
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
 
 fn write_src(label: &str, src: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w209_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w209_{}_{}", label, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -24,8 +18,7 @@ fn write_src(label: &str, src: &str) -> std::path::PathBuf {
 fn run_native_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native exit {code}: {lines:?}");
     lines
 }
@@ -33,8 +26,7 @@ fn run_native_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -65,4 +57,3 @@ fn m2_s1_callhost_scalar_count_wasm() {
     let out = lines_joined(&run_wasm_src("ch_wasm", SCALAR_COUNT_CALLHOST));
     assert_eq!(out, "2", "wasm CallHost scalar count must exact: {out}");
 }
-

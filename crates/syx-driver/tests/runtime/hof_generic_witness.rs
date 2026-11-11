@@ -37,30 +37,32 @@ fn opts() -> DriverOptions {
 fn temp_dir(src: &str, tag: &str) -> PathBuf {
     static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let n = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let dir = std::env::temp_dir().join(format!(
-        "syx_p98_hof_gen_{tag}_{}_{n}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_p98_hof_gen_{tag}_{}_{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     dir
 }
 
 fn assert_sorted(lines: &[String], backend: &str) {
-    assert!(lines.iter().any(|l| l.trim() == "a" || l.contains("a")), "{backend}: {lines:?}");
-    assert!(lines.iter().any(|l| l.trim() == "c" || l.contains("c")), "{backend}: {lines:?}");
+    assert!(
+        lines.iter().any(|l| l.trim() == "a" || l.contains("a")),
+        "{backend}: {lines:?}"
+    );
+    assert!(
+        lines.iter().any(|l| l.trim() == "c" || l.contains("c")),
+        "{backend}: {lines:?}"
+    );
 }
 
 #[test]
 fn p98_hof_generic_witness_string_sort_vm_stdout() {
     syx_host_plugin::register_echo_plugin_in_process();
-    let lines = compile_and_run_embedded(STRING_SORT_SRC, &opts()).unwrap().printed;
+    let lines = compile_and_run_embedded(STRING_SORT_SRC, &opts())
+        .unwrap()
+        .printed;
     assert_sorted(&lines, "vm");
 }
 
@@ -102,7 +104,8 @@ fn p98_hof_generic_witness_string_sort_native_stdout() {
 #[test]
 fn p98_hof_generic_witness_inline_closure_vm_stdout() {
     syx_host_plugin::register_echo_plugin_in_process();
-    let lines = compile_and_run_embedded(STRING_SORT_INLINE_SRC, &opts()).unwrap().printed;
+    let lines = compile_and_run_embedded(STRING_SORT_INLINE_SRC, &opts())
+        .unwrap()
+        .printed;
     assert_sorted(&lines, "vm-inline");
 }
-

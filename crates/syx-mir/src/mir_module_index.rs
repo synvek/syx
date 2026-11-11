@@ -45,7 +45,8 @@ pub(crate) struct ModuleIndex {
     /// Phase 126: protocol name → method names (witness slot setup + dispatch).
     pub(crate) protocol_methods: IndexMap<SmolStr, Vec<SmolStr>>,
     /// S1-I6: protocol default method bodies `(protocol, method)` → `(params, body)`.
-    pub(crate) protocol_default_methods: IndexMap<(SmolStr, SmolStr), (Vec<syx_ast::Param>, Vec<Stmt>)>,
+    pub(crate) protocol_default_methods:
+        IndexMap<(SmolStr, SmolStr), (Vec<syx_ast::Param>, Vec<Stmt>)>,
     pub(crate) property_observers:
         IndexMap<(SmolStr, SmolStr), (Option<Vec<Stmt>>, Option<Vec<Stmt>>)>,
     /// Phase 134: `(type, field)` with desugared `__get_{field}` accessor.
@@ -97,23 +98,15 @@ impl ModuleIndex {
     pub(crate) fn property_getter_fn(&self, ty: &SmolStr, field: &SmolStr) -> Option<SmolStr> {
         // R-35: `class C { var count }` must not resolve to `Object.count` getter.
         if self.has_own_stored_field(ty, field)
-            && !self
-                .property_getters
-                .contains(&(ty.clone(), field.clone()))
+            && !self.property_getters.contains(&(ty.clone(), field.clone()))
         {
             return None;
         }
         let mut cur = Some(ty.clone());
         while let Some(t) = cur {
-            if self
-                .property_getters
-                .contains(&(t.clone(), field.clone()))
-            {
+            if self.property_getters.contains(&(t.clone(), field.clone())) {
                 // S1-I8: `4.isEven` types as Int64 but getter mangles as `Int___get_isEven`.
-                let raw = SmolStr::new(format!(
-                    "{t}_{}",
-                    syx_ast::var_global_getter_method(field)
-                ));
+                let raw = SmolStr::new(format!("{t}_{}", syx_ast::var_global_getter_method(field)));
                 return Some(remap_platform_int_extension_call(&raw));
             }
             cur = self.class_superclasses.get(&t).cloned();
@@ -123,22 +116,14 @@ impl ModuleIndex {
 
     pub(crate) fn property_setter_fn(&self, ty: &SmolStr, field: &SmolStr) -> Option<SmolStr> {
         if self.has_own_stored_field(ty, field)
-            && !self
-                .property_setters
-                .contains(&(ty.clone(), field.clone()))
+            && !self.property_setters.contains(&(ty.clone(), field.clone()))
         {
             return None;
         }
         let mut cur = Some(ty.clone());
         while let Some(t) = cur {
-            if self
-                .property_setters
-                .contains(&(t.clone(), field.clone()))
-            {
-                let raw = SmolStr::new(format!(
-                    "{t}_{}",
-                    syx_ast::var_global_setter_method(field)
-                ));
+            if self.property_setters.contains(&(t.clone(), field.clone())) {
+                let raw = SmolStr::new(format!("{t}_{}", syx_ast::var_global_setter_method(field)));
                 return Some(remap_platform_int_extension_call(&raw));
             }
             cur = self.class_superclasses.get(&t).cloned();
@@ -146,7 +131,11 @@ impl ModuleIndex {
         None
     }
 
-    pub(crate) fn static_var_global(&self, ty: &SmolStr, field: &SmolStr) -> Option<(SmolStr, bool)> {
+    pub(crate) fn static_var_global(
+        &self,
+        ty: &SmolStr,
+        field: &SmolStr,
+    ) -> Option<(SmolStr, bool)> {
         self.static_vars.get(&(ty.clone(), field.clone())).cloned()
     }
 
@@ -156,11 +145,7 @@ impl ModuleIndex {
 
     fn register_nested_type(&mut self, outer: &SmolStr, decl: &Decl) {
         match decl {
-            Decl::Class {
-                name,
-                members,
-                ..
-            } => {
+            Decl::Class { name, members, .. } => {
                 let qualified = SmolStr::new(format!("{outer}_{name}"));
                 let fields: Vec<SmolStr> = members
                     .iter()
@@ -170,9 +155,7 @@ impl ModuleIndex {
                 for member in members {
                     if let Decl::VarGlobal {
                         name: field,
-                        ty: Some(TypeExpr::Named {
-                            name: field_ty, ..
-                        }),
+                        ty: Some(TypeExpr::Named { name: field_ty, .. }),
                         ..
                     } = member
                     {
@@ -231,10 +214,11 @@ impl ModuleIndex {
                         }
                         if let Decl::VarGlobal {
                             name: field,
-                            init: Some(Expr::Literal {
-                                value: Literal::Integer { value, .. },
-                                ..
-                            }),
+                            init:
+                                Some(Expr::Literal {
+                                    value: Literal::Integer { value, .. },
+                                    ..
+                                }),
                             ..
                         } = member
                         {
@@ -286,10 +270,8 @@ impl ModuleIndex {
                     return_type,
                     ..
                 } if type_params.is_empty() => {
-                    idx.function_params.insert(
-                        name.clone(),
-                        params.iter().map(|p| p.ty.clone()).collect(),
-                    );
+                    idx.function_params
+                        .insert(name.clone(), params.iter().map(|p| p.ty.clone()).collect());
                     if let Some(ret) = return_type.as_ref().and_then(mir_type_expr_name) {
                         idx.function_returns.insert(name.clone(), ret);
                     }
@@ -297,7 +279,9 @@ impl ModuleIndex {
                         idx.opaque_functions.insert(name.clone());
                     }
                 }
-                Decl::Function { name, type_params, .. } if !type_params.is_empty() => {
+                Decl::Function {
+                    name, type_params, ..
+                } if !type_params.is_empty() => {
                     idx.generic_templates.insert(name.clone());
                     idx.generic_template_arity
                         .insert(name.clone(), type_params.len());
@@ -410,9 +394,7 @@ impl ModuleIndex {
                             }
                         }
                         if let Decl::OperatorFunc {
-                            op,
-                            return_type,
-                            ..
+                            op, return_type, ..
                         } = member
                         {
                             if let Some(ret) = return_type.as_ref().and_then(mir_type_expr_name) {
@@ -474,7 +456,9 @@ impl ModuleIndex {
                         }
                     }
                 }
-                Decl::Extension { type_name, methods, .. } => {
+                Decl::Extension {
+                    type_name, methods, ..
+                } => {
                     for method in methods {
                         if let Decl::Function {
                             name,
@@ -510,11 +494,7 @@ impl ModuleIndex {
                         // → memberwise defaults so `Point()` pads 0,0 (shell init stays).
                         if let Decl::Init { params, body, .. } = method {
                             if params.is_empty() {
-                                register_extension_init_literal_defaults(
-                                    &mut idx,
-                                    type_name,
-                                    body,
-                                );
+                                register_extension_init_literal_defaults(&mut idx, type_name, body);
                             }
                         }
                     }
@@ -551,15 +531,10 @@ impl ModuleIndex {
                 else {
                     continue;
                 };
-                if !type_params.is_empty()
-                    || attrs.iter().any(|a| a.name.as_str() == "static")
-                {
+                if !type_params.is_empty() || attrs.iter().any(|a| a.name.as_str() == "static") {
                     continue;
                 }
-                vtable.insert(
-                    method.clone(),
-                    SmolStr::new(format!("{name}_{method}")),
-                );
+                vtable.insert(method.clone(), SmolStr::new(format!("{name}_{method}")));
             }
             idx.class_vtables.insert(name.clone(), vtable);
         }
@@ -676,4 +651,3 @@ pub(crate) fn mir_type_expr_name(ty: &TypeExpr) -> Option<SmolStr> {
         _ => None,
     }
 }
-

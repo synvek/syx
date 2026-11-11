@@ -71,11 +71,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -131,10 +127,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm spawn missing failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["failed".to_string(), "4".to_string()],
@@ -194,11 +187,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -254,10 +243,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm wait success failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["spawned".to_string(), "0".to_string()],
@@ -295,11 +281,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -355,14 +337,10 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm create success failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["created".to_string(), "0".to_string()],
         "ProcessBuilderCreate wasm create-success must exact: {lines:?}"
     );
 }
-

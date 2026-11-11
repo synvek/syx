@@ -12,13 +12,10 @@ fn run(src: &str) -> Vec<String> {
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
 fn p98_gui_mobile_touch_event_smoke() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let win = __syx_gui_mobile_window_create("mobile")
     let evt = __syx_gui_touch_event(win, 10, 20)
     print(evt)
-}"#,
-    );
+}"#);
     assert!(out.iter().any(|l| l.contains("touch")), "{out:?}");
 }
-

@@ -95,14 +95,15 @@ Connection: Upgrade\r\n\
     )
 }
 
-fn spawn_upgrade_upstream(response: &'static str, echo_payload: bool) -> (u16, thread::JoinHandle<()>) {
+fn spawn_upgrade_upstream(
+    response: &'static str,
+    echo_payload: bool,
+) -> (u16, thread::JoinHandle<()>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("upstream bind");
     let port = listener.local_addr().expect("addr").port();
     let handle = thread::spawn(move || {
         let (mut stream, _) = listener.accept().expect("upstream accept");
-        stream
-            .set_read_timeout(Some(Duration::from_secs(5)))
-            .ok();
+        stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
         read_http_request_headers(&mut stream);
         stream
             .write_all(response.as_bytes())
@@ -214,9 +215,7 @@ fn start_upgrade_session_from_src(
     );
 
     let mut client = TcpStream::connect(("127.0.0.1", serve_port)).expect("client connect");
-    client
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .ok();
+    client.set_read_timeout(Some(Duration::from_secs(5))).ok();
     let req = format!(
         "GET /ws HTTP/1.1\r\n\
 Host: 127.0.0.1:{serve_port}\r\n\
@@ -310,8 +309,15 @@ fn http_serve_upgrade_proxy_masked_text_frame_roundtrip() {
     assert_eq!(frame[1], 0x80 | (payload.len() as u8), "masked length");
     session.client.write_all(&frame).expect("write frame");
     let mut echo = vec![0u8; frame.len()];
-    session.client.read_exact(&mut echo).expect("read frame echo");
-    assert_eq!(&echo[..], &frame[..], "masked text frame must pass tunnel intact");
+    session
+        .client
+        .read_exact(&mut echo)
+        .expect("read frame echo");
+    assert_eq!(
+        &echo[..],
+        &frame[..],
+        "masked text frame must pass tunnel intact"
+    );
     finish_upgrade_session(session);
 }
 
@@ -449,9 +455,7 @@ func main() {{
 
     // Client connects **only** to the serve port (same-origin HMR semantics).
     let mut client = TcpStream::connect(("127.0.0.1", serve_port)).expect("client connect");
-    client
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .ok();
+    client.set_read_timeout(Some(Duration::from_secs(5))).ok();
     let req = format!(
         "GET /@vite/client HTTP/1.1\r\n\
 Host: 127.0.0.1:{serve_port}\r\n\

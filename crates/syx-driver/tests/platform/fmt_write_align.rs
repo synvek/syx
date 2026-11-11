@@ -31,7 +31,11 @@ fn fmt_write_align_preserves_comments_and_matches_check() {
 
     let report = format_check_path(&main).expect("check after write");
     assert_eq!(report.would_change, 0, "write then --check must be stable");
-    assert_eq!(report.failed, 0, "check must not fail; failures={:?}", report.failures);
+    assert_eq!(
+        report.failed, 0,
+        "check must not fail; failures={:?}",
+        report.failures
+    );
 }
 
 fn tempfile_dir() -> PathBuf {

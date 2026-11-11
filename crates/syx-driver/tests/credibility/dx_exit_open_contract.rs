@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -28,10 +27,7 @@ fn s3_exit_open_adr_and_plan_locked() {
         adr.contains("Stage-3") && (adr.contains("`[~]`") || adr.contains("[~]")),
         "ADR Status must keep historical Stage-3 [~] for open window"
     );
-    assert!(
-        adr.contains("7/7"),
-        "ADR must publish Stage-3 7/7"
-    );
+    assert!(adr.contains("7/7"), "ADR must publish Stage-3 7/7");
     assert!(
         adr.contains("S3-I85") || adr.contains("stage3-s3-07-claim"),
         "ADR must cite prior S3-I85 claim"
@@ -41,8 +37,7 @@ fn s3_exit_open_adr_and_plan_locked() {
         "ADR Consequences must cite landed I87 / stage3-exit"
     );
     assert!(
-        adr.contains("≠")
-            && (adr.contains("stage3-exit") || adr.contains("`stage3-exit`")),
+        adr.contains("≠") && (adr.contains("stage3-exit") || adr.contains("`stage3-exit`")),
         "ADR Decision must Non-claim write stage3-exit that window"
     );
     assert!(
@@ -56,8 +51,10 @@ fn s3_exit_open_adr_and_plan_locked() {
 
     let census = repo_file("docs/census/stage3-exit-census.md");
     assert!(
-        census.contains("S3-I86") && census.contains("S3-I87")
-            && (census.contains("S3-I88") && (census.contains("S3-I89") || census.contains("Stage-4"))),
+        census.contains("S3-I86")
+            && census.contains("S3-I87")
+            && (census.contains("S3-I88")
+                && (census.contains("S3-I89") || census.contains("Stage-4"))),
         "exit census must name I86 open / I87 exit"
     );
     assert!(
@@ -68,10 +65,7 @@ fn s3_exit_open_adr_and_plan_locked() {
         census.contains("exit_status") && census.contains("exited"),
         "census must mark exit_status exited"
     );
-    assert!(
-        census.contains("7/7"),
-        "census must publish Stage-3 7/7"
-    );
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
     assert!(
         census.contains("S3-I88") && (census.contains("S3-I89") || census.contains("Stage-4")),
         "census ladder must next = Stage-4 / I88"
@@ -119,7 +113,8 @@ fn s3_exit_open_adr_and_plan_locked() {
     assert!(
         plan02.contains("S3-I86")
             && plan02.contains("S3-I87")
-            && (plan02.contains("S3-I88") && (plan02.contains("S3-I89") || plan02.contains("Stage-4"))),
+            && (plan02.contains("S3-I88")
+                && (plan02.contains("S3-I89") || plan02.contains("Stage-4"))),
         "plan/02 must cite I86…I87 and Stage-4 next"
     );
 
@@ -127,13 +122,11 @@ fn s3_exit_open_adr_and_plan_locked() {
     assert!(
         plan01.contains("S3-I86")
             && plan01.contains("S3-I87")
-            && (plan01.contains("S3-I88") && (plan01.contains("S3-I89") || plan01.contains("Stage-4"))),
+            && (plan01.contains("S3-I88")
+                && (plan01.contains("S3-I89") || plan01.contains("Stage-4"))),
         "plan/01 must cite I86…I87 and Stage-4"
     );
-    assert!(
-        plan01.contains("退出"),
-        "plan/01 must publish Stage-3 exit"
-    );
+    assert!(plan01.contains("退出"), "plan/01 must publish Stage-3 exit");
 }
 
 #[test]

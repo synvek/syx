@@ -32,6 +32,14 @@ case "$TARGET" in
       "target.${TARGET}.rustflags=[\"-C\",\"target-feature=+crt-static\",\"-C\",\"link-arg=/INCLUDE:malloc\"]"
     )
     ;;
+  *-unknown-linux-*)
+    # Official LLVM .a embeds bitcode; rust-lld ThinLTO + rustc LLVM aborts on
+    # VP !prof (see third_party/llvm-sys build.rs). Fail-closed rustflag mirror.
+    ARGS+=(
+      --config
+      "target.${TARGET}.rustflags=[\"-C\",\"link-arg=-Wl,--lto=off\"]"
+    )
+    ;;
 esac
 
 if [[ -x "$ROOT/scripts/with-syx-llvm" ]]; then

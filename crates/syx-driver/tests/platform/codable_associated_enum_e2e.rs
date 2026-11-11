@@ -21,7 +21,9 @@ fn run_fixture(rel: &str) -> Vec<String> {
 fn codable_l2_associated_enum_roundtrip() {
     let printed = run_fixture("tests/fixtures/macros/codable_associated_enum.sy");
     assert!(
-        printed.iter().any(|l| l.contains("\"__tag\":\"ok\"") && l.contains("42")),
+        printed
+            .iter()
+            .any(|l| l.contains("\"__tag\":\"ok\"") && l.contains("42")),
         "ok encode: {printed:?}"
     );
     assert!(
@@ -43,4 +45,3 @@ fn codable_l2_associated_enum_roundtrip() {
         "plain encode: {printed:?}"
     );
 }
-

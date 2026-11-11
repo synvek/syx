@@ -81,8 +81,7 @@ fn assert_trace_wasm_smoke(lines: &[String]) {
         .cloned()
         .unwrap_or_else(|| panic!("wasm missing span id after S: {lines:?}"));
     assert!(
-        span_id.starts_with('s')
-            && span_id.chars().nth(1).is_some_and(|c| c.is_ascii_digit()),
+        span_id.starts_with('s') && span_id.chars().nth(1).is_some_and(|c| c.is_ascii_digit()),
         "wasm span id shape: {span_id}"
     );
     let c_idx = lines

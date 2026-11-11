@@ -389,9 +389,11 @@ pub mod aot {
                 | Self::SetBuild
                 | Self::CallHost
                 | Self::TakeCatchPc => host::TYPE_I32_TO_I32,
-                Self::LoadLocal | Self::StoreLocal | Self::SetFnIndex | Self::PushRtI32 | Self::PushRtBool => {
-                    host::TYPE_I32_VOID
-                }
+                Self::LoadLocal
+                | Self::StoreLocal
+                | Self::SetFnIndex
+                | Self::PushRtI32
+                | Self::PushRtBool => host::TYPE_I32_VOID,
                 Self::MakeIterator
                 | Self::IteratorNext
                 | Self::ArrayGet
@@ -446,8 +448,9 @@ pub mod aot {
                 Self::SimdGuestPopV128 => host::TYPE_FUNC_V128,
                 Self::SimdGuestPushV128 => host::TYPE_I32_V128_VOID,
                 Self::ConstNumeric128 => host::TYPE_CONST_NUMERIC128,
-                Self::HeapCollect | Self::HeapCompact
-                | Self::EndFn | Self::PushRtNil => host::TYPE_VOID,
+                Self::HeapCollect | Self::HeapCompact | Self::EndFn | Self::PushRtNil => {
+                    host::TYPE_VOID
+                }
                 Self::BeginFn
                 | Self::MakeClosure
                 | Self::AwaitSuspend
@@ -492,14 +495,11 @@ pub const PHASE107_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
 ];
 
 /// Phase 108 Track B: simd128 Gt + bitwise And/Or/Xor.
-pub const PHASE108_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-bitwise-v1:gt-and-or-xor",
-];
+pub const PHASE108_TRACK_B_WASM_FINGERPRINTS: &[&str] = &["wasm-simd128-bitwise-v1:gt-and-or-xor"];
 
 /// Phase 109 Track B: simd128 Div/Load/Store guest + Ne/Le/Ge/Not/Shl.
-pub const PHASE109_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v2:div-load-store-ext",
-];
+pub const PHASE109_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v2:div-load-store-ext"];
 
 /// Phase 110 Track B: spill/fill thin + SimdShr; honest Div; guest-primary Load/Store.
 pub const PHASE110_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
@@ -508,44 +508,35 @@ pub const PHASE110_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
 ];
 
 /// Phase 111 Track B: thin arith spill + Min/Max + f32x4 Add guest pilot.
-pub const PHASE111_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v4:thin-arith-minmax-f32",
-];
+pub const PHASE111_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v4:thin-arith-minmax-f32"];
 
 /// Phase 112 Track B: f32 Sub/Mul + guest-primary Load/Store + Div hard gate.
-pub const PHASE112_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v5:f32-ops-guest-ls",
-];
+pub const PHASE112_TRACK_B_WASM_FINGERPRINTS: &[&str] = &["wasm-simd128-guest-v5:f32-ops-guest-ls"];
 
 /// Phase 113 Track B: f32 Div + guest LS without -4/-5 spill + f64x2 Add.
-pub const PHASE113_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v6:f32div-guest-ls-f64",
-];
+pub const PHASE113_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v6:f32div-guest-ls-f64"];
 
 /// Phase 114 Track B: f64 reduce hard gate + guest LS without spill0/fill + f64x2 Sub.
-pub const PHASE114_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v7:f64reduce-guest-ls-f64sub",
-];
+pub const PHASE114_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v7:f64reduce-guest-ls-f64sub"];
 
 /// Phase 115 Track B: spill-free binops + f64 Mul/Div + guest reduce + typed f64 LS.
-pub const PHASE115_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v8:nospill-binop-f64muldiv-reduce",
-];
+pub const PHASE115_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v8:nospill-binop-f64muldiv-reduce"];
 
 /// Phase 116 Track B: spill-free unary/shift/shuffle + typed f32 LS + i32 reduce hard gate.
-pub const PHASE116_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v9:nospill-unary-shift-shuffle-f32ls",
-];
+pub const PHASE116_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v9:nospill-unary-shift-shuffle-f32ls"];
 
 /// Phase 117 Track B: stack-native guest-v10 + SIMD8 i16x8 + i64x2 pilots.
-pub const PHASE117_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v10:stack-native-simd8-i64",
-];
+pub const PHASE117_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v10:stack-native-simd8-i64"];
 
 /// Phase 118 Track B: guest-v11 zero-scratch + SIMD16 i8x16 + SIMD8 mul pilots.
-pub const PHASE118_TRACK_B_WASM_FINGERPRINTS: &[&str] = &[
-    "wasm-simd128-guest-v11:zero-scratch-simd16",
-];
+pub const PHASE118_TRACK_B_WASM_FINGERPRINTS: &[&str] =
+    &["wasm-simd128-guest-v11:zero-scratch-simd16"];
 
 /// Phase 119 Track C: SIMD16 i8x16 matrix expand (Mul) + inherited guest-v11 zero-scratch.
 pub const PHASE119_TRACK_C_WASM_FINGERPRINTS: &[&str] = &[

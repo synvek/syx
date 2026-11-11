@@ -63,7 +63,14 @@ fn install_layout_lld_binary() -> Option<PathBuf> {
     #[cfg(target_os = "windows")]
     let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    let names: &[&str] = &["lld", "ld.lld", "ld64.lld", "lld-link", "lld-link.exe", "lld.exe"];
+    let names: &[&str] = &[
+        "lld",
+        "ld.lld",
+        "ld64.lld",
+        "lld-link",
+        "lld-link.exe",
+        "lld.exe",
+    ];
     for name in names {
         let p = bin_dir.join(name);
         if p.is_file() {

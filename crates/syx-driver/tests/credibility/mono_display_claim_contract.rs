@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -27,8 +26,7 @@ fn s3_02_plan_claim_locked() {
         "ADR must Non-claim Stage-3 exit"
     );
     assert!(
-        adr.contains("named_passthrough")
-            || adr.contains("user_facing_type_name"),
+        adr.contains("named_passthrough") || adr.contains("user_facing_type_name"),
         "ADR Evidence must cite axis ①"
     );
     assert!(
@@ -83,10 +81,7 @@ fn s3_02_plan_claim_locked() {
     );
 
     let census = repo_file("docs/census/stage3-mono-display-census.md");
-    assert!(
-        census.contains("S3-I47"),
-        "mono census must name S3-I47"
-    );
+    assert!(census.contains("S3-I47"), "mono census must name S3-I47");
     assert!(
         census.contains("Current:** S3-I47") || census.contains("Current: S3-I47"),
         "census Current must be S3-I47"
@@ -95,10 +90,7 @@ fn s3_02_plan_claim_locked() {
         census.contains("Claimed") || census.contains("`[x]`"),
         "census must mark Claimed"
     );
-    assert!(
-        census.contains("S3-03"),
-        "census ladder must next = S3-03"
-    );
+    assert!(census.contains("S3-03"), "census ladder must next = S3-03");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(

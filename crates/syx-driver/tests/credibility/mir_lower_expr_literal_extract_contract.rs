@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -38,8 +37,9 @@ fn s2_05_mir_lower_expr_literal_extract_baseline() {
         "lower_expr shell must delegate Expr::Literal to lower_expr_literal"
     );
     assert!(
-        !lib.lines().any(|l| l.starts_with("fn contextual_const_bits")
-            || l.starts_with("pub(crate) fn contextual_const_bits")),
+        !lib.lines()
+            .any(|l| l.starts_with("fn contextual_const_bits")
+                || l.starts_with("pub(crate) fn contextual_const_bits")),
         "contextual_const_bits must leave lib.rs"
     );
     assert!(

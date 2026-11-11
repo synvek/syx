@@ -11,7 +11,6 @@ use syx_pkg::SyxManifest;
 use crate::billing_env_lock::billing_env_lock;
 use crate::lease_test_harness::with_lease_auth;
 
-
 #[test]
 fn p100_build_farm_tcp_e2e_get_put_hit() {
     let _billing = billing_env_lock();
@@ -71,7 +70,11 @@ fn p100_build_farm_tcp_e2e_get_put_hit() {
 
         let plan = parse_build_syx(&dir.join("build.syb")).unwrap();
         assert!(plan.farm_url.as_deref().unwrap().starts_with("tcp://"));
-        assert!(plan.farm_queue_url.as_deref().unwrap().starts_with("tcp://"));
+        assert!(plan
+            .farm_queue_url
+            .as_deref()
+            .unwrap()
+            .starts_with("tcp://"));
         let mut opts = DriverOptions::default();
         let mut manifest = SyxManifest::default();
         let mut ctx = BuildTaskContext::new(&dir, &mut opts, &mut manifest);
@@ -83,7 +86,10 @@ fn p100_build_farm_tcp_e2e_get_put_hit() {
         // Real cache hit: GET from farm must equal queue payload.
         let farm_url = format!("tcp://{farm_addr}/tenant/node-a");
         let hit = fetch_cache_remote(&farm_url).expect("farm GET after worker PUT");
-        assert_eq!(hit, payload, "worker must produce real cache hit (bytes equal)");
+        assert_eq!(
+            hit, payload,
+            "worker must produce real cache hit (bytes equal)"
+        );
         farm_handle.join().ok();
         let _ = std::fs::remove_dir_all(&dir);
     });

@@ -71,4 +71,3 @@ fn p98_string_interp_mir_wasm_quad() {
     );
     let _ = fs::remove_dir_all(&dir);
 }
-

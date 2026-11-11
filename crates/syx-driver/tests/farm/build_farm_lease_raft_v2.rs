@@ -6,10 +6,10 @@ use std::time::{Duration, Instant};
 
 use syx_driver::{
     farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured,
-    farm_lease_auth_configure_raft, farm_lease_query_at,
-    farm_lease_raft_digest, farm_lease_raft_member_add_learner, farm_lease_raft_member_remove,
-    farm_lease_raft_v2_digest, farm_lease_require_active, farm_lease_reset,
-    farm_lease_test_lock, spawn_farm_lease_raft, FARM_LEASE_RAFT_PORTS,
+    farm_lease_auth_configure_raft, farm_lease_query_at, farm_lease_raft_digest,
+    farm_lease_raft_member_add_learner, farm_lease_raft_member_remove, farm_lease_raft_v2_digest,
+    farm_lease_require_active, farm_lease_reset, farm_lease_test_lock, spawn_farm_lease_raft,
+    FARM_LEASE_RAFT_PORTS,
 };
 
 const RAFT_TOKEN: u32 = 0xF110_7001;
@@ -65,11 +65,7 @@ fn p110_farm_raft_v2_wal_restart_secondary_validates() {
     farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 120).expect("commit lease to WAL");
     farm_lease_require_active().expect("cluster active");
 
-    let secondary_idx = if cluster.leader_idx() == 1 {
-        2
-    } else {
-        1
-    };
+    let secondary_idx = if cluster.leader_idx() == 1 { 2 } else { 1 };
     cluster.kill_node(secondary_idx);
     thread::sleep(Duration::from_millis(40));
 
@@ -107,7 +103,8 @@ fn p110_farm_raft_member_remove_quorum_updates() {
     cluster.kill_node(0);
     cluster.kill_node(1);
     thread::sleep(Duration::from_millis(50));
-    let err = farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 30).expect_err("one live node cannot meet quorum=2");
+    let err = farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 30)
+        .expect_err("one live node cannot meet quorum=2");
     assert!(
         err.contains("no quorum")
             || err.contains("not leader")
@@ -144,7 +141,8 @@ fn p110_farm_raft_member_add_learner() {
         .expect("learner node restart");
     thread::sleep(Duration::from_millis(40));
 
-    farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 60).expect("grant still works with learner non-voting");
+    farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 60)
+        .expect("grant still works with learner non-voting");
 
     farm_lease_reset();
     farm_lease_auth_clear_configured();
@@ -170,7 +168,8 @@ fn p110_farm_raft_v2_quorum_loss_rejects_grant() {
     }
     assert_eq!(cluster.live_count(), 1);
     thread::sleep(Duration::from_millis(40));
-    let err = farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 30).expect_err("quorum loss must reject GRANT");
+    let err = farm_lease_acquire_tenant_token(0, RAFT_TOKEN, 30)
+        .expect_err("quorum loss must reject GRANT");
     assert!(
         err.contains("no quorum")
             || err.contains("not leader")

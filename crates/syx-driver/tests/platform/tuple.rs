@@ -30,4 +30,3 @@ fn tuple_run_file_printed() {
     assert_eq!(lines[6].trim(), "1", "switch tuple x: {printed:?}");
     assert_eq!(lines[7].trim(), "2", "switch tuple y: {printed:?}");
 }
-

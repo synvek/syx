@@ -2,9 +2,7 @@
 use std::fs;
 
 use syx_diagnostics::SourceFile;
-use syx_driver::{
-    compile_and_run_embedded, run_native_mir_file_printed, DriverOptions,
-};
+use syx_driver::{compile_and_run_embedded, run_native_mir_file_printed, DriverOptions};
 use syx_frontend::{expand_macros, FrontendOptions, FrontendPipeline, StopAfter};
 use syx_parser::Parser;
 use syx_semantic::SemanticAnalyzer;
@@ -42,10 +40,7 @@ fn run_native(label: &str, src: &str) -> Result<Vec<String>, String> {
     match run_native_mir_file_printed(&path, &DriverOptions::default()) {
         Ok((code, lines)) if code == 0 => Ok(lines),
         Ok((code, lines)) => Err(format!("exit {code}: {lines:?}")),
-        Err(e) => Err(format!(
-            "code={:?} msg={}",
-            e.code, e.message
-        )),
+        Err(e) => Err(format!("code={:?} msg={}", e.code, e.message)),
     }
 }
 

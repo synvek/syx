@@ -49,7 +49,9 @@ func main() {
         for part in parts {
             let _: u8 = part.parse().expect("ipv4 octet");
         }
-        assert_ne!(ip, "127.0.0.1", "primaryIpv4 should prefer non-loopback when available");
+        assert_ne!(
+            ip, "127.0.0.1",
+            "primaryIpv4 should prefer non-loopback when available"
+        );
     }
 }
-

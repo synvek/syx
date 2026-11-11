@@ -341,9 +341,7 @@ pub(crate) fn bind_pattern(pattern: &Expr, case_slot: u32, ctx: &mut LowerCtx, b
 
 pub(crate) fn bind_variant_pattern(pattern: &Expr, case_slot: u32, ctx: &mut LowerCtx, block: u32) {
     if let Expr::VariantPattern {
-        variant,
-        bindings,
-        ..
+        variant, bindings, ..
     } = pattern
     {
         if bindings.is_empty() {
@@ -426,4 +424,3 @@ pub(crate) fn bind_variant_pattern(pattern: &Expr, case_slot: u32, ctx: &mut Low
         }
     }
 }
-

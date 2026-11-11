@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn lsp_codes(path: Option<&Path>, source: &str) -> Vec<String> {
@@ -32,8 +31,7 @@ fn s3_06_s045_lsp_desugar_adr_and_census() {
         "ADR must name S045 false-positive axis"
     );
     assert!(
-        adr.contains("S3-I80")
-            || adr.contains("stage3-s3-06-residual-scope"),
+        adr.contains("S3-I80") || adr.contains("stage3-s3-06-residual-scope"),
         "ADR must cite landed S3-I80 residual"
     );
     assert!(

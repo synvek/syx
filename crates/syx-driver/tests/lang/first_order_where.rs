@@ -55,4 +55,3 @@ func main() {
         Ok(r) => panic!("expected S010 where failure, ran: {:?}", r.printed),
     }
 }
-

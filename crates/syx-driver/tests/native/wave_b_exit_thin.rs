@@ -10,7 +10,7 @@ fn wave_b_exit_thin_evidence_files_exist() {
         "docs/lang/wave-b-exit-triad-b04-defer.md",
         "docs/lang/wave-b-exit-triad-b05-defer.md",
         "docs/lang/wave-b-exit-triad-b06-defer.md",
-        "crates/syx-mir/src/lib.rs",  // MirModuleMediumHorizon*Inventory (F-10 W587)
+        "crates/syx-mir/src/lib.rs", // MirModuleMediumHorizon*Inventory (F-10 W587)
         "crates/syx-rt/src/llvm_stub_audit.rs",
         "docs/adr/stage2-wave-b-inventory-retire.md", // S2-I16 readiness inventory retired
     ] {
@@ -21,4 +21,3 @@ fn wave_b_exit_thin_evidence_files_exist() {
         );
     }
 }
-

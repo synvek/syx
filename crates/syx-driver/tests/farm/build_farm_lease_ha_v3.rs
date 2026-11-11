@@ -30,7 +30,8 @@ fn p109_farm_ha_v3_process_isolation_failover() {
         &format!("tcp://{}", cluster.secondary_addr()),
     );
     farm_lease_reset();
-    farm_lease_acquire_tenant_token(0, FARM_LEASE_DEFAULT_TOKEN, 120).expect("GRANT via OS primary");
+    farm_lease_acquire_tenant_token(0, FARM_LEASE_DEFAULT_TOKEN, 120)
+        .expect("GRANT via OS primary");
     farm_lease_require_active().expect("active on primary");
 
     cluster.stop_primary();
@@ -97,9 +98,7 @@ fn p109_farm_raft_quorum_grant_and_failover() {
 
     cluster.kill_leader();
     thread::sleep(Duration::from_millis(50));
-    cluster
-        .refresh_leader(30)
-        .expect("new leader after kill");
+    cluster.refresh_leader(30).expect("new leader after kill");
     farm_lease_auth_configure_raft(
         &format!("tcp://{}", cluster.addrs()[0]),
         &format!("tcp://{}", cluster.addrs()[1]),

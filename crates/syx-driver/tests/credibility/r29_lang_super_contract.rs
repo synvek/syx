@@ -38,9 +38,7 @@ fn r29_mir_super_method_not_init_only() {
     );
     let init_only = src.lines().any(|l| {
         let t = l.trim_start();
-        !t.starts_with("//")
-            && t.contains("Expr::Super")
-            && t.contains("name == \"init\"")
+        !t.starts_with("//") && t.contains("Expr::Super") && t.contains("name == \"init\"")
     });
     assert!(
         !init_only,

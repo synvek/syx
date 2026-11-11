@@ -4,24 +4,15 @@ use std::fs;
 use std::sync::Mutex;
 
 use syx_driver::{
-    farm_lease_hsm_key_id_doctor_export,
-    farm_lease_pkcs11_active_slot_id,
-    farm_lease_pkcs11_hsm_key_id_mvp_ready,
-    farm_lease_pkcs11_hsm_key_label_mvp_ready,
-    farm_lease_pkcs11_hsm_multi_slot_bind,
-    farm_lease_pkcs11_key_id_loaded,
-    farm_lease_pkcs11_key_id_persist,
-    farm_lease_pkcs11_key_id_verify,
-    farm_lease_pkcs11_key_label_persist,
-    farm_lease_pkcs11_session_pin_persist,
-    farm_lease_pkcs11_slot_list,
-    farm_lease_test_lock,
-    ENV_FARM_PKCS11_KEY_ID_FILE,
-    ENV_FARM_PKCS11_KEY_LABEL_FILE,
-    ENV_FARM_PKCS11_PIN_FILE,
+    farm_lease_hsm_key_id_doctor_export, farm_lease_pkcs11_active_slot_id,
+    farm_lease_pkcs11_hsm_key_id_mvp_ready, farm_lease_pkcs11_hsm_key_label_mvp_ready,
+    farm_lease_pkcs11_hsm_multi_slot_bind, farm_lease_pkcs11_key_id_loaded,
+    farm_lease_pkcs11_key_id_persist, farm_lease_pkcs11_key_id_verify,
+    farm_lease_pkcs11_key_label_persist, farm_lease_pkcs11_session_pin_persist,
+    farm_lease_pkcs11_slot_list, farm_lease_test_lock, ENV_FARM_PKCS11_KEY_ID_FILE,
+    ENV_FARM_PKCS11_KEY_LABEL_FILE, ENV_FARM_PKCS11_PIN_FILE,
 };
 static P136_FARM_KEY_ID_BUILD: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn farm_hsm_key_id_doctor_export() {
@@ -34,18 +25,12 @@ fn farm_hsm_pkcs11_mock_key_id_persist_check_bind() {
     let _g = farm_lease_test_lock();
     std::env::set_var("SYX_FARM_PKCS11_BRIDGE", "mock");
 
-    let id_file = std::env::temp_dir().join(format!(
-        "syx-p136-farm-key-id-{}.id",
-        std::process::id()
-    ));
-    let label_file = std::env::temp_dir().join(format!(
-        "syx-p136-farm-label-{}.lbl",
-        std::process::id()
-    ));
-    let pin_file = std::env::temp_dir().join(format!(
-        "syx-p136-farm-pin-{}.pin",
-        std::process::id()
-    ));
+    let id_file =
+        std::env::temp_dir().join(format!("syx-p136-farm-key-id-{}.id", std::process::id()));
+    let label_file =
+        std::env::temp_dir().join(format!("syx-p136-farm-label-{}.lbl", std::process::id()));
+    let pin_file =
+        std::env::temp_dir().join(format!("syx-p136-farm-pin-{}.pin", std::process::id()));
     let _ = fs::remove_file(&id_file);
     let _ = fs::remove_file(&label_file);
     let _ = fs::remove_file(&pin_file);

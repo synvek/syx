@@ -64,10 +64,8 @@ fn r28_browser_compile_uses_print_capture() {
         compile.contains("print({}") || compile.contains("print(42)"),
         "smoke sources must print the expected value for AOT exit=0"
     );
-    let e2e = std::fs::read_to_string(repo_path(
-        "crates/syx-driver/tests/browser/browser_e2e.rs",
-    ))
-    .expect("browser_e2e.rs");
+    let e2e = std::fs::read_to_string(repo_path("crates/syx-driver/tests/browser/browser_e2e.rs"))
+        .expect("browser_e2e.rs");
     assert!(
         e2e.contains("print(99)") && e2e.contains("run_wasm_capture"),
         "e2e return-value test must use print/capture"
@@ -76,10 +74,8 @@ fn r28_browser_compile_uses_print_capture() {
 
 #[test]
 fn r28_e2e_paths_from_syx_driver_manifest() {
-    let e2e = std::fs::read_to_string(repo_path(
-        "crates/syx-driver/tests/browser/browser_e2e.rs",
-    ))
-    .expect("browser_e2e.rs");
+    let e2e = std::fs::read_to_string(repo_path("crates/syx-driver/tests/browser/browser_e2e.rs"))
+        .expect("browser_e2e.rs");
     assert!(
         e2e.contains("../../crates/syx-compiler-wasm/Cargo.toml"),
         "e2e_compiler_wasm path must be ../../crates/…"

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -65,8 +64,7 @@ fn s4_05_doctor_native_sdk_hinge_adr_and_files() {
 
     let prior = repo_file("docs/adr/stage4-s4-05-open.md");
     assert!(
-        prior.contains("S3-I105")
-            || prior.contains("stage4-s4-05-doctor-native-sdk-hinge"),
+        prior.contains("S3-I105") || prior.contains("stage4-s4-05-doctor-native-sdk-hinge"),
         "I104 ADR must cite landed I105"
     );
 
@@ -93,8 +91,7 @@ fn s4_05_doctor_native_sdk_hinge_adr_and_files() {
         "plan/01 must cite I105 / 5/5"
     );
     assert!(
-        plan01.contains("S3-I107")
-            && (plan01.contains("S3-I108") || plan01.contains("exit-open")),
+        plan01.contains("S3-I107") && (plan01.contains("S3-I108") || plan01.contains("exit-open")),
         "plan/01 must cite I107 / next I108"
     );
 }

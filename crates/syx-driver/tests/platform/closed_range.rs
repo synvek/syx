@@ -25,7 +25,10 @@ fn closed_range_run_file_printed() {
     assert_eq!(lines[1].trim(), "false", "1...5 contains 6: {printed:?}");
     assert_eq!(lines[2].trim(), "true", "1...5 contains 1: {printed:?}");
     assert_eq!(lines[3].trim(), "6", "for-in 1...3 sum: {printed:?}");
-    assert_eq!(lines[4].trim(), "small", "switch 1...3 matches 3: {printed:?}");
+    assert_eq!(
+        lines[4].trim(),
+        "small",
+        "switch 1...3 matches 3: {printed:?}"
+    );
     assert_eq!(lines[5].trim(), "other", "switch default: {printed:?}");
 }
-

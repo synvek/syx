@@ -24,8 +24,14 @@ fn write_src(label: &str, src: &str) -> std::path::PathBuf {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let path = dir.join("main.sy");
-    let body = if src.contains("import Math") { src.to_string() } else { format!("import Math
-{src}") };
+    let body = if src.contains("import Math") {
+        src.to_string()
+    } else {
+        format!(
+            "import Math
+{src}"
+        )
+    };
     fs::write(&path, body).expect("write main");
     path
 }
@@ -46,8 +52,7 @@ fn run_wasm(label: &str, src: &str) -> String {
     let path = write_src(label, src);
     let mut opts = DriverOptions::default();
     opts.wasm_aot = true;
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines_joined(&lines)
 }
@@ -265,8 +270,7 @@ func main() {
 "#;
 
 // nextUp/Down: pin printed f32 ulp strings (same as math Soft smoke).
-const MATH_F32_METHODS_SLICE4_SMOKE_EXPECTED: &str =
-    "0\n0\n0\n0\n0\n-1\n1.0000001\n0.99999994";
+const MATH_F32_METHODS_SLICE4_SMOKE_EXPECTED: &str = "0\n0\n0\n0\n0\n-1\n1.0000001\n0.99999994";
 
 #[test]
 fn math_f32_methods_soft_remainder_smoke_native_mir() {
@@ -438,4 +442,3 @@ func main() {
         "instance vs Math.*f parity: {out}"
     );
 }
-

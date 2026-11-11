@@ -6,28 +6,29 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_04_jit_env_gate_cache_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-04-jit-env-gate-cache.md");
-    assert!(adr.contains("S3-I66"), "jit-env-gate-cache ADR must name S3-I66");
     assert!(
-        adr.contains("AtomicU8")
-            || adr.contains("env::var")
-            || adr.contains("门闩"),
+        adr.contains("S3-I66"),
+        "jit-env-gate-cache ADR must name S3-I66"
+    );
+    assert!(
+        adr.contains("AtomicU8") || adr.contains("env::var") || adr.contains("门闩"),
         "ADR must name JIT env gate cache hinge"
     );
     assert!(
         adr.contains("S3-I67")
-            && (adr.contains("can_stack_bind") || adr.contains("stack-bind") || adr.contains("stage3-s3-04-can-stack-bind-cache")),
+            && (adr.contains("can_stack_bind")
+                || adr.contains("stack-bind")
+                || adr.contains("stage3-s3-04-can-stack-bind-cache")),
         "ADR must cite landed S3-I67 can-stack-bind-cache"
     );
     assert!(
-        adr.contains("≠")
-            && (adr.contains("0.5") || adr.contains("[x]") || adr.contains("JIT")),
+        adr.contains("≠") && (adr.contains("0.5") || adr.contains("[x]") || adr.contains("JIT")),
         "ADR must Non-claim S3-04 [x] / 0.5 / default JIT"
     );
 
@@ -79,8 +80,7 @@ fn s3_04_jit_env_gate_cache_adr_and_census() {
 
     let prior = repo_file("docs/adr/stage3-s3-04-tryfree-dispatch.md");
     assert!(
-        prior.contains("S3-I66")
-            || prior.contains("stage3-s3-04-jit-env-gate-cache"),
+        prior.contains("S3-I66") || prior.contains("stage3-s3-04-jit-env-gate-cache"),
         "I65 ADR must cite landed I66"
     );
 
@@ -97,19 +97,14 @@ fn s3_04_jit_env_gate_cache_adr_and_census() {
         plan02.contains("S3-I66") || plan02.contains("jit-env-gate"),
         "plan/02 must cite S3-I66"
     );
-    assert!(
-        plan02.contains("S3-I72"),
-        "plan/02 must lock next = S3-I72"
-    );
+    assert!(plan02.contains("S3-I72"), "plan/02 must lock next = S3-I72");
 }
 
 #[test]
 fn s3_04_jit_env_gate_cache_census_script_emits_hinge() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_04_vm_hotspot_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run vm-hotspot census");
     assert!(

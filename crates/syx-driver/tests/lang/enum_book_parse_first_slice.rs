@@ -40,9 +40,9 @@ fn s1_03_enum_associated_unlabeled_and_error_conformance_parses() {
         .decls
         .iter()
         .find_map(|d| match d {
-            Decl::Enum {
-                name, cases, ..
-            } if name.as_str() == "NetworkResult" => Some(cases.clone()),
+            Decl::Enum { name, cases, .. } if name.as_str() == "NetworkResult" => {
+                Some(cases.clone())
+            }
             _ => None,
         })
         .expect("NetworkResult enum");

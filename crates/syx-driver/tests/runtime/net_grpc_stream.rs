@@ -12,11 +12,9 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_net_grpc_stream_loopback_stdout() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let resp = __syx_grpc_stream_client("echo", "88")
     print(resp)
-}"#,
-    );
+}"#);
     assert!(out.contains("88") || out.contains("stream"), "{out}");
 }

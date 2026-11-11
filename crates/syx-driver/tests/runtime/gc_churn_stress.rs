@@ -23,7 +23,6 @@ fn churn_lines(lines: &[String]) -> usize {
     lines.iter().filter(|l| l.contains("gc:churn:")).count()
 }
 
-
 #[test]
 fn p98_gc_churn_stress_quad_two_plus_lines() {
     syx_host_plugin::register_echo_plugin_in_process();

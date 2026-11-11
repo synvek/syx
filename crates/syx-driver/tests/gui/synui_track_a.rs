@@ -15,10 +15,7 @@ fn p117_gui_doctor_backend_report_engine() {
             gui_doctor_coverage_digest(),
             "gui-doctor-engine-v5:phase117"
         );
-        assert_eq!(
-            gui_emoji_digest(),
-            "gui-emoji-v9:font-radial-and-sweep"
-        );
+        assert_eq!(gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
     }
 }
 

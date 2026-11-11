@@ -5,19 +5,10 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_delivery_ack_clear,
-    cdn_delivery_ack_count,
-    cdn_doctor_mode,
-    cdn_pop_clear,
-    cdn_pop_configure,
-    cdn_pop_has_endpoints,
-    cdn_pop_health,
-    cdn_pop_multi_hostkey_route_ready,
-    cdn_pop_route,
-    dist_connect_url_is_loopback,
-    dist_host_key_remote_for_bind,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_delivery_ack_clear, cdn_delivery_ack_count, cdn_doctor_mode, cdn_pop_clear,
+    cdn_pop_configure, cdn_pop_has_endpoints, cdn_pop_health, cdn_pop_multi_hostkey_route_ready,
+    cdn_pop_route, dist_connect_url_is_loopback, dist_host_key_remote_for_bind,
+    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P119_DIST_LOCK: Mutex<()> = Mutex::new(());
@@ -33,7 +24,6 @@ fn spawn_remote_pop(max_conns: usize) -> (String, String, String, syx_async::Arc
     (region, host_key, connect_url, stop)
 }
 
-
 #[test]
 fn dist_multi_hostkey_cdn_pop_multi_hostkey_route_e2e() {
     let _guard = P119_DIST_LOCK.lock().unwrap();
@@ -42,7 +32,10 @@ fn dist_multi_hostkey_cdn_pop_multi_hostkey_route_e2e() {
 
     let (region_a, key_a, url_a, stop_a) = spawn_remote_pop(8);
     let (region_b, key_b, url_b, stop_b) = spawn_remote_pop(8);
-    assert_ne!(key_a, key_b, "multi-hostkey PoPs must have distinct hostkeys");
+    assert_ne!(
+        key_a, key_b,
+        "multi-hostkey PoPs must have distinct hostkeys"
+    );
 
     cdn_pop_configure(&[
         (region_a.as_str(), key_a.as_str(), url_a.as_str()),

@@ -4,8 +4,8 @@
 use crate::{
     contextual_numeric_kinds_from_semantic, core_prelude_generic_class_methods,
     core_prelude_import_symbols, export_symbols, inject_core_collection_builtins,
-    inject_imported_dataclass_decls, inject_virtual_prelude_imports, resolve_module,
-    DriverOptions, ModuleGraph, ModuleUnit,
+    inject_imported_dataclass_decls, inject_virtual_prelude_imports, resolve_module, DriverOptions,
+    ModuleGraph, ModuleUnit,
 };
 use indexmap::IndexMap;
 use smol_str::SmolStr;
@@ -303,7 +303,9 @@ pub(crate) fn mir_merge_stdlib_function(
     false
 }
 
-pub(crate) fn collect_stdlib_extension_methods(graph: &ModuleGraph) -> indexmap::IndexSet<(SmolStr, SmolStr)> {
+pub(crate) fn collect_stdlib_extension_methods(
+    graph: &ModuleGraph,
+) -> indexmap::IndexSet<(SmolStr, SmolStr)> {
     let mut set = indexmap::IndexSet::new();
     for (path, dep) in &graph.modules {
         if !path.to_string_lossy().contains("<stdlib>/") {
@@ -460,7 +462,10 @@ pub(crate) fn build_mir_from_graph(
             let dep_module = expand_macros(dep_module)?;
             let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
             inject_virtual_prelude_imports(&mut dep_mono, options);
-            syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_dataclass_shells(&dep_mono));
+            syx_mir::merge_mir_shell_functions(
+                &mut mir,
+                syx_mir::lower_dataclass_shells(&dep_mono),
+            );
             syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
             let dep_mir = lower_module(&dep_mono)?;
             let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");

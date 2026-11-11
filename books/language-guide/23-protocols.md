@@ -117,7 +117,8 @@ protocol Iterator {
 
 > **Return type (stable subset):** the pinnable subset is `Int?` (`nil` terminates); the generic `Element?` full type surface remains open. A custom `class: Iterator` can be traversed by `for-in` (Phase 71+).
 
-```syx
+```syx,output
+// prints: 6
 class Counter: Iterator {
     var n: Int
     init() { self.n = 0 }
@@ -131,11 +132,11 @@ class Counter: Iterator {
 func main() {
     var s: Int = 0
     for x in Counter() { s = s + x }
-    print(s)                                  // 6
+    print(s)
 }
 ```
 
-> **Phase 71 three-back-end strict:** custom `Iterator` `for-in` behaves identically on the VM / unified MIR / WASM back ends. Pinning test: `m2_s1_01_collection_sequence_iterator`.
+> **Phase 71 three-back-end strict:** custom `Iterator` `for-in` behaves identically on the VM / unified MIR / WASM back ends. Pinning test: `m2_s1_01_collection_sequence_iterator`. **R-38:** this fence is an opt-in `sy,output` stdout pin (SEM-ITER).
 
 ## The Sequence Protocol
 
@@ -286,6 +287,51 @@ func main() {
     let shapes: Array<Shape> = [Circle(r: 2.0), Square(s: 3.0)]
     for s in shapes { print(s.describe()) }
     print("total=\(total(shapes))")
+}
+```
+
+### Existential `Array<Shape>` witness (R-38 · SEM-EXIST)
+
+Stdout pin matching the R-34 fixture (`describe` + `total * 100`):
+
+```syx,output
+// prints: circle\nsquare\n2156.636
+protocol Shape {
+    func area() -> Double
+    func describe() -> String
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * self.r * self.r }
+    func describe() -> String { return "circle" }
+}
+
+class Square: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return self.s * self.s }
+    func describe() -> String { return "square" }
+}
+
+func total(_ shapes: Array<Shape>) -> Double {
+    var sum = 0.0
+    for s in shapes {
+        sum = sum + s.area()
+    }
+    return sum
+}
+
+func main() {
+    let c = Circle(r: 2.0)
+    let q = Square(s: 3.0)
+    let shapes: Array<Shape> = [c, q]
+    for s in shapes {
+        print(s.describe())
+    }
+    let t = total([c, q])
+    print(t * 100.0)
 }
 ```
 

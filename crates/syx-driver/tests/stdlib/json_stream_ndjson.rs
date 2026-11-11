@@ -20,11 +20,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w219_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w219_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -35,8 +31,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native mir exit {code}: {lines:?}");
     lines
 }
@@ -44,8 +39,7 @@ fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -114,11 +108,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -138,8 +128,7 @@ fn assert_box_stream_roundtrip_line(out: &str) {
 
 #[test]
 fn m2_s7_03_writer_two_users_ndjson() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
@@ -161,8 +150,7 @@ func main() {
     print(err)
   }
 }
-"#,
-    );
+"#);
     // Wave A W76 / ADR-420 / A-03: JSONStream writer NDJSON + buffered encode product exact.
     // finish_writer text ends with trailing newline → blank line before encode print.
     assert_eq!(
@@ -174,8 +162,7 @@ func main() {
 
 #[test]
 fn m2_s7_03_reader_chunk_feed_decode_next() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
@@ -195,8 +182,7 @@ func main() {
     print(err)
   }
 }
-"#,
-    );
+"#);
     // Wave A W76 / ADR-420 / A-03: JSONStream reader chunk-feed decodeNext product exact.
     assert_eq!(
         out,
@@ -207,8 +193,7 @@ func main() {
 
 #[test]
 fn m2_s7_03_missing_key_line_coding_path() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
@@ -224,27 +209,23 @@ func main() {
     print(err.message)
   }
 }
-"#,
-    );
+"#);
     // Wave A W73 / ADR-417 / A-03: JSONStream missing-key line codingPath product exact.
     assert_eq!(
-        out,
-        "caught\nJSONDecoder missing required key 'address' codingPath=line[0].address",
+        out, "caught\nJSONDecoder missing required key 'address' codingPath=line[0].address",
         "JSONStream missing-key line codingPath must exact: {out}"
     );
 }
 
 #[test]
 fn m2_s7_03_dynamic_json_still_green() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let s = __syx_json_encode(42)
   let v = __syx_json_decode(s)
   print(__syx_value_description(v))
 }
-"#,
-    );
+"#);
     let l = lines(&out);
     assert_eq!(l.get(0).copied(), Some("42"), "dynamic JSON: {out}");
 }
@@ -260,10 +241,7 @@ fn m2_s7_03_box_stream_roundtrip_native_mir() {
 
 #[test]
 fn m2_s7_03_box_stream_roundtrip_wasm() {
-    let out = lines_joined(&run_wasm_src(
-        "box_stream_wasm",
-        BOX_STREAM_ROUNDTRIP_BODY,
-    ));
+    let out = lines_joined(&run_wasm_src("box_stream_wasm", BOX_STREAM_ROUNDTRIP_BODY));
     assert_box_stream_roundtrip_line(&out);
 }
 
@@ -323,4 +301,3 @@ fn m2_s7_03_inventory_meta() {
         "inventory must note ADR-232"
     );
 }
-

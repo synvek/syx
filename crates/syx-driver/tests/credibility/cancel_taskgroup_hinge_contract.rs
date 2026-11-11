@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -15,9 +14,7 @@ fn s4_03_cancel_taskgroup_hinge_adr_and_files() {
     let adr = repo_file("docs/adr/stage4-s4-03-cancel-taskgroup-hinge.md");
     assert!(adr.contains("S3-I97"), "hinge ADR must name S3-I97");
     assert!(
-        adr.contains("CancellationToken")
-            || adr.contains("TaskGroup")
-            || adr.contains("cancel"),
+        adr.contains("CancellationToken") || adr.contains("TaskGroup") || adr.contains("cancel"),
         "ADR must publish cancel/TaskGroup Primary"
     );
     assert!(

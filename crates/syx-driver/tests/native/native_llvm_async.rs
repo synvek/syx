@@ -43,4 +43,3 @@ fn p98_native_llvm_async_main_keeps_mir_entry() {
     let ir = emit_llvm_ir(&mir).unwrap();
     assert!(llvm_ir_uses_mir_main_entry(&ir) || ir.contains("AwaitPoll"));
 }
-

@@ -48,8 +48,7 @@ fn r12_text_testing_census_files_exist() {
         "Fmt.format args must be Array<Sendable>"
     );
     assert!(
-        !fmt
-            .lines()
+        !fmt.lines()
             .any(|ln| ln.contains("func ") && ln.contains("Object")),
         "Fmt methods must not spell Object"
     );

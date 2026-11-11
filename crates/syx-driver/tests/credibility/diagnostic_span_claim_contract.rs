@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -41,7 +40,8 @@ fn s3_01_plan_claim_locked() {
         "ADR must cite S3-I43 demangle"
     );
     assert!(
-        adr.contains("S3-I44") && (adr.contains("debug") || adr.contains("stack") || adr.contains("S3-02")),
+        adr.contains("S3-I44")
+            && (adr.contains("debug") || adr.contains("stack") || adr.contains("S3-02")),
         "ADR must cite S3-I44 debug stack"
     );
     assert!(
@@ -88,10 +88,7 @@ fn s3_01_plan_claim_locked() {
     );
 
     let census = repo_file("docs/census/stage3-diagnostic-span-census.md");
-    assert!(
-        census.contains("S3-I41"),
-        "span census must name S3-I41"
-    );
+    assert!(census.contains("S3-I41"), "span census must name S3-I41");
     assert!(
         census.contains("Current:** S3-I47") || census.contains("Current: S3-I47"),
         "census Current must be S3-I47"
@@ -105,7 +102,8 @@ fn s3_01_plan_claim_locked() {
         "census must name S3-I43 demangle"
     );
     assert!(
-        census.contains("S3-I44") && (census.contains("debug") || census.contains("stack") || census.contains("S3-02")),
+        census.contains("S3-I44")
+            && (census.contains("debug") || census.contains("stack") || census.contains("S3-02")),
         "census must name S3-I44 debug stack"
     );
     assert!(
@@ -120,10 +118,7 @@ fn s3_01_plan_claim_locked() {
         census.contains("S3-I47") && census.contains("claim"),
         "census must name S3-I47 claim"
     );
-    assert!(
-        census.contains("S3-03"),
-        "census ladder must next = S3-03"
-    );
+    assert!(census.contains("S3-03"), "census ladder must next = S3-03");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(

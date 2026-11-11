@@ -25,11 +25,8 @@ fn run_wasm(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     std::env::remove_var("SYX_WASM_ZERO_MIR_EXEC");
     std::env::remove_var("SYX_WASM_AOT_STATS");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_codable_wasm_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_codable_wasm_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");

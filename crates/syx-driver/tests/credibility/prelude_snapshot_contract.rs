@@ -6,14 +6,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_03_prelude_snapshot_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-03-prelude-snapshot.md");
-    assert!(adr.contains("S3-I49"), "prelude-snapshot ADR must name S3-I49");
+    assert!(
+        adr.contains("S3-I49"),
+        "prelude-snapshot ADR must name S3-I49"
+    );
     assert!(
         adr.contains("load_prelude_snapshot") || adr.contains("PreludeSnapshot"),
         "ADR must name load/store hinge"
@@ -24,28 +26,23 @@ fn s3_03_prelude_snapshot_adr_and_census() {
         "ADR must cite landed S3-I50 warm trim"
     );
     assert!(
-        adr.contains("S3-I51")
-            && (adr.contains("fixed tax") || adr.contains("warm-fixed-tax")),
+        adr.contains("S3-I51") && (adr.contains("fixed tax") || adr.contains("warm-fixed-tax")),
         "ADR must cite landed S3-I51 warm fixed tax"
     );
     assert!(
-        adr.contains("S3-I52")
-            && (adr.contains("residual") || adr.contains("warm-residual")),
+        adr.contains("S3-I52") && (adr.contains("residual") || adr.contains("warm-residual")),
         "ADR must cite landed S3-I52 warm residual"
     );
     assert!(
-        adr.contains("S3-I53")
-            && (adr.contains("roundtrip") || adr.contains("cache-roundtrip")),
+        adr.contains("S3-I53") && (adr.contains("roundtrip") || adr.contains("cache-roundtrip")),
         "ADR must cite landed S3-I53 cache roundtrip"
     );
     assert!(
-        adr.contains("S3-I54")
-            && (adr.contains("embed") || adr.contains("prelude-embed")),
+        adr.contains("S3-I54") && (adr.contains("embed") || adr.contains("prelude-embed")),
         "ADR must cite landed S3-I54 prelude embed"
     );
     assert!(
-        adr.contains("S3-I55")
-            && (adr.contains("stage3-s3-03-claim") || adr.contains("claim")),
+        adr.contains("S3-I55") && (adr.contains("stage3-s3-03-claim") || adr.contains("claim")),
         "ADR must cite landed S3-I55 claim"
     );
     assert!(
@@ -73,8 +70,7 @@ fn s3_03_prelude_snapshot_adr_and_census() {
 
     let open_adr = repo_file("docs/adr/stage3-s3-03-open.md");
     assert!(
-        open_adr.contains("S3-I49")
-            && open_adr.contains("stage3-s3-03-prelude-snapshot"),
+        open_adr.contains("S3-I49") && open_adr.contains("stage3-s3-03-prelude-snapshot"),
         "open ADR must cite landed S3-I49"
     );
 
@@ -111,9 +107,7 @@ fn s3_03_prelude_snapshot_adr_and_census() {
 fn s3_03_prelude_snapshot_census_script_emits_hit_kpi() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_03_stdlib_cache_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run stdlib-cache census");
     assert!(

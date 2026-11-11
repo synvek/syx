@@ -5,20 +5,14 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-use syx_driver::{
-    build_native_executable, run_wasm_source_printed, DriverOptions,
-};
+use syx_driver::{build_native_executable, run_wasm_source_printed, DriverOptions};
 
 fn opts() -> DriverOptions {
     DriverOptions::default()
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w267_fmt_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w267_fmt_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -29,8 +23,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -57,11 +50,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -95,7 +84,10 @@ fn m2_fmt_print_native_llvm() {
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
     // FmtPrint has no trailing newline; trim empty lines still yields "hi".
-    assert_eq!(out, "hi", "native llvm fmt_print(hi) must exact: {out:?} stdout={stdout:?}");
+    assert_eq!(
+        out, "hi",
+        "native llvm fmt_print(hi) must exact: {out:?} stdout={stdout:?}"
+    );
 }
 
 #[test]
@@ -108,7 +100,10 @@ fn m2_fmt_print_line_native_llvm() {
         .collect::<Vec<_>>()
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
-    assert_eq!(out, "hi", "native llvm fmt_print_line(hi) must exact: {out}");
+    assert_eq!(
+        out, "hi",
+        "native llvm fmt_print_line(hi) must exact: {out}"
+    );
 }
 
 #[test]
@@ -122,4 +117,3 @@ fn m2_fmt_print_line_wasm() {
     let out = lines_joined(&run_wasm_src("fmt_print_line_wasm", FMT_PRINT_LINE_HI));
     assert_eq!(out, "hi", "wasm fmt_print_line(hi) must exact: {out}");
 }
-

@@ -13,7 +13,6 @@ fn expr_type_ident_name(expr: &Expr) -> Option<&str> {
     }
 }
 
-
 fn simd_element_from_type_suffix(suffix: &str) -> u8 {
     match suffix {
         "Float64" | "Double" | "f64" => syx_stdlib::NumericKind::F64.to_byte(),
@@ -26,13 +25,11 @@ fn simd_element_from_type_suffix(suffix: &str) -> u8 {
     }
 }
 
-
 pub(crate) fn simd_member_lanes_element(object: &Expr) -> (u8, u8) {
     expr_type_ident_name(object)
         .map(simd_lanes_element_from_type)
         .unwrap_or((4, syx_stdlib::NumericKind::I32.to_byte()))
 }
-
 
 fn simd_lanes_element_from_type(type_name: &str) -> (u8, u8) {
     if let Some(open) = type_name.find('<') {
@@ -45,22 +42,15 @@ fn simd_lanes_element_from_type(type_name: &str) -> (u8, u8) {
         return (lanes, simd_element_from_type_suffix(elem));
     }
     if type_name == "SIMD2" {
-        (
-            2,
-            syx_stdlib::NumericKind::F64.to_byte(),
-        )
+        (2, syx_stdlib::NumericKind::F64.to_byte())
     } else if type_name == "SIMD8" {
         (8, syx_stdlib::NumericKind::I16.to_byte())
     } else if type_name == "SIMD16" {
         (16, syx_stdlib::NumericKind::I8.to_byte())
     } else {
-        (
-            4,
-            syx_stdlib::NumericKind::I32.to_byte(),
-        )
+        (4, syx_stdlib::NumericKind::I32.to_byte())
     }
 }
-
 
 pub(crate) fn infer_simd_element_from_array_arg(args: &[CallArg], ctx: &LowerCtx) -> u8 {
     let Some(first) = args.first() else {
@@ -105,7 +95,6 @@ pub(crate) fn infer_simd_element_from_array_arg(args: &[CallArg], ctx: &LowerCtx
     syx_stdlib::NumericKind::I32.to_byte()
 }
 
-
 pub(crate) fn infer_simd_element_from_reduce_arg(arg: &Expr, ctx: &LowerCtx) -> Option<u8> {
     match arg {
         Expr::Call { callee, args, .. } => {
@@ -123,8 +112,10 @@ pub(crate) fn infer_simd_element_from_reduce_arg(arg: &Expr, ctx: &LowerCtx) -> 
                     "addI64" => {
                         return Some(syx_stdlib::NumericKind::I64.to_byte());
                     }
-                    "addSat" | "subSat" | "add" | "sub" | "mul" | "eq" | "lt" | "gt" | "min" | "max"
-                    | "and" | "or" | "xor" | "not" | "shl" | "shr" if !args.is_empty() => {
+                    "addSat" | "subSat" | "add" | "sub" | "mul" | "eq" | "lt" | "gt" | "min"
+                    | "max" | "and" | "or" | "xor" | "not" | "shl" | "shr"
+                        if !args.is_empty() =>
+                    {
                         if let Some(type_name) = expr_type_ident_name(object) {
                             let (_, element) = simd_lanes_element_from_type(type_name);
                             return Some(element);
@@ -151,7 +142,6 @@ pub(crate) fn infer_simd_element_from_reduce_arg(arg: &Expr, ctx: &LowerCtx) -> 
     }
 }
 
-
 fn infer_simd_element_from_expr(expr: &Expr) -> Option<u8> {
     match expr {
         Expr::Literal {
@@ -172,17 +162,18 @@ fn infer_simd_element_from_expr(expr: &Expr) -> Option<u8> {
             value: Literal::Integer { suffix, .. },
             ..
         } => {
-            let ty = suffix.as_deref().unwrap_or(if cfg!(target_pointer_width = "64") {
-                "i64"
-            } else {
-                "i32"
-            });
+            let ty = suffix
+                .as_deref()
+                .unwrap_or(if cfg!(target_pointer_width = "64") {
+                    "i64"
+                } else {
+                    "i32"
+                });
             Some(simd_element_from_type_suffix(ty))
         }
         _ => None,
     }
 }
-
 
 pub(crate) fn simd_reduce_add_shape(callee: &Expr, func_name: &str) -> (u8, u8) {
     if let Expr::Call { callee: inner, .. } = callee {
@@ -197,7 +188,6 @@ pub(crate) fn simd_reduce_add_shape(callee: &Expr, func_name: &str) -> (u8, u8) 
     }
     (4, syx_stdlib::NumericKind::I32.to_byte())
 }
-
 
 /// Host SIMD calls that lower their own args onto the MIR stack; skip ArgsEarly pre-pass.
 ///
@@ -267,10 +257,13 @@ pub(crate) fn host_simd_lowers_own_args(name: &str) -> bool {
     })
 }
 
-
 /// Static SIMD member calls that lower their own args; skip ArgsEarly dupes.
 /// `fromArray` is intentionally excluded — see `host_simd_lowers_own_args`.
-pub(crate) fn member_host_simd_lowers_own_args(object: &Expr, method: &str, ctx: &LowerCtx) -> bool {
+pub(crate) fn member_host_simd_lowers_own_args(
+    object: &Expr,
+    method: &str,
+    ctx: &LowerCtx,
+) -> bool {
     resolve_host_call(object, method, ctx).is_some_and(|(h, _)| {
         matches!(
             h,
@@ -333,7 +326,6 @@ pub(crate) fn member_host_simd_lowers_own_args(object: &Expr, method: &str, ctx:
     })
 }
 
-
 fn parse_simd_type(type_name: &str) -> Option<(u8, syx_stdlib::NumericKind)> {
     let rest = type_name.strip_prefix("SIMD")?;
     let (lanes_str, inner) = rest.split_once('<')?;
@@ -342,8 +334,10 @@ fn parse_simd_type(type_name: &str) -> Option<(u8, syx_stdlib::NumericKind)> {
     from_type_name(elem).map(|k| (lanes, k))
 }
 
-
-pub(crate) fn infer_expr_simd_type(expr: &Expr, ctx: &LowerCtx) -> Option<(u8, syx_stdlib::NumericKind)> {
+pub(crate) fn infer_expr_simd_type(
+    expr: &Expr,
+    ctx: &LowerCtx,
+) -> Option<(u8, syx_stdlib::NumericKind)> {
     if let Expr::Ident { name, .. } = expr {
         return ctx
             .local_types
@@ -352,4 +346,3 @@ pub(crate) fn infer_expr_simd_type(expr: &Expr, ctx: &LowerCtx) -> Option<(u8, s
     }
     None
 }
-

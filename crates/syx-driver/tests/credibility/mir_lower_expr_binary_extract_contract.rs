@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -48,8 +47,7 @@ fn s2_05_mir_lower_expr_binary_extract_baseline() {
         "Unary remains reachable (lib arm or mir_lower_expr_unary after I179)"
     );
     assert!(
-        (lib.contains("pub(crate) fn binary_numeric_kind")
-            || lib.contains("binary_numeric_kind,"))
+        (lib.contains("pub(crate) fn binary_numeric_kind") || lib.contains("binary_numeric_kind,"))
             && (lib.contains("pub(crate) fn binop_operator_symbol")
                 || lib.contains("binop_operator_symbol,")),
         "Binary helpers must be pub(crate) in lib.rs (def or re-export)"

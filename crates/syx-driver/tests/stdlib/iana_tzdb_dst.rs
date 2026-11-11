@@ -27,11 +27,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w221_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w221_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -42,8 +38,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native mir exit {code}: {lines:?}");
     lines
 }
@@ -51,8 +46,7 @@ fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -79,11 +73,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -178,13 +168,15 @@ fn m2_s5_02_ny_dst_offset_native_llvm() {
         .collect::<Vec<_>>()
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
-    assert_eq!(out, "-300", "native llvm NY winter offset must exact: {out}");
+    assert_eq!(
+        out, "-300",
+        "native llvm NY winter offset must exact: {out}"
+    );
 }
 
 #[test]
 fn m2_s5_02_format_with_timezone_ny() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   do {
     let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
@@ -198,12 +190,10 @@ func main() {
     print(err)
   }
 }
-"#,
-    );
+"#);
     // Wave A W78 / ADR-422 / A-03: IANA formatWithTimezone NY product exact.
     assert_eq!(
-        out,
-        "2024-01-15T07:00:00.000-05:00\n2024-07-15T08:00:00.000-04:00",
+        out, "2024-01-15T07:00:00.000-05:00\n2024-07-15T08:00:00.000-04:00",
         "formatWithTimezone NY must exact: {out}"
     );
 }
@@ -226,15 +216,13 @@ fn m2_s5_02_format_with_timezone_ny_native_llvm() {
 
 #[test]
 fn m2_s5_02_leap_day_still_green() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let o = __syx_datetime_parse_iso8601("2020-02-29")
   let ms = __syx_keypath_get(o, "DateTime", "ms", false)
   print(__syx_datetime_format(ms, "iso"))
 }
-"#,
-    );
+"#);
     // Wave A W74 / ADR-418 / A-03: IANA leap-day ISO product exact.
     assert_eq!(
         out, "2020-02-29T00:00:00.000Z",
@@ -244,8 +232,7 @@ func main() {
 
 #[test]
 fn m2_s5_02_unknown_zone_u001() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   do {
     print(__syx_datetime_timezone_offset(0, "Not/AZone"))
@@ -255,12 +242,10 @@ func main() {
     print(err.message)
   }
 }
-"#,
-    );
+"#);
     // Wave A W74 / ADR-418 / A-03: IANA unknown zone U001 product exact.
     assert_eq!(
-        out,
-        "caught\nDateTime: unknown IANA timezone \"Not/AZone\" (no tzdb match)",
+        out, "caught\nDateTime: unknown IANA timezone \"Not/AZone\" (no tzdb match)",
         "unknown zone U001 must exact: {out}"
     );
 }
@@ -277,4 +262,3 @@ fn m2_s5_02_inventory_meta() {
         "inventory must note ADR-233"
     );
 }
-

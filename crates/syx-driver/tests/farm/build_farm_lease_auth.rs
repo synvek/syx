@@ -20,8 +20,6 @@ fn with_lease_auth<F: FnOnce()>(f: F) {
     farm_lease_reset();
 }
 
-
-
 #[test]
 fn p105_farm_tcp_no_auth_get_put_err() {
     without_lease_auth(|| {
@@ -100,7 +98,6 @@ fn p104_farm_dual_node_expired_get_put_err() {
         );
     });
 }
-
 
 #[test]
 fn p105_farm_tcp_multi_accept_smoke() {

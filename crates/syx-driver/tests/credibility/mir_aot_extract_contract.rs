@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -45,7 +44,8 @@ fn s2_05_mir_aot_extract_baseline() {
         "lib.rs must pub-use mir_aot surface"
     );
     assert!(
-        !lib.lines().any(|l| l.starts_with("pub fn shaken_module_for_aot_blob")),
+        !lib.lines()
+            .any(|l| l.starts_with("pub fn shaken_module_for_aot_blob")),
         "shaken_module_for_aot_blob definition must leave lib.rs"
     );
     assert!(

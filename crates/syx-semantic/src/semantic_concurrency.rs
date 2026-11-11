@@ -3,14 +3,12 @@
 
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
-    attr_has_ident_arg, borrow_regions_v7_sending_enabled,
-    global_actor_v4_cross_module_enabled, global_actor_v5_sendable_enabled,
-    global_actor_v6_sending_enabled, has_attr, module_first_task_detach_span, TypeId,
+    attr_has_ident_arg, borrow_regions_v7_sending_enabled, global_actor_v4_cross_module_enabled,
+    global_actor_v5_sendable_enabled, global_actor_v6_sending_enabled, has_attr,
+    module_first_task_detach_span, TypeId,
 };
 use smol_str::SmolStr;
-use syx_ast::{
-    Decl, Expr, Module, Stmt,
-};
+use syx_ast::{Decl, Expr, Module, Stmt};
 
 impl SemanticAnalyzer {
     pub fn check_concurrency_rules(&mut self, module: &Module) {
@@ -42,22 +40,12 @@ impl SemanticAnalyzer {
             if let Decl::Function { name, body, .. } = decl {
                 let caller_actor = self.caller_global_actor(name);
                 let caller_nonisolated = self.nonisolated_functions.contains(name);
-                self.check_stmts_concurrency(
-                    body,
-                    caller_actor.as_ref(),
-                    caller_nonisolated,
-                    None,
-                );
+                self.check_stmts_concurrency(body, caller_actor.as_ref(), caller_nonisolated, None);
             }
             if let Decl::Actor { name, members, .. } = decl {
                 for member in members {
                     if let Decl::Function { body, .. } = member {
-                        self.check_stmts_concurrency(
-                            body,
-                            Some(name),
-                            false,
-                            Some(name.clone()),
-                        );
+                        self.check_stmts_concurrency(body, Some(name), false, Some(name.clone()));
                     }
                 }
             }
@@ -103,19 +91,40 @@ impl SemanticAnalyzer {
         enclosing_actor: Option<&SmolStr>,
     ) {
         match stmt {
-            Stmt::Expr { expr, .. } | Stmt::Print { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
-                self.check_expr_concurrency(expr, caller_actor, caller_nonisolated, enclosing_actor);
+            Stmt::Expr { expr, .. }
+            | Stmt::Print { expr, .. }
+            | Stmt::Return {
+                value: Some(expr), ..
+            } => {
+                self.check_expr_concurrency(
+                    expr,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
             }
-            Stmt::VarDecl { init: Some(expr), .. } => {
-                self.check_expr_concurrency(expr, caller_actor, caller_nonisolated, enclosing_actor);
+            Stmt::VarDecl {
+                init: Some(expr), ..
+            } => {
+                self.check_expr_concurrency(
+                    expr,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
             }
-        Stmt::If {
-            condition,
-            then_branch,
-            else_branch,
-            ..
-        } => {
-            self.check_expr_concurrency(condition, caller_actor, caller_nonisolated, enclosing_actor);
+            Stmt::If {
+                condition,
+                then_branch,
+                else_branch,
+                ..
+            } => {
+                self.check_expr_concurrency(
+                    condition,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
                 self.check_stmts_concurrency(
                     then_branch,
                     caller_actor,
@@ -137,8 +146,15 @@ impl SemanticAnalyzer {
                 caller_nonisolated,
                 enclosing_actor.cloned(),
             ),
-            Stmt::While { condition, body, .. } => {
-                self.check_expr_concurrency(condition, caller_actor, caller_nonisolated, enclosing_actor);
+            Stmt::While {
+                condition, body, ..
+            } => {
+                self.check_expr_concurrency(
+                    condition,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
                 self.check_stmts_concurrency(
                     body,
                     caller_actor,
@@ -172,7 +188,9 @@ impl SemanticAnalyzer {
         enclosing_actor: Option<&SmolStr>,
     ) {
         match expr {
-            Expr::Call { callee, args, span, .. } => {
+            Expr::Call {
+                callee, args, span, ..
+            } => {
                 if let Expr::Ident { name, .. } = callee.as_ref() {
                     if let Some(required) = self.function_global_actor.get(name) {
                         if !caller_nonisolated
@@ -190,7 +208,12 @@ impl SemanticAnalyzer {
                     }
                 }
                 if global_actor_v4_cross_module_enabled() {
-                    if let Expr::Member { object, name: member, .. } = callee.as_ref() {
+                    if let Expr::Member {
+                        object,
+                        name: member,
+                        ..
+                    } = callee.as_ref()
+                    {
                         if let Expr::Ident { name: module, .. } = object.as_ref() {
                             if let Some(required) = self
                                 .import_member_actors
@@ -239,7 +262,12 @@ impl SemanticAnalyzer {
                         ));
                     }
                 }
-                if let Expr::Member { object, name: method, .. } = callee.as_ref() {
+                if let Expr::Member {
+                    object,
+                    name: method,
+                    ..
+                } = callee.as_ref()
+                {
                     if let Some(obj_ty) = self.expr_type(object) {
                         if let TypeId::Named(actor_name) = obj_ty {
                             if self.actor_types.contains(&actor_name)
@@ -269,7 +297,12 @@ impl SemanticAnalyzer {
                         }
                     }
                 }
-                self.check_expr_concurrency(callee, caller_actor, caller_nonisolated, enclosing_actor);
+                self.check_expr_concurrency(
+                    callee,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
                 for arg in args {
                     self.check_expr_concurrency(
                         &arg.value,
@@ -285,21 +318,51 @@ impl SemanticAnalyzer {
                 }
             }
             Expr::Binary { left, right, .. } => {
-                self.check_expr_concurrency(left, caller_actor, caller_nonisolated, enclosing_actor);
-                self.check_expr_concurrency(right, caller_actor, caller_nonisolated, enclosing_actor);
+                self.check_expr_concurrency(
+                    left,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
+                self.check_expr_concurrency(
+                    right,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
             }
             Expr::Unary { expr, .. } => {
-                self.check_expr_concurrency(expr, caller_actor, caller_nonisolated, enclosing_actor);
+                self.check_expr_concurrency(
+                    expr,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
             }
             Expr::Await { expr, .. } => {
-                self.check_expr_concurrency(expr, caller_actor, caller_nonisolated, enclosing_actor);
+                self.check_expr_concurrency(
+                    expr,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
             }
             Expr::Member { object, .. } => {
-                self.check_expr_concurrency(object, caller_actor, caller_nonisolated, enclosing_actor);
+                self.check_expr_concurrency(
+                    object,
+                    caller_actor,
+                    caller_nonisolated,
+                    enclosing_actor,
+                );
             }
             Expr::Closure { body, .. } => match body {
                 syx_ast::ClosureBody::Expr(e) => {
-                    self.check_expr_concurrency(e, caller_actor, caller_nonisolated, enclosing_actor);
+                    self.check_expr_concurrency(
+                        e,
+                        caller_actor,
+                        caller_nonisolated,
+                        enclosing_actor,
+                    );
                 }
                 syx_ast::ClosureBody::Block(stmts) => {
                     self.check_stmts_concurrency(
@@ -325,8 +388,12 @@ impl SemanticAnalyzer {
             match stmt {
                 Stmt::Expr { expr, .. }
                 | Stmt::Print { expr, .. }
-                | Stmt::Return { value: Some(expr), .. } => self.check_capture_expr(expr),
-                Stmt::VarDecl { init: Some(expr), .. } => self.check_capture_expr(expr),
+                | Stmt::Return {
+                    value: Some(expr), ..
+                } => self.check_capture_expr(expr),
+                Stmt::VarDecl {
+                    init: Some(expr), ..
+                } => self.check_capture_expr(expr),
                 Stmt::Block { stmts, .. } => self.check_task_body_captures(stmts),
                 _ => {}
             }
@@ -355,15 +422,15 @@ impl SemanticAnalyzer {
             Expr::Ident { name, span, .. } => {
                 if self.is_non_sendable_binding(name) && self.strict_concurrency {
                     self.errors.push(self.error_at(
-                        format!(
-                            "Non-Sendable value '{name}' captured in Task.detached context"
-                        ),
+                        format!("Non-Sendable value '{name}' captured in Task.detached context"),
                         *span,
                         "C003",
                     ));
                 }
             }
-            Expr::Member { object, name, span, .. } => {
+            Expr::Member {
+                object, name, span, ..
+            } => {
                 if let Some(TypeId::Named(type_name)) = self.expr_type(object) {
                     if self.class_names.contains(&type_name)
                         && !self.sendable_types.contains(&type_name)
@@ -452,7 +519,11 @@ impl SemanticAnalyzer {
         }
     }
 
-    pub(crate) fn collect_function_isolation(&mut self, name: &SmolStr, attrs: &[syx_ast::Attribute]) {
+    pub(crate) fn collect_function_isolation(
+        &mut self,
+        name: &SmolStr,
+        attrs: &[syx_ast::Attribute],
+    ) {
         if has_attr(attrs, "MainActor") {
             self.main_actor_functions.insert(name.clone());
             self.function_global_actor

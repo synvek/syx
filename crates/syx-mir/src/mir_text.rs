@@ -199,9 +199,7 @@ pub fn format_mir_module(module: &MirModule) -> String {
         let _ = writeln!(
             out,
             "params {} locals {} entry {}",
-            func.param_count,
-            func.local_count,
-            func.entry
+            func.param_count, func.local_count, func.entry
         );
 
         if !func.blocks.is_empty() {

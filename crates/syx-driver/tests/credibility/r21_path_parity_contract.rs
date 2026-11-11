@@ -107,7 +107,8 @@ fn r21_shell_merge_replaces_generic_init() {
     )
     .expect("syx-codegen lib.rs");
     assert!(
-        codegen.contains("merge_mir_shell_functions(&mut mir_work, syx_mir::lower_dataclass_shells"),
+        codegen
+            .contains("merge_mir_shell_functions(&mut mir_work, syx_mir::lower_dataclass_shells"),
         "dataclass shells must use the replacing merge"
     );
     assert!(

@@ -6,15 +6,14 @@ use std::sync::Mutex;
 
 use syx_driver::{
     farm_lease_hsm_key_label_doctor_export, farm_lease_pkcs11_active_slot_id,
-    farm_lease_pkcs11_hsm_key_label_mvp_ready,
-    farm_lease_pkcs11_hsm_multi_slot_bind, farm_lease_pkcs11_hsm_multi_slot_mvp_ready,
-    farm_lease_pkcs11_key_label_loaded, farm_lease_pkcs11_key_label_persist,
-    farm_lease_pkcs11_key_label_verify, farm_lease_pkcs11_session_pin_persist,
-    farm_lease_pkcs11_session_pin_verify, farm_lease_pkcs11_slot_list,
-    farm_lease_test_lock, ENV_FARM_PKCS11_KEY_LABEL_FILE, ENV_FARM_PKCS11_PIN_FILE,
+    farm_lease_pkcs11_hsm_key_label_mvp_ready, farm_lease_pkcs11_hsm_multi_slot_bind,
+    farm_lease_pkcs11_hsm_multi_slot_mvp_ready, farm_lease_pkcs11_key_label_loaded,
+    farm_lease_pkcs11_key_label_persist, farm_lease_pkcs11_key_label_verify,
+    farm_lease_pkcs11_session_pin_persist, farm_lease_pkcs11_session_pin_verify,
+    farm_lease_pkcs11_slot_list, farm_lease_test_lock, ENV_FARM_PKCS11_KEY_LABEL_FILE,
+    ENV_FARM_PKCS11_PIN_FILE,
 };
 static P135_FARM_LABEL_BUILD: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn p135_farm_hsm_key_label_doctor_export() {
@@ -27,14 +26,10 @@ fn p135_farm_pkcs11_mock_key_label_persist_check_bind() {
     let _g = farm_lease_test_lock();
     std::env::set_var("SYX_FARM_PKCS11_BRIDGE", "mock");
 
-    let label_file = std::env::temp_dir().join(format!(
-        "syx-p135-farm-label-{}.lbl",
-        std::process::id()
-    ));
-    let pin_file = std::env::temp_dir().join(format!(
-        "syx-p135-farm-pin-{}.pin",
-        std::process::id()
-    ));
+    let label_file =
+        std::env::temp_dir().join(format!("syx-p135-farm-label-{}.lbl", std::process::id()));
+    let pin_file =
+        std::env::temp_dir().join(format!("syx-p135-farm-pin-{}.pin", std::process::id()));
     let _ = fs::remove_file(&label_file);
     let _ = fs::remove_file(&pin_file);
     std::env::set_var(
@@ -57,7 +52,10 @@ fn p135_farm_pkcs11_mock_key_label_persist_check_bind() {
 
     let bound = farm_lease_pkcs11_hsm_multi_slot_bind(slot_a).expect("bind with label");
     assert_eq!(farm_lease_pkcs11_active_slot_id(), Some(slot_a));
-    assert!(bound.contains("-label-lease-key-p135"), "bound ref: {bound}");
+    assert!(
+        bound.contains("-label-lease-key-p135"),
+        "bound ref: {bound}"
+    );
     assert!(farm_lease_pkcs11_hsm_multi_slot_mvp_ready());
     assert!(farm_lease_pkcs11_hsm_key_label_mvp_ready());
 

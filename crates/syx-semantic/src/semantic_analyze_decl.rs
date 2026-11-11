@@ -3,14 +3,11 @@
 
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
-    type_expr_to_id,
-    type_expr_to_id_with_aliases, type_id_to_name, Scope,
-    Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
+    type_expr_to_id, type_expr_to_id_with_aliases, type_id_to_name, Scope, Symbol, TypeId,
+    MAX_COLLECTED_DIAGNOSTICS,
 };
 use smol_str::SmolStr;
-use syx_ast::{
-    AccessLevel, Decl, Expr, TypeExpr,
-};
+use syx_ast::{AccessLevel, Decl, Expr, TypeExpr};
 use syx_diagnostics::SyxResult;
 use syx_stdlib::is_hashable_type;
 
@@ -197,7 +194,13 @@ impl SemanticAnalyzer {
                 }
                 Ok(())
             }
-            Decl::Protocol { methods, name, associated_types, span, .. } => {
+            Decl::Protocol {
+                methods,
+                name,
+                associated_types,
+                span,
+                ..
+            } => {
                 if !associated_types.is_empty() {
                     self.protocol_assoc_types.insert(
                         name.clone(),
@@ -346,7 +349,9 @@ impl SemanticAnalyzer {
                 }
                 Ok(())
             }
-            Decl::Init { span, params, body, .. } => {
+            Decl::Init {
+                span, params, body, ..
+            } => {
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
@@ -378,7 +383,10 @@ impl SemanticAnalyzer {
                 self.analyze_block(body)?;
                 Ok(())
             }
-            Decl::TypeAlias { .. } | Decl::MacroDecl { .. } | Decl::MacroSiteInvoke { .. } | Decl::Subscript { .. } => Ok(()),
+            Decl::TypeAlias { .. }
+            | Decl::MacroDecl { .. }
+            | Decl::MacroSiteInvoke { .. }
+            | Decl::Subscript { .. } => Ok(()),
             Decl::Extension {
                 type_name,
                 where_clause,
@@ -433,10 +441,7 @@ impl SemanticAnalyzer {
                         "S040",
                     ));
                 }
-                if name.as_str() == "Dictionary"
-                    && !generics.is_empty()
-                    && generics.len() < 2
-                {
+                if name.as_str() == "Dictionary" && !generics.is_empty() && generics.len() < 2 {
                     self.errors.push(self.error_at(
                         "Dictionary requires key and value type arguments: Dictionary<K, V> where K: Hashable",
                         span,
@@ -531,10 +536,7 @@ impl SemanticAnalyzer {
             && !self.type_id_satisfies_protocol(elem_ty, "Hashable")
         {
             self.errors.push(self.error_at(
-                format!(
-                    "Set element type '{}' does not satisfy Hashable",
-                    elem_name
-                ),
+                format!("Set element type '{}' does not satisfy Hashable", elem_name),
                 span,
                 "S015",
             ));

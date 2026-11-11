@@ -6,14 +6,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s4_01_residual_scope_adr_and_files() {
     let adr = repo_file("docs/adr/stage4-s4-01-residual-scope.md");
-    assert!(adr.contains("S3-I90"), "residual-scope ADR must name S3-I90");
+    assert!(
+        adr.contains("S3-I90"),
+        "residual-scope ADR must name S3-I90"
+    );
     assert!(
         adr.contains("scoped acceptance")
             || adr.contains("Scoped acceptance")
@@ -146,5 +148,8 @@ fn s4_01_residual_scope_census_script_hinges() {
     assert!(parse("stability_ssot_helper=") >= 1);
     assert!(parse("stability_ssot_package_rows=") >= 19);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
+    assert!(
+        parse("syx_doctest_subcommand_count=") >= 1,
+        "SA-5-05: syx doctest subcommand must exist"
+    );
 }

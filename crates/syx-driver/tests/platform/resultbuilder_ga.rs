@@ -19,26 +19,28 @@ fn fixture(rel: &str) -> PathBuf {
 #[test]
 fn p103_resultbuilder_build_optional_stdout() {
     // Wave A W2 / ADR-346 / A-03: exact lines (was contains "42"/"99")
-    let src = std::fs::read_to_string(fixture("tests/fixtures/lang/resultbuilder_build_optional.sy")).unwrap();
+    let src = std::fs::read_to_string(fixture(
+        "tests/fixtures/lang/resultbuilder_build_optional.sy",
+    ))
+    .unwrap();
     let out = run(&src);
     assert_eq!(out, "2\n42\n99", "buildOptional exact stdout: {out}");
 }
 
 #[test]
 fn p102_resultbuilder_ga_multistmt_nested_stdout() {
-    let src = std::fs::read_to_string(fixture("tests/fixtures/language/resultbuilder_ga.sy")).unwrap();
+    let src =
+        std::fs::read_to_string(fixture("tests/fixtures/language/resultbuilder_ga.sy")).unwrap();
     let out = run(&src);
     assert_eq!(
-        out,
-        "root\nnested-a\nloop\nloop\nrb-ga-done",
+        out, "root\nnested-a\nloop\nloop\nrb-ga-done",
         "stable VStack builder stdout: {out}"
     );
 }
 
 #[test]
 fn p102_resultbuilder_ga_two_expr_flat() {
-    let out = run(
-        r#"@resultBuilder
+    let out = run(r#"@resultBuilder
 func pair() -> Array<String> {
     "one"
     "two"
@@ -47,27 +49,23 @@ func main() {
     let a = pair()
     print(a[0])
     print(a[1])
-}"#,
-    );
+}"#);
     assert_eq!(out, "one\ntwo");
 }
 
 #[test]
 fn p102_resultbuilder_ga_map_host_smoke() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let r = __syx_array_flat_map([10, 20], { (x: Int) -> Array in return [x] })
     print(r.count)
     print(r[0])
-}"#,
-    );
+}"#);
     assert_eq!(out, "2\n10");
 }
 
 #[test]
 fn p102_resultbuilder_ga_nested_if_branch() {
-    let out = run(
-        r#"@resultBuilder
+    let out = run(r#"@resultBuilder
 func pick(flag: Bool, inner: Bool) -> Array<String> {
     if flag {
         if inner {
@@ -82,15 +80,13 @@ func pick(flag: Bool, inner: Bool) -> Array<String> {
 func main() {
     let a = pick(flag: true, inner: false)
     print(a[0])
-}"#,
-    );
+}"#);
     assert_eq!(out, "yes-no");
 }
 
 #[test]
 fn p102_resultbuilder_ga_for_in_collect() {
-    let out = run(
-        r#"@resultBuilder
+    let out = run(r#"@resultBuilder
 func rows() -> Array<Int> {
     for x in [10, 20] {
         x
@@ -100,22 +96,18 @@ func main() {
     let r = rows()
     print(r[0])
     print(r[1])
-}"#,
-    );
+}"#);
     assert_eq!(out, "10\n20");
 }
 
 #[test]
 fn p102_resultbuilder_host_direct() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let a = __syx_result_builder_buildBlock(["one"], ["two"])
     print(a.count)
     print(a[0])
     print(a[1])
-}"#,
-    );
+}"#);
     println!("HOST_DIRECT={out}");
     assert_eq!(out, "2\none\ntwo");
 }
-

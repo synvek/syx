@@ -6,22 +6,13 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_persist_ready,
-    cdn_bgp_sticky_persist_restore_from_file,
-    cdn_bgp_sticky_pop_clear,
-    cdn_bgp_sticky_pop_ready,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh, cdn_bgp_route_sticky,
+    cdn_bgp_sticky_binding, cdn_bgp_sticky_persist_ready, cdn_bgp_sticky_persist_restore_from_file,
+    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready, cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P127_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_sticky_persist_sticky_persist_restore_after_restart() {

@@ -2,9 +2,7 @@
 
 use std::collections::HashMap;
 
-use syx_driver::{
-    default_farm_cache_url, fetch_cache_remote_hardened, spawn_farm_tcp_node,
-};
+use syx_driver::{default_farm_cache_url, fetch_cache_remote_hardened, spawn_farm_tcp_node};
 
 use crate::lease_test_harness::with_lease_auth;
 
@@ -34,4 +32,3 @@ fn p100_farm_tcp_hardened_three_node_fetch() {
         }
     });
 }
-

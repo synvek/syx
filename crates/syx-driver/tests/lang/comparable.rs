@@ -6,7 +6,7 @@ use syx_driver::{
 };
 use syx_parser::Parser;
 use syx_semantic::SemanticAnalyzer;
-use syx_stdlib::{is_comparable_type, lookup_numeric_host, ProtocolId, type_conforms};
+use syx_stdlib::{is_comparable_type, lookup_numeric_host, type_conforms, ProtocolId};
 
 fn opts() -> DriverOptions {
     DriverOptions::default()
@@ -42,7 +42,10 @@ fn manifest_phase_gate() {
 #[test]
 fn protocol_id_comparable() {
     assert_eq!(ProtocolId::Comparable.name(), "Comparable");
-    assert_eq!(ProtocolId::from_name("Comparable"), Some(ProtocolId::Comparable));
+    assert_eq!(
+        ProtocolId::from_name("Comparable"),
+        Some(ProtocolId::Comparable)
+    );
 }
 
 #[test]

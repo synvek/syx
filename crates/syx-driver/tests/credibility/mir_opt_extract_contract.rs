@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -47,13 +46,14 @@ fn s2_05_mir_opt_extract_baseline() {
     );
     assert!(
         lib.contains("mod mir_lower_ctx;")
-            || lib.lines().any(|l| l.starts_with("struct LowerCtx")
-                || l.starts_with("pub(crate) struct LowerCtx")),
+            || lib
+                .lines()
+                .any(|l| l.starts_with("struct LowerCtx")
+                    || l.starts_with("pub(crate) struct LowerCtx")),
         "LowerCtx remains reachable (lib or mir_lower_ctx after I171)"
     );
     assert!(
-        lib.contains("pub(crate) fn flatten_blocks")
-            || lib.contains("flatten_blocks,"),
+        lib.contains("pub(crate) fn flatten_blocks") || lib.contains("flatten_blocks,"),
         "flatten_blocks must stay pub(crate) in lib.rs (def or re-export)"
     );
 

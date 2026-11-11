@@ -48,8 +48,7 @@ fn r8_http_body_stream_census_files_exist() {
         "HttpBodyStream.openWithOptions must return Dictionary"
     );
     assert!(
-        !src
-            .lines()
+        !src.lines()
             .any(|ln| ln.contains("func ") && ln.contains("Object")),
         "HttpBodyStream methods must not spell Object"
     );
@@ -70,10 +69,19 @@ fn r8_http_body_stream_census_files_exist() {
 fn r8_http_body_stream_census_script_green() {
     let stdout = run_census();
     assert_eq!(parse(&stdout, "r7_hinge_still_green="), 1);
-    assert_eq!(parse(&stdout, "http_body_stream_public_object_residual="), 0);
-    assert_eq!(parse(&stdout, "http_body_stream_open_returns_dictionary="), 1);
     assert_eq!(
-        parse(&stdout, "http_body_stream_open_with_options_returns_dictionary="),
+        parse(&stdout, "http_body_stream_public_object_residual="),
+        0
+    );
+    assert_eq!(
+        parse(&stdout, "http_body_stream_open_returns_dictionary="),
+        1
+    );
+    assert_eq!(
+        parse(
+            &stdout,
+            "http_body_stream_open_with_options_returns_dictionary="
+        ),
         1
     );
     assert_eq!(parse(&stdout, "http_body_stream_chunk_close_int_typed="), 1);

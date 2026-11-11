@@ -18,9 +18,7 @@ fn p98_gc_relocating_churn_stdout() {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/memory/heap_relocate_churn.sy");
     if path.exists() {
-        let (_, lines) =
-            syx_driver::run_file_printed(&path, &DriverOptions::default()).unwrap();
+        let (_, lines) = syx_driver::run_file_printed(&path, &DriverOptions::default()).unwrap();
         assert!(!lines.is_empty());
     }
 }
-

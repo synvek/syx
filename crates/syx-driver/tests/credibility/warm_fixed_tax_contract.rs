@@ -6,16 +6,20 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_03_warm_fixed_tax_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-03-warm-fixed-tax.md");
-    assert!(adr.contains("S3-I51"), "warm-fixed-tax ADR must name S3-I51");
     assert!(
-        adr.contains("cache-first") || adr.contains("cache_first") || adr.contains("try_incremental_cache_hit"),
+        adr.contains("S3-I51"),
+        "warm-fixed-tax ADR must name S3-I51"
+    );
+    assert!(
+        adr.contains("cache-first")
+            || adr.contains("cache_first")
+            || adr.contains("try_incremental_cache_hit"),
         "ADR must name cache-first hinge"
     );
     assert!(
@@ -27,23 +31,19 @@ fn s3_03_warm_fixed_tax_adr_and_census() {
         "ADR must name lazy hosts"
     );
     assert!(
-        adr.contains("S3-I52")
-            && (adr.contains("warm-residual") || adr.contains("residual")),
+        adr.contains("S3-I52") && (adr.contains("warm-residual") || adr.contains("residual")),
         "ADR must cite landed S3-I52 warm residual"
     );
     assert!(
-        adr.contains("S3-I53")
-            && (adr.contains("roundtrip") || adr.contains("cache-roundtrip")),
+        adr.contains("S3-I53") && (adr.contains("roundtrip") || adr.contains("cache-roundtrip")),
         "ADR must cite landed S3-I53 cache roundtrip"
     );
     assert!(
-        adr.contains("S3-I54")
-            && (adr.contains("embed") || adr.contains("prelude-embed")),
+        adr.contains("S3-I54") && (adr.contains("embed") || adr.contains("prelude-embed")),
         "ADR must cite landed S3-I54 prelude embed"
     );
     assert!(
-        adr.contains("S3-I55")
-            && (adr.contains("stage3-s3-03-claim") || adr.contains("claim")),
+        adr.contains("S3-I55") && (adr.contains("stage3-s3-03-claim") || adr.contains("claim")),
         "ADR must cite landed S3-I55 claim"
     );
     assert!(
@@ -92,8 +92,7 @@ fn s3_03_warm_fixed_tax_adr_and_census() {
 
     let trim_adr = repo_file("docs/adr/stage3-s3-03-warm-program-trim.md");
     assert!(
-        trim_adr.contains("S3-I51")
-            || trim_adr.contains("stage3-s3-03-warm-fixed-tax"),
+        trim_adr.contains("S3-I51") || trim_adr.contains("stage3-s3-03-warm-fixed-tax"),
         "warm-trim ADR must cite landed I51"
     );
 
@@ -116,9 +115,7 @@ fn s3_03_warm_fixed_tax_adr_and_census() {
 fn s3_03_warm_fixed_tax_census_script_emits_helpers() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_03_stdlib_cache_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run stdlib-cache census");
     assert!(

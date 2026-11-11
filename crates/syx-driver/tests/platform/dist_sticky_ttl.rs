@@ -5,23 +5,13 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_snapshot,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_binding_expires_at_ms,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_ttl_ms,
-    cdn_bgp_sticky_ttl_ready,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh, cdn_bgp_mesh_snapshot,
+    cdn_bgp_route_sticky, cdn_bgp_sticky_binding, cdn_bgp_sticky_binding_expires_at_ms,
+    cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_ttl_ms, cdn_bgp_sticky_ttl_ready,
+    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P126_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_sticky_ttl_sticky_ttl_exports_in_mesh_snapshot() {
@@ -107,11 +97,17 @@ fn dist_sticky_ttl_sticky_rebinds_after_ttl_expiry() {
     assert_eq!(first, "bgp-us");
 
     thread::sleep(Duration::from_millis(5));
-    assert!(cdn_bgp_sticky_binding(client).is_none(), "TTL must expire binding");
+    assert!(
+        cdn_bgp_sticky_binding(client).is_none(),
+        "TTL must expire binding"
+    );
 
     let (rebound, _) =
         cdn_bgp_route_sticky(client, "bgp-us-2", 3, 4, "p126-rebind").expect("rebind after ttl");
-    assert_eq!(rebound, "bgp-us", "expired client must rebind via weighted route");
+    assert_eq!(
+        rebound, "bgp-us",
+        "expired client must rebind via weighted route"
+    );
     assert!(cdn_bgp_sticky_binding_expires_at_ms(client).is_some());
 
     std::env::remove_var("SYX_DIST_STICKY_TTL_MS");

@@ -6,19 +6,19 @@ mod matrix_fingerprint;
 #[path = "../support/construction_progress.rs"]
 mod construction_progress;
 
-mod lsp_stdio_initialize_smoke;
-mod syx_test_report_formats;
-mod syx_test_at_test_discovery;
-mod syx_test_hooks;
-mod syx_test_before;
-mod syx_test_teardown;
-mod syx_test_recursive_discovery;
-mod syx_test_testing_asserts;
-mod syx_test_registry;
-mod syx_test_async;
 mod language_exports_export_list_trailing_comma;
 mod llvm_phi_clang;
 mod llvm_stub_audit;
+mod lsp_stdio_initialize_smoke;
+mod syx_test_async;
+mod syx_test_at_test_discovery;
+mod syx_test_before;
+mod syx_test_hooks;
+mod syx_test_recursive_discovery;
+mod syx_test_registry;
+mod syx_test_report_formats;
+mod syx_test_teardown;
+mod syx_test_testing_asserts;
 
 mod native_build_lto;
 mod native_build_profile;

@@ -4,18 +4,15 @@
 use crate::lower_expr;
 use crate::method_id_mir_op;
 use crate::mir_lower_ctx::LowerCtx;
-use crate::mir_type_infer_helpers::{
-    infer_expr_init_type,
-};
+use crate::mir_type_infer_helpers::infer_expr_init_type;
 use crate::mir_types::{MirInstr, MirOp};
 use smol_str::SmolStr;
 use syx_ast::{CallArg, Expr};
 use syx_stdlib::{
-    from_type_name, host_fn_index, host_fn_index_by_name, is_float,
-    is_implicit_convertible, is_integer, is_integer_narrowing, lookup_array_method,
-    lookup_dict_method, lookup_float32_math_host, lookup_float64_math_host, lookup_set_method,
-    lookup_type_method, manifest_host_name, resolve_alias, widen_for_binary,
-    HostFnId, PLATFORM_INT,
+    from_type_name, host_fn_index, host_fn_index_by_name, is_float, is_implicit_convertible,
+    is_integer, is_integer_narrowing, lookup_array_method, lookup_dict_method,
+    lookup_float32_math_host, lookup_float64_math_host, lookup_set_method, lookup_type_method,
+    manifest_host_name, resolve_alias, widen_for_binary, HostFnId, PLATFORM_INT,
 };
 
 pub(crate) fn resolve_host_call(
@@ -27,7 +24,10 @@ pub(crate) fn resolve_host_call(
     // (status is also a bag field — ObjectGet "works" by accident; text/ok do not).
     // Parity with codegen `resolve_call`: user enum/FinalClass case ctors (e.g. `WireStatus.ok(...)`)
     // and Result/BigInt statics must not be stolen by HttpResponse method-name shortcuts.
-    if let Expr::Ident { name: type_name, .. } = object {
+    if let Expr::Ident {
+        name: type_name, ..
+    } = object
+    {
         if matches!(type_name.as_str(), "Result" | "BigInt") {
             return None;
         }
@@ -46,7 +46,10 @@ pub(crate) fn resolve_host_call(
         "headers" => return Some((HostFnId::HttpResponseHeaders, true)),
         _ => {}
     }
-    if let Expr::Ident { name: type_name, .. } = object {
+    if let Expr::Ident {
+        name: type_name, ..
+    } = object
+    {
         if let Some(tm) = lookup_type_method(type_name, method) {
             return tm.host.map(|h| (h, false));
         }
@@ -94,7 +97,11 @@ pub(crate) fn collection_method_mir_op(type_base: &str, method: &str, ctx: &Lowe
             return MirOp::CallHost(idx);
         }
     }
-    if ctx.module.extension_methods.contains(&(base.clone(), name.clone())) {
+    if ctx
+        .module
+        .extension_methods
+        .contains(&(base.clone(), name.clone()))
+    {
         if matches!(method, "description" | "debugDescription") {
             return extension_call_op(type_base, method, ctx);
         }
@@ -109,12 +116,7 @@ pub(crate) fn collection_method_mir_op(type_base: &str, method: &str, ctx: &Lowe
 fn is_collection_mutating_method(method: &str) -> bool {
     matches!(
         method,
-        "append"
-            | "insert"
-            | "remove"
-            | "removeAll"
-            | "removeFirst"
-            | "removeLast"
+        "append" | "insert" | "remove" | "removeAll" | "removeFirst" | "removeLast"
     )
 }
 
@@ -279,9 +281,7 @@ pub(crate) fn binary_numeric_kind(left: &Expr, right: &Expr, ctx: &LowerCtx) -> 
     let lk = infer_expr_init_type(left, ctx).and_then(|n| from_type_name(n.as_str()));
     let rk = infer_expr_init_type(right, ctx).and_then(|n| from_type_name(n.as_str()));
     match (lk, rk) {
-        (Some(a), Some(b)) => widen_for_binary(a, b)
-            .unwrap_or(PLATFORM_INT)
-            .to_byte(),
+        (Some(a), Some(b)) => widen_for_binary(a, b).unwrap_or(PLATFORM_INT).to_byte(),
         (Some(a), None) => resolve_alias(a).to_byte(),
         (None, Some(b)) => resolve_alias(b).to_byte(),
         (None, None) => PLATFORM_INT.to_byte(),
@@ -326,4 +326,3 @@ pub(crate) fn emit_float_to_int_numeric_cast_if_needed(
     );
     true
 }
-

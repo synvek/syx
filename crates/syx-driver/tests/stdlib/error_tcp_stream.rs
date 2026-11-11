@@ -43,8 +43,7 @@ impl Drop for EnvGuard {
 
 #[test]
 fn m2_error_tcp_stream_valid_returns_int() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let n = __syx_tcp_stream(8)
   print(n)
@@ -53,8 +52,7 @@ func main() {
   let h = __syx_tcp_stream_handle(8)
   print(h)
 }
-"#,
-    );
+"#);
     // Wave A W87 / ADR-431 / A-03: tcp stream hosts return Int product exact.
     assert_eq!(out, "8\n8\n8", "tcp stream Int smoke must exact: {out}");
 }

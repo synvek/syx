@@ -19,9 +19,15 @@ fn ec_m2_1_path_contract_join_normalize_extension() {
     let out = run_example();
     // Wave A W89 / ADR-433 / A-03: Path join/normalize/extension product exact.
     #[cfg(unix)]
-    assert_eq!(out, "a/b\na/c\nb\n\ngz", "unix path contract must exact: {out}");
+    assert_eq!(
+        out, "a/b\na/c\nb\n\ngz",
+        "unix path contract must exact: {out}"
+    );
     #[cfg(windows)]
-    assert_eq!(out, "a\\b\na\\c\nb\n\ngz", "windows path contract must exact: {out}");
+    assert_eq!(
+        out, "a\\b\na\\c\nb\n\ngz",
+        "windows path contract must exact: {out}"
+    );
     #[cfg(not(any(unix, windows)))]
     {
         let _ = out;

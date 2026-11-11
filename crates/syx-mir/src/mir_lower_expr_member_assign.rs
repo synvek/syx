@@ -19,7 +19,10 @@ pub(crate) fn lower_expr_member_assign(
     ctx: &mut LowerCtx,
     block: u32,
 ) {
-    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+    if let Expr::Ident {
+        name: type_name, ..
+    } = object.as_ref()
+    {
         if is_static_type_member_call(object, ctx) {
             let set_method = syx_ast::var_global_setter_method(name);
             let setter_fn = SmolStr::new(format!("{type_name}_{set_method}"));
@@ -63,7 +66,10 @@ pub(crate) fn lower_expr_member_assign(
             }
         }
     }
-    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+    if let Expr::Ident {
+        name: type_name, ..
+    } = object.as_ref()
+    {
         if let Some((global_name, mutable)) = ctx.module.static_var_global(type_name, name) {
             if mutable {
                 if let Some(slot) = ctx.global_slot(&global_name) {
@@ -169,9 +175,8 @@ pub(crate) fn lower_expr_member_assign(
     } else {
         false
     };
-    let inner_write_slot = needs_writeback.then(|| {
-        ctx.alloc_local(&SmolStr::new(format!("__syx_inner_{obj_reg}")))
-    });
+    let inner_write_slot =
+        needs_writeback.then(|| ctx.alloc_local(&SmolStr::new(format!("__syx_inner_{obj_reg}"))));
     ctx.emit(
         block,
         MirInstr {

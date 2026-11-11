@@ -7,15 +7,17 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_05_driver_production_closeout_batch_baseline() {
     let mods = [
         ("crates/syx-driver/src/doc_project.rs", "doc_project"),
-        ("crates/syx-driver/src/cranelift_stubs.rs", "cranelift_backend_retired"),
+        (
+            "crates/syx-driver/src/cranelift_stubs.rs",
+            "cranelift_backend_retired",
+        ),
         ("crates/syx-driver/src/thin_host.rs", "publish_package"),
     ];
     for (path, needle) in mods {

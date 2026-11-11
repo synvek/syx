@@ -290,9 +290,11 @@ fn assert_server_protocol_close_1002(stream: &mut TcpStream) {
         payload.len()
     );
     let status = u16::from_be_bytes([payload[0], payload[1]]);
-    assert_eq!(status, 1002u16, "expected protocol close status 1002, got {status}");
+    assert_eq!(
+        status, 1002u16,
+        "expected protocol close status 1002, got {status}"
+    );
 }
-
 
 /// W1188–W1190 lifecycle: N=3 frag-text → N=3 frag-binary → ping/pong → close.
 fn echo_fragmented_text_fragmented_binary_ping_then_close(
@@ -326,7 +328,10 @@ fn echo_n3_optional_mid_pings_then_close(
 ) {
     let (t1, t2, t3) = split_three(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     if let Some(mid_ping) = text_mid_ping {
         let frame = encode_client_ping_frame(mid_ping, [0xfe, 0xed, 0xfa, 0xce]);
@@ -340,22 +345,37 @@ fn echo_n3_optional_mid_pings_then_close(
         );
     }
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text mid cont");
     client
-        .write_all(&encode_client_continuation_end(t3, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t3,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=3 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=3 fragmented text"
+    );
 
     let (b1, b2, b3) = split_three(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     if let Some(mid_ping) = binary_mid_ping {
         let frame = encode_client_ping_frame(mid_ping, [0xbe, 0xef, 0xca, 0xfe]);
-        client.write_all(&frame).expect("write binary mid-frag ping");
+        client
+            .write_all(&frame)
+            .expect("write binary mid-frag ping");
         client.flush().ok();
         let pong = decode_server_pong_frame(client);
         assert_eq!(
@@ -365,20 +385,34 @@ fn echo_n3_optional_mid_pings_then_close(
         );
     }
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write binary mid cont");
     client
-        .write_all(&encode_client_continuation_end(b3, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_end(
+            b3,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=3 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=3 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -386,7 +420,9 @@ fn echo_n3_optional_mid_pings_then_close(
     read_server_close_frame(client);
 }
 
-fn start_terminate_serve(serve_port: u16) -> (
+fn start_terminate_serve(
+    serve_port: u16,
+) -> (
     PathBuf,
     mpsc::Receiver<Result<(i32, Vec<String>), syx_diagnostics::SyxDiagnostic>>,
     thread::JoinHandle<()>,
@@ -428,9 +464,7 @@ func main() {{
 
 fn handshake_terminate_client(serve_port: u16) -> (TcpStream, String) {
     let mut client = TcpStream::connect(("127.0.0.1", serve_port)).expect("client connect");
-    client
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .ok();
+    client.set_read_timeout(Some(Duration::from_secs(5))).ok();
     let req = format!(
         "GET /ws HTTP/1.1\r\n\
 Host: 127.0.0.1:{serve_port}\r\n\
@@ -497,7 +531,10 @@ fn http_serve_upgrade_terminate_accept_text_and_close() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fragmented_text_fragmented_binary_ping_then_close(
         &mut client,
@@ -525,7 +562,10 @@ fn http_serve_upgrade_terminate_accept_text_binary_and_close() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fragmented_text_fragmented_binary_ping_then_close(
         &mut client,
@@ -553,7 +593,10 @@ fn http_serve_upgrade_terminate_accept_text_binary_ping_and_close() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fragmented_text_fragmented_binary_ping_then_close(
         &mut client,
@@ -581,7 +624,10 @@ fn http_serve_upgrade_terminate_accept_fragmented_text_binary_ping_and_close() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fragmented_text_fragmented_binary_ping_then_close(
         &mut client,
@@ -609,7 +655,10 @@ fn http_serve_upgrade_terminate_accept_fragmented_text_fragmented_binary_ping_an
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fragmented_text_fragmented_binary_ping_then_close(
         &mut client,
@@ -637,7 +686,10 @@ fn http_serve_upgrade_terminate_accept_multi_continuation_n3_ping_and_close() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fragmented_text_fragmented_binary_ping_then_close(
         &mut client,
@@ -665,7 +717,10 @@ fn http_serve_upgrade_terminate_accept_control_during_fragment_n3_ping_and_close
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n3_text_optional_mid_ping_n3_binary_ping_then_close(
         &mut client,
@@ -694,7 +749,10 @@ fn http_serve_upgrade_terminate_accept_control_during_fragment_n3_binary_ping_an
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n3_optional_mid_pings_then_close(
         &mut client,
@@ -726,40 +784,73 @@ fn echo_n4_text_n3_binary_ping_then_close(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont3");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3) = split_three(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write binary mid cont");
     client
-        .write_all(&encode_client_continuation_end(b3, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b3,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=3 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=3 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -774,7 +865,10 @@ fn http_serve_upgrade_terminate_accept_multi_continuation_n4_text_ping_and_close
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n3_binary_ping_then_close(
         &mut client,
@@ -804,43 +898,79 @@ fn echo_n4_text_n4_binary_ping_then_close(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont3");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont3");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -855,7 +985,10 @@ fn http_serve_upgrade_terminate_accept_multi_continuation_n4_text_and_binary_pin
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close(
         &mut client,
@@ -886,10 +1019,16 @@ fn echo_n4_text_mid_final_ping_n4_binary_then_close(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     let frame = encode_client_ping_frame(mid_final_ping, [0xfe, 0xed, 0xfa, 0xce]);
     client.write_all(&frame).expect("write mid↔final ping");
@@ -901,37 +1040,67 @@ fn echo_n4_text_mid_final_ping_n4_binary_then_close(
         "server must pong mid↔final ping without aborting reassembly"
     );
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 text after mid↔final ping");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 text after mid↔final ping"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont3");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -946,7 +1115,10 @@ fn http_serve_upgrade_terminate_accept_mid_final_control_n4_text_ping_and_close(
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_mid_final_ping_n4_binary_then_close(
         &mut client,
@@ -978,30 +1150,54 @@ fn echo_n4_text_n4_binary_mid_final_ping_then_close(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write binary cont1");
     let frame = encode_client_ping_frame(mid_final_ping, [0xbe, 0xef, 0xca, 0xfe]);
-    client.write_all(&frame).expect("write binary mid↔final ping");
+    client
+        .write_all(&frame)
+        .expect("write binary mid↔final ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
     assert_eq!(
@@ -1010,10 +1206,16 @@ fn echo_n4_text_n4_binary_mid_final_ping_then_close(
         "server must pong binary mid↔final ping without aborting reassembly"
     );
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
@@ -1027,7 +1229,11 @@ fn echo_n4_text_n4_binary_mid_final_ping_then_close(
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -1042,7 +1248,10 @@ fn http_serve_upgrade_terminate_accept_mid_final_control_n4_binary_ping_and_clos
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_mid_final_ping_then_close(
         &mut client,
@@ -1073,46 +1282,85 @@ fn echo_n5_text_n4_binary_ping_then_close(
 ) {
     let (t1, t2, t3, t4, t5) = split_five(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_mid(t4, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_mid(
+            t4,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write text cont3");
     client
-        .write_all(&encode_client_continuation_end(t5, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t5,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=5 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=5 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -1127,7 +1375,10 @@ fn http_serve_upgrade_terminate_accept_multi_continuation_n5_text_ping_and_close
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n5_text_n4_binary_ping_then_close(
         &mut client,
@@ -1157,49 +1408,91 @@ fn echo_n5_text_n5_binary_ping_then_close(
 ) {
     let (t1, t2, t3, t4, t5) = split_five(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_mid(t4, [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_mid(
+            t4,
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write text cont3");
     client
-        .write_all(&encode_client_continuation_end(t5, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t5,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=5 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=5 fragmented text"
+    );
 
     let (b1, b2, b3, b4, b5) = split_five(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_mid(b4, [0xfe, 0xdc, 0xba, 0x98]))
+        .write_all(&encode_client_continuation_mid(
+            b4,
+            [0xfe, 0xdc, 0xba, 0x98],
+        ))
         .expect("write binary cont3");
     client
-        .write_all(&encode_client_continuation_end(b5, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b5,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=5 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=5 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close");
@@ -1214,7 +1507,10 @@ fn http_serve_upgrade_terminate_accept_multi_continuation_n5_text_and_binary_pin
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n5_text_n5_binary_ping_then_close(
         &mut client,
@@ -1246,43 +1542,79 @@ fn echo_n4_text_n4_binary_ping_then_close_status_reason(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame_with_reason(status, reason, [0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close with reason");
@@ -1304,7 +1636,10 @@ fn http_serve_upgrade_terminate_accept_text_close_status_reason_echo() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_status_reason(
         &mut client,
@@ -1336,43 +1671,79 @@ fn echo_n4_text_n4_binary_ping_then_close_len1_fail_closed(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_close_frame_with_payload(&[0x00], [0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write close len=1");
@@ -1389,43 +1760,79 @@ fn echo_n4_text_n4_binary_ping_then_close_status_1005_fail_closed(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     // 1005 is reserved / MUST NOT appear on the wire (RFC6455 §7.4.1).
     let close = encode_client_close_frame_with_reason(1005, b"", [0x99, 0xaa, 0xbb, 0xcc]);
@@ -1443,47 +1850,85 @@ fn echo_n4_text_n4_binary_ping_then_close_reason_non_utf8_fail_closed(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     // Legal status 1000 + illegal UTF-8 reason (0xFF) — RFC6455 §5.5.1.
     let close = encode_client_close_frame_with_reason(1000, &[0xFF], [0x99, 0xaa, 0xbb, 0xcc]);
-    client.write_all(&close).expect("write close non-UTF-8 reason");
+    client
+        .write_all(&close)
+        .expect("write close non-UTF-8 reason");
     client.flush().ok();
     assert_server_protocol_close_1002(client);
 }
@@ -1495,7 +1940,10 @@ fn http_serve_upgrade_terminate_accept_close_reason_non_utf8_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_reason_non_utf8_fail_closed(
         &mut client,
@@ -1525,43 +1973,79 @@ fn echo_n4_text_n4_binary_ping_then_close_status_1004_fail_closed(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     // 1004 is reserved (RFC6455 §7.4.1) — must not appear on the wire.
     let close = encode_client_close_frame_with_reason(1004, b"", [0x99, 0xaa, 0xbb, 0xcc]);
@@ -1577,7 +2061,10 @@ fn http_serve_upgrade_terminate_accept_text_non_utf8_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN=1 text with illegal UTF-8 payload (0xFF) — RFC6455 §5.6.
     let bad = encode_client_data_frame(0x81, &[0xFF], [0xde, 0xad, 0xbe, 0xef]);
@@ -1604,14 +2091,23 @@ fn http_serve_upgrade_terminate_accept_fragmented_text_non_utf8_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN=0 text [0xC2] + FIN=1 cont [0xFF] → reassembled non-UTF-8.
     client
-        .write_all(&encode_client_text_fragment_start(&[0xC2], [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_text_fragment_start(
+            &[0xC2],
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_end(&[0xFF], [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_end(
+            &[0xFF],
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     assert_server_protocol_close_1002(&mut client);
@@ -1635,7 +2131,10 @@ fn http_serve_upgrade_terminate_accept_close_status_1004_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_status_1004_fail_closed(
         &mut client,
@@ -1665,43 +2164,79 @@ fn echo_n4_text_n4_binary_ping_then_fin0_close_fail_closed(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write ping");
     client.flush().ok();
     let pong = decode_server_pong_frame(client);
-    assert_eq!(&pong[..], ping, "server must echo ping payload as unmasked pong");
+    assert_eq!(
+        &pong[..],
+        ping,
+        "server must echo ping payload as unmasked pong"
+    );
 
     let close = encode_client_fin0_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
     client.write_all(&close).expect("write FIN=0 close");
@@ -1716,7 +2251,10 @@ fn http_serve_upgrade_terminate_accept_fin0_close_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_fin0_close_fail_closed(
         &mut client,
@@ -1744,10 +2282,15 @@ fn http_serve_upgrade_terminate_accept_unexpected_continuation_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let bad = encode_client_unexpected_continuation_frame(b"orphan", [0xde, 0xad, 0xbe, 0xef]);
-    client.write_all(&bad).expect("write unexpected continuation");
+    client
+        .write_all(&bad)
+        .expect("write unexpected continuation");
     client.flush().ok();
     assert_server_protocol_close_1002(&mut client);
 
@@ -1770,7 +2313,10 @@ fn http_serve_upgrade_terminate_accept_unsolicited_pong_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let bad = encode_client_pong_frame(b"unsolicited", [0x11, 0x22, 0x33, 0x44]);
     client.write_all(&bad).expect("write unsolicited pong");
@@ -1796,7 +2342,10 @@ fn http_serve_upgrade_terminate_accept_fin0_close_during_fragment_fail_closed() 
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // Start N=4 text; after frag1 send FIN=0 close — must abort with no text echo.
     client
@@ -1806,7 +2355,9 @@ fn http_serve_upgrade_terminate_accept_fin0_close_during_fragment_fail_closed() 
         ))
         .expect("write text frag1");
     let close = encode_client_fin0_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
-    client.write_all(&close).expect("write FIN=0 close mid-fragment");
+    client
+        .write_all(&close)
+        .expect("write FIN=0 close mid-fragment");
     client.flush().ok();
     assert_server_protocol_close_1002(&mut client);
 
@@ -1829,7 +2380,10 @@ fn http_serve_upgrade_terminate_accept_close_status_1005_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_status_1005_fail_closed(
         &mut client,
@@ -1857,7 +2411,10 @@ fn http_serve_upgrade_terminate_accept_close_len1_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_len1_fail_closed(
         &mut client,
@@ -1885,7 +2442,10 @@ fn http_serve_upgrade_terminate_accept_oversized_ping_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN|ping with len7=126 — must not be accepted / must not pong.
     let oversized = encode_client_oversized_ping_len7_126([0xde, 0xad, 0xbe, 0xef]);
@@ -1912,7 +2472,10 @@ fn http_serve_upgrade_terminate_accept_reserved_opcode_0x3_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN|data-reserved 0x3 (0x83) — must not be accepted.
     let reserved = encode_client_data_frame(0x83, b"w1203-reserved-0x3", [0xde, 0xad, 0xbe, 0xef]);
@@ -1939,7 +2502,10 @@ fn http_serve_upgrade_terminate_accept_reserved_opcode_0xb_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN|reserved-control 0xB (0x8B) — must not be accepted.
     let reserved = encode_client_data_frame(0x8B, b"w1202-reserved-0xb", [0xde, 0xad, 0xbe, 0xef]);
@@ -1968,37 +2534,69 @@ fn echo_n4_text_n4_binary_then_fin0_ping_fail_closed(
 ) {
     let (t1, t2, t3, t4) = split_four(text);
     client
-        .write_all(&encode_client_text_fragment_start(t1, [0xde, 0xad, 0xbe, 0xef]))
+        .write_all(&encode_client_text_fragment_start(
+            t1,
+            [0xde, 0xad, 0xbe, 0xef],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_mid(t2, [0xca, 0xfe, 0xba, 0xbe]))
+        .write_all(&encode_client_continuation_mid(
+            t2,
+            [0xca, 0xfe, 0xba, 0xbe],
+        ))
         .expect("write text cont1");
     client
-        .write_all(&encode_client_continuation_mid(t3, [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_continuation_mid(
+            t3,
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text cont2");
     client
-        .write_all(&encode_client_continuation_end(t4, [0x01, 0x02, 0x03, 0x04]))
+        .write_all(&encode_client_continuation_end(
+            t4,
+            [0x01, 0x02, 0x03, 0x04],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_server_text_frame(client);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
-        .write_all(&encode_client_binary_fragment_start(b1, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_client_binary_fragment_start(
+            b1,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary frag1");
     client
-        .write_all(&encode_client_continuation_mid(b2, [0x12, 0x34, 0x56, 0x78]))
+        .write_all(&encode_client_continuation_mid(
+            b2,
+            [0x12, 0x34, 0x56, 0x78],
+        ))
         .expect("write binary cont1");
     client
-        .write_all(&encode_client_continuation_mid(b3, [0x9a, 0xbc, 0xde, 0xf0]))
+        .write_all(&encode_client_continuation_mid(
+            b3,
+            [0x9a, 0xbc, 0xde, 0xf0],
+        ))
         .expect("write binary cont2");
     client
-        .write_all(&encode_client_continuation_end(b4, [0x99, 0xaa, 0xbb, 0xcc]))
+        .write_all(&encode_client_continuation_end(
+            b4,
+            [0x99, 0xaa, 0xbb, 0xcc],
+        ))
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_server_binary_frame(client);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary"
+    );
 
     let frame = encode_client_fin0_ping_frame(ping, [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write FIN=0 ping");
@@ -2013,7 +2611,10 @@ fn http_serve_upgrade_terminate_accept_fin0_ping_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_then_fin0_ping_fail_closed(
         &mut client,
@@ -2041,7 +2642,10 @@ fn http_serve_upgrade_terminate_accept_unmasked_text_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN|text (0x81) without MASK bit — client MUST mask.
     let unmasked = encode_client_unmasked_data_frame(0x81, b"w1200-unmasked-bad");
@@ -2068,7 +2672,10 @@ fn http_serve_upgrade_terminate_accept_rsv_text_fail_closed() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN|RSV1|text (0xC1) — nonzero RSV → close(1002).
     let rsv_text = encode_client_data_frame(0xC1, b"w1198-rsv-bad", [0xde, 0xad, 0xbe, 0xef]);
@@ -2095,7 +2702,10 @@ fn http_serve_upgrade_terminate_accept_rsv_text_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let rsv_text = encode_client_data_frame(0xC1, b"w1209-rsv-1002", [0xde, 0xad, 0xbe, 0xef]);
     client.write_all(&rsv_text).expect("write RSV1 text");
@@ -2121,7 +2731,10 @@ fn http_serve_upgrade_terminate_accept_reserved_opcode_0xb_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let reserved = encode_client_data_frame(0x8B, b"w1209-reserved-0xb", [0xde, 0xad, 0xbe, 0xef]);
     client.write_all(&reserved).expect("write reserved 0xB");
@@ -2147,7 +2760,10 @@ fn http_serve_upgrade_terminate_accept_fin0_ping_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let frame = encode_client_fin0_ping_frame(b"w1209-fin0-ping", [0x01, 0x02, 0x03, 0x04]);
     client.write_all(&frame).expect("write FIN=0 ping");
@@ -2173,10 +2789,15 @@ fn http_serve_upgrade_terminate_accept_unexpected_continuation_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let bad = encode_client_unexpected_continuation_frame(b"orphan", [0xde, 0xad, 0xbe, 0xef]);
-    client.write_all(&bad).expect("write unexpected continuation");
+    client
+        .write_all(&bad)
+        .expect("write unexpected continuation");
     client.flush().ok();
     assert_server_protocol_close_1002(&mut client);
 
@@ -2199,7 +2820,10 @@ fn http_serve_upgrade_terminate_accept_unmasked_text_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let unmasked = encode_client_unmasked_data_frame(0x81, b"w1210-unmasked-1002");
     client.write_all(&unmasked).expect("write unmasked text");
@@ -2225,7 +2849,10 @@ fn http_serve_upgrade_terminate_accept_oversized_ping_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let oversized = encode_client_oversized_ping_len7_126([0xde, 0xad, 0xbe, 0xef]);
     client.write_all(&oversized).expect("write oversized ping");
@@ -2251,7 +2878,10 @@ fn http_serve_upgrade_terminate_accept_close_len1_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_len1_fail_closed(
         &mut client,
@@ -2279,7 +2909,10 @@ fn http_serve_upgrade_terminate_accept_close_status_1005_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_status_1005_fail_closed(
         &mut client,
@@ -2307,7 +2940,10 @@ fn http_serve_upgrade_terminate_accept_text_non_utf8_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let bad = encode_client_data_frame(0x81, &[0xFF], [0xde, 0xad, 0xbe, 0xef]);
     client.write_all(&bad).expect("write non-UTF-8 text");
@@ -2333,7 +2969,10 @@ fn http_serve_upgrade_terminate_accept_close_reason_non_utf8_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_reason_non_utf8_fail_closed(
         &mut client,
@@ -2361,7 +3000,10 @@ fn http_serve_upgrade_terminate_accept_unsolicited_pong_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let bad = encode_client_pong_frame(b"w1212-unsolicited", [0x11, 0x22, 0x33, 0x44]);
     client.write_all(&bad).expect("write unsolicited pong");
@@ -2387,7 +3029,10 @@ fn http_serve_upgrade_terminate_accept_close_status_1004_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_close_status_1004_fail_closed(
         &mut client,
@@ -2415,14 +3060,23 @@ fn http_serve_upgrade_terminate_accept_fragmented_text_non_utf8_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN=0 text [0xC2] + FIN=1 cont [0xFF] → reassembled non-UTF-8.
     client
-        .write_all(&encode_client_text_fragment_start(&[0xC2], [0x11, 0x22, 0x33, 0x44]))
+        .write_all(&encode_client_text_fragment_start(
+            &[0xC2],
+            [0x11, 0x22, 0x33, 0x44],
+        ))
         .expect("write text frag1");
     client
-        .write_all(&encode_client_continuation_end(&[0xFF], [0x55, 0x66, 0x77, 0x88]))
+        .write_all(&encode_client_continuation_end(
+            &[0xFF],
+            [0x55, 0x66, 0x77, 0x88],
+        ))
         .expect("write text end cont");
     client.flush().ok();
     assert_server_protocol_close_1002(&mut client);
@@ -2446,7 +3100,10 @@ fn http_serve_upgrade_terminate_accept_fin0_close_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_n4_text_n4_binary_ping_then_fin0_close_fail_closed(
         &mut client,
@@ -2474,7 +3131,10 @@ fn http_serve_upgrade_terminate_accept_fin0_close_during_fragment_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     client
         .write_all(&encode_client_text_fragment_start(
@@ -2483,7 +3143,9 @@ fn http_serve_upgrade_terminate_accept_fin0_close_during_fragment_close_1002() {
         ))
         .expect("write text frag1");
     let close = encode_client_fin0_close_frame([0x99, 0xaa, 0xbb, 0xcc]);
-    client.write_all(&close).expect("write FIN=0 close mid-fragment");
+    client
+        .write_all(&close)
+        .expect("write FIN=0 close mid-fragment");
     client.flush().ok();
     assert_server_protocol_close_1002(&mut client);
 
@@ -2506,7 +3168,10 @@ fn http_serve_upgrade_terminate_accept_reserved_opcode_0x3_close_1002() {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let reserved = encode_client_data_frame(0x83, b"w1213-reserved-0x3", [0xde, 0xad, 0xbe, 0xef]);
     client.write_all(&reserved).expect("write reserved 0x3");
@@ -2532,7 +3197,10 @@ fn run_terminate_illegal_close_status_close_1002(status: u16, tag: &str) {
     let serve_port = free_port();
     let (path, rx, serve_join, _max_env) = start_terminate_serve(serve_port);
     let (mut client, head_text) = handshake_terminate_client(serve_port);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     let close = encode_client_close_frame_with_reason(status, b"", [0x99, 0xaa, 0xbb, 0xcc]);
     client

@@ -64,10 +64,8 @@ fn r15_count_gates_point_at_existing_files() {
 
 #[test]
 fn r15_parity_gates_have_no_vacuous_asserts() {
-    let vm = std::fs::read_to_string(repo_path(
-        "crates/syx-driver/tests/evergreen/parity_vm.rs",
-    ))
-    .unwrap();
+    let vm = std::fs::read_to_string(repo_path("crates/syx-driver/tests/evergreen/parity_vm.rs"))
+        .unwrap();
     assert!(
         !vm.contains("if let Ok((0, printed))"),
         "parity_vm must not silently skip the MIR actor assert"

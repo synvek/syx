@@ -4,11 +4,10 @@ use std::thread;
 use std::time::Duration;
 
 use syx_driver::{
-    farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured, farm_lease_auth_configure_ha,
-    farm_lease_require_active, farm_lease_reset, farm_lease_test_lock,
-    spawn_farm_lease_ha, FARM_LEASE_DEFAULT_TOKEN,
+    farm_lease_acquire_tenant_token, farm_lease_auth_clear_configured,
+    farm_lease_auth_configure_ha, farm_lease_require_active, farm_lease_reset,
+    farm_lease_test_lock, spawn_farm_lease_ha, FARM_LEASE_DEFAULT_TOKEN,
 };
-
 
 #[test]
 fn p107_farm_ha_secondary_validates_after_primary_stop() {

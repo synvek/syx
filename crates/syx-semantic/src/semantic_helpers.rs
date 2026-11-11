@@ -4,9 +4,7 @@
 use crate::TypeId;
 use smol_str::SmolStr;
 use syx_ast::{Decl, Expr, Module, Stmt};
-use syx_stdlib::{
-    is_manifest_host_op, lookup_array_method, lookup_dict_method, lookup_set_method,
-};
+use syx_stdlib::{is_manifest_host_op, lookup_array_method, lookup_dict_method, lookup_set_method};
 
 // Phase 87/88: optional downcast (`as?`) semantic surface (AsOptional).
 #[allow(dead_code)]
@@ -96,8 +94,9 @@ pub(crate) fn type_expr_uses_param(ty: &syx_ast::TypeExpr, params: &[SmolStr]) -
         | syx_ast::TypeExpr::Array(inner)
         | syx_ast::TypeExpr::OpaqueSome(inner)
         | syx_ast::TypeExpr::OpaqueAny(inner) => type_expr_uses_param(inner, params),
-        syx_ast::TypeExpr::Dictionary { key, value } => type_expr_uses_param(key, params)
-            .or_else(|| type_expr_uses_param(value, params)),
+        syx_ast::TypeExpr::Dictionary { key, value } => {
+            type_expr_uses_param(key, params).or_else(|| type_expr_uses_param(value, params))
+        }
         _ => None,
     }
 }
@@ -116,8 +115,7 @@ pub(crate) fn retired_ops_hint(name: &str) -> String {
 pub(crate) fn attr_has_ident_arg(attrs: &[syx_ast::Attribute], name: &str, arg: &str) -> bool {
     attrs.iter().any(|a| {
         a.name == name
-            && a
-                .args
+            && a.args
                 .iter()
                 .any(|a| matches!(a, syx_ast::AttributeArg::Ident(i) if i.as_str() == arg))
     })
@@ -148,8 +146,12 @@ pub(crate) fn stmts_first_task_detach_span(stmts: &[Stmt]) -> Option<syx_diagnos
         let span = match s {
             Stmt::Expr { expr, .. }
             | Stmt::Print { expr, .. }
-            | Stmt::Return { value: Some(expr), .. } => expr_first_task_detach_span(expr),
-            Stmt::VarDecl { init: Some(expr), .. } => expr_first_task_detach_span(expr),
+            | Stmt::Return {
+                value: Some(expr), ..
+            } => expr_first_task_detach_span(expr),
+            Stmt::VarDecl {
+                init: Some(expr), ..
+            } => expr_first_task_detach_span(expr),
             Stmt::If {
                 then_branch,
                 else_branch,

@@ -33,9 +33,6 @@ fn has_error(src: &str, code: &str) -> bool {
     }
 }
 
-
-
-
 #[test]
 fn p134_computed_get_only_stdout() {
     let src = r#"
@@ -89,9 +86,6 @@ func main() {
     assert_eq!(lines[1], "lazy-ok");
 }
 
-
-
-
 #[test]
 fn p134_inherited_observers_kvo_chain() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -102,8 +96,14 @@ fn p134_inherited_observers_kvo_chain() {
     // Inherited lookup (A2): Dog assignment hits Animal willSet/didSet.
     let will_n = trimmed.iter().filter(|l| **l == "animal-will").count();
     let did_n = trimmed.iter().filter(|l| **l == "animal-did").count();
-    assert_eq!(will_n, 1, "expected one inherited willSet (init suppressed): {trimmed:?}");
-    assert_eq!(did_n, 1, "expected one inherited didSet (init suppressed): {trimmed:?}");
+    assert_eq!(
+        will_n, 1,
+        "expected one inherited willSet (init suppressed): {trimmed:?}"
+    );
+    assert_eq!(
+        did_n, 1,
+        "expected one inherited didSet (init suppressed): {trimmed:?}"
+    );
     let value_lines: Vec<&str> = trimmed
         .iter()
         .copied()
@@ -304,11 +304,12 @@ func main() {
         .iter()
         .find(|f| f.name == "Box___set_value")
         .expect("setter");
-    assert_eq!(
-        setter.param_count, 2,
-        "setter expects self + newValue"
-    );
-    let main_fn = mir.functions.iter().find(|f| f.name == "main").expect("main");
+    assert_eq!(setter.param_count, 2, "setter expects self + newValue");
+    let main_fn = mir
+        .functions
+        .iter()
+        .find(|f| f.name == "main")
+        .expect("main");
     assert!(
         main_fn.blocks.iter().any(|b| {
             b.instructions
@@ -318,8 +319,6 @@ func main() {
         "main mir missing Box___set_value call: {text}"
     );
 }
-
-
 
 #[test]
 fn p135_direct_backing_assign_works() {

@@ -19,11 +19,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w218_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w218_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -34,8 +30,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native mir exit {code}: {lines:?}");
     lines
 }
@@ -43,8 +38,7 @@ fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -86,11 +80,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -140,13 +130,15 @@ func main() {
 "#;
 
 fn assert_box_roundtrip_line(out: &str) {
-    assert_eq!(out, "{n: 42}", "Box roundtrip must print {{n: 42}}: {out:?}");
+    assert_eq!(
+        out, "{n: 42}",
+        "Box roundtrip must print {{n: 42}}: {out:?}"
+    );
 }
 
 #[test]
 fn m2_s7_02_nested_encode_decode_roundtrip() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
@@ -158,8 +150,7 @@ func main() {
   let back = __syx_json_decoder_decode(s, "User")
   print(__syx_value_description(back))
 }
-"#,
-    );
+"#);
     // Wave A W75 / ADR-419 / A-03: nested JSON encode/decode roundtrip product exact.
     assert_eq!(
         out,
@@ -170,8 +161,7 @@ func main() {
 
 #[test]
 fn m2_s7_02_missing_key_coding_path() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Address(city: String, zip: String)
 data class User(name: String, address: Address)
 
@@ -186,8 +176,7 @@ func main() {
     print(err.message)
   }
 }
-"#,
-    );
+"#);
     // Wave A W73 / ADR-417 / A-03: JSONDecoder missing-key codingPath product exact.
     assert_eq!(
         out, "caught\nJSONDecoder missing required key 'address' codingPath=address",
@@ -197,8 +186,7 @@ func main() {
 
 #[test]
 fn m2_s7_02_optional_field_omit_and_present() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Card(title: String, note: String?)
 
 func main() {
@@ -210,27 +198,23 @@ func main() {
   let back = __syx_json_decoder_decode(s, "Card")
   print(__syx_value_description(back))
 }
-"#,
-    );
+"#);
     // Wave A W75 / ADR-419 / A-03: optional field omit/present product exact.
     assert_eq!(
-        out,
-        "{title: t}\n{\"note\":\"n2\",\"title\":\"t2\"}\n{note: n2, title: t2}",
+        out, "{title: t}\n{\"note\":\"n2\",\"title\":\"t2\"}\n{note: n2, title: t2}",
         "optional field omit/present must exact: {out}"
     );
 }
 
 #[test]
 fn m2_s7_02_dynamic_json_still_green() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let s = __syx_json_encode(42)
   let v = __syx_json_decode(s)
   print(__syx_value_description(v))
 }
-"#,
-    );
+"#);
     let l = lines(&out);
     assert_eq!(l.get(0).copied(), Some("42"), "dynamic JSON: {out}");
 }
@@ -257,7 +241,10 @@ fn m2_s7_02_box_encode_native_llvm() {
         .collect::<Vec<_>>()
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
-    assert_eq!(out, "{\"n\":42}", "native llvm Box encode must exact: {out}");
+    assert_eq!(
+        out, "{\"n\":42}",
+        "native llvm Box encode must exact: {out}"
+    );
 }
 
 #[test]
@@ -310,4 +297,3 @@ fn m2_s7_02_inventory_meta() {
         "inventory must note ADR-231"
     );
 }
-

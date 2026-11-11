@@ -213,7 +213,12 @@ fn copy_dir_recursive(src: &Path, dst: &Path) {
     }
 }
 
-fn finish_temp(rel: &str, backend: &str, dir: PathBuf, result: &Result<(i32, Vec<String>), String>) {
+fn finish_temp(
+    rel: &str,
+    backend: &str,
+    dir: PathBuf,
+    result: &Result<(i32, Vec<String>), String>,
+) {
     if result.is_err() {
         let kept = retain_dir_on_failure(rel, backend, &dir);
         diff_trace(&format!(
@@ -292,7 +297,11 @@ fn before_run(rel: &str) {
     }
 }
 
-fn run_with_wall_timeout<F>(label: &str, timeout: Duration, f: F) -> Result<(i32, Vec<String>), String>
+fn run_with_wall_timeout<F>(
+    label: &str,
+    timeout: Duration,
+    f: F,
+) -> Result<(i32, Vec<String>), String>
 where
     F: FnOnce() -> Result<(i32, Vec<String>), String> + Send + 'static,
 {

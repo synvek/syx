@@ -16,11 +16,8 @@ fn p98_plugin_cdn_prod_reinstall_after_poison() {
     poison_plugin_slot("p98_cdn");
     syx_host_plugin::register_echo_plugin_in_process();
     assert!(load_from_env().is_ok());
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_plugin_echo_echo("cdn-p89"))
-}"#,
-    );
+}"#);
     assert!(out.contains("cdn-p89") || out.contains("echo"), "{out}");
 }
-

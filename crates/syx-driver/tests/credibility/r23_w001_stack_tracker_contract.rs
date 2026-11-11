@@ -79,8 +79,9 @@ fn r23_call_take_catch_drops_guest_stub() {
 
 #[test]
 fn r23_intentional_leak_unit_test_present() {
-    let src = std::fs::read_to_string(repo_root().join("crates/syx-wasm-emit/src/stack_tracker.rs"))
-        .expect("stack_tracker.rs");
+    let src =
+        std::fs::read_to_string(repo_root().join("crates/syx-wasm-emit/src/stack_tracker.rs"))
+            .expect("stack_tracker.rs");
     assert!(
         src.contains("r23_intentional_leak_diagnoses_mir_site"),
         "unit test for intentional leak must exist"

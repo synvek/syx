@@ -5,25 +5,15 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    dist_actor_mp_clear,
-    dist_actor_mp_peer_send_once,
-    region_route_tcp,
-    spawn_dist_tcp_mailbox,
+    dist_actor_mp_clear, dist_actor_mp_peer_send_once, region_route_tcp, spawn_dist_tcp_mailbox,
 };
-
 
 #[test]
 fn dist_mailbox_inprocess_ack() {
     let (addr, handle, stop) = spawn_dist_tcp_mailbox(2);
     thread::sleep(Duration::from_millis(15));
-    let ack = region_route_tcp(
-        &format!("tcp://{addr}"),
-        "us-east",
-        1,
-        2,
-        "p107-mp-ack",
-    )
-    .expect("tcp mailbox ack");
+    let ack = region_route_tcp(&format!("tcp://{addr}"), "us-east", 1, 2, "p107-mp-ack")
+        .expect("tcp mailbox ack");
     assert_eq!(ack, "p107-mp-ack");
     stop.stop();
     let _ = handle.join();

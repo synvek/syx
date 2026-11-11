@@ -66,7 +66,10 @@ pub fn backfill_mono_witness_cache(
     }
 }
 
-pub(crate) fn compile_native_object(mir: &syx_mir::MirModule, options: &DriverOptions) -> SyxResult<Vec<u8>> {
+pub(crate) fn compile_native_object(
+    mir: &syx_mir::MirModule,
+    options: &DriverOptions,
+) -> SyxResult<Vec<u8>> {
     syx_llvm::compile_native_with_profile(mir, options.build_profile.is_release())
 }
 

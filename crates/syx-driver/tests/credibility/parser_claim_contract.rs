@@ -7,8 +7,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -37,9 +36,7 @@ fn s2_04_plan_claim_locked() {
         "ADR must Non-claim delete syx-cst"
     );
     assert!(
-        adr.contains("acceptance checklist")
-            || adr.contains("I159")
-            || adr.contains("Decision 7"),
+        adr.contains("acceptance checklist") || adr.contains("I159") || adr.contains("Decision 7"),
         "ADR Evidence must tie to I159 checklist"
     );
 

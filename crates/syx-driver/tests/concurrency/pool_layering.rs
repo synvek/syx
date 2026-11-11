@@ -1,7 +1,6 @@
 //! pool layering docs thin start.
 // was: m3_a05_pool_layering
 
-
 #[test]
 fn m3_a05_pool_layering_docs_honesty() {
     let book = include_str!("../../../../books/language-guide/18-concurrency.md");

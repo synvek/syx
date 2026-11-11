@@ -26,11 +26,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -104,7 +100,10 @@ fn ec_m2_4_tcp_native_wasm_ga4_native_tcp_read_exec() {
         "payload mismatch; vm={vm_lines:?} native={native_lines:?}"
     );
     assert_eq!(native_lines[0], "hi", "read must return hi: {native_out}");
-    assert_eq!(native_lines[1], "true", "release must return true: {native_out}");
+    assert_eq!(
+        native_lines[1], "true",
+        "release must return true: {native_out}"
+    );
     assert_eq!(native_lines[1], vm_lines[1], "true line must match VM");
     assert!(
         !native_out.contains("tcp-ok"),
@@ -165,6 +164,8 @@ fn ec_m2_4_tcp_native_wasm_ga_native_tcp_handle_release_exec() {
         native_line, vm_line,
         "native TcpHandleRelease must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "true", "release must return true: {native_line}");
+    assert_eq!(
+        native_line, "true",
+        "release must return true: {native_line}"
+    );
 }
-

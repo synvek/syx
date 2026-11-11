@@ -20,4 +20,3 @@ fn ec_m2_4_http_criterion_smoke_ok() {
         "must print ok: {out}"
     );
 }
-

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -26,14 +25,9 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
+    assert!(census.contains("4/5"), "census must publish Stage-4 5/5");
     assert!(
-        census.contains("4/5"),
-        "census must publish Stage-4 5/5"
-    );
-    assert!(
-        census.contains("stable")
-            && census.contains("preview")
-            && census.contains("experimental"),
+        census.contains("stable") && census.contains("preview") && census.contains("experimental"),
         "census must name plan ternary"
     );
     assert!(
@@ -41,13 +35,11 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
         "census must cover doctest / manifest gaps"
     );
     assert!(
-        census.contains("stability_ssot_helper")
-            || census.contains("stability.toml"),
+        census.contains("stability_ssot_helper") || census.contains("stability.toml"),
         "census must publish SSOT hinge"
     );
     assert!(
-        census.contains("residual_scope_helper")
-            || census.contains("residual-scope"),
+        census.contains("residual_scope_helper") || census.contains("residual-scope"),
         "census must publish residual hinge"
     );
     assert!(
@@ -126,17 +118,13 @@ fn s4_01_stdlib_stability_doctest_census_baseline() {
     );
 
     let plan01 = repo_file("plan/01-project-status.md");
-    assert!(
-        plan01.contains("5/5"),
-        "plan/01 must cite Stage-4 5/5"
-    );
+    assert!(plan01.contains("5/5"), "plan/01 must cite Stage-4 5/5");
     assert!(
         plan01.contains("S4-01") && plan01.contains("[x]"),
         "plan/01 must reflect S4-01 [x]"
     );
     assert!(
-        plan01.contains("S3-I91")
-            && (plan01.contains("S3-I92") || plan01.contains("S4-02")),
+        plan01.contains("S3-I91") && (plan01.contains("S3-I92") || plan01.contains("S4-02")),
         "plan/01 must cite I91 / I92"
     );
     assert!(
@@ -179,10 +167,7 @@ fn s4_01_stdlib_stability_doctest_census_script_runs() {
         "s4_01_status=",
         "stage4_checklist=",
     ] {
-        assert!(
-            stdout.contains(key),
-            "expected {key} in:\n{stdout}"
-        );
+        assert!(stdout.contains(key), "expected {key} in:\n{stdout}");
     }
     assert!(
         stdout.contains("current=S3-I91") && stdout.contains("next=S3-I93"),
@@ -210,7 +195,10 @@ fn s4_01_stdlib_stability_doctest_census_script_runs() {
     assert!(parse("stability_ssot_package_rows=") >= 19);
     assert!(parse("packages_readme_status_rows=") >= 1);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
+    assert!(
+        parse("syx_doctest_subcommand_count=") >= 1,
+        "SA-5-05: syx doctest subcommand must exist"
+    );
     assert_eq!(parse("packages_readme_plan_ternary_preview="), 0);
     assert!(parse("doctest_annotations_doc_helper=") >= 1);
 }

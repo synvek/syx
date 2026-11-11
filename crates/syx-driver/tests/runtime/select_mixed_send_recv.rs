@@ -13,8 +13,7 @@ fn run(src: &str) -> Vec<String> {
 #[test]
 fn select_mixed_send_recv_ready_fair_stdout() {
     reset_select_fair_cursor(0);
-    let lines = run(
-        r#"func main() {
+    let lines = run(r#"func main() {
     let recv_ch = __syx_channel_create(1)
     let send_ch = __syx_channel_create(1)
     __syx_channel_send(recv_ch, 7)
@@ -27,8 +26,7 @@ fn select_mixed_send_recv_ready_fair_stdout() {
         default:
             print("d")
     }
-}"#,
-    );
+}"#);
     // seed 0 → start at index 0 (recv) when both ready.
     assert!(lines.iter().any(|l| l.contains("recv")), "{lines:?}");
     assert!(lines.iter().any(|l| l.contains('7')), "{lines:?}");
@@ -37,8 +35,7 @@ fn select_mixed_send_recv_ready_fair_stdout() {
 
     // Second select: only send ready (fresh VM + fair cursor).
     reset_select_fair_cursor(0);
-    let lines2 = run(
-        r#"func main() {
+    let lines2 = run(r#"func main() {
     let recv_ch = __syx_channel_create(1)
     let send_ch = __syx_channel_create(1)
     select {
@@ -50,8 +47,7 @@ fn select_mixed_send_recv_ready_fair_stdout() {
             print("d")
     }
     print(__syx_channel_try_recv(send_ch))
-}"#,
-    );
+}"#);
     assert!(lines2.iter().any(|l| l.contains("sent")), "{lines2:?}");
     assert!(lines2.iter().any(|l| l.contains("99")), "{lines2:?}");
     assert!(!lines2.iter().any(|l| l.contains("recv")), "{lines2:?}");
@@ -62,8 +58,7 @@ fn select_mixed_fair_rr_both_ready() {
     reset_select_fair_cursor(0);
     // Host tagged-array path (same ops sugar emits via __syx_select_tag).
     // Avoid sugar+while: nested select if-chain + loop exposed an i-increment hang.
-    let lines = run(
-        r#"func main() {
+    let lines = run(r#"func main() {
     let recv_ch = __syx_channel_create(1)
     let send_ch = __syx_channel_create(1)
     var i = 0
@@ -77,8 +72,7 @@ fn select_mixed_fair_rr_both_ready() {
         print(r[1])
         i = i + 1
     }
-}"#,
-    );
+}"#);
     let c11 = lines.iter().filter(|l| l.contains("11")).count();
     // send success returns Bool true — print shows "true", not 22; count via index.
     let c_send = lines.iter().filter(|l| l.contains("true")).count();
@@ -133,4 +127,3 @@ fn select_mixed_parser_dump_unified_poll() {
         "must emit __syx_select_tag temps: {dump}"
     );
 }
-

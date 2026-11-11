@@ -5,29 +5,15 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_ga_ready,
-    cdn_bgp_health,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_pop_count,
-    cdn_bgp_mesh_snapshot,
-    cdn_bgp_multi_pop_ready,
-    cdn_bgp_route,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_pop_binding_count,
-    cdn_bgp_sticky_pop_mvp_ready,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_weighted_anycast_ready,
-    cdn_delivery_ack_clear,
-    cdn_doctor_mode,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_ga_ready, cdn_bgp_health,
+    cdn_bgp_import_peer_mesh, cdn_bgp_mesh_pop_count, cdn_bgp_mesh_snapshot,
+    cdn_bgp_multi_pop_ready, cdn_bgp_route, cdn_bgp_route_sticky, cdn_bgp_sticky_binding,
+    cdn_bgp_sticky_pop_binding_count, cdn_bgp_sticky_pop_mvp_ready, cdn_bgp_sticky_pop_ready,
+    cdn_bgp_weighted_anycast_ready, cdn_delivery_ack_clear, cdn_doctor_mode,
+    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P125_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_sticky_pop_sticky_client_key_reuses_healthy_pop() {
@@ -71,16 +57,24 @@ fn dist_sticky_pop_sticky_client_key_reuses_healthy_pop() {
 
     let client = "tenant-p125-sticky-a";
     let (first_pop, first_ack) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p125-sticky-first").expect("first sticky route");
-    assert_eq!(first_pop, "bgp-us", "initial sticky bind picks highest-weight healthy PoP");
+        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p125-sticky-first")
+            .expect("first sticky route");
+    assert_eq!(
+        first_pop, "bgp-us",
+        "initial sticky bind picks highest-weight healthy PoP"
+    );
     assert_eq!(first_ack, "p125-sticky-first");
     assert_eq!(cdn_bgp_sticky_binding(client).as_deref(), Some("bgp-us"));
     assert_eq!(cdn_bgp_sticky_pop_binding_count(), 1);
 
     // Preferred hint would pick bgp-us-2 via weighted route, but sticky client must stay on bgp-us.
     let (second_pop, second_ack) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 3, 4, "p125-sticky-second").expect("second sticky route");
-    assert_eq!(second_pop, "bgp-us", "same client key must stick to healthy PoP");
+        cdn_bgp_route_sticky(client, "bgp-us-2", 3, 4, "p125-sticky-second")
+            .expect("second sticky route");
+    assert_eq!(
+        second_pop, "bgp-us",
+        "same client key must stick to healthy PoP"
+    );
     assert_eq!(second_ack, "p125-sticky-second");
 
     let (weighted_pop, _) =
@@ -132,12 +126,15 @@ fn dist_sticky_pop_sticky_rebinds_when_bound_pop_unhealthy() {
 
     let (failover_pop, failover_ack) =
         cdn_bgp_route_sticky(client, "bgp-us", 3, 4, "p125-rebind").expect("sticky failover");
-    assert_eq!(failover_pop, "bgp-eu", "sticky client rebinds to next healthy PoP");
+    assert_eq!(
+        failover_pop, "bgp-eu",
+        "sticky client rebinds to next healthy PoP"
+    );
     assert_eq!(failover_ack, "p125-rebind");
     assert_eq!(cdn_bgp_sticky_binding(client).as_deref(), Some("bgp-eu"));
 
-    let (still_eu, _) =
-        cdn_bgp_route_sticky(client, "bgp-us", 5, 6, "p125-still-sticky").expect("remain on rebound pop");
+    let (still_eu, _) = cdn_bgp_route_sticky(client, "bgp-us", 5, 6, "p125-still-sticky")
+        .expect("remain on rebound pop");
     assert_eq!(still_eu, "bgp-eu");
 
     stop_b.stop();

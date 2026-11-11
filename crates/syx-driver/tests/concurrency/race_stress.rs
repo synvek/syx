@@ -69,4 +69,3 @@ func main() {
         "sampling smoke must finish timely: elapsed={elapsed:?} out={out}"
     );
 }
-

@@ -25,10 +25,7 @@ fn run_wasm(src: &str) -> (Vec<String>, std::time::Duration) {
     let elapsed = started.elapsed();
     let _ = fs::remove_dir_all(&dir);
     (
-        lines
-            .into_iter()
-            .filter(|l| !l.is_empty())
-            .collect(),
+        lines.into_iter().filter(|l| !l.is_empty()).collect(),
         elapsed,
     )
 }
@@ -73,10 +70,6 @@ fn task_group_cancel_wait_wasm() {
         stdout.contains("JOIN_CANCEL"),
         "join after cancel must C004 path: {stdout}"
     );
-    assert!(
-        stdout.contains("C004"),
-        "err.code must be C004: {stdout}"
-    );
+    assert!(stdout.contains("C004"), "err.code must be C004: {stdout}");
     assert!(!stdout.contains("JOIN_OK"), "{stdout}");
 }
-

@@ -77,24 +77,19 @@ fn temp_src_dir(tag: &str, src: &str) -> PathBuf {
     // (parallel wasm/mir overwrote each other's main.sy → spurious P001).
     static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let n = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let dir = std::env::temp_dir().join(format!(
-        "syx_p98_hof_{tag}_{}_{n}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_p98_hof_{tag}_{}_{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     dir
 }
 
 fn assert_lines_contain(lines: &[String], needle: &str, backend: &str) {
     assert!(
-        lines.iter().any(|l| l.trim() == needle || l.contains(needle)),
+        lines
+            .iter()
+            .any(|l| l.trim() == needle || l.contains(needle)),
         "{backend} missing {needle:?}: {lines:?}"
     );
 }
@@ -158,4 +153,3 @@ fn p98_hof_flat_map_named_fn_native_stdout() {
     let lines = run_native_src(FLAT_MAP_CLOSURE_SRC);
     assert_lines_contain(&lines, "6", "native");
 }
-

@@ -89,4 +89,3 @@ fn p98_native_user_fn_main_direct() {
     syx_llvm::append_native_runtime_shim(&mir, &mut ir).unwrap();
     assert!(!llvm_ir_uses_mir_main_entry(&ir));
 }
-

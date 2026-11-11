@@ -1,8 +1,8 @@
 //! SYX MIR `Expr::Closure` lowering.
 //! Extracted in S2-I180 (zero semantics; crate-private).
 
-use crate::mir_collect_closure_free_vars::collect_closure_free_vars_detailed;
 use crate::lower_function_with_params;
+use crate::mir_collect_closure_free_vars::collect_closure_free_vars_detailed;
 use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirFunction, MirInstr, MirOp};
 use smol_str::SmolStr;

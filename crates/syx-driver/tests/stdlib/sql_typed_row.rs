@@ -293,4 +293,3 @@ fn m2_s8_02b_docs_and_capability() {
         "inventory must note signed-ADR-246"
     );
 }
-

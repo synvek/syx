@@ -70,4 +70,3 @@ fn p98_wasm_aot_opcode_full_hot_path_zero_run_op() {
     let wasm = emit_wasm_with_options(&tier3_hot_mir(), true).unwrap();
     assert_eq!(measure_aot_run_op_count(&wasm), 0);
 }
-

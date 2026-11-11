@@ -49,4 +49,3 @@ fn ec_m2_4_sql_microbench_exec_on_instant() {
         "ec_m2_4_sql_microbench: Sql.execOn INSERT×{N} compile+run in {elapsed:?} (~{per_op:?}/op)"
     );
 }
-

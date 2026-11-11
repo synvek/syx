@@ -11,21 +11,18 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
 fn p98_gui_mvp_window_event_stdout() {
     reset_phase98_state();
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let win = __syx_gui_window_create("SYX")
     print(win)
     let ev = __syx_gui_event_pump(win)
     print(ev)
     let ok = __syx_gui_canvas_draw(win, "black")
     print(ok)
-}"#,
-    );
+}"#);
     assert!(
         (out.contains("win:") || out.contains("winit-"))
             && (out.contains("event:") || out.contains("pump")),
@@ -35,7 +32,6 @@ fn p98_gui_mvp_window_event_stdout() {
 
 #[test]
 fn p98_gui_mvp_package_surface() {
-    let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../packages/ui/mod.sy");
+    let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/ui/mod.sy");
     assert!(p.is_file(), "missing packages/ui/mod.sy");
 }

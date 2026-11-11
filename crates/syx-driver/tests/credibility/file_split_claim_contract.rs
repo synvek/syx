@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -36,14 +35,9 @@ fn s2_05_plan_claim_locked() {
         adr.contains("≠") && (adr.contains("tests") || adr.contains("cfg(test)")),
         "ADR must Non-claim migrate tests / #[cfg(test)]"
     );
+    assert!(adr.contains("S2-06"), "ADR must lock next = S2-06 open");
     assert!(
-        adr.contains("S2-06"),
-        "ADR must lock next = S2-06 open"
-    );
-    assert!(
-        adr.contains("31222")
-            || adr.contains("census")
-            || adr.contains("file-split-census"),
+        adr.contains("31222") || adr.contains("census") || adr.contains("file-split-census"),
         "ADR Evidence must tie to file-split census"
     );
 
@@ -66,10 +60,7 @@ fn s2_05_plan_claim_locked() {
     );
 
     let census = repo_file("docs/census/stage2-file-split-census.md");
-    assert!(
-        census.contains("S2-I259"),
-        "census must name S2-I259"
-    );
+    assert!(census.contains("S2-I259"), "census must name S2-I259");
 
     let sa = repo_file("crates/syx-semantic/src/semantic_analyzer.rs");
     assert!(

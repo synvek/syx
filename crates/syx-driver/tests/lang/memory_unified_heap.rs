@@ -26,7 +26,11 @@ fn run_embed(path: &PathBuf) -> Vec<String> {
 fn unified_heap_vm_retain_fixture() {
     syx_host_plugin::register_echo_plugin_in_process();
     let (_, lines) = run_file_printed(&fixture("unified_heap_retain.sy"), &opts()).unwrap();
-    assert_eq!(lines.iter().filter(|l| l.trim() == "42").count(), 2, "{lines:?}");
+    assert_eq!(
+        lines.iter().filter(|l| l.trim() == "42").count(),
+        2,
+        "{lines:?}"
+    );
 }
 
 #[test]
@@ -76,4 +80,3 @@ fn unified_heap_actor_roots_fixture() {
     let (_, lines) = run_file_printed(&path, &opts()).unwrap();
     assert!(lines.iter().any(|l| l.trim() == "7"), "{lines:?}");
 }
-

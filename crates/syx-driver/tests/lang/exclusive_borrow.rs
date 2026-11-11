@@ -17,10 +17,7 @@ func main() {
         .expect("single &mut must compile and run")
         .printed
         .join("\n");
-    assert!(
-        out.contains('1'),
-        "pass path must print 1: {out}"
-    );
+    assert!(out.contains('1'), "pass path must print 1: {out}");
 }
 
 #[test]
@@ -49,4 +46,3 @@ func main() {
         Ok(r) => panic!("expected S011 double-mut failure, ran: {:?}", r.printed),
     }
 }
-

@@ -175,8 +175,8 @@ pub fn dict_build_from_pairs(pairs: impl IntoIterator<Item = (Value, Value)>) ->
 #[cfg(test)]
 mod field_storage_smoke {
     use super::*;
-    use crate::Value;
     use crate::hasher::hash_value;
+    use crate::Value;
 
     #[test]
     fn object_ref_keys_have_distinct_hashes_and_dict_slots() {
@@ -213,16 +213,31 @@ mod field_storage_smoke {
         dict_insert_with_hash(&mut map, a.clone(), Value::I32(10), h);
         dict_insert_with_hash(&mut map, b.clone(), Value::I32(20), h);
         assert_eq!(dict_len(&map), 2);
-        assert_eq!(dict_get_with_hash(&map, &a, h).map(|v| v.as_i32()), Some(10));
-        assert_eq!(dict_get_with_hash(&map, &b, h).map(|v| v.as_i32()), Some(20));
+        assert_eq!(
+            dict_get_with_hash(&map, &a, h).map(|v| v.as_i32()),
+            Some(10)
+        );
+        assert_eq!(
+            dict_get_with_hash(&map, &b, h).map(|v| v.as_i32()),
+            Some(20)
+        );
         dict_insert_with_hash(&mut map, a.clone(), Value::I32(11), h);
         assert_eq!(dict_len(&map), 2);
-        assert_eq!(dict_get_with_hash(&map, &a, h).map(|v| v.as_i32()), Some(11));
-        assert_eq!(dict_get_with_hash(&map, &b, h).map(|v| v.as_i32()), Some(20));
+        assert_eq!(
+            dict_get_with_hash(&map, &a, h).map(|v| v.as_i32()),
+            Some(11)
+        );
+        assert_eq!(
+            dict_get_with_hash(&map, &b, h).map(|v| v.as_i32()),
+            Some(20)
+        );
         assert!(dict_remove_with_hash(&mut map, &a, h));
         assert_eq!(dict_len(&map), 1);
         assert!(dict_get_with_hash(&map, &a, h).is_none());
-        assert_eq!(dict_get_with_hash(&map, &b, h).map(|v| v.as_i32()), Some(20));
+        assert_eq!(
+            dict_get_with_hash(&map, &b, h).map(|v| v.as_i32()),
+            Some(20)
+        );
         let keys = dict_keys(&map);
         assert_eq!(keys.len(), 1);
         assert_eq!(keys[0].as_i32(), 2);
@@ -251,8 +266,14 @@ mod field_storage_smoke {
             let val = stack.pop().unwrap();
             dict_insert(&mut map, key_val, val);
         }
-        assert_eq!(map.get("logger").map(|v| v.as_str()), Some("fastlogger".to_string()));
-        assert_eq!(map.get("__type").map(|v| v.as_str()), Some("App".to_string()));
+        assert_eq!(
+            map.get("logger").map(|v| v.as_str()),
+            Some("fastlogger".to_string())
+        );
+        assert_eq!(
+            map.get("__type").map(|v| v.as_str()),
+            Some("App".to_string())
+        );
     }
 
     #[test]
@@ -270,11 +291,7 @@ mod field_storage_smoke {
         );
         let inner_ref = Value::object_ref_from_map(inner, true);
         let mut wrap = HashMap::new();
-        dict_insert(
-            &mut wrap,
-            Value::Str("__syx_ref".into()),
-            inner_ref.clone(),
-        );
+        dict_insert(&mut wrap, Value::Str("__syx_ref".into()), inner_ref.clone());
         dict_insert(
             &mut wrap,
             Value::Str("__type".into()),
@@ -305,18 +322,17 @@ mod field_storage_smoke {
         );
         let inner_ref = Value::object_ref_from_map(inner, true);
         let mut wrap = HashMap::new();
-        dict_insert(
-            &mut wrap,
-            Value::Str("__syx_ref".into()),
-            inner_ref,
-        );
+        dict_insert(&mut wrap, Value::Str("__syx_ref".into()), inner_ref);
         dict_insert(
             &mut wrap,
             Value::Str("__type".into()),
             Value::Str("MutRefCell".into()),
         );
         let app = Value::mut_ref_cell_from_map(wrap);
-        assert!(!matches!(app.get_by_key(&Value::Str("logger".into())), Value::Nil));
+        assert!(!matches!(
+            app.get_by_key(&Value::Str("logger".into())),
+            Value::Nil
+        ));
         let logger = app.get_by_key(&Value::Str("logger".into()));
         assert_eq!(
             logger.object_ref_type_name().as_deref(),
@@ -353,7 +369,10 @@ mod field_storage_smoke {
             dict_insert(&mut map, key_val, val);
         }
         let app = Value::mut_ref_cell_from_map(map);
-        assert_eq!(app.get_by_key(&Value::Str("logger".into())).as_str(), "child");
+        assert_eq!(
+            app.get_by_key(&Value::Str("logger".into())).as_str(),
+            "child"
+        );
     }
 
     #[test]
@@ -362,10 +381,7 @@ mod field_storage_smoke {
             HashMap::from([("__type".into(), Value::Str("FastLogger".into()))]),
             true,
         );
-        assert_eq!(
-            named.object_ref_type_name().as_deref(),
-            Some("FastLogger")
-        );
+        assert_eq!(named.object_ref_type_name().as_deref(), Some("FastLogger"));
     }
 
     #[test]

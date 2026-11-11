@@ -23,11 +23,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -61,7 +57,10 @@ fn ec_m2_4_sql_native_wasm_ga3_native_sql_exec_on_exec() {
         native_line, vm_line,
         "native SqlExecOn must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "1", "INSERT changed-row count must be 1: {native_line}");
+    assert_eq!(
+        native_line, "1",
+        "INSERT changed-row count must be 1: {native_line}"
+    );
 }
 
 #[test]
@@ -111,4 +110,3 @@ fn ec_m2_4_sql_native_wasm_ga_native_sql_close_exec() {
     );
     assert_eq!(native_line, "ok", "close must succeed: {native_line}");
 }
-

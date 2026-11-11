@@ -56,4 +56,3 @@ func main() {
     );
     assert_eq!(lines[9], "2", "length after refill must be 2: {out}");
 }
-

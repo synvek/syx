@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -45,8 +44,7 @@ fn s2_05_semantic_types_to_codec_batch_baseline() {
         "TypeId / type_name_to_id definitions must leave lib.rs"
     );
     assert!(
-        lib.contains("pub use feature_gates::*")
-            || lib.contains("mod feature_gates;"),
+        lib.contains("pub use feature_gates::*") || lib.contains("mod feature_gates;"),
         "feature gates must be wired (I238 landed)"
     );
 

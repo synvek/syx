@@ -28,7 +28,10 @@ fn ec_m2_1_sql_service_memory_crud_ok() {
         run_file_printed(&example_main(), &DriverOptions::default()).expect("run");
     let out = printed.join("\n");
     assert_eq!(code, 0, "sql_tool must succeed: {out}");
-    assert_eq!(out, "ok\n1\nclosed", "sql_tool memory CRUD must exact: {out}");
+    assert_eq!(
+        out, "ok\n1\nclosed",
+        "sql_tool memory CRUD must exact: {out}"
+    );
 }
 
 #[test]

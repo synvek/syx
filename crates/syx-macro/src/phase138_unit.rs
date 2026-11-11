@@ -35,9 +35,21 @@ fn p138_within_wildcard_parse_and_match() {
             wildcard: WithinWildcard::Prefix,
         }
     );
-    assert!(pointcut_matches_method("within(*Service)", "OrderService.run", &[]));
-    assert!(pointcut_matches_method("within(*Service)", "PaymentService.handle", &[]));
-    assert!(!pointcut_matches_method("within(*Service)", "OrderRepo.run", &[]));
+    assert!(pointcut_matches_method(
+        "within(*Service)",
+        "OrderService.run",
+        &[]
+    ));
+    assert!(pointcut_matches_method(
+        "within(*Service)",
+        "PaymentService.handle",
+        &[]
+    ));
+    assert!(!pointcut_matches_method(
+        "within(*Service)",
+        "OrderRepo.run",
+        &[]
+    ));
     assert!(pointcut_matches_method("within(Foo*)", "FooBar.run", &[]));
     assert!(pointcut_matches_method("within(Foo*)", "Foo.run", &[]));
     assert!(!pointcut_matches_method("within(Foo*)", "BarFoo.run", &[]));
@@ -131,8 +143,9 @@ fn p138_token_rewrite_multi_token_decl() {
         }),
     };
     let enumerated = enumerate_decl_param_tokens(&expr);
-    let from_enum = expand_decl_param_tokens(&enumerated, DeclExpandMode::RenamePrefix("r_".into()))
-        .expect("enum rewrite");
+    let from_enum =
+        expand_decl_param_tokens(&enumerated, DeclExpandMode::RenamePrefix("r_".into()))
+            .expect("enum rewrite");
     assert!(matches!(
         from_enum,
         Decl::Function {

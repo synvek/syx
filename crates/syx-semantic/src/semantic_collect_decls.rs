@@ -2,22 +2,23 @@
 //! Zero-semantics peel from semantic_analyzer.rs.
 
 use crate::semantic_analyzer::SemanticAnalyzer;
-use crate::{
-    is_forbidden_internal_import, has_attr, type_expr_to_id,
-    Symbol, TypeId,
-};
+use crate::{has_attr, is_forbidden_internal_import, type_expr_to_id, Symbol, TypeId};
 use indexmap::{IndexMap, IndexSet};
 use smol_str::SmolStr;
 use std::collections::HashSet;
-use syx_ast::{
-    AccessLevel, Decl, Expr, ParamLabel, TypeExpr,
-};
+use syx_ast::{AccessLevel, Decl, Expr, ParamLabel, TypeExpr};
 use syx_diagnostics::SyxResult;
 
 impl SemanticAnalyzer {
-    pub(crate) fn register_nested_type_path(&mut self, outer: &SmolStr, inner: &SmolStr, mangled: &SmolStr) {
+    pub(crate) fn register_nested_type_path(
+        &mut self,
+        outer: &SmolStr,
+        inner: &SmolStr,
+        mangled: &SmolStr,
+    ) {
         let dotted = syx_ast::nested_type_dotted_path(outer.as_str(), inner.as_str());
-        self.nested_type_dotted.insert(dotted.clone(), mangled.clone());
+        self.nested_type_dotted
+            .insert(dotted.clone(), mangled.clone());
         self.type_aliases.insert(
             dotted,
             TypeExpr::Named {
@@ -112,8 +113,7 @@ impl SemanticAnalyzer {
                     }
                 }
                 if !field_types.is_empty() {
-                    self.dataclass_fields
-                        .insert(qualified.clone(), field_types);
+                    self.dataclass_fields.insert(qualified.clone(), field_types);
                 }
                 self.globals.insert(
                     qualified.clone(),
@@ -142,10 +142,8 @@ impl SemanticAnalyzer {
                 let case_names: Vec<SmolStr> = cases.iter().map(|(c, _, _)| c.clone()).collect();
                 for (case, _, fields) in cases {
                     if !fields.is_empty() {
-                        self.enum_case_field_types.insert(
-                            (qualified.clone(), case.clone()),
-                            fields.clone(),
-                        );
+                        self.enum_case_field_types
+                            .insert((qualified.clone(), case.clone()), fields.clone());
                     }
                 }
                 self.enum_cases.insert(qualified.clone(), case_names);
@@ -176,14 +174,11 @@ impl SemanticAnalyzer {
                     self.generic_final_classes
                         .insert(qualified.clone(), (type_params.clone(), vec![]));
                 }
-                let variant_names: Vec<SmolStr> =
-                    variants.iter().map(|(v, _)| v.clone()).collect();
+                let variant_names: Vec<SmolStr> = variants.iter().map(|(v, _)| v.clone()).collect();
                 for (variant, fields) in variants {
                     if !fields.is_empty() {
-                        self.enum_case_field_types.insert(
-                            (qualified.clone(), variant.clone()),
-                            fields.clone(),
-                        );
+                        self.enum_case_field_types
+                            .insert((qualified.clone(), variant.clone()), fields.clone());
                     }
                 }
                 self.enum_cases.insert(qualified.clone(), variant_names);
@@ -244,10 +239,8 @@ impl SemanticAnalyzer {
                     self.check_prelude_name_shadow(name, *span, "function");
                     self.collect_function_isolation(name, attrs);
                     if throws_type.is_some() {
-                        self.throwing_functions.insert(
-                            name.clone(),
-                            throws_type.as_ref().map(type_expr_to_id),
-                        );
+                        self.throwing_functions
+                            .insert(name.clone(), throws_type.as_ref().map(type_expr_to_id));
                     }
                     if type_params.is_empty() {
                         self.function_params.insert(
@@ -255,8 +248,7 @@ impl SemanticAnalyzer {
                             params
                                 .iter()
                                 .map(|p| {
-                                    p.ty
-                                        .as_ref()
+                                    p.ty.as_ref()
                                         .map(type_expr_to_id)
                                         .unwrap_or(TypeId::Unknown)
                                 })
@@ -269,10 +261,8 @@ impl SemanticAnalyzer {
                                 .map(|p| (p.external_label.clone(), p.name.clone()))
                                 .collect(),
                         );
-                        self.function_sending_params.insert(
-                            name.clone(),
-                            params.iter().map(|p| p.sending).collect(),
-                        );
+                        self.function_sending_params
+                            .insert(name.clone(), params.iter().map(|p| p.sending).collect());
                         if let Some(rt) = return_type {
                             self.function_return_types
                                 .insert(name.clone(), type_expr_to_id(rt));
@@ -287,10 +277,8 @@ impl SemanticAnalyzer {
                             },
                         );
                     } else {
-                        self.generic_functions.insert(
-                            name.clone(),
-                            (type_params.clone(), where_clause.clone()),
-                        );
+                        self.generic_functions
+                            .insert(name.clone(), (type_params.clone(), where_clause.clone()));
                         if let Some(rt) = return_type {
                             self.function_return_types
                                 .insert(name.clone(), type_expr_to_id(rt));
@@ -384,10 +372,8 @@ impl SemanticAnalyzer {
                             ..
                         } = member
                         {
-                            let field_ty = ty
-                                .as_ref()
-                                .map(type_expr_to_id)
-                                .unwrap_or(TypeId::Unknown);
+                            let field_ty =
+                                ty.as_ref().map(type_expr_to_id).unwrap_or(TypeId::Unknown);
                             fields.push((field.clone(), field_ty));
                             if computed_getter.is_some() && computed_setter.is_none() {
                                 self.getter_only_properties
@@ -449,7 +435,9 @@ impl SemanticAnalyzer {
                                                 "S053",
                                             ));
                                         }
-                                        if self.final_methods.contains(&(base.clone(), method.clone()))
+                                        if self
+                                            .final_methods
+                                            .contains(&(base.clone(), method.clone()))
                                         {
                                             self.errors.push(self.error_at(
                                                 format!(
@@ -503,9 +491,7 @@ impl SemanticAnalyzer {
                     }
                     for member in members {
                         if let Decl::Init {
-                            params,
-                            failable,
-                            ..
+                            params, failable, ..
                         } = member
                         {
                             let init_name = SmolStr::new(format!("{name}_init"));
@@ -599,7 +585,9 @@ impl SemanticAnalyzer {
                     self.actor_fields.insert(name.clone(), fields);
                     for member in members {
                         if let Decl::Function {
-                            name: method, params, ..
+                            name: method,
+                            params,
+                            ..
                         } = member
                         {
                             self.actor_method_sending.insert(
@@ -697,9 +685,7 @@ impl SemanticAnalyzer {
                         } = member
                         {
                             let field_ty = type_expr_to_id(ty);
-                            if let Some(slot) =
-                                field_types.iter_mut().find(|(f, _)| f == field)
-                            {
+                            if let Some(slot) = field_types.iter_mut().find(|(f, _)| f == field) {
                                 slot.1 = field_ty;
                             } else {
                                 field_types.push((field.clone(), field_ty));
@@ -719,8 +705,7 @@ impl SemanticAnalyzer {
                                 .unwrap_or(TypeId::Void);
                             methods.push((method.clone(), ret.clone()));
                             if attrs.iter().any(|a| a.name.as_str() == "mutating") {
-                                self.mutating_methods
-                                    .insert((name.clone(), method.clone()));
+                                self.mutating_methods.insert((name.clone(), method.clone()));
                             }
                             let method_name = SmolStr::new(format!("{name}_{method}"));
                             self.function_param_labels.insert(
@@ -730,8 +715,7 @@ impl SemanticAnalyzer {
                                     .map(|p| (p.external_label.clone(), p.name.clone()))
                                     .collect(),
                             );
-                            self.function_return_types
-                                .insert(method_name, ret);
+                            self.function_return_types.insert(method_name, ret);
                         }
                         if let Decl::Init { params, .. } = member {
                             let init_name = SmolStr::new(format!("{name}_init"));
@@ -790,10 +774,8 @@ impl SemanticAnalyzer {
                         variants.iter().map(|(v, _)| v.clone()).collect();
                     for (variant, fields) in variants {
                         if !fields.is_empty() {
-                            self.enum_case_field_types.insert(
-                                (name.clone(), variant.clone()),
-                                fields.clone(),
-                            );
+                            self.enum_case_field_types
+                                .insert((name.clone(), variant.clone()), fields.clone());
                         }
                     }
                     self.enum_cases.insert(name.clone(), variant_names);
@@ -808,10 +790,7 @@ impl SemanticAnalyzer {
                     );
                 }
                 Decl::TypeAlias {
-                    name,
-                    ty,
-                    access,
-                    ..
+                    name, ty, access, ..
                 } => {
                     self.type_aliases.insert(name.clone(), ty.clone());
                     let resolved = self.resolve_type_expr(ty);
@@ -881,10 +860,8 @@ impl SemanticAnalyzer {
                                 ext_prop_getters.insert(field.clone(), ret.clone());
                                 ext_methods.push((field.clone(), ret.clone()));
                                 if !where_clause.is_empty() {
-                                    self.extension_method_where.insert(
-                                        (type_name.clone(), field),
-                                        where_clause.clone(),
-                                    );
+                                    self.extension_method_where
+                                        .insert((type_name.clone(), field), where_clause.clone());
                                 }
                             } else if let Some(field) = name.as_str().strip_prefix("__set_") {
                                 ext_prop_setters.insert(SmolStr::new(field));
@@ -899,7 +876,8 @@ impl SemanticAnalyzer {
                             }
                             if name.as_str() == "__subscript_get" {
                                 self.subscript_types.insert(type_name.clone());
-                                self.subscript_return_types.insert(type_name.clone(), ret.clone());
+                                self.subscript_return_types
+                                    .insert(type_name.clone(), ret.clone());
                             }
                             if name.as_str() == "__subscript_set" {
                                 self.subscript_set_types.insert(type_name.clone());
@@ -920,10 +898,7 @@ impl SemanticAnalyzer {
                         }
                     }
                     if !ext_prop_getters.is_empty() {
-                        let fields = self
-                            .dataclass_fields
-                            .entry(type_name.clone())
-                            .or_default();
+                        let fields = self.dataclass_fields.entry(type_name.clone()).or_default();
                         for (field, field_ty) in &ext_prop_getters {
                             if !fields.iter().any(|(f, _)| f == field) {
                                 fields.push((field.clone(), field_ty.clone()));
@@ -954,13 +929,12 @@ impl SemanticAnalyzer {
                         self.generic_enums
                             .insert(name.clone(), (type_params.clone(), vec![]));
                     }
-                    let case_names: Vec<SmolStr> = cases.iter().map(|(c, _, _)| c.clone()).collect();
+                    let case_names: Vec<SmolStr> =
+                        cases.iter().map(|(c, _, _)| c.clone()).collect();
                     for (case, _, fields) in cases {
                         if !fields.is_empty() {
-                            self.enum_case_field_types.insert(
-                                (name.clone(), case.clone()),
-                                fields.clone(),
-                            );
+                            self.enum_case_field_types
+                                .insert((name.clone(), case.clone()), fields.clone());
                         }
                     }
                     self.enum_cases.insert(name.clone(), case_names.clone());

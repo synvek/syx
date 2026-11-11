@@ -26,7 +26,9 @@ fn run_census() -> String {
 fn parse(stdout: &str, key: &str) -> i64 {
     for line in stdout.lines() {
         if let Some(rest) = line.strip_prefix(key) {
-            return rest.parse().unwrap_or_else(|_| panic!("bad int for {key}: {rest}"));
+            return rest
+                .parse()
+                .unwrap_or_else(|_| panic!("bad int for {key}: {rest}"));
         }
     }
     panic!("missing key {key} in census output:\n{stdout}");

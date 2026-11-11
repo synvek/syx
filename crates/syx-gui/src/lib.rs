@@ -39,8 +39,8 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 use winit::dpi::LogicalSize;
 use winit::event::{ElementState, Event, Ime, KeyEvent, MouseButton, WindowEvent};
-use winit::keyboard::{Key, NamedKey};
 use winit::event_loop::EventLoop;
+use winit::keyboard::{Key, NamedKey};
 use winit::platform::pump_events::EventLoopExtPumpEvents;
 use winit::window::{Window, WindowBuilder};
 
@@ -717,9 +717,7 @@ pub fn button_take_clicked(win_id: &str, btn_id: &str) -> bool {
         .and_then(|w| {
             w.widgets
                 .iter_mut()
-                .find(|x| {
-                    x.kind == WidgetKind::Button && (x.id == btn_id || x.text == btn_id)
-                })
+                .find(|x| x.kind == WidgetKind::Button && (x.id == btn_id || x.text == btn_id))
                 .map(|btn| {
                     let was = btn.clicked;
                     btn.clicked = false;
@@ -792,7 +790,6 @@ fn cycle_focus(win_id: &str, reverse: bool) -> bool {
     w.focus_widget = Some(ids[next].clone());
     true
 }
-
 
 /// Test hook: widget origin x for layout gates.
 pub fn widget_origin_x(win_id: &str, widget_id: &str) -> u32 {
@@ -938,7 +935,16 @@ fn blit_fontdue(
     }
 }
 
-fn blit_hline(buf: &mut [u32], _stride: u32, width: u32, height: u32, x0: u32, x1: u32, y: u32, ink: u32) {
+fn blit_hline(
+    buf: &mut [u32],
+    _stride: u32,
+    width: u32,
+    height: u32,
+    x0: u32,
+    x1: u32,
+    y: u32,
+    ink: u32,
+) {
     if y >= height {
         return;
     }
@@ -1037,7 +1043,15 @@ pub fn probe_ime_preedit_highlight_capability() -> bool {
         let in_hl = byte_pos < hl_end && byte_pos + ch_len > hl_start;
         let adv = char_advance(ch);
         if in_hl {
-            fill_rect(&mut buf, W, cx, pre_y, adv, gui_caret_metric_px().min(12), PREEDIT_HL_BG);
+            fill_rect(
+                &mut buf,
+                W,
+                cx,
+                pre_y,
+                adv,
+                gui_caret_metric_px().min(12),
+                PREEDIT_HL_BG,
+            );
         }
         let ink = if in_hl {
             PREEDIT_HL_INK
@@ -1048,7 +1062,8 @@ pub fn probe_ime_preedit_highlight_capability() -> bool {
         cx = cx.saturating_add(adv);
         byte_pos += ch_len;
     }
-    buf.iter().any(|&px| px == PREEDIT_HL_BG || px == PREEDIT_HL_INK)
+    buf.iter()
+        .any(|&px| px == PREEDIT_HL_BG || px == PREEDIT_HL_INK)
 }
 
 #[allow(dead_code)]
@@ -1228,7 +1243,10 @@ fn gui_hold_requested() -> bool {
 fn logical_point_from_cursor(win: &GuiWindow, x: f64, y: f64, os_w: u32, os_h: u32) -> (u32, u32) {
     let lx = (x / os_w.max(1) as f64 * win.width as f64) as u32;
     let ly = (y / os_h.max(1) as f64 * win.height as f64) as u32;
-    (lx.min(win.width.saturating_sub(1)), ly.min(win.height.saturating_sub(1)))
+    (
+        lx.min(win.width.saturating_sub(1)),
+        ly.min(win.height.saturating_sub(1)),
+    )
 }
 
 fn hit_test_widgets(win_id: &str, lx: u32, ly: u32) {
@@ -1287,7 +1305,10 @@ fn apply_text_to_focused_field(win_id: &str, text: &str) -> bool {
     };
     let focus = match w.focus_widget.clone() {
         Some(id) => id,
-        None => focusable_widget_ids(w).into_iter().next().unwrap_or_default(),
+        None => focusable_widget_ids(w)
+            .into_iter()
+            .next()
+            .unwrap_or_default(),
     };
     if focus.is_empty() {
         return false;
@@ -1492,9 +1513,9 @@ fn pump_live(timeout_ms: u64) {
     let _ = with_live_mut(|gui| {
         pump_enter();
         let _guard = PumpGuard;
-        let _ = gui.event_loop.pump_events(
-            Some(Duration::from_millis(timeout_ms)),
-            |event, _| {
+        let _ = gui
+            .event_loop
+            .pump_events(Some(Duration::from_millis(timeout_ms)), |event, _| {
                 if let Event::WindowEvent { window_id, event } = &event {
                     if let WindowEvent::CloseRequested = event {
                         gui.os_windows.retain(|_, w| w.window.id() != *window_id);
@@ -1512,8 +1533,7 @@ fn pump_live(timeout_ms: u64) {
                         handle_window_pump_event(&win_id, event, os_w, os_h);
                     }
                 }
-            },
-        );
+            });
     });
     flush_dirty_os_windows();
 }
@@ -1525,9 +1545,9 @@ fn pump_until_close_or_timeout(timeout: Duration) {
         let empty = with_live_mut(|gui| {
             pump_enter();
             let _guard = PumpGuard;
-            let _ = gui.event_loop.pump_events(
-                Some(Duration::from_millis(50)),
-                |event, _| {
+            let _ = gui
+                .event_loop
+                .pump_events(Some(Duration::from_millis(50)), |event, _| {
                     if let Event::WindowEvent { window_id, event } = &event {
                         if let WindowEvent::CloseRequested = event {
                             gui.os_windows.retain(|_, w| w.window.id() != *window_id);
@@ -1545,8 +1565,7 @@ fn pump_until_close_or_timeout(timeout: Duration) {
                             handle_window_pump_event(&win_id, event, os_w, os_h);
                         }
                     }
-                },
-            );
+                });
             gui.os_windows.is_empty()
         })
         .unwrap_or(true);
@@ -1580,13 +1599,8 @@ pub fn host_gui_winit_window_create(stack: &mut Vec<Value>) -> SyxResult<()> {
                 if wgpu_present::softbuffer_fallback_requested() {
                     wgpu_present::present_softbuffer(&win, &pixels, 64, 64);
                 }
-                gui.os_windows.insert(
-                    id.clone(),
-                    OsGuiWindow {
-                        window: win,
-                        wgpu,
-                    },
-                );
+                gui.os_windows
+                    .insert(id.clone(), OsGuiWindow { window: win, wgpu });
             }
         });
         // Brief pump so the window maps on macOS AppKit.
@@ -1645,11 +1659,7 @@ pub fn host_gui_winit_canvas_draw(stack: &mut Vec<Value>) -> SyxResult<()> {
     Ok(())
 }
 
-fn push_widget(
-    stack: &mut Vec<Value>,
-    kind: WidgetKind,
-    id_prefix: &str,
-) -> SyxResult<()> {
+fn push_widget(stack: &mut Vec<Value>, kind: WidgetKind, id_prefix: &str) -> SyxResult<()> {
     let text = pop_str(stack);
     let win_id = pop_str(stack);
     let id = format!("{id_prefix}-{text}");
@@ -1659,19 +1669,14 @@ fn push_widget(
             match layout.axis {
                 LayoutAxis::Vertical => {
                     let y = layout.next_y;
-                    layout.next_y = y
-                        .saturating_add(12)
-                        .saturating_add(layout.spacing);
+                    layout.next_y = y.saturating_add(12).saturating_add(layout.spacing);
                     (2, y)
                 }
                 LayoutAxis::Horizontal => {
                     let x = layout.next_x;
                     let y = match layout.v_align {
                         VAlign::Top => layout.row_y,
-                        VAlign::Center => {
-                            layout.row_y
-                                + (layout.row_height.saturating_sub(12)) / 2
-                        }
+                        VAlign::Center => layout.row_y + (layout.row_height.saturating_sub(12)) / 2,
                     };
                     layout.row_height = layout.row_height.max(12);
                     layout.next_x = x.saturating_add(60).saturating_add(layout.spacing);
@@ -1776,7 +1781,11 @@ pub fn label_set_writing_mode(win_id: &str, widget_id: &str, mode: &str) -> bool
         Value::Str(mode.into()),
     ];
     host_gui_label_set_writing_mode(&mut stack).is_ok()
-        && !stack.pop().map(|v| v.as_str()).unwrap_or_default().is_empty()
+        && !stack
+            .pop()
+            .map(|v| v.as_str())
+            .unwrap_or_default()
+            .is_empty()
 }
 
 pub fn host_gui_button_create(stack: &mut Vec<Value>) -> SyxResult<()> {
@@ -1792,11 +1801,7 @@ pub fn host_gui_widget_set_text(stack: &mut Vec<Value>) -> SyxResult<()> {
     let widget_id = pop_str(stack);
     let win_id = pop_str(stack);
     if let Some(w) = WINDOWS.lock().get_mut(&win_id) {
-        if let Some(widget) = w
-            .widgets
-            .iter_mut()
-            .find(|x| widget_matches(x, &widget_id))
-        {
+        if let Some(widget) = w.widgets.iter_mut().find(|x| widget_matches(x, &widget_id)) {
             widget.text = text;
             widget.edited = true;
             widget.caret = text_char_len(&widget.text);
@@ -1845,11 +1850,7 @@ pub fn host_gui_layout_create(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 pub fn host_gui_layout_configure(stack: &mut Vec<Value>) -> SyxResult<()> {
     let align = pop_str(stack);
-    let spacing = stack
-        .pop()
-        .unwrap_or(Value::I32(2))
-        .as_i64()
-        .max(0) as u32;
+    let spacing = stack.pop().unwrap_or(Value::I32(2)).as_i64().max(0) as u32;
     let win_id = pop_str(stack);
     if let Some(w) = WINDOWS.lock().get_mut(&win_id) {
         if let Some(ref mut layout) = w.layout {
@@ -1901,9 +1902,10 @@ pub fn host_gui_on_click_register(stack: &mut Vec<Value>) -> SyxResult<()> {
         return Ok(());
     }
     if let Some(w) = WINDOWS.lock().get_mut(&win_id) {
-        let has_btn = w.widgets.iter().any(|x| {
-            (x.id == btn_id || x.text == btn_id) && x.kind == WidgetKind::Button
-        });
+        let has_btn = w
+            .widgets
+            .iter()
+            .any(|x| (x.id == btn_id || x.text == btn_id) && x.kind == WidgetKind::Button);
         if has_btn {
             let key = w
                 .widgets
@@ -1925,9 +1927,11 @@ pub fn host_gui_click_inject(stack: &mut Vec<Value>) -> SyxResult<()> {
     let btn_id = pop_str(stack);
     let win_id = pop_str(stack);
     if let Some(w) = WINDOWS.lock().get_mut(&win_id) {
-        if let Some(widget) = w.widgets.iter_mut().find(|x| {
-            (x.id == btn_id || x.text == btn_id) && x.kind == WidgetKind::Button
-        }) {
+        if let Some(widget) = w
+            .widgets
+            .iter_mut()
+            .find(|x| (x.id == btn_id || x.text == btn_id) && x.kind == WidgetKind::Button)
+        {
             widget.clicked = true;
             w.focus_widget = Some(widget.id.clone());
             stack.push(Value::Bool(true));
@@ -2074,7 +2078,10 @@ mod tests {
         host_gui_run_loop_once(&mut stack).unwrap();
         let _tick = stack.pop().unwrap().as_str();
         let pending = drain_pending_handlers(&win);
-        assert!(pending.iter().any(|h| h == "h1"), "expected h1 queued, got {pending:?}");
+        assert!(
+            pending.iter().any(|h| h == "h1"),
+            "expected h1 queued, got {pending:?}"
+        );
         reset_test_gui();
     }
 
@@ -2093,7 +2100,10 @@ mod tests {
         stack.push(Value::Str(win.clone()));
         stack.push(Value::Str(btn.clone()));
         host_gui_click_inject(&mut stack).unwrap();
-        assert!(stack.pop().unwrap().as_bool(), "click inject should find button");
+        assert!(
+            stack.pop().unwrap().as_bool(),
+            "click inject should find button"
+        );
         // widget id is btn-B; public take accepts that id
         assert!(button_take_clicked(&win, "btn-B"));
         assert!(!button_take_clicked(&win, "btn-B"));
@@ -2405,7 +2415,10 @@ mod tests {
                 }
             }
         }
-        assert!(saw_ink, "CJK TTF/egui path must produce non-background pixels for 你");
+        assert!(
+            saw_ink,
+            "CJK TTF/egui path must produce non-background pixels for 你"
+        );
         reset_test_gui();
     }
 
@@ -2460,7 +2473,10 @@ mod tests {
     fn p106_gui_cjk_subset_at_least_64() {
         assert!(cjk_font::ci_subset_unique_char_count() >= 64);
         assert!(super::gui_cjk_subset_char_count() >= 64);
-        assert_eq!(super::gui_font_cjk_subset_digest(), "gui-ttf-expand-v1:cjk64-plus");
+        assert_eq!(
+            super::gui_font_cjk_subset_digest(),
+            "gui-ttf-expand-v1:cjk64-plus"
+        );
     }
 
     #[test]
@@ -2526,14 +2542,20 @@ mod tests {
                     if px == PREEDIT_HL_BG {
                         saw_highlight_bg = true;
                     }
-                    if px != FIELD_BG && px != PREEDIT_UNDERLINE && px != GLYPH_INK && px != 0xFF808080
+                    if px != FIELD_BG
+                        && px != PREEDIT_UNDERLINE
+                        && px != GLYPH_INK
+                        && px != 0xFF808080
                     {
                         only_underline = false;
                     }
                 }
             }
         }
-        assert!(saw_highlight_bg, "preedit must draw inverted highlight background");
+        assert!(
+            saw_highlight_bg,
+            "preedit must draw inverted highlight background"
+        );
         assert!(!only_underline, "preedit must not be underline-only");
         reset_test_gui();
     }
@@ -2551,7 +2573,12 @@ mod tests {
         host_gui_text_field_create(&mut stack).unwrap();
 
         assert!(apply_ime_preedit_inject(&win, "你"));
-        assert!(WINDOWS.lock().get(&win).unwrap().ime_preedit_highlight.is_some());
+        assert!(WINDOWS
+            .lock()
+            .get(&win)
+            .unwrap()
+            .ime_preedit_highlight
+            .is_some());
 
         assert!(apply_ime_commit_to_focused_field(&win, "你"));
         let guard = WINDOWS.lock();
@@ -2567,8 +2594,14 @@ mod tests {
         assert!(super::gui_ime_preedit_supported());
         assert!(super::gui_ime_commit_supported());
         assert!(super::gui_caret_supported());
-        assert_eq!(super::gui_ime_preedit_digest(), "gui-ime-highlight-v1:preedit-invert");
-        assert_eq!(super::gui_doctor_coverage_digest(), "gui-doctor-engine-v6:phase118");
+        assert_eq!(
+            super::gui_ime_preedit_digest(),
+            "gui-ime-highlight-v1:preedit-invert"
+        );
+        assert_eq!(
+            super::gui_doctor_coverage_digest(),
+            "gui-doctor-engine-v6:phase118"
+        );
     }
 
     #[test]
@@ -2653,9 +2686,7 @@ mod tests {
     fn p107_gui_doctor_real_ime_not_fingerprint_only() {
         let src = include_str!("lib.rs");
         assert!(
-            !src.contains(
-                "gui_ime_preedit_digest() == \"gui-ime-highlight-v1:preedit-invert\""
-            ),
+            !src.contains("gui_ime_preedit_digest() == \"gui-ime-highlight-v1:preedit-invert\""),
             "ime_preedit_supported must not be fingerprint string equality alone"
         );
         assert!(src.contains("probe_ime_preedit_highlight_capability"));
@@ -2675,7 +2706,10 @@ mod tests {
         let px = super::gui_caret_metric_px();
         assert!(px > 0);
         // Derived from 14px raster line metrics — must differ from the old literal constant path.
-        assert_ne!(px, 10, "caret should come from font metrics, not hardcoded 10");
+        assert_ne!(
+            px, 10,
+            "caret should come from font metrics, not hardcoded 10"
+        );
         assert_eq!(px, shape::caret_metric_from_font());
     }
 
@@ -2716,7 +2750,10 @@ mod tests {
         assert!(super::gui_fallback_hits() >= 1);
 
         let g = shape::shape_rasterize_char(oob);
-        assert!(!g.is_box, "OOB glyph must not be a box when fallback available");
+        assert!(
+            !g.is_box,
+            "OOB glyph must not be a box when fallback available"
+        );
         #[cfg(feature = "skia-glyph")]
         assert!(g.skia.is_some(), "OOB glyph must raster via skia");
         #[cfg(not(feature = "skia-glyph"))]
@@ -2747,7 +2784,10 @@ mod tests {
                 }
             }
         }
-        assert!(saw_ink, "OOB fallback path must produce non-background pixels");
+        assert!(
+            saw_ink,
+            "OOB fallback path must produce non-background pixels"
+        );
         reset_test_gui();
     }
 
@@ -2899,11 +2939,11 @@ mod tests {
             super::gui_egui_wgpu_digest(),
             "gui-egui-wgpu-v1:winit-present"
         );
+        assert_eq!(super::gui_hb_paint_digest(), "gui-hb-paint-v1:string-shape");
         assert_eq!(
-            super::gui_hb_paint_digest(),
-            "gui-hb-paint-v1:string-shape"
+            super::gui_emoji_digest(),
+            "gui-emoji-v9:font-radial-and-sweep"
         );
-        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
         assert_eq!(
             super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
@@ -2998,7 +3038,10 @@ mod tests {
             super::gui_wgpu_composite_digest(),
             "gui-wgpu-composite-v1:hb-emoji-tex"
         );
-        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(
+            super::gui_emoji_digest(),
+            "gui-emoji-v9:font-radial-and-sweep"
+        );
         assert_eq!(
             super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
@@ -3115,16 +3158,10 @@ mod tests {
         let _guard = TEST_LOCK.lock();
         reset_test_gui();
         assert!(!wgpu_present::softbuffer_fallback_requested());
-        assert_ne!(
-            super::gui_doctor_present_mode(),
-            "softbuffer-dev-fallback"
-        );
+        assert_ne!(super::gui_doctor_present_mode(), "softbuffer-dev-fallback");
         std::env::set_var("SYX_GUI_SOFTBUFFER", "1");
         assert!(wgpu_present::softbuffer_fallback_requested());
-        assert_eq!(
-            super::gui_doctor_present_mode(),
-            "softbuffer-dev-fallback"
-        );
+        assert_eq!(super::gui_doctor_present_mode(), "softbuffer-dev-fallback");
         std::env::remove_var("SYX_GUI_SOFTBUFFER");
         reset_test_gui();
     }
@@ -3148,7 +3185,10 @@ mod tests {
             super::gui_skia_glyph_digest(),
             "gui-skia-glyph-v1:raster-mvp"
         );
-        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(
+            super::gui_emoji_digest(),
+            "gui-emoji-v9:font-radial-and-sweep"
+        );
         assert_eq!(
             super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
@@ -3175,7 +3215,10 @@ mod tests {
         stack.push(Value::Str("你好".into()));
         host_gui_label_create(&mut stack).unwrap();
         let _ = stack.pop();
-        assert!(super::gui_skia_glyph_used(), "HB paint must raster via skia");
+        assert!(
+            super::gui_skia_glyph_used(),
+            "HB paint must raster via skia"
+        );
         assert!(super::gui_paint_shaped());
         reset_test_gui();
     }
@@ -3254,7 +3297,10 @@ mod tests {
             super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
-        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(
+            super::gui_emoji_digest(),
+            "gui-emoji-v9:font-radial-and-sweep"
+        );
         assert_eq!(
             super::gui_vertical_rl_digest(),
             "gui-vertical-unify-v1:hb-advance"
@@ -3285,7 +3331,10 @@ mod tests {
         stack.push(Value::Str("你好世界".into()));
         host_gui_label_create(&mut stack).unwrap();
         let _ = stack.pop();
-        assert!(super::gui_skia_layout_used(), "label paint must run skia paragraph layout");
+        assert!(
+            super::gui_skia_layout_used(),
+            "label paint must run skia paragraph layout"
+        );
         reset_test_gui();
     }
 
@@ -3330,7 +3379,10 @@ mod tests {
                 }
             }
         }
-        assert!(saw_ink, "vertical ASCII must paint via HB advance path, not skip");
+        assert!(
+            saw_ink,
+            "vertical ASCII must paint via HB advance path, not skip"
+        );
         assert!(egui_backend::vertical_ascii_ink_used());
         assert!(egui_backend::vertical_ink_used());
         let egui_src = include_str!("egui_backend.rs");
@@ -3344,7 +3396,10 @@ mod tests {
         reset_test_gui();
         shape::reset_shape_stats();
         wgpu_present::reset_used_probes();
-        assert!(!super::gui_shaped(), "probe_shape_apis_ok must not set shaped");
+        assert!(
+            !super::gui_shaped(),
+            "probe_shape_apis_ok must not set shaped"
+        );
         assert!(shape::probe_shape_apis_ok());
         assert!(!super::gui_shaped());
         assert_eq!(super::gui_doctor_present_mode(), "");
@@ -3385,7 +3440,10 @@ mod tests {
             super::gui_skia_layout_digest(),
             "gui-skia-paragraph-v6:os-ot-aligned"
         );
-        assert_eq!(super::gui_emoji_digest(), "gui-emoji-v9:font-radial-and-sweep");
+        assert_eq!(
+            super::gui_emoji_digest(),
+            "gui-emoji-v9:font-radial-and-sweep"
+        );
         assert_eq!(
             super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
@@ -3418,7 +3476,10 @@ mod tests {
         stack.push(Value::Str("你好世界段落换行测试".into()));
         host_gui_label_create(&mut stack).unwrap();
         let _ = stack.pop();
-        assert!(super::gui_skia_layout_used(), "label paint must run skia paragraph");
+        assert!(
+            super::gui_skia_layout_used(),
+            "label paint must run skia paragraph"
+        );
         #[cfg(feature = "skia-glyph")]
         {
             assert!(
@@ -3494,7 +3555,10 @@ mod tests {
         let _ = stack.pop();
         let widgets = super::gui_doctor_widgets();
         assert!(widgets.contains("cbdt"), "widgets: {widgets}");
-        assert!(!widgets.contains("cbdt-or-colr"), "ban sticky OR tag: {widgets}");
+        assert!(
+            !widgets.contains("cbdt-or-colr"),
+            "ban sticky OR tag: {widgets}"
+        );
         assert_eq!(
             super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
@@ -3548,7 +3612,10 @@ mod tests {
         #[cfg(feature = "skia-glyph")]
         {
             assert!(skia_layout::paragraph_paint_used());
-            assert!(!super::gui_hb_paint_path_used(), "horizontal label must not double-paint");
+            assert!(
+                !super::gui_hb_paint_path_used(),
+                "horizontal label must not double-paint"
+            );
         }
         assert!(egui_backend::egui_text_suppressed_used());
         assert!(egui_backend::no_double_paint_probe());
@@ -3695,10 +3762,7 @@ mod tests {
             super::gui_ot_features_digest(),
             "gui-ot-features-v7:os-fontmgr-default-paint"
         );
-        assert_eq!(
-            super::gui_vf_wght_digest(),
-            "gui-font-vf-v1:wght-mvp"
-        );
+        assert_eq!(super::gui_vf_wght_digest(), "gui-font-vf-v1:wght-mvp");
         assert_eq!(
             super::gui_doctor_coverage_digest(),
             "gui-doctor-engine-v6:phase118"
@@ -3727,7 +3791,8 @@ mod tests {
                     .and_then(|s| s.split("pub fn ").next())
                     .unwrap_or("")
                     .contains("include_test: true")
-                    && include_str!("skia_layout.rs").contains("build_paragraph(text, max_width, false)"),
+                    && include_str!("skia_layout.rs")
+                        .contains("build_paragraph(text, max_width, false)"),
                 "layout_paragraph must be OS-only"
             );
         }
@@ -3824,10 +3889,8 @@ mod tests {
         let off = shape::shape_string_for_paint(shape::DEFAULT_PAINT_OT_TEXT, 8);
         shape::set_paint_smcp_enabled(true);
         let on = shape::shape_string_for_paint(shape::DEFAULT_PAINT_OT_TEXT, 8);
-        let prefix_off = shape::shape_string_for_paint(
-            &format!("{}a", shape::PAINT_OT_SMCP_PREFIX),
-            8,
-        );
+        let prefix_off =
+            shape::shape_string_for_paint(&format!("{}a", shape::PAINT_OT_SMCP_PREFIX), 8);
         assert_eq!(
             off.iter().map(|g| g.glyph_id).collect::<Vec<_>>(),
             on.iter().map(|g| g.glyph_id).collect::<Vec<_>>(),
@@ -3899,15 +3962,11 @@ mod tests {
             "VF wght axis must move paint-path advances"
         );
         assert!(super::gui_vf_paint_variations_used());
-        let smcp_off = shape::shape_string_for_paint(
-            &format!("{}a", shape::PAINT_OT_SMCP_PREFIX),
-            8,
-        );
+        let smcp_off =
+            shape::shape_string_for_paint(&format!("{}a", shape::PAINT_OT_SMCP_PREFIX), 8);
         shape::set_paint_vf_wght(100.0);
-        let vf_light = shape::shape_string_for_paint(
-            &format!("{}A", shape::PAINT_VF_VAR_PREFIX),
-            8,
-        );
+        let vf_light =
+            shape::shape_string_for_paint(&format!("{}A", shape::PAINT_VF_VAR_PREFIX), 8);
         assert!(
             !smcp_off.is_empty() && !vf_light.is_empty(),
             "paint path must shape proof-font probes, not proof-only APIs"

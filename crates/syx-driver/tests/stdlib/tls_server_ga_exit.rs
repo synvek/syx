@@ -32,7 +32,9 @@ fn tls_server_ga_exit_spec_signed() {
     let spec = include_str!("../../../../docs/lang/tls-server-ga-exit.md");
     assert!(
         spec.contains("ADR-732")
-            && (spec.contains("exit signed") || spec.contains("Exit signed") || spec.contains("floor exit")),
+            && (spec.contains("exit signed")
+                || spec.contains("Exit signed")
+                || spec.contains("floor exit")),
         "spec must cite ADR-732 honesty-ladder floor exit signed"
     );
     assert!(
@@ -66,7 +68,9 @@ fn tls_server_ga_exit_spec_signed() {
     let vectors = include_str!("../../../../docs/lang/tls-server-ga-vectors.md");
     assert!(
         (vectors.contains("TLS honesty-ladder floor") || vectors.contains("honesty-ladder floor"))
-            && (vectors.contains("**met** (W388") || vectors.contains("ADR-732") || vectors.contains("met (narrow)")),
+            && (vectors.contains("**met** (W388")
+                || vectors.contains("ADR-732")
+                || vectors.contains("met (narrow)")),
         "vectors must mark honesty floor met (narrow)"
     );
     assert!(
@@ -81,4 +85,3 @@ fn tls_server_ga_exit_spec_signed() {
         "vectors must retain product unsupported / net.tls.server cross-index"
     );
 }
-

@@ -78,4 +78,3 @@ fn p98_wasm_run_op_zero_aot_matrix() {
         }
     }
 }
-

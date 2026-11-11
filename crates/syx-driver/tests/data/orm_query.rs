@@ -49,4 +49,3 @@ fn p98_orm_delete_where_stdout() {
     .printed;
     assert!(out.iter().any(|l| l.contains('1')), "{out:?}");
 }
-

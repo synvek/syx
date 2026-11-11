@@ -6,26 +6,23 @@ use clap::{Parser, Subcommand};
 use miette::IntoDiagnostic;
 use syx_config::{self, NativeBackendChoice, SyxRuntimeConfig};
 use syx_driver::{
-    add_dependency, build_native_executable, build_native_executable_file,
-    build_native_file_with_options, build_native_with_options,
-    build_wasm_file_with_options, build_wasm_with_options, check_file_with_options,
-    check_project_with_options, compile_file_with_options, compile_project_with_options,
-    debug_dap, debug_interactive,
-    default_emit_output, default_emit_stem, default_native_executable,
-    default_native_executable_for_source, default_native_object, default_native_object_for_source,
-    doc_project, emit_with_options, write_emit_all,
+    add_dependency,
     aot_matrix::{print_doctor_summary, run_aot_matrix},
+    build_native_executable, build_native_executable_file, build_native_file_with_options,
+    build_native_with_options, build_wasm_file_with_options, build_wasm_with_options,
     capabilities::{
         print_capabilities_report, print_ir_capabilities_report, run_capabilities_report,
         run_ir_capabilities_report,
     },
-    EmitFormat,
-    format_project, format_check_path, install_project, lint_project, parse_module_dirs, publish_package_with_token,
-    repl_eval,
-    run_file_with_options, run_project_with_options, run_wasm_file,
-    run_wasm_project_with_options, run_wasm_source_with_options, update_dependencies,
-    BuildProfile, DependencyAddSpec, DriverOptions, NativeBackend, project_root_for,
-    resolve_native_backend,
+    check_file_with_options, check_project_with_options, compile_file_with_options,
+    compile_project_with_options, debug_dap, debug_interactive, default_emit_output,
+    default_emit_stem, default_native_executable, default_native_executable_for_source,
+    default_native_object, default_native_object_for_source, doc_project, emit_with_options,
+    format_check_path, format_project, install_project, lint_project, parse_module_dirs,
+    project_root_for, publish_package_with_token, repl_eval, resolve_native_backend,
+    run_file_with_options, run_project_with_options, run_wasm_file, run_wasm_project_with_options,
+    run_wasm_source_with_options, update_dependencies, write_emit_all, BuildProfile,
+    DependencyAddSpec, DriverOptions, EmitFormat, NativeBackend,
 };
 
 #[derive(Parser)]
@@ -301,9 +298,7 @@ enum Commands {
 #[derive(Subcommand)]
 enum PluginCommands {
     /// Verify plugin manifest or `.syxplugin` bundle signature
-    Verify {
-        path: PathBuf,
-    },
+    Verify { path: PathBuf },
     /// Build plugin cdylib and generate SYX wrapper module
     Build {
         path: PathBuf,
@@ -350,16 +345,8 @@ fn run() -> miette::Result<()> {
         jit,
         if cli.jit_fastpath { Some(true) } else { None },
         cli.enable_std,
-        if cli.no_crypto {
-            Some(false)
-        } else {
-            None
-        },
-        if cli.no_simd {
-            Some(false)
-        } else {
-            None
-        },
+        if cli.no_crypto { Some(false) } else { None },
+        if cli.no_simd { Some(false) } else { None },
         if cli.no_property_wrapper {
             Some(false)
         } else {
@@ -375,15 +362,27 @@ fn run() -> miette::Result<()> {
         cli.embed_memory_mb,
         if cli.llvm_aot { Some(true) } else { None },
         if cli.wasm_aot { Some(true) } else { None },
-        if cli.wasm_mir_exec_only { Some(true) } else { None },
+        if cli.wasm_mir_exec_only {
+            Some(true)
+        } else {
+            None
+        },
         Some(backend_choice),
-        if cli.permission_sandbox { Some(true) } else { None },
+        if cli.permission_sandbox {
+            Some(true)
+        } else {
+            None
+        },
         if cli.allow_net { Some(true) } else { None },
         if cli.allow_fs { Some(true) } else { None },
         if cli.allow_env { Some(true) } else { None },
         if cli.allow_process { Some(true) } else { None },
         if cli.allow_plugin { Some(true) } else { None },
-        if cli.ir_capability_gate { Some(true) } else { None },
+        if cli.ir_capability_gate {
+            Some(true)
+        } else {
+            None
+        },
     ));
     let options = driver_options(
         cli.module_dir.as_deref(),
@@ -406,7 +405,9 @@ fn run() -> miette::Result<()> {
         } => {
             let path = resolve_path(path);
             let profile = if debug && release {
-                return Err(miette::miette!("syx build: --debug and --release are mutually exclusive"));
+                return Err(miette::miette!(
+                    "syx build: --debug and --release are mutually exclusive"
+                ));
             } else if release {
                 BuildProfile::Release
             } else {
@@ -426,7 +427,8 @@ fn run() -> miette::Result<()> {
                 let backend = options.native_backend.as_str();
                 if path.is_dir() {
                     if object {
-                        let out = output.unwrap_or_else(|| default_native_object(&project_root, profile));
+                        let out =
+                            output.unwrap_or_else(|| default_native_object(&project_root, profile));
                         let bytes = build_native_with_options(&path, &options).into_diagnostic()?;
                         if let Some(parent) = out.parent() {
                             std::fs::create_dir_all(parent).into_diagnostic()?;
@@ -434,18 +436,19 @@ fn run() -> miette::Result<()> {
                         std::fs::write(&out, bytes.object).into_diagnostic()?;
                         println!("Built native object {} ({backend})", out.display());
                     } else {
-                        let out = output.unwrap_or_else(|| default_native_executable(&project_root, profile));
+                        let out = output
+                            .unwrap_or_else(|| default_native_executable(&project_root, profile));
                         if let Some(parent) = out.parent() {
                             std::fs::create_dir_all(parent).into_diagnostic()?;
                         }
-                        let exe = build_native_executable(&path, &options, &out).into_diagnostic()?;
+                        let exe =
+                            build_native_executable(&path, &options, &out).into_diagnostic()?;
                         println!("Built native executable {} ({backend})", exe.display());
                     }
                 } else if path.extension().and_then(|e| e.to_str()) == Some("sy") {
                     if object {
-                        let out = output.unwrap_or_else(|| {
-                            default_native_object_for_source(&path, profile)
-                        });
+                        let out = output
+                            .unwrap_or_else(|| default_native_object_for_source(&path, profile));
                         if let Some(parent) = out.parent() {
                             std::fs::create_dir_all(parent).into_diagnostic()?;
                         }
@@ -460,8 +463,8 @@ fn run() -> miette::Result<()> {
                         if let Some(parent) = out.parent() {
                             std::fs::create_dir_all(parent).into_diagnostic()?;
                         }
-                        let exe =
-                            build_native_executable_file(&path, &options, &out).into_diagnostic()?;
+                        let exe = build_native_executable_file(&path, &options, &out)
+                            .into_diagnostic()?;
                         println!("Built native executable {} ({backend})", exe.display());
                     }
                 } else {
@@ -505,11 +508,7 @@ fn run() -> miette::Result<()> {
                             &path,
                         )
                         .into_diagnostic()?;
-                        println!(
-                            "Built {} (tasks: {})",
-                            path.display(),
-                            executed.join(" → ")
-                        );
+                        println!("Built {} (tasks: {})", path.display(), executed.join(" → "));
                     } else {
                         compile_project_with_options(&path, &options).into_diagnostic()?;
                         println!("Built {}", path.display());
@@ -523,7 +522,12 @@ fn run() -> miette::Result<()> {
                 println!("Built {}", path.display());
             }
         }
-        Commands::Run { path, wasm, invoke, gui_visible } => {
+        Commands::Run {
+            path,
+            wasm,
+            invoke,
+            gui_visible,
+        } => {
             if gui_visible {
                 std::env::set_var("SYX_GUI_VISIBLE", "1");
                 // Phase 100: default HOLD unless explicitly disabled (CI sets SYX_GUI_HOLD=0).
@@ -628,13 +632,9 @@ fn run() -> miette::Result<()> {
                     fmt = syx_driver::TestOutputFormat::Tap;
                 }
             }
-            let report = syx_driver::test_project_with_format(
-                &path,
-                &options,
-                filter.as_deref(),
-                fmt,
-            )
-            .into_diagnostic()?;
+            let report =
+                syx_driver::test_project_with_format(&path, &options, filter.as_deref(), fmt)
+                    .into_diagnostic()?;
             match fmt {
                 syx_driver::TestOutputFormat::Json => {
                     println!("{}", report.to_json_string().into_diagnostic()?);
@@ -876,7 +876,12 @@ fn run() -> miette::Result<()> {
             update_dependencies(&path).into_diagnostic()?;
             println!("Updated dependencies for {}", path.display());
         }
-        Commands::Publish { path, registry, token, dry_run } => {
+        Commands::Publish {
+            path,
+            registry,
+            token,
+            dry_run,
+        } => {
             let path = resolve_path(path);
             let registry = registry
                 .or_else(|| std::env::var("SYX_REGISTRY").ok())
@@ -888,12 +893,8 @@ fn run() -> miette::Result<()> {
                     manifest.name, manifest.version, registry
                 );
             } else {
-                publish_package_with_token(
-                    &path,
-                    Some(registry.as_str()),
-                    token.as_deref(),
-                )
-                .into_diagnostic()?;
+                publish_package_with_token(&path, Some(registry.as_str()), token.as_deref())
+                    .into_diagnostic()?;
                 println!("Published {}", path.display());
             }
         }
@@ -1014,7 +1015,11 @@ build = "build.syb"
             std::fs::write(&out, markdown).into_diagnostic()?;
             println!("Generated {}", out.display());
         }
-        Commands::Emit { path, format, output } => {
+        Commands::Emit {
+            path,
+            format,
+            output,
+        } => {
             let path = resolve_path(path);
             let format = match EmitFormat::parse(&format) {
                 Some(f) => f,
@@ -1073,16 +1078,16 @@ build = "build.syb"
         }
         Commands::Plugin { command } => match command {
             PluginCommands::Verify { path } => {
-                use syx_host_plugin::{verify_signature, verify_syxplugin_bundle, PluginManifest, SyxPluginBundle};
+                use syx_host_plugin::{
+                    verify_signature, verify_syxplugin_bundle, PluginManifest, SyxPluginBundle,
+                };
                 if path.extension().and_then(|e| e.to_str()) == Some("syxplugin") {
-                    let bundle = SyxPluginBundle::from_path(&path).map_err(|e| {
-                        miette::miette!("plugin verify failed: {e}")
-                    })?;
+                    let bundle = SyxPluginBundle::from_path(&path)
+                        .map_err(|e| miette::miette!("plugin verify failed: {e}"))?;
                     verify_syxplugin_bundle(&bundle).map_err(|e| miette::miette!("{e}"))?;
                 } else {
-                    let manifest = PluginManifest::from_path(&path).map_err(|e| {
-                        miette::miette!("plugin verify failed: {e}")
-                    })?;
+                    let manifest = PluginManifest::from_path(&path)
+                        .map_err(|e| miette::miette!("plugin verify failed: {e}"))?;
                     verify_signature(&manifest).map_err(|e| miette::miette!("{e}"))?;
                 }
                 println!("plugin verify ok: {}", path.display());
@@ -1107,9 +1112,12 @@ build = "build.syb"
             PluginCommands::Install { path, project } => {
                 let id = syx_host_plugin::install_plugin(&path, &project)
                     .map_err(|e| miette::miette!("plugin install failed: {e}"))?;
-                println!("plugin install ok: {id} -> {}/.syx/plugins/{id}", project.display());
+                println!(
+                    "plugin install ok: {id} -> {}/.syx/plugins/{id}",
+                    project.display()
+                );
             }
-        }
+        },
         Commands::Lsp { stdio: _ } => {
             syx_lsp::run_stdio().into_diagnostic()?;
         }
@@ -1211,9 +1219,7 @@ fn driver_options(
     build_profile: BuildProfile,
 ) -> DriverOptions {
     DriverOptions {
-        module_dirs: module_dir
-            .map(parse_module_dirs)
-            .unwrap_or_default(),
+        module_dirs: module_dir.map(parse_module_dirs).unwrap_or_default(),
         enable_std,
         native_backend,
         build_profile,

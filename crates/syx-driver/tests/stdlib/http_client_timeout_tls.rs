@@ -40,11 +40,7 @@ fn run_err(src: &str) -> String {
 }
 
 fn write_tmp_main(label: &str, src: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w282_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w282_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -85,11 +81,7 @@ fn run_native_aot_err(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -179,8 +171,8 @@ fn start_malformed_response_loopback(
 
 /// Self-signed TLS acceptor on 127.0.0.1 (client rustls must reject).
 fn start_self_signed_https() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
-    let cert = rcgen::generate_simple_self_signed(vec!["localhost".into()])
-        .expect("rcgen self-signed");
+    let cert =
+        rcgen::generate_simple_self_signed(vec!["localhost".into()]).expect("rcgen self-signed");
     let key_der = PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der());
     let cert_der = CertificateDer::from(cert.cert);
     let config = ServerConfig::builder()
@@ -429,8 +421,7 @@ func main() {
 #[cfg(unix)]
 #[test]
 fn m2_s4_a06_malformed_truncated_response_loopback() {
-    let (port, stop, join) =
-        start_malformed_response_loopback(b"HTTP/1.1 200 OK\r\n");
+    let (port, stop, join) = start_malformed_response_loopback(b"HTTP/1.1 200 OK\r\n");
     thread::sleep(Duration::from_millis(20));
     let src = format!(
         r#"
@@ -457,8 +448,7 @@ func main() {{
 #[cfg(unix)]
 #[test]
 fn m2_s4_a06_malformed_bad_status_line_loopback() {
-    let (port, stop, join) =
-        start_malformed_response_loopback(b"NOT-HTTP garbage\r\n\r\n");
+    let (port, stop, join) = start_malformed_response_loopback(b"NOT-HTTP garbage\r\n\r\n");
     thread::sleep(Duration::from_millis(20));
     let src = format!(
         r#"
@@ -552,4 +542,3 @@ fn m2_s4_02b_docs_and_capability() {
         "net.tls.server product status raise is W435/ADR-779 (M2 S4-02b deferred server): {tls_server}"
     );
 }
-

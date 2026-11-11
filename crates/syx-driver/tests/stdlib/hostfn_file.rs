@@ -45,7 +45,10 @@ func main() {{
     )))
     .expect("success path");
     let _ = fs::remove_file(&path);
-    assert_eq!(out, vec!["3".to_string(), "3".to_string(), "65".to_string()]);
+    assert_eq!(
+        out,
+        vec!["3".to_string(), "3".to_string(), "65".to_string()]
+    );
 }
 
 #[test]
@@ -94,18 +97,12 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_llvm_open_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_llvm_open_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -146,10 +143,8 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_wasm_open_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_wasm_open_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -159,10 +154,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm missing-path run failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["caught".to_string(), "1".to_string()],
@@ -210,18 +202,12 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_llvm_close_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_llvm_close_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -260,10 +246,8 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_wasm_close_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_wasm_close_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -273,10 +257,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm bad-handle close failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["caught".to_string()],
@@ -323,18 +304,12 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_llvm_read_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_llvm_read_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -373,10 +348,8 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_wasm_read_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_wasm_read_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -386,10 +359,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm bad-handle read failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["caught".to_string()],
@@ -417,10 +387,8 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_wasm_write_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_wasm_write_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -430,10 +398,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm bad-handle write failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["caught".to_string()],
@@ -480,18 +445,12 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_file_llvm_write_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_file_llvm_write_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -509,4 +468,3 @@ func main() {
         "FileWrite llvm bad-handle must exact-catch: {lines:?}"
     );
 }
-

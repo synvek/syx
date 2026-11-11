@@ -6,12 +6,7 @@ use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirInstr, MirOp};
 use syx_ast::Expr;
 
-pub(crate) fn lower_expr_array(
-    elements: &[Expr],
-    dest: u32,
-    ctx: &mut LowerCtx,
-    block: u32,
-) {
+pub(crate) fn lower_expr_array(elements: &[Expr], dest: u32, ctx: &mut LowerCtx, block: u32) {
     for el in elements {
         let r = ctx.fresh_reg();
         lower_expr(el, r, ctx, block);

@@ -148,12 +148,12 @@ fn substitute_type_expr(ty: &TypeExpr, params: &[SmolStr], args: &[SmolStr]) -> 
             *mutable,
             lifetime.clone(),
         ),
-        TypeExpr::OpaqueSome(inner) => TypeExpr::OpaqueSome(Box::new(substitute_type_expr(
-            inner, params, args,
-        ))),
-        TypeExpr::OpaqueAny(inner) => TypeExpr::OpaqueAny(Box::new(substitute_type_expr(
-            inner, params, args,
-        ))),
+        TypeExpr::OpaqueSome(inner) => {
+            TypeExpr::OpaqueSome(Box::new(substitute_type_expr(inner, params, args)))
+        }
+        TypeExpr::OpaqueAny(inner) => {
+            TypeExpr::OpaqueAny(Box::new(substitute_type_expr(inner, params, args)))
+        }
         other => other.clone(),
     }
 }
@@ -207,30 +207,22 @@ fn collect_generic_templates(module: &Module) -> IndexMap<SmolStr, Decl> {
     for decl in &module.decls {
         match decl {
             Decl::Function {
-                name,
-                type_params,
-                ..
+                name, type_params, ..
             } if !type_params.is_empty() => {
                 templates.insert(name.clone(), decl.clone());
             }
             Decl::DataClass {
-                name,
-                type_params,
-                ..
+                name, type_params, ..
             } if !type_params.is_empty() => {
                 templates.insert(name.clone(), decl.clone());
             }
             Decl::Enum {
-                name,
-                type_params,
-                ..
+                name, type_params, ..
             } if !type_params.is_empty() => {
                 templates.insert(name.clone(), decl.clone());
             }
             Decl::FinalClass {
-                name,
-                type_params,
-                ..
+                name, type_params, ..
             } if !type_params.is_empty() => {
                 templates.insert(name.clone(), decl.clone());
             }
@@ -318,7 +310,7 @@ pub fn monomorphize_module(
                             body: body.clone(),
                             is_async: *is_async,
                             is_override: false,
-            is_final: false,
+                            is_final: false,
                         },
                     ));
                 }
@@ -348,10 +340,7 @@ pub fn monomorphize_module(
                             fields: fields
                                 .iter()
                                 .map(|(f, ty)| {
-                                    (
-                                        f.clone(),
-                                        substitute_type_expr(ty, type_params, type_args),
-                                    )
+                                    (f.clone(), substitute_type_expr(ty, type_params, type_args))
                                 })
                                 .collect(),
                         },
@@ -592,9 +581,11 @@ pub fn default_witness_v16_assoc_for(protocol: &str, assoc: &str) -> Option<&'st
         ("InkwellDefault", "GreenWeeks") => Some("Int"),
         ("InkwellDefault", "CompilePath") => Some("String"),
         ("GlobalActorV13", "OrgWeight") => Some("Int"),
-        ("GlobalActorV13", "DrainEndpoint") | ("GlobalActorV13", "OrgFailover")
+        ("GlobalActorV13", "DrainEndpoint")
+        | ("GlobalActorV13", "OrgFailover")
         | ("GlobalActorV13", "LiveEndpoint") => Some("String"),
-        ("BorrowCoqLean", "CoqExport") | ("BorrowCoqLean", "LeanExport")
+        ("BorrowCoqLean", "CoqExport")
+        | ("BorrowCoqLean", "LeanExport")
         | ("BorrowCoqLean", "Obligation") => Some("String"),
         ("RegistryPhase14", "EdgeCacheDir") => Some("String"),
         ("NetSetsockopt", "RecvBuf") => Some("Int"),
@@ -613,9 +604,12 @@ pub fn default_witness_v17_assoc_for(protocol: &str, assoc: &str) -> Option<&'st
         ("InkwellProd", "GreenWeeks") => Some("Int"),
         ("InkwellProd", "CompilePath") => Some("String"),
         ("GlobalActorV14", "CdnWeight") => Some("Int"),
-        ("GlobalActorV14", "DrainEndpoint") | ("GlobalActorV14", "CdnFailover")
+        ("GlobalActorV14", "DrainEndpoint")
+        | ("GlobalActorV14", "CdnFailover")
         | ("GlobalActorV14", "LiveEndpoint") => Some("String"),
-        ("BorrowCoqLeanProof", "CoqReplay") | ("BorrowCoqLeanProof", "LeanReplay") => Some("String"),
+        ("BorrowCoqLeanProof", "CoqReplay") | ("BorrowCoqLeanProof", "LeanReplay") => {
+            Some("String")
+        }
         ("RegistryPhase15", "GlobalWritePath") => Some("String"),
         ("DateTimeV2", "Iso8601") | ("DateTimeV2", "Timezone") => Some("String"),
         _ => None,
@@ -628,9 +622,9 @@ pub fn default_witness_v18_assoc_for(protocol: &str, assoc: &str) -> Option<&'st
         ("InkwellObject", "GaReady") => Some("Bool"),
         ("InkwellObject", "ObjectPath") => Some("String"),
         ("GcPromotion", "PromoteCount") | ("GcPromotion", "CollectCount") => Some("Int"),
-        ("FormalBorrow", "CiGate") | ("FormalBorrow", "CoqReplay") | ("FormalBorrow", "LeanReplay") => {
-            Some("String")
-        }
+        ("FormalBorrow", "CiGate")
+        | ("FormalBorrow", "CoqReplay")
+        | ("FormalBorrow", "LeanReplay") => Some("String"),
         ("GlobalActorV15", "CrdtWeight") => Some("Int"),
         ("GlobalActorV15", "CrdtEndpoint") | ("GlobalActorV15", "CrdtFailover") => Some("String"),
         ("RegistryPhase16", "CrdtWritePath") => Some("String"),
@@ -659,7 +653,11 @@ pub fn default_witness_v19_assoc_for(protocol: &str, assoc: &str) -> Option<&'st
 }
 
 /// Phase 24 DJ4 / Phase 25 v8: parameterized associated type default for witness monomorphization.
-pub fn default_param_assoc_type_for(protocol: &str, assoc: &str, type_param: &str) -> Option<&'static str> {
+pub fn default_param_assoc_type_for(
+    protocol: &str,
+    assoc: &str,
+    type_param: &str,
+) -> Option<&'static str> {
     if let Some(base) = default_witness_v19_assoc_for(protocol, assoc) {
         let _ = type_param;
         return Some(base);
@@ -748,18 +746,20 @@ pub fn substitute_assoc_types_with_params(
                     .collect(),
             }
         }
-        TypeExpr::Optional(inner) => TypeExpr::Optional(Box::new(substitute_assoc_types_with_params(
-            inner,
-            assoc_bindings,
-            type_params,
-        ))),
+        TypeExpr::Optional(inner) => TypeExpr::Optional(Box::new(
+            substitute_assoc_types_with_params(inner, assoc_bindings, type_params),
+        )),
         TypeExpr::Array(inner) => TypeExpr::Array(Box::new(substitute_assoc_types_with_params(
             inner,
             assoc_bindings,
             type_params,
         ))),
         TypeExpr::Dictionary { key, value } => TypeExpr::Dictionary {
-            key: Box::new(substitute_assoc_types_with_params(key, assoc_bindings, type_params)),
+            key: Box::new(substitute_assoc_types_with_params(
+                key,
+                assoc_bindings,
+                type_params,
+            )),
             value: Box::new(substitute_assoc_types_with_params(
                 value,
                 assoc_bindings,

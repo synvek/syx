@@ -64,11 +64,7 @@ fn tmp_path(name: &str) -> PathBuf {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w204_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w204_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -79,8 +75,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native exit {code}: {lines:?}");
     lines
 }
@@ -88,8 +83,7 @@ fn run_native_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -637,11 +631,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -654,10 +644,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
 
 #[test]
 fn m2_s3_03_file_stream_read_chunk_native_llvm() {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w241_fs_data_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w241_fs_data_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("w241.txt");
@@ -681,15 +668,15 @@ func main() {{
         .collect::<Vec<_>>()
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
-    assert_eq!(out, "2", "native llvm FileStream read_chunk hi length must exact: {out}");
+    assert_eq!(
+        out, "2",
+        "native llvm FileStream read_chunk hi length must exact: {out}"
+    );
 }
 
 #[test]
 fn m2_s3_03_file_stream_read_chunk_wasm() {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w267_fs_data_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w267_fs_data_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("w267.txt");
@@ -706,7 +693,10 @@ func main() {{
 "#
     );
     let out = lines_joined(&run_wasm_src("fs_chunk_host_wasm", &src));
-    assert_eq!(out, "2", "wasm FileStream read_chunk hi length must exact: {out}");
+    assert_eq!(
+        out, "2",
+        "wasm FileStream read_chunk hi length must exact: {out}"
+    );
 }
 
 #[test]
@@ -750,10 +740,7 @@ func main() {{
 
 #[test]
 fn m2_s3_03_file_close_quiet_native_llvm() {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w244_close_quiet_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w244_close_quiet_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("w244.txt");
@@ -782,10 +769,7 @@ func main() {{
 #[test]
 fn m2_s3_03_file_close_quiet_wasm() {
     // Wave A W269 / ADR-613 — FileCloseQuiet HostFn wasm=real
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w269_close_quiet_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w269_close_quiet_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("w269.txt");
@@ -803,4 +787,3 @@ func main() {{
     assert_eq!(out, "OK", "wasm FileCloseQuiet must exact: {out}");
     let _ = fs::remove_dir_all(&dir);
 }
-

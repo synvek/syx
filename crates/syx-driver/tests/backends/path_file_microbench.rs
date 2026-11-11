@@ -35,4 +35,3 @@ fn ec_m2_4_path_file_microbench_join_instant() {
         "ec_m2_4_path_file_microbench: FilePath.join×{N} compile+run in {elapsed:?} (~{per_op:?}/op)"
     );
 }
-

@@ -31,8 +31,7 @@ fn run_err(src: &str) -> String {
 fn r20_struct_equality_is_structural() {
     // R-21: the two pipelines now agree (see `r21_path_parity_contract`), so all four
     // cases are asserted on the embedded path directly.
-    let out = run(
-        r#"
+    let out = run(r#"
 struct Point {
     var x: Int
     var y: Int
@@ -47,8 +46,7 @@ func main() {
     print(p == r)
     print(p != r)
 }
-"#,
-    );
+"#);
     assert_eq!(
         out, "true\nfalse\nfalse\ntrue",
         "struct == / != must be structural: {out}"
@@ -57,8 +55,7 @@ func main() {
 
 #[test]
 fn r20_dataclass_equality_is_structural() {
-    let out = run(
-        r#"
+    let out = run(r#"
 data class Point(x: Int, y: Int)
 
 func main() {
@@ -68,8 +65,7 @@ func main() {
     print(p == q)
     print(p == r)
 }
-"#,
-    );
+"#);
     assert_eq!(
         out, "true\ntrue",
         "data class == must be structural, including after copy(): {out}"

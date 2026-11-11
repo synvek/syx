@@ -7,4 +7,3 @@
 //! Wave A W294 / ADR-638: net.http.server product native=real (status still partial).
 //! Wave A W282 / ADR-626: net.http.timeout_tls + net.tls.client product wasm=real.
 // was: ec_m2_4_http_native_wasm_matrix
-

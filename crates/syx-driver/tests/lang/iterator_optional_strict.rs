@@ -104,7 +104,11 @@ iter_prints!(
 }"#,
     "0"
 );
-iter_prints!(iter_single_elem_42, r#"func main() { for x in [42] { print(x) } }"#, "42");
+iter_prints!(
+    iter_single_elem_42,
+    r#"func main() { for x in [42] { print(x) } }"#,
+    "42"
+);
 iter_prints!(
     iter_range_array_3,
     r#"func main() {
@@ -344,9 +348,11 @@ func main() {
 
 #[test]
 fn iter_unified_mir_for_in_array() {
-    let (code, lines) = run_unified_mir_printed(r#"func main() {
+    let (code, lines) = run_unified_mir_printed(
+        r#"func main() {
     for x in [1, 2, 3] { print(x) }
-}"#);
+}"#,
+    );
     assert_eq!(code, 0);
     assert_eq!(
         lines.iter().map(|l| l.trim()).collect::<Vec<_>>(),
@@ -495,13 +501,11 @@ fn iter_compile_custom_fixture() {
 
 #[test]
 fn iter_range_sum_via_for_in() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var s = 0
     for i in [10, 20, 30] { s = s + i }
     print(s)
-}"#
-    )
+}"#)
     .iter()
     .any(|l| l.trim() == "60"));
 }
@@ -522,13 +526,11 @@ fn iter_two_element_sequence() {
 
 #[test]
 fn iter_accumulate_product_style() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var s = 1
     for x in [2, 3, 4] { s = s + x }
     print(s)
-}"#
-    )
+}"#)
     .iter()
     .any(|l| l.trim() == "10"));
 }
@@ -584,12 +586,15 @@ fn iter_native_strict_counter_nil() {
 
 #[test]
 fn iter_phase69_gate_count() {
-    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
-        "tests/iterator_optional_strict.rs",
-    ))
+    let src = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/iterator_optional_strict.rs"),
+    )
     .unwrap();
     let count = src.matches("#[test]").count() + src.matches("iter_prints!(").count();
-    assert!(count >= 20, "iterator_optional_strict needs 20+ tests, found {count}");
+    assert!(
+        count >= 20,
+        "iterator_optional_strict needs 20+ tests, found {count}"
+    );
 }
 
 #[test]

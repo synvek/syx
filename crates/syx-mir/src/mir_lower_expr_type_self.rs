@@ -6,12 +6,7 @@ use crate::mir_types::{MirInstr, MirOp};
 use smol_str::SmolStr;
 use syx_stdlib::{host_fn_index, HostFnId};
 
-pub(crate) fn lower_expr_type_self(
-    type_name: &SmolStr,
-    dest: u32,
-    ctx: &mut LowerCtx,
-    block: u32,
-) {
+pub(crate) fn lower_expr_type_self(type_name: &SmolStr, dest: u32, ctx: &mut LowerCtx, block: u32) {
     ctx.emit(
         block,
         MirInstr {

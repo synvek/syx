@@ -117,4 +117,3 @@ allow_fs = true
     assert!(!grants.allow_net);
     assert!(grants.allow_fs);
 }
-

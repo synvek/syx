@@ -15,7 +15,11 @@ fn temp_syx_project(tag: &str, main_src: &str) -> PathBuf {
     ));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"workspace\"\nmain = \"main.sy\"\n").unwrap();
+    fs::write(
+        dir.join("syx.toml"),
+        "name = \"workspace\"\nmain = \"main.sy\"\n",
+    )
+    .unwrap();
     fs::write(dir.join("main.sy"), main_src).unwrap();
     dir
 }
@@ -28,7 +32,9 @@ fn workspace_parse_initialize_root_uri() {
     });
     let roots = parse_initialize_workspace_roots(Some(&params));
     assert_eq!(roots.len(), 1);
-    assert!(roots[0].ends_with("syx_ws_root") || roots[0].to_string_lossy().contains("syx_ws_root"));
+    assert!(
+        roots[0].ends_with("syx_ws_root") || roots[0].to_string_lossy().contains("syx_ws_root")
+    );
 }
 
 #[test]
@@ -65,7 +71,8 @@ fn workspace_initialize_sets_workspace_root_and_finds_symbol() {
     let syms = workspace_symbols("helperAlpha", &roots, &DriverOptions::default());
     let arr = syms.as_array().expect("top-level array");
     assert!(
-        arr.iter().any(|s| s["name"].as_str() == Some("helperAlpha")),
+        arr.iter()
+            .any(|s| s["name"].as_str() == Some("helperAlpha")),
         "symbols={arr:?}"
     );
     // Must not require conformance_cross_module fixture path.
@@ -77,14 +84,19 @@ fn workspace_initialize_sets_workspace_root_and_finds_symbol() {
 
 #[test]
 fn workspace_code_action_result_is_top_level_array() {
-    let actions = code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
+    let actions =
+        code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
     assert!(actions.is_array(), "{actions}");
 }
 
 #[test]
 fn workspace_inlay_hint_result_is_top_level_array() {
-    let hints =
-        inlay_hints_for_document("file:///t.sy", "func main() { let x = 1 }", 0, &DriverOptions::default());
+    let hints = inlay_hints_for_document(
+        "file:///t.sy",
+        "func main() { let x = 1 }",
+        0,
+        &DriverOptions::default(),
+    );
     assert!(hints.is_array(), "{hints}");
 }
 

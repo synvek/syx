@@ -68,14 +68,19 @@ async func main() {
 #[test]
 fn select_deadline_mixed_await_lang_timeout() {
     let out = run(SELECT_MIXED_AWAIT_STRICT_TIMEOUT_SRC);
-    assert!(out.iter().any(|l| l.contains("mixed-recv") || l.contains("lang-strict-timeout")));
+    assert!(out
+        .iter()
+        .any(|l| l.contains("mixed-recv") || l.contains("lang-strict-timeout")));
     assert!(out.iter().any(|l| l.contains("strict-done")));
 }
 
 #[test]
 fn select_deadline_mixed_await_lang_deadline() {
     // Compile-time GA for deadline arm (runtime deadline wait can hang on some hosts; covered by timeout arm).
-    let compiled = compile_embedded(SELECT_MIXED_AWAIT_STRICT_DEADLINE_SRC, &DriverOptions::default());
+    let compiled = compile_embedded(
+        SELECT_MIXED_AWAIT_STRICT_DEADLINE_SRC,
+        &DriverOptions::default(),
+    );
     assert!(
         compiled.is_ok(),
         "deadline arm must compile: {:?}",

@@ -347,11 +347,7 @@ fn runner_all_known_targets_recognized() {
 #[test]
 fn runner_plugins_wired_via_prepare() {
     let dir = temp_project("plug", r#"func main() {}"#, None);
-    fs::write(
-        dir.join("build.syb"),
-        r#"build { plugins { echo } }"#,
-    )
-    .unwrap();
+    fs::write(dir.join("build.syb"), r#"build { plugins { echo } }"#).unwrap();
     let plan = parse_build_syx(&dir.join("build.syb")).unwrap();
     let mut opts = default_opts();
     let mut manifest = syx_pkg::load_manifest(&dir).unwrap();

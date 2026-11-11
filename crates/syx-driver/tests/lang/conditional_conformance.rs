@@ -25,10 +25,7 @@ func main() {
         .expect("Array<Int> must satisfy Marker where Element: Equatable")
         .printed
         .join("\n");
-    assert!(
-        out.contains('1'),
-        "pass path must print: {out}"
-    );
+    assert!(out.contains('1'), "pass path must print: {out}");
 }
 
 #[test]
@@ -74,4 +71,3 @@ func main() {
         ),
     }
 }
-

@@ -74,7 +74,10 @@ func main() {{
 }}
 "#
     )));
-    assert!(out.contains("LEAKED"), "open without close must succeed: {out}");
+    assert!(
+        out.contains("LEAKED"),
+        "open without close must succeed: {out}"
+    );
     assert!(!out.contains("caught"), "open must not throw: {out}");
 
     let after = file_handle_live_count();

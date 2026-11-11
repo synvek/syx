@@ -3,18 +3,14 @@
 
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
-    borrow_regions_v6_enabled,
-    borrow_regions_v7_enabled, expr_span, is_compatible, reflect_type_lower, retired_ops_hint, type_expr_to_id, type_id_to_diag_name, type_id_to_name, Scope,
-    Symbol, TypeId,
+    borrow_regions_v6_enabled, borrow_regions_v7_enabled, expr_span, is_compatible,
+    reflect_type_lower, retired_ops_hint, type_expr_to_id, type_id_to_diag_name, type_id_to_name,
+    Scope, Symbol, TypeId,
 };
 use smol_str::SmolStr;
-use syx_ast::{
-    AccessLevel, BinOp, Expr, Literal, TypeExpr, UnaryOp,
-};
+use syx_ast::{AccessLevel, BinOp, Expr, Literal, TypeExpr, UnaryOp};
 use syx_diagnostics::SyxResult;
-use syx_stdlib::{
-    default_float_kind, default_integer_kind, from_suffix, int_range, resolve_alias,
-};
+use syx_stdlib::{default_float_kind, default_integer_kind, from_suffix, int_range, resolve_alias};
 
 impl SemanticAnalyzer {
     pub(crate) fn analyze_expr(&mut self, expr: &Expr) -> SyxResult<TypeId> {
@@ -70,7 +66,10 @@ impl SemanticAnalyzer {
         }
     }
 
-    pub(crate) fn infer_return_lifetime(params: &[syx_ast::Param], return_type: &Option<TypeExpr>) -> Option<SmolStr> {
+    pub(crate) fn infer_return_lifetime(
+        params: &[syx_ast::Param],
+        return_type: &Option<TypeExpr>,
+    ) -> Option<SmolStr> {
         let return_ty = return_type.as_ref()?;
         let TypeExpr::Reference(_, _, lt) = return_ty else {
             return None;
@@ -111,9 +110,7 @@ impl SemanticAnalyzer {
             if let Some(bind_lt) = self.binding_lifetimes.get(name) {
                 if bind_lt != ret_lt {
                     self.errors.push(self.error_at(
-                        format!(
-                            "Lifetime '{bind_lt}' does not outlive '{ret_lt}' in return"
-                        ),
+                        format!("Lifetime '{bind_lt}' does not outlive '{ret_lt}' in return"),
                         expr_span(expr),
                         "S011",
                     ));
@@ -183,7 +180,9 @@ impl SemanticAnalyzer {
         match expr {
             Expr::Literal { value, .. } => Ok(match value {
                 Literal::BigInt(_) => TypeId::Named(SmolStr::new("BigInt")),
-                Literal::Integer { .. } | Literal::Double { .. } => self.literal_numeric_type(value),
+                Literal::Integer { .. } | Literal::Double { .. } => {
+                    self.literal_numeric_type(value)
+                }
                 Literal::Bool(_) => TypeId::Bool,
                 Literal::String(_) | Literal::Interpolated(_) | Literal::Regex(_) => TypeId::String,
                 Literal::Nil => TypeId::Optional(Box::new(TypeId::Unknown)),
@@ -250,11 +249,7 @@ impl SemanticAnalyzer {
                 if let Some(ty) = self.globals.get(name).map(|s| s.ty.clone()) {
                     return Ok(self.deref_type(&ty));
                 }
-                Err(self.error_at(
-                    format!("Undefined identifier '{name}'"),
-                    *span,
-                    "S002",
-                ))
+                Err(self.error_at(format!("Undefined identifier '{name}'"), *span, "S002"))
             }
             Expr::Borrow {
                 expr: borrowed,
@@ -265,9 +260,7 @@ impl SemanticAnalyzer {
                     if let Expr::Ident { name, .. } = borrowed.as_ref() {
                         if self.mut_borrows.contains(name) {
                             return Err(self.error_at(
-                                format!(
-                                    "Cannot borrow '{name}' as mutable more than once"
-                                ),
+                                format!("Cannot borrow '{name}' as mutable more than once"),
                                 expr_span(expr),
                                 "S011",
                             ));
@@ -512,7 +505,9 @@ impl SemanticAnalyzer {
                 }
                 Ok(ret)
             }
-            Expr::Member { object, name, span, .. } => {
+            Expr::Member {
+                object, name, span, ..
+            } => {
                 let obj_ty = self.analyze_expr(object)?;
                 if let Expr::Ident { name: module, .. } = object.as_ref() {
                     self.check_import_member_access(module.as_str(), name.as_str(), *span)?;
@@ -532,14 +527,18 @@ impl SemanticAnalyzer {
                 self.check_known_collection_member(&obj_ty, name.as_str(), *span);
                 Ok(self.infer_member_type(&obj_ty, name))
             }
-            Expr::Index { object, index, span, .. } => {
+            Expr::Index {
+                object,
+                index,
+                span,
+                ..
+            } => {
                 self.analyze_expr(object)?;
                 let obj_ty = self.type_of_expr(object);
                 match obj_ty {
                     TypeId::Array(inner) => {
                         let idx_ty = TypeId::platform_int();
-                        let found_idx =
-                            self.analyze_expr_with_expected(index, Some(&idx_ty))?;
+                        let found_idx = self.analyze_expr_with_expected(index, Some(&idx_ty))?;
                         self.check_assignable_with_literal(
                             idx_ty,
                             found_idx,
@@ -554,10 +553,7 @@ impl SemanticAnalyzer {
                         Ok(TypeId::Named(SmolStr::new("Character")))
                     }
                     TypeId::Dictionary { key, value } => {
-                        if !matches!(
-                            key.as_ref(),
-                            TypeId::Unknown | TypeId::GenericParam(_)
-                        ) {
+                        if !matches!(key.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
                             let found =
                                 self.analyze_expr_with_expected(index, Some(key.as_ref()))?;
                             self.check_assignable_with_literal(
@@ -574,7 +570,9 @@ impl SemanticAnalyzer {
                     }
                     TypeId::Named(type_name) if self.has_subscript_get(&type_name) => {
                         self.analyze_expr(index)?;
-                        Ok(self.subscript_return_type(&type_name).unwrap_or(TypeId::Unknown))
+                        Ok(self
+                            .subscript_return_type(&type_name)
+                            .unwrap_or(TypeId::Unknown))
                     }
                     _ => {
                         self.analyze_expr(index)?;
@@ -582,15 +580,17 @@ impl SemanticAnalyzer {
                     }
                 }
             }
-            Expr::Assign { name, value, span, .. } => {
+            Expr::Assign {
+                name, value, span, ..
+            } => {
                 self.check_main_actor_after_await(name, *span);
-                let (_mutable, sym_ty, is_enclosing_field) =
-                    match self.resolve_assign_target(name) {
-                        Ok(v) => v,
-                        Err((msg, code)) => {
-                            return Err(self.error_at(msg, *span, code));
-                        }
-                    };
+                let (_mutable, sym_ty, is_enclosing_field) = match self.resolve_assign_target(name)
+                {
+                    Ok(v) => v,
+                    Err((msg, code)) => {
+                        return Err(self.error_at(msg, *span, code));
+                    }
+                };
                 let expected = self.assign_expected_type(&sym_ty);
                 let ty = if matches!(expected, TypeId::Unknown) {
                     self.analyze_expr(value)?
@@ -601,40 +601,30 @@ impl SemanticAnalyzer {
                 self.moved_bindings.remove(name);
                 self.mut_borrows.remove(name);
                 if is_enclosing_field {
-                    self.check_assignable_with_literal(
-                        expected,
-                        ty,
-                        name,
-                        Some(value),
-                        *span,
-                    )?;
+                    self.check_assignable_with_literal(expected, ty, name, Some(value), *span)?;
                 } else if matches!(expected, TypeId::Unknown) {
                     if let Some(binding) = self.scope.lookup_mut(name) {
                         binding.ty = ty.clone();
                     }
                     self.track_binding(name.clone(), ty.clone(), span.start);
                 } else {
-                    self.check_assignable_with_literal(
-                        expected,
-                        ty,
-                        name,
-                        Some(value),
-                        *span,
-                    )?;
+                    self.check_assignable_with_literal(expected, ty, name, Some(value), *span)?;
                 }
                 Ok(TypeId::Void)
             }
-            Expr::CompoundAssign { name, value, span, .. } => {
+            Expr::CompoundAssign {
+                name, value, span, ..
+            } => {
                 // R-35: bare `x += 1` in methods — same implicit-field path as Assign.
                 self.check_main_actor_after_await(name, *span);
                 let ty = self.analyze_expr(value)?;
-                let (_mutable, sym_ty, _is_enclosing_field) =
-                    match self.resolve_assign_target(name) {
-                        Ok(v) => v,
-                        Err((msg, code)) => {
-                            return Err(self.error_at(msg, *span, code));
-                        }
-                    };
+                let (_mutable, sym_ty, _is_enclosing_field) = match self.resolve_assign_target(name)
+                {
+                    Ok(v) => v,
+                    Err((msg, code)) => {
+                        return Err(self.error_at(msg, *span, code));
+                    }
+                };
                 let expected = self.assign_expected_type(&sym_ty);
                 if matches!(expected, TypeId::Numeric(_)) {
                     let _ = self.promote_numeric(expected.clone(), ty);
@@ -643,7 +633,13 @@ impl SemanticAnalyzer {
                 }
                 Ok(TypeId::Void)
             }
-            Expr::MemberAssign { object, name, value, span, .. } => {
+            Expr::MemberAssign {
+                object,
+                name,
+                value,
+                span,
+                ..
+            } => {
                 let obj_ty = self.analyze_expr(object)?;
                 if let Some(obj_ty) = self.expr_type(object) {
                     self.check_actor_field_access(object, name, &obj_ty, *span);
@@ -653,9 +649,7 @@ impl SemanticAnalyzer {
                             .contains(&(type_name.clone(), name.clone()))
                         {
                             return Err(self.error_at(
-                                format!(
-                                    "Cannot assign to read-only property '{type_name}.{name}'"
-                                ),
+                                format!("Cannot assign to read-only property '{type_name}.{name}'"),
                                 *span,
                                 "S057",
                             ));
@@ -666,7 +660,13 @@ impl SemanticAnalyzer {
                 let _ = obj_ty;
                 Ok(TypeId::Void)
             }
-            Expr::IndexAssign { object, index, value, span, .. } => {
+            Expr::IndexAssign {
+                object,
+                index,
+                value,
+                span,
+                ..
+            } => {
                 self.analyze_expr(object)?;
                 let obj_ty = self.type_of_expr(object);
                 if let TypeId::Named(ref type_name) = obj_ty {
@@ -690,10 +690,7 @@ impl SemanticAnalyzer {
                     } else {
                         self.analyze_expr(index)?;
                     }
-                    if !matches!(
-                        val_ty.as_ref(),
-                        TypeId::Unknown | TypeId::GenericParam(_)
-                    ) {
+                    if !matches!(val_ty.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
                         let found_val =
                             self.analyze_expr_with_expected(value, Some(val_ty.as_ref()))?;
                         self.check_assignable_with_literal(
@@ -710,8 +707,7 @@ impl SemanticAnalyzer {
                 }
                 if let TypeId::Array(elem) = obj_ty {
                     let idx_ty = TypeId::platform_int();
-                    let found_idx =
-                        self.analyze_expr_with_expected(index, Some(&idx_ty))?;
+                    let found_idx = self.analyze_expr_with_expected(index, Some(&idx_ty))?;
                     self.check_assignable_with_literal(
                         idx_ty,
                         found_idx,
@@ -719,10 +715,7 @@ impl SemanticAnalyzer {
                         Some(index),
                         *span,
                     )?;
-                    if !matches!(
-                        elem.as_ref(),
-                        TypeId::Unknown | TypeId::GenericParam(_)
-                    ) {
+                    if !matches!(elem.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
                         let found_val =
                             self.analyze_expr_with_expected(value, Some(elem.as_ref()))?;
                         self.check_assignable_with_literal(
@@ -831,9 +824,7 @@ impl SemanticAnalyzer {
                     .zip(elem_types.iter())
                     .map(|((label, _), ty)| (label.clone(), ty.clone()))
                     .collect();
-                Ok(TypeId::Tuple {
-                    elements: typed,
-                })
+                Ok(TypeId::Tuple { elements: typed })
             }
             Expr::Array { elements, .. } => {
                 let mut elem_types = Vec::new();
@@ -843,7 +834,10 @@ impl SemanticAnalyzer {
                 let elem_ty = self.unify_element_types(&elem_types, expr_span(expr));
                 Ok(TypeId::Array(Box::new(elem_ty)))
             }
-            Expr::Await { expr: awaited, span } => {
+            Expr::Await {
+                expr: awaited,
+                span,
+            } => {
                 if !self.mut_borrows.is_empty() {
                     self.errors.push(self.error_at(
                         "Cannot await while an active `&mut` borrow is in scope",
@@ -914,5 +908,4 @@ impl SemanticAnalyzer {
             Expr::VariantPattern { .. } | Expr::TuplePattern { .. } => Ok(TypeId::Unknown),
         }
     }
-
 }

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -28,10 +27,7 @@ fn s4_exit_open_adr_and_plan_locked() {
         adr.contains("Stage-4") && (adr.contains("`[~]`") || adr.contains("[~]")),
         "ADR Status must keep historical Stage-4 [~] for open window"
     );
-    assert!(
-        adr.contains("5/5"),
-        "ADR must publish Stage-4 5/5"
-    );
+    assert!(adr.contains("5/5"), "ADR must publish Stage-4 5/5");
     assert!(
         adr.contains("S3-I107") || adr.contains("stage4-s4-05-claim"),
         "ADR must cite prior S3-I107 claim"
@@ -41,8 +37,7 @@ fn s4_exit_open_adr_and_plan_locked() {
         "ADR Consequences must cite landed I109 / stage4-exit"
     );
     assert!(
-        adr.contains("≠")
-            && (adr.contains("stage4-exit") || adr.contains("`stage4-exit`")),
+        adr.contains("≠") && (adr.contains("stage4-exit") || adr.contains("`stage4-exit`")),
         "ADR Decision must Non-claim write stage4-exit that window"
     );
     assert!(
@@ -67,18 +62,12 @@ fn s4_exit_open_adr_and_plan_locked() {
         census.contains("exit_status") && census.contains("exited"),
         "census must mark exit_status exited"
     );
+    assert!(census.contains("5/5"), "census must publish Stage-4 5/5");
     assert!(
-        census.contains("5/5"),
-        "census must publish Stage-4 5/5"
-    );
-    assert!(
-        census.contains("Residual")
-            && (census.contains("维护") || census.contains("post-exit")),
+        census.contains("Residual") && (census.contains("维护") || census.contains("post-exit")),
         "census ladder must next = post-exit Residual"
     );
-    for claim in [
-        "S3-I91", "S3-I95", "S3-I99", "S3-I103", "S3-I107",
-    ] {
+    for claim in ["S3-I91", "S3-I95", "S3-I99", "S3-I103", "S3-I107"] {
         assert!(
             census.contains(claim),
             "exit census Evidence must cite {claim}"
@@ -119,9 +108,7 @@ fn s4_exit_open_adr_and_plan_locked() {
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I108")
-            && plan01.contains("S3-I109")
-            && plan01.contains("退出"),
+        plan01.contains("S3-I108") && plan01.contains("S3-I109") && plan01.contains("退出"),
         "plan/01 must cite I108…I109 and Stage-4 exit"
     );
 }
@@ -155,8 +142,7 @@ fn s4_exit_open_census_script_hinges() {
     }
     assert!(
         stdout.contains("current=S3-I109")
-            && (stdout.contains("next=post-exit-residual")
-                || stdout.contains("next=residual")),
+            && (stdout.contains("next=post-exit-residual") || stdout.contains("next=residual")),
         "script ladder must be I109→post-exit residual:\n{stdout}"
     );
     assert!(

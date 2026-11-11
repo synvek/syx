@@ -372,11 +372,8 @@ pub(crate) fn lower_expr_call_ident(
         }
         if host_id == HostFnId::SimdReduceAdd && args.len() == 1 {
             lower_expr(&args[0].value, ctx.fresh_reg(), ctx, block);
-            let (lanes, mut element) =
-                simd_reduce_add_shape(callee, ctx.func_name.as_str());
-            if let Some(inferred) =
-                infer_simd_element_from_reduce_arg(&args[0].value, ctx)
-            {
+            let (lanes, mut element) = simd_reduce_add_shape(callee, ctx.func_name.as_str());
+            if let Some(inferred) = infer_simd_element_from_reduce_arg(&args[0].value, ctx) {
                 element = inferred;
             }
             ctx.emit(
@@ -396,9 +393,7 @@ pub(crate) fn lower_expr_call_ident(
                 .and_then(|a| expr_as_i32_literal(&a.value))
                 .unwrap_or(4) as u8;
             let element = infer_simd_element_from_array_arg(args, ctx);
-            let element = if lanes == 2
-                && element == syx_stdlib::NumericKind::I32.to_byte()
-            {
+            let element = if lanes == 2 && element == syx_stdlib::NumericKind::I32.to_byte() {
                 // Bare SIMD2 defaults to f64 when element cannot be inferred.
                 syx_stdlib::NumericKind::F64.to_byte()
             } else if lanes == 8 {
@@ -510,10 +505,7 @@ pub(crate) fn lower_expr_call_ident(
         return;
     }
     // R-32: `Int(String)` → CallHost(IntFromString); do not Call(Int_init).
-    if name.as_str() == "Int"
-        && args.len() == 1
-        && expr_is_string_like(&args[0].value, ctx)
-    {
+    if name.as_str() == "Int" && args.len() == 1 && expr_is_string_like(&args[0].value, ctx) {
         if !lower_args_early {
             let r = ctx.fresh_reg();
             lower_expr(&args[0].value, r, ctx, block);

@@ -10,9 +10,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use rcgen::{
-    BasicConstraints, CertificateParams, DnType, IsCa, KeyPair, KeyUsagePurpose, SanType,
-};
+use rcgen::{BasicConstraints, CertificateParams, DnType, IsCa, KeyPair, KeyUsagePurpose, SanType};
 use std::fs;
 
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
@@ -46,11 +44,7 @@ fn run_err(src: &str) -> String {
 }
 
 fn write_tmp_main(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w282_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w282_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -108,11 +102,7 @@ fn run_native_aot_ok(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -144,11 +134,7 @@ fn run_native_aot_err(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -229,7 +215,8 @@ fn start_ca_signed_https() -> (PathBuf, u16, Arc<AtomicBool>, thread::JoinHandle
     let ca_cert = ca_params.self_signed(&ca_key).expect("ca cert");
 
     let server_key = KeyPair::generate().expect("server key");
-    let mut server_params = CertificateParams::new(vec!["localhost".into()]).expect("server params");
+    let mut server_params =
+        CertificateParams::new(vec!["localhost".into()]).expect("server params");
     server_params
         .subject_alt_names
         .push(SanType::IpAddress(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))));
@@ -237,10 +224,7 @@ fn start_ca_signed_https() -> (PathBuf, u16, Arc<AtomicBool>, thread::JoinHandle
         .signed_by(&server_key, &ca_cert, &ca_key)
         .expect("server cert");
 
-    let ca_path = std::env::temp_dir().join(format!(
-        "syx_m2_s4_05_ca_{}.pem",
-        std::process::id()
-    ));
+    let ca_path = std::env::temp_dir().join(format!("syx_m2_s4_05_ca_{}.pem", std::process::id()));
     std::fs::write(&ca_path, ca_cert.pem()).expect("write ca pem");
 
     let key_der = PrivatePkcs8KeyDer::from(server_key.serialize_der());
@@ -290,8 +274,8 @@ fn start_ca_signed_https() -> (PathBuf, u16, Arc<AtomicBool>, thread::JoinHandle
 
 /// Self-signed leaf only (must fail without EXTRA_ROOT).
 fn start_self_signed_https() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
-    let cert = rcgen::generate_simple_self_signed(vec!["localhost".into()])
-        .expect("rcgen self-signed");
+    let cert =
+        rcgen::generate_simple_self_signed(vec!["localhost".into()]).expect("rcgen self-signed");
     let key_der = PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der());
     let cert_der = CertificateDer::from(cert.cert);
     let config = ServerConfig::builder()
@@ -360,7 +344,10 @@ func main() {{
     let _ = join.join();
     let _ = std::fs::remove_file(&ca_path);
     // Wave A W87 / ADR-431 / A-03: HTTPS EXTRA_ROOT loopback product exact.
-    assert_eq!(out, "200\nok\ntrue", "HTTPS EXTRA_ROOT loopback must exact: {out}");
+    assert_eq!(
+        out, "200\nok\ntrue",
+        "HTTPS EXTRA_ROOT loopback must exact: {out}"
+    );
 }
 
 /// Wave A W282 / ADR-626 — EXTRA_ROOT HTTPS product exact on wasm AOT.
@@ -518,7 +505,9 @@ fn m2_s4_05_docs_and_capability() {
         "UsageGuide must document TLS client real path / ADR-237"
     );
     assert!(
-        usage.contains("skip-verify") || usage.contains("server TLS") || usage.contains("EC-M2-4-Z"),
+        usage.contains("skip-verify")
+            || usage.contains("server TLS")
+            || usage.contains("EC-M2-4-Z"),
         "UsageGuide must fence skip-verify / server TLS / EC-M2-4-Z"
     );
 
@@ -528,7 +517,9 @@ fn m2_s4_05_docs_and_capability() {
         "NetworkStdlib must document EXTRA_ROOT / ADR-237"
     );
     assert!(
-        (net.contains("ADR-779") || net.contains("status=implemented") || net.contains("implemented"))
+        (net.contains("ADR-779")
+            || net.contains("status=implemented")
+            || net.contains("implemented"))
             && (net.contains("TLS server") || net.contains("server TLS")),
         "NetworkStdlib must document TLS server product status raise (ADR-779)"
     );
@@ -593,4 +584,3 @@ fn m2_s4_05_docs_and_capability() {
         "http.rs must not call danger_accept_invalid_certs (skip-verify)"
     );
 }
-

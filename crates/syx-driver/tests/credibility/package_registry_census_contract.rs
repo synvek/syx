@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -26,10 +25,7 @@ fn s4_02_package_registry_census_baseline() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("4/5"),
-        "census must publish Stage-4 5/5"
-    );
+    assert!(census.contains("4/5"), "census must publish Stage-4 5/5");
     assert!(
         census.contains("add")
             && census.contains("publish")
@@ -163,10 +159,7 @@ fn s4_02_package_registry_census_script_runs() {
         "s4_02_status=",
         "stage4_checklist=",
     ] {
-        assert!(
-            stdout.contains(key),
-            "expected {key} in:\n{stdout}"
-        );
+        assert!(stdout.contains(key), "expected {key} in:\n{stdout}");
     }
     assert!(
         stdout.contains("current=S3-I95") && stdout.contains("next=S3-I96"),
@@ -219,10 +212,7 @@ fn s4_02_open_does_not_exit_stage4() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("4/5"),
-        "census must keep Stage-4 4/5"
-    );
+    assert!(census.contains("4/5"), "census must keep Stage-4 4/5");
     let residual = repo_file("docs/adr/stage4-s4-02-residual-scope.md");
     assert!(
         residual.contains("S3-I95") || residual.contains("stage4-s4-02-claim"),

@@ -12,7 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[test]
 fn m3_b02_async_adapter_file_read_async_await() {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -76,4 +75,3 @@ func main() {
         "blocking_pool path must not starve Task pool: elapsed={elapsed:?} out={out}"
     );
 }
-

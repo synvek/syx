@@ -13,13 +13,10 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_orm_reflect_compound_and_smoke() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_sql_migrate("CREATE TABLE IF NOT EXISTS users (name TEXT, age INT)")
     __syx_orm_find_where("users", "name", "alice")
     print("compound-ok")
-}"#,
-    );
+}"#);
     assert!(out.contains("compound-ok"), "{out}");
 }
-

@@ -2,8 +2,8 @@
 //! Extracted in S2-I205 (zero semantics; crate-private).
 
 use crate::extension_init_literal_fields;
-use crate::mir_lower_class_init::lower_class_init;
 use crate::lower_function_with_params;
+use crate::mir_lower_class_init::lower_class_init;
 use crate::mir_lower_shells::{mir_op, mir_shell_fn};
 use crate::mir_module_index::ModuleIndex;
 use crate::mir_types::{MirBlock, MirFunction, MirInstr, MirModule, MirOp};
@@ -35,7 +35,6 @@ pub(crate) fn merged_class_fields(module_idx: &ModuleIndex, type_name: &SmolStr)
     }
     out
 }
-
 
 pub(crate) fn lower_type_members(
     mir: &mut MirModule,
@@ -80,8 +79,8 @@ pub(crate) fn lower_type_members(
                     // ADR-631: typed self on actors so `self.method()` → ActorCall (not ObjectGet).
                     // Keep untyped self for classes to preserve MutRefCell / deinit lowering.
                     // Object/Dictionary bags need typed self so `self[key]` → ObjectGet/ObjectSet.
-                    let typed_self = is_actor
-                        || matches!(type_name.as_str(), "Object" | "Dictionary");
+                    let typed_self =
+                        is_actor || matches!(type_name.as_str(), "Object" | "Dictionary");
                     vec![self_param_typed(typed_self.then_some(type_name))]
                 };
                 all_params.extend_from_slice(params);
@@ -101,10 +100,7 @@ pub(crate) fn lower_type_members(
                 mir.functions.extend(closures);
             }
             Decl::OperatorFunc {
-                op,
-                body,
-                params,
-                ..
+                op, body, params, ..
             } => {
                 let method_name = SmolStr::new(format!("{type_name}_{op}"));
                 let (func, closures) = lower_function_with_params(
@@ -128,13 +124,8 @@ pub(crate) fn lower_type_members(
                 if params.is_empty() {
                     if let Some(lit_fields) = extension_init_literal_fields(body) {
                         let init_name = SmolStr::new(format!("{type_name}_init"));
-                        let shell =
-                            lower_extension_convenience_init_shell(type_name, &lit_fields);
-                        if let Some(pos) = mir
-                            .functions
-                            .iter()
-                            .position(|f| f.name == init_name)
-                        {
+                        let shell = lower_extension_convenience_init_shell(type_name, &lit_fields);
+                        if let Some(pos) = mir.functions.iter().position(|f| f.name == init_name) {
                             mir.functions[pos] = shell;
                         } else {
                             mir.functions.push(shell);
@@ -201,13 +192,16 @@ pub(crate) fn lower_type_members(
                 globals,
                 Rc::clone(&closure_ids),
             )?;
-        } else if let Decl::Struct { name: inner, fields, .. } = member {
+        } else if let Decl::Struct {
+            name: inner,
+            fields,
+            ..
+        } = member
+        {
             let qualified = SmolStr::new(format!("{type_name}_{inner}"));
             let _ = (qualified, fields);
         } else if let Decl::Enum {
-            name: inner,
-            cases,
-            ..
+            name: inner, cases, ..
         } = member
         {
             let qualified = SmolStr::new(format!("{type_name}_{inner}"));
@@ -286,7 +280,6 @@ pub(crate) fn lower_type_members(
     Ok(())
 }
 
-
 pub(crate) fn emit_inherited_protocol_defaults(
     mir: &mut MirModule,
     type_name: &SmolStr,
@@ -307,9 +300,10 @@ pub(crate) fn emit_inherited_protocol_defaults(
             if mir.functions.iter().any(|f| f.name == method_name) {
                 continue;
             }
-            if members.iter().any(|m| {
-                matches!(m, Decl::Function { name, .. } if name == method)
-            }) {
+            if members
+                .iter()
+                .any(|m| matches!(m, Decl::Function { name, .. } if name == method))
+            {
                 continue;
             }
             let Some((params, body)) = module_idx
@@ -339,7 +333,6 @@ pub(crate) fn emit_inherited_protocol_defaults(
     }
     Ok(())
 }
-
 
 pub(crate) fn append_protocol_stub_functions(mir: &mut MirModule, module_idx: &ModuleIndex) {
     for (protocol, methods) in &module_idx.protocol_methods {
@@ -380,11 +373,9 @@ pub(crate) fn append_protocol_stub_functions(mir: &mut MirModule, module_idx: &M
     }
 }
 
-
 pub(crate) fn self_param() -> syx_ast::Param {
     self_param_typed(None)
 }
-
 
 pub(crate) fn self_param_typed(type_name: Option<&SmolStr>) -> syx_ast::Param {
     syx_ast::Param {
@@ -400,7 +391,6 @@ pub(crate) fn self_param_typed(type_name: Option<&SmolStr>) -> syx_ast::Param {
         attrs: vec![],
     }
 }
-
 
 pub(crate) fn lower_extension_convenience_init_shell(
     type_name: &SmolStr,
@@ -418,11 +408,5 @@ pub(crate) fn lower_extension_convenience_init_shell(
     ins.push(mir_op(MirOp::ConstStr("__type".to_string())));
     ins.push(mir_op(MirOp::DictBuild((lit_fields.len() + 1) as u32)));
     ins.push(mir_op(MirOp::Return));
-    mir_shell_fn(
-        SmolStr::new(format!("{type_name}_init")),
-        0,
-        0,
-        ins,
-    )
+    mir_shell_fn(SmolStr::new(format!("{type_name}_init")), 0, 0, ins)
 }
-

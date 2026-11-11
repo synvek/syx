@@ -1,6 +1,7 @@
 //! SYX driver compile_file_with_context face.
 //! Extracted in S2-I221 (zero semantics).
 
+use crate::unified_compile::compile_entry_with_unified_mir;
 use crate::{
     collect_main_actor_await_errors, collect_stdlib_extension_methods,
     core_prelude_generic_class_methods, core_prelude_import_symbols, cross_module_function_name,
@@ -21,7 +22,6 @@ use syx_frontend::{FrontendOptions, FrontendPipeline, StopAfter};
 use syx_parser::Parser;
 use syx_pkg::{load_manifest, SyxManifest};
 use syx_semantic::{SemanticAnalyzer, TypeId};
-use crate::unified_compile::compile_entry_with_unified_mir;
 
 pub fn compile_file_with_context(
     module_key: &Path,

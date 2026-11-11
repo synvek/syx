@@ -19,10 +19,7 @@ func main() {
         .expect("String by-value consume-once must compile and run")
         .printed
         .join("\n");
-    assert!(
-        out.contains('1'),
-        "pass path must print 1: {out}"
-    );
+    assert!(out.contains('1'), "pass path must print 1: {out}");
 }
 
 #[test]
@@ -52,4 +49,3 @@ func main() {
         Ok(r) => panic!("expected S011 use-after-move failure, ran: {:?}", r.printed),
     }
 }
-

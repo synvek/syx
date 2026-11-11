@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -37,8 +36,9 @@ fn s2_05_mir_module_index_extract_baseline() {
         "ModuleIndex definition must leave lib.rs"
     );
     assert!(
-        !lib.lines().any(|l| l.starts_with("struct LowerCtx")
-            || l.starts_with("pub(crate) struct LowerCtx")),
+        !lib.lines().any(
+            |l| l.starts_with("struct LowerCtx") || l.starts_with("pub(crate) struct LowerCtx")
+        ),
         "LowerCtx left lib.rs in I171 (see mir_lower_ctx)"
     );
     assert!(

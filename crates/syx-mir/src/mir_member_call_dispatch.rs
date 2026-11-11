@@ -25,7 +25,6 @@ pub(crate) enum MemberCallKind {
     ReceiverFirstHosted,
 }
 
-
 pub(crate) fn expr_as_i32_literal(expr: &Expr) -> Option<i32> {
     match expr {
         Expr::Literal {
@@ -35,7 +34,6 @@ pub(crate) fn expr_as_i32_literal(expr: &Expr) -> Option<i32> {
         _ => None,
     }
 }
-
 
 pub(crate) fn classify_member_call(callee: &Expr, ctx: &LowerCtx) -> MemberCallKind {
     let Expr::Member { object, name, .. } = callee else {
@@ -65,8 +63,12 @@ pub(crate) fn classify_member_call(callee: &Expr, ctx: &LowerCtx) -> MemberCallK
     MemberCallKind::InstanceMethod
 }
 
-
-pub(crate) fn method_id_mir_op(method: MethodId, surface: &str, method_name: &str, ctx: &LowerCtx) -> MirOp {
+pub(crate) fn method_id_mir_op(
+    method: MethodId,
+    surface: &str,
+    method_name: &str,
+    ctx: &LowerCtx,
+) -> MirOp {
     if method == MethodId::ArrSorted {
         return MirOp::ArrSorted;
     }
@@ -75,4 +77,3 @@ pub(crate) fn method_id_mir_op(method: MethodId, surface: &str, method_name: &st
     }
     collection_method_mir_op(surface, method_name, ctx)
 }
-

@@ -6,17 +6,13 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_05_driver_mir_unify_to_compile_batch_baseline() {
     let mods = [
-        (
-            "crates/syx-driver/src/mir_unify.rs",
-            "build_mir_from_graph",
-        ),
+        ("crates/syx-driver/src/mir_unify.rs", "build_mir_from_graph"),
         (
             "crates/syx-driver/src/test_runner.rs",
             "test_project_with_format",

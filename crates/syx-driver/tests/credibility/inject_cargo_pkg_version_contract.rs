@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -43,8 +42,7 @@ fn s2_07_inject_cargo_pkg_version_locked() {
 
     let manifest = repo_file("packages/internal/manifest.json");
     assert!(
-        manifest.contains("\"version\": \"0.1.3\"")
-            || manifest.contains("\"version\":\"0.1.3\""),
+        manifest.contains("\"version\": \"0.1.3\"") || manifest.contains("\"version\":\"0.1.3\""),
         "checked-in manifest version must be 0.1.3"
     );
     assert!(

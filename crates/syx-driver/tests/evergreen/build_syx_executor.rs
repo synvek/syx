@@ -87,8 +87,13 @@ fn execute_wires_wasm_aot_feature() {
         features: indexmap::indexmap! { "wasm_aot".into() => true },
         ..Default::default()
     };
-    let order = prepare_build_plan(&plan, &mut opts, &mut manifest, PathBuf::from(".").as_path())
-        .unwrap();
+    let order = prepare_build_plan(
+        &plan,
+        &mut opts,
+        &mut manifest,
+        PathBuf::from(".").as_path(),
+    )
+    .unwrap();
     assert!(opts.wasm_aot);
     assert!(order.is_empty());
 }
@@ -103,7 +108,13 @@ fn execute_applies_release_profile() {
         },
         ..Default::default()
     };
-    prepare_build_plan(&plan, &mut opts, &mut manifest, PathBuf::from(".").as_path()).unwrap();
+    prepare_build_plan(
+        &plan,
+        &mut opts,
+        &mut manifest,
+        PathBuf::from(".").as_path(),
+    )
+    .unwrap();
     assert!(opts.wasm_aot);
 }
 
@@ -228,8 +239,13 @@ fn execute_returns_task_order() {
         }],
         ..Default::default()
     };
-    let order =
-        prepare_build_plan(&plan, &mut opts, &mut manifest, PathBuf::from(".").as_path()).unwrap();
+    let order = prepare_build_plan(
+        &plan,
+        &mut opts,
+        &mut manifest,
+        PathBuf::from(".").as_path(),
+    )
+    .unwrap();
     assert_eq!(order, vec!["only"]);
 }
 

@@ -35,11 +35,7 @@ fn run_native_strict(src: &str) -> Vec<String> {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
     let output = Command::new(&exe).output().unwrap();
@@ -50,23 +46,46 @@ fn run_native_strict(src: &str) -> Vec<String> {
         .collect()
 }
 
-
 #[test]
 fn p98_async_native_vm_nested_stdout_order() {
     let lines = run_vm(ASYNC_NESTED_SRC);
-    let start = lines.iter().position(|l| l.contains("main-start")).expect("start");
-    let outer = lines.iter().position(|l| l.contains("outer-step")).expect("outer");
-    let inner = lines.iter().position(|l| l.contains("inner-step")).expect("inner");
-    let done = lines.iter().position(|l| l.contains("main-done")).expect("done");
+    let start = lines
+        .iter()
+        .position(|l| l.contains("main-start"))
+        .expect("start");
+    let outer = lines
+        .iter()
+        .position(|l| l.contains("outer-step"))
+        .expect("outer");
+    let inner = lines
+        .iter()
+        .position(|l| l.contains("inner-step"))
+        .expect("inner");
+    let done = lines
+        .iter()
+        .position(|l| l.contains("main-done"))
+        .expect("done");
     assert!(start < outer && outer < inner && inner < done, "{lines:?}");
 }
 
 #[test]
 fn p98_async_native_strict_nested_stdout_order() {
     let lines = run_native_strict(ASYNC_NESTED_SRC);
-    let start = lines.iter().position(|l| l.contains("main-start")).expect("start");
-    let outer = lines.iter().position(|l| l.contains("outer-step")).expect("outer");
-    let inner = lines.iter().position(|l| l.contains("inner-step")).expect("inner");
-    let done = lines.iter().position(|l| l.contains("main-done")).expect("done");
+    let start = lines
+        .iter()
+        .position(|l| l.contains("main-start"))
+        .expect("start");
+    let outer = lines
+        .iter()
+        .position(|l| l.contains("outer-step"))
+        .expect("outer");
+    let inner = lines
+        .iter()
+        .position(|l| l.contains("inner-step"))
+        .expect("inner");
+    let done = lines
+        .iter()
+        .position(|l| l.contains("main-done"))
+        .expect("done");
     assert!(start < outer && outer < inner && inner < done, "{lines:?}");
 }

@@ -4,7 +4,6 @@ use syx_driver::{compile_and_run_embedded, DriverOptions};
 use syx_llvm::{append_native_runtime_shim, emit_llvm_ir, llvm_ir_uses_mir_main_entry};
 use syx_mir::{MirBlock, MirFunction, MirInstr, MirModule, MirOp};
 
-
 #[test]
 fn p98_native_llvm_direct_sync_main_shim() {
     let mir = MirModule {

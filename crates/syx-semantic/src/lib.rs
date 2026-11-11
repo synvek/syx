@@ -1,22 +1,22 @@
 //! SYX semantic analysis crate root (hub + reexports + unit tests).
 
+mod feature_gates;
 mod host_fn_capability;
 mod import_resolver;
-mod type_checker;
-mod semantic_types;
-mod semantic_type_codec;
-mod feature_gates;
-mod semantic_helpers;
-mod semantic_analyzer;
-mod semantic_collect_decls;
+mod semantic_analyze_call;
+mod semantic_analyze_decl;
 mod semantic_analyze_expr;
 mod semantic_analyze_stmt;
-mod semantic_analyze_decl;
-mod semantic_analyze_call;
 mod semantic_analyze_type_member;
+mod semantic_analyzer;
+mod semantic_collect_decls;
 mod semantic_concurrency;
+mod semantic_helpers;
 mod semantic_ide;
 mod semantic_infer_host;
+mod semantic_type_codec;
+mod semantic_types;
+mod type_checker;
 
 use type_checker::is_compatible;
 
@@ -24,32 +24,23 @@ use type_checker::is_compatible;
 /// Prevents pathological files from flooding the editor while still showing many errors at once.
 pub const MAX_COLLECTED_DIAGNOSTICS: usize = 64;
 
-pub use semantic_types::{TypeId, Symbol, Scope, ScopeError};
 pub use feature_gates::*;
 pub use semantic_analyzer::SemanticAnalyzer;
 pub use semantic_type_codec::{
-    type_name_to_id,
-    type_expr_to_id,
-    type_expr_to_id_with_aliases,
-    type_id_collection_base,
-    type_name_dispatch_base,
-    normalize_type_arg_name,
-    demangle_mono_name,
-    user_facing_type_name,
-    user_facing_mir_fn_name,
-    user_facing_runtime_type_name,
-    type_id_to_ir_name,
-    type_id_to_name,
-    type_id_to_diag_name,
-    simd_lanes_from_type_name,
+    demangle_mono_name, normalize_type_arg_name, simd_lanes_from_type_name, type_expr_to_id,
+    type_expr_to_id_with_aliases, type_id_collection_base, type_id_to_diag_name,
+    type_id_to_ir_name, type_id_to_name, type_name_dispatch_base, type_name_to_id,
+    user_facing_mir_fn_name, user_facing_runtime_type_name, user_facing_type_name,
 };
+pub use semantic_types::{Scope, ScopeError, Symbol, TypeId};
 
-pub(crate) use semantic_helpers::{
-    attached_conformance_protocols, attr_has_ident_arg, default_assoc_type_for, expr_span, has_attr,
-    is_forbidden_internal_import, is_retired_collection_methodcall, module_first_task_detach_span,
-    module_uses_task_detach, retired_ops_hint, type_collection_surface, type_expr_uses_param,
-};
 pub use semantic_helpers::expr_span_start;
+pub(crate) use semantic_helpers::{
+    attached_conformance_protocols, attr_has_ident_arg, default_assoc_type_for, expr_span,
+    has_attr, is_forbidden_internal_import, is_retired_collection_methodcall,
+    module_first_task_detach_span, module_uses_task_detach, retired_ops_hint,
+    type_collection_surface, type_expr_uses_param,
+};
 
 #[cfg(test)]
 mod tests {
@@ -82,8 +73,8 @@ mod tests {
                     },
                 }],
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             }],
         };
         SemanticAnalyzer::analyze(&module).unwrap();
@@ -122,8 +113,8 @@ mod tests {
                     },
                 }],
                 is_async: false,
-            is_override: false,
-            is_final: false,
+                is_override: false,
+                is_final: false,
             }],
         };
         let err = SemanticAnalyzer::analyze(&module).unwrap_err();

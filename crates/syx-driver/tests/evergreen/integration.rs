@@ -59,15 +59,21 @@ fn operator_host_matrix() {
 
 #[test]
 fn operator_mir_compare() {
-    let mir = emit_mir_text(&fixture("operators/host_matrix.sy"), &DriverOptions::default())
-        .unwrap();
+    let mir = emit_mir_text(
+        &fixture("operators/host_matrix.sy"),
+        &DriverOptions::default(),
+    )
+    .unwrap();
     assert!(mir.contains("__syx_int_lt") || mir.contains("CallHost"));
 }
 
 #[test]
 fn assign_mir_hosts() {
-    let mir = emit_mir_text(&fixture("operators/assign_host.sy"), &DriverOptions::default())
-        .unwrap();
+    let mir = emit_mir_text(
+        &fixture("operators/assign_host.sy"),
+        &DriverOptions::default(),
+    )
+    .unwrap();
     assert!(mir.contains("__syx_int_add_assign") || mir.contains("CallHost"));
 }
 
@@ -121,7 +127,8 @@ fn fileprivate_helper_public_api() {
     syx_host_plugin::register_echo_plugin_in_process();
     let root = fixture("access/fileprivate_cross_module/app");
     let options = DriverOptions::default();
-    let project = compile_project_with_options(&root, &options).expect("compile fileprivate project");
+    let project =
+        compile_project_with_options(&root, &options).expect("compile fileprivate project");
     let main = root.join(project.manifest.main.as_str());
     let (code, lines) = run_file_printed(&main, &options).expect("run fileprivate project");
     assert_eq!(code, 0);
@@ -237,7 +244,8 @@ fn nested_types_cross_module() {
     syx_host_plugin::register_echo_plugin_in_process();
     let root = fixture("nested_cross_module");
     let options = DriverOptions::default();
-    let project = compile_project_with_options(&root, &options).expect("compile nested_cross_module");
+    let project =
+        compile_project_with_options(&root, &options).expect("compile nested_cross_module");
     let main = root.join(project.manifest.main.as_str());
     let (code, lines) = run_file_printed(&main, &options).expect("run nested_cross_module");
     assert_eq!(code, 0);
@@ -280,12 +288,16 @@ fn array_and_dict_description_in_vm() {
     let (code, lines) = run_file_printed(&path, &options).expect("run");
     assert_eq!(code, 0);
     assert!(
-        lines.first().is_some_and(|l| l.contains('a') && l.contains('b')),
+        lines
+            .first()
+            .is_some_and(|l| l.contains('a') && l.contains('b')),
         "array description should list elements, got: {lines:?}"
     );
     assert_eq!(lines.get(1).map(String::as_str), Some("2"));
     assert!(
-        lines.get(2).is_some_and(|l| l.contains('1') && l.contains("10")),
+        lines
+            .get(2)
+            .is_some_and(|l| l.contains('1') && l.contains("10")),
         "dict description should list entries, got: {lines:?}"
     );
 }

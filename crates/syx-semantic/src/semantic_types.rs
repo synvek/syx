@@ -127,9 +127,7 @@ impl Scope {
         if self.symbols.contains_key(name) {
             self.symbols.get_mut(name)
         } else {
-            self.parent
-                .as_mut()
-                .and_then(|p| p.lookup_mut(name))
+            self.parent.as_mut().and_then(|p| p.lookup_mut(name))
         }
     }
 }

@@ -29,11 +29,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -134,9 +130,7 @@ func main() {
 fn m2_s6_03_docs_and_capability() {
     let pb = include_str!("../../../../packages/process/process_builder.sy");
     assert!(
-        pb.contains("func signal")
-            && pb.contains("__syx_child_signal")
-            && pb.contains("ADR-244"),
+        pb.contains("func signal") && pb.contains("__syx_child_signal") && pb.contains("ADR-244"),
         "Child.signal facade required"
     );
     let hosts = include_str!("../../../syx-vm/src/stdlib_phase84_hosts.rs");
@@ -148,9 +142,7 @@ fn m2_s6_03_docs_and_capability() {
     );
     let guide = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
-        guide.contains("Child.signal")
-            && guide.contains("ADR-244")
-            && guide.contains("Child.kill"),
+        guide.contains("Child.signal") && guide.contains("ADR-244") && guide.contains("Child.kill"),
         "UsageGuide must document signal vs kill"
     );
     let caps = include_str!("../../../../packages/internal/capabilities.toml");
@@ -210,4 +202,3 @@ func main() {
         "native llvm ChildSignal TERM+wait must exact: {out}"
     );
 }
-

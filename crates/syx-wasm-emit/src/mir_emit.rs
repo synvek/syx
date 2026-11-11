@@ -882,11 +882,17 @@ fn emit_function_body(
         &plan.host_import_map,
     );
     emit_wasm_instr(body, &WasmInstr::I32Const(func_idx as i32));
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SetFnIndex)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::SetFnIndex)),
+    );
     if !plan.aot || func.param_count > 0 {
         emit_wasm_instr(body, &WasmInstr::I32Const(func.param_count as i32));
         emit_wasm_instr(body, &WasmInstr::I32Const(func.local_count as i32));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::BeginFn)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::BeginFn)),
+        );
         emit_wasm_instr(body, &WasmInstr::Drop);
     }
 
@@ -1333,16 +1339,18 @@ fn emit_simd_guest_push_v128(body: &mut Function, plan: &EmitPlan, tmp_local: u3
     emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     emit_wasm_instr(body, &WasmInstr::I32Const(element as i32));
     emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
-    emit_wasm_instr(body, &WasmInstr::Call(
-        plan.aot_import(aot::Import::SimdGuestPushV128),
-    ));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::SimdGuestPushV128)),
+    );
 }
 
 /// Phase 117 guest-v10: pop RT simd onto wasm v128 stack — stack-native ABI.
 fn emit_simd_guest_pop_v128(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(
-        plan.aot_import(aot::Import::SimdGuestPopV128),
-    ));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::SimdGuestPopV128)),
+    );
 }
 
 fn scratch_v128_mem() -> wasm_encoder::MemArg {
@@ -1370,27 +1378,45 @@ fn scratch_f64_mem() -> wasm_encoder::MemArg {
 }
 
 fn emit_take_rt_f64(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF64)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF64)),
+    );
 }
 
 fn emit_push_rt_f64(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtF64)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtF64)),
+    );
 }
 
 fn emit_take_rt_f32(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF32)),
+    );
 }
 
 fn emit_push_rt_f32(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtF32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtF32)),
+    );
 }
 
 fn emit_take_rt_i64(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI64)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI64)),
+    );
 }
 
 fn emit_push_rt_i64(body: &mut Function, plan: &EmitPlan) {
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI64)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI64)),
+    );
 }
 
 /// Phase 117 guest-v10: stack-native v128 binop (pop→v128 stack→op→push; no scratch ABI).
@@ -1398,7 +1424,10 @@ fn emit_push_rt_i64(body: &mut Function, plan: &EmitPlan) {
 fn emit_simd_export_host_call(body: &mut Function, plan: &EmitPlan, host: syx_stdlib::HostFnId) {
     let idx = syx_stdlib::host_fn_index(host);
     emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)),
+    );
 }
 
 fn emit_simd_binop_v128_nospill(
@@ -1447,7 +1476,10 @@ fn emit_simd_shift_i32x4_nospill(
     wasm_op: fn(&mut Function),
 ) {
     let i32_tmp = tmp_local - 1;
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+    );
     emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
@@ -1458,22 +1490,28 @@ fn emit_simd_shift_i32x4_nospill(
 
 fn emit_v128_load_from_scratch(body: &mut Function, scratch_offset: i32) {
     emit_wasm_instr(body, &WasmInstr::I32Const(0));
-    emit_wasm_instr(body, &WasmInstr::V128Load(wasm_encoder::MemArg {
-        offset: scratch_offset as u64,
-        align: 4,
-        memory_index: 0,
-    }));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::V128Load(wasm_encoder::MemArg {
+            offset: scratch_offset as u64,
+            align: 4,
+            memory_index: 0,
+        }),
+    );
 }
 
 fn emit_v128_store_to_scratch(body: &mut Function, tmp_local: u32, scratch_offset: i32) {
     emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     emit_wasm_instr(body, &WasmInstr::I32Const(0));
     emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
-    emit_wasm_instr(body, &WasmInstr::V128Store(wasm_encoder::MemArg {
-        offset: scratch_offset as u64,
-        align: 4,
-        memory_index: 0,
-    }));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::V128Store(wasm_encoder::MemArg {
+            offset: scratch_offset as u64,
+            align: 4,
+            memory_index: 0,
+        }),
+    );
 }
 
 /// Phase 114: F64/I64/U64 literals need full 64-bit guest push (PushRtNumeric truncates to i32).
@@ -1489,9 +1527,10 @@ fn emit_const_numeric_guest(body: &mut Function, plan: &EmitPlan, kind: u8, bits
     } else {
         emit_wasm_instr(body, &WasmInstr::I32Const(kind as i32));
         emit_wasm_instr(body, &WasmInstr::I32Const(bits as i32));
-        emit_wasm_instr(body, &WasmInstr::Call(
-            plan.aot_import(aot::Import::PushRtNumeric),
-        ));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNumeric)),
+        );
     }
 }
 
@@ -1501,9 +1540,10 @@ fn emit_const_numeric128_guest(body: &mut Function, plan: &EmitPlan, kind: u8, l
     emit_wasm_instr(body, &WasmInstr::I32Const((lo >> 32) as i32));
     emit_wasm_instr(body, &WasmInstr::I32Const((hi & 0xffff_ffff) as i32));
     emit_wasm_instr(body, &WasmInstr::I32Const((hi >> 32) as i32));
-    emit_wasm_instr(body, &WasmInstr::Call(
-        plan.aot_import(aot::Import::ConstNumeric128),
-    ));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::ConstNumeric128)),
+    );
     emit_wasm_instr(body, &WasmInstr::Drop);
 }
 
@@ -2334,7 +2374,10 @@ fn emit_simd_bitmask_i8x16_pilot(
 ) {
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::I8x16Bitmask);
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+    );
     let _ = br_to_loop;
 }
 
@@ -2349,7 +2392,10 @@ fn emit_simd_all_true_i8x16_pilot(
 ) {
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::I8x16AllTrue);
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)),
+    );
     let _ = br_to_loop;
 }
 
@@ -2364,7 +2410,10 @@ fn emit_simd_any_true_i8x16_pilot(
 ) {
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::V128AnyTrue);
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)),
+    );
     let _ = br_to_loop;
 }
 
@@ -2499,13 +2548,17 @@ fn emit_simd_extract_i8x16_pilot(
 ) {
     let lane_local = tmp_local - 1;
     let v128_local = tmp_local;
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+    );
     emit_wasm_instr(body, &WasmInstr::LocalSet(lane_local));
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::LocalSet(v128_local));
-    emit_wasm_instr(body, &WasmInstr::Block(wasm_encoder::BlockType::Result(
-        ValType::I32,
-    )));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Block(wasm_encoder::BlockType::Result(ValType::I32)),
+    );
     for lane in 0u8..16 {
         emit_wasm_instr(body, &WasmInstr::LocalGet(lane_local));
         emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
@@ -2519,7 +2572,10 @@ fn emit_simd_extract_i8x16_pilot(
     emit_wasm_instr(body, &WasmInstr::LocalGet(v128_local));
     emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(0));
     emit_wasm_instr(body, &WasmInstr::End);
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+    );
     let _ = br_to_loop;
 }
 
@@ -2535,9 +2591,15 @@ fn emit_simd_replace_i8x16_pilot(
     let value_local = tmp_local - 2;
     let lane_local = tmp_local - 1;
     let v128_local = tmp_local;
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+    );
     emit_wasm_instr(body, &WasmInstr::LocalSet(value_local));
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+    );
     emit_wasm_instr(body, &WasmInstr::LocalSet(lane_local));
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::LocalSet(v128_local));
@@ -3008,12 +3070,21 @@ fn emit_simd_load_v128_pilot(
     if simd_export_shim {
         emit_wasm_instr(body, &WasmInstr::Drop);
         emit_wasm_instr(body, &WasmInstr::I32Const(0));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)),
+        );
         emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)),
+        );
     } else {
         emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)),
+        );
     }
     emit_v128_splat_zero(
         body,
@@ -3026,10 +3097,19 @@ fn emit_simd_load_v128_pilot(
     emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     for lane in 0..lane_count {
         emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)),
+        );
         emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+        );
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)),
+        );
         emit_wasm_instr(body, &WasmInstr::Drop);
         if f64_element {
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
@@ -3044,19 +3124,28 @@ fn emit_simd_load_v128_pilot(
             emit_take_rt_i64(body, plan);
             emit_wasm_instr(body, &WasmInstr::I64x2ReplaceLane(lane));
         } else if i16_element {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+            );
             emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
             emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
             emit_wasm_instr(body, &WasmInstr::I16x8ReplaceLane(lane));
         } else if i8_element {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+            );
             emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
             emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
             emit_wasm_instr(body, &WasmInstr::I8x16ReplaceLane(lane));
         } else {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+            );
             emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
             emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
@@ -3090,12 +3179,21 @@ fn emit_simd_store_v128_pilot(
     emit_simd_guest_pop_v128(body, plan);
     emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)),
+    );
     for lane in 0..lane_count {
         emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)),
+        );
         emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+        );
         emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
         if f64_element {
             emit_wasm_instr(body, &WasmInstr::F64x2ExtractLane(lane));
@@ -3108,22 +3206,40 @@ fn emit_simd_store_v128_pilot(
             emit_push_rt_i64(body, plan);
         } else if i16_element {
             emit_wasm_instr(body, &WasmInstr::I16x8ExtractLaneS(lane));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
         } else if i8_element {
             emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(lane));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
         } else {
             emit_wasm_instr(body, &WasmInstr::I32x4ExtractLane(lane));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
         }
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)),
+        );
         emit_wasm_instr(body, &WasmInstr::Drop);
         emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)),
+        );
     }
     // Return the updated array on the RT stack (dest / loadFromArray chains).
     emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+    emit_wasm_instr(
+        body,
+        &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)),
+    );
     let _ = br_to_loop;
 }
 
@@ -3180,7 +3296,10 @@ fn emit_simd_reduce_add_pilot(
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local - 1));
             emit_wasm_instr(body, &WasmInstr::I32Add);
         }
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+        );
     } else if i8_element {
         emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
         let lane_count = lanes.max(1).min(16);
@@ -3192,7 +3311,10 @@ fn emit_simd_reduce_add_pilot(
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local - 1));
             emit_wasm_instr(body, &WasmInstr::I32Add);
         }
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+        );
     } else {
         emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
         let lane_count = lanes.max(1).min(4);
@@ -3204,7 +3326,10 @@ fn emit_simd_reduce_add_pilot(
             emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local - 1));
             emit_wasm_instr(body, &WasmInstr::I32Add);
         }
-        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(
+            body,
+            &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+        );
     }
     let _ = br_to_loop;
 }
@@ -3259,7 +3384,10 @@ fn emit_mir_instr(
     if plan.aot {
         if let MirOp::ConstI32(v) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*v));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
             // Guest copy for JumpIfFalse (same pattern as ConstBool); Drop if unused.
             emit_wasm_instr(body, &WasmInstr::I32Const(*v));
             return;
@@ -3274,20 +3402,29 @@ fn emit_mir_instr(
                 .map(|i| i as i32)
                 .unwrap_or(-1);
             emit_wasm_instr(body, &WasmInstr::I32Const(idx));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
             return;
         }
         if let MirOp::ConstBool(b) = &instr.op {
             // Wave A W203 / ADR-547: RT Bool for Print; leave guest i32 for JumpIfFalse.
             let n = if *b { 1 } else { 0 };
             emit_wasm_instr(body, &WasmInstr::I32Const(n));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)),
+            );
             emit_wasm_instr(body, &WasmInstr::I32Const(n));
             return;
         }
         if matches!(instr.op, MirOp::ConstNil) {
             // Wave A W203 / ADR-547: RT Nil for Print; guest 0 for JumpIfNil.
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)),
+            );
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
             return;
         }
@@ -3322,7 +3459,10 @@ fn emit_mir_instr(
         };
         if let Some(op_code) = stack_op {
             emit_wasm_instr(body, &WasmInstr::I32Const(op_code as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StackOp)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::StackOp)),
+            );
             // Compare / bool results stay on RT; JumpIfFalse takes via TakeRtI32.
             if matches!(
                 instr.op,
@@ -3336,18 +3476,27 @@ fn emit_mir_instr(
                     | MirOp::Or
                     | MirOp::Not
             ) {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+                );
             }
             return;
         }
         if let MirOp::LoadLocal(slot) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)),
+            );
             return;
         }
         if let MirOp::StoreLocal(slot) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)),
+            );
             return;
         }
         if let MirOp::Return = &instr.op {
@@ -3355,7 +3504,10 @@ fn emit_mir_instr(
                 emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
             }
             if exit_returns_i32 && !plan.aot {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)),
+                );
             } else if exit_returns_i32 && plan.aot {
                 // Wave A W18: aot main export needs an i32; RT may hold leftover values
                 // (e.g. print args). Match CFG epilogue — wasm exit code is 0.
@@ -3398,12 +3550,18 @@ fn emit_mir_instr(
         if let MirOp::Call(name) = &instr.op {
             if let Some(idx) = module.functions.iter().position(|f| f.name == *name) {
                 emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
-                emit_wasm_instr(body, &WasmInstr::CallIndirect {
-                    type_index: host::TYPE_FUNC_I32,
-                    table_index: 0,
-                });
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::CallIndirect {
+                        type_index: host::TYPE_FUNC_I32,
+                        table_index: 0,
+                    },
+                );
                 // Wave A W18 / ADR-362: llvm W11 parity — poll pending catch after Call.
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+                );
                 emit_call_host_take_catch(body, br_to_loop);
                 // R-23: guest i32 stub left on the stack; `drop_unused_guest_cond` Drops it
                 // unless the next MirOp is `Pop` (which owns the cleanup).
@@ -3415,14 +3573,20 @@ fn emit_mir_instr(
         }
         if let MirOp::LoadGlobal(slot) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadGlobal)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::LoadGlobal)),
+            );
             // Guest i32 is a placeholder; RT owns the Value.
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if let MirOp::StoreGlobal(slot) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreGlobal)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::StoreGlobal)),
+            );
             return;
         }
         if let MirOp::ConstStr(s) = &instr.op {
@@ -3430,7 +3594,10 @@ fn emit_mir_instr(
                 // Phase 100: data-section off/len + dedicated ConstStr import (not mir_exec).
                 emit_wasm_instr(body, &WasmInstr::I32Const(*off));
                 emit_wasm_instr(body, &WasmInstr::I32Const(*len));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)),
+                );
                 // Import type is (i32,i32)->i32 but RT owns the Value; drop guest placeholder.
                 emit_wasm_instr(body, &WasmInstr::Drop);
                 return;
@@ -3442,20 +3609,29 @@ fn emit_mir_instr(
         if let MirOp::ArrayBuild(n) = &instr.op {
             if *n <= 16 {
                 emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArrayBuild)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::ArrayBuild)),
+                );
                 emit_wasm_instr(body, &WasmInstr::Drop);
                 return;
             }
         }
         if let MirOp::DictBuild(n) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if let MirOp::SetBuild(n) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
@@ -3467,41 +3643,68 @@ fn emit_mir_instr(
             return;
         }
         if matches!(instr.op, MirOp::MakeIterator) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::MakeIterator)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::MakeIterator)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::IteratorNext) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::IteratorNext)));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::IteratorNext)),
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::ArrayGet) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ArraySet) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ObjectGet) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ObjectGet)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ObjectGet)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ObjectSet) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ObjectSet)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ObjectSet)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ValueEq | MirOp::OpaqueValueEq) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ValueEq)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ValueEq)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::ValueNe) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ValueNe)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ValueNe)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::RefEq) {
@@ -3513,7 +3716,10 @@ fn emit_mir_instr(
             return;
         }
         if matches!(instr.op, MirOp::ArrSorted) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArraySorted)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ArraySorted)),
+            );
             return;
         }
         if let MirOp::MakeClosure(name, cap) = &instr.op {
@@ -3524,28 +3730,43 @@ fn emit_mir_instr(
                 .unwrap_or(0);
             emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
             emit_wasm_instr(body, &WasmInstr::I32Const(*cap as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::CallClosure) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::AwaitPoll) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::AwaitPoll)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::AwaitPoll)),
+            );
             return;
         }
         if let MirOp::AwaitSuspend { resume_fn, state } = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*resume_fn as i32));
             emit_wasm_instr(body, &WasmInstr::I32Const(*state as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::AwaitSuspend)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::AwaitSuspend)),
+            );
             return;
         }
         if let MirOp::CallWitness(a, b) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*a as i32));
             emit_wasm_instr(body, &WasmInstr::I32Const(*b as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallWitness)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::CallWitness)),
+            );
             return;
         }
         if let MirOp::Div { .. } = &instr.op {
@@ -3613,18 +3834,27 @@ fn emit_mir_instr(
         }
         if let MirOp::DictBuild(n) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)),
+            );
             return;
         }
         if let MirOp::SetBuild(n) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)),
+            );
             return;
         }
         // Wave A W544 / ADR-888: MirOp ObjectRefWrap/Retain/Release peeled
         // (ADR-858/ADR-855 AOT nops retired with the variants).
         if matches!(instr.op, MirOp::HeapCompact) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::HeapCompact)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::HeapCompact)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::SimdAdd) {
@@ -3639,10 +3869,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)),
+                );
             }
             return;
         }
@@ -3658,10 +3894,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)),
+                );
             }
             return;
         }
@@ -3677,10 +3919,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)),
+                );
             }
             return;
         }
@@ -3696,10 +3944,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)),
+                );
             }
             return;
         }
@@ -3772,10 +4026,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)),
+                );
             }
             return;
         }
@@ -3810,10 +4070,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)),
+                );
             }
             return;
         }
@@ -3886,10 +4152,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)),
+                );
             }
             return;
         }
@@ -3905,10 +4177,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)),
+                );
             }
             return;
         }
@@ -3924,10 +4202,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)),
+                );
             }
             return;
         }
@@ -3943,10 +4227,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)),
+                );
             }
             return;
         }
@@ -3962,10 +4252,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)),
+                );
             }
             return;
         }
@@ -3981,10 +4277,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)),
+                );
             }
             return;
         }
@@ -4000,10 +4302,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)),
+                );
             }
             return;
         }
@@ -4019,10 +4327,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)),
+                );
             }
             return;
         }
@@ -4038,10 +4352,16 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)),
+                    );
                 }
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)),
+                );
             }
             return;
         }
@@ -4064,7 +4384,10 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Add);
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)),
+                );
             }
             return;
         }
@@ -4087,7 +4410,10 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Sub);
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)),
+                );
             }
             return;
         }
@@ -4110,7 +4436,10 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Mul);
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)),
+                );
             }
             return;
         }
@@ -4133,7 +4462,10 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Div);
             } else {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)),
+                );
             }
             return;
         }
@@ -4871,12 +5203,18 @@ fn emit_mir_instr(
                 } else {
                     let idx = syx_stdlib::host_fn_index(syx_stdlib::HostFnId::SimdReduceAdd);
                     emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)),
+                    );
                 }
             } else {
                 let idx = syx_stdlib::host_fn_index(syx_stdlib::HostFnId::SimdReduceAdd);
                 emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)),
+                );
             }
             return;
         }
@@ -4893,11 +5231,17 @@ fn emit_mir_instr(
                     );
                 } else {
                     emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)),
+                    );
                 }
             } else {
                 emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)),
+                );
             }
             return;
         }
@@ -4914,12 +5258,18 @@ fn emit_mir_instr(
                     );
                 } else {
                     emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+                    );
                     emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Shuffle);
                 }
             } else {
                 emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+                );
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Shuffle);
             }
             return;
@@ -4944,7 +5294,10 @@ fn emit_mir_instr(
             } else {
                 let tag = (*lanes as i32) | ((*element as i32) << 8);
                 emit_wasm_instr(body, &WasmInstr::I32Const(tag));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)),
+                );
             }
             return;
         }
@@ -4967,7 +5320,10 @@ fn emit_mir_instr(
             } else {
                 let tag = (*lanes as i32) | ((*element as i32) << 8);
                 emit_wasm_instr(body, &WasmInstr::I32Const(tag));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)),
+                );
             }
             return;
         }
@@ -4975,9 +5331,15 @@ fn emit_mir_instr(
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
             emit_wasm_instr(body, &WasmInstr::I32Const(off));
             emit_wasm_instr(body, &WasmInstr::I32Const(len));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)),
+            );
             // ADR-631: poll pending_catch after ActorCall (C009 under try).
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
             emit_call_host_take_catch(body, br_to_loop);
             return;
         }
@@ -4985,32 +5347,48 @@ fn emit_mir_instr(
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
             emit_wasm_instr(body, &WasmInstr::I32Const(off));
             emit_wasm_instr(body, &WasmInstr::I32Const(len));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)),
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
             emit_call_host_take_catch(body, br_to_loop);
             return;
         }
         if matches!(instr.op, MirOp::ActorRegister) {
-            emit_wasm_instr(body, &WasmInstr::Call(
-                plan.aot_import(aot::Import::ActorRegister),
-            ));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ActorRegister)),
+            );
             return;
         }
         if let MirOp::TaskSpawn(name) = &instr.op {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
             emit_wasm_instr(body, &WasmInstr::I32Const(off));
             emit_wasm_instr(body, &WasmInstr::I32Const(len));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::TaskJoin) {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)),
+            );
             return;
         }
         if let MirOp::BeginTry(catch) = &instr.op {
             emit_wasm_instr(body, &WasmInstr::I32Const(*catch as i32));
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::BeginTry)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::BeginTry)),
+            );
             return;
         }
         if matches!(instr.op, MirOp::Catch) {
@@ -5032,7 +5410,10 @@ fn emit_mir_instr(
             // same pattern as Print's I32Const(0). Host pops RT [left,right].
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
@@ -5810,7 +6191,10 @@ fn emit_mir_instr(
                 emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
             }
             if exit_returns_i32 && !plan.aot {
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)),
+                );
             } else if exit_returns_i32 && plan.aot {
                 emit_wasm_instr(body, &WasmInstr::I32Const(0));
             } else if !exit_returns_i32 {
@@ -5822,11 +6206,17 @@ fn emit_mir_instr(
             if plan.aot {
                 if let Some(idx) = module.functions.iter().position(|f| f.name == *name) {
                     emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
-                    emit_wasm_instr(body, &WasmInstr::CallIndirect {
-                        type_index: host::TYPE_FUNC_I32,
-                        table_index: 0,
-                    });
-                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::CallIndirect {
+                            type_index: host::TYPE_FUNC_I32,
+                            table_index: 0,
+                        },
+                    );
+                    emit_wasm_instr(
+                        body,
+                        &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+                    );
                     emit_call_host_take_catch(body, br_to_loop);
                     // R-23: stub cleanup via `drop_unused_guest_cond` (skip if next is Pop).
                     return;
@@ -5837,21 +6227,30 @@ fn emit_mir_instr(
                 emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
                 emit_wasm_instr(body, &WasmInstr::I32Const(param_count as i32));
                 emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallFn)));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+                );
                 emit_call_host_take_catch(body, br_to_loop);
                 // R-23: stub cleanup via `drop_unused_guest_cond` (skip if next is Pop).
             }
         }
         MirOp::CallHost(idx) => {
             emit_wasm_instr(body, &WasmInstr::I32Const(*idx as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)),
+            );
             emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::ConstStr(s) => {
             if let Some((off, len)) = str_map.get(s) {
                 emit_wasm_instr(body, &WasmInstr::I32Const(*off));
                 emit_wasm_instr(body, &WasmInstr::I32Const(*len));
-                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)));
+                emit_wasm_instr(
+                    body,
+                    &WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)),
+                );
                 emit_wasm_instr(body, &WasmInstr::Drop);
             } else {
                 aot_emit_hard_fail(&format!("ConstStr({s:?}) missing from wasm data section"));
@@ -5861,7 +6260,10 @@ fn emit_mir_instr(
         MirOp::ConcatStr => {
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
         }
         MirOp::MakeClosure(name, cap) => {
@@ -5872,56 +6274,90 @@ fn emit_mir_instr(
                 .unwrap_or(0);
             emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
             emit_wasm_instr(body, &WasmInstr::I32Const(*cap as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)),
+            );
             emit_wasm_instr(body, &WasmInstr::Drop);
         }
         MirOp::CallClosure => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)),
+            );
         }
         MirOp::ActorCall(name) => {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
             emit_wasm_instr(body, &WasmInstr::I32Const(off));
             emit_wasm_instr(body, &WasmInstr::I32Const(len));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)),
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
             emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::ActorSend(name) => {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
             emit_wasm_instr(body, &WasmInstr::I32Const(off));
             emit_wasm_instr(body, &WasmInstr::I32Const(len));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)),
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
             emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::ActorRegister => {
-            emit_wasm_instr(body, &WasmInstr::Call(
-                plan.aot_import(aot::Import::ActorRegister),
-            ));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ActorRegister)),
+            );
         }
         MirOp::TaskSpawn(name) => {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
             emit_wasm_instr(body, &WasmInstr::I32Const(off));
             emit_wasm_instr(body, &WasmInstr::I32Const(len));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)),
+            );
         }
         MirOp::TaskJoin => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)),
+            );
         }
         // R-25-03: scalar constants on the non-AOT guest path (same RT+guest shape as AOT).
         MirOp::ConstI32(v) => {
             emit_wasm_instr(body, &WasmInstr::I32Const(*v));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
             emit_wasm_instr(body, &WasmInstr::I32Const(*v));
         }
         MirOp::ConstBool(b) => {
             let n = if *b { 1 } else { 0 };
             emit_wasm_instr(body, &WasmInstr::I32Const(n));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)),
+            );
             emit_wasm_instr(body, &WasmInstr::I32Const(n));
         }
         MirOp::ConstNil => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)),
+            );
             emit_wasm_instr(body, &WasmInstr::I32Const(0));
         }
         MirOp::ConstNumeric { kind, bits } => {
@@ -5931,16 +6367,28 @@ fn emit_mir_instr(
             emit_const_numeric128_guest(body, plan, *kind, *lo, *hi);
         }
         MirOp::SimdAdd => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)),
+            );
         }
         MirOp::SimdSub => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)),
+            );
         }
         MirOp::SimdMul => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)),
+            );
         }
         MirOp::SimdDiv => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)),
+            );
         }
         MirOp::SimdEq => {
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
@@ -5952,13 +6400,19 @@ fn emit_mir_instr(
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
         }
         MirOp::SimdAnd => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)),
+            );
         }
         MirOp::SimdOr => {
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
         }
         MirOp::SimdXor => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)),
+            );
         }
         MirOp::SimdNe => {
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
@@ -5970,52 +6424,97 @@ fn emit_mir_instr(
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
         }
         MirOp::SimdNot => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)),
+            );
         }
         MirOp::SimdShl => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)),
+            );
         }
         MirOp::SimdShr => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)),
+            );
         }
         MirOp::SimdMin => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)),
+            );
         }
         MirOp::SimdMax => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)),
+            );
         }
         MirOp::SimdF32Add => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)),
+            );
         }
         MirOp::SimdF32Sub => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)),
+            );
         }
         MirOp::SimdF32Mul => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)),
+            );
         }
         MirOp::SimdF32Div => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)),
+            );
         }
         MirOp::SimdF64Add => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)),
+            );
         }
         MirOp::SimdF64Sub => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)),
+            );
         }
         MirOp::SimdF64Mul => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)),
+            );
         }
         MirOp::SimdF64Div => {
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)),
+            );
         }
         MirOp::SimdReduceAdd { .. } => {
             let idx = syx_stdlib::host_fn_index(syx_stdlib::HostFnId::SimdReduceAdd);
             emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)),
+            );
         }
         MirOp::SimdShuffle { mode } => {
             emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)),
+            );
         }
         MirOp::SimdI8Shuffle { mode } => {
             if let Some(tmp) = simd_tmp_local {
@@ -6032,18 +6531,27 @@ fn emit_mir_instr(
                 }
             }
             emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)),
+            );
             emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Shuffle);
         }
         MirOp::SimdLoad { lanes, element } => {
             let tag = (*lanes as i32) | ((*element as i32) << 8);
             emit_wasm_instr(body, &WasmInstr::I32Const(tag));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)),
+            );
         }
         MirOp::SimdStore { lanes, element } => {
             let tag = (*lanes as i32) | ((*element as i32) << 8);
             emit_wasm_instr(body, &WasmInstr::I32Const(tag));
-            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)),
+            );
         }
         other => {
             if syx_config::wasm_mir_exec_only() {

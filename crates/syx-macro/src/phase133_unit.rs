@@ -94,10 +94,7 @@ func main() {
         syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
     let err = expand_module(module).expect_err("arity");
     let msg = format!("{err}");
-    assert!(
-        msg.contains("arity") || msg.contains("mismatch"),
-        "{msg}"
-    );
+    assert!(msg.contains("arity") || msg.contains("mismatch"), "{msg}");
 }
 
 #[test]

@@ -209,7 +209,10 @@ fn faer_add_sub_same_shape_and_mismatch() {
     assert!(dispatch_plugin_host("__syx_plugin_faer_sub", &mut stack));
     let dh = stack.pop().unwrap();
     let mut stack = vec![ah, bh];
-    assert!(dispatch_plugin_host("__syx_plugin_faer_hadamard", &mut stack));
+    assert!(dispatch_plugin_host(
+        "__syx_plugin_faer_hadamard",
+        &mut stack
+    ));
     let hh = stack.pop().unwrap();
     let mut stack = vec![sh];
     assert!(dispatch_plugin_host("__syx_plugin_faer_to", &mut stack));

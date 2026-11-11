@@ -31,46 +31,41 @@ fn fixture(rel: &str) -> PathBuf {
 #[test]
 fn p98_driver_native_string_exact_exec() {
     // Wave A W151 / ADR-495 / A-03 — native-string-exact-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let name = "SYX"
     print("Hello, \(name)!")
-}"#,
-    );
+}"#);
     assert_eq!(out, "Hello, SYX!", "native string interp must exact: {out}");
 }
 
 #[test]
 fn p98_driver_reflect_runtime_cast_type_is_exact_exec() {
     // Wave A W152 / ADR-496 / A-03 — reflect-cast-strict-quad-v1 product exec
-    let out = run(
-        r#"class Point { var x: Int; init(x: Int) { self.x = x } }
-func main() { print(Point(x: 7) is Point) }"#,
-    );
+    let out = run(r#"class Point { var x: Int; init(x: Int) { self.x = x } }
+func main() { print(Point(x: 7) is Point) }"#);
     assert_eq!(out, "true", "runtime cast type-is must exact: {out}");
 }
 
 #[test]
 fn p98_driver_net_grpc_stream_loopback_exact_exec() {
     // Wave A W153 / ADR-497 / A-03 — net-grpc-stream-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let resp = __syx_grpc_stream_client("echo", "88")
     print(resp)
-}"#,
+}"#);
+    assert_eq!(
+        out, "grpc-ok:88:echo",
+        "grpc stream loopback must exact: {out}"
     );
-    assert_eq!(out, "grpc-ok:88:echo", "grpc stream loopback must exact: {out}");
 }
 
 #[test]
 fn p98_driver_codable_l14_surface_encode_exact_exec() {
     // Wave A W154 / ADR-498 / A-03 — codable-l14-surface-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let w = __syx_codable_encode_l14("T", "val")
     print(__syx_codable_decode_l14("T", w))
-}"#,
-    );
+}"#);
     assert_eq!(out, "val", "codable l14 surface encode must exact: {out}");
 }
 
@@ -90,28 +85,27 @@ fn p98_driver_hof_generic_witness_string_sort_exact() {
 #[test]
 fn p98_driver_select_async_recv_exact_exec() {
     // Wave A W152 / ADR-496 / A-03 — select-async-ga-v1 sync select recv product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let ch = __syx_channel_create(1)
     __syx_channel_send(ch, 88)
     select {
         case v <- ch:
             print(v)
     }
-}"#,
-    );
+}"#);
     assert_eq!(out, "88", "select recv must exact: {out}");
 }
 
 #[test]
 fn p98_driver_file_watch_os_missing_path_exact_exec() {
     // Wave A W153 / ADR-497 / A-03 — file-watch-os-default-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_fmt_debug(__syx_file_watch("/tmp/p88-watch-os")))
-}"#,
+}"#);
+    assert_eq!(
+        out, "Array([])",
+        "file watch missing-path must exact: {out}"
     );
-    assert_eq!(out, "Array([])", "file watch missing-path must exact: {out}");
 }
 
 #[test]
@@ -131,54 +125,46 @@ fn p98_driver_udp_bind_host() {
 #[test]
 fn p98_driver_ed25519_sign_host() {
     // Wave A W13 / ADR-357 / A-03: sign with seed + verify with derived pubkey → exact true.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let key = "0102030405060708590a0b0c0d0e0f101112131415161718591a1b1c1d1e1f"
     let pk = "598aab146dd9c6546b96fedec96e5b0af4e665f3ca0eb00335aaae75e0dc8288"
     let sig = __syx_crypto_ed25519_sign(key, "p87")
     print(__syx_crypto_ed25519_verify(pk, "p87", sig))
-}"#,
-    );
+}"#);
     assert_eq!(out, "true", "ed25519 sign+verify must exact: {out}");
 }
 
 #[test]
 fn p98_driver_array_sort_by_named_fn_host() {
     // Wave A W3 / ADR-347 / A-03: exact first/last elements after sort_by.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let s = __syx_array_sort_by([3, 1, 2], { (a: Int, b: Int) -> Int in return a - b })
     print(s[0])
     print(s[2])
-}"#,
-    );
+}"#);
     assert_eq!(out, "1\n3", "array_sort_by exact stdout: {out}");
 }
 
 #[test]
 fn p98_driver_array_flat_map_named_fn_host() {
     // Wave A W14 / ADR-358 / A-03: exact flat_map elements (not length-only soft).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let flat = __syx_array_flat_map([1, 2, 3], { (x: Int) -> Array in return [x] })
     print(flat[0])
     print(flat[1])
     print(flat[2])
-}"#,
-    );
+}"#);
     assert_eq!(out, "1\n2\n3", "array_flat_map exact stdout: {out}");
 }
 
 #[test]
 fn p98_driver_string_builder_host() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let b = __syx_string_builder_new()
     __syx_string_builder_append(b, "p87-")
     __syx_string_builder_append(b, "ok")
     print(__syx_string_builder_to_string(b))
-}"#,
-    );
+}"#);
     assert_eq!(out, "p87-ok");
 }
 
@@ -188,11 +174,9 @@ fn p98_driver_reflect_type_host() {
     syx_meta::register_type("P87Gate", vec!["n"]);
     let meta = syx_driver::reflect_type_info("P87Gate").unwrap();
     assert_eq!(meta.name.as_str(), "P87Gate");
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_fmt_debug(__syx_reflect_type("P87Gate")))
-}"#,
-    );
+}"#);
     assert_eq!(
         out,
         r#"Object(["fields": Array([String("n")]), "name": String("P87Gate")])"#
@@ -209,11 +193,9 @@ fn p98_driver_process_exec_host() {
 #[test]
 fn p98_driver_process_exec_output_host() {
     // Wave A W7 / ADR-351 / A-03: exact process_exec_output stdout (echo keeps trailing newline).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_process_exec_output("/bin/echo", ["p87"]))
-}"#,
-    );
+}"#);
     assert_eq!(out, "p87\n");
 }
 
@@ -229,61 +211,51 @@ fn p98_driver_fmt_host_format() {
 #[test]
 fn p98_driver_channel_send_recv_host() {
     // Wave A W4 / ADR-348 / A-03: exact channel send/recv stdout.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let ch = __syx_channel_create(1)
     __syx_channel_send(ch, 87)
     print(__syx_channel_recv(ch))
-}"#,
-    );
+}"#);
     assert_eq!(out, "87");
 }
 
 #[test]
 fn p98_driver_mutex_lock_host() {
     // Wave A W5 / ADR-349 / A-03: exact mutex lock stdout.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let m = __syx_mutex_create()
     print(__syx_mutex_lock(m))
-}"#,
-    );
+}"#);
     assert_eq!(out, "true");
 }
 
 #[test]
 fn p98_driver_encoding_base64_host() {
     // Wave A W15 / ADR-359 / A-03: encode→decode product exact (not encode-only).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let e = __syx_base64_encode("x")
     print(__syx_base64_decode(e))
-}"#,
-    );
+}"#);
     assert_eq!(out, "x", "base64 roundtrip must exact: {out}");
 }
 
 #[test]
 fn p98_driver_testing_test_host() {
     // Wave A W6 / ADR-350 / A-03: exact testing_test stdout.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_testing_test("p87-smoke")
     print("registered")
-}"#,
-    );
+}"#);
     assert_eq!(out, "registered");
 }
 
 #[test]
 fn p98_driver_testing_expect_equal_host() {
     // Wave A W5 / ADR-349 / A-03: exact testing expect_equal stdout.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_testing_expect_equal(87, 87, "eq")
     print("expect-ok")
-}"#,
-    );
+}"#);
     assert_eq!(out, "expect-ok");
 }
 
@@ -317,15 +289,13 @@ fn p98_driver_grapheme_emoji_count() {
 #[test]
 fn p98_driver_http_get_smoke() {
     // Wave A W12 / ADR-356 / A-03: product try/catch refuse exact (not result.is_err soft gate).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
   do {
     print(__syx_http_get("http://127.0.0.1:1/x"))
   } catch (err) {
     print("refused")
   }
-}"#,
-    );
+}"#);
     assert_eq!(out, "refused", "http_get refuse must exact: {out}");
 }
 
@@ -350,11 +320,8 @@ fn p98_driver_dist_winpipe_flag() {
 fn p98_driver_compile_embedded_ok() {
     // Wave A W14 / ADR-358 / A-03: product compile_and_run_embedded exact (not is_ok soft).
     syx_host_plugin::register_echo_plugin_in_process();
-    let result = compile_and_run_embedded(
-        "func main() { print(87) }",
-        &DriverOptions::default(),
-    )
-    .expect("compile_and_run_embedded");
+    let result = compile_and_run_embedded("func main() { print(87) }", &DriverOptions::default())
+        .expect("compile_and_run_embedded");
     assert_eq!(
         result.printed.join("\n"),
         "87",
@@ -451,10 +418,7 @@ fn p98_driver_parity_mutex_lock_exact() {
     // Wave A W143 / ADR-487 / A-03: exact printed lines from mutex_lock parity fixture.
     let path = fixture("tests/fixtures/parity/stdlib/mutex_lock.sy");
     let (_, lines) = run_file_printed(&path, &DriverOptions::default()).unwrap();
-    assert_eq!(
-        lines,
-        vec!["locked".to_string(), "unlocked".to_string()]
-    );
+    assert_eq!(lines, vec!["locked".to_string(), "unlocked".to_string()]);
 }
 
 #[test]
@@ -516,12 +480,10 @@ fn p98_driver_log_info_host() {
 #[test]
 fn p98_driver_process_spawn_wait_host() {
     // Wave A W8 / ADR-352 / A-03: exact process_spawn + wait stdout.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let h = __syx_process_spawn("/usr/bin/true", [])
     print(__syx_process_wait(h))
-}"#,
-    );
+}"#);
     assert_eq!(out, "0");
 }
 
@@ -534,26 +496,22 @@ fn p98_driver_plugin_poison_epoch() {
 #[test]
 fn p98_driver_gzip_encoding_hosts() {
     // Wave A W13 / ADR-357 / A-03: gzip compress+decompress product exact (string path).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let raw = __syx_encoding_gzip_compress("p87")
     let plain = __syx_encoding_gzip_decompress(raw)
     print(raw.count)
     print(plain)
-}"#,
-    );
+}"#);
     assert_eq!(out, "23\np87", "gzip roundtrip must exact: {out}");
 }
 
 #[test]
 fn p98_driver_gzip_array_i32_roundtrip() {
     // Wave A W17 / ADR-361 / A-03: array I32 gzip compress→decompress exact (HeapSlot materialize).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let raw = __syx_encoding_gzip_compress([112, 56, 55])
     print(__syx_encoding_gzip_decompress(raw))
-}"#,
-    );
+}"#);
     assert_eq!(out, "p87", "gzip array I32 roundtrip must exact: {out}");
 }
 
@@ -563,11 +521,9 @@ fn p98_driver_plugin_cdn_prod_echo_exact_exec() {
     syx_host_plugin::poison_plugin_slot("p98_cdn");
     syx_host_plugin::register_echo_plugin_in_process();
     assert!(syx_host_plugin::load_from_env().is_ok());
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_plugin_echo_echo("cdn-p89"))
-}"#,
-    );
+}"#);
     assert_eq!(out, "cdn-p89", "plugin cdn prod echo must exact: {out}");
 }
 
@@ -664,25 +620,21 @@ fn p98_driver_farm_tcp_cache_fetch_exact_exec() {
 #[test]
 fn p98_driver_sql_migrate_exact_exec() {
     // Wave A W155 / ADR-499 / A-03 — sql-migrations-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let v = __syx_sql_migrate("CREATE TABLE IF NOT EXISTS t (id INTEGER)")
     print(v)
-}"#,
-    );
+}"#);
     assert_eq!(out, "1", "sql migrate must exact: {out}");
 }
 
 #[test]
 fn p98_driver_orm_find_where_exact_exec() {
     // Wave A W155 / ADR-499 / A-03 — orm-query-ga-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_orm_save("users", { "name": "alice", "role": "admin" })
     let rows = __syx_orm_find_where("users", "name", "alice")
     print(rows.count)
-}"#,
-    );
+}"#);
     assert_eq!(out, "1", "orm findWhere must exact: {out}");
 }
 
@@ -690,13 +642,14 @@ fn p98_driver_orm_find_where_exact_exec() {
 fn p98_driver_gc_generational_collect_exact_exec() {
     // Wave A W157 / ADR-501 / A-03 — gc-generational-v13-quad-v1 product exec
     // Probe pivot: `__syx_gc_collect` undefined (S002); use `__syx_vm_native_gc_collect` → `0\ngc-done`.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_vm_native_gc_collect())
     print("gc-done")
-}"#,
+}"#);
+    assert_eq!(
+        out, "0\ngc-done",
+        "gc generational collect must exact: {out}"
     );
-    assert_eq!(out, "0\ngc-done", "gc generational collect must exact: {out}");
 }
 
 #[test]
@@ -727,10 +680,22 @@ fn p98_driver_guidemo_import_ui_synui_exec_exact() {
         synui_hosts >= 15,
         "UI package must expose >=15 SynUI host wrappers (got {synui_hosts})"
     );
-    assert!(ui.contains("__syx_synui_button_on_click"), "onClick host must exist");
-    assert!(ui.contains("__syx_synui_button_click"), "click host must exist");
-    assert!(ui.contains("__syx_synui_signal_new"), "signal_new must exist");
-    assert!(ui.contains("__syx_synui_navigation"), "navigation must exist");
+    assert!(
+        ui.contains("__syx_synui_button_on_click"),
+        "onClick host must exist"
+    );
+    assert!(
+        ui.contains("__syx_synui_button_click"),
+        "click host must exist"
+    );
+    assert!(
+        ui.contains("__syx_synui_signal_new"),
+        "signal_new must exist"
+    );
+    assert!(
+        ui.contains("__syx_synui_navigation"),
+        "navigation must exist"
+    );
     let registry = include_str!("../../../syx-stdlib/src/registry.rs");
     assert!(
         registry.contains("\"__syx_synui_button_on_click\""),
@@ -741,8 +706,7 @@ fn p98_driver_guidemo_import_ui_synui_exec_exact() {
     #[cfg(feature = "gui-synui")]
     {
         syx_vm::reset_synui_state();
-        let out = run(
-            r#"
+        let out = run(r#"
 func onGo() { print("guidemo:onGo") }
 func main() {
     print("line01")
@@ -767,8 +731,7 @@ func main() {
     print(__syx_synui_pump())
     print("gui demo done")
 }
-"#,
-        );
+"#);
         let lines: Vec<&str> = out.lines().filter(|l| !l.is_empty()).collect();
         assert!(
             lines.len() >= 15,
@@ -779,8 +742,14 @@ func main() {
             lines.iter().all(|l| !l.contains("nil")),
             "nil-free required: {out}"
         );
-        assert!(out.contains("guidemo:onGo"), "click handler must fire: {out}");
-        assert!(out.contains("gui demo done"), "fixture must complete: {out}");
+        assert!(
+            out.contains("guidemo:onGo"),
+            "click handler must fire: {out}"
+        );
+        assert!(
+            out.contains("gui demo done"),
+            "fixture must complete: {out}"
+        );
     }
 }
 
@@ -824,7 +793,11 @@ fn p98_driver_farm_tcp_three_node_fetch_exact_exec() {
     for (i, (addr, _)) in nodes.iter().enumerate() {
         let url = format!("tcp://{addr}/tenant/node-{i}");
         let bytes = syx_driver::fetch_cache_remote(&url).unwrap();
-        assert_eq!(bytes, format!("node-{i}").as_bytes(), "farm 3node fetch must exact");
+        assert_eq!(
+            bytes,
+            format!("node-{i}").as_bytes(),
+            "farm 3node fetch must exact"
+        );
     }
     for (_, h) in nodes {
         h.join().ok();
@@ -836,8 +809,7 @@ fn p98_driver_farm_tcp_three_node_fetch_exact_exec() {
 #[test]
 fn p98_driver_async_nested_stdout_order_exact_exec() {
     // Wave A W154 / ADR-498 / A-03 — native-async-resume-v4 nested await product exec
-    let out = run(
-        r#"async func inner() {
+    let out = run(r#"async func inner() {
     print("inner-step")
 }
 
@@ -850,11 +822,9 @@ async func main() {
     print("main-start")
     await outer()
     print("main-done")
-}"#,
-    );
+}"#);
     assert_eq!(
-        out,
-        "main-start\nouter-step\ninner-step\nmain-done",
+        out, "main-start\nouter-step\ninner-step\nmain-done",
         "async nested stdout order must exact: {out}"
     );
 }
@@ -883,16 +853,13 @@ fn p98_driver_wasm_guidemo_hard_zero_exact_exec() {
 #[test]
 fn p98_driver_gc_churn_stress_exact_exec() {
     // Wave A W158 / ADR-502 / A-03 — gc-churn-stress-v1 product exec
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_gc_churn_heap("stress-a"))
     print(__syx_gc_churn_heap("stress-b"))
     print("done")
-}"#,
-    );
+}"#);
     assert_eq!(
-        out,
-        "gc:churn:stress-a\ngc:churn:stress-b\ndone",
+        out, "gc:churn:stress-a\ngc:churn:stress-b\ndone",
         "gc churn stress must exact: {out}"
     );
 }
@@ -909,7 +876,11 @@ fn p98_driver_llvm_multi_link_hello_exit_zero_exact_exec() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::copy(&hello, dir.join("hello.sy")).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"hello.sy\"\n").unwrap();
+    fs::write(
+        dir.join("syx.toml"),
+        "name = \"app\"\nmain = \"hello.sy\"\n",
+    )
+    .unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe).expect("native link");
     let output = Command::new(&exe).output().unwrap();
@@ -931,12 +902,10 @@ fn p98_driver_llvm_multi_link_hello_exit_zero_exact_exec() {
 #[test]
 fn p98_driver_l14_encode_host_behavior() {
     // Wave A W17 / ADR-361 / A-03: product encode→decode exact (type then value; not VM stack soft).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let w = __syx_codable_encode_l14("T", "val")
     print(__syx_codable_decode_l14("T", w))
-}"#,
-    );
+}"#);
     assert_eq!(out, "val", "l14 encode product must exact: {out}");
 }
 
@@ -949,37 +918,34 @@ fn p98_driver_gui_dylib_path_report() {
 #[test]
 fn p98_driver_codable_l14_embedded_roundtrip() {
     // Wave A W16 / ADR-360 / A-03: migration + encode→decode product exact (type then value).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_codable_l14_register_migration("v", "Gate"))
     let w = __syx_codable_encode_l14("Gate", "ok")
     print(__syx_codable_decode_l14("Gate", w))
-}"#,
-    );
+}"#);
     assert_eq!(out, "true\nok", "l14 embedded roundtrip must exact: {out}");
 }
 
 #[test]
 fn p98_driver_l14_register_migration_host() {
     // Wave A W16 / ADR-360 / A-03: product register_migration exact (not VM stack soft).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     print(__syx_codable_l14_register_migration("f", "T"))
-}"#,
+}"#);
+    assert_eq!(
+        out, "true",
+        "l14 register_migration product must exact: {out}"
     );
-    assert_eq!(out, "true", "l14 register_migration product must exact: {out}");
 }
 
 #[test]
 fn p98_driver_l14_decode_host() {
     // Wave A W15 / ADR-359 / A-03: product encode→decode exact (HeapSlot-safe via materialize).
     // Embed CallHost arg order: type then value for encode (matches host stack pop order).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let w = __syx_codable_encode_l14("T", "z")
     print(__syx_codable_decode_l14("T", w))
-}"#,
-    );
+}"#);
     assert_eq!(out, "z", "l14 decode product must exact: {out}");
 }
 
@@ -1029,13 +995,11 @@ fn p98_driver_if_else_smoke() {
 #[test]
 fn p98_driver_while_loop_smoke() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var n = 0
     while (n < 3) { n = n + 1 }
     print(n)
-}"#
-        ),
+}"#),
         "3"
     );
 }
@@ -1043,13 +1007,11 @@ fn p98_driver_while_loop_smoke() {
 #[test]
 fn p99_driver_cr_locals_roundtrip() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     let x = 7
     let y = x
     print(y)
-}"#
-        ),
+}"#),
         "7"
     );
 }
@@ -1064,10 +1026,7 @@ fn p99_driver_cr_nested_call() {
 
 #[test]
 fn p99_driver_cr_string_concat() {
-    assert_eq!(
-        run(r#"func main() { print("p99") }"#),
-        "p99"
-    );
+    assert_eq!(run(r#"func main() { print("p99") }"#), "p99");
 }
 
 #[test]
@@ -1078,8 +1037,7 @@ fn p99_driver_cr_array_map_smoke() {
 #[test]
 fn p99_driver_cr_for_range() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var s = 0
     var i = 0
     while (i < 5) {
@@ -1087,8 +1045,7 @@ fn p99_driver_cr_for_range() {
         i = i + 1
     }
     print(s)
-}"#
-        ),
+}"#),
         "10"
     );
 }
@@ -1096,13 +1053,11 @@ fn p99_driver_cr_for_range() {
 #[test]
 fn p99_driver_cr_recursion() {
     assert_eq!(
-        run(
-            r#"func fact(n: Int) -> Int {
+        run(r#"func fact(n: Int) -> Int {
     if (n <= 1) { return 1 }
     return n * fact(n - 1)
 }
-func main() { print(fact(5)) }"#
-        ),
+func main() { print(fact(5)) }"#),
         "120"
     );
 }
@@ -1115,14 +1070,12 @@ fn p99_driver_cr_optional_nil() {
 #[test]
 fn p99_driver_cr_class_field() {
     assert_eq!(
-        run(
-            r#"class Box {
+        run(r#"class Box {
     var n: Int
     init(n: Int) { self.n = n }
     func get() -> Int { return self.n }
 }
-func main() { print(Box(n: 77).get()) }"#
-        ),
+func main() { print(Box(n: 77).get()) }"#),
         "77"
     );
 }
@@ -1145,12 +1098,10 @@ fn p99_driver_cr_cmp_chain() {
 #[test]
 fn p99_driver_cr_string_interp_simple() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     let n = 99
     print("v\(n)")
-}"#
-        ),
+}"#),
         "v99"
     );
 }
@@ -1158,13 +1109,11 @@ fn p99_driver_cr_string_interp_simple() {
 #[test]
 fn p99_driver_cr_multi_print() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     print(1)
     print(2)
     print(3)
-}"#
-        ),
+}"#),
         "1\n2\n3"
     );
 }
@@ -1172,12 +1121,10 @@ fn p99_driver_cr_multi_print() {
 #[test]
 fn p99_driver_cr_early_return() {
     assert_eq!(
-        run(
-            r#"func f() -> Int {
+        run(r#"func f() -> Int {
     return 99
 }
-func main() { print(f()) }"#
-        ),
+func main() { print(f()) }"#),
         "99"
     );
 }
@@ -1185,15 +1132,13 @@ func main() { print(f()) }"#
 #[test]
 fn p99_driver_cr_shadow_local() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     let x = 1
     if (true) {
         let y = 99
         print(y)
     }
-}"#
-        ),
+}"#),
         "99"
     );
 }
@@ -1206,13 +1151,11 @@ fn p99_driver_cr_empty_array_len() {
 #[test]
 fn p99_driver_cr_var_mutate() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var x = 1
     x = x + 98
     print(x)
-}"#
-        ),
+}"#),
         "99"
     );
 }
@@ -1220,13 +1163,11 @@ fn p99_driver_cr_var_mutate() {
 #[test]
 fn p99_driver_cr_call_arity2() {
     assert_eq!(
-        run(
-            r#"func p(a: Int, b: Int) {
+        run(r#"func p(a: Int, b: Int) {
     print(a)
     print(b)
 }
-func main() { p(9, 9) }"#
-        ),
+func main() { p(9, 9) }"#),
         "9\n9"
     );
 }
@@ -1327,7 +1268,13 @@ fn p98_driver_wasm_guest_control_no_banned_ops_exact_exec() {
     let hot = fixture("../../examples/hot_loop.sy");
     let wasm = emit_wasm_bytes(&hot, &o).expect("emit wasm");
     let hist = measure_aot_mir_exec_histogram(&wasm);
-    for banned in [op::POP_BOOL, op::PEEK_IS_NIL, op::POP, op::CONST_STR, op::CONCAT_STR] {
+    for banned in [
+        op::POP_BOOL,
+        op::PEEK_IS_NIL,
+        op::POP,
+        op::CONST_STR,
+        op::CONCAT_STR,
+    ] {
         assert_eq!(
             hist.get(&banned).copied().unwrap_or(0),
             0,
@@ -1945,15 +1892,11 @@ fn p98_driver_farm_frame_lease_ttl_err_exact_exec() {
     syx_driver::farm_lease_reset();
     syx_driver::farm_lease_acquire(0).unwrap();
     assert!(syx_driver::farm_lease_expired());
-    let err = syx_driver::farm_worker_run_cycle(
-        "tcp://127.0.0.1:9/q",
-        "tcp://127.0.0.1:9/f",
-    )
-    .unwrap_err();
+    let err = syx_driver::farm_worker_run_cycle("tcp://127.0.0.1:9/q", "tcp://127.0.0.1:9/f")
+        .unwrap_err();
     // Probe oracle: full err string (not bare "lease expired")
     assert_eq!(
-        err,
-        "farm lease hard reject: farm lease expired",
+        err, "farm lease hard reject: farm lease expired",
         "farm lease TTL cycle must exact: {err}"
     );
 }
@@ -1966,19 +1909,25 @@ fn p98_driver_codable_hostfn_prune_inventory_exact() {
         .iter()
         .map(|id| id.name())
         .collect();
-    assert!(!names.iter().any(|n| n.contains("_l5") || n.contains("_l6") || n.contains("_l7") || n.contains("_l8")));
-    assert!(!names.iter().any(|n| n.contains("_l9") || n.contains("_l10") || n.contains("_l11") || n.contains("_l12") || n.contains("_l13")));
+    assert!(!names
+        .iter()
+        .any(|n| n.contains("_l5") || n.contains("_l6") || n.contains("_l7") || n.contains("_l8")));
+    assert!(!names.iter().any(|n| n.contains("_l9")
+        || n.contains("_l10")
+        || n.contains("_l11")
+        || n.contains("_l12")
+        || n.contains("_l13")));
 }
 
 #[test]
 fn p98_driver_lang_deinit_auto_scope_exit_exact_exec() {
     // Wave A W161 / ADR-505 / A-03 — lang-deinit-auto-v1 product exec
     // (fold W2 exact; former lib.rs contains soft nail removed)
-    let src = std::fs::read_to_string(fixture("tests/fixtures/memory/heap_deinit_order.sy")).unwrap();
+    let src =
+        std::fs::read_to_string(fixture("tests/fixtures/memory/heap_deinit_order.sy")).unwrap();
     let out = run(&src);
     assert_eq!(
-        out,
-        "deinit:\n1\ndone\ndeinit:\n2",
+        out, "deinit:\n1\ndone\ndeinit:\n2",
         "deinit order exact stdout: {out}"
     );
 }
@@ -1999,8 +1948,7 @@ fn p101_driver_cr_branch_else() {
 #[test]
 fn p101_driver_cr_while_sum() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var s = 0
     var i = 0
     while (i < 3) {
@@ -2008,8 +1956,7 @@ fn p101_driver_cr_while_sum() {
         i = i + 1
     }
     print(s)
-}"#
-        ),
+}"#),
         "3"
     );
 }
@@ -2017,14 +1964,12 @@ fn p101_driver_cr_while_sum() {
 #[test]
 fn p101_driver_cr_class_field() {
     assert_eq!(
-        run(
-            r#"class Box {
+        run(r#"class Box {
     var n: Int
     init(n: Int) { self.n = n }
     func get() -> Int { return self.n }
 }
-func main() { print(Box(n: 7).get()) }"#
-        ),
+func main() { print(Box(n: 7).get()) }"#),
         "7"
     );
 }
@@ -2037,8 +1982,7 @@ fn p101_driver_cr_array_len() {
 #[test]
 fn p101_driver_cr_for_in_range() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var s = 0
     var i = 0
     while (i < 4) {
@@ -2046,8 +1990,7 @@ fn p101_driver_cr_for_in_range() {
         i = i + 1
     }
     print(s)
-}"#
-        ),
+}"#),
         "6"
     );
 }
@@ -2089,10 +2032,13 @@ fn p101_driver_cr_extra_1603() {
 
 #[test]
 fn p101_driver_cr_extra_1604() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1604
     print(x)
-}"#), "1604");
+}"#),
+        "1604"
+    );
 }
 
 #[test]
@@ -2117,10 +2063,13 @@ fn p101_driver_cr_extra_1608() {
 
 #[test]
 fn p101_driver_cr_extra_1609() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1609
     print(x)
-}"#), "1609");
+}"#),
+        "1609"
+    );
 }
 
 #[test]
@@ -2145,10 +2094,13 @@ fn p101_driver_cr_extra_1613() {
 
 #[test]
 fn p101_driver_cr_extra_1614() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1614
     print(x)
-}"#), "1614");
+}"#),
+        "1614"
+    );
 }
 
 #[test]
@@ -2173,10 +2125,13 @@ fn p101_driver_cr_extra_1618() {
 
 #[test]
 fn p101_driver_cr_extra_1619() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1619
     print(x)
-}"#), "1619");
+}"#),
+        "1619"
+    );
 }
 
 #[test]
@@ -2201,10 +2156,13 @@ fn p101_driver_cr_extra_1623() {
 
 #[test]
 fn p101_driver_cr_extra_1624() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1624
     print(x)
-}"#), "1624");
+}"#),
+        "1624"
+    );
 }
 
 #[test]
@@ -2229,10 +2187,13 @@ fn p101_driver_cr_extra_1628() {
 
 #[test]
 fn p101_driver_cr_extra_1629() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1629
     print(x)
-}"#), "1629");
+}"#),
+        "1629"
+    );
 }
 
 #[test]
@@ -2257,10 +2218,13 @@ fn p101_driver_cr_extra_1633() {
 
 #[test]
 fn p101_driver_cr_extra_1634() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1634
     print(x)
-}"#), "1634");
+}"#),
+        "1634"
+    );
 }
 
 #[test]
@@ -2285,10 +2249,13 @@ fn p101_driver_cr_extra_1638() {
 
 #[test]
 fn p101_driver_cr_extra_1639() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1639
     print(x)
-}"#), "1639");
+}"#),
+        "1639"
+    );
 }
 
 #[test]
@@ -2313,10 +2280,13 @@ fn p101_driver_cr_extra_1643() {
 
 #[test]
 fn p101_driver_cr_extra_1644() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1644
     print(x)
-}"#), "1644");
+}"#),
+        "1644"
+    );
 }
 
 #[test]
@@ -2341,10 +2311,13 @@ fn p101_driver_cr_extra_1648() {
 
 #[test]
 fn p101_driver_cr_extra_1649() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1649
     print(x)
-}"#), "1649");
+}"#),
+        "1649"
+    );
 }
 
 #[test]
@@ -2369,10 +2342,13 @@ fn p101_driver_cr_extra_1653() {
 
 #[test]
 fn p101_driver_cr_extra_1654() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1654
     print(x)
-}"#), "1654");
+}"#),
+        "1654"
+    );
 }
 
 #[test]
@@ -2397,10 +2373,13 @@ fn p101_driver_cr_extra_1658() {
 
 #[test]
 fn p101_driver_cr_extra_1659() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1659
     print(x)
-}"#), "1659");
+}"#),
+        "1659"
+    );
 }
 
 #[test]
@@ -2425,10 +2404,13 @@ fn p101_driver_cr_extra_1663() {
 
 #[test]
 fn p101_driver_cr_extra_1664() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1664
     print(x)
-}"#), "1664");
+}"#),
+        "1664"
+    );
 }
 
 #[test]
@@ -2453,10 +2435,13 @@ fn p101_driver_cr_extra_1668() {
 
 #[test]
 fn p101_driver_cr_extra_1669() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1669
     print(x)
-}"#), "1669");
+}"#),
+        "1669"
+    );
 }
 
 #[test]
@@ -2481,10 +2466,13 @@ fn p101_driver_cr_extra_1673() {
 
 #[test]
 fn p101_driver_cr_extra_1674() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1674
     print(x)
-}"#), "1674");
+}"#),
+        "1674"
+    );
 }
 
 #[test]
@@ -2509,10 +2497,13 @@ fn p101_driver_cr_extra_1678() {
 
 #[test]
 fn p101_driver_cr_extra_1679() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1679
     print(x)
-}"#), "1679");
+}"#),
+        "1679"
+    );
 }
 
 #[test]
@@ -2537,10 +2528,13 @@ fn p101_driver_cr_extra_1683() {
 
 #[test]
 fn p101_driver_cr_extra_1684() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1684
     print(x)
-}"#), "1684");
+}"#),
+        "1684"
+    );
 }
 
 #[test]
@@ -2565,10 +2559,13 @@ fn p101_driver_cr_extra_1688() {
 
 #[test]
 fn p101_driver_cr_extra_1689() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1689
     print(x)
-}"#), "1689");
+}"#),
+        "1689"
+    );
 }
 
 #[test]
@@ -2593,10 +2590,13 @@ fn p101_driver_cr_extra_1693() {
 
 #[test]
 fn p101_driver_cr_extra_1694() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1694
     print(x)
-}"#), "1694");
+}"#),
+        "1694"
+    );
 }
 
 #[test]
@@ -2621,10 +2621,13 @@ fn p101_driver_cr_extra_1698() {
 
 #[test]
 fn p101_driver_cr_extra_1699() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1699
     print(x)
-}"#), "1699");
+}"#),
+        "1699"
+    );
 }
 
 #[test]
@@ -2649,10 +2652,13 @@ fn p101_driver_cr_extra_1703() {
 
 #[test]
 fn p101_driver_cr_extra_1704() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1704
     print(x)
-}"#), "1704");
+}"#),
+        "1704"
+    );
 }
 
 #[test]
@@ -2677,10 +2683,13 @@ fn p101_driver_cr_extra_1708() {
 
 #[test]
 fn p101_driver_cr_extra_1709() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1709
     print(x)
-}"#), "1709");
+}"#),
+        "1709"
+    );
 }
 
 #[test]
@@ -2705,10 +2714,13 @@ fn p101_driver_cr_extra_1713() {
 
 #[test]
 fn p101_driver_cr_extra_1714() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1714
     print(x)
-}"#), "1714");
+}"#),
+        "1714"
+    );
 }
 
 #[test]
@@ -2733,10 +2745,13 @@ fn p101_driver_cr_extra_1718() {
 
 #[test]
 fn p101_driver_cr_extra_1719() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1719
     print(x)
-}"#), "1719");
+}"#),
+        "1719"
+    );
 }
 
 #[test]
@@ -2761,10 +2776,13 @@ fn p101_driver_cr_extra_1723() {
 
 #[test]
 fn p101_driver_cr_extra_1724() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1724
     print(x)
-}"#), "1724");
+}"#),
+        "1724"
+    );
 }
 
 #[test]
@@ -2789,10 +2807,13 @@ fn p101_driver_cr_extra_1728() {
 
 #[test]
 fn p101_driver_cr_extra_1729() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1729
     print(x)
-}"#), "1729");
+}"#),
+        "1729"
+    );
 }
 
 #[test]
@@ -2817,10 +2838,13 @@ fn p101_driver_cr_extra_1733() {
 
 #[test]
 fn p101_driver_cr_extra_1734() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1734
     print(x)
-}"#), "1734");
+}"#),
+        "1734"
+    );
 }
 
 #[test]
@@ -2845,10 +2869,13 @@ fn p101_driver_cr_extra_1738() {
 
 #[test]
 fn p101_driver_cr_extra_1739() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1739
     print(x)
-}"#), "1739");
+}"#),
+        "1739"
+    );
 }
 
 #[test]
@@ -2873,10 +2900,13 @@ fn p101_driver_cr_extra_1743() {
 
 #[test]
 fn p101_driver_cr_extra_1744() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1744
     print(x)
-}"#), "1744");
+}"#),
+        "1744"
+    );
 }
 
 #[test]
@@ -2901,17 +2931,21 @@ fn p101_driver_cr_extra_1748() {
 
 #[test]
 fn p101_driver_cr_extra_1749() {
-    assert_eq!(run(r#"func main() {
+    assert_eq!(
+        run(r#"func main() {
     let x = 1749
     print(x)
-}"#), "1749");
+}"#),
+        "1749"
+    );
 }
 
 #[test]
 fn p98_driver_lang_deinit_arc_on_overwrite_exact_exec() {
     // Wave A W161 / ADR-505 / A-03 — lang-deinit-arc-v1 product exec
     // (fold W9 exact; former lib.rs contains soft nail removed)
-    let src = std::fs::read_to_string(fixture("tests/fixtures/memory/heap_deinit_order.sy")).unwrap();
+    let src =
+        std::fs::read_to_string(fixture("tests/fixtures/memory/heap_deinit_order.sy")).unwrap();
     let out = run(&src);
     assert_eq!(out, "deinit:\n1\ndone\ndeinit:\n2");
 }
@@ -2932,8 +2966,7 @@ fn p102_driver_cr_branch_else() {
 #[test]
 fn p102_driver_cr_while_sum() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var s = 0
     var i = 0
     while (i < 3) {
@@ -2941,8 +2974,7 @@ fn p102_driver_cr_while_sum() {
         i = i + 1
     }
     print(s)
-}"#
-        ),
+}"#),
         "3"
     );
 }
@@ -2950,14 +2982,12 @@ fn p102_driver_cr_while_sum() {
 #[test]
 fn p102_driver_cr_class_field() {
     assert_eq!(
-        run(
-            r#"class Box {
+        run(r#"class Box {
     var n: Int
     init(n: Int) { self.n = n }
     func get() -> Int { return self.n }
 }
-func main() { print(Box(n: 7).get()) }"#
-        ),
+func main() { print(Box(n: 7).get()) }"#),
         "7"
     );
 }
@@ -2970,8 +3000,7 @@ fn p102_driver_cr_array_len() {
 #[test]
 fn p102_driver_cr_for_in_range() {
     assert_eq!(
-        run(
-            r#"func main() {
+        run(r#"func main() {
     var s = 0
     var i = 0
     while (i < 4) {
@@ -2979,8 +3008,7 @@ fn p102_driver_cr_for_in_range() {
         i = i + 1
     }
     print(s)
-}"#
-        ),
+}"#),
         "6"
     );
 }
@@ -3034,10 +3062,7 @@ fn p106_driver_cr_while_once() {
 
 #[test]
 fn p106_driver_cr_for_sum() {
-    assert_eq!(
-        run("func main() { print([1,2,3].count) }"),
-        "3"
-    );
+    assert_eq!(run("func main() { print([1,2,3].count) }"), "3");
 }
 
 macro_rules! p107_driver_arith {
@@ -3325,7 +3350,10 @@ fn dist_multi_hostkey_driver_cr_arr1() {
 }
 #[test]
 fn dist_multi_hostkey_driver_cr_len() {
-    assert_eq!(run("func main() { print([1,2,3,4,5,6,7,8,9,10].count) }"), "10");
+    assert_eq!(
+        run("func main() { print([1,2,3,4,5,6,7,8,9,10].count) }"),
+        "10"
+    );
 }
 #[test]
 fn dist_multi_hostkey_driver_cr_and() {
@@ -3337,7 +3365,10 @@ fn dist_multi_hostkey_driver_cr_zero() {
 }
 #[test]
 fn dist_multi_hostkey_driver_cr_pow2() {
-    assert_eq!(run("func main() { print(2 * 2 * 2 * 2 * 2 * 2 * 2) }"), "128");
+    assert_eq!(
+        run("func main() { print(2 * 2 * 2 * 2 * 2 * 2 * 2) }"),
+        "128"
+    );
 }
 #[test]
 fn dist_multi_hostkey_driver_cr_xor() {
@@ -3377,7 +3408,10 @@ fn dist_bgp_ops_driver_cr_arr1() {
 }
 #[test]
 fn dist_bgp_ops_driver_cr_len() {
-    assert_eq!(run("func main() { print([1,2,3,4,5,6,7,8,9,10,11,12].count) }"), "12");
+    assert_eq!(
+        run("func main() { print([1,2,3,4,5,6,7,8,9,10,11,12].count) }"),
+        "12"
+    );
 }
 #[test]
 fn dist_bgp_ops_driver_cr_and() {
@@ -3389,7 +3423,10 @@ fn dist_bgp_ops_driver_cr_zero() {
 }
 #[test]
 fn dist_bgp_ops_driver_cr_pow2() {
-    assert_eq!(run("func main() { print(2 * 2 * 2 * 2 * 2 * 2 * 2) }"), "128");
+    assert_eq!(
+        run("func main() { print(2 * 2 * 2 * 2 * 2 * 2 * 2) }"),
+        "128"
+    );
 }
 #[test]
 fn dist_bgp_ops_driver_cr_xor() {
@@ -3400,7 +3437,10 @@ fn dist_bgp_ops_driver_cr_xor() {
 fn dist_peer_announce_hold_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
+    assert!(
+        count >= 450,
+        "driver_gate needs 450+ meaningful tests, found {count}"
+    );
     let behavioral = src.matches("let out = run(").count()
         + src.matches("assert!(run(").count()
         + src.matches("assert_eq!(run(").count()
@@ -3413,11 +3453,17 @@ fn dist_peer_announce_hold_driver_gate_count() {
     );
     let padding = src.matches(concat!("print(\"", "phase136", "\")")).count()
         + src.matches(concat!("print(\"", "hsmkeyid", "\")")).count()
-        + src.matches(concat!("print(\"", "peerannouncehold", "\")")).count()
+        + src
+            .matches(concat!("print(\"", "peerannouncehold", "\")"))
+            .count()
         + src.matches(concat!("print(\"", "cachev108", "\")")).count()
         + src.matches(concat!("print(\"", "propsv4", "\")")).count()
-        + src.matches(concat!("print(\"", "hostnameuptime", "\")")).count()
-        + src.matches(concat!("print(\"", "simd19avgru", "\")")).count();
+        + src
+            .matches(concat!("print(\"", "hostnameuptime", "\")"))
+            .count()
+        + src
+            .matches(concat!("print(\"", "simd19avgru", "\")"))
+            .count();
     let non_pad = behavioral.saturating_sub(padding);
     assert!(
         non_pad >= 300,
@@ -3434,7 +3480,10 @@ fn dist_peer_announce_hold_driver_gate_count() {
 fn macro_di_not_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
+    assert!(
+        count >= 450,
+        "driver_gate needs 450+ meaningful tests, found {count}"
+    );
     assert!(
         src.contains("fn macro_di_not_driver_gate_count"),
         "expected p137 CR fingerprint gate"
@@ -3445,7 +3494,10 @@ fn macro_di_not_driver_gate_count() {
 fn macro_di_wildcard_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
+    assert!(
+        count >= 450,
+        "driver_gate needs 450+ meaningful tests, found {count}"
+    );
     assert!(
         src.contains("fn macro_di_wildcard_driver_gate_count"),
         "expected p138 CR fingerprint gate"
@@ -3456,10 +3508,12 @@ fn macro_di_wildcard_driver_gate_count() {
 fn p139_driver_gate_count() {
     let src = std::fs::read_to_string(fixture("tests/platform/driver_gate.rs")).unwrap();
     let count = src.matches("#[test]").count();
-    assert!(count >= 450, "driver_gate needs 450+ meaningful tests, found {count}");
+    assert!(
+        count >= 450,
+        "driver_gate needs 450+ meaningful tests, found {count}"
+    );
     assert!(
         src.contains("fn p139_driver_gate_count"),
         "expected p139 CR fingerprint gate"
     );
 }
-

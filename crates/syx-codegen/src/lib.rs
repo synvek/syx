@@ -712,8 +712,7 @@ impl CodeGenerator {
                             new_ins_len,
                         )
                     {
-                        existing.has_begin_try =
-                            FunctionUnit::compute_has_begin_try(&instructions);
+                        existing.has_begin_try = FunctionUnit::compute_has_begin_try(&instructions);
                         existing.can_stack_bind =
                             FunctionUnit::compute_can_stack_bind(func.name.as_str());
                         existing.instructions = instructions;
@@ -736,8 +735,7 @@ impl CodeGenerator {
                     }
                 } else {
                     let has_begin_try = FunctionUnit::compute_has_begin_try(&instructions);
-                    let can_stack_bind =
-                        FunctionUnit::compute_can_stack_bind(func.name.as_str());
+                    let can_stack_bind = FunctionUnit::compute_can_stack_bind(func.name.as_str());
                     program.functions.push(FunctionUnit {
                         name: func.name.clone(),
                         param_count: func.param_count,
@@ -1034,15 +1032,9 @@ impl CodeGenerator {
                         "C020",
                     );
                 }
-                codegen_error_at(
-                    format!("Unknown function '{name}'"),
-                    source,
-                    span,
-                    "C020",
-                )
+                codegen_error_at(format!("Unknown function '{name}'"), source, span, "C020")
             })
     }
-
 
     fn mir_op_to_instruction(op: &MirOp, program: &CompiledProgram) -> SyxResult<Instruction> {
         Ok(match op {

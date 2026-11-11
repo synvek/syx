@@ -37,7 +37,11 @@ func main() {
     assert!(out.contains("true"), "reset/start must succeed: {out}");
     let lines: Vec<&str> = out.lines().collect();
     // policy, reset true, elapsed 0, start true, stop ms, elapsed ms, snapshot
-    assert_eq!(lines.get(2).copied(), Some("0"), "elapsed after reset: {out}");
+    assert_eq!(
+        lines.get(2).copied(),
+        Some("0"),
+        "elapsed after reset: {out}"
+    );
     let stop_ms: i64 = lines
         .get(4)
         .and_then(|l| l.parse().ok())
@@ -66,4 +70,3 @@ func main() {
         assert!(n >= 0, "snapshot ms must be >= 0: {part}");
     }
 }
-

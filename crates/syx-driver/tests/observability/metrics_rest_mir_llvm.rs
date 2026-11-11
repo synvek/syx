@@ -65,11 +65,7 @@ fn run_native_llvm(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native llvm Metrics rest build failed: {e}"));
@@ -80,7 +76,8 @@ fn run_native_llvm(label: &str, src: &str) -> String {
     let code = output.status.code().unwrap_or(1);
     let _ = fs::remove_dir_all(&dir);
     assert_eq!(
-        code, 0,
+        code,
+        0,
         "native llvm Metrics rest exit {code}: stdout={stdout} stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
@@ -109,8 +106,7 @@ func main() {
 }
 "#;
 
-const METRICS_REST_SMOKE_EXPECTED: &str =
-    "P\nmetrics-v1-gauge-labels\nGS\n42\nGG\n42\nI\n1\nG\n1";
+const METRICS_REST_SMOKE_EXPECTED: &str = "P\nmetrics-v1-gauge-labels\nGS\n42\nGG\n42\nI\n1\nG\n1";
 
 #[test]
 fn metrics_rest_smoke_native_mir() {

@@ -48,8 +48,7 @@ fn r9_url_query_census_files_exist() {
         "Url.build query must be Dictionary"
     );
     assert!(
-        !url
-            .lines()
+        !url.lines()
             .any(|ln| ln.contains("func ") && ln.contains("Object")),
         "Url methods must not spell Object"
     );

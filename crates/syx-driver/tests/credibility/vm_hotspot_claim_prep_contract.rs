@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -21,23 +20,23 @@ fn s3_04_claim_prep_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-04-claim-prep.md");
     assert!(adr.contains("S3-I68"), "claim-prep ADR must name S3-I68");
     assert!(
-        adr.contains("examples/fib")
-            || adr.contains("fib_criterion")
-            || adr.contains("claim"),
+        adr.contains("examples/fib") || adr.contains("fib_criterion") || adr.contains("claim"),
         "ADR must name claim-prep hinge"
     );
     assert!(
-        adr.contains("0.5") && (adr.contains("判据") || adr.contains("criteria") || adr.contains("draft")),
+        adr.contains("0.5")
+            && (adr.contains("判据") || adr.contains("criteria") || adr.contains("draft")),
         "ADR must publish claim criteria draft"
     );
     assert!(
         adr.contains("S3-I69")
-            && (adr.contains("wall") || adr.contains("strategy") || adr.contains("stage3-s3-04-wall-strategy")),
+            && (adr.contains("wall")
+                || adr.contains("strategy")
+                || adr.contains("stage3-s3-04-wall-strategy")),
         "ADR must cite landed S3-I69 wall-strategy"
     );
     assert!(
-        adr.contains("≠")
-            && (adr.contains("[x]") || adr.contains("0.5") || adr.contains("Copy")),
+        adr.contains("≠") && (adr.contains("[x]") || adr.contains("0.5") || adr.contains("Copy")),
         "ADR must Non-claim S3-04 [x] / 0.5"
     );
 
@@ -77,8 +76,7 @@ fn s3_04_claim_prep_adr_and_census() {
 
     let prior = repo_file("docs/adr/stage3-s3-04-can-stack-bind-cache.md");
     assert!(
-        prior.contains("S3-I68")
-            || prior.contains("stage3-s3-04-claim-prep"),
+        prior.contains("S3-I68") || prior.contains("stage3-s3-04-claim-prep"),
         "I67 ADR must cite landed I68"
     );
 
@@ -95,19 +93,14 @@ fn s3_04_claim_prep_adr_and_census() {
         plan02.contains("S3-I68") || plan02.contains("claim-prep"),
         "plan/02 must cite S3-I68"
     );
-    assert!(
-        plan02.contains("S3-I72"),
-        "plan/02 must lock next = S3-I72"
-    );
+    assert!(plan02.contains("S3-I72"), "plan/02 must lock next = S3-I72");
 }
 
 #[test]
 fn s3_04_claim_prep_census_script_emits_hinge() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_04_vm_hotspot_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run vm-hotspot census");
     assert!(

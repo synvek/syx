@@ -1,7 +1,7 @@
 //! Phase 130 Macro M20 unit probes: token expr MVP + `@Pointcut` method-name MVP.
 
-use crate::service::{collect_pointcuts, expand_advice_interceptors, expand_service_macros};
 use crate::expand_module;
+use crate::service::{collect_pointcuts, expand_advice_interceptors, expand_service_macros};
 
 #[test]
 fn p130_token_expr_ident_literal_subst() {

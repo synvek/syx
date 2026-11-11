@@ -19,7 +19,10 @@ fn fixture(rel: &str) -> PathBuf {
 #[test]
 fn build_optional_resultbuilder_build_optional_stdout() {
     // Wave A W2 / ADR-346 / A-03: exact lines (mirror resultbuilder_ga.rs)
-    let src = std::fs::read_to_string(fixture("tests/fixtures/lang/resultbuilder_build_optional.sy")).unwrap();
+    let src = std::fs::read_to_string(fixture(
+        "tests/fixtures/lang/resultbuilder_build_optional.sy",
+    ))
+    .unwrap();
     let out = run(&src);
     assert_eq!(out, "2\n42\n99", "buildOptional exact stdout: {out}");
 }
@@ -30,8 +33,7 @@ fn build_optional_weak_nil_on_drop_stdout() {
     let src = std::fs::read_to_string(fixture("tests/fixtures/lang/weak_nil_on_drop.sy")).unwrap();
     let out = run(&src);
     assert_eq!(
-        out,
-        "true\ndeinit:\n1\nfalse\ndone\ndeinit:\n2",
+        out, "true\ndeinit:\n1\nfalse\ndone\ndeinit:\n2",
         "weak nil-on-drop exact stdout: {out}"
     );
 }
@@ -46,4 +48,3 @@ func main() {
 }"#;
     assert_eq!(run(src), "true");
 }
-

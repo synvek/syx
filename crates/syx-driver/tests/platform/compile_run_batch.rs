@@ -359,4 +359,3 @@ fn compile_run_batch_1918() {
 fn compile_run_batch_1919() {
     assert_eq!(run("func main() { print(70 + 69) }"), "139");
 }
-

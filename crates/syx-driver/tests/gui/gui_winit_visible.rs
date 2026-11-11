@@ -1,6 +1,7 @@
 //! Phase 102: GUI callback GA gate (invoke onClick + TextField keyboard + HStack).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
+use syx_runtime_core::Value;
 use syx_vm::{
     ensure_gui_loaded, gui_caret_metric_px, gui_caret_supported, gui_cjk_subset_char_count,
     gui_dlopen_loaded, gui_doctor_coverage_digest, gui_font_fallback_digest,
@@ -12,7 +13,6 @@ use syx_vm::{
     host_gui_winit_run_loop_once_phase97, host_gui_winit_window_create, reset_phase98_state,
     visible_window_count,
 };
-use syx_runtime_core::Value;
 
 #[test]
 fn p100_visible_headless_widgets_label_text() {
@@ -40,7 +40,10 @@ fn p100_visible_headless_widgets_label_text() {
         "label create must return text containing Hello, got {label:?}"
     );
     let px = gui_sample_center_pixel(&win);
-    assert!(px != 0, "center pixel must be non-zero after draw+label, got {px}");
+    assert!(
+        px != 0,
+        "center pixel must be non-zero after draw+label, got {px}"
+    );
 }
 
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]

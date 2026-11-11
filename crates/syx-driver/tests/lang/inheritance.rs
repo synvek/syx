@@ -1,7 +1,9 @@
 //! Inheritance vtable + super + polymorphic dispatch tests .
 // was: inheritance
 
-use syx_driver::{compile_and_run_embedded, compile_file_with_options, run_file_printed, DriverOptions};
+use syx_driver::{
+    compile_and_run_embedded, compile_file_with_options, run_file_printed, DriverOptions,
+};
 use syx_parser::Parser;
 use syx_semantic::SemanticAnalyzer;
 
@@ -36,14 +38,46 @@ macro_rules! embed_inherit {
     };
 }
 
-embed_inherit!(override_prints, r#"class B { func f() { print("b") } } class D: B { override func f() { print("d") } } func main() { D().f() }"#, "d");
-embed_inherit!(super_chain, r#"class A { func tag() { print("a") } } class B: A { override func tag() { print("b") } } func main() { B().tag() }"#, "b");
-embed_inherit!(base_only, r#"class Base { func id() { print("base") } } func main() { Base().id() }"#, "base");
-embed_inherit!(deep_override, r#"class A { func n() { print("1") } } class B: A { override func n() { print("2") } } class C: B { override func n() { print("3") } } func main() { C().n() }"#, "3");
-embed_inherit!(animal_dog, r#"class Animal { func s() { print("a") } } class Dog: Animal { override func s() { print("d") } } func main() { Dog().s() }"#, "d");
-embed_inherit!(two_level, r#"class Root { func v() { print("r") } } class Leaf: Root { override func v() { print("l") } } func main() { Leaf().v() }"#, "l");
-embed_inherit!(same_name, r#"class X { func k() { print("x") } } class Y: X { override func k() { print("y") } } func main() { Y().k() }"#, "y");
-embed_inherit!(triple, r#"class T1 { func p() { print("1") } } class T2: T1 { override func p() { print("2") } } func main() { T2().p() }"#, "2");
+embed_inherit!(
+    override_prints,
+    r#"class B { func f() { print("b") } } class D: B { override func f() { print("d") } } func main() { D().f() }"#,
+    "d"
+);
+embed_inherit!(
+    super_chain,
+    r#"class A { func tag() { print("a") } } class B: A { override func tag() { print("b") } } func main() { B().tag() }"#,
+    "b"
+);
+embed_inherit!(
+    base_only,
+    r#"class Base { func id() { print("base") } } func main() { Base().id() }"#,
+    "base"
+);
+embed_inherit!(
+    deep_override,
+    r#"class A { func n() { print("1") } } class B: A { override func n() { print("2") } } class C: B { override func n() { print("3") } } func main() { C().n() }"#,
+    "3"
+);
+embed_inherit!(
+    animal_dog,
+    r#"class Animal { func s() { print("a") } } class Dog: Animal { override func s() { print("d") } } func main() { Dog().s() }"#,
+    "d"
+);
+embed_inherit!(
+    two_level,
+    r#"class Root { func v() { print("r") } } class Leaf: Root { override func v() { print("l") } } func main() { Leaf().v() }"#,
+    "l"
+);
+embed_inherit!(
+    same_name,
+    r#"class X { func k() { print("x") } } class Y: X { override func k() { print("y") } } func main() { Y().k() }"#,
+    "y"
+);
+embed_inherit!(
+    triple,
+    r#"class T1 { func p() { print("1") } } class T2: T1 { override func p() { print("2") } } func main() { T2().p() }"#,
+    "2"
+);
 
 #[test]
 fn super_call_invokes_parent() {
@@ -154,12 +188,16 @@ fn override_without_superclass_s051() {
 
 #[test]
 fn parse_colon_base_syntax() {
-    run(r#"class Base { func m() {} } class Derived: Base { override func m() {} } func main() {}"#);
+    run(
+        r#"class Base { func m() {} } class Derived: Base { override func m() {} } func main() {}"#,
+    );
 }
 
 #[test]
 fn inheritance_compiles_with_superclass() {
-    run(r#"class P { var n: Int init(n: Int) { self.n = n } } class C: P { init(n: Int) { self.n = n } } func main() { print(C(n: 1).n) }"#);
+    run(
+        r#"class P { var n: Int init(n: Int) { self.n = n } } class C: P { init(n: Int) { self.n = n } } func main() { print(C(n: 1).n) }"#,
+    );
 }
 
 #[test]

@@ -71,9 +71,7 @@ fn http_get(port: u16, path: &str, timeout: Duration) -> (u16, String, Instant) 
     let mut stream = TcpStream::connect(("127.0.0.1", port)).expect("connect");
     stream.set_read_timeout(Some(timeout)).ok();
     stream.set_write_timeout(Some(timeout)).ok();
-    let req = format!(
-        "GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
-    );
+    let req = format!("GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n");
     stream.write_all(req.as_bytes()).expect("write");
     let mut buf = Vec::new();
     let _ = stream.read_to_end(&mut buf);
@@ -154,10 +152,7 @@ func main() {{
     let fast_started = Instant::now();
     let (fast_status, fast_body, fast_done) = http_get(port, "/fast", Duration::from_secs(5));
     assert_eq!(fast_status, 200, "fast status: {fast_body}");
-    assert!(
-        fast_body.contains("fast-done"),
-        "fast body: {fast_body}"
-    );
+    assert!(fast_body.contains("fast-done"), "fast body: {fast_body}");
     let fast_elapsed = fast_done.duration_since(fast_started);
     assert!(
         fast_elapsed < Duration::from_millis(1500),
@@ -170,10 +165,7 @@ func main() {{
         .recv_timeout(Duration::from_secs(15))
         .expect("slow result");
     assert_eq!(slow_status, 200, "slow status: {slow_body}");
-    assert!(
-        slow_body.contains("slow-done"),
-        "slow body: {slow_body}"
-    );
+    assert!(slow_body.contains("slow-done"), "slow body: {slow_body}");
     assert!(
         slow_done > fast_done,
         "slow must finish after fast (overlap proof); fast={fast_done:?} slow={slow_done:?}"
@@ -196,9 +188,7 @@ fn spawn_hmr_upstream() -> (u16, thread::JoinHandle<()>) {
     let port = listener.local_addr().expect("addr").port();
     let handle = thread::spawn(move || {
         let (mut stream, _) = listener.accept().expect("upstream accept");
-        stream
-            .set_read_timeout(Some(Duration::from_secs(5)))
-            .ok();
+        stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
         // Drain request head.
         let mut buf = Vec::new();
         let mut tmp = [0u8; 512];
@@ -219,7 +209,9 @@ Connection: Upgrade\r\n\
 Sec-WebSocket-Accept: {RELAY_ACCEPT}\r\n\
 \r\n"
         );
-        stream.write_all(resp.as_bytes()).expect("write upstream 101");
+        stream
+            .write_all(resp.as_bytes())
+            .expect("write upstream 101");
         stream.flush().ok();
         let mut frame_buf = [0u8; 4096];
         let n = stream.read(&mut frame_buf).unwrap_or(0);
@@ -321,12 +313,8 @@ func main() {{
 
     let hmr_started = Instant::now();
     let mut client = TcpStream::connect(("127.0.0.1", port)).expect("hmr connect");
-    client
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .ok();
-    client
-        .set_write_timeout(Some(Duration::from_secs(5)))
-        .ok();
+    client.set_read_timeout(Some(Duration::from_secs(5))).ok();
+    client.set_write_timeout(Some(Duration::from_secs(5))).ok();
     let req = format!(
         "GET /@vite/client HTTP/1.1\r\n\
 Host: 127.0.0.1:{port}\r\n\
@@ -372,10 +360,7 @@ Sec-WebSocket-Version: 13\r\n\
         hmr_elapsed < Duration::from_millis(2500),
         "HMR must complete while /slow holds; elapsed={hmr_elapsed:?}"
     );
-    assert!(
-        hmr_head_done > hmr_started,
-        "timing sanity"
-    );
+    assert!(hmr_head_done > hmr_started, "timing sanity");
 
     let _ = client.shutdown(Shutdown::Both);
     drop(client);
@@ -386,10 +371,7 @@ Sec-WebSocket-Version: 13\r\n\
         .recv_timeout(Duration::from_secs(15))
         .expect("slow result");
     assert_eq!(slow_status, 200, "slow status: {slow_body}");
-    assert!(
-        slow_body.contains("slow-done"),
-        "slow body: {slow_body}"
-    );
+    assert!(slow_body.contains("slow-done"), "slow body: {slow_body}");
     assert!(
         slow_done > hmr_done,
         "slow must finish after HMR (overlap proof); hmr={hmr_done:?} slow={slow_done:?}"

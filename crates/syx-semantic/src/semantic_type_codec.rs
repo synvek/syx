@@ -41,9 +41,7 @@ pub fn type_id_to_diag_name(ty: &TypeId) -> SmolStr {
             SmolStr::new("Array<_>")
         }
         TypeId::Set(inner) if matches!(inner.as_ref(), TypeId::Unknown) => SmolStr::new("Set<_>"),
-        TypeId::Optional(inner) if matches!(inner.as_ref(), TypeId::Unknown) => {
-            SmolStr::new("_?")
-        }
+        TypeId::Optional(inner) if matches!(inner.as_ref(), TypeId::Unknown) => SmolStr::new("_?"),
         TypeId::Dictionary { key, value }
             if matches!(key.as_ref(), TypeId::Unknown)
                 || matches!(value.as_ref(), TypeId::Unknown) =>
@@ -226,11 +224,7 @@ pub fn user_facing_mir_fn_name(raw: &str) -> SmolStr {
     if let Some((class, method)) = syx_ast::parse_mangled_instance_method(raw) {
         // Only treat as Class_method when the RHS is not a mono type-arg suffix.
         if raw.contains('_') && !syx_mono::is_mono_type_arg_segment(method.as_str()) {
-            return SmolStr::new(format!(
-                "{}.{}",
-                demangle_mono_name(class.as_str()),
-                method
-            ));
+            return SmolStr::new(format!("{}.{}", demangle_mono_name(class.as_str()), method));
         }
     }
     demangle_mono_name(raw)
@@ -281,10 +275,9 @@ fn type_id_to_name_core(ty: &TypeId, demangle_named: bool) -> SmolStr {
                 .join(", ");
             SmolStr::new(format!("({inner})"))
         }
-        TypeId::Optional(inner) => SmolStr::new(format!(
-            "{}?",
-            type_id_to_name_core(inner, demangle_named)
-        )),
+        TypeId::Optional(inner) => {
+            SmolStr::new(format!("{}?", type_id_to_name_core(inner, demangle_named)))
+        }
         TypeId::Result { ok, err } => SmolStr::new(format!(
             "Result<{}, {}>",
             type_id_to_name_core(ok, demangle_named),
@@ -292,10 +285,9 @@ fn type_id_to_name_core(ty: &TypeId, demangle_named: bool) -> SmolStr {
         )),
         TypeId::GenericParam(n) => n.clone(),
         TypeId::GenericFn { name, .. } => name.clone(),
-        TypeId::Reference(inner) => SmolStr::new(format!(
-            "&{}",
-            type_id_to_name_core(inner, demangle_named)
-        )),
+        TypeId::Reference(inner) => {
+            SmolStr::new(format!("&{}", type_id_to_name_core(inner, demangle_named)))
+        }
         TypeId::MutReference(inner) => SmolStr::new(format!(
             "&mut {}",
             type_id_to_name_core(inner, demangle_named)

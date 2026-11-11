@@ -10,24 +10,20 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[test]
 fn p98_orm_mvp_save_find_stdout() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_sql_exec("CREATE TABLE IF NOT EXISTS Item (n TEXT)")
     let ok = __syx_orm_save("Item", { "n": "88" })
     print(ok)
     let rows = __syx_orm_find("Item")
     print(rows.len())
-}"#,
-    );
+}"#);
     assert!(out.contains("true") || out.contains("1"), "{out}");
 }
 
 #[test]
 fn p98_orm_mvp_package_surface() {
-    let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../packages/data/orm.sy");
+    let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/data/orm.sy");
     assert!(p.is_file(), "missing packages/data/orm.sy");
 }

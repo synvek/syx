@@ -5,8 +5,8 @@ use smol_str::SmolStr;
 use syx_ast::{Attribute, AttributeArg, Decl, Expr, Stmt, TypeExpr};
 use syx_diagnostics::SyxResult;
 
-use crate::warnings;
 use crate::macro_warning;
+use crate::warnings;
 
 fn is_wrapper_class(attrs: &[Attribute]) -> bool {
     attrs.iter().any(|a| {
@@ -14,7 +14,9 @@ fn is_wrapper_class(attrs: &[Attribute]) -> bool {
             a.name.as_str(),
             "propertyWrapper" | "Wrapper" | "propertywrapper"
         ) || (a.name.as_str() == "attached"
-            && a.args.iter().any(|arg| matches!(arg, AttributeArg::Ident(id) if id.as_str() == "wrapper")))
+            && a.args
+                .iter()
+                .any(|arg| matches!(arg, AttributeArg::Ident(id) if id.as_str() == "wrapper")))
     })
 }
 
@@ -30,9 +32,10 @@ pub(crate) fn expand_property_wrappers(module: &mut syx_ast::Module) -> SyxResul
                         "propertyWrapper" | "Wrapper" | "propertywrapper"
                     )
                 }) {
-                    warnings::push_macro_warning(
-                        macro_warning("@propertyWrapper is deprecated; use @attached(wrapper)", "W001"),
-                    );
+                    warnings::push_macro_warning(macro_warning(
+                        "@propertyWrapper is deprecated; use @attached(wrapper)",
+                        "W001",
+                    ));
                 }
                 wrapper_types.insert(name.clone());
             }
@@ -113,8 +116,12 @@ pub(crate) fn expand_property_wrappers(module: &mut syx_ast::Module) -> SyxResul
                 Stmt::Print { expr, .. } | Stmt::Expr { expr, .. } => {
                     rewrite_member_expr(expr, rewrites);
                 }
-                Stmt::Return { value: Some(expr), .. } => rewrite_member_expr(expr, rewrites),
-                Stmt::VarDecl { init: Some(expr), .. } => rewrite_member_expr(expr, rewrites),
+                Stmt::Return {
+                    value: Some(expr), ..
+                } => rewrite_member_expr(expr, rewrites),
+                Stmt::VarDecl {
+                    init: Some(expr), ..
+                } => rewrite_member_expr(expr, rewrites),
                 Stmt::Block { stmts, .. } => rewrite_stmts(stmts, rewrites),
                 Stmt::If {
                     condition,
@@ -128,7 +135,9 @@ pub(crate) fn expand_property_wrappers(module: &mut syx_ast::Module) -> SyxResul
                         rewrite_stmts(eb, rewrites);
                     }
                 }
-                Stmt::While { condition, body, .. } => {
+                Stmt::While {
+                    condition, body, ..
+                } => {
                     rewrite_member_expr(condition, rewrites);
                     rewrite_stmts(body, rewrites);
                 }
@@ -162,7 +171,8 @@ pub(crate) fn expand_property_wrappers(module: &mut syx_ast::Module) -> SyxResul
                         }
                     }) {
                         let storage = SmolStr::new(format!("_{field}"));
-                        field_rewrites.insert(field.clone(), (storage.clone(), wrapper_name.clone()));
+                        field_rewrites
+                            .insert(field.clone(), (storage.clone(), wrapper_name.clone()));
                         *member = Decl::VarGlobal {
                             span: *span,
                             access: *access,
@@ -187,10 +197,7 @@ pub(crate) fn expand_property_wrappers(module: &mut syx_ast::Module) -> SyxResul
         }
     }
     if !field_rewrites.is_empty() {
-        fn rewrite_module_decls(
-            decls: &mut [Decl],
-            rewrites: &IndexMap<SmolStr, FieldRewrite>,
-        ) {
+        fn rewrite_module_decls(decls: &mut [Decl], rewrites: &IndexMap<SmolStr, FieldRewrite>) {
             for decl in decls {
                 match decl {
                     Decl::Function { body, .. }

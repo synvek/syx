@@ -4,4 +4,3 @@
 //! Wave A W280 / ADR-624: data.sqlite product wasm=real.
 //! Wave A W292 / ADR-636: data.sqlite product native=real (status still partial).
 // was: ec_m2_4_sql_native_wasm_matrix
-

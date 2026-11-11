@@ -101,7 +101,6 @@ p98_strict_fixture!(
 );
 p98_strict_fixture!(p98_strict_fixture_iterator, "protocol_iterator.sy", "10");
 
-
 #[test]
 fn p98_native_strict_parity_count_gate() {
     let src = fs::read_to_string(

@@ -84,4 +84,3 @@ func main() {
         "late join must still surface C004: {out}"
     );
 }
-

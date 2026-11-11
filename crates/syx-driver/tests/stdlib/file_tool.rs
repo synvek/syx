@@ -18,8 +18,5 @@ fn run_example() -> String {
 fn ec_m2_1_file_tool_roundtrip_ok_exists() {
     // Wave A W72 / ADR-416 / A-03: file_tool example roundtrip product exact.
     let out = run_example();
-    assert_eq!(
-        out, "ok\n3\ntrue",
-        "file_tool roundtrip must exact: {out}"
-    );
+    assert_eq!(out, "ok\n3\ntrue", "file_tool roundtrip must exact: {out}");
 }

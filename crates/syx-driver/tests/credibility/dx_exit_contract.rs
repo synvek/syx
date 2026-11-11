@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -58,8 +57,7 @@ fn s3_exit_adr_and_plan_locked() {
         "ADR must Non-claim Stage-4 construction"
     );
     assert!(
-        adr.contains("Stage-4")
-            && (adr.contains("open") || adr.contains("S3-I88")),
+        adr.contains("Stage-4") && (adr.contains("open") || adr.contains("S3-I88")),
         "ADR Consequences must cite Stage-4 open"
     );
     assert!(
@@ -81,8 +79,8 @@ fn s3_exit_adr_and_plan_locked() {
         "plan/02 Stage-3 must be [x] 退出; got: {stage3}"
     );
     assert!(
-        plan02.contains("S3-I87")
-            && (plan02.contains("S3-I88") || plan02.contains("Stage-4")) || plan02.contains("stage3-exit"),
+        plan02.contains("S3-I87") && (plan02.contains("S3-I88") || plan02.contains("Stage-4"))
+            || plan02.contains("stage3-exit"),
         "plan/02 must cite S3-I87 exit"
     );
     assert!(

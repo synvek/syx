@@ -88,11 +88,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -147,10 +143,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm sql open-memory failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["opened".to_string(), "closed".to_string()],
@@ -186,11 +179,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -244,10 +233,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm sql close-invalid failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["failed".to_string(), "9".to_string()],
@@ -279,11 +265,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -376,11 +358,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -479,11 +457,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -597,11 +571,7 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -614,7 +584,11 @@ func main() {{
         .collect();
     let _ = fs::remove_dir_all(&dir);
     let _ = fs::remove_file(&db);
-    assert_eq!(lines.len(), 4, "pool lifecycle must print 4 lines: {lines:?}");
+    assert_eq!(
+        lines.len(),
+        4,
+        "pool lifecycle must print 4 lines: {lines:?}"
+    );
     assert_eq!(lines[0], "GOT2", "pool acquire×2 must GOT2: {lines:?}");
     assert_eq!(
         lines[1], lines[2],
@@ -671,7 +645,11 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
     let _ = fs::remove_file(&db);
     let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
-    assert_eq!(lines.len(), 4, "pool lifecycle wasm must print 4 lines: {lines:?}");
+    assert_eq!(
+        lines.len(),
+        4,
+        "pool lifecycle wasm must print 4 lines: {lines:?}"
+    );
     assert_eq!(lines[0], "GOT2", "pool acquire×2 wasm must GOT2: {lines:?}");
     assert_eq!(
         lines[1], lines[2],
@@ -712,11 +690,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -826,11 +800,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -942,11 +912,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -1023,4 +989,3 @@ func main() {
         "legacy Sql txn wasm must exact true/true/1/true/true/1: {lines:?}"
     );
 }
-

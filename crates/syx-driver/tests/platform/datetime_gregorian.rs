@@ -23,13 +23,11 @@ fn datetime_format_epoch_day_is_rfc3339() {
 #[test]
 fn datetime_parse_roundtrip() {
     // Wave A W18 / ADR-362 / A-03: parse→ms→format product exact (not contains soft).
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
             let o = __syx_datetime_parse_iso8601("1970-01-02T00:00:00.000Z")
             print(__syx_keypath_get(o, "DateTime", "ms", false))
             print(__syx_datetime_format(86400000, "iso"))
-        }"#,
-    );
+        }"#);
     assert_eq!(
         out, "86400000\n1970-01-02T00:00:00.000Z",
         "datetime parse roundtrip must exact: {out}"
@@ -38,12 +36,10 @@ fn datetime_parse_roundtrip() {
 
 #[test]
 fn datetime_leap_day() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
             let o = __syx_datetime_parse("2020-02-29")
             print(__syx_datetime_format(__syx_keypath_get(o, "DateTime", "ms", false), "%Y-%m-%d"))
-        }"#,
-    );
+        }"#);
     assert_eq!(out.trim(), "2020-02-29");
 }
 

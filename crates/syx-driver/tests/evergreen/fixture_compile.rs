@@ -48,8 +48,14 @@ fixture_compile!(fc_lsp_freestanding, "lsp/freestanding_decl.sy");
 fixture_compile!(fc_lsp_witness, "lsp/witness_v11.sy");
 fixture_compile!(fc_lsp_jit, "lsp/jit_tier2_hotloop.sy");
 fixture_compile!(fc_lsp_embed, "lsp/embed_sandbox_v14.sy");
-fixture_compile!(fc_macros_generic_witness, "macros/generic_witness_constraint.sy");
-fixture_compile!(fc_macros_attached_conf, "macros/attached_conformance_dispatch.sy");
+fixture_compile!(
+    fc_macros_generic_witness,
+    "macros/generic_witness_constraint.sy"
+);
+fixture_compile!(
+    fc_macros_attached_conf,
+    "macros/attached_conformance_dispatch.sy"
+);
 fixture_compile!(fc_parity_as_is, "parity/as_is_cast.sy");
 fixture_compile!(fc_types_dict, "types/dict_hashable_key.sy");
 fixture_compile!(fc_protocol_for_in, "protocol/for_in_array.sy");

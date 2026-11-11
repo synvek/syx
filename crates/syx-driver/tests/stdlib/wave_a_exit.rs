@@ -34,4 +34,3 @@ fn wave_a_exit_evidence_files_exist() {
         );
     }
 }
-

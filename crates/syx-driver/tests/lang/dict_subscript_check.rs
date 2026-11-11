@@ -123,7 +123,10 @@ func main() {
     let printed = result.printed.join("\n");
     assert!(
         printed.lines().any(|l| {
-            l.trim().parse::<f64>().ok().is_some_and(|n| (n - 2.0).abs() < 1e-9)
+            l.trim()
+                .parse::<f64>()
+                .ok()
+                .is_some_and(|n| (n - 2.0).abs() < 1e-9)
         }),
         "printed={printed:?}"
     );

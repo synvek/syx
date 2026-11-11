@@ -21,8 +21,7 @@ fn run(src: &str) -> String {
 
 #[test]
 fn m2_s1_03_push_back_pop_front_fifo() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   var d = Deque.new()
   Deque.pushBack(items: d, item: 1)
@@ -34,16 +33,14 @@ func main() {
   print(Deque.popFront(items: d))
   print(Deque.count(items: d))
 }
-"#,
-    );
+"#);
     // Wave A W77 / ADR-421 / A-03: Deque pushBack/popFront FIFO product exact.
     assert_eq!(out, "3\n1\n2\n3\n0", "Deque FIFO must exact: {out}");
 }
 
 #[test]
 fn m2_s1_03_push_front_pop_back_and_mixed() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   var d = Deque.new()
   Deque.pushFront(items: d, item: 2)
@@ -54,16 +51,14 @@ func main() {
   print(Deque.popFront(items: d))
   print(Deque.isEmpty(items: d))
 }
-"#,
-    );
+"#);
     // Wave A W79 / ADR-423 / A-03: Deque pushFront/popBack mixed product exact.
     assert_eq!(out, "1\n3\n2\ntrue", "Deque mixed must exact: {out}");
 }
 
 #[test]
 fn m2_s1_03_empty_pop_nil() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   var d = Deque.new()
   print(Deque.isEmpty(items: d))
@@ -71,16 +66,17 @@ func main() {
   print(Deque.popBack(items: d))
   print(Deque.count(items: d))
 }
-"#,
-    );
+"#);
     // Wave A W77 / ADR-421 / A-03: Deque empty pop → nil product exact.
-    assert_eq!(out, "true\nnil\nnil\n0", "Deque empty pop nil must exact: {out}");
+    assert_eq!(
+        out, "true\nnil\nnil\n0",
+        "Deque empty pop nil must exact: {out}"
+    );
 }
 
 #[test]
 fn m2_s1_03_var_writeback_persists() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   var d = Deque.new()
   Deque.pushBack(items: d, item: 10)
@@ -89,8 +85,7 @@ func main() {
   print(Deque.popFront(items: d))
   print(Deque.popFront(items: d))
 }
-"#,
-    );
+"#);
     // Wave A W79 / ADR-423 / A-03: Deque var writeback persists product exact.
     assert_eq!(out, "2\n10\n20", "Deque writeback must exact: {out}");
 }
@@ -136,4 +131,3 @@ fn m2_s1_03_docs_and_capability() {
         "inventory must note signed-ADR-248"
     );
 }
-

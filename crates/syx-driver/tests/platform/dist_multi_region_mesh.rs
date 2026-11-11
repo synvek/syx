@@ -5,25 +5,13 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_cross_region_failover_ready,
-    cdn_bgp_ga_ready,
-    cdn_bgp_health,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_region_count,
-    cdn_bgp_mesh_regions,
-    cdn_bgp_mesh_snapshot,
-    cdn_bgp_multi_region_mesh_ready,
-    cdn_bgp_route,
-    cdn_delivery_ack_clear,
-    cdn_doctor_mode,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_cross_region_failover_ready, cdn_bgp_ga_ready,
+    cdn_bgp_health, cdn_bgp_import_peer_mesh, cdn_bgp_mesh_region_count, cdn_bgp_mesh_regions,
+    cdn_bgp_mesh_snapshot, cdn_bgp_multi_region_mesh_ready, cdn_bgp_route, cdn_delivery_ack_clear,
+    cdn_doctor_mode, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P122_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_multi_region_cdn_bgp_multi_region_mesh_failover_mvp() {
@@ -38,7 +26,10 @@ fn dist_multi_region_cdn_bgp_multi_region_mesh_failover_mvp() {
     let url_a = dist_tcp_url_for_bind_addr(&addr_a);
     let url_b = dist_tcp_url_for_bind_addr(&addr_b);
 
-    cdn_bgp_configure_mesh("us-east", &[("203.0.113.0/24", 250, "bgp-us", url_a.as_str())]);
+    cdn_bgp_configure_mesh(
+        "us-east",
+        &[("203.0.113.0/24", 250, "bgp-us", url_a.as_str())],
+    );
     assert!(
         !cdn_bgp_multi_region_mesh_ready(),
         "imported peer mesh + ≥2 regions required"
@@ -65,8 +56,13 @@ fn dist_multi_region_cdn_bgp_multi_region_mesh_failover_mvp() {
     assert!(!snap.multi_pop_ready);
     assert!(!snap.weighted_anycast_ready);
     assert_eq!(snap.mesh_regions.len(), 2);
-    assert_eq!(snap.cross_region_failover_order.first().map(String::as_str), Some("bgp-us"));
-    assert!(snap.cross_region_failover_order.contains(&"bgp-eu".to_string()));
+    assert_eq!(
+        snap.cross_region_failover_order.first().map(String::as_str),
+        Some("bgp-us")
+    );
+    assert!(snap
+        .cross_region_failover_order
+        .contains(&"bgp-eu".to_string()));
 
     assert!(
         cdn_bgp_route("bgp-us", 1, 2, "p122-mesh-primary").is_err(),

@@ -198,6 +198,20 @@ Three ways to unwrap:
 
 See [Chapter 30, Advanced Operators](30-advanced-operators.md) for complete usage.
 
+### `Int(String)` → `Int?` (R-38 output pin · SEM-INTSTR)
+
+Failable conversion prints the platform `Int` on success and `nil` on failure:
+
+```syx,output
+// prints: 42\n43\nnil
+func main() {
+    print(Int("42"))
+    print(Int("42") + 1)
+    let x: Int? = Int("abc")
+    print(x)
+}
+```
+
 ## Naming Conventions
 
 Community conventions in SYX (not enforced; `syx lint` reports L001–L012 warnings):

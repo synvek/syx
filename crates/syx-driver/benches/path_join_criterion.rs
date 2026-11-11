@@ -15,8 +15,7 @@ fn path_join_x10000(c: &mut Criterion) {
     let path = example_main();
     c.bench_function("path_join_x10000", |b| {
         b.iter(|| {
-            let (code, printed) =
-                run_file_printed(&path, &DriverOptions::default()).expect("run");
+            let (code, printed) = run_file_printed(&path, &DriverOptions::default()).expect("run");
             assert_eq!(code, 0, "exit code must be 0");
             let out = printed.join("\n");
             assert!(

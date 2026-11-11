@@ -543,16 +543,10 @@ pub enum Decl {
     },
     /// W480 / ADR-824: `export func …` wraps a Function declaration (EBNF ExportDecl).
     /// Semantic → `aot_export_roots` fill remains deferred (≠ this variant alone).
-    Export {
-        span: Span,
-        item: Box<Decl>,
-    },
+    Export { span: Span, item: Box<Decl> },
     /// W483 / ADR-827: `export { Name, … }` module-level export list (EBNF ExportList).
     /// Names push into `MirModule.aot_export_roots` on lower (≠ auto-discovery).
-    ExportList {
-        span: Span,
-        names: Vec<SmolStr>,
-    },
+    ExportList { span: Span, names: Vec<SmolStr> },
     Class {
         span: Span,
         access: AccessLevel,
@@ -693,10 +687,7 @@ pub enum Decl {
         args: Vec<Expr>,
     },
     /// Phase 60: executable statement at module top level (main file only).
-    TopLevelStmt {
-        span: Span,
-        stmt: Stmt,
-    },
+    TopLevelStmt { span: Span, stmt: Stmt },
     /// Phase 51: unified macro declaration (ADR-070 M4).
     MacroDecl {
         span: Span,
@@ -739,7 +730,9 @@ pub trait ExprVisitor<T> {
             Expr::Literal { value, .. } => self.visit_literal(value),
             Expr::Ident { name, .. } => self.visit_ident(name),
             Expr::Super { .. } => self.visit_ident(&SmolStr::new("super")),
-            Expr::Binary { left, op, right, .. } => self.visit_binary(left, *op, right),
+            Expr::Binary {
+                left, op, right, ..
+            } => self.visit_binary(left, *op, right),
             Expr::Ternary {
                 condition,
                 then_branch,
@@ -756,11 +749,21 @@ pub trait ExprVisitor<T> {
             Expr::Index { object, index, .. } => self.visit_index(object, index),
             Expr::Assign { name, value, .. } => self.visit_assign(name, value),
             Expr::CompoundAssign { name, value, .. } => self.visit_assign(name, value),
-            Expr::MemberAssign { object, name, value, .. } => {
+            Expr::MemberAssign {
+                object,
+                name,
+                value,
+                ..
+            } => {
                 let _ = self.visit_member(object, name);
                 self.visit_group(value)
             }
-            Expr::IndexAssign { object, index, value, .. } => {
+            Expr::IndexAssign {
+                object,
+                index,
+                value,
+                ..
+            } => {
                 let _ = self.visit_index(object, index);
                 self.visit_group(value)
             }
@@ -797,9 +800,7 @@ pub trait ExprVisitor<T> {
             Expr::HalfOpenRange { .. }
             | Expr::ClosedRange { .. }
             | Expr::VariantPattern { .. }
-            | Expr::TuplePattern { .. } => {
-                self.visit_literal(&Literal::Nil)
-            }
+            | Expr::TuplePattern { .. } => self.visit_literal(&Literal::Nil),
             Expr::Borrow { expr, .. } => self.visit_group(expr),
             Expr::KeyPath { .. } => self.visit_literal(&Literal::Nil),
             Expr::OptionalCast { expr, .. } | Expr::Is { expr, .. } | Expr::Cast { expr, .. } => {
@@ -833,7 +834,12 @@ impl Decl {
 
     pub fn import_path_str(&self) -> Option<String> {
         match self {
-            Decl::Import { path, .. } => Some(path.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(".")),
+            Decl::Import { path, .. } => Some(
+                path.iter()
+                    .map(|s| s.as_str())
+                    .collect::<Vec<_>>()
+                    .join("."),
+            ),
             _ => None,
         }
     }
@@ -856,8 +862,9 @@ pub fn var_global_setter_method(field: &SmolStr) -> SmolStr {
 pub fn member_chain_mangled_base(expr: &Expr) -> Option<SmolStr> {
     match expr {
         Expr::Ident { name, .. } => Some(name.clone()),
-        Expr::Member { object, name, .. } => member_chain_mangled_base(object)
-            .map(|base| SmolStr::new(format!("{base}_{name}"))),
+        Expr::Member { object, name, .. } => {
+            member_chain_mangled_base(object).map(|base| SmolStr::new(format!("{base}_{name}")))
+        }
         _ => None,
     }
 }
@@ -865,14 +872,8 @@ pub fn member_chain_mangled_base(expr: &Expr) -> Option<SmolStr> {
 /// Nested type constructor callee (`Outer.Inner()` / `Outer.Middle.Inner()` → `Outer_Inner` / `Outer_Middle_Inner`).
 pub fn nested_type_ctor_mangled(callee: &Expr) -> Option<SmolStr> {
     match callee {
-        Expr::Member {
-            object,
-            name,
-            ..
-        } if name
-            .chars()
-            .next()
-            .is_some_and(|c| c.is_uppercase()) =>
+        Expr::Member { object, name, .. }
+            if name.chars().next().is_some_and(|c| c.is_uppercase()) =>
         {
             member_chain_mangled_base(object).map(|base| SmolStr::new(format!("{base}_{name}")))
         }
@@ -892,18 +893,13 @@ pub fn nested_type_dotted_path(outer_mangled: &str, inner: &str) -> SmolStr {
 /// Split `{Class}__{method}` or `{Class}___get_{field}` / `{Class}___set_{field}` for virtual dispatch.
 pub fn parse_mangled_instance_method(full: &str) -> Option<(SmolStr, SmolStr)> {
     if let Some((class, field)) = full.split_once("___get_") {
-        return Some((
-            SmolStr::new(class),
-            SmolStr::new(format!("__get_{field}")),
-        ));
+        return Some((SmolStr::new(class), SmolStr::new(format!("__get_{field}"))));
     }
     if let Some((class, field)) = full.split_once("___set_") {
-        return Some((
-            SmolStr::new(class),
-            SmolStr::new(format!("__set_{field}")),
-        ));
+        return Some((SmolStr::new(class), SmolStr::new(format!("__set_{field}"))));
     }
-    full.rsplit_once('_').map(|(class, method)| (SmolStr::new(class), SmolStr::new(method)))
+    full.rsplit_once('_')
+        .map(|(class, method)| (SmolStr::new(class), SmolStr::new(method)))
 }
 
 pub fn lazy_storage_field(field: &SmolStr) -> SmolStr {

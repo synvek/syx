@@ -47,7 +47,9 @@ pub(crate) fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32)
         } => {
             lower_expr_ternary(condition, then_branch, else_branch, dest, ctx, block);
         }
-        Expr::Binary { left, op, right, .. } => {
+        Expr::Binary {
+            left, op, right, ..
+        } => {
             lower_expr_binary(left, op, right, dest, ctx, block);
         }
         Expr::Unary { op, expr, .. } => {
@@ -80,7 +82,12 @@ pub(crate) fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32)
         Expr::Assign { name, value, .. } => {
             lower_expr_assign(name, value, dest, ctx, block);
         }
-        Expr::CompoundAssign { name, op, value, span } => {
+        Expr::CompoundAssign {
+            name,
+            op,
+            value,
+            span,
+        } => {
             lower_expr_compound_assign(name, op, value, span, dest, ctx, block);
         }
         Expr::Group { expr, .. } => lower_expr_group(expr, dest, ctx, block),
@@ -101,10 +108,20 @@ pub(crate) fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32)
         Expr::TypeSelf { type_name, .. } => {
             lower_expr_type_self(type_name, dest, ctx, block);
         }
-        Expr::MemberAssign { object, name, value, .. } => {
+        Expr::MemberAssign {
+            object,
+            name,
+            value,
+            ..
+        } => {
             lower_expr_member_assign(object, name, value, dest, ctx, block);
         }
-        Expr::IndexAssign { object, index, value, .. } => {
+        Expr::IndexAssign {
+            object,
+            index,
+            value,
+            ..
+        } => {
             lower_expr_index_assign(object, index, value, dest, ctx, block);
         }
         Expr::HalfOpenRange { start, end, .. } => {
@@ -127,4 +144,3 @@ pub(crate) fn lower_expr(expr: &Expr, dest: u32, ctx: &mut LowerCtx, block: u32)
         _ => {}
     }
 }
-

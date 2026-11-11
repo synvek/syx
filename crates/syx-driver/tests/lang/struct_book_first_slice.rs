@@ -27,9 +27,12 @@ fn s1_02_struct_point_parses_var_fields() {
         .decls
         .iter()
         .find_map(|d| match d {
-            Decl::Struct { name, fields, members, .. } if name.as_str() == "Point" => {
-                Some((fields.clone(), members.len()))
-            }
+            Decl::Struct {
+                name,
+                fields,
+                members,
+                ..
+            } if name.as_str() == "Point" => Some((fields.clone(), members.len())),
             _ => None,
         })
         .expect("Point struct");
@@ -46,21 +49,29 @@ fn s1_02_struct_counter_parses_mutating_and_init_default() {
         .decls
         .iter()
         .find_map(|d| match d {
-            Decl::Struct { name, fields, members, .. } if name.as_str() == "Counter" => {
-                Some((fields.clone(), members.clone()))
-            }
+            Decl::Struct {
+                name,
+                fields,
+                members,
+                ..
+            } if name.as_str() == "Counter" => Some((fields.clone(), members.clone())),
             _ => None,
         })
         .expect("Counter struct");
     assert_eq!(fields.len(), 1);
     assert_eq!(fields[0].0.as_str(), "value");
-    let has_mutating = members.iter().any(|m| matches!(
-        m,
-        Decl::Function { name, attrs, .. }
-            if name.as_str() == "increment"
-                && attrs.iter().any(|a| a.name.as_str() == "mutating")
-    ));
-    assert!(has_mutating, "mutating func increment must parse with @mutating attr");
+    let has_mutating = members.iter().any(|m| {
+        matches!(
+            m,
+            Decl::Function { name, attrs, .. }
+                if name.as_str() == "increment"
+                    && attrs.iter().any(|a| a.name.as_str() == "mutating")
+        )
+    });
+    assert!(
+        has_mutating,
+        "mutating func increment must parse with @mutating attr"
+    );
 }
 
 #[test]

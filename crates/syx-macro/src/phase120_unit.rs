@@ -6,10 +6,7 @@ use syx_ast::{AccessLevel, Attribute, Decl};
 use crate::service::{collect_services, expand_service_macros, reject_service_on_non_types};
 
 fn diag_span() -> syx_diagnostics::Span {
-    syx_diagnostics::Span {
-        start: 0,
-        len: 1,
-    }
+    syx_diagnostics::Span { start: 0, len: 1 }
 }
 
 #[test]
@@ -125,4 +122,3 @@ fn p120_expand_example_service_di_has_boot() {
         "boot missing after expand"
     );
 }
-

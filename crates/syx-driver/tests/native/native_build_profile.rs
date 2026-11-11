@@ -4,8 +4,8 @@ use std::fs;
 use std::process::Command;
 
 use syx_driver::{
-    build_native_executable_file, default_native_executable_for_source, native_executable_file_name,
-    project_build_dir, BuildProfile, DriverOptions,
+    build_native_executable_file, default_native_executable_for_source,
+    native_executable_file_name, project_build_dir, BuildProfile, DriverOptions,
 };
 
 fn opts(profile: BuildProfile) -> DriverOptions {
@@ -13,7 +13,6 @@ fn opts(profile: BuildProfile) -> DriverOptions {
     o.build_profile = profile;
     o
 }
-
 
 #[test]
 fn p98_native_build_debug_path() {
@@ -28,7 +27,10 @@ fn p98_native_build_debug_path() {
         .replace('\\', "/")
         .contains("target/debug"));
     let expected = native_executable_file_name("hello");
-    assert_eq!(out.file_name().and_then(|s| s.to_str()), Some(expected.as_str()));
+    assert_eq!(
+        out.file_name().and_then(|s| s.to_str()),
+        Some(expected.as_str())
+    );
 }
 
 #[test]
@@ -44,7 +46,10 @@ fn p98_native_build_release_path() {
         .replace('\\', "/")
         .contains("target/release"));
     let expected = native_executable_file_name("hello");
-    assert_eq!(out.file_name().and_then(|s| s.to_str()), Some(expected.as_str()));
+    assert_eq!(
+        out.file_name().and_then(|s| s.to_str()),
+        Some(expected.as_str())
+    );
 }
 
 #[test]
@@ -61,10 +66,10 @@ fn p98_native_build_profile_stdout_parity() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    let debug_out = project_build_dir(&dir, BuildProfile::Debug)
-        .join(native_executable_file_name("main"));
-    let release_out = project_build_dir(&dir, BuildProfile::Release)
-        .join(native_executable_file_name("main"));
+    let debug_out =
+        project_build_dir(&dir, BuildProfile::Debug).join(native_executable_file_name("main"));
+    let release_out =
+        project_build_dir(&dir, BuildProfile::Release).join(native_executable_file_name("main"));
     build_native_executable_file(&dir.join("main.sy"), &opts(BuildProfile::Debug), &debug_out)
         .unwrap();
     build_native_executable_file(
@@ -79,4 +84,3 @@ fn p98_native_build_profile_stdout_parity() {
     assert_eq!(String::from_utf8_lossy(&r.stdout).trim(), "93");
     let _ = fs::remove_dir_all(&dir);
 }
-

@@ -84,10 +84,14 @@ class Logger { init() {} }
 class App { init(@Inject logger: Logger) {} }
 func main() { print(1) }
 "#;
-    let module = syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
+    let module =
+        syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
     let expanded = crate::expand_module(module).expect("expand");
     let dump = format!("{expanded:?}");
-    assert!(dump.contains("__syx_service_put"), "boot must construct+put: {dump}");
+    assert!(
+        dump.contains("__syx_service_put"),
+        "boot must construct+put: {dump}"
+    );
     assert!(dump.contains("__syx_di_Logger"), "{dump}");
 }
 
@@ -106,5 +110,8 @@ func main() { print(1) }
     let file = syx_diagnostics::SourceFile::new("t.sy", src);
     let module = syx_parser::Parser::parse(file).expect("parse");
     let expanded = crate::expand_module(module);
-    assert!(expanded.is_ok(), "Phase 122 RB nested stack fix should expand: {expanded:?}");
+    assert!(
+        expanded.is_ok(),
+        "Phase 122 RB nested stack fix should expand: {expanded:?}"
+    );
 }

@@ -106,7 +106,10 @@ func main() {{
 }}
 "#
     )));
-    assert_eq!(out, "OK\n2", "interleaved execOn on file DSN must exact: {out}");
+    assert_eq!(
+        out, "OK\n2",
+        "interleaved execOn on file DSN must exact: {out}"
+    );
     let _ = fs::remove_file(&db);
 }
 
@@ -164,9 +167,7 @@ fn m2_s8_01c_docs_and_capability() {
     );
     let guide = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
-        guide.contains("poolCreate")
-            && guide.contains("ADR-245")
-            && guide.contains("poolRelease"),
+        guide.contains("poolCreate") && guide.contains("ADR-245") && guide.contains("poolRelease"),
         "UsageGuide must document pool vs open/close"
     );
     let caps = include_str!("../../../../packages/internal/capabilities.toml");
@@ -185,4 +186,3 @@ fn m2_s8_01c_docs_and_capability() {
         "inventory must note signed-ADR-245"
     );
 }
-

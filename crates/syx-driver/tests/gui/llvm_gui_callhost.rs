@@ -48,7 +48,11 @@ fn p98_llvm_gui_callhost_hello_link_run_exit_zero() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::copy(&path, dir.join("hello.sy")).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"hello.sy\"\n").unwrap();
+    fs::write(
+        dir.join("syx.toml"),
+        "name = \"app\"\nmain = \"hello.sy\"\n",
+    )
+    .unwrap();
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
     let exe = dir.join("app");

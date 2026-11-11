@@ -99,8 +99,7 @@ fn macro_di_or_token_stream_enumeration_observable() {
 #[test]
 fn macro_di_or_pool_core_max_keepalive_roundtrip() {
     let _g = P136_POOL_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let printed = run(r#"
 func main() {
     print(__syx_task_set_core_pool_size(2))
     print(__syx_task_core_pool_size())
@@ -111,8 +110,7 @@ func main() {
     print(__syx_task_set_reject_policy("callerRuns"))
     print(__syx_task_reject_policy())
 }
-"#,
-    )
+"#)
     .expect("pool size roundtrip");
     assert_eq!(printed[0].trim(), "2");
     assert_eq!(printed[1].trim(), "2");
@@ -127,7 +125,5 @@ func main() {
 #[test]
 fn macro_di_or_pool_probe_core_max_keepalive_observable() {
     let _g = P136_POOL_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    syx_async::probe_core_max_keepalive_mvp()
-        .expect("core/max/keepAlive probe should succeed");
+    syx_async::probe_core_max_keepalive_mvp().expect("core/max/keepAlive probe should succeed");
 }
-

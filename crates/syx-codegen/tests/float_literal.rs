@@ -38,15 +38,16 @@ fn f32_const_numeric_bits() {
     // W478 / ADR-822: MIR path (no external AST-only compile entry)
     let mir = syx_mir::lower_module(&module).unwrap();
     let mut program = syx_codegen::CompiledProgram::default();
-    syx_codegen::CodeGenerator::compile_with_mir(
-        &module, &mir, &mut program, None, None, None,
-    )
-    .unwrap();
+    syx_codegen::CodeGenerator::compile_with_mir(&module, &mir, &mut program, None, None, None)
+        .unwrap();
     let main = program.functions.iter().find(|f| f.name == "main").unwrap();
     let ins = &main.instructions[0];
     if let syx_codegen::Instruction::ConstNumeric { kind, bits } = ins {
         assert_eq!(*kind, syx_stdlib::NumericKind::F32.to_byte());
-        assert_eq!(*bits, syx_stdlib::float_literal_bits(syx_stdlib::NumericKind::F32, 3.4));
+        assert_eq!(
+            *bits,
+            syx_stdlib::float_literal_bits(syx_stdlib::NumericKind::F32, 3.4)
+        );
     } else {
         panic!("expected ConstNumeric, got {ins:?}");
     }

@@ -18,7 +18,10 @@ fn quoted_field(src: &str, key: &str) -> &'static str {
 
 /// Live `wave` / `fingerprint` from public hostfn_qs1_matrix.toml.
 pub fn matrix_wave_and_digest() -> (&'static str, &'static str) {
-    (quoted_field(MATRIX, "wave"), quoted_field(MATRIX, "fingerprint"))
+    (
+        quoted_field(MATRIX, "wave"),
+        quoted_field(MATRIX, "fingerprint"),
+    )
 }
 
 /// Nail: public matrix keeps schema + stable non-tip identity.

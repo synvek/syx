@@ -4,9 +4,7 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 
-use syx_async::{
-    dist_actor_mp_clear, dist_actor_mp_peer_send_once, spawn_dist_tcp_mailbox,
-};
+use syx_async::{dist_actor_mp_clear, dist_actor_mp_peer_send_once, spawn_dist_tcp_mailbox};
 
 #[test]
 fn dist_mailbox_tcp_cross_process_ack() {

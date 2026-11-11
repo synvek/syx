@@ -81,20 +81,20 @@ jobs:
       matrix:
         include:
           # Linux x64 / arm64
-          # - os: ubuntu-24.04
-          #   target: x86_64-unknown-linux-gnu
-          #   artifact: syx-linux-x86_64
-          #   exe_ext: ""
-          #   wasmtime_asset: wasmtime-v25.0.0-x86_64-linux.tar.xz
-          #   llvm_asset: LLVM-21.1.6-Linux-X64.tar.xz
-          #   native_examples: true
-          # - os: ubuntu-24.04-arm
-          #   target: aarch64-unknown-linux-gnu
-          #   artifact: syx-linux-aarch64
-          #   exe_ext: ""
-          #   wasmtime_asset: wasmtime-v25.0.0-aarch64-linux.tar.xz
-          #   llvm_asset: LLVM-21.1.6-Linux-ARM64.tar.xz
-          #   native_examples: true
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact: syx-linux-x86_64
+            exe_ext: ""
+            wasmtime_asset: wasmtime-v25.0.0-x86_64-linux.tar.xz
+            llvm_asset: LLVM-21.1.6-Linux-X64.tar.xz
+            native_examples: true
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            artifact: syx-linux-aarch64
+            exe_ext: ""
+            wasmtime_asset: wasmtime-v25.0.0-aarch64-linux.tar.xz
+            llvm_asset: LLVM-21.1.6-Linux-ARM64.tar.xz
+            native_examples: true
           # macOS x64: llvmorg-21.1.6 has no official macOS x86_64 tarball (ARM64 only).
           # - os: macos-15-intel
           #   target: x86_64-apple-darwin
@@ -433,7 +433,22 @@ jobs:
             cp "target-full-native/${TARGET}/release/syx${{ matrix.exe_ext }}" \
               "target/${TARGET}/release/syx${{ matrix.exe_ext }}"
           else
-            cargo build --release -p syx-cli --features full-native --target "${TARGET}"
+            # Linux: official LLVM .a embeds bitcode; rust-lld ThinLTO (rustc LLVM)
+            # then aborts on VP !prof vs LLVM 21 objects. llvm-sys emits
+            # `-Wl,--lto=off`; keep an explicit rustflag so release stays fail-closed
+            # even if that patch is missing.
+            EXTRA_RUSTFLAGS=()
+            case "${TARGET}" in
+              *-unknown-linux-*)
+                EXTRA_RUSTFLAGS+=(-C link-arg=-Wl,--lto=off)
+                ;;
+            esac
+            if [ "${#EXTRA_RUSTFLAGS[@]}" -gt 0 ]; then
+              RUSTFLAGS="${EXTRA_RUSTFLAGS[*]}" \
+                cargo build --release -p syx-cli --features full-native --target "${TARGET}"
+            else
+              cargo build --release -p syx-cli --features full-native --target "${TARGET}"
+            fi
           fi
 
       # - name: Driver parity smoke (SYX 38.0)

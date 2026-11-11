@@ -12,8 +12,7 @@ fn run(src: &str) -> String {
 
 #[test]
 fn set_union_dedups_by_value_equals() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     let a: Set<Int> = [1, 2]
     let b: Set<Int> = [2, 3]
@@ -23,15 +22,13 @@ func main() {
     print(u.contains(2))
     print(u.contains(3))
 }
-"#,
-    );
+"#);
     assert_eq!(out, "3\ntrue\ntrue\ntrue");
 }
 
 #[test]
 fn set_intersection_uses_value_equals() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     let a: Set<Int> = [1, 2]
     let b: Set<Int> = [2, 3]
@@ -41,7 +38,6 @@ func main() {
     print(i.contains(2))
     print(i.contains(3))
 }
-"#,
-    );
+"#);
     assert_eq!(out, "1\nfalse\ntrue\nfalse");
 }

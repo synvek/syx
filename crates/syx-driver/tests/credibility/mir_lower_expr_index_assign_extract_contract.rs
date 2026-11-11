@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -33,7 +32,8 @@ fn s2_05_mir_lower_expr_index_assign_extract_baseline() {
         "lib.rs must declare mod mir_lower_expr_index_assign"
     );
     assert!(
-        (lib.contains("lower_expr_index_assign(") || mir_lower_expr_src().contains("lower_expr_index_assign(")),
+        (lib.contains("lower_expr_index_assign(")
+            || mir_lower_expr_src().contains("lower_expr_index_assign(")),
         "lib.rs must delegate IndexAssign to lower_expr_index_assign"
     );
     assert!(
@@ -53,7 +53,10 @@ fn s2_05_mir_lower_expr_index_assign_extract_baseline() {
     );
 
     let adr = repo_file("docs/adr/stage2-s2-05-mir-lower-expr-index-assign-extract.md");
-    assert!(adr.contains("S2-I177"), "index_assign ADR must name S2-I177");
+    assert!(
+        adr.contains("S2-I177"),
+        "index_assign ADR must name S2-I177"
+    );
     assert!(
         adr.contains("S2-I178") && adr.contains("Binary"),
         "ADR must lock next knife = S2-I178 Binary"

@@ -181,11 +181,7 @@ fn stage_static_archives(prefix: &Path) -> Result<PathBuf, String> {
         let src = resolve_archive(&lib, unix_name, msvc_name)
             .ok_or_else(|| format!("missing {unix_name} / {msvc_name}"))?;
         // Destination name must match what rustc `static=lldFoo` looks up.
-        let dst_name = if windows {
-            msvc_name
-        } else {
-            unix_name
-        };
+        let dst_name = if windows { msvc_name } else { unix_name };
         symlink_archive(&src, &staging.join(dst_name))?;
     }
 
@@ -223,7 +219,8 @@ fn symlink_archive(src: &Path, dst: &Path) -> Result<(), String> {
     {
         use std::os::unix::fs::symlink;
         let _ = fs::remove_file(dst);
-        symlink(src, dst).map_err(|e| format!("symlink {} -> {}: {e}", src.display(), dst.display()))
+        symlink(src, dst)
+            .map_err(|e| format!("symlink {} -> {}: {e}", src.display(), dst.display()))
     }
     #[cfg(not(unix))]
     {
@@ -358,7 +355,9 @@ fn emit_static_libs(prefix: &Path) {
         // under prefix/lib (CI copies them from vcpkg; see release.yml).
         let lib = prefix.join("lib");
         // vcpkg `x64-windows-static` names zlib `zs.lib`; CI/README may use `zlib.lib`.
-        for name in ["zlib", "zs", "libiconv", "iconv", "charset", "lzma", "liblzma"] {
+        for name in [
+            "zlib", "zs", "libiconv", "iconv", "charset", "lzma", "liblzma",
+        ] {
             if lib.join(format!("{name}.lib")).is_file() {
                 println!("cargo:rustc-link-lib=static={name}");
             }

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -51,13 +50,11 @@ fn s3_06_plan_claim_locked() {
         "ADR must cite landed I84"
     );
     assert!(
-        adr.contains("S3-I85")
-            || (adr.contains("claim") && adr.contains("S3-07")),
+        adr.contains("S3-I85") || (adr.contains("claim") && adr.contains("S3-07")),
         "ADR must cite S3-I85 claim ladder / I86 next"
     );
     assert!(
-        adr.contains("S3-I86")
-            || (adr.contains("exit") && adr.contains("open")),
+        adr.contains("S3-I86") || (adr.contains("exit") && adr.contains("open")),
         "ADR Consequences must lock next = Stage-3 exit open / I86"
     );
 
@@ -82,10 +79,7 @@ fn s3_06_plan_claim_locked() {
         stage3.contains("[x]") && stage3.contains("退出"),
         "Stage-3 must be [x] 退出; got: {stage3}"
     );
-    assert!(
-        plan02.contains("7/7"),
-        "plan/02 must publish Stage-3 7/7"
-    );
+    assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
     assert!(
         plan02.contains("S3-I82")
             && plan02.contains("S3-I83")
@@ -110,10 +104,7 @@ fn s3_06_plan_claim_locked() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("7/7"),
-        "census must publish Stage-3 7/7"
-    );
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
     assert!(
         census.contains("S3-I82")
             && census.contains("S3-I83")
@@ -136,10 +127,7 @@ fn s3_06_plan_claim_locked() {
         plan01.contains("S3-I81") && plan01.contains("[x]"),
         "plan/01 must reflect S3-I81 S3-06 [x]"
     );
-    assert!(
-        plan01.contains("7/7"),
-        "plan/01 must publish Stage-3 7/7"
-    );
+    assert!(plan01.contains("7/7"), "plan/01 must publish Stage-3 7/7");
     assert!(
         plan01.contains("S3-I82")
             && plan01.contains("S3-I83")
@@ -156,9 +144,7 @@ fn s3_06_plan_claim_locked() {
 fn s3_06_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_06_lsp_book_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run lsp-book census");
     assert!(

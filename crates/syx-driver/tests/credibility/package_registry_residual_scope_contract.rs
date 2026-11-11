@@ -6,14 +6,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s4_02_residual_scope_adr_and_files() {
     let adr = repo_file("docs/adr/stage4-s4-02-residual-scope.md");
-    assert!(adr.contains("S3-I94"), "residual-scope ADR must name S3-I94");
+    assert!(
+        adr.contains("S3-I94"),
+        "residual-scope ADR must name S3-I94"
+    );
     assert!(
         adr.contains("scoped acceptance")
             || adr.contains("Scoped acceptance")
@@ -94,9 +96,7 @@ fn s4_02_residual_scope_adr_and_files() {
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I94")
-            && plan01.contains("S3-I95")
-            && plan01.contains("5/5"),
+        plan01.contains("S3-I94") && plan01.contains("S3-I95") && plan01.contains("5/5"),
         "plan/01 must cite I94 / I95 / 5/5"
     );
 }

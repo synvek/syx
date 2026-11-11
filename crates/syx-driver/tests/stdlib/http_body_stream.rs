@@ -38,11 +38,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -190,8 +186,7 @@ func main() {
     ));
     // R-8: NetworkError.failed Display is case bag (message still product-exact).
     assert_eq!(
-        err,
-        "[R007] NetworkError.failed(code: 2, message: HttpBodyStream close failed)",
+        err, "[R007] NetworkError.failed(code: 2, message: HttpBodyStream close failed)",
         "close invalid-handle Display must exact: {err}"
     );
 }
@@ -214,8 +209,7 @@ func main() {{
     stop.store(true, Ordering::Relaxed);
     let _ = server.join();
     assert_eq!(
-        err,
-        "[R007] NetworkError.failed(code: 2, message: HttpBodyStream close failed)",
+        err, "[R007] NetworkError.failed(code: 2, message: HttpBodyStream close failed)",
         "close-after-close Display must exact: {err}"
     );
 }
@@ -508,4 +502,3 @@ func main() {{
         "wasm HttpBodyStream open_opts+close must exact: {out}"
     );
 }
-

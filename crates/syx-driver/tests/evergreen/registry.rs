@@ -6,9 +6,9 @@ use std::path::{Path, PathBuf};
 
 use ed25519_dalek::SigningKey;
 use syx_pkg::{
-    add_dependency, graph_to_lockfile, install_project, load_resolved_packages,
-    publish_package, publish_package_signed, resolve_dependencies, save_lockfile,
-    sign_package_checksum, verifying_key_hex, DependencyAddSpec, SignaturePolicy, SyxLockfile,
+    add_dependency, graph_to_lockfile, install_project, load_resolved_packages, publish_package,
+    publish_package_signed, resolve_dependencies, save_lockfile, sign_package_checksum,
+    verifying_key_hex, DependencyAddSpec, SignaturePolicy, SyxLockfile,
 };
 
 const TEST_SIGNING_SEED: [u8; 32] = [0x69; 32];
@@ -226,7 +226,12 @@ func main() { print(golden65.answer()) }"#,
     assert!(lock.tarball_sha256.contains_key("golden65"));
 
     let unit = syx_driver::compile_project(&app).expect("compile");
-    assert!(unit.entry.program.functions.iter().any(|f| f.name == "main"));
+    assert!(unit
+        .entry
+        .program
+        .functions
+        .iter()
+        .any(|f| f.name == "main"));
 
     syx_driver::run_project(&app).expect("run");
 }
@@ -253,7 +258,10 @@ fn lockfile_v4_roundtrip() {
     let loaded = syx_pkg::load_lockfile(&dir).expect("load");
     assert_eq!(loaded.version, 5);
     assert_eq!(loaded.syx_version_floor, "44.0");
-    assert_eq!(loaded.tarball_sha256.get("a").map(String::as_str), Some("sha256:ff"));
+    assert_eq!(
+        loaded.tarball_sha256.get("a").map(String::as_str),
+        Some("sha256:ff")
+    );
 }
 
 #[test]
@@ -280,7 +288,11 @@ version = "1.0.0"
     .unwrap();
     let graph = resolve_dependencies(&app).unwrap();
     let lock = graph_to_lockfile(&graph, &syx_pkg::load_manifest(&app).unwrap());
-    assert!(lock.tarball_sha256.get("sha65").unwrap().starts_with("sha256:"));
+    assert!(lock
+        .tarball_sha256
+        .get("sha65")
+        .unwrap()
+        .starts_with("sha256:"));
 }
 
 #[test]
@@ -493,7 +505,12 @@ version = "1.0.0"
 fn path_dep_lock_v4_fields() {
     let root = temp_pkg("pathroot65", r#"func main() {}"#);
     let dep = temp_pkg("pathdep65", r#"public func p() -> Int { return 2 }"#);
-    add_dependency(&root, "pathdep65", DependencyAddSpec::path(dep.to_string_lossy())).expect("add");
+    add_dependency(
+        &root,
+        "pathdep65",
+        DependencyAddSpec::path(dep.to_string_lossy()),
+    )
+    .expect("add");
     install_project(&root).expect("install");
     let lock = syx_pkg::load_lockfile(&root).unwrap();
     assert_eq!(lock.version, 16);
@@ -513,7 +530,11 @@ fn publish_file_registry() {
 fn publish_install_roundtrip() {
     let reg = file_registry();
     let pkg = temp_pkg("greet63", "public func hello() -> Int { return 99 }");
-    fs::write(pkg.join("greet.sy"), "public func hello() -> Int { return 99 }").unwrap();
+    fs::write(
+        pkg.join("greet.sy"),
+        "public func hello() -> Int { return 99 }",
+    )
+    .unwrap();
     fs::write(
         pkg.join("syx.toml"),
         "name = \"greet63\"\nversion = \"1.0.0\"\nmain = \"greet.sy\"\n",
@@ -584,7 +605,12 @@ reg_schema!(reg_schema_v3_0_0, "3.0.0");
 fn add_path_dependency() {
     let root = temp_pkg("root63", r#"func main() {}"#);
     let dep = temp_pkg("dep63", r#"public func x() -> Int { return 1 }"#);
-    add_dependency(&root, "dep63", DependencyAddSpec::path(dep.to_string_lossy())).expect("add");
+    add_dependency(
+        &root,
+        "dep63",
+        DependencyAddSpec::path(dep.to_string_lossy()),
+    )
+    .expect("add");
     let manifest = syx_pkg::load_manifest(&root).unwrap();
     assert!(manifest.dependencies.contains_key("dep63"));
 }
@@ -701,7 +727,10 @@ fn publisher_key_id_roundtrip() {
 
 #[test]
 fn registry_test_count_gate() {
-    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/evergreen/registry.rs")).unwrap();
+    let src = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/evergreen/registry.rs"),
+    )
+    .unwrap();
     let count = src.matches("#[test]").count();
     assert!(count >= 40, "registry needs 40+ tests, found {count}");
 }
@@ -848,8 +877,7 @@ func main() { print(signedlib69.answer()) }"#,
 
     syx_driver::compile_project(&app).expect("compile");
     let (_, printed) =
-        run_file_printed(&app.join("main.sy"), &syx_driver::DriverOptions::default())
-            .expect("run");
+        run_file_printed(&app.join("main.sy"), &syx_driver::DriverOptions::default()).expect("run");
     let out = printed.join("\n");
     assert!(out.contains("42"), "stdout: {out}");
 
@@ -942,8 +970,7 @@ func main() { print(cdnlib70.answer()) }"#,
 
     syx_driver::compile_project(&app).expect("compile");
     let (_, printed) =
-        run_file_printed(&app.join("main.sy"), &syx_driver::DriverOptions::default())
-            .expect("run");
+        run_file_printed(&app.join("main.sy"), &syx_driver::DriverOptions::default()).expect("run");
     let out = printed.join("\n");
     assert!(out.contains("70"), "stdout: {out}");
 

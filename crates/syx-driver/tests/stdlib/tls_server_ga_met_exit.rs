@@ -1,7 +1,6 @@
 //! TLS GA met exit charter
 //! Policy + meta flip only — scope narrow; product status remains unsupported.
 
-
 fn utf8_prefix_slice(s: &str, start: usize, want: usize) -> &str {
     let mut end = (start + want).min(s.len());
     while end > start && !s.is_char_boundary(end) {
@@ -29,14 +28,12 @@ fn tls_server_ga_met_exit_evidence_files_exist() {
     }
     let qs1 = include_str!("hostfn_tls.rs");
     assert!(
-        qs1.contains("fn hostfn_tls_serve_native_llvm")
-            && qs1.contains("fn hostfn_tls_serve_wasm"),
+        qs1.contains("fn hostfn_tls_serve_native_llvm") && qs1.contains("fn hostfn_tls_serve_wasm"),
         "exit evidence must retain W393/W394 TLS HostFn nails"
     );
     let floor = include_str!("../../../../docs/lang/tls-server-ga-exit.md");
     assert!(
-        floor.contains("ADR-732")
-            && (floor.contains("honesty") || floor.contains("floor")),
+        floor.contains("ADR-732") && (floor.contains("honesty") || floor.contains("floor")),
         "honesty floor exit must remain present (分轴 from GA met exit)"
     );
 }
@@ -45,8 +42,7 @@ fn tls_server_ga_met_exit_evidence_files_exist() {
 fn tls_server_ga_met_exit_spec_signed() {
     let spec = include_str!("../../../../docs/lang/tls-server-ga-met-exit.md");
     assert!(
-        spec.contains("ADR-739")
-            && (spec.contains("exit signed") || spec.contains("Exit signed")),
+        spec.contains("ADR-739") && (spec.contains("exit signed") || spec.contains("Exit signed")),
         "spec must cite ADR-739 exit signed"
     );
     assert!(
@@ -61,7 +57,9 @@ fn tls_server_ga_met_exit_spec_signed() {
         "spec must index inventory + llvm partial-sufficient + wasm prerequisites"
     );
     assert!(
-        (spec.contains("status=implemented") || spec.contains("unsupported") || spec.contains("product"))
+        (spec.contains("status=implemented")
+            || spec.contains("unsupported")
+            || spec.contains("product"))
             && (spec.contains("defer") || spec.contains("≠") || spec.contains("Not")),
         "spec must defer product status=implemented raise"
     );
@@ -97,4 +95,3 @@ fn tls_server_ga_met_exit_spec_signed() {
         "live net.tls.server is W435 status raise (ADR-779); historical W395 defer remains in charter: {slice}"
     );
 }
-

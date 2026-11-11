@@ -41,7 +41,12 @@ pub fn simd_from_array(lanes: u8, element: NumericKind, items: &[Value]) -> Opti
 }
 
 pub fn simd_reduce_add(v: &Value) -> Option<Value> {
-    let Value::Simd { lanes, element, bits } = v else {
+    let Value::Simd {
+        lanes,
+        element,
+        bits,
+    } = v
+    else {
         return None;
     };
     let element = resolve_alias(*element);
@@ -81,11 +86,7 @@ pub fn simd_reduce_add(v: &Value) -> Option<Value> {
     })
 }
 
-pub fn simd_binop(
-    op: SimdBinOp,
-    a: &Value,
-    b: &Value,
-) -> Option<Value> {
+pub fn simd_binop(op: SimdBinOp, a: &Value, b: &Value) -> Option<Value> {
     let Value::Simd {
         lanes: la,
         element: ea,
@@ -277,11 +278,7 @@ pub fn simd_neg(v: &Value) -> Option<Value> {
 }
 
 /// Phase 130: unsigned lane compare helper for `umin`/`umax` (always read as unsigned).
-fn lanewise_ucmp(
-    a: &Value,
-    b: &Value,
-    pick: fn(u128, u128) -> u128,
-) -> Option<Value> {
+fn lanewise_ucmp(a: &Value, b: &Value, pick: fn(u128, u128) -> u128) -> Option<Value> {
     let Value::Simd {
         lanes: la,
         element: ea,
@@ -319,11 +316,7 @@ fn lanewise_ucmp(
     })
 }
 
-fn lanewise_cmp(
-    a: &Value,
-    b: &Value,
-    pick: fn(i128, i128) -> i128,
-) -> Option<Value> {
+fn lanewise_cmp(a: &Value, b: &Value, pick: fn(i128, i128) -> i128) -> Option<Value> {
     let Value::Simd {
         lanes: la,
         element: ea,
@@ -554,11 +547,7 @@ pub fn simd_shuffle_i8(v: &Value, mode: i32) -> Option<Value> {
     })
 }
 
-fn lanewise_signed_sat_binop(
-    a: &Value,
-    b: &Value,
-    op: fn(i8, i8) -> i8,
-) -> Option<Value> {
+fn lanewise_signed_sat_binop(a: &Value, b: &Value, op: fn(i8, i8) -> i8) -> Option<Value> {
     let Value::Simd {
         lanes: la,
         element: ea,
@@ -914,7 +903,12 @@ pub fn simd_xor(a: &Value, b: &Value) -> Option<Value> {
     simd_bitwise(a, b, |x, y| x ^ y)
 }
 
-pub fn simd_load_from_array(array: &Value, lanes: u8, element: NumericKind, offset: usize) -> Option<Value> {
+pub fn simd_load_from_array(
+    array: &Value,
+    lanes: u8,
+    element: NumericKind,
+    offset: usize,
+) -> Option<Value> {
     let array = match array {
         Value::HeapSlot { .. } => Value::resolve_heap_slot(array),
         other => other.clone(),
@@ -931,7 +925,12 @@ pub fn simd_store_to_array(array: &mut Value, offset: usize, simd: &Value) -> Op
         Value::HeapSlot { .. } => Value::resolve_heap_slot(simd),
         other => other.clone(),
     };
-    let Value::Simd { lanes, element, bits } = &simd else {
+    let Value::Simd {
+        lanes,
+        element,
+        bits,
+    } = &simd
+    else {
         return None;
     };
     // Phase 129: ArrayBuild often yields HeapSlot; match loadFromArray resolve path.
@@ -958,9 +957,15 @@ pub fn simd_store_to_array(array: &mut Value, offset: usize, simd: &Value) -> Op
                 Value::F64(f)
             }
         } else if is_signed(element) {
-            super::numeric::value_from_numeric(element, read_signed_lane(element, bits, lane)? as u64)
+            super::numeric::value_from_numeric(
+                element,
+                read_signed_lane(element, bits, lane)? as u64,
+            )
         } else {
-            super::numeric::value_from_numeric(element, read_unsigned_lane(element, bits, lane)? as u64)
+            super::numeric::value_from_numeric(
+                element,
+                read_unsigned_lane(element, bits, lane)? as u64,
+            )
         };
     }
     *array = if matches!(array_outer, Value::HeapSlot { .. }) {
@@ -1037,7 +1042,13 @@ fn read_signed_lane(element: NumericKind, bits: &[u8; 64], lane: u8) -> Option<i
 }
 
 fn read_float_lane(element: NumericKind, bits: &[u8; 64], lane: u8) -> Option<f64> {
-    let raw = scalar_to_u64(element, &super::numeric::value_from_numeric(element, read_unsigned_lane(element, bits, lane)? as u64))?;
+    let raw = scalar_to_u64(
+        element,
+        &super::numeric::value_from_numeric(
+            element,
+            read_unsigned_lane(element, bits, lane)? as u64,
+        ),
+    )?;
     match element {
         NumericKind::F32 => Some(f32::from_bits(raw as u32) as f64),
         NumericKind::F64 => Some(f64::from_bits(raw)),
@@ -1045,7 +1056,12 @@ fn read_float_lane(element: NumericKind, bits: &[u8; 64], lane: u8) -> Option<f6
     }
 }
 
-fn write_unsigned_lane(element: NumericKind, bits: &mut [u8; 64], lane: u8, value: u128) -> Option<()> {
+fn write_unsigned_lane(
+    element: NumericKind,
+    bits: &mut [u8; 64],
+    lane: u8,
+    value: u128,
+) -> Option<()> {
     let lb = lane_bytes(element);
     let off = lane as usize * lb;
     for b in 0..lb {
@@ -1054,7 +1070,12 @@ fn write_unsigned_lane(element: NumericKind, bits: &mut [u8; 64], lane: u8, valu
     Some(())
 }
 
-fn write_signed_lane(element: NumericKind, bits: &mut [u8; 64], lane: u8, value: i128) -> Option<()> {
+fn write_signed_lane(
+    element: NumericKind,
+    bits: &mut [u8; 64],
+    lane: u8,
+    value: i128,
+) -> Option<()> {
     write_unsigned_lane(element, bits, lane, value as u128)
 }
 
@@ -1069,7 +1090,12 @@ fn write_float_lane(element: NumericKind, bits: &mut [u8; 64], lane: u8, value: 
 
 /// Phase 125: extract one signed lane from a SIMD vector as platform Int.
 pub fn simd_extract_lane(v: &Value, lane: i32) -> Option<Value> {
-    let Value::Simd { lanes, element, bits } = v else {
+    let Value::Simd {
+        lanes,
+        element,
+        bits,
+    } = v
+    else {
         return None;
     };
     let lane = lane as u8;
@@ -1087,7 +1113,12 @@ pub fn simd_extract_lane(v: &Value, lane: i32) -> Option<Value> {
 
 /// Phase 125: replace one lane in a SIMD vector (scalar widened/truncated to lane width).
 pub fn simd_replace_lane(v: &Value, lane: i32, scalar: &Value) -> Option<Value> {
-    let Value::Simd { lanes, element, bits } = v else {
+    let Value::Simd {
+        lanes,
+        element,
+        bits,
+    } = v
+    else {
         return None;
     };
     let lane = lane as u8;

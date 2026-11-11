@@ -45,4 +45,3 @@ func main() {
     let cpu: i64 = printed[2].trim().parse().expect("cpuCount int");
     assert!(cpu > 0, "cpuCount should remain positive, got {cpu}");
 }
-

@@ -54,8 +54,7 @@ fn run_wasm(label: &str, src: &str) -> String {
     let path = write_src(label, src);
     let mut opts = DriverOptions::default();
     opts.wasm_aot = true;
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines_joined(&lines)
 }
@@ -78,11 +77,7 @@ fn run_native_llvm(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native llvm Math build failed: {e}"));
@@ -91,7 +86,8 @@ fn run_native_llvm(label: &str, src: &str) -> String {
     let code = output.status.code().unwrap_or(1);
     let _ = fs::remove_dir_all(&dir);
     assert_eq!(
-        code, 0,
+        code,
+        0,
         "native llvm Math exit {code}: stdout={stdout} stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
@@ -261,11 +257,7 @@ func main() {
     let out = run_native_mir("consts", src);
     let lines: Vec<&str> = out.lines().collect();
     assert_eq!(lines.len(), 8, "expected 8 lines, got {out}");
-    assert!(
-        lines[0].starts_with("3.14159265358979"),
-        "pi: {}",
-        lines[0]
-    );
+    assert!(lines[0].starts_with("3.14159265358979"), "pi: {}", lines[0]);
     assert!(lines[1].starts_with("2.71828182845904"), "e: {}", lines[1]);
     assert!(
         lines[2].starts_with("6.28318530717958"),
@@ -303,13 +295,15 @@ func main() {
 }
 "#;
 
-const MATH_P2_SMOKE_EXPECTED: &str =
-    "0\n1\n0\n1\n-1.5\ntrue\ntrue\ntrue\n0\n0";
+const MATH_P2_SMOKE_EXPECTED: &str = "0\n1\n0\n1\n-1.5\ntrue\ntrue\ntrue\n0\n0";
 
 #[test]
 fn math_hyperbolic_smoke_native_mir() {
     let out = run_native_mir("smoke", MATH_P2_SMOKE);
-    assert_eq!(out, MATH_P2_SMOKE_EXPECTED, "native mir Math Phase-2: {out}");
+    assert_eq!(
+        out, MATH_P2_SMOKE_EXPECTED,
+        "native mir Math Phase-2: {out}"
+    );
 }
 
 #[test]
@@ -356,8 +350,7 @@ func main() {
 "#;
 
 // nextUp/Down: avoid Float `>` on adjacent values (SYX cmp may truncate); pin printed ulp strings.
-const MATH_SOFT_SMOKE_EXPECTED: &str =
-    "0\n0\n0\n-1\n10\n1.0000000000000002\n0.9999999999999999";
+const MATH_SOFT_SMOKE_EXPECTED: &str = "0\n0\n0\n-1\n10\n1.0000000000000002\n0.9999999999999999";
 
 #[test]
 fn math_soft_smoke_native_mir() {
@@ -411,7 +404,10 @@ const MATH_SPECIAL_SMOKE_EXPECTED: &str = "0\n1\n1\n1\n0";
 #[test]
 fn math_special_smoke_native_mir() {
     let out = run_native_mir("smoke", MATH_SPECIAL_SMOKE);
-    assert_eq!(out, MATH_SPECIAL_SMOKE_EXPECTED, "native mir Math Special: {out}");
+    assert_eq!(
+        out, MATH_SPECIAL_SMOKE_EXPECTED,
+        "native mir Math Special: {out}"
+    );
 }
 
 #[test]
@@ -516,13 +512,19 @@ const MATH_F32_SLICE2_SMOKE_EXPECTED: &str = "2\n2\n1\n8\n0\n0\n0\n5";
 #[test]
 fn math_f32_slice2_smoke_native_mir() {
     let out = run_native_mir("smoke", MATH_F32_SLICE2_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE2_SMOKE_EXPECTED, "native mir Math F32 slice2: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE2_SMOKE_EXPECTED,
+        "native mir Math F32 slice2: {out}"
+    );
 }
 
 #[test]
 fn math_f32_slice2_smoke_wasm() {
     let out = run_wasm("smoke", MATH_F32_SLICE2_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE2_SMOKE_EXPECTED, "wasm Math F32 slice2: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE2_SMOKE_EXPECTED,
+        "wasm Math F32 slice2: {out}"
+    );
 }
 
 /// W960 / ADR-1304 — F32 W907 MathFloat32* llvm slice2 exact nail (≠ full F32×42 / ≠ llvm Math GA).
@@ -568,13 +570,19 @@ const MATH_F32_SLICE3_SMOKE_EXPECTED: &str = "0\n3\n2\n8\n2\n0\n1\n0";
 #[test]
 fn math_f32_slice3_smoke_native_mir() {
     let out = run_native_mir("smoke", MATH_F32_SLICE3_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE3_SMOKE_EXPECTED, "native mir Math F32 slice3: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE3_SMOKE_EXPECTED,
+        "native mir Math F32 slice3: {out}"
+    );
 }
 
 #[test]
 fn math_f32_slice3_smoke_wasm() {
     let out = run_wasm("smoke", MATH_F32_SLICE3_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE3_SMOKE_EXPECTED, "wasm Math F32 slice3: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE3_SMOKE_EXPECTED,
+        "wasm Math F32 slice3: {out}"
+    );
 }
 
 /// W961 / ADR-1305 — F32 W908 MathFloat32* llvm slice3 exact nail (≠ full F32×42 / ≠ llvm Math GA).
@@ -620,13 +628,19 @@ const MATH_F32_SLICE4_SMOKE_EXPECTED: &str = "1\n-1\n0\n0\n0\n0\n0\n0";
 #[test]
 fn math_f32_slice4_smoke_native_mir() {
     let out = run_native_mir("smoke", MATH_F32_SLICE4_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE4_SMOKE_EXPECTED, "native mir Math F32 slice4: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE4_SMOKE_EXPECTED,
+        "native mir Math F32 slice4: {out}"
+    );
 }
 
 #[test]
 fn math_f32_slice4_smoke_wasm() {
     let out = run_wasm("smoke", MATH_F32_SLICE4_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE4_SMOKE_EXPECTED, "wasm Math F32 slice4: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE4_SMOKE_EXPECTED,
+        "wasm Math F32 slice4: {out}"
+    );
 }
 
 /// W962 / ADR-1306 — F32 W909 MathFloat32* llvm slice4 exact nail (≠ full F32×42 / ≠ llvm Math GA).
@@ -673,13 +687,19 @@ const MATH_F32_SLICE5_SMOKE_EXPECTED: &str = "1\n1\n0\n-1\nfalse\nfalse\ntrue\n1
 #[test]
 fn math_f32_slice5_smoke_native_mir() {
     let out = run_native_mir("smoke", MATH_F32_SLICE5_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE5_SMOKE_EXPECTED, "native mir Math F32 slice5: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE5_SMOKE_EXPECTED,
+        "native mir Math F32 slice5: {out}"
+    );
 }
 
 #[test]
 fn math_f32_slice5_smoke_wasm() {
     let out = run_wasm("smoke", MATH_F32_SLICE5_SMOKE);
-    assert_eq!(out, MATH_F32_SLICE5_SMOKE_EXPECTED, "wasm Math F32 slice5: {out}");
+    assert_eq!(
+        out, MATH_F32_SLICE5_SMOKE_EXPECTED,
+        "wasm Math F32 slice5: {out}"
+    );
 }
 
 /// W963 / ADR-1307 — F32 W910 MathFloat32* llvm slice5 exact nail (≠ full F32×42 / ≠ llvm Math GA).
@@ -758,4 +778,3 @@ func main() {
     let out = run_native_mir("host_direct", src);
     assert_eq!(out, "10\n0.99999994", "host f32 Soft close direct: {out}");
 }
-

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -21,7 +20,8 @@ fn s3_05_claim_prep_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-05-claim-prep.md");
     assert!(adr.contains("S3-I75"), "claim-prep ADR must name S3-I75");
     assert!(
-        adr.contains("Primary") && (adr.contains("判据") || adr.contains("criteria") || adr.contains("draft")),
+        adr.contains("Primary")
+            && (adr.contains("判据") || adr.contains("criteria") || adr.contains("draft")),
         "ADR must publish claim criteria draft"
     );
     assert!(

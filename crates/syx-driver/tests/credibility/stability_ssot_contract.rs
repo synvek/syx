@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -41,15 +40,13 @@ fn s4_01_stability_ssot_adr_and_files() {
         "stability.toml must exist with schema"
     );
     let rows = ssot.matches("[[package]]").count();
-    assert!(
-        rows >= 19,
-        "expected ≥19 [[package]] rows, got {rows}"
-    );
-    for tier in ["stability = \"stable\"", "stability = \"preview\"", "stability = \"experimental\""] {
-        assert!(
-            ssot.contains(tier),
-            "SSOT must use ternary {tier}"
-        );
+    assert!(rows >= 19, "expected ≥19 [[package]] rows, got {rows}");
+    for tier in [
+        "stability = \"stable\"",
+        "stability = \"preview\"",
+        "stability = \"experimental\"",
+    ] {
+        assert!(ssot.contains(tier), "SSOT must use ternary {tier}");
     }
     assert!(
         ssot.contains("name = \"Testing\"") && ssot.contains("name = \"internal\""),
@@ -104,10 +101,7 @@ fn s4_01_stability_ssot_adr_and_files() {
             && plan02.contains("S3-I92"),
         "plan/02 must cite I89…I92"
     );
-    assert!(
-        plan02.contains("5/5"),
-        "plan/02 must publish Stage-4 5/5"
-    );
+    assert!(plan02.contains("5/5"), "plan/02 must publish Stage-4 5/5");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
@@ -151,5 +145,8 @@ fn s4_01_stability_ssot_census_script_hinges() {
     assert!(parse("stability_ssot_helper=") >= 1);
     assert!(parse("stability_ssot_package_rows=") >= 19);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
+    assert!(
+        parse("syx_doctest_subcommand_count=") >= 1,
+        "SA-5-05: syx doctest subcommand must exist"
+    );
 }

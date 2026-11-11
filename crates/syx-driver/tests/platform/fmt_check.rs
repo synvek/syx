@@ -64,8 +64,8 @@ fn fmt_check_idempotent_narrow_ok() {
 
 #[test]
 fn fmt_check_differential_suite1_ok() {
-    let suite1 = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/differential/suite1");
+    let suite1 =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/differential/suite1");
     let report = format_check_path(&suite1).expect("suite1 check");
     assert_eq!(
         report.checked, 8,
@@ -83,8 +83,7 @@ fn fmt_check_differential_suite1_ok() {
 
 #[test]
 fn fmt_check_class_mvp_ok() {
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/class_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/class_mvp");
     let report = format_check_path(&dir).expect("class_mvp check");
     assert!(report.checked >= 3, "got {}", report.checked);
     assert!(
@@ -98,8 +97,7 @@ fn fmt_check_class_mvp_ok() {
 
 #[test]
 fn fmt_check_ext_proto_mvp_ok() {
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/ext_proto_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/ext_proto_mvp");
     let report = format_check_path(&dir).expect("ext_proto_mvp check");
     assert!(report.checked >= 3, "got {}", report.checked);
     assert!(
@@ -114,8 +112,8 @@ fn fmt_check_ext_proto_mvp_ok() {
 #[test]
 fn fmt_check_actor_deinit_mvp_ok() {
     // W687 / ADR-1031: narrow Actor/Deinit MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/actor_deinit_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/actor_deinit_mvp");
     let report = format_check_path(&dir).expect("actor_deinit_mvp check");
     assert!(
         report.checked >= 3,
@@ -134,8 +132,8 @@ fn fmt_check_actor_deinit_mvp_ok() {
 #[test]
 fn fmt_check_enum_typealias_mvp_ok() {
     // W688 / ADR-1032: narrow Enum/TypeAlias MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/enum_typealias_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/enum_typealias_mvp");
     let report = format_check_path(&dir).expect("enum_typealias_mvp check");
     assert!(
         report.checked >= 4,
@@ -154,8 +152,7 @@ fn fmt_check_enum_typealias_mvp_ok() {
 #[test]
 fn fmt_check_dataclass_mvp_ok() {
     // W689 / ADR-1033: narrow DataClass MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/dataclass_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/dataclass_mvp");
     let report = format_check_path(&dir).expect("dataclass_mvp check");
     assert!(
         report.checked >= 3,
@@ -174,8 +171,8 @@ fn fmt_check_dataclass_mvp_ok() {
 #[test]
 fn fmt_check_finalclass_mvp_ok() {
     // W690 / ADR-1034: narrow FinalClass MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/finalclass_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/finalclass_mvp");
     let report = format_check_path(&dir).expect("finalclass_mvp check");
     assert!(
         report.checked >= 3,
@@ -194,8 +191,8 @@ fn fmt_check_finalclass_mvp_ok() {
 #[test]
 fn fmt_check_globalactor_mvp_ok() {
     // W691 / ADR-1035: narrow GlobalActor MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/globalactor_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/globalactor_mvp");
     let report = format_check_path(&dir).expect("globalactor_mvp check");
     assert!(
         report.checked >= 3,
@@ -214,8 +211,7 @@ fn fmt_check_globalactor_mvp_ok() {
 #[test]
 fn fmt_check_subscript_mvp_ok() {
     // W692 / ADR-1036: narrow Subscript get-only MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/subscript_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/subscript_mvp");
     let report = format_check_path(&dir).expect("subscript_mvp check");
     assert!(
         report.checked >= 3,
@@ -234,8 +230,7 @@ fn fmt_check_subscript_mvp_ok() {
 #[test]
 fn fmt_check_observers_mvp_ok() {
     // W693 / ADR-1037: narrow observers MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/observers_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/observers_mvp");
     let report = format_check_path(&dir).expect("observers_mvp check");
     assert!(
         report.checked >= 3,
@@ -274,8 +269,7 @@ fn fmt_check_subscript_setter_mvp_ok() {
 #[test]
 fn fmt_check_computed_mvp_ok() {
     // W695 / ADR-1039: narrow computed get-only MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/computed_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/computed_mvp");
     let report = format_check_path(&dir).expect("computed_mvp check");
     assert!(
         report.checked >= 3,
@@ -294,8 +288,7 @@ fn fmt_check_computed_mvp_ok() {
 #[test]
 fn fmt_check_lazy_mvp_ok() {
     // W696 / ADR-1040: narrow lazy var MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/lazy_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/lazy_mvp");
     let report = format_check_path(&dir).expect("lazy_mvp check");
     assert!(
         report.checked >= 3,
@@ -374,8 +367,8 @@ fn fmt_check_lazy_computed_mixed_mvp_ok() {
 #[test]
 fn fmt_check_computed_setter_mvp_ok() {
     // W697 / ADR-1041: narrow computed get+set MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/computed_setter_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/computed_setter_mvp");
     let report = format_check_path(&dir).expect("computed_setter_mvp check");
     assert!(
         report.checked >= 3,
@@ -394,8 +387,8 @@ fn fmt_check_computed_setter_mvp_ok() {
 #[test]
 fn fmt_check_override_var_mvp_ok() {
     // W698 / ADR-1042: narrow override var MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/override_var_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/override_var_mvp");
     let report = format_check_path(&dir).expect("override_var_mvp check");
     assert!(
         report.checked >= 3,
@@ -414,8 +407,8 @@ fn fmt_check_override_var_mvp_ok() {
 #[test]
 fn fmt_check_operator_func_mvp_ok() {
     // W699 / ADR-1043: narrow OperatorFunc MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/operator_func_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/operator_func_mvp");
     let report = format_check_path(&dir).expect("operator_func_mvp check");
     assert!(
         report.checked >= 3,
@@ -434,8 +427,8 @@ fn fmt_check_operator_func_mvp_ok() {
 #[test]
 fn fmt_check_macro_decl_mvp_ok() {
     // W700 / ADR-1044: narrow MacroDecl User MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/macro_decl_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/macro_decl_mvp");
     let report = format_check_path(&dir).expect("macro_decl_mvp check");
     assert!(
         report.checked >= 3,
@@ -474,8 +467,8 @@ fn fmt_check_macro_site_invoke_mvp_ok() {
 #[test]
 fn fmt_check_macro_invoke_mvp_ok() {
     // W702 / ADR-1046: narrow Expr/Stmt MacroInvoke MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/macro_invoke_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/macro_invoke_mvp");
     let report = format_check_path(&dir).expect("macro_invoke_mvp check");
     assert!(
         report.checked >= 3,
@@ -494,8 +487,8 @@ fn fmt_check_macro_invoke_mvp_ok() {
 #[test]
 fn fmt_check_toplevel_stmt_mvp_ok() {
     // W703 / ADR-1047: narrow TopLevelStmt MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/toplevel_stmt_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/toplevel_stmt_mvp");
     let report = format_check_path(&dir).expect("toplevel_stmt_mvp check");
     assert!(
         report.checked >= 3,
@@ -514,8 +507,8 @@ fn fmt_check_toplevel_stmt_mvp_ok() {
 #[test]
 fn fmt_check_macro_builtin_mvp_ok() {
     // W704 / ADR-1048: narrow BuiltIn MacroDecl MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/macro_builtin_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/macro_builtin_mvp");
     let report = format_check_path(&dir).expect("macro_builtin_mvp check");
     assert!(
         report.checked >= 3,
@@ -534,8 +527,8 @@ fn fmt_check_macro_builtin_mvp_ok() {
 #[test]
 fn fmt_check_macro_external_mvp_ok() {
     // W705 / ADR-1049: narrow External MacroDecl MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/macro_external_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/macro_external_mvp");
     let report = format_check_path(&dir).expect("macro_external_mvp check");
     assert!(
         report.checked >= 3,
@@ -554,8 +547,8 @@ fn fmt_check_macro_external_mvp_ok() {
 #[test]
 fn fmt_check_macro_decl_body_mvp_ok() {
     // W706 / ADR-1050: narrow nonempty decl_body MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/macro_decl_body_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/macro_decl_body_mvp");
     let report = format_check_path(&dir).expect("macro_decl_body_mvp check");
     assert!(
         report.checked >= 3,
@@ -574,8 +567,7 @@ fn fmt_check_macro_decl_body_mvp_ok() {
 #[test]
 fn fmt_check_throw_mvp_ok() {
     // W707 / ADR-1051: narrow Throw MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/throw_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/throw_mvp");
     let report = format_check_path(&dir).expect("throw_mvp check");
     assert!(
         report.checked >= 3,
@@ -594,8 +586,7 @@ fn fmt_check_throw_mvp_ok() {
 #[test]
 fn fmt_check_try_mvp_ok() {
     // W708 / ADR-1052: narrow Try MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/try_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/try_mvp");
     let report = format_check_path(&dir).expect("try_mvp check");
     assert!(
         report.checked >= 3,
@@ -614,8 +605,7 @@ fn fmt_check_try_mvp_ok() {
 #[test]
 fn fmt_check_closure_mvp_ok() {
     // W709 / ADR-1053: narrow Closure MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/closure_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/closure_mvp");
     let report = format_check_path(&dir).expect("closure_mvp check");
     assert!(
         report.checked >= 3,
@@ -631,12 +621,10 @@ fn fmt_check_closure_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_await_mvp_ok() {
     // W710 / ADR-1054: narrow Await MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/await_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/await_mvp");
     let report = format_check_path(&dir).expect("await_mvp check");
     assert!(
         report.checked >= 3,
@@ -652,12 +640,11 @@ fn fmt_check_await_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_force_unwrap_mvp_ok() {
     // W711 / ADR-1055: narrow ForceUnwrap MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/force_unwrap_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/force_unwrap_mvp");
     let report = format_check_path(&dir).expect("force_unwrap_mvp check");
     assert!(
         report.checked >= 3,
@@ -676,8 +663,7 @@ fn fmt_check_force_unwrap_mvp_ok() {
 #[test]
 fn fmt_check_cast_mvp_ok() {
     // W712 / ADR-1056: narrow Cast MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cast_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cast_mvp");
     let report = format_check_path(&dir).expect("cast_mvp check");
     assert!(
         report.checked >= 3,
@@ -696,8 +682,8 @@ fn fmt_check_cast_mvp_ok() {
 #[test]
 fn fmt_check_optional_cast_mvp_ok() {
     // W713 / ADR-1057: narrow OptionalCast MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/optional_cast_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/optional_cast_mvp");
     let report = format_check_path(&dir).expect("optional_cast_mvp check");
     assert!(
         report.checked >= 3,
@@ -716,8 +702,7 @@ fn fmt_check_optional_cast_mvp_ok() {
 #[test]
 fn fmt_check_is_mvp_ok() {
     // W714 / ADR-1058: narrow Is MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/is_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/is_mvp");
     let report = format_check_path(&dir).expect("is_mvp check");
     assert!(
         report.checked >= 3,
@@ -736,8 +721,7 @@ fn fmt_check_is_mvp_ok() {
 #[test]
 fn fmt_check_type_self_mvp_ok() {
     // W715 / ADR-1059: narrow TypeSelf MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/type_self_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/type_self_mvp");
     let report = format_check_path(&dir).expect("type_self_mvp check");
     assert!(
         report.checked >= 3,
@@ -756,8 +740,8 @@ fn fmt_check_type_self_mvp_ok() {
 #[test]
 fn fmt_check_optional_chain_mvp_ok() {
     // W716 / ADR-1060: narrow OptionalChain MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/optional_chain_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/optional_chain_mvp");
     let report = format_check_path(&dir).expect("optional_chain_mvp check");
     assert!(
         report.checked >= 3,
@@ -776,8 +760,8 @@ fn fmt_check_optional_chain_mvp_ok() {
 #[test]
 fn fmt_check_half_open_range_mvp_ok() {
     // W717 / ADR-1061: narrow HalfOpenRange MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/half_open_range_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/half_open_range_mvp");
     let report = format_check_path(&dir).expect("half_open_range_mvp check");
     assert!(
         report.checked >= 3,
@@ -796,8 +780,8 @@ fn fmt_check_half_open_range_mvp_ok() {
 #[test]
 fn fmt_check_closed_range_mvp_ok() {
     // W718 / ADR-1062: narrow ClosedRange MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/closed_range_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/closed_range_mvp");
     let report = format_check_path(&dir).expect("closed_range_mvp check");
     assert!(
         report.checked >= 3,
@@ -816,8 +800,7 @@ fn fmt_check_closed_range_mvp_ok() {
 #[test]
 fn fmt_check_switch_mvp_ok() {
     // W719 / ADR-1063: narrow Switch MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_mvp");
     let report = format_check_path(&dir).expect("switch_mvp check");
     assert!(
         report.checked >= 3,
@@ -836,8 +819,7 @@ fn fmt_check_switch_mvp_ok() {
 #[test]
 fn fmt_check_if_let_mvp_ok() {
     // W720 / ADR-1064: narrow IfLet MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/if_let_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/if_let_mvp");
     let report = format_check_path(&dir).expect("if_let_mvp check");
     assert!(
         report.checked >= 3,
@@ -856,8 +838,7 @@ fn fmt_check_if_let_mvp_ok() {
 #[test]
 fn fmt_check_guard_let_mvp_ok() {
     // W721 / ADR-1065: narrow GuardLet MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/guard_let_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/guard_let_mvp");
     let report = format_check_path(&dir).expect("guard_let_mvp check");
     assert!(
         report.checked >= 5,
@@ -876,8 +857,8 @@ fn fmt_check_guard_let_mvp_ok() {
 #[test]
 fn fmt_check_repeat_while_mvp_ok() {
     // W722 / ADR-1066: narrow RepeatWhile MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/repeat_while_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/repeat_while_mvp");
     let report = format_check_path(&dir).expect("repeat_while_mvp check");
     assert!(
         report.checked >= 5,
@@ -896,8 +877,7 @@ fn fmt_check_repeat_while_mvp_ok() {
 #[test]
 fn fmt_check_if_case_mvp_ok() {
     // W723 / ADR-1067: narrow IfCase MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/if_case_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/if_case_mvp");
     let report = format_check_path(&dir).expect("if_case_mvp check");
     assert!(
         report.checked >= 5,
@@ -916,8 +896,8 @@ fn fmt_check_if_case_mvp_ok() {
 #[test]
 fn fmt_check_tuple_pattern_mvp_ok() {
     // W724 / ADR-1068: narrow TuplePattern MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/tuple_pattern_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/tuple_pattern_mvp");
     let report = format_check_path(&dir).expect("tuple_pattern_mvp check");
     assert!(
         report.checked >= 5,
@@ -936,8 +916,8 @@ fn fmt_check_tuple_pattern_mvp_ok() {
 #[test]
 fn fmt_check_task_block_mvp_ok() {
     // W725 / ADR-1069: narrow TaskBlock MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/task_block_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/task_block_mvp");
     let report = format_check_path(&dir).expect("task_block_mvp check");
     assert!(
         report.checked >= 5,
@@ -956,8 +936,7 @@ fn fmt_check_task_block_mvp_ok() {
 #[test]
 fn fmt_check_borrow_mvp_ok() {
     // W726 / ADR-1070: narrow Borrow MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/borrow_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/borrow_mvp");
     let report = format_check_path(&dir).expect("borrow_mvp check");
     assert!(
         report.checked >= 5,
@@ -976,8 +955,7 @@ fn fmt_check_borrow_mvp_ok() {
 #[test]
 fn fmt_check_keypath_mvp_ok() {
     // W727 / ADR-1071: narrow KeyPath MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/keypath_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/keypath_mvp");
     let report = format_check_path(&dir).expect("keypath_mvp check");
     assert!(
         report.checked >= 5,
@@ -996,8 +974,8 @@ fn fmt_check_keypath_mvp_ok() {
 #[test]
 fn fmt_check_compound_assign_mvp_ok() {
     // W728 / ADR-1072: narrow CompoundAssign MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/compound_assign_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/compound_assign_mvp");
     let report = format_check_path(&dir).expect("compound_assign_mvp check");
     assert!(
         report.checked >= 5,
@@ -1016,8 +994,8 @@ fn fmt_check_compound_assign_mvp_ok() {
 #[test]
 fn fmt_check_index_assign_mvp_ok() {
     // W729 / ADR-1073: narrow IndexAssign MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/index_assign_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/index_assign_mvp");
     let report = format_check_path(&dir).expect("index_assign_mvp check");
     assert!(
         report.checked >= 5,
@@ -1036,8 +1014,7 @@ fn fmt_check_index_assign_mvp_ok() {
 #[test]
 fn fmt_check_tuple_mvp_ok() {
     // W730 / ADR-1074: narrow Tuple MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/tuple_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/tuple_mvp");
     let report = format_check_path(&dir).expect("tuple_mvp check");
     assert!(
         report.checked >= 5,
@@ -1056,8 +1033,7 @@ fn fmt_check_tuple_mvp_ok() {
 #[test]
 fn fmt_check_super_mvp_ok() {
     // W731 / ADR-1075: narrow Super MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/super_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/super_mvp");
     let report = format_check_path(&dir).expect("super_mvp check");
     assert!(
         report.checked >= 5,
@@ -1076,8 +1052,7 @@ fn fmt_check_super_mvp_ok() {
 #[test]
 fn fmt_check_seq_mvp_ok() {
     // W732 / ADR-1076: narrow Seq MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/seq_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/seq_mvp");
     let report = format_check_path(&dir).expect("seq_mvp check");
     assert!(
         report.checked >= 5,
@@ -1096,8 +1071,8 @@ fn fmt_check_seq_mvp_ok() {
 #[test]
 fn fmt_check_switch_where_mvp_ok() {
     // W733 / ADR-1077: narrow Switch-where MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_where_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_where_mvp");
     let report = format_check_path(&dir).expect("switch_where_mvp check");
     assert!(
         report.checked >= 5,
@@ -1116,8 +1091,8 @@ fn fmt_check_switch_where_mvp_ok() {
 #[test]
 fn fmt_check_switch_range_mvp_ok() {
     // W734 / ADR-1078: narrow Switch-range MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_range_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_range_mvp");
     let report = format_check_path(&dir).expect("switch_range_mvp check");
     assert!(
         report.checked >= 5,
@@ -1136,8 +1111,8 @@ fn fmt_check_switch_range_mvp_ok() {
 #[test]
 fn fmt_check_switch_variant_mvp_ok() {
     // W735 / ADR-1079: narrow Switch-variant MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_variant_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_variant_mvp");
     let report = format_check_path(&dir).expect("switch_variant_mvp check");
     assert!(
         report.checked >= 5,
@@ -1156,8 +1131,8 @@ fn fmt_check_switch_variant_mvp_ok() {
 #[test]
 fn fmt_check_switch_tuple_mvp_ok() {
     // W736 / ADR-1080: narrow Switch-tuple MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_tuple_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_tuple_mvp");
     let report = format_check_path(&dir).expect("switch_tuple_mvp check");
     assert!(
         report.checked >= 5,
@@ -1176,8 +1151,7 @@ fn fmt_check_switch_tuple_mvp_ok() {
 #[test]
 fn fmt_check_switch_is_mvp_ok() {
     // W737 / ADR-1081: narrow Switch-is MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_is_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_is_mvp");
     let report = format_check_path(&dir).expect("switch_is_mvp check");
     assert!(
         report.checked >= 5,
@@ -1196,8 +1170,8 @@ fn fmt_check_switch_is_mvp_ok() {
 #[test]
 fn fmt_check_switch_ident_mvp_ok() {
     // W738 / ADR-1082: narrow Switch-Ident MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_ident_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_ident_mvp");
     let report = format_check_path(&dir).expect("switch_ident_mvp check");
     assert!(
         report.checked >= 5,
@@ -1216,8 +1190,8 @@ fn fmt_check_switch_ident_mvp_ok() {
 #[test]
 fn fmt_check_switch_binary_mvp_ok() {
     // W739 / ADR-1083: narrow Switch-Binary MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_binary_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_binary_mvp");
     let report = format_check_path(&dir).expect("switch_binary_mvp check");
     assert!(
         report.checked >= 5,
@@ -1236,8 +1210,8 @@ fn fmt_check_switch_binary_mvp_ok() {
 #[test]
 fn fmt_check_switch_call_mvp_ok() {
     // W740 / ADR-1084: narrow Switch-Call MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_call_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_call_mvp");
     let report = format_check_path(&dir).expect("switch_call_mvp check");
     assert!(
         report.checked >= 5,
@@ -1256,8 +1230,8 @@ fn fmt_check_switch_call_mvp_ok() {
 #[test]
 fn fmt_check_switch_member_mvp_ok() {
     // W741 / ADR-1085: narrow Switch-Member MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_member_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_member_mvp");
     let report = format_check_path(&dir).expect("switch_member_mvp check");
     assert!(
         report.checked >= 5,
@@ -1276,8 +1250,8 @@ fn fmt_check_switch_member_mvp_ok() {
 #[test]
 fn fmt_check_switch_index_mvp_ok() {
     // W742 / ADR-1086: narrow Switch-Index MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_index_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_index_mvp");
     let report = format_check_path(&dir).expect("switch_index_mvp check");
     assert!(
         report.checked >= 5,
@@ -1336,8 +1310,8 @@ fn fmt_check_switch_force_unwrap_mvp_ok() {
 #[test]
 fn fmt_check_switch_keypath_mvp_ok() {
     // W745 / ADR-1089: narrow Switch-KeyPath MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_keypath_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_keypath_mvp");
     let report = format_check_path(&dir).expect("switch_keypath_mvp check");
     assert!(
         report.checked >= 5,
@@ -1356,8 +1330,8 @@ fn fmt_check_switch_keypath_mvp_ok() {
 #[test]
 fn fmt_check_switch_array_mvp_ok() {
     // W746 / ADR-1090: narrow Switch-Array MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_array_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_array_mvp");
     let report = format_check_path(&dir).expect("switch_array_mvp check");
     assert!(
         report.checked >= 5,
@@ -1376,8 +1350,8 @@ fn fmt_check_switch_array_mvp_ok() {
 #[test]
 fn fmt_check_switch_unary_mvp_ok() {
     // W747 / ADR-1091: narrow Switch-Unary MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_unary_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_unary_mvp");
     let report = format_check_path(&dir).expect("switch_unary_mvp check");
     assert!(
         report.checked >= 5,
@@ -1396,8 +1370,8 @@ fn fmt_check_switch_unary_mvp_ok() {
 #[test]
 fn fmt_check_switch_await_mvp_ok() {
     // W748 / ADR-1092: narrow Switch-Await MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_await_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_await_mvp");
     let report = format_check_path(&dir).expect("switch_await_mvp check");
     assert!(
         report.checked >= 5,
@@ -1416,8 +1390,8 @@ fn fmt_check_switch_await_mvp_ok() {
 #[test]
 fn fmt_check_switch_cast_mvp_ok() {
     // W749 / ADR-1093: narrow Switch-Cast MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_cast_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_cast_mvp");
     let report = format_check_path(&dir).expect("switch_cast_mvp check");
     assert!(
         report.checked >= 5,
@@ -1476,8 +1450,8 @@ fn fmt_check_switch_type_self_mvp_ok() {
 #[test]
 fn fmt_check_switch_super_mvp_ok() {
     // W752 / ADR-1096: narrow Switch-Super MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_super_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_super_mvp");
     let report = format_check_path(&dir).expect("switch_super_mvp check");
     assert!(
         report.checked >= 5,
@@ -1496,8 +1470,8 @@ fn fmt_check_switch_super_mvp_ok() {
 #[test]
 fn fmt_check_switch_borrow_mvp_ok() {
     // W753 / ADR-1097: narrow Switch-Borrow MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_borrow_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_borrow_mvp");
     let report = format_check_path(&dir).expect("switch_borrow_mvp check");
     assert!(
         report.checked >= 5,
@@ -1536,8 +1510,8 @@ fn fmt_check_switch_macro_invoke_mvp_ok() {
 #[test]
 fn fmt_check_switch_closure_mvp_ok() {
     // W755 / ADR-1099: narrow Switch-Closure MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_closure_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_closure_mvp");
     let report = format_check_path(&dir).expect("switch_closure_mvp check");
     assert!(
         report.checked >= 5,
@@ -1576,8 +1550,8 @@ fn fmt_check_switch_task_block_mvp_ok() {
 #[test]
 fn fmt_check_switch_assign_mvp_ok() {
     // W757 / ADR-1101: narrow Switch-Assign MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_assign_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_assign_mvp");
     let report = format_check_path(&dir).expect("switch_assign_mvp check");
     assert!(
         report.checked >= 5,
@@ -1656,8 +1630,8 @@ fn fmt_check_switch_index_assign_mvp_ok() {
 #[test]
 fn fmt_check_switch_is_expr_mvp_ok() {
     // W761 / ADR-1105: narrow Switch non-desugar-Is MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/switch_is_expr_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/switch_is_expr_mvp");
     let report = format_check_path(&dir).expect("switch_is_expr_mvp check");
     assert!(
         report.checked >= 5,
@@ -1676,8 +1650,8 @@ fn fmt_check_switch_is_expr_mvp_ok() {
 #[test]
 fn fmt_check_if_case_literal_mvp_ok() {
     // W762 / ADR-1106: narrow IfCase Literal MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/if_case_literal_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/if_case_literal_mvp");
     let report = format_check_path(&dir).expect("if_case_literal_mvp check");
     assert!(
         report.checked >= 5,
@@ -1696,8 +1670,8 @@ fn fmt_check_if_case_literal_mvp_ok() {
 #[test]
 fn fmt_check_if_case_range_mvp_ok() {
     // W763 / ADR-1107: narrow IfCase Range MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/if_case_range_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/if_case_range_mvp");
     let report = format_check_path(&dir).expect("if_case_range_mvp check");
     assert!(
         report.checked >= 5,
@@ -1716,8 +1690,8 @@ fn fmt_check_if_case_range_mvp_ok() {
 #[test]
 fn fmt_check_if_case_is_mvp_ok() {
     // W764 / ADR-1108: narrow IfCase desugar-Is MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/if_case_is_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/if_case_is_mvp");
     let report = format_check_path(&dir).expect("if_case_is_mvp check");
     assert!(
         report.checked >= 5,
@@ -1736,8 +1710,8 @@ fn fmt_check_if_case_is_mvp_ok() {
 #[test]
 fn fmt_check_protocol_assoc_mvp_ok() {
     // W765 / ADR-1109: narrow protocol associatedtype MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/protocol_assoc_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/protocol_assoc_mvp");
     let report = format_check_path(&dir).expect("protocol_assoc_mvp check");
     assert!(
         report.checked >= 5,
@@ -1756,8 +1730,8 @@ fn fmt_check_protocol_assoc_mvp_ok() {
 #[test]
 fn fmt_check_extension_where_mvp_ok() {
     // W766 / ADR-1110: narrow extension where MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/extension_where_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/extension_where_mvp");
     let report = format_check_path(&dir).expect("extension_where_mvp check");
     assert!(
         report.checked >= 5,
@@ -1876,8 +1850,8 @@ fn fmt_check_func_type_params_mvp_ok() {
 #[test]
 fn fmt_check_func_throws_mvp_ok() {
     // W772 / ADR-1116: narrow function throws MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/func_throws_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/func_throws_mvp");
     let report = format_check_path(&dir).expect("func_throws_mvp check");
     assert!(
         report.checked >= 5,
@@ -1896,8 +1870,8 @@ fn fmt_check_func_throws_mvp_ok() {
 #[test]
 fn fmt_check_func_effect_mvp_ok() {
     // W773 / ADR-1117: narrow function effect MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/func_effect_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/func_effect_mvp");
     let report = format_check_path(&dir).expect("func_effect_mvp check");
     assert!(
         report.checked >= 5,
@@ -1916,8 +1890,8 @@ fn fmt_check_func_effect_mvp_ok() {
 #[test]
 fn fmt_check_func_where_mvp_ok() {
     // W774 / ADR-1118: narrow function where MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/func_where_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/func_where_mvp");
     let report = format_check_path(&dir).expect("func_where_mvp check");
     assert!(
         report.checked >= 5,
@@ -1936,8 +1910,8 @@ fn fmt_check_func_where_mvp_ok() {
 #[test]
 fn fmt_check_parameter_attrs_mvp_ok() {
     // W775 / ADR-1119: narrow parameter attributes MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/parameter_attrs_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/parameter_attrs_mvp");
     let report = format_check_path(&dir).expect("parameter_attrs_mvp check");
     assert!(
         report.checked >= 5,
@@ -1976,8 +1950,7 @@ fn fmt_check_isolated_sending_mvp_ok() {
 #[test]
 fn fmt_check_binop_mod_mvp_ok() {
     // W777 / ADR-1121: narrow binop Mod MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/binop_mod_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/binop_mod_mvp");
     let report = format_check_path(&dir).expect("binop_mod_mvp check");
     assert!(
         report.checked >= 5,
@@ -1996,8 +1969,8 @@ fn fmt_check_binop_mod_mvp_ok() {
 #[test]
 fn fmt_check_binop_lteq_mvp_ok() {
     // W778 / ADR-1122: narrow binop LtEq MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/binop_lteq_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/binop_lteq_mvp");
     let report = format_check_path(&dir).expect("binop_lteq_mvp check");
     assert!(
         report.checked >= 5,
@@ -2016,8 +1989,8 @@ fn fmt_check_binop_lteq_mvp_ok() {
 #[test]
 fn fmt_check_binop_gteq_mvp_ok() {
     // W779 / ADR-1123: narrow binop GtEq MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/binop_gteq_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/binop_gteq_mvp");
     let report = format_check_path(&dir).expect("binop_gteq_mvp check");
     assert!(
         report.checked >= 5,
@@ -2056,8 +2029,7 @@ fn fmt_check_binop_nilcoalesce_mvp_ok() {
 #[test]
 fn fmt_check_unary_try_mvp_ok() {
     // W781 / ADR-1125: narrow unary Try MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/unary_try_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/unary_try_mvp");
     let report = format_check_path(&dir).expect("unary_try_mvp check");
     assert!(
         report.checked >= 5,
@@ -2076,8 +2048,8 @@ fn fmt_check_unary_try_mvp_ok() {
 #[test]
 fn fmt_check_type_optional_mvp_ok() {
     // W782 / ADR-1126: narrow type Optional MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/type_optional_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/type_optional_mvp");
     let report = format_check_path(&dir).expect("type_optional_mvp check");
     assert!(
         report.checked >= 5,
@@ -2096,8 +2068,8 @@ fn fmt_check_type_optional_mvp_ok() {
 #[test]
 fn fmt_check_opaque_some_mvp_ok() {
     // W783 / ADR-1127: narrow OpaqueSome MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/opaque_some_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/opaque_some_mvp");
     let report = format_check_path(&dir).expect("opaque_some_mvp check");
     assert!(
         report.checked >= 5,
@@ -2116,8 +2088,8 @@ fn fmt_check_opaque_some_mvp_ok() {
 #[test]
 fn fmt_check_opaque_any_mvp_ok() {
     // W784 / ADR-1128: narrow OpaqueAny MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/opaque_any_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/opaque_any_mvp");
     let report = format_check_path(&dir).expect("opaque_any_mvp check");
     assert!(
         report.checked >= 5,
@@ -2136,8 +2108,7 @@ fn fmt_check_opaque_any_mvp_ok() {
 #[test]
 fn fmt_check_func_type_mvp_ok() {
     // W785 / ADR-1129: narrow Function type MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/func_type_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/func_type_mvp");
     let report = format_check_path(&dir).expect("func_type_mvp check");
     assert!(
         report.checked >= 5,
@@ -2156,8 +2127,8 @@ fn fmt_check_func_type_mvp_ok() {
 #[test]
 fn fmt_check_type_reference_mvp_ok() {
     // W786 / ADR-1130: narrow Reference MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/type_reference_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/type_reference_mvp");
     let report = format_check_path(&dir).expect("type_reference_mvp check");
     assert!(
         report.checked >= 5,
@@ -2176,8 +2147,8 @@ fn fmt_check_type_reference_mvp_ok() {
 #[test]
 fn fmt_check_literal_bigint_mvp_ok() {
     // W787 / ADR-1131: narrow BigInt MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/literal_bigint_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/literal_bigint_mvp");
     let report = format_check_path(&dir).expect("literal_bigint_mvp check");
     assert!(
         report.checked >= 5,
@@ -2216,8 +2187,8 @@ fn fmt_check_literal_interpolated_mvp_ok() {
 #[test]
 fn fmt_check_literal_regex_mvp_ok() {
     // W789 / ADR-1133: narrow Regex MVP directory must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/literal_regex_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/literal_regex_mvp");
     let report = format_check_path(&dir).expect("literal_regex_mvp check");
     assert!(
         report.checked >= 5,
@@ -2236,8 +2207,7 @@ fn fmt_check_literal_regex_mvp_ok() {
 #[test]
 fn fmt_check_cst_print_mvp_ok() {
     // W790 / ADR-1134: narrow CST print MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_print_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_print_mvp");
     let report = format_check_path(&dir).expect("cst_print_mvp check");
     assert!(
         report.checked >= 5,
@@ -2256,8 +2226,7 @@ fn fmt_check_cst_print_mvp_ok() {
 #[test]
 fn fmt_check_cst_let_mvp_ok() {
     // W791 / ADR-1135: narrow CST let MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_let_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_let_mvp");
     let report = format_check_path(&dir).expect("cst_let_mvp check");
     assert!(
         report.checked >= 5,
@@ -2276,8 +2245,8 @@ fn fmt_check_cst_let_mvp_ok() {
 #[test]
 fn fmt_check_cst_return_mvp_ok() {
     // W792 / ADR-1136: narrow CST return MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_return_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_return_mvp");
     let report = format_check_path(&dir).expect("cst_return_mvp check");
     assert!(
         report.checked >= 5,
@@ -2296,8 +2265,8 @@ fn fmt_check_cst_return_mvp_ok() {
 #[test]
 fn fmt_check_cst_double_mvp_ok() {
     // W793 / ADR-1137: narrow CST Double MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_double_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_double_mvp");
     let report = format_check_path(&dir).expect("cst_double_mvp check");
     assert!(
         report.checked >= 5,
@@ -2316,8 +2285,7 @@ fn fmt_check_cst_double_mvp_ok() {
 #[test]
 fn fmt_check_cst_bool_mvp_ok() {
     // W794 / ADR-1138: narrow CST Bool MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_bool_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_bool_mvp");
     let report = format_check_path(&dir).expect("cst_bool_mvp check");
     assert!(
         report.checked >= 5,
@@ -2336,8 +2304,7 @@ fn fmt_check_cst_bool_mvp_ok() {
 #[test]
 fn fmt_check_cst_nil_mvp_ok() {
     // W795 / ADR-1139: narrow CST Nil MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_nil_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_nil_mvp");
     let report = format_check_path(&dir).expect("cst_nil_mvp check");
     assert!(
         report.checked >= 5,
@@ -2356,8 +2323,7 @@ fn fmt_check_cst_nil_mvp_ok() {
 #[test]
 fn fmt_check_cst_var_mvp_ok() {
     // W796 / ADR-1140: narrow CST var MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_var_mvp");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_var_mvp");
     let report = format_check_path(&dir).expect("cst_var_mvp check");
     assert!(
         report.checked >= 5,
@@ -2376,8 +2342,8 @@ fn fmt_check_cst_var_mvp_ok() {
 #[test]
 fn fmt_check_cst_bare_return_mvp_ok() {
     // W797 / ADR-1141: narrow CST bare-return MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_bare_return_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_bare_return_mvp");
     let report = format_check_path(&dir).expect("cst_bare_return_mvp check");
     assert!(
         report.checked >= 5,
@@ -2396,8 +2362,8 @@ fn fmt_check_cst_bare_return_mvp_ok() {
 #[test]
 fn fmt_check_cst_multi_func_mvp_ok() {
     // W798 / ADR-1142: narrow CST multi-func MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_multi_func_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_multi_func_mvp");
     let report = format_check_path(&dir).expect("cst_multi_func_mvp check");
     assert!(
         report.checked >= 5,
@@ -2416,8 +2382,8 @@ fn fmt_check_cst_multi_func_mvp_ok() {
 #[test]
 fn fmt_check_cst_typed_bind_mvp_ok() {
     // W799 / ADR-1143: narrow CST typed-bind MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_typed_bind_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_typed_bind_mvp");
     let report = format_check_path(&dir).expect("cst_typed_bind_mvp check");
     assert!(
         report.checked >= 5,
@@ -2756,8 +2722,8 @@ fn fmt_check_cst_toplevel_simple_mvp_ok() {
 #[test]
 fn fmt_check_cst_param_func_mvp_ok() {
     // W816 / ADR-1160: narrow CST param-func MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_param_func_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_param_func_mvp");
     let report = format_check_path(&dir).expect("cst_param_func_mvp check");
     assert!(
         report.checked >= 5,
@@ -2776,8 +2742,8 @@ fn fmt_check_cst_param_func_mvp_ok() {
 #[test]
 fn fmt_check_cst_typed_param_mvp_ok() {
     // W817 / ADR-1161: narrow CST typed-param MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_typed_param_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_typed_param_mvp");
     let report = format_check_path(&dir).expect("cst_typed_param_mvp check");
     assert!(
         report.checked >= 5,
@@ -2956,8 +2922,8 @@ fn fmt_check_cst_typed_param_multi_arg_generic_mvp_ok() {
 #[test]
 fn fmt_check_cst_func_return_mvp_ok() {
     // W826 / ADR-1170: narrow CST func-return MVP directory must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_func_return_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_func_return_mvp");
     let report = format_check_path(&dir).expect("cst_func_return_mvp check");
     assert!(
         report.checked >= 5,
@@ -3153,7 +3119,6 @@ fn fmt_check_cst_amp_as_generic_arg_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_function_as_generic_arg_mvp_ok() {
     // W834 / ADR-1178 face1: cst_function_as_generic_arg MVP must --check green (default AST).
@@ -3177,8 +3142,8 @@ fn fmt_check_cst_function_as_generic_arg_mvp_ok() {
 #[test]
 fn fmt_check_cst_print_call_mvp_ok() {
     // W834 / ADR-1178 face2: cst_print_call MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_print_call_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_print_call_mvp");
     let report = format_check_path(&dir).expect("cst_print_call_mvp check");
     assert!(
         report.checked >= 5,
@@ -3197,8 +3162,8 @@ fn fmt_check_cst_print_call_mvp_ok() {
 #[test]
 fn fmt_check_cst_call_rhs_mvp_ok() {
     // W834 / ADR-1178 face3: cst_call_rhs MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_call_rhs_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_call_rhs_mvp");
     let report = format_check_path(&dir).expect("cst_call_rhs_mvp check");
     assert!(
         report.checked >= 5,
@@ -3213,7 +3178,6 @@ fn fmt_check_cst_call_rhs_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_while_ident_cond_mvp_ok() {
@@ -3258,8 +3222,8 @@ fn fmt_check_cst_while_call_cond_mvp_ok() {
 #[test]
 fn fmt_check_cst_while_mixed_mvp_ok() {
     // W835 / ADR-1179 face3: cst_while_mixed MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_while_mixed_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_while_mixed_mvp");
     let report = format_check_path(&dir).expect("cst_while_mixed_mvp check");
     assert!(
         report.checked >= 5,
@@ -3274,7 +3238,6 @@ fn fmt_check_cst_while_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_while_nested_mvp_ok() {
@@ -3336,12 +3299,11 @@ fn fmt_check_cst_while_deeper_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_effect_pure_mvp_ok() {
     // W837 / ADR-1181 face1: cst_effect_pure MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_effect_pure_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_effect_pure_mvp");
     let report = format_check_path(&dir).expect("cst_effect_pure_mvp check");
     assert!(
         report.checked >= 5,
@@ -3360,8 +3322,8 @@ fn fmt_check_cst_effect_pure_mvp_ok() {
 #[test]
 fn fmt_check_cst_effect_io_mvp_ok() {
     // W837 / ADR-1181 face2: cst_effect_io MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_effect_io_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_effect_io_mvp");
     let report = format_check_path(&dir).expect("cst_effect_io_mvp check");
     assert!(
         report.checked >= 5,
@@ -3396,7 +3358,6 @@ fn fmt_check_cst_effect_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_nested_call_print_mvp_ok() {
@@ -3458,12 +3419,11 @@ fn fmt_check_cst_nested_call_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_throws_bare_mvp_ok() {
     // W839 / ADR-1183 face1: cst_throws_bare MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_throws_bare_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_throws_bare_mvp");
     let report = format_check_path(&dir).expect("cst_throws_bare_mvp check");
     assert!(
         report.checked >= 5,
@@ -3518,7 +3478,6 @@ fn fmt_check_cst_throws_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_type_params_single_mvp_ok() {
@@ -3580,12 +3539,11 @@ fn fmt_check_cst_type_params_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_where_bare_mvp_ok() {
     // W841 / ADR-1185 face1: cst_where_bare MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_where_bare_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_where_bare_mvp");
     let report = format_check_path(&dir).expect("cst_where_bare_mvp check");
     assert!(
         report.checked >= 5,
@@ -3624,8 +3582,8 @@ fn fmt_check_cst_where_clause_mvp_ok() {
 #[test]
 fn fmt_check_cst_where_mixed_mvp_ok() {
     // W841 / ADR-1185 face3: cst_where_mixed MVP must --check green (default AST).
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_where_mixed_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_where_mixed_mvp");
     let report = format_check_path(&dir).expect("cst_where_mixed_mvp check");
     assert!(
         report.checked >= 5,
@@ -4901,7 +4859,6 @@ fn fmt_check_cst_while_neg11_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_while_neg12_bare_mvp_ok() {
     // W863 / ADR-1207 face1: cst_while_neg12_bare MVP must --check green (default AST).
@@ -4961,7 +4918,6 @@ fn fmt_check_cst_while_neg12_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_while_neg13_bare_mvp_ok() {
@@ -5023,7 +4979,6 @@ fn fmt_check_cst_while_neg13_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_while_neg14_bare_mvp_ok() {
     // W865 / ADR-1209 face1: cst_while_neg14_bare MVP must --check green (default AST).
@@ -5083,7 +5038,6 @@ fn fmt_check_cst_while_neg14_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_while_neg15_bare_mvp_ok() {
@@ -5145,7 +5099,6 @@ fn fmt_check_cst_while_neg15_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_while_neg16_bare_mvp_ok() {
     // W867 / ADR-1211 face1: cst_while_neg16_bare MVP must --check green (default AST).
@@ -5205,7 +5158,6 @@ fn fmt_check_cst_while_neg16_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_while_neg17_bare_mvp_ok() {
@@ -5267,7 +5219,6 @@ fn fmt_check_cst_while_neg17_mixed_mvp_ok() {
     );
 }
 
-
 #[test]
 fn fmt_check_cst_while_neg18_bare_mvp_ok() {
     // W869 / ADR-1213 face1: cst_while_neg18_bare MVP must --check green (default AST).
@@ -5327,7 +5278,6 @@ fn fmt_check_cst_while_neg18_mixed_mvp_ok() {
         report.failures
     );
 }
-
 
 #[test]
 fn fmt_check_cst_while_bang4_bare_mvp_ok() {
@@ -5572,8 +5522,8 @@ fn fmt_check_cst_func_access_mixed_mvp_ok() {
 #[test]
 fn fmt_check_cst_func_static_mvp_ok() {
     // W876 / ADR-1220 face1: static func + comments MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_func_static_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_func_static_mvp");
     let report = format_check_path(&dir).expect("cst_func_static_mvp check");
     assert!(
         report.checked >= 5,
@@ -5592,8 +5542,8 @@ fn fmt_check_cst_func_static_mvp_ok() {
 #[test]
 fn fmt_check_cst_func_async_mvp_ok() {
     // W876 / ADR-1220 face2: async func MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_func_async_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_func_async_mvp");
     let report = format_check_path(&dir).expect("cst_func_async_mvp check");
     assert!(
         report.checked >= 5,
@@ -5632,8 +5582,8 @@ fn fmt_check_cst_func_static_async_mixed_mvp_ok() {
 #[test]
 fn fmt_check_cst_if_bare_mvp_ok() {
     // W877 / ADR-1221 face1: if bare + comments MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_if_bare_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_if_bare_mvp");
     let report = format_check_path(&dir).expect("cst_if_bare_mvp check");
     assert!(
         report.checked >= 5,
@@ -5652,8 +5602,8 @@ fn fmt_check_cst_if_bare_mvp_ok() {
 #[test]
 fn fmt_check_cst_if_else_mvp_ok() {
     // W877 / ADR-1221 face2: if/else MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_if_else_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_if_else_mvp");
     let report = format_check_path(&dir).expect("cst_if_else_mvp check");
     assert!(
         report.checked >= 5,
@@ -5672,8 +5622,8 @@ fn fmt_check_cst_if_else_mvp_ok() {
 #[test]
 fn fmt_check_cst_if_mixed_mvp_ok() {
     // W877 / ADR-1221 face3: if mixed MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_if_mixed_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_if_mixed_mvp");
     let report = format_check_path(&dir).expect("cst_if_mixed_mvp check");
     assert!(
         report.checked >= 5,
@@ -5752,8 +5702,8 @@ fn fmt_check_cst_func_export_mixed_mvp_ok() {
 #[test]
 fn fmt_check_cst_class_bare_mvp_ok() {
     // W879 / ADR-1223 face1: class bare + comments MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_class_bare_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_class_bare_mvp");
     let report = format_check_path(&dir).expect("cst_class_bare_mvp check");
     assert!(
         report.checked >= 5,
@@ -5792,8 +5742,8 @@ fn fmt_check_cst_class_members_mvp_ok() {
 #[test]
 fn fmt_check_cst_class_mixed_mvp_ok() {
     // W879 / ADR-1223 face3: class mixed MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_class_mixed_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_class_mixed_mvp");
     let report = format_check_path(&dir).expect("cst_class_mixed_mvp check");
     assert!(
         report.checked >= 5,
@@ -5832,8 +5782,8 @@ fn fmt_check_cst_class_inherit_mvp_ok() {
 #[test]
 fn fmt_check_cst_class_init_mvp_ok() {
     // W880 / ADR-1224 face2: class init MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_class_init_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_class_init_mvp");
     let report = format_check_path(&dir).expect("cst_class_init_mvp check");
     assert!(
         report.checked >= 5,
@@ -5872,8 +5822,8 @@ fn fmt_check_cst_class_deep_mixed_mvp_ok() {
 #[test]
 fn fmt_check_cst_data_class_mvp_ok() {
     // W881 / ADR-1225 face1: data class MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_data_class_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_data_class_mvp");
     let report = format_check_path(&dir).expect("cst_data_class_mvp check");
     assert!(
         report.checked >= 5,
@@ -5892,8 +5842,8 @@ fn fmt_check_cst_data_class_mvp_ok() {
 #[test]
 fn fmt_check_cst_final_class_mvp_ok() {
     // W881 / ADR-1225 face2: final class MVP must --check green.
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/format/cst_final_class_mvp");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/format/cst_final_class_mvp");
     let report = format_check_path(&dir).expect("cst_final_class_mvp check");
     assert!(
         report.checked >= 5,
@@ -6975,7 +6925,8 @@ fn fmt_check_production_scope_honesty() {
         "production scope would_change must be 0; got {would_change}"
     );
     assert_eq!(
-        failed, 0,
+        failed,
+        0,
         "W901: production scope failed must be 0; failed={failed} checked={checked} sample={:?}",
         failures.iter().take(8).collect::<Vec<_>>()
     );
@@ -7009,7 +6960,10 @@ fn collect_production_scope_sy_files(dir: &std::path::Path) -> Vec<PathBuf> {
                 }
                 // Skip `tests/fixtures` corpus (non-product).
                 if name == "fixtures" {
-                    let parent = p.parent().and_then(|x| x.file_name()).and_then(|n| n.to_str());
+                    let parent = p
+                        .parent()
+                        .and_then(|x| x.file_name())
+                        .and_then(|n| n.to_str());
                     if parent == Some("tests") {
                         continue;
                     }
@@ -7043,13 +6997,15 @@ fn fmt_check_production_scope_comment_samples() {
         });
         assert_eq!(report.checked, 1, "{}", path.display());
         assert_eq!(
-            report.failed, 0,
+            report.failed,
+            0,
             "comment sample must parse/format: {} failures={:?}",
             path.display(),
             report.failures
         );
         assert_eq!(
-            report.would_change, 0,
+            report.would_change,
+            0,
             "comment sample must be byte-stable (CST trivia): {}",
             path.display()
         );
@@ -7063,13 +7019,15 @@ fn fmt_check_production_scope_comment_samples() {
             panic!("comment sample CST-only {}: {e}", path.display());
         });
         assert_eq!(
-            cst.failed, 0,
+            cst.failed,
+            0,
             "comment sample must be CST-green (no AST fallback): {} failures={:?}",
             path.display(),
             cst.failures
         );
         assert_eq!(
-            cst.would_change, 0,
+            cst.would_change,
+            0,
             "comment sample CST dry-run stable: {}",
             path.display()
         );
@@ -7111,12 +7069,9 @@ fn fmt_check_production_scope_comment_scan() {
                     continue;
                 }
             };
-            let has_comment = tokens.iter().any(|t| {
-                matches!(
-                    t.kind,
-                    TokenKind::LineComment | TokenKind::BlockComment
-                )
-            });
+            let has_comment = tokens
+                .iter()
+                .any(|t| matches!(t.kind, TokenKind::LineComment | TokenKind::BlockComment));
             if !has_comment {
                 continue;
             }
@@ -7190,7 +7145,6 @@ fn fmt_check_baseline_honesty() {
         "codable.sy must retain public + inheritance; got {text:?}"
     );
 }
-
 
 fn tempfile_dir() -> PathBuf {
     use std::sync::atomic::{AtomicU64, Ordering};

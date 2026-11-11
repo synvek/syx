@@ -90,9 +90,7 @@ fn mir_requires_full_llvm_emit(module: &MirModule) -> bool {
     fn instr_triggers_full_emit(op: &MirOp) -> bool {
         matches!(
             op,
-            MirOp::CallIndirect(_)
-                | MirOp::CallWitness(_, _)
-                | MirOp::AwaitSuspend { .. }
+            MirOp::CallIndirect(_) | MirOp::CallWitness(_, _) | MirOp::AwaitSuspend { .. }
         )
     }
     module.functions.iter().any(|func| {

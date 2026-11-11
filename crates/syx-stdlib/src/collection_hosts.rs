@@ -54,7 +54,11 @@ pub static COLLECTION_HOST_TABLE: &[CollectionHostEntry] = &[
     ch("__syx_set_insert", CollectionHostOp::Insert, "Bool"),
     ch("__syx_set_remove", CollectionHostOp::Remove, "Bool"),
     ch("__syx_set_union", CollectionHostOp::Union, "Set"),
-    ch("__syx_set_intersection", CollectionHostOp::Intersection, "Set"),
+    ch(
+        "__syx_set_intersection",
+        CollectionHostOp::Intersection,
+        "Set",
+    ),
     ch("__syx_dict_count", CollectionHostOp::Count, "Int"),
     ch("__syx_dict_contains", CollectionHostOp::ContainsKey, "Bool"),
     ch("__syx_dict_keys", CollectionHostOp::Keys, "Array"),

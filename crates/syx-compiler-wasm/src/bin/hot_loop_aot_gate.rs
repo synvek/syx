@@ -31,8 +31,7 @@ fn fixture_sources() -> Vec<(&'static str, String)> {
 }
 
 fn ratio_for(name: &str, src: &str) -> f64 {
-    let bytes =
-        syx_compiler_wasm::compile_source_to_wasm_bytes(name, src).expect("compile");
+    let bytes = syx_compiler_wasm::compile_source_to_wasm_bytes(name, src).expect("compile");
     let (_, _, ratio) = syx_wasm_emit::measure_aot_ratio(&bytes);
     ratio
 }

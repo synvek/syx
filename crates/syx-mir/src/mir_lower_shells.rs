@@ -24,7 +24,12 @@ pub(crate) fn mir_op(op: MirOp) -> MirInstr {
     }
 }
 
-pub(crate) fn mir_shell_fn(name: SmolStr, param_count: u32, local_count: u32, instructions: Vec<MirInstr>) -> MirFunction {
+pub(crate) fn mir_shell_fn(
+    name: SmolStr,
+    param_count: u32,
+    local_count: u32,
+    instructions: Vec<MirInstr>,
+) -> MirFunction {
     MirFunction {
         name,
         param_count,
@@ -401,12 +406,7 @@ pub(crate) fn lower_dataclass_hash_into_shell(
     }
     ins.push(mir_op(MirOp::LoadLocal(1)));
     ins.push(mir_op(MirOp::Return));
-    mir_shell_fn(
-        SmolStr::new(format!("{name}_hash_into")),
-        2,
-        2,
-        ins,
-    )
+    mir_shell_fn(SmolStr::new(format!("{name}_hash_into")), 2, 2, ins)
 }
 
 pub fn merge_mir_functions(mir: &mut MirModule, extra: Vec<MirFunction>) {
@@ -444,10 +444,7 @@ pub fn prefix_user_dep_mir_batch(functions: &mut [MirFunction], module_stem: &st
         if f.name.as_str() == "main" || f.name.starts_with(prefix.as_str()) {
             continue;
         }
-        rename.insert(
-            f.name.clone(),
-            SmolStr::new(format!("{prefix}{}", f.name)),
-        );
+        rename.insert(f.name.clone(), SmolStr::new(format!("{prefix}{}", f.name)));
     }
     fn relink_instr(instr: &mut MirInstr, rename: &indexmap::IndexMap<SmolStr, SmolStr>) {
         match &mut instr.op {
@@ -478,4 +475,3 @@ pub fn prefix_user_dep_mir_batch(functions: &mut [MirFunction], module_stem: &st
         }
     }
 }
-

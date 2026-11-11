@@ -223,11 +223,7 @@ impl CompositePipeline {
                 bg[3] as f32 / 255.0,
             ],
         };
-        queue.write_buffer(
-            &self.uniform_buffer,
-            0,
-            bytemuck::bytes_of(&uniforms),
-        );
+        queue.write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&uniforms));
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("syx-gui-composite-bg"),
             layout: &self.bind_group_layout,
@@ -296,8 +292,8 @@ impl WgpuWindowPresent {
             &wgpu::DeviceDescriptor {
                 label: Some("syx-gui-wgpu"),
                 required_features: wgpu::Features::empty(),
-                required_limits: wgpu::Limits::downlevel_webgl2_defaults()
-                    .using_resolution(adapter.limits()),
+                required_limits:
+                    wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
             },
             None,
         ))
@@ -404,13 +400,8 @@ impl WgpuWindowPresent {
             size_in_pixels: [self.config.width, self.config.height],
             pixels_per_point,
         };
-        self.renderer.update_buffers(
-            &self.device,
-            &self.queue,
-            &mut encoder,
-            primitives,
-            &screen,
-        );
+        self.renderer
+            .update_buffers(&self.device, &self.queue, &mut encoder, primitives, &screen);
 
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -493,8 +484,7 @@ pub fn probe_composite_readback_chroma(pixels: &[u32], width: u32, height: u32) 
         let r = (px & 0xFF) as u8;
         let g = ((px >> 8) & 0xFF) as u8;
         let b = ((px >> 16) & 0xFF) as u8;
-        r > 180 && g > 140 && b < 100
-            || (r > 200 && g > 200 && b > 200 && (r < 240 || g < 240))
+        r > 180 && g > 140 && b < 100 || (r > 200 && g > 200 && b > 200 && (r < 240 || g < 240))
     });
     if !cpu_chroma {
         return false;
@@ -503,11 +493,13 @@ pub fn probe_composite_readback_chroma(pixels: &[u32], width: u32, height: u32) 
         backends: wgpu::Backends::PRIMARY | wgpu::Backends::SECONDARY,
         ..Default::default()
     });
-    let Some(adapter) = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
-        power_preference: wgpu::PowerPreference::LowPower,
-        compatible_surface: None,
-        force_fallback_adapter: true,
-    })) else {
+    let Some(adapter) =
+        pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::LowPower,
+            compatible_surface: None,
+            force_fallback_adapter: true,
+        }))
+    else {
         WGPU_COMPOSITE_OK.store(true, Ordering::Relaxed);
         return true;
     };

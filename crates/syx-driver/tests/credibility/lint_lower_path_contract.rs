@@ -7,8 +7,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -19,10 +18,7 @@ fn s2_04_lint_lower_path_adr_and_wire() {
         adr.contains("lower_cst_subset_probe"),
         "ADR must name lower_cst_subset_probe"
     );
-    assert!(
-        adr.contains("LWR001"),
-        "ADR must name LWR001 fallback"
-    );
+    assert!(adr.contains("LWR001"), "ADR must name LWR001 fallback");
     assert!(
         adr.contains("≠") && adr.contains("FrontendPipeline"),
         "ADR must Non-claim FrontendPipeline"

@@ -10,16 +10,14 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_05_mir_lower_expr_unary_extract_baseline() {
     let unary = repo_file("crates/syx-mir/src/mir_lower_expr_unary.rs");
     assert!(
-        unary.contains("fn lower_expr_unary")
-            || unary.contains("pub(crate) fn lower_expr_unary"),
+        unary.contains("fn lower_expr_unary") || unary.contains("pub(crate) fn lower_expr_unary"),
         "mir_lower_expr_unary must hold lower_expr_unary"
     );
     assert!(
@@ -48,8 +46,7 @@ fn s2_05_mir_lower_expr_unary_extract_baseline() {
         "Closure remains reachable (lib arm or mir_lower_expr_closure after I180)"
     );
     assert!(
-        lib.contains("pub(crate) fn unary_numeric_kind")
-            || lib.contains("unary_numeric_kind,"),
+        lib.contains("pub(crate) fn unary_numeric_kind") || lib.contains("unary_numeric_kind,"),
         "unary_numeric_kind must be pub(crate) in lib.rs (def or re-export)"
     );
 

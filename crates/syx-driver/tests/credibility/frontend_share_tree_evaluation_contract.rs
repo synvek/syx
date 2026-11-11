@@ -7,14 +7,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_04_frontend_share_tree_evaluation_locked() {
     let adr = repo_file("docs/adr/stage2-s2-04-frontend-share-tree-evaluation.md");
-    assert!(adr.contains("S2-I159"), "frontend share-tree evaluation ADR must exist");
+    assert!(
+        adr.contains("S2-I159"),
+        "frontend share-tree evaluation ADR must exist"
+    );
     assert!(
         adr.contains("CST→AST lower") || adr.contains("CST->AST lower"),
         "ADR must lock CST→AST lower as preferred path"

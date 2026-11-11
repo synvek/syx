@@ -2,7 +2,7 @@
 
 # Capability matrix (generated · schema syx-capability-v0)
 
-> SYX **117.0** · phase **139** · manifest v0.1
+> SYX **0.1.3** · phase **139** · manifest v0.1
 
 | ID | Feature | Status | VM | MIR | Native | WASM | Notes |
 |----|---------|--------|----|-----|--------|------|-------|
@@ -49,6 +49,14 @@
 | os.process.signal | os.process.signal | partial | real | real | real | unsupported | ADR-602 / W258: native=real Child.signal TERM offline narrow native AOT + ADR-244/W246; wasm=unsupported → overall partial; Windows KILL-only (TERM/INT unsupported); ≠ wasm GA / ≠ Offset·Format wasm / ≠ Task* / ≠ TLS / ≠ EC-M2-4-Z |
 | ui.synui | ui.synui | frozen | partial | partial | partial | unsupported | v12 frozen; no v13 in M0 (ADR-131/133) |
 | build.farm | build.farm | frozen | partial | partial | partial | unsupported | Farm/Dist v19 frozen (ADR-131/133) |
+| ci.job.native-strict-main | ci.job.native-strict-main | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; native LLVM strict unpaid → R-39; ≠ full-native GA |
+| ci.job.native-macos | ci.job.native-macos | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; native link E2E unpaid → R-39 |
+| ci.job.parity-gate | ci.job.parity-gate | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; broad parity megagate unpaid (lang/native parks) |
+| ci.job.jit-tier2-default | ci.job.jit-tier2-default | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; Suite-1 / tier-2 unpaid park (≠ production JIT GA) |
+| ci.job.phase125-gui-xvfb | ci.job.phase125-gui-xvfb | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; gui/xvfb unpaid park |
+| ci.job.phase125-driver-gates | ci.job.phase125-driver-gates | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; phase125 driver megagate unpaid park |
+| ci.job.windows-smoke | ci.job.windows-smoke | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; Build CLI green, evergreen smoke unpaid thin fix |
+| ci.job.book-pass | ci.job.book-pass | partial | partial | partial | unsupported | unsupported | R-37: continue-on-error; S1-09 check 100% residual → R-38 (≠ book run+stdout GA); hard Format/build remain trunk gates |
 
 Source: [`packages/internal/capabilities.toml`](../../packages/internal/capabilities.toml).
 Schema: [`docs/capability-manifest-v0.md`](../../docs/capability-manifest-v0.md).

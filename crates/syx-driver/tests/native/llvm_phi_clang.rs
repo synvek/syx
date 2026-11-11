@@ -66,4 +66,3 @@ fn p98_llvm_phi_clang_mir_main_declare_not_matched() {
     let ir_call = "call i32 @syx_rt_run_main_fn()\n";
     assert!(syx_llvm::llvm_ir_uses_mir_main_entry(ir_call));
 }
-

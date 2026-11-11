@@ -47,8 +47,7 @@ fn format_separated_descriptions(
     truncate_description(out)
 }
 
-static NEXT_OBJECT_ID: std::sync::atomic::AtomicI64 =
-    std::sync::atomic::AtomicI64::new(1);
+static NEXT_OBJECT_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
 
 pub fn allocate_object_id() -> i64 {
     NEXT_OBJECT_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
@@ -56,10 +55,7 @@ pub fn allocate_object_id() -> i64 {
 
 pub fn ensure_object_id(map: &mut HashMap<String, Value>) {
     if !map.contains_key(OBJECT_ID_KEY) {
-        map.insert(
-            OBJECT_ID_KEY.into(),
-            Value::I64(allocate_object_id()),
-        );
+        map.insert(OBJECT_ID_KEY.into(), Value::I64(allocate_object_id()));
     }
 }
 
@@ -97,16 +93,12 @@ pub fn value_description(v: &Value) -> String {
         Value::Str(s) => s.clone(),
         Value::Character(c) => c.clone(),
         Value::Nil => "nil".into(),
-        Value::Array(items) => format_separated_descriptions(
-            items.iter().map(value_description),
-            "[",
-            "]",
-        ),
-        Value::Set(items) => format_separated_descriptions(
-            items.iter().map(value_description),
-            "[",
-            "]",
-        ),
+        Value::Array(items) => {
+            format_separated_descriptions(items.iter().map(value_description), "[", "]")
+        }
+        Value::Set(items) => {
+            format_separated_descriptions(items.iter().map(value_description), "[", "]")
+        }
         Value::Dict(map) => {
             let mut pairs: Vec<String> = map
                 .iter()
@@ -120,10 +112,7 @@ pub fn value_description(v: &Value) -> String {
         }
         Value::Object(map) if is_hasher(map) => "Hasher".into(),
         Value::Object(map)
-            if map
-                .get("__type")
-                .map(|t| t.as_str())
-                .as_deref()
+            if map.get("__type").map(|t| t.as_str()).as_deref()
                 == Some(crate::bigint::BIGINT_TYPE) =>
         {
             crate::bigint::bigint_description(v)
@@ -156,7 +145,11 @@ pub fn value_description(v: &Value) -> String {
     truncate_description(out)
 }
 
-fn enum_case_description(ty: &str, case: &str, map: &std::collections::HashMap<String, Value>) -> String {
+fn enum_case_description(
+    ty: &str,
+    case: &str,
+    map: &std::collections::HashMap<String, Value>,
+) -> String {
     let payload: Vec<String> = map
         .iter()
         .filter(|(k, _)| {
@@ -239,10 +232,7 @@ pub fn value_debug_description(v: &Value) -> String {
             format!("Dictionary([{}])", pairs.join(", "))
         }
         Value::Object(map) if is_object_identifier(map) => {
-            format!(
-                "ObjectIdentifier({})",
-                object_identifier_id(map)
-            )
+            format!("ObjectIdentifier({})", object_identifier_id(map))
         }
         Value::Object(map) if is_hasher(map) => "Hasher(...)".into(),
         Value::Object(map) => {
@@ -362,11 +352,16 @@ pub fn value_compare(a: &Value, b: &Value) -> std::cmp::Ordering {
         (Value::Str(x), Value::Str(y)) => x.cmp(y),
         (Value::Character(x), Value::Character(y)) => x.cmp(y),
         // Str vs Character (or as_str-compatible) after heap resolve.
-        (Value::Str(_), _) | (_, Value::Str(_)) | (Value::Character(_), _) | (_, Value::Character(_))
+        (Value::Str(_), _)
+        | (_, Value::Str(_))
+        | (Value::Character(_), _)
+        | (_, Value::Character(_))
             if {
                 let sa = a.as_str();
                 let sb = b.as_str();
-                !sa.is_empty() || !sb.is_empty() || matches!((&a, &b), (Value::Str(_), Value::Str(_)))
+                !sa.is_empty()
+                    || !sb.is_empty()
+                    || matches!((&a, &b), (Value::Str(_), Value::Str(_)))
             } =>
         {
             a.as_str().cmp(&b.as_str())
@@ -399,8 +394,7 @@ pub(crate) fn dict_equals_maps(x: &HashMap<String, Value>, y: &HashMap<String, V
     x.iter()
         .filter(|(k, _)| *k != OBJECT_ID_KEY)
         .all(|(k, v)| y.get(k).is_some_and(|yv| value_equals(v, yv)))
-        && y
-            .iter()
+        && y.iter()
             .filter(|(k, _)| *k != OBJECT_ID_KEY)
             .all(|(k, v)| x.get(k).is_some_and(|xv| value_equals(v, xv)))
 }
@@ -439,12 +433,10 @@ pub fn make_object_identifier(v: &Value) -> Option<Value> {
 }
 
 fn is_object_identifier(map: &HashMap<String, Value>) -> bool {
-    map.get("__type")
-        .and_then(|v| match v {
-            Value::Str(s) => Some(s.as_str()),
-            _ => None,
-        })
-        == Some("ObjectIdentifier")
+    map.get("__type").and_then(|v| match v {
+        Value::Str(s) => Some(s.as_str()),
+        _ => None,
+    }) == Some("ObjectIdentifier")
 }
 
 fn object_identifier_id(map: &HashMap<String, Value>) -> i64 {

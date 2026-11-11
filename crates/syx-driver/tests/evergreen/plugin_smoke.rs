@@ -172,7 +172,6 @@ fn plugin_faer_binop_vm() {
     );
 }
 
-
 #[test]
 fn plugin_pad_reflect_vm() {
     syx_host_plugin::register_faer_from_in_process();

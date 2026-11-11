@@ -18,7 +18,6 @@ pub(crate) fn cache_version_tag() -> String {
     TAG.get_or_init(compute_cache_version_tag).clone()
 }
 
-
 pub(crate) fn compute_cache_version_tag() -> String {
     // Historical tags retained for invalidation contract tests: syx-cache-v38 syx-cache-v39 syx-cache-v44 syx-cache-v58 syx-cache-v59 syx-cache-v60 syx-cache-v61 syx-cache-v62 syx-cache-v63 syx-cache-v64 syx-cache-v65 syx-cache-v66 syx-cache-v67 syx-cache-v68 syx-cache-v69 syx-cache-v70 syx-cache-v71 syx-cache-v72 syx-cache-v73 syx-cache-v74 syx-cache-v75 syx-cache-v76 syx-cache-v78 syx-cache-v79 syx-cache-v80 syx-cache-v81 syx-cache-v82 syx-cache-v83 syx-cache-v84 syx-cache-v85 syx-cache-v86 syx-cache-v87 syx-cache-v88 syx-cache-v89 syx-cache-v90 syx-cache-v91 syx-cache-v92 syx-cache-v93 syx-cache-v94 syx-cache-v95 syx-cache-v96 syx-cache-v97 syx-cache-v98 syx-cache-v99 syx-cache-v100 syx-cache-v101 syx-cache-v102 syx-cache-v103 syx-cache-v104 syx-cache-v105 syx-cache-v106 syx-cache-v107 syx-cache-v108 syx-cache-v109 syx-cache-v110
     format!(
@@ -28,7 +27,6 @@ pub(crate) fn compute_cache_version_tag() -> String {
         heap_v100_phase128_track_c_wasm_digest()
     )
 }
-
 
 /// Phase 131 Track A: Macro M21 decl-param subst MVP + Service DI v12 execution pointcut MVP.
 /// Phase 131 Track B: SynUI v8 (textArea/list Signal bind + spacer + Web/Mobile surface deepen).
@@ -66,8 +64,16 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(wasm_aot_tier_digest().as_bytes());
     hasher.update(
         b"native-llvm-v5:tier2ABC+MakeIterator+IteratorNext+DictGet+DictSet+Actor+Task+Try+Simd",
-    );    hasher.update(b"aot-fixtures-v1:hot_loop,hello,comparable_sort,inheritance_dispatch,protocol_iterator,main");    hasher.update(b"sorted-v1:ArrSorted+CallWitness+tier2A=ObjectGet,ArraySet,ValueEq,RefEq");    hasher.update(b"tier2b-jit-llvm-v1:MakeClosure,CallClosure,AwaitPoll,AwaitSuspend+cranelift-jit-module-v1+llvm-tier2-emit-v1");    hasher.update(b"tier2c-simd-browser-v1:Actor,Task,Try,SimdGuest+browser-prelude-v2");    hasher.update(b"iterator-witness-v2:MutRefCell-wrap-order+native-llvm-tier2c-v1:MakeIterator,IteratorNext,DictGet,Actor,Task,Try,Simd");    hasher.update(b"gc-arc-layout-v1:ObjectRef-retain-release+vm-mark-sweep+browser-prelude-v3");    hasher.update(b"unified-heap-v2:ManagedHeap+collect_global+vm-align");
-    hasher.update(b"native-exec-op-v1:ObjectRefRetain,Release,HeapCollect-llvm-direct");    hasher.update(b"heap-v3-mir-run-slots:ManagedHeap+heap_collect+actor-roots");
+    );
+    hasher.update(b"aot-fixtures-v1:hot_loop,hello,comparable_sort,inheritance_dispatch,protocol_iterator,main");
+    hasher.update(b"sorted-v1:ArrSorted+CallWitness+tier2A=ObjectGet,ArraySet,ValueEq,RefEq");
+    hasher.update(b"tier2b-jit-llvm-v1:MakeClosure,CallClosure,AwaitPoll,AwaitSuspend+cranelift-jit-module-v1+llvm-tier2-emit-v1");
+    hasher.update(b"tier2c-simd-browser-v1:Actor,Task,Try,SimdGuest+browser-prelude-v2");
+    hasher.update(b"iterator-witness-v2:MutRefCell-wrap-order+native-llvm-tier2c-v1:MakeIterator,IteratorNext,DictGet,Actor,Task,Try,Simd");
+    hasher.update(b"gc-arc-layout-v1:ObjectRef-retain-release+vm-mark-sweep+browser-prelude-v3");
+    hasher.update(b"unified-heap-v2:ManagedHeap+collect_global+vm-align");
+    hasher.update(b"native-exec-op-v1:ObjectRefRetain,Release,HeapCollect-llvm-direct");
+    hasher.update(b"heap-v3-mir-run-slots:ManagedHeap+heap_collect+actor-roots");
     hasher.update(b"llvm-tier3-zero-exec-op-v1:tier2A-D-direct-rt-no-exec-op-ir");
     hasher.update(b"heap-v4-compact-relocate-v1:ManagedHeap+HeapSlot+compact_global");
     hasher.update(b"inkwell-prod-ir-builder-v1:phase75-default-inkwell-text-opt-out");
@@ -1167,7 +1173,8 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(b"wasm-simd16-guest-v8:lane-extract-replace");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"farm-lease-token-v11:hsm-ref-bound-mvp");
+    }
+    hasher.update(b"farm-lease-token-v11:hsm-ref-bound-mvp");
     hasher.update(b"dist-cdn-bgp-v11:sticky-multi-snapshot-mvp");
     hasher.update(b"farm-lease-token-v10:session-close-mvp");
     hasher.update(b"dist-cdn-bgp-v10:sticky-persist-mvp");
@@ -1310,7 +1317,8 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(b"stdlib-parity-pin-v1:110.0");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"macro-token-v2:decl-param-subst-mvp");
+    }
+    hasher.update(b"macro-token-v2:decl-param-subst-mvp");
     hasher.update(b"macro-service-v12:pointcut-execution-name-mvp");
     hasher.update(b"macro-docs-v13:m21-service-v12-honesty");
     hasher.update(b"macro-token-v1:expr-token-mvp");
@@ -1470,7 +1478,8 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(b"stdlib-parity-pin-v1:113.0");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"lang-props-v3:super-init-field-readback");
+    }
+    hasher.update(b"lang-props-v3:super-init-field-readback");
     hasher.update(b"lang-props-v3:computed-get-set-mvp");
     hasher.update(b"lang-props-v3:property-override-mvp");
     hasher.update(b"lang-props-v3:docs-honesty");
@@ -1616,7 +1625,8 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(b"stdlib-parity-pin-v1:116.0");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(crate::lang_surface_v1::STRING_MULTILINE_MVP.as_bytes());
+    }
+    hasher.update(crate::lang_surface_v1::STRING_MULTILINE_MVP.as_bytes());
     hasher.update(crate::lang_surface_v1::STRING_DOCS_HONESTY.as_bytes());
     hasher.update(crate::lang_surface_v1::TUPLE_PRODUCT_TYPE_MVP.as_bytes());
     hasher.update(crate::lang_surface_v1::TUPLE_NAMED_ELEMENTS_MVP.as_bytes());
@@ -1635,14 +1645,17 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(crate::lang_surface_v1::FINAL_ONLY_HONESTY.as_bytes());
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"wasm-simd16-guest-v22:all-any-true-mvp");
+    }
+    hasher.update(b"wasm-simd16-guest-v22:all-any-true-mvp");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"gui-synui-v12:deferred-no-v13");
+    }
+    hasher.update(b"gui-synui-v12:deferred-no-v13");
     hasher.update(b"farm-dist-v19:frozen-no-v20");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"lang-props-v6:static-observers-mvp");
+    }
+    hasher.update(b"lang-props-v6:static-observers-mvp");
     hasher.update(b"macro-token-v9:token-rewrite-mvp");
     hasher.update(b"macro-service-v19:pointcut-within-wildcard-mvp");
     hasher.update(b"runtime-concurrency-v6:actor-shared-pool-mvp");
@@ -1650,7 +1663,8 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     hasher.update(b"wasm-simd16-guest-v21:bitmask-mvp");
     for id in syx_stdlib::HostFnId::all() {
         hasher.update(id.name().as_bytes());
-    }    hasher.update(b"audit-align-v1:ci-script-adr-2600-3050");
+    }
+    hasher.update(b"audit-align-v1:ci-script-adr-2600-3050");
     hasher.update(b"audit-exclude-fill-v1:phase139");
     hasher.update(b"lsp-semantic-v41:phase139-58-plus-real");
     hasher.update(b"driver-gate-cr430-v1:phase139-real-behavioral");
@@ -1660,7 +1674,6 @@ pub(crate) fn heap_v100_phase128_track_c_wasm_digest() -> String {
     }
     format!("{:x}", hasher.finalize())
 }
-
 
 /// Phase 127 Track D: farm session-close + dist sticky-persist.
 /// Phase 126 Track A: Macro M16 + Service DI v7.
@@ -1724,13 +1737,11 @@ pub(crate) fn phase107_track_b_fingerprint_seeds() -> &'static [&'static str] {
     ]
 }
 
-
 /// Phase 108 Track B fingerprints.
 #[allow(dead_code)]
 pub(crate) fn phase108_track_b_fingerprint_seeds() -> &'static [&'static str] {
     &["wasm-simd128-bitwise-v1:gt-and-or-xor"]
 }
-
 
 /// Phase 109 Track A fingerprints.
 #[allow(dead_code)]
@@ -1744,13 +1755,11 @@ pub(crate) fn phase109_track_a_fingerprint_seeds() -> &'static [&'static str] {
     ]
 }
 
-
 /// Phase 111 Track B fingerprints.
 #[allow(dead_code)]
 pub(crate) fn phase111_track_b_fingerprint_seeds() -> &'static [&'static str] {
     &["wasm-simd128-guest-v4:thin-arith-minmax-f32"]
 }
-
 
 /// Phase 110 Track B fingerprints.
 #[allow(dead_code)]
@@ -1761,13 +1770,11 @@ pub(crate) fn phase110_track_b_fingerprint_seeds() -> &'static [&'static str] {
     ]
 }
 
-
 /// Phase 109 Track B fingerprints.
 #[allow(dead_code)]
 pub(crate) fn phase109_track_b_fingerprint_seeds() -> &'static [&'static str] {
     &["wasm-simd128-guest-v2:div-load-store-ext"]
 }
-
 
 /// Phase 97 (+ folded v53–v68): invalidation bytes preserved in tip order.
 /// Phase 80 (+ folded v3/v4/v48–v51): generational-gc + inkwell-llvm-v6 + earlier invalidation bytes.
@@ -1782,7 +1789,6 @@ pub(crate) fn driver_options_with_deps(
     }
     Ok(opts)
 }
-
 
 /// Phase 71: protocol witness table v2 (MutRefCell wrap + post-sort renumber).
 /// S3-I51: OnceLock — avoid re-hashing all embedded prelude on every `module_hash`.
@@ -1806,7 +1812,6 @@ pub(crate) fn witness_table_digest() -> String {
         .clone()
 }
 
-
 /// Phase 66: class vtable layout hash for polymorphic dispatch invalidation.
 pub(crate) fn vtable_layout_digest() -> String {
     use sha2::{Digest, Sha256};
@@ -1814,7 +1819,6 @@ pub(crate) fn vtable_layout_digest() -> String {
     hasher.update(b"vtable-v1:runtime-read-indirect-dispatch");
     format!("{:x}", hasher.finalize())
 }
-
 
 /// Phase 68: WASM AOT tier-1/tier-2A/tier-2B fingerprint.
 pub(crate) fn wasm_aot_tier_digest() -> String {
@@ -1828,13 +1832,11 @@ pub(crate) fn wasm_aot_tier_digest() -> String {
     )
 }
 
-
 pub(crate) fn build_syx_plan_hash(root: &Path) -> String {
     let path = root.join(build_syx::DEFAULT_BUILD_CONFIG);
     let text = std::fs::read_to_string(&path).unwrap_or_default();
     hash_source(&text)
 }
-
 
 pub(crate) fn plugin_manifest_hash(root: &Path) -> String {
     use sha2::{Digest, Sha256};
@@ -1865,7 +1867,6 @@ pub(crate) fn plugin_manifest_hash(root: &Path) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-
 /// S3-I51: OnceLock — avoid recounting embedded prelude `func` on every `module_hash`.
 pub(crate) fn unified_mir_fn_count_digest() -> String {
     static DIGEST: OnceLock<String> = OnceLock::new();
@@ -1887,14 +1888,12 @@ pub(crate) fn unified_mir_fn_count_digest() -> String {
         .clone()
 }
 
-
 /// S3-I51: compile-time rustc identity (`SYX_RUSTC_VERSION` from build.rs) — no runtime spawn.
 pub(crate) fn rustc_version_tag() -> String {
     option_env!("SYX_RUSTC_VERSION")
         .unwrap_or("unknown-rustc")
         .to_string()
 }
-
 
 pub(crate) fn host_feature_tag() -> String {
     format!(
@@ -1962,7 +1961,6 @@ pub(crate) fn host_feature_tag() -> String {
     )
 }
 
-
 pub(crate) fn module_hash(path: &Path, root: &Path, deps: &[(String, String)]) -> String {
     use sha2::{Digest, Sha256};
     let text = std::fs::read_to_string(path).unwrap_or_default();
@@ -1979,7 +1977,6 @@ pub(crate) fn module_hash(path: &Path, root: &Path, deps: &[(String, String)]) -
     format!("{:x}", hasher.finalize())
 }
 
-
 pub(crate) fn hash_source(contents: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
@@ -1987,8 +1984,10 @@ pub(crate) fn hash_source(contents: &str) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-
-pub(crate) fn dependency_hashes_from_graph(graph: &ModuleGraph, self_key: &Path) -> Vec<(String, String)> {
+pub(crate) fn dependency_hashes_from_graph(
+    graph: &ModuleGraph,
+    self_key: &Path,
+) -> Vec<(String, String)> {
     let mut deps: Vec<(String, String)> = graph
         .modules
         .iter()
@@ -1999,7 +1998,6 @@ pub(crate) fn dependency_hashes_from_graph(graph: &ModuleGraph, self_key: &Path)
     deps
 }
 
-
 pub(crate) fn read_module_source_for_cache(path: &str) -> Option<String> {
     if let Some(rest) = path.strip_prefix("<stdlib>/") {
         let name = rest.strip_suffix(".sy")?;
@@ -2009,13 +2007,11 @@ pub(crate) fn read_module_source_for_cache(path: &str) -> Option<String> {
     std::fs::read_to_string(path).ok()
 }
 
-
 pub(crate) fn dependency_hashes_still_valid(deps: &[(String, String)]) -> bool {
     deps.iter().all(|(path, expected)| {
         read_module_source_for_cache(path).is_some_and(|c| hash_source(&c) == *expected)
     })
 }
-
 
 pub(crate) fn dependency_tree_digest(deps: &[(String, String)]) -> String {
     use sha2::{Digest, Sha256};
@@ -2026,4 +2022,3 @@ pub(crate) fn dependency_tree_digest(deps: &[(String, String)]) -> String {
     }
     format!("{:x}", hasher.finalize())
 }
-

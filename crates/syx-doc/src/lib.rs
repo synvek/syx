@@ -173,14 +173,9 @@ fn render_decl(source: &SourceFile, decl: &Decl, out: &mut String, heading_level
             }
         }
         Decl::Extension {
-            type_name,
-            methods,
-            ..
+            type_name, methods, ..
         } => {
-            out.push_str(&heading(
-                heading_level,
-                &format!("extension `{type_name}`"),
-            ));
+            out.push_str(&heading(heading_level, &format!("extension `{type_name}`")));
             for method in methods {
                 render_decl(source, method, out, heading_level + 1);
             }
@@ -254,6 +249,8 @@ mod tests {
         assert!(md.contains("Matrix type"));
         assert!(md.contains("## Source: `a.sy`"));
         assert!(md.contains("## Source: `b.sy`"));
-        assert!(md.contains("## `helper`") || md.contains("### `helper`") || md.contains("`helper`"));
+        assert!(
+            md.contains("## `helper`") || md.contains("### `helper`") || md.contains("`helper`")
+        );
     }
 }

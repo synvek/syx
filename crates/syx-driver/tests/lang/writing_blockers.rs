@@ -58,8 +58,5 @@ fn async_let_no_false_s020() {
     let (code, lines) = run_file_printed(&path, &opts()).expect("run");
     assert_eq!(code, 0, "exit: {lines:?}");
     let t: Vec<_> = lines.iter().map(|l| l.trim()).collect();
-    assert!(
-        t.iter().any(|l| *l == "3"),
-        "expected 1+2==3, got {t:?}"
-    );
+    assert!(t.iter().any(|l| *l == "3"), "expected 1+2==3, got {t:?}");
 }

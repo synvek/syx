@@ -6,16 +6,24 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_05_mir_lower_expr_call_to_macro_batch_baseline() {
     let mods = [
-        ("crates/syx-mir/src/mir_lower_expr_call.rs", "lower_expr_call"),
-        ("crates/syx-mir/src/mir_lower_expr_array.rs", "lower_expr_array"),
-        ("crates/syx-mir/src/mir_lower_expr_await.rs", "lower_expr_await"),
+        (
+            "crates/syx-mir/src/mir_lower_expr_call.rs",
+            "lower_expr_call",
+        ),
+        (
+            "crates/syx-mir/src/mir_lower_expr_array.rs",
+            "lower_expr_array",
+        ),
+        (
+            "crates/syx-mir/src/mir_lower_expr_await.rs",
+            "lower_expr_await",
+        ),
         (
             "crates/syx-mir/src/mir_lower_expr_assign.rs",
             "lower_expr_assign",
@@ -74,8 +82,7 @@ fn s2_05_mir_lower_expr_call_to_macro_batch_baseline() {
         "lower_expr shell must remain reachable (lib def or mir_lower_expr)"
     );
     assert!(
-        lib.contains("pub(crate) fn classify_member_call")
-            || lib.contains("classify_member_call,"),
+        lib.contains("pub(crate) fn classify_member_call") || lib.contains("classify_member_call,"),
         "classify_member_call must be pub(crate) for Call sidecar (def or re-export)"
     );
     assert!(
@@ -84,8 +91,7 @@ fn s2_05_mir_lower_expr_call_to_macro_batch_baseline() {
         "host_simd_lowers_own_args must be pub(crate) (def or re-export)"
     );
     assert!(
-        lib.contains("pub(crate) fn keypath_from_callee")
-            || lib.contains("keypath_from_callee,"),
+        lib.contains("pub(crate) fn keypath_from_callee") || lib.contains("keypath_from_callee,"),
         "keypath_from_callee must be pub(crate) (def or re-export)"
     );
     assert!(

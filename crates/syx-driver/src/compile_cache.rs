@@ -275,9 +275,7 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path) {
         let Some(unit) = graph.modules.get(key) else {
             continue;
         };
-        let is_stdlib = key
-            .to_string_lossy()
-            .starts_with("<stdlib>/");
+        let is_stdlib = key.to_string_lossy().starts_with("<stdlib>/");
         if !is_stdlib {
             continue;
         }

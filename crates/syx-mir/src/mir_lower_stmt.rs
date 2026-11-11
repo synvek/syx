@@ -152,8 +152,7 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                     ..
                 } = expr
                 {
-                    ctx.local_types
-                        .insert(name.clone(), SmolStr::new("String"));
+                    ctx.local_types.insert(name.clone(), SmolStr::new("String"));
                 }
                 if let Expr::Literal {
                     value: Literal::Double { suffix, .. },
@@ -166,16 +165,22 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                     } else {
                         "Float64"
                     };
-                    ctx.local_types
-                        .insert(name.clone(), SmolStr::new(ty));
+                    ctx.local_types.insert(name.clone(), SmolStr::new(ty));
                 }
                 if let Expr::Call { callee, args, .. } = expr {
                     if let Some(type_name) = infer_service_resolve_type_name(callee, args) {
                         ctx.local_types.insert(name.clone(), type_name);
                     }
-                    if let Expr::Member { object, name: method, .. } = callee.as_ref() {
+                    if let Expr::Member {
+                        object,
+                        name: method,
+                        ..
+                    } = callee.as_ref()
+                    {
                         let recv_ty = match object.as_ref() {
-                            Expr::Ident { name: type_name, .. } => {
+                            Expr::Ident {
+                                name: type_name, ..
+                            } => {
                                 if ctx.module.class_types.contains_key(type_name)
                                     || ctx.module.enum_classes.contains(type_name)
                                     || ctx.module.dataclass_names.contains(type_name)
@@ -202,7 +207,10 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                             }
                         }
                     }
-                    if let Expr::Ident { name: type_name, .. } = callee.as_ref() {
+                    if let Expr::Ident {
+                        name: type_name, ..
+                    } = callee.as_ref()
+                    {
                         if ctx.module.dataclass_names.contains(type_name)
                             || ctx.module.actor_types.contains(type_name)
                             || ctx.module.class_types.contains_key(type_name)
@@ -229,10 +237,7 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                         ctx.local_types.insert(name.clone(), type_name);
                     }
                 }
-                if let Some(to_name) = ty
-                    .as_ref()
-                    .and_then(|t| mir_type_expr_name(t))
-                {
+                if let Some(to_name) = ty.as_ref().and_then(|t| mir_type_expr_name(t)) {
                     if let Some(from_name) = infer_expr_init_type(expr, ctx) {
                         let cur = ctx.active_block;
                         emit_integer_narrow_cast_if_needed(
@@ -515,7 +520,9 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             }
             ctx.active_block = merge_block;
         }
-        Stmt::While { condition, body, .. } => {
+        Stmt::While {
+            condition, body, ..
+        } => {
             let loop_header = ctx.fresh_block();
             let body_block = ctx.fresh_block();
             let exit_block = ctx.fresh_block();
@@ -560,7 +567,12 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             ctx.link(body_end, loop_header);
             ctx.active_block = exit_block;
         }
-        Stmt::ForIn { name, iterable, body, .. } => {
+        Stmt::ForIn {
+            name,
+            iterable,
+            body,
+            ..
+        } => {
             let dest = ctx.fresh_reg();
             lower_expr(iterable, dest, ctx, block);
             ctx.emit(
@@ -913,4 +925,3 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
         _ => {}
     }
 }
-

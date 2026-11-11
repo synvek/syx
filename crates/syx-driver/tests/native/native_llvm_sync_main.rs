@@ -94,7 +94,6 @@ fn p98_async_main_allows_mir_entry() {
     assert!(llvm_ir_uses_mir_main_entry(&ir));
 }
 
-
 #[test]
 fn p98_sync_main_compile_embedded_stdout() {
     syx_host_plugin::register_echo_plugin_in_process();

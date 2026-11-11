@@ -43,11 +43,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -59,11 +55,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w259_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w259_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -153,10 +145,7 @@ fn m2_s5_03_utc_parse_iso8601_native_llvm() {
 #[test]
 fn m2_s5_03_utc_parse_iso8601_wasm() {
     let out = lines_joined(&run_wasm_src("utc_parse_iso", UTC_PARSE_ISO8601_ONLY_SRC));
-    assert_eq!(
-        out, "86400000",
-        "wasm UTC parse_iso8601 must exact: {out}"
-    );
+    assert_eq!(out, "86400000", "wasm UTC parse_iso8601 must exact: {out}");
 }
 
 #[test]
@@ -178,22 +167,17 @@ fn m2_s5_03_date_only_parse_native_llvm() {
 #[test]
 fn m2_s5_03_date_only_parse_wasm() {
     let out = lines_joined(&run_wasm_src("date_only_parse", DATE_ONLY_PARSE_SRC));
-    assert_eq!(
-        out, "2020-02-29",
-        "wasm date-only parse must exact: {out}"
-    );
+    assert_eq!(out, "2020-02-29", "wasm date-only parse must exact: {out}");
 }
 
 #[test]
 fn m2_s5_03_utc_millis_roundtrip() {
     // Wave A W68 / ADR-412 / A-03: UTC ISO millis + format product exact.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let o = __syx_datetime_parse_iso8601("1970-01-02T00:00:00.000Z")
     print(__syx_keypath_get(o, "DateTime", "ms", false))
     print(__syx_datetime_format(86400000, "iso"))
-}"#,
-    );
+}"#);
     assert_eq!(
         out, "86400000\n1970-01-02T00:00:00.000Z",
         "UTC millis roundtrip must exact: {out}"
@@ -203,28 +187,24 @@ fn m2_s5_03_utc_millis_roundtrip() {
 #[test]
 fn m2_s5_03_fixed_offset_to_utc_ms() {
     // Wave A W70 / ADR-414 / A-03: fixed-offset ISO → UTC ms product exact.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let o = __syx_datetime_parse_iso8601("1970-01-02T01:00:00.000+01:00")
     print(__syx_keypath_get(o, "DateTime", "ms", false))
-}"#,
-    );
+}"#);
     assert_eq!(out, "86400000", "fixed offset must map to UTC ms: {out}");
 }
 
 #[test]
 fn m2_s5_03_negative_epoch_roundtrip() {
     // Wave A W69 / ADR-413 / A-03: negative-epoch ISO roundtrip product exact.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let o = __syx_datetime_parse_iso8601("1969-12-31T23:59:59.000Z")
     let ms = __syx_keypath_get(o, "DateTime", "ms", false)
     print(ms)
     let s = __syx_datetime_format(ms, "iso")
     let o2 = __syx_datetime_parse_iso8601(s)
     print(__syx_keypath_get(o2, "DateTime", "ms", false))
-}"#,
-    );
+}"#);
     assert_eq!(
         out, "-1000\n-1000",
         "negative-epoch roundtrip must exact: {out}"
@@ -234,16 +214,14 @@ fn m2_s5_03_negative_epoch_roundtrip() {
 #[test]
 fn m2_s5_03_leap_day_roundtrip() {
     // Wave A W68 / ADR-412 / A-03: leap-day ISO roundtrip product exact.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let o = __syx_datetime_parse_iso8601("2020-02-29T12:00:00.000Z")
     let ms = __syx_keypath_get(o, "DateTime", "ms", false)
     let s = __syx_datetime_format(ms, "iso")
     let o2 = __syx_datetime_parse_iso8601(s)
     print(__syx_keypath_get(o2, "DateTime", "ms", false) == ms)
     print(s)
-}"#,
-    );
+}"#);
     assert_eq!(
         out, "true\n2020-02-29T12:00:00.000Z",
         "leap-day roundtrip must exact: {out}"
@@ -253,16 +231,14 @@ fn m2_s5_03_leap_day_roundtrip() {
 #[test]
 fn m2_s5_03_post_2038_roundtrip() {
     // Wave A W69 / ADR-413 / A-03: post-2038 ISO roundtrip product exact.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let o = __syx_datetime_parse_iso8601("2100-01-01T00:00:00.000Z")
     let ms = __syx_keypath_get(o, "DateTime", "ms", false)
     let s = __syx_datetime_format(ms, "iso")
     let o2 = __syx_datetime_parse_iso8601(s)
     print(__syx_keypath_get(o2, "DateTime", "ms", false) == ms)
     print(s)
-}"#,
-    );
+}"#);
     assert_eq!(
         out, "true\n2100-01-01T00:00:00.000Z",
         "post-2038 roundtrip must exact: {out}"
@@ -272,12 +248,10 @@ fn m2_s5_03_post_2038_roundtrip() {
 #[test]
 fn m2_s5_03_date_only_yyyy_mm_dd() {
     // Wave A W70 / ADR-414 / A-03: date-only parse + format product exact.
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let o = __syx_datetime_parse("2020-02-29")
     print(__syx_datetime_format(__syx_keypath_get(o, "DateTime", "ms", false), "%Y-%m-%d"))
-}"#,
-    );
+}"#);
     assert_eq!(out, "2020-02-29", "date-only format must exact: {out}");
 }
 
@@ -286,17 +260,13 @@ fn m2_s5_03_fail_closed_invalid_and_iana() {
     // Wave A W91 / ADR-435 / A-03: ISO invalid + IANA unknown fail-closed product exact.
     let bad = run_err(r#"func main() { print(__syx_datetime_parse_iso8601("not-a-date")) }"#);
     assert_eq!(
-        bad,
-        "[U002] DateTime.parse: expected RFC3339 or YYYY-MM-DD, got \"not-a-date\"",
+        bad, "[U002] DateTime.parse: expected RFC3339 or YYYY-MM-DD, got \"not-a-date\"",
         "invalid ISO must exact: {bad}"
     );
     // ADR-233: known IANA zones are implemented; unknown zone still fail-closed U001.
-    let tz = run_err(
-        r#"func main() { print(__syx_datetime_timezone_offset(0, "Not/AZone")) }"#,
-    );
+    let tz = run_err(r#"func main() { print(__syx_datetime_timezone_offset(0, "Not/AZone")) }"#);
     assert_eq!(
-        tz,
-        "[U001] DateTime: unknown IANA timezone \"Not/AZone\" (no tzdb match)",
+        tz, "[U001] DateTime: unknown IANA timezone \"Not/AZone\" (no tzdb match)",
         "unknown tz must exact: {tz}"
     );
 }
@@ -313,4 +283,3 @@ fn m2_s5_03_inventory_meta() {
         "inventory must note ADR-221"
     );
 }
-

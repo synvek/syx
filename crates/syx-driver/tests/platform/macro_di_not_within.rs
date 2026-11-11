@@ -6,7 +6,9 @@ use std::sync::Mutex;
 use syx_ast::{Decl, Expr};
 use syx_diagnostics::Span;
 use syx_driver::{compile_and_run_embedded, run_file_printed, DriverOptions};
-use syx_macro::{expand_decl_param_tokens, enumerate_decl_param_tokens, DeclExpandMode, MacroTokenKind};
+use syx_macro::{
+    enumerate_decl_param_tokens, expand_decl_param_tokens, DeclExpandMode, MacroTokenKind,
+};
 
 static P137_POOL_LOCK: Mutex<()> = Mutex::new(());
 
@@ -78,14 +80,12 @@ fn macro_di_not_decl_expand_observable() {
 #[test]
 fn macro_di_not_discard_oldest_policy_roundtrip() {
     let _g = P137_POOL_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let printed = run(r#"
 func main() {
     print(__syx_task_set_reject_policy("discardOldest"))
     print(__syx_task_reject_policy())
 }
-"#,
-    )
+"#)
     .expect("discardOldest roundtrip");
     assert_eq!(printed[0].trim(), "discardOldest");
     assert_eq!(printed[1].trim(), "discardOldest");
@@ -97,4 +97,3 @@ fn macro_di_not_pool_probe_discard_oldest_observable() {
     syx_async::probe_bounded_queue_discard_oldest_mvp()
         .expect("discardOldest probe should succeed");
 }
-

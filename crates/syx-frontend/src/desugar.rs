@@ -20,9 +20,7 @@ pub fn desugar_hoist_extension_nested_types(module: &mut syx_ast::Module) {
     let mut hoisted: Vec<Decl> = Vec::new();
     for decl in &mut module.decls {
         let Decl::Extension {
-            type_name,
-            methods,
-            ..
+            type_name, methods, ..
         } = decl
         else {
             continue;
@@ -157,7 +155,12 @@ pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {
                 walk_expr(object);
                 walk_expr(value);
             }
-            Expr::IndexAssign { object, index, value, .. } => {
+            Expr::IndexAssign {
+                object,
+                index,
+                value,
+                ..
+            } => {
                 walk_expr(object);
                 walk_expr(index);
                 walk_expr(value);
@@ -206,7 +209,9 @@ pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {
                         walk_stmts(e);
                     }
                 }
-                Stmt::While { condition, body, .. } => {
+                Stmt::While {
+                    condition, body, ..
+                } => {
                     walk_expr(condition);
                     walk_stmts(body);
                 }
@@ -215,7 +220,12 @@ pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {
                     walk_stmts(body);
                 }
                 Stmt::Print { expr, .. } | Stmt::Expr { expr, .. } => walk_expr(expr),
-                Stmt::Switch { subject, cases, default, .. } => {
+                Stmt::Switch {
+                    subject,
+                    cases,
+                    default,
+                    ..
+                } => {
                     walk_expr(subject);
                     for case in cases {
                         walk_expr(&mut case.pattern);
@@ -229,7 +239,9 @@ pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {
                     }
                 }
                 Stmt::Block { stmts, .. } => walk_stmts(stmts),
-                Stmt::Try { body, catch_body, .. } => {
+                Stmt::Try {
+                    body, catch_body, ..
+                } => {
                     walk_stmts(body);
                     walk_stmts(catch_body);
                 }
@@ -261,7 +273,10 @@ pub fn desugar_qualified_ctor_calls(module: &mut syx_ast::Module) {
 pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
     use syx_ast::{AccessLevel, Decl, Param, ParamLabel};
 
-    fn desugar_in_decls(decls: &mut Vec<Decl>, enclosing: Option<smol_str::SmolStr>) -> SyxResult<()> {
+    fn desugar_in_decls(
+        decls: &mut Vec<Decl>,
+        enclosing: Option<smol_str::SmolStr>,
+    ) -> SyxResult<()> {
         let mut extra = Vec::new();
         decls.retain_mut(|decl| {
             if let Decl::Subscript {
@@ -328,7 +343,10 @@ pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
                 if let Decl::Class { name, members, .. } = decl {
                     desugar_in_decls(members, Some(name.clone())).ok();
                 }
-                if let Decl::Extension { methods, type_name, .. } = decl {
+                if let Decl::Extension {
+                    methods, type_name, ..
+                } = decl
+                {
                     desugar_in_decls(methods, Some(type_name.clone())).ok();
                 }
                 true
@@ -342,9 +360,9 @@ pub fn desugar_subscript_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
 
 pub fn desugar_property_decls(module: &mut syx_ast::Module) -> SyxResult<()> {
     use syx_ast::{
-        lazy_storage_field, static_var_global_name, var_global_getter_method,
-        var_global_is_static, var_global_setter_method, AccessLevel, Attribute, Decl, Expr,
-        Param, ParamLabel, Stmt, TypeExpr,
+        lazy_storage_field, static_var_global_name, var_global_getter_method, var_global_is_static,
+        var_global_setter_method, AccessLevel, Attribute, Decl, Expr, Param, ParamLabel, Stmt,
+        TypeExpr,
     };
 
     fn member_getter(

@@ -40,9 +40,9 @@ fn host_fn_table_every_row_has_backends() {
     assert!(hosts.len() >= 500);
     for host in hosts {
         let name = host["name"].as_str().unwrap_or("?");
-        let backends = host["backends"].as_object().unwrap_or_else(|| {
-            panic!("{name}: missing backends object")
-        });
+        let backends = host["backends"]
+            .as_object()
+            .unwrap_or_else(|| panic!("{name}: missing backends object"));
         for key in ["vm", "mir", "llvm", "wasm", "cranelift"] {
             assert!(
                 backends.contains_key(key),
@@ -61,4 +61,3 @@ fn doctor_reports_smoke() {
     assert!(!caps.rows.is_empty());
     assert!(ir.host_count > 0);
 }
-

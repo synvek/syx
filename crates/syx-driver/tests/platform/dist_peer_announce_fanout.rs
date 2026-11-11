@@ -6,27 +6,15 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_fanout,
-    cdn_bgp_peer_announce_fanout_mesh_ready,
-    cdn_bgp_peer_announce_fanout_ready,
-    cdn_bgp_peer_announce_sticky_path_for,
-    cdn_bgp_peer_announce_sticky_receive_and_ack,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_binding_expires_at_ms,
-    cdn_bgp_sticky_pop_clear,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh, cdn_bgp_peer_announce_fanout,
+    cdn_bgp_peer_announce_fanout_mesh_ready, cdn_bgp_peer_announce_fanout_ready,
+    cdn_bgp_peer_announce_sticky_path_for, cdn_bgp_peer_announce_sticky_receive_and_ack,
+    cdn_bgp_route_sticky, cdn_bgp_sticky_binding, cdn_bgp_sticky_binding_expires_at_ms,
+    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P131_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_peer_announce_fanout_peer_announce_fanout_partial_ack_not_mesh_ready_ttl_inherit() {
@@ -80,14 +68,12 @@ fn dist_peer_announce_fanout_peer_announce_fanout_partial_ack_not_mesh_ready_ttl
 
     let client = "tenant-us:client-p131";
     assert_eq!(cdn_bgp_sticky_shard_key(client), "tenant-us");
-    let (pop, _) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p131-announce").expect("bind");
+    let (pop, _) = cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p131-announce").expect("bind");
     assert_eq!(pop, "bgp-us");
     let expires = cdn_bgp_sticky_binding_expires_at_ms(client).expect("ttl");
 
     let peers = ["peer-eu", "peer-ap"];
-    let announced =
-        cdn_bgp_peer_announce_fanout(&peers, "tenant-us").expect("fanout announce");
+    let announced = cdn_bgp_peer_announce_fanout(&peers, "tenant-us").expect("fanout announce");
     assert_eq!(announced.len(), 2);
     for (peer_id, wire) in &announced {
         assert!(wire.contains(client) && wire.contains("bgp-us"));
@@ -103,9 +89,8 @@ fn dist_peer_announce_fanout_peer_announce_fanout_partial_ack_not_mesh_ready_ttl
 
     // Partial ack (only peer-eu) → still not mesh-ready.
     let wire_eu = &announced[0].1;
-    let restored_eu =
-        cdn_bgp_peer_announce_sticky_receive_and_ack("peer-eu", "tenant-us", wire_eu)
-            .expect("ack peer-eu");
+    let restored_eu = cdn_bgp_peer_announce_sticky_receive_and_ack("peer-eu", "tenant-us", wire_eu)
+        .expect("ack peer-eu");
     assert!(restored_eu >= 1);
     assert!(
         !cdn_bgp_peer_announce_fanout_mesh_ready(&peers, "tenant-us"),
@@ -116,9 +101,8 @@ fn dist_peer_announce_fanout_peer_announce_fanout_partial_ack_not_mesh_ready_ttl
     cdn_bgp_sticky_pop_clear();
     assert!(cdn_bgp_sticky_binding(client).is_none());
     let wire_ap = &announced[1].1;
-    let restored_ap =
-        cdn_bgp_peer_announce_sticky_receive_and_ack("peer-ap", "tenant-us", wire_ap)
-            .expect("ack peer-ap");
+    let restored_ap = cdn_bgp_peer_announce_sticky_receive_and_ack("peer-ap", "tenant-us", wire_ap)
+        .expect("ack peer-ap");
     assert!(restored_ap >= 1);
     assert_eq!(cdn_bgp_sticky_binding(client).as_deref(), Some("bgp-us"));
     assert_eq!(

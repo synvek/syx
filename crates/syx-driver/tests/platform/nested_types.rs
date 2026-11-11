@@ -25,4 +25,3 @@ fn nested_types_run_file_printed() {
     assert_eq!(lines[1].trim(), "7", "Holder external ref: {printed:?}");
     assert_eq!(lines[2].trim(), "9", "Outer.Middle.Deep: {printed:?}");
 }
-

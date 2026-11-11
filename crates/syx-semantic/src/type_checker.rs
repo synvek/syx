@@ -26,16 +26,22 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         }
         // Bare `Set()` constructor types as `Named("Set")`; allow under `Set<T>`.
         (TypeId::Set(_), TypeId::Named(n)) if n.as_str() == "Set" => true,
-        (TypeId::Optional(inner), found) if is_compatible(inner, found) || inner.as_ref() == found => {
+        (TypeId::Optional(inner), found)
+            if is_compatible(inner, found) || inner.as_ref() == found =>
+        {
             true
         }
         (TypeId::Optional(_), TypeId::Unknown) => true,
-        (TypeId::Optional(_), TypeId::Optional(inner)) if matches!(inner.as_ref(), TypeId::Unknown) => {
+        (TypeId::Optional(_), TypeId::Optional(inner))
+            if matches!(inner.as_ref(), TypeId::Unknown) =>
+        {
             true
         }
         (TypeId::Reference(exp), TypeId::Reference(found)) if is_compatible(exp, found) => true,
         (TypeId::Reference(exp), found) if is_compatible(exp, found) => true,
-        (TypeId::MutReference(exp), TypeId::MutReference(found)) if is_compatible(exp, found) => true,
+        (TypeId::MutReference(exp), TypeId::MutReference(found)) if is_compatible(exp, found) => {
+            true
+        }
         (TypeId::MutReference(exp), found) if is_compatible(exp, found) => true,
         (TypeId::Tuple { elements: exp }, TypeId::Tuple { elements: found }) => {
             exp.len() == found.len()
@@ -44,7 +50,9 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
                     .zip(found.iter())
                     .all(|((_, a), (_, b))| is_compatible(a, b))
         }
-        (TypeId::Named(exp), TypeId::Named(found)) if exp.as_str() == "Character" && found.as_str() == "Character" => {
+        (TypeId::Named(exp), TypeId::Named(found))
+            if exp.as_str() == "Character" && found.as_str() == "Character" =>
+        {
             true
         }
         _ => false,

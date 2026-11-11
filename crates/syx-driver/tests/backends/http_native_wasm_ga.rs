@@ -24,11 +24,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -101,6 +97,8 @@ fn ec_m2_4_http_native_wasm_ga_native_http_make_response_exec() {
         native_line, vm_line,
         "native HttpMakeResponse must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "created", "body must be created: {native_line}");
+    assert_eq!(
+        native_line, "created",
+        "body must be created: {native_line}"
+    );
 }
-

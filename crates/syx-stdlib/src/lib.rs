@@ -19,40 +19,41 @@ pub use collection_hosts::{
 pub use register_hosts::{
     all_registered_host_names, is_manifest_host_op, manifest_host_name, manifest_host_ops_parity,
 };
-pub use registry::{plugin_host_base_index, plugin_host_return_type, register_compile_plugin_hosts};
+pub use registry::{
+    plugin_host_base_index, plugin_host_return_type, register_compile_plugin_hosts,
+};
 pub use result_hosts::{
     lookup_result_host, result_host_names, ResultHostEntry, ResultHostOp, RESULT_HOST_TABLE,
 };
 
-pub use collection::COLLECTION_TYPE_NAMES;
 pub use builtin_kind::{
     internal_id_for_surface, lookup_manifest_entry, manifest_entries, numeric_meta,
     prelude_module_names, retired_ops_module_names, BuiltinKind, ManifestEntry,
+};
+pub use collection::COLLECTION_TYPE_NAMES;
+pub use numeric::{
+    bit_width, default_float_kind, default_integer_kind, float_literal_bits, from_suffix,
+    from_type_name, int_range, is_float, is_implicit_convertible, is_integer, is_integer_narrowing,
+    is_signed, is_unsigned, resolve_alias, type_name, type_name_with_alias, widen_for_binary,
+    NumericKind, PLATFORM_INT, PLATFORM_UINT,
+};
+pub use numeric_hosts::{
+    host_return_type_by_name, host_slug, lookup_numeric_host, numeric_host_names, NumericHostEntry,
+    NumericHostOp, NUMERIC_HOST_TABLE,
 };
 pub use protocols::{
     is_comparable_type, is_custom_debug_string_convertible, is_custom_string_convertible,
     is_equatable_type, is_hashable_type_name, known_protocol, protocol_associated_types,
     type_conforms, ProtocolId,
 };
-pub use numeric_hosts::{
-    host_return_type_by_name, host_slug, lookup_numeric_host, numeric_host_names,
-    NumericHostEntry, NumericHostOp, NUMERIC_HOST_TABLE,
-};
-pub use numeric::{
-    bit_width, default_float_kind, default_integer_kind, float_literal_bits, from_suffix,
-    from_type_name, int_range, is_float, is_implicit_convertible, is_integer, is_integer_narrowing,
-    is_signed, is_unsigned, resolve_alias, type_name, type_name_with_alias, widen_for_binary,
-    NumericKind,
-    PLATFORM_INT, PLATFORM_UINT,
-};
 pub use registry::{
-    host_fn_id_by_name, host_fn_index, host_fn_index_by_name, host_fn_name_for_index, host_fn_return_type,
-    is_instance_property_member, lookup_array_method, lookup_dict_method, lookup_http_response_method,
+    host_fn_id_by_name, host_fn_index, host_fn_index_by_name, host_fn_name_for_index,
+    host_fn_return_type, is_instance_property_member, lookup_array_method, lookup_dict_method,
+    lookup_float32_math_host, lookup_float64_math_host, lookup_http_response_method,
     lookup_set_method, lookup_sql_row_method, lookup_string_method, lookup_type_method,
-    lookup_float64_math_host, lookup_float32_math_host, method_from_index,
-    method_id_call_host_index, method_param_label,
-    method_return_type, HostFnId, MethodId, TypeMethod, ARRAY_METHODS, DICT_METHODS,
-    HTTP_RESPONSE_METHODS, SET_METHODS, SQL_ROW_METHODS, STRING_METHODS, TYPE_METHODS,
+    method_from_index, method_id_call_host_index, method_param_label, method_return_type, HostFnId,
+    MethodId, TypeMethod, ARRAY_METHODS, DICT_METHODS, HTTP_RESPONSE_METHODS, SET_METHODS,
+    SQL_ROW_METHODS, STRING_METHODS, TYPE_METHODS,
 };
 use std::sync::LazyLock;
 
@@ -114,7 +115,10 @@ pub static ITERATOR_PROTOCOL: LazyLock<Vec<&'static str>> =
 pub fn register_builtins() -> Vec<StdlibEntry> {
     BUILTIN_TYPES
         .iter()
-        .map(|(name, ty)| StdlibEntry { name, type_name: ty })
+        .map(|(name, ty)| StdlibEntry {
+            name,
+            type_name: ty,
+        })
         .chain([
             StdlibEntry {
                 name: "print",
@@ -151,9 +155,24 @@ pub fn is_builtin_type(name: &str) -> bool {
 pub fn is_numeric_builtin_type(name: &str) -> bool {
     matches!(
         name,
-        "Int" | "Int8" | "Int16" | "Int32" | "Int64" | "Int128"
-            | "UInt" | "UInt8" | "UInt16" | "UInt32" | "UInt64" | "UInt128"
-            | "Float" | "Float32" | "Float64" | "Double" | "BigInt" | "Bool"
+        "Int"
+            | "Int8"
+            | "Int16"
+            | "Int32"
+            | "Int64"
+            | "Int128"
+            | "UInt"
+            | "UInt8"
+            | "UInt16"
+            | "UInt32"
+            | "UInt64"
+            | "UInt128"
+            | "Float"
+            | "Float32"
+            | "Float64"
+            | "Double"
+            | "BigInt"
+            | "Bool"
     )
 }
 

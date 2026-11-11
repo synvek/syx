@@ -5,8 +5,9 @@ use crate::cache_fingerprint::{cache_version_tag, driver_options_with_deps};
 use crate::module_ref::ModuleRef;
 use crate::{
     build_unified_mir, compile_module_recursive, compile_native_object,
-    compile_project_with_options, driver_error_at, ensure_project_lock, native_executable_file_name,
-    project_cache_dir, BuildProfile, DriverOptions, ModuleGraph, NativeBackend,
+    compile_project_with_options, driver_error_at, ensure_project_lock,
+    native_executable_file_name, project_cache_dir, BuildProfile, DriverOptions, ModuleGraph,
+    NativeBackend,
 };
 use std::path::{Path, PathBuf};
 use std::process::Command;

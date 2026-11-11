@@ -37,14 +37,15 @@ fn dist_hostkey_reject_cdn_pop_loopback_dual_port_not_ga() {
         ("pop-eu", key_b.as_str(), format!("tcp://{addr_b}").as_str()),
     ]);
 
-    assert!(!cdn_pop_has_endpoints(), "127.0.0.1 dual PoP must not be GA");
+    assert!(
+        !cdn_pop_has_endpoints(),
+        "127.0.0.1 dual PoP must not be GA"
+    );
     assert_ne!(cdn_doctor_mode(), "cdn-pop-anycast");
     assert!(!cdn_route_counts_as_ga());
-    assert!(
-        cdn_pop_route("pop-us", 1, 2, "p114-loopback-dual")
-            .expect_err("loopback dual port must not route as PoP GA")
-            .contains("non-loopback")
-    );
+    assert!(cdn_pop_route("pop-us", 1, 2, "p114-loopback-dual")
+        .expect_err("loopback dual port must not route as PoP GA")
+        .contains("non-loopback"));
     assert!(
         !cdn_route("pop-us", 3, 4, "p114-loopback-cdn"),
         "loopback PoP must not succeed via cdn_route GA path"

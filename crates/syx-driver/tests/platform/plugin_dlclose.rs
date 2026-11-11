@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use syx_host_plugin::{
-    load_library, load_path, runtime_plugin_loaded, unload_plugin, loaded_plugin_ids,
+    load_library, load_path, loaded_plugin_ids, runtime_plugin_loaded, unload_plugin,
     PluginManifest,
 };
 

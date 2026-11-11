@@ -12,10 +12,7 @@ fn p98_farm_billing_enforce_stale_settlement_err() {
     lock.billing_settlement_id = Some("settle-p91".into());
     std::env::remove_var("SYX_BILLING_SETTLEMENT_ACK");
     let err = enforce_billing_settlement(&lock).unwrap_err();
-    assert!(
-        err.message.contains("billing settlement stale"),
-        "{err:?}"
-    );
+    assert!(err.message.contains("billing settlement stale"), "{err:?}");
 }
 
 #[test]
@@ -27,4 +24,3 @@ fn p98_farm_billing_enforce_matching_ack_ok() {
     std::env::set_var("SYX_BILLING_SETTLEMENT_ACK", "settle-ok");
     assert!(enforce_billing_settlement(&lock).is_ok());
 }
-

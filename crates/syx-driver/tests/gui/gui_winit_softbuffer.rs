@@ -13,13 +13,11 @@ fn run(src: &str) -> Vec<String> {
 #[test]
 fn p98_gui_winit_softbuffer_pixel_readback() {
     syx_vm::ensure_gui_loaded();
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let win = __syx_gui_winit_window_create("p97")
     __syx_gui_winit_canvas_draw(win, "red")
     print(__syx_gui_pixel_read(win))
-}"#,
-    );
+}"#);
     let px: i64 = out.last().and_then(|l| l.parse().ok()).unwrap_or(0);
     assert_eq!(px as u32, 4278190335, "red pixel ARGB: {out:?}");
 }
@@ -28,13 +26,11 @@ fn p98_gui_winit_softbuffer_pixel_readback() {
 #[test]
 fn p98_gui_winit_softbuffer_blue_pixel_dlopen() {
     syx_vm::ensure_gui_loaded();
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let win = __syx_gui_winit_window_create("p97-blue")
     __syx_gui_winit_canvas_draw(win, "blue")
     print(__syx_gui_pixel_read(win))
-}"#,
-    );
+}"#);
     let px: i64 = out.last().and_then(|l| l.parse().ok()).unwrap_or(0);
     assert_eq!(px as u32, 4294901760, "blue pixel ARGB: {out:?}");
 }
@@ -42,12 +38,9 @@ fn p98_gui_winit_softbuffer_blue_pixel_dlopen() {
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
 fn p98_gui_winit_softbuffer_window_create() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let win = __syx_gui_winit_window_create("headless")
     print(win)
-}"#,
-    );
+}"#);
     assert!(out.iter().any(|l| l.contains("winit")), "{out:?}");
 }
-

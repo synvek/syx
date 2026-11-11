@@ -1369,9 +1369,8 @@ impl Parser {
         // SA-2-04: user-facing `public data class` removed — use `struct` or `enum …: Error`.
         // Non-public remains parseable for fmt/CST fixtures + Codable residual (SA-5).
         if matches!(access, AccessLevel::Public) {
-            return self.error(
-                "public data class is removed (SA-2-04); use struct or enum …: Error",
-            );
+            return self
+                .error("public data class is removed (SA-2-04); use struct or enum …: Error");
         }
         let name = self.consume_identifier("Expected data class name")?;
         let (type_params, mut where_clause) = self.parse_type_params()?;
@@ -5897,10 +5896,7 @@ func main() {}
 
     #[test]
     fn r26_swift_closure_empty_body() {
-        let source = SourceFile::new(
-            "c.sy",
-            "func main() { let f = { (x: Int) in }\n}\n",
-        );
+        let source = SourceFile::new("c.sy", "func main() { let f = { (x: Int) in }\n}\n");
         let module = Parser::parse(source).expect("empty body must parse");
         match first_closure_body(&module) {
             ClosureBody::Block(stmts) => assert!(stmts.is_empty()),

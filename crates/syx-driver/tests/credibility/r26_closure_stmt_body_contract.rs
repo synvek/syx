@@ -61,10 +61,9 @@ fn r26_tutorial_08_closures_checks_clean() {
 
 #[test]
 fn r26_no_ignore_on_hof_closure_path() {
-    let hof = std::fs::read_to_string(
-        repo_root().join("crates/syx-driver/tests/runtime/hof_closure.rs"),
-    )
-    .expect("hof_closure.rs");
+    let hof =
+        std::fs::read_to_string(repo_root().join("crates/syx-driver/tests/runtime/hof_closure.rs"))
+            .expect("hof_closure.rs");
     assert!(
         !hof.contains("#[ignore]"),
         "fail-closed: do not #[ignore] hof_closure tests (L006 native may fail honestly)"

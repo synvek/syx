@@ -12,8 +12,7 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_kvo_chain_observe_stdout() {
-    let out = run(
-        r#"class Dog {
+    let out = run(r#"class Dog {
     var name: String
     init(name: String) { self.name = name }
 }
@@ -21,8 +20,7 @@ func main() {
     let d = Dog(name: "fido")
     __syx_kvo_observe(d, "name")
     print("kvo-ok")
-}"#,
-    );
+}"#);
     assert!(out.contains("kvo-ok"), "{out}");
 }
 

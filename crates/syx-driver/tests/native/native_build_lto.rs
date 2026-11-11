@@ -2,7 +2,6 @@
 
 use syx_driver::BuildProfile;
 
-
 #[test]
 fn p98_native_lto_default_off() {
     std::env::remove_var("SYX_NATIVE_LTO");

@@ -7,8 +7,7 @@ use syx_driver::{
     build_native_executable, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
-const HEAP_DEINIT_ORDER: &str =
-    include_str!("../fixtures/memory/heap_deinit_order.sy");
+const HEAP_DEINIT_ORDER: &str = include_str!("../fixtures/memory/heap_deinit_order.sy");
 
 const DEINIT_EXPECTED: &str = "deinit:\n1\ndone\ndeinit:\n2";
 
@@ -45,11 +44,7 @@ fn lines_joined(lines: &[String]) -> String {
 }
 
 fn write_src(label: &str, src: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w277_a04_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w277_a04_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let path = dir.join("main.sy");
@@ -78,11 +73,8 @@ fn run_native_strict(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write manifest");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n")
+        .expect("write manifest");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -93,7 +85,9 @@ fn run_native_strict(label: &str, src: &str) -> String {
         "native strict exit: {}",
         String::from_utf8_lossy(&output.stderr)
     );
-    String::from_utf8_lossy(&output.stdout).trim_end().to_string()
+    String::from_utf8_lossy(&output.stdout)
+        .trim_end()
+        .to_string()
 }
 
 fn run_wasm(label: &str, src: &str) -> String {
@@ -103,8 +97,7 @@ fn run_wasm(label: &str, src: &str) -> String {
     let path = write_src(label, src);
     let mut opts = DriverOptions::default();
     opts.wasm_aot = true;
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines_joined(&lines)
 }
@@ -162,4 +155,3 @@ fn edge_task_local_missing_nil_wasm() {
         "TaskLocalGet missing must print nil: {out}"
     );
 }
-

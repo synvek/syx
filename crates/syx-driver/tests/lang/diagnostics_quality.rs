@@ -86,10 +86,7 @@ fn error_case_prints_as_type_dot_case() {
     let (code, lines) = run_file_printed(&path, &opts()).expect("run");
     assert_eq!(code, 0, "exit: {lines:?}");
     let t: Vec<_> = lines.iter().map(|l| l.trim()).collect();
-    assert!(
-        t.iter().any(|l| *l == "E.bad"),
-        "expected E.bad, got {t:?}"
-    );
+    assert!(t.iter().any(|l| *l == "E.bad"), "expected E.bad, got {t:?}");
     assert!(
         !t.iter().any(|l| l.contains("{case:") || l.contains("tag:")),
         "must not print internal bag, got {t:?}"

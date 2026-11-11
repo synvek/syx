@@ -1,10 +1,10 @@
 //! Phase 131 Macro M21 unit probes: decl-param subst MVP + execution pointcut MVP.
 
+use crate::expand_module;
 use crate::service::{
     collect_pointcuts, expand_advice_interceptors, expand_service_macros, parse_pointcut_pattern,
     pointcut_matches_join, PointcutPattern,
 };
-use crate::expand_module;
 
 #[test]
 fn p131_decl_param_ident_literal_subst() {
@@ -89,19 +89,13 @@ fn p131_execution_pointcut_parse_and_match() {
             method: None,
         }
     );
-    assert!(pointcut_matches_join(
-        "execution(* Foo.bar(..))",
-        "Foo.bar"
-    ));
+    assert!(pointcut_matches_join("execution(* Foo.bar(..))", "Foo.bar"));
     assert!(pointcut_matches_join("execution(* Foo.*(..))", "Foo.baz"));
     assert!(!pointcut_matches_join(
         "execution(* Foo.bar(..))",
         "Foo.baz"
     ));
-    assert!(!pointcut_matches_join(
-        "execution(* Foo.*(..))",
-        "Bar.baz"
-    ));
+    assert!(!pointcut_matches_join("execution(* Foo.*(..))", "Bar.baz"));
     assert!(
         include_str!("service.rs").contains("macro-service-v12:pointcut-execution-name-mvp"),
         "fingerprint must live in service.rs"

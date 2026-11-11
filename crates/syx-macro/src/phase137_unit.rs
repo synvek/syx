@@ -28,8 +28,16 @@ fn p137_not_within_pointcut_parse_and_match() {
             }),
         }
     );
-    assert!(pointcut_matches_method("!within(Excluded)", "Allowed.handle", &[]));
-    assert!(!pointcut_matches_method("!within(Excluded)", "Excluded.handle", &[]));
+    assert!(pointcut_matches_method(
+        "!within(Excluded)",
+        "Allowed.handle",
+        &[]
+    ));
+    assert!(!pointcut_matches_method(
+        "!within(Excluded)",
+        "Excluded.handle",
+        &[]
+    ));
     assert!(parse_pointcut_pattern("!within()").is_none());
     assert!(
         include_str!("service.rs").contains("macro-service-v18:pointcut-not-within-mvp"),
@@ -72,8 +80,9 @@ class Excluded {
 fn p137_decl_expand_rename_and_wrap() {
     // Fingerprint: macro-token-v8:decl-expand-mvp
     let tokens = vec![MacroTokenKind::Ident(smol_str::SmolStr::new("greet"))];
-    let renamed = expand_decl_param_tokens(&tokens, DeclExpandMode::RenamePrefix("wrapped_".into()))
-        .expect("rename expand");
+    let renamed =
+        expand_decl_param_tokens(&tokens, DeclExpandMode::RenamePrefix("wrapped_".into()))
+            .expect("rename expand");
     let wrapped = expand_decl_param_tokens(&tokens, DeclExpandMode::WrapPrefix("wrap_".into()))
         .expect("wrap expand");
     assert!(matches!(

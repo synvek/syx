@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -41,8 +40,7 @@ fn s3_04_plan_claim_locked() {
         "ADR must cite I70 residual-scope prior"
     );
     assert!(
-        adr.contains("S3-I72")
-            || (adr.contains("S3-05") && adr.contains("open")),
+        adr.contains("S3-I72") || (adr.contains("S3-05") && adr.contains("open")),
         "ADR must lock next = S3-05 open / I72"
     );
 
@@ -68,8 +66,7 @@ fn s3_04_plan_claim_locked() {
         "Stage-3 must be [x] 退出; got: {stage3}"
     );
     assert!(
-        plan02.contains("S3-I72")
-            || (plan02.contains("S3-05") && plan02.contains("open")),
+        plan02.contains("S3-I72") || (plan02.contains("S3-05") && plan02.contains("open")),
         "plan/02 must lock next = S3-05 open / I72"
     );
 
@@ -103,8 +100,7 @@ fn s3_04_plan_claim_locked() {
         "plan/01 must reflect S3-I71 S3-04 [x]"
     );
     assert!(
-        plan01.contains("S3-I72")
-            || (plan01.contains("S3-05") && plan01.contains("open")),
+        plan01.contains("S3-I72") || (plan01.contains("S3-05") && plan01.contains("open")),
         "plan/01 must lock next = S3-05 open / I72"
     );
 }
@@ -113,9 +109,7 @@ fn s3_04_plan_claim_locked() {
 fn s3_04_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_04_vm_hotspot_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run vm-hotspot census");
     assert!(

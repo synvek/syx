@@ -108,4 +108,3 @@ func main() {
         "long sleepers should be cancelled: {out}"
     );
 }
-

@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -33,7 +32,8 @@ fn s2_05_mir_lower_expr_compound_assign_extract_baseline() {
         "lib.rs must declare mod mir_lower_expr_compound_assign"
     );
     assert!(
-        (lib.contains("lower_expr_compound_assign(") || mir_lower_expr_src().contains("lower_expr_compound_assign(")),
+        (lib.contains("lower_expr_compound_assign(")
+            || mir_lower_expr_src().contains("lower_expr_compound_assign(")),
         "lib.rs must delegate CompoundAssign to lower_expr_compound_assign"
     );
     assert!(
@@ -49,7 +49,10 @@ fn s2_05_mir_lower_expr_compound_assign_extract_baseline() {
     );
 
     let adr = repo_file("docs/adr/stage2-s2-05-mir-lower-expr-compound-assign-extract.md");
-    assert!(adr.contains("S2-I183"), "compound_assign ADR must name S2-I183");
+    assert!(
+        adr.contains("S2-I183"),
+        "compound_assign ADR must name S2-I183"
+    );
     assert!(
         adr.contains("S2-I184") && adr.contains("Ternary"),
         "ADR must lock next knife = S2-I184 Ternary"

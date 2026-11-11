@@ -83,7 +83,10 @@ pub(crate) fn compile_to_program(
     Ok(())
 }
 
-pub(crate) fn inject_virtual_prelude_imports(module: &mut syx_ast::Module, options: &DriverOptions) {
+pub(crate) fn inject_virtual_prelude_imports(
+    module: &mut syx_ast::Module,
+    options: &DriverOptions,
+) {
     if !options.enable_std {
         return;
     }

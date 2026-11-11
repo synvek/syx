@@ -5,8 +5,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -41,10 +40,7 @@ fn sa1_swift_surfaces_present() {
         "Double.pi must exist"
     );
     let int = repo_file("packages/core/builtins/numeric/int.sy");
-    assert!(
-        int.contains("func random(in"),
-        "Int.random(in:) must exist"
-    );
+    assert!(int.contains("func random(in"), "Int.random(in:) must exist");
 }
 
 #[test]

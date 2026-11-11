@@ -35,4 +35,3 @@ fn ec_m2_4_http_microbench_response_instant() {
         "ec_m2_4_http_microbench: Http.response×{N} compile+run in {elapsed:?} (~{per_op:?}/op)"
     );
 }
-

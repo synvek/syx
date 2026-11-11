@@ -42,6 +42,25 @@ print(c.value)                             // 1
 
 > **`mutating`：** 标记会修改 `self` 的方法；调用方必须用 `var`（不能 `let`）。无标记的 mutating 方法在 `let` 上调用 → **S020**。
 
+### 值语义：struct 赋值拷贝（R-38 · SEM-STRUCT）
+
+赋值 `struct` 会拷贝；改副本不得改原值：
+
+```syx,output
+// prints: 1\n9
+struct Point {
+    var x: Int
+}
+
+func main() {
+    var p = Point(x: 1)
+    var q = p
+    q.x = 9
+    print(p.x)
+    print(q.x)
+}
+```
+
 ## class
 
 引用类型对象。SYX class 是 **ARC** 引用计数 + class `ObjectRef`（**Phase 73 起**）：

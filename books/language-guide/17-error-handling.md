@@ -31,6 +31,30 @@ func main() {
 
 Source: `crates/syx-driver/tests/fixtures/lsp/result_generic.sy`
 
+### Cross-function `try` (R-38 output pin · SEM-THROW)
+
+`do { try g() } catch` must enter the catch path (the error must not print as a normal value):
+
+```syx,output
+// prints: caught
+enum E: Error {
+    case bad
+}
+
+func g() throws {
+    throw E.bad
+}
+
+func main() {
+    do {
+        try g()
+        print("value")
+    } catch {
+        print("caught")
+    }
+}
+```
+
 ## throw Expressions
 
 ```syx

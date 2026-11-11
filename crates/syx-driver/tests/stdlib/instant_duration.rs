@@ -58,7 +58,10 @@ fn m2_s5_01_wall_vs_monotonic_and_elapsed() {
         tick < wall / 1000,
         "monotonic tick must be << wall epoch; tick={tick} wall={wall}"
     );
-    assert_eq!(lines[3], "1000", "Duration.seconds(1) must stay 1000: {out}");
+    assert_eq!(
+        lines[3], "1000",
+        "Duration.seconds(1) must stay 1000: {out}"
+    );
 }
 
 /// Wave A W256 / ADR-600 — Clock.nowMs + Instant.now native llvm epoch-scale / tick.
@@ -84,17 +87,17 @@ fn m2_s5_01_clock_instant_native_llvm() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
     let output = Command::new(&exe).output().expect("run native");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let lines: Vec<&str> = stdout.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+    let lines: Vec<&str> = stdout
+        .lines()
+        .map(|l| l.trim())
+        .filter(|l| !l.is_empty())
+        .collect();
     let _ = fs::remove_dir_all(&dir);
     assert_eq!(
         lines.len(),
@@ -129,10 +132,7 @@ fn m2_s5_01_clock_instant_wasm() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_clock_instant_wasm_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_clock_instant_wasm_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -176,4 +176,3 @@ fn m2_s5_01_inventory_meta() {
         "inventory must note ADR-220"
     );
 }
-

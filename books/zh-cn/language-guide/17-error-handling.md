@@ -31,6 +31,30 @@ func main() {
 
 来源：`crates/syx-driver/tests/fixtures/lsp/result_generic.sy`
 
+### 跨函数 `try`（R-38 output 钉 · SEM-THROW）
+
+`do { try g() } catch` 必须进入 catch（错误不得当普通值打印）：
+
+```syx,output
+// prints: caught
+enum E: Error {
+    case bad
+}
+
+func g() throws {
+    throw E.bad
+}
+
+func main() {
+    do {
+        try g()
+        print("value")
+    } catch {
+        print("caught")
+    }
+}
+```
+
 ## throw 表达式
 
 ```syx

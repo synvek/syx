@@ -5,23 +5,13 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure,
-    cdn_bgp_ga_ready,
-    cdn_bgp_import_peer_view,
-    cdn_bgp_list_peer_ids,
-    cdn_bgp_ops_snapshot,
-    cdn_bgp_ops_visibility_ready,
-    cdn_bgp_peer_health_map,
-    cdn_bgp_route,
-    cdn_delivery_ack_clear,
-    cdn_doctor_mode,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure, cdn_bgp_ga_ready, cdn_bgp_import_peer_view,
+    cdn_bgp_list_peer_ids, cdn_bgp_ops_snapshot, cdn_bgp_ops_visibility_ready,
+    cdn_bgp_peer_health_map, cdn_bgp_route, cdn_delivery_ack_clear, cdn_doctor_mode,
+    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P120_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_bgp_ops_cdn_bgp_ops_visibility_mvp() {
@@ -44,7 +34,10 @@ fn dist_bgp_ops_cdn_bgp_ops_visibility_mvp() {
         &[("198.51.100.0/24", 250, "bgp-eu", url_b.as_str())],
     );
     assert!(cdn_bgp_ops_visibility_ready());
-    assert!(!cdn_bgp_ga_ready(), "ops visibility alone must not pass mesh GA");
+    assert!(
+        !cdn_bgp_ga_ready(),
+        "ops visibility alone must not pass mesh GA"
+    );
     assert_eq!(cdn_doctor_mode(), "cdn-bgp-route-convergence");
 
     let peer_ids = cdn_bgp_list_peer_ids();

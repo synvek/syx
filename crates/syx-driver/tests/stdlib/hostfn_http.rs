@@ -54,8 +54,7 @@ fn start_ok_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
 
 #[test]
 fn hostfn_http_get_connect_refused_io_err() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   do {
     let r = __syx_http_get("http://127.0.0.1:1/x")
@@ -66,8 +65,7 @@ func main() {
     print(err.code)
   }
 }
-"#,
-    )
+"#)
     .expect("refused must catch");
     assert_eq!(out, vec!["refused".to_string(), "R003".to_string()]);
 }
@@ -99,11 +97,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -155,10 +149,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm refuse get failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["refused".to_string(), "R003".to_string()],
@@ -212,11 +203,7 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -272,10 +259,7 @@ func main() {{
     let _ = handle.join();
     let (_, lines) = result.unwrap_or_else(|e| panic!("wasm loopback get failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["200".to_string(), "ok".to_string()],
@@ -308,11 +292,7 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -401,11 +381,7 @@ func main() {{
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -468,4 +444,3 @@ func main() {{
         "HttpRequest wasm loopback must exact-success: {lines:?}"
     );
 }
-

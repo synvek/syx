@@ -139,10 +139,7 @@ func done() {{
             "expected setup failure text, got {msg:?}"
         );
     }
-    assert!(
-        !marker.exists(),
-        "teardown must not run when setup fails"
-    );
+    assert!(!marker.exists(), "teardown must not run when setup fails");
 }
 
 #[test]

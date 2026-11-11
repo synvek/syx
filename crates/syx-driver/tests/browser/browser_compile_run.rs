@@ -25,8 +25,8 @@ fn with_prelude(body: &str) -> String {
 }
 
 fn run_wasm_mandatory(bytes: &[u8], expected: i32) {
-    let r = syx_wasm_run::run_wasm_capture(bytes, "main", None)
-        .expect("browser wasm run must succeed");
+    let r =
+        syx_wasm_run::run_wasm_capture(bytes, "main", None).expect("browser wasm run must succeed");
     let expect = expected.to_string();
     let printed_ok = r.printed.iter().any(|l| l.contains(&expect));
     assert!(

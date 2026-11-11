@@ -38,8 +38,7 @@ fn parse(stdout: &str, key: &str) -> i64 {
 fn r13_concurrency_census_files_exist() {
     assert!(repo_path("scripts/r13_concurrency_census.sh").is_file());
     assert!(repo_path("docs/census/r-13-concurrency-census.md").is_file());
-    let concurrency =
-        std::fs::read_to_string(repo_path("packages/core/concurrency.sy")).unwrap();
+    let concurrency = std::fs::read_to_string(repo_path("packages/core/concurrency.sy")).unwrap();
     assert!(
         concurrency.contains("func detach(_ name: String) -> Dictionary"),
         "detach must return Dictionary"

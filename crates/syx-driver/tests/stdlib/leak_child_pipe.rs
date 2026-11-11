@@ -71,12 +71,13 @@ func main() {
     assert!(!out.contains("caught"), "{out}");
     let after = child_pipe_live_count();
     assert_eq!(after, baseline + 1, "baseline={baseline} after={after}");
-    let mut nums = out
-        .lines()
-        .filter_map(|l| l.trim().parse::<i64>().ok());
+    let mut nums = out.lines().filter_map(|l| l.trim().parse::<i64>().ok());
     let pipe_id = nums.next().expect("pipe id");
     let child_id = nums.next().expect("child id");
-    assert!(child_pipe_force_close(pipe_id), "force_close pipe {pipe_id}");
+    assert!(
+        child_pipe_force_close(pipe_id),
+        "force_close pipe {pipe_id}"
+    );
     assert_eq!(child_pipe_live_count(), baseline);
     // Drop child so later tests stay isolated.
     let _ = process_child_force_close(child_id);

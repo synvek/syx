@@ -135,10 +135,7 @@ fn type_expr_to_type_name_core(ty: &syx_ast::TypeExpr, demangle_named: bool) -> 
             )
         }
         TypeExpr::OpaqueAny(inner) => {
-            format!(
-                "any {}",
-                type_expr_to_type_name_core(inner, demangle_named)
-            )
+            format!("any {}", type_expr_to_type_name_core(inner, demangle_named))
         }
         TypeExpr::Function { .. } | TypeExpr::Void => String::new(),
     }
@@ -785,10 +782,7 @@ mod tests {
             generics: vec![],
         };
         assert_eq!(type_expr_to_type_name(&mangled), "Foo_Int");
-        assert_eq!(
-            type_expr_to_user_facing_type_name(&mangled),
-            "Foo<Int>"
-        );
+        assert_eq!(type_expr_to_user_facing_type_name(&mangled), "Foo<Int>");
         assert_eq!(
             user_facing_meta_type_name("Outer_Inner").as_str(),
             "Outer.Inner"
@@ -803,10 +797,7 @@ mod tests {
         );
         let meta = reflect_type("BoxHolder").expect("registered");
         assert_eq!(meta.field_types[0].as_str(), "Foo_Int");
-        assert_eq!(
-            meta.user_facing_field_types()[0].as_str(),
-            "Foo<Int>"
-        );
+        assert_eq!(meta.user_facing_field_types()[0].as_str(), "Foo<Int>");
     }
 
     #[test]

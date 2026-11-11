@@ -108,7 +108,11 @@ impl EguiWindowState {
     }
 
     /// Feed a winit window event through the real egui-winit bridge.
-    pub fn on_window_event(&mut self, window: &Window, event: &WindowEvent) -> egui_winit::EventResponse {
+    pub fn on_window_event(
+        &mut self,
+        window: &Window,
+        event: &WindowEvent,
+    ) -> egui_winit::EventResponse {
         self.ensure_egui_winit(window);
         let response = self
             .egui_winit
@@ -356,7 +360,13 @@ fn paint_triangle(
     v2: &Vertex,
     tex: Option<&GpuTexture>,
 ) {
-    let min_x = v0.pos.x.min(v1.pos.x).min(v2.pos.x).max(clip.min.x).max(0.0);
+    let min_x = v0
+        .pos
+        .x
+        .min(v1.pos.x)
+        .min(v2.pos.x)
+        .max(clip.min.x)
+        .max(0.0);
     let max_x = v0
         .pos
         .x
@@ -364,7 +374,13 @@ fn paint_triangle(
         .max(v2.pos.x)
         .min(clip.max.x)
         .min(width as f32);
-    let min_y = v0.pos.y.min(v1.pos.y).min(v2.pos.y).max(clip.min.y).max(0.0);
+    let min_y = v0
+        .pos
+        .y
+        .min(v1.pos.y)
+        .min(v2.pos.y)
+        .max(clip.min.y)
+        .max(0.0);
     let max_y = v0
         .pos
         .y
@@ -616,14 +632,7 @@ fn paint_hb_glyph_path(
 
 /// Paint widget text: paragraph OR HB/skia-glyph — never both for the same string.
 /// Vertical-rl still attempts paragraph (narrow column wrap) before HB fallback.
-fn paint_hb_glyphs(
-    buf: &mut [u32],
-    width: u32,
-    x0: u32,
-    y0: u32,
-    text: &str,
-    vertical_rl: bool,
-) {
+fn paint_hb_glyphs(buf: &mut [u32], width: u32, x0: u32, y0: u32, text: &str, vertical_rl: bool) {
     #[cfg(feature = "skia-glyph")]
     {
         let max_width = if vertical_rl {

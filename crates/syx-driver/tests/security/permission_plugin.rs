@@ -117,4 +117,3 @@ allow_plugin = true
     assert!(grants.sandbox);
     assert!(grants.allow_plugin);
 }
-

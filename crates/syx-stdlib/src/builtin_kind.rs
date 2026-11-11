@@ -51,11 +51,35 @@ const PROTO_KIND_GROUPS: &[&str] = &["numeric", "scalar", "text", "collection"];
 const COMPARABLE_KIND_GROUPS: &[&str] = &["numeric", "text"];
 const HOST_MIN_MAX: &[&str] = &["min", "max"];
 const HOST_MIN_MAX_ABS: &[&str] = &["min", "max", "abs"];
-const HOST_ARRAY_OPS: &[&str] = &["map", "filter", "reduce", "reverse", "contains", "joined", "count"];
-const HOST_SET_OPS: &[&str] = &["count", "contains", "insert", "remove", "union", "intersection"];
-const HOST_DICT_OPS: &[&str] = &["count", "contains", "containsKey", "keys", "values", "remove"];
+const HOST_ARRAY_OPS: &[&str] = &[
+    "map", "filter", "reduce", "reverse", "contains", "joined", "count",
+];
+const HOST_SET_OPS: &[&str] = &[
+    "count",
+    "contains",
+    "insert",
+    "remove",
+    "union",
+    "intersection",
+];
+const HOST_DICT_OPS: &[&str] = &[
+    "count",
+    "contains",
+    "containsKey",
+    "keys",
+    "values",
+    "remove",
+];
 const HOST_RESULT_OPS: &[&str] = &["ok", "err", "is_ok", "is_err"];
-const HOST_BIGINT_OPS: &[&str] = &["from_string", "from_i128", "add", "sub", "mul", "cmp", "description"];
+const HOST_BIGINT_OPS: &[&str] = &[
+    "from_string",
+    "from_i128",
+    "add",
+    "sub",
+    "mul",
+    "cmp",
+    "description",
+];
 
 #[derive(Debug, Clone, Copy)]
 pub struct ManifestEntry {
@@ -85,22 +109,166 @@ struct NumMeta {
 }
 
 const NUMERICS: &[NumMeta] = &[
-    NumMeta { surface: "Int8", internal_id: "numeric.i8", numeric_kind: "I8", core_path: "core/builtins/numeric/int8.sy", bits: 8, signed: true, wide: false, alias_of: None },
-    NumMeta { surface: "Int16", internal_id: "numeric.i16", numeric_kind: "I16", core_path: "core/builtins/numeric/int16.sy", bits: 16, signed: true, wide: false, alias_of: None },
-    NumMeta { surface: "Int32", internal_id: "numeric.i32", numeric_kind: "I32", core_path: "core/builtins/numeric/int32.sy", bits: 32, signed: true, wide: false, alias_of: None },
-    NumMeta { surface: "Int64", internal_id: "numeric.i64", numeric_kind: "I64", core_path: "core/builtins/numeric/int64.sy", bits: 64, signed: true, wide: false, alias_of: None },
-    NumMeta { surface: "Int128", internal_id: "numeric.i128", numeric_kind: "I128", core_path: "core/builtins/numeric/int128.sy", bits: 128, signed: true, wide: true, alias_of: None },
-    NumMeta { surface: "UInt8", internal_id: "numeric.u8", numeric_kind: "U8", core_path: "core/builtins/numeric/uint8.sy", bits: 8, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "UInt16", internal_id: "numeric.u16", numeric_kind: "U16", core_path: "core/builtins/numeric/uint16.sy", bits: 16, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "UInt32", internal_id: "numeric.u32", numeric_kind: "U32", core_path: "core/builtins/numeric/uint32.sy", bits: 32, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "UInt64", internal_id: "numeric.u64", numeric_kind: "U64", core_path: "core/builtins/numeric/uint64.sy", bits: 64, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "UInt128", internal_id: "numeric.u128", numeric_kind: "U128", core_path: "core/builtins/numeric/uint128.sy", bits: 128, signed: false, wide: true, alias_of: None },
-    NumMeta { surface: "Int", internal_id: "numeric.int", numeric_kind: "Int", core_path: "core/builtins/numeric/int.sy", bits: 64, signed: true, wide: false, alias_of: None },
-    NumMeta { surface: "UInt", internal_id: "numeric.uint", numeric_kind: "UInt", core_path: "core/builtins/numeric/uint.sy", bits: 64, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "Float32", internal_id: "numeric.f32", numeric_kind: "F32", core_path: "core/builtins/numeric/float32.sy", bits: 32, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "Float64", internal_id: "numeric.f64", numeric_kind: "F64", core_path: "core/builtins/numeric/float64.sy", bits: 64, signed: false, wide: false, alias_of: None },
-    NumMeta { surface: "Float", internal_id: "numeric.f32", numeric_kind: "F32", core_path: "core/builtins/numeric/float.sy", bits: 32, signed: false, wide: false, alias_of: Some("Float32") },
-    NumMeta { surface: "Double", internal_id: "numeric.f64", numeric_kind: "F64", core_path: "core/builtins/numeric/double.sy", bits: 64, signed: false, wide: false, alias_of: Some("Float64") },
+    NumMeta {
+        surface: "Int8",
+        internal_id: "numeric.i8",
+        numeric_kind: "I8",
+        core_path: "core/builtins/numeric/int8.sy",
+        bits: 8,
+        signed: true,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Int16",
+        internal_id: "numeric.i16",
+        numeric_kind: "I16",
+        core_path: "core/builtins/numeric/int16.sy",
+        bits: 16,
+        signed: true,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Int32",
+        internal_id: "numeric.i32",
+        numeric_kind: "I32",
+        core_path: "core/builtins/numeric/int32.sy",
+        bits: 32,
+        signed: true,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Int64",
+        internal_id: "numeric.i64",
+        numeric_kind: "I64",
+        core_path: "core/builtins/numeric/int64.sy",
+        bits: 64,
+        signed: true,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Int128",
+        internal_id: "numeric.i128",
+        numeric_kind: "I128",
+        core_path: "core/builtins/numeric/int128.sy",
+        bits: 128,
+        signed: true,
+        wide: true,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "UInt8",
+        internal_id: "numeric.u8",
+        numeric_kind: "U8",
+        core_path: "core/builtins/numeric/uint8.sy",
+        bits: 8,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "UInt16",
+        internal_id: "numeric.u16",
+        numeric_kind: "U16",
+        core_path: "core/builtins/numeric/uint16.sy",
+        bits: 16,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "UInt32",
+        internal_id: "numeric.u32",
+        numeric_kind: "U32",
+        core_path: "core/builtins/numeric/uint32.sy",
+        bits: 32,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "UInt64",
+        internal_id: "numeric.u64",
+        numeric_kind: "U64",
+        core_path: "core/builtins/numeric/uint64.sy",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "UInt128",
+        internal_id: "numeric.u128",
+        numeric_kind: "U128",
+        core_path: "core/builtins/numeric/uint128.sy",
+        bits: 128,
+        signed: false,
+        wide: true,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Int",
+        internal_id: "numeric.int",
+        numeric_kind: "Int",
+        core_path: "core/builtins/numeric/int.sy",
+        bits: 64,
+        signed: true,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "UInt",
+        internal_id: "numeric.uint",
+        numeric_kind: "UInt",
+        core_path: "core/builtins/numeric/uint.sy",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Float32",
+        internal_id: "numeric.f32",
+        numeric_kind: "F32",
+        core_path: "core/builtins/numeric/float32.sy",
+        bits: 32,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Float64",
+        internal_id: "numeric.f64",
+        numeric_kind: "F64",
+        core_path: "core/builtins/numeric/float64.sy",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: None,
+    },
+    NumMeta {
+        surface: "Float",
+        internal_id: "numeric.f32",
+        numeric_kind: "F32",
+        core_path: "core/builtins/numeric/float.sy",
+        bits: 32,
+        signed: false,
+        wide: false,
+        alias_of: Some("Float32"),
+    },
+    NumMeta {
+        surface: "Double",
+        internal_id: "numeric.f64",
+        numeric_kind: "F64",
+        core_path: "core/builtins/numeric/double.sy",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: Some("Float64"),
+    },
 ];
 
 /// Static manifest entries for Phase 46 (must stay in sync with `build.rs` output).
@@ -153,7 +321,12 @@ pub fn manifest_entries() -> Vec<ManifestEntry> {
             prelude: true,
             importable: false,
             owner_module: None,
-            auto_conformance: Some(&["Equatable", "Hashable", "CustomStringConvertible", "Comparable"]),
+            auto_conformance: Some(&[
+                "Equatable",
+                "Hashable",
+                "CustomStringConvertible",
+                "Comparable",
+            ]),
             host_ops: None,
         },
         ManifestEntry {
@@ -181,7 +354,12 @@ pub fn manifest_entries() -> Vec<ManifestEntry> {
             prelude: true,
             importable: false,
             owner_module: None,
-            auto_conformance: Some(&["Equatable", "Hashable", "CustomStringConvertible", "Comparable"]),
+            auto_conformance: Some(&[
+                "Equatable",
+                "Hashable",
+                "CustomStringConvertible",
+                "Comparable",
+            ]),
             host_ops: None,
         },
         ManifestEntry {
@@ -378,7 +556,12 @@ pub fn manifest_entries() -> Vec<ManifestEntry> {
             prelude: true,
             importable: false,
             owner_module: None,
-            auto_conformance: Some(&["Equatable", "Hashable", "CustomStringConvertible", "Comparable"]),
+            auto_conformance: Some(&[
+                "Equatable",
+                "Hashable",
+                "CustomStringConvertible",
+                "Comparable",
+            ]),
             host_ops: Some(HOST_BIGINT_OPS),
         },
         ManifestEntry {
@@ -413,19 +596,40 @@ pub fn prelude_module_names() -> Vec<&'static str> {
         }
     }
     names.extend([
-        "Hasher", "Random", "JSON", "Time", "Env", "Path", "Concurrency", "SIMD4",
+        "Hasher",
+        "Random",
+        "JSON",
+        "Time",
+        "Env",
+        "Path",
+        "Concurrency",
+        "SIMD4",
     ]);
     names
 }
 
 pub fn retired_ops_module_names() -> &'static [&'static str] {
     &[
-        "Int8Ops", "Int16Ops", "Int32Ops", "Int64Ops", "Int128Ops",
-        "UInt8Ops", "UInt16Ops", "UInt32Ops", "UInt64Ops", "UInt128Ops",
-        "IntOps", "UIntOps",
-        "Float32Ops", "Float64Ops", "FloatOps", "DoubleOps",
+        "Int8Ops",
+        "Int16Ops",
+        "Int32Ops",
+        "Int64Ops",
+        "Int128Ops",
+        "UInt8Ops",
+        "UInt16Ops",
+        "UInt32Ops",
+        "UInt64Ops",
+        "UInt128Ops",
+        "IntOps",
+        "UIntOps",
+        "Float32Ops",
+        "Float64Ops",
+        "FloatOps",
+        "DoubleOps",
         // SA-0-03: do not retire live import Text — remove legacy Text ops name clash.
-        "BoolOps", "CharacterOps", "Arrays",
+        "BoolOps",
+        "CharacterOps",
+        "Arrays",
     ]
 }
 

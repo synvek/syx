@@ -165,9 +165,7 @@ fn resolve_paint_route(text: &str) -> PaintRoute<'_> {
 }
 
 fn default_paint_ot_candidate(text: &str) -> bool {
-    !text.is_empty()
-        && !text.starts_with('\x01')
-        && text.chars().all(|c| c.is_ascii_alphabetic())
+    !text.is_empty() && !text.starts_with('\x01') && text.chars().all(|c| c.is_ascii_alphabetic())
 }
 
 #[cfg(feature = "skia-glyph")]
@@ -409,14 +407,20 @@ pub fn prove_ot_script_subset() -> bool {
         b.push_str("fi");
         b.set_script(rustybuzz::script::LATIN);
         let gb = rustybuzz::shape(&face, &baseline_feats, b);
-        gb.glyph_infos().iter().map(|i| i.glyph_id as u16).collect::<Vec<_>>()
+        gb.glyph_infos()
+            .iter()
+            .map(|i| i.glyph_id as u16)
+            .collect::<Vec<_>>()
     };
     let featured = {
         let mut b = UnicodeBuffer::new();
         b.push_str("fi");
         b.set_script(rustybuzz::script::LATIN);
         let gb = rustybuzz::shape(&face, &featured_feats, b);
-        gb.glyph_infos().iter().map(|i| i.glyph_id as u16).collect::<Vec<_>>()
+        gb.glyph_infos()
+            .iter()
+            .map(|i| i.glyph_id as u16)
+            .collect::<Vec<_>>()
     };
     let _ = buffer;
     if baseline.is_empty() || featured.is_empty() || baseline == featured {
@@ -556,7 +560,9 @@ fn vf_axis_count(ttf: &[u8]) -> usize {
 /// Phase 119: VF multi-axis MVP — wdth axis advances must differ (alongside inherited wght).
 pub fn prove_vf_multi_axis() -> bool {
     VF_MULTI_AXIS_USED.store(false, Ordering::Relaxed);
-    if !vf_has_axis(VF_MULTI_AXIS_PROOF_TTF, b"wght") || !vf_has_axis(VF_MULTI_AXIS_PROOF_TTF, b"wdth") {
+    if !vf_has_axis(VF_MULTI_AXIS_PROOF_TTF, b"wght")
+        || !vf_has_axis(VF_MULTI_AXIS_PROOF_TTF, b"wdth")
+    {
         return false;
     }
     let narrow = shape_advance_for_vf_axes(VF_MULTI_AXIS_PROOF_TTF, 100.0, 50.0);
@@ -726,9 +732,7 @@ fn system_font_candidates() -> Vec<PathBuf> {
         out.push(PathBuf::from(
             "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
         ));
-        out.push(PathBuf::from(
-            "/usr/share/fonts/truetype/arphic/uming.ttc",
-        ));
+        out.push(PathBuf::from("/usr/share/fonts/truetype/arphic/uming.ttc"));
     }
     #[cfg(target_os = "windows")]
     {
@@ -810,7 +814,10 @@ fn pick_face_for_text(text: &str) -> (&'static Font, &'static [u8]) {
         }
     }
     if need_fallback {
-        if text.chars().any(|ch| font_has_glyph(fallback_oob_font(), ch)) {
+        if text
+            .chars()
+            .any(|ch| font_has_glyph(fallback_oob_font(), ch))
+        {
             return (fallback_oob_font(), FALLBACK_OOB_TTF);
         }
         if let Some((bytes, font)) = load_system_fallback() {
@@ -864,11 +871,7 @@ fn rasterize_paint_glyph(ttf: &[u8], ch: char, glyph_id: u16) -> Option<GlyphBit
 }
 
 #[cfg(not(feature = "skia-glyph"))]
-fn rasterize_paint_glyph(
-    font: &Font,
-    ch: char,
-    _glyph_id: u16,
-) -> (fontdue::Metrics, Vec<u8>) {
+fn rasterize_paint_glyph(font: &Font, ch: char, _glyph_id: u16) -> (fontdue::Metrics, Vec<u8>) {
     font.rasterize(ch, RASTER_PX)
 }
 
@@ -1026,7 +1029,10 @@ pub fn shape_rasterize_char(ch: char) -> ShapedGlyph {
             buffer.push_str(&s);
             let features = paint_features_matrix();
             let gb = rustybuzz::shape(&face, &features, buffer);
-            gb.glyph_infos().first().map(|i| i.glyph_id as u16).unwrap_or(0)
+            gb.glyph_infos()
+                .first()
+                .map(|i| i.glyph_id as u16)
+                .unwrap_or(0)
         } else {
             0
         }
@@ -1071,7 +1077,9 @@ pub fn shape_rasterize_char(ch: char) -> ShapedGlyph {
             }
             #[cfg(not(feature = "skia-glyph"))]
             {
-                (metrics.advance_width.ceil() as u32).max(1).saturating_add(1)
+                (metrics.advance_width.ceil() as u32)
+                    .max(1)
+                    .saturating_add(1)
             }
         },
         #[cfg(feature = "skia-glyph")]

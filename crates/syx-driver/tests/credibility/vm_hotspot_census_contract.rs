@@ -6,29 +6,73 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_04_vm_hotspot_census_baseline() {
     let census = repo_file("docs/census/stage3-vm-hotspot-census.md");
     assert!(census.contains("S3-I56"), "census must name S3-I56 open");
-    assert!(census.contains("S3-I57"), "census must name S3-I57 construct");
-    assert!(census.contains("S3-I58"), "census must name S3-I58 construct");
-    assert!(census.contains("S3-I59"), "census must name S3-I59 construct");
-    assert!(census.contains("S3-I60"), "census must name S3-I60 construct");
-    assert!(census.contains("S3-I61"), "census must name S3-I61 construct");
-    assert!(census.contains("S3-I62"), "census must name S3-I62 construct");
-    assert!(census.contains("S3-I63"), "census must name S3-I63 construct");
-    assert!(census.contains("S3-I64"), "census must name S3-I64 construct");
-    assert!(census.contains("S3-I65"), "census must name S3-I65 construct");
-    assert!(census.contains("S3-I66"), "census must name S3-I66 construct");
-    assert!(census.contains("S3-I67"), "census must name S3-I67 construct");
-    assert!(census.contains("S3-I68"), "census must name S3-I68 construct");
-    assert!(census.contains("S3-I69"), "census must name S3-I69 construct");
-    assert!(census.contains("S3-I70"), "census must name S3-I70 construct");
-    assert!(census.contains("S3-I71"), "census must name S3-I71 construct");
+    assert!(
+        census.contains("S3-I57"),
+        "census must name S3-I57 construct"
+    );
+    assert!(
+        census.contains("S3-I58"),
+        "census must name S3-I58 construct"
+    );
+    assert!(
+        census.contains("S3-I59"),
+        "census must name S3-I59 construct"
+    );
+    assert!(
+        census.contains("S3-I60"),
+        "census must name S3-I60 construct"
+    );
+    assert!(
+        census.contains("S3-I61"),
+        "census must name S3-I61 construct"
+    );
+    assert!(
+        census.contains("S3-I62"),
+        "census must name S3-I62 construct"
+    );
+    assert!(
+        census.contains("S3-I63"),
+        "census must name S3-I63 construct"
+    );
+    assert!(
+        census.contains("S3-I64"),
+        "census must name S3-I64 construct"
+    );
+    assert!(
+        census.contains("S3-I65"),
+        "census must name S3-I65 construct"
+    );
+    assert!(
+        census.contains("S3-I66"),
+        "census must name S3-I66 construct"
+    );
+    assert!(
+        census.contains("S3-I67"),
+        "census must name S3-I67 construct"
+    );
+    assert!(
+        census.contains("S3-I68"),
+        "census must name S3-I68 construct"
+    );
+    assert!(
+        census.contains("S3-I69"),
+        "census must name S3-I69 construct"
+    );
+    assert!(
+        census.contains("S3-I70"),
+        "census must name S3-I70 construct"
+    );
+    assert!(
+        census.contains("S3-I71"),
+        "census must name S3-I71 construct"
+    );
     assert!(
         census.contains("Current:** S3-I71") || census.contains("Current: S3-I71"),
         "census Current must be S3-I71"
@@ -80,8 +124,7 @@ fn s3_04_vm_hotspot_census_baseline() {
         "census must Non-claim Stage-3 exit"
     );
     assert!(
-        census.contains("≠")
-            && (census.contains("S3-04 `[x]`") || census.contains("[x]")),
+        census.contains("≠") && (census.contains("S3-04 `[x]`") || census.contains("[x]")),
         "census must Non-claim S3-04 [x]"
     );
 
@@ -92,8 +135,7 @@ fn s3_04_vm_hotspot_census_baseline() {
         "open ADR must Status S3-04 [~]"
     );
     assert!(
-        open_adr.contains("S3-I71")
-            && open_adr.contains("stage3-s3-04-claim"),
+        open_adr.contains("S3-I71") && open_adr.contains("stage3-s3-04-claim"),
         "open ADR must cite landed S3-I71 claim"
     );
     assert!(
@@ -161,7 +203,9 @@ fn s3_04_vm_hotspot_census_baseline() {
         "plan/02 must cite S3-I66"
     );
     assert!(
-        plan02.contains("S3-I67") || plan02.contains("can-stack-bind") || plan02.contains("can_stack_bind"),
+        plan02.contains("S3-I67")
+            || plan02.contains("can-stack-bind")
+            || plan02.contains("can_stack_bind"),
         "plan/02 must cite S3-I67"
     );
     assert!(
@@ -180,15 +224,15 @@ fn s3_04_vm_hotspot_census_baseline() {
         plan02.contains("S3-I71") || plan02.contains("stage3-s3-04-claim"),
         "plan/02 must cite S3-I71"
     );
-    assert!(
-        plan02.contains("S3-I72"),
-        "plan/02 must lock next = S3-I72"
-    );
+    assert!(plan02.contains("S3-I72"), "plan/02 must lock next = S3-I72");
     let stage3 = plan02
         .lines()
         .find(|l| l.contains("| **3** |"))
         .expect("stage-3 row");
-    assert!(stage3.contains("[x]") && stage3.contains("退出"), "Stage-3 must be [x] 退出; got: {stage3}");
+    assert!(
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
+    );
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
@@ -201,9 +245,7 @@ fn s3_04_vm_hotspot_census_baseline() {
 fn s3_04_vm_hotspot_census_script_runs() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_04_vm_hotspot_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run vm-hotspot census");
     assert!(
@@ -251,7 +293,16 @@ fn s3_04_vm_hotspot_census_script_runs() {
         );
     }
     assert!(
-        stdout.contains("I71 scoped") || stdout.contains("≠ Stage-3 exit") || stdout.contains("I70 residual-scope") || stdout.contains("I69 wall-strategy") || stdout.contains("I68 claim-prep") || stdout.contains("I67 can-stack-bind-cache") || stdout.contains("I66 jit-env-gate-cache") || stdout.contains("I65 tryfree-dispatch") || stdout.contains("I64 begintry-cache") || stdout.contains("I63 frame-swap"),
+        stdout.contains("I71 scoped")
+            || stdout.contains("≠ Stage-3 exit")
+            || stdout.contains("I70 residual-scope")
+            || stdout.contains("I69 wall-strategy")
+            || stdout.contains("I68 claim-prep")
+            || stdout.contains("I67 can-stack-bind-cache")
+            || stdout.contains("I66 jit-env-gate-cache")
+            || stdout.contains("I65 tryfree-dispatch")
+            || stdout.contains("I64 begintry-cache")
+            || stdout.contains("I63 frame-swap"),
         "script must non-claim S3-04 [x], got:\n{stdout}"
     );
     let reuse = stdout

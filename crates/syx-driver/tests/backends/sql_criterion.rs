@@ -26,4 +26,3 @@ fn ec_m2_4_sql_criterion_smoke_ok() {
         "must print ok: {out}"
     );
 }
-

@@ -18,7 +18,6 @@ fn opts() -> DriverOptions {
     DriverOptions::default()
 }
 
-
 #[test]
 fn p98_gc_churn_quad_vm_mir_wasm_native() {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -37,7 +36,10 @@ fn p98_gc_churn_quad_vm_mir_wasm_native() {
     assert!(mir.iter().any(|l| l.contains("gc:churn:")), "mir: {mir:?}");
 
     let (_, wasm) = run_wasm_source_printed(&path, "main", &opts()).unwrap();
-    assert!(wasm.iter().any(|l| l.contains("gc:churn:")), "wasm: {wasm:?}");
+    assert!(
+        wasm.iter().any(|l| l.contains("gc:churn:")),
+        "wasm: {wasm:?}"
+    );
 
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");

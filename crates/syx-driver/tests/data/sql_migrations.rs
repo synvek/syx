@@ -32,4 +32,3 @@ fn p98_sql_bind_step_stdout() {
     .printed;
     assert!(out.iter().any(|l| l.contains("ok")), "{out:?}");
 }
-

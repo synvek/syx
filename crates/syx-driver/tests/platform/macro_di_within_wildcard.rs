@@ -7,7 +7,7 @@ use syx_ast::{Decl, Expr};
 use syx_diagnostics::Span;
 use syx_driver::{compile_and_run_embedded, run_file_printed, DriverOptions};
 use syx_macro::{
-    decl_base_name_from_tokens, expand_decl_param_tokens, enumerate_decl_param_tokens,
+    decl_base_name_from_tokens, enumerate_decl_param_tokens, expand_decl_param_tokens,
     DeclExpandMode, MacroTokenKind,
 };
 
@@ -89,16 +89,14 @@ fn macro_di_wildcard_token_rewrite_observable() {
 #[test]
 fn macro_di_wildcard_actor_shared_pool_roundtrip() {
     let _g = P138_POOL_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let printed = run(r#"
 func main() {
     print(__syx_actor_set_shared_pool_enabled(true))
     print(__syx_actor_shared_pool_enabled())
     print(__syx_actor_set_shared_pool_size(3))
     print(__syx_actor_shared_pool_size())
 }
-"#,
-    )
+"#)
     .expect("shared pool roundtrip");
     assert_eq!(printed[0].trim(), "true");
     assert_eq!(printed[1].trim(), "true");
@@ -111,4 +109,3 @@ fn macro_di_wildcard_pool_probe_actor_shared_pool_observable() {
     let _g = P138_POOL_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     syx_async::probe_actor_shared_pool_mvp().expect("actor shared pool probe should succeed");
 }
-

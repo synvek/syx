@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -74,8 +73,7 @@ fn s2_05_mir_lower_expr_ternary_to_is_batch_baseline() {
         "lower_expr shell must remain reachable (lib def or mir_lower_expr)"
     );
     assert!(
-        lib.contains("pub(crate) fn infer_expr_init_type")
-            || lib.contains("infer_expr_init_type,"),
+        lib.contains("pub(crate) fn infer_expr_init_type") || lib.contains("infer_expr_init_type,"),
         "infer_expr_init_type must be pub(crate) for Cast sidecar (def or re-export)"
     );
     assert!(

@@ -19,7 +19,6 @@ fn with_lease_auth<F: FnOnce()>(f: F) {
     farm_lease_reset();
 }
 
-
 #[test]
 fn p100_farm_lease_ttl_hard_reject_tcp() {
     with_lease_auth(|| {

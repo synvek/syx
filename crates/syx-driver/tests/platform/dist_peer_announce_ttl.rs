@@ -6,28 +6,17 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_conflict_epoch_mesh_ready,
-    cdn_bgp_peer_announce_epoch_memory_clear,
-    cdn_bgp_peer_announce_epoch_persist_ready,
-    cdn_bgp_peer_announce_fanout_with_epoch,
-    cdn_bgp_peer_announce_peer_wire_expired,
-    cdn_bgp_peer_announce_purge_expired_peers,
-    cdn_bgp_peer_announce_receive_ack_with_epoch,
-    cdn_bgp_peer_announce_ttl_ms,
-    cdn_bgp_peer_announce_ttl_ready,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_conflict_epoch_mesh_ready, cdn_bgp_peer_announce_epoch_memory_clear,
+    cdn_bgp_peer_announce_epoch_persist_ready, cdn_bgp_peer_announce_fanout_with_epoch,
+    cdn_bgp_peer_announce_peer_wire_expired, cdn_bgp_peer_announce_purge_expired_peers,
+    cdn_bgp_peer_announce_receive_ack_with_epoch, cdn_bgp_peer_announce_ttl_ms,
+    cdn_bgp_peer_announce_ttl_ready, cdn_bgp_route_sticky, cdn_bgp_sticky_pop_ready,
+    cdn_bgp_sticky_shard_key, cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr,
     spawn_dist_tcp_mailbox_on,
 };
 
 static P134_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_peer_announce_ttl_peer_announce_ttl_expires_stale_peers() {
@@ -36,10 +25,8 @@ fn dist_peer_announce_ttl_peer_announce_ttl_expires_stale_peers() {
     cdn_delivery_ack_clear();
     cdn_bgp_peer_announce_epoch_memory_clear();
 
-    let announce_dir = std::env::temp_dir().join(format!(
-        "syx-p134-peer-announce-ttl-{}",
-        std::process::id()
-    ));
+    let announce_dir =
+        std::env::temp_dir().join(format!("syx-p134-peer-announce-ttl-{}", std::process::id()));
     let persist_file = std::env::temp_dir().join(format!(
         "syx-p134-peer-announce-epoch-{}.tsv",
         std::process::id()
@@ -94,8 +81,7 @@ fn dist_peer_announce_ttl_peer_announce_ttl_expires_stale_peers() {
 
     let client = "tenant-us:client-p134";
     assert_eq!(cdn_bgp_sticky_shard_key(client), "tenant-us");
-    let (pop, _) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p134-announce").expect("bind");
+    let (pop, _) = cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p134-announce").expect("bind");
     assert_eq!(pop, "bgp-us");
 
     let peers = ["peer-eu", "peer-ap"];
@@ -124,14 +110,14 @@ fn dist_peer_announce_ttl_peer_announce_ttl_expires_stale_peers() {
     );
 
     let purged = cdn_bgp_peer_announce_purge_expired_peers(&peers, "tenant-us");
-    assert!(purged >= 2, "purge expired announce/ack files, got {purged}");
+    assert!(
+        purged >= 2,
+        "purge expired announce/ack files, got {purged}"
+    );
 
-    let stale_ack = cdn_bgp_peer_announce_receive_ack_with_epoch(
-        "peer-eu",
-        "tenant-us",
-        &announced[0].1,
-    )
-    .expect_err("expired wire ack must reject");
+    let stale_ack =
+        cdn_bgp_peer_announce_receive_ack_with_epoch("peer-eu", "tenant-us", &announced[0].1)
+            .expect_err("expired wire ack must reject");
     assert!(
         stale_ack.contains("expired"),
         "unexpected stale ack err: {stale_ack}"

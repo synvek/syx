@@ -37,12 +37,8 @@ fn wait_listening(port: u16, timeout: Duration) -> bool {
 
 fn http_get(port: u16, path: &str) -> (u16, String) {
     let mut stream = TcpStream::connect(("127.0.0.1", port)).expect("connect");
-    stream
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .ok();
-    let req = format!(
-        "GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
-    );
+    stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
+    let req = format!("GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n");
     stream.write_all(req.as_bytes()).expect("write request");
     let mut buf = Vec::new();
     let _ = stream.read_to_end(&mut buf);
@@ -149,7 +145,10 @@ fn m2_s4_03b_graceful_shutdown_loopback() {
     let (code, printed) = run_result;
     let out = printed.join("\n");
     assert_eq!(code, 0, "serve must exit cleanly: {out}");
-    assert_eq!(out, "listening\nstopped", "graceful shutdown stdout must exact: {out}");
+    assert_eq!(
+        out, "listening\nstopped",
+        "graceful shutdown stdout must exact: {out}"
+    );
 
     // Post-shutdown: connect should fail (socket closed).
     let refused = TcpStream::connect(("127.0.0.1", port)).is_err();
@@ -237,11 +236,7 @@ fn m2_s4_03b_graceful_shutdown_native_llvm() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -379,4 +374,3 @@ func main() {{
     );
     let _ = fs::remove_dir_all(&dir);
 }
-

@@ -77,4 +77,3 @@ fn call_labels_external_not_internal() {
         "S042"
     ));
 }
-

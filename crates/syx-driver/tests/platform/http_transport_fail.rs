@@ -24,4 +24,3 @@ fn http_fail_connect_refused_is_error() {
         result.printed
     );
 }
-

@@ -12,7 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[test]
 fn m3_c02_semaphore_try_wait_and_count() {
     let src = r#"
@@ -90,4 +89,3 @@ func main() {
         "wait/signal must finish timely: elapsed={elapsed:?} out={out}"
     );
 }
-

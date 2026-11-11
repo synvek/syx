@@ -165,5 +165,4 @@ mod tests {
     "#;
         assert_eq!(classify_llvm_stub_block(real), LlvmStubKind::Wired);
     }
-
 }

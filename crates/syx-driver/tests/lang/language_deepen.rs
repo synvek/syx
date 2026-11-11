@@ -13,7 +13,8 @@ fn opts() -> DriverOptions {
 fn check_and_run(rel: &str, label: &str) -> (i32, String) {
     let path = fixture(rel);
     compile_file_with_options(&path, &opts()).unwrap_or_else(|e| panic!("{label} check: {e:?}"));
-    let (code, lines) = run_file_printed(&path, &opts()).unwrap_or_else(|e| panic!("{label} run: {e:?}"));
+    let (code, lines) =
+        run_file_printed(&path, &opts()).unwrap_or_else(|e| panic!("{label} run: {e:?}"));
     (code, lines.join("\n"))
 }
 
@@ -26,7 +27,10 @@ fn check_only(rel: &str, label: &str) {
 fn closure_shorthand_dollar_check_and_run() {
     let (code, out) = check_and_run("lang/closure_shorthand_dollar.sy", "$0");
     assert_eq!(code, 0);
-    assert!(out.contains('2') || out.contains('6') || out.contains("15"), "got {out:?}");
+    assert!(
+        out.contains('2') || out.contains('6') || out.contains("15"),
+        "got {out:?}"
+    );
 }
 
 #[test]
@@ -105,14 +109,20 @@ fn generics_book_compose_check_and_run() {
 fn extension_where_unique_check_and_run() {
     let (code, out) = check_and_run("lang/extension_where_unique.sy", "unique");
     assert_eq!(code, 0);
-    assert!(out.contains("[1, 2, 3]") || out.contains("1"), "got {out:?}");
+    assert!(
+        out.contains("[1, 2, 3]") || out.contains("1"),
+        "got {out:?}"
+    );
 }
 
 #[test]
 fn generics_book_map_check_and_run() {
     let (code, out) = check_and_run("lang/generics_book_map.sy", "map");
     assert_eq!(code, 0);
-    assert!(out.contains("[2, 4, 6]") || out.contains("2"), "got {out:?}");
+    assert!(
+        out.contains("[2, 4, 6]") || out.contains("2"),
+        "got {out:?}"
+    );
 }
 
 #[test]
@@ -199,5 +209,8 @@ fn labeled_break_check() {
 fn result_builder_struct_check_and_run() {
     let (code, out) = check_and_run("lang/result_builder_struct.sy", "resultBuilder struct");
     assert_eq!(code, 0);
-    assert!(out.contains("1") && out.contains("2") && out.contains("3"), "got {out:?}");
+    assert!(
+        out.contains("1") && out.contains("2") && out.contains("3"),
+        "got {out:?}"
+    );
 }

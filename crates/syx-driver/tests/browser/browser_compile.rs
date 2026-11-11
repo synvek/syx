@@ -34,11 +34,9 @@ fn run_aot_value(bytes: &[u8], expected: i32) {
 #[test]
 fn browser_compiler_emits_valid_wasm() {
     with_browser_aot(|| {
-        let bytes = compile_source_to_wasm_bytes(
-            "main.sy",
-            r#"func main() { print(42); return 42 }"#,
-        )
-        .expect("compile");
+        let bytes =
+            compile_source_to_wasm_bytes("main.sy", r#"func main() { print(42); return 42 }"#)
+                .expect("compile");
         assert_eq!(&bytes[0..4], b"\0asm");
         run_aot_value(&bytes, 42);
     });
@@ -50,10 +48,7 @@ fn browser_compiler_hot_loop_meets_aot_ratio() {
         let source = include_str!("../../../../examples/hot_loop.sy");
         let bytes = compile_source_to_wasm_bytes("hot_loop.sy", source).expect("compile");
         let (_direct, _mir_exec, ratio) = measure_aot_ratio(&bytes);
-        assert!(
-            ratio >= 0.95,
-            "expected ≥95% direct emit, got {ratio:.4}"
-        );
+        assert!(ratio >= 0.95, "expected ≥95% direct emit, got {ratio:.4}");
     });
 }
 
@@ -85,8 +80,8 @@ fn wasm_wasi_example_builds() {
     use syx_driver::{emit_wasm_bytes, DriverOptions};
 
     with_browser_aot(|| {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../examples/wasm_wasi/main.sy");
+        let path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_wasi/main.sy");
         let mut opts = DriverOptions::default();
         opts.wasm_aot = true;
         let bytes = emit_wasm_bytes(&path, &opts).expect("emit wasm_wasi");
@@ -124,7 +119,13 @@ browser_compile_smoke!(browser_ret_11, 11);
 
 #[test]
 fn browser_compile_count_gate() {
-    let src = std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/browser/browser_compile.rs")).unwrap();
+    let src = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/browser/browser_compile.rs"),
+    )
+    .unwrap();
     let count = src.matches("#[test]").count() + src.matches("browser_compile_smoke!").count();
-    assert!(count >= 15, "browser_compile needs 15+ tests, found {count}");
+    assert!(
+        count >= 15,
+        "browser_compile needs 15+ tests, found {count}"
+    );
 }

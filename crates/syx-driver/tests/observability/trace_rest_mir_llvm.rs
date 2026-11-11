@@ -66,20 +66,19 @@ fn run_native_llvm(label: &str, src: &str) -> Vec<String> {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native llvm Trace rest build failed: {e}"));
-    let output = Command::new(&exe).output().expect("run native llvm Trace rest");
+    let output = Command::new(&exe)
+        .output()
+        .expect("run native llvm Trace rest");
     let stdout = String::from_utf8_lossy(&output.stdout);
     let code = output.status.code().unwrap_or(1);
     let _ = fs::remove_dir_all(&dir);
     assert_eq!(
-        code, 0,
+        code,
+        0,
         "native llvm Trace rest exit {code}: stdout={stdout} stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
@@ -128,8 +127,7 @@ fn assert_trace_rest_smoke(lines: &[String], backend: &str) {
         .cloned()
         .unwrap_or_else(|| panic!("{backend} missing span id after S: {lines:?}"));
     assert!(
-        span_id.starts_with('s')
-            && span_id.chars().nth(1).is_some_and(|c| c.is_ascii_digit()),
+        span_id.starts_with('s') && span_id.chars().nth(1).is_some_and(|c| c.is_ascii_digit()),
         "{backend} span id shape: {span_id}"
     );
     let l_idx = lines

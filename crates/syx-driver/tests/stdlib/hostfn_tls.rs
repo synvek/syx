@@ -26,16 +26,14 @@ fn tls_client_appdata_probe(
         if let Ok(mut stream) = TcpStream::connect(("127.0.0.1", port)) {
             let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
             let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
-            let mut conn = match rustls::ClientConnection::new(
-                Arc::clone(&client_cfg),
-                server_name.clone(),
-            ) {
-                Ok(c) => c,
-                Err(_) => {
-                    thread::sleep(Duration::from_millis(20));
-                    continue;
-                }
-            };
+            let mut conn =
+                match rustls::ClientConnection::new(Arc::clone(&client_cfg), server_name.clone()) {
+                    Ok(c) => c,
+                    Err(_) => {
+                        thread::sleep(Duration::from_millis(20));
+                        continue;
+                    }
+                };
             loop {
                 if !conn.is_handshaking() {
                     break;
@@ -98,10 +96,8 @@ fn hostfn_tls_serve_native_llvm() {
     let port = probe.local_addr().expect("addr").port();
     drop(probe);
 
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tls_llvm_serve_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tls_llvm_serve_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let cert_path = dir.join("server.crt");
@@ -126,11 +122,7 @@ func main() {{
 "#
     );
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -205,10 +197,8 @@ fn hostfn_tls_serve_wasm() {
     let port = probe.local_addr().expect("addr").port();
     drop(probe);
 
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tls_wasm_serve_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tls_wasm_serve_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let cert_path = dir.join("server.crt");
@@ -258,7 +248,14 @@ func main() {{
             h1,
             b"syx/1",
         );
-        tls_client_appdata_probe(port, cfg_seq, name_seq, Duration::from_secs(120), h2, b"syx/1");
+        tls_client_appdata_probe(
+            port,
+            cfg_seq,
+            name_seq,
+            Duration::from_secs(120),
+            h2,
+            b"syx/1",
+        );
     });
 
     let mut opts = DriverOptions::default();
@@ -325,11 +322,7 @@ func main() {{
 "#
     );
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -415,11 +408,7 @@ func main() {{
 "#
     );
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -521,11 +510,7 @@ func main() {{
 "#
     );
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -561,4 +546,3 @@ func main() {{
         "TlsServe llvm must negotiate http/1.1 from language alpn arg (ADR-789)"
     );
 }
-

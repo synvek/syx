@@ -12,7 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[test]
 fn m3_b01_isolation_blocking_sleep_does_not_starve_short_task() {
     // Task pool size=1: long blockingSleep on blocking_pool must not starve a short Task.
@@ -55,4 +54,3 @@ func main() {
         "long sleeper should be cancelled before finishing: {out}"
     );
 }
-

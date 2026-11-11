@@ -267,7 +267,10 @@ fn extension_decls_for_type(module: &syx_ast::Module, type_name: &SmolStr) -> Ve
 /// Merge Core Array/Set/Dictionary/Object extensions into a buffer module for LSP.
 /// OrderedSet / Math / … stay available via `core_prelude_import_symbols` —
 /// do not inject their classes (S023 prelude-name shadow).
-pub(crate) fn inject_core_collection_builtins(module: &mut syx_ast::Module, options: &DriverOptions) {
+pub(crate) fn inject_core_collection_builtins(
+    module: &mut syx_ast::Module,
+    options: &DriverOptions,
+) {
     if !options.enable_std {
         return;
     }
@@ -300,9 +303,25 @@ pub(crate) fn expand_core_value_builtin_modules(options: &DriverOptions) -> Vec<
         return Vec::new();
     }
     const SURFACES: &[&str] = &[
-        "Int8", "Int16", "Int32", "Int64", "Int128", "Int", "UInt8", "UInt16", "UInt32",
-        "UInt64", "UInt128", "UInt", "Float32", "Float64", "Float", "Double", "Bool",
-        "Character", "BigInt",
+        "Int8",
+        "Int16",
+        "Int32",
+        "Int64",
+        "Int128",
+        "Int",
+        "UInt8",
+        "UInt16",
+        "UInt32",
+        "UInt64",
+        "UInt128",
+        "UInt",
+        "Float32",
+        "Float64",
+        "Float",
+        "Double",
+        "Bool",
+        "Character",
+        "BigInt",
     ];
     let mut out = Vec::new();
     for surface in SURFACES {
@@ -419,12 +438,7 @@ pub(crate) fn inject_imported_dataclass_decls(
             // inject like classes — caseless enum namespaces + Error pilots.
             // SA-4-04a: also inject internal `SyxHost` so injected public façades that
             // call `SyxHost.*` still resolve (bodies are cloned into the importer).
-            if let Decl::Enum {
-                access,
-                name,
-                ..
-            } = decl
-            {
+            if let Decl::Enum { access, name, .. } = decl {
                 let inject_enum = matches!(access, AccessLevel::Public)
                     || (matches!(access, AccessLevel::Internal) && name.as_str() == "SyxHost");
                 if !inject_enum {
@@ -849,12 +863,10 @@ fn export_function_details(source: &SourceFile) -> IndexMap<SmolStr, (TypeId, St
                 // SA-3-01: enums (`ProcessInfo`, `SystemError`, …) must appear in import_exports.
                 // SA-4-04: also export internal `SyxHost` so `SyxHost_*` MIR merge
                 // (methods live in a pending Extension; merge uses the SyxHost_ prefix).
-                Decl::Enum {
-                    access,
-                    name,
-                    ..
-                } if matches!(access, AccessLevel::Public)
-                    || (matches!(access, AccessLevel::Internal) && name.as_str() == "SyxHost") =>
+                Decl::Enum { access, name, .. }
+                    if matches!(access, AccessLevel::Public)
+                        || (matches!(access, AccessLevel::Internal)
+                            && name.as_str() == "SyxHost") =>
                 {
                     exports.insert(
                         name.clone(),

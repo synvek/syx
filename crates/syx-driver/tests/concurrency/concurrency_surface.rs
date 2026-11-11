@@ -3,7 +3,9 @@
 
 use std::path::PathBuf;
 
-use syx_driver::{compile_file_with_options, compile_project_with_options, run_file_printed, DriverOptions};
+use syx_driver::{
+    compile_file_with_options, compile_project_with_options, run_file_printed, DriverOptions,
+};
 
 fn fixture(rel: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("tests/fixtures/concurrency/{rel}"))
@@ -51,15 +53,13 @@ fn sendable_detach_rejected_c003() {
     let err = compile_project_with_options(dir.path(), &DriverOptions::default())
         .expect_err("non-Sendable detach should fail under strict concurrency");
     let msg = format!("{err}");
-    assert!(
-        msg.contains("C003"),
-        "expected C003 diagnostic, got: {msg}"
-    );
+    assert!(msg.contains("C003"), "expected C003 diagnostic, got: {msg}");
 }
 
 #[test]
 fn parity_actor_fixture_also_runs() {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/parity/actor_isolation.sy");
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/parity/actor_isolation.sy");
     let options = DriverOptions::default();
     compile_file_with_options(&path, &options).expect("compile parity actor_isolation");
     // R-14: hard assert (same vacuous-assert fix as actor_isolation_counter).

@@ -29,8 +29,7 @@ fn tcp_accept_ga_exit_evidence_files_exist() {
 fn tcp_accept_ga_exit_spec_signed() {
     let spec = include_str!("../../../../docs/lang/tcp-accept-ga-exit.md");
     assert!(
-        spec.contains("ADR-729")
-            && (spec.contains("exit signed") || spec.contains("Exit signed")),
+        spec.contains("ADR-729") && (spec.contains("exit signed") || spec.contains("Exit signed")),
         "spec must cite ADR-729 exit signed"
     );
     assert!(
@@ -63,7 +62,9 @@ fn tcp_accept_ga_exit_spec_signed() {
     let vectors = include_str!("../../../../docs/lang/tcp-accept-ga-vectors.md");
     assert!(
         vectors.contains("TcpListen accept GA")
-            && (vectors.contains("**met** (W385") || vectors.contains("met (narrow)") || vectors.contains("ADR-729")),
+            && (vectors.contains("**met** (W385")
+                || vectors.contains("met (narrow)")
+                || vectors.contains("ADR-729")),
         "vectors must mark accept GA met (narrow)"
     );
     assert!(
@@ -74,4 +75,3 @@ fn tcp_accept_ga_exit_spec_signed() {
         "vectors must retain TLS product unmet or GA met-narrow cross-index"
     );
 }
-

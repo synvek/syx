@@ -59,10 +59,11 @@ fn website_capability_thin_spec_signed() {
         "spec Frozen must keep hosted-site / B fences"
     );
     assert!(
-        (spec.contains("Hosted inventory thin") || spec.contains("ADR-723") || spec.contains("W379"))
+        (spec.contains("Hosted inventory thin")
+            || spec.contains("ADR-723")
+            || spec.contains("W379"))
             && (spec.contains("**met** (W379)") || spec.contains("ADR-723")),
         "spec must index hosted inventory thin met (W379)"
     );
     super::construction_progress::assert_spec_progress_without_window_plus_or(spec);
 }
-

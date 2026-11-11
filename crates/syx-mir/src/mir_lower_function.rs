@@ -4,7 +4,9 @@
 use crate::instance_self_mut_ref_method;
 use crate::lower_stmt;
 use crate::mir_lower_ctx::LowerCtx;
-use crate::mir_lower_support::{flatten_blocks, mir_local_names_for_slots, mir_local_types_for_slots};
+use crate::mir_lower_support::{
+    flatten_blocks, mir_local_names_for_slots, mir_local_types_for_slots,
+};
 use crate::mir_module_index::{mir_type_expr_name, ModuleIndex};
 use crate::mir_types::{MirFunction, MirInstr, MirOp};
 use indexmap::IndexSet;
@@ -49,9 +51,7 @@ pub(crate) fn lower_function_with_params(
             ctx.mut_ref_params.insert(param.name.clone());
         }
     }
-    if params
-        .first()
-        .is_some_and(|p| p.name.as_str() == "self")
+    if params.first().is_some_and(|p| p.name.as_str() == "self")
         && instance_self_mut_ref_method(name, &ctx.module)
     {
         ctx.mut_ref_params.insert(SmolStr::new("self"));
@@ -136,7 +136,6 @@ pub(crate) fn lower_function_with_params(
     ))
 }
 
-
 /// Extension returns are keyed by bare `Set` / `Array`; locals often carry `Set<Int>`.
 /// Hosted collection ops (manifest `host_ops`) share MethodId return surfaces.
 /// Phase 121/123/126: binding key for service resolve host calls (includes dynamic `Di.resolve`).
@@ -147,4 +146,3 @@ pub(crate) fn register_param_local_type(ctx: &mut LowerCtx, param: &syx_ast::Par
         }
     }
 }
-

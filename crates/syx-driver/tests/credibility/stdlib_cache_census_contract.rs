@@ -7,20 +7,37 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_03_stdlib_cache_census_baseline() {
     let census = repo_file("docs/census/stage3-stdlib-cache-census.md");
     assert!(census.contains("S3-I48"), "census must name S3-I48 open");
-    assert!(census.contains("S3-I49"), "census must name S3-I49 prelude snapshot");
-    assert!(census.contains("S3-I50"), "census must name S3-I50 warm trim");
-    assert!(census.contains("S3-I51"), "census must name S3-I51 warm fixed tax");
-    assert!(census.contains("S3-I52"), "census must name S3-I52 warm residual");
-    assert!(census.contains("S3-I53"), "census must name S3-I53 cache roundtrip");
-    assert!(census.contains("S3-I54"), "census must name S3-I54 prelude embed");
+    assert!(
+        census.contains("S3-I49"),
+        "census must name S3-I49 prelude snapshot"
+    );
+    assert!(
+        census.contains("S3-I50"),
+        "census must name S3-I50 warm trim"
+    );
+    assert!(
+        census.contains("S3-I51"),
+        "census must name S3-I51 warm fixed tax"
+    );
+    assert!(
+        census.contains("S3-I52"),
+        "census must name S3-I52 warm residual"
+    );
+    assert!(
+        census.contains("S3-I53"),
+        "census must name S3-I53 cache roundtrip"
+    );
+    assert!(
+        census.contains("S3-I54"),
+        "census must name S3-I54 prelude embed"
+    );
     assert!(census.contains("S3-I55"), "census must name S3-I55 claim");
     assert!(
         census.contains("Current:** S3-I55") || census.contains("Current: S3-I55"),
@@ -62,8 +79,7 @@ fn s3_03_stdlib_cache_census_baseline() {
     let open_adr = repo_file("docs/adr/stage3-s3-03-open.md");
     assert!(open_adr.contains("S3-I48"));
     assert!(
-        open_adr.contains("S3-I55")
-            && open_adr.contains("stage3-s3-03-claim"),
+        open_adr.contains("S3-I55") && open_adr.contains("stage3-s3-03-claim"),
         "open ADR must cite landed S3-I55 claim"
     );
     assert!(
@@ -71,33 +87,27 @@ fn s3_03_stdlib_cache_census_baseline() {
         "open ADR must lock next = S3-04"
     );
     assert!(
-        open_adr.contains("S3-I49")
-            && open_adr.contains("stage3-s3-03-prelude-snapshot"),
+        open_adr.contains("S3-I49") && open_adr.contains("stage3-s3-03-prelude-snapshot"),
         "open ADR must cite landed S3-I49 prelude snapshot"
     );
     assert!(
-        open_adr.contains("S3-I50")
-            && open_adr.contains("stage3-s3-03-warm-program-trim"),
+        open_adr.contains("S3-I50") && open_adr.contains("stage3-s3-03-warm-program-trim"),
         "open ADR must cite landed S3-I50 warm trim"
     );
     assert!(
-        open_adr.contains("S3-I51")
-            && open_adr.contains("stage3-s3-03-warm-fixed-tax"),
+        open_adr.contains("S3-I51") && open_adr.contains("stage3-s3-03-warm-fixed-tax"),
         "open ADR must cite landed S3-I51 warm fixed tax"
     );
     assert!(
-        open_adr.contains("S3-I52")
-            && open_adr.contains("stage3-s3-03-warm-residual"),
+        open_adr.contains("S3-I52") && open_adr.contains("stage3-s3-03-warm-residual"),
         "open ADR must cite landed S3-I52 warm residual"
     );
     assert!(
-        open_adr.contains("S3-I53")
-            && open_adr.contains("stage3-s3-03-cache-roundtrip"),
+        open_adr.contains("S3-I53") && open_adr.contains("stage3-s3-03-cache-roundtrip"),
         "open ADR must cite landed S3-I53 cache roundtrip"
     );
     assert!(
-        open_adr.contains("S3-I54")
-            && open_adr.contains("stage3-s3-03-prelude-embed"),
+        open_adr.contains("S3-I54") && open_adr.contains("stage3-s3-03-prelude-embed"),
         "open ADR must cite landed S3-I54 prelude embed"
     );
 
@@ -134,19 +144,18 @@ fn s3_03_stdlib_cache_census_baseline() {
         "S3-03 must be [x]; got: {s3_03}"
     );
     assert!(
-        plan02.contains("S3-I55")
-            || plan02.contains("stage3-s3-03-claim"),
+        plan02.contains("S3-I55") || plan02.contains("stage3-s3-03-claim"),
         "plan/02 must cite S3-I55 claim"
     );
-    assert!(
-        plan02.contains("S3-04"),
-        "plan/02 must lock next = S3-04"
-    );
+    assert!(plan02.contains("S3-04"), "plan/02 must lock next = S3-04");
     let stage3 = plan02
         .lines()
         .find(|l| l.contains("| **3** |"))
         .expect("stage-3 row");
-    assert!(stage3.contains("[x]") && stage3.contains("退出"), "Stage-3 must be [x] 退出; got: {stage3}");
+    assert!(
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
+    );
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
@@ -165,9 +174,7 @@ fn s3_03_stdlib_cache_census_baseline() {
 fn s3_03_stdlib_cache_census_script_runs() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_03_stdlib_cache_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run stdlib-cache census");
     assert!(

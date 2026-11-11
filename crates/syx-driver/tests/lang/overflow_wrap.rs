@@ -6,10 +6,10 @@ use syx_driver::{run_file_printed, DriverOptions};
 
 #[test]
 fn s1_i25_vm_int_max_plus_one_wraps() {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/lang/int_add_wrap.sy");
-    let (code, lines) =
-        run_file_printed(&path, &DriverOptions::default()).expect("VM run must succeed (wrap, not trap)");
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/lang/int_add_wrap.sy");
+    let (code, lines) = run_file_printed(&path, &DriverOptions::default())
+        .expect("VM run must succeed (wrap, not trap)");
     assert_eq!(code, 0, "exit {code}: {lines:?}");
     let out = lines
         .iter()

@@ -2,8 +2,8 @@
 
 use crate::bigint_hosts::BIGINT_HOST_TABLE;
 use crate::collection_hosts::COLLECTION_HOST_TABLE;
-use crate::{lookup_manifest_entry, manifest_entries};
 use crate::numeric_hosts::{host_slug, NUMERIC_HOST_TABLE};
+use crate::{lookup_manifest_entry, manifest_entries};
 
 /// True when `surface.method` is declared in manifest `host_ops`.
 pub fn is_manifest_host_op(surface: &str, op: &str) -> bool {
@@ -60,7 +60,11 @@ pub fn all_registered_host_names() -> Vec<&'static str> {
     let mut names: Vec<&'static str> = NUMERIC_HOST_TABLE.iter().map(|e| e.name).collect();
     names.extend(COLLECTION_HOST_TABLE.iter().map(|e| e.name));
     names.extend(BIGINT_HOST_TABLE.iter().map(|e| e.name));
-    names.extend(crate::result_hosts::RESULT_HOST_TABLE.iter().map(|e| e.name));
+    names.extend(
+        crate::result_hosts::RESULT_HOST_TABLE
+            .iter()
+            .map(|e| e.name),
+    );
     names
 }
 
@@ -92,10 +96,6 @@ mod tests {
     #[test]
     fn manifest_host_ops_all_registered() {
         let missing = manifest_host_ops_parity();
-        assert!(
-            missing.is_empty(),
-            "missing hosts: {:?}",
-            missing
-        );
+        assert!(missing.is_empty(), "missing hosts: {:?}", missing);
     }
 }

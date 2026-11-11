@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -33,7 +32,8 @@ fn s2_05_mir_lower_expr_closure_extract_baseline() {
         "lib.rs must declare mod mir_lower_expr_closure"
     );
     assert!(
-        (lib.contains("lower_expr_closure(") || mir_lower_expr_src().contains("lower_expr_closure(")),
+        (lib.contains("lower_expr_closure(")
+            || mir_lower_expr_src().contains("lower_expr_closure(")),
         "lib.rs must delegate Closure to lower_expr_closure"
     );
     assert!(

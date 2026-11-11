@@ -42,6 +42,25 @@ print(c.value)                             // 1
 
 > **`mutating`:** marks methods that modify `self`; the caller must use `var` (not `let`). Calling an unmarked-but-mutating method on a `let` → **S020**.
 
+### Value semantics: struct assign copies (R-38 · SEM-STRUCT)
+
+Assigning a `struct` copies; mutating the copy must not change the original:
+
+```syx,output
+// prints: 1\n9
+struct Point {
+    var x: Int
+}
+
+func main() {
+    var p = Point(x: 1)
+    var q = p
+    q.x = 9
+    print(p.x)
+    print(q.x)
+}
+```
+
 ## class
 
 A reference-type object. A SYX class uses **ARC** reference counting plus the class `ObjectRef` (**since Phase 73**):

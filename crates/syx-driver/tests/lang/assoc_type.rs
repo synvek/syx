@@ -23,10 +23,7 @@ func main() {
         .expect("typealias Item = Int must satisfy Item: Equatable")
         .printed
         .join("\n");
-    assert!(
-        out.contains('1'),
-        "pass path must print: {out}"
-    );
+    assert!(out.contains('1'), "pass path must print: {out}");
 }
 
 #[test]
@@ -64,4 +61,3 @@ func main() {
         Ok(r) => panic!("expected S012 assoc-type failure, ran: {:?}", r.printed),
     }
 }
-

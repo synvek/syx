@@ -37,4 +37,3 @@ fn token_expr_evaluates_reproducibly() {
         "double(inc(20)) => 42: {printed:?}"
     );
 }
-

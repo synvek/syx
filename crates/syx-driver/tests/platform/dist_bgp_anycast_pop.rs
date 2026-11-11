@@ -9,19 +9,17 @@ use std::time::Duration;
 use syx_async::{
     cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_ga_ready, cdn_bgp_health,
     cdn_bgp_import_peer_mesh, cdn_bgp_route, cdn_delivery_ack_clear, cdn_delivery_ack_count,
-    cdn_doctor_mode, cdn_pop_clear,
-    cdn_pop_configure, cdn_pop_dual_process_host_ready,
-    cdn_pop_has_endpoints, cdn_pop_host_key_passes_ga,
-    cdn_pop_hostkeys_are_distinct_remote, cdn_pop_register_serve_pid, cdn_pop_remote_hostkey_ready, cdn_pop_route, cdn_route,
+    cdn_doctor_mode, cdn_pop_clear, cdn_pop_configure, cdn_pop_dual_process_host_ready,
+    cdn_pop_has_endpoints, cdn_pop_host_key_passes_ga, cdn_pop_hostkeys_are_distinct_remote,
+    cdn_pop_register_serve_pid, cdn_pop_remote_hostkey_ready, cdn_pop_route, cdn_route,
     cdn_route_counts_as_ga, cdn_route_ga, cdn_routes_memory_clear, dist_connect_url_is_loopback,
-    dist_host_key_addr_is_unspecified, dist_host_key_bind_eq_key, dist_host_key_concrete_ip_for_bind,
-    dist_host_key_has_live_listener, dist_host_key_register_runtime_bind,
-    dist_host_key_remote_for_bind, dist_host_key_remote_ip_part,
-    dist_pop_os_child_try_serve, dist_pop_register_dual_process_peer, dist_region_multihost_clear,
-    dist_region_multihost_configure_keys,
+    dist_host_key_addr_is_unspecified, dist_host_key_bind_eq_key,
+    dist_host_key_concrete_ip_for_bind, dist_host_key_has_live_listener,
+    dist_host_key_register_runtime_bind, dist_host_key_remote_for_bind,
+    dist_host_key_remote_ip_part, dist_pop_os_child_try_serve, dist_pop_register_dual_process_peer,
+    dist_region_multihost_clear, dist_region_multihost_configure_keys,
     dist_region_multihost_has_runtime_bound_host_key_v5, dist_region_multihost_route,
-    dist_region_multihost_tcp_health,
-    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
+    dist_region_multihost_tcp_health, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P117_DIST_LOCK: Mutex<()> = Mutex::new(());
@@ -53,11 +51,7 @@ fn dist_bgp_anycast_os_child_entry() {
 #[test]
 fn dist_bgp_anycast_hostkey_unspecified_not_ga() {
     let _guard = P117_DIST_LOCK.lock().unwrap();
-    dist_host_key_register_runtime_bind(
-        &"0.0.0.0:0"
-            .parse()
-            .expect("unspecified bind"),
-    );
+    dist_host_key_register_runtime_bind(&"0.0.0.0:0".parse().expect("unspecified bind"));
     assert!(dist_host_key_addr_is_unspecified("0.0.0.0"));
     assert!(!cdn_pop_host_key_passes_ga("0.0.0.0"));
     syx_async::dist_host_key_runtime_binds_clear();
@@ -136,9 +130,10 @@ fn dist_bgp_anycast_cdn_bgp_anycast_mvp() {
     assert!(!url_a.contains("127.0.0.1"));
     assert!(!url_b.contains("127.0.0.1"));
 
-    cdn_bgp_configure_mesh("us-east", &[
-        ("203.0.113.0/24", 100, "bgp-us", url_a.as_str()),
-    ]);
+    cdn_bgp_configure_mesh(
+        "us-east",
+        &[("203.0.113.0/24", 100, "bgp-us", url_a.as_str())],
+    );
     cdn_bgp_import_peer_mesh(
         "peer-eu",
         "eu-west",
@@ -192,10 +187,8 @@ fn dist_bgp_anycast_cdn_pop_parent_child_not_sibling_ga() {
     std::env::remove_var("SYX_DIST_CDN_MEMORY");
     std::env::remove_var("SYX_DIST_POP_CHILD_STOP");
 
-    let ready_path = std::env::temp_dir().join(format!(
-        "syx-dist-pop-p117-ready-{}",
-        std::process::id()
-    ));
+    let ready_path =
+        std::env::temp_dir().join(format!("syx-dist-pop-p117-ready-{}", std::process::id()));
     let _ = fs::remove_file(&ready_path);
 
     let exe = std::env::current_exe().expect("current_exe");
@@ -292,4 +285,3 @@ fn dist_bgp_anycast_hostkey_v6_concrete_bind_eq_key_route() {
     stop.stop();
     dist_region_multihost_clear();
 }
-

@@ -9,7 +9,10 @@ const FIXTURE: &str = "// ahead\nfunc main() {\n    // inside\n}\n/* trail */\n"
 fn cst_trivia_cst_trivia_roundtrip_byte_identical() {
     let file = SourceFile::new("fixture.sy", FIXTURE);
     let out = format_source_cst(&file).expect("cst format");
-    assert_eq!(out, FIXTURE, "CST format must be byte-identical for normalized fixture");
+    assert_eq!(
+        out, FIXTURE,
+        "CST format must be byte-identical for normalized fixture"
+    );
     assert!(out.contains("// ahead"));
     assert!(out.contains("// inside"));
     assert!(out.contains("/* trail */"));

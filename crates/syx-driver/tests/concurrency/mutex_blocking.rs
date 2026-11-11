@@ -12,7 +12,6 @@ fn run(src: &str) -> String {
         .join("\n")
 }
 
-
 #[test]
 fn m3_c01_mutex_blocking_try_lock_still_nonblocking() {
     let src = r#"
@@ -72,7 +71,10 @@ func main() {
     let out = run(src);
     let elapsed = started.elapsed();
     assert!(
-        out.contains("A_HELD") && out.contains("A_UNLOCK") && out.contains("B_GOT") && out.contains("DONE"),
+        out.contains("A_HELD")
+            && out.contains("A_UNLOCK")
+            && out.contains("B_GOT")
+            && out.contains("DONE"),
         "cross-Task wait path must complete: {out}"
     );
     let a_held = out.find("A_HELD").expect("A_HELD");
@@ -91,4 +93,3 @@ func main() {
         "contention wait must finish timely: elapsed={elapsed:?} out={out}"
     );
 }
-

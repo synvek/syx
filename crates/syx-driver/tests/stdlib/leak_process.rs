@@ -53,7 +53,10 @@ func main() {
 }
 "#,
     ));
-    assert!(out.contains("LEAKED"), "spawn without wait must succeed: {out}");
+    assert!(
+        out.contains("LEAKED"),
+        "spawn without wait must succeed: {out}"
+    );
 
     let after = process_child_live_count();
     assert_eq!(

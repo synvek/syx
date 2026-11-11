@@ -34,11 +34,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -54,11 +50,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w213_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w213_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -69,8 +61,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native mir exit {code}: {lines:?}");
     lines
 }
@@ -78,8 +69,7 @@ fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -260,10 +250,7 @@ fn ec_m2_4_path_file_native_wasm_ga_native_path_join_exec() {
     #[cfg(unix)]
     assert_eq!(native_line, "a/b/c", "Unix PathJoin: {native_line}");
     #[cfg(windows)]
-    assert_eq!(
-        native_line, r"a\b\c",
-        "Windows PathJoin: {native_line}"
-    );
+    assert_eq!(native_line, r"a\b\c", "Windows PathJoin: {native_line}");
     #[cfg(not(any(unix, windows)))]
     panic!("PathJoin W146 nail requires unix or windows cfg");
 }
@@ -287,7 +274,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_path_extension_exec() {
         native_line, vm_line,
         "native PathExtension must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "txt", "PathExtension must be txt: {native_line}");
+    assert_eq!(
+        native_line, "txt",
+        "PathExtension must be txt: {native_line}"
+    );
 }
 
 fn syx_path_literal(path: &std::path::Path) -> String {
@@ -363,7 +353,10 @@ fn ec_m2_4_path_file_native_wasm_ga4_native_path_exists_false_exec() {
         native_line, vm_line,
         "native PathExists must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "false", "PathExists false probe: {native_line}");
+    assert_eq!(
+        native_line, "false",
+        "PathExists false probe: {native_line}"
+    );
     let _ = fs::remove_dir_all(&dir);
 }
 
@@ -406,7 +399,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_open_exec() {
         native_line, vm_line,
         "native FileOpen must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "1", "first file handle id must be 1: {native_line}");
+    assert_eq!(
+        native_line, "1",
+        "first file handle id must be 1: {native_line}"
+    );
     let _ = fs::remove_dir_all(&dir);
 }
 
@@ -509,7 +505,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_read_exec() {
         native_line, vm_line,
         "native FileRead must match VM; vm={vm_line:?} native={native_line:?}"
     );
-    assert_eq!(native_line, "hello", "read roundtrip must yield hello: {native_line}");
+    assert_eq!(
+        native_line, "hello",
+        "read roundtrip must yield hello: {native_line}"
+    );
     let _ = fs::remove_dir_all(&dir);
 }
 
@@ -705,4 +704,3 @@ fn ec_m2_4_path_file_native_wasm_ga_read_all_bytes_wasm() {
     assert_read_all_bytes_out(&out);
     let _ = fs::remove_dir_all(&dir);
 }
-

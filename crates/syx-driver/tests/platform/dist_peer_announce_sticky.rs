@@ -6,27 +6,15 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_sticky,
-    cdn_bgp_peer_announce_sticky_path_for,
-    cdn_bgp_peer_announce_sticky_ready,
-    cdn_bgp_peer_announce_sticky_receive,
-    cdn_bgp_peer_announce_sticky_receive_from_peer,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_binding_expires_at_ms,
-    cdn_bgp_sticky_pop_clear,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh, cdn_bgp_peer_announce_sticky,
+    cdn_bgp_peer_announce_sticky_path_for, cdn_bgp_peer_announce_sticky_ready,
+    cdn_bgp_peer_announce_sticky_receive, cdn_bgp_peer_announce_sticky_receive_from_peer,
+    cdn_bgp_route_sticky, cdn_bgp_sticky_binding, cdn_bgp_sticky_binding_expires_at_ms,
+    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P129_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_peer_announce_sticky_peer_announce_sticky_restore_affinity_ttl_inherit() {
@@ -34,10 +22,8 @@ fn dist_peer_announce_sticky_peer_announce_sticky_restore_affinity_ttl_inherit()
     cdn_bgp_clear();
     cdn_delivery_ack_clear();
 
-    let announce_dir = std::env::temp_dir().join(format!(
-        "syx-p129-peer-announce-{}",
-        std::process::id()
-    ));
+    let announce_dir =
+        std::env::temp_dir().join(format!("syx-p129-peer-announce-{}", std::process::id()));
     let _ = fs::remove_dir_all(&announce_dir);
     fs::create_dir_all(&announce_dir).expect("announce dir");
     std::env::set_var(
@@ -73,8 +59,7 @@ fn dist_peer_announce_sticky_peer_announce_sticky_restore_affinity_ttl_inherit()
 
     let client = "tenant-us:client-p129";
     assert_eq!(cdn_bgp_sticky_shard_key(client), "tenant-us");
-    let (pop, _) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p129-announce").expect("bind");
+    let (pop, _) = cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p129-announce").expect("bind");
     assert_eq!(pop, "bgp-us");
     let expires = cdn_bgp_sticky_binding_expires_at_ms(client).expect("ttl");
 

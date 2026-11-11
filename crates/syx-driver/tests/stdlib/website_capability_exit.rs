@@ -29,8 +29,7 @@ fn website_capability_exit_evidence_files_exist() {
 fn website_capability_exit_spec_signed() {
     let spec = include_str!("../../../../docs/lang/website-capability-exit.md");
     assert!(
-        spec.contains("ADR-722")
-            && (spec.contains("exit signed") || spec.contains("Exit signed")),
+        spec.contains("ADR-722") && (spec.contains("exit signed") || spec.contains("Exit signed")),
         "spec must cite ADR-722 exit signed"
     );
     assert!(
@@ -55,4 +54,3 @@ fn website_capability_exit_spec_signed() {
     );
     super::construction_progress::assert_spec_progress_without_window_plus_or(spec);
 }
-

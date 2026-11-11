@@ -6,29 +6,17 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_conflict_epoch_mesh_ready,
-    cdn_bgp_peer_announce_default_priority,
-    cdn_bgp_peer_announce_epoch_memory_clear,
-    cdn_bgp_peer_announce_epoch_persist_ready,
-    cdn_bgp_peer_announce_fanout_with_epoch,
-    cdn_bgp_peer_announce_peer_priority,
-    cdn_bgp_peer_announce_priority_ready,
-    cdn_bgp_peer_announce_priority_wins,
-    cdn_bgp_peer_announce_receive_ack_with_epoch,
-    cdn_bgp_peer_announce_sort_peers_by_priority,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_conflict_epoch_mesh_ready, cdn_bgp_peer_announce_default_priority,
+    cdn_bgp_peer_announce_epoch_memory_clear, cdn_bgp_peer_announce_epoch_persist_ready,
+    cdn_bgp_peer_announce_fanout_with_epoch, cdn_bgp_peer_announce_peer_priority,
+    cdn_bgp_peer_announce_priority_ready, cdn_bgp_peer_announce_priority_wins,
+    cdn_bgp_peer_announce_receive_ack_with_epoch, cdn_bgp_peer_announce_sort_peers_by_priority,
+    cdn_bgp_route_sticky, cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P135_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_peer_announce_priority_peer_announce_priority_ordering_wins() {
@@ -107,8 +95,7 @@ fn dist_peer_announce_priority_peer_announce_priority_fanout_order() {
 
     let client = "tenant-us:client-p135";
     assert_eq!(cdn_bgp_sticky_shard_key(client), "tenant-us");
-    let (pop, _) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p135-announce").expect("bind");
+    let (pop, _) = cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p135-announce").expect("bind");
     assert_eq!(pop, "bgp-us");
 
     let peers = ["peer-eu", "peer-ap"];

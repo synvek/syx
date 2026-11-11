@@ -212,7 +212,13 @@ impl ManagedHeap {
         self.free_list.push(idx);
     }
 
-    fn trace(&self, v: &Value, marked_slots: &mut HashSet<usize>, marked_objs: &mut HashSet<usize>, stack: &mut Vec<Value>) {
+    fn trace(
+        &self,
+        v: &Value,
+        marked_slots: &mut HashSet<usize>,
+        marked_objs: &mut HashSet<usize>,
+        stack: &mut Vec<Value>,
+    ) {
         if let Value::HeapSlot { idx, .. } = v {
             if marked_slots.insert(*idx) {
                 if let Some(inner) = self.get(*idx) {
@@ -265,8 +271,9 @@ impl ManagedHeap {
             }
             let live = match slot {
                 Value::HeapSlot { idx, .. } => marked_slots.contains(idx),
-                Value::ObjectRef { .. } => Value::object_ref_identity(slot)
-                    .is_some_and(|p| marked_objs.contains(&p)),
+                Value::ObjectRef { .. } => {
+                    Value::object_ref_identity(slot).is_some_and(|p| marked_objs.contains(&p))
+                }
                 Value::Array(_) | Value::Str(_) | Value::Dict(_) | Value::Object(_) => {
                     marked_slots.contains(&i)
                 }
@@ -375,7 +382,10 @@ pub fn record_gc_churn_stdout(reason: &str) {
 }
 
 pub fn gc_churn_stdout_lines() -> Vec<String> {
-    GC_CHURN_STDOUT.lock().map(|g| g.clone()).unwrap_or_default()
+    GC_CHURN_STDOUT
+        .lock()
+        .map(|g| g.clone())
+        .unwrap_or_default()
 }
 
 pub fn reset_gc_churn_stdout() {
@@ -512,18 +522,10 @@ mod deep_field_graph_gc_walk_tests {
         std::env::set_var("SYX_HEAP_V10", "0");
         std::env::set_var("SYX_HEAP_V13_GENERATIONAL", "0");
 
-        let child = Value::object_ref_from_map(
-            HashMap::from([("n".into(), Value::I64(1))]),
-            true,
-        );
-        let parent = Value::object_ref_from_map(
-            HashMap::from([("child".into(), child.clone())]),
-            true,
-        );
-        let orphan = Value::object_ref_from_map(
-            HashMap::from([("x".into(), Value::I64(2))]),
-            true,
-        );
+        let child = Value::object_ref_from_map(HashMap::from([("n".into(), Value::I64(1))]), true);
+        let parent =
+            Value::object_ref_from_map(HashMap::from([("child".into(), child.clone())]), true);
+        let orphan = Value::object_ref_from_map(HashMap::from([("x".into(), Value::I64(2))]), true);
 
         let child_id = Value::object_ref_identity(&child).expect("child identity");
         let orphan_id = Value::object_ref_identity(&orphan).expect("orphan identity");
@@ -539,21 +541,19 @@ mod deep_field_graph_gc_walk_tests {
         let swept = heap.collect(&[parent.clone()]);
 
         // Nested child kept alive via field-graph walk from parent root.
-        let child_live = heap.get(child_idx).is_some_and(|v| {
-            Value::object_ref_identity(v).is_some_and(|p| p == child_id)
-        });
+        let child_live = heap
+            .get(child_idx)
+            .is_some_and(|v| Value::object_ref_identity(v).is_some_and(|p| p == child_id));
         assert!(
             child_live,
             "nested ObjectRef reachable via parent field must survive collect"
         );
 
         // Orphan not in field graph must be swept (slot Nil or returned in swept).
-        let orphan_slot_gone = heap
-            .get(orphan_idx)
-            .is_none_or(|v| matches!(v, Value::Nil));
-        let orphan_in_swept = swept.iter().any(|v| {
-            Value::object_ref_identity(v).is_some_and(|p| p == orphan_id)
-        });
+        let orphan_slot_gone = heap.get(orphan_idx).is_none_or(|v| matches!(v, Value::Nil));
+        let orphan_in_swept = swept
+            .iter()
+            .any(|v| Value::object_ref_identity(v).is_some_and(|p| p == orphan_id));
         assert!(
             orphan_slot_gone || orphan_in_swept,
             "unreachable orphan ObjectRef must be swept"

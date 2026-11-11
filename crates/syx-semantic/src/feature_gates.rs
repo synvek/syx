@@ -150,7 +150,10 @@ pub fn global_actor_v11_endpoint_weights() -> &'static [(&'static str, u32)] {
     ]
 }
 
-pub fn global_actor_v11_weighted_route(region: &str, failover_index: usize) -> Option<&'static str> {
+pub fn global_actor_v11_weighted_route(
+    region: &str,
+    failover_index: usize,
+) -> Option<&'static str> {
     if !global_actor_v11_sending_enabled() {
         return global_actor_v10_route_endpoint(region, failover_index);
     }
@@ -163,7 +166,10 @@ pub fn global_actor_v11_weighted_route(region: &str, failover_index: usize) -> O
     }
 }
 
-pub fn global_actor_v11_failover_endpoint(region: &str, failed_index: usize) -> Option<&'static str> {
+pub fn global_actor_v11_failover_endpoint(
+    region: &str,
+    failed_index: usize,
+) -> Option<&'static str> {
     global_actor_v11_weighted_route(region, failed_index.saturating_add(1))
 }
 
@@ -181,7 +187,11 @@ pub fn global_actor_v12_dynamic_weight(_endpoint: &str, load_pct: u32) -> u32 {
     100u32.saturating_sub(load_pct.min(99))
 }
 
-pub fn global_actor_v12_route_endpoint(region: &str, index: usize, load_pct: u32) -> Option<&'static str> {
+pub fn global_actor_v12_route_endpoint(
+    region: &str,
+    index: usize,
+    load_pct: u32,
+) -> Option<&'static str> {
     if !global_actor_v12_sending_enabled() {
         return global_actor_v11_weighted_route(region, index);
     }
@@ -283,7 +293,9 @@ pub fn borrow_regions_export_proof_obligations(region_count: i32) -> Vec<String>
 
 pub fn borrow_regions_machine_proof_replay(obligations: &[String]) -> bool {
     borrow_regions_machine_proof_enabled()
-        && obligations.iter().all(|o| o.starts_with("obligation:region:"))
+        && obligations
+            .iter()
+            .all(|o| o.starts_with("obligation:region:"))
 }
 
 /// Phase 77: export borrow proof obligations as JSON for CI replay.
@@ -447,8 +459,7 @@ pub fn lean_binary_replay(name: &str) -> bool {
 pub fn borrow_regions_replay_external(obligations: &[String]) -> bool {
     borrow_regions_machine_proof_enabled()
         && obligations.iter().all(|o| {
-            o.starts_with("obligation:borrow_graph:")
-                && o.len() > "obligation:borrow_graph:".len()
+            o.starts_with("obligation:borrow_graph:") && o.len() > "obligation:borrow_graph:".len()
         })
 }
 
@@ -566,7 +577,9 @@ pub fn borrow_regions_coq_lean_proof_prod_enabled() -> bool {
 pub fn coq_lean_proof_replay(paths: &[String]) -> bool {
     borrow_regions_coq_lean_proof_prod_enabled()
         && borrow_regions_coq_lean_replay(paths)
-        && paths.iter().all(|p| p.contains("proof_") || p.contains("obligation_"))
+        && paths
+            .iter()
+            .all(|p| p.contains("proof_") || p.contains("obligation_"))
 }
 
 pub fn borrow_regions_coq_lean_proof_obligations(region_count: i32) -> Vec<String> {
@@ -674,7 +687,8 @@ pub fn global_actor_v16_registry_route_endpoint(
     if !global_actor_v16_sending_enabled() {
         return global_actor_v15_crdt_route_endpoint(region, org, index, 0, crdt_epoch);
     }
-    if global_actor_v16_health_probe_prod_default() && global_actor_v14_health_probe_ok(region, index)
+    if global_actor_v16_health_probe_prod_default()
+        && global_actor_v14_health_probe_ok(region, index)
     {
         global_actor_v15_crdt_route_endpoint(region, org, index, 0, crdt_epoch)
     } else {
@@ -710,7 +724,9 @@ pub fn borrow_regions_coq_lean_ci_gate_run(paths: &[String]) -> bool {
             .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(false)
     {
-        return paths.iter().all(|p| p.contains("obligation_") || p.contains("proof_"));
+        return paths
+            .iter()
+            .all(|p| p.contains("obligation_") || p.contains("proof_"));
     }
     true
 }

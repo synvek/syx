@@ -49,7 +49,6 @@ pub fn diagnostics_for_source(
     }
 }
 
-
 pub(crate) fn merge_lsp_import(
     out: &mut Vec<(SmolStr, IndexMap<SmolStr, TypeId>)>,
     module_name: SmolStr,
@@ -64,14 +63,12 @@ pub(crate) fn merge_lsp_import(
     }
 }
 
-
 pub(crate) fn collect_import_symbols_for_lsp(
     module: &syx_ast::Module,
     options: &DriverOptions,
 ) -> Vec<(SmolStr, IndexMap<SmolStr, TypeId>)> {
     collect_import_symbols_for_lsp_from(module, options, None)
 }
-
 
 pub(crate) fn collect_import_symbols_for_lsp_from(
     module: &syx_ast::Module,
@@ -121,7 +118,6 @@ pub(crate) fn collect_import_symbols_for_lsp_from(
     import_symbols
 }
 
-
 pub(crate) fn collect_import_symbols_for_lsp_with_path(
     module: &syx_ast::Module,
     importer: &Path,
@@ -166,7 +162,6 @@ pub(crate) fn collect_import_symbols_for_lsp_with_path(
     import_symbols
 }
 
-
 /// Parsed module + semantic analysis for LSP requests.
 #[derive(Debug)]
 pub struct LspDocument {
@@ -176,7 +171,6 @@ pub struct LspDocument {
     /// Phase 59 LSP v51: true when macro expansion changed the module AST.
     pub macro_expanded: bool,
 }
-
 
 pub fn analyze_document_for_lsp(
     path: Option<&Path>,
@@ -348,7 +342,6 @@ pub fn analyze_document_for_lsp(
     }
 }
 
-
 /// Parse `contents` for member-completion AST only (no semantic analysis).
 /// Soft-fail on pass errors is intentional for completion UX (not EC-M1-1 hard path).
 pub fn parse_for_lsp_completion(
@@ -373,14 +366,12 @@ pub fn parse_for_lsp_completion(
     (source, module)
 }
 
-
 /// Phase 52 LSP: preview macro expansion for `syx.macro.expand` command.
 pub fn macro_expand_preview(source: &str) -> SyxResult<String> {
     let file = SourceFile::new("macro_preview.sy", source.to_string());
     let expanded = expand_macros(Parser::parse(file)?)?;
     Ok(format!("{expanded:#?}"))
 }
-
 
 /// Attach source spans to semantic diagnostics when possible (LSP publishDiagnostics).
 pub fn enrich_semantic_spans(source: &SourceFile, errors: &mut [SyxDiagnostic]) {
@@ -421,15 +412,14 @@ pub fn enrich_semantic_spans(source: &SourceFile, errors: &mut [SyxDiagnostic]) 
                     code: err.code.clone(),
                     source: None,
                     primary_span: None,
-        label: None,
-        help: None,
+                    label: None,
+                    help: None,
                 }
                 .with_span(source, Span::new(off, needle.len()), name);
             }
         }
     }
 }
-
 
 /// Convert a source span to 0-based LSP line/character ranges.
 pub fn span_to_lsp_range(source: &SourceFile, span: Span) -> ((usize, usize), (usize, usize)) {
@@ -440,7 +430,6 @@ pub fn span_to_lsp_range(source: &SourceFile, span: Span) -> ((usize, usize), (u
         (el.saturating_sub(1), ec.saturating_sub(1)),
     )
 }
-
 
 pub fn name_span_in_container(source: &SourceFile, container: Span, name: &str) -> Span {
     let start = container.start as usize;
@@ -455,7 +444,6 @@ pub fn name_span_in_container(source: &SourceFile, container: Span, name: &str) 
     container
 }
 
-
 pub fn find_definition_in_module(
     source: &SourceFile,
     module: &syx_ast::Module,
@@ -465,8 +453,11 @@ pub fn find_definition_in_module(
         .or_else(|| find_definition_in_function_bodies(source, &module.decls, name))
 }
 
-
-pub(crate) fn find_definition_in_decls(source: &SourceFile, decls: &[Decl], name: &str) -> Option<Span> {
+pub(crate) fn find_definition_in_decls(
+    source: &SourceFile,
+    decls: &[Decl],
+    name: &str,
+) -> Option<Span> {
     for decl in decls {
         match decl {
             Decl::Function { name: n, span, .. } if n.as_str() == name => {
@@ -531,7 +522,6 @@ pub(crate) fn find_definition_in_decls(source: &SourceFile, decls: &[Decl], name
     None
 }
 
-
 pub(crate) fn find_definition_in_function_bodies(
     source: &SourceFile,
     decls: &[Decl],
@@ -546,7 +536,6 @@ pub(crate) fn find_definition_in_function_bodies(
     }
     None
 }
-
 
 pub(crate) fn find_definition_in_stmts(
     source: &SourceFile,
@@ -608,7 +597,6 @@ pub(crate) fn find_definition_in_stmts(
     None
 }
 
-
 pub fn find_references_in_module(
     source: &SourceFile,
     module: &syx_ast::Module,
@@ -618,7 +606,6 @@ pub fn find_references_in_module(
     collect_references_in_decls(source, &module.decls, name, &mut spans);
     spans
 }
-
 
 /// Find references to a symbol across all modules in a project (when `syx.toml` exists).
 pub fn find_references_in_project(
@@ -641,7 +628,6 @@ pub fn find_references_in_project(
     }
     Some(out)
 }
-
 
 /// Workspace symbol search across a compiled project graph.
 pub fn workspace_symbols_for_project(
@@ -671,7 +657,6 @@ pub fn workspace_symbols_for_project(
     }
     Ok(out)
 }
-
 
 /// Suggest import module paths from stdlib + lightweight project scan.
 ///
@@ -718,7 +703,6 @@ pub fn import_module_suggestions(root: Option<&Path>, options: &DriverOptions) -
     modules.into_iter().collect()
 }
 
-
 pub(crate) fn collect_references_in_decls(
     source: &SourceFile,
     decls: &[Decl],
@@ -764,7 +748,6 @@ pub(crate) fn collect_references_in_decls(
         }
     }
 }
-
 
 pub(crate) fn collect_references_in_stmts(
     source: &SourceFile,
@@ -839,7 +822,6 @@ pub(crate) fn collect_references_in_stmts(
     }
 }
 
-
 pub(crate) fn collect_references_in_expr(
     source: &SourceFile,
     expr: &syx_ast::Expr,
@@ -900,7 +882,6 @@ pub(crate) fn collect_references_in_expr(
     }
 }
 
-
 pub fn definition_for_symbol(
     uri: &str,
     path: Option<&Path>,
@@ -930,16 +911,11 @@ pub fn definition_for_symbol(
     None
 }
 
-
 /// Resolve `print` / `readLine` / `reflect` to the Core globals authority file.
-pub fn definition_for_global_builtin(
-    symbol: &str,
-    from: Option<&Path>,
-) -> Option<(String, Span)> {
+pub fn definition_for_global_builtin(symbol: &str, from: Option<&Path>) -> Option<(String, Span)> {
     let embedded = embedded_std::lookup_global_builtin(symbol)?;
-    let disk = from.and_then(|p| {
-        embedded_std::find_workspace_packages_file(p, GLOBALS_PACKAGES_REL)
-    });
+    let disk =
+        from.and_then(|p| embedded_std::find_workspace_packages_file(p, GLOBALS_PACKAGES_REL));
     let (uri, text) = if let Some(disk) = disk {
         (
             format!("file://{}", disk.display()),
@@ -947,7 +923,10 @@ pub fn definition_for_global_builtin(
         )
     } else {
         (
-            format!("file://{}", embedded_std::virtual_global_builtin_path().display()),
+            format!(
+                "file://{}",
+                embedded_std::virtual_global_builtin_path().display()
+            ),
             embedded.to_string(),
         )
     };
@@ -957,7 +936,6 @@ pub fn definition_for_global_builtin(
     let span = find_definition_in_module(&source, &parsed, symbol)?;
     Some((uri, span))
 }
-
 
 /// SYX 38.0: resolve `importedModule.symbol` or nested `Outer.Inner` definitions.
 pub fn definition_for_qualified_symbol(
@@ -1003,7 +981,6 @@ pub fn definition_for_qualified_symbol(
     }
     definition_for_symbol(uri, path, doc, member, options)
 }
-
 
 /// Phase 18 LSP v10: resolve the type definition for a symbol (not its value binding).
 pub fn go_to_type_for_symbol(
@@ -1064,7 +1041,6 @@ pub fn go_to_type_for_symbol(
     None
 }
 
-
 pub(crate) fn find_type_decl_in_module(
     source: &SourceFile,
     module: &syx_ast::Module,
@@ -1088,4 +1064,3 @@ pub(crate) fn find_type_decl_in_module(
     }
     None
 }
-

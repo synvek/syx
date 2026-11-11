@@ -30,11 +30,7 @@ fn run(src: &str) -> String {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w207_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w207_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -45,8 +41,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native exit {code}: {lines:?}");
     lines
 }
@@ -54,8 +49,7 @@ fn run_native_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -82,11 +76,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -232,10 +222,7 @@ fn m2_s2_01_unicode_scalars_length_native_llvm() {
         .collect::<Vec<_>>()
         .join("\n");
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
-    assert_eq!(
-        out, "2",
-        "native llvm scalars(ab).count must exact: {out}"
-    );
+    assert_eq!(out, "2", "native llvm scalars(ab).count must exact: {out}");
 }
 
 #[test]
@@ -316,8 +303,7 @@ fn m2_s2_01_scalar_view_diverges_from_grapheme() {
 
 #[test]
 fn m2_s2_01_utf8_view() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   print(__syx_str_utf8_count("hi"))
   print(__syx_str_utf8_bytes("hi").count)
@@ -326,8 +312,7 @@ func main() {
   print(String.count(s))
   print(__syx_str_utf8_count(s))
 }
-"#,
-    );
+"#);
     // Wave A W85 / ADR-429 / A-03: utf8 view product exact.
     assert_eq!(out, "2\n2\n104\n1\n18", "utf8 view must exact: {out}");
 }
@@ -341,17 +326,18 @@ fn m2_s2_01_for_in_is_grapheme() {
 
 #[test]
 fn m2_s2_01_is_single_scalar_honest() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   print(__syx_character_is_single_scalar("a"))
   print(__syx_character_is_single_scalar("👨‍👩‍👧"))
   print(__syx_character_is_single_scalar("ab"))
 }
-"#,
-    );
+"#);
     // Wave A W84 / ADR-428 / A-03: isSingleScalar honesty product exact.
-    assert_eq!(out, "true\nfalse\nfalse", "isSingleScalar must exact: {out}");
+    assert_eq!(
+        out, "true\nfalse\nfalse",
+        "isSingleScalar must exact: {out}"
+    );
 }
 
 #[test]
@@ -366,4 +352,3 @@ fn m2_s2_01_inventory_meta() {
         "inventory must note ADR-226"
     );
 }
-

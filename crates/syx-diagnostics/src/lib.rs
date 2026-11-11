@@ -118,9 +118,7 @@ impl Diagnostic for SyxDiagnostic {
     }
 
     fn source_code(&self) -> Option<&dyn SourceCode> {
-        self.source
-            .as_ref()
-            .map(|s| s as &dyn SourceCode)
+        self.source.as_ref().map(|s| s as &dyn SourceCode)
     }
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = LabeledSpan> + '_>> {
@@ -171,17 +169,16 @@ impl SyxDiagnostic {
     }
 
     pub fn with_span(mut self, file: &SourceFile, span: Span, label: impl Into<String>) -> Self {
-        self.source = Some(NamedSource::new(file.name.clone(), file.contents.to_string()));
+        self.source = Some(NamedSource::new(
+            file.name.clone(),
+            file.contents.to_string(),
+        ));
         self.primary_span = Some(SourceSpan::new(
             SourceOffset::from(span.start as usize),
             span.len as usize,
         ));
         let label = label.into();
-        self.label = if label.is_empty() {
-            None
-        } else {
-            Some(label)
-        };
+        self.label = if label.is_empty() { None } else { Some(label) };
         self
     }
 
@@ -263,8 +260,7 @@ mod tests {
     #[test]
     fn with_span_nonempty_label_wired() {
         let file = SourceFile::new("demo.sy", "select { }");
-        let diag = SyxDiagnostic::error("bad select")
-            .with_span(&file, Span::new(0, 6), "select");
+        let diag = SyxDiagnostic::error("bad select").with_span(&file, Span::new(0, 6), "select");
         assert_eq!(diag.label.as_deref(), Some("select"));
         let mut labels = Diagnostic::labels(&diag).expect("labels");
         let labeled = labels.next().expect("one label");

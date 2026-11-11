@@ -79,12 +79,19 @@ func main() {
         &opts(),
     )
     .expect("run");
-    let lines: Vec<_> = result.printed.iter().map(|l| l.trim().to_string()).collect();
+    let lines: Vec<_> = result
+        .printed
+        .iter()
+        .map(|l| l.trim().to_string())
+        .collect();
     assert!(
         lines.iter().any(|l| l == "true" || l == "1"),
         "contains printed={lines:?}"
     );
-    assert!(lines.iter().any(|l| l == "0"), "count after remove={lines:?}");
+    assert!(
+        lines.iter().any(|l| l == "0"),
+        "count after remove={lines:?}"
+    );
 }
 
 #[test]
@@ -101,7 +108,10 @@ func main() {
         &opts(),
     )
     .expect("run");
-    assert_eq!(result.printed, vec!["true".to_string(), "false".to_string()]);
+    assert_eq!(
+        result.printed,
+        vec!["true".to_string(), "false".to_string()]
+    );
 }
 
 #[test]

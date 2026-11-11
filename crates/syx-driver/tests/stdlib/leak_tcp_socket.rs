@@ -106,7 +106,10 @@ func main() {{
 "#
     )));
 
-    assert!(out.contains("LEAKED"), "connect without close must succeed: {out}");
+    assert!(
+        out.contains("LEAKED"),
+        "connect without close must succeed: {out}"
+    );
     assert!(!out.contains("caught"), "connect must not throw: {out}");
 
     let after = tcp_stream_live_count();

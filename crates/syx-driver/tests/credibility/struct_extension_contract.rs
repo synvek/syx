@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -49,7 +48,9 @@ fn s3_05_struct_extension_adr_and_census() {
 
     let lint = repo_file("crates/syx-lint/src/lib.rs");
     assert!(
-        lint.contains("Decl::Struct") && lint.contains("Decl::Extension") && lint.contains("S3-I74"),
+        lint.contains("Decl::Struct")
+            && lint.contains("Decl::Extension")
+            && lint.contains("S3-I74"),
         "syx-lint must recurse Struct/Extension with S3-I74"
     );
     assert!(
@@ -59,8 +60,7 @@ fn s3_05_struct_extension_adr_and_census() {
 
     let prior = repo_file("docs/adr/stage3-s3-05-l007-l012-false-positive.md");
     assert!(
-        prior.contains("S3-I74")
-            || prior.contains("stage3-s3-05-struct-extension-type-member"),
+        prior.contains("S3-I74") || prior.contains("stage3-s3-05-struct-extension-type-member"),
         "I73 ADR must cite landed I74"
     );
 

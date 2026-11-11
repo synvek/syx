@@ -89,4 +89,3 @@ fn tcp_accept_ga_thin_spec_signed() {
         "residual must cross-index accept GA inventory/exit"
     );
 }
-

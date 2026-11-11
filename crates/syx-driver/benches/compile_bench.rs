@@ -2,8 +2,8 @@ use std::hint::black_box;
 use std::path::Path;
 use std::time::Instant;
 
-use syx_driver::compile_file;
 use syx_diagnostics::SourceFile;
+use syx_driver::compile_file;
 use syx_parser::Parser;
 
 fn main() {

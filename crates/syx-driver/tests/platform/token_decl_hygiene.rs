@@ -42,4 +42,3 @@ fn token_decl_hygiene_example_run_file() {
         "example sum: {printed:?}"
     );
 }
-

@@ -49,7 +49,10 @@ fn r0_residual_census_files_exist() {
 fn r0_residual_census_script_green() {
     let stdout = run_census();
     assert_eq!(parse(&stdout, "sa6_hinge_still_green="), 1);
-    assert_eq!(parse(&stdout, "networking_tcp_readasync_object_cleared="), 1);
+    assert_eq!(
+        parse(&stdout, "networking_tcp_readasync_object_cleared="),
+        1
+    );
     assert!(
         stdout.contains("object_sig_residual_count="),
         "must roll up object inventory via sa_6"

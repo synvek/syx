@@ -7,14 +7,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_04_lsp_document_formatting() {
     let adr = repo_file("docs/adr/stage2-s2-04-lsp-document-formatting.md");
-    assert!(adr.contains("S2-I152"), "lsp-document-formatting ADR must exist");
+    assert!(
+        adr.contains("S2-I152"),
+        "lsp-document-formatting ADR must exist"
+    );
     assert!(
         adr.contains("documentFormattingProvider") || adr.contains("textDocument/formatting"),
         "ADR must lock LSP formatting surface"

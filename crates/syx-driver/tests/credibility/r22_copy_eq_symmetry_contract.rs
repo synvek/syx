@@ -112,8 +112,7 @@ fn r22_copy_return_type_infer_wired() {
 #[test]
 fn r22_mir_unify_shells_use_replacing_merge() {
     let unify = std::fs::read_to_string(
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src/mir_unify.rs"),
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/mir_unify.rs"),
     )
     .expect("mir_unify.rs");
     // Six shell merges: 3 dataclass + 3 enum.

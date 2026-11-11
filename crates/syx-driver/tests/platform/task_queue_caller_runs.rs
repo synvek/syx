@@ -17,16 +17,14 @@ fn run(src: &str) -> Result<Vec<String>, String> {
 #[test]
 fn caller_runs_task_reject_policy_roundtrip() {
     let _g = P135_QUEUE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let printed = run(r#"
 func main() {
     print(__syx_task_set_reject_policy("callerRuns"))
     print(__syx_task_reject_policy())
     print(__syx_task_set_reject_policy("abort"))
     print(__syx_task_reject_policy())
 }
-"#,
-    )
+"#)
     .expect("reject policy roundtrip");
     assert_eq!(printed[0].trim(), "callerRuns");
     assert_eq!(printed[1].trim(), "callerRuns");
@@ -39,4 +37,3 @@ fn caller_runs_bounded_queue_flood_caller_runs_observable() {
     let _g = P135_QUEUE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     syx_async::probe_bounded_queue_caller_runs_mvp().expect("CallerRuns overflow should succeed");
 }
-

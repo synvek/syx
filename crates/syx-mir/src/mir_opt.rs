@@ -70,7 +70,6 @@ pub(crate) fn fold_function(instructions: &mut Vec<MirInstr>) {
     }
 }
 
-
 pub fn dead_code_elim(module: &mut MirModule) {
     for func in &mut module.functions {
         dce_function(&mut func.instructions);
@@ -182,7 +181,10 @@ fn func_flat_instructions(func: &MirFunction) -> &[MirInstr] {
     }
 }
 
-fn is_inline_candidate(func: &MirFunction, escaping_closures: &std::collections::HashSet<SmolStr>) -> bool {
+fn is_inline_candidate(
+    func: &MirFunction,
+    escaping_closures: &std::collections::HashSet<SmolStr>,
+) -> bool {
     if escaping_closures.contains(&func.name) {
         return false;
     }
@@ -246,9 +248,7 @@ fn inline_calls_in_instructions(
     let candidates: HashMap<SmolStr, Vec<MirInstr>> = module
         .functions
         .iter()
-        .filter_map(|f| {
-            inlineable_body(f, escaping_closures).map(|b| (f.name.clone(), b))
-        })
+        .filter_map(|f| inlineable_body(f, escaping_closures).map(|b| (f.name.clone(), b)))
         .collect();
     if candidates.is_empty() {
         return;
@@ -827,7 +827,10 @@ fn mir_op_is_v12_alias_barrier(op: &MirOp) -> bool {
         );
     }
     mir_opt_v12_prod_hardening_enabled()
-        && matches!(op, MirOp::ActorCall(_) | MirOp::AwaitPoll | MirOp::AwaitSuspend { .. })
+        && matches!(
+            op,
+            MirOp::ActorCall(_) | MirOp::AwaitPoll | MirOp::AwaitSuspend { .. }
+        )
 }
 
 fn licm_hoist_constants_in_segment(mut seg: Vec<MirInstr>) -> Vec<MirInstr> {
@@ -914,7 +917,6 @@ fn loop_licm(module: &mut MirModule) {
     }
 }
 
-
 #[cfg(test)]
 mod r30_try_pad_tests {
     use super::*;
@@ -943,10 +945,11 @@ func main() {
             .iter()
             .find(|f| f.name == "main")
             .expect("main");
-        let before_has = before
-            .blocks
-            .iter()
-            .any(|b| b.instructions.iter().any(|i| matches!(i.op, MirOp::ReturnErr)));
+        let before_has = before.blocks.iter().any(|b| {
+            b.instructions
+                .iter()
+                .any(|i| matches!(i.op, MirOp::ReturnErr))
+        });
         optimize(&mut mir);
         let main = mir
             .functions

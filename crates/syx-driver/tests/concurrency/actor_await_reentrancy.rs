@@ -54,10 +54,7 @@ func main() {
         "await-hold peek must not hang: elapsed={elapsed:?} out={out}"
     );
     let lines: Vec<&str> = out.lines().filter(|l| !l.is_empty()).collect();
-    assert!(
-        !lines.is_empty(),
-        "expected peek print: {out}"
-    );
+    assert!(!lines.is_empty(), "expected peek print: {out}");
     assert_eq!(
         lines[0], "AFTER",
         "peek during hold-sleep must serialize to AFTER (await-hold), not BEFORE: {out}"
@@ -67,5 +64,3 @@ func main() {
         "must not observe mid-await BEFORE from reentrant peek: {out}"
     );
 }
-
-

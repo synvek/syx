@@ -182,8 +182,7 @@ fn mark_font_mgr_resolution(text: &str) {
         return;
     }
     let mut buf_os = vec![0u32; 64 * 32];
-    let os_ok = paint_paragraph_with_collection(&mut buf_os, 64, 0, 0, text, 60.0, false)
-        .is_some()
+    let os_ok = paint_paragraph_with_collection(&mut buf_os, 64, 0, 0, text, 60.0, false).is_some()
         && rgba_has_ink_from_buffer(&buf_os);
     if os_ok {
         FONT_MGR_OS.store(true, Ordering::Relaxed);
@@ -316,7 +315,8 @@ pub fn probe_font_mgr_os_paint() -> bool {
 pub fn probe_font_mgr_bundled_paint() -> bool {
     FONT_MGR_BUNDLED.store(false, Ordering::Relaxed);
     let mut os_only = vec![0u32; 64 * 32];
-    let os_ok = paint_paragraph_with_collection(&mut os_only, 64, 0, 0, "龍", 60.0, false).is_some()
+    let os_ok = paint_paragraph_with_collection(&mut os_only, 64, 0, 0, "龍", 60.0, false)
+        .is_some()
         && rgba_has_ink_from_buffer(&os_only);
     if os_ok {
         return false;

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -47,7 +46,9 @@ fn s4_exit_adr_and_plan_locked() {
     assert!(
         (adr.contains("manifest") || adr.contains("doctest"))
             && (adr.contains("registry") || adr.contains("packages.sy"))
-            && (adr.contains("Sendable") || adr.contains("withTaskGroup") || adr.contains("TaskGroup"))
+            && (adr.contains("Sendable")
+                || adr.contains("withTaskGroup")
+                || adr.contains("TaskGroup"))
             && (adr.contains("makeIterator") || adr.contains("map"))
             && (adr.contains("native-sdk") || adr.contains("sysroot")),
         "ADR Residual must cover S4-01…05 deferred axes"
@@ -72,8 +73,7 @@ fn s4_exit_adr_and_plan_locked() {
         "plan/02 Stage-4 must be [x] 退出; got: {stage4}"
     );
     assert!(
-        plan02.contains("S3-I109")
-            && (plan02.contains("stage4-exit") || plan02.contains("退出")),
+        plan02.contains("S3-I109") && (plan02.contains("stage4-exit") || plan02.contains("退出")),
         "plan/02 must cite S3-I109 exit"
     );
     assert!(
@@ -87,8 +87,7 @@ fn s4_exit_adr_and_plan_locked() {
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S3-I109")
-            && (plan01.contains("[x]") && plan01.contains("退出")),
+        plan01.contains("S3-I109") && (plan01.contains("[x]") && plan01.contains("退出")),
         "plan/01 must reflect Stage-4 [x] 退出 / S3-I109"
     );
     assert!(
@@ -112,8 +111,7 @@ fn s4_exit_adr_and_plan_locked() {
         "census must mark exit_status exited"
     );
     assert!(
-        census.contains("Residual")
-            && (census.contains("维护") || census.contains("post-exit")),
+        census.contains("Residual") && (census.contains("维护") || census.contains("post-exit")),
         "census ladder must next = post-exit Residual"
     );
 }
@@ -148,8 +146,7 @@ fn s4_exit_census_script_hinges() {
     }
     assert!(
         stdout.contains("current=S3-I109")
-            && (stdout.contains("next=post-exit-residual")
-                || stdout.contains("next=residual")),
+            && (stdout.contains("next=post-exit-residual") || stdout.contains("next=residual")),
         "script ladder must be I109→post-exit residual:\n{stdout}"
     );
     assert!(

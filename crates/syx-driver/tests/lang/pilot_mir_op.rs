@@ -48,4 +48,3 @@ fn exec_mir_op_add_still_works() {
     .expect("add");
     assert_eq!(rt.return_value(), 15);
 }
-

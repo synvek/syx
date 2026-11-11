@@ -53,4 +53,3 @@ func main() {
     );
     assert!(!out.contains("JOIN_OK"), "join must not succeed: {out}");
 }
-

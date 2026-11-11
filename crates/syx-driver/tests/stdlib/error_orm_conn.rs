@@ -268,7 +268,10 @@ func main() {
 }
 "#,
     ));
-    assert_eq!(out, "caught", "updateWhereOn invalid conn must exact: {out}");
+    assert_eq!(
+        out, "caught",
+        "updateWhereOn invalid conn must exact: {out}"
+    );
 }
 
 #[test]
@@ -319,5 +322,8 @@ func main() {
 }
 "#,
     ));
-    assert_eq!(out, "caught", "deleteWhereOn invalid conn must exact: {out}");
+    assert_eq!(
+        out, "caught",
+        "deleteWhereOn invalid conn must exact: {out}"
+    );
 }

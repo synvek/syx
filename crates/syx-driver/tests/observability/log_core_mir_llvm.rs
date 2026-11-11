@@ -3,9 +3,7 @@
 use std::fs;
 use std::process::Command;
 
-use syx_driver::{
-    build_native_executable, run_native_mir_file_printed, DriverOptions,
-};
+use syx_driver::{build_native_executable, run_native_mir_file_printed, DriverOptions};
 
 fn lines_joined(lines: &[String]) -> String {
     let mut out = Vec::new();
@@ -67,20 +65,19 @@ fn run_native_llvm(label: &str, src: &str) -> String {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native llvm Log core build failed: {e}"));
-    let output = Command::new(&exe).output().expect("run native llvm Log core");
+    let output = Command::new(&exe)
+        .output()
+        .expect("run native llvm Log core");
     let stdout = String::from_utf8_lossy(&output.stdout);
     let code = output.status.code().unwrap_or(1);
     let _ = fs::remove_dir_all(&dir);
     assert_eq!(
-        code, 0,
+        code,
+        0,
         "native llvm Log core exit {code}: stdout={stdout} stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
@@ -110,12 +107,18 @@ const LOG_CORE_SMOKE_EXPECTED: &str = "DEBUG\ntrue\nWARN\n0\ntrue\n[INFO] hello"
 #[test]
 fn log_core_smoke_native_mir() {
     let out = run_native_mir("host_smoke", LOG_CORE_SMOKE);
-    assert_eq!(out, LOG_CORE_SMOKE_EXPECTED, "native mir Log core smoke: {out}");
+    assert_eq!(
+        out, LOG_CORE_SMOKE_EXPECTED,
+        "native mir Log core smoke: {out}"
+    );
 }
 
 #[cfg(unix)]
 #[test]
 fn log_core_smoke_native_llvm() {
     let out = run_native_llvm("host_smoke", LOG_CORE_SMOKE);
-    assert_eq!(out, LOG_CORE_SMOKE_EXPECTED, "native llvm Log core smoke: {out}");
+    assert_eq!(
+        out, LOG_CORE_SMOKE_EXPECTED,
+        "native llvm Log core smoke: {out}"
+    );
 }

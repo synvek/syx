@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -32,10 +31,7 @@ fn s4_05_prebuilt_release_census_baseline() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("5/5"),
-        "census must publish Stage-4 5/5"
-    );
+    assert!(census.contains("5/5"), "census must publish Stage-4 5/5");
     assert!(
         census.contains("s4_05_status") && (census.contains("`x`") || census.contains("x")),
         "census must publish s4_05_status x"
@@ -140,9 +136,7 @@ fn s4_05_prebuilt_release_census_baseline() {
 fn s4_05_prebuilt_release_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s4_05_prebuilt_release_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run s4_05 census");
     assert!(

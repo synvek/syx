@@ -17,16 +17,14 @@ fn run(src: &str) -> Result<Vec<String>, String> {
 #[test]
 fn bounded_task_queue_task_queue_capacity_roundtrip() {
     let _g = P134_QUEUE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let printed = run(r#"
 func main() {
     print(__syx_task_set_queue_capacity(4))
     print(__syx_task_queue_capacity())
     print(__syx_task_set_queue_capacity(0))
     print(__syx_task_queue_capacity())
 }
-"#,
-    )
+"#)
     .expect("queue capacity roundtrip");
     assert_eq!(printed[0].trim(), "4");
     assert_eq!(printed[1].trim(), "4");
@@ -45,4 +43,3 @@ fn bounded_task_queue_flood_abort_c008() {
         "expected C008 / Abort error, got: {err}"
     );
 }
-

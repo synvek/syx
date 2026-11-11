@@ -112,7 +112,11 @@ pub fn is_signed(kind: NumericKind) -> bool {
 pub fn is_unsigned(kind: NumericKind) -> bool {
     matches!(
         resolve_alias(kind),
-        NumericKind::U8 | NumericKind::U16 | NumericKind::U32 | NumericKind::U64 | NumericKind::U128
+        NumericKind::U8
+            | NumericKind::U16
+            | NumericKind::U32
+            | NumericKind::U64
+            | NumericKind::U128
     )
 }
 
@@ -323,8 +327,14 @@ mod tests {
         assert_eq!(type_name_with_alias(NumericKind::Float), "Float");
         assert_eq!(resolve_alias(NumericKind::Double), NumericKind::F64);
         assert_eq!(resolve_alias(NumericKind::Float), NumericKind::F32);
-        assert!(is_implicit_convertible(NumericKind::Double, NumericKind::F64));
-        assert!(is_implicit_convertible(NumericKind::F64, NumericKind::Double));
+        assert!(is_implicit_convertible(
+            NumericKind::Double,
+            NumericKind::F64
+        ));
+        assert!(is_implicit_convertible(
+            NumericKind::F64,
+            NumericKind::Double
+        ));
     }
 
     #[test]

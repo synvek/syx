@@ -35,13 +35,15 @@ func main() {
     print(SIMD16.anyTrue(none))
 }"#;
     with_simd128_tier3(|| {
-        let dir = std::env::temp_dir().join(format!("syx_p139_simd16_all_any_{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("syx_p139_simd16_all_any_{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("main.sy"), SRC).unwrap();
         fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
         let path = dir.join("main.sy");
-        let (_, vm_lines) = syx_driver::run_file_printed(&path, &opts()).expect("vm simd16 all/any");
+        let (_, vm_lines) =
+            syx_driver::run_file_printed(&path, &opts()).expect("vm simd16 all/any");
         assert_bool_stdout(&vm_lines, "true", "vm allTrue all");
         assert_bool_stdout(&vm_lines, "false", "vm allTrue not_all");
         assert_bool_stdout(&vm_lines, "true", "vm anyTrue any");
@@ -52,8 +54,8 @@ func main() {
         assert_bool_stdout(&native_lines, "false", "native allTrue not_all");
         assert_bool_stdout(&native_lines, "true", "native anyTrue any");
         assert_bool_stdout(&native_lines, "false", "native anyTrue none");
-        let (_, wasm_lines) =
-            syx_driver::run_wasm_source_printed(&path, "main", &opts()).expect("wasm simd16 all/any");
+        let (_, wasm_lines) = syx_driver::run_wasm_source_printed(&path, "main", &opts())
+            .expect("wasm simd16 all/any");
         let wasm = emit_wasm_bytes(&path, &opts()).expect("emit simd16 all/any wasm");
         let wasm_text = String::from_utf8_lossy(&wasm);
         assert!(

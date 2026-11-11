@@ -202,9 +202,9 @@ pub fn diagnostic_codes(diags: &[SyxDiagnostic]) -> Vec<String> {
     let mut codes: Vec<String> = diags
         .iter()
         .map(|d| {
-            d.code
-                .clone()
-                .unwrap_or_else(|| format!("msg:{}", d.message.chars().take(64).collect::<String>()))
+            d.code.clone().unwrap_or_else(|| {
+                format!("msg:{}", d.message.chars().take(64).collect::<String>())
+            })
         })
         .collect();
     codes.sort();
@@ -215,7 +215,6 @@ pub fn diagnostic_codes(diags: &[SyxDiagnostic]) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     #[test]
     fn run_arith_to_mir() {

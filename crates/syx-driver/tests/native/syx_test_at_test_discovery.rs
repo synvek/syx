@@ -74,13 +74,14 @@ func boom() {
     )
     .expect("json continues on fail");
     assert_eq!(report.failed, 1, "cases={:?}", report.cases);
-    let case = report.cases.iter().find(|c| c.name == "bad.boom").expect("case");
+    let case = report
+        .cases
+        .iter()
+        .find(|c| c.name == "bad.boom")
+        .expect("case");
     assert_eq!(case.status, syx_driver::TestCaseStatus::Failed);
     let msg = case.failure.as_deref().unwrap_or("");
-    assert!(
-        !msg.is_empty(),
-        "failure text must be recorded, got empty"
-    );
+    assert!(!msg.is_empty(), "failure text must be recorded, got empty");
     let json = report.to_json_string().expect("serialize");
     assert!(json.contains("failure") || json.contains(msg.split_whitespace().next().unwrap_or("")));
     let xml = report.to_junit_xml_string();

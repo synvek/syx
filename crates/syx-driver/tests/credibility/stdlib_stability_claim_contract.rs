@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -39,13 +38,11 @@ fn s4_01_plan_claim_locked() {
         "ADR must cite I90 residual-scope prior"
     );
     assert!(
-        adr.contains("S3-I92")
-            || (adr.contains("S4-02") && adr.contains("open")),
+        adr.contains("S3-I92") || (adr.contains("S4-02") && adr.contains("open")),
         "ADR must cite S3-I92 S4-02 open"
     );
     assert!(
-        adr.contains("S3-I93")
-            || (adr.contains("file-registry") || adr.contains("construct")),
+        adr.contains("S3-I93") || (adr.contains("file-registry") || adr.contains("construct")),
         "ADR Consequences must lock next = I93 construct"
     );
 
@@ -70,20 +67,14 @@ fn s4_01_plan_claim_locked() {
         stage4.contains("[x]") && stage4.contains("退出"),
         "Stage-4 must be [x] 退出; got: {stage4}"
     );
-    assert!(
-        plan02.contains("5/5"),
-        "plan/02 must publish Stage-4 5/5"
-    );
+    assert!(plan02.contains("5/5"), "plan/02 must publish Stage-4 5/5");
     assert!(
         plan02.contains("S3-I92") && plan02.contains("S3-I93"),
         "plan/02 must cite I92 open / I93 next"
     );
 
     let census = repo_file("docs/census/stage4-stdlib-stability-doctest-census.md");
-    assert!(
-        census.contains("S3-I91"),
-        "census must name S3-I91"
-    );
+    assert!(census.contains("S3-I91"), "census must name S3-I91");
     assert!(
         census.contains("Current:** S3-I91") || census.contains("Current: S3-I91"),
         "census Current must be S3-I91"
@@ -92,10 +83,7 @@ fn s4_01_plan_claim_locked() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("4/5"),
-        "census must publish Stage-4 5/5"
-    );
+    assert!(census.contains("4/5"), "census must publish Stage-4 5/5");
     assert!(
         census.contains("S3-I92") && census.contains("S3-I93"),
         "census ladder must cite I92 landed / I93 next"
@@ -112,10 +100,7 @@ fn s4_01_plan_claim_locked() {
         plan01.contains("S3-I91") && plan01.contains("[x]"),
         "plan/01 must reflect S3-I91 S4-01 [x]"
     );
-    assert!(
-        plan01.contains("5/5"),
-        "plan/01 must publish Stage-4 5/5"
-    );
+    assert!(plan01.contains("5/5"), "plan/01 must publish Stage-4 5/5");
     assert!(
         plan01.contains("S3-I92") && plan01.contains("S3-I93"),
         "plan/01 must cite I92 / I93"
@@ -126,9 +111,7 @@ fn s4_01_plan_claim_locked() {
 fn s4_01_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s4_01_stdlib_stability_doctest_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run s4_01 census");
     assert!(
@@ -182,5 +165,8 @@ fn s4_01_claim_census_script_hinges() {
     assert!(parse("stability_ssot_helper=") >= 1);
     assert!(parse("residual_scope_helper=") >= 1);
     assert_eq!(parse("manifest_stability_field_count="), 0);
-    assert!(parse("syx_doctest_subcommand_count=") >= 1, "SA-5-05: syx doctest subcommand must exist");
+    assert!(
+        parse("syx_doctest_subcommand_count=") >= 1,
+        "SA-5-05: syx doctest subcommand must exist"
+    );
 }

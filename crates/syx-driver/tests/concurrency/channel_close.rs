@@ -35,7 +35,10 @@ func main() {
         lines.len() >= 3,
         "expected drain A, Nil, SEND_CLOSED/C010: {out}"
     );
-    assert_eq!(lines[0], "A", "must drain buffered value after close: {out}");
+    assert_eq!(
+        lines[0], "A",
+        "must drain buffered value after close: {out}"
+    );
     assert!(
         lines[1] == "nil" || lines[1] == "Nil",
         "second recv after drain must be Nil: {out}"
@@ -44,6 +47,8 @@ func main() {
         out.contains("SEND_CLOSED") && out.contains("C010"),
         "post-close send must surface C010: {out}"
     );
-    assert!(!out.contains("SEND_OK"), "post-close send must not succeed: {out}");
+    assert!(
+        !out.contains("SEND_OK"),
+        "post-close send must not succeed: {out}"
+    );
 }
-

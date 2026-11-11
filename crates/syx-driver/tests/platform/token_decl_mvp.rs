@@ -45,4 +45,3 @@ fn token_decl_example_runs() {
         "example sum: {printed:?}"
     );
 }
-

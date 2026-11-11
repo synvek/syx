@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -70,10 +69,7 @@ fn s3_03_plan_claim_locked() {
     );
 
     let census = repo_file("docs/census/stage3-stdlib-cache-census.md");
-    assert!(
-        census.contains("S3-I55"),
-        "stdlib census must name S3-I55"
-    );
+    assert!(census.contains("S3-I55"), "stdlib census must name S3-I55");
     assert!(
         census.contains("Current:** S3-I55") || census.contains("Current: S3-I55"),
         "census Current must be S3-I55"
@@ -82,10 +78,7 @@ fn s3_03_plan_claim_locked() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("S3-04"),
-        "census ladder must next = S3-04"
-    );
+    assert!(census.contains("S3-04"), "census ladder must next = S3-04");
 
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
@@ -102,9 +95,7 @@ fn s3_03_plan_claim_locked() {
 fn s3_03_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_03_stdlib_cache_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run stdlib-cache census");
     assert!(

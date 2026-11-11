@@ -59,14 +59,10 @@ fn wait_listening(port: u16, timeout: Duration) -> bool {
 }
 
 fn http_get_health(port: u16) -> (u16, String) {
-    let mut stream =
-        TcpStream::connect(("127.0.0.1", port)).expect("connect health");
-    stream
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .ok();
-    let req = format!(
-        "GET /health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
-    );
+    let mut stream = TcpStream::connect(("127.0.0.1", port)).expect("connect health");
+    stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
+    let req =
+        format!("GET /health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n");
     stream.write_all(req.as_bytes()).expect("write request");
     let mut buf = Vec::new();
     let _ = stream.read_to_end(&mut buf);
@@ -86,8 +82,8 @@ fn ec_m2_1_http_server_health_loopback() {
     let _max_env = EnvGuard::set("SYX_HTTP_SERVE_MAX_REQUESTS", "1");
 
     let src = example_template().replace("18765", &port.to_string());
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../examples/http_server_tool/.tmp_nail");
+    let dir =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/http_server_tool/.tmp_nail");
     let _ = std::fs::create_dir_all(&dir);
     let path = dir.join(format!("main_{port}.sy"));
     std::fs::write(&path, src).expect("write temp example");
@@ -105,10 +101,7 @@ fn ec_m2_1_http_server_health_loopback() {
     );
     let (status, body) = http_get_health(port);
     assert_eq!(status, 200, "health status: {body}");
-    assert!(
-        body.contains("ok"),
-        "health body must contain ok: {body}"
-    );
+    assert!(body.contains("ok"), "health body must contain ok: {body}");
 
     let run_result = rx
         .recv_timeout(Duration::from_secs(30))

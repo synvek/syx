@@ -123,8 +123,7 @@ func main() {
         );
     } else {
         assert!(
-            out.contains("caught")
-                && (out.contains("os hostname failed") || out.contains("1")),
+            out.contains("caught") && (out.contains("os hostname failed") || out.contains("1")),
             "hostname must catch code 1 when unavailable: {out}"
         );
     }
@@ -156,8 +155,7 @@ func main() {
         );
     } else {
         assert!(
-            out.contains("caught")
-                && (out.contains("os primaryIpv4 failed") || out.contains("4")),
+            out.contains("caught") && (out.contains("os primaryIpv4 failed") || out.contains("4")),
             "primaryIpv4 must catch code 4 when unavailable: {out}"
         );
     }
@@ -280,10 +278,7 @@ func main() {
 }
 "#,
     ));
-    assert_eq!(
-        out, "caught",
-        "force-err memoryAvailable must exact: {out}"
-    );
+    assert_eq!(out, "caught", "force-err memoryAvailable must exact: {out}");
 }
 
 #[test]

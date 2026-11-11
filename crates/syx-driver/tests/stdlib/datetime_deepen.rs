@@ -19,15 +19,13 @@ fn run_err(src: &str) -> String {
 #[test]
 fn datetime_iana_asia_tokyo_offset() {
     // Second IANA zone beyond America/New_York: Asia/Tokyo is fixed JST = +540 minutes.
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
   let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
   print(__syx_datetime_timezone_offset(wMs, "Asia/Tokyo"))
 }
-"#,
-    );
+"#);
     assert_eq!(
         out.trim(),
         "540",
@@ -58,15 +56,13 @@ func main() {
 #[test]
 fn datetime_iana_format_with_timezone_tokyo() {
     // W354: Tokyo formatWithTimezone complements W353 offset-only nail (NY format already exists).
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
   let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
   print(__syx_datetime_format_with_timezone(wMs, "iso", "Asia/Tokyo"))
 }
-"#,
-    );
+"#);
     assert_eq!(
         out.trim(),
         "2024-01-15T21:00:00.000+09:00",
@@ -97,15 +93,13 @@ func main() {
 #[test]
 fn datetime_iana_europe_london_winter_offset() {
     // W355: Europe/London winter (GMT) = 0 minutes — third IANA zone DST pair.
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let winter = __syx_datetime_parse_iso8601("2024-01-15T12:00:00.000Z")
   let wMs = __syx_keypath_get(winter, "DateTime", "ms", false)
   print(__syx_datetime_timezone_offset(wMs, "Europe/London"))
 }
-"#,
-    );
+"#);
     assert_eq!(
         out.trim(),
         "0",
@@ -116,15 +110,13 @@ func main() {
 #[test]
 fn datetime_iana_europe_london_summer_offset() {
     // W355: Europe/London summer (BST) = 60 minutes.
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let summer = __syx_datetime_parse_iso8601("2024-07-15T12:00:00.000Z")
   let sMs = __syx_keypath_get(summer, "DateTime", "ms", false)
   print(__syx_datetime_timezone_offset(sMs, "Europe/London"))
 }
-"#,
-    );
+"#);
     assert_eq!(
         out.trim(),
         "60",

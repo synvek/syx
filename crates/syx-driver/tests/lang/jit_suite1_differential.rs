@@ -165,7 +165,11 @@ fn jit_callhost_deopts() {
         matches!(v, Value::I32(_) | Value::I64(_)),
         "expected Int from time_now_ms, got {v:?}"
     );
-    assert!(v.as_i32() > 0, "expected positive epoch ms, got {}", v.as_i32());
+    assert!(
+        v.as_i32() > 0,
+        "expected positive epoch ms, got {}",
+        v.as_i32()
+    );
     assert!(
         vm.jit_deopt_count() >= 1,
         "expected deopt for CallHost, got reason={:?}",
@@ -343,10 +347,7 @@ fn jit_setbuild_deopts() {
         .flat_map(|b| b.instructions.iter())
         .chain(main.instructions.iter())
         .any(|i| matches!(i.op, syx_mir::MirOp::SetBuild(_)));
-    assert!(
-        has_setbuild,
-        "setbuild_deopt.sy main must contain SetBuild"
-    );
+    assert!(has_setbuild, "setbuild_deopt.sy main must contain SetBuild");
     let _g = env_lock();
     std::env::set_var("SYX_JIT_TIER2", "1");
     syx_cranelift_jit::invalidate_jit_cache();

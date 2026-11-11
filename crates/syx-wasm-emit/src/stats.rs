@@ -155,7 +155,11 @@ fn parse_import_tiers(wasm: &[u8]) -> HashMap<u32, CallTier> {
     map
 }
 
-fn classify_call(function_index: u32, import_tiers: &HashMap<u32, CallTier>, stats: &mut AotTierStats) {
+fn classify_call(
+    function_index: u32,
+    import_tiers: &HashMap<u32, CallTier>,
+    stats: &mut AotTierStats,
+) {
     match import_tiers.get(&function_index).copied() {
         Some(CallTier::MirExec) => stats.mir_exec += 1,
         Some(CallTier::RunOp) => stats.run_op += 1,

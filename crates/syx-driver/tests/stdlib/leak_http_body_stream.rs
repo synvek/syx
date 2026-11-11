@@ -85,10 +85,7 @@ func main() {{
     )));
     stop.store(true, Ordering::Relaxed);
     let _ = server.join();
-    assert_eq!(
-        out, "OPENED\n200\nCLOSED",
-        "open+close must exact: {out}"
-    );
+    assert_eq!(out, "OPENED\n200\nCLOSED", "open+close must exact: {out}");
     assert_eq!(
         http_body_stream_live_count(),
         baseline,

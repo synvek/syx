@@ -28,7 +28,7 @@ use std::sync::{mpsc, Arc, Mutex, MutexGuard, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use rustls::pki_types::{CertificateDer, ServerName, pem::PemObject};
+use rustls::pki_types::{pem::PemObject, CertificateDer, ServerName};
 use rustls::{ClientConfig, RootCertStore};
 use syx_driver::{run_file_printed, DriverOptions};
 
@@ -97,11 +97,8 @@ fn wait_listening(port: u16, timeout: Duration) -> bool {
 fn http_serve_https_loopback_get_with_extra_root() {
     let _serial = tls_test_lock();
 
-    let cert = rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ])
-    .expect("rcgen self-signed");
+    let cert = rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()])
+        .expect("rcgen self-signed");
     let cert_pem = cert.cert.pem();
     let key_pem = cert.key_pair.serialize_pem();
 
@@ -216,14 +213,15 @@ fn read_http_request_headers(stream: &mut TcpStream) {
     }
 }
 
-fn spawn_upgrade_upstream(response: &'static str, echo_payload: bool) -> (u16, thread::JoinHandle<()>) {
+fn spawn_upgrade_upstream(
+    response: &'static str,
+    echo_payload: bool,
+) -> (u16, thread::JoinHandle<()>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("upstream bind");
     let port = listener.local_addr().expect("addr").port();
     let handle = thread::spawn(move || {
         let (mut stream, _) = listener.accept().expect("upstream accept");
-        stream
-            .set_read_timeout(Some(Duration::from_secs(5)))
-            .ok();
+        stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
         read_http_request_headers(&mut stream);
         stream
             .write_all(response.as_bytes())
@@ -288,9 +286,7 @@ fn tls_client_stream(
     let client = rustls::ClientConnection::new(client_cfg, name).expect("client conn");
     let mut tls = rustls::StreamOwned::new(client, tcp);
     while tls.conn.is_handshaking() {
-        tls.conn
-            .complete_io(&mut tls.sock)
-            .expect("tls handshake");
+        tls.conn.complete_io(&mut tls.sock).expect("tls handshake");
     }
     tls
 }
@@ -311,11 +307,8 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\
         true,
     );
 
-    let cert = rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ])
-    .expect("rcgen self-signed");
+    let cert = rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()])
+        .expect("rcgen self-signed");
     let cert_pem = cert.cert.pem();
     let key_pem = cert.key_pair.serialize_pem();
 
@@ -491,11 +484,8 @@ fn assert_tls_protocol_close_1002(stream: &mut TlsClient) {
 }
 
 fn write_pem_pair(dir: &std::path::Path, tag: &str, port: u16) -> (PathBuf, PathBuf) {
-    let cert = rcgen::generate_simple_self_signed(vec![
-        "127.0.0.1".into(),
-        "localhost".into(),
-    ])
-    .expect("rcgen self-signed");
+    let cert = rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()])
+        .expect("rcgen self-signed");
     let cert_path = dir.join(format!("{tag}_{port}.crt"));
     let key_path = dir.join(format!("{tag}_{port}.key"));
     std::fs::write(&cert_path, cert.cert.pem()).expect("write cert");
@@ -588,7 +578,12 @@ Sec-WebSocket-Version: 13\r\n\
     (client, head_text)
 }
 
-fn echo_fin1_text_binary_ping_then_close(client: &mut TlsClient, text: &[u8], binary: &[u8], ping: &[u8]) {
+fn echo_fin1_text_binary_ping_then_close(
+    client: &mut TlsClient,
+    text: &[u8],
+    binary: &[u8],
+    ping: &[u8],
+) {
     client
         .write_all(&encode_ws_data_frame(0x81, text, [0xde, 0xad, 0xbe, 0xef]))
         .expect("write text");
@@ -597,7 +592,11 @@ fn echo_fin1_text_binary_ping_then_close(client: &mut TlsClient, text: &[u8], bi
     assert_eq!(&echo[..], text, "server must echo FIN=1 text over TLS");
 
     client
-        .write_all(&encode_ws_data_frame(0x82, binary, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_ws_data_frame(
+            0x82,
+            binary,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write binary");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
@@ -681,7 +680,10 @@ fn http_serve_https_upgrade_terminate_accept_rsv_text_close_1002() {
         start_https_terminate_serve(serve_port, &cert_path, &key_path);
 
     let (mut client, head_text) = handshake_https_terminate(serve_port, &cert_path, RFC_KEY);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     // FIN|RSV1|text (0xC1)
     client
@@ -721,7 +723,10 @@ fn http_serve_https_upgrade_terminate_accept_text_binary_ping_and_close() {
         start_https_terminate_serve(serve_port, &cert_path, &key_path);
 
     let (mut client, head_text) = handshake_https_terminate(serve_port, &cert_path, RFC_KEY);
-    assert!(head_text.contains("101") && head_text.contains(RFC_ACCEPT), "{head_text}");
+    assert!(
+        head_text.contains("101") && head_text.contains(RFC_ACCEPT),
+        "{head_text}"
+    );
 
     echo_fin1_text_binary_ping_then_close(
         &mut client,
@@ -902,7 +907,9 @@ fn run_https_terminate_protocol_close_nail(tag: &str, bad_frame: &[u8]) {
         "{head_text}"
     );
 
-    client.write_all(bad_frame).expect("write protocol-bad frame");
+    client
+        .write_all(bad_frame)
+        .expect("write protocol-bad frame");
     client.flush().ok();
     assert_tls_protocol_close_1002(&mut client);
 
@@ -1155,7 +1162,11 @@ fn echo_n3_text_binary_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=3 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=3 fragmented text over TLS"
+    );
 
     let (b1, b2, b3) = split_three(binary);
     client
@@ -1169,7 +1180,11 @@ fn echo_n3_text_binary_ping_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=3 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=3 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1209,7 +1224,11 @@ fn echo_n4_text_binary_ping_then_close_status_reason(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text over TLS"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
@@ -1226,7 +1245,11 @@ fn echo_n4_text_binary_ping_then_close_status_reason(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1264,7 +1287,11 @@ fn echo_n4_text_mid_final_ping_n4_binary_then_close(
         .write_all(&encode_ws_data_frame(0x00, t2, [0xca, 0xfe, 0xba, 0xbe]))
         .expect("write text cont1");
     client
-        .write_all(&encode_ws_data_frame(0x89, mid_final_ping, [0xfe, 0xed, 0xfa, 0xce]))
+        .write_all(&encode_ws_data_frame(
+            0x89,
+            mid_final_ping,
+            [0xfe, 0xed, 0xfa, 0xce],
+        ))
         .expect("write mid↔final ping");
     client.flush().ok();
     let pong = decode_ws_server_frame(client, 0xA);
@@ -1302,7 +1329,11 @@ fn echo_n4_text_mid_final_ping_n4_binary_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1318,10 +1349,7 @@ fn echo_n4_text_mid_final_ping_n4_binary_then_close(
     let _ = read_ws_server_close_payload(client);
 }
 
-fn run_https_terminate_positive_lifecycle_nail(
-    tag: &str,
-    body: impl FnOnce(&mut TlsClient),
-) {
+fn run_https_terminate_positive_lifecycle_nail(tag: &str, body: impl FnOnce(&mut TlsClient)) {
     let _serial = tls_test_lock();
     let serve_port = free_port();
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1425,7 +1453,11 @@ fn echo_n3_optional_mid_pings_then_close(
         .expect("write text frag1");
     if let Some(mid_ping) = text_mid_ping {
         client
-            .write_all(&encode_ws_data_frame(0x89, mid_ping, [0xfe, 0xed, 0xfa, 0xce]))
+            .write_all(&encode_ws_data_frame(
+                0x89,
+                mid_ping,
+                [0xfe, 0xed, 0xfa, 0xce],
+            ))
             .expect("write text mid-frag ping");
         client.flush().ok();
         let pong = decode_ws_server_frame(client, 0xA);
@@ -1443,7 +1475,11 @@ fn echo_n3_optional_mid_pings_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=3 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=3 fragmented text over TLS"
+    );
 
     let (b1, b2, b3) = split_three(binary);
     client
@@ -1451,7 +1487,11 @@ fn echo_n3_optional_mid_pings_then_close(
         .expect("write binary frag1");
     if let Some(mid_ping) = binary_mid_ping {
         client
-            .write_all(&encode_ws_data_frame(0x89, mid_ping, [0xbe, 0xef, 0xca, 0xfe]))
+            .write_all(&encode_ws_data_frame(
+                0x89,
+                mid_ping,
+                [0xbe, 0xef, 0xca, 0xfe],
+            ))
             .expect("write binary mid-frag ping");
         client.flush().ok();
         let pong = decode_ws_server_frame(client, 0xA);
@@ -1469,7 +1509,11 @@ fn echo_n3_optional_mid_pings_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=3 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=3 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1507,7 +1551,11 @@ fn echo_n4_text_n3_binary_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text over TLS"
+    );
 
     let (b1, b2, b3) = split_three(binary);
     client
@@ -1521,7 +1569,11 @@ fn echo_n4_text_n3_binary_ping_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=3 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=3 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1559,7 +1611,11 @@ fn echo_n4_text_n4_binary_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text over TLS"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
@@ -1576,7 +1632,11 @@ fn echo_n4_text_n4_binary_ping_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1637,7 +1697,8 @@ fn http_serve_https_upgrade_terminate_accept_multi_continuation_n4_text_ping_and
 
 /// W1221 / ADR-1567: HTTPS upgradeTerminate multi-continuation N=4 text+binary (slice 90).
 #[test]
-fn http_serve_https_upgrade_terminate_accept_multi_continuation_n4_text_and_binary_ping_and_close() {
+fn http_serve_https_upgrade_terminate_accept_multi_continuation_n4_text_and_binary_ping_and_close()
+{
     run_https_terminate_positive_lifecycle_nail("n4textbin", |client| {
         echo_n4_text_n4_binary_ping_then_close(
             client,
@@ -1690,7 +1751,11 @@ fn echo_n4_text_n4_binary_mid_final_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=4 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=4 fragmented text over TLS"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
@@ -1700,7 +1765,11 @@ fn echo_n4_text_n4_binary_mid_final_ping_then_close(
         .write_all(&encode_ws_data_frame(0x00, b2, [0x55, 0x66, 0x77, 0x88]))
         .expect("write binary cont1");
     client
-        .write_all(&encode_ws_data_frame(0x89, mid_final_ping, [0xbe, 0xef, 0xca, 0xfe]))
+        .write_all(&encode_ws_data_frame(
+            0x89,
+            mid_final_ping,
+            [0xbe, 0xef, 0xca, 0xfe],
+        ))
         .expect("write binary mid↔final ping");
     client.flush().ok();
     let pong = decode_ws_server_frame(client, 0xA);
@@ -1762,7 +1831,11 @@ fn echo_n5_text_n4_binary_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=5 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=5 fragmented text over TLS"
+    );
 
     let (b1, b2, b3, b4) = split_four(binary);
     client
@@ -1779,7 +1852,11 @@ fn echo_n5_text_n4_binary_ping_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=4 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=4 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1820,7 +1897,11 @@ fn echo_n5_text_n5_binary_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble N=5 fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble N=5 fragmented text over TLS"
+    );
 
     let (b1, b2, b3, b4, b5) = split_five(binary);
     client
@@ -1840,7 +1921,11 @@ fn echo_n5_text_n5_binary_ping_then_close(
         .expect("write binary end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
-    assert_eq!(&echo[..], binary, "server must reassemble N=5 fragmented binary over TLS");
+    assert_eq!(
+        &echo[..],
+        binary,
+        "server must reassemble N=5 fragmented binary over TLS"
+    );
 
     client
         .write_all(&encode_ws_data_frame(0x89, ping, [0x01, 0x02, 0x03, 0x04]))
@@ -1875,10 +1960,18 @@ fn echo_fragmented_text_fin1_binary_ping_then_close(
         .expect("write text end cont");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x1);
-    assert_eq!(&echo[..], text, "server must reassemble fragmented text over TLS");
+    assert_eq!(
+        &echo[..],
+        text,
+        "server must reassemble fragmented text over TLS"
+    );
 
     client
-        .write_all(&encode_ws_data_frame(0x82, binary, [0xaa, 0xbb, 0xcc, 0xdd]))
+        .write_all(&encode_ws_data_frame(
+            0x82,
+            binary,
+            [0xaa, 0xbb, 0xcc, 0xdd],
+        ))
         .expect("write FIN=1 binary");
     client.flush().ok();
     let echo = decode_ws_server_frame(client, 0x2);
@@ -1927,7 +2020,8 @@ fn http_serve_https_upgrade_terminate_accept_multi_continuation_n5_text_ping_and
 
 /// W1222 / ADR-1568: HTTPS upgradeTerminate multi-continuation N=5 text+binary (slice 93).
 #[test]
-fn http_serve_https_upgrade_terminate_accept_multi_continuation_n5_text_and_binary_ping_and_close() {
+fn http_serve_https_upgrade_terminate_accept_multi_continuation_n5_text_and_binary_ping_and_close()
+{
     run_https_terminate_positive_lifecycle_nail("n5textbin", |client| {
         echo_n5_text_n5_binary_ping_then_close(
             client,

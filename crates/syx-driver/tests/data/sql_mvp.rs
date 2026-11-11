@@ -12,20 +12,18 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_sql_mvp_create_insert_select_stdout() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_sql_exec("CREATE TABLE t (id INT, name TEXT)")
     __syx_sql_exec("INSERT INTO t VALUES (1, 'a')")
     let rows = __syx_sql_query("SELECT * FROM t")
     print(rows.len())
-}"#,
-    );
+}"#);
     assert!(out.contains("1"), "{out}");
 }
 
 #[test]
 fn p98_sql_mvp_fixture_exists() {
-    let p = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/data/sql_mvp.sy");
+    let p =
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/data/sql_mvp.sy");
     assert!(p.is_file());
 }

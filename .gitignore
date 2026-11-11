@@ -46,7 +46,7 @@ tools/sgate/.tmp_*/
 .kiro/
 plan/
 
-# plan-001 Phase 6b: qs1 ledger overlaid from private inventory/
-crates/syx-driver/src/qs1_ledger.rs
+# plan-001 Phase 6b: qs1 ledger — public stub is tracked; private sibling may
+# overlay a fuller body before qs1 CI. (R-37: stub required for cargo fmt resolve.)
 
 .DS_Store

@@ -6,8 +6,15 @@ use smol_str::SmolStr;
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum MirOp {
     ConstI32(i32),
-    ConstNumeric { kind: u8, bits: u64 },
-    ConstNumeric128 { kind: u8, lo: u64, hi: u64 },
+    ConstNumeric {
+        kind: u8,
+        bits: u64,
+    },
+    ConstNumeric128 {
+        kind: u8,
+        lo: u64,
+        hi: u64,
+    },
     ConstStr(String),
     ConstBool(bool),
     ConstNil,
@@ -16,7 +23,9 @@ pub enum MirOp {
     LoadGlobal(u32),
     StoreGlobal(u32),
     /// Scalar arithmetic; `kind` is [`NumericKind`] byte from `widen_for_binary`.
-    Add { kind: u8 },
+    Add {
+        kind: u8,
+    },
     SimdAdd,
     SimdSub,
     SimdMul,
@@ -120,34 +129,77 @@ pub enum MirOp {
     /// Phase 127: lane-wise `i8x16` signed saturating sub guest pilot.
     SimdI8SubSat,
     /// Phase 128: fixed-mode `i8x16` shuffle MVP (mode 0=reverse, 1=swap pairs).
-    SimdI8Shuffle { mode: i32 },
+    SimdI8Shuffle {
+        mode: i32,
+    },
     /// Phase 117: lane-wise `i64x2` add guest pilot.
     SimdI64Add,
     /// Phase 115: guest horizontal reduceAdd (extract lanes + add).
-    SimdReduceAdd { lanes: u8, element: u8 },
-    SimdLoad { lanes: u8, element: u8 },
-    SimdStore { lanes: u8, element: u8 },
-    SimdShuffle { mode: i32 },
-    Sub { kind: u8 },
-    Mul { kind: u8 },
-    Div { kind: u8 },
-    Mod { kind: u8 },
-    BitAnd { kind: u8 },
-    BitOr { kind: u8 },
-    BitXor { kind: u8 },
-    Shl { kind: u8 },
-    Shr { kind: u8 },
+    SimdReduceAdd {
+        lanes: u8,
+        element: u8,
+    },
+    SimdLoad {
+        lanes: u8,
+        element: u8,
+    },
+    SimdStore {
+        lanes: u8,
+        element: u8,
+    },
+    SimdShuffle {
+        mode: i32,
+    },
+    Sub {
+        kind: u8,
+    },
+    Mul {
+        kind: u8,
+    },
+    Div {
+        kind: u8,
+    },
+    Mod {
+        kind: u8,
+    },
+    BitAnd {
+        kind: u8,
+    },
+    BitOr {
+        kind: u8,
+    },
+    BitXor {
+        kind: u8,
+    },
+    Shl {
+        kind: u8,
+    },
+    Shr {
+        kind: u8,
+    },
     Eq,
     Ne,
-    Lt { kind: u8 },
-    Le { kind: u8 },
-    Gt { kind: u8 },
-    Ge { kind: u8 },
+    Lt {
+        kind: u8,
+    },
+    Le {
+        kind: u8,
+    },
+    Gt {
+        kind: u8,
+    },
+    Ge {
+        kind: u8,
+    },
     And,
     Or,
     Not,
-    Neg { kind: u8 },
-    BitNot { kind: u8 },
+    Neg {
+        kind: u8,
+    },
+    BitNot {
+        kind: u8,
+    },
     Print,
     Pop,
     ConcatStr,
@@ -171,7 +223,10 @@ pub enum MirOp {
     MakeIterator,
     IteratorNext,
     AwaitPoll,
-    AwaitSuspend { resume_fn: u32, state: u32 },
+    AwaitSuspend {
+        resume_fn: u32,
+        state: u32,
+    },
     ActorSend(SmolStr),
     DictBuild(u32),
     ArrayBuild(u32),
@@ -203,7 +258,10 @@ pub enum MirOp {
     /// Phase 68: homogeneous array sort via Comparable witness compare loop.
     ArrSorted,
     /// Integer narrowing / numeric conversion (`Int` → `Int8`, etc.).
-    NumericCast { from: u8, to: u8 },
+    NumericCast {
+        from: u8,
+        to: u8,
+    },
 }
 
 /// Suite-1 / EC-M1-3 pilot MirOps (arith, branch, call, string). Must not silently no-op.

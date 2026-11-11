@@ -54,7 +54,6 @@ fn facade_src(body: &str) -> String {
     format!("{}\n{body}", semaphore_facade())
 }
 
-
 #[test]
 fn m3_c02_semaphore_raii_forget_signal_scope_exit() {
     // create(0) → signal once → waitGuard in helper (no explicit signal) → tryWait succeeds.
@@ -74,10 +73,7 @@ func main() {
 }
 "#,
     ));
-    assert!(
-        out.contains("HELD"),
-        "waitGuard path must run: {out}"
-    );
+    assert!(out.contains("HELD"), "waitGuard path must run: {out}");
     assert!(
         out.lines().any(|l| l == "true"),
         "tryWait after forget-signal scope exit must succeed: {out}"
@@ -86,17 +82,14 @@ func main() {
 
 #[test]
 fn m3_c02_semaphore_raii_quiet_signal_unknown_ok() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   print(__syx_semaphore_signal_quiet(0 - 1))
   print(__syx_semaphore_signal_quiet(999999))
 }
-"#,
-    );
+"#);
     assert!(
         out.contains("true"),
         "quiet signal must silently succeed: {out}"
     );
 }
-

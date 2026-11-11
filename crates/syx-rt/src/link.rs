@@ -209,9 +209,7 @@ pub fn resolve_sdk_sysroot() -> Option<PathBuf> {
     }
     let exe = std::env::current_exe().ok()?;
     let bin_dir = exe.parent()?;
-    let candidate = bin_dir
-        .join("../lib/sysroot")
-        .join(host_link_triple());
+    let candidate = bin_dir.join("../lib/sysroot").join(host_link_triple());
     if candidate.is_dir() {
         return Some(candidate.canonicalize().unwrap_or(candidate));
     }
@@ -256,7 +254,9 @@ pub fn native_sdk_layout_report() -> NativeSdkLayoutReport {
     let mut notes = Vec::new();
     let rt = rt_archive_path().ok();
     if rt.is_none() {
-        notes.push("libsyx_rt / syx_rt.lib not found (set SYX_RT_STATIC_LIB or install SDK lib/)".into());
+        notes.push(
+            "libsyx_rt / syx_rt.lib not found (set SYX_RT_STATIC_LIB or install SDK lib/)".into(),
+        );
     }
     let sysroot = resolve_sdk_sysroot();
     let sysroot_ok = sysroot.as_ref().is_some_and(|p| sysroot_looks_usable(p));
@@ -306,7 +306,9 @@ pub fn coff_undefined_externals(bytes: &[u8]) -> Vec<String> {
     }
     let ptr_sym = u32::from_le_bytes(bytes[8..12].try_into().unwrap()) as usize;
     let num_sym = u32::from_le_bytes(bytes[12..16].try_into().unwrap()) as usize;
-    if ptr_sym == 0 || num_sym == 0 || ptr_sym.saturating_add(num_sym.saturating_mul(18)) > bytes.len()
+    if ptr_sym == 0
+        || num_sym == 0
+        || ptr_sym.saturating_add(num_sym.saturating_mul(18)) > bytes.len()
     {
         return Vec::new();
     }
@@ -331,7 +333,8 @@ pub fn coff_undefined_externals(bytes: &[u8]) -> Vec<String> {
                     .unwrap_or(8);
                 String::from_utf8_lossy(&bytes[off..off + end]).into_owned()
             } else {
-                let str_off = u32::from_le_bytes(bytes[off + 4..off + 8].try_into().unwrap()) as usize;
+                let str_off =
+                    u32::from_le_bytes(bytes[off + 4..off + 8].try_into().unwrap()) as usize;
                 let abs = string_table_off.saturating_add(str_off);
                 if abs < bytes.len() {
                     let end = bytes[abs..]
@@ -769,12 +772,13 @@ fn windows_atexit_stub_object() -> io::Result<&'static Path> {
     let obj_path = dir.join("windows_atexit_stub.obj");
     const SRC: &str = include_str!("windows_atexit_stub.c");
     std::fs::write(&c_path, SRC)?;
-    let tool = cc::windows_registry::find_tool(&windows_host_msvc_triple(), "cl.exe")
-        .ok_or_else(|| {
+    let tool = cc::windows_registry::find_tool(&windows_host_msvc_triple(), "cl.exe").ok_or_else(
+        || {
             io::Error::other(
                 "native link: MSVC cl.exe not found (needed to build atexit stub for Windows)",
             )
-        })?;
+        },
+    )?;
     let mut cmd = Command::new(tool.path());
     for (k, v) in tool.env() {
         cmd.env(k, v);
@@ -1441,7 +1445,9 @@ mod tests {
             .map(|a| a.to_string_lossy().into_owned())
             .collect();
         assert!(
-            !flat.windows(2).any(|w| w[0] == "-e" && w[1] == "syx_rt_start"),
+            !flat
+                .windows(2)
+                .any(|w| w[0] == "-e" && w[1] == "syx_rt_start"),
             "Linux must not use -e syx_rt_start (skips CRT): {flat:?}"
         );
         assert!(
@@ -1494,9 +1500,6 @@ mod tests {
         let got = resolve_feature_profile_under_lib(&lib, "async-only").expect("id dir");
         assert_eq!(got, archive);
     }
-
-
-
 
     #[test]
     fn sysroot_env_override_and_usable_marker() {

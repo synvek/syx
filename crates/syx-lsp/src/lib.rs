@@ -6,12 +6,11 @@ use std::path::PathBuf;
 
 use serde_json::{json, Value};
 use syx_driver::{
-    analyze_document_for_lsp, find_references_in_module,
-    find_references_in_project, go_to_type_for_symbol, import_module_suggestions,
-    patch_source_for_completion_semantic,
-    interpolation_identifier_context, receiver_for_completion, receiver_type_at_position, span_to_lsp_range,
-    lsp_position_to_byte_offset, stdlib_export_signature, workspace_symbols_for_project,
-    DriverOptions,
+    analyze_document_for_lsp, find_references_in_module, find_references_in_project,
+    go_to_type_for_symbol, import_module_suggestions, interpolation_identifier_context,
+    lsp_position_to_byte_offset, patch_source_for_completion_semantic, receiver_for_completion,
+    receiver_type_at_position, span_to_lsp_range, stdlib_export_signature,
+    workspace_symbols_for_project, DriverOptions,
 };
 use syx_semantic::{type_id_to_name, TypeId};
 use syx_stdlib::{
@@ -21,9 +20,9 @@ use syx_stdlib::{
 };
 
 #[cfg(test)]
-mod tests_workspace;
-#[cfg(test)]
 mod tests_document_sync;
+#[cfg(test)]
+mod tests_workspace;
 
 /// ADR-141: workspace roots from `initialize` (not hardcoded fixtures).
 #[derive(Debug, Default, Clone)]
@@ -87,10 +86,7 @@ pub fn apply_document_notification(
         if !should_accept_version(stored, incoming) {
             return None;
         }
-        let current = documents
-            .get(&uri)
-            .map(|d| d.text.as_str())
-            .unwrap_or("");
+        let current = documents.get(&uri).map(|d| d.text.as_str()).unwrap_or("");
         let text = apply_incremental_change(current, params);
         documents.insert(
             uri.clone(),
@@ -318,10 +314,7 @@ pub fn run_stdio() -> io::Result<()> {
             continue;
         }
 
-        let method = message
-            .get("method")
-            .and_then(|m| m.as_str())
-            .unwrap_or("");
+        let method = message.get("method").and_then(|m| m.as_str()).unwrap_or("");
         let result = match method {
             "initialize" => {
                 workspace.roots = parse_initialize_workspace_roots(message.get("params"));
@@ -646,11 +639,7 @@ fn publish_diagnostics(
 
 /// Re-analyze a document after `didChange`, clearing any prior diagnostics for `uri`.
 /// Uses query v3 parse/semantic layers and decl subgraph invalidation when path is known.
-pub fn semantic_recheck_after_change(
-    uri: &str,
-    text: &str,
-    options: &DriverOptions,
-) -> Vec<Value> {
+pub fn semantic_recheck_after_change(uri: &str, text: &str, options: &DriverOptions) -> Vec<Value> {
     let path = uri_to_path(uri);
     if let Some(ref p) = path {
         syx_driver::query::on_source_changed(p, text);
@@ -683,7 +672,10 @@ fn semantic_recheck_diagnostics(
         .collect()
 }
 
-fn diagnostic_to_lsp(source: &syx_diagnostics::SourceFile, d: &syx_diagnostics::SyxDiagnostic) -> Value {
+fn diagnostic_to_lsp(
+    source: &syx_diagnostics::SourceFile,
+    d: &syx_diagnostics::SyxDiagnostic,
+) -> Value {
     let range = if let Some(ps) = &d.primary_span {
         let start = ps.offset();
         let len = ps.len();
@@ -722,12 +714,25 @@ fn apply_incremental_change(current: &str, params: &Value) -> String {
             .unwrap_or(current)
             .to_string();
     }
-    let start_line = change.pointer("/range/start/line").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-    let start_char = change.pointer("/range/start/character").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-    let end_line = change.pointer("/range/end/line").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-    let end_char = change.pointer("/range/end/character").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+    let start_line = change
+        .pointer("/range/start/line")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
+    let start_char = change
+        .pointer("/range/start/character")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
+    let end_line = change
+        .pointer("/range/end/line")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
+    let end_char = change
+        .pointer("/range/end/character")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as usize;
     let insert = change.get("text").and_then(|t| t.as_str()).unwrap_or("");
-    let (start_off, end_off) = lsp_range_to_byte_offsets(current, start_line, start_char, end_line, end_char);
+    let (start_off, end_off) =
+        lsp_range_to_byte_offsets(current, start_line, start_char, end_line, end_char);
     let mut out = String::new();
     out.push_str(&current[..start_off.min(current.len())]);
     out.push_str(insert);
@@ -812,7 +817,11 @@ fn member_access_context(line: &str, character: usize) -> Option<(String, String
     Some((object, partial))
 }
 
-fn lsp_location_json(uri: &str, source: &syx_diagnostics::SourceFile, span: syx_diagnostics::Span) -> Value {
+fn lsp_location_json(
+    uri: &str,
+    source: &syx_diagnostics::SourceFile,
+    span: syx_diagnostics::Span,
+) -> Value {
     let ((sl, sc), (el, ec)) = span_to_lsp_range(source, span);
     json!({
         "uri": uri,
@@ -954,8 +963,7 @@ fn hover_for_position(
         .is_none_or(|ty| matches!(ty, TypeId::Unknown))
     {
         // `Int.min` — resolve member type from receiver + field name.
-        if let Some((object_str, _)) = syx_driver::member_access_context_text(line_text, byte_col)
-        {
+        if let Some((object_str, _)) = syx_driver::member_access_context_text(line_text, byte_col) {
             if let Some(recv) = syx_driver::parse_receiver_expr(&object_str) {
                 let recv_ty = syx_driver::receiver_type_at_position(
                     &doc.semantic,
@@ -1071,7 +1079,11 @@ fn definition_for_position(
     let def = if let Some((object, partial)) =
         syx_driver::member_access_context_text(line_text, byte_col)
     {
-        let member = if partial.is_empty() { word.as_str() } else { partial.as_str() };
+        let member = if partial.is_empty() {
+            word.as_str()
+        } else {
+            partial.as_str()
+        };
         syx_driver::definition_for_qualified_symbol(
             uri,
             path.as_deref(),
@@ -1080,9 +1092,7 @@ fn definition_for_position(
             member,
             options,
         )
-        .or_else(|| {
-            syx_driver::definition_for_symbol(uri, path.as_deref(), &doc, member, options)
-        })
+        .or_else(|| syx_driver::definition_for_symbol(uri, path.as_deref(), &doc, member, options))
     } else {
         syx_driver::definition_for_symbol(uri, path.as_deref(), &doc, &word, options)
     };
@@ -1121,8 +1131,7 @@ fn type_definition_for_position(
     }
     let path = uri_to_path(uri);
     let doc = analyze_document_for_lsp(path.as_deref(), text, options);
-    let Some((def_uri, span)) =
-        go_to_type_for_symbol(uri, path.as_deref(), &doc, &word, options)
+    let Some((def_uri, span)) = go_to_type_for_symbol(uri, path.as_deref(), &doc, &word, options)
     else {
         return Value::Null;
     };
@@ -1298,7 +1307,13 @@ fn push_member_completions(
             } else {
                 CIK_METHOD
             };
-            let prefix = if is_module { "1_" } else if is_property { "0p_" } else { "0_" };
+            let prefix = if is_module {
+                "1_"
+            } else if is_property {
+                "0p_"
+            } else {
+                "0_"
+            };
             let insert = if is_module {
                 None
             } else if is_property {
@@ -1410,13 +1425,8 @@ fn completion_for_document(
         receiver_for_completion(text, &doc.source, &doc.module, line, character as u32);
 
     if let Some((receiver, partial)) = member_ctx {
-        let obj_ty = receiver_type_at_position(
-            &doc.semantic,
-            &receiver,
-            text,
-            line,
-            character as u32,
-        );
+        let obj_ty =
+            receiver_type_at_position(&doc.semantic, &receiver, text, line, character as u32);
         let is_module = matches!(obj_ty, syx_semantic::TypeId::Named(ref n)
             if doc.semantic.import_exports.contains_key(n));
         push_member_completions(
@@ -1468,8 +1478,7 @@ fn completion_for_document(
 
     let lines: Vec<&str> = text.lines().collect();
     if let Some(current) = lines.get(line) {
-        let byte_col =
-            syx_driver::lsp_character_to_byte(current, character as u32);
+        let byte_col = syx_driver::lsp_character_to_byte(current, character as u32);
 
         if let Some(partial) = import_module_partial(current, byte_col) {
             let root = path.as_deref().and_then(|p| p.parent());
@@ -1556,7 +1565,8 @@ fn completion_for_document(
 
     if items.is_empty() {
         for label in [
-            "print", "readLine", "HTTP", "IO", "Math", "URL", "Env", "Path", "Time", "import", "func",
+            "print", "readLine", "HTTP", "IO", "Math", "URL", "Env", "Path", "Time", "import",
+            "func",
         ] {
             push_completion_item(
                 &mut items,
@@ -1642,7 +1652,11 @@ fn find_function_signature(source: &str, name: &str) -> Option<String> {
 }
 
 fn signature_parameters(signature: &str) -> Vec<String> {
-    let Some(inner) = signature.split('(').nth(1).and_then(|s| s.strip_suffix(')')) else {
+    let Some(inner) = signature
+        .split('(')
+        .nth(1)
+        .and_then(|s| s.strip_suffix(')'))
+    else {
         return Vec::new();
     };
     if inner.trim().is_empty() {
@@ -1696,7 +1710,11 @@ fn prepare_rename_for_position(
     _options: &DriverOptions,
 ) -> Value {
     let word = word_at(text, line, character);
-    if word.is_empty() || !word.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+    if word.is_empty()
+        || !word
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
     {
         return Value::Null;
     }
@@ -1858,7 +1876,10 @@ fn is_generic_type_param_at(text: &str, line: usize, character: usize, word: &st
     let Some(line_text) = text.lines().nth(line) else {
         return false;
     };
-    if !generic_type_param_names_on_line(line_text).iter().any(|p| p == word) {
+    if !generic_type_param_names_on_line(line_text)
+        .iter()
+        .any(|p| p == word)
+    {
         return false;
     }
     let ch = line_text
@@ -2020,7 +2041,12 @@ fn highlight_keywords(line: &str, _line_idx: usize, spans: &mut Vec<(usize, usiz
             spans.push((0, end, ST_DECORATOR, 0));
         }
     }
-    for (op, kind) in [("+", ST_OPERATOR), ("-", ST_OPERATOR), ("*", ST_OPERATOR), ("=", ST_OPERATOR)] {
+    for (op, kind) in [
+        ("+", ST_OPERATOR),
+        ("-", ST_OPERATOR),
+        ("*", ST_OPERATOR),
+        ("=", ST_OPERATOR),
+    ] {
         let mut start = 0;
         while let Some(rel) = line[start..].find(op) {
             let pos = start + rel;
@@ -2029,7 +2055,11 @@ fn highlight_keywords(line: &str, _line_idx: usize, spans: &mut Vec<(usize, usiz
         }
     }
     if line.trim_start().starts_with("import ") {
-        let rest = line.trim_start().strip_prefix("import ").unwrap_or("").trim();
+        let rest = line
+            .trim_start()
+            .strip_prefix("import ")
+            .unwrap_or("")
+            .trim();
         let module = rest.split_whitespace().next().unwrap_or("");
         if !module.is_empty() {
             if let Some(pos) = line.find(module) {
@@ -2164,7 +2194,8 @@ fn highlight_interpolation_identifiers(line: &str, spans: &mut Vec<(usize, usize
             if inner.as_bytes()[pos].is_ascii_alphabetic() || inner.as_bytes()[pos] == b'_' {
                 let start = pos;
                 while pos < inner.len()
-                    && (inner.as_bytes()[pos].is_ascii_alphanumeric() || inner.as_bytes()[pos] == b'_')
+                    && (inner.as_bytes()[pos].is_ascii_alphanumeric()
+                        || inner.as_bytes()[pos] == b'_')
                 {
                     pos += 1;
                 }
@@ -2177,11 +2208,7 @@ fn highlight_interpolation_identifiers(line: &str, spans: &mut Vec<(usize, usize
     }
 }
 
-pub fn semantic_tokens_for_document(
-    uri: &str,
-    text: &str,
-    options: &DriverOptions,
-) -> Value {
+pub fn semantic_tokens_for_document(uri: &str, text: &str, options: &DriverOptions) -> Value {
     let path = uri.strip_prefix("file://").map(std::path::Path::new);
     let doc = analyze_document_for_lsp(path, text, options);
     let mut data = Vec::new();
@@ -2209,7 +2236,8 @@ pub fn semantic_tokens_for_document(
             if let Some(close) = params.find(')') {
                 for part in params[..close].split(',') {
                     let name = part.split(':').next().unwrap_or("").trim();
-                    if !name.is_empty() && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+                    if !name.is_empty()
+                        && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
                     {
                         if let Some(pos) = line.find(name) {
                             spans.push((pos, name.len(), ST_PARAMETER, 0));
@@ -2244,7 +2272,13 @@ pub fn semantic_tokens_for_document(
         }
     }
     if doc.macro_expanded {
-        overlay_macro_expanded_semantic_tokens(&doc, text, &mut data, &mut prev_line, &mut prev_char);
+        overlay_macro_expanded_semantic_tokens(
+            &doc,
+            text,
+            &mut data,
+            &mut prev_line,
+            &mut prev_char,
+        );
     }
     json!({ "data": data })
 }
@@ -2292,7 +2326,10 @@ fn overlay_macro_expanded_semantic_tokens(
 }
 
 /// Phase 16 LSP v8: resolve module path for a single-candidate export.
-fn resolve_import_line_for_symbol(semantic: &syx_semantic::SemanticAnalyzer, symbol: &str) -> String {
+fn resolve_import_line_for_symbol(
+    semantic: &syx_semantic::SemanticAnalyzer,
+    symbol: &str,
+) -> String {
     let mut candidates: Vec<_> = semantic
         .import_exports
         .iter()
@@ -2308,21 +2345,14 @@ fn resolve_import_line_for_symbol(semantic: &syx_semantic::SemanticAnalyzer, sym
     }
 }
 
-pub fn code_actions_for_document(
-    uri: &str,
-    text: &str,
-    options: &DriverOptions,
-) -> Value {
+pub fn code_actions_for_document(uri: &str, text: &str, options: &DriverOptions) -> Value {
     let path = uri.strip_prefix("file://").map(std::path::Path::new);
     let doc = analyze_document_for_lsp(path, text, options);
     let mut actions = Vec::new();
     for diag in &doc.semantic.errors {
         let code = diag.code.as_deref().unwrap_or("");
         let range = diag.primary_span.map(|span| {
-            let syx_span = syx_diagnostics::Span::new(
-                usize::from(span.offset()),
-                span.len(),
-            );
+            let syx_span = syx_diagnostics::Span::new(usize::from(span.offset()), span.len());
             let ((sl, sc), (el, ec)) = span_to_lsp_range(&doc.source, syx_span);
             json!({
                 "start": { "line": sl, "character": sc },
@@ -2342,11 +2372,7 @@ pub fn code_actions_for_document(
             }));
         }
         if code == "S002" && diag.message.contains("Undefined") {
-            let symbol = diag
-                .message
-                .split('\'')
-                .nth(1)
-                .unwrap_or("Module");
+            let symbol = diag.message.split('\'').nth(1).unwrap_or("Module");
             let import_line = resolve_import_line_for_symbol(&doc.semantic, symbol);
             let import_edit = json!({
                 uri: [{
@@ -2761,7 +2787,11 @@ fn stable_federated_session_id(path: &str, source: &str, workspace_roots: &[&str
 }
 
 /// Phase 35 FN3 / Phase 34 FI3: federated multi-region actor routing with DAP session persistence v6/v5.
-pub fn actor_routes_federated_for_source(source: &str, path: &str, workspace_roots: &[&str]) -> Value {
+pub fn actor_routes_federated_for_source(
+    source: &str,
+    path: &str,
+    workspace_roots: &[&str],
+) -> Value {
     let session_id = stable_federated_session_id(path, source, workspace_roots);
     let persistence = if path.contains("p35")
         || source.contains("registry-crdt")
@@ -2773,11 +2803,15 @@ pub fn actor_routes_federated_for_source(source: &str, path: &str, workspace_roo
     };
     let phase = if persistence == "v6" { 35 } else { 34 };
     let multi_repo = workspace_roots.len() >= 2;
-    let org_keys: std::collections::HashSet<String> =
-        workspace_roots.iter().map(|r| workspace_org_key(r)).collect();
+    let org_keys: std::collections::HashSet<String> = workspace_roots
+        .iter()
+        .map(|r| workspace_org_key(r))
+        .collect();
     let multi_org = org_keys.len() >= 2;
-    let region_keys: std::collections::HashSet<String> =
-        workspace_roots.iter().map(|r| workspace_region_key(r)).collect();
+    let region_keys: std::collections::HashSet<String> = workspace_roots
+        .iter()
+        .map(|r| workspace_region_key(r))
+        .collect();
     let multi_region = region_keys.len() >= 2;
     let mut out = actor_routes_multiprocess_for_source(source, path);
     if let Some(obj) = out.as_object_mut() {
@@ -2922,16 +2956,18 @@ pub fn actor_routes_edge_for_breakpoint(source: &str, path: &str, line: usize) -
     graph["edges"]
         .as_array()?
         .iter()
-        .find(|e| e["line"].as_u64().map(|l| l as usize == line).unwrap_or(false))
+        .find(|e| {
+            e["line"]
+                .as_u64()
+                .map(|l| l as usize == line)
+                .unwrap_or(false)
+        })
         .cloned()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-
-
 
     #[test]
     fn completion_includes_semantic_locals() {
@@ -2954,7 +2990,13 @@ mod tests {
         let text = "async func main() {\n  let name: String = \"SYX\"\n  print(\"Hello, \\(na\n}";
         let line = text.lines().nth(2).unwrap();
         let character = line.len() as usize;
-        let comp = completion_for_document("file:///t.sy", text, 2, character, &DriverOptions::default());
+        let comp = completion_for_document(
+            "file:///t.sy",
+            text,
+            2,
+            character,
+            &DriverOptions::default(),
+        );
         let labels = completion_labels(&comp);
         assert!(labels.contains(&"name".to_string()), "labels: {labels:?}");
     }
@@ -3108,13 +3150,16 @@ mod tests {
         let text = "import Ne\nimport Net\nfunc main() {}";
         let comp = completion_for_document("file:///t.sy", text, 0, 9, &DriverOptions::default());
         let labels = completion_labels(&comp);
+        assert!(labels.contains(&"Net".to_string()), "labels: {labels:?}");
         assert!(
-            labels.contains(&"Net".to_string()),
+            !labels.iter().any(|l| l.starts_with("__syx_")),
             "labels: {labels:?}"
         );
-        assert!(!labels.iter().any(|l| l.starts_with("__syx_")), "labels: {labels:?}");
         assert!(!labels.contains(&"Math".to_string()), "labels: {labels:?}");
-        assert!(!labels.contains(&"Collections".to_string()), "labels: {labels:?}");
+        assert!(
+            !labels.contains(&"Collections".to_string()),
+            "labels: {labels:?}"
+        );
     }
 
     #[test]
@@ -3140,7 +3185,10 @@ mod tests {
         let uri = format!("file://{}", main.display());
         let comp = completion_for_document(&uri, &text, nums_idx + 1, 8, &DriverOptions::default());
         let labels = completion_labels(&comp);
-        assert!(labels.contains(&"map".to_string()), "nums labels: {labels:?}");
+        assert!(
+            labels.contains(&"map".to_string()),
+            "nums labels: {labels:?}"
+        );
 
         let text_orig = std::fs::read_to_string(&main).unwrap();
         let idx = text_orig
@@ -3168,11 +3216,14 @@ mod tests {
             .expect("let name line");
         name_lines.insert(name_idx + 1, "    name.".to_string());
         let text2 = name_lines.join("\n");
-        let comp2 = completion_for_document(&uri, &text2, name_idx + 1, 9, &DriverOptions::default());
+        let comp2 =
+            completion_for_document(&uri, &text2, name_idx + 1, 9, &DriverOptions::default());
         let labels2 = completion_labels(&comp2);
-        assert!(labels2.contains(&"split".to_string()), "name labels: {labels2:?}");
+        assert!(
+            labels2.contains(&"split".to_string()),
+            "name labels: {labels2:?}"
+        );
     }
-
 
     fn lsp_cross_module_project() -> std::path::PathBuf {
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -3199,9 +3250,13 @@ mod tests {
         let pos = text.find(needle).expect("let nums line") + needle.len();
         text.insert_str(pos, "    nums.\r\n");
         let line = text[..pos].bytes().filter(|b| *b == b'\n').count();
-        let comp = completion_for_document("file:///crlf.sy", &text, line, 8, &DriverOptions::default());
+        let comp =
+            completion_for_document("file:///crlf.sy", &text, line, 8, &DriverOptions::default());
         let labels = completion_labels(&comp);
-        assert!(labels.contains(&"map".to_string()), "CRLF nums labels: {labels:?}");
+        assert!(
+            labels.contains(&"map".to_string()),
+            "CRLF nums labels: {labels:?}"
+        );
     }
 
     #[test]
@@ -3236,7 +3291,10 @@ mod tests {
         let comp = completion_for_document(&uri, &text, math_idx, 8, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(labels.contains(&"add".to_string()), "labels: {labels:?}");
-        assert!(!labels.iter().any(|l| l.starts_with("__syx_")), "labels: {labels:?}");
+        assert!(
+            !labels.iter().any(|l| l.starts_with("__syx_")),
+            "labels: {labels:?}"
+        );
     }
 
     #[test]
@@ -3245,7 +3303,10 @@ mod tests {
         let comp = completion_for_document("file:///t.sy", text, 1, 14, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(labels.contains(&"String".to_string()), "labels: {labels:?}");
-        assert!(!labels.iter().any(|l| l.starts_with("__syx_")), "labels: {labels:?}");
+        assert!(
+            !labels.iter().any(|l| l.starts_with("__syx_")),
+            "labels: {labels:?}"
+        );
     }
 
     #[test]
@@ -3254,7 +3315,13 @@ mod tests {
         // character after `case 3:`
         let line = "    case 3:";
         let character = line.len();
-        let comp = completion_for_document("file:///t.sy", text, 2, character, &DriverOptions::default());
+        let comp = completion_for_document(
+            "file:///t.sy",
+            text,
+            2,
+            character,
+            &DriverOptions::default(),
+        );
         let labels = completion_labels(&comp);
         assert!(
             !labels.contains(&"String".to_string()) && !labels.contains(&"Int".to_string()),
@@ -3267,7 +3334,13 @@ mod tests {
         let text = "func main() {\n  switch 1 {\n    default:\n  }\n}";
         let line = "    default:";
         let character = line.len();
-        let comp = completion_for_document("file:///t.sy", text, 2, character, &DriverOptions::default());
+        let comp = completion_for_document(
+            "file:///t.sy",
+            text,
+            2,
+            character,
+            &DriverOptions::default(),
+        );
         let labels = completion_labels(&comp);
         assert!(
             !labels.contains(&"String".to_string()) && !labels.contains(&"Int".to_string()),
@@ -3294,8 +3367,15 @@ mod tests {
         let tokens = semantic_tokens_for_document("file:///t.sy", text, &DriverOptions::default());
         assert!(!tokens.is_null(), "{tokens}");
         // Encoded data must be non-empty when case/default are highlighted.
-        let data = tokens.get("data").and_then(|d| d.as_array()).cloned().unwrap_or_default();
-        assert!(!data.is_empty(), "expected semantic token data for case/default");
+        let data = tokens
+            .get("data")
+            .and_then(|d| d.as_array())
+            .cloned()
+            .unwrap_or_default();
+        assert!(
+            !data.is_empty(),
+            "expected semantic token data for case/default"
+        );
     }
 
     #[test]
@@ -3317,7 +3397,9 @@ mod tests {
             "Array s2 should offer append, labels: {array_labels:?}"
         );
         assert!(
-            !array_labels.iter().any(|l| l == "intersection" || l == "insert"),
+            !array_labels
+                .iter()
+                .any(|l| l == "intersection" || l == "insert"),
             "Array s2 should not offer Set methods, labels: {array_labels:?}"
         );
         let set_text = "func arraySide() {\n  let s2: Array<Double> = []\n  print(s2.count)\n}\nfunc setSide() {\n  let s2: Set<Int> = []\n  s2.\n}\n";
@@ -3363,10 +3445,7 @@ mod tests {
             .find(|i| i["label"] == "split")
             .expect("split item");
         assert_eq!(split["insertText"], "split($0)");
-        assert!(split["detail"]
-            .as_str()
-            .unwrap()
-            .contains("sep: String"));
+        assert!(split["detail"].as_str().unwrap().contains("sep: String"));
     }
 
     #[test]
@@ -3437,8 +3516,13 @@ func main() {
         let line_text = text.lines().nth(line).unwrap();
         let col_c = line_text.find("c").unwrap();
         let col_min = line_text.find("min").unwrap() + 1; // inside the word
-        let hover_c =
-            hover_for_position("file:///hello2.sy", text, line, col_c, &DriverOptions::default());
+        let hover_c = hover_for_position(
+            "file:///hello2.sy",
+            text,
+            line,
+            col_c,
+            &DriverOptions::default(),
+        );
         let hover_min = hover_for_position(
             "file:///hello2.sy",
             text,
@@ -3449,7 +3533,10 @@ func main() {
         let c = hover_c.to_string();
         let min = hover_min.to_string();
         assert!(c.contains("`c`") && c.contains("`Int`"), "c hover: {c}");
-        assert!(!c.contains("String") && !c.contains("Array"), "c hover: {c}");
+        assert!(
+            !c.contains("String") && !c.contains("Array"),
+            "c hover: {c}"
+        );
         assert!(
             min.contains("`min`") && min.contains("`Int`") && !min.contains("Int128"),
             "min hover: {min}"
@@ -3512,13 +3599,7 @@ func main() {
     #[test]
     fn definition_jumps_to_func_decl() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let def = definition_for_position(
-            "file:///t.sy",
-            text,
-            1,
-            19,
-            &DriverOptions::default(),
-        );
+        let def = definition_for_position("file:///t.sy", text, 1, 19, &DriverOptions::default());
         assert_eq!(def["range"]["start"]["line"], 0);
     }
 
@@ -3540,7 +3621,10 @@ func main() {
             let wuri = format!("file://{}", witness.display());
             let wtext = std::fs::read_to_string(&witness).unwrap();
             let wdef = definition_for_position(&wuri, &wtext, 1, 11, &DriverOptions::default());
-            assert!(!wdef.is_null(), "expected User definition in witness module");
+            assert!(
+                !wdef.is_null(),
+                "expected User definition in witness module"
+            );
             return;
         }
         let (def_uri, _) = def.unwrap();
@@ -3570,14 +3654,8 @@ func main() {
     fn rename_cross_module_includes_dependency_file() {
         let (uri, text) = lsp_cross_module_main();
         let user_pos = lsp_cross_module_user_pos(&text);
-        let result = rename_for_position(
-            &uri,
-            &text,
-            3,
-            user_pos,
-            "sum2",
-            &DriverOptions::default(),
-        );
+        let result =
+            rename_for_position(&uri, &text, 3, user_pos, "sum2", &DriverOptions::default());
         if result.is_null() {
             return;
         }
@@ -3587,9 +3665,15 @@ func main() {
 
     #[test]
     fn workspace_symbols_finds_math_helper() {
-        let symbols = workspace_symbols("main", &[lsp_cross_module_project()], &DriverOptions::default());
+        let symbols = workspace_symbols(
+            "main",
+            &[lsp_cross_module_project()],
+            &DriverOptions::default(),
+        );
         let items = symbols.as_array().unwrap();
-        assert!(items.iter().any(|s| s["name"].as_str().unwrap().contains("main")));
+        assert!(items
+            .iter()
+            .any(|s| s["name"].as_str().unwrap().contains("main")));
     }
 
     #[test]
@@ -3598,7 +3682,10 @@ func main() {
         let uri = format!("file://{}", main.display());
         let text = std::fs::read_to_string(&main).unwrap();
         let lines: Vec<&str> = text.lines().collect();
-        let import_line = lines.iter().position(|l| l.starts_with("import")).unwrap_or(0);
+        let import_line = lines
+            .iter()
+            .position(|l| l.starts_with("import"))
+            .unwrap_or(0);
         let comp = completion_for_document(&uri, &text, import_line, 7, &DriverOptions::default());
         let items = comp["items"].as_array().unwrap();
         assert!(items.iter().any(|i| i["label"] == "witness"));
@@ -3632,7 +3719,10 @@ func main() {
         let path = dir.path().join("main.sy");
         let doc = analyze_document_for_lsp(Some(path.as_path()), &text, &DriverOptions::default());
         assert!(
-            doc.semantic.errors.iter().any(|d| format!("{d}").contains("C003")),
+            doc.semantic
+                .errors
+                .iter()
+                .any(|d| format!("{d}").contains("C003")),
             "expected C003 in strict project: {:?}",
             doc.semantic.errors
         );
@@ -3648,10 +3738,19 @@ func main() {
             .iter()
             .find(|d| d.code.as_deref() == Some("S002"))
             .expect("expected S002");
-        assert!(err.primary_span.is_some(), "expected span on undefined identifier");
+        assert!(
+            err.primary_span.is_some(),
+            "expected span on undefined identifier"
+        );
         let span = err.primary_span.as_ref().unwrap();
-        let ((sl, sc), _) = span_to_lsp_range(&doc.source, syx_diagnostics::Span::new(span.offset(), span.len()));
-        assert!(sl == 0 && sc > 0, "span should map into first line: ({sl},{sc})");
+        let ((sl, sc), _) = span_to_lsp_range(
+            &doc.source,
+            syx_diagnostics::Span::new(span.offset(), span.len()),
+        );
+        assert!(
+            sl == 0 && sc > 0,
+            "span should map into first line: ({sl},{sc})"
+        );
     }
 
     #[test]
@@ -3700,7 +3799,10 @@ func main() {
         let uri = "file:///crlf.sy";
         let comp = completion_for_document(uri, &updated, 2, 8, &DriverOptions::default());
         let labels = completion_labels(&comp);
-        assert!(!labels.is_empty() || updated.contains("nums."), "updated: {updated:?}");
+        assert!(
+            !labels.is_empty() || updated.contains("nums."),
+            "updated: {updated:?}"
+        );
     }
 
     #[test]
@@ -3784,7 +3886,13 @@ func main() {
 
     #[test]
     fn hover_returns_null_for_unknown_symbol() {
-        let hover = hover_for_position("file:///t.sy", "func main() {}", 0, 3, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            3,
+            &DriverOptions::default(),
+        );
         assert!(hover.is_null());
     }
 
@@ -3801,10 +3909,18 @@ func main() {
 
     #[test]
     fn completion_in_function_body_includes_stdlib_types() {
-        let comp = completion_for_document("file:///empty.sy", "func main() {\n  \n}", 1, 2, &DriverOptions::default());
+        let comp = completion_for_document(
+            "file:///empty.sy",
+            "func main() {\n  \n}",
+            1,
+            2,
+            &DriverOptions::default(),
+        );
         let items = comp["items"].as_array().unwrap();
         assert!(
-            items.iter().any(|i| i["label"] == "Int" || i["label"] == "String"),
+            items
+                .iter()
+                .any(|i| i["label"] == "Int" || i["label"] == "String"),
             "expected stdlib type completions in function body, got {items:?}"
         );
     }
@@ -3826,7 +3942,11 @@ func main() {
         let file = dir.path().join("main.sy");
         std::fs::write(&file, "func main() { print(1) }").unwrap();
         let uri = format!("file://{}", file.display());
-        let diags = semantic_recheck_after_change(&uri, "func main() { print(2) }", &DriverOptions::default());
+        let diags = semantic_recheck_after_change(
+            &uri,
+            "func main() { print(2) }",
+            &DriverOptions::default(),
+        );
         assert!(diags.is_empty(), "{diags:?}");
     }
 
@@ -3874,7 +3994,8 @@ func main() {
         let items = comp["items"].as_array().unwrap();
         assert!(items.iter().any(|i| i["label"] == "count"));
         let updated = text.replace("cou", "count");
-        let comp2 = completion_for_document("file:///t.sy", &updated, 2, 6, &DriverOptions::default());
+        let comp2 =
+            completion_for_document("file:///t.sy", &updated, 2, 6, &DriverOptions::default());
         let items2 = comp2["items"].as_array().unwrap();
         assert!(!items2.is_empty());
     }
@@ -3882,13 +4003,7 @@ func main() {
     #[test]
     fn references_finds_usages_in_file() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let refs = references_for_position(
-            "file:///t.sy",
-            text,
-            1,
-            19,
-            &DriverOptions::default(),
-        );
+        let refs = references_for_position("file:///t.sy", text, 1, 19, &DriverOptions::default());
         let locs = refs.as_array().unwrap();
         assert!(locs.len() >= 2, "expected decl + use, got {refs}");
     }
@@ -3908,27 +4023,17 @@ func main() {
     #[test]
     fn references_locations_include_uri_and_range() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let refs = references_for_position(
-            "file:///t.sy",
-            text,
-            1,
-            19,
-            &DriverOptions::default(),
-        );
+        let refs = references_for_position("file:///t.sy", text, 1, 19, &DriverOptions::default());
         let locs = refs.as_array().unwrap();
-        assert!(locs.iter().all(|l| l.get("uri").is_some() && l.get("range").is_some()));
+        assert!(locs
+            .iter()
+            .all(|l| l.get("uri").is_some() && l.get("range").is_some()));
     }
 
     #[test]
     fn references_finds_at_least_one_usage() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let refs = references_for_position(
-            "file:///t.sy",
-            text,
-            1,
-            19,
-            &DriverOptions::default(),
-        );
+        let refs = references_for_position("file:///t.sy", text, 1, 19, &DriverOptions::default());
         assert!(!refs.as_array().unwrap().is_empty());
     }
 
@@ -4006,7 +4111,9 @@ func main() {
         let text = "func main() {\n  let count = 1\n}";
         let hints = inlay_hints_for_document("file:///t.sy", text, 1, &DriverOptions::default());
         let items = hints.as_array().unwrap();
-        assert!(items.iter().any(|h| h["label"].as_str().unwrap_or("").contains("Int")));
+        assert!(items
+            .iter()
+            .any(|h| h["label"].as_str().unwrap_or("").contains("Int")));
     }
 
     #[test]
@@ -4024,13 +4131,19 @@ func main() {
 
     #[test]
     fn code_actions_result_is_top_level_array() {
-        let actions = code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
+        let actions =
+            code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
         assert!(actions.is_array());
     }
 
     #[test]
     fn inlay_hints_result_is_top_level_array() {
-        let hints = inlay_hints_for_document("file:///t.sy", "func main() {}", 0, &DriverOptions::default());
+        let hints = inlay_hints_for_document(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            &DriverOptions::default(),
+        );
         assert!(hints.is_array());
     }
 
@@ -4051,14 +4164,16 @@ func main() {
     #[test]
     fn signature_help_returns_null_outside_call() {
         let text = "func foo() {}\nfunc bar() {\n  let x = 1\n}";
-        let sig = signature_help_for_document("file:///t.sy", text, 2, 4, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 2, 4, &DriverOptions::default());
         assert!(sig.is_null());
     }
 
     #[test]
     fn signature_help_finds_func_label() {
         let text = "func add(a: Int, b: Int) -> Int { return a + b }\nfunc main() { add(1, 2) }";
-        let sig = signature_help_for_document("file:///t.sy", text, 1, 18, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 1, 18, &DriverOptions::default());
         assert!(sig["signatures"][0]["label"]
             .as_str()
             .unwrap()
@@ -4068,7 +4183,8 @@ func main() {
     #[test]
     fn signature_help_lists_parameters() {
         let text = "func add(a: Int, b: Int) -> Int { return a + b }\nfunc main() { add(1, ";
-        let sig = signature_help_for_document("file:///t.sy", text, 1, 22, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 1, 22, &DriverOptions::default());
         let params = sig["signatures"][0]["parameters"].as_array().unwrap();
         assert_eq!(params.len(), 2);
     }
@@ -4076,49 +4192,65 @@ func main() {
     #[test]
     fn signature_help_active_parameter_advances() {
         let text = "func add(a: Int, b: Int) -> Int { return a + b }\nfunc main() { add(1, ";
-        let sig = signature_help_for_document("file:///t.sy", text, 1, 22, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 1, 22, &DriverOptions::default());
         assert_eq!(sig["activeParameter"], 1);
     }
 
     #[test]
     fn signature_help_zero_params() {
         let text = "func main() {}\nfunc run() { main() }";
-        let sig = signature_help_for_document("file:///t.sy", text, 1, 22, &DriverOptions::default());
-        assert!(sig["signatures"][0]["label"].as_str().unwrap().contains("main"));
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 1, 22, &DriverOptions::default());
+        assert!(sig["signatures"][0]["label"]
+            .as_str()
+            .unwrap()
+            .contains("main"));
     }
 
     #[test]
     fn signature_help_print_call() {
         let text = "func main() { print(42) }";
-        let sig = signature_help_for_document("file:///t.sy", text, 0, 20, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 0, 20, &DriverOptions::default());
         assert!(!sig.is_null());
     }
 
     #[test]
     fn signature_help_multiline_func_decl() {
         let text = "func long(\n  x: Int\n) { }\nfunc main() { long(1) }";
-        let sig = signature_help_for_document("file:///t.sy", text, 3, 22, &DriverOptions::default());
-        assert!(sig["signatures"][0]["label"].as_str().unwrap().contains("long"));
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 3, 22, &DriverOptions::default());
+        assert!(sig["signatures"][0]["label"]
+            .as_str()
+            .unwrap()
+            .contains("long"));
     }
 
     #[test]
     fn signature_help_nested_call_uses_inner() {
         let text = "func foo(x: Int) {}\nfunc bar(y: Int) {}\nfunc main() { foo(bar(1)) }";
-        let sig = signature_help_for_document("file:///t.sy", text, 2, 22, &DriverOptions::default());
-        assert!(sig["signatures"][0]["label"].as_str().unwrap().contains("bar"));
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 2, 22, &DriverOptions::default());
+        assert!(sig["signatures"][0]["label"]
+            .as_str()
+            .unwrap()
+            .contains("bar"));
     }
 
     #[test]
     fn signature_help_result_is_object() {
         let text = "func f(a: Int) {}\nfunc main() { f(1) }";
-        let sig = signature_help_for_document("file:///t.sy", text, 1, 15, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 1, 15, &DriverOptions::default());
         assert!(sig.is_object());
     }
 
     #[test]
     fn signature_help_cross_module_style_name() {
         let text = "func helper(msg: String) {}\nfunc main() { helper(\"hi\") }";
-        let sig = signature_help_for_document("file:///t.sy", text, 1, 24, &DriverOptions::default());
+        let sig =
+            signature_help_for_document("file:///t.sy", text, 1, 24, &DriverOptions::default());
         let label = sig["signatures"][0]["label"].as_str().unwrap();
         assert!(label.contains("msg"));
     }
@@ -4172,20 +4304,28 @@ func main() {
     #[test]
     fn prepare_rename_returns_range_for_local() {
         let text = "func main() {}";
-        let prep = prepare_rename_for_position("file:///t.sy", text, 0, 8, &DriverOptions::default());
+        let prep =
+            prepare_rename_for_position("file:///t.sy", text, 0, 8, &DriverOptions::default());
         assert_eq!(prep["placeholder"], "main");
     }
 
     #[test]
     fn prepare_rename_null_for_empty() {
-        let prep = prepare_rename_for_position("file:///t.sy", "func main() {}", 0, 0, &DriverOptions::default());
+        let prep = prepare_rename_for_position(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            0,
+            &DriverOptions::default(),
+        );
         assert!(prep.is_null() || prep["placeholder"].is_string());
     }
 
     #[test]
     fn prepare_rename_has_range_object() {
         let text = "func main() {}";
-        let prep = prepare_rename_for_position("file:///t.sy", text, 0, 8, &DriverOptions::default());
+        let prep =
+            prepare_rename_for_position("file:///t.sy", text, 0, 8, &DriverOptions::default());
         assert!(prep["range"].is_object());
         assert_eq!(prep["placeholder"], "main");
     }
@@ -4208,14 +4348,16 @@ func main() {
     #[test]
     fn prepare_rename_parameter_name() {
         let text = "func add(value: Int) { }";
-        let prep = prepare_rename_for_position("file:///t.sy", text, 0, 13, &DriverOptions::default());
+        let prep =
+            prepare_rename_for_position("file:///t.sy", text, 0, 13, &DriverOptions::default());
         assert_eq!(prep["placeholder"], "value");
     }
 
     #[test]
     fn prepare_rename_v5_placeholder_matches_word() {
         let text = "func main() {}";
-        let prep = prepare_rename_for_position("file:///t.sy", text, 0, 8, &DriverOptions::default());
+        let prep =
+            prepare_rename_for_position("file:///t.sy", text, 0, 8, &DriverOptions::default());
         assert_eq!(prep["placeholder"], "main");
     }
 
@@ -4255,7 +4397,9 @@ func main() {
         let text = "func main() { print(missing) }";
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
         let arr = actions.as_array().unwrap();
-        assert!(arr.iter().any(|a| a.get("edit").is_some() || a["title"].as_str().unwrap().contains("import")));
+        assert!(arr
+            .iter()
+            .any(|a| a.get("edit").is_some() || a["title"].as_str().unwrap().contains("import")));
     }
 
     #[test]
@@ -4276,27 +4420,48 @@ func main() {
     #[test]
     fn rename_v6_applies_new_text() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let result = rename_for_position("file:///t.sy", text, 1, 19, "assist", &DriverOptions::default());
+        let result = rename_for_position(
+            "file:///t.sy",
+            text,
+            1,
+            19,
+            "assist",
+            &DriverOptions::default(),
+        );
         let changes = result["changes"].as_object().unwrap();
         assert!(!changes.is_empty());
     }
 
     #[test]
     fn code_actions_v6_returns_array() {
-        let actions = code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
+        let actions =
+            code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
         assert!(actions.is_array());
     }
 
     #[test]
     fn prepare_rename_v6_null_outside_word() {
-        let prep = prepare_rename_for_position("file:///t.sy", "func main() {}", 0, 4, &DriverOptions::default());
+        let prep = prepare_rename_for_position(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            4,
+            &DriverOptions::default(),
+        );
         assert!(prep.is_null());
     }
 
     #[test]
     fn rename_v6_cross_reference_shape() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let result = rename_for_position("file:///t.sy", text, 1, 19, "assist", &DriverOptions::default());
+        let result = rename_for_position(
+            "file:///t.sy",
+            text,
+            1,
+            19,
+            "assist",
+            &DriverOptions::default(),
+        );
         assert!(result["changes"].is_object());
     }
 
@@ -4304,7 +4469,11 @@ func main() {
     fn code_actions_v6_edit_changes_shape() {
         let text = "func main() { print(missing) }";
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
-        let edit = actions.as_array().unwrap().iter().find_map(|a| a.get("edit"));
+        let edit = actions
+            .as_array()
+            .unwrap()
+            .iter()
+            .find_map(|a| a.get("edit"));
         if let Some(e) = edit {
             assert!(e.get("changes").is_some());
         }
@@ -4317,7 +4486,6 @@ func main() {
         assert!(!actions.as_array().unwrap().is_empty());
     }
 
-
     #[test]
     fn lsp_v7_import_insert_real_module_name() {
         let text = "func main() { print(missing) }";
@@ -4327,7 +4495,10 @@ func main() {
                 .as_str()
                 .is_some_and(|t| t.contains("Add import for 'missing'"))
         });
-        assert!(import.is_some(), "expected missing import action: {actions}");
+        assert!(
+            import.is_some(),
+            "expected missing import action: {actions}"
+        );
         let edit = import.unwrap()["edit"]["changes"]["file:///t.sy"][0]["newText"]
             .as_str()
             .unwrap();
@@ -4339,7 +4510,9 @@ func main() {
         let text = "func main() { missing() }";
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
         let import = actions.as_array().unwrap().iter().find(|a| {
-            a["title"].as_str().is_some_and(|t| t.contains("Add import"))
+            a["title"]
+                .as_str()
+                .is_some_and(|t| t.contains("Add import"))
         });
         if let Some(a) = import {
             let edit = &a["edit"]["changes"]["file:///t.sy"][0]["newText"];
@@ -4350,7 +4523,14 @@ func main() {
     #[test]
     fn lsp_v7_rename_cross_module_nonempty() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let result = rename_for_position("file:///t.sy", text, 1, 19, "assist", &DriverOptions::default());
+        let result = rename_for_position(
+            "file:///t.sy",
+            text,
+            1,
+            19,
+            "assist",
+            &DriverOptions::default(),
+        );
         let changes = result["changes"].as_object().unwrap();
         assert!(!changes.is_empty());
     }
@@ -4358,14 +4538,16 @@ func main() {
     #[test]
     fn lsp_v7_rename_applies_new_text() {
         let text = "func foo() {}\nfunc main() { foo() }";
-        let result = rename_for_position("file:///t.sy", text, 0, 7, "bar", &DriverOptions::default());
+        let result =
+            rename_for_position("file:///t.sy", text, 0, 7, "bar", &DriverOptions::default());
         assert!(!result.is_null());
     }
 
     #[test]
     fn lsp_v7_prepare_rename_lifetime_param() {
         let text = "func f(x: Int) {}\nfunc main() {}";
-        let prep = prepare_rename_for_position("file:///t.sy", text, 0, 5, &DriverOptions::default());
+        let prep =
+            prepare_rename_for_position("file:///t.sy", text, 0, 5, &DriverOptions::default());
         assert_eq!(prep["placeholder"], "f");
     }
 
@@ -4374,7 +4556,9 @@ func main() {
         let text = "func main() { print(UnknownMod.foo()) }";
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
         let s002 = actions.as_array().unwrap().iter().find(|a| {
-            a["title"].as_str().is_some_and(|t| t.starts_with("Add import"))
+            a["title"]
+                .as_str()
+                .is_some_and(|t| t.starts_with("Add import"))
         });
         assert!(s002.map(|a| a.get("edit").is_some()).unwrap_or(false));
     }
@@ -4382,10 +4566,10 @@ func main() {
     #[test]
     fn lsp_v7_workspace_edit_changes_key() {
         let text = "func x() {}\nfunc main() { x() }";
-        let result = rename_for_position("file:///t.sy", text, 0, 5, "y", &DriverOptions::default());
+        let result =
+            rename_for_position("file:///t.sy", text, 0, 5, "y", &DriverOptions::default());
         assert!(!result.is_null());
     }
-
 
     #[test]
     fn lsp_v7_import_action_kind_quickfix() {
@@ -4393,9 +4577,10 @@ func main() {
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
         let arr = actions.as_array().unwrap();
         assert!(
-            arr.is_empty() || arr.iter().any(|a| {
-                a["title"].as_str().is_some_and(|t| t.contains("import"))
-            }),
+            arr.is_empty()
+                || arr
+                    .iter()
+                    .any(|a| { a["title"].as_str().is_some_and(|t| t.contains("import")) }),
             "actions: {actions}"
         );
     }
@@ -4403,17 +4588,16 @@ func main() {
     #[test]
     fn lsp_v7_rename_empty_name_null() {
         let text = "func main() {}";
-        let result = rename_for_position("file:///t.sy", text, 0, 10, "", &DriverOptions::default());
+        let result =
+            rename_for_position("file:///t.sy", text, 0, 10, "", &DriverOptions::default());
         assert!(result.is_null());
     }
 
     #[test]
     fn lsp_v8_module_import_single_candidate() {
         let text = "import math\nfunc main() { print(add(1, 2)) }";
-        let line = resolve_import_line_for_symbol(
-            &syx_semantic::SemanticAnalyzer::default(),
-            "add",
-        );
+        let line =
+            resolve_import_line_for_symbol(&syx_semantic::SemanticAnalyzer::default(), "add");
         assert_eq!(line, "import add\n");
     }
 
@@ -4423,40 +4607,62 @@ func main() {
         let actions = code_actions_for_document("file:///t.sy", text, &DriverOptions::default());
         let arr = actions.as_array().unwrap();
         assert!(arr.iter().any(|a| {
-            a["title"].as_str().is_some_and(|t| t.contains("import"))
-                || a.get("edit").is_some()
+            a["title"].as_str().is_some_and(|t| t.contains("import")) || a.get("edit").is_some()
         }));
     }
-
 
     #[test]
     fn lsp_v8_rename_cross_module_still_nonempty() {
         let text = "func helper() { return 1 }\nfunc main() { helper() }";
-        let result = rename_for_position("file:///t.sy", text, 1, 19, "assist", &DriverOptions::default());
+        let result = rename_for_position(
+            "file:///t.sy",
+            text,
+            1,
+            19,
+            "assist",
+            &DriverOptions::default(),
+        );
         assert!(result.get("changes").is_some());
     }
 
     #[test]
     fn lsp_v8_prepare_rename_main() {
-        let prep = prepare_rename_for_position("file:///t.sy", "func main() {}", 0, 8, &DriverOptions::default());
+        let prep = prepare_rename_for_position(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            8,
+            &DriverOptions::default(),
+        );
         assert_eq!(prep["placeholder"], "main");
     }
 
     #[test]
     fn lsp_v8_semantic_tokens_returns_data() {
-        let tokens = semantic_tokens_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
+        let tokens = semantic_tokens_for_document(
+            "file:///t.sy",
+            "func main() {}",
+            &DriverOptions::default(),
+        );
         assert!(tokens["data"].is_array());
     }
 
     #[test]
     fn lsp_v8_code_actions_array_shape() {
-        let actions = code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
+        let actions =
+            code_actions_for_document("file:///t.sy", "func main() {}", &DriverOptions::default());
         assert!(actions.is_array());
     }
 
     #[test]
     fn lsp_v8_hover_returns_markup_or_null() {
-        let hover = hover_for_position("file:///t.sy", "func main() {}", 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         let _ = hover;
     }
 
@@ -4471,31 +4677,39 @@ func main() {
         assert!(hints.is_array());
     }
 
-
     #[test]
     fn lsp_v9_type_definition_returns_location_for_type() {
         let text = "struct S {}\nfunc main() {}";
-        let loc = type_definition_for_position("file:///t.sy", text, 0, 7, &DriverOptions::default());
+        let loc =
+            type_definition_for_position("file:///t.sy", text, 0, 7, &DriverOptions::default());
         assert!(loc.get("uri").is_some());
     }
 
     #[test]
     fn lsp_v9_type_definition_null_for_keyword() {
-        let loc = type_definition_for_position("file:///t.sy", "func main() {}", 0, 0, &DriverOptions::default());
+        let loc = type_definition_for_position(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            0,
+            &DriverOptions::default(),
+        );
         assert!(loc.is_null());
     }
 
     #[test]
     fn lsp_v9_type_definition_class_name() {
         let text = "class Box { var n: Int }";
-        let loc = type_definition_for_position("file:///t.sy", text, 0, 6, &DriverOptions::default());
+        let loc =
+            type_definition_for_position("file:///t.sy", text, 0, 6, &DriverOptions::default());
         assert!(loc.get("range").is_some() || loc.is_null());
     }
 
     #[test]
     fn lsp_v9_find_refs_cross_module_shape() {
         let text = "import util\nfunc main() { helper() }";
-        let refs = references_for_position("file:///main.sy", text, 0, 22, &DriverOptions::default());
+        let refs =
+            references_for_position("file:///main.sy", text, 0, 22, &DriverOptions::default());
         let _ = refs;
     }
 
@@ -4508,7 +4722,8 @@ func main() {
     #[test]
     fn lsp_v9_go_to_type_matches_definition_for_type() {
         let text = "struct S { x: Int }\nfunc main() { let s = S(x: 1) }";
-        let ty = type_definition_for_position("file:///t.sy", text, 0, 7, &DriverOptions::default());
+        let ty =
+            type_definition_for_position("file:///t.sy", text, 0, 7, &DriverOptions::default());
         assert!(!ty.is_null());
     }
 
@@ -4518,20 +4733,24 @@ func main() {
         assert_eq!(caps["referencesProvider"], true);
     }
 
-
     #[test]
     fn lsp_v9_import_suggestions_shape() {
         let suggestions = import_module_suggestions(None, &DriverOptions::default());
         let _ = suggestions;
     }
 
-
     #[test]
     fn lsp_v10_go_to_type_points_at_struct_not_binding() {
         use syx_driver::{analyze_document_for_lsp, go_to_type_for_symbol, DriverOptions};
         let text = "struct Point { x: Int }\nfunc main() {}";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        let loc = go_to_type_for_symbol("file:///t.sy", None, &doc, "Point", &DriverOptions::default());
+        let loc = go_to_type_for_symbol(
+            "file:///t.sy",
+            None,
+            &doc,
+            "Point",
+            &DriverOptions::default(),
+        );
         assert!(loc.is_some());
     }
 
@@ -4540,17 +4759,23 @@ func main() {
         use syx_driver::{analyze_document_for_lsp, definition_for_symbol, DriverOptions};
         let text = "func helper() {}\nfunc main() {}";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        let loc = definition_for_symbol("file:///t.sy", None, &doc, "helper", &DriverOptions::default());
+        let loc = definition_for_symbol(
+            "file:///t.sy",
+            None,
+            &doc,
+            "helper",
+            &DriverOptions::default(),
+        );
         assert!(loc.is_some());
     }
 
     #[test]
     fn lsp_v10_go_to_type_on_struct_name() {
         let text = "struct S {}\nfunc main() {}";
-        let ty = type_definition_for_position("file:///t.sy", text, 0, 7, &DriverOptions::default());
+        let ty =
+            type_definition_for_position("file:///t.sy", text, 0, 7, &DriverOptions::default());
         assert!(!ty.is_null());
     }
-
 
     #[test]
     fn lsp_v10_type_definition_provider_enabled() {
@@ -4558,18 +4783,19 @@ func main() {
         assert!(caps["typeDefinitionProvider"].as_bool().unwrap_or(false));
     }
 
-
     #[test]
     fn lsp_v10_go_to_type_array_element() {
         let text = "func main() { let xs = [1, 2]\n  print(xs) }";
-        let ty = type_definition_for_position("file:///t.sy", text, 1, 8, &DriverOptions::default());
+        let ty =
+            type_definition_for_position("file:///t.sy", text, 1, 8, &DriverOptions::default());
         let _ = ty;
     }
 
     #[test]
     fn lsp_v10_references_cross_module_still() {
         let text = "import util\nfunc main() { helper() }";
-        let refs = references_for_position("file:///main.sy", text, 0, 22, &DriverOptions::default());
+        let refs =
+            references_for_position("file:///main.sy", text, 0, 22, &DriverOptions::default());
         let _ = refs;
     }
 
@@ -4589,7 +4815,11 @@ func main() {
 
     #[test]
     fn lsp_v10_workspace_symbols_query() {
-        let syms = workspace_symbols("main", &[lsp_cross_module_project()], &DriverOptions::default());
+        let syms = workspace_symbols(
+            "main",
+            &[lsp_cross_module_project()],
+            &DriverOptions::default(),
+        );
         let _ = syms;
     }
 
@@ -4657,7 +4887,12 @@ func main() {
 
     #[test]
     fn lsp_v11_inlay_hints_empty_line() {
-        let hints = inlay_hints_for_document("file:///t.sy", "func main() {}\n", 1, &DriverOptions::default());
+        let hints = inlay_hints_for_document(
+            "file:///t.sy",
+            "func main() {}\n",
+            1,
+            &DriverOptions::default(),
+        );
         assert!(!hints.is_null());
     }
 
@@ -4758,7 +4993,9 @@ func main() {
         let text = "func main() {\n    var count = 1\n}";
         let hints = inlay_hints_for_document("file:///t.sy", text, 1, &DriverOptions::default());
         let arr = hints.as_array().unwrap();
-        assert!(arr.iter().any(|h| h["label"].as_str().unwrap_or("").contains("Int")));
+        assert!(arr
+            .iter()
+            .any(|h| h["label"].as_str().unwrap_or("").contains("Int")));
     }
 
     #[test]
@@ -4797,11 +5034,14 @@ func main() {
         assert!(!tokens["data"].as_array().unwrap().is_empty());
     }
 
-
-
     #[test]
     fn lsp_v12_inlay_hints_empty_func() {
-        let hints = inlay_hints_for_document("file:///t.sy", "func main() {}", 0, &DriverOptions::default());
+        let hints = inlay_hints_for_document(
+            "file:///t.sy",
+            "func main() {}",
+            0,
+            &DriverOptions::default(),
+        );
         assert!(!hints.is_null());
     }
 
@@ -4860,7 +5100,8 @@ func main() {
     fn lsp_v13_rename_cross_module_hardened() {
         let (uri, text) = lsp_cross_module_main();
         let user_pos = lsp_cross_module_user_pos(&text);
-        let result = rename_for_position(&uri, &text, 3, user_pos, "sum2", &DriverOptions::default());
+        let result =
+            rename_for_position(&uri, &text, 3, user_pos, "sum2", &DriverOptions::default());
         if !result.is_null() {
             let changes = result["changes"].as_object().expect("rename changes");
             assert!(!changes.is_empty());
@@ -4906,7 +5147,6 @@ func main() {
         assert!(!hints.is_null());
     }
 
-
     #[test]
     fn lsp_v13_completion_generic_func() {
         let text = "func id<T>(x: T) { }\nfunc main() { id";
@@ -4921,7 +5161,6 @@ func main() {
         assert!(hover.is_null() || hover.get("contents").is_some());
     }
 
-
     #[test]
     fn lsp_v13_semantic_tokens_protocol_generic() {
         let text = "protocol Container<T> { }\nfunc main() {}";
@@ -4931,7 +5170,11 @@ func main() {
 
     #[test]
     fn lsp_v13_workspace_symbols_generic() {
-        let symbols = workspace_symbols("id", &[lsp_cross_module_project()], &DriverOptions::default());
+        let symbols = workspace_symbols(
+            "id",
+            &[lsp_cross_module_project()],
+            &DriverOptions::default(),
+        );
         assert!(!symbols.as_array().unwrap().is_empty() || true);
     }
 
@@ -4971,7 +5214,14 @@ func main() {
         let text = "func id<T>(x: T) -> T { return x }\nfunc main() { let n: Int = 1 }";
         let t_pos = text.find("<T>").map(|i| i + 1).unwrap_or(5);
         let line = 0;
-        let result = rename_for_position("file:///t.sy", text, line, t_pos, "U", &DriverOptions::default());
+        let result = rename_for_position(
+            "file:///t.sy",
+            text,
+            line,
+            t_pos,
+            "U",
+            &DriverOptions::default(),
+        );
         if !result.is_null() {
             let changes = result["changes"].as_object().expect("rename changes");
             assert!(!changes.is_empty());
@@ -4982,7 +5232,8 @@ func main() {
     fn lsp_v14_find_refs_generic_type_param() {
         let text = "func pair<A, B>(a: A, b: B) { }\nfunc main() {}";
         let a_pos = text.find("<A").map(|i| i + 1).unwrap_or(10);
-        let refs = references_for_position("file:///t.sy", text, 0, a_pos, &DriverOptions::default());
+        let refs =
+            references_for_position("file:///t.sy", text, 0, a_pos, &DriverOptions::default());
         let locs = refs.as_array().unwrap();
         assert!(!locs.is_empty() || text.contains('A'));
     }
@@ -4991,7 +5242,8 @@ func main() {
     fn lsp_v14_rename_workspace_generic_func() {
         let (uri, text) = lsp_cross_module_main();
         let user_pos = lsp_cross_module_user_pos(&text);
-        let result = rename_for_position(&uri, &text, 3, user_pos, "sum3", &DriverOptions::default());
+        let result =
+            rename_for_position(&uri, &text, 3, user_pos, "sum3", &DriverOptions::default());
         if !result.is_null() {
             let changes = result["changes"].as_object().expect("rename changes");
             assert!(!changes.is_empty());
@@ -5036,14 +5288,12 @@ func main() {
         assert!(!comp["items"].as_array().unwrap().is_empty());
     }
 
-
     #[test]
     fn lsp_v14_generic_type_param_names_helper() {
         let names = generic_type_param_names_on_line("func map<K, V: Hashable>(key: K) -> V");
         assert!(names.contains(&"K".to_string()));
         assert!(names.contains(&"V".to_string()));
     }
-
 
     #[test]
     fn lsp_v15_semantic_legend_v15_interface_type() {
@@ -5092,10 +5342,7 @@ func main() {
     fn lsp_v15_inlay_hints_result_builtin_wire() {
         let text = "import Result\nfunc main() { let r = Result.ok(value: \"1\") }";
         let hints = inlay_hints_for_document("file:///r.sy", text, 1, &DriverOptions::default());
-        assert!(
-            hints.as_array().map(|a| !a.is_empty()).unwrap_or(true)
-                || text.contains("Result")
-        );
+        assert!(hints.as_array().map(|a| !a.is_empty()).unwrap_or(true) || text.contains("Result"));
     }
 
     #[test]
@@ -5112,11 +5359,14 @@ func main() {
         assert!(!items.is_null() || text.contains("std"));
     }
 
-
     #[test]
     fn lsp_v15_workspace_symbols_p23_prefix() {
         let text = "func p23_smoke() {}\nfunc main() { p23_smoke() }";
-        let syms = workspace_symbols("p23", &[lsp_cross_module_project()], &DriverOptions::default());
+        let syms = workspace_symbols(
+            "p23",
+            &[lsp_cross_module_project()],
+            &DriverOptions::default(),
+        );
         let items = syms.as_array().unwrap();
         assert!(items.is_empty() || text.contains("p23_smoke"));
     }
@@ -5145,7 +5395,8 @@ func main() {
     #[test]
     fn lsp_v16_iterator_protocol_completion() {
         let text = "protocol IteratorProtocol { func next() -> Int }\nclass C: IteratorProtocol { func next() -> Int { return 1 } }\nfunc main() { let c = C(); c. }";
-        let items = completion_for_document("file:///iter.sy", text, 3, 28, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///iter.sy", text, 3, 28, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("next")) || text.contains("next"));
     }
@@ -5170,24 +5421,32 @@ func main() {
     #[test]
     fn lsp_v16_net_tcp_connect_completion() {
         let text = "import Networking\nfunc main() { Net. }";
-        let items = completion_for_document("file:///net.sy", text, 1, 22, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("connect")) || text.contains("Net"));
     }
 
-
     #[test]
     fn lsp_v16_cross_crate_result_generic_rename() {
-        let text = "import Result\nfunc main() { let r = Result.ok(value: \"x\"); print(Result.isOk(r)) }";
-        let result = rename_for_position("file:///res.sy", text, 1, 30, "okVal", &DriverOptions::default());
+        let text =
+            "import Result\nfunc main() { let r = Result.ok(value: \"x\"); print(Result.isOk(r)) }";
+        let result = rename_for_position(
+            "file:///res.sy",
+            text,
+            1,
+            30,
+            "okVal",
+            &DriverOptions::default(),
+        );
         assert!(!result.is_null() || text.contains("Result"));
     }
-
 
     #[test]
     fn lsp_v17_iterator_default_completion() {
         let text = "protocol IteratorProtocol { func next() -> Int }\nclass C: IteratorProtocol { func next() -> Int { return 1 } }\nfunc main() { let c = C(); c. }";
-        let items = completion_for_document("file:///p25iter.sy", text, 3, 28, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p25iter.sy", text, 3, 28, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("next")) || text.contains("next"));
     }
@@ -5205,17 +5464,17 @@ func main() {
     #[test]
     fn lsp_v17_net_read_completion() {
         let text = "import Networking\nfunc main() { Net. }";
-        let items = completion_for_document("file:///p25net.sy", text, 1, 22, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p25net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("read")) || text.contains("Net"));
     }
 
-
-
     #[test]
     fn lsp_v18_global_actor_sending_completion() {
         let text = "actor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p26ga.sy", text, 1, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p26ga.sy", text, 1, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -5230,14 +5489,16 @@ func main() {
     #[test]
     fn lsp_v18_dist_actor_routing_hover() {
         let text = "actor Worker { func run() { print(\"run\") } }\nfunc main() { let w = Worker(); w.run() }";
-        let hover = hover_for_position("file:///p26dist.sy", text, 1, 30, &DriverOptions::default());
+        let hover =
+            hover_for_position("file:///p26dist.sy", text, 1, 30, &DriverOptions::default());
         assert!(hover.to_string().contains("run") || text.contains("Worker"));
     }
 
     #[test]
     fn lsp_v18_net_write_completion() {
         let text = "import Networking\nfunc main() { Net. }";
-        let items = completion_for_document("file:///p26net.sy", text, 1, 22, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p26net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("write")) || text.contains("Net"));
     }
@@ -5259,7 +5520,8 @@ func main() {
     #[test]
     fn lsp_v18_embed_v12_capability_hint() {
         let text = "func main() { print(\"embed-v12\") }";
-        let items = completion_for_document("file:///p26emb.sy", text, 0, 0, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p26emb.sy", text, 0, 0, &DriverOptions::default());
         assert!(items.is_object() || text.contains("main"));
     }
 
@@ -5306,11 +5568,11 @@ func main() {
         let _ = doc.semantic.all_bindings.len();
     }
 
-
     #[test]
     fn lsp_v18_references_actor_method() {
         let text = "actor W { func run() { } }\nfunc main() { let w = W(); w.run() }";
-        let refs = references_for_position("file:///p26ref.sy", text, 0, 14, &DriverOptions::default());
+        let refs =
+            references_for_position("file:///p26ref.sy", text, 0, 14, &DriverOptions::default());
         let locs = refs.as_array().map(|a| a.len()).unwrap_or(0);
         assert!(locs >= 1 || text.contains("run"));
     }
@@ -5318,23 +5580,33 @@ func main() {
     #[test]
     fn lsp_v18_definition_sending_func() {
         let text = "func relay(sending v: Int) { }\nfunc main() { relay(2) }";
-        let def = definition_for_position("file:///p26def.sy", text, 1, 14, &DriverOptions::default());
+        let def =
+            definition_for_position("file:///p26def.sy", text, 1, 14, &DriverOptions::default());
         assert!(def.get("uri").is_some() || text.contains("relay"));
     }
 
     #[test]
     fn lsp_v18_workspace_symbol_p26_prefix() {
         let text = "func p26_smoke() { }\nfunc main() { p26_smoke() }";
-        let syms = workspace_symbols("p26", &[lsp_cross_module_project()], &DriverOptions::default());
+        let syms = workspace_symbols(
+            "p26",
+            &[lsp_cross_module_project()],
+            &DriverOptions::default(),
+        );
         let _ = syms;
         assert!(text.contains("p26_smoke"));
     }
 
-
     #[test]
     fn lsp_v19_borrow_v8_hover() {
         let text = "func relay(sending v: Int) { print(v) }\nfunc main() { relay(1) }";
-        let hover = hover_for_position("file:///p27borrow.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p27borrow.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(hover.to_string().contains("relay") || text.contains("sending"));
     }
 
@@ -5348,7 +5620,8 @@ func main() {
     #[test]
     fn lsp_v19_dist_actor_uds_tls_hover() {
         let text = "actor Worker { func run() { print(\"uds\") } }\nfunc main() { let w = Worker(); w.run() }";
-        let hover = hover_for_position("file:///p27dist.sy", text, 1, 30, &DriverOptions::default());
+        let hover =
+            hover_for_position("file:///p27dist.sy", text, 1, 30, &DriverOptions::default());
         assert!(hover.to_string().contains("run") || text.contains("Worker"));
     }
 
@@ -5362,7 +5635,8 @@ func main() {
     #[test]
     fn lsp_v19_embed_v13_capability_hint() {
         let text = "func main() { print(\"embed-v13\") }";
-        let items = completion_for_document("file:///p27emb.sy", text, 0, 0, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p27emb.sy", text, 0, 0, &DriverOptions::default());
         assert!(items.is_object() || text.contains("main"));
     }
 
@@ -5383,7 +5657,8 @@ func main() {
     #[test]
     fn lsp_v19_net_stream_completion() {
         let text = "import Networking\nfunc main() { Net. }";
-        let items = completion_for_document("file:///p27net.sy", text, 1, 22, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p27net.sy", text, 1, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("read")) || text.contains("Net"));
     }
@@ -5393,9 +5668,18 @@ func main() {
         let fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/websocket_wss_prod.sy");
         let text = std::fs::read_to_string(&fixture).unwrap();
-        let line = text.lines().position(|l| l.contains("WebSocket")).unwrap_or(3);
-        let col = text.lines().nth(line).unwrap().find("WebSocket").unwrap_or(8);
-        let hover = hover_for_position("file:///ws.sy", &text, line, col, &DriverOptions::default());
+        let line = text
+            .lines()
+            .position(|l| l.contains("WebSocket"))
+            .unwrap_or(3);
+        let col = text
+            .lines()
+            .nth(line)
+            .unwrap()
+            .find("WebSocket")
+            .unwrap_or(8);
+        let hover =
+            hover_for_position("file:///ws.sy", &text, line, col, &DriverOptions::default());
         assert!(
             hover.to_string().contains("WebSocket") || text.contains("WebSocket"),
             "hover: {hover}"
@@ -5412,7 +5696,8 @@ func main() {
     #[test]
     fn lsp_v19_global_actor_v7_completion() {
         let text = "actor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p27ga.sy", text, 1, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p27ga.sy", text, 1, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -5431,7 +5716,6 @@ func main() {
         assert!(text.contains("actor") || doc.semantic.all_bindings.len() >= 0);
     }
 
-
     #[test]
     fn lsp_v20_llvm_aot_phase3() {
         let text = "func main() { print(\"llvm-aot-phase3\") }";
@@ -5443,9 +5727,8 @@ func main() {
     fn lsp_v20_mir_v17_barrier_fixture_analyze() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/mir_jit_deopt_barrier.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "func main() { print(\"mir-v17-barrier\") }".into()
-        });
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "func main() { print(\"mir-v17-barrier\") }".into());
         let doc = analyze_document_for_lsp(Some(&path), &text, &DriverOptions::default());
         assert!(text.contains("main") || doc.semantic.all_bindings.contains_key("main"));
     }
@@ -5499,10 +5782,10 @@ func main() {
     fn lsp_v20_embed_v14_capability_hint() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/embed_sandbox_v14.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "func main() { print(\"embed-v14\") }".into()
-        });
-        let items = completion_for_document("file:///p28emb.sy", &text, 0, 0, &DriverOptions::default());
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "func main() { print(\"embed-v14\") }".into());
+        let items =
+            completion_for_document("file:///p28emb.sy", &text, 0, 0, &DriverOptions::default());
         assert!(items.is_object() || text.contains("main"));
     }
 
@@ -5524,10 +5807,10 @@ func main() {
     fn lsp_v20_net_stream_tls_completion() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/net_stream_tls.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "import Networking\nfunc main() { Net. }".into()
-        });
-        let items = completion_for_document("file:///p28net.sy", &text, 2, 22, &DriverOptions::default());
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "import Networking\nfunc main() { Net. }".into());
+        let items =
+            completion_for_document("file:///p28net.sy", &text, 2, 22, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("stream")) || text.contains("Net"));
     }
@@ -5536,17 +5819,21 @@ func main() {
     fn lsp_v20_websocket_wss_prod_hover() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/websocket_wss_prod.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "import Networking\nfunc main() { print(\"wss-prod\") }".into()
-        });
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "import Networking\nfunc main() { print(\"wss-prod\") }".into());
         let hover = hover_for_position("file:///p28ws.sy", &text, 0, 7, &DriverOptions::default());
-        assert!(hover.to_string().contains("WebSocket") || text.contains("WebSocket") || text.contains("wss"));
+        assert!(
+            hover.to_string().contains("WebSocket")
+                || text.contains("WebSocket")
+                || text.contains("wss")
+        );
     }
 
     #[test]
     fn lsp_v20_global_actor_v8_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p28ga.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p28ga.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -5558,8 +5845,13 @@ func main() {
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
             "protocol Hashable { associatedtype HashValue }\nfunc main() { print(1) }".into()
         });
-        let hover = hover_for_position("file:///p28wit.sy", &text, 0, 10, &DriverOptions::default());
-        assert!(hover.to_string().contains("Hashable") || text.contains("Hashable") || text.contains("witness"));
+        let hover =
+            hover_for_position("file:///p28wit.sy", &text, 0, 10, &DriverOptions::default());
+        assert!(
+            hover.to_string().contains("Hashable")
+                || text.contains("Hashable")
+                || text.contains("witness")
+        );
     }
 
     #[test]
@@ -5573,7 +5865,6 @@ func main() {
         assert_eq!(graph["live"].as_bool(), Some(true));
     }
 
-
     #[test]
     fn lsp_v21_llvm_aot_phase4() {
         let text = "func main() { print(\"llvm-aot-phase4\") }";
@@ -5585,9 +5876,8 @@ func main() {
     fn lsp_v21_mir_v18_barrier_fixture_analyze() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/mir_jit_deopt_barrier.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "func main() { print(\"mir-v18-barrier\") }".into()
-        });
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "func main() { print(\"mir-v18-barrier\") }".into());
         let doc = analyze_document_for_lsp(Some(&path), &text, &DriverOptions::default());
         assert!(text.contains("main") || doc.semantic.all_bindings.contains_key("main"));
     }
@@ -5613,7 +5903,8 @@ func main() {
 
     #[test]
     fn lsp_v21_result_full_mono_completion() {
-        let text = "import Result\nfunc main() { let r: Result<Int, String> = Result.ok(1); print(r) }";
+        let text =
+            "import Result\nfunc main() { let r: Result<Int, String> = Result.ok(1); print(r) }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(text.contains("Result") || doc.semantic.errors.len() <= 3);
     }
@@ -5633,15 +5924,14 @@ func main() {
     fn lsp_v21_relocating_gc() {
         let text = "func main() { print(\"wasi-gc-phase29-relocating\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("relocating")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("relocating"));
     }
 
     #[test]
     fn lsp_v21_global_actor_v9_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p29ga.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p29ga.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -5663,7 +5953,9 @@ func main() {
             .and_then(|a| a.first())
             .and_then(|e| e["label"].as_str())
             .unwrap_or("");
-        assert!(label.contains("TLS") || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1);
+        assert!(
+            label.contains("TLS") || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1
+        );
     }
 
     #[test]
@@ -5673,10 +5965,13 @@ func main() {
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
             "import Networking\nfunc main() { let s = Net.stream(); s. }".into()
         });
-        let items = completion_for_document("file:///p29net.sy", &text, 1, 40, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p29net.sy", &text, 1, 40, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(
-            labels.iter().any(|l| l.contains("read") || l.contains("backpressure"))
+            labels
+                .iter()
+                .any(|l| l.contains("read") || l.contains("backpressure"))
                 || text.contains("Net")
         );
     }
@@ -5723,9 +6018,7 @@ func main() {
     fn lsp_v24_llvm_aot_phase6() {
         let text = "func main() { print(\"llvm-aot-phase6-gc-intrinsics\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("phase6")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("phase6"));
         let hover = hover_for_position("file:///p31llvm.sy", text, 0, 5, &DriverOptions::default());
         assert!(
             hover.to_string().contains("main")
@@ -5749,9 +6042,7 @@ func main() {
     fn lsp_v24_generational_gc() {
         let text = "func main() { print(\"wasi-gc-phase31-generational\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("generational")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("generational"));
     }
 
     #[test]
@@ -5776,7 +6067,8 @@ func main() {
     #[test]
     fn lsp_v24_global_actor_v11_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p31ga.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p31ga.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -5805,11 +6097,15 @@ func main() {
     #[test]
     fn lsp_v24_adr038_perf_hover() {
         let text = "func main() { print(\"adr-038-llvm-perf-release-candidate\") }";
-        let hover = hover_for_position("file:///p31adr038.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p31adr038.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
-            hover.to_string().contains("main")
-                || text.contains("adr-038")
-                || text.contains("perf")
+            hover.to_string().contains("main") || text.contains("adr-038") || text.contains("perf")
         );
     }
 
@@ -5831,7 +6127,10 @@ func main() {
         let g1 = actor_routes_federated_for_source(text, "p31_fed_session.sy", &roots);
         let g2 = actor_routes_federated_for_source(text, "p31_fed_session.sy", &roots);
         assert_eq!(g1["sessionId"], g2["sessionId"]);
-        assert!(g1["sessionId"].as_str().map(|s| s.starts_with("syx-fed-")).unwrap_or(false));
+        assert!(g1["sessionId"]
+            .as_str()
+            .map(|s| s.starts_with("syx-fed-"))
+            .unwrap_or(false));
         let roots_other = ["/ws/gamma", "/ws/delta"];
         let g3 = actor_routes_federated_for_source(text, "p31_fed_session.sy", &roots_other);
         assert_ne!(g1["sessionId"], g3["sessionId"]);
@@ -5861,7 +6160,10 @@ func main() {
         let text = "actor A { func run() { } }\nactor B { func work() { } }\nfunc main() { dist_send(A(), B(), PIPE) }";
         let roots = ["/home/ws1", "/home/ws2", "/home/ws3"];
         let graph = actor_routes_federated_for_source(text, "p31_fed_roots.sy", &roots);
-        let ws_roots = graph["workspaceRoots"].as_array().map(|a| a.len()).unwrap_or(0);
+        let ws_roots = graph["workspaceRoots"]
+            .as_array()
+            .map(|a| a.len())
+            .unwrap_or(0);
         assert_eq!(ws_roots, 3);
         let ws_nodes = graph["nodes"]
             .as_array()
@@ -5886,7 +6188,10 @@ func main() {
         assert_eq!(graph["sessionPersistence"].as_str(), Some("v5"));
         assert_eq!(graph["multiRepo"].as_bool(), Some(true));
         assert_eq!(graph["persistentMapping"].as_bool(), Some(true));
-        let send_line = text.lines().position(|l| l.contains("dist_send")).unwrap_or(2);
+        let send_line = text
+            .lines()
+            .position(|l| l.contains("dist_send"))
+            .unwrap_or(2);
         let edge = actor_routes_edge_for_breakpoint(text, "p31_persist.sy", send_line);
         assert!(edge.is_some() || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1);
     }
@@ -5906,18 +6211,15 @@ func main() {
     fn lsp_v24_llvm_aot_phase5() {
         let text = "func main() { print(\"llvm-aot-phase5-host-io\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("phase5")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("phase5"));
     }
 
     #[test]
     fn lsp_v24_mir_v19_barrier_fixture_analyze() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/mir_jit_deopt_barrier.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "func main() { print(\"mir-v19-barrier\") }".into()
-        });
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "func main() { print(\"mir-v19-barrier\") }".into());
         let doc = analyze_document_for_lsp(Some(&path), &text, &DriverOptions::default());
         assert!(text.contains("main") || doc.semantic.all_bindings.contains_key("main"));
     }
@@ -5957,15 +6259,14 @@ func main() {
     fn lsp_v24_relocating_gc_prod() {
         let text = "func main() { print(\"wasi-gc-phase30-relocating-prod\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("relocating")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("relocating"));
     }
 
     #[test]
     fn lsp_v24_global_actor_v10_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p30ga.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p30ga.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -5991,10 +6292,13 @@ func main() {
         let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
             "import Networking\nfunc main() { let s = Net.stream(); s. }".into()
         });
-        let items = completion_for_document("file:///p30net.sy", &text, 1, 40, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p30net.sy", &text, 1, 40, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(
-            labels.iter().any(|l| l.contains("read") || l.contains("backpressure"))
+            labels
+                .iter()
+                .any(|l| l.contains("read") || l.contains("backpressure"))
                 || text.contains("Net")
         );
     }
@@ -6019,7 +6323,10 @@ func main() {
         let graph = actor_routes_multiprocess_for_source(text, "p30_mp.sy");
         assert_eq!(graph["phase"].as_u64(), Some(34));
         assert_eq!(graph["multiProcess"].as_bool(), Some(true));
-        assert!(graph["sessionId"].as_str().map(|s| s.starts_with("syx-mp-")).unwrap_or(false));
+        assert!(graph["sessionId"]
+            .as_str()
+            .map(|s| s.starts_with("syx-mp-"))
+            .unwrap_or(false));
         assert_eq!(graph["persistentMapping"].as_bool(), Some(true));
     }
 
@@ -6061,7 +6368,8 @@ func main() {
 
     #[test]
     fn lsp_v24_result_try_expr_completion() {
-        let text = "import Result\nfunc main() { let r: Result<Int, String> = Result.ok(1); print(r) }";
+        let text =
+            "import Result\nfunc main() { let r: Result<Int, String> = Result.ok(1); print(r) }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(text.contains("Result") || doc.semantic.errors.len() <= 3);
     }
@@ -6069,7 +6377,13 @@ func main() {
     #[test]
     fn lsp_v24_remembered_set_gc_hover() {
         let text = "func main() { print(\"wasi-gc-phase32-remembered-set\") }";
-        let hover = hover_for_position("file:///p32remembered.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p32remembered.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("main")
                 || text.contains("remembered-set")
@@ -6081,7 +6395,8 @@ func main() {
     fn lsp_v24_remembered_set_generational_hover() {
         let text = "func main() { print(\"remembered-set-young-old-cross-gen\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        let hover = hover_for_position("file:///p32genrs.sy", text, 0, 5, &DriverOptions::default());
+        let hover =
+            hover_for_position("file:///p32genrs.sy", text, 0, 5, &DriverOptions::default());
         assert!(
             doc.semantic.all_bindings.contains_key("main")
                 || hover.to_string().contains("main")
@@ -6092,7 +6407,13 @@ func main() {
     #[test]
     fn lsp_v24_adr040_release_blocker_hover() {
         let text = "func main() { print(\"adr-040-llvm-release-blocker-ga\") }";
-        let hover = hover_for_position("file:///p32adr040.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p32adr040.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("main")
                 || text.contains("adr-040")
@@ -6104,9 +6425,7 @@ func main() {
     fn lsp_v24_adr040_release_blocker_ga() {
         let text = "func main() { print(\"llvm-release-blocker-ga-phase32\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("release-blocker")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("release-blocker"));
     }
 
     #[test]
@@ -6120,7 +6439,8 @@ func main() {
     #[test]
     fn lsp_v24_global_actor_v12_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p32ga12.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p32ga12.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -6137,21 +6457,24 @@ func main() {
     fn lsp_v24_llvm_aot_phase7() {
         let text = "func main() { print(\"llvm-aot-phase7-gc-full-path\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("phase7"));
+        let hover =
+            hover_for_position("file:///p32llvm7.sy", text, 0, 5, &DriverOptions::default());
         assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("phase7")
-        );
-        let hover = hover_for_position("file:///p32llvm7.sy", text, 0, 5, &DriverOptions::default());
-        assert!(
-            hover.to_string().contains("main")
-                || text.contains("phase7")
-                || text.contains("llvm")
+            hover.to_string().contains("main") || text.contains("phase7") || text.contains("llvm")
         );
     }
 
     #[test]
     fn lsp_v24_llvm_aot_phase7_gc_intrinsics() {
         let text = "func main() { print(\"llvm-aot-phase7-gc-intrinsics-full\") }";
-        let hover = hover_for_position("file:///p32llvm7gc.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p32llvm7gc.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("main")
                 || text.contains("gc-intrinsics")
@@ -6187,9 +6510,7 @@ func main() {
             .join("../syx-driver/tests/fixtures/lsp/borrow_regions_v8_full_ok.sy");
         let text = std::fs::read_to_string(&path).unwrap();
         let doc = analyze_document_for_lsp(Some(&path), &text, &DriverOptions::default());
-        assert!(
-            text.contains("sending") || doc.semantic.all_bindings.len() >= 1
-        );
+        assert!(text.contains("sending") || doc.semantic.all_bindings.len() >= 1);
     }
 
     #[test]
@@ -6209,7 +6530,11 @@ func main() {
         let graph = actor_routes_federated_for_source(text, "p32_cross_repo.sy", &roots);
         let cross_repo = graph["edges"]
             .as_array()
-            .map(|edges| edges.iter().any(|e| e["kind"].as_str() == Some("cross-repo")))
+            .map(|edges| {
+                edges
+                    .iter()
+                    .any(|e| e["kind"].as_str() == Some("cross-repo"))
+            })
             .unwrap_or(false);
         assert!(cross_repo || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 2);
     }
@@ -6222,7 +6547,10 @@ func main() {
         let g2 = actor_routes_federated_for_source(text, "p32_fed_v3.sy", &roots);
         assert_eq!(g1["sessionId"], g2["sessionId"]);
         assert_eq!(g1["sessionPersistence"].as_str(), Some("v5"));
-        assert!(g1["sessionId"].as_str().map(|s| s.starts_with("syx-fed-")).unwrap_or(false));
+        assert!(g1["sessionId"]
+            .as_str()
+            .map(|s| s.starts_with("syx-fed-"))
+            .unwrap_or(false));
     }
 
     #[test]
@@ -6230,14 +6558,26 @@ func main() {
         let text = "actor A { func run() { } }\nactor B { func work() { } }\nfunc main() { dist_send(A(), B(), PIPE) }";
         let roots = ["/home/repo1", "/home/repo2", "/home/repo3"];
         let graph = actor_routes_federated_for_source(text, "p32_fed_roots.sy", &roots);
-        assert_eq!(graph["workspaceRoots"].as_array().map(|a| a.len()).unwrap_or(0), 3);
+        assert_eq!(
+            graph["workspaceRoots"]
+                .as_array()
+                .map(|a| a.len())
+                .unwrap_or(0),
+            3
+        );
         assert_eq!(graph["multiRepo"].as_bool(), Some(true));
     }
 
     #[test]
     fn p33_native_gc_hover() {
         let text = "func main() { print(\"vm-native-generational-gc-phase33\") }";
-        let hover = hover_for_position("file:///p33native.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p33native.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("native")
                 || hover.to_string().contains("generational")
@@ -6250,9 +6590,7 @@ func main() {
     fn p33_native_gc_vm_run_analyze() {
         let text = "func main() { print(\"native-gc-syx-run-prod\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("native-gc")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("native-gc"));
     }
 
     #[test]
@@ -6269,7 +6607,13 @@ func main() {
     #[test]
     fn p33_adr042_inkwell_default_hover() {
         let text = "func main() { print(\"adr-042-inkwell-default-ga\") }";
-        let hover = hover_for_position("file:///p33adr042.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p33adr042.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("inkwell")
                 || hover.to_string().contains("ADR-042")
@@ -6281,7 +6625,13 @@ func main() {
     fn p33_adr042_inkwell_default_ga() {
         let text = "func main() { print(\"inkwell-default-compile-path-ga\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        let hover = hover_for_position("file:///p33inkwell.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p33inkwell.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             doc.semantic.all_bindings.contains_key("main")
                 || hover.to_string().contains("inkwell")
@@ -6300,7 +6650,8 @@ func main() {
     #[test]
     fn p33_global_actor_v13_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p33ga13.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p33ga13.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -6308,7 +6659,13 @@ func main() {
     #[test]
     fn p33_global_actor_v13_org_failover_hover() {
         let text = "global actor MainQueue { }\nfunc main() { print(\"global-actor-v13 org-failover prod\") }";
-        let hover = hover_for_position("file:///p33ga13hover.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p33ga13hover.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("v13")
                 || hover.to_string().contains("org")
@@ -6334,7 +6691,11 @@ func main() {
         let graph = actor_routes_federated_for_source(text, "p33_cross_org.sy", &roots);
         let cross_org = graph["edges"]
             .as_array()
-            .map(|edges| edges.iter().any(|e| e["kind"].as_str() == Some("cross-org")))
+            .map(|edges| {
+                edges
+                    .iter()
+                    .any(|e| e["kind"].as_str() == Some("cross-org"))
+            })
             .unwrap_or(false);
         assert!(cross_org || graph["multiOrg"].as_bool() == Some(true));
     }
@@ -6352,7 +6713,8 @@ func main() {
     #[test]
     fn p33_federated_routing_v4_session_persistence() {
         let text = "actor Counter { func take() { } }\nactor Worker { func run() { } }\nfunc main() { dist_send(Counter(), Worker(), UDS) }";
-        let graph = actor_routes_federated_for_source(text, "p33_persist.sy", &["/org/a/ws", "/org/b/ws"]);
+        let graph =
+            actor_routes_federated_for_source(text, "p33_persist.sy", &["/org/a/ws", "/org/b/ws"]);
         assert_eq!(graph["sessionPersistence"].as_str(), Some("v5"));
         assert_eq!(graph["multiOrg"].as_bool(), Some(true));
         assert_eq!(graph["persistentMapping"].as_bool(), Some(true));
@@ -6363,7 +6725,13 @@ func main() {
         let text = "actor A { func run() { } }\nactor B { func work() { } }\nfunc main() { dist_send(A(), B(), PIPE) }";
         let roots = ["/org/one/ws1", "/org/two/ws2", "/org/three/ws3"];
         let graph = actor_routes_federated_for_source(text, "p33_fed_roots.sy", &roots);
-        assert_eq!(graph["workspaceRoots"].as_array().map(|a| a.len()).unwrap_or(0), 3);
+        assert_eq!(
+            graph["workspaceRoots"]
+                .as_array()
+                .map(|a| a.len())
+                .unwrap_or(0),
+            3
+        );
         assert_eq!(graph["multiOrg"].as_bool(), Some(true));
     }
 
@@ -6377,14 +6745,17 @@ func main() {
             .and_then(|e| e["label"].as_str())
             .unwrap_or("");
         assert!(
-            label.contains("rustls crate") || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1
+            label.contains("rustls crate")
+                || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1
         );
     }
 
     #[test]
     fn p33_llvm_aot_phase8_hover() {
-        let text = "func main() { print(\"llvm-aot-phase8-vm-native-gc adr-042 inkwell-default\") }";
-        let hover = hover_for_position("file:///p33llvm8.sy", text, 0, 5, &DriverOptions::default());
+        let text =
+            "func main() { print(\"llvm-aot-phase8-vm-native-gc adr-042 inkwell-default\") }";
+        let hover =
+            hover_for_position("file:///p33llvm8.sy", text, 0, 5, &DriverOptions::default());
         assert!(
             hover.to_string().contains("main")
                 || hover.to_string().contains("inkwell")
@@ -6396,7 +6767,13 @@ func main() {
     #[test]
     fn p34_unified_gc_hover() {
         let text = "func main() { print(\"unified-gc-tri-backend-phase34 adr-045\") }";
-        let hover = hover_for_position("file:///p34unified.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p34unified.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("unified")
                 || hover.to_string().contains("tri-backend")
@@ -6409,9 +6786,7 @@ func main() {
     fn p34_unified_gc_tri_backend_analyze() {
         let text = "func main() { print(\"unified-gc tri-backend promotion prod\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        assert!(
-            doc.semantic.all_bindings.contains_key("main") || text.contains("tri-backend")
-        );
+        assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("tri-backend"));
     }
 
     #[test]
@@ -6428,7 +6803,13 @@ func main() {
     #[test]
     fn p34_adr044_inkwell_prod_hover() {
         let text = "func main() { print(\"adr-044-inkwell-prod-ga\") }";
-        let hover = hover_for_position("file:///p34adr044.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p34adr044.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("inkwell")
                 || hover.to_string().contains("ADR-044")
@@ -6440,7 +6821,13 @@ func main() {
     fn p34_adr044_inkwell_prod_ga() {
         let text = "func main() { print(\"inkwell-prod-compile-path-ga phase9\") }";
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
-        let hover = hover_for_position("file:///p34inkwell.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p34inkwell.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             doc.semantic.all_bindings.contains_key("main")
                 || hover.to_string().contains("inkwell")
@@ -6459,7 +6846,8 @@ func main() {
     #[test]
     fn p34_global_actor_v14_completion() {
         let text = "global actor MainQueue { }\nactor Counter { func take(sending v: Int) { } }\nfunc main() { let c = Counter(); c. }";
-        let items = completion_for_document("file:///p34ga14.sy", text, 2, 52, &DriverOptions::default());
+        let items =
+            completion_for_document("file:///p34ga14.sy", text, 2, 52, &DriverOptions::default());
         let labels = completion_labels(&items);
         assert!(labels.iter().any(|l| l.contains("take")) || text.contains("take"));
     }
@@ -6467,7 +6855,13 @@ func main() {
     #[test]
     fn p34_global_actor_v14_cdn_hover() {
         let text = "global actor MainQueue { }\nfunc main() { print(\"global-actor-v14 cdn-routing multi-region prod\") }";
-        let hover = hover_for_position("file:///p34ga14hover.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p34ga14hover.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("v14")
                 || hover.to_string().contains("CDN")
@@ -6493,7 +6887,11 @@ func main() {
         let graph = actor_routes_federated_for_source(text, "p34_cross_region.sy", &roots);
         let cross_region = graph["edges"]
             .as_array()
-            .map(|edges| edges.iter().any(|e| e["kind"].as_str() == Some("cross-region")))
+            .map(|edges| {
+                edges
+                    .iter()
+                    .any(|e| e["kind"].as_str() == Some("cross-region"))
+            })
             .unwrap_or(false);
         assert!(cross_region || graph["multiRegion"].as_bool() == Some(true));
     }
@@ -6524,13 +6922,15 @@ func main() {
     #[test]
     fn p34_federated_routing_v5_workspace_roots() {
         let text = "actor A { func run() { } }\nactor B { func work() { } }\nfunc main() { dist_send(A(), B(), PIPE) }";
-        let roots = [
-            "/region/us/ws1",
-            "/region/eu/ws2",
-            "/region/apac/ws3",
-        ];
+        let roots = ["/region/us/ws1", "/region/eu/ws2", "/region/apac/ws3"];
         let graph = actor_routes_federated_for_source(text, "p34_fed_roots.sy", &roots);
-        assert_eq!(graph["workspaceRoots"].as_array().map(|a| a.len()).unwrap_or(0), 3);
+        assert_eq!(
+            graph["workspaceRoots"]
+                .as_array()
+                .map(|a| a.len())
+                .unwrap_or(0),
+            3
+        );
         assert_eq!(graph["multiRegion"].as_bool(), Some(true));
     }
 
@@ -6544,14 +6944,16 @@ func main() {
             .and_then(|e| e["label"].as_str())
             .unwrap_or("");
         assert!(
-            label.contains("rustls crate") || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1
+            label.contains("rustls crate")
+                || graph["edges"].as_array().map(|a| a.len()).unwrap_or(0) >= 1
         );
     }
 
     #[test]
     fn p34_llvm_aot_phase9_hover() {
         let text = "func main() { print(\"llvm-aot-phase9-unified-gc adr-044 inkwell-prod\") }";
-        let hover = hover_for_position("file:///p34llvm9.sy", text, 0, 5, &DriverOptions::default());
+        let hover =
+            hover_for_position("file:///p34llvm9.sy", text, 0, 5, &DriverOptions::default());
         assert!(
             hover.to_string().contains("main")
                 || hover.to_string().contains("inkwell")
@@ -6559,7 +6961,6 @@ func main() {
                 || text.contains("phase9")
         );
     }
-
 
     #[test]
     fn p35_gc_promotion_hover() {
@@ -6586,7 +6987,13 @@ func main() {
     #[test]
     fn p35_formal_borrow_ci_hover() {
         let text = "func main() { print(\"borrow-ci coq-lean-ci formal proof\") }";
-        let hover = hover_for_position("file:///p35borrow.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p35borrow.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("borrow")
                 || hover.to_string().contains("Formal")
@@ -6633,8 +7040,15 @@ func main() {
 
     #[test]
     fn p35_llvm_aot_phase10_hover() {
-        let text = "func main() { print(\"llvm-aot-phase10 gc-promotion adr-046 inkwell-object\") }";
-        let hover = hover_for_position("file:///p35llvm10.sy", text, 0, 5, &DriverOptions::default());
+        let text =
+            "func main() { print(\"llvm-aot-phase10 gc-promotion adr-046 inkwell-object\") }";
+        let hover = hover_for_position(
+            "file:///p35llvm10.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(
             hover.to_string().contains("main")
                 || hover.to_string().contains("promotion")
@@ -6671,9 +7085,8 @@ func main() {
     fn p35_mir_v24_barrier_fixture_analyze() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/mir_jit_deopt_barrier.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| {
-            "func main() { print(\"jit-barrier-v24\") }".into()
-        });
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| "func main() { print(\"jit-barrier-v24\") }".into());
         let doc = analyze_document_for_lsp(Some(&path), &text, &DriverOptions::default());
         assert!(text.contains("main") || doc.semantic.all_bindings.contains_key("main"));
     }
@@ -6684,7 +7097,6 @@ func main() {
         let doc = analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("witness"));
     }
-
 
     #[test]
     fn p36_jit_tier2_hover() {
@@ -6717,7 +7129,13 @@ func main() {
     #[test]
     fn p36_llvm_aot_phase11_hover() {
         let text = "func main() { print(\"llvm-aot-phase11 gc-compaction adr-048\") }";
-        let hover = hover_for_position("file:///p36llvm11.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p36llvm11.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(hover.to_string().contains("main") || text.contains("phase11"));
     }
 
@@ -6731,7 +7149,13 @@ func main() {
     #[test]
     fn p36_borrow_subprocess_ci_hover() {
         let text = "func main() { print(\"borrow-subprocess ci-gate coq-lean default-on\") }";
-        let hover = hover_for_position("file:///p36borrow.sy", text, 0, 5, &DriverOptions::default());
+        let hover = hover_for_position(
+            "file:///p36borrow.sy",
+            text,
+            0,
+            5,
+            &DriverOptions::default(),
+        );
         assert!(hover.to_string().contains("main") || text.contains("borrow"));
     }
 
@@ -6774,7 +7198,8 @@ func main() {
     fn p36_jit_hotloop_fixture_analyze() {
         let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../syx-driver/tests/fixtures/lsp/jit_tier2_hotloop.sy");
-        let text = std::fs::read_to_string(&path).unwrap_or_else(|_| "func main() { return 0 }".into());
+        let text =
+            std::fs::read_to_string(&path).unwrap_or_else(|_| "func main() { return 0 }".into());
         let doc = analyze_document_for_lsp(Some(&path), &text, &DriverOptions::default());
         assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("main"));
     }
@@ -6789,17 +7214,16 @@ func main() {
     #[test]
     fn p36_embed_v22_gc_compaction_hover() {
         let text = "func main() { print(\"embed-v22 gc-compaction wasmtime-v3\") }";
-        let hover = hover_for_position("file:///p36embed.sy", text, 0, 5, &DriverOptions::default());
+        let hover =
+            hover_for_position("file:///p36embed.sy", text, 0, 5, &DriverOptions::default());
         assert!(hover.to_string().contains("main") || text.contains("embed"));
     }
-
-
-
 
     #[test]
     fn lsp_v29_core_prelude_completion() {
         let text = "func main() { Math.abs(1) }";
-        let comp = completion_for_document("file:///prelude.sy", text, 0, 16, &DriverOptions::default());
+        let comp =
+            completion_for_document("file:///prelude.sy", text, 0, 16, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(labels.iter().any(|l| l.contains("abs")) || text.contains("Math"));
     }
@@ -6861,7 +7285,10 @@ func main() {
         let text = "import Networking\nfunc main() {\n  Url.\n}";
         let doc = syx_driver::analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(
-            !doc.semantic.errors.iter().any(|e| e.message.contains("HTTPResponse")),
+            !doc.semantic
+                .errors
+                .iter()
+                .any(|e| e.message.contains("HTTPResponse")),
             "errors: {:?}",
             doc.semantic.errors
         );
@@ -6891,10 +7318,7 @@ func main() {
         let text = "import Ne";
         let comp = completion_for_document("file:///t.sy", text, 0, 9, &DriverOptions::default());
         let labels = completion_labels(&comp);
-        assert!(
-            labels.contains(&"Net".to_string()),
-            "labels: {labels:?}"
-        );
+        assert!(labels.contains(&"Net".to_string()), "labels: {labels:?}");
         assert!(
             !labels.contains(&"IO".to_string()),
             "IO should be filtered out for partial 'Ne', labels: {labels:?}"
@@ -6907,11 +7331,15 @@ func main() {
         let src = "import Crypto\nimport Random\nimport SIMD4\nfunc main() {\n  let n = Random.nextInt(10)\n  let v: SIMD4<Int32> = SIMD4.fromArray([1i32,2i32,3i32,4i32])\n  let x: Int128 = 1i128\n  Crypto.sha256(\"x\")\n}";
         let diags = syx_driver::diagnostics_for_source("main.sy", src, &DriverOptions::default());
         assert!(
-            !diags.iter().any(|d| d.message.contains("Undefined identifier 'Random'")),
+            !diags
+                .iter()
+                .any(|d| d.message.contains("Undefined identifier 'Random'")),
             "{diags:?}"
         );
         assert!(
-            !diags.iter().any(|d| d.message.contains("Undefined identifier 'SIMD4'")),
+            !diags
+                .iter()
+                .any(|d| d.message.contains("Undefined identifier 'SIMD4'")),
             "{diags:?}"
         );
         let comp = completion_for_document("file:///p39.sy", src, 0, 30, &DriverOptions::default());
@@ -6927,8 +7355,13 @@ func main() {
             text,
             &DriverOptions::default(),
         );
-        assert!(doc.semantic.errors.iter().all(|e| !e.message.contains("SIMD4")));
-        let comp = completion_for_document("file:///simd.sy", text, 0, 28, &DriverOptions::default());
+        assert!(doc
+            .semantic
+            .errors
+            .iter()
+            .all(|e| !e.message.contains("SIMD4")));
+        let comp =
+            completion_for_document("file:///simd.sy", text, 0, 28, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(labels.iter().any(|l| l.contains("fromArray")) || text.contains("fromArray"));
     }
@@ -6938,7 +7371,8 @@ func main() {
         let text = "#macro twice(x) { print(x) }\ntypealias Id = Int\n@propertyWrapper\nclass W { var wrappedValue: Int }\nfunc main() { #twice(\"x\") }";
         let doc = syx_driver::analyze_document_for_lsp(None, text, &DriverOptions::default());
         assert!(doc.semantic.all_bindings.contains_key("main") || text.contains("twice"));
-        let comp = completion_for_document("file:///p40.sy", text, 3, 10, &DriverOptions::default());
+        let comp =
+            completion_for_document("file:///p40.sy", text, 3, 10, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(labels.iter().any(|l| l.contains("wrappedValue")) || text.contains("wrappedValue"));
     }
@@ -6953,16 +7387,13 @@ func main() {
     #[test]
     fn lsp_v34_int_file_readbytes_completion() {
         let text = "import System\nfunc main() {\n    Int.ma\n    File.re\n}";
-        let comp = completion_for_document(
-            "file:///p42.sy",
-            text,
-            2,
-            10,
-            &DriverOptions::default(),
-        );
+        let comp =
+            completion_for_document("file:///p42.sy", text, 2, 10, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(
-            labels.iter().any(|l| l.contains("max") || l.contains("readBytes")),
+            labels
+                .iter()
+                .any(|l| l.contains("max") || l.contains("readBytes")),
             "expected Int/File IO completions: {labels:?}"
         );
     }
@@ -6975,16 +7406,13 @@ func main() {
     #[test]
     fn lsp_v35_int8ops_completion() {
         let text = "func main() {\n    Int8.ma\n    String.sp\n}";
-        let comp = completion_for_document(
-            "file:///p43.sy",
-            text,
-            1,
-            12,
-            &DriverOptions::default(),
-        );
+        let comp =
+            completion_for_document("file:///p43.sy", text, 1, 12, &DriverOptions::default());
         let labels = completion_labels(&comp);
         assert!(
-            labels.iter().any(|l| l.contains("max") || l.contains("split")),
+            labels
+                .iter()
+                .any(|l| l.contains("max") || l.contains("split")),
             "expected Int8/String completions: {labels:?}"
         );
     }
@@ -6994,21 +7422,17 @@ func main() {
         assert!(syx_driver::embedded_std::lookup_core_builtin("Int8").is_some());
     }
 
-
     #[test]
     fn lsp_v36_int8_core_completion() {
         let text = "func main() {\n    Int8.bi\n}";
-        let comp = completion_for_document(
-            "file:///p44.sy",
-            text,
-            1,
-            12,
-            &DriverOptions::default(),
-        );
+        let comp =
+            completion_for_document("file:///p44.sy", text, 1, 12, &DriverOptions::default());
         let labels = completion_labels(&comp);
-        assert!(labels.iter().any(|l| l.contains("bitWidth")), "labels: {labels:?}");
+        assert!(
+            labels.iter().any(|l| l.contains("bitWidth")),
+            "labels: {labels:?}"
+        );
     }
-
 
     #[test]
     fn lsp_v36_core_builtin_lookup() {
@@ -7024,8 +7448,8 @@ func main() {
         let src = syx_driver::embedded_std::globals_source();
         assert!(src.contains("public func print"));
         assert!(src.contains("public func readLine"));
-        let (uri, _span) = syx_driver::definition_for_global_builtin("print", None)
-            .expect("print → globals.sy");
+        let (uri, _span) =
+            syx_driver::definition_for_global_builtin("print", None).expect("print → globals.sy");
         assert!(
             uri.contains("globals.sy"),
             "uri should point at globals authority: {uri}"
@@ -7035,17 +7459,14 @@ func main() {
     #[test]
     fn lsp_v37_int8_min_completion() {
         let text = "func main() {\n    Int8.mi\n}";
-        let comp = completion_for_document(
-            "file:///p45.sy",
-            text,
-            1,
-            12,
-            &DriverOptions::default(),
-        );
+        let comp =
+            completion_for_document("file:///p45.sy", text, 1, 12, &DriverOptions::default());
         let labels = completion_labels(&comp);
-        assert!(labels.iter().any(|l| l.contains("min")), "labels: {labels:?}");
+        assert!(
+            labels.iter().any(|l| l.contains("min")),
+            "labels: {labels:?}"
+        );
     }
-
 
     #[test]
     fn lsp_v37_int8_core_host_wiring() {
@@ -7065,14 +7486,14 @@ func main() {
         assert!(syx_driver::embedded_std::lookup_core_builtin("BigInt").is_some());
     }
 
-
     #[test]
     fn lsp_v38_result_builder_attr_parse() {
         let text = "@resultBuilder\nfunc build() -> Array<Int> {\n    1\n}";
         let (_, module) = syx_driver::parse_for_lsp_completion(None, text);
-        assert!(module.decls.iter().any(|d| {
-            format!("{d:?}").contains("resultBuilder")
-        }));
+        assert!(module
+            .decls
+            .iter()
+            .any(|d| { format!("{d:?}").contains("resultBuilder") }));
     }
 
     #[test]
@@ -7081,7 +7502,6 @@ func main() {
         let (_, module) = syx_driver::parse_for_lsp_completion(None, text);
         assert!(format!("{module:?}").contains("name"));
     }
-
 
     #[test]
     fn lsp_v39_result_hosts_in_core() {
@@ -7110,7 +7530,6 @@ func main() {
         assert!(set.contains("__syx_set_count"));
         assert!(dict.contains("__syx_dict_keys"));
     }
-
 
     #[test]
     fn lsp_v40_result_static_in_core() {
@@ -7142,7 +7561,6 @@ func main() {
         assert!(adr.contains("macro"));
     }
 
-
     #[test]
     fn lsp_v41_syx_macro_crate_documented() {
         let adr = std::fs::read_to_string(
@@ -7151,7 +7569,14 @@ func main() {
         )
         .unwrap();
         assert!(adr.contains("syx-macro"));
-        assert!(adr.contains("SYX 50.0") || adr.contains("Phase 72") || adr.contains("SYX 45.0") || adr.contains("Phase 67") || adr.contains("SYX 44.0") || adr.contains("Phase 66"));
+        assert!(
+            adr.contains("SYX 50.0")
+                || adr.contains("Phase 72")
+                || adr.contains("SYX 45.0")
+                || adr.contains("Phase 67")
+                || adr.contains("SYX 44.0")
+                || adr.contains("Phase 66")
+        );
     }
 
     #[test]
@@ -7177,7 +7602,6 @@ func main() {
         .unwrap();
         assert!(adr.contains("syx-host-plugin"));
     }
-
 
     #[test]
     fn lsp_v42_hygiene_v2_documented() {
@@ -7230,7 +7654,6 @@ func main() {
         assert!(adr.contains("Host"));
     }
 
-
     #[test]
     fn lsp_v43_external_macro_parse() {
         let text = "macro M = #externalMacro(module: \"SyxMacros\", type: \"SmokeMemberMacro\")\nfunc main() {}";
@@ -7274,7 +7697,6 @@ func main() {
         assert!(adr.contains("external"));
     }
 
-
     #[test]
     fn lsp_v44_codable_attached_parse() {
         let text = "@Codable\ndata class User(n: Int, name: String)\nfunc main() {}";
@@ -7292,7 +7714,8 @@ func main() {
     #[test]
     fn lsp_v44_codable_go_to_type() {
         let text = "@Codable\ndata class User(n: Int)\nfunc main() { let u = User(n: 1) }";
-        let loc = type_definition_for_position("file:///t.sy", text, 1, 20, &DriverOptions::default());
+        let loc =
+            type_definition_for_position("file:///t.sy", text, 1, 20, &DriverOptions::default());
         let _ = loc;
     }
 
@@ -7309,7 +7732,11 @@ func main() {
     #[test]
     fn lsp_v44_execute_command_capability() {
         let caps = json!({ "commands": ["syx.macro.expand"] });
-        assert!(caps["commands"].as_array().unwrap().iter().any(|c| c == "syx.macro.expand"));
+        assert!(caps["commands"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c == "syx.macro.expand"));
     }
 
     #[test]
@@ -7336,7 +7763,6 @@ func main() {
         assert_eq!(row["status"], "implemented");
         assert_eq!(row["native"], "real");
     }
-
 
     #[test]
     fn lsp_v45_attached_accessor_parse() {
@@ -7382,7 +7808,6 @@ func main() {
 
     /// Phase 54 LSP v46: conformance + builtInMacro + enum Codable.
 
-
     #[test]
     fn lsp_v46_attached_conformance_parse() {
         let text = "@attached(conformance, Equatable)\ndata class P(x: Int)\nfunc main() {}";
@@ -7394,14 +7819,19 @@ func main() {
     fn lsp_v46_builtin_macro_parse() {
         let text = "macro Tracked = #builtInMacro(\"tracked_accessor\")\nclass C { @Tracked var x: Int }\nfunc main() {}";
         let (_, module) = syx_driver::parse_for_lsp_completion(None, text);
-        assert!(format!("{module:?}").contains("BuiltIn") || format!("{module:?}").contains("tracked_accessor"));
+        assert!(
+            format!("{module:?}").contains("BuiltIn")
+                || format!("{module:?}").contains("tracked_accessor")
+        );
     }
 
     #[test]
     fn lsp_v46_enum_codable_parse() {
         let text = "@Codable\nenum E { ok(code: Int) }\nfunc main() {}";
         let (_, module) = syx_driver::parse_for_lsp_completion(None, text);
-        assert!(format!("{module:?}").contains("Codable") || format!("{module:?}").contains("Enum"));
+        assert!(
+            format!("{module:?}").contains("Codable") || format!("{module:?}").contains("Enum")
+        );
     }
 
     #[test]
@@ -7425,7 +7855,6 @@ func main() {
     }
 
     /// Phase 55 LSP v47: MemberCallKind, ObjectRef, freestanding declaration.
-
 
     #[test]
     fn lsp_v47_member_call_kind_doc() {
@@ -7469,7 +7898,6 @@ func main() {
 
     /// Phase 56 LSP v48: Macro M5 engine, freestanding roles, enum Codable v2.
 
-
     #[test]
     fn lsp_v48_macro_engine_doc() {
         let adr = std::fs::read_to_string(
@@ -7502,7 +7930,6 @@ func main() {
 
     /// Phase 57 LSP v49: Macro M6 external, import macro, trust chain.
 
-
     #[test]
     fn lsp_v49_external_macro_doc() {
         let adr = std::fs::read_to_string(
@@ -7523,7 +7950,9 @@ func main() {
     /// Phase 59 LSP v51: Macro M8 GA, post-expansion semantic tokens.
     #[test]
     fn lsp_phase59_test_count_marker() {
-        assert!(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/adr/architecture-decisions.md").exists());
+        assert!(std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/adr/architecture-decisions.md")
+            .exists());
     }
 
     #[test]
@@ -7535,16 +7964,13 @@ func main() {
         let witness = root.join("../witness/lib.sy");
         let text = std::fs::read_to_string(&witness).unwrap();
         let (_, module) = syx_driver::parse_for_lsp_completion(None, &text);
-        assert!(
-            syx_driver::find_definition_in_module(
-                &syx_diagnostics::SourceFile::new(witness.to_string_lossy(), text),
-                &module,
-                "User",
-            )
-            .is_some()
-        );
+        assert!(syx_driver::find_definition_in_module(
+            &syx_diagnostics::SourceFile::new(witness.to_string_lossy(), text),
+            &module,
+            "User",
+        )
+        .is_some());
     }
-
 
     #[test]
     fn lsp_adr082_charter() {
@@ -7553,7 +7979,14 @@ func main() {
                 .join("../../docs/adr/architecture-decisions.md"),
         )
         .unwrap();
-        assert!(adr.contains("SYX 50.0") || adr.contains("Phase 72") || adr.contains("SYX 45.0") || adr.contains("Phase 67") || adr.contains("SYX 44.0") || adr.contains("Phase 66"));
+        assert!(
+            adr.contains("SYX 50.0")
+                || adr.contains("Phase 72")
+                || adr.contains("SYX 45.0")
+                || adr.contains("Phase 67")
+                || adr.contains("SYX 44.0")
+                || adr.contains("Phase 66")
+        );
     }
 
     #[test]
@@ -7573,10 +8006,12 @@ func main() {
         )
         .unwrap();
         let tok = semantic_tokens_for_document("file:///p59.sy", &text, &DriverOptions::default());
-        assert!(tok.get("data").and_then(|d| d.as_array()).map(|a| !a.is_empty()).unwrap_or(false));
+        assert!(tok
+            .get("data")
+            .and_then(|d| d.as_array())
+            .map(|a| !a.is_empty())
+            .unwrap_or(false));
     }
-
-
 
     #[test]
     fn lsp_build_syx_opt_level_completion() {
@@ -7604,7 +8039,12 @@ func main() {
                 .join("../../docs/adr/architecture-decisions.md"),
         )
         .unwrap();
-        assert!(adr.contains("syx-cache-v44") || adr.contains("syx-cache-v39") || adr.contains("syx-cache-v38") || adr.contains("Phase 67"));
+        assert!(
+            adr.contains("syx-cache-v44")
+                || adr.contains("syx-cache-v39")
+                || adr.contains("syx-cache-v38")
+                || adr.contains("Phase 67")
+        );
     }
 
     // Shared helpers for collapsed historical phase matrices (include! share this module).

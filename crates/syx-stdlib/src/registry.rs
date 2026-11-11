@@ -3943,28 +3943,24 @@ pub fn host_fn_index_by_name(name: &str) -> Option<u32> {
     if let Some(id) = host_fn_id_by_name(name) {
         return Some(host_fn_index(id));
     }
-    if let Some(pos) = lookup_numeric_host(name).and_then(|e| {
-        NUMERIC_HOST_TABLE
-            .iter()
-            .position(|x| x.name == e.name)
-    }) {
+    if let Some(pos) = lookup_numeric_host(name)
+        .and_then(|e| NUMERIC_HOST_TABLE.iter().position(|x| x.name == e.name))
+    {
         return Some(numeric_host_base_index() + pos as u32);
     }
-    if let Some(pos) = lookup_collection_host(name).and_then(|e| {
-        COLLECTION_HOST_TABLE
-            .iter()
-            .position(|x| x.name == e.name)
-    }) {
+    if let Some(pos) = lookup_collection_host(name)
+        .and_then(|e| COLLECTION_HOST_TABLE.iter().position(|x| x.name == e.name))
+    {
         return Some(collection_host_base_index() + pos as u32);
     }
-    if let Some(pos) = lookup_bigint_host(name).and_then(|e| {
-        BIGINT_HOST_TABLE.iter().position(|x| x.name == e.name)
-    }) {
+    if let Some(pos) = lookup_bigint_host(name)
+        .and_then(|e| BIGINT_HOST_TABLE.iter().position(|x| x.name == e.name))
+    {
         return Some(bigint_host_base_index() + pos as u32);
     }
-    if let Some(pos) = lookup_result_host(name).and_then(|e| {
-        RESULT_HOST_TABLE.iter().position(|x| x.name == e.name)
-    }) {
+    if let Some(pos) = lookup_result_host(name)
+        .and_then(|e| RESULT_HOST_TABLE.iter().position(|x| x.name == e.name))
+    {
         return Some(result_host_base_index() + pos as u32);
     }
     for (i, (host_name, _)) in compile_plugin_hosts().iter().enumerate() {
@@ -3976,10 +3972,7 @@ pub fn host_fn_index_by_name(name: &str) -> Option<u32> {
 }
 
 pub fn host_fn_index(id: HostFnId) -> u32 {
-    HostFnId::all()
-        .iter()
-        .position(|h| *h == id)
-        .unwrap_or(0) as u32
+    HostFnId::all().iter().position(|h| *h == id).unwrap_or(0) as u32
 }
 
 pub fn host_fn_name_for_index(idx: u32) -> Option<&'static str> {
@@ -4082,8 +4075,12 @@ pub fn method_param_label(method: MethodId) -> &'static str {
         MethodId::ArrReduce => "initial: Int, combine: Function",
         MethodId::ArrContains => "item: Object",
         MethodId::ArrJoined => "sep: String",
-        MethodId::HttpResponseJson | MethodId::HttpResponseStatus | MethodId::HttpResponseText
-        | MethodId::HttpResponseBody | MethodId::HttpResponseOk | MethodId::HttpResponseHeaders => "",
+        MethodId::HttpResponseJson
+        | MethodId::HttpResponseStatus
+        | MethodId::HttpResponseText
+        | MethodId::HttpResponseBody
+        | MethodId::HttpResponseOk
+        | MethodId::HttpResponseHeaders => "",
         MethodId::HttpResponseHeader => "name: String",
         MethodId::SetInsert => "item: Object",
         MethodId::SetRemove | MethodId::SetContains => "item: Object",
@@ -4127,18 +4124,18 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::TypeIs => "Bool",
         HostFnId::TypeCast => "Object",
         HostFnId::StrInstSplit | HostFnId::StrInstMatches => "Array",
-        HostFnId::StrInstTrim
-        | HostFnId::StrInstLowercased
-        | HostFnId::StrInstUppercased => "String",
+        HostFnId::StrInstTrim | HostFnId::StrInstLowercased | HostFnId::StrInstUppercased => {
+            "String"
+        }
         HostFnId::StrInstHasPrefix => "Bool",
         HostFnId::StrInstLength => "Int",
         HostFnId::StrInstSubstring => "String",
         HostFnId::StrUnicodeScalarCount | HostFnId::StrUtf8Count => "Int",
         HostFnId::StrUnicodeScalars | HostFnId::StrUtf8Bytes => "Array",
         HostFnId::CharacterIsSingleScalar => "Bool",
-        HostFnId::StrNormalizedNFC
-        | HostFnId::StrNormalizedNFD
-        | HostFnId::StrCaseFolded => "String",
+        HostFnId::StrNormalizedNFC | HostFnId::StrNormalizedNFD | HostFnId::StrCaseFolded => {
+            "String"
+        }
         HostFnId::HttpGet | HostFnId::HttpPost => "HTTPResponse",
         HostFnId::HttpResponseJson => "Object",
         HostFnId::ReadLine => "String",
@@ -4484,7 +4481,10 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         | HostFnId::ChannelCapacity => "Int",
         HostFnId::ActorSetSharedPoolEnabled | HostFnId::ActorSharedPoolEnabled => "Bool",
         HostFnId::TaskSetRejectPolicy | HostFnId::TaskRejectPolicy => "String",
-        HostFnId::OsUserName | HostFnId::OsHomeDir | HostFnId::OsHostname | HostFnId::OsPrimaryIpv4 => "String",
+        HostFnId::OsUserName
+        | HostFnId::OsHomeDir
+        | HostFnId::OsHostname
+        | HostFnId::OsPrimaryIpv4 => "String",
         HostFnId::FmtPrint | HostFnId::FmtPrintLine => "Nil",
         HostFnId::FmtFormat | HostFnId::FmtDebug => "String",
         HostFnId::Base64Encode | HostFnId::HexEncode | HostFnId::UrlEncode => "String",
@@ -4596,10 +4596,16 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::MutexLock | HostFnId::MutexUnlock => "Bool",
         HostFnId::WsRecv => "String",
         HostFnId::WsClose => "Void",
-        HostFnId::ArraySortBy | HostFnId::ArrayFlatMap | HostFnId::ArrayChunked | HostFnId::ArrayZip => "Array",
+        HostFnId::ArraySortBy
+        | HostFnId::ArrayFlatMap
+        | HostFnId::ArrayChunked
+        | HostFnId::ArrayZip => "Array",
         HostFnId::ArrayBinarySearch => "Int",
         HostFnId::LogDebug | HostFnId::LogInfo | HostFnId::LogWarn | HostFnId::LogError => "Nil",
-        HostFnId::TestingAssert | HostFnId::TestingAssertEq | HostFnId::TestingTest | HostFnId::TestingExpectEqual => "Nil",
+        HostFnId::TestingAssert
+        | HostFnId::TestingAssertEq
+        | HostFnId::TestingTest
+        | HostFnId::TestingExpectEqual => "Nil",
         HostFnId::StringBuilderNew => "Int",
         HostFnId::StringBuilderAppend => "Nil",
         HostFnId::StringBuilderToString => "String",

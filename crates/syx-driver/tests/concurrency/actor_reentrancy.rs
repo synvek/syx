@@ -50,7 +50,8 @@ func main() {
         out.contains("DENIED") && out.contains("C009"),
         "sync self-call must surface C009: {out}"
     );
-    assert!(!out.contains("OK"), "reentrant call must not succeed: {out}");
+    assert!(
+        !out.contains("OK"),
+        "reentrant call must not succeed: {out}"
+    );
 }
-
-

@@ -19,11 +19,7 @@ fn run_native_strict(src: &str) -> (i32, String, std::time::Duration) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -74,10 +70,6 @@ fn task_group_cancel_wait_native_llvm() {
         stdout.contains("JOIN_CANCEL"),
         "join after cancel must C004 path: {stdout}"
     );
-    assert!(
-        stdout.contains("C004"),
-        "err.code must be C004: {stdout}"
-    );
+    assert!(stdout.contains("C004"), "err.code must be C004: {stdout}");
     assert!(!stdout.contains("JOIN_OK"), "{stdout}");
 }
-

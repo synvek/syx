@@ -11,8 +11,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -32,13 +31,11 @@ fn s3_07_default_vm_adr_and_census() {
         "ADR must cite landed I84"
     );
     assert!(
-        adr.contains("S3-I85")
-            || (adr.contains("claim") && adr.contains("S3-07")),
+        adr.contains("S3-I85") || (adr.contains("claim") && adr.contains("S3-07")),
         "ADR must cite S3-I85 claim ladder"
     );
     assert!(
-        adr.contains("S3-I86")
-            || (adr.contains("exit") && adr.contains("open")),
+        adr.contains("S3-I86") || (adr.contains("exit") && adr.contains("open")),
         "ADR Consequences must lock next = Stage-3 exit open / I86"
     );
     assert!(

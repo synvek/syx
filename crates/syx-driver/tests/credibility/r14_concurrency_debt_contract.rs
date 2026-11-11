@@ -48,7 +48,8 @@ fn r14_actor_id_stamped_on_heap_slots() {
 
 #[test]
 fn r14_concurrency_docs_honesty_anchors() {
-    let book = std::fs::read_to_string(repo_path("books/language-guide/18-concurrency.md")).unwrap();
+    let book =
+        std::fs::read_to_string(repo_path("books/language-guide/18-concurrency.md")).unwrap();
     assert!(
         book.contains("应用并发") || book.contains("主业务"),
         "18-concurrency must name the application concurrency tier"
@@ -83,9 +84,10 @@ fn r14_concurrency_docs_honesty_anchors() {
 
 #[test]
 fn r14_actor_surface_has_no_vacuous_assert() {
-    let src =
-        std::fs::read_to_string(repo_path("crates/syx-driver/tests/concurrency/concurrency_surface.rs"))
-            .unwrap();
+    let src = std::fs::read_to_string(repo_path(
+        "crates/syx-driver/tests/concurrency/concurrency_surface.rs",
+    ))
+    .unwrap();
     assert!(
         !src.contains("if let Ok((code, lines)) = run_file_printed"),
         "actor fixtures must not silently skip assertions"

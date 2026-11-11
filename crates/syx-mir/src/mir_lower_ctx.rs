@@ -78,8 +78,7 @@ impl LowerCtx {
     }
 
     fn error_span(&self) -> Option<Span> {
-        self.current_span
-            .map(|(start, len)| Span { start, len })
+        self.current_span.map(|(start, len)| Span { start, len })
     }
 
     pub(crate) fn next_closure_id(&self) -> u32 {

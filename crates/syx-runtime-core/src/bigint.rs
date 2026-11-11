@@ -163,7 +163,10 @@ fn add_decimal_strings(a: &str, b: &str) -> String {
         (true, true) => format!("-{}", add_decimal_magnitude(ma, mb)),
         (true, false) => {
             if ma.len() > mb.len() || (ma.len() == mb.len() && ma > mb) {
-                format!("-{}", sub_decimal_magnitude(ma, mb).unwrap_or_else(|| "0".into()))
+                format!(
+                    "-{}",
+                    sub_decimal_magnitude(ma, mb).unwrap_or_else(|| "0".into())
+                )
             } else if ma == mb {
                 "0".into()
             } else {
@@ -176,7 +179,10 @@ fn add_decimal_strings(a: &str, b: &str) -> String {
             } else if ma == mb {
                 "0".into()
             } else {
-                format!("-{}", sub_decimal_magnitude(mb, ma).unwrap_or_else(|| "0".into()))
+                format!(
+                    "-{}",
+                    sub_decimal_magnitude(mb, ma).unwrap_or_else(|| "0".into())
+                )
             }
         }
     }

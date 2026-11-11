@@ -60,9 +60,7 @@ pub(crate) fn collect_closure_free_vars_detailed(
                 visit_expr(left, bound, outer_locals, seen, free, mutated);
                 visit_expr(right, bound, outer_locals, seen, free, mutated);
             }
-            Expr::Unary { expr, .. } => {
-                visit_expr(expr, bound, outer_locals, seen, free, mutated)
-            }
+            Expr::Unary { expr, .. } => visit_expr(expr, bound, outer_locals, seen, free, mutated),
             Expr::Call { callee, args, .. } => {
                 visit_expr(callee, bound, outer_locals, seen, free, mutated);
                 for arg in args {
@@ -84,22 +82,17 @@ pub(crate) fn collect_closure_free_vars_detailed(
                 }
                 visit_expr(value, bound, outer_locals, seen, free, mutated);
             }
-            Expr::MemberAssign { object, value, .. }
-            | Expr::IndexAssign { object, value, .. } => {
+            Expr::MemberAssign { object, value, .. } | Expr::IndexAssign { object, value, .. } => {
                 visit_expr(object, bound, outer_locals, seen, free, mutated);
                 visit_expr(value, bound, outer_locals, seen, free, mutated);
             }
-            Expr::Group { expr, .. } => {
-                visit_expr(expr, bound, outer_locals, seen, free, mutated)
-            }
+            Expr::Group { expr, .. } => visit_expr(expr, bound, outer_locals, seen, free, mutated),
             Expr::Array { elements, .. } => {
                 for el in elements {
                     visit_expr(el, bound, outer_locals, seen, free, mutated);
                 }
             }
-            Expr::Closure {
-                params, body, ..
-            } => {
+            Expr::Closure { params, body, .. } => {
                 let mut nested_bound = bound.clone();
                 for p in params {
                     nested_bound.insert(p.name.clone());
@@ -163,16 +156,14 @@ pub(crate) fn collect_closure_free_vars_detailed(
         ClosureBody::Expr(e) => {
             visit_expr(e, &bound, outer_locals, &mut seen, &mut free, &mut mutated)
         }
-        ClosureBody::Block(stmts) => {
-            visit_stmts(
-                stmts,
-                &mut bound,
-                outer_locals,
-                &mut seen,
-                &mut free,
-                &mut mutated,
-            )
-        }
+        ClosureBody::Block(stmts) => visit_stmts(
+            stmts,
+            &mut bound,
+            outer_locals,
+            &mut seen,
+            &mut free,
+            &mut mutated,
+        ),
     }
     ClosureFreeVars { free, mutated }
 }

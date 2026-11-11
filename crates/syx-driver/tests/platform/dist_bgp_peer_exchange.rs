@@ -7,13 +7,12 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use syx_async::{
-    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_export_peer_view,
-    cdn_bgp_ga_ready, cdn_bgp_health, cdn_bgp_import_peer_mesh, cdn_bgp_peer_exchange_done,
-    cdn_bgp_peer_view_count, cdn_bgp_route, cdn_delivery_ack_clear, cdn_delivery_ack_count,
-    cdn_doctor_mode, cdn_pop_clear, cdn_pop_configure,
-    cdn_pop_has_endpoints, cdn_pop_health, cdn_pop_register_serve_pid, cdn_pop_route,
-    cdn_pop_sibling_process_ready, cdn_route_counts_as_ga, cdn_route_ga, cdn_routes_memory_clear,
-    dist_connect_url_is_loopback, dist_host_key_remote_for_bind,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_export_peer_view, cdn_bgp_ga_ready,
+    cdn_bgp_health, cdn_bgp_import_peer_mesh, cdn_bgp_peer_exchange_done, cdn_bgp_peer_view_count,
+    cdn_bgp_route, cdn_delivery_ack_clear, cdn_delivery_ack_count, cdn_doctor_mode, cdn_pop_clear,
+    cdn_pop_configure, cdn_pop_has_endpoints, cdn_pop_health, cdn_pop_register_serve_pid,
+    cdn_pop_route, cdn_pop_sibling_process_ready, cdn_route_counts_as_ga, cdn_route_ga,
+    cdn_routes_memory_clear, dist_connect_url_is_loopback, dist_host_key_remote_for_bind,
     dist_pop_note_spawned_child, dist_pop_os_child_try_serve, dist_pop_pids_are_siblings,
     dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
@@ -144,8 +143,8 @@ fn run_pop_supervisor(result_path: &std::path::Path) {
     assert!(cdn_pop_health(region_b));
 
     let ack_before = cdn_delivery_ack_count();
-    let (active, ack) = cdn_pop_route(region_a, 1, 2, "p118-sibling-primary")
-        .expect("sibling-process PoP route");
+    let (active, ack) =
+        cdn_pop_route(region_a, 1, 2, "p118-sibling-primary").expect("sibling-process PoP route");
     assert_eq!(active, region_a);
     assert_eq!(ack, "p118-sibling-primary");
     assert!(cdn_delivery_ack_count() > ack_before);
@@ -201,7 +200,10 @@ fn dist_bgp_peer_cdn_bgp_peer_exchange_mvp() {
     let url_a = dist_tcp_url_for_bind_addr(&addr_a);
     let url_b = dist_tcp_url_for_bind_addr(&addr_b);
 
-    cdn_bgp_configure_mesh("us-east", &[("203.0.113.0/24", 100, "bgp-us", url_a.as_str())]);
+    cdn_bgp_configure_mesh(
+        "us-east",
+        &[("203.0.113.0/24", 100, "bgp-us", url_a.as_str())],
+    );
     assert!(!cdn_bgp_ga_ready(), "local-only must not pass mesh GA");
     assert_eq!(cdn_bgp_peer_view_count(), 0);
 
@@ -254,10 +256,8 @@ fn dist_bgp_peer_cdn_pop_parent_child_spawn_not_ga() {
     cdn_pop_clear();
     cdn_delivery_ack_clear();
 
-    let ready_path = std::env::temp_dir().join(format!(
-        "syx-dist-pop-p118-child-{}",
-        std::process::id()
-    ));
+    let ready_path =
+        std::env::temp_dir().join(format!("syx-dist-pop-p118-child-{}", std::process::id()));
     let _ = fs::remove_file(&ready_path);
     let exe = std::env::current_exe().expect("current_exe");
     let mut child = Command::new(&exe)
@@ -344,4 +344,3 @@ fn dist_bgp_peer_cdn_pop_sibling_supervisor_e2e() {
     assert!(body.contains("ok"), "supervisor result: {body}");
     let _ = fs::remove_file(&result_path);
 }
-

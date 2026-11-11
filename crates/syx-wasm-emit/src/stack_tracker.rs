@@ -105,9 +105,10 @@ impl StackTracker {
     }
 
     fn end_frame(&mut self) -> Result<(), String> {
-        let frame = self.frames.pop().ok_or_else(|| {
-            self.diagnostic("End with no open control frame")
-        })?;
+        let frame = self
+            .frames
+            .pop()
+            .ok_or_else(|| self.diagnostic("End with no open control frame"))?;
         let expected = frame.height_on_enter + frame.result_arity as i32;
         if self.height != expected {
             return Err(self.diagnostic(&format!(
@@ -168,15 +169,16 @@ impl StackTracker {
                 // Else re-enters a reachable path even after a then-branch `Br`.
                 self.unreachable_until_frames = None;
                 let (kind, height_on_enter, result_arity) = {
-                    let frame = self.frames.last().ok_or_else(|| {
-                        self.diagnostic("Else with no open If frame")
-                    })?;
+                    let frame = self
+                        .frames
+                        .last()
+                        .ok_or_else(|| self.diagnostic("Else with no open If frame"))?;
                     (frame.kind, frame.height_on_enter, frame.result_arity)
                 };
                 if kind != FrameKind::If {
-                    return Err(self.diagnostic(&format!(
-                        "Else under {kind:?} frame (expected If)"
-                    )));
+                    return Err(
+                        self.diagnostic(&format!("Else under {kind:?} frame (expected If)"))
+                    );
                 }
                 // Then-branch must leave exactly result_arity values above enter height.
                 let expected = height_on_enter + result_arity as i32;
@@ -202,16 +204,13 @@ impl StackTracker {
                             self.height = 0;
                             return Ok(());
                         }
-                        return Err(self.diagnostic(
-                            "End with no open control frame (unreachable)",
-                        ));
+                        return Err(self.diagnostic("End with no open control frame (unreachable)"));
                     }
                     let frame = self.frames.pop().expect("frames non-empty");
                     if self.frames.len() == remain {
                         // Finished the branch target: its results appear to the parent.
                         self.unreachable_until_frames = None;
-                        self.height =
-                            frame.height_on_enter + frame.result_arity as i32;
+                        self.height = frame.height_on_enter + frame.result_arity as i32;
                     }
                     return Ok(());
                 }
@@ -417,10 +416,11 @@ pub fn track_instruction(instr: &WasmInstr<'_>, func_idx_hint: Option<u32>) -> R
             return Ok(());
         }
         let call_effect = match (instr, func_idx_hint) {
-            (WasmInstr::Call(idx), _) => ctx.import_effects.get(idx).copied().or_else(|| {
-                func_idx_hint
-                    .and_then(|h| ctx.import_effects.get(&h).copied())
-            }),
+            (WasmInstr::Call(idx), _) => ctx
+                .import_effects
+                .get(idx)
+                .copied()
+                .or_else(|| func_idx_hint.and_then(|h| ctx.import_effects.get(&h).copied())),
             _ => None,
         };
         // Prefer the Call's own index from the instruction.
@@ -463,7 +463,9 @@ mod tests {
         t.set_mir_context(2, 7, "ConstI32(1)");
         t.apply(&WasmInstr::Block(BlockType::Empty), None).unwrap();
         t.apply(&WasmInstr::I32Const(1), None).unwrap(); // leak
-        let err = t.apply(&WasmInstr::End, None).expect_err("must detect leak");
+        let err = t
+            .apply(&WasmInstr::End, None)
+            .expect_err("must detect leak");
         assert!(
             err.contains("W001 stack tracker"),
             "diagnostic must carry stable keyword: {err}"

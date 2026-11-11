@@ -50,4 +50,3 @@ func main() {
         "snapshot must include labeled series with sorted keys: {snap}"
     );
 }
-

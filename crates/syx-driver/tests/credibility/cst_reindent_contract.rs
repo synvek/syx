@@ -7,8 +7,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -30,7 +29,10 @@ fn s2_04_cst_reindent_func_body() {
     assert!(two_to_four.contains("S2-I147"), "2to4 ADR must exist");
 
     let class_stored = repo_file("docs/adr/stage2-s2-04-cst-reindent-class-stored.md");
-    assert!(class_stored.contains("S2-I148"), "class-stored ADR must exist");
+    assert!(
+        class_stored.contains("S2-I148"),
+        "class-stored ADR must exist"
+    );
 
     let gate = repo_file("docs/adr/stage2-s2-04-cst-reindent-env-gate.md");
     assert!(gate.contains("S2-I149"), "env-gate ADR must exist");

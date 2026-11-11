@@ -47,8 +47,7 @@ fn tls_server_ga_thin_evidence_files_exist() {
 fn tls_server_ga_thin_spec_signed() {
     let spec = include_str!("../../../../docs/lang/tls-server-ga-vectors.md");
     assert!(
-        spec.contains("ADR-730")
-            && (spec.contains("thin-open") || spec.contains("inventory thin")),
+        spec.contains("ADR-730") && (spec.contains("thin-open") || spec.contains("inventory thin")),
         "spec must cite ADR-730 TLS server thin-open inventory"
     );
     assert!(
@@ -57,8 +56,12 @@ fn tls_server_ga_thin_spec_signed() {
         "spec must index TLS inventory thin met"
     );
     assert!(
-        (spec.contains("TLS honesty-ladder floor") || spec.contains("honesty-ladder floor") || spec.contains("ADR-732"))
-            && (spec.contains("**met** (W388") || spec.contains("met (narrow)") || spec.contains("ADR-732")),
+        (spec.contains("TLS honesty-ladder floor")
+            || spec.contains("honesty-ladder floor")
+            || spec.contains("ADR-732"))
+            && (spec.contains("**met** (W388")
+                || spec.contains("met (narrow)")
+                || spec.contains("ADR-732")),
         "spec must mark honesty floor met after W388"
     );
     assert!(
@@ -82,9 +85,7 @@ fn tls_server_ga_thin_spec_signed() {
 
     let accept = include_str!("../../../../docs/lang/tcp-accept-ga-exit.md");
     assert!(
-        accept.contains("ADR-729")
-            && (accept.contains("met") || accept.contains("exit signed")),
+        accept.contains("ADR-729") && (accept.contains("met") || accept.contains("exit signed")),
         "accept exit must remain signed after TLS floor exit"
     );
 }
-

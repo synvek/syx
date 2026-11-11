@@ -4585,10 +4585,7 @@ func main() {
             syx_diagnostics::SourceFile::new("t.sy", "class Greeter {}"),
             program,
         );
-        assert_eq!(
-            session.program.functions[0].name.as_str(),
-            "Greeter_hello"
-        );
+        assert_eq!(session.program.functions[0].name.as_str(), "Greeter_hello");
         let dap_frames = session.stack_frames_dap();
         let dap_name = dap_frames[0]["name"].as_str().expect("dap name");
         assert_eq!(dap_name, "Greeter.hello");

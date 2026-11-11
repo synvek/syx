@@ -1,7 +1,6 @@
 //! TLS HostFn implement thin-open inventory
 //! After : HostFn may exist; still locks inventory signed; bans TLS GA / status raise / B `[x]`.
 
-
 fn utf8_prefix_slice(s: &str, start: usize, want: usize) -> &str {
     let mut end = (start + want).min(s.len());
     while end > start && !s.is_char_boundary(end) {
@@ -113,8 +112,7 @@ fn tls_server_hostfn_thin_spec_signed() {
 
     let floor = include_str!("../../../../docs/lang/tls-server-ga-exit.md");
     assert!(
-        floor.contains("ADR-732")
-            && (floor.contains("exit signed") || floor.contains("honesty")),
+        floor.contains("ADR-732") && (floor.contains("exit signed") || floor.contains("honesty")),
         "honesty floor exit must remain signed after implement thin"
     );
 }
@@ -148,4 +146,3 @@ fn tls_server_hostfn_thin_product_hostfn_retained() {
         "live product status raise is W435/ADR-779 (historical W392 defer remains in vectors): {slice}"
     );
 }
-

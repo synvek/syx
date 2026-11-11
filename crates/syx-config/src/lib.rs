@@ -5,12 +5,30 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 /// Core prelude module names auto-visible when stdlib is enabled (ADR-064, Phase 44 SYX 22.0).
 /// SA-1: modules left prelude (explicit import).
 pub const CORE_PRELUDE_MODULES: &[&str] = &[
-    "Int8", "Int16", "Int32", "Int64", "Int128",
-    "UInt8", "UInt16", "UInt32", "UInt64", "UInt128",
-    "Int", "UInt",
-    "Float32", "Float64", "Float", "Double",
-    "Bool", "Character", "String",
-    "Array", "Set", "Dictionary", "Result", "BigInt",
+    "Int8",
+    "Int16",
+    "Int32",
+    "Int64",
+    "Int128",
+    "UInt8",
+    "UInt16",
+    "UInt32",
+    "UInt64",
+    "UInt128",
+    "Int",
+    "UInt",
+    "Float32",
+    "Float64",
+    "Float",
+    "Double",
+    "Bool",
+    "Character",
+    "String",
+    "Array",
+    "Set",
+    "Dictionary",
+    "Result",
+    "BigInt",
     "Hasher",
     "Concurrency",
 ];
@@ -66,7 +84,9 @@ pub struct LlvmConfig {
 
 impl Default for LlvmConfig {
     fn default() -> Self {
-        Self { aot: llvm_aot_from_env() }
+        Self {
+            aot: llvm_aot_from_env(),
+        }
     }
 }
 
@@ -414,8 +434,7 @@ fn cranelift_p20_from_env() -> bool {
     if std::env::var("SYX_CRANELIFT_P20").is_ok() {
         eprintln!("warning: SYX_CRANELIFT_P20 is deprecated; use CLI config (Phase 37)");
     }
-    env_falsey_opt_out("SYX_CRANELIFT_P20", true)
-        || env_truthy("SYX_CRANELIFT_P19")
+    env_falsey_opt_out("SYX_CRANELIFT_P20", true) || env_truthy("SYX_CRANELIFT_P19")
 }
 
 #[cfg(test)]

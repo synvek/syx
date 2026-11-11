@@ -9,11 +9,11 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{LazyLock, Mutex, OnceLock};
 
 use skia_safe::{
-    canvas::SaveLayerRec,
-    gradient_shader, surfaces, AlphaType, BlendMode, Canvas, Color, ColorType, Data, Image,
-    ImageInfo, Matrix, Paint, PaintStyle, Path, PathBuilder, Point, Rect, TileMode,
+    canvas::SaveLayerRec, gradient_shader, surfaces, AlphaType, BlendMode, Canvas, Color,
+    ColorType, Data, Image, ImageInfo, Matrix, Paint, PaintStyle, Path, PathBuilder, Point, Rect,
+    TileMode,
 };
-use ttf_parser::colr::{CompositeMode, GradientExtend, Painter, Paint as ColrPaint};
+use ttf_parser::colr::{CompositeMode, GradientExtend, Paint as ColrPaint, Painter};
 use ttf_parser::{Face, GlyphId, OutlineBuilder, RasterImageFormat, RgbaColor, Transform};
 
 pub const EMOJI_DIGEST: &str = "gui-emoji-v9:font-radial-and-sweep";
@@ -220,7 +220,10 @@ impl ColrSkiaPainter<'_> {
         self.canvas.draw_path(path, &paint);
     }
 
-    fn make_radial_gradient_paint(&self, grad: &ttf_parser::colr::RadialGradient<'_>) -> Option<Paint> {
+    fn make_radial_gradient_paint(
+        &self,
+        grad: &ttf_parser::colr::RadialGradient<'_>,
+    ) -> Option<Paint> {
         let stops: Vec<_> = grad.stops(0, &[]).collect();
         if stops.is_empty() {
             return None;
@@ -265,7 +268,10 @@ impl ColrSkiaPainter<'_> {
         }
     }
 
-    fn make_sweep_gradient_paint(&self, grad: &ttf_parser::colr::SweepGradient<'_>) -> Option<Paint> {
+    fn make_sweep_gradient_paint(
+        &self,
+        grad: &ttf_parser::colr::SweepGradient<'_>,
+    ) -> Option<Paint> {
         let stops: Vec<_> = grad.stops(0, &[]).collect();
         if stops.is_empty() {
             return None;
@@ -606,9 +612,7 @@ pub fn probe_colr_gradient_atlas() -> bool {
     let Some((canvas, _, _)) = rasterize_colr_glyph(EMOJI_GRIN) else {
         return false;
     };
-    (COLR_GRAD_USED.load(Ordering::Relaxed)
-        || colr_radial_used()
-        || colr_sweep_used())
+    (COLR_GRAD_USED.load(Ordering::Relaxed) || colr_radial_used() || colr_sweep_used())
         && canvas.iter().any(|&px| px != 0)
 }
 
@@ -674,11 +678,7 @@ fn prove_colr_sweep_doctor_paint() -> bool {
         None,
     );
     let path = builder.snapshot();
-    let colors = [
-        Color::RED,
-        Color::GREEN,
-        Color::BLUE,
-    ];
+    let colors = [Color::RED, Color::GREEN, Color::BLUE];
     #[allow(deprecated)]
     let Some(shader) = gradient_shader::sweep(
         Point::new(EMOJI_W as f32 / 2.0, EMOJI_H as f32 / 2.0),
@@ -833,13 +833,7 @@ fn resolve_emoji_pixels(ch: char) -> Option<(Vec<u32>, u32, u32)> {
 
 /// Blit color emoji into CPU pixel buffer; returns advance width.
 /// Primary path is CBDT; falls back to COLR gradient atlas.
-pub fn blit_color_emoji(
-    buf: &mut [u32],
-    stride: u32,
-    x0: u32,
-    y0: u32,
-    ch: char,
-) -> u32 {
+pub fn blit_color_emoji(buf: &mut [u32], stride: u32, x0: u32, y0: u32, ch: char) -> u32 {
     if !is_color_emoji(ch) {
         return 0;
     }

@@ -4,13 +4,13 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 use crate::{
-    drain_pending_handlers, host_gui_button_create, host_gui_button_clicked,
+    drain_pending_handlers, host_gui_button_clicked, host_gui_button_create,
     host_gui_button_take_clicked, host_gui_click_inject, host_gui_key_inject,
-    host_gui_label_create, host_gui_layout_create, host_gui_layout_configure,
-    host_gui_on_click_register,
-    host_gui_pixel_read, host_gui_run_loop_once, host_gui_text_field_create,
-    host_gui_widget_get_text, host_gui_widget_set_text, host_gui_winit_canvas_draw,
-    host_gui_winit_event_pump, host_gui_winit_window_create, reset_gui_state,
+    host_gui_label_create, host_gui_layout_configure, host_gui_layout_create,
+    host_gui_on_click_register, host_gui_pixel_read, host_gui_run_loop_once,
+    host_gui_text_field_create, host_gui_widget_get_text, host_gui_widget_set_text,
+    host_gui_winit_canvas_draw, host_gui_winit_event_pump, host_gui_winit_window_create,
+    reset_gui_state,
 };
 use syx_runtime_core::Value;
 
@@ -214,10 +214,7 @@ pub extern "C" fn syx_gui_dylib_layout_create(
     axis: *const c_char,
     out_id: *mut *mut c_char,
 ) -> bool {
-    let mut stack = vec![
-        Value::Str(read_c_str(win_id)),
-        Value::Str(read_c_str(axis)),
-    ];
+    let mut stack = vec![Value::Str(read_c_str(win_id)), Value::Str(read_c_str(axis))];
     if host_gui_layout_create(&mut stack).is_err() {
         return false;
     }
@@ -264,7 +261,10 @@ pub extern "C" fn syx_gui_dylib_on_click_register(
 
 #[no_mangle]
 pub extern "C" fn syx_gui_dylib_click_inject(win_id: *const c_char, btn_id: *const c_char) -> bool {
-    let mut stack = vec![Value::Str(read_c_str(win_id)), Value::Str(read_c_str(btn_id))];
+    let mut stack = vec![
+        Value::Str(read_c_str(win_id)),
+        Value::Str(read_c_str(btn_id)),
+    ];
     host_gui_click_inject(&mut stack)
         .ok()
         .and_then(|_| stack.pop())
@@ -307,7 +307,10 @@ pub extern "C" fn syx_gui_dylib_widget_set_text(
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_button_clicked(win_id: *const c_char, widget_id: *const c_char) -> bool {
+pub extern "C" fn syx_gui_dylib_button_clicked(
+    win_id: *const c_char,
+    widget_id: *const c_char,
+) -> bool {
     let mut stack = vec![
         Value::Str(read_c_str(win_id)),
         Value::Str(read_c_str(widget_id)),
@@ -745,6 +748,9 @@ pub extern "C" fn syx_gui_dylib_doctor_widgets(out: *mut *mut c_char) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn syx_gui_dylib_ime_preedit_inject(win_id: *const c_char, preedit: *const c_char) -> bool {
+pub extern "C" fn syx_gui_dylib_ime_preedit_inject(
+    win_id: *const c_char,
+    preedit: *const c_char,
+) -> bool {
     crate::apply_ime_preedit_inject(&read_c_str(win_id), &read_c_str(preedit))
 }

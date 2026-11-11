@@ -48,8 +48,7 @@ fn r11_sql_row_census_files_exist() {
         "SqlRow.columnNames row must be Dictionary"
     );
     assert!(
-        !row
-            .lines()
+        !row.lines()
             .any(|ln| ln.contains("func ") && ln.contains("Object")),
         "SqlRow methods must not spell Object"
     );

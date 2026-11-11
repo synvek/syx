@@ -20,6 +20,21 @@ nums[1] = 99                                // ✅ 可变
 
 > **强类型：** Phase 60 起**禁止** 裸 `Array`（必须带类型参数）。需要混合类型用 `Array<Any>` 或 `Object`。
 
+### 值语义：Array 赋值隔离（R-38 · SEM-ARRAY）
+
+赋值 `Array` 后写时隔离（uniquify）：
+
+```syx,output
+// prints: 1\n2
+func main() {
+    var a = [1]
+    var b = a
+    b.append(2)
+    print(a.count)
+    print(b.count)
+}
+```
+
 ### 常用方法
 
 | 方法 | 签名 | 说明 |

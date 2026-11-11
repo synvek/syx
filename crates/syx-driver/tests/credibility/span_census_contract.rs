@@ -7,8 +7,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn bare_diag_count(src: &str) -> usize {
@@ -24,22 +23,24 @@ fn s3_01_span_census_baseline() {
     assert!(census.contains("≠") && census.contains("S3-01"));
     assert!(
         census.contains("S3-I40")
-            && (census.contains("noise") || census.contains("claim-prep") || census.contains("helper_calls")),
+            && (census.contains("noise")
+                || census.contains("claim-prep")
+                || census.contains("helper_calls")),
         "census must name S3-I40 noise/claim-prep gate"
     );
     assert!(
-        census.contains("S3-I41")
-            && (census.contains("claim") || census.contains("[x]")),
+        census.contains("S3-I41") && (census.contains("claim") || census.contains("[x]")),
         "census must name S3-I41 S3-01 claim"
     );
     assert!(
-        census.contains("S3-I42")
-            && (census.contains("S3-02") || census.contains("open")),
+        census.contains("S3-I42") && (census.contains("S3-02") || census.contains("open")),
         "census must name S3-I42 S3-02 open"
     );
     assert!(
         census.contains("S3-I43")
-            && (census.contains("demangle") || census.contains("construct") || census.contains("S3-02")),
+            && (census.contains("demangle")
+                || census.contains("construct")
+                || census.contains("S3-02")),
         "census must name S3-I43 demangle"
     );
     assert!(
@@ -48,18 +49,15 @@ fn s3_01_span_census_baseline() {
         "census must name S3-I44 debug stack"
     );
     assert!(
-        census.contains("S3-I45")
-            && (census.contains("runtime") || census.contains("__type")),
+        census.contains("S3-I45") && (census.contains("runtime") || census.contains("__type")),
         "census must name S3-I45 runtime"
     );
     assert!(
-        census.contains("S3-I46")
-            && (census.contains("meta") || census.contains("S3-02")),
+        census.contains("S3-I46") && (census.contains("meta") || census.contains("S3-02")),
         "census must name S3-I46 meta"
     );
     assert!(
-        census.contains("S3-I47")
-            && census.contains("claim"),
+        census.contains("S3-I47") && census.contains("claim"),
         "census must name S3-I47 claim"
     );
     assert!(
@@ -262,16 +260,12 @@ fn s3_01_span_census_baseline() {
         adr.contains("S3-I47") && adr.contains("stage3-s3-02-claim"),
         "stage3-open must cite landed S3-I47 claim ADR"
     );
-    assert!(
-        adr.contains("S3-03"),
-        "stage3-open must lock next = S3-03"
-    );
+    assert!(adr.contains("S3-03"), "stage3-open must lock next = S3-03");
 
     let macro_adr = repo_file("docs/adr/stage3-s3-01-span-host-macro.md");
     assert!(macro_adr.contains("S3-I13"));
     assert!(
-        macro_adr.contains("S3-I14")
-            && (macro_adr.contains("hosts") || macro_adr.contains("vm")),
+        macro_adr.contains("S3-I14") && (macro_adr.contains("hosts") || macro_adr.contains("vm")),
         "macro ADR Consequences must cite landed S3-I14"
     );
 
@@ -286,9 +280,7 @@ fn s3_01_span_census_baseline() {
         vm_adr.contains("S3-I15") && vm_adr.contains("phase89"),
         "vm-hosts ADR must cite landed S3-I15 phase89"
     );
-    assert!(
-        vm_adr.contains("do **not** change") && vm_adr.contains("primary_span: None")
-    );
+    assert!(vm_adr.contains("do **not** change") && vm_adr.contains("primary_span: None"));
 
     let phase89_adr = repo_file("docs/adr/stage3-s3-01-span-host-vm-phase89.md");
     assert!(phase89_adr.contains("S3-I15"));
@@ -377,9 +369,7 @@ fn s3_01_span_census_baseline() {
         mid_adr.contains("S3-I21") && mid_adr.contains("wasm_stubs"),
         "mid ADR must cite landed S3-I21 wasm_stubs"
     );
-    assert!(
-        mid_adr.contains("do **not** change") && mid_adr.contains("primary_span: None")
-    );
+    assert!(mid_adr.contains("do **not** change") && mid_adr.contains("primary_span: None"));
 
     let stubs_adr = repo_file("docs/adr/stage3-s3-01-span-host-vm-wasm-stubs.md");
     assert!(stubs_adr.contains("S3-I21"));
@@ -393,9 +383,7 @@ fn s3_01_span_census_baseline() {
             && (stubs_adr.contains("rt") || stubs_adr.contains("cranelift")),
         "wasm-stubs ADR must cite landed S3-I22 rt/cranelift/debug"
     );
-    assert!(
-        stubs_adr.contains("do **not** change") && stubs_adr.contains("primary_span: None")
-    );
+    assert!(stubs_adr.contains("do **not** change") && stubs_adr.contains("primary_span: None"));
 
     let rt_adr = repo_file("docs/adr/stage3-s3-01-span-host-rt-jit-debug.md");
     assert!(rt_adr.contains("S3-I22"));
@@ -410,9 +398,7 @@ fn s3_01_span_census_baseline() {
         rt_adr.contains("S3-I23") && rt_adr.contains("residual"),
         "rt-jit-debug ADR must cite landed S3-I23 residual"
     );
-    assert!(
-        rt_adr.contains("do **not** change") && rt_adr.contains("primary_span: None")
-    );
+    assert!(rt_adr.contains("do **not** change") && rt_adr.contains("primary_span: None"));
 
     let residual_adr = repo_file("docs/adr/stage3-s3-01-span-host-residual.md");
     assert!(residual_adr.contains("S3-I23"));
@@ -428,8 +414,7 @@ fn s3_01_span_census_baseline() {
         "residual ADR must cite landed S3-I24 claim prep"
     );
     assert!(
-        residual_adr.contains("do **not** change")
-            && residual_adr.contains("primary_span: None")
+        residual_adr.contains("do **not** change") && residual_adr.contains("primary_span: None")
     );
 
     let claim_adr = repo_file("docs/adr/stage3-s3-01-claim-prep.md");
@@ -475,7 +460,8 @@ fn s3_01_span_census_baseline() {
         "miette ADR must cite landed S3-I27 driver compile"
     );
     assert!(
-        miette_adr.contains("S3-I28") && miette_adr.contains("positionless-driver-emit-test-native"),
+        miette_adr.contains("S3-I28")
+            && miette_adr.contains("positionless-driver-emit-test-native"),
         "miette ADR must cite landed S3-I28 emit/test/native"
     );
     assert!(
@@ -532,31 +518,43 @@ fn s3_01_span_census_baseline() {
         "miette ADR must cite S3-I41 claim"
     );
     assert!(
-        miette_adr.contains("S3-I42") && (miette_adr.contains("S3-02") || miette_adr.contains("open")),
+        miette_adr.contains("S3-I42")
+            && (miette_adr.contains("S3-02") || miette_adr.contains("open")),
         "miette ADR must cite S3-I42 open"
     );
     assert!(
-        miette_adr.contains("S3-I43") && (miette_adr.contains("construct") || miette_adr.contains("demangle") || miette_adr.contains("S3-02")),
+        miette_adr.contains("S3-I43")
+            && (miette_adr.contains("construct")
+                || miette_adr.contains("demangle")
+                || miette_adr.contains("S3-02")),
         "miette_adr must cite S3-I43"
     );
     assert!(
-        miette_adr.contains("S3-I44") && (miette_adr.contains("debug") || miette_adr.contains("stack") || miette_adr.contains("S3-02")),
+        miette_adr.contains("S3-I44")
+            && (miette_adr.contains("debug")
+                || miette_adr.contains("stack")
+                || miette_adr.contains("S3-02")),
         "miette_adr must cite S3-I44"
     );
     assert!(
-        miette_adr.contains("S3-I45") && (miette_adr.contains("runtime") || miette_adr.contains("__type")),
+        miette_adr.contains("S3-I45")
+            && (miette_adr.contains("runtime") || miette_adr.contains("__type")),
         "miette_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            miette_adr.contains("S3-I46") && (miette_adr.contains("meta") || miette_adr.contains("S3-02") || miette_adr.contains("claim")),
+    );
+    assert!(
+        miette_adr.contains("S3-I46")
+            && (miette_adr.contains("meta")
+                || miette_adr.contains("S3-02")
+                || miette_adr.contains("claim")),
         "miette_adr must cite S3-I46 meta"
-        );
-        assert!(
-            miette_adr.contains("S3-I47") && (miette_adr.contains("claim") || miette_adr.contains("S3-02")),
+    );
+    assert!(
+        miette_adr.contains("S3-I47")
+            && (miette_adr.contains("claim") || miette_adr.contains("S3-02")),
         "miette_adr must cite S3-I47 claim"
-        );
-        assert!(
-            miette_adr.contains("S3-03"),
+    );
+    assert!(
+        miette_adr.contains("S3-03"),
         "miette_adr must lock next = S3-03"
     );
     assert!(
@@ -630,8 +628,7 @@ fn s3_01_span_census_baseline() {
         "parser/driver ADR must cite landed S3-I40"
     );
     assert!(
-        pos_adr.contains("S3-I41")
-            && (pos_adr.contains("claim") || pos_adr.contains("[x]")),
+        pos_adr.contains("S3-I41") && (pos_adr.contains("claim") || pos_adr.contains("[x]")),
         "parser/driver ADR must cite S3-I41 claim"
     );
     assert!(
@@ -639,29 +636,33 @@ fn s3_01_span_census_baseline() {
         "parser/driver ADR must cite S3-I42 open"
     );
     assert!(
-        pos_adr.contains("S3-I43") && (pos_adr.contains("construct") || pos_adr.contains("demangle") || pos_adr.contains("S3-02")),
+        pos_adr.contains("S3-I43")
+            && (pos_adr.contains("construct")
+                || pos_adr.contains("demangle")
+                || pos_adr.contains("S3-02")),
         "pos_adr must cite S3-I43"
     );
     assert!(
-        pos_adr.contains("S3-I44") && (pos_adr.contains("debug") || pos_adr.contains("stack") || pos_adr.contains("S3-02")),
+        pos_adr.contains("S3-I44")
+            && (pos_adr.contains("debug")
+                || pos_adr.contains("stack")
+                || pos_adr.contains("S3-02")),
         "pos_adr must cite S3-I44"
     );
     assert!(
         pos_adr.contains("S3-I45") && (pos_adr.contains("runtime") || pos_adr.contains("__type")),
         "pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            pos_adr.contains("S3-I46") && (pos_adr.contains("meta") || pos_adr.contains("S3-02") || pos_adr.contains("claim")),
-        "pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            pos_adr.contains("S3-I47") && (pos_adr.contains("claim") || pos_adr.contains("S3-02")),
-        "pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            pos_adr.contains("S3-03"),
-        "pos_adr must lock next = S3-03"
     );
+    assert!(
+        pos_adr.contains("S3-I46")
+            && (pos_adr.contains("meta") || pos_adr.contains("S3-02") || pos_adr.contains("claim")),
+        "pos_adr must cite S3-I46 meta"
+    );
+    assert!(
+        pos_adr.contains("S3-I47") && (pos_adr.contains("claim") || pos_adr.contains("S3-02")),
+        "pos_adr must cite S3-I47 claim"
+    );
+    assert!(pos_adr.contains("S3-03"), "pos_adr must lock next = S3-03");
     assert!(
         pos_adr.contains("DUMMY") && (pos_adr.contains("SourceFile") || pos_adr.contains("span")),
         "positionless ADR must document no-fake-span / DUMMY rule"
@@ -676,7 +677,8 @@ fn s3_01_span_census_baseline() {
     );
     assert!(compile_adr.contains("≠") && compile_adr.contains("S3-01"));
     assert!(
-        compile_adr.contains("S3-I28") && compile_adr.contains("positionless-driver-emit-test-native"),
+        compile_adr.contains("S3-I28")
+            && compile_adr.contains("positionless-driver-emit-test-native"),
         "compile ADR must cite landed S3-I28"
     );
     assert!(
@@ -733,31 +735,43 @@ fn s3_01_span_census_baseline() {
         "compile ADR must cite S3-I41 claim"
     );
     assert!(
-        compile_adr.contains("S3-I42") && (compile_adr.contains("S3-02") || compile_adr.contains("open")),
+        compile_adr.contains("S3-I42")
+            && (compile_adr.contains("S3-02") || compile_adr.contains("open")),
         "compile ADR must cite S3-I42 open"
     );
     assert!(
-        compile_adr.contains("S3-I43") && (compile_adr.contains("construct") || compile_adr.contains("demangle") || compile_adr.contains("S3-02")),
+        compile_adr.contains("S3-I43")
+            && (compile_adr.contains("construct")
+                || compile_adr.contains("demangle")
+                || compile_adr.contains("S3-02")),
         "compile_adr must cite S3-I43"
     );
     assert!(
-        compile_adr.contains("S3-I44") && (compile_adr.contains("debug") || compile_adr.contains("stack") || compile_adr.contains("S3-02")),
+        compile_adr.contains("S3-I44")
+            && (compile_adr.contains("debug")
+                || compile_adr.contains("stack")
+                || compile_adr.contains("S3-02")),
         "compile_adr must cite S3-I44"
     );
     assert!(
-        compile_adr.contains("S3-I45") && (compile_adr.contains("runtime") || compile_adr.contains("__type")),
+        compile_adr.contains("S3-I45")
+            && (compile_adr.contains("runtime") || compile_adr.contains("__type")),
         "compile_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            compile_adr.contains("S3-I46") && (compile_adr.contains("meta") || compile_adr.contains("S3-02") || compile_adr.contains("claim")),
+    );
+    assert!(
+        compile_adr.contains("S3-I46")
+            && (compile_adr.contains("meta")
+                || compile_adr.contains("S3-02")
+                || compile_adr.contains("claim")),
         "compile_adr must cite S3-I46 meta"
-        );
-        assert!(
-            compile_adr.contains("S3-I47") && (compile_adr.contains("claim") || compile_adr.contains("S3-02")),
+    );
+    assert!(
+        compile_adr.contains("S3-I47")
+            && (compile_adr.contains("claim") || compile_adr.contains("S3-02")),
         "compile_adr must cite S3-I47 claim"
-        );
-        assert!(
-            compile_adr.contains("S3-03"),
+    );
+    assert!(
+        compile_adr.contains("S3-03"),
         "compile_adr must lock next = S3-03"
     );
 
@@ -811,31 +825,43 @@ fn s3_01_span_census_baseline() {
         "phase89 positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        phase89_pos_adr.contains("S3-I42") && (phase89_pos_adr.contains("S3-02") || phase89_pos_adr.contains("open")),
+        phase89_pos_adr.contains("S3-I42")
+            && (phase89_pos_adr.contains("S3-02") || phase89_pos_adr.contains("open")),
         "phase89 positionless ADR must cite S3-I42 open"
     );
     assert!(
-        phase89_pos_adr.contains("S3-I43") && (phase89_pos_adr.contains("construct") || phase89_pos_adr.contains("demangle") || phase89_pos_adr.contains("S3-02")),
+        phase89_pos_adr.contains("S3-I43")
+            && (phase89_pos_adr.contains("construct")
+                || phase89_pos_adr.contains("demangle")
+                || phase89_pos_adr.contains("S3-02")),
         "phase89_pos_adr must cite S3-I43"
     );
     assert!(
-        phase89_pos_adr.contains("S3-I44") && (phase89_pos_adr.contains("debug") || phase89_pos_adr.contains("stack") || phase89_pos_adr.contains("S3-02")),
+        phase89_pos_adr.contains("S3-I44")
+            && (phase89_pos_adr.contains("debug")
+                || phase89_pos_adr.contains("stack")
+                || phase89_pos_adr.contains("S3-02")),
         "phase89_pos_adr must cite S3-I44"
     );
     assert!(
-        phase89_pos_adr.contains("S3-I45") && (phase89_pos_adr.contains("runtime") || phase89_pos_adr.contains("__type")),
+        phase89_pos_adr.contains("S3-I45")
+            && (phase89_pos_adr.contains("runtime") || phase89_pos_adr.contains("__type")),
         "phase89_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            phase89_pos_adr.contains("S3-I46") && (phase89_pos_adr.contains("meta") || phase89_pos_adr.contains("S3-02") || phase89_pos_adr.contains("claim")),
+    );
+    assert!(
+        phase89_pos_adr.contains("S3-I46")
+            && (phase89_pos_adr.contains("meta")
+                || phase89_pos_adr.contains("S3-02")
+                || phase89_pos_adr.contains("claim")),
         "phase89_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            phase89_pos_adr.contains("S3-I47") && (phase89_pos_adr.contains("claim") || phase89_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        phase89_pos_adr.contains("S3-I47")
+            && (phase89_pos_adr.contains("claim") || phase89_pos_adr.contains("S3-02")),
         "phase89_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            phase89_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        phase89_pos_adr.contains("S3-03"),
         "phase89_pos_adr must lock next = S3-03"
     );
     assert!(
@@ -874,7 +900,8 @@ fn s3_01_span_census_baseline() {
         "phase120 positionless ADR must cite landed S3-I37"
     );
     assert!(
-        phase120_pos_adr.contains("S3-I38") && phase120_pos_adr.contains("positionless-rt-jit-debug"),
+        phase120_pos_adr.contains("S3-I38")
+            && phase120_pos_adr.contains("positionless-rt-jit-debug"),
         "phase120 positionless ADR must cite landed S3-I38"
     );
     assert!(
@@ -891,31 +918,43 @@ fn s3_01_span_census_baseline() {
         "phase120 positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        phase120_pos_adr.contains("S3-I42") && (phase120_pos_adr.contains("S3-02") || phase120_pos_adr.contains("open")),
+        phase120_pos_adr.contains("S3-I42")
+            && (phase120_pos_adr.contains("S3-02") || phase120_pos_adr.contains("open")),
         "phase120 positionless ADR must cite S3-I42 open"
     );
     assert!(
-        phase120_pos_adr.contains("S3-I43") && (phase120_pos_adr.contains("construct") || phase120_pos_adr.contains("demangle") || phase120_pos_adr.contains("S3-02")),
+        phase120_pos_adr.contains("S3-I43")
+            && (phase120_pos_adr.contains("construct")
+                || phase120_pos_adr.contains("demangle")
+                || phase120_pos_adr.contains("S3-02")),
         "phase120_pos_adr must cite S3-I43"
     );
     assert!(
-        phase120_pos_adr.contains("S3-I44") && (phase120_pos_adr.contains("debug") || phase120_pos_adr.contains("stack") || phase120_pos_adr.contains("S3-02")),
+        phase120_pos_adr.contains("S3-I44")
+            && (phase120_pos_adr.contains("debug")
+                || phase120_pos_adr.contains("stack")
+                || phase120_pos_adr.contains("S3-02")),
         "phase120_pos_adr must cite S3-I44"
     );
     assert!(
-        phase120_pos_adr.contains("S3-I45") && (phase120_pos_adr.contains("runtime") || phase120_pos_adr.contains("__type")),
+        phase120_pos_adr.contains("S3-I45")
+            && (phase120_pos_adr.contains("runtime") || phase120_pos_adr.contains("__type")),
         "phase120_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            phase120_pos_adr.contains("S3-I46") && (phase120_pos_adr.contains("meta") || phase120_pos_adr.contains("S3-02") || phase120_pos_adr.contains("claim")),
+    );
+    assert!(
+        phase120_pos_adr.contains("S3-I46")
+            && (phase120_pos_adr.contains("meta")
+                || phase120_pos_adr.contains("S3-02")
+                || phase120_pos_adr.contains("claim")),
         "phase120_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            phase120_pos_adr.contains("S3-I47") && (phase120_pos_adr.contains("claim") || phase120_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        phase120_pos_adr.contains("S3-I47")
+            && (phase120_pos_adr.contains("claim") || phase120_pos_adr.contains("S3-02")),
         "phase120_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            phase120_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        phase120_pos_adr.contains("S3-03"),
         "phase120_pos_adr must lock next = S3-03"
     );
     assert!(
@@ -968,31 +1007,43 @@ fn s3_01_span_census_baseline() {
         "lib positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        lib_pos_adr.contains("S3-I42") && (lib_pos_adr.contains("S3-02") || lib_pos_adr.contains("open")),
+        lib_pos_adr.contains("S3-I42")
+            && (lib_pos_adr.contains("S3-02") || lib_pos_adr.contains("open")),
         "lib positionless ADR must cite S3-I42 open"
     );
     assert!(
-        lib_pos_adr.contains("S3-I43") && (lib_pos_adr.contains("construct") || lib_pos_adr.contains("demangle") || lib_pos_adr.contains("S3-02")),
+        lib_pos_adr.contains("S3-I43")
+            && (lib_pos_adr.contains("construct")
+                || lib_pos_adr.contains("demangle")
+                || lib_pos_adr.contains("S3-02")),
         "lib_pos_adr must cite S3-I43"
     );
     assert!(
-        lib_pos_adr.contains("S3-I44") && (lib_pos_adr.contains("debug") || lib_pos_adr.contains("stack") || lib_pos_adr.contains("S3-02")),
+        lib_pos_adr.contains("S3-I44")
+            && (lib_pos_adr.contains("debug")
+                || lib_pos_adr.contains("stack")
+                || lib_pos_adr.contains("S3-02")),
         "lib_pos_adr must cite S3-I44"
     );
     assert!(
-        lib_pos_adr.contains("S3-I45") && (lib_pos_adr.contains("runtime") || lib_pos_adr.contains("__type")),
+        lib_pos_adr.contains("S3-I45")
+            && (lib_pos_adr.contains("runtime") || lib_pos_adr.contains("__type")),
         "lib_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            lib_pos_adr.contains("S3-I46") && (lib_pos_adr.contains("meta") || lib_pos_adr.contains("S3-02") || lib_pos_adr.contains("claim")),
+    );
+    assert!(
+        lib_pos_adr.contains("S3-I46")
+            && (lib_pos_adr.contains("meta")
+                || lib_pos_adr.contains("S3-02")
+                || lib_pos_adr.contains("claim")),
         "lib_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            lib_pos_adr.contains("S3-I47") && (lib_pos_adr.contains("claim") || lib_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        lib_pos_adr.contains("S3-I47")
+            && (lib_pos_adr.contains("claim") || lib_pos_adr.contains("S3-02")),
         "lib_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            lib_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        lib_pos_adr.contains("S3-03"),
         "lib_pos_adr must lock next = S3-03"
     );
 
@@ -1034,31 +1085,43 @@ fn s3_01_span_census_baseline() {
         "mid positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        mid_pos_adr.contains("S3-I42") && (mid_pos_adr.contains("S3-02") || mid_pos_adr.contains("open")),
+        mid_pos_adr.contains("S3-I42")
+            && (mid_pos_adr.contains("S3-02") || mid_pos_adr.contains("open")),
         "mid positionless ADR must cite S3-I42 open"
     );
     assert!(
-        mid_pos_adr.contains("S3-I43") && (mid_pos_adr.contains("construct") || mid_pos_adr.contains("demangle") || mid_pos_adr.contains("S3-02")),
+        mid_pos_adr.contains("S3-I43")
+            && (mid_pos_adr.contains("construct")
+                || mid_pos_adr.contains("demangle")
+                || mid_pos_adr.contains("S3-02")),
         "mid_pos_adr must cite S3-I43"
     );
     assert!(
-        mid_pos_adr.contains("S3-I44") && (mid_pos_adr.contains("debug") || mid_pos_adr.contains("stack") || mid_pos_adr.contains("S3-02")),
+        mid_pos_adr.contains("S3-I44")
+            && (mid_pos_adr.contains("debug")
+                || mid_pos_adr.contains("stack")
+                || mid_pos_adr.contains("S3-02")),
         "mid_pos_adr must cite S3-I44"
     );
     assert!(
-        mid_pos_adr.contains("S3-I45") && (mid_pos_adr.contains("runtime") || mid_pos_adr.contains("__type")),
+        mid_pos_adr.contains("S3-I45")
+            && (mid_pos_adr.contains("runtime") || mid_pos_adr.contains("__type")),
         "mid_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            mid_pos_adr.contains("S3-I46") && (mid_pos_adr.contains("meta") || mid_pos_adr.contains("S3-02") || mid_pos_adr.contains("claim")),
+    );
+    assert!(
+        mid_pos_adr.contains("S3-I46")
+            && (mid_pos_adr.contains("meta")
+                || mid_pos_adr.contains("S3-02")
+                || mid_pos_adr.contains("claim")),
         "mid_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            mid_pos_adr.contains("S3-I47") && (mid_pos_adr.contains("claim") || mid_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        mid_pos_adr.contains("S3-I47")
+            && (mid_pos_adr.contains("claim") || mid_pos_adr.contains("S3-02")),
         "mid_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            mid_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        mid_pos_adr.contains("S3-03"),
         "mid_pos_adr must lock next = S3-03"
     );
 
@@ -1096,31 +1159,43 @@ fn s3_01_span_census_baseline() {
         "pkg positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        pkg_pos_adr.contains("S3-I42") && (pkg_pos_adr.contains("S3-02") || pkg_pos_adr.contains("open")),
+        pkg_pos_adr.contains("S3-I42")
+            && (pkg_pos_adr.contains("S3-02") || pkg_pos_adr.contains("open")),
         "pkg positionless ADR must cite S3-I42 open"
     );
     assert!(
-        pkg_pos_adr.contains("S3-I43") && (pkg_pos_adr.contains("construct") || pkg_pos_adr.contains("demangle") || pkg_pos_adr.contains("S3-02")),
+        pkg_pos_adr.contains("S3-I43")
+            && (pkg_pos_adr.contains("construct")
+                || pkg_pos_adr.contains("demangle")
+                || pkg_pos_adr.contains("S3-02")),
         "pkg_pos_adr must cite S3-I43"
     );
     assert!(
-        pkg_pos_adr.contains("S3-I44") && (pkg_pos_adr.contains("debug") || pkg_pos_adr.contains("stack") || pkg_pos_adr.contains("S3-02")),
+        pkg_pos_adr.contains("S3-I44")
+            && (pkg_pos_adr.contains("debug")
+                || pkg_pos_adr.contains("stack")
+                || pkg_pos_adr.contains("S3-02")),
         "pkg_pos_adr must cite S3-I44"
     );
     assert!(
-        pkg_pos_adr.contains("S3-I45") && (pkg_pos_adr.contains("runtime") || pkg_pos_adr.contains("__type")),
+        pkg_pos_adr.contains("S3-I45")
+            && (pkg_pos_adr.contains("runtime") || pkg_pos_adr.contains("__type")),
         "pkg_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            pkg_pos_adr.contains("S3-I46") && (pkg_pos_adr.contains("meta") || pkg_pos_adr.contains("S3-02") || pkg_pos_adr.contains("claim")),
+    );
+    assert!(
+        pkg_pos_adr.contains("S3-I46")
+            && (pkg_pos_adr.contains("meta")
+                || pkg_pos_adr.contains("S3-02")
+                || pkg_pos_adr.contains("claim")),
         "pkg_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            pkg_pos_adr.contains("S3-I47") && (pkg_pos_adr.contains("claim") || pkg_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        pkg_pos_adr.contains("S3-I47")
+            && (pkg_pos_adr.contains("claim") || pkg_pos_adr.contains("S3-02")),
         "pkg_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            pkg_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        pkg_pos_adr.contains("S3-03"),
         "pkg_pos_adr must lock next = S3-03"
     );
 
@@ -1154,31 +1229,43 @@ fn s3_01_span_census_baseline() {
         "macro positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        macro_pos_adr.contains("S3-I42") && (macro_pos_adr.contains("S3-02") || macro_pos_adr.contains("open")),
+        macro_pos_adr.contains("S3-I42")
+            && (macro_pos_adr.contains("S3-02") || macro_pos_adr.contains("open")),
         "macro positionless ADR must cite S3-I42 open"
     );
     assert!(
-        macro_pos_adr.contains("S3-I43") && (macro_pos_adr.contains("construct") || macro_pos_adr.contains("demangle") || macro_pos_adr.contains("S3-02")),
+        macro_pos_adr.contains("S3-I43")
+            && (macro_pos_adr.contains("construct")
+                || macro_pos_adr.contains("demangle")
+                || macro_pos_adr.contains("S3-02")),
         "macro_pos_adr must cite S3-I43"
     );
     assert!(
-        macro_pos_adr.contains("S3-I44") && (macro_pos_adr.contains("debug") || macro_pos_adr.contains("stack") || macro_pos_adr.contains("S3-02")),
+        macro_pos_adr.contains("S3-I44")
+            && (macro_pos_adr.contains("debug")
+                || macro_pos_adr.contains("stack")
+                || macro_pos_adr.contains("S3-02")),
         "macro_pos_adr must cite S3-I44"
     );
     assert!(
-        macro_pos_adr.contains("S3-I45") && (macro_pos_adr.contains("runtime") || macro_pos_adr.contains("__type")),
+        macro_pos_adr.contains("S3-I45")
+            && (macro_pos_adr.contains("runtime") || macro_pos_adr.contains("__type")),
         "macro_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            macro_pos_adr.contains("S3-I46") && (macro_pos_adr.contains("meta") || macro_pos_adr.contains("S3-02") || macro_pos_adr.contains("claim")),
+    );
+    assert!(
+        macro_pos_adr.contains("S3-I46")
+            && (macro_pos_adr.contains("meta")
+                || macro_pos_adr.contains("S3-02")
+                || macro_pos_adr.contains("claim")),
         "macro_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            macro_pos_adr.contains("S3-I47") && (macro_pos_adr.contains("claim") || macro_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        macro_pos_adr.contains("S3-I47")
+            && (macro_pos_adr.contains("claim") || macro_pos_adr.contains("S3-02")),
         "macro_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            macro_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        macro_pos_adr.contains("S3-03"),
         "macro_pos_adr must lock next = S3-03"
     );
     assert!(
@@ -1197,11 +1284,13 @@ fn s3_01_span_census_baseline() {
     );
     assert!(async_llvm_pos_adr.contains("≠") && async_llvm_pos_adr.contains("S3-01"));
     assert!(
-        async_llvm_pos_adr.contains("S3-I38") && async_llvm_pos_adr.contains("positionless-rt-jit-debug"),
+        async_llvm_pos_adr.contains("S3-I38")
+            && async_llvm_pos_adr.contains("positionless-rt-jit-debug"),
         "async-llvm positionless ADR must cite landed S3-I38"
     );
     assert!(
-        async_llvm_pos_adr.contains("S3-I39") && async_llvm_pos_adr.contains("positionless-residual"),
+        async_llvm_pos_adr.contains("S3-I39")
+            && async_llvm_pos_adr.contains("positionless-residual"),
         "async-llvm positionless ADR must cite landed S3-I39"
     );
     assert!(
@@ -1214,31 +1303,43 @@ fn s3_01_span_census_baseline() {
         "async-llvm positionless ADR must cite S3-I41 claim"
     );
     assert!(
-        async_llvm_pos_adr.contains("S3-I42") && (async_llvm_pos_adr.contains("S3-02") || async_llvm_pos_adr.contains("open")),
+        async_llvm_pos_adr.contains("S3-I42")
+            && (async_llvm_pos_adr.contains("S3-02") || async_llvm_pos_adr.contains("open")),
         "async-llvm positionless ADR must cite S3-I42 open"
     );
     assert!(
-        async_llvm_pos_adr.contains("S3-I43") && (async_llvm_pos_adr.contains("construct") || async_llvm_pos_adr.contains("demangle") || async_llvm_pos_adr.contains("S3-02")),
+        async_llvm_pos_adr.contains("S3-I43")
+            && (async_llvm_pos_adr.contains("construct")
+                || async_llvm_pos_adr.contains("demangle")
+                || async_llvm_pos_adr.contains("S3-02")),
         "async_llvm_pos_adr must cite S3-I43"
     );
     assert!(
-        async_llvm_pos_adr.contains("S3-I44") && (async_llvm_pos_adr.contains("debug") || async_llvm_pos_adr.contains("stack") || async_llvm_pos_adr.contains("S3-02")),
+        async_llvm_pos_adr.contains("S3-I44")
+            && (async_llvm_pos_adr.contains("debug")
+                || async_llvm_pos_adr.contains("stack")
+                || async_llvm_pos_adr.contains("S3-02")),
         "async_llvm_pos_adr must cite S3-I44"
     );
     assert!(
-        async_llvm_pos_adr.contains("S3-I45") && (async_llvm_pos_adr.contains("runtime") || async_llvm_pos_adr.contains("__type")),
+        async_llvm_pos_adr.contains("S3-I45")
+            && (async_llvm_pos_adr.contains("runtime") || async_llvm_pos_adr.contains("__type")),
         "async_llvm_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            async_llvm_pos_adr.contains("S3-I46") && (async_llvm_pos_adr.contains("meta") || async_llvm_pos_adr.contains("S3-02") || async_llvm_pos_adr.contains("claim")),
+    );
+    assert!(
+        async_llvm_pos_adr.contains("S3-I46")
+            && (async_llvm_pos_adr.contains("meta")
+                || async_llvm_pos_adr.contains("S3-02")
+                || async_llvm_pos_adr.contains("claim")),
         "async_llvm_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            async_llvm_pos_adr.contains("S3-I47") && (async_llvm_pos_adr.contains("claim") || async_llvm_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        async_llvm_pos_adr.contains("S3-I47")
+            && (async_llvm_pos_adr.contains("claim") || async_llvm_pos_adr.contains("S3-02")),
         "async_llvm_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            async_llvm_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        async_llvm_pos_adr.contains("S3-03"),
         "async_llvm_pos_adr must lock next = S3-03"
     );
     assert!(
@@ -1271,31 +1372,43 @@ fn s3_01_span_census_baseline() {
         "rt-jit-debug ADR must cite S3-I41 claim"
     );
     assert!(
-        rt_pos_adr.contains("S3-I42") && (rt_pos_adr.contains("S3-02") || rt_pos_adr.contains("open")),
+        rt_pos_adr.contains("S3-I42")
+            && (rt_pos_adr.contains("S3-02") || rt_pos_adr.contains("open")),
         "rt-jit-debug ADR must cite S3-I42 open"
     );
     assert!(
-        rt_pos_adr.contains("S3-I43") && (rt_pos_adr.contains("construct") || rt_pos_adr.contains("demangle") || rt_pos_adr.contains("S3-02")),
+        rt_pos_adr.contains("S3-I43")
+            && (rt_pos_adr.contains("construct")
+                || rt_pos_adr.contains("demangle")
+                || rt_pos_adr.contains("S3-02")),
         "rt_pos_adr must cite S3-I43"
     );
     assert!(
-        rt_pos_adr.contains("S3-I44") && (rt_pos_adr.contains("debug") || rt_pos_adr.contains("stack") || rt_pos_adr.contains("S3-02")),
+        rt_pos_adr.contains("S3-I44")
+            && (rt_pos_adr.contains("debug")
+                || rt_pos_adr.contains("stack")
+                || rt_pos_adr.contains("S3-02")),
         "rt_pos_adr must cite S3-I44"
     );
     assert!(
-        rt_pos_adr.contains("S3-I45") && (rt_pos_adr.contains("runtime") || rt_pos_adr.contains("__type")),
+        rt_pos_adr.contains("S3-I45")
+            && (rt_pos_adr.contains("runtime") || rt_pos_adr.contains("__type")),
         "rt_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            rt_pos_adr.contains("S3-I46") && (rt_pos_adr.contains("meta") || rt_pos_adr.contains("S3-02") || rt_pos_adr.contains("claim")),
+    );
+    assert!(
+        rt_pos_adr.contains("S3-I46")
+            && (rt_pos_adr.contains("meta")
+                || rt_pos_adr.contains("S3-02")
+                || rt_pos_adr.contains("claim")),
         "rt_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            rt_pos_adr.contains("S3-I47") && (rt_pos_adr.contains("claim") || rt_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        rt_pos_adr.contains("S3-I47")
+            && (rt_pos_adr.contains("claim") || rt_pos_adr.contains("S3-02")),
         "rt_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            rt_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        rt_pos_adr.contains("S3-03"),
         "rt_pos_adr must lock next = S3-03"
     );
     assert!(
@@ -1322,31 +1435,43 @@ fn s3_01_span_census_baseline() {
         "residual ADR must cite S3-I41 claim"
     );
     assert!(
-        residual_pos_adr.contains("S3-I42") && (residual_pos_adr.contains("S3-02") || residual_pos_adr.contains("open")),
+        residual_pos_adr.contains("S3-I42")
+            && (residual_pos_adr.contains("S3-02") || residual_pos_adr.contains("open")),
         "residual ADR must cite S3-I42 open"
     );
     assert!(
-        residual_pos_adr.contains("S3-I43") && (residual_pos_adr.contains("construct") || residual_pos_adr.contains("demangle") || residual_pos_adr.contains("S3-02")),
+        residual_pos_adr.contains("S3-I43")
+            && (residual_pos_adr.contains("construct")
+                || residual_pos_adr.contains("demangle")
+                || residual_pos_adr.contains("S3-02")),
         "residual_pos_adr must cite S3-I43"
     );
     assert!(
-        residual_pos_adr.contains("S3-I44") && (residual_pos_adr.contains("debug") || residual_pos_adr.contains("stack") || residual_pos_adr.contains("S3-02")),
+        residual_pos_adr.contains("S3-I44")
+            && (residual_pos_adr.contains("debug")
+                || residual_pos_adr.contains("stack")
+                || residual_pos_adr.contains("S3-02")),
         "residual_pos_adr must cite S3-I44"
     );
     assert!(
-        residual_pos_adr.contains("S3-I45") && (residual_pos_adr.contains("runtime") || residual_pos_adr.contains("__type")),
+        residual_pos_adr.contains("S3-I45")
+            && (residual_pos_adr.contains("runtime") || residual_pos_adr.contains("__type")),
         "residual_pos_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            residual_pos_adr.contains("S3-I46") && (residual_pos_adr.contains("meta") || residual_pos_adr.contains("S3-02") || residual_pos_adr.contains("claim")),
+    );
+    assert!(
+        residual_pos_adr.contains("S3-I46")
+            && (residual_pos_adr.contains("meta")
+                || residual_pos_adr.contains("S3-02")
+                || residual_pos_adr.contains("claim")),
         "residual_pos_adr must cite S3-I46 meta"
-        );
-        assert!(
-            residual_pos_adr.contains("S3-I47") && (residual_pos_adr.contains("claim") || residual_pos_adr.contains("S3-02")),
+    );
+    assert!(
+        residual_pos_adr.contains("S3-I47")
+            && (residual_pos_adr.contains("claim") || residual_pos_adr.contains("S3-02")),
         "residual_pos_adr must cite S3-I47 claim"
-        );
-        assert!(
-            residual_pos_adr.contains("S3-03"),
+    );
+    assert!(
+        residual_pos_adr.contains("S3-03"),
         "residual_pos_adr must lock next = S3-03"
     );
     assert!(
@@ -1364,8 +1489,7 @@ fn s3_01_span_census_baseline() {
     );
     assert!(noise_adr.contains("≠") && noise_adr.contains("S3-01"));
     assert!(
-        noise_adr.contains("S3-I41")
-            && (noise_adr.contains("claim") || noise_adr.contains("[x]")),
+        noise_adr.contains("S3-I41") && (noise_adr.contains("claim") || noise_adr.contains("[x]")),
         "noise ADR must cite S3-I41 claim"
     );
     assert!(
@@ -1373,32 +1497,42 @@ fn s3_01_span_census_baseline() {
         "noise ADR must cite S3-I42 open"
     );
     assert!(
-        noise_adr.contains("S3-I43") && (noise_adr.contains("construct") || noise_adr.contains("demangle") || noise_adr.contains("S3-02")),
+        noise_adr.contains("S3-I43")
+            && (noise_adr.contains("construct")
+                || noise_adr.contains("demangle")
+                || noise_adr.contains("S3-02")),
         "noise_adr must cite S3-I43"
     );
     assert!(
-        noise_adr.contains("S3-I44") && (noise_adr.contains("debug") || noise_adr.contains("stack") || noise_adr.contains("S3-02")),
+        noise_adr.contains("S3-I44")
+            && (noise_adr.contains("debug")
+                || noise_adr.contains("stack")
+                || noise_adr.contains("S3-02")),
         "noise_adr must cite S3-I44"
     );
     assert!(
-        noise_adr.contains("S3-I45") && (noise_adr.contains("runtime") || noise_adr.contains("__type")),
+        noise_adr.contains("S3-I45")
+            && (noise_adr.contains("runtime") || noise_adr.contains("__type")),
         "noise_adr must cite S3-I45 runtime"
-        );
-        assert!(
-            noise_adr.contains("S3-I46") && (noise_adr.contains("meta") || noise_adr.contains("S3-02") || noise_adr.contains("claim")),
+    );
+    assert!(
+        noise_adr.contains("S3-I46")
+            && (noise_adr.contains("meta")
+                || noise_adr.contains("S3-02")
+                || noise_adr.contains("claim")),
         "noise_adr must cite S3-I46 meta"
-        );
-        assert!(
-            noise_adr.contains("S3-I47") && (noise_adr.contains("claim") || noise_adr.contains("S3-02")),
+    );
+    assert!(
+        noise_adr.contains("S3-I47")
+            && (noise_adr.contains("claim") || noise_adr.contains("S3-02")),
         "noise_adr must cite S3-I47 claim"
-        );
-        assert!(
-            noise_adr.contains("S3-03"),
+    );
+    assert!(
+        noise_adr.contains("S3-03"),
         "noise_adr must lock next = S3-03"
     );
     assert!(
-        noise_adr.contains("lockfile_error")
-            && noise_adr.contains("set_error"),
+        noise_adr.contains("lockfile_error") && noise_adr.contains("set_error"),
         "noise ADR must document whitelist"
     );
     assert!(
@@ -1641,7 +1775,10 @@ fn s3_01_span_census_baseline() {
         .lines()
         .find(|l| l.contains("| **3** |"))
         .expect("stage-3 row");
-    assert!(stage3.contains("[x]") && stage3.contains("退出"), "Stage-3 must be [x] 退出; got: {stage3}");
+    assert!(
+        stage3.contains("[x]") && stage3.contains("退出"),
+        "Stage-3 must be [x] 退出; got: {stage3}"
+    );
     let s3_01 = plan02
         .lines()
         .find(|l| l.contains("| S3-01 |"))
@@ -1650,20 +1787,21 @@ fn s3_01_span_census_baseline() {
         s3_01.contains("| [x] |") || s3_01.contains("| `[x]` |"),
         "plan/02 S3-01 status must be [x]; got: {s3_01}"
     );
-    assert!(
-        plan02.contains("S3-I41")
-            || plan02.contains("stage3-s3-01-claim")
-    );
+    assert!(plan02.contains("S3-I41") || plan02.contains("stage3-s3-01-claim"));
     assert!(
         plan02.contains("S3-I42") && (plan02.contains("S3-02") || plan02.contains("open")),
         "plan/02 must cite S3-I42 open S3-02 open"
     );
     assert!(
-        plan02.contains("S3-I43") && (plan02.contains("construct") || plan02.contains("demangle") || plan02.contains("S3-02")),
+        plan02.contains("S3-I43")
+            && (plan02.contains("construct")
+                || plan02.contains("demangle")
+                || plan02.contains("S3-02")),
         "plan02 must cite S3-I43"
     );
     assert!(
-        plan02.contains("S3-I44") && (plan02.contains("debug") || plan02.contains("stack") || plan02.contains("S3-02")),
+        plan02.contains("S3-I44")
+            && (plan02.contains("debug") || plan02.contains("stack") || plan02.contains("S3-02")),
         "plan02 must cite S3-I44"
     );
     assert!(
@@ -1678,10 +1816,7 @@ fn s3_01_span_census_baseline() {
         plan02.contains("S3-I47") && plan02.contains("claim"),
         "plan02 must cite S3-I47 claim"
     );
-    assert!(
-        plan02.contains("S3-03"),
-        "plan02 must lock next = S3-03"
-    );
+    assert!(plan02.contains("S3-03"), "plan02 must lock next = S3-03");
 
     let diag = repo_file("crates/syx-diagnostics/src/lib.rs");
     assert!(diag.contains("primary_span: None"));
@@ -1690,8 +1825,7 @@ fn s3_01_span_census_baseline() {
         "diagnostics must implement Diagnostic::help"
     );
     assert!(
-        diag.contains("label: impl Into<String>")
-            && !diag.contains("_label: impl Into<String>"),
+        diag.contains("label: impl Into<String>") && !diag.contains("_label: impl Into<String>"),
         "with_span must take non-discarded label parameter"
     );
     assert!(
@@ -1704,9 +1838,7 @@ fn s3_01_span_census_baseline() {
 fn s3_01_miette_quality_kpis_one() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -1729,9 +1861,7 @@ fn s3_01_miette_quality_kpis_one() {
 fn s3_01_positionless_parser_driver_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -1762,9 +1892,7 @@ fn s3_01_positionless_parser_driver_bare_zero() {
 fn s3_01_positionless_driver_compile_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -1780,10 +1908,13 @@ fn s3_01_positionless_driver_compile_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("driver_error(").count();
         let at = src.matches("driver_error_at(").count();
-        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare driver_error(");
+        assert_eq!(
+            bare.saturating_sub(at),
+            0,
+            "{rel} still has bare driver_error("
+        );
     }
 }
-
 
 #[test]
 fn s3_01_semantic_analyze_main_bare_zero() {
@@ -1985,9 +2116,7 @@ fn s3_01_host_vm_hosts_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase89_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file(
-            "crates/syx-vm/src/stdlib_phase89_hosts.rs"
-        )),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase89_hosts.rs")),
         0,
         "host_vm_phase89_bare must be 0"
     );
@@ -1996,9 +2125,7 @@ fn s3_01_host_vm_phase89_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase84_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file(
-            "crates/syx-vm/src/stdlib_phase84_hosts.rs"
-        )),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase84_hosts.rs")),
         0,
         "host_vm_phase84_bare must be 0"
     );
@@ -2007,9 +2134,7 @@ fn s3_01_host_vm_phase84_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase120_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file(
-            "crates/syx-vm/src/stdlib_phase120_hosts.rs"
-        )),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase120_hosts.rs")),
         0,
         "host_vm_phase120_bare must be 0"
     );
@@ -2018,9 +2143,7 @@ fn s3_01_host_vm_phase120_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase83_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file(
-            "crates/syx-vm/src/stdlib_phase83_hosts.rs"
-        )),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase83_hosts.rs")),
         0,
         "host_vm_phase83_bare must be 0"
     );
@@ -2130,9 +2253,7 @@ fn s3_01_host_residual_bare_zero() {
 fn s3_01_positionless_driver_emit_test_native_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2151,7 +2272,11 @@ fn s3_01_positionless_driver_emit_test_native_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("driver_error(").count();
         let at = src.matches("driver_error_at(").count();
-        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare driver_error(");
+        assert_eq!(
+            bare.saturating_sub(at),
+            0,
+            "{rel} still has bare driver_error("
+        );
     }
 }
 
@@ -2159,9 +2284,7 @@ fn s3_01_positionless_driver_emit_test_native_bare_zero() {
 fn s3_01_positionless_vm_phase84_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2173,16 +2296,18 @@ fn s3_01_positionless_vm_phase84_bare_zero() {
     let src = repo_file("crates/syx-vm/src/stdlib_phase84_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "phase84 still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "phase84 still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_hosts_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2194,16 +2319,18 @@ fn s3_01_positionless_vm_hosts_bare_zero() {
     let src = repo_file("crates/syx-vm/src/hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "hosts.rs still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "hosts.rs still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_phase89_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2219,11 +2346,7 @@ fn s3_01_positionless_vm_phase89_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("vm_error(").count();
         let at = src.matches("vm_error_at(").count();
-        assert_eq!(
-            bare.saturating_sub(at),
-            0,
-            "{rel} still has bare vm_error("
-        );
+        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare vm_error(");
     }
 }
 
@@ -2231,9 +2354,7 @@ fn s3_01_positionless_vm_phase89_bare_zero() {
 fn s3_01_positionless_vm_phase120_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2245,16 +2366,18 @@ fn s3_01_positionless_vm_phase120_bare_zero() {
     let src = repo_file("crates/syx-vm/src/stdlib_phase120_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "phase120 still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "phase120 still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_http_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2270,11 +2393,7 @@ fn s3_01_positionless_vm_http_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("vm_error(").count();
         let at = src.matches("vm_error_at(").count();
-        assert_eq!(
-            bare.saturating_sub(at),
-            0,
-            "{rel} still has bare vm_error("
-        );
+        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare vm_error(");
     }
 }
 
@@ -2282,9 +2401,7 @@ fn s3_01_positionless_vm_http_bare_zero() {
 fn s3_01_positionless_vm_os_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2296,16 +2413,18 @@ fn s3_01_positionless_vm_os_bare_zero() {
     let src = repo_file("crates/syx-vm/src/os_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "os_hosts.rs still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "os_hosts.rs still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_lib_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2317,16 +2436,18 @@ fn s3_01_positionless_vm_lib_bare_zero() {
     let src = repo_file("crates/syx-vm/src/lib.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "lib.rs still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "lib.rs still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_phase83_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2338,16 +2459,18 @@ fn s3_01_positionless_vm_phase83_bare_zero() {
     let src = repo_file("crates/syx-vm/src/stdlib_phase83_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "phase83 still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "phase83 still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_channel_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2359,16 +2482,18 @@ fn s3_01_positionless_vm_channel_bare_zero() {
     let src = repo_file("crates/syx-vm/src/channel_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "channel_hosts still has bare vm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "channel_hosts still has bare vm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_vm_phase_tail_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2388,11 +2513,7 @@ fn s3_01_positionless_vm_phase_tail_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("vm_error(").count();
         let at = src.matches("vm_error_at(").count();
-        assert_eq!(
-            bare.saturating_sub(at),
-            0,
-            "{rel} still has bare vm_error("
-        );
+        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare vm_error(");
     }
 }
 
@@ -2400,9 +2521,7 @@ fn s3_01_positionless_vm_phase_tail_bare_zero() {
 fn s3_01_positionless_vm_mid_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2422,11 +2541,7 @@ fn s3_01_positionless_vm_mid_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("vm_error(").count();
         let at = src.matches("vm_error_at(").count();
-        assert_eq!(
-            bare.saturating_sub(at),
-            0,
-            "{rel} still has bare vm_error("
-        );
+        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare vm_error(");
     }
 }
 
@@ -2434,9 +2549,7 @@ fn s3_01_positionless_vm_mid_bare_zero() {
 fn s3_01_positionless_wasm_run_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2464,9 +2577,7 @@ fn s3_01_positionless_wasm_run_bare_zero() {
 fn s3_01_positionless_pkg_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2503,9 +2614,7 @@ fn s3_01_positionless_pkg_bare_zero() {
 fn s3_01_positionless_macro_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2542,9 +2651,7 @@ fn s3_01_positionless_macro_bare_zero() {
 fn s3_01_positionless_async_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2575,9 +2682,7 @@ fn s3_01_positionless_async_bare_zero() {
 fn s3_01_positionless_llvm_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2602,9 +2707,7 @@ fn s3_01_positionless_llvm_bare_zero() {
 fn s3_01_positionless_rt_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2613,18 +2716,11 @@ fn s3_01_positionless_rt_bare_zero() {
         stdout.contains("positionless_rt_bare=0"),
         "expected positionless_rt_bare=0, got:\n{stdout}"
     );
-    for rel in [
-        "crates/syx-rt/src/bridge.rs",
-        "crates/syx-rt/src/abi.rs",
-    ] {
+    for rel in ["crates/syx-rt/src/bridge.rs", "crates/syx-rt/src/abi.rs"] {
         let src = repo_file(rel);
         let bare = src.matches("rt_error(").count();
         let at = src.matches("rt_error_at(").count();
-        assert_eq!(
-            bare.saturating_sub(at),
-            0,
-            "{rel} still has bare rt_error("
-        );
+        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare rt_error(");
     }
 }
 
@@ -2632,9 +2728,7 @@ fn s3_01_positionless_rt_bare_zero() {
 fn s3_01_positionless_jit_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2659,9 +2753,7 @@ fn s3_01_positionless_jit_bare_zero() {
 fn s3_01_positionless_debug_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2686,9 +2778,7 @@ fn s3_01_positionless_debug_bare_zero() {
 fn s3_01_positionless_codegen_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2713,9 +2803,7 @@ fn s3_01_positionless_codegen_bare_zero() {
 fn s3_01_positionless_mir_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2731,7 +2819,11 @@ fn s3_01_positionless_mir_bare_zero() {
         let src = repo_file(rel);
         let bare = src.matches("mir_error(").count();
         let at = src.matches("mir_error_at(").count();
-        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare mir_error(");
+        assert_eq!(
+            bare.saturating_sub(at),
+            0,
+            "{rel} still has bare mir_error("
+        );
     }
 }
 
@@ -2739,9 +2831,7 @@ fn s3_01_positionless_mir_bare_zero() {
 fn s3_01_positionless_mir_run_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2753,16 +2843,18 @@ fn s3_01_positionless_mir_run_bare_zero() {
     let src = repo_file("crates/syx-mir-run/src/runtime.rs");
     let bare = src.matches("mir_run_error(").count();
     let at = src.matches("mir_run_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "runtime.rs still has bare mir_run_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "runtime.rs still has bare mir_run_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_meta_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2774,16 +2866,18 @@ fn s3_01_positionless_meta_bare_zero() {
     let src = repo_file("crates/syx-meta/src/lib.rs");
     let bare = src.matches("meta_error(").count();
     let at = src.matches("meta_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "meta lib still has bare meta_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "meta lib still has bare meta_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_hir_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2795,16 +2889,18 @@ fn s3_01_positionless_hir_bare_zero() {
     let src = repo_file("crates/syx-hir/src/lib.rs");
     let bare = src.matches("hir_error(").count();
     let at = src.matches("hir_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "hir lib still has bare hir_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "hir lib still has bare hir_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_cst_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2813,11 +2909,18 @@ fn s3_01_positionless_cst_bare_zero() {
         stdout.contains("positionless_cst_bare=0"),
         "expected positionless_cst_bare=0, got:\n{stdout}"
     );
-    for rel in ["crates/syx-cst/src/lib.rs", "crates/syx-cst/src/lower_probe.rs"] {
+    for rel in [
+        "crates/syx-cst/src/lib.rs",
+        "crates/syx-cst/src/lower_probe.rs",
+    ] {
         let src = repo_file(rel);
         let bare = src.matches("cst_error(").count();
         let at = src.matches("cst_error_at(").count();
-        assert_eq!(bare.saturating_sub(at), 0, "{rel} still has bare cst_error(");
+        assert_eq!(
+            bare.saturating_sub(at),
+            0,
+            "{rel} still has bare cst_error("
+        );
     }
 }
 
@@ -2825,9 +2928,7 @@ fn s3_01_positionless_cst_bare_zero() {
 fn s3_01_positionless_wasm_emit_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2839,16 +2940,18 @@ fn s3_01_positionless_wasm_emit_bare_zero() {
     let src = repo_file("crates/syx-wasm-emit/src/mir_emit.rs");
     let bare = src.matches("wasm_emit_error(").count();
     let at = src.matches("wasm_emit_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "mir_emit still has bare wasm_emit_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "mir_emit still has bare wasm_emit_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_fmt_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2860,16 +2963,18 @@ fn s3_01_positionless_fmt_bare_zero() {
     let src = repo_file("crates/syx-fmt/src/lib.rs");
     let bare = src.matches("fmt_error(").count();
     let at = src.matches("fmt_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "fmt lib still has bare fmt_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "fmt lib still has bare fmt_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_compiler_wasm_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2881,16 +2986,18 @@ fn s3_01_positionless_compiler_wasm_bare_zero() {
     let src = repo_file("crates/syx-compiler-wasm/src/lib.rs");
     let bare = src.matches("compiler_wasm_error(").count();
     let at = src.matches("compiler_wasm_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "compiler-wasm still has bare compiler_wasm_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "compiler-wasm still has bare compiler_wasm_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_lexer_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2902,16 +3009,18 @@ fn s3_01_positionless_lexer_bare_zero() {
     let src = repo_file("crates/syx-lexer/src/lib.rs");
     let bare = src.matches("lexer_error(").count();
     let at = src.matches("lexer_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "lexer lib still has bare lexer_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "lexer lib still has bare lexer_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_lint_bare_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");
@@ -2923,16 +3032,18 @@ fn s3_01_positionless_lint_bare_zero() {
     let src = repo_file("crates/syx-lint/src/lib.rs");
     let bare = src.matches("lint_error(").count();
     let at = src.matches("lint_error_at(").count();
-    assert_eq!(bare.saturating_sub(at), 0, "lint lib still has bare lint_error(");
+    assert_eq!(
+        bare.saturating_sub(at),
+        0,
+        "lint lib still has bare lint_error("
+    );
 }
 
 #[test]
 fn s3_01_positionless_helper_calls_zero() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_01_span_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run census");
     assert!(output.status.success(), "census script failed");

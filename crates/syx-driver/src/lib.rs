@@ -21,10 +21,8 @@ pub fn ensure_host_rt_link_stubs() {
 /// Must store function pointers (not `as usize`): pointer→integer casts are
 /// rejected in const eval (rustc 1.91+).
 #[used]
-static FORCE_HOST_RT_STUBS: (extern "C" fn(), extern "C" fn() -> i32) = (
-    host_rt_stubs::syx_user_init,
-    host_rt_stubs::syx_user_main,
-);
+static FORCE_HOST_RT_STUBS: (extern "C" fn(), extern "C" fn() -> i32) =
+    (host_rt_stubs::syx_user_init, host_rt_stubs::syx_user_main);
 
 pub mod capabilities;
 mod host_rt_stubs;
@@ -39,29 +37,29 @@ pub use build_syx::{
     farm_lease_expired, farm_lease_reset, farm_queue_last_hit, farm_worker_dequeue,
     farm_worker_last_hit, farm_worker_run_cycle,
 };
-mod farm_lease_auth;
 mod cache_fingerprint;
-mod farm_tcp;
-mod lsp_ide;
-mod mir_unify;
-mod test_runner;
-mod compile_linked;
-mod compile_file_context;
-mod prelude_glue;
-mod native_build;
-mod driver_options;
 mod check_project;
-mod run_exec;
-mod format_lint;
 mod compile_cache;
-mod run_wasm;
+mod compile_file_context;
+mod compile_linked;
 mod compile_to_program;
-mod feature_gates;
+mod cranelift_stubs;
 mod debug_repl;
 mod doc_project;
-mod cranelift_stubs;
-mod thin_host;
 mod driver_diag;
+mod driver_options;
+mod farm_lease_auth;
+mod farm_tcp;
+mod feature_gates;
+mod format_lint;
+mod lsp_ide;
+mod mir_unify;
+mod native_build;
+mod prelude_glue;
+mod run_exec;
+mod run_wasm;
+mod test_runner;
+mod thin_host;
 pub(crate) use driver_diag::{driver_error, driver_error_at, driver_warning, driver_warning_at};
 
 use cache_fingerprint::{
@@ -72,10 +70,11 @@ use cache_fingerprint::{
     phase108_track_b_fingerprint_seeds, phase109_track_a_fingerprint_seeds,
     phase109_track_b_fingerprint_seeds, phase110_track_b_fingerprint_seeds,
     phase111_track_b_fingerprint_seeds, plugin_manifest_hash, read_module_source_for_cache,
-    rustc_version_tag, unified_mir_fn_count_digest, vtable_layout_digest,
-    wasm_aot_tier_digest, witness_table_digest,
+    rustc_version_tag, unified_mir_fn_count_digest, vtable_layout_digest, wasm_aot_tier_digest,
+    witness_table_digest,
 };
 
+use farm_tcp::{cache_remote_push_enabled, record_cache_remote_fetch, record_cache_remote_push};
 pub use farm_tcp::{
     cache_remote_report, default_farm_cache_url, farm_tcp_encode_err, farm_tcp_encode_get,
     farm_tcp_encode_miss, farm_tcp_encode_ok, farm_tcp_encode_put, farm_tcp_handle_request,
@@ -83,15 +82,7 @@ pub use farm_tcp::{
     incremental_cache_path, purge_stale_incremental_caches, push_cache_remote,
     push_cache_remote_nodes, spawn_farm_tcp_node, FarmTcpResponse,
 };
-use farm_tcp::{cache_remote_push_enabled, record_cache_remote_fetch, record_cache_remote_push};
 
-pub use lsp_ide::{
-    analyze_document_for_lsp, definition_for_global_builtin, definition_for_qualified_symbol,
-    definition_for_symbol, diagnostics_for_source, enrich_semantic_spans, find_definition_in_module,
-    find_references_in_module, find_references_in_project, go_to_type_for_symbol,
-    import_module_suggestions, macro_expand_preview, name_span_in_container,
-    parse_for_lsp_completion, span_to_lsp_range, workspace_symbols_for_project, LspDocument,
-};
 pub use farm_lease_auth::{
     farm_lease_acquire, farm_lease_acquire_tenant, farm_lease_acquire_tenant_token,
     farm_lease_auth_clear_configured, farm_lease_auth_configure, farm_lease_auth_configure_ha,
@@ -108,21 +99,20 @@ pub use farm_lease_auth::{
     farm_lease_legacy_loopback_member_urls_non_ga, farm_lease_member_digest,
     farm_lease_member_regions_cross_host_ga, farm_lease_member_regions_os_dual_process_ga,
     farm_lease_member_regions_real_connect_ga, farm_lease_members_v2_digest,
-    farm_lease_multidc_discover_active, farm_lease_multidc_digest,
-    farm_lease_multidc_probe_timeout, farm_lease_multihost_digest,
-    farm_lease_os_child_try_serve, farm_lease_pkcs11_active_slot_id,
-    farm_lease_pkcs11_bridge_adapter_name, farm_lease_pkcs11_bridge_digest,
-    farm_lease_pkcs11_bridge_mvp_ready, farm_lease_pkcs11_bridge_sign_rotate,
-    farm_lease_pkcs11_hsm_digest_bound, farm_lease_pkcs11_hsm_digest_bound_digest,
-    farm_lease_pkcs11_hsm_digest_bound_mvp_ready, farm_lease_pkcs11_hsm_digest_final,
-    farm_lease_pkcs11_hsm_digest_init, farm_lease_pkcs11_hsm_digest_sign_bound,
-    farm_lease_pkcs11_hsm_digest_sign_verify, farm_lease_pkcs11_hsm_digest_streaming,
-    farm_lease_pkcs11_hsm_digest_streaming_digest,
+    farm_lease_multidc_digest, farm_lease_multidc_discover_active,
+    farm_lease_multidc_probe_timeout, farm_lease_multihost_digest, farm_lease_os_child_try_serve,
+    farm_lease_pkcs11_active_slot_id, farm_lease_pkcs11_bridge_adapter_name,
+    farm_lease_pkcs11_bridge_digest, farm_lease_pkcs11_bridge_mvp_ready,
+    farm_lease_pkcs11_bridge_sign_rotate, farm_lease_pkcs11_hsm_digest_bound,
+    farm_lease_pkcs11_hsm_digest_bound_digest, farm_lease_pkcs11_hsm_digest_bound_mvp_ready,
+    farm_lease_pkcs11_hsm_digest_final, farm_lease_pkcs11_hsm_digest_init,
+    farm_lease_pkcs11_hsm_digest_sign_bound, farm_lease_pkcs11_hsm_digest_sign_verify,
+    farm_lease_pkcs11_hsm_digest_streaming, farm_lease_pkcs11_hsm_digest_streaming_digest,
     farm_lease_pkcs11_hsm_digest_streaming_mvp_ready, farm_lease_pkcs11_hsm_digest_update,
     farm_lease_pkcs11_hsm_key_id_digest, farm_lease_pkcs11_hsm_key_id_mvp_ready,
     farm_lease_pkcs11_hsm_key_label_digest, farm_lease_pkcs11_hsm_key_label_mvp_ready,
-    farm_lease_pkcs11_hsm_multi_slot_bind, farm_lease_pkcs11_hsm_multi_slot_digest_streaming,
-    farm_lease_pkcs11_hsm_multi_slot_digest, farm_lease_pkcs11_hsm_multi_slot_mvp_ready,
+    farm_lease_pkcs11_hsm_multi_slot_bind, farm_lease_pkcs11_hsm_multi_slot_digest,
+    farm_lease_pkcs11_hsm_multi_slot_digest_streaming, farm_lease_pkcs11_hsm_multi_slot_mvp_ready,
     farm_lease_pkcs11_hsm_multi_slot_rotate, farm_lease_pkcs11_hsm_multi_slot_sign_bound,
     farm_lease_pkcs11_hsm_ref_bind, farm_lease_pkcs11_hsm_ref_bound,
     farm_lease_pkcs11_hsm_ref_bound_digest, farm_lease_pkcs11_hsm_ref_bound_for_slot,
@@ -143,20 +133,18 @@ pub use farm_lease_auth::{
     farm_lease_pkcs11_session_pin_persist_digest, farm_lease_pkcs11_session_pin_persist_ready,
     farm_lease_pkcs11_session_pin_persisted, farm_lease_pkcs11_session_pin_verify,
     farm_lease_pkcs11_session_rotate_count, farm_lease_pkcs11_session_slot_id,
-    farm_lease_pkcs11_sign_mvp_digest, farm_lease_pkcs11_slot_list,
-    farm_lease_pkcs11_slot_select, farm_lease_pkcs11_so_adapter_loaded,
-    farm_lease_pkcs11_so_digest, farm_lease_pkcs11_so_symbol_table,
-    farm_lease_probe_member_health, farm_lease_query_at, farm_lease_query_at_tenant,
-    farm_lease_query_at_tenant_token, farm_lease_raft_digest,
+    farm_lease_pkcs11_sign_mvp_digest, farm_lease_pkcs11_slot_list, farm_lease_pkcs11_slot_select,
+    farm_lease_pkcs11_so_adapter_loaded, farm_lease_pkcs11_so_digest,
+    farm_lease_pkcs11_so_symbol_table, farm_lease_probe_member_health, farm_lease_query_at,
+    farm_lease_query_at_tenant, farm_lease_query_at_tenant_token, farm_lease_raft_digest,
     farm_lease_raft_member_add_learner, farm_lease_raft_member_remove, farm_lease_raft_members_at,
     farm_lease_raft_v2_digest, farm_lease_read_token_epoch_file,
     farm_lease_registry_consensus_sync, farm_lease_registry_digest,
     farm_lease_registry_follower_view, farm_lease_registry_health_sync,
     farm_lease_registry_multi_follower_sync, farm_lease_registry_reload_probe,
     farm_lease_require_active, farm_lease_rotate_tenant_token, farm_lease_runtime_digest,
-    farm_lease_tenant_digest, farm_lease_tenant_v2_digest,
-    farm_lease_tenant_v3_digest, farm_lease_tenant_v4_digest,
-    farm_lease_token_epoch_path, farm_lease_token_digest,
+    farm_lease_tenant_digest, farm_lease_tenant_v2_digest, farm_lease_tenant_v3_digest,
+    farm_lease_tenant_v4_digest, farm_lease_token_digest, farm_lease_token_epoch_path,
     farm_lease_token_hsm_ref_accept_lock, farm_lease_token_hsm_ref_mvp_ready,
     farm_lease_token_hsm_ref_resolve, farm_lease_validate_snap_authority_fields,
     farm_lease_wal_checkpoint, farm_lease_wal_compact_digest, farm_lease_wal_crc_digest,
@@ -170,6 +158,13 @@ pub use farm_lease_auth::{
     ENV_FARM_PKCS11_KEY_ID_FILE, ENV_FARM_PKCS11_KEY_LABEL_FILE, ENV_FARM_PKCS11_PIN_FILE,
     ENV_FARM_PKCS11_SLOT_FILE, ENV_FARM_PKCS11_SO, FARM_LEASE_DEFAULT_TOKEN,
     FARM_LEASE_MULTIDC_PROBE_TIMEOUT_MS, FARM_LEASE_RAFT_MULTIHOST_BINDS, FARM_LEASE_RAFT_PORTS,
+};
+pub use lsp_ide::{
+    analyze_document_for_lsp, definition_for_global_builtin, definition_for_qualified_symbol,
+    definition_for_symbol, diagnostics_for_source, enrich_semantic_spans,
+    find_definition_in_module, find_references_in_module, find_references_in_project,
+    go_to_type_for_symbol, import_module_suggestions, macro_expand_preview, name_span_in_container,
+    parse_for_lsp_completion, span_to_lsp_range, workspace_symbols_for_project, LspDocument,
 };
 
 pub mod build_syx;
@@ -216,9 +211,7 @@ pub use syx_frontend::{
     prepare_async_module, FrontendArtifact, FrontendOptions, FrontendPipeline, StopAfter,
 };
 use syx_lint::lint_source_auto;
-use syx_meta::{
-    reflect_type, register_data_classes, TypeMetadata,
-};
+use syx_meta::{reflect_type, register_data_classes, TypeMetadata};
 use syx_mir::{lower_module, optimize, MirOp};
 use syx_mono::monomorphize_module;
 use syx_parser::{Parser, MAX_COLLECTED_PARSE_DIAGNOSTICS};
@@ -234,29 +227,15 @@ pub use syx_pkg::{
 pub use unified_compile::{compile_entry_with_unified_mir, UnifiedCompileArtifact};
 
 pub use feature_gates::{
-    result_legacy_object_enabled,
-    result_builtin_wire_enabled,
-    result_generic_syntax_enabled,
-    result_generic_full_mono_enabled,
-    result_try_expr_enabled,
-    result_async_try_mono_enabled,
-    result_async_actor_try_mono_enabled,
-    result_async_actor_try_prod_mono_enabled,
-    result_async_actor_try_e2e_enabled,
-    net_setsockopt_prod_enabled,
-    typealias_mvp_enabled,
-    typealias_prod_enabled,
-    property_wrapper_mvp_enabled,
-    net_setsockopt_real_enabled,
-    dist_rustls_crate_e2e_prod_enabled,
-    dist_winpipe_e2e_prod_enabled,
-    attached_hygienic_v2_enabled,
-    macro_hygiene_enabled,
-    attached_source_template,
-    result_legacy_retirement_weeks,
-    iterator_protocol_enabled,
+    attached_hygienic_v2_enabled, attached_source_template, dist_rustls_crate_e2e_prod_enabled,
+    dist_winpipe_e2e_prod_enabled, iterator_protocol_enabled, macro_hygiene_enabled,
+    net_setsockopt_prod_enabled, net_setsockopt_real_enabled, property_wrapper_mvp_enabled,
+    result_async_actor_try_e2e_enabled, result_async_actor_try_mono_enabled,
+    result_async_actor_try_prod_mono_enabled, result_async_try_mono_enabled,
+    result_builtin_wire_enabled, result_generic_full_mono_enabled, result_generic_syntax_enabled,
+    result_legacy_object_enabled, result_legacy_retirement_weeks, result_try_expr_enabled,
+    typealias_mvp_enabled, typealias_prod_enabled,
 };
-
 
 pub use thin_host::{
     backfill_mono_witness_cache, ensure_gui_loaded, farm_lease_test_lock, publish_package,
@@ -268,53 +247,37 @@ pub(crate) use thin_host::{
 };
 
 pub use cranelift_stubs::{
-    cranelift_backend_retired,
-    cranelift_p20_bench_enabled,
-    cranelift_p20_bench_target_bytes,
-    cranelift_gc_intrinsics_parity_enabled,
-    cranelift_unified_gc_promotion_codegen_enabled,
-    compile_module_to_object,
-    emit_clif_module_text,
-    take_macro_warnings,
+    compile_module_to_object, cranelift_backend_retired, cranelift_gc_intrinsics_parity_enabled,
+    cranelift_p20_bench_enabled, cranelift_p20_bench_target_bytes,
+    cranelift_unified_gc_promotion_codegen_enabled, emit_clif_module_text, take_macro_warnings,
 };
-
 
 pub(crate) use compile_to_program::{
     collect_main_actor_await_errors, compile_to_program, contextual_numeric_kinds_from_semantic,
     inject_virtual_prelude_imports, merge_stdlib_mono_instances,
 };
 
-
 pub use doc_project::doc_project;
 
-
+pub(crate) use format_lint::collect_sy_files;
 /// Format a single `.sy` file or a project directory (manifest `main` entry).
 pub use format_lint::{
     format_check_path, format_check_path_cst, format_document_for_lsp, format_project,
     lint_document_for_lsp, lint_project, FormatCheckReport,
 };
-pub(crate) use format_lint::collect_sy_files;
 
 pub use debug_repl::{
-    debug_project,
-    debug_project_with_options,
-    debug_file,
-    debug_file_with_options,
-    debug_path,
-    debug_path_with_options,
-    debug_interactive,
-    debug_dap,
-    repl_eval,
+    debug_dap, debug_file, debug_file_with_options, debug_interactive, debug_path,
+    debug_path_with_options, debug_project, debug_project_with_options, repl_eval,
 };
 
-
+pub(crate) use native_build::project_root_if_manifest_entry;
 pub use native_build::{
     build_native, build_native_executable, build_native_executable_file, build_native_file,
     build_native_file_with_options, build_native_llvm, build_native_with_options, build_wasm,
     build_wasm_file, build_wasm_file_with_options, build_wasm_with_options,
     run_native_project_with_options, NativeBuildOutput,
 };
-pub(crate) use native_build::project_root_if_manifest_entry;
 
 pub use mir_unify::{build_project_mir, build_unified_mir};
 pub(crate) use mir_unify::{
@@ -327,7 +290,6 @@ pub use run_wasm::{
     run_wasm_file_with_options, run_wasm_project, run_wasm_project_with_options, run_wasm_source,
     run_wasm_source_printed, run_wasm_source_with_options,
 };
-
 
 pub use compile_cache::compile_with_cache;
 pub(crate) use compile_cache::{
@@ -346,7 +308,6 @@ pub use driver_options::{
 
 pub use compile_file_context::compile_file_with_context;
 
-pub use prelude_glue::{export_function_signatures, stdlib_export_signature};
 pub(crate) use prelude_glue::{
     core_prelude_generic_class_methods, core_prelude_import_symbols,
     ensure_prelude_modules_in_graph, expand_core_value_builtin_modules, export_symbols,
@@ -354,18 +315,15 @@ pub(crate) use prelude_glue::{
     merge_imported_dataclass_functions, register_imported_data_classes_from_parsed,
     register_imported_macros_from_parsed,
 };
+pub use prelude_glue::{export_function_signatures, stdlib_export_signature};
 
 pub use compile_linked::{
     compile_file, compile_file_with_options, compile_linked, compile_linked_with_options,
     compile_project, compile_project_with_options,
 };
-pub(crate) use compile_linked::{
-    compile_module_recursive, ensure_project_lock, resolve_module,
-};
+pub(crate) use compile_linked::{compile_module_recursive, ensure_project_lock, resolve_module};
 
-pub use check_project::{
-    check_file_with_options, check_project, check_project_with_options,
-};
+pub use check_project::{check_file_with_options, check_project, check_project_with_options};
 
 /// Native SDK layout doctor surface (`syx doctor --native-sdk`).
 pub use syx_rt::{native_sdk_layout_report, NativeSdkLayoutReport};
@@ -380,11 +338,10 @@ mod qs1_ledger;
 #[cfg(feature = "qs1-ledger")]
 pub use qs1_ledger::*;
 
-
 pub use run_exec::{
-    compile_and_run_embedded, compile_embedded, compile_file_from_source, measure_tier2_bench_ratio,
-    run_file, run_file_printed, run_file_with_options, run_project, run_project_with_options,
-    EmbedResult,
+    compile_and_run_embedded, compile_embedded, compile_file_from_source,
+    measure_tier2_bench_ratio, run_file, run_file_printed, run_file_with_options, run_project,
+    run_project_with_options, EmbedResult,
 };
 pub(crate) use run_exec::{ensure_vm_plugin_dispatch, run_compiled_program_with_strict};
 
@@ -686,7 +643,12 @@ func main() { }"#,
         .expect("System should resolve");
         match resolved {
             // SA-4-04 / SA-5: disk bytes + SyxHost prepend; graph key stays `<stdlib>/System.sy`.
-            ModuleRef::Inline { key, display_name, source, .. } => {
+            ModuleRef::Inline {
+                key,
+                display_name,
+                source,
+                ..
+            } => {
                 assert!(
                     display_name.ends_with("packages/system/mod.sy"),
                     "expected packages/system/mod.sy overlay display, got key={} display={}",
@@ -905,10 +867,7 @@ func main() {
         // R-23: W001 tolerance withdrawn — emit+run must succeed. AOT main epilogue
         // still hard-codes wasm i32 0 (SYX return lives on RT); do not demand `1`.
         let code = run_wasm_project(&dir, "main").expect("wasm run");
-        assert!(
-            code == 0 || code == 1,
-            "unexpected wasm exit code {code}"
-        );
+        assert!(code == 0 || code == 1, "unexpected wasm exit code {code}");
     }
 
     #[test]
@@ -926,8 +885,8 @@ func main() {
         let syx = dir.join("prog.sy");
         fs::write(&syx, "func main() { print(\"ok\"); return 0 }").unwrap();
         // R-23: hard success path (W001 tolerance withdrawn for this fixture).
-        let wasm = build_wasm_file_with_options(&syx, &DriverOptions::default())
-            .expect("wasm emit");
+        let wasm =
+            build_wasm_file_with_options(&syx, &DriverOptions::default()).expect("wasm emit");
         fs::write(dir.join("prog.wasm"), wasm).unwrap();
         let (code, printed) =
             run_wasm_source_printed(&syx, "main", &DriverOptions::default()).unwrap();

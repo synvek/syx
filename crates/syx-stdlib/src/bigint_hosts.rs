@@ -27,13 +27,21 @@ const fn bh(name: &'static str, op: BigIntHostOp, ret: &'static str) -> BigIntHo
 }
 
 pub static BIGINT_HOST_TABLE: &[BigIntHostEntry] = &[
-    bh("__syx_bigint_from_string", BigIntHostOp::FromString, "BigInt"),
+    bh(
+        "__syx_bigint_from_string",
+        BigIntHostOp::FromString,
+        "BigInt",
+    ),
     bh("__syx_bigint_from_i128", BigIntHostOp::FromI128, "BigInt"),
     bh("__syx_bigint_add", BigIntHostOp::Add, "BigInt"),
     bh("__syx_bigint_sub", BigIntHostOp::Sub, "BigInt"),
     bh("__syx_bigint_mul", BigIntHostOp::Mul, "BigInt"),
     bh("__syx_bigint_cmp", BigIntHostOp::Cmp, "Int"),
-    bh("__syx_bigint_description", BigIntHostOp::Description, "String"),
+    bh(
+        "__syx_bigint_description",
+        BigIntHostOp::Description,
+        "String",
+    ),
 ];
 
 pub fn lookup_bigint_host(name: &str) -> Option<&'static BigIntHostEntry> {

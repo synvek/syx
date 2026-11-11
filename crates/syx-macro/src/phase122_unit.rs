@@ -2,7 +2,9 @@
 
 use smol_str::SmolStr;
 
-use crate::service::{collect_services, expand_service_macros, queue_services_from_module, spec_to_meta_entry};
+use crate::service::{
+    collect_services, expand_service_macros, queue_services_from_module, spec_to_meta_entry,
+};
 
 #[test]
 fn p122_service_scope_prototype_scan() {
@@ -66,14 +68,19 @@ class App { init(@Inject logger: Logger) {} }
     .expect("queue lib");
     syx_meta::service_di_set_scan_stem(Some("main".to_string()));
     queue_services_from_module(
-        &syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("main.sy", app)).expect("parse"),
+        &syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("main.sy", app))
+            .expect("parse"),
     )
     .expect("queue app");
     syx_meta::service_di_set_scan_stem(None);
     let queued = syx_meta::service_di_peek_entries();
     assert_eq!(queued.len(), 2);
-    assert!(queued.iter().any(|e| e.type_name == "Logger" && e.module_stem.as_deref() == Some("lib")));
-    assert!(queued.iter().any(|e| e.type_name == "App" && e.module_stem.as_deref() == Some("main")));
+    assert!(queued
+        .iter()
+        .any(|e| e.type_name == "Logger" && e.module_stem.as_deref() == Some("lib")));
+    assert!(queued
+        .iter()
+        .any(|e| e.type_name == "App" && e.module_stem.as_deref() == Some("main")));
     syx_meta::service_di_clear();
 }
 

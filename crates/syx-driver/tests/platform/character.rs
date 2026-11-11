@@ -29,4 +29,3 @@ fn character_run_file_printed() {
     assert_eq!(lines[5].trim(), "b", "for-in second: {printed:?}");
     assert_eq!(lines[6].trim(), "true", "isSingleScalar a: {printed:?}");
 }
-

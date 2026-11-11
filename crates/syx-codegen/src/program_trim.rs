@@ -149,12 +149,7 @@ fn call_targets(ins: &Instruction) -> Vec<u32> {
 }
 
 fn remap_call_indices(ins: &mut Instruction, old_to_new: &[Option<u32>]) {
-    let map = |idx: u32| -> u32 {
-        old_to_new
-            .get(idx as usize)
-            .and_then(|x| *x)
-            .unwrap_or(idx)
-    };
+    let map = |idx: u32| -> u32 { old_to_new.get(idx as usize).and_then(|x| *x).unwrap_or(idx) };
     match ins {
         Instruction::Call(i)
         | Instruction::CallSuper(i)
@@ -212,21 +207,14 @@ mod tests {
             functions: vec![
                 fu("helper", vec![Instruction::Return]),
                 fu("junk", vec![Instruction::Return]),
-                fu(
-                    "main",
-                    vec![Instruction::Call(0), Instruction::Return],
-                ),
+                fu("main", vec![Instruction::Call(0), Instruction::Return]),
             ],
             entry_point: SmolStr::new("main"),
             ..CompiledProgram::default()
         };
         trim_program_to_entry_reachability(&mut program);
         assert_eq!(program.functions.len(), 2);
-        let main = program
-            .functions
-            .iter()
-            .find(|f| f.name == "main")
-            .unwrap();
+        let main = program.functions.iter().find(|f| f.name == "main").unwrap();
         assert!(matches!(main.instructions[0], Instruction::Call(0)));
         assert_eq!(program.functions[0].name, "helper");
     }
@@ -258,15 +246,9 @@ mod tests {
                 fu("junk", vec![Instruction::Return]),
                 fu(
                     "Counter_init",
-                    vec![
-                        Instruction::ConstFnIndex(0),
-                        Instruction::Return,
-                    ],
+                    vec![Instruction::ConstFnIndex(0), Instruction::Return],
                 ),
-                fu(
-                    "main",
-                    vec![Instruction::Call(2), Instruction::Return],
-                ),
+                fu("main", vec![Instruction::Call(2), Instruction::Return]),
             ],
             entry_point: SmolStr::new("main"),
             ..CompiledProgram::default()
@@ -275,7 +257,11 @@ mod tests {
         assert!(
             program.functions.iter().any(|f| f.name == "Counter_next"),
             "witness target must survive trim: {:?}",
-            program.functions.iter().map(|f| &f.name).collect::<Vec<_>>()
+            program
+                .functions
+                .iter()
+                .map(|f| &f.name)
+                .collect::<Vec<_>>()
         );
         assert!(!program.functions.iter().any(|f| f.name == "junk"));
         let init = program

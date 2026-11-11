@@ -18,8 +18,7 @@ fn m3_a04_fairness_select_rr_even_split() {
         "Phase 107 RR fingerprint must remain"
     );
     reset_select_fair_cursor(0);
-    let lines = run(
-        r#"
+    let lines = run(r#"
 func main() {
   let ch1 = __syx_channel_create(1)
   let ch2 = __syx_channel_create(1)
@@ -34,8 +33,7 @@ func main() {
     i = i + 1
   }
 }
-"#,
-    );
+"#);
     let c11 = lines.iter().filter(|l| l.contains("11")).count();
     let c22 = lines.iter().filter(|l| l.contains("22")).count();
     assert_eq!(
@@ -44,4 +42,3 @@ func main() {
         "fair RR from seed 0 must split evenly: 11={c11} 22={c22} lines={lines:?}"
     );
 }
-

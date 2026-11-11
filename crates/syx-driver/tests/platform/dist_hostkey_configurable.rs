@@ -5,28 +5,13 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_delivery_ack_clear,
-    cdn_delivery_ack_count,
-    cdn_doctor_mode,
-    cdn_memory_dev_enabled,
-    cdn_route,
-    cdn_route_counts_as_ga,
-    cdn_route_ga,
-    cdn_routes_memory_clear,
-    cdn_tcp_peer_clear,
-    cdn_tcp_peer_configure,
-    cdn_tcp_peer_has_endpoints,
-    cdn_tcp_peer_inbox_count,
-    cdn_tcp_peer_route,
-    dist_actor_mp_clear,
-    dist_actor_mp_inbox_clear,
-    dist_host_key_addr_is_loopback,
-    dist_region_multihost_clear,
-    dist_region_multihost_configure_keys,
-    dist_region_multihost_has_nonloopback_host_key,
-    dist_region_multihost_route,
-    dist_region_multihost_tcp_health,
-    spawn_dist_tcp_mailbox_on,
+    cdn_delivery_ack_clear, cdn_delivery_ack_count, cdn_doctor_mode, cdn_memory_dev_enabled,
+    cdn_route, cdn_route_counts_as_ga, cdn_route_ga, cdn_routes_memory_clear, cdn_tcp_peer_clear,
+    cdn_tcp_peer_configure, cdn_tcp_peer_has_endpoints, cdn_tcp_peer_inbox_count,
+    cdn_tcp_peer_route, dist_actor_mp_clear, dist_actor_mp_inbox_clear,
+    dist_host_key_addr_is_loopback, dist_region_multihost_clear,
+    dist_region_multihost_configure_keys, dist_region_multihost_has_nonloopback_host_key,
+    dist_region_multihost_route, dist_region_multihost_tcp_health, spawn_dist_tcp_mailbox_on,
 };
 
 static P112_DIST_LOCK: Mutex<()> = Mutex::new(());
@@ -76,9 +61,8 @@ fn dist_hostkey_kill_nonloopback_host_key_failover() {
     ]);
     assert!(dist_region_multihost_has_nonloopback_host_key());
 
-    let (_, host, ack) =
-        dist_region_multihost_route("us-east", "primary", 1, 2, "p112-primary")
-            .expect("primary host key");
+    let (_, host, ack) = dist_region_multihost_route("us-east", "primary", 1, 2, "p112-primary")
+        .expect("primary host key");
     assert_eq!(host, "primary");
     assert_eq!(ack, "p112-primary");
 
@@ -87,9 +71,8 @@ fn dist_hostkey_kill_nonloopback_host_key_failover() {
     thread::sleep(Duration::from_millis(40));
     assert!(!dist_region_multihost_tcp_health("us-east", "primary"));
 
-    let (_, host2, ack2) =
-        dist_region_multihost_route("us-east", "primary", 1, 2, "p112-failover")
-            .expect("failover to backup host key");
+    let (_, host2, ack2) = dist_region_multihost_route("us-east", "primary", 1, 2, "p112-failover")
+        .expect("failover to backup host key");
     assert_eq!(host2, "backup");
     assert_eq!(ack2, "p112-failover");
 
@@ -117,8 +100,8 @@ fn dist_hostkey_tcp_cdn_peer_mvp() {
     assert!(cdn_route_counts_as_ga());
 
     let ack_before = cdn_delivery_ack_count();
-    let (region, ack) = cdn_tcp_peer_route("us-east", 3, 4, "p112-tcp-cdn")
-        .expect("TCP CDN peer route");
+    let (region, ack) =
+        cdn_tcp_peer_route("us-east", 3, 4, "p112-tcp-cdn").expect("TCP CDN peer route");
     assert_eq!(region, "us-east");
     assert_eq!(ack, "p112-tcp-cdn");
     assert_eq!(cdn_tcp_peer_inbox_count(), 0);
@@ -157,4 +140,3 @@ fn dist_hostkey_memory_cdn_not_ga() {
         "got {err}"
     );
 }
-

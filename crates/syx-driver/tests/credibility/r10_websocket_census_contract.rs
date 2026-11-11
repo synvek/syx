@@ -48,8 +48,7 @@ fn r10_websocket_census_files_exist() {
         "WebSocket.send socket must be Dictionary"
     );
     assert!(
-        !ws
-            .lines()
+        !ws.lines()
             .any(|ln| ln.contains("func ") && ln.contains("Object")),
         "WebSocket methods must not spell Object"
     );

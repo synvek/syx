@@ -1,6 +1,17 @@
 //! Phase 49 ADR-070 M1: macro expansion engine.
 
 #![allow(dead_code)]
+mod attached;
+mod attached_config;
+mod builtin;
+mod context;
+mod engine;
+mod external;
+mod external_protocol;
+mod external_sandbox;
+mod hygiene;
+mod macro_diag;
+mod parse_fragment;
 #[cfg(test)]
 mod phase119_unit;
 #[cfg(test)]
@@ -41,17 +52,6 @@ mod phase136_unit;
 mod phase137_unit;
 #[cfg(test)]
 mod phase138_unit;
-mod attached;
-mod attached_config;
-mod builtin;
-mod context;
-mod engine;
-mod external;
-mod external_protocol;
-mod external_sandbox;
-mod hygiene;
-mod macro_diag;
-mod parse_fragment;
 mod registry;
 mod result_builder;
 mod roles;
@@ -62,7 +62,9 @@ mod wrapper;
 
 pub(crate) use macro_diag::{macro_error_at, macro_warning};
 
-pub use attached_config::{attached_hygienic_v2_enabled, attached_source_template, macro_hygiene_enabled};
+pub use attached_config::{
+    attached_hygienic_v2_enabled, attached_source_template, macro_hygiene_enabled,
+};
 pub use external::{
     clear_imported_macros, expand_external_macros, lookup_external_macro, package_macro_registered,
     register_imported_external_macros, register_imported_macros, register_package_macros,
@@ -70,7 +72,8 @@ pub use external::{
 };
 pub use external_protocol::{
     expand_decls_via_protocol, expand_via_protocol, request_to_json, response_from_json,
-    ExternalMacroExpander, InProcessMacroExpander, PluginMacroExpander, MacroExpandRequest, MacroExpandResponse,
+    ExternalMacroExpander, InProcessMacroExpander, MacroExpandRequest, MacroExpandResponse,
+    PluginMacroExpander,
 };
 pub use external_sandbox::{
     is_macro_sandbox_child_argv, macro_external_plugin_prod_digest, macro_in_process_enabled,
@@ -94,10 +97,10 @@ pub fn expand_module(module: Module) -> SyxResult<Module> {
 
 pub use result_builder::desugar_result_builders;
 pub use service::{
-    check_service_cycles, collect_beans, collect_pointcuts, collect_services, expand_service_macros,
-    has_service_attr, parse_pointcut_pattern, pointcut_matches_join, pointcut_matches_method,
-    queue_services_from_module,
-    spec_to_meta_entry, BeanSpec, FieldAutowire, PointcutPattern, ServiceSpec, WithinWildcard,
+    check_service_cycles, collect_beans, collect_pointcuts, collect_services,
+    expand_service_macros, has_service_attr, parse_pointcut_pattern, pointcut_matches_join,
+    pointcut_matches_method, queue_services_from_module, spec_to_meta_entry, BeanSpec,
+    FieldAutowire, PointcutPattern, ServiceSpec, WithinWildcard,
 };
 pub use user::{
     decl_base_name_from_tokens, enumerate_decl_param_tokens, expand_decl_param_tokens,

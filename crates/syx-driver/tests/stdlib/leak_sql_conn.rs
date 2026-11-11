@@ -2,9 +2,7 @@
 // was: ec_m2_3_sql_leak
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
-use syx_vm::{
-    reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count,
-};
+use syx_vm::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
 
 fn run(src: &str) -> String {
     compile_and_run_embedded(src, &DriverOptions::default())
@@ -68,7 +66,10 @@ func main() {
 }
 "#,
     ));
-    assert!(out.contains("LEAKED"), "open without close must succeed: {out}");
+    assert!(
+        out.contains("LEAKED"),
+        "open without close must succeed: {out}"
+    );
     assert!(!out.contains("caught"), "open must not throw: {out}");
 
     let after = sql_conn_live_count();

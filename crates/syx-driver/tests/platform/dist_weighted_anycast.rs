@@ -5,27 +5,15 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_ga_ready,
-    cdn_bgp_health,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_pop_count,
-    cdn_bgp_mesh_snapshot,
-    cdn_bgp_multi_pop_ready,
-    cdn_bgp_pop_weights,
-    cdn_bgp_route,
-    cdn_bgp_weighted_anycast_mvp_ready,
-    cdn_bgp_weighted_anycast_ready,
-    cdn_bgp_weights_differentiated,
-    cdn_delivery_ack_clear,
-    cdn_doctor_mode,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_ga_ready, cdn_bgp_health,
+    cdn_bgp_import_peer_mesh, cdn_bgp_mesh_pop_count, cdn_bgp_mesh_snapshot,
+    cdn_bgp_multi_pop_ready, cdn_bgp_pop_weights, cdn_bgp_route,
+    cdn_bgp_weighted_anycast_mvp_ready, cdn_bgp_weighted_anycast_ready,
+    cdn_bgp_weights_differentiated, cdn_delivery_ack_clear, cdn_doctor_mode,
+    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P124_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_weighted_anycast_equal_weight_multi_pop_not_weighted_ga() {
@@ -96,7 +84,10 @@ fn dist_weighted_anycast_cdn_bgp_weighted_anycast_failover_mvp() {
             ("203.0.113.1/24", 150, "bgp-us-2", url_c.as_str()),
         ],
     );
-    assert!(!cdn_bgp_weighted_anycast_ready(), "imported peer mesh required");
+    assert!(
+        !cdn_bgp_weighted_anycast_ready(),
+        "imported peer mesh required"
+    );
 
     cdn_bgp_import_peer_mesh(
         "peer-eu",
@@ -124,16 +115,25 @@ fn dist_weighted_anycast_cdn_bgp_weighted_anycast_failover_mvp() {
     assert_eq!(snap.mesh_pop_count, 3);
     assert!(!snap.pop_weights.is_empty());
     // Weight dominates preferred-pop hint: highest weight (bgp-us=400) first.
-    assert_eq!(snap.cross_region_failover_order.first().map(String::as_str), Some("bgp-us"));
+    assert_eq!(
+        snap.cross_region_failover_order.first().map(String::as_str),
+        Some("bgp-us")
+    );
 
     let (active, ack) =
         cdn_bgp_route("bgp-us-2", 1, 2, "p124-weight-primary").expect("highest-weight route");
-    assert_eq!(active, "bgp-us", "weight 400 must beat preferred lower-weight pop");
+    assert_eq!(
+        active, "bgp-us",
+        "weight 400 must beat preferred lower-weight pop"
+    );
     assert_eq!(ack, "p124-weight-primary");
 
     stop_a.stop();
     thread::sleep(Duration::from_millis(25));
-    assert!(!cdn_bgp_health("bgp-us"), "primary weight pop must be unhealthy after stop");
+    assert!(
+        !cdn_bgp_health("bgp-us"),
+        "primary weight pop must be unhealthy after stop"
+    );
 
     let (failover_pop, failover_ack) =
         cdn_bgp_route("bgp-us", 3, 4, "p124-weight-failover").expect("weighted failover");

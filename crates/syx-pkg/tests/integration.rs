@@ -3,11 +3,11 @@ use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
 
+use ed25519_dalek::SigningKey;
 use syx_pkg::{
     add_dependency, install_project, load_resolved_packages, publish_package_signed,
     verifying_key_hex, DependencyAddSpec,
 };
-use ed25519_dalek::SigningKey;
 
 const TEST_SIGNING_SEED: [u8; 32] = [0x42; 32];
 
@@ -109,9 +109,13 @@ fn http_publish_requires_registry_token() {
     .unwrap();
     std::fs::write(pkg.join("main.sy"), "func main() { return 0 }").unwrap();
     std::env::remove_var("SYX_REGISTRY_TOKEN");
-    let err = syx_pkg::publish_package_with_token(&pkg, "https://packages.sy.dev", None).unwrap_err();
+    let err =
+        syx_pkg::publish_package_with_token(&pkg, "https://packages.sy.dev", None).unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("P010") || msg.contains("SYX_REGISTRY_TOKEN"), "got: {msg}");
+    assert!(
+        msg.contains("P010") || msg.contains("SYX_REGISTRY_TOKEN"),
+        "got: {msg}"
+    );
 }
 
 #[test]
@@ -199,13 +203,26 @@ fn git_dependency_install_from_in_tree_fixture() {
         .status()
         .expect("git add");
     Command::new("git")
-        .args(["-c", "user.email=syx@test", "-c", "user.name=syx", "commit", "-m", "init"])
+        .args([
+            "-c",
+            "user.email=syx@test",
+            "-c",
+            "user.name=syx",
+            "commit",
+            "-m",
+            "init",
+        ])
         .current_dir(&src)
         .status()
         .expect("git commit");
     let bare = root.path().join("demo.git");
     Command::new("git")
-        .args(["clone", "--bare", src.to_str().unwrap(), bare.to_str().unwrap()])
+        .args([
+            "clone",
+            "--bare",
+            src.to_str().unwrap(),
+            bare.to_str().unwrap(),
+        ])
         .status()
         .expect("git clone --bare");
     let git_url = format!("file://{}", bare.canonicalize().unwrap().to_string_lossy());
@@ -251,7 +268,12 @@ fn start_mock_registry_http(registry_dir: &std::path::Path) -> String {
                 let req = String::from_utf8_lossy(&buf[..n]);
                 let first = req.lines().next().unwrap_or("");
                 let body = if first.contains("/download") {
-                    let parts: Vec<_> = first.split_whitespace().nth(1).unwrap_or("").split('/').collect();
+                    let parts: Vec<_> = first
+                        .split_whitespace()
+                        .nth(1)
+                        .unwrap_or("")
+                        .split('/')
+                        .collect();
                     let name = parts.get(3).copied().unwrap_or("");
                     let version = parts.get(4).copied().unwrap_or("");
                     std::fs::read(
@@ -262,13 +284,16 @@ fn start_mock_registry_http(registry_dir: &std::path::Path) -> String {
                     )
                     .unwrap_or_default()
                 } else if first.contains("/v1/packages/") {
-                    let parts: Vec<_> = first.split_whitespace().nth(1).unwrap_or("").split('/').collect();
+                    let parts: Vec<_> = first
+                        .split_whitespace()
+                        .nth(1)
+                        .unwrap_or("")
+                        .split('/')
+                        .collect();
                     let name = parts.last().copied().unwrap_or("");
-                    std::fs::read_to_string(
-                        root.join("v1/packages").join(name).join("index.json"),
-                    )
-                    .unwrap_or_else(|_| "{}".into())
-                    .into_bytes()
+                    std::fs::read_to_string(root.join("v1/packages").join(name).join("index.json"))
+                        .unwrap_or_else(|_| "{}".into())
+                        .into_bytes()
                 } else {
                     b"ok".to_vec()
                 };
@@ -354,11 +379,7 @@ fn staging_registry_env_publish_install_cycle() {
         "name = \"stagingdemo\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
     )
     .unwrap();
-    std::fs::write(
-        pkg.join("lib.sy"),
-        "public func ping() -> Int { return 7 }",
-    )
-    .unwrap();
+    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 7 }").unwrap();
     publish_signed(&pkg, &staging_url);
 
     let app = root.path().join("consumer");
@@ -404,7 +425,11 @@ path = "../lib"
 "#,
     )
     .unwrap();
-    std::fs::write(app.join("main.sy"), "import lib\nfunc main() { print(lib.ok()) }").unwrap();
+    std::fs::write(
+        app.join("main.sy"),
+        "import lib\nfunc main() { print(lib.ok()) }",
+    )
+    .unwrap();
 
     let err = install_project(&app).unwrap_err();
     let msg = format!("{err}");
@@ -426,7 +451,11 @@ fn r001_diamond_semver_conflict_rejects_incompatible_transitive() {
         "name = \"shared\"\nversion = \"1.0.0\"\nmain = \"shared.sy\"\n",
     )
     .unwrap();
-    std::fs::write(shared.join("shared.sy"), "public func ok() -> Int { return 1 }").unwrap();
+    std::fs::write(
+        shared.join("shared.sy"),
+        "public func ok() -> Int { return 1 }",
+    )
+    .unwrap();
 
     let pkg_a = root.path().join("pkg_a");
     std::fs::create_dir_all(&pkg_a).unwrap();
@@ -500,7 +529,11 @@ fn r001_diamond_compatible_transitive_still_ok() {
         "name = \"shared\"\nversion = \"1.5.0\"\nmain = \"shared.sy\"\n",
     )
     .unwrap();
-    std::fs::write(shared.join("shared.sy"), "public func ok() -> Int { return 1 }").unwrap();
+    std::fs::write(
+        shared.join("shared.sy"),
+        "public func ok() -> Int { return 1 }",
+    )
+    .unwrap();
 
     let pkg_a = root.path().join("pkg_a");
     std::fs::create_dir_all(&pkg_a).unwrap();
@@ -576,7 +609,11 @@ fn r001_diamond_registry_semver_conflict_rejects_incompatible_transitive() {
         "name = \"shared\"\nversion = \"1.0.0\"\nmain = \"shared.sy\"\n",
     )
     .unwrap();
-    std::fs::write(shared.join("shared.sy"), "public func ok() -> Int { return 1 }").unwrap();
+    std::fs::write(
+        shared.join("shared.sy"),
+        "public func ok() -> Int { return 1 }",
+    )
+    .unwrap();
     publish_signed(&shared, &file_registry_url);
 
     let pkg_a = root.path().join("pkg_a");
@@ -662,7 +699,11 @@ fn r001_diamond_registry_compatible_transitive_still_ok() {
         "name = \"shared\"\nversion = \"1.5.0\"\nmain = \"shared.sy\"\n",
     )
     .unwrap();
-    std::fs::write(shared.join("shared.sy"), "public func ok() -> Int { return 1 }").unwrap();
+    std::fs::write(
+        shared.join("shared.sy"),
+        "public func ok() -> Int { return 1 }",
+    )
+    .unwrap();
     publish_signed(&shared, &file_registry_url);
 
     let pkg_a = root.path().join("pkg_a");
@@ -784,7 +825,10 @@ fn registry_promote_staging_smoke() {
     std::env::set_var("SYX_REGISTRY_STAGING", "https://staging.example");
     std::env::set_var("SYX_REGISTRY_PROMOTE_STAGING", "1");
     let chain = registry_url_chain(&manifest);
-    assert_eq!(chain.first().map(String::as_str), Some("https://staging.example"));
+    assert_eq!(
+        chain.first().map(String::as_str),
+        Some("https://staging.example")
+    );
     std::env::remove_var("SYX_REGISTRY_STAGING");
     std::env::remove_var("SYX_REGISTRY_PROMOTE_STAGING");
 }
@@ -815,7 +859,11 @@ fn registry_cdn_publish_install_chain_e2e() {
         "name = \"chaindemo\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
     )
     .unwrap();
-    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 15 }").unwrap();
+    std::fs::write(
+        pkg.join("lib.sy"),
+        "public func ping() -> Int { return 15 }",
+    )
+    .unwrap();
     publish_signed(&pkg, &staging_url);
 
     let app = root.path().join("consumer");
@@ -856,7 +904,11 @@ fn registry_signed_publish_smoke() {
         "name = \"signedemo\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
     )
     .unwrap();
-    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 42 }").unwrap();
+    std::fs::write(
+        pkg.join("lib.sy"),
+        "public func ping() -> Int { return 42 }",
+    )
+    .unwrap();
     publish_signed(&pkg, &registry_url);
 
     let checksum = "deadbeefcafebabe";
@@ -914,7 +966,11 @@ fn p20_registry_ed25519_staging_prod_dual_url() {
         "name = \"eddemo\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
     )
     .unwrap();
-    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 21 }").unwrap();
+    std::fs::write(
+        pkg.join("lib.sy"),
+        "public func ping() -> Int { return 21 }",
+    )
+    .unwrap();
     publish_signed(&pkg, &staging_url);
 
     let sig = sign_package_checksum(checksum, &test_signing_key());
@@ -1119,7 +1175,10 @@ fn c02_trust_root_sig_only_accepts_matching_pin() {
     let embedded = sign_package_checksum(checksum, &test_signing_key());
     let sig_only = sig_only_from_embedded(&embedded);
     assert!(verify_package_signature(checksum, Some(&sig_only)));
-    assert!(!verify_package_signature("wrongchecksum000", Some(&sig_only)));
+    assert!(!verify_package_signature(
+        "wrongchecksum000",
+        Some(&sig_only)
+    ));
     unpin_test_trust_root();
 }
 

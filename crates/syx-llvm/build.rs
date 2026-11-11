@@ -1,4 +1,4 @@
-﻿//! Validate local LLVM (SYX_LLVM_PREFIX / sibling ../llvm) for the `llvm` feature.
+//! Validate local LLVM (SYX_LLVM_PREFIX / sibling ../llvm) for the `llvm` feature.
 //!
 //! llvm-sys is wired to the sibling install via `.cargo/config.toml` (internal).
 //! When `SYX_LLVM_PREFIX` points elsewhere, use `./scripts/with-syx-llvm cargo …`.
@@ -50,7 +50,9 @@ fn main() {
         println!("cargo:rustc-link-lib=bcrypt");
         let lib = prefix.join("lib");
         // vcpkg `x64-windows-static` may ship zlib as `zs.lib`.
-        for name in ["zlib", "zs", "libiconv", "iconv", "charset", "lzma", "liblzma"] {
+        for name in [
+            "zlib", "zs", "libiconv", "iconv", "charset", "lzma", "liblzma",
+        ] {
             if lib.join(format!("{name}.lib")).is_file() {
                 println!("cargo:rustc-link-lib={name}");
             }
@@ -84,7 +86,10 @@ fn link_macos_system_libcxx() {
 }
 
 fn macos_sdk_path() -> Option<PathBuf> {
-    let out = Command::new("xcrun").args(["--show-sdk-path"]).output().ok()?;
+    let out = Command::new("xcrun")
+        .args(["--show-sdk-path"])
+        .output()
+        .ok()?;
     if !out.status.success() {
         return None;
     }

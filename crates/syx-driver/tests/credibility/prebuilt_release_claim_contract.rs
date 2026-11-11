@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -41,8 +40,7 @@ fn s4_05_plan_claim_locked() {
         "ADR must cite I106 residual-scope prior"
     );
     assert!(
-        adr.contains("S3-I108")
-            || (adr.contains("exit-open") && adr.contains("Stage-4")),
+        adr.contains("S3-I108") || (adr.contains("exit-open") && adr.contains("Stage-4")),
         "ADR must cite S3-I108 Stage-4 exit-open"
     );
     assert!(
@@ -71,20 +69,14 @@ fn s4_05_plan_claim_locked() {
         stage4.contains("[x]") && stage4.contains("退出"),
         "Stage-4 must be [x] 退出; got: {stage4}"
     );
-    assert!(
-        plan02.contains("5/5"),
-        "plan/02 must publish Stage-4 5/5"
-    );
+    assert!(plan02.contains("5/5"), "plan/02 must publish Stage-4 5/5");
     assert!(
         plan02.contains("S3-I108") || plan02.contains("exit-open"),
         "plan/02 must cite I108 / exit-open"
     );
 
     let census = repo_file("docs/census/stage4-prebuilt-release-census.md");
-    assert!(
-        census.contains("S3-I107"),
-        "census must name S3-I107"
-    );
+    assert!(census.contains("S3-I107"), "census must name S3-I107");
     assert!(
         census.contains("Current:** S3-I107") || census.contains("Current: S3-I107"),
         "census Current must be S3-I107"
@@ -93,10 +85,7 @@ fn s4_05_plan_claim_locked() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("5/5"),
-        "census must publish Stage-4 5/5"
-    );
+    assert!(census.contains("5/5"), "census must publish Stage-4 5/5");
     assert!(
         census.contains("S3-I108"),
         "census ladder must cite I108 next"
@@ -117,10 +106,7 @@ fn s4_05_plan_claim_locked() {
         plan01.contains("S3-I107") && plan01.contains("[x]"),
         "plan/01 must reflect S3-I107 S4-05 [x]"
     );
-    assert!(
-        plan01.contains("5/5"),
-        "plan/01 must publish Stage-4 5/5"
-    );
+    assert!(plan01.contains("5/5"), "plan/01 must publish Stage-4 5/5");
     assert!(
         plan01.contains("S3-I108") || plan01.contains("exit-open"),
         "plan/01 must cite I108 / exit-open"
@@ -131,9 +117,7 @@ fn s4_05_plan_claim_locked() {
 fn s4_05_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s4_05_prebuilt_release_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run s4_05 census");
     assert!(

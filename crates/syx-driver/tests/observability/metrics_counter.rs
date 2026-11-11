@@ -63,4 +63,3 @@ func main() {
     let h_pos = snap.find("hits=").expect("hits");
     assert!(a_pos < h_pos, "snapshot keys must be sorted: {snap}");
 }
-

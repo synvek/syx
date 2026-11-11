@@ -1,8 +1,11 @@
 //! Phase 98: GC v13 generational compact quad stdout.
 
-use syx_driver::{compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions};
+use syx_driver::{
+    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
+};
 use syx_runtime_core::{
-    gc_gen_compact_cycles, gc_gen_compact_record, heap_v13_generational, reset_gc_gen_compact_cycles,
+    gc_gen_compact_cycles, gc_gen_compact_record, heap_v13_generational,
+    reset_gc_gen_compact_cycles,
 };
 
 const GC_SRC: &str = r#"func main() {
@@ -41,7 +44,8 @@ fn p98_gc_generational_mir_stdout() {
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("main.sy"), GC_SRC).unwrap();
     syx_host_plugin::register_echo_plugin_in_process();
-    let (_, lines) = run_native_mir_file_printed(&dir.join("main.sy"), &DriverOptions::default()).unwrap();
+    let (_, lines) =
+        run_native_mir_file_printed(&dir.join("main.sy"), &DriverOptions::default()).unwrap();
     assert!(lines.iter().any(|l| l.contains("gc-done")), "{lines:?}");
 }
 
@@ -52,7 +56,7 @@ fn p98_gc_generational_wasm_stdout() {
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("main.sy"), GC_SRC).unwrap();
     syx_host_plugin::register_echo_plugin_in_process();
-    let (_, lines) = run_wasm_source_printed(&dir.join("main.sy"), "main", &DriverOptions::default()).unwrap();
+    let (_, lines) =
+        run_wasm_source_printed(&dir.join("main.sy"), "main", &DriverOptions::default()).unwrap();
     assert!(lines.iter().any(|l| l.contains("gc-done")), "{lines:?}");
 }
-

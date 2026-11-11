@@ -66,7 +66,8 @@ fn add_assign_host_registered() {
 #[test]
 fn seccomp_no_fallback() {
     let src = std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../syx-macro/src/external_sandbox.rs"),
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../syx-macro/src/external_sandbox.rs"),
     )
     .unwrap();
     assert!(!src.contains("or_else(|_| InProcessMacroExpander"));
@@ -107,7 +108,9 @@ fn mir_object_handle_drop_peeled() {
         !src.contains("register_object_handle")
             && !src.contains("MirOp::ObjectRefWrap =>")
             && !src.contains("fn object_ref_wrap")
-            && (src.contains("ADR-885") || src.contains("peel object_handle") || src.contains("ADR-888")),
+            && (src.contains("ADR-885")
+                || src.contains("peel object_handle")
+                || src.contains("ADR-888")),
         "mir-run must not call peeled register_object_handle; MirOp ObjectRef path must be absent"
     );
 }
@@ -166,8 +169,11 @@ fn engine_fixed_point() {
 
 #[test]
 fn assign_mir_hosts() {
-    let mir = emit_mir_text(&fixture("operators/assign_host.sy"), &DriverOptions::default())
-        .unwrap();
+    let mir = emit_mir_text(
+        &fixture("operators/assign_host.sy"),
+        &DriverOptions::default(),
+    )
+    .unwrap();
     assert!(mir.contains("__syx_int_add_assign") || mir.contains("CallHost"));
 }
 
@@ -211,9 +217,7 @@ fn object_handles_module() {
 
 #[test]
 fn cranelift_compat_deleted() {
-    assert!(
-        !std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("src/cranelift_compat.rs")
-            .exists()
-    );
+    assert!(!std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src/cranelift_compat.rs")
+        .exists());
 }

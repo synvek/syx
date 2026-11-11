@@ -6,29 +6,17 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_peer_announce_ack_mesh_ready,
-    cdn_bgp_peer_announce_ack_path_for,
-    cdn_bgp_peer_announce_ack_ready,
-    cdn_bgp_peer_announce_sticky,
-    cdn_bgp_peer_announce_sticky_path_for,
-    cdn_bgp_peer_announce_sticky_receive_and_ack,
-    cdn_bgp_peer_announce_sticky_receive_from_peer,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_binding_expires_at_ms,
-    cdn_bgp_sticky_pop_clear,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh,
+    cdn_bgp_peer_announce_ack_mesh_ready, cdn_bgp_peer_announce_ack_path_for,
+    cdn_bgp_peer_announce_ack_ready, cdn_bgp_peer_announce_sticky,
+    cdn_bgp_peer_announce_sticky_path_for, cdn_bgp_peer_announce_sticky_receive_and_ack,
+    cdn_bgp_peer_announce_sticky_receive_from_peer, cdn_bgp_route_sticky, cdn_bgp_sticky_binding,
+    cdn_bgp_sticky_binding_expires_at_ms, cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready,
+    cdn_bgp_sticky_shard_key, cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr,
     spawn_dist_tcp_mailbox_on,
 };
 
 static P130_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_peer_announce_ack_peer_announce_ack_mesh_ready_ttl_inherit() {
@@ -36,10 +24,8 @@ fn dist_peer_announce_ack_peer_announce_ack_mesh_ready_ttl_inherit() {
     cdn_bgp_clear();
     cdn_delivery_ack_clear();
 
-    let announce_dir = std::env::temp_dir().join(format!(
-        "syx-p130-peer-announce-ack-{}",
-        std::process::id()
-    ));
+    let announce_dir =
+        std::env::temp_dir().join(format!("syx-p130-peer-announce-ack-{}", std::process::id()));
     let _ = fs::remove_dir_all(&announce_dir);
     fs::create_dir_all(&announce_dir).expect("announce dir");
     std::env::set_var(
@@ -75,8 +61,7 @@ fn dist_peer_announce_ack_peer_announce_ack_mesh_ready_ttl_inherit() {
 
     let client = "tenant-us:client-p130";
     assert_eq!(cdn_bgp_sticky_shard_key(client), "tenant-us");
-    let (pop, _) =
-        cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p130-announce").expect("bind");
+    let (pop, _) = cdn_bgp_route_sticky(client, "bgp-us-2", 1, 2, "p130-announce").expect("bind");
     assert_eq!(pop, "bgp-us");
     let expires = cdn_bgp_sticky_binding_expires_at_ms(client).expect("ttl");
 
@@ -98,9 +83,8 @@ fn dist_peer_announce_ack_peer_announce_ack_mesh_ready_ttl_inherit() {
     cdn_bgp_sticky_pop_clear();
     assert!(cdn_bgp_sticky_binding(client).is_none());
 
-    let restored =
-        cdn_bgp_peer_announce_sticky_receive_and_ack("peer-eu", "tenant-us", &wire)
-            .expect("receive+ack");
+    let restored = cdn_bgp_peer_announce_sticky_receive_and_ack("peer-eu", "tenant-us", &wire)
+        .expect("receive+ack");
     assert!(restored >= 1);
     assert_eq!(cdn_bgp_sticky_binding(client).as_deref(), Some("bgp-us"));
     assert_eq!(
@@ -113,7 +97,10 @@ fn dist_peer_announce_ack_peer_announce_ack_mesh_ready_ttl_inherit() {
         "acked announce must be mesh-ready"
     );
     let ack_path = cdn_bgp_peer_announce_ack_path_for("peer-eu", "tenant-us").expect("ack path");
-    assert!(fs::metadata(&ack_path).is_ok(), "missing ack file {ack_path}");
+    assert!(
+        fs::metadata(&ack_path).is_ok(),
+        "missing ack file {ack_path}"
+    );
 
     // Affinity routing after restore: sticky binding wins.
     let (routed, _) =

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -27,9 +26,7 @@ fn s4_03_plan_claim_locked() {
         "ADR must Non-claim Stage-4 exit"
     );
     assert!(
-        adr.contains("CancellationToken")
-            || adr.contains("TaskGroup")
-            || adr.contains("cancel"),
+        adr.contains("CancellationToken") || adr.contains("TaskGroup") || adr.contains("cancel"),
         "ADR Evidence must cite Primary cancel/TaskGroup hinge"
     );
     assert!(
@@ -41,8 +38,7 @@ fn s4_03_plan_claim_locked() {
         "ADR must cite I98 residual-scope prior"
     );
     assert!(
-        adr.contains("S3-I100")
-            || (adr.contains("S4-04") && adr.contains("open")),
+        adr.contains("S3-I100") || (adr.contains("S4-04") && adr.contains("open")),
         "ADR must cite S3-I100 S4-04 open"
     );
 
@@ -67,20 +63,14 @@ fn s4_03_plan_claim_locked() {
         stage4.contains("[x]") && stage4.contains("退出"),
         "Stage-4 must be [x] 退出; got: {stage4}"
     );
-    assert!(
-        plan02.contains("5/5"),
-        "plan/02 must publish Stage-4 5/5"
-    );
+    assert!(plan02.contains("5/5"), "plan/02 must publish Stage-4 5/5");
     assert!(
         plan02.contains("S3-I100") || plan02.contains("S4-04"),
         "plan/02 must cite I100 / S4-04 open"
     );
 
     let census = repo_file("docs/census/stage4-structured-concurrency-census.md");
-    assert!(
-        census.contains("S3-I99"),
-        "census must name S3-I99"
-    );
+    assert!(census.contains("S3-I99"), "census must name S3-I99");
     assert!(
         census.contains("Current:** S3-I99") || census.contains("Current: S3-I99"),
         "census Current must be S3-I99"
@@ -89,10 +79,7 @@ fn s4_03_plan_claim_locked() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("4/5"),
-        "census must publish Stage-4 5/5"
-    );
+    assert!(census.contains("4/5"), "census must publish Stage-4 5/5");
     assert!(
         census.contains("S3-I100"),
         "census ladder must cite I100 next"
@@ -109,10 +96,7 @@ fn s4_03_plan_claim_locked() {
         plan01.contains("S3-I99") && plan01.contains("[x]"),
         "plan/01 must reflect S3-I99 S4-03 [x]"
     );
-    assert!(
-        plan01.contains("5/5"),
-        "plan/01 must publish Stage-4 5/5"
-    );
+    assert!(plan01.contains("5/5"), "plan/01 must publish Stage-4 5/5");
     assert!(
         plan01.contains("S3-I100") || plan01.contains("S4-04"),
         "plan/01 must cite I100 / S4-04"
@@ -123,9 +107,7 @@ fn s4_03_plan_claim_locked() {
 fn s4_03_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s4_03_structured_concurrency_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run s4_03 census");
     assert!(

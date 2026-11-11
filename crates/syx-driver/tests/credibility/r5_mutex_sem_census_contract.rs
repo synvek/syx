@@ -67,7 +67,9 @@ fn r5_mutex_sem_census_files_exist() {
         .unwrap_or(sync.split("public class Semaphore").nth(1).unwrap_or(""));
     for (label, slice) in [("Mutex", mutex_slice), ("Semaphore", sem_slice)] {
         assert!(
-            !slice.lines().any(|ln| ln.contains("func ") && ln.contains("Object")),
+            !slice
+                .lines()
+                .any(|ln| ln.contains("func ") && ln.contains("Object")),
             "{label} methods must not spell Object"
         );
     }

@@ -4,8 +4,7 @@
 // was: m2_s1_02_collection_mutation
 
 use syx_driver::{
-    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed,
-    DriverOptions,
+    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
 fn run(src: &str) -> String {
@@ -22,34 +21,24 @@ fn opts() -> DriverOptions {
 
 fn run_native_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w201_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w201_{}_{}", label, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
     std::fs::write(&path, src).unwrap();
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native exit {code}: {lines:?}");
     lines
 }
 
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w201_wasm_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w201_wasm_{}_{}", label, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
     std::fs::write(&path, src).unwrap();
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -115,8 +104,7 @@ fn m2_s1_02_dict_remove_persists() {
     let out = run(DICT_REMOVE_SRC);
     // Wave A W80 / ADR-424 / A-03: Dict remove persists product exact.
     assert_eq!(
-        out,
-        "true\nfalse\ntrue\n1\nfalse\ntrue",
+        out, "true\nfalse\ntrue\n1\nfalse\ntrue",
         "Dict remove must exact: {out}"
     );
 }
@@ -146,8 +134,7 @@ fn m2_s1_02_set_insert_remove_persists() {
     let out = run(SET_MUT_SRC);
     // Wave A W80 / ADR-424 / A-03: Set insert/remove persists product exact.
     assert_eq!(
-        out,
-        "true\nfalse\ntrue\n3\ntrue\nfalse\n2",
+        out, "true\nfalse\ntrue\n3\ntrue\nfalse\n2",
         "Set insert/remove must exact: {out}"
     );
 }
@@ -239,4 +226,3 @@ fn m2_s1_02_inventory_meta() {
         "inventory must note ADR-224"
     );
 }
-

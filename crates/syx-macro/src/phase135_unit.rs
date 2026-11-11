@@ -144,7 +144,10 @@ func main() {
     let dump = format!("{module:?}");
     assert!(!dump.contains("MacroSiteInvoke"), "{dump}");
     assert!(dump.contains("decl-token-ok"), "{dump}");
-    assert!(dump.contains("name: \"greet\"") || dump.contains("greet"), "{dump}");
+    assert!(
+        dump.contains("name: \"greet\"") || dump.contains("greet"),
+        "{dump}"
+    );
     assert!(dump.contains("41"), "{dump}");
     assert!(
         include_str!("user.rs").contains("macro-token-v6:decl-token-subst-mvp"),

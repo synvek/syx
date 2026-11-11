@@ -47,4 +47,3 @@ fn marketing_deploy_deepen_nail_behavior() {
         "path guard must reject docs/ targets"
     );
 }
-

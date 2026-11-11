@@ -2,9 +2,7 @@
 
 use smol_str::SmolStr;
 
-use crate::service::{
-    collect_services, expand_service_macros, pick_binding, spec_to_meta_entry,
-};
+use crate::service::{collect_services, expand_service_macros, pick_binding, spec_to_meta_entry};
 
 #[test]
 fn p124_service_qualifier_primary_profile_parsed() {

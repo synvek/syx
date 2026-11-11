@@ -49,15 +49,15 @@ func main() {
 
 #[test]
 fn os_concurrency_set_worker_count_roundtrip() {
-    let _g = P133_CONCURRENCY_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let _g = P133_CONCURRENCY_LOCK
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    let printed = run(r#"
 func main() {
     print(__syx_task_set_worker_count(3))
     print(__syx_task_worker_count())
 }
-"#,
-    )
+"#)
     .expect("workerCount roundtrip");
     assert_eq!(printed[0].trim(), "3");
     assert_eq!(printed[1].trim(), "3");
@@ -65,10 +65,11 @@ func main() {
 
 #[test]
 fn os_concurrency_set_max_actors_overflow_fails() {
-    let _g = P133_CONCURRENCY_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let _g = P133_CONCURRENCY_LOCK
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
     syx_async::set_max_actors(0);
-    let err = run(
-        r#"
+    let err = run(r#"
 actor Counter {
     var value: Int
     init(value: Int) {
@@ -86,8 +87,7 @@ func main() {
     b.increment()
     print("unreachable")
 }
-"#,
-    )
+"#)
     .expect_err("second actor executor should fail");
     assert!(
         err.contains("C007") || err.contains("Actor limit") || err.contains("maxActors"),
@@ -98,16 +98,16 @@ func main() {
 
 #[test]
 fn os_concurrency_max_actors_host_roundtrip() {
-    let _g = P133_CONCURRENCY_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let _g = P133_CONCURRENCY_LOCK
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    let printed = run(r#"
 func main() {
     print(__syx_actor_set_max_actors(5))
     print(__syx_actor_max_actors())
     print(__syx_actor_set_max_actors(0))
 }
-"#,
-    )
+"#)
     .expect("maxActors host roundtrip");
     assert_eq!(printed[0].trim(), "5");
     assert_eq!(printed[1].trim(), "5");
@@ -116,8 +116,7 @@ func main() {
 
 #[test]
 fn os_concurrency_channel_length_capacity() {
-    let printed = run(
-        r#"
+    let printed = run(r#"
 func main() {
     let ch = __syx_channel_create(2)
     print(__syx_channel_capacity(ch))
@@ -125,8 +124,7 @@ func main() {
     __syx_channel_try_send(ch, 7)
     print(__syx_channel_length(ch))
 }
-"#,
-    )
+"#)
     .expect("channel length/capacity");
     assert_eq!(printed[0].trim(), "2");
     assert_eq!(printed[1].trim(), "0");
@@ -135,21 +133,20 @@ func main() {
 
 #[test]
 fn os_concurrency_mailbox_capacity_roundtrip() {
-    let _g = P133_CONCURRENCY_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let printed = run(
-        r#"
+    let _g = P133_CONCURRENCY_LOCK
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    let printed = run(r#"
 func main() {
     print(__syx_actor_set_mailbox_capacity(4))
     print(__syx_actor_mailbox_capacity())
     print(__syx_actor_set_mailbox_capacity(0))
     print(__syx_actor_mailbox_capacity())
 }
-"#,
-    )
+"#)
     .expect("mailbox capacity roundtrip");
     assert_eq!(printed[0].trim(), "4");
     assert_eq!(printed[1].trim(), "4");
     assert_eq!(printed[2].trim(), "0");
     assert_eq!(printed[3].trim(), "0");
 }
-

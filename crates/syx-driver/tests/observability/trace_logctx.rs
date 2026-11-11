@@ -68,7 +68,8 @@ func main() {
         .map(String::as_str)
         .unwrap_or("");
     assert_eq!(
-        after_e1, outer.as_str(),
+        after_e1,
+        outer.as_str(),
         "current after inner end must restore outer: {lines:?}"
     );
     assert_eq!(
@@ -110,4 +111,3 @@ func main() {
         "injected span must match active span: {line}"
     );
 }
-

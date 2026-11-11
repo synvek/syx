@@ -73,4 +73,3 @@ fn w_was_empty(out: &str) -> bool {
     }
     true
 }
-

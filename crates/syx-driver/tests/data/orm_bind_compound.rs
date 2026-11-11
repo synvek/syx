@@ -2,9 +2,8 @@
 
 use std::collections::HashMap;
 
-use syx_vm::{host_orm_find_where_dict_bound, orm_bound_value_count, reset_phase98_state};
 use syx_runtime_core::Value;
-
+use syx_vm::{host_orm_find_where_dict_bound, orm_bound_value_count, reset_phase98_state};
 
 #[test]
 fn p98_orm_compound_binds_values() {

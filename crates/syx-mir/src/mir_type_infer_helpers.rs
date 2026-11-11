@@ -5,7 +5,10 @@ use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_module_index::ModuleIndex;
 use smol_str::SmolStr;
 use syx_ast::{BinOp, CallArg, ClosureBody, Expr, Literal, Stmt};
-use syx_stdlib::{host_fn_id_by_name, host_fn_return_type, lookup_array_method, lookup_dict_method, lookup_set_method, method_return_type};
+use syx_stdlib::{
+    host_fn_id_by_name, host_fn_return_type, lookup_array_method, lookup_dict_method,
+    lookup_set_method, method_return_type,
+};
 
 pub(crate) fn type_name_is_array(name: &str) -> bool {
     name == "Array" || name.starts_with("Array<")
@@ -69,7 +72,6 @@ pub(crate) fn extension_or_hosted_return_type(
     Some(SmolStr::new(hosted))
 }
 
-
 pub(crate) fn infer_service_resolve_type_name(callee: &Expr, args: &[CallArg]) -> Option<SmolStr> {
     match callee {
         Expr::Ident { name, .. }
@@ -88,11 +90,12 @@ pub(crate) fn infer_service_resolve_type_name(callee: &Expr, args: &[CallArg]) -
             value: Literal::String(type_name),
             ..
         } => Some(SmolStr::new(type_name.as_str())),
-        Expr::Ident { name: type_name, .. } => Some(type_name.clone()),
+        Expr::Ident {
+            name: type_name, ..
+        } => Some(type_name.clone()),
         _ => None,
     }
 }
-
 
 pub(crate) fn infer_expr_init_type(expr: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
     match expr {
@@ -133,13 +136,11 @@ pub(crate) fn infer_expr_init_type(expr: &Expr, ctx: &LowerCtx) -> Option<SmolSt
             ..
         } => {
             let s = suffix.as_deref().unwrap_or("");
-            Some(SmolStr::new(
-                if s == "f32" || s == "f" {
-                    "Float32"
-                } else {
-                    "Float64"
-                },
-            ))
+            Some(SmolStr::new(if s == "f32" || s == "f" {
+                "Float32"
+            } else {
+                "Float64"
+            }))
         }
         Expr::Call { callee, args, .. } => {
             if let Some(type_name) = infer_service_resolve_type_name(callee, args) {
@@ -194,7 +195,6 @@ pub(crate) fn infer_expr_init_type(expr: &Expr, ctx: &LowerCtx) -> Option<SmolSt
     }
 }
 
-
 pub(crate) fn expr_is_float64_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     if let Expr::Literal {
         value: Literal::Double { suffix, .. },
@@ -206,23 +206,17 @@ pub(crate) fn expr_is_float64_like(expr: &Expr, ctx: &LowerCtx) -> bool {
         return s.is_empty() || s == "f64" || s == "d";
     }
     if let Expr::Ident { name, .. } = expr {
-        if ctx.local_types.get(name).is_some_and(|t| {
-            matches!(
-                type_name_dispatch_base(t).as_str(),
-                "Float64" | "Double"
-            )
-        }) {
+        if ctx
+            .local_types
+            .get(name)
+            .is_some_and(|t| matches!(type_name_dispatch_base(t).as_str(), "Float64" | "Double"))
+        {
             return true;
         }
     }
-    infer_object_type_name(expr, ctx).is_some_and(|t| {
-        matches!(
-            type_name_dispatch_base(&t).as_str(),
-            "Float64" | "Double"
-        )
-    })
+    infer_object_type_name(expr, ctx)
+        .is_some_and(|t| matches!(type_name_dispatch_base(&t).as_str(), "Float64" | "Double"))
 }
-
 
 pub(crate) fn expr_is_float32_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     if let Expr::Literal {
@@ -234,23 +228,17 @@ pub(crate) fn expr_is_float32_like(expr: &Expr, ctx: &LowerCtx) -> bool {
         return s == "f32" || s == "f";
     }
     if let Expr::Ident { name, .. } = expr {
-        if ctx.local_types.get(name).is_some_and(|t| {
-            matches!(
-                type_name_dispatch_base(t).as_str(),
-                "Float32" | "Float"
-            )
-        }) {
+        if ctx
+            .local_types
+            .get(name)
+            .is_some_and(|t| matches!(type_name_dispatch_base(t).as_str(), "Float32" | "Float"))
+        {
             return true;
         }
     }
-    infer_object_type_name(expr, ctx).is_some_and(|t| {
-        matches!(
-            type_name_dispatch_base(&t).as_str(),
-            "Float32" | "Float"
-        )
-    })
+    infer_object_type_name(expr, ctx)
+        .is_some_and(|t| matches!(type_name_dispatch_base(&t).as_str(), "Float32" | "Float"))
 }
-
 
 pub(crate) fn expr_is_array_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     if matches!(expr, Expr::Array { .. }) {
@@ -268,7 +256,6 @@ pub(crate) fn expr_is_array_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     infer_expr_init_type(expr, ctx).is_some_and(|t| type_name_is_array(t.as_str()))
 }
 
-
 pub(crate) fn expr_is_set_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     if let Expr::Ident { name, .. } = expr {
         return ctx
@@ -279,9 +266,14 @@ pub(crate) fn expr_is_set_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     false
 }
 
-
 pub(crate) fn expr_is_dict_like(expr: &Expr, ctx: &LowerCtx) -> bool {
-    if matches!(expr, Expr::Literal { value: Literal::Dict(_), .. }) {
+    if matches!(
+        expr,
+        Expr::Literal {
+            value: Literal::Dict(_),
+            ..
+        }
+    ) {
         return true;
     }
     if let Expr::Ident { name, .. } = expr {
@@ -292,7 +284,6 @@ pub(crate) fn expr_is_dict_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     }
     false
 }
-
 
 pub(crate) fn expr_is_string_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     if matches!(
@@ -305,13 +296,20 @@ pub(crate) fn expr_is_string_like(expr: &Expr, ctx: &LowerCtx) -> bool {
         return true;
     }
     if let Expr::Ident { name, .. } = expr {
-        if ctx.local_types.get(name).is_some_and(|t| t.as_str() == "String") {
+        if ctx
+            .local_types
+            .get(name)
+            .is_some_and(|t| t.as_str() == "String")
+        {
             return true;
         }
     }
     // Chained `a + b + c`: the left of the outer Add is itself a string Concat.
     // Without this, the second `+` lowers to numeric Add → 0 (breaks SynUI handle CSVs).
-    if let Expr::Binary { left, op, right, .. } = expr {
+    if let Expr::Binary {
+        left, op, right, ..
+    } = expr
+    {
         if matches!(op, BinOp::Add)
             && (expr_is_string_like(left, ctx) || expr_is_string_like(right, ctx))
         {
@@ -321,7 +319,6 @@ pub(crate) fn expr_is_string_like(expr: &Expr, ctx: &LowerCtx) -> bool {
     infer_expr_init_type(expr, ctx).is_some_and(|t| t.as_str() == "String")
         || infer_object_type_name(expr, ctx).is_some_and(|t| t.as_str() == "String")
 }
-
 
 fn normalize_type_arg(name: SmolStr) -> SmolStr {
     match name.as_str() {
@@ -341,7 +338,6 @@ fn normalize_type_arg(name: SmolStr) -> SmolStr {
     }
 }
 
-
 pub(crate) fn infer_static_method_type_args(args: &[CallArg], ctx: &LowerCtx) -> Vec<SmolStr> {
     for arg in args {
         if let Expr::Ident { name, .. } = &arg.value {
@@ -355,7 +351,6 @@ pub(crate) fn infer_static_method_type_args(args: &[CallArg], ctx: &LowerCtx) ->
     }
     vec![SmolStr::new("Unknown")]
 }
-
 
 pub(crate) fn is_platform_value_type(name: &str) -> bool {
     matches!(
@@ -387,7 +382,6 @@ pub(crate) fn is_platform_value_type(name: &str) -> bool {
     )
 }
 
-
 pub(crate) fn instance_self_mut_ref_method(name: &SmolStr, module: &ModuleIndex) -> bool {
     let Some((type_name, rest)) = syx_ast::parse_mangled_instance_method(name.as_str()) else {
         return false;
@@ -404,11 +398,9 @@ pub(crate) fn instance_self_mut_ref_method(name: &SmolStr, module: &ModuleIndex)
     module.class_types.contains_key(&type_name) || module.actor_types.contains(&type_name)
 }
 
-
 pub(crate) fn type_name_dispatch_base(name: &SmolStr) -> SmolStr {
     SmolStr::new(name.split('<').next().unwrap_or(name.as_str()))
 }
-
 
 pub(crate) fn is_static_type_member_call(object: &Expr, ctx: &LowerCtx) -> bool {
     let Expr::Ident { name, .. } = object else {
@@ -422,14 +414,12 @@ pub(crate) fn is_static_type_member_call(object: &Expr, ctx: &LowerCtx) -> bool 
         || syx_stdlib::is_builtin_type(name.as_str())
 }
 
-
 pub(crate) fn class_name_from_mangled(func_name: &str) -> Option<SmolStr> {
     if let Some(base) = func_name.strip_suffix("_init") {
         return Some(SmolStr::new(base));
     }
     syx_ast::parse_mangled_instance_method(func_name).map(|(class, _)| class)
 }
-
 
 fn infer_member_field_type(object: &Expr, field: &SmolStr, ctx: &LowerCtx) -> Option<SmolStr> {
     let class_name = match object {
@@ -446,25 +436,20 @@ fn infer_member_field_type(object: &Expr, field: &SmolStr, ctx: &LowerCtx) -> Op
         .cloned()
 }
 
-
 pub(crate) fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
     match object {
         Expr::Member { object, name, .. } => infer_member_field_type(object, name, ctx),
-        Expr::Ident { name, .. } => ctx
-            .local_types
-            .get(name)
-            .cloned()
-            .or_else(|| {
-                if ctx.module.dataclass_names.contains(name)
-                    || ctx.module.class_types.contains_key(name)
-                    || ctx.module.actor_types.contains(name)
-                    || ctx.module.enum_classes.contains(name)
-                {
-                    Some(name.clone())
-                } else {
-                    None
-                }
-            }),
+        Expr::Ident { name, .. } => ctx.local_types.get(name).cloned().or_else(|| {
+            if ctx.module.dataclass_names.contains(name)
+                || ctx.module.class_types.contains_key(name)
+                || ctx.module.actor_types.contains(name)
+                || ctx.module.enum_classes.contains(name)
+            {
+                Some(name.clone())
+            } else {
+                None
+            }
+        }),
         Expr::Literal { value: _, .. } => Some(infer_expr_type_name(object)),
         Expr::Call { callee, args, .. } => {
             if let Some(type_name) = infer_service_resolve_type_name(callee, args) {
@@ -491,15 +476,14 @@ pub(crate) fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<Sm
                 }
             }
             if let Expr::Member { object, name, .. } = callee.as_ref() {
-                if let Expr::Ident { name: type_name, .. } = object.as_ref() {
-                    if let Some(ret) =
-                        dataclass_shell_method_return_type(type_name, name, ctx)
-                    {
+                if let Expr::Ident {
+                    name: type_name, ..
+                } = object.as_ref()
+                {
+                    if let Some(ret) = dataclass_shell_method_return_type(type_name, name, ctx) {
                         return Some(ret);
                     }
-                    if let Some(ret) =
-                        extension_or_hosted_return_type(type_name, name, ctx)
-                    {
+                    if let Some(ret) = extension_or_hosted_return_type(type_name, name, ctx) {
                         return Some(ret);
                     }
                 }
@@ -523,11 +507,9 @@ pub(crate) fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<Sm
     }
 }
 
-
 fn array_method_index(method: &str) -> Option<u32> {
     syx_stdlib::lookup_array_method(method).map(|m| m.index())
 }
-
 
 pub(crate) fn binop_operator_symbol(op: BinOp) -> Option<&'static str> {
     match op {
@@ -549,7 +531,6 @@ pub(crate) fn binop_operator_symbol(op: BinOp) -> Option<&'static str> {
         _ => None,
     }
 }
-
 
 pub(crate) fn infer_expr_type_name(expr: &Expr) -> SmolStr {
     match expr {
@@ -591,7 +572,6 @@ pub(crate) fn infer_expr_type_name(expr: &Expr) -> SmolStr {
     }
 }
 
-
 pub(crate) fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
     ty.as_str()
         .strip_prefix("Array<")
@@ -607,11 +587,10 @@ pub(crate) fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
 /// R-34: `for s in shapes` where `shapes: Array<Shape>` → bind `s` as `Shape`
 /// so member calls lower via protocol witness + CallIndirect (not ObjectGet name).
 pub(crate) fn infer_for_in_elem_type(iterable: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
-    let coll = infer_object_type_name(iterable, ctx)
-        .or_else(|| infer_expr_init_type(iterable, ctx))?;
+    let coll =
+        infer_object_type_name(iterable, ctx).or_else(|| infer_expr_init_type(iterable, ctx))?;
     unwrap_collection_elem_type_arg(&coll)
 }
-
 
 fn infer_closure_result_type_name(body: &ClosureBody, ctx: &LowerCtx) -> SmolStr {
     match body {
@@ -628,7 +607,6 @@ fn infer_closure_result_type_name(body: &ClosureBody, ctx: &LowerCtx) -> SmolStr
             .unwrap_or_else(|| SmolStr::new("Unknown")),
     }
 }
-
 
 pub(crate) fn infer_generic_arg_type_name(expr: &Expr, ctx: &LowerCtx) -> SmolStr {
     match expr {
@@ -670,7 +648,6 @@ pub(crate) fn infer_generic_arg_type_name(expr: &Expr, ctx: &LowerCtx) -> SmolSt
     }
 }
 
-
 fn normalize_nested_type_arg(name: SmolStr) -> SmolStr {
     if let Some(inner) = name
         .as_str()
@@ -682,4 +659,3 @@ fn normalize_nested_type_arg(name: SmolStr) -> SmolStr {
     }
     normalize_type_arg(name)
 }
-

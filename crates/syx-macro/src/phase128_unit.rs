@@ -36,7 +36,10 @@ func main() { print(1) }
         syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
     expand_service_macros(&mut module).expect("lazy cycle should expand");
     let dump = format!("{module:?}");
-    assert!(dump.contains("__syx_service_lazy_proxy") || dump.contains("Lazy"), "{dump}");
+    assert!(
+        dump.contains("__syx_service_lazy_proxy") || dump.contains("Lazy"),
+        "{dump}"
+    );
 }
 
 #[test]

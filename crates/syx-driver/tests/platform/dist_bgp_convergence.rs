@@ -5,19 +5,12 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure,
-    cdn_bgp_ga_ready,
-    cdn_bgp_import_peer_view,
-    cdn_bgp_multi_region_mesh_ready,
-    cdn_bgp_route_convergence_ready,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure, cdn_bgp_ga_ready, cdn_bgp_import_peer_view,
+    cdn_bgp_multi_region_mesh_ready, cdn_bgp_route_convergence_ready, cdn_delivery_ack_clear,
+    dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P121_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_bgp_convergence_cdn_bgp_route_convergence_without_mesh_ga() {

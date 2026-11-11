@@ -38,8 +38,14 @@ func main() {
         out.lines().any(|l| l == "DEBUG") || out.contains("DEBUG"),
         "default or set min-level must surface DEBUG: {out}"
     );
-    assert!(out.contains("true"), "setMinLevel(WARN) must succeed: {out}");
-    assert!(out.contains("WARN"), "minLevel after set must be WARN: {out}");
+    assert!(
+        out.contains("true"),
+        "setMinLevel(WARN) must succeed: {out}"
+    );
+    assert!(
+        out.contains("WARN"),
+        "minLevel after set must be WARN: {out}"
+    );
     // After filtered debug, takeLast prints empty line; after error, [ERROR] e.
     assert!(
         out.contains("[ERROR] e"),
@@ -60,4 +66,3 @@ func main() {
         "infoFields keys must be sorted: {fields_line}"
     );
 }
-

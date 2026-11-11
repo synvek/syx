@@ -198,6 +198,20 @@ let crash: Int = present!.count     // 4（强制解包）
 
 完整用法见 [第 30 章 高级运算符](30-advanced-operators.md)。
 
+### `Int(String)` → `Int?`（R-38 output 钉 · SEM-INTSTR）
+
+可失败转换：成功打印平台 `Int`，失败打印 `nil`：
+
+```syx,output
+// prints: 42\n43\nnil
+func main() {
+    print(Int("42"))
+    print(Int("42") + 1)
+    let x: Int? = Int("abc")
+    print(x)
+}
+```
+
 ## 命名规范
 
 SYX 社区惯例（不强制；`syx lint` 给出 L001–L012 警告）：

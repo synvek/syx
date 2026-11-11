@@ -104,7 +104,8 @@ fn extract_rejects_relative_symlink_escape() {
     let root = tempfile::tempdir().unwrap();
     let dest = root.path().join("vendor");
     let outside = root.path().join("outside.txt");
-    let err = syx_pkg::extract_tar_gz(&bytes, &dest).expect_err("relative symlink escape must fail");
+    let err =
+        syx_pkg::extract_tar_gz(&bytes, &dest).expect_err("relative symlink escape must fail");
     let msg = format!("{err}");
     assert!(msg.contains("P013"), "got: {msg}");
     assert!(!outside.exists());

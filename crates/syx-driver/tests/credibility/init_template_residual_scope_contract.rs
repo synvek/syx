@@ -6,14 +6,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s3_07_residual_scope_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-07-residual-scope.md");
-    assert!(adr.contains("S3-I84"), "residual-scope ADR must name S3-I84");
+    assert!(
+        adr.contains("S3-I84"),
+        "residual-scope ADR must name S3-I84"
+    );
     assert!(
         adr.contains("scoped acceptance")
             || adr.contains("Scoped acceptance")
@@ -57,7 +59,8 @@ fn s3_07_residual_scope_adr_and_census() {
         "census must publish I84 KPIs / scoped goal"
     );
     assert!(
-        census.contains("S3-I85") && census.contains("S3-I86")
+        census.contains("S3-I85")
+            && census.contains("S3-I86")
             && census.contains("S3-I87")
             && (census.contains("S3-I88") || census.contains("Stage-4")),
         "census ladder must name I85 claimed / I86 next"

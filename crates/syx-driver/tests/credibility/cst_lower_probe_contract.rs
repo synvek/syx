@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn zero_span() -> Span {
@@ -30,10 +29,7 @@ fn zero_expr(expr: &mut Expr) {
             *span = zero_span();
         }
         Expr::Binary {
-            span,
-            left,
-            right,
-            ..
+            span, left, right, ..
         } => {
             *span = zero_span();
             zero_expr(left);
@@ -54,11 +50,7 @@ fn zero_expr(expr: &mut Expr) {
             *span = zero_span();
             zero_expr(expr);
         }
-        Expr::Call {
-            span,
-            callee,
-            args,
-        } => {
+        Expr::Call { span, callee, args } => {
             *span = zero_span();
             zero_expr(callee);
             for a in args {
@@ -69,7 +61,11 @@ fn zero_expr(expr: &mut Expr) {
             *span = zero_span();
             zero_expr(object);
         }
-        Expr::Index { span, object, index } => {
+        Expr::Index {
+            span,
+            object,
+            index,
+        } => {
             *span = zero_span();
             zero_expr(object);
             zero_expr(index);
@@ -107,11 +103,7 @@ fn zero_stmt(stmt: &mut Stmt) {
                 zero_expr(v);
             }
         }
-        Stmt::VarDecl {
-            span,
-            init,
-            ..
-        } => {
+        Stmt::VarDecl { span, init, .. } => {
             *span = zero_span();
             if let Some(v) = init {
                 zero_expr(v);
@@ -156,10 +148,7 @@ fn s2_04_cst_lower_probe_adr_locked() {
         adr.contains("lower_cst_subset_probe"),
         "ADR must name lower_cst_subset_probe"
     );
-    assert!(
-        adr.contains("LWR001"),
-        "ADR must name LWR001 reject code"
-    );
+    assert!(adr.contains("LWR001"), "ADR must name LWR001 reject code");
     assert!(
         adr.contains("≠") && adr.contains("FrontendPipeline"),
         "ADR must Non-claim FrontendPipeline"
@@ -226,10 +215,7 @@ fn s2_04_cst_lower_probe_parity_fixtures() {
         "var_bool",
         "func main() {\n    var y = true\n    print(y)\n}\n",
     );
-    assert_probe_parity(
-        "return_simple",
-        "func main() {\n    return 1\n}\n",
-    );
+    assert_probe_parity("return_simple", "func main() {\n    return 1\n}\n");
     assert_probe_parity("bare_return", "func main() {\n    return\n}\n");
     assert_probe_parity(
         "mixed_let_var_return",
@@ -244,7 +230,10 @@ fn s2_04_cst_lower_probe_parity_fixtures() {
 #[test]
 fn s2_04_cst_lower_probe_rejects_out_of_face() {
     let cases = [
-        ("while_loop", "func main() {\n    while x {\n        print(1)\n    }\n}\n"),
+        (
+            "while_loop",
+            "func main() {\n    while x {\n        print(1)\n    }\n}\n",
+        ),
         (
             "multi_func",
             "func main() {\n    print(1)\n}\nfunc other() {\n    print(2)\n}\n",
@@ -276,10 +265,11 @@ fn s2_04_cst_lower_probe_smoke_shapes() {
     match &m.decls[0] {
         Decl::Function { body, .. } => match &body[0] {
             Stmt::Print {
-                expr: Expr::Literal {
-                    value: Literal::Integer { value: 1, .. },
-                    ..
-                },
+                expr:
+                    Expr::Literal {
+                        value: Literal::Integer { value: 1, .. },
+                        ..
+                    },
                 ..
             } => {}
             other => panic!("expected Stmt::Print(1), got {other:?}"),

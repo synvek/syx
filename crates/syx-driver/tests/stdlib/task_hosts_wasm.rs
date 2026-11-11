@@ -8,10 +8,7 @@ fn run_wasm(src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     std::env::remove_var("SYX_WASM_ZERO_MIR_EXEC");
     std::env::remove_var("SYX_WASM_AOT_STATS");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w275_task_hosts_wasm_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w275_task_hosts_wasm_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -21,10 +18,7 @@ fn run_wasm(src: &str) -> Vec<String> {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm task host failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect()
+    lines.into_iter().filter(|l| !l.is_empty()).collect()
 }
 
 const TASK_LOCAL_SET_GET: &str = r#"
@@ -134,4 +128,3 @@ fn task_live_count_orphan_join_wasm() {
         "join mark_reaped must restore baseline (cleaned={cleaned} baseline={baseline}): {stdout}"
     );
 }
-

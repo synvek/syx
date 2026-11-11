@@ -933,6 +933,152 @@
       "tests": [],
       "notes": "Farm/Dist v19 frozen (ADR-131/133)",
       "since": "ADR-131"
+    },
+    {
+      "id": "ci.job.native-strict-main",
+      "feature": "ci.job.native-strict-main",
+      "surface": "GitHub Actions job native-strict-main",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "linux"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; native LLVM strict unpaid → R-39; ≠ full-native GA",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.native-macos",
+      "feature": "ci.job.native-macos",
+      "surface": "GitHub Actions job native-macos",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "macos"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; native link E2E unpaid → R-39",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.parity-gate",
+      "feature": "ci.job.parity-gate",
+      "surface": "GitHub Actions job parity-gate",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "linux"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; broad parity megagate unpaid (lang/native parks)",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.jit-tier2-default",
+      "feature": "ci.job.jit-tier2-default",
+      "surface": "GitHub Actions job jit-tier2-default",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "linux"
+      ],
+      "tests": [
+        "jit_suite1_differential"
+      ],
+      "notes": "R-37: continue-on-error; Suite-1 / tier-2 unpaid park (≠ production JIT GA)",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.phase125-gui-xvfb",
+      "feature": "ci.job.phase125-gui-xvfb",
+      "surface": "GitHub Actions job phase125-gui-xvfb",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "linux"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; gui/xvfb unpaid park",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.phase125-driver-gates",
+      "feature": "ci.job.phase125-driver-gates",
+      "surface": "GitHub Actions job phase125-driver-gates",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "linux"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; phase125 driver megagate unpaid park",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.windows-smoke",
+      "feature": "ci.job.windows-smoke",
+      "surface": "GitHub Actions job windows-smoke",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "windows"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; Build CLI green, evergreen smoke unpaid thin fix",
+      "since": "R-37"
+    },
+    {
+      "id": "ci.job.book-pass",
+      "feature": "ci.job.book-pass",
+      "surface": "GitHub Actions job book-pass",
+      "status": "partial",
+      "backends": {
+        "vm": "partial",
+        "native": "unsupported",
+        "wasm": "unsupported",
+        "mir": "partial"
+      },
+      "platforms": [
+        "linux"
+      ],
+      "tests": [],
+      "notes": "R-37: continue-on-error; S1-09 check 100% residual → R-38 (≠ book run+stdout GA); hard Format/build remain trunk gates",
+      "since": "R-37"
     }
   ]
 }

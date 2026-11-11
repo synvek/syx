@@ -69,7 +69,10 @@ func main() {{
 }}
 "#
     )));
-    assert_eq!(out, "OK\n2", "sequential dual-checkout txn must exact: {out}");
+    assert_eq!(
+        out, "OK\n2",
+        "sequential dual-checkout txn must exact: {out}"
+    );
     let _ = fs::remove_file(&db);
 }
 
@@ -159,8 +162,7 @@ func main() {{
 "#
     )));
     assert_eq!(
-        out,
-        "MID_FAIL\nAFTER_COMMIT_OK\nMID2_FAIL\nAFTER_ROLLBACK_OK\nDONE",
+        out, "MID_FAIL\nAFTER_COMMIT_OK\nMID2_FAIL\nAFTER_ROLLBACK_OK\nDONE",
         "release mid-txn must exact: {out}"
     );
     let _ = fs::remove_file(&db);
@@ -191,7 +193,10 @@ func main() {{
 }}
 "#
     )));
-    assert_eq!(out, "AFTER_FAIL\nDONE", "acquire after poolClose must exact: {out}");
+    assert_eq!(
+        out, "AFTER_FAIL\nDONE",
+        "acquire after poolClose must exact: {out}"
+    );
     assert_eq!(
         sql_conn_live_count(),
         baseline,
@@ -229,10 +234,7 @@ func main() {{
 }}
 "#
     )));
-    assert_eq!(
-        out, "caught",
-        "nested beginTransactionOn must exact: {out}"
-    );
+    assert_eq!(out, "caught", "nested beginTransactionOn must exact: {out}");
     let _ = fs::remove_file(&db);
 }
 
@@ -273,4 +275,3 @@ fn m2_s8_03b_docs_and_capability() {
         "inventory must note signed-ADR-247"
     );
 }
-

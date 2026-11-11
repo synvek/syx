@@ -52,7 +52,9 @@ pub fn cjk_advance(ch: char) -> u32 {
         return CJK_ADVANCE;
     }
     let (metrics, _) = font().rasterize(ch, RASTER_PX);
-    (metrics.advance_width.ceil() as u32).max(1).saturating_add(1)
+    (metrics.advance_width.ceil() as u32)
+        .max(1)
+        .saturating_add(1)
 }
 
 /// Percent of [`CI_SUBSET`] chars that rasterize non-empty in the embedded font.

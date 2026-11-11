@@ -20,6 +20,21 @@ nums[1] = 99                                // ✅ Mutable
 
 > **Strong typing:** since Phase 60 a bare `Array` is **forbidden** (type arguments are required). Use `Array<Any>` or `Object` for mixed types.
 
+### Value semantics: Array assign uniquifies (R-38 · SEM-ARRAY)
+
+Assigning an `Array` isolates mutation (write-time uniquify):
+
+```syx,output
+// prints: 1\n2
+func main() {
+    var a = [1]
+    var b = a
+    b.append(2)
+    print(a.count)
+    print(b.count)
+}
+```
+
 ### Common Methods
 
 | Method | Signature | Description |

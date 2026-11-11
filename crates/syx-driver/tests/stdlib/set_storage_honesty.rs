@@ -12,8 +12,7 @@ fn run(src: &str) -> String {
 
 #[test]
 fn set_literal_dedup_and_insert_keeps_count() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     var s: Set<Int> = [1, 1, 2]
     print(s.count)
@@ -22,7 +21,6 @@ func main() {
     print(s.insert(3))
     print(s.count)
 }
-"#,
-    );
+"#);
     assert_eq!(out, "2\nfalse\n2\ntrue\n3");
 }

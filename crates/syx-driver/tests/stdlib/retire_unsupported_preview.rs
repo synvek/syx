@@ -32,11 +32,7 @@ fn datetime_src(body: &str) -> String {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w260_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w260_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -98,11 +94,7 @@ fn m2_s5_04_datetime_now_native_llvm() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -136,9 +128,7 @@ fn m2_s5_04_datetime_now_wasm() {
 #[test]
 fn m2_s5_04_unknown_iana_still_fail_closed() {
     // ADR-233: known IANA zones are implemented; unknown zone still U001.
-    let tz = run_err(
-        r#"func main() { print(__syx_datetime_timezone_offset(0, "Not/AZone")) }"#,
-    );
+    let tz = run_err(r#"func main() { print(__syx_datetime_timezone_offset(0, "Not/AZone")) }"#);
     // Wave A W98 / ADR-442 / A-03: unknown IANA fail-closed Display product exact.
     assert_eq!(
         tz, "[U001] DateTime: unknown IANA timezone \"Not/AZone\" (no tzdb match)",
@@ -158,4 +148,3 @@ fn m2_s5_04_inventory_meta() {
         "inventory must note ADR-222"
     );
 }
-

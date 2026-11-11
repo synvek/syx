@@ -6,22 +6,36 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_05_mir_lower_expr_range_to_super_batch_baseline() {
     let mods = [
-        ("crates/syx-mir/src/mir_lower_expr_range.rs", "lower_range_dict"),
-        ("crates/syx-mir/src/mir_lower_expr_ident.rs", "lower_expr_ident"),
-        ("crates/syx-mir/src/mir_lower_expr_group.rs", "lower_expr_group"),
-        ("crates/syx-mir/src/mir_lower_expr_borrow.rs", "lower_expr_borrow"),
+        (
+            "crates/syx-mir/src/mir_lower_expr_range.rs",
+            "lower_range_dict",
+        ),
+        (
+            "crates/syx-mir/src/mir_lower_expr_ident.rs",
+            "lower_expr_ident",
+        ),
+        (
+            "crates/syx-mir/src/mir_lower_expr_group.rs",
+            "lower_expr_group",
+        ),
+        (
+            "crates/syx-mir/src/mir_lower_expr_borrow.rs",
+            "lower_expr_borrow",
+        ),
         (
             "crates/syx-mir/src/mir_lower_expr_keypath.rs",
             "lower_expr_keypath",
         ),
-        ("crates/syx-mir/src/mir_lower_expr_super.rs", "lower_expr_super"),
+        (
+            "crates/syx-mir/src/mir_lower_expr_super.rs",
+            "lower_expr_super",
+        ),
     ];
     for (path, fn_name) in mods {
         let src = repo_file(path);

@@ -6,12 +6,7 @@ use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirInstr, MirOp};
 use syx_ast::Expr;
 
-pub(crate) fn lower_expr_macro_invoke(
-    args: &[Expr],
-    dest: u32,
-    ctx: &mut LowerCtx,
-    block: u32,
-) {
+pub(crate) fn lower_expr_macro_invoke(args: &[Expr], dest: u32, ctx: &mut LowerCtx, block: u32) {
     for a in args {
         lower_expr(a, ctx.fresh_reg(), ctx, block);
     }

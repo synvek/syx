@@ -7,11 +7,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src(label: &str, src: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w208_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w208_{}_{}", label, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -22,8 +18,7 @@ fn write_src(label: &str, src: &str) -> std::path::PathBuf {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -60,4 +55,3 @@ fn m2_s1_print_string_wasm() {
     let out = lines_joined(&run_wasm_src("str_print", STRING_PRINT));
     assert_eq!(out, "hi", "wasm String print must exact: {out}");
 }
-

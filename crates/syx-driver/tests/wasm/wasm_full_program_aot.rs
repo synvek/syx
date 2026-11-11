@@ -3,7 +3,7 @@
 
 use std::path::PathBuf;
 use syx_config::SyxRuntimeConfig;
-use syx_driver::{emit_wasm_bytes, compile_and_run_embedded, DriverOptions};
+use syx_driver::{compile_and_run_embedded, emit_wasm_bytes, DriverOptions};
 use syx_wasm_emit::measure_aot_ratio;
 
 use crate::runtime_config_guard::{with_aot, with_runtime_config};
@@ -121,7 +121,8 @@ fn aot_mir_exec_only_incompatible_with_guest_control() {
 #[test]
 fn aot_wasm_wasi_example_bytes() {
     with_aot(|| {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_wasi/main.sy");
+        let path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_wasi/main.sy");
         if !path.exists() {
             return;
         }
@@ -145,8 +146,8 @@ fn aot_matrix_script_exists() {
 
 #[test]
 fn aot_opcode_matrix_doc_exists() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../docs/wasm_native_opcode_matrix.md");
+    let doc =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/wasm_native_opcode_matrix.md");
     assert!(doc.exists());
 }
 
@@ -197,7 +198,8 @@ fn aot_embed_arithmetic_prints() {
 #[test]
 fn aot_phase66_charter_mentions_matrix() {
     let adr = std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/adr/architecture-decisions.md"),
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/adr/architecture-decisions.md"),
     )
     .unwrap();
     assert!(adr.contains("Phase 67") || adr.contains("Phase 66") || adr.contains("wasm_aot"));

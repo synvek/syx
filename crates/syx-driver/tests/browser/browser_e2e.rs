@@ -31,11 +31,9 @@ fn e2e_browser_emits_valid_wasm_header() {
 fn e2e_browser_runs_return_value() {
     // R-28: AOT wasm exit is product-contract 0; assert via print/capture.
     with_browser_aot(|| {
-        let bytes = compile_source_to_wasm_bytes(
-            "main.sy",
-            r#"func main() { print(99); return 99 }"#,
-        )
-        .expect("compile");
+        let bytes =
+            compile_source_to_wasm_bytes("main.sy", r#"func main() { print(99); return 99 }"#)
+                .expect("compile");
         let r = syx_wasm_run::run_wasm_capture(&bytes, "main", None).expect("run");
         assert!(
             r.exit_code == 99 || r.printed.iter().any(|l| l.contains("99")),
@@ -79,11 +77,8 @@ fn e2e_browser_hot_loop_aot_ratio() {
 #[test]
 fn e2e_browser_print_via_embed() {
     with_browser_aot(|| {
-        let bytes = compile_source_to_wasm_bytes(
-            "main.sy",
-            r#"func main() { print("browser") }"#,
-        )
-        .expect("compile");
+        let bytes = compile_source_to_wasm_bytes("main.sy", r#"func main() { print("browser") }"#)
+            .expect("compile");
         assert!(bytes.len() > 20);
     });
 }
@@ -99,15 +94,16 @@ fn e2e_wasm_web_index_exists() {
 #[test]
 fn e2e_compiler_wasm_crate_builds() {
     // CARGO_MANIFEST_DIR = crates/syx-driver → ../../ = repo root (R-28 path pin).
-    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../crates/syx-compiler-wasm/Cargo.toml");
+    let manifest =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../crates/syx-compiler-wasm/Cargo.toml");
     assert!(manifest.exists(), "missing {}", manifest.display());
 }
 
 #[test]
 fn e2e_wasm_wasi_driver_emit() {
     with_browser_aot(|| {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_wasi/main.sy");
+        let path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/wasm_wasi/main.sy");
         if !path.exists() {
             return;
         }
@@ -152,11 +148,9 @@ fn e2e_phase66_ci_compiler_wasm_job() {
 #[test]
 fn e2e_browser_mir_text_legacy_api() {
     with_browser_aot(|| {
-        let text = syx_compiler_wasm::compile_source_to_mir_text(
-            "t.sy",
-            "func main() { return 0 }",
-        )
-        .expect("mir text");
+        let text =
+            syx_compiler_wasm::compile_source_to_mir_text("t.sy", "func main() { return 0 }")
+                .expect("mir text");
         assert!(text.contains("main") || text.contains("func"));
     });
 }

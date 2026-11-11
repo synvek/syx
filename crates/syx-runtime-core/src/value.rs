@@ -23,14 +23,8 @@ impl PartialEq for WeakCell {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum IteratorState {
-    Static {
-        items: Vec<Value>,
-        index: usize,
-    },
-    Witness {
-        obj: Box<Value>,
-        next_fn: u32,
-    },
+    Static { items: Vec<Value>, index: usize },
+    Witness { obj: Box<Value>, next_fn: u32 },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -114,9 +108,11 @@ impl Value {
     pub fn object_ref_is_weak_dead(v: &Value) -> bool {
         let resolved = Self::dispatch_receiver_for_method(v.clone());
         if let Value::ObjectRef { inner, .. } = resolved {
-            return inner.0.lock().ok().is_some_and(|map| {
-                matches!(map.get("__syx_weak_dead"), Some(Value::Bool(true)))
-            });
+            return inner
+                .0
+                .lock()
+                .ok()
+                .is_some_and(|map| matches!(map.get("__syx_weak_dead"), Some(Value::Bool(true))));
         }
         false
     }
@@ -458,7 +454,9 @@ impl Value {
                 _ => None,
             }),
             Value::HeapSlot { .. } => Self::resolve_heap_slot(self).actor_id(),
-            Value::MutRefCell(_) => Self::mut_ref_cell_inner(self).and_then(|inner| inner.actor_id()),
+            Value::MutRefCell(_) => {
+                Self::mut_ref_cell_inner(self).and_then(|inner| inner.actor_id())
+            }
             Value::ObjectRef { inner, .. } => {
                 let map = inner.0.lock().ok()?;
                 if let Some(id) = map.get("__actor_id").and_then(|id| match id {
@@ -469,7 +467,9 @@ impl Value {
                     return Some(id);
                 }
                 // Heap-v4 may mis-tag MutRefCell wraps as ObjectRef; follow __syx_ref.
-                map.get("__syx_ref").cloned().and_then(|inner| inner.actor_id())
+                map.get("__syx_ref")
+                    .cloned()
+                    .and_then(|inner| inner.actor_id())
             }
             _ => None,
         }
@@ -534,15 +534,21 @@ impl Value {
         for _ in 0..3 {
             let is_mut_cell_wrapper = match &current {
                 Value::MutRefCell(_) => true,
-                Value::ObjectRef { inner, .. } => inner.0.lock().ok().and_then(|map| {
+                Value::ObjectRef { inner, .. } => {
+                    inner
+                        .0
+                        .lock()
+                        .ok()
+                        .and_then(|map| map.get("__type").and_then(Self::type_name_from_meta_value))
+                        .as_deref()
+                        == Some("MutRefCell")
+                }
+                Value::Object(map) | Value::Dict(map) => {
                     map.get("__type")
                         .and_then(Self::type_name_from_meta_value)
-                }).as_deref() == Some("MutRefCell"),
-                Value::Object(map) | Value::Dict(map) => map
-                    .get("__type")
-                    .and_then(Self::type_name_from_meta_value)
-                    .as_deref()
-                    == Some("MutRefCell"),
+                        .as_deref()
+                        == Some("MutRefCell")
+                }
                 _ => false,
             };
             if !is_mut_cell_wrapper {
@@ -560,9 +566,7 @@ impl Value {
     /// IR / dispatch identity type name from `__type` (may be mangled). Do **not** demangle.
     pub fn object_ref_type_name(&self) -> Option<String> {
         match self {
-            Value::HeapSlot { .. } => {
-                Self::resolve_heap_slot(self).object_ref_type_name()
-            }
+            Value::HeapSlot { .. } => Self::resolve_heap_slot(self).object_ref_type_name(),
             Value::ObjectRef { inner, .. } => inner.0.lock().ok().and_then(|map| {
                 if let Some(inner_val) = map.get("__syx_ref") {
                     if map
@@ -653,11 +657,7 @@ impl Value {
                         }
                     }
                 }
-                let got = inner
-                    .0
-                    .lock()
-                    .ok()
-                    .and_then(|map| map.get(key).cloned());
+                let got = inner.0.lock().ok().and_then(|map| map.get(key).cloned());
                 // Call sites often unwrap MutRefCell before Call, while method bodies
                 // also unwrap `self`; treat missing `__syx_ref` as already-unwrapped.
                 if key == "__syx_ref" && got.is_none() {
@@ -814,17 +814,12 @@ mod phase125_mutref_field_tests {
         let cell = Value::mut_ref_cell_from_map(cell_map);
         let caller = cell.clone();
         let unwrapped = cell.mut_ref_cell_get_field("__syx_ref");
-        let updated = Value::mut_ref_cell_set_field(
-            unwrapped,
-            "logger",
-            Value::Str("fast".into()),
-        );
+        let updated = Value::mut_ref_cell_set_field(unwrapped, "logger", Value::Str("fast".into()));
         let _ = updated;
         let got = caller.mut_ref_cell_get_field("logger");
         assert_eq!(got.as_str(), "fast", "got={got:?}");
     }
 }
-
 
 #[cfg(test)]
 mod weak_ref_tests {

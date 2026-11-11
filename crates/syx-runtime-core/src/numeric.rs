@@ -1,6 +1,6 @@
 use syx_stdlib::{
-    bit_width, int_range, is_float, is_integer, is_integer_narrowing, is_unsigned,
-    resolve_alias, type_name, NumericKind, PLATFORM_INT,
+    bit_width, int_range, is_float, is_integer, is_integer_narrowing, is_unsigned, resolve_alias,
+    type_name, NumericKind, PLATFORM_INT,
 };
 
 use crate::Value;
@@ -379,11 +379,7 @@ pub fn numeric_bitnot(kind: NumericKind, v: &Value) -> Option<Value> {
     }
     if is_unsigned(kind) {
         let w = bit_width(kind);
-        let mask = if w >= 64 {
-            u64::MAX
-        } else {
-            (1u64 << w) - 1
-        };
+        let mask = if w >= 64 { u64::MAX } else { (1u64 << w) - 1 };
         return Some(value_from_numeric(kind, (!(v.as_i64() as u64)) & mask));
     }
     Some(value_from_numeric(kind, (!v.as_i64()) as u64))
@@ -563,11 +559,7 @@ pub fn numeric_cast(from: NumericKind, to: NumericKind, v: &Value) -> Value {
 }
 
 /// Like [`numeric_cast`], but integer narrowing / float→int out of `int_range` is an error.
-pub fn try_numeric_cast(
-    from: NumericKind,
-    to: NumericKind,
-    v: &Value,
-) -> Result<Value, String> {
+pub fn try_numeric_cast(from: NumericKind, to: NumericKind, v: &Value) -> Result<Value, String> {
     let from_r = resolve_alias(from);
     let to_r = resolve_alias(to);
     if is_integer_narrowing(from_r, to_r) {

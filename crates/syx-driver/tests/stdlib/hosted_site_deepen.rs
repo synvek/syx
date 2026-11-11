@@ -31,9 +31,10 @@ fn hosted_site_deepen_nail_behavior() {
     write_hosted_capabilities_fixture(&path, Some("datetime.calendar")).expect("write fixture");
     let got = std::fs::read_to_string(&path).expect("read fixture");
     assert!(
-        got.contains("<html>") && got.contains("datetime.calendar") && got.contains("syx-capability-v0"),
+        got.contains("<html>")
+            && got.contains("datetime.calendar")
+            && got.contains("syx-capability-v0"),
         "fixture must contain same-source hosted page: {got}"
     );
     let _ = std::fs::remove_file(&path);
 }
-

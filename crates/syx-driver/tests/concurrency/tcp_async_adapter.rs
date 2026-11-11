@@ -47,7 +47,6 @@ fn start_write_loopback(payload: &'static [u8]) -> (u16, Arc<AtomicBool>, thread
     (port, stop, handle)
 }
 
-
 #[test]
 fn m3_b02_tcp_async_read_async_await() {
     for _ in 0..8 {
@@ -108,4 +107,3 @@ func main() {
         "blocking_pool path must not starve Task pool: elapsed={elapsed:?} out={out}"
     );
 }
-

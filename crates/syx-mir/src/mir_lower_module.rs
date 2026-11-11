@@ -17,16 +17,9 @@ pub fn extension_methods_for_module(module: &Module) -> IndexSet<(SmolStr, SmolS
     ModuleIndex::from_module(module).extension_methods
 }
 
-
 pub fn lower_module(module: &Module) -> SyxResult<MirModule> {
-    lower_module_with_extra_extensions(
-        module,
-        &IndexSet::new(),
-        &IndexSet::new(),
-        &IndexSet::new(),
-    )
+    lower_module_with_extra_extensions(module, &IndexSet::new(), &IndexSet::new(), &IndexSet::new())
 }
-
 
 pub fn lower_module_with_extra_extensions(
     module: &Module,
@@ -42,7 +35,6 @@ pub fn lower_module_with_extra_extensions(
         &IndexMap::new(),
     )
 }
-
 
 /// Like [`lower_module_with_extra_extensions`], but applies semantic contextual
 /// numeric-literal kinds (span start → `NumericKind`) for unsuffixed consts.
@@ -177,8 +169,7 @@ pub fn lower_module_with_extra_extensions_kinds_and_source(
             } => {
                 let mut merged = conformances.to_vec();
                 if let Some(base) = superclass {
-                    if module_idx.protocol_names.contains(base)
-                        && !merged.iter().any(|c| c == base)
+                    if module_idx.protocol_names.contains(base) && !merged.iter().any(|c| c == base)
                     {
                         merged.push(base.clone());
                     }
@@ -195,7 +186,9 @@ pub fn lower_module_with_extra_extensions_kinds_and_source(
                     Rc::clone(&closure_ids),
                 )?;
             }
-            Decl::Extension { type_name, methods, .. } => {
+            Decl::Extension {
+                type_name, methods, ..
+            } => {
                 lower_type_members(
                     &mut mir,
                     type_name,
@@ -209,11 +202,7 @@ pub fn lower_module_with_extra_extensions_kinds_and_source(
                 )?;
             }
             // S1-I2: Struct methods (e.g. Counter.increment) via same member lower as Class.
-            Decl::Struct {
-                name,
-                members,
-                ..
-            } => {
+            Decl::Struct { name, members, .. } => {
                 lower_type_members(
                     &mut mir,
                     name,
@@ -231,4 +220,3 @@ pub fn lower_module_with_extra_extensions_kinds_and_source(
     }
     Ok(mir)
 }
-

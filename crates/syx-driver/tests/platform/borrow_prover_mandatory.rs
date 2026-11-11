@@ -41,7 +41,9 @@ fn p98_borrow_mandatory_proof_files_export() {
         "codable_l4",
     ]);
     assert!(!files.is_empty());
-    assert!(files.iter().any(|(name, _)| name.ends_with(".v") || name.ends_with(".lean")));
+    assert!(files
+        .iter()
+        .any(|(name, _)| name.ends_with(".v") || name.ends_with(".lean")));
 }
 
 #[test]
@@ -54,4 +56,3 @@ fn p98_borrow_mandatory_graph_phase98_tags() {
     let obs = borrow_regions_export_graph_obligations(&["phase98", "cache_v60"]);
     assert!(obs.iter().any(|o| o.contains("borrow_graph")));
 }
-

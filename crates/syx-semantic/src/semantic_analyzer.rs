@@ -2,22 +2,19 @@
 //! Faces peeled through S2-I258: + concurrency/IDE/infer-host.
 
 use crate::{
-    attached_conformance_protocols, default_assoc_type_for,
-    global_actor_v4_cross_module_enabled, has_attr, normalize_type_arg_name, type_expr_uses_param, type_id_to_name, type_name_to_id, Scope,
-    Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
+    attached_conformance_protocols, default_assoc_type_for, global_actor_v4_cross_module_enabled,
+    has_attr, normalize_type_arg_name, type_expr_uses_param, type_id_to_name, type_name_to_id,
+    Scope, Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
 };
 use indexmap::IndexMap;
 use smol_str::SmolStr;
 use std::collections::HashSet;
-use syx_ast::{
-    AccessLevel, Decl, Module, ParamLabel, TypeExpr,
-};
+use syx_ast::{AccessLevel, Decl, Module, ParamLabel, TypeExpr};
 use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
 use syx_stdlib::{
-    host_fn_return_type,
-    lookup_array_method, lookup_dict_method, lookup_set_method, lookup_string_method,
-    lookup_type_method, method_return_type, register_builtins as stdlib_register_builtins,
-    HostFnId, MethodId,
+    host_fn_return_type, lookup_array_method, lookup_dict_method, lookup_set_method,
+    lookup_string_method, lookup_type_method, method_return_type,
+    register_builtins as stdlib_register_builtins, HostFnId, MethodId,
 };
 
 #[derive(Debug, Default)]
@@ -212,7 +209,9 @@ impl SemanticAnalyzer {
             import_generic_methods,
             false,
         );
-        analyzer.errors.retain(|e| e.code.as_deref() != Some("S020"));
+        analyzer
+            .errors
+            .retain(|e| e.code.as_deref() != Some("S020"));
         if let Some(err) = analyzer.errors.first() {
             return Err(err.clone());
         }
@@ -364,7 +363,9 @@ impl SemanticAnalyzer {
         analyzer.register_builtins();
         analyzer.register_import_generic_class_methods(import_generic_methods);
         for (module_name, symbols) in imports {
-            analyzer.import_exports.insert(module_name.clone(), symbols.clone());
+            analyzer
+                .import_exports
+                .insert(module_name.clone(), symbols.clone());
             analyzer.globals.insert(
                 module_name.clone(),
                 Symbol {
@@ -406,10 +407,9 @@ impl SemanticAnalyzer {
             analyzer.apply_module_default_isolation(module);
             for (module_name, fn_actors) in import_isolation {
                 for (fn_name, actor) in fn_actors {
-                    analyzer.import_member_actors.insert(
-                        (module_name.clone(), fn_name.clone()),
-                        actor.clone(),
-                    );
+                    analyzer
+                        .import_member_actors
+                        .insert((module_name.clone(), fn_name.clone()), actor.clone());
                 }
             }
         }
@@ -498,13 +498,14 @@ impl SemanticAnalyzer {
     }
 
     /// ADR-322 / M4-L02: conforming-type member `typealias Assoc = Concrete` → bindings.
-    pub(crate) fn record_member_typealias_bindings(&mut self, type_name: &SmolStr, members: &[Decl]) {
+    pub(crate) fn record_member_typealias_bindings(
+        &mut self,
+        type_name: &SmolStr,
+        members: &[Decl],
+    ) {
         for member in members {
             if let Decl::TypeAlias { name, ty, .. } = member {
-                let TypeExpr::Named {
-                    name: concrete, ..
-                } = ty
-                else {
+                let TypeExpr::Named { name: concrete, .. } = ty else {
                     continue;
                 };
                 self.type_assoc_bindings
@@ -535,7 +536,8 @@ impl SemanticAnalyzer {
                     {
                         continue;
                     }
-                    if let Some(default) = default_assoc_type_for(protocol.as_str(), assoc_name.as_str())
+                    if let Some(default) =
+                        default_assoc_type_for(protocol.as_str(), assoc_name.as_str())
                     {
                         self.type_assoc_bindings
                             .entry(type_name.clone())
@@ -565,8 +567,13 @@ impl SemanticAnalyzer {
                         .and_then(|m| m.get(assoc_name))
                         .cloned()
                         .unwrap_or_else(|| SmolStr::new("Int"));
-                    if let TypeExpr::Named { name: constraint_name, .. } = constraint {
-                        if !self.type_satisfies_protocol(resolved.as_str(), constraint_name.as_str())
+                    if let TypeExpr::Named {
+                        name: constraint_name,
+                        ..
+                    } = constraint
+                    {
+                        if !self
+                            .type_satisfies_protocol(resolved.as_str(), constraint_name.as_str())
                         {
                             let span = self
                                 .type_decl_spans
@@ -610,9 +617,9 @@ impl SemanticAnalyzer {
             let Some(param) = type_expr_uses_param(field_ty, type_params) else {
                 continue;
             };
-            let satisfied = where_clause.iter().any(|pred| {
-                pred.type_name == param && pred.constraint.as_str() == "Codable"
-            });
+            let satisfied = where_clause
+                .iter()
+                .any(|pred| pred.type_name == param && pred.constraint.as_str() == "Codable");
             if !satisfied {
                 self.errors.push(self.error_at(
                     format!(
@@ -727,12 +734,7 @@ impl SemanticAnalyzer {
                 lookup_array_method(method).is_some()
                     || matches!(
                         method,
-                        "append"
-                            | "sortBy"
-                            | "binarySearch"
-                            | "chunked"
-                            | "zip"
-                            | "flatMap"
+                        "append" | "sortBy" | "binarySearch" | "chunked" | "zip" | "flatMap"
                     )
             }
             TypeId::Set(_) => lookup_set_method(method).is_some(),
@@ -929,7 +931,11 @@ impl SemanticAnalyzer {
         TypeId::Unknown
     }
 
-    pub(crate) fn lookup_surface_member_type(&self, surface: &SmolStr, method: &str) -> Option<TypeId> {
+    pub(crate) fn lookup_surface_member_type(
+        &self,
+        surface: &SmolStr,
+        method: &str,
+    ) -> Option<TypeId> {
         if let Some(fields) = self.dataclass_fields.get(surface) {
             if let Some((_, ty)) = fields.iter().find(|(f, _)| f.as_str() == method) {
                 return Some(ty.clone());
@@ -948,7 +954,11 @@ impl SemanticAnalyzer {
         None
     }
 
-    pub(crate) fn push_surface_members(&self, surface: &SmolStr, out: &mut Vec<(SmolStr, SmolStr)>) {
+    pub(crate) fn push_surface_members(
+        &self,
+        surface: &SmolStr,
+        out: &mut Vec<(SmolStr, SmolStr)>,
+    ) {
         if let Some(fields) = self.dataclass_fields.get(surface) {
             for (field, ty) in fields {
                 out.push((field.clone(), SmolStr::new(type_id_to_name(ty))));
@@ -978,5 +988,3 @@ impl SemanticAnalyzer {
         }
     }
 }
-
-

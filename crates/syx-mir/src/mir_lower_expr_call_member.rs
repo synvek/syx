@@ -3,8 +3,9 @@
 
 use crate::lower_expr;
 use crate::mir_lower_ctx::LowerCtx;
-use crate::mir_types::{MirInstr, MirOp};
 use crate::mir_lower_expr_range::{lower_range_contains_mir, range_bounds_from_expr};
+use crate::mir_module_index::remap_platform_int_extension_call;
+use crate::mir_types::{MirInstr, MirOp};
 use crate::{
     emit_hosted_collection_call, expr_as_i32_literal, expr_is_array_like, expr_is_dict_like,
     expr_is_float32_like, expr_is_float64_like, expr_is_set_like, expr_is_string_like,
@@ -13,7 +14,6 @@ use crate::{
     member_host_simd_lowers_own_args, method_id_mir_op, resolve_host_call,
     simd_member_lanes_element, type_name_dispatch_base, MemberCallKind,
 };
-use crate::mir_module_index::remap_platform_int_extension_call;
 use smol_str::SmolStr;
 use syx_ast::{CallArg, Expr};
 use syx_mono::mangle_name;
@@ -34,15 +34,7 @@ pub(crate) fn lower_expr_call_member(
 ) {
     if name == "contains" && args.len() == 1 {
         if let Some((start, end, inclusive)) = range_bounds_from_expr(object) {
-            lower_range_contains_mir(
-                start,
-                end,
-                inclusive,
-                &args[0].value,
-                dest,
-                ctx,
-                block,
-            );
+            lower_range_contains_mir(start, end, inclusive, &args[0].value, dest, ctx, block);
             return;
         }
     }
@@ -81,10 +73,7 @@ pub(crate) fn lower_expr_call_member(
             }
         }
     }
-    if name == "hash"
-        && args.len() == 1
-        && args[0].label.as_deref() == Some("into")
-    {
+    if name == "hash" && args.len() == 1 && args[0].label.as_deref() == Some("into") {
         if let Some(type_name) = infer_object_type_name(object, ctx) {
             let hash_into_fn = SmolStr::new(format!("{type_name}_hash_into"));
             let hash_method_fn = SmolStr::new(format!("{type_name}_hash"));
@@ -114,7 +103,10 @@ pub(crate) fn lower_expr_call_member(
                         span: None,
                     },
                 );
-                if let Expr::Ident { name: hasher_name, .. } = &args[0].value {
+                if let Expr::Ident {
+                    name: hasher_name, ..
+                } = &args[0].value
+                {
                     if let Some(&slot) = ctx.locals.get(hasher_name) {
                         ctx.emit(
                             block,
@@ -146,7 +138,11 @@ pub(crate) fn lower_expr_call_member(
                 return;
             }
             let base = type_name_dispatch_base(&type_name);
-            if ctx.module.extension_methods.contains(&(base.clone(), name.clone())) {
+            if ctx
+                .module
+                .extension_methods
+                .contains(&(base.clone(), name.clone()))
+            {
                 let ext_name = SmolStr::new(format!("{base}_{name}"));
                 let is_type_name_call = matches!(
                     object.as_ref(),
@@ -238,7 +234,10 @@ pub(crate) fn lower_expr_call_member(
     }
     // SA-4-04: `SyxHost.f(...)` façades are thin `__syx_f` wrappers. Enum-name-only
     // inject (no Extension bodies) must not emit `Call SyxHost_f` → C020 on cold prelude.
-    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+    if let Expr::Ident {
+        name: type_name, ..
+    } = object.as_ref()
+    {
         if type_name == "SyxHost" {
             let host_name = format!("__syx_{name}");
             if let Some(idx) = host_fn_index_by_name(&host_name) {
@@ -284,38 +283,38 @@ pub(crate) fn lower_expr_call_member(
                 | HostFnId::SimdF32Mul
                 | HostFnId::SimdF32Div
                 | HostFnId::SimdF64Add
-| HostFnId::SimdF64Sub
-| HostFnId::SimdF64Mul
-| HostFnId::SimdF64Div
-| HostFnId::SimdI16Add
-| HostFnId::SimdI16Sub
-| HostFnId::SimdI16Mul
-| HostFnId::SimdI8Add
-| HostFnId::SimdI8Sub
-| HostFnId::SimdI8Mul
-| HostFnId::SimdI8And
-| HostFnId::SimdI8Or
-| HostFnId::SimdI8Xor
-| HostFnId::SimdI8Min
-| HostFnId::SimdI8Max
-| HostFnId::SimdI8UMin
-| HostFnId::SimdI8UMax
-| HostFnId::SimdI8Eq
-| HostFnId::SimdI8Ne
-| HostFnId::SimdI8Le
-| HostFnId::SimdI8Ge
-| HostFnId::SimdI8AvgrU
-| HostFnId::SimdI8Popcnt
-| HostFnId::SimdI8Bitmask
-| HostFnId::SimdI8AllTrue
-| HostFnId::SimdI8AnyTrue
-| HostFnId::SimdI8Lt
-| HostFnId::SimdI8Gt
-| HostFnId::SimdI8AddSat
-| HostFnId::SimdI8SubSat
-| HostFnId::SimdI8Shl
-| HostFnId::SimdI8Shr
-| HostFnId::SimdI64Add
+                | HostFnId::SimdF64Sub
+                | HostFnId::SimdF64Mul
+                | HostFnId::SimdF64Div
+                | HostFnId::SimdI16Add
+                | HostFnId::SimdI16Sub
+                | HostFnId::SimdI16Mul
+                | HostFnId::SimdI8Add
+                | HostFnId::SimdI8Sub
+                | HostFnId::SimdI8Mul
+                | HostFnId::SimdI8And
+                | HostFnId::SimdI8Or
+                | HostFnId::SimdI8Xor
+                | HostFnId::SimdI8Min
+                | HostFnId::SimdI8Max
+                | HostFnId::SimdI8UMin
+                | HostFnId::SimdI8UMax
+                | HostFnId::SimdI8Eq
+                | HostFnId::SimdI8Ne
+                | HostFnId::SimdI8Le
+                | HostFnId::SimdI8Ge
+                | HostFnId::SimdI8AvgrU
+                | HostFnId::SimdI8Popcnt
+                | HostFnId::SimdI8Bitmask
+                | HostFnId::SimdI8AllTrue
+                | HostFnId::SimdI8AnyTrue
+                | HostFnId::SimdI8Lt
+                | HostFnId::SimdI8Gt
+                | HostFnId::SimdI8AddSat
+                | HostFnId::SimdI8SubSat
+                | HostFnId::SimdI8Shl
+                | HostFnId::SimdI8Shr
+                | HostFnId::SimdI64Add
         ) && args.len() == 2
         {
             // Phase 127: pin operands at dest/dest+1 for SSA simd binop refill.
@@ -537,9 +536,7 @@ pub(crate) fn lower_expr_call_member(
         if host_id == HostFnId::SimdReduceAdd && args.len() == 1 {
             lower_expr(&args[0].value, dest, ctx, block);
             let (lanes, mut element) = simd_member_lanes_element(object);
-            if let Some(inferred) =
-                infer_simd_element_from_reduce_arg(&args[0].value, ctx)
-            {
+            if let Some(inferred) = infer_simd_element_from_reduce_arg(&args[0].value, ctx) {
                 element = inferred;
             }
             ctx.emit(
@@ -623,15 +620,10 @@ pub(crate) fn lower_expr_call_member(
     {
         if let Expr::Ident { name: mod_name, .. } = inner_obj.as_ref() {
             if ctx.imports.contains(mod_name)
-                && outer_name
-                    .chars()
-                    .next()
-                    .is_some_and(|c| c.is_uppercase())
+                && outer_name.chars().next().is_some_and(|c| c.is_uppercase())
                 && name.chars().next().is_some_and(|c| c.is_uppercase())
             {
-                let init_fn = SmolStr::new(format!(
-                    "{mod_name}_{outer_name}_{name}_init"
-                ));
+                let init_fn = SmolStr::new(format!("{mod_name}_{outer_name}_{name}_init"));
                 for arg in args {
                     lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
                 }
@@ -652,7 +644,10 @@ pub(crate) fn lower_expr_call_member(
         // the builtin Result/BigInt static-method shortcut below.
         if (ctx.module.enum_classes.contains(mod_name)
             || ctx.module.final_classes.contains(mod_name))
-            && ctx.module.enum_case_tags.contains_key(&(mod_name.clone(), name.clone()))
+            && ctx
+                .module
+                .enum_case_tags
+                .contains_key(&(mod_name.clone(), name.clone()))
         {
             let init_fn = SmolStr::new(format!("{mod_name}_{name}_init"));
             for arg in args {
@@ -684,7 +679,11 @@ pub(crate) fn lower_expr_call_member(
             );
             return;
         }
-        if ctx.module.extension_methods.contains(&(mod_name.clone(), name.clone())) {
+        if ctx
+            .module
+            .extension_methods
+            .contains(&(mod_name.clone(), name.clone()))
+        {
             let ext_fn = SmolStr::new(format!("{mod_name}_{name}"));
             for arg in args {
                 let r = ctx.fresh_reg();
@@ -769,25 +768,14 @@ pub(crate) fn lower_expr_call_member(
         let shared_bag_op = lookup_dict_method(name).is_some()
             || is_hosted_collection_method("Dictionary", name.as_str());
         if !is_object || shared_bag_op {
-            emit_hosted_collection_call(
-                "Dictionary",
-                name,
-                object,
-                args,
-                dest,
-                ctx,
-                block,
-            );
+            emit_hosted_collection_call("Dictionary", name, object, args, dest, ctx, block);
             return;
         }
     }
     if let Some(host_id) = lookup_float64_math_host(name) {
         if expr_is_float64_like(object, ctx)
             || infer_object_type_name(object, ctx).is_some_and(|t| {
-                matches!(
-                    type_name_dispatch_base(&t).as_str(),
-                    "Float64" | "Double"
-                )
+                matches!(type_name_dispatch_base(&t).as_str(), "Float64" | "Double")
             })
         {
             lower_expr(object, ctx.fresh_reg(), ctx, block);
@@ -808,10 +796,7 @@ pub(crate) fn lower_expr_call_member(
     if let Some(host_id) = lookup_float32_math_host(name) {
         if expr_is_float32_like(object, ctx)
             || infer_object_type_name(object, ctx).is_some_and(|t| {
-                matches!(
-                    type_name_dispatch_base(&t).as_str(),
-                    "Float32" | "Float"
-                )
+                matches!(type_name_dispatch_base(&t).as_str(), "Float32" | "Float")
             })
         {
             lower_expr(object, ctx.fresh_reg(), ctx, block);
@@ -835,22 +820,17 @@ pub(crate) fn lower_expr_call_member(
             object.as_ref(),
             Expr::Ident { name: recv, .. } if recv == &type_name
         );
-        if is_type_name_call
-            && name.chars().next().is_some_and(|c| c.is_uppercase())
-        {
+        if is_type_name_call && name.chars().next().is_some_and(|c| c.is_uppercase()) {
             let nested_ty = SmolStr::new(format!("{base}_{name}"));
             if ctx.module.class_types.contains_key(&nested_ty) {
                 for arg in args {
                     lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
                 }
-                let mut init_fn =
-                    SmolStr::new(format!("{nested_ty}_init"));
+                let mut init_fn = SmolStr::new(format!("{nested_ty}_init"));
                 if !ctx.module.callable_extensions.contains(&init_fn) {
                     for imp in &ctx.imports {
-                        let prefixed =
-                            SmolStr::new(format!("{imp}_{nested_ty}_init"));
-                        if ctx.module.callable_extensions.contains(&prefixed)
-                        {
+                        let prefixed = SmolStr::new(format!("{imp}_{nested_ty}_init"));
+                        if ctx.module.callable_extensions.contains(&prefixed) {
                             init_fn = prefixed;
                             break;
                         }
@@ -871,9 +851,11 @@ pub(crate) fn lower_expr_call_member(
         // (align AST emit_witness_protocol_call). Never Call("{P}_{m}") —
         // there is no Shape_area body; slots live on the instance.
         if ctx.module.protocol_names.contains(&base)
-            && ctx.module.protocol_methods.get(&base).is_some_and(|ms| {
-                ms.iter().any(|m| m == name)
-            })
+            && ctx
+                .module
+                .protocol_methods
+                .get(&base)
+                .is_some_and(|ms| ms.iter().any(|m| m == name))
         {
             let recv_name = SmolStr::new(format!("__witness_recv_{}", ctx.next_reg));
             let recv_slot = ctx.alloc_local(&recv_name);
@@ -1018,7 +1000,8 @@ pub(crate) fn lower_expr_call_member(
         if ctx.module.class_types.contains_key(&base)
             || ctx.module.dataclass_names.contains(&base)
             || ctx.module.enum_classes.contains(&base)
-            || ctx.module
+            || ctx
+                .module
                 .extension_methods
                 .contains(&(base.clone(), name.clone()))
         {
@@ -1041,8 +1024,7 @@ pub(crate) fn lower_expr_call_member(
             let mut call_name = ext_name.clone();
             if !ctx.module.callable_extensions.contains(&call_name) {
                 for imp in &ctx.imports {
-                    let prefixed =
-                        SmolStr::new(format!("{imp}_{base}_{name}"));
+                    let prefixed = SmolStr::new(format!("{imp}_{base}_{name}"));
                     if ctx.module.callable_extensions.contains(&prefixed) {
                         call_name = prefixed;
                         break;

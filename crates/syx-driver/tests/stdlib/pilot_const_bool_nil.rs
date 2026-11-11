@@ -2,8 +2,7 @@
 // was: pilot inventory deepen for Suite-1 ConstBool/ConstNil
 
 use syx_driver::{
-    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed,
-    DriverOptions,
+    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
 fn opts() -> DriverOptions {
@@ -11,11 +10,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src(label: &str, src: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w203_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w203_{}_{}", label, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -26,8 +21,7 @@ fn write_src(label: &str, src: &str) -> std::path::PathBuf {
 fn run_native_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native exit {code}: {lines:?}");
     lines
 }
@@ -35,8 +29,7 @@ fn run_native_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -155,4 +148,3 @@ fn m2_s1_const_nil_print_wasm() {
         "wasm ConstNil print must exact: {lines:?}"
     );
 }
-

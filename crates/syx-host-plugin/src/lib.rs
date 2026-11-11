@@ -19,8 +19,8 @@ pub use abi::{
 pub use codegen::{generate_syx_module, write_codegen_module};
 pub use handles::{
     add_handles, buf_to_values, drop_handle, hadamard_handles, mul_handles, pack_handle,
-    pin_f64_le_bytes, pin_f64_values, pin_shaped, pin_zeros, solve_handles, sub_handles, sum_handle,
-    unpack_handle, value_as_dim, value_as_handle,
+    pin_f64_le_bytes, pin_f64_values, pin_shaped, pin_zeros, solve_handles, sub_handles,
+    sum_handle, unpack_handle, value_as_dim, value_as_handle,
 };
 pub use loader::{
     install_plugin, load_from_env, load_from_exe_plugin_dirs, load_library, load_path,

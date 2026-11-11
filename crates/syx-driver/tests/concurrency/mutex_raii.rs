@@ -50,7 +50,6 @@ fn facade_src(body: &str) -> String {
     format!("{}\n{body}", mutex_facade())
 }
 
-
 #[test]
 fn m3_c01_mutex_raii_forget_unlock_scope_exit() {
     // Helper return drops MutexGuard → deinit quiet unlock; no explicit unlock.
@@ -72,10 +71,7 @@ func main() {
 }
 "#,
     ));
-    assert!(
-        out.contains("HELD"),
-        "lockGuard path must run: {out}"
-    );
+    assert!(out.contains("HELD"), "lockGuard path must run: {out}");
     let lines: Vec<&str> = out.lines().collect();
     let bools: Vec<&str> = lines
         .iter()
@@ -90,17 +86,14 @@ func main() {
 
 #[test]
 fn m3_c01_mutex_raii_quiet_unlock_unknown_ok() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   print(__syx_mutex_unlock_quiet(0 - 1))
   print(__syx_mutex_unlock_quiet(999999))
 }
-"#,
-    );
+"#);
     assert!(
         out.contains("true"),
         "quiet unlock must silently succeed: {out}"
     );
 }
-

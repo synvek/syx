@@ -1,6 +1,6 @@
 //! Phase 91: TIER3_NAMES matrix coverage.
 
-use syx_wasm_emit::{TIER3_NAMES, tier_for_import};
+use syx_wasm_emit::{tier_for_import, TIER3_NAMES};
 
 #[test]
 fn p98_tier3_matrix_has_entries() {
@@ -25,4 +25,3 @@ fn p98_tier3_matrix_tier_for_import() {
         "unexpected tier for load_global: {load_g:?}"
     );
 }
-

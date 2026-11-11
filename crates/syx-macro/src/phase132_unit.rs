@@ -32,8 +32,7 @@ func main() {
     // Hygienic param rename leaves no bare `msg` ident when hygiene is on.
     if crate::macro_hygiene_enabled() {
         assert!(
-            dump.contains("__syx_mp_makePrinter_msg_")
-                || dump.contains("decl-hygiene-ok"),
+            dump.contains("__syx_mp_makePrinter_msg_") || dump.contains("decl-hygiene-ok"),
             "expected hygienic rename or substituted literal: {dump}"
         );
     }
@@ -92,7 +91,10 @@ class Greeter {
     let dump = format!("{module:?}");
     assert!(dump.contains("__before__:"), "{dump}");
     assert!(dump.contains("__after__:"), "{dump}");
-    assert!(dump.contains("__body__:greet") || dump.contains("greet"), "{dump}");
+    assert!(
+        dump.contains("__body__:greet") || dump.contains("greet"),
+        "{dump}"
+    );
     assert!(
         include_str!("service.rs").contains("macro-service-v13:before-after-pointcut-bind-mvp"),
         "fingerprint must live in service.rs"

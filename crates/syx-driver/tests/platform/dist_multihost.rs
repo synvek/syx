@@ -8,8 +8,7 @@ use std::time::Duration;
 use syx_async::{
     cdn_doctor_mode, cdn_memory_dev_enabled, cdn_route, cdn_route_counts_as_ga, cdn_route_ga,
     cdn_routes_memory_clear, cdn_routes_memory_count, dist_actor_mp_clear,
-    dist_region_multihost_clear, dist_region_multihost_configure,
-    dist_region_multihost_route,
+    dist_region_multihost_clear, dist_region_multihost_configure, dist_region_multihost_route,
     dist_region_multihost_tcp_health, spawn_dist_tcp_mailbox,
 };
 
@@ -103,8 +102,8 @@ fn dist_multihost_kill_host_key_failover() {
 fn dist_multihost_cross_process_ack() {
     if let Ok(url) = std::env::var("SYX_DIST_MULTIHOST_CHILD_URL_P110") {
         use syx_async::region_route_tcp;
-        let ack = region_route_tcp(&url, "us-east", 9, 10, "p110-child-ack")
-            .expect("child peer send");
+        let ack =
+            region_route_tcp(&url, "us-east", 9, 10, "p110-child-ack").expect("child peer send");
         assert_eq!(ack, "p110-child-ack");
         println!("SYX_DIST_MULTIHOST_ACK={ack}");
         return;
@@ -142,4 +141,3 @@ fn dist_multihost_cross_process_ack() {
     let _ = handle.join();
     dist_region_multihost_clear();
 }
-

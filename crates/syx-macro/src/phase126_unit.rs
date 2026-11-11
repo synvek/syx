@@ -84,7 +84,10 @@ fn p126_full_fixture_expands_boot_and_witness() {
     let mut module =
         syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
     let services = collect_services(&module).expect("collect");
-    assert!(services.iter().any(|s| s.type_name == "App"), "{services:?}");
+    assert!(
+        services.iter().any(|s| s.type_name == "App"),
+        "{services:?}"
+    );
     expand_service_macros(&mut module).expect("expand");
     let dump = format!("{module:?}");
     assert!(dump.contains("__syx_service_boot_impl"), "{dump}");

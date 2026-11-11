@@ -12,14 +12,11 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_sql_rusqlite_create_insert_select() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     __syx_sql_exec("CREATE TABLE users (id INT, name TEXT)")
     __syx_sql_exec("INSERT INTO users VALUES (1, 'alice')")
     let rows = __syx_sql_query("SELECT * FROM users")
     print(rows.len())
-}"#,
-    );
+}"#);
     assert!(out.contains("1"), "{out}");
 }
-

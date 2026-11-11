@@ -115,4 +115,3 @@ allow_process = true
     assert!(grants.allow_env);
     assert!(!grants.allow_process);
 }
-

@@ -76,7 +76,6 @@ pub(crate) fn emit_protocol_witnesses(
     }
 }
 
-
 pub(crate) fn emit_class_vtable_slots_mir(
     ctx: &mut LowerCtx,
     block: u32,
@@ -122,14 +121,9 @@ pub(crate) fn emit_class_vtable_slots_mir(
     }
 }
 
-
 pub(crate) fn mir_instruction_count(ctx: &LowerCtx) -> u32 {
-    ctx.blocks
-        .iter()
-        .map(|b| b.instructions.len() as u32)
-        .sum()
+    ctx.blocks.iter().map(|b| b.instructions.len() as u32).sum()
 }
-
 
 pub(crate) fn emit_mut_ref_cell_wrap_mir(ctx: &mut LowerCtx, block: u32, self_slot: u32) {
     ctx.emit(
@@ -181,7 +175,6 @@ pub(crate) fn emit_mut_ref_cell_wrap_mir(ctx: &mut LowerCtx, block: u32, self_sl
         },
     );
 }
-
 
 pub(crate) fn lower_class_init(
     mir: &mut MirModule,
@@ -293,7 +286,8 @@ pub(crate) fn lower_class_init(
             span: None,
         },
     );
-    ctx.local_types.insert(SmolStr::new("self"), type_name.clone());
+    ctx.local_types
+        .insert(SmolStr::new("self"), type_name.clone());
     emit_class_vtable_slots_mir(&mut ctx, entry, self_slot, type_name);
     if is_actor {
         ctx.emit(
@@ -372,4 +366,3 @@ pub(crate) fn lower_class_init(
     mir.functions.extend(closures);
     Ok(())
 }
-

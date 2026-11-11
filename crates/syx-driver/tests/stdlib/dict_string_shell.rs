@@ -13,8 +13,7 @@ fn run(src: &str) -> String {
 
 #[test]
 fn int_key_dict_insert_lookup_remove() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     var d: Dictionary<Int, Int> = {10: 100, 20: 200}
     print(d[10])
@@ -25,15 +24,13 @@ func main() {
     print(d.count)
     print(d[20])
 }
-"#,
-    );
+"#);
     assert_eq!(out, "100\n200\ntrue\ntrue\nfalse\n1\n200");
 }
 
 #[test]
 fn int_key_keys_and_count_no_encoded_slots() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     var d: Dictionary<Int, Int> = {10: 100, 20: 200, 30: 300}
     print(d.count)
@@ -42,14 +39,16 @@ func main() {
         print(k)
     }
 }
-"#,
-    );
+"#);
     assert!(
         !out.contains("syx:") && !out.contains('\u{1f}'),
         "keys()/print must not leak String-shell encoding slots: {out:?}"
     );
     let lines: Vec<&str> = out.lines().collect();
-    assert_eq!(lines[0], "3", "count is logical entries, not encoded slot pairs");
+    assert_eq!(
+        lines[0], "3",
+        "count is logical entries, not encoded slot pairs"
+    );
     // keys() prints as an Array of Ints (order not specified)
     let keys_line = lines[1];
     assert!(

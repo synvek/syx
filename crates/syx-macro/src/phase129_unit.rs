@@ -18,10 +18,7 @@ enum WireStatus {
     let dump = format!("{module:?}");
     assert!(dump.contains("encode"), "{dump}");
     assert!(dump.contains("decode"), "{dump}");
-    assert!(
-        dump.contains("__tag") || dump.contains("ok"),
-        "{dump}"
-    );
+    assert!(dump.contains("__tag") || dump.contains("ok"), "{dump}");
     // L2 fingerprint must remain searchable in attached.rs
     assert!(include_str!("attached.rs").contains("macro-codable-l2:associated-enum-auto"));
 }
@@ -57,6 +54,9 @@ fn p129_bean_param_boot_codegen_passes_args() {
     expand_service_macros(&mut module).expect("expand");
     let dump = format!("{module:?}");
     assert!(dump.contains("__syx_service_boot_impl"), "{dump}");
-    assert!(dump.contains("greeter") || dump.contains("BeanGreeter"), "{dump}");
+    assert!(
+        dump.contains("greeter") || dump.contains("BeanGreeter"),
+        "{dump}"
+    );
     assert!(include_str!("service.rs").contains("macro-service-v10:bean-param-autowire-mvp"));
 }

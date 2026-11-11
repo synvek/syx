@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -15,9 +14,7 @@ fn s3_04_wall_strategy_adr_and_census() {
     let adr = repo_file("docs/adr/stage3-s3-04-wall-strategy.md");
     assert!(adr.contains("S3-I69"), "wall-strategy ADR must name S3-I69");
     assert!(
-        adr.contains("fib30_interp_ceiling")
-            || adr.contains("residual")
-            || adr.contains("ceiling"),
+        adr.contains("fib30_interp_ceiling") || adr.contains("residual") || adr.contains("ceiling"),
         "ADR must publish interp residual ceiling"
     );
     assert!(
@@ -34,8 +31,7 @@ fn s3_04_wall_strategy_adr_and_census() {
         "ADR must cite landed S3-I70 residual-scope"
     );
     assert!(
-        adr.contains("≠")
-            && (adr.contains("[x]") || adr.contains("0.5") || adr.contains("Copy")),
+        adr.contains("≠") && (adr.contains("[x]") || adr.contains("0.5") || adr.contains("Copy")),
         "ADR must Non-claim S3-04 [x] / 0.5"
     );
 
@@ -57,8 +53,7 @@ fn s3_04_wall_strategy_adr_and_census() {
 
     let prior = repo_file("docs/adr/stage3-s3-04-claim-prep.md");
     assert!(
-        prior.contains("S3-I69")
-            || prior.contains("stage3-s3-04-wall-strategy"),
+        prior.contains("S3-I69") || prior.contains("stage3-s3-04-wall-strategy"),
         "I68 ADR must cite landed I69"
     );
 
@@ -75,19 +70,14 @@ fn s3_04_wall_strategy_adr_and_census() {
         plan02.contains("S3-I69") || plan02.contains("wall-strategy"),
         "plan/02 must cite S3-I69"
     );
-    assert!(
-        plan02.contains("S3-I72"),
-        "plan/02 must lock next = S3-I72"
-    );
+    assert!(plan02.contains("S3-I72"), "plan/02 must lock next = S3-I72");
 }
 
 #[test]
 fn s3_04_wall_strategy_census_script_emits_hinge() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_04_vm_hotspot_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run vm-hotspot census");
     assert!(

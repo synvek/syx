@@ -58,10 +58,7 @@ fn entry_conforms_to_protocol(entry: &ManifestEntry, protocol: ProtocolId) -> bo
 fn builtin_conforms(type_name: &str, protocol: ProtocolId) -> bool {
     let type_name = base_type_name(type_name);
     if type_name.starts_with("SIMD") {
-        return matches!(
-            protocol,
-            ProtocolId::Equatable | ProtocolId::Comparable
-        );
+        return matches!(protocol, ProtocolId::Equatable | ProtocolId::Comparable);
     }
     match (type_name, protocol) {
         ("Hasher", ProtocolId::CustomStringConvertible) => return true,

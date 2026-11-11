@@ -30,31 +30,26 @@ async func main() {
 
 #[test]
 fn p103_sync_select_recv_only_smoke() {
-    let lines = run(
-        r#"func main() {
+    let lines = run(r#"func main() {
     let ch = __syx_channel_create(1)
     __syx_channel_send(ch, 88)
     select {
         case v <- ch:
             print(v)
     }
-}"#,
-    );
+}"#);
     assert!(lines.iter().any(|l| l.contains("88")), "{lines:?}");
 }
 
 #[test]
 fn p103_async_channel_recv_smoke() {
-    let lines = run(
-        r#"async func main() {
+    let lines = run(r#"async func main() {
     let ch = __syx_channel_create(1)
     __syx_channel_send(ch, 88)
     print(__syx_channel_recv(ch))
-}"#,
-    );
+}"#);
     assert!(lines.iter().any(|l| l.contains("88")), "{lines:?}");
 }
-
 
 #[test]
 fn p103_select_await_case_compile() {
@@ -68,8 +63,14 @@ fn p103_select_await_case_stdout_order() {
     let lines = run(SELECT_AWAIT_CASE_SRC);
     let recv = lines.iter().position(|l| l.contains("recv")).expect("recv");
     let val = lines.iter().position(|l| l.contains("88")).expect("88");
-    let before = lines.iter().position(|l| l.contains("tick-before")).expect("tick-before");
-    let after = lines.iter().position(|l| l.contains("tick-after")).expect("tick-after");
+    let before = lines
+        .iter()
+        .position(|l| l.contains("tick-before"))
+        .expect("tick-before");
+    let after = lines
+        .iter()
+        .position(|l| l.contains("tick-after"))
+        .expect("tick-after");
     assert!(recv < val && val < before && before < after, "{lines:?}");
 }
 
@@ -81,5 +82,8 @@ fn p103_select_await_fixture_file() {
     assert!(src.contains("await"));
     assert!(src.contains("select"));
     let lines = run(&src);
-    assert!(lines.iter().any(|l| l.contains("case-order-done")), "{lines:?}");
+    assert!(
+        lines.iter().any(|l| l.contains("case-order-done")),
+        "{lines:?}"
+    );
 }

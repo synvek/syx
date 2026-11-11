@@ -65,7 +65,6 @@ func main() {{
 
 #[test]
 fn m2_s3_04_docs_and_capability() {
-
     let guide = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
         guide.contains("ADR-241")
@@ -95,7 +94,9 @@ fn m2_s3_04_docs_and_capability() {
     );
     assert!(
         (block.contains("ADR-558") || block.contains("ADR-241"))
-            && (block.contains("≠ OS mmap") || block.contains("OS mmap") || block.contains("read_to_end")),
+            && (block.contains("≠ OS mmap")
+                || block.contains("OS mmap")
+                || block.contains("read_to_end")),
         "notes must cite ADR-558/241 honesty: {block}"
     );
 
@@ -105,4 +106,3 @@ fn m2_s3_04_docs_and_capability() {
         "inventory must note signed-ADR-241"
     );
 }
-

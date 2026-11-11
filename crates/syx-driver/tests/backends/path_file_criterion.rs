@@ -20,4 +20,3 @@ fn ec_m2_4_path_file_criterion_smoke_ok() {
         "must print ok: {out}"
     );
 }
-

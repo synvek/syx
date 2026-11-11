@@ -17,8 +17,10 @@ pub(crate) fn flatten_blocks(blocks: &[MirBlock]) -> Vec<MirInstr> {
     out
 }
 
-
-fn resolve_jump_targets(instructions: &mut [MirInstr], block_start: &indexmap::IndexMap<u32, usize>) {
+fn resolve_jump_targets(
+    instructions: &mut [MirInstr],
+    block_start: &indexmap::IndexMap<u32, usize>,
+) {
     for instr in instructions {
         match &mut instr.op {
             MirOp::Jump(t)
@@ -35,7 +37,6 @@ fn resolve_jump_targets(instructions: &mut [MirInstr], block_start: &indexmap::I
     }
 }
 
-
 pub(crate) fn mir_local_names_for_slots(
     locals: &indexmap::IndexMap<SmolStr, u32>,
     local_count: u32,
@@ -50,7 +51,6 @@ pub(crate) fn mir_local_names_for_slots(
     }
     names
 }
-
 
 pub(crate) fn mir_local_types_for_slots(
     locals: &indexmap::IndexMap<SmolStr, u32>,
@@ -70,7 +70,6 @@ pub(crate) fn mir_local_types_for_slots(
     types
 }
 
-
 pub(crate) fn expr_is_opaque_operand(expr: &Expr, ctx: &LowerCtx) -> bool {
     match expr {
         Expr::Call { callee, .. } => matches!(
@@ -80,7 +79,6 @@ pub(crate) fn expr_is_opaque_operand(expr: &Expr, ctx: &LowerCtx) -> bool {
         _ => false,
     }
 }
-
 
 pub(crate) fn keypath_from_callee(expr: &Expr) -> Option<(&SmolStr, &SmolStr, bool)> {
     match expr {
@@ -94,4 +92,3 @@ pub(crate) fn keypath_from_callee(expr: &Expr) -> Option<(&SmolStr, &SmolStr, bo
         _ => None,
     }
 }
-

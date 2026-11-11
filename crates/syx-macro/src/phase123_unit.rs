@@ -43,7 +43,10 @@ func main() { print(1) }
     expand_service_macros(&mut module).expect("expand");
     let dump = format!("{module:?}");
     assert!(dump.contains("__syx_service_boot"), "{dump}");
-    assert!(dump.contains("resolve"), "ceremony sugar resolve wrapper: {dump}");
+    assert!(
+        dump.contains("resolve"),
+        "ceremony sugar resolve wrapper: {dump}"
+    );
 }
 
 #[test]

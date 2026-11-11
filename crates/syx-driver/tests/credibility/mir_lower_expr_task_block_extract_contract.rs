@@ -10,8 +10,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -33,7 +32,8 @@ fn s2_05_mir_lower_expr_task_block_extract_baseline() {
         "lib.rs must declare mod mir_lower_expr_task_block"
     );
     assert!(
-        (lib.contains("lower_expr_task_block(") || mir_lower_expr_src().contains("lower_expr_task_block(")),
+        (lib.contains("lower_expr_task_block(")
+            || mir_lower_expr_src().contains("lower_expr_task_block(")),
         "lib.rs must delegate TaskBlock to lower_expr_task_block"
     );
     assert!(
@@ -44,8 +44,7 @@ fn s2_05_mir_lower_expr_task_block_extract_baseline() {
         "lower_expr shell must remain reachable (lib def or mir_lower_expr)"
     );
     assert!(
-        lib.contains("mod mir_lower_expr_compound_assign;")
-            || lib.contains("Expr::CompoundAssign"),
+        lib.contains("mod mir_lower_expr_compound_assign;") || lib.contains("Expr::CompoundAssign"),
         "CompoundAssign remains reachable (lib arm or mir_lower_expr_compound_assign after I183)"
     );
 

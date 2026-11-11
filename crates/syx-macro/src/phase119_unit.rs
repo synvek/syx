@@ -7,10 +7,7 @@ use crate::attached::expand_attached_macros;
 use crate::roles::{role_mismatch_diag, user_macro_roles, FreestandingRole};
 
 fn diag_span() -> syx_diagnostics::Span {
-    syx_diagnostics::Span {
-        start: 0,
-        len: 1,
-    }
+    syx_diagnostics::Span { start: 0, len: 1 }
 }
 
 #[test]
@@ -106,5 +103,3 @@ func pair() -> Array<String> {
         "expected buildBlock in expanded AST, got {dump}"
     );
 }
-
-

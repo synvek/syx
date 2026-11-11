@@ -73,7 +73,10 @@ build {
 "#,
     );
     let plan = parse_build_syx(&path).expect("parse");
-    assert_eq!(plan.compile_options.opt_level, syx_driver::build_syx::OptLevel::Release);
+    assert_eq!(
+        plan.compile_options.opt_level,
+        syx_driver::build_syx::OptLevel::Release
+    );
     assert_eq!(plan.tasks.len(), 1);
     assert_eq!(plan.tasks[0].name, "gen");
     assert_eq!(plan.tasks[0].target.as_deref(), Some("wasm"));
@@ -105,6 +108,10 @@ fn apply_overrides_manifest_native() {
         },
         ..Default::default()
     };
-    apply_build_plan(&plan, &mut syx_driver::DriverOptions::default(), &mut manifest);
+    apply_build_plan(
+        &plan,
+        &mut syx_driver::DriverOptions::default(),
+        &mut manifest,
+    );
     assert_eq!(manifest.native.libs, vec!["z"]);
 }

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -25,8 +24,7 @@ fn s3_03_prelude_embed_adr_and_census() {
         "ADR must name include_bytes hinge"
     );
     assert!(
-        adr.contains("S3-I55")
-            && (adr.contains("stage3-s3-03-claim") || adr.contains("claim")),
+        adr.contains("S3-I55") && (adr.contains("stage3-s3-03-claim") || adr.contains("claim")),
         "ADR must cite landed S3-I55 claim"
     );
     assert!(
@@ -70,8 +68,7 @@ fn s3_03_prelude_embed_adr_and_census() {
 
     let prior = repo_file("docs/adr/stage3-s3-03-cache-roundtrip.md");
     assert!(
-        prior.contains("S3-I54")
-            || prior.contains("stage3-s3-03-prelude-embed"),
+        prior.contains("S3-I54") || prior.contains("stage3-s3-03-prelude-embed"),
         "cache-roundtrip ADR must cite landed I54"
     );
 

@@ -59,7 +59,10 @@ fn fmt_cst_print_deepen_roundtrip() {
     assert!(out.contains("print(\"hi\")"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -77,7 +80,10 @@ fn fmt_cst_let_bind_roundtrip() {
     assert!(out.contains("print(x)"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -95,7 +101,10 @@ fn fmt_cst_return_simple_roundtrip() {
     assert!(out.contains("return x"));
     assert!(out.contains("/* trail */"));
 
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -118,11 +127,17 @@ fn fmt_cst_bare_return_roundtrip() {
     let out_semi = format_source_cst(&file_semi).expect("cst bare return;");
     assert_eq!(out_semi, semi);
 
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -142,15 +157,24 @@ fn fmt_cst_multi_func_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let param = SourceFile::new("param.sy", "func main() { while -------------------n { print(1) } }\n");
+    let param = SourceFile::new(
+        "param.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&param).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -171,11 +195,17 @@ fn fmt_cst_typed_bind_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -194,11 +224,17 @@ fn fmt_cst_typed_optional_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -217,11 +253,17 @@ fn fmt_cst_typed_reference_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -240,11 +282,17 @@ fn fmt_cst_typed_mut_reference_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -263,11 +311,17 @@ fn fmt_cst_typed_lifetime_reference_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -287,11 +341,17 @@ fn fmt_cst_typed_function_type_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -311,11 +371,17 @@ fn fmt_cst_typed_function_param_reference_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -335,11 +401,17 @@ fn fmt_cst_typed_function_param_optional_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -359,11 +431,17 @@ fn fmt_cst_typed_function_return_reference_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -383,15 +461,20 @@ fn fmt_cst_typed_function_return_optional_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_typed_function_param_nested_roundtrip() {
@@ -408,11 +491,17 @@ fn fmt_cst_typed_function_param_nested_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -432,16 +521,20 @@ fn fmt_cst_typed_function_return_nested_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_amp_optional_roundtrip() {
@@ -459,16 +552,20 @@ fn fmt_cst_typed_amp_optional_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_generic_roundtrip() {
@@ -486,16 +583,20 @@ fn fmt_cst_typed_generic_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_nested_generic_roundtrip() {
@@ -513,16 +614,20 @@ fn fmt_cst_typed_nested_generic_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_multi_arg_generic_roundtrip() {
@@ -540,16 +645,20 @@ fn fmt_cst_typed_multi_arg_generic_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_toplevel_simple_roundtrip() {
@@ -567,16 +676,20 @@ fn fmt_cst_toplevel_simple_roundtrip() {
     assert!(out.contains("return"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_param_func_roundtrip() {
@@ -592,15 +705,20 @@ fn fmt_cst_param_func_roundtrip() {
     assert!(out.contains("print(0)"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_typed_param_roundtrip() {
@@ -616,16 +734,20 @@ fn fmt_cst_typed_param_roundtrip() {
     assert!(out.contains("print(0)"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_param_optional_roundtrip() {
@@ -641,16 +763,20 @@ fn fmt_cst_typed_param_optional_roundtrip() {
     assert!(out.contains("print(0)"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_param_amp_roundtrip() {
@@ -666,16 +792,20 @@ fn fmt_cst_typed_param_amp_roundtrip() {
     assert!(out.contains("print(0)"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
-
 
 #[test]
 fn fmt_cst_typed_param_mut_amp_roundtrip() {
@@ -691,11 +821,17 @@ fn fmt_cst_typed_param_mut_amp_roundtrip() {
     assert!(out.contains("print(0)"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -710,10 +846,16 @@ fn fmt_cst_typed_param_lifetime_amp_roundtrip() {
     assert!(out.contains("func id(x: &'a Int)"));
     assert!(out.contains("func add(a: &'a mut Int, b)"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -728,10 +870,16 @@ fn fmt_cst_typed_param_amp_optional_roundtrip() {
     assert!(out.contains("func id(x: &Int?)"));
     assert!(out.contains("func add(a: &mut Int?, b: &'a Int?)"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -746,10 +894,16 @@ fn fmt_cst_typed_param_generic_roundtrip() {
     assert!(out.contains("func id(x: Foo<Int>)"));
     assert!(out.contains("func add(a: List<Int>?, b)"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -764,10 +918,16 @@ fn fmt_cst_typed_param_nested_generic_roundtrip() {
     assert!(out.contains("func id(x: Foo<Int>)"));
     assert!(out.contains("func add(a: Box<Int>?, b)"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -782,10 +942,16 @@ fn fmt_cst_typed_param_multi_arg_generic_roundtrip() {
     assert!(out.contains("func id(x: Foo<A, B>)"));
     assert!(out.contains("func add(a: Dict<String, Int>?, b)"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -800,13 +966,22 @@ fn fmt_cst_func_return_roundtrip() {
     assert!(out.contains("func id(x: Int) -> Int"));
     assert!(out.contains("func none() -> Void?"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -822,13 +997,22 @@ fn fmt_cst_func_return_amp_roundtrip() {
     assert!(out.contains("func bare() -> &String"));
     assert!(out.contains("func none() -> Void?"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -844,13 +1028,22 @@ fn fmt_cst_func_return_mut_amp_roundtrip() {
     assert!(out.contains("func bare() -> &mut String"));
     assert!(out.contains("func amp() -> &Int"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -866,13 +1059,22 @@ fn fmt_cst_func_return_lifetime_amp_roundtrip() {
     assert!(out.contains("func mut_life() -> &'b mut String"));
     assert!(out.contains("func amp() -> &Int"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -889,13 +1091,22 @@ fn fmt_cst_func_return_amp_optional_roundtrip() {
     assert!(out.contains("func life() -> &'a Int?"));
     assert!(out.contains("func mut_life() -> &'b mut String?"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
@@ -911,22 +1122,25 @@ fn fmt_cst_func_return_generic_roundtrip() {
     assert!(out.contains("func opt() -> Bar<String>?"));
     assert!(out.contains("func amp() -> &Int?"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
-
-
-
-
-
-
 
 #[test]
 fn fmt_cst_func_return_nested_generic_roundtrip() {
@@ -939,17 +1153,25 @@ fn fmt_cst_func_return_nested_generic_roundtrip() {
     assert!(out.contains("func opt() -> Box<String>?"));
     assert!(out.contains("func flat() -> Foo<Int>"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let gen_ret = SourceFile::new("gen.sy", "func main() { while -------------------n { print(1) } }\n");
+    let gen_ret = SourceFile::new(
+        "gen.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&gen_ret).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err3 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err3.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_func_return_multi_arg_generic_roundtrip() {
@@ -962,10 +1184,16 @@ fn fmt_cst_func_return_multi_arg_generic_roundtrip() {
     assert!(out.contains("func opt() -> Dict<String, Int>?"));
     assert!(out.contains("func nested() -> Foo<Int>"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -981,10 +1209,16 @@ fn fmt_cst_func_return_function_roundtrip() {
     assert!(out.contains("func unit() -> ()"));
     assert!(out.contains("func named() -> Int"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -1000,14 +1234,19 @@ fn fmt_cst_amp_as_generic_arg_roundtrip() {
     assert!(out.contains("func ret() -> Bar<&T>"));
     assert!(out.contains("func mutp(x: Box<&mut String>)"));
     assert!(out.contains("print(0)"));
-    let call = SourceFile::new("call.sy", "func main() { while -------------------n { print(1) } }\n");
+    let call = SourceFile::new(
+        "call.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&call).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let pref = SourceFile::new("pref.sy", "func main() { while -------------------n { print(1) } }\n");
+    let pref = SourceFile::new(
+        "pref.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&pref).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_function_as_generic_arg_roundtrip() {
@@ -1020,10 +1259,16 @@ fn fmt_cst_function_as_generic_arg_roundtrip() {
     assert!(out.contains("func ret() -> Bar<()>"));
     assert!(out.contains("func nest(x: Box<(Int)->((Int)->Bool)>)"));
     assert!(out.contains("print(0)"));
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let nest = SourceFile::new("throws.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "throws.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -1039,10 +1284,16 @@ fn fmt_cst_print_call_roundtrip() {
     assert!(out.contains("print(g(1))"));
     assert!(out.contains("print(h(x, y))"));
     assert!(out.contains("print(0)"));
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let nest = SourceFile::new("throws.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "throws.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -1059,14 +1310,19 @@ fn fmt_cst_call_rhs_roundtrip() {
     assert!(out.contains("print(h(x, y))"));
     assert!(out.contains("return k()"));
     assert!(out.contains("print(0)"));
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
-    let nest = SourceFile::new("deep2.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "deep2.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err2 = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_while_ident_cond_roundtrip() {
@@ -1077,7 +1333,10 @@ fn fmt_cst_while_ident_cond_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("while true"));
     assert!(out.contains("while flag"));
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1091,7 +1350,10 @@ fn fmt_cst_while_call_cond_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("while ready()"));
     assert!(out.contains("while tick(1)"));
-    let nest = SourceFile::new("throws.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "throws.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1105,7 +1367,10 @@ fn fmt_cst_while_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("while go"));
     assert!(out.contains("return"));
-    let nobrace = SourceFile::new("nobrace.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nobrace = SourceFile::new(
+        "nobrace.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nobrace).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
     let bang = SourceFile::new("bang.sy", "func main() { while !!!!!flag { print(1) } }\n");
@@ -1122,7 +1387,10 @@ fn fmt_cst_while_nested_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("while true"));
     assert!(out.contains("while flag"));
-    let tp_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1136,7 +1404,10 @@ fn fmt_cst_while_compare_cond_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("while x < n"));
     assert!(out.contains("while a >= b"));
-    let nest = SourceFile::new("throws.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "throws.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1150,14 +1421,16 @@ fn fmt_cst_while_deeper_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("while i < n"));
     assert!(out.contains("while ready()"));
-    let nobrace = SourceFile::new("nobrace.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nobrace = SourceFile::new(
+        "nobrace.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nobrace).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
     let bang = SourceFile::new("bang.sy", "func main() { while !!!!!flag { print(1) } }\n");
     let err2 = format_source_cst(&bang).expect_err("quad bang must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_effect_pure_roundtrip() {
@@ -1167,7 +1440,10 @@ fn fmt_cst_effect_pure_roundtrip() {
     let out = format_source_cst(&file).expect("cst effect pure");
     assert_eq!(out, src);
     assert!(out.contains("requires Pure"));
-    let nest = SourceFile::new("throws.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "throws.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1180,7 +1456,10 @@ fn fmt_cst_effect_io_roundtrip() {
     let out = format_source_cst(&file).expect("cst effect io");
     assert_eq!(out, src);
     assert!(out.contains("requires IO"));
-    let tp = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1194,11 +1473,13 @@ fn fmt_cst_effect_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("requires Pure"));
     assert!(out.contains("requires IO"));
-    let where_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let where_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&where_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
-
 
 #[test]
 fn fmt_cst_where_bare_roundtrip() {
@@ -1208,7 +1489,10 @@ fn fmt_cst_where_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst where bare");
     assert_eq!(out, src);
     assert!(out.contains("where T: Equatable"));
-    let deep = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let deep = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&deep).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1221,7 +1505,10 @@ fn fmt_cst_where_clause_roundtrip() {
     let out = format_source_cst(&file).expect("cst where clause");
     assert_eq!(out, src);
     assert!(out.contains("where A: Equatable, B: Hashable"));
-    let brace = SourceFile::new("brace.sy", "func main() { while -------------------n { print(1) } }\n");
+    let brace = SourceFile::new(
+        "brace.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&brace).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1235,23 +1522,27 @@ fn fmt_cst_where_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("where T: Equatable"));
     assert!(out.contains("print(foo(bar()))"));
-    let logic = SourceFile::new("logic.sy", "func main() { while -------------------n { print(1) } }\n");
+    let logic = SourceFile::new(
+        "logic.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&logic).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
 
-
-
-
 #[test]
 fn fmt_cst_while_logic_and_roundtrip() {
     // W844 / ADR-1188 face1: && braced; reject chained.
-    let src = "// ahead\nfunc main() {\n    while a && b {\n        print(1)\n  }\n}\n/* trail */\n";
+    let src =
+        "// ahead\nfunc main() {\n    while a && b {\n        print(1)\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst while logic and");
     assert_eq!(out, src);
     assert!(out.contains("while a && b"));
-    let chain = SourceFile::new("chain.sy", "func main() { while -------------------n { print(1) } }\n");
+    let chain = SourceFile::new(
+        "chain.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&chain).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1264,7 +1555,10 @@ fn fmt_cst_while_logic_or_roundtrip() {
     let out = format_source_cst(&file).expect("cst while logic or");
     assert_eq!(out, src);
     assert!(out.contains("while x || y"));
-    let mix = SourceFile::new("mix.sy", "func main() { while -------------------n { print(1) } }\n");
+    let mix = SourceFile::new(
+        "mix.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&mix).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1290,7 +1584,10 @@ fn fmt_cst_while_logic_chain_roundtrip() {
     let out = format_source_cst(&file).expect("cst while logic chain");
     assert_eq!(out, src);
     assert!(out.contains("while a && b && c"));
-    let mix = SourceFile::new("mix.sy", "func main() { while -------------------n { print(1) } }\n");
+    let mix = SourceFile::new(
+        "mix.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&mix).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1303,7 +1600,10 @@ fn fmt_cst_while_logic_cmp_roundtrip() {
     let out = format_source_cst(&file).expect("cst while logic cmp");
     assert_eq!(out, src);
     assert!(out.contains("while a < b && c"));
-    let bang = SourceFile::new("bang.sy", "func main() { while -------------------n { print(1) } }\n");
+    let bang = SourceFile::new(
+        "bang.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&bang).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1329,7 +1629,10 @@ fn fmt_cst_while_logic_mixedops_roundtrip() {
     let out = format_source_cst(&file).expect("cst while logic mixedops");
     assert_eq!(out, src);
     assert!(out.contains("while a && b || c"));
-    let bang = SourceFile::new("bang.sy", "func main() { while -------------------n { print(1) } }\n");
+    let bang = SourceFile::new(
+        "bang.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&bang).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1342,7 +1645,10 @@ fn fmt_cst_while_logic_call_roundtrip() {
     let out = format_source_cst(&file).expect("cst while logic call");
     assert_eq!(out, src);
     assert!(out.contains("while ready() && flag"));
-    let paren = SourceFile::new("paren.sy", "func main() { while -------------------n { print(1) } }\n");
+    let paren = SourceFile::new(
+        "paren.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&paren).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1368,7 +1674,10 @@ fn fmt_cst_while_unary_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while unary bare");
     assert_eq!(out, src);
     assert!(out.contains("while !flag"));
-    let neg = SourceFile::new("neg.sy", "func main() { while -------------------n { print(1) } }\n");
+    let neg = SourceFile::new(
+        "neg.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&neg).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1381,7 +1690,10 @@ fn fmt_cst_while_unary_logic_roundtrip() {
     let out = format_source_cst(&file).expect("cst while unary logic");
     assert_eq!(out, src);
     assert!(out.contains("while !a && b"));
-    let bang = SourceFile::new("bang.sy", "func main() { while -------------------n { print(1) } }\n");
+    let bang = SourceFile::new(
+        "bang.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&bang).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1394,7 +1706,10 @@ fn fmt_cst_while_unary_mixed_roundtrip() {
     let out = format_source_cst(&file).expect("cst while unary mixed");
     assert_eq!(out, src);
     assert!(out.contains("while !ready() && a || b"));
-    let neg = SourceFile::new("neg.sy", "func main() { while -------------------n { print(1) } }\n");
+    let neg = SourceFile::new(
+        "neg.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&neg).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1407,7 +1722,10 @@ fn fmt_cst_while_paren_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while paren bare");
     assert_eq!(out, src);
     assert!(out.contains("while (a && b) || c"));
-    let neg = SourceFile::new("neg.sy", "func main() { while -------------------n { print(1) } }\n");
+    let neg = SourceFile::new(
+        "neg.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&neg).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1420,7 +1738,10 @@ fn fmt_cst_while_paren_unary_roundtrip() {
     let out = format_source_cst(&file).expect("cst while paren unary");
     assert_eq!(out, src);
     assert!(out.contains("while !(a && b)"));
-    let nest = SourceFile::new("nest.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "nest.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1433,7 +1754,10 @@ fn fmt_cst_while_paren_mixed_roundtrip() {
     let out = format_source_cst(&file).expect("cst while paren mixed");
     assert_eq!(out, src);
     assert!(out.contains("while (a && b) || ready()"));
-    let bang = SourceFile::new("bang.sy", "func main() { while -------------------n { print(1) } }\n");
+    let bang = SourceFile::new(
+        "bang.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&bang).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1446,7 +1770,10 @@ fn fmt_cst_while_neg_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg bare");
     assert_eq!(out, src);
     assert!(out.contains("while -n"));
-    let bang = SourceFile::new("bang.sy", "func main() { while -------------------n { print(1) } }\n");
+    let bang = SourceFile::new(
+        "bang.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&bang).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1459,7 +1786,10 @@ fn fmt_cst_while_neg_logic_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg logic");
     assert_eq!(out, src);
     assert!(out.contains("while -a && b"));
-    let dbl = SourceFile::new("dbl.sy", "func main() { while -------------------n { print(1) } }\n");
+    let dbl = SourceFile::new(
+        "dbl.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&dbl).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1472,7 +1802,10 @@ fn fmt_cst_while_neg_mixed_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg mixed");
     assert_eq!(out, src);
     assert!(out.contains("while -ready() && a || b"));
-    let nest = SourceFile::new("nest.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "nest.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1485,7 +1818,10 @@ fn fmt_cst_while_bang2_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while bang2 bare");
     assert_eq!(out, src);
     assert!(out.contains("while !!flag"));
-    let nest = SourceFile::new("nest.sy", "func main() { while -------------------n { print(1) } }\n");
+    let nest = SourceFile::new(
+        "nest.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&nest).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1498,7 +1834,10 @@ fn fmt_cst_while_bang2_logic_roundtrip() {
     let out = format_source_cst(&file).expect("cst while bang2 logic");
     assert_eq!(out, src);
     assert!(out.contains("while !!a && b"));
-    let trip = SourceFile::new("trip.sy", "func main() { while -------------------n { print(1) } }\n");
+    let trip = SourceFile::new(
+        "trip.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&trip).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1511,7 +1850,10 @@ fn fmt_cst_while_bang2_mixed_roundtrip() {
     let out = format_source_cst(&file).expect("cst while bang2 mixed");
     assert_eq!(out, src);
     assert!(out.contains("while !!ready() && a || b"));
-    let dbl = SourceFile::new("dbl.sy", "func main() { while -------------------n { print(1) } }\n");
+    let dbl = SourceFile::new(
+        "dbl.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&dbl).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1537,7 +1879,10 @@ fn fmt_cst_while_paren2_logic_roundtrip() {
     let out = format_source_cst(&file).expect("cst while paren2 logic");
     assert_eq!(out, src);
     assert!(out.contains("while ((a && b)) || c"));
-    let trip = SourceFile::new("trip.sy", "func main() { while -------------------n { print(1) } }\n");
+    let trip = SourceFile::new(
+        "trip.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&trip).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1550,7 +1895,10 @@ fn fmt_cst_while_paren2_mixed_roundtrip() {
     let out = format_source_cst(&file).expect("cst while paren2 mixed");
     assert_eq!(out, src);
     assert!(out.contains("while ((!!ready())) && a || -b"));
-    let dbl = SourceFile::new("dbl.sy", "func main() { while -------------------n { print(1) } }\n");
+    let dbl = SourceFile::new(
+        "dbl.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&dbl).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1596,7 +1944,8 @@ fn fmt_cst_while_paren3_mixed_roundtrip() {
 fn fmt_cst_comment_line_roundtrip() {
     // W872 / ADR-1216 face1: file-level + body line comments; AST still drops.
     use syx_fmt::format_source;
-    let src = "// ahead\nfunc main() {\n    // inside\n    print(1)\n    // mid\n    let x = 1\n}\n";
+    let src =
+        "// ahead\nfunc main() {\n    // inside\n    print(1)\n    // mid\n    let x = 1\n}\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst comment line");
     assert_eq!(out, src);
@@ -1647,7 +1996,8 @@ fn fmt_cst_comment_mixed_roundtrip() {
 #[test]
 fn fmt_default_cst_preserves_comments() {
     // W873 / ADR-1217 face1: default format_dry_run (no env) preserves line comments.
-    let src = "// ahead\nfunc main() {\n    // inside\n    print(1)\n    // mid\n    let x = 1\n}\n";
+    let src =
+        "// ahead\nfunc main() {\n    // inside\n    print(1)\n    // mid\n    let x = 1\n}\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default CST-first dry-run");
     assert!(!report.would_change, "subset+comments must be byte-stable");
@@ -1684,8 +2034,10 @@ fn fmt_default_cst_fallback_ast_f001() {
             .as_deref(),
         Some("CST001")
     );
-    let neg19 =
-        SourceFile::new("n.sy", "func main() { while -------------------n { print(1) } }\n");
+    let neg19 = SourceFile::new(
+        "n.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     assert_eq!(
         format_source_cst(&neg19)
             .expect_err("neg19")
@@ -1726,7 +2078,10 @@ fn fmt_cst_func_access_public_dry_run() {
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject face (W878): export {…} list still CST001.
-    let ex = SourceFile::new("e.sy", "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n");
+    let ex = SourceFile::new(
+        "e.sy",
+        "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n",
+    );
     let err = format_source_cst(&ex).expect_err("if case KeyPath must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1791,7 +2146,10 @@ fn fmt_cst_func_static_dry_run() {
     let ast_err = format_source(&file).expect_err("top-level static func must fail AST parse");
     assert_eq!(ast_err.code.as_deref(), Some("P001"));
     // W878: export {…} list still CST001 (export func itself now in subset).
-    let ex = SourceFile::new("e.sy", "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n");
+    let ex = SourceFile::new(
+        "e.sy",
+        "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n",
+    );
     let err = format_source_cst(&ex).expect_err("if case KeyPath must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -1805,9 +2163,7 @@ fn fmt_cst_func_async_dry_run() {
     let report = format_dry_run(&file).expect("default async");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("async func a") && report.formatted.contains("async func b")
-    );
+    assert!(report.formatted.contains("async func a") && report.formatted.contains("async func b"));
     let ast = format_source(&file).expect("ast");
     assert!(
         !ast.contains("// ahead") && !ast.contains("/* mid */"),
@@ -1878,9 +2234,7 @@ fn fmt_cst_if_else_dry_run() {
     let report = format_dry_run(&file).expect("default if else");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("} else {") && report.formatted.contains("/* mid */")
-    );
+    assert!(report.formatted.contains("} else {") && report.formatted.contains("/* mid */"));
     let ast = format_source(&file).expect("ast");
     assert!(
         !ast.contains("// ahead") && !ast.contains("/* mid */"),
@@ -1932,7 +2286,10 @@ fn fmt_cst_func_export_bare_dry_run() {
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject face: export {…} list still CST001.
-    let ex = SourceFile::new("e.sy", "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n");
+    let ex = SourceFile::new(
+        "e.sy",
+        "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n",
+    );
     let err = format_source_cst(&ex).expect_err("if case KeyPath must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2005,7 +2362,10 @@ fn fmt_cst_class_bare_dry_run() {
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject: member-index compound still CST001.
-    let inh = SourceFile::new("i.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let inh = SourceFile::new(
+        "i.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err = format_source_cst(&inh).expect_err("member-index compound must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2075,7 +2435,10 @@ fn fmt_cst_class_inherit_dry_run() {
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject: member-index compound still CST001.
-    let multi = SourceFile::new("m.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let multi = SourceFile::new(
+        "m.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err = format_source_cst(&multi).expect_err("member-index compound must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2100,7 +2463,10 @@ fn fmt_cst_class_init_dry_run() {
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject: member-index compound still CST001.
-    let data = SourceFile::new("d.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let data = SourceFile::new(
+        "d.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err = format_source_cst(&data).expect_err("member-index compound must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2135,16 +2501,17 @@ fn fmt_cst_data_class_dry_run() {
     let report = format_dry_run(&file).expect("default data class");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("data class Point") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("data class Point") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("ast must succeed");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject: member-index compound still CST001.
-    let gen = SourceFile::new("g.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let gen = SourceFile::new(
+        "g.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err = format_source_cst(&gen).expect_err("member-index compound must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2216,7 +2583,10 @@ fn fmt_cst_data_class_tp_dry_run() {
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject: member-index compound still CST001.
-    let rej = SourceFile::new("r.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let rej = SourceFile::new(
+        "r.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err = format_source_cst(&rej).expect_err("member-index compound must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2231,8 +2601,7 @@ fn fmt_cst_data_class_where_dry_run() {
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
     assert!(
-        report.formatted.contains("where T: Equatable")
-            && report.formatted.contains("/* trail */")
+        report.formatted.contains("where T: Equatable") && report.formatted.contains("/* trail */")
     );
     let ast = format_source(&file).expect("ast");
     assert!(
@@ -2278,16 +2647,17 @@ fn fmt_cst_export_list_bare_dry_run() {
     let report = format_dry_run(&file).expect("default export list bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("export { foo }") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("export { foo }") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("ast must succeed");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
         "AST must drop comments; got {ast:?}"
     );
     // Successor reject: member-index compound still CST001.
-    let rej = SourceFile::new("r.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let rej = SourceFile::new(
+        "r.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err = format_source_cst(&rej).expect_err("member-index compound must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -2345,7 +2715,8 @@ fn fmt_cst_final_where_bare_dry_run() {
     // W884 / ADR-1228 face1: final+where bare + docs; default CST preserves.
     // AST/parser has no FinalClass where (P001); comment path is CST-only.
     use syx_fmt::format_source;
-    let src = "/// docs\nfinal class Box<T> where T: Equatable {\n    wrap(value: T)\n}\n/* trail */\n";
+    let src =
+        "/// docs\nfinal class Box<T> where T: Equatable {\n    wrap(value: T)\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let report = format_dry_run(&file).expect("default final where bare");
     assert!(!report.would_change);
@@ -2356,7 +2727,10 @@ fn fmt_cst_final_where_bare_dry_run() {
     let err = format_source(&file).expect_err("AST FinalClass has no where");
     assert_eq!(err.code.as_deref(), Some("P001"));
     // Successor reject: member-index compound still CST001.
-    let rej = SourceFile::new("r.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let rej = SourceFile::new(
+        "r.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err2 = format_source_cst(&rej).expect_err("member-index compound must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -2395,7 +2769,9 @@ fn fmt_cst_final_where_mixed_dry_run() {
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
     assert!(
-        report.formatted.contains("final class Wrap<U> where U: Hashable")
+        report
+            .formatted
+            .contains("final class Wrap<U> where U: Hashable")
             && report.formatted.contains("export { Box }")
             && report.formatted.contains("/* trail */")
     );
@@ -2419,7 +2795,10 @@ fn fmt_cst_export_as_bare_dry_run() {
     let err = format_source(&file).expect_err("AST ExportList has no as-rename");
     assert_eq!(err.code.as_deref(), Some("P001"));
     // Successor reject: member-index compound still CST001.
-    let rej = SourceFile::new("r.sy", "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n");
+    let rej = SourceFile::new(
+        "r.sy",
+        "class Box {\n  var name: String\n  init(name: String) {\n    self.xs[0] += 1\n  }\n}\n",
+    );
     let err2 = format_source_cst(&rej).expect_err("member-index compound must CST001");
     assert_eq!(err2.code.as_deref(), Some("CST001"));
 }
@@ -2433,9 +2812,7 @@ fn fmt_cst_export_empty_dry_run() {
     let report = format_dry_run(&file).expect("default empty export");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("export { }") && report.formatted.contains("/* trail */")
-    );
+    assert!(report.formatted.contains("export { }") && report.formatted.contains("/* trail */"));
     let err = format_source(&file).expect_err("AST rejects empty export list");
     assert_eq!(err.code.as_deref(), Some("P001"));
     // Successor reject: member-index compound still CST001.
@@ -2475,7 +2852,8 @@ fn fmt_cst_class_multi_conf_dry_run() {
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
     assert!(
-        report.formatted.contains("class Sub: Box, Greeter") && report.formatted.contains("/// docs")
+        report.formatted.contains("class Sub: Box, Greeter")
+            && report.formatted.contains("/// docs")
     );
     let ast = format_source(&file).expect("ast must succeed");
     assert!(
@@ -2549,9 +2927,7 @@ fn fmt_cst_self_field_bare_dry_run() {
     let report = format_dry_run(&file).expect("default self field bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("self.name = name") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("self.name = name") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("ast must succeed");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
@@ -2625,7 +3001,8 @@ fn fmt_cst_nested_self_field_bare_dry_run() {
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
     assert!(
-        report.formatted.contains("self.inner.name = name") && report.formatted.contains("/// docs")
+        report.formatted.contains("self.inner.name = name")
+            && report.formatted.contains("/// docs")
     );
     let ast = format_source(&file).expect("ast must succeed");
     assert!(
@@ -2690,7 +3067,6 @@ fn fmt_cst_nested_self_field_mixed_dry_run() {
     );
 }
 
-
 #[test]
 fn fmt_cst_member_field_bare_dry_run() {
     // W889 / ADR-1233 face1: init non-self member assign + docs; default CST preserves; AST drops.
@@ -2700,9 +3076,7 @@ fn fmt_cst_member_field_bare_dry_run() {
     let report = format_dry_run(&file).expect("default member field bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("box.name = name") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("box.name = name") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("ast must succeed");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
@@ -2775,9 +3149,7 @@ fn fmt_cst_member_field_plus_bare_dry_run() {
     let report = format_dry_run(&file).expect("default member field plus bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("self.count += 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("self.count += 1") && report.formatted.contains("/// docs"));
     // R-35: AST desugars member compound assign to MemberAssign.
     let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
@@ -2841,9 +3213,7 @@ fn fmt_cst_member_field_minus_bare_dry_run() {
     let report = format_dry_run(&file).expect("default member field minus bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("self.count -= 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("self.count -= 1") && report.formatted.contains("/// docs"));
     // R-35: AST desugars member compound assign to MemberAssign.
     let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
@@ -2907,9 +3277,7 @@ fn fmt_cst_member_field_star_bare_dry_run() {
     let report = format_dry_run(&file).expect("default member field star bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("self.count *= 2") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("self.count *= 2") && report.formatted.contains("/// docs"));
     // R-35: AST desugars member compound assign to MemberAssign.
     let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
@@ -2973,9 +3341,7 @@ fn fmt_cst_ident_compound_bare_dry_run() {
     let report = format_dry_run(&file).expect("default ident compound bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("count += 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("count += 1") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("AST supports bare CompoundAssign");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
@@ -3038,7 +3404,6 @@ fn fmt_cst_ident_compound_mixed_dry_run() {
     let _ = format_source(&file).expect("AST accepts member compound via desugar");
 }
 
-
 #[test]
 fn fmt_cst_index_assign_bare_dry_run() {
     // W894 / ADR-1238 face1: init a[0] = + docs; default CST preserves; AST drops comments.
@@ -3048,9 +3413,7 @@ fn fmt_cst_index_assign_bare_dry_run() {
     let report = format_dry_run(&file).expect("default index assign bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("a[0] = 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("a[0] = 1") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("AST supports IndexAssign");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
@@ -3115,7 +3478,6 @@ fn fmt_cst_index_assign_mixed_dry_run() {
     );
 }
 
-
 #[test]
 fn fmt_cst_index_compound_bare_dry_run() {
     // W895 / ADR-1239 face1: init a[0] += + docs; default CST preserves; AST desugars (R-35).
@@ -3125,9 +3487,7 @@ fn fmt_cst_index_compound_bare_dry_run() {
     let report = format_dry_run(&file).expect("default index compound bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("a[0] += 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("a[0] += 1") && report.formatted.contains("/// docs"));
     let _ = format_source(&file).expect_err("AST has no IndexCompoundAssign");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
@@ -3189,9 +3549,7 @@ fn fmt_cst_index_nested_bare_dry_run() {
     let report = format_dry_run(&file).expect("default index nested bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("a[0][1] = 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("a[0][1] = 1") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("AST supports nested IndexAssign");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
@@ -3253,7 +3611,6 @@ fn fmt_cst_index_nested_mixed_dry_run() {
     let _ = format_source(&file).expect_err("AST has no IndexCompoundAssign");
 }
 
-
 #[test]
 fn fmt_cst_member_index_assign_bare_dry_run() {
     // W897 / ADR-1241 face1: init self.xs[0] = + docs; default CST preserves; AST drops comments.
@@ -3263,9 +3620,7 @@ fn fmt_cst_member_index_assign_bare_dry_run() {
     let report = format_dry_run(&file).expect("default member-index bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("self.xs[0] = 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("self.xs[0] = 1") && report.formatted.contains("/// docs"));
     let ast = format_source(&file).expect("AST supports member-index IndexAssign");
     assert!(
         !ast.contains("/// docs") && !ast.contains("/* trail */"),
@@ -3327,7 +3682,6 @@ fn fmt_cst_member_index_assign_mixed_dry_run() {
     let _ = format_source(&file).expect_err("AST has no IndexCompoundAssign");
 }
 
-
 #[test]
 fn fmt_cst_index_nested_compound_bare_dry_run() {
     // W898 / ADR-1242 face1: init a[0][1] += + docs; default CST preserves; AST desugars (R-35).
@@ -3337,9 +3691,7 @@ fn fmt_cst_index_nested_compound_bare_dry_run() {
     let report = format_dry_run(&file).expect("default nested compound bare");
     assert!(!report.would_change);
     assert_eq!(report.formatted, src);
-    assert!(
-        report.formatted.contains("a[0][1] += 1") && report.formatted.contains("/// docs")
-    );
+    assert!(report.formatted.contains("a[0][1] += 1") && report.formatted.contains("/// docs"));
     let _ = format_source(&file).expect_err("AST has no IndexCompoundAssign");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
@@ -3392,7 +3744,6 @@ fn fmt_cst_index_nested_compound_mixed_dry_run() {
     let _ = format_source(&file).expect_err("AST has no IndexCompoundAssign");
 }
 
-
 #[test]
 fn fmt_cst_while_bang3_bare_roundtrip() {
     // W852 / ADR-1196 face1: bare `!!!`; reject `!!!!`.
@@ -3414,7 +3765,10 @@ fn fmt_cst_while_bang3_logic_roundtrip() {
     let out = format_source_cst(&file).expect("cst while bang3 logic");
     assert_eq!(out, src);
     assert!(out.contains("while !!!a && b"));
-    let dbl = SourceFile::new("dbl.sy", "func main() { while -------------------n { print(1) } }\n");
+    let dbl = SourceFile::new(
+        "dbl.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&dbl).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3440,7 +3794,10 @@ fn fmt_cst_while_neg2_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg2 bare");
     assert_eq!(out, src);
     assert!(out.contains("while --n"));
-    let trip = SourceFile::new("trip.sy", "func main() { while -------------------n { print(1) } }\n");
+    let trip = SourceFile::new(
+        "trip.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&trip).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3479,7 +3836,10 @@ fn fmt_cst_while_neg3_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg3 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ---n"));
-    let quad = SourceFile::new("quad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let quad = SourceFile::new(
+        "quad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&quad).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3518,7 +3878,10 @@ fn fmt_cst_while_neg4_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg4 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ----n"));
-    let sext = SourceFile::new("sext.sy", "func main() { while -------------------n { print(1) } }\n");
+    let sext = SourceFile::new(
+        "sext.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&sext).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3557,7 +3920,10 @@ fn fmt_cst_while_neg5_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg5 bare");
     assert_eq!(out, src);
     assert!(out.contains("while -----n"));
-    let sept = SourceFile::new("sept.sy", "func main() { while -------------------n { print(1) } }\n");
+    let sept = SourceFile::new(
+        "sept.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&sept).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3596,7 +3962,10 @@ fn fmt_cst_while_neg6_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg6 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ------n"));
-    let oct = SourceFile::new("oct.sy", "func main() { while -------------------n { print(1) } }\n");
+    let oct = SourceFile::new(
+        "oct.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&oct).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3635,7 +4004,10 @@ fn fmt_cst_while_neg7_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg7 bare");
     assert_eq!(out, src);
     assert!(out.contains("while -------n"));
-    let oct = SourceFile::new("oct.sy", "func main() { while -------------------n { print(1) } }\n");
+    let oct = SourceFile::new(
+        "oct.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&oct).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3674,7 +4046,10 @@ fn fmt_cst_while_neg8_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg8 bare");
     assert_eq!(out, src);
     assert!(out.contains("while --------n"));
-    let non = SourceFile::new("non.sy", "func main() { while -------------------n { print(1) } }\n");
+    let non = SourceFile::new(
+        "non.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&non).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3713,7 +4088,10 @@ fn fmt_cst_while_neg9_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg9 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ---------n"));
-    let dec = SourceFile::new("dec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let dec = SourceFile::new(
+        "dec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&dec).expect_err("dec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3752,7 +4130,10 @@ fn fmt_cst_while_neg10_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg10 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ----------n"));
-    let undec = SourceFile::new("undec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let undec = SourceFile::new(
+        "undec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&undec).expect_err("undec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3791,7 +4172,10 @@ fn fmt_cst_while_neg11_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg11 bare");
     assert_eq!(out, src);
     assert!(out.contains("while -----------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3830,7 +4214,10 @@ fn fmt_cst_while_neg12_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg12 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ------------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3869,7 +4256,10 @@ fn fmt_cst_while_neg13_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg13 bare");
     assert_eq!(out, src);
     assert!(out.contains("while -------------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3908,7 +4298,10 @@ fn fmt_cst_while_neg14_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg14 bare");
     assert_eq!(out, src);
     assert!(out.contains("while --------------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3947,7 +4340,10 @@ fn fmt_cst_while_neg15_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg15 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ---------------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -3986,7 +4382,10 @@ fn fmt_cst_while_neg16_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg16 bare");
     assert_eq!(out, src);
     assert!(out.contains("while ----------------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4025,7 +4424,10 @@ fn fmt_cst_while_neg17_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while neg17 bare");
     assert_eq!(out, src);
     assert!(out.contains("while -----------------n"));
-    let octodec = SourceFile::new("octodec.sy", "func main() { while -------------------n { print(1) } }\n");
+    let octodec = SourceFile::new(
+        "octodec.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&octodec).expect_err("octodec neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4064,7 +4466,10 @@ fn fmt_cst_while_braceless_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst while braceless bare");
     assert_eq!(out, src);
     assert!(out.contains("while true"));
-    let logic = SourceFile::new("logic.sy", "func main() { while -------------------n { print(1) } }\n");
+    let logic = SourceFile::new(
+        "logic.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&logic).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4090,7 +4495,10 @@ fn fmt_cst_while_braceless_mixed_roundtrip() {
     let out = format_source_cst(&file).expect("cst while braceless mixed");
     assert_eq!(out, src);
     assert!(out.contains("while true"));
-    let nest = SourceFile::new("nest.sy", "func main() { while true while flag print(1) }\n");
+    let nest = SourceFile::new(
+        "nest.sy",
+        "func main() { while true while flag print(1) }\n",
+    );
     let err = format_source_cst(&nest).expect_err("braceless nested while must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4098,12 +4506,16 @@ fn fmt_cst_while_braceless_mixed_roundtrip() {
 #[test]
 fn fmt_cst_depth2_call_print_roundtrip() {
     // W842 / ADR-1186 face1: print depth=2; reject chained logic.
-    let src = "// ahead\nfunc main() {\n    print(foo(bar(baz())))\n    print(g(h(1)))\n}\n/* trail */\n";
+    let src =
+        "// ahead\nfunc main() {\n    print(foo(bar(baz())))\n    print(g(h(1)))\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst depth2 call print");
     assert_eq!(out, src);
     assert!(out.contains("print(foo(bar(baz())))"));
-    let brace = SourceFile::new("brace.sy", "func main() { while -------------------n { print(1) } }\n");
+    let brace = SourceFile::new(
+        "brace.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&brace).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4130,7 +4542,10 @@ fn fmt_cst_depth2_call_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("print(foo(bar(baz())))"));
     assert!(out.contains("let x = f(g(h()))"));
-    let logic = SourceFile::new("logic.sy", "func main() { while -------------------n { print(1) } }\n");
+    let logic = SourceFile::new(
+        "logic.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&logic).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4143,7 +4558,10 @@ fn fmt_cst_type_params_single_roundtrip() {
     let out = format_source_cst(&file).expect("cst type_params single");
     assert_eq!(out, src);
     assert!(out.contains("id<T>"));
-    let where_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let where_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&where_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4157,7 +4575,10 @@ fn fmt_cst_type_params_multi_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("pair<A, B>"));
     assert!(out.contains("throws"));
-    let deep = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let deep = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&deep).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4171,7 +4592,10 @@ fn fmt_cst_type_params_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("id<T>"));
     assert!(out.contains("print(foo(bar()))"));
-    let where_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let where_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&where_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4184,7 +4608,10 @@ fn fmt_cst_throws_bare_roundtrip() {
     let out = format_source_cst(&file).expect("cst throws bare");
     assert_eq!(out, src);
     assert!(out.contains("throws"));
-    let tp = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4198,7 +4625,10 @@ fn fmt_cst_throws_clause_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("throws"));
     assert!(out.contains("requires Pure"));
-    let where_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let where_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&where_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4212,7 +4642,10 @@ fn fmt_cst_throws_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("throws"));
     assert!(out.contains("print(foo(bar()))"));
-    let deep = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let deep = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&deep).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4220,12 +4653,16 @@ fn fmt_cst_throws_mixed_roundtrip() {
 #[test]
 fn fmt_cst_nested_call_print_roundtrip() {
     // W838 / ADR-1182 face1: print nested-call depth≤1; reject chained logic.
-    let src = "// ahead\nfunc main() {\n    print(foo(bar()))\n    print(g(h(1)))\n}\n/* trail */\n";
+    let src =
+        "// ahead\nfunc main() {\n    print(foo(bar()))\n    print(g(h(1)))\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
     let out = format_source_cst(&file).expect("cst nested call print");
     assert_eq!(out, src);
     assert!(out.contains("print(foo(bar()))"));
-    let tp = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let tp = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&tp).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4238,7 +4675,10 @@ fn fmt_cst_nested_call_rhs_roundtrip() {
     let out = format_source_cst(&file).expect("cst nested call rhs");
     assert_eq!(out, src);
     assert!(out.contains("let x = foo(bar())"));
-    let deep = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let deep = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&deep).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4252,7 +4692,10 @@ fn fmt_cst_nested_call_mixed_roundtrip() {
     assert_eq!(out, src);
     assert!(out.contains("print(foo(bar()))"));
     assert!(out.contains("let x = f(g())"));
-    let where_rej = SourceFile::new("deep.sy", "func main() { while -------------------n { print(1) } }\n");
+    let where_rej = SourceFile::new(
+        "deep.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&where_rej).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4270,7 +4713,10 @@ fn fmt_cst_double_simple_roundtrip() {
     assert!(out.contains("return 3.14"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4288,7 +4734,10 @@ fn fmt_cst_bool_simple_roundtrip() {
     assert!(out.contains("return true"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4306,7 +4755,10 @@ fn fmt_cst_nil_simple_roundtrip() {
     assert!(out.contains("return nil"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4325,7 +4777,10 @@ fn fmt_cst_var_bind_roundtrip() {
     assert!(out.contains("return nil"));
     assert!(out.contains("/* trail */"));
 
-    let reject = SourceFile::new("bad.sy", "func main() { while -------------------n { print(1) } }\n");
+    let reject = SourceFile::new(
+        "bad.sy",
+        "func main() { while -------------------n { print(1) } }\n",
+    );
     let err = format_source_cst(&reject).expect_err("non neg must CST001");
     assert_eq!(err.code.as_deref(), Some("CST001"));
 }
@@ -4532,7 +4987,9 @@ func main() {
 "#;
     let file = SourceFile::new("dataclass.sy", src);
     let report = format_dry_run(&file).expect("data class must format");
-    assert!(report.formatted.contains("data class Point(x: Int, y: Int)"));
+    assert!(report
+        .formatted
+        .contains("data class Point(x: Int, y: Int)"));
     assert!(report
         .formatted
         .contains("public data class IOError(code: Int, message: String)"));
@@ -4768,7 +5225,9 @@ func main() {
     let file = SourceFile::new("lazy.sy", src);
     let report = format_dry_run(&file).expect("lazy var must format");
     assert!(report.formatted.contains("lazy var x: Int = 1"));
-    assert!(report.formatted.contains("public lazy var label: String = \"ok\""));
+    assert!(report
+        .formatted
+        .contains("public lazy var label: String = \"ok\""));
     assert!(report.formatted.contains("var ready: Int = 0"));
     let again = SourceFile::new("lazy.sy", report.formatted.as_str());
     let r2 = format_dry_run(&again).expect("idempotent");
@@ -4945,7 +5404,9 @@ func main() {
     let file = SourceFile::new("override_var.sy", src);
     let report = format_dry_run(&file).expect("override var must format");
     assert!(report.formatted.contains("override var x: Int = 1"));
-    assert!(report.formatted.contains("public override var label: String = \"ok\""));
+    assert!(report
+        .formatted
+        .contains("public override var label: String = \"ok\""));
     assert!(report.formatted.contains("override var doubled: Int {"));
     assert!(report.formatted.contains("get {"));
     let again = SourceFile::new("override_var.sy", report.formatted.as_str());
@@ -4971,8 +5432,12 @@ func main() {
 "#;
     let file = SourceFile::new("operator_func.sy", src);
     let report = format_dry_run(&file).expect("OperatorFunc must format");
-    assert!(report.formatted.contains("public operator func +(a: Int, b: Int) -> Int"));
-    assert!(report.formatted.contains("operator func -(a: Int, b: Int) -> Int"));
+    assert!(report
+        .formatted
+        .contains("public operator func +(a: Int, b: Int) -> Int"));
+    assert!(report
+        .formatted
+        .contains("operator func -(a: Int, b: Int) -> Int"));
     assert!(report.formatted.contains("return a"));
     let again = SourceFile::new("operator_func.sy", report.formatted.as_str());
     let r2 = format_dry_run(&again).expect("idempotent");
@@ -5082,7 +5547,9 @@ func main() {
 "#;
     let file = SourceFile::new("macro_builtin.sy", src);
     let report = format_dry_run(&file).expect("BuiltIn MacroDecl must format");
-    assert!(report.formatted.contains("#builtInMacro(\"tracked_accessor\")"));
+    assert!(report
+        .formatted
+        .contains("#builtInMacro(\"tracked_accessor\")"));
     assert!(report.formatted.contains("macro Obs"));
     assert!(report.formatted.contains("func main"));
     let again = SourceFile::new("macro_builtin.sy", report.formatted.as_str());
@@ -5100,7 +5567,9 @@ func main() {}
 "#;
     let file = SourceFile::new("macro_external.sy", src);
     let report = format_dry_run(&file).expect("External MacroDecl must format");
-    assert!(report.formatted.contains("#externalMacro(module: \"SyxMacros\""));
+    assert!(report
+        .formatted
+        .contains("#externalMacro(module: \"SyxMacros\""));
     assert!(report.formatted.contains("type: \"SmokeMemberMacro\")"));
     assert!(report.formatted.contains("macro Other"));
     assert!(report.formatted.contains("func main"));
@@ -5188,7 +5657,10 @@ fn fmt_closure_dry_run() {
     let report = format_dry_run(&file).expect("Closure must format");
     assert!(report.formatted.contains("{ (a: Int) in"));
     assert!(report.formatted.contains("a"));
-    assert!(!report.formatted.contains("->"), "must not reconstruct -> Ret");
+    assert!(
+        !report.formatted.contains("->"),
+        "must not reconstruct -> Ret"
+    );
     let again = SourceFile::new("closure.sy", report.formatted.as_str());
     let r2 = format_dry_run(&again).expect("idempotent");
     assert!(!r2.would_change);
@@ -5701,7 +6173,8 @@ fn fmt_switch_is_dry_run() {
 #[test]
 fn fmt_switch_ident_dry_run() {
     // W738 / ADR-1082: Switch Ident case idempotent.
-    let src = "func main() {\n  switch x {\n  case y:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
+    let src =
+        "func main() {\n  switch x {\n  case y:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
     let file = SourceFile::new("switch_ident.sy", src);
     let report = format_dry_run(&file).expect("Switch Ident must format");
     assert!(
@@ -5797,7 +6270,8 @@ fn fmt_switch_optional_chain_dry_run() {
 #[test]
 fn fmt_switch_force_unwrap_dry_run() {
     // W744 / ADR-1088: Switch ForceUnwrap case idempotent.
-    let src = "func main() {\n  switch x {\n  case a!:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
+    let src =
+        "func main() {\n  switch x {\n  case a!:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
     let file = SourceFile::new("switch_force_unwrap.sy", src);
     let report = format_dry_run(&file).expect("Switch ForceUnwrap must format");
     assert!(
@@ -5845,7 +6319,8 @@ fn fmt_switch_array_dry_run() {
 #[test]
 fn fmt_switch_unary_dry_run() {
     // W747 / ADR-1091: Switch Unary case idempotent.
-    let src = "func main() {\n  switch x {\n  case -y:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
+    let src =
+        "func main() {\n  switch x {\n  case -y:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
     let file = SourceFile::new("switch_unary.sy", src);
     let report = format_dry_run(&file).expect("Switch Unary must format");
     assert!(
@@ -5941,7 +6416,8 @@ fn fmt_switch_super_dry_run() {
 #[test]
 fn fmt_switch_borrow_dry_run() {
     // W753 / ADR-1097: Switch Borrow case idempotent.
-    let src = "func main() {\n  switch x {\n  case &x:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
+    let src =
+        "func main() {\n  switch x {\n  case &x:\n    print(1)\n  default:\n    print(0)\n  }\n}\n";
     let file = SourceFile::new("switch_borrow.sy", src);
     let report = format_dry_run(&file).expect("Switch Borrow must format");
     assert!(
@@ -6537,8 +7013,7 @@ fn fmt_type_reference_dry_run() {
 #[test]
 fn fmt_literal_bigint_dry_run() {
     // W787 / ADR-1131: oversized `…n` → BigInt; print digits + `n`.
-    let src =
-        "func main() {\n    print(99999999999999999999999999999999999999999n)\n}\n";
+    let src = "func main() {\n    print(99999999999999999999999999999999999999999n)\n}\n";
     let file = SourceFile::new("literal_bigint.sy", src);
     let report = format_dry_run(&file).expect("BigInt must format");
     assert!(
@@ -6589,4 +7064,3 @@ fn fmt_literal_regex_dry_run() {
     let r2 = format_dry_run(&again).expect("idempotent");
     assert!(!r2.would_change);
 }
-

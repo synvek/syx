@@ -12,7 +12,8 @@ fn repo_root() -> PathBuf {
 
 #[test]
 fn m1_w3_architecture_documents_model_v1() {
-    let arch = std::fs::read_to_string(repo_root().join("docs/adr/architecture-decisions.md")).unwrap();
+    let arch =
+        std::fs::read_to_string(repo_root().join("docs/adr/architecture-decisions.md")).unwrap();
     assert!(
         (arch.contains("## Memory & Safety") || arch.contains("## Memory Model"))
             && arch.contains("## Error Model")
@@ -27,10 +28,9 @@ fn m1_w3_architecture_documents_model_v1() {
 
 #[test]
 fn m1_w3_error_migration_inventory_lists_tcp_facade() {
-    let toml = std::fs::read_to_string(
-        repo_root().join("packages/internal/error_model_migration.toml"),
-    )
-    .unwrap();
+    let toml =
+        std::fs::read_to_string(repo_root().join("packages/internal/error_model_migration.toml"))
+            .unwrap();
     assert!(toml.contains("packages/net/tcp.sy"));
     assert!(toml.contains("packages/io/file_handle.sy"));
 }
@@ -55,4 +55,3 @@ fn m1_w3_taskgroup_cancel_all_cancels_group_token() {
     group.cancel_all();
     assert!(group.parent_cancel.is_cancelled());
 }
-

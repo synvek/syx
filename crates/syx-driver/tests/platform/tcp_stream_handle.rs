@@ -12,14 +12,12 @@ fn run(src: &str) -> String {
 #[test]
 fn tcp_stream_connect_returns_int_not_status_string() {
     // Wave A W19 / ADR-363 / A-03: refused connect product exact int (not contains soft).
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let h = __syx_tcp_connect("127.0.0.1", 9)
   print(h)
 }
-"#,
-    );
+"#);
     assert_eq!(
         out.trim(),
         "-1",

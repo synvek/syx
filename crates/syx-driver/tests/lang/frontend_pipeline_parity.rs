@@ -9,8 +9,9 @@ use std::path::Path;
 
 use syx_diagnostics::SourceFile;
 use syx_driver::{
-    analyze_document_for_lsp, compile_embedded, compile_file_from_source, compile_file_with_options,
-    diagnostic_codes, mir_module_hash, DriverOptions, FrontendOptions, FrontendPipeline, StopAfter,
+    analyze_document_for_lsp, compile_embedded, compile_file_from_source,
+    compile_file_with_options, diagnostic_codes, mir_module_hash, DriverOptions, FrontendOptions,
+    FrontendPipeline, StopAfter,
 };
 use tempfile::tempdir;
 
@@ -78,8 +79,8 @@ fn assert_fail_closed(label: &str, source: &str) {
         "{label}: LSP diagnostics must be non-empty"
     );
     // Codes/message keys must overlap; LSP may accumulate extras from later analysis.
-    let overlap = embed_codes.iter().any(|c| lsp.contains(c))
-        || lsp.iter().any(|c| embed_codes.contains(c));
+    let overlap =
+        embed_codes.iter().any(|c| lsp.contains(c)) || lsp.iter().any(|c| embed_codes.contains(c));
     assert!(
         overlap,
         "{label}: LSP codes {lsp:?} must share keys with embed {embed_codes:?}"
@@ -108,7 +109,10 @@ fn mir_hash_arith_pipeline_embed_browser() {
     compile_file_with_options(&path, &opts).expect("file compile");
     // File entry uses the same FrontendPipeline prepare order; MIR hash of the
     // frontend-only path stays the slice anchor (unified graph may add shells).
-    assert_eq!(pipeline, pipeline_mir_hash(path.to_str().unwrap_or("arith.sy"), ARITH));
+    assert_eq!(
+        pipeline,
+        pipeline_mir_hash(path.to_str().unwrap_or("arith.sy"), ARITH)
+    );
 
     assert!(lsp_codes(ARITH).is_empty(), "arith LSP should be clean");
 }
@@ -116,8 +120,7 @@ fn mir_hash_arith_pipeline_embed_browser() {
 #[test]
 fn mir_hash_string_pipeline_browser() {
     let pipeline = pipeline_mir_hash("string.sy", STRING);
-    let browser = syx_compiler_wasm::compile_source_to_mir("string.sy", STRING)
-        .expect("browser");
+    let browser = syx_compiler_wasm::compile_source_to_mir("string.sy", STRING).expect("browser");
     assert_eq!(pipeline, mir_module_hash(&browser));
     compile_embedded(STRING, &DriverOptions::default()).expect("embed");
     assert!(lsp_codes(STRING).is_empty());

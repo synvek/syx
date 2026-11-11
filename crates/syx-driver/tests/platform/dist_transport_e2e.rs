@@ -13,7 +13,9 @@ fn dist_transport_e2e_winpipe_frame_stdout() {
 
 #[test]
 fn dist_transport_e2e_rustls_handshake_stdout() {
-    assert!(dist_rustls_e2e_handshake_smoke("sha256:phase98-p88-dist-pin"));
+    assert!(dist_rustls_e2e_handshake_smoke(
+        "sha256:phase98-p88-dist-pin"
+    ));
 }
 
 #[test]

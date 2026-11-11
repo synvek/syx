@@ -1,7 +1,10 @@
 //! inheritance polymorphic dispatch + super chain tests.
 // was: inheritance_polymorphic
 
-use syx_driver::{compile_and_run_embedded, compile_file_with_options, emit_syxbc_text, run_file_printed, DriverOptions};
+use syx_driver::{
+    compile_and_run_embedded, compile_file_with_options, emit_syxbc_text, run_file_printed,
+    DriverOptions,
+};
 use syx_parser::Parser;
 use syx_semantic::SemanticAnalyzer;
 
@@ -27,7 +30,11 @@ macro_rules! poly_prints {
     ($name:ident, $src:expr, $expect:expr) => {
         #[test]
         fn $name() {
-            assert!(run($src).iter().any(|l| l.trim() == $expect), "expected {}", $expect);
+            assert!(
+                run($src).iter().any(|l| l.trim() == $expect),
+                "expected {}",
+                $expect
+            );
         }
     };
 }
@@ -253,7 +260,9 @@ fn poly_single_inheritance_only() {
 
 #[test]
 fn poly_parse_colon_syntax() {
-    run(r#"class Base { func m() {} } class Derived: Base { override func m() {} } func main() {}"#);
+    run(
+        r#"class Base { func m() {} } class Derived: Base { override func m() {} } func main() {}"#,
+    );
 }
 
 #[test]
@@ -319,6 +328,9 @@ func main() {
     x.m()
 }"#;
     let bc = syxbc_for_embedded(src);
-    assert!(bc.contains("CallIndirect") || bc.contains("__vtable_m"), "{bc}");
+    assert!(
+        bc.contains("CallIndirect") || bc.contains("__vtable_m"),
+        "{bc}"
+    );
     assert!(run(src).iter().any(|l| l.trim() == "3"));
 }

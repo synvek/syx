@@ -1,7 +1,9 @@
 //! Iterator strict mode + for-in witness path tests .
 // was: protocol_iterator
 
-use syx_driver::{compile_and_run_embedded, compile_file_with_options, run_file_printed, DriverOptions};
+use syx_driver::{
+    compile_and_run_embedded, compile_file_with_options, run_file_printed, DriverOptions,
+};
 use syx_parser::Parser;
 use syx_semantic::SemanticAnalyzer;
 
@@ -37,26 +39,22 @@ fn for_in_array_sum() {
 
 #[test]
 fn for_in_range_via_array() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var s = 0
     for i in [0, 1, 2, 3] { s = s + i }
     print(s)
-}"#,
-    )
+}"#,)
     .iter()
     .any(|l| l.trim() == "6"));
 }
 
 #[test]
 fn for_in_three_sum() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var s = 0
     for x in [1, 2, 3] { s = s + x }
     print(s)
-}"#,
-    )
+}"#,)
     .iter()
     .any(|l| l.trim() == "6"));
 }
@@ -70,26 +68,22 @@ fn for_in_single_element() {
 
 #[test]
 fn for_in_accumulate() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var p = 1
     for x in [2, 3, 4] { p = p + x }
     print(p)
-}"#,
-    )
+}"#,)
     .iter()
     .any(|l| l.trim() == "10"));
 }
 
 #[test]
 fn for_in_loop_body_runs() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var n = 0
     for x in [1, 2] { n = n + 1 }
     print(n)
-}"#,
-    )
+}"#,)
     .iter()
     .any(|l| l.trim() == "2"));
 }
@@ -240,13 +234,11 @@ fn manifest_phase69_iterator_gate() {
 
 #[test]
 fn for_in_set_literal_via_array_path() {
-    assert!(run(
-        r#"func main() {
+    assert!(run(r#"func main() {
     var n = 0
     for x in [1, 2] { n = n + x }
     print(n)
-}"#,
-    )
+}"#,)
     .iter()
     .any(|l| l.trim() == "3"));
 }
@@ -258,8 +250,7 @@ fn iterator_protocol_enabled_default() {
 
 #[test]
 fn custom_counter_iterator_for_in() {
-    let lines = run(
-        r#"class Counter: Iterator {
+    let lines = run(r#"class Counter: Iterator {
     var n: Int
     init() { self.n = 0 }
     func next() -> Int? {
@@ -272,22 +263,28 @@ func main() {
     var s: Int = 0
     for x in Counter() { s = s + x }
     print(s)
-}"#,
+}"#);
+    assert!(
+        lines.iter().any(|l| l.trim() == "6"),
+        "expected sum 6 from Counter(): {:?}",
+        lines
     );
-    assert!(lines.iter().any(|l| l.trim() == "6"), "expected sum 6 from Counter(): {:?}", lines);
 }
 
 #[test]
 fn custom_counter_wasm_parity() {
     let src = include_str!("../fixtures/parity/protocol_iterator_custom.sy");
     let out = run(src);
-    assert!(out.iter().any(|l| l.trim() == "6"), "custom iterator parity: {:?}", out);
+    assert!(
+        out.iter().any(|l| l.trim() == "6"),
+        "custom iterator parity: {:?}",
+        out
+    );
 }
 
 #[test]
 fn custom_seq_for_in() {
-    assert!(run(
-        r#"class Seq: Iterator {
+    assert!(run(r#"class Seq: Iterator {
     var i: Int
     init() { self.i = 0 }
     func next() -> Int? {
@@ -300,8 +297,7 @@ func main() {
     var s: Int = 0
     for x in Seq() { s = s + x }
     print(s)
-}"#,
-    )
+}"#,)
     .iter()
     .any(|l| l.trim() == "6"));
 }

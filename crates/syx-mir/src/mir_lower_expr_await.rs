@@ -6,12 +6,7 @@ use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirInstr, MirOp};
 use syx_ast::Expr;
 
-pub(crate) fn lower_expr_await(
-    expr: &Box<Expr>,
-    dest: u32,
-    ctx: &mut LowerCtx,
-    block: u32,
-) {
+pub(crate) fn lower_expr_await(expr: &Box<Expr>, dest: u32, ctx: &mut LowerCtx, block: u32) {
     if ctx.in_async {
         lower_expr(expr, dest, ctx, block);
         ctx.emit(

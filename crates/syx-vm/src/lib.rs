@@ -465,11 +465,7 @@ impl VmInstance {
     }
 
     /// R-36: R003 with current instruction span + program debug source.
-    fn error_r003(
-        &self,
-        program: &CompiledProgram,
-        message: impl Into<String>,
-    ) -> SyxDiagnostic {
+    fn error_r003(&self, program: &CompiledProgram, message: impl Into<String>) -> SyxDiagnostic {
         let span = self
             .current_instr_span
             .map(|(start, len)| Span { start, len })
@@ -478,11 +474,7 @@ impl VmInstance {
     }
 
     /// R-36: stamp host/runtime diagnostics that arrived without SourceFile/span.
-    fn enrich_runtime_diag(
-        &self,
-        program: &CompiledProgram,
-        err: SyxDiagnostic,
-    ) -> SyxDiagnostic {
+    fn enrich_runtime_diag(&self, program: &CompiledProgram, err: SyxDiagnostic) -> SyxDiagnostic {
         if err.source.is_some() && err.primary_span.is_some() {
             return err;
         }
@@ -794,11 +786,7 @@ impl VmInstance {
             if self.propagating_throw.is_some() {
                 break;
             }
-            self.current_instr_span = func
-                .instruction_spans
-                .get(pc)
-                .copied()
-                .flatten();
+            self.current_instr_span = func.instruction_spans.get(pc).copied().flatten();
             pc = self.exec_instruction(&func.instructions[pc], program, &func.instructions, pc)?;
             if self.propagating_throw.is_some() {
                 break;

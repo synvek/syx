@@ -6,8 +6,8 @@ use syx_driver::{check_project_with_options, DriverOptions};
 
 #[test]
 fn s1_i24_check_project_multi_syntax_reports_ge2_p001() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/multi_project_syntax");
+    let root =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/multi_project_syntax");
     let err = check_project_with_options(&root, &DriverOptions::default())
         .expect_err("fixture project must fail check with syntax errors");
     let p001 = err

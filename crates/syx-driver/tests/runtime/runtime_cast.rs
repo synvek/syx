@@ -15,7 +15,9 @@ fn opts() -> DriverOptions {
 
 fn assert_lines_contain(lines: &[String], needle: &str, backend: &str) {
     assert!(
-        lines.iter().any(|l| l.trim() == needle || l.contains(needle)),
+        lines
+            .iter()
+            .any(|l| l.trim() == needle || l.contains(needle)),
         "{backend} missing {needle:?}: {lines:?}"
     );
 }
@@ -144,10 +146,15 @@ fn p98_runtime_cast_reflection_quad() {
     run_embedded_quad(r#"func main() { print("reflect") }"#, "reflect");
 }
 
-
 #[test]
 fn p98_runtime_cast_count_gate() {
-    let src = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/runtime/runtime_cast.rs"));
+    let src = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/runtime/runtime_cast.rs"
+    ));
     let count = src.matches("#[test]").count();
-    assert!(count >= 12, "runtime_cast_phase98 must have >=12 tests, found {count}");
+    assert!(
+        count >= 12,
+        "runtime_cast_phase98 must have >=12 tests, found {count}"
+    );
 }

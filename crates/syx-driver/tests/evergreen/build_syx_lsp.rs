@@ -3,8 +3,8 @@
 
 use syx_diagnostics::SourceFile;
 use syx_driver::build_syx::diagnose_build_syx;
-use syx_lsp::semantic_recheck_after_change;
 use syx_driver::DriverOptions;
+use syx_lsp::semantic_recheck_after_change;
 
 fn diag_codes(text: &str) -> Vec<String> {
     let source = SourceFile::new("build.syb", text);
@@ -147,10 +147,7 @@ task b {
 
 #[test]
 fn build_syx_unknown_target_span_message() {
-    let source = SourceFile::new(
-        "build.syb",
-        "task t {\n    target = \"bogus\"\n}",
-    );
+    let source = SourceFile::new("build.syb", "task t {\n    target = \"bogus\"\n}");
     let diags = diagnose_build_syx(&source);
     assert!(diags.iter().any(|d| d.code.as_deref() == Some("S403")));
     assert!(diags[0].message.contains("bogus"));

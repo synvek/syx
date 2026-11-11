@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 fn repo_path(rel: &str) -> std::path::PathBuf {
@@ -55,8 +54,7 @@ fn sa0_charter_and_ssot_files() {
 #[test]
 fn sa0_manifest_honesty() {
     let manifest: serde_json::Value =
-        serde_json::from_str(&repo_file("packages/internal/manifest.json"))
-            .expect("manifest.json");
+        serde_json::from_str(&repo_file("packages/internal/manifest.json")).expect("manifest.json");
     let prelude = manifest["prelude_modules"]
         .as_array()
         .expect("prelude_modules");
@@ -89,10 +87,7 @@ fn sa0_manifest_honesty() {
         !retired.contains(&"Text"),
         "Text must not remain in retired_modules"
     );
-    assert!(
-        importable.contains(&"Text"),
-        "Text must remain importable"
-    );
+    assert!(importable.contains(&"Text"), "Text must remain importable");
 }
 
 #[test]
@@ -105,10 +100,7 @@ fn sa0_ssot_census_script_hinges() {
         .expect("run sa_0 census");
     let stdout = String::from_utf8_lossy(&out.stdout);
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(
-        out.status.success(),
-        "census failed:\n{stdout}\n{stderr}"
-    );
+    assert!(out.status.success(), "census failed:\n{stdout}\n{stderr}");
     assert!(
         stdout.contains("prelude_match=1") && stdout.contains("importable_match=1"),
         "census must report prelude/importable match:\n{stdout}"

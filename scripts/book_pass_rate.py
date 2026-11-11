@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""S1-I1 / S1-09: book code-block pass-rate (language-guide).
+"""S1-I1 / S1-09 / R-38: book code-block pass-rate (language-guide).
 
 Extracts fenced ```sy / ```syx / ```swift blocks from books/language-guide
-(and optional --zh), runs `syx check` on each, prints totals.
+(and optional --zh), runs `syx check` on each by default, and optionally
+`syx run` + stdout compare for `sy,output` / `// prints:` pins (R-38).
 
 Annotations (see docs/doctest-annotations.md):
   ```sy                 — full check (default)
   ```sy,check           — same as sy (explicit)
   ```sy,fragment        — wrap in `func main() { ... }` when no main present
   ```sy,error=CODE      — expect check failure containing CODE (counts as pass if matched)
+  ```sy,output          — opt-in: `syx run` and compare stdout to `// prints: …`
+                          (\\n / \\t escapes allowed in the expected text)
 
-CI (S1-I23 scoped): en-only hard gate in .github/workflows/ci.yml job `book-pass`
-(require 100% + parse_fail_approx=0). Scope ADR: docs/adr/stage1-s1-09-book-kpi-ci-scope.md.
+CI (S1-I23 scoped): en-only gate in .github/workflows/ci.yml job `book-pass`
+(require 100% + parse_fail_approx=0 for check path; soft-fail since R-37).
 `--zh` is not CI-gated.
 
 Usage:
@@ -40,6 +43,8 @@ SWIFT_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
+PRINTS_RE = re.compile(r"(?m)^[ \t]*//[ \t]*prints:[ \t]*(.*)$")
+
 
 @dataclass
 class BlockResult:
@@ -47,7 +52,7 @@ class BlockResult:
     index: int
     tag: str
     ok: bool
-    kind: str  # pass | fail | expect_error_pass | expect_error_miss | skip
+    kind: str  # pass | fail | expect_error_pass | expect_error_miss | run_pass | run_fail | stdout_mismatch | skip
     detail: str
 
 
@@ -77,6 +82,41 @@ def wrap_fragment(body: str) -> str:
     return f"func main() {{\n{body}\n}}\n"
 
 
+def decode_prints_expected(raw: str) -> str:
+    """Decode a single // prints: payload (\\n / \\t / \\\\ escapes)."""
+    out: list[str] = []
+    i = 0
+    while i < len(raw):
+        if raw[i] == "\\" and i + 1 < len(raw):
+            nxt = raw[i + 1]
+            if nxt == "n":
+                out.append("\n")
+                i += 2
+                continue
+            if nxt == "t":
+                out.append("\t")
+                i += 2
+                continue
+            if nxt == "\\":
+                out.append("\\")
+                i += 2
+                continue
+        out.append(raw[i])
+        i += 1
+    return "".join(out)
+
+
+def extract_prints_expected(body: str) -> str | None:
+    m = PRINTS_RE.search(body)
+    if not m:
+        return None
+    return decode_prints_expected(m.group(1).rstrip())
+
+
+def normalize_stdout(s: str) -> str:
+    return s.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
+
+
 def run_check(syx: str, source: str, timeout: float) -> tuple[bool, str]:
     with tempfile.TemporaryDirectory(prefix="syx-book-") as td:
         path = Path(td) / "snippet.sy"
@@ -96,6 +136,33 @@ def run_check(syx: str, source: str, timeout: float) -> tuple[bool, str]:
             re.search(r"×|error:|\[P\d{3}\]|\[C\d{3}\]|\[S\d{3}\]|\[M\d{3}\]", out)
         )
         return (not failed), out.strip()[:500]
+
+
+def run_and_compare(
+    syx: str, source: str, expected: str, timeout: float
+) -> tuple[bool, str, str]:
+    """Run `syx run`; return (ok, kind, detail). kind is run_pass | run_fail | stdout_mismatch."""
+    with tempfile.TemporaryDirectory(prefix="syx-book-run-") as td:
+        path = Path(td) / "snippet.sy"
+        path.write_text(source, encoding="utf-8")
+        try:
+            proc = subprocess.run(
+                [syx, "run", str(path)],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return False, "run_fail", "timeout"
+        if proc.returncode != 0:
+            err = ((proc.stdout or "") + (proc.stderr or "")).strip()[:500]
+            return False, "run_fail", err or f"exit {proc.returncode}"
+        actual = normalize_stdout(proc.stdout or "")
+        want = normalize_stdout(expected)
+        if actual != want:
+            detail = f"want={want!r} got={actual!r}"[:500]
+            return False, "stdout_mismatch", detail
+        return True, "run_pass", ""
 
 
 def main() -> int:
@@ -119,7 +186,18 @@ def main() -> int:
         help="exit 1 when any block fails (library-guide / doctest gate)",
     )
     ap.add_argument("--limit", type=int, default=0, help="max blocks (0 = all)")
+    ap.add_argument(
+        "--only-output",
+        action="store_true",
+        help="R-38: only evaluate sy,output / syx,output fences (skip check-only)",
+    )
     ap.add_argument("--timeout", type=float, default=30.0)
+    ap.add_argument(
+        "--run-timeout",
+        type=float,
+        default=60.0,
+        help="timeout for sy,output run blocks (cold start ~3s)",
+    )
     ap.add_argument("--json", type=Path, default=None, help="write JSON report")
     args = ap.parse_args()
 
@@ -152,13 +230,43 @@ def main() -> int:
             if args.limit and len(results) >= args.limit:
                 break
             anns = parse_annotations(tag)
+            if args.only_output and "output" not in anns:
+                continue
             expect_error = None
             for a in anns:
                 if a.startswith("error="):
                     expect_error = a.split("=", 1)[1]
             src = wrap_fragment(body) if "fragment" in anns else body
-            ok, detail = run_check(syx, src, args.timeout)
-            if expect_error is not None:
+
+            if "output" in anns:
+                expected = extract_prints_expected(body)
+                if expected is None:
+                    results.append(
+                        BlockResult(
+                            file=str(md.relative_to(root)),
+                            index=total,
+                            tag=tag,
+                            ok=False,
+                            kind="run_fail",
+                            detail="sy,output missing // prints: expected",
+                        )
+                    )
+                else:
+                    ok, kind, detail = run_and_compare(
+                        syx, src, expected, args.run_timeout
+                    )
+                    results.append(
+                        BlockResult(
+                            file=str(md.relative_to(root)),
+                            index=total,
+                            tag=tag,
+                            ok=ok,
+                            kind=kind,
+                            detail=detail[:200],
+                        )
+                    )
+            elif expect_error is not None:
+                ok, detail = run_check(syx, src, args.timeout)
                 matched = expect_error in detail
                 results.append(
                     BlockResult(
@@ -171,6 +279,7 @@ def main() -> int:
                     )
                 )
             else:
+                ok, detail = run_check(syx, src, args.timeout)
                 results.append(
                     BlockResult(
                         file=str(md.relative_to(root)),
@@ -192,9 +301,12 @@ def main() -> int:
         for r in results
         if (not r.ok) and re.search(r"\[P\d{3}\]|Expected ", r.detail)
     )
+    run_blocks = [r for r in results if r.kind.startswith("run_") or r.kind == "stdout_mismatch"]
+    run_ok = sum(1 for r in run_blocks if r.ok)
 
     print(f"book_pass_rate: {passed}/{n} = {rate:.1f}%")
     print(f"parse_fail_approx: {parse_failish}")
+    print(f"output_run: {run_ok}/{len(run_blocks)}")
     print(f"syx: {syx}")
     print(f"guides: {', '.join(str(g.relative_to(root)) for g in guides if g.is_dir())}")
 
@@ -213,6 +325,8 @@ def main() -> int:
             "total": n,
             "rate_pct": rate,
             "parse_fail_approx": parse_failish,
+            "output_run_ok": run_ok,
+            "output_run_total": len(run_blocks),
             "results": [asdict(r) for r in results],
         }
         args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")

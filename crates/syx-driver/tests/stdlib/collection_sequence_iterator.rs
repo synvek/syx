@@ -4,8 +4,7 @@
 use std::path::PathBuf;
 
 use syx_driver::{
-    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed,
-    DriverOptions,
+    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
 fn run(src: &str) -> String {
@@ -27,8 +26,7 @@ fn fixture(rel: &str) -> PathBuf {
 fn run_native_fixture(rel: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = fixture(rel);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native exit {code}: {lines:?}");
     lines
 }
@@ -36,8 +34,7 @@ fn run_native_fixture(rel: &str) -> Vec<String> {
 fn run_wasm_fixture(rel: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = fixture(rel);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -54,8 +51,7 @@ func main() {
 
 #[test]
 fn m2_s1_01_custom_iterator_for_in() {
-    let out = run(
-        r#"
+    let out = run(r#"
 class Counter: Iterator {
     var n: Int
     init() { self.n = 0 }
@@ -73,15 +69,17 @@ func main() {
     }
     print(s)
 }
-"#,
+"#);
+    assert_eq!(
+        out.trim(),
+        "6",
+        "custom Iterator for-in must sum 1+2+3: {out}"
     );
-    assert_eq!(out.trim(), "6", "custom Iterator for-in must sum 1+2+3: {out}");
 }
 
 #[test]
 fn m2_s1_01_array_for_in() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     var s: Int = 0
     for x in [1, 2, 3] {
@@ -89,8 +87,7 @@ func main() {
     }
     print(s)
 }
-"#,
-    );
+"#);
     assert_eq!(out.trim(), "6", "Array for-in must sum 1+2+3: {out}");
 }
 
@@ -140,4 +137,3 @@ fn m2_s1_01_inventory_meta() {
         "inventory must note ADR-223"
     );
 }
-

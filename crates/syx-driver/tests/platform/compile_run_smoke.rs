@@ -22,7 +22,10 @@ fn compile_run_array_sum() {
 
 #[test]
 fn compile_run_if_chain() {
-    assert_eq!(run("func main() { var x = 1\n  if (x < 2) { print(\"lt\") } else { print(\"ge\") } }"), "lt");
+    assert_eq!(
+        run("func main() { var x = 1\n  if (x < 2) { print(\"lt\") } else { print(\"ge\") } }"),
+        "lt"
+    );
 }
 
 #[test]
@@ -90,17 +93,26 @@ fn compile_run_string_eq() {
 
 #[test]
 fn compile_run_var_mutate() {
-    assert_eq!(run("func main() { var n = 1\n  n = n + 1\n  print(n) }"), "2");
+    assert_eq!(
+        run("func main() { var n = 1\n  n = n + 1\n  print(n) }"),
+        "2"
+    );
 }
 
 #[test]
 fn compile_run_func_return() {
-    assert_eq!(run("func id(n: Int) -> Int { return n }\nfunc main() { print(id(99)) }"), "99");
+    assert_eq!(
+        run("func id(n: Int) -> Int { return n }\nfunc main() { print(id(99)) }"),
+        "99"
+    );
 }
 
 #[test]
 fn compile_run_multi_arg() {
-    assert_eq!(run("func add(a: Int, b: Int) -> Int { return a + b }\nfunc main() { print(add(3, 4)) }"), "7");
+    assert_eq!(
+        run("func add(a: Int, b: Int) -> Int { return a + b }\nfunc main() { print(add(3, 4)) }"),
+        "7"
+    );
 }
 
 #[test]
@@ -130,7 +142,10 @@ fn compile_run_branch_true() {
 
 #[test]
 fn compile_run_branch_false_else() {
-    assert_eq!(run("func main() { if (false) { print(\"no\") } else { print(\"yes\") } }"), "yes");
+    assert_eq!(
+        run("func main() { if (false) { print(\"no\") } else { print(\"yes\") } }"),
+        "yes"
+    );
 }
 
 #[test]
@@ -322,4 +337,3 @@ fn compile_run_arith_35() {
 fn compile_run_arith_36() {
     assert_eq!(run("func main() { print(38 + 41) }"), "79");
 }
-

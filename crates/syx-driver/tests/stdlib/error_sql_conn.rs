@@ -431,7 +431,10 @@ func main() {
 }
 "#,
     ));
-    assert_eq!(out, "caught", "prepareOn missing table must exact-catch: {out}");
+    assert_eq!(
+        out, "caught",
+        "prepareOn missing table must exact-catch: {out}"
+    );
 }
 
 #[test]
@@ -619,10 +622,7 @@ func main() {
 }
 "#,
     ));
-    assert_eq!(
-        out, "ok\n1\n0",
-        "txnOn commit isolation must exact: {out}"
-    );
+    assert_eq!(out, "ok\n1\n0", "txnOn commit isolation must exact: {out}");
 }
 
 #[test]
@@ -676,5 +676,8 @@ func main() {
 }
 "#,
     ));
-    assert_eq!(out, "caught", "nested beginTransactionOn must exact-catch: {out}");
+    assert_eq!(
+        out, "caught",
+        "nested beginTransactionOn must exact-catch: {out}"
+    );
 }

@@ -22,7 +22,6 @@ pub fn default_farm_cache_url() -> String {
     })
 }
 
-
 /// Phase 94: TCP cache fetch with mutex to reduce concurrent flake in farm 3-node gates.
 pub fn fetch_cache_remote_hardened(url: &str) -> Result<Vec<u8>, String> {
     if url.starts_with("tcp://") {
@@ -48,7 +47,6 @@ pub fn fetch_cache_remote_hardened(url: &str) -> Result<Vec<u8>, String> {
     fetch_cache_remote(url)
 }
 
-
 /// Phase 100: farm TCP frame status (`OK` payload / `MISS` / `ERR`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FarmTcpResponse {
@@ -57,14 +55,15 @@ pub enum FarmTcpResponse {
     Err(String),
 }
 
-
 pub(crate) fn farm_tcp_url_parts(rest: &str) -> (&str, &str) {
     let (host_port, path) = rest.split_once('/').unwrap_or((rest, ""));
     (host_port, path.trim_start_matches('/'))
 }
 
-
-pub(crate) fn farm_tcp_write_frame(stream: &mut impl std::io::Write, payload: &[u8]) -> Result<(), String> {
+pub(crate) fn farm_tcp_write_frame(
+    stream: &mut impl std::io::Write,
+    payload: &[u8],
+) -> Result<(), String> {
     use std::io::Write;
     let len = u32::try_from(payload.len()).map_err(|_| "farm tcp frame too large".to_string())?;
     stream
@@ -75,7 +74,6 @@ pub(crate) fn farm_tcp_write_frame(stream: &mut impl std::io::Write, payload: &[
         .map_err(|e| format!("farm tcp frame write body: {e}"))?;
     Ok(())
 }
-
 
 pub(crate) fn farm_tcp_read_frame(stream: &mut impl std::io::Read) -> Result<Vec<u8>, String> {
     use std::io::Read;
@@ -93,7 +91,6 @@ pub(crate) fn farm_tcp_read_frame(stream: &mut impl std::io::Read) -> Result<Vec
     Ok(payload)
 }
 
-
 /// Encode a length-prefixed farm TCP frame payload (without the length prefix).
 pub fn farm_tcp_encode_get(key: &str) -> Vec<u8> {
     let mut out = Vec::with_capacity(4 + key.len());
@@ -101,7 +98,6 @@ pub fn farm_tcp_encode_get(key: &str) -> Vec<u8> {
     out.extend_from_slice(key.as_bytes());
     out
 }
-
 
 pub fn farm_tcp_encode_put(key: &str, value: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(5 + key.len() + value.len());
@@ -112,7 +108,6 @@ pub fn farm_tcp_encode_put(key: &str, value: &[u8]) -> Vec<u8> {
     out
 }
 
-
 pub fn farm_tcp_encode_ok(value: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(2 + value.len());
     out.extend_from_slice(b"OK");
@@ -120,11 +115,9 @@ pub fn farm_tcp_encode_ok(value: &[u8]) -> Vec<u8> {
     out
 }
 
-
 pub fn farm_tcp_encode_miss() -> Vec<u8> {
     b"MISS".to_vec()
 }
-
 
 pub fn farm_tcp_encode_err(msg: &str) -> Vec<u8> {
     let mut out = Vec::with_capacity(3 + msg.len());
@@ -132,7 +125,6 @@ pub fn farm_tcp_encode_err(msg: &str) -> Vec<u8> {
     out.extend_from_slice(msg.as_bytes());
     out
 }
-
 
 pub fn farm_tcp_parse_response(payload: &[u8]) -> Result<FarmTcpResponse, String> {
     if payload == b"MISS" {
@@ -151,7 +143,6 @@ pub fn farm_tcp_parse_response(payload: &[u8]) -> Result<FarmTcpResponse, String
         String::from_utf8_lossy(payload)
     ))
 }
-
 
 /// Handle one farm TCP request against an in-memory store; returns response payload (no length prefix).
 ///
@@ -183,17 +174,14 @@ pub fn farm_tcp_handle_request(
     farm_tcp_encode_err("unknown op")
 }
 
-
 /// One length-prefixed farm TCP round-trip (tests / raw clients bypassing cache helpers).
 #[doc(hidden)]
 pub fn farm_tcp_roundtrip(host_port: &str, req: &[u8]) -> Result<Vec<u8>, String> {
-    
     let mut stream =
         std::net::TcpStream::connect(host_port).map_err(|e| format!("farm tcp connect: {e}"))?;
     farm_tcp_write_frame(&mut stream, req)?;
     farm_tcp_read_frame(&mut stream)
 }
-
 
 /// Spawn a farm TCP node that speaks GET/PUT frames for `max_conns` accepts.
 ///
@@ -238,7 +226,6 @@ pub fn spawn_farm_tcp_node(
     (addr, handle)
 }
 
-
 /// Phase 70: single-node cache mirror fetch (`SYX_CACHE_REMOTE`, `file://`, `http(s)://`, or `tcp://`).
 /// Phase 100: `tcp://` uses length-prefixed GET/PUT frames (`OK|MISS|ERR`).
 pub fn fetch_cache_remote(url: &str) -> Result<Vec<u8>, String> {
@@ -260,7 +247,7 @@ pub fn fetch_cache_remote(url: &str) -> Result<Vec<u8>, String> {
         }
         crate::farm_lease_auth::farm_lease_require_active()
             .map_err(|e| format!("tcp cache lease: {e}"))?;
-        
+
         let (host_port, key) = farm_tcp_url_parts(rest);
         let mut stream = std::net::TcpStream::connect(host_port)
             .map_err(|e| format!("tcp cache connect failed: {e}"))?;
@@ -275,7 +262,6 @@ pub fn fetch_cache_remote(url: &str) -> Result<Vec<u8>, String> {
     }
     Err(format!("unsupported SYX_CACHE_REMOTE URL: {url}"))
 }
-
 
 /// Phase 76: push compiled cache artifact to remote mirror (`file://` or `http(s)://` PUT).
 /// Phase 100: `tcp://` uses length-prefixed PUT frames; expects `OK`.
@@ -303,7 +289,7 @@ pub fn push_cache_remote(url: &str, bytes: &[u8]) -> Result<(), String> {
         }
         crate::farm_lease_auth::farm_lease_require_active()
             .map_err(|e| format!("tcp cache lease: {e}"))?;
-        
+
         let (host_port, key) = farm_tcp_url_parts(rest);
         let mut stream = std::net::TcpStream::connect(host_port)
             .map_err(|e| format!("tcp cache push connect failed: {e}"))?;
@@ -317,7 +303,6 @@ pub fn push_cache_remote(url: &str, bytes: &[u8]) -> Result<(), String> {
     }
     Err(format!("unsupported cache push URL: {url}"))
 }
-
 
 /// Phase 76: broadcast cache artifact to `SYX_CACHE_REMOTE_NODES` (comma-separated).
 pub fn push_cache_remote_nodes(base: &str, key: &str, bytes: &[u8]) {
@@ -337,13 +322,11 @@ pub fn push_cache_remote_nodes(base: &str, key: &str, bytes: &[u8]) {
     }
 }
 
-
 pub(crate) fn cache_remote_push_enabled() -> bool {
     std::env::var("SYX_CACHE_REMOTE_PUSH")
         .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
         .unwrap_or(true)
 }
-
 
 pub(crate) fn record_cache_remote_push(url: &str) {
     if let Ok(mut g) = LAST_CACHE_REMOTE_PUSH.lock() {
@@ -351,13 +334,11 @@ pub(crate) fn record_cache_remote_push(url: &str) {
     }
 }
 
-
 pub(crate) fn record_cache_remote_fetch(url: &str) {
     if let Ok(mut g) = LAST_CACHE_REMOTE_FETCH.lock() {
         *g = Some(url.to_string());
     }
 }
-
 
 /// Phase 76: last cache remote push/fetch URLs for doctor report.
 pub fn cache_remote_report() -> (Option<String>, Option<String>) {
@@ -365,7 +346,6 @@ pub fn cache_remote_report() -> (Option<String>, Option<String>) {
     let fetch = LAST_CACHE_REMOTE_FETCH.lock().ok().and_then(|g| g.clone());
     (push, fetch)
 }
-
 
 /// Remove cache entries whose recorded dependency snapshots no longer match disk.
 pub fn purge_stale_incremental_caches(root: &Path) {
@@ -405,10 +385,8 @@ pub fn purge_stale_incremental_caches(root: &Path) {
     }
 }
 
-
 pub fn incremental_cache_path(root: &Path, module: &Path) -> PathBuf {
     let cache_dir = project_cache_dir(root);
     let _ = std::fs::create_dir_all(&cache_dir);
     cache_dir.join(format!("{}.bin", module_hash(module, root, &[])))
 }
-

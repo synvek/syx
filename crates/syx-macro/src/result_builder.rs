@@ -65,7 +65,9 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
         for st in body {
             match st {
                 Stmt::Expr { expr, .. } => tail = Some(expr.clone()),
-                Stmt::Return { value: Some(expr), .. } => tail = Some(expr.clone()),
+                Stmt::Return {
+                    value: Some(expr), ..
+                } => tail = Some(expr.clone()),
                 Stmt::Block { stmts, span } if !stmts.is_empty() => {
                     let (inner_side, inner_tail) = rb_branch_part(stmts);
                     side.extend(inner_side);
@@ -88,7 +90,8 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
     fn expr_uses_host_call(expr: &Expr) -> bool {
         match expr {
             Expr::Call { callee, .. } => {
-                if matches!(callee.as_ref(), Expr::Ident { name, .. } if name.as_str().starts_with("__syx_")) {
+                if matches!(callee.as_ref(), Expr::Ident { name, .. } if name.as_str().starts_with("__syx_"))
+                {
                     return true;
                 }
                 expr_uses_host_call(callee)
@@ -96,9 +99,10 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
             Expr::Array { elements, .. } => elements.iter().any(expr_uses_host_call),
             Expr::Closure { body, .. } => match body {
                 ClosureBody::Block(stmts) => stmts.iter().any(|s| match s {
-                    Stmt::Expr { expr, .. } | Stmt::Return { value: Some(expr), .. } => {
-                        expr_uses_host_call(expr)
-                    }
+                    Stmt::Expr { expr, .. }
+                    | Stmt::Return {
+                        value: Some(expr), ..
+                    } => expr_uses_host_call(expr),
                     _ => false,
                 }),
                 ClosureBody::Expr(e) => expr_uses_host_call(e),
@@ -148,11 +152,7 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
             let mut iter = parts.into_iter();
             let mut acc = iter.next().unwrap();
             for next in iter {
-                acc = rb_call(
-                    span,
-                    "__syx_result_builder_buildBlock",
-                    vec![acc, next],
-                );
+                acc = rb_call(span, "__syx_result_builder_buildBlock", vec![acc, next]);
             }
             return Some(acc);
         }
@@ -171,11 +171,7 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
         let mut iter = bound.into_iter();
         let mut acc = iter.next().unwrap();
         for next in iter {
-            acc = rb_call(
-                span,
-                "__syx_result_builder_buildBlock",
-                vec![acc, next],
-            );
+            acc = rb_call(span, "__syx_result_builder_buildBlock", vec![acc, next]);
         }
         Some(acc)
     }
@@ -191,7 +187,10 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
                     span = s;
                     parts.push(rb_wrap_chunk(s, expr));
                 }
-                Stmt::Return { value: Some(expr), span: s } => {
+                Stmt::Return {
+                    value: Some(expr),
+                    span: s,
+                } => {
                     span = s;
                     parts.push(rb_wrap_chunk(s, expr));
                 }
@@ -256,11 +255,7 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
                             body: ClosureBody::Block(closure_body),
                         };
                         let mapped = rb_call(s, "__syx_array_flat_map", vec![iterable, closure]);
-                        parts.push(rb_call(
-                            s,
-                            "__syx_result_builder_buildArray",
-                            vec![mapped],
-                        ));
+                        parts.push(rb_call(s, "__syx_result_builder_buildArray", vec![mapped]));
                     } else {
                         kept.push(Stmt::ForIn {
                             name,
@@ -351,31 +346,47 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
                 Expr::Array { span, .. } | Expr::Call { span, .. } => *span,
                 _ => syx_diagnostics::Span::DUMMY,
             };
-            kept.push(Stmt::Return { span, value: Some(result) });
+            kept.push(Stmt::Return {
+                span,
+                value: Some(result),
+            });
         }
         *body = kept;
         Ok(())
     }
 
     fn is_result_builder_attr(name: &str) -> bool {
-        matches!(
-            name,
-            "resultBuilder" | "ResultBuilder" | "resultbuilder"
-        )
+        matches!(name, "resultBuilder" | "ResultBuilder" | "resultbuilder")
     }
 
     /// S1-I9: types marked `@resultBuilder` (struct/class) whose name can annotate funcs (`@ArrayBuilder`).
     fn collect_builder_type_names(decls: &[Decl], out: &mut std::collections::HashSet<SmolStr>) {
         for decl in decls {
             match decl {
-                Decl::Struct { name, attrs, members, .. } => {
-                    if attrs.iter().any(|a| is_result_builder_attr(a.name.as_str())) {
+                Decl::Struct {
+                    name,
+                    attrs,
+                    members,
+                    ..
+                } => {
+                    if attrs
+                        .iter()
+                        .any(|a| is_result_builder_attr(a.name.as_str()))
+                    {
                         out.insert(name.clone());
                     }
                     collect_builder_type_names(members, out);
                 }
-                Decl::Class { name, attrs, members, .. } => {
-                    if attrs.iter().any(|a| is_result_builder_attr(a.name.as_str())) {
+                Decl::Class {
+                    name,
+                    attrs,
+                    members,
+                    ..
+                } => {
+                    if attrs
+                        .iter()
+                        .any(|a| is_result_builder_attr(a.name.as_str()))
+                    {
                         out.insert(name.clone());
                     }
                     collect_builder_type_names(members, out);
@@ -392,8 +403,7 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
             match decl {
                 Decl::Function { attrs, body, .. } => {
                     let apply = attrs.iter().any(|a| {
-                        is_result_builder_attr(a.name.as_str())
-                            || builders.contains(&a.name)
+                        is_result_builder_attr(a.name.as_str()) || builders.contains(&a.name)
                     });
                     if apply {
                         desugar_body(body)?;
@@ -414,4 +424,3 @@ pub fn desugar_result_builders(module: &mut Module) -> SyxResult<()> {
     walk(&mut module.decls, &builders)?;
     Ok(())
 }
-

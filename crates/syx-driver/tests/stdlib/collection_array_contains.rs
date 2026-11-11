@@ -12,28 +12,24 @@ fn run(src: &str) -> String {
 
 #[test]
 fn array_contains_string_elements() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     var a: Array<String> = ["x", "y"]
     print(a.contains("x"))
     print(a.contains("z"))
 }
-"#,
-    );
+"#);
     assert_eq!(out, "true\nfalse");
 }
 
 #[test]
 fn array_contains_int_still_works() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
     var a: Array<Int> = [1, 2]
     print(a.contains(2))
     print(a.contains(3))
 }
-"#,
-    );
+"#);
     assert_eq!(out, "true\nfalse");
 }

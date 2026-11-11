@@ -6,8 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use syx_driver::{
-    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed,
-    DriverOptions,
+    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
 fn opts() -> DriverOptions {
@@ -16,17 +15,12 @@ fn opts() -> DriverOptions {
 
 fn run_err(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
-    let err = compile_and_run_embedded(src, &opts())
-        .expect_err("expected fail-closed HOF error");
+    let err = compile_and_run_embedded(src, &opts()).expect_err("expected fail-closed HOF error");
     format!("{err}")
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w205_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w205_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -214,4 +208,3 @@ fn m2_s1_04_inventory_meta() {
         "inventory must note ADR-225"
     );
 }
-

@@ -31,7 +31,11 @@ func main() {
         "policy fingerprint required: {out}"
     );
     let lines: Vec<&str> = out.lines().collect();
-    assert_eq!(lines.get(2).copied(), Some("0"), "cpuElapsed after reset: {out}");
+    assert_eq!(
+        lines.get(2).copied(),
+        Some("0"),
+        "cpuElapsed after reset: {out}"
+    );
     assert_eq!(lines.get(3).copied(), Some("true"), "cpuStart: {out}");
     let stop_ms: i64 = lines
         .get(4)
@@ -63,4 +67,3 @@ func main() {
         "snapshot keys must be sorted (c: before wall): {snap}"
     );
 }
-

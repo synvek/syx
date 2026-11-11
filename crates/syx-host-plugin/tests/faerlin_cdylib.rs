@@ -19,9 +19,7 @@ use syx_runtime_core::Value;
 static FAERLIN_TEST_LOCK: Mutex<()> = Mutex::new(());
 
 fn faerlin_test_lock() -> std::sync::MutexGuard<'static, ()> {
-    FAERLIN_TEST_LOCK
-        .lock()
-        .unwrap_or_else(|p| p.into_inner())
+    FAERLIN_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner())
 }
 
 fn repo_root() -> PathBuf {

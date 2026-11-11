@@ -32,10 +32,7 @@ impl EnvGuard {
         let prev = std::env::var(key).ok();
         // SAFETY: tests run with --test-threads=1; restore in Drop.
         unsafe { std::env::set_var(key, value) };
-        Self {
-            key,
-            prev,
-        }
+        Self { key, prev }
     }
 }
 
@@ -109,5 +106,8 @@ fn ec_m2_1_http_client_loopback_ok() {
     let _ = handle.join();
     let out = printed.join("\n");
     assert_eq!(code, 0, "loopback get must succeed: {out}");
-    assert_eq!(out, "refused\nok\n200\nok", "http_tool loopback-ok must exact: {out}");
+    assert_eq!(
+        out, "refused\nok\n200\nok",
+        "http_tool loopback-ok must exact: {out}"
+    );
 }

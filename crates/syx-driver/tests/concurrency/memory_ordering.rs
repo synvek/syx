@@ -1,7 +1,6 @@
 //! Atomic / memory ordering docs thin start.
 // was: m3_c03_memory_ordering
 
-
 #[test]
 fn m3_c03_memory_ordering_docs_honesty() {
     let book = include_str!("../../../../books/language-guide/18-concurrency.md");
@@ -10,8 +9,7 @@ fn m3_c03_memory_ordering_docs_honesty() {
         "18-concurrency must document memory ordering / happens-before"
     );
     assert!(
-        book.contains("Mutex")
-            && (book.contains("Semaphore") || book.contains("Channel")),
+        book.contains("Mutex") && (book.contains("Semaphore") || book.contains("Channel")),
         "18-concurrency must tie sync primitives to ordering boundary"
     );
     assert!(
@@ -26,9 +24,7 @@ fn m3_c03_memory_ordering_docs_honesty() {
     );
     let guide = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
-        guide.contains("happens-before")
-            || guide.contains("内存序")
-            || guide.contains("ADR-287"),
+        guide.contains("happens-before") || guide.contains("内存序") || guide.contains("ADR-287"),
         "UsageGuide must state memory ordering honesty"
     );
     assert!(

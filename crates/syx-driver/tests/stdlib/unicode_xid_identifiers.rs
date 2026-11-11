@@ -20,16 +20,14 @@ fn lines(out: &str) -> Vec<&str> {
 
 #[test]
 fn m2_s2_04_ascii_regression() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let x = 1
   let _foo = 2
   print(x)
   print(_foo)
 }
-"#,
-    );
+"#);
     let l = lines(&out);
     assert_eq!(l.get(0).copied(), Some("1"), "ascii x: {out}");
     assert_eq!(l.get(1).copied(), Some("2"), "ascii _foo: {out}");
@@ -37,30 +35,26 @@ func main() {
 
 #[test]
 fn m2_s2_04_greek_ident() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func main() {
   let α = 1
   print(α)
 }
-"#,
-    );
+"#);
     let l = lines(&out);
     assert_eq!(l.get(0).copied(), Some("1"), "greek α: {out}");
 }
 
 #[test]
 fn m2_s2_04_cjk_func() {
-    let out = run(
-        r#"
+    let out = run(r#"
 func 计数() {
   print("ok")
 }
 func main() {
   计数()
 }
-"#,
-    );
+"#);
     let l = lines(&out);
     assert_eq!(l.get(0).copied(), Some("ok"), "CJK func: {out}");
 }
@@ -100,4 +94,3 @@ fn m2_s2_04_inventory_meta() {
         "inventory must note ADR-229"
     );
 }
-

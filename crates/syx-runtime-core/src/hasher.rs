@@ -34,10 +34,7 @@ impl Default for HasherState {
 pub fn hasher_value(state: &HasherState) -> Value {
     let mut map = std::collections::HashMap::new();
     map.insert("__hasher".into(), Value::Bool(true));
-    map.insert(
-        "__hasher_state".into(),
-        Value::I64(state.hash as i64),
-    );
+    map.insert("__hasher_state".into(), Value::I64(state.hash as i64));
     Value::Object(map)
 }
 

@@ -6,26 +6,15 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_route_sticky,
-    cdn_bgp_sticky_binding,
-    cdn_bgp_sticky_binding_expires_at_ms,
-    cdn_bgp_sticky_multi_snapshot_dir,
-    cdn_bgp_sticky_multi_snapshot_path_for_key,
-    cdn_bgp_sticky_multi_snapshot_ready,
-    cdn_bgp_sticky_multi_snapshot_restore_by_key,
-    cdn_bgp_sticky_pop_clear,
-    cdn_bgp_sticky_pop_ready,
-    cdn_bgp_sticky_shard_key,
-    cdn_delivery_ack_clear,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_import_peer_mesh, cdn_bgp_route_sticky,
+    cdn_bgp_sticky_binding, cdn_bgp_sticky_binding_expires_at_ms,
+    cdn_bgp_sticky_multi_snapshot_dir, cdn_bgp_sticky_multi_snapshot_path_for_key,
+    cdn_bgp_sticky_multi_snapshot_ready, cdn_bgp_sticky_multi_snapshot_restore_by_key,
+    cdn_bgp_sticky_pop_clear, cdn_bgp_sticky_pop_ready, cdn_bgp_sticky_shard_key,
+    cdn_delivery_ack_clear, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P128_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_sticky_multi_sticky_multi_snapshot_restore_by_key_after_restart() {
@@ -33,10 +22,8 @@ fn dist_sticky_multi_sticky_multi_snapshot_restore_by_key_after_restart() {
     cdn_bgp_clear();
     cdn_delivery_ack_clear();
 
-    let snap_dir = std::env::temp_dir().join(format!(
-        "syx-p128-sticky-multi-{}",
-        std::process::id()
-    ));
+    let snap_dir =
+        std::env::temp_dir().join(format!("syx-p128-sticky-multi-{}", std::process::id()));
     let _ = fs::remove_dir_all(&snap_dir);
     fs::create_dir_all(&snap_dir).expect("snapshot dir");
     std::env::set_var(
@@ -75,19 +62,23 @@ fn dist_sticky_multi_sticky_multi_snapshot_restore_by_key_after_restart() {
     assert_eq!(cdn_bgp_sticky_shard_key(client_a), "tenant-us");
     assert_eq!(cdn_bgp_sticky_shard_key(client_b), "tenant-eu");
 
-    let (pop_a, _) =
-        cdn_bgp_route_sticky(client_a, "bgp-us-2", 1, 2, "p128-a").expect("bind a");
+    let (pop_a, _) = cdn_bgp_route_sticky(client_a, "bgp-us-2", 1, 2, "p128-a").expect("bind a");
     assert_eq!(pop_a, "bgp-us");
     let expires_a = cdn_bgp_sticky_binding_expires_at_ms(client_a).expect("ttl a");
 
-    let (pop_b, _) =
-        cdn_bgp_route_sticky(client_b, "bgp-eu", 1, 2, "p128-b").expect("bind b");
+    let (pop_b, _) = cdn_bgp_route_sticky(client_b, "bgp-eu", 1, 2, "p128-b").expect("bind b");
     assert!(!pop_b.is_empty());
 
     let path_us = cdn_bgp_sticky_multi_snapshot_path_for_key("tenant-us").expect("path us");
     let path_eu = cdn_bgp_sticky_multi_snapshot_path_for_key("tenant-eu").expect("path eu");
-    assert!(fs::metadata(&path_us).is_ok(), "missing shard file {path_us}");
-    assert!(fs::metadata(&path_eu).is_ok(), "missing shard file {path_eu}");
+    assert!(
+        fs::metadata(&path_us).is_ok(),
+        "missing shard file {path_us}"
+    );
+    assert!(
+        fs::metadata(&path_eu).is_ok(),
+        "missing shard file {path_eu}"
+    );
 
     let saved_us = fs::read_to_string(&path_us).expect("read us shard");
     let saved_eu = fs::read_to_string(&path_eu).expect("read eu shard");

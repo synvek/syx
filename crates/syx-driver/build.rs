@@ -33,9 +33,8 @@ fn write_if_changed(path: &Path, content: &str) {
 
 fn load_template(rel: &str) -> String {
     let path = templates_dir().join(rel);
-    fs::read_to_string(&path).unwrap_or_else(|e| {
-        panic!("missing builtin template {}: {e}", path.display())
-    })
+    fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("missing builtin template {}: {e}", path.display()))
 }
 
 fn render(template: &str, vars: &[(&str, &str)]) -> String {
@@ -78,22 +77,182 @@ struct NumSpec {
 }
 
 const NUMERICS: &[NumSpec] = &[
-    NumSpec { surface: "Int8", internal_id: "numeric.i8", numeric_kind: "I8", file: "int8", bits: 8, signed: true, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Int16", internal_id: "numeric.i16", numeric_kind: "I16", file: "int16", bits: 16, signed: true, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Int32", internal_id: "numeric.i32", numeric_kind: "I32", file: "int32", bits: 32, signed: true, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Int64", internal_id: "numeric.i64", numeric_kind: "I64", file: "int64", bits: 64, signed: true, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Int128", internal_id: "numeric.i128", numeric_kind: "I128", file: "int128", bits: 128, signed: true, wide: true, alias_of: None, delegate: None },
-    NumSpec { surface: "UInt8", internal_id: "numeric.u8", numeric_kind: "U8", file: "uint8", bits: 8, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "UInt16", internal_id: "numeric.u16", numeric_kind: "U16", file: "uint16", bits: 16, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "UInt32", internal_id: "numeric.u32", numeric_kind: "U32", file: "uint32", bits: 32, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "UInt64", internal_id: "numeric.u64", numeric_kind: "U64", file: "uint64", bits: 64, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "UInt128", internal_id: "numeric.u128", numeric_kind: "U128", file: "uint128", bits: 128, signed: false, wide: true, alias_of: None, delegate: None },
-    NumSpec { surface: "Int", internal_id: "numeric.int", numeric_kind: "Int", file: "int", bits: 64, signed: true, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "UInt", internal_id: "numeric.uint", numeric_kind: "UInt", file: "uint", bits: 64, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Float32", internal_id: "numeric.f32", numeric_kind: "F32", file: "float32", bits: 32, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Float64", internal_id: "numeric.f64", numeric_kind: "F64", file: "float64", bits: 64, signed: false, wide: false, alias_of: None, delegate: None },
-    NumSpec { surface: "Float", internal_id: "numeric.f32", numeric_kind: "F32", file: "float", bits: 32, signed: false, wide: false, alias_of: Some("Float32"), delegate: Some("Float32") },
-    NumSpec { surface: "Double", internal_id: "numeric.f64", numeric_kind: "F64", file: "double", bits: 64, signed: false, wide: false, alias_of: Some("Float64"), delegate: Some("Float64") },
+    NumSpec {
+        surface: "Int8",
+        internal_id: "numeric.i8",
+        numeric_kind: "I8",
+        file: "int8",
+        bits: 8,
+        signed: true,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Int16",
+        internal_id: "numeric.i16",
+        numeric_kind: "I16",
+        file: "int16",
+        bits: 16,
+        signed: true,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Int32",
+        internal_id: "numeric.i32",
+        numeric_kind: "I32",
+        file: "int32",
+        bits: 32,
+        signed: true,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Int64",
+        internal_id: "numeric.i64",
+        numeric_kind: "I64",
+        file: "int64",
+        bits: 64,
+        signed: true,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Int128",
+        internal_id: "numeric.i128",
+        numeric_kind: "I128",
+        file: "int128",
+        bits: 128,
+        signed: true,
+        wide: true,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "UInt8",
+        internal_id: "numeric.u8",
+        numeric_kind: "U8",
+        file: "uint8",
+        bits: 8,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "UInt16",
+        internal_id: "numeric.u16",
+        numeric_kind: "U16",
+        file: "uint16",
+        bits: 16,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "UInt32",
+        internal_id: "numeric.u32",
+        numeric_kind: "U32",
+        file: "uint32",
+        bits: 32,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "UInt64",
+        internal_id: "numeric.u64",
+        numeric_kind: "U64",
+        file: "uint64",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "UInt128",
+        internal_id: "numeric.u128",
+        numeric_kind: "U128",
+        file: "uint128",
+        bits: 128,
+        signed: false,
+        wide: true,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Int",
+        internal_id: "numeric.int",
+        numeric_kind: "Int",
+        file: "int",
+        bits: 64,
+        signed: true,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "UInt",
+        internal_id: "numeric.uint",
+        numeric_kind: "UInt",
+        file: "uint",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Float32",
+        internal_id: "numeric.f32",
+        numeric_kind: "F32",
+        file: "float32",
+        bits: 32,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Float64",
+        internal_id: "numeric.f64",
+        numeric_kind: "F64",
+        file: "float64",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: None,
+        delegate: None,
+    },
+    NumSpec {
+        surface: "Float",
+        internal_id: "numeric.f32",
+        numeric_kind: "F32",
+        file: "float",
+        bits: 32,
+        signed: false,
+        wide: false,
+        alias_of: Some("Float32"),
+        delegate: Some("Float32"),
+    },
+    NumSpec {
+        surface: "Double",
+        internal_id: "numeric.f64",
+        numeric_kind: "F64",
+        file: "double",
+        bits: 64,
+        signed: false,
+        wide: false,
+        alias_of: Some("Float64"),
+        delegate: Some("Float64"),
+    },
 ];
 
 /// Protocols declared on comparable value builtins (matches manifest `auto_conformance`).
@@ -492,33 +651,382 @@ fn manifest_json(prelude_modules: &[&str]) -> String {
     }
     let proto_auto = Some(&["numeric", "scalar", "text", "collection"][..]);
     let value_auto = Some(&["Equatable", "Hashable", "CustomStringConvertible"][..]);
-    let comparable_value_auto = Some(&["Equatable", "Hashable", "CustomStringConvertible", "Comparable"][..]);
+    let comparable_value_auto = Some(
+        &[
+            "Equatable",
+            "Hashable",
+            "CustomStringConvertible",
+            "Comparable",
+        ][..],
+    );
     let comparable_auto = Some(&["numeric", "text"][..]);
-    let character_auto = Some(&["Equatable", "Hashable", "CustomStringConvertible", "Comparable"][..]);
-    entries.push(manifest_entry_json("Bool", "scalar", "Bool", None, "scalar.bool", "core/builtins/scalar/bool.sy", None, true, false, None, value_auto, None));
-    entries.push(manifest_entry_json("Character", "scalar", "Character", None, "scalar.character", "core/builtins/scalar/character.sy", None, true, false, None, character_auto, None));
-    entries.push(manifest_entry_json("Void", "bottom", "Void", None, "special.void", "core/builtins/special/void.sy", None, false, false, None, None, None));
-    entries.push(manifest_entry_json("String", "text", "String", None, "text.string", "core/builtins/text/string.sy", None, true, false, None, comparable_value_auto, None));
-    entries.push(manifest_entry_json("Array", "collection", "Array", None, "collection.array", "core/builtins/collections/array.sy", None, true, false, None, value_auto, Some(&["map", "filter", "reduce", "reverse", "contains", "joined", "count", "append", "sortBy", "binarySearch", "chunked", "zip", "flatMap"][..])));
-    entries.push(manifest_entry_json("Set", "collection", "Set", None, "collection.set", "core/builtins/collections/set.sy", None, true, false, None, value_auto, Some(&["count", "contains", "insert", "remove"][..])));
-    entries.push(manifest_entry_json("Dictionary", "collection", "Dictionary", None, "collection.dictionary", "core/builtins/collections/dictionary.sy", None, true, false, None, value_auto, Some(&["count", "contains", "keys", "values"][..])));
+    let character_auto = Some(
+        &[
+            "Equatable",
+            "Hashable",
+            "CustomStringConvertible",
+            "Comparable",
+        ][..],
+    );
+    entries.push(manifest_entry_json(
+        "Bool",
+        "scalar",
+        "Bool",
+        None,
+        "scalar.bool",
+        "core/builtins/scalar/bool.sy",
+        None,
+        true,
+        false,
+        None,
+        value_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Character",
+        "scalar",
+        "Character",
+        None,
+        "scalar.character",
+        "core/builtins/scalar/character.sy",
+        None,
+        true,
+        false,
+        None,
+        character_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Void",
+        "bottom",
+        "Void",
+        None,
+        "special.void",
+        "core/builtins/special/void.sy",
+        None,
+        false,
+        false,
+        None,
+        None,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "String",
+        "text",
+        "String",
+        None,
+        "text.string",
+        "core/builtins/text/string.sy",
+        None,
+        true,
+        false,
+        None,
+        comparable_value_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Array",
+        "collection",
+        "Array",
+        None,
+        "collection.array",
+        "core/builtins/collections/array.sy",
+        None,
+        true,
+        false,
+        None,
+        value_auto,
+        Some(
+            &[
+                "map",
+                "filter",
+                "reduce",
+                "reverse",
+                "contains",
+                "joined",
+                "count",
+                "append",
+                "sortBy",
+                "binarySearch",
+                "chunked",
+                "zip",
+                "flatMap",
+            ][..],
+        ),
+    ));
+    entries.push(manifest_entry_json(
+        "Set",
+        "collection",
+        "Set",
+        None,
+        "collection.set",
+        "core/builtins/collections/set.sy",
+        None,
+        true,
+        false,
+        None,
+        value_auto,
+        Some(&["count", "contains", "insert", "remove"][..]),
+    ));
+    entries.push(manifest_entry_json(
+        "Dictionary",
+        "collection",
+        "Dictionary",
+        None,
+        "collection.dictionary",
+        "core/builtins/collections/dictionary.sy",
+        None,
+        true,
+        false,
+        None,
+        value_auto,
+        Some(&["count", "contains", "keys", "values"][..]),
+    ));
     // SA-1-02: OrderedSet/Deque left prelude — importable modules.
-    entries.push(manifest_entry_json("OrderedSet", "collection", "OrderedSet", None, "collection.ordered_set", "core/builtins/collections/ordered_set.sy", None, false, true, None, None, Some(&["new", "insert", "contains"][..])));
-    entries.push(manifest_entry_json("Deque", "collection", "Deque", None, "collection.deque", "core/builtins/collections/deque.sy", None, false, true, None, None, Some(&["new", "pushBack", "pushFront", "popBack", "popFront", "count", "isEmpty"][..])));
-    entries.push(manifest_entry_json("Object", "reference", "Object", None, "reference.object", "core/builtins/reference/object.sy", None, false, false, None, value_auto, None));
-    entries.push(manifest_entry_json("ObjectIdentifier", "reference", "ObjectIdentifier", None, "reference.object_identifier", "core/builtins/reference/object_identifier.sy", None, false, false, None, value_auto, None));
-    entries.push(manifest_entry_json("Equatable", "protocol", "Equatable", None, "protocol.equatable", "core/protocols/equatable.sy", None, false, false, None, proto_auto, None));
-    entries.push(manifest_entry_json("Hashable", "protocol", "Hashable", None, "protocol.hashable", "core/protocols/hashable.sy", None, false, false, None, proto_auto, None));
-    entries.push(manifest_entry_json("Comparable", "protocol", "Comparable", None, "protocol.comparable", "core/protocols/comparable.sy", None, false, false, None, comparable_auto, None));
-    entries.push(manifest_entry_json("CustomStringConvertible", "protocol", "CustomStringConvertible", None, "protocol.custom_string_convertible", "core/protocols/custom_string_convertible.sy", None, false, false, None, proto_auto, None));
-    entries.push(manifest_entry_json("Encoder", "protocol", "Encoder", None, "protocol.encoder", "core/protocols/encoder.sy", None, false, false, None, None, None));
-    entries.push(manifest_entry_json("Decoder", "protocol", "Decoder", None, "protocol.decoder", "core/protocols/decoder.sy", None, false, false, None, None, None));
-    entries.push(manifest_entry_json("Encodable", "protocol", "Encodable", None, "protocol.encodable", "core/protocols/encodable.sy", None, false, false, None, None, None));
-    entries.push(manifest_entry_json("Decodable", "protocol", "Decodable", None, "protocol.decodable", "core/protocols/decodable.sy", None, false, false, None, None, None));
-    entries.push(manifest_entry_json("Codable", "protocol", "Codable", None, "protocol.codable", "core/protocols/codable.sy", None, false, false, None, None, None));
-    entries.push(manifest_entry_json("Result", "algebraic", "Result", None, "algebraic.result", "core/builtins/algebraic/result.sy", None, true, false, None, value_auto, Some(&["ok", "err", "is_ok", "is_err"][..])));
-    entries.push(manifest_entry_json("BigInt", "numeric", "BigInt", None, "numeric.bigint", "core/builtins/numeric/bigint.sy", Some("bigint"), true, false, None, comparable_value_auto, Some(&["from_string", "from_i128", "add", "sub", "mul", "cmp", "description"][..])));
-    entries.push(manifest_entry_json("HTTPResponse", "host_type", "HTTPResponse", None, "host.http_response", "io/types/http_response.sy", None, false, false, Some("Networking"), None, None));
+    entries.push(manifest_entry_json(
+        "OrderedSet",
+        "collection",
+        "OrderedSet",
+        None,
+        "collection.ordered_set",
+        "core/builtins/collections/ordered_set.sy",
+        None,
+        false,
+        true,
+        None,
+        None,
+        Some(&["new", "insert", "contains"][..]),
+    ));
+    entries.push(manifest_entry_json(
+        "Deque",
+        "collection",
+        "Deque",
+        None,
+        "collection.deque",
+        "core/builtins/collections/deque.sy",
+        None,
+        false,
+        true,
+        None,
+        None,
+        Some(
+            &[
+                "new",
+                "pushBack",
+                "pushFront",
+                "popBack",
+                "popFront",
+                "count",
+                "isEmpty",
+            ][..],
+        ),
+    ));
+    entries.push(manifest_entry_json(
+        "Object",
+        "reference",
+        "Object",
+        None,
+        "reference.object",
+        "core/builtins/reference/object.sy",
+        None,
+        false,
+        false,
+        None,
+        value_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "ObjectIdentifier",
+        "reference",
+        "ObjectIdentifier",
+        None,
+        "reference.object_identifier",
+        "core/builtins/reference/object_identifier.sy",
+        None,
+        false,
+        false,
+        None,
+        value_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Equatable",
+        "protocol",
+        "Equatable",
+        None,
+        "protocol.equatable",
+        "core/protocols/equatable.sy",
+        None,
+        false,
+        false,
+        None,
+        proto_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Hashable",
+        "protocol",
+        "Hashable",
+        None,
+        "protocol.hashable",
+        "core/protocols/hashable.sy",
+        None,
+        false,
+        false,
+        None,
+        proto_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Comparable",
+        "protocol",
+        "Comparable",
+        None,
+        "protocol.comparable",
+        "core/protocols/comparable.sy",
+        None,
+        false,
+        false,
+        None,
+        comparable_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "CustomStringConvertible",
+        "protocol",
+        "CustomStringConvertible",
+        None,
+        "protocol.custom_string_convertible",
+        "core/protocols/custom_string_convertible.sy",
+        None,
+        false,
+        false,
+        None,
+        proto_auto,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Encoder",
+        "protocol",
+        "Encoder",
+        None,
+        "protocol.encoder",
+        "core/protocols/encoder.sy",
+        None,
+        false,
+        false,
+        None,
+        None,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Decoder",
+        "protocol",
+        "Decoder",
+        None,
+        "protocol.decoder",
+        "core/protocols/decoder.sy",
+        None,
+        false,
+        false,
+        None,
+        None,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Encodable",
+        "protocol",
+        "Encodable",
+        None,
+        "protocol.encodable",
+        "core/protocols/encodable.sy",
+        None,
+        false,
+        false,
+        None,
+        None,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Decodable",
+        "protocol",
+        "Decodable",
+        None,
+        "protocol.decodable",
+        "core/protocols/decodable.sy",
+        None,
+        false,
+        false,
+        None,
+        None,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Codable",
+        "protocol",
+        "Codable",
+        None,
+        "protocol.codable",
+        "core/protocols/codable.sy",
+        None,
+        false,
+        false,
+        None,
+        None,
+        None,
+    ));
+    entries.push(manifest_entry_json(
+        "Result",
+        "algebraic",
+        "Result",
+        None,
+        "algebraic.result",
+        "core/builtins/algebraic/result.sy",
+        None,
+        true,
+        false,
+        None,
+        value_auto,
+        Some(&["ok", "err", "is_ok", "is_err"][..]),
+    ));
+    entries.push(manifest_entry_json(
+        "BigInt",
+        "numeric",
+        "BigInt",
+        None,
+        "numeric.bigint",
+        "core/builtins/numeric/bigint.sy",
+        Some("bigint"),
+        true,
+        false,
+        None,
+        comparable_value_auto,
+        Some(
+            &[
+                "from_string",
+                "from_i128",
+                "add",
+                "sub",
+                "mul",
+                "cmp",
+                "description",
+            ][..],
+        ),
+    ));
+    entries.push(manifest_entry_json(
+        "HTTPResponse",
+        "host_type",
+        "HTTPResponse",
+        None,
+        "host.http_response",
+        "io/types/http_response.sy",
+        None,
+        false,
+        false,
+        Some("Networking"),
+        None,
+        None,
+    ));
 
     let prelude_json: String = prelude_modules
         .iter()
@@ -545,10 +1053,27 @@ fn manifest_json(prelude_modules: &[&str]) -> String {
 
 fn remove_legacy_files(core: &Path, internal: &Path) {
     let legacy_ops = [
-        "int8ops", "int16ops", "int32ops", "int64ops", "int128ops",
-        "uint8ops", "uint16ops", "uint32ops", "uint64ops", "uint128ops",
-        "intops", "uintops", "float32ops", "float64ops", "floatops", "doubleops",
-        "boolops", "characterops", "text", "arrays", "string_ext",
+        "int8ops",
+        "int16ops",
+        "int32ops",
+        "int64ops",
+        "int128ops",
+        "uint8ops",
+        "uint16ops",
+        "uint32ops",
+        "uint64ops",
+        "uint128ops",
+        "intops",
+        "uintops",
+        "float32ops",
+        "float64ops",
+        "floatops",
+        "doubleops",
+        "boolops",
+        "characterops",
+        "text",
+        "arrays",
+        "string_ext",
     ];
     for name in legacy_ops {
         let p = core.join(format!("{name}.sy"));
@@ -708,5 +1233,8 @@ fn build_echo_plugin_test_dylib() {
         return;
     }
     println!("cargo:rerun-if-changed={}", src.display());
-    println!("cargo:rerun-if-changed={}", include.join("syx_plugin.h").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        include.join("syx_plugin.h").display()
+    );
 }

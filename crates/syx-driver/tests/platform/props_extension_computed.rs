@@ -110,7 +110,5 @@ fn props_ext_v4_docs_honesty_marker() {
         docs.contains("139+") || docs.contains("139 +"),
         "11-properties.md must defer full Swift properties to 139+"
     );
-    assert!(
-        docs.contains("lang-props-v4:docs-honesty") || docs.contains("lang-props-v4")
-    );
+    assert!(docs.contains("lang-props-v4:docs-honesty") || docs.contains("lang-props-v4"));
 }

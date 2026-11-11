@@ -6,14 +6,16 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_stage2_exit_locked() {
     let adr = repo_file("docs/adr/stage2-exit.md");
-    assert!(adr.contains("S2-I266"), "Stage-2 exit ADR must name S2-I266");
+    assert!(
+        adr.contains("S2-I266"),
+        "Stage-2 exit ADR must name S2-I266"
+    );
     assert!(
         adr.contains("Stage-2 exits") || adr.contains("**Stage-2 exits**"),
         "ADR must decide Stage-2 exits"
@@ -45,7 +47,9 @@ fn s2_stage2_exit_locked() {
         "plan/02 must cite S2-I266 / stage2-exit"
     );
 
-    for id in ["S2-01", "S2-02", "S2-03", "S2-04", "S2-05", "S2-06", "S2-07"] {
+    for id in [
+        "S2-01", "S2-02", "S2-03", "S2-04", "S2-05", "S2-06", "S2-07",
+    ] {
         let row = plan02
             .lines()
             .find(|l| l.contains(&format!("| {id} |")))
@@ -59,7 +63,9 @@ fn s2_stage2_exit_locked() {
     // Stage-3 status is owned by s3_01_span_census_contract after S3-I1.
     let plan01 = repo_file("plan/01-project-status.md");
     assert!(
-        plan01.contains("S2-I266") || plan01.contains("stage2-exit") || plan01.contains("阶段 0 / 1 / 2 已退出"),
+        plan01.contains("S2-I266")
+            || plan01.contains("stage2-exit")
+            || plan01.contains("阶段 0 / 1 / 2 已退出"),
         "plan/01 must keep Stage-2 exit honesty"
     );
 }

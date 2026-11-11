@@ -90,7 +90,10 @@ func main() {
     )
     .expect("run");
     assert!(
-        result.printed.iter().any(|l| l.trim() == "true" || l.trim() == "1"),
+        result
+            .printed
+            .iter()
+            .any(|l| l.trim() == "true" || l.trim() == "1"),
         "printed={:?}",
         result.printed
     );

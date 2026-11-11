@@ -5,28 +5,14 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    cdn_bgp_clear,
-    cdn_bgp_configure_mesh,
-    cdn_bgp_cross_region_failover_ready,
-    cdn_bgp_ga_ready,
-    cdn_bgp_health,
-    cdn_bgp_import_peer_mesh,
-    cdn_bgp_mesh_pop_count,
-    cdn_bgp_mesh_pop_ids,
-    cdn_bgp_mesh_region_count,
-    cdn_bgp_mesh_snapshot,
-    cdn_bgp_multi_pop_mvp_ready,
-    cdn_bgp_multi_pop_ready,
-    cdn_bgp_multi_region_mesh_ready,
-    cdn_bgp_route,
-    cdn_delivery_ack_clear,
-    cdn_doctor_mode,
-    dist_tcp_url_for_bind_addr,
-    spawn_dist_tcp_mailbox_on,
+    cdn_bgp_clear, cdn_bgp_configure_mesh, cdn_bgp_cross_region_failover_ready, cdn_bgp_ga_ready,
+    cdn_bgp_health, cdn_bgp_import_peer_mesh, cdn_bgp_mesh_pop_count, cdn_bgp_mesh_pop_ids,
+    cdn_bgp_mesh_region_count, cdn_bgp_mesh_snapshot, cdn_bgp_multi_pop_mvp_ready,
+    cdn_bgp_multi_pop_ready, cdn_bgp_multi_region_mesh_ready, cdn_bgp_route,
+    cdn_delivery_ack_clear, cdn_doctor_mode, dist_tcp_url_for_bind_addr, spawn_dist_tcp_mailbox_on,
 };
 
 static P123_DIST_LOCK: Mutex<()> = Mutex::new(());
-
 
 #[test]
 fn dist_multi_pop_two_pops_not_multi_pop_ga() {
@@ -40,7 +26,10 @@ fn dist_multi_pop_two_pops_not_multi_pop_ga() {
     let url_a = dist_tcp_url_for_bind_addr(&addr_a);
     let url_b = dist_tcp_url_for_bind_addr(&addr_b);
 
-    cdn_bgp_configure_mesh("us-east", &[("203.0.113.0/24", 250, "bgp-us", url_a.as_str())]);
+    cdn_bgp_configure_mesh(
+        "us-east",
+        &[("203.0.113.0/24", 250, "bgp-us", url_a.as_str())],
+    );
     cdn_bgp_import_peer_mesh(
         "peer-eu",
         "eu-west",
@@ -109,7 +98,9 @@ fn dist_multi_pop_cdn_bgp_multi_pop_failover_mvp() {
     assert!(snap.weighted_anycast_ready);
     assert_eq!(snap.mesh_pop_count, 3);
     assert_eq!(snap.mesh_regions.len(), 2);
-    assert!(snap.cross_region_failover_order.contains(&"bgp-eu".to_string()));
+    assert!(snap
+        .cross_region_failover_order
+        .contains(&"bgp-eu".to_string()));
 
     let (active, ack) =
         cdn_bgp_route("bgp-us", 1, 2, "p123-pop-primary").expect("primary healthy route");
@@ -118,7 +109,10 @@ fn dist_multi_pop_cdn_bgp_multi_pop_failover_mvp() {
 
     stop_a.stop();
     thread::sleep(Duration::from_millis(25));
-    assert!(!cdn_bgp_health("bgp-us"), "primary pop must be unhealthy after stop");
+    assert!(
+        !cdn_bgp_health("bgp-us"),
+        "primary pop must be unhealthy after stop"
+    );
 
     let (failover_pop, failover_ack) =
         cdn_bgp_route("bgp-us", 3, 4, "p123-pop-failover").expect("multi-pop failover");

@@ -3,14 +3,11 @@
 
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
-    borrow_regions_v7_enabled, expr_span, Scope,
-    Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
+    borrow_regions_v7_enabled, expr_span, Scope, Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
 };
 use smol_str::SmolStr;
 use std::collections::HashSet;
-use syx_ast::{
-    AccessLevel, Expr, Literal, Stmt,
-};
+use syx_ast::{AccessLevel, Expr, Literal, Stmt};
 use syx_diagnostics::SyxResult;
 
 impl SemanticAnalyzer {
@@ -32,7 +29,6 @@ impl SemanticAnalyzer {
         self.scope = *self.scope.parent.take().unwrap_or_default();
         Ok(())
     }
-
 
     fn analyze_stmt(&mut self, stmt: &Stmt) -> SyxResult<()> {
         match stmt {
@@ -123,9 +119,8 @@ impl SemanticAnalyzer {
                                 ));
                             }
                             if self.borrow_region_depth > 1 {
-                                if let Some(lt) = ty
-                                    .as_ref()
-                                    .and_then(|t| Self::infer_elided_lifetime(t))
+                                if let Some(lt) =
+                                    ty.as_ref().and_then(|t| Self::infer_elided_lifetime(t))
                                 {
                                     if !self.active_lifetime_labels.is_empty()
                                         && !self.active_lifetime_labels.contains(&lt)
@@ -155,7 +150,8 @@ impl SemanticAnalyzer {
                     && !is_async_hoist_placeholder
                     && !name.starts_with("__")
                     && !self.skip_main_actor_await_check
-                    && self.caller_global_actor(self.current_function.as_ref().unwrap())
+                    && self
+                        .caller_global_actor(self.current_function.as_ref().unwrap())
                         .as_deref()
                         == Some("MainActor")
                 {
@@ -171,9 +167,7 @@ impl SemanticAnalyzer {
                         if let Expr::Ident { name, .. } = expr.as_ref() {
                             if self.scope.lookup(name).is_some() {
                                 self.errors.push(self.error_at(
-                                    format!(
-                                        "Cannot return reference to local binding '{name}'"
-                                    ),
+                                    format!("Cannot return reference to local binding '{name}'"),
                                     expr_span(v),
                                     "S011",
                                 ));
@@ -199,14 +193,22 @@ impl SemanticAnalyzer {
                 self.mut_borrows = saved_borrows;
                 Ok(())
             }
-            Stmt::While { condition, body, .. } => {
+            Stmt::While {
+                condition, body, ..
+            } => {
                 let saved_borrows = self.mut_borrows.clone();
                 self.analyze_expr(condition)?;
                 self.analyze_block(body)?;
                 self.mut_borrows = saved_borrows;
                 Ok(())
             }
-            Stmt::ForIn { name, iterable, body, span, .. } => {
+            Stmt::ForIn {
+                name,
+                iterable,
+                body,
+                span,
+                ..
+            } => {
                 let iter_ty = self.analyze_expr(iterable)?;
                 let elem_ty = match &iter_ty {
                     TypeId::Array(inner) => inner.as_ref().clone(),
@@ -431,8 +433,8 @@ impl SemanticAnalyzer {
                     self.scope = *self.scope.parent.take().unwrap_or_default();
                 }
                 if default.is_none() {
-                    let all_have_where = !cases.is_empty()
-                        && cases.iter().all(|c| c.guard.is_some());
+                    let all_have_where =
+                        !cases.is_empty() && cases.iter().all(|c| c.guard.is_some());
                     let has_plain_literal = cases.iter().any(|c| {
                         c.guard.is_none()
                             && matches!(
@@ -577,7 +579,9 @@ impl SemanticAnalyzer {
                 }
                 Ok(())
             }
-            Stmt::RepeatWhile { body, condition, .. } => {
+            Stmt::RepeatWhile {
+                body, condition, ..
+            } => {
                 self.analyze_block(body)?;
                 self.analyze_expr(condition)?;
                 Ok(())
@@ -590,5 +594,4 @@ impl SemanticAnalyzer {
             }
         }
     }
-
 }

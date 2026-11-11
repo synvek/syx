@@ -14,11 +14,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w217_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w217_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -29,8 +25,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native mir exit {code}: {lines:?}");
     lines
 }
@@ -38,8 +33,7 @@ fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -82,7 +76,10 @@ fn assert_json_roundtrip_line(out: &str) {
 
 #[test]
 fn m2_s7_01_protocol_files_static() {
-    let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../packages/core/protocols/");
+    let root = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../packages/core/protocols/"
+    );
     for name in [
         "encoder.sy",
         "decoder.sy",
@@ -125,8 +122,7 @@ fn m2_s7_01_json_roundtrip_wasm() {
 
 #[test]
 fn m2_s7_01_codable_conformance_decl() {
-    let out = run(
-        r#"
+    let out = run(r#"
 @Codable
 data class Point(x: Int, y: Int)
 
@@ -135,8 +131,7 @@ func main() {
   let s = p.encode()
   print(s)
 }
-"#,
-    );
+"#);
     let l = lines(&out);
     let encoded = l.get(0).copied().unwrap_or("");
     assert!(
@@ -157,4 +152,3 @@ fn m2_s7_01_inventory_meta() {
         "inventory must note ADR-230"
     );
 }
-

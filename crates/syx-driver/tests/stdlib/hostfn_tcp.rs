@@ -123,18 +123,12 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tcp_llvm_refuse_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tcp_llvm_refuse_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -175,10 +169,8 @@ func main() {
 }
 "#,
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tcp_wasm_refuse_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tcp_wasm_refuse_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -188,10 +180,7 @@ func main() {
     let (_, lines) = run_wasm_source_printed(&main, "main", &opts)
         .unwrap_or_else(|e| panic!("wasm refuse connect failed: {e:?}"));
     let _ = fs::remove_dir_all(&dir);
-    let lines: Vec<String> = lines
-        .into_iter()
-        .filter(|l| !l.is_empty())
-        .collect();
+    let lines: Vec<String> = lines.into_iter().filter(|l| !l.is_empty()).collect();
     assert_eq!(
         lines,
         vec!["refused".to_string(), "1".to_string()],
@@ -242,10 +231,7 @@ fn hostfn_tcp_read_loopback_wasm() {
     return 0
 }}"#
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tcp_wasm_read_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_hostfn_tcp_wasm_read_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -281,10 +267,8 @@ fn hostfn_tcp_write_loopback_wasm() {
     return 0
 }}"#
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tcp_wasm_write_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tcp_wasm_write_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -364,18 +348,12 @@ func main() {{
 }}
 "#
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tcp_llvm_accept_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tcp_llvm_accept_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -430,10 +408,8 @@ func main() {{
 }}
 "#
     );
-    let dir = std::env::temp_dir().join(format!(
-        "syx_hostfn_tcp_wasm_accept_{}",
-        std::process::id()
-    ));
+    let dir =
+        std::env::temp_dir().join(format!("syx_hostfn_tcp_wasm_accept_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let main = dir.join("main.sy");
@@ -499,4 +475,3 @@ func main() {
         "TcpListen+Close wasm must exact OPENED/CLOSED: {lines:?}"
     );
 }
-

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -54,9 +53,7 @@ fn s2_04_lint_cst_first_policy() {
     );
 
     let driver = repo_file("crates/syx-driver/src/lib.rs");
-    let lint_file_idx = driver
-        .find("fn lint_file(")
-        .expect("lint_file must exist");
+    let lint_file_idx = driver.find("fn lint_file(").expect("lint_file must exist");
     let lint_file_chunk =
         &driver[lint_file_idx..lint_file_idx + 900.min(driver.len() - lint_file_idx)];
     assert!(

@@ -62,12 +62,16 @@ fn borrow_class_field_ok() {
 
 #[test]
 fn borrow_if_else_ok() {
-    assert!(run_ok("func main() { if 1 < 2 { print(9) } else { print(0) } }"));
+    assert!(run_ok(
+        "func main() { if 1 < 2 { print(9) } else { print(0) } }"
+    ));
 }
 
 #[test]
 fn borrow_func_return_ok() {
-    assert!(run_ok("func f() -> Int { return 42 } func main() { print(f()) }"));
+    assert!(run_ok(
+        "func f() -> Int { return 42 } func main() { print(f()) }"
+    ));
 }
 
 #[test]

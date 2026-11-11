@@ -34,16 +34,14 @@ fn tls_client_appdata_probe(
         if let Ok(mut stream) = TcpStream::connect(("127.0.0.1", port)) {
             let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
             let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
-            let mut conn = match rustls::ClientConnection::new(
-                Arc::clone(&client_cfg),
-                server_name.clone(),
-            ) {
-                Ok(c) => c,
-                Err(_) => {
-                    thread::sleep(Duration::from_millis(20));
-                    continue;
-                }
-            };
+            let mut conn =
+                match rustls::ClientConnection::new(Arc::clone(&client_cfg), server_name.clone()) {
+                    Ok(c) => c,
+                    Err(_) => {
+                        thread::sleep(Duration::from_millis(20));
+                        continue;
+                    }
+                };
             loop {
                 if !conn.is_handshaking() {
                     break;
@@ -95,10 +93,7 @@ fn tls_server_noidle_lang_native_cross_idle() {
     let port = probe.local_addr().expect("addr").port();
     drop(probe);
 
-    let dir = std::env::temp_dir().join(format!(
-        "syx_tls_noidle_lang_{}",
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_tls_noidle_lang_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let cert_path = dir.join("server.crt");
@@ -123,11 +118,7 @@ func main() {{
 "#
     );
     fs::write(dir.join("main.sy"), &src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -176,7 +167,10 @@ func main() {{
     let stdout = String::from_utf8_lossy(&output.stdout);
     let code = output.status.code().unwrap_or(1);
     let _ = fs::remove_dir_all(&dir);
-    assert_eq!(code, 0, "native language noIdle tls serve exit {code}: {stdout}");
+    assert_eq!(
+        code, 0,
+        "native language noIdle tls serve exit {code}: {stdout}"
+    );
     assert!(
         handled2.load(Ordering::SeqCst),
         "second connection after >400ms idle gap must HANDLED under language noIdle=1 + MAX_HANDLED=2"

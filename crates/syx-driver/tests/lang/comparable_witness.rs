@@ -72,17 +72,26 @@ sort_prints!(
 
 #[test]
 fn witness_compare_host_lt() {
-    assert!(printed_eq(&run("func main() { print(__syx_int_compare(1, 2)) }"), "-1"));
+    assert!(printed_eq(
+        &run("func main() { print(__syx_int_compare(1, 2)) }"),
+        "-1"
+    ));
 }
 
 #[test]
 fn witness_compare_host_eq() {
-    assert!(printed_eq(&run("func main() { print(__syx_int_compare(4, 4)) }"), "0"));
+    assert!(printed_eq(
+        &run("func main() { print(__syx_int_compare(4, 4)) }"),
+        "0"
+    ));
 }
 
 #[test]
 fn witness_compare_host_gt() {
-    assert!(printed_eq(&run("func main() { print(__syx_int_compare(10, 3)) }"), "1"));
+    assert!(printed_eq(
+        &run("func main() { print(__syx_int_compare(10, 3)) }"),
+        "1"
+    ));
 }
 
 #[test]
@@ -227,7 +236,8 @@ fn witness_large_int_sort_edges() {
 #[test]
 fn witness_phase66_charter_adr() {
     let adr = std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/adr/architecture-decisions.md"),
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/adr/architecture-decisions.md"),
     )
     .unwrap();
     assert!(adr.contains("Phase 66") || adr.contains("44.0"));

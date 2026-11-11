@@ -54,11 +54,7 @@ fn lines_joined(lines: &[String]) -> String {
 }
 
 fn write_src(label: &str, src: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w286_a04_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w286_a04_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     let path = dir.join("main.sy");
@@ -82,8 +78,7 @@ fn run_wasm(label: &str, src: &str) -> String {
     let path = write_src(label, src);
     let mut opts = DriverOptions::default();
     opts.wasm_aot = true;
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines_joined(&lines)
 }
@@ -159,4 +154,3 @@ fn edge_case_map_honesty_wasm() {
         "wasm case-map honesty must exact: {out}"
     );
 }
-

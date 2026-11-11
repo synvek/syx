@@ -1,20 +1,13 @@
 //! SYX semantic infer/host face (S2-I258).
 //! Zero-semantics peel from semantic_analyzer.rs.
 
-use crate::semantic_analyzer::SemanticAnalyzer;
-use crate::{
-    expr_span_start, has_attr, normalize_type_arg_name, type_id_to_name, TypeId,
-};
 use crate::host_fn_capability;
+use crate::semantic_analyzer::SemanticAnalyzer;
+use crate::{expr_span_start, has_attr, normalize_type_arg_name, type_id_to_name, TypeId};
 use smol_str::SmolStr;
-use syx_ast::{
-    CallArg, Decl, Expr, Literal, Module, Stmt, TypeExpr,
-};
+use syx_ast::{CallArg, Decl, Expr, Literal, Module, Stmt, TypeExpr};
 use syx_diagnostics::SyxResult;
-use syx_stdlib::{
-    widen_for_binary,
-    HostFnId, NumericKind,
-};
+use syx_stdlib::{widen_for_binary, HostFnId, NumericKind};
 
 impl SemanticAnalyzer {
     pub(crate) fn infer_enum_case_type_args(
@@ -101,7 +94,9 @@ impl SemanticAnalyzer {
                 value: syx_ast::Literal::String(type_name),
                 ..
             } => Some(SmolStr::new(type_name.as_str())),
-            Expr::Ident { name, .. } if self.service_class_names.contains(name) => Some(name.clone()),
+            Expr::Ident { name, .. } if self.service_class_names.contains(name) => {
+                Some(name.clone())
+            }
             _ => None,
         }
     }
@@ -149,7 +144,9 @@ impl SemanticAnalyzer {
         let cfg = syx_config::runtime_config();
         let crypto_host = matches!(
             id,
-            HostFnId::CryptoSha256 | HostFnId::CryptoSha512 | HostFnId::CryptoHmacSha256
+            HostFnId::CryptoSha256
+                | HostFnId::CryptoSha512
+                | HostFnId::CryptoHmacSha256
                 | HostFnId::CryptoAesGcmEncrypt
         );
         if crypto_host {
@@ -340,15 +337,27 @@ impl SemanticAnalyzer {
         self.infer_call_type_args(type_param_count, args)
     }
 
-    pub(crate) fn infer_call_type_args(&self, type_param_count: usize, args: &[CallArg]) -> Vec<SmolStr> {
+    pub(crate) fn infer_call_type_args(
+        &self,
+        type_param_count: usize,
+        args: &[CallArg],
+    ) -> Vec<SmolStr> {
         let mut type_args = Vec::with_capacity(type_param_count);
         for _ in 0..type_param_count {
             type_args.push(SmolStr::new("Unknown"));
         }
         for arg in args {
-            if let Expr::Call { callee, args: ctor_args, .. } = &arg.value {
+            if let Expr::Call {
+                callee,
+                args: ctor_args,
+                ..
+            } = &arg.value
+            {
                 if let Expr::Member { object, name, .. } = callee.as_ref() {
-                    if let Expr::Ident { name: type_name, .. } = object.as_ref() {
+                    if let Expr::Ident {
+                        name: type_name, ..
+                    } = object.as_ref()
+                    {
                         let template = self
                             .generic_enums
                             .get(type_name)
@@ -432,10 +441,7 @@ impl SemanticAnalyzer {
                 }
             }
         }
-        type_args
-            .into_iter()
-            .map(normalize_type_arg_name)
-            .collect()
+        type_args.into_iter().map(normalize_type_arg_name).collect()
     }
 
     fn infer_expr_type_name(&self, expr: &Expr) -> SmolStr {

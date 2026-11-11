@@ -18,59 +18,59 @@ pub(crate) fn lower_expr_compound_assign(
     ctx: &mut LowerCtx,
     block: u32,
 ) {
-        let bin_op = match op {
-            CompoundAssignOp::Add => BinOp::Add,
-            CompoundAssignOp::Sub => BinOp::Sub,
-            CompoundAssignOp::Mul => BinOp::Mul,
-            CompoundAssignOp::Div => BinOp::Div,
-            CompoundAssignOp::Mod => BinOp::Mod,
-            CompoundAssignOp::BitAnd => BinOp::BitAnd,
-            CompoundAssignOp::BitOr => BinOp::BitOr,
-            CompoundAssignOp::BitXor => BinOp::BitXor,
-            CompoundAssignOp::Shl => BinOp::Shl,
-            CompoundAssignOp::Shr => BinOp::Shr,
-        };
-        // R-35: only Int in-place host when the binding is known Int —
-        // do not default missing local_types to Int (field/other types
-        // fall through to Assign desugar + enclosing-field load/store).
-        if matches!(op, CompoundAssignOp::Add | CompoundAssignOp::Sub) {
-            let left_ty = ctx.local_types.get(name).cloned();
-            if left_ty.as_deref() == Some("Int") {
-                let host_name = match op {
-                    CompoundAssignOp::Add => "__syx_int_add_assign",
-                    CompoundAssignOp::Sub => "__syx_int_sub_assign",
-                    _ => "",
-                };
-                if let Some(idx) = host_fn_index_by_name(host_name) {
-                    let lhs = ctx.fresh_reg();
-                    let rhs = ctx.fresh_reg();
-                    ctx.lower_load_binding(lhs, name, block);
-                    lower_expr(value, rhs, ctx, block);
-                    ctx.emit(
-                        block,
-                        MirInstr {
-                            dest: Some(dest),
-                            op: MirOp::CallHost(idx),
-                            span: None,
-                        },
-                    );
-                    ctx.lower_store_binding(name, block);
-                    return;
-                }
+    let bin_op = match op {
+        CompoundAssignOp::Add => BinOp::Add,
+        CompoundAssignOp::Sub => BinOp::Sub,
+        CompoundAssignOp::Mul => BinOp::Mul,
+        CompoundAssignOp::Div => BinOp::Div,
+        CompoundAssignOp::Mod => BinOp::Mod,
+        CompoundAssignOp::BitAnd => BinOp::BitAnd,
+        CompoundAssignOp::BitOr => BinOp::BitOr,
+        CompoundAssignOp::BitXor => BinOp::BitXor,
+        CompoundAssignOp::Shl => BinOp::Shl,
+        CompoundAssignOp::Shr => BinOp::Shr,
+    };
+    // R-35: only Int in-place host when the binding is known Int —
+    // do not default missing local_types to Int (field/other types
+    // fall through to Assign desugar + enclosing-field load/store).
+    if matches!(op, CompoundAssignOp::Add | CompoundAssignOp::Sub) {
+        let left_ty = ctx.local_types.get(name).cloned();
+        if left_ty.as_deref() == Some("Int") {
+            let host_name = match op {
+                CompoundAssignOp::Add => "__syx_int_add_assign",
+                CompoundAssignOp::Sub => "__syx_int_sub_assign",
+                _ => "",
+            };
+            if let Some(idx) = host_fn_index_by_name(host_name) {
+                let lhs = ctx.fresh_reg();
+                let rhs = ctx.fresh_reg();
+                ctx.lower_load_binding(lhs, name, block);
+                lower_expr(value, rhs, ctx, block);
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: Some(dest),
+                        op: MirOp::CallHost(idx),
+                        span: None,
+                    },
+                );
+                ctx.lower_store_binding(name, block);
+                return;
             }
         }
-        let desugared = Expr::Assign {
+    }
+    let desugared = Expr::Assign {
+        span: *span,
+        name: name.clone(),
+        value: Box::new(Expr::Binary {
             span: *span,
-            name: name.clone(),
-            value: Box::new(Expr::Binary {
+            left: Box::new(Expr::Ident {
                 span: *span,
-                left: Box::new(Expr::Ident {
-                    span: *span,
-                    name: name.clone(),
-                }),
-                op: bin_op,
-                right: value.clone(),
+                name: name.clone(),
             }),
-        };
-        lower_expr(&desugared, dest, ctx, block);
+            op: bin_op,
+            right: value.clone(),
+        }),
+    };
+    lower_expr(&desugared, dest, ctx, block);
 }

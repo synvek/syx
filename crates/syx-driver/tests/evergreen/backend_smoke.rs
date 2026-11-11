@@ -48,9 +48,10 @@ fn object_drop_rt_abi() {
 
 #[test]
 fn emit_clif_retired_stub() {
-    let mir = syx_mir::MirModule { functions: vec![],
- ..Default::default()
-};
+    let mir = syx_mir::MirModule {
+        functions: vec![],
+        ..Default::default()
+    };
     let text = emit_clif_module_text(&mir);
     assert!(text.contains("retired"));
 }
@@ -67,10 +68,7 @@ fn wasm_plugin_proxy() {
 
 #[test]
 fn mono_witness_matrix() {
-    let preds = syx_mono::witness_constraint_matrix(
-        &[smol_str::SmolStr::new("T")],
-        &["Codable"],
-    );
+    let preds = syx_mono::witness_constraint_matrix(&[smol_str::SmolStr::new("T")], &["Codable"]);
     assert_eq!(preds.len(), 1);
 }
 
@@ -103,11 +101,7 @@ fn native_llvm_hof_smoke() {
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("main.sy"), source).unwrap();
-    std::fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    std::fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable_file(&dir.join("main.sy"), &DriverOptions::default(), &exe)
         .expect("build");

@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -67,13 +66,9 @@ fn s3_05_plan_claim_locked() {
         stage3.contains("[x]") && stage3.contains("退出"),
         "Stage-3 must be [x] 退出; got: {stage3}"
     );
+    assert!(plan02.contains("7/7"), "plan/02 must publish Stage-3 7/7");
     assert!(
-        plan02.contains("7/7"),
-        "plan/02 must publish Stage-3 7/7"
-    );
-    assert!(
-        plan02.contains("S3-I80")
-            && (plan02.contains("S3-I81") || plan02.contains("S3-06")),
+        plan02.contains("S3-I80") && (plan02.contains("S3-I81") || plan02.contains("S3-06")),
         "plan/02 must cite I80 / I81"
     );
 
@@ -90,10 +85,7 @@ fn s3_05_plan_claim_locked() {
         census.contains("Claimed") && (census.contains("`[x]`") || census.contains("[x]")),
         "census must mark Claimed scoped [x]"
     );
-    assert!(
-        census.contains("7/7"),
-        "census must publish Stage-3 7/7"
-    );
+    assert!(census.contains("7/7"), "census must publish Stage-3 7/7");
     assert!(
         census.contains("S3-I80") && census.contains("S3-I81"),
         "census ladder must cite I80 / I81"
@@ -110,13 +102,9 @@ fn s3_05_plan_claim_locked() {
         plan01.contains("S3-I77") && plan01.contains("[x]"),
         "plan/01 must reflect S3-I77 S3-05 [x]"
     );
+    assert!(plan01.contains("7/7"), "plan/01 must publish Stage-3 7/7");
     assert!(
-        plan01.contains("7/7"),
-        "plan/01 must publish Stage-3 7/7"
-    );
-    assert!(
-        plan01.contains("S3-I80")
-            && (plan01.contains("S3-I81") || plan01.contains("S3-06")),
+        plan01.contains("S3-I80") && (plan01.contains("S3-I81") || plan01.contains("S3-06")),
         "plan/01 must cite I80 / I81"
     );
 }
@@ -125,9 +113,7 @@ fn s3_05_plan_claim_locked() {
 fn s3_05_claim_census_script_hinges() {
     let output = std::process::Command::new("bash")
         .arg("scripts/s3_05_lint_ast_census.sh")
-        .current_dir(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."),
-        )
+        .current_dir(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
         .expect("run lint-ast census");
     assert!(

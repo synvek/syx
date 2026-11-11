@@ -19,11 +19,7 @@ fn run_native_strict(src: &str) -> (i32, String) {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .unwrap();
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -87,7 +83,10 @@ fn task_local_set_get_native_llvm() {
     let (code, stdout) = run_native_strict(TASK_LOCAL_SET_GET);
     let out = stdout_lines(&stdout);
     assert_eq!(code, 0, "native llvm exit {code}: {stdout}");
-    assert_eq!(out, "V", "same-thread set→get must exact V: {out:?} stdout={stdout:?}");
+    assert_eq!(
+        out, "V",
+        "same-thread set→get must exact V: {out:?} stdout={stdout:?}"
+    );
 }
 
 #[test]
@@ -123,21 +122,9 @@ fn task_live_count_orphan_join_native_llvm() {
     let mut lines = stdout.lines().map(|l| l.trim_end_matches('\r'));
     while let Some(line) = lines.next() {
         match line.trim() {
-            "BASE" => {
-                baseline = lines
-                    .next()
-                    .and_then(|s| s.trim().parse::<i64>().ok())
-            }
-            "AFTER" => {
-                after = lines
-                    .next()
-                    .and_then(|s| s.trim().parse::<i64>().ok())
-            }
-            "CLEAN" => {
-                cleaned = lines
-                    .next()
-                    .and_then(|s| s.trim().parse::<i64>().ok())
-            }
+            "BASE" => baseline = lines.next().and_then(|s| s.trim().parse::<i64>().ok()),
+            "AFTER" => after = lines.next().and_then(|s| s.trim().parse::<i64>().ok()),
+            "CLEAN" => cleaned = lines.next().and_then(|s| s.trim().parse::<i64>().ok()),
             _ => {}
         }
     }
@@ -154,4 +141,3 @@ fn task_live_count_orphan_join_native_llvm() {
         "join mark_reaped must restore baseline (cleaned={cleaned} baseline={baseline}): {stdout}"
     );
 }
-

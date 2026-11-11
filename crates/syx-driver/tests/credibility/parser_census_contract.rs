@@ -6,8 +6,7 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
@@ -30,10 +29,7 @@ fn s2_04_parser_dual_track_baseline() {
     );
 
     let adr = repo_file("docs/adr/stage2-s2-04-open.md");
-    assert!(
-        adr.contains("S2-I143"),
-        "S2-04 open ADR must exist"
-    );
+    assert!(adr.contains("S2-I143"), "S2-04 open ADR must exist");
     assert!(
         adr.contains("≠ S2-04 `[x]`") || adr.contains("≠ S2-04 [x]"),
         "open ADR must Non-claim S2-04 [x]"

@@ -12,12 +12,10 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_xml_mvp_parse_stdout() {
-    let out = run(
-        r#"func main() {
+    let out = run(r#"func main() {
     let doc = __syx_xml_parse("<root><item>88</item></root>")
     print(doc["root"]["item"])
-}"#,
-    );
+}"#);
     assert!(out.contains("88"), "{out}");
 }
 

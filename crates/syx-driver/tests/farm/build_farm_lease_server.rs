@@ -19,7 +19,6 @@ fn with_lease_auth<F: FnOnce()>(f: F) {
     farm_lease_reset();
 }
 
-
 #[test]
 fn p106_farm_tcp_raw_get_no_grant_err() {
     with_lease_auth(|| {

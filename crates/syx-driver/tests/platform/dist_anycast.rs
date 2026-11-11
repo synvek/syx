@@ -6,16 +6,9 @@ use std::thread;
 use std::time::Duration;
 
 use syx_async::{
-    dist_actor_mp_clear,
-    dist_actor_mp_doctor_mode,
-    dist_actor_mp_peer_send_once,
-    dist_inproc_enabled,
-    dist_region_anycast_clear,
-    dist_region_anycast_configure,
-    dist_region_anycast_route,
-    dist_region_tcp_health,
-    region_route_mp,
-    region_route_mp_ga,
+    dist_actor_mp_clear, dist_actor_mp_doctor_mode, dist_actor_mp_peer_send_once,
+    dist_inproc_enabled, dist_region_anycast_clear, dist_region_anycast_configure,
+    dist_region_anycast_route, dist_region_tcp_health, region_route_mp, region_route_mp_ga,
     spawn_dist_tcp_mailbox,
 };
 
@@ -113,8 +106,8 @@ fn dist_anycast_kill_region_failover() {
     assert!(dist_region_tcp_health("us-east"));
     assert!(dist_region_tcp_health("eu-west"));
 
-    let (active, ack) = dist_region_anycast_route("us-east", 1, 2, "p109-primary")
-        .expect("primary region route");
+    let (active, ack) =
+        dist_region_anycast_route("us-east", 1, 2, "p109-primary").expect("primary region route");
     assert_eq!(active, "us-east");
     assert_eq!(ack, "p109-primary");
 
@@ -131,8 +124,8 @@ fn dist_anycast_kill_region_failover() {
         "secondary region must remain healthy"
     );
 
-    let (active2, ack2) = dist_region_anycast_route("us-east", 1, 2, "p109-failover")
-        .expect("failover after kill");
+    let (active2, ack2) =
+        dist_region_anycast_route("us-east", 1, 2, "p109-failover").expect("failover after kill");
     assert_eq!(
         active2, "eu-west",
         "must failover to healthy secondary region"
@@ -144,4 +137,3 @@ fn dist_anycast_kill_region_failover() {
     dist_region_anycast_clear();
     dist_actor_mp_clear();
 }
-

@@ -2,17 +2,14 @@
 //! Zero-semantics peel from semantic_analyzer.rs.
 
 use crate::semantic_analyzer::SemanticAnalyzer;
-use crate::{
-    expr_span, type_expr_to_id, type_id_to_name, TypeId,
-};
+use crate::{expr_span, type_expr_to_id, type_id_to_name, TypeId};
 use indexmap::IndexMap;
 use smol_str::SmolStr;
 use std::collections::HashSet;
-use syx_ast::{
-    Decl, Expr, Literal, Module,
-};
+use syx_ast::{Decl, Expr, Literal, Module};
 use syx_stdlib::{
-    host_fn_return_type, method_return_type, ARRAY_METHODS, DICT_METHODS, HTTP_RESPONSE_METHODS, SET_METHODS, STRING_METHODS, TYPE_METHODS,
+    host_fn_return_type, method_return_type, ARRAY_METHODS, DICT_METHODS, HTTP_RESPONSE_METHODS,
+    SET_METHODS, STRING_METHODS, TYPE_METHODS,
 };
 
 impl SemanticAnalyzer {
@@ -42,7 +39,9 @@ impl SemanticAnalyzer {
             }
             Expr::Literal { value, .. } => match value {
                 Literal::BigInt(_) => TypeId::Named(SmolStr::new("BigInt")),
-                Literal::Integer { .. } | Literal::Double { .. } => self.literal_numeric_type(value),
+                Literal::Integer { .. } | Literal::Double { .. } => {
+                    self.literal_numeric_type(value)
+                }
                 Literal::Bool(_) => TypeId::Bool,
                 Literal::String(_) | Literal::Interpolated(_) | Literal::Regex(_) => TypeId::String,
                 Literal::Nil => TypeId::Optional(Box::new(TypeId::Unknown)),
@@ -147,12 +146,7 @@ impl SemanticAnalyzer {
     pub fn merge_value_builtin_surface(&mut self, module: &Module) {
         for decl in &module.decls {
             match decl {
-                Decl::Class {
-                    name, members, ..
-                }
-                | Decl::Actor {
-                    name, members, ..
-                } => {
+                Decl::Class { name, members, .. } | Decl::Actor { name, members, .. } => {
                     // Metatype name for `Int.min` Ident resolution prefer-path stays via
                     // globals → Numeric; members are keyed by surface name below.
                     let mut methods = self.class_methods.swap_remove(name).unwrap_or_default();
@@ -168,10 +162,8 @@ impl SemanticAnalyzer {
                                 computed_setter,
                                 ..
                             } => {
-                                let field_ty = ty
-                                    .as_ref()
-                                    .map(type_expr_to_id)
-                                    .unwrap_or(TypeId::Unknown);
+                                let field_ty =
+                                    ty.as_ref().map(type_expr_to_id).unwrap_or(TypeId::Unknown);
                                 if !fields.iter().any(|(f, _)| f == field) {
                                     fields.push((field.clone(), field_ty));
                                 }
@@ -236,9 +228,7 @@ impl SemanticAnalyzer {
                     let mut prop_setters: HashSet<SmolStr> = HashSet::new();
                     for method in methods {
                         if let Decl::Function {
-                            name,
-                            return_type,
-                            ..
+                            name, return_type, ..
                         } = method
                         {
                             let ret = return_type
@@ -263,10 +253,7 @@ impl SemanticAnalyzer {
                         }
                     }
                     if !prop_getters.is_empty() {
-                        let fields = self
-                            .dataclass_fields
-                            .entry(type_name.clone())
-                            .or_default();
+                        let fields = self.dataclass_fields.entry(type_name.clone()).or_default();
                         for (field, field_ty) in &prop_getters {
                             if !fields.iter().any(|(f, _)| f == field) {
                                 fields.push((field.clone(), field_ty.clone()));
@@ -278,8 +265,7 @@ impl SemanticAnalyzer {
                         }
                     }
                     if !ext.is_empty() {
-                        self.type_extension_methods
-                            .insert(type_name.clone(), ext);
+                        self.type_extension_methods.insert(type_name.clone(), ext);
                     }
                 }
                 _ => {}
@@ -293,10 +279,7 @@ impl SemanticAnalyzer {
         let push_map = |map: &indexmap::IndexMap<&'static str, syx_stdlib::MethodId>,
                         out: &mut Vec<(SmolStr, SmolStr)>| {
             for (name, id) in map {
-                out.push((
-                    SmolStr::new(*name),
-                    SmolStr::new(method_return_type(*id)),
-                ));
+                out.push((SmolStr::new(*name), SmolStr::new(method_return_type(*id))));
             }
         };
         let push_extension_methods =
@@ -317,10 +300,7 @@ impl SemanticAnalyzer {
                 out.push((SmolStr::new("description"), SmolStr::new("String")));
             }
             if self.type_id_satisfies_protocol(ty, "CustomDebugStringConvertible") {
-                out.push((
-                    SmolStr::new("debugDescription"),
-                    SmolStr::new("String"),
-                ));
+                out.push((SmolStr::new("debugDescription"), SmolStr::new("String")));
             }
             if self.type_id_satisfies_protocol(ty, "Hashable") {
                 out.push((SmolStr::new("hash"), SmolStr::new("Void")));

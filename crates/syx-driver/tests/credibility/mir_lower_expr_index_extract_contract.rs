@@ -10,16 +10,14 @@ fn repo_file(rel: &str) -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(rel);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
 #[test]
 fn s2_05_mir_lower_expr_index_extract_baseline() {
     let index = repo_file("crates/syx-mir/src/mir_lower_expr_index.rs");
     assert!(
-        index.contains("fn lower_expr_index")
-            || index.contains("pub(crate) fn lower_expr_index"),
+        index.contains("fn lower_expr_index") || index.contains("pub(crate) fn lower_expr_index"),
         "mir_lower_expr_index must hold lower_expr_index"
     );
     assert!(

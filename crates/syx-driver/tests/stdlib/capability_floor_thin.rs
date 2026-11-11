@@ -80,4 +80,3 @@ fn capability_floor_thin_spec_signed() {
         "spec must keep website / hosted product semantics"
     );
 }
-

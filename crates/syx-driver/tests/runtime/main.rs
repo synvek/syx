@@ -16,6 +16,6 @@ mod net_tls_wss;
 mod reflect_witness_mandatory;
 mod runtime_cast;
 mod select_async;
-mod select_mixed_send_recv;
 mod select_deadline_strict;
+mod select_mixed_send_recv;
 mod stdlib_parity_hard;

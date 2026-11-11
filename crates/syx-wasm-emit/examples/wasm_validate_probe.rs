@@ -15,8 +15,7 @@
 //! against real signatures instead of guessed ones.
 
 use wasmparser::{
-    CompositeInnerType, Operator, Parser, Payload, TypeRef, ValidPayload, Validator,
-    WasmFeatures,
+    CompositeInnerType, Operator, Parser, Payload, TypeRef, ValidPayload, Validator, WasmFeatures,
 };
 
 /// One row of the function index space we need for `call` stack effects.
@@ -98,7 +97,12 @@ fn main() {
                     println!("=== FAILING FUNCTION ===");
                     println!("  local_entry   : {local_entry}");
                     println!("  absolute_index: {abs}");
-                    println!("  body range    : {}..{} ({} bytes)", body.range().start, body.range().end, body.range().end - body.range().start);
+                    println!(
+                        "  body range    : {}..{} ({} bytes)",
+                        body.range().start,
+                        body.range().end,
+                        body.range().end - body.range().start
+                    );
                     println!("  error         : {e}");
                     if let Some(off) = error_offset(&e) {
                         println!("  error offset  : {off:#x}");
@@ -136,7 +140,9 @@ fn error_offset(e: &wasmparser::BinaryReaderError) -> Option<usize> {
 fn import_func_count(bytes: &[u8]) -> u32 {
     let mut n = 0;
     for p in Parser::new(0).parse_all(bytes) {
-        let Ok(Payload::ImportSection(r)) = p else { continue };
+        let Ok(Payload::ImportSection(r)) = p else {
+            continue;
+        };
         for imp in r.into_iter().flatten() {
             if matches!(imp.ty, TypeRef::Func(_)) {
                 n += 1;
@@ -282,14 +288,20 @@ fn op_stack_effect(op: &Operator, sigs: &[Sig], type_sigs: &[Sig]) -> (usize, us
         Operator::Select => (3, 1),
 
         Operator::Call { function_index } => {
-            let s = sigs.get(*function_index as usize).copied().unwrap_or_default();
+            let s = sigs
+                .get(*function_index as usize)
+                .copied()
+                .unwrap_or_default();
             (s.params, s.results)
         }
         Operator::CallIndirect { type_index, .. } => {
             // Stack layout is [args..., table_index]. `type_index` indexes the *type*
             // section, not the function index space, so it cannot be looked up in
             // `sigs`; use the separately supplied type table.
-            let s = type_sigs.get(*type_index as usize).copied().unwrap_or_default();
+            let s = type_sigs
+                .get(*type_index as usize)
+                .copied()
+                .unwrap_or_default();
             (s.params + 1, s.results)
         }
 
@@ -348,7 +360,10 @@ fn print_ops_around(
         let (pop, push) = op_stack_effect(&op, sigs, type_sigs);
         all.push((off, format!("{op:?}"), pop, push));
     }
-    let pos = all.iter().position(|(o, ..)| *o >= target).unwrap_or(all.len());
+    let pos = all
+        .iter()
+        .position(|(o, ..)| *o >= target)
+        .unwrap_or(all.len());
     let start = pos.saturating_sub(12);
     let end = (pos + 6).min(all.len());
     let mut height: i64 = 0;

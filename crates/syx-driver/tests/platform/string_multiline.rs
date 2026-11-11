@@ -21,13 +21,17 @@ fn run_fixture(rel: &str) -> Vec<String> {
 fn string_multiline_run_file_printed() {
     let printed = run_fixture("tests/fixtures/lang/string_multiline.sy");
     assert!(
-        printed.iter().any(|l| l.trim().parse::<i64>().ok() == Some(19)),
+        printed
+            .iter()
+            .any(|l| l.trim().parse::<i64>().ok() == Some(19)),
         "multiline literal length: {printed:?}"
     );
     let hi = printed
         .iter()
         .find(|l| l.contains("Hello, World!"))
         .expect("interpolated multiline output");
-    assert!(hi.contains('\n'), "expected bare newline in multiline: {hi:?}");
+    assert!(
+        hi.contains('\n'),
+        "expected bare newline in multiline: {hi:?}"
+    );
 }
-

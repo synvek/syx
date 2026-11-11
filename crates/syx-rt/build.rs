@@ -3,9 +3,8 @@ fn main() {
     let profile = std::env::var("PROFILE").unwrap();
     let target = std::env::var("TARGET").unwrap();
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| {
-        format!("{manifest_dir}/../../target")
-    });
+    let target_dir = std::env::var("CARGO_TARGET_DIR")
+        .unwrap_or_else(|_| format!("{manifest_dir}/../../target"));
     let archive = std::path::Path::new(&target_dir)
         .join(&profile)
         .join("deps");

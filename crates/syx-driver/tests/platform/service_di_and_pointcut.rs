@@ -53,4 +53,3 @@ fn service_di_and_pointcut_hits_within_and_args() {
         "otherType should not match and-compose: {printed:?}"
     );
 }
-

@@ -2,87 +2,87 @@ mod mir_text;
 pub use mir_text::format_mir_module;
 
 mod mir_types;
-pub use mir_types::{MirOp, MirInstr, MirBlock, MirFunction, MirModule, is_suite1_pilot_mir_op, mir_module_aot_export_root_refs};
+pub use mir_types::{
+    is_suite1_pilot_mir_op, mir_module_aot_export_root_refs, MirBlock, MirFunction, MirInstr,
+    MirModule, MirOp,
+};
 
-mod mir_diag;
 mod mir_codec;
+mod mir_diag;
 pub use mir_codec::{
-    encode_module, decode_module,
-    MirModuleBlobStats, mir_module_blob_stats,
-    MirModuleMetadataSidecarView, mir_module_metadata_sidecar_view,
-    encode_module_metadata_sidecar, decode_module_metadata_sidecar,
-    MirModuleDualBlobPackage, encode_module_dual_blob_package, decode_module_dual_blob_package,
-    peel_dual_blob_package_execution, peel_dual_blob_package_sidecar,
-    encode_module_aot_embed_blob, encode_module_aot_embed_execution_bytes, aot_embed_execution_omitted,
-    mir_module_from_sidecar_fn_stubs,
-    is_dual_blob_package_bytes, dual_blob_package_sidecar_bytes, dual_blob_package_execution_bytes,
+    aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
+    decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
+    dual_blob_package_sidecar_bytes, encode_module, encode_module_aot_embed_blob,
+    encode_module_aot_embed_execution_bytes, encode_module_dual_blob_package,
+    encode_module_metadata_sidecar, is_dual_blob_package_bytes, mir_module_blob_stats,
+    mir_module_from_sidecar_fn_stubs, mir_module_metadata_sidecar_view,
+    peel_dual_blob_package_execution, peel_dual_blob_package_sidecar, MirModuleBlobStats,
+    MirModuleDualBlobPackage, MirModuleMetadataSidecarView,
 };
 
 mod mir_aot;
 pub use mir_aot::{
-    reachable_fn_names, reachable_fn_names_from_roots,
+    aot_blob_size_report, aot_codec_fixture_main_with_const_strs,
+    aot_codec_fixture_main_with_debug_locals, aot_size_fixture_call_indirect_full_emit,
+    aot_size_fixture_main_with_orphan_body, build_fn_index_remap, compact_module_for_aot_blob,
+    compact_module_for_aot_blob_with_roots, encode_module_compact_for_aot, encode_module_for_aot,
     llvm_emit_function_names, llvm_emit_function_names_with_roots,
-    shaken_module_for_aot_blob, shaken_module_for_aot_blob_with_roots,
-    encode_module_for_aot, FN_INDEX_DELETED, build_fn_index_remap, remap_fn_indices_in_module,
-    compact_module_for_aot_blob, compact_module_for_aot_blob_with_roots,
-    encode_module_compact_for_aot, AotBlobSizeReport, aot_blob_size_report,
-    aot_size_fixture_main_with_orphan_body, aot_size_fixture_call_indirect_full_emit,
-    aot_codec_fixture_main_with_const_strs, aot_codec_fixture_main_with_debug_locals,
     module_with_debug_locals_stripped, module_with_execution_string_table_stripped,
-    module_with_native_instructions_omitted,
+    module_with_native_instructions_omitted, reachable_fn_names, reachable_fn_names_from_roots,
+    remap_fn_indices_in_module, shaken_module_for_aot_blob, shaken_module_for_aot_blob_with_roots,
+    AotBlobSizeReport, FN_INDEX_DELETED,
 };
 
 mod mir_opt;
 pub use mir_opt::{
-    const_fold, dead_code_elim, optimize_mir_module, remove_unreachable_blocks,
-    escape_analysis, inline_small_host_functions, optimize,
-    mir_opt_v8_enabled, mir_opt_v9_default_enabled, mir_opt_v10_prod_default_enabled,
-    mir_opt_v11_stability_enabled, mir_opt_v12_prod_hardening_enabled,
-    mir_opt_v13_incr_barrier_enabled, mir_opt_v14_jit_barrier_enabled,
-    mir_opt_v15_jit_barrier_enabled, mir_opt_v16_aot_barrier_enabled,
-    mir_opt_v17_aot_barrier_enabled, mir_opt_v18_aot_barrier_enabled,
-    mir_opt_v19_aot_barrier_enabled, mir_opt_v20_aot_barrier_enabled,
-    mir_opt_v21_aot_barrier_enabled, mir_opt_v22_aot_barrier_enabled,
-    mir_opt_v23_aot_barrier_enabled, mir_opt_v24_aot_barrier_enabled,
-    mir_opt_v25_aot_barrier_enabled,
+    const_fold, dead_code_elim, escape_analysis, inline_small_host_functions,
+    mir_opt_v10_prod_default_enabled, mir_opt_v11_stability_enabled,
+    mir_opt_v12_prod_hardening_enabled, mir_opt_v13_incr_barrier_enabled,
+    mir_opt_v14_jit_barrier_enabled, mir_opt_v15_jit_barrier_enabled,
+    mir_opt_v16_aot_barrier_enabled, mir_opt_v17_aot_barrier_enabled,
+    mir_opt_v18_aot_barrier_enabled, mir_opt_v19_aot_barrier_enabled,
+    mir_opt_v20_aot_barrier_enabled, mir_opt_v21_aot_barrier_enabled,
+    mir_opt_v22_aot_barrier_enabled, mir_opt_v23_aot_barrier_enabled,
+    mir_opt_v24_aot_barrier_enabled, mir_opt_v25_aot_barrier_enabled, mir_opt_v8_enabled,
+    mir_opt_v9_default_enabled, optimize, optimize_mir_module, remove_unreachable_blocks,
 };
 
 mod mir_module_index;
 use mir_module_index::extension_init_literal_fields;
 
 mod mir_lower_ctx;
-mod mir_lower_expr_literal;
 mod mir_lower_expr_call_ident;
+mod mir_lower_expr_literal;
 
 mod mir_lower_expr_call_member;
 
+mod mir_collect_closure_free_vars;
+mod mir_lower_expr_array;
+mod mir_lower_expr_assign;
+mod mir_lower_expr_await;
+mod mir_lower_expr_binary;
+mod mir_lower_expr_borrow;
+mod mir_lower_expr_call;
+mod mir_lower_expr_cast;
+mod mir_lower_expr_closure;
+mod mir_lower_expr_compound_assign;
+mod mir_lower_expr_group;
+mod mir_lower_expr_ident;
+mod mir_lower_expr_index;
+mod mir_lower_expr_index_assign;
+mod mir_lower_expr_is;
+mod mir_lower_expr_keypath;
+mod mir_lower_expr_macro_invoke;
 mod mir_lower_expr_member;
 mod mir_lower_expr_member_assign;
-mod mir_lower_expr_index_assign;
-mod mir_lower_expr_binary;
-mod mir_lower_expr_unary;
-mod mir_lower_expr_closure;
-mod mir_lower_expr_index;
+mod mir_lower_expr_optional_cast;
+mod mir_lower_expr_range;
+mod mir_lower_expr_super;
 mod mir_lower_expr_task_block;
-mod mir_lower_expr_compound_assign;
 mod mir_lower_expr_ternary;
 mod mir_lower_expr_tuple;
-mod mir_lower_expr_cast;
-mod mir_lower_expr_optional_cast;
-mod mir_lower_expr_is;
-mod mir_lower_expr_call;
-mod mir_lower_expr_array;
-mod mir_lower_expr_await;
-mod mir_lower_expr_assign;
 mod mir_lower_expr_type_self;
-mod mir_lower_expr_macro_invoke;
-mod mir_lower_expr_range;
-mod mir_lower_expr_ident;
-mod mir_lower_expr_group;
-mod mir_lower_expr_borrow;
-mod mir_lower_expr_keypath;
-mod mir_lower_expr_super;
-mod mir_collect_closure_free_vars;
+mod mir_lower_expr_unary;
 
 mod mir_lower_switch_pattern;
 
@@ -97,17 +97,22 @@ pub use mir_lower_shells::{
 mod mir_lower_type_members;
 use mir_lower_type_members::lower_type_members;
 
-mod mir_lower_class_init;
-mod mir_type_infer_helpers;
 mod mir_host_cast_helpers;
-mod mir_simd_helpers;
-mod mir_lower_function;
-mod mir_member_call_dispatch;
-mod mir_lower_support;
+mod mir_lower_class_init;
 mod mir_lower_expr;
+mod mir_lower_function;
 mod mir_lower_module;
+mod mir_lower_support;
+mod mir_member_call_dispatch;
+mod mir_simd_helpers;
+mod mir_type_infer_helpers;
 
-
+pub(crate) use mir_host_cast_helpers::{
+    binary_numeric_kind, collection_method_mir_op, emit_float_to_int_numeric_cast_if_needed,
+    emit_hosted_collection_call, emit_integer_narrow_cast_if_needed,
+    emit_integer_numeric_cast_if_needed, extension_call_op, is_hosted_collection_method,
+    resolve_host_call, unary_numeric_kind,
+};
 pub(crate) use mir_type_infer_helpers::{
     binop_operator_symbol, class_name_from_mangled, expr_is_array_like, expr_is_dict_like,
     expr_is_float32_like, expr_is_float64_like, expr_is_set_like, expr_is_string_like,
@@ -117,25 +122,19 @@ pub(crate) use mir_type_infer_helpers::{
     is_platform_value_type, is_static_type_member_call, type_name_dispatch_base, type_name_is_set,
     unwrap_collection_elem_type_arg,
 };
-pub(crate) use mir_host_cast_helpers::{
-    binary_numeric_kind, collection_method_mir_op, emit_float_to_int_numeric_cast_if_needed,
-    emit_hosted_collection_call, emit_integer_narrow_cast_if_needed,
-    emit_integer_numeric_cast_if_needed, extension_call_op,
-    is_hosted_collection_method, resolve_host_call, unary_numeric_kind,
-};
 
-pub(crate) use mir_simd_helpers::{
-    host_simd_lowers_own_args, infer_expr_simd_type, infer_simd_element_from_array_arg,
-    infer_simd_element_from_reduce_arg, member_host_simd_lowers_own_args, simd_member_lanes_element,
-    simd_reduce_add_shape,
-};
 pub(crate) use mir_lower_function::{lower_function_with_params, register_param_local_type};
-pub(crate) use mir_member_call_dispatch::{
-    classify_member_call, expr_as_i32_literal, method_id_mir_op, MemberCallKind,
-};
 pub(crate) use mir_lower_support::{
     expr_is_opaque_operand, flatten_blocks, keypath_from_callee, mir_local_names_for_slots,
     mir_local_types_for_slots,
+};
+pub(crate) use mir_member_call_dispatch::{
+    classify_member_call, expr_as_i32_literal, method_id_mir_op, MemberCallKind,
+};
+pub(crate) use mir_simd_helpers::{
+    host_simd_lowers_own_args, infer_expr_simd_type, infer_simd_element_from_array_arg,
+    infer_simd_element_from_reduce_arg, member_host_simd_lowers_own_args,
+    simd_member_lanes_element, simd_reduce_add_shape,
 };
 
 pub(crate) use mir_lower_expr::lower_expr;
@@ -148,11 +147,9 @@ pub use mir_lower_module::{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mir_module_index::ModuleIndex;
     use crate::mir_aot::aot_size_fixture_fn;
-    use crate::mir_opt::{
-        effect_aware_licm_block_with_alias_barriers, fold_function,
-    };
+    use crate::mir_module_index::ModuleIndex;
+    use crate::mir_opt::{effect_aware_licm_block_with_alias_barriers, fold_function};
     use smol_str::SmolStr;
     use syx_ast::Decl;
     use syx_diagnostics::SourceFile;
@@ -171,11 +168,7 @@ mod tests {
 "#;
         let module = Parser::parse(SourceFile::new("t.sy", source)).unwrap();
         let sema = SemanticAnalyzer::analyze_collecting(&module);
-        assert!(
-            sema.errors.is_empty(),
-            "semantic errors: {:?}",
-            sema.errors
-        );
+        assert!(sema.errors.is_empty(), "semantic errors: {:?}", sema.errors);
         match sema.all_bindings.get("ks").expect("ks") {
             TypeId::Array(elem) => {
                 assert!(
@@ -306,17 +299,18 @@ func main() {
             .find(|f| f.name == "Greeter_greet")
             .expect("Greeter_greet");
         assert!(
-            greet.blocks.iter().any(|b| {
-                b.instructions.iter().any(|i| matches!(i.op, MirOp::Print))
-            }),
+            greet
+                .blocks
+                .iter()
+                .any(|b| { b.instructions.iter().any(|i| matches!(i.op, MirOp::Print)) }),
             "greet body: {:?}",
             greet.blocks
         );
         let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
         let calls_greet = main.blocks.iter().any(|b| {
-            b.instructions.iter().any(|i| {
-                matches!(&i.op, MirOp::Call(name) if name == "Greeter_greet")
-            })
+            b.instructions
+                .iter()
+                .any(|i| matches!(&i.op, MirOp::Call(name) if name == "Greeter_greet"))
         });
         assert!(calls_greet, "main blocks: {:?}", main.blocks);
     }
@@ -372,7 +366,10 @@ func main() {
         let mut mir = lower_module(&module).unwrap();
         optimize(&mut mir);
         let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
-        assert!(main.instructions.iter().any(|i| matches!(i.op, MirOp::JumpIfNil(_))));
+        assert!(main
+            .instructions
+            .iter()
+            .any(|i| matches!(i.op, MirOp::JumpIfNil(_))));
         // StoreLocal for `y = x ?? 42` must not sit in the Jump-dead gap.
         let flat = &main.instructions;
         let jump_if_nil = flat
@@ -408,9 +405,10 @@ func main() {
         // StoreLocal for `let x` must live in a reachable body block, not after
         // the entry Jump into the loop header (that was the while+let nil bug).
         let entry = &main.blocks[0];
-        let dead_after_jump = entry.instructions.windows(2).any(|w| {
-            matches!(w[0].op, MirOp::Jump(_)) && matches!(w[1].op, MirOp::StoreLocal(_))
-        });
+        let dead_after_jump = entry
+            .instructions
+            .windows(2)
+            .any(|w| matches!(w[0].op, MirOp::Jump(_)) && matches!(w[1].op, MirOp::StoreLocal(_)));
         assert!(
             !dead_after_jump,
             "let StoreLocal must not sit after Jump in entry; blocks={:?}",
@@ -426,7 +424,9 @@ func main() {
         );
         assert!(
             main.blocks.iter().any(|b| {
-                b.instructions.iter().any(|i| matches!(i.op, MirOp::StoreLocal(1)))
+                b.instructions
+                    .iter()
+                    .any(|i| matches!(i.op, MirOp::StoreLocal(1)))
             }),
             "expected StoreLocal for loop-local x"
         );
@@ -496,9 +496,10 @@ func main() {
         let mut mir = lower_module(&module).unwrap();
         optimize(&mut mir);
         let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
-        let has_append_host = main.instructions.iter().any(|i| {
-            matches!(&i.op, MirOp::CallHost(_))
-        });
+        let has_append_host = main
+            .instructions
+            .iter()
+            .any(|i| matches!(&i.op, MirOp::CallHost(_)));
         let has_object_get_append = main.instructions.windows(2).any(|w| {
             matches!(&w[0].op, MirOp::ConstStr(s) if s == "append")
                 && matches!(w[1].op, MirOp::ObjectGet)
@@ -565,15 +566,20 @@ func main() { print(0) }"#,
         let module = Parser::parse(source).unwrap();
         let mut mir = lower_module(&module).unwrap();
         optimize(&mut mir);
-        let init = mir.functions.iter().find(|f| f.name == "Counter_init").expect("init");
+        let init = mir
+            .functions
+            .iter()
+            .find(|f| f.name == "Counter_init")
+            .expect("init");
         // R-26-03: witness fn index is ConstFnIndex (not ConstI32) after shell merge.
         let has_witness = init.blocks.iter().any(|b| {
             b.instructions.windows(2).any(|w| {
                 matches!(&w[0].op, MirOp::ConstFnIndex(_))
                     && matches!(&w[1].op, MirOp::ConstStr(s) if s == "__witness_Iterator_next")
-            }) || b.instructions.iter().any(|i| {
-                matches!(&i.op, MirOp::ConstStr(s) if s == "__witness_Iterator_next")
-            })
+            }) || b
+                .instructions
+                .iter()
+                .any(|i| matches!(&i.op, MirOp::ConstStr(s) if s == "__witness_Iterator_next"))
         });
         assert!(has_witness, "Counter_init missing Iterator witness");
     }
@@ -592,9 +598,10 @@ func main() { print(0) }"#,
         let mut mir = lower_module(&module).unwrap();
         optimize(&mut mir);
         let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
-        assert!(main.blocks.iter().any(|b| {
-            b.instructions.iter().any(|i| matches!(i.op, MirOp::Return))
-        }));
+        assert!(main
+            .blocks
+            .iter()
+            .any(|b| { b.instructions.iter().any(|i| matches!(i.op, MirOp::Return)) }));
         let exit = main
             .blocks
             .iter()
@@ -665,7 +672,10 @@ func main() { print(0) }"#,
             .find(|f| f.name.as_str().starts_with("id_"))
             .expect("monomorphized id");
         assert!(
-            id_fn.instructions.iter().any(|i| matches!(i.op, MirOp::LoadLocal(_))),
+            id_fn
+                .instructions
+                .iter()
+                .any(|i| matches!(i.op, MirOp::LoadLocal(_))),
             "expected LoadLocal for param x in {:?}",
             id_fn.instructions
         );
@@ -737,11 +747,7 @@ func main() { print(0) }"#,
         assert_eq!(inits.len(), 1);
         assert_eq!(inits[0].name, "__init_global");
         assert_eq!(inits[0].param_count, 0);
-        let ops: Vec<_> = inits[0]
-            .instructions
-            .iter()
-            .map(|i| &i.op)
-            .collect();
+        let ops: Vec<_> = inits[0].instructions.iter().map(|i| &i.op).collect();
         assert!(
             ops.iter().any(|op| matches!(op, MirOp::StoreGlobal(0))),
             "slot 0 for first VarGlobal with init: {ops:?}"
@@ -834,10 +840,17 @@ func main() {
             idx.extension_methods
                 .contains(&(SmolStr::new("Int64"), SmolStr::new("doubled"))),
             "Int64,doubled missing: {:?}",
-            idx.extension_methods.iter().filter(|(t,_)| t.as_str().starts_with("Int")).collect::<Vec<_>>()
+            idx.extension_methods
+                .iter()
+                .filter(|(t, _)| t.as_str().starts_with("Int"))
+                .collect::<Vec<_>>()
         );
         let mir = lower_module(&module).unwrap();
-        let main = mir.functions.iter().find(|f| f.name == "main").expect("main");
+        let main = mir
+            .functions
+            .iter()
+            .find(|f| f.name == "main")
+            .expect("main");
         let ops: Vec<_> = main.blocks[0]
             .instructions
             .iter()
@@ -848,7 +861,6 @@ func main() {
             "expected Call Int_doubled in main, got {ops:?}"
         );
     }
-
 
     #[test]
     fn s1_i7_extension_point_convenience_init_lowers() {
@@ -872,7 +884,11 @@ func main() {
         );
         let module = Parser::parse(source).unwrap();
         let idx = ModuleIndex::from_module(&module);
-        let fields = idx.dataclass_fields.get(&SmolStr::new("Point")).cloned().unwrap();
+        let fields = idx
+            .dataclass_fields
+            .get(&SmolStr::new("Point"))
+            .cloned()
+            .unwrap();
         assert_eq!(fields, vec![SmolStr::new("x"), SmolStr::new("y")]);
         assert!(idx.dataclass_names.contains(&SmolStr::new("Point")));
         assert_eq!(
@@ -911,7 +927,6 @@ func main() {
         );
     }
 
-
     #[test]
     fn lowers_class_members_parity_for_native_w471() {
         let source = SourceFile::new(
@@ -941,8 +956,7 @@ func main() { }
             .expect("Point_init");
         assert!(init.param_count >= 1);
         assert!(
-            init.blocks.iter().any(|b| !b.instructions.is_empty())
-                || !init.instructions.is_empty(),
+            init.blocks.iter().any(|b| !b.instructions.is_empty()) || !init.instructions.is_empty(),
             "Point_init body must be non-empty"
         );
         let doubled = mir
@@ -971,7 +985,10 @@ func main() { }
             .find(|f| f.name == "Point_Nested_init" || f.name == "Nested_init")
             .expect("nested class init");
         assert!(
-            nested_init.blocks.iter().any(|b| !b.instructions.is_empty())
+            nested_init
+                .blocks
+                .iter()
+                .any(|b| !b.instructions.is_empty())
                 || !nested_init.instructions.is_empty(),
             "nested init body must be non-empty"
         );
@@ -1056,11 +1073,19 @@ func main() { }
         let module = Parser::parse(SourceFile::new("t.sy", source)).unwrap();
         let mut mir = lower_module(&module).unwrap();
         merge_mir_functions(&mut mir, lower_enum_shells(&module));
-        assert!(mir.functions.iter().any(|f| f.name == "NetworkResult_success_init"));
-        assert!(mir.functions.iter().any(|f| f.name == "NetworkResult_failure_init"));
+        assert!(mir
+            .functions
+            .iter()
+            .any(|f| f.name == "NetworkResult_success_init"));
+        assert!(mir
+            .functions
+            .iter()
+            .any(|f| f.name == "NetworkResult_failure_init"));
         let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
         assert!(main.blocks.iter().any(|b| {
-            b.instructions.iter().any(|i| matches!(i.op, MirOp::JumpIfFalse(_)))
+            b.instructions
+                .iter()
+                .any(|i| matches!(i.op, MirOp::JumpIfFalse(_)))
         }));
     }
 
@@ -1116,8 +1141,15 @@ func b() {
             .filter(|f| f.name.starts_with("__mir_closure_"))
             .map(|f| f.name.as_str())
             .collect();
-        assert_eq!(names.len(), 2, "expected one closure per HOF site, got {names:?}");
-        assert_ne!(names[0], names[1], "cross-function closure names must not collide");
+        assert_eq!(
+            names.len(),
+            2,
+            "expected one closure per HOF site, got {names:?}"
+        );
+        assert_ne!(
+            names[0], names[1],
+            "cross-function closure names must not collide"
+        );
         let make: Vec<_> = mir
             .functions
             .iter()
@@ -1439,7 +1471,11 @@ func main() { Child().up() }
         };
         let shaken = shaken_module_for_aot_blob(&module);
         assert_eq!(shaken.functions.len(), module.functions.len());
-        let orphan = shaken.functions.iter().find(|f| f.name == "orphan").unwrap();
+        let orphan = shaken
+            .functions
+            .iter()
+            .find(|f| f.name == "orphan")
+            .unwrap();
         assert_eq!(orphan.blocks.len(), 0);
         assert_eq!(orphan.instructions.len(), 1);
         assert!(matches!(orphan.instructions[0].op, MirOp::Return));
@@ -1473,7 +1509,11 @@ func main() { Child().up() }
             ..Default::default()
         };
         let shaken = shaken_module_for_aot_blob(&module);
-        let orphan = shaken.functions.iter().find(|f| f.name == "orphan").unwrap();
+        let orphan = shaken
+            .functions
+            .iter()
+            .find(|f| f.name == "orphan")
+            .unwrap();
         assert_eq!(orphan.instructions.len(), orphan_body.len());
     }
 
@@ -1582,7 +1622,6 @@ func main() { Child().up() }
         );
     }
 
-
     #[test]
     fn aot_blob_size_report_saves_bytes_with_orphan_body() {
         let module = aot_size_fixture_main_with_orphan_body(64);
@@ -1617,7 +1656,11 @@ func total(_ shapes: Array<Shape>) -> Double {
         );
         let module = Parser::parse(source).unwrap();
         let mir = lower_module(&module).unwrap();
-        let total = mir.functions.iter().find(|f| f.name == "total").expect("total");
+        let total = mir
+            .functions
+            .iter()
+            .find(|f| f.name == "total")
+            .expect("total");
         let flat: Vec<_> = total
             .blocks
             .iter()
@@ -1818,7 +1861,11 @@ func main() {}
             .iter()
             .filter(|n| n.as_str() == "greet")
             .count();
-        assert_eq!(count, 1, "greet must be deduped in roots: {:?}", mir.aot_export_roots);
+        assert_eq!(
+            count, 1,
+            "greet must be deduped in roots: {:?}",
+            mir.aot_export_roots
+        );
     }
 
     #[test]
@@ -1890,7 +1937,10 @@ func main() {}
         let module = aot_codec_fixture_main_with_debug_locals(8);
         let stripped = module_with_debug_locals_stripped(&module);
         assert_eq!(stripped.functions.len(), module.functions.len());
-        assert_eq!(stripped.functions[0].local_count, module.functions[0].local_count);
+        assert_eq!(
+            stripped.functions[0].local_count,
+            module.functions[0].local_count
+        );
         assert!(stripped.functions[0].local_names.is_empty());
         assert!(stripped.functions[0].local_types.is_empty());
         assert_eq!(
@@ -1917,8 +1967,14 @@ func main() {}
         let decoded = decode_module(&aot).unwrap();
         assert!(!decoded.functions.is_empty());
         for func in &decoded.functions {
-            assert!(func.local_names.is_empty(), "AOT blob must strip local_names");
-            assert!(func.local_types.is_empty(), "AOT blob must strip local_types");
+            assert!(
+                func.local_names.is_empty(),
+                "AOT blob must strip local_names"
+            );
+            assert!(
+                func.local_types.is_empty(),
+                "AOT blob must strip local_types"
+            );
         }
         let stripped_path = encode_module(&module_with_debug_locals_stripped(
             &compact_module_for_aot_blob(&module),
@@ -2027,7 +2083,10 @@ func main() {}
         let bytes = encode_module_dual_blob_package(&module);
         let decoded = decode_module_dual_blob_package(&bytes).expect("dual-blob package decode");
         let after = encode_module(&module);
-        assert_eq!(before, after, "dual-blob package wire must not mutate encode_module");
+        assert_eq!(
+            before, after,
+            "dual-blob package wire must not mutate encode_module"
+        );
         assert_eq!(decoded.sidecar, view);
         assert_eq!(decoded.execution_bytes, execution);
         assert_eq!(
@@ -2123,7 +2182,11 @@ func main() {
         );
         let module = Parser::parse(source).unwrap();
         let idx = ModuleIndex::from_module(&module);
-        let fields = idx.dataclass_fields.get("Counter").cloned().unwrap_or_default();
+        let fields = idx
+            .dataclass_fields
+            .get("Counter")
+            .cloned()
+            .unwrap_or_default();
         assert_eq!(fields, vec![SmolStr::new("value")], "fields={fields:?}");
         assert_eq!(
             idx.dataclass_field_default_i64
@@ -2140,7 +2203,8 @@ func main() {
             .map(|i| format!("{:?}", i.op))
             .collect();
         assert!(
-            ops.iter().any(|o| o.contains("ConstI32") || o.contains("ConstNumeric")),
+            ops.iter()
+                .any(|o| o.contains("ConstI32") || o.contains("ConstNumeric")),
             "main should pad default before Counter_init: {ops:?}"
         );
     }

@@ -40,7 +40,10 @@ fn p98_xml_xpath_attr() {
 #[test]
 fn p98_xml_xpath_text_fn() {
     let out = run_xpath("text()");
-    assert!(out.contains("alpha") || out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
+    assert!(
+        out.contains("alpha") || out.parse::<i64>().unwrap_or(0) >= 1,
+        "{out}"
+    );
 }
 
 #[test]
@@ -64,7 +67,10 @@ fn p98_xml_xpath_predicate_index() {
 #[test]
 fn p98_xml_xpath_compound_path() {
     let out = run_xpath("/root/child/item");
-    assert!(out.contains("gamma") || out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
+    assert!(
+        out.contains("gamma") || out.parse::<i64>().unwrap_or(0) >= 1,
+        "{out}"
+    );
 }
 
 #[test]
@@ -72,4 +78,3 @@ fn p98_xml_xpath_single_tag() {
     let out = run_xpath("item");
     assert!(out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
 }
-

@@ -4,7 +4,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-use syx_driver::{build_native_executable, compile_and_run_embedded, run_file_printed, DriverOptions};
+use syx_driver::{
+    build_native_executable, compile_and_run_embedded, run_file_printed, DriverOptions,
+};
 
 const GUIDEMO_FULL_INLINE: &str = r#"func onButtonClick() {
     print("onButtonClick: handler ran")
@@ -66,10 +68,6 @@ fn lines_compatible(vm: &str, native: &str) -> bool {
     normalize_pump_digits(vm) == normalize_pump_digits(native)
 }
 
-
-
-
-
 #[ignore = "Phase 124: syx-gui string-id API retired; use SynUI"]
 #[test]
 fn p98_guidemo_full_inline_vm_native_stdout_parity() {
@@ -98,7 +96,11 @@ fn p98_guidemo_full_inline_vm_native_stdout_parity() {
         !native.iter().any(|l| l.contains("nil")),
         "native must not print nil: {native:?}"
     );
-    assert_eq!(vm.len(), native.len(), "inline guidemo VM/native line count");
+    assert_eq!(
+        vm.len(),
+        native.len(),
+        "inline guidemo VM/native line count"
+    );
     for i in 0..vm.len() {
         assert!(
             lines_compatible(&vm[i], &native[i]),
@@ -109,7 +111,6 @@ fn p98_guidemo_full_inline_vm_native_stdout_parity() {
     }
     let _ = fs::remove_dir_all(&dir);
 }
-
 
 #[test]
 #[ignore = "W173: guidemo.sy retired; covered by driver_gate synui exec"]
@@ -131,7 +132,10 @@ fn p98_guidemo_examples_vm_native_stdout_parity() {
         "tick 2:",
         "gui demo done",
     ] {
-        assert!(vm.iter().any(|l| l.contains(needle)), "vm missing {needle}: {vm:?}");
+        assert!(
+            vm.iter().any(|l| l.contains(needle)),
+            "vm missing {needle}: {vm:?}"
+        );
     }
     assert!(
         !vm.iter().any(|l| l.contains("nil")),
@@ -144,11 +148,19 @@ fn p98_guidemo_examples_vm_native_stdout_parity() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::copy(&guidemo_path(), dir.join("guidemo.sy")).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"guidemo.sy\"\n").unwrap();
+    fs::write(
+        dir.join("syx.toml"),
+        "name = \"app\"\nmain = \"guidemo.sy\"\n",
+    )
+    .unwrap();
     let exe = dir.join("app");
     build_native_executable(&dir, &opts(), &exe).expect("native build");
     let output = Command::new(&exe).output().unwrap();
-    assert!(output.status.success(), "native run failed: {:?}", output.status);
+    assert!(
+        output.status.success(),
+        "native run failed: {:?}",
+        output.status
+    );
     let native: Vec<String> = String::from_utf8_lossy(&output.stdout)
         .lines()
         .map(|s| s.to_string())

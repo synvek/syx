@@ -39,11 +39,7 @@ fn opts() -> DriverOptions {
 }
 
 fn write_src_tmp(label: &str, src: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!(
-        "syx_w216_{}_{}",
-        label,
-        std::process::id()
-    ));
+    let dir = std::env::temp_dir().join(format!("syx_w216_{}_{}", label, std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     let path = dir.join("main.sy");
@@ -54,8 +50,7 @@ fn write_src_tmp(label: &str, src: &str) -> PathBuf {
 fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_native_mir_file_printed(&path, &opts()).expect("native mir");
+    let (code, lines) = run_native_mir_file_printed(&path, &opts()).expect("native mir");
     assert_eq!(code, 0, "native mir exit {code}: {lines:?}");
     lines
 }
@@ -63,8 +58,7 @@ fn run_native_mir_src(label: &str, src: &str) -> Vec<String> {
 fn run_wasm_src(label: &str, src: &str) -> Vec<String> {
     syx_host_plugin::register_echo_plugin_in_process();
     let path = write_src_tmp(label, src);
-    let (code, lines) =
-        run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
+    let (code, lines) = run_wasm_source_printed(&path, "main", &opts()).expect("wasm");
     assert_eq!(code, 0, "wasm exit {code}: {lines:?}");
     lines
 }
@@ -167,7 +161,10 @@ fn m2_s4_01_facade_returns_http_response_not_object() {
 fn m2_s4_01_make_response_accessors() {
     // Wave A W64 / ADR-408 / A-03: Http.response accessors product exact (no loopback).
     let out = run_ok(&net_facade_src(MAKE_RESPONSE_BODY));
-    assert_eq!(out, "200\nok\ntrue", "Http.response accessors must exact: {out}");
+    assert_eq!(
+        out, "200\nok\ntrue",
+        "Http.response accessors must exact: {out}"
+    );
 }
 
 #[test]
@@ -188,14 +185,20 @@ func main() {{
     let out = run_ok(&src);
     stop.store(true, Ordering::Relaxed);
     let _ = handle.join();
-    assert_eq!(out, "200\nok\ntrue", "loopback Http.get accessors must exact: {out}");
+    assert_eq!(
+        out, "200\nok\ntrue",
+        "loopback Http.get accessors must exact: {out}"
+    );
 }
 
 #[test]
 fn m2_s4_01_url_parse_fields() {
     // Wave A W65 / ADR-409 / A-03: Url.parse host/path/query product exact (no loopback).
     let out = run_ok(&net_facade_src(URL_PARSE_BODY));
-    assert_eq!(out, "example.com\n/a\nq=1", "Url.parse fields must exact: {out}");
+    assert_eq!(
+        out, "example.com\n/a\nq=1",
+        "Url.parse fields must exact: {out}"
+    );
 }
 
 #[test]
@@ -222,26 +225,27 @@ fn m2_s4_01_url_parse_fields_native_mir() {
         "url_mir",
         &net_facade_src(URL_PARSE_BODY),
     ));
-    assert_eq!(out, "example.com\n/a\nq=1", "Url.parse mir must exact: {out}");
+    assert_eq!(
+        out, "example.com\n/a\nq=1",
+        "Url.parse mir must exact: {out}"
+    );
 }
 
 #[test]
 #[ignore = "R-9: wasm emit W001 residual with SyxHost-prepended Url facade embed"]
 fn m2_s4_01_url_parse_fields_wasm() {
-    let out = lines_joined(&run_wasm_src(
-        "url_wasm",
-        &net_facade_src(URL_PARSE_BODY),
-    ));
-    assert_eq!(out, "example.com\n/a\nq=1", "Url.parse wasm must exact: {out}");
+    let out = lines_joined(&run_wasm_src("url_wasm", &net_facade_src(URL_PARSE_BODY)));
+    assert_eq!(
+        out, "example.com\n/a\nq=1",
+        "Url.parse wasm must exact: {out}"
+    );
 }
 
 #[test]
 fn m2_s4_01_docs_and_capability() {
     let usage = include_str!("../../../../docs/9_UsageGuide.md");
     assert!(
-        usage.contains("ADR-236")
-            && usage.contains("HTTPResponse")
-            && usage.contains("M2-S4-01"),
+        usage.contains("ADR-236") && usage.contains("HTTPResponse") && usage.contains("M2-S4-01"),
         "UsageGuide must document named HTTP types / ADR-236"
     );
     assert!(
@@ -320,11 +324,7 @@ func main() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).expect("tmpdir");
     fs::write(dir.join("main.sy"), src).expect("write main");
-    fs::write(
-        dir.join("syx.toml"),
-        "name = \"app\"\nmain = \"main.sy\"\n",
-    )
-    .expect("write toml");
+    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").expect("write toml");
     let exe = dir.join("app");
     build_native_executable(&dir, &DriverOptions::default(), &exe)
         .unwrap_or_else(|e| panic!("native build failed: {e}"));
@@ -374,4 +374,3 @@ func main() {
         "wasm Response accessors Header/Headers/Json must exact: {out}"
     );
 }
-

@@ -6,7 +6,9 @@ use std::path::PathBuf;
 
 use syx_driver::{emit_wasm_bytes, DriverOptions};
 use syx_mir_run::op;
-use syx_wasm_emit::{measure_aot_mir_exec_histogram, measure_aot_run_op_count, measure_aot_tier_stats};
+use syx_wasm_emit::{
+    measure_aot_mir_exec_histogram, measure_aot_run_op_count, measure_aot_tier_stats,
+};
 
 fn fixture(relative: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(relative)
@@ -38,7 +40,12 @@ fn assert_wasm_hard_zero(path: &PathBuf) {
     let _clear = ClearEnv;
     let wasm = emit_wasm_bytes(path, &opts()).expect("emit wasm");
     let stats = measure_aot_tier_stats(&wasm);
-    assert_eq!(stats.mir_exec, 0, "{} mir_exec must be zero: {stats:?}", path.display());
+    assert_eq!(
+        stats.mir_exec,
+        0,
+        "{} mir_exec must be zero: {stats:?}",
+        path.display()
+    );
     assert_eq!(
         measure_aot_run_op_count(&wasm),
         0,
@@ -69,7 +76,13 @@ fn assert_guest_control_no_mir_exec_control_ops(path: &PathBuf) {
     let _clear = ClearEnv;
     let wasm = emit_wasm_bytes(path, &opts()).expect("emit wasm");
     let hist = measure_aot_mir_exec_histogram(&wasm);
-    for banned in [op::POP_BOOL, op::PEEK_IS_NIL, op::POP, op::CONST_STR, op::CONCAT_STR] {
+    for banned in [
+        op::POP_BOOL,
+        op::PEEK_IS_NIL,
+        op::POP,
+        op::CONST_STR,
+        op::CONCAT_STR,
+    ] {
         assert_eq!(
             hist.get(&banned).copied().unwrap_or(0),
             0,
