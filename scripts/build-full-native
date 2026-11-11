@@ -11,7 +11,10 @@ cd "$ROOT"
 
 TARGET="${CARGO_BUILD_TARGET:-}"
 if [[ -z "$TARGET" ]]; then
-  TARGET="$(rustc -vV | awk '/^host:/{print $2; exit}')"
+  # Consume all of `rustc -vV` stdout. An early `awk …; exit` closes the pipe
+  # while rustc is still writing; with `set -o pipefail` that becomes status 141
+  # and this script exits before cargo runs ("instant success/fail").
+  TARGET="$(rustc -vV | awk '/^host:/{print $2}')"
 fi
 
 ARGS=(build --release -p syx-cli --features full-native)
