@@ -292,6 +292,9 @@ enum Commands {
         /// Print MirOp/HostFn IR capability summary
         #[arg(long)]
         ir_capabilities: bool,
+        /// Print native SDK layout next to this `syx` (rt archive / optional sysroot)
+        #[arg(long)]
+        native_sdk: bool,
     },
 }
 
@@ -1114,6 +1117,7 @@ build = "build.syb"
             aot_matrix,
             capabilities,
             ir_capabilities,
+            native_sdk,
         } => {
             if aot_matrix {
                 let report = run_aot_matrix(true);
@@ -1124,8 +1128,34 @@ build = "build.syb"
             } else if ir_capabilities {
                 let report = run_ir_capabilities_report();
                 print_ir_capabilities_report(&report);
+            } else if native_sdk {
+                let report = syx_driver::native_sdk_layout_report();
+                println!("native-sdk triple={}", report.triple);
+                match &report.rt_archive {
+                    Some(p) => println!("native-sdk rt_archive={}", p.display()),
+                    None => println!("native-sdk rt_archive=<missing>"),
+                }
+                match &report.sysroot {
+                    Some(p) => println!(
+                        "native-sdk sysroot={} ok={}",
+                        p.display(),
+                        report.sysroot_ok
+                    ),
+                    None => println!("native-sdk sysroot=<not shipped>"),
+                }
+                for note in &report.notes {
+                    println!("native-sdk note: {note}");
+                }
+                if report.ok {
+                    println!("native-sdk status=ok");
+                } else {
+                    println!("native-sdk status=fail");
+                    process::exit(1);
+                }
             } else {
-                println!("syx doctor: use --aot-matrix, --capabilities, or --ir-capabilities");
+                println!(
+                    "syx doctor: use --aot-matrix, --capabilities, --ir-capabilities, or --native-sdk"
+                );
             }
         }
     }

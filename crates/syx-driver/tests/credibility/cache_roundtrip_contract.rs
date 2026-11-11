@@ -43,6 +43,7 @@ fn s3_03_cache_roundtrip_function_unit_and_program() {
         mir_functions: indexmap::IndexMap::new(),
         mir_module: None,
         opaque_witnesses: indexmap::IndexMap::new(),
+        debug_source: None,
     };
     let bytes = bincode::serialize(&prog).expect("serialize CompiledProgram");
     let back: CompiledProgram = bincode::deserialize(&bytes).expect("deserialize CompiledProgram");

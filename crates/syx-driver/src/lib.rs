@@ -367,6 +367,9 @@ pub use check_project::{
     check_file_with_options, check_project, check_project_with_options,
 };
 
+/// Native SDK layout doctor surface (`syx doctor --native-sdk`).
+pub use syx_rt::{native_sdk_layout_report, NativeSdkLayoutReport};
+
 pub use test_runner::{
     test_project, test_project_with_filter, test_project_with_format, TestCaseResult,
     TestCaseStatus, TestOutputFormat, TestReport,

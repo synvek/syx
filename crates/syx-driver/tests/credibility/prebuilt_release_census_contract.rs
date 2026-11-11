@@ -198,7 +198,7 @@ fn s4_05_prebuilt_release_census_script_hinges() {
         .and_then(|rest| rest.split("},").next())
         .expect("CLI Doctor variant");
     assert!(
-        !doctor_block.contains("native_sdk") && !doctor_block.contains("native-sdk"),
-        "Hard OUT: Doctor must remain unwired for --native-sdk; got:\n{doctor_block}"
+        doctor_block.contains("native_sdk"),
+        "Doctor must expose --native-sdk (release/docs smoke); got:\n{doctor_block}"
     );
 }
