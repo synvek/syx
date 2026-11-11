@@ -33,7 +33,7 @@ func main() {
   do {
     c.bump()
     print("OK")
-  } catch (err) {
+  } catch (err: Object) {
     print("DENIED")
     print(err.code)
   }

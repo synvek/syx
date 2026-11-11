@@ -124,7 +124,7 @@ func main() { let a: Animal = Dog(); a.speak() }"#;
 
 #[test]
 fn polymorphic_base_ref_count_gate() {
-    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/polymorphic_base_ref.rs")).unwrap();
+    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/lang/polymorphic_base_ref.rs")).unwrap();
     let count = src.matches("#[test]").count();
     assert!(count >= 8, "polymorphic_base_ref needs 8+ honest tests, found {count}");
 }

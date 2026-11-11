@@ -1,0 +1,26 @@
+// R-20: struct / data class equality shells + operator diagnostics.
+//
+// Before this window, MIR lowering emitted `Call("{Type}_==")` for any struct or data
+// class operand while `lower_dataclass_shells` synthesized only `_init` / `_copy` /
+// `_describe` / `_hash_into`. Every `==` and `!=` on a value type therefore failed at
+// check time with `[C020] Unknown function 'Point_=='` — on the VM path too, not just
+// wasm.
+
+struct Point {
+    var x: Int
+    var y: Int
+}
+
+func main() {
+    let p = Point(x: 3, y: 4)
+    let q = Point(x: 3, y: 4)
+    let r = Point(x: 9, y: 9)
+
+    // Structural equality: same field values compare equal.
+    print(p == q)
+    // Inequality is the negation of the generated `==`.
+    print(p != q)
+    // Different field values must not be equal.
+    print(p == r)
+    print(p != r)
+}

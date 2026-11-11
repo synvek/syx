@@ -35,7 +35,12 @@ fn opts() -> DriverOptions {
 }
 
 fn temp_dir(src: &str, tag: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("syx_p98_hof_gen_{tag}_{}", std::process::id()));
+    static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let dir = std::env::temp_dir().join(format!(
+        "syx_p98_hof_gen_{tag}_{}_{n}",
+        std::process::id()
+    ));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("main.sy"), src).unwrap();

@@ -1,4 +1,4 @@
-//! Todo 5 slice 4: Array.contains(item: Object) — String + Int paths.
+//! Todo 5 slice 4: Array.contains(item: Sendable) — String + Int paths (R-27).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 

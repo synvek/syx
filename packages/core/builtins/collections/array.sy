@@ -80,7 +80,7 @@ extension Array {
     }
 
     /// Membership test (host `SyxHost.array_contains`).
-    func contains(item: Object) -> Bool {
+    func contains(item: Sendable) -> Bool {
         return SyxHost.array_contains(self, item)
     }
 
@@ -115,7 +115,7 @@ extension Array {
     }
 
     /// Append `item` in place (host `SyxHost.array_append`).
-    func append(item: Object) {
+    func append(item: Sendable) {
         SyxHost.array_append(self, item)
     }
 }

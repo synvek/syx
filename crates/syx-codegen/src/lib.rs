@@ -573,6 +573,29 @@ pub struct CodeGenerator {
     source_name: SmolStr,
 }
 
+/// R-20: split a synthesized binary-operator symbol `"{Type}_{op}"` into its parts.
+///
+/// Returns `None` for ordinary function names so the generic "Unknown function"
+/// diagnostic is preserved. Only the operators `binop_operator_symbol` can produce are
+/// recognized, longest-match first so `<=` wins over `<`.
+fn split_type_operator_name(name: &str) -> Option<(&str, &str)> {
+    const OPS: [&str; 13] = [
+        "==", "!=", "<=", ">=", "<<", ">>", "+", "-", "*", "/", "<", ">", "&",
+    ];
+    for op in OPS {
+        if let Some(type_name) = name.strip_suffix(op) {
+            // Require a `_` separator and a non-empty type name, so `a-b` style names
+            // and plain functions are not misread as operators.
+            if let Some(type_name) = type_name.strip_suffix('_') {
+                if !type_name.is_empty() {
+                    return Some((type_name, op));
+                }
+            }
+        }
+    }
+    None
+}
+
 impl CodeGenerator {
     // W482 / ADR-826: public AST-only `compile` / `compile_into*` entry points deleted.
     // Prefer [`Self::compile_with_mir`]. Historical inventories (W477–W479) keep
@@ -887,8 +910,10 @@ impl CodeGenerator {
         }
         // M1-B03: merge MIR dataclass/enum shells before bodies; skip AST shells for those.
         let mut mir_work = mir.clone();
-        syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_dataclass_shells(module));
-        syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_enum_shells(module));
+        // R-21: shells must REPLACE the generic `{Type}_init` that lower_class_init already
+        // emitted, otherwise the zero-arg version wins and struct fields stay empty.
+        syx_mir::merge_mir_shell_functions(&mut mir_work, syx_mir::lower_dataclass_shells(module));
+        syx_mir::merge_mir_shell_functions(&mut mir_work, syx_mir::lower_enum_shells(module));
         // W468 / ADR-812: FinalClass variant-init shells from MIR.
         syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_finalclass_shells(module));
         // W469 / ADR-813: register top-level VarGlobal names + combined `__init_global`.
@@ -956,6 +981,23 @@ impl CodeGenerator {
             .position(|f| f.name == *name)
             .map(|i| i as u32)
             .ok_or_else(|| {
+                // R-20: a missing `{Type}_{op}` symbol means the user applied an operator
+                // that MIR lowers to a synthesized/witness function but that no shell or
+                // user definition provides. Say which operator and what to do, instead of
+                // a bare "Unknown function 'Point_+'".
+                if let Some((type_name, op_sym)) = split_type_operator_name(name.as_str()) {
+                    return codegen_error_at(
+                        format!(
+                            "type '{type_name}' has no '{op_sym}' operator; \
+                             define `func {op_sym}(lhs: {type_name}, rhs: {type_name})` \
+                             or remove the operator (only '==' and '!=' are synthesized \
+                             for structs and data classes)"
+                        ),
+                        None,
+                        Span::DUMMY,
+                        "C020",
+                    );
+                }
                 codegen_error_at(
                     format!("Unknown function '{name}'"),
                     None,
@@ -964,6 +1006,7 @@ impl CodeGenerator {
                 )
             })
     }
+
 
     fn mir_op_to_instruction(op: &MirOp, program: &CompiledProgram) -> SyxResult<Instruction> {
         Ok(match op {

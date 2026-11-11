@@ -12,13 +12,13 @@ public class Url {
         return SyxHost.url_parse(text)
     }
 
-    /// Encode query (host `SyxHost.url_encode_query`).
-    public static func encodeQuery(query: Object) -> String {
+    /// Encode query dictionary → query string. R-9-01: `query: Dictionary` (≠ Object).
+    public static func encodeQuery(query: Dictionary) -> String {
         return SyxHost.url_encode_query(query)
     }
 
-    /// Build a URL string from components.
-    public static func build(base: String, path: String, query: Object) -> String {
+    /// Build a URL string from components. R-9-01: `query: Dictionary` (≠ Object).
+    public static func build(base: String, path: String, query: Dictionary) -> String {
         return SyxHost.url_build(base, path, query)
     }
 }

@@ -1,8 +1,10 @@
 //! Phase 91: WASM AOT tier-3 — zero `__syx_aot_exec_op` in emitted module.
 
-use syx_config::wasm_aot_tier3_enabled;
+use syx_config::{wasm_aot_tier3_enabled, SyxRuntimeConfig};
 use syx_mir::{MirBlock, MirFunction, MirInstr, MirModule, MirOp};
 use syx_wasm_emit::emit_wat;
+
+use crate::runtime_config_guard::with_runtime_config;
 
 fn sort_by_mir() -> MirModule {
     MirModule {
@@ -50,11 +52,23 @@ fn p98_wasm_aot_tier3_default_on() {
 
 #[test]
 fn p98_wasm_aot_exec_op_zero_wat() {
-    std::env::set_var("SYX_WASM_AOT_TIER3", "1");
-    let wat = emit_wat(&sort_by_mir()).unwrap();
+    // R-25-03: test name is AOT — install AOT config (tier-3 alone does not set plan.aot).
+    let wat = with_runtime_config(
+        SyxRuntimeConfig {
+            wasm: syx_config::WasmConfig {
+                aot: true,
+                mir_exec_only: false,
+            },
+            ..SyxRuntimeConfig::default()
+        },
+        || {
+            std::env::set_var("SYX_WASM_AOT_TIER3", "1");
+            emit_wat(&sort_by_mir())
+        },
+    )
+    .expect("AOT ConstI32+Print must emit");
     assert!(
         !wat.contains("__syx_aot_exec_op"),
         "tier-3 wasm must not import __syx_aot_exec_op"
     );
 }
-

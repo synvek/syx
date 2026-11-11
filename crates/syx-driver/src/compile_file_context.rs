@@ -173,7 +173,7 @@ pub fn compile_file_with_context(
                 if !merge_ctor && syx_meta::reflect_type(export.as_str()).is_none() {
                     continue;
                 }
-                for suffix in ["_init", "_copy", "_describe", "_hash_into", "_=="] {
+                for suffix in ["_init", "_copy", "_describe", "_hash_into", "_==", "_!="] {
                     let fname = SmolStr::new(format!("{export}{suffix}"));
                     if let Some(func) = dep.program.functions.iter().find(|f| f.name == fname) {
                         let mut merged = func.clone();

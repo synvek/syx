@@ -6,7 +6,7 @@
 
 | 类型 | 典型 API |
 |------|----------|
-| `Fmt` | `print` / `printLine` / `format` / `debug` |
+| `Fmt` | `print` / `printLine` / `debug` 取 `Sendable`；`format(..., args: Array<Sendable>)`（R-12；≠ Object） |
 | `Regex` | `isMatch` / `findAll` / `replaceAll` |
 | `Encoding` | `base64Encode` / `hexEncode` |
 | `Bytes` / `StringBuilder` | 缓冲拼接 |
@@ -29,9 +29,9 @@ func main() {
 
 | 包 | 要点 |
 |----|------|
-| `Testing` | `assert` / `assertEq` / `test`（`import Testing`） |
+| `Testing` | `assert` / `assertEq(Sendable,Sendable)` / `test(fn: Function)`（`import Testing`；R-12） |
 | `DI` | Service DI；见 [examples/service_di](../../../examples/service_di/) |
-| `SQL` | 见 [examples/sql_tool](../../../examples/sql_tool/) |
+| `SQL` | `SqlRow` 访问器 `row: Dictionary`（R-11）；见 [examples/sql_tool](../../../examples/sql_tool/) |
 | `Synchronization` | Channel / Mutex / Semaphore |
 | `UI` | SynUI 桥；**deferred**，勿当产品 GUI |
 | `Tracing` / `Metrics` / `Profiling` | 可观测 MVP；非产品 OTel / Prometheus / pprof GA |

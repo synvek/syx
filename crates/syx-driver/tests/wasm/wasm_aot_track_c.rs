@@ -1,39 +1,15 @@
 //! Phase 139 Track C: simd16 guest-v22 all_true / any_true MVP (+ inherited guest-v21 bitmask).
 
 use std::fs;
-use std::sync::Mutex;
 
 use syx_driver::{emit_wasm_bytes, DriverOptions};
+
+use crate::runtime_config_guard::with_simd128_tier3;
 
 fn opts() -> DriverOptions {
     let mut o = DriverOptions::default();
     o.wasm_aot = true;
     o
-}
-
-fn with_simd128_tier3<F: FnOnce()>(f: F) {
-    static SIMD128_ENV_LOCK: Mutex<()> = Mutex::new(());
-    let _guard = SIMD128_ENV_LOCK
-        .lock()
-        .unwrap_or_else(|e| e.into_inner());
-    std::env::set_var("SYX_WASM_SIMD128", "1");
-    std::env::set_var("SYX_WASM_AOT_TIER3", "1");
-    std::env::remove_var("SYX_WASM_MIR_EXEC_ONLY");
-    let mut cfg = syx_config::runtime_config();
-    cfg.enable_wasm_simd128 = true;
-    syx_config::install_runtime_config(cfg);
-    struct ClearEnv;
-    impl Drop for ClearEnv {
-        fn drop(&mut self) {
-            std::env::remove_var("SYX_WASM_SIMD128");
-            std::env::remove_var("SYX_WASM_AOT_TIER3");
-            let mut cfg = syx_config::runtime_config();
-            cfg.enable_wasm_simd128 = false;
-            syx_config::install_runtime_config(cfg);
-        }
-    }
-    let _clear = ClearEnv;
-    f();
 }
 
 fn assert_bool_stdout(lines: &[String], expected: &str, label: &str) {
@@ -46,7 +22,9 @@ fn assert_bool_stdout(lines: &[String], expected: &str, label: &str) {
 #[test]
 fn p139_wasm_simd128_simd16_all_any_true_stdout_hard() {
     syx_host_plugin::register_echo_plugin_in_process();
-    const SRC: &str = r#"func main() {
+    // R-25-02: SIMD16 behind SIMD4 facade import.
+    const SRC: &str = r#"import SIMD4
+func main() {
     let all = SIMD16.fromArray([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     let not_all = SIMD16.fromArray([1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     let any = SIMD16.fromArray([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])

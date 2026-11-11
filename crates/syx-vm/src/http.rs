@@ -445,14 +445,14 @@ fn push_body_stream_open_result(
     Ok(())
 }
 
-/// ADR-239: `HttpBodyStream.open(url) -> Object{handle,status}` (GET, empty options).
+/// ADR-239 / R-8: `HttpBodyStream.open(url) -> Dictionary{handle,status}` (GET, empty options).
 /// Keeps Response for incremental `Read` — does **not** call `response.bytes()`.
 pub fn host_http_body_stream_open(stack: &mut Vec<Value>) -> SyxResult<()> {
     let url = stack.pop().unwrap_or(Value::Str(String::new())).as_str();
     push_body_stream_open_result(stack, &url, &Value::Nil)
 }
 
-/// ADR-239: `HttpBodyStream.openWithOptions(url, options) -> Object{handle,status}`
+/// ADR-239 / R-8: `HttpBodyStream.openWithOptions(url, options) -> Dictionary{handle,status}`
 pub fn host_http_body_stream_open_opts(stack: &mut Vec<Value>) -> SyxResult<()> {
     let options = stack.pop().unwrap_or(Value::Nil);
     let url = stack.pop().unwrap_or(Value::Str(String::new())).as_str();

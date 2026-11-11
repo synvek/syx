@@ -37,5 +37,9 @@ Examples: [examples/http_tool/](../../examples/http_tool/) · [examples/http_ser
 | `Http.fetch(url:)` | GET; single labeled `url` argument |
 | `Http.post(url:body:)` | POST body as `String` |
 | `Url` | Parse / components |
+| `UdpSocket.bind` / `sendTo` / `recvFrom` | Host id `Int`; `recvFrom` → `Dictionary` (R-7; ≠ Object bag) |
+| `HttpBodyStream.open` / `openWithOptions` | → `Dictionary` (`handle`/`status`; R-8); access via `opened["handle"]` |
+| `Url.encodeQuery` / `Url.build` | `query: Dictionary` (R-9; ≠ Object) |
+| `WebSocket.connect` / `send` / `recv` / `close` | session bag `Dictionary` (R-10; ≠ Object; ≠ WSS GA); access via `ws["url"]` |
 
 Loopback positive cases can be configured with `SYX_EC_M2_1_HTTP_BASE`. The request-count ceiling of `Http.serve` is set by `SYX_HTTP_SERVE_MAX_REQUESTS` (≠ graceful `Http.shutdown` GA).

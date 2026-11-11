@@ -1,25 +1,25 @@
 // WebSocket client connect/send/recv/close (host `SyxHost.ws_*`).
 // ≠ product WS GA; see Net / E-01 roadmap honesty.
 
-/// Client WebSocket session over a host socket handle.
+/// Client WebSocket session over a host socket bag.
 public class WebSocket {
-    /// Connect a WebSocket client to `url`.
-    public static func connect(url: String) -> Object {
+    /// Connect a WebSocket client to `url`. R-10-01: `-> Dictionary` (≠ Object).
+    public static func connect(url: String) -> Dictionary {
         return SyxHost.ws_connect(url)
     }
 
-    /// Send a text `message` on `socket`.
-    public static func send(socket: Object, message: String) -> Bool {
+    /// Send a text `message` on `socket`. R-10-01: `socket: Dictionary` (≠ Object).
+    public static func send(socket: Dictionary, message: String) -> Bool {
         return SyxHost.ws_send(socket, message)
     }
 
-    /// Receive one text message from `socket`.
-    public static func recv(socket: Object) -> String {
+    /// Receive one text message from `socket`. R-10-01: `socket: Dictionary` (≠ Object).
+    public static func recv(socket: Dictionary) -> String {
         return SyxHost.ws_recv(socket)
     }
 
-    /// Close the WebSocket `socket`.
-    public static func close(socket: Object) {
+    /// Close the WebSocket `socket`. R-10-01: `socket: Dictionary` (≠ Object).
+    public static func close(socket: Dictionary) {
         SyxHost.ws_close(socket)
     }
 }

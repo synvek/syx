@@ -288,10 +288,11 @@ func main() {
 }
 
 #[test]
-fn manifest_phase66_inheritance_gate() {
+fn manifest_phase_inheritance_gate() {
+    // R-29: SSOT is packages/internal/manifest.json phase 139 (was stale pin 66).
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();
-    assert_eq!(m["phase"], 66);
+    assert_eq!(m["phase"], 139);
 }
 
 #[test]

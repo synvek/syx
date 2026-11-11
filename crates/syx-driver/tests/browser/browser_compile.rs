@@ -1,4 +1,7 @@
 //! Browser compiler E2E (Phase 65 d65-browser).
+//!
+//! R-28: AOT wasm `main` exit is product-contract **0** (Wave A W18). Assert via
+//! `print(N)` + `run_wasm_capture` (exit∨printed), not `exit == N` alone.
 // was: browser_compile
 
 use syx_compiler_wasm::compile_source_to_wasm_bytes;
@@ -16,17 +19,28 @@ fn with_browser_aot<F: FnOnce()>(f: F) {
     f();
 }
 
+fn run_aot_value(bytes: &[u8], expected: i32) {
+    let r = syx_wasm_run::run_wasm_capture(bytes, "main", None).expect("run");
+    let expect = expected.to_string();
+    let printed_ok = r.printed.iter().any(|l| l.contains(&expect));
+    assert!(
+        r.exit_code == expected || printed_ok,
+        "expected exit or stdout {expected}, got exit={} printed={:?}",
+        r.exit_code,
+        r.printed
+    );
+}
+
 #[test]
 fn browser_compiler_emits_valid_wasm() {
     with_browser_aot(|| {
         let bytes = compile_source_to_wasm_bytes(
             "main.sy",
-            r#"func main() { return 42 }"#,
+            r#"func main() { print(42); return 42 }"#,
         )
         .expect("compile");
         assert_eq!(&bytes[0..4], b"\0asm");
-        let exit = syx_wasm_run::run_wasm_with_module(&bytes, "main", None).expect("run");
-        assert_eq!(exit, 42);
+        run_aot_value(&bytes, 42);
     });
 }
 
@@ -82,35 +96,35 @@ fn wasm_wasi_example_builds() {
 }
 
 macro_rules! browser_compile_smoke {
-    ($name:ident, $src:expr, $ret:expr) => {
+    ($name:ident, $ret:expr) => {
         #[test]
         fn $name() {
             with_browser_aot(|| {
-                let bytes = compile_source_to_wasm_bytes("main.sy", $src).expect("compile");
+                let src = format!("func main() {{ print({}); return {} }}", $ret, $ret);
+                let bytes = compile_source_to_wasm_bytes("main.sy", &src).expect("compile");
                 assert_eq!(&bytes[0..4], b"\0asm");
-                let exit = syx_wasm_run::run_wasm_with_module(&bytes, "main", None).expect("run");
-                assert_eq!(exit, $ret);
+                run_aot_value(&bytes, $ret);
             });
         }
     };
 }
 
-browser_compile_smoke!(browser_ret_0, "func main() { return 0 }", 0);
-browser_compile_smoke!(browser_ret_1, "func main() { return 1 }", 1);
-browser_compile_smoke!(browser_ret_2, "func main() { return 2 }", 2);
-browser_compile_smoke!(browser_ret_3, "func main() { return 3 }", 3);
-browser_compile_smoke!(browser_ret_4, "func main() { return 4 }", 4);
-browser_compile_smoke!(browser_ret_5, "func main() { return 5 }", 5);
-browser_compile_smoke!(browser_ret_6, "func main() { return 6 }", 6);
-browser_compile_smoke!(browser_ret_7, "func main() { return 7 }", 7);
-browser_compile_smoke!(browser_ret_8, "func main() { return 8 }", 8);
-browser_compile_smoke!(browser_ret_9, "func main() { return 9 }", 9);
-browser_compile_smoke!(browser_ret_10, "func main() { return 10 }", 10);
-browser_compile_smoke!(browser_ret_11, "func main() { return 11 }", 11);
+browser_compile_smoke!(browser_ret_0, 0);
+browser_compile_smoke!(browser_ret_1, 1);
+browser_compile_smoke!(browser_ret_2, 2);
+browser_compile_smoke!(browser_ret_3, 3);
+browser_compile_smoke!(browser_ret_4, 4);
+browser_compile_smoke!(browser_ret_5, 5);
+browser_compile_smoke!(browser_ret_6, 6);
+browser_compile_smoke!(browser_ret_7, 7);
+browser_compile_smoke!(browser_ret_8, 8);
+browser_compile_smoke!(browser_ret_9, 9);
+browser_compile_smoke!(browser_ret_10, 10);
+browser_compile_smoke!(browser_ret_11, 11);
 
 #[test]
 fn browser_compile_count_gate() {
-    let src = std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/browser_compile.rs")).unwrap();
+    let src = std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/browser/browser_compile.rs")).unwrap();
     let count = src.matches("#[test]").count() + src.matches("browser_compile_smoke!").count();
     assert!(count >= 15, "browser_compile needs 15+ tests, found {count}");
 }

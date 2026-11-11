@@ -21,7 +21,6 @@ fn run(src: &str) -> String {
 
 fn net_facade_src(body: &str) -> String {
     let parts = [
-        include_str!("../../../../packages/io/file_handle.sy"),
         include_str!("../../../../packages/io/types/http_response.sy"),
         include_str!("../../../../packages/net/http_types.sy"),
         include_str!("../../../../packages/net/http_body_stream.sy"),
@@ -29,7 +28,8 @@ fn net_facade_src(body: &str) -> String {
         include_str!("../../../../packages/net/url.sy"),
     ]
     .join("\n");
-    format!("{parts}\n{body}")
+    // R-8: SyxHost at semantic time; skip file_handle (SystemError) — close uses NetworkError.
+    syx_driver::embedded_std::ensure_syx_host(&format!("{parts}\n{body}"))
 }
 
 fn start_tiny_body_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
@@ -76,8 +76,8 @@ fn ec_m2_3_http_body_stream_leak_open_close_returns_to_baseline() {
 func main() {{
   let opened = HttpBodyStream.open(url: "http://127.0.0.1:{port}/ok")
   print("OPENED")
-  print(opened.status)
-  let h = opened.handle
+  print(opened["status"])
+  let h = opened["handle"]
   HttpBodyStream.close(handle: h)
   print("CLOSED")
 }}
@@ -106,8 +106,8 @@ fn ec_m2_3_http_body_stream_leak_open_without_close_increments() {
 func main() {{
   let opened = HttpBodyStream.open(url: "http://127.0.0.1:{port}/leak")
   print("LEAKED")
-  print(opened.status)
-  print(opened.handle)
+  print(opened["status"])
+  print(opened["handle"])
 }}
 "#
     )));

@@ -58,6 +58,10 @@ pub fn lower_dataclass_shells(module: &Module) -> Vec<MirFunction> {
         out.push(lower_dataclass_copy_shell(name, fields));
         out.push(lower_dataclass_describe_shell(name, fields));
         out.push(lower_dataclass_hash_into_shell(name, fields));
+        // R-20: structural equality. MIR lowering emits `Call("{T}_==")` for any
+        // struct / data class operand, so these shells are mandatory, not optional.
+        out.push(lower_dataclass_eq_shell(name, fields));
+        out.push(lower_dataclass_ne_shell(name, fields));
     }
     out
 }
@@ -294,18 +298,76 @@ pub(crate) fn lower_dataclass_copy_shell(
     mir_shell_fn(SmolStr::new(format!("{name}_copy")), 1, 1, ins)
 }
 
+/// R-20: structural equality shell `{T}_==`.
+///
+/// MIR lowering emits `Call("{T}_==")` for any struct / data class operand
+/// (`mir_lower_expr_binary.rs`), but no shell was synthesized, so every comparison
+/// failed at check time with `[C020] Unknown function 'Point_=='`.
+///
+/// Semantics: field-by-field structural equality over the runtime bag. Local 0 is the
+/// left operand, local 1 the right operand, local 2 accumulates the running boolean.
+pub(crate) fn lower_dataclass_eq_shell(
+    name: &SmolStr,
+    fields: &[(SmolStr, syx_ast::TypeExpr)],
+) -> MirFunction {
+    let mut ins = Vec::new();
+    if fields.is_empty() {
+        // No fields: same-type values are structurally equal.
+        ins.push(mir_op(MirOp::ConstBool(true)));
+        ins.push(mir_op(MirOp::Return));
+        return mir_shell_fn(SmolStr::new(format!("{name}_==")), 2, 2, ins);
+    }
+    // acc = true
+    ins.push(mir_op(MirOp::ConstBool(true)));
+    ins.push(mir_op(MirOp::StoreLocal(2)));
+    for (field, _) in fields {
+        // acc = acc && (l[field] == r[field])
+        ins.push(mir_op(MirOp::LoadLocal(2)));
+        ins.push(mir_op(MirOp::LoadLocal(0)));
+        ins.push(mir_op(MirOp::ConstStr(field.to_string())));
+        ins.push(mir_op(MirOp::ObjectGet));
+        ins.push(mir_op(MirOp::LoadLocal(1)));
+        ins.push(mir_op(MirOp::ConstStr(field.to_string())));
+        ins.push(mir_op(MirOp::ObjectGet));
+        ins.push(mir_op(MirOp::ValueEq));
+        ins.push(mir_op(MirOp::And));
+        ins.push(mir_op(MirOp::StoreLocal(2)));
+    }
+    ins.push(mir_op(MirOp::LoadLocal(2)));
+    ins.push(mir_op(MirOp::Return));
+    mir_shell_fn(SmolStr::new(format!("{name}_==")), 2, 3, ins)
+}
+
+/// R-20: `{T}_!=` — negation of `{T}_==`.
+pub(crate) fn lower_dataclass_ne_shell(
+    name: &SmolStr,
+    fields: &[(SmolStr, syx_ast::TypeExpr)],
+) -> MirFunction {
+    let eq_name = SmolStr::new(format!("{name}_=="));
+    let mut ins = Vec::new();
+    ins.push(mir_op(MirOp::LoadLocal(0)));
+    ins.push(mir_op(MirOp::LoadLocal(1)));
+    ins.push(mir_op(MirOp::Call(eq_name)));
+    ins.push(mir_op(MirOp::Not));
+    ins.push(mir_op(MirOp::Return));
+    mir_shell_fn(SmolStr::new(format!("{name}_!=")), 2, 2, ins)
+}
+
 pub(crate) fn lower_dataclass_describe_shell(
     name: &SmolStr,
     fields: &[(SmolStr, syx_ast::TypeExpr)],
 ) -> MirFunction {
+    // R-22: every field gets a `name: ` label, including the first. The previous version
+    // only prefixed non-first fields, printing `Point(3, y: 4)`.
     let mut ins = vec![mir_op(MirOp::ConstStr(format!("{name}(")))];
-    let mut first = true;
-    for (field, _) in fields {
-        if !first {
-            ins.push(mir_op(MirOp::ConstStr(format!(", {field}: "))));
-            ins.push(mir_op(MirOp::ConcatStr));
-        }
-        first = false;
+    for (i, (field, _)) in fields.iter().enumerate() {
+        let prefix = if i == 0 {
+            format!("{field}: ")
+        } else {
+            format!(", {field}: ")
+        };
+        ins.push(mir_op(MirOp::ConstStr(prefix)));
+        ins.push(mir_op(MirOp::ConcatStr));
         ins.push(mir_op(MirOp::LoadLocal(0)));
         ins.push(mir_op(MirOp::ConstStr(field.to_string())));
         ins.push(mir_op(MirOp::ObjectGet));
@@ -347,6 +409,25 @@ pub fn merge_mir_functions(mir: &mut MirModule, extra: Vec<MirFunction>) {
     for func in extra {
         if !mir.functions.iter().any(|f| f.name == func.name) {
             mir.functions.push(func);
+        }
+    }
+}
+
+/// R-21: merge synthesized dataclass/enum/finalclass shells, **replacing** any existing
+/// function with the same name.
+///
+/// Why this differs from [`merge_mir_functions`]: `lower_class_init` runs first and emits a
+/// generic `{Type}_init` with `param_count = 0` that builds only `{__type: "Type"}`. For a
+/// struct or data class the memberwise shell from `lower_dataclass_init_shell` is the
+/// correct one (`param_count = fields.len()`, builds every field). Plain name-presence
+/// merging silently kept the generic zero-arg version, so every struct instance was
+/// constructed with empty fields — which is why `p.x` read back `nil` on this path and
+/// `p == r` compared `nil == nil` into `true`.
+pub fn merge_mir_shell_functions(mir: &mut MirModule, extra: Vec<MirFunction>) {
+    for func in extra {
+        match mir.functions.iter_mut().find(|f| f.name == func.name) {
+            Some(existing) => *existing = func,
+            None => mir.functions.push(func),
         }
     }
 }

@@ -82,8 +82,8 @@ Default `Http.get` / `fetch` still **fully buffers**. Opt-in session:
 import Networking
 
 let opened = HttpBodyStream.open(url: "http://127.0.0.1:8080/big")
-let handle = opened.handle
-print(opened.status)
+let handle = opened["handle"]
+print(opened["status"])
 var chunk = HttpBodyStream.readChunk(handle: handle, maxBytes: 1024)
 while chunk != "" {
     print(chunk)

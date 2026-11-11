@@ -1,0 +1,28 @@
+# Keep Cursor's indexer out of Rust build artifacts.
+#
+# Why this file exists: the workspace `target/` grew to 52 GB (46 GB in
+# `target/debug`, 17 GB of it `incremental/`, plus nine ~490 MB `libsyx_rt-*.a`
+# duplicates). Cursor was indexing it, which pushed a 32 GB machine past 50 GB of
+# memory and forced a hard kill mid-session.
+#
+# Git already ignores these paths (.gitignore `/target/`), but Cursor's indexer
+# benefits from an explicit deny list, and file watching needs to skip them too.
+
+target/
+target-full-native/
+**/target/
+
+# Per-example build output (same class of problem, smaller scale).
+examples/**/target/
+examples/**/.syx-cache/
+packages/.sy-cache/
+
+# Test/scratch artifacts that churn constantly and are never worth indexing.
+*.wasm
+*.wat
+*.a
+*.rlib
+*.dSYM/
+
+# Local editor/agent scratch dirs.
+.cursor/plans/archive/

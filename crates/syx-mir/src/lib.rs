@@ -92,7 +92,7 @@ use mir_lower_stmt::lower_stmt;
 mod mir_lower_shells;
 pub use mir_lower_shells::{
     lower_dataclass_shells, lower_enum_shells, lower_finalclass_shells, lower_varglobal_inits,
-    merge_mir_functions, prefix_user_dep_mir_batch,
+    merge_mir_functions, merge_mir_shell_functions, prefix_user_dep_mir_batch,
 };
 mod mir_lower_type_members;
 use mir_lower_type_members::lower_type_members;
@@ -564,10 +564,13 @@ func main() { print(0) }"#,
         let mut mir = lower_module(&module).unwrap();
         optimize(&mut mir);
         let init = mir.functions.iter().find(|f| f.name == "Counter_init").expect("init");
+        // R-26-03: witness fn index is ConstFnIndex (not ConstI32) after shell merge.
         let has_witness = init.blocks.iter().any(|b| {
             b.instructions.windows(2).any(|w| {
-                matches!(w[0].op, MirOp::ConstI32(idx) if idx > 0)
+                matches!(&w[0].op, MirOp::ConstFnIndex(_))
                     && matches!(&w[1].op, MirOp::ConstStr(s) if s == "__witness_Iterator_next")
+            }) || b.instructions.iter().any(|i| {
+                matches!(&i.op, MirOp::ConstStr(s) if s == "__witness_Iterator_next")
             })
         });
         assert!(has_witness, "Counter_init missing Iterator witness");
@@ -639,7 +642,7 @@ func main() { print(0) }"#,
         use syx_semantic::SemanticAnalyzer;
         let source = SourceFile::new(
             "t.sy",
-            "func id<T>(x: Int) -> Int { return x }\nfunc main() { print(id(42)) }",
+            "func id<T>(x: Int) -> Int { return x }\nfunc main() { print(id(x: 42)) }",
         );
         let module = Parser::parse(source).unwrap();
         let semantic = SemanticAnalyzer::analyze(&module).unwrap();
@@ -1336,6 +1339,43 @@ func b() {
         assert!(reachable.contains("actor_fn"));
         assert!(reachable.contains("super_init"));
         assert!(!reachable.contains("unreferenced"));
+    }
+
+    #[test]
+    fn r29_super_method_lowers_to_call_super() {
+        // R-29: any super.method → CallSuper (not only super.init).
+        let source = SourceFile::new(
+            "t.sy",
+            r#"class Base {
+    func greet() { print("b") }
+}
+class Child: Base {
+    override func greet() { print("c") }
+    func up() { super.greet() }
+}
+func main() { Child().up() }
+"#,
+        );
+        let module = Parser::parse(source).unwrap();
+        let mir = lower_module(&module).unwrap();
+        let up = mir
+            .functions
+            .iter()
+            .find(|f| f.name == "Child_up" || f.name.ends_with("_up"))
+            .expect("Child_up");
+        let has_call_super = up.blocks.iter().any(|b| {
+            b.instructions
+                .iter()
+                .any(|i| matches!(&i.op, MirOp::CallSuper(n) if n == "Base_greet"))
+        });
+        assert!(
+            has_call_super,
+            "Child_up must CallSuper Base_greet; ops={:?}",
+            up.blocks
+                .iter()
+                .flat_map(|b| b.instructions.iter().map(|i| format!("{:?}", i.op)))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]

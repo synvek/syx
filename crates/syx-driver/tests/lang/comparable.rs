@@ -31,11 +31,12 @@ fn has_error(src: &str, code: &str) -> bool {
 }
 
 #[test]
-fn manifest_phase66() {
+fn manifest_phase_gate() {
+    // R-29: align with packages/internal/manifest.json (was phase 66 / version 44.0).
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();
-    assert_eq!(m["phase"], 66);
-    assert_eq!(m["version"], "44.0");
+    assert_eq!(m["phase"], 139);
+    assert_eq!(m["version"], "0.2.0");
 }
 
 #[test]
@@ -170,9 +171,10 @@ fn comparable_protocol_source_embedded() {
 
 #[test]
 fn int_extension_declares_compare() {
+    // R-29: product Int.compare spells SyxHost.int_compare (host still registers __syx_int_compare).
     let src = syx_driver::embedded_std::lookup_core_builtin("Int").expect("Int");
     assert!(src.contains("func compare"));
-    assert!(src.contains("__syx_int_compare"));
+    assert!(src.contains("SyxHost.int_compare"));
 }
 
 #[test]

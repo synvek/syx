@@ -2,6 +2,8 @@
 #![allow(unused_imports)]
 mod exec;
 mod mir_emit;
+mod stack_effect;
+mod stack_tracker;
 mod stats;
 mod tier_matrix;
 mod wasm_emit_diag;

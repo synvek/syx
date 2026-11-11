@@ -2,17 +2,16 @@
 
 /// Connectionless datagram socket facade.
 public class UdpSocket {
-    /// Bind a UDP socket on `host`:`port`.
-    public static func bind(host: String, port: Int) -> Object {
+    /// Bind a UDP socket on `host`:`port`. R-7-01: `-> Int` (≠ Object).
+    public static func bind(host: String, port: Int) -> Int {
         return SyxHost.udp_bind(host, port)
     }
-    /// Send `data` to `host`:`port` via `socket`.
-    public static func sendTo(socket: Object, host: String, port: Int, data: String) -> Int {
+    /// Send `data` to `host`:`port` via `socket`. R-7-01: `socket: Int` (≠ Object).
+    public static func sendTo(socket: Int, host: String, port: Int, data: String) -> Int {
         return SyxHost.udp_send_to(socket, host, port, data)
     }
-    /// Receive up to `maxBytes` from `socket` (Object bag).
-    public static func recvFrom(socket: Object, maxBytes: Int) -> Object {
+    /// Receive up to `maxBytes` from `socket`. R-7-01: `socket: Int` → `Dictionary` (≠ Object).
+    public static func recvFrom(socket: Int, maxBytes: Int) -> Dictionary {
         return SyxHost.udp_recv_from(socket, maxBytes)
     }
 }
-

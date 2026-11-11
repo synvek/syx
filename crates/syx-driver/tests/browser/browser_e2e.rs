@@ -29,11 +29,20 @@ fn e2e_browser_emits_valid_wasm_header() {
 
 #[test]
 fn e2e_browser_runs_return_value() {
+    // R-28: AOT wasm exit is product-contract 0; assert via print/capture.
     with_browser_aot(|| {
-        let bytes = compile_source_to_wasm_bytes("main.sy", r#"func main() { return 99 }"#)
-            .expect("compile");
-        let exit = syx_wasm_run::run_wasm_with_module(&bytes, "main", None).expect("run");
-        assert_eq!(exit, 99);
+        let bytes = compile_source_to_wasm_bytes(
+            "main.sy",
+            r#"func main() { print(99); return 99 }"#,
+        )
+        .expect("compile");
+        let r = syx_wasm_run::run_wasm_capture(&bytes, "main", None).expect("run");
+        assert!(
+            r.exit_code == 99 || r.printed.iter().any(|l| l.contains("99")),
+            "expected exit or stdout 99, got exit={} printed={:?}",
+            r.exit_code,
+            r.printed
+        );
     });
 }
 
@@ -89,9 +98,10 @@ fn e2e_wasm_web_index_exists() {
 
 #[test]
 fn e2e_compiler_wasm_crate_builds() {
+    // CARGO_MANIFEST_DIR = crates/syx-driver → ../../ = repo root (R-28 path pin).
     let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../crates/syx-compiler-wasm/Cargo.toml");
-    assert!(manifest.exists());
+        .join("../../crates/syx-compiler-wasm/Cargo.toml");
+    assert!(manifest.exists(), "missing {}", manifest.display());
 }
 
 #[test]
@@ -113,23 +123,29 @@ fn e2e_wasm_wasi_driver_emit() {
 
 #[test]
 fn e2e_arithmetic_source_compiles() {
+    // R-28: AOT exit=0 contract — print the result, assert capture.
     with_browser_aot(|| {
         let bytes = compile_source_to_wasm_bytes(
             "arith.sy",
-            r#"func main() { return 1 + 2 + 3 }"#,
+            r#"func main() { print(1 + 2 + 3); return 1 + 2 + 3 }"#,
         )
         .expect("compile");
-        let exit = syx_wasm_run::run_wasm_with_module(&bytes, "main", None).expect("run");
-        assert_eq!(exit, 6);
+        let r = syx_wasm_run::run_wasm_capture(&bytes, "main", None).expect("run");
+        assert!(
+            r.exit_code == 6 || r.printed.iter().any(|l| l.contains("6")),
+            "expected exit or stdout 6, got exit={} printed={:?}",
+            r.exit_code,
+            r.printed
+        );
     });
 }
 
 #[test]
 fn e2e_phase66_ci_compiler_wasm_job() {
     let ci = std::fs::read_to_string(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../.github/workflows/ci.yml"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.github/workflows/ci.yml"),
     )
-    .unwrap();
+    .unwrap_or_else(|e| panic!("read ci.yml: {e}"));
     assert!(ci.contains("compiler-wasm") || ci.contains("compiler.wasm"));
 }
 

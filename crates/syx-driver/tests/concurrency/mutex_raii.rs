@@ -22,19 +22,19 @@ public class MutexGuard {
 }
 
 public class Mutex {
-    public static func create() -> Object {
+    public static func create() -> Int {
         return __syx_mutex_create()
     }
 
-    public static func lock(mutex: Object) {
+    public static func lock(mutex: Int) {
         __syx_mutex_lock(mutex)
     }
 
-    public static func unlock(mutex: Object) {
+    public static func unlock(mutex: Int) {
         __syx_mutex_unlock(mutex)
     }
 
-    public static func lockGuard(mutex: Object) -> MutexGuard {
+    public static func lockGuard(mutex: Int) -> MutexGuard {
         let ok = __syx_mutex_lock(mutex)
         let g = MutexGuard()
         if ok {
@@ -56,7 +56,7 @@ fn m3_c01_mutex_raii_forget_unlock_scope_exit() {
     // Helper return drops MutexGuard → deinit quiet unlock; no explicit unlock.
     let out = run(&facade_src(
         r#"
-func holdThenDrop(_ m: Object) {
+func holdThenDrop(_ m: Int) {
   let g = Mutex.lockGuard(mutex: m)
   print("HELD")
 }

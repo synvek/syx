@@ -80,7 +80,7 @@ func done() {
 | API | Purpose |
 |-----|------|
 | `assert(condition: Bool)` | If the condition is false → the case fails (Host `Err`, not a process panic) |
-| `assertEq(actual: Object, expected: Object)` | If the values are unequal → failure (`value_equals`) |
+| `assertEq(actual: Sendable, expected: Sendable)` | If the values are unequal → failure (`value_equals`); R-12 (≠ Object). `test(name:fn:)` takes `fn: Function`. |
 
 You **must** write `import Testing`; `syx test` does **not** auto-inject the module. When there is no `@Test`, the closures registered by `test(name:fn:)` run and appear in the JSON (`{file}.{name}`). A file with `@Test` does not open additional sibling cases; if a registered closure fails, the failure text is merged into that `@Test`. `expectEqual` is still not a discovery path. `@Test async func …` may `await` inside its body (same drain shape as `async func main`); an explicit `import Testing` is still required. **Not implemented:** auto-import.
 

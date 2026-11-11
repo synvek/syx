@@ -12,17 +12,17 @@ public class Set: Equatable, Hashable, CustomStringConvertible {
     }
 
     /// Membership test.
-    public static func contains(items: Set, item: Object) -> Bool {
+    public static func contains(items: Set, item: Sendable) -> Bool {
         return SyxHost.set_contains(items, item)
     }
 
     /// Insert `item` if absent; returns whether inserted.
-    public static func insert(items: Set, item: Object) -> Bool {
+    public static func insert(items: Set, item: Sendable) -> Bool {
         return SyxHost.set_insert(items, item)
     }
 
     /// Remove `item` if present; returns whether removed.
-    public static func remove(items: Set, item: Object) -> Bool {
+    public static func remove(items: Set, item: Sendable) -> Bool {
         return SyxHost.set_remove(items, item)
     }
 }
@@ -34,17 +34,17 @@ extension Set {
     }
 
     /// Membership test.
-    func contains(item: Object) -> Bool {
+    func contains(item: Sendable) -> Bool {
         return SyxHost.set_contains(self, item)
     }
 
     /// Insert `item` if absent; returns whether inserted.
-    func insert(item: Object) -> Bool {
+    func insert(item: Sendable) -> Bool {
         return SyxHost.set_insert(self, item)
     }
 
     /// Remove `item` if present; returns whether removed.
-    func remove(item: Object) -> Bool {
+    func remove(item: Sendable) -> Bool {
         return SyxHost.set_remove(self, item)
     }
 

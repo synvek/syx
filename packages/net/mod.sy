@@ -1,5 +1,5 @@
-/// ADR-236 / M2-S4-01: facade returns `HTTPResponse` (not糊墙 `Object`).
-/// SA-4-02: primary fetch/request/post paths are typed (no `options: Object` / `body: Object`).
+/// ADR-236 / M2-S4-01: facade returns `HTTPResponse` (not a paste-wall any-value bag).
+/// SA-4-02: primary fetch/request/post paths are typed (no untyped options/body parameters).
 public class Http {
     /// HTTP fetch (GET) returning `HTTPResponse`.
     public static func fetch(url: String) -> HTTPResponse {

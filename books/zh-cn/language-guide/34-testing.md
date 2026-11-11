@@ -80,7 +80,7 @@ func done() {
 | API | 作用 |
 |-----|------|
 | `assert(condition: Bool)` | 条件为假 → 该用例失败（Host `Err`，非进程 panic） |
-| `assertEq(actual: Object, expected: Object)` | 值不相等 → 失败（`value_equals`） |
+| `assertEq(actual: Sendable, expected: Sendable)` | 值不相等 → 失败（`value_equals`）；R-12（≠ Object）。`test(name:fn:)` 的 `fn: Function`。 |
 
 **必须**写 `import Testing`；`syx test` **不会**自动注入该模块。没有 `@Test` 时，`test(name:fn:)` 登记的闭包会执行并出现在 JSON 里（`{文件}.{name}`）。带 `@Test` 的文件不另开兄弟用例；登记闭包若失败，失败文本并进该 `@Test`。`expectEqual` 仍不是发现路径。`@Test async func …` 体内可 `await`（与 `async func main` 同形 drain）；仍须显式 `import Testing`。**未做：** auto-import。
 

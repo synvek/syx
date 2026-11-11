@@ -33,7 +33,17 @@ use wasm_encoder::{
 };
 
 use crate::exec::{aot, host, op};
+use crate::stack_tracker;
 use crate::wasm_emit_diag::wasm_emit_error_at;
+
+/// Emit one wasm instruction, updating the R-23 StackTracker when active.
+#[inline]
+fn emit_wasm_instr(body: &mut Function, instr: &WasmInstr) {
+    if let Err(e) = stack_tracker::track_instruction(instr, None) {
+        aot_emit_hard_fail(&e);
+    }
+    body.instruction(instr);
+}
 
 struct EmitPlan {
     aot: bool,
@@ -832,6 +842,17 @@ pub fn emit_wasm_with_options(module: &MirModule, aot: bool) -> SyxResult<Vec<u8
     let bytes = wasm_module.finish();
     // S0-06: refuse to ship modules that fail wasmparser validation (fail-closed).
     if let Err(e) = wasmparser::validate(&bytes) {
+        // R-16: diagnostic bypass only. On validation failure, optionally dump the WAT so
+        // the offending stack imbalance can be located. This never weakens fail-closed:
+        // the error is still returned.
+        if let Ok(path) = std::env::var("SYX_WASM_DUMP_WAT") {
+            if !path.is_empty() {
+                let _ = std::fs::write(&path, &bytes);
+                if let Ok(wat) = wasmprinter::print_bytes(&bytes) {
+                    let _ = std::fs::write(format!("{path}.wat"), wat);
+                }
+            }
+        }
         return Err(wasm_emit_error_at(
             format!("wasm module failed validation after emit: {e}"),
             None,
@@ -854,13 +875,19 @@ fn emit_function_body(
     simd128: bool,
     simd_tmp_local: Option<u32>,
 ) {
-    body.instruction(&WasmInstr::I32Const(func_idx as i32));
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SetFnIndex)));
+    // R-23: operand-stack tracker active for this function body.
+    stack_tracker::begin_function(
+        func.name.as_str(),
+        &plan.aot_import_map,
+        &plan.host_import_map,
+    );
+    emit_wasm_instr(body, &WasmInstr::I32Const(func_idx as i32));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SetFnIndex)));
     if !plan.aot || func.param_count > 0 {
-        body.instruction(&WasmInstr::I32Const(func.param_count as i32));
-        body.instruction(&WasmInstr::I32Const(func.local_count as i32));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::BeginFn)));
-        body.instruction(&WasmInstr::Drop);
+        emit_wasm_instr(body, &WasmInstr::I32Const(func.param_count as i32));
+        emit_wasm_instr(body, &WasmInstr::I32Const(func.local_count as i32));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::BeginFn)));
+        emit_wasm_instr(body, &WasmInstr::Drop);
     }
 
     let block_pos: HashMap<u32, usize> = func
@@ -904,7 +931,8 @@ fn emit_function_body(
             simd_export_shim,
         );
     }
-    body.instruction(&WasmInstr::End);
+    emit_wasm_instr(body, &WasmInstr::End);
+    stack_tracker::end_function();
 }
 
 fn needs_cfg_dispatch(func: &MirFunction) -> bool {
@@ -944,6 +972,15 @@ fn leaves_guest_cond_i32(op: &MirOp) -> bool {
     )
 }
 
+/// R-23/R-24: ops that leave a guest i32 stub the next `Pop` may clean up.
+/// - `Call` / `CallHost`: `take_catch` LocalGet preserves the placeholder.
+/// - `Print`: `(i32)->i32` import leaves a placeholder (RT owns the side effect).
+/// Drop unless the next op is `Pop` — otherwise Block/`End` leaks (W001) or a
+/// following `Pop` double-Drops (tracker: `Drop underflow … mir_op=Pop`).
+fn leaves_guest_call_stub(op: &MirOp) -> bool {
+    matches!(op, MirOp::Call(_) | MirOp::CallHost(_) | MirOp::Print)
+}
+
 fn next_consumes_guest_cond(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
     matches!(
         ops.get(idx + 1).map(|i| &i.op),
@@ -951,9 +988,23 @@ fn next_consumes_guest_cond(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
     )
 }
 
+fn next_is_pop(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
+    matches!(ops.get(idx + 1).map(|i| &i.op), Some(MirOp::Pop))
+}
+
 fn drop_unused_guest_cond(body: &mut Function, op: &MirOp, ops: &[syx_mir::MirInstr], idx: usize) {
+    // R-24-02: explicit `Pop` owns cleanup — do not Drop here (ConstNil+Pop,
+    // Print+Pop, Call-stub+Pop all double-Drop otherwise).
+    if next_is_pop(ops, idx) {
+        return;
+    }
     if leaves_guest_cond_i32(op) && !next_consumes_guest_cond(ops, idx) {
-        body.instruction(&WasmInstr::Drop);
+        emit_wasm_instr(body, &WasmInstr::Drop);
+        return;
+    }
+    // R-23: Call-stub cleanup (probe: abs=877 / 0xdb45 on `print(1)`).
+    if leaves_guest_call_stub(op) {
+        emit_wasm_instr(body, &WasmInstr::Drop);
     }
 }
 
@@ -977,6 +1028,7 @@ fn emit_linear_body(
             if matches!(instr.op, MirOp::Return) {
                 returned = true;
             }
+            stack_tracker::set_mir_context(block.id, idx, &format!("{:?}", instr.op));
             emit_mir_instr(
                 body,
                 instr,
@@ -1001,8 +1053,8 @@ fn emit_linear_body(
         }
     }
     if !returned {
-        body.instruction(&WasmInstr::I32Const(0));
-        body.instruction(&WasmInstr::Return);
+        emit_wasm_instr(body, &WasmInstr::I32Const(0));
+        emit_wasm_instr(body, &WasmInstr::Return);
     }
 }
 
@@ -1023,18 +1075,18 @@ fn emit_cfg_body(
 ) {
     let entry_pc = *block_pos.get(&func.entry).unwrap_or(&0) as i32;
 
-    body.instruction(&WasmInstr::I32Const(entry_pc));
-    body.instruction(&WasmInstr::GlobalSet(0));
+    emit_wasm_instr(body, &WasmInstr::I32Const(entry_pc));
+    emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
 
-    body.instruction(&WasmInstr::Loop(wasm_encoder::BlockType::Empty));
+    emit_wasm_instr(body, &WasmInstr::Loop(wasm_encoder::BlockType::Empty));
 
     for (block_idx, block) in func.blocks.iter().enumerate() {
         let start = block_idx as i32;
-        body.instruction(&WasmInstr::Block(wasm_encoder::BlockType::Empty));
-        body.instruction(&WasmInstr::GlobalGet(0));
-        body.instruction(&WasmInstr::I32Const(start));
-        body.instruction(&WasmInstr::I32Eq);
-        body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
+        emit_wasm_instr(body, &WasmInstr::Block(wasm_encoder::BlockType::Empty));
+        emit_wasm_instr(body, &WasmInstr::GlobalGet(0));
+        emit_wasm_instr(body, &WasmInstr::I32Const(start));
+        emit_wasm_instr(body, &WasmInstr::I32Eq);
+        emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
 
         let mut ends_with_transfer = false;
         let mut idx = 0;
@@ -1046,18 +1098,23 @@ fn emit_cfg_body(
                         _ => unreachable!(),
                     };
                     // Phase 100: JumpIfFalse is true guest (i32.eqz) — never POP_BOOL via mir_exec.
-                    body.instruction(&WasmInstr::I32Eqz);
-                    body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
+                    emit_wasm_instr(body, &WasmInstr::I32Eqz);
+                    emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
                     let t = *block_pos.get(&target).unwrap_or(&(block_idx + 1)) as i32;
-                    body.instruction(&WasmInstr::I32Const(t));
-                    body.instruction(&WasmInstr::GlobalSet(0));
-                    body.instruction(&WasmInstr::Br(3));
-                    body.instruction(&WasmInstr::Else);
+                    emit_wasm_instr(body, &WasmInstr::I32Const(t));
+                    emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+                    emit_wasm_instr(body, &WasmInstr::Br(3));
+                    emit_wasm_instr(body, &WasmInstr::Else);
                     idx += 1;
                     while idx < block.instructions.len() {
                         if matches!(block.instructions[idx].op, MirOp::Jump(_) | MirOp::Return) {
                             ends_with_transfer = true;
                         }
+                        stack_tracker::set_mir_context(
+                            block.id,
+                            idx,
+                            &format!("{:?}", block.instructions[idx].op),
+                        );
                         emit_mir_instr(
                             body,
                             &block.instructions[idx],
@@ -1083,8 +1140,13 @@ fn emit_cfg_body(
                         );
                         idx += 1;
                     }
-                    body.instruction(&WasmInstr::End);
+                    emit_wasm_instr(body, &WasmInstr::End);
                 } else {
+                    stack_tracker::set_mir_context(
+                        block.id,
+                        idx,
+                        &format!("{:?}", block.instructions[idx].op),
+                    );
                     emit_mir_instr(
                         body,
                         &block.instructions[idx],
@@ -1108,6 +1170,11 @@ fn emit_cfg_body(
                 if matches!(block.instructions[idx].op, MirOp::Jump(_) | MirOp::Return) {
                     ends_with_transfer = true;
                 }
+                stack_tracker::set_mir_context(
+                    block.id,
+                    idx,
+                    &format!("{:?}", block.instructions[idx].op),
+                );
                 emit_mir_instr(
                     body,
                     &block.instructions[idx],
@@ -1132,19 +1199,19 @@ fn emit_cfg_body(
 
         if !ends_with_transfer {
             let next_pc = block_idx + 1;
-            body.instruction(&WasmInstr::I32Const(next_pc as i32));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(2));
+            emit_wasm_instr(body, &WasmInstr::I32Const(next_pc as i32));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(2));
         }
 
-        body.instruction(&WasmInstr::End);
-        body.instruction(&WasmInstr::End);
+        emit_wasm_instr(body, &WasmInstr::End);
+        emit_wasm_instr(body, &WasmInstr::End);
     }
 
-    body.instruction(&WasmInstr::End);
+    emit_wasm_instr(body, &WasmInstr::End);
 
-    body.instruction(&WasmInstr::I32Const(0));
-    body.instruction(&WasmInstr::Return);
+    emit_wasm_instr(body, &WasmInstr::I32Const(0));
+    emit_wasm_instr(body, &WasmInstr::Return);
 }
 fn catch_br(br_to_loop: u32) -> Option<u32> {
     if br_to_loop > 0 {
@@ -1158,20 +1225,20 @@ fn catch_br(br_to_loop: u32) -> Option<u32> {
 /// using the same encoding as `emit_mir_exec` / `mir_exec_dispatch` (`-(pc+2)`).
 /// Fallthrough restores the host i32 (same as `emit_mir_exec(..., keep_result: true)`).
 fn emit_call_host_take_catch(body: &mut Function, br_to_loop: u32) {
-    body.instruction(&WasmInstr::LocalSet(0));
-    body.instruction(&WasmInstr::LocalGet(0));
-    body.instruction(&WasmInstr::I32Const(-2));
-    body.instruction(&WasmInstr::I32LtS);
-    body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
-    body.instruction(&WasmInstr::I32Const(-2));
-    body.instruction(&WasmInstr::LocalGet(0));
-    body.instruction(&WasmInstr::I32Sub);
-    body.instruction(&WasmInstr::GlobalSet(0));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(0));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(0));
+    emit_wasm_instr(body, &WasmInstr::I32Const(-2));
+    emit_wasm_instr(body, &WasmInstr::I32LtS);
+    emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
+    emit_wasm_instr(body, &WasmInstr::I32Const(-2));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(0));
+    emit_wasm_instr(body, &WasmInstr::I32Sub);
+    emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
     if br_to_loop > 0 {
-        body.instruction(&WasmInstr::Br(br_to_loop + 1));
+        emit_wasm_instr(body, &WasmInstr::Br(br_to_loop + 1));
     }
-    body.instruction(&WasmInstr::End);
-    body.instruction(&WasmInstr::LocalGet(0));
+    emit_wasm_instr(body, &WasmInstr::End);
+    emit_wasm_instr(body, &WasmInstr::LocalGet(0));
 }
 
 /// Phase 110: one host spill call for both binop SIMD operands (slot `-1`).
@@ -1263,17 +1330,17 @@ const SIMD_LS_ARRAY_LOCAL: i32 = 240;
 /// Phase 117 guest-v10: push wasm v128 (on stack) into RT simd — stack-native ABI.
 /// Fingerprint: `wasm-simd128-guest-v11:zero-scratch-simd16`
 fn emit_simd_guest_push_v128(body: &mut Function, plan: &EmitPlan, tmp_local: u32, element: u8) {
-    body.instruction(&WasmInstr::LocalSet(tmp_local));
-    body.instruction(&WasmInstr::I32Const(element as i32));
-    body.instruction(&WasmInstr::LocalGet(tmp_local));
-    body.instruction(&WasmInstr::Call(
+    emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::I32Const(element as i32));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::Call(
         plan.aot_import(aot::Import::SimdGuestPushV128),
     ));
 }
 
 /// Phase 117 guest-v10: pop RT simd onto wasm v128 stack — stack-native ABI.
 fn emit_simd_guest_pop_v128(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(
+    emit_wasm_instr(body, &WasmInstr::Call(
         plan.aot_import(aot::Import::SimdGuestPopV128),
     ));
 }
@@ -1303,35 +1370,35 @@ fn scratch_f64_mem() -> wasm_encoder::MemArg {
 }
 
 fn emit_take_rt_f64(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF64)));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF64)));
 }
 
 fn emit_push_rt_f64(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtF64)));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtF64)));
 }
 
 fn emit_take_rt_f32(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF32)));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtF32)));
 }
 
 fn emit_push_rt_f32(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtF32)));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtF32)));
 }
 
 fn emit_take_rt_i64(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI64)));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI64)));
 }
 
 fn emit_push_rt_i64(body: &mut Function, plan: &EmitPlan) {
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI64)));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI64)));
 }
 
 /// Phase 117 guest-v10: stack-native v128 binop (pop→v128 stack→op→push; no scratch ABI).
 /// Fingerprint: `wasm-simd128-guest-v11:zero-scratch-simd16`
 fn emit_simd_export_host_call(body: &mut Function, plan: &EmitPlan, host: syx_stdlib::HostFnId) {
     let idx = syx_stdlib::host_fn_index(host);
-    body.instruction(&WasmInstr::I32Const(idx as i32));
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+    emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
 }
 
 fn emit_simd_binop_v128_nospill(
@@ -1347,9 +1414,9 @@ fn emit_simd_binop_v128_nospill(
     let _ = simd_export_shim;
     // RT top is rhs; pop rhs then lhs so wasm stack is [lhs, rhs].
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalSet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalGet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
     wasm_op(body);
     emit_simd_guest_push_v128(body, plan, tmp_local, element);
     let _ = br_to_loop;
@@ -1380,18 +1447,18 @@ fn emit_simd_shift_i32x4_nospill(
     wasm_op: fn(&mut Function),
 ) {
     let i32_tmp = tmp_local - 1;
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-    body.instruction(&WasmInstr::LocalSet(i32_tmp));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalGet(i32_tmp));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
     wasm_op(body);
     emit_simd_guest_push_v128(body, plan, tmp_local, element);
     let _ = br_to_loop;
 }
 
 fn emit_v128_load_from_scratch(body: &mut Function, scratch_offset: i32) {
-    body.instruction(&WasmInstr::I32Const(0));
-    body.instruction(&WasmInstr::V128Load(wasm_encoder::MemArg {
+    emit_wasm_instr(body, &WasmInstr::I32Const(0));
+    emit_wasm_instr(body, &WasmInstr::V128Load(wasm_encoder::MemArg {
         offset: scratch_offset as u64,
         align: 4,
         memory_index: 0,
@@ -1399,10 +1466,10 @@ fn emit_v128_load_from_scratch(body: &mut Function, scratch_offset: i32) {
 }
 
 fn emit_v128_store_to_scratch(body: &mut Function, tmp_local: u32, scratch_offset: i32) {
-    body.instruction(&WasmInstr::LocalSet(tmp_local));
-    body.instruction(&WasmInstr::I32Const(0));
-    body.instruction(&WasmInstr::LocalGet(tmp_local));
-    body.instruction(&WasmInstr::V128Store(wasm_encoder::MemArg {
+    emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::I32Const(0));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::V128Store(wasm_encoder::MemArg {
         offset: scratch_offset as u64,
         align: 4,
         memory_index: 0,
@@ -1420,24 +1487,24 @@ fn emit_const_numeric_guest(body: &mut Function, plan: &EmitPlan, kind: u8, bits
     if const_numeric_needs_128_emit(kind) {
         emit_const_numeric128_guest(body, plan, kind, bits, 0);
     } else {
-        body.instruction(&WasmInstr::I32Const(kind as i32));
-        body.instruction(&WasmInstr::I32Const(bits as i32));
-        body.instruction(&WasmInstr::Call(
+        emit_wasm_instr(body, &WasmInstr::I32Const(kind as i32));
+        emit_wasm_instr(body, &WasmInstr::I32Const(bits as i32));
+        emit_wasm_instr(body, &WasmInstr::Call(
             plan.aot_import(aot::Import::PushRtNumeric),
         ));
     }
 }
 
 fn emit_const_numeric128_guest(body: &mut Function, plan: &EmitPlan, kind: u8, lo: u64, hi: u64) {
-    body.instruction(&WasmInstr::I32Const(kind as i32));
-    body.instruction(&WasmInstr::I32Const((lo & 0xffff_ffff) as i32));
-    body.instruction(&WasmInstr::I32Const((lo >> 32) as i32));
-    body.instruction(&WasmInstr::I32Const((hi & 0xffff_ffff) as i32));
-    body.instruction(&WasmInstr::I32Const((hi >> 32) as i32));
-    body.instruction(&WasmInstr::Call(
+    emit_wasm_instr(body, &WasmInstr::I32Const(kind as i32));
+    emit_wasm_instr(body, &WasmInstr::I32Const((lo & 0xffff_ffff) as i32));
+    emit_wasm_instr(body, &WasmInstr::I32Const((lo >> 32) as i32));
+    emit_wasm_instr(body, &WasmInstr::I32Const((hi & 0xffff_ffff) as i32));
+    emit_wasm_instr(body, &WasmInstr::I32Const((hi >> 32) as i32));
+    emit_wasm_instr(body, &WasmInstr::Call(
         plan.aot_import(aot::Import::ConstNumeric128),
     ));
-    body.instruction(&WasmInstr::Drop);
+    emit_wasm_instr(body, &WasmInstr::Drop);
 }
 
 /// Phase 111: Add/Sub/Mul (and Div operand load) guest-v8 nospill binops.
@@ -1479,7 +1546,7 @@ fn emit_simd_add_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4Add);
+            emit_wasm_instr(body, &WasmInstr::I32x4Add);
         },
     );
 }
@@ -1500,7 +1567,7 @@ fn emit_simd_sub_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4Sub);
+            emit_wasm_instr(body, &WasmInstr::I32x4Sub);
         },
     );
 }
@@ -1521,7 +1588,7 @@ fn emit_simd_mul_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4Mul);
+            emit_wasm_instr(body, &WasmInstr::I32x4Mul);
         },
     );
 }
@@ -1545,14 +1612,14 @@ fn emit_simd_div_i32x4_pilot(
     emit_v128_store_to_scratch(body, tmp_local, scratch_offset);
     for lane in 0u8..4 {
         emit_v128_load_from_scratch(body, scratch_offset);
-        body.instruction(&WasmInstr::I32x4ExtractLane(lane));
+        emit_wasm_instr(body, &WasmInstr::I32x4ExtractLane(lane));
         emit_v128_load_from_scratch(body, scratch_offset + 16);
-        body.instruction(&WasmInstr::I32x4ExtractLane(lane));
-        body.instruction(&WasmInstr::I32DivS);
-        body.instruction(&WasmInstr::LocalSet(lane_tmp));
+        emit_wasm_instr(body, &WasmInstr::I32x4ExtractLane(lane));
+        emit_wasm_instr(body, &WasmInstr::I32DivS);
+        emit_wasm_instr(body, &WasmInstr::LocalSet(lane_tmp));
         emit_v128_load_from_scratch(body, scratch_offset);
-        body.instruction(&WasmInstr::LocalGet(lane_tmp));
-        body.instruction(&WasmInstr::I32x4ReplaceLane(lane));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(lane_tmp));
+        emit_wasm_instr(body, &WasmInstr::I32x4ReplaceLane(lane));
         emit_v128_store_to_scratch(body, tmp_local, scratch_offset);
     }
     emit_v128_load_from_scratch(body, scratch_offset);
@@ -1581,7 +1648,7 @@ fn emit_simd_min_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4MinS);
+            emit_wasm_instr(body, &WasmInstr::I32x4MinS);
         },
     );
 }
@@ -1602,7 +1669,7 @@ fn emit_simd_max_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4MaxS);
+            emit_wasm_instr(body, &WasmInstr::I32x4MaxS);
         },
     );
 }
@@ -1625,7 +1692,7 @@ fn emit_simd_add_f32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F32x4Add);
+            emit_wasm_instr(body, &WasmInstr::F32x4Add);
         },
     );
 }
@@ -1648,7 +1715,7 @@ fn emit_simd_sub_f32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F32x4Sub);
+            emit_wasm_instr(body, &WasmInstr::F32x4Sub);
         },
     );
 }
@@ -1671,7 +1738,7 @@ fn emit_simd_mul_f32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F32x4Mul);
+            emit_wasm_instr(body, &WasmInstr::F32x4Mul);
         },
     );
 }
@@ -1694,7 +1761,7 @@ fn emit_simd_div_f32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F32x4Div);
+            emit_wasm_instr(body, &WasmInstr::F32x4Div);
         },
     );
 }
@@ -1717,7 +1784,7 @@ fn emit_simd_sub_f64x2_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F64x2Sub);
+            emit_wasm_instr(body, &WasmInstr::F64x2Sub);
         },
     );
 }
@@ -1739,7 +1806,7 @@ fn emit_simd_add_f64x2_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F64x2Add);
+            emit_wasm_instr(body, &WasmInstr::F64x2Add);
         },
     );
 }
@@ -1763,7 +1830,7 @@ fn emit_simd_add_i16x8_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I16x8Add);
+            emit_wasm_instr(body, &WasmInstr::I16x8Add);
         },
     );
 }
@@ -1785,7 +1852,7 @@ fn emit_simd_sub_i16x8_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I16x8Sub);
+            emit_wasm_instr(body, &WasmInstr::I16x8Sub);
         },
     );
 }
@@ -1807,7 +1874,7 @@ fn emit_simd_mul_i16x8_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I16x8Mul);
+            emit_wasm_instr(body, &WasmInstr::I16x8Mul);
         },
     );
 }
@@ -1829,7 +1896,7 @@ fn emit_simd_add_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Add);
+            emit_wasm_instr(body, &WasmInstr::I8x16Add);
         },
     );
 }
@@ -1851,7 +1918,7 @@ fn emit_simd_sub_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Sub);
+            emit_wasm_instr(body, &WasmInstr::I8x16Sub);
         },
     );
 }
@@ -1891,7 +1958,7 @@ fn emit_simd_and_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128And);
+            emit_wasm_instr(body, &WasmInstr::V128And);
         },
     );
 }
@@ -1915,7 +1982,7 @@ fn emit_simd_or_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128Or);
+            emit_wasm_instr(body, &WasmInstr::V128Or);
         },
     );
 }
@@ -1939,7 +2006,7 @@ fn emit_simd_xor_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128Xor);
+            emit_wasm_instr(body, &WasmInstr::V128Xor);
         },
     );
 }
@@ -1963,7 +2030,7 @@ fn emit_simd_not_i8x16_pilot(
         syx_stdlib::NumericKind::I8.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128Not);
+            emit_wasm_instr(body, &WasmInstr::V128Not);
         },
     );
 }
@@ -1987,7 +2054,7 @@ fn emit_simd_min_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16MinS);
+            emit_wasm_instr(body, &WasmInstr::I8x16MinS);
         },
     );
 }
@@ -2011,7 +2078,7 @@ fn emit_simd_max_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16MaxS);
+            emit_wasm_instr(body, &WasmInstr::I8x16MaxS);
         },
     );
 }
@@ -2035,7 +2102,7 @@ fn emit_simd_umin_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16MinU);
+            emit_wasm_instr(body, &WasmInstr::I8x16MinU);
         },
     );
 }
@@ -2059,7 +2126,7 @@ fn emit_simd_umax_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16MaxU);
+            emit_wasm_instr(body, &WasmInstr::I8x16MaxU);
         },
     );
 }
@@ -2083,7 +2150,7 @@ fn emit_simd_abs_i8x16_pilot(
         syx_stdlib::NumericKind::I8.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Abs);
+            emit_wasm_instr(body, &WasmInstr::I8x16Abs);
         },
     );
 }
@@ -2107,7 +2174,7 @@ fn emit_simd_neg_i8x16_pilot(
         syx_stdlib::NumericKind::I8.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Neg);
+            emit_wasm_instr(body, &WasmInstr::I8x16Neg);
         },
     );
 }
@@ -2131,7 +2198,7 @@ fn emit_simd_eq_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Eq);
+            emit_wasm_instr(body, &WasmInstr::I8x16Eq);
         },
     );
 }
@@ -2155,7 +2222,7 @@ fn emit_simd_ne_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Ne);
+            emit_wasm_instr(body, &WasmInstr::I8x16Ne);
         },
     );
 }
@@ -2179,7 +2246,7 @@ fn emit_simd_le_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16LeS);
+            emit_wasm_instr(body, &WasmInstr::I8x16LeS);
         },
     );
 }
@@ -2203,7 +2270,7 @@ fn emit_simd_ge_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16GeS);
+            emit_wasm_instr(body, &WasmInstr::I8x16GeS);
         },
     );
 }
@@ -2227,7 +2294,7 @@ fn emit_simd_avgr_u_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16AvgrU);
+            emit_wasm_instr(body, &WasmInstr::I8x16AvgrU);
         },
     );
 }
@@ -2251,7 +2318,7 @@ fn emit_simd_popcnt_i8x16_pilot(
         syx_stdlib::NumericKind::I8.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Popcnt);
+            emit_wasm_instr(body, &WasmInstr::I8x16Popcnt);
         },
     );
 }
@@ -2266,8 +2333,8 @@ fn emit_simd_bitmask_i8x16_pilot(
     br_to_loop: Option<u32>,
 ) {
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::I8x16Bitmask);
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+    emit_wasm_instr(body, &WasmInstr::I8x16Bitmask);
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
     let _ = br_to_loop;
 }
 
@@ -2281,8 +2348,8 @@ fn emit_simd_all_true_i8x16_pilot(
     br_to_loop: Option<u32>,
 ) {
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::I8x16AllTrue);
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+    emit_wasm_instr(body, &WasmInstr::I8x16AllTrue);
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
     let _ = br_to_loop;
 }
 
@@ -2296,8 +2363,8 @@ fn emit_simd_any_true_i8x16_pilot(
     br_to_loop: Option<u32>,
 ) {
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::V128AnyTrue);
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+    emit_wasm_instr(body, &WasmInstr::V128AnyTrue);
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
     let _ = br_to_loop;
 }
 
@@ -2320,7 +2387,7 @@ fn emit_simd_lt_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16LtS);
+            emit_wasm_instr(body, &WasmInstr::I8x16LtS);
         },
     );
 }
@@ -2344,7 +2411,7 @@ fn emit_simd_gt_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16GtS);
+            emit_wasm_instr(body, &WasmInstr::I8x16GtS);
         },
     );
 }
@@ -2368,7 +2435,7 @@ fn emit_simd_add_sat_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16AddSatS);
+            emit_wasm_instr(body, &WasmInstr::I8x16AddSatS);
         },
     );
 }
@@ -2392,7 +2459,7 @@ fn emit_simd_sub_sat_i8x16_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16SubSatS);
+            emit_wasm_instr(body, &WasmInstr::I8x16SubSatS);
         },
     );
 }
@@ -2414,9 +2481,9 @@ fn emit_simd_shuffle_i8x16_pilot(
         _ => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     };
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalTee(tmp_local));
-    body.instruction(&WasmInstr::LocalGet(tmp_local));
-    body.instruction(&WasmInstr::I8x16Shuffle(lanes));
+    emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::I8x16Shuffle(lanes));
     emit_simd_guest_push_v128(body, plan, tmp_local, syx_stdlib::NumericKind::I8.to_byte());
     let _ = br_to_loop;
 }
@@ -2432,27 +2499,27 @@ fn emit_simd_extract_i8x16_pilot(
 ) {
     let lane_local = tmp_local - 1;
     let v128_local = tmp_local;
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-    body.instruction(&WasmInstr::LocalSet(lane_local));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(lane_local));
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalSet(v128_local));
-    body.instruction(&WasmInstr::Block(wasm_encoder::BlockType::Result(
+    emit_wasm_instr(body, &WasmInstr::LocalSet(v128_local));
+    emit_wasm_instr(body, &WasmInstr::Block(wasm_encoder::BlockType::Result(
         ValType::I32,
     )));
     for lane in 0u8..16 {
-        body.instruction(&WasmInstr::LocalGet(lane_local));
-        body.instruction(&WasmInstr::I32Const(lane as i32));
-        body.instruction(&WasmInstr::I32Eq);
-        body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
-        body.instruction(&WasmInstr::LocalGet(v128_local));
-        body.instruction(&WasmInstr::I8x16ExtractLaneS(lane));
-        body.instruction(&WasmInstr::Br(1));
-        body.instruction(&WasmInstr::End);
+        emit_wasm_instr(body, &WasmInstr::LocalGet(lane_local));
+        emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
+        emit_wasm_instr(body, &WasmInstr::I32Eq);
+        emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(v128_local));
+        emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(lane));
+        emit_wasm_instr(body, &WasmInstr::Br(1));
+        emit_wasm_instr(body, &WasmInstr::End);
     }
-    body.instruction(&WasmInstr::LocalGet(v128_local));
-    body.instruction(&WasmInstr::I8x16ExtractLaneS(0));
-    body.instruction(&WasmInstr::End);
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(v128_local));
+    emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(0));
+    emit_wasm_instr(body, &WasmInstr::End);
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
     let _ = br_to_loop;
 }
 
@@ -2468,31 +2535,31 @@ fn emit_simd_replace_i8x16_pilot(
     let value_local = tmp_local - 2;
     let lane_local = tmp_local - 1;
     let v128_local = tmp_local;
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-    body.instruction(&WasmInstr::LocalSet(value_local));
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-    body.instruction(&WasmInstr::LocalSet(lane_local));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(value_local));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(lane_local));
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalSet(v128_local));
-    body.instruction(&WasmInstr::Block(wasm_encoder::BlockType::Empty));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(v128_local));
+    emit_wasm_instr(body, &WasmInstr::Block(wasm_encoder::BlockType::Empty));
     for lane in 0u8..16 {
-        body.instruction(&WasmInstr::LocalGet(lane_local));
-        body.instruction(&WasmInstr::I32Const(lane as i32));
-        body.instruction(&WasmInstr::I32Eq);
-        body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
-        body.instruction(&WasmInstr::LocalGet(v128_local));
-        body.instruction(&WasmInstr::LocalGet(value_local));
-        body.instruction(&WasmInstr::I8x16ReplaceLane(lane));
-        body.instruction(&WasmInstr::LocalSet(v128_local));
-        body.instruction(&WasmInstr::Br(1));
-        body.instruction(&WasmInstr::End);
+        emit_wasm_instr(body, &WasmInstr::LocalGet(lane_local));
+        emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
+        emit_wasm_instr(body, &WasmInstr::I32Eq);
+        emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(v128_local));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(value_local));
+        emit_wasm_instr(body, &WasmInstr::I8x16ReplaceLane(lane));
+        emit_wasm_instr(body, &WasmInstr::LocalSet(v128_local));
+        emit_wasm_instr(body, &WasmInstr::Br(1));
+        emit_wasm_instr(body, &WasmInstr::End);
     }
-    body.instruction(&WasmInstr::LocalGet(v128_local));
-    body.instruction(&WasmInstr::LocalGet(value_local));
-    body.instruction(&WasmInstr::I8x16ReplaceLane(0));
-    body.instruction(&WasmInstr::LocalSet(v128_local));
-    body.instruction(&WasmInstr::End);
-    body.instruction(&WasmInstr::LocalGet(v128_local));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(v128_local));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(value_local));
+    emit_wasm_instr(body, &WasmInstr::I8x16ReplaceLane(0));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(v128_local));
+    emit_wasm_instr(body, &WasmInstr::End);
+    emit_wasm_instr(body, &WasmInstr::LocalGet(v128_local));
     emit_simd_guest_push_v128(
         body,
         plan,
@@ -2521,7 +2588,7 @@ fn emit_simd_shl_i8x16_pilot(
         syx_stdlib::NumericKind::I8.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16Shl);
+            emit_wasm_instr(body, &WasmInstr::I8x16Shl);
         },
     );
 }
@@ -2545,7 +2612,7 @@ fn emit_simd_shr_i8x16_pilot(
         syx_stdlib::NumericKind::I8.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I8x16ShrS);
+            emit_wasm_instr(body, &WasmInstr::I8x16ShrS);
         },
     );
 }
@@ -2568,7 +2635,7 @@ fn emit_simd_add_i64x2_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I64x2Add);
+            emit_wasm_instr(body, &WasmInstr::I64x2Add);
         },
     );
 }
@@ -2590,7 +2657,7 @@ fn emit_simd_mul_f64x2_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F64x2Mul);
+            emit_wasm_instr(body, &WasmInstr::F64x2Mul);
         },
     );
 }
@@ -2612,7 +2679,7 @@ fn emit_simd_div_f64x2_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::F64x2Div);
+            emit_wasm_instr(body, &WasmInstr::F64x2Div);
         },
     );
 }
@@ -2633,7 +2700,7 @@ fn emit_simd_eq_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4Eq);
+            emit_wasm_instr(body, &WasmInstr::I32x4Eq);
         },
     );
 }
@@ -2654,7 +2721,7 @@ fn emit_simd_lt_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4LtS);
+            emit_wasm_instr(body, &WasmInstr::I32x4LtS);
         },
     );
 }
@@ -2675,7 +2742,7 @@ fn emit_simd_gt_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4GtS);
+            emit_wasm_instr(body, &WasmInstr::I32x4GtS);
         },
     );
 }
@@ -2696,7 +2763,7 @@ fn emit_simd_and_v128_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128And);
+            emit_wasm_instr(body, &WasmInstr::V128And);
         },
     );
 }
@@ -2717,7 +2784,7 @@ fn emit_simd_or_v128_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128Or);
+            emit_wasm_instr(body, &WasmInstr::V128Or);
         },
     );
 }
@@ -2738,7 +2805,7 @@ fn emit_simd_xor_v128_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128Xor);
+            emit_wasm_instr(body, &WasmInstr::V128Xor);
         },
     );
 }
@@ -2759,7 +2826,7 @@ fn emit_simd_ne_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4Ne);
+            emit_wasm_instr(body, &WasmInstr::I32x4Ne);
         },
     );
 }
@@ -2780,7 +2847,7 @@ fn emit_simd_le_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4LeS);
+            emit_wasm_instr(body, &WasmInstr::I32x4LeS);
         },
     );
 }
@@ -2801,7 +2868,7 @@ fn emit_simd_ge_i32x4_pilot(
         simd_export_shim,
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4GeS);
+            emit_wasm_instr(body, &WasmInstr::I32x4GeS);
         },
     );
 }
@@ -2823,7 +2890,7 @@ fn emit_simd_not_v128_pilot(
         syx_stdlib::NumericKind::I32.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::V128Not);
+            emit_wasm_instr(body, &WasmInstr::V128Not);
         },
     );
 }
@@ -2845,7 +2912,7 @@ fn emit_simd_shl_i32x4_pilot(
         syx_stdlib::NumericKind::I32.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4Shl);
+            emit_wasm_instr(body, &WasmInstr::I32x4Shl);
         },
     );
 }
@@ -2867,7 +2934,7 @@ fn emit_simd_shr_i32x4_pilot(
         syx_stdlib::NumericKind::I32.to_byte(),
         br_to_loop,
         |body| {
-            body.instruction(&WasmInstr::I32x4ShrS);
+            emit_wasm_instr(body, &WasmInstr::I32x4ShrS);
         },
     );
 }
@@ -2881,23 +2948,23 @@ fn emit_v128_splat_zero(
     i8_element: bool,
 ) {
     if f64_element {
-        body.instruction(&WasmInstr::F64Const(0.0));
-        body.instruction(&WasmInstr::F64x2Splat);
+        emit_wasm_instr(body, &WasmInstr::F64Const(0.0));
+        emit_wasm_instr(body, &WasmInstr::F64x2Splat);
     } else if f32_element {
-        body.instruction(&WasmInstr::F32Const(0.0));
-        body.instruction(&WasmInstr::F32x4Splat);
+        emit_wasm_instr(body, &WasmInstr::F32Const(0.0));
+        emit_wasm_instr(body, &WasmInstr::F32x4Splat);
     } else if i64_element {
-        body.instruction(&WasmInstr::I64Const(0));
-        body.instruction(&WasmInstr::I64x2Splat);
+        emit_wasm_instr(body, &WasmInstr::I64Const(0));
+        emit_wasm_instr(body, &WasmInstr::I64x2Splat);
     } else if i16_element {
-        body.instruction(&WasmInstr::I32Const(0));
-        body.instruction(&WasmInstr::I16x8Splat);
+        emit_wasm_instr(body, &WasmInstr::I32Const(0));
+        emit_wasm_instr(body, &WasmInstr::I16x8Splat);
     } else if i8_element {
-        body.instruction(&WasmInstr::I32Const(0));
-        body.instruction(&WasmInstr::I8x16Splat);
+        emit_wasm_instr(body, &WasmInstr::I32Const(0));
+        emit_wasm_instr(body, &WasmInstr::I8x16Splat);
     } else {
-        body.instruction(&WasmInstr::I32Const(0));
-        body.instruction(&WasmInstr::I32x4Splat);
+        emit_wasm_instr(body, &WasmInstr::I32Const(0));
+        emit_wasm_instr(body, &WasmInstr::I32x4Splat);
     }
 }
 
@@ -2939,14 +3006,14 @@ fn emit_simd_load_v128_pilot(
     let lane_count = simd_guest_lane_count(lanes, element);
     let i32_tmp = tmp_local - 1;
     if simd_export_shim {
-        body.instruction(&WasmInstr::Drop);
-        body.instruction(&WasmInstr::I32Const(0));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
-        body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+        emit_wasm_instr(body, &WasmInstr::Drop);
+        emit_wasm_instr(body, &WasmInstr::I32Const(0));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+        emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
     } else {
-        body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+        emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
     }
     emit_v128_splat_zero(
         body,
@@ -2956,48 +3023,48 @@ fn emit_simd_load_v128_pilot(
         i16_element,
         i8_element,
     );
-    body.instruction(&WasmInstr::LocalSet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     for lane in 0..lane_count {
-        body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
-        body.instruction(&WasmInstr::I32Const(lane as i32));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)));
-        body.instruction(&WasmInstr::Drop);
+        emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+        emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)));
+        emit_wasm_instr(body, &WasmInstr::Drop);
         if f64_element {
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
             emit_take_rt_f64(body, plan);
-            body.instruction(&WasmInstr::F64x2ReplaceLane(lane));
+            emit_wasm_instr(body, &WasmInstr::F64x2ReplaceLane(lane));
         } else if f32_element {
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
             emit_take_rt_f32(body, plan);
-            body.instruction(&WasmInstr::F32x4ReplaceLane(lane));
+            emit_wasm_instr(body, &WasmInstr::F32x4ReplaceLane(lane));
         } else if i64_element {
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
             emit_take_rt_i64(body, plan);
-            body.instruction(&WasmInstr::I64x2ReplaceLane(lane));
+            emit_wasm_instr(body, &WasmInstr::I64x2ReplaceLane(lane));
         } else if i16_element {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-            body.instruction(&WasmInstr::LocalSet(i32_tmp));
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::LocalGet(i32_tmp));
-            body.instruction(&WasmInstr::I16x8ReplaceLane(lane));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
+            emit_wasm_instr(body, &WasmInstr::I16x8ReplaceLane(lane));
         } else if i8_element {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-            body.instruction(&WasmInstr::LocalSet(i32_tmp));
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::LocalGet(i32_tmp));
-            body.instruction(&WasmInstr::I8x16ReplaceLane(lane));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
+            emit_wasm_instr(body, &WasmInstr::I8x16ReplaceLane(lane));
         } else {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
-            body.instruction(&WasmInstr::LocalSet(i32_tmp));
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::LocalGet(i32_tmp));
-            body.instruction(&WasmInstr::I32x4ReplaceLane(lane));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(body, &WasmInstr::LocalSet(i32_tmp));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(i32_tmp));
+            emit_wasm_instr(body, &WasmInstr::I32x4ReplaceLane(lane));
         }
-        body.instruction(&WasmInstr::LocalSet(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
     }
-    body.instruction(&WasmInstr::LocalGet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
     emit_simd_guest_push_v128(body, plan, tmp_local, element);
     let _ = br_to_loop;
 }
@@ -3021,42 +3088,42 @@ fn emit_simd_store_v128_pilot(
     let i8_element = element == syx_stdlib::NumericKind::I8.to_byte();
     let lane_count = simd_guest_lane_count(lanes, element);
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalSet(tmp_local));
-    body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
     for lane in 0..lane_count {
-        body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
-        body.instruction(&WasmInstr::I32Const(lane as i32));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
-        body.instruction(&WasmInstr::LocalGet(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+        emit_wasm_instr(body, &WasmInstr::I32Const(lane as i32));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
         if f64_element {
-            body.instruction(&WasmInstr::F64x2ExtractLane(lane));
+            emit_wasm_instr(body, &WasmInstr::F64x2ExtractLane(lane));
             emit_push_rt_f64(body, plan);
         } else if f32_element {
-            body.instruction(&WasmInstr::F32x4ExtractLane(lane));
+            emit_wasm_instr(body, &WasmInstr::F32x4ExtractLane(lane));
             emit_push_rt_f32(body, plan);
         } else if i64_element {
-            body.instruction(&WasmInstr::I64x2ExtractLane(lane));
+            emit_wasm_instr(body, &WasmInstr::I64x2ExtractLane(lane));
             emit_push_rt_i64(body, plan);
         } else if i16_element {
-            body.instruction(&WasmInstr::I16x8ExtractLaneS(lane));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I16x8ExtractLaneS(lane));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
         } else if i8_element {
-            body.instruction(&WasmInstr::I8x16ExtractLaneS(lane));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(lane));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
         } else {
-            body.instruction(&WasmInstr::I32x4ExtractLane(lane));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I32x4ExtractLane(lane));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
         }
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)));
-        body.instruction(&WasmInstr::Drop);
-        body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)));
+        emit_wasm_instr(body, &WasmInstr::Drop);
+        emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
     }
     // Return the updated array on the RT stack (dest / loadFromArray chains).
-    body.instruction(&WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
-    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+    emit_wasm_instr(body, &WasmInstr::I32Const(SIMD_LS_ARRAY_LOCAL));
+    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
     let _ = br_to_loop;
 }
 
@@ -3079,65 +3146,65 @@ fn emit_simd_reduce_add_pilot(
     let i8_element = element == syx_stdlib::NumericKind::I8.to_byte();
     emit_simd_guest_pop_v128(body, plan);
     if f64_element {
-        body.instruction(&WasmInstr::LocalTee(tmp_local));
-        body.instruction(&WasmInstr::F64x2ExtractLane(0));
-        body.instruction(&WasmInstr::LocalGet(tmp_local));
-        body.instruction(&WasmInstr::F64x2ExtractLane(1));
-        body.instruction(&WasmInstr::F64Add);
+        emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::F64x2ExtractLane(0));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::F64x2ExtractLane(1));
+        emit_wasm_instr(body, &WasmInstr::F64Add);
         emit_push_rt_f64(body, plan);
     } else if f32_element {
-        body.instruction(&WasmInstr::LocalTee(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
         let lane_count = lanes.max(1).min(4);
-        body.instruction(&WasmInstr::F32x4ExtractLane(0));
+        emit_wasm_instr(body, &WasmInstr::F32x4ExtractLane(0));
         for lane in 1..lane_count {
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::F32x4ExtractLane(lane));
-            body.instruction(&WasmInstr::F32Add);
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::F32x4ExtractLane(lane));
+            emit_wasm_instr(body, &WasmInstr::F32Add);
         }
         emit_push_rt_f32(body, plan);
     } else if i64_element {
-        body.instruction(&WasmInstr::LocalTee(tmp_local));
-        body.instruction(&WasmInstr::I64x2ExtractLane(0));
-        body.instruction(&WasmInstr::LocalGet(tmp_local));
-        body.instruction(&WasmInstr::I64x2ExtractLane(1));
-        body.instruction(&WasmInstr::I64Add);
+        emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::I64x2ExtractLane(0));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::I64x2ExtractLane(1));
+        emit_wasm_instr(body, &WasmInstr::I64Add);
         emit_push_rt_i64(body, plan);
     } else if i16_element {
-        body.instruction(&WasmInstr::LocalTee(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
         let lane_count = lanes.max(1).min(8);
-        body.instruction(&WasmInstr::I16x8ExtractLaneS(0));
+        emit_wasm_instr(body, &WasmInstr::I16x8ExtractLaneS(0));
         for lane in 1..lane_count {
-            body.instruction(&WasmInstr::LocalSet(tmp_local - 1));
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::I16x8ExtractLaneS(lane));
-            body.instruction(&WasmInstr::LocalGet(tmp_local - 1));
-            body.instruction(&WasmInstr::I32Add);
+            emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local - 1));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::I16x8ExtractLaneS(lane));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local - 1));
+            emit_wasm_instr(body, &WasmInstr::I32Add);
         }
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
     } else if i8_element {
-        body.instruction(&WasmInstr::LocalTee(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
         let lane_count = lanes.max(1).min(16);
-        body.instruction(&WasmInstr::I8x16ExtractLaneS(0));
+        emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(0));
         for lane in 1..lane_count {
-            body.instruction(&WasmInstr::LocalSet(tmp_local - 1));
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::I8x16ExtractLaneS(lane));
-            body.instruction(&WasmInstr::LocalGet(tmp_local - 1));
-            body.instruction(&WasmInstr::I32Add);
+            emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local - 1));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::I8x16ExtractLaneS(lane));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local - 1));
+            emit_wasm_instr(body, &WasmInstr::I32Add);
         }
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
     } else {
-        body.instruction(&WasmInstr::LocalTee(tmp_local));
+        emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
         let lane_count = lanes.max(1).min(4);
-        body.instruction(&WasmInstr::I32x4ExtractLane(0));
+        emit_wasm_instr(body, &WasmInstr::I32x4ExtractLane(0));
         for lane in 1..lane_count {
-            body.instruction(&WasmInstr::LocalSet(tmp_local - 1));
-            body.instruction(&WasmInstr::LocalGet(tmp_local));
-            body.instruction(&WasmInstr::I32x4ExtractLane(lane));
-            body.instruction(&WasmInstr::LocalGet(tmp_local - 1));
-            body.instruction(&WasmInstr::I32Add);
+            emit_wasm_instr(body, &WasmInstr::LocalSet(tmp_local - 1));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+            emit_wasm_instr(body, &WasmInstr::I32x4ExtractLane(lane));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local - 1));
+            emit_wasm_instr(body, &WasmInstr::I32Add);
         }
-        body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+        emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
     }
     let _ = br_to_loop;
 }
@@ -3159,9 +3226,9 @@ fn emit_simd_shuffle_i32x4_pilot(
         _ => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     };
     emit_simd_guest_pop_v128(body, plan);
-    body.instruction(&WasmInstr::LocalTee(tmp_local));
-    body.instruction(&WasmInstr::LocalGet(tmp_local));
-    body.instruction(&WasmInstr::I8x16Shuffle(lanes));
+    emit_wasm_instr(body, &WasmInstr::LocalTee(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(tmp_local));
+    emit_wasm_instr(body, &WasmInstr::I8x16Shuffle(lanes));
     emit_simd_guest_push_v128(
         body,
         plan,
@@ -3191,10 +3258,10 @@ fn emit_mir_instr(
     let _ = simd_tmp_local;
     if plan.aot {
         if let MirOp::ConstI32(v) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*v));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*v));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
             // Guest copy for JumpIfFalse (same pattern as ConstBool); Drop if unused.
-            body.instruction(&WasmInstr::I32Const(*v));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*v));
             return;
         }
         // Phase 126: protocol/class witness slots emit ConstFnIndex before ObjectSet.
@@ -3204,22 +3271,22 @@ fn emit_mir_instr(
                 .iter()
                 .position(|f| f.name == *name)
                 .unwrap_or(0) as i32;
-            body.instruction(&WasmInstr::I32Const(idx));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(idx));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
             return;
         }
         if let MirOp::ConstBool(b) = &instr.op {
             // Wave A W203 / ADR-547: RT Bool for Print; leave guest i32 for JumpIfFalse.
             let n = if *b { 1 } else { 0 };
-            body.instruction(&WasmInstr::I32Const(n));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
-            body.instruction(&WasmInstr::I32Const(n));
+            emit_wasm_instr(body, &WasmInstr::I32Const(n));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(n));
             return;
         }
         if matches!(instr.op, MirOp::ConstNil) {
             // Wave A W203 / ADR-547: RT Nil for Print; guest 0 for JumpIfNil.
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)));
-            body.instruction(&WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
             return;
         }
         if let MirOp::ConstNumeric { kind, bits } = &instr.op {
@@ -3252,8 +3319,8 @@ fn emit_mir_instr(
             _ => None,
         };
         if let Some(op_code) = stack_op {
-            body.instruction(&WasmInstr::I32Const(op_code as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StackOp)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(op_code as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StackOp)));
             // Compare / bool results stay on RT; JumpIfFalse takes via TakeRtI32.
             if matches!(
                 instr.op,
@@ -3267,182 +3334,184 @@ fn emit_mir_instr(
                     | MirOp::Or
                     | MirOp::Not
             ) {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
             }
             return;
         }
         if let MirOp::LoadLocal(slot) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*slot as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadLocal)));
             return;
         }
         if let MirOp::StoreLocal(slot) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*slot as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreLocal)));
             return;
         }
         if let MirOp::Return = &instr.op {
             if plan.aot && func_param_count > 0 {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
             }
             if exit_returns_i32 && !plan.aot {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)));
             } else if exit_returns_i32 && plan.aot {
                 // Wave A W18: aot main export needs an i32; RT may hold leftover values
                 // (e.g. print args). Match CFG epilogue — wasm exit code is 0.
-                body.instruction(&WasmInstr::I32Const(0));
+                emit_wasm_instr(body, &WasmInstr::I32Const(0));
             } else if !exit_returns_i32 {
-                body.instruction(&WasmInstr::I32Const(0));
+                emit_wasm_instr(body, &WasmInstr::I32Const(0));
             }
-            body.instruction(&WasmInstr::Return);
+            emit_wasm_instr(body, &WasmInstr::Return);
             return;
         }
         if let MirOp::Jump(target) = &instr.op {
             let t = *block_pos.get(target).unwrap_or(&current_block) as i32;
-            body.instruction(&WasmInstr::I32Const(t));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(br_to_loop));
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop));
             return;
         }
         if let MirOp::JumpIfFalse(target) = &instr.op {
             // Phase 100: guest control — condition already on wasm stack as i32.
-            body.instruction(&WasmInstr::I32Eqz);
-            body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
+            emit_wasm_instr(body, &WasmInstr::I32Eqz);
+            emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
             let t = *block_pos.get(target).unwrap_or(&(current_block + 1)) as i32;
-            body.instruction(&WasmInstr::I32Const(t));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(br_to_loop + 1));
-            body.instruction(&WasmInstr::End);
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop + 1));
+            emit_wasm_instr(body, &WasmInstr::End);
             return;
         }
         if let MirOp::CallHost(idx) = &instr.op {
             if let Some(&import_idx) = plan.host_import_map.get(idx) {
-                body.instruction(&WasmInstr::Call(import_idx));
+                emit_wasm_instr(body, &WasmInstr::Call(import_idx));
                 emit_call_host_take_catch(body, br_to_loop);
             } else {
                 // Phase 99: missing host import is an emit hard-fail (no mir_exec escape).
                 aot_emit_hard_fail(&format!("CallHost({idx}) has no WASM host import"));
-                body.instruction(&WasmInstr::Unreachable);
+                emit_wasm_instr(body, &WasmInstr::Unreachable);
             }
             return;
         }
         if let MirOp::Call(name) = &instr.op {
             if let Some(idx) = module.functions.iter().position(|f| f.name == *name) {
-                body.instruction(&WasmInstr::I32Const(idx as i32));
-                body.instruction(&WasmInstr::CallIndirect {
+                emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+                emit_wasm_instr(body, &WasmInstr::CallIndirect {
                     type_index: host::TYPE_FUNC_I32,
                     table_index: 0,
                 });
                 // Wave A W18 / ADR-362: llvm W11 parity — poll pending catch after Call.
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
                 emit_call_host_take_catch(body, br_to_loop);
+                // R-23: guest i32 stub left on the stack; `drop_unused_guest_cond` Drops it
+                // unless the next MirOp is `Pop` (which owns the cleanup).
                 return;
             }
             aot_emit_hard_fail(&format!("Call({name}) has no module function"));
-            body.instruction(&WasmInstr::Unreachable);
+            emit_wasm_instr(body, &WasmInstr::Unreachable);
             return;
         }
         if let MirOp::LoadGlobal(slot) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*slot as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::LoadGlobal)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::LoadGlobal)));
             // Guest i32 is a placeholder; RT owns the Value.
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if let MirOp::StoreGlobal(slot) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*slot as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::StoreGlobal)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*slot as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::StoreGlobal)));
             return;
         }
         if let MirOp::ConstStr(s) = &instr.op {
             if let Some((off, len)) = str_map.get(s) {
                 // Phase 100: data-section off/len + dedicated ConstStr import (not mir_exec).
-                body.instruction(&WasmInstr::I32Const(*off));
-                body.instruction(&WasmInstr::I32Const(*len));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(*off));
+                emit_wasm_instr(body, &WasmInstr::I32Const(*len));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)));
                 // Import type is (i32,i32)->i32 but RT owns the Value; drop guest placeholder.
-                body.instruction(&WasmInstr::Drop);
+                emit_wasm_instr(body, &WasmInstr::Drop);
                 return;
             }
             aot_emit_hard_fail(&format!("ConstStr({s:?}) missing from wasm data section"));
-            body.instruction(&WasmInstr::Unreachable);
+            emit_wasm_instr(body, &WasmInstr::Unreachable);
             return;
         }
         if let MirOp::ArrayBuild(n) = &instr.op {
             if *n <= 16 {
-                body.instruction(&WasmInstr::I32Const(*n as i32));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ArrayBuild)));
-                body.instruction(&WasmInstr::Drop);
+                emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArrayBuild)));
+                emit_wasm_instr(body, &WasmInstr::Drop);
                 return;
             }
         }
         if let MirOp::DictBuild(n) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*n as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if let MirOp::SetBuild(n) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*n as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::Print) {
-            body.instruction(&WasmInstr::I32Const(0));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::Print)));
-            // Print is (i32)->i32 placeholder; RT side-effects only.
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::Print)));
+            // R-24: leave the (i32)->i32 placeholder for `drop_unused_guest_cond`
+            // (or an explicit following `Pop`) — do not Drop here.
             return;
         }
         if matches!(instr.op, MirOp::MakeIterator) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::MakeIterator)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::MakeIterator)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::IteratorNext) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::IteratorNext)));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::IteratorNext)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)));
             return;
         }
         if matches!(instr.op, MirOp::ArrayGet) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArrayGet)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ArraySet) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArraySet)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ObjectGet) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ObjectGet)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ObjectGet)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ObjectSet) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ObjectSet)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ObjectSet)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ValueEq | MirOp::OpaqueValueEq) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ValueEq)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ValueEq)));
             return;
         }
         if matches!(instr.op, MirOp::ValueNe) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ValueNe)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ValueNe)));
             return;
         }
         if matches!(instr.op, MirOp::RefEq) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::RefEq)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::RefEq)));
             return;
         }
         if matches!(instr.op, MirOp::RefNe) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::RefNe)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::RefNe)));
             return;
         }
         if matches!(instr.op, MirOp::ArrSorted) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ArraySorted)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ArraySorted)));
             return;
         }
         if let MirOp::MakeClosure(name, cap) = &instr.op {
@@ -3451,109 +3520,109 @@ fn emit_mir_instr(
                 .iter()
                 .position(|f| f.name == *name)
                 .unwrap_or(0);
-            body.instruction(&WasmInstr::I32Const(idx as i32));
-            body.instruction(&WasmInstr::I32Const(*cap as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*cap as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::CallClosure) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)));
             return;
         }
         if matches!(instr.op, MirOp::AwaitPoll) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::AwaitPoll)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::AwaitPoll)));
             return;
         }
         if let MirOp::AwaitSuspend { resume_fn, state } = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*resume_fn as i32));
-            body.instruction(&WasmInstr::I32Const(*state as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::AwaitSuspend)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*resume_fn as i32));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*state as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::AwaitSuspend)));
             return;
         }
         if let MirOp::CallWitness(a, b) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*a as i32));
-            body.instruction(&WasmInstr::I32Const(*b as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallWitness)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*a as i32));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*b as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallWitness)));
             return;
         }
         if let MirOp::Div { .. } = &instr.op {
-            body.instruction(&WasmInstr::I32DivS);
+            emit_wasm_instr(body, &WasmInstr::I32DivS);
             return;
         }
         if let MirOp::Mod { .. } = &instr.op {
-            body.instruction(&WasmInstr::I32RemS);
+            emit_wasm_instr(body, &WasmInstr::I32RemS);
             return;
         }
         if matches!(instr.op, MirOp::Le { .. }) {
-            body.instruction(&WasmInstr::I32LeS);
+            emit_wasm_instr(body, &WasmInstr::I32LeS);
             return;
         }
         if matches!(instr.op, MirOp::Ge { .. }) {
-            body.instruction(&WasmInstr::I32GeS);
+            emit_wasm_instr(body, &WasmInstr::I32GeS);
             return;
         }
         if matches!(instr.op, MirOp::Gt { .. }) {
-            body.instruction(&WasmInstr::I32GtS);
+            emit_wasm_instr(body, &WasmInstr::I32GtS);
             return;
         }
         if matches!(instr.op, MirOp::Eq) {
-            body.instruction(&WasmInstr::I32Eq);
+            emit_wasm_instr(body, &WasmInstr::I32Eq);
             return;
         }
         if matches!(instr.op, MirOp::Ne) {
-            body.instruction(&WasmInstr::I32Ne);
+            emit_wasm_instr(body, &WasmInstr::I32Ne);
             return;
         }
         if matches!(instr.op, MirOp::Lt { .. }) {
-            body.instruction(&WasmInstr::I32LtS);
+            emit_wasm_instr(body, &WasmInstr::I32LtS);
             return;
         }
         if matches!(instr.op, MirOp::And) {
-            body.instruction(&WasmInstr::I32And);
+            emit_wasm_instr(body, &WasmInstr::I32And);
             return;
         }
         if matches!(instr.op, MirOp::Or) {
-            body.instruction(&WasmInstr::I32Or);
+            emit_wasm_instr(body, &WasmInstr::I32Or);
             return;
         }
         if matches!(instr.op, MirOp::Not) {
-            body.instruction(&WasmInstr::I32Eqz);
+            emit_wasm_instr(body, &WasmInstr::I32Eqz);
             return;
         }
         if matches!(instr.op, MirOp::Neg { .. }) {
-            body.instruction(&WasmInstr::I32Const(0));
-            body.instruction(&WasmInstr::I32Sub);
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::I32Sub);
             return;
         }
         if matches!(instr.op, MirOp::Pop) {
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if let MirOp::JumpIfNil(target) = &instr.op {
-            body.instruction(&WasmInstr::I32Eqz);
-            body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
+            emit_wasm_instr(body, &WasmInstr::I32Eqz);
+            emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
             let t = *block_pos.get(target).unwrap_or(&(current_block + 1)) as i32;
-            body.instruction(&WasmInstr::I32Const(t));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(br_to_loop + 1));
-            body.instruction(&WasmInstr::End);
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop + 1));
+            emit_wasm_instr(body, &WasmInstr::End);
             return;
         }
         if let MirOp::DictBuild(n) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*n as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::DictBuild)));
             return;
         }
         if let MirOp::SetBuild(n) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*n as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*n as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SetBuild)));
             return;
         }
         // Wave A W544 / ADR-888: MirOp ObjectRefWrap/Retain/Release peeled
         // (ADR-858/ADR-855 AOT nops retired with the variants).
         if matches!(instr.op, MirOp::HeapCompact) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::HeapCompact)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::HeapCompact)));
             return;
         }
         if matches!(instr.op, MirOp::SimdAdd) {
@@ -3568,10 +3637,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
             }
             return;
         }
@@ -3587,10 +3656,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
             }
             return;
         }
@@ -3606,10 +3675,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
             }
             return;
         }
@@ -3625,10 +3694,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
             }
             return;
         }
@@ -3644,10 +3713,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
             }
             return;
         }
@@ -3663,10 +3732,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLt)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLt)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLt)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLt)));
             }
             return;
         }
@@ -3682,10 +3751,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
             }
             return;
         }
@@ -3701,10 +3770,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
             }
             return;
         }
@@ -3720,10 +3789,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
             }
             return;
         }
@@ -3739,10 +3808,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
             }
             return;
         }
@@ -3758,10 +3827,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
             }
             return;
         }
@@ -3777,10 +3846,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLe)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLe)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLe)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLe)));
             }
             return;
         }
@@ -3796,10 +3865,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
             }
             return;
         }
@@ -3815,10 +3884,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
             }
             return;
         }
@@ -3834,10 +3903,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
             }
             return;
         }
@@ -3853,10 +3922,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
             }
             return;
         }
@@ -3872,10 +3941,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
             }
             return;
         }
@@ -3891,10 +3960,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
             }
             return;
         }
@@ -3910,10 +3979,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
             }
             return;
         }
@@ -3929,10 +3998,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
             }
             return;
         }
@@ -3948,10 +4017,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
             }
             return;
         }
@@ -3967,10 +4036,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
                 }
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
             }
             return;
         }
@@ -3993,7 +4062,7 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Add);
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)));
             }
             return;
         }
@@ -4016,7 +4085,7 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Sub);
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)));
             }
             return;
         }
@@ -4039,7 +4108,7 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Mul);
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)));
             }
             return;
         }
@@ -4062,7 +4131,7 @@ fn emit_mir_instr(
             } else if simd128 {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdF64Div);
             } else {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)));
             }
             return;
         }
@@ -4673,8 +4742,15 @@ fn emit_mir_instr(
             return;
         }
         if matches!(instr.op, MirOp::SimdI8Extract) {
-            if simd_export_shim {
+            // R-24-03 (tracker: SyxHost_simd_i8_extract leftover height=1):
+            // host CallHost path is (i32)->i32; RT owns the lane value — Drop stub.
+            // Guest pilot (`emit_simd_extract_i8x16_pilot`) already nets 0 via PushRtI32.
+            let drop_host_stub = |body: &mut Function, plan: &EmitPlan| {
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Extract);
+                emit_wasm_instr(body, &WasmInstr::Drop);
+            };
+            if simd_export_shim {
+                drop_host_stub(body, plan);
             } else if simd128 && scratch_offset >= 0 {
                 if let Some(tmp) = simd_tmp_local {
                     emit_simd_extract_i8x16_pilot(
@@ -4685,10 +4761,10 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Extract);
+                    drop_host_stub(body, plan);
                 }
             } else {
-                emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Extract);
+                drop_host_stub(body, plan);
             }
             return;
         }
@@ -4792,13 +4868,13 @@ fn emit_mir_instr(
                     );
                 } else {
                     let idx = syx_stdlib::host_fn_index(syx_stdlib::HostFnId::SimdReduceAdd);
-                    body.instruction(&WasmInstr::I32Const(idx as i32));
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+                    emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
                 }
             } else {
                 let idx = syx_stdlib::host_fn_index(syx_stdlib::HostFnId::SimdReduceAdd);
-                body.instruction(&WasmInstr::I32Const(idx as i32));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
             }
             return;
         }
@@ -4814,12 +4890,12 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::I32Const(*mode));
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
+                    emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
                 }
             } else {
-                body.instruction(&WasmInstr::I32Const(*mode));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
             }
             return;
         }
@@ -4835,13 +4911,13 @@ fn emit_mir_instr(
                         catch_br(br_to_loop),
                     );
                 } else {
-                    body.instruction(&WasmInstr::I32Const(*mode));
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+                    emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
                     emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Shuffle);
                 }
             } else {
-                body.instruction(&WasmInstr::I32Const(*mode));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
                 emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Shuffle);
             }
             return;
@@ -4861,12 +4937,12 @@ fn emit_mir_instr(
                     );
                 } else {
                     aot_emit_hard_fail("SimdLoad guest-v8 pilot requires simd tmp local");
-                    body.instruction(&WasmInstr::Unreachable);
+                    emit_wasm_instr(body, &WasmInstr::Unreachable);
                 }
             } else {
                 let tag = (*lanes as i32) | ((*element as i32) << 8);
-                body.instruction(&WasmInstr::I32Const(tag));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(tag));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)));
             }
             return;
         }
@@ -4884,79 +4960,86 @@ fn emit_mir_instr(
                     );
                 } else {
                     aot_emit_hard_fail("SimdStore guest-v8 pilot requires simd tmp local");
-                    body.instruction(&WasmInstr::Unreachable);
+                    emit_wasm_instr(body, &WasmInstr::Unreachable);
                 }
             } else {
                 let tag = (*lanes as i32) | ((*element as i32) << 8);
-                body.instruction(&WasmInstr::I32Const(tag));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(tag));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)));
             }
             return;
         }
         if let MirOp::ActorCall(name) = &instr.op {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
-            body.instruction(&WasmInstr::I32Const(off));
-            body.instruction(&WasmInstr::I32Const(len));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(off));
+            emit_wasm_instr(body, &WasmInstr::I32Const(len));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)));
             // ADR-631: poll pending_catch after ActorCall (C009 under try).
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
             emit_call_host_take_catch(body, br_to_loop);
             return;
         }
         if let MirOp::ActorSend(name) = &instr.op {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
-            body.instruction(&WasmInstr::I32Const(off));
-            body.instruction(&WasmInstr::I32Const(len));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(off));
+            emit_wasm_instr(body, &WasmInstr::I32Const(len));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
             emit_call_host_take_catch(body, br_to_loop);
             return;
         }
         if matches!(instr.op, MirOp::ActorRegister) {
-            body.instruction(&WasmInstr::Call(
+            emit_wasm_instr(body, &WasmInstr::Call(
                 plan.aot_import(aot::Import::ActorRegister),
             ));
             return;
         }
         if let MirOp::TaskSpawn(name) = &instr.op {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
-            body.instruction(&WasmInstr::I32Const(off));
-            body.instruction(&WasmInstr::I32Const(len));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(off));
+            emit_wasm_instr(body, &WasmInstr::I32Const(len));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)));
             return;
         }
         if matches!(instr.op, MirOp::TaskJoin) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)));
             return;
         }
         if let MirOp::BeginTry(catch) = &instr.op {
-            body.instruction(&WasmInstr::I32Const(*catch as i32));
-            body.instruction(&WasmInstr::I32Const(0));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::BeginTry)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*catch as i32));
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::BeginTry)));
             return;
         }
         if matches!(instr.op, MirOp::Catch) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::Catch)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::Catch)));
             return;
         }
         if matches!(instr.op, MirOp::Throw) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::Throw)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::Throw)));
             return;
         }
         if matches!(instr.op, MirOp::EndTry) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::EndTry)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndTry)));
             return;
         }
         if matches!(instr.op, MirOp::ConcatStr) {
-            // Guest placeholders (ConstStr ret / LoadLocal 0) satisfy (i32,i32)->i32;
-            // host pops RT [left,right] so concat is exact (e.g. "Hello, SYX!").
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)));
-            body.instruction(&WasmInstr::Drop);
+            // R-24-03 (tracker: Point_describe ConcatStr underflow pops=2):
+            // Phase 101 type is (i32,i32)->i32; ConstStr/ObjectGet Drop their
+            // guest stubs (RT owns Values), so push dummy placeholders here —
+            // same pattern as Print's I32Const(0). Host pops RT [left,right].
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::ToStr) {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ToStr)));
-            body.instruction(&WasmInstr::Drop);
+            // R-24-03 (tracker: Greeter_greet ToStr underflow pops=1):
+            // (i32)->i32 import; prior ObjectGet already Dropped its stub.
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ToStr)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if let MirOp::ConstNumeric128 { kind, lo, hi } = &instr.op {
@@ -4965,7 +5048,7 @@ fn emit_mir_instr(
         }
         // Phase 99: ban silent catch-all emit_mir_exec on sync AOT hot path.
         aot_emit_hard_fail(&format!("unmapped AOT sync opcode: {:?}", instr.op));
-        body.instruction(&WasmInstr::Unreachable);
+        emit_wasm_instr(body, &WasmInstr::Unreachable);
         return;
     }
     if simd128 && scratch_offset >= 0 && !simd_export_shim {
@@ -5693,87 +5776,91 @@ fn emit_mir_instr(
     match &instr.op {
         MirOp::Jump(target) => {
             let t = *block_pos.get(target).unwrap_or(&current_block) as i32;
-            body.instruction(&WasmInstr::I32Const(t));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(br_to_loop));
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop));
         }
         MirOp::JumpIfFalse(target) => {
             // Phase 100: true guest — no POP_BOOL mir_exec.
-            body.instruction(&WasmInstr::I32Eqz);
-            body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
+            emit_wasm_instr(body, &WasmInstr::I32Eqz);
+            emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
             let t = *block_pos.get(target).unwrap_or(&(current_block + 1)) as i32;
-            body.instruction(&WasmInstr::I32Const(t));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(br_to_loop + 1));
-            body.instruction(&WasmInstr::End);
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop + 1));
+            emit_wasm_instr(body, &WasmInstr::End);
         }
         MirOp::JumpIfNil(target) => {
             // Phase 100: nil sentinel is i32 0 on the guest stack (no PEEK_IS_NIL / POP mir_exec).
-            body.instruction(&WasmInstr::I32Eqz);
-            body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
+            emit_wasm_instr(body, &WasmInstr::I32Eqz);
+            emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
             let t = *block_pos.get(target).unwrap_or(&(current_block + 1)) as i32;
-            body.instruction(&WasmInstr::I32Const(t));
-            body.instruction(&WasmInstr::GlobalSet(0));
-            body.instruction(&WasmInstr::Br(br_to_loop + 1));
-            body.instruction(&WasmInstr::End);
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop + 1));
+            emit_wasm_instr(body, &WasmInstr::End);
         }
         MirOp::Pop => {
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::Drop);
         }
         MirOp::Return => {
             if plan.aot && func_param_count > 0 {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
             }
             if exit_returns_i32 && !plan.aot {
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::GetReturn)));
             } else if exit_returns_i32 && plan.aot {
-                body.instruction(&WasmInstr::I32Const(0));
+                emit_wasm_instr(body, &WasmInstr::I32Const(0));
             } else if !exit_returns_i32 {
-                body.instruction(&WasmInstr::I32Const(0));
+                emit_wasm_instr(body, &WasmInstr::I32Const(0));
             }
-            body.instruction(&WasmInstr::Return);
+            emit_wasm_instr(body, &WasmInstr::Return);
         }
         MirOp::Call(name) => {
             if plan.aot {
                 if let Some(idx) = module.functions.iter().position(|f| f.name == *name) {
-                    body.instruction(&WasmInstr::I32Const(idx as i32));
-                    body.instruction(&WasmInstr::CallIndirect {
+                    emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+                    emit_wasm_instr(body, &WasmInstr::CallIndirect {
                         type_index: host::TYPE_FUNC_I32,
                         table_index: 0,
                     });
-                    body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+                    emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
                     emit_call_host_take_catch(body, br_to_loop);
+                    // R-23: stub cleanup via `drop_unused_guest_cond` (skip if next is Pop).
                     return;
                 }
             }
             if let Some(idx) = module.functions.iter().position(|f| f.name == *name) {
                 let param_count = module.functions[idx].param_count;
-                body.instruction(&WasmInstr::I32Const(idx as i32));
-                body.instruction(&WasmInstr::I32Const(param_count as i32));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallFn)));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+                emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+                emit_wasm_instr(body, &WasmInstr::I32Const(param_count as i32));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallFn)));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
                 emit_call_host_take_catch(body, br_to_loop);
+                // R-23: stub cleanup via `drop_unused_guest_cond` (skip if next is Pop).
             }
         }
         MirOp::CallHost(idx) => {
-            body.instruction(&WasmInstr::I32Const(*idx as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*idx as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
             emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::ConstStr(s) => {
             if let Some((off, len)) = str_map.get(s) {
-                body.instruction(&WasmInstr::I32Const(*off));
-                body.instruction(&WasmInstr::I32Const(*len));
-                body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)));
-                body.instruction(&WasmInstr::Drop);
+                emit_wasm_instr(body, &WasmInstr::I32Const(*off));
+                emit_wasm_instr(body, &WasmInstr::I32Const(*len));
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConstStr)));
+                emit_wasm_instr(body, &WasmInstr::Drop);
             } else {
                 aot_emit_hard_fail(&format!("ConstStr({s:?}) missing from wasm data section"));
-                body.instruction(&WasmInstr::Unreachable);
+                emit_wasm_instr(body, &WasmInstr::Unreachable);
             }
         }
         MirOp::ConcatStr => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ConcatStr)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
         }
         MirOp::MakeClosure(name, cap) => {
             let idx = module
@@ -5781,133 +5868,152 @@ fn emit_mir_instr(
                 .iter()
                 .position(|f| f.name == *name)
                 .unwrap_or(0);
-            body.instruction(&WasmInstr::I32Const(idx as i32));
-            body.instruction(&WasmInstr::I32Const(*cap as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)));
-            body.instruction(&WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*cap as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::MakeClosure)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
         }
         MirOp::CallClosure => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallClosure)));
         }
         MirOp::ActorCall(name) => {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
-            body.instruction(&WasmInstr::I32Const(off));
-            body.instruction(&WasmInstr::I32Const(len));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(off));
+            emit_wasm_instr(body, &WasmInstr::I32Const(len));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorCall)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
             emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::ActorSend(name) => {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
-            body.instruction(&WasmInstr::I32Const(off));
-            body.instruction(&WasmInstr::I32Const(len));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(off));
+            emit_wasm_instr(body, &WasmInstr::I32Const(len));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::ActorSend)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)));
             emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::ActorRegister => {
-            body.instruction(&WasmInstr::Call(
+            emit_wasm_instr(body, &WasmInstr::Call(
                 plan.aot_import(aot::Import::ActorRegister),
             ));
         }
         MirOp::TaskSpawn(name) => {
             let (off, len) = rt_str_map.get(name.as_str()).copied().unwrap_or((0, 0));
-            body.instruction(&WasmInstr::I32Const(off));
-            body.instruction(&WasmInstr::I32Const(len));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(off));
+            emit_wasm_instr(body, &WasmInstr::I32Const(len));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskSpawn)));
         }
         MirOp::TaskJoin => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::TaskJoin)));
+        }
+        // R-25-03: scalar constants on the non-AOT guest path (same RT+guest shape as AOT).
+        MirOp::ConstI32(v) => {
+            emit_wasm_instr(body, &WasmInstr::I32Const(*v));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*v));
+        }
+        MirOp::ConstBool(b) => {
+            let n = if *b { 1 } else { 0 };
+            emit_wasm_instr(body, &WasmInstr::I32Const(n));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtBool)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(n));
+        }
+        MirOp::ConstNil => {
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+        }
+        MirOp::ConstNumeric { kind, bits } => {
+            emit_const_numeric_guest(body, plan, *kind, *bits);
         }
         MirOp::ConstNumeric128 { kind, lo, hi } => {
             emit_const_numeric128_guest(body, plan, *kind, *lo, *hi);
         }
         MirOp::SimdAdd => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAdd)));
         }
         MirOp::SimdSub => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdSub)));
         }
         MirOp::SimdMul => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMul)));
         }
         MirOp::SimdDiv => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdDiv)));
         }
         MirOp::SimdEq => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdEq)));
         }
         MirOp::SimdLt => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLt)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLt)));
         }
         MirOp::SimdGt => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGt)));
         }
         MirOp::SimdAnd => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdAnd)));
         }
         MirOp::SimdOr => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdOr)));
         }
         MirOp::SimdXor => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdXor)));
         }
         MirOp::SimdNe => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNe)));
         }
         MirOp::SimdLe => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLe)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLe)));
         }
         MirOp::SimdGe => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdGe)));
         }
         MirOp::SimdNot => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdNot)));
         }
         MirOp::SimdShl => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShl)));
         }
         MirOp::SimdShr => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShr)));
         }
         MirOp::SimdMin => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMin)));
         }
         MirOp::SimdMax => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdMax)));
         }
         MirOp::SimdF32Add => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Add)));
         }
         MirOp::SimdF32Sub => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Sub)));
         }
         MirOp::SimdF32Mul => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Mul)));
         }
         MirOp::SimdF32Div => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF32Div)));
         }
         MirOp::SimdF64Add => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Add)));
         }
         MirOp::SimdF64Sub => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Sub)));
         }
         MirOp::SimdF64Mul => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Mul)));
         }
         MirOp::SimdF64Div => {
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdF64Div)));
         }
         MirOp::SimdReduceAdd { .. } => {
             let idx = syx_stdlib::host_fn_index(syx_stdlib::HostFnId::SimdReduceAdd);
-            body.instruction(&WasmInstr::I32Const(idx as i32));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(idx as i32));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::CallHost)));
         }
         MirOp::SimdShuffle { mode } => {
-            body.instruction(&WasmInstr::I32Const(*mode));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdShuffle)));
         }
         MirOp::SimdI8Shuffle { mode } => {
             if let Some(tmp) = simd_tmp_local {
@@ -5923,19 +6029,19 @@ fn emit_mir_instr(
                     return;
                 }
             }
-            body.instruction(&WasmInstr::I32Const(*mode));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*mode));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
             emit_simd_export_host_call(body, plan, syx_stdlib::HostFnId::SimdI8Shuffle);
         }
         MirOp::SimdLoad { lanes, element } => {
             let tag = (*lanes as i32) | ((*element as i32) << 8);
-            body.instruction(&WasmInstr::I32Const(tag));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(tag));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdLoad)));
         }
         MirOp::SimdStore { lanes, element } => {
             let tag = (*lanes as i32) | ((*element as i32) << 8);
-            body.instruction(&WasmInstr::I32Const(tag));
-            body.instruction(&WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)));
+            emit_wasm_instr(body, &WasmInstr::I32Const(tag));
+            emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::SimdStore)));
         }
         other => {
             if syx_config::wasm_mir_exec_only() {
@@ -5951,7 +6057,7 @@ fn emit_mir_instr(
                     "Phase 105: unmapped sync opcode (no mir_exec catch-all): {:?}",
                     instr.op
                 ));
-                body.instruction(&WasmInstr::Unreachable);
+                emit_wasm_instr(body, &WasmInstr::Unreachable);
             }
         }
     }
@@ -6023,14 +6129,14 @@ fn emit_mir_exec(
         aot_emit_hard_fail(&format!(
             "Phase 105: emit_mir_exec is debug-only (SYX_WASM_MIR_EXEC_ONLY); opcode {opcode}"
         ));
-        body.instruction(&WasmInstr::Unreachable);
+        emit_wasm_instr(body, &WasmInstr::Unreachable);
         return;
     }
     if mir_exec_op_banned(opcode) {
         aot_emit_hard_fail(&format!(
             "Phase 100: banned mir_exec opcode {opcode} (guest control/string only)"
         ));
-        body.instruction(&WasmInstr::Unreachable);
+        emit_wasm_instr(body, &WasmInstr::Unreachable);
         return;
     }
     // Phase 104: SIMD/i128 are guest-only; mir_exec allowlist is empty.
@@ -6049,32 +6155,32 @@ fn emit_mir_exec(
         aot_emit_hard_fail(&format!(
             "Phase 104: mir_exec opcode {opcode} is guest-only (SIMD/i128 allowlist empty)"
         ));
-        body.instruction(&WasmInstr::Unreachable);
+        emit_wasm_instr(body, &WasmInstr::Unreachable);
         return;
     }
-    body.instruction(&WasmInstr::I32Const(opcode as i32));
-    body.instruction(&WasmInstr::I32Const(a));
-    body.instruction(&WasmInstr::I32Const(b));
-    body.instruction(&WasmInstr::Call(host::IMPORT_MIR_EXEC));
+    emit_wasm_instr(body, &WasmInstr::I32Const(opcode as i32));
+    emit_wasm_instr(body, &WasmInstr::I32Const(a));
+    emit_wasm_instr(body, &WasmInstr::I32Const(b));
+    emit_wasm_instr(body, &WasmInstr::Call(host::IMPORT_MIR_EXEC));
     if !keep_result && br_to_loop.is_none() {
-        body.instruction(&WasmInstr::Drop);
+        emit_wasm_instr(body, &WasmInstr::Drop);
         return;
     }
-    body.instruction(&WasmInstr::LocalSet(0));
-    body.instruction(&WasmInstr::LocalGet(0));
-    body.instruction(&WasmInstr::I32Const(-2));
-    body.instruction(&WasmInstr::I32LtS);
-    body.instruction(&WasmInstr::If(wasm_encoder::BlockType::Empty));
-    body.instruction(&WasmInstr::I32Const(-2));
-    body.instruction(&WasmInstr::LocalGet(0));
-    body.instruction(&WasmInstr::I32Sub);
-    body.instruction(&WasmInstr::GlobalSet(0));
+    emit_wasm_instr(body, &WasmInstr::LocalSet(0));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(0));
+    emit_wasm_instr(body, &WasmInstr::I32Const(-2));
+    emit_wasm_instr(body, &WasmInstr::I32LtS);
+    emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
+    emit_wasm_instr(body, &WasmInstr::I32Const(-2));
+    emit_wasm_instr(body, &WasmInstr::LocalGet(0));
+    emit_wasm_instr(body, &WasmInstr::I32Sub);
+    emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
     if let Some(br) = br_to_loop {
-        body.instruction(&WasmInstr::Br(br + 1));
+        emit_wasm_instr(body, &WasmInstr::Br(br + 1));
     }
-    body.instruction(&WasmInstr::End);
+    emit_wasm_instr(body, &WasmInstr::End);
     if keep_result {
-        body.instruction(&WasmInstr::LocalGet(0));
+        emit_wasm_instr(body, &WasmInstr::LocalGet(0));
     }
 }
 

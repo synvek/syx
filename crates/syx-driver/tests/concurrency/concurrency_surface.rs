@@ -21,10 +21,14 @@ fn actor_isolation_counter() {
     let path = fixture("actor_counter.sy");
     let options = DriverOptions::default();
     compile_file_with_options(&path, &options).expect("actor counter should compile");
-    if let Ok((code, lines)) = run_file_printed(&path, &options) {
-        assert_eq!(code, 0);
-        assert!(lines.iter().any(|l| l.trim() == "2"));
-    }
+    // R-14: hard assert (previously `if let Ok(..)` silently skipped the run when
+    // the actor failed with C021, reporting a false green).
+    let (code, lines) = run_file_printed(&path, &options).expect("actor counter should run");
+    assert_eq!(code, 0);
+    assert!(
+        lines.iter().any(|l| l.trim() == "2"),
+        "actor counter must reach 2: {lines:?}"
+    );
 }
 
 #[test]
@@ -58,8 +62,11 @@ fn parity_actor_fixture_also_runs() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/parity/actor_isolation.sy");
     let options = DriverOptions::default();
     compile_file_with_options(&path, &options).expect("compile parity actor_isolation");
-    if let Ok((code, lines)) = run_file_printed(&path, &options) {
-        assert_eq!(code, 0);
-        assert!(lines.iter().any(|l| l.trim() == "2"));
-    }
+    // R-14: hard assert (same vacuous-assert fix as actor_isolation_counter).
+    let (code, lines) = run_file_printed(&path, &options).expect("parity actor fixture should run");
+    assert_eq!(code, 0);
+    assert!(
+        lines.iter().any(|l| l.trim() == "2"),
+        "parity actor fixture must reach 2: {lines:?}"
+    );
 }

@@ -48,9 +48,15 @@ fn mir_actor_isolation() {
     let _guard = mir_lock();
     std::env::set_var("SYX_USE_MIR", "1");
     let path = fixture("actor_isolation.sy");
-    if let Ok((0, printed)) = syx_driver::run_file_printed(&path, &DriverOptions::default()) {
-        assert!(printed.iter().any(|l| l == "2"));
-    }
+    // R-15: this used to be an `if let Ok(..)` guard — a MIR/actor failure silently
+    // passed. Hard assert, same pattern R-14 applied to `concurrency_surface.rs`.
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &DriverOptions::default()).expect("MIR actor run");
+    assert_eq!(code, 0, "MIR actor fixture must exit 0: {printed:?}");
+    assert!(
+        printed.iter().any(|l| l == "2"),
+        "MIR actor fixture must reach 2: {printed:?}"
+    );
 }
 
 #[test]

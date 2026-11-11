@@ -37,5 +37,9 @@ func main() {
 | `Http.fetch(url:)` | GET；单标签参数 `url` |
 | `Http.post(url:body:)` | POST，body 为 `String` |
 | `Url` | 解析 / 组件 |
+| `UdpSocket.bind` / `sendTo` / `recvFrom` | 宿主 id 为 `Int`；`recvFrom` → `Dictionary`（R-7；≠ Object bag） |
+| `HttpBodyStream.open` / `openWithOptions` | → `Dictionary`（`handle`/`status`；R-8）；用 `opened["handle"]` 访问 |
+| `Url.encodeQuery` / `Url.build` | `query: Dictionary`（R-9；≠ Object） |
+| `WebSocket.connect` / `send` / `recv` / `close` | 会话袋为 `Dictionary`（R-10；≠ Object；≠ WSS GA）；用 `ws["url"]` 访问 |
 
 环回正例可设 `SYX_EC_M2_1_HTTP_BASE`。`Http.serve` 的请求次数上限见 `SYX_HTTP_SERVE_MAX_REQUESTS`（≠ graceful `Http.shutdown` GA）。

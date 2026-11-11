@@ -178,7 +178,7 @@ The difference between `Channel()` and `Channel.create(n)`: the former is the cl
 
 Instance methods: `send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` / `capacity()`. Only `Channel.create(n)` remains as a static factory.
 
-> The `Channel<Int>` generic syntax shown in tutorials is the planned form. Public `send` / `trySend` take `Sendable` (R-2); `recv` / Select still surface `Object` until a later residual window. ≠ full `Channel<T>` yet.
+> The `Channel<Int>` generic syntax shown in tutorials is the planned form. Public `send` / `trySend` / `recv` / `tryRecv` use `Sendable` (R-2/R-3); empty/closed recv still surfaces runtime `nil` (≠ typed Optional). Public `Select.select` / `orDefault` / `timeout` take `Array<Channel>` and return `Sendable` (R-4). `Channel.handle` is a host `Int` id (R-6; VM still accepts legacy `{__channel_id}` bags). ≠ full `Channel<T>` yet.
 
 ```syx
 import Synchronization
@@ -279,7 +279,7 @@ t.cancel()
 
 ## Application Concurrency (Main Business API)
 
-Everyday business code should prefer structured concurrency and messaging surfaces over direct thread-pool knobs:
+应用并发 / 主业务并发面：Everyday business code should prefer structured concurrency and messaging surfaces over direct thread-pool knobs:
 
 | Surface | Use |
 |------|------|
@@ -291,6 +291,8 @@ Everyday business code should prefer structured concurrency and messaging surfac
 ## Advanced Runtime Tuning (Deploy/Ops)
 
 > **ADR-270 / ADR-271 / M3-A05 leaf:** the `Concurrency.*` pools and actor capacity knobs below are **advanced runtime configuration**, **not** the preferred concurrency API for ordinary applications. Prefer the structured concurrency + bounded Channel/mailbox described above. The A05 leaf is signed (≠ EC-M3 / ≠ removing the pool API).
+
+> **R-13 task-surface spelling:** `Concurrency` task handles and task groups are runtime bags (`{__task_id}` / `{__group_id}`), so `detach` / `join` / `cancel` / `taskGroupAdd` / `taskGroupWait` / `taskGroupCancel` take and return **`Dictionary`** (≠ Object paste-wall). Slots that carry arbitrary user values — `awaitValue`, `mainActorRun`, `taskLocalGet`, `taskLocalSet` — use **`Sendable`** (R-13; ≠ Object). `detach(_:args:)` takes `Array<Sendable>`. This is public spelling only: the host surface still stores bags, and there is still **no** `TaskHandle` nominal type and **no** `Task<T>` generic.
 
 ```syx
 import Concurrency
@@ -316,11 +318,11 @@ Concurrency.setMailboxCapacity(256)
 
 ### Mutex RAII / Blocking (ADR-281 / ADR-282 / ADR-283 / M3-C01)
 
-`Mutex.lockGuard` returns a `MutexGuard`; when the scope exits, `deinit` calls `__syx_mutex_unlock_quiet`. The product `Mutex.lock` / `lockGuard` go through `__syx_mutex_lock_wait` (Condvar wait while held; ADR-282). The existing `__syx_mutex_lock` remains a try-lock (Bool). The fingerprint is in `Concurrency.syncPolicy` (`mutex-raii-guard-v1-blocking`). The C01 leaf **ADR-283** is signed. **Not** RWLock; **not** a product Condvar; **not** EC-M3.
+`Mutex.lockGuard` returns a `MutexGuard`; when the scope exits, `deinit` calls `__syx_mutex_unlock_quiet`. The product `Mutex.create` / `lock` / `unlock` / `lockGuard` use host **`Int`** ids (R-5; ≠ Object). The product `Mutex.lock` / `lockGuard` go through `__syx_mutex_lock_wait` (Condvar wait while held; ADR-282). The existing `__syx_mutex_lock` remains a try-lock (Bool). The fingerprint is in `Concurrency.syncPolicy` (`mutex-raii-guard-v1-blocking`). The C01 leaf **ADR-283** is signed. **Not** RWLock; **not** a product Condvar; **not** EC-M3.
 
 ### Semaphore (ADR-284 / M3-C02)
 
-`Semaphore.create(permits)` / `wait` / `tryWait` / `signal` (a counting semaphore; a separate table); ADR-285: `SemaphoreGuard` / `waitGuard` (quiet signal on scope exit). The fingerprint is in `Concurrency.semaphorePolicy` (`semaphore-v1-raii`). ADR-286: the C02 leaf is signed (Semaphore slice). **Not** RWLock; **not** a product Condvar; **not** EC-M3.
+`Semaphore.create(permits) -> Int` / `wait` / `tryWait` / `signal` (a counting semaphore; host **`Int`** ids, R-5; ≠ Object); ADR-285: `SemaphoreGuard` / `waitGuard` (quiet signal on scope exit). The fingerprint is in `Concurrency.semaphorePolicy` (`semaphore-v1-raii`). ADR-286: the C02 leaf is signed (Semaphore slice). **Not** RWLock; **not** a product Condvar; **not** EC-M3.
 
 ### Memory Ordering / Atomics (Honest Boundaries) (ADR-287 / ADR-288 / M3-C03)
 

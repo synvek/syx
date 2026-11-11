@@ -4189,22 +4189,30 @@ impl Parser {
             None
         };
         self.consume(TokenKind::In, "Expected 'in' in closure")?;
-        // Prefer expression body so `in a + b` returns the value (not Expr-stmt + Pop).
-        let body = if self.check(TokenKind::LBrace) {
+        self.skip_newlines();
+        // R-26: statement keywords after `in` use Block (same as parse_brace_closure);
+        // previously only Expr was tried → P001 on `return`. Prefer Expr for `in a + b`.
+        if self.check(TokenKind::RBrace) {
             self.advance();
-            let stmts = self.parse_block_stmts()?;
-            ClosureBody::Block(stmts)
-        } else {
-            let expr = self.parse_expr()?;
-            self.consume(TokenKind::RBrace, "Expected '}' after closure")?;
             return Ok(Expr::Closure {
                 span: Span::merge(start_span, self.previous().span),
                 params,
                 return_type,
-                body: ClosureBody::Expr(Box::new(expr)),
+                body: ClosureBody::Block(Vec::new()),
             });
+        }
+        let body = if self.check(TokenKind::LBrace) {
+            self.advance();
+            let stmts = self.parse_block_stmts()?;
+            self.consume(TokenKind::RBrace, "Expected '}' after closure")?;
+            ClosureBody::Block(stmts)
+        } else if self.looks_like_closure_stmt_body() {
+            ClosureBody::Block(self.parse_stmts_until_rbrace()?)
+        } else {
+            let expr = self.parse_expr()?;
+            self.consume(TokenKind::RBrace, "Expected '}' after closure")?;
+            ClosureBody::Expr(Box::new(expr))
         };
-        self.consume(TokenKind::RBrace, "Expected '}' after closure")?;
         Ok(Expr::Closure {
             span: Span::merge(start_span, self.previous().span),
             params,
@@ -5801,6 +5809,68 @@ func main() {}
             p001 >= 2,
             "fixture must keep ≥2 syntax errors for LSP multi-diag nail; got {p001} in {:?}",
             outcome.errors
+        );
+    }
+
+    fn first_closure_body(module: &Module) -> &ClosureBody {
+        let Decl::Function { body, .. } = &module.decls[0] else {
+            panic!("expected function");
+        };
+        match &body[0] {
+            Stmt::VarDecl {
+                init: Some(Expr::Closure { body, .. }),
+                ..
+            } => body,
+            other => panic!("expected let f = Closure…, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn r26_swift_closure_stmt_body_return() {
+        let source = SourceFile::new(
+            "c.sy",
+            "func main() { let f = { (x: Int) -> Int in return x * 2 }\n}\n",
+        );
+        let module = Parser::parse(source).expect("return stmt body must parse");
+        assert!(
+            matches!(first_closure_body(&module), ClosureBody::Block(_)),
+            "expected Block body for `in return`"
+        );
+    }
+
+    #[test]
+    fn r26_swift_closure_stmt_body_if() {
+        let source = SourceFile::new(
+            "c.sy",
+            "func main() { let f = { (x: Int) -> Int in if x > 0 { return x } else { return 0 } }\n}\n",
+        );
+        let module = Parser::parse(source).expect("if stmt body must parse");
+        assert!(matches!(first_closure_body(&module), ClosureBody::Block(_)));
+    }
+
+    #[test]
+    fn r26_swift_closure_empty_body() {
+        let source = SourceFile::new(
+            "c.sy",
+            "func main() { let f = { (x: Int) in }\n}\n",
+        );
+        let module = Parser::parse(source).expect("empty body must parse");
+        match first_closure_body(&module) {
+            ClosureBody::Block(stmts) => assert!(stmts.is_empty()),
+            other => panic!("expected empty Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn r26_swift_closure_expr_body_preserved() {
+        let source = SourceFile::new(
+            "c.sy",
+            "func main() { let f = { (x: Int) -> Int in x + 1 }\n}\n",
+        );
+        let module = Parser::parse(source).expect("expr body must parse");
+        assert!(
+            matches!(first_closure_body(&module), ClosureBody::Expr(_)),
+            "expected Expr body for `in x + 1`"
         );
     }
 }

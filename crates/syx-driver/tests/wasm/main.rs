@@ -1,5 +1,6 @@
 //! Surface harness: wasm
 
+mod runtime_config_guard;
 mod wasm_aot_exec_op_zero;
 mod wasm_aot_opcode_full;
 mod wasm_aot_tier_matrix;

@@ -6,14 +6,16 @@ public enum NetworkError: Error {
 }
 
 public class HttpBodyStream {
-    /// Returns Object bag: `handle` (Int), `status` (Int). Body is not buffered.
+    /// Returns Dictionary bag: `handle` (Int), `status` (Int). Body is not buffered.
+    /// R-8-01: was Object; session handle remains Int for readChunk/close.
     /// Default GET; empty options (embed `{}` is Hashable-fragile — use url-only open).
-    public static func open(url: String) -> Object {
+    public static func open(url: String) -> Dictionary {
         return SyxHost.http_body_stream_open(url)
     }
 
     /// Same as open (SA-4-02: options bag removed from primary surface; use `open`).
-    public static func openWithOptions(url: String) -> Object {
+    /// R-8-01: `-> Dictionary` (≠ Object).
+    public static func openWithOptions(url: String) -> Dictionary {
         return SyxHost.http_body_stream_open(url)
     }
 

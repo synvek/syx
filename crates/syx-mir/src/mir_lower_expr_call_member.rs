@@ -46,7 +46,8 @@ pub(crate) fn lower_expr_call_member(
             return;
         }
     }
-    if matches!(object.as_ref(), Expr::Super { .. }) && name == "init" {
+    // R-29: any `super.method` → CallSuper (codegen parity); only `init` writes back self.
+    if matches!(object.as_ref(), Expr::Super { .. }) {
         if let Some(class) = ctx.enclosing_class() {
             if let Some(super_class) = ctx.module.class_superclasses.get(&class).cloned() {
                 ctx.lower_load_binding_raw(&SmolStr::new("self"), block);
@@ -55,7 +56,7 @@ pub(crate) fn lower_expr_call_member(
                         lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
                     }
                 }
-                let fn_name = SmolStr::new(format!("{super_class}_init"));
+                let fn_name = SmolStr::new(format!("{super_class}_{name}"));
                 ctx.emit(
                     block,
                     MirInstr {
@@ -64,15 +65,17 @@ pub(crate) fn lower_expr_call_member(
                         span: None,
                     },
                 );
-                if let Some(&slot) = ctx.locals.get(&SmolStr::new("self")) {
-                    ctx.emit(
-                        block,
-                        MirInstr {
-                            dest: None,
-                            op: MirOp::StoreLocal(slot),
-                            span: None,
-                        },
-                    );
+                if name == "init" {
+                    if let Some(&slot) = ctx.locals.get(&SmolStr::new("self")) {
+                        ctx.emit(
+                            block,
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::StoreLocal(slot),
+                                span: None,
+                            },
+                        );
+                    }
                 }
                 return;
             }

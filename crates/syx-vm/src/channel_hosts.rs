@@ -291,7 +291,14 @@ fn channel_id_from_value(v: &Value) -> SyxResult<i64> {
 }
 
 fn channel_id_from_value_depth(v: &Value, depth: u8) -> SyxResult<i64> {
-    let v = Value::resolve_heap_slot(v);
+    // Unwrap HeapSlot / MutRefCell so class field bags and facades are visible.
+    let v = Value::dispatch_receiver_for_method(Value::resolve_heap_slot(v));
+    // R-6: bare Int handle from host_channel_create (dual-track with old bags below).
+    match &v {
+        Value::I64(n) => return Ok(*n),
+        Value::I32(n) => return Ok(*n as i64),
+        _ => {}
+    }
     if let Value::Object(map) = &v {
         if let Some(id) = map.get("__channel_id").and_then(|id| match id {
             Value::I64(n) => Some(*n),
@@ -300,26 +307,34 @@ fn channel_id_from_value_depth(v: &Value, depth: u8) -> SyxResult<i64> {
         }) {
             return Ok(id);
         }
-        // Sync.Channel facade stores the host handle in `handle`.
+        // Sync.Channel facade as plain Object map stores the host handle in `handle`.
         if depth < 2 {
             if let Some(inner) = map.get("handle") {
                 return channel_id_from_value_depth(inner, depth + 1);
             }
         }
-        Err(vm_error_at(
+        return Err(vm_error_at(
             "Expected channel object with __channel_id",
             None,
             Span::DUMMY,
             "C003",
-        ))
-    } else {
-        Err(vm_error_at(
-            "Expected channel object",
-            None,
-            Span::DUMMY,
-            "C003",
-        ))
+        ));
     }
+    // R-4: Sync.Channel class instances are ObjectRef; unwrap public `handle`
+    // (field value may itself be MutRefCell — recurse via dispatch above).
+    if depth < 2 {
+        if let Some(fields) = Value::object_ref_user_fields(&v) {
+            if let Some((_, inner)) = fields.iter().find(|(k, _)| k == "handle") {
+                return channel_id_from_value_depth(inner, depth + 1);
+            }
+        }
+    }
+    Err(vm_error_at(
+        "Expected channel object",
+        None,
+        Span::DUMMY,
+        "C003",
+    ))
 }
 
 fn get_channel_pair(id: i64) -> SyxResult<Arc<ChannelPair>> {
@@ -398,10 +413,9 @@ pub fn host_channel_create(stack: &mut Vec<Value>) -> SyxResult<()> {
             }),
         );
     }
-    let mut map = HashMap::new();
-    map.insert("__channel_id".into(), platform_int_value(id));
-    ensure_object_id(&mut map);
-    stack.push(Value::Object(map));
+    // R-6: push bare Int id (was `{__channel_id}` Object bag). Dual-track:
+    // channel_id_from_value still accepts old bags for soak.
+    stack.push(platform_int_value(id));
     Ok(())
 }
 
@@ -698,6 +712,41 @@ pub fn try_poll_channel_recv(value: &Value) -> Option<SyxResult<Value>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// R-6: bare Int from create must round-trip send/recv (channel_id_accepts_int).
+    #[test]
+    fn channel_create_returns_int_and_accepts_bare_int_handle() {
+        let mut stack = Vec::new();
+        stack.push(Value::I32(1));
+        host_channel_create(&mut stack).unwrap();
+        let ch = stack.pop().unwrap();
+        assert!(
+            matches!(ch, Value::I64(_) | Value::I32(_)),
+            "host_channel_create must push bare Int, got {ch:?}"
+        );
+        let id = channel_id_from_value(&ch).unwrap();
+        stack.push(ch.clone());
+        stack.push(Value::I64(42));
+        host_channel_send(&mut stack).unwrap();
+        // Dual-track: old bag still works for the same id.
+        stack.push(Value::Object({
+            let mut m = HashMap::new();
+            m.insert("__channel_id".into(), Value::I64(id));
+            m
+        }));
+        host_channel_recv(&mut stack).unwrap();
+        assert_eq!(stack.pop(), Some(Value::I64(42)));
+        // Bare Int also works as recv handle.
+        stack.push(Value::I32(1));
+        host_channel_create(&mut stack).unwrap();
+        let ch2 = stack.pop().unwrap();
+        stack.push(ch2.clone());
+        stack.push(Value::Str("hi".into()));
+        host_channel_send(&mut stack).unwrap();
+        stack.push(ch2);
+        host_channel_recv(&mut stack).unwrap();
+        assert_eq!(stack.pop(), Some(Value::Str("hi".into())));
+    }
 
     #[test]
     fn channel_select_default_returns_fallback() {

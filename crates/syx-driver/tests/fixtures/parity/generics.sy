@@ -3,6 +3,6 @@ func id(x) -> Int {
 }
 
 func main() {
-    print(id(42))
+    print(id(x: 42))
 }
 

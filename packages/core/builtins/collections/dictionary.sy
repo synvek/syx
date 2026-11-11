@@ -1,6 +1,6 @@
 // Key-value map. Prelude; hand-authored authority.
-// Statics still take Object-key facade (like Array.count<T> vs bare count): product
-// Dictionary is String-shell storage; see language-guide 05 — not HashMap<Value,Value> yet.
+// Statics take Sendable-key facade (R-27; was Object): product Dictionary is
+// String-shell storage; see language-guide 05 — not HashMap<Value,Value> yet.
 // Product surface: count / containsKey / keys / values / remove + subscript only
 // (no mapValues / merge / forEach / isEmpty — book table aligned).
 
@@ -13,7 +13,7 @@ public class Dictionary: Equatable, Hashable, CustomStringConvertible {
     }
 
     /// Whether `key` is present.
-    public static func containsKey(map: Dictionary, key: Object) -> Bool {
+    public static func containsKey(map: Dictionary, key: Sendable) -> Bool {
         return SyxHost.dict_contains(map, key)
     }
 
@@ -28,7 +28,7 @@ public class Dictionary: Equatable, Hashable, CustomStringConvertible {
     }
 
     /// Remove `key`; returns whether it was present.
-    public static func remove(map: Dictionary, key: Object) -> Bool {
+    public static func remove(map: Dictionary, key: Sendable) -> Bool {
         return SyxHost.dict_remove(map, key)
     }
 }
@@ -40,7 +40,7 @@ extension Dictionary {
     }
 
     /// Whether `key` is present.
-    func containsKey(key: Object) -> Bool {
+    func containsKey(key: Sendable) -> Bool {
         return SyxHost.dict_contains(self, key)
     }
 
@@ -55,7 +55,7 @@ extension Dictionary {
     }
 
     /// Remove `key`; returns whether it was present.
-    func remove(key: Object) -> Bool {
+    func remove(key: Sendable) -> Bool {
         return SyxHost.dict_remove(self, key)
     }
 

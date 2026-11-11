@@ -11,7 +11,7 @@ The toolchain embeds the following importable modules (`packages/internal/manife
 | `Crypto` | `packages/crypto/mod.sy` | hashing and more | [examples/basic_demo.sy](../../examples/basic_demo.sy) |
 | `Text` | `packages/text/mod.sy` | `Fmt` / `Regex` / `Encoding` / `Bytes` | — |
 | `Synchronization` | `packages/sync/mod.sy` | Channel / Mutex / Semaphore | [examples/concurrency_control/](../../examples/concurrency_control/) |
-| `SQL` | `packages/data/sql.sy` | `:memory:` CRUD | [examples/sql_tool/](../../examples/sql_tool/) |
+| `SQL` | `packages/data/sql.sy` | `:memory:` CRUD; `SqlRow` accessors `row: Dictionary` (R-11; ≠ Object) | [examples/sql_tool/](../../examples/sql_tool/) |
 | `Testing` | `packages/testing/mod.sy` | `assert` / `assertEq` | [examples/test_demo.sy](../../examples/test_demo.sy) |
 | `DI` | `packages/di/mod.sy` | Service DI | [examples/service_di/](../../examples/service_di/) |
 | `UI` | `packages/ui/mod.sy` | SynUI bridge; **not** product GUI GA | [examples/gui_demo.sy](../../examples/gui_demo.sy) |

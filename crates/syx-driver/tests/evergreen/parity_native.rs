@@ -260,7 +260,7 @@ fn native_strict_protocol_iterator() {
 
 #[test]
 fn native_parity_test_count_gate() {
-    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/parity_native.rs")).unwrap();
+    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/evergreen/parity_native.rs")).unwrap();
     let count = src.matches("#[test]").count() + src.matches("native_src!").count() + src.matches("native_compile_ok!").count();
     assert!(count >= 50, "parity_native needs 50+ tests, found {count}");
 }

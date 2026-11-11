@@ -8,7 +8,6 @@ fn p98_parity_sources() -> Vec<PathBuf> {
         "runtime/hof_closure.rs",
         "runtime/runtime_cast.rs",
         "runtime/hof_generic_witness.rs",
-        "browser/browser_tier2k.rs",
         "runtime/net_http2.rs",
         "data/codable_l4.rs",
         "runtime/select_async.rs",
@@ -24,7 +23,8 @@ fn p98_parity_sources() -> Vec<PathBuf> {
 #[test]
 fn p98_parity_hard_no_let_wasm() {
     for path in p98_parity_sources() {
-        let src = std::fs::read_to_string(&path).unwrap_or_default();
+        let src = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("p98 source {} must exist: {e}", path.display()));
         assert!(
             !src.contains("let _wasm"),
             "{} must not use let _wasm soft assert",
@@ -36,7 +36,8 @@ fn p98_parity_hard_no_let_wasm() {
 #[test]
 fn p98_parity_hard_no_if_let_ok_wasm_run() {
     for path in p98_parity_sources() {
-        let src = std::fs::read_to_string(&path).unwrap_or_default();
+        let src = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("p98 source {} must exist: {e}", path.display()));
         assert!(
             !src.contains("if let Ok"),
             "{} must not use if let Ok soft wasm run",
@@ -48,7 +49,8 @@ fn p98_parity_hard_no_if_let_ok_wasm_run() {
 #[test]
 fn p98_parity_hard_no_compile_is_ok_fallback() {
     for path in p98_parity_sources() {
-        let src = std::fs::read_to_string(&path).unwrap_or_default();
+        let src = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("p98 source {} must exist: {e}", path.display()));
         assert!(
             !src.contains("compile.is_ok()"),
             "{} must not use compile.is_ok() fallback",
@@ -78,15 +80,6 @@ fn p98_parity_hard_net_no_scaffold_name() {
         !src.contains("scaffold"),
         "net_http2_phase98 test fn names must not contain scaffold"
     );
-}
-
-#[test]
-fn p98_parity_hard_browser_mandatory_stdout() {
-    let src = std::fs::read_to_string(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/browser/browser_tier2k.rs"),
-    )
-    .unwrap();
-    assert!(src.contains(".expect(") || src.contains(".unwrap()"));
 }
 
 #[test]

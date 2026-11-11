@@ -24,7 +24,7 @@ func main() {
   do {
     __syx_task_join(t)
     print("JOIN_OK")
-  } catch (err) {
+  } catch (err: Object) {
     print("JOIN_DEADLINE")
     print(err.code)
   }
@@ -64,7 +64,7 @@ func main() {
   do {
     __syx_task_join(t)
     print("JOIN_OK")
-  } catch (err) {
+  } catch (err: Object) {
     print("JOIN_DEADLINE")
     print(err.code)
   }

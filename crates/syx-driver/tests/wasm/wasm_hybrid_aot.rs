@@ -5,18 +5,17 @@ use std::path::PathBuf;
 use syx_config::SyxRuntimeConfig;
 use syx_driver::{emit_wasm_bytes, DriverOptions};
 
+use crate::runtime_config_guard::{with_aot, with_runtime_config};
+
 fn fixture(rel: &str) -> PathBuf {
+    // R-24: same hello alias as wasm_full_program_aot / smoke — real source lives
+    // under `examples/hello.sy`, not `tests/fixtures/hello.sy`.
+    if rel == "hello.sy" {
+        return PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/hello.sy");
+    }
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")
         .join(rel)
-}
-
-fn with_aot<F: FnOnce()>(f: F) {
-    syx_config::install_runtime_config(SyxRuntimeConfig {
-        wasm: syx_config::WasmConfig { aot: true, mir_exec_only: false },
-        ..SyxRuntimeConfig::default()
-    });
-    f();
 }
 
 #[test]
@@ -30,8 +29,9 @@ fn wasm_emit_produces_bytes() {
 #[test]
 fn wasm_aot_flag_changes_emit() {
     let path = fixture("hello.sy");
-    syx_config::install_runtime_config(SyxRuntimeConfig::default());
-    let baseline = emit_wasm_bytes(&path, &DriverOptions::default()).expect("baseline");
+    let baseline = with_runtime_config(SyxRuntimeConfig::default(), || {
+        emit_wasm_bytes(&path, &DriverOptions::default()).expect("baseline")
+    });
     with_aot(|| {
         let mut opts = DriverOptions::default();
         opts.wasm_aot = true;

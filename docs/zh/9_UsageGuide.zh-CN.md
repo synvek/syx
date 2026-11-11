@@ -547,7 +547,7 @@ func main() {
 | `Http.serve(addr, port, handler)` | 基础 HTTP server（阻塞；`Http.shutdown()` 可 graceful 退出；测试可用 `SYX_HTTP_SERVE_MAX_REQUESTS`） |
 | `Http.shutdown` | 停止 accept（hyper+tokio watch cancel）；完成当前请求后 `serve` 返回 |
 | `Http.response(status, body)` | 构造 handler 响应 → `HTTPResponse`（`body` 宜为 String） |
-| `HttpBodyStream.open/readChunk/close` | 客户端响应 body 分块读会话（；默认 get/fetch 仍缓冲） |
+| `HttpBodyStream.open/readChunk/close` | ADR-239 / R-8：客户端响应 body 分块读；`open` → `Dictionary`（`handle`/`status`）；默认 get/fetch 仍缓冲 |
 
 
 示例：`examples/http_tool/`（ client）；`examples/http_server_tool/`（ server；默认端口 18765）。另见 `examples/httpclient_demo.sy` / `httpserver_demo.sy`。
@@ -562,6 +562,7 @@ func main() {
 | `Sql.execOn(connId:, sql:)` | 在指定连接执行 |
 | `Sql.queryOn(connId:, sql:)` | 查询 → **`Array` of `SqlRow`**（可用 `.count`） |
 | `Sql.close(connId:)` | 关闭显式打开的连接 |
+| `SqlRow.getString` / `getInt` / `getFloat` / `getBlob` / `isNull` / `columnNames` | ADR-246 / R-11：访问器参数 `row: Dictionary`（运行时 `__type=SqlRow` 袋；≠ Object 糊墙 / **禁糊墙**成功）。**裸 SQL** hatch 仍在（`query*` 接受原始 SQL；≠ query builder GA）。 |
 
 示例：`examples/sql_tool/`（ EC-M2-1 SQLite 服务切片）。存活计数 `sql_conn_live_count` 仅计显式连接（id≥1），在测试/诊断层（ EC-M2-3 首钉），**不是**应用 API。
 
@@ -906,6 +907,12 @@ func main() {
 | 标准库 | `packages/core/concurrency.sy` 薄封装 |
 
 **高级运行时配置（部署/运维，非普通应用首选 · ）：** `Concurrency.setWorkerCount` / `setCorePoolSize` / `setMaximumPoolSize` / `setKeepAliveMs` / `setTaskQueueCapacity` / `setTaskRejectPolicy` / `setMaxActors` / `setMailboxCapacity` / Actor shared pool；`blockingSleep` / `setBlockingPoolSize`（276）。`Channel` 默认无界构造；有界用 `Channel.create(n)`（返回 `Channel`，见 `packages/sync`）。**非** Java `ThreadPoolExecutor` 全集兼容；业务优先结构化并发，避免无节制 `detach`。
+
+**高级运行时 / 应用并发分层（ADR-270 / ADR-271 / M3-A05）：** 上面的池与容量旋钮属**高级运行时**配置，**不是**应用并发 / 主业务 API；业务代码请用上一段的结构化并发 + `Channel`/mailbox。
+
+**内存序 / Atomics honesty（ADR-287 / ADR-288 / M3-C03）：** 跨 Task / Actor 的共享可变状态必须经 `Mutex` / `Semaphore` / `Channel`（或 actor 隔离）传递；这些同步操作在切片定义内建立 **happens-before**（**内存序**）边界。本切片**不**提供语言级 `Atomic*` / `memory_order`（SeqCst/Acquire/Release）产品面，**不**交付 `AtomicInt` / CAS / fetchAdd 标准库 API；`__syx_wasm_atomic_add_i32` 已注册但能力为 **unsupported**（≠ Wasm atomics 产品 GA，≠ `AtomicInt` GA）。边界以 **ADR-287** 为准。
+
+**错误绑定提示：** 裸 `catch (e)` 的绑定类型是 `String`；需要读 `.code` 时写 `catch (e: Object)`（host 抛 `Value::Object { code, message }`）。
 
 `syx.toml` 可选 `[concurrency] strict = true` 启用 C001–C003。示例：`examples/concurrency_control/`。
 
@@ -1268,7 +1275,7 @@ syx test . --format junit   # CI：JUnit XML <testsuite name="syx">
 syx test . --format tap     # 或 SYX_TEST_TAP=1
 ```
 
-带 `@Test` 的用例可用 `packages/testing` 断言（**需显式** `import Testing`，不会自动注入；≠ auto-import）：
+带 `@Test` 的用例可用 `packages/testing` 断言（**需显式** `import Testing`，不会自动注入；≠ auto-import）。R-12：`assertEq`/`expectEqual` 取 `Sendable`；`test(name:fn:)` 的 `fn: Function`（≠ Object）：
 
 ```sy
 import Testing

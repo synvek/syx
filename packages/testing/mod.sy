@@ -7,17 +7,17 @@ public func assert(condition: Bool) {
 }
 
 /// Assert Eq (host `SyxHost.testing_assert_eq`).
-public func assertEq(actual: Object, expected: Object) {
+public func assertEq(actual: Sendable, expected: Sendable) {
     SyxHost.testing_assert_eq(actual, expected, "assertEq failed")
 }
 
 /// Test (host `SyxHost.testing_test`).
-public func test(name: String, fn: Object) {
+public func test(name: String, fn: Function) {
     SyxHost.testing_test(name, fn)
 }
 
 /// Expect Equal (host `SyxHost.testing_expect_equal`).
-public func expectEqual(actual: Object, expected: Object) {
+public func expectEqual(actual: Sendable, expected: Sendable) {
     SyxHost.testing_expect_equal(actual, expected, "expectEqual failed")
 }
 

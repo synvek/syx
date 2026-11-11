@@ -4,7 +4,7 @@
 
 public class SqlRow {
     /// Get string (throws) (host `SyxHost.sql_row_get_string`).
-    public static func getString(row: Object, name: String) throws -> String {
+    public static func getString(row: Dictionary, name: String) throws -> String {
         do {
             return SyxHost.sql_row_get_string(row, name)
         } catch (e) {
@@ -13,7 +13,7 @@ public class SqlRow {
     }
 
     /// Get int (throws) (host `SyxHost.sql_row_get_int`).
-    public static func getInt(row: Object, name: String) throws -> Int {
+    public static func getInt(row: Dictionary, name: String) throws -> Int {
         do {
             return SyxHost.sql_row_get_int(row, name)
         } catch (e) {
@@ -22,7 +22,7 @@ public class SqlRow {
     }
 
     /// Get float (throws) (host `SyxHost.sql_row_get_float`).
-    public static func getFloat(row: Object, name: String) throws -> Float64 {
+    public static func getFloat(row: Dictionary, name: String) throws -> Float64 {
         do {
             return SyxHost.sql_row_get_float(row, name)
         } catch (e) {
@@ -31,7 +31,7 @@ public class SqlRow {
     }
 
     /// Get blob (throws) (host `SyxHost.sql_row_get_blob`).
-    public static func getBlob(row: Object, name: String) throws -> Array {
+    public static func getBlob(row: Dictionary, name: String) throws -> Array {
         do {
             return SyxHost.sql_row_get_blob(row, name)
         } catch (e) {
@@ -40,7 +40,7 @@ public class SqlRow {
     }
 
     /// Missing column throws; SQL NULL → true.
-    public static func isNull(row: Object, name: String) throws -> Bool {
+    public static func isNull(row: Dictionary, name: String) throws -> Bool {
         do {
             return SyxHost.sql_row_is_null(row, name)
         } catch (e) {
@@ -49,7 +49,7 @@ public class SqlRow {
     }
 
     /// Column names excluding `__type`.
-    public static func columnNames(row: Object) throws -> Array {
+    public static func columnNames(row: Dictionary) throws -> Array {
         do {
             return SyxHost.sql_row_column_names(row)
         } catch (e) {

@@ -22,23 +22,23 @@ public class SemaphoreGuard {
 }
 
 public class Semaphore {
-    public static func create(permits: Int) -> Object {
+    public static func create(permits: Int) -> Int {
         return __syx_semaphore_create(permits)
     }
 
-    public static func wait(sem: Object) {
+    public static func wait(sem: Int) {
         __syx_semaphore_wait(sem)
     }
 
-    public static func tryWait(sem: Object) -> Bool {
+    public static func tryWait(sem: Int) -> Bool {
         return __syx_semaphore_try_wait(sem)
     }
 
-    public static func signal(sem: Object) {
+    public static func signal(sem: Int) {
         __syx_semaphore_signal(sem)
     }
 
-    public static func waitGuard(sem: Object) -> SemaphoreGuard {
+    public static func waitGuard(sem: Int) -> SemaphoreGuard {
         let ok = __syx_semaphore_wait(sem)
         let g = SemaphoreGuard()
         if ok {
@@ -60,7 +60,7 @@ fn m3_c02_semaphore_raii_forget_signal_scope_exit() {
     // create(0) → signal once → waitGuard in helper (no explicit signal) → tryWait succeeds.
     let out = run(&facade_src(
         r#"
-func holdThenDrop(_ s: Object) {
+func holdThenDrop(_ s: Int) {
   let g = Semaphore.waitGuard(sem: s)
   print("HELD")
 }

@@ -27,10 +27,12 @@ fn run_err(src: &str) -> String {
     }
 }
 
+/// Embed does not auto-load `import Data`; prepend Sql/SqlRow façades.
+/// R-11: prepend SyxHost so semantic resolves Dictionary-typed SqlRow accessors.
 fn facade_src(body: &str) -> String {
     let sql = include_str!("../../../../packages/data/sql.sy");
     let row = include_str!("../../../../packages/data/sql_row.sy");
-    format!("{sql}\n{row}\n{body}")
+    syx_driver::embedded_std::ensure_syx_host(&format!("{sql}\n{row}\n{body}"))
 }
 
 #[test]
@@ -231,7 +233,7 @@ func main() {
     let nnull = SqlRow.isNull(row: row, name: "note")
     let idnull = SqlRow.isNull(row: row, name: "id")
     print("OK")
-    print(names.len())
+    print(names.count)
     print(nnull)
     print(idnull)
     Sql.close(connId: c)
@@ -253,9 +255,10 @@ fn m2_s8_02b_docs_and_capability() {
     assert!(
         row.contains("class SqlRow")
             && row.contains("getInt")
-            && row.contains("__syx_sql_row_get_int")
+            && row.contains("SyxHost.sql_row_get_int")
+            && row.contains("row: Dictionary")
             && row.contains("ADR-246"),
-        "SqlRow class required"
+        "SqlRow class required (R-11 Dictionary accessors)"
     );
     let sql = include_str!("../../../../packages/data/sql.sy");
     assert!(

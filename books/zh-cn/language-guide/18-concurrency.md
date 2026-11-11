@@ -178,7 +178,7 @@ class ViewModel {
 
 实例方法：`send` / `recv` / `trySend` / `tryRecv` / `close` / `count()` / `capacity()`。静态工厂仅保留 `Channel.create(n)`。
 
-> 教程里的 `Channel<Int>` 泛型语法为规划形态。公开 `send` / `trySend` 入参为 `Sendable`（R-2）；`recv` / Select 仍暴露 `Object`，待后续 residual 窗。≠ 已交付完整 `Channel<T>`。
+> 教程里的 `Channel<Int>` 泛型语法为规划形态。公开 `send` / `trySend` / `recv` / `tryRecv` 为 `Sendable`（R-2/R-3）；空/关 recv 仍为运行时 `nil`（≠ typed Optional）。公开 `Select.select` / `orDefault` / `timeout` 为 `Array<Channel>` → `Sendable`（R-4）。`Channel.handle` 为宿主 `Int` id（R-6；VM 仍接受旧 `{__channel_id}` bag）。≠ 已交付完整 `Channel<T>`。
 ```syx
 import Synchronization
 
@@ -291,6 +291,8 @@ t.cancel()
 
 > **ADR-270 / ADR-271 / M3-A05 leaf：** 下列 `Concurrency.*` 池与 Actor 容量旋钮是**高级运行时配置**，**不是**普通应用首选并发 API。优先用上一节结构化并发 + 有界 Channel/mailbox。A05 叶子已签（≠ EC-M3 / ≠ 删池 API）。
 
+> **R-13 任务表面拼写：** `Concurrency` 的任务句柄与任务组是运行时袋（`{__task_id}` / `{__group_id}`），因此 `detach` / `join` / `cancel` / `taskGroupAdd` / `taskGroupWait` / `taskGroupCancel` 收发 **`Dictionary`**（≠ Object 糊墙）。承载任意用户值的位置——`awaitValue` / `mainActorRun` / `taskLocalGet` / `taskLocalSet`——用 **`Sendable`**（R-13；≠ Object）。`detach(_:args:)` 取 `Array<Sendable>`。这只是公开拼写：宿主面仍存袋，且**仍无** `TaskHandle` 名义类型、**仍无** `Task<T>` 泛型。
+
 ```syx
 import Concurrency
 
@@ -315,11 +317,11 @@ Concurrency.setMailboxCapacity(256)
 
 ### Mutex RAII / blocking（ADR-281 / ADR-282 / ADR-283 / M3-C01）
 
-`Mutex.lockGuard` 返回 `MutexGuard`；作用域退出时 `deinit` 调用 `__syx_mutex_unlock_quiet`。产品 `Mutex.lock` / `lockGuard` 走 `__syx_mutex_lock_wait`（held 时 Condvar wait；ADR-282）。既有 `__syx_mutex_lock` 仍为 try-lock（Bool）。指纹见 `Concurrency.syncPolicy`（`mutex-raii-guard-v1-blocking`）。C01 叶子 **ADR-283** 已签。**非** RWLock；**非** 产品 Condvar；**非** EC-M3。
+`Mutex.lockGuard` 返回 `MutexGuard`；作用域退出时 `deinit` 调用 `__syx_mutex_unlock_quiet`。产品 `Mutex.create` / `lock` / `unlock` / `lockGuard` 使用 host **`Int`** id（R-5；≠ Object）。产品 `Mutex.lock` / `lockGuard` 走 `__syx_mutex_lock_wait`（held 时 Condvar wait；ADR-282）。既有 `__syx_mutex_lock` 仍为 try-lock（Bool）。指纹见 `Concurrency.syncPolicy`（`mutex-raii-guard-v1-blocking`）。C01 叶子 **ADR-283** 已签。**非** RWLock；**非** 产品 Condvar；**非** EC-M3。
 
 ### Semaphore（ADR-284 / M3-C02）
 
-`Semaphore.create(permits)` / `wait` / `tryWait` / `signal`（计数信号量；独立表）；ADR-285：`SemaphoreGuard` / `waitGuard`（作用域退出 quiet signal）。指纹见 `Concurrency.semaphorePolicy`（`semaphore-v1-raii`）。ADR-286：C02 叶子已签收（Semaphore 切片）。**非** RWLock；**非** 产品 Condvar；**非** EC-M3。
+`Semaphore.create(permits) -> Int` / `wait` / `tryWait` / `signal`（计数信号量；host **`Int`** id，R-5；≠ Object）；ADR-285：`SemaphoreGuard` / `waitGuard`（作用域退出 quiet signal）。指纹见 `Concurrency.semaphorePolicy`（`semaphore-v1-raii`）。ADR-286：C02 叶子已签收（Semaphore 切片）。**非** RWLock；**非** 产品 Condvar；**非** EC-M3。
 
 ### 内存序 / Atomic（诚实边界）（ADR-287 / ADR-288 / M3-C03）
 

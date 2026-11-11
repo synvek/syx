@@ -1,4 +1,4 @@
-//! Array append/contains check the element type (facade stays Object).
+//! Array append/contains element checks (R-27 façade is Sendable; mutate via `var`).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
@@ -38,7 +38,7 @@ fn array_float_append_unsuffixed_int_grows() {
     let result = compile_and_run_embedded(
         r#"
 func main() {
-    let a: Array<Float> = []
+    var a: Array<Float> = []
     print(a.count)
     a.append(2)
     print(a.count)
@@ -60,7 +60,7 @@ fn array_int_append_grows() {
     let result = compile_and_run_embedded(
         r#"
 func main() {
-    let a: Array<Int> = []
+    var a: Array<Int> = []
     print(a.count)
     a.append(1)
     print(a.count)
@@ -102,7 +102,7 @@ fn array_float_append_string_s004() {
         compile_fail_code(
             r#"
 func main() {
-    let a: Array<Float> = []
+    var a: Array<Float> = []
     a.append("2")
 }
 "#
@@ -117,7 +117,7 @@ fn array_double_append_int_suffix_names_double() {
     let message = compile_fail_message(
         r#"
 func main() {
-    let a: Array<Double> = []
+    var a: Array<Double> = []
     a.append(2i8)
 }
 "#,
@@ -138,7 +138,7 @@ fn array_float64_append_int_suffix_names_float64() {
     let message = compile_fail_message(
         r#"
 func main() {
-    let a: Array<Float64> = []
+    var a: Array<Float64> = []
     a.append(2i8)
 }
 "#,
@@ -156,7 +156,7 @@ fn array_float_append_int_suffix_s004() {
         compile_fail_code(
             r#"
 func main() {
-    let a: Array<Float> = []
+    var a: Array<Float> = []
     a.append(2i8)
 }
 "#

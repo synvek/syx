@@ -157,7 +157,7 @@ enum SyxHost {
         return __syx_channel_close(handle)
     }
 
-    static func channel_create(n0: Int) -> Object {
+    static func channel_create(n0: Int) -> Int {
         return __syx_channel_create(n0)
     }
 
@@ -169,15 +169,15 @@ enum SyxHost {
         return __syx_channel_recv(handle)
     }
 
-    static func channel_select(channels: String) -> Object {
+    static func channel_select(channels: String) -> Array {
         return __syx_channel_select(channels)
     }
 
-    static func channel_select_default(channels: String, miss: String) -> Object {
+    static func channel_select_default(channels: String, miss: String) -> Array {
         return __syx_channel_select_default(channels, miss)
     }
 
-    static func channel_select_timeout(channels: String, ms: Int) -> Object {
+    static func channel_select_timeout(channels: String, ms: Int) -> Array {
         return __syx_channel_select_timeout(channels, ms)
     }
 
@@ -901,11 +901,11 @@ enum SyxHost {
         __syx_http_body_stream_close(handle)
     }
 
-    static func http_body_stream_open(url: String) -> Object {
+    static func http_body_stream_open(url: String) -> Dictionary {
         return __syx_http_body_stream_open(url)
     }
 
-    static func http_body_stream_open_opts(url: String, options: Object) -> Object {
+    static func http_body_stream_open_opts(url: String, options: Dictionary) -> Dictionary {
         return __syx_http_body_stream_open_opts(url, options)
     }
 
@@ -1745,27 +1745,27 @@ enum SyxHost {
         return __syx_sql_rollback_transaction_on(connId)
     }
 
-    static func sql_row_column_names(row: Object) -> Array<String> {
+    static func sql_row_column_names(row: Dictionary) -> Array<String> {
         return __syx_sql_row_column_names(row)
     }
 
-    static func sql_row_get_blob(row: Object, name: String) -> Array<UInt8> {
+    static func sql_row_get_blob(row: Dictionary, name: String) -> Array<UInt8> {
         return __syx_sql_row_get_blob(row, name)
     }
 
-    static func sql_row_get_float(row: Object, name: String) -> Float64 {
+    static func sql_row_get_float(row: Dictionary, name: String) -> Float64 {
         return __syx_sql_row_get_float(row, name)
     }
 
-    static func sql_row_get_int(row: Object, name: String) -> Int {
+    static func sql_row_get_int(row: Dictionary, name: String) -> Int {
         return __syx_sql_row_get_int(row, name)
     }
 
-    static func sql_row_get_string(row: Object, name: String) -> String {
+    static func sql_row_get_string(row: Dictionary, name: String) -> String {
         return __syx_sql_row_get_string(row, name)
     }
 
-    static func sql_row_is_null(row: Object, name: String) -> Bool {
+    static func sql_row_is_null(row: Dictionary, name: String) -> Bool {
         return __syx_sql_row_is_null(row, name)
     }
 
@@ -2049,6 +2049,10 @@ enum SyxHost {
         return __syx_task_detach(name)
     }
 
+    static func task_detach(name: String, args: Array<String>) -> Object {
+        return __syx_task_detach(name, args)
+    }
+
     static func task_group_add(group: String, task: String) -> Bool {
         return __syx_task_group_add(group, task)
     }
@@ -2221,15 +2225,15 @@ enum SyxHost {
         return __syx_udp_bind(host, port)
     }
 
-    static func udp_recv_from(socket: String, maxBytes: Int) -> Object {
+    static func udp_recv_from(socket: Int, maxBytes: Int) -> Dictionary {
         return __syx_udp_recv_from(socket, maxBytes)
     }
 
-    static func udp_send_to(socket: String, host: String, port: Int, data: Array<UInt8>) -> Int {
+    static func udp_send_to(socket: Int, host: String, port: Int, data: Array<UInt8>) -> Int {
         return __syx_udp_send_to(socket, host, port, data)
     }
 
-    static func url_build(base: Float64, path: String, query: Object) -> String {
+    static func url_build(base: String, path: String, query: Dictionary) -> String {
         return __syx_url_build(base, path, query)
     }
 
@@ -2241,7 +2245,7 @@ enum SyxHost {
         return __syx_url_encode(text)
     }
 
-    static func url_encode_query(query: Object) -> String {
+    static func url_encode_query(query: Dictionary) -> String {
         return __syx_url_encode_query(query)
     }
 
@@ -2261,19 +2265,19 @@ enum SyxHost {
         return __syx_value_description(receiver)
     }
 
-    static func ws_close(socket: String) -> Void {
+    static func ws_close(socket: Dictionary) -> Void {
         return __syx_ws_close(socket)
     }
 
-    static func ws_connect(url: String) -> Object {
+    static func ws_connect(url: String) -> Dictionary {
         return __syx_ws_connect(url)
     }
 
-    static func ws_recv(socket: String) -> String {
+    static func ws_recv(socket: Dictionary) -> String {
         return __syx_ws_recv(socket)
     }
 
-    static func ws_send(socket: String, message: String) -> Bool {
+    static func ws_send(socket: Dictionary, message: String) -> Bool {
         return __syx_ws_send(socket, message)
     }
 

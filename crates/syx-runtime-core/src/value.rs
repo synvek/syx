@@ -421,6 +421,17 @@ impl Value {
                 map.insert("__actor_id".into(), Value::I32(id as i32));
                 Value::Object(map)
             }
+            // R-14: heap-v4 wraps actor instances in HeapSlot; stamp the slot payload
+            // instead of returning the slot untouched (previously lost `__actor_id`
+            // and every actor method call failed with C021).
+            Value::HeapSlot { idx, kind } => {
+                if let Ok(mut heap) = crate::global_heap().lock() {
+                    if let Some(inner) = heap.get_mut(idx) {
+                        *inner = std::mem::replace(inner, Value::Nil).register_actor_id(id);
+                    }
+                }
+                Value::HeapSlot { idx, kind }
+            }
             Value::ObjectRef {
                 inner,
                 mutable,

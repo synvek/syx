@@ -701,7 +701,7 @@ fn publisher_key_id_roundtrip() {
 
 #[test]
 fn registry_test_count_gate() {
-    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/registry.rs")).unwrap();
+    let src = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/evergreen/registry.rs")).unwrap();
     let count = src.matches("#[test]").count();
     assert!(count >= 40, "registry needs 40+ tests, found {count}");
 }

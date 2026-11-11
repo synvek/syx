@@ -1,11 +1,12 @@
 /// Bounded/unbounded channel. Prefer instance API (`ch.send(v)`).
 /// - `Channel()` — default init, unbounded (capacity 0)
-/// - `Channel.create(n)` — factory, returns `Channel` (not a raw host `Object`)
+/// - `Channel.create(n)` — factory, returns `Channel` (not a raw host id)
 /// Note: do not add `init(capacity:)` alongside `init()`; labeled ctor currently
 /// resolves to the zero-arg init and would ignore capacity.
 public class Channel {
-    /// Host channel handle (`__channel_id` object). Select accepts `Channel` and unwraps this.
-    public var handle: Object = nil
+    /// Host channel id (`Int`). Select accepts `Channel` and unwraps this.
+    /// R-6-01: was Object `{__channel_id}` bag; create now returns bare Int (VM dual-track still accepts old bags).
+    public var handle: Int = -1
 
     /// Unbounded channel (`capacity == 0`).
     public init() {
@@ -25,16 +26,17 @@ public class Channel {
     public func send(_ value: Sendable) {
         SyxHost.channel_send(self.handle, value)
     }
-    /// Receive one value (blocks if empty).
-    public func recv() -> Object {
+    /// Receive one value (blocks if empty). R-3-01: `Sendable` (≠ Object).
+    /// Empty/closed after drain surfaces runtime `nil` (≠ typed Optional).
+    public func recv() -> Sendable {
         return SyxHost.channel_recv(self.handle)
     }
     /// Non-blocking send; `false` if full/closed. R-2-01: `Sendable` (≠ Object).
     public func trySend(_ value: Sendable) -> Bool {
         return SyxHost.channel_try_send(self.handle, value)
     }
-    /// Non-blocking receive; nil/sentinel if empty.
-    public func tryRecv() -> Object {
+    /// Non-blocking receive; nil/sentinel if empty. R-3-01: `Sendable` (≠ Object).
+    public func tryRecv() -> Sendable {
         return SyxHost.channel_try_recv(self.handle)
     }
     /// Close the channel (further sends fail).
@@ -54,28 +56,40 @@ public class Channel {
 /// Multi-channel select: first-ready, default, or timeout.
 public class Select {
     /// Wait until one channel is ready; returns value or `nil`.
-    public static func select(channels: Array<Object>) -> Object {
+    /// R-4-01: `Array<Channel> -> Sendable` (≠ Object).
+    /// Prefer host result via `SyxHost.value_compare` on bound idx (HeapSlot-aware).
+    public static func select(channels: Array<Channel>) -> Sendable {
         let r = SyxHost.channel_select(channels)
-        if SyxHost.value_compare(r[0], "-1") == 0
-        return nil
-        return r[1]
+        let idx = r[0]
+        let val = r[1]
+        if SyxHost.value_compare(idx, "-1") == 0 {
+            return nil
+        }
+        return val
     }
     /// Select with `fallback` when none are ready immediately.
-    public static func orDefault(channels: Array<Object>, fallback: Object) -> Object {
+    /// R-4-01: `Array<Channel>` + `fallback: Sendable` (≠ Object).
+    public static func orDefault(channels: Array<Channel>, fallback: Sendable) -> Sendable {
         let miss = "SyxHost.select_pkg_miss__"
         let r = SyxHost.channel_select_default(channels, miss)
-        if SyxHost.value_compare(r[0], "-1") == 0
-        return fallback
-        return r[1]
+        let idx = r[0]
+        let val = r[1]
+        if SyxHost.value_compare(idx, "-1") == 0 {
+            return fallback
+        }
+        return val
     }
     /// Select with timeout `ms`; `nil` on timeout.
-    public static func timeout(channels: Array<Object>, ms: Int) -> Object {
+    /// R-4-01: `Array<Channel> -> Sendable` (≠ Object).
+    public static func timeout(channels: Array<Channel>, ms: Int) -> Sendable {
         let r = SyxHost.channel_select_timeout(channels, ms)
-        if SyxHost.value_compare(r, nil) == 0
-        return nil
-        if SyxHost.value_compare(r[0], "-1") == 0
-        return nil
-        return r[1]
+        // Host returns indexed `[idx, value]` or miss `["-1", …]` (Array), not bare nil.
+        let idx = r[0]
+        let val = r[1]
+        if SyxHost.value_compare(idx, "-1") == 0 {
+            return nil
+        }
+        return val
     }
 }
 
@@ -90,20 +104,20 @@ public class MutexGuard {
 
 /// Mutual exclusion: create / lock / unlock / lockGuard.
 public class Mutex {
-    /// Create a mutex host object.
-    public static func create() -> Object {
+    /// Create a mutex host id. R-5-01: `-> Int` (≠ Object).
+    public static func create() -> Int {
         return SyxHost.mutex_create()
     }
-    /// Acquire mutex (blocking).
-    public static func lock(mutex: Object) {
+    /// Acquire mutex (blocking). R-5-01: `mutex: Int`.
+    public static func lock(mutex: Int) {
         SyxHost.mutex_lock_wait(mutex)
     }
-    /// Release mutex.
-    public static func unlock(mutex: Object) {
+    /// Release mutex. R-5-01: `mutex: Int`.
+    public static func unlock(mutex: Int) {
         SyxHost.mutex_unlock(mutex)
     }
-    /// Lock and return an RAII `MutexGuard`.
-    public static func lockGuard(mutex: Object) -> MutexGuard {
+    /// Lock and return an RAII `MutexGuard`. R-5-01: `mutex: Int`.
+    public static func lockGuard(mutex: Int) -> MutexGuard {
         let ok = SyxHost.mutex_lock_wait(mutex)
         let g = MutexGuard()
         if ok
@@ -123,24 +137,24 @@ public class SemaphoreGuard {
 
 /// Counting semaphore: create / wait / tryWait / signal / waitGuard.
 public class Semaphore {
-    /// Create a semaphore with `permits`.
-    public static func create(permits: Int) -> Object {
+    /// Create a semaphore with `permits`. R-5-01: `-> Int` (≠ Object).
+    public static func create(permits: Int) -> Int {
         return SyxHost.semaphore_create(permits)
     }
-    /// Acquire one semaphore permit (blocking).
-    public static func wait(sem: Object) {
+    /// Acquire one semaphore permit (blocking). R-5-01: `sem: Int`.
+    public static func wait(sem: Int) {
         SyxHost.semaphore_wait(sem)
     }
-    /// Try acquire; `false` if no permit.
-    public static func tryWait(sem: Object) -> Bool {
+    /// Try acquire; `false` if no permit. R-5-01: `sem: Int`.
+    public static func tryWait(sem: Int) -> Bool {
         return SyxHost.semaphore_try_wait(sem)
     }
-    /// Release one semaphore permit.
-    public static func signal(sem: Object) {
+    /// Release one semaphore permit. R-5-01: `sem: Int`.
+    public static func signal(sem: Int) {
         SyxHost.semaphore_signal(sem)
     }
-    /// Wait and return an RAII `SemaphoreGuard`.
-    public static func waitGuard(sem: Object) -> SemaphoreGuard {
+    /// Wait and return an RAII `SemaphoreGuard`. R-5-01: `sem: Int`.
+    public static func waitGuard(sem: Int) -> SemaphoreGuard {
         let ok = SyxHost.semaphore_wait(sem)
         let g = SemaphoreGuard()
         if ok

@@ -3423,10 +3423,16 @@ mod tests {
 
     #[test]
     fn hover_hello2_int_min_and_c_are_int() {
-        let text = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../examples/hello2.sy"
-        ));
+        // R-15: `examples/hello2.sy` is gitignored (never tracked), so include_str!
+        // broke clean clones. Inline the minimal probe the assertions need.
+        let text = r#"
+func main() {
+    let c = Int.min
+    print(c)
+    let d = Int32.max
+    print(d)
+}
+"#;
         let line = text.lines().position(|l| l.contains("Int.min")).unwrap();
         let line_text = text.lines().nth(line).unwrap();
         let col_c = line_text.find("c").unwrap();

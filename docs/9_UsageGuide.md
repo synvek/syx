@@ -547,7 +547,7 @@ For timing use `Instant`; For calendar/wall clock use `Clock`/`DateTime`. Pin te
 | `Http.serve(addr, port, handler)` | Basic HTTP server (blocking; `Http.shutdown()` graceful shutdown; tests may use `SYX_HTTP_SERVE_MAX_REQUESTS`) |
 | `Http.shutdown` | stop accept (hyper+tokio watch cancel); after current request `serve` returns |
 | `Http.response(status, body)` | Build handler response → `HTTPResponse` (`body` prefer String) |
-| `HttpBodyStream.open/readChunk/close` | client response body chunked read session (; default get/fetch still buffered) |
+| `HttpBodyStream.open/readChunk/close` | ADR-239 / R-8: client response body chunked read; `open` → `Dictionary` (`handle`/`status`); default get/fetch still buffered |
 
 Examples: `examples/http_tool/` (client); `examples/http_server_tool/` (server; default port 18765). Also see `examples/httpclient_demo.sy` / `httpserver_demo.sy`.
 
@@ -561,8 +561,9 @@ Examples: `examples/http_tool/` (client); `examples/http_server_tool/` (server; 
 | `Sql.execOn(connId:, sql:)` | Execute on connection |
 | `Sql.queryOn(connId:, sql:)` | Query → **`Array` of `SqlRow`** (May use `.count`) |
 | `Sql.close(connId:)` | Close explicitly opened connection |
+| `SqlRow.getString` / `getInt` / `getFloat` / `getBlob` / `isNull` / `columnNames` | ADR-246 / R-11: accessors take `row: Dictionary` (runtime `__type=SqlRow` bag; ≠ Object paste-wall / 禁糊墙成功). Bare SQL hatch remains (`query*` accept raw SQL; ≠ query builder GA). |
 
-Example: `examples/sql_tool/` (EC-M2-1 SQLite service slice). Live count `sql_conn_live_count` counts explicit connections only (id≥1), in test/diagnostic layer (EC-M2-3 first pin), **not** application API.
+Example: `examples/sql_tool/` (EC-M2-1 SQLite service slice). Live count `sql_conn_live_count` counts explicit connections only (id≥1), in test/diagnostic layer (EC-M2-3 first pin), **not** application API. 裸 SQL hatch is intentional; use typed accessors instead of Object bag field walking.
 
 ### String three views (`M2-S2-01`)
 
@@ -903,6 +904,13 @@ Example: `examples/os_info/`.
 | standard library | `packages/core/concurrency.sy` thin wrapper |
 
 **Advanced runtime config (deploy/ops, not default app path): ** `Concurrency.setWorkerCount` / `setCorePoolSize` / `setMaximumPoolSize` / `setKeepAliveMs` / `setTaskQueueCapacity` / `setTaskRejectPolicy` / `setMaxActors` / `setMailboxCapacity` / Actor shared pool; `blockingSleep` / `setBlockingPoolSize` (276).`Channel` default unbounded constructor; bounded via `Channel.create(n)` (returns `Channel`, see `packages/sync`).≠ Java `ThreadPoolExecutor` full compatibility; Prefer structured concurrency; avoid unbounded `detach`.
+
+**高级运行时 / 应用并发分层（ADR-270 / ADR-271 / M3-A05）：** 上面的池与容量旋钮属**高级运行时**配置，**不是**应用并发 / 主业务 API；业务代码请用上一段的结构化并发 + `Channel`/mailbox。
+
+**Memory ordering / Atomics honesty（ADR-287 / ADR-288 / M3-C03）：** 跨 Task / Actor 的共享可变状态必须经 `Mutex` / `Semaphore` / `Channel`（或 actor 隔离）传递；这些同步操作在切片定义内建立 **happens-before**（内存序）边界。本切片**不**提供语言级 `Atomic*` / `memory_order`（SeqCst/Acquire/Release）产品面，**不**交付 `AtomicInt` / CAS / fetchAdd 标准库 API；`__syx_wasm_atomic_add_i32` 已注册但能力为 **unsupported**（≠ Wasm atomics 产品 GA，≠ `AtomicInt` GA）。
+**内存序 / happens-before** 与 **ADR-287** 的边界以本节为准。
+
+**错误绑定提示：** 裸 `catch (e)` 的绑定类型是 `String`；需要读 `.code` 时写 `catch (e: Object)`（host 抛 `Value::Object { code, message }`）。
 
 `syx.toml` optional `[concurrency] strict = true` enable C001–C003.Example: `examples/concurrency_control/`.
 
@@ -1266,7 +1274,7 @@ syx test . --format junit   # CI：JUnit XML <testsuite name="syx">
 syx test. --format tap # or SYX_TEST_TAP=1
 ```
 
-Cases with `@Test` may use `packages/testing` assertions (**requires explicit** `import Testing`, not auto-injected; ≠ auto-import): 
+Cases with `@Test` may use `packages/testing` assertions (**requires explicit** `import Testing`, not auto-injected; ≠ auto-import). R-12: `assertEq`/`expectEqual` take `Sendable`; `test(name:fn:)` takes `fn: Function` (≠ Object): 
 
 ```sy
 import Testing

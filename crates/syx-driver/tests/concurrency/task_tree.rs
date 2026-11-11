@@ -31,7 +31,7 @@ func main() {
   do {
     __syx_task_join(t)
     print("JOIN_OK")
-  } catch (err) {
+  } catch (err: Object) {
     print("JOIN_CANCEL")
     print(err.code)
   }

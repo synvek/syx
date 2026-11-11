@@ -333,8 +333,8 @@ fn merge_stdlib_modules_into_mir(
             let dep_exports = export_symbols(&dep.source);
             let mut dep_mono = monomorphize_module(&dep_module, instantiations);
             inject_virtual_prelude_imports(&mut dep_mono, options);
-            syx_mir::merge_mir_functions(mir, syx_mir::lower_dataclass_shells(&dep_mono));
-            syx_mir::merge_mir_functions(mir, syx_mir::lower_enum_shells(&dep_mono));
+            syx_mir::merge_mir_shell_functions(mir, syx_mir::lower_dataclass_shells(&dep_mono));
+            syx_mir::merge_mir_shell_functions(mir, syx_mir::lower_enum_shells(&dep_mono));
             let dep_mir = lower_module(&dep_mono)?;
             let module_stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
             for mut func in dep_mir.functions {
@@ -379,7 +379,7 @@ pub fn build_unified_mir(
     Ok(mir)
 }
 
-fn build_mir_from_graph(
+pub(crate) fn build_mir_from_graph(
     graph: &ModuleGraph,
     entry: &ModuleUnit,
     project_root: &Path,
@@ -460,8 +460,8 @@ fn build_mir_from_graph(
             let dep_module = expand_macros(dep_module)?;
             let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
             inject_virtual_prelude_imports(&mut dep_mono, options);
-            syx_mir::merge_mir_functions(&mut mir, syx_mir::lower_dataclass_shells(&dep_mono));
-            syx_mir::merge_mir_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
+            syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_dataclass_shells(&dep_mono));
+            syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
             let dep_mir = lower_module(&dep_mono)?;
             let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
             if is_stdlib_module_path(&dep.path) {
@@ -495,8 +495,8 @@ fn build_mir_from_graph(
 
     let mut mono_module = monomorphize_module(&module, &semantic.instantiations);
     inject_virtual_prelude_imports(&mut mono_module, options);
-    syx_mir::merge_mir_functions(&mut mir, syx_mir::lower_dataclass_shells(&mono_module));
-    syx_mir::merge_mir_functions(&mut mir, syx_mir::lower_enum_shells(&mono_module));
+    syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_dataclass_shells(&mono_module));
+    syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&mono_module));
     let callable_extensions: indexmap::IndexSet<SmolStr> =
         mir.functions.iter().map(|f| f.name.clone()).collect();
     let imported_classes = imported_class_type_names(&import_symbols);

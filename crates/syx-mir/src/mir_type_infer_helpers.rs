@@ -15,6 +15,22 @@ pub(crate) fn type_name_is_set(name: &str) -> bool {
     name == "Set" || name.starts_with("Set<")
 }
 
+/// R-22: `{T}.copy()` returns `T` for struct / data class receivers.
+///
+/// Without this, MIR binary ops see left-type `Unknown` for `p.copy() == p` and fall
+/// through to `ValueEq` (identity), while `p == p.copy()` still calls `{T}_==`.
+fn dataclass_shell_method_return_type(
+    recv: &SmolStr,
+    method: &SmolStr,
+    ctx: &LowerCtx,
+) -> Option<SmolStr> {
+    if method.as_str() == "copy" && ctx.module.dataclass_names.contains(recv) {
+        Some(recv.clone())
+    } else {
+        None
+    }
+}
+
 pub(crate) fn extension_or_hosted_return_type(
     recv_ty: &SmolStr,
     method: &SmolStr,
@@ -164,6 +180,9 @@ pub(crate) fn infer_expr_init_type(expr: &Expr, ctx: &LowerCtx) -> Option<SmolSt
                     return Some(SmolStr::new("Array"));
                 }
                 if let Some(recv) = infer_object_type_name(object, ctx) {
+                    if let Some(ret) = dataclass_shell_method_return_type(&recv, name, ctx) {
+                        return Some(ret);
+                    }
                     if let Some(ret) = extension_or_hosted_return_type(&recv, name, ctx) {
                         return Some(ret);
                     }
@@ -474,12 +493,20 @@ pub(crate) fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<Sm
             if let Expr::Member { object, name, .. } = callee.as_ref() {
                 if let Expr::Ident { name: type_name, .. } = object.as_ref() {
                     if let Some(ret) =
+                        dataclass_shell_method_return_type(type_name, name, ctx)
+                    {
+                        return Some(ret);
+                    }
+                    if let Some(ret) =
                         extension_or_hosted_return_type(type_name, name, ctx)
                     {
                         return Some(ret);
                     }
                 }
                 if let Some(recv) = infer_object_type_name(object, ctx) {
+                    if let Some(ret) = dataclass_shell_method_return_type(&recv, name, ctx) {
+                        return Some(ret);
+                    }
                     if let Some(ret) = extension_or_hosted_return_type(&recv, name, ctx) {
                         return Some(ret);
                     }

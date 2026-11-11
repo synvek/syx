@@ -5,19 +5,19 @@
 /// Detached tasks, joins, sleep, MainActor, and TaskGroup helpers (core prelude).
 public class Concurrency {
     /// Detach a named task with no args; returns task handle.
-    public static func detach(_ name: String) -> Object {
+    public static func detach(_ name: String) -> Dictionary {
     return SyxHost.task_detach(name)
 }
     /// Detach a named task with `args`; returns task handle.
-    public static func detach(_ name: String, args: Array<Object>) -> Object {
+    public static func detach(_ name: String, args: Array<Sendable>) -> Dictionary {
     return SyxHost.task_detach(name, args)
 }
     /// Join `task` and return its result.
-    public static func join(_ task: Object) -> Object {
+    public static func join(_ task: Dictionary) -> Dictionary {
     return SyxHost.task_join(task)
 }
     /// Request cancellation of `task`.
-    public static func cancel(_ task: Object) -> Bool {
+    public static func cancel(_ task: Dictionary) -> Bool {
     return SyxHost.task_cancel(task)
 }
     /// Sleep current task for `ms` milliseconds.
@@ -25,27 +25,27 @@ public class Concurrency {
     SyxHost.task_sleep(ms)
 }
     /// Await completion of `task` and return its value.
-    public static func awaitValue(_ task: Object) -> Object {
+    public static func awaitValue(_ task: Dictionary) -> Sendable {
     return SyxHost.await_task(task)
 }
     /// Run `name` on the MainActor.
-    public static func mainActorRun(_ name: String) -> Object {
+    public static func mainActorRun(_ name: String) -> Sendable {
     return SyxHost.main_actor_run(name)
 }
     /// Create a TaskGroup host object.
-    public static func taskGroupCreate() -> Object {
+    public static func taskGroupCreate() -> Dictionary {
     return SyxHost.task_group_create()
 }
     /// Add `task` to `group`.
-    public static func taskGroupAdd(_ group: Object, _ task: Object) -> Bool {
+    public static func taskGroupAdd(_ group: Dictionary, _ task: Dictionary) -> Bool {
     return SyxHost.task_group_add(group, task)
 }
     /// Wait until all tasks in `group` complete.
-    public static func taskGroupWait(_ group: Object) {
+    public static func taskGroupWait(_ group: Dictionary) {
     SyxHost.task_group_wait(group)
 }
     /// ADR-260 / M3-A01: cancel group token + all registered child handles (cooperative C004).
-    public static func taskGroupCancel(_ group: Object) {
+    public static func taskGroupCancel(_ group: Dictionary) {
     SyxHost.task_group_cancel(group)
 }
     /// ADR-261 / M3-A01: unreaped TaskRegistry size (silent-orphan diagnostic; ≠ EC-M3-2).
@@ -57,11 +57,11 @@ public class Concurrency {
     SyxHost.task_set_deadline_ms(ms)
 }
     /// ADR-263 / M3-A02: task-local set (children inherit a clone; child writes do not affect parent).
-    public static func taskLocalSet(_ key: String, _ value: Object) {
+    public static func taskLocalSet(_ key: String, _ value: Sendable) {
     SyxHost.task_local_set(key, value)
 }
     /// ADR-263 / M3-A02: task-local get (Nil if missing).
-    public static func taskLocalGet(_ key: String) -> Object {
+    public static func taskLocalGet(_ key: String) -> Sendable {
     return SyxHost.task_local_get(key)
 }
     /// ADR-264/265 / M3-A03: actor reentrancy policy (`serial-no-reenter;await-hold`); ≠ Swift await-reentrancy GA.

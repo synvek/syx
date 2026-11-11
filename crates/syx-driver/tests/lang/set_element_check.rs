@@ -1,4 +1,4 @@
-//! Set insert/remove/contains check the element type (facade stays Object).
+//! Set insert/remove/contains element checks (R-27 façade is Sendable; mutate via `var`).
 //! Todo 5 slice 23: instance `contains` is declared on set.sy extension (→ `__syx_set_contains`).
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
@@ -26,7 +26,7 @@ fn set_float_insert_unsuffixed_int_grows() {
     let result = compile_and_run_embedded(
         r#"
 func main() {
-    let s: Set<Float> = []
+    var s: Set<Float> = []
     print(s.count)
     s.insert(2)
     print(s.count)
@@ -48,7 +48,7 @@ fn set_int_insert_grows() {
     let result = compile_and_run_embedded(
         r#"
 func main() {
-    let s: Set<Int> = []
+    var s: Set<Int> = []
     print(s.count)
     s.insert(1)
     print(s.count)
@@ -70,7 +70,7 @@ fn set_int_remove_and_contains() {
     let result = compile_and_run_embedded(
         r#"
 func main() {
-    let s: Set<Int> = [1]
+    var s: Set<Int> = [1]
     print(s.contains(1))
     s.remove(1)
     print(s.count)
@@ -126,7 +126,7 @@ fn set_float_insert_string_s004() {
         compile_fail_code(
             r#"
 func main() {
-    let s: Set<Float> = []
+    var s: Set<Float> = []
     s.insert("2")
 }
 "#
@@ -142,7 +142,7 @@ fn set_float_insert_int_suffix_s004() {
         compile_fail_code(
             r#"
 func main() {
-    let s: Set<Float> = []
+    var s: Set<Float> = []
     s.insert(2i8)
 }
 "#

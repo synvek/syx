@@ -6,21 +6,17 @@ use syx_config::SyxRuntimeConfig;
 use syx_driver::{emit_wasm_bytes, compile_and_run_embedded, DriverOptions};
 use syx_wasm_emit::measure_aot_ratio;
 
+use crate::runtime_config_guard::{with_aot, with_runtime_config};
+
 fn fixture(rel: &str) -> PathBuf {
+    // R-24: `tests/fixtures/hello.sy` was never checked in; smoke/zero/matrix already
+    // use `examples/hello.sy`. Route the hello alias there so AOT smokes are not D001.
+    if rel == "hello.sy" {
+        return PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/hello.sy");
+    }
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")
         .join(rel)
-}
-
-fn with_aot<F: FnOnce() -> T, T>(f: F) -> T {
-    syx_config::install_runtime_config(SyxRuntimeConfig {
-        wasm: syx_config::WasmConfig {
-            aot: true,
-            mir_exec_only: false,
-        },
-        ..SyxRuntimeConfig::default()
-    });
-    f()
 }
 
 fn emit_fixture(rel: &str) -> Option<Vec<u8>> {
@@ -90,27 +86,35 @@ fn aot_wasm_runs_via_wasmtime() {
 }
 
 #[test]
-fn aot_mir_exec_only_differs_from_hybrid() {
+fn aot_mir_exec_only_incompatible_with_guest_control() {
+    // R-25-04: Phase 100 outlawed mir_exec-only + guest control (ConstStr/Pop/…).
+    // hello.sy uses ConstStr — emit must hard-fail W001, then config must restore.
     let path = fixture("hello.sy");
-    syx_config::install_runtime_config(SyxRuntimeConfig {
-        wasm: syx_config::WasmConfig {
-            aot: false,
-            mir_exec_only: true,
+    let err = with_runtime_config(
+        SyxRuntimeConfig {
+            wasm: syx_config::WasmConfig {
+                aot: false,
+                mir_exec_only: true,
+            },
+            ..SyxRuntimeConfig::default()
         },
-        ..SyxRuntimeConfig::default()
-    });
-    let baseline = match emit_wasm_bytes(&path, &DriverOptions::default()) {
-        Ok(b) => b,
-        Err(e) if e.code.as_deref() == Some("S057") => return,
-        Err(e) => panic!("mir_exec: {e:?}"),
-    };
+        || emit_wasm_bytes(&path, &DriverOptions::default()),
+    )
+    .expect_err("mir_exec_only + ConstStr must fail Phase 100");
+    assert_eq!(err.code.as_deref(), Some("W001"));
+    assert!(
+        err.message.contains("Phase 100")
+            || err.message.contains("MIR_EXEC_ONLY")
+            || err.message.contains("guest control"),
+        "expected Phase 100 incompatibility, got: {}",
+        err.message
+    );
+    // Guard dropped: a sibling AOT emit must still succeed (no leaked mir_exec_only).
     with_aot(|| {
         let mut opts = DriverOptions::default();
         opts.wasm_aot = true;
-        if let Ok(hybrid) = emit_wasm_bytes(&path, &opts) {
-            assert!(!hybrid.is_empty());
-            let _ = baseline.len();
-        }
+        let bytes = emit_wasm_bytes(&path, &opts).expect("AOT hello after mir_exec contract");
+        assert_eq!(&bytes[0..4], b"\0asm");
     });
 }
 

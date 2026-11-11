@@ -314,15 +314,29 @@ pub fn value_equals(a: &Value, b: &Value) -> bool {
 
 /// Phase 58: total order for numeric/compare Host ops.
 pub fn value_compare(a: &Value, b: &Value) -> std::cmp::Ordering {
-    match (a, b) {
+    // Materialize HeapSlot (string literals often land as HeapSlot::String) so
+    // bare `Value::Str` from hosts (e.g. select miss index) compare correctly.
+    let a = Value::resolve_heap_slot(a);
+    let b = Value::resolve_heap_slot(b);
+    match (&a, &b) {
         (Value::I32(x), Value::I32(y)) => x.cmp(y),
         (Value::I64(x), Value::I64(y)) => x.cmp(y),
         (Value::F32(x), Value::F32(y)) => x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal),
         (Value::F64(x), Value::F64(y)) => x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal),
         (Value::Str(x), Value::Str(y)) => x.cmp(y),
         (Value::Character(x), Value::Character(y)) => x.cmp(y),
-        _ if value_kind(a).is_some() && value_kind(b).is_some() => {
-            if Value::numeric_eq(a, b) {
+        // Str vs Character (or as_str-compatible) after heap resolve.
+        (Value::Str(_), _) | (_, Value::Str(_)) | (Value::Character(_), _) | (_, Value::Character(_))
+            if {
+                let sa = a.as_str();
+                let sb = b.as_str();
+                !sa.is_empty() || !sb.is_empty() || matches!((&a, &b), (Value::Str(_), Value::Str(_)))
+            } =>
+        {
+            a.as_str().cmp(&b.as_str())
+        }
+        _ if value_kind(&a).is_some() && value_kind(&b).is_some() => {
+            if Value::numeric_eq(&a, &b) {
                 std::cmp::Ordering::Equal
             } else {
                 std::cmp::Ordering::Less

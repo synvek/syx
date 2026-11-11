@@ -6,7 +6,7 @@
 
 | Type | Typical API |
 |------|----------|
-| `Fmt` | `print` / `printLine` / `format` / `debug` |
+| `Fmt` | `print` / `printLine` / `debug` take `Sendable`; `format(..., args: Array<Sendable>)` (R-12; ≠ Object) |
 | `Regex` | `isMatch` / `findAll` / `replaceAll` |
 | `Encoding` | `base64Encode` / `hexEncode` |
 | `Bytes` / `StringBuilder` | Buffered concatenation |
@@ -29,9 +29,9 @@ func main() {
 
 | Package | Key points |
 |----|------|
-| `Testing` | `assert` / `assertEq` / `test` (`import Testing`) |
+| `Testing` | `assert` / `assertEq(Sendable,Sendable)` / `test(fn: Function)` (`import Testing`; R-12) |
 | `DI` | Service DI; see [examples/service_di](../../examples/service_di/) |
-| `SQL` | See [examples/sql_tool](../../examples/sql_tool/) |
+| `SQL` | `SqlRow` accessors take `row: Dictionary` (R-11); see [examples/sql_tool](../../examples/sql_tool/) |
 | `Synchronization` | Channel / Mutex / Semaphore |
 | `UI` | SynUI bridge; **deferred**, do not treat as a product GUI |
 | `Tracing` / `Metrics` / `Profiling` | Observability MVP; not product OTel / Prometheus / pprof GA |

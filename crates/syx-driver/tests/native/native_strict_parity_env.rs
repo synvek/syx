@@ -173,7 +173,7 @@ strict_src!(
 #[test]
 fn native_strict_parity_count_gate() {
     let src = fs::read_to_string(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/native_strict_parity.rs"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/native/native_strict_parity_env.rs"),
     )
     .unwrap();
     let count = src.matches("#[test]").count()

@@ -54,7 +54,7 @@ sort_prints!(
 
 sort_prints!(
     witness_empty_array,
-    "    let xs: Array<Int> = [0]\n    let ys = xs.sorted()\n    print(ys.len())",
+    "    let xs: Array<Int> = [0]\n    let ys = xs.sorted()\n    print(ys.count)",
     "1"
 );
 
@@ -238,7 +238,7 @@ fn witness_sorted_chain_len() {
     let src = r#"func main() {
     let xs: Array<Int> = [3, 1, 2]
     let ys = xs.sorted()
-    print(ys.len())
+    print(ys.count)
 }"#;
     assert!(printed_eq(&run(src), "3"));
 }

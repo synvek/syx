@@ -1,6 +1,6 @@
 # R-2 Channel send/trySend census (post-SA residual)
 
-**Status:** R-2 exit hinge met (R-2-01 + R-2-02 `[x]`) · next = **R-3 recv/Select**  
+**Status:** R-2 exit hinge met (R-2-01 + R-2-02 `[x]`) · next = **R-3 recv**（已由 R-3 接棒；见 [r-3 census](r-3-channel-recv-census.md)）  
 **Date:** 2026-11-10  
 **Script:** [`scripts/r2_channel_census.sh`](../../scripts/r2_channel_census.sh)
 
@@ -38,4 +38,4 @@ bash scripts/r2_channel_census.sh
 
 ## Next
 
-**R-3** — Channel `recv` / Select / `handle` Object 切片（或 Channel 泛型候选；≠ 本窗）。
+**R-3** — Channel `recv`/`tryRecv` → `Sendable`（已退出；见 [r-3 census](r-3-channel-recv-census.md)）。下一 = **R-4** Select/`handle`。
