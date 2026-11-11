@@ -255,6 +255,12 @@ pub fn analyze_document_for_lsp(
     // `binding_sites` / `expr_types` with Character.sy / Int128.sy spans.
     if parse_errors.is_empty() && pass_errors.is_empty() {
         inject_core_collection_builtins(&mut module, options);
+        // SA-4-04: collection / import façades call `SyxHost.*`. Compile injects the
+        // host enum before semantic; LSP must do the same or Dictionary/Array bodies
+        // report S002 Undefined identifier 'SyxHost' in the editor.
+        if options.enable_std {
+            crate::compile_to_program::inject_syx_host_enum(&mut module);
+        }
     }
     let value_builtin_modules = if parse_errors.is_empty() && pass_errors.is_empty() {
         expand_core_value_builtin_modules(options)

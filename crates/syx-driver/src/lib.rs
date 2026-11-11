@@ -1254,4 +1254,24 @@ func main() {
         assert!(session.source_matches_breakpoint_request(path.to_string_lossy().as_ref()));
         assert!(session.source_matches_breakpoint_request("hello.sy"));
     }
+
+    #[test]
+    fn lsp_basic_demo_has_no_undefined_syx_host() {
+        // Prelude Array/Dictionary extensions call SyxHost.*; LSP must inject the
+        // host enum the same way compile_file_context does (SA-4-04).
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/basic_demo.sy");
+        let text = std::fs::read_to_string(&path).expect("basic_demo.sy");
+        let doc = analyze_document_for_lsp(Some(path.as_path()), &text, &DriverOptions::default());
+        let bad: Vec<_> = doc
+            .semantic
+            .errors
+            .iter()
+            .filter(|d| d.message.contains("Undefined identifier 'SyxHost'"))
+            .collect();
+        assert!(
+            bad.is_empty(),
+            "LSP must inject SyxHost for prelude façades: {bad:?}\nall={:?}",
+            doc.semantic.errors
+        );
+    }
 }
