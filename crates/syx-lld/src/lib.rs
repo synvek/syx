@@ -56,14 +56,15 @@ pub fn resolved_llvm_prefix() -> Option<&'static Path> {
 fn install_layout_lld_binary() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let bin_dir = exe.parent()?;
-    for name in [
-        "lld-link.exe",
-        "lld-link",
-        "lld.exe",
-        "lld",
-        "ld.lld",
-        "ld64.lld",
-    ] {
+    #[cfg(target_os = "macos")]
+    let names: &[&str] = &["ld64.lld", "lld", "ld.lld"];
+    #[cfg(target_os = "linux")]
+    let names: &[&str] = &["ld.lld", "lld", "ld64.lld"];
+    #[cfg(target_os = "windows")]
+    let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    let names: &[&str] = &["lld", "ld.lld", "ld64.lld", "lld-link", "lld-link.exe", "lld.exe"];
+    for name in names {
         let p = bin_dir.join(name);
         if p.is_file() {
             return Some(p);

@@ -83,10 +83,21 @@ pub fn expect_llvm_major(prefix: &Path, expected_major: u32) {
     }
 }
 
-/// Path to `lld` / `ld64.lld` under the prefix, if present.
+/// Path to host-appropriate LLD under the prefix, if present.
+///
+/// Order is OS-aware: preferring `ld64.lld` on Linux made diagnostics look like
+/// a Darwin link even when `-flavor gnu` selected the ELF driver.
 pub fn resolve_lld_binary(prefix: &Path) -> Option<PathBuf> {
     let bin = prefix.join("bin");
-    for name in ["ld64.lld", "ld.lld", "lld", "lld-link", "lld-link.exe", "lld.exe"] {
+    #[cfg(target_os = "macos")]
+    let names: &[&str] = &["ld64.lld", "lld", "ld.lld"];
+    #[cfg(target_os = "linux")]
+    let names: &[&str] = &["ld.lld", "lld", "ld64.lld"];
+    #[cfg(target_os = "windows")]
+    let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    let names: &[&str] = &["lld", "ld.lld", "ld64.lld", "lld-link", "lld-link.exe", "lld.exe"];
+    for name in names {
         let p = bin.join(name);
         if p.is_file() {
             return Some(p);

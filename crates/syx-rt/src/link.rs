@@ -476,7 +476,7 @@ pub fn rt_archive_path_for_profile(profile: &str) -> io::Result<PathBuf> {
     rt_archive_path()
 }
 
-/// Prefer LLD (bundled `rust-lld` / `SYX_LLD` / `ld64.lld` / `lld`) before system `cc`.
+/// Prefer LLD (bundled `rust-lld` / `SYX_LLD` / host `ld.lld`|`ld64.lld`|`lld`) before system `cc`.
 /// True in-process LLD (as a library) is not available for LLVM 21+ on crates.io; we invoke
 /// the LLD binary that ships with the Rust toolchain or the host LLVM install.
 fn resolve_lld_linker() -> Option<PathBuf> {
@@ -523,7 +523,15 @@ fn resolve_lld_linker() -> Option<PathBuf> {
             }
         }
     }
-    for name in ["ld64.lld", "ld.lld", "lld-link", "lld"] {
+    #[cfg(target_os = "macos")]
+    let names: &[&str] = &["ld64.lld", "lld", "ld.lld"];
+    #[cfg(target_os = "linux")]
+    let names: &[&str] = &["ld.lld", "lld", "ld64.lld"];
+    #[cfg(target_os = "windows")]
+    let names: &[&str] = &["lld-link.exe", "lld-link", "lld.exe", "lld"];
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    let names: &[&str] = &["lld", "ld.lld", "ld64.lld", "lld-link"];
+    for name in names {
         if let Some(path) = find_on_path(name) {
             return Some(path);
         }
@@ -795,6 +803,160 @@ fn windows_atexit_stub_object() -> io::Result<&'static Path> {
     Ok(CELL.get().unwrap().as_path())
 }
 
+/// Host multiarch dirs so bare LLD can resolve `-lc` / `-ldl` (gcc/`cc` do this
+/// via ld.so.conf; in-process / prefix LLD does not).
+#[cfg(target_os = "linux")]
+fn linux_host_lib_dirs() -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+    #[cfg(target_arch = "x86_64")]
+    {
+        dirs.push(PathBuf::from("/usr/lib/x86_64-linux-gnu"));
+        dirs.push(PathBuf::from("/lib/x86_64-linux-gnu"));
+        dirs.push(PathBuf::from("/usr/lib64"));
+        dirs.push(PathBuf::from("/lib64"));
+    }
+    #[cfg(target_arch = "aarch64")]
+    {
+        dirs.push(PathBuf::from("/usr/lib/aarch64-linux-gnu"));
+        dirs.push(PathBuf::from("/lib/aarch64-linux-gnu"));
+        dirs.push(PathBuf::from("/usr/lib64"));
+        dirs.push(PathBuf::from("/lib64"));
+    }
+    dirs.push(PathBuf::from("/usr/lib"));
+    dirs.push(PathBuf::from("/lib"));
+    dirs.push(PathBuf::from("/usr/local/lib"));
+    if let Some(sysroot) = resolve_sdk_sysroot().filter(|p| sysroot_looks_usable(p)) {
+        dirs.insert(0, sysroot);
+    }
+    dirs.into_iter().filter(|p| p.is_dir()).collect()
+}
+
+/// `main` → `syx_rt_start` so Linux keeps CRT/`__libc_start_main` (see stub .c).
+#[cfg(target_os = "linux")]
+fn linux_main_stub_object() -> io::Result<&'static Path> {
+    static CELL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    if let Some(p) = CELL.get() {
+        return Ok(p.as_path());
+    }
+    let dir = std::env::temp_dir().join("syx-native-link");
+    std::fs::create_dir_all(&dir)?;
+    let c_path = dir.join("linux_main_stub.c");
+    let obj_path = dir.join("linux_main_stub.o");
+    const SRC: &str = include_str!("linux_main_stub.c");
+    std::fs::write(&c_path, SRC)?;
+    let output = Command::new("cc")
+        .arg("-c")
+        .arg(&c_path)
+        .arg("-o")
+        .arg(&obj_path)
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .output()?;
+    if !output.status.success() {
+        let detail = String::from_utf8_lossy(&output.stderr);
+        return Err(io::Error::other(format!(
+            "native link: failed to compile linux_main_stub.c ({}): {detail}",
+            output.status
+        )));
+    }
+    if !obj_path.is_file() {
+        return Err(io::Error::other(
+            "native link: linux_main_stub.o missing after cc",
+        ));
+    }
+    let _ = CELL.set(obj_path);
+    Ok(CELL.get().unwrap().as_path())
+}
+
+#[cfg(target_os = "linux")]
+fn cc_print_file_name(name: &str) -> Option<PathBuf> {
+    let output = Command::new("cc")
+        .arg(format!("-print-file-name={name}"))
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let s = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    // gcc echoes the bare name when the file is missing.
+    if s.is_empty() || s == name {
+        return None;
+    }
+    let p = PathBuf::from(s);
+    p.is_file().then_some(p)
+}
+
+/// CRT objects + dynamic linker for bare LLD (not needed when linking via `cc`).
+#[cfg(target_os = "linux")]
+fn linux_crt_for_lld() -> (Vec<PathBuf>, Vec<PathBuf>, Option<PathBuf>, bool) {
+    let mut start = Vec::new();
+    let mut pie = false;
+    if let Some(p) = cc_print_file_name("Scrt1.o") {
+        start.push(p);
+        pie = true;
+    } else if let Some(p) = cc_print_file_name("crt1.o") {
+        start.push(p);
+    }
+    if let Some(p) = cc_print_file_name("crti.o") {
+        start.push(p);
+    }
+    if pie {
+        if let Some(p) = cc_print_file_name("crtbeginS.o") {
+            start.push(p);
+        } else if let Some(p) = cc_print_file_name("crtbegin.o") {
+            start.push(p);
+        }
+    } else if let Some(p) = cc_print_file_name("crtbegin.o") {
+        start.push(p);
+    } else if let Some(p) = cc_print_file_name("crtbeginS.o") {
+        start.push(p);
+        pie = true;
+    }
+
+    let mut end = Vec::new();
+    if pie {
+        if let Some(p) = cc_print_file_name("crtendS.o") {
+            end.push(p);
+        } else if let Some(p) = cc_print_file_name("crtend.o") {
+            end.push(p);
+        }
+    } else if let Some(p) = cc_print_file_name("crtend.o") {
+        end.push(p);
+    } else if let Some(p) = cc_print_file_name("crtendS.o") {
+        end.push(p);
+    }
+    if let Some(p) = cc_print_file_name("crtn.o") {
+        end.push(p);
+    }
+
+    let dynamic_linker = {
+        #[cfg(target_arch = "x86_64")]
+        const CANDIDATES: &[&str] = &[
+            "ld-linux-x86-64.so.2",
+            "/lib64/ld-linux-x86-64.so.2",
+            "/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+        ];
+        #[cfg(target_arch = "aarch64")]
+        const CANDIDATES: &[&str] = &[
+            "ld-linux-aarch64.so.1",
+            "/lib/ld-linux-aarch64.so.1",
+            "/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+        ];
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+        const CANDIDATES: &[&str] = &[];
+        CANDIDATES.iter().find_map(|c| {
+            if c.starts_with('/') {
+                let p = PathBuf::from(c);
+                p.is_file().then_some(p)
+            } else {
+                cc_print_file_name(c)
+            }
+        })
+    };
+
+    (start, end, dynamic_linker, pie)
+}
+
 fn apply_lld_flavor_args(cmd: &mut Command) {
     #[cfg(target_os = "macos")]
     {
@@ -855,6 +1017,29 @@ pub fn native_lld_argv(
     rt: &Path,
 ) -> io::Result<Vec<std::ffi::OsString>> {
     let mut args: Vec<std::ffi::OsString> = Vec::new();
+    #[cfg(target_os = "linux")]
+    let (crt_start, crt_end, dynamic_linker, pie) = linux_crt_for_lld();
+    #[cfg(target_os = "linux")]
+    {
+        // Without CRT / ld.so, bare LLD cannot produce a runnable ELF; fail so
+        // full-native falls back to host `cc` (which supplies them).
+        if crt_start.is_empty() || dynamic_linker.is_none() {
+            return Err(io::Error::other(
+                "native link: Linux CRT objects or dynamic linker not found for bare LLD \
+                 (need working `cc -print-file-name=…`; install build-essential)",
+            ));
+        }
+        if pie {
+            args.push("-pie".into());
+        }
+        if let Some(ref ldso) = dynamic_linker {
+            args.push("-dynamic-linker".into());
+            args.push(ldso.as_os_str().to_owned());
+        }
+        for obj in &crt_start {
+            args.push(obj.as_os_str().to_owned());
+        }
+    }
     args.push(user_obj.as_os_str().to_owned());
     for obj in &opts.objects {
         args.push(obj.as_os_str().to_owned());
@@ -862,6 +1047,10 @@ pub fn native_lld_argv(
     #[cfg(windows)]
     {
         args.push(windows_atexit_stub_object()?.as_os_str().to_owned());
+    }
+    #[cfg(target_os = "linux")]
+    {
+        args.push(linux_main_stub_object()?.as_os_str().to_owned());
     }
     args.push(rt.as_os_str().to_owned());
     for path in &opts.lib_paths {
@@ -938,12 +1127,24 @@ pub fn native_lld_argv(
     }
     #[cfg(target_os = "linux")]
     {
-        args.push("-e".into());
-        args.push("syx_rt_start".into());
+        // Keep CRT `_start` (via linux_main_stub `main`); do not pass `-e syx_rt_start`.
+        for d in linux_host_lib_dirs() {
+            args.push("-L".into());
+            args.push(d.into_os_string());
+        }
         args.push("-ldl".into());
         args.push("-lpthread".into());
         args.push("-lm".into());
         args.push("-lc".into());
+        // Rust staticlibs often need libgcc_s; bare LLD does not pull it like `cc`.
+        if let Some(libgcc) = cc_print_file_name("libgcc_s.so.1") {
+            args.push(libgcc.into_os_string());
+        } else {
+            args.push("-lgcc_s".into());
+        }
+        for obj in &crt_end {
+            args.push(obj.as_os_str().to_owned());
+        }
     }
     Ok(args)
 }
@@ -1046,6 +1247,20 @@ fn link_executable_with_prefer_lld(
     let lld = using_lld_driver(&cmd);
     let win_msvc = windows_msvc_style_linker(&cmd);
 
+    #[cfg(target_os = "linux")]
+    let linux_lld_crt = lld.then(linux_crt_for_lld);
+    #[cfg(target_os = "linux")]
+    if let Some((ref crt_start, _, ref dynamic_linker, pie)) = linux_lld_crt {
+        if pie {
+            cmd.arg("-pie");
+        }
+        if let Some(ldso) = dynamic_linker {
+            cmd.arg("-dynamic-linker").arg(ldso);
+        }
+        for obj in crt_start {
+            cmd.arg(obj);
+        }
+    }
     cmd.arg(user_obj);
     for obj in &opts.objects {
         cmd.arg(obj);
@@ -1053,6 +1268,10 @@ fn link_executable_with_prefer_lld(
     #[cfg(windows)]
     {
         cmd.arg(windows_atexit_stub_object()?);
+    }
+    #[cfg(target_os = "linux")]
+    {
+        cmd.arg(linux_main_stub_object()?);
     }
     cmd.arg(&rt);
     push_sdk_sysroot_libpath(&mut cmd, win_msvc);
@@ -1117,10 +1336,23 @@ fn link_executable_with_prefer_lld(
     }
     #[cfg(target_os = "linux")]
     {
-        cmd.arg("-e").arg("syx_rt_start");
-        cmd.arg("-ldl").arg("-lpthread").arg("-lm");
+        // Keep CRT `_start` via linux_main_stub `main` (no `-e syx_rt_start`).
         if lld {
+            for d in linux_host_lib_dirs() {
+                cmd.arg("-L").arg(d);
+            }
+        }
+        cmd.arg("-ldl").arg("-lpthread").arg("-lm");
+        if let Some((_, ref crt_end, _, _)) = linux_lld_crt {
             cmd.arg("-lc");
+            if let Some(libgcc) = cc_print_file_name("libgcc_s.so.1") {
+                cmd.arg(libgcc);
+            } else {
+                cmd.arg("-lgcc_s");
+            }
+            for obj in crt_end {
+                cmd.arg(obj);
+            }
         }
     }
 
@@ -1191,6 +1423,37 @@ mod tests {
     #[test]
     fn resolves_lld_or_none() {
         let _ = resolve_lld_linker();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_native_lld_argv_keeps_crt_entry() {
+        let dir = tempfile::tempdir().unwrap();
+        let user = dir.path().join("user.o");
+        let rt = dir.path().join("libsyx_rt.a");
+        let out = dir.path().join("app");
+        std::fs::write(&user, b"").unwrap();
+        std::fs::write(&rt, b"!<arch>\n").unwrap();
+        let args = native_lld_argv(&user, &out, &LinkOptions::default(), &rt)
+            .expect("linux native_lld_argv");
+        let flat: Vec<String> = args
+            .iter()
+            .map(|a| a.to_string_lossy().into_owned())
+            .collect();
+        assert!(
+            !flat.windows(2).any(|w| w[0] == "-e" && w[1] == "syx_rt_start"),
+            "Linux must not use -e syx_rt_start (skips CRT): {flat:?}"
+        );
+        assert!(
+            flat.iter().any(|a| a.contains("linux_main_stub")),
+            "expected linux_main_stub.o in argv: {flat:?}"
+        );
+        assert!(
+            flat.iter().any(|a| a == "-L"),
+            "expected multiarch -L for bare LLD: {flat:?}"
+        );
+        assert!(flat.iter().any(|a| a == "-lc"));
+        assert!(flat.iter().any(|a| a == "-ldl"));
     }
 
     #[test]
