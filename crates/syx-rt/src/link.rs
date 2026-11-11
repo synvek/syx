@@ -751,7 +751,7 @@ fn push_windows_system_libs_lld(args: &mut Vec<std::ffi::OsString>) {
 /// natives (not into the syx CLI itself).
 #[cfg(windows)]
 fn windows_atexit_stub_object() -> io::Result<&'static Path> {
-    static CELL: OnceLock<PathBuf> = OnceLock::new();
+    static CELL: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
     if let Some(p) = CELL.get() {
         return Ok(p.as_path());
     }

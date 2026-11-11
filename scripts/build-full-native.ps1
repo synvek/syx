@@ -30,8 +30,16 @@ if (Test-Path $llvmBin) {
     $env:Path = "$llvmBin;$env:Path"
 }
 
+# cargo writes warnings (e.g. the `.cargo/config` deprecation notice) to stderr.
+# Under `$ErrorActionPreference = "Stop"` PowerShell turns each of those into a
+# terminating NativeCommandError as soon as stderr is redirected or merged
+# (`> log`, `2>&1 | Tee-Object`, CI capture), so the build "fails" before cargo
+# finishes. Judge the result by $LASTEXITCODE instead.
+$ErrorActionPreference = "Continue"
 & cargo @cargoArgs
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+$cargoExit = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
+if ($cargoExit -ne 0) { exit $cargoExit }
 
 if ($target -like "*-pc-windows-msvc") {
     $src = if ($env:CARGO_BUILD_TARGET) {
