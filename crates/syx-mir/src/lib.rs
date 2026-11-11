@@ -112,9 +112,10 @@ pub(crate) use mir_type_infer_helpers::{
     binop_operator_symbol, class_name_from_mangled, expr_is_array_like, expr_is_dict_like,
     expr_is_float32_like, expr_is_float64_like, expr_is_set_like, expr_is_string_like,
     extension_or_hosted_return_type, infer_expr_init_type, infer_expr_type_name,
-    infer_generic_arg_type_name, infer_object_type_name, infer_service_resolve_type_name,
-    infer_static_method_type_args, instance_self_mut_ref_method, is_platform_value_type,
-    is_static_type_member_call, type_name_dispatch_base, type_name_is_set,
+    infer_for_in_elem_type, infer_generic_arg_type_name, infer_object_type_name,
+    infer_service_resolve_type_name, infer_static_method_type_args, instance_self_mut_ref_method,
+    is_platform_value_type, is_static_type_member_call, type_name_dispatch_base, type_name_is_set,
+    unwrap_collection_elem_type_arg,
 };
 pub(crate) use mir_host_cast_helpers::{
     binary_numeric_kind, collection_method_mir_op, emit_float_to_int_numeric_cast_if_needed,
@@ -141,6 +142,7 @@ pub(crate) use mir_lower_expr::lower_expr;
 pub use mir_lower_module::{
     extension_methods_for_module, lower_module, lower_module_with_extra_extensions,
     lower_module_with_extra_extensions_and_kinds,
+    lower_module_with_extra_extensions_kinds_and_source,
 };
 
 #[cfg(test)]
@@ -1592,6 +1594,46 @@ func main() { Child().up() }
     }
 
     #[test]
+    fn r34_protocol_shape_for_in_emits_witness_call_indirect() {
+        let source = SourceFile::new(
+            "r34.sy",
+            r#"
+protocol Shape {
+    func area() -> Double
+}
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * self.r * self.r }
+}
+func total(_ shapes: Array<Shape>) -> Double {
+    var sum = 0.0
+    for s in shapes {
+        sum = sum + s.area()
+    }
+    return sum
+}
+"#,
+        );
+        let module = Parser::parse(source).unwrap();
+        let mir = lower_module(&module).unwrap();
+        let total = mir.functions.iter().find(|f| f.name == "total").expect("total");
+        let flat: Vec<_> = total
+            .blocks
+            .iter()
+            .flat_map(|b| b.instructions.iter())
+            .map(|i| format!("{:?}", i.op))
+            .collect();
+        let joined = flat.join("\n");
+        eprintln!("TOTAL OPS:\n{joined}");
+        eprintln!("local_types={:?}", total.local_types);
+        assert!(
+            joined.contains("CallIndirect") && joined.contains("__witness_Shape_area"),
+            "expected witness CallIndirect, got:\n{joined}"
+        );
+    }
+
+    #[test]
     fn lower_module_export_func_fills_aot_export_roots() {
         let source = SourceFile::new(
             "t.sy",
@@ -2052,5 +2094,54 @@ func main() {}
         assert_eq!(peeled, expected.as_slice());
         let decoded = decode_module_metadata_sidecar(peeled).expect("decode sidecar");
         assert_eq!(decoded, mir_module_metadata_sidecar_view(&module));
+    }
+}
+
+#[cfg(test)]
+mod r35_struct_defaults {
+    use super::*;
+    use crate::mir_module_index::ModuleIndex;
+    use smol_str::SmolStr;
+    use syx_diagnostics::SourceFile;
+    use syx_parser::Parser;
+    #[test]
+    fn counter_book_fields_and_defaults() {
+        let source = SourceFile::new(
+            "t.sy",
+            r#"struct Counter {
+    var value: Int = 0
+    mutating func increment() {
+        value = value + 1
+    }
+}
+func main() {
+    var c = Counter()
+    c.increment()
+    print(c.value)
+}
+"#,
+        );
+        let module = Parser::parse(source).unwrap();
+        let idx = ModuleIndex::from_module(&module);
+        let fields = idx.dataclass_fields.get("Counter").cloned().unwrap_or_default();
+        assert_eq!(fields, vec![SmolStr::new("value")], "fields={fields:?}");
+        assert_eq!(
+            idx.dataclass_field_default_i64
+                .get(&(SmolStr::new("Counter"), SmolStr::new("value")))
+                .copied(),
+            Some(0)
+        );
+        let mut mir = lower_module(&module).unwrap();
+        merge_mir_shell_functions(&mut mir, lower_dataclass_shells(&module));
+        let main = mir.functions.iter().find(|f| f.name == "main").unwrap();
+        let ops: Vec<_> = main.blocks[0]
+            .instructions
+            .iter()
+            .map(|i| format!("{:?}", i.op))
+            .collect();
+        assert!(
+            ops.iter().any(|o| o.contains("ConstI32") || o.contains("ConstNumeric")),
+            "main should pad default before Counter_init: {ops:?}"
+        );
     }
 }

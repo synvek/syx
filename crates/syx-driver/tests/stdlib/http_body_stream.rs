@@ -191,7 +191,7 @@ func main() {
     // R-8: NetworkError.failed Display is case bag (message still product-exact).
     assert_eq!(
         err,
-        "[R007] {case: failed, code: 2, message: HttpBodyStream close failed, tag: 0}",
+        "[R007] NetworkError.failed(code: 2, message: HttpBodyStream close failed)",
         "close invalid-handle Display must exact: {err}"
     );
 }
@@ -215,7 +215,7 @@ func main() {{
     let _ = server.join();
     assert_eq!(
         err,
-        "[R007] {case: failed, code: 2, message: HttpBodyStream close failed, tag: 0}",
+        "[R007] NetworkError.failed(code: 2, message: HttpBodyStream close failed)",
         "close-after-close Display must exact: {err}"
     );
 }

@@ -1,0 +1,8 @@
+// R-36: Error cases print as E.bad, not internal bag.
+enum E: Error {
+    case bad
+}
+
+func main() {
+    print(E.bad)
+}

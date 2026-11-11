@@ -29,6 +29,7 @@ pub(crate) fn lower_function_with_params(
     imports: &IndexSet<SmolStr>,
     globals: &[SmolStr],
     captures: &[SmolStr],
+    mut_captures: &[SmolStr],
     closure_ids: Rc<Cell<u32>>,
 ) -> SyxResult<(MirFunction, Vec<MirFunction>)> {
     let mut ctx = LowerCtx::new(
@@ -57,6 +58,10 @@ pub(crate) fn lower_function_with_params(
     }
     for cap in captures {
         ctx.alloc_local(cap);
+        // R-35: mutable captures are MutRefCell-shared with the outer frame.
+        if mut_captures.iter().any(|m| m == cap) {
+            ctx.mut_ref_params.insert(cap.clone());
+        }
     }
     let entry = ctx.fresh_block();
     ctx.active_block = entry;

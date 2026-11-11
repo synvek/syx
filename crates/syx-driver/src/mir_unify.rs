@@ -501,12 +501,13 @@ pub(crate) fn build_mir_from_graph(
         mir.functions.iter().map(|f| f.name.clone()).collect();
     let imported_classes = imported_class_type_names(&import_symbols);
     let int_kinds = contextual_numeric_kinds_from_semantic(&semantic);
-    let entry_mir = syx_mir::lower_module_with_extra_extensions_and_kinds(
+    let entry_mir = syx_mir::lower_module_with_extra_extensions_kinds_and_source(
         &mono_module,
         &prelude_extensions,
         &callable_extensions,
         &imported_classes,
         &int_kinds,
+        Some(&entry.source),
     )?;
     for func in entry_mir.functions {
         if let Some(pos) = mir.functions.iter().position(|f| f.name == func.name) {

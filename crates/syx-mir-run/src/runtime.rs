@@ -1109,18 +1109,18 @@ impl MirRuntime {
                 } else {
                     self.stack.push(lhs);
                     self.stack.push(rhs);
-                    self.binop_numeric_kind(kind_byte, kind_valid, numeric_add);
+                    self.binop_numeric_kind(kind_byte, kind_valid, numeric_add)?;
                 }
             }
-            op::SUB => self.binop_numeric_kind(a as u8, b != 0, numeric_sub),
-            op::MUL => self.binop_numeric_kind(a as u8, b != 0, numeric_mul),
-            op::DIV => self.binop_numeric_kind(a as u8, b != 0, numeric_div),
-            op::MOD => self.binop_numeric_kind(a as u8, b != 0, numeric_mod),
-            op::BIT_AND => self.binop_numeric_kind(a as u8, b != 0, numeric_bitand),
-            op::BIT_OR => self.binop_numeric_kind(a as u8, b != 0, numeric_bitor),
-            op::BIT_XOR => self.binop_numeric_kind(a as u8, b != 0, numeric_bitxor),
-            op::SHL => self.binop_numeric_kind(a as u8, b != 0, numeric_shl),
-            op::SHR => self.binop_numeric_kind(a as u8, b != 0, numeric_shr),
+            op::SUB => self.binop_numeric_kind(a as u8, b != 0, numeric_sub)?,
+            op::MUL => self.binop_numeric_kind(a as u8, b != 0, numeric_mul)?,
+            op::DIV => self.binop_numeric_kind(a as u8, b != 0, numeric_div)?,
+            op::MOD => self.binop_numeric_kind(a as u8, b != 0, numeric_mod)?,
+            op::BIT_AND => self.binop_numeric_kind(a as u8, b != 0, numeric_bitand)?,
+            op::BIT_OR => self.binop_numeric_kind(a as u8, b != 0, numeric_bitor)?,
+            op::BIT_XOR => self.binop_numeric_kind(a as u8, b != 0, numeric_bitxor)?,
+            op::SHL => self.binop_numeric_kind(a as u8, b != 0, numeric_shl)?,
+            op::SHR => self.binop_numeric_kind(a as u8, b != 0, numeric_shr)?,
             op::EQ => self.binop_bool(|x, y| x == y),
             op::NE => self.binop_bool(|x, y| x != y),
             op::LT => self.binop_cmp_kind(a as u8, b != 0, |o| o == std::cmp::Ordering::Less),
@@ -1442,9 +1442,18 @@ impl MirRuntime {
         kind_byte: u8,
         kind_valid: bool,
         f: fn(NumericKind, &Value, &Value) -> Option<Value>,
-    ) {
+    ) -> SyxResult<()> {
         let b = self.stack.pop().unwrap_or(Value::Nil);
         let a = self.stack.pop().unwrap_or(Value::Nil);
+        // R-32: Nil in numeric ops is fail-closed (never treat as 0).
+        if matches!(a, Value::Nil) || matches!(b, Value::Nil) {
+            return Err(mir_run_error_at(
+                "Nil cannot participate in numeric operation",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
+        }
         let kind = if kind_valid {
             NumericKind::from_byte(kind_byte).unwrap_or(PLATFORM_INT)
         } else {
@@ -1455,8 +1464,14 @@ impl MirRuntime {
         if let Some(r) = f(kind, &a, &b) {
             self.stack.push(r);
         } else {
-            self.stack.push(Value::I32(0));
+            return Err(mir_run_error_at(
+                "Numeric overflow or division by zero",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
         }
+        Ok(())
     }
 
     fn binop_bool(&mut self, f: fn(i32, i32) -> bool) {
@@ -1930,6 +1945,9 @@ impl MirRuntime {
         }
         let witness_next = match top.mut_ref_cell_get_field("__witness_Iterator_next") {
             Value::I32(fn_idx) => Some(self.resolve_iterator_witness_next_fn(&top, fn_idx as u32)),
+            Value::I64(fn_idx) if fn_idx >= 0 => {
+                Some(self.resolve_iterator_witness_next_fn(&top, fn_idx as u32))
+            }
             _ => None,
         };
         if let Some(next_fn) = witness_next {
@@ -2893,9 +2911,17 @@ fn run_mir_flat(func: &MirFunction, rt: &mut MirRuntime, memory: &mut [u8]) -> S
                 }
             }
             MirOp::ReturnErr => {
+                // R-30: rethrow into any BeginTry still active in this frame
+                // (e.g. outer `do` around `try g()`); only leave the function
+                // when no same-frame handler remains.
                 let err = rt.stack.pop().unwrap_or(Value::Str("error".into()));
                 rt.pending_catch = Some(err);
-                return Ok(Value::Nil);
+                let catch = rt.take_catch_pc();
+                if catch >= 0 {
+                    pc = catch as usize;
+                } else {
+                    return Ok(Value::Nil);
+                }
             }
             MirOp::Call(name) => {
                 if let Some(pos) = rt.functions.iter().position(|f| f.name == *name) {
@@ -2979,8 +3005,15 @@ fn run_mir_blocks(func: &MirFunction, rt: &mut MirRuntime, memory: &mut [u8]) ->
                     }
                 }
                 MirOp::ReturnErr => {
+                    // R-30: same-frame rethrow (see run_mir_flat).
                     let err = rt.stack.pop().unwrap_or(Value::Str("error".into()));
                     rt.pending_catch = Some(err);
+                    let catch = rt.take_catch();
+                    if catch >= 0 {
+                        pc = block_index.get(&(catch as u32)).copied().unwrap_or(pc + 1);
+                        jumped = true;
+                        break;
+                    }
                     return Ok(Value::Nil);
                 }
                 MirOp::Call(name) => {

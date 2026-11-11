@@ -6,7 +6,7 @@ use indexmap::IndexMap;
 use smol_str::SmolStr;
 use std::path::Path;
 use syx_codegen::{CodeGenerator, CompiledProgram};
-use syx_diagnostics::{SyxDiagnostic, SyxResult};
+use syx_diagnostics::{SourceFile, SyxDiagnostic, SyxResult};
 use syx_frontend::expand_macros;
 use syx_mir::{lower_module, optimize};
 use syx_mono::monomorphize_module;
@@ -56,12 +56,19 @@ pub(crate) fn compile_to_program(
         "W477 expects MIR pipeline for compile_to_program"
     );
     let int_kinds = contextual_numeric_kinds_from_semantic(semantic);
-    let mut mir = syx_mir::lower_module_with_extra_extensions_and_kinds(
+    let source = std::fs::read_to_string(source_name)
+        .ok()
+        .map(|text| SourceFile::new(source_name, text));
+    if let Some(src) = source.as_ref() {
+        program.debug_source = Some(src.clone());
+    }
+    let mut mir = syx_mir::lower_module_with_extra_extensions_kinds_and_source(
         &mono_module,
         prelude_extensions,
         &program.functions.iter().map(|f| f.name.clone()).collect(),
         &indexmap::IndexSet::new(),
         &int_kinds,
+        source.as_ref(),
     )?;
     optimize(&mut mir);
     backfill_mono_witness_cache(instantiations, &mir);

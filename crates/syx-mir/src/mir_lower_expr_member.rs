@@ -1,6 +1,7 @@
 //! SYX MIR top-level `Expr::Member` lowering.
 //! Extracted in S2-I175 (zero semantics; crate-private).
 
+use crate::class_name_from_mangled;
 use crate::lower_expr;
 use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirInstr, MirOp};
@@ -63,8 +64,15 @@ if let Expr::Ident { name: type_name, .. } = object.as_ref() {
         }
     }
 }
-if let Some(type_name) = infer_object_type_name(object, ctx) {
-    if let Some(getter) = ctx.module.property_getter_fn(&type_name, name) {
+// Class methods keep untyped `self`; recover the owning type from the mangled name
+// so stored fields like `Counter.count` win over `Object.count` / Array.count.
+let member_type_name = infer_object_type_name(object, ctx).or_else(|| {
+    matches!(object.as_ref(), Expr::Ident { name, .. } if name.as_str() == "self")
+        .then(|| class_name_from_mangled(ctx.func_name.as_str()))
+        .flatten()
+});
+if let Some(type_name) = member_type_name.as_ref() {
+    if let Some(getter) = ctx.module.property_getter_fn(type_name, name) {
         // Instance computed get needs the receiver; type-level handled above.
         if !is_static_type_member_call(object, ctx) {
             lower_expr(object, ctx.fresh_reg(), ctx, block);
@@ -349,29 +357,36 @@ if let Some(type_name) = infer_object_type_name(object, ctx) {
         }
     }
 }
-if let Some(method) = lookup_array_method(name) {
-    lower_expr(object, ctx.fresh_reg(), ctx, block);
-    ctx.emit(
-        block,
-        MirInstr {
-            dest: Some(dest),
-            op: method_id_mir_op(method, "Array", name.as_str(), ctx),
-            span: None,
-        },
-    );
-    return;
-}
-if let Some(method) = lookup_string_method(name) {
-    lower_expr(object, ctx.fresh_reg(), ctx, block);
-    ctx.emit(
-        block,
-        MirInstr {
-            dest: Some(dest),
-            op: method_id_mir_op(method, "String", name.as_str(), ctx),
-            span: None,
-        },
-    );
-    return;
+// R-35: do not steal stored fields like `Counter.count` via Array/String
+// method-name fallbacks (those only apply to collection-typed receivers).
+let stored_field_shadow = member_type_name
+    .as_ref()
+    .is_some_and(|t| ctx.module.has_own_stored_field(t, name));
+if !stored_field_shadow {
+    if let Some(method) = lookup_array_method(name) {
+        lower_expr(object, ctx.fresh_reg(), ctx, block);
+        ctx.emit(
+            block,
+            MirInstr {
+                dest: Some(dest),
+                op: method_id_mir_op(method, "Array", name.as_str(), ctx),
+                span: None,
+            },
+        );
+        return;
+    }
+    if let Some(method) = lookup_string_method(name) {
+        lower_expr(object, ctx.fresh_reg(), ctx, block);
+        ctx.emit(
+            block,
+            MirInstr {
+                dest: Some(dest),
+                op: method_id_mir_op(method, "String", name.as_str(), ctx),
+                span: None,
+            },
+        );
+        return;
+    }
 }
 lower_expr(object, dest, ctx, block);
 ctx.emit(

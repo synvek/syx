@@ -286,14 +286,18 @@ pub(crate) fn lower_dataclass_copy_shell(
     name: &SmolStr,
     fields: &[(SmolStr, syx_ast::TypeExpr)],
 ) -> MirFunction {
-    let init_name = SmolStr::new(format!("{name}_init"));
+    // R-35: rebuild the bag directly — do not Call `{T}_init` (0-arg defaulted
+    // inits ignore stack field values and would drop the copy payload).
     let mut ins = Vec::new();
     for (field, _) in fields {
         ins.push(mir_op(MirOp::LoadLocal(0)));
         ins.push(mir_op(MirOp::ConstStr(field.to_string())));
         ins.push(mir_op(MirOp::ObjectGet));
+        ins.push(mir_op(MirOp::ConstStr(field.to_string())));
     }
-    ins.push(mir_op(MirOp::Call(init_name)));
+    ins.push(mir_op(MirOp::ConstStr(name.to_string())));
+    ins.push(mir_op(MirOp::ConstStr("__type".to_string())));
+    ins.push(mir_op(MirOp::DictBuild((fields.len() + 1) as u32)));
     ins.push(mir_op(MirOp::Return));
     mir_shell_fn(SmolStr::new(format!("{name}_copy")), 1, 1, ins)
 }

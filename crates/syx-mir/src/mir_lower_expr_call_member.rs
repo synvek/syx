@@ -867,20 +867,90 @@ pub(crate) fn lower_expr_call_member(
                 return;
             }
         }
+        // R-34: protocol-typed receiver → witness ObjectGet + CallIndirect
+        // (align AST emit_witness_protocol_call). Never Call("{P}_{m}") —
+        // there is no Shape_area body; slots live on the instance.
         if ctx.module.protocol_names.contains(&base)
             && ctx.module.protocol_methods.get(&base).is_some_and(|ms| {
                 ms.iter().any(|m| m == name)
             })
         {
+            let recv_name = SmolStr::new(format!("__witness_recv_{}", ctx.next_reg));
+            let recv_slot = ctx.alloc_local(&recv_name);
             lower_expr(object, ctx.fresh_reg(), ctx, block);
-            for arg in args {
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::StoreLocal(recv_slot),
+                    span: None,
+                },
+            );
+            let mut arg_slots = Vec::new();
+            for (i, arg) in args.iter().enumerate() {
+                let an = SmolStr::new(format!("__witness_arg_{}_{i}", ctx.next_reg));
+                let slot = ctx.alloc_local(&an);
                 lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::StoreLocal(slot),
+                        span: None,
+                    },
+                );
+                arg_slots.push(slot);
             }
             ctx.emit(
                 block,
                 MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(recv_slot),
+                    span: None,
+                },
+            );
+            for slot in &arg_slots {
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::LoadLocal(*slot),
+                        span: None,
+                    },
+                );
+            }
+            // Stack: [self, args..., recv]. ObjectGet consumes recv+key →
+            // [self, args..., witness]. No Dup — an extra recv would remain
+            // under the result and break `sum + s.area()` (R-34).
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(recv_slot),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstStr(format!("__witness_{base}_{name}")),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
                     dest: Some(dest),
-                    op: MirOp::Call(SmolStr::new(format!("{base}_{name}"))),
+                    op: MirOp::ObjectGet,
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: Some(dest),
+                    op: MirOp::CallIndirect((1 + args.len()) as u32),
                     span: None,
                 },
             );

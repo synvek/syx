@@ -48,11 +48,19 @@ pub(crate) fn lower_type_members(
     globals: &[SmolStr],
     closure_ids: Rc<Cell<u32>>,
 ) -> SyxResult<()> {
-    let _fields: Vec<SmolStr> = members
+    let member_fields: Vec<SmolStr> = members
         .iter()
         .filter_map(syx_ast::var_global_stored_field_name)
         .collect();
-    let merged_fields = merged_class_fields(module_idx, type_name);
+    let mut merged_fields = merged_class_fields(module_idx, type_name);
+    // Structs store fields in `dataclass_fields` / member VarGlobals, not `class_types`.
+    if merged_fields.is_empty() {
+        if let Some(dc) = module_idx.dataclass_fields.get(type_name) {
+            merged_fields = dc.clone();
+        } else {
+            merged_fields = member_fields;
+        }
+    }
     let has_init = members.iter().any(|m| matches!(m, Decl::Init { .. }));
     let mut pending_inits: Vec<(&[syx_ast::Param], &[Stmt])> = Vec::new();
     for member in members {
@@ -86,6 +94,7 @@ pub(crate) fn lower_type_members(
                     imports,
                     globals,
                     &[],
+                    &[],
                     Rc::clone(&closure_ids),
                 )?;
                 mir.functions.push(func);
@@ -106,6 +115,7 @@ pub(crate) fn lower_type_members(
                     false,
                     imports,
                     globals,
+                    &[],
                     &[],
                     Rc::clone(&closure_ids),
                 )?;
@@ -146,6 +156,7 @@ pub(crate) fn lower_type_members(
                     false,
                     imports,
                     globals,
+                    &[],
                     &[],
                     Rc::clone(&closure_ids),
                 )?;
@@ -229,6 +240,8 @@ pub(crate) fn lower_type_members(
                     Rc::clone(&closure_ids),
                 )?;
             } else {
+                // Memberwise `{T}_init` params; call sites pad defaults. Shell merge
+                // may replace this with `lower_dataclass_init_shell` (same arity).
                 let params: Vec<syx_ast::Param> = merged_fields
                     .iter()
                     .map(|f| syx_ast::Param {
@@ -316,6 +329,7 @@ pub(crate) fn emit_inherited_protocol_defaults(
                 false,
                 imports,
                 globals,
+                &[],
                 &[],
                 Rc::clone(&closure_ids),
             )?;

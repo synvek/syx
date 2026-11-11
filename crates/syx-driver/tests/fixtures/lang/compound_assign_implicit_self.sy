@@ -1,0 +1,15 @@
+// R-35: implicit self + self.field compound assign in methods.
+class Counter {
+    var count: Int = 0
+    init() {}
+    func bump() {
+        count += 1
+        self.count += 1
+    }
+}
+
+func main() {
+    let c = Counter()
+    c.bump()
+    print(c.count)
+}

@@ -12,16 +12,18 @@ const TYPED_CATCH: &str = include_str!("../fixtures/errors/typed_catch.sy");
 const TYPED_CATCH_EXPECTED: &str = "boom\n42";
 
 const CATCH_CONTINUES: &str = r#"
-data class AppError(code: Int, message: String)
+enum AppError: Error {
+    case boom(code: Int, message: String)
+}
 
 func fail() throws {
-    throw AppError(code: 7, message: "x")
+    throw AppError.boom(code: 7, message: "x")
 }
 
 func main() {
     do {
         fail()
-    } catch (err) {
+    } catch (err: AppError) {
         print(err.code)
     }
     print("after")

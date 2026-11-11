@@ -20,6 +20,9 @@ pub(crate) fn vm_error_at(
     if span != Span::DUMMY {
         if let Some(src) = source {
             diag = diag.with_span(src, span, "");
+        } else {
+            // R-36: stamp primary_span even without SourceFile.
+            diag = diag.with_byte_span(span);
         }
     }
     diag

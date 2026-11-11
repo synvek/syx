@@ -1,0 +1,8 @@
+// R-36: MIR001 must carry file:line:col (type name used as value → Unknown variable).
+struct Foo {
+    var x: Int = 0
+}
+
+func main() {
+    print(Foo)
+}

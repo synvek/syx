@@ -4,7 +4,7 @@
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
     borrow_regions_v6_enabled,
-    borrow_regions_v7_enabled, expr_span, is_compatible, reflect_type_lower, retired_ops_hint, type_expr_to_id, type_id_to_name, Scope,
+    borrow_regions_v7_enabled, expr_span, is_compatible, reflect_type_lower, retired_ops_hint, type_expr_to_id, type_id_to_diag_name, type_id_to_name, Scope,
     Symbol, TypeId,
 };
 use smol_str::SmolStr;
@@ -168,8 +168,8 @@ impl SemanticAnalyzer {
                 self.errors.push(self.error_at(
                     format!(
                         "Collection elements have inconsistent types: expected {}, found {}",
-                        type_id_to_name(&elem),
-                        type_id_to_name(t)
+                        type_id_to_diag_name(&elem),
+                        type_id_to_diag_name(t)
                     ),
                     span,
                     "S014",
@@ -239,17 +239,16 @@ impl SemanticAnalyzer {
                     ));
                 }
                 self.check_main_actor_after_await(name, *span);
-                if let Some(ty) = self
-                    .scope
-                    .lookup(name)
-                    .or_else(|| self.globals.get(name))
-                    .map(|s| s.ty.clone())
-                {
+                // Locals, then enclosing field (before globals — Core `count` etc.).
+                if let Some(ty) = self.scope.lookup(name).map(|s| s.ty.clone()) {
                     return Ok(self.deref_type(&ty));
                 }
                 // S1-I2: bare stored property in struct/class method (`value = value + 1`).
                 if let Some(ty) = self.lookup_enclosing_type_field(name) {
                     return Ok(ty);
+                }
+                if let Some(ty) = self.globals.get(name).map(|s| s.ty.clone()) {
+                    return Ok(self.deref_type(&ty));
                 }
                 Err(self.error_at(
                     format!("Undefined identifier '{name}'"),
@@ -585,41 +584,13 @@ impl SemanticAnalyzer {
             }
             Expr::Assign { name, value, span, .. } => {
                 self.check_main_actor_after_await(name, *span);
-                let (mutable, sym_ty, is_enclosing_field) = match self
-                    .scope
-                    .lookup(name)
-                    .or_else(|| self.globals.get(name))
-                {
-                    Some(sym) => (sym.mutable, sym.ty.clone(), false),
-                    None => {
-                        if let Some(field_ty) = self.lookup_enclosing_type_field(name) {
-                            // Stored `var` property via bare name in method body.
-                            (true, field_ty, true)
-                        } else {
-                            return Err(self.error_at(
-                                format!("Undefined identifier '{name}'"),
-                                *span,
-                                "S002",
-                            ));
+                let (_mutable, sym_ty, is_enclosing_field) =
+                    match self.resolve_assign_target(name) {
+                        Ok(v) => v,
+                        Err((msg, code)) => {
+                            return Err(self.error_at(msg, *span, code));
                         }
-                    }
-                };
-                if !mutable {
-                    if matches!(sym_ty, TypeId::Reference(_)) {
-                        return Err(self.error_at(
-                            format!(
-                                "Cannot mutate through read-only borrow parameter '{name}'"
-                            ),
-                            *span,
-                            "S011",
-                        ));
-                    }
-                    return Err(self.error_at(
-                        format!("Cannot assign to immutable '{name}'"),
-                        *span,
-                        "S003",
-                    ));
-                }
+                    };
                 let expected = self.assign_expected_type(&sym_ty);
                 let ty = if matches!(expected, TypeId::Unknown) {
                     self.analyze_expr(value)?
@@ -654,37 +625,21 @@ impl SemanticAnalyzer {
                 Ok(TypeId::Void)
             }
             Expr::CompoundAssign { name, value, span, .. } => {
+                // R-35: bare `x += 1` in methods — same implicit-field path as Assign.
                 self.check_main_actor_after_await(name, *span);
                 let ty = self.analyze_expr(value)?;
-                if let Some(sym) = self.scope.lookup(name).or_else(|| self.globals.get(name)) {
-                    if !sym.mutable {
-                        if matches!(sym.ty, TypeId::Reference(_)) {
-                            return Err(self.error_at(
-                                format!(
-                                    "Cannot mutate through read-only borrow parameter '{name}'"
-                                ),
-                                *span,
-                                "S011",
-                            ));
+                let (_mutable, sym_ty, _is_enclosing_field) =
+                    match self.resolve_assign_target(name) {
+                        Ok(v) => v,
+                        Err((msg, code)) => {
+                            return Err(self.error_at(msg, *span, code));
                         }
-                        return Err(self.error_at(
-                            format!("Cannot assign to immutable '{name}'"),
-                            *span,
-                            "S003",
-                        ));
-                    }
-                    let expected = self.assign_expected_type(&sym.ty);
-                    if matches!(expected, TypeId::Numeric(_)) {
-                        let _ = self.promote_numeric(expected.clone(), ty);
-                    } else {
-                        self.check_assignable(expected, ty, name, expr_span(value))?;
-                    }
+                    };
+                let expected = self.assign_expected_type(&sym_ty);
+                if matches!(expected, TypeId::Numeric(_)) {
+                    let _ = self.promote_numeric(expected.clone(), ty);
                 } else {
-                    return Err(self.error_at(
-                        format!("Undefined identifier '{name}'"),
-                        *span,
-                        "S002",
-                    ));
+                    self.check_assignable(expected, ty, name, expr_span(value))?;
                 }
                 Ok(TypeId::Void)
             }
@@ -919,6 +874,11 @@ impl SemanticAnalyzer {
                         ));
                     }
                 }
+                // R-35: type the await operand first (exempt from S020), then freeze
+                // MainActor mutable locals for subsequent uses.
+                self.await_operand_depth = self.await_operand_depth.saturating_add(1);
+                let awaited_ty = self.analyze_expr(awaited);
+                self.await_operand_depth = self.await_operand_depth.saturating_sub(1);
                 if !self.skip_main_actor_await_check
                     && self.current_function_is_async
                     && self
@@ -929,7 +889,7 @@ impl SemanticAnalyzer {
                     self.main_actor_frozen_at_await = self.main_actor_mutable_locals.clone();
                     self.main_actor_await_crossed = true;
                 }
-                self.analyze_expr(awaited)
+                awaited_ty
             }
             Expr::OptionalChain { object, .. } => {
                 self.analyze_expr(object)?;

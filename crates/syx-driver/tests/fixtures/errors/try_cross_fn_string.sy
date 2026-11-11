@@ -1,0 +1,13 @@
+// R-30: string throw across `try` must enter catch.
+func boom() throws {
+    throw "boom"
+}
+
+func main() {
+    do {
+        try boom()
+        print("value")
+    } catch {
+        print("caught")
+    }
+}

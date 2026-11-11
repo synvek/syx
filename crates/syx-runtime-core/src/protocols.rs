@@ -130,7 +130,9 @@ pub fn value_description(v: &Value) -> String {
         }
         Value::Object(map) => object_fields_description(map),
         Value::ObjectRef { .. } => {
-            if let Some(fields) = Value::object_ref_user_fields(v) {
+            if let Some(s) = object_ref_enum_description(v) {
+                s
+            } else if let Some(fields) = Value::object_ref_user_fields(v) {
                 let mut pairs: Vec<String> = fields
                     .iter()
                     .map(|(k, val)| format!("{}: {}", k, value_description(val)))
@@ -154,7 +156,41 @@ pub fn value_description(v: &Value) -> String {
     truncate_description(out)
 }
 
+fn enum_case_description(ty: &str, case: &str, map: &std::collections::HashMap<String, Value>) -> String {
+    let payload: Vec<String> = map
+        .iter()
+        .filter(|(k, _)| {
+            let k = k.as_str();
+            k != "case" && k != "tag" && !k.starts_with("__")
+        })
+        .map(|(k, v)| format!("{}: {}", k, value_description(v)))
+        .collect();
+    if payload.is_empty() {
+        return format!("{ty}.{case}");
+    }
+    let mut payload = payload;
+    payload.sort();
+    format!("{ty}.{case}({})", payload.join(", "))
+}
+
+fn object_ref_enum_description(v: &Value) -> Option<String> {
+    let Value::ObjectRef { inner, .. } = v else {
+        return None;
+    };
+    let map = inner.0.lock().ok()?;
+    let ty = map.get("__type").map(|t| t.as_str())?;
+    let case = map.get("case").map(|c| c.as_str())?;
+    Some(enum_case_description(&ty, &case, &map))
+}
+
 fn object_fields_description(map: &std::collections::HashMap<String, Value>) -> String {
+    // R-36: enum case shells (`__type` + `case`) print as `E.bad`, not `{case, tag}` bag.
+    if let (Some(ty), Some(case)) = (
+        map.get("__type").map(|t| t.as_str()),
+        map.get("case").map(|c| c.as_str()),
+    ) {
+        return enum_case_description(&ty, &case, map);
+    }
     let mut pairs: Vec<String> = map
         .iter()
         .filter(|(k, _)| !k.starts_with("__"))

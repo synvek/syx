@@ -344,6 +344,8 @@ pub struct VmInstance {
     /// `heap_slots` parity). ≠ migrate_enabled / ≠ cleanup / ≠ B-09 `[x]`.
     pub heap_slots: Vec<usize>,
     jit: crate::jit::JitCompiler,
+    /// R-36: span of the instruction currently executing (for R003 Display).
+    current_instr_span: Option<(u32, u32)>,
 }
 
 #[cfg(feature = "interpreter")]
@@ -381,6 +383,7 @@ impl VmInstance {
             locals_buf_pool: Vec::new(),
             heap_slots: Vec::new(),
             jit: crate::jit::JitCompiler::default(),
+            current_instr_span: None,
         }
     }
 
@@ -459,6 +462,39 @@ impl VmInstance {
                 self.host_fns.insert(id.name().into(), f);
             }
         }
+    }
+
+    /// R-36: R003 with current instruction span + program debug source.
+    fn error_r003(
+        &self,
+        program: &CompiledProgram,
+        message: impl Into<String>,
+    ) -> SyxDiagnostic {
+        let span = self
+            .current_instr_span
+            .map(|(start, len)| Span { start, len })
+            .unwrap_or(Span::DUMMY);
+        vm_error_at(message, program.debug_source.as_ref(), span, "R003")
+    }
+
+    /// R-36: stamp host/runtime diagnostics that arrived without SourceFile/span.
+    fn enrich_runtime_diag(
+        &self,
+        program: &CompiledProgram,
+        err: SyxDiagnostic,
+    ) -> SyxDiagnostic {
+        if err.source.is_some() && err.primary_span.is_some() {
+            return err;
+        }
+        let span = self
+            .current_instr_span
+            .map(|(start, len)| Span { start, len })
+            .unwrap_or(Span::DUMMY);
+        if span == Span::DUMMY && program.debug_source.is_none() {
+            return err;
+        }
+        let code = err.code.as_deref().unwrap_or("R003");
+        vm_error_at(err.message, program.debug_source.as_ref(), span, code)
     }
 
     /// S3-I51: resolve one host by name into `host_fns` (lazy warm-path hinge).
@@ -758,6 +794,11 @@ impl VmInstance {
             if self.propagating_throw.is_some() {
                 break;
             }
+            self.current_instr_span = func
+                .instruction_spans
+                .get(pc)
+                .copied()
+                .flatten();
             pc = self.exec_instruction(&func.instructions[pc], program, &func.instructions, pc)?;
             if self.propagating_throw.is_some() {
                 break;
@@ -782,6 +823,10 @@ impl VmInstance {
             match &code[pc] {
                 Instruction::ConstI32(v) => {
                     self.stack.push(Value::I32(*v));
+                    pc += 1;
+                }
+                Instruction::ConstFnIndex(idx) => {
+                    self.stack.push(platform_int_value(*idx as i64));
                     pc += 1;
                 }
                 Instruction::LoadLocal(i) => {
@@ -1163,7 +1208,13 @@ impl VmInstance {
     }
 
     /// Host `SyxDiagnostic`: preserve code (e.g. C004 / U001) when uncaught; else raise into try/catch.
-    fn fail_host_or_raise(&mut self, err: SyxDiagnostic, pc: usize) -> SyxResult<usize> {
+    fn fail_host_or_raise(
+        &mut self,
+        program: &CompiledProgram,
+        err: SyxDiagnostic,
+        pc: usize,
+    ) -> SyxResult<usize> {
+        let err = self.enrich_runtime_diag(program, err);
         let has_local_catch = self
             .try_handlers
             .last()
@@ -1206,17 +1257,17 @@ impl VmInstance {
         match hosts::dispatch_numeric_host(name, &mut self.stack) {
             Ok(true) => return Ok(pc + 1),
             Ok(false) => {}
-            Err(err) => return self.fail_host_or_raise(err, pc),
+            Err(err) => return self.fail_host_or_raise(program, err, pc),
         }
         match hosts::dispatch_collection_host(name, &mut self.stack) {
             Ok(true) => return Ok(pc + 1),
             Ok(false) => {}
-            Err(err) => return self.fail_host_or_raise(err, pc),
+            Err(err) => return self.fail_host_or_raise(program, err, pc),
         }
         match hosts::dispatch_bigint_host(name, &mut self.stack) {
             Ok(true) => return Ok(pc + 1),
             Ok(false) => {}
-            Err(err) => return self.fail_host_or_raise(err, pc),
+            Err(err) => return self.fail_host_or_raise(program, err, pc),
         }
         if crate::try_dispatch_plugin_host(name, &mut self.stack) {
             return Ok(pc + 1);
@@ -1224,7 +1275,7 @@ impl VmInstance {
         if let Some(host) = self.ensure_host_fn(name) {
             if let Err(err) = host(&mut self.stack) {
                 // Preserve diagnostic code for try/catch (`err.code`), e.g. C004.
-                return self.fail_host_or_raise(err, pc);
+                return self.fail_host_or_raise(program, err, pc);
             }
         }
         Ok(pc + 1)
@@ -1252,6 +1303,7 @@ impl VmInstance {
     ) -> SyxResult<usize> {
         match instr {
             Instruction::ConstI32(v) => self.stack.push(Value::I32(*v)),
+            Instruction::ConstFnIndex(idx) => self.stack.push(platform_int_value(*idx as i64)),
             Instruction::ConstF64(v) => self.stack.push(Value::F64(*v)),
             Instruction::ConstStr(s) => self.stack.push(Value::maybe_offheap_string(
                 Value::Str(s.clone()),
@@ -1407,8 +1459,10 @@ impl VmInstance {
             }
             Instruction::MakeIterator => {
                 let top = self.stack.pop().unwrap_or(Value::Nil);
+                // R-33: witness fn index is platform Int (I32 or I64); -1 = absent shell.
                 let witness_next = match top.mut_ref_cell_get_field("__witness_Iterator_next") {
-                    Value::I32(fn_idx) => Some(fn_idx as u32),
+                    Value::I32(fn_idx) if fn_idx >= 0 => Some(fn_idx as u32),
+                    Value::I64(fn_idx) if fn_idx >= 0 => Some(fn_idx as u32),
                     _ => None,
                 };
                 if let Some(next_fn) = witness_next {
@@ -1488,7 +1542,10 @@ impl VmInstance {
                             let func =
                                 program.functions.get(next_fn as usize).ok_or_else(|| {
                                     vm_error_at(
-                                        format!("Unknown witness method index {next_fn}"),
+                                        format!(
+                                            "Unknown witness method index {next_fn} (functions.len={})",
+                                            program.functions.len()
+                                        ),
                                         None,
                                         Span::DUMMY,
                                         "R003",
@@ -2261,11 +2318,9 @@ impl VmInstance {
                     Value::Array(items) => {
                         let i = idx.as_i32();
                         if i < 0 || (i as usize) >= items.len() {
-                            return Err(vm_error_at(
+                            return Err(self.error_r003(
+                                program,
                                 format!("Array index {i} out of bounds (count {})", items.len()),
-                                None,
-                                Span::DUMMY,
-                                "R003",
                             ));
                         }
                         self.stack.push(items[i as usize].clone());
@@ -2275,11 +2330,9 @@ impl VmInstance {
                         match crate::grapheme::try_grapheme_at(&s, i) {
                             Ok(g) => self.stack.push(Value::Character(g)),
                             Err((i, count)) => {
-                                return Err(vm_error_at(
+                                return Err(self.error_r003(
+                                    program,
                                     format!("String index {i} out of bounds (count {count})"),
-                                    None,
-                                    Span::DUMMY,
-                                    "R003",
                                 ));
                             }
                         }
@@ -2449,7 +2502,7 @@ impl VmInstance {
                         // + heap_slots). ≠ MethodCall / ≠ migrate / cleanup.
                         Ok(result) => return self.finish_call(result, pc),
                         // ADR-264: preserve C009 (and other actor codes) for try/catch.
-                        Err(err) => return self.fail_host_or_raise(err, pc),
+                        Err(err) => return self.fail_host_or_raise(program, err, pc),
                     }
                 } else {
                     let _depth = actor_mailbox::mailbox_enter(actor_id);
@@ -2684,7 +2737,10 @@ impl VmInstance {
             Instruction::CallWitness(_protocol, method) => {
                 let func = program.functions.get(*method as usize).ok_or_else(|| {
                     vm_error_at(
-                        format!("Unknown witness method index {method}"),
+                        format!(
+                            "Unknown witness method index {method} (functions.len={})",
+                            program.functions.len()
+                        ),
                         None,
                         Span::DUMMY,
                         "R003",
@@ -2772,6 +2828,15 @@ impl VmInstance {
     ) -> SyxResult<()> {
         let b = self.stack.pop().unwrap_or(Value::Nil);
         let a = self.stack.pop().unwrap_or(Value::Nil);
+        // R-32: Nil in numeric ops is fail-closed (never treat as 0).
+        if matches!(a, Value::Nil) || matches!(b, Value::Nil) {
+            return Err(vm_error_at(
+                "Nil cannot participate in numeric operation",
+                None,
+                Span::DUMMY,
+                "R003",
+            ));
+        }
         if let Some(k) = syx_stdlib::NumericKind::from_byte(kind) {
             if let Some(r) = f(k, &a, &b) {
                 self.stack.push(r);

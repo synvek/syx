@@ -44,6 +44,8 @@ pub fn compile_entry_with_unified_mir(
     let mir = build_unified_mir(graph, &entry_unit, project_root, options, manifest)?;
     let mut mono_module = monomorphize_module(compile_module, &semantic.instantiations);
     inject_virtual_prelude_imports(&mut mono_module, options);
+    // R-36: interpreter R003 / C020 Display need SourceFile for file:line:col.
+    program.debug_source = Some(entry_source.clone());
     CodeGenerator::compile_with_mir(
         &mono_module,
         &mir,

@@ -142,6 +142,8 @@ pub struct SemanticAnalyzer {
     pub(crate) active_lifetime_labels: HashSet<SmolStr>,
     /// Phase 20: skip S020 when analyzing async-lowering output.
     pub(crate) skip_main_actor_await_check: bool,
+    /// R-35: while typing an `await` operand, do not S020 that operand's name.
+    pub(crate) await_operand_depth: u32,
     /// Phase 42: skip S023 when analyzing embedded stdlib prelude modules (`class Math`, …).
     pub(crate) skip_prelude_name_shadow: bool,
     /// Phase 22: imported `(module, function)` → required global actor.
@@ -458,6 +460,10 @@ impl SemanticAnalyzer {
         span: syx_diagnostics::Span,
     ) {
         if self.skip_main_actor_await_check {
+            return;
+        }
+        // R-35: `await a` must not false-positive S020 on `a` itself.
+        if self.await_operand_depth > 0 {
             return;
         }
         if name.starts_with("__") {

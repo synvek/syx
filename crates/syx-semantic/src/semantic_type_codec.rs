@@ -21,6 +21,7 @@ pub fn type_name_to_id(name: &str) -> TypeId {
         "Bool" => TypeId::Bool,
         "String" => TypeId::String,
         "Void" => TypeId::Void,
+        "Unknown" => TypeId::Unknown,
         "Array" => TypeId::Array(Box::new(TypeId::Unknown)),
         "Set" => TypeId::Set(Box::new(TypeId::Unknown)),
         "Dictionary" => TypeId::Dictionary {
@@ -29,6 +30,38 @@ pub fn type_name_to_id(name: &str) -> TypeId {
         },
         "Object" => TypeId::Named(SmolStr::new("Object")),
         other => TypeId::Named(SmolStr::new(other)),
+    }
+}
+
+/// Diagnostic-facing type name: never leaks the `Unknown` sentinel token.
+pub fn type_id_to_diag_name(ty: &TypeId) -> SmolStr {
+    match ty {
+        TypeId::Unknown => SmolStr::new("_"),
+        TypeId::Array(inner) if matches!(inner.as_ref(), TypeId::Unknown) => {
+            SmolStr::new("Array<_>")
+        }
+        TypeId::Set(inner) if matches!(inner.as_ref(), TypeId::Unknown) => SmolStr::new("Set<_>"),
+        TypeId::Optional(inner) if matches!(inner.as_ref(), TypeId::Unknown) => {
+            SmolStr::new("_?")
+        }
+        TypeId::Dictionary { key, value }
+            if matches!(key.as_ref(), TypeId::Unknown)
+                || matches!(value.as_ref(), TypeId::Unknown) =>
+        {
+            SmolStr::new(format!(
+                "Dictionary<{}, {}>",
+                type_id_to_diag_name(key),
+                type_id_to_diag_name(value)
+            ))
+        }
+        other => {
+            let name = type_id_to_name(other);
+            if name.as_str().contains("Unknown") {
+                SmolStr::new(name.as_str().replace("Unknown", "_"))
+            } else {
+                name
+            }
+        }
     }
 }
 

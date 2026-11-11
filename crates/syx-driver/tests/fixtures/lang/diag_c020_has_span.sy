@@ -1,0 +1,8 @@
+// R-36: C020 must carry file:line:col in Display.
+struct P {
+    var x: Int
+}
+
+func main() {
+    print(P(x: 1) + P(x: 2))
+}

@@ -5,8 +5,9 @@ use crate::lower_expr;
 use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirInstr, MirOp};
 use crate::{
-    expr_as_i32_literal, infer_generic_arg_type_name, infer_service_resolve_type_name,
-    infer_simd_element_from_array_arg, infer_simd_element_from_reduce_arg, simd_reduce_add_shape,
+    expr_as_i32_literal, expr_is_string_like, infer_generic_arg_type_name,
+    infer_service_resolve_type_name, infer_simd_element_from_array_arg,
+    infer_simd_element_from_reduce_arg, simd_reduce_add_shape,
 };
 use smol_str::SmolStr;
 use syx_ast::{CallArg, Expr};
@@ -508,54 +509,95 @@ pub(crate) fn lower_expr_call_ident(
         );
         return;
     }
+    // R-32: `Int(String)` → CallHost(IntFromString); do not Call(Int_init).
+    if name.as_str() == "Int"
+        && args.len() == 1
+        && expr_is_string_like(&args[0].value, ctx)
+    {
+        if !lower_args_early {
+            let r = ctx.fresh_reg();
+            lower_expr(&args[0].value, r, ctx, block);
+        }
+        ctx.emit(
+            block,
+            MirInstr {
+                dest: Some(dest),
+                op: MirOp::CallHost(host_fn_index(HostFnId::IntFromString)),
+                span: None,
+            },
+        );
+        return;
+    }
     if ctx.module.dataclass_names.contains(name)
         || ctx.module.actor_types.contains(name)
         || ctx.module.class_types.contains_key(name)
     {
-        if !lower_args_early {
-            if let Some(fields) = ctx.module.dataclass_fields.get(name).cloned() {
-                // S1-I2: memberwise / defaults — match codegen ordered padding.
-                for field in &fields {
-                    let arg = args
-                        .iter()
-                        .find(|a| a.label.as_deref() == Some(field.as_str()))
-                        .or_else(|| {
-                            let idx = fields.iter().position(|f| f == field)?;
-                            args.get(idx).filter(|a| a.label.is_none())
-                        });
-                    let r = ctx.fresh_reg();
-                    if let Some(arg) = arg {
-                        lower_expr(&arg.value, r, ctx, block);
-                    } else if let Some(v) = ctx
-                        .module
-                        .dataclass_field_default_i64
-                        .get(&(name.clone(), field.clone()))
-                        .copied()
-                    {
-                        ctx.emit(
-                            block,
-                            MirInstr {
-                                dest: Some(r),
-                                op: MirOp::ConstI32(v as i32),
-                                span: None,
-                            },
-                        );
-                    } else {
-                        ctx.emit(
-                            block,
-                            MirInstr {
-                                dest: Some(r),
-                                op: MirOp::ConstNil,
-                                span: None,
-                            },
-                        );
+        // R-35: Ident `Type(...)` is classified ArgsEarly (non-Member), which
+        // skips the empty-args pre-pass — still pad memberwise defaults here.
+        let mut fields = ctx
+            .module
+            .dataclass_fields
+            .get(name)
+            .cloned()
+            .unwrap_or_default();
+        if fields.is_empty() {
+            for (ty, field) in ctx.module.dataclass_field_default_i64.keys() {
+                if ty == name && !fields.iter().any(|f| f == field) {
+                    fields.push(field.clone());
+                }
+            }
+            if let Some(m) = ctx.module.class_field_types.get(name) {
+                for field in m.keys() {
+                    if !fields.iter().any(|f| f == field) {
+                        fields.push(field.clone());
                     }
                 }
-            } else {
-                for arg in args {
-                    let r = ctx.fresh_reg();
-                    lower_expr(&arg.value, r, ctx, block);
+            }
+        }
+        if !fields.is_empty() {
+            // S1-I2 / R-35: stack-materialize defaults (dest: None).
+            for field in &fields {
+                let arg = args
+                    .iter()
+                    .find(|a| a.label.as_deref() == Some(field.as_str()))
+                    .or_else(|| {
+                        let idx = fields.iter().position(|f| f == field)?;
+                        args.get(idx).filter(|a| a.label.is_none())
+                    });
+                if let Some(arg) = arg {
+                    if !lower_args_early {
+                        let r = ctx.fresh_reg();
+                        lower_expr(&arg.value, r, ctx, block);
+                    }
+                } else if let Some(v) = ctx
+                    .module
+                    .dataclass_field_default_i64
+                    .get(&(name.clone(), field.clone()))
+                    .copied()
+                {
+                    ctx.emit(
+                        block,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::ConstI32(v as i32),
+                            span: None,
+                        },
+                    );
+                } else {
+                    ctx.emit(
+                        block,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::ConstNil,
+                            span: None,
+                        },
+                    );
                 }
+            }
+        } else if !lower_args_early {
+            for arg in args {
+                let r = ctx.fresh_reg();
+                lower_expr(&arg.value, r, ctx, block);
             }
         }
         let init_fn = SmolStr::new(format!("{name}_init"));

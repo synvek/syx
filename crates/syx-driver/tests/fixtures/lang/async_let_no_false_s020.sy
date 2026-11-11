@@ -1,0 +1,12 @@
+// R-35: multi-await hoist must not false-positive S020 on locals.
+// Also keeps `async let` so detach/hoist paths stay covered; print uses
+// the hoisted lets (not task payloads) for a stable run result.
+async func main() {
+    async let a = __syx_task_sleep(0)
+    async let b = __syx_task_sleep(0)
+    let x = 1
+    let y = 2
+    let _ = await a
+    let _ = await b
+    print(x + y)
+}

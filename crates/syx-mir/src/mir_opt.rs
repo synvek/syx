@@ -154,6 +154,8 @@ fn remove_unreachable_blocks_in_function(func: &mut MirFunction) {
         for instr in &block.instructions {
             match &instr.op {
                 MirOp::Jump(t) | MirOp::JumpIfFalse(t) | MirOp::JumpIfNil(t) => work.push(*t),
+                // R-30: `try` / `do` pads are exception edges, not only Jump successors.
+                MirOp::BeginTry(t) | MirOp::BindResult(t) => work.push(*t),
                 _ => {}
             }
         }
@@ -909,5 +911,94 @@ fn loop_licm(module: &mut MirModule) {
             let instrs = std::mem::take(&mut block.instructions);
             block.instructions = effect_aware_licm_block(instrs);
         }
+    }
+}
+
+
+#[cfg(test)]
+mod r30_try_pad_tests {
+    use super::*;
+    use crate::lower_module;
+    use syx_diagnostics::SourceFile;
+    use syx_parser::Parser;
+
+    #[test]
+    fn r30_try_keeps_return_err_after_optimize() {
+        let src = r#"
+enum E: Error { case bad }
+func g() throws { throw E.bad }
+func main() {
+  do {
+    try g()
+    print("value")
+  } catch {
+    print("caught")
+  }
+}
+"#;
+        let module = Parser::parse(SourceFile::new("t.sy", src)).expect("parse");
+        let mut mir = lower_module(&module).expect("lower");
+        let before = mir
+            .functions
+            .iter()
+            .find(|f| f.name == "main")
+            .expect("main");
+        let before_has = before
+            .blocks
+            .iter()
+            .any(|b| b.instructions.iter().any(|i| matches!(i.op, MirOp::ReturnErr)));
+        optimize(&mut mir);
+        let main = mir
+            .functions
+            .iter()
+            .find(|f| f.name == "main")
+            .expect("main");
+        let has_return_err = main
+            .instructions
+            .iter()
+            .any(|i| matches!(i.op, MirOp::ReturnErr))
+            || main.blocks.iter().any(|b| {
+                b.instructions
+                    .iter()
+                    .any(|i| matches!(i.op, MirOp::ReturnErr))
+            });
+        assert!(
+            before_has,
+            "ReturnErr must exist before optimize; blocks={:?}",
+            main.blocks
+                .iter()
+                .map(|b| {
+                    (
+                        b.id,
+                        b.successors.clone(),
+                        b.instructions
+                            .iter()
+                            .map(|i| format!("{:?}", i.op))
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            has_return_err,
+            "ReturnErr pad must survive optimize; flat={:?} blocks={:?}",
+            main.instructions
+                .iter()
+                .map(|i| format!("{:?}", i.op))
+                .collect::<Vec<_>>(),
+            main.blocks
+                .iter()
+                .map(|b| {
+                    (
+                        b.id,
+                        b.successors.clone(),
+                        b.instructions
+                            .iter()
+                            .map(|i| format!("{:?}", i.op))
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        );
     }
 }

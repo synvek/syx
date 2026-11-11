@@ -27,6 +27,7 @@ fn escape_string(s: &str) -> String {
 fn format_instruction(ins: &Instruction) -> String {
     match ins {
         Instruction::ConstI32(v) => format!("ConstI32 {v}"),
+        Instruction::ConstFnIndex(v) => format!("ConstFnIndex {v}"),
         Instruction::ConstF64(v) => format!("ConstF64 {v}"),
         Instruction::ConstNumeric { kind, bits } => format!("ConstNumeric kind={kind} bits={bits}"),
         Instruction::ConstNumeric128 { kind, lo, hi } => {

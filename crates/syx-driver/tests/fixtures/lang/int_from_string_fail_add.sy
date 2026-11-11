@@ -1,0 +1,4 @@
+// R-32: Nil from Int(String) must fail-closed in numeric ops (not silent 1).
+func main() {
+    print(Int("abc") + 1)
+}

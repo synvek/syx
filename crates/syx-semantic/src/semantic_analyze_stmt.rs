@@ -146,8 +146,13 @@ impl SemanticAnalyzer {
                         }
                     }
                 }
+                // R-35: async state-machine hoist rewrites cross-await `let` as
+                // `var name` with no initializer — those are not user MainActor
+                // shared mutable state and must not seed S020 freeze sets.
+                let is_async_hoist_placeholder = *mutable && init.is_none();
                 if self.current_function_is_async
                     && *mutable
+                    && !is_async_hoist_placeholder
                     && !name.starts_with("__")
                     && !self.skip_main_actor_await_check
                     && self.caller_global_actor(self.current_function.as_ref().unwrap())

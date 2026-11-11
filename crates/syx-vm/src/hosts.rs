@@ -2327,6 +2327,53 @@ pub fn host_array_append(stack: &mut Vec<Value>) -> SyxResult<()> {
     Ok(())
 }
 
+/// R-31: clone a HeapSlot (Array/Dict/Set/Object bag) into a **new** slot.
+/// Does not write back the old index — used so `var b = a; b.append(...)` mutates only `b`.
+pub fn host_heap_slot_uniquify(stack: &mut Vec<Value>) -> SyxResult<()> {
+    let outer = stack.pop().unwrap_or(Value::Nil);
+    let Value::HeapSlot { kind, .. } = &outer else {
+        stack.push(outer);
+        return Ok(());
+    };
+    let kind = *kind;
+    let resolved = Value::resolve_heap_slot(&outer);
+    let fresh = Value::alloc_heap_slot(resolved, kind);
+    stack.push(fresh);
+    Ok(())
+}
+
+/// R-32: parse trimmed decimal `String` → platform Int, else Nil (`Int?`).
+pub fn host_int_from_string(stack: &mut Vec<Value>) -> SyxResult<()> {
+    let raw = stack.pop().unwrap_or(Value::Nil);
+    let s = match raw {
+        Value::Str(s) => s,
+        other => match Value::resolve_heap_slot(&other) {
+            Value::Str(s) => s,
+            _ => {
+                stack.push(Value::Nil);
+                return Ok(());
+            }
+        },
+    };
+    let trimmed = s.trim();
+    let parsed = if trimmed.is_empty() {
+        None
+    } else {
+        trimmed.parse::<i64>().ok().and_then(|n| {
+            // Reject values that do not fit the platform Int width.
+            match syx_stdlib::PLATFORM_INT {
+                syx_stdlib::NumericKind::I32 => {
+                    i32::try_from(n).ok().map(|v| platform_int_value(v as i64))
+                }
+                syx_stdlib::NumericKind::I64 => Some(platform_int_value(n)),
+                _ => i32::try_from(n).ok().map(|v| platform_int_value(v as i64)),
+            }
+        })
+    };
+    stack.push(parsed.unwrap_or(Value::Nil));
+    Ok(())
+}
+
 pub fn host_leading_zeros128(stack: &mut Vec<Value>) -> SyxResult<()> {
     let v = stack.pop().unwrap_or(Value::U128(0));
     let n = match v {
@@ -3253,6 +3300,8 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::StringCharAt => host_string_char_at,
         HostFnId::ArraySetAt => host_array_set_at,
         HostFnId::ArrayAppend => host_array_append,
+        HostFnId::HeapSlotUniquify => host_heap_slot_uniquify,
+        HostFnId::IntFromString => host_int_from_string,
         HostFnId::LeadingZeros128 => host_leading_zeros128,
         HostFnId::FmtPrint => crate::stdlib_phase83_hosts::host_fmt_print,
         HostFnId::FmtPrintLine => crate::stdlib_phase83_hosts::host_fmt_print_line,

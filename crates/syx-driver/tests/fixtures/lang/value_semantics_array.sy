@@ -1,0 +1,8 @@
+// R-31: Array assign must isolate; append on the copy must not grow the original.
+func main() {
+    var a = [1]
+    var b = a
+    b.append(2)
+    print(a.count)
+    print(b.count)
+}

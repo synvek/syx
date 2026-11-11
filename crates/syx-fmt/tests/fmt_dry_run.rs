@@ -2768,7 +2768,7 @@ fn fmt_cst_member_field_mixed_dry_run() {
 
 #[test]
 fn fmt_cst_member_field_plus_bare_dry_run() {
-    // W890 / ADR-1234 face1: init self.count += + docs; default CST preserves; AST rejects MemberCompoundAssign.
+    // W890 / ADR-1234 face1: init self.count += + docs; default CST preserves; AST desugars MemberCompoundAssign (R-35).
     use syx_fmt::format_source;
     let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        self.count += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -2778,7 +2778,8 @@ fn fmt_cst_member_field_plus_bare_dry_run() {
     assert!(
         report.formatted.contains("self.count += 1") && report.formatted.contains("/// docs")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
         "r.sy",
@@ -2790,7 +2791,7 @@ fn fmt_cst_member_field_plus_bare_dry_run() {
 
 #[test]
 fn fmt_cst_member_field_plus_method_dry_run() {
-    // W890 face2: method box.x += + comments; default CST preserves; AST rejects.
+    // W890 face2: method box.x += + comments; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "// ahead\nclass Box {\n    var count: Int\n    func bump(n: Int) {\n    /* mid */\n    box.count += n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -2802,7 +2803,8 @@ fn fmt_cst_member_field_plus_method_dry_run() {
             && report.formatted.contains("/* mid */")
             && report.formatted.contains("/* trail */")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
         "s.sy",
@@ -2826,12 +2828,13 @@ fn fmt_cst_member_field_plus_mixed_dry_run() {
             && report.formatted.contains("box.inner.count += n")
             && report.formatted.contains("/* trail */")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
 }
 
 #[test]
 fn fmt_cst_member_field_minus_bare_dry_run() {
-    // W891 / ADR-1235 face1: init self.count -= + docs; default CST preserves; AST rejects.
+    // W891 / ADR-1235 face1: init self.count -= + docs; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        self.count -= 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -2841,7 +2844,8 @@ fn fmt_cst_member_field_minus_bare_dry_run() {
     assert!(
         report.formatted.contains("self.count -= 1") && report.formatted.contains("/// docs")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
         "r.sy",
@@ -2853,7 +2857,7 @@ fn fmt_cst_member_field_minus_bare_dry_run() {
 
 #[test]
 fn fmt_cst_member_field_minus_method_dry_run() {
-    // W891 face2: method box.x -= + comments; default CST preserves; AST rejects.
+    // W891 face2: method box.x -= + comments; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "// ahead\nclass Box {\n    var count: Int\n    func drop(n: Int) {\n    /* mid */\n    box.count -= n\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -2865,7 +2869,8 @@ fn fmt_cst_member_field_minus_method_dry_run() {
             && report.formatted.contains("/* mid */")
             && report.formatted.contains("/* trail */")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
         "s.sy",
@@ -2889,12 +2894,13 @@ fn fmt_cst_member_field_minus_mixed_dry_run() {
             && report.formatted.contains("box.inner.count -= n")
             && report.formatted.contains("/* trail */")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
 }
 
 #[test]
 fn fmt_cst_member_field_star_bare_dry_run() {
-    // W892 / ADR-1236 face1: init self.count *= + docs; default CST preserves; AST rejects.
+    // W892 / ADR-1236 face1: init self.count *= + docs; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "/// docs\nclass Box {\n    var count: Int\n    init() {\n        self.count *= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -2904,7 +2910,8 @@ fn fmt_cst_member_field_star_bare_dry_run() {
     assert!(
         report.formatted.contains("self.count *= 2") && report.formatted.contains("/// docs")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
         "r.sy",
@@ -2916,7 +2923,7 @@ fn fmt_cst_member_field_star_bare_dry_run() {
 
 #[test]
 fn fmt_cst_member_field_star_method_dry_run() {
-    // W892 face2: method box.x *= / /= + comments; default CST preserves; AST rejects.
+    // W892 face2: method box.x *= / /= + comments; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "// ahead\nclass Box {\n    var count: Int\n    func scale(n: Int) {\n    /* mid */\n    box.count *= n\n    box.count /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -2928,7 +2935,8 @@ fn fmt_cst_member_field_star_method_dry_run() {
             && report.formatted.contains("box.count /= 2")
             && report.formatted.contains("/* mid */")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
     // Successor reject: member-index compound still CST001.
     let rej = SourceFile::new(
         "s.sy",
@@ -2952,7 +2960,8 @@ fn fmt_cst_member_field_star_mixed_dry_run() {
             && report.formatted.contains("box.inner.count %= n")
             && report.formatted.contains("/* trail */")
     );
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
 }
 
 #[test]
@@ -3024,8 +3033,9 @@ fn fmt_cst_ident_compound_mixed_dry_run() {
             && report.formatted.contains("count *= 2")
             && report.formatted.contains("/* trail */")
     );
-    // Mixed includes member compound; AST has no MemberCompoundAssign.
-    let _ = format_source(&file).expect_err("AST has no MemberCompoundAssign");
+    // Mixed includes member compound; AST desugars (R-35).
+    // R-35: AST desugars member compound assign to MemberAssign.
+    let _ = format_source(&file).expect("AST accepts member compound via desugar");
 }
 
 
@@ -3108,7 +3118,7 @@ fn fmt_cst_index_assign_mixed_dry_run() {
 
 #[test]
 fn fmt_cst_index_compound_bare_dry_run() {
-    // W895 / ADR-1239 face1: init a[0] += + docs; default CST preserves; AST rejects.
+    // W895 / ADR-1239 face1: init a[0] += + docs; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        a[0] += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -3130,7 +3140,7 @@ fn fmt_cst_index_compound_bare_dry_run() {
 
 #[test]
 fn fmt_cst_index_compound_method_dry_run() {
-    // W895 face2: method xs[i] *= / /= + comments; default CST preserves; AST rejects.
+    // W895 face2: method xs[i] *= / /= + comments; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "// ahead\nclass Box {\n    var items: Int\n    func scale(i: Int, n: Int) {\n    /* mid */\n    xs[i] *= n\n    xs[i] /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -3320,7 +3330,7 @@ fn fmt_cst_member_index_assign_mixed_dry_run() {
 
 #[test]
 fn fmt_cst_index_nested_compound_bare_dry_run() {
-    // W898 / ADR-1242 face1: init a[0][1] += + docs; default CST preserves; AST rejects.
+    // W898 / ADR-1242 face1: init a[0][1] += + docs; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "/// docs\nclass Box {\n    var items: Int\n    init() {\n        a[0][1] += 1\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);
@@ -3342,7 +3352,7 @@ fn fmt_cst_index_nested_compound_bare_dry_run() {
 
 #[test]
 fn fmt_cst_index_nested_compound_method_dry_run() {
-    // W898 face2: method buf[i][j] *= / /= + comments; default CST preserves; AST rejects.
+    // W898 face2: method buf[i][j] *= / /= + comments; default CST preserves; AST desugars (R-35).
     use syx_fmt::format_source;
     let src = "// ahead\nclass Box {\n    var items: Int\n    func scale(i: Int, j: Int, n: Int) {\n    /* mid */\n    buf[i][j] *= n\n    buf[i][j] /= 2\n  }\n}\n/* trail */\n";
     let file = SourceFile::new("t.sy", src);

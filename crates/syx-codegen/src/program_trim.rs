@@ -29,6 +29,14 @@ pub fn trim_program_to_entry_reachability(program: &mut CompiledProgram) {
         }
     }
 
+    // R-35: `async let f = fetchA()` lowers to TaskDetach with ConstStr("fetchA") —
+    // keep string-named callees reachable (same idea as ConstFnIndex witnesses).
+    let mut name_to_index: std::collections::HashMap<SmolStr, usize> =
+        std::collections::HashMap::with_capacity(n);
+    for (i, f) in program.functions.iter().enumerate() {
+        name_to_index.insert(f.name.clone(), i);
+    }
+
     let mut reachable = HashSet::new();
     let mut queue = VecDeque::new();
     for i in seeds {
@@ -45,6 +53,13 @@ pub fn trim_program_to_entry_reachability(program: &mut CompiledProgram) {
             if matches!(ins, Instruction::CallIndirect(_)) {
                 // Conservative: indirect calls may target any function index on the stack.
                 return;
+            }
+            if let Instruction::ConstStr(s) = ins {
+                if let Some(&callee) = name_to_index.get(s.as_str()) {
+                    if reachable.insert(callee) {
+                        queue.push_back(callee);
+                    }
+                }
             }
             for callee in call_targets(ins) {
                 let callee = callee as usize;
@@ -127,6 +142,8 @@ fn call_targets(ins: &Instruction) -> Vec<u32> {
         | Instruction::TaskSpawn(i) => vec![i],
         Instruction::MakeClosure(fn_index, _) => vec![fn_index],
         Instruction::AwaitSuspend { resume_fn, .. } => vec![resume_fn],
+        // R-33: protocol/class witness slots store fn indices via ConstFnIndex.
+        Instruction::ConstFnIndex(i) => vec![i],
         _ => Vec::new(),
     }
 }
@@ -146,6 +163,7 @@ fn remap_call_indices(ins: &mut Instruction, old_to_new: &[Option<u32>]) {
         | Instruction::TaskSpawn(i) => *i = map(*i),
         Instruction::MakeClosure(fn_index, _) => *fn_index = map(*fn_index),
         Instruction::AwaitSuspend { resume_fn, .. } => *resume_fn = map(*resume_fn),
+        Instruction::ConstFnIndex(i) => *i = map(*i),
         _ => {}
     }
 }
@@ -228,5 +246,52 @@ mod tests {
         };
         trim_program_to_entry_reachability(&mut program);
         assert_eq!(program.functions.len(), 2);
+    }
+
+    #[test]
+    fn trim_keeps_const_fn_index_witness_and_remaps() {
+        // Counter_init embeds ConstFnIndex(Counter_next); main only Calls init.
+        // Without ConstFnIndex reachability, Counter_next was dropped → R003 928.
+        let mut program = CompiledProgram {
+            functions: vec![
+                fu("Counter_next", vec![Instruction::Return]),
+                fu("junk", vec![Instruction::Return]),
+                fu(
+                    "Counter_init",
+                    vec![
+                        Instruction::ConstFnIndex(0),
+                        Instruction::Return,
+                    ],
+                ),
+                fu(
+                    "main",
+                    vec![Instruction::Call(2), Instruction::Return],
+                ),
+            ],
+            entry_point: SmolStr::new("main"),
+            ..CompiledProgram::default()
+        };
+        trim_program_to_entry_reachability(&mut program);
+        assert!(
+            program.functions.iter().any(|f| f.name == "Counter_next"),
+            "witness target must survive trim: {:?}",
+            program.functions.iter().map(|f| &f.name).collect::<Vec<_>>()
+        );
+        assert!(!program.functions.iter().any(|f| f.name == "junk"));
+        let init = program
+            .functions
+            .iter()
+            .find(|f| f.name == "Counter_init")
+            .unwrap();
+        let next_idx = program
+            .functions
+            .iter()
+            .position(|f| f.name == "Counter_next")
+            .unwrap() as u32;
+        assert!(
+            matches!(init.instructions[0], Instruction::ConstFnIndex(i) if i == next_idx),
+            "ConstFnIndex must remap to kept Counter_next; got {:?}",
+            init.instructions[0]
+        );
     }
 }

@@ -32,8 +32,8 @@ pub(crate) struct LowerCtx {
     pub(crate) active_block: u32,
     pub(crate) local_types: indexmap::IndexMap<SmolStr, SmolStr>,
     pub(crate) prefer_set_build: bool,
-    /// Lowering soft-fail: `(optional diagnostic code, message)`.
-    pub(crate) error: Option<(Option<&'static str>, String)>,
+    /// Lowering soft-fail: `(optional diagnostic code, message, optional span)`.
+    pub(crate) error: Option<(Option<&'static str>, String, Option<Span>)>,
     pub(crate) mut_ref_aliases: IndexMap<SmolStr, SmolStr>,
     pub(crate) mut_ref_params: HashSet<SmolStr>,
     /// Function parameters: caller still holds these; skip scope-exit deinit.
@@ -75,6 +75,11 @@ impl LowerCtx {
             skip_deinit_on_return: None,
             current_span: None,
         }
+    }
+
+    fn error_span(&self) -> Option<Span> {
+        self.current_span
+            .map(|(start, len)| Span { start, len })
     }
 
     pub(crate) fn next_closure_id(&self) -> u32 {
@@ -335,6 +340,8 @@ impl LowerCtx {
                     span: None,
                 },
             );
+        } else if self.lower_enclosing_field_load(dest, name, block) {
+            // R-35 / S1-I2: prefer enclosing field over Core globals (`count`, …).
         } else if let Some(slot) = self.global_slot(&resolved) {
             self.emit(
                 block,
@@ -344,11 +351,25 @@ impl LowerCtx {
                     span: None,
                 },
             );
-        } else if self.lower_enclosing_field_load(dest, name, block) {
-            // S1-I2: bare struct/class field in method body.
         } else {
             self.set_error(format!("Unknown variable '{name}'"));
         }
+    }
+
+    /// True when `name` is a stored field of the type owning this method.
+    pub(crate) fn is_enclosing_stored_field(&self, name: &SmolStr) -> bool {
+        let Some(type_name) = class_name_from_mangled(self.func_name.as_str()) else {
+            return false;
+        };
+        self.module
+            .dataclass_fields
+            .get(&type_name)
+            .is_some_and(|fs| fs.iter().any(|f| f == name))
+            || self
+                .module
+                .class_types
+                .get(&type_name)
+                .is_some_and(|fs| fs.iter().any(|f| f == name))
     }
 
     /// `Counter_increment`: bare `value` → `self.value` ObjectGet.
@@ -358,33 +379,27 @@ impl LowerCtx {
         name: &SmolStr,
         block: u32,
     ) -> bool {
-        let Some(type_name) = class_name_from_mangled(self.func_name.as_str()) else {
-            return false;
-        };
-        let is_field = self
-            .module
-            .dataclass_fields
-            .get(&type_name)
-            .is_some_and(|fs| fs.iter().any(|f| f == name))
-            || self
-                .module
-                .class_types
-                .get(&type_name)
-                .is_some_and(|fs| fs.iter().any(|f| f == name));
-        if !is_field {
+        if !self.is_enclosing_stored_field(name) {
             return false;
         }
-        let Some(&self_slot) = self.locals.get(&SmolStr::new("self")) else {
+        let self_name = SmolStr::new("self");
+        let Some(&self_slot) = self.locals.get(&self_name) else {
             return false;
         };
+        let unwrap = self.uses_mut_ref_cell(&self_name) && !self.in_class_init();
+        // Stack-style load: unwrap / ObjectGet consume the receiver from the stack.
         self.emit(
             block,
             MirInstr {
-                dest: Some(dest),
+                dest: None,
                 op: MirOp::LoadLocal(self_slot),
                 span: None,
             },
         );
+        if unwrap {
+            // Class methods receive MutRefCell; fields live on the inner dict.
+            self.emit_unwrap_syx_ref(block);
+        }
         self.emit(
             block,
             MirInstr {
@@ -406,25 +421,14 @@ impl LowerCtx {
 
     /// Bare field store: stack has RHS; emit `self.field = rhs` + write back `self`.
     pub(crate) fn lower_enclosing_field_store(&mut self, name: &SmolStr, block: u32) -> bool {
-        let Some(type_name) = class_name_from_mangled(self.func_name.as_str()) else {
-            return false;
-        };
-        let is_field = self
-            .module
-            .dataclass_fields
-            .get(&type_name)
-            .is_some_and(|fs| fs.iter().any(|f| f == name))
-            || self
-                .module
-                .class_types
-                .get(&type_name)
-                .is_some_and(|fs| fs.iter().any(|f| f == name));
-        if !is_field {
+        if !self.is_enclosing_stored_field(name) {
             return false;
         }
-        let Some(&self_slot) = self.locals.get(&SmolStr::new("self")) else {
+        let self_name = SmolStr::new("self");
+        let Some(&self_slot) = self.locals.get(&self_name) else {
             return false;
         };
+        let unwrap = self.uses_mut_ref_cell(&self_name) && !self.in_class_init();
         let temp = self.alloc_local(&SmolStr::new(format!("__syx_field_{name}")));
         self.emit(
             block,
@@ -434,47 +438,114 @@ impl LowerCtx {
                 span: None,
             },
         );
-        self.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::LoadLocal(self_slot),
-                span: None,
-            },
-        );
-        self.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::LoadLocal(temp),
-                span: None,
-            },
-        );
-        self.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::ConstStr(name.to_string()),
-                span: None,
-            },
-        );
-        self.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::ObjectSet,
-                span: None,
-            },
-        );
-        self.emit(
-            block,
-            MirInstr {
-                dest: None,
-                op: MirOp::StoreLocal(self_slot),
-                span: None,
-            },
-        );
+        if unwrap {
+            let inner = self.alloc_local(&SmolStr::new(format!("__syx_inner_field_{name}")));
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(self_slot),
+                    span: None,
+                },
+            );
+            self.emit_unwrap_syx_ref(block);
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(temp),
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstStr(name.to_string()),
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ObjectSet,
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::StoreLocal(inner),
+                    span: None,
+                },
+            );
+            self.emit_mut_ref_cell_writeback_from_inner(&self_name, inner, block);
+        } else {
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(self_slot),
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(temp),
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstStr(name.to_string()),
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ObjectSet,
+                    span: None,
+                },
+            );
+            self.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::StoreLocal(self_slot),
+                    span: None,
+                },
+            );
+        }
         true
+    }
+
+    /// R-31: before storing a dataclass/struct value, shallow-copy via `{T}_copy`
+    /// so assignment does not alias the source `ObjectRef` / heap slot.
+    pub(crate) fn emit_dataclass_assign_copy_if_needed(&mut self, type_name: &SmolStr, block: u32) {
+        if !self.module.dataclass_names.contains(type_name) {
+            return;
+        }
+        if self.module.class_types.contains_key(type_name)
+            || self.module.actor_types.contains(type_name)
+        {
+            return;
+        }
+        self.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::Call(SmolStr::new(format!("{type_name}_copy"))),
+                span: None,
+            },
+        );
     }
 
     pub(crate) fn lower_store_binding(&mut self, name: &SmolStr, block: u32) {
@@ -547,6 +618,9 @@ impl LowerCtx {
             }
             return;
         }
+        if let Some(ty) = self.local_types.get(&resolved).cloned() {
+            self.emit_dataclass_assign_copy_if_needed(&ty, block);
+        }
         if let Some(&slot) = self.locals.get(&resolved) {
             self.emit(
                 block,
@@ -556,6 +630,8 @@ impl LowerCtx {
                     span: None,
                 },
             );
+        } else if self.lower_enclosing_field_store(name, block) {
+            // R-35 / S1-I2: prefer enclosing field over Core globals (`count`, …).
         } else if let Some(slot) = self.global_slot(&resolved) {
             self.emit(
                 block,
@@ -565,8 +641,6 @@ impl LowerCtx {
                     span: None,
                 },
             );
-        } else if self.lower_enclosing_field_store(name, block) {
-            // S1-I2: bare struct/class field store.
         } else {
             self.set_error(format!("Unknown variable '{name}'"));
         }
@@ -693,16 +767,18 @@ impl LowerCtx {
         message: impl Into<String>,
     ) {
         if self.error.is_none() {
-            self.error = Some((code, message.into()));
+            self.error = Some((code, message.into(), self.error_span()));
         }
     }
 
     pub(crate) fn take_error_diagnostic(&mut self) -> Option<SyxDiagnostic> {
-        let (code, message) = self.error.take()?;
+        let (code, message, span) = self.error.take()?;
+        let span = span.unwrap_or(Span::DUMMY);
+        // R-36: attach SourceFile when available so Display has file:line:col.
         Some(crate::mir_diag::mir_error_at(
             message,
-            None,
-            Span::DUMMY,
+            self.module.source.as_ref(),
+            span,
             code.unwrap_or("MIR001"),
         ))
     }

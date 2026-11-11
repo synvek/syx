@@ -1,0 +1,12 @@
+// R-31: struct assign must copy; mutating the copy must not change the original.
+struct Point {
+    var x: Int
+}
+
+func main() {
+    var p = Point(x: 1)
+    var q = p
+    q.x = 9
+    print(p.x)
+    print(q.x)
+}

@@ -1,15 +1,17 @@
-data class AppError(code: Int, message: String)
+// SA-2-02: thrown values must be String or conform to Error (not bare data class).
+enum AppError: Error {
+    case boom(code: Int, message: String)
+}
 
 func fail() throws {
-    throw AppError(code: 42, message: "boom")
+    throw AppError.boom(code: 42, message: "boom")
 }
 
 func main() {
     do {
         fail()
-    } catch (err) {
+    } catch (err: AppError) {
         print(err.message)
         print(err.code)
     }
 }
-

@@ -1,0 +1,8 @@
+// R-31: Set assign + insert must isolate.
+func main() {
+    var a: Set<Int> = [1]
+    var b = a
+    b.insert(2)
+    print(a.count)
+    print(b.count)
+}

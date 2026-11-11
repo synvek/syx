@@ -4,6 +4,7 @@
 use indexmap::{IndexMap, IndexSet};
 use smol_str::SmolStr;
 use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr};
+use syx_diagnostics::SourceFile;
 use syx_stdlib::NumericKind;
 
 #[derive(Debug, Default, Clone)]
@@ -58,6 +59,8 @@ pub(crate) struct ModuleIndex {
     pub(crate) contextual_numeric_kinds: IndexMap<u32, NumericKind>,
     /// Top-level `let`/`var` annotated types (`arr: Array<Int>` → for mono mangling).
     pub(crate) global_types: IndexMap<SmolStr, SmolStr>,
+    /// R-36: optional source for MIR001/C020 Display `file:line:col`.
+    pub(crate) source: Option<SourceFile>,
 }
 
 impl ModuleIndex {
@@ -76,7 +79,30 @@ impl ModuleIndex {
         None
     }
 
+    /// Stored property declared on `ty` itself (not inherited).
+    pub(crate) fn has_own_stored_field(&self, ty: &SmolStr, field: &SmolStr) -> bool {
+        self.dataclass_fields
+            .get(ty)
+            .is_some_and(|fs| fs.iter().any(|f| f == field))
+            || self
+                .class_types
+                .get(ty)
+                .is_some_and(|fs| fs.iter().any(|f| f == field))
+            || self
+                .class_field_types
+                .get(ty)
+                .is_some_and(|m| m.contains_key(field))
+    }
+
     pub(crate) fn property_getter_fn(&self, ty: &SmolStr, field: &SmolStr) -> Option<SmolStr> {
+        // R-35: `class C { var count }` must not resolve to `Object.count` getter.
+        if self.has_own_stored_field(ty, field)
+            && !self
+                .property_getters
+                .contains(&(ty.clone(), field.clone()))
+        {
+            return None;
+        }
         let mut cur = Some(ty.clone());
         while let Some(t) = cur {
             if self
@@ -96,6 +122,13 @@ impl ModuleIndex {
     }
 
     pub(crate) fn property_setter_fn(&self, ty: &SmolStr, field: &SmolStr) -> Option<SmolStr> {
+        if self.has_own_stored_field(ty, field)
+            && !self
+                .property_setters
+                .contains(&(ty.clone(), field.clone()))
+        {
+            return None;
+        }
         let mut cur = Some(ty.clone());
         while let Some(t) = cur {
             if self
@@ -188,11 +221,14 @@ impl ModuleIndex {
                     ..
                 } => {
                     idx.dataclass_names.insert(name.clone());
-                    idx.dataclass_fields.insert(
-                        name.clone(),
-                        fields.iter().map(|(f, _)| f.clone()).collect(),
-                    );
+                    let mut field_names: Vec<SmolStr> =
+                        fields.iter().map(|(f, _)| f.clone()).collect();
                     for member in members {
+                        if let Some(fname) = syx_ast::var_global_stored_field_name(member) {
+                            if !field_names.iter().any(|f| f == &fname) {
+                                field_names.push(fname);
+                            }
+                        }
                         if let Decl::VarGlobal {
                             name: field,
                             init: Some(Expr::Literal {
@@ -206,6 +242,7 @@ impl ModuleIndex {
                                 .insert((name.clone(), field.clone()), *value);
                         }
                     }
+                    idx.dataclass_fields.insert(name.clone(), field_names);
                 }
                 Decl::VarGlobal {
                     attrs,
@@ -300,6 +337,7 @@ impl ModuleIndex {
                         if let Decl::VarGlobal {
                             name: field,
                             ty: Some(field_ty),
+                            init,
                             ..
                         } = member
                         {
@@ -309,7 +347,16 @@ impl ModuleIndex {
                                 idx.class_field_types
                                     .entry(name.clone())
                                     .or_default()
-                                    .insert(key, ty_name);
+                                    .insert(key.clone(), ty_name);
+                            }
+                            // R-35: `var count: Int = 0` defaults for empty `init() {}`.
+                            if let Some(Expr::Literal {
+                                value: Literal::Integer { value, .. },
+                                ..
+                            }) = init
+                            {
+                                idx.dataclass_field_default_i64
+                                    .insert((name.clone(), key), *value);
                             }
                         }
                     }

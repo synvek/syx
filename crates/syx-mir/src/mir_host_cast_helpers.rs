@@ -106,6 +106,62 @@ pub(crate) fn collection_method_mir_op(type_base: &str, method: &str, ctx: &Lowe
     MirOp::Call(SmolStr::new(format!("{type_base}_{method}")))
 }
 
+fn is_collection_mutating_method(method: &str) -> bool {
+    matches!(
+        method,
+        "append"
+            | "insert"
+            | "remove"
+            | "removeAll"
+            | "removeFirst"
+            | "removeLast"
+    )
+}
+
+/// R-31: before a mutating call on an Ident local, uniquify its HeapSlot so
+/// aliases from `var b = a` do not share write-back.
+fn emit_ident_receiver_uniquify_if_needed(
+    object: &Expr,
+    method: &SmolStr,
+    ctx: &mut LowerCtx,
+    block: u32,
+) {
+    if !is_collection_mutating_method(method.as_str()) {
+        return;
+    }
+    let Expr::Ident { name, .. } = object else {
+        return;
+    };
+    let resolved = ctx.resolve_binding_name(name).clone();
+    let Some(&slot) = ctx.locals.get(&resolved) else {
+        return;
+    };
+    ctx.emit(
+        block,
+        MirInstr {
+            dest: None,
+            op: MirOp::LoadLocal(slot),
+            span: None,
+        },
+    );
+    ctx.emit(
+        block,
+        MirInstr {
+            dest: None,
+            op: MirOp::CallHost(host_fn_index(HostFnId::HeapSlotUniquify)),
+            span: None,
+        },
+    );
+    ctx.emit(
+        block,
+        MirInstr {
+            dest: None,
+            op: MirOp::StoreLocal(slot),
+            span: None,
+        },
+    );
+}
+
 pub(crate) fn emit_hosted_collection_call(
     type_base: &str,
     method: &SmolStr,
@@ -115,6 +171,7 @@ pub(crate) fn emit_hosted_collection_call(
     ctx: &mut LowerCtx,
     block: u32,
 ) {
+    emit_ident_receiver_uniquify_if_needed(object, method, ctx, block);
     lower_expr(object, ctx.fresh_reg(), ctx, block);
     for arg in args {
         lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);

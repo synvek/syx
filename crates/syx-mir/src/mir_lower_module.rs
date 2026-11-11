@@ -10,7 +10,7 @@ use smol_str::SmolStr;
 use std::cell::Cell;
 use std::rc::Rc;
 use syx_ast::{AccessLevel, Decl, Module};
-use syx_diagnostics::SyxResult;
+use syx_diagnostics::{SourceFile, SyxResult};
 use syx_stdlib::NumericKind;
 
 pub fn extension_methods_for_module(module: &Module) -> IndexSet<(SmolStr, SmolStr)> {
@@ -53,8 +53,28 @@ pub fn lower_module_with_extra_extensions_and_kinds(
     imported_class_types: &IndexSet<SmolStr>,
     contextual_numeric_kinds: &IndexMap<u32, NumericKind>,
 ) -> SyxResult<MirModule> {
+    lower_module_with_extra_extensions_kinds_and_source(
+        module,
+        extra_extensions,
+        callable_extensions,
+        imported_class_types,
+        contextual_numeric_kinds,
+        None,
+    )
+}
+
+/// Like [`lower_module_with_extra_extensions_and_kinds`], with optional source for diag spans.
+pub fn lower_module_with_extra_extensions_kinds_and_source(
+    module: &Module,
+    extra_extensions: &IndexSet<(SmolStr, SmolStr)>,
+    callable_extensions: &IndexSet<SmolStr>,
+    imported_class_types: &IndexSet<SmolStr>,
+    contextual_numeric_kinds: &IndexMap<u32, NumericKind>,
+    source: Option<&SourceFile>,
+) -> SyxResult<MirModule> {
     let mut module_idx = ModuleIndex::from_module(module);
     module_idx.contextual_numeric_kinds = contextual_numeric_kinds.clone();
+    module_idx.source = source.cloned();
     for ty in imported_class_types {
         module_idx
             .class_types
@@ -120,6 +140,7 @@ pub fn lower_module_with_extra_extensions_and_kinds(
                 *is_async,
                 &imports,
                 &globals,
+                &[],
                 &[],
                 Rc::clone(&closure_ids),
             )?;

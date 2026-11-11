@@ -31,7 +31,9 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     // plugin/manifest/purge fixed tax (hello warm path).
     if !package_main {
         let current_source = std::fs::read_to_string(path).unwrap_or_default();
-        if let Some(unit) = try_incremental_cache_hit(path, root, &current_source)? {
+        if let Some(mut unit) = try_incremental_cache_hit(path, root, &current_source)? {
+            // R-36: cache omits debug_source (serde skip).
+            unit.program.debug_source = Some(unit.source.clone());
             return Ok(unit);
         }
     }
@@ -68,7 +70,8 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     } else {
         std::fs::read_to_string(path).unwrap_or_default()
     };
-    if let Some(unit) = try_incremental_cache_hit(path, root, &current_source)? {
+    if let Some(mut unit) = try_incremental_cache_hit(path, root, &current_source)? {
+        unit.program.debug_source = Some(unit.source.clone());
         return Ok(unit);
     }
     syx_meta::service_di_clear();
@@ -83,6 +86,8 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     let mut unit = compile_module_recursive(entry_ref, root, &mut graph, &manifest, &opts)?;
     // S3-I50: slim entry program before cache write / return (warm-floor hinge).
     syx_codegen::trim_program_to_entry_reachability(&mut unit.program);
+    // R-36: `debug_source` is serde-skipped; always rehydrate from entry SourceFile.
+    unit.program.debug_source = Some(unit.source.clone());
     if let Some(parent_dir) = cache.parent() {
         let _ = std::fs::create_dir_all(parent_dir);
     }
@@ -113,12 +118,14 @@ fn try_incremental_cache_hit(
     if !cache_entry_fresh(&cached, current_source) {
         return Ok(None);
     }
-    if let Some(unit) = query::lookup_cached(path, current_source, &cached.dependency_hashes) {
+    if let Some(mut unit) = query::lookup_cached(path, current_source, &cached.dependency_hashes) {
+        unit.program.debug_source = Some(unit.source.clone());
         maybe_refresh_service_di_from_source(path, current_source)?;
         return Ok(Some(unit));
     }
     let deps = cached.dependency_hashes.clone();
-    let unit: ModuleUnit = cached.into();
+    let mut unit: ModuleUnit = cached.into();
+    unit.program.debug_source = Some(unit.source.clone());
     query::store_cached(unit.clone(), &deps);
     maybe_refresh_service_di_from_source(path, current_source)?;
     Ok(Some(unit))

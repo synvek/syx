@@ -52,6 +52,9 @@ pub(crate) fn lower_expr_unary(
                     span: None,
                 },
             );
+            // R-30: exception edge must be a CFG successor or remove_unreachable_blocks
+            // drops the ReturnErr pad (BeginTry target stays as a stale block id).
+            ctx.link(block, err_block);
             ctx.link(block, after_block);
             ctx.emit(
                 err_block,

@@ -1,0 +1,7 @@
+// R-32: Int(String) is failable → Int? (success = platform Int, failure = nil).
+func main() {
+    print(Int("42"))
+    print(Int("42") + 1)
+    let x: Int? = Int("abc")
+    print(x)
+}

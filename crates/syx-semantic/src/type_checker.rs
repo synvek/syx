@@ -1,6 +1,6 @@
 use syx_stdlib::{is_implicit_convertible, is_integer_narrowing};
 
-use crate::{type_id_to_name, TypeId};
+use crate::{type_id_to_diag_name, TypeId};
 
 pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
     if expected == found {
@@ -60,15 +60,18 @@ pub struct AssignError {
 
 pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> Result<(), AssignError> {
     if expected == found || is_compatible(&expected, &found) {
-        Ok(())
-    } else {
-        Err(AssignError {
-            message: format!(
-                "Type mismatch for '{name}': expected {}, found {}",
-                type_id_to_name(&expected),
-                type_id_to_name(&found)
-            ),
-            code: "S004",
-        })
+        return Ok(());
     }
+    // R-36: both sides Unknown is inference noise — do not emit S004.
+    if matches!(expected, TypeId::Unknown) && matches!(found, TypeId::Unknown) {
+        return Ok(());
+    }
+    Err(AssignError {
+        message: format!(
+            "Type mismatch for '{name}': expected {}, found {}",
+            type_id_to_diag_name(&expected),
+            type_id_to_diag_name(&found)
+        ),
+        code: "S004",
+    })
 }

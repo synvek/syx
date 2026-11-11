@@ -26,6 +26,7 @@ pub(crate) fn lower_expr_task_block(
             &ctx.imports,
             &ctx.globals,
             &[],
+            &[],
             Rc::clone(&ctx.closure_ids),
         )
         .unwrap_or_else(|e| {

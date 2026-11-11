@@ -20,6 +20,9 @@ pub(crate) fn codegen_error_at(
     if span != Span::DUMMY {
         if let Some(src) = source {
             diag = diag.with_span(src, span, "");
+        } else {
+            // R-36: offset without SourceFile still stamps primary_span.
+            diag = diag.with_byte_span(span);
         }
     }
     diag

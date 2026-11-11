@@ -1,0 +1,17 @@
+// R-30: `do { try g() } catch` must enter catch (error must not print as a value).
+enum E: Error {
+    case bad
+}
+
+func g() throws {
+    throw E.bad
+}
+
+func main() {
+    do {
+        try g()
+        print("value")
+    } catch {
+        print("caught")
+    }
+}

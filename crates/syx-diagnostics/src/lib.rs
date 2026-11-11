@@ -185,6 +185,17 @@ impl SyxDiagnostic {
         self
     }
 
+    /// Attach a byte offset span without a `SourceFile` (e.g. MIR001 soft-fail).
+    pub fn with_byte_span(mut self, span: Span) -> Self {
+        if span != Span::DUMMY {
+            self.primary_span = Some(SourceSpan::new(
+                SourceOffset::from(span.start as usize),
+                span.len as usize,
+            ));
+        }
+        self
+    }
+
     pub fn with_help(mut self, help: impl Into<String>) -> Self {
         self.help = Some(help.into());
         self

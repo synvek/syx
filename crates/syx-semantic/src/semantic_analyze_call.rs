@@ -4,7 +4,8 @@
 use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::{
     expr_span, is_compatible, is_retired_collection_methodcall, reflect_type_lower,
-    simd_lanes_from_type_name, type_collection_surface, type_id_to_name, type_name_to_id, Scope,
+    simd_lanes_from_type_name, type_collection_surface, type_id_to_diag_name, type_id_to_name,
+    type_name_to_id, Scope,
     ScopeError, Symbol, TypeId,
 };
 use crate::import_resolver::{
@@ -150,6 +151,60 @@ impl SemanticAnalyzer {
         self.dataclass_fields
             .get(type_name)
             .and_then(|fields| fields.iter().find(|(f, _)| f == name).map(|(_, ty)| ty.clone()))
+    }
+
+    /// True when `name` is a getter-only / `let` property on the enclosing type.
+    pub(crate) fn enclosing_field_is_getter_only(&self, name: &SmolStr) -> bool {
+        let Some(type_name) = self.current_class_context.as_ref() else {
+            return false;
+        };
+        self.getter_only_properties
+            .contains(&(type_name.clone(), name.clone()))
+    }
+
+    /// Assign / CompoundAssign target: locals first, then enclosing `var` field
+    /// (before globals — Core surfaces like `count` must not shadow `self.count`).
+    pub(crate) fn resolve_assign_target(
+        &self,
+        name: &SmolStr,
+    ) -> Result<(bool, TypeId, bool), (String, &'static str)> {
+        if let Some(sym) = self.scope.lookup(name) {
+            if sym.mutable {
+                return Ok((true, sym.ty.clone(), false));
+            }
+            // Immutable local/param: still allow enclosing stored `var` field.
+            if let Some(field_ty) = self.lookup_enclosing_type_field(name) {
+                if !self.enclosing_field_is_getter_only(name) {
+                    return Ok((true, field_ty, true));
+                }
+            }
+            if matches!(sym.ty, TypeId::Reference(_)) {
+                return Err((
+                    format!(
+                        "Cannot mutate through read-only borrow parameter '{name}'"
+                    ),
+                    "S011",
+                ));
+            }
+            return Err((format!("Cannot assign to immutable '{name}'"), "S003"));
+        }
+        if let Some(field_ty) = self.lookup_enclosing_type_field(name) {
+            if self.enclosing_field_is_getter_only(name) {
+                let type_name = self.current_class_context.as_ref().unwrap();
+                return Err((
+                    format!("Cannot assign to read-only property '{type_name}.{name}'"),
+                    "S057",
+                ));
+            }
+            return Ok((true, field_ty, true));
+        }
+        if let Some(sym) = self.globals.get(name) {
+            if !sym.mutable {
+                return Err((format!("Cannot assign to immutable '{name}'"), "S003"));
+            }
+            return Ok((true, sym.ty.clone(), false));
+        }
+        Err((format!("Undefined identifier '{name}'"), "S002"))
     }
 
     /// S1-06 / S060: `let` bindings cannot invoke mutating methods (incl. `Array.append`).
@@ -412,8 +467,34 @@ impl SemanticAnalyzer {
                         "S018",
                     ));
                 }
-                for arg in args {
-                    self.analyze_expr(&arg.value)?;
+                // R-34: pass param types as contextual expected so
+                // `total([Circle(), Square()])` under `Array<Shape>` uses
+                // protocol-element checking (not homogeneous unify → S014).
+                // Untyped params are stored as Unknown — do not assign-check
+                // against Unknown (breaks `func id(x) -> Int { … }` / parity).
+                let params = self.function_params.get(name).cloned();
+                for (i, arg) in args.iter().enumerate() {
+                    let raw = params.as_ref().and_then(|p| p.get(i));
+                    let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
+                    let found = self.analyze_expr_with_expected(&arg.value, expected)?;
+                    if let Some(param_ty) = expected {
+                        self.check_assignable_with_literal(
+                            param_ty.clone(),
+                            found,
+                            name.as_str(),
+                            Some(&arg.value),
+                            *span,
+                        )?;
+                    }
+                    if let Some(param_ty) = raw {
+                        if let Expr::Ident { name: var, .. } = &arg.value {
+                            if self.param_consumes_value(param_ty)
+                                && self.is_move_type(&self.lookup_binding_type(var))
+                            {
+                                self.moved_bindings.insert(var.clone());
+                            }
+                        }
+                    }
                 }
                 if self.function_param_labels.contains_key(name) {
                     self.check_call_argument_labels(name, args, *span);
@@ -427,17 +508,6 @@ impl SemanticAnalyzer {
                     if !args.is_empty() {
                         let init_name = SmolStr::new(format!("{name}_init"));
                         self.check_call_argument_labels(&init_name, args, *span);
-                    }
-                }
-                if let Some(params) = self.function_params.get(name).cloned() {
-                    for (arg, param_ty) in args.iter().zip(params.iter()) {
-                        if let Expr::Ident { name: var, .. } = &arg.value {
-                            if self.param_consumes_value(param_ty)
-                                && self.is_move_type(&self.lookup_binding_type(var))
-                            {
-                                self.moved_bindings.insert(var.clone());
-                            }
-                        }
                     }
                 }
                 if let Some(TypeId::GenericFn {
@@ -494,6 +564,17 @@ impl SemanticAnalyzer {
                         *span,
                         "S002",
                     ));
+                }
+                // R-32: `Int(String)` → `Int?` (success = Numeric Int, failure = nil).
+                if name.as_str() == "Int" && args.len() == 1 {
+                    let arg_ty = self.analyze_expr(&args[0].value)?;
+                    let is_string = matches!(arg_ty, TypeId::String)
+                        || matches!(&arg_ty, TypeId::Named(n) if n.as_str() == "String");
+                    if is_string {
+                        return Ok(TypeId::Optional(Box::new(TypeId::Numeric(
+                            NumericKind::Int,
+                        ))));
+                    }
                 }
                 // S1-I10: `init?` / `init!` → `Type(...)` yields Optional<Type>.
                 if self.class_names.contains(name) || self.actor_types.contains(name) {
@@ -927,8 +1008,8 @@ impl SemanticAnalyzer {
                         self.errors.push(self.error_at(
                             format!(
                                 "Type mismatch for '{name}': expected {}, found {}",
-                                type_id_to_name(&expected),
-                                type_id_to_name(&TypeId::numeric(found_kind))
+                                type_id_to_diag_name(&expected),
+                                type_id_to_diag_name(&TypeId::numeric(found_kind))
                             ),
                             diag_span,
                             "S004",
@@ -942,8 +1023,8 @@ impl SemanticAnalyzer {
                         self.errors.push(self.error_at(
                             format!(
                                 "Type mismatch for '{name}': expected {}, found {}",
-                                type_id_to_name(&expected),
-                                type_id_to_name(&TypeId::numeric(found_kind))
+                                type_id_to_diag_name(&expected),
+                                type_id_to_diag_name(&TypeId::numeric(found_kind))
                             ),
                             diag_span,
                             "S004",
@@ -1008,8 +1089,8 @@ impl SemanticAnalyzer {
                             self.errors.push(self.error_at(
                                 format!(
                                     "Collection elements have inconsistent types: expected {}, found {}",
-                                    type_id_to_name(exp_key),
-                                    type_id_to_name(&kt)
+                                    type_id_to_diag_name(exp_key),
+                                    type_id_to_diag_name(&kt)
                                 ),
                                 expr_span(k),
                                 "S014",
@@ -1023,8 +1104,8 @@ impl SemanticAnalyzer {
                             self.errors.push(self.error_at(
                                 format!(
                                     "Collection elements have inconsistent types: expected {}, found {}",
-                                    type_id_to_name(exp_val),
-                                    type_id_to_name(&vt)
+                                    type_id_to_diag_name(exp_val),
+                                    type_id_to_diag_name(&vt)
                                 ),
                                 expr_span(v),
                                 "S014",
@@ -1133,8 +1214,8 @@ impl SemanticAnalyzer {
                             self.errors.push(self.error_at(
                                 format!(
                                     "Collection elements have inconsistent types: expected {}, found {}",
-                                    type_id_to_name(elem_expected),
-                                    type_id_to_name(&found)
+                                    type_id_to_diag_name(elem_expected),
+                                    type_id_to_diag_name(&found)
                                 ),
                                 *span,
                                 "S014",

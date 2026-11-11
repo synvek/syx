@@ -1,0 +1,40 @@
+// R-34: Array<Shape> protocol witness dispatch (book ch23 shape).
+protocol Shape {
+    func area() -> Double
+    func describe() -> String
+}
+
+class Circle: Shape {
+    var r: Double
+    init(r: Double) { self.r = r }
+    func area() -> Double { return 3.14159 * self.r * self.r }
+    func describe() -> String { return "circle" }
+}
+
+class Square: Shape {
+    var s: Double
+    init(s: Double) { self.s = s }
+    func area() -> Double { return self.s * self.s }
+    func describe() -> String { return "square" }
+}
+
+func total(_ shapes: Array<Shape>) -> Double {
+    var sum = 0.0
+    for s in shapes {
+        sum = sum + s.area()
+    }
+    return sum
+}
+
+func main() {
+    let c = Circle(r: 2.0)
+    let q = Square(s: 3.0)
+    let shapes: Array<Shape> = [c, q]
+    for s in shapes {
+        print(s.describe())
+    }
+    // 3.14159*4 + 9 = 21.56636 — print *100; avoid Int(Double)→"Int {}"
+    // Call-arg Array<Shape> contextual typing (same as annotated let).
+    let t = total([c, q])
+    print(t * 100.0)
+}

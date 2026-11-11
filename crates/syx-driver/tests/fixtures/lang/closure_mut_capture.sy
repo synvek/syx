@@ -1,0 +1,8 @@
+// R-35: closure mutates outer var via compound assign.
+func main() {
+    var c = 0
+    let inc = { c += 1 }
+    inc()
+    inc()
+    print(c)
+}

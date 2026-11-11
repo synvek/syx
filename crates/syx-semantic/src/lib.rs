@@ -40,6 +40,7 @@ pub use semantic_type_codec::{
     user_facing_runtime_type_name,
     type_id_to_ir_name,
     type_id_to_name,
+    type_id_to_diag_name,
     simd_lanes_from_type_name,
 };
 

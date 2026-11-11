@@ -228,6 +228,20 @@ pub(crate) fn lower_class_init(
                     span: None,
                 },
             );
+        } else if let Some(v) = module_idx
+            .dataclass_field_default_i64
+            .get(&(type_name.clone(), field.clone()))
+            .copied()
+        {
+            // R-35: apply `var field: Int = N` when init omits the field.
+            ctx.emit(
+                entry,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstI32(v as i32),
+                    span: None,
+                },
+            );
         } else {
             ctx.emit(
                 entry,
@@ -313,7 +327,10 @@ pub(crate) fn lower_class_init(
         lower_stmt(stmt, &mut ctx, entry);
     }
     let init_wrap_pc = mir_instruction_count(&ctx);
-    emit_mut_ref_cell_wrap_mir(&mut ctx, entry, self_slot);
+    // Struct/dataclass values stay bare dicts; class/actor instances use MutRefCell.
+    if is_actor || module_idx.class_types.contains_key(type_name) {
+        emit_mut_ref_cell_wrap_mir(&mut ctx, entry, self_slot);
+    }
     emit_protocol_witnesses(&mut ctx, entry, self_slot, type_name, conformances);
     ctx.emit(
         entry,

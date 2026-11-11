@@ -592,7 +592,7 @@ pub(crate) fn infer_expr_type_name(expr: &Expr) -> SmolStr {
 }
 
 
-fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
+pub(crate) fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
     ty.as_str()
         .strip_prefix("Array<")
         .and_then(|s| s.strip_suffix('>'))
@@ -602,6 +602,14 @@ fn unwrap_collection_elem_type_arg(ty: &SmolStr) -> Option<SmolStr> {
                 .and_then(|s| s.strip_suffix('>'))
         })
         .map(|inner| normalize_type_arg(SmolStr::new(inner)))
+}
+
+/// R-34: `for s in shapes` where `shapes: Array<Shape>` → bind `s` as `Shape`
+/// so member calls lower via protocol witness + CallIndirect (not ObjectGet name).
+pub(crate) fn infer_for_in_elem_type(iterable: &Expr, ctx: &LowerCtx) -> Option<SmolStr> {
+    let coll = infer_object_type_name(iterable, ctx)
+        .or_else(|| infer_expr_init_type(iterable, ctx))?;
+    unwrap_collection_elem_type_arg(&coll)
 }
 
 

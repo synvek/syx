@@ -3264,13 +3264,15 @@ fn emit_mir_instr(
             emit_wasm_instr(body, &WasmInstr::I32Const(*v));
             return;
         }
-        // Phase 126: protocol/class witness slots emit ConstFnIndex before ObjectSet.
+        // Phase 126 / R-33: protocol/class witness slots emit ConstFnIndex before ObjectSet.
+        // Missing prelude shells → -1 (ignored by MakeIterator); never silent index 0.
         if let MirOp::ConstFnIndex(name) = &instr.op {
             let idx = module
                 .functions
                 .iter()
                 .position(|f| f.name == *name)
-                .unwrap_or(0) as i32;
+                .map(|i| i as i32)
+                .unwrap_or(-1);
             emit_wasm_instr(body, &WasmInstr::I32Const(idx));
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::PushRtI32)));
             return;

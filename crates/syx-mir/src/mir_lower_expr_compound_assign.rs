@@ -30,13 +30,12 @@ pub(crate) fn lower_expr_compound_assign(
             CompoundAssignOp::Shl => BinOp::Shl,
             CompoundAssignOp::Shr => BinOp::Shr,
         };
+        // R-35: only Int in-place host when the binding is known Int —
+        // do not default missing local_types to Int (field/other types
+        // fall through to Assign desugar + enclosing-field load/store).
         if matches!(op, CompoundAssignOp::Add | CompoundAssignOp::Sub) {
-            let left_ty = ctx
-                .local_types
-                .get(name)
-                .cloned()
-                .unwrap_or_else(|| SmolStr::new("Int"));
-            if left_ty.as_str() == "Int" {
+            let left_ty = ctx.local_types.get(name).cloned();
+            if left_ty.as_deref() == Some("Int") {
                 let host_name = match op {
                     CompoundAssignOp::Add => "__syx_int_add_assign",
                     CompoundAssignOp::Sub => "__syx_int_sub_assign",

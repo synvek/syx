@@ -1,0 +1,4 @@
+// R-36: S004 must not leak the sentinel word "Unknown".
+func main() {
+    let a: Unknown = 1
+}

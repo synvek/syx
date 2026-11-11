@@ -5,6 +5,7 @@ use crate::binop_operator_symbol;
 use crate::emit_integer_narrow_cast_if_needed;
 use crate::extension_or_hosted_return_type;
 use crate::infer_expr_init_type;
+use crate::infer_for_in_elem_type;
 use crate::infer_object_type_name;
 use crate::infer_service_resolve_type_name;
 use crate::lower_expr;
@@ -257,6 +258,27 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             ctx.prefer_set_build = false;
             // `??` / other block-splitting inits leave the value in `active_block`.
             let cur = ctx.active_block;
+            // R-31: `var q = p` for struct/dataclass must copy, not alias.
+            // Skip copy when RHS is a fresh `{T}()` / `{T}_init` call — already unique,
+            // and Call-dest register may not leave a stack value for `{T}_copy`.
+            let rhs_is_fresh_init = matches!(
+                init,
+                Some(Expr::Call {
+                    callee,
+                    ..
+                }) if matches!(
+                    callee.as_ref(),
+                    Expr::Ident { name: ty_name, .. }
+                        if ctx.module.dataclass_names.contains(ty_name)
+                            || ctx.module.class_types.contains_key(ty_name)
+                            || ctx.module.actor_types.contains(ty_name)
+                )
+            );
+            if !rhs_is_fresh_init {
+                if let Some(ty) = ctx.local_types.get(name).cloned() {
+                    ctx.emit_dataclass_assign_copy_if_needed(&ty, cur);
+                }
+            }
             ctx.emit(
                 cur,
                 MirInstr {
@@ -597,6 +619,11 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             ctx.link(loop_header, body_block);
             ctx.link(loop_header, exit_block);
             let elem_slot = ctx.alloc_local(name);
+            // R-34: bind for-in element type from Array/Set<T> so protocol
+            // receivers (e.g. Shape) hit witness CallIndirect, not ObjectGet.
+            if let Some(elem_ty) = infer_for_in_elem_type(iterable, ctx) {
+                ctx.local_types.insert(name.clone(), elem_ty);
+            }
             ctx.emit(
                 body_block,
                 MirInstr {

@@ -20,6 +20,9 @@ pub(crate) fn mir_error_at(
     if span != Span::DUMMY {
         if let Some(src) = source {
             diag = diag.with_span(src, span, "");
+        } else {
+            // R-35: offset without SourceFile (MIR001 closure unknown var).
+            diag = diag.with_byte_span(span);
         }
     }
     diag

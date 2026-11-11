@@ -45,6 +45,10 @@ pub enum ValueType {
 pub enum Instruction {
     // Stack / constants
     ConstI32(i32),
+    /// R-33: function-table index constant (witness / vtable). Distinct from
+    /// [`ConstI32`] so [`trim_program_to_entry_reachability`] can keep and remap
+    /// protocol witness targets (e.g. `Counter_next`).
+    ConstFnIndex(u32),
     ConstF64(f64),
     ConstNumeric {
         kind: u8,
@@ -512,6 +516,9 @@ pub struct CompiledProgram {
     // S3-I53: always encode for bincode — `skip_serializing_if` breaks disk cache roundtrip.
     #[serde(default)]
     pub opaque_witnesses: indexmap::IndexMap<SmolStr, SmolStr>,
+    /// R-36: primary source for interpreter R003 Display `file:line:col`.
+    #[serde(skip)]
+    pub debug_source: Option<syx_diagnostics::SourceFile>,
 }
 
 impl Default for CompiledProgram {
@@ -525,6 +532,7 @@ impl Default for CompiledProgram {
             mir_functions: indexmap::IndexMap::new(),
             mir_module: None,
             opaque_witnesses: indexmap::IndexMap::new(),
+            debug_source: None,
         }
     }
 }
@@ -776,7 +784,26 @@ impl CodeGenerator {
                 instruction_spans.push(instr.span);
                 continue;
             }
-            instructions.push(Self::mir_op_to_instruction(&instr.op, program)?);
+            // R-36: Call/CallSuper resolve with instr span so C020 has location.
+            let call_span = instr
+                .span
+                .map(|(start, len)| Span { start, len })
+                .unwrap_or(Span::DUMMY);
+            match &instr.op {
+                MirOp::Call(name) => {
+                    instructions.push(Instruction::Call(Self::resolve_fn_index_at(
+                        program, name, call_span,
+                    )?));
+                }
+                MirOp::CallSuper(name) => {
+                    instructions.push(Instruction::CallSuper(Self::resolve_fn_index_at(
+                        program, name, call_span,
+                    )?));
+                }
+                other => {
+                    instructions.push(Self::mir_op_to_instruction(other, program)?);
+                }
+            }
             instruction_spans.push(instr.span);
         }
         if !instructions
@@ -975,12 +1002,21 @@ impl CodeGenerator {
     }
 
     fn resolve_fn_index(program: &CompiledProgram, name: &SmolStr) -> SyxResult<u32> {
+        Self::resolve_fn_index_at(program, name, Span::DUMMY)
+    }
+
+    fn resolve_fn_index_at(
+        program: &CompiledProgram,
+        name: &SmolStr,
+        span: Span,
+    ) -> SyxResult<u32> {
         program
             .functions
             .iter()
             .position(|f| f.name == *name)
             .map(|i| i as u32)
             .ok_or_else(|| {
+                let source = program.debug_source.as_ref();
                 // R-20: a missing `{Type}_{op}` symbol means the user applied an operator
                 // that MIR lowers to a synthesized/witness function but that no shell or
                 // user definition provides. Say which operator and what to do, instead of
@@ -993,15 +1029,15 @@ impl CodeGenerator {
                              or remove the operator (only '==' and '!=' are synthesized \
                              for structs and data classes)"
                         ),
-                        None,
-                        Span::DUMMY,
+                        source,
+                        span,
                         "C020",
                     );
                 }
                 codegen_error_at(
                     format!("Unknown function '{name}'"),
-                    None,
-                    Span::DUMMY,
+                    source,
+                    span,
                     "C020",
                 )
             })
@@ -1315,13 +1351,15 @@ impl CodeGenerator {
                 Instruction::CallSuper(Self::resolve_fn_index(program, name)?)
             }
             MirOp::CallIndirect(n) => Instruction::CallIndirect(*n),
-            MirOp::ConstFnIndex(name) => Instruction::ConstI32(
-                program
-                    .functions
-                    .iter()
-                    .position(|f| f.name == *name)
-                    .unwrap_or(0) as i32,
-            ),
+            MirOp::ConstFnIndex(name) => {
+                // R-33: real fn → ConstFnIndex (trim keeps/remaps). Missing prelude
+                // Equatable/Comparable shells (e.g. Int8_equals) → ConstI32(-1) so
+                // MakeIterator ignores the slot (never silent bind to fn 0).
+                match program.functions.iter().position(|f| f.name == *name) {
+                    Some(idx) => Instruction::ConstFnIndex(idx as u32),
+                    None => Instruction::ConstI32(-1),
+                }
+            }
             MirOp::CallHost(idx) => Instruction::CallHost(*idx),
             MirOp::MakeClosure(name, cap) => {
                 Instruction::MakeClosure(Self::resolve_fn_index(program, name)?, *cap)
@@ -2560,6 +2598,8 @@ impl CodeGenerator {
             }
             Expr::Unary { op, expr, .. } => {
                 if *op == UnaryOp::Try {
+                    // R-30: `try` must rethrow into an enclosing `do` (or propagate),
+                    // not swallow the error as a normal value (Catch + ConstStr("")).
                     let catch_start = out.len();
                     out.push(Instruction::BeginTry(0));
                     self.compile_expr(expr, out)?;
@@ -2570,8 +2610,7 @@ impl CodeGenerator {
                     if let Instruction::BeginTry(ref mut t) = out[catch_start] {
                         *t = catch_label;
                     }
-                    out.push(Instruction::Catch);
-                    out.push(Instruction::ConstStr(String::new()));
+                    out.push(Instruction::ReturnErr);
                     let end = out.len();
                     if let Instruction::Jump(ref mut t) = out[jump_end] {
                         *t = end;
@@ -4879,8 +4918,10 @@ impl CodeGenerator {
         for slot in &arg_slots {
             out.push(Instruction::LoadLocal(*slot));
         }
+        // [self, args..., recv] → ObjectGet → [self, args..., witness].
+        // Do not Dup: leftover recv under the call result breaks binary uses
+        // like `sum + s.area()` (R-34).
         out.push(Instruction::LoadLocal(recv_slot));
-        out.push(Instruction::Dup);
         out.push(Instruction::ConstStr(format!(
             "__witness_{protocol}_{method}"
         )));
@@ -5102,7 +5143,14 @@ fn collect_closure_free_vars(
                 visit_expr(object, bound, outer_locals, seen, free);
                 visit_expr(index, bound, outer_locals, seen, free);
             }
-            Expr::Assign { value, .. } | Expr::CompoundAssign { value, .. } => {
+            // R-35: include Assign/CompoundAssign targets so mut captures are seen.
+            Expr::Assign { name, value, .. } | Expr::CompoundAssign { name, value, .. } => {
+                if !bound.contains(name)
+                    && outer_locals.contains_key(name)
+                    && seen.insert(name.clone())
+                {
+                    free.push(name.clone());
+                }
                 visit_expr(value, bound, outer_locals, seen, free);
             }
             Expr::MemberAssign { object, value, .. } | Expr::IndexAssign { object, value, .. } => {

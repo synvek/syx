@@ -776,6 +776,10 @@ pub enum HostFnId {
     TlsServe,
     /// Array.append — grow + HeapSlot write-back (sgate / collection mutation).
     ArrayAppend,
+    /// R-31: clone HeapSlot payload into a fresh slot (assign/CoW uniquify; no write-back).
+    HeapSlotUniquify,
+    /// R-32: `Int(String)` → platform Int or Nil (`Int?`).
+    IntFromString,
 }
 
 impl HostFnId {
@@ -892,6 +896,8 @@ impl HostFnId {
             Self::StringCharAt => "__syx_string_char_at",
             Self::ArraySetAt => "__syx_array_set_at",
             Self::ArrayAppend => "__syx_array_append",
+            Self::HeapSlotUniquify => "__syx_heap_slot_uniquify",
+            Self::IntFromString => "__syx_int_from_string",
             Self::LeadingZeros128 => "__syx_leading_zeros128",
             Self::SimdShuffle => "__syx_simd_shuffle",
             Self::SimdAnd => "__syx_simd_and",
@@ -2046,6 +2052,8 @@ impl HostFnId {
             Self::TcpListenerAccept,
             Self::TlsServe,
             Self::ArrayAppend,
+            Self::HeapSlotUniquify,
+            Self::IntFromString,
         ]
     }
 }
@@ -4329,6 +4337,8 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::StringCharAt => "String",
         HostFnId::ArraySetAt => "Array",
         HostFnId::ArrayAppend => "Nil",
+        HostFnId::HeapSlotUniquify => "Unknown",
+        HostFnId::IntFromString => "Int?",
         HostFnId::LeadingZeros128 => "Int",
         HostFnId::SimdI8AllTrue | HostFnId::SimdI8AnyTrue => "Bool",
         HostFnId::SimdShuffle => "Unknown",

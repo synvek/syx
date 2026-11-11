@@ -1,0 +1,5 @@
+// R-36: R003 on interpreter path must carry file:line:col in Display.
+func main() {
+    let s = "ab"
+    print(s[2])
+}

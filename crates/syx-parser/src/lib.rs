@@ -3932,6 +3932,38 @@ impl Parser {
                 _ => self.error("Invalid assignment target"),
             };
         }
+        // R-35: `self.x += 1` / `obj.x += 1` → MemberAssign desugar (no new AST).
+        // Index `xs[i] +=` stays out of scope for this window.
+        if let Some(op) = compound_assign_op(&self.peek().kind) {
+            if let Expr::Member {
+                object,
+                name,
+                span: mem_span,
+            } = &expr
+            {
+                self.advance();
+                let rhs = self.parse_expr()?;
+                let end = expr_span(&rhs);
+                let bin = compound_op_to_binop(op);
+                let left = Expr::Member {
+                    span: *mem_span,
+                    object: object.clone(),
+                    name: name.clone(),
+                };
+                let value = Expr::Binary {
+                    span: Span::merge(*mem_span, end),
+                    left: Box::new(left),
+                    op: bin,
+                    right: Box::new(rhs),
+                };
+                return Ok(Expr::MemberAssign {
+                    span: Span::merge(*mem_span, end),
+                    object: object.clone(),
+                    name: name.clone(),
+                    value: Box::new(value),
+                });
+            }
+        }
         Ok(expr)
     }
 
@@ -5231,6 +5263,21 @@ fn compound_assign_op(kind: &TokenKind) -> Option<CompoundAssignOp> {
         TokenKind::GreaterGreaterEqual => CompoundAssignOp::Shr,
         _ => return None,
     })
+}
+
+fn compound_op_to_binop(op: CompoundAssignOp) -> BinOp {
+    match op {
+        CompoundAssignOp::Add => BinOp::Add,
+        CompoundAssignOp::Sub => BinOp::Sub,
+        CompoundAssignOp::Mul => BinOp::Mul,
+        CompoundAssignOp::Div => BinOp::Div,
+        CompoundAssignOp::Mod => BinOp::Mod,
+        CompoundAssignOp::BitAnd => BinOp::BitAnd,
+        CompoundAssignOp::BitOr => BinOp::BitOr,
+        CompoundAssignOp::BitXor => BinOp::BitXor,
+        CompoundAssignOp::Shl => BinOp::Shl,
+        CompoundAssignOp::Shr => BinOp::Shr,
+    }
 }
 
 fn expr_span(expr: &Expr) -> Span {
