@@ -80,7 +80,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          Linux x64 / arm64
+          # Linux x64 / arm64
           - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             artifact: syx-linux-x86_64
@@ -118,14 +118,14 @@ jobs:
             exe_ext: ".exe"
             wasmtime_asset: wasmtime-v25.0.0-x86_64-windows.zip
             llvm_asset: clang+llvm-21.1.6-x86_64-pc-windows-msvc.tar.xz
-            native_examples: false
+            native_examples: true
           - os: windows-11-arm
             target: aarch64-pc-windows-msvc
             artifact: syx-windows-aarch64
             exe_ext: ".exe"
             wasmtime_asset: wasmtime-v25.0.0-aarch64-windows.zip
             llvm_asset: clang+llvm-21.1.6-aarch64-pc-windows-msvc.tar.xz
-            native_examples: false
+            native_examples: true
     runs-on: ${{ matrix.os }}
     defaults:
       run:
