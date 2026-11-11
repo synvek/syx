@@ -767,9 +767,9 @@ fn main() {
     };
 
     // SYX note (Linux): do not emit `-Wl,--lto=off` (rust-lld rejects mode
-    // `off`). Full-native builds opt out of rust-lld via
-    // `-Clinker-features=-lld` in scripts/build-full-native / release.yml so
-    // ThinLTO does not run rustc's LLVM against SYX_LLVM 21 bitcode (VP !prof).
+    // `off`). Static LLVM archives may contain bitcode: rust-lld ThinLTO with
+    // rustc's LLVM aborts (VP !prof); host bfd cannot read bitcode. Full-native
+    // builds link with SYX clang/ld.lld (scripts/build-full-native).
 
     // Link LLVM libraries
     println!("cargo:rustc-link-search=native={}", link_search.display());

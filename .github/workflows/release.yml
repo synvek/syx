@@ -433,20 +433,29 @@ jobs:
             cp "target-full-native/${TARGET}/release/syx${{ matrix.exe_ext }}" \
               "target/${TARGET}/release/syx${{ matrix.exe_ext }}"
           else
-            # Linux: avoid rust-lld ThinLTO of SYX_LLVM bitcode (VP !prof abort).
-            # See scripts/build-full-native. Do not use `-Wl,--lto=off` (invalid).
-            EXTRA_RUSTFLAGS=()
+            # Linux: SYX_LLVM .a is often bitcode. rust-lld (rustc LLVM) ThinLTO →
+            # VP !prof; host bfd → file format not recognized. Use SYX clang as
+            # linker (same LLVM major). See scripts/build-full-native.
             case "${TARGET}" in
               *-unknown-linux-*)
-                EXTRA_RUSTFLAGS+=(-C lto=off -C linker-features=-lld)
+                PREFIX="${LLVM_SYS_211_PREFIX:-${SYX_LLVM_PREFIX:-}}"
+                CLANG="${PREFIX}/bin/clang"
+                LLD="${PREFIX}/bin/ld.lld"
+                if [ -x "${CLANG}" ]; then
+                  RUSTFLAGS="-C lto=off -C linker-features=-lld -C linker=${CLANG}" \
+                    cargo build --release -p syx-cli --features full-native --target "${TARGET}"
+                elif [ -x "${LLD}" ]; then
+                  RUSTFLAGS="-C lto=off -C linker-features=-lld -C link-arg=-fuse-ld=${LLD}" \
+                    cargo build --release -p syx-cli --features full-native --target "${TARGET}"
+                else
+                  echo "ERROR: need ${CLANG} or ${LLD} to link SYX_LLVM bitcode archives" >&2
+                  exit 1
+                fi
+                ;;
+              *)
+                cargo build --release -p syx-cli --features full-native --target "${TARGET}"
                 ;;
             esac
-            if [ "${#EXTRA_RUSTFLAGS[@]}" -gt 0 ]; then
-              RUSTFLAGS="${EXTRA_RUSTFLAGS[*]}" \
-                cargo build --release -p syx-cli --features full-native --target "${TARGET}"
-            else
-              cargo build --release -p syx-cli --features full-native --target "${TARGET}"
-            fi
           fi
 
       # - name: Driver parity smoke (SYX 38.0)

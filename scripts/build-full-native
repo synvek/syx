@@ -5,6 +5,13 @@
 #
 # Linux host deps (Debian/Ubuntu) for llvm-sys system libs:
 #   sudo apt install build-essential libffi-dev zlib1g-dev libxml2-dev libzstd-dev
+#
+# Linux note: SYX_LLVM static archives often contain *LLVM bitcode* (not ELF).
+# rust-lld (rustc's LLVM, e.g. 23.x) ThinLTO of those objects aborts with
+# `VP !prof should not have duplicate profile values`. Host bfd cannot read
+# bitcode either (`file format not recognized`). Link with SYX clang/ld.lld
+# (same LLVM major as the archives) instead. Prefer rebuilding ../llvm without
+# -flto for native ELF .a when possible.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -22,6 +29,10 @@ if [[ -n "${CARGO_BUILD_TARGET:-}" ]]; then
   ARGS+=(--target "$CARGO_BUILD_TARGET")
 fi
 
+json_rustflags() {
+  python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "$@"
+}
+
 case "$TARGET" in
   *-pc-windows-msvc)
     # Keep default target/ free of crt-static so `cargo build -p syx-rt` / native
@@ -33,15 +44,24 @@ case "$TARGET" in
     )
     ;;
   *-unknown-linux-*)
-    # Official LLVM .a often embeds bitcode. Default rust-lld then runs ThinLTO
-    # with *rustc's* LLVM (e.g. 23.x) against SYX_LLVM 21 objects → abort
-    # `VP !prof should not have duplicate profile values` (AMDGPUAsmParser…).
-    # `-Wl,--lto=off` is invalid (lld only accepts full|thin|default).
-    # Opt out of rust-lld so the host `cc`+bfd/gold link treats objects as ELF.
-    ARGS+=(
-      --config
-      "target.${TARGET}.rustflags=[\"-C\",\"lto=off\",\"-C\",\"linker-features=-lld\"]"
-    )
+    PREFIX="${SYX_LLVM_PREFIX:-$ROOT/../llvm}"
+    CLANG="$PREFIX/bin/clang"
+    LLD="$PREFIX/bin/ld.lld"
+    # Never `-Wl,--lto=off` (rust-lld rejects mode `off`).
+    # Prefer SYX clang so bitcode LTO uses matching LLVM; disable rust-lld.
+    if [[ -x "$CLANG" ]]; then
+      RF="$(json_rustflags -C lto=off -C linker-features=-lld -C "linker=${CLANG}")"
+      echo "build-full-native: Linux linker=${CLANG} (SYX LLVM; rust-lld off)"
+    elif [[ -x "$LLD" ]]; then
+      RF="$(json_rustflags -C lto=off -C linker-features=-lld -C "link-arg=-fuse-ld=${LLD}")"
+      echo "build-full-native: Linux fuse-ld=${LLD} (SYX LLVM; rust-lld off)"
+    else
+      echo "build-full-native: ERROR: SYX_LLVM at $PREFIX has bitcode .a that need a matching linker," >&2
+      echo "  but neither $CLANG nor $LLD is executable." >&2
+      echo "  Fix: install clang/ld.lld into the prefix, or rebuild LLVM without -flto (native ELF .a)." >&2
+      exit 1
+    fi
+    ARGS+=(--config "target.${TARGET}.rustflags=${RF}")
     ;;
 esac
 
