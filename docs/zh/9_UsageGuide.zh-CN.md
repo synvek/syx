@@ -346,10 +346,12 @@ rm -rf target/cache
 
 `syx run` 会设 `DriverOptions.stdlib_mir = false`：沿用内嵌 prelude **字节码**，不再把整份标准库重新 lower 进 unified MIR（`syx build` / native / wasm 仍走 MIR）。  
 优先走精简 rkyv VM 镜像（`prelude_vm_image.rkyv`，磁盘侧 mmap），再回退 fat bincode；同进程内 `OnceLock` hydrate 跳过重复反序列化。  
-调试时可设 `SYX_STDLIB_MIR=1` 强制旧路径。工具链指纹变化后请重生 embed：
+调试时可设 `SYX_STDLIB_MIR=1` 强制旧路径。工具链指纹变化后请重生 embed（embed / rkyv 在 Windows 可用；**daemon 仅 Unix**）：
 
 ```bash
 bash scripts/gen_prelude_snapshot.sh
+# Windows：
+powershell -File scripts/gen_prelude_snapshot.ps1
 ```
 
 ### 温热 daemon（Unix）

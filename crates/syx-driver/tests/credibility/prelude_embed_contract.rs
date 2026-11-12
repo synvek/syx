@@ -65,6 +65,18 @@ fn s3_03_prelude_embed_adr_and_census() {
         gen.contains("prelude_snapshot.bin") && gen.contains("prelude_vm_image.rkyv"),
         "gen script must write bincode + rkyv assets"
     );
+    let gen_ps1 = repo_file("scripts/gen_prelude_snapshot.ps1");
+    assert!(
+        gen_ps1.contains("prelude_snapshot.bin")
+            && gen_ps1.contains("prelude_vm_image.rkyv")
+            && gen_ps1.contains("check_prelude_embed.ps1"),
+        "Windows gen_prelude_snapshot.ps1 must mirror sh (bin + rkyv + embed check)"
+    );
+    let check_ps1 = repo_path("scripts/check_prelude_embed.ps1");
+    assert!(
+        check_ps1.is_file(),
+        "scripts/check_prelude_embed.ps1 must exist for Windows regen verify"
+    );
     let rkyv = repo_path("crates/syx-driver/assets/prelude_vm_image.rkyv");
     let rkyv_meta = std::fs::metadata(&rkyv).expect("prelude_vm_image.rkyv must exist");
     assert!(

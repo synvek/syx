@@ -13,7 +13,7 @@ use syx_codegen::{CompiledProgram, FunctionUnit};
 use syx_diagnostics::SourceFile;
 use syx_semantic::TypeId;
 
-/// Embedded rkyv image (gen via `scripts/gen_prelude_snapshot.sh`).
+/// Embedded rkyv image (gen via `scripts/gen_prelude_snapshot.sh` / `.ps1`).
 pub(crate) static EMBEDDED_RKYV_IMAGE: &[u8] =
     include_bytes!("../assets/prelude_vm_image.rkyv");
 

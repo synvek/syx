@@ -21,7 +21,7 @@ fi
 ASSET="$ROOT/crates/syx-driver/assets/prelude_snapshot.bin"
 if [[ ! -s "$ASSET" ]]; then
   echo "error: missing or empty $ASSET" >&2
-  echo "  fix: bash scripts/gen_prelude_snapshot.sh && cargo build -p syx-cli --release" >&2
+  echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
   exit 1
 fi
 echo "prelude_embed_asset_bytes=$(wc -c <"$ASSET" | tr -d ' ')"
@@ -58,8 +58,8 @@ PRELUDE="$(find "$WORK/target/cache" -type f -name 'prelude_*.bin' 2>/dev/null |
 if [[ -n "$PRELUDE" ]]; then
   echo "error: prelude snapshot STALE or unloadable (embed miss)" >&2
   echo "  wrote: $PRELUDE ($(wc -c <"$PRELUDE" | tr -d ' ') bytes)" >&2
-  echo "  fix: bash scripts/gen_prelude_snapshot.sh && cargo build -p syx-cli --release" >&2
-  echo "  then commit crates/syx-driver/assets/prelude_snapshot.bin" >&2
+  echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
+  echo "  then commit crates/syx-driver/assets/prelude_snapshot.bin (+ prelude_vm_image.rkyv)" >&2
   exit 1
 fi
 

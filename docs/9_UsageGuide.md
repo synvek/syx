@@ -344,10 +344,12 @@ rm -rf target/cache
 
 `syx run` sets `DriverOptions.stdlib_mir = false`: it keeps the embedded prelude **bytecode** and does **not** re-lower the whole stdlib through unified MIR (that path remains for `syx build` / native / wasm).  
 Prefer the slim rkyv VM image (`prelude_vm_image.rkyv`, mmap on disk) before the fat bincode embed; within one process a hydrate `OnceLock` skips re-deserialize.  
-Force the old MIR merge with `SYX_STDLIB_MIR=1` when debugging. Regen embeds after toolchain fingerprint drift:
+Force the old MIR merge with `SYX_STDLIB_MIR=1` when debugging. Regen embeds after toolchain fingerprint drift (embed + rkyv work on Windows; **daemon is Unix-only**):
 
 ```bash
 bash scripts/gen_prelude_snapshot.sh
+# Windows:
+powershell -File scripts/gen_prelude_snapshot.ps1
 ```
 
 ### Warm daemon (Unix)
