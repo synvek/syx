@@ -1,3 +1,7 @@
+---
+title: Language Guide
+description: Learn SYX from first principles — a narrative tutorial covering basics, collections, closures, types, protocols, generics, concurrency and macros.
+---
 # Language Guide
 
 Narrative tutorial for SYX — from the basics to advanced features, with runnable examples and notes on differences from Swift.

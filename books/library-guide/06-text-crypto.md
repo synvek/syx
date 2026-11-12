@@ -1,5 +1,7 @@
 # Text and Crypto
 
+The `Text` and `Crypto` packages cover string, regex and encoding helpers plus cryptographic hashing primitives. This page lists each type's typical API and its boundaries; built-in string methods stay in CORE and need no import.
+
 ## Text
 
 **Implementation status:** thin wrappers `Fmt` / `Regex` / `Encoding` / `StringBuilder` / `Bytes` **Implemented**.

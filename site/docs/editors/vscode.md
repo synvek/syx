@@ -1,3 +1,7 @@
+---
+title: VS Code Extension
+description: Install the SYX Language extension for VS Code — TextMate syntax highlighting for .sy, LSP completion and hover, inlay type hints, format on save and DAP debugging via syx lsp.
+---
 # VS Code extension
 
 The **SYX Language** extension (`editors/vscode-syx`) gives `.sy` files syntax highlighting and LSP-powered assistance: completion, hover, go-to-definition, inlay hints, formatting, and DAP debugging.

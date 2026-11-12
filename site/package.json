@@ -7,8 +7,13 @@
     "prebuild": "node scripts/sync-content.mjs",
     "dev": "vitepress dev docs --port 5174 --host 127.0.0.1",
     "build": "vitepress build docs",
+    "postbuild": "node scripts/postbuild.mjs",
     "preview": "vitepress preview docs --port 4174 --host 127.0.0.1",
-    "sync": "node scripts/sync-content.mjs"
+    "sync": "node scripts/sync-content.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:seo": "node scripts/check-seo.mjs",
+    "verify": "npm run build && npm run check:links && npm run check:seo",
+    "og-image": "python scripts/gen-og-image.py"
   },
   "devDependencies": {
     "vitepress": "^1.6.4",

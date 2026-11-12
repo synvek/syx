@@ -1,3 +1,7 @@
+---
+title: 编辑器
+description: 用语法高亮与语言服务编写 SYX —— VS Code 扩展提供 LSP 补全、悬停、行内类型提示、格式化与 DAP 调试，另有 Neovim 与 Helix 配置。
+---
 # 编辑器
 
 为 `.sy` 提供语法高亮与语言服务辅助开发。

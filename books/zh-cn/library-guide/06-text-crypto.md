@@ -1,5 +1,7 @@
 # Text 与 Crypto
 
+`Text` 与 `Crypto` 两个嵌入包分别提供字符串 / 正则 / 编码工具与哈希等密码学原语。本页列出各类型的典型 API 与边界；字符串的内置方法仍在 CORE 中，无需 import。
+
 ## Text
 
 **实现状态：** `Fmt` / `Regex` / `Encoding` / `StringBuilder` / `Bytes` 薄封装 **已实现**。

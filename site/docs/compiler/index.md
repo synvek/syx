@@ -1,3 +1,7 @@
+---
+title: Compiler Internals
+description: How the Rust SYX compiler works — lexer, parser, semantic analysis, MIR, bytecode VM, LLVM native AOT and Wasm backends, plus backend parity and debugging.
+---
 # Compiler Internals
 
 Technical documentation for the Rust SYX compiler toolchain (`crates/`).

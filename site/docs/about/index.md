@@ -1,3 +1,7 @@
+---
+title: About SYX
+description: About SYX — a Swift-inspired programming language with a Rust-implemented compiler toolchain, .sy source files, syx.toml manifests and an Apache-2.0 license.
+---
 # About SYX
 
 **SYX** (pronounced *sy-ex*, `/saɪˈɛks/`) is a Swift-inspired programming language with a Rust-implemented compiler toolchain.

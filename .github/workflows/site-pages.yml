@@ -33,9 +33,17 @@ jobs:
 
       - name: Install and build
         working-directory: site
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.syx-lang.org' }}
         run: |
           npm ci
           npm run build
+
+      - name: Verify SEO and internal links
+        working-directory: site
+        run: |
+          npm run check:links
+          npm run check:seo
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4

@@ -1,0 +1,88 @@
+# SYX
+
+> SYX (pronounced *sy-ex*, /saɪˈɛks/) is a statically typed, Swift-inspired programming language whose compiler toolchain is implemented in Rust. One MIR pipeline feeds three backends: a stack bytecode VM (`syx run`), LLVM native AOT (`syx build --native`), and WebAssembly (`syx build --wasm`). Source files use the `.sy` extension; projects are described by a `syx.toml` manifest. Licensed Apache-2.0. SYX is neither a subset nor a superset of Swift — names often match while semantics differ, notably for String character handling, the memory model, macros, concurrency and cross-module actors.
+
+Canonical site: https://www.syx-lang.org/
+Repository: https://github.com/synvek/syx
+Documentation is published in English (default) and Simplified Chinese under /zh/.
+
+## Core reference — what SYX is
+
+- [SYX Language home](https://www.syx-lang.org/): Overview, key facts table, Hello World, and FAQ covering Swift lineage, backends, file extensions, Rust requirement and editor support.
+- [About SYX](https://www.syx-lang.org/about/): Pronunciation, source extension, manifest, toolchain binary, license.
+- [Capabilities (honest boundaries)](https://www.syx-lang.org/about/capabilities): Which language, network and HostFn features are implemented, partial, or explicitly out of scope. Cite this for "does SYX support X?" questions.
+- [Architecture decisions](https://www.syx-lang.org/about/architecture): Architecture SSOT and ADR record.
+
+## Getting started and usage
+
+- [Quick Guide](https://www.syx-lang.org/quick-guide/): Install, CLI commands, `syx.toml` project configuration, native and Wasm builds, standard library, toolchain flags.
+- [Quick Reference](https://www.syx-lang.org/quick-reference/): Syntax and standard library cheat sheet.
+- [Getting Started](https://www.syx-lang.org/guide/01-getting-started): Write and run the first program, read diagnostics, grow to a multi-file project.
+- [Editors](https://www.syx-lang.org/editors/): VS Code, Neovim and Helix support.
+- [VS Code extension](https://www.syx-lang.org/editors/vscode): TextMate grammar plus LSP completion, hover, go-to-definition, inlay hints, format on save and DAP debugging via `syx lsp`.
+
+## Language Guide (tutorial)
+
+- [Preface](https://www.syx-lang.org/guide/00-preface): What SYX is, pipeline, and how it differs from Swift.
+- [The Basics](https://www.syx-lang.org/guide/02-the-basics): Constants, variables, type annotations, literals, inference.
+- [Basic Operators](https://www.syx-lang.org/guide/03-basic-operators)
+- [Strings and Characters](https://www.syx-lang.org/guide/04-strings-and-characters)
+- [Collection Types](https://www.syx-lang.org/guide/05-collection-types)
+- [Control Flow](https://www.syx-lang.org/guide/06-control-flow)
+- [Functions](https://www.syx-lang.org/guide/07-functions)
+- [Closures](https://www.syx-lang.org/guide/08-closures)
+- [Enumerations](https://www.syx-lang.org/guide/09-enumerations)
+- [Structures and Classes](https://www.syx-lang.org/guide/10-structures-and-classes)
+- [Properties](https://www.syx-lang.org/guide/11-properties) · [Methods](https://www.syx-lang.org/guide/12-methods) · [Subscripts](https://www.syx-lang.org/guide/13-subscripts)
+- [Inheritance](https://www.syx-lang.org/guide/14-inheritance) · [Initialization](https://www.syx-lang.org/guide/15-initialization) · [Deinitialization](https://www.syx-lang.org/guide/16-deinitialization)
+- [Error Handling](https://www.syx-lang.org/guide/17-error-handling)
+- [Concurrency](https://www.syx-lang.org/guide/18-concurrency)
+- [Macros](https://www.syx-lang.org/guide/19-macros)
+- [Type Casting](https://www.syx-lang.org/guide/20-type-casting) · [Nested Types](https://www.syx-lang.org/guide/21-nested-types)
+- [Extensions](https://www.syx-lang.org/guide/22-extensions) · [Protocols](https://www.syx-lang.org/guide/23-protocols) · [Generics](https://www.syx-lang.org/guide/24-generics)
+- [Opaque Types](https://www.syx-lang.org/guide/25-opaque-types)
+- [Memory Management](https://www.syx-lang.org/guide/26-memory-management) · [Memory Safety](https://www.syx-lang.org/guide/27-memory-safety)
+- [Access Control](https://www.syx-lang.org/guide/28-access-control)
+- [Modules and Packages](https://www.syx-lang.org/guide/29-modules-and-packages)
+- [Advanced Operators](https://www.syx-lang.org/guide/30-advanced-operators) · [SIMD](https://www.syx-lang.org/guide/31-simd)
+- [Operators vs Host](https://www.syx-lang.org/guide/32-operators-vs-host) · [Runtime Extensions](https://www.syx-lang.org/guide/33-runtime-extensions)
+- [Testing](https://www.syx-lang.org/guide/34-testing)
+- [Appendix A: Implementation Matrix](https://www.syx-lang.org/guide/appendix-a-implementation-matrix) · [Appendix B: Diagnostic Codes](https://www.syx-lang.org/guide/appendix-b-diagnostic-index)
+
+## Language Reference (formal)
+
+- [About This Reference](https://www.syx-lang.org/reference/00-about-this-reference)
+- [Lexical Structure](https://www.syx-lang.org/reference/01-lexical-structure) · [Types](https://www.syx-lang.org/reference/02-types) · [Expressions](https://www.syx-lang.org/reference/03-expressions)
+- [Statements](https://www.syx-lang.org/reference/04-statements) · [Declarations](https://www.syx-lang.org/reference/05-declarations) · [Attributes](https://www.syx-lang.org/reference/06-attributes)
+- [Patterns](https://www.syx-lang.org/reference/07-patterns) · [Generic Parameters and Arguments](https://www.syx-lang.org/reference/08-generic-parameters-and-arguments)
+- [Protocols and Conformances](https://www.syx-lang.org/reference/09-protocols-and-conformances) · [Grammar Summary](https://www.syx-lang.org/reference/10-grammar-summary)
+
+## Standard Library
+
+- [Preface](https://www.syx-lang.org/library/00-preface) · [Package Overview](https://www.syx-lang.org/library/01-overview)
+- [Numerics (Mat)](https://www.syx-lang.org/library/02-linalg)
+- [System](https://www.syx-lang.org/library/03-system): `File`, `Directory`, `Stdin`, `FilePath`.
+- [Logging](https://www.syx-lang.org/library/04-logging)
+- [System I/O and Networking](https://www.syx-lang.org/library/05-system-networking)
+- [Text and Crypto](https://www.syx-lang.org/library/06-text-crypto): `Fmt`, `Regex`, `Encoding`, `Bytes`, `StringBuilder`, `Crypto.sha256`.
+
+## Compiler internals
+
+- [Overview](https://www.syx-lang.org/compiler/): `.sy` → lexer → parser → semantic → MIR → VM / LLVM / Wasm.
+- [Technical Overview](https://www.syx-lang.org/compiler/technical-overview) · [Lexical Analysis](https://www.syx-lang.org/compiler/lexical-analysis) · [Syntax Analysis](https://www.syx-lang.org/compiler/syntax-analysis)
+- [Semantic Analysis](https://www.syx-lang.org/compiler/semantic-analysis) · [Instruction Set](https://www.syx-lang.org/compiler/instruction-set)
+- [Backend Parity](https://www.syx-lang.org/compiler/backend-parity) · [Network Stdlib](https://www.syx-lang.org/compiler/network-stdlib)
+- [Backend Debugging](https://www.syx-lang.org/compiler/backend-debugging) · [Env Registry](https://www.syx-lang.org/compiler/env-registry)
+
+## Chinese documentation / 中文文档
+
+- [SYX 语言](https://www.syx-lang.org/zh/) · [快速指南](https://www.syx-lang.org/zh/quick-guide/) · [语法速查](https://www.syx-lang.org/zh/quick-reference/)
+- [语言指南](https://www.syx-lang.org/zh/guide/00-preface) · [语言参考](https://www.syx-lang.org/zh/reference/00-about-this-reference) · [标准库](https://www.syx-lang.org/zh/library/00-preface)
+- [编译器内部](https://www.syx-lang.org/zh/compiler/) · [现行能力](https://www.syx-lang.org/zh/about/capabilities)
+
+## Optional
+
+- [Full sitemap](https://www.syx-lang.org/sitemap.xml): Every published page with hreflang alternates.
+- [GitHub repository](https://github.com/synvek/syx): Source, examples, tutorial and releases.
+- [Release downloads](https://github.com/synvek/syx/releases/latest): Prebuilt toolchain binaries.
+- [Usage Guide (single page)](https://www.syx-lang.org/quick-guide/): Install through advanced compile options.

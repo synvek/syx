@@ -1,3 +1,7 @@
+---
+title: 编译器内部
+description: Rust 实现的 SYX 编译器如何工作 —— 词法分析、语法分析、语义分析、MIR、字节码 VM、LLVM 原生 AOT 与 Wasm 后端，以及后端对等与调试。
+---
 # 编译器内部
 
 面向 Rust SYX 编译器工具链（`crates/`）的技术文档。

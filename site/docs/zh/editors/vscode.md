@@ -1,3 +1,7 @@
+---
+title: VS Code 扩展
+description: 安装 SYX Language VS Code 扩展 —— 为 .sy 提供 TextMate 语法高亮、LSP 补全与悬停、行内类型提示、保存格式化，以及基于 syx lsp 的 DAP 调试。
+---
 # VS Code 扩展
 
 **SYX Language** 扩展（`editors/vscode-syx`）为 `.sy` 提供语法高亮，以及基于 LSP 的辅助开发：补全、悬停、跳转定义、行内类型提示、格式化与 DAP 调试。

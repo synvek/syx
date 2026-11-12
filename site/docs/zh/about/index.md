@@ -1,3 +1,7 @@
+---
+title: 关于 SYX
+description: 关于 SYX —— 一门受 Swift 启发、由 Rust 实现编译器工具链的编程语言，源文件后缀 .sy，项目清单 syx.toml，采用 Apache-2.0 许可证。
+---
 # 关于 SYX
 
 **SYX**（读作 *sy-ex*，`/saɪˈɛks/`）是一门受 Swift 启发的编程语言，配套由 Rust 实现的编译器工具链。

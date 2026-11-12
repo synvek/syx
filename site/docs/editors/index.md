@@ -1,3 +1,7 @@
+---
+title: Editors
+description: Write SYX with syntax highlighting and language-server support — the VS Code extension with LSP completion, hover, inlay hints and DAP debugging.
+---
 # Editors
 
 Develop `.sy` with syntax highlighting and language-server assistance.

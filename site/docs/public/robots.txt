@@ -1,0 +1,58 @@
+# robots.txt — https://www.syx-lang.org
+#
+# SYX documentation is published for classical search engines AND for answer
+# engines / LLM retrieval. Crawling, indexing, live retrieval and model
+# training are explicitly permitted; quote and cite with attribution.
+#
+# Note: named groups do not inherit from `*`, so each group repeats the
+# non-content exclusions. Keep them in sync when editing.
+
+# --- Default: every crawler may index all documentation -------------------
+User-agent: *
+Allow: /
+Disallow: /assets/
+Disallow: /@
+Disallow: /*.json$
+
+# --- Classical search engines --------------------------------------------
+User-agent: Googlebot
+User-agent: Googlebot-Image
+User-agent: Bingbot
+User-agent: Baiduspider
+User-agent: YisouSpider
+User-agent: Sogou web spider
+User-agent: 360Spider
+User-agent: DuckDuckBot
+User-agent: YandexBot
+User-agent: SeznamBot
+Allow: /
+Disallow: /assets/
+Disallow: /@
+Disallow: /*.json$
+
+# --- AI answer engines: live retrieval (GEO) ------------------------------
+# Retrieval and grounding are allowed so SYX facts stay current in AI answers.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Amazonbot
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: cohere-ai
+User-agent: meta-externalagent
+User-agent: MistralAI-User
+User-agent: YouBot
+Allow: /
+Disallow: /assets/
+Disallow: /@
+Disallow: /*.json$
+
+Sitemap: https://www.syx-lang.org/sitemap.xml
