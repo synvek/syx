@@ -6,7 +6,7 @@ on:
       project_name:
         description: Cloudflare Pages project name
         required: true
-        default: syx
+        default: syx-lang
       production:
         description: Deploy as production (branch=main)
         type: boolean
