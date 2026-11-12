@@ -198,7 +198,7 @@ Publish and install share one Ed25519 key pair (single publisher pin; ties to C-
 
 Standard library modules (`math`, `io`, etc.) are embedded in the `syx` binary at **highest priority by default**. With `--enable-std` off, `import math` resolves from the local directory or `--module-dir`.
 
-Core `Math` enhancement track (Soft / Special / F32·F64 instances) **closeout→maintenance sign-off** (HostFn **629**). Math llvm: **84/84** + narrow-surface GA; QS1 Math **84/84 + narrow `qs1_math_ga=true`**; Math status **84/84 `status=implemented`**; Fmt status pilot **FmtPrint/FmtPrintLine×2**; Path status pilot **PathJoin/Normalize/Exists/Extension×4**; intermediate first-slice meta F-10 shrink **×33**; File status pilot **FileOpen/Close/Read/Write×4**; File rest **×11 / full File\* `status=implemented`**; Http rest **×16 / full Http\* `status=implemented`**; Sql core **×4 `status=implemented`**; Sql rest **×23 / full Sql\* `status=implemented`**; Tcp **×7 / full Tcp\* `status=implemented`**; Task **×8 / full Task\* `status=implemented`**; Time/DateTime **×8 `status=implemented`**; Json **×11 / full Json\* `status=implemented`**; Str/Unicode **×11 `status=implemented`**; Process/Child wasm-unsupported honesty **×14**; Log core ×4 mir+llvm **real**; Log rest ×8 / family ×12 mir+l … ≠ full HostFn status; still 14 partial). C-09 / platform / Math maintenance chain at **closeout**. See [docs/lang/qs1-d01-execute-adr-first-slice.md](lang/qs1-d01-execute-adr-first-slice.md).
+Core `Math` enhancement track (Soft / Special / F32·F64 instances) **closeout→maintenance sign-off** (HostFn **629**). Math llvm: **84/84** + narrow-surface GA; QS1 Math **84/84 + narrow `qs1_math_ga=true`**; Math status **84/84 `status=implemented`**; Fmt status pilot **FmtPrint/FmtPrintLine×2**; Path status pilot **PathJoin/Normalize/Exists/Extension×4**; intermediate first-slice meta F-10 shrink **×33**; File status pilot **FileOpen/Close/Read/Write×4**; File rest **×11 / full File\* `status=implemented`**; Http rest **×16 / full Http\* `status=implemented`**; Sql core **×4 `status=implemented`**; Sql rest **×23 / full Sql\* `status=implemented`**; Tcp **×7 / full Tcp\* `status=implemented`**; Task **×8 / full Task\* `status=implemented`**; Time/DateTime **×8 `status=implemented`**; Json **×11 / full Json\* `status=implemented`**; Str/Unicode **×11 `status=implemented`**; Process/Child wasm-unsupported honesty **×14**; Log core ×4 mir+llvm **real**; Log rest ×8 / family ×12 mir+l … ≠ full HostFn status; still 14 partial). C-09 / platform / Math maintenance chain at **closeout**. See [docs/adr/capabilities-summary.md](adr/capabilities-summary.md).
 
 ## Project configuration
 
@@ -976,10 +976,10 @@ Generate Markdown API stub from doc comments.
 
 ```bash
 # Interactive terminal debug
-syx debug examples/main.sy
+syx debug examples/hello.sy
 
 # IDE GUI debug (DAP, VS Code extension enablesuses)
-syx debug --dap examples/main.sy
+syx debug --dap examples/hello.sy
 ```
 
 - **terminalmode**: enter `(debug)` prompt, can list/step/run/breakpoint (see [12_BackendDebuggingGuide.md](12_BackendDebuggingGuide.md))
@@ -1153,7 +1153,7 @@ Output: **wasm-encoder** standard WASM module exporting SYX function names (entr
 
 ```bash
 # Full program (stdlib, vars, interpolation, import math, etc.)
-syx run --wasm examples/main.sy
+syx run --wasm examples/hello.sy
 syx run --wasm examples/
 
 # Build.wasm (cross-function calls need MIR metadata; see syx run --wasm source path)
@@ -1382,14 +1382,14 @@ cargo test -p syx-driver p0_http_run -- --ignored
 | path | Description |
 |------|------|
 | [examples/hello.sy](../examples/hello.sy) | Minimal Hello World |
-| [examples/main.sy](../examples/main.sy) | Modules + strings + arrays + regex |
+| [examples/hello2.sy](../examples/hello2.sy) | Slightly richer hello sample |
+| [examples/module_demo.sy](../examples/module_demo.sy) | Module demo |
 | [examples/file_tool/](../examples/file_tool/) | EC-M2-1 slice: Path + FileHandle write/read roundtrip |
 | [examples/http_tool/](../examples/http_tool/) | EC-M2-1 slice: Http.get refuse + loopback |
 | [examples/http_server_tool/](../examples/http_server_tool/) | EC-M2-1 slice: Http.serve + /health |
 | [examples/sql_tool/](../examples/sql_tool/) | EC-M2-1 slice: Sql `:memory:` CRUD |
-| [examples/math.sy](../examples/math.sy) | Exportable module |
 | [examples/deps/](../examples/deps/) | dependency math subproject |
-| [examples/module_main.sy](../examples/module_main.sy) | multi-modeBlockentryExample |
+| [examples/io_demo.sy](../examples/io_demo.sy) | System Env / FilePath / Time demo |
 | [examples/os_info/](../examples/os_info/) | Os system info (try/catch) |
 | [examples/linalg/](../examples/linalg/) | packed-SYX `Mat`: mul/solve, shape, pad/padReflect (≠ product Mat GA) |
 | [examples/log_fields.sy](../examples/log_fields.sy) | `Log` level filter + `infoFields` |

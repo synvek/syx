@@ -1,11 +1,12 @@
 # Architecture Decision Records
 
-**开源读者请从这里开始：** [capabilities-summary.md](capabilities-summary.md)（现行能力摘要，按域，无窗 tip）。
+**开源读者请从这里开始：** [current.md](current.md)（R-49 **现行 ADR 短表**，约 15 条）· [capabilities-summary.md](capabilities-summary.md)（现行能力摘要，按域，无窗 tip）。
 
-开源清理（plan-001）后 ADR **双轨**：
+开源清理（plan-001）后 ADR **双轨**；R-49 起以 `current.md` 为公开现行集入口：
 
 | 文档 | 角色 | 可见性 |
 |------|------|--------|
+| [current.md](current.md) | **R-49 现行 ADR 短表**（10–20 条指针） | 公开 |
 | [capabilities-summary.md](capabilities-summary.md) | **现行能力主入口**（按域；无窗 tip） | 公开 |
 | [stdlib-swift-alignment.md](stdlib-swift-alignment.md) | **SA-0-01**：标准库 Swift 对齐章程（三层模型、破坏性、禁 Foundation） | 公开 |
 | [sa-2-01-do-catch.md](sa-2-01-do-catch.md) | **SA-2-01**：语言面 `do/catch`；`try` 仅表达式；破坏性删除语句级 `try { }` | 公开 |
@@ -17,7 +18,8 @@
 | [stage1-exit-examples-leg.md](stage1-exit-examples-leg.md) | **阶段1退出 examples 腿**：S1-10 VM + S0 三后端薄冒烟；≠ 拉满 / ≠ allowlist 全三后端 | 公开 |
 | [stage1-exit.md](stage1-exit.md) | **阶段1退出（S1-I27）**：三件套证据齐；S1-04/05 等为退出后余项；≠ 产品 GA | 公开 |
 | [stage2-open.md](stage2-open.md) | **阶段2开工（S2-I1）**：S2-01…07 轴；首刀 = 治理面普查基线；≠ S2-01 满勾 / ≠ 阶段2退出 | 公开 |
-| [architecture-decisions.md](architecture-decisions.md) | 历史全量决议（**过渡**；非现行主叙事） | 公开过渡 |
+| [r-42-simd-object-charter.md](r-42-simd-object-charter.md) | **R-42**：simd Object residual 章程（禁 wipe） | 公开 |
+| [architecture-decisions.md](architecture-decisions.md) | 历史全量决议（**过渡**；非现行主叙事；native/lang 断链不修） | 公开过渡 |
 | 私有仓 `ledger/adr-window-stream.md` | 窗级 Decision 流水 | **仅内部** |
 | 私有仓 `ledger/architecture-decisions.full.md` | ADR 全量副本 | **仅内部** |
 

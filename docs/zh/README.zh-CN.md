@@ -6,9 +6,9 @@
 
 编号流水线文档默认英文；中文副本在 [`zh/`](./) 目录下，文件名为 `*.zh-CN.md`。
 
-> **当前版本：** SYX **117.0** · Phase **139** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · 许可证 [Apache-2.0](../../LICENSE)  
+> **当前版本：** SYX **0.2.0** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · 许可证 [Apache-2.0](../../LICENSE)  
 > **原生 AOT：** LLVM sole · **实现状态 SSOT：** [books/shared/implementation-status.md](../../books/shared/implementation-status.md)  
-> **架构决议 SSOT：** [adr/architecture-decisions.md](../adr/architecture-decisions.md)
+> **现行 ADR：** [adr/current.md](../adr/current.md) · 历史账本：[adr/architecture-decisions.md](../adr/architecture-decisions.md)
 
 ## 文档地图
 
@@ -80,10 +80,10 @@ examples/            # 示例程序
 
 - Rust 1.85+ · Cargo workspace · macOS / Linux / Windows
 
-## 当前版本（SYX 117.0）
+## 当前版本（SYX 0.2.0）
 
-- **语言 / phase：** 117.0 / **139** · MIR cache `syx-cache-v1`
-- **架构决议：** [adr/architecture-decisions.md](../adr/architecture-decisions.md)
+- **语言 / crate：** **0.2.0**（Cargo workspace）· MIR cache `syx-cache-v1`
+- **现行 ADR：** [adr/current.md](../adr/current.md) · 历史：[adr/architecture-decisions.md](../adr/architecture-decisions.md)
 - **Native：** LLVM only
 - **Audit：** driver ≥2600 · LSP ≥3050（见 `scripts/audit_behavioral_tests.sh`）
 - **实现状态：** [books/shared/implementation-status.md](../../books/shared/implementation-status.md)

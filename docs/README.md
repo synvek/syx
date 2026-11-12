@@ -4,9 +4,9 @@
 
 Docs for the **Rust SYX compiler toolchain** (`crates/`). For install / CLI / stdlib, prefer [9_UsageGuide.md](./9_UsageGuide.md) and [books/](../books/).
 
-> **Current version:** SYX **117.0** · Phase **139** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · license [Apache-2.0](../LICENSE)  
+> **Current version:** SYX **0.2.0** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · license [Apache-2.0](../LICENSE)  
 > **Native AOT:** LLVM sole · **Implementation status SSOT:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
-> **Architecture SSOT:** [adr/architecture-decisions.md](./adr/architecture-decisions.md)
+> **Architecture (current):** [adr/current.md](./adr/current.md) · historical ledger: [adr/architecture-decisions.md](./adr/architecture-decisions.md)
 
 Numbered pipeline docs below are **English by default**; Chinese copies live under [`zh/`](./zh/) as `*.zh-CN.md`.
 
@@ -80,10 +80,10 @@ examples/            # sample programs
 
 - Rust 1.85+ · Cargo workspace · macOS / Linux / Windows
 
-## Current version (SYX 117.0)
+## Current version (SYX 0.2.0)
 
-- **Language / phase:** 117.0 / **139** · MIR cache `syx-cache-v1`
-- **Architecture decisions:** [adr/architecture-decisions.md](./adr/architecture-decisions.md)
+- **Language / crate:** **0.2.0** (Cargo workspace) · MIR cache `syx-cache-v1`
+- **Current ADRs:** [adr/current.md](./adr/current.md) · historical: [adr/architecture-decisions.md](./adr/architecture-decisions.md)
 - **Native:** LLVM only
 - **Audit:** driver ≥2600 · LSP ≥3050 (see `scripts/audit_behavioral_tests.sh`)
 - **Implementation status:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)

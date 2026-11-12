@@ -198,7 +198,7 @@ syx init my-app          # 生成 main.sy + build.syb + syx.toml
 
 标准库模块（`math`、`io` 等）已嵌入 `syx` 可执行文件，**默认最高优先级**。关闭 `--enable-std` 后，`import math` 会从本地目录或 `--module-dir` 查找。
 
-Core `Math` 增强轨（Soft / Special / F32·F64 实例，）**收官→维护签**（；HostFn **629**）。 Math llvm：**84/84** + 窄面 GA； QS1 Math **84/84 + narrow `qs1_math_ga=true`**； Math status **84/84 `status=implemented`**； Fmt status 试点 **FmtPrint/FmtPrintLine×2**； Path status 试点 **PathJoin/Normalize/Exists/Extension×4**； 中间 first-slice meta F-10 收缩 **×33**； File status 试点 **FileOpen/Close/Read/Write×4**； File rest **×11 / 全量 File\* `status=implemented`**； Http rest **×16 / 全量 Http\* `status=implemented`**； Sql core **×4 `status=implemented`**； Sql rest **×23 / 全量 Sql\* `status=implemented`**； Tcp **×7 / 全量 Tcp\* `status=implemented`**； Task **×8 / 全量 Task\* `status=implemented`**； Time/DateTime **×8 `status=implemented`**； Json **×11 / 全量 Json\* `status=implemented`**； Str/Unicode **×11 `status=implemented`**； Process/Child wasm-unsupported honesty **×14**； Log core ×4 mir+llvm **real**； Log rest ×8 / 全族 ×12 mir+l … ≠ 全量 HostFn status；仍 14 partial）。C-09 / 平台 / Math 维护链于 **收官**。详见 [docs/lang/qs1-d01-execute-adr-first-slice.md](../lang/qs1-d01-execute-adr-first-slice.md)。
+Core `Math` 增强轨（Soft / Special / F32·F64 实例，）**收官→维护签**（；HostFn **629**）。 Math llvm：**84/84** + 窄面 GA； QS1 Math **84/84 + narrow `qs1_math_ga=true`**； Math status **84/84 `status=implemented`**； Fmt status 试点 **FmtPrint/FmtPrintLine×2**； Path status 试点 **PathJoin/Normalize/Exists/Extension×4**； 中间 first-slice meta F-10 收缩 **×33**； File status 试点 **FileOpen/Close/Read/Write×4**； File rest **×11 / 全量 File\* `status=implemented`**； Http rest **×16 / 全量 Http\* `status=implemented`**； Sql core **×4 `status=implemented`**； Sql rest **×23 / 全量 Sql\* `status=implemented`**； Tcp **×7 / 全量 Tcp\* `status=implemented`**； Task **×8 / 全量 Task\* `status=implemented`**； Time/DateTime **×8 `status=implemented`**； Json **×11 / 全量 Json\* `status=implemented`**； Str/Unicode **×11 `status=implemented`**； Process/Child wasm-unsupported honesty **×14**； Log core ×4 mir+llvm **real**； Log rest ×8 / 全族 ×12 mir+l … ≠ 全量 HostFn status；仍 14 partial）。C-09 / 平台 / Math 维护链于 **收官**。详见 [docs/adr/capabilities-summary.md](../adr/capabilities-summary.md)。
 
 ---
 
@@ -977,10 +977,10 @@ syx doc .
 
 ```bash
 # 交互式终端调试
-syx debug examples/main.sy
+syx debug examples/hello.sy
 
 # IDE 图形调试（DAP，VS Code 扩展使用）
-syx debug --dap examples/main.sy
+syx debug --dap examples/hello.sy
 ```
 
 - **终端模式**：进入 `(debug)` 提示符，可 list/step/run/breakpoint（见 [12_BackendDebuggingGuide.md](./12_BackendDebuggingGuide.zh-CN.md)）
@@ -1154,7 +1154,7 @@ syx build --wasm .
 
 ```bash
 # 完整程序（stdlib、变量、插值、import math 等）
-syx run --wasm examples/main.sy
+syx run --wasm examples/hello.sy
 syx run --wasm examples/
 
 # 构建 .wasm（运行含跨函数调用时需同时保留 MIR 元数据，见 syx run --wasm 源码路径）
@@ -1383,19 +1383,19 @@ cargo test -p syx-driver p0_http_run -- --ignored
 | 路径 | 说明 |
 |------|------|
 | [examples/hello.sy](../../examples/hello.sy) | 最小 Hello World |
-| [examples/main.sy](../../examples/main.sy) | 模块 + 字符串 + 数组 + 正则 |
+| [examples/hello2.sy](../../examples/hello2.sy) | 稍丰富的 hello 示例 |
+| [examples/module_demo.sy](../../examples/module_demo.sy) | 模块示例 |
 | [examples/file_tool/](../../examples/file_tool/) | EC-M2-1 切片：Path + FileHandle 写读往返 |
 | [examples/http_tool/](../../examples/http_tool/) | EC-M2-1 切片：Http.get refuse + loopback |
 | [examples/http_server_tool/](../../examples/http_server_tool/) | EC-M2-1 切片：Http.serve + /health |
 | [examples/sql_tool/](../../examples/sql_tool/) | EC-M2-1 切片：Sql `:memory:` CRUD |
-| [examples/math.sy](../../examples/math.sy) | 可导出模块 |
 | [examples/deps/](../../examples/deps/) | 依赖 math 的子项目 |
-| [examples/module_main.sy](../../examples/module_main.sy) | 多模块入口示例 |
+| [examples/io_demo.sy](../../examples/io_demo.sy) | System Env / FilePath / Time 示例 |
 | [examples/os_info/](../../examples/os_info/) | Os 系统信息（try/catch） |
 | [examples/linalg/](../../examples/linalg/) | packed-SYX `Mat`：乘/求解、形状、pad/padReflect（≠ 产品 Mat GA） |
 | [examples/log_fields.sy](../../examples/log_fields.sy) | `Log` 级别过滤 + `infoFields` |
 
-**推荐学习顺序**：`hello.sy` → `main.sy` → `file_tool/` → `http_tool/` → `sql_tool/` → `linalg/` → `deps/`
+**推荐学习顺序**：`hello.sy` → `hello2.sy` → `file_tool/` → `http_tool/` → `sql_tool/` → `linalg/` → `deps/`
 
 标准库叙事见 [books/library-guide/](../../books/library-guide/00-preface.md)。
 

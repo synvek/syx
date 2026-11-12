@@ -8,9 +8,9 @@ This directory contains three English Markdown eBooks for SYX language users and
 | **SYX Language Reference** | [language-reference/](language-reference/) | Formal reference for lexical structure, syntax, types, declarations, patterns and attributes |
 | **SYX Standard Library Guide** | [library-guide/](library-guide/) | The embedded-package user surface: `import Numerics` / `Os` / `Log` / `IO`, …; honest boundaries and repository examples |
 
-Shared resource: [shared/implementation-status.md](shared/implementation-status.md) — the **current** master feature implementation status table (SYX **117.0** / Phase **139**).
+Shared resource: [shared/implementation-status.md](shared/implementation-status.md) — the **current** master feature implementation status table (SYX **0.2.0**).
 
-**Version alignment:** SYX 117.0 (Phase 139) · cache `syx-cache-v1` · audit 2600/3050 · architecture decisions in [docs/adr/architecture-decisions.md](../docs/adr/architecture-decisions.md)
+**Version alignment:** SYX **0.2.0** · cache `syx-cache-v1` · audit 2600/3050 · current ADRs in [docs/adr/current.md](../docs/adr/current.md) · historical ledger [docs/adr/architecture-decisions.md](../docs/adr/architecture-decisions.md)
 
 ## Reading Recommendations
 
@@ -83,16 +83,16 @@ Items prefixed with "**partial GA**" delivered a minimal working subset in that 
 | `docs/1–5_*.md` | Compiler implementation technical documentation (in 1→2→3→4→5 order) |
 | `packages/README.md` | Embedded standard library (`import DI` / `import System` / `import UI`, …) |
 
-## Current Phase 139 Capability Summary
+## Current capability summary (SYX 0.2.0)
 
-- **Gate0:** audit **2600/3050**; manifest **117.0** / phase **139**; EXCLUDE historical behavioral fill
+- **Gate0:** audit **2600/3050**; crate **0.2.0**; EXCLUDE historical behavioral fill
 - **Language surface:** multiline / tuple / nested path / closed range / Character / call labels (see status for details)
-- **GUI:** SynUI deferred (not GA in this phase)
+- **GUI:** SynUI deferred (not GA)
 - **Farm/Dist:** frozen at v19
 - **Wasm SIMD16:** i8x16 all_true/any_true guest-v22 MVP plus the existing guest surface
 - **Details:** [shared/implementation-status.md](shared/implementation-status.md)
-- **Farm / Dist:** **frozen v19** (hsm-key-id / peer-announce-hold); no new surface in this phase
-- **Os (partial GA):** `primaryIpv4()` MVP; disk/load / hostname/uptime / cpu/mem/user inherited; **not** a complete sysinfo → **139+**
+- **Farm / Dist:** **frozen v19** (hsm-key-id / peer-announce-hold); no new surface in this window
+- **Os (partial GA):** `primaryIpv4()` MVP; disk/load / hostname/uptime / cpu/mem/user inherited; **not** a complete sysinfo
 - **DX:** `driver_gate` / LSP audit in status; cache **`syx-cache-v1`**; license **Apache-2.0**
-- **Native AOT:** **LLVM sole** (Cranelift AOT removed; JIT tier-2 opt-in)
+- **Native AOT:** **LLVM sole** (Cranelift AOT removed; JIT tier-2 opt-in / parked Suite-1)
 - **Core builtins:** [`packages/core/builtins/`](../packages/core/builtins/) (numeric templates [`_templates/`](../packages/core/builtins/_templates/))

@@ -1,8 +1,10 @@
 # SYX Architecture Decisions
 
-> **Current charter:** SYX **117.0** · Phase **139** · Truth M0–M4 complete · Wave A/B/C axes `[x]`.
+> **Historical ledger (R-49):** this file is **not** the current ADR shortlist. Start at [current.md](current.md) / [capabilities-summary.md](capabilities-summary.md).
+> Charter version line retired: workspace crate is **0.2.0** (former “117.0 / Phase 139” banners are obsolete).
+> Many relative links to retired `docs/native/*` and missing `docs/lang/*` charters are **intentionally unrepaired** here — do not treat 404s in this file as the public docs gate.
 > Window-level `Decision (Wave W…)` stream lives in the **internal private ledger** (`ledger/adr-window-stream.md`).
-> Public capability narrative: [capabilities-summary.md](capabilities-summary.md) · [README.md](README.md).
+> Public capability narrative: [capabilities-summary.md](capabilities-summary.md) · [README.md](README.md) · [../README.md](../README.md).
 
 ## Charter (SYX 117.0 / Phase 139 + Truth M0)
 
