@@ -430,11 +430,12 @@ pub(crate) fn inject_imported_dataclass_decls(
                     matches!(d, Decl::Class { name: n, .. } if n == name)
                         || matches!(d, Decl::DataClass { name: n, .. } if n == name)
                         || matches!(d, Decl::Enum { name: n, .. } if n == name)
+                        || matches!(d, Decl::Struct { name: n, .. } if n == name)
                 }) {
                     module.decls.push(decl.clone());
                 }
             }
-            // SA-3-01: public enums (`ProcessInfo`, `SystemError`, `FilePath`, …) must
+            // SA-3-01: public enums (`ProcessInfo`, `SystemError`, `Env`, …) must
             // inject like classes — caseless enum namespaces + Error pilots.
             // SA-4-04a: also inject internal `SyxHost` so injected public façades that
             // call `SyxHost.*` still resolve (bodies are cloned into the importer).
@@ -451,6 +452,29 @@ pub(crate) fn inject_imported_dataclass_decls(
                     matches!(d, Decl::Enum { name: n, .. } if n == name)
                         || matches!(d, Decl::Class { name: n, .. } if n == name)
                         || matches!(d, Decl::DataClass { name: n, .. } if n == name)
+                        || matches!(d, Decl::Struct { name: n, .. } if n == name)
+                }) {
+                    module.decls.push(decl.clone());
+                    for ext in extension_decls_for_type(&dep_module, name) {
+                        merge_imported_extension(module, ext);
+                    }
+                }
+            }
+            // R-47: public structs (`FilePath` value type) inject like classes/enums.
+            if let Decl::Struct {
+                access: AccessLevel::Public,
+                name,
+                ..
+            } = decl
+            {
+                if name == &symbol {
+                    continue;
+                }
+                if !module.decls.iter().any(|d| {
+                    matches!(d, Decl::Struct { name: n, .. } if n == name)
+                        || matches!(d, Decl::Class { name: n, .. } if n == name)
+                        || matches!(d, Decl::DataClass { name: n, .. } if n == name)
+                        || matches!(d, Decl::Enum { name: n, .. } if n == name)
                 }) {
                     module.decls.push(decl.clone());
                     for ext in extension_decls_for_type(&dep_module, name) {
@@ -459,7 +483,7 @@ pub(crate) fn inject_imported_dataclass_decls(
                 }
             }
             if let Decl::Extension { type_name, .. } = decl {
-                // Skip extensions already handled via dataclass / enum injection above.
+                // Skip extensions already handled via dataclass / enum / struct injection above.
                 let is_dc = dep_module
                     .decls
                     .iter()
@@ -468,7 +492,11 @@ pub(crate) fn inject_imported_dataclass_decls(
                     .decls
                     .iter()
                     .any(|d| matches!(d, Decl::Enum { name: n, .. } if n == type_name));
-                if !is_dc && !is_enum {
+                let is_struct = dep_module
+                    .decls
+                    .iter()
+                    .any(|d| matches!(d, Decl::Struct { name: n, .. } if n == type_name));
+                if !is_dc && !is_enum && !is_struct {
                     merge_imported_extension(module, decl.clone());
                 }
             }
@@ -872,6 +900,33 @@ fn export_function_details(source: &SourceFile) -> IndexMap<SmolStr, (TypeId, St
                         name.clone(),
                         (TypeId::Named(name.clone()), format!("enum {name}")),
                     );
+                }
+                // R-47: public structs (`FilePath`) must appear in import_exports like enums.
+                Decl::Struct {
+                    access: AccessLevel::Public,
+                    name,
+                    members,
+                    ..
+                } => {
+                    exports.insert(
+                        name.clone(),
+                        (TypeId::Named(name.clone()), format!("struct {name}")),
+                    );
+                    for member in members {
+                        if let Decl::Function {
+                            access: AccessLevel::Public,
+                            name: fn_name,
+                            params,
+                            return_type,
+                            attrs,
+                            ..
+                        } = member
+                        {
+                            if attrs.iter().any(|a| a.name.as_str() == "static") {
+                                insert_export_fn(&mut exports, fn_name, params, return_type);
+                            }
+                        }
+                    }
                 }
                 Decl::Actor { access, name, .. } if matches!(access, AccessLevel::Public) => {
                     exports.insert(

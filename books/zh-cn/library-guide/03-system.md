@@ -1,6 +1,6 @@
 # System
 
-**实现状态：** `ProcessInfo` cpu/mem/user/hostname/uptime/disk/load/`primaryIpv4` **已实现**（失败抛 `SystemError`）；**不是** 完整 sysinfo。文件 I/O 与路径辅助同属 `import System` 聚合（`File`、`FilePath`、`Env`、process 辅助）。
+**实现状态：** `ProcessInfo` cpu/mem/user/hostname/uptime/disk/load/`primaryIpv4` **已实现**（失败抛 `SystemError`）；**不是** 完整 sysinfo。文件 I/O 与路径辅助同属 `import System` 聚合（`File`、`FilePath`、`Env`、process 辅助）。R-47：`Env` 为无 case 命名空间 enum；`FilePath` 为值类型 `struct`（`rawValue`）+ 实例方法，并保留 String 静态桥。
 
 ```syx
 import System
@@ -12,6 +12,8 @@ func main() {
     } catch (e) {
         print("hostname-unavailable")
     }
+    let p = FilePath(rawValue: "/tmp").joining(other: "demo.txt")
+    print(p.rawValue)
     print(FilePath.join(a: "/tmp", b: "demo.txt"))
 }
 ```
@@ -21,7 +23,8 @@ func main() {
 | 类型 | 角色 |
 |------|------|
 | `ProcessInfo` | 机器 / 用户查询（`processorCount`、`hostname()` 等） |
-| `FilePath` | 路径字符串的 join / normalize / exists / extension |
+| `Env` | 进程环境变量（`get` / `set`）— caseless enum |
+| `FilePath` | 路径值类型（`rawValue`）+ join/normalize/exists/extension |
 | `File` / `Directory` / `Stdin` | 文件系统与标准输入（见 [System I/O 与 Networking](05-system-networking.md)） |
 | `SystemError` | 查询或 I/O 失败时抛出 |
 

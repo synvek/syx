@@ -1,20 +1,52 @@
-// Filesystem path string helpers (SyxHost.path_*).
+// Filesystem path value type + thin String static bridges (SyxHost.path_*).
 
-/// Join / normalize / exists / extension for path strings (SA-4-01: `FilePath`).
-public enum FilePath {
-    /// Join path components `a` and `b`.
+/// Path value type (R-47): hold a path string, operate via instance methods.
+/// Static `join` / `normalize` / `exists` / `fileExtension` remain as String bridges for in-tree callers.
+public struct FilePath {
+    public var rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    /// Join `other` onto this path.
+    public func joining(other: String) -> FilePath {
+        let joined = FilePath.join(a: self.rawValue, b: other)
+        return FilePath(rawValue: joined)
+    }
+
+    /// Normalize `.` / `..` / separators.
+    public func normalized() -> FilePath {
+        let path = FilePath.normalize(path: self.rawValue)
+        return FilePath(rawValue: path)
+    }
+
+    /// Whether this path exists on the filesystem.
+    public func exists() -> Bool {
+        return FilePath.exists(path: self.rawValue)
+    }
+
+    /// File extension (host rules for dot handling).
+    public func fileExtension() -> String {
+        return FilePath.fileExtension(path: self.rawValue)
+    }
+
+    /// String bridge: join path components `a` and `b`.
     public static func join(a: String, b: String) -> String {
         return SyxHost.path_join(a, b)
     }
-    /// Normalize `path` (`.` / `..` / separators).
+
+    /// String bridge: normalize `path`.
     public static func normalize(path: String) -> String {
         return SyxHost.path_normalize(path)
     }
-    /// Whether `path` exists on the filesystem.
+
+    /// String bridge: whether `path` exists.
     public static func exists(path: String) -> Bool {
         return SyxHost.path_exists(path)
     }
-    /// File extension of `path` (without dot rules per host).
+
+    /// String bridge: file extension of `path`.
     public static func fileExtension(path: String) -> String {
         return SyxHost.path_extension(path)
     }
