@@ -1,0 +1,50 @@
+name: Site Cloudflare Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: Cloudflare Pages project name
+        required: true
+        default: syx
+      production:
+        description: Deploy as production (branch=main)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build and deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install and build
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: site
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: >-
+            pages deploy docs/.vitepress/dist
+            --project-name=${{ inputs.project_name }}
+            --branch=${{ inputs.production && 'main' || github.ref_name }}

@@ -27,6 +27,19 @@ npm run preview
 # → http://127.0.0.1:4174/
 ```
 
+## Deploy (Cloudflare Pages)
+
+Manual publish via GitHub Actions: **Actions → Site Cloudflare Pages → Run workflow**.
+
+Repository secrets (Settings → Secrets and variables → Actions):
+
+| Name | Value |
+|------|--------|
+| `CLOUDFLARE_API_TOKEN` | API token with **Account → Cloudflare Pages → Edit** |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+
+In the Cloudflare dashboard, create a **Pages** project (Direct Upload is enough; no Git integration required). Default project name in the workflow is `syx`. Production deploys use `--branch=main`.
+
 ## Content map
 
 | Site section | Source |
