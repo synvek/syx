@@ -5,10 +5,16 @@ hero:
   name: SYX
   text: 受 Swift 启发 · 由 Rust 驱动
   tagline: 一门现代编程语言，配套 VM、LLVM 原生 AOT 与 Wasm —— 源文件扩展名 .sy
+  image:
+    src: /syx-lang.png
+    alt: SYX 语言示例 — Greeter 类、扩展与 main
   actions:
     - theme: brand
       text: 快速入门
       link: /zh/guide/01-getting-started
+    - theme: brand
+      text: 下载
+      link: https://github.com/synvek/syx/releases/latest
     - theme: alt
       text: 语言指南
       link: /zh/guide/00-preface

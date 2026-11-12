@@ -5,10 +5,16 @@ hero:
   name: SYX
   text: Swift-inspired. Rust-powered.
   tagline: A modern programming language with VM, LLVM native AOT, and Wasm — source files end in .sy
+  image:
+    src: /syx-lang.png
+    alt: SYX language sample — Greeter class, extension, and main
   actions:
     - theme: brand
       text: Get Started
       link: /guide/01-getting-started
+    - theme: brand
+      text: Download
+      link: https://github.com/synvek/syx/releases/latest
     - theme: alt
       text: Language Guide
       link: /guide/00-preface
