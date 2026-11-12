@@ -1,21 +1,22 @@
 // Ordered unique collection. Prelude; hand-authored authority.
-// Object-shell MVP (insertion order preserved); not a full generic OrderedSet<T>.
+// R-41: public Object-shell → OrderedSet / Sendable (insertion order preserved);
+// not a full generic OrderedSet<T> product GA.
 
 /// Unique elements in insertion order; host `SyxHost.ordered_set_*`.
 @builtin("collection.ordered_set")
 public class OrderedSet {
-    /// Create an empty ordered set (returns Object shell).
-    public static func new() -> Object {
+    /// Create an empty ordered set.
+    public static func new() -> OrderedSet {
         return SyxHost.ordered_set_new()
     }
 
-    /// Insert `item` if absent; returns the set shell.
-    public static func insert(set: Object, item: Object) -> Object {
+    /// Insert `item` if absent; returns the set.
+    public static func insert(set: OrderedSet, item: Sendable) -> OrderedSet {
         return SyxHost.ordered_set_insert(set, item)
     }
 
     /// Membership test.
-    public static func contains(set: Object, item: Object) -> Bool {
+    public static func contains(set: OrderedSet, item: Sendable) -> Bool {
         return SyxHost.ordered_set_contains(set, item)
     }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # R-27 Collections public Object→Sendable census.
-# KPIs: Array/Dict/Set element·key Object=0 · inventory ≤186/11 · simd ≥159.
+# KPIs: Array/Dict/Set element·key Object=0 · inventory ≤180/10 (R-41 OrderedSet cleared) · simd ≥159.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -66,12 +66,12 @@ for path in sorted((root / "packages").rglob("*.sy")):
         obj_total += n
 ok("object_sig_residual_count", obj_total)
 ok("object_sig_residual_files", obj_files)
-if obj_total > 186:
-    die(f"object_sig_residual_count must be ≤186 (got {obj_total})")
-if obj_files > 11:
-    die(f"object_sig_residual_files must be ≤11 (got {obj_files})")
-# Prefer exact post-slice pin when inventory is clean.
-if obj_total != 186 or obj_files != 11:
+if obj_total > 180:
+    die(f"object_sig_residual_count must be ≤180 (got {obj_total}; R-41 ceiling)")
+if obj_files > 10:
+    die(f"object_sig_residual_files must be ≤10 (got {obj_files}; R-41 ceiling)")
+# Prefer exact post-R-41 pin when inventory is clean.
+if obj_total != 180 or obj_files != 10:
     # Allow further honest reductions; still report.
     ok("object_sig_residual_exact_r27", 0)
 else:
@@ -88,7 +88,7 @@ ok("simd_object_residual", simd_n)
 if simd_n < 159:
     die(f"simd_object_residual must stay ≥159 this window (got {simd_n})")
 
-# OrderedSet shell must still be present (out of R-27 scope).
+# R-41 cleared OrderedSet Object-shell; residual must stay 0.
 os_path = root / "packages/core/builtins/collections/ordered_set.sy"
 os_code = "\n".join(
     ln
@@ -97,11 +97,11 @@ os_code = "\n".join(
 )
 os_n = len(obj_re.findall(os_code))
 ok("ordered_set_object_shell_residual", os_n)
-if os_n < 1:
-    die("ordered_set Object-shell unexpectedly cleared (out of R-27 scope)")
+if os_n != 0:
+    die(f"ordered_set Object-shell residual expected 0 after R-41 (got {os_n})")
 
 print("current=R-27-collections-object")
-print("next=R-28-plus-residual")
+print("next=R-42-simd-honesty")
 print("r27_exit_hinge=met" if fail == 0 else "r27_exit_hinge=open")
 sys.exit(fail)
 PY

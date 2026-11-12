@@ -1129,15 +1129,16 @@ enum SyxHost {
         return __syx_object_identifier(value)
     }
 
-    static func ordered_set_contains(set: String, item: Object) -> Bool {
+    // R-41: public OrderedSet façade uses OrderedSet/Sendable; host keeps bag runtime.
+    static func ordered_set_contains(set: OrderedSet, item: Sendable) -> Bool {
         return __syx_ordered_set_contains(set, item)
     }
 
-    static func ordered_set_insert(set: String, item: Object) -> Object {
+    static func ordered_set_insert(set: OrderedSet, item: Sendable) -> OrderedSet {
         return __syx_ordered_set_insert(set, item)
     }
 
-    static func ordered_set_new() -> Object {
+    static func ordered_set_new() -> OrderedSet {
         return __syx_ordered_set_new()
     }
 

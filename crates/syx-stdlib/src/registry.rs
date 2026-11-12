@@ -2408,6 +2408,25 @@ pub static TYPE_METHODS: LazyLock<Vec<TypeMethod>> = LazyLock::new(|| {
             host: Some(HostFnId::SqlRowColumnNames),
             instance: Some(MethodId::SqlRowColumnNames),
         },
+        // R-41: OrderedSet static façade (Sendable items); mirrors Deque TYPE_METHODS path.
+        TypeMethod {
+            type_name: "OrderedSet",
+            method: "new",
+            host: Some(HostFnId::OrderedSetNew),
+            instance: None,
+        },
+        TypeMethod {
+            type_name: "OrderedSet",
+            method: "insert",
+            host: Some(HostFnId::OrderedSetInsert),
+            instance: None,
+        },
+        TypeMethod {
+            type_name: "OrderedSet",
+            method: "contains",
+            host: Some(HostFnId::OrderedSetContains),
+            instance: None,
+        },
         // M2 W104 / ADR-248: Deque Int MVP.
         TypeMethod {
             type_name: "Deque",
@@ -4289,8 +4308,8 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::DateTimeFormatWithTimezone => "String",
         HostFnId::DateTimeTimezoneOffset => "Int",
         HostFnId::DateTimeNow => "Object",
-        HostFnId::OrderedSetNew => "Object",
-        HostFnId::OrderedSetInsert => "Object",
+        HostFnId::OrderedSetNew => "OrderedSet",
+        HostFnId::OrderedSetInsert => "OrderedSet",
         HostFnId::OrderedSetContains => "Bool",
         HostFnId::ChannelSelectTimeout => "Unknown",
         HostFnId::ChannelSelectDefault => "Unknown",

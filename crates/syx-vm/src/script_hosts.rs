@@ -225,10 +225,15 @@ fn parse_rfc3339_ms(text: &str) -> SyxResult<i64> {
 }
 
 pub fn host_ordered_set_new(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let mut map = std::collections::HashMap::new();
-    map.insert("__type".into(), Value::Str("OrderedSet".into()));
-    map.insert("items".into(), Value::Array(Vec::new()));
-    stack.push(Value::mut_ref_cell_from_map(map));
+    // MutRefCell field API requires `__syx_ref` ObjectRef inner (see value.rs get/set_field).
+    let mut inner = std::collections::HashMap::new();
+    inner.insert("__type".into(), Value::Str("OrderedSet".into()));
+    inner.insert("items".into(), Value::Array(Vec::new()));
+    let inner_ref = Value::object_ref_from_map(inner, true);
+    let mut wrap = std::collections::HashMap::new();
+    wrap.insert("__syx_ref".into(), inner_ref);
+    wrap.insert("__type".into(), Value::Str("MutRefCell".into()));
+    stack.push(Value::mut_ref_cell_from_map(wrap));
     Ok(())
 }
 
@@ -343,4 +348,30 @@ pub fn host_deque_is_empty(stack: &mut Vec<Value>) -> SyxResult<()> {
     let items = deque_items(&receiver);
     stack.push(Value::Bool(items.is_empty()));
     Ok(())
+}
+
+#[cfg(test)]
+mod ordered_set_host_smoke {
+    use super::{host_ordered_set_contains, host_ordered_set_insert, host_ordered_set_new};
+    use crate::{platform_int_value, Value};
+
+    #[test]
+    fn host_roundtrip_insert_contains() {
+        let mut stack = Vec::new();
+        host_ordered_set_new(&mut stack).unwrap();
+        assert!(stack[0].is_mut_ref_cell());
+        let set = stack.pop().unwrap();
+        stack.push(set);
+        stack.push(platform_int_value(1));
+        host_ordered_set_insert(&mut stack).unwrap();
+        let set2 = stack.pop().unwrap();
+        assert!(
+            set2.is_mut_ref_cell(),
+            "insert must return mut_ref_cell, got {set2:?}"
+        );
+        stack.push(set2);
+        stack.push(platform_int_value(1));
+        host_ordered_set_contains(&mut stack).unwrap();
+        assert_eq!(stack.pop().unwrap(), Value::Bool(true));
+    }
 }

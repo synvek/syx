@@ -75,10 +75,11 @@ fn r27_array_dict_set_spell_sendable() {
 fn r27_collections_object_census_script_green() {
     let stdout = run_census();
     assert_eq!(parse(&stdout, "collections_array_dict_set_object="), 0);
-    assert!(parse(&stdout, "object_sig_residual_count=") <= 186);
-    assert!(parse(&stdout, "object_sig_residual_files=") <= 11);
+    // R-41: OrderedSet Object-shell cleared → ceiling ≤180/≤10.
+    assert!(parse(&stdout, "object_sig_residual_count=") <= 180);
+    assert!(parse(&stdout, "object_sig_residual_files=") <= 10);
     assert!(parse(&stdout, "simd_object_residual=") >= 159);
-    assert!(parse(&stdout, "ordered_set_object_shell_residual=") >= 1);
+    assert_eq!(parse(&stdout, "ordered_set_object_shell_residual="), 0);
 }
 
 #[test]
