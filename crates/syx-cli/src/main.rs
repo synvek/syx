@@ -161,6 +161,15 @@ enum Commands {
         /// Opt in to `target/cache/` incremental MIR/prelude disk cache (off by default)
         #[arg(long = "with-cache")]
         with_cache: bool,
+        /// Forward to a local `syx daemon` (Unix; also `SYX_USE_DAEMON=1`)
+        #[arg(long = "daemon")]
+        use_daemon: bool,
+    },
+    /// Keep a warm prelude process for fast `syx run --daemon` (Unix)
+    #[cfg(unix)]
+    Daemon {
+        #[command(subcommand)]
+        command: DaemonCommands,
     },
     /// Type-check without emitting artifacts
     Check { path: Option<PathBuf> },
@@ -295,6 +304,26 @@ enum Commands {
         /// Print native SDK layout next to this `syx` (rt archive / optional sysroot)
         #[arg(long)]
         native_sdk: bool,
+    },
+}
+
+#[cfg(unix)]
+#[derive(Subcommand)]
+enum DaemonCommands {
+    /// Start the daemon (blocks; listens on `$SYX_DAEMON_SOCK` or default tmp sock)
+    Start {
+        #[arg(long)]
+        sock: Option<PathBuf>,
+    },
+    /// Ask the daemon to exit
+    Stop {
+        #[arg(long)]
+        sock: Option<PathBuf>,
+    },
+    /// Health check
+    Ping {
+        #[arg(long)]
+        sock: Option<PathBuf>,
     },
 }
 
@@ -533,6 +562,7 @@ fn run() -> miette::Result<()> {
             invoke,
             gui_visible,
             with_cache,
+            use_daemon,
         } => {
             if gui_visible {
                 std::env::set_var("SYX_GUI_VISIBLE", "1");
@@ -552,6 +582,40 @@ fn run() -> miette::Result<()> {
             // VM-image fastpath: keep prelude snapshot bytecode; do not re-lower stdlib MIR.
             options.stdlib_mir = false;
             let path = resolve_path(path);
+            #[cfg(unix)]
+            {
+                let want_daemon = use_daemon
+                    || std::env::var_os("SYX_USE_DAEMON")
+                        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+                        .unwrap_or(false);
+                if want_daemon && !wasm {
+                    let sock = syx_driver::default_daemon_sock();
+                    if !syx_driver::daemon_available(&sock) {
+                        return Err(miette::miette!(
+                            "syx daemon not running (sock {}). Start with: syx daemon start",
+                            sock.display()
+                        ));
+                    }
+                    let abs = std::fs::canonicalize(&path).unwrap_or(path.clone());
+                    let resp = syx_driver::daemon_request(
+                        &sock,
+                        &syx_driver::DaemonRequest::Run {
+                            path: abs.to_string_lossy().into_owned(),
+                            with_cache,
+                        },
+                    )
+                    .map_err(|e| miette::miette!("{e}"))?;
+                    if !resp.stdout.is_empty() {
+                        print!("{}", resp.stdout);
+                    }
+                    if !resp.stderr.is_empty() {
+                        eprint!("{}", resp.stderr);
+                    }
+                    process::exit(resp.exit_code);
+                }
+            }
+            #[cfg(not(unix))]
+            let _ = use_daemon;
             if wasm {
                 let exit_code = if path.is_dir() {
                     run_wasm_project_with_options(&path, &invoke, &options).into_diagnostic()?
@@ -1084,6 +1148,41 @@ build = "build.syb"
                     EmitFormat::All => unreachable!(),
                 }
                 println!("Emitted {} ({})", out.display(), format_name(format));
+            }
+        }
+        #[cfg(unix)]
+        Commands::Daemon { command } => {
+            let sock = match &command {
+                DaemonCommands::Start { sock }
+                | DaemonCommands::Stop { sock }
+                | DaemonCommands::Ping { sock } => sock
+                    .clone()
+                    .unwrap_or_else(syx_driver::default_daemon_sock),
+            };
+            match command {
+                DaemonCommands::Start { .. } => {
+                    syx_driver::run_daemon(&sock).into_diagnostic()?;
+                }
+                DaemonCommands::Stop { .. } => {
+                    let resp = syx_driver::daemon_request(
+                        &sock,
+                        &syx_driver::DaemonRequest::Shutdown,
+                    )
+                    .map_err(|e| miette::miette!("{e}"))?;
+                    if !resp.ok {
+                        return Err(miette::miette!("{}", resp.stderr));
+                    }
+                    println!("daemon stopped");
+                }
+                DaemonCommands::Ping { .. } => {
+                    let resp =
+                        syx_driver::daemon_request(&sock, &syx_driver::DaemonRequest::Ping)
+                            .map_err(|e| miette::miette!("{e}"))?;
+                    if !resp.ok {
+                        return Err(miette::miette!("{}", resp.stderr));
+                    }
+                    println!("{}", resp.stdout.trim());
+                }
             }
         }
         Commands::Plugin { command } => match command {

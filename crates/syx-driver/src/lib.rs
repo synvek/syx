@@ -44,6 +44,8 @@ mod compile_file_context;
 mod compile_linked;
 mod compile_to_program;
 mod cranelift_stubs;
+#[cfg(unix)]
+mod daemon;
 mod debug_repl;
 mod doc_project;
 mod driver_diag;
@@ -56,6 +58,7 @@ mod lsp_ide;
 mod mir_unify;
 mod native_build;
 mod prelude_glue;
+mod rkyv_image;
 mod stdlib_fastpath;
 mod run_exec;
 mod run_wasm;
@@ -296,7 +299,13 @@ pub use compile_cache::compile_with_cache;
 pub(crate) use compile_cache::{
     bincode_encode, cache_entry_fresh, load_prelude_snapshot, prelude_cache_path,
     store_prelude_snapshot, CachedModuleUnit, PreludeSnapshot, EMBEDDED_PRELUDE_SNAPSHOT,
-    PRELUDE_EMBED_HIT, PRELUDE_SNAPSHOT_HIT,
+    PRELUDE_EMBED_HIT, PRELUDE_RKYV_HIT, PRELUDE_SNAPSHOT_HIT,
+};
+
+#[cfg(unix)]
+pub use daemon::{
+    daemon_available, daemon_request, default_daemon_sock, run_daemon, DaemonRequest,
+    DaemonResponse,
 };
 
 pub use driver_options::{

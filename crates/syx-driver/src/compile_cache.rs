@@ -28,6 +28,9 @@ pub(crate) static PRELUDE_SNAPSHOT_HIT: AtomicU64 = AtomicU64::new(0);
 /// Census nail (S3-I54): embedded prelude snapshot loads (`include_bytes` fallback).
 pub(crate) static PRELUDE_EMBED_HIT: AtomicU64 = AtomicU64::new(0);
 
+/// Census nail: rkyv VM-image / process-hydrated prelude loads.
+pub(crate) static PRELUDE_RKYV_HIT: AtomicU64 = AtomicU64::new(0);
+
 /// S3-I54: checked-in PreludeSnapshot bincode (gen via `scripts/gen_prelude_snapshot.sh`).
 pub(crate) static EMBEDDED_PRELUDE_SNAPSHOT: &[u8] =
     include_bytes!("../assets/prelude_snapshot.bin");
@@ -274,7 +277,15 @@ fn apply_prelude_snapshot(graph: &mut ModuleGraph, snap: PreludeSnapshot) -> boo
     true
 }
 
+/// Disk path for the slim rkyv VM image (same tag digest as bincode prelude).
+pub(crate) fn prelude_rkyv_cache_path(root: &Path) -> PathBuf {
+    let tag = cache_version_tag();
+    let digest = hash_source(&tag);
+    project_cache_dir(root).join(format!("prelude_{digest}.rkyv"))
+}
+
 /// Load prelude snapshot into an empty-ish graph when tag matches.
+/// Prefer rkyv VM image / process hydrate, then bincode disk, then embed.
 /// When `allow_disk` is false, skip disk probe (embed only) — no mkdir side effects.
 /// Disk hit bumps [`PRELUDE_SNAPSHOT_HIT`]; embed fallback bumps [`PRELUDE_EMBED_HIT`] (S3-I54).
 pub(crate) fn load_prelude_snapshot(
@@ -282,12 +293,22 @@ pub(crate) fn load_prelude_snapshot(
     root: &Path,
     allow_disk: bool,
 ) -> bool {
+    let disk_rkyv = if allow_disk {
+        Some(prelude_rkyv_cache_path(root))
+    } else {
+        None
+    };
+    if crate::rkyv_image::try_load_rkyv_into_graph(graph, disk_rkyv.as_deref()) {
+        PRELUDE_RKYV_HIT.fetch_add(1, Ordering::Relaxed);
+        return true;
+    }
     if allow_disk {
         let path = prelude_cache_path(root);
         if let Ok(bytes) = std::fs::read(&path) {
             if let Ok(snap) = bincode::deserialize::<PreludeSnapshot>(&bytes) {
                 if apply_prelude_snapshot(graph, snap) {
                     PRELUDE_SNAPSHOT_HIT.fetch_add(1, Ordering::Relaxed);
+                    crate::rkyv_image::store_hydrated_graph(graph.clone());
                     return true;
                 }
             }
@@ -298,6 +319,7 @@ pub(crate) fn load_prelude_snapshot(
         if let Ok(snap) = bincode::deserialize::<PreludeSnapshot>(EMBEDDED_PRELUDE_SNAPSHOT) {
             if apply_prelude_snapshot(graph, snap) {
                 PRELUDE_EMBED_HIT.fetch_add(1, Ordering::Relaxed);
+                crate::rkyv_image::store_hydrated_graph(graph.clone());
                 return true;
             }
         }
@@ -312,6 +334,8 @@ pub(crate) fn load_prelude_snapshot(
 /// merges into each unit) and drops per-module `host_fn_names` copies — interpret
 /// fills the global table from `all_host_fn_names()` at use sites.
 pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_disk: bool) {
+    // Always keep a process-local hydrate after a cold ensure (daemon / multi-run).
+    crate::rkyv_image::store_hydrated_graph(graph.clone());
     if !allow_disk {
         return;
     }
@@ -381,5 +405,9 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
     }
     if let Ok(bytes) = bincode::serialize(&snap) {
         let _ = std::fs::write(path, bytes);
+    }
+    if let Some(image) = crate::rkyv_image::build_rkyv_image_from_graph(graph) {
+        let rkyv_path = prelude_rkyv_cache_path(root);
+        let _ = crate::rkyv_image::write_rkyv_image(&rkyv_path, &image);
     }
 }

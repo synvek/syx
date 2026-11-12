@@ -1149,6 +1149,12 @@ fn main() {
             .join("assets/prelude_snapshot.bin")
             .display()
     );
+    println!(
+        "cargo:rerun-if-changed={}",
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("assets/prelude_vm_image.rkyv")
+            .display()
+    );
     emit_rustc_version_env();
     emit_cache_version_tag_env(&root);
     rerun_if_templates_changed();

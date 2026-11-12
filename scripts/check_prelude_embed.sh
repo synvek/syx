@@ -25,6 +25,12 @@ if [[ ! -s "$ASSET" ]]; then
   exit 1
 fi
 echo "prelude_embed_asset_bytes=$(wc -c <"$ASSET" | tr -d ' ')"
+RKYV_ASSET="$ROOT/crates/syx-driver/assets/prelude_vm_image.rkyv"
+if [[ -s "$RKYV_ASSET" ]]; then
+  echo "prelude_rkyv_asset_bytes=$(wc -c <"$RKYV_ASSET" | tr -d ' ')"
+else
+  echo "warn: empty or missing $RKYV_ASSET (rkyv fastpath disabled; bincode embed still required)" >&2
+fi
 
 HELLO_SRC="$ROOT/examples/hello.sy"
 if [[ ! -f "$HELLO_SRC" ]]; then

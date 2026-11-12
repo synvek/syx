@@ -62,8 +62,15 @@ fn s3_03_prelude_embed_adr_and_census() {
     );
     let gen = repo_file("scripts/gen_prelude_snapshot.sh");
     assert!(
-        gen.contains("prelude_snapshot.bin"),
-        "gen script must write asset"
+        gen.contains("prelude_snapshot.bin") && gen.contains("prelude_vm_image.rkyv"),
+        "gen script must write bincode + rkyv assets"
+    );
+    let rkyv = repo_path("crates/syx-driver/assets/prelude_vm_image.rkyv");
+    let rkyv_meta = std::fs::metadata(&rkyv).expect("prelude_vm_image.rkyv must exist");
+    assert!(
+        rkyv_meta.len() > 1024,
+        "rkyv VM image must be non-trivial, got {} bytes",
+        rkyv_meta.len()
     );
 
     let prior = repo_file("docs/adr/stage3-s3-03-cache-roundtrip.md");

@@ -26,6 +26,8 @@ wasm-encoder = "0.220"
 wasmtime = { version = "27", default-features = false, features = ["runtime", "cranelift"] }
 semver = "1"
 bincode = "1"
+rkyv = { version = "0.8", features = ["std", "bytecheck"] }
+memmap2 = "0.9"
 flate2 = "1"
 tar = "0.4"
 ed25519-dalek = { version = "2", features = ["std"] }

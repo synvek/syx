@@ -46,6 +46,8 @@ smol_str = { workspace = true }
 sha2 = "0.10"
 libloading = "0.8"
 bincode = { workspace = true }
+rkyv = { workspace = true }
+memmap2 = { workspace = true }
 semver = "1"
 reqwest = { workspace = true, features = ["blocking"] }
 
