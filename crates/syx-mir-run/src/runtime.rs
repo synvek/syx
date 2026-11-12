@@ -2158,14 +2158,20 @@ impl MirRuntime {
                 return Ok(());
             }
         };
+        // R-45: ObjectRef/MutRefCell + I32/I64 (parity with VM comparable_witness_fn_index).
         let witness_idx = items.first().and_then(|v| match v {
             Value::Object(map) | Value::Dict(map) => map
                 .get("__witness_Comparable_compare")
                 .and_then(|w| match w {
-                    Value::I32(idx) => Some(*idx as u32),
+                    Value::I32(idx) if *idx >= 0 => Some(*idx as u32),
+                    Value::I64(idx) if *idx >= 0 => Some(*idx as u32),
                     _ => None,
                 }),
-            _ => None,
+            _ => match v.mut_ref_cell_get_field("__witness_Comparable_compare") {
+                Value::I32(idx) if idx >= 0 => Some(idx as u32),
+                Value::I64(idx) if idx >= 0 => Some(idx as u32),
+                _ => None,
+            },
         });
         if let Some(idx) = witness_idx {
             let len = items.len();

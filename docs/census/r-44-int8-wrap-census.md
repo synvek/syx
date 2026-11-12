@@ -45,11 +45,11 @@
 
 ## Still red (→ later)
 
-- User-type `Comparable` sorted witness → **next default**
+- ~~User-type `Comparable` sorted witness~~ → **cleared in [R-45](r-45-comparable-sort-census.md)**
 - JIT Suite-1 differential → park
 
 ## References
 
 - [`r-29-lang-super-census`](r-29-lang-super-census.md) · Int8 still-red cleared here
 - [`r-43-poly-base-ref-census`](r-43-poly-base-ref-census.md)
-- [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · R-44 → next Comparable residual
+- [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · R-44 → R-45 Comparable → next **R-46**

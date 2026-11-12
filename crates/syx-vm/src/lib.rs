@@ -3179,14 +3179,21 @@ impl VmInstance {
     }
 
     fn comparable_witness_fn_index(value: &Value) -> Option<u32> {
+        // R-45: class instances are ObjectRef/MutRefCell (R-33 Iterator shape), not
+        // bare Object/Dict; ConstFnIndex is often I64 on 64-bit platforms.
         match value {
             Value::Object(map) | Value::Dict(map) => map
                 .get("__witness_Comparable_compare")
                 .and_then(|v| match v {
-                    Value::I32(idx) => Some(*idx as u32),
+                    Value::I32(idx) if *idx >= 0 => Some(*idx as u32),
+                    Value::I64(idx) if *idx >= 0 => Some(*idx as u32),
                     _ => None,
                 }),
-            _ => None,
+            _ => match value.mut_ref_cell_get_field("__witness_Comparable_compare") {
+                Value::I32(idx) if idx >= 0 => Some(idx as u32),
+                Value::I64(idx) if idx >= 0 => Some(idx as u32),
+                _ => None,
+            },
         }
     }
 

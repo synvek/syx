@@ -72,6 +72,16 @@ pub(crate) fn emit_protocol_witnesses(
                     span: None,
                 },
             );
+            // R-45: ObjectSet leaves the updated object on the stack; write back
+            // self so subsequent ArrayBuild / ctors do not alias stack garbage.
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::StoreLocal(self_slot),
+                    span: None,
+                },
+            );
         }
     }
 }
@@ -115,6 +125,15 @@ pub(crate) fn emit_class_vtable_slots_mir(
             MirInstr {
                 dest: None,
                 op: MirOp::ObjectSet,
+                span: None,
+            },
+        );
+        // R-45: same StoreLocal hygiene as protocol witnesses (vtable ObjectSet).
+        ctx.emit(
+            block,
+            MirInstr {
+                dest: None,
+                op: MirOp::StoreLocal(self_slot),
                 span: None,
             },
         );

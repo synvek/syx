@@ -34,6 +34,6 @@
 
 - ~~`polymorphic_base_ref` / wasm vtable~~ → **cleared in [R-43](r-43-poly-base-ref-census.md)**
 - ~~contextual Int8 wrap~~ → **cleared in [R-44](r-44-int8-wrap-census.md)**
-- User-type `Comparable` sorted witness (e.g. `struct_with_compare_witness_sorted`) → **next default**
+- ~~User-type `Comparable` sorted witness~~ → **cleared in [R-45](r-45-comparable-sort-census.md)**
 - JIT differential → park (Suite-1)
 - simd Object façade / json Object bags → later backlog (OrderedSet shell cleared in R-41; simd charter R-42)

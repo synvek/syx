@@ -209,6 +209,7 @@ func main() {
 
 #[test]
 fn struct_with_compare_witness_sorted() {
+    // R-45: order-strict — `any`-line checks false-green on unsorted 3/1/2 or aliased 2/2/2.
     let src = r#"
 class Score: Comparable {
     var n: Int
@@ -226,9 +227,12 @@ func main() {
 }
 "#;
     let lines = run(src);
-    assert!(printed_eq(&lines, "1"));
-    assert!(printed_eq(&lines, "2"));
-    assert!(printed_eq(&lines, "3"));
+    let trimmed: Vec<_> = lines.iter().map(|l| l.trim()).collect();
+    assert_eq!(
+        trimmed,
+        vec!["1", "2", "3"],
+        "Comparable sorted must be order-strict 1/2/3, got {lines:?}"
+    );
 }
 
 #[test]
