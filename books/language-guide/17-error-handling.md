@@ -10,16 +10,22 @@ SYX provides three error-propagation paths:
 
 This chapter covers syntax, usage, Result integration, and cross-function propagation. Charter: [sa-2-01-do-catch](../../docs/adr/sa-2-01-do-catch.md).
 
+> **Teaching note (R-46):** Prefer `enum …: Error` and `throw Case` in examples. `throw "string"` remains a residual MVP for some host paths — not the primary style.
+
 ## do / catch Blocks
 
 ```syx
 import System
 
+enum IoError: Error {
+    case readFailed
+}
+
 func main() {
     do {
         let content = File.read("/tmp/x")
         print(content)
-    } catch (err) {
+    } catch err {
         print("failed: \(err)")
     }
 }
@@ -27,7 +33,7 @@ func main() {
 
 - Inside a `do { }` block you may `throw` / call `throws` functions
 - When an exception fires, control jumps **immediately** to `catch`, skipping the rest of the `do` block
-- The MVP type of `err` is `String` (more complex error types are planned; SA-2-02)
+- Prefer a bare `catch { }` or `catch err { }` (paren form `catch (err)` is legacy teaching)
 
 Source: `crates/syx-driver/tests/fixtures/lsp/result_generic.sy`
 
@@ -58,33 +64,45 @@ func main() {
 ## throw Expressions
 
 ```syx
+enum MathError: Error {
+    case divisionByZero
+}
+
 func divide(_ a: Int, _ b: Int) throws -> Int {
-    if (b == 0) {
-        throw "division by zero"
+    if b == 0 {
+        throw MathError.divisionByZero
     }
     return a / b
 }
 ```
 
-- `throw expr` throws `expr` (MVP type `String`)
+- `throw expr` throws `expr` — prefer a type that conforms to `Error`
 - Legal only inside a `throws` function
-- Throwing a `String` / `Result.err` / a custom enum is all allowed (the type of `expr` is determined by the function signature's `throws T`)
+- `throw "string"` is still accepted as a residual MVP; new examples should use `Error` cases
 
 ## throws Function Declarations
 
 ```syx
 import System
 
+enum IoError: Error {
+    case notFound
+}
+
+enum ParseError: Error {
+    case empty
+}
+
 func loadFile(path: String) throws -> String {
-    if (!File.exists(path)) {
-        throw "not found: \(path)"
+    if !File.exists(path) {
+        throw IoError.notFound
     }
     return File.read(path)
 }
 
 func parseInt(s: String) throws -> Int {
-    if (s.count == 0) {
-        throw "empty"
+    if s.count == 0 {
+        throw ParseError.empty
     }
     return 0
 }
@@ -105,8 +123,12 @@ Three forms for calling `throws` functions:
 ```syx
 import System
 
+enum IoError: Error {
+    case notFound
+}
+
 func loadFile(path: String) throws -> String {
-    if (!File.exists(path)) { throw "not found" }
+    if !File.exists(path) { throw IoError.notFound }
     return File.read(path)
 }
 
@@ -124,8 +146,12 @@ func main() {
 ```syx
 import System
 
+enum IoError: Error {
+    case notFound
+}
+
 func loadFile(path: String) throws -> String {
-    if (!File.exists(path)) { throw "not found" }
+    if !File.exists(path) { throw IoError.notFound }
     return File.read(path)
 }
 
@@ -143,8 +169,12 @@ func main() {
 ```syx
 import System
 
+enum IoError: Error {
+    case notFound
+}
+
 func loadFile(path: String) throws -> String {
-    if (!File.exists(path)) { throw "not found" }
+    if !File.exists(path) { throw IoError.notFound }
     return File.read(path)
 }
 
@@ -165,12 +195,8 @@ func main() {
 do {
     let r = Http.get(url)
     print(r)
-} catch (err) where (err.hasPrefix("5")) {
-    print("server error: \(err)")
-} catch (err) where (err.hasPrefix("4")) {
-    print("client error: \(err)")
-} catch (err) {
-    print("other: \(err)")
+} catch err {
+    print("failed: \(err)")
 }
 ~~~
 
@@ -243,9 +269,13 @@ A `throws func` inside an `actor` is isolated automatically:
 ```syx
 import System
 
+enum IoError: Error {
+    case notFound
+}
+
 actor FileManager {
     func read(path: String) throws -> String {
-        if (!File.exists(path)) { throw "not found" }
+        if !File.exists(path) { throw IoError.notFound }
         return File.read(path)
     }
 }
@@ -255,7 +285,7 @@ async func main() {
     do {
         let s = await m.read(path: "/tmp/x")
         print(s)
-    } catch (err) {
+    } catch err {
         print("failed: \(err)")
     }
 }
@@ -274,19 +304,19 @@ async func main() {
 ## Complete Example
 
 ~~~text
-enum MathError {
+enum MathError: Error {
     case divideByZero
     case overflow
 }
 
 func safeDivide(_ a: Int, _ b: Int) -> Result<Int, MathError> {
-    if (b == 0) { return .err(.divideByZero) }
-    if (a > 1000) { return .err(.overflow) }
+    if b == 0 { return .err(.divideByZero) }
+    if a > 1000 { return .err(.overflow) }
     return .ok(a / b)
 }
 
 func doubleAndPrint(_ a: Int, _ b: Int) {
-    switch (safeDivide(a, b)) {
+    switch safeDivide(a, b) {
     case .ok(let n) {
         print("\(a) / \(b) = \(n * 2)")
     }
@@ -310,13 +340,13 @@ func main() {
 
 | Swift | SYX |
 |-------|-----|
-| `do { try … } catch { }` | `do { } catch { }` (no `do`) |
-| The `Error` protocol | The MVP uses `String` / `Result` |
+| `do { try … } catch { }` | `do { try … } catch { }` |
+| The `Error` protocol | Prefer `enum …: Error` (string throw = residual MVP) |
 | `throws E` typed throws | **Partially implemented** |
 | `try?` `try!` | **Implemented** |
 | `rethrows` | **Not implemented** |
 | stdlib `Result<T, E>` | **Implemented** (including static `ok` / `err`) |
-| `error: { }` closure parameter | A `catch (err) { }` block |
+| `catch { }` / `catch err` | Prefer bare or named catch (not `catch (err)`) |
 | `try? foo()?.bar()` | Legal |
 
 ## Diagnostics
