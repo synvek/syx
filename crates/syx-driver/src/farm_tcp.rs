@@ -386,7 +386,6 @@ pub fn purge_stale_incremental_caches(root: &Path) {
 }
 
 pub fn incremental_cache_path(root: &Path, module: &Path) -> PathBuf {
-    let cache_dir = project_cache_dir(root);
-    let _ = std::fs::create_dir_all(&cache_dir);
-    cache_dir.join(format!("{}.bin", module_hash(module, root, &[])))
+    // Callers that write must `create_dir_all`; probe-only paths must not mkdir.
+    project_cache_dir(root).join(format!("{}.bin", module_hash(module, root, &[])))
 }

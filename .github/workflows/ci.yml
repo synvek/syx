@@ -102,6 +102,11 @@ jobs:
           cargo build -p syx-cli
           bash scripts/s0_backend_smoke.sh
 
+      - name: Prelude embed freshness (cold-run must not rewrite prelude_*.bin)
+        run: |
+          cargo build -p syx-cli --release
+          bash scripts/check_prelude_embed.sh target/release/syx
+
       - name: S1-10 examples VM allowlist contract
         run: |
           cargo build -p syx-cli

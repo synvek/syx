@@ -327,7 +327,14 @@ Git / registry packages install to `.sy/vendor/` (listed in `.gitignore`). Path 
 
 ### Incremental compile cache
 
-Compile artifacts are cached at `target/cache/` under the project root (MIR/module bincode, fingerprint `syx-cache-v1`). If behavior looks wrong, delete the cache and retry:
+`syx build` writes compile artifacts under `target/cache/` (MIR/module bincode, fingerprint `syx-cache-v1`).  
+`syx run` does **not** touch that cache by default (no side effects for scripts, embeds, or read-only hosts). Opt in with:
+
+```bash
+syx run --with-cache examples/hello.sy
+```
+
+Driver / library callers default to `DriverOptions.incremental_cache = false`; set it to `true` explicitly when embedding. If behavior looks wrong, delete the cache and retry:
 
 ```bash
 rm -rf target/cache

@@ -51,7 +51,8 @@ pub(crate) fn ensure_prelude_modules_in_graph(
         return Ok(());
     }
     // S3-I49: dedicated prelude disk snapshot (cache_version_tag keyed).
-    if load_prelude_snapshot(graph, project_root) {
+    // Disk probe/store only when `incremental_cache` (CLI `--with-cache` / `syx build`).
+    if load_prelude_snapshot(graph, project_root, options.incremental_cache) {
         return Ok(());
     }
     let mut prelude_imports: Vec<(SmolStr, IndexMap<SmolStr, TypeId>)> = Vec::new();
@@ -117,7 +118,7 @@ pub(crate) fn ensure_prelude_modules_in_graph(
     }
     ensure_embedded_protocols_in_graph(graph, options, &prelude_imports)?;
     ensure_reference_builtins_in_graph(graph, options, &prelude_imports)?;
-    store_prelude_snapshot(graph, project_root);
+    store_prelude_snapshot(graph, project_root, options.incremental_cache);
     Ok(())
 }
 

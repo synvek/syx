@@ -71,11 +71,12 @@ fi
 
 wall_run() {
   # args: syx path → prints seconds on stdout
+  # Use --with-cache so warm measures target/cache hits (default run writes nothing).
   python3 - "$1" "$2" <<'PY'
 import subprocess, sys, time
 syx, path = sys.argv[1], sys.argv[2]
 t0 = time.perf_counter()
-r = subprocess.run([syx, "run", path], capture_output=True, text=True)
+r = subprocess.run([syx, "run", "--with-cache", path], capture_output=True, text=True)
 dt = time.perf_counter() - t0
 if r.returncode != 0:
     sys.stderr.write(r.stderr or r.stdout or "run failed\n")

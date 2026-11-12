@@ -28,8 +28,8 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     let package_main = project_root_if_manifest_entry(path).is_some();
 
     // S3-I51 cache-first: for plain `.sy` files, probe incremental cache before
-    // plugin/manifest/purge fixed tax (hello warm path).
-    if !package_main {
+    // plugin/manifest/purge fixed tax (hello warm path). Opt-in via `incremental_cache`.
+    if options.incremental_cache && !package_main {
         let current_source = std::fs::read_to_string(path).unwrap_or_default();
         if let Some(mut unit) = try_incremental_cache_hit(path, root, &current_source)? {
             // R-36: cache omits debug_source (serde skip).
@@ -61,8 +61,6 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
         ensure_project_lock(parent, options)?;
         opts.resolved_packages = Some(load_resolved_packages(parent)?);
     }
-    purge_stale_incremental_caches(root);
-    let cache = incremental_cache_path(root, path);
     let current_source = if package_main {
         merge_package_unit_source(root, &manifest.main)
             .map(|(_, s)| s)
@@ -70,9 +68,12 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     } else {
         std::fs::read_to_string(path).unwrap_or_default()
     };
-    if let Some(mut unit) = try_incremental_cache_hit(path, root, &current_source)? {
-        unit.program.debug_source = Some(unit.source.clone());
-        return Ok(unit);
+    if options.incremental_cache {
+        purge_stale_incremental_caches(root);
+        if let Some(mut unit) = try_incremental_cache_hit(path, root, &current_source)? {
+            unit.program.debug_source = Some(unit.source.clone());
+            return Ok(unit);
+        }
     }
     syx_meta::service_di_clear();
     let mut graph = ModuleGraph::default();
@@ -88,11 +89,14 @@ pub fn compile_linked_with_options(path: &Path, options: &DriverOptions) -> SyxR
     syx_codegen::trim_program_to_entry_reachability(&mut unit.program);
     // R-36: `debug_source` is serde-skipped; always rehydrate from entry SourceFile.
     unit.program.debug_source = Some(unit.source.clone());
-    if let Some(parent_dir) = cache.parent() {
-        let _ = std::fs::create_dir_all(parent_dir);
-    }
-    if let Ok(bytes) = bincode_encode(&unit, &graph) {
-        let _ = std::fs::write(&cache, bytes);
+    if options.incremental_cache {
+        let cache = incremental_cache_path(root, path);
+        if let Some(parent_dir) = cache.parent() {
+            let _ = std::fs::create_dir_all(parent_dir);
+        }
+        if let Ok(bytes) = bincode_encode(&unit, &graph) {
+            let _ = std::fs::write(&cache, bytes);
+        }
     }
     let deps = dependency_hashes_from_graph(&graph, &unit.path);
     query::store_cached(unit.clone(), &deps);

@@ -117,7 +117,8 @@ if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]]; then
   # Cold: empty project cache.
   rm -rf "$WORK/target"
   cold_out="$(mktemp)"
-  if /usr/bin/time -p "$SYX_BIN" run "$WORK/hello.sy" >"$WORK/out1.txt" 2>"$cold_out"; then
+  # Disk cache is opt-in (`--with-cache`); measure warm/prelude-hit with it enabled.
+  if /usr/bin/time -p "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out1.txt" 2>"$cold_out"; then
     hello_cold_s="$(awk '/^real / { print $2; exit }' "$cold_out")"
   else
     hello_cold_s="fail"
@@ -129,14 +130,14 @@ if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]]; then
   # Prelude-hit: keep prelude_*.bin, delete entry module bins only.
   find "$WORK/target/cache" -type f -name '*.bin' ! -name 'prelude_*' -delete 2>/dev/null || true
   ph_out="$(mktemp)"
-  if /usr/bin/time -p "$SYX_BIN" run "$WORK/hello.sy" >"$WORK/out_ph.txt" 2>"$ph_out"; then
+  if /usr/bin/time -p "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out_ph.txt" 2>"$ph_out"; then
     hello_prelude_hit_s="$(awk '/^real / { print $2; exit }' "$ph_out")"
   else
     hello_prelude_hit_s="fail"
   fi
   # Warm: reuse same workdir / full cache.
   warm_out="$(mktemp)"
-  if /usr/bin/time -p "$SYX_BIN" run "$WORK/hello.sy" >"$WORK/out2.txt" 2>"$warm_out"; then
+  if /usr/bin/time -p "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out2.txt" 2>"$warm_out"; then
     hello_warm_s="$(awk '/^real / { print $2; exit }' "$warm_out")"
   else
     hello_warm_s="fail"
@@ -150,7 +151,7 @@ if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]]; then
     hello_nostd_s="fail"
   fi
   # Re-run once to count bins after a default-std warm (restore cache).
-  "$SYX_BIN" run "$WORK/hello.sy" >"$WORK/out4.txt" 2>/dev/null || true
+  "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out4.txt" 2>/dev/null || true
   hello_cache_bins_after="$(find "$WORK/target/cache" -type f -name '*.bin' 2>/dev/null | wc -l | tr -d ' ')"
   rm -rf "$WORK" "$cold_out" "$warm_out" "$nostd_out" "$ph_out"
 fi

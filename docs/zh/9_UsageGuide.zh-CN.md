@@ -329,7 +329,14 @@ Git / registry 包安装到 `.sy/vendor/`（已加入 `.gitignore`）。path 依
 
 ### 增量编译缓存
 
-编译产物缓存在项目根目录 `target/cache/`（MIR/module bincode，指纹 `syx-cache-v1`）。若编译行为异常，可删除缓存后重试：
+`syx build` 会把编译产物写到项目根目录 `target/cache/`（MIR/module bincode，指纹 `syx-cache-v1`）。  
+`syx run` **默认不写**该缓存（脚本、嵌入、只读环境无副作用）；需要时显式打开：
+
+```bash
+syx run --with-cache examples/hello.sy
+```
+
+作为库使用时，`DriverOptions.incremental_cache` 默认为 `false`，需要磁盘增量时再设为 `true`。若编译行为异常，可删除缓存后重试：
 
 ```bash
 rm -rf target/cache

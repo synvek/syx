@@ -65,7 +65,11 @@ pub fn compile_with_cache(path: &Path, root: &Path) -> SyxResult<ModuleUnit> {
     }
     let parent = path.parent().unwrap_or_else(|| Path::new("."));
     let manifest = load_manifest(parent).unwrap_or_default();
-    let mut opts = DriverOptions::default();
+    // Explicit cache API: always allow disk prelude/entry artifacts.
+    let mut opts = DriverOptions {
+        incremental_cache: true,
+        ..DriverOptions::default()
+    };
     if !manifest.dependencies.is_empty() {
         ensure_project_lock(parent, &opts)?;
         opts.resolved_packages = Some(load_resolved_packages(parent)?);
@@ -205,12 +209,11 @@ pub(crate) struct PreludeSnapshot {
 }
 
 /// Disk path for prelude snapshot under `project_cache_dir` (S3-I49).
+/// Does not create directories — store path must `create_dir_all` when writing.
 pub(crate) fn prelude_cache_path(root: &Path) -> PathBuf {
-    let cache_dir = project_cache_dir(root);
-    let _ = std::fs::create_dir_all(&cache_dir);
     let tag = cache_version_tag();
     let digest = hash_source(&tag);
-    cache_dir.join(format!("prelude_{digest}.bin"))
+    project_cache_dir(root).join(format!("prelude_{digest}.bin"))
 }
 
 /// Apply a deserialized [`PreludeSnapshot`] into `graph` when tag matches.
@@ -243,14 +246,21 @@ fn apply_prelude_snapshot(graph: &mut ModuleGraph, snap: PreludeSnapshot) -> boo
 }
 
 /// Load prelude snapshot into an empty-ish graph when tag matches.
+/// When `allow_disk` is false, skip disk probe (embed only) — no mkdir side effects.
 /// Disk hit bumps [`PRELUDE_SNAPSHOT_HIT`]; embed fallback bumps [`PRELUDE_EMBED_HIT`] (S3-I54).
-pub(crate) fn load_prelude_snapshot(graph: &mut ModuleGraph, root: &Path) -> bool {
-    let path = prelude_cache_path(root);
-    if let Ok(bytes) = std::fs::read(&path) {
-        if let Ok(snap) = bincode::deserialize::<PreludeSnapshot>(&bytes) {
-            if apply_prelude_snapshot(graph, snap) {
-                PRELUDE_SNAPSHOT_HIT.fetch_add(1, Ordering::Relaxed);
-                return true;
+pub(crate) fn load_prelude_snapshot(
+    graph: &mut ModuleGraph,
+    root: &Path,
+    allow_disk: bool,
+) -> bool {
+    if allow_disk {
+        let path = prelude_cache_path(root);
+        if let Ok(bytes) = std::fs::read(&path) {
+            if let Ok(snap) = bincode::deserialize::<PreludeSnapshot>(&bytes) {
+                if apply_prelude_snapshot(graph, snap) {
+                    PRELUDE_SNAPSHOT_HIT.fetch_add(1, Ordering::Relaxed);
+                    return true;
+                }
             }
         }
     }
@@ -267,7 +277,11 @@ pub(crate) fn load_prelude_snapshot(graph: &mut ModuleGraph, root: &Path) -> boo
 }
 
 /// Persist current graph prelude modules (`<stdlib>/…`) after a successful ensure.
-pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path) {
+/// No-op when `allow_disk` is false.
+pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_disk: bool) {
+    if !allow_disk {
+        return;
+    }
     let tag = cache_version_tag();
     let mut order = Vec::new();
     let mut modules = Vec::new();
@@ -291,6 +305,9 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path) {
         modules,
     };
     let path = prelude_cache_path(root);
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
     if let Ok(bytes) = bincode::serialize(&snap) {
         let _ = std::fs::write(path, bytes);
     }

@@ -99,6 +99,10 @@ pub struct DriverOptions {
     pub wasm_aot: bool,
     /// True while executing a build.syb task target (prevents recursive task execution).
     pub in_build_syx_task: bool,
+    /// When true, read/write `target/cache/` (entry MIR + optional prelude disk snapshot).
+    /// Default **false** so `run` / library / edge hosts have no filesystem side effects.
+    /// CLI `syx build` enables this; `syx run --with-cache` opts in.
+    pub incremental_cache: bool,
 }
 
 /// SYX 38.0 build profile for `target/debug` vs `target/release`.
@@ -252,6 +256,7 @@ impl Default for DriverOptions {
             build_profile: BuildProfile::Debug,
             wasm_aot: syx_config::wasm_aot_enabled(),
             in_build_syx_task: false,
+            incremental_cache: false,
         }
     }
 }

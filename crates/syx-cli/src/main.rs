@@ -158,6 +158,9 @@ enum Commands {
         /// Show real OS windows (`SYX_GUI_VISIBLE=1`)
         #[arg(long = "gui-visible")]
         gui_visible: bool,
+        /// Opt in to `target/cache/` incremental MIR/prelude disk cache (off by default)
+        #[arg(long = "with-cache")]
+        with_cache: bool,
     },
     /// Type-check without emitting artifacts
     Check { path: Option<PathBuf> },
@@ -420,6 +423,8 @@ fn run() -> miette::Result<()> {
                 native_backend,
                 profile,
             );
+            // Build is a compile workflow — enable target/cache incremental artifacts.
+            options.incremental_cache = true;
             options.native_minimal = minimal;
             options.native_no_http = no_http;
             options.native_no_file = no_file;
@@ -527,6 +532,7 @@ fn run() -> miette::Result<()> {
             wasm,
             invoke,
             gui_visible,
+            with_cache,
         } => {
             if gui_visible {
                 std::env::set_var("SYX_GUI_VISIBLE", "1");
@@ -541,6 +547,8 @@ fn run() -> miette::Result<()> {
                 syx_driver::require_gui_dylib_if_visible();
                 let _ = syx_driver::ensure_gui_loaded();
             }
+            let mut options = options;
+            options.incremental_cache = with_cache;
             let path = resolve_path(path);
             if wasm {
                 let exit_code = if path.is_dir() {
