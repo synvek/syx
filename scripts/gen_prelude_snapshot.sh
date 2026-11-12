@@ -21,6 +21,31 @@ mkdir -p "$OUT_DIR"
 OUT_BIN="$OUT_DIR/prelude_snapshot.bin"
 OUT_RKYV="$OUT_DIR/prelude_vm_image.rkyv"
 
+# Backup before truncate so a failed cold-store cannot leave 0-byte assets.
+BAK="$(mktemp -d "${TMPDIR:-/tmp}/syx-prelude-bak.XXXXXX")"
+restore_assets() {
+  if [[ -s "$BAK/prelude_snapshot.bin" ]]; then
+    cp "$BAK/prelude_snapshot.bin" "$OUT_BIN"
+    echo "warn: restored $OUT_BIN from pre-gen backup" >&2
+  fi
+  if [[ -s "$BAK/prelude_vm_image.rkyv" ]]; then
+    cp "$BAK/prelude_vm_image.rkyv" "$OUT_RKYV"
+    echo "warn: restored $OUT_RKYV from pre-gen backup" >&2
+  fi
+}
+[[ -s "$OUT_BIN" ]] && cp "$OUT_BIN" "$BAK/prelude_snapshot.bin"
+[[ -s "$OUT_RKYV" ]] && cp "$OUT_RKYV" "$BAK/prelude_vm_image.rkyv"
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/syx-gen-prelude.XXXXXX")"
+cleanup() {
+  local code=$?
+  if [[ $code -ne 0 ]]; then
+    restore_assets
+  fi
+  rm -rf "$WORK" "$BAK"
+}
+trap cleanup EXIT
+
 echo "invalidating embed assets so cold store can run…"
 : > "$OUT_BIN"
 : > "$OUT_RKYV"
@@ -32,10 +57,6 @@ if [[ ! -x "$SYX_BIN" ]]; then
   echo "error: missing $SYX_BIN after build" >&2
   exit 1
 fi
-
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/syx-gen-prelude.XXXXXX")"
-cleanup() { rm -rf "$WORK"; }
-trap cleanup EXIT
 
 cp "$HELLO_SRC" "$WORK/hello.sy"
 echo "cold-compiling prelude via $SYX_BIN run --with-cache…"

@@ -55,6 +55,8 @@
 
 Embed is keyed by `cache_version_tag` (`CARGO_PKG_VERSION` + `rustc -V` + tip digest). Checked-in assets alone do **not** guarantee every platform: a runner whose rustc differs from the gen machine will miss. Release regen bakes a matching snapshot into that platform’s artifact via `include_bytes!`.
 
+**Windows gen footgun (fixed):** `gen_prelude_snapshot` truncates assets to force cold store. If cold-store discovery failed (notably `Get-ChildItem -Filter` + `-Recurse` on Windows PowerShell 5.1 missing `prelude_*.bin`), the script exited while leaving a **0-byte** `prelude_snapshot.bin`; a later `check_prelude_embed` then reported “missing/empty”. Gen now backs up before truncate and restores on failure; PS find uses `Where-Object` instead of `-Filter`.
+
 ## Non-claims
 
 - ≠ every script ≤20 ms (import-heavy / compute-bound still slower)

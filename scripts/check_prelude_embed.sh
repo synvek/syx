@@ -19,12 +19,20 @@ if [[ -z "$SYX_BIN" ]]; then
 fi
 
 ASSET="$ROOT/crates/syx-driver/assets/prelude_snapshot.bin"
-if [[ ! -s "$ASSET" ]]; then
-  echo "error: missing or empty $ASSET" >&2
+if [[ ! -f "$ASSET" ]]; then
+  echo "error: missing $ASSET" >&2
   echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
   exit 1
 fi
+if [[ ! -s "$ASSET" ]]; then
+  echo "error: asset exists but is EMPTY (0 bytes) — gen truncated then failed before cold-store copy:" >&2
+  echo "  $ASSET" >&2
+  echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
+  echo "  (do not commit a 0-byte prelude_snapshot.bin)" >&2
+  exit 1
+fi
 echo "prelude_embed_asset_bytes=$(wc -c <"$ASSET" | tr -d ' ')"
+echo "prelude_embed_asset_path=$ASSET"
 RKYV_ASSET="$ROOT/crates/syx-driver/assets/prelude_vm_image.rkyv"
 if [[ -s "$RKYV_ASSET" ]]; then
   echo "prelude_rkyv_asset_bytes=$(wc -c <"$RKYV_ASSET" | tr -d ' ')"
