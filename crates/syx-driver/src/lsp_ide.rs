@@ -75,7 +75,7 @@ pub(crate) fn collect_import_symbols_for_lsp_from(
     options: &DriverOptions,
     importer: Option<&Path>,
 ) -> Vec<(SmolStr, IndexMap<SmolStr, TypeId>)> {
-    let mut import_symbols = core_prelude_import_symbols(options);
+    let mut import_symbols = core_prelude_import_symbols(options, None);
     for decl in &module.decls {
         if let Decl::Import { .. } = decl {
             if let Some(path_str) = decl.import_path_str() {

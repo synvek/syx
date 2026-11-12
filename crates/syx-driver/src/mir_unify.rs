@@ -20,7 +20,7 @@ use syx_pkg::SyxManifest;
 use syx_semantic::{SemanticAnalyzer, TypeId};
 
 /// Env `SYX_STDLIB_MIR=0/false` forces off; `=1/true` forces on; else use [`DriverOptions::stdlib_mir`].
-fn want_stdlib_mir(options: &DriverOptions) -> bool {
+pub(crate) fn want_stdlib_mir(options: &DriverOptions) -> bool {
     match std::env::var("SYX_STDLIB_MIR") {
         Ok(v) if v == "0" || v.eq_ignore_ascii_case("false") => false,
         Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => true,
@@ -412,7 +412,7 @@ pub(crate) fn build_mir_from_graph(
     inject_core_collection_builtins(&mut module, options);
     // SA-4-04: `SyxHost` must exist before semantic/MIR — injected façades call it.
     crate::compile_to_program::inject_syx_host_enum(&mut module);
-    let mut import_symbols = core_prelude_import_symbols(options);
+    let mut import_symbols = core_prelude_import_symbols(options, Some(graph));
     for decl in &module.decls {
         if let Decl::Import { .. } = decl {
             let Some(path_str) = decl.import_path_str() else {
@@ -431,7 +431,9 @@ pub(crate) fn build_mir_from_graph(
             )?;
             let import_key = import_ref.key();
             if let Some(dep) = graph.modules.get(&import_key) {
-                import_symbols.push((symbol.clone(), export_symbols(&dep.source)));
+                let exports = crate::stdlib_fastpath::cached_exports_for(graph, &import_key)
+                    .unwrap_or_else(|| export_symbols(&dep.source));
+                import_symbols.push((symbol.clone(), exports));
             }
         }
     }
@@ -455,38 +457,86 @@ pub(crate) fn build_mir_from_graph(
     let exports_by_dep: IndexMap<PathBuf, IndexMap<SmolStr, TypeId>> = graph
         .modules
         .iter()
-        .map(|(p, u)| (p.clone(), export_symbols(&u.source)))
+        .map(|(p, u)| {
+            let exports = crate::stdlib_fastpath::cached_exports_for(graph, p)
+                .unwrap_or_else(|| export_symbols(&u.source));
+            (p.clone(), exports)
+        })
         .collect();
 
-    // Merge dependency public symbols referenced by the project graph (stdlib + user modules).
-    for dep in graph.modules.values() {
-        let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
-        if dep_exports.is_empty() && !dep.path.to_string_lossy().contains("<stdlib>/") {
-            continue;
-        }
-        if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
-            let dep_module = expand_macros(dep_module)?;
-            let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
-            inject_virtual_prelude_imports(&mut dep_mono, options);
-            syx_mir::merge_mir_shell_functions(
-                &mut mir,
-                syx_mir::lower_dataclass_shells(&dep_mono),
-            );
-            syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
-            let dep_mir = lower_module(&dep_mono)?;
-            let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-            if is_stdlib_module_path(&dep.path) {
-                for mut func in dep_mir.functions {
-                    let merge =
-                        mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports);
-                    if merge {
-                        func.name = cross_module_function_name(&dep.path, module_stem, func.name);
-                        if !mir.functions.iter().any(|f| f.name == func.name) {
-                            mir.functions.push(func);
+    // Merge dependency MIR (stdlib + user). Interpret fastpath skips stdlib re-lower —
+    // bytecode comes from the embed via on-demand link.
+    let stdlib_mir = want_stdlib_mir(options);
+    if stdlib_mir {
+        for dep in graph.modules.values() {
+            let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
+            if dep_exports.is_empty() && !dep.path.to_string_lossy().contains("<stdlib>/") {
+                continue;
+            }
+            if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
+                let dep_module = expand_macros(dep_module)?;
+                let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
+                inject_virtual_prelude_imports(&mut dep_mono, options);
+                syx_mir::merge_mir_shell_functions(
+                    &mut mir,
+                    syx_mir::lower_dataclass_shells(&dep_mono),
+                );
+                syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
+                let dep_mir = lower_module(&dep_mono)?;
+                let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+                if is_stdlib_module_path(&dep.path) {
+                    for mut func in dep_mir.functions {
+                        let merge = mir_merge_stdlib_function(
+                            module_stem,
+                            func.name.as_str(),
+                            &dep_exports,
+                        );
+                        if merge {
+                            func.name =
+                                cross_module_function_name(&dep.path, module_stem, func.name);
+                            if !mir.functions.iter().any(|f| f.name == func.name) {
+                                mir.functions.push(func);
+                            }
+                        }
+                    }
+                } else {
+                    let mut batch: Vec<_> = dep_mir
+                        .functions
+                        .into_iter()
+                        .filter(|f| f.name.as_str() != "main")
+                        .collect();
+                    if !batch.is_empty() {
+                        syx_mir::prefix_user_dep_mir_batch(&mut batch, module_stem);
+                        for func in batch {
+                            if !mir.functions.iter().any(|f| f.name == func.name) {
+                                mir.functions.push(func);
+                            }
                         }
                     }
                 }
-            } else {
+            }
+        }
+    } else {
+        // Still lower non-stdlib user deps when present in the graph.
+        for dep in graph.modules.values() {
+            if is_stdlib_module_path(&dep.path) {
+                continue;
+            }
+            let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
+            if dep_exports.is_empty() {
+                continue;
+            }
+            if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
+                let dep_module = expand_macros(dep_module)?;
+                let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
+                inject_virtual_prelude_imports(&mut dep_mono, options);
+                syx_mir::merge_mir_shell_functions(
+                    &mut mir,
+                    syx_mir::lower_dataclass_shells(&dep_mono),
+                );
+                syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
+                let dep_mir = lower_module(&dep_mono)?;
+                let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
                 let mut batch: Vec<_> = dep_mir
                     .functions
                     .into_iter()
@@ -508,8 +558,16 @@ pub(crate) fn build_mir_from_graph(
     inject_virtual_prelude_imports(&mut mono_module, options);
     syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_dataclass_shells(&mono_module));
     syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&mono_module));
-    let callable_extensions: indexmap::IndexSet<SmolStr> =
-        mir.functions.iter().map(|f| f.name.clone()).collect();
+    // Interpret fastpath: advertise embed function names so `Double.pi` etc. lower to Call
+    // without re-parsing stdlib sources into MIR.
+    let callable_extensions: indexmap::IndexSet<SmolStr> = if stdlib_mir {
+        mir.functions.iter().map(|f| f.name.clone()).collect()
+    } else {
+        crate::stdlib_fastpath::stdlib_fn_index(graph)
+            .keys()
+            .cloned()
+            .collect()
+    };
     let imported_classes = imported_class_type_names(&import_symbols);
     let int_kinds = contextual_numeric_kinds_from_semantic(&semantic);
     let entry_mir = syx_mir::lower_module_with_extra_extensions_kinds_and_source(

@@ -23,9 +23,34 @@ use syx_semantic::{type_expr_to_id, SemanticAnalyzer, TypeId};
 
 pub(crate) fn core_prelude_import_symbols(
     options: &DriverOptions,
+    graph: Option<&ModuleGraph>,
 ) -> Vec<(SmolStr, IndexMap<SmolStr, TypeId>)> {
     if !options.enable_std {
         return Vec::new();
+    }
+    if let Some(graph) = graph {
+        if !graph.stdlib_exports.is_empty() {
+            let mut out = Vec::new();
+            for (name, _) in embedded_std::core_prelude() {
+                let path = embedded_std::virtual_path(name);
+                if let Some(exports) = graph.stdlib_exports.get(&path) {
+                    out.push((SmolStr::new(*name), exports.clone()));
+                } else {
+                    // Fallback per-module if snapshot missed one.
+                    let src = embedded_std::core_prelude()
+                        .iter()
+                        .find(|(n, _)| *n == *name)
+                        .map(|(_, s)| *s)
+                        .unwrap_or("");
+                    let source = SourceFile::new(
+                        path.to_string_lossy().into_owned(),
+                        src.to_string(),
+                    );
+                    out.push((SmolStr::new(*name), export_symbols(&source)));
+                }
+            }
+            return out;
+        }
     }
     embedded_std::core_prelude()
         .iter()
@@ -120,6 +145,15 @@ pub(crate) fn ensure_prelude_modules_in_graph(
     ensure_reference_builtins_in_graph(graph, options, &prelude_imports)?;
     if graph.stdlib_extension_methods.is_empty() {
         graph.stdlib_extension_methods = collect_stdlib_extension_methods(graph);
+    }
+    if graph.stdlib_exports.is_empty() {
+        for (path, unit) in &graph.modules {
+            if path.to_string_lossy().starts_with("<stdlib>/") {
+                graph
+                    .stdlib_exports
+                    .insert(path.clone(), export_symbols(&unit.source));
+            }
+        }
     }
     store_prelude_snapshot(graph, project_root, options.incremental_cache);
     Ok(())

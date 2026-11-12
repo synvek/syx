@@ -209,6 +209,9 @@ pub(crate) struct PreludeSnapshot {
     /// Precomputed extension methods so interpret path skips re-parsing prelude sources.
     #[serde(default)]
     pub extension_methods: Vec<(String, String)>,
+    /// Precomputed exports: `(module_path, [(name, type_wire), ...])`.
+    #[serde(default)]
+    pub module_exports: Vec<(String, Vec<(String, String)>)>,
 }
 
 /// Disk path for prelude snapshot under `project_cache_dir` (S3-I49).
@@ -229,6 +232,22 @@ fn apply_prelude_snapshot(graph: &mut ModuleGraph, snap: PreludeSnapshot) -> boo
             .extension_methods
             .into_iter()
             .map(|(a, b)| (SmolStr::new(a), SmolStr::new(b)))
+            .collect();
+    }
+    if !snap.module_exports.is_empty() {
+        use crate::stdlib_fastpath::decode_type_id;
+        graph.stdlib_exports = snap
+            .module_exports
+            .into_iter()
+            .map(|(path, exports)| {
+                (
+                    PathBuf::from(path),
+                    exports
+                        .into_iter()
+                        .map(|(n, tw)| (SmolStr::new(n), decode_type_id(&tw)))
+                        .collect(),
+                )
+            })
             .collect();
     }
     for cached in snap.modules {
@@ -310,6 +329,7 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
             .map(|(a, b)| (a.to_string(), b.to_string()))
             .collect()
     };
+    let mut module_exports: Vec<(String, Vec<(String, String)>)> = Vec::new();
     for key in &graph.order {
         let Some(unit) = graph.modules.get(key) else {
             continue;
@@ -320,10 +340,30 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
         }
         order.push(key.clone());
         let mut cached = CachedModuleUnit::from(unit);
-        cached.program.functions.retain(|f| seen_fns.insert(f.name.to_string()));
+        cached
+            .program
+            .functions
+            .retain(|f| seen_fns.insert(f.name.to_string()));
         // Shared HostFn name table — avoid 34× copies in the embed.
         cached.program.host_fn_names.clear();
         modules.push(cached);
+        let exports = if let Some(cached_ex) = graph.stdlib_exports.get(key) {
+            cached_ex.clone()
+        } else {
+            crate::export_symbols(&unit.source)
+        };
+        module_exports.push((
+            key.to_string_lossy().into_owned(),
+            exports
+                .into_iter()
+                .map(|(n, ty)| {
+                    (
+                        n.to_string(),
+                        crate::stdlib_fastpath::encode_type_id(&ty),
+                    )
+                })
+                .collect(),
+        ));
     }
     if modules.is_empty() {
         return;
@@ -333,6 +373,7 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
         order,
         modules,
         extension_methods,
+        module_exports,
     };
     let path = prelude_cache_path(root);
     if let Some(parent) = path.parent() {

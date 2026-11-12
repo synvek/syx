@@ -56,6 +56,7 @@ mod lsp_ide;
 mod mir_unify;
 mod native_build;
 mod prelude_glue;
+mod stdlib_fastpath;
 mod run_exec;
 mod run_wasm;
 mod test_runner;

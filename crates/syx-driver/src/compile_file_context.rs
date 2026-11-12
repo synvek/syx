@@ -71,7 +71,7 @@ pub fn compile_file_with_context(
     inject_core_collection_builtins(&mut module, options);
     let main_actor_await_errors = collect_main_actor_await_errors(&module, &[], manifest);
 
-    let mut import_symbols = core_prelude_import_symbols(options);
+    let mut import_symbols = core_prelude_import_symbols(options, Some(graph));
     let mut import_isolation = Vec::new();
     for decl in &module.decls {
         if let Decl::Import { .. } = decl {
@@ -95,7 +95,9 @@ pub fn compile_file_with_context(
             } else {
                 import_ref.load()?.1
             };
-            import_symbols.push((symbol.clone(), export_symbols(&dep_source)));
+            let exports = crate::stdlib_fastpath::cached_exports_for(graph, &import_key)
+                .unwrap_or_else(|| export_symbols(&dep_source));
+            import_symbols.push((symbol.clone(), exports));
             let dep_parent = import_key.parent().unwrap_or(project_root);
             let dep_manifest = load_manifest(dep_parent).unwrap_or_default();
             let fn_actors = collect_dep_function_actors(&dep_source, &dep_manifest);
@@ -127,7 +129,11 @@ pub fn compile_file_with_context(
     let exports_by_dep: IndexMap<PathBuf, IndexMap<SmolStr, TypeId>> = graph
         .modules
         .iter()
-        .map(|(p, u)| (p.clone(), export_symbols(&u.source)))
+        .map(|(p, u)| {
+            let exports = crate::stdlib_fastpath::cached_exports_for(graph, p)
+                .unwrap_or_else(|| export_symbols(&u.source));
+            (p.clone(), exports)
+        })
         .collect();
     for decl in &module.decls {
         if let Decl::Import { .. } = decl {
@@ -151,16 +157,21 @@ pub fn compile_file_with_context(
             let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
             let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
             if is_stdlib_module_path(&dep.path) {
-                for func in &dep.program.functions {
-                    let merge =
-                        mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports)
-                            || dep_exports.contains_key(&func.name);
-                    if merge {
-                        let mut merged = func.clone();
-                        merged.name =
-                            cross_module_function_name(&dep.path, module_stem, merged.name);
-                        if !program.functions.iter().any(|f| f.name == merged.name) {
-                            program.functions.push(merged);
+                // Interpret fastpath: defer stdlib bodies to on-demand link.
+                if crate::mir_unify::want_stdlib_mir(options) {
+                    for func in &dep.program.functions {
+                        let merge = mir_merge_stdlib_function(
+                            module_stem,
+                            func.name.as_str(),
+                            &dep_exports,
+                        ) || dep_exports.contains_key(&func.name);
+                        if merge {
+                            let mut merged = func.clone();
+                            merged.name =
+                                cross_module_function_name(&dep.path, module_stem, merged.name);
+                            if !program.functions.iter().any(|f| f.name == merged.name) {
+                                program.functions.push(merged);
+                            }
                         }
                     }
                 }
@@ -187,16 +198,19 @@ pub fn compile_file_with_context(
             }
         }
     }
-    for dep in graph.modules.values() {
-        let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
-        let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-        for func in &dep.program.functions {
-            let merge = mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports);
-            if merge {
-                let mut merged = func.clone();
-                merged.name = cross_module_function_name(&dep.path, module_stem, merged.name);
-                if !program.functions.iter().any(|f| f.name == merged.name) {
-                    program.functions.push(merged);
+    if crate::mir_unify::want_stdlib_mir(options) {
+        for dep in graph.modules.values() {
+            let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
+            let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+            for func in &dep.program.functions {
+                let merge =
+                    mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports);
+                if merge {
+                    let mut merged = func.clone();
+                    merged.name = cross_module_function_name(&dep.path, module_stem, merged.name);
+                    if !program.functions.iter().any(|f| f.name == merged.name) {
+                        program.functions.push(merged);
+                    }
                 }
             }
         }

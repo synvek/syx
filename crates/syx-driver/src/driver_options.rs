@@ -23,6 +23,9 @@ pub struct ModuleGraph {
     pub order: Vec<PathBuf>,
     /// Precomputed stdlib extension methods (from prelude snapshot). Empty → parse fallback.
     pub stdlib_extension_methods: indexmap::IndexSet<(smol_str::SmolStr, smol_str::SmolStr)>,
+    /// Precomputed per-module export symbols (from prelude snapshot). Empty → parse fallback.
+    pub stdlib_exports:
+        IndexMap<PathBuf, IndexMap<smol_str::SmolStr, syx_semantic::TypeId>>,
 }
 
 /// Native code generator backend selected by `--backend` / `SYX_BACKEND`.

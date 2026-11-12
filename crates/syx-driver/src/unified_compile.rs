@@ -42,6 +42,11 @@ pub fn compile_entry_with_unified_mir(
         program: program.clone(),
     };
     let mir = build_unified_mir(graph, &entry_unit, project_root, options, manifest)?;
+    // Interpret fastpath: pull only MIR-referenced stdlib fns (with Call remap).
+    if !crate::mir_unify::want_stdlib_mir(options) {
+        let seeds = crate::stdlib_fastpath::mir_call_names(&mir);
+        crate::stdlib_fastpath::link_stdlib_callees(program, graph, &seeds);
+    }
     let mut mono_module = monomorphize_module(compile_module, &semantic.instantiations);
     inject_virtual_prelude_imports(&mut mono_module, options);
     // R-36: interpreter R003 / C020 Display need SourceFile for file:line:col.
@@ -54,5 +59,18 @@ pub fn compile_entry_with_unified_mir(
         Some(source_name),
         Some(prelude_extensions),
     )?;
+    // Second link pass: user bytecode may resolve new Call names after emit stubs.
+    if !crate::mir_unify::want_stdlib_mir(options) {
+        let mut seeds = crate::stdlib_fastpath::mir_call_names(&mir);
+        for f in &program.functions {
+            seeds.insert(f.name.clone());
+            for ins in &f.instructions {
+                if let syx_codegen::Instruction::ConstStr(s) = ins {
+                    seeds.insert(SmolStr::new(s.as_str()));
+                }
+            }
+        }
+        crate::stdlib_fastpath::link_stdlib_callees(program, graph, &seeds);
+    }
     Ok(mir)
 }

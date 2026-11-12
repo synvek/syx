@@ -13,27 +13,34 @@
 | `ModuleGraph.stdlib_extension_methods` | Filled on embed load → `collect_stdlib_extension_methods` skips re-parse. |
 | Asset | `crates/syx-driver/assets/prelude_snapshot.bin` regen via `scripts/gen_prelude_snapshot.sh`. |
 
+## Slice 2 (on-demand link + export table)
+
+| Piece | Behavior |
+|-------|----------|
+| `stdlib_fastpath::link_stdlib_callees` | Pull MIR-reachable embed fns with Call remap |
+| Skip stdlib re-lower / fat merge when `!want_stdlib_mir` | No parse-all-prelude in `build_mir_from_graph` |
+| `PreludeSnapshot.module_exports` | Precomputed exports → skip `export_symbols` parse |
+| `callable_extensions` from embed fn names | `Double.pi` etc. lower without stdlib MIR |
+
 ## Measure (release, warm binary pages, temp dir, no `--with-cache`)
 
 | Sample | Wall |
 |--------|------|
-| `hello` `syx run` (fastpath) | **~0.37 s** |
-| `hello` `SYX_STDLIB_MIR=1` | ~0.65 s |
+| `hello` `syx run` (fastpath) | **~0.019–0.020 s** |
+| `basic_demo` | OK (30 lines stdout) |
 | `hello` `--enable-std=false` | ~0.009 s |
 | `python3 -c 'print("hi")'` | ~0.015 s |
 | `node -e 'console.log("hi")'` | ~0.018 s |
-| `prelude_snapshot.bin` size | **~1.99 MB** (was ~6.6 MB) |
+| `prelude_snapshot.bin` size | **~2.0 MB** (was ~6.6 MB) |
 
 ## Non-claims
 
-- ≠ Python/Node parity (~15 ms)
+- ≠ every script ≤20 ms (import-heavy / compute-bound still slower)
 - ≠ zero-copy / rkyv mmap
 - ≠ daemon
-- ≠ on-demand link-only (still merges stdlib funcs from graph before trim)
 - ≠ native/wasm path changes (`stdlib_mir` stays on for `syx build`)
 
 ## Next knives
 
-1. Link only imported/reachable stdlib functions (avoid fat merge-before-trim).
-2. Precomputed export symbol table (skip `export_symbols` parse of prelude sources).
-3. Optional mmap/rkyv image; optional `syx daemon`.
+1. Optional mmap/rkyv image; optional `syx daemon`.
+2. Further shrink deserialize tax (~2 MB bincode still on every process).
