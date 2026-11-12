@@ -5,9 +5,9 @@
   "scripts": {
     "predev": "node scripts/sync-content.mjs",
     "prebuild": "node scripts/sync-content.mjs",
-    "dev": "vitepress dev docs",
+    "dev": "vitepress dev docs --port 5174 --host 127.0.0.1",
     "build": "vitepress build docs",
-    "preview": "vitepress preview docs",
+    "preview": "vitepress preview docs --port 4174 --host 127.0.0.1",
     "sync": "node scripts/sync-content.mjs"
   },
   "devDependencies": {

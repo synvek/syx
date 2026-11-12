@@ -11,9 +11,12 @@ VitePress static site that publishes valuable content from `books/` and `docs/` 
 cd site
 npm install
 npm run dev
+# → http://127.0.0.1:5174/
 ```
 
 `predev` / `prebuild` run `scripts/sync-content.mjs`, which copies markdown from the repo into `docs/` (source of truth stays in `books/` / `docs/`).
+
+Dev/preview bind **IPv4 only** on **5174 / 4174** so they do not collide with other tools that also use Vite’s default `4173` (often on `[::1]`).
 
 ## Build
 
@@ -21,6 +24,7 @@ npm run dev
 npm run build
 # output: docs/.vitepress/dist
 npm run preview
+# → http://127.0.0.1:4174/
 ```
 
 ## Content map
