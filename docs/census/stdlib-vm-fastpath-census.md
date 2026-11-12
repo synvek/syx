@@ -7,7 +7,7 @@
 
 | Piece | Behavior |
 |-------|----------|
-| `DriverOptions.stdlib_mir` | Default `true` (build/native/wasm). CLI **`syx run` sets `false`**. |
+| `DriverOptions.stdlib_mir` | Default `true` (build/native/wasm). CLI **`syx run` sets `false`**; **`syx run --wasm` keeps `true`**. |
 | `SYX_STDLIB_MIR` | `0/false` force off; `1/true` force on (debug). |
 | `store_prelude_snapshot` | Dedupe `FunctionUnit` by name across modules; clear per-module `host_fn_names`; persist `extension_methods` + slim **rkyv** image. |
 | `ModuleGraph.stdlib_extension_methods` | Filled on embed load → `collect_stdlib_extension_methods` skips re-parse. |
@@ -26,7 +26,7 @@
 
 | Piece | Behavior |
 |-------|----------|
-| `rkyv_image` | Slim image: fn metadata + **bincode Instruction blobs**; load via embed or `memmap2` disk `.rkyv` |
+| `rkyv_image` | Slim image: fn metadata + **bincode Instruction blobs**; load via embed or `memmap2` disk `.rkyv` (**interpret only** — skipped when `stdlib_mir` so wasm/native can re-parse sources) |
 | Process `OnceLock` hydrate | Skip re-deserialize within one process (daemon multi-run) |
 | `syx daemon start/stop/ping` | Unix domain socket; warms prelude once |
 | `syx run --daemon` / `SYX_USE_DAEMON=1` | Client forwards run to warm daemon |

@@ -77,7 +77,9 @@ pub(crate) fn ensure_prelude_modules_in_graph(
     }
     // S3-I49: dedicated prelude disk snapshot (cache_version_tag keyed).
     // Disk probe/store only when `incremental_cache` (CLI `--with-cache` / `syx build`).
-    if load_prelude_snapshot(graph, project_root, options.incremental_cache) {
+    // Rkyv slim image is interpret-only (empty sources); MIR re-lower needs bincode.
+    let allow_rkyv = !crate::mir_unify::want_stdlib_mir(options);
+    if load_prelude_snapshot(graph, project_root, options.incremental_cache, allow_rkyv) {
         return Ok(());
     }
     let mut prelude_imports: Vec<(SmolStr, IndexMap<SmolStr, TypeId>)> = Vec::new();

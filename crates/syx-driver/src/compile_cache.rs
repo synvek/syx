@@ -285,13 +285,16 @@ pub(crate) fn prelude_rkyv_cache_path(root: &Path) -> PathBuf {
 }
 
 /// Load prelude snapshot into an empty-ish graph when tag matches.
-/// Prefer rkyv VM image / process hydrate, then bincode disk, then embed.
+/// Prefer rkyv VM image / process hydrate (interpret only), then bincode disk, then embed.
 /// When `allow_disk` is false, skip disk probe (embed only) — no mkdir side effects.
+/// When `allow_rkyv` is false (wasm/native MIR re-lower), skip rkyv: that image stores
+/// empty per-module sources + a `__vm_image__` blob and cannot re-parse Hasher etc.
 /// Disk hit bumps [`PRELUDE_SNAPSHOT_HIT`]; embed fallback bumps [`PRELUDE_EMBED_HIT`] (S3-I54).
 pub(crate) fn load_prelude_snapshot(
     graph: &mut ModuleGraph,
     root: &Path,
     allow_disk: bool,
+    allow_rkyv: bool,
 ) -> bool {
     // `compile_module_recursive` calls ensure_prelude for every new import.
     // If this graph already carries stdlib units (prelude and/or prior imports like
@@ -303,14 +306,16 @@ pub(crate) fn load_prelude_snapshot(
     {
         return true;
     }
-    let disk_rkyv = if allow_disk {
-        Some(prelude_rkyv_cache_path(root))
-    } else {
-        None
-    };
-    if crate::rkyv_image::try_load_rkyv_into_graph(graph, disk_rkyv.as_deref()) {
-        PRELUDE_RKYV_HIT.fetch_add(1, Ordering::Relaxed);
-        return true;
+    if allow_rkyv {
+        let disk_rkyv = if allow_disk {
+            Some(prelude_rkyv_cache_path(root))
+        } else {
+            None
+        };
+        if crate::rkyv_image::try_load_rkyv_into_graph(graph, disk_rkyv.as_deref()) {
+            PRELUDE_RKYV_HIT.fetch_add(1, Ordering::Relaxed);
+            return true;
+        }
     }
     if allow_disk {
         let path = prelude_cache_path(root);

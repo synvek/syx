@@ -579,8 +579,11 @@ fn run() -> miette::Result<()> {
             }
             let mut options = options;
             options.incremental_cache = with_cache;
-            // VM-image fastpath: keep prelude snapshot bytecode; do not re-lower stdlib MIR.
-            options.stdlib_mir = false;
+            // Interpret-only VM-image fastpath: keep prelude snapshot bytecode.
+            // `run --wasm` still needs stdlib MIR merge (Call targets like
+            // Hasher_newHasher must exist as module functions for hard-zero AOT).
+            // `wasm=true` → stdlib_mir=true; plain `run` → false.
+            options.stdlib_mir = wasm;
             let path = resolve_path(path);
             #[cfg(unix)]
             {
