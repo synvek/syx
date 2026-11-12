@@ -47,11 +47,13 @@
 
 ## Still red (→ later windows)
 
-- JIT differential / contextual Int8 wrap / user-type `Comparable` sorted witness → **R-44**
+- ~~contextual Int8 wrap~~ → **cleared in [R-44](r-44-int8-wrap-census.md)**
+- User-type `Comparable` sorted witness → **next default**
+- JIT differential → park
 - simd Object façade / json bags → later backlog
 
 ## References
 
 - [`r-29-lang-super-census`](r-29-lang-super-census.md) · still-red poly cluster cleared here
 - [`r-34-existential-shape-census`](r-34-existential-shape-census.md) · witness CallIndirect shape
-- [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · R-43 → next **R-44**
+- [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · R-43 → R-44 Int8 → next Comparable

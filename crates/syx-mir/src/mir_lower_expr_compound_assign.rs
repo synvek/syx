@@ -7,7 +7,9 @@ use crate::mir_types::{MirInstr, MirOp};
 use smol_str::SmolStr;
 use syx_ast::{BinOp, CompoundAssignOp, Expr};
 use syx_diagnostics::Span;
-use syx_stdlib::host_fn_index_by_name;
+use syx_stdlib::{
+    from_type_name, host_fn_index_by_name, is_integer, resolve_alias, PLATFORM_INT,
+};
 
 pub(crate) fn lower_expr_compound_assign(
     name: &SmolStr,
@@ -51,6 +53,41 @@ pub(crate) fn lower_expr_compound_assign(
                     MirInstr {
                         dest: Some(dest),
                         op: MirOp::CallHost(idx),
+                        span: None,
+                    },
+                );
+                ctx.lower_store_binding(name, block);
+                return;
+            }
+        }
+    }
+    // R-44: fixed-width integer compound ops stay at LHS width (wrap), so
+    // `var x: Int8 = 120; x += 10` does not widen with unsuffixed Int then
+    // store 130 without a wrapping narrow cast.
+    if let Some(lhs_ty) = ctx.local_types.get(name).cloned() {
+        if let Some(k) = from_type_name(lhs_ty.as_str()) {
+            if is_integer(k) && resolve_alias(k) != resolve_alias(PLATFORM_INT) {
+                let kind = resolve_alias(k).to_byte();
+                ctx.lower_load_binding(dest, name, block);
+                lower_expr(value, ctx.fresh_reg(), ctx, block);
+                let mir_op = match bin_op {
+                    BinOp::Add => MirOp::Add { kind },
+                    BinOp::Sub => MirOp::Sub { kind },
+                    BinOp::Mul => MirOp::Mul { kind },
+                    BinOp::Div => MirOp::Div { kind },
+                    BinOp::Mod => MirOp::Mod { kind },
+                    BinOp::BitAnd => MirOp::BitAnd { kind },
+                    BinOp::BitOr => MirOp::BitOr { kind },
+                    BinOp::BitXor => MirOp::BitXor { kind },
+                    BinOp::Shl => MirOp::Shl { kind },
+                    BinOp::Shr => MirOp::Shr { kind },
+                    _ => unreachable!("compound assign maps only to numeric binops"),
+                };
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: Some(dest),
+                        op: mir_op,
                         span: None,
                     },
                 );

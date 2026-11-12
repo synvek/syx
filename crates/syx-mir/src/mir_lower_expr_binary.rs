@@ -11,6 +11,7 @@ use crate::infer_object_type_name;
 use crate::lower_expr;
 use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_types::{MirInstr, MirOp};
+use crate::unary_numeric_kind;
 use smol_str::SmolStr;
 use syx_ast::{BinOp, Expr};
 use syx_stdlib::PLATFORM_INT;
@@ -116,7 +117,13 @@ pub(crate) fn lower_expr_binary(
             return;
         }
     }
-    let arith_kind = binary_numeric_kind(left, right, ctx);
+    // R-44: shifts keep the left operand width (Swift/C); RHS is only the count —
+    // do not widen Int8 << Int → platform Int (that prints 128 instead of -128).
+    let arith_kind = if matches!(op, BinOp::Shl | BinOp::Shr) {
+        unary_numeric_kind(left, ctx)
+    } else {
+        binary_numeric_kind(left, right, ctx)
+    };
     let mir_op = match op {
         BinOp::Add if expr_is_string_like(left, ctx) || expr_is_string_like(right, ctx) => {
             MirOp::ConcatStr

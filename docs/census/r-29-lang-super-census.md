@@ -33,6 +33,7 @@
 ## Still red (out of window)
 
 - ~~`polymorphic_base_ref` / wasm vtable~~ → **cleared in [R-43](r-43-poly-base-ref-census.md)**
-- JIT differential / contextual Int8 wrap → **R-44**
-- User-type `Comparable` sorted witness (e.g. `struct_with_compare_witness_sorted`) → **R-44**
+- ~~contextual Int8 wrap~~ → **cleared in [R-44](r-44-int8-wrap-census.md)**
+- User-type `Comparable` sorted witness (e.g. `struct_with_compare_witness_sorted`) → **next default**
+- JIT differential → park (Suite-1)
 - simd Object façade / json Object bags → later backlog (OrderedSet shell cleared in R-41; simd charter R-42)

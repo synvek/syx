@@ -418,9 +418,7 @@ impl SemanticAnalyzer {
                     | BinOp::Mod
                     | BinOp::BitAnd
                     | BinOp::BitOr
-                    | BinOp::BitXor
-                    | BinOp::Shl
-                    | BinOp::Shr => {
+                    | BinOp::BitXor => {
                         if let (Some((la, ea)), Some((lb, eb))) = (lt.as_simd(), rt.as_simd()) {
                             if la == lb && ea == eb {
                                 if !syx_config::simd_enabled() {
@@ -443,6 +441,35 @@ impl SemanticAnalyzer {
                             return Ok(TypeId::Unknown);
                         }
                         Ok(self.promote_numeric_binop(lt, rt, *span))
+                    }
+                    // R-44: shift result type follows the left operand (count may be Int).
+                    BinOp::Shl | BinOp::Shr => {
+                        if let (Some((la, ea)), Some((lb, eb))) = (lt.as_simd(), rt.as_simd()) {
+                            if la == lb && ea == eb {
+                                if !syx_config::simd_enabled() {
+                                    self.errors.push(self.error_at(
+                                        "SIMD operations require SIMD to be enabled",
+                                        *span,
+                                        "S022",
+                                    ));
+                                }
+                                return Ok(TypeId::Simd {
+                                    lanes: la,
+                                    element: ea,
+                                });
+                            }
+                            self.errors.push(self.error_at(
+                                "SIMD operands must have matching lane width and element type",
+                                *span,
+                                "S014",
+                            ));
+                            return Ok(TypeId::Unknown);
+                        }
+                        if lt.as_numeric_kind().is_some() {
+                            Ok(lt)
+                        } else {
+                            Ok(self.promote_numeric_binop(lt, rt, *span))
+                        }
                     }
                     BinOp::Eq
                     | BinOp::NotEq
