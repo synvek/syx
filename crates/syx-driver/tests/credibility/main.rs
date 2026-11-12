@@ -119,6 +119,7 @@ mod r24_w001_residual_contract;
 mod r25_wasm_suite_closeout_contract;
 mod r26_closure_stmt_body_contract;
 mod r27_collections_sendable_contract;
+mod r42_simd_object_charter_contract;
 mod r28_browser_closeout_contract;
 mod r29_lang_super_contract;
 mod r2_channel_census_contract;

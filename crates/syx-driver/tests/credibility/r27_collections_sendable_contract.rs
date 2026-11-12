@@ -1,7 +1,7 @@
 //! R-27 Collections public Object → Sendable contract.
 //!
 //! Array / Dictionary / Set element·key façades spell `Sendable`.
-//! Inventory pin: ≤186 / ≤11; simd Object residual ≥159 (parked).
+//! Inventory pin: ≤180 / ≤10 (R-41); simd Object residual ≥159 (R-42 charter parked).
 
 use std::path::PathBuf;
 use std::process::Command;

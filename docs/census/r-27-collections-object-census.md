@@ -11,7 +11,7 @@
 | Cred / SA / R-0…R-26 | exited (wasm **46/46**) |
 | **R-27** | Array/Dict/Set `item`/`key: Object` → `Sendable` |
 | Object residual | **180 / 10** after R-41 (R-27 exit was 186/11; −12/−3 from 198/14) |
-| simd | **159** — still parked |
+| simd | **159** — R-42 **charter parked**（residual 仍 ≥159；≠ wipe） |
 | OrderedSet | **R-41 cleared** Object-shell → `OrderedSet`/`Sendable`（≠ `OrderedSet<T>` GA） |
 
 ## Delivery
