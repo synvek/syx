@@ -2,7 +2,9 @@
 
 **ADR:** [stage3-s3-03-open](../adr/stage3-s3-03-open.md) · [prelude-snapshot](../adr/stage3-s3-03-prelude-snapshot.md) · [warm-program-trim](../adr/stage3-s3-03-warm-program-trim.md) · [warm-fixed-tax](../adr/stage3-s3-03-warm-fixed-tax.md) · [warm-residual](../adr/stage3-s3-03-warm-residual.md) · [cache-roundtrip](../adr/stage3-s3-03-cache-roundtrip.md) · [prelude-embed](../adr/stage3-s3-03-prelude-embed.md) · [**claim**](../adr/stage3-s3-03-claim.md) · **Window:** S3-I55 · **Current:** S3-I55 · **Claimed:** scoped `[x]`
 
-**Goal (S3-03):** 标准库预编译/缓存；`hello` 启动 **&lt; 0.15 s**。  
+> **Superseded by R-40 (wall clock):** clean-dir `syx run` hello / `fib(30)` measures ≈ **2.5–3.1 s** cold ([`r-40-coldstart-census`](r-40-coldstart-census.md); aligns with [`r-38`](r-38-book-run-census.md)). Historical `hello_cold_s≈0.08` / **&lt;0.15** below are **not** current product KPIs — keep keys for credibility contracts; do not cite them as live startup claims.
+
+**Goal (S3-03):** 标准库预编译/缓存；`hello` 启动 **&lt; 0.15 s**（historical scoped target; **superseded by R-40** clean-dir measure）。  
 **This census:** S3-I55 scoped plan claim — S3-03 **`[x]`**；Stage-3 仍 **`[~]`**；**≠** Stage-3 exit / **≠** S3-04 本窗开工。
 
 ## Command
@@ -15,7 +17,7 @@ bash scripts/s3_03_stdlib_cache_census.sh
 
 | Class | Counts as S3-03 debt? | Notes |
 |-------|----------------------|-------|
-| `hello` cold / warm / prelude_hit | **Claimed** | 实测均 &lt;0.15 |
+| `hello` cold / warm / prelude_hit | **Claimed (historical)** | 2026-11-08 scoped &lt;0.15；**superseded by R-40** (~2.5–3.1 s clean-dir) |
 | Prelude embed / roundtrip / residual / … | Hinged (I49–I54) | 保持 |
 | HostFn / Wave / F-08 / S3-04…07 | **No（OUT）** | Hard OUT |
 
@@ -37,12 +39,12 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 | `lazy_host_helper` | **≥1** | I51 |
 | `program_trim_helper` | **≥1** | I50 |
 | `entry_cache_bytes` | **≈5e3** | I50 |
-| `hello_cold_s` | **≈0.08** | **&lt;0.15** claimed |
-| `hello_prelude_hit_s` | **≈0.08** | **&lt;0.15** claimed |
-| `hello_warm_s` | **≈0.00** | **&lt;0.15** claimed |
+| `hello_cold_s` | **≈0.08** (hist.) | **&lt;0.15** scoped 2026-11-08；**superseded by R-40** (~2.55 s) |
+| `hello_prelude_hit_s` | **≈0.08** (hist.) | **&lt;0.15** scoped；not live product KPI |
+| `hello_warm_s` | **≈0.00** | same-path warm still tiny; cold path superseded |
 | `hello_nostd_s` | **≈0.00** | 护栏 |
 | `dedicated_prelude_cache_hit` | **≥1** | I49 |
-| `hello_target_s` | **0.15** | met (scoped) |
+| `hello_target_s` | **0.15** | historical scoped target only |
 | `embedded_std_include_str` | **73** | residual OK（非 OUT） |
 | `ensure_prelude_fn` | **1** | prelude 入口 |
 | `cached_module_unit` | **≥2** | 入口 + prelude |
@@ -78,9 +80,11 @@ Machine-local（prefer release `syx`）。Claimed under scoped meaning（见 cla
 - **≠** HostFn+1 / F-08 / Wave  
 - **≠** S3-04…07 本窗开工  
 - **≠** 零 `include_str!` / build.rs 编 `.sy`  
+- **≠** current product cold-start &lt;0.15 / &lt;0.3 s（**superseded by R-40**）
 
 ## References
 
 - [stage3-s3-03-claim](../adr/stage3-s3-03-claim.md) · S3-I55
 - [stage3-s3-03-prelude-embed](../adr/stage3-s3-03-prelude-embed.md) · S3-I54
+- [r-40-coldstart-census](r-40-coldstart-census.md) · superseding clean-dir measure
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-03

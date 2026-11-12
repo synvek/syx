@@ -1,8 +1,10 @@
 # ADR: Stage-3 S3-03 plan claim（S3-I55）
 
-**Status:** Accepted (S3-I55) · S3-03 `[x]` · Stage-3 `[~]`  
-**Date:** 2026-11-08  
+**Status:** Accepted (S3-I55) · S3-03 `[x]` · Stage-3 `[~]` · **Wall-clock superseded by R-40**  
+**Date:** 2026-11-08 · **Honesty note:** 2026-11-12  
 **Context:** After [S3-I54 prelude embed](stage3-s3-03-prelude-embed.md), construct hinges I48–I54 are landed and measured hello startup axes are under the S3-03 target: `hello_cold_s` ≈ **0.08**, `hello_prelude_hit_s` ≈ **0.08**, `hello_warm_s` ≈ **0.00** (all &lt; **0.15**); `hello_nostd_s` ≈ 0.00. This dedicated window flips the plan checkbox only — aligned with S3-01/S3-02 scoped claim. It does **not** exit Stage-3 or open S3-04 construction.
+
+> **Superseded by R-40 (clean-dir measure):** current empty-cache `syx run examples/hello.sy` / `fib(30)` cold wall ≈ **2.5–3.1 s** even with prelude embed tag match ([`r-40-coldstart-census`](../census/r-40-coldstart-census.md)). The historical &lt;**0.15** numbers below remain as the **scoped S3-I55 claim record**; they must **not** be cited as live product cold-start KPIs.
 
 ## Evidence
 
@@ -15,13 +17,13 @@
 | Residual | [S3-I52](stage3-s3-03-warm-residual.md) · bake tag / plugin Once / trim skip |
 | Roundtrip | [S3-I53](stage3-s3-03-cache-roundtrip.md) · no bincode-hostile `skip_serializing_if` |
 | Embed | [S3-I54](stage3-s3-03-prelude-embed.md) · `EMBEDDED_PRELUDE_SNAPSHOT` / `PRELUDE_EMBED_HIT` |
-| Startup KPI | census `hello_cold_s` / `hello_warm_s` / `hello_prelude_hit_s` **&lt; 0.15**（measured） |
+| Startup KPI | census `hello_cold_s` / `hello_warm_s` / `hello_prelude_hit_s` **&lt; 0.15**（historical measured 2026-11-08；**superseded by R-40**） |
 | Contract | `s3_03_claim_contract` · `s3_03_stdlib_cache_census_contract` |
 | Honesty OUT | **≠** Stage-3 exit · **≠** S3-04…07 open this window |
 
 ## Scoped `[x]` meaning
 
-Standard-library precompile/cache path makes **hello** cold / warm / prelude-hit startup **&lt; 0.15 s** (measured) via disk + embedded `PreludeSnapshot` — **not** 「zero `include_str!`」 / **not** 「build.rs compiles `.sy`」 / **not** 「Stage-3 exit」 / **not** 「zero residual stdlib source in binary」.
+Standard-library precompile/cache path makes **hello** cold / warm / prelude-hit startup **&lt; 0.15 s** (scoped S3-I55 measure, 2026-11-08) via disk + embedded `PreludeSnapshot` — **not** 「zero `include_str!`」 / **not** 「build.rs compiles `.sy`」 / **not** 「Stage-3 exit」 / **not** 「zero residual stdlib source in binary」 / **not** 「current product cold-start KPI」（**superseded by R-40** clean-dir ~2.5–3.1 s）.
 
 ## Decision
 
@@ -43,4 +45,5 @@ Standard-library precompile/cache path makes **hello** cold / warm / prelude-hit
 - [stage3-s3-03-open](stage3-s3-03-open.md) · S3-I48
 - [stage3-s3-03-prelude-embed](stage3-s3-03-prelude-embed.md) · S3-I54
 - [stage3-stdlib-cache-census](../census/stage3-stdlib-cache-census.md)
+- [r-40-coldstart-census](../census/r-40-coldstart-census.md) · superseding clean-dir wall clock
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-03
