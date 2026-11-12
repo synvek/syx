@@ -45,12 +45,23 @@
 | `prelude_vm_image.rkyv` size | **~116 KB** (fn blobs + export side table) |
 | `hello` via `syx run --daemon` | ~0.01–0.02 s client wall (reuse is in daemon process) |
 
+## Release / CI guarantee
+
+| Gate | What it does |
+|------|----------------|
+| `ci.yml` Linux | `check_prelude_embed.sh` after release build |
+| `ci.yml` `windows-smoke` | `check_prelude_embed.ps1` after release build |
+| `release.yml` each matrix OS | **Regen** (`gen_prelude_snapshot.sh` / `.ps1`) then full-native build, then **verify** embed hit on the shipped binary |
+
+Embed is keyed by `cache_version_tag` (`CARGO_PKG_VERSION` + `rustc -V` + tip digest). Checked-in assets alone do **not** guarantee every platform: a runner whose rustc differs from the gen machine will miss. Release regen bakes a matching snapshot into that platform’s artifact via `include_bytes!`.
+
 ## Non-claims
 
 - ≠ every script ≤20 ms (import-heavy / compute-bound still slower)
 - ≠ true zero-copy Instruction (still bincode-decode blobs inside rkyv)
 - ≠ Windows daemon (Unix sock only; Windows still gets embed/rkyv via `.ps1` regen)
 - ≠ native/wasm path changes (`stdlib_mir` stays on for `syx build`)
+- ≠ one committed `.bin` forever valid on all rustc versions (release regen is the ship guarantee)
 
 ## Next knives
 

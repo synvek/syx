@@ -352,6 +352,8 @@ bash scripts/gen_prelude_snapshot.sh
 powershell -File scripts/gen_prelude_snapshot.ps1
 ```
 
+**Release:** each `release.yml` matrix job regenerates the embed on that runner before packaging, then runs `check_prelude_embed` on the shipped binary — so Linux / macOS / Windows artifacts are not relying on a single checked-in blob matching every rustc.
+
 ### Warm daemon (Unix)
 
 Keep a long-lived process with the prelude already hydrated:

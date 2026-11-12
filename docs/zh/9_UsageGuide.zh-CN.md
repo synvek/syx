@@ -354,6 +354,8 @@ bash scripts/gen_prelude_snapshot.sh
 powershell -File scripts/gen_prelude_snapshot.ps1
 ```
 
+**Release：** `release.yml` 每个矩阵任务在打包前于该 runner 上重生 embed，并对产物跑 `check_prelude_embed`——不依赖一份检入资产匹配所有平台的 rustc。
+
 ### 温热 daemon（Unix）
 
 常驻进程保留已 hydrate 的 prelude：

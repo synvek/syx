@@ -215,6 +215,13 @@ jobs:
 
         run: cargo build -p syx-cli
 
+      - name: Prelude embed freshness (Windows)
+
+        shell: pwsh
+        run: |
+          cargo build -p syx-cli --release
+          .\scripts\check_prelude_embed.ps1 target\release\syx.exe
+
       - name: Driver smoke + plugin load (Windows)
 
         run: cargo test -p syx-driver --test evergreen -- smoke --test-threads=1

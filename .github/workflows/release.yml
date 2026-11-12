@@ -402,6 +402,18 @@ jobs:
             fi
           done
           ls -la "${LLVM_LIB_UNIX}/libxml2s.lib" "${LLVM_LIB_UNIX}/xml2s.lib"
+      # Prelude embed is keyed by cache_version_tag (pkg + rustc -V + tip digest).
+      # Checked-in assets may miss on a runner whose rustc differs from the machine
+      # that last ran gen_prelude_snapshot — regen here so each platform's shipped
+      # binary embeds a tag-matching snapshot (include_bytes in the following build).
+      - name: Regen prelude embed for this runner rustc
+        if: runner.os != 'Windows'
+        run: bash scripts/gen_prelude_snapshot.sh
+      - name: Regen prelude embed for this runner rustc
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\scripts\gen_prelude_snapshot.ps1
+
       - name: Build release CLI (full-native)
         run: |
           set -euo pipefail
@@ -460,6 +472,21 @@ jobs:
                 ;;
             esac
           fi
+
+      - name: Verify prelude embed hit on release binary
+        if: runner.os != 'Windows'
+        run: |
+          set -euo pipefail
+          BIN="target/${{ matrix.target }}/release/syx"
+          test -x "$BIN"
+          bash scripts/check_prelude_embed.sh "$BIN"
+      - name: Verify prelude embed hit on release binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bin = "target\${{ matrix.target }}\release\syx.exe"
+          if (-not (Test-Path $bin)) { throw "missing $bin" }
+          .\scripts\check_prelude_embed.ps1 $bin
 
       # - name: Driver parity smoke (SYX 38.0)
       #   run: |
