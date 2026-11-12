@@ -757,16 +757,7 @@ jobs:
           cat > "$notes_file" <<EOF
           Prebuilt **SYX SDK** (channel **${channel}**, Cargo.toml **${version}**, release **${tag}**, run **${{ github.run_number }}**).
 
-          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`. Native link currently requires system SDK (Windows SDK, XCode SDK) for linking; 
-
-          | OS | Arch | Artifact |
-          |----|------|----------|
-          | Linux | x86_64 | syx-sdk-${version_label}-linux-x86_64.tar.gz |
-          | Linux | aarch64 | syx-sdk-${version_label}-linux-aarch64.tar.gz |
-          | macOS | x86_64 | syx-sdk-${version_label}-macos-x86_64.tar.gz |
-          | macOS | aarch64 | syx-sdk-${version_label}-macos-aarch64.tar.gz |
-          | Windows | x86_64 | syx-sdk-${version_label}-windows-x86_64.zip |
-          | Windows | aarch64 | syx-sdk-${version_label}-windows-aarch64.zip |
+          Each archive unpacks to a \`syx/\` tree: \`bin/syx\`, \`lib/libsyx_rt*\` (native link), runtime profiles under \`lib/profiles/\`, reference \`packages/\` + \`examples/\` + \`tutorial/\`, plus \`README.md\` and \`LICENSE\`.  
 
           Also includes VS Code extension **syx-language-${version_label}.vsix** when packaging succeeds.
           EOF

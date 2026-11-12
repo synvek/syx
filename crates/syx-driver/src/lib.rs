@@ -608,6 +608,29 @@ func main() { print(Math.add(1, 2)) }"#,
     }
 
     #[test]
+    fn math_then_simd4_import_does_not_wipe_math() {
+        // Regression: ensure_prelude hydrate OnceLock must not replace a graph that
+        // already holds prior stdlib imports (Math then SIMD4 → S002 Math).
+        let dir = temp_dir("math_then_simd4");
+        let path = dir.join("main.sy");
+        fs::write(
+            &path,
+            r#"import Math
+import SIMD4
+func main() { print(Math.add(1, 2)) }"#,
+        )
+        .unwrap();
+        let opts = DriverOptions {
+            stdlib_mir: false,
+            incremental_cache: false,
+            ..DriverOptions::default()
+        };
+        let (code, printed) = run_file_printed(&path, &opts).expect("Math+SIMD4 must run");
+        assert_eq!(code, 0);
+        assert_eq!(printed, vec!["3".to_string()]);
+    }
+
+    #[test]
     fn embedded_stdlib_system_importable() {
         let dir = temp_dir("system_import");
         let p6 = dir.join("main.sy");

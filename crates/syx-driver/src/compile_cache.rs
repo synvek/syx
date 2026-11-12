@@ -293,6 +293,16 @@ pub(crate) fn load_prelude_snapshot(
     root: &Path,
     allow_disk: bool,
 ) -> bool {
+    // `compile_module_recursive` calls ensure_prelude for every new import.
+    // If this graph already carries stdlib units (prelude and/or prior imports like
+    // Math), treat as hit — never replace/wipe (hydrate OnceLock must not clobber).
+    if graph
+        .modules
+        .keys()
+        .any(|p| crate::is_stdlib_module_path(p))
+    {
+        return true;
+    }
     let disk_rkyv = if allow_disk {
         Some(prelude_rkyv_cache_path(root))
     } else {

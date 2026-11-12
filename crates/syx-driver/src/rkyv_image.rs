@@ -214,7 +214,11 @@ pub(crate) fn load_rkyv_bytes(bytes: &[u8]) -> Option<RkyvStdlibImage> {
 }
 
 /// Try embedded rkyv image, then optional mmap'd disk path.
+/// Only loads into an empty graph — never replaces modules already present.
 pub(crate) fn try_load_rkyv_into_graph(graph: &mut ModuleGraph, disk: Option<&Path>) -> bool {
+    if !graph.modules.is_empty() {
+        return false;
+    }
     if let Some(existing) = take_hydrated_graph() {
         *graph = existing;
         return true;
