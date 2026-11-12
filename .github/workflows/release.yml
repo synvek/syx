@@ -251,13 +251,15 @@ jobs:
           rm -rf "${STAGE_UNIX}" "${DL_UNIX}"
 
           # Drop components not needed for inkwell/llvm-sys + syx-lld:
-          # need: bin/llvm-config*, bin/lld*, include/{llvm,llvm-c,lld}, lib/LLVM*|liblld*|Polly*
+          # need: bin/llvm-config*, bin/lld*, bin/clang* (Linux full-native link
+          # driver; gcc rejects -fuse-ld=/abs/path), include/{llvm,llvm-c,lld},
+          # lib/LLVM*|liblld*|Polly*
+          # Keep lib/clang (clang resource dir); drop only unused include trees.
           rm -rf \
             "${PREFIX_UNIX}/share" \
             "${PREFIX_UNIX}/libexec" \
             "${PREFIX_UNIX}/python" \
             "${PREFIX_UNIX}/lib/python"* \
-            "${PREFIX_UNIX}/lib/clang" \
             "${PREFIX_UNIX}/lib/ocaml" \
             "${PREFIX_UNIX}/include/clang" \
             "${PREFIX_UNIX}/include/clang-c" \
@@ -275,7 +277,7 @@ jobs:
             while IFS= read -r -d '' f; do
               base="$(basename "${f}")"
               case "${base}" in
-                llvm-config|llvm-config.exe|lld|lld.exe|ld64.lld|ld.lld|lld-link|lld-link.exe|wasm-ld|wasm-ld.exe|*.dll)
+                llvm-config|llvm-config.exe|lld|lld.exe|ld64.lld|ld.lld|lld-link|lld-link.exe|wasm-ld|wasm-ld.exe|clang|clang++|clang-[0-9]*|clang++-[0-9]*|*.dll)
                   ;;
                 *)
                   rm -rf "${f}"
@@ -435,23 +437,23 @@ jobs:
           else
             # Linux: SYX_LLVM .a is often bitcode. rust-lld (rustc LLVM) ThinLTO →
             # VP !prof; host bfd → file format not recognized. Use SYX clang as
-            # linker (same LLVM major). See scripts/build-full-native.
+            # linker driver + SYX ld.lld (same LLVM major). gcc rejects
+            # `-fuse-ld=/abs/path`, so never fall back to `cc` here.
+            # See scripts/build-full-native.
             case "${TARGET}" in
               *-unknown-linux-*)
                 PREFIX="${LLVM_SYS_211_PREFIX:-${SYX_LLVM_PREFIX:-}}"
                 CLANG="${PREFIX}/bin/clang"
                 LLD="${PREFIX}/bin/ld.lld"
-                # clang without -fuse-ld still calls /usr/bin/ld (bfd) → bitcode fail.
-                if [ -x "${CLANG}" ] && [ -x "${LLD}" ]; then
-                  RUSTFLAGS="-C lto=off -C linker-features=-lld -C linker=${CLANG} -C link-arg=-fuse-ld=${LLD}" \
-                    cargo build --release -p syx-cli --features full-native --target "${TARGET}"
-                elif [ -x "${LLD}" ]; then
-                  RUSTFLAGS="-C lto=off -C linker-features=-lld -C link-arg=-fuse-ld=${LLD}" \
-                    cargo build --release -p syx-cli --features full-native --target "${TARGET}"
-                else
-                  echo "ERROR: need ${LLD} (and preferably ${CLANG}) to link SYX_LLVM bitcode" >&2
+                if [ ! -x "${CLANG}" ] || [ ! -x "${LLD}" ]; then
+                  echo "ERROR: need executable ${CLANG} and ${LLD} to link SYX_LLVM bitcode" >&2
+                  echo "  (clang was trimmed from the LLVM prefix historically; keep bin/clang*)" >&2
+                  ls -la "${PREFIX}/bin" 2>/dev/null || true
                   exit 1
                 fi
+                echo "Linux full-native linker=${CLANG} fuse-ld=${LLD}"
+                RUSTFLAGS="-C lto=off -C linker-features=-lld -C linker=${CLANG} -C link-arg=-fuse-ld=${LLD}" \
+                  cargo build --release -p syx-cli --features full-native --target "${TARGET}"
                 ;;
               *)
                 cargo build --release -p syx-cli --features full-native --target "${TARGET}"
