@@ -19,11 +19,13 @@ use syx_parser::Parser;
 use syx_pkg::SyxManifest;
 use syx_semantic::{SemanticAnalyzer, TypeId};
 
-fn stdlib_mir_enabled() -> bool {
-    std::env::var("SYX_STDLIB_MIR")
-        .map(|v| v == "0" || v.eq_ignore_ascii_case("false"))
-        .map(|disabled| !disabled)
-        .unwrap_or(true)
+/// Env `SYX_STDLIB_MIR=0/false` forces off; `=1/true` forces on; else use [`DriverOptions::stdlib_mir`].
+fn want_stdlib_mir(options: &DriverOptions) -> bool {
+    match std::env::var("SYX_STDLIB_MIR") {
+        Ok(v) if v == "0" || v.eq_ignore_ascii_case("false") => false,
+        Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => true,
+        _ => options.stdlib_mir,
+    }
 }
 
 fn finalize_unified_mir(mir: &mut syx_mir::MirModule) {
@@ -306,6 +308,9 @@ pub(crate) fn mir_merge_stdlib_function(
 pub(crate) fn collect_stdlib_extension_methods(
     graph: &ModuleGraph,
 ) -> indexmap::IndexSet<(SmolStr, SmolStr)> {
+    if !graph.stdlib_extension_methods.is_empty() {
+        return graph.stdlib_extension_methods.clone();
+    }
     let mut set = indexmap::IndexSet::new();
     for (path, dep) in &graph.modules {
         if !path.to_string_lossy().contains("<stdlib>/") {
@@ -373,8 +378,9 @@ pub fn build_unified_mir(
 ) -> SyxResult<syx_mir::MirModule> {
     let (mut mir, instantiations) =
         build_mir_from_graph(graph, entry, project_root, options, manifest)?;
-    if stdlib_mir_enabled() {
+    if want_stdlib_mir(options) {
         // M1-A02: reuse instantiations from the single frontend pass (no second parse/expand).
+        // Interpret (`stdlib_mir=false`) keeps snapshot bytecode instead — VM-image fastpath.
         merge_stdlib_modules_into_mir(graph, &mut mir, &instantiations, options)?;
     }
     finalize_unified_mir(&mut mir);

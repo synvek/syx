@@ -21,6 +21,8 @@ pub struct ModuleUnit {
 pub struct ModuleGraph {
     pub modules: IndexMap<PathBuf, ModuleUnit>,
     pub order: Vec<PathBuf>,
+    /// Precomputed stdlib extension methods (from prelude snapshot). Empty → parse fallback.
+    pub stdlib_extension_methods: indexmap::IndexSet<(smol_str::SmolStr, smol_str::SmolStr)>,
 }
 
 /// Native code generator backend selected by `--backend` / `SYX_BACKEND`.
@@ -103,6 +105,10 @@ pub struct DriverOptions {
     /// Default **false** so `run` / library / edge hosts have no filesystem side effects.
     /// CLI `syx build` enables this; `syx run --with-cache` opts in.
     pub incremental_cache: bool,
+    /// When true, re-lower stdlib into unified MIR (needed for native/wasm emit).
+    /// Default **true**; `syx run` sets **false** so interpret keeps snapshot bytecode
+    /// (VM-image fastpath — skip prelude MIR rebuild).
+    pub stdlib_mir: bool,
 }
 
 /// SYX 38.0 build profile for `target/debug` vs `target/release`.
@@ -257,6 +263,7 @@ impl Default for DriverOptions {
             wasm_aot: syx_config::wasm_aot_enabled(),
             in_build_syx_task: false,
             incremental_cache: false,
+            stdlib_mir: true,
         }
     }
 }

@@ -206,6 +206,9 @@ pub(crate) struct PreludeSnapshot {
     pub cache_version_tag: String,
     pub order: Vec<PathBuf>,
     pub modules: Vec<CachedModuleUnit>,
+    /// Precomputed extension methods so interpret path skips re-parsing prelude sources.
+    #[serde(default)]
+    pub extension_methods: Vec<(String, String)>,
 }
 
 /// Disk path for prelude snapshot under `project_cache_dir` (S3-I49).
@@ -220,6 +223,13 @@ pub(crate) fn prelude_cache_path(root: &Path) -> PathBuf {
 fn apply_prelude_snapshot(graph: &mut ModuleGraph, snap: PreludeSnapshot) -> bool {
     if snap.cache_version_tag != cache_version_tag() || snap.modules.is_empty() {
         return false;
+    }
+    if !snap.extension_methods.is_empty() {
+        graph.stdlib_extension_methods = snap
+            .extension_methods
+            .into_iter()
+            .map(|(a, b)| (SmolStr::new(a), SmolStr::new(b)))
+            .collect();
     }
     for cached in snap.modules {
         let path = cached.path.clone();
@@ -278,6 +288,10 @@ pub(crate) fn load_prelude_snapshot(
 
 /// Persist current graph prelude modules (`<stdlib>/…`) after a successful ensure.
 /// No-op when `allow_disk` is false.
+///
+/// Dedupes function bodies across modules (ensure historically accumulated O(n²)
+/// merges into each unit) and drops per-module `host_fn_names` copies — interpret
+/// fills the global table from `all_host_fn_names()` at use sites.
 pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_disk: bool) {
     if !allow_disk {
         return;
@@ -285,6 +299,17 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
     let tag = cache_version_tag();
     let mut order = Vec::new();
     let mut modules = Vec::new();
+    let mut seen_fns = std::collections::HashSet::<String>::new();
+    let extension_methods: Vec<(String, String)> = {
+        let set = if graph.stdlib_extension_methods.is_empty() {
+            crate::collect_stdlib_extension_methods(graph)
+        } else {
+            graph.stdlib_extension_methods.clone()
+        };
+        set.into_iter()
+            .map(|(a, b)| (a.to_string(), b.to_string()))
+            .collect()
+    };
     for key in &graph.order {
         let Some(unit) = graph.modules.get(key) else {
             continue;
@@ -294,7 +319,11 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
             continue;
         }
         order.push(key.clone());
-        modules.push(CachedModuleUnit::from(unit));
+        let mut cached = CachedModuleUnit::from(unit);
+        cached.program.functions.retain(|f| seen_fns.insert(f.name.to_string()));
+        // Shared HostFn name table — avoid 34× copies in the embed.
+        cached.program.host_fn_names.clear();
+        modules.push(cached);
     }
     if modules.is_empty() {
         return;
@@ -303,6 +332,7 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
         cache_version_tag: tag,
         order,
         modules,
+        extension_methods,
     };
     let path = prelude_cache_path(root);
     if let Some(parent) = path.parent() {

@@ -340,6 +340,17 @@ Driver / library callers default to `DriverOptions.incremental_cache = false`; s
 rm -rf target/cache
 ```
 
+### Interpret stdlib fastpath
+
+`syx run` sets `DriverOptions.stdlib_mir = false`: it keeps the embedded prelude **bytecode** and does **not** re-lower the whole stdlib through unified MIR (that path remains for `syx build` / native / wasm).  
+Force the old MIR merge with `SYX_STDLIB_MIR=1` when debugging. Regen the embed after toolchain fingerprint drift:
+
+```bash
+bash scripts/gen_prelude_snapshot.sh
+```
+
+See [`docs/census/stdlib-vm-fastpath-census.md`](../census/stdlib-vm-fastpath-census.md).
+
 ---
 
 ## Language basics

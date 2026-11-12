@@ -342,6 +342,17 @@ syx run --with-cache examples/hello.sy
 rm -rf target/cache
 ```
 
+### 解释运行 stdlib 快路径
+
+`syx run` 会设 `DriverOptions.stdlib_mir = false`：沿用内嵌 prelude **字节码**，不再把整份标准库重新 lower 进 unified MIR（`syx build` / native / wasm 仍走 MIR）。  
+调试时可设 `SYX_STDLIB_MIR=1` 强制旧路径。工具链指纹变化后请重生 embed：
+
+```bash
+bash scripts/gen_prelude_snapshot.sh
+```
+
+详见 [`docs/census/stdlib-vm-fastpath-census.md`](../census/stdlib-vm-fastpath-census.md)。
+
 ---
 
 ## 语言基础

@@ -118,6 +118,9 @@ pub(crate) fn ensure_prelude_modules_in_graph(
     }
     ensure_embedded_protocols_in_graph(graph, options, &prelude_imports)?;
     ensure_reference_builtins_in_graph(graph, options, &prelude_imports)?;
+    if graph.stdlib_extension_methods.is_empty() {
+        graph.stdlib_extension_methods = collect_stdlib_extension_methods(graph);
+    }
     store_prelude_snapshot(graph, project_root, options.incremental_cache);
     Ok(())
 }

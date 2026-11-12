@@ -549,6 +549,8 @@ fn run() -> miette::Result<()> {
             }
             let mut options = options;
             options.incremental_cache = with_cache;
+            // VM-image fastpath: keep prelude snapshot bytecode; do not re-lower stdlib MIR.
+            options.stdlib_mir = false;
             let path = resolve_path(path);
             if wasm {
                 let exit_code = if path.is_dir() {
