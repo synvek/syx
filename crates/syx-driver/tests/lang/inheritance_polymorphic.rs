@@ -296,9 +296,14 @@ fn syxbc_for_fixture(rel: &str) -> String {
 #[test]
 fn poly_mir_call_indirect_base_ref() {
     let bc = syxbc_for_fixture("tests/fixtures/parity/polymorphic_base_ref.sy");
+    // R-43: call site must be CallIndirect + __vtable_* (not init-slot alone / static Dog_speak).
     assert!(
-        bc.contains("CallIndirect") || bc.contains("__vtable_speak"),
-        "expected vtable dispatch in bytecode:\n{bc}"
+        bc.contains("CallIndirect") && bc.contains("__vtable_speak"),
+        "expected call-site vtable CallIndirect:\n{bc}"
+    );
+    assert!(
+        !bc.contains("Call Dog_speak"),
+        "erased base_ref must not static-Call Dog_speak:\n{bc}"
     );
 }
 
@@ -306,8 +311,8 @@ fn poly_mir_call_indirect_base_ref() {
 fn poly_mir_vtable_slot_on_init() {
     let bc = syxbc_for_fixture("tests/fixtures/parity/polymorphic_base_ref.sy");
     assert!(
-        bc.contains("__vtable_speak") || bc.contains("ObjectGet"),
-        "expected vtable slot read:\n{bc}"
+        bc.contains("__vtable_speak") && bc.contains("ObjectGet"),
+        "expected vtable slot ObjectGet at call site:\n{bc}"
     );
 }
 
@@ -329,8 +334,8 @@ func main() {
 }"#;
     let bc = syxbc_for_embedded(src);
     assert!(
-        bc.contains("CallIndirect") || bc.contains("__vtable_m"),
-        "{bc}"
+        bc.contains("CallIndirect") && bc.contains("__vtable_m"),
+        "expected call-site vtable CallIndirect:\n{bc}"
     );
     assert!(run(src).iter().any(|l| l.trim() == "3"));
 }

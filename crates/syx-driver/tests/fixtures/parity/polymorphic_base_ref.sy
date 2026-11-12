@@ -1,3 +1,5 @@
+// R-43 hard nail: type-erased Animal receiver (factory), not only
+// `let a: Animal = Dog()` which can retain concrete Dog for static Call.
 class Animal {
     func speak() {
         print("animal")
@@ -10,8 +12,11 @@ class Dog: Animal {
     }
 }
 
-func main() {
-    let a: Animal = Dog()
-    a.speak()
+func make() -> Animal {
+    return Dog()
 }
 
+func main() {
+    let a: Animal = make()
+    a.speak()
+}

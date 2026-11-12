@@ -997,6 +997,102 @@ pub(crate) fn lower_expr_call_member(
                 return;
             }
         }
+        // R-43: class instance method present in class_vtables → ObjectGet(__vtable_*)
+        // + CallIndirect (R-34 witness shape). VM already virtualizes Call via
+        // resolve_virtual_method; wasm/LLVM need the slot at the call site.
+        // Skip type-name statics, init/deinit, and platform value types (DI-safe).
+        if !is_type_name_call
+            && ctx.module.class_types.contains_key(&base)
+            && !is_platform_value_type(base.as_str())
+            && name.as_str() != "init"
+            && name.as_str() != "deinit"
+            && ctx
+                .module
+                .class_vtables
+                .get(&base)
+                .is_some_and(|vt| vt.contains_key(name))
+        {
+            let recv_name = SmolStr::new(format!("__vtable_recv_{}", ctx.next_reg));
+            let recv_slot = ctx.alloc_local(&recv_name);
+            lower_expr(object, ctx.fresh_reg(), ctx, block);
+            if !matches!(object.as_ref(), Expr::Ident { .. }) {
+                ctx.emit_unwrap_syx_ref(block);
+            }
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::StoreLocal(recv_slot),
+                    span: None,
+                },
+            );
+            let mut arg_slots = Vec::new();
+            for (i, arg) in args.iter().enumerate() {
+                let an = SmolStr::new(format!("__vtable_arg_{}_{i}", ctx.next_reg));
+                let slot = ctx.alloc_local(&an);
+                lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::StoreLocal(slot),
+                        span: None,
+                    },
+                );
+                arg_slots.push(slot);
+            }
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(recv_slot),
+                    span: None,
+                },
+            );
+            for slot in &arg_slots {
+                ctx.emit(
+                    block,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::LoadLocal(*slot),
+                        span: None,
+                    },
+                );
+            }
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::LoadLocal(recv_slot),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstStr(format!("__vtable_{name}")),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: Some(dest),
+                    op: MirOp::ObjectGet,
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: Some(dest),
+                    op: MirOp::CallIndirect((1 + args.len()) as u32),
+                    span: None,
+                },
+            );
+            return;
+        }
         if ctx.module.class_types.contains_key(&base)
             || ctx.module.dataclass_names.contains(&base)
             || ctx.module.enum_classes.contains(&base)

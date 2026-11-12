@@ -76,6 +76,11 @@ fn collect_used_aot_imports(module: &MirModule) -> BTreeSet<aot::Import> {
                         // Wave A W18: callee CallHost may leave pending_catch for caller.
                         used.insert(aot::Import::TakeCatchPc);
                     }
+                    // R-43: vtable/witness CallIndirect — fn idx on RT → TakeRtI32 + table call.
+                    MirOp::CallIndirect(_) => {
+                        used.insert(aot::Import::TakeRtI32);
+                        used.insert(aot::Import::TakeCatchPc);
+                    }
                     MirOp::CallHost(_) => {
                         used.insert(aot::Import::CallHost);
                     }
@@ -984,7 +989,10 @@ fn leaves_guest_cond_i32(op: &MirOp) -> bool {
 /// Drop unless the next op is `Pop` — otherwise Block/`End` leaks (W001) or a
 /// following `Pop` double-Drops (tracker: `Drop underflow … mir_op=Pop`).
 fn leaves_guest_call_stub(op: &MirOp) -> bool {
-    matches!(op, MirOp::Call(_) | MirOp::CallHost(_) | MirOp::Print)
+    matches!(
+        op,
+        MirOp::Call(_) | MirOp::CallIndirect(_) | MirOp::CallHost(_) | MirOp::Print
+    )
 }
 
 fn next_consumes_guest_cond(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
@@ -3569,6 +3577,27 @@ fn emit_mir_instr(
             }
             aot_emit_hard_fail(&format!("Call({name}) has no module function"));
             emit_wasm_instr(body, &WasmInstr::Unreachable);
+            return;
+        }
+        // R-43: ObjectGet(__vtable_*/__witness_*) left fn idx on RT; pull to guest and
+        // dispatch via the same table CallIndirect as MirOp::Call (args already on RT).
+        if matches!(instr.op, MirOp::CallIndirect(_)) {
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::CallIndirect {
+                    type_index: host::TYPE_FUNC_I32,
+                    table_index: 0,
+                },
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
+            emit_call_host_take_catch(body, br_to_loop);
             return;
         }
         if let MirOp::LoadGlobal(slot) = &instr.op {
@@ -6234,6 +6263,25 @@ fn emit_mir_instr(
                 emit_call_host_take_catch(body, br_to_loop);
                 // R-23: stub cleanup via `drop_unused_guest_cond` (skip if next is Pop).
             }
+        }
+        // R-43 residual: same TakeRtI32 + table dispatch as AOT sync path.
+        MirOp::CallIndirect(_) => {
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeRtI32)),
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::CallIndirect {
+                    type_index: host::TYPE_FUNC_I32,
+                    table_index: 0,
+                },
+            );
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
+            emit_call_host_take_catch(body, br_to_loop);
         }
         MirOp::CallHost(idx) => {
             emit_wasm_instr(body, &WasmInstr::I32Const(*idx as i32));
