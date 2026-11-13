@@ -10,7 +10,7 @@
 |-------|--------|
 | 编号账本 SA-0…R-49 + U-0…U-2 | **收口**（无 R-50） |
 | **U-3** | **exited** — 9 Stage-4 纯 MD modules deleted |
-| Open | park：JIT Suite-1、`func…async`、simd 159；候选 U-4 |
+| Open | park：JIT Suite-1、simd 159；**U-4** `func…async` dual-accept |
 
 ## Root cause
 

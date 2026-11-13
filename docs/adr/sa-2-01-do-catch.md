@@ -12,6 +12,7 @@
    - `catch { }` — binds as `error` (Swift bare catch)
    - `catch (name[: Type]) { }` — kept for existing call sites
    - `catch name[: Type] { }` — paren-less binding
+   - `catch let name[: Type] { }` — Swift-style (≡ paren-less; U-6 dual-accept)
 4. **Books / QuickReference / language-book-ssot** teach `do/catch` only.
 5. **Non-claims:** ≠ typed multi-catch patterns (SA-2-02 deepens `Error`); ≠ SA-3 rename; ≠ package API Swiftify.
 

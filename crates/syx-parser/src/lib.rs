@@ -617,7 +617,7 @@ impl Parser {
     fn parse_function_with_name_opts(
         &mut self,
         access: AccessLevel,
-        is_async: bool,
+        mut is_async: bool,
         attrs: Vec<Attribute>,
         start: Span,
         name: SmolStr,
@@ -629,6 +629,10 @@ impl Parser {
         self.consume(TokenKind::LParen, "Expected '(' after function name")?;
         let params = self.parse_params()?;
         self.consume(TokenKind::RParen, "Expected ')' after parameters")?;
+        // U-4: Swift-style postfix `func f() async` (prefix `async func` still via caller).
+        if self.match_kind(TokenKind::Async) {
+            is_async = true;
+        }
         // S1-I7: `throws -> T` (Swift order) as well as `-> T throws`.
         let parse_throws_type = |p: &mut Self| -> SyxResult<TypeExpr> {
             if matches!(
@@ -3181,7 +3185,9 @@ impl Parser {
         self.consume(TokenKind::LBrace, "Expected '{' after do")?;
         let body = self.parse_block_stmts()?;
         self.consume(TokenKind::Catch, "Expected 'catch' after do block")?;
-        // Forms: `catch { }` | `catch (name[: Type]) { }` | `catch name[: Type] { }`
+        // U-6: Swift-style `catch let e` == `catch e` (binding form is cosmetic in Stmt::Try).
+        let _ = self.match_kind(TokenKind::Let);
+        // Forms: `catch { }` | `catch (name[: Type]) { }` | `catch name[: Type] { }` | `catch let name[: Type] { }`
         let (catch_name, catch_type) = if self.match_kind(TokenKind::LParen) {
             let catch_name = self.consume_identifier("Expected catch variable name")?;
             let catch_type = if self.match_kind(TokenKind::Colon) {
