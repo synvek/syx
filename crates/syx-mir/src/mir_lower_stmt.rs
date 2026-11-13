@@ -521,7 +521,10 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             ctx.active_block = merge_block;
         }
         Stmt::While {
-            condition, body, ..
+            condition,
+            body,
+            label,
+            ..
         } => {
             let loop_header = ctx.fresh_block();
             let body_block = ctx.fresh_block();
@@ -550,12 +553,16 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             // Same as If: body stmts must see active_block == body entry.
             // Otherwise VarDecl/Print (which store via active_block after ?? fix)
             // emit into the pre-loop block after Jump — dead code, loop locals stay nil.
+            // U-7: continue → header, break → exit.
+            ctx.loop_stack
+                .push((loop_header, exit_block, label.clone()));
             ctx.active_block = body_block;
             for s in body {
                 let b = ctx.active_block;
                 lower_stmt(s, ctx, b);
             }
             let body_end = ctx.active_block;
+            ctx.loop_stack.pop();
             ctx.emit(
                 body_end,
                 MirInstr {
@@ -571,6 +578,7 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             name,
             iterable,
             body,
+            label,
             ..
         } => {
             let dest = ctx.fresh_reg();
@@ -652,12 +660,16 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                     span: None,
                 },
             );
+            // U-7: continue → header (next), break → exit.
+            ctx.loop_stack
+                .push((loop_header, exit_block, label.clone()));
             ctx.active_block = body_block;
             for s in body {
                 let b = ctx.active_block;
                 lower_stmt(s, ctx, b);
             }
             let body_end = ctx.active_block;
+            ctx.loop_stack.pop();
             ctx.emit(
                 body_end,
                 MirInstr {
@@ -921,6 +933,117 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                 ctx.link(fail_block, end_block);
             }
             ctx.active_block = end_block;
+        }
+        // U-7: `repeat { body } while cond` — body runs at least once.
+        Stmt::RepeatWhile {
+            body, condition, ..
+        } => {
+            let body_block = ctx.fresh_block();
+            let cond_block = ctx.fresh_block();
+            let exit_block = ctx.fresh_block();
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::Jump(body_block),
+                    span: None,
+                },
+            );
+            ctx.link(block, body_block);
+            // continue re-checks condition; break exits.
+            ctx.loop_stack.push((cond_block, exit_block, None));
+            ctx.active_block = body_block;
+            for s in body {
+                let b = ctx.active_block;
+                lower_stmt(s, ctx, b);
+            }
+            let body_end = ctx.active_block;
+            ctx.loop_stack.pop();
+            ctx.emit(
+                body_end,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::Jump(cond_block),
+                    span: None,
+                },
+            );
+            ctx.link(body_end, cond_block);
+            let cond_reg = ctx.fresh_reg();
+            lower_expr(condition, cond_reg, ctx, cond_block);
+            ctx.emit(
+                cond_block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::JumpIfFalse(exit_block),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                cond_block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::Jump(body_block),
+                    span: None,
+                },
+            );
+            ctx.link(cond_block, exit_block);
+            ctx.link(cond_block, body_block);
+            ctx.active_block = exit_block;
+        }
+        Stmt::Break { label, .. } => {
+            match ctx.resolve_loop_target(label.as_ref()) {
+                Some((_, break_block)) => {
+                    let cur = ctx.active_block;
+                    ctx.emit(
+                        cur,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::Jump(break_block),
+                            span: None,
+                        },
+                    );
+                    ctx.link(cur, break_block);
+                    // Dead continuation so fall-through after break does not rejoin.
+                    ctx.active_block = ctx.fresh_block();
+                }
+                None => {
+                    ctx.set_error_with_code(
+                        Some("MIR001"),
+                        if label.is_some() {
+                            "break label does not match any enclosing loop"
+                        } else {
+                            "break outside of loop"
+                        },
+                    );
+                }
+            }
+        }
+        Stmt::Continue { label, .. } => {
+            match ctx.resolve_loop_target(label.as_ref()) {
+                Some((continue_block, _)) => {
+                    let cur = ctx.active_block;
+                    ctx.emit(
+                        cur,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::Jump(continue_block),
+                            span: None,
+                        },
+                    );
+                    ctx.link(cur, continue_block);
+                    ctx.active_block = ctx.fresh_block();
+                }
+                None => {
+                    ctx.set_error_with_code(
+                        Some("MIR001"),
+                        if label.is_some() {
+                            "continue label does not match any enclosing loop"
+                        } else {
+                            "continue outside of loop"
+                        },
+                    );
+                }
+            }
         }
         _ => {}
     }

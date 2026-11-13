@@ -35,6 +35,7 @@ mod int_from_string;
 mod iterator_optional_strict;
 mod jit_suite1_differential;
 mod language_deepen;
+mod loop_control_mir;
 mod macro_expand;
 mod memory_arc;
 mod memory_unified_heap;

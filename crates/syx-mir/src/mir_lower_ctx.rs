@@ -42,6 +42,8 @@ pub(crate) struct LowerCtx {
     pub(crate) skip_deinit_on_return: Option<SmolStr>,
     /// Active source span stamped onto emitted instructions (DAP breakpoints).
     pub(crate) current_span: Option<(u32, u32)>,
+    /// U-7: nested loop targets for `break` / `continue` (continue_block, break_block, label).
+    pub(crate) loop_stack: Vec<(u32, u32, Option<SmolStr>)>,
 }
 
 impl LowerCtx {
@@ -74,6 +76,23 @@ impl LowerCtx {
             param_names: HashSet::new(),
             skip_deinit_on_return: None,
             current_span: None,
+            loop_stack: Vec::new(),
+        }
+    }
+
+    /// U-7: resolve unlabeled (innermost) or labeled loop targets.
+    pub(crate) fn resolve_loop_target(
+        &self,
+        label: Option<&SmolStr>,
+    ) -> Option<(u32 /*continue*/, u32 /*break*/)> {
+        match label {
+            None => self.loop_stack.last().map(|&(c, b, _)| (c, b)),
+            Some(want) => self
+                .loop_stack
+                .iter()
+                .rev()
+                .find(|(_, _, lab)| lab.as_ref() == Some(want))
+                .map(|&(c, b, _)| (c, b)),
         }
     }
 
