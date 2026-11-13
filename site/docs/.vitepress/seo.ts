@@ -19,6 +19,19 @@ export const OG_IMAGE_ALT =
 export const AUTHOR = 'SYX Language Project'
 export const LICENSE_URL = 'https://www.apache.org/licenses/LICENSE-2.0'
 
+/**
+ * Search-engine ownership proofs, emitted as <meta> tags in `head`.
+ *
+ * Baidu Search Resource Platform (百度搜索资源平台) HTML-tag verification.
+ * Baidu fetches the site root, so the tag ships on every page — that way a
+ * homepage rewrite cannot silently drop the verification.
+ * Override with `BAIDU_VERIFICATION` if the code is ever reissued.
+ */
+export const BAIDU_VERIFICATION = process.env.BAIDU_VERIFICATION || 'codeva-x5Cx3nLF6w'
+
+/** Bing Webmaster Tools verification. Empty by default (tag then omitted). */
+export const BING_VERIFICATION = process.env.BING_VERIFICATION || ''
+
 /** Absolute URL helper. `path` must start with "/". */
 export const abs = (path: string) => SITE_URL + path
 

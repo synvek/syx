@@ -16,6 +16,8 @@ import {
 } from './sidebars'
 import {
   AUTHOR,
+  BAIDU_VERIFICATION,
+  BING_VERIFICATION,
   GITHUB_URL,
   LICENSE_URL,
   OG_IMAGE,
@@ -312,14 +314,25 @@ export default defineConfig({
     },
   },
 
-  head: [
-    ['meta', { name: 'theme-color', content: '#0f766e' }],
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
-    ['link', { rel: 'apple-touch-icon', href: '/logo.svg' }],
-    ['link', { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' }],
-    ['link', { rel: 'author', href: GITHUB_URL }],
-    ['meta', { property: 'og:image', content: `${SITE_URL}${OG_IMAGE}` }],
-  ],
+  head: (() => {
+    const tags: HeadConfig[] = [
+      ['meta', { name: 'theme-color', content: '#0f766e' }],
+      ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+      ['link', { rel: 'apple-touch-icon', href: '/logo.svg' }],
+      ['link', { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' }],
+      ['link', { rel: 'author', href: GITHUB_URL }],
+      ['meta', { property: 'og:image', content: `${SITE_URL}${OG_IMAGE}` }],
+    ]
+    // Search-engine ownership proofs. Emitted site-wide so a homepage rewrite
+    // cannot silently drop verification; empty codes are skipped.
+    if (BAIDU_VERIFICATION) {
+      tags.push(['meta', { name: 'baidu-site-verification', content: BAIDU_VERIFICATION }])
+    }
+    if (BING_VERIFICATION) {
+      tags.push(['meta', { name: 'msvalidate.01', content: BING_VERIFICATION }])
+    }
+    return tags
+  })(),
 
   transformHead: seoHead,
 

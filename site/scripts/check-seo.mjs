@@ -173,6 +173,19 @@ if (!fs.existsSync(path.join(dist, 'robots.txt'))) {
 if (!fs.existsSync(path.join(dist, 'og-image.png'))) {
   errors.push({ route: '/og-image.png', msg: 'og-image.png not published' })
 }
+if (!fs.existsSync(path.join(dist, 'llms.txt'))) {
+  errors.push({ route: '/llms.txt', msg: 'llms.txt not published' })
+}
+
+// Search-engine ownership proof: Baidu fetches the site root, so the tag must
+// be present there. Missing it silently blocks 百度搜索资源平台 verification.
+const rootHtml = path.join(dist, 'index.html')
+if (fs.existsSync(rootHtml)) {
+  const root = fs.readFileSync(rootHtml, 'utf8')
+  if (!/name="baidu-site-verification"\s+content="[^"]+"/.test(root)) {
+    errors.push({ route: '/', msg: 'missing baidu-site-verification meta tag' })
+  }
+}
 
 const report = (list, label) => {
   if (list.length === 0) return
