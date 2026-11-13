@@ -1158,29 +1158,26 @@ build = "build.syb"
             let sock = match &command {
                 DaemonCommands::Start { sock }
                 | DaemonCommands::Stop { sock }
-                | DaemonCommands::Ping { sock } => sock
-                    .clone()
-                    .unwrap_or_else(syx_driver::default_daemon_sock),
+                | DaemonCommands::Ping { sock } => {
+                    sock.clone().unwrap_or_else(syx_driver::default_daemon_sock)
+                }
             };
             match command {
                 DaemonCommands::Start { .. } => {
                     syx_driver::run_daemon(&sock).into_diagnostic()?;
                 }
                 DaemonCommands::Stop { .. } => {
-                    let resp = syx_driver::daemon_request(
-                        &sock,
-                        &syx_driver::DaemonRequest::Shutdown,
-                    )
-                    .map_err(|e| miette::miette!("{e}"))?;
+                    let resp =
+                        syx_driver::daemon_request(&sock, &syx_driver::DaemonRequest::Shutdown)
+                            .map_err(|e| miette::miette!("{e}"))?;
                     if !resp.ok {
                         return Err(miette::miette!("{}", resp.stderr));
                     }
                     println!("daemon stopped");
                 }
                 DaemonCommands::Ping { .. } => {
-                    let resp =
-                        syx_driver::daemon_request(&sock, &syx_driver::DaemonRequest::Ping)
-                            .map_err(|e| miette::miette!("{e}"))?;
+                    let resp = syx_driver::daemon_request(&sock, &syx_driver::DaemonRequest::Ping)
+                        .map_err(|e| miette::miette!("{e}"))?;
                     if !resp.ok {
                         return Err(miette::miette!("{}", resp.stderr));
                     }

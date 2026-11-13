@@ -395,12 +395,7 @@ pub(crate) fn store_prelude_snapshot(graph: &ModuleGraph, root: &Path, allow_dis
             key.to_string_lossy().into_owned(),
             exports
                 .into_iter()
-                .map(|(n, ty)| {
-                    (
-                        n.to_string(),
-                        crate::stdlib_fastpath::encode_type_id(&ty),
-                    )
-                })
+                .map(|(n, ty)| (n.to_string(), crate::stdlib_fastpath::encode_type_id(&ty)))
                 .collect(),
         ));
     }

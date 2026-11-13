@@ -130,10 +130,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn linux_resolve_lld_binary_never_ld64() {
-        let dir = std::env::temp_dir().join(format!(
-            "syx-llvm-prefix-lld-{}",
-            std::process::id()
-        ));
+        let dir = std::env::temp_dir().join(format!("syx-llvm-prefix-lld-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         let bin = dir.join("bin");
         std::fs::create_dir_all(&bin).unwrap();
@@ -142,7 +139,9 @@ mod tests {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let mut perms = std::fs::metadata(bin.join("ld64.lld")).unwrap().permissions();
+            let mut perms = std::fs::metadata(bin.join("ld64.lld"))
+                .unwrap()
+                .permissions();
             perms.set_mode(0o755);
             std::fs::set_permissions(bin.join("ld64.lld"), perms).unwrap();
         }

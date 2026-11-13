@@ -28,9 +28,5 @@ func main() {
     )
     .expect("run OrderedSet smoke");
     let lines: Vec<_> = result.printed.iter().map(|l| l.trim()).collect();
-    assert_eq!(
-        lines,
-        ["true", "true", "false"],
-        "printed={lines:?}"
-    );
+    assert_eq!(lines, ["true", "true", "false"], "printed={lines:?}");
 }

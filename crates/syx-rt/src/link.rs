@@ -1457,7 +1457,10 @@ mod tests {
 
     #[test]
     fn normalize_lld_strips_wl_prefix() {
-        assert_eq!(normalize_lld_link_flag("-Wl,--gc-sections"), "--gc-sections");
+        assert_eq!(
+            normalize_lld_link_flag("-Wl,--gc-sections"),
+            "--gc-sections"
+        );
         assert_eq!(normalize_lld_link_flag("-Wl,-dead_strip"), "-dead_strip");
         assert_eq!(normalize_lld_link_flag("--gc-sections"), "--gc-sections");
     }
@@ -1489,8 +1492,7 @@ mod tests {
         std::fs::write(&user, b"").unwrap();
         std::fs::write(&rt, b"!<arch>\n").unwrap();
         let mut opts = LinkOptions::default();
-        opts.link_flags
-            .push("-Wl,--gc-sections".to_string());
+        opts.link_flags.push("-Wl,--gc-sections".to_string());
         let Ok(args) = native_lld_argv(&user, &out, &opts, &rt) else {
             // CRT may be missing in minimal CI images; skip strip assert.
             return;

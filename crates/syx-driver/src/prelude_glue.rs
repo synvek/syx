@@ -42,10 +42,8 @@ pub(crate) fn core_prelude_import_symbols(
                         .find(|(n, _)| *n == *name)
                         .map(|(_, s)| *s)
                         .unwrap_or("");
-                    let source = SourceFile::new(
-                        path.to_string_lossy().into_owned(),
-                        src.to_string(),
-                    );
+                    let source =
+                        SourceFile::new(path.to_string_lossy().into_owned(), src.to_string());
                     out.push((SmolStr::new(*name), export_symbols(&source)));
                 }
             }

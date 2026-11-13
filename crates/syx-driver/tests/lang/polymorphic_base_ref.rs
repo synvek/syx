@@ -4,9 +4,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use syx_driver::{
-    compile_and_run_embedded, run_wasm_source_printed, DriverOptions,
-};
+use syx_driver::{compile_and_run_embedded, run_wasm_source_printed, DriverOptions};
 
 const POLY_SRC: &str = include_str!("../fixtures/parity/polymorphic_base_ref.sy");
 
@@ -37,7 +35,11 @@ fn run_embed_src(src: &str) -> String {
 
 #[test]
 fn poly_erased_fixture_embed_woof() {
-    assert!(run_embed().contains("woof"), "embed erased: {}", run_embed());
+    assert!(
+        run_embed().contains("woof"),
+        "embed erased: {}",
+        run_embed()
+    );
 }
 
 #[test]

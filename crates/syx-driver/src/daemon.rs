@@ -2,9 +2,7 @@
 //! Protocol: length-prefixed JSON (u32 LE + UTF-8 body) over a Unix domain socket.
 
 use crate::rkyv_image::{store_hydrated_graph, take_hydrated_graph};
-use crate::{
-    ensure_prelude_modules_in_graph, run_file_printed, DriverOptions, ModuleGraph,
-};
+use crate::{ensure_prelude_modules_in_graph, run_file_printed, DriverOptions, ModuleGraph};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
@@ -166,8 +164,7 @@ fn handle_run(path: &str, with_cache: bool) -> DaemonResponse {
         Ok((code, printed)) => DaemonResponse {
             ok: true,
             exit_code: code,
-            stdout: printed.join("\n")
-                + if printed.is_empty() { "" } else { "\n" },
+            stdout: printed.join("\n") + if printed.is_empty() { "" } else { "\n" },
             stderr: String::new(),
         },
         Err(e) => DaemonResponse {

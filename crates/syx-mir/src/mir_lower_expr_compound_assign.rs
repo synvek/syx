@@ -7,9 +7,7 @@ use crate::mir_types::{MirInstr, MirOp};
 use smol_str::SmolStr;
 use syx_ast::{BinOp, CompoundAssignOp, Expr};
 use syx_diagnostics::Span;
-use syx_stdlib::{
-    from_type_name, host_fn_index_by_name, is_integer, resolve_alias, PLATFORM_INT,
-};
+use syx_stdlib::{from_type_name, host_fn_index_by_name, is_integer, resolve_alias, PLATFORM_INT};
 
 pub(crate) fn lower_expr_compound_assign(
     name: &SmolStr,

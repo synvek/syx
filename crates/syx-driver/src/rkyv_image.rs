@@ -14,8 +14,7 @@ use syx_diagnostics::SourceFile;
 use syx_semantic::TypeId;
 
 /// Embedded rkyv image (gen via `scripts/gen_prelude_snapshot.sh` / `.ps1`).
-pub(crate) static EMBEDDED_RKYV_IMAGE: &[u8] =
-    include_bytes!("../assets/prelude_vm_image.rkyv");
+pub(crate) static EMBEDDED_RKYV_IMAGE: &[u8] = include_bytes!("../assets/prelude_vm_image.rkyv");
 
 #[derive(Debug, Clone, Archive, RkyvSerialize, RkyvDeserialize)]
 pub(crate) struct RkyvFn {

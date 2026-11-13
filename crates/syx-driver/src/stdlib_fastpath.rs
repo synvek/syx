@@ -11,9 +11,7 @@ use syx_semantic::TypeId;
 use syx_stdlib::NumericKind;
 
 /// Build name → (owner program, index) for all stdlib functions in the graph.
-pub(crate) fn stdlib_fn_index(
-    graph: &ModuleGraph,
-) -> HashMap<SmolStr, (&CompiledProgram, usize)> {
+pub(crate) fn stdlib_fn_index(graph: &ModuleGraph) -> HashMap<SmolStr, (&CompiledProgram, usize)> {
     let mut index = HashMap::new();
     for (path, unit) in &graph.modules {
         if !is_stdlib_module_path(path) {

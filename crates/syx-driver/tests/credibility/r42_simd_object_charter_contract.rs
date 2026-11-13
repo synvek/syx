@@ -84,13 +84,11 @@ fn r42_roadmap_exit_points_r43() {
         .collect();
     assert!(!rows.is_empty(), "missing R-42 row");
     assert!(
-        rows.iter().any(|r| r.contains("`[x]`") || r.contains("| [x] |")),
+        rows.iter()
+            .any(|r| r.contains("`[x]`") || r.contains("| [x] |")),
         "R-42 must be [x]: {rows:?}"
     );
-    let tail = plan
-        .split("默认下一窗")
-        .nth(1)
-        .expect("默认下一窗 missing");
+    let tail = plan.split("默认下一窗").nth(1).expect("默认下一窗 missing");
     assert!(
         tail.chars().take(120).collect::<String>().contains("R-43"),
         "default next must be R-43"
