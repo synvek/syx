@@ -5,8 +5,7 @@ use crate::{
     contextual_numeric_kinds_from_semantic, core_prelude_generic_class_methods,
     core_prelude_import_symbols, export_symbols, inject_core_collection_builtins,
     inject_imported_dataclass_decls, inject_imported_public_structs,
-    inject_virtual_prelude_imports, resolve_module, DriverOptions,
-    ModuleGraph, ModuleUnit,
+    inject_virtual_prelude_imports, resolve_module, DriverOptions, ModuleGraph, ModuleUnit,
 };
 use indexmap::IndexMap;
 use smol_str::SmolStr;

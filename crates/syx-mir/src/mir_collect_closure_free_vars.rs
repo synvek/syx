@@ -11,6 +11,7 @@ pub(crate) struct ClosureFreeVars {
     pub mutated: HashSet<SmolStr>,
 }
 
+#[allow(dead_code)] // thin wrapper retained for S2-I201 / credibility name lock
 pub(crate) fn collect_closure_free_vars(
     params: &[syx_ast::Param],
     body: &ClosureBody,

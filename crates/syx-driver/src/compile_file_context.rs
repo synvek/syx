@@ -6,9 +6,8 @@ use crate::{
     collect_main_actor_await_errors, collect_stdlib_extension_methods,
     core_prelude_generic_class_methods, core_prelude_import_symbols, cross_module_function_name,
     export_symbols, inject_core_collection_builtins, inject_imported_dataclass_decls,
-    inject_imported_public_structs,
-    is_stdlib_module_path, merge_imported_dataclass_functions, merge_stdlib_mono_instances,
-    merge_user_dep_program_batch, mir_merge_stdlib_function,
+    inject_imported_public_structs, is_stdlib_module_path, merge_imported_dataclass_functions,
+    merge_stdlib_mono_instances, merge_user_dep_program_batch, mir_merge_stdlib_function,
     register_imported_data_classes_from_parsed, register_imported_macros_from_parsed,
     resolve_module, should_desugar_top_level_stmts, DriverOptions, ModuleGraph, ModuleUnit,
 };

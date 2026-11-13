@@ -507,10 +507,6 @@ pub(crate) fn infer_object_type_name(object: &Expr, ctx: &LowerCtx) -> Option<Sm
     }
 }
 
-fn array_method_index(method: &str) -> Option<u32> {
-    syx_stdlib::lookup_array_method(method).map(|m| m.index())
-}
-
 pub(crate) fn binop_operator_symbol(op: BinOp) -> Option<&'static str> {
     match op {
         BinOp::Add => Some("+"),

@@ -350,7 +350,7 @@ pub(crate) fn lower_dataclass_eq_shell(
 /// R-20: `{T}_!=` — negation of `{T}_==`.
 pub(crate) fn lower_dataclass_ne_shell(
     name: &SmolStr,
-    fields: &[(SmolStr, syx_ast::TypeExpr)],
+    _fields: &[(SmolStr, syx_ast::TypeExpr)],
 ) -> MirFunction {
     let eq_name = SmolStr::new(format!("{name}_=="));
     let mut ins = Vec::new();

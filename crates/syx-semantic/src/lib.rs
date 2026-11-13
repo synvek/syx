@@ -38,8 +38,7 @@ pub use semantic_helpers::expr_span_start;
 pub(crate) use semantic_helpers::{
     attached_conformance_protocols, attr_has_ident_arg, default_assoc_type_for, expr_span,
     has_attr, is_forbidden_internal_import, is_retired_collection_methodcall,
-    module_first_task_detach_span, module_uses_task_detach, retired_ops_hint,
-    type_collection_surface, type_expr_uses_param,
+    module_first_task_detach_span, retired_ops_hint, type_collection_surface, type_expr_uses_param,
 };
 
 #[cfg(test)]

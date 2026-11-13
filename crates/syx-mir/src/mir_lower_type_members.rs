@@ -373,6 +373,7 @@ pub(crate) fn append_protocol_stub_functions(mir: &mut MirModule, module_idx: &M
     }
 }
 
+#[allow(dead_code)] // convenience over self_param_typed; retained for type-member peel API
 pub(crate) fn self_param() -> syx_ast::Param {
     self_param_typed(None)
 }

@@ -223,7 +223,7 @@ pub fn user_facing_mir_fn_name(raw: &str) -> SmolStr {
     }
     if let Some((class, method)) = syx_ast::parse_mangled_instance_method(raw) {
         // Only treat as Class_method when the RHS is not a mono type-arg suffix.
-        if raw.contains('_') && !syx_mono::is_mono_type_arg_segment(method.as_str()) {
+        if raw.contains('_') && !is_mono_type_arg_segment(method.as_str()) {
             return SmolStr::new(format!("{}.{}", demangle_mono_name(class.as_str()), method));
         }
     }

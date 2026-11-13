@@ -121,6 +121,7 @@ pub(crate) fn attr_has_ident_arg(attrs: &[syx_ast::Attribute], name: &str, arg: 
     })
 }
 
+#[allow(dead_code)] // bool surface retained; production uses module_first_task_detach_span
 pub(crate) fn module_uses_task_detach(module: &Module) -> bool {
     module_first_task_detach_span(module).is_some()
 }
@@ -137,6 +138,7 @@ pub(crate) fn module_first_task_detach_span(module: &Module) -> Option<syx_diagn
     None
 }
 
+#[allow(dead_code)] // bool surface retained; production uses stmts_first_task_detach_span
 pub(crate) fn stmts_use_task_detach(stmts: &[Stmt]) -> bool {
     stmts_first_task_detach_span(stmts).is_some()
 }
@@ -171,6 +173,7 @@ pub(crate) fn stmts_first_task_detach_span(stmts: &[Stmt]) -> Option<syx_diagnos
     None
 }
 
+#[allow(dead_code)] // bool surface retained; production uses expr_first_task_detach_span
 pub(crate) fn expr_uses_task_detach(expr: &Expr) -> bool {
     expr_first_task_detach_span(expr).is_some()
 }

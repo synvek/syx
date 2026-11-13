@@ -25,7 +25,10 @@ public func main() {
         syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
             .expect("catch let e must run");
     assert_eq!(code, 0, "exit {code}, printed={printed:?}");
-    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["let"]);
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["let"]
+    );
     let _ = std::fs::remove_file(&path);
 }
 
@@ -70,7 +73,10 @@ public func main() {
         syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
             .expect("catch e must still run");
     assert_eq!(code, 0, "exit {code}, printed={printed:?}");
-    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["name"]);
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["name"]
+    );
     let _ = std::fs::remove_file(&path);
 }
 
@@ -115,6 +121,9 @@ public func main() {
         syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
             .expect("bare catch must still run");
     assert_eq!(code, 0, "exit {code}, printed={printed:?}");
-    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["bare"]);
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["bare"]
+    );
     let _ = std::fs::remove_file(&path);
 }
