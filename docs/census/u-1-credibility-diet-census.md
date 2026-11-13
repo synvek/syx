@@ -10,7 +10,7 @@
 |-------|--------|
 | 编号账本 SA-0…R-49 + U-0 | **收口**（无 R-50） |
 | **U-1** | **exited** — 9 纯 MD modules deleted |
-| Open | park：JIT Suite-1、`func…async`、simd 159；候选 U-2 |
+| Open | park：JIT Suite-1、`func…async`、simd 159；**U-2** Stage-3 claim diet |
 
 ## Root cause
 
