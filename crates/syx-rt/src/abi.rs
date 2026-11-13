@@ -326,6 +326,7 @@ pub extern "C" fn syx_rt_init_plugins() {
 /// `aot_execution_segment_omitted=true`.
 /// Legacy compact/whole blobs still decode whole without sidecar install.
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI: ptr/len owned by caller
 pub extern "C" fn syx_rt_load_mir_blob(ptr: *const u8, len: i32) {
     syx_rt_init_plugins();
     // Blob path is never the W412 no-blob alternate entry.
@@ -459,6 +460,7 @@ pub fn install_metadata_sidecar_view(view: &syx_mir::MirModuleMetadataSidecarVie
 /// [`install_runtime_from_sidecar_only`]. Does **not** require SYXD / `@syx_mir_blob`.
 /// Production `syx_user_init` uses empty install + register (W431+; ≠ load_mir_blob).
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI: ptr/len owned by caller
 pub extern "C" fn syx_rt_install_metadata_sidecar(ptr: *const u8, len: i32) {
     syx_rt_init_plugins();
     NATIVE_METADATA_ALTERNATE_ENTRY.store(false, std::sync::atomic::Ordering::SeqCst);
@@ -755,6 +757,7 @@ pub extern "C" fn syx_rt_push_numeric64(kind: i32, bits: i64) {
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI: ptr/len owned by caller
 pub extern "C" fn syx_rt_push_str(ptr: *const u8, len: i32) {
     NativeRt::with(|rt| {
         let s = if ptr.is_null() || len <= 0 {

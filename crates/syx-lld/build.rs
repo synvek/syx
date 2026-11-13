@@ -15,7 +15,17 @@ fn main() {
     println!("cargo:rerun-if-changed=cpp/syx_lld_bridge.cpp");
     println!("cargo:rustc-check-cfg=cfg(syx_lld_inprocess)");
 
-    let prefix = syx_llvm_prefix::require_llvm_prefix("syx-lld");
+    // Default `cargo check --workspace` (CI Build & test) must succeed without a
+    // sibling LLVM tree. full-native / release install LLVM and get inprocess or
+    // prefix-bin; otherwise keep mode=missing and let linkers fall back to host cc.
+    let Some(prefix) = syx_llvm_prefix::resolve_llvm_prefix() else {
+        println!("cargo:rustc-env=SYX_LLD_MODE=missing");
+        println!(
+            "cargo:warning=syx-lld: LLVM prefix not found; LLD embed skipped \
+             (set SYX_LLVM_PREFIX or place install at <workspace>/../llvm)"
+        );
+        return;
+    };
     syx_llvm_prefix::expect_llvm_major(&prefix, 21);
 
     println!(
@@ -44,9 +54,9 @@ fn main() {
     }
 
     println!("cargo:rustc-env=SYX_LLD_MODE=missing");
-    panic!(
-        "syx-lld: cannot embed LLD from {} (need liblld*.a / lld*.lib + Driver.h). \
-         Use a full LLVM install at ../llvm or SYX_LLVM_PREFIX.",
+    println!(
+        "cargo:warning=syx-lld: cannot embed LLD from {} (need liblld*.a / lld*.lib + Driver.h); \
+         mode=missing",
         prefix.display()
     );
 }

@@ -374,14 +374,14 @@ impl StatVfs {
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn statvfs(path: &str) -> Option<StatVfs> {
-    use std::ffi::CString;
+    use std::ffi::{c_char, CString};
     use std::mem::MaybeUninit;
     extern "C" {
-        fn statvfs(path: *const i8, buf: *mut StatVfs) -> i32;
+        fn statvfs(path: *const c_char, buf: *mut StatVfs) -> i32;
     }
     let c = CString::new(path).ok()?;
     let mut st = MaybeUninit::<StatVfs>::uninit();
-    if unsafe { statvfs(c.as_ptr(), st.as_mut_ptr()) } != 0 {
+    if unsafe { statvfs(c.as_c_str().as_ptr(), st.as_mut_ptr()) } != 0 {
         return None;
     }
     Some(unsafe { st.assume_init() })

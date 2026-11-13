@@ -1537,11 +1537,8 @@ impl Parser {
         let start = self.previous().span;
         let name = self.consume_identifier("Expected global actor name")?;
         self.consume(TokenKind::LBrace, "Expected '{' after global actor name")?;
-        while !self.check(TokenKind::RBrace) && !self.is_at_end() {
-            self.skip_newlines();
-            if self.check(TokenKind::RBrace) {
-                break;
-            }
+        self.skip_newlines();
+        if !self.check(TokenKind::RBrace) && !self.is_at_end() {
             return self.error("Global actor body must be empty in MVP");
         }
         self.consume(TokenKind::RBrace, "Expected '}' after global actor")?;

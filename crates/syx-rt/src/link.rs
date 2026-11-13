@@ -1187,21 +1187,21 @@ pub fn link_executable_with(user_obj: &Path, output: &Path, opts: &LinkOptions) 
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
 
+    // R-39: Linux defaults to host `cc` as the link driver; bare LLD only when
+    // SYX_FORCE_LLD=1 (todo-005 C1). macOS/Windows keep prior LLD-first policy.
     // Xcode 26+ / macOS 26+ SDKs tag TBDs with `arm64e.x1-*`. LLVM 21 ld64.lld
     // rejects those files → undefined _memmove/_memcpy (libSystem unread) and a
     // multi-GB, multi-core failed link before falling back. Prefer system `cc`
     // unless the user forces LLD.
-    #[cfg(target_os = "macos")]
-    let macos_skip_lld = !force_lld && macos_sdk_unsupported_by_llvm21_lld();
-    #[cfg(not(target_os = "macos"))]
-    let macos_skip_lld = false;
-
-    // R-39: Linux defaults to host `cc` as the link driver; bare LLD only when
-    // SYX_FORCE_LLD=1 (todo-005 C1). macOS/Windows keep prior LLD-first policy.
     #[cfg(target_os = "linux")]
     let prefer_lld = force_lld && !force_cc && !disable_lld;
-    #[cfg(not(target_os = "linux"))]
-    let prefer_lld = !force_cc && !disable_lld && !macos_skip_lld;
+    #[cfg(target_os = "macos")]
+    let prefer_lld = {
+        let macos_skip_lld = !force_lld && macos_sdk_unsupported_by_llvm21_lld();
+        !force_cc && !disable_lld && !macos_skip_lld
+    };
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    let prefer_lld = !force_cc && !disable_lld;
 
     ensure_windows_link_inputs()?;
 

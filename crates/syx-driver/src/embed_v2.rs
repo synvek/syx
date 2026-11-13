@@ -8,6 +8,8 @@
 //! Phase 21: Embed v7 — macOS wasmtime real run + `SYX_EMBED_CAPABILITIES` whitelist MVP (ADR-006 v7).
 //! Phase 22: Embed v8 — Windows wasmtime real run + `SYX_EMBED_DENY_UNKNOWN=1` capability hardening (ADR-006 v8).
 
+#![allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI entrypoints take raw pointers by design
+
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::path::Path;

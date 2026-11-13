@@ -33,7 +33,6 @@ tar = "0.4"
 ed25519-dalek = { version = "2", features = ["std"] }
 crossbeam-channel = "0.5"
 parking_lot = "0.12"
-rustybuzz = "0.20.1"
 unicode-segmentation = "1.12"
 unicode-normalization = "0.1.25"
 caseless = "0.2.2"
@@ -84,7 +83,6 @@ syx-meta = { path = "crates/syx-meta" }
 syx-mono = { path = "crates/syx-mono" }
 syx-doc = { path = "crates/syx-doc" }
 syx-frontend = { path = "crates/syx-frontend" }
-syx-hir = { path = "crates/syx-hir" }
 
 # MSVC: keep system libs as import libs under +crt-static (see third_party/README.md).
 [patch.crates-io]

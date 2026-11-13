@@ -1,5 +1,7 @@
 //! Phase 13: C FFI embed surface (`syx_embed_v1_*`) — ADR-003 Accepted.
 
+#![allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI entrypoints take raw pointers by design
+
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
