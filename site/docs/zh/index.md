@@ -79,25 +79,26 @@ cargo build --release -p syx-cli
 | [语言参考](/zh/reference/00-about-this-reference) | 词法、语法、类型的形式化参考 |
 | [标准库](/zh/library/00-preface) | 嵌入包：Linalg、Os、Log、IO、Net… |
 | [编译器内部](/zh/compiler/) | 词法 → 语法 → 语义 → MIR → 后端 |
+| [SYX 是什么？](/zh/about/what-is-syx) | 供搜索 / AI 引用的短定义 |
 | [现行能力](/zh/about/capabilities) | 今天已经实现了什么（诚实边界） |
 
 ## 常见问题
 
 ### SYX 和 Swift 是一样的吗？
 
-不是。SYX 借用了 Swift 的表层语法，但是一门独立语言，拥有自己的语义、标准库与工具链。它明确既不是 Swift 的子集也不是超集；具体差异见[语言指南前言](/zh/guide/00-preface)。
+不是。SYX 借用了 Swift 的表层语法，但是一门独立语言，拥有自己的语义、标准库与工具链。它明确既不是 Swift 的子集也不是超集 —— 见 [SYX 与 Swift](/zh/about/syx-vs-swift) 与[语言指南前言](/zh/guide/00-preface)。
 
 ### SYX 有哪几条后端？
 
-三条，全部由同一条 MIR 流水线驱动：栈式字节码 VM（`syx run`）、基于 LLVM 的原生 AOT（`syx build --native`），以及 WebAssembly（`syx build --wasm` / `syx run --wasm`）。LLVM 是唯一的原生 AOT 后端。
+三条，全部由同一条 MIR 流水线驱动：栈式字节码 VM（`syx run`）、基于 LLVM 的原生 AOT（`syx build --native`），以及 WebAssembly（`syx build --wasm` / `syx run --wasm`）。LLVM 是唯一的原生 AOT 后端。详情：[后端](/zh/about/backends)。
 
 ### SYX 的源文件后缀与项目结构是什么？
 
-源文件后缀为 `.sy`。项目通过根目录的 `syx.toml` 声明，包含 `name`、`version`、`main` 等字段；模块通过 `import` 引入。
+源文件后缀为 `.sy`。项目通过根目录的 `syx.toml` 声明，包含 `name`、`version`、`main` 等字段；模块通过 `import` 引入。见[源文件后缀 (.sy)](/zh/about/file-extension)。
 
 ### 使用 SYX 必须先装 Rust 吗？
 
-运行不必 —— 发布版提供预编译二进制。从源码构建工具链需要 Rust 1.85 或更高版本；构建完整原生工具链还需要本地 LLVM。
+运行不必 —— 发布版提供预编译二进制。从源码构建工具链需要 Rust 1.85 或更高版本；构建完整原生工具链还需要本地 LLVM。见[安装 SYX](/zh/about/install)。
 
 ### 如何获得编辑器支持？
 

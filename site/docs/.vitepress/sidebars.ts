@@ -273,6 +273,11 @@ export const aboutSidebarEn = [
     text: 'About SYX',
     items: [
       { text: 'Overview', link: '/about/' },
+      { text: 'What is SYX?', link: '/about/what-is-syx' },
+      { text: 'SYX vs Swift', link: '/about/syx-vs-swift' },
+      { text: 'Install SYX', link: '/about/install' },
+      { text: 'File extension (.sy)', link: '/about/file-extension' },
+      { text: 'Backends (VM / LLVM / Wasm)', link: '/about/backends' },
       { text: 'Capabilities', link: '/about/capabilities' },
       { text: 'Architecture Decisions', link: '/about/architecture' },
     ],
@@ -284,6 +289,11 @@ export const aboutSidebarZh = [
     text: '关于 SYX',
     items: [
       { text: '概览', link: '/zh/about/' },
+      { text: 'SYX 是什么？', link: '/zh/about/what-is-syx' },
+      { text: 'SYX 与 Swift', link: '/zh/about/syx-vs-swift' },
+      { text: '安装 SYX', link: '/zh/about/install' },
+      { text: '源文件后缀 (.sy)', link: '/zh/about/file-extension' },
+      { text: '后端（VM / LLVM / Wasm）', link: '/zh/about/backends' },
       { text: '现行能力', link: '/zh/about/capabilities' },
       { text: '架构决议', link: '/zh/about/architecture' },
     ],

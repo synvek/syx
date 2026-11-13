@@ -7,6 +7,25 @@
  * Override the origin per environment with `SITE_URL` (no trailing slash), e.g.
  * `SITE_URL=https://www.syx-lang.org npm run build`.
  */
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __seoDir = dirname(fileURLToPath(import.meta.url))
+
+/** Public crate / release semver — never the retired marketing “117.0” banner. */
+function readSoftwareVersion(): string {
+  if (process.env.SYX_VERSION) return process.env.SYX_VERSION.trim()
+  try {
+    const cargo = readFileSync(resolve(__seoDir, '../../../Cargo.toml'), 'utf8')
+    const m = cargo.match(/^version\s*=\s*"([^"]+)"/m)
+    if (m) return m[1]
+  } catch {
+    /* fall through */
+  }
+  return '0.2.1'
+}
+
 export const SITE_URL = (process.env.SITE_URL || 'https://www.syx-lang.org').replace(/\/+$/, '')
 export const SITE_NAME = 'SYX'
 export const GITHUB_URL = 'https://github.com/synvek/syx'
@@ -18,6 +37,7 @@ export const OG_IMAGE_ALT =
   'SYX language card — Swift-inspired syntax, Rust toolchain, VM / LLVM / Wasm backends'
 export const AUTHOR = 'SYX Language Project'
 export const LICENSE_URL = 'https://www.apache.org/licenses/LICENSE-2.0'
+export const SOFTWARE_VERSION = readSoftwareVersion()
 
 /**
  * Search-engine ownership proofs, emitted as <meta> tags in `head`.
@@ -31,6 +51,9 @@ export const BAIDU_VERIFICATION = process.env.BAIDU_VERIFICATION || 'codeva-x5Cx
 
 /** Bing Webmaster Tools verification. Empty by default (tag then omitted). */
 export const BING_VERIFICATION = process.env.BING_VERIFICATION || ''
+
+/** Google Search Console HTML-tag verification. Empty → tag omitted. */
+export const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION || ''
 
 /** Absolute URL helper. `path` must start with "/". */
 export const abs = (path: string) => SITE_URL + path
@@ -241,7 +264,7 @@ export function softwareApplication(locale: 'root' | 'zh') {
     applicationCategory: 'DeveloperApplication',
     applicationSubCategory: 'Programming language compiler toolchain',
     operatingSystem: 'Windows, macOS, Linux',
-    softwareVersion: '117.0',
+    softwareVersion: SOFTWARE_VERSION,
     programmingLanguage: 'Rust',
     downloadUrl: `${GITHUB_URL}/releases/latest`,
     codeRepository: GITHUB_URL,
@@ -252,5 +275,22 @@ export function softwareApplication(locale: 'root' | 'zh') {
         : 'The SYX compiler toolchain: one MIR pipeline feeding a stack VM, LLVM native AOT, and a Wasm backend.',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     publisher: { '@id': `${SITE_URL}/#organization` },
+  }
+}
+
+/**
+ * WebSite SearchAction — exposes a sitelinks-style search target.
+ * VitePress local search is client-side; the template lands on the locale hub
+ * with `?q=` so crawlers have a stable EntryPoint URL.
+ */
+export function websiteSearchAction(locale: 'root' | 'zh') {
+  const hub = locale === 'zh' ? abs('/zh/') : `${SITE_URL}/`
+  return {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${hub}?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
   }
 }

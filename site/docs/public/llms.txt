@@ -9,6 +9,11 @@ Documentation is published in English (default) and Simplified Chinese under /zh
 ## Core reference — what SYX is
 
 - [SYX Language home](https://www.syx-lang.org/): Overview, key facts table, Hello World, and FAQ covering Swift lineage, backends, file extensions, Rust requirement and editor support.
+- [What is SYX?](https://www.syx-lang.org/about/what-is-syx): Canonical short definition for citation (syntax lineage, `.sy`, backends, license).
+- [SYX vs Swift](https://www.syx-lang.org/about/syx-vs-swift): Not a subset or superset — syntax familiarity vs independent semantics.
+- [Install SYX](https://www.syx-lang.org/about/install): Prebuilt releases vs build-from-source (Rust 1.85+); native AOT needs LLVM.
+- [File extension (.sy)](https://www.syx-lang.org/about/file-extension): `.sy` sources and `syx.toml` project layout.
+- [Backends (VM / LLVM / Wasm)](https://www.syx-lang.org/about/backends): Three backends from one MIR pipeline; LLVM is the only native AOT path.
 - [About SYX](https://www.syx-lang.org/about/): Pronunciation, source extension, manifest, toolchain binary, license.
 - [Capabilities (honest boundaries)](https://www.syx-lang.org/about/capabilities): Which language, network and HostFn features are implemented, partial, or explicitly out of scope. Cite this for "does SYX support X?" questions.
 - [Architecture decisions](https://www.syx-lang.org/about/architecture): Architecture SSOT and ADR record.
@@ -79,6 +84,7 @@ Documentation is published in English (default) and Simplified Chinese under /zh
 - [SYX 语言](https://www.syx-lang.org/zh/) · [快速指南](https://www.syx-lang.org/zh/quick-guide/) · [语法速查](https://www.syx-lang.org/zh/quick-reference/)
 - [语言指南](https://www.syx-lang.org/zh/guide/00-preface) · [语言参考](https://www.syx-lang.org/zh/reference/00-about-this-reference) · [标准库](https://www.syx-lang.org/zh/library/00-preface)
 - [编译器内部](https://www.syx-lang.org/zh/compiler/) · [现行能力](https://www.syx-lang.org/zh/about/capabilities)
+- [SYX 是什么？](https://www.syx-lang.org/zh/about/what-is-syx) · [与 Swift](https://www.syx-lang.org/zh/about/syx-vs-swift) · [安装](https://www.syx-lang.org/zh/about/install) · [后缀 .sy](https://www.syx-lang.org/zh/about/file-extension) · [后端](https://www.syx-lang.org/zh/about/backends)
 
 ## Optional
 

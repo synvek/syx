@@ -17,6 +17,11 @@ description: 关于 SYX —— 一门受 Swift 启发、由 Rust 实现编译器
 
 | 页面 | 角色 |
 |------|------|
+| [SYX 是什么？](./what-is-syx) | 供搜索与 AI 引用的短定义 |
+| [SYX 与 Swift](./syx-vs-swift) | 不是子集/超集 —— 语法与语义 |
+| [安装 SYX](./install) | 预编译发布与源码构建 |
+| [源文件后缀 (.sy)](./file-extension) | `.sy` 源文件与 `syx.toml` |
+| [后端（VM / LLVM / Wasm）](./backends) | 三条后端，一条 MIR 流水线 |
 | [现行能力](./capabilities) | 今天已经实现了什么 —— 诚实边界 |
 | [架构决议](./architecture) | 架构 SSOT（ADR） |
 

@@ -17,6 +17,11 @@ description: About SYX — a Swift-inspired programming language with a Rust-imp
 
 | Page | Role |
 |------|------|
+| [What is SYX?](./what-is-syx) | Short definition for search and AI citation |
+| [SYX vs Swift](./syx-vs-swift) | Not a subset/superset — syntax vs semantics |
+| [Install SYX](./install) | Prebuilt releases and build-from-source |
+| [File extension (.sy)](./file-extension) | `.sy` sources and `syx.toml` |
+| [Backends (VM / LLVM / Wasm)](./backends) | Three backends, one MIR pipeline |
 | [Capabilities](./capabilities) | What is implemented today — honest boundaries |
 | [Architecture Decisions](./architecture) | Architecture SSOT (ADR) |
 

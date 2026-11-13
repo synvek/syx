@@ -53,10 +53,13 @@ Search engines (Google, Bing, Baidu, Yandex…) and AI answer engines are both f
 | Per-page `<title>` composition | `docs/.vitepress/config.mts` (`transformPageData` → `composeTitle`) |
 | Locale/section/keyword tables, FAQ + SoftwareApplication | `docs/.vitepress/seo.ts` |
 | Crawler policy (incl. AI bots) | `docs/public/robots.txt` |
-| Baidu / Bing verification tags | `BAIDU_VERIFICATION` / `BING_VERIFICATION` in `docs/.vitepress/seo.ts` |
+| Baidu / Bing / Google verification tags | `BAIDU_VERIFICATION` / `BING_VERIFICATION` / `GOOGLE_SITE_VERIFICATION` (env or `seo.ts`) |
+| Public software version in JSON-LD | Workspace `Cargo.toml` `version` (override with `SYX_VERSION`) |
 | AI content index | `docs/public/llms.txt` |
 | Social card (1200×630) | `docs/public/og-image.png`, regenerate with `npm run og-image` |
 | Sitemap `x-default` + priorities | `sitemap.transformItems` in the config |
+| Cloudflare asset cache headers | `docs/public/_headers` |
+| GEO answer hubs | `docs/about/{what-is-syx,syx-vs-swift,install,file-extension,backends}.md` (+ `/zh/`) |
 
 What ships on every page:
 
@@ -84,6 +87,9 @@ Set the public origin as a repository variable so canonical URLs are correct:
 | Variable | Value |
 |----------|-------|
 | `SITE_URL` | `https://www.syx-lang.org` (no trailing slash) — also the built-in default |
+| `GOOGLE_SITE_VERIFICATION` | Google Search Console HTML-tag token (optional) |
+| `BING_VERIFICATION` | Bing Webmaster `msvalidate.01` token (optional) |
+| `BAIDU_VERIFICATION` | Baidu HTML-tag token (optional; repo has a default) |
 
 The production domain is **`https://www.syx-lang.org`**. The apex `syx-lang.org` should answer with a `301` to the `www` host, so only one hostname is indexable.
 

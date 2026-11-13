@@ -10,6 +10,7 @@
  *     every page ships a unique <title> and meta description.
  *  3. Escape bare <Type> generics so Vue SFC compilation does not break.
  */
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -18,6 +19,34 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const siteRoot = path.resolve(__dirname, '..')
 const repoRoot = path.resolve(siteRoot, '..')
 const docsRoot = path.join(siteRoot, 'docs')
+
+/**
+ * Hand-authored pages under synced section dirs that must survive
+ * `clearSyncedDirs` (everything else ending in .md is regenerated).
+ */
+const PRESERVE_IN_SYNCED_DIRS = new Set([
+  'index.md',
+  // GEO / SEO answer hubs under /about/ (EN + ZH share the basename)
+  'what-is-syx.md',
+  'syx-vs-swift.md',
+  'install.md',
+  'file-extension.md',
+  'backends.md',
+])
+
+/** Git commit date (YYYY-MM-DD) of a source file, for sitemap lastmod. */
+function gitLastmod(srcAbs) {
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', srcAbs], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null
+  } catch {
+    return null
+  }
+}
 
 const GITHUB_REPO = 'https://github.com/synvek/syx'
 const GITHUB_BLOB = `${GITHUB_REPO}/blob/main/`
@@ -300,15 +329,25 @@ const htmlSafe = (s) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-function withFrontmatter(md) {
-  const hasFrontmatter = /^---\r?\n[\s\S]*?\r?\n---\r?\n/.test(md)
-  if (hasFrontmatter) return md
+/**
+ * Inject title / description / lastUpdated. When the source already has
+ * frontmatter, only add `lastUpdated` if missing so VitePress sitemap lastmod
+ * can use the source-file git date (synced copies are untracked).
+ */
+function withFrontmatter(md, { lastUpdated } = {}) {
+  const fm = md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/)
+  if (fm) {
+    if (!lastUpdated || /^\s*lastUpdated\s*:/m.test(fm[1])) return md
+    const injected = `---\n${fm[1]}\nlastUpdated: ${lastUpdated}\n---\n`
+    return md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, injected)
+  }
 
   const title = extractTitle(md)
   const description = htmlSafe(extractDescription(md))
   const lines = ['---']
   if (title) lines.push(`title: ${yamlString(title)}`)
   if (description) lines.push(`description: ${yamlString(description)}`)
+  if (lastUpdated) lines.push(`lastUpdated: ${lastUpdated}`)
   lines.push('---', '')
   if (lines.length === 3) return md
   return lines.join('\n') + md
@@ -369,7 +408,12 @@ function writeSynced(srcAbs, destAbs) {
   const destLocale = localeOfDest(destAbs)
   const raw = fs.readFileSync(srcAbs, 'utf8')
   const linked = rewriteLinks(raw, srcRel, destLocale)
-  fs.writeFileSync(destAbs, sanitizeMarkdown(withFrontmatter(linked)), 'utf8')
+  const lastUpdated = gitLastmod(srcAbs)
+  fs.writeFileSync(
+    destAbs,
+    sanitizeMarkdown(withFrontmatter(linked, { lastUpdated })),
+    'utf8',
+  )
   return true
 }
 
@@ -395,7 +439,7 @@ function clearSyncedDirs(dirs) {
     if (!fs.existsSync(abs)) continue
     for (const name of fs.readdirSync(abs)) {
       if (!name.endsWith('.md')) continue
-      if (name === 'index.md') continue
+      if (PRESERVE_IN_SYNCED_DIRS.has(name)) continue
       const p = path.join(abs, name)
       try {
         fs.unlinkSync(p)

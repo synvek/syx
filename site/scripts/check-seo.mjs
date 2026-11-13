@@ -157,14 +157,22 @@ for (const [desc, routes] of descriptions) {
 
 const sitemapPath = path.join(dist, 'sitemap.xml')
 let sitemapCount = 0
+let lastmodCount = 0
 if (!fs.existsSync(sitemapPath)) {
   errors.push({ route: '/sitemap.xml', msg: 'sitemap.xml not generated' })
 } else {
   const xml = fs.readFileSync(sitemapPath, 'utf8')
   sitemapCount = (xml.match(/<url>/g) ?? []).length
+  lastmodCount = (xml.match(/<lastmod>/g) ?? []).length
   const hreflangLinks = (xml.match(/xhtml:link/g) ?? []).length
   if (sitemapCount < 100) errors.push({ route: '/sitemap.xml', msg: `only ${sitemapCount} URLs` })
   if (hreflangLinks === 0) warnings.push({ route: '/sitemap.xml', msg: 'no xhtml:link hreflang entries' })
+  if (sitemapCount > 0 && lastmodCount / sitemapCount < 0.8) {
+    warnings.push({
+      route: '/sitemap.xml',
+      msg: `lastmod coverage low (${lastmodCount}/${sitemapCount}) — sync should stamp source git dates`,
+    })
+  }
 }
 
 if (!fs.existsSync(path.join(dist, 'robots.txt'))) {
@@ -185,6 +193,38 @@ if (fs.existsSync(rootHtml)) {
   if (!/name="baidu-site-verification"\s+content="[^"]+"/.test(root)) {
     errors.push({ route: '/', msg: 'missing baidu-site-verification meta tag' })
   }
+
+  const ld = readJsonLd(root)
+  const graph = ld.flatMap((b) => b['@graph'] ?? [b])
+  const website = graph.find((n) => n['@type'] === 'WebSite')
+  const software = graph.find((n) => n['@type'] === 'SoftwareApplication')
+  if (!website?.potentialAction) {
+    warnings.push({ route: '/', msg: 'WebSite JSON-LD missing SearchAction potentialAction' })
+  }
+  if (software?.softwareVersion === '117.0') {
+    errors.push({
+      route: '/',
+      msg: 'SoftwareApplication.softwareVersion still advertises retired marketing 117.0',
+    })
+  }
+
+  for (const hub of [
+    '/about/what-is-syx',
+    '/about/syx-vs-swift',
+    '/about/install',
+    '/about/file-extension',
+    '/about/backends',
+  ]) {
+    const file = path.join(dist, hub.replace(/^\//, ''), 'index.html')
+    const flat = path.join(dist, `${hub.replace(/^\//, '')}.html`)
+    if (!fs.existsSync(file) && !fs.existsSync(flat)) {
+      errors.push({ route: hub, msg: 'GEO answer hub page missing from build' })
+    }
+  }
+}
+
+if (!fs.existsSync(path.join(dist, '_headers'))) {
+  warnings.push({ route: '/_headers', msg: 'Cloudflare Pages _headers not published' })
 }
 
 const report = (list, label) => {
@@ -196,7 +236,7 @@ const report = (list, label) => {
 
 console.log(
   `[seo] ${pages.length} pages · canonical ${canonicalCount} · hreflang ${hreflangCount} · ` +
-    `JSON-LD ${jsonLdCount} · sitemap ${sitemapCount} URLs`,
+    `JSON-LD ${jsonLdCount} · sitemap ${sitemapCount} URLs · lastmod ${lastmodCount}`,
 )
 report(errors, 'error(s)')
 report(warnings, 'warning(s)')

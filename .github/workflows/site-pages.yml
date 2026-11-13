@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history so sync can stamp sitemap lastmod from source git dates.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -35,6 +38,10 @@ jobs:
         working-directory: site
         env:
           SITE_URL: ${{ vars.SITE_URL || 'https://www.syx-lang.org' }}
+          # Optional Search Console / Bing HTML-tag tokens (omit when empty).
+          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION || '' }}
+          BING_VERIFICATION: ${{ vars.BING_VERIFICATION || '' }}
+          BAIDU_VERIFICATION: ${{ vars.BAIDU_VERIFICATION || '' }}
         run: |
           npm ci
           npm run build

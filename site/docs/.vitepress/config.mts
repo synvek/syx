@@ -19,6 +19,7 @@ import {
   BAIDU_VERIFICATION,
   BING_VERIFICATION,
   GITHUB_URL,
+  GOOGLE_SITE_VERIFICATION,
   LICENSE_URL,
   OG_IMAGE,
   OG_IMAGE_ALT,
@@ -37,6 +38,7 @@ import {
   sectionOf,
   softwareApplication,
   urlPathOf,
+  websiteSearchAction,
 } from './seo'
 
 const navEn = [
@@ -87,7 +89,16 @@ const SECTION_KEYWORDS: Record<string, string[]> = {
     'Wasm backend',
   ],
   editors: ['SYX VS Code extension', 'SYX LSP', 'TextMate grammar', 'DAP debugging'],
-  about: ['SYX capabilities', 'SYX architecture', 'Apache-2.0 language', 'SYX roadmap'],
+  about: [
+    'what is SYX',
+    'SYX vs Swift',
+    'install SYX',
+    '.sy file extension',
+    'SYX backends',
+    'SYX capabilities',
+    'SYX architecture',
+    'Apache-2.0 language',
+  ],
 }
 
 const BASE_KEYWORDS = [
@@ -126,7 +137,7 @@ function siteEntities(locale: 'root' | 'zh') {
         width: 256,
         height: 256,
       },
-      sameAs: [GITHUB_URL],
+      sameAs: [GITHUB_URL, `${SITE_URL}/`, `${SITE_URL}/llms.txt`],
     },
     {
       '@type': 'WebSite',
@@ -141,6 +152,7 @@ function siteEntities(locale: 'root' | 'zh') {
       publisher: { '@id': `${SITE_URL}/#organization` },
       inLanguage: locale === 'zh' ? 'zh-CN' : 'en-US',
       license: LICENSE_URL,
+      potentialAction: websiteSearchAction(locale),
     },
   ]
 }
@@ -250,7 +262,9 @@ export default defineConfig({
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
-  ignoreDeadLinks: true,
+  // Prefer failing the build on dead markdown links; CI also runs check:links
+  // over the rendered HTML as a second gate.
+  ignoreDeadLinks: false,
   metaChunk: true,
 
   // Titles are composed per page from the frontmatter `title` plus the section
@@ -330,6 +344,9 @@ export default defineConfig({
     }
     if (BING_VERIFICATION) {
       tags.push(['meta', { name: 'msvalidate.01', content: BING_VERIFICATION }])
+    }
+    if (GOOGLE_SITE_VERIFICATION) {
+      tags.push(['meta', { name: 'google-site-verification', content: GOOGLE_SITE_VERIFICATION }])
     }
     return tags
   })(),
