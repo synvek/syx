@@ -10,7 +10,7 @@
 |-------|--------|
 | Cred / SA / R-0…R-47 | exited (wasm **46/46**; browser failed=**0**; Object **≤180/10**; simd **159**) |
 | **R-48** | **exited** — MD-only claim diet slice (≠ delete all ~168 contracts / D3 merge) |
-| Open | R-49；JIT Suite-1 / `func…async` **park** |
+| Open | 编号收口后；纯 MD 续刀 → **U-1**；JIT / `func…async` **park** |
 
 ## Root cause
 

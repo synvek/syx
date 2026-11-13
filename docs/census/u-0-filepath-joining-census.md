@@ -10,7 +10,7 @@
 |-------|--------|
 | 编号账本 SA-0…R-49 | **收口**（无 R-50） |
 | **U-0** | **exited** — joining chain + reassign 绿 |
-| Open | park：JIT Suite-1、`func…async`、simd 159；候选 U-1 |
+| Open | park：JIT Suite-1、`func…async`、simd 159；**U-1** credibility diet |
 
 ## Root cause
 
