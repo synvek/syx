@@ -6,6 +6,7 @@ use crate::{
     collect_main_actor_await_errors, collect_stdlib_extension_methods,
     core_prelude_generic_class_methods, core_prelude_import_symbols, cross_module_function_name,
     export_symbols, inject_core_collection_builtins, inject_imported_dataclass_decls,
+    inject_imported_public_structs,
     is_stdlib_module_path, merge_imported_dataclass_functions, merge_stdlib_mono_instances,
     merge_user_dep_program_batch, mir_merge_stdlib_function,
     register_imported_data_classes_from_parsed, register_imported_macros_from_parsed,
@@ -109,6 +110,18 @@ pub fn compile_file_with_context(
 
     // SA-4-04: inject `SyxHost` before semantic (import façades call it).
     crate::compile_to_program::inject_syx_host_enum(&mut module);
+    // U-0: inject public Structs only (FilePath) before semantic so instance
+    // methods land in class_methods — full Class/DataClass inject here breaks
+    // SIMD static labels (S042). Full inject remains post-semantic for MIR.
+    inject_imported_public_structs(
+        &mut module,
+        importer,
+        importer_dir,
+        manifest,
+        options,
+        project_root,
+        graph,
+    )?;
     let semantic = SemanticAnalyzer::analyze_with_imports_strict_skip_main_actor(
         &module,
         &import_symbols,

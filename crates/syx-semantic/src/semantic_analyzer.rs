@@ -909,6 +909,13 @@ impl SemanticAnalyzer {
             if let Some(ty) = self.lookup_surface_member_type(n, method) {
                 return ty;
             }
+            // U-0: struct/class instance methods are also keyed as `{Type}_{method}`
+            // in function_return_types (collect_decls). Needed when surface tables miss
+            // an injected System struct method so `p = p.joining(...)` stays FilePath.
+            let mangled = SmolStr::new(format!("{n}_{method}"));
+            if let Some(ty) = self.function_return_types.get(&mangled) {
+                return ty.clone();
+            }
         }
         // `Int` / `Int8` bare names are `TypeId::Numeric` (stdlib globals), not `Named`.
         if let TypeId::Numeric(kind) = object_ty {

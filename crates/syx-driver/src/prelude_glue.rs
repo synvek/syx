@@ -379,6 +379,73 @@ pub(crate) fn expand_core_value_builtin_modules(options: &DriverOptions) -> Vec<
     out
 }
 
+/// U-0: inject only public imported `struct` decls before semantic so instance
+/// methods (`FilePath.joining`) land in `class_methods`. Do **not** inject
+/// Class/DataClass here — that tightens static-call labels (SIMD8.mul S042).
+pub(crate) fn inject_imported_public_structs(
+    module: &mut syx_ast::Module,
+    importer: &Path,
+    importer_dir: &Path,
+    manifest: &SyxManifest,
+    options: &DriverOptions,
+    project_root: &Path,
+    graph: &ModuleGraph,
+) -> SyxResult<()> {
+    let imports: Vec<(String, SmolStr)> = module
+        .decls
+        .iter()
+        .filter_map(|d| {
+            let Decl::Import { .. } = d else {
+                return None;
+            };
+            Some((d.import_path_str()?, d.import_symbol()?.clone()))
+        })
+        .collect();
+    for (path_str, symbol) in imports {
+        let import_ref = resolve_module(
+            &path_str,
+            importer,
+            importer_dir,
+            manifest,
+            options,
+            project_root,
+        )?;
+        let import_key = import_ref.key();
+        let dep_source = if let Some(dep) = graph.modules.get(&import_key) {
+            dep.source.clone()
+        } else {
+            import_ref.load()?.1
+        };
+        let Some(dep_module) = expanded_dep_module(&dep_source) else {
+            continue;
+        };
+        for decl in &dep_module.decls {
+            if let Decl::Struct {
+                access: AccessLevel::Public,
+                name,
+                ..
+            } = decl
+            {
+                if name == &symbol {
+                    continue;
+                }
+                if !module.decls.iter().any(|d| {
+                    matches!(d, Decl::Struct { name: n, .. } if n == name)
+                        || matches!(d, Decl::Class { name: n, .. } if n == name)
+                        || matches!(d, Decl::DataClass { name: n, .. } if n == name)
+                        || matches!(d, Decl::Enum { name: n, .. } if n == name)
+                }) {
+                    module.decls.push(decl.clone());
+                    for ext in extension_decls_for_type(&dep_module, name) {
+                        merge_imported_extension(module, ext);
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Phase 59: inject imported dependency data classes, public classes, and type
 /// extensions into the compiling module (so Core prelude Array helpers and
 /// OrderedSet, or `import Networking`, land in semantic / LSP scope).

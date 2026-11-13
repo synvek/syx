@@ -10,7 +10,7 @@
 |-------|--------|
 | Cred / SA / R-0…R-46 | exited (wasm **46/46**; browser failed=**0**; Object **≤180/10**; simd **159**) |
 | **R-47** | **exited** — System Env/FilePath slice (≠ full F2/F3 delete) |
-| Open | R-48…R-49；JIT Suite-1 / `func…async` **park** |
+| Open | 编号收口后 park；R-47 joining 链残余 → **U-0** 消化 |
 
 ## Root cause
 
@@ -42,10 +42,11 @@ Package names were Swiftified (SA-3/SA-4) but API shape lagged: `Env` remained a
 - ≠ delete `os/`/`net/`/`io/`/`sync/`/`log/` trees
 - ≠ Networking `HTTPClient` / wipe all `SyxHost.*`
 - ≠ `ProcessInfo.processInfo.environment` dictionary surface
-- ≠ fix struct method-chain residual after `joining` (fresh `FilePath(rawValue:)` + static bridges are green)
-- ≠ JIT unpark / `func…async` / R-48+
+- ≠ （原）fix struct method-chain residual after `joining` — **已由 [`u-0-filepath-joining-census`](u-0-filepath-joining-census.md) 消化**
+- ≠ JIT unpark / `func…async` / 新开 R-50
 
 ## References
 
 - [`r-46-books-ch17-census`](r-46-books-ch17-census.md)
-- [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · R-47 → next **R-48**
+- [`u-0-filepath-joining-census`](u-0-filepath-joining-census.md)
+- [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · R-47 → U-0 → park / U-1

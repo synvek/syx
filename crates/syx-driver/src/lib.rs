@@ -322,6 +322,7 @@ pub(crate) use prelude_glue::{
     core_prelude_generic_class_methods, core_prelude_import_symbols,
     ensure_prelude_modules_in_graph, expand_core_value_builtin_modules, export_symbols,
     inject_core_collection_builtins, inject_imported_dataclass_decls,
+    inject_imported_public_structs,
     merge_imported_dataclass_functions, register_imported_data_classes_from_parsed,
     register_imported_macros_from_parsed,
 };

@@ -1093,6 +1093,41 @@ pub(crate) fn lower_expr_call_member(
             );
             return;
         }
+        // U-0: zero-arg `p.rawValue()` on a struct/dataclass stored field must
+        // stay ObjectGet. Once recv is typed (joining returns FilePath), the
+        // Call(Type_field) path would emit a missing FilePath_rawValue.
+        let is_stored_field = args.is_empty()
+            && ctx.module.dataclass_names.contains(&base)
+            && ctx
+                .module
+                .dataclass_fields
+                .get(&base)
+                .is_some_and(|fs| fs.iter().any(|f| f == name))
+            && !ctx
+                .module
+                .extension_method_returns
+                .contains_key(&(base.clone(), name.clone()))
+            && !ctx.module.callable_extensions.contains(&ext_name);
+        if is_stored_field {
+            lower_expr(object, dest, ctx, block);
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: None,
+                    op: MirOp::ConstStr(name.to_string()),
+                    span: None,
+                },
+            );
+            ctx.emit(
+                block,
+                MirInstr {
+                    dest: Some(dest),
+                    op: MirOp::ObjectGet,
+                    span: None,
+                },
+            );
+            return;
+        }
         if ctx.module.class_types.contains_key(&base)
             || ctx.module.dataclass_names.contains(&base)
             || ctx.module.enum_classes.contains(&base)

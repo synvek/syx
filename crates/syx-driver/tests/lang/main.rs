@@ -24,6 +24,7 @@ mod errors;
 mod exclusive_borrow;
 mod existential_any;
 mod extension_init;
+mod filepath_joining_chain;
 mod first_order_where;
 mod frontend_pipeline_parity;
 mod inheritance;

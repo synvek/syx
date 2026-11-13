@@ -4,7 +4,8 @@
 use crate::{
     contextual_numeric_kinds_from_semantic, core_prelude_generic_class_methods,
     core_prelude_import_symbols, export_symbols, inject_core_collection_builtins,
-    inject_imported_dataclass_decls, inject_virtual_prelude_imports, resolve_module, DriverOptions,
+    inject_imported_dataclass_decls, inject_imported_public_structs,
+    inject_virtual_prelude_imports, resolve_module, DriverOptions,
     ModuleGraph, ModuleUnit,
 };
 use indexmap::IndexMap;
@@ -438,6 +439,17 @@ pub(crate) fn build_mir_from_graph(
         }
     }
 
+    // U-0: public Structs only before semantic (FilePath.joining); full inject
+    // after analyze for MIR (Class/DataClass must not tighten SIMD labels).
+    inject_imported_public_structs(
+        &mut module,
+        &entry.path,
+        importer_dir,
+        manifest,
+        options,
+        project_root,
+        graph,
+    )?;
     let semantic = SemanticAnalyzer::analyze_with_imports_and_generics(
         &module,
         &import_symbols,

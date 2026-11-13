@@ -203,6 +203,9 @@ impl ModuleIndex {
                     members,
                     ..
                 } => {
+                    // U-0: register instance method return types so
+                    // `let p = x.joining(...); p.normalized()` keeps recv typed
+                    // (else MIR falls through to ObjectGet of the method name).
                     idx.dataclass_names.insert(name.clone());
                     let mut field_names: Vec<SmolStr> =
                         fields.iter().map(|(f, _)| f.clone()).collect();
@@ -224,6 +227,24 @@ impl ModuleIndex {
                         {
                             idx.dataclass_field_default_i64
                                 .insert((name.clone(), field.clone()), *value);
+                        }
+                        if let Decl::Function {
+                            name: method,
+                            return_type,
+                            attrs,
+                            ..
+                        } = member
+                        {
+                            if attrs.iter().any(|a| a.name.as_str() == "static") {
+                                idx.static_class_methods
+                                    .insert((name.clone(), method.clone()));
+                            }
+                            if let Some(ret) = return_type.as_ref().and_then(mir_type_expr_name) {
+                                idx.extension_method_returns
+                                    .insert((name.clone(), method.clone()), ret.clone());
+                                let mangled = SmolStr::new(format!("{name}_{method}"));
+                                idx.function_returns.insert(mangled, ret);
+                            }
                         }
                     }
                     idx.dataclass_fields.insert(name.clone(), field_names);
