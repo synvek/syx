@@ -1299,11 +1299,56 @@ pub fn inkwell_default_enabled() -> bool {
         .unwrap_or(llvm_inkwell_default_ga_ready())
 }
 
+/// Target triple written into textual LLVM IR (`syx emit --format llvm`).
+///
+/// Override with `SYX_LLVM_TRIPLE` or `TARGET`. Default matches the host
+/// (same mapping as `syx_rt::link::host_link_triple`) — never a hardcoded
+/// `aarch64-apple-darwin`.
+pub fn llvm_ir_target_triple() -> String {
+    for key in ["SYX_LLVM_TRIPLE", "TARGET"] {
+        if let Ok(t) = std::env::var(key) {
+            let t = t.trim();
+            if !t.is_empty() {
+                return t.to_string();
+            }
+        }
+    }
+    #[cfg(feature = "llvm")]
+    {
+        // Prefer LLVM's own default when the inkwell feature is linked.
+        use inkwell::targets::TargetMachine;
+        let t = TargetMachine::get_default_triple();
+        let s = t.as_str().to_string_lossy().into_owned();
+        if !s.is_empty() {
+            return s;
+        }
+    }
+    let arch = std::env::consts::ARCH;
+    if cfg!(target_os = "windows") {
+        let env = if cfg!(target_env = "gnu") {
+            "gnu"
+        } else {
+            "msvc"
+        };
+        return format!("{arch}-pc-windows-{env}");
+    }
+    if cfg!(target_os = "macos") {
+        return format!("{arch}-apple-darwin");
+    }
+    if cfg!(target_os = "linux") {
+        return format!("{arch}-unknown-linux-gnu");
+    }
+    format!("{arch}-unknown-unknown")
+}
+
 pub fn emit_llvm_ir(module: &MirModule) -> SyxResult<String> {
     LLVM_SSA_SEQ.store(0, Ordering::Relaxed);
     collect_module_const_strings(module);
     let mut out = String::from("; SYX LLVM IR (ADR-002 phase 2)\n");
-    out.push_str("target triple = \"aarch64-apple-darwin\"\n\n");
+    out.push_str(&format!(
+        "target triple = \"{}\"\n\n",
+        llvm_ir_target_triple()
+    ));
     out.push_str("declare i32 @syx_rt_call_host(i32)\n");
     out.push_str("declare i32 @syx_rt_call_witness(i32, i32)\n");
     out.push_str("declare i32 @syx_rt_make_closure(i32, i32)\n");
@@ -4245,6 +4290,22 @@ mod tests {
         assert!(
             !ir.contains("declare void @syx_rt_load_mir_blob"),
             "emit must omit residual declare (W484 / ADR-828): {ir}"
+        );
+    }
+
+    #[test]
+    fn emit_llvm_ir_uses_host_target_triple_not_hardcoded() {
+        let module = syx_mir::aot_codec_fixture_main_with_const_strs(1);
+        let ir = emit_llvm_ir(&module).unwrap();
+        let expected = format!("target triple = \"{}\"", llvm_ir_target_triple());
+        assert!(
+            ir.contains(&expected),
+            "IR must use host/override triple `{expected}`:\n{ir}"
+        );
+        // Honesty: textual emit must not hardcode Apple Silicon.
+        assert!(
+            !include_str!("lib.rs").contains("target triple = \\\"aarch64-apple-darwin\\\""),
+            "emit_llvm_ir must not hardcode aarch64-apple-darwin"
         );
     }
 

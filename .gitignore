@@ -20,6 +20,7 @@ crates/syx-host-plugin/tests/fixtures/macro_plugin/*.so
 examples/plugin_demo/plugins/mycrypto/*.dylib
 examples/emit/
 examples/*.wasm
+examples/*.ll
 examples/test.sy
 examples/hello2.sy
 examples/**/target/
