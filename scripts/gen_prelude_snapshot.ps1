@@ -119,11 +119,24 @@ try {
     Write-Host "wrote $OutBin ($($Prelude.Length) bytes) from $($Prelude.FullName)"
 
     $RkyvHits = Find-PreludeFiles $CacheDir 'prelude_*.rkyv'
-    if ($RkyvHits.Count -gt 0 -and $RkyvHits[0].Length -gt 0) {
-        Copy-Item -LiteralPath $RkyvHits[0].FullName -Destination $OutRkyv -Force
-        Write-Host "wrote $OutRkyv ($($RkyvHits[0].Length) bytes) from $($RkyvHits[0].FullName)"
-    } else {
-        Write-Warning "no prelude_*.rkyv produced (rkyv embed stays empty until next cold store)"
+    if ($RkyvHits.Count -eq 0 -or $RkyvHits[0].Length -eq 0) {
+        Write-Host "cache tree under $CacheDir :"
+        if (Test-Path -LiteralPath $Work) {
+            Get-ChildItem -LiteralPath $Work -Recurse -File -ErrorAction SilentlyContinue |
+                Select-Object -First 50 |
+                ForEach-Object { Write-Host $_.FullName }
+        }
+        throw "no prelude_*.rkyv produced under $CacheDir (empty rkyv → ~2MB bincode stall on Windows)"
+    }
+    Copy-Item -LiteralPath $RkyvHits[0].FullName -Destination $OutRkyv -Force
+    Write-Host "wrote $OutRkyv ($($RkyvHits[0].Length) bytes) from $($RkyvHits[0].FullName)"
+
+    # Release CI sets SYX_GEN_PRELUDE_SKIP_REBUILD=1: assets are enough for the
+    # subsequent full-native build's include_bytes; skip a redundant tip rebuild.
+    if ($env:SYX_GEN_PRELUDE_SKIP_REBUILD -eq "1") {
+        Write-Host "skipping tip rebuild (SYX_GEN_PRELUDE_SKIP_REBUILD=1) — caller must full-native build + check_prelude_embed"
+        Write-Host "done — assets ready at $OutBin / $OutRkyv"
+        exit 0
     }
 
     Write-Host "rebuilding syx so include_bytes picks up the assets…"

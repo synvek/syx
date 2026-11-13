@@ -406,13 +406,39 @@ jobs:
       # Checked-in assets may miss on a runner whose rustc differs from the machine
       # that last ran gen_prelude_snapshot — regen here so each platform's shipped
       # binary embeds a tag-matching snapshot (include_bytes in the following build).
+      # Skip gen's tip rebuild: the next full-native step is the only binary we ship,
+      # and a second non-full-native rebuild on Windows was both slow and easy to
+      # confuse with the artifact under test (empty rkyv → bincode stall).
       - name: Regen prelude embed for this runner rustc
         if: runner.os != 'Windows'
+        env:
+          SYX_GEN_PRELUDE_SKIP_REBUILD: "1"
         run: bash scripts/gen_prelude_snapshot.sh
       - name: Regen prelude embed for this runner rustc
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          SYX_GEN_PRELUDE_SKIP_REBUILD: "1"
         run: .\scripts\gen_prelude_snapshot.ps1
+      - name: Assert prelude assets non-empty (bin + rkyv)
+        run: |
+          set -euo pipefail
+          BIN=crates/syx-driver/assets/prelude_snapshot.bin
+          RKYV=crates/syx-driver/assets/prelude_vm_image.rkyv
+          test -s "$BIN"
+          test -s "$RKYV"
+          # Rough floors: bincode ~2MB, rkyv ~100KB. Empty/tiny = gen bug.
+          bin_bytes=$(wc -c <"$BIN" | tr -d ' ')
+          rkyv_bytes=$(wc -c <"$RKYV" | tr -d ' ')
+          echo "prelude_snapshot.bin=${bin_bytes} prelude_vm_image.rkyv=${rkyv_bytes}"
+          if [ "$bin_bytes" -lt 100000 ]; then
+            echo "ERROR: prelude_snapshot.bin too small (${bin_bytes})" >&2
+            exit 1
+          fi
+          if [ "$rkyv_bytes" -lt 10000 ]; then
+            echo "ERROR: prelude_vm_image.rkyv too small (${rkyv_bytes}) — Windows run would stall on bincode" >&2
+            exit 1
+          fi
 
       - name: Build release CLI (full-native)
         run: |
@@ -657,6 +683,31 @@ jobs:
             "${SDK_BIN}" doctor --native-sdk
             test ! -d "sdk-stage/syx/lib/sysroot"
           fi
+      # Wall-clock hello on the *packaged* SDK binary (what users download).
+      # Cold+warm times surface Windows bincode-fallback stalls that check_prelude
+      # alone can miss when rkyv embed is empty but bincode still hits.
+      - name: Packaged SDK hello timing smoke
+        run: |
+          set -euo pipefail
+          SDK_BIN="sdk-stage/syx/bin/syx${{ matrix.exe_ext }}"
+          HELLO="sdk-stage/syx/examples/hello.sy"
+          test -f "${SDK_BIN}"
+          test -f "${HELLO}"
+          WORK="$(mktemp -d "${TMPDIR:-/tmp}/syx-sdk-hello.XXXXXX")"
+          cleanup() { rm -rf "${WORK}"; }
+          trap cleanup EXIT
+          cp "${HELLO}" "${WORK}/hello.sy"
+          if command -v python3 >/dev/null 2>&1; then
+            PY=python3
+          elif command -v python >/dev/null 2>&1; then
+            PY=python
+          else
+            echo "ERROR: need python3 or python for hello timing smoke" >&2
+            exit 1
+          fi
+          # Soft ceiling 5s: catch multi-second bincode/cold-compile stalls.
+          # Windows first-touch AV/page-in can be hundreds of ms; gate uses warm run.
+          "${PY}" scripts/sdk_hello_timing_smoke.py "${SDK_BIN}" "${WORK}/hello.sy" --gate-s 5.0
       - name: Generate checksums
         run: |
           cd dist

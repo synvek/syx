@@ -34,11 +34,13 @@ fi
 echo "prelude_embed_asset_bytes=$(wc -c <"$ASSET" | tr -d ' ')"
 echo "prelude_embed_asset_path=$ASSET"
 RKYV_ASSET="$ROOT/crates/syx-driver/assets/prelude_vm_image.rkyv"
-if [[ -s "$RKYV_ASSET" ]]; then
-  echo "prelude_rkyv_asset_bytes=$(wc -c <"$RKYV_ASSET" | tr -d ' ')"
-else
-  echo "warn: empty or missing $RKYV_ASSET (rkyv fastpath disabled; bincode embed still required)" >&2
+if [[ ! -s "$RKYV_ASSET" ]]; then
+  echo "error: empty or missing $RKYV_ASSET" >&2
+  echo "  without rkyv, interpret falls back to ~2MB bincode deserialize (Windows stall)" >&2
+  echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
+  exit 1
 fi
+echo "prelude_rkyv_asset_bytes=$(wc -c <"$RKYV_ASSET" | tr -d ' ')"
 
 HELLO_SRC="$ROOT/examples/hello.sy"
 if [[ ! -f "$HELLO_SRC" ]]; then

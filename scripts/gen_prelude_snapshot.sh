@@ -73,11 +73,21 @@ cp "$PRELUDE" "$OUT_BIN"
 echo "wrote $OUT_BIN ($(wc -c <"$OUT_BIN" | tr -d ' ') bytes) from $PRELUDE"
 
 RKYV="$(find "$WORK/target/cache" -type f -name 'prelude_*.rkyv' 2>/dev/null | head -n 1 || true)"
-if [[ -n "$RKYV" && -s "$RKYV" ]]; then
-  cp "$RKYV" "$OUT_RKYV"
-  echo "wrote $OUT_RKYV ($(wc -c <"$OUT_RKYV" | tr -d ' ') bytes) from $RKYV"
-else
-  echo "warn: no prelude_*.rkyv produced (rkyv embed stays empty until next cold store)" >&2
+if [[ -z "$RKYV" || ! -s "$RKYV" ]]; then
+  echo "error: no prelude_*.rkyv produced under $WORK/target/cache" >&2
+  echo "  empty rkyv embed falls back to ~2MB bincode deserialize (noticeable stall on Windows)" >&2
+  find "$WORK/target/cache" -type f 2>/dev/null | head -50 >&2 || true
+  exit 1
+fi
+cp "$RKYV" "$OUT_RKYV"
+echo "wrote $OUT_RKYV ($(wc -c <"$OUT_RKYV" | tr -d ' ') bytes) from $RKYV"
+
+# Release CI sets SYX_GEN_PRELUDE_SKIP_REBUILD=1: assets are enough for the
+# subsequent full-native build's include_bytes; skip a redundant tip rebuild.
+if [[ "${SYX_GEN_PRELUDE_SKIP_REBUILD:-}" == "1" ]]; then
+  echo "skipping tip rebuild (SYX_GEN_PRELUDE_SKIP_REBUILD=1) — caller must full-native build + check_prelude_embed"
+  echo "done — assets ready at $OUT_BIN / $OUT_RKYV"
+  exit 0
 fi
 
 echo "rebuilding syx so include_bytes picks up the assets…"

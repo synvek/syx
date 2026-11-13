@@ -72,11 +72,15 @@ Write-Host "prelude_embed_asset_bytes=$AssetLen"
 Write-Host "prelude_embed_asset_path=$Asset"
 
 $RkyvAsset = Join-Path $Root "crates\syx-driver\assets\prelude_vm_image.rkyv"
-if ((Test-Path -LiteralPath $RkyvAsset) -and ((Get-Item -LiteralPath $RkyvAsset).Length -gt 0)) {
-    Write-Host "prelude_rkyv_asset_bytes=$((Get-Item -LiteralPath $RkyvAsset).Length)"
-} else {
-    Write-Warning "empty or missing $RkyvAsset (rkyv fastpath disabled; bincode embed still required)"
+if (-not (Test-Path -LiteralPath $RkyvAsset) -or ((Get-Item -LiteralPath $RkyvAsset).Length -eq 0)) {
+    Write-Error @"
+empty or missing $RkyvAsset
+  without rkyv, interpret falls back to ~2MB bincode deserialize (Windows stall)
+  fix: .\scripts\gen_prelude_snapshot.ps1
+"@
+    exit 1
 }
+Write-Host "prelude_rkyv_asset_bytes=$((Get-Item -LiteralPath $RkyvAsset).Length)"
 
 $HelloSrc = Join-Path $Root "examples\hello.sy"
 if (-not (Test-Path -LiteralPath $HelloSrc)) {

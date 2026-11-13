@@ -51,7 +51,7 @@
 |------|----------------|
 | `ci.yml` Linux | `check_prelude_embed.sh` after release build |
 | `ci.yml` `windows-smoke` | `check_prelude_embed.ps1` after release build |
-| `release.yml` each matrix OS | **Regen** (`gen_prelude_snapshot.sh` / `.ps1`) then full-native build, then **verify** embed hit on the shipped binary |
+| `release.yml` each matrix OS | **Regen** assets only (`SYX_GEN_PRELUDE_SKIP_REBUILD=1`; hard-fail if rkyv missing), assert size floors, full-native build, **verify** embed hit, then packaged SDK `hello` cold/warm timing gate (&lt;5s warm) |
 
 Embed is keyed by `cache_version_tag` (`CARGO_PKG_VERSION` + `rustc -V` + tip digest). Checked-in assets alone do **not** guarantee every platform: a runner whose rustc differs from the gen machine will miss. Release regen bakes a matching snapshot into that platform’s artifact via `include_bytes!`.
 
