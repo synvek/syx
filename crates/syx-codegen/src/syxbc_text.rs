@@ -447,6 +447,7 @@ mod tests {
             mir_functions: indexmap::IndexMap::new(),
             mir_module: None,
             opaque_witnesses: indexmap::IndexMap::new(),
+            debug_source: None,
         };
         let text = format_compiled_program(&program);
         assert!(text.contains("; syxbc-text v1"));

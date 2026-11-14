@@ -1,0 +1,6 @@
+import Networking
+
+func main() {
+    let built = Url.build(base: "https://api.example.com", path: "/v1", query: {"q": "syx"})
+    print(built)
+}

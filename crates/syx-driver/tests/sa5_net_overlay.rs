@@ -19,9 +19,9 @@ fn workspace_networking_import_check() {
         .unwrap();
     }
     let opts = DriverOptions::default();
-    let result = syx_driver::check_file(&src, &opts);
+    let result = syx_driver::check_file_with_options(&src, &opts);
     match result {
-        Ok(()) => {}
+        Ok(_) => {}
         Err(e) => panic!("check failed: {e:?}"),
     }
 }

@@ -7514,6 +7514,7 @@ dependencies = [
  "cranelift-module",
  "syx-diagnostics",
  "syx-mir",
+ "syx-stdlib",
  "target-lexicon 0.13.5",
 ]
 
