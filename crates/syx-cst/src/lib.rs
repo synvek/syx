@@ -89,6 +89,7 @@
 //! S2-I157 / ADR stage2-s2-04-cst-subset-range-in-call: `Integer ...|..< Integer` as print/call/return arg; RangeDyn / optional-chain still out.
 //! S2-I158 / ADR stage2-s2-04-cst-subset-optional-chain: `Ident?.Ident` as print/call/return arg; multi-hop / force-unwrap still out.
 
+use smol_str::SmolStr;
 use syx_diagnostics::{SourceFile, Span, SyxResult};
 use syx_lexer::{Lexer, Token, TokenKind};
 
@@ -147,6 +148,8 @@ fn significant(tokens: &[Token]) -> Vec<&Token> {
 /// `: (Ident[<Named(, Named)*>][?]|Amp[?]…|nested Function)[-> Ident[<Named(, Named)*>][?]|Amp[?]…|nested Function]` / `: ()` (W799–W814).
 pub fn parse_cst_subset(source: &SourceFile) -> SyxResult<CstRoot> {
     let tokens = Lexer::new(source.clone()).scan_all()?;
+    // Nested generics lex `>>` as GreaterGreater; split like syx-parser::consume_rangle.
+    let tokens = split_rangle_shifts(tokens);
     validate_func_main_subset(&tokens)?;
     let green = GreenNode {
         tokens: tokens
@@ -162,6 +165,34 @@ pub fn parse_cst_subset(source: &SourceFile) -> SyxResult<CstRoot> {
         source_name: source.name.clone(),
         green,
     })
+}
+
+/// Expand `>>` into two `>` tokens so subset generic closes can nest (`Foo<Bar<Int>>`).
+fn split_rangle_shifts(tokens: Vec<Token>) -> Vec<Token> {
+    let mut out = Vec::with_capacity(tokens.len());
+    for tok in tokens {
+        if tok.kind == TokenKind::GreaterGreater {
+            let half = Span::new(tok.span.start as usize, 1);
+            let rest = Span::new(tok.span.start as usize + 1, 1);
+            out.push(Token {
+                kind: TokenKind::Greater,
+                lexeme: SmolStr::new(">"),
+                span: half,
+                line: tok.line,
+                column: tok.column,
+            });
+            out.push(Token {
+                kind: TokenKind::Greater,
+                lexeme: SmolStr::new(">"),
+                span: rest,
+                line: tok.line,
+                column: tok.column.saturating_add(1),
+            });
+        } else {
+            out.push(tok);
+        }
+    }
+    out
 }
 
 fn is_simple_value(kind: &TokenKind) -> bool {
@@ -2024,6 +2055,12 @@ fn take_func_shell(sig: &[&Token], i: usize) -> Option<(usize, usize, usize)> {
         return None;
     }
     j += 1;
+    // W839: optional `throws` — accept both `() throws -> T` and `() -> T throws`.
+    let mut saw_throws = false;
+    if j < sig.len() && sig[j].kind == TokenKind::Throws {
+        saw_throws = true;
+        j += 1;
+    }
     // W826–W833: optional `-> Ident [< Arg (, Arg)* >] [?]` | Amp 族[?] | Function TypeExpr before `{`.
     if j < sig.len() && sig[j].kind == TokenKind::Arrow {
         j += 1;
@@ -2087,8 +2124,8 @@ fn take_func_shell(sig: &[&Token], i: usize) -> Option<(usize, usize, usize)> {
             return None;
         }
     }
-    // W839: optional bare `throws` before optional `requires` / `{`.
-    if j < sig.len() && sig[j].kind == TokenKind::Throws {
+    // Trailing `throws` when return type came first (`() -> T throws`).
+    if !saw_throws && j < sig.len() && sig[j].kind == TokenKind::Throws {
         j += 1;
     }
     // W837: optional `requires Pure|IO` before optional where / `{`.
