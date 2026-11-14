@@ -1018,33 +1018,31 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                 }
             }
         }
-        Stmt::Continue { label, .. } => {
-            match ctx.resolve_loop_target(label.as_ref()) {
-                Some((continue_block, _)) => {
-                    let cur = ctx.active_block;
-                    ctx.emit(
-                        cur,
-                        MirInstr {
-                            dest: None,
-                            op: MirOp::Jump(continue_block),
-                            span: None,
-                        },
-                    );
-                    ctx.link(cur, continue_block);
-                    ctx.active_block = ctx.fresh_block();
-                }
-                None => {
-                    ctx.set_error_with_code(
-                        Some("MIR001"),
-                        if label.is_some() {
-                            "continue label does not match any enclosing loop"
-                        } else {
-                            "continue outside of loop"
-                        },
-                    );
-                }
+        Stmt::Continue { label, .. } => match ctx.resolve_loop_target(label.as_ref()) {
+            Some((continue_block, _)) => {
+                let cur = ctx.active_block;
+                ctx.emit(
+                    cur,
+                    MirInstr {
+                        dest: None,
+                        op: MirOp::Jump(continue_block),
+                        span: None,
+                    },
+                );
+                ctx.link(cur, continue_block);
+                ctx.active_block = ctx.fresh_block();
             }
-        }
+            None => {
+                ctx.set_error_with_code(
+                    Some("MIR001"),
+                    if label.is_some() {
+                        "continue label does not match any enclosing loop"
+                    } else {
+                        "continue outside of loop"
+                    },
+                );
+            }
+        },
         _ => {}
     }
 }
