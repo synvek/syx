@@ -51,3 +51,4 @@ plan/
 # overlay a fuller body before qs1 CI. (R-37: stub required for cargo fmt resolve.)
 
 .DS_Store
+target-linux/

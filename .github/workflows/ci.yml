@@ -322,10 +322,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Tier-2 default-off / opt-in
         run: |
-          cargo test -p syx-vm --features jit-tier2 \
-            tier2_prod_default_when_unset tier2_explicit_one_enables -- --nocapture
-          SYX_JIT_TIER2=0 cargo test -p syx-vm --features jit-tier2 \
-            tier2_explicit_zero_disables_prod_default -- --nocapture
+          # cargo accepts a single TESTNAME filter; run the two opt-in cases separately.
+          cargo test -p syx-vm --features jit-tier2 -- --nocapture tier2_prod_default_when_unset
+          cargo test -p syx-vm --features jit-tier2 -- --nocapture tier2_explicit_one_enables
+          SYX_JIT_TIER2=0 cargo test -p syx-vm --features jit-tier2 -- --nocapture \
+            tier2_explicit_zero_disables_prod_default
       - name: JIT differential
         run: >
           SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang
