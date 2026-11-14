@@ -1,5 +1,6 @@
 //! Domain harness: backends
 
+mod native_strict;
 mod http_criterion;
 mod http_microbench;
 mod http_native_wasm_ga;

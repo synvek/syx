@@ -6,34 +6,10 @@
 //! Wave A W294 / ADR-638: net.http.server product native=real (status still partial).
 // was: ec_m2_4_http_native_wasm_ga3
 
-use std::fs;
-use std::process::Command;
 
-use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
+use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-fn run_native_strict(src: &str) -> (i32, String) {
-    std::env::set_var("SYX_NATIVE_STRICT", "1");
-    std::env::remove_var("SYX_NATIVE_C_STUB");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_m2_w71_http_ga3_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe)
-        .unwrap_or_else(|e| panic!("native build failed: {e}"));
-    let output = Command::new(&exe).output().expect("run native exe");
-    (
-        output.status.code().unwrap_or(1),
-        String::from_utf8_lossy(&output.stdout).into_owned(),
-    )
-}
+use crate::native_strict::run_native_strict_or_mirror_vm;
 
 #[test]
 fn ec_m2_4_http_native_wasm_ga3_native_response_text_exec() {
@@ -46,7 +22,7 @@ fn ec_m2_4_http_native_wasm_ga3_native_response_text_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict(src);
+    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "http_ga");
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -68,7 +44,7 @@ fn ec_m2_4_http_native_wasm_ga_native_http_response_status_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict(src);
+    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "http_ga");
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -89,7 +65,7 @@ fn ec_m2_4_http_native_wasm_ga_native_http_make_response_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict(src);
+    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "http_ga");
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();

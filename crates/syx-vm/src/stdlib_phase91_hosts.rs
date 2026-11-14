@@ -331,34 +331,32 @@ pub fn winit_window_count() -> usize {
     WINIT_WINDOWS.lock().map(|g| g.len()).unwrap_or(0)
 }
 
+fn xpath_base_and_index(expr: &str) -> (&str, Option<usize>) {
+    let trimmed = expr.trim();
+    if let Some(idx) = trimmed.find('[') {
+        let base = &trimmed[..idx];
+        let pred = trimmed[idx + 1..].trim_end_matches(']');
+        if let Ok(n) = pred.parse::<usize>() {
+            return (base, Some(n));
+        }
+    }
+    (trimmed, None)
+}
+
 fn xpath_match_full(expr: &str, el: &HashMap<String, Value>) -> bool {
     let tag = el.get("tag").map(|v| v.as_str()).unwrap_or_default();
-    let trimmed = expr.trim();
+    let (trimmed, _) = xpath_base_and_index(expr);
     if trimmed == "text()" {
-        return el.contains_key("text");
+        return el
+            .get("text")
+            .map(|v| !v.as_str().is_empty())
+            .unwrap_or(false);
     }
     if trimmed.starts_with("ancestor::") {
         return tag == trimmed.trim_start_matches("ancestor::");
     }
     if trimmed.starts_with("descendant::") {
         return tag == trimmed.trim_start_matches("descendant::");
-    }
-    if let Some(idx) = trimmed.find('[') {
-        let base = &trimmed[..idx];
-        let pred = trimmed[idx + 1..].trim_end_matches(']');
-        if !xpath_match_full(base, el) {
-            return false;
-        }
-        if let Ok(n) = pred.parse::<i64>() {
-            return el
-                .get("text")
-                .map(|v| v.as_str() == pred || v.as_i64() == n)
-                .unwrap_or(false);
-        }
-        return el
-            .get("text")
-            .map(|v| v.as_str().contains(pred.trim_matches('\'')))
-            .unwrap_or(false);
     }
     match trimmed {
         e if e.starts_with("//") => tag == e.trim_start_matches("//"),
@@ -372,26 +370,35 @@ fn xpath_match_full(expr: &str, el: &HashMap<String, Value>) -> bool {
 }
 
 fn xpath_collect_full(expr: &str, el: &HashMap<String, Value>) -> Vec<Value> {
+    let (base, index) = xpath_base_and_index(expr);
     let mut out = Vec::new();
-    if xpath_match_full(expr, el) {
+    if xpath_match_full(base, el) {
         out.push(Value::Object(el.clone()));
     }
-    if expr.contains("descendant::") || expr.starts_with("//") {
-        if let Some(Value::Array(children)) = el.get("children") {
-            for child in children {
-                if let Value::Object(map) = child {
-                    out.extend(xpath_collect_full(expr, map));
-                }
+    // Always walk the tree so absolute paths and // both resolve nested nodes.
+    if let Some(Value::Array(children)) = el.get("children") {
+        for child in children {
+            if let Value::Object(map) = child {
+                out.extend(xpath_collect_full(base, map));
             }
         }
     }
-    out
+    if let Some(n) = index {
+        if n >= 1 && n <= out.len() {
+            vec![out[n - 1].clone()]
+        } else {
+            Vec::new()
+        }
+    } else {
+        out
+    }
 }
 
 /// Phase 91: XPath full subset (//, @attr, text(), ancestor, descendant, predicate).
+/// Call shape: `__syx_xml_xpath(expr, root)` — last arg is on top of the VM stack.
 pub fn host_xml_xpath(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let expr = pop_str(stack);
     let root = stack.pop().unwrap_or(Value::Nil);
+    let expr = pop_str(stack);
     let Some(map) = value_as_map(&root) else {
         stack.push(Value::Array(vec![]));
         return Ok(());

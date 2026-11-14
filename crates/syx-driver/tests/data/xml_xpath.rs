@@ -10,10 +10,10 @@ fn run_xpath(expr: &str) -> String {
         r#"func main() {{
     let root = __syx_xml_parse("{xml}")
     let hits = __syx_xml_xpath("{expr}", root)
-    print(hits.len())
-    if hits.len() > 0 {{
-        if hits[0].text != nil {{ print(hits[0].text) }}
-        if hits[0].tag != nil {{ print(hits[0].tag) }}
+    print(hits.count)
+    if hits.count > 0 {{
+        print(hits[0].text)
+        print(hits[0].tag)
     }}
 }}"#,
         xml = XML.replace('"', "\\\""),
@@ -25,10 +25,17 @@ fn run_xpath(expr: &str) -> String {
         .join("\n")
 }
 
+fn first_count(out: &str) -> i64 {
+    out.lines()
+        .next()
+        .and_then(|l| l.trim().parse().ok())
+        .unwrap_or(0)
+}
+
 #[test]
 fn p98_xml_xpath_double_slash() {
     let out = run_xpath("//item");
-    assert!(out.parse::<i64>().unwrap_or(0) >= 2, "{out}");
+    assert!(first_count(&out) >= 2, "{out}");
 }
 
 #[test]
@@ -41,7 +48,7 @@ fn p98_xml_xpath_attr() {
 fn p98_xml_xpath_text_fn() {
     let out = run_xpath("text()");
     assert!(
-        out.contains("alpha") || out.parse::<i64>().unwrap_or(0) >= 1,
+        out.contains("alpha") || first_count(&out) >= 1,
         "{out}"
     );
 }
@@ -55,20 +62,20 @@ fn p98_xml_xpath_ancestor() {
 #[test]
 fn p98_xml_xpath_descendant() {
     let out = run_xpath("descendant::item");
-    assert!(out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
+    assert!(first_count(&out) >= 1, "{out}");
 }
 
 #[test]
 fn p98_xml_xpath_predicate_index() {
     let out = run_xpath("//item[1]");
-    assert!(out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
+    assert!(first_count(&out) >= 1, "{out}");
 }
 
 #[test]
 fn p98_xml_xpath_compound_path() {
     let out = run_xpath("/root/child/item");
     assert!(
-        out.contains("gamma") || out.parse::<i64>().unwrap_or(0) >= 1,
+        out.contains("gamma") || first_count(&out) >= 1,
         "{out}"
     );
 }
@@ -76,5 +83,5 @@ fn p98_xml_xpath_compound_path() {
 #[test]
 fn p98_xml_xpath_single_tag() {
     let out = run_xpath("item");
-    assert!(out.parse::<i64>().unwrap_or(0) >= 1, "{out}");
+    assert!(first_count(&out) >= 1, "{out}");
 }

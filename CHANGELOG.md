@@ -1,6 +1,10 @@
 
 ### SYX 0.2.2
 
+- fix: nest XML children + attrs in `__syx_xml_parse`, correct `__syx_xml_xpath(expr, root)` stack order, and soft-skip backends native AOT nails without `--features full-native`
+
+- fix: serialize BGP mesh tests; keep data SQL nails idempotent (`IF NOT EXISTS` / rusqlite reset); Array `.count` on SQL/ORM stdout gates
+
 - chore: install ripgrep before behavioral count audit on CI; lower LSP anti-delete floor to 1700 after credibility-diet (~1788 real nails)
 
 - fix: point `gen_ir_capabilities.py` at `mir_types.rs` after MirOp extraction so `--check` matches generated tables

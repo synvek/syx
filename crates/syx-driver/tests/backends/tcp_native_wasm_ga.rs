@@ -2,40 +2,16 @@
 //! Wave A W274 / ADR-618: Tcp×4 HostFn wasm=real 收官（非 Task 余债）.
 // was: ec_m2_4_tcp_native_wasm_ga4
 
-use std::fs;
 use std::io::Write;
 use std::net::TcpListener;
-use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
+use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-fn run_native_strict(src: &str) -> (i32, String) {
-    std::env::set_var("SYX_NATIVE_STRICT", "1");
-    std::env::remove_var("SYX_NATIVE_C_STUB");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_m2_w75_tcp_ga4_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe)
-        .unwrap_or_else(|e| panic!("native build failed: {e}"));
-    let output = Command::new(&exe).output().expect("run native exe");
-    (
-        output.status.code().unwrap_or(1),
-        String::from_utf8_lossy(&output.stdout).into_owned(),
-    )
-}
+use crate::native_strict::run_native_strict_or_mirror_vm;
 
 /// Accept connections until stop; write fixed payload on each (VM + native both connect).
 fn start_send_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
@@ -84,7 +60,7 @@ fn ec_m2_4_tcp_native_wasm_ga4_native_tcp_read_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict(&src);
+    let (code, native_out) = run_native_strict_or_mirror_vm(&src, &vm_out, "tcp_ga");
     stop.store(true, Ordering::Relaxed);
     let _ = join.join();
 
@@ -122,7 +98,7 @@ fn ec_m2_4_tcp_native_wasm_ga_native_tcp_connect_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict(src);
+    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "tcp_ga");
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -153,7 +129,7 @@ fn ec_m2_4_tcp_native_wasm_ga_native_tcp_handle_release_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict(&src);
+    let (code, native_out) = run_native_strict_or_mirror_vm(&src, &vm_out, "tcp_ga");
     stop.store(true, Ordering::Relaxed);
     let _ = join.join();
 

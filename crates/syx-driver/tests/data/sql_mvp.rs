@@ -1,6 +1,7 @@
 //! Phase 91: SQL MVP in-memory loopback E2E.
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
+use syx_vm::reset_rusqlite_store;
 
 fn run(src: &str) -> String {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -12,11 +13,12 @@ fn run(src: &str) -> String {
 
 #[test]
 fn p98_sql_mvp_create_insert_select_stdout() {
+    reset_rusqlite_store();
     let out = run(r#"func main() {
-    __syx_sql_exec("CREATE TABLE t (id INT, name TEXT)")
+    __syx_sql_exec("CREATE TABLE IF NOT EXISTS t (id INT, name TEXT)")
     __syx_sql_exec("INSERT INTO t VALUES (1, 'a')")
     let rows = __syx_sql_query("SELECT * FROM t")
-    print(rows.len())
+    print(rows.count)
 }"#);
     assert!(out.contains("1"), "{out}");
 }

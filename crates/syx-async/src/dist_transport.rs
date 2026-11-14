@@ -4136,6 +4136,15 @@ pub fn dist_region_multihost_route(
 #[cfg(test)]
 mod dist_transport_tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    /// Global BGP mesh tables are process-wide; serialize tests that mutate them.
+    fn bgp_test_lock() -> std::sync::MutexGuard<'static, ()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+    }
 
     #[test]
     fn p116_hostkey_v6_rejects_unspecified_loopback_synthetic_and_rfc5737() {
@@ -4172,6 +4181,7 @@ mod dist_transport_tests {
 
     #[test]
     fn p118_bgp_peer_exchange_requires_import() {
+        let _g = bgp_test_lock();
         cdn_bgp_clear();
         let (addr_a, _ha, stop_a) = spawn_dist_tcp_mailbox_on("0.0.0.0:0", 4);
         let (addr_b, _hb, stop_b) = spawn_dist_tcp_mailbox_on("0.0.0.0:0", 4);
@@ -4244,6 +4254,7 @@ mod dist_transport_tests {
 
     #[test]
     fn p117_cdn_bgp_config_health_ga() {
+        let _g = bgp_test_lock();
         cdn_bgp_clear();
         cdn_delivery_ack_clear();
         let (addr_a, _ha, stop_a) = spawn_dist_tcp_mailbox_on("0.0.0.0:0", 8);

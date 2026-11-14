@@ -1056,9 +1056,10 @@ fn xpath_collect(expr: &str, el: &HashMap<String, Value>) -> Vec<Value> {
 }
 
 /// Phase 89: XPath subset query on parsed XML element tree.
+/// Call shape: `__syx_xml_xpath(expr, root)` — last arg is on top of the VM stack.
 pub fn host_xml_xpath(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let expr = pop_str(stack);
     let root = stack.pop().unwrap_or(Value::Nil);
+    let expr = pop_str(stack);
     let Some(map) = value_as_map(&root) else {
         stack.push(Value::Array(vec![]));
         return Ok(());

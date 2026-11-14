@@ -335,38 +335,96 @@ pub fn reset_sql_store() {
     }
 }
 
-fn parse_xml_element(input: &str) -> Option<(String, String, String)> {
+fn parse_xml_attrs(open: &str) -> HashMap<String, Value> {
+    let mut attrs = HashMap::new();
+    let mut rest = open.trim();
+    // Skip tag name.
+    if let Some((name, after)) = rest.split_once(|c: char| c.is_whitespace()) {
+        let _ = name;
+        rest = after.trim();
+    } else {
+        return attrs;
+    }
+    while !rest.is_empty() {
+        let Some(eq) = rest.find('=') else { break };
+        let key = rest[..eq].trim().to_string();
+        let after_eq = rest[eq + 1..].trim_start();
+        let (val, next) = if let Some(q) = after_eq.chars().next().filter(|c| *c == '"' || *c == '\'')
+        {
+            let body = &after_eq[1..];
+            if let Some(end) = body.find(q) {
+                (body[..end].to_string(), body[end + 1..].trim_start())
+            } else {
+                break;
+            }
+        } else if let Some((v, more)) = after_eq.split_once(|c: char| c.is_whitespace()) {
+            (v.to_string(), more.trim_start())
+        } else {
+            (after_eq.to_string(), "")
+        };
+        if !key.is_empty() {
+            attrs.insert(key, Value::Str(val));
+        }
+        rest = next;
+    }
+    attrs
+}
+
+fn parse_xml_element(input: &str) -> Option<(String, String, String, HashMap<String, Value>)> {
     let s = input.trim();
     if !s.starts_with('<') || s.starts_with("<?") {
         return None;
     }
     let close_gt = s.find('>')?;
     let open = &s[1..close_gt];
+    if open.ends_with('/') {
+        // Self-closing — no inner text / children.
+        let open = open.trim_end_matches('/').trim();
+        let tag = open.split_whitespace().next()?.to_string();
+        let attrs = parse_xml_attrs(open);
+        let tail = s[close_gt + 1..].trim().to_string();
+        return Some((tag, String::new(), tail, attrs));
+    }
     let tag = open.split_whitespace().next()?.to_string();
+    let attrs = parse_xml_attrs(open);
     let rest = s[close_gt + 1..].trim();
     let close = format!("</{tag}>");
     if let Some(idx) = rest.find(&close) {
         let text = rest[..idx].trim().to_string();
         let tail = rest[idx + close.len()..].trim().to_string();
-        return Some((tag, text, tail));
+        return Some((tag, text, tail, attrs));
     }
     None
 }
 
-fn xml_element_value(tag: &str, text: &str, tail: &str) -> Value {
+fn xml_element_value(tag: &str, inner: &str, attrs: HashMap<String, Value>) -> Value {
     let mut map = HashMap::new();
     map.insert("__type".into(), Value::Str("XmlElement".into()));
     map.insert("tag".into(), Value::Str(tag.to_string()));
-    map.insert("text".into(), Value::Str(text.to_string()));
-    let mut children = Vec::new();
-    let mut rest = tail.to_string();
-    while let Some((child_tag, child_text, child_tail)) = parse_xml_element(&rest) {
-        children.push(xml_element_value(&child_tag, &child_text, &child_tail));
-        rest = child_tail;
-        if rest.is_empty() {
-            break;
-        }
+    for (k, v) in attrs {
+        map.insert(k, v);
     }
+    let mut children = Vec::new();
+    let mut leaf_text = String::new();
+    if inner.contains('<') {
+        let mut rest = inner.to_string();
+        while let Some((child_tag, child_inner, child_tail, child_attrs)) =
+            parse_xml_element(&rest)
+        {
+            children.push(xml_element_value(&child_tag, &child_inner, child_attrs));
+            rest = child_tail;
+            if rest.is_empty() {
+                break;
+            }
+        }
+        // Residual non-element text (rare in MVP fixtures).
+        if !rest.trim().is_empty() {
+            leaf_text = rest.trim().to_string();
+        }
+    } else {
+        leaf_text = inner.to_string();
+    }
+    map.insert("text".into(), Value::Str(leaf_text));
     map.insert("children".into(), Value::Array(children));
     Value::Object(map)
 }
@@ -374,8 +432,8 @@ fn xml_element_value(tag: &str, text: &str, tail: &str) -> Value {
 /// Phase 88: simple pull XML parser for `<tag>text</tag>` (nested subset).
 pub fn host_xml_parse(stack: &mut Vec<Value>) -> SyxResult<()> {
     let xml = pop_str(stack);
-    if let Some((tag, text, tail)) = parse_xml_element(&xml) {
-        stack.push(xml_element_value(&tag, &text, &tail));
+    if let Some((tag, inner, _tail, attrs)) = parse_xml_element(&xml) {
+        stack.push(xml_element_value(&tag, &inner, attrs));
     } else {
         stack.push(Value::Nil);
     }
@@ -434,3 +492,4 @@ mod tests {
         }
     }
 }
+

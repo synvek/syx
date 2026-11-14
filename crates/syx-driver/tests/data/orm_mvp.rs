@@ -17,7 +17,7 @@ fn p98_orm_mvp_save_find_stdout() {
     let ok = __syx_orm_save("Item", { "n": "88" })
     print(ok)
     let rows = __syx_orm_find("Item")
-    print(rows.len())
+    print(rows.count)
 }"#);
     assert!(out.contains("true") || out.contains("1"), "{out}");
 }
