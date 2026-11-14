@@ -7184,7 +7184,10 @@ func main() {
     #[test]
     fn lsp_v29_no_math_import_hint() {
         let modules = syx_driver::import_module_suggestions(None, &DriverOptions::default());
-        assert!(modules.contains(&"System".to_string()), "modules: {modules:?}");
+        assert!(
+            modules.contains(&"System".to_string()),
+            "modules: {modules:?}"
+        );
         assert!(
             modules.contains(&"Networking".to_string()),
             "modules: {modules:?}"
@@ -7277,9 +7280,18 @@ func main() {
     fn lsp_v30_int128_random_crypto_simd() {
         // Import surface still lists Random / Crypto / SIMD4 (explicit packages).
         let modules = syx_driver::import_module_suggestions(None, &DriverOptions::default());
-        assert!(modules.contains(&"Random".to_string()), "modules: {modules:?}");
-        assert!(modules.contains(&"Crypto".to_string()), "modules: {modules:?}");
-        assert!(modules.contains(&"SIMD4".to_string()), "modules: {modules:?}");
+        assert!(
+            modules.contains(&"Random".to_string()),
+            "modules: {modules:?}"
+        );
+        assert!(
+            modules.contains(&"Crypto".to_string()),
+            "modules: {modules:?}"
+        );
+        assert!(
+            modules.contains(&"SIMD4".to_string()),
+            "modules: {modules:?}"
+        );
         // Int128 remains a core type; Crypto/Random resolve via import packages at CLI run time.
         let src = "func main() { let x: Int128 = 1i128; print(x) }";
         let diags = syx_driver::diagnostics_for_source("main.sy", src, &DriverOptions::default());
