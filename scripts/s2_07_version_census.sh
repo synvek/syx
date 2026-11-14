@@ -9,8 +9,8 @@ cd "$ROOT"
 echo "== S2-07 version census =="
 
 workspace_semver=""
-if grep -E '^version[[:space:]]*=[[:space:]]*"0\.1\.3"' Cargo.toml >/dev/null 2>&1; then
-  workspace_semver="0.1.3"
+if grep -E '^version[[:space:]]*=[[:space:]]*"0\.2\.2"' Cargo.toml >/dev/null 2>&1; then
+  workspace_semver="0.2.2"
 fi
 
 manifest_has_117=0
@@ -19,7 +19,7 @@ if grep -F '"version": "117.0"' packages/internal/manifest.json >/dev/null 2>&1;
 fi
 
 manifest_has_semver=0
-if grep -E '"version"[[:space:]]*:[[:space:]]*"0\.1\.3"' packages/internal/manifest.json >/dev/null 2>&1; then
+if grep -E '"version"[[:space:]]*:[[:space:]]*"0\.2\.2"' packages/internal/manifest.json >/dev/null 2>&1; then
   manifest_has_semver=1
 fi
 
@@ -29,7 +29,7 @@ if grep -F 'syx_version = "117.0"' packages/internal/capabilities.toml >/dev/nul
 fi
 
 capabilities_has_semver=0
-if grep -F 'syx_version = "0.1.3"' packages/internal/capabilities.toml >/dev/null 2>&1; then
+if grep -F 'syx_version = "0.2.2"' packages/internal/capabilities.toml >/dev/null 2>&1; then
   capabilities_has_semver=1
 fi
 

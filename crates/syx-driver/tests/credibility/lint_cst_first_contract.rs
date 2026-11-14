@@ -52,7 +52,7 @@ fn s2_04_lint_cst_first_policy() {
         "lint_source_auto must honor SYX_FMT_AST hatch"
     );
 
-    let driver = repo_file("crates/syx-driver/src/lib.rs");
+    let driver = repo_file("crates/syx-driver/src/format_lint.rs");
     let lint_file_idx = driver.find("fn lint_file(").expect("lint_file must exist");
     let lint_file_chunk =
         &driver[lint_file_idx..lint_file_idx + 900.min(driver.len() - lint_file_idx)];

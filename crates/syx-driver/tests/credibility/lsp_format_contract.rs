@@ -34,7 +34,7 @@ fn s2_04_lsp_document_formatting() {
         "ADR must Non-claim lint tree share"
     );
 
-    let driver = repo_file("crates/syx-driver/src/lib.rs");
+    let driver = repo_file("crates/syx-driver/src/format_lint.rs");
     let idx = driver
         .find("pub fn format_document_for_lsp(")
         .expect("format_document_for_lsp must exist");

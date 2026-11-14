@@ -2740,7 +2740,7 @@ fn optional_nil_compare() {
 }
 
 #[test]
-fn final_class_error() {
+fn final_class_rejects_subclass() {
     let text = "final class F { init() {} }
 class G: F { init() {} }
 func main() { G() }";

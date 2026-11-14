@@ -88,9 +88,15 @@ fn r42_roadmap_exit_points_r43() {
             .any(|r| r.contains("`[x]`") || r.contains("| [x] |")),
         "R-42 must be [x]: {rows:?}"
     );
-    let tail = plan.split("默认下一窗").nth(1).expect("默认下一窗 missing");
+    // Post U-7: roadmap uses 「默认下一动作」; R-43 already [x].
+    let next = plan
+        .split("默认下一动作")
+        .nth(1)
+        .or_else(|| plan.split("默认下一窗").nth(1))
+        .expect("默认下一动作/窗 missing");
+    let head: String = next.chars().take(160).collect();
     assert!(
-        tail.chars().take(120).collect::<String>().contains("R-43"),
-        "default next must be R-43"
+        head.contains("U-8") || head.contains("park") || head.contains("R-43"),
+        "default next must stay on U-8/park/R-43 lineage: {head}"
     );
 }

@@ -67,7 +67,7 @@ fn s2_07_plan_claim_locked() {
 
     let manifest = repo_file("packages/internal/manifest.json");
     assert!(
-        manifest.contains("\"version\": \"0.1.3\"") || manifest.contains("\"version\":\"0.1.3\""),
-        "claim evidence: manifest version must remain 0.1.3"
+        manifest.contains("\"version\": \"0.2.2\"") || manifest.contains("\"version\":\"0.2.2\""),
+        "claim evidence: manifest version must remain 0.2.2"
     );
 }

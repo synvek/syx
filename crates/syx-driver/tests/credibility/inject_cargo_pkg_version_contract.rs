@@ -42,8 +42,8 @@ fn s2_07_inject_cargo_pkg_version_locked() {
 
     let manifest = repo_file("packages/internal/manifest.json");
     assert!(
-        manifest.contains("\"version\": \"0.1.3\"") || manifest.contains("\"version\":\"0.1.3\""),
-        "checked-in manifest version must be 0.1.3"
+        manifest.contains("\"version\": \"0.2.2\"") || manifest.contains("\"version\":\"0.2.2\""),
+        "checked-in manifest version must be 0.2.2"
     );
     assert!(
         !manifest.contains("\"version\": \"117.0\""),
@@ -52,8 +52,8 @@ fn s2_07_inject_cargo_pkg_version_locked() {
 
     let caps = repo_file("packages/internal/capabilities.toml");
     assert!(
-        caps.contains("syx_version = \"0.1.3\""),
-        "capabilities syx_version must be 0.1.3"
+        caps.contains("syx_version = \"0.2.2\""),
+        "capabilities syx_version must be 0.2.2"
     );
 
     let smoke = repo_file("crates/syx-driver/tests/evergreen/smoke.rs");

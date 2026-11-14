@@ -110,7 +110,7 @@ fn s2_04_cst_reindent_func_body() {
         "fmt-write-migration ADR must exist"
     );
 
-    let driver = repo_file("crates/syx-driver/src/lib.rs");
+    let driver = repo_file("crates/syx-driver/src/format_lint.rs");
     let write_idx = driver
         .find("fn format_file(")
         .expect("format_file must exist");

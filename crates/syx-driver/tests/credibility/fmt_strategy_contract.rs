@@ -36,7 +36,7 @@ fn s2_04_fmt_write_check_strategy() {
         "write-migration ADR must Non-claim S2-04 [x]"
     );
 
-    let driver = repo_file("crates/syx-driver/src/lib.rs");
+    let driver = repo_file("crates/syx-driver/src/format_lint.rs");
     // Write path: format_dry_run (→ format_source_auto), aligned with --check.
     let write_idx = driver
         .find("fn format_file(")

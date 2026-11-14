@@ -74,9 +74,15 @@ if set(core_emb) != set(target):
 else:
     print("embedded_core_match=1")
 
+# SA-3 folds Time/Env/Path into System; they leave prelude but are not standalone importables.
+folded_into_system = {"Time", "Env", "Path"}
 for name in remove:
     if name in core or name in man_prelude:
         die(f"{name} still in prelude")
+    if name in folded_into_system:
+        if "System" not in man_importable and "System" not in imp_emb:
+            die("System must remain importable for folded Time/Env/Path")
+        continue
     if name not in man_importable and name not in imp_emb:
         die(f"{name} not importable after leaving prelude")
 print("removed_are_importable=1")

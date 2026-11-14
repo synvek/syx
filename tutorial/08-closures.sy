@@ -20,10 +20,12 @@ func applyMapped(_ x: Int, f: (Int) -> Int) -> Int {
 
 func demo_basic() {
     // note: Closure parameters must be written as `(x)` / `(x: Int)`; a bare `{ x in ... }` is parsed as a dictionary.
-    let r1 = applyMapped(5, f: { (x: Int) in return x * x })
+    let a = [5]
+    let r1 = a.map({ (x: Int) -> Int in return x * x })
     print(r1)
 
-    let r2 = applyMapped(10, f: { (x: Int) in return x + 100 })
+    let b = [10]
+    let r2 = b.map({ (x: Int) -> Int in return x + 100 })
     print(r2)
 }
 
