@@ -1,10 +1,10 @@
 //! Domain harness: backends
 
-mod native_strict;
 mod http_criterion;
 mod http_microbench;
 mod http_native_wasm_ga;
 mod http_native_wasm_matrix;
+mod native_strict;
 mod path_file_criterion;
 mod path_file_microbench;
 mod path_file_native_wasm_ga;

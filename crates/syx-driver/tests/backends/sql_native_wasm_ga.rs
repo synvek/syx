@@ -4,7 +4,6 @@
 //! Wave A W292 / ADR-636: data.sqlite product native=real (status still partial).
 // was: ec_m2_4_sql_native_wasm_ga3
 
-
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 use crate::native_strict::run_native_strict_or_mirror_vm;

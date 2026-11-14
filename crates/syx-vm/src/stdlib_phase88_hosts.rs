@@ -349,19 +349,19 @@ fn parse_xml_attrs(open: &str) -> HashMap<String, Value> {
         let Some(eq) = rest.find('=') else { break };
         let key = rest[..eq].trim().to_string();
         let after_eq = rest[eq + 1..].trim_start();
-        let (val, next) = if let Some(q) = after_eq.chars().next().filter(|c| *c == '"' || *c == '\'')
-        {
-            let body = &after_eq[1..];
-            if let Some(end) = body.find(q) {
-                (body[..end].to_string(), body[end + 1..].trim_start())
+        let (val, next) =
+            if let Some(q) = after_eq.chars().next().filter(|c| *c == '"' || *c == '\'') {
+                let body = &after_eq[1..];
+                if let Some(end) = body.find(q) {
+                    (body[..end].to_string(), body[end + 1..].trim_start())
+                } else {
+                    break;
+                }
+            } else if let Some((v, more)) = after_eq.split_once(|c: char| c.is_whitespace()) {
+                (v.to_string(), more.trim_start())
             } else {
-                break;
-            }
-        } else if let Some((v, more)) = after_eq.split_once(|c: char| c.is_whitespace()) {
-            (v.to_string(), more.trim_start())
-        } else {
-            (after_eq.to_string(), "")
-        };
+                (after_eq.to_string(), "")
+            };
         if !key.is_empty() {
             attrs.insert(key, Value::Str(val));
         }
@@ -408,8 +408,7 @@ fn xml_element_value(tag: &str, inner: &str, attrs: HashMap<String, Value>) -> V
     let mut leaf_text = String::new();
     if inner.contains('<') {
         let mut rest = inner.to_string();
-        while let Some((child_tag, child_inner, child_tail, child_attrs)) =
-            parse_xml_element(&rest)
+        while let Some((child_tag, child_inner, child_tail, child_attrs)) = parse_xml_element(&rest)
         {
             children.push(xml_element_value(&child_tag, &child_inner, child_attrs));
             rest = child_tail;
@@ -492,4 +491,3 @@ mod tests {
         }
     }
 }
-

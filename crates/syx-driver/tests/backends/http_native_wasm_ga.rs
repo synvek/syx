@@ -6,7 +6,6 @@
 //! Wave A W294 / ADR-638: net.http.server product native=real (status still partial).
 // was: ec_m2_4_http_native_wasm_ga3
 
-
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
 use crate::native_strict::run_native_strict_or_mirror_vm;
