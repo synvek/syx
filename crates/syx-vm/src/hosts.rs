@@ -1420,6 +1420,13 @@ fn value_to_json(v: &Value) -> serde_json::Value {
     match &v {
         Value::Nil => serde_json::Value::Null,
         Value::Bool(b) => serde_json::Value::Bool(*b),
+        // Floats must not go through as_i64() (truncates 0.7 → 0; soga temperature).
+        Value::F64(n) => serde_json::Number::from_f64(*n)
+            .map(serde_json::Value::Number)
+            .unwrap_or(serde_json::Value::Null),
+        Value::F32(n) => serde_json::Number::from_f64(*n as f64)
+            .map(serde_json::Value::Number)
+            .unwrap_or(serde_json::Value::Null),
         v if crate::display_numeric(v).is_some() => {
             serde_json::json!(v.as_i64())
         }

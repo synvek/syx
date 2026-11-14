@@ -22,3 +22,5 @@
 - feat: add support for dynamic target triple in LLVM IR emission
 
 - feat: implement MIR lowering for loop control statements including `break`, `continue`, and `repeat-while`
+
+- fix: enhance type compatibility checks in type_checker.rs
