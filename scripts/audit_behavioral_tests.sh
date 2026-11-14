@@ -28,7 +28,11 @@ EXCLUDE='query_hash_matrix|lsp_phase64_|lsp_phase66_|lsp_phase67_|lsp_p63_smoke|
 
 count_behavioral() {
   local path="$1"
-  rg '#\[test\]' "$path" --count-matches 2>/dev/null \
+  if ! command -v rg >/dev/null 2>&1; then
+    echo "FAIL: ripgrep (rg) is required for behavioral count audit" >&2
+    exit 1
+  fi
+  rg '#\[test\]' "$path" --count-matches \
     | rg -v "$EXCLUDE" \
     | awk -F: '{s+=$2} END {print s+0}'
 }

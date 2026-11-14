@@ -1,7 +1,7 @@
 
 ### SYX 0.2.2
 
-- chore: lower CI behavioral LSP anti-delete floor to 1700 after credibility-diet (real count ~1788; was masked by earlier allowlist failures)
+- chore: install ripgrep before behavioral count audit on CI; lower LSP anti-delete floor to 1700 after credibility-diet (~1788 real nails)
 
 - fix: point `gen_ir_capabilities.py` at `mir_types.rs` after MirOp extraction so `--check` matches generated tables
 

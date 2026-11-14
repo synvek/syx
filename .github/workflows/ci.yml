@@ -74,7 +74,10 @@ jobs:
 
       - name: Behavioral test count floor
         # LSP floor tracks post credibility-diet real nails (~1788); anti-delete only.
-        run: bash scripts/audit_behavioral_tests.sh --min-driver 2600 --min-lsp 1700
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+          bash scripts/audit_behavioral_tests.sh --min-driver 2600 --min-lsp 1700
 
       - name: Language server tests
         run: cargo test -p syx-lsp -- --test-threads=1
