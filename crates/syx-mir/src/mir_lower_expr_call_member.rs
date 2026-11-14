@@ -1152,7 +1152,17 @@ pub(crate) fn lower_expr_call_member(
             for arg in args {
                 lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
             }
-            let mut call_name = ext_name.clone();
+            // R-47: instance twin of a static same-name method is `{Type}__{name}`.
+            let mut call_name = if !is_type_name_call
+                && ctx
+                    .module
+                    .static_class_methods
+                    .contains(&(base.clone(), name.clone()))
+            {
+                SmolStr::new(format!("{base}__{name}"))
+            } else {
+                ext_name.clone()
+            };
             if !ctx.module.callable_extensions.contains(&call_name) {
                 for imp in &ctx.imports {
                     let prefixed = SmolStr::new(format!("{imp}_{base}_{name}"));

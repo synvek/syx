@@ -119,7 +119,8 @@ pub(crate) use mir_type_infer_helpers::{
     extension_or_hosted_return_type, infer_expr_init_type, infer_expr_type_name,
     infer_for_in_elem_type, infer_generic_arg_type_name, infer_object_type_name,
     infer_service_resolve_type_name, infer_static_method_type_args, instance_self_mut_ref_method,
-    is_platform_value_type, is_static_type_member_call, type_name_dispatch_base, type_name_is_set,
+    is_platform_value_type, is_static_type_member_call, syx_host_method_return_type,
+    type_name_dispatch_base, type_name_is_set,
 };
 
 pub(crate) use mir_lower_function::{lower_function_with_params, register_param_local_type};

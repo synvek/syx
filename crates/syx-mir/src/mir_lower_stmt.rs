@@ -13,6 +13,7 @@ use crate::mir_lower_ctx::LowerCtx;
 use crate::mir_lower_switch_pattern::{bind_pattern, lower_switch_pattern_match};
 use crate::mir_module_index::mir_type_expr_name;
 use crate::mir_types::{MirInstr, MirOp};
+use crate::syx_host_method_return_type;
 use crate::type_name_is_set;
 use smol_str::SmolStr;
 use syx_ast::{Expr, Literal, Stmt};
@@ -197,13 +198,27 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
                             if matches!(type_name.as_str(), "BigInt" | "Result") {
                                 ctx.local_types.insert(name.clone(), type_name.clone());
                             }
-                            if ctx.module.enum_classes.contains(&type_name) {
-                                ctx.local_types.insert(name.clone(), type_name.clone());
-                            }
-                            if let Some(ret) =
-                                extension_or_hosted_return_type(&type_name, method, ctx)
-                            {
-                                ctx.local_types.insert(name.clone(), ret);
+                            // SA-4-04: caseless `SyxHost` is an enum namespace, not a
+                            // value type — static host calls return Int/String/…, not SyxHost.
+                            // Binding `let h = SyxHost.tcp_connect(...)` as SyxHost made
+                            // `h < 0` lower to `Call SyxHost_<` (C020).
+                            if type_name.as_str() == "SyxHost" {
+                                if let Some(ret) = syx_host_method_return_type(method.as_str()) {
+                                    ctx.local_types.insert(name.clone(), ret);
+                                } else if let Some(ret) =
+                                    extension_or_hosted_return_type(&type_name, method, ctx)
+                                {
+                                    ctx.local_types.insert(name.clone(), ret);
+                                }
+                            } else {
+                                if ctx.module.enum_classes.contains(&type_name) {
+                                    ctx.local_types.insert(name.clone(), type_name.clone());
+                                }
+                                if let Some(ret) =
+                                    extension_or_hosted_return_type(&type_name, method, ctx)
+                                {
+                                    ctx.local_types.insert(name.clone(), ret);
+                                }
                             }
                         }
                     }

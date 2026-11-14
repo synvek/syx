@@ -72,7 +72,26 @@ pub(crate) fn lower_type_members(
                 ..
             } => {
                 let is_static = attrs.iter().any(|a| a.name.as_str() == "static");
-                let method_name = SmolStr::new(format!("{type_name}_{name}"));
+                // R-47: `struct FilePath { func exists(); static func exists(path:) }`
+                // must not share MIR name `FilePath_exists` — codegen keeps one body by
+                // name, the instance wrapper recurses, and `FilePath.exists(path:)`
+                // stack-overflows. Instance twin → `{Type}__{name}`.
+                let has_static_twin = !is_static
+                    && members.iter().any(|m| {
+                        matches!(
+                            m,
+                            Decl::Function {
+                                name: n,
+                                attrs: a,
+                                ..
+                            } if n == name && a.iter().any(|attr| attr.name.as_str() == "static")
+                        )
+                    });
+                let method_name = if has_static_twin {
+                    SmolStr::new(format!("{type_name}__{name}"))
+                } else {
+                    SmolStr::new(format!("{type_name}_{name}"))
+                };
                 let mut all_params = if is_static {
                     Vec::new()
                 } else {

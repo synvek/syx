@@ -26,6 +26,7 @@ mod exclusive_borrow;
 mod existential_any;
 mod extension_init;
 mod filepath_joining_chain;
+mod syxhost_compare_and_filepath_exists;
 mod first_order_where;
 mod frontend_pipeline_parity;
 mod func_async_dual;

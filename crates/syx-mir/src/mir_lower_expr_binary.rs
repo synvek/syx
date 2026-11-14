@@ -66,8 +66,11 @@ pub(crate) fn lower_expr_binary(
     let left_ty = infer_object_type_name(left, ctx).unwrap_or_else(|| infer_expr_type_name(left));
     if let Some(op_sym) = binop_operator_symbol(*op) {
         let ty_smol = left_ty.clone();
+        // Enum namespaces (e.g. SyxHost) may appear in `imported_class_types` →
+        // `class_types`, but they are not class value types with operator shells.
         if (ctx.module.class_types.contains_key(&ty_smol)
             || ctx.module.dataclass_names.contains(&ty_smol))
+            && !ctx.module.enum_classes.contains(&ty_smol)
             && !syx_stdlib::is_builtin_type(ty_smol.as_str())
             && ty_smol.as_str() != "Unknown"
         {

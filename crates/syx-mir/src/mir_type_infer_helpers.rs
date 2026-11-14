@@ -58,6 +58,13 @@ pub(crate) fn extension_or_hosted_return_type(
         }
         return Some(ret.clone());
     }
+    // SA-4-04: name-only `enum SyxHost` inject has no Extension return map; MIR still
+    // maps `SyxHost.f` → CallHost(`__syx_f`). Infer from the host registry.
+    if base.as_str() == "SyxHost" {
+        if let Some(ret) = syx_host_method_return_type(method.as_str()) {
+            return Some(ret);
+        }
+    }
     let hosted = match base.as_str() {
         "Set" => lookup_set_method(method).map(method_return_type),
         "Array" => lookup_array_method(method).map(method_return_type),
@@ -70,6 +77,18 @@ pub(crate) fn extension_or_hosted_return_type(
         return Some(recv_ty.clone());
     }
     Some(SmolStr::new(hosted))
+}
+
+/// SA-4-04: `SyxHost.tcp_connect` → `__syx_tcp_connect` return type (`Int`, …).
+pub(crate) fn syx_host_method_return_type(method: &str) -> Option<SmolStr> {
+    let host_name = format!("__syx_{method}");
+    let host_id = host_fn_id_by_name(&host_name)?;
+    let ret = host_fn_return_type(host_id);
+    if ret.is_empty() || ret == "Nil" || ret == "Void" {
+        None
+    } else {
+        Some(SmolStr::new(ret))
+    }
 }
 
 pub(crate) fn infer_service_resolve_type_name(callee: &Expr, args: &[CallArg]) -> Option<SmolStr> {
