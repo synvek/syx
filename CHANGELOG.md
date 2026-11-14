@@ -1,6 +1,8 @@
 
 ### SYX 0.2.2
 
+- chore: lower CI behavioral LSP anti-delete floor to 1700 after credibility-diet (real count ~1788; was masked by earlier allowlist failures)
+
 - fix: point `gen_ir_capabilities.py` at `mir_types.rs` after MirOp extraction so `--check` matches generated tables
 
 - fix: drop gitignored `examples/test.sy` from the Examples VM allowlist (CI clean checkouts lack it) and refuse gitignored allowlist entries

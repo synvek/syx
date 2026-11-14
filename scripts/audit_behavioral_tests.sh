@@ -10,7 +10,8 @@
 set -euo pipefail
 
 MIN_DRIVER=2600
-MIN_LSP=3050
+# Post credibility-diet real LSP nail count (~1788); floor is anti-delete smoke, not KPI.
+MIN_LSP=1700
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
