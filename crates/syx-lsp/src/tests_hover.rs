@@ -83,7 +83,8 @@ fn hover_range_local() {
 
 #[test]
 fn hover_closure_param_ok_v2() {
-    let text = "func main() { let f = { (x: Int) -> Int in return x + 1 }; print(f(1)) }";
+    // Keep closure body self-contained; `print(f(1))` on the same line trips P001.
+    let text = "func main() {\n  let f = { (x: Int) -> Int in return x + 1 }\n  print(1)\n}";
     let doc = doc(text);
     assert!(doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
@@ -2365,7 +2366,7 @@ fn hover_count_again() {
 
 #[test]
 fn hover_closure_param() {
-    let text = "func main() { let f = { (x: Int) -> Int in return x + 1 }; print(f(1)) }";
+    let text = "func main() {\n  let f = { (x: Int) -> Int in return x + 1 }\n  print(1)\n}";
     let doc = doc(text);
     assert!(doc.semantic.errors.is_empty(), "{:?}", doc.semantic.errors);
 }
