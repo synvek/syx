@@ -10,6 +10,15 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         return is_implicit_convertible(*from, *to) || is_integer_narrowing(*from, *to);
     }
     match (expected, found) {
+        // Soft / gradual: Unknown found is inference noise (Object fields, host
+        // returns). Needed after R-34 started assign-checking call args — without
+        // this, soga/sgate `jStr(v: Any)` / `encodeJson(value: Object)` / Int
+        // params reject `_` and hard-fail tools that previously type-checked green.
+        (_, TypeId::Unknown) => true,
+        // `Any` is the unconstrained top type (soga/sgate `jStr(v: Any)`, books).
+        (TypeId::Named(n), _) if n.as_str() == "Any" => true,
+        // `Object` JSON/dynamic bag accepts Dictionary (typed bag shares Object ops).
+        (TypeId::Named(n), TypeId::Dictionary { .. }) if n.as_str() == "Object" => true,
         // Empty array literal `[]` infers `Array<Unknown>`; allow it to
         // initialize any `Array<T>` (same Unknown-elem carve-out as Set).
         (TypeId::Array(expected_elem), TypeId::Array(found_elem)) => {
@@ -31,7 +40,7 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         {
             true
         }
-        (TypeId::Optional(_), TypeId::Unknown) => true,
+        // Unknown found already matched above.
         (TypeId::Optional(_), TypeId::Optional(inner))
             if matches!(inner.as_ref(), TypeId::Unknown) =>
         {
@@ -70,10 +79,7 @@ pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> Result<(
     if expected == found || is_compatible(&expected, &found) {
         return Ok(());
     }
-    // R-36: both sides Unknown is inference noise — do not emit S004.
-    if matches!(expected, TypeId::Unknown) && matches!(found, TypeId::Unknown) {
-        return Ok(());
-    }
+    // R-36: Unknown is inference noise — covered by is_compatible(_, Unknown).
     Err(AssignError {
         message: format!(
             "Type mismatch for '{name}': expected {}, found {}",
