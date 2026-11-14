@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MIR_RS = ROOT / "crates" / "syx-mir" / "src" / "lib.rs"
+MIR_RS = ROOT / "crates" / "syx-mir" / "src" / "mir_types.rs"
 HOST_RS = ROOT / "crates" / "syx-stdlib" / "src" / "registry.rs"
 MIR_TOML = ROOT / "packages" / "internal" / "mir_op_capabilities.toml"
 HOST_TOML = ROOT / "packages" / "internal" / "host_fn_capabilities.toml"

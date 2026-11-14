@@ -6,7 +6,7 @@
     "schema": "syx-host-fn-capability-v0",
     "kind": "host_fn",
     "default": "unsupported",
-    "count": 630,
+    "count": 632,
     "backend_keys": [
       "vm",
       "mir",
@@ -8195,6 +8195,32 @@
     },
     {
       "name": "ArrayAppend",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "HeapSlotUniquify",
+      "status": "unsupported",
+      "backends": {
+        "vm": "unsupported",
+        "mir": "unsupported",
+        "llvm": "unsupported",
+        "wasm": "unsupported",
+        "cranelift": "unsupported"
+      },
+      "notes": "",
+      "pilot": ""
+    },
+    {
+      "name": "IntFromString",
       "status": "unsupported",
       "backends": {
         "vm": "unsupported",
