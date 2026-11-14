@@ -29,6 +29,7 @@ mod filepath_joining_chain;
 mod first_order_where;
 mod frontend_pipeline_parity;
 mod func_async_dual;
+mod if_let_trailing;
 mod inheritance;
 mod inheritance_polymorphic;
 mod int_from_string;

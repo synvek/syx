@@ -2382,7 +2382,11 @@ impl Parser {
         if self.match_kind(TokenKind::Case) {
             let pattern = self.parse_switch_pattern()?;
             self.consume(TokenKind::Assign, "Expected '=' in if case")?;
+            // U-8: subject call must not swallow the then-brace as trailing closure.
+            let prev = self.allow_trailing_closure;
+            self.allow_trailing_closure = false;
             let subject = self.parse_expr()?;
+            self.allow_trailing_closure = prev;
             let body = self.parse_stmt_or_block()?;
             let else_branch = if self.match_kind(TokenKind::Else) {
                 Some(self.parse_stmt_or_block()?)
@@ -2400,7 +2404,11 @@ impl Parser {
         if self.match_kind(TokenKind::Let) {
             let name = self.consume_identifier("Expected binding name")?;
             self.consume(TokenKind::Assign, "Expected '=' in if let")?;
+            // U-8: RHS call must not swallow the then-brace as trailing closure.
+            let prev = self.allow_trailing_closure;
+            self.allow_trailing_closure = false;
             let pattern = self.parse_expr()?;
+            self.allow_trailing_closure = prev;
             let body = self.parse_stmt_or_block()?;
             let else_branch = if self.match_kind(TokenKind::Else) {
                 Some(self.parse_stmt_or_block()?)
