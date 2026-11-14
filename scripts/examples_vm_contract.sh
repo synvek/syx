@@ -13,7 +13,8 @@ if [[ ! -x "$SYX" ]]; then
 fi
 
 # Frozen allowlist (VM single-file runnable inventory).
-# S1-I20: drop gitignored hello2.sy; +decl_param/codable; still VM-only — not examples-full / three-backend GA.
+# S1-I20: drop gitignored hello2.sy / test.sy (local-only); +decl_param/codable;
+# still VM-only — not examples-full / three-backend GA.
 ALLOWLIST=(
   examples/hello.sy
   examples/io_demo.sy
@@ -30,7 +31,6 @@ ALLOWLIST=(
   examples/observability_demo.sy
   examples/class_demo.sy
   examples/collection_demo.sy
-  examples/test.sy
   examples/path_tool/main.sy
   examples/file_tool/main.sy
   examples/path_microbench/main.sy
@@ -48,6 +48,12 @@ echo "syx: $SYX"
 echo "backend: default VM only (native/wasm not in this slice)"
 fail=0
 for src in "${ALLOWLIST[@]}"; do
+  # CI clean checkouts omit gitignored paths; refuse local-only entries.
+  if git check-ignore -q "$src" 2>/dev/null; then
+    echo "GITIGNORED (not on CI): $src"
+    fail=1
+    continue
+  fi
   if [[ ! -f "$src" ]]; then
     echo "MISSING: $src"
     fail=1
