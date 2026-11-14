@@ -147,8 +147,9 @@ pub fn compile_and_run_embedded(source: &str, options: &DriverOptions) -> SyxRes
         (code, printed)
     } else {
         let mut vm = WasmVM::default();
-        vm.run_program(&program)?;
-        (vm.stack.last().map(|v| v.as_i32()).unwrap_or(0), vm.printed)
+        // `run_program` pops the entry return value; do not read leftover stack junk.
+        let result = vm.run_program(&program)?;
+        (result.as_i32(), vm.printed)
     };
     Ok(EmbedResult {
         exit_code: code,
@@ -182,9 +183,10 @@ pub fn run_file_printed(path: &Path, options: &DriverOptions) -> SyxResult<(i32,
         Ok((code, printed))
     } else {
         let mut vm = WasmVM::default();
-        vm.run_program(&unit.program)?;
-        let code = vm.stack.last().map(|v| v.as_i32()).unwrap_or(0);
-        Ok((code, vm.printed))
+        // `run_program` pops the entry return value; do not read leftover stack junk
+        // (e.g. while/catch residue → false exit 1 after a successful `print("ok")`).
+        let result = vm.run_program(&unit.program)?;
+        Ok((result.as_i32(), vm.printed))
     }
 }
 
