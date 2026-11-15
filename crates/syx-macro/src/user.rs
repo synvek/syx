@@ -389,10 +389,12 @@ fn subst_stmt(stmt: &Stmt, param: &str, arg: &Expr) -> Stmt {
             span,
             body,
             condition,
+            label,
         } => Stmt::RepeatWhile {
             span: *span,
             body: body.iter().map(|s| subst_stmt(s, param, arg)).collect(),
             condition: subst_param(condition, param, arg),
+            label: label.clone(),
         },
         Stmt::ForIn {
             span,
@@ -1444,12 +1446,14 @@ pub(crate) fn expand_user_macros(module: &mut syx_ast::Module) -> SyxResult<()> 
                     span,
                     mut body,
                     condition,
+                    label,
                 } => {
                     expand_stmts_user(&mut body, defs, depth, stack)?;
                     out.push(Stmt::RepeatWhile {
                         span,
                         body,
                         condition,
+                        label,
                     });
                 }
                 Stmt::ForIn {

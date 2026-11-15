@@ -53,6 +53,7 @@ mod polymorphic_base_ref;
 mod property_observers;
 mod protocol_iterator;
 mod protocol_shape_array;
+mod repeat_label_break;
 mod set_element_check;
 mod stmt_semicolon;
 mod string_subscript_oob;

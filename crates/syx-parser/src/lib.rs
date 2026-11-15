@@ -3285,7 +3285,7 @@ impl Parser {
     }
 
     fn parse_repeat_while(&mut self, label: Option<SmolStr>) -> SyxResult<Stmt> {
-        let _label = label; // accepted; RepeatWhile has no label field yet
+        // U-11: keep loop label for `break outer` / MIR loop_stack (same scale as while/for).
         let start = self.advance().span;
         self.consume(TokenKind::LBrace, "Expected '{' after repeat")?;
         let body = self.parse_block_stmts()?;
@@ -3295,6 +3295,7 @@ impl Parser {
             span: Span::merge(start, self.previous().span),
             body,
             condition,
+            label,
         })
     }
 

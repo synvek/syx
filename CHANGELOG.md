@@ -5,6 +5,7 @@
 - feat: implement `while let` syntax desugaring in parser and add tests
 - feat: enhance stdlib MIR handling with caching and fingerprinting
 - feat: add support for stdlib MIR embedding and enhance asset management
+- feat: add optional loop label support for repeat statements
 
 ### SYX 0.2.2
 

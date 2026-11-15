@@ -950,8 +950,12 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             ctx.active_block = end_block;
         }
         // U-7: `repeat { body } while cond` — body runs at least once.
+        // U-11: push label so `break outer` / `continue outer` resolve (same as while/for).
         Stmt::RepeatWhile {
-            body, condition, ..
+            body,
+            condition,
+            label,
+            ..
         } => {
             let body_block = ctx.fresh_block();
             let cond_block = ctx.fresh_block();
@@ -966,7 +970,8 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             );
             ctx.link(block, body_block);
             // continue re-checks condition; break exits.
-            ctx.loop_stack.push((cond_block, exit_block, None));
+            ctx.loop_stack
+                .push((cond_block, exit_block, label.clone()));
             ctx.active_block = body_block;
             for s in body {
                 let b = ctx.active_block;

@@ -414,6 +414,8 @@ pub enum Stmt {
         span: Span,
         body: Vec<Stmt>,
         condition: Expr,
+        /// U-11: optional loop label (`outer: repeat …`) for `break outer` / `continue outer`.
+        label: Option<SmolStr>,
     },
     MacroInvoke {
         span: Span,
