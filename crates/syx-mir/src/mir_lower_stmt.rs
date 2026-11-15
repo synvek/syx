@@ -970,8 +970,7 @@ pub(crate) fn lower_stmt_inner(stmt: &Stmt, ctx: &mut LowerCtx, block: u32) {
             );
             ctx.link(block, body_block);
             // continue re-checks condition; break exits.
-            ctx.loop_stack
-                .push((cond_block, exit_block, label.clone()));
+            ctx.loop_stack.push((cond_block, exit_block, label.clone()));
             ctx.active_block = body_block;
             for s in body {
                 let b = ctx.active_block;
