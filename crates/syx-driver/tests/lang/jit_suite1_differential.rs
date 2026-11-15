@@ -79,6 +79,7 @@ fn assert_i32(v: &Value, expect: i32) {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_arith_exact() {
     let program = compile_prog("arith.sy");
     let interp = run_interp(&program, "compute", &[]);
@@ -90,6 +91,7 @@ fn jit_arith_exact() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_branch_exact() {
     let program = compile_prog("branch.sy");
     let interp = run_interp(&program, "branch", &[]);
@@ -100,6 +102,7 @@ fn jit_branch_exact() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_call_nested_exact() {
     let program = compile_prog("call_nested.sy");
     let interp = run_interp(&program, "nest", &[Value::I32(1)]);
@@ -110,6 +113,7 @@ fn jit_call_nested_exact() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_print_deopts() {
     let program = compile_prog("print_deopt.sy");
     let _g = env_lock();
@@ -135,6 +139,7 @@ fn jit_print_deopts() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_callhost_deopts() {
     let program = compile_prog("callhost_deopt.sy");
     let mir = program
@@ -185,6 +190,7 @@ fn jit_callhost_deopts() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_conststr_deopts() {
     let program = compile_prog("conststr_deopt.sy");
     let mir = program
@@ -231,6 +237,7 @@ fn jit_conststr_deopts() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_arraybuild_deopts() {
     let program = compile_prog("arraybuild_deopt.sy");
     let mir = program
@@ -279,6 +286,7 @@ fn jit_arraybuild_deopts() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_dictbuild_deopts() {
     let program = compile_prog("dictbuild_deopt.sy");
     let mir = program
@@ -330,6 +338,7 @@ fn jit_dictbuild_deopts() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_setbuild_deopts() {
     let program = compile_prog("setbuild_deopt.sy");
     let mir = program
@@ -376,6 +385,7 @@ fn jit_setbuild_deopts() {
 }
 
 #[test]
+#[ignore = "JIT Suite-1 differential is soft/opt-in; run via soft JIT job with --include-ignored"]
 fn jit_loadglobal_deopts() {
     let program = compile_prog("loadglobal_deopt.sy");
     let mir = program

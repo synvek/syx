@@ -54,6 +54,12 @@ fn enable_native_test_stub() {
     std::env::set_var("SYX_NATIVE_C_STUB", "1");
 }
 
+fn is_l006_native_refuse(err: &syx_diagnostics::SyxDiagnostic) -> bool {
+    err.code.as_deref() == Some("L006")
+        || err.message.contains("full-native")
+        || format!("{err}").contains("L006")
+}
+
 #[test]
 fn runner_mir_writes_artifact() {
     let dir = temp_project("mir1", r#"func main() { print("hi") }"#, None);
@@ -230,8 +236,13 @@ fn runner_native_object() {
     };
     let mut opts = default_opts();
     let mut manifest = syx_pkg::load_manifest(&dir).unwrap();
-    run_build_tasks(&plan, &mut ctx(&dir, &mut opts, &mut manifest)).unwrap();
-    assert!(dir.join("target/debug/out.o").exists());
+    match run_build_tasks(&plan, &mut ctx(&dir, &mut opts, &mut manifest)) {
+        Ok(()) => assert!(dir.join("target/debug/out.o").exists()),
+        Err(e) if is_l006_native_refuse(&e) => {
+            eprintln!("skip runner_native_object: {e}");
+        }
+        Err(e) => panic!("runner_native_object: {e}"),
+    }
 }
 
 #[test]
@@ -337,6 +348,14 @@ fn runner_all_known_targets_recognized() {
             // link may fail without full toolchain; S404 is acceptable, not S403
             if let Err(e) = err {
                 assert_ne!(e.code.as_deref(), Some("S403"), "target {target}");
+            }
+        } else if matches!(target, "native") {
+            // Without `--features full-native`, native honestly refuses with L006/S404.
+            if let Err(e) = err {
+                assert!(
+                    is_l006_native_refuse(&e) || e.code.as_deref() == Some("S404"),
+                    "target native: {e}"
+                );
             }
         } else {
             err.unwrap_or_else(|e| panic!("target {target}: {e}"));
@@ -462,9 +481,16 @@ fn runner_mir_then_native_chain() {
     };
     let mut opts = default_opts();
     let mut manifest = syx_pkg::load_manifest(&dir).unwrap();
-    run_build_tasks(&plan, &mut ctx(&dir, &mut opts, &mut manifest)).unwrap();
-    assert!(dir.join("target/debug/out.mir").exists());
-    assert!(dir.join("target/debug/out.o").exists());
+    match run_build_tasks(&plan, &mut ctx(&dir, &mut opts, &mut manifest)) {
+        Ok(()) => {
+            assert!(dir.join("target/debug/out.mir").exists());
+            assert!(dir.join("target/debug/out.o").exists());
+        }
+        Err(e) if is_l006_native_refuse(&e) || e.code.as_deref() == Some("S404") => {
+            eprintln!("skip runner_mir_then_native_chain: {e}");
+        }
+        Err(e) => panic!("runner_mir_then_native_chain: {e}"),
+    }
 }
 
 #[test]

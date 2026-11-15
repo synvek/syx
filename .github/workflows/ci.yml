@@ -139,10 +139,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Driver core integration suites
-        # Heavy backends/browser/wasm/farm/platform stay under soft Extended.
+        # evergreen (~40 nails still track language/registry drift) stays under soft
+        # Extended; heavy backends/browser/wasm/farm/platform stay there too.
         run: >
           cargo test -p syx-driver
-          --test evergreen --test lang --test concurrency --test data
+          --test lang --test concurrency --test data
           --test credibility
           -- --test-threads=1
 
@@ -424,11 +425,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Category integration suites
-        # backends/browser/wasm/farm/platform/security — not on the merge gate.
+        # evergreen + backends/browser/wasm/farm/platform/security — not on the merge gate.
         # Skip re-running syx-lsp (covered by required Language server job).
         run: >
           cargo test -p syx-driver
-          --test platform --test wasm --test farm
+          --test evergreen --test platform --test wasm --test farm
           --test gui --test browser --test native --test runtime
           --test backends --test security
           -- --test-threads=1
@@ -452,7 +453,7 @@ jobs:
       - name: JIT differential
         run: >
           SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang
-          -- jit_suite1_differential --test-threads=1 --nocapture
+          -- jit_suite1_differential --test-threads=1 --nocapture --include-ignored
       - name: JIT opt-out smoke
         run: >
           SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen

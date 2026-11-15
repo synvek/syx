@@ -113,7 +113,7 @@ fn polymorphic_animal_dog_via_base_ref() {
 class Animal { func s() { print("a") } }
 class Dog: Animal { override func s() { print("d") } }
 func via(base: Animal) { base.s() }
-func main() { via(Dog()) }
+func main() { via(base: Dog()) }
 "#;
     assert!(run(src).iter().any(|l| l.trim() == "d"));
 }
@@ -383,7 +383,7 @@ class Dog: Animal {
     override func label() { print("dog") }
 }
 func via(pet: Animal) { pet.label() }
-func main() { via(Dog(tag: "x")) }
+func main() { via(pet: Dog(tag: "x")) }
 "#;
     assert!(run(src).iter().any(|l| l.trim() == "dog"));
 }

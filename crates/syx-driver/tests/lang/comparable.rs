@@ -36,7 +36,7 @@ fn manifest_phase_gate() {
     let m: serde_json::Value =
         serde_json::from_str(syx_driver::embedded_std::internal_manifest_json()).unwrap();
     assert_eq!(m["phase"], 139);
-    assert_eq!(m["version"], "0.2.0");
+    assert_eq!(m["version"], "0.2.3");
 }
 
 #[test]
