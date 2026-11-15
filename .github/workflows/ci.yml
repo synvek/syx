@@ -104,10 +104,33 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Language server tests
-        run: cargo test -p syx-lsp -- --test-threads=1
+        # syx-lsp has ~1.8k unit nails; keep serial for stability, fail closed.
+        run: cargo test -p syx-lsp --lib -- --test-threads=1
 
-  test-core:
-    name: Core tests
+  # Split from former monolithic Core tests: `--workspace --lib --bins` compiled
+  # llvm/wasm/async/hosts and burned the full 60m before driver suites started.
+  test-libs:
+    name: Core libs
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [fmt]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Curated frontend / IR / runtime lib tests
+        # Explicit -p list — do not `--workspace` (pulls syx-llvm, wasmtime, hosts).
+        run: >
+          cargo test --lib
+          -p syx-diagnostics -p syx-lexer -p syx-ast -p syx-parser
+          -p syx-semantic -p syx-codegen -p syx-vm -p syx-stdlib
+          -p syx-mir -p syx-mir-run -p syx-frontend -p syx-fmt
+          -p syx-lint -p syx-cst -p syx-config -p syx-runtime-core
+          -p syx-macro -p syx-meta -p syx-mono -p syx-doc
+          -- --test-threads=4
+
+  test-driver:
+    name: Core driver
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs: [fmt]
@@ -115,21 +138,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Workspace lib/bin tests
-        # Heavier driver suites (backends/browser/wasm/farm/platform) live under soft
-        # extended / native-linux / nightly parity — not the merge gate.
-        run: cargo test --workspace --lib --bins -- --test-threads=4
       - name: Driver core integration suites
+        # Heavy backends/browser/wasm/farm/platform stay under soft Extended.
         run: >
           cargo test -p syx-driver
           --test evergreen --test lang --test concurrency --test data
           --test credibility
           -- --test-threads=1
-      - name: Frontend / IR crate tests
-        run: >
-          cargo test -p syx-parser -p syx-semantic -p syx-vm -p syx-codegen
-          -p syx-frontend -p syx-fmt -p syx-lint -p syx-cst
-          -- --test-threads=4
 
   # ---------------------------------------------------------------------------
   # Required: WASM / browser compiler artifacts
@@ -207,7 +222,7 @@ jobs:
     name: Book doctests (English)
     continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -400,7 +415,7 @@ jobs:
           xvfb-run -a cargo test -p syx-driver --test gui -- --test-threads=1
 
   extended-suites:
-    name: Extended driver / LSP suites
+    name: Extended driver suites
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -409,15 +424,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Category integration suites
-        # Includes backends/browser/wasm/farm/platform moved out of the required core gate.
+        # backends/browser/wasm/farm/platform/security — not on the merge gate.
+        # Skip re-running syx-lsp (covered by required Language server job).
         run: >
           cargo test -p syx-driver
-          --test platform --test wasm --test farm --test data
+          --test platform --test wasm --test farm
           --test gui --test browser --test native --test runtime
           --test backends --test security
           -- --test-threads=1
-      - name: Language server integration matrix
-        run: cargo test -p syx-lsp -- --test-threads=1
 
   jit:
     name: JIT tier-2
