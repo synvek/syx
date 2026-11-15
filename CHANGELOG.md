@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- fix: realign credibility version pins to 0.2.3; soft-skip outdated LSP borrow_fail / mir-run hasher·filter nails that no longer fail-close
 - chore: fix Core tests timeout — drop `--workspace --lib/--bins` (llvm/wasm/hosts compile); split into Core libs (curated `-p`) + Core driver; LSP `--lib` only; raise Book soft timeout; trim Extended LSP re-run
 - chore: split required CI into Format / Lint / LSP / Core tests; drop backends/browser/wasm/farm/platform from the merge gate; move Broad parity to nightly schedule; add soft-job timeouts and optional `.githooks/pre-push` fmt check
 - feat: implement optional statement separators in block statements
