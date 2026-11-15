@@ -3176,6 +3176,38 @@ impl Parser {
 
     fn parse_while(&mut self, label: Option<SmolStr>) -> SyxResult<Stmt> {
         let start = self.advance().span;
+        // U-10: `while let name = expr { body }` → while true { if let … else { break } }.
+        // No new AST; reuses While + IfLet + Break (U-7/U-8).
+        if self.match_kind(TokenKind::Let) {
+            let name = self.consume_identifier("Expected binding name after while let")?;
+            self.consume(TokenKind::Assign, "Expected '=' in while let")?;
+            let prev = self.allow_trailing_closure;
+            self.allow_trailing_closure = false;
+            let pattern = self.parse_expr()?;
+            self.allow_trailing_closure = prev;
+            let body = self.parse_stmt_or_block()?;
+            let span = Span::merge(start, self.previous().span);
+            let break_stmt = Stmt::Break {
+                span,
+                label: None,
+            };
+            let if_let = Stmt::IfLet {
+                span,
+                name,
+                pattern,
+                body,
+                else_branch: Some(vec![break_stmt]),
+            };
+            return Ok(Stmt::While {
+                span,
+                condition: Expr::Literal {
+                    span,
+                    value: Literal::Bool(true),
+                },
+                body: vec![if_let],
+                label,
+            });
+        }
         let prev = self.allow_trailing_closure;
         self.allow_trailing_closure = false;
         let condition = self.parse_expr()?;

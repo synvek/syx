@@ -59,4 +59,5 @@ mod string_subscript_oob;
 mod struct_book_first_slice;
 mod syxhost_compare_and_filepath_exists;
 mod value_semantics;
+mod while_let;
 mod writing_blockers;
