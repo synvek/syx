@@ -21,7 +21,7 @@ smol_str = { workspace = true }
 crossbeam-channel = { workspace = true }
 parking_lot = { workspace = true }
 # Path deps so default-features=false is honored (workspace inherit ignores it).
-syx-vm = { path = "../syx-vm", optional = true, default-features = false, features = ["interpreter", "http", "file", "jit-tier2"] }
+syx-vm = { path = "../syx-vm", optional = true, default-features = false, features = ["interpreter", "http", "file", "jit-tier2", "tls"] }
 syx-mir-run = { path = "../syx-mir-run", optional = true, default-features = false }
 
 [dev-dependencies]

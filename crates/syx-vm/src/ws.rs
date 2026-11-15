@@ -11,9 +11,6 @@ use std::sync::{Mutex, OnceLock};
 use syx_diagnostics::SyxResult;
 use syx_runtime_core::{platform_int_value, Value};
 
-#[cfg(feature = "http")]
-use reqwest::blocking::Client;
-
 use crate::ws_rfc6455;
 
 static WS_ASYNC_NEXT_ID: AtomicI64 = AtomicI64::new(1);
@@ -114,30 +111,6 @@ fn try_real_ws_connect(url: &str) -> Option<Value> {
             return Some(handle);
         }
     }
-    #[cfg(feature = "http")]
-    if url.starts_with("wss://") {
-        let mut handle = make_ws_handle(url);
-        if let Value::Object(ref mut map) = handle {
-            map.insert("handshake".into(), Value::Str("ok".into()));
-            map.insert("real".into(), Value::Bool(true));
-        }
-        return Some(handle);
-    }
-    #[cfg(feature = "http")]
-    {
-        let probe = url.replacen("wss://", "https://", 1);
-        let client = Client::builder()
-            .timeout(std::time::Duration::from_secs(3))
-            .build()
-            .ok()?;
-        if client.get(&probe).send().is_ok() {
-            let mut handle = make_ws_handle(url);
-            if let Value::Object(ref mut map) = handle {
-                map.insert("real".into(), Value::Bool(true));
-            }
-            return Some(handle);
-        }
-    }
     None
 }
 
@@ -156,6 +129,14 @@ fn ws_handle_is_rfc6455(value: &Value) -> bool {
 }
 
 pub fn host_ws_connect(stack: &mut Vec<Value>) -> SyxResult<()> {
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    {
+        crate::http::ensure_http_vm_bridge();
+        return syx_http_impl::host_ws_connect(stack);
+    }
+    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+    {
+
     let url = stack
         .pop()
         .unwrap_or(Value::Str(String::new()))
@@ -167,10 +148,19 @@ pub fn host_ws_connect(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     stack.push(make_ws_handle(&url));
     Ok(())
+    }
 }
 
 /// Phase 20: mock async WebSocket connect — returns fixed handle immediately on poll.
 pub fn host_ws_connect_async(stack: &mut Vec<Value>) -> SyxResult<()> {
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    {
+        crate::http::ensure_http_vm_bridge();
+        return syx_http_impl::host_ws_connect_async(stack);
+    }
+    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+    {
+
     let url = stack
         .pop()
         .unwrap_or(Value::Str(String::new()))
@@ -193,10 +183,27 @@ pub fn host_ws_connect_async(stack: &mut Vec<Value>) -> SyxResult<()> {
     ws_pending().lock().unwrap().insert(id, payload);
     stack.push(make_ws_awaitable(id));
     Ok(())
+    }
 }
 
 /// Phase 20/22: mock async WebSocket send — WSS-aware pong prefix on poll.
 pub fn host_ws_send_async(stack: &mut Vec<Value>) -> SyxResult<()> {
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    {
+        crate::http::ensure_http_vm_bridge();
+        return syx_http_impl::host_ws_send_async(stack);
+    }
+    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+    {
+
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    {
+        crate::http::ensure_http_vm_bridge();
+        return syx_http_impl::host_ws_send(stack);
+    }
+    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+    {
+
     let a = stack.pop().unwrap_or(Value::Str(String::new()));
     let b = stack.pop().unwrap_or(Value::Nil);
     let (message, socket) = match (&a, &b) {
@@ -215,6 +222,8 @@ pub fn host_ws_send_async(stack: &mut Vec<Value>) -> SyxResult<()> {
         .insert(id, format!("{prefix}:{message}"));
     stack.push(make_ws_awaitable(id));
     Ok(())
+    }
+    }
 }
 
 /// Phase 27 EA3: sync WebSocket send — RFC6455 wire when handle is real; else mock/MVP flags.
@@ -273,6 +282,14 @@ pub fn e01_rfc6455_wss_first_slice_ok() -> bool {
 
 /// Phase 28 EF3: WSS production send path with mock fallback.
 pub fn host_ws_send_prod(stack: &mut Vec<Value>) -> SyxResult<()> {
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    {
+        crate::http::ensure_http_vm_bridge();
+        return syx_http_impl::host_ws_send_prod(stack);
+    }
+    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+    {
+
     let message = stack
         .pop()
         .unwrap_or(Value::Str(String::new()))
@@ -290,9 +307,21 @@ pub fn host_ws_send_prod(stack: &mut Vec<Value>) -> SyxResult<()> {
         && (wss || std::env::var("SYX_WS_MOCK").ok().as_deref() == Some("1"));
     stack.push(Value::Bool(ok));
     Ok(())
+    }
 }
 
 pub fn try_poll_ws_request(value: &Value) -> Option<SyxResult<Value>> {
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    {
+        crate::http::ensure_http_vm_bridge();
+        return syx_http_impl::try_poll_ws_request(value);
+    }
+    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+    {
+        if let Some(result) = syx_runtime_core::poll_registered_ws_async(value) {
+            return Some(result);
+        }
+
     let id = ws_async_id(value)?;
     let mut pending = ws_pending().lock().unwrap();
     let payload = pending.remove(&id)?;
@@ -303,5 +332,6 @@ pub fn try_poll_ws_request(value: &Value) -> Option<SyxResult<Value>> {
         Some(Ok(Value::Str(reply.to_string())))
     } else {
         Some(Ok(make_ws_handle(&payload)))
+    }
     }
 }

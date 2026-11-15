@@ -172,6 +172,10 @@ pub struct LinkOptions {
     pub link_flags: Vec<String>,
     /// SYX 71.0: `debug` or `release` — selects `libsyx_rt` archive profile.
     pub rt_profile: String,
+    /// Absolute path override for `libsyx_rt.a` (native host-shake slim archive).
+    pub rt_archive_override: Option<PathBuf>,
+    /// Extra static archives (`syx-host-sql`, …) linked after rt (domain shake).
+    pub extra_archives: Vec<PathBuf>,
 }
 
 /// Host triple used for `lib/sysroot/<triple>/` (override with `TARGET`).
@@ -1073,7 +1077,21 @@ pub fn native_lld_argv(
     {
         args.push(linux_main_stub_object()?.as_os_str().to_owned());
     }
-    args.push(rt.as_os_str().to_owned());
+    let rt_path = if let Some(ref override_rt) = opts.rt_archive_override {
+        override_rt.clone()
+    } else {
+        rt.to_path_buf()
+    };
+    if !opts.extra_archives.is_empty() {
+        args.push("--start-group".into());
+    }
+    args.push(rt_path.as_os_str().to_owned());
+    for archive in &opts.extra_archives {
+        args.push(archive.as_os_str().to_owned());
+    }
+    if !opts.extra_archives.is_empty() {
+        args.push("--end-group".into());
+    }
     for path in &opts.lib_paths {
         #[cfg(target_os = "windows")]
         {
@@ -1263,7 +1281,9 @@ fn link_executable_with_prefer_lld(
     opts: &LinkOptions,
     prefer_lld: bool,
 ) -> io::Result<()> {
-    let rt = if opts.rt_profile.is_empty() {
+    let rt = if let Some(ref override_rt) = opts.rt_archive_override {
+        override_rt.clone()
+    } else if opts.rt_profile.is_empty() {
         rt_archive_path()?
     } else {
         rt_archive_path_for_profile(&opts.rt_profile)?
@@ -1299,7 +1319,25 @@ fn link_executable_with_prefer_lld(
     {
         cmd.arg(linux_main_stub_object()?);
     }
+    // Host domain archives call back into syx-rt; use a group (or double-link rt) so
+    // unresolved back-edges resolve. macOS ld is single-pass — link rt again after hosts.
+    #[cfg(target_os = "linux")]
+    let use_group = !opts.extra_archives.is_empty() && !lld;
+    #[cfg(not(target_os = "linux"))]
+    let use_group = false;
+    if use_group {
+        cmd.arg("-Wl,--start-group");
+    }
     cmd.arg(&rt);
+    for archive in &opts.extra_archives {
+        cmd.arg(archive);
+    }
+    if use_group {
+        cmd.arg("-Wl,--end-group");
+    } else if !opts.extra_archives.is_empty() {
+        // macOS / LLD: second pass of rt after host archives.
+        cmd.arg(&rt);
+    }
     push_sdk_sysroot_libpath(&mut cmd, win_msvc);
     for path in &opts.lib_paths {
         if win_msvc {

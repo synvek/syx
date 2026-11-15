@@ -2,6 +2,7 @@ mod bigint_hosts;
 mod builtin_kind;
 mod collection;
 mod collection_hosts;
+mod host_shake;
 mod numeric;
 mod numeric_hosts;
 mod protocols;
@@ -45,6 +46,10 @@ pub use protocols::{
     is_comparable_type, is_custom_debug_string_convertible, is_custom_string_convertible,
     is_equatable_type, is_hashable_type_name, known_protocol, protocol_associated_types,
     type_conforms, ProtocolId,
+};
+pub use host_shake::{
+    host_fn_shake_domain, host_index_shake_domain, host_indices_for_domain, shake_domains_for_indices,
+    HostShakeDomain,
 };
 pub use registry::{
     host_fn_id_by_name, host_fn_index, host_fn_index_by_name, host_fn_name_for_index,

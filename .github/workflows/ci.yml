@@ -266,6 +266,10 @@ jobs:
           }
           soft_native examples/hello.sy
           soft_native examples/main_sync.sy
+      - name: Native host-shake hello size
+        run: |
+          cargo build -p syx-cli --features full-native --release || cargo build -p syx-cli --release
+          bash scripts/native_host_shake_size.sh
       - name: Differential suite
         timeout-minutes: 20
         env:

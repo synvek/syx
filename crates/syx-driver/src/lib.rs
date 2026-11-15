@@ -57,6 +57,10 @@ mod format_lint;
 mod lsp_ide;
 mod mir_unify;
 mod native_build;
+mod native_host_shake;
+pub use native_host_shake::{
+    domains_for_module, format_host_shake_report, host_shake_report_for_file,
+};
 mod prelude_glue;
 mod rkyv_image;
 mod run_exec;

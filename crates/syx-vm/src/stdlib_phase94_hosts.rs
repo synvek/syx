@@ -1,6 +1,5 @@
 //! Phase 94: L11 pure protobuf, ORM rusqlite bind execution, winit real routing, GC churn stdout.
 
-use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
 use syx_diagnostics::SyxResult;
@@ -21,7 +20,14 @@ use crate::stdlib_phase91_hosts::{
     host_gui_winit_window_create as hashmap_window_create,
 };
 
-use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+pub use crate::sql_stubs::{
+    host_orm_find_where_dict_rusqlite, orm_executed_sql_count, orm_last_executed_sql,
+};
+#[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+pub use syx_sql_impl::{
+    host_orm_find_where_dict_rusqlite, orm_executed_sql_count, orm_last_executed_sql,
+};
 
 #[cfg(feature = "gui-winit")]
 pub use crate::gui_winit_real::{
@@ -32,56 +38,18 @@ fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
 }
 
-static ORM_EXECUTED_SQL: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
-
 static GC_CHURN_STDOUT: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
 /// Reset Phase 94 state between tests.
 pub fn reset_phase94_state() {
     crate::stdlib_phase93_hosts::reset_phase93_state();
-    if let Ok(mut g) = ORM_EXECUTED_SQL.lock() {
-        g.clear();
-    }
+    #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+    syx_sql_impl::reset_orm_executed_sql();
     if let Ok(mut g) = GC_CHURN_STDOUT.lock() {
         g.clear();
     }
     #[cfg(feature = "gui-winit")]
     reset_gui_winit_real();
-}
-
-/// Phase 94: ORM findWhereDict with rusqlite execution record.
-pub fn host_orm_find_where_dict_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let dict_val = stack.pop().unwrap_or(Value::Dict(HashMap::new()));
-    let table = pop_str(stack);
-    let mut clauses = Vec::new();
-    let mut binds = Vec::new();
-    if let Value::Dict(map) = dict_val {
-        for (col, val) in map {
-            clauses.push(format!("{col} = ?"));
-            binds.push(val.as_str());
-        }
-    }
-    let sql = if clauses.is_empty() {
-        format!("SELECT * FROM {table}")
-    } else {
-        format!("SELECT * FROM {table} WHERE {}", clauses.join(" AND "))
-    };
-    if let Ok(mut g) = ORM_EXECUTED_SQL.lock() {
-        g.push(format!("{sql}|{}", binds.join(",")));
-    }
-    let mut qstack = vec![Value::Str(sql.clone())];
-    host_sql_query_rusqlite(&mut qstack)?;
-    let rows = qstack.pop().unwrap_or(Value::Array(vec![]));
-    stack.push(rows);
-    Ok(())
-}
-
-pub fn orm_executed_sql_count() -> usize {
-    ORM_EXECUTED_SQL.lock().map(|g| g.len()).unwrap_or(0)
-}
-
-pub fn orm_last_executed_sql() -> Option<String> {
-    ORM_EXECUTED_SQL.lock().ok().and_then(|g| g.last().cloned())
 }
 
 /// Phase 94: GC churn with stable stdout line `gc:churn:{reason}`.

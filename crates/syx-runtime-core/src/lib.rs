@@ -7,6 +7,7 @@ mod managed_heap;
 mod numeric;
 mod protocols;
 mod runtime_bridge;
+mod shakeable_hosts;
 mod simd;
 mod value;
 
@@ -43,6 +44,11 @@ pub use protocols::{
     OBJECT_ID_KEY,
 };
 pub use runtime_bridge::{RuntimeBridge, VmRuntime};
+pub use shakeable_hosts::{
+    lookup_shakeable_host, lookup_shakeable_host_id, poll_registered_http_async,
+    poll_registered_ws_async, register_http_async_poll, register_shakeable_host,
+    register_shakeable_host_id, register_ws_async_poll, reset_shakeable_hosts, ShakeableHostFn,
+};
 pub use simd::{
     simd_abs, simd_add_sat, simd_all_true, simd_and, simd_any_true, simd_avgr_u, simd_binop,
     simd_bitmask, simd_broadcast, simd_div, simd_eq, simd_equals, simd_extract_lane,

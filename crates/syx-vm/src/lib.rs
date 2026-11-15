@@ -28,9 +28,9 @@ mod grpc_wire;
 #[cfg(target_arch = "wasm32")]
 #[path = "wasm_stubs/grpc_wire.rs"]
 mod grpc_wire;
-#[cfg(feature = "http")]
+#[cfg(all(feature = "http", not(target_arch = "wasm32")))]
 mod http;
-#[cfg(not(feature = "http"))]
+#[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
 #[path = "wasm_stubs/http.rs"]
 mod http;
 mod os_hosts;
@@ -47,6 +47,7 @@ mod ws_rfc6455;
 pub use grapheme::{grapheme_at, graphemes_vec, try_grapheme_at};
 #[cfg(feature = "gui-dlopen")]
 mod gui_dlopen;
+mod sql_stubs;
 mod stdlib_phase120_hosts;
 mod stdlib_phase83_hosts;
 mod stdlib_phase84_hosts;
@@ -78,6 +79,7 @@ pub use stdlib_phase84_hosts::{
     process_child_force_close, process_child_live_count, store_registered_test_outcomes,
     take_registered_test_outcomes, RegisteredTestOutcome,
 };
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
 pub use stdlib_phase89_hosts::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
 pub use stdlib_phase94_hosts::{
     gc_churn_stdout_lines, host_gc_churn_stdout, host_gui_winit_canvas_draw_phase94,
@@ -133,6 +135,8 @@ pub use synui_hosts::{
     SYNUI_V9_IMAGE_SIGNAL_BIND_DIGEST, SYNUI_V9_WEB_MOBILE_CONTROLS_DEEPEN_DIGEST,
     SYNUI_V9_WIDGET_DIVIDER_DIGEST,
 };
+#[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+pub use syx_sql_impl::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
 #[cfg(feature = "gui-winit")]
 mod gui_winit_real;
 pub use stdlib_phase93_hosts::{
@@ -186,7 +190,7 @@ pub use grpc_wire::{
     e02_window_update_connection_negative_first_slice_ok, e02_window_update_first_slice_ok,
     e02_window_update_negative_first_slice_ok, encode_grpc_message, syx_grpc_real_enabled,
 };
-#[cfg(feature = "http")]
+#[cfg(feature = "interpreter")]
 pub use gui_invoke::register_native_gui_handler;
 pub use hosts::dispatch_numeric_host;
 pub use hosts::try_poll_file_read;

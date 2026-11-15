@@ -1410,6 +1410,12 @@ fn decode_server_text_frame_io(stream: &mut impl Read) -> std::io::Result<String
 /// Uses ephemeral self-signed test cert; CI-safe (no external network).
 /// ≠ product WebSocket GA / ≠ Autobahn / ≠ skip-verify prod path.
 pub fn e01_rfc6455_wss_loopback_wired_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -1500,6 +1506,7 @@ pub fn e01_rfc6455_wss_loopback_wired_ok() -> bool {
         Err(_) => return false,
     };
     got == MSG
+    }
 }
 
 /// Combined W1147 wss first-slice evidence helper.
@@ -1512,6 +1519,13 @@ pub fn e01_rfc6455_wss_first_slice_ok() -> bool {
 /// `SYX_WS_WSS_TEST_ROOT` PEM path, or returns `None` (fail-closed).
 /// ≠ product GA / ≠ danger_accept_invalid_certs for arbitrary hosts.
 pub fn rfc6455_connect_wss(url: &str) -> Option<i64> {
+    #[cfg(not(feature = "tls"))]
+    {
+        let _ = url;
+        return None;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{pem::PemObject, CertificateDer, ServerName};
     use rustls::{ClientConfig, RootCertStore};
     use std::sync::Arc;
@@ -1560,12 +1574,16 @@ pub fn rfc6455_connect_wss(url: &str) -> Option<i64> {
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
     wss_conns().lock().ok()?.insert(id, tls);
     Some(id)
+    }
 }
 
+#[cfg(feature = "tls")]
 type WssConn = rustls::StreamOwned<rustls::ClientConnection, TcpStream>;
 
+#[cfg(feature = "tls")]
 static WSS_CONNS: OnceLock<Mutex<HashMap<i64, WssConn>>> = OnceLock::new();
 
+#[cfg(feature = "tls")]
 fn wss_conns() -> &'static Mutex<HashMap<i64, WssConn>> {
     WSS_CONNS.get_or_init(|| Mutex::new(HashMap::new()))
 }
@@ -1575,14 +1593,22 @@ pub fn rfc6455_send_any(conn_id: i64, message: &str) -> bool {
     if rfc6455_send(conn_id, message) {
         return true;
     }
-    let Ok(mut guard) = wss_conns().lock() else {
+    #[cfg(not(feature = "tls"))]
+    {
+        let _ = (conn_id, message);
         return false;
-    };
-    let Some(stream) = guard.get_mut(&conn_id) else {
-        return false;
-    };
-    let frame = encode_client_text_frame(message.as_bytes());
-    stream.write_all(&frame).is_ok() && stream.flush().is_ok()
+    }
+    #[cfg(feature = "tls")]
+    {
+        let Ok(mut guard) = wss_conns().lock() else {
+            return false;
+        };
+        let Some(stream) = guard.get_mut(&conn_id) else {
+            return false;
+        };
+        let frame = encode_client_text_frame(message.as_bytes());
+        return stream.write_all(&frame).is_ok() && stream.flush().is_ok();
+    }
 }
 
 #[cfg(test)]
@@ -1616,6 +1642,7 @@ mod tests {
         assert!(e01_rfc6455_loopback_peer_echo_wired_ok());
     }
 
+    #[cfg(feature = "tls")]
     #[test]
     fn wss_loopback_rustls_rfc6455() {
         assert!(e01_rfc6455_wss_loopback_wired_ok());

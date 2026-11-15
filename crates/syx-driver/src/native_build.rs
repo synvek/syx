@@ -3,6 +3,10 @@
 
 use crate::cache_fingerprint::{cache_version_tag, driver_options_with_deps};
 use crate::module_ref::ModuleRef;
+use crate::native_host_shake::{
+    domains_for_module, ensure_shake_archives, format_host_shake_report, workspace_root,
+    write_host_install_object,
+};
 use crate::{
     build_unified_mir, compile_module_recursive, compile_native_object,
     compile_project_with_options, driver_error_at, ensure_project_lock,
@@ -12,6 +16,7 @@ use crate::{
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use syx_diagnostics::{Span, SyxResult};
+use syx_mir::MirModule;
 use syx_pkg::{load_manifest, load_resolved_packages};
 
 pub fn build_native(root: &Path) -> SyxResult<Vec<u8>> {
@@ -93,6 +98,7 @@ pub fn build_native_file_with_options(
     })
 }
 
+#[allow(dead_code)] // retained for legacy --minimal rebuild; shake path uses ensure_shake_archives
 fn rebuild_native_rt(options: &DriverOptions) -> SyxResult<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace = manifest_dir.join("../..");
@@ -157,10 +163,25 @@ fn link_native_object(
     output: &Path,
     options: &DriverOptions,
     link_opts: &syx_rt::LinkOptions,
+    mir: &MirModule,
 ) -> SyxResult<()> {
-    if options.native_minimal || options.native_no_http || options.native_no_file {
-        rebuild_native_rt(options)?;
+    let domains = domains_for_module(mir);
+    if std::env::var("SYX_NATIVE_HOST_SHAKE_REPORT")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+    {
+        eprintln!("{}", format_host_shake_report(mir));
     }
+    let workspace = workspace_root();
+    let artifacts = ensure_shake_archives(&workspace, &domains, options)?;
+    let install_obj = write_host_install_object(
+        &obj_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join("syx-host-shake"),
+        &domains,
+    )?;
+
     if let Err(msg) = syx_rt::audit_user_object_undefs(object) {
         return Err(driver_error_at(msg, None, Span::DUMMY, "N002"));
     }
@@ -174,6 +195,11 @@ fn link_native_object(
     })?;
     let mut merged = link_opts.clone();
     merged.rt_profile = options.build_profile.rt_profile_name().to_string();
+    merged.rt_archive_override = Some(artifacts.rt_archive.clone());
+    merged.extra_archives = artifacts.host_archives.clone();
+    if let Some(obj) = install_obj {
+        merged.objects.push(obj);
+    }
     for flag in options.build_profile.link_profile_args() {
         merged.link_flags.push(flag.to_string());
     }
@@ -198,19 +224,7 @@ fn link_native_object(
         #[cfg(not(target_os = "linux"))]
         let try_lld_first = !force_cc && !disable_lld;
         if try_lld_first && syx_lld::available() {
-            let rt = if merged.rt_profile.is_empty() {
-                syx_rt::rt_archive_path()
-            } else {
-                syx_rt::rt_archive_path_for_profile(&merged.rt_profile)
-            }
-            .map_err(|e| {
-                driver_error_at(
-                    format!("Failed to locate syx-rt archive: {e}"),
-                    None,
-                    Span::DUMMY,
-                    "D001",
-                )
-            })?;
+            let rt = artifacts.rt_archive.clone();
             match syx_rt::native_lld_argv(obj_path, output, &merged, &rt)
                 .and_then(|args| syx_lld::run_lld(&args))
             {
@@ -252,10 +266,19 @@ pub fn build_native_executable(
     if native_build_up_to_date(root, &entry, output, options) {
         return Ok(output.to_path_buf());
     }
-    let out = build_native_with_options(root, options)?;
+    let project = compile_project_with_options(root, options)?;
+    let opts = driver_options_with_deps(root, &project.manifest, options)?;
+    let mir = build_unified_mir(
+        &project.graph,
+        &project.entry,
+        root,
+        &opts,
+        &project.manifest,
+    )?;
+    let object = compile_native_object(&mir, options)?;
     let obj_path = output.with_extension("o");
     let link_opts = native_link_options(root);
-    link_native_object(&out.object, &obj_path, output, options, &link_opts)?;
+    link_native_object(&object, &obj_path, output, options, &link_opts, &mir)?;
     write_native_build_stamp(root, &entry, output, options)?;
     Ok(output.to_path_buf())
 }
@@ -358,10 +381,32 @@ pub fn build_native_executable_file(
     if native_build_up_to_date(root, path, output, options) {
         return Ok(output.to_path_buf());
     }
-    let out = build_native_file_with_options(path, options)?;
+    if let Some(proj_root) = project_root_if_manifest_entry(path) {
+        return build_native_executable(&proj_root, options, output);
+    }
+    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    syx_host_plugin::register_compile_plugin_manifests(parent);
+    let manifest = load_manifest(parent).unwrap_or_default();
+    let mut opts = options.clone();
+    opts.strict_concurrency = manifest.concurrency.strict;
+    opts.default_isolation = manifest.concurrency.default_isolation.clone();
+    if !manifest.dependencies.is_empty() {
+        ensure_project_lock(parent, options)?;
+        opts.resolved_packages = Some(load_resolved_packages(parent)?);
+    }
+    let mut graph = ModuleGraph::default();
+    let unit = compile_module_recursive(
+        ModuleRef::from_file(path.to_path_buf()),
+        parent,
+        &mut graph,
+        &manifest,
+        &opts,
+    )?;
+    let mir = build_unified_mir(&graph, &unit, parent, &opts, &manifest)?;
+    let object = compile_native_object(&mir, options)?;
     let obj_path = output.with_extension("o");
     let link_opts = native_link_options(root);
-    link_native_object(&out.object, &obj_path, output, options, &link_opts)?;
+    link_native_object(&object, &obj_path, output, options, &link_opts, &mir)?;
     write_native_build_stamp(root, path, output, options)?;
     Ok(output.to_path_buf())
 }

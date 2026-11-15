@@ -403,6 +403,12 @@ pub fn e02_grpc_interop_first_slice_ok() -> bool {
 /// Named loopback grpcs (W1154 / ADR-1500): rustls + H2 + gRPC framing echo.
 /// Distinct from h2c construction / interop evidence.
 pub fn e02_grpc_tls_loopback_wired_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -484,6 +490,7 @@ pub fn e02_grpc_tls_loopback_wired_ok() -> bool {
     match grpc_wire_unary_call_io(&mut tls, "echo.Echo/Unary", MSG, "https") {
         Some(resp) => resp == MSG,
         None => false,
+    }
     }
 }
 
@@ -1384,6 +1391,12 @@ pub fn e02_bidi_interleaved_first_slice_ok() -> bool {
 
 /// W1161 / ADR-1507: named loopback grpcs server-streaming (rustls + H2 + N DATA).
 pub fn e02_grpc_tls_server_streaming_loopback_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -1473,6 +1486,7 @@ pub fn e02_grpc_tls_server_streaming_loopback_ok() -> bool {
         }
         None => false,
     }
+    }
 }
 
 /// Named alias: grpcs server-streaming wired.
@@ -1487,6 +1501,12 @@ pub fn e02_grpcs_streaming_first_slice_ok() -> bool {
 
 /// W1162 / ADR-1508: named loopback grpcs client-streaming (rustls + H2 + N DATA req).
 pub fn e02_grpc_tls_client_streaming_loopback_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -1573,6 +1593,7 @@ pub fn e02_grpc_tls_client_streaming_loopback_ok() -> bool {
         Some(resp) => resp == format!("{MARKER}:ok"),
         None => false,
     }
+    }
 }
 
 /// Named alias: grpcs client-streaming wired.
@@ -1587,6 +1608,12 @@ pub fn e02_grpcs_client_streaming_first_slice_ok() -> bool {
 
 /// W1163 / ADR-1509: named loopback grpcs bidi-streaming (rustls + H2 + N↔N DATA).
 pub fn e02_grpc_tls_bidi_streaming_loopback_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -1679,6 +1706,7 @@ pub fn e02_grpc_tls_bidi_streaming_loopback_ok() -> bool {
         }
         None => false,
     }
+    }
 }
 
 /// Named alias: grpcs bidi-streaming wired.
@@ -1693,6 +1721,12 @@ pub fn e02_grpcs_bidi_streaming_first_slice_ok() -> bool {
 
 /// W1166 / ADR-1512: named loopback grpcs bidi interleaved (rustls + H2 ping-pong).
 pub fn e02_grpc_tls_bidi_interleaved_loopback_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -1785,6 +1819,7 @@ pub fn e02_grpc_tls_bidi_interleaved_loopback_ok() -> bool {
                     .all(|(i, m)| m == &format!("{MARKER}:{i}"))
         }
         None => false,
+    }
     }
 }
 
@@ -1987,6 +2022,12 @@ pub fn e02_window_update_first_slice_ok() -> bool {
 
 /// W1168 / ADR-1514: named loopback grpcs WINDOW_UPDATE (rustls + H2 credit gate).
 pub fn e02_grpc_tls_window_update_loopback_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -2068,6 +2109,7 @@ pub fn e02_grpc_tls_window_update_loopback_ok() -> bool {
     match grpc_wire_window_update_call_io(&mut tls, "echo.Echo/Unary", "credit", "https") {
         Some(resp) => resp == format!("{MARKER}:credit"),
         None => false,
+    }
     }
 }
 
@@ -2178,6 +2220,12 @@ pub fn e02_window_update_negative_first_slice_ok() -> bool {
 /// W1170 / ADR-1516: TLS omit WINDOW_UPDATE → credit gate fail-closed.
 /// Marker identity: `syx-e02-w1170-grpcs-window-update-neg`.
 pub fn e02_grpc_tls_window_update_omit_credit_fail_closed_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -2266,6 +2314,7 @@ pub fn e02_grpc_tls_window_update_omit_credit_fail_closed_ok() -> bool {
     ) {
         Some(_) => false,
         None => true,
+    }
     }
 }
 
@@ -2383,6 +2432,12 @@ pub fn e02_window_update_connection_first_slice_ok() -> bool {
 
 /// W1172 / ADR-1518: named loopback grpcs connection-level WINDOW_UPDATE (rustls + H2 credit gate).
 pub fn e02_grpc_tls_window_update_connection_loopback_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -2466,6 +2521,7 @@ pub fn e02_grpc_tls_window_update_connection_loopback_ok() -> bool {
         Some(resp) => resp == format!("{MARKER}:credit"),
         None => false,
     }
+    }
 }
 
 /// Named alias: grpcs connection-level WINDOW_UPDATE / credit gate wired.
@@ -2531,6 +2587,12 @@ pub fn e02_window_update_connection_negative_first_slice_ok() -> bool {
 /// Marker identity: `syx-e02-w1174-grpcs-window-update-conn-neg`.
 /// Peer uses W1172 grpcs-conn credit-gate marker; client must not decode positive payload.
 pub fn e02_grpc_tls_window_update_connection_omit_credit_fail_closed_ok() -> bool {
+    #[cfg(not(feature = "tls"))]
+    {
+        return false;
+    }
+    #[cfg(feature = "tls")]
+    {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use rustls::{ClientConfig, RootCertStore, ServerConfig};
     use std::sync::Arc;
@@ -2618,6 +2680,7 @@ pub fn e02_grpc_tls_window_update_connection_omit_credit_fail_closed_ok() -> boo
     ) {
         Some(_) => false,
         None => true,
+    }
     }
 }
 

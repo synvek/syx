@@ -1,11 +1,9 @@
 //! Phase 92: L9 Codable protobuf wire, ORM compound reflect, mobile touch GUI, SQL rollback/multi-bind.
 
-use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
-use syx_diagnostics::{Span, SyxResult};
+use syx_diagnostics::SyxResult;
 
-use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase91_hosts::{
@@ -17,8 +15,16 @@ pub use crate::stdlib_phase91_hosts::{
     winit_window_count,
 };
 
-use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
-use crate::stdlib_phase91_hosts::host_orm_find_where as host_orm_find_where_l91;
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+pub use crate::sql_stubs::{
+    host_orm_find_where, host_orm_find_where_dict, host_sql_bind_multi,
+    host_sql_rollback_transaction,
+};
+#[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+pub use syx_sql_impl::{
+    host_orm_find_where, host_orm_find_where_dict, host_sql_bind_multi,
+    host_sql_rollback_transaction,
+};
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
@@ -33,91 +39,6 @@ pub fn reset_phase92_state() {
 }
 
 static MOBILE_TOUCH_EVENTS: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
-
-/// Phase 92: ORM findWhereDict compound AND with parameterized reflect SQL.
-#[cfg(target_arch = "wasm32")]
-pub fn host_orm_find_where_dict(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_orm_find_where_dict(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let dict_val = stack.pop().unwrap_or(Value::Dict(HashMap::new()));
-    let table = pop_str(stack);
-    let mut clauses = Vec::new();
-    if let Value::Dict(map) = dict_val {
-        for (col, val) in map {
-            clauses.push(format!("{col} = ?"));
-            let _ = val;
-        }
-    }
-    let sql = if clauses.is_empty() {
-        format!("SELECT * FROM {table}")
-    } else {
-        format!("SELECT * FROM {table} WHERE {}", clauses.join(" AND "))
-    };
-    let mut query_inner = vec![Value::Str(sql)];
-    host_sql_query_rusqlite(&mut query_inner)?;
-    stack.push(query_inner.pop().unwrap_or(Value::Array(vec![])));
-    Ok(())
-}
-
-/// Phase 92: ORM findWhere — delegate to L91 or compound dict path via env.
-pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let compound = std::env::var("SYX_ORM_COMPOUND")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
-    if compound {
-        let val = pop_str(stack);
-        let col = pop_str(stack);
-        let table = pop_str(stack);
-        let mut map = HashMap::new();
-        map.insert(col, Value::Str(val));
-        let mut inner = vec![Value::Dict(map), Value::Str(table)];
-        return host_orm_find_where_dict(&mut inner);
-    }
-    host_orm_find_where_l91(stack)
-}
-
-/// Phase 92: SQL multi-param bind — comma-separated values bound to last prepare.
-pub fn host_sql_bind_multi(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let params = pop_str(stack);
-    for p in params.split(',') {
-        let mut inner = vec![Value::Str(p.trim().to_string())];
-        host_sql_bind_step(&mut inner)?;
-    }
-    stack.push(Value::Bool(true));
-    Ok(())
-}
-
-/// Phase 92: ROLLBACK active rusqlite transaction.
-#[cfg(target_arch = "wasm32")]
-pub fn host_sql_rollback_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_sql_rollback_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    conn.execute_batch("ROLLBACK;")
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    stack.push(Value::Bool(true));
-    Ok(())
-}
 
 /// Phase 92: mobile touch event stub (records touch for readback).
 pub fn host_gui_touch_event(stack: &mut Vec<Value>) -> SyxResult<()> {

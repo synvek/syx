@@ -73,6 +73,12 @@ syx-lld = { path = "crates/syx-lld" }
 syx-wasm-emit = { path = "crates/syx-wasm-emit" }
 syx-wasm-run = { path = "crates/syx-wasm-run" }
 syx-runtime-core = { path = "crates/syx-runtime-core" }
+syx-sql-impl = { path = "crates/syx-sql-impl" }
+syx-host-sql = { path = "crates/syx-host-sql" }
+syx-http-impl = { path = "crates/syx-http-impl" }
+syx-host-http = { path = "crates/syx-host-http" }
+syx-tls-impl = { path = "crates/syx-tls-impl" }
+syx-host-tls = { path = "crates/syx-host-tls" }
 syx-rt = { path = "crates/syx-rt" }
 syx-mir-run = { path = "crates/syx-mir-run", default-features = true }
 syx-cranelift-jit = { path = "crates/syx-cranelift-jit" }

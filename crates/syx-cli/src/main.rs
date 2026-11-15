@@ -304,6 +304,12 @@ enum Commands {
         /// Print native SDK layout next to this `syx` (rt archive / optional sysroot)
         #[arg(long)]
         native_sdk: bool,
+        /// Report which host domains a `.sy` file would link for native shake
+        #[arg(long)]
+        native_host_shake: Option<PathBuf>,
+        /// Print native link profile / host-shake summary (alias surface for docs)
+        #[arg(long)]
+        native_profile_report: bool,
     },
 }
 
@@ -1235,6 +1241,8 @@ build = "build.syb"
             capabilities,
             ir_capabilities,
             native_sdk,
+            native_host_shake,
+            native_profile_report,
         } => {
             if aot_matrix {
                 let report = run_aot_matrix(true);
@@ -1269,9 +1277,22 @@ build = "build.syb"
                     println!("native-sdk status=fail");
                     process::exit(1);
                 }
+            } else if let Some(path) = native_host_shake {
+                let report = syx_driver::host_shake_report_for_file(&path)
+                    .map_err(|e| miette::miette!("{e}"))?;
+                println!("{report}");
+            } else if native_profile_report {
+                println!("native-profile host-shake=on");
+                println!("native-profile slim_rt=target/native-host-shake/{{debug,release}}/libsyx_rt.a");
+                println!(
+                    "native-profile domains=sql,http,tls (linked only when CallHost references them)"
+                );
+                println!(
+                    "native-profile tip=syx doctor --native-host-shake examples/hello.sy"
+                );
             } else {
                 println!(
-                    "syx doctor: use --aot-matrix, --capabilities, --ir-capabilities, or --native-sdk"
+                    "syx doctor: use --aot-matrix, --capabilities, --ir-capabilities, --native-sdk, --native-host-shake <file.sy>, or --native-profile-report"
                 );
             }
         }

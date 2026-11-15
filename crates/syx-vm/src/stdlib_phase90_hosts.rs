@@ -4,182 +4,39 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use syx_diagnostics::{Span, SyxResult};
+use syx_diagnostics::SyxResult;
 
-use crate::vm_error_at;
 use syx_runtime_core::Value;
 
-use crate::stdlib_phase89_hosts::{host_sql_query_rusqlite, reset_rusqlite_store};
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+pub use crate::sql_stubs::{
+    host_orm_delete_where, host_orm_find_where, host_orm_update_where, host_sql_bind_step,
+    host_sql_migrate, migration_version,
+};
+#[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+pub use syx_sql_impl::{
+    host_orm_delete_where, host_orm_find_where_l90 as host_orm_find_where, host_orm_update_where,
+    host_sql_bind_step, host_sql_migrate, migration_version,
+};
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
 }
 
-fn value_as_map(value: &Value) -> Option<HashMap<String, Value>> {
-    match Value::resolve_heap_slot(value) {
-        Value::Object(map) | Value::Dict(map) => Some(map),
-        _ => None,
-    }
-}
-
-static MIGRATION_VERSION: LazyLock<Mutex<u32>> = LazyLock::new(|| Mutex::new(0));
-
 /// Reset Phase 90 SQL/GUI state between tests.
 #[cfg(target_arch = "wasm32")]
 pub fn reset_phase90_state() {}
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "sql"))]
 pub fn reset_phase90_state() {
-    reset_rusqlite_store();
-    if let Ok(mut v) = MIGRATION_VERSION.lock() {
-        *v = 0;
-    }
+    syx_sql_impl::reset_rusqlite_store();
+    syx_sql_impl::reset_migration_version();
     reset_winit_gui_state();
 }
 
-/// Phase 90: apply SQL migration script and bump schema version.
-#[cfg(target_arch = "wasm32")]
-pub fn host_sql_migrate(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_sql_migrate(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let sql = pop_str(stack);
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    let _ =
-        conn.execute_batch("CREATE TABLE IF NOT EXISTS _syx_schema (version INTEGER NOT NULL);");
-    conn.execute(&sql, [])
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let ver = conn
-        .query_row(
-            "SELECT COALESCE(MAX(version), 0) FROM _syx_schema",
-            [],
-            |r| r.get(0),
-        )
-        .unwrap_or(0);
-    let next = ver + 1;
-    let _ = conn.execute("INSERT INTO _syx_schema (version) VALUES (?1)", [next]);
-    if let Ok(mut g) = MIGRATION_VERSION.lock() {
-        *g = next;
-    }
-    stack.push(Value::I32(next as i32));
-    Ok(())
-}
-
-/// Phase 90: prepare + bind + step — returns row count changed.
-#[cfg(target_arch = "wasm32")]
-pub fn host_sql_bind_step(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_sql_bind_step(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let bind_val = pop_str(stack);
-    let sql = pop_str(stack);
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    let changed = conn
-        .execute(&sql, rusqlite::params![bind_val])
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    stack.push(Value::I32(changed as i32));
-    Ok(())
-}
-
-/// Phase 90: ORM findWhere — SELECT with simple `col = val` WHERE.
-#[cfg(target_arch = "wasm32")]
-pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let val = pop_str(stack);
-    let col = pop_str(stack);
-    let table = pop_str(stack);
-    let mut query_inner = vec![Value::Str(format!(
-        "SELECT * FROM {table} WHERE {col} = '{val}'"
-    ))];
-    host_sql_query_rusqlite(&mut query_inner)?;
-    stack.push(query_inner.pop().unwrap_or(Value::Array(vec![])));
-    Ok(())
-}
-
-/// Phase 90: ORM updateWhere.
-#[cfg(target_arch = "wasm32")]
-pub fn host_orm_update_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_orm_update_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let new_val = pop_str(stack);
-    let new_col = pop_str(stack);
-    let where_val = pop_str(stack);
-    let where_col = pop_str(stack);
-    let table = pop_str(stack);
-    let sql = format!("UPDATE {table} SET {new_col} = ? WHERE {where_col} = ?");
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    let changed = conn
-        .execute(&sql, rusqlite::params![new_val, where_val])
-        .unwrap_or(0);
-    stack.push(Value::I32(changed as i32));
-    Ok(())
-}
-
-/// Phase 90: ORM deleteWhere.
-#[cfg(target_arch = "wasm32")]
-pub fn host_orm_delete_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_orm_delete_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let val = pop_str(stack);
-    let col = pop_str(stack);
-    let table = pop_str(stack);
-    let sql = format!("DELETE FROM {table} WHERE {col} = ?");
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    let changed = conn.execute(&sql, rusqlite::params![val]).unwrap_or(0);
-    stack.push(Value::I32(changed as i32));
-    Ok(())
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "sql")))]
+pub fn reset_phase90_state() {
+    reset_winit_gui_state();
 }
 
 // --- winit-style headless GUI (Phase 90) ---
@@ -311,8 +168,4 @@ pub fn host_gui_on_click(stack: &mut Vec<Value>) -> SyxResult<()> {
 
 pub fn winit_window_count() -> usize {
     WINIT_WINDOWS.lock().map(|g| g.len()).unwrap_or(0)
-}
-
-pub fn migration_version() -> u32 {
-    MIGRATION_VERSION.lock().map(|g| *g).unwrap_or(0)
 }

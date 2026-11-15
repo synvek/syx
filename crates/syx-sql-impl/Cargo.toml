@@ -1,0 +1,13 @@
+[package]
+name = "syx-sql-impl"
+description = "rusqlite-backed SQL/ORM host implementations for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-runtime-core = { workspace = true }
+rusqlite = { version = "0.32", features = ["bundled"] }

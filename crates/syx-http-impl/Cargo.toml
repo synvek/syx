@@ -1,0 +1,25 @@
+[package]
+name = "syx-http-impl"
+description = "reqwest/hyper HTTP and WebSocket host implementations for SYX"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+syx-diagnostics = { workspace = true }
+syx-runtime-core = { workspace = true }
+syx-stdlib = { workspace = true }
+serde_json = { workspace = true }
+flate2 = { workspace = true }
+reqwest = { workspace = true }
+url = "2"
+bytes = "1"
+http-body-util = { version = "0.1" }
+hyper = { version = "1", default-features = false, features = ["server", "http1"] }
+hyper-util = { version = "0.1", default-features = false, features = ["tokio"] }
+tokio = { version = "1", default-features = false, features = ["rt", "rt-multi-thread", "net", "io-util", "macros", "sync", "time"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+rustls = { workspace = true }
+zstd = "0.13"

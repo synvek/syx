@@ -7686,6 +7686,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "syx-host-http"
+version = "0.2.2"
+dependencies = [
+ "syx-diagnostics",
+ "syx-http-impl",
+ "syx-runtime-core",
+ "syx-stdlib",
+]
+
+[[package]]
 name = "syx-host-plugin"
 version = "0.2.2"
 dependencies = [
@@ -7701,6 +7711,47 @@ dependencies = [
  "syx-stdlib",
  "tempfile",
  "toml 0.8.2",
+]
+
+[[package]]
+name = "syx-host-sql"
+version = "0.2.2"
+dependencies = [
+ "syx-diagnostics",
+ "syx-runtime-core",
+ "syx-sql-impl",
+ "syx-stdlib",
+]
+
+[[package]]
+name = "syx-host-tls"
+version = "0.2.2"
+dependencies = [
+ "syx-diagnostics",
+ "syx-runtime-core",
+ "syx-stdlib",
+ "syx-tls-impl",
+]
+
+[[package]]
+name = "syx-http-impl"
+version = "0.2.2"
+dependencies = [
+ "bytes",
+ "flate2",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "reqwest",
+ "rustls",
+ "serde_json",
+ "syx-diagnostics",
+ "syx-runtime-core",
+ "syx-stdlib",
+ "tokio",
+ "tokio-rustls",
+ "url",
+ "zstd",
 ]
 
 [[package]]
@@ -7904,6 +7955,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "syx-sql-impl"
+version = "0.2.2"
+dependencies = [
+ "rusqlite",
+ "syx-diagnostics",
+ "syx-runtime-core",
+]
+
+[[package]]
 name = "syx-stdlib"
 version = "0.2.2"
 dependencies = [
@@ -7912,11 +7972,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "syx-tls-impl"
+version = "0.2.2"
+dependencies = [
+ "rustls",
+ "syx-diagnostics",
+ "syx-runtime-core",
+]
+
+[[package]]
 name = "syx-vm"
 version = "0.2.2"
 dependencies = [
  "aes-gcm",
- "bytes",
  "caseless",
  "chrono",
  "chrono-tz",
@@ -7924,9 +7992,6 @@ dependencies = [
  "ed25519-dalek",
  "flate2",
  "hmac",
- "http-body-util",
- "hyper",
- "hyper-util",
  "libc",
  "libloading 0.8.9",
  "libm",
@@ -7936,8 +8001,6 @@ dependencies = [
  "rand 0.8.7",
  "rcgen",
  "regex",
- "reqwest",
- "rusqlite",
  "rustls",
  "serde_json",
  "sha2",
@@ -7949,12 +8012,13 @@ dependencies = [
  "syx-cranelift-jit",
  "syx-diagnostics",
  "syx-gui",
+ "syx-http-impl",
  "syx-meta",
  "syx-mir",
  "syx-runtime-core",
+ "syx-sql-impl",
  "syx-stdlib",
- "tokio",
- "tokio-rustls",
+ "syx-tls-impl",
  "unicode-normalization",
  "unicode-segmentation",
  "url",

@@ -4,9 +4,8 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use syx_diagnostics::{Span, SyxResult};
+use syx_diagnostics::SyxResult;
 
-use crate::vm_error_at;
 use syx_runtime_core::Value;
 
 pub use crate::stdlib_phase90_hosts::{
@@ -14,7 +13,15 @@ pub use crate::stdlib_phase90_hosts::{
     reset_phase90_state,
 };
 
-use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+pub use crate::sql_stubs::{
+    host_orm_find_where, host_sql_begin_transaction, host_sql_commit_transaction,
+};
+#[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+pub use syx_sql_impl::{
+    host_orm_find_where_l91 as host_orm_find_where, host_sql_begin_transaction,
+    host_sql_commit_transaction,
+};
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
@@ -31,94 +38,8 @@ fn value_as_map(value: &Value) -> Option<HashMap<String, Value>> {
 pub fn reset_phase91_state() {
     reset_phase90_state();
     reset_winit_gui_state();
-    if let Ok(mut g) = SQL_TXN_ACTIVE.lock() {
-        *g = false;
-    }
-}
-
-static SQL_TXN_ACTIVE: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
-
-/// Phase 91: BEGIN TRANSACTION on rusqlite connection.
-#[cfg(target_arch = "wasm32")]
-pub fn host_sql_begin_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_sql_begin_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    conn.execute_batch("BEGIN IMMEDIATE;")
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    if let Ok(mut g) = SQL_TXN_ACTIVE.lock() {
-        *g = true;
-    }
-    stack.push(Value::Bool(true));
-    Ok(())
-}
-
-/// Phase 91: COMMIT active rusqlite transaction.
-#[cfg(target_arch = "wasm32")]
-pub fn host_sql_commit_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_sql_commit_transaction(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let mut guard = crate::stdlib_phase89_hosts::rusqlite_conn()
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    let conn = guard.as_mut().unwrap();
-    conn.execute_batch("COMMIT;")
-        .map_err(|e| vm_error_at(e.to_string(), None, Span::DUMMY, "R003"))?;
-    if let Ok(mut g) = SQL_TXN_ACTIVE.lock() {
-        *g = false;
-    }
-    stack.push(Value::Bool(true));
-    Ok(())
-}
-
-/// Phase 91: ORM findWhere — simple `col = val` or reflect compound AND from env `SYX_ORM_REFLECT`.
-#[cfg(target_arch = "wasm32")]
-pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "native host unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_orm_find_where(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let val = pop_str(stack);
-    let col = pop_str(stack);
-    let table = pop_str(stack);
-    let reflect = std::env::var("SYX_ORM_REFLECT")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(true);
-    let sql = if reflect {
-        format!("SELECT * FROM {table} WHERE {col} = '{val}'")
-    } else {
-        format!("SELECT * FROM {table} WHERE {col} = '{val}'")
-    };
-    let mut query_inner = vec![Value::Str(sql)];
-    host_sql_query_rusqlite(&mut query_inner)?;
-    stack.push(query_inner.pop().unwrap_or(Value::Array(vec![])));
-    Ok(())
+    #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+    syx_sql_impl::reset_sql_txn_active();
 }
 
 // --- winit + softbuffer-style pixel GUI (Phase 91) ---

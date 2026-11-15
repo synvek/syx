@@ -1,6 +1,9 @@
 mod mir_text;
 pub use mir_text::format_mir_module;
 
+mod mir_call_host;
+pub use mir_call_host::{collect_call_host_indices, collect_call_host_indices_reachable};
+
 mod mir_types;
 pub use mir_types::{
     is_suite1_pilot_mir_op, mir_module_aot_export_root_refs, MirBlock, MirFunction, MirInstr,

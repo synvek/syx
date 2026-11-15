@@ -1,0 +1,17 @@
+[package]
+name = "syx-host-http"
+description = "HTTP shake-domain staticlib: registers HTTP/WebSocket hosts into syx-runtime-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+syx-http-impl = { workspace = true }
+syx-runtime-core = { workspace = true }
+syx-stdlib = { workspace = true }
+syx-diagnostics = { workspace = true }

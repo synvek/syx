@@ -135,8 +135,8 @@ pub fn host_http_request_async(stack: &mut Vec<Value>) -> SyxResult<()> {
     ))
 }
 
-pub fn try_poll_http_request(_value: &Value) -> Option<SyxResult<Value>> {
-    None
+pub fn try_poll_http_request(value: &Value) -> Option<SyxResult<Value>> {
+    syx_runtime_core::poll_registered_http_async(value)
 }
 
 pub fn host_http_response_json(stack: &mut Vec<Value>) -> SyxResult<()> {

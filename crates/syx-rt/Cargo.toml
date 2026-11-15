@@ -17,9 +17,8 @@ syx-mir-run = { workspace = true }
 syx-runtime-core = { workspace = true }
 syx-stdlib = { workspace = true }
 syx-host-plugin = { workspace = true }
-# workspace.dependencies.syx-vm already enables default-features; do not set
-# default-features=false here (Cargo ignores it and warns).
-syx-vm = { workspace = true, features = ["interpreter", "jit-tier2"] }
+# Slim native RT: no sql/http/tls/jit — those link via syx-host-* archives when CallHost needs them.
+syx-vm = { path = "../syx-vm", default-features = false, features = ["interpreter"] }
 syx-async = { workspace = true, optional = true }
 crossbeam-channel = { workspace = true, optional = true }
 parking_lot = { workspace = true, optional = true }
@@ -28,7 +27,9 @@ tempfile = "3"
 [features]
 default = ["async-runtime"]
 async-runtime = ["dep:syx-async", "dep:crossbeam-channel", "dep:parking_lot"]
-http = ["syx-vm/http", "syx-mir-run/http"]
+# `http` is a cfg marker for native HTTP handler install only — do NOT enable
+# syx-vm/http (that would pull hyper into libsyx_rt.a). Hosts link via syx-host-http.
+http = []
 file = ["syx-vm/file", "syx-mir-run/file"]
 full = ["async-runtime", "http", "file"]
 # Vendored LLD lives on syx-driver/syx-cli (full-native), not here — otherwise

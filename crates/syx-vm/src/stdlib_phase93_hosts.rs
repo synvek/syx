@@ -16,7 +16,15 @@ pub use crate::stdlib_phase92_hosts::{
 
 use crate::stdlib_phase91_hosts::host_gui_winit_window_create as host_gui_winit_window_create_inner;
 
-use crate::stdlib_phase89_hosts::host_sql_query_rusqlite;
+#[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+fn host_sql_query_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
+    syx_sql_impl::host_sql_query_rusqlite(stack)
+}
+
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+fn host_sql_query_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {
+    crate::sql_stubs::host_sql_query_rusqlite(stack)
+}
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()

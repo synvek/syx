@@ -2842,6 +2842,8 @@ pub fn run_host_by_index(idx: u32, stack: &mut Vec<Value>) -> SyxResult<bool> {
 }
 
 pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
+    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+    crate::http::ensure_http_vm_bridge();
     #[cfg(not(feature = "file"))]
     if matches!(
         id,
@@ -2929,28 +2931,44 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::DirCreate => host_dir_create,
         HostFnId::DirList => host_dir_list,
         HostFnId::DirExists => host_dir_exists,
-        HostFnId::HttpGet => host_http_get,
-        HostFnId::HttpPost => host_http_post,
-        HostFnId::HttpResponseJson => host_http_response_json,
-        HostFnId::HttpRequest => http::host_http_request,
-        HostFnId::HttpResponseStatus => http::host_http_response_status,
-        HostFnId::HttpResponseText => http::host_http_response_text,
-        HostFnId::HttpResponseOk => http::host_http_response_ok,
-        HostFnId::HttpResponseHeader => http::host_http_response_header,
-        HostFnId::HttpResponseHeaders => http::host_http_response_headers,
-        HostFnId::HttpServe => http::host_http_serve,
-        HostFnId::HttpShutdown => http::host_http_serve_shutdown,
-        HostFnId::HttpBodyStreamOpen => http::host_http_body_stream_open,
-        HostFnId::HttpBodyStreamOpenOpts => http::host_http_body_stream_open_opts,
-        HostFnId::HttpBodyStreamReadChunk => http::host_http_body_stream_read_chunk,
-        HostFnId::HttpBodyStreamClose => http::host_http_body_stream_close,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpGet => syx_http_impl::host_http_get,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpPost => syx_http_impl::host_http_post,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpResponseJson => syx_http_impl::host_http_response_json,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpRequest => syx_http_impl::host_http_request,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpResponseStatus => syx_http_impl::host_http_response_status,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpResponseText => syx_http_impl::host_http_response_text,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpResponseOk => syx_http_impl::host_http_response_ok,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpResponseHeader => syx_http_impl::host_http_response_header,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpResponseHeaders => syx_http_impl::host_http_response_headers,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpServe => syx_http_impl::host_http_serve,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpShutdown => syx_http_impl::host_http_serve_shutdown,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpBodyStreamOpen => syx_http_impl::host_http_body_stream_open,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpBodyStreamOpenOpts => syx_http_impl::host_http_body_stream_open_opts,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpBodyStreamReadChunk => syx_http_impl::host_http_body_stream_read_chunk,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpBodyStreamClose => syx_http_impl::host_http_body_stream_close,
         HostFnId::FileStreamOpen => host_file_stream_open,
         HostFnId::FileStreamReadChunk => host_file_stream_read_chunk,
         HostFnId::FileStreamClose => host_file_stream_close,
         HostFnId::FileWatcherOpen => host_file_watcher_open,
         HostFnId::FileWatcherPoll => host_file_watcher_poll,
         HostFnId::FileWatcherClose => host_file_watcher_close,
-        HostFnId::HttpMakeResponse => http::host_http_make_response,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpMakeResponse => syx_http_impl::host_http_make_response,
         HostFnId::UrlParse => http::host_url_parse,
         HostFnId::UrlEncodeQuery => http::host_url_encode_query,
         HostFnId::UrlBuild => http::host_url_build,
@@ -3216,12 +3234,18 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         }
         HostFnId::ChannelLength => crate::channel_hosts::host_channel_length,
         HostFnId::ChannelCapacity => crate::channel_hosts::host_channel_capacity,
-        HostFnId::HttpRequestAsync => http::host_http_request_async,
-        HostFnId::WsConnect => crate::ws::host_ws_connect,
-        HostFnId::WsConnectAsync => crate::ws::host_ws_connect_async,
-        HostFnId::WsSendAsync => crate::ws::host_ws_send_async,
-        HostFnId::WsSend => crate::ws::host_ws_send,
-        HostFnId::WsSendProd => crate::ws::host_ws_send_prod,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::HttpRequestAsync => syx_http_impl::host_http_request_async,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsConnect => syx_http_impl::host_ws_connect,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsConnectAsync => syx_http_impl::host_ws_connect_async,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsSendAsync => syx_http_impl::host_ws_send_async,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsSend => syx_http_impl::host_ws_send,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsSendProd => syx_http_impl::host_ws_send_prod,
         HostFnId::WasmSabNew => crate::wasm_threads::host_wasm_sab_new,
         HostFnId::WasmAtomicAddI32 => crate::wasm_threads::host_wasm_atomic_add_i32,
         HostFnId::TcpConnect => host_tcp_connect,
@@ -3423,8 +3447,10 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::MutexCreate => crate::stdlib_phase83_hosts::host_mutex_create,
         HostFnId::MutexLock => crate::stdlib_phase83_hosts::host_mutex_lock,
         HostFnId::MutexUnlock => crate::stdlib_phase83_hosts::host_mutex_unlock,
-        HostFnId::WsRecv => crate::stdlib_phase83_hosts::host_ws_recv,
-        HostFnId::WsClose => crate::stdlib_phase83_hosts::host_ws_close,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsRecv => syx_http_impl::host_ws_recv,
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        HostFnId::WsClose => syx_http_impl::host_ws_close,
         HostFnId::ArraySortBy => crate::stdlib_phase83_hosts::host_array_sort_by,
         HostFnId::ArrayBinarySearch => crate::stdlib_phase83_hosts::host_array_binary_search,
         HostFnId::ArrayChunked => crate::stdlib_phase83_hosts::host_array_chunked,
@@ -3536,35 +3562,52 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::GrpcStreamClient => crate::stdlib_phase88_hosts::host_grpc_stream_client,
         HostFnId::GrpcStreamServer => crate::stdlib_phase88_hosts::host_grpc_stream_server,
         HostFnId::KvoObserve => crate::stdlib_phase88_hosts::host_kvo_observe,
-        HostFnId::SqlExec => crate::stdlib_phase89_hosts::host_sql_exec_rusqlite,
-        HostFnId::SqlQuery => crate::stdlib_phase89_hosts::host_sql_query_rusqlite,
-        HostFnId::SqlPrepare => crate::stdlib_phase89_hosts::host_sql_prepare,
-        HostFnId::SqlOpen => crate::stdlib_phase89_hosts::host_sql_open,
-        HostFnId::SqlClose => crate::stdlib_phase89_hosts::host_sql_close,
-        HostFnId::SqlExecOn => crate::stdlib_phase89_hosts::host_sql_exec_on,
-        HostFnId::SqlQueryOn => crate::stdlib_phase89_hosts::host_sql_query_on,
-        HostFnId::SqlPrepareOn => crate::stdlib_phase89_hosts::host_sql_prepare_on,
-        HostFnId::SqlBindStepOn => crate::stdlib_phase89_hosts::host_sql_bind_step_on,
-        HostFnId::SqlBindPreparedOn => crate::stdlib_phase89_hosts::host_sql_bind_prepared_on,
-        HostFnId::SqlBeginTransactionOn => {
-            crate::stdlib_phase89_hosts::host_sql_begin_transaction_on
-        }
-        HostFnId::SqlCommitTransactionOn => {
-            crate::stdlib_phase89_hosts::host_sql_commit_transaction_on
-        }
-        HostFnId::SqlRollbackTransactionOn => {
-            crate::stdlib_phase89_hosts::host_sql_rollback_transaction_on
-        }
-        HostFnId::SqlPoolCreate => crate::stdlib_phase89_hosts::host_sql_pool_create,
-        HostFnId::SqlPoolAcquire => crate::stdlib_phase89_hosts::host_sql_pool_acquire,
-        HostFnId::SqlPoolRelease => crate::stdlib_phase89_hosts::host_sql_pool_release,
-        HostFnId::SqlPoolClose => crate::stdlib_phase89_hosts::host_sql_pool_close,
-        HostFnId::SqlRowGetString => crate::stdlib_phase89_hosts::host_sql_row_get_string,
-        HostFnId::SqlRowGetInt => crate::stdlib_phase89_hosts::host_sql_row_get_int,
-        HostFnId::SqlRowGetFloat => crate::stdlib_phase89_hosts::host_sql_row_get_float,
-        HostFnId::SqlRowGetBlob => crate::stdlib_phase89_hosts::host_sql_row_get_blob,
-        HostFnId::SqlRowIsNull => crate::stdlib_phase89_hosts::host_sql_row_is_null,
-        HostFnId::SqlRowColumnNames => crate::stdlib_phase89_hosts::host_sql_row_column_names,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlExec => syx_sql_impl::host_sql_exec_rusqlite,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlQuery => syx_sql_impl::host_sql_query_rusqlite,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlPrepare => syx_sql_impl::host_sql_prepare,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlOpen => syx_sql_impl::host_sql_open,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlClose => syx_sql_impl::host_sql_close,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlExecOn => syx_sql_impl::host_sql_exec_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlQueryOn => syx_sql_impl::host_sql_query_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlPrepareOn => syx_sql_impl::host_sql_prepare_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlBindStepOn => syx_sql_impl::host_sql_bind_step_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlBindPreparedOn => syx_sql_impl::host_sql_bind_prepared_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlBeginTransactionOn => syx_sql_impl::host_sql_begin_transaction_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlCommitTransactionOn => syx_sql_impl::host_sql_commit_transaction_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRollbackTransactionOn => syx_sql_impl::host_sql_rollback_transaction_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlPoolCreate => syx_sql_impl::host_sql_pool_create,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlPoolAcquire => syx_sql_impl::host_sql_pool_acquire,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlPoolRelease => syx_sql_impl::host_sql_pool_release,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlPoolClose => syx_sql_impl::host_sql_pool_close,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRowGetString => syx_sql_impl::host_sql_row_get_string,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRowGetInt => syx_sql_impl::host_sql_row_get_int,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRowGetFloat => syx_sql_impl::host_sql_row_get_float,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRowGetBlob => syx_sql_impl::host_sql_row_get_blob,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRowIsNull => syx_sql_impl::host_sql_row_is_null,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRowColumnNames => syx_sql_impl::host_sql_row_column_names,
         HostFnId::DequeNew => script_hosts::host_deque_new,
         HostFnId::DequePushBack => script_hosts::host_deque_push_back,
         HostFnId::DequePushFront => script_hosts::host_deque_push_front,
@@ -3575,13 +3618,20 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::TcpListen => host_tcp_listen,
         HostFnId::TcpListenerClose => host_tcp_listener_close,
         HostFnId::TcpListenerAccept => host_tcp_listener_accept,
-        HostFnId::TlsServe => host_tls_serve,
-        HostFnId::OrmSave => crate::stdlib_phase89_hosts::host_orm_save,
-        HostFnId::OrmSaveOn => crate::stdlib_phase89_hosts::host_orm_save_on,
-        HostFnId::OrmFindWhereOn => crate::stdlib_phase89_hosts::host_orm_find_where_on,
-        HostFnId::OrmUpdateWhereOn => crate::stdlib_phase89_hosts::host_orm_update_where_on,
-        HostFnId::OrmDeleteWhereOn => crate::stdlib_phase89_hosts::host_orm_delete_where_on,
-        HostFnId::OrmFind => crate::stdlib_phase89_hosts::host_orm_find,
+        #[cfg(all(feature = "tls", not(target_arch = "wasm32")))]
+        HostFnId::TlsServe => syx_tls_impl::host_tls_serve,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmSave => syx_sql_impl::host_orm_save,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmSaveOn => syx_sql_impl::host_orm_save_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmFindWhereOn => syx_sql_impl::host_orm_find_where_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmUpdateWhereOn => syx_sql_impl::host_orm_update_where_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmDeleteWhereOn => syx_sql_impl::host_orm_delete_where_on,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmFind => syx_sql_impl::host_orm_find,
         HostFnId::CodableSchemaRegister => {
             crate::stdlib_phase89_hosts::host_codable_schema_register
         }
@@ -3591,20 +3641,25 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::GuiWindowCreate => crate::synui_hosts::host_gui_retired_str1,
         HostFnId::GuiEventPump => crate::synui_hosts::host_gui_retired_str1,
         HostFnId::GuiCanvasDraw => crate::synui_hosts::host_gui_retired_bool2,
-        HostFnId::SqlMigrate => crate::stdlib_phase90_hosts::host_sql_migrate,
-        HostFnId::SqlBindStep => crate::stdlib_phase90_hosts::host_sql_bind_step,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlMigrate => syx_sql_impl::host_sql_migrate,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlBindStep => syx_sql_impl::host_sql_bind_step,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
         HostFnId::OrmFindWhere => {
             if std::env::var("SYX_ORM_BIND")
                 .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
                 .unwrap_or(false)
             {
-                crate::stdlib_phase95_hosts::host_orm_find_where_dict_prepare
+                syx_sql_impl::host_orm_find_where_dict_prepare
             } else {
-                crate::stdlib_phase92_hosts::host_orm_find_where
+                syx_sql_impl::host_orm_find_where
             }
         }
-        HostFnId::OrmUpdateWhere => crate::stdlib_phase90_hosts::host_orm_update_where,
-        HostFnId::OrmDeleteWhere => crate::stdlib_phase90_hosts::host_orm_delete_where,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmUpdateWhere => syx_sql_impl::host_orm_update_where,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::OrmDeleteWhere => syx_sql_impl::host_orm_delete_where,
         HostFnId::GuiWinitWindowCreate => crate::synui_hosts::host_gui_retired_str1,
         HostFnId::GuiWinitEventPump => crate::synui_hosts::host_gui_retired_str1,
         HostFnId::GuiWinitCanvasDraw => crate::synui_hosts::host_gui_retired_bool2,
@@ -3620,8 +3675,10 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::GuiKeyInject => crate::synui_hosts::host_gui_retired_bool2,
         HostFnId::GuiWidgetGetText => crate::synui_hosts::host_gui_retired_str2,
         HostFnId::GuiWidgetSetText => crate::synui_hosts::host_gui_retired_bool3,
-        HostFnId::SqlBeginTransaction => crate::stdlib_phase92_hosts::host_sql_begin_transaction,
-        HostFnId::SqlCommitTransaction => crate::stdlib_phase92_hosts::host_sql_commit_transaction,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlBeginTransaction => syx_sql_impl::host_sql_begin_transaction,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlCommitTransaction => syx_sql_impl::host_sql_commit_transaction,
         HostFnId::CodableL14RegisterMigration => {
             crate::stdlib_phase97_hosts::host_codable_l14_register_migration
         }
@@ -3630,8 +3687,82 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::CodableL14RegisterRename => {
             crate::stdlib_phase97_hosts::host_codable_l14_register_rename
         }
-        HostFnId::SqlRollback => crate::stdlib_phase92_hosts::host_sql_rollback_transaction,
-        HostFnId::SqlBindMulti => crate::stdlib_phase92_hosts::host_sql_bind_multi,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlRollback => syx_sql_impl::host_sql_rollback_transaction,
+        #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
+        HostFnId::SqlBindMulti => syx_sql_impl::host_sql_bind_multi,
+        #[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+        HostFnId::SqlExec
+        | HostFnId::SqlQuery
+        | HostFnId::SqlPrepare
+        | HostFnId::SqlOpen
+        | HostFnId::SqlClose
+        | HostFnId::SqlExecOn
+        | HostFnId::SqlQueryOn
+        | HostFnId::SqlPrepareOn
+        | HostFnId::SqlBindStepOn
+        | HostFnId::SqlBindPreparedOn
+        | HostFnId::SqlBeginTransactionOn
+        | HostFnId::SqlCommitTransactionOn
+        | HostFnId::SqlRollbackTransactionOn
+        | HostFnId::OrmSave
+        | HostFnId::OrmSaveOn
+        | HostFnId::OrmFindWhereOn
+        | HostFnId::OrmUpdateWhereOn
+        | HostFnId::OrmDeleteWhereOn
+        | HostFnId::OrmFind
+        | HostFnId::SqlMigrate
+        | HostFnId::SqlBindStep
+        | HostFnId::OrmFindWhere
+        | HostFnId::OrmUpdateWhere
+        | HostFnId::OrmDeleteWhere
+        | HostFnId::SqlBeginTransaction
+        | HostFnId::SqlCommitTransaction
+        | HostFnId::SqlRollback
+        | HostFnId::SqlBindMulti
+        | HostFnId::SqlPoolCreate
+        | HostFnId::SqlPoolAcquire
+        | HostFnId::SqlPoolRelease
+        | HostFnId::SqlPoolClose
+        | HostFnId::SqlRowGetString
+        | HostFnId::SqlRowGetInt
+        | HostFnId::SqlRowGetFloat
+        | HostFnId::SqlRowGetBlob
+        | HostFnId::SqlRowIsNull
+        | HostFnId::SqlRowColumnNames => {
+            return syx_runtime_core::lookup_shakeable_host_id(id);
+        }
+        #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+        HostFnId::HttpGet
+        | HostFnId::HttpPost
+        | HostFnId::HttpResponseJson
+        | HostFnId::HttpRequest
+        | HostFnId::HttpResponseStatus
+        | HostFnId::HttpResponseText
+        | HostFnId::HttpResponseOk
+        | HostFnId::HttpResponseHeader
+        | HostFnId::HttpResponseHeaders
+        | HostFnId::HttpServe
+        | HostFnId::HttpShutdown
+        | HostFnId::HttpBodyStreamOpen
+        | HostFnId::HttpBodyStreamOpenOpts
+        | HostFnId::HttpBodyStreamReadChunk
+        | HostFnId::HttpBodyStreamClose
+        | HostFnId::HttpMakeResponse
+        | HostFnId::HttpRequestAsync
+        | HostFnId::WsConnect
+        | HostFnId::WsConnectAsync
+        | HostFnId::WsSendAsync
+        | HostFnId::WsSend
+        | HostFnId::WsSendProd
+        | HostFnId::WsRecv
+        | HostFnId::WsClose => {
+            return syx_runtime_core::lookup_shakeable_host_id(id);
+        }
+        #[cfg(not(all(feature = "tls", not(target_arch = "wasm32"))))]
+        HostFnId::TlsServe => {
+            return syx_runtime_core::lookup_shakeable_host_id(id);
+        }
         HostFnId::GuiTouchEvent => crate::stdlib_phase92_hosts::host_gui_touch_event,
         HostFnId::GuiMobileWindowCreate => {
             crate::stdlib_phase92_hosts::host_gui_mobile_window_create
@@ -4090,260 +4221,6 @@ pub fn host_tcp_listener_accept(stack: &mut Vec<Value>) -> SyxResult<()> {
         }
         Err(_) => stack.push(platform_int_value(-1)),
     }
-    Ok(())
-}
-
-/// Wave A W393 / ADR-737: single-connection TLS server handshake first-slice.
-/// Wave A W436 / ADR-780: application-data first-slice after handshake (read once + write `HANDLED\n`).
-/// Wave A W437 / ADR-781: multi-conn first-slice — historically **exactly 2** sequential accepts.
-/// Wave A W438 / ADR-782: ALPN first-slice — historically fixed protocol `syx/1`.
-/// Wave A W441 / ADR-785: `TlsServe` HostFn status→implemented (table raise).
-/// Wave A W442 / ADR-786: unbounded multi-conn first-slice — sequential accept until **idle**
-///   (400ms continuous WouldBlock after ≥1 handled); overall wait for first accept ≤15s.
-/// Wave A W443 / ADR-787: configurable ALPN first-slice — `SYX_TLS_SERVE_ALPN` comma-separated
-///   list (unset/empty → default `syx/1`); historical ≠ language/HostFn alpn at W443.
-/// Wave A W444 / ADR-788: concurrent serve first-slice — thread-per-conn handshake/HANDLED;
-///   accept loop does not block on per-conn I/O; idle exit retained (HostFn still returns);
-///   drain in-flight workers before return; ≠ thread-pool product API / ≠ no-idle daemon.
-/// Wave A W445 / ADR-789: language ALPN parameter first-slice — 5th arg `alpn` (comma-separated);
-///   non-empty arg wins; empty → env `SYX_TLS_SERVE_ALPN` → default `syx/1`; HostFn count 554.
-/// Wave A W457 / ADR-801: no-idle first-slice — env `SYX_TLS_SERVE_NO_IDLE` (non-empty) skips
-///   400ms idle exit; optional `SYX_TLS_SERVE_MAX_HANDLED` (positive int) bounds success return
-///   when handled≥N and workers empty (test/ops); default path (no env) idle unchanged.
-/// Wave A W458 / ADR-802: language noIdle 6th Int arg — `≠0` skips idle; `0` → env → default idle;
-///   HostFn count 554 (arity 5→6, same HostFn).
-/// Args (host, port, cert_pem_path, key_pem_path, alpn, no_idle) → 0 on success, -1 on I/O/config fail.
-/// **Not** Array alpn API / **Not** thread-pool / **Not** new HostFn / **Not** daemon GA.
-#[cfg(target_arch = "wasm32")]
-pub fn host_tls_serve(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let _ = stack;
-    Err(vm_error_at(
-        "tls serve unavailable on wasm32",
-        None,
-        Span::DUMMY,
-        "V081",
-    ))
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn host_tls_serve(stack: &mut Vec<Value>) -> SyxResult<()> {
-    use std::io::{ErrorKind, Read, Write};
-    use std::sync::atomic::{AtomicU32, Ordering};
-    use std::sync::Arc;
-    use std::thread;
-    use std::time::{Duration, Instant};
-
-    use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
-    use rustls::ServerConfig;
-
-    /// W442 / ADR-786: continuous accept-idle before success exit (after ≥1 handled).
-    const TLS_SERVE_IDLE: Duration = Duration::from_millis(400);
-    /// W442 / ADR-786: fail if no connection handled before this overall deadline.
-    const TLS_SERVE_OVERALL: Duration = Duration::from_secs(15);
-    const TLS_SERVE_SPIN: Duration = Duration::from_millis(10);
-
-    /// Parse comma-separated ALPN list; empty → default `[syx/1]`.
-    fn tls_serve_parse_alpn_list(raw: &str) -> Vec<Vec<u8>> {
-        let list: Vec<Vec<u8>> = raw
-            .split(',')
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .map(|s| s.as_bytes().to_vec())
-            .collect();
-        if list.is_empty() {
-            vec![b"syx/1".to_vec()]
-        } else {
-            list
-        }
-    }
-
-    /// W445 / ADR-789: arg > env `SYX_TLS_SERVE_ALPN` > default `[syx/1]`.
-    fn tls_serve_alpn_protocols(alpn_arg: &str) -> Vec<Vec<u8>> {
-        let trimmed = alpn_arg.trim();
-        if !trimmed.is_empty() {
-            return tls_serve_parse_alpn_list(trimmed);
-        }
-        match std::env::var("SYX_TLS_SERVE_ALPN") {
-            Ok(raw) => tls_serve_parse_alpn_list(&raw),
-            Err(_) => vec![b"syx/1".to_vec()],
-        }
-    }
-
-    /// W457 / ADR-801: non-empty `SYX_TLS_SERVE_NO_IDLE` → skip idle break.
-    fn tls_serve_no_idle_env() -> bool {
-        match std::env::var("SYX_TLS_SERVE_NO_IDLE") {
-            Ok(raw) => !raw.trim().is_empty(),
-            Err(_) => false,
-        }
-    }
-
-    /// W457 / ADR-801: optional positive `SYX_TLS_SERVE_MAX_HANDLED` bound.
-    fn tls_serve_max_handled_env() -> Option<u32> {
-        match std::env::var("SYX_TLS_SERVE_MAX_HANDLED") {
-            Ok(raw) => raw.trim().parse::<u32>().ok().filter(|&n| n > 0),
-            Err(_) => None,
-        }
-    }
-
-    /// W444 / ADR-788: per-connection handshake + HANDLED on a worker thread.
-    fn tls_serve_handle_conn(mut stream: TcpStream, config: Arc<ServerConfig>) -> bool {
-        if stream.set_nonblocking(false).is_err() {
-            return false;
-        }
-        let mut conn = match rustls::ServerConnection::new(config) {
-            Ok(c) => c,
-            Err(_) => return false,
-        };
-        loop {
-            if !conn.is_handshaking() {
-                break;
-            }
-            match conn.complete_io(&mut stream) {
-                Ok((0, 0)) => break,
-                Ok(_) => continue,
-                Err(_) => return false,
-            }
-        }
-        if conn.is_handshaking() {
-            return false;
-        }
-        {
-            let mut tls = rustls::Stream::new(&mut conn, &mut stream);
-            let mut buf = [0u8; 256];
-            match tls.read(&mut buf) {
-                Ok(n) if n > 0 => {}
-                _ => return false,
-            }
-            if tls.write_all(b"HANDLED\n").is_err() {
-                return false;
-            }
-            let _ = tls.flush();
-        }
-        let _ = stream.shutdown(std::net::Shutdown::Both);
-        true
-    }
-
-    // W458 / ADR-802: pop order no_idle, alpn, key, cert, port, host.
-    let no_idle_arg = stack.pop().map(|v| v.as_i32()).unwrap_or(0);
-    let alpn_arg = stack.pop().map(|v| v.as_str()).unwrap_or_default();
-    let key_path = stack.pop().map(|v| v.as_str()).unwrap_or_default();
-    let cert_path = stack.pop().map(|v| v.as_str()).unwrap_or_default();
-    let port = stack.pop().map(|v| v.as_i32()).unwrap_or(0);
-    let host = stack.pop().map(|v| v.as_str()).unwrap_or_default();
-
-    let fail = |stack: &mut Vec<Value>| -> SyxResult<()> {
-        stack.push(platform_int_value(-1));
-        Ok(())
-    };
-
-    if host.is_empty() || port <= 0 || cert_path.is_empty() || key_path.is_empty() {
-        return fail(stack);
-    }
-
-    let certs = match CertificateDer::pem_file_iter(std::path::Path::new(cert_path.as_str())) {
-        Ok(iter) => match iter.collect::<Result<Vec<_>, _>>() {
-            Ok(c) if !c.is_empty() => c,
-            _ => return fail(stack),
-        },
-        Err(_) => return fail(stack),
-    };
-    let key = match PrivateKeyDer::from_pem_file(std::path::Path::new(key_path.as_str())) {
-        Ok(k) => k,
-        Err(_) => return fail(stack),
-    };
-    let config = match ServerConfig::builder()
-        .with_no_client_auth()
-        .with_single_cert(certs, key)
-    {
-        Ok(mut c) => {
-            // W445 / ADR-789: language alpn arg > SYX_TLS_SERVE_ALPN > default syx/1.
-            c.alpn_protocols = tls_serve_alpn_protocols(alpn_arg.as_str());
-            Arc::new(c)
-        }
-        Err(_) => return fail(stack),
-    };
-
-    let addr = format!("{host}:{port}");
-    let listener = match TcpListener::bind(&addr) {
-        Ok(l) => l,
-        Err(_) => return fail(stack),
-    };
-    if listener.set_nonblocking(true).is_err() {
-        return fail(stack);
-    }
-
-    // W444 / ADR-788: concurrent thread-per-conn + idle drain.
-    // W457 / ADR-801: optional no-idle + max-handled env (default idle unchanged).
-    // W458 / ADR-802: language noIdle≠0 wins; else env; else idle.
-    let no_idle = no_idle_arg != 0 || tls_serve_no_idle_env();
-    let max_handled = tls_serve_max_handled_env();
-    let overall_deadline = Instant::now() + TLS_SERVE_OVERALL;
-    let handled = Arc::new(AtomicU32::new(0));
-    let mut workers: Vec<thread::JoinHandle<()>> = Vec::new();
-    let mut idle_since: Option<Instant> = None;
-
-    let reap_finished = |workers: &mut Vec<thread::JoinHandle<()>>| {
-        let mut still = Vec::with_capacity(workers.len());
-        for h in workers.drain(..) {
-            if h.is_finished() {
-                let _ = h.join();
-            } else {
-                still.push(h);
-            }
-        }
-        *workers = still;
-    };
-
-    loop {
-        reap_finished(&mut workers);
-        match listener.accept() {
-            Ok((stream, _)) => {
-                idle_since = None;
-                let cfg = Arc::clone(&config);
-                let handled_c = Arc::clone(&handled);
-                workers.push(thread::spawn(move || {
-                    if tls_serve_handle_conn(stream, cfg) {
-                        handled_c.fetch_add(1, Ordering::SeqCst);
-                    }
-                }));
-            }
-            Err(e) if e.kind() == ErrorKind::WouldBlock || e.kind() == ErrorKind::TimedOut => {
-                reap_finished(&mut workers);
-                let h = handled.load(Ordering::SeqCst);
-                if h >= 1 && workers.is_empty() {
-                    // W457: optional max-handled success exit (test/ops bound).
-                    if let Some(max) = max_handled {
-                        if h >= max {
-                            break;
-                        }
-                    }
-                    // W457: NO_IDLE skips 400ms idle break; default path unchanged.
-                    if !no_idle {
-                        let since = *idle_since.get_or_insert_with(Instant::now);
-                        if since.elapsed() >= TLS_SERVE_IDLE {
-                            break;
-                        }
-                    }
-                } else {
-                    idle_since = None;
-                    if h == 0 && Instant::now() >= overall_deadline && workers.is_empty() {
-                        return fail(stack);
-                    }
-                }
-                thread::sleep(TLS_SERVE_SPIN);
-            }
-            Err(_) => {
-                for h in workers {
-                    let _ = h.join();
-                }
-                return fail(stack);
-            }
-        }
-    }
-    for h in workers {
-        let _ = h.join();
-    }
-    stack.push(platform_int_value(0));
     Ok(())
 }
 

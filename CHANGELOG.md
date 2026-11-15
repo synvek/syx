@@ -1,6 +1,8 @@
 
 ### SYX 0.2.2
 
+- feat: native link-time host shaking — slim `libsyx_rt.a` plus on-demand `syx-host-{sql,http,tls}` from MIR `CallHost` set (no user-facing Cargo features for Sql/Http/Tls); `syx doctor --native-host-shake` / `scripts/native_host_shake_size.sh`
+
 - chore: gitignore generated prelude embeds (`prelude_snapshot.bin` / `prelude_vm_image.rkyv`); CI/release regen via `gen_prelude_snapshot`; `build.rs` writes empty placeholders on clean checkout
 
 - fix: nest XML children + attrs in `__syx_xml_parse`, correct `__syx_xml_xpath(expr, root)` stack order, and soft-skip backends native AOT nails without `--features full-native`
