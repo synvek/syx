@@ -3095,9 +3095,7 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::ChannelSelectMixedAwait => crate::channel_hosts::host_channel_select_mixed_await,
         HostFnId::SelectTag => crate::channel_hosts::host_select_tag,
         HostFnId::ServiceRegister => crate::service_hosts::host_service_register,
-        HostFnId::ServiceRegisterWitness => {
-            crate::service_hosts::host_service_register_witness
-        }
+        HostFnId::ServiceRegisterWitness => crate::service_hosts::host_service_register_witness,
         HostFnId::ServiceAddDep => crate::service_hosts::host_service_add_dep,
         HostFnId::ServiceSeal => crate::service_hosts::host_service_seal,
         HostFnId::ServiceResolve => crate::service_hosts::host_service_resolve,
@@ -3534,7 +3532,9 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
             crate::stdlib_encoding_hosts::host_encoding_gzip_decompress
         }
         HostFnId::ReflectType => crate::stdlib_encoding_hosts::host_reflect_type,
-        HostFnId::ReflectSpecialization => crate::stdlib_encoding_hosts::host_reflect_specialization,
+        HostFnId::ReflectSpecialization => {
+            crate::stdlib_encoding_hosts::host_reflect_specialization
+        }
         HostFnId::EncodingZstdCompress => crate::stdlib_encoding_hosts::host_encoding_zstd_compress,
         HostFnId::EncodingZstdDecompress => {
             crate::stdlib_encoding_hosts::host_encoding_zstd_decompress
@@ -3547,14 +3547,20 @@ pub fn host_fn_for(id: HostFnId) -> Option<HostFn> {
         HostFnId::CodableDecodeL4 => crate::stdlib_json_grpc_hosts::host_codable_decode_l4,
         HostFnId::JsonEncoderEncode => crate::stdlib_json_grpc_hosts::host_json_encoder_encode,
         HostFnId::JsonDecoderDecode => crate::stdlib_json_grpc_hosts::host_json_decoder_decode,
-        HostFnId::JsonStreamOpenWriter => crate::stdlib_json_grpc_hosts::host_json_stream_open_writer,
+        HostFnId::JsonStreamOpenWriter => {
+            crate::stdlib_json_grpc_hosts::host_json_stream_open_writer
+        }
         HostFnId::JsonStreamWrite => crate::stdlib_json_grpc_hosts::host_json_stream_write,
         HostFnId::JsonStreamFinishWriter => {
             crate::stdlib_json_grpc_hosts::host_json_stream_finish_writer
         }
-        HostFnId::JsonStreamOpenReader => crate::stdlib_json_grpc_hosts::host_json_stream_open_reader,
+        HostFnId::JsonStreamOpenReader => {
+            crate::stdlib_json_grpc_hosts::host_json_stream_open_reader
+        }
         HostFnId::JsonStreamFeed => crate::stdlib_json_grpc_hosts::host_json_stream_feed,
-        HostFnId::JsonStreamDecodeNext => crate::stdlib_json_grpc_hosts::host_json_stream_decode_next,
+        HostFnId::JsonStreamDecodeNext => {
+            crate::stdlib_json_grpc_hosts::host_json_stream_decode_next
+        }
         HostFnId::JsonStreamCloseReader => {
             crate::stdlib_json_grpc_hosts::host_json_stream_close_reader
         }

@@ -898,4 +898,3 @@ fn p129_bean_param_boot_codegen_passes_args() {
     );
     assert!(include_str!("service.rs").contains("macro-service-v10:bean-param-autowire-mvp"));
 }
-

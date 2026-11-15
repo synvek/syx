@@ -197,10 +197,7 @@ fn compile_wasm_artifacts(
             store_wasm_process(path, &source, opts.wasm_aot, &program, &mir, &wasm);
             let unit = ModuleUnit {
                 path: path.to_path_buf(),
-                source: syx_diagnostics::SourceFile::new(
-                    path.display().to_string(),
-                    source,
-                ),
+                source: syx_diagnostics::SourceFile::new(path.display().to_string(), source),
                 imported_modules: Default::default(),
                 program,
             };
@@ -259,10 +256,7 @@ pub fn run_wasm_file_with_options(
     if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
         let syx = path.with_file_name(stem).with_extension("sy");
         if syx.exists() {
-            let parent = syx
-                .parent()
-                .unwrap_or_else(|| Path::new("."))
-                .to_path_buf();
+            let parent = syx.parent().unwrap_or_else(|| Path::new(".")).to_path_buf();
             syx_host_plugin::register_compile_plugin_manifests(&parent);
             let (_unit, mir, _) = compile_wasm_artifacts(&syx, &parent, options)?;
             return run_wasm_bytes_with_module(&wasm, entry, &mir);

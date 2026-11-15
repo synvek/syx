@@ -14,8 +14,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use syx_mir::MirFunction;
 
 /// Gen via `scripts/gen_prelude_snapshot.sh` / `.ps1`. Empty until regenerated.
-pub(crate) static EMBEDDED_STDLIB_MIR: &[u8] =
-    include_bytes!("../assets/prelude_stdlib_mir.bin");
+pub(crate) static EMBEDDED_STDLIB_MIR: &[u8] = include_bytes!("../assets/prelude_stdlib_mir.bin");
 
 pub(crate) static STDLIB_MIR_EMBED_HIT: AtomicU64 = AtomicU64::new(0);
 pub(crate) static STDLIB_MIR_DISK_HIT: AtomicU64 = AtomicU64::new(0);

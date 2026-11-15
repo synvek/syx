@@ -476,10 +476,7 @@ fn merge_stdlib_modules_into_mir(
             if entry.tag == tag && entry.mono_key == mono_key && entry.modules_key == modules_key {
                 STDLIB_MIR_CACHE_HIT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 if trace {
-                    eprintln!(
-                        "stdlib_mir_trace=process fns={}",
-                        entry.functions.len()
-                    );
+                    eprintln!("stdlib_mir_trace=process fns={}", entry.functions.len());
                 }
                 append_mir_functions(mir, &entry.functions);
                 return Ok(());
@@ -488,8 +485,7 @@ fn merge_stdlib_modules_into_mir(
     }
 
     // Exact disk hit (same tag digest path; modules_key + mono_key must match).
-    if let Some(image) =
-        crate::stdlib_mir_image::try_load_disk(project_root, modules_key, mono_key)
+    if let Some(image) = crate::stdlib_mir_image::try_load_disk(project_root, modules_key, mono_key)
     {
         if trace {
             eprintln!(
@@ -519,11 +515,8 @@ fn merge_stdlib_modules_into_mir(
         } else if crate::stdlib_mir_image::image_paths_subset_of_graph(&image, graph)
             && (image.mono_key == mono_key || image.mono_key == 0 || mono_key == 0)
         {
-            let covered: std::collections::HashSet<PathBuf> = image
-                .module_paths
-                .iter()
-                .map(PathBuf::from)
-                .collect();
+            let covered: std::collections::HashSet<PathBuf> =
+                image.module_paths.iter().map(PathBuf::from).collect();
             let extras: std::collections::HashSet<PathBuf> = graph
                 .modules
                 .keys()

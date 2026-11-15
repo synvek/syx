@@ -809,11 +809,14 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 ### 17.3 CI
 
-GitHub Actions (`.github/workflows/ci.yml`):
+GitHub Actions (`.github/workflows/ci.yml`) — required jobs are **split** for wall-clock:
 
-1. `cargo fmt --all -- --check`
-2. `cargo clippy --all-targets --all-features`
-3. `cargo test --all`
+1. **Format** — `cargo fmt --all -- --check` (fail-fast; optional local hook via `git config core.hooksPath .githooks`)
+2. **Lint & contracts** — `-Dwarnings` check, clippy correctness, prelude/allowlist/capability floors
+3. **Language server** — `cargo test -p syx-lsp`
+4. **Core tests** — workspace `--lib --bins` + driver `evergreen`/`lang`/`concurrency`/`data`/`credibility` (heavy `backends`/`browser`/`wasm` live under soft Extended / nightly Broad parity)
+
+Soft jobs have hard `timeout-minutes`. Broad parity runs on the Nightly workflow (`schedule` + `workflow_dispatch`), not on every push.
 
 Uses `Swatinem/rust-cache` for dependency caching.
 

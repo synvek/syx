@@ -149,4 +149,3 @@ func main() { print(1) }
         "HostCall+Closure must stay inside flat_map closure: {dump}"
     );
 }
-

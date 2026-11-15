@@ -809,11 +809,14 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 ### 17.3 CI 流水线
 
-GitHub Actions（`.github/workflows/ci.yml`）：
+GitHub Actions（`.github/workflows/ci.yml`）— 必测已拆分以压缩墙钟：
 
-1. `cargo fmt --all -- --check`
-2. `cargo clippy --all-targets --all-features`
-3. `cargo test --all`
+1. **Format** — `cargo fmt --all -- --check`（早失败；可选本地 hook：`git config core.hooksPath .githooks`）
+2. **Lint & contracts** — `-Dwarnings` check、clippy correctness、prelude/allowlist/capability 门禁
+3. **Language server** — `cargo test -p syx-lsp`
+4. **Core tests** — workspace `--lib --bins` + driver `evergreen`/`lang`/`concurrency`/`data`/`credibility`（重套件 `backends`/`browser`/`wasm` 在 soft Extended / 夜间 Broad parity）
+
+软 job 均设 `timeout-minutes`。Broad parity 在 Nightly 工作流（`schedule` + `workflow_dispatch`），不再跟每次 push。
 
 使用 `Swatinem/rust-cache` 加速依赖缓存。
 

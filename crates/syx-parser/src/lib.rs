@@ -3187,10 +3187,7 @@ impl Parser {
             self.allow_trailing_closure = prev;
             let body = self.parse_stmt_or_block()?;
             let span = Span::merge(start, self.previous().span);
-            let break_stmt = Stmt::Break {
-                span,
-                label: None,
-            };
+            let break_stmt = Stmt::Break { span, label: None };
             let if_let = Stmt::IfLet {
                 span,
                 name,

@@ -1519,4 +1519,3 @@ fn p138_fingerprint_string_pins() {
     assert!(runtime_rs.contains("runtime-concurrency-v6:actor-shared-pool-mvp"));
     assert!(concurrency.contains("setActorSharedPoolEnabled"));
 }
-

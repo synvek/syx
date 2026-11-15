@@ -12,16 +12,16 @@ mod external_sandbox;
 mod hygiene;
 mod macro_diag;
 mod parse_fragment;
+mod registry;
+mod result_builder;
+mod roles;
+mod service;
 #[cfg(test)]
 mod unit_roles_rb;
 #[cfg(test)]
 mod unit_service_di;
 #[cfg(test)]
 mod unit_token_pointcut;
-mod registry;
-mod result_builder;
-mod roles;
-mod service;
 mod user;
 mod warnings;
 mod wrapper;

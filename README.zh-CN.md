@@ -17,6 +17,12 @@
 
 **环境要求：** Rust **1.85+**（见工作区 `rust-version`）。
 
+推送前请先 `cargo fmt --all`（CI 有独立 Format 任务）。可选本地 pre-push hook：
+
+```bash
+git config core.hooksPath .githooks   # 仅本仓库；运行 scripts/r37_fmt_check.sh
+```
+
 ```bash
 # 构建编译器
 cargo build --release -p syx-cli

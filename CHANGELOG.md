@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- chore: split required CI into Format / Lint / LSP / Core tests; drop backends/browser/wasm/farm/platform from the merge gate; move Broad parity to nightly schedule; add soft-job timeouts and optional `.githooks/pre-push` fmt check
 - feat: implement optional statement separators in block statements
 - feat: implement `while let` syntax desugaring in parser and add tests
 - feat: enhance stdlib MIR handling with caching and fingerprinting

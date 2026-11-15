@@ -17,6 +17,12 @@
 
 **Requirements:** Rust **1.85+** (see workspace `rust-version`).
 
+Before pushing, run `cargo fmt --all` (CI has a dedicated Format job). Optional local pre-push hook:
+
+```bash
+git config core.hooksPath .githooks   # repo-local; runs scripts/r37_fmt_check.sh
+```
+
 ```bash
 # Build the compiler
 cargo build --release -p syx-cli

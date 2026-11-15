@@ -1,6 +1,9 @@
 name: Nightly
 
 on:
+  schedule:
+    # 02:00 UTC daily — broad parity + long suites (not on every push).
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 env:
@@ -8,6 +11,42 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Former push-CI "Broad parity (optional)" — delta vs soft native-linux / extended only.
+  broad-parity:
+    name: Broad parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build CLI
+        run: cargo build -p syx-cli
+      - name: Differential suite
+        timeout-minutes: 45
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: cargo test -p syx-driver --test differential -- --test-threads=1
+      - name: Upload differential failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: differential-failures-parity-nightly
+          path: target/differential-failures/
+          if-no-files-found: ignore
+      - name: Registry signature E2E
+        env:
+          SYX_REGISTRY_REQUIRE_SIGNATURE: "1"
+        run: |
+          cargo test -p syx-driver --test evergreen -- registry_cdn_hard --test-threads=1
+          cargo test -p syx-driver --test evergreen -- registry_signed_hard --test-threads=1
+      - name: Browser compiler E2E
+        run: cargo test -p syx-driver --test browser -- browser_ --test-threads=1
+      - name: build.syb runner
+        run: cargo test -p syx-driver --test evergreen -- build_syx --test-threads=1
+      - name: Fixture audit
+        run: scripts/audit_test_fixtures.sh --check
+
   driver-permanent-suites:
     runs-on: ubuntu-latest
     steps:

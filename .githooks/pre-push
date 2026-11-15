@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Optional local gate: enable with
+#   git config core.hooksPath .githooks
+# Mirrors the required CI `fmt` job.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+if [[ -x "$ROOT/scripts/r37_fmt_check.sh" ]]; then
+  bash "$ROOT/scripts/r37_fmt_check.sh"
+else
+  cargo fmt --all -- --check
+fi

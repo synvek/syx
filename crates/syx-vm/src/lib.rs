@@ -47,39 +47,27 @@ mod ws_rfc6455;
 pub use grapheme::{grapheme_at, graphemes_vec, try_grapheme_at};
 #[cfg(feature = "gui-dlopen")]
 mod gui_dlopen;
-mod sql_stubs;
 mod service_hosts;
+mod sql_stubs;
 mod stdlib_core_hosts;
-mod stdlib_process_hosts;
 mod stdlib_encoding_hosts;
+mod stdlib_gui_sql_hosts;
 mod stdlib_json_grpc_hosts;
-mod stdlib_wire_hosts;
 #[cfg(not(target_arch = "wasm32"))]
 mod stdlib_orm_gui_hosts;
 #[cfg(target_arch = "wasm32")]
 #[path = "wasm_stubs/stdlib_orm_gui_hosts.rs"]
 mod stdlib_orm_gui_hosts;
-mod stdlib_gui_sql_hosts;
+mod stdlib_process_hosts;
+mod stdlib_wire_hosts;
 #[cfg(feature = "gui-synui")]
 mod synui_hosts;
 #[cfg(not(feature = "gui-synui"))]
 #[path = "synui_hosts_stub.rs"]
 mod synui_hosts;
-pub use stdlib_process_hosts::{
-    child_pipe_force_close, child_pipe_live_count, clear_registered_tests,
-    process_child_force_close, process_child_live_count, store_registered_test_outcomes,
-    take_registered_test_outcomes, RegisteredTestOutcome,
-};
-#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
-pub use stdlib_orm_gui_hosts::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
-pub use stdlib_gui_sql_hosts::{
-    gc_churn_stdout_lines, host_gc_churn_stdout, host_gui_winit_canvas_draw_phase94,
-    host_gui_winit_event_pump_phase94, host_gui_winit_run_loop_once_phase94,
-    host_orm_find_where_dict_rusqlite, orm_executed_sql_count, orm_last_executed_sql,
-    reset_phase94_state,
-};
 pub use stdlib_gui_sql_hosts::reset_phase95_state;
 pub use stdlib_gui_sql_hosts::reset_phase96_state;
+pub use stdlib_gui_sql_hosts::reset_phase98_state;
 pub use stdlib_gui_sql_hosts::{
     ensure_gui_loaded, gui_backend_name, gui_caret_metric_px, gui_caret_supported,
     gui_cjk_subset_char_count, gui_colr_grad_used, gui_colr_radial_or_sweep_used,
@@ -105,7 +93,19 @@ pub use stdlib_gui_sql_hosts::{
     host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
     require_gui_dylib_if_visible, reset_phase97_state, visible_window_count,
 };
-pub use stdlib_gui_sql_hosts::reset_phase98_state;
+pub use stdlib_gui_sql_hosts::{
+    gc_churn_stdout_lines, host_gc_churn_stdout, host_gui_winit_canvas_draw_phase94,
+    host_gui_winit_event_pump_phase94, host_gui_winit_run_loop_once_phase94,
+    host_orm_find_where_dict_rusqlite, orm_executed_sql_count, orm_last_executed_sql,
+    reset_phase94_state,
+};
+#[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
+pub use stdlib_orm_gui_hosts::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
+pub use stdlib_process_hosts::{
+    child_pipe_force_close, child_pipe_live_count, clear_registered_tests,
+    process_child_force_close, process_child_live_count, store_registered_test_outcomes,
+    take_registered_test_outcomes, RegisteredTestOutcome,
+};
 pub use synui_hosts::{
     reset_synui_state, synui_digest, SYNUI_HOST_BRIDGE_DIGEST, SYNUI_PATH_DEP_DIGEST,
     SYNUI_UI_PACKAGE_DIGEST, SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST,
@@ -2389,8 +2389,7 @@ impl VmInstance {
                 }
                 if !is_ctor {
                     if let Some(recv) = args.first_mut() {
-                        *recv =
-                            crate::service_hosts::materialize_lazy_receiver(recv.clone())?;
+                        *recv = crate::service_hosts::materialize_lazy_receiver(recv.clone())?;
                     }
                 }
                 let func = self.resolve_virtual_method(func, &args, program);
@@ -2418,8 +2417,7 @@ impl VmInstance {
                 }
                 if !is_ctor {
                     if let Some(recv) = args.first_mut() {
-                        *recv =
-                            crate::service_hosts::materialize_lazy_receiver(recv.clone())?;
+                        *recv = crate::service_hosts::materialize_lazy_receiver(recv.clone())?;
                     }
                 }
                 let func = self.resolve_virtual_method(func, &args, program);
