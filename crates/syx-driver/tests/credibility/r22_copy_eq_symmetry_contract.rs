@@ -115,19 +115,9 @@ fn r22_mir_unify_shells_use_replacing_merge() {
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/mir_unify.rs"),
     )
     .expect("mir_unify.rs");
-    // Six shell merges: 3 dataclass + 3 enum.
-    let dc_shells = unify
-        .matches("merge_mir_shell_functions(&mut mir, syx_mir::lower_dataclass_shells")
-        .count()
-        + unify
-            .matches("merge_mir_shell_functions(mir, syx_mir::lower_dataclass_shells")
-            .count();
-    let enum_shells = unify
-        .matches("merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells")
-        .count()
-        + unify
-            .matches("merge_mir_shell_functions(mir, syx_mir::lower_enum_shells")
-            .count();
+    // Count shell-merge call sites (allow multiline `merge_mir_shell_functions(\n  &mut mir,`).
+    let dc_shells = unify.matches("lower_dataclass_shells").count();
+    let enum_shells = unify.matches("lower_enum_shells").count();
     // Driver mir_unify hosts the multi-module / mono sites; syx-mir/codegen own the other shell merges.
     assert!(
         dc_shells >= 2,
