@@ -176,6 +176,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      # Census / behavioral scripts shell out to `rg` (same as Lint & contracts).
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
       - name: Driver credibility suite
         run: cargo test -p syx-driver --test credibility -- --test-threads=1
 
