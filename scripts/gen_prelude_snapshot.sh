@@ -94,5 +94,5 @@ echo "rebuilding syx so include_bytes picks up the assets…"
 cargo build -p syx-cli --release
 echo "verifying embed hit…"
 bash "$ROOT/scripts/check_prelude_embed.sh" "$ROOT/target/release/syx"
-echo "done — commit $OUT_BIN / $OUT_RKYV if this is a source landing"
+echo "done — assets ready at $OUT_BIN / $OUT_RKYV (gitignored; do not commit)"
 echo "note: Windows — use powershell -File scripts/gen_prelude_snapshot.ps1"

@@ -1135,11 +1135,26 @@ fn emit_cache_version_tag_env(root: &Path) {
     println!("cargo:rustc-env=SYX_CACHE_VERSION_TAG={tag}");
 }
 
+/// Gitignored embeds: ensure paths exist so `include_bytes!` compiles on a clean
+/// checkout. Empty blobs mean cold-store until `scripts/gen_prelude_snapshot.*`.
+fn ensure_prelude_asset_placeholders() {
+    let assets = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
+    let _ = std::fs::create_dir_all(&assets);
+    for name in ["prelude_snapshot.bin", "prelude_vm_image.rkyv"] {
+        let path = assets.join(name);
+        if !path.exists() {
+            let _ = std::fs::write(&path, b"");
+        }
+    }
+}
+
 fn main() {
     let root = repo_root();
     let core = root.join("packages/core");
     let internal = root.join("packages/internal");
     let numeric_dir = core.join("builtins/numeric");
+
+    ensure_prelude_asset_placeholders();
 
     println!("cargo:rerun-if-changed=build.rs");
     // S3-I54: rebuild when embedded prelude snapshot asset changes (do not compile .sy here).

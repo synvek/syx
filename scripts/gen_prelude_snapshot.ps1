@@ -152,7 +152,7 @@ try {
         throw "check_prelude_embed.ps1 failed (exit $checkExit)"
     }
 
-    Write-Host "done — commit $OutBin / $OutRkyv if this is a source landing"
+    Write-Host "done — assets ready at $OutBin / $OutRkyv (gitignored; do not commit)"
 }
 catch {
     # Restore before Write-Error: Stop preference would otherwise skip restore.

@@ -1,6 +1,8 @@
 
 ### SYX 0.2.2
 
+- chore: gitignore generated prelude embeds (`prelude_snapshot.bin` / `prelude_vm_image.rkyv`); CI/release regen via `gen_prelude_snapshot`; `build.rs` writes empty placeholders on clean checkout
+
 - fix: nest XML children + attrs in `__syx_xml_parse`, correct `__syx_xml_xpath(expr, root)` stack order, and soft-skip backends native AOT nails without `--features full-native`
 
 - fix: serialize BGP mesh tests; keep data SQL nails idempotent (`IF NOT EXISTS` / rusqlite reset); Array `.count` on SQL/ORM stdout gates

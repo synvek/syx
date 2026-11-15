@@ -53,11 +53,19 @@ fn s3_03_prelude_embed_adr_and_census() {
             && cache.contains("S3-I54"),
         "compile_cache must mount embed fallback"
     );
+    let gitignore = repo_file(".gitignore");
+    assert!(
+        gitignore.contains("prelude_snapshot.bin")
+            && gitignore.contains("prelude_vm_image.rkyv"),
+        "prelude embed assets must be gitignored (regen via gen_prelude_snapshot)"
+    );
     let asset = repo_path("crates/syx-driver/assets/prelude_snapshot.bin");
-    let meta = std::fs::metadata(&asset).expect("prelude_snapshot.bin must exist");
+    let meta = std::fs::metadata(&asset).expect(
+        "prelude_snapshot.bin must exist (build.rs placeholder or gen_prelude_snapshot)",
+    );
     assert!(
         meta.len() > 1024,
-        "embedded asset must be non-trivial, got {} bytes",
+        "embedded asset must be non-trivial (run scripts/gen_prelude_snapshot.sh), got {} bytes",
         meta.len()
     );
     let gen = repo_file("scripts/gen_prelude_snapshot.sh");
@@ -78,10 +86,12 @@ fn s3_03_prelude_embed_adr_and_census() {
         "scripts/check_prelude_embed.ps1 must exist for Windows regen verify"
     );
     let rkyv = repo_path("crates/syx-driver/assets/prelude_vm_image.rkyv");
-    let rkyv_meta = std::fs::metadata(&rkyv).expect("prelude_vm_image.rkyv must exist");
+    let rkyv_meta = std::fs::metadata(&rkyv).expect(
+        "prelude_vm_image.rkyv must exist (build.rs placeholder or gen_prelude_snapshot)",
+    );
     assert!(
         rkyv_meta.len() > 1024,
-        "rkyv VM image must be non-trivial, got {} bytes",
+        "rkyv VM image must be non-trivial (run scripts/gen_prelude_snapshot.sh), got {} bytes",
         rkyv_meta.len()
     );
 

@@ -11,7 +11,7 @@
 | `SYX_STDLIB_MIR` | `0/false` force off; `1/true` force on (debug). |
 | `store_prelude_snapshot` | Dedupe `FunctionUnit` by name across modules; clear per-module `host_fn_names`; persist `extension_methods` + slim **rkyv** image. |
 | `ModuleGraph.stdlib_extension_methods` | Filled on embed load → `collect_stdlib_extension_methods` skips re-parse. |
-| Asset | `crates/syx-driver/assets/prelude_snapshot.bin` (+ `prelude_vm_image.rkyv`) via `scripts/gen_prelude_snapshot.sh` / `.ps1`. |
+| Asset | `crates/syx-driver/assets/prelude_snapshot.bin` (+ `prelude_vm_image.rkyv`) via `scripts/gen_prelude_snapshot.sh` / `.ps1` (**gitignored**; CI/release regen). |
 
 ## Slice 2 (on-demand link + export table)
 

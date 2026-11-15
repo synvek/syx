@@ -6,7 +6,7 @@
 
 ## Decision
 
-1. **Check in** `crates/syx-driver/assets/prelude_snapshot.bin` produced by `scripts/gen_prelude_snapshot.sh` (run release `syx` once → copy `prelude_*.bin`). **Do not** compile `.sy` inside `build.rs`.
+1. **Generate** `crates/syx-driver/assets/prelude_snapshot.bin` (+ `prelude_vm_image.rkyv`) via `scripts/gen_prelude_snapshot.sh` / `.ps1` (run release `syx` once → copy `prelude_*.bin`). Assets are **gitignored** (bloat / rustc-tag churn); CI and release regen before embed checks. `build.rs` may create empty placeholders so `include_bytes!` compiles on a clean tree. **Do not** compile `.sy` inside `build.rs`.
 2. **`load_prelude_snapshot` embed fallback:** on disk miss/bad file, deserialize `include_bytes!(…)` / `EMBEDDED_PRELUDE_SNAPSHOT`; require `cache_version_tag` match; on success fill graph and bump `PRELUDE_EMBED_HIT`.
 3. **`build.rs`:** `rerun-if-changed` the asset only.
 4. **Non-claims (hard):** ≠ Stage-3 exit / ≠ HostFn+1 / ≠ F-08 / ≠ S3-04…07 this construct window / ≠ language semantics / ≠ build.rs full `.sy` compile.

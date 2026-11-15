@@ -354,7 +354,7 @@ bash scripts/gen_prelude_snapshot.sh
 powershell -File scripts/gen_prelude_snapshot.ps1
 ```
 
-**Release：** `release.yml` 每个矩阵任务在打包前于该 runner 上重生 embed，并对产物跑 `check_prelude_embed`——不依赖一份检入资产匹配所有平台的 rustc。
+**Release / CI：** embed 资产已 **gitignore**；`release.yml` / CI 每个矩阵任务在打包或 embed 检查前于该 runner 上重生——不依赖一份检入资产匹配所有平台的 rustc。
 
 ### 温热 daemon（Unix）
 

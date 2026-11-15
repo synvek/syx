@@ -52,3 +52,9 @@ plan/
 
 .DS_Store
 target-linux/
+
+# Generated prelude embeds (~2MB bincode + rkyv). Regen locally / in CI:
+#   bash scripts/gen_prelude_snapshot.sh
+#   powershell -File scripts/gen_prelude_snapshot.ps1
+crates/syx-driver/assets/prelude_snapshot.bin
+crates/syx-driver/assets/prelude_vm_image.rkyv

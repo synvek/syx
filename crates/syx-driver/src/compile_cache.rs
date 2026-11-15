@@ -31,7 +31,8 @@ pub(crate) static PRELUDE_EMBED_HIT: AtomicU64 = AtomicU64::new(0);
 /// Census nail: rkyv VM-image / process-hydrated prelude loads.
 pub(crate) static PRELUDE_RKYV_HIT: AtomicU64 = AtomicU64::new(0);
 
-/// S3-I54: checked-in PreludeSnapshot bincode (gen via `scripts/gen_prelude_snapshot.sh` / `.ps1`).
+/// S3-I54: generated PreludeSnapshot bincode (gitignored; gen via
+/// `scripts/gen_prelude_snapshot.sh` / `.ps1`). Empty until regenerated.
 pub(crate) static EMBEDDED_PRELUDE_SNAPSHOT: &[u8] =
     include_bytes!("../assets/prelude_snapshot.bin");
 

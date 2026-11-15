@@ -403,9 +403,8 @@ jobs:
           done
           ls -la "${LLVM_LIB_UNIX}/libxml2s.lib" "${LLVM_LIB_UNIX}/xml2s.lib"
       # Prelude embed is keyed by cache_version_tag (pkg + rustc -V + tip digest).
-      # Checked-in assets may miss on a runner whose rustc differs from the machine
-      # that last ran gen_prelude_snapshot — regen here so each platform's shipped
-      # binary embeds a tag-matching snapshot (include_bytes in the following build).
+      # Assets are gitignored — regen here so each platform's shipped binary embeds
+      # a tag-matching snapshot (include_bytes in the following build).
       # Skip gen's tip rebuild: the next full-native step is the only binary we ship,
       # and a second non-full-native rebuild on Windows was both slow and easy to
       # confuse with the artifact under test (empty rkyv → bincode stall).

@@ -28,7 +28,7 @@ if [[ ! -s "$ASSET" ]]; then
   echo "error: asset exists but is EMPTY (0 bytes) — gen truncated then failed before cold-store copy:" >&2
   echo "  $ASSET" >&2
   echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
-  echo "  (do not commit a 0-byte prelude_snapshot.bin)" >&2
+  echo "  (assets are gitignored — empty means gen truncated then failed before cold-store copy)" >&2
   exit 1
 fi
 echo "prelude_embed_asset_bytes=$(wc -c <"$ASSET" | tr -d ' ')"
@@ -69,7 +69,7 @@ if [[ -n "$PRELUDE" ]]; then
   echo "error: prelude snapshot STALE or unloadable (embed miss)" >&2
   echo "  wrote: $PRELUDE ($(wc -c <"$PRELUDE" | tr -d ' ') bytes)" >&2
   echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
-  echo "  then commit crates/syx-driver/assets/prelude_snapshot.bin (+ prelude_vm_image.rkyv)" >&2
+  echo "  (assets are gitignored — regenerate locally / in CI, do not commit)" >&2
   exit 1
 fi
 

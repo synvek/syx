@@ -34,10 +34,13 @@ jobs:
           cargo clippy --workspace --lib --exclude syx-synui --
           -D clippy::correctness -A clippy::result_large_err
 
-      - name: Build CLI (debug + release)
-        run: |
-          cargo build -p syx-cli
-          cargo build -p syx-cli --release
+      - name: Build CLI (debug)
+        run: cargo build -p syx-cli
+
+      # Prelude embeds are gitignored (rustc-tag churn). Gen builds release syx,
+      # writes assets, rebuilds with include_bytes, and verifies embed hit.
+      - name: Regen prelude embed + release CLI for this runner rustc
+        run: bash scripts/gen_prelude_snapshot.sh
 
       - name: Prelude embed must match this toolchain
         run: bash scripts/check_prelude_embed.sh target/release/syx
@@ -139,9 +142,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Build CLI
-        run: cargo build -p syx-cli --release
-      - name: Prelude embed (may miss if rustc differs from checked-in assets)
+      # Prelude embeds are gitignored; gen builds release + verifies embed hit.
+      - name: Regen prelude embed + release CLI for this runner rustc
+        shell: pwsh
+        run: .\scripts\gen_prelude_snapshot.ps1
+      - name: Prelude embed must match this toolchain
         shell: pwsh
         run: .\scripts\check_prelude_embed.ps1 target\release\syx.exe
       - name: Driver evergreen smoke

@@ -64,7 +64,7 @@ if ($AssetLen -eq 0) {
 asset exists but is EMPTY (0 bytes) — gen truncated it then failed before cold-store copy:
   $Asset
   fix: .\scripts\gen_prelude_snapshot.ps1
-  (do not commit a 0-byte prelude_snapshot.bin)
+  (assets are gitignored — empty means gen truncated then failed before cold-store copy)
 "@
     exit 1
 }
@@ -126,8 +126,7 @@ prelude snapshot STALE or unloadable (embed miss / tag mismatch)
   wrote: $($p.FullName) ($($p.Length) bytes)
   on-disk asset still present ($AssetLen bytes) but this syx binary did not load it
   fix: .\scripts\gen_prelude_snapshot.ps1
-  then: cargo build -p syx-cli --release
-  and re-run this check against the NEW syx.exe
+  (assets are gitignored — regenerate locally / in CI, do not commit)
 "@
         exit 1
     }
