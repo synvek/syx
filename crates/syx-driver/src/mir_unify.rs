@@ -1,6 +1,7 @@
 //! SYX driver MIR merge/unify face.
 //! Extracted in S2-I218 (zero semantics).
 
+use crate::cache_fingerprint::cache_version_tag;
 use crate::{
     contextual_numeric_kinds_from_semantic, core_prelude_generic_class_methods,
     core_prelude_import_symbols, export_symbols, inject_core_collection_builtins,
@@ -9,11 +10,14 @@ use crate::{
 };
 use indexmap::IndexMap;
 use smol_str::SmolStr;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex, OnceLock};
 use syx_ast::Decl;
 use syx_diagnostics::SyxResult;
 use syx_frontend::{expand_macros, FrontendOptions, FrontendPipeline, StopAfter};
-use syx_mir::{lower_module, optimize, MirOp};
+use syx_mir::{lower_module, optimize, MirFunction, MirOp};
 use syx_mono::monomorphize_module;
 use syx_parser::Parser;
 use syx_pkg::SyxManifest;
@@ -26,6 +30,62 @@ pub(crate) fn want_stdlib_mir(options: &DriverOptions) -> bool {
         Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => true,
         _ => options.stdlib_mir,
     }
+}
+
+/// Process-local cache of stdlib MIR fragments.
+///
+/// Keyed by embed tag + mono set + **stdlib module set** in the graph.
+/// Nested `compile_entry_with_unified_mir` runs while imports are still loading;
+/// a key that ignored the module set would cache a prelude-only fragment and
+/// then miss later imports (Math / Crypto / …) on wasm hard-zero emit.
+struct StdlibMirCacheEntry {
+    tag: String,
+    mono_key: u64,
+    modules_key: u64,
+    functions: Arc<Vec<MirFunction>>,
+}
+
+fn stdlib_mir_cache() -> &'static Mutex<Option<StdlibMirCacheEntry>> {
+    static CACHE: OnceLock<Mutex<Option<StdlibMirCacheEntry>>> = OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(None))
+}
+
+pub(crate) static STDLIB_MIR_CACHE_HIT: std::sync::atomic::AtomicU64 =
+    std::sync::atomic::AtomicU64::new(0);
+
+fn instantiations_fingerprint(
+    instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
+) -> u64 {
+    let mut items: Vec<(String, Vec<String>)> = instantiations
+        .iter()
+        .map(|(n, args)| {
+            (
+                n.to_string(),
+                args.iter().map(|a| a.to_string()).collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+    items.sort_unstable();
+    let mut h = DefaultHasher::new();
+    items.hash(&mut h);
+    h.finish()
+}
+
+fn stdlib_modules_fingerprint(graph: &ModuleGraph) -> u64 {
+    let mut items: Vec<(String, u64)> = graph
+        .modules
+        .iter()
+        .filter(|(p, _)| is_stdlib_module_path(p))
+        .map(|(p, u)| {
+            let mut h = DefaultHasher::new();
+            u.source.contents.hash(&mut h);
+            (p.to_string_lossy().into_owned(), h.finish())
+        })
+        .collect();
+    items.sort_unstable_by(|a, b| a.0.cmp(&b.0));
+    let mut h = DefaultHasher::new();
+    items.hash(&mut h);
+    h.finish()
 }
 
 fn finalize_unified_mir(mir: &mut syx_mir::MirModule) {
@@ -325,34 +385,87 @@ pub(crate) fn collect_stdlib_extension_methods(
     set
 }
 
+fn lower_stdlib_modules_to_functions(
+    graph: &ModuleGraph,
+    instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
+    options: &DriverOptions,
+) -> SyxResult<Vec<MirFunction>> {
+    let mut out = Vec::new();
+    let mut seen = std::collections::HashSet::<SmolStr>::new();
+    for (path, dep) in &graph.modules {
+        if !is_stdlib_module_path(path) {
+            continue;
+        }
+        let Ok(dep_module) = Parser::parse(dep.source.clone()) else {
+            continue;
+        };
+        let dep_module = expand_macros(dep_module)?;
+        let dep_exports = crate::stdlib_fastpath::cached_exports_for(graph, path)
+            .unwrap_or_else(|| export_symbols(&dep.source));
+        let mut dep_mono = monomorphize_module(&dep_module, instantiations);
+        inject_virtual_prelude_imports(&mut dep_mono, options);
+        // Shells are merged unfiltered (same as the historical unify path).
+        let mut shell = syx_mir::MirModule::default();
+        syx_mir::merge_mir_shell_functions(&mut shell, syx_mir::lower_dataclass_shells(&dep_mono));
+        syx_mir::merge_mir_shell_functions(&mut shell, syx_mir::lower_enum_shells(&dep_mono));
+        for func in shell.functions {
+            if seen.insert(func.name.clone()) {
+                out.push(func);
+            }
+        }
+        let dep_mir = lower_module(&dep_mono)?;
+        let module_stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+        for mut func in dep_mir.functions {
+            if !mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports) {
+                continue;
+            }
+            func.name = cross_module_function_name(path, module_stem, func.name);
+            if seen.insert(func.name.clone()) {
+                out.push(func);
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// Append stdlib MIR into `mir`, reusing a process-local cache when the embed tag
+/// and mono fingerprint match (wasm/native AOT path; interpret uses bytecode instead).
 fn merge_stdlib_modules_into_mir(
     graph: &ModuleGraph,
     mir: &mut syx_mir::MirModule,
     instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
     options: &DriverOptions,
 ) -> SyxResult<()> {
-    for (path, dep) in &graph.modules {
-        if !path.to_string_lossy().contains("<stdlib>/") {
-            continue;
-        }
-        if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
-            let dep_module = expand_macros(dep_module)?;
-            let dep_exports = export_symbols(&dep.source);
-            let mut dep_mono = monomorphize_module(&dep_module, instantiations);
-            inject_virtual_prelude_imports(&mut dep_mono, options);
-            syx_mir::merge_mir_shell_functions(mir, syx_mir::lower_dataclass_shells(&dep_mono));
-            syx_mir::merge_mir_shell_functions(mir, syx_mir::lower_enum_shells(&dep_mono));
-            let dep_mir = lower_module(&dep_mono)?;
-            let module_stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-            for mut func in dep_mir.functions {
-                if mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports) {
-                    func.name = cross_module_function_name(path, module_stem, func.name);
+    let tag = cache_version_tag();
+    let mono_key = instantiations_fingerprint(instantiations);
+    let modules_key = stdlib_modules_fingerprint(graph);
+    if let Ok(guard) = stdlib_mir_cache().lock() {
+        if let Some(entry) = guard.as_ref() {
+            if entry.tag == tag && entry.mono_key == mono_key && entry.modules_key == modules_key {
+                STDLIB_MIR_CACHE_HIT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                for func in entry.functions.iter() {
                     if !mir.functions.iter().any(|f| f.name == func.name) {
-                        mir.functions.push(func);
+                        mir.functions.push(func.clone());
                     }
                 }
+                return Ok(());
             }
         }
+    }
+
+    let functions = lower_stdlib_modules_to_functions(graph, instantiations, options)?;
+    for func in &functions {
+        if !mir.functions.iter().any(|f| f.name == func.name) {
+            mir.functions.push(func.clone());
+        }
+    }
+    if let Ok(mut guard) = stdlib_mir_cache().lock() {
+        *guard = Some(StdlibMirCacheEntry {
+            tag,
+            mono_key,
+            modules_key,
+            functions: Arc::new(functions),
+        });
     }
     Ok(())
 }
@@ -376,13 +489,10 @@ pub fn build_unified_mir(
     options: &DriverOptions,
     manifest: &SyxManifest,
 ) -> SyxResult<syx_mir::MirModule> {
-    let (mut mir, instantiations) =
+    // Stdlib MIR merge (when `stdlib_mir`) happens once inside `build_mir_from_graph`
+    // via the process-cached `merge_stdlib_modules_into_mir` — do not re-parse here.
+    let (mut mir, _instantiations) =
         build_mir_from_graph(graph, entry, project_root, options, manifest)?;
-    if want_stdlib_mir(options) {
-        // M1-A02: reuse instantiations from the single frontend pass (no second parse/expand).
-        // Interpret (`stdlib_mir=false`) keeps snapshot bytecode instead — VM-image fastpath.
-        merge_stdlib_modules_into_mir(graph, &mut mir, &instantiations, options)?;
-    }
     finalize_unified_mir(&mut mir);
     Ok(mir)
 }
@@ -477,88 +587,43 @@ pub(crate) fn build_mir_from_graph(
 
     // Merge dependency MIR (stdlib + user). Interpret fastpath skips stdlib re-lower —
     // bytecode comes from the embed via on-demand link.
+    // Skip the fat prelude merge while compiling a stdlib module itself — nested
+    // `compile_entry_with_unified_mir` during import loading would otherwise
+    // re-lower the whole prelude for Crypto/Math/… before the user entry runs.
     let stdlib_mir = want_stdlib_mir(options);
-    if stdlib_mir {
-        for dep in graph.modules.values() {
-            let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
-            if dep_exports.is_empty() && !dep.path.to_string_lossy().contains("<stdlib>/") {
-                continue;
-            }
-            if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
-                let dep_module = expand_macros(dep_module)?;
-                let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
-                inject_virtual_prelude_imports(&mut dep_mono, options);
-                syx_mir::merge_mir_shell_functions(
-                    &mut mir,
-                    syx_mir::lower_dataclass_shells(&dep_mono),
-                );
-                syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
-                let dep_mir = lower_module(&dep_mono)?;
-                let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-                if is_stdlib_module_path(&dep.path) {
-                    for mut func in dep_mir.functions {
-                        let merge = mir_merge_stdlib_function(
-                            module_stem,
-                            func.name.as_str(),
-                            &dep_exports,
-                        );
-                        if merge {
-                            func.name =
-                                cross_module_function_name(&dep.path, module_stem, func.name);
-                            if !mir.functions.iter().any(|f| f.name == func.name) {
-                                mir.functions.push(func);
-                            }
-                        }
-                    }
-                } else {
-                    let mut batch: Vec<_> = dep_mir
-                        .functions
-                        .into_iter()
-                        .filter(|f| f.name.as_str() != "main")
-                        .collect();
-                    if !batch.is_empty() {
-                        syx_mir::prefix_user_dep_mir_batch(&mut batch, module_stem);
-                        for func in batch {
-                            if !mir.functions.iter().any(|f| f.name == func.name) {
-                                mir.functions.push(func);
-                            }
-                        }
-                    }
-                }
-            }
+    if stdlib_mir && !is_stdlib_module_path(&entry.path) {
+        merge_stdlib_modules_into_mir(graph, &mut mir, &semantic.instantiations, options)?;
+    }
+    // User (non-stdlib) deps always need a lower when present in the graph.
+    for dep in graph.modules.values() {
+        if is_stdlib_module_path(&dep.path) {
+            continue;
         }
-    } else {
-        // Still lower non-stdlib user deps when present in the graph.
-        for dep in graph.modules.values() {
-            if is_stdlib_module_path(&dep.path) {
-                continue;
-            }
-            let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
-            if dep_exports.is_empty() {
-                continue;
-            }
-            if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
-                let dep_module = expand_macros(dep_module)?;
-                let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
-                inject_virtual_prelude_imports(&mut dep_mono, options);
-                syx_mir::merge_mir_shell_functions(
-                    &mut mir,
-                    syx_mir::lower_dataclass_shells(&dep_mono),
-                );
-                syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
-                let dep_mir = lower_module(&dep_mono)?;
-                let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-                let mut batch: Vec<_> = dep_mir
-                    .functions
-                    .into_iter()
-                    .filter(|f| f.name.as_str() != "main")
-                    .collect();
-                if !batch.is_empty() {
-                    syx_mir::prefix_user_dep_mir_batch(&mut batch, module_stem);
-                    for func in batch {
-                        if !mir.functions.iter().any(|f| f.name == func.name) {
-                            mir.functions.push(func);
-                        }
+        let dep_exports = exports_by_dep.get(&dep.path).cloned().unwrap_or_default();
+        if dep_exports.is_empty() {
+            continue;
+        }
+        if let Ok(dep_module) = Parser::parse(dep.source.clone()) {
+            let dep_module = expand_macros(dep_module)?;
+            let mut dep_mono = monomorphize_module(&dep_module, &semantic.instantiations);
+            inject_virtual_prelude_imports(&mut dep_mono, options);
+            syx_mir::merge_mir_shell_functions(
+                &mut mir,
+                syx_mir::lower_dataclass_shells(&dep_mono),
+            );
+            syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
+            let dep_mir = lower_module(&dep_mono)?;
+            let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+            let mut batch: Vec<_> = dep_mir
+                .functions
+                .into_iter()
+                .filter(|f| f.name.as_str() != "main")
+                .collect();
+            if !batch.is_empty() {
+                syx_mir::prefix_user_dep_mir_batch(&mut batch, module_stem);
+                for func in batch {
+                    if !mir.functions.iter().any(|f| f.name == func.name) {
+                        mir.functions.push(func);
                     }
                 }
             }

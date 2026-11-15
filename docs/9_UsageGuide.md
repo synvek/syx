@@ -342,7 +342,7 @@ rm -rf target/cache
 
 ### Interpret stdlib fastpath
 
-`syx run` (interpret) sets `DriverOptions.stdlib_mir = false`: it keeps the embedded prelude **bytecode** and does **not** re-lower the whole stdlib through unified MIR. **`syx run --wasm`** and `syx build` keep `stdlib_mir = true` so AOT Call targets (e.g. `Hasher_newHasher`) remain module functions.  
+`syx run` (interpret) sets `DriverOptions.stdlib_mir = false`: it keeps the embedded prelude **bytecode** / rkyv VM image and does **not** re-lower the whole stdlib through unified MIR. **`syx run --wasm`** and `syx build` keep `stdlib_mir = true` so AOT Call targets (e.g. `Hasher_newHasher`) remain module functions — that path **cannot** use the bytecode rkyv image (empty sources), so cold `--wasm` pays a MIR lower of the prelude (process-cached within one `syx` invoke; use `--with-cache` to cut repeat file-compile tax).  
 Prefer the slim rkyv VM image (`prelude_vm_image.rkyv`, mmap on disk) before the fat bincode embed; within one process a hydrate `OnceLock` skips re-deserialize.  
 Force the old MIR merge with `SYX_STDLIB_MIR=1` when debugging. Regen embeds after toolchain fingerprint drift (embed + rkyv work on Windows; **daemon is Unix-only**):
 

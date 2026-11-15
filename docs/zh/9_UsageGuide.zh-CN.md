@@ -344,7 +344,7 @@ rm -rf target/cache
 
 ### 解释运行 stdlib 快路径
 
-`syx run`（解释执行）会设 `DriverOptions.stdlib_mir = false`：沿用内嵌 prelude **字节码**，不再把整份标准库重新 lower 进 unified MIR。**`syx run --wasm`** 与 `syx build` 仍保持 `stdlib_mir = true`，以便 AOT Call 目标（如 `Hasher_newHasher`）作为 module function 存在。  
+`syx run`（解释执行）会设 `DriverOptions.stdlib_mir = false`：沿用内嵌 prelude **字节码** / rkyv VM 镜像，不再把整份标准库重新 lower 进 unified MIR。**`syx run --wasm`** 与 `syx build` 仍保持 `stdlib_mir = true`，以便 AOT Call 目标（如 `Hasher_newHasher`）作为 module function 存在 —— 该路径**不能**走字节码 rkyv（源码为空），因此冷启动 `--wasm` 仍要付 prelude 的 MIR lower（单次 `syx` 进程内有缓存；可用 `--with-cache` 削减重复文件编译税）。  
 优先走精简 rkyv VM 镜像（`prelude_vm_image.rkyv`，磁盘侧 mmap），再回退 fat bincode；同进程内 `OnceLock` hydrate 跳过重复反序列化。  
 调试时可设 `SYX_STDLIB_MIR=1` 强制旧路径。工具链指纹变化后请重生 embed（embed / rkyv 在 Windows 可用；**daemon 仅 Unix**）：
 
