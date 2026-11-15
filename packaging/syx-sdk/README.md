@@ -39,7 +39,9 @@ syx/                      # archive root (e.g. syx-sdk-0.1.0-macos-aarch64.tar.g
 
 `syx build --native` **never** runs `cargo` (or any Rust build). It only links
 prebuilt archives from `lib/` / `lib/hosts/` (or `SYX_RT_STATIC_LIB` /
-`SYX_NATIVE_SHAKE_LIB_DIR`).
+`SYX_NATIVE_SHAKE_LIB_DIR`). From a source checkout, prebuild with
+`bash scripts/build_native_shake_libs.sh` or
+`powershell -File scripts/build_native_shake_libs.ps1`.
 
 ## Quick start
 

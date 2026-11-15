@@ -2,7 +2,7 @@
 //!
 //! Archives are **prebuilt only** — `syx build --native` never spawns `cargo` (SDK users have
 //! no Rust toolchain; spawning a build tool from the linker path is also a security footgun).
-//! Prebuild with `scripts/build_native_shake_libs.sh` (dev) or the release SDK packager.
+//! Prebuild with `scripts/build_native_shake_libs.sh` / `.ps1` (dev) or the release SDK packager.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -147,7 +147,7 @@ fn resolve_host_archive(domain: HostShakeDomain, release: bool, rt: &Path) -> Op
 }
 
 fn missing_archive_hint() -> &'static str {
-    "prebuild with `bash scripts/build_native_shake_libs.sh` (dev/CI), or install an SDK that ships `lib/libsyx_rt.a` (+ `lib/hosts/` for sql/http/tls); set SYX_RT_STATIC_LIB / SYX_NATIVE_SHAKE_LIB_DIR to override"
+    "prebuild with `bash scripts/build_native_shake_libs.sh` or `powershell -File scripts/build_native_shake_libs.ps1` (dev/CI), or install an SDK that ships `lib/libsyx_rt.a` (+ `lib/hosts/` for sql/http/tls); set SYX_RT_STATIC_LIB / SYX_NATIVE_SHAKE_LIB_DIR to override"
 }
 
 /// Resolve prebuilt slim `syx-rt` (+ needed host domain staticlibs). **Never** spawns cargo.

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Prebuild slim libsyx_rt.a + syx-host-{sql,http,tls} for `syx build --native`.
 # Link path never runs cargo — this script (or the release packager) must run first.
+# Windows: powershell -File scripts/build_native_shake_libs.ps1
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -38,3 +39,4 @@ if [[ ! -f "$dir/libsyx_rt.a" && ! -f "$dir/syx_rt.lib" ]]; then
   exit 1
 fi
 echo "done — syx build --native will resolve these without spawning cargo"
+echo "note: Windows — powershell -File scripts/build_native_shake_libs.ps1"

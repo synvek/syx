@@ -1290,7 +1290,9 @@ build = "build.syb"
                 println!(
                     "native-profile domains=sql,http,tls under lib/hosts/ (linked only when CallHost references them)"
                 );
-                println!("native-profile prebuild=bash scripts/build_native_shake_libs.sh");
+                println!(
+                    "native-profile prebuild=bash scripts/build_native_shake_libs.sh | powershell -File scripts/build_native_shake_libs.ps1"
+                );
                 println!("native-profile tip=syx doctor --native-host-shake examples/hello.sy");
             } else {
                 println!(
