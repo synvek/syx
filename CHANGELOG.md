@@ -1,3 +1,5 @@
+### SYX 0.2.3
+- feat: implement optional statement separators in block statements
 
 ### SYX 0.2.2
 
