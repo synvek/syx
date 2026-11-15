@@ -815,7 +815,7 @@ GitHub Actions（`.github/workflows/ci.yml`）— 必测已拆分以压缩墙钟
 2. **Lint & contracts** — `-Dwarnings` check、clippy correctness、prelude/allowlist/capability 门禁
 3. **Language server** — `cargo test -p syx-lsp`
 4. **Core libs** — 精选 frontend/IR/runtime `-p` 库测（不做全 `--workspace`；排除 llvm/wasm/async/hosts）
-5. **Core driver** — `lang`/`concurrency`/`data`/`credibility`（`evergreen` + 重套件 `backends`/`browser`/`wasm` 在 soft Extended / 夜间 Broad parity）
+5. **Core driver** — 并行 `lang` / `concurrency` / `data` / `credibility`（汇总检查）；`evergreen` + 重套件 `backends`/`browser`/`wasm` 在 soft Extended / 夜间 Broad parity
 
 软 job 均设 `timeout-minutes`。Broad parity 在 Nightly 工作流（`schedule` + `workflow_dispatch`），不再跟每次 push。
 

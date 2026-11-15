@@ -129,23 +129,70 @@ jobs:
           -p syx-macro -p syx-meta -p syx-mono -p syx-doc
           -- --test-threads=4
 
-  test-driver:
-    name: Core driver
+  # Split Core driver into parallel jobs so a single suite failure is visible
+  # in the Actions UI without downloading gated logs.
+  test-driver-lang:
+    name: Core lang
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
     needs: [fmt]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Driver core integration suites
-        # evergreen (~40 nails still track language/registry drift) stays under soft
-        # Extended; heavy backends/browser/wasm/farm/platform stay there too.
-        run: >
-          cargo test -p syx-driver
-          --test lang --test concurrency --test data
-          --test credibility
-          -- --test-threads=1
+      - name: Driver lang suite
+        run: cargo test -p syx-driver --test lang -- --test-threads=1
+
+  test-driver-concurrency:
+    name: Core concurrency
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [fmt]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Driver concurrency suite
+        run: cargo test -p syx-driver --test concurrency -- --test-threads=1
+
+  test-driver-data:
+    name: Core data
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [fmt]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Driver data suite
+        run: cargo test -p syx-driver --test data -- --test-threads=1
+
+  test-driver-credibility:
+    name: Core credibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [fmt]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Driver credibility suite
+        run: cargo test -p syx-driver --test credibility -- --test-threads=1
+
+  # Aggregator keeps the historical required check name "Core driver".
+  test-driver:
+    name: Core driver
+    runs-on: ubuntu-latest
+    needs:
+      [
+        test-driver-lang,
+        test-driver-concurrency,
+        test-driver-data,
+        test-driver-credibility,
+      ]
+    steps:
+      - name: All Core driver suites passed
+        run: echo "lang + concurrency + data + credibility green"
 
   # ---------------------------------------------------------------------------
   # Required: WASM / browser compiler artifacts

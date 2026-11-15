@@ -815,7 +815,7 @@ GitHub Actions (`.github/workflows/ci.yml`) — required jobs are **split** for 
 2. **Lint & contracts** — `-Dwarnings` check, clippy correctness, prelude/allowlist/capability floors
 3. **Language server** — `cargo test -p syx-lsp`
 4. **Core libs** — curated frontend/IR/runtime `-p` lib tests (not full `--workspace`; excludes llvm/wasm/async/hosts)
-5. **Core driver** — `lang`/`concurrency`/`data`/`credibility` (`evergreen` + heavy `backends`/`browser`/`wasm` under soft Extended / nightly Broad parity)
+5. **Core driver** — parallel `lang` / `concurrency` / `data` / `credibility` jobs (aggregator check); `evergreen` + heavy `backends`/`browser`/`wasm` under soft Extended / nightly Broad parity
 
 Soft jobs have hard `timeout-minutes`. Broad parity runs on the Nightly workflow (`schedule` + `workflow_dispatch`), not on every push.
 
