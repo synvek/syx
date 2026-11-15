@@ -1961,6 +1961,12 @@ impl Parser {
             if self.check(TokenKind::RBrace) {
                 break;
             }
+            // U-9: optional statement separators (`if { }; next` / `let x = 1; …`).
+            // Same scale as class/actor/final-class member loops.
+            while self.match_kind(TokenKind::Semicolon) {}
+            if self.check(TokenKind::RBrace) {
+                break;
+            }
             stmts.push(self.parse_stmt()?);
         }
         self.consume(TokenKind::RBrace, "Expected '}' after block")?;

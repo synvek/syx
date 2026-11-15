@@ -54,6 +54,7 @@ mod property_observers;
 mod protocol_iterator;
 mod protocol_shape_array;
 mod set_element_check;
+mod stmt_semicolon;
 mod string_subscript_oob;
 mod struct_book_first_slice;
 mod syxhost_compare_and_filepath_exists;
