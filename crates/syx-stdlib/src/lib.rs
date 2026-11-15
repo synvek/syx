@@ -32,6 +32,10 @@ pub use builtin_kind::{
     prelude_module_names, retired_ops_module_names, BuiltinKind, ManifestEntry,
 };
 pub use collection::COLLECTION_TYPE_NAMES;
+pub use host_shake::{
+    host_fn_shake_domain, host_index_shake_domain, host_indices_for_domain,
+    shake_domains_for_indices, HostShakeDomain,
+};
 pub use numeric::{
     bit_width, default_float_kind, default_integer_kind, float_literal_bits, from_suffix,
     from_type_name, int_range, is_float, is_implicit_convertible, is_integer, is_integer_narrowing,
@@ -46,10 +50,6 @@ pub use protocols::{
     is_comparable_type, is_custom_debug_string_convertible, is_custom_string_convertible,
     is_equatable_type, is_hashable_type_name, known_protocol, protocol_associated_types,
     type_conforms, ProtocolId,
-};
-pub use host_shake::{
-    host_fn_shake_domain, host_index_shake_domain, host_indices_for_domain, shake_domains_for_indices,
-    HostShakeDomain,
 };
 pub use registry::{
     host_fn_id_by_name, host_fn_index, host_fn_index_by_name, host_fn_name_for_index,

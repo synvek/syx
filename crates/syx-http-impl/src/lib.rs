@@ -24,9 +24,9 @@ pub use http_impl::{
     host_http_request_async, host_http_response_header, host_http_response_headers,
     host_http_response_json, host_http_response_ok, host_http_response_status,
     host_http_response_text, host_http_serve, host_http_serve_shutdown, host_url_build,
-    host_url_encode_query, host_url_parse, http_body_stream_force_close, http_body_stream_live_count,
-    http_make_response, http_request_object, http_response, is_http_response,
-    make_http_request_awaitable, parse_response_json, try_poll_http_request,
+    host_url_encode_query, host_url_parse, http_body_stream_force_close,
+    http_body_stream_live_count, http_make_response, http_request_object, http_response,
+    is_http_response, make_http_request_awaitable, parse_response_json, try_poll_http_request,
 };
 pub use ws::{
     host_ws_close, host_ws_connect, host_ws_connect_async, host_ws_recv, host_ws_send,

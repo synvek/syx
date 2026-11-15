@@ -4,74 +4,38 @@
 use std::fs;
 use std::path::PathBuf;
 
-use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
+#[path = "../support/native_aot.rs"]
+mod native_aot;
 
-fn enable_native_test_stub() {
-    let _ = std::env::var("SYX_NATIVE_STRICT").ok();
-}
+use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-fn run_native_fixture_strict(rel: &str) -> (i32, String) {
-    std::env::remove_var("SYX_NATIVE_C_STUB");
+fn run_native_fixture_strict(rel: &str) -> Option<(i32, String)> {
     run_native_fixture_inner(rel)
 }
 
-fn run_native_fixture(rel: &str) -> (i32, String) {
-    enable_native_test_stub();
+fn run_native_fixture(rel: &str) -> Option<(i32, String)> {
     run_native_fixture_inner(rel)
 }
 
-fn run_native_fixture_inner(rel: &str) -> (i32, String) {
+fn run_native_fixture_inner(rel: &str) -> Option<(i32, String)> {
     let source = fs::read_to_string(
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("tests/fixtures/parity/{rel}")),
     )
     .unwrap();
-    let dir = std::env::temp_dir().join(format!(
-        "syx_native_{rel}_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), source).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
-    let output = std::process::Command::new(&exe).output().unwrap();
-    (
-        output.status.code().unwrap_or(1),
-        String::from_utf8_lossy(&output.stdout).into_owned(),
-    )
+    native_aot::try_run_native_strict(&source, rel)
 }
 
-fn run_native_src(src: &str) -> (i32, String) {
-    enable_native_test_stub();
-    let dir = std::env::temp_dir().join(format!(
-        "syx_native_embed_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
-    let output = std::process::Command::new(&exe).output().unwrap();
-    (
-        output.status.code().unwrap_or(1),
-        String::from_utf8_lossy(&output.stdout).into_owned(),
-    )
+fn run_native_src(src: &str) -> Option<(i32, String)> {
+    native_aot::try_run_native_strict(src, "parity_src")
 }
 
 macro_rules! native_src {
     ($name:ident, $src:expr, $needle:expr) => {
         #[test]
         fn $name() {
-            let (code, stdout) = run_native_src($src);
+            let Some((code, stdout)) = run_native_src($src) else {
+                return;
+            };
             assert_eq!(code, 0, "stdout: {stdout}");
             assert!(stdout.contains($needle), "stdout: {stdout}");
         }
@@ -82,7 +46,9 @@ macro_rules! native_compile_ok {
     ($name:ident, $src:expr) => {
         #[test]
         fn $name() {
-            let (code, stdout) = run_native_src($src);
+            let Some((code, stdout)) = run_native_src($src) else {
+                return;
+            };
             assert_eq!(code, 0, "native compile/run failed: {stdout}");
         }
     };
@@ -90,21 +56,27 @@ macro_rules! native_compile_ok {
 
 #[test]
 fn native_hof() {
-    let (code, stdout) = run_native_fixture("hof.sy");
+    let Some((code, stdout)) = run_native_fixture("hof.sy") else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains('2'), "hof stdout: {stdout}");
 }
 
 #[test]
 fn native_array_hof() {
-    let (code, stdout) = run_native_fixture("array_hof.sy");
+    let Some((code, stdout)) = run_native_fixture("array_hof.sy") else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains('4'));
 }
 
 #[test]
 fn native_actor_isolation() {
-    let (code, stdout) = run_native_fixture("actor_isolation.sy");
+    let Some((code, stdout)) = run_native_fixture("actor_isolation.sy") else {
+        return;
+    };
     if code != 0 {
         eprintln!("actor_isolation skipped on this host: {stdout}");
         return;
@@ -114,28 +86,27 @@ fn native_actor_isolation() {
 
 #[test]
 fn native_generics() {
-    let (code, stdout) = run_native_fixture("generics.sy");
+    let Some((code, stdout)) = run_native_fixture("generics.sy") else {
+        return;
+    };
     assert!(code == 0 || code == 42);
     assert!(stdout.contains("42") || code == 42);
 }
 
 #[test]
 fn native_arithmetic_smoke() {
-    let dir = std::env::temp_dir().join(format!("syx_native_arith_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), "func main() { print(1 + 2) }\n").unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
-    let output = std::process::Command::new(&exe).output().unwrap();
-    assert_eq!(output.status.code().unwrap_or(1), 0);
-    assert!(String::from_utf8_lossy(&output.stdout).contains('3'));
+    let Some((code, stdout)) = run_native_src("func main() { print(1 + 2) }\n") else {
+        return;
+    };
+    assert_eq!(code, 0);
+    assert!(stdout.contains('3'), "{stdout}");
 }
 
 #[test]
 fn native_dict_hashable_key() {
-    let (code, stdout) = run_native_fixture("dict_hashable_key.sy");
+    let Some((code, stdout)) = run_native_fixture("dict_hashable_key.sy") else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains("100"));
     assert!(stdout.contains("2"));
@@ -143,30 +114,38 @@ fn native_dict_hashable_key() {
 
 #[test]
 fn native_as_is_cast() {
-    let (code, stdout) = run_native_fixture("as_is_cast.sy");
+    let Some((code, stdout)) = run_native_fixture("as_is_cast.sy") else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains("cat"));
 }
 
 #[test]
 fn native_closures_capture() {
-    let (code, stdout) = run_native_fixture("hof.sy");
+    let Some((code, stdout)) = run_native_fixture("hof.sy") else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains('2'), "hof stdout: {stdout}");
 }
 
 #[test]
 fn native_dataclass_synth() {
-    let (code, stdout) = run_native_src(
+    let Some((code, stdout)) = run_native_src(
         "class D { var x: Int; init(x: Int) { self.x = x } } func main() { print(D(x: 5).x) }\n",
-    );
+    ) else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains('5'));
 }
 
 #[test]
 fn native_protocol_witness() {
-    let (code, stdout) = run_native_fixture("protocol_iterator.sy");
+    let Some((code, stdout)) = run_native_fixture("protocol_iterator.sy") else {
+        return;
+    };
     assert_eq!(code, 0);
     assert!(stdout.contains("10"));
 }
@@ -373,14 +352,18 @@ native_src!(
 
 #[test]
 fn native_strict_inheritance_dispatch() {
-    let (code, stdout) = run_native_fixture_strict("inheritance_dispatch.sy");
+    let Some((code, stdout)) = run_native_fixture_strict("inheritance_dispatch.sy") else {
+        return;
+    };
     assert_eq!(code, 0, "stdout: {stdout}");
     assert!(stdout.contains("woof"), "stdout: {stdout}");
 }
 
 #[test]
 fn native_strict_comparable_sort() {
-    let (code, stdout) = run_native_fixture_strict("comparable_sort.sy");
+    let Some((code, stdout)) = run_native_fixture_strict("comparable_sort.sy") else {
+        return;
+    };
     assert_eq!(code, 0, "stdout: {stdout}");
     assert!(
         stdout.contains('1') && stdout.contains('3'),
@@ -390,7 +373,9 @@ fn native_strict_comparable_sort() {
 
 #[test]
 fn native_strict_protocol_iterator() {
-    let (code, stdout) = run_native_fixture_strict("protocol_iterator.sy");
+    let Some((code, stdout)) = run_native_fixture_strict("protocol_iterator.sy") else {
+        return;
+    };
     assert_eq!(code, 0, "stdout: {stdout}");
     assert!(stdout.contains("10"), "stdout: {stdout}");
 }

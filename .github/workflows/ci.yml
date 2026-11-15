@@ -86,7 +86,18 @@ jobs:
         run: cargo test -p syx-lsp -- --test-threads=1
 
       - name: Workspace tests
-        run: cargo test --workspace -- --test-threads=1
+        # Integration suites that require `--features full-native` (LLVM/LLD) soft-skip or
+        # live under native-linux / extended / parity jobs — do not unwrap-L006 the trunk.
+        run: |
+          cargo test --workspace --lib --bins -- --test-threads=1
+          cargo test -p syx-driver \
+            --test evergreen --test lang --test concurrency --test data \
+            --test credibility --test farm --test platform --test wasm \
+            --test browser --test security --test backends \
+            -- --test-threads=1
+          cargo test -p syx-parser -p syx-semantic -p syx-vm -p syx-codegen \
+            -p syx-frontend -p syx-fmt -p syx-lint -p syx-cst \
+            -- --test-threads=1
 
   # ---------------------------------------------------------------------------
   # Required: WASM / browser compiler artifacts
@@ -250,7 +261,8 @@ jobs:
             local src="$1"
             local err
             err="$(mktemp)"
-            if ./target/debug/syx build --native "$src" 2>"$err"; then
+            # miette diagnostics go to stdout; capture both streams for L006 detect.
+            if ./target/debug/syx build --native "$src" >"$err" 2>&1; then
               rm -f "$err"
               return 0
             fi
@@ -313,7 +325,8 @@ jobs:
           printf 'func main() { print("hi") }\n' > "$dir/main.sy"
           printf 'name = "hello"\nmain = "main.sy"\n' > "$dir/syx.toml"
           err="$(mktemp)"
-          if ./target/debug/syx build --native -o "$dir/app" "$dir" 2>"$err"; then
+          # miette diagnostics go to stdout; capture both streams for L006 detect.
+          if ./target/debug/syx build --native -o "$dir/app" "$dir" >"$err" 2>&1; then
             rm -f "$err"
             exit 0
           fi

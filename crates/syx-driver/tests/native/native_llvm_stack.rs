@@ -1,31 +1,12 @@
 //! Phase 91: Native LLVM CallHost stack + MIR closure executor stdout hard.
 
-use std::fs;
-use std::process::Command;
+#[path = "../support/native_aot.rs"]
+mod native_aot;
 
-use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
+use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-fn run_native_strict(src: &str) -> (i32, String) {
-    std::env::set_var("SYX_NATIVE_STRICT", "1");
-    std::env::remove_var("SYX_NATIVE_C_STUB");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_p98_stack_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
-    let output = Command::new(&exe).output().unwrap();
-    (
-        output.status.code().unwrap_or(1),
-        String::from_utf8_lossy(&output.stdout).into_owned(),
-    )
+fn run_native_strict(src: &str) -> Option<(i32, String)> {
+    native_aot::try_run_native_strict(src, "llvm_stack")
 }
 
 #[test]
@@ -36,7 +17,9 @@ fn p98_native_llvm_stack_sort_by_strict_stdout() {
     print(sorted[0])
     print(sorted[2])
 }"#;
-    let (code, stdout) = run_native_strict(src);
+    let Some((code, stdout)) = run_native_strict(src) else {
+        return;
+    };
     assert_eq!(code, 0, "stdout: {stdout}");
     assert!(stdout.contains('1'), "stdout: {stdout}");
     assert!(stdout.contains('3'), "stdout: {stdout}");

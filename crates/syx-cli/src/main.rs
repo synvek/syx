@@ -1283,13 +1283,13 @@ build = "build.syb"
                 println!("{report}");
             } else if native_profile_report {
                 println!("native-profile host-shake=on");
-                println!("native-profile slim_rt=target/native-host-shake/{{debug,release}}/libsyx_rt.a");
+                println!(
+                    "native-profile slim_rt=target/native-host-shake/{{debug,release}}/libsyx_rt.a"
+                );
                 println!(
                     "native-profile domains=sql,http,tls (linked only when CallHost references them)"
                 );
-                println!(
-                    "native-profile tip=syx doctor --native-host-shake examples/hello.sy"
-                );
+                println!("native-profile tip=syx doctor --native-host-shake examples/hello.sy");
             } else {
                 println!(
                     "syx doctor: use --aot-matrix, --capabilities, --ir-capabilities, --native-sdk, --native-host-shake <file.sy>, or --native-profile-report"

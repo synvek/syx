@@ -1,8 +1,10 @@
 //! Phase 91: Native LLVM full GA — sync main + CallHost stack + MIR closure executor.
 
 use std::fs;
-use std::process::Command;
-use syx_driver::{build_native_executable, compile_and_run_embedded, DriverOptions};
+use syx_driver::{compile_and_run_embedded, DriverOptions};
+
+#[path = "../support/native_aot.rs"]
+mod native_aot;
 
 #[test]
 fn p98_native_llvm_full_sort_by_vm_stdout() {
@@ -44,24 +46,13 @@ fn p98_native_llvm_full_sort_by_mir_stdout() {
 
 #[test]
 fn p98_native_llvm_full_strict_native_sort() {
-    std::env::set_var("SYX_NATIVE_STRICT", "1");
-    std::env::remove_var("SYX_NATIVE_C_STUB");
-    let dir = std::env::temp_dir().join(format!("syx_p98_native_strict_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(
-        dir.join("main.sy"),
-        r#"func main() {
+    let src = r#"func main() {
     let s = __syx_array_sort_by([3, 1, 2], { (a: Int, b: Int) -> Int in return a - b })
     print(s[0])
-}"#,
-    )
-    .unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
-    let output = Command::new(&exe).output().unwrap();
-    let _ = fs::remove_dir_all(&dir);
-    let stdout = String::from_utf8_lossy(&output.stdout);
+}"#;
+    let Some((code, stdout)) = native_aot::try_run_native_strict(src, "llvm_full") else {
+        return;
+    };
+    assert_eq!(code, 0, "{stdout}");
     assert!(stdout.contains('1'), "{stdout}");
 }

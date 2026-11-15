@@ -1,34 +1,17 @@
 //! Phase 91: native strict parity extended with Phase 86 stdlib fixtures + async-free CFG cases.
+//! Soft-skips when the toolchain lacks `--features full-native` (L006).
 
 use std::fs;
 use std::path::PathBuf;
 
-use syx_driver::{build_native_executable, DriverOptions};
+#[path = "../support/native_aot.rs"]
+mod native_aot;
 
-fn run_native_strict(src: &str) -> (i32, String) {
-    std::env::set_var("SYX_NATIVE_STRICT", "1");
-    std::env::remove_var("SYX_NATIVE_C_STUB");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_p98_native_strict_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), src).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &DriverOptions::default(), &exe).unwrap();
-    let output = std::process::Command::new(&exe).output().unwrap();
-    (
-        output.status.code().unwrap_or(1),
-        String::from_utf8_lossy(&output.stdout).into_owned(),
-    )
+fn run_native_strict(src: &str) -> Option<(i32, String)> {
+    native_aot::try_run_native_strict(src, "p98_parity")
 }
 
-fn run_native_fixture_strict(rel: &str) -> (i32, String) {
+fn run_native_fixture_strict(rel: &str) -> Option<(i32, String)> {
     let source = fs::read_to_string(
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("tests/fixtures/parity/{rel}")),
     )
@@ -40,7 +23,9 @@ macro_rules! p98_strict_src {
     ($name:ident, $src:expr, $needle:expr) => {
         #[test]
         fn $name() {
-            let (code, stdout) = run_native_strict($src);
+            let Some((code, stdout)) = run_native_strict($src) else {
+                return;
+            };
             assert_eq!(code, 0, "stdout: {stdout}");
             assert!(stdout.contains($needle), "stdout: {stdout}");
         }
@@ -51,7 +36,9 @@ macro_rules! p98_strict_fixture {
     ($name:ident, $rel:expr, $needle:expr) => {
         #[test]
         fn $name() {
-            let (code, stdout) = run_native_fixture_strict($rel);
+            let Some((code, stdout)) = run_native_fixture_strict($rel) else {
+                return;
+            };
             assert_eq!(code, 0, "stdout: {stdout}");
             assert!(stdout.contains($needle), "stdout: {stdout}");
         }

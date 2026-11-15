@@ -53,7 +53,10 @@ pub fn install() {
     register_shakeable_host_id(HostFnId::WsSendProd, syx_http_impl::host_ws_send_prod);
     register_shakeable_host_id(HostFnId::WsRecv, syx_http_impl::host_ws_recv);
     register_shakeable_host_id(HostFnId::WsClose, syx_http_impl::host_ws_close);
-    register_shakeable_host_id(HostFnId::HttpShutdown, syx_http_impl::host_http_serve_shutdown);
+    register_shakeable_host_id(
+        HostFnId::HttpShutdown,
+        syx_http_impl::host_http_serve_shutdown,
+    );
     register_shakeable_host_id(
         HostFnId::HttpBodyStreamOpen,
         syx_http_impl::host_http_body_stream_open,

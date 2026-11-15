@@ -1,12 +1,13 @@
 //! Phase 101 Track B+C: native string interp exact wasm + locals v8 frame slab gates.
 
 use std::fs;
-use std::process::Command;
 
 use syx_driver::{
-    build_native_executable, compile_and_run_embedded, run_native_mir_file_printed,
-    run_wasm_source_printed, DriverOptions,
+    compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
+
+#[path = "../support/native_aot.rs"]
+mod native_aot;
 
 fn opts() -> DriverOptions {
     DriverOptions::default()
@@ -32,25 +33,11 @@ fn p98_string_interp_vm_exact_stdout() {
 
 #[test]
 fn p98_string_interp_native_exact_stdout() {
-    std::env::set_var("SYX_NATIVE_STRICT", "1");
-    std::env::remove_var("SYX_NATIVE_C_STUB");
-    let dir = std::env::temp_dir().join(format!(
-        "syx_p98_str_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("main.sy"), SRC).unwrap();
-    fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
-    let exe = dir.join("app");
-    build_native_executable(&dir, &opts(), &exe).unwrap();
-    let output = Command::new(&exe).output().unwrap();
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let Some((code, stdout)) = native_aot::try_run_native_strict(SRC, "string_interp") else {
+        return;
+    };
+    assert_eq!(code, 0, "native stdout: {stdout}");
     assert!(stdout.contains(EXACT), "native stdout: {stdout}");
-    let _ = fs::remove_dir_all(&dir);
 }
 
 #[test]

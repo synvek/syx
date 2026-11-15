@@ -136,18 +136,17 @@ pub fn host_ws_connect(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
     {
-
-    let url = stack
-        .pop()
-        .unwrap_or(Value::Str(String::new()))
-        .as_str()
-        .to_string();
-    if let Some(handle) = try_real_ws_connect(&url) {
-        stack.push(handle);
-        return Ok(());
-    }
-    stack.push(make_ws_handle(&url));
-    Ok(())
+        let url = stack
+            .pop()
+            .unwrap_or(Value::Str(String::new()))
+            .as_str()
+            .to_string();
+        if let Some(handle) = try_real_ws_connect(&url) {
+            stack.push(handle);
+            return Ok(());
+        }
+        stack.push(make_ws_handle(&url));
+        Ok(())
     }
 }
 
@@ -160,29 +159,28 @@ pub fn host_ws_connect_async(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
     {
-
-    let url = stack
-        .pop()
-        .unwrap_or(Value::Str(String::new()))
-        .as_str()
-        .to_string();
-    let id = WS_ASYNC_NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    let payload = if let Some(handle) = try_real_ws_connect(&url) {
-        if let Value::Object(map) = handle {
-            map.get("url")
-                .cloned()
-                .unwrap_or(Value::Str(url.clone()))
-                .as_str()
-                .to_string()
+        let url = stack
+            .pop()
+            .unwrap_or(Value::Str(String::new()))
+            .as_str()
+            .to_string();
+        let id = WS_ASYNC_NEXT_ID.fetch_add(1, Ordering::Relaxed);
+        let payload = if let Some(handle) = try_real_ws_connect(&url) {
+            if let Value::Object(map) = handle {
+                map.get("url")
+                    .cloned()
+                    .unwrap_or(Value::Str(url.clone()))
+                    .as_str()
+                    .to_string()
+            } else {
+                url
+            }
         } else {
             url
-        }
-    } else {
-        url
-    };
-    ws_pending().lock().unwrap().insert(id, payload);
-    stack.push(make_ws_awaitable(id));
-    Ok(())
+        };
+        ws_pending().lock().unwrap().insert(id, payload);
+        stack.push(make_ws_awaitable(id));
+        Ok(())
     }
 }
 
@@ -195,34 +193,32 @@ pub fn host_ws_send_async(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
     {
-
-    #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
-    {
-        crate::http::ensure_http_vm_bridge();
-        return syx_http_impl::host_ws_send(stack);
-    }
-    #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
-    {
-
-    let a = stack.pop().unwrap_or(Value::Str(String::new()));
-    let b = stack.pop().unwrap_or(Value::Nil);
-    let (message, socket) = match (&a, &b) {
-        (Value::Str(m), s) if !m.is_empty() => (m.clone(), s.clone()),
-        (s, Value::Str(m)) if !m.is_empty() => (m.clone(), s.clone()),
-        _ => (String::new(), Value::Nil),
-    };
-    let wss = ws_url_from_handle(&socket)
-        .map(|u| is_wss_url(&u))
-        .unwrap_or(false);
-    let prefix = if wss { "wss-pong" } else { "pong" };
-    let id = WS_ASYNC_NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    ws_pending()
-        .lock()
-        .unwrap()
-        .insert(id, format!("{prefix}:{message}"));
-    stack.push(make_ws_awaitable(id));
-    Ok(())
-    }
+        #[cfg(all(feature = "http", not(target_arch = "wasm32")))]
+        {
+            crate::http::ensure_http_vm_bridge();
+            return syx_http_impl::host_ws_send(stack);
+        }
+        #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
+        {
+            let a = stack.pop().unwrap_or(Value::Str(String::new()));
+            let b = stack.pop().unwrap_or(Value::Nil);
+            let (message, socket) = match (&a, &b) {
+                (Value::Str(m), s) if !m.is_empty() => (m.clone(), s.clone()),
+                (s, Value::Str(m)) if !m.is_empty() => (m.clone(), s.clone()),
+                _ => (String::new(), Value::Nil),
+            };
+            let wss = ws_url_from_handle(&socket)
+                .map(|u| is_wss_url(&u))
+                .unwrap_or(false);
+            let prefix = if wss { "wss-pong" } else { "pong" };
+            let id = WS_ASYNC_NEXT_ID.fetch_add(1, Ordering::Relaxed);
+            ws_pending()
+                .lock()
+                .unwrap()
+                .insert(id, format!("{prefix}:{message}"));
+            stack.push(make_ws_awaitable(id));
+            Ok(())
+        }
     }
 }
 
@@ -289,24 +285,23 @@ pub fn host_ws_send_prod(stack: &mut Vec<Value>) -> SyxResult<()> {
     }
     #[cfg(not(all(feature = "http", not(target_arch = "wasm32"))))]
     {
-
-    let message = stack
-        .pop()
-        .unwrap_or(Value::Str(String::new()))
-        .as_str()
-        .to_string();
-    let socket = stack.pop().unwrap_or(Value::Nil);
-    let wss = ws_url_from_handle(&socket)
-        .map(|u| is_wss_url(&u))
-        .unwrap_or(false);
-    let prod = std::env::var("SYX_WS_WSS_PROD")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(true);
-    let ok = prod
-        && !message.is_empty()
-        && (wss || std::env::var("SYX_WS_MOCK").ok().as_deref() == Some("1"));
-    stack.push(Value::Bool(ok));
-    Ok(())
+        let message = stack
+            .pop()
+            .unwrap_or(Value::Str(String::new()))
+            .as_str()
+            .to_string();
+        let socket = stack.pop().unwrap_or(Value::Nil);
+        let wss = ws_url_from_handle(&socket)
+            .map(|u| is_wss_url(&u))
+            .unwrap_or(false);
+        let prod = std::env::var("SYX_WS_WSS_PROD")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(true);
+        let ok = prod
+            && !message.is_empty()
+            && (wss || std::env::var("SYX_WS_MOCK").ok().as_deref() == Some("1"));
+        stack.push(Value::Bool(ok));
+        Ok(())
     }
 }
 
@@ -322,16 +317,16 @@ pub fn try_poll_ws_request(value: &Value) -> Option<SyxResult<Value>> {
             return Some(result);
         }
 
-    let id = ws_async_id(value)?;
-    let mut pending = ws_pending().lock().unwrap();
-    let payload = pending.remove(&id)?;
-    drop(pending);
-    if let Some(reply) = payload.strip_prefix("wss-pong:") {
-        Some(Ok(Value::Str(reply.to_string())))
-    } else if let Some(reply) = payload.strip_prefix("pong:") {
-        Some(Ok(Value::Str(reply.to_string())))
-    } else {
-        Some(Ok(make_ws_handle(&payload)))
-    }
+        let id = ws_async_id(value)?;
+        let mut pending = ws_pending().lock().unwrap();
+        let payload = pending.remove(&id)?;
+        drop(pending);
+        if let Some(reply) = payload.strip_prefix("wss-pong:") {
+            Some(Ok(Value::Str(reply.to_string())))
+        } else if let Some(reply) = payload.strip_prefix("pong:") {
+            Some(Ok(Value::Str(reply.to_string())))
+        } else {
+            Some(Ok(make_ws_handle(&payload)))
+        }
     }
 }

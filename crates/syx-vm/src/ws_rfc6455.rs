@@ -1416,96 +1416,98 @@ pub fn e01_rfc6455_wss_loopback_wired_ok() -> bool {
     }
     #[cfg(feature = "tls")]
     {
-    use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
-    use rustls::{ClientConfig, RootCertStore, ServerConfig};
-    use std::sync::Arc;
+        use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
+        use rustls::{ClientConfig, RootCertStore, ServerConfig};
+        use std::sync::Arc;
 
-    let cert =
-        match rcgen::generate_simple_self_signed(vec!["127.0.0.1".into(), "localhost".into()]) {
+        let cert = match rcgen::generate_simple_self_signed(vec![
+            "127.0.0.1".into(),
+            "localhost".into(),
+        ]) {
             Ok(c) => c,
             Err(_) => return false,
         };
-    let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
-    let cert_der = CertificateDer::from(cert.cert);
-    let server_cfg = match ServerConfig::builder()
-        .with_no_client_auth()
-        .with_single_cert(vec![cert_der.clone()], key_der)
-    {
-        Ok(c) => Arc::new(c),
-        Err(_) => return false,
-    };
-    let mut roots = RootCertStore::empty();
-    if roots.add(cert_der).is_err() {
-        return false;
-    }
-    let client_cfg = Arc::new(
-        ClientConfig::builder()
-            .with_root_certificates(roots)
-            .with_no_client_auth(),
-    );
+        let key_der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(cert.key_pair.serialize_der()));
+        let cert_der = CertificateDer::from(cert.cert);
+        let server_cfg = match ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(vec![cert_der.clone()], key_der)
+        {
+            Ok(c) => Arc::new(c),
+            Err(_) => return false,
+        };
+        let mut roots = RootCertStore::empty();
+        if roots.add(cert_der).is_err() {
+            return false;
+        }
+        let client_cfg = Arc::new(
+            ClientConfig::builder()
+                .with_root_certificates(roots)
+                .with_no_client_auth(),
+        );
 
-    let listener = match TcpListener::bind("127.0.0.1:0") {
-        Ok(l) => l,
-        Err(_) => return false,
-    };
-    let port = match listener.local_addr() {
-        Ok(a) => a.port(),
-        Err(_) => return false,
-    };
-    let server_cfg_bg = Arc::clone(&server_cfg);
-    thread::spawn(move || {
-        let Ok((mut tcp, _)) = listener.accept() else {
-            return;
+        let listener = match TcpListener::bind("127.0.0.1:0") {
+            Ok(l) => l,
+            Err(_) => return false,
+        };
+        let port = match listener.local_addr() {
+            Ok(a) => a.port(),
+            Err(_) => return false,
+        };
+        let server_cfg_bg = Arc::clone(&server_cfg);
+        thread::spawn(move || {
+            let Ok((mut tcp, _)) = listener.accept() else {
+                return;
+            };
+            let _ = tcp.set_read_timeout(Some(Duration::from_secs(3)));
+            let _ = tcp.set_write_timeout(Some(Duration::from_secs(3)));
+            let Ok(mut conn) = rustls::ServerConnection::new(server_cfg_bg) else {
+                return;
+            };
+            while conn.is_handshaking() {
+                if conn.complete_io(&mut tcp).is_err() {
+                    return;
+                }
+            }
+            let mut tls = rustls::Stream::new(&mut conn, &mut tcp);
+            let _ = serve_one_echo_io(&mut tls);
+        });
+        thread::sleep(Duration::from_millis(30));
+
+        let Ok(mut tcp) = TcpStream::connect_timeout(
+            &format!("127.0.0.1:{port}").parse().unwrap(),
+            Duration::from_secs(3),
+        ) else {
+            return false;
         };
         let _ = tcp.set_read_timeout(Some(Duration::from_secs(3)));
         let _ = tcp.set_write_timeout(Some(Duration::from_secs(3)));
-        let Ok(mut conn) = rustls::ServerConnection::new(server_cfg_bg) else {
-            return;
+        let Ok(name) = ServerName::try_from("localhost") else {
+            return false;
         };
-        while conn.is_handshaking() {
-            if conn.complete_io(&mut tcp).is_err() {
-                return;
+        let Ok(mut client) = rustls::ClientConnection::new(client_cfg, name) else {
+            return false;
+        };
+        while client.is_handshaking() {
+            if client.complete_io(&mut tcp).is_err() {
+                return false;
             }
         }
-        let mut tls = rustls::Stream::new(&mut conn, &mut tcp);
-        let _ = serve_one_echo_io(&mut tls);
-    });
-    thread::sleep(Duration::from_millis(30));
-
-    let Ok(mut tcp) = TcpStream::connect_timeout(
-        &format!("127.0.0.1:{port}").parse().unwrap(),
-        Duration::from_secs(3),
-    ) else {
-        return false;
-    };
-    let _ = tcp.set_read_timeout(Some(Duration::from_secs(3)));
-    let _ = tcp.set_write_timeout(Some(Duration::from_secs(3)));
-    let Ok(name) = ServerName::try_from("localhost") else {
-        return false;
-    };
-    let Ok(mut client) = rustls::ClientConnection::new(client_cfg, name) else {
-        return false;
-    };
-    while client.is_handshaking() {
-        if client.complete_io(&mut tcp).is_err() {
+        let mut tls = rustls::Stream::new(&mut client, &mut tcp);
+        let host_header = format!("127.0.0.1:{port}");
+        if handshake_io(&mut tls, &host_header, "/").is_err() {
             return false;
         }
-    }
-    let mut tls = rustls::Stream::new(&mut client, &mut tcp);
-    let host_header = format!("127.0.0.1:{port}");
-    if handshake_io(&mut tls, &host_header, "/").is_err() {
-        return false;
-    }
-    const MSG: &str = "syx-e01-w1147-wss-loopback";
-    let frame = encode_client_text_frame(MSG.as_bytes());
-    if tls.write_all(&frame).is_err() || tls.flush().is_err() {
-        return false;
-    }
-    let got = match decode_server_text_frame_io(&mut tls) {
-        Ok(s) => s,
-        Err(_) => return false,
-    };
-    got == MSG
+        const MSG: &str = "syx-e01-w1147-wss-loopback";
+        let frame = encode_client_text_frame(MSG.as_bytes());
+        if tls.write_all(&frame).is_err() || tls.flush().is_err() {
+            return false;
+        }
+        let got = match decode_server_text_frame_io(&mut tls) {
+            Ok(s) => s,
+            Err(_) => return false,
+        };
+        got == MSG
     }
 }
 
@@ -1526,54 +1528,54 @@ pub fn rfc6455_connect_wss(url: &str) -> Option<i64> {
     }
     #[cfg(feature = "tls")]
     {
-    use rustls::pki_types::{pem::PemObject, CertificateDer, ServerName};
-    use rustls::{ClientConfig, RootCertStore};
-    use std::sync::Arc;
+        use rustls::pki_types::{pem::PemObject, CertificateDer, ServerName};
+        use rustls::{ClientConfig, RootCertStore};
+        use std::sync::Arc;
 
-    let (host, port, path) = parse_wss_url(url)?;
-    let loopback = host == "127.0.0.1" || host == "localhost" || host == "::1";
-    if !loopback {
-        return None;
-    }
-    let root_path = std::env::var("SYX_WS_WSS_TEST_ROOT").ok()?;
-    let certs: Vec<CertificateDer<'static>> =
-        CertificateDer::pem_file_iter(std::path::Path::new(&root_path))
-            .ok()?
-            .collect::<Result<Vec<_>, _>>()
-            .ok()?;
-    if certs.is_empty() {
-        return None;
-    }
-    let mut roots = RootCertStore::empty();
-    for c in certs {
-        roots.add(c).ok()?;
-    }
-    let client_cfg = Arc::new(
-        ClientConfig::builder()
-            .with_root_certificates(roots)
-            .with_no_client_auth(),
-    );
-    let addr = format!("{host}:{port}");
-    let mut addrs = addr.to_socket_addrs().ok()?;
-    let sock_addr = addrs.next()?;
-    let tcp = TcpStream::connect_timeout(&sock_addr, Duration::from_secs(3)).ok()?;
-    tcp.set_read_timeout(Some(Duration::from_secs(3))).ok()?;
-    tcp.set_write_timeout(Some(Duration::from_secs(3))).ok()?;
-    let name = ServerName::try_from(host.as_str()).ok()?.to_owned();
-    let client = rustls::ClientConnection::new(client_cfg, name).ok()?;
-    let mut tls = rustls::StreamOwned::new(client, tcp);
-    while tls.conn.is_handshaking() {
-        tls.conn.complete_io(&mut tls.sock).ok()?;
-    }
-    let host_header = if port == 443 {
-        host.clone()
-    } else {
-        format!("{host}:{port}")
-    };
-    handshake_io(&mut tls, &host_header, &path).ok()?;
-    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    wss_conns().lock().ok()?.insert(id, tls);
-    Some(id)
+        let (host, port, path) = parse_wss_url(url)?;
+        let loopback = host == "127.0.0.1" || host == "localhost" || host == "::1";
+        if !loopback {
+            return None;
+        }
+        let root_path = std::env::var("SYX_WS_WSS_TEST_ROOT").ok()?;
+        let certs: Vec<CertificateDer<'static>> =
+            CertificateDer::pem_file_iter(std::path::Path::new(&root_path))
+                .ok()?
+                .collect::<Result<Vec<_>, _>>()
+                .ok()?;
+        if certs.is_empty() {
+            return None;
+        }
+        let mut roots = RootCertStore::empty();
+        for c in certs {
+            roots.add(c).ok()?;
+        }
+        let client_cfg = Arc::new(
+            ClientConfig::builder()
+                .with_root_certificates(roots)
+                .with_no_client_auth(),
+        );
+        let addr = format!("{host}:{port}");
+        let mut addrs = addr.to_socket_addrs().ok()?;
+        let sock_addr = addrs.next()?;
+        let tcp = TcpStream::connect_timeout(&sock_addr, Duration::from_secs(3)).ok()?;
+        tcp.set_read_timeout(Some(Duration::from_secs(3))).ok()?;
+        tcp.set_write_timeout(Some(Duration::from_secs(3))).ok()?;
+        let name = ServerName::try_from(host.as_str()).ok()?.to_owned();
+        let client = rustls::ClientConnection::new(client_cfg, name).ok()?;
+        let mut tls = rustls::StreamOwned::new(client, tcp);
+        while tls.conn.is_handshaking() {
+            tls.conn.complete_io(&mut tls.sock).ok()?;
+        }
+        let host_header = if port == 443 {
+            host.clone()
+        } else {
+            format!("{host}:{port}")
+        };
+        handshake_io(&mut tls, &host_header, &path).ok()?;
+        let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+        wss_conns().lock().ok()?.insert(id, tls);
+        Some(id)
     }
 }
 

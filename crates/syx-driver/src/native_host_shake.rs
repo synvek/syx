@@ -209,7 +209,10 @@ pub fn format_host_shake_report(module: &MirModule) -> String {
     let indices: BTreeSet<u32> = collect_call_host_indices_reachable(module);
     let domains = shake_domains_for_indices(&indices);
     let mut lines = Vec::new();
-    lines.push(format!("native-host-shake call_host_count={}", indices.len()));
+    lines.push(format!(
+        "native-host-shake call_host_count={}",
+        indices.len()
+    ));
     if domains.is_empty() {
         lines.push("native-host-shake domains=<none>".into());
     } else {
@@ -236,9 +239,7 @@ pub fn workspace_root() -> PathBuf {
 /// Compile `path` to MIR and print the host-shake report (doctor surface).
 pub fn host_shake_report_for_file(path: &Path) -> SyxResult<String> {
     use crate::module_ref::ModuleRef;
-    use crate::{
-        build_unified_mir, compile_module_recursive, DriverOptions, ModuleGraph,
-    };
+    use crate::{build_unified_mir, compile_module_recursive, DriverOptions, ModuleGraph};
     use syx_pkg::{load_manifest, load_resolved_packages};
 
     let parent = path.parent().unwrap_or_else(|| Path::new("."));

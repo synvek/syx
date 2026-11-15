@@ -125,7 +125,9 @@ pub fn host_index_shake_domain(idx: u32) -> Option<HostShakeDomain> {
 }
 
 /// Domains touched by a set of absolute CallHost indices.
-pub fn shake_domains_for_indices(indices: &std::collections::BTreeSet<u32>) -> Vec<HostShakeDomain> {
+pub fn shake_domains_for_indices(
+    indices: &std::collections::BTreeSet<u32>,
+) -> Vec<HostShakeDomain> {
     let mut out = Vec::new();
     for &idx in indices {
         if let Some(d) = host_index_shake_domain(idx) {
