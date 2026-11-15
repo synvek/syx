@@ -1147,7 +1147,7 @@ syx build --native --object .
 #### dependencywithenvironment
 
 - **clang / systemlink **: for linking `app` or compile LLVM IR to `.o`
-- **Host shake (default)**: `syx build --native` links a slim `libsyx_rt.a` and only pulls `syx-host-{sql,http,tls}` when the program’s MIR contains matching `CallHost` ops. `.sy` authors do **not** pick Cargo features for SQL/TLS/HTTP — add a call in source and the next native build links that domain.
+- **Host shake (default)**: `syx build --native` links a **prebuilt** slim `libsyx_rt.a` and only pulls `syx-host-{sql,http,tls}` when the program’s MIR contains matching `CallHost` ops. It **never** runs `cargo` at link time (SDK: `lib/` + `lib/hosts/`; checkout: `bash scripts/build_native_shake_libs.sh` first). `.sy` authors do **not** pick Cargo features for SQL/TLS/HTTP — add a call in source and the next native build links that domain archive.
 - **Release size**: debug builds are larger (full debug info). Release `examples/hello.sy` measures ~7.5–8MB after shake (CI gate 9MB via `scripts/native_host_shake_size.sh`); programs that use Sql/Http/Tls grow by the linked domain archive only.
 - **`--minimal` / `--no-http` / `--no-file`**: coarse profile knobs (async / file surface). They are **not** the primary way to drop SQL/TLS — host shake handles that from CallHost references.
 - **`--release`**: `syx build --native --release` enables release `syx-rt` + dead-strip / gc-sections; default debug uses `-O0 -g`.

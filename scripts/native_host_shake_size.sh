@@ -16,6 +16,9 @@ fi
 OUT="$(mktemp -d)/hello_shake"
 mkdir -p "$(dirname "$OUT")"
 
+# Link path resolves prebuilt archives only — ensure they exist before the gate.
+bash "$ROOT/scripts/build_native_shake_libs.sh" release
+
 err="$(mktemp)"
 if ! "$SYX_BIN" build --native --release -o "$OUT" examples/hello.sy 2>"$err"; then
   if grep -Eq 'L006|full-native' "$err"; then

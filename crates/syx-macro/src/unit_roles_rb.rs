@@ -1,4 +1,5 @@
-//! Phase 119 macro M9 unit probes (role E003, stringify, attached E005).
+//! Macro roles / stringify / attached / result-builder unit probes
+//! (merged from phase119–123; duplicate RB/scope nails removed).
 
 use smol_str::SmolStr;
 use syx_ast::{AccessLevel, Attribute, AttributeArg, Decl, Module, TypeExpr};
@@ -103,3 +104,49 @@ func pair() -> Array<String> {
         "expected buildBlock in expanded AST, got {dump}"
     );
 }
+
+#[test]
+fn p122_resultbuilder_literal_for_in_expands() {
+    let src = r#"
+@resultBuilder
+func Mixed() -> Array<String> {
+    "x"
+    for i in ["y"] {
+        i
+    }
+}
+func main() { print(1) }
+"#;
+    let module =
+        syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
+    let expanded = crate::expand_module(module).expect("expand");
+    let dump = format!("{expanded:?}");
+    assert!(
+        dump.contains("__syx_result_builder_buildBlock"),
+        "expected buildBlock fold for literal+for-in: {dump}"
+    );
+}
+
+#[test]
+fn p123_resultbuilder_hostcall_closure_keeps_body_in_closure() {
+    let src = r#"
+@resultBuilder
+func Mixed() -> Array<String> {
+    "lead"
+    for x in ["a"] {
+        __syx_str_length(x)
+        x
+    }
+}
+func main() { print(1) }
+"#;
+    let module =
+        syx_parser::Parser::parse(syx_diagnostics::SourceFile::new("t.sy", src)).expect("parse");
+    let expanded = crate::expand_module(module).expect("expand");
+    let dump = format!("{expanded:?}");
+    assert!(
+        dump.contains("__syx_str_length") && dump.contains("Closure"),
+        "HostCall+Closure must stay inside flat_map closure: {dump}"
+    );
+}
+

@@ -48,48 +48,39 @@ pub use grapheme::{grapheme_at, graphemes_vec, try_grapheme_at};
 #[cfg(feature = "gui-dlopen")]
 mod gui_dlopen;
 mod sql_stubs;
-mod stdlib_phase120_hosts;
-mod stdlib_phase83_hosts;
-mod stdlib_phase84_hosts;
-mod stdlib_phase85_hosts;
-mod stdlib_phase86_hosts;
-mod stdlib_phase87_hosts;
-mod stdlib_phase88_hosts;
+mod service_hosts;
+mod stdlib_core_hosts;
+mod stdlib_process_hosts;
+mod stdlib_encoding_hosts;
+mod stdlib_json_grpc_hosts;
+mod stdlib_wire_hosts;
 #[cfg(not(target_arch = "wasm32"))]
-mod stdlib_phase89_hosts;
+mod stdlib_orm_gui_hosts;
 #[cfg(target_arch = "wasm32")]
-#[path = "wasm_stubs/stdlib_phase89_hosts.rs"]
-mod stdlib_phase89_hosts;
-mod stdlib_phase90_hosts;
-mod stdlib_phase91_hosts;
-mod stdlib_phase92_hosts;
-mod stdlib_phase93_hosts;
-mod stdlib_phase94_hosts;
-mod stdlib_phase95_hosts;
-mod stdlib_phase96_hosts;
-mod stdlib_phase97_hosts;
-mod stdlib_phase98_hosts;
+#[path = "wasm_stubs/stdlib_orm_gui_hosts.rs"]
+mod stdlib_orm_gui_hosts;
+mod stdlib_gui_sql_hosts;
 #[cfg(feature = "gui-synui")]
 mod synui_hosts;
 #[cfg(not(feature = "gui-synui"))]
 #[path = "synui_hosts_stub.rs"]
 mod synui_hosts;
-pub use stdlib_phase84_hosts::{
+pub use stdlib_process_hosts::{
     child_pipe_force_close, child_pipe_live_count, clear_registered_tests,
     process_child_force_close, process_child_live_count, store_registered_test_outcomes,
     take_registered_test_outcomes, RegisteredTestOutcome,
 };
 #[cfg(not(all(feature = "sql", not(target_arch = "wasm32"))))]
-pub use stdlib_phase89_hosts::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
-pub use stdlib_phase94_hosts::{
+pub use stdlib_orm_gui_hosts::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
+pub use stdlib_gui_sql_hosts::{
     gc_churn_stdout_lines, host_gc_churn_stdout, host_gui_winit_canvas_draw_phase94,
     host_gui_winit_event_pump_phase94, host_gui_winit_run_loop_once_phase94,
     host_orm_find_where_dict_rusqlite, orm_executed_sql_count, orm_last_executed_sql,
     reset_phase94_state,
 };
-pub use stdlib_phase95_hosts::reset_phase95_state;
-pub use stdlib_phase96_hosts::reset_phase96_state;
-pub use stdlib_phase97_hosts::{
+pub use stdlib_gui_sql_hosts::reset_phase95_state;
+pub use stdlib_gui_sql_hosts::reset_phase96_state;
+pub use stdlib_gui_sql_hosts::{
     ensure_gui_loaded, gui_backend_name, gui_caret_metric_px, gui_caret_supported,
     gui_cjk_subset_char_count, gui_colr_grad_used, gui_colr_radial_or_sweep_used,
     gui_colr_radial_used, gui_colr_sweep_used, gui_dlopen_loaded, gui_doctor_coverage_digest,
@@ -114,7 +105,7 @@ pub use stdlib_phase97_hosts::{
     host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
     require_gui_dylib_if_visible, reset_phase97_state, visible_window_count,
 };
-pub use stdlib_phase98_hosts::reset_phase98_state;
+pub use stdlib_gui_sql_hosts::reset_phase98_state;
 pub use synui_hosts::{
     reset_synui_state, synui_digest, SYNUI_HOST_BRIDGE_DIGEST, SYNUI_PATH_DEP_DIGEST,
     SYNUI_UI_PACKAGE_DIGEST, SYNUI_V10_SCROLLVIEW_SIGNAL_BIND_DIGEST,
@@ -139,7 +130,7 @@ pub use synui_hosts::{
 pub use syx_sql_impl::{reset_rusqlite_store, sql_conn_force_close, sql_conn_live_count};
 #[cfg(feature = "gui-winit")]
 mod gui_winit_real;
-pub use stdlib_phase93_hosts::{
+pub use stdlib_gui_sql_hosts::{
     gc_churn_event_count, host_gc_churn_event, host_gui_touch_inject,
     host_orm_find_where_dict_bound, orm_bound_value_count, reset_phase93_state,
 };
@@ -214,7 +205,7 @@ pub use program_ctx::{
     set_mir_closure_executor, set_mir_closure_preferred, set_program_ctx, with_active_vm,
     with_program_ctx, ProgramCtx,
 };
-pub use stdlib_phase120_hosts::materialize_lazy_receiver;
+pub use service_hosts::materialize_lazy_receiver;
 pub use syx_runtime_core::{
     combine_value, cooperative_yield, display_numeric, ensure_object_id, finalize_state,
     hash_kind_tag, hash_value, hasher_from_value, hasher_value, is_hasher, make_object_identifier,
@@ -505,7 +496,7 @@ impl VmInstance {
     }
 
     pub fn run_program(&mut self, program: &CompiledProgram) -> SyxResult<Value> {
-        crate::stdlib_phase84_hosts::clear_registered_tests();
+        crate::stdlib_process_hosts::clear_registered_tests();
         set_program_ctx(ProgramCtx {
             program: Arc::new(program.clone()),
             runtime: self.runtime.clone(),
@@ -515,10 +506,10 @@ impl VmInstance {
         let outcomes = if result.is_ok() {
             self.drain_registered_tests(program)
         } else {
-            crate::stdlib_phase84_hosts::clear_registered_tests();
+            crate::stdlib_process_hosts::clear_registered_tests();
             Vec::new()
         };
-        crate::stdlib_phase84_hosts::store_registered_test_outcomes(outcomes);
+        crate::stdlib_process_hosts::store_registered_test_outcomes(outcomes);
         clear_active_vm();
         clear_program_ctx();
         result
@@ -527,17 +518,17 @@ impl VmInstance {
     pub fn drain_registered_tests(
         &mut self,
         program: &CompiledProgram,
-    ) -> Vec<crate::stdlib_phase84_hosts::RegisteredTestOutcome> {
+    ) -> Vec<crate::stdlib_process_hosts::RegisteredTestOutcome> {
         let mut outcomes = Vec::new();
         loop {
-            let batch = crate::stdlib_phase84_hosts::take_registered_test_bodies();
+            let batch = crate::stdlib_process_hosts::take_registered_test_bodies();
             if batch.is_empty() {
                 break;
             }
             for (name, body) in batch {
                 let failure =
-                    crate::stdlib_phase84_hosts::registered_body_error(self, program, &body);
-                outcomes.push(crate::stdlib_phase84_hosts::RegisteredTestOutcome { name, failure });
+                    crate::stdlib_process_hosts::registered_body_error(self, program, &body);
+                outcomes.push(crate::stdlib_process_hosts::RegisteredTestOutcome { name, failure });
             }
         }
         outcomes
@@ -2399,7 +2390,7 @@ impl VmInstance {
                 if !is_ctor {
                     if let Some(recv) = args.first_mut() {
                         *recv =
-                            crate::stdlib_phase120_hosts::materialize_lazy_receiver(recv.clone())?;
+                            crate::service_hosts::materialize_lazy_receiver(recv.clone())?;
                     }
                 }
                 let func = self.resolve_virtual_method(func, &args, program);
@@ -2428,7 +2419,7 @@ impl VmInstance {
                 if !is_ctor {
                     if let Some(recv) = args.first_mut() {
                         *recv =
-                            crate::stdlib_phase120_hosts::materialize_lazy_receiver(recv.clone())?;
+                            crate::service_hosts::materialize_lazy_receiver(recv.clone())?;
                     }
                 }
                 let func = self.resolve_virtual_method(func, &args, program);
@@ -3084,22 +3075,22 @@ impl VmInstance {
             }
             return match method {
                 MethodId::SqlRowGetString => {
-                    crate::stdlib_phase89_hosts::host_sql_row_get_string(&mut self.stack)
+                    crate::stdlib_orm_gui_hosts::host_sql_row_get_string(&mut self.stack)
                 }
                 MethodId::SqlRowGetInt => {
-                    crate::stdlib_phase89_hosts::host_sql_row_get_int(&mut self.stack)
+                    crate::stdlib_orm_gui_hosts::host_sql_row_get_int(&mut self.stack)
                 }
                 MethodId::SqlRowGetFloat => {
-                    crate::stdlib_phase89_hosts::host_sql_row_get_float(&mut self.stack)
+                    crate::stdlib_orm_gui_hosts::host_sql_row_get_float(&mut self.stack)
                 }
                 MethodId::SqlRowGetBlob => {
-                    crate::stdlib_phase89_hosts::host_sql_row_get_blob(&mut self.stack)
+                    crate::stdlib_orm_gui_hosts::host_sql_row_get_blob(&mut self.stack)
                 }
                 MethodId::SqlRowIsNull => {
-                    crate::stdlib_phase89_hosts::host_sql_row_is_null(&mut self.stack)
+                    crate::stdlib_orm_gui_hosts::host_sql_row_is_null(&mut self.stack)
                 }
                 MethodId::SqlRowColumnNames => {
-                    crate::stdlib_phase89_hosts::host_sql_row_column_names(&mut self.stack)
+                    crate::stdlib_orm_gui_hosts::host_sql_row_column_names(&mut self.stack)
                 }
                 _ => Ok(()),
             };
@@ -3535,10 +3526,10 @@ pub fn gc_native_card_table_count() -> i32 {
 
 /// Reset the Phase 120/121/122 runtime service container (embed/tests).
 pub fn reset_service_container() {
-    let _ = stdlib_phase120_hosts::host_service_reset(&mut Vec::new());
+    let _ = service_hosts::host_service_reset(&mut Vec::new());
 }
 
 /// Phase 122: explicit destroy with `@PreDestroy` hooks (embed/tests).
 pub fn destroy_service_container() {
-    let _ = stdlib_phase120_hosts::host_service_destroy(&mut Vec::new());
+    let _ = service_hosts::host_service_destroy(&mut Vec::new());
 }

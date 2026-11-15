@@ -133,7 +133,7 @@ fn m2_s6_03_docs_and_capability() {
         pb.contains("func signal") && pb.contains("__syx_child_signal") && pb.contains("ADR-244"),
         "Child.signal facade required"
     );
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase84_hosts.rs");
+    let hosts = include_str!("../../../syx-vm/src/stdlib_process_hosts.rs");
     assert!(
         hosts.contains("host_child_signal")
             && hosts.contains("SIGTERM")

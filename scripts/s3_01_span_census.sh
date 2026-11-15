@@ -87,30 +87,30 @@ host_macro_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
 host_vm_hosts_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
   crates/syx-vm/src/hosts.rs)
 
-# S3-I15 gate: vm stdlib_phase89_hosts.rs slice.
+# S3-I15 gate: vm stdlib_orm_gui_hosts.rs slice.
 host_vm_phase89_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
-  crates/syx-vm/src/stdlib_phase89_hosts.rs)
+  crates/syx-vm/src/stdlib_orm_gui_hosts.rs)
 
-# S3-I16 gate: vm stdlib_phase84_hosts.rs slice.
+# S3-I16 gate: vm stdlib_process_hosts.rs slice.
 host_vm_phase84_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
-  crates/syx-vm/src/stdlib_phase84_hosts.rs)
+  crates/syx-vm/src/stdlib_process_hosts.rs)
 
-# S3-I17 gate: vm stdlib_phase120_hosts.rs slice.
+# S3-I17 gate: vm service_hosts.rs slice.
 host_vm_phase120_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
-  crates/syx-vm/src/stdlib_phase120_hosts.rs)
+  crates/syx-vm/src/service_hosts.rs)
 
-# S3-I18 gate: vm stdlib_phase83_hosts.rs slice.
+# S3-I18 gate: vm stdlib_core_hosts.rs slice.
 host_vm_phase83_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
-  crates/syx-vm/src/stdlib_phase83_hosts.rs)
+  crates/syx-vm/src/stdlib_core_hosts.rs)
 
 # S3-I19 gate: remaining stdlib_phase*_hosts batch (phase-tail).
 host_vm_phase_tail_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
-  crates/syx-vm/src/stdlib_phase90_hosts.rs \
-  crates/syx-vm/src/stdlib_phase91_hosts.rs \
-  crates/syx-vm/src/stdlib_phase92_hosts.rs \
-  crates/syx-vm/src/stdlib_phase95_hosts.rs \
-  crates/syx-vm/src/stdlib_phase86_hosts.rs \
-  crates/syx-vm/src/stdlib_phase87_hosts.rs)
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer90.rs \
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer91.rs \
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer92.rs \
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer95.rs \
+  crates/syx-vm/src/stdlib_encoding_hosts.rs \
+  crates/syx-vm/src/stdlib_json_grpc_hosts.rs)
 
 # S3-I20 gate: remaining non-wasm_stub mid hosts batch.
 host_vm_mid_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
@@ -127,7 +127,7 @@ host_vm_mid_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
 
 # S3-I21 gate: vm wasm_stubs batch.
 host_vm_wasm_stubs_bare=$(count_rg 'SyxDiagnostic::(error|warning)\(' \
-  crates/syx-vm/src/wasm_stubs/stdlib_phase89_hosts.rs \
+  crates/syx-vm/src/wasm_stubs/stdlib_orm_gui_hosts.rs \
   crates/syx-vm/src/wasm_stubs/http.rs)
 
 # S3-I22 gate: rt + cranelift-jit + debug batch.
@@ -199,7 +199,7 @@ positionless_driver_emit_test_native_bare=$(count_rg 'driver_error\(' \
 
 # S3-I29: VM phase84 positionless — bare vm_error( only (excl _error_at).
 positionless_vm_phase84_bare=$(count_rg 'vm_error\(' \
-  crates/syx-vm/src/stdlib_phase84_hosts.rs)
+  crates/syx-vm/src/stdlib_process_hosts.rs)
 
 # S3-I30: VM hosts.rs positionless.
 positionless_vm_hosts_bare=$(count_rg 'vm_error\(' \
@@ -207,12 +207,12 @@ positionless_vm_hosts_bare=$(count_rg 'vm_error\(' \
 
 # S3-I31: VM phase89 native + wasm twin.
 positionless_vm_phase89_bare=$(count_rg 'vm_error\(' \
-  crates/syx-vm/src/stdlib_phase89_hosts.rs \
-  crates/syx-vm/src/wasm_stubs/stdlib_phase89_hosts.rs)
+  crates/syx-vm/src/stdlib_orm_gui_hosts.rs \
+  crates/syx-vm/src/wasm_stubs/stdlib_orm_gui_hosts.rs)
 
 # S3-I32: VM phase120 + http(+stub) + os accelerate pack.
 positionless_vm_phase120_bare=$(count_rg 'vm_error\(' \
-  crates/syx-vm/src/stdlib_phase120_hosts.rs)
+  crates/syx-vm/src/service_hosts.rs)
 positionless_vm_http_bare=$(count_rg 'vm_error\(' \
   crates/syx-vm/src/http.rs \
   crates/syx-vm/src/wasm_stubs/http.rs)
@@ -223,16 +223,16 @@ positionless_vm_os_bare=$(count_rg 'vm_error\(' \
 positionless_vm_lib_bare=$(count_rg 'vm_error\(' \
   crates/syx-vm/src/lib.rs)
 positionless_vm_phase83_bare=$(count_rg 'vm_error\(' \
-  crates/syx-vm/src/stdlib_phase83_hosts.rs)
+  crates/syx-vm/src/stdlib_core_hosts.rs)
 positionless_vm_channel_bare=$(count_rg 'vm_error\(' \
   crates/syx-vm/src/channel_hosts.rs)
 positionless_vm_phase_tail_bare=$(count_rg 'vm_error\(' \
-  crates/syx-vm/src/stdlib_phase90_hosts.rs \
-  crates/syx-vm/src/stdlib_phase91_hosts.rs \
-  crates/syx-vm/src/stdlib_phase92_hosts.rs \
-  crates/syx-vm/src/stdlib_phase95_hosts.rs \
-  crates/syx-vm/src/stdlib_phase86_hosts.rs \
-  crates/syx-vm/src/stdlib_phase87_hosts.rs)
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer90.rs \
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer91.rs \
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer92.rs \
+  crates/syx-vm/src/stdlib_gui_sql_hosts/layer95.rs \
+  crates/syx-vm/src/stdlib_encoding_hosts.rs \
+  crates/syx-vm/src/stdlib_json_grpc_hosts.rs)
 
 # S3-I34: VM mid residual + wasm-run accelerate pack.
 positionless_vm_mid_bare=$(count_rg 'vm_error\(' \

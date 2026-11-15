@@ -648,6 +648,53 @@ jobs:
           install_rt_profile async-http --no-default-features --features async-runtime,http
           install_rt_profile async-file --no-default-features --features async-runtime,file
 
+          # Slim rt + host domains for `syx build --native` (link path never runs cargo).
+          # Flat lib/libsyx_rt.a becomes the slim archive; hosts/ holds optional domains.
+          echo "Building native host-shake slim rt + host domains"
+          SHAKE_DIR="target/sdk-native-host-shake"
+          RUSTFLAGS="${SYX_RT_RUSTFLAGS:-}" \
+            CARGO_TARGET_DIR="${SHAKE_DIR}" \
+            cargo build --release --target "${TARGET}" \
+              -p syx-rt -p syx-host-sql -p syx-host-http -p syx-host-tls \
+              --no-default-features --features file
+          SHAKE_RT="$(find_rt_lib "${SHAKE_DIR}")" || {
+            echo "ERROR: slim libsyx_rt archive not found under ${SHAKE_DIR}" >&2
+            exit 1
+          }
+          SHAKE_BASE="$(basename "${SHAKE_RT}")"
+          case "${SHAKE_BASE}" in
+            syx_rt-*.lib) SHAKE_BASE="syx_rt.lib" ;;
+            libsyx_rt-*.a) SHAKE_BASE="libsyx_rt.a" ;;
+          esac
+          cp "${SHAKE_RT}" "${SDK_ROOT}/lib/${SHAKE_BASE}"
+          echo "  installed slim ${SDK_ROOT}/lib/${SHAKE_BASE} (from ${SHAKE_RT})"
+          mkdir -p "${SDK_ROOT}/lib/hosts"
+          for stem in syx_host_sql syx_host_http syx_host_tls; do
+            host_src=""
+            for cand in \
+              "${SHAKE_DIR}/${TARGET}/release/lib${stem}.a" \
+              "${SHAKE_DIR}/${TARGET}/release/${stem}.lib" \
+              "${SHAKE_DIR}/release/lib${stem}.a" \
+              "${SHAKE_DIR}/release/${stem}.lib"
+            do
+              if [ -f "${cand}" ]; then host_src="${cand}"; break; fi
+            done
+            if [ -z "${host_src}" ]; then
+              host_src="$(find "${SHAKE_DIR}" \( -name "lib${stem}*.a" -o -name "${stem}*.lib" \) ! -name '*.rlib' 2>/dev/null | head -n 1 || true)"
+            fi
+            if [ -z "${host_src}" ] || [ ! -f "${host_src}" ]; then
+              echo "ERROR: missing host archive for ${stem} under ${SHAKE_DIR}" >&2
+              exit 1
+            fi
+            host_base="$(basename "${host_src}")"
+            case "${host_base}" in
+              ${stem}-*.lib) host_base="${stem}.lib" ;;
+              lib${stem}-*.a) host_base="lib${stem}.a" ;;
+            esac
+            cp "${host_src}" "${SDK_ROOT}/lib/hosts/${host_base}"
+            echo "  installed ${SDK_ROOT}/lib/hosts/${host_base}"
+          done
+
           # NOTE: lib/sysroot is intentionally not packaged for now (MSVC/WinSDK
           # import .lib redistrib concerns). Native link falls back to host VS/Xcode/CLT.
           # collect-sysroot.{sh,ps1} kept for a future self-built import-lib approach.

@@ -5,7 +5,7 @@ use std::sync::{LazyLock, Mutex};
 use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
-pub use crate::stdlib_phase93_hosts::{
+pub use super::layer93::{
     host_gui_button_create, host_gui_label_create, host_gui_on_click, host_gui_text_field_create,
     host_gui_touch_event, host_gui_touch_inject, host_orm_delete_where, host_orm_find_where,
     host_orm_update_where, host_sql_begin_transaction, host_sql_bind_multi, host_sql_bind_step,
@@ -13,7 +13,7 @@ pub use crate::stdlib_phase93_hosts::{
     orm_bound_value_count,
 };
 
-use crate::stdlib_phase91_hosts::{
+use super::layer91::{
     host_gui_run_loop_once as hashmap_run_loop_once,
     host_gui_winit_canvas_draw as hashmap_canvas_draw,
     host_gui_winit_event_pump as hashmap_event_pump,
@@ -42,7 +42,7 @@ static GC_CHURN_STDOUT: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::n
 
 /// Reset Phase 94 state between tests.
 pub fn reset_phase94_state() {
-    crate::stdlib_phase93_hosts::reset_phase93_state();
+    super::layer93::reset_phase93_state();
     #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
     syx_sql_impl::reset_orm_executed_sql();
     if let Ok(mut g) = GC_CHURN_STDOUT.lock() {
@@ -111,7 +111,7 @@ pub fn visible_window_count() -> usize {
     if gui_visible_requested() {
         return real_visible_window_count();
     }
-    crate::stdlib_phase93_hosts::visible_window_count()
+    super::layer93::visible_window_count()
 }
 
 #[cfg(not(feature = "gui-winit"))]

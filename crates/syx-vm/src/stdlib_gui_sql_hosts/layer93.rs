@@ -6,7 +6,7 @@ use std::sync::{LazyLock, Mutex};
 use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
-pub use crate::stdlib_phase92_hosts::{
+pub use super::layer92::{
     host_gui_button_create, host_gui_label_create, host_gui_on_click, host_gui_pixel_read,
     host_gui_run_loop_once, host_gui_text_field_create, host_gui_touch_event,
     host_orm_delete_where, host_orm_find_where, host_orm_update_where, host_sql_begin_transaction,
@@ -14,7 +14,7 @@ pub use crate::stdlib_phase92_hosts::{
     host_sql_rollback_transaction, host_xml_xpath, reset_phase92_state,
 };
 
-use crate::stdlib_phase91_hosts::host_gui_winit_window_create as host_gui_winit_window_create_inner;
+use super::layer91::host_gui_winit_window_create as host_gui_winit_window_create_inner;
 
 #[cfg(all(feature = "sql", not(target_arch = "wasm32")))]
 fn host_sql_query_rusqlite(stack: &mut Vec<Value>) -> SyxResult<()> {

@@ -194,7 +194,7 @@ fn m2_s6_02b_docs_and_capability() {
             && pb.contains("__syx_child_pipe_read_chunk"),
         "ChildPipe facade required"
     );
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase84_hosts.rs");
+    let hosts = include_str!("../../../syx-vm/src/stdlib_process_hosts.rs");
     assert!(
         hosts.contains("CHILD_PIPE_SESSIONS")
             && hosts.contains("host_child_pipe_read_chunk")

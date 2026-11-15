@@ -191,13 +191,13 @@ pub fn host_process_exec_output(stack: &mut Vec<Value>) -> SyxResult<()> {
     match output {
         Ok(out) => {
             let code = out.status.code().unwrap_or(-1);
-            crate::stdlib_phase83_hosts::set_last_exit_code(code);
+            crate::stdlib_core_hosts::set_last_exit_code(code);
             stack.push(Value::Str(
                 String::from_utf8_lossy(&out.stdout).into_owned(),
             ));
         }
         Err(e) => {
-            crate::stdlib_phase83_hosts::set_last_exit_code(127);
+            crate::stdlib_core_hosts::set_last_exit_code(127);
             stack.push(Value::Str(format!("exec error: {e}")));
         }
     }
@@ -235,7 +235,7 @@ pub fn host_process_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
         .and_then(|mut child| child.wait().ok())
         .and_then(|s| s.code())
         .unwrap_or(-1);
-    crate::stdlib_phase83_hosts::set_last_exit_code(code);
+    crate::stdlib_core_hosts::set_last_exit_code(code);
     stack.push(platform_int_value(code as i64));
     Ok(())
 }
@@ -413,7 +413,7 @@ pub fn host_child_wait(stack: &mut Vec<Value>) -> SyxResult<()> {
         .wait()
         .map_err(|e| vm_error_at(format!("Child wait failed: {e}"), None, Span::DUMMY, "R003"))?;
     let code = status.code().unwrap_or(-1);
-    crate::stdlib_phase83_hosts::set_last_exit_code(code);
+    crate::stdlib_core_hosts::set_last_exit_code(code);
     stack.push(platform_int_value(code as i64));
     Ok(())
 }
@@ -554,7 +554,7 @@ pub fn host_child_wait_timeout(stack: &mut Vec<Value>) -> SyxResult<()> {
                 drop(guard);
                 drop_child_pipes(&mut child);
                 let code = status.code().unwrap_or(-1);
-                crate::stdlib_phase83_hosts::set_last_exit_code(code);
+                crate::stdlib_core_hosts::set_last_exit_code(code);
                 stack.push(platform_int_value(code as i64));
                 return Ok(());
             }

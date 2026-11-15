@@ -1149,7 +1149,7 @@ syx build --native --object .
 
 - **clang / 系统链接器**：用于链接 `app` 或编译 LLVM IR 为 `.o`
 - **Release 体积**：debug 构建的 `app` 约 30–35MB（含完整 runtime + 调试符号）；`cargo build --release -p syx-cli` 后 `syx build --native` 约 11–12MB；`strip app` 可降至约 **8–9MB**
-- **Host 按引用裁剪（默认）**：`syx build --native` 链接瘦 `libsyx_rt.a`，仅当 MIR 出现对应 `CallHost` 时才拉入 `syx-host-{sql,http,tls}`。`.sy` 作者**不必**为 SQL/TLS/HTTP 选 Cargo feature——源码里用到即可。
+- **Host 按引用裁剪（默认）**：`syx build --native` 只链接**预编译**的瘦 `libsyx_rt.a`，仅当 MIR 出现对应 `CallHost` 时才拉入 `syx-host-{sql,http,tls}`；**链接期绝不调用 `cargo`**（SDK：`lib/` + `lib/hosts/`；源码树先跑 `bash scripts/build_native_shake_libs.sh`）。`.sy` 作者**不必**为 SQL/TLS/HTTP 选 Cargo feature——源码里用到即可。
 - **体积**：release 下 `examples/hello.sy` 实测约 7.5–8MB（CI 门禁 9MB，见 `scripts/native_host_shake_size.sh`）；使用 Sql/Http/Tls 时仅增加对应域 archive。`--minimal` / `--no-http` / `--no-file` 只是粗 profile，**不是**丢掉 SQL/TLS 的主手段。
 - 报告：`syx doctor --native-profile-report` / `syx doctor --native-host-shake <file.sy>`
 - **`--release`**：`syx build --native --release` 启用 clang `-O2 -DNDEBUG`、release `syx-rt` 链接与 strip 标志；默认 debug 使用 `-O0 -g`。产物分别写入 `target/release/` 与 `target/debug/`。

@@ -1283,12 +1283,14 @@ build = "build.syb"
                 println!("{report}");
             } else if native_profile_report {
                 println!("native-profile host-shake=on");
+                println!("native-profile slim_rt=prebuilt only (never spawns cargo at link time)");
                 println!(
-                    "native-profile slim_rt=target/native-host-shake/{{debug,release}}/libsyx_rt.a"
+                    "native-profile slim_rt_paths=SDK lib/libsyx_rt.a | target/native-host-shake/{{debug,release}}/libsyx_rt.a"
                 );
                 println!(
-                    "native-profile domains=sql,http,tls (linked only when CallHost references them)"
+                    "native-profile domains=sql,http,tls under lib/hosts/ (linked only when CallHost references them)"
                 );
+                println!("native-profile prebuild=bash scripts/build_native_shake_libs.sh");
                 println!("native-profile tip=syx doctor --native-host-shake examples/hello.sy");
             } else {
                 println!(

@@ -1,4 +1,8 @@
 //! Native link-time host shaking: slim `libsyx_rt.a` + optional `syx-host-{sql,http,tls}`.
+//!
+//! Archives are **prebuilt only** — `syx build --native` never spawns `cargo` (SDK users have
+//! no Rust toolchain; spawning a build tool from the linker path is also a security footgun).
+//! Prebuild with `scripts/build_native_shake_libs.sh` (dev) or the release SDK packager.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -10,112 +14,17 @@ use syx_stdlib::{shake_domains_for_indices, HostShakeDomain};
 
 use crate::{driver_error_at, BuildProfile, DriverOptions};
 
-/// Isolated cargo target dir so CLI feature unification cannot fatten `libsyx_rt.a`.
+/// Isolated cargo target dir used by `scripts/build_native_shake_libs.sh` (dev / CI prebuild).
 pub fn native_shake_target_dir(workspace: &Path) -> PathBuf {
     workspace.join("target/native-host-shake")
 }
 
-fn profile_dir(target_dir: &Path, release: bool) -> PathBuf {
-    target_dir.join(if release { "release" } else { "debug" })
-}
-
-/// Ensure slim `syx-rt` (+ needed host domain staticlibs) exist under the shake target dir.
-pub fn ensure_shake_archives(
-    workspace: &Path,
-    domains: &[HostShakeDomain],
-    options: &DriverOptions,
-) -> SyxResult<ShakeLinkArtifacts> {
-    let target_dir = native_shake_target_dir(workspace);
-    let release = options.build_profile == BuildProfile::Release;
-    let mut args = vec![
-        "build".to_string(),
-        "-p".to_string(),
-        "syx-rt".to_string(),
-        "--no-default-features".to_string(),
-    ];
-    let mut rt_features = Vec::new();
-    // Async pulls syx-async (+ rustls dist transport). Only link when explicitly requested
-    // via --minimal=false AND SYX_NATIVE_ASYNC=1, or legacy non-shake rebuilds.
-    let want_async = !options.native_minimal
-        && std::env::var("SYX_NATIVE_ASYNC")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
-    if want_async {
-        rt_features.push("async-runtime");
-    }
-    if !options.native_no_file {
-        rt_features.push("file");
-    }
-    // `http` on syx-rt is a cfg marker for handler install only (no syx-vm/http).
-    // Only needed when the HTTP domain archive is linked (Http.serve handler bridge).
-    if domains.iter().any(|d| *d == HostShakeDomain::Http) && !options.native_no_http {
-        rt_features.push("http");
-    }
-    if !rt_features.is_empty() {
-        args.push("--features".to_string());
-        args.push(rt_features.join(","));
-    }
+fn profile_name(release: bool) -> &'static str {
     if release {
-        args.push("--release".to_string());
+        "release"
+    } else {
+        "debug"
     }
-    for domain in domains {
-        args.push("-p".to_string());
-        args.push(domain.archive_package().to_string());
-    }
-    let status = Command::new("cargo")
-        .args(&args)
-        .current_dir(workspace)
-        .env("CARGO_TARGET_DIR", &target_dir)
-        .status()
-        .map_err(|e| {
-            driver_error_at(
-                format!("Failed to build native shake archives: {e}"),
-                None,
-                Span::DUMMY,
-                "D001",
-            )
-        })?;
-    if !status.success() {
-        return Err(driver_error_at(
-            "Failed to build slim syx-rt / host domain archives for native link",
-            None,
-            Span::DUMMY,
-            "N001",
-        ));
-    }
-    let dir = profile_dir(&target_dir, release);
-    let rt = dir.join(rt_archive_name());
-    if !rt.is_file() {
-        return Err(driver_error_at(
-            format!("slim syx-rt archive missing: {}", rt.display()),
-            None,
-            Span::DUMMY,
-            "N001",
-        ));
-    }
-    let mut host_archives = Vec::new();
-    for domain in domains {
-        // staticlib name: libsyx_host_sql.a / syx_host_sql.lib
-        let stem = domain.archive_package().replace('-', "_");
-        #[cfg(windows)]
-        let archive = dir.join(format!("{stem}.lib"));
-        #[cfg(not(windows))]
-        let archive = dir.join(format!("lib{stem}.a"));
-        if !archive.is_file() {
-            return Err(driver_error_at(
-                format!("host domain archive missing: {}", archive.display()),
-                None,
-                Span::DUMMY,
-                "N001",
-            ));
-        }
-        host_archives.push(archive);
-    }
-    Ok(ShakeLinkArtifacts {
-        rt_archive: rt,
-        host_archives,
-        domains: domains.to_vec(),
-    })
 }
 
 fn rt_archive_name() -> &'static str {
@@ -127,6 +36,162 @@ fn rt_archive_name() -> &'static str {
     {
         "libsyx_rt.a"
     }
+}
+
+fn host_archive_name(domain: HostShakeDomain) -> String {
+    let stem = domain.archive_package().replace('-', "_");
+    #[cfg(windows)]
+    {
+        format!("{stem}.lib")
+    }
+    #[cfg(not(windows))]
+    {
+        format!("lib{stem}.a")
+    }
+}
+
+fn first_existing(candidates: &[PathBuf]) -> Option<PathBuf> {
+    candidates.iter().find(|p| p.is_file()).cloned()
+}
+
+/// Search roots for prebuilt slim rt / host domain archives (never builds).
+fn shake_lib_search_dirs(release: bool) -> Vec<PathBuf> {
+    let profile = profile_name(release);
+    let mut dirs = Vec::new();
+
+    if let Ok(raw) = std::env::var("SYX_NATIVE_SHAKE_LIB_DIR") {
+        let p = PathBuf::from(raw);
+        if !p.as_os_str().is_empty() {
+            dirs.push(p);
+        }
+    }
+
+    // Official SDK: `bin/syx` → `../lib` (+ `../lib/hosts` for domain archives).
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(bin) = exe.parent() {
+            let lib = bin.join("../lib");
+            dirs.push(lib.join("hosts"));
+            dirs.push(lib.clone());
+            dirs.push(lib.join("native-host-shake").join(profile));
+        }
+    }
+
+    // Dev checkout: walk cwd ancestors for `target/native-host-shake/<profile>`.
+    if let Ok(cwd) = std::env::current_dir() {
+        for anc in cwd.ancestors().take(8) {
+            dirs.push(anc.join("target/native-host-shake").join(profile));
+        }
+    }
+
+    // Binary built from this tree: baked workspace path may still exist on the build machine.
+    let baked = workspace_root()
+        .join("target/native-host-shake")
+        .join(profile);
+    dirs.push(baked);
+
+    dirs
+}
+
+fn resolve_rt_archive(release: bool) -> Option<PathBuf> {
+    if let Ok(raw) = std::env::var("SYX_RT_STATIC_LIB") {
+        let p = PathBuf::from(raw);
+        if p.is_file() {
+            return Some(p);
+        }
+        // Directory containing the archive.
+        let nested = p.join(rt_archive_name());
+        if nested.is_file() {
+            return Some(nested);
+        }
+    }
+
+    if let Ok(id) = std::env::var("SYX_RT_PROFILE") {
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(bin) = exe.parent() {
+                let lib = bin.join("../lib");
+                for c in [
+                    lib.join("profiles").join(&id).join(rt_archive_name()),
+                    lib.join(&id).join(rt_archive_name()),
+                ] {
+                    if c.is_file() {
+                        return Some(c);
+                    }
+                }
+            }
+        }
+    }
+
+    let mut candidates = Vec::new();
+    for dir in shake_lib_search_dirs(release) {
+        candidates.push(dir.join(rt_archive_name()));
+    }
+    if let Some(p) = first_existing(&candidates) {
+        return Some(p);
+    }
+
+    // Last resort: existing syx-rt locator (SDK flat lib / cargo target from a prior build).
+    syx_rt::rt_archive_path().ok()
+}
+
+fn resolve_host_archive(domain: HostShakeDomain, release: bool, rt: &Path) -> Option<PathBuf> {
+    let name = host_archive_name(domain);
+    let mut candidates = Vec::new();
+    if let Some(parent) = rt.parent() {
+        candidates.push(parent.join(&name));
+        candidates.push(parent.join("hosts").join(&name));
+    }
+    for dir in shake_lib_search_dirs(release) {
+        candidates.push(dir.join(&name));
+    }
+    first_existing(&candidates)
+}
+
+fn missing_archive_hint() -> &'static str {
+    "prebuild with `bash scripts/build_native_shake_libs.sh` (dev/CI), or install an SDK that ships `lib/libsyx_rt.a` (+ `lib/hosts/` for sql/http/tls); set SYX_RT_STATIC_LIB / SYX_NATIVE_SHAKE_LIB_DIR to override"
+}
+
+/// Resolve prebuilt slim `syx-rt` (+ needed host domain staticlibs). **Never** spawns cargo.
+pub fn ensure_shake_archives(
+    _workspace: &Path,
+    domains: &[HostShakeDomain],
+    options: &DriverOptions,
+) -> SyxResult<ShakeLinkArtifacts> {
+    let release = options.build_profile == BuildProfile::Release;
+    let rt = resolve_rt_archive(release).ok_or_else(|| {
+        driver_error_at(
+            format!(
+                "slim libsyx_rt archive not found ({})",
+                missing_archive_hint()
+            ),
+            None,
+            Span::DUMMY,
+            "N001",
+        )
+    })?;
+
+    let mut host_archives = Vec::new();
+    for domain in domains {
+        let archive = resolve_host_archive(*domain, release, &rt).ok_or_else(|| {
+            driver_error_at(
+                format!(
+                    "host domain archive missing for {} ({}; expected {})",
+                    domain.as_str(),
+                    missing_archive_hint(),
+                    host_archive_name(*domain)
+                ),
+                None,
+                Span::DUMMY,
+                "N001",
+            )
+        })?;
+        host_archives.push(archive);
+    }
+
+    Ok(ShakeLinkArtifacts {
+        rt_archive: rt,
+        host_archives,
+        domains: domains.to_vec(),
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -143,6 +208,7 @@ pub fn domains_for_module(module: &MirModule) -> Vec<HostShakeDomain> {
 }
 
 /// Emit a small C object that calls domain `*_install` before main (constructor).
+/// Uses host `cc` only (same requirement as native link); does not invoke cargo.
 pub fn write_host_install_object(
     out_dir: &Path,
     domains: &[HostShakeDomain],
@@ -228,10 +294,13 @@ pub fn format_host_shake_report(module: &MirModule) -> String {
             d.archive_package()
         ));
     }
+    lines.push(
+        "native-host-shake note=prebuilt archives only (never spawns cargo at link time)".into(),
+    );
     lines.join("\n")
 }
 
-/// Workspace root from syx-driver manifest dir.
+/// Workspace root from syx-driver manifest dir (dev path lookup only).
 pub fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

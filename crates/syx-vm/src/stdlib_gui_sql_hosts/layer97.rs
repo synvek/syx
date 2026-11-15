@@ -7,18 +7,18 @@ use prost::Message;
 use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
-pub use crate::stdlib_phase96_hosts::{
+pub use super::layer96::{
     host_gc_churn_heap, host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
 };
 
-use crate::stdlib_phase91_hosts::host_gui_pixel_read as hashmap_pixel_read;
-use crate::stdlib_phase91_hosts::{
+use super::layer91::host_gui_pixel_read as hashmap_pixel_read;
+use super::layer91::{
     host_gui_button_create as hashmap_button_create, host_gui_label_create as hashmap_label_create,
     host_gui_text_field_create as hashmap_text_field_create,
     host_gui_winit_canvas_draw as hashmap_canvas_draw,
 };
 // Phase 99: use Phase 93 create so VISIBLE_WINDOWS is updated (Phase 91 alone does not).
-use crate::stdlib_phase93_hosts::host_gui_winit_window_create as hashmap_window_create;
+use super::layer93::host_gui_winit_window_create as hashmap_window_create;
 
 static CODABLE_L14_SCHEMA: LazyLock<Mutex<HashMap<String, Vec<String>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -41,7 +41,7 @@ fn pop_str(stack: &mut Vec<Value>) -> String {
 }
 
 pub fn reset_phase97_state() {
-    crate::stdlib_phase96_hosts::reset_phase96_state();
+    super::layer96::reset_phase96_state();
     if let Ok(mut g) = CODABLE_L14_SCHEMA.lock() {
         g.clear();
     }
@@ -149,7 +149,7 @@ pub fn host_gui_winit_window_create(stack: &mut Vec<Value>) -> SyxResult<()> {
         if let Some(Value::Str(id)) = stack.last() {
             if !id.contains("fail") {
                 let mut show = vec![Value::Str(id.clone())];
-                let _ = crate::stdlib_phase93_hosts::host_gui_window_show(&mut show);
+                let _ = super::layer93::host_gui_window_show(&mut show);
             }
         }
         return Ok(());
@@ -239,7 +239,7 @@ pub fn host_gui_on_click(stack: &mut Vec<Value>) -> SyxResult<()> {
         return Ok(());
     }
     let mut inner = vec![Value::Str(win_id), Value::Str(btn_id), Value::Str(handler)];
-    crate::stdlib_phase91_hosts::host_gui_on_click(&mut inner)?;
+    super::layer91::host_gui_on_click(&mut inner)?;
     stack.push(inner.pop().unwrap_or(Value::Bool(false)));
     Ok(())
 }
@@ -255,7 +255,7 @@ pub fn host_gui_layout_create(stack: &mut Vec<Value>) -> SyxResult<()> {
         return Ok(());
     }
     let mut inner = vec![Value::Str(win_id), Value::Str(axis)];
-    crate::stdlib_phase91_hosts::host_gui_layout_create(&mut inner)?;
+    super::layer91::host_gui_layout_create(&mut inner)?;
     stack.push(inner.pop().unwrap_or(Value::Str(String::new())));
     Ok(())
 }
@@ -323,7 +323,7 @@ pub fn host_gui_click_inject(stack: &mut Vec<Value>) -> SyxResult<()> {
         Value::Str(btn_id),
         Value::Str("inject".into()),
     ];
-    crate::stdlib_phase91_hosts::host_gui_on_click(&mut inner)?;
+    super::layer91::host_gui_on_click(&mut inner)?;
     stack.push(inner.pop().unwrap_or(Value::Bool(false)));
     Ok(())
 }
@@ -341,7 +341,7 @@ pub fn host_gui_button_take_clicked(stack: &mut Vec<Value>) -> SyxResult<()> {
 }
 
 pub fn visible_window_count() -> usize {
-    let hashmap = crate::stdlib_phase93_hosts::visible_window_count();
+    let hashmap = super::layer93::visible_window_count();
     #[cfg(feature = "gui-dlopen")]
     if use_dlopen_path() {
         return hashmap.max(crate::gui_dlopen::visible_window_count_dlopen());

@@ -240,7 +240,7 @@ func main() {{
 
 #[test]
 fn m2_s8_03b_docs_and_capability() {
-    let host = include_str!("../../../syx-vm/src/stdlib_phase89_hosts.rs");
+    let host = include_str!("../../../syx-vm/src/stdlib_orm_gui_hosts.rs");
     assert!(
         host.contains("SQL_TXN_OPEN")
             && host.contains("open transaction")

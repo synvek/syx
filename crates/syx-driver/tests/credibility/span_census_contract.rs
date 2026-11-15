@@ -1638,24 +1638,24 @@ fn s3_01_span_census_baseline() {
         "census must count native_build.rs for emit/test/native KPI"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase84_hosts.rs"),
-        "census must count stdlib_phase84_hosts.rs for vm phase84 KPI"
+        script.contains("crates/syx-vm/src/stdlib_process_hosts.rs"),
+        "census must count stdlib_process_hosts.rs for vm phase84 KPI"
     );
     assert!(
         script.contains("crates/syx-vm/src/hosts.rs"),
         "census must count hosts.rs for vm hosts KPI"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase89_hosts.rs"),
-        "census must count stdlib_phase89_hosts.rs for vm phase89 KPI"
+        script.contains("crates/syx-vm/src/stdlib_orm_gui_hosts.rs"),
+        "census must count stdlib_orm_gui_hosts.rs for vm phase89 KPI"
     );
     assert!(
-        script.contains("crates/syx-vm/src/wasm_stubs/stdlib_phase89_hosts.rs"),
+        script.contains("crates/syx-vm/src/wasm_stubs/stdlib_orm_gui_hosts.rs"),
         "census must count wasm_stubs phase89 for vm phase89 KPI"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase120_hosts.rs"),
-        "census must count stdlib_phase120_hosts.rs for vm phase120 KPI"
+        script.contains("crates/syx-vm/src/service_hosts.rs"),
+        "census must count service_hosts.rs for vm phase120 KPI"
     );
     assert!(
         script.contains("crates/syx-vm/src/http.rs"),
@@ -1674,7 +1674,7 @@ fn s3_01_span_census_baseline() {
         "census must count lib.rs for vm lib KPI"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase83_hosts.rs"),
+        script.contains("crates/syx-vm/src/stdlib_core_hosts.rs"),
         "census must count phase83 for vm phase83 KPI"
     );
     assert!(
@@ -1682,7 +1682,7 @@ fn s3_01_span_census_baseline() {
         "census must count channel_hosts.rs for vm channel KPI"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase90_hosts.rs"),
+        script.contains("crates/syx-vm/src/stdlib_gui_sql_hosts/layer90.rs"),
         "census must count phase90 for vm phase_tail KPI"
     );
     assert!(
@@ -1706,28 +1706,28 @@ fn s3_01_span_census_baseline() {
         "census must count syx-vm hosts.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase89_hosts.rs"),
-        "census must count syx-vm stdlib_phase89_hosts.rs"
+        script.contains("crates/syx-vm/src/stdlib_orm_gui_hosts.rs"),
+        "census must count syx-vm stdlib_orm_gui_hosts.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase84_hosts.rs"),
-        "census must count syx-vm stdlib_phase84_hosts.rs"
+        script.contains("crates/syx-vm/src/stdlib_process_hosts.rs"),
+        "census must count syx-vm stdlib_process_hosts.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase120_hosts.rs"),
-        "census must count syx-vm stdlib_phase120_hosts.rs"
+        script.contains("crates/syx-vm/src/service_hosts.rs"),
+        "census must count syx-vm service_hosts.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase83_hosts.rs"),
-        "census must count syx-vm stdlib_phase83_hosts.rs"
+        script.contains("crates/syx-vm/src/stdlib_core_hosts.rs"),
+        "census must count syx-vm stdlib_core_hosts.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase90_hosts.rs"),
-        "census must count syx-vm stdlib_phase90_hosts.rs"
+        script.contains("crates/syx-vm/src/stdlib_gui_sql_hosts/layer90.rs"),
+        "census must count syx-vm stdlib_gui_sql_hosts/layer90.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/stdlib_phase87_hosts.rs"),
-        "census must count syx-vm stdlib_phase87_hosts.rs"
+        script.contains("crates/syx-vm/src/stdlib_json_grpc_hosts.rs"),
+        "census must count syx-vm stdlib_json_grpc_hosts.rs"
     );
     assert!(
         script.contains("crates/syx-vm/src/lib.rs"),
@@ -1738,8 +1738,8 @@ fn s3_01_span_census_baseline() {
         "census must count syx-vm http.rs"
     );
     assert!(
-        script.contains("crates/syx-vm/src/wasm_stubs/stdlib_phase89_hosts.rs"),
-        "census must count wasm_stubs stdlib_phase89_hosts.rs"
+        script.contains("crates/syx-vm/src/wasm_stubs/stdlib_orm_gui_hosts.rs"),
+        "census must count wasm_stubs stdlib_orm_gui_hosts.rs"
     );
     assert!(
         script.contains("crates/syx-vm/src/wasm_stubs/http.rs"),
@@ -2116,7 +2116,7 @@ fn s3_01_host_vm_hosts_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase89_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase89_hosts.rs")),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_orm_gui_hosts.rs")),
         0,
         "host_vm_phase89_bare must be 0"
     );
@@ -2125,7 +2125,7 @@ fn s3_01_host_vm_phase89_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase84_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase84_hosts.rs")),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_process_hosts.rs")),
         0,
         "host_vm_phase84_bare must be 0"
     );
@@ -2134,7 +2134,7 @@ fn s3_01_host_vm_phase84_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase120_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase120_hosts.rs")),
+        bare_diag_count(&repo_file("crates/syx-vm/src/service_hosts.rs")),
         0,
         "host_vm_phase120_bare must be 0"
     );
@@ -2143,7 +2143,7 @@ fn s3_01_host_vm_phase120_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase83_bare_zero() {
     assert_eq!(
-        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_phase83_hosts.rs")),
+        bare_diag_count(&repo_file("crates/syx-vm/src/stdlib_core_hosts.rs")),
         0,
         "host_vm_phase83_bare must be 0"
     );
@@ -2152,12 +2152,12 @@ fn s3_01_host_vm_phase83_bare_zero() {
 #[test]
 fn s3_01_host_vm_phase_tail_bare_zero() {
     let files = [
-        "crates/syx-vm/src/stdlib_phase90_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase91_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase92_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase95_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase86_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase87_hosts.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer90.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer91.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer92.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer95.rs",
+        "crates/syx-vm/src/stdlib_encoding_hosts.rs",
+        "crates/syx-vm/src/stdlib_json_grpc_hosts.rs",
     ];
     let mut total = 0usize;
     for rel in files {
@@ -2194,7 +2194,7 @@ fn s3_01_host_vm_mid_bare_zero() {
 #[test]
 fn s3_01_host_vm_wasm_stubs_bare_zero() {
     let files = [
-        "crates/syx-vm/src/wasm_stubs/stdlib_phase89_hosts.rs",
+        "crates/syx-vm/src/wasm_stubs/stdlib_orm_gui_hosts.rs",
         "crates/syx-vm/src/wasm_stubs/http.rs",
     ];
     let mut total = 0usize;
@@ -2293,7 +2293,7 @@ fn s3_01_positionless_vm_phase84_bare_zero() {
         stdout.contains("positionless_vm_phase84_bare=0"),
         "expected positionless_vm_phase84_bare=0, got:\n{stdout}"
     );
-    let src = repo_file("crates/syx-vm/src/stdlib_phase84_hosts.rs");
+    let src = repo_file("crates/syx-vm/src/stdlib_process_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
     assert_eq!(
@@ -2340,8 +2340,8 @@ fn s3_01_positionless_vm_phase89_bare_zero() {
         "expected positionless_vm_phase89_bare=0, got:\n{stdout}"
     );
     for rel in [
-        "crates/syx-vm/src/stdlib_phase89_hosts.rs",
-        "crates/syx-vm/src/wasm_stubs/stdlib_phase89_hosts.rs",
+        "crates/syx-vm/src/stdlib_orm_gui_hosts.rs",
+        "crates/syx-vm/src/wasm_stubs/stdlib_orm_gui_hosts.rs",
     ] {
         let src = repo_file(rel);
         let bare = src.matches("vm_error(").count();
@@ -2363,7 +2363,7 @@ fn s3_01_positionless_vm_phase120_bare_zero() {
         stdout.contains("positionless_vm_phase120_bare=0"),
         "expected positionless_vm_phase120_bare=0, got:\n{stdout}"
     );
-    let src = repo_file("crates/syx-vm/src/stdlib_phase120_hosts.rs");
+    let src = repo_file("crates/syx-vm/src/service_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
     assert_eq!(
@@ -2456,7 +2456,7 @@ fn s3_01_positionless_vm_phase83_bare_zero() {
         stdout.contains("positionless_vm_phase83_bare=0"),
         "expected positionless_vm_phase83_bare=0, got:\n{stdout}"
     );
-    let src = repo_file("crates/syx-vm/src/stdlib_phase83_hosts.rs");
+    let src = repo_file("crates/syx-vm/src/stdlib_core_hosts.rs");
     let bare = src.matches("vm_error(").count();
     let at = src.matches("vm_error_at(").count();
     assert_eq!(
@@ -2503,12 +2503,12 @@ fn s3_01_positionless_vm_phase_tail_bare_zero() {
         "expected positionless_vm_phase_tail_bare=0, got:\n{stdout}"
     );
     for rel in [
-        "crates/syx-vm/src/stdlib_phase90_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase91_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase92_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase95_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase86_hosts.rs",
-        "crates/syx-vm/src/stdlib_phase87_hosts.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer90.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer91.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer92.rs",
+        "crates/syx-vm/src/stdlib_gui_sql_hosts/layer95.rs",
+        "crates/syx-vm/src/stdlib_encoding_hosts.rs",
+        "crates/syx-vm/src/stdlib_json_grpc_hosts.rs",
     ] {
         let src = repo_file(rel);
         let bare = src.matches("vm_error(").count();

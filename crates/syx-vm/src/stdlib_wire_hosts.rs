@@ -8,7 +8,7 @@ use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
 #[allow(unused_imports)]
-pub use crate::stdlib_phase87_hosts::{host_runtime_cast, runtime_cast_matches};
+pub use crate::stdlib_json_grpc_hosts::{host_runtime_cast, runtime_cast_matches};
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
@@ -180,7 +180,7 @@ fn value_as_map(value: &Value) -> Option<HashMap<String, Value>> {
 
 fn grpc_unary_chunk(method: &str, body: &str) -> String {
     let mut stack = vec![Value::Str(body.to_string()), Value::Str(method.to_string())];
-    let _ = crate::stdlib_phase87_hosts::host_grpc_unary(&mut stack);
+    let _ = crate::stdlib_json_grpc_hosts::host_grpc_unary(&mut stack);
     stack
         .pop()
         .map(|v| v.as_str())
@@ -207,7 +207,7 @@ pub fn host_grpc_stream_client(stack: &mut Vec<Value>) -> SyxResult<()> {
 pub fn host_grpc_stream_server(stack: &mut Vec<Value>) -> SyxResult<()> {
     let prefix = pop_str(stack);
     let method = pop_str(stack);
-    crate::stdlib_phase87_hosts::register_grpc_loopback_handler(
+    crate::stdlib_json_grpc_hosts::register_grpc_loopback_handler(
         &method,
         &format!("stream:{prefix}"),
     );

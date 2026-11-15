@@ -6,7 +6,7 @@ use syx_diagnostics::SyxResult;
 
 use syx_runtime_core::Value;
 
-pub use crate::stdlib_phase91_hosts::{
+pub use super::layer91::{
     host_gui_button_create, host_gui_label_create, host_gui_layout_create, host_gui_on_click,
     host_gui_pixel_read, host_gui_run_loop_once, host_gui_text_field_create,
     host_gui_winit_canvas_draw, host_gui_winit_event_pump, host_gui_winit_window_create,

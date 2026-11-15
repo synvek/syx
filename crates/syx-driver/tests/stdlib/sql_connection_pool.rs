@@ -158,7 +158,7 @@ fn m2_s8_01c_docs_and_capability() {
             && sql.contains("ADR-245"),
         "Sql pool facade required"
     );
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase89_hosts.rs");
+    let hosts = include_str!("../../../syx-vm/src/stdlib_orm_gui_hosts.rs");
     assert!(
         hosts.contains("SQL_POOLS")
             && hosts.contains("host_sql_pool_acquire")

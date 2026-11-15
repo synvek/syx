@@ -21,7 +21,11 @@ syx/                      # archive root (e.g. syx-sdk-0.1.0-macos-aarch64.tar.g
   bin/
     syx                 # CLI (syx.exe on Windows); LLD normally linked in-process
   lib/
-    libsyx_rt.a         # default runtime (same as profiles/full; syx_rt.lib on Windows)
+    libsyx_rt.a         # default **slim** runtime for `syx build --native` (syx_rt.lib on Windows)
+    hosts/              # optional heavy domains (linked only when CallHost needs them)
+      libsyx_host_sql.a
+      libsyx_host_http.a
+      libsyx_host_tls.a
     profiles/
       full/...
       minimal/...
@@ -32,6 +36,10 @@ syx/                      # archive root (e.g. syx-sdk-0.1.0-macos-aarch64.tar.g
   examples/             # sample programs
   tutorial/             # guided `.sy` lessons
 ```
+
+`syx build --native` **never** runs `cargo` (or any Rust build). It only links
+prebuilt archives from `lib/` / `lib/hosts/` (or `SYX_RT_STATIC_LIB` /
+`SYX_NATIVE_SHAKE_LIB_DIR`).
 
 ## Quick start
 

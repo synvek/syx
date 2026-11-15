@@ -3,18 +3,18 @@
 use syx_diagnostics::SyxResult;
 use syx_runtime_core::Value;
 
-pub use crate::stdlib_phase95_hosts::{
+pub use super::layer95::{
     host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
 };
 
-use crate::stdlib_phase91_hosts::{
+use super::layer91::{
     host_gui_run_loop_once as hashmap_run_loop_once,
     host_gui_winit_canvas_draw as hashmap_canvas_draw,
     host_gui_winit_event_pump as hashmap_event_pump,
     host_gui_winit_window_create as hashmap_window_create,
 };
 
-use crate::stdlib_phase91_hosts::host_gui_pixel_read as hashmap_pixel_read;
+use super::layer91::host_gui_pixel_read as hashmap_pixel_read;
 
 fn pop_str(stack: &mut Vec<Value>) -> String {
     stack.pop().unwrap_or(Value::Str(String::new())).as_str()
@@ -22,7 +22,7 @@ fn pop_str(stack: &mut Vec<Value>) -> String {
 
 /// Reset Phase 96 state between tests.
 pub fn reset_phase96_state() {
-    crate::stdlib_phase95_hosts::reset_phase95_state();
+    super::layer95::reset_phase95_state();
     #[cfg(feature = "gui-dlopen")]
     crate::gui_dlopen::reset_dlopen_state();
 }
@@ -88,7 +88,7 @@ pub fn visible_window_count() -> usize {
     if use_dlopen_path() {
         return crate::gui_dlopen::visible_window_count_dlopen();
     }
-    crate::stdlib_phase93_hosts::visible_window_count()
+    super::layer93::visible_window_count()
 }
 
 pub fn gui_backend_name() -> &'static str {

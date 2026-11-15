@@ -13,14 +13,14 @@ pub use syx_sql_impl::{
     host_orm_find_where_dict_prepare, orm_prepared_row_count, orm_prepared_rows,
 };
 
-pub use crate::stdlib_phase94_hosts::{
+pub use super::layer94::{
     gc_churn_stdout_lines, host_gui_touch_event, host_gui_touch_inject, host_orm_delete_where,
     host_orm_find_where, host_orm_update_where, host_sql_begin_transaction, host_sql_bind_multi,
     host_sql_bind_step, host_sql_commit_transaction, host_sql_migrate,
     host_sql_rollback_transaction, host_xml_xpath, orm_bound_value_count, reset_phase94_state,
 };
 
-use crate::stdlib_phase91_hosts::{
+use super::layer91::{
     host_gui_run_loop_once as hashmap_run_loop_once,
     host_gui_winit_canvas_draw as hashmap_canvas_draw,
     host_gui_winit_event_pump as hashmap_event_pump,
@@ -73,7 +73,7 @@ pub fn host_gui_winit_run_loop_once_phase95(stack: &mut Vec<Value>) -> SyxResult
     hashmap_run_loop_once(stack)
 }
 
-use crate::stdlib_phase91_hosts::host_gui_pixel_read as hashmap_pixel_read;
+use super::layer91::host_gui_pixel_read as hashmap_pixel_read;
 
 pub fn host_gui_pixel_read_phase95(stack: &mut Vec<Value>) -> SyxResult<()> {
     #[cfg(feature = "gui-syx-isolated")]
@@ -88,7 +88,7 @@ pub fn visible_window_count() -> usize {
     if gui_visible_requested() {
         return syx_gui::visible_window_count();
     }
-    crate::stdlib_phase93_hosts::visible_window_count()
+    super::layer93::visible_window_count()
 }
 
 #[cfg(feature = "gui-syx-isolated")]

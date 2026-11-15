@@ -14,7 +14,6 @@ use crate::{
     NativeBackend,
 };
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use syx_diagnostics::{Span, SyxResult};
 use syx_mir::MirModule;
 use syx_pkg::{load_manifest, load_resolved_packages};
@@ -96,51 +95,6 @@ pub fn build_native_file_with_options(
         object,
         executable: None,
     })
-}
-
-#[allow(dead_code)] // retained for legacy --minimal rebuild; shake path uses ensure_shake_archives
-fn rebuild_native_rt(options: &DriverOptions) -> SyxResult<()> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let workspace = manifest_dir.join("../..");
-    let mut args = vec!["build".to_string(), "-p".to_string(), "syx-rt".to_string()];
-    if options.build_profile == BuildProfile::Release {
-        args.push("--release".to_string());
-    }
-    if options.native_minimal {
-        args.push("--no-default-features".to_string());
-    } else {
-        args.push("--features".to_string());
-        let mut features = Vec::new();
-        if !options.native_no_http {
-            features.push("http");
-        }
-        if !options.native_no_file {
-            features.push("file");
-        }
-        features.push("async-runtime");
-        args.push(features.join(","));
-    }
-    let status = Command::new("cargo")
-        .args(&args)
-        .current_dir(&workspace)
-        .status()
-        .map_err(|e| {
-            driver_error_at(
-                format!("Failed to rebuild syx-rt: {e}"),
-                None,
-                Span::DUMMY,
-                "D001",
-            )
-        })?;
-    if !status.success() {
-        return Err(driver_error_at(
-            "Failed to rebuild syx-rt for native link (check --minimal / --no-http / --no-file flags)",
-            None,
-            Span::DUMMY,
-            "N001",
-        ));
-    }
-    Ok(())
 }
 
 fn native_link_options(root: &Path) -> syx_rt::LinkOptions {

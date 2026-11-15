@@ -1,4 +1,4 @@
-//! wasm32 stub for `stdlib_phase89_hosts.rs` — native C/TLS/sqlite hosts unavailable.
+//! wasm32 stub for `stdlib_orm_gui_hosts.rs` — native C/TLS/sqlite hosts unavailable.
 #![allow(unused_variables)]
 
 use syx_diagnostics::{Span, SyxResult};

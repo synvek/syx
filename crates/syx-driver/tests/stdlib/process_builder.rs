@@ -218,7 +218,7 @@ fn m2_s6_01_docs_and_capability() {
         "ProcessBuilder/Child facade required"
     );
 
-    let hosts = include_str!("../../../syx-vm/src/stdlib_phase84_hosts.rs");
+    let hosts = include_str!("../../../syx-vm/src/stdlib_process_hosts.rs");
     assert!(
         hosts.contains("PROCESS_BUILDER_SESSIONS")
             && hosts.contains("host_child_kill")
