@@ -58,3 +58,4 @@ target-linux/
 #   powershell -File scripts/gen_prelude_snapshot.ps1
 crates/syx-driver/assets/prelude_snapshot.bin
 crates/syx-driver/assets/prelude_vm_image.rkyv
+crates/syx-driver/assets/prelude_stdlib_mir.bin

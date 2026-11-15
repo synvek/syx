@@ -1140,7 +1140,11 @@ fn emit_cache_version_tag_env(root: &Path) {
 fn ensure_prelude_asset_placeholders() {
     let assets = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
     let _ = std::fs::create_dir_all(&assets);
-    for name in ["prelude_snapshot.bin", "prelude_vm_image.rkyv"] {
+    for name in [
+        "prelude_snapshot.bin",
+        "prelude_vm_image.rkyv",
+        "prelude_stdlib_mir.bin",
+    ] {
         let path = assets.join(name);
         if !path.exists() {
             let _ = std::fs::write(&path, b"");
@@ -1168,6 +1172,12 @@ fn main() {
         "cargo:rerun-if-changed={}",
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("assets/prelude_vm_image.rkyv")
+            .display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("assets/prelude_stdlib_mir.bin")
             .display()
     );
     emit_rustc_version_env();

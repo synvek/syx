@@ -1,8 +1,12 @@
 //! Local SYX daemon — keeps hydrated prelude warm across `syx run` clients.
 //! Protocol: length-prefixed JSON (u32 LE + UTF-8 body) over a Unix domain socket.
 
+use crate::mir_unify::warm_stdlib_mir_from_embed;
 use crate::rkyv_image::{store_hydrated_graph, take_hydrated_graph};
-use crate::{ensure_prelude_modules_in_graph, run_file_printed, DriverOptions, ModuleGraph};
+use crate::{
+    ensure_prelude_modules_in_graph, run_file_printed, run_wasm_source_printed, DriverOptions,
+    ModuleGraph,
+};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
@@ -18,7 +22,18 @@ pub enum DaemonRequest {
         #[serde(default)]
         with_cache: bool,
     },
+    RunWasm {
+        path: String,
+        #[serde(default)]
+        with_cache: bool,
+        #[serde(default = "default_wasm_entry")]
+        entry: String,
+    },
     Shutdown,
+}
+
+fn default_wasm_entry() -> String {
+    "main".into()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,20 +80,21 @@ pub fn default_daemon_sock() -> PathBuf {
 }
 
 fn warm_prelude() {
-    if take_hydrated_graph().is_some() {
-        return;
+    if take_hydrated_graph().is_none() {
+        let mut graph = ModuleGraph::default();
+        let opts = DriverOptions {
+            stdlib_mir: false,
+            incremental_cache: false,
+            ..DriverOptions::default()
+        };
+        let root = std::env::temp_dir();
+        let _ = ensure_prelude_modules_in_graph(&mut graph, &SyxManifest::default(), &opts, &root);
+        if !graph.modules.is_empty() {
+            store_hydrated_graph(graph);
+        }
     }
-    let mut graph = ModuleGraph::default();
-    let opts = DriverOptions {
-        stdlib_mir: false,
-        incremental_cache: false,
-        ..DriverOptions::default()
-    };
-    let root = std::env::temp_dir();
-    let _ = ensure_prelude_modules_in_graph(&mut graph, &SyxManifest::default(), &opts, &root);
-    if !graph.modules.is_empty() {
-        store_hydrated_graph(graph);
-    }
+    // Wasm/native AOT path: warm stdlib MIR process cache from embed when present.
+    let _ = warm_stdlib_mir_from_embed();
 }
 
 /// Serve until Shutdown or listener error. Removes the socket file on exit.
@@ -147,6 +163,14 @@ pub fn run_daemon(sock: &Path) -> std::io::Result<()> {
                 let resp = handle_run(&path, with_cache);
                 let _ = write_msg(&mut stream, &serde_json::to_vec(&resp).unwrap_or_default());
             }
+            DaemonRequest::RunWasm {
+                path,
+                with_cache,
+                entry,
+            } => {
+                let resp = handle_run_wasm(&path, &entry, with_cache);
+                let _ = write_msg(&mut stream, &serde_json::to_vec(&resp).unwrap_or_default());
+            }
         }
     }
     let _ = std::fs::remove_file(&sock_path);
@@ -161,6 +185,29 @@ fn handle_run(path: &str, with_cache: bool) -> DaemonResponse {
         ..DriverOptions::default()
     };
     match run_file_printed(&path, &options) {
+        Ok((code, printed)) => DaemonResponse {
+            ok: true,
+            exit_code: code,
+            stdout: printed.join("\n") + if printed.is_empty() { "" } else { "\n" },
+            stderr: String::new(),
+        },
+        Err(e) => DaemonResponse {
+            ok: false,
+            exit_code: 1,
+            stdout: String::new(),
+            stderr: format!("{e:?}"),
+        },
+    }
+}
+
+fn handle_run_wasm(path: &str, entry: &str, with_cache: bool) -> DaemonResponse {
+    let path = PathBuf::from(path);
+    let options = DriverOptions {
+        incremental_cache: with_cache,
+        stdlib_mir: true,
+        ..DriverOptions::default()
+    };
+    match run_wasm_source_printed(&path, entry, &options) {
         Ok((code, printed)) => DaemonResponse {
             ok: true,
             exit_code: code,

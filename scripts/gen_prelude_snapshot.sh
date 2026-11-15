@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# S3-I54: generate crates/syx-driver/assets/prelude_snapshot.bin (+ prelude_vm_image.rkyv)
-# from a release syx run. Does not compile .sy inside build.rs — run after (or this
-# script will trigger) `cargo build -p syx-cli --release`.
+# S3-I54: generate crates/syx-driver/assets/prelude_snapshot.bin (+ prelude_vm_image.rkyv
+# + prelude_stdlib_mir.bin) from a release syx run. Does not compile .sy inside
+# build.rs — run after (or this script will trigger) `cargo build -p syx-cli --release`.
 #
 # Chicken-egg: a tag-matching embed short-circuits ensure_prelude and writes no
 # prelude_*.bin. This script zeros the assets and rebuilds tip syx first so cold
@@ -20,6 +20,7 @@ OUT_DIR="$ROOT/crates/syx-driver/assets"
 mkdir -p "$OUT_DIR"
 OUT_BIN="$OUT_DIR/prelude_snapshot.bin"
 OUT_RKYV="$OUT_DIR/prelude_vm_image.rkyv"
+OUT_MIR="$OUT_DIR/prelude_stdlib_mir.bin"
 
 # Backup before truncate so a failed cold-store cannot leave 0-byte assets.
 BAK="$(mktemp -d "${TMPDIR:-/tmp}/syx-prelude-bak.XXXXXX")"
@@ -32,9 +33,14 @@ restore_assets() {
     cp "$BAK/prelude_vm_image.rkyv" "$OUT_RKYV"
     echo "warn: restored $OUT_RKYV from pre-gen backup" >&2
   fi
+  if [[ -s "$BAK/prelude_stdlib_mir.bin" ]]; then
+    cp "$BAK/prelude_stdlib_mir.bin" "$OUT_MIR"
+    echo "warn: restored $OUT_MIR from pre-gen backup" >&2
+  fi
 }
 [[ -s "$OUT_BIN" ]] && cp "$OUT_BIN" "$BAK/prelude_snapshot.bin"
 [[ -s "$OUT_RKYV" ]] && cp "$OUT_RKYV" "$BAK/prelude_vm_image.rkyv"
+[[ -s "$OUT_MIR" ]] && cp "$OUT_MIR" "$BAK/prelude_stdlib_mir.bin"
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/syx-gen-prelude.XXXXXX")"
 cleanup() {
@@ -49,6 +55,7 @@ trap cleanup EXIT
 echo "invalidating embed assets so cold store can run…"
 : > "$OUT_BIN"
 : > "$OUT_RKYV"
+: > "$OUT_MIR"
 echo "building tip syx (empty embed)…"
 cargo build -p syx-cli --release
 
@@ -82,11 +89,22 @@ fi
 cp "$RKYV" "$OUT_RKYV"
 echo "wrote $OUT_RKYV ($(wc -c <"$OUT_RKYV" | tr -d ' ') bytes) from $RKYV"
 
+echo "cold-compiling stdlib MIR via $SYX_BIN run --wasm --with-cache…"
+"$SYX_BIN" run --wasm --with-cache "$WORK/hello.sy" >/dev/null
+STDLIB_MIR="$(find "$WORK/target/cache" -type f -name 'stdlib_mir_*.bin' 2>/dev/null | head -n 1 || true)"
+if [[ -z "$STDLIB_MIR" || ! -s "$STDLIB_MIR" ]]; then
+  echo "error: no stdlib_mir_*.bin produced under $WORK/target/cache" >&2
+  find "$WORK/target/cache" -type f 2>/dev/null | head -50 >&2 || true
+  exit 1
+fi
+cp "$STDLIB_MIR" "$OUT_MIR"
+echo "wrote $OUT_MIR ($(wc -c <"$OUT_MIR" | tr -d ' ') bytes) from $STDLIB_MIR"
+
 # Release CI sets SYX_GEN_PRELUDE_SKIP_REBUILD=1: assets are enough for the
 # subsequent full-native build's include_bytes; skip a redundant tip rebuild.
 if [[ "${SYX_GEN_PRELUDE_SKIP_REBUILD:-}" == "1" ]]; then
   echo "skipping tip rebuild (SYX_GEN_PRELUDE_SKIP_REBUILD=1) — caller must full-native build + check_prelude_embed"
-  echo "done — assets ready at $OUT_BIN / $OUT_RKYV"
+  echo "done — assets ready at $OUT_BIN / $OUT_RKYV / $OUT_MIR"
   exit 0
 fi
 
@@ -94,5 +112,5 @@ echo "rebuilding syx so include_bytes picks up the assets…"
 cargo build -p syx-cli --release
 echo "verifying embed hit…"
 bash "$ROOT/scripts/check_prelude_embed.sh" "$ROOT/target/release/syx"
-echo "done — assets ready at $OUT_BIN / $OUT_RKYV (gitignored; do not commit)"
+echo "done — assets ready at $OUT_BIN / $OUT_RKYV / $OUT_MIR (gitignored; do not commit)"
 echo "note: Windows — use powershell -File scripts/gen_prelude_snapshot.ps1"

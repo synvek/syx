@@ -72,20 +72,7 @@ fn instantiations_fingerprint(
 }
 
 fn stdlib_modules_fingerprint(graph: &ModuleGraph) -> u64 {
-    let mut items: Vec<(String, u64)> = graph
-        .modules
-        .iter()
-        .filter(|(p, _)| is_stdlib_module_path(p))
-        .map(|(p, u)| {
-            let mut h = DefaultHasher::new();
-            u.source.contents.hash(&mut h);
-            (p.to_string_lossy().into_owned(), h.finish())
-        })
-        .collect();
-    items.sort_unstable_by(|a, b| a.0.cmp(&b.0));
-    let mut h = DefaultHasher::new();
-    items.hash(&mut h);
-    h.finish()
+    crate::stdlib_mir_image::stdlib_modules_key(graph)
 }
 
 fn finalize_unified_mir(mir: &mut syx_mir::MirModule) {
@@ -389,12 +376,18 @@ fn lower_stdlib_modules_to_functions(
     graph: &ModuleGraph,
     instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
     options: &DriverOptions,
+    only_paths: Option<&std::collections::HashSet<PathBuf>>,
 ) -> SyxResult<Vec<MirFunction>> {
     let mut out = Vec::new();
     let mut seen = std::collections::HashSet::<SmolStr>::new();
     for (path, dep) in &graph.modules {
         if !is_stdlib_module_path(path) {
             continue;
+        }
+        if let Some(filter) = only_paths {
+            if !filter.contains(path) {
+                continue;
+            }
         }
         let Ok(dep_module) = Parser::parse(dep.source.clone()) else {
             continue;
@@ -428,45 +421,163 @@ fn lower_stdlib_modules_to_functions(
     Ok(out)
 }
 
-/// Append stdlib MIR into `mir`, reusing a process-local cache when the embed tag
-/// and mono fingerprint match (wasm/native AOT path; interpret uses bytecode instead).
-fn merge_stdlib_modules_into_mir(
-    graph: &ModuleGraph,
-    mir: &mut syx_mir::MirModule,
-    instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
-    options: &DriverOptions,
-) -> SyxResult<()> {
-    let tag = cache_version_tag();
-    let mono_key = instantiations_fingerprint(instantiations);
-    let modules_key = stdlib_modules_fingerprint(graph);
-    if let Ok(guard) = stdlib_mir_cache().lock() {
-        if let Some(entry) = guard.as_ref() {
-            if entry.tag == tag && entry.mono_key == mono_key && entry.modules_key == modules_key {
-                STDLIB_MIR_CACHE_HIT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                for func in entry.functions.iter() {
-                    if !mir.functions.iter().any(|f| f.name == func.name) {
-                        mir.functions.push(func.clone());
-                    }
-                }
-                return Ok(());
-            }
-        }
-    }
-
-    let functions = lower_stdlib_modules_to_functions(graph, instantiations, options)?;
-    for func in &functions {
+fn append_mir_functions(mir: &mut syx_mir::MirModule, functions: &[MirFunction]) {
+    for func in functions {
         if !mir.functions.iter().any(|f| f.name == func.name) {
             mir.functions.push(func.clone());
         }
     }
+}
+
+fn store_stdlib_mir_process(
+    tag: String,
+    mono_key: u64,
+    modules_key: u64,
+    functions: Arc<Vec<MirFunction>>,
+) {
     if let Ok(mut guard) = stdlib_mir_cache().lock() {
         *guard = Some(StdlibMirCacheEntry {
             tag,
             mono_key,
             modules_key,
-            functions: Arc::new(functions),
+            functions,
         });
     }
+}
+
+/// Warm process cache from embed (daemon). Returns whether embed loaded.
+pub(crate) fn warm_stdlib_mir_from_embed() -> bool {
+    let Some(image) = crate::stdlib_mir_image::try_load_embed() else {
+        return false;
+    };
+    store_stdlib_mir_process(
+        image.cache_version_tag.clone(),
+        image.mono_key,
+        image.modules_key,
+        Arc::new(image.functions),
+    );
+    true
+}
+
+/// Append stdlib MIR into `mir`: process → disk → embed(+extras) → cold lower.
+fn merge_stdlib_modules_into_mir(
+    graph: &ModuleGraph,
+    mir: &mut syx_mir::MirModule,
+    instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
+    options: &DriverOptions,
+    project_root: &Path,
+) -> SyxResult<()> {
+    let tag = cache_version_tag();
+    let mono_key = instantiations_fingerprint(instantiations);
+    let modules_key = stdlib_modules_fingerprint(graph);
+    let trace = std::env::var_os("SYX_STDLIB_MIR_TRACE").is_some();
+    if let Ok(guard) = stdlib_mir_cache().lock() {
+        if let Some(entry) = guard.as_ref() {
+            if entry.tag == tag && entry.mono_key == mono_key && entry.modules_key == modules_key {
+                STDLIB_MIR_CACHE_HIT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                if trace {
+                    eprintln!(
+                        "stdlib_mir_trace=process fns={}",
+                        entry.functions.len()
+                    );
+                }
+                append_mir_functions(mir, &entry.functions);
+                return Ok(());
+            }
+        }
+    }
+
+    // Exact disk hit (same tag digest path; modules_key + mono_key must match).
+    if let Some(image) =
+        crate::stdlib_mir_image::try_load_disk(project_root, modules_key, mono_key)
+    {
+        if trace {
+            eprintln!(
+                "stdlib_mir_trace=disk fns={} modules_key={modules_key} mono={mono_key}",
+                image.functions.len()
+            );
+        }
+        append_mir_functions(mir, &image.functions);
+        store_stdlib_mir_process(tag, mono_key, modules_key, Arc::new(image.functions));
+        return Ok(());
+    }
+
+    // Embed as full hit (modules+mono) or as prelude base when graph has companion imports.
+    let mut functions = Vec::new();
+    let mut used_embed = false;
+    if let Some(image) = crate::stdlib_mir_image::try_load_embed() {
+        if image.modules_key == modules_key && image.mono_key == mono_key {
+            functions = image.functions;
+            crate::stdlib_mir_image::note_embed_hit();
+            used_embed = true;
+            if trace {
+                eprintln!(
+                    "stdlib_mir_trace=embed_exact fns={} modules_key={modules_key} mono={mono_key}",
+                    functions.len()
+                );
+            }
+        } else if crate::stdlib_mir_image::image_paths_subset_of_graph(&image, graph)
+            && (image.mono_key == mono_key || image.mono_key == 0 || mono_key == 0)
+        {
+            let covered: std::collections::HashSet<PathBuf> = image
+                .module_paths
+                .iter()
+                .map(PathBuf::from)
+                .collect();
+            let extras: std::collections::HashSet<PathBuf> = graph
+                .modules
+                .keys()
+                .filter(|p| is_stdlib_module_path(p) && !covered.contains(*p))
+                .cloned()
+                .collect();
+            functions = image.functions;
+            crate::stdlib_mir_image::note_embed_hit();
+            if !extras.is_empty() {
+                let more = lower_stdlib_modules_to_functions(
+                    graph,
+                    instantiations,
+                    options,
+                    Some(&extras),
+                )?;
+                let mut seen: std::collections::HashSet<SmolStr> =
+                    functions.iter().map(|f| f.name.clone()).collect();
+                for f in more {
+                    if seen.insert(f.name.clone()) {
+                        functions.push(f);
+                    }
+                }
+            }
+            used_embed = true;
+            if trace {
+                eprintln!(
+                    "stdlib_mir_trace=embed_subset fns={} extras={} image_key={} graph_key={modules_key}",
+                    functions.len(),
+                    extras.len(),
+                    image.modules_key
+                );
+            }
+        } else if trace {
+            eprintln!(
+                "stdlib_mir_trace=embed_mismatch image_key={} graph_key={modules_key} image_mono={} mono={mono_key}",
+                image.modules_key, image.mono_key
+            );
+        }
+    } else if trace {
+        eprintln!("stdlib_mir_trace=embed_unloadable mono={mono_key}");
+    }
+
+    if !used_embed {
+        if trace {
+            eprintln!("stdlib_mir_trace=cold_lower graph_key={modules_key} mono={mono_key}");
+        }
+        functions = lower_stdlib_modules_to_functions(graph, instantiations, options, None)?;
+    }
+
+    append_mir_functions(mir, &functions);
+    if let Some(image) = crate::stdlib_mir_image::build_image(graph, functions.clone(), mono_key) {
+        crate::stdlib_mir_image::store_disk(project_root, &image);
+    }
+    store_stdlib_mir_process(tag, mono_key, modules_key, Arc::new(functions));
     Ok(())
 }
 
@@ -592,7 +703,13 @@ pub(crate) fn build_mir_from_graph(
     // re-lower the whole prelude for Crypto/Math/… before the user entry runs.
     let stdlib_mir = want_stdlib_mir(options);
     if stdlib_mir && !is_stdlib_module_path(&entry.path) {
-        merge_stdlib_modules_into_mir(graph, &mut mir, &semantic.instantiations, options)?;
+        merge_stdlib_modules_into_mir(
+            graph,
+            &mut mir,
+            &semantic.instantiations,
+            options,
+            project_root,
+        )?;
     }
     // User (non-stdlib) deps always need a lower when present in the graph.
     for dep in graph.modules.values() {

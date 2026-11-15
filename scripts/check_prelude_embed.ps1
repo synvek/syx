@@ -82,6 +82,17 @@ empty or missing $RkyvAsset
 }
 Write-Host "prelude_rkyv_asset_bytes=$((Get-Item -LiteralPath $RkyvAsset).Length)"
 
+$MirAsset = Join-Path $Root "crates\syx-driver\assets\prelude_stdlib_mir.bin"
+if (-not (Test-Path -LiteralPath $MirAsset) -or ((Get-Item -LiteralPath $MirAsset).Length -eq 0)) {
+    Write-Error @"
+empty or missing $MirAsset
+  without stdlib MIR embed, syx run --wasm re-lowers the whole prelude
+  fix: .\scripts\gen_prelude_snapshot.ps1
+"@
+    exit 1
+}
+Write-Host "prelude_stdlib_mir_asset_bytes=$((Get-Item -LiteralPath $MirAsset).Length)"
+
 $HelloSrc = Join-Path $Root "examples\hello.sy"
 if (-not (Test-Path -LiteralPath $HelloSrc)) {
     Write-Error "missing $HelloSrc"

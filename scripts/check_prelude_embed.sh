@@ -41,6 +41,14 @@ if [[ ! -s "$RKYV_ASSET" ]]; then
   exit 1
 fi
 echo "prelude_rkyv_asset_bytes=$(wc -c <"$RKYV_ASSET" | tr -d ' ')"
+MIR_ASSET="$ROOT/crates/syx-driver/assets/prelude_stdlib_mir.bin"
+if [[ ! -s "$MIR_ASSET" ]]; then
+  echo "error: empty or missing $MIR_ASSET" >&2
+  echo "  without stdlib MIR embed, syx run --wasm re-lowers the whole prelude" >&2
+  echo "  fix: bash scripts/gen_prelude_snapshot.sh   # or: powershell -File scripts/gen_prelude_snapshot.ps1" >&2
+  exit 1
+fi
+echo "prelude_stdlib_mir_asset_bytes=$(wc -c <"$MIR_ASSET" | tr -d ' ')"
 
 HELLO_SRC="$ROOT/examples/hello.sy"
 if [[ ! -f "$HELLO_SRC" ]]; then

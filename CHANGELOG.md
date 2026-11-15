@@ -2,6 +2,7 @@
 - feat: implement optional statement separators in block statements
 - feat: implement `while let` syntax desugaring in parser and add tests
 - feat: enhance stdlib MIR handling with caching and fingerprinting
+- feat: add support for stdlib MIR embedding and enhance asset management
 
 ### SYX 0.2.2
 

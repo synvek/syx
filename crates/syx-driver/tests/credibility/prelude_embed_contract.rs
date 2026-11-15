@@ -55,7 +55,9 @@ fn s3_03_prelude_embed_adr_and_census() {
     );
     let gitignore = repo_file(".gitignore");
     assert!(
-        gitignore.contains("prelude_snapshot.bin") && gitignore.contains("prelude_vm_image.rkyv"),
+        gitignore.contains("prelude_snapshot.bin")
+            && gitignore.contains("prelude_vm_image.rkyv")
+            && gitignore.contains("prelude_stdlib_mir.bin"),
         "prelude embed assets must be gitignored (regen via gen_prelude_snapshot)"
     );
     let asset = repo_path("crates/syx-driver/assets/prelude_snapshot.bin");
@@ -68,15 +70,19 @@ fn s3_03_prelude_embed_adr_and_census() {
     );
     let gen = repo_file("scripts/gen_prelude_snapshot.sh");
     assert!(
-        gen.contains("prelude_snapshot.bin") && gen.contains("prelude_vm_image.rkyv"),
-        "gen script must write bincode + rkyv assets"
+        gen.contains("prelude_snapshot.bin")
+            && gen.contains("prelude_vm_image.rkyv")
+            && gen.contains("prelude_stdlib_mir.bin")
+            && gen.contains("stdlib_mir_"),
+        "gen script must write bincode + rkyv + stdlib MIR assets"
     );
     let gen_ps1 = repo_file("scripts/gen_prelude_snapshot.ps1");
     assert!(
         gen_ps1.contains("prelude_snapshot.bin")
             && gen_ps1.contains("prelude_vm_image.rkyv")
+            && gen_ps1.contains("prelude_stdlib_mir.bin")
             && gen_ps1.contains("check_prelude_embed.ps1"),
-        "Windows gen_prelude_snapshot.ps1 must mirror sh (bin + rkyv + embed check)"
+        "Windows gen_prelude_snapshot.ps1 must mirror sh (bin + rkyv + mir + embed check)"
     );
     let check_ps1 = repo_path("scripts/check_prelude_embed.ps1");
     assert!(
@@ -90,6 +96,14 @@ fn s3_03_prelude_embed_adr_and_census() {
         rkyv_meta.len() > 1024,
         "rkyv VM image must be non-trivial (run scripts/gen_prelude_snapshot.sh), got {} bytes",
         rkyv_meta.len()
+    );
+    let mir = repo_path("crates/syx-driver/assets/prelude_stdlib_mir.bin");
+    let mir_meta = std::fs::metadata(&mir)
+        .expect("prelude_stdlib_mir.bin must exist (build.rs placeholder or gen_prelude_snapshot)");
+    assert!(
+        mir_meta.len() > 1024,
+        "stdlib MIR embed must be non-trivial (run scripts/gen_prelude_snapshot.sh), got {} bytes",
+        mir_meta.len()
     );
 
     let prior = repo_file("docs/adr/stage3-s3-03-cache-roundtrip.md");

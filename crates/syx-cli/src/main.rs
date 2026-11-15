@@ -597,7 +597,7 @@ fn run() -> miette::Result<()> {
                     || std::env::var_os("SYX_USE_DAEMON")
                         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
                         .unwrap_or(false);
-                if want_daemon && !wasm {
+                if want_daemon {
                     let sock = syx_driver::default_daemon_sock();
                     if !syx_driver::daemon_available(&sock) {
                         return Err(miette::miette!(
@@ -606,14 +606,20 @@ fn run() -> miette::Result<()> {
                         ));
                     }
                     let abs = std::fs::canonicalize(&path).unwrap_or(path.clone());
-                    let resp = syx_driver::daemon_request(
-                        &sock,
-                        &syx_driver::DaemonRequest::Run {
+                    let req = if wasm {
+                        syx_driver::DaemonRequest::RunWasm {
                             path: abs.to_string_lossy().into_owned(),
                             with_cache,
-                        },
-                    )
-                    .map_err(|e| miette::miette!("{e}"))?;
+                            entry: invoke.clone(),
+                        }
+                    } else {
+                        syx_driver::DaemonRequest::Run {
+                            path: abs.to_string_lossy().into_owned(),
+                            with_cache,
+                        }
+                    };
+                    let resp = syx_driver::daemon_request(&sock, &req)
+                        .map_err(|e| miette::miette!("{e}"))?;
                     if !resp.stdout.is_empty() {
                         print!("{}", resp.stdout);
                     }

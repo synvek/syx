@@ -66,6 +66,7 @@ mod rkyv_image;
 mod run_exec;
 mod run_wasm;
 mod stdlib_fastpath;
+mod stdlib_mir_image;
 mod test_runner;
 mod thin_host;
 pub(crate) use driver_diag::{driver_error, driver_error_at, driver_warning, driver_warning_at};

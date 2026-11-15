@@ -11,7 +11,7 @@
 | `SYX_STDLIB_MIR` | `0/false` force off; `1/true` force on (debug). |
 | `store_prelude_snapshot` | Dedupe `FunctionUnit` by name across modules; clear per-module `host_fn_names`; persist `extension_methods` + slim **rkyv** image. |
 | `ModuleGraph.stdlib_extension_methods` | Filled on embed load → `collect_stdlib_extension_methods` skips re-parse. |
-| Asset | `crates/syx-driver/assets/prelude_snapshot.bin` (+ `prelude_vm_image.rkyv`) via `scripts/gen_prelude_snapshot.sh` / `.ps1` (**gitignored**; CI/release regen). |
+| Asset | `crates/syx-driver/assets/prelude_snapshot.bin` (+ `prelude_vm_image.rkyv` + `prelude_stdlib_mir.bin`) via `scripts/gen_prelude_snapshot.sh` / `.ps1` (**gitignored**; CI/release regen). |
 
 ## Slice 2 (on-demand link + export table)
 
@@ -32,7 +32,16 @@
 | `syx run --daemon` / `SYX_USE_DAEMON=1` | Client forwards run to warm daemon |
 | Hit counter | `PRELUDE_RKYV_HIT` |
 
-## Measure (release, warm binary pages, temp dir, no `--with-cache`)
+## Slice 4 (wasm MIR embed + entry cache + daemon RunWasm)
+
+| Piece | Behavior |
+|-------|----------|
+| `stdlib_mir_image` | Embed/disk/process `Vec<MirFunction>` for `stdlib_mir=true` (process → disk → embed → cold) |
+| `run_wasm` `--with-cache` | Entry `(wasm, mir)` under `target/cache/wasm_*.bin` |
+| `DaemonRequest::RunWasm` | `syx run --wasm --daemon`; warm also hydrates stdlib MIR from embed |
+| Gen/check | `gen_prelude_snapshot` writes `prelude_stdlib_mir.bin` via cold `run --wasm --with-cache` |
+
+## Measure (release, warm binary pages, temp dir)
 
 | Sample | Wall |
 |--------|------|
@@ -43,7 +52,11 @@
 | `node -e 'console.log("hi")'` | ~0.018 s |
 | `prelude_snapshot.bin` size | **~1.99 MB** |
 | `prelude_vm_image.rkyv` size | **~116 KB** (fn blobs + export side table) |
+| `prelude_stdlib_mir.bin` size | **~312 KB** (926 MirFunctions; keyed by modules+mono) |
 | `hello` via `syx run --daemon` | ~0.01–0.02 s client wall (reuse is in daemon process) |
+| `hello` `syx run --wasm` (embed MIR cold) | **~176 ms** (was ~410 ms cold-lower; target ≤150 ms — miss, recorded) |
+| `hello` `syx run --wasm --with-cache` (2nd) | **~70 ms** (target ≤50 ms — miss, recorded; process/disk entry hit) |
+| `hello` `syx run --wasm --daemon` (2nd+) | **~68 ms** (process entry cache; ≈ with-cache warm) |
 
 ## Release / CI guarantee
 
@@ -62,10 +75,11 @@ Embed is keyed by `cache_version_tag` (`CARGO_PKG_VERSION` + `rustc -V` + tip di
 - ≠ every script ≤20 ms (import-heavy / compute-bound still slower)
 - ≠ true zero-copy Instruction (still bincode-decode blobs inside rkyv)
 - ≠ Windows daemon (Unix sock only; Windows still gets embed/rkyv via `.ps1` regen)
-- ≠ native/wasm path changes (`stdlib_mir` stays on for `syx build`)
 - ≠ one committed `.bin` forever valid on all rustc versions (release regen is the ship guarantee)
+- ≠ hard KPI contract for wasm cold ≤150ms (census records measured; do not invent)
 
 ## Next knives
 
 1. True Archive on hot Instruction subset / shared pages across clients.
 2. Further shrink deserialize tax when rkyv embed is empty (still falls back to ~2 MB bincode).
+3. Reachability-only MIR merge (P2) for even thinner wasm cold.

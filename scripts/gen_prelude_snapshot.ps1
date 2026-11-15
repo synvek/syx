@@ -1,5 +1,6 @@
-# S3-I54: generate crates/syx-driver/assets/prelude_snapshot.bin (+ prelude_vm_image.rkyv)
-# from a release syx run. Windows counterpart of scripts/gen_prelude_snapshot.sh
+# S3-I54: generate crates/syx-driver/assets/prelude_snapshot.bin (+ prelude_vm_image.rkyv
+# + prelude_stdlib_mir.bin) from a release syx run. Windows counterpart of
+# scripts/gen_prelude_snapshot.sh
 #
 # Chicken-egg: a tag-matching embed short-circuits ensure_prelude and writes no
 # prelude_*.bin. This script zeros the assets and rebuilds tip syx first so cold
@@ -47,14 +48,17 @@ $OutDir = Join-Path $Root "crates\syx-driver\assets"
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $OutBin = Join-Path $OutDir "prelude_snapshot.bin"
 $OutRkyv = Join-Path $OutDir "prelude_vm_image.rkyv"
+$OutMir = Join-Path $OutDir "prelude_stdlib_mir.bin"
 
 # Backup before truncate so a failed cold-store cannot leave 0-byte assets.
 $BackupDir = Join-Path ([System.IO.Path]::GetTempPath()) ("syx-prelude-bak." + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $BackupDir | Out-Null
 $BakBin = Join-Path $BackupDir "prelude_snapshot.bin"
 $BakRkyv = Join-Path $BackupDir "prelude_vm_image.rkyv"
+$BakMir = Join-Path $BackupDir "prelude_stdlib_mir.bin"
 $HadBin = $false
 $HadRkyv = $false
+$HadMir = $false
 if ((Test-Path -LiteralPath $OutBin) -and ((Get-Item -LiteralPath $OutBin).Length -gt 0)) {
     Copy-Item -LiteralPath $OutBin -Destination $BakBin -Force
     $HadBin = $true
@@ -62,6 +66,10 @@ if ((Test-Path -LiteralPath $OutBin) -and ((Get-Item -LiteralPath $OutBin).Lengt
 if ((Test-Path -LiteralPath $OutRkyv) -and ((Get-Item -LiteralPath $OutRkyv).Length -gt 0)) {
     Copy-Item -LiteralPath $OutRkyv -Destination $BakRkyv -Force
     $HadRkyv = $true
+}
+if ((Test-Path -LiteralPath $OutMir) -and ((Get-Item -LiteralPath $OutMir).Length -gt 0)) {
+    Copy-Item -LiteralPath $OutMir -Destination $BakMir -Force
+    $HadMir = $true
 }
 
 function Restore-PreludeAssets {
@@ -73,6 +81,10 @@ function Restore-PreludeAssets {
         Copy-Item -LiteralPath $BakRkyv -Destination $OutRkyv -Force
         Write-Warning "restored $OutRkyv from pre-gen backup"
     }
+    if ($HadMir -and (Test-Path -LiteralPath $BakMir)) {
+        Copy-Item -LiteralPath $BakMir -Destination $OutMir -Force
+        Write-Warning "restored $OutMir from pre-gen backup"
+    }
 }
 
 $Work = $null
@@ -80,6 +92,7 @@ try {
     Write-Host "invalidating embed assets so cold store can run…"
     [System.IO.File]::WriteAllBytes($OutBin, [byte[]]@())
     [System.IO.File]::WriteAllBytes($OutRkyv, [byte[]]@())
+    [System.IO.File]::WriteAllBytes($OutMir, [byte[]]@())
 
     Write-Host "building tip syx (empty embed)…"
     Invoke-CargoRelease
@@ -131,11 +144,33 @@ try {
     Copy-Item -LiteralPath $RkyvHits[0].FullName -Destination $OutRkyv -Force
     Write-Host "wrote $OutRkyv ($($RkyvHits[0].Length) bytes) from $($RkyvHits[0].FullName)"
 
+    Write-Host "cold-compiling stdlib MIR via $SyxBin run --wasm --with-cache…"
+    $ErrorActionPreference = "Continue"
+    & $SyxBin run --wasm --with-cache $Hello | Out-Null
+    $wasmExit = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
+    if ($wasmExit -ne 0) {
+        throw "syx run --wasm --with-cache failed (exit $wasmExit)"
+    }
+
+    $MirHits = Find-PreludeFiles $CacheDir 'stdlib_mir_*.bin'
+    if ($MirHits.Count -eq 0 -or $MirHits[0].Length -eq 0) {
+        Write-Host "cache tree under $CacheDir :"
+        if (Test-Path -LiteralPath $Work) {
+            Get-ChildItem -LiteralPath $Work -Recurse -File -ErrorAction SilentlyContinue |
+                Select-Object -First 50 |
+                ForEach-Object { Write-Host $_.FullName }
+        }
+        throw "no stdlib_mir_*.bin produced under $CacheDir"
+    }
+    Copy-Item -LiteralPath $MirHits[0].FullName -Destination $OutMir -Force
+    Write-Host "wrote $OutMir ($($MirHits[0].Length) bytes) from $($MirHits[0].FullName)"
+
     # Release CI sets SYX_GEN_PRELUDE_SKIP_REBUILD=1: assets are enough for the
     # subsequent full-native build's include_bytes; skip a redundant tip rebuild.
     if ($env:SYX_GEN_PRELUDE_SKIP_REBUILD -eq "1") {
         Write-Host "skipping tip rebuild (SYX_GEN_PRELUDE_SKIP_REBUILD=1) — caller must full-native build + check_prelude_embed"
-        Write-Host "done — assets ready at $OutBin / $OutRkyv"
+        Write-Host "done — assets ready at $OutBin / $OutRkyv / $OutMir"
         exit 0
     }
 
@@ -152,7 +187,7 @@ try {
         throw "check_prelude_embed.ps1 failed (exit $checkExit)"
     }
 
-    Write-Host "done — assets ready at $OutBin / $OutRkyv (gitignored; do not commit)"
+    Write-Host "done — assets ready at $OutBin / $OutRkyv / $OutMir (gitignored; do not commit)"
 }
 catch {
     # Restore before Write-Error: Stop preference would otherwise skip restore.

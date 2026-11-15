@@ -419,23 +419,30 @@ jobs:
         env:
           SYX_GEN_PRELUDE_SKIP_REBUILD: "1"
         run: .\scripts\gen_prelude_snapshot.ps1
-      - name: Assert prelude assets non-empty (bin + rkyv)
+      - name: Assert prelude assets non-empty (bin + rkyv + stdlib MIR)
         run: |
           set -euo pipefail
           BIN=crates/syx-driver/assets/prelude_snapshot.bin
           RKYV=crates/syx-driver/assets/prelude_vm_image.rkyv
+          MIR=crates/syx-driver/assets/prelude_stdlib_mir.bin
           test -s "$BIN"
           test -s "$RKYV"
-          # Rough floors: bincode ~2MB, rkyv ~100KB. Empty/tiny = gen bug.
+          test -s "$MIR"
+          # Rough floors: bincode ~2MB, rkyv ~100KB, MIR fragment non-trivial.
           bin_bytes=$(wc -c <"$BIN" | tr -d ' ')
           rkyv_bytes=$(wc -c <"$RKYV" | tr -d ' ')
-          echo "prelude_snapshot.bin=${bin_bytes} prelude_vm_image.rkyv=${rkyv_bytes}"
+          mir_bytes=$(wc -c <"$MIR" | tr -d ' ')
+          echo "prelude_snapshot.bin=${bin_bytes} prelude_vm_image.rkyv=${rkyv_bytes} prelude_stdlib_mir.bin=${mir_bytes}"
           if [ "$bin_bytes" -lt 100000 ]; then
             echo "ERROR: prelude_snapshot.bin too small (${bin_bytes})" >&2
             exit 1
           fi
           if [ "$rkyv_bytes" -lt 10000 ]; then
             echo "ERROR: prelude_vm_image.rkyv too small (${rkyv_bytes}) — Windows run would stall on bincode" >&2
+            exit 1
+          fi
+          if [ "$mir_bytes" -lt 10000 ]; then
+            echo "ERROR: prelude_stdlib_mir.bin too small (${mir_bytes}) — wasm would cold-lower prelude" >&2
             exit 1
           fi
 

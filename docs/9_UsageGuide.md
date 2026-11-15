@@ -342,9 +342,11 @@ rm -rf target/cache
 
 ### Interpret stdlib fastpath
 
-`syx run` (interpret) sets `DriverOptions.stdlib_mir = false`: it keeps the embedded prelude **bytecode** / rkyv VM image and does **not** re-lower the whole stdlib through unified MIR. **`syx run --wasm`** and `syx build` keep `stdlib_mir = true` so AOT Call targets (e.g. `Hasher_newHasher`) remain module functions — that path **cannot** use the bytecode rkyv image (empty sources), so cold `--wasm` pays a MIR lower of the prelude (process-cached within one `syx` invoke; use `--with-cache` to cut repeat file-compile tax).  
-Prefer the slim rkyv VM image (`prelude_vm_image.rkyv`, mmap on disk) before the fat bincode embed; within one process a hydrate `OnceLock` skips re-deserialize.  
-Force the old MIR merge with `SYX_STDLIB_MIR=1` when debugging. Regen embeds after toolchain fingerprint drift (embed + rkyv work on Windows; **daemon is Unix-only**):
+`syx run` (interpret) sets `DriverOptions.stdlib_mir = false`: it keeps the embedded prelude **bytecode** / rkyv VM image and does **not** re-lower the whole stdlib through unified MIR. Prefer the slim rkyv VM image (`prelude_vm_image.rkyv`, mmap on disk) before the fat bincode embed; within one process a hydrate `OnceLock` skips re-deserialize.
+
+**`syx run --wasm`** and `syx build` keep `stdlib_mir = true` so AOT Call targets (e.g. `Hasher_newHasher`) remain module functions — that path **cannot** use the bytecode rkyv image (empty sources). Instead it loads an embedded **stdlib MIR** fragment (`prelude_stdlib_mir.bin`: process → disk → embed → cold lower). Companion imports such as `Math` still lower on demand. Use `syx run --wasm --with-cache` to also cache the entry `(wasm, mir)` under `target/cache/wasm_*.bin` for fast re-runs.
+
+Force the old MIR merge with `SYX_STDLIB_MIR=1` when debugging. Regen embeds after toolchain fingerprint drift (bin + rkyv + stdlib MIR; **daemon is Unix-only**):
 
 ```bash
 bash scripts/gen_prelude_snapshot.sh
@@ -356,12 +358,13 @@ powershell -File scripts/gen_prelude_snapshot.ps1
 
 ### Warm daemon (Unix)
 
-Keep a long-lived process with the prelude already hydrated:
+Keep a long-lived process with the prelude already hydrated (interpret rkyv + stdlib MIR embed for wasm):
 
 ```bash
 syx daemon start          # blocks; sock: $SYX_DAEMON_SOCK or $TMPDIR/syx-daemon-$USER.sock
 syx run --daemon examples/hello.sy
-# or: SYX_USE_DAEMON=1 syx run examples/hello.sy
+syx run --wasm --daemon examples/hello.sy
+# or: SYX_USE_DAEMON=1 syx run [--wasm] examples/hello.sy
 syx daemon ping
 syx daemon stop
 ```
