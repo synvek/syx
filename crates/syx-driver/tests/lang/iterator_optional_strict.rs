@@ -576,8 +576,12 @@ fn iter_native_strict_counter_nil() {
             let out = String::from_utf8_lossy(&output.stdout);
             assert!(out.contains("6"), "{out}");
         }
-        Err(e) if e.message.contains("Native LLVM") => {
-            // LLVM tier-1 unavailable in this environment; VM embed path covers nil semantics.
+        Err(e)
+            if e.code.as_deref() == Some("L006")
+                || e.message.contains("Native LLVM")
+                || e.message.contains("full-native") =>
+        {
+            // No full-native / LLVM tier-1; VM embed path covers nil semantics.
             assert!(run(COUNTER_NIL).iter().any(|l| l.trim() == "6"));
         }
         Err(e) => panic!("native build: {e:?}"),

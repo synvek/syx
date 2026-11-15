@@ -357,7 +357,17 @@ pub fn invalidate_all_jit_caches() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, MutexGuard};
     use syx_codegen::{FunctionUnit, Instruction};
+
+    /// Process env + gate cache are global; serialize tests that mutate them.
+    static JIT_ENV_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    fn lock_jit_env() -> MutexGuard<'static, ()> {
+        JIT_ENV_TEST_LOCK
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
 
     #[test]
     fn hot_path_counter_triggers_jit_stub() {
@@ -389,6 +399,7 @@ mod tests {
 
     #[test]
     fn fastpath_marker_when_env_enabled() {
+        let _guard = lock_jit_env();
         reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_JIT_TIER2");
         std::env::set_var("SYX_JIT_FASTPATH", "1");
@@ -443,35 +454,32 @@ mod tests {
 
     #[test]
     fn tier2_prod_default_when_unset() {
+        let _guard = lock_jit_env();
         reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_JIT_TIER2");
         std::env::remove_var("SYX_NIGHTLY");
         reset_jit_env_gates_for_test();
-        // Re-read after clear (other tests may race; assert prod default flag itself).
         assert!(!JitCompiler::tier2_prod_default_enabled());
-        // If env still polluted by parallel tests, skip opt-in check.
-        if std::env::var("SYX_JIT_TIER2").is_err() {
-            assert!(!JitCompiler::tier2_opt_in_enabled());
-        }
+        assert!(!JitCompiler::tier2_opt_in_enabled());
         reset_jit_env_gates_for_test();
     }
 
     #[test]
     fn tier2_nightly_default_when_unset() {
+        let _guard = lock_jit_env();
         reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_JIT_TIER2");
         std::env::set_var("SYX_NIGHTLY", "1");
         reset_jit_env_gates_for_test();
-        if std::env::var("SYX_JIT_TIER2").is_err() {
-            assert!(JitCompiler::tier2_nightly_default_enabled());
-            assert!(!JitCompiler::tier2_opt_in_enabled());
-        }
+        assert!(JitCompiler::tier2_nightly_default_enabled());
+        assert!(!JitCompiler::tier2_opt_in_enabled());
         std::env::remove_var("SYX_NIGHTLY");
         reset_jit_env_gates_for_test();
     }
 
     #[test]
     fn tier2_explicit_one_enables() {
+        let _guard = lock_jit_env();
         reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_NIGHTLY");
         std::env::set_var("SYX_JIT_TIER2", "1");
@@ -483,6 +491,7 @@ mod tests {
 
     #[test]
     fn tier2_explicit_zero_disables_prod_default() {
+        let _guard = lock_jit_env();
         reset_jit_env_gates_for_test();
         std::env::remove_var("SYX_NIGHTLY");
         std::env::set_var("SYX_JIT_TIER2", "0");
