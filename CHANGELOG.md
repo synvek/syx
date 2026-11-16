@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- chore: soft-job hygiene — lang/extended tee-tail `::error` annotations; Extended 40m wall (drop duplicate gui); Book 30m; JIT step timeouts
 - chore: re-harden Core credibility + concurrency into required Core driver aggregator (lang stays soft)
 - fix: r26 credibility nail prefer `target/release/syx` (CI prelude regen) over missing debug/PATH
 - fix: track `plan/01` + `plan/02` (credibility claim SSOT); was fully gitignored so clean CI panicked on missing roadmap

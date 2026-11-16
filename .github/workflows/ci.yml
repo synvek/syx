@@ -155,13 +155,22 @@ jobs:
             echo "## Core lang failures / last progress"
             echo '```'
             grep -nE 'FAILED|failures:|panicked|has been running for over|test result:' /tmp/syx-lang.out \
-              | tail -80 || tail -80 /tmp/syx-lang.out
+              | tail -80 || true
+            echo '```'
+            echo
+            echo "### tee tail (hung test usually last 'test …' without ok)"
+            echo '```'
+            tail -40 /tmp/syx-lang.out || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          grep -nE 'FAILED|panicked at|has been running for over|test result:' /tmp/syx-lang.out \
-            | tail -40 | while IFS= read -r line; do
-            echo "::error title=lang::$line"
+          # Pack hung-test trail into few public annotations (10/step cap).
+          # exit 124 = GNU timeout; last "test …" without ok is the hung nail.
+          tail -25 /tmp/syx-lang.out | tr '\n' ' ' | head -c 1800 | while IFS= read -r line; do
+            echo "::error title=lang-tail::${line}"
           done
+          grep -E 'FAILED$' /tmp/syx-lang.out | tail -20 | tr '\n' ' ' | head -c 1500 | while IFS= read -r line; do
+            [ -n "$line" ] && echo "::error title=lang-failed::${line}"
+          done || true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -380,7 +389,8 @@ jobs:
     name: Book doctests (English)
     continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Soft; 45m wall previously cancelled the whole matrix late — fail soft sooner.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -576,20 +586,41 @@ jobs:
     name: Extended driver suites
     continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Category integration suites
-        # evergreen + backends/browser/wasm/farm/platform/security — not on the merge gate.
-        # Skip re-running syx-lsp (covered by required Language server job).
-        run: >
-          cargo test -p syx-driver
-          --test evergreen --test platform --test wasm --test farm
-          --test gui --test browser --test native --test runtime
-          --test backends --test security
-          -- --test-threads=1
+        # Not on the merge gate. Skip syx-lsp (Language server job) and gui
+        # (dedicated GUI xvfb job). Wall-timeout so a hung native/runtime nail
+        # cannot burn a full hour of runner time.
+        run: |
+          set -o pipefail
+          timeout 40m cargo test -p syx-driver \
+            --test evergreen --test platform --test wasm --test farm \
+            --test browser --test native --test runtime \
+            --test backends --test security \
+            -- --test-threads=1 2>&1 | tee /tmp/syx-extended.out
+      - name: Summarize extended failures
+        if: failure()
+        run: |
+          {
+            echo "## Extended driver suite failures / last progress"
+            echo '```'
+            tail -60 /tmp/syx-extended.out || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          tail -20 /tmp/syx-extended.out | tr '\n' ' ' | head -c 1800 | while IFS= read -r line; do
+            echo "::error title=extended-tail::${line}"
+          done
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: extended-driver-log
+          path: /tmp/syx-extended.out
+          retention-days: 7
+          if-no-files-found: warn
 
   jit:
     name: JIT tier-2
@@ -608,10 +639,12 @@ jobs:
           SYX_JIT_TIER2=0 cargo test -p syx-vm --features jit-tier2 -- --nocapture \
             tier2_explicit_zero_disables_prod_default
       - name: JIT differential
-        run: >
-          SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang
-          -- jit_suite1_differential --test-threads=1 --nocapture --include-ignored
+        run: |
+          set -o pipefail
+          timeout 15m env SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang \
+            -- jit_suite1_differential --test-threads=1 --nocapture --include-ignored
       - name: JIT opt-out smoke
-        run: >
-          SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen
-          -- integration --test-threads=1
+        run: |
+          set -o pipefail
+          timeout 10m env SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen \
+            -- integration --test-threads=1
