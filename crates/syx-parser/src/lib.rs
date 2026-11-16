@@ -2408,6 +2408,9 @@ impl Parser {
             });
         }
         if self.match_kind(TokenKind::Let) {
+            // U-14: restore comma `if let x = a, let y = b[, cond]` → nested IfLet / trailing If
+            // (U-13 shape was paper-exited; re-land here). No new AST; else cloned per arm.
+            let mut bindings: Vec<(SmolStr, Expr)> = Vec::new();
             let name = self.consume_identifier("Expected binding name")?;
             self.consume(TokenKind::Assign, "Expected '=' in if let")?;
             // U-8: RHS call must not swallow the then-brace as trailing closure.
@@ -2415,19 +2418,61 @@ impl Parser {
             self.allow_trailing_closure = false;
             let pattern = self.parse_expr()?;
             self.allow_trailing_closure = prev;
+            bindings.push((name, pattern));
+
+            let mut trailing_cond: Option<Expr> = None;
+            while self.match_kind(TokenKind::Comma) {
+                if self.match_kind(TokenKind::Let) {
+                    let name = self.consume_identifier("Expected binding name")?;
+                    self.consume(TokenKind::Assign, "Expected '=' in if let")?;
+                    let prev = self.allow_trailing_closure;
+                    self.allow_trailing_closure = false;
+                    let pattern = self.parse_expr()?;
+                    self.allow_trailing_closure = prev;
+                    bindings.push((name, pattern));
+                } else {
+                    // At most one trailing boolean condition after bindings.
+                    let prev = self.allow_trailing_closure;
+                    self.allow_trailing_closure = false;
+                    trailing_cond = Some(self.parse_expr()?);
+                    self.allow_trailing_closure = prev;
+                    break;
+                }
+            }
+
             let body = self.parse_stmt_or_block()?;
             let else_branch = if self.match_kind(TokenKind::Else) {
                 Some(self.parse_stmt_or_block()?)
             } else {
                 None
             };
-            return Ok(Stmt::IfLet {
-                span: Span::merge(start, self.previous().span),
-                name,
-                pattern,
-                body,
-                else_branch,
-            });
+            let span = Span::merge(start, self.previous().span);
+
+            let mut inner: Vec<Stmt> = if let Some(cond) = trailing_cond {
+                vec![Stmt::If {
+                    span,
+                    condition: cond,
+                    then_branch: body,
+                    else_branch: else_branch.clone(),
+                }]
+            } else {
+                body
+            };
+
+            for (name, pattern) in bindings.into_iter().rev() {
+                inner = vec![Stmt::IfLet {
+                    span,
+                    name,
+                    pattern,
+                    body: inner,
+                    else_branch: else_branch.clone(),
+                }];
+            }
+
+            return Ok(inner
+                .into_iter()
+                .next()
+                .expect("if let always yields one stmt"));
         }
         // S1-I8: `if obj.prop { … }` — do not treat the then-brace as trailing closure.
         let prev = self.allow_trailing_closure;

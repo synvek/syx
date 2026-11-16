@@ -5,8 +5,8 @@
 > **优先级：** P0 阻断对齐 · P1 重组核心 · P2 文档工具 · P3 收口增强  
 > **活状态：** [`01-project-status.md`](01-project-status.md)  
 > **上期冻结账本：** [`archive/02-improvement-roadmap-credibility-stage-ledger.md`](archive/02-improvement-roadmap-credibility-stage-ledger.md)  
-> **最近更新：** 2026-11-15 · **U-13 逗号 `if let` 嵌套解糖已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-13 退出；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break 死臂、CST postfix async、逗号 while let 等）。  
-> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case` → While+IfCase+Break；**U-13** 逗号 `if let` → 嵌套 IfLet/If。下表只保留 **仍可复现** 或仍挂账的项。
+> **最近更新：** 2026-11-16 · **U-14 复落逗号 `if let` 已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-14 账面退出；**诚实：** U-12/U-13 曾纸面（census/nails 缺失），U-14 复落 if-let；U-12 `while case` 仍待复落；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、逗号 while let 等）。  
+> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面；树待 U-15 复落）；**U-13** 逗号 `if let`（账面纸面）；**U-14** 复落逗号 `if let` → 嵌套 IfLet/If。下表只保留 **仍可复现** 或仍挂账的项。
 
 ## 进度摘要（本期）
 
@@ -52,8 +52,9 @@
 | **U-9** | 块内语句可选分号 | `[x]` 退出 | [`u-9`](../docs/census/u-9-semicolon-census.md) |
 | **U-10** | `while let` 有界解糖 | `[x]` 退出 | [`u-10`](../docs/census/u-10-while-let-census.md) |
 | **U-11** | 标签 `repeat`/`break outer` | `[x]` 退出 | [`u-11`](../docs/census/u-11-repeat-label-census.md) |
-| **U-12** | `while case` 有界解糖 | `[x]` 退出 | [`u-12`](../docs/census/u-12-while-case-census.md) |
-| **U-13** | 逗号 `if let` 嵌套解糖 | `[x]` 退出 | [`u-13`](../docs/census/u-13-if-let-comma-census.md) |
+| **U-12** | `while case` 有界解糖 | `[x]` 账面（树待复落） | census 缺失 → U-15 |
+| **U-13** | 逗号 `if let` 嵌套解糖 | `[x]` 账面纸面 | 由 [`u-14`](../docs/census/u-14-if-let-comma-census.md) 复落 |
+| **U-14** | 复落逗号 `if let` | `[x]` 退出 | [`u-14`](../docs/census/u-14-if-let-comma-census.md) |
 
 ```mermaid
 flowchart LR
@@ -71,9 +72,10 @@ flowchart LR
   u8 --> u9["U-9 semicolon exited"]
   u9 --> u10["U-10 whileLet exited"]
   u10 --> u11["U-11 repeatLabel exited"]
-  u11 --> u12["U-12 whileCase exited"]
-  u12 --> u13["U-13 ifLetComma exited"]
-  u13 --> later["U14plus or park"]
+  u11 --> u12["U-12 whileCase paper"]
+  u12 --> u13["U-13 ifLetComma paper"]
+  u13 --> u14["U-14 restore ifLetComma"]
+  u14 --> later["U15 whileCase or park"]
 ```
 
 ---
@@ -180,9 +182,10 @@ flowchart LR
 | **U-10** | **`while let` 有界解糖** | `[x]` | `parse_while` Let→While+IfLet+Break；census [`u-10`](../docs/census/u-10-while-let-census.md)；≠ while case / 多绑定 / codegen Break / CST / R-50 / JIT | U-9 next |
 | **U-11** | **标签 `repeat`/`break outer`** | `[x]` | `RepeatWhile.label` + MIR loop_stack；census [`u-11`](../docs/census/u-11-repeat-label-census.md)；≠ CST postfix / codegen Break / while case / R-50 / JIT | U-10 next |
 | **U-12** | **`while case` 有界解糖** | `[x]` | `parse_while` Case→While+IfCase+Break；census [`u-12`](../docs/census/u-12-while-case-census.md)；≠ 逗号链 / CST / codegen Break / R-50 / JIT | U-11 next |
-| **U-13** | **逗号 `if let` 嵌套解糖** | `[x]` | Let 臂逗号链→嵌套 IfLet/If；census [`u-13`](../docs/census/u-13-if-let-comma-census.md)；≠ 逗号 while let / guard 链 / CST / R-50 / JIT | U-12 next |
+| **U-13** | **逗号 `if let` 嵌套解糖** | `[x]` | 账面纸面；树交付由 U-14 复落；≠ 逗号 while let / guard 链 / CST / R-50 / JIT | U-12 next |
+| **U-14** | **复落逗号 `if let`** | `[x]` | Let 臂逗号链→嵌套 IfLet/If；census [`u-14`](../docs/census/u-14-if-let-comma-census.md)；≠ while case 复落 / 逗号 while let / CST / R-50 / JIT | U-13 honesty |
 
-**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-13 已退出** — 残余为 park / 未编号债（候选 U-14 = 逗号 `while let` 或继续 park；CST postfix、codegen Break 死臂、JIT Suite-1、simd Object 159 章程等），**不**新开 R-50。
+**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-14 已退出（U-12 仍纸面）** — 残余为 park / 未编号债（候选 U-15 = 复落 `while case` 或继续 park；逗号 `while let`、CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程等），**不**新开 R-50。
 
 **退出总则：**  
 - SA-0 → 核心层清单 + 分层命名 ADR 已接受；manifest / prelude / IMPORTABLE 三处 SSOT 自洽。  
