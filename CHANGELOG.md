@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- fix: restore CI workflow YAML (unquoted `smoke::` broke Actions); portable Windows smoke enumeration; advisory Native/JIT soft steps; ignore drifted faer pad/mat_mul plugin nails
 - fix: soft CI batch — smoke nails track peeled modules; Windows `smoke::` filter; Extended/GUI/Book/Browser/JIT/Native soft walls + advisory exits; hang-prone Extended suites module-sharded
 - fix: evergreen fixture_compile_all soft-skips tip compile drift (Net.streamTls / reject fixtures); Extended per-target 10m walls + native/JIT failure annotations
 - chore: re-harden Core lang into required Core driver (per-module script walls green on Linux)
