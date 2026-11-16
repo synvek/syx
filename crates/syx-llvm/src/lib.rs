@@ -3713,15 +3713,16 @@ mod tests {
             ..Default::default()
         };
         let ir = emit_llvm_ir(&module).unwrap();
-        assert!(ir.contains("syx_rt_await_suspend"), "missing await_suspend: {ir}");
+        assert!(
+            ir.contains("syx_rt_await_suspend"),
+            "missing await_suspend: {ir}"
+        );
         assert!(
             ir.contains("syx_rt_print_aot") || ir.contains("syx_rt_print"),
             "post-await Print must remain in IR: {ir}"
         );
         // Ready path must not branch straight to the next MIR block label %b1.
-        let suspend_idx = ir
-            .find("syx_rt_await_suspend")
-            .expect("await_suspend call");
+        let suspend_idx = ir.find("syx_rt_await_suspend").expect("await_suspend call");
         let after = &ir[suspend_idx..];
         let br_line = after
             .lines()
