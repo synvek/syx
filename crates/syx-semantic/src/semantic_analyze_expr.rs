@@ -667,7 +667,7 @@ impl SemanticAnalyzer {
                 span,
                 ..
             } => {
-                // U-23/U-24: let-bound value types cannot assign fields (S060); class/actor OK.
+                // U-23/U-24/U-27: let-bound value types / tuples cannot assign fields (S060).
                 self.check_member_assign_on_immutable(object, *span);
                 let obj_ty = self.analyze_expr(object)?;
                 if let Some(obj_ty) = self.expr_type(object) {

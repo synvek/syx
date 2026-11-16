@@ -233,7 +233,7 @@ Community conventions in SYX (not enforced; `syx lint` reports L001–L012 warni
 | `Int128` / `UInt128` | Phase 38 GA (Swift still has no native 128-bit integers) |
 | `typealias` | **Implemented** (Phase 40 GA) |
 | Multiline strings `"""` | **MVP GA** (Phase 139); may contain raw newlines and `\(expr)` interpolation — not the full Swift raw/`#"""` delimiter set |
-| Tuple syntax | **MVP GA** (Phase 139): `(T, U)` types and literals, named elements `(x: 1, y: 2)`, `let (x, y) = t` destructuring, `.0`/`.x` members — not arbitrary arity protocols / the full Swift tuple feature set |
+| Tuple syntax | **MVP GA** (Phase 139): `(T, U)` types and literals, named elements `(x: 1, y: 2)`, `let (x, y) = t` destructuring, `.0`/`.x` members — not arbitrary arity protocols / the full Swift tuple feature set. Assigning a tuple element through a `let` binding (`t.0 = …`) → **S060**; use `var`. |
 | Underscores in numeric literals | ✅ Supported (same as Swift) |
 | `0x` / `0o` / `0b` prefixes | ✅ Supported |
 

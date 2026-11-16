@@ -43,6 +43,7 @@ mod language_deepen;
 mod let_member_assign_s060;
 mod let_nested_index_append_s060;
 mod let_nested_member_assign_s060;
+mod let_tuple_member_assign_s060;
 mod let_subscript_s060;
 mod loop_control_mir;
 mod macro_expand;

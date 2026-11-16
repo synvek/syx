@@ -17,6 +17,7 @@
 - fix: enhance S060 diagnostic code for nested member assignments
 - fix: enhance S060 diagnostic for nested `let` assignments and method calls
 - fix: clarify language-rule goals for S020 diagnostics in initialization and access control
+- fix: clarify S060 diagnostic for tuple member assignments through immutable bindings
 - feat: implement NumericCast AOT import and update MIR instructions
 - fix: restore CI workflow YAML (unquoted `smoke::` broke Actions); portable Windows smoke enumeration; advisory Native/JIT soft steps; ignore drifted faer pad/mat_mul plugin nails
 - fix: soft CI batch — smoke nails track peeled modules; Windows `smoke::` filter; Extended/GUI/Book/Browser/JIT/Native soft walls + advisory exits; hang-prone Extended suites module-sharded

@@ -345,7 +345,8 @@ impl SemanticAnalyzer {
     }
 
     /// Walk Ident / Member chain via `dataclass_fields`. Returns root name when the whole
-    /// path is value-type (`dataclass_names`) and the root binding is immutable.
+    /// path is value-type (`dataclass_names` or `TypeId::Tuple`) and the root binding is immutable.
+    /// U-27: Tuple roots (`t.0=`) and dataclass→Tuple hops (`b.pair.0=`) → S060.
     fn value_member_assign_immutable_root(&self, object: &Expr) -> Option<SmolStr> {
         let mut fields: Vec<&SmolStr> = Vec::new();
         let mut cur = object;
@@ -363,6 +364,12 @@ impl SemanticAnalyzer {
         if sym.mutable {
             return None;
         }
+        // Ident tuple: `let t = (…); t.0 = …` — object is the tuple Ident.
+        if fields.is_empty() {
+            if matches!(sym.ty, TypeId::Tuple { .. }) {
+                return Some(root_name);
+            }
+        }
         let TypeId::Named(mut ty_name) = sym.ty.clone() else {
             return None;
         };
@@ -379,16 +386,22 @@ impl SemanticAnalyzer {
                 .iter()
                 .find(|(n, _)| n == *field)
                 .map(|(_, t)| t.clone())?;
-            let TypeId::Named(next) = field_ty else {
-                return None;
-            };
-            if self.class_names.contains(&next) || self.actor_types.contains(&next) {
-                return None;
+            match field_ty {
+                TypeId::Tuple { .. } => {
+                    // Nested `b.pair.0=` — object is `b.pair` (tuple-typed Member).
+                    return Some(root_name);
+                }
+                TypeId::Named(next) => {
+                    if self.class_names.contains(&next) || self.actor_types.contains(&next) {
+                        return None;
+                    }
+                    if !self.dataclass_names.contains(&next) {
+                        return None;
+                    }
+                    ty_name = next;
+                }
+                _ => return None,
             }
-            if !self.dataclass_names.contains(&next) {
-                return None;
-            }
-            ty_name = next;
         }
         Some(root_name)
     }
