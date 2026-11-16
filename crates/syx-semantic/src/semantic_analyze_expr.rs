@@ -694,6 +694,8 @@ impl SemanticAnalyzer {
                 span,
                 ..
             } => {
+                // U-22: let-bound collections cannot be written via subscript (S060).
+                self.check_index_assign_on_immutable(object, *span);
                 self.analyze_expr(object)?;
                 let obj_ty = self.type_of_expr(object);
                 if let TypeId::Named(ref type_name) = obj_ty {

@@ -221,7 +221,7 @@ func main() {
 |------|------|------|
 | **S001** | Method name conflicts with a field | Rename it |
 | **S004** | Parameter / return type mismatch | Fix it |
-| **S060** | `mutating` called on a `let` | Change it to `var` |
+| **S060** | `mutating` / subscript assign on a `let` | Change it to `var` |
 | **S051** | Missing `override` keyword | Add `override` |
 | **S052** | Overriding something not declared in the superclass | Remove `override` |
 | **A002** | Cross-actor call without await | Add `await` |

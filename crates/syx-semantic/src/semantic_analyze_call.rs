@@ -248,6 +248,29 @@ impl SemanticAnalyzer {
         ));
     }
 
+    /// U-22: `let` bindings cannot be written through subscript (`a[i] = …` / `d[k] = …`).
+    /// Same S060 family as mutating method calls; Ident base only (matches append scale).
+    pub(crate) fn check_index_assign_on_immutable(
+        &mut self,
+        object: &Expr,
+        span: syx_diagnostics::Span,
+    ) {
+        let Some(binding) = Self::mutating_receiver_binding(object) else {
+            return;
+        };
+        let Some(sym) = self.scope.lookup(&binding) else {
+            return;
+        };
+        if sym.mutable {
+            return;
+        }
+        self.errors.push(self.error_at(
+            format!("Cannot assign through subscript on immutable binding '{binding}'"),
+            span,
+            "S060",
+        ));
+    }
+
     fn mutating_receiver_binding(object: &Expr) -> Option<SmolStr> {
         match object {
             Expr::Ident { name, .. } => Some(name.clone()),

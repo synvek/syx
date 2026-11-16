@@ -221,7 +221,7 @@ func main() {
 |------|------|------|
 | **S001** | 方法名与字段冲突 | 改名 |
 | **S004** | 形参 / 返回类型不匹配 | 修正 |
-| **S060** | `mutating` 调用于 `let` | 改 `var` |
+| **S060** | `mutating` / 下标赋值于 `let` | 改 `var` |
 | **S051** | override 缺关键字 | 加 `override` |
 | **S052** | override 父类未声明 | 删 `override` |
 | **A002** | 跨 actor 调用未 await | 加 `await` |

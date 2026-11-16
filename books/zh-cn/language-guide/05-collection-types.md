@@ -53,6 +53,8 @@ func main() {
 | `.flatMap(transform)` | `Array<U>` | HOF（**GA**）；闭包结果为 `Array<U>` 时解开一层得 `Array<U>`，否则按单元素（facade 仍 `Function`，≠ mono） |
 | `.append(item)` | `Void` | 追加 |
 
+> **可变性：** 在 `let` 上 `append` 或下标赋值（`a[i] = v`）→ **S060**；请用 `var`。
+
 另有 facade `.binarySearch`（仍 `item: Int`）。**未实现**（调用 → **S002**）：`.isEmpty`、`.first` / `.last`、`.reversed()`、`.remove(at:)` / `.removeAll()`、`.index(of:)`、`.slice`、`.contains(where:)`、`.allSatisfy`、`.forEach`。遍历用 `for`。
 
 ### 数组字面量与推断

@@ -53,6 +53,8 @@ func main() {
 | `.flatMap(transform)` | `Array<U>` | HOF (**GA**); when the closure result is `Array<U>`, one level is unwrapped to `Array<U>`, otherwise it is treated as a single element (the facade still uses `Function`, ≠ mono) |
 | `.append(item)` | `Void` | Append |
 
+> **Mutability:** `append` and subscript assignment (`a[i] = v`) on a `let` binding → **S060**; use `var`.
+
 There is also a facade `.binarySearch` (still `item: Int`). **Not implemented** (calling them → **S002**): `.isEmpty`, `.first` / `.last`, `.reversed()`, `.remove(at:)` / `.removeAll()`, `.index(of:)`, `.slice`, `.contains(where:)`, `.allSatisfy`, `.forEach`. Use `for` to iterate.
 
 ### Array Literals and Inference
