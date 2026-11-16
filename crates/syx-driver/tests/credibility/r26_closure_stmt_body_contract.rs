@@ -34,18 +34,21 @@ fn r26_parse_swift_closure_uses_stmt_body_helper() {
 fn r26_tutorial_08_closures_checks_clean() {
     let path = repo_root().join("tutorial/08-closures.sy");
     assert!(path.is_file(), "tutorial/08-closures.sy must exist");
-    let syx = repo_root().join("target/debug/syx");
-    let bin = if syx.is_file() {
-        syx
+    // Credibility CI regenerates embeds via release `syx`; local debug builds are fine too.
+    let release = repo_root().join("target/release/syx");
+    let debug = repo_root().join("target/debug/syx");
+    let bin = if release.is_file() {
+        release
+    } else if debug.is_file() {
+        debug
     } else {
-        // Fall back to PATH after `cargo build -p syx-cli` in CI.
         PathBuf::from("syx")
     };
     let out = Command::new(&bin)
         .arg("check")
         .arg(&path)
         .output()
-        .expect("syx check");
+        .unwrap_or_else(|e| panic!("syx check via {}: {e}", bin.display()));
     let stderr = String::from_utf8_lossy(&out.stderr);
     let stdout = String::from_utf8_lossy(&out.stdout);
     let combined = format!("{stdout}{stderr}");
