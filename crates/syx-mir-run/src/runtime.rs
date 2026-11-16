@@ -1303,7 +1303,10 @@ impl MirRuntime {
                 self.pending_catch = Some(self.stack.pop().unwrap_or(Value::Str("error".into())));
             }
             op::BIND_RESULT => {
-                if self.pending_catch.is_some() {
+                // Match MIR interpreter BindResult: take pending error onto the
+                // stack and return the pad target; 0 means fall through.
+                if let Some(err) = self.pending_catch.take() {
+                    self.stack.push(err);
                     return Ok(a);
                 }
             }

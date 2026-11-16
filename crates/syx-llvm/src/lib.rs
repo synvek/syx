@@ -2497,11 +2497,23 @@ fn emit_mir_instr(
             return Some(cont);
         }
         MirOp::BindResult(target) => {
+            // MIR: only jump when pending_catch is set (take → stack); else fall through.
+            // Unconditional `br` sent successful `try` into ReturnErr → native exit 255.
+            // Fallthrough must be a fresh mid-block label (same pattern as Call take_catch),
+            // not the next MIR block — remaining ops (Jump after BindResult) still run.
             let label = labels
                 .get(target)
                 .cloned()
                 .unwrap_or_else(|| format!("b{target}"));
-            out.push_str(&format!("  br label %{label} ; bind_result\n"));
+            let br = fresh_tmp(next_tmp);
+            out.push_str(&format!(
+                "  {br} = call i32 @syx_rt_bind_result(i32 {target})\n"
+            ));
+            let cmp = fresh_tmp(next_tmp);
+            out.push_str(&format!("  {cmp} = icmp ne i32 {br}, 0\n"));
+            let ft = fresh_block_label(next_label);
+            out.push_str(&format!("  br i1 {cmp}, label %{label}, label %{ft}\n"));
+            return Some(ft);
         }
         MirOp::MakeClosure(name, captures) => {
             let tmp = fresh_tmp(next_tmp);
@@ -2573,12 +2585,19 @@ fn emit_mir_instr(
             out.push_str(&format!("  ret i32 {tmp}\n"));
         }
         MirOp::ReturnErr => {
-            if llvm_aot_phase3_enabled() || llvm_aot_phase2_enabled() {
-                out.push_str("  call void @syx_rt_return_err()\n");
-                out.push_str("  ret i32 -1\n");
-            } else {
-                out.push_str("  ret i32 -1\n");
+            // MIR ReturnErr rethrows into any remaining same-frame BeginTry
+            // (outer `do`/`catch` around `try f()`). Blind `ret -1` became exit 255.
+            out.push_str("  call void @syx_rt_return_err()\n");
+            if catch_labels.is_empty() {
+                out.push_str("  call void @syx_rt_end_function()\n");
+                out.push_str("  ret i32 0\n");
+                return None;
             }
+            let cont = emit_take_catch_branch(out, catch_labels, next_tmp, next_label);
+            out.push_str(&format!("{cont}:\n"));
+            out.push_str("  call void @syx_rt_end_function()\n");
+            out.push_str("  ret i32 0\n");
+            return None;
         }
         MirOp::ActorCall(id) => {
             let tmp = fresh_tmp(next_tmp);
