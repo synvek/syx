@@ -171,8 +171,7 @@ jobs:
 
   test-driver-concurrency:
     name: Core concurrency
-    # Soft: Linux runners hang ~30m in task/semaphore nails (local macOS ~35s).
-    continue-on-error: true
+    # Keep wall timeout; previously soft while Linux hung ~30m (now ~3–4m green).
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [fmt]
@@ -220,8 +219,7 @@ jobs:
 
   test-driver-credibility:
     name: Core credibility
-    # Soft while remaining Linux census drift is diagnosed; prelude regen required on clean CI.
-    continue-on-error: true
+    # Hard again after plan/01+02 SSOT + portable time -p + r26 release syx (f2317a0 green).
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: [fmt]
@@ -297,14 +295,14 @@ jobs:
           if-no-files-found: warn
 
   # Aggregator keeps the historical required check name "Core driver".
-  # lang/concurrency/credibility soft until Linux hangs + credibility drift are fixed.
+  # Core lang remains soft (Linux hang risk); data/credibility/concurrency hard.
   test-driver:
     name: Core driver
     runs-on: ubuntu-latest
-    needs: [test-driver-data]
+    needs: [test-driver-data, test-driver-credibility, test-driver-concurrency]
     steps:
       - name: Required Core driver suites passed
-        run: echo "data green (lang/concurrency/credibility soft)"
+        run: echo "data+credibility+concurrency green (lang soft)"
 
   # ---------------------------------------------------------------------------
   # Required: WASM / browser compiler artifacts
