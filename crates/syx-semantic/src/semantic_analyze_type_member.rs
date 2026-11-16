@@ -27,12 +27,16 @@ impl SemanticAnalyzer {
             self.current_actor_context = Some(type_name.clone());
         }
         let result = match member {
+            // U-20: wire `current_function_is_throws` for type members (U-19 only did top-level).
             Decl::Function {
-                span, params, body, ..
-            }
-            | Decl::Init {
-                span, params, body, ..
+                span,
+                params,
+                body,
+                throws_type,
+                ..
             } => {
+                let prev_throws = self.current_function_is_throws;
+                self.current_function_is_throws = throws_type.is_some();
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
@@ -68,6 +72,54 @@ impl SemanticAnalyzer {
                 std::mem::swap(&mut self.scope, &mut fn_scope);
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
+                self.current_function_is_throws = prev_throws;
+                r
+            }
+            Decl::Init {
+                span,
+                params,
+                body,
+                throws,
+                ..
+            } => {
+                let prev_throws = self.current_function_is_throws;
+                self.current_function_is_throws = *throws;
+                let mut fn_scope = Scope {
+                    parent: Some(Box::new(std::mem::take(&mut self.scope))),
+                    ..Default::default()
+                };
+                self.define_in_scope(
+                    &mut fn_scope,
+                    Symbol {
+                        name: SmolStr::new("self"),
+                        ty: TypeId::Named(type_name.clone()),
+                        mutable: true,
+                        access: AccessLevel::Internal,
+                    },
+                    *span,
+                )?;
+                for param in params {
+                    let param_ty = param
+                        .ty
+                        .as_ref()
+                        .map(type_expr_to_id)
+                        .unwrap_or(TypeId::Unknown);
+                    self.define_in_scope(
+                        &mut fn_scope,
+                        Symbol {
+                            name: param.name.clone(),
+                            ty: param_ty.clone(),
+                            mutable: false,
+                            access: AccessLevel::Internal,
+                        },
+                        *span,
+                    )?;
+                    self.track_binding(param.name.clone(), param_ty, span.start);
+                }
+                std::mem::swap(&mut self.scope, &mut fn_scope);
+                let r = self.analyze_block(body);
+                self.scope = *self.scope.parent.take().unwrap_or_default();
+                self.current_function_is_throws = prev_throws;
                 r
             }
             Decl::Deinit { span, body, .. } => {

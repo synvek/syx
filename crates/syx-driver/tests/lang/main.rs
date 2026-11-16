@@ -44,6 +44,7 @@ mod loop_control_mir;
 mod macro_expand;
 mod memory_arc;
 mod memory_unified_heap;
+mod method_throws_s028;
 mod model_v1;
 mod move_consume;
 mod named_move;
