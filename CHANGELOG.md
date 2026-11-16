@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- fix: track `plan/01` + `plan/02` (credibility claim SSOT); was fully gitignored so clean CI panicked on missing roadmap
 - fix: Core credibility Linux census — portable `time -p` fallback in s3_03/s3_04 (GHA lacks `/usr/bin/time`); install `time` + verify prelude sizes; surface failed-test names via `::error` annotations
 - fix: Core credibility CI regenerates gitignored prelude embeds before nails; soft jobs tee logs + step summary + artifacts; wall `timeout` on lang/concurrency hangs
 - fix: serialize syx-vm JIT env-gate nails (Core libs flake under `--test-threads=4`); soft-skip lang native AOT without `full-native`; fix borrow/inheritance call labels; pin comparable manifest to 0.2.3; soft-skip conditional Array:Marker drift; move evergreen out of required Core driver into soft Extended; split Core driver into parallel suite jobs + aggregator; install ripgrep on Core credibility (census scripts); soft-gate Core lang/concurrency/credibility on Linux CI hangs/drift (data remains hard)

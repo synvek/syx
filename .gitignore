@@ -45,7 +45,13 @@ tools/sgate/.tmp_*/
 
 .cursor/
 .kiro/
-plan/
+# Local planning dir stays private by default (dual-repo tip/ledger/todos).
+# Ignore contents (not the dir) so negations below can re-include claim SSOT.
+# Credibility nails read plan/01 + plan/02 on clean CI checkouts.
+plan/*
+!plan/README.md
+!plan/01-project-status.md
+!plan/02-improvement-roadmap.md
 
 # plan-001 Phase 6b: qs1 ledger — public stub is tracked; private sibling may
 # overlay a fuller body before qs1 CI. (R-37: stub required for cargo fmt resolve.)

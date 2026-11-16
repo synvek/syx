@@ -271,17 +271,7 @@ jobs:
             rg -n '^failures:$' -A40 /tmp/syx-credibility.out | tail -50 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Public check-run annotations (readable via API without gated log download).
-          {
-            rg -n 'FAILED|panicked at|census script failed|assertion `left|error: test failed|error\[E' \
-              /tmp/syx-credibility.out || true
-            rg -n '^failures:$' -A60 /tmp/syx-credibility.out || true
-            rg -n 'test .* \.\.\. FAILED' /tmp/syx-credibility.out || true
-          } | head -80 | while IFS= read -r line; do
-            # Annotation message max ~65k; keep each line short.
-            echo "::error title=credibility::${line:0:200}"
-          done
-          # Compact failure-name extract for next-debug without full log.
+          # GitHub caps ~10 annotations/step — pack names + first panics into few lines.
           rg -o 'test ([a-z0-9_:]+) \.\.\. FAILED' -r '$1' /tmp/syx-credibility.out \
             | sort -u > /tmp/syx-credibility-fails.txt || true
           if [ -s /tmp/syx-credibility-fails.txt ]; then
@@ -289,10 +279,13 @@ jobs:
             echo '```' >> "$GITHUB_STEP_SUMMARY"
             cat /tmp/syx-credibility-fails.txt >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
-            while IFS= read -r name; do
-              echo "::error title=failed-test::$name"
-            done < /tmp/syx-credibility-fails.txt
+            fails=$(tr '\n' ' ' < /tmp/syx-credibility-fails.txt | head -c 2000)
+            echo "::error title=credibility-failed-tests::${fails}"
           fi
+          rg -n 'panicked at|census script failed|assertion failed|No such file' \
+            /tmp/syx-credibility.out | head -8 | while IFS= read -r line; do
+            echo "::error title=credibility-panic::${line:0:200}"
+          done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
