@@ -21,6 +21,7 @@
 - feat: add optional loop label support for repeat statements
 - feat: implement comma-separated `if let` syntax with nested IfLet and trailing If
 - feat: implement `while case` syntax with nested IfCase and break handling
+- feat: implement comma-separated `guard let` syntax with trailing conditions
 
 ### SYX 0.2.2
 

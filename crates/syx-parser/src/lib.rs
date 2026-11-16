@@ -2495,28 +2495,95 @@ impl Parser {
 
     fn parse_guard_let(&mut self) -> SyxResult<Stmt> {
         let start = self.advance().span;
+        // U-16: comma `guard let x = a, let y = b[, cond] else { E }` → Stmt::Seq of
+        // GuardLet(+ trailing If); else cloned per arm. Bindings stay in same scope (≠ nested).
         self.consume(TokenKind::Let, "Expected 'let' after guard")?;
+        let mut bindings: Vec<(SmolStr, Expr)> = Vec::new();
         let name = self.consume_identifier("Expected binding name")?;
         self.consume(TokenKind::Assign, "Expected '=' in guard let")?;
+        // U-8: RHS call must not swallow the else-brace as trailing closure.
+        let prev = self.allow_trailing_closure;
+        self.allow_trailing_closure = false;
         let pattern = self.parse_expr()?;
+        self.allow_trailing_closure = prev;
+        bindings.push((name, pattern));
+
+        let mut trailing_cond: Option<Expr> = None;
+        while self.match_kind(TokenKind::Comma) {
+            if self.match_kind(TokenKind::Let) {
+                let name = self.consume_identifier("Expected binding name")?;
+                self.consume(TokenKind::Assign, "Expected '=' in guard let")?;
+                let prev = self.allow_trailing_closure;
+                self.allow_trailing_closure = false;
+                let pattern = self.parse_expr()?;
+                self.allow_trailing_closure = prev;
+                bindings.push((name, pattern));
+            } else {
+                // At most one trailing boolean condition after bindings.
+                let prev = self.allow_trailing_closure;
+                self.allow_trailing_closure = false;
+                trailing_cond = Some(self.parse_expr()?);
+                self.allow_trailing_closure = prev;
+                break;
+            }
+        }
+
         self.consume(TokenKind::Else, "Expected 'else' after guard let")?;
         self.consume(TokenKind::LBrace, "Expected '{' after guard else")?;
         let else_branch = self.parse_block_stmts()?;
         // S1-I5: book/Swift style has no success brace — continuation is following stmts.
         // Legacy SYX form still accepts an optional `{ … }` success body after `else`.
+        // With a comma chain, hang the optional body only on the last GuardLet.
         let body = if self.check(TokenKind::LBrace) {
             self.advance();
             self.parse_block_stmts()?
         } else {
             Vec::new()
         };
-        Ok(Stmt::GuardLet {
-            span: Span::merge(start, self.previous().span),
-            name,
-            pattern,
-            body,
-            else_branch,
-        })
+        let span = Span::merge(start, self.previous().span);
+
+        // Single binding, no trailing cond: preserve the classic GuardLet shape.
+        if bindings.len() == 1 && trailing_cond.is_none() {
+            let (name, pattern) = bindings
+                .into_iter()
+                .next()
+                .expect("guard let always has one binding");
+            return Ok(Stmt::GuardLet {
+                span,
+                name,
+                pattern,
+                body,
+                else_branch,
+            });
+        }
+
+        let last = bindings.len().saturating_sub(1);
+        let mut stmts: Vec<Stmt> = Vec::with_capacity(bindings.len() + 1);
+        for (i, (name, pattern)) in bindings.into_iter().enumerate() {
+            let arm_body = if i == last && trailing_cond.is_none() {
+                body.clone()
+            } else {
+                Vec::new()
+            };
+            stmts.push(Stmt::GuardLet {
+                span,
+                name,
+                pattern,
+                body: arm_body,
+                else_branch: else_branch.clone(),
+            });
+        }
+        if let Some(cond) = trailing_cond {
+            // Trailing cond failure takes the same else; optional legacy body hangs after success.
+            stmts.push(Stmt::If {
+                span,
+                condition: cond,
+                then_branch: body,
+                else_branch: Some(else_branch),
+            });
+        }
+
+        Ok(Stmt::Seq { span, stmts })
     }
 
     fn parse_switch(&mut self) -> SyxResult<Stmt> {
