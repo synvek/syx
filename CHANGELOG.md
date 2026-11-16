@@ -35,6 +35,7 @@
 - chore: fix Core tests timeout — drop `--workspace --lib/--bins` (llvm/wasm/hosts compile); split into Core libs (curated `-p`) + Core driver; LSP `--lib` only; raise Book soft timeout; trim Extended LSP re-run
 - chore: split required CI into Format / Lint / LSP / Core tests; drop backends/browser/wasm/farm/platform from the merge gate; move Broad parity to nightly schedule; add soft-job timeouts and optional `.githooks/pre-push` fmt check
 - fix: enhance MIR instruction handling for BindResult and ReturnErr
+- fix: improve MIR handling for AwaitSuspend to maintain block continuity
 
 ### SYX 0.2.2
 

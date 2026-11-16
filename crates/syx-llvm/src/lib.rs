@@ -1871,11 +1871,12 @@ fn mir_instr_closes_current_bb(op: &MirOp, fallthrough: Option<&str>) -> bool {
     matches!(
         op,
         // Throw may `ret` when no local catch pad (Wave A W11).
+        // AwaitSuspend always opens a mid-block cont label (returns Some) — do not
+        // treat it as closing when fallthrough is Some (that skipped post-await ops).
         MirOp::Return | MirOp::ReturnErr | MirOp::Jump(_) | MirOp::Throw
     ) || matches!(
         (op, fallthrough),
         (MirOp::JumpIfFalse(_) | MirOp::JumpIfNil(_), Some(_))
-            | (MirOp::AwaitSuspend { .. }, Some(_))
     )
 }
 
@@ -2555,6 +2556,10 @@ fn emit_mir_instr(
             set_reg(regs, last_value, instr.dest, tmp.clone());
         }
         MirOp::AwaitSuspend { resume_fn, state } => {
+            // Ready-path (rt_await_suspend_native clears suspended) must continue the
+            // *same* MIR block (Pop / print "End" / Return). Using structured
+            // `fallthrough` as the not-suspended target skipped those ops and jumped
+            // into the next block (often ReturnErr) — basic_demo never printed End.
             out.push_str(&format!(
                 "  call void @syx_rt_await_suspend(i32 {resume_fn}, i32 {state})\n"
             ));
@@ -2563,17 +2568,15 @@ fn emit_mir_instr(
             let cmp = fresh_tmp(next_tmp);
             out.push_str(&format!("  {cmp} = icmp ne i32 {susp}, 0\n"));
             let exit_lbl = fresh_block_label(next_label);
-            let cont_lbl = fallthrough
-                .map(String::from)
-                .unwrap_or_else(|| fresh_block_label(next_label));
+            let cont_lbl = fresh_block_label(next_label);
             out.push_str(&format!(
                 "  br i1 {cmp}, label %{exit_lbl}, label %{cont_lbl}\n"
             ));
             out.push_str(&format!("{exit_lbl}:\n"));
+            // Pending-only cooperative yield: exit process; resume driver is later deepen.
             out.push_str("  ret i32 0\n");
-            if fallthrough.is_none() {
-                return Some(cont_lbl);
-            }
+            let _ = fallthrough;
+            return Some(cont_lbl);
         }
         MirOp::Return => {
             // Phase 98: restore caller locals + publish return value onto MIR stack.
@@ -3649,6 +3652,85 @@ mod tests {
         assert!(ir.contains("syx_rt_begin_try"));
         assert!(ir.contains("syx_rt_await_poll"));
         assert!(ir.contains("syx_rt_await_suspend"));
+    }
+
+    #[test]
+    fn await_suspend_continues_same_block_when_not_suspended() {
+        // Multi-block main: AwaitSuspend must not use next MIR block as the
+        // ready-path target (that skipped post-await Print "End" → ReturnErr).
+        let module = MirModule {
+            functions: vec![MirFunction {
+                name: "main".into(),
+                param_count: 0,
+                local_count: 0,
+                entry: 0,
+                blocks: vec![
+                    MirBlock {
+                        id: 0,
+                        instructions: vec![
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::AwaitSuspend {
+                                    resume_fn: 0,
+                                    state: 0,
+                                },
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::ConstStr("End".into()),
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::Print,
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::Return,
+                                span: None,
+                            },
+                        ],
+                        successors: vec![1],
+                    },
+                    MirBlock {
+                        id: 1,
+                        instructions: vec![MirInstr {
+                            dest: None,
+                            op: MirOp::ReturnErr,
+                            span: None,
+                        }],
+                        successors: vec![],
+                    },
+                ],
+                instructions: vec![],
+                local_names: vec![],
+                local_types: vec![],
+                init_body_pc: 0,
+                init_wrap_pc: 0,
+            }],
+            ..Default::default()
+        };
+        let ir = emit_llvm_ir(&module).unwrap();
+        assert!(ir.contains("syx_rt_await_suspend"), "missing await_suspend: {ir}");
+        assert!(
+            ir.contains("syx_rt_print_aot") || ir.contains("syx_rt_print"),
+            "post-await Print must remain in IR: {ir}"
+        );
+        // Ready path must not branch straight to the next MIR block label %b1.
+        let suspend_idx = ir
+            .find("syx_rt_await_suspend")
+            .expect("await_suspend call");
+        let after = &ir[suspend_idx..];
+        let br_line = after
+            .lines()
+            .find(|l| l.trim_start().starts_with("br i1"))
+            .expect("is_suspended branch");
+        assert!(
+            !br_line.contains("label %b1"),
+            "not-suspended arm must be mid-block cont, not next MIR block: {br_line}"
+        );
     }
 
     #[test]
