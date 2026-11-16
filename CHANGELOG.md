@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- fix: r26 credibility nail prefer `target/release/syx` (CI prelude regen) over missing debug/PATH
 - fix: track `plan/01` + `plan/02` (credibility claim SSOT); was fully gitignored so clean CI panicked on missing roadmap
 - fix: Core credibility Linux census — portable `time -p` fallback in s3_03/s3_04 (GHA lacks `/usr/bin/time`); install `time` + verify prelude sizes; surface failed-test names via `::error` annotations
 - fix: Core credibility CI regenerates gitignored prelude embeds before nails; soft jobs tee logs + step summary + artifacts; wall `timeout` on lang/concurrency hangs
