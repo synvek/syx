@@ -1450,6 +1450,7 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
             aot::DICT_BUILD => Some(op::DICT_BUILD),
             aot::SET_BUILD => Some(op::SET_BUILD),
             aot::PRINT => Some(op::PRINT),
+            aot::NUMERIC_CAST => Some(op::NUMERIC_CAST),
             aot::MAKE_ITERATOR => Some(op::MAKE_ITERATOR),
             aot::ITERATOR_NEXT => Some(op::ITERATOR_NEXT),
             aot::ARRAY_GET => Some(op::ARRAY_GET),
@@ -1923,7 +1924,10 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                         )
                     })?;
             }
-            aot::SIMD_WASM_SPILL | aot::SIMD_WASM_FILL | aot::PUSH_RT_NUMERIC => {
+            aot::SIMD_WASM_SPILL
+            | aot::SIMD_WASM_FILL
+            | aot::PUSH_RT_NUMERIC
+            | aot::NUMERIC_CAST => {
                 linker
                     .func_wrap(
                         host::MODULE,
@@ -1939,7 +1943,11 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                             } else {
                                 &mut owned
                             };
-                            let _ = caller.data_mut().rt.exec(op_code, slot, scratch, 0, memory);
+                            let _ = caller
+                                .data_mut()
+                                .rt
+                                .exec(op_code, slot, scratch, 0, memory)
+                                .unwrap_or_else(|e| panic!("aot import: {e}"));
                         },
                     )
                     .map_err(|e| {

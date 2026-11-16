@@ -1864,15 +1864,15 @@
     },
     {
       "name": "NumericCast",
-      "status": "unsupported",
+      "status": "partial",
       "backends": {
-        "vm": "unsupported",
-        "mir": "unsupported",
+        "vm": "real",
+        "mir": "real",
         "llvm": "unsupported",
-        "wasm": "unsupported",
+        "wasm": "real",
         "cranelift": "unsupported"
       },
-      "notes": "",
+      "notes": "WASM AOT maps NumericCast via __syx_aot_numeric_cast (from,to) → RT try_numeric_cast; hello2 Int8 contextual literal",
       "pilot": ""
     }
   ]

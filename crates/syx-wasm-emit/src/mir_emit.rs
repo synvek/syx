@@ -156,6 +156,9 @@ fn collect_used_aot_imports(module: &MirModule) -> BTreeSet<aot::Import> {
                     | MirOp::BitNot { .. } => {
                         used.insert(aot::Import::StackOp);
                     }
+                    MirOp::NumericCast { .. } => {
+                        used.insert(aot::Import::NumericCast);
+                    }
                     MirOp::MakeIterator => {
                         used.insert(aot::Import::MakeIterator);
                     }
@@ -5465,6 +5468,16 @@ fn emit_mir_instr(
         }
         if let MirOp::ConstNumeric128 { kind, lo, hi } = &instr.op {
             emit_const_numeric128_guest(body, plan, *kind, *lo, *hi);
+            return;
+        }
+        if let MirOp::NumericCast { from, to } = &instr.op {
+            // RT stack holds the value; guest passes NumericKind bytes for try_numeric_cast.
+            emit_wasm_instr(body, &WasmInstr::I32Const(*from as i32));
+            emit_wasm_instr(body, &WasmInstr::I32Const(*to as i32));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::NumericCast)),
+            );
             return;
         }
         // Phase 99: ban silent catch-all emit_mir_exec on sync AOT hot path.

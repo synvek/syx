@@ -88,6 +88,7 @@ mod tests {
             aot::Import::PushRtBool,
             aot::Import::PushRtNil,
             aot::Import::StackOp,
+            aot::Import::NumericCast,
             aot::Import::EndFn,
         ] {
             let e = import_effect(import);

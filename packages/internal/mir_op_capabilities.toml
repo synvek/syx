@@ -147,3 +147,9 @@ name = "ObjectGet"
 status = "partial"
 backends = { vm = "real", mir = "real", llvm = "real", wasm = "real", cranelift = "unsupported" }
 notes = "ADR-543 / W199 suite1 pilot product backends real; W196 native + W197 wasm dict_subscript evidence"
+
+[[op]]
+name = "NumericCast"
+status = "partial"
+backends = { vm = "real", mir = "real", llvm = "unsupported", wasm = "real", cranelift = "unsupported" }
+notes = "WASM AOT maps NumericCast via __syx_aot_numeric_cast (from,to) → RT try_numeric_cast; hello2 Int8 contextual literal"

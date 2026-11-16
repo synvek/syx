@@ -150,4 +150,4 @@
 | TaskJoin | unsupported | unsupported | unsupported | unsupported | unsupported | unsupported |  |
 | CallSuper | unsupported | unsupported | unsupported | unsupported | unsupported | unsupported |  |
 | ArrSorted | unsupported | unsupported | unsupported | unsupported | unsupported | unsupported |  |
-| NumericCast | unsupported | unsupported | unsupported | unsupported | unsupported | unsupported |  |
+| NumericCast | partial | real | real | unsupported | real | unsupported | WASM AOT maps NumericCast via __syx_aot_numeric_cast (from,to) → RT try_numeric_cast; hello2 Int8 contextual literal |

@@ -83,6 +83,8 @@ pub mod aot {
     pub const PRINT: &str = "__syx_aot_print";
     /// M0-W4: scalar MIR stack op by opcode (ADD/SUB/LT/…); operands stay on RT stack.
     pub const STACK_OP: &str = "__syx_aot_stack_op";
+    /// Same-sign integer / float→int cast; args are NumericKind bytes `(from, to)`.
+    pub const NUMERIC_CAST: &str = "__syx_aot_numeric_cast";
     pub const MAKE_ITERATOR: &str = "__syx_aot_make_iterator";
     pub const ITERATOR_NEXT: &str = "__syx_aot_iterator_next";
     pub const ARRAY_GET: &str = "__syx_aot_array_get";
@@ -192,6 +194,7 @@ pub mod aot {
         SetBuild,
         Print,
         StackOp,
+        NumericCast,
         MakeIterator,
         IteratorNext,
         ArrayGet,
@@ -293,6 +296,7 @@ pub mod aot {
                 Self::SetBuild => SET_BUILD,
                 Self::Print => PRINT,
                 Self::StackOp => STACK_OP,
+                Self::NumericCast => NUMERIC_CAST,
                 Self::MakeIterator => MAKE_ITERATOR,
                 Self::IteratorNext => ITERATOR_NEXT,
                 Self::ArrayGet => ARRAY_GET,
@@ -446,9 +450,10 @@ pub mod aot {
                 | Self::SimdI16Add
                 | Self::SimdI64Add => host::TYPE_FUNC_I32,
                 Self::SimdLoad | Self::SimdStore | Self::SimdShuffle => host::TYPE_I32_TO_I32,
-                Self::PushRtNumeric | Self::SimdWasmSpill | Self::SimdWasmFill => {
-                    host::TYPE_I32_I32_VOID
-                }
+                Self::PushRtNumeric
+                | Self::SimdWasmSpill
+                | Self::SimdWasmFill
+                | Self::NumericCast => host::TYPE_I32_I32_VOID,
                 Self::SimdGuestPopV128 => host::TYPE_FUNC_V128,
                 Self::SimdGuestPushV128 => host::TYPE_I32_V128_VOID,
                 Self::ConstNumeric128 => host::TYPE_CONST_NUMERIC128,
