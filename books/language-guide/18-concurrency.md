@@ -23,7 +23,7 @@ async func main() {
 - `await` suspends the current task and waits for the asynchronous operation to finish
 - Multiple-`await` state machines are **Implemented** (test `runtime/async_native.rs`)
 
-> **Key limit:** `await` is legal only inside an `async` function body; using `await` in a non-`async` function → compile error **S020**.
+> **Key limit:** `await` is legal only inside an `async` function body; using `await` in a non-`async` function → compile error **A002**.
 
 ## async let
 
@@ -389,8 +389,7 @@ async func main() {
 
 | Code | Trigger | Fix |
 |------|------|------|
-| **S020** | Using `await` in a non-`async` function | Add `async` |
-| **A002** | Cross-actor access without `await` | Add `await` |
+| **A002** | Using `await` in a non-`async` function / cross-actor access without `await` | Add `async` / `await` |
 | **C001** | Actor isolation violation | Move into the actor isolation domain |
 | **C003** | Passing a non-`Sendable` value across isolation | Add `@Sendable` / `@unchecked Sendable` |
 | **R007** | Unwrapping nil from `await ch.receive()` | Check with `for-in` or `while let` |

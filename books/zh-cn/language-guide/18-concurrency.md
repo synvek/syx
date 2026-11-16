@@ -23,7 +23,7 @@ async func main() {
 - `await` 暂停当前任务，等待异步操作完成
 - 多 `await` 状态机 **已实现**（测试 `runtime/async_native.rs`）
 
-> **关键限制：** `await` 仅在 `async` 函数体内合法；非 `async` 函数使用 `await` → 编译错误 **S020**。
+> **关键限制：** `await` 仅在 `async` 函数体内合法；非 `async` 函数使用 `await` → 编译错误 **A002**。
 
 ## async let
 
@@ -388,8 +388,7 @@ async func main() {
 
 | 代码 | 触发 | 修复 |
 |------|------|------|
-| **S020** | 非 `async` 函数使用 `await` | 加 `async` |
-| **A002** | 跨 actor 访问未 `await` | 加 `await` |
+| **A002** | 非 `async` 函数使用 `await` / 跨 actor 访问未 `await` | 加 `async` / `await` |
 | **C001** | actor 隔离违规 | 移到 actor 隔离区 |
 | **C003** | 跨隔离传非 `Sendable` | 加 `@Sendable` / `@unchecked Sendable` |
 | **R007** | `await ch.receive()` 解包 nil | 检查 `for-in` 或 `while let` |

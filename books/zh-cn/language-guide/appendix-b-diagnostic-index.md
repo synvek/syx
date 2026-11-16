@@ -27,7 +27,8 @@
 | S017 | 生命周期违规 |
 | S018 | 调 `throws` 函数未包 `try` |
 | S019 | Sendable channel |
-| S020 | MainActor await 后违规 / 非 `async` 内 `await` |
+| S020 | MainActor await 后违规 |
+| S060 | 在不可变（`let`）绑定上调用 `mutating` 方法 |
 | S027 | `guard let` `else` 未退出（须 `return` / `throw` / `break` / `continue`） |
 | S028 | 非 `throws` 函数内 `throw` |
 | S022 | SIMD 在禁用模式下使用 |
@@ -99,7 +100,7 @@ Lint 摘录：
 
 | 代码 | 含义 |
 |------|------|
-| A002 | Actor 隔离违规 |
+| A002 | Actor 隔离违规 / 非 `async` 函数内 `await` |
 | A003 | GlobalActor 相关 |
 | C001 | actor 隔离违规（更细粒度） |
 | C002 | distributed actor 边界 |

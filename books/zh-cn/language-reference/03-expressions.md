@@ -167,7 +167,7 @@ await asyncFunc()
 await ch.receive()                          // 异步接收
 ```
 
-> 仅 `async` 函数体内合法；非 `async` 内 `await` → **S020**。
+> 仅 `async` 函数体内合法；非 `async` 内 `await` → **A002**。
 
 ## 闭包表达式
 
@@ -331,7 +331,7 @@ func |> <T>(value: T, f: (T) -> T) -> T { return f(value) }
 
 ---
 
-**诊断：** S004 / S008 / S010 / S014 / S020 / R007
+**诊断：** S004 / S008 / S010 / S014 / S020 / A002 / R007
 
 **用法示例** → [语言指南：运算符](../language-guide/03-basic-operators.md) · [高级运算符](../language-guide/30-advanced-operators.md)
 

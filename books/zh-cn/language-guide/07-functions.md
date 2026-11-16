@@ -124,7 +124,7 @@ async func fetchTwo() -> (String, String) {
 ```
 
 - `await` 仅在 `async` 函数体内合法
-- 非 `async` 函数使用 `await` → 编译错误 **S020**
+- 非 `async` 函数使用 `await` → 编译错误 **A002**
 - `async func main()` 是合法的程序入口
 
 > **实现：** 多 `await` 状态机（**已实现**，测试 `runtime/async_native.rs`）。底层通过 generator-based state machine；详见 [第 18 章 并发](18-concurrency.md)。
@@ -301,7 +301,7 @@ SYX 递归使用 VM 调用栈；深递归触发 **R014 stack overflow**。
 | **S004** | 参数/返回类型不匹配 | 修正类型 |
 | **S005** | 跨模块访问 internal 符号 | 改 `public` |
 | **S042** | 调用参数标签缺失、错误或 `_` 参数带标签 | 补正确 `label:` 或改形参为 `_` |
-| **S020** | 非 `async` 函数使用 `await` | 加 `async` 或去掉 `await` |
+| **A002** | 非 `async` 函数使用 `await` | 加 `async` 或去掉 `await` |
 | **R007** | `!` 解包 `nil` | 改 `?` 或 `if let` |
 | **R014** | 递归过深 | 改迭代或增加栈大小 |
 

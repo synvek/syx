@@ -27,7 +27,8 @@ A user-facing cheat sheet of diagnostic codes. For compiler implementation detai
 | S017 | Lifetime violation |
 | S018 | Call to a `throws` function without `try` |
 | S019 | Sendable channel |
-| S020 | MainActor violation after await / `await` in a non-`async` context |
+| S020 | MainActor violation after await |
+| S060 | Calling a `mutating` method on an immutable (`let`) binding |
 | S027 | `guard let` `else` does not exit (must `return` / `throw` / `break` / `continue`) |
 | S028 | `throw` outside a `throws` function |
 | S022 | Using SIMD while it is disabled |
@@ -99,7 +100,7 @@ Lint excerpts:
 
 | Code | Meaning |
 |------|------|
-| A002 | Actor isolation violation |
+| A002 | Actor isolation violation / `await` in a non-`async` function |
 | A003 | GlobalActor related |
 | C001 | Actor isolation violation (finer-grained) |
 | C002 | distributed actor boundary |

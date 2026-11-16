@@ -167,7 +167,7 @@ await asyncFunc()
 await ch.receive()                          // Asynchronous receive
 ```
 
-> Legal only inside an `async` function body; `await` outside `async` → **S020**.
+> Legal only inside an `async` function body; `await` outside `async` → **A002**.
 
 ## Closure Expressions
 
@@ -331,7 +331,7 @@ The complete grammar is in [Chapter 30, Advanced Operators](../language-guide/30
 
 ---
 
-**Diagnostics:** S004 / S008 / S010 / S014 / S020 / R007
+**Diagnostics:** S004 / S008 / S010 / S014 / S020 / A002 / R007
 
 **Usage examples** → [Language Guide: Operators](../language-guide/03-basic-operators.md) · [Advanced Operators](../language-guide/30-advanced-operators.md)
 

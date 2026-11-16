@@ -124,7 +124,7 @@ async func fetchTwo() -> (String, String) {
 ```
 
 - `await` is legal only inside an `async` function body
-- Using `await` in a non-`async` function → compile error **S020**
+- Using `await` in a non-`async` function → compile error **A002**
 - `async func main()` is a legal program entry point
 
 > **Implementation:** multiple-`await` state machines (**Implemented**, test `runtime/async_native.rs`). Underneath this is a generator-based state machine; see [Chapter 18, Concurrency](18-concurrency.md).
@@ -301,7 +301,7 @@ SYX recursion uses the VM call stack; deep recursion triggers **R014 stack overf
 | **S004** | Parameter/return type mismatch | Fix the types |
 | **S005** | Accessing an internal symbol across modules | Change it to `public` |
 | **S042** | Call argument label missing, wrong, or a `_` parameter carrying a label | Supply the correct `label:` or change the parameter to `_` |
-| **S020** | Using `await` in a non-`async` function | Add `async` or remove `await` |
+| **A002** | Using `await` in a non-`async` function | Add `async` or remove `await` |
 | **R007** | `!` unwrapping `nil` | Change to `?` or `if let` |
 | **R014** | Recursion too deep | Switch to iteration or increase the stack size |
 

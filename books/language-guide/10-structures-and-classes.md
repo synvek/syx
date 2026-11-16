@@ -40,7 +40,7 @@ c.increment()
 print(c.value)                             // 1
 ```
 
-> **`mutating`:** marks methods that modify `self`; the caller must use `var` (not `let`). Calling an unmarked-but-mutating method on a `let` → **S020**.
+> **`mutating`:** marks methods that modify `self`; the caller must use `var` (not `let`). Calling a `mutating` method on a `let` → **S060**.
 
 ### Value semantics: struct assign copies (R-38 · SEM-STRUCT)
 

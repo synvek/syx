@@ -172,7 +172,7 @@ async func main() {
 }
 ```
 
-> **Note:** `await` is legal only inside an `async` function body (compile error S020). Using `await` in a non-`async` function → compile error.
+> **Note:** `await` is legal only inside an `async` function body (compile error **A002**). Using `await` in a non-`async` function → compile error.
 
 ## Common Errors and Troubleshooting
 
