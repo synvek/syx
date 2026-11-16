@@ -64,6 +64,7 @@ mod protocol_iterator;
 mod protocol_shape_array;
 mod repeat_label_break;
 mod set_element_check;
+mod ch15_ch28_s020_honesty;
 mod s020_bag_honesty;
 mod stmt_semicolon;
 mod string_subscript_oob;

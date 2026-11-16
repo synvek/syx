@@ -86,7 +86,7 @@ class Dog: Animal {
 | Phase 2 | Call `super.init(...)` |
 | Phase 3 | (Optional) Continue modifying inherited properties (observers are suppressed inside `init`, see [Chapter 11](11-properties.md)) |
 
-> **Wrong order** (reading `self` before `super.init`, or reading an uninitialized field) → **S020** compile error.
+> **Wrong order** (reading `self` before `super.init`, or reading an uninitialized field) is a language-rule goal; **not yet diagnosed**. Do **not** expect **S020** here — appendix-B reserves **S020** for MainActor-after-await only.
 
 ### super.init May Be Omitted (When the Superclass Has a Default Initializer)
 
@@ -322,8 +322,8 @@ func main() {
 | Code | Trigger | Fix |
 |------|------|------|
 | **S004** | init parameter / field type mismatch | Fix it |
-| **S020** | Reading `self` before `super.init` | Reorder |
 | **S054** | Inherited `init` signature mismatch | Fix it |
+| *(none yet)* | Reading `self` before `super.init` / uninit field | Reorder (aspirational; ≠ **S020**) |
 | **R007** | `!` unwrapping a nil `init?` result | Use `if let` |
 | **R016** | Required field not initialized | Assign it inside `init` |
 

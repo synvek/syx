@@ -77,7 +77,7 @@ public class User {
 }
 ```
 
-> **Type visibility constraint:** a member's access level **cannot be higher** than the type's (an `internal class` cannot have a `public func` member).
+> **Type visibility constraint:** a member's access level **cannot be higher** than the type's (an `internal class` cannot have a `public func` member). This is a language-rule goal; **not yet diagnosed** (≠ **S020** — appendix-B reserves **S020** for MainActor-after-await).
 
 ## `public` + `class` = Inheritable
 
@@ -247,7 +247,7 @@ func main() {
 | Code | Trigger | Fix |
 |------|------|------|
 | **S005** | Accessing internal / private across modules | Change it to `public` / adjust the module boundary |
-| **S020** | A member's access level higher than the type's | Change the type's level or lower the member's |
+| *(none yet)* | Member access level higher than the type's | Lower the member or raise the type (aspirational; ≠ **S020**) |
 
 ---
 
