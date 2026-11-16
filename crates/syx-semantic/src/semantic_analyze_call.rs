@@ -271,6 +271,38 @@ impl SemanticAnalyzer {
         ));
     }
 
+    /// U-23: `let` struct bindings cannot assign fields (`p.x = …`).
+    /// Class/actor `let` field writes stay legal (reference semantics).
+    pub(crate) fn check_member_assign_on_immutable(
+        &mut self,
+        object: &Expr,
+        span: syx_diagnostics::Span,
+    ) {
+        let Some(binding) = Self::mutating_receiver_binding(object) else {
+            return;
+        };
+        let Some(sym) = self.scope.lookup(&binding) else {
+            return;
+        };
+        if sym.mutable {
+            return;
+        }
+        let TypeId::Named(n) = &sym.ty else {
+            return;
+        };
+        if self.class_names.contains(n) || self.actor_types.contains(n) {
+            return;
+        }
+        if !self.dataclass_names.contains(n) {
+            return;
+        }
+        self.errors.push(self.error_at(
+            format!("Cannot assign to member through immutable binding '{binding}'"),
+            span,
+            "S060",
+        ));
+    }
+
     fn mutating_receiver_binding(object: &Expr) -> Option<SmolStr> {
         match object {
             Expr::Ident { name, .. } => Some(name.clone()),

@@ -667,6 +667,8 @@ impl SemanticAnalyzer {
                 span,
                 ..
             } => {
+                // U-23: let-bound structs cannot assign fields (S060); class/actor OK.
+                self.check_member_assign_on_immutable(object, *span);
                 let obj_ty = self.analyze_expr(object)?;
                 if let Some(obj_ty) = self.expr_type(object) {
                     self.check_actor_field_access(object, name, &obj_ty, *span);

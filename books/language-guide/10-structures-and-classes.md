@@ -40,7 +40,7 @@ c.increment()
 print(c.value)                             // 1
 ```
 
-> **`mutating`:** marks methods that modify `self`; the caller must use `var` (not `let`). Calling a `mutating` method on a `let` → **S060**.
+> **`mutating`:** marks methods that modify `self`; the caller must use `var` (not `let`). Calling a `mutating` method on a `let` → **S060**. Assigning a `struct` field through a `let` binding (`p.x = …`) → **S060**; `class` / `actor` field writes on `let` stay legal.
 
 ### Value semantics: struct assign copies (R-38 · SEM-STRUCT)
 

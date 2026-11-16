@@ -28,7 +28,7 @@ A user-facing cheat sheet of diagnostic codes. For compiler implementation detai
 | S018 | Call to a `throws` function without `try` |
 | S019 | Sendable channel |
 | S020 | MainActor violation after await |
-| S060 | Calling a `mutating` method or subscript-assigning through an immutable (`let`) binding |
+| S060 | Calling a `mutating` method, or subscript-/struct-member-assigning through an immutable (`let`) binding |
 | S027 | `guard let` `else` does not exit (must `return` / `throw` / `break` / `continue`) |
 | S028 | `throw` outside a `throws` function |
 | S022 | Using SIMD while it is disabled |
