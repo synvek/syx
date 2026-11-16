@@ -9,6 +9,19 @@ cd "$ROOT"
 
 echo "== S3-03 stdlib-cache census =="
 
+# Portable `time -p`: GHA/ubuntu images often lack `/usr/bin/time` (macOS has it).
+# Stats must land on stderr as `real N` for the awk parsers below.
+syx_time_p() {
+  local errf="$1"
+  shift
+  if [[ -x /usr/bin/time ]]; then
+    /usr/bin/time -p "$@" 2>"$errf"
+  else
+    TIMEFORMAT=$'real %R\nuser %U\nsys %S'
+    { time "$@" 2>/dev/null; } 2>"$errf"
+  fi
+}
+
 count_rg() {
   local pattern="$1"
   shift
@@ -111,14 +124,15 @@ hello_nostd_s="na"
 hello_prelude_hit_s="na"
 hello_cache_bins_after="na"
 entry_cache_bytes="na"
-if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]]; then
+# Skip timing when the binary cannot execute on this host (e.g. macOS artifact mounted in Linux).
+if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]] && "$SYX_BIN" --version >/dev/null 2>&1; then
   WORK="$(mktemp -d "${TMPDIR:-/tmp}/syx-s3-03-hello.XXXXXX")"
   cp "$HELLO_SRC" "$WORK/hello.sy"
   # Cold: empty project cache.
   rm -rf "$WORK/target"
   cold_out="$(mktemp)"
   # Disk cache is opt-in (`--with-cache`); measure warm/prelude-hit with it enabled.
-  if /usr/bin/time -p "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out1.txt" 2>"$cold_out"; then
+  if syx_time_p "$cold_out" "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out1.txt"; then
     hello_cold_s="$(awk '/^real / { print $2; exit }' "$cold_out")"
   else
     hello_cold_s="fail"
@@ -130,14 +144,14 @@ if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]]; then
   # Prelude-hit: keep prelude_*.bin, delete entry module bins only.
   find "$WORK/target/cache" -type f -name '*.bin' ! -name 'prelude_*' -delete 2>/dev/null || true
   ph_out="$(mktemp)"
-  if /usr/bin/time -p "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out_ph.txt" 2>"$ph_out"; then
+  if syx_time_p "$ph_out" "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out_ph.txt"; then
     hello_prelude_hit_s="$(awk '/^real / { print $2; exit }' "$ph_out")"
   else
     hello_prelude_hit_s="fail"
   fi
   # Warm: reuse same workdir / full cache.
   warm_out="$(mktemp)"
-  if /usr/bin/time -p "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out2.txt" 2>"$warm_out"; then
+  if syx_time_p "$warm_out" "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out2.txt"; then
     hello_warm_s="$(awk '/^real / { print $2; exit }' "$warm_out")"
   else
     hello_warm_s="fail"
@@ -145,14 +159,18 @@ if [[ -n "$SYX_BIN" && -f "$HELLO_SRC" ]]; then
   # No-std: isolates non-prelude floor (probe: already near <0.15).
   nostd_out="$(mktemp)"
   rm -rf "$WORK/target"
-  if /usr/bin/time -p "$SYX_BIN" --enable-std=false run "$WORK/hello.sy" >"$WORK/out3.txt" 2>"$nostd_out"; then
+  if syx_time_p "$nostd_out" "$SYX_BIN" --enable-std=false run "$WORK/hello.sy" >"$WORK/out3.txt"; then
     hello_nostd_s="$(awk '/^real / { print $2; exit }' "$nostd_out")"
   else
     hello_nostd_s="fail"
   fi
   # Re-run once to count bins after a default-std warm (restore cache).
   "$SYX_BIN" run --with-cache "$WORK/hello.sy" >"$WORK/out4.txt" 2>/dev/null || true
-  hello_cache_bins_after="$(find "$WORK/target/cache" -type f -name '*.bin' 2>/dev/null | wc -l | tr -d ' ')"
+  if [[ -d "$WORK/target/cache" ]]; then
+    hello_cache_bins_after="$(find "$WORK/target/cache" -type f -name '*.bin' 2>/dev/null | wc -l | tr -d ' ')"
+  else
+    hello_cache_bins_after=0
+  fi
   rm -rf "$WORK" "$cold_out" "$warm_out" "$nostd_out" "$ph_out"
 fi
 

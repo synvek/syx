@@ -158,6 +158,10 @@ jobs:
               | tail -80 || tail -80 /tmp/syx-lang.out
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          grep -nE 'FAILED|panicked at|has been running for over|test result:' /tmp/syx-lang.out \
+            | tail -40 | while IFS= read -r line; do
+            echo "::error title=lang::$line"
+          done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -191,6 +195,10 @@ jobs:
               /tmp/syx-concurrency.out | tail -80 || tail -80 /tmp/syx-concurrency.out
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          grep -nE 'FAILED|panicked at|has been running for over|test result:' \
+            /tmp/syx-concurrency.out | tail -40 | while IFS= read -r line; do
+            echo "::error title=concurrency::$line"
+          done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -221,14 +229,28 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      # Census / behavioral scripts shell out to `rg` (same as Lint & contracts).
-      - name: Install ripgrep
+      # Census scripts need `rg` + `/usr/bin/time` (ubuntu images often omit `time`).
+      - name: Install ripgrep + time
         run: |
           sudo apt-get update
-          sudo apt-get install -y ripgrep
+          sudo apt-get install -y ripgrep time
       # Prelude embeds are gitignored; credibility nails assert non-trivial asset bytes.
       - name: Regen prelude embed for this runner rustc
         run: bash scripts/gen_prelude_snapshot.sh
+      - name: Verify prelude embeds are non-trivial
+        run: |
+          for f in \
+            crates/syx-driver/assets/prelude_snapshot.bin \
+            crates/syx-driver/assets/prelude_vm_image.rkyv \
+            crates/syx-driver/assets/prelude_stdlib_mir.bin
+          do
+            sz=$(wc -c <"$f" | tr -d ' ')
+            echo "$f bytes=$sz"
+            if [ "$sz" -le 1024 ]; then
+              echo "::error::$f still trivial after regen ($sz bytes)"
+              exit 1
+            fi
+          done
       - name: Driver credibility suite
         run: |
           set -o pipefail
@@ -249,12 +271,37 @@ jobs:
             rg -n '^failures:$' -A40 /tmp/syx-credibility.out | tail -50 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          # Public check-run annotations (readable via API without gated log download).
+          {
+            rg -n 'FAILED|panicked at|census script failed|assertion `left|error: test failed|error\[E' \
+              /tmp/syx-credibility.out || true
+            rg -n '^failures:$' -A60 /tmp/syx-credibility.out || true
+            rg -n 'test .* \.\.\. FAILED' /tmp/syx-credibility.out || true
+          } | head -80 | while IFS= read -r line; do
+            # Annotation message max ~65k; keep each line short.
+            echo "::error title=credibility::${line:0:200}"
+          done
+          # Compact failure-name extract for next-debug without full log.
+          rg -o 'test ([a-z0-9_:]+) \.\.\. FAILED' -r '$1' /tmp/syx-credibility.out \
+            | sort -u > /tmp/syx-credibility-fails.txt || true
+          if [ -s /tmp/syx-credibility-fails.txt ]; then
+            echo "### failed tests" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat /tmp/syx-credibility-fails.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            while IFS= read -r name; do
+              echo "::error title=failed-test::$name"
+            done < /tmp/syx-credibility-fails.txt
+          fi
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: core-credibility-log
-          path: /tmp/syx-credibility.out
+          path: |
+            /tmp/syx-credibility.out
+            /tmp/syx-credibility-fails.txt
           retention-days: 7
+          if-no-files-found: warn
 
   # Aggregator keeps the historical required check name "Core driver".
   # lang/concurrency/credibility soft until Linux hangs + credibility drift are fixed.

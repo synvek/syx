@@ -9,6 +9,18 @@ cd "$ROOT"
 
 echo "== S3-04 VM-hotspot census =="
 
+# Portable `time -p` (GHA/ubuntu often lack `/usr/bin/time`).
+syx_time_p() {
+  local errf="$1"
+  shift
+  if [[ -x /usr/bin/time ]]; then
+    /usr/bin/time -p "$@" 2>"$errf"
+  else
+    TIMEFORMAT=$'real %R\nuser %U\nsys %S'
+    { time "$@" 2>/dev/null; } 2>"$errf"
+  fi
+}
+
 count_rg() {
   local pattern="$1"
   shift
@@ -132,7 +144,7 @@ fib30_s="na"
 fib30_warm_s="na"
 fib30_tier2_s="na"
 hot_loop_s="na"
-if [[ -n "$SYX_BIN" ]]; then
+if [[ -n "$SYX_BIN" ]] && "$SYX_BIN" --version >/dev/null 2>&1; then
   WORK="$(mktemp -d "${TMPDIR:-/tmp}/syx-s3-04-fib.XXXXXX")"
   # S3-I68: prefer checked-in examples/fib.sy when present.
   if [[ -f "$ROOT/examples/fib.sy" ]]; then
@@ -149,20 +161,20 @@ func main() {
 EOF
   fi
   cold_out="$(mktemp)"
-  if /usr/bin/time -p env -u SYX_JIT_TIER2 -u SYX_JIT_FASTPATH "$SYX_BIN" run "$WORK/fib.sy" >"$WORK/out1.txt" 2>"$cold_out"; then
+  if syx_time_p "$cold_out" env -u SYX_JIT_TIER2 -u SYX_JIT_FASTPATH "$SYX_BIN" run "$WORK/fib.sy" >"$WORK/out1.txt"; then
     fib30_s="$(awk '/^real / { print $2; exit }' "$cold_out")"
   else
     fib30_s="fail"
   fi
   warm_out="$(mktemp)"
-  if /usr/bin/time -p env -u SYX_JIT_TIER2 -u SYX_JIT_FASTPATH "$SYX_BIN" run "$WORK/fib.sy" >"$WORK/out2.txt" 2>"$warm_out"; then
+  if syx_time_p "$warm_out" env -u SYX_JIT_TIER2 -u SYX_JIT_FASTPATH "$SYX_BIN" run "$WORK/fib.sy" >"$WORK/out2.txt"; then
     fib30_warm_s="$(awk '/^real / { print $2; exit }' "$warm_out")"
   else
     fib30_warm_s="fail"
   fi
   # S3-I69 secondary axis: opt-in Tier2 (evidence only; ≠ claim primary).
   tier2_out="$(mktemp)"
-  if /usr/bin/time -p env SYX_JIT_TIER2=1 "$SYX_BIN" run "$WORK/fib.sy" >"$WORK/out_t2.txt" 2>"$tier2_out"; then
+  if syx_time_p "$tier2_out" env SYX_JIT_TIER2=1 "$SYX_BIN" run "$WORK/fib.sy" >"$WORK/out_t2.txt"; then
     fib30_tier2_s="$(awk '/^real / { print $2; exit }' "$tier2_out")"
   else
     # Binary may lack jit-tier2 wiring; still emit a key (na/fail).
@@ -176,7 +188,7 @@ EOF
   if [[ -f "$ROOT/examples/hot_loop.sy" ]]; then
     cp "$ROOT/examples/hot_loop.sy" "$WORK/hot_loop.sy"
     hl_out="$(mktemp)"
-    if /usr/bin/time -p env -u SYX_JIT_TIER2 -u SYX_JIT_FASTPATH "$SYX_BIN" run "$WORK/hot_loop.sy" >"$WORK/out_hl.txt" 2>"$hl_out"; then
+    if syx_time_p "$hl_out" env -u SYX_JIT_TIER2 -u SYX_JIT_FASTPATH "$SYX_BIN" run "$WORK/hot_loop.sy" >"$WORK/out_hl.txt"; then
       hot_loop_s="$(awk '/^real / { print $2; exit }' "$hl_out")"
     else
       hot_loop_s="fail"
