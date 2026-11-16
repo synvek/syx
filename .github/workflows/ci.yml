@@ -143,40 +143,67 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Driver lang suite
-        # Hard wall so a hung nail leaves a tee log instead of a silent job cancel.
+        # Pipe+tee fully-buffers libtest on Linux, so a timeout kill left empty
+        # trails. Run per-module under `script` (pty → line-buffered) with a 3m
+        # wall so a hung nail names its module in public annotations.
         run: |
-          set -o pipefail
-          timeout 35m cargo test -p syx-driver --test lang -- --test-threads=1 2>&1 \
-            | tee /tmp/syx-lang.out
+          set -euo pipefail
+          : > /tmp/syx-lang.out
+          : > /tmp/syx-lang-hangs.txt
+          cargo test -p syx-driver --test lang --no-run
+          fail=0
+          while IFS= read -r m; do
+            [ -z "$m" ] && continue
+            echo "=== module $m ===" | tee -a /tmp/syx-lang.out
+            set +e
+            timeout 3m script -q -f -c \
+              "cargo test -p syx-driver --test lang -- ${m}:: --test-threads=1 --color=never" \
+              /tmp/syx-lang-mod.out
+            ec=$?
+            set -e
+            if [ "$ec" -eq 0 ]; then
+              grep -E 'test result:|FAILED' /tmp/syx-lang-mod.out | tee -a /tmp/syx-lang.out || true
+            else
+              echo "MODULE_FAIL $m exit=$ec" | tee -a /tmp/syx-lang.out
+              echo "$m exit=$ec" >> /tmp/syx-lang-hangs.txt
+              echo "::error title=lang-module::$m exit=$ec"
+              grep -E '^test |FAILED|panicked' /tmp/syx-lang-mod.out | tail -15 \
+                | tee -a /tmp/syx-lang.out || true
+              tail -20 /tmp/syx-lang-mod.out >> /tmp/syx-lang.out || true
+              fail=1
+            fi
+          done < <(sed -n 's/^mod \([a-z0-9_]*\);/\1/p' crates/syx-driver/tests/lang/main.rs)
+          exit "$fail"
       - name: Summarize lang failures
         if: failure()
         run: |
           {
-            echo "## Core lang failures / last progress"
+            echo "## Core lang failures / module walls"
             echo '```'
-            grep -nE 'FAILED|failures:|panicked|has been running for over|test result:' /tmp/syx-lang.out \
-              | tail -80 || true
+            cat /tmp/syx-lang-hangs.txt 2>/dev/null || true
             echo '```'
             echo
-            echo "### tee tail (hung test usually last 'test …' without ok)"
+            echo "### log tail"
             echo '```'
-            tail -40 /tmp/syx-lang.out || true
+            tail -80 /tmp/syx-lang.out || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Pack hung-test trail into few public annotations (10/step cap).
-          # exit 124 = GNU timeout; last "test …" without ok is the hung nail.
-          tail -25 /tmp/syx-lang.out | tr '\n' ' ' | head -c 1800 | while IFS= read -r line; do
+          if [ -s /tmp/syx-lang-hangs.txt ]; then
+            hangs=$(tr '\n' ' ' < /tmp/syx-lang-hangs.txt | head -c 1500)
+            echo "::error title=lang-hang-modules::${hangs}"
+          fi
+          tail -15 /tmp/syx-lang.out | tr '\n' ' ' | head -c 1500 | while IFS= read -r line; do
             echo "::error title=lang-tail::${line}"
           done
-          grep -E 'FAILED$' /tmp/syx-lang.out | tail -20 | tr '\n' ' ' | head -c 1500 | while IFS= read -r line; do
-            [ -n "$line" ] && echo "::error title=lang-failed::${line}"
-          done || true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: core-lang-log
-          path: /tmp/syx-lang.out
+          path: |
+            /tmp/syx-lang.out
+            /tmp/syx-lang-hangs.txt
           retention-days: 7
+          if-no-files-found: warn
 
   test-driver-concurrency:
     name: Core concurrency
@@ -593,15 +620,21 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Category integration suites
         # Not on the merge gate. Skip syx-lsp (Language server job) and gui
-        # (dedicated GUI xvfb job). Wall-timeout so a hung native/runtime nail
-        # cannot burn a full hour of runner time.
+        # (dedicated GUI xvfb job). `script` pty avoids full-buffer loss on
+        # timeout; 40m wall keeps hung native/runtime from burning the runner.
         run: |
-          set -o pipefail
-          timeout 40m cargo test -p syx-driver \
-            --test evergreen --test platform --test wasm --test farm \
-            --test browser --test native --test runtime \
-            --test backends --test security \
-            -- --test-threads=1 2>&1 | tee /tmp/syx-extended.out
+          set -euo pipefail
+          set +e
+          timeout 40m script -q -f -c \
+            "cargo test -p syx-driver \
+              --test evergreen --test platform --test wasm --test farm \
+              --test browser --test native --test runtime \
+              --test backends --test security \
+              -- --test-threads=1 --color=never" \
+            /tmp/syx-extended.out
+          ec=$?
+          set -e
+          exit "$ec"
       - name: Summarize extended failures
         if: failure()
         run: |
@@ -611,7 +644,10 @@ jobs:
             tail -60 /tmp/syx-extended.out || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          tail -20 /tmp/syx-extended.out | tr '\n' ' ' | head -c 1800 | while IFS= read -r line; do
+          # Last running test under timeout is usually the hang nail.
+          last=$(grep -E '^test ' /tmp/syx-extended.out | tail -3 | tr '\n' ' ' | head -c 1200 || true)
+          echo "::error title=extended-last-tests::${last}"
+          tail -10 /tmp/syx-extended.out | tr '\n' ' ' | head -c 1200 | while IFS= read -r line; do
             echo "::error title=extended-tail::${line}"
           done
       - uses: actions/upload-artifact@v4
