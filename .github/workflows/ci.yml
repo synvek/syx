@@ -133,8 +133,7 @@ jobs:
   # in the Actions UI without downloading gated logs.
   test-driver-lang:
     name: Core lang
-    # Soft while native-mir/wasm iterator hangs on Linux are parked; re-tighten after logs.
-    continue-on-error: true
+    # Hard again: per-module 3m walls under script pty (e5b1b93 green on Linux).
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: [fmt]
@@ -331,14 +330,17 @@ jobs:
           if-no-files-found: warn
 
   # Aggregator keeps the historical required check name "Core driver".
-  # Core lang remains soft (Linux hang risk); data/credibility/concurrency hard.
   test-driver:
     name: Core driver
     runs-on: ubuntu-latest
-    needs: [test-driver-data, test-driver-credibility, test-driver-concurrency]
+    needs:
+      - test-driver-data
+      - test-driver-lang
+      - test-driver-credibility
+      - test-driver-concurrency
     steps:
       - name: Required Core driver suites passed
-        run: echo "data+credibility+concurrency green (lang soft)"
+        run: echo "data+lang+credibility+concurrency green"
 
   # ---------------------------------------------------------------------------
   # Required: WASM / browser compiler artifacts
