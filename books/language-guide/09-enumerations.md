@@ -17,8 +17,6 @@ let s = Status.ok
 print(s.tag)                              // 0 (internal tag)
 ```
 
-> **The `case` keyword:** SYX simple enums **must** write `case` (consistent with early Swift 1.x style; `enum Status { ok, err, pending }` is not legal).
-
 Source: `crates/syx-driver/tests/fixtures/lang/enum_associated.sy`
 
 ## Associated Values
