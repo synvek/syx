@@ -503,8 +503,25 @@ jobs:
         env:
           SYX_NATIVE_STRICT: "1"
         run: |
-          cargo test -p syx-driver --test native -- native_strict_parity --test-threads=1
-          cargo test -p syx-driver --test evergreen -- parity_native --test-threads=1
+          set -euo pipefail
+          set +e
+          script -q -f -c \
+            "cargo test -p syx-driver --test native -- native_strict_parity --test-threads=1 --color=never" \
+            /tmp/native-parity.out
+          ec1=$?
+          script -q -f -c \
+            "cargo test -p syx-driver --test evergreen -- parity_native --test-threads=1 --color=never" \
+            /tmp/evergreen-parity.out
+          ec2=$?
+          set -e
+          if [ "$ec1" -ne 0 ]; then
+            echo "::error title=native-strict::exit=$ec1"
+            tail -40 /tmp/native-parity.out || true
+          fi
+          if [ "$ec2" -ne 0 ]; then
+            echo "::error title=evergreen-parity-native::exit=$ec2"
+            tail -40 /tmp/evergreen-parity.out || true
+          fi
           cargo build -p syx-cli
           # Default CI CLI lacks `--features full-native` (L006). Soft-skip AOT emit.
           soft_native() {
@@ -528,6 +545,7 @@ jobs:
           }
           soft_native examples/hello.sy
           soft_native examples/main_sync.sy
+          [ "$ec1" -eq 0 ] && [ "$ec2" -eq 0 ]
       - name: Native host-shake hello size
         run: |
           cargo build -p syx-cli --features full-native --release || cargo build -p syx-cli --release
@@ -621,42 +639,63 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Category integration suites
-        # Not on the merge gate. Skip syx-lsp (Language server job) and gui
-        # (dedicated GUI xvfb job). `script` pty avoids full-buffer loss on
-        # timeout; 40m wall keeps hung native/runtime from burning the runner.
+        # Not on the merge gate. Skip syx-lsp / gui (dedicated jobs). Per-target
+        # 10m walls under script pty name hung suites without burning 40m blind.
         run: |
           set -euo pipefail
-          set +e
-          timeout 40m script -q -f -c \
-            "cargo test -p syx-driver \
-              --test evergreen --test platform --test wasm --test farm \
-              --test browser --test native --test runtime \
-              --test backends --test security \
-              -- --test-threads=1 --color=never" \
-            /tmp/syx-extended.out
-          ec=$?
-          set -e
-          exit "$ec"
+          : > /tmp/syx-extended.out
+          : > /tmp/syx-extended-hangs.txt
+          cargo test -p syx-driver --no-run \
+            --test evergreen --test platform --test wasm --test farm \
+            --test browser --test native --test runtime \
+            --test backends --test security
+          fail=0
+          for t in evergreen platform wasm farm browser native runtime backends security; do
+            echo "=== --test $t ===" | tee -a /tmp/syx-extended.out
+            set +e
+            timeout 10m script -q -f -c \
+              "cargo test -p syx-driver --test $t -- --test-threads=1 --color=never" \
+              /tmp/syx-ext-one.out
+            ec=$?
+            set -e
+            if [ "$ec" -eq 0 ]; then
+              grep -E 'test result:' /tmp/syx-ext-one.out | tee -a /tmp/syx-extended.out || true
+            else
+              echo "TARGET_FAIL $t exit=$ec" | tee -a /tmp/syx-extended.out
+              echo "$t exit=$ec" >> /tmp/syx-extended-hangs.txt
+              echo "::error title=extended-target::$t exit=$ec"
+              grep -E '^test |FAILED|panicked' /tmp/syx-ext-one.out | tail -20 \
+                | tee -a /tmp/syx-extended.out || true
+              tail -30 /tmp/syx-ext-one.out >> /tmp/syx-extended.out || true
+              fail=1
+            fi
+          done
+          exit "$fail"
       - name: Summarize extended failures
         if: failure()
         run: |
           {
-            echo "## Extended driver suite failures / last progress"
+            echo "## Extended driver suite failures"
             echo '```'
-            tail -60 /tmp/syx-extended.out || true
+            cat /tmp/syx-extended-hangs.txt 2>/dev/null || true
+            echo '```'
+            echo
+            echo "### log tail"
+            echo '```'
+            tail -80 /tmp/syx-extended.out || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Last running test under timeout is usually the hang nail.
-          last=$(grep -E '^test ' /tmp/syx-extended.out | tail -3 | tr '\n' ' ' | head -c 1200 || true)
-          echo "::error title=extended-last-tests::${last}"
-          tail -10 /tmp/syx-extended.out | tr '\n' ' ' | head -c 1200 | while IFS= read -r line; do
-            echo "::error title=extended-tail::${line}"
-          done
+          if [ -s /tmp/syx-extended-hangs.txt ]; then
+            hangs=$(tr '\n' ' ' < /tmp/syx-extended-hangs.txt | head -c 1500)
+            echo "::error title=extended-hang-targets::${hangs}"
+          fi
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: extended-driver-log
-          path: /tmp/syx-extended.out
+          path: |
+            /tmp/syx-extended.out
+            /tmp/syx-extended-hangs.txt
           retention-days: 7
           if-no-files-found: warn
 
@@ -678,11 +717,30 @@ jobs:
             tier2_explicit_zero_disables_prod_default
       - name: JIT differential
         run: |
-          set -o pipefail
-          timeout 15m env SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang \
-            -- jit_suite1_differential --test-threads=1 --nocapture --include-ignored
+          set -euo pipefail
+          set +e
+          timeout 15m script -q -f -c \
+            "env SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang -- jit_suite1_differential --test-threads=1 --nocapture --include-ignored --color=never" \
+            /tmp/jit-diff.out
+          ec=$?
+          set -e
+          if [ "$ec" -ne 0 ]; then
+            echo "::error title=jit-differential::exit=$ec"
+            grep -E 'FAILED|panicked|test result:' /tmp/jit-diff.out | tail -30 || true
+            tail -40 /tmp/jit-diff.out || true
+          fi
+          exit "$ec"
       - name: JIT opt-out smoke
         run: |
-          set -o pipefail
-          timeout 10m env SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen \
-            -- integration --test-threads=1
+          set -euo pipefail
+          set +e
+          timeout 10m script -q -f -c \
+            "env SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen -- integration --test-threads=1 --color=never" \
+            /tmp/jit-optout.out
+          ec=$?
+          set -e
+          if [ "$ec" -ne 0 ]; then
+            echo "::error title=jit-optout::exit=$ec"
+            tail -40 /tmp/jit-optout.out || true
+          fi
+          exit "$ec"

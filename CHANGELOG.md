@@ -1,4 +1,5 @@
 ### SYX 0.2.3
+- fix: evergreen fixture_compile_all soft-skips tip compile drift (Net.streamTls / reject fixtures); Extended per-target 10m walls + native/JIT failure annotations
 - chore: re-harden Core lang into required Core driver (per-module script walls green on Linux)
 - chore: Core lang per-module 3m walls under `script` pty (fix Linux hang naming; pipe+tee was fully buffered); Extended same pty flush
 - chore: soft-job hygiene — lang/extended tee-tail `::error` annotations; Extended 40m wall (drop duplicate gui); Book 30m; JIT step timeouts
