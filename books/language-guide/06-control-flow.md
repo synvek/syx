@@ -318,7 +318,7 @@ demoOptional()
 |------|------|
 | `if let x = opt { }` | Enters the branch when non-`nil`; `x` is the unwrapped value; `else` is optional |
 | `if let x = opt, let y = other` | Chained unwrapping (multiple conditions separated by commas) |
-| `guard let x = opt else { … }` | Continues when non-`nil`; entering `else` on `nil` **must** exit (`return` / `throw` / `break` / `continue` / `fatalError`) |
+| `guard let x = opt else { … }` | Continues when non-`nil`; entering `else` on `nil` **must** exit (`return` / `throw` / `break` / `continue`) |
 | `guard let x = opt, cond else` | Multiple conditions + guard |
 
 > **`else` must exit:** if a `guard let`'s `else` block does not exit (missing `return` etc.) → compile error **S027**.

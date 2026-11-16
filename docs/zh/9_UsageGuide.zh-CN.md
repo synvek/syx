@@ -1423,7 +1423,6 @@ cargo test -p syx-driver p0_http_run -- --ignored
 | 路径 | 说明 |
 |------|------|
 | [examples/hello.sy](../../examples/hello.sy) | 最小 Hello World |
-| [examples/hello2.sy](../../examples/hello2.sy) | 稍丰富的 hello 示例 |
 | [examples/module_demo.sy](../../examples/module_demo.sy) | 模块示例 |
 | [examples/file_tool/](../../examples/file_tool/) | EC-M2-1 切片：Path + FileHandle 写读往返 |
 | [examples/http_tool/](../../examples/http_tool/) | EC-M2-1 切片：Http.get refuse + loopback |
@@ -1435,7 +1434,7 @@ cargo test -p syx-driver p0_http_run -- --ignored
 | [examples/linalg/](../../examples/linalg/) | packed-SYX `Mat`：乘/求解、形状、pad/padReflect（≠ 产品 Mat GA） |
 | [examples/log_fields.sy](../../examples/log_fields.sy) | `Log` 级别过滤 + `infoFields` |
 
-**推荐学习顺序**：`hello.sy` → `hello2.sy` → `file_tool/` → `http_tool/` → `sql_tool/` → `linalg/` → `deps/`
+**推荐学习顺序**：`hello.sy` → `file_tool/` → `http_tool/` → `sql_tool/` → `linalg/` → `deps/`
 
 标准库叙事见 [books/library-guide/](../../books/library-guide/00-preface.md)。
 

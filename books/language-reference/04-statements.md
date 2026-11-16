@@ -309,7 +309,7 @@ throw "message"
 throw err
 ```
 
-> Legal only inside a `throws` function body; in a non-`throws` function → **S020**.
+> Legal only inside a `throws` function body; in a non-`throws` function → **S028**.
 
 ## Macro Invocation Statements
 
@@ -351,7 +351,7 @@ outer: for x in items {
 
 ---
 
-**Diagnostics:** S003 / S004 / S007 / S010 / S017 / S020 / R007 / P001
+**Diagnostics:** S003 / S004 / S007 / S010 / S017 / S018 / S020 / S027 / S028 / R007 / P001
 
 **Usage examples** → [Language Guide: Control Flow](../language-guide/06-control-flow.md) · [Error Handling](../language-guide/17-error-handling.md) · [Concurrency](../language-guide/18-concurrency.md)
 

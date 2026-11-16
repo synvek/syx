@@ -68,7 +68,7 @@ async func main() {
     runPrint()
 
     do {
-        throw "os-info-test-exception"
+        try boomDemo()
     } catch (e: String) {
         print(e)
     }
@@ -76,6 +76,10 @@ async func main() {
     print("Begin")
     await runSync()
     print("End")
+}
+
+func boomDemo() throws {
+    throw "os-info-test-exception"
 }
 
 func runPrint() {

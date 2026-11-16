@@ -46,6 +46,7 @@ impl SemanticAnalyzer {
                 type_params,
                 where_clause,
                 return_type,
+                throws_type,
                 is_async,
                 ..
             } => {
@@ -53,6 +54,9 @@ impl SemanticAnalyzer {
                 self.current_function = Some(name.clone());
                 let prev_async = self.current_function_is_async;
                 self.current_function_is_async = *is_async;
+                // U-19: `throw` only legal inside `throws` (S028).
+                let prev_throws = self.current_function_is_throws;
+                self.current_function_is_throws = throws_type.is_some();
                 let prev_eq_params = std::mem::take(&mut self.current_equatable_params);
                 let prev_type_params = std::mem::take(&mut self.current_type_params);
                 for tp in type_params {
@@ -150,6 +154,7 @@ impl SemanticAnalyzer {
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 self.current_function = prev_fn;
                 self.current_function_is_async = prev_async;
+                self.current_function_is_throws = prev_throws;
                 self.current_equatable_params = prev_eq_params;
                 self.current_type_params = prev_type_params;
                 self.local_ref_bindings = prev_local_refs;

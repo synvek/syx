@@ -138,7 +138,7 @@ func main() {
 }
 ```
 
-- 必须包 `try`（漏包编译器报 P001）
+- 必须包 `try`（漏包编译器报 **S018**）
 - 等价于 `do { let s = loadFile(...) }`
 
 ### `try? expr`（失败变 nil）
@@ -353,8 +353,8 @@ func main() {
 
 | 码 | 触发 | 修复 |
 |------|------|------|
-| **S020** | 非 `throws` 函数内 `throw` | 加 `throws` |
-| **P001** | 调 `throws` 函数未包 `try` | 加 `try` / `try?` / `try!` |
+| **S028** | 非 `throws` 函数内 `throw` | 加 `throws` |
+| **S018** | 调 `throws` 函数未包 `try` | 加 `try` / `try?` / `try!` |
 | **R007** | `try!` 失败 | 改 `try?` / `do { } catch` |
 | **S004** | `throws` 类型不匹配 | 修正 `throws T` |
 

@@ -569,6 +569,14 @@ impl SemanticAnalyzer {
                 Ok(())
             }
             Stmt::Throw { expr, span } => {
+                // U-19: `throw` is only legal inside a `throws` function (≠ MainActor S020).
+                if !self.current_function_is_throws {
+                    return Err(self.error_at(
+                        "`throw` is only legal inside a `throws` function",
+                        *span,
+                        "S028",
+                    ));
+                }
                 let ty = self.analyze_expr(expr)?;
                 // SA-2-02: thrown values must be String (MVP) or conform to `Error`.
                 let ok = match &ty {

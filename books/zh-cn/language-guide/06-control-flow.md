@@ -318,7 +318,7 @@ demoOptional()
 |------|------|
 | `if let x = opt { }` | 非 `nil` 进入分支，`x` 是解包后的值；可选 `else` |
 | `if let x = opt, let y = other` | 链式解包（逗号分隔多条件） |
-| `guard let x = opt else { … }` | 非 `nil` 继续；`nil` 进入 `else` **必须** 退出（`return` / `throw` / `break` / `continue` / `fatalError`） |
+| `guard let x = opt else { … }` | 非 `nil` 继续；`nil` 进入 `else` **必须** 退出（`return` / `throw` / `break` / `continue`） |
 | `guard let x = opt, cond else` | 多条件 + 守卫 |
 
 > **`else` 必须退出：** `guard let` 的 `else` 块若不退出（缺 `return` 等）→ 编译错误 **S027**。

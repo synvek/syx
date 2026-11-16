@@ -108,6 +108,8 @@ pub struct SemanticAnalyzer {
     pub(crate) local_ref_bindings: HashSet<SmolStr>,
     /// Phase 17: analyzing an `async` function body.
     pub(crate) current_function_is_async: bool,
+    /// U-19: analyzing a `throws` function body (`throw` legal only when true → else S028).
+    pub(crate) current_function_is_throws: bool,
     /// S1-I4: generic params constrained `: Equatable` / `where T: Equatable` in current fn.
     pub(crate) current_equatable_params: HashSet<SmolStr>,
     /// S1-I6: open type params of the function currently under analysis (`T`, `U`, …).

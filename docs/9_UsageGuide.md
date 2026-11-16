@@ -1421,7 +1421,6 @@ cargo test -p syx-driver p0_http_run -- --ignored
 | path | Description |
 |------|------|
 | [examples/hello.sy](../examples/hello.sy) | Minimal Hello World |
-| [examples/hello2.sy](../examples/hello2.sy) | Slightly richer hello sample |
 | [examples/module_demo.sy](../examples/module_demo.sy) | Module demo |
 | [examples/file_tool/](../examples/file_tool/) | EC-M2-1 slice: Path + FileHandle write/read roundtrip |
 | [examples/http_tool/](../examples/http_tool/) | EC-M2-1 slice: Http.get refuse + loopback |

@@ -138,7 +138,7 @@ func main() {
 }
 ```
 
-- It must be wrapped in `try` (the compiler reports missing wrapping as P001)
+- It must be wrapped in `try` (the compiler reports missing wrapping as **S018**)
 - Equivalent to `do { let s = loadFile(...) }`
 
 ### `try? expr` (failure becomes nil)
@@ -353,8 +353,8 @@ func main() {
 
 | Code | Trigger | Fix |
 |------|------|------|
-| **S020** | `throw` inside a non-`throws` function | Add `throws` |
-| **P001** | Calling a `throws` function without `try` | Add `try` / `try?` / `try!` |
+| **S028** | `throw` inside a non-`throws` function | Add `throws` |
+| **S018** | Calling a `throws` function without `try` | Add `try` / `try?` / `try!` |
 | **R007** | `try!` failed | Change to `try?` / `do { } catch` |
 | **S004** | `throws` type mismatch | Fix `throws T` |
 

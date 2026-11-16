@@ -309,7 +309,7 @@ throw "message"
 throw err
 ```
 
-> 仅在 `throws` 函数体内合法；非 throws 函数 → **S020**。
+> 仅在 `throws` 函数体内合法；非 throws 函数 → **S028**。
 
 ## 宏调用语句
 
@@ -351,7 +351,7 @@ outer: for x in items {
 
 ---
 
-**诊断：** S003 / S004 / S007 / S010 / S017 / S020 / R007 / P001
+**诊断：** S003 / S004 / S007 / S010 / S017 / S018 / S020 / S027 / S028 / R007 / P001
 
 **用法示例** → [语言指南：控制流](../language-guide/06-control-flow.md) · [错误处理](../language-guide/17-error-handling.md) · [并发](../language-guide/18-concurrency.md)
 
