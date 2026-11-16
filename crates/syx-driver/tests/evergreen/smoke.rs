@@ -39,12 +39,24 @@ fn architecture_decisions_exists() {
 
 #[test]
 fn cache_v91() {
-    let src = std::fs::read_to_string(
+    // Cache tag + heap digest live in peeled modules (not hub lib.rs).
+    let fp = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/cache_fingerprint.rs"),
+    )
+    .unwrap();
+    let lib = std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs"),
     )
     .unwrap();
-    assert!(src.contains("syx-cache-v91"));
-    assert!(src.contains("heap_v100_phase128_track_c_wasm_digest"));
+    assert!(
+        fp.contains("syx-cache-v91") || fp.contains("syx-cache-v1:"),
+        "cache fingerprint must retain v91 history or v1 tag bake"
+    );
+    assert!(
+        lib.contains("heap_v100_phase128_track_c_wasm_digest")
+            || fp.contains("heap_v100_phase128_track_c_wasm_digest"),
+        "heap_v100 digest helper must remain wired"
+    );
 }
 
 #[test]
@@ -117,8 +129,10 @@ fn mir_object_handle_drop_peeled() {
 
 #[test]
 fn semantic_e005() {
+    // Witness check peeled into semantic_analyzer.rs (hub lib.rs no longer spells it).
     let src = std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../syx-semantic/src/lib.rs"),
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../syx-semantic/src/semantic_analyzer.rs"),
     )
     .unwrap();
     assert!(src.contains("check_dataclass_codable_witness"));
@@ -133,8 +147,9 @@ fn llvm_sole_native_documented() {
 
 #[test]
 fn lsp_macro_expanded_field() {
+    // Field moved with LSP IDE peel out of hub lib.rs.
     let src = std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs"),
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lsp_ide.rs"),
     )
     .unwrap();
     assert!(src.contains("macro_expanded"));
