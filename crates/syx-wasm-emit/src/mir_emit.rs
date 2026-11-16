@@ -443,6 +443,10 @@ fn collect_used_aot_imports(module: &MirModule) -> BTreeSet<aot::Import> {
                     MirOp::ToStr => {
                         used.insert(aot::Import::ToStr);
                     }
+                    // JumpIfNil peeks RT (LoadLocal leaves no guest i32); need PeekIsNil.
+                    MirOp::JumpIfNil(_) => {
+                        used.insert(aot::Import::PeekIsNil);
+                    }
                     _ => {}
                 }
             }
@@ -996,9 +1000,10 @@ fn leaves_guest_call_stub(op: &MirOp) -> bool {
 }
 
 fn next_consumes_guest_cond(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
+    // JumpIfNil peeks RT via PeekIsNil (does not consume ConstNil's guest 0 sentinel).
     matches!(
         ops.get(idx + 1).map(|i| &i.op),
-        Some(MirOp::JumpIfFalse(_)) | Some(MirOp::JumpIfNil(_))
+        Some(MirOp::JumpIfFalse(_))
     )
 }
 
@@ -3428,7 +3433,7 @@ fn emit_mir_instr(
             return;
         }
         if matches!(instr.op, MirOp::ConstNil) {
-            // Wave A W203 / ADR-547: RT Nil for Print; guest 0 for JumpIfNil.
+            // Wave A W203 / ADR-547: RT Nil for Print; guest 0 Drop'd unless JumpIfFalse-style consumer.
             emit_wasm_instr(
                 body,
                 &WasmInstr::Call(plan.aot_import(aot::Import::PushRtNil)),
@@ -3852,7 +3857,11 @@ fn emit_mir_instr(
             return;
         }
         if let MirOp::JumpIfNil(target) = &instr.op {
-            emit_wasm_instr(body, &WasmInstr::I32Eqz);
+            // Peek RT top (LoadLocal / ConstNil leave value on RT, not guest i32).
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PeekIsNil)),
+            );
             emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
             let t = *block_pos.get(target).unwrap_or(&(current_block + 1)) as i32;
             emit_wasm_instr(body, &WasmInstr::I32Const(t));
@@ -6203,8 +6212,11 @@ fn emit_mir_instr(
             emit_wasm_instr(body, &WasmInstr::End);
         }
         MirOp::JumpIfNil(target) => {
-            // Phase 100: nil sentinel is i32 0 on the guest stack (no PEEK_IS_NIL / POP mir_exec).
-            emit_wasm_instr(body, &WasmInstr::I32Eqz);
+            // Peek RT top for nil (guest sentinel from ConstNil is Drop'd; LoadLocal is RT-only).
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::PeekIsNil)),
+            );
             emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
             let t = *block_pos.get(target).unwrap_or(&(current_block + 1)) as i32;
             emit_wasm_instr(body, &WasmInstr::I32Const(t));

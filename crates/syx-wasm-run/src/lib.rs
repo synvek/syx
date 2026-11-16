@@ -1063,6 +1063,33 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
                 })?;
             continue;
         }
+        if import.name() == aot::PEEK_IS_NIL {
+            let import_name = import.name().to_string();
+            linker
+                .func_wrap(
+                    host::MODULE,
+                    import.name(),
+                    move |mut caller: Caller<'_, WasmStore>| -> i32 {
+                        let stack = &mut caller.data_mut().rt.stack;
+                        let top = stack.last().cloned().unwrap_or(syx_runtime_core::Value::Nil);
+                        if matches!(top, syx_runtime_core::Value::Nil) {
+                            let _ = stack.pop();
+                            1
+                        } else {
+                            0
+                        }
+                    },
+                )
+                .map_err(|e| {
+                    wasm_run_error_at(
+                        format!("Failed to link `{import_name}`: {e}"),
+                        None,
+                        Span::DUMMY,
+                        "W501",
+                    )
+                })?;
+            continue;
+        }
         if import.name() == aot::STACK_OP {
             let import_name = import.name().to_string();
             linker

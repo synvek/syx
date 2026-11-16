@@ -1,0 +1,13 @@
+func main() {
+    test001()
+}
+
+func test001() {
+    let a: Int? = nil
+    let b: Int? = 2
+    guard let x = a, let y = b else {
+        print("else")
+        return
+    }
+    print("no")
+}

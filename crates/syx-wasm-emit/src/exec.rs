@@ -55,6 +55,8 @@ pub mod aot {
     pub const PUSH_RT_BOOL: &str = "__syx_aot_push_rt_bool";
     /// Wave A W203 / ADR-547: ConstNil → RT Nil (Print / void parity).
     pub const PUSH_RT_NIL: &str = "__syx_aot_push_rt_nil";
+    /// JumpIfNil cond: peek RT top; if Nil pop and return 1, else return 0 (leave value).
+    pub const PEEK_IS_NIL: &str = "__syx_aot_peek_is_nil";
     pub const PUSH_RT_NUMERIC: &str = "__syx_aot_push_rt_numeric";
     /// Phase 110: pop one RT i32 for guest SIMD shift scalar operand.
     pub const TAKE_RT_I32: &str = "__syx_aot_take_rt_i32";
@@ -175,6 +177,7 @@ pub mod aot {
         PushRtI32,
         PushRtBool,
         PushRtNil,
+        PeekIsNil,
         PushRtNumeric,
         TakeRtI32,
         TakeRtF64,
@@ -275,6 +278,7 @@ pub mod aot {
                 Self::PushRtI32 => PUSH_RT_I32,
                 Self::PushRtBool => PUSH_RT_BOOL,
                 Self::PushRtNil => PUSH_RT_NIL,
+                Self::PeekIsNil => PEEK_IS_NIL,
                 Self::PushRtNumeric => PUSH_RT_NUMERIC,
                 Self::TakeRtI32 => TAKE_RT_I32,
                 Self::TakeRtF64 => TAKE_RT_F64,
@@ -373,7 +377,7 @@ pub mod aot {
                 Self::ToStr => host::TYPE_I32_TO_I32,
                 // Phase 101: GetReturn is () -> i32 (matches wasm-run linker; no dummy arg).
                 Self::GetReturn => host::TYPE_FUNC_I32,
-                Self::TakeRtI32 => host::TYPE_FUNC_I32,
+                Self::TakeRtI32 | Self::PeekIsNil => host::TYPE_FUNC_I32,
                 Self::TakeRtF64 => host::TYPE_FUNC_F64,
                 Self::PushRtF64 => host::TYPE_F64_VOID,
                 Self::TakeRtF32 => host::TYPE_FUNC_F32,
