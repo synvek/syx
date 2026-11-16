@@ -41,6 +41,7 @@ mod iterator_optional_strict;
 mod jit_suite1_differential;
 mod language_deepen;
 mod let_member_assign_s060;
+mod let_nested_member_assign_s060;
 mod let_subscript_s060;
 mod loop_control_mir;
 mod macro_expand;

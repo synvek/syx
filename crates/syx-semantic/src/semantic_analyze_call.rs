@@ -271,36 +271,70 @@ impl SemanticAnalyzer {
         ));
     }
 
-    /// U-23: `let` struct bindings cannot assign fields (`p.x = …`).
-    /// Class/actor `let` field writes stay legal (reference semantics).
+    /// U-23/U-24: `let` value-type bindings cannot assign fields (`p.x = …` / `o.inner.x = …`).
+    /// Class/actor roots or any class/actor hop in the Member chain stay legal (reference semantics).
     pub(crate) fn check_member_assign_on_immutable(
         &mut self,
         object: &Expr,
         span: syx_diagnostics::Span,
     ) {
-        let Some(binding) = Self::mutating_receiver_binding(object) else {
+        let Some(binding) = self.value_member_assign_immutable_root(object) else {
             return;
         };
-        let Some(sym) = self.scope.lookup(&binding) else {
-            return;
-        };
-        if sym.mutable {
-            return;
-        }
-        let TypeId::Named(n) = &sym.ty else {
-            return;
-        };
-        if self.class_names.contains(n) || self.actor_types.contains(n) {
-            return;
-        }
-        if !self.dataclass_names.contains(n) {
-            return;
-        }
         self.errors.push(self.error_at(
             format!("Cannot assign to member through immutable binding '{binding}'"),
             span,
             "S060",
         ));
+    }
+
+    /// Walk Ident / Member chain via `dataclass_fields`. Returns root name when the whole
+    /// path is value-type (`dataclass_names`) and the root binding is immutable.
+    fn value_member_assign_immutable_root(&self, object: &Expr) -> Option<SmolStr> {
+        let mut fields: Vec<&SmolStr> = Vec::new();
+        let mut cur = object;
+        let root_name = loop {
+            match cur {
+                Expr::Ident { name, .. } => break name.clone(),
+                Expr::Member { object, name, .. } => {
+                    fields.push(name);
+                    cur = object.as_ref();
+                }
+                _ => return None,
+            }
+        };
+        let sym = self.scope.lookup(&root_name)?;
+        if sym.mutable {
+            return None;
+        }
+        let TypeId::Named(mut ty_name) = sym.ty.clone() else {
+            return None;
+        };
+        if self.class_names.contains(&ty_name) || self.actor_types.contains(&ty_name) {
+            return None;
+        }
+        if !self.dataclass_names.contains(&ty_name) {
+            return None;
+        }
+        for field in fields.iter().rev() {
+            let field_ty = self
+                .dataclass_fields
+                .get(&ty_name)?
+                .iter()
+                .find(|(n, _)| n == *field)
+                .map(|(_, t)| t.clone())?;
+            let TypeId::Named(next) = field_ty else {
+                return None;
+            };
+            if self.class_names.contains(&next) || self.actor_types.contains(&next) {
+                return None;
+            }
+            if !self.dataclass_names.contains(&next) {
+                return None;
+            }
+            ty_name = next;
+        }
+        Some(root_name)
     }
 
     fn mutating_receiver_binding(object: &Expr) -> Option<SmolStr> {

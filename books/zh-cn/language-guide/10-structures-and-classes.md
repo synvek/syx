@@ -40,7 +40,7 @@ c.increment()
 print(c.value)                             // 1
 ```
 
-> **`mutating`：** 标记会修改 `self` 的方法；调用方必须用 `var`（不能 `let`）。`mutating` 方法在 `let` 上调用 → **S060**。通过 `let` 绑定写 `struct` 字段（`p.x = …`）→ **S060**；`class` / `actor` 在 `let` 上写字段仍合法。
+> **`mutating`：** 标记会修改 `self` 的方法；调用方必须用 `var`（不能 `let`）。`mutating` 方法在 `let` 上调用 → **S060**。通过 `let` 绑定写 `struct` 字段（`p.x = …`、嵌套 `o.inner.x = …`）→ **S060**；`class` / `actor` 在 `let` 上写字段仍合法（含经 struct 持有的 class 引用）。
 
 ### 值语义：struct 赋值拷贝（R-38 · SEM-STRUCT）
 
