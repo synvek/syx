@@ -143,7 +143,27 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Driver lang suite
-        run: cargo test -p syx-driver --test lang -- --test-threads=1
+        # Hard wall so a hung nail leaves a tee log instead of a silent job cancel.
+        run: |
+          set -o pipefail
+          timeout 35m cargo test -p syx-driver --test lang -- --test-threads=1 2>&1 \
+            | tee /tmp/syx-lang.out
+      - name: Summarize lang failures
+        if: failure()
+        run: |
+          {
+            echo "## Core lang failures / last progress"
+            echo '```'
+            grep -nE 'FAILED|failures:|panicked|has been running for over|test result:' /tmp/syx-lang.out \
+              | tail -80 || tail -80 /tmp/syx-lang.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: core-lang-log
+          path: /tmp/syx-lang.out
+          retention-days: 7
 
   test-driver-concurrency:
     name: Core concurrency
@@ -157,7 +177,26 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Driver concurrency suite
-        run: cargo test -p syx-driver --test concurrency -- --test-threads=1
+        run: |
+          set -o pipefail
+          timeout 20m cargo test -p syx-driver --test concurrency -- --test-threads=1 2>&1 \
+            | tee /tmp/syx-concurrency.out
+      - name: Summarize concurrency failures
+        if: failure()
+        run: |
+          {
+            echo "## Core concurrency failures / last progress"
+            echo '```'
+            grep -nE 'FAILED|failures:|panicked|has been running for over|test result:' \
+              /tmp/syx-concurrency.out | tail -80 || tail -80 /tmp/syx-concurrency.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: core-concurrency-log
+          path: /tmp/syx-concurrency.out
+          retention-days: 7
 
   test-driver-data:
     name: Core data
@@ -173,10 +212,10 @@ jobs:
 
   test-driver-credibility:
     name: Core credibility
-    # Soft until Linux census/nail drift is diagnosed (local macOS green; CI exit 101).
+    # Soft while remaining Linux census drift is diagnosed; prelude regen required on clean CI.
     continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     needs: [fmt]
     steps:
       - uses: actions/checkout@v4
@@ -187,8 +226,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ripgrep
+      # Prelude embeds are gitignored; credibility nails assert non-trivial asset bytes.
+      - name: Regen prelude embed for this runner rustc
+        run: bash scripts/gen_prelude_snapshot.sh
       - name: Driver credibility suite
-        run: cargo test -p syx-driver --test credibility -- --test-threads=1
+        run: |
+          set -o pipefail
+          cargo test -p syx-driver --test credibility -- --test-threads=1 2>&1 \
+            | tee /tmp/syx-credibility.out
+      - name: Summarize credibility failures
+        if: failure()
+        run: |
+          {
+            echo "## Core credibility failures"
+            echo '```'
+            rg -n 'FAILED|failures:|panicked|census script failed|assertion' \
+              /tmp/syx-credibility.out | tail -120 || true
+            echo '```'
+            echo
+            echo "### failure list"
+            echo '```'
+            rg -n '^failures:$' -A40 /tmp/syx-credibility.out | tail -50 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: core-credibility-log
+          path: /tmp/syx-credibility.out
+          retention-days: 7
 
   # Aggregator keeps the historical required check name "Core driver".
   # lang/concurrency/credibility soft until Linux hangs + credibility drift are fixed.
