@@ -1,4 +1,13 @@
 ### SYX 0.2.3
+- feat: implement optional statement separators in block statements
+- feat: implement `while let` syntax desugaring in parser and add tests
+- feat: enhance stdlib MIR handling with caching and fingerprinting
+- feat: add support for stdlib MIR embedding and enhance asset management
+- feat: add optional loop label support for repeat statements
+- feat: implement comma-separated `if let` syntax with nested IfLet and trailing If
+- feat: implement `while case` syntax with nested IfCase and break handling
+- feat: implement comma-separated `guard let` syntax with trailing conditions
+- feat: introduce bare `guard` syntax for conditional statements
 - fix: restore CI workflow YAML (unquoted `smoke::` broke Actions); portable Windows smoke enumeration; advisory Native/JIT soft steps; ignore drifted faer pad/mat_mul plugin nails
 - fix: soft CI batch — smoke nails track peeled modules; Windows `smoke::` filter; Extended/GUI/Book/Browser/JIT/Native soft walls + advisory exits; hang-prone Extended suites module-sharded
 - fix: evergreen fixture_compile_all soft-skips tip compile drift (Net.streamTls / reject fixtures); Extended per-target 10m walls + native/JIT failure annotations
@@ -14,14 +23,6 @@
 - fix: realign credibility version pins to 0.2.3; soft-skip outdated LSP borrow_fail / mir-run hasher·filter nails that no longer fail-close
 - chore: fix Core tests timeout — drop `--workspace --lib/--bins` (llvm/wasm/hosts compile); split into Core libs (curated `-p`) + Core driver; LSP `--lib` only; raise Book soft timeout; trim Extended LSP re-run
 - chore: split required CI into Format / Lint / LSP / Core tests; drop backends/browser/wasm/farm/platform from the merge gate; move Broad parity to nightly schedule; add soft-job timeouts and optional `.githooks/pre-push` fmt check
-- feat: implement optional statement separators in block statements
-- feat: implement `while let` syntax desugaring in parser and add tests
-- feat: enhance stdlib MIR handling with caching and fingerprinting
-- feat: add support for stdlib MIR embedding and enhance asset management
-- feat: add optional loop label support for repeat statements
-- feat: implement comma-separated `if let` syntax with nested IfLet and trailing If
-- feat: implement `while case` syntax with nested IfCase and break handling
-- feat: implement comma-separated `guard let` syntax with trailing conditions
 
 ### SYX 0.2.2
 

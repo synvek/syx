@@ -5,8 +5,8 @@
 > **优先级：** P0 阻断对齐 · P1 重组核心 · P2 文档工具 · P3 收口增强  
 > **活状态：** [`01-project-status.md`](01-project-status.md)  
 > **上期冻结账本：** [`archive/02-improvement-roadmap-credibility-stage-ledger.md`](archive/02-improvement-roadmap-credibility-stage-ledger.md)  
-> **最近更新：** 2026-11-16 · **U-16 逗号 `guard let` 已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-16 账面退出；**诚实：** U-12/U-13 曾纸面，由 U-15/U-14 复落；U-16 对齐书宣称 `guard let …, … else`；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、逗号 while let 等）。  
-> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面纸面；由 U-15 复落）；**U-13** 逗号 `if let`（账面纸面；由 U-14 复落）；**U-14** 复落逗号 `if let`；**U-15** 复落 `while case`；**U-16** 逗号 `guard let` → Seq of GuardLet[+If]。下表只保留 **仍可复现** 或仍挂账的项。
+> **最近更新：** 2026-11-16 · **U-17 裸 `guard` 已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-17 账面退出；**诚实：** U-12/U-13 曾纸面，由 U-15/U-14 复落；U-16 逗号 guard let；U-17 布尔 `guard cond else`；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、逗号 while let、S020 else-exit 等）。  
+> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面纸面；由 U-15 复落）；**U-13** 逗号 `if let`（账面纸面；由 U-14 复落）；**U-14** 复落逗号 `if let`；**U-15** 复落 `while case`；**U-16** 逗号 `guard let`；**U-17** 裸 `guard` → If(cond,[],else)。下表只保留 **仍可复现** 或仍挂账的项。
 
 ## 进度摘要（本期）
 
@@ -57,6 +57,7 @@
 | **U-14** | 复落逗号 `if let` | `[x]` 退出 | [`u-14`](../docs/census/u-14-if-let-comma-census.md) |
 | **U-15** | 复落 `while case` | `[x]` 退出 | [`u-15`](../docs/census/u-15-while-case-census.md) |
 | **U-16** | 逗号 `guard let` | `[x]` 退出 | [`u-16`](../docs/census/u-16-guard-let-comma-census.md) |
+| **U-17** | 裸 `guard` 布尔早退 | `[x]` 退出 | [`u-17`](../docs/census/u-17-guard-bare-census.md) |
 
 ```mermaid
 flowchart LR
@@ -79,7 +80,8 @@ flowchart LR
   u13 --> u14["U-14 restore ifLetComma"]
   u14 --> u15["U-15 restore whileCase"]
   u15 --> u16["U-16 guardLetComma"]
-  u16 --> later["park residual"]
+  u16 --> u17["U-17 bareGuard"]
+  u17 --> later["park residual"]
 ```
 
 ---
@@ -190,8 +192,9 @@ flowchart LR
 | **U-14** | **复落逗号 `if let`** | `[x]` | Let 臂逗号链→嵌套 IfLet/If；census [`u-14`](../docs/census/u-14-if-let-comma-census.md)；≠ while case 复落 / 逗号 while let / CST / R-50 / JIT | U-13 honesty |
 | **U-15** | **复落 `while case`** | `[x]` | Case 臂→While+IfCase+Break；census [`u-15`](../docs/census/u-15-while-case-census.md)；≠ 逗号 while let / guard / CST / R-50 / JIT | U-12 honesty |
 | **U-16** | **逗号 `guard let`** | `[x]` | Seq of GuardLet[+trailing If]；census [`u-16`](../docs/census/u-16-guard-let-comma-census.md)；≠ 裸 guard / 逗号 while let / CST / R-50 / JIT | U-15 next / book claim |
+| **U-17** | **裸 `guard` 布尔早退** | `[x]` | `guard cond else`→If(cond,[],else)；census [`u-17`](../docs/census/u-17-guard-bare-census.md)；≠ S020 / 逗号 while let / CST / R-50 / JIT | U-16 next |
 
-**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-16 已退出** — 残余为 **park** / 未编号债（逗号 `while let`、CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程、SyxHost 等），**不**新开 R-50。
+**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-17 已退出** — 残余为 **park** / 未编号债（逗号 `while let`、S020 else-exit、CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程、SyxHost 等），**不**新开 R-50。
 
 **退出总则：**  
 - SA-0 → 核心层清单 + 分层命名 ADR 已接受；manifest / prelude / IMPORTABLE 三处 SSOT 自洽。  

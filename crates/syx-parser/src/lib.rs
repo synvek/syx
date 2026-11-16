@@ -2002,7 +2002,8 @@ impl Parser {
             TokenKind::Var | TokenKind::Let => self.parse_var_decl(),
             TokenKind::Return => self.parse_return(),
             TokenKind::If => self.parse_if_or_if_let(),
-            TokenKind::Guard => self.parse_guard_let(),
+            // U-17: bare `guard cond else` vs `guard let` (U-16 comma chain).
+            TokenKind::Guard => self.parse_guard(),
             TokenKind::Switch => self.parse_switch(),
             TokenKind::Select => self.parse_select(),
             TokenKind::While => self.parse_while(None),
@@ -2490,6 +2491,35 @@ impl Parser {
             condition,
             then_branch,
             else_branch,
+        })
+    }
+
+    /// U-17: dispatch `guard let…` vs bare `guard cond else { E }`.
+    fn parse_guard(&mut self) -> SyxResult<Stmt> {
+        if matches!(self.peek_ahead(1).map(|t| &t.kind), Some(TokenKind::Let)) {
+            return self.parse_guard_let();
+        }
+        // Bare boolean guard → If(cond, then=[], else=E); success falls through.
+        let start = self.advance().span;
+        let prev = self.allow_trailing_closure;
+        self.allow_trailing_closure = false;
+        let condition = self.parse_expr()?;
+        self.allow_trailing_closure = prev;
+        self.consume(TokenKind::Else, "Expected 'else' after guard")?;
+        self.consume(TokenKind::LBrace, "Expected '{' after guard else")?;
+        let else_branch = self.parse_block_stmts()?;
+        // Legacy optional success `{ body }` after else (same as guard let).
+        let then_branch = if self.check(TokenKind::LBrace) {
+            self.advance();
+            self.parse_block_stmts()?
+        } else {
+            Vec::new()
+        };
+        Ok(Stmt::If {
+            span: Span::merge(start, self.previous().span),
+            condition,
+            then_branch,
+            else_branch: Some(else_branch),
         })
     }
 
