@@ -3250,6 +3250,36 @@ impl Parser {
                 label,
             });
         }
+        // U-15: restore `while case pattern = subject { body }` → while true {
+        // if case … else { break } } (U-12 shape was paper-exited; re-land here).
+        // No new AST; reuses While + IfCase + Break (U-8/U-10).
+        if self.match_kind(TokenKind::Case) {
+            let pattern = self.parse_switch_pattern()?;
+            self.consume(TokenKind::Assign, "Expected '=' in while case")?;
+            let prev = self.allow_trailing_closure;
+            self.allow_trailing_closure = false;
+            let subject = self.parse_expr()?;
+            self.allow_trailing_closure = prev;
+            let body = self.parse_stmt_or_block()?;
+            let span = Span::merge(start, self.previous().span);
+            let break_stmt = Stmt::Break { span, label: None };
+            let if_case = Stmt::IfCase {
+                span,
+                pattern,
+                subject,
+                body,
+                else_branch: Some(vec![break_stmt]),
+            };
+            return Ok(Stmt::While {
+                span,
+                condition: Expr::Literal {
+                    span,
+                    value: Literal::Bool(true),
+                },
+                body: vec![if_case],
+                label,
+            });
+        }
         let prev = self.allow_trailing_closure;
         self.allow_trailing_closure = false;
         let condition = self.parse_expr()?;

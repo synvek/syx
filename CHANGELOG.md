@@ -19,6 +19,8 @@
 - feat: enhance stdlib MIR handling with caching and fingerprinting
 - feat: add support for stdlib MIR embedding and enhance asset management
 - feat: add optional loop label support for repeat statements
+- feat: implement comma-separated `if let` syntax with nested IfLet and trailing If
+- feat: implement `while case` syntax with nested IfCase and break handling
 
 ### SYX 0.2.2
 
