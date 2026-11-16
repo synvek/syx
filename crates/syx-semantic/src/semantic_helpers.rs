@@ -199,6 +199,35 @@ pub(crate) fn expr_first_task_detach_span(expr: &Expr) -> Option<syx_diagnostics
     }
 }
 
+/// U-18: whether a statement list definitely transfers (`return`/`throw`/`break`/`continue`).
+/// Used for `guard let` else-must-exit (S027). Does **not** treat `fatalError` / infinite loops as exit.
+pub(crate) fn block_definitely_exits(stmts: &[Stmt]) -> bool {
+    let Some(last) = stmts.last() else {
+        return false;
+    };
+    stmt_definitely_exits(last)
+}
+
+fn stmt_definitely_exits(stmt: &Stmt) -> bool {
+    match stmt {
+        Stmt::Return { .. } | Stmt::Throw { .. } | Stmt::Break { .. } | Stmt::Continue { .. } => {
+            true
+        }
+        Stmt::Block { stmts, .. } | Stmt::Seq { stmts, .. } => block_definitely_exits(stmts),
+        Stmt::If {
+            then_branch,
+            else_branch,
+            ..
+        } => match else_branch {
+            Some(else_stmts) => {
+                block_definitely_exits(then_branch) && block_definitely_exits(else_stmts)
+            }
+            None => false,
+        },
+        _ => false,
+    }
+}
+
 pub fn expr_span_start(expr: &Expr) -> u32 {
     expr_span(expr).start as u32
 }

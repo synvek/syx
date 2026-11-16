@@ -321,7 +321,7 @@ demoOptional()
 | `guard let x = opt else { … }` | Continues when non-`nil`; entering `else` on `nil` **must** exit (`return` / `throw` / `break` / `continue` / `fatalError`) |
 | `guard let x = opt, cond else` | Multiple conditions + guard |
 
-> **`else` must exit:** if a `guard`'s `else` block does not exit (missing `return` etc.) → compile error **S020**.
+> **`else` must exit:** if a `guard let`'s `else` block does not exit (missing `return` etc.) → compile error **S027**.
 
 ## throw
 
@@ -407,7 +407,7 @@ func main() {
 | **S004** | Non-`Bool` `if` condition | Write an explicit comparison |
 | **S007** | Non-exhaustive `switch` (`enum` / closed domain) | Add the missing cases or a `default` |
 | **S010** | Pattern mismatch | Check whether all enum cases are present |
-| **S020** | `guard let` `else` does not exit | Add `return` / `throw` etc. |
+| **S027** | `guard let` `else` does not exit | Add `return` / `throw` etc. |
 | **R003** | Subscript out of bounds | Check the index |
 
 ## Differences from Swift

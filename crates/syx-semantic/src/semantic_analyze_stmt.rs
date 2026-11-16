@@ -2,6 +2,7 @@
 //! Zero-semantics peel from semantic_analyzer.rs.
 
 use crate::semantic_analyzer::SemanticAnalyzer;
+use crate::semantic_helpers::block_definitely_exits;
 use crate::{
     borrow_regions_v7_enabled, expr_span, Scope, Symbol, TypeId, MAX_COLLECTED_DIAGNOSTICS,
 };
@@ -556,6 +557,14 @@ impl SemanticAnalyzer {
                     *span,
                 )?;
                 self.analyze_block(else_branch)?;
+                // U-18: `guard let` else must exit (S027; ≠ MainActor S020).
+                if !block_definitely_exits(else_branch) {
+                    return Err(self.error_at(
+                        "`guard let` else must exit with `return` / `throw` / `break` / `continue`",
+                        *span,
+                        "S027",
+                    ));
+                }
                 self.analyze_block(body)?;
                 Ok(())
             }

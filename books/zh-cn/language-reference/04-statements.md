@@ -281,7 +281,7 @@ guard let y = optional else {
 print("y is \(y)")
 ```
 
-> **`guard let` else** 必须退出（`return` / `throw` / `break` / `continue` / 无限循环）— 否则 **S020**。
+> **`guard let` else** 必须退出（`return` / `throw` / `break` / `continue`）— 否则 **S027**。
 > **多模式**：`if let x = a, let y = b, cond { … }`（链式 + 守卫）— 合法。
 
 ## print

@@ -281,7 +281,7 @@ guard let y = optional else {
 print("y is \(y)")
 ```
 
-> **`guard let` else** must exit (`return` / `throw` / `break` / `continue` / an infinite loop) — otherwise **S020**.
+> **`guard let` else** must exit (`return` / `throw` / `break` / `continue`) — otherwise **S027**.
 > **Multiple patterns:** `if let x = a, let y = b, cond { … }` (chaining + guards) — legal.
 
 ## print

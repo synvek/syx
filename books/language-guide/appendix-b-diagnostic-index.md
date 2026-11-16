@@ -26,7 +26,8 @@ A user-facing cheat sheet of diagnostic codes. For compiler implementation detai
 | S016 | Does not conform to the `Equatable` protocol |
 | S017 | Lifetime violation |
 | S019 | Sendable channel |
-| S020 | MainActor violation after await / `guard let` `else` does not exit / `await` in a non-`async` context |
+| S020 | MainActor violation after await / `await` in a non-`async` context |
+| S027 | `guard let` `else` does not exit (must `return` / `throw` / `break` / `continue`) |
 | S022 | Using SIMD while it is disabled |
 | S024 | Collection hosted ops forbid the legacy `MethodCall` (Phase 48) |
 | S025 | Semantic-layer hosted methods must go through an extension / `CallHost` (Phase 50) |

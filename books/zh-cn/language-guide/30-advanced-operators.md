@@ -149,7 +149,7 @@ func main() {
 }
 ```
 
-> **`else` 必须退出：** `guard let` 的 `else` 块若不 `return` / `throw` / `break` / `continue` → 编译错误 **S020**。
+> **`else` 必须退出：** `guard let` 的 `else` 块若不 `return` / `throw` / `break` / `continue` → 编译错误 **S027**。
 
 ## try ?
 
@@ -262,7 +262,7 @@ func main() {
 |------|------|------|
 | **S004** | 运算符两侧类型不匹配 | 修正类型 |
 | **S008** | 窄化（如 `Int64 → Int8`） | 检查范围 |
-| **S020** | `guard let` `else` 未退出 | 加 return / throw |
+| **S027** | `guard let` `else` 未退出 | 加 return / throw |
 | **R007** | `!` 解包 nil | 用 `?.` / `??` |
 
 ---

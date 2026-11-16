@@ -8,6 +8,7 @@
 - feat: implement `while case` syntax with nested IfCase and break handling
 - feat: implement comma-separated `guard let` syntax with trailing conditions
 - feat: introduce bare `guard` syntax for conditional statements
+- fix: update diagnostic code for `guard let` else exit requirement
 - fix: restore CI workflow YAML (unquoted `smoke::` broke Actions); portable Windows smoke enumeration; advisory Native/JIT soft steps; ignore drifted faer pad/mat_mul plugin nails
 - fix: soft CI batch — smoke nails track peeled modules; Windows `smoke::` filter; Extended/GUI/Book/Browser/JIT/Native soft walls + advisory exits; hang-prone Extended suites module-sharded
 - fix: evergreen fixture_compile_all soft-skips tip compile drift (Net.streamTls / reject fixtures); Extended per-target 10m walls + native/JIT failure annotations

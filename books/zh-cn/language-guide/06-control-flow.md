@@ -321,7 +321,7 @@ demoOptional()
 | `guard let x = opt else { … }` | 非 `nil` 继续；`nil` 进入 `else` **必须** 退出（`return` / `throw` / `break` / `continue` / `fatalError`） |
 | `guard let x = opt, cond else` | 多条件 + 守卫 |
 
-> **`else` 必须退出：** `guard` 的 `else` 块若不退出（缺 `return` 等）→ 编译错误 **S020**。
+> **`else` 必须退出：** `guard let` 的 `else` 块若不退出（缺 `return` 等）→ 编译错误 **S027**。
 
 ## throw
 
@@ -407,7 +407,7 @@ func main() {
 | **S004** | `if` 条件非 `Bool` | 显式比较 |
 | **S007** | `switch` 非穷尽（`enum` / 封闭域） | 加缺失 case 或 `default` |
 | **S010** | 模式不匹配 | 检查 enum case 是否完整 |
-| **S020** | `guard let` `else` 未退出 | 加 `return` / `throw` 等 |
+| **S027** | `guard let` `else` 未退出 | 加 `return` / `throw` 等 |
 | **R003** | 下标越界 | 检查索引 |
 
 ## 与 Swift 的差异

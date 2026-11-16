@@ -149,7 +149,7 @@ func main() {
 }
 ```
 
-> **`else` must exit:** if a `guard let`'s `else` block does not `return` / `throw` / `break` / `continue` → compile error **S020**.
+> **`else` must exit:** if a `guard let`'s `else` block does not `return` / `throw` / `break` / `continue` → compile error **S027**.
 
 ## try ?
 
@@ -262,7 +262,7 @@ func main() {
 |------|------|------|
 | **S004** | Operand types mismatch on both sides | Fix the types |
 | **S008** | Narrowing (e.g. `Int64 → Int8`) | Check the range |
-| **S020** | `guard let` `else` does not exit | Add return / throw |
+| **S027** | `guard let` `else` does not exit | Add return / throw |
 | **R007** | `!` unwrapping nil | Use `?.` / `??` |
 
 ---

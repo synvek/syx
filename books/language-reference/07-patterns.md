@@ -132,7 +132,7 @@ guard let x = optional else { return }
 ```
 
 > **Chained conditions:** separated by `,`; if any condition fails, the whole branch is skipped.
-> **`guard else` must exit:** otherwise **S020**.
+> **`guard else` must exit:** otherwise **S027**.
 
 ## Type Patterns (Partially Implemented)
 
@@ -230,7 +230,7 @@ func main() {
 
 ---
 
-**Diagnostics:** S004 / S007 / S010 / S012 / S020
+**Diagnostics:** S004 / S007 / S010 / S012 / S027
 
 **Usage examples** → [Language Guide: Enumerations](../language-guide/09-enumerations.md) · [Control Flow](../language-guide/06-control-flow.md) · [Advanced Operators](../language-guide/30-advanced-operators.md)
 

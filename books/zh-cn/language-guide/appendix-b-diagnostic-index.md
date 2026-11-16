@@ -26,7 +26,8 @@
 | S016 | `Equatable` 协议不符 |
 | S017 | 生命周期违规 |
 | S019 | Sendable channel |
-| S020 | MainActor await 后违规 / `guard let` `else` 未退出 / 非 `async` 内 `await` |
+| S020 | MainActor await 后违规 / 非 `async` 内 `await` |
+| S027 | `guard let` `else` 未退出（须 `return` / `throw` / `break` / `continue`） |
 | S022 | SIMD 在禁用模式下使用 |
 | S024 | 集合 hosted op 禁止 legacy `MethodCall`（Phase 48） |
 | S025 | 语义层 hosted 方法须走 extension / `CallHost`（Phase 50） |

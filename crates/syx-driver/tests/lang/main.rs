@@ -30,6 +30,7 @@ mod first_order_where;
 mod frontend_pipeline_parity;
 mod func_async_dual;
 mod guard_bare;
+mod guard_else_exit;
 mod guard_let_comma;
 mod if_let_comma;
 mod if_let_trailing;

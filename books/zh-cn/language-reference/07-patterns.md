@@ -132,7 +132,7 @@ guard let x = optional else { return }
 ```
 
 > **多条件链式：** 用 `,` 分隔；任一条件失败 → 整体分支跳过。
-> **guard else 必须退出：** 否则 **S020**。
+> **guard else 必须退出：** 否则 **S027**。
 
 ## 类型模式（部分实现）
 
@@ -230,7 +230,7 @@ func main() {
 
 ---
 
-**诊断：** S004 / S007 / S010 / S012 / S020
+**诊断：** S004 / S007 / S010 / S012 / S027
 
 **用法示例** → [语言指南：枚举](../language-guide/09-enumerations.md) · [控制流](../language-guide/06-control-flow.md) · [高级运算符](../language-guide/30-advanced-operators.md)
 
