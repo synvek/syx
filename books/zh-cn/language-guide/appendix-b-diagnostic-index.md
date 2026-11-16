@@ -28,7 +28,7 @@
 | S018 | 调 `throws` 函数未包 `try` |
 | S019 | Sendable channel |
 | S020 | MainActor await 后违规 |
-| S060 | 在不可变（`let`）绑定上调用 `mutating` 方法、下标赋值或 struct 成员赋值（含嵌套值类型路径） |
+| S060 | 在不可变（`let`）绑定上调用 `mutating` 方法、下标赋值或 struct 成员赋值（含嵌套值类型路径 / 嵌套集合） |
 | S027 | `guard let` `else` 未退出（须 `return` / `throw` / `break` / `continue`） |
 | S028 | 非 `throws` 函数内 `throw` |
 | S022 | SIMD 在禁用模式下使用 |

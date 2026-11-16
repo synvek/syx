@@ -208,8 +208,8 @@ impl SemanticAnalyzer {
         Err((format!("Undefined identifier '{name}'"), "S002"))
     }
 
-    /// S1-06 / S060: `let` bindings cannot invoke mutating methods (incl. `Array.append`).
-    /// Distinct from MainActor `S020`.
+    /// S1-06 / U-25 / S060: `let` bindings cannot invoke mutating methods (incl. `Array.append`),
+    /// including through value-type Member paths (`s.arr.append`). Distinct from MainActor `S020`.
     fn check_mutating_call_on_immutable(
         &mut self,
         object: &Expr,
@@ -232,15 +232,9 @@ impl SemanticAnalyzer {
         if !known_collection_mutating && !marked_mutating {
             return;
         }
-        let Some(binding) = Self::mutating_receiver_binding(object) else {
+        let Some(binding) = self.immutable_value_mut_root(object) else {
             return;
         };
-        let Some(sym) = self.scope.lookup(&binding) else {
-            return;
-        };
-        if sym.mutable {
-            return;
-        }
         self.errors.push(self.error_at(
             format!("Cannot call mutating method '{method}' on immutable binding '{binding}'"),
             span,
@@ -248,27 +242,89 @@ impl SemanticAnalyzer {
         ));
     }
 
-    /// U-22: `let` bindings cannot be written through subscript (`a[i] = …` / `d[k] = …`).
-    /// Same S060 family as mutating method calls; Ident base only (matches append scale).
+    /// U-22 / U-25: `let` bindings cannot be written through subscript (`a[i] = …` / `s.arr[i] = …`).
+    /// Same S060 family as mutating method calls; value-type Member paths included.
     pub(crate) fn check_index_assign_on_immutable(
         &mut self,
         object: &Expr,
         span: syx_diagnostics::Span,
     ) {
-        let Some(binding) = Self::mutating_receiver_binding(object) else {
+        let Some(binding) = self.immutable_value_mut_root(object) else {
             return;
         };
-        let Some(sym) = self.scope.lookup(&binding) else {
-            return;
-        };
-        if sym.mutable {
-            return;
-        }
         self.errors.push(self.error_at(
             format!("Cannot assign through subscript on immutable binding '{binding}'"),
             span,
             "S060",
         ));
+    }
+
+    /// U-25: root Ident when mutating `object` would mutate an immutable value binding.
+    /// Ident-only keeps U-22 / S1-06; Member chains walk dataclass fields; class/actor hops bail.
+    fn immutable_value_mut_root(&self, object: &Expr) -> Option<SmolStr> {
+        let mut fields: Vec<&SmolStr> = Vec::new();
+        let mut cur = object;
+        let root_name = loop {
+            match cur {
+                Expr::Ident { name, .. } => break name.clone(),
+                Expr::Member { object, name, .. } => {
+                    fields.push(name);
+                    cur = object.as_ref();
+                }
+                _ => return None,
+            }
+        };
+        let sym = self.scope.lookup(&root_name)?;
+        if sym.mutable {
+            return None;
+        }
+        if fields.is_empty() {
+            return Some(root_name);
+        }
+        let TypeId::Named(mut ty_name) = sym.ty.clone() else {
+            return None;
+        };
+        if self.class_names.contains(&ty_name) || self.actor_types.contains(&ty_name) {
+            return None;
+        }
+        if !self.dataclass_names.contains(&ty_name) {
+            return None;
+        }
+        for (idx, field) in fields.iter().rev().enumerate() {
+            let is_last = idx + 1 == fields.len();
+            let field_ty = self
+                .dataclass_fields
+                .get(&ty_name)?
+                .iter()
+                .find(|(n, _)| n == *field)
+                .map(|(_, t)| t.clone())?;
+            match field_ty {
+                TypeId::Array(_) | TypeId::Dictionary { .. } | TypeId::Set(_) => {
+                    if is_last {
+                        return Some(root_name);
+                    }
+                    return None;
+                }
+                TypeId::Named(next) => {
+                    if self.class_names.contains(&next) || self.actor_types.contains(&next) {
+                        return None;
+                    }
+                    if !self.dataclass_names.contains(&next) {
+                        // Bare Named("Array") etc. as last hop still mutates through let.
+                        if is_last
+                            && matches!(next.as_str(), "Array" | "Dictionary" | "Set")
+                        {
+                            return Some(root_name);
+                        }
+                        return None;
+                    }
+                    ty_name = next;
+                }
+                _ => return None,
+            }
+        }
+        // Path ends on nested dataclass (e.g. marked mutating on nested value).
+        Some(root_name)
     }
 
     /// U-23/U-24: `let` value-type bindings cannot assign fields (`p.x = …` / `o.inner.x = …`).
@@ -335,14 +391,6 @@ impl SemanticAnalyzer {
             ty_name = next;
         }
         Some(root_name)
-    }
-
-    fn mutating_receiver_binding(object: &Expr) -> Option<SmolStr> {
-        match object {
-            Expr::Ident { name, .. } => Some(name.clone()),
-            // `self.field.append(...)` — mutate through stored property; not a let-binding reject.
-            _ => None,
-        }
     }
 
     fn is_callable_function(&self, name: &SmolStr) -> bool {

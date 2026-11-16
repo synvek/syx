@@ -15,6 +15,7 @@
 - fix: update S060 diagnostic code for mutability issues
 - fix: enhance S060 diagnostic code for immutability in struct assignments
 - fix: enhance S060 diagnostic code for nested member assignments
+- fix: enhance S060 diagnostic for nested `let` assignments and method calls
 - feat: implement NumericCast AOT import and update MIR instructions
 - fix: restore CI workflow YAML (unquoted `smoke::` broke Actions); portable Windows smoke enumeration; advisory Native/JIT soft steps; ignore drifted faer pad/mat_mul plugin nails
 - fix: soft CI batch — smoke nails track peeled modules; Windows `smoke::` filter; Extended/GUI/Book/Browser/JIT/Native soft walls + advisory exits; hang-prone Extended suites module-sharded
