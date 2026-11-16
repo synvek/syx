@@ -23,13 +23,13 @@ fn semantic_has(src: &str, code: &str) -> bool {
 
 fn check_err_contains(src: &str, code: &str) -> bool {
     let path = write_temp(src);
-    let hit = match syx_driver::check_file_with_options(&path, &syx_driver::DriverOptions::default())
-    {
-        Ok(_) => false,
-        Err(diags) => diags.iter().any(|d| {
-            d.code.as_deref() == Some(code) || format!("{d:?}").contains(code)
-        }),
-    };
+    let hit =
+        match syx_driver::check_file_with_options(&path, &syx_driver::DriverOptions::default()) {
+            Ok(_) => false,
+            Err(diags) => diags
+                .iter()
+                .any(|d| d.code.as_deref() == Some(code) || format!("{d:?}").contains(code)),
+        };
     let _ = std::fs::remove_file(&path);
     hit
 }

@@ -1004,10 +1004,7 @@ fn leaves_guest_call_stub(op: &MirOp) -> bool {
 
 fn next_consumes_guest_cond(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
     // JumpIfNil peeks RT via PeekIsNil (does not consume ConstNil's guest 0 sentinel).
-    matches!(
-        ops.get(idx + 1).map(|i| &i.op),
-        Some(MirOp::JumpIfFalse(_))
-    )
+    matches!(ops.get(idx + 1).map(|i| &i.op), Some(MirOp::JumpIfFalse(_)))
 }
 
 fn next_is_pop(ops: &[syx_mir::MirInstr], idx: usize) -> bool {

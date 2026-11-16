@@ -311,9 +311,7 @@ impl SemanticAnalyzer {
                     }
                     if !self.dataclass_names.contains(&next) {
                         // Bare Named("Array") etc. as last hop still mutates through let.
-                        if is_last
-                            && matches!(next.as_str(), "Array" | "Dictionary" | "Set")
-                        {
+                        if is_last && matches!(next.as_str(), "Array" | "Dictionary" | "Set") {
                             return Some(root_name);
                         }
                         return None;
