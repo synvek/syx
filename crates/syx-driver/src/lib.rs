@@ -879,6 +879,23 @@ func main() {
     }
 
     #[test]
+    fn compile_project_skips_fixtures_service_scan() {
+        // Intentional syntax-error fixtures must not poison `syx run` on a
+        // sibling package directory (monorepo footgun).
+        let dir = temp_dir("skip_fixtures_scan");
+        fs::write(dir.join("main.sy"), "func main() { return 0 }").unwrap();
+        fs::write(dir.join("syx.toml"), "name = \"app\"\nmain = \"main.sy\"\n").unwrap();
+        let fixtures = dir.join("fixtures");
+        fs::create_dir_all(&fixtures).unwrap();
+        fs::write(
+            fixtures.join("multi_syntax_errors.sy"),
+            "func broken() -> Int\nfunc alsoBroken() -> Int\n",
+        )
+        .unwrap();
+        compile_project(&dir).expect("project compile must ignore fixtures/");
+    }
+
+    #[test]
     fn build_native_and_wasm_emit_bytes() {
         let dir = temp_dir("backends");
         fs::write(dir.join("main.sy"), "func main() { return 1 }").unwrap();

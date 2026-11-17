@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 
 use clap::{Parser, Subcommand};
@@ -150,9 +150,13 @@ enum Commands {
     },
     /// Compile and run a SYX project or source file
     Run {
+        /// `.sy` source file, or a project directory with `syx.toml` / package `.sy` files
+        #[arg(value_name = "PATH")]
         path: Option<PathBuf>,
+        /// Run via the WASM backend (`.sy`, project dir, or `.wasm`)
         #[arg(long)]
         wasm: bool,
+        /// Entry function to invoke (WASM / AOT path; default: `main`)
         #[arg(long, default_value = "main")]
         invoke: String,
         /// Show real OS windows (`SYX_GUI_VISIBLE=1`)
@@ -591,6 +595,7 @@ fn run() -> miette::Result<()> {
             // `wasm=true` → stdlib_mir=true; plain `run` → false.
             options.stdlib_mir = wasm;
             let path = resolve_path(path);
+            require_syx_target(&path, "run")?;
             #[cfg(unix)]
             {
                 let want_daemon = use_daemon
@@ -652,6 +657,7 @@ fn run() -> miette::Result<()> {
         }
         Commands::Check { path } => {
             let path = resolve_path(path);
+            require_syx_target(&path, "check")?;
             let check_result = if path.is_dir() {
                 // S1-I24: project check aggregates parse multi-diag across .sy files.
                 check_project_with_options(&path, &options)
@@ -1350,6 +1356,77 @@ fn resolve_path(path: Option<PathBuf>) -> PathBuf {
     // made `import Logging` resolve as Embedded during graph build but as an
     // on-disk `packages/log` path during semantic analysis → S002.
     path.canonicalize().unwrap_or(path)
+}
+
+/// Directory runs need a recognizable SYX project. Bare `syx run` in the
+/// monorepo root used to walk the tree (including intentional syntax-error
+/// fixtures) and surface a confusing P001 instead of usage guidance.
+fn looks_like_syx_project(dir: &Path) -> bool {
+    if dir.join("syx.toml").is_file() {
+        return true;
+    }
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return false;
+    };
+    entries.filter_map(|e| e.ok()).any(|e| {
+        let p = e.path();
+        p.is_file() && p.extension().and_then(|x| x.to_str()) == Some("sy")
+    })
+}
+
+fn require_syx_target(path: &Path, cmd: &str) -> miette::Result<()> {
+    if path.is_file() {
+        return Ok(());
+    }
+    if path.is_dir() && looks_like_syx_project(path) {
+        return Ok(());
+    }
+    let hint = match cmd {
+        "run" => format!(
+            "no SYX project in {} (need syx.toml or a .sy file in that directory).\n\
+             \n\
+             Usage: syx run <file.sy|project-dir> [OPTIONS]\n\
+             \n\
+             Examples:\n\
+             - syx run examples/hello.sy\n\
+             - syx run examples/file_tool\n\
+             - syx run app.sy --wasm --invoke main\n\
+             - syx run app.sy --gui-visible\n\
+             - syx run app.sy --with-cache\n\
+             - syx run app.sy --daemon   # Unix; start with: syx daemon start\n\
+             \n\
+             Common options:\n\
+             - --wasm                 Run via WASM backend\n\
+             - --invoke <NAME>        Entry function (default: main)\n\
+             - --gui-visible          Show real OS windows\n\
+             - --with-cache           Incremental MIR/prelude disk cache\n\
+             - --daemon               Forward to local syx daemon (Unix)\n\
+             - --jit / --llvm-aot     Opt-in codegen backends\n\
+             - --permission-sandbox   Fail closed; grant with --allow-net/--allow-fs/…\n\
+             \n\
+             See also: syx run --help",
+            path.display()
+        ),
+        "check" => format!(
+            "no SYX project in {} (need syx.toml or a .sy file in that directory).\n\
+             \n\
+             Usage: syx check <file.sy|project-dir>\n\
+             \n\
+             Examples:\n\
+             - syx check examples/hello.sy\n\
+             - syx check examples/file_tool\n\
+             \n\
+             See also: syx check --help",
+            path.display()
+        ),
+        _ => format!(
+            "no SYX project in {} (need syx.toml or a .sy file in that directory).\n\
+             Usage: syx {cmd} <file.sy|project-dir>\n\
+             See also: syx {cmd} --help",
+            path.display()
+        ),
+    };
+    Err(miette::miette!("{hint}"))
 }
 
 fn driver_options(

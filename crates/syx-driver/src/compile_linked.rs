@@ -216,7 +216,26 @@ fn scan_dir_services(dir: &Path) -> SyxResult<()> {
         let path = entry.path();
         if path.is_dir() {
             if path.file_name().is_some_and(|n| {
-                n == "tests" || n == "target" || n == ".sy-cache" || n == "node_modules"
+                // Skip VCS/build caches, intentional error fixtures, and monorepo
+                // trees that are not the app package under scan.
+                matches!(
+                    n.to_str().unwrap_or(""),
+                    "tests"
+                        | "target"
+                        | ".sy-cache"
+                        | "node_modules"
+                        | ".git"
+                        | ".cursor"
+                        | ".github"
+                        | "fixtures"
+                        | "books"
+                        | "site"
+                        | "docs"
+                        | "crates"
+                        | "editors"
+                        | "scripts"
+                        | "tools"
+                )
             }) {
                 continue;
             }

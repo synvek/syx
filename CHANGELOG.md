@@ -1,4 +1,6 @@
 ### SYX 0.3.0
+- fix: `syx run` / `syx check` without a project now print usage instead of scanning monorepo fixtures
+- fix: enrich bare `syx run` / `syx check` hints with examples and common options
 - fix: enhance S060 diagnostic for enum member assignments
 - fix: enhance S060 diagnostic for nested enum and tuple member assignments
 - fix: enhance S060 diagnostic for non-mutating self assignments
