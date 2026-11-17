@@ -1,5 +1,6 @@
 ### SYX 0.3.0
 - fix: enhance S060 diagnostic for enum member assignments
+- fix: enhance S060 diagnostic for nested enum and tuple member assignments
 
 ### SYX 0.2.3
 - feat: implement optional statement separators in block statements

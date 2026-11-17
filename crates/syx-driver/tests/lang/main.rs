@@ -43,6 +43,7 @@ mod jit_suite1_differential;
 mod language_deepen;
 mod let_enum_member_assign_s060;
 mod let_member_assign_s060;
+mod let_nested_enum_tuple_s060;
 mod let_nested_index_append_s060;
 mod let_nested_member_assign_s060;
 mod let_subscript_s060;

@@ -170,7 +170,7 @@ print(Status.pending.description())        // "..."
 
 > **`self`:** inside an enum method, `self` is the current case (already bound to the case plus its associated values).
 
-> **Mutability:** assigning an associated-value field through a `let` binding (`e.payload = …`) → **S060**; use `var`.
+> **Mutability:** assigning an associated-value field through a `let` binding (`e.payload = …`, nested `o.inner.payload = …` / `e.t.0 = …`) → **S060**; use `var`.
 
 ## Enums and Protocols
 

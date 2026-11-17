@@ -8,8 +8,8 @@ use crate::semantic_analyzer::SemanticAnalyzer;
 use crate::type_checker::check_assignable;
 use crate::{
     expr_span, is_compatible, is_retired_collection_methodcall, reflect_type_lower,
-    simd_lanes_from_type_name, type_collection_surface, type_id_to_diag_name, type_id_to_name,
-    type_name_to_id, Scope, ScopeError, Symbol, TypeId,
+    simd_lanes_from_type_name, type_collection_surface, type_expr_to_id, type_id_to_diag_name,
+    type_id_to_name, type_name_to_id, Scope, ScopeError, Symbol, TypeId,
 };
 use smol_str::SmolStr;
 use syx_ast::{CallArg, Expr, Literal, ParamLabel};
@@ -342,9 +342,9 @@ impl SemanticAnalyzer {
         ));
     }
 
-    /// Walk Ident / Member chain via `dataclass_fields`. Returns root name when the whole
-    /// path is value-type (`dataclass_names`, `TypeId::Tuple`, or `enum_cases`) and immutable.
-    /// U-27: Tuple roots / dataclass→Tuple hops. U-28: enum roots / dataclass→enum hops.
+    /// Walk Ident / Member chain as value-type path. Returns root when immutable and the
+    /// whole object path stays in dataclass / enum / Tuple (class/actor hop → allow).
+    /// U-27/U-28 Ident + dataclass hops; U-29 enum↔enum / enum↔tuple nested hops.
     fn value_member_assign_immutable_root(&self, object: &Expr) -> Option<SmolStr> {
         let mut fields: Vec<&SmolStr> = Vec::new();
         let mut cur = object;
@@ -362,58 +362,77 @@ impl SemanticAnalyzer {
         if sym.mutable {
             return None;
         }
-        // Ident tuple / enum: `let t; t.0=` / `let e; e.payload=` — object is the Ident.
+        if self.is_ref_named(&sym.ty) {
+            return None;
+        }
+        if !self.is_value_product_ty(&sym.ty) {
+            return None;
+        }
+        // Ident-only object: `let t; t.0=` / `let e; e.payload=` / `let p; p.x=`.
         if fields.is_empty() {
-            if matches!(sym.ty, TypeId::Tuple { .. }) {
-                return Some(root_name);
-            }
-            if let TypeId::Named(n) = &sym.ty {
-                if self.enum_cases.contains_key(n)
-                    && !self.class_names.contains(n)
-                    && !self.actor_types.contains(n)
-                {
-                    return Some(root_name);
-                }
-            }
+            return Some(root_name);
         }
-        let TypeId::Named(mut ty_name) = sym.ty.clone() else {
-            return None;
-        };
-        if self.class_names.contains(&ty_name) || self.actor_types.contains(&ty_name) {
-            return None;
-        }
-        if !self.dataclass_names.contains(&ty_name) {
-            return None;
-        }
+        let mut cur_ty = sym.ty.clone();
         for field in fields.iter().rev() {
-            let field_ty = self
-                .dataclass_fields
-                .get(&ty_name)?
-                .iter()
-                .find(|(n, _)| n == *field)
-                .map(|(_, t)| t.clone())?;
-            match field_ty {
-                TypeId::Tuple { .. } => {
-                    // Nested `b.pair.0=` — object is `b.pair` (tuple-typed Member).
-                    return Some(root_name);
-                }
-                TypeId::Named(next) => {
-                    if self.class_names.contains(&next) || self.actor_types.contains(&next) {
-                        return None;
-                    }
-                    if self.enum_cases.contains_key(&next) {
-                        // Nested `w.e.payload=` — object is `w.e` (enum-typed Member).
-                        return Some(root_name);
-                    }
-                    if !self.dataclass_names.contains(&next) {
-                        return None;
-                    }
-                    ty_name = next;
-                }
-                _ => return None,
+            let next = self.value_product_field_ty(&cur_ty, field)?;
+            if self.is_ref_named(&next) {
+                return None;
             }
+            if !self.is_value_product_ty(&next) {
+                return None;
+            }
+            cur_ty = next;
         }
         Some(root_name)
+    }
+
+    fn is_ref_named(&self, ty: &TypeId) -> bool {
+        match ty {
+            TypeId::Named(n) => self.class_names.contains(n) || self.actor_types.contains(n),
+            _ => false,
+        }
+    }
+
+    fn is_value_product_ty(&self, ty: &TypeId) -> bool {
+        match ty {
+            TypeId::Tuple { .. } => true,
+            TypeId::Named(n) => {
+                self.dataclass_names.contains(n) || self.enum_cases.contains_key(n)
+            }
+            _ => false,
+        }
+    }
+
+    fn value_product_field_ty(&self, ty: &TypeId, field: &SmolStr) -> Option<TypeId> {
+        match ty {
+            TypeId::Tuple { elements } => {
+                if let Ok(idx) = field.parse::<usize>() {
+                    return elements.get(idx).map(|(_, t)| t.clone());
+                }
+                elements
+                    .iter()
+                    .find(|(label, _)| label.as_ref().is_some_and(|l| l == field))
+                    .map(|(_, t)| t.clone())
+            }
+            TypeId::Named(n) if self.dataclass_names.contains(n) => self
+                .dataclass_fields
+                .get(n)?
+                .iter()
+                .find(|(fname, _)| fname == field)
+                .map(|(_, t)| t.clone()),
+            TypeId::Named(n) if self.enum_cases.contains_key(n) => {
+                for case in self.enum_cases.get(n)? {
+                    if let Some(fields) = self.enum_case_field_types.get(&(n.clone(), case.clone()))
+                    {
+                        if let Some((_, te)) = fields.iter().find(|(fname, _)| fname == field) {
+                            return Some(type_expr_to_id(te));
+                        }
+                    }
+                }
+                None
+            }
+            _ => None,
+        }
     }
 
     fn is_callable_function(&self, name: &SmolStr) -> bool {
