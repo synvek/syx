@@ -122,9 +122,6 @@ public func main() {
         syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
             .expect("var enum associated must run");
     assert_eq!(code, 0, "exit {code}, printed={printed:?}");
-    assert_eq!(
-        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
-        ["9"]
-    );
+    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["9"]);
     let _ = std::fs::remove_file(&path);
 }
