@@ -3318,25 +3318,68 @@ impl Parser {
 
     fn parse_while(&mut self, label: Option<SmolStr>) -> SyxResult<Stmt> {
         let start = self.advance().span;
-        // U-10: `while let name = expr { body }` → while true { if let … else { break } }.
-        // No new AST; reuses While + IfLet + Break (U-7/U-8).
+        // U-10 / U-31: `while let name = expr[, let …][, cond] { body }` →
+        // while true { nested IfLet / trailing If else { break } }.
+        // No new AST; reuses While + IfLet + If + Break (U-7/U-8/U-14).
         if self.match_kind(TokenKind::Let) {
+            let mut bindings: Vec<(SmolStr, Expr)> = Vec::new();
             let name = self.consume_identifier("Expected binding name after while let")?;
             self.consume(TokenKind::Assign, "Expected '=' in while let")?;
             let prev = self.allow_trailing_closure;
             self.allow_trailing_closure = false;
             let pattern = self.parse_expr()?;
             self.allow_trailing_closure = prev;
+            bindings.push((name, pattern));
+
+            let mut trailing_cond: Option<Expr> = None;
+            while self.match_kind(TokenKind::Comma) {
+                if self.match_kind(TokenKind::Let) {
+                    let name = self.consume_identifier("Expected binding name after while let")?;
+                    self.consume(TokenKind::Assign, "Expected '=' in while let")?;
+                    let prev = self.allow_trailing_closure;
+                    self.allow_trailing_closure = false;
+                    let pattern = self.parse_expr()?;
+                    self.allow_trailing_closure = prev;
+                    bindings.push((name, pattern));
+                } else {
+                    // At most one trailing boolean condition after bindings.
+                    let prev = self.allow_trailing_closure;
+                    self.allow_trailing_closure = false;
+                    trailing_cond = Some(self.parse_expr()?);
+                    self.allow_trailing_closure = prev;
+                    break;
+                }
+            }
+
             let body = self.parse_stmt_or_block()?;
             let span = Span::merge(start, self.previous().span);
-            let break_stmt = Stmt::Break { span, label: None };
-            let if_let = Stmt::IfLet {
-                span,
-                name,
-                pattern,
-                body,
-                else_branch: Some(vec![break_stmt]),
+            let break_arm = vec![Stmt::Break { span, label: None }];
+
+            let mut inner: Vec<Stmt> = if let Some(cond) = trailing_cond {
+                vec![Stmt::If {
+                    span,
+                    condition: cond,
+                    then_branch: body,
+                    else_branch: Some(break_arm.clone()),
+                }]
+            } else {
+                body
             };
+
+            for (name, pattern) in bindings.into_iter().rev() {
+                inner = vec![Stmt::IfLet {
+                    span,
+                    name,
+                    pattern,
+                    body: inner,
+                    else_branch: Some(break_arm.clone()),
+                }];
+            }
+
+            let if_let = inner
+                .into_iter()
+                .next()
+                .expect("while let always yields one stmt");
             return Ok(Stmt::While {
                 span,
                 condition: Expr::Literal {

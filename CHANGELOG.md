@@ -5,6 +5,7 @@
 - fix: enhance S060 diagnostic for enum member assignments
 - fix: enhance S060 diagnostic for nested enum and tuple member assignments
 - fix: enhance S060 diagnostic for non-mutating self assignments
+- feat: implement comma-separated `while let` desugaring in parser and add tests
 - fix: update language guide for Hashable and CustomStringConvertible conformance
 
 ### SYX 0.2.3

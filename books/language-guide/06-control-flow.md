@@ -318,6 +318,7 @@ demoOptional()
 |------|------|
 | `if let x = opt { }` | Enters the branch when non-`nil`; `x` is the unwrapped value; `else` is optional |
 | `if let x = opt, let y = other` | Chained unwrapping (multiple conditions separated by commas) |
+| `while let x = a, let y = b` | Loop while all bindings unwrap; optional trailing boolean condition |
 | `guard let x = opt else { … }` | Continues when non-`nil`; entering `else` on `nil` **must** exit (`return` / `throw` / `break` / `continue`) |
 | `guard let x = opt, cond else` | Multiple conditions + guard |
 

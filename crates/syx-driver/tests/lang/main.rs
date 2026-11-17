@@ -78,4 +78,5 @@ mod throw_requires_throws;
 mod value_semantics;
 mod while_case;
 mod while_let;
+mod while_let_comma;
 mod writing_blockers;
