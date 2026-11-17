@@ -28,15 +28,21 @@ impl SemanticAnalyzer {
         }
         let result = match member {
             // U-20: wire `current_function_is_throws` for type members (U-19 only did top-level).
+            // U-30: `mutating` → self mutable; value-type without it → S060 on self writes.
             Decl::Function {
                 span,
                 params,
                 body,
                 throws_type,
+                attrs,
                 ..
             } => {
                 let prev_throws = self.current_function_is_throws;
+                let prev_mutating = self.current_function_is_mutating;
                 self.current_function_is_throws = throws_type.is_some();
+                let is_mutating = attrs.iter().any(|a| a.name.as_str() == "mutating");
+                self.current_function_is_mutating = is_mutating;
+                let self_mutable = self.self_mutable_for_method(type_name, is_mutating);
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
@@ -46,7 +52,7 @@ impl SemanticAnalyzer {
                     Symbol {
                         name: SmolStr::new("self"),
                         ty: TypeId::Named(type_name.clone()),
-                        mutable: true,
+                        mutable: self_mutable,
                         access: AccessLevel::Internal,
                     },
                     *span,
@@ -73,6 +79,7 @@ impl SemanticAnalyzer {
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 self.current_function_is_throws = prev_throws;
+                self.current_function_is_mutating = prev_mutating;
                 r
             }
             Decl::Init {
@@ -83,7 +90,10 @@ impl SemanticAnalyzer {
                 ..
             } => {
                 let prev_throws = self.current_function_is_throws;
+                let prev_mutating = self.current_function_is_mutating;
                 self.current_function_is_throws = *throws;
+                // U-30: init may always write stored fields (implicit or via self).
+                self.current_function_is_mutating = true;
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
                     ..Default::default()
@@ -120,6 +130,7 @@ impl SemanticAnalyzer {
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 self.current_function_is_throws = prev_throws;
+                self.current_function_is_mutating = prev_mutating;
                 r
             }
             Decl::Deinit { span, body, .. } => {
@@ -285,6 +296,8 @@ impl SemanticAnalyzer {
                     self.scope = *self.scope.parent.take().unwrap_or_default();
                 }
                 if let Some(stmts) = computed_getter {
+                    let prev_mutating = self.current_function_is_mutating;
+                    self.current_function_is_mutating = false;
                     let mut get_scope = Scope {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
@@ -294,7 +307,8 @@ impl SemanticAnalyzer {
                         Symbol {
                             name: SmolStr::new("self"),
                             ty: TypeId::Named(type_name.clone()),
-                            mutable: true,
+                            // U-30: getters are non-mutating; class/actor self still writable.
+                            mutable: self.self_mutable_for_method(type_name, false),
                             access: AccessLevel::Internal,
                         },
                         *span,
@@ -302,8 +316,11 @@ impl SemanticAnalyzer {
                     std::mem::swap(&mut self.scope, &mut get_scope);
                     self.analyze_block(stmts)?;
                     self.scope = *self.scope.parent.take().unwrap_or_default();
+                    self.current_function_is_mutating = prev_mutating;
                 }
                 if let Some(stmts) = computed_setter {
+                    let prev_mutating = self.current_function_is_mutating;
+                    self.current_function_is_mutating = true;
                     let mut set_scope = Scope {
                         parent: Some(Box::new(std::mem::take(&mut self.scope))),
                         ..Default::default()
@@ -331,6 +348,7 @@ impl SemanticAnalyzer {
                     std::mem::swap(&mut self.scope, &mut set_scope);
                     self.analyze_block(stmts)?;
                     self.scope = *self.scope.parent.take().unwrap_or_default();
+                    self.current_function_is_mutating = prev_mutating;
                 }
                 Ok(())
             }
@@ -1047,6 +1065,11 @@ impl SemanticAnalyzer {
                 if is_static {
                     return self.analyze_decl(member);
                 }
+                let prev_class = self.current_class_context.clone();
+                let prev_mutating = self.current_function_is_mutating;
+                self.current_class_context = Some(type_name.clone());
+                let is_mutating = attrs.iter().any(|a| a.name.as_str() == "mutating");
+                self.current_function_is_mutating = is_mutating;
                 let has_self = params.iter().any(|p| p.name.as_str() == "self");
                 let mut fn_scope = Scope {
                     parent: Some(Box::new(std::mem::take(&mut self.scope))),
@@ -1058,7 +1081,8 @@ impl SemanticAnalyzer {
                         Symbol {
                             name: SmolStr::new("self"),
                             ty: Self::extension_receiver_type(type_name),
-                            mutable: true,
+                            // U-30: same self mutability rule as type-member methods.
+                            mutable: self.self_mutable_for_method(type_name, is_mutating),
                             access: AccessLevel::Internal,
                         },
                         *span,
@@ -1085,10 +1109,20 @@ impl SemanticAnalyzer {
                 std::mem::swap(&mut self.scope, &mut fn_scope);
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
+                self.current_function_is_mutating = prev_mutating;
+                self.current_class_context = prev_class;
                 r
             }
             _ => Ok(()),
         }
+    }
+
+    /// U-30: class/actor/`mutating` → writable `self`; plain struct/enum method → immutable.
+    fn self_mutable_for_method(&self, type_name: &SmolStr, is_mutating: bool) -> bool {
+        if is_mutating {
+            return true;
+        }
+        self.class_names.contains(type_name) || self.actor_types.contains(type_name)
     }
 
     fn extension_type_arg_map(&self, base: &str, ty: &TypeId) -> IndexMap<SmolStr, SmolStr> {

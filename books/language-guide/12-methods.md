@@ -103,7 +103,7 @@ let c2 = Counter()
 ```
 
 - It must be called on a `var` binding
-- A method body that modifies `self` without the `mutating` marker → compile error
+- A method body that modifies `self` without the `mutating` marker → **S060**
 
 ## Methods as Values
 

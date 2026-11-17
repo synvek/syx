@@ -103,7 +103,7 @@ let c2 = Counter()
 ```
 
 - 必须在 `var` 绑定上调用
-- 无 `mutating` 标记但函数体修改 `self` → 编译错误
+- 无 `mutating` 标记但函数体修改 `self` → **S060**
 
 ## 方法作为值
 

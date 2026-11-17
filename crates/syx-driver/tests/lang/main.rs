@@ -55,6 +55,7 @@ mod memory_unified_heap;
 mod method_throws_s028;
 mod model_v1;
 mod move_consume;
+mod mutating_self_assign_s060;
 mod named_move;
 mod object_keys_type;
 mod object_values_type;

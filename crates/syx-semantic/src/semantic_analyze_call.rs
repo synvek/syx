@@ -175,9 +175,25 @@ impl SemanticAnalyzer {
             if sym.mutable {
                 return Ok((true, sym.ty.clone(), false));
             }
-            // Immutable local/param: still allow enclosing stored `var` field.
+            // U-30: immutable `self` → S060 (non-mutating value-type method).
+            if name.as_str() == "self" {
+                return Err((
+                    "Cannot assign to 'self' outside a mutating method".into(),
+                    "S060",
+                ));
+            }
+            // Immutable local/param: still allow enclosing stored `var` field
+            // when the current value-type method is `mutating`.
             if let Some(field_ty) = self.lookup_enclosing_type_field(name) {
                 if !self.enclosing_field_is_getter_only(name) {
+                    if self.enclosing_value_field_assign_blocked() {
+                        return Err((
+                            format!(
+                                "Cannot assign to member '{name}' outside a mutating method"
+                            ),
+                            "S060",
+                        ));
+                    }
                     return Ok((true, field_ty, true));
                 }
             }
@@ -197,6 +213,13 @@ impl SemanticAnalyzer {
                     "S057",
                 ));
             }
+            // U-30: implicit field write in non-mutating struct/enum method → S060.
+            if self.enclosing_value_field_assign_blocked() {
+                return Err((
+                    format!("Cannot assign to member '{name}' outside a mutating method"),
+                    "S060",
+                ));
+            }
             return Ok((true, field_ty, true));
         }
         if let Some(sym) = self.globals.get(name) {
@@ -206,6 +229,17 @@ impl SemanticAnalyzer {
             return Ok((true, sym.ty.clone(), false));
         }
         Err((format!("Undefined identifier '{name}'"), "S002"))
+    }
+
+    /// U-30: value-type (dataclass/enum) method body without `mutating` cannot write fields.
+    fn enclosing_value_field_assign_blocked(&self) -> bool {
+        if self.current_function_is_mutating {
+            return false;
+        }
+        let Some(type_name) = self.current_class_context.as_ref() else {
+            return false;
+        };
+        self.dataclass_names.contains(type_name) || self.enum_cases.contains_key(type_name)
     }
 
     /// S1-06 / U-25 / S060: `let` bindings cannot invoke mutating methods (incl. `Array.append`),
