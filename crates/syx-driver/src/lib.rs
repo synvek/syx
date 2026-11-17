@@ -227,6 +227,8 @@ use syx_parser::{Parser, MAX_COLLECTED_PARSE_DIAGNOSTICS};
 use syx_semantic::{type_expr_to_id, SemanticAnalyzer, TypeId};
 use syx_vm::WasmVM;
 
+pub use syx_vm::{current_process_argv, set_process_argv};
+
 pub use syx_pkg::{
     add_dependency, default_registry_url, install_project, load_lockfile, load_manifest,
     load_resolved_packages, save_lockfile, update_dependencies, DependencyAddSpec, DependencySpec,

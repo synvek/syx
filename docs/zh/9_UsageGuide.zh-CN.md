@@ -153,7 +153,7 @@ syx init my-app          # 生成 main.sy + build.syb + syx.toml
 
 | 命令 | 说明 | 示例 |
 |------|------|------|
-| `syx run [path]` | 编译并执行文件或项目 | `syx run examples/file_tool` |
+| `syx run [OPTIONS] [path] [-- args…]` | 编译并执行文件或项目；工具链选项在 `run` 后、PATH 前；程序参数在 `--` 后（`Process.args()`） | `syx run --wasm examples/hello.sy` · `syx run app.sy -- alice` |
 | `syx run --gui-visible [path]` | **已退役** — 旧 `libsyx_gui`/egui 路径；请用 SynUI `packages/ui` + `SYX_SYNUI_RUN=1` opt-in `run()` | 见下方 SynUI v2 说明 |
 | `syx build [path]` | 编译（不执行） | `syx build examples/` |
 | `syx build --native [path]` | MIR → native `app`（**LLVM sole**；`--object` 仅 `.o`） | `syx build --native .` |

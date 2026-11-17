@@ -206,6 +206,7 @@ pub use program_ctx::{
     with_program_ctx, ProgramCtx,
 };
 pub use service_hosts::materialize_lazy_receiver;
+pub use stdlib_core_hosts::{current_process_argv, set_process_argv};
 pub use syx_runtime_core::{
     combine_value, cooperative_yield, display_numeric, ensure_object_id, finalize_state,
     hash_kind_tag, hash_value, hasher_from_value, hasher_value, is_hasher, make_object_identifier,

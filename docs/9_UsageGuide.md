@@ -153,7 +153,7 @@ syx init my-app          # generates main.sy + build.syb + syx.toml
 
 | Command | Description | Example |
 |------|------|------|
-| `syx run [path]` | Compile and run a file or project | `syx run examples/file_tool` |
+| `syx run [OPTIONS] [path] [-- args…]` | Compile and run a file or project; flags after `run`, program args after `--` (`Process.args()`) | `syx run --wasm examples/hello.sy` · `syx run app.sy -- alice` |
 | `syx run --gui-visible [path]` | **retired** — legacy `libsyx_gui`/egui path; use SynUI `packages/ui` + `SYX_SYNUI_RUN=1` opt-in `run()` | See SynUI v2 notes below |
 | `syx build [path]` | Compile (do not run) | `syx build examples/` |
 | `syx build --native [path]` | MIR → native `app` (**LLVM sole**; `--object` only `.o`) | `syx build --native .` |

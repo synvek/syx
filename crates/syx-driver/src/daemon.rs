@@ -21,6 +21,9 @@ pub enum DaemonRequest {
         path: String,
         #[serde(default)]
         with_cache: bool,
+        /// Program args after `--` (`Process.args()` = [path, …args]).
+        #[serde(default)]
+        args: Vec<String>,
     },
     RunWasm {
         path: String,
@@ -28,6 +31,9 @@ pub enum DaemonRequest {
         with_cache: bool,
         #[serde(default = "default_wasm_entry")]
         entry: String,
+        /// Program args after `--` (`Process.args()` = [path, …args]).
+        #[serde(default)]
+        args: Vec<String>,
     },
     Shutdown,
 }
@@ -159,16 +165,21 @@ pub fn run_daemon(sock: &Path) -> std::io::Result<()> {
                 let _ = write_msg(&mut stream, &serde_json::to_vec(&resp).unwrap_or_default());
                 break;
             }
-            DaemonRequest::Run { path, with_cache } => {
-                let resp = handle_run(&path, with_cache);
+            DaemonRequest::Run {
+                path,
+                with_cache,
+                args,
+            } => {
+                let resp = handle_run(&path, with_cache, &args);
                 let _ = write_msg(&mut stream, &serde_json::to_vec(&resp).unwrap_or_default());
             }
             DaemonRequest::RunWasm {
                 path,
                 with_cache,
                 entry,
+                args,
             } => {
-                let resp = handle_run_wasm(&path, &entry, with_cache);
+                let resp = handle_run_wasm(&path, &entry, with_cache, &args);
                 let _ = write_msg(&mut stream, &serde_json::to_vec(&resp).unwrap_or_default());
             }
         }
@@ -177,7 +188,19 @@ pub fn run_daemon(sock: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn handle_run(path: &str, with_cache: bool) -> DaemonResponse {
+fn install_daemon_argv(path: &str, args: &[String]) {
+    if args.is_empty() {
+        crate::set_process_argv(None);
+        return;
+    }
+    let mut argv = Vec::with_capacity(1 + args.len());
+    argv.push(path.to_string());
+    argv.extend(args.iter().cloned());
+    crate::set_process_argv(Some(argv));
+}
+
+fn handle_run(path: &str, with_cache: bool, args: &[String]) -> DaemonResponse {
+    install_daemon_argv(path, args);
     let path = PathBuf::from(path);
     let options = DriverOptions {
         incremental_cache: with_cache,
@@ -200,7 +223,8 @@ fn handle_run(path: &str, with_cache: bool) -> DaemonResponse {
     }
 }
 
-fn handle_run_wasm(path: &str, entry: &str, with_cache: bool) -> DaemonResponse {
+fn handle_run_wasm(path: &str, entry: &str, with_cache: bool, args: &[String]) -> DaemonResponse {
+    install_daemon_argv(path, args);
     let path = PathBuf::from(path);
     let options = DriverOptions {
         incremental_cache: with_cache,

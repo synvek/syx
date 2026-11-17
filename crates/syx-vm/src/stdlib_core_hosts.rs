@@ -36,6 +36,31 @@ static SEMAPHORE_TABLE: OnceLock<Mutex<HashMap<i64, Arc<SyxSemaphoreEntry>>>> = 
 static LAST_EXIT_CODE: AtomicI64 = AtomicI64::new(0);
 static UDP_HANDLES: OnceLock<Mutex<HashMap<i64, UdpSocket>>> = OnceLock::new();
 static UDP_NEXT_HANDLE: AtomicI64 = AtomicI64::new(1);
+/// Optional `Process.args()` override installed by `syx run … -- <args>`.
+/// When `None`, host falls back to `std::env::args()`.
+static PROCESS_ARGV_OVERRIDE: OnceLock<Mutex<Option<Vec<String>>>> = OnceLock::new();
+
+fn process_argv_override() -> &'static Mutex<Option<Vec<String>>> {
+    PROCESS_ARGV_OVERRIDE.get_or_init(|| Mutex::new(None))
+}
+
+/// Install (or clear) the argv list returned by `__syx_process_args` / `Process.args()`.
+/// Used by `syx run <path> -- <args…>` so programs do not see the `syx` CLI argv.
+pub fn set_process_argv(args: Option<Vec<String>>) {
+    if let Ok(mut slot) = process_argv_override().lock() {
+        *slot = args;
+    }
+}
+
+/// Snapshot of the active process argv (override if set, else `std::env::args()`).
+pub fn current_process_argv() -> Vec<String> {
+    if let Ok(slot) = process_argv_override().lock() {
+        if let Some(args) = slot.as_ref() {
+            return args.clone();
+        }
+    }
+    std::env::args().collect()
+}
 
 fn mutex_table() -> &'static Mutex<HashMap<i64, Arc<SyxMutexEntry>>> {
     MUTEX_TABLE.get_or_init(|| Mutex::new(HashMap::new()))
@@ -1413,9 +1438,33 @@ pub fn host_math_float32_mul_add(stack: &mut Vec<Value>) -> SyxResult<()> {
 // --- Process ---
 
 pub fn host_process_args(stack: &mut Vec<Value>) -> SyxResult<()> {
-    let args: Vec<Value> = std::env::args().map(|s| Value::Str(s)).collect();
+    let args: Vec<Value> = current_process_argv()
+        .into_iter()
+        .map(Value::Str)
+        .collect();
     stack.push(Value::Array(args));
     Ok(())
+}
+
+#[cfg(test)]
+mod process_argv_tests {
+    use super::*;
+
+    #[test]
+    fn process_argv_override_roundtrip() {
+        set_process_argv(Some(vec![
+            "app.sy".into(),
+            "alice".into(),
+            "--verbose".into(),
+        ]));
+        assert_eq!(
+            current_process_argv(),
+            vec!["app.sy", "alice", "--verbose"]
+        );
+        set_process_argv(None);
+        // Falling back to env args — at least the test binary name is present.
+        assert!(!current_process_argv().is_empty());
+    }
 }
 
 pub fn host_process_env(stack: &mut Vec<Value>) -> SyxResult<()> {

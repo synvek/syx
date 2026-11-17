@@ -149,6 +149,16 @@ enum Commands {
         wasm: bool,
     },
     /// Compile and run a SYX project or source file
+    ///
+    /// Option order: `syx run [OPTIONS] [PATH] [-- <ARGS>…]`
+    /// (flags after `run`, before the file/project; program args after `--`).
+    #[command(after_help = "\
+Examples:\n  \
+  syx run examples/hello.sy\n  \
+  syx run --wasm examples/hello.sy\n  \
+  syx run --gui-visible examples/file_tool\n  \
+  syx run examples/hello.sy -- alice --verbose\n  \
+    → Process.args() == [\"…/hello.sy\", \"alice\", \"--verbose\"]\n")]
     Run {
         /// `.sy` source file, or a project directory with `syx.toml` / package `.sy` files
         #[arg(value_name = "PATH")]
@@ -168,6 +178,9 @@ enum Commands {
         /// Forward to a local `syx daemon` (Unix; also `SYX_USE_DAEMON=1`)
         #[arg(long = "daemon")]
         use_daemon: bool,
+        /// Program arguments after `--` (become `Process.args()`; argv[0] is PATH)
+        #[arg(last = true, value_name = "ARGS")]
+        args: Vec<String>,
     },
     /// Keep a warm prelude process for fast `syx run --daemon` (Unix)
     #[cfg(unix)]
@@ -573,6 +586,7 @@ fn run() -> miette::Result<()> {
             gui_visible,
             with_cache,
             use_daemon,
+            args: program_args,
         } => {
             if gui_visible {
                 std::env::set_var("SYX_GUI_VISIBLE", "1");
@@ -596,6 +610,14 @@ fn run() -> miette::Result<()> {
             options.stdlib_mir = wasm;
             let path = resolve_path(path);
             require_syx_target(&path, "run")?;
+            // `Process.args()`: [PATH, …ARGS] when `--` args are present; otherwise
+            // leave host default (`std::env::args()`). Always install when ARGS given.
+            if !program_args.is_empty() {
+                let mut argv = Vec::with_capacity(1 + program_args.len());
+                argv.push(path.display().to_string());
+                argv.extend(program_args.iter().cloned());
+                syx_driver::set_process_argv(Some(argv));
+            }
             #[cfg(unix)]
             {
                 let want_daemon = use_daemon
@@ -616,11 +638,13 @@ fn run() -> miette::Result<()> {
                             path: abs.to_string_lossy().into_owned(),
                             with_cache,
                             entry: invoke.clone(),
+                            args: program_args.clone(),
                         }
                     } else {
                         syx_driver::DaemonRequest::Run {
                             path: abs.to_string_lossy().into_owned(),
                             with_cache,
+                            args: program_args.clone(),
                         }
                     };
                     let resp = syx_driver::daemon_request(&sock, &req)
@@ -1385,15 +1409,16 @@ fn require_syx_target(path: &Path, cmd: &str) -> miette::Result<()> {
         "run" => format!(
             "no SYX project in {} (need syx.toml or a .sy file in that directory).\n\
              \n\
-             Usage: syx run <file.sy|project-dir> [OPTIONS]\n\
+             Usage: syx run [OPTIONS] <file.sy|project-dir> [-- <ARGS>…]\n\
+             (toolchain flags go after `run`, before PATH; program args go after `--`)\n\
              \n\
              Examples:\n\
              - syx run examples/hello.sy\n\
-             - syx run examples/file_tool\n\
-             - syx run app.sy --wasm --invoke main\n\
-             - syx run app.sy --gui-visible\n\
-             - syx run app.sy --with-cache\n\
-             - syx run app.sy --daemon   # Unix; start with: syx daemon start\n\
+             - syx run --wasm examples/hello.sy\n\
+             - syx run --gui-visible examples/file_tool\n\
+             - syx run --with-cache examples/hello.sy\n\
+             - syx run --daemon examples/hello.sy   # Unix; start with: syx daemon start\n\
+             - syx run app.sy -- alice --verbose    # Process.args() = [app.sy, alice, --verbose]\n\
              \n\
              Common options:\n\
              - --wasm                 Run via WASM backend\n\
@@ -1404,6 +1429,7 @@ fn require_syx_target(path: &Path, cmd: &str) -> miette::Result<()> {
              - --jit / --llvm-aot     Opt-in codegen backends\n\
              - --permission-sandbox   Fail closed; grant with --allow-net/--allow-fs/…\n\
              \n\
+             Program args: read with `import System` → `Process.args()`\n\
              See also: syx run --help",
             path.display()
         ),
