@@ -170,6 +170,8 @@ print(Status.pending.description())        // "..."
 
 > **`self`：** 在枚举方法内 `self` 是当前 case（已绑定 case + 关联值）。
 
+> **可变性：** 通过 `let` 绑定写关联值字段（`e.payload = …`）→ **S060**；请用 `var`。
+
 ## 枚举与协议
 
 枚举可实现协议（`Equatable` / `Hashable` / `Codable` 等）：

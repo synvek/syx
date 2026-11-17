@@ -343,8 +343,8 @@ impl SemanticAnalyzer {
     }
 
     /// Walk Ident / Member chain via `dataclass_fields`. Returns root name when the whole
-    /// path is value-type (`dataclass_names` or `TypeId::Tuple`) and the root binding is immutable.
-    /// U-27: Tuple roots (`t.0=`) and dataclass→Tuple hops (`b.pair.0=`) → S060.
+    /// path is value-type (`dataclass_names`, `TypeId::Tuple`, or `enum_cases`) and immutable.
+    /// U-27: Tuple roots / dataclass→Tuple hops. U-28: enum roots / dataclass→enum hops.
     fn value_member_assign_immutable_root(&self, object: &Expr) -> Option<SmolStr> {
         let mut fields: Vec<&SmolStr> = Vec::new();
         let mut cur = object;
@@ -362,10 +362,18 @@ impl SemanticAnalyzer {
         if sym.mutable {
             return None;
         }
-        // Ident tuple: `let t = (…); t.0 = …` — object is the tuple Ident.
+        // Ident tuple / enum: `let t; t.0=` / `let e; e.payload=` — object is the Ident.
         if fields.is_empty() {
             if matches!(sym.ty, TypeId::Tuple { .. }) {
                 return Some(root_name);
+            }
+            if let TypeId::Named(n) = &sym.ty {
+                if self.enum_cases.contains_key(n)
+                    && !self.class_names.contains(n)
+                    && !self.actor_types.contains(n)
+                {
+                    return Some(root_name);
+                }
             }
         }
         let TypeId::Named(mut ty_name) = sym.ty.clone() else {
@@ -392,6 +400,10 @@ impl SemanticAnalyzer {
                 TypeId::Named(next) => {
                     if self.class_names.contains(&next) || self.actor_types.contains(&next) {
                         return None;
+                    }
+                    if self.enum_cases.contains_key(&next) {
+                        // Nested `w.e.payload=` — object is `w.e` (enum-typed Member).
+                        return Some(root_name);
                     }
                     if !self.dataclass_names.contains(&next) {
                         return None;
