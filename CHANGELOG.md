@@ -2,6 +2,7 @@
 - fix: enhance S060 diagnostic for enum member assignments
 - fix: enhance S060 diagnostic for nested enum and tuple member assignments
 - fix: enhance S060 diagnostic for non-mutating self assignments
+- fix: update language guide for Hashable and CustomStringConvertible conformance
 
 ### SYX 0.2.3
 - feat: implement optional statement separators in block statements

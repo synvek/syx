@@ -191,27 +191,22 @@ final class Result<T, E> { … }
 
 ## 完整示例
 
+Core 层如何把产品 API 接到 Host，见上文 **Host Explicit** 的示意摘录（`~~~text`）；应用代码只写产品面：
+
 ```syx
-// Core 层（packages/core/builtins/numeric/int8.sy）
-public static let min: Int8 = -128i8
-public static func abs(x: Int8) -> Int8 { return __syx_i8_abs(x) }
+func main() {
+    let a: Int8 = 5i8
+    let b: Int8 = 3i8
+    print(Int8.min)                               // -128（类型下界）
+    print(Math.min(Int(a), Int(b)))               // 3（二元比较 → Host）
+    print(a.description)                          // "5"（走 Host）
 
-extension Int8 {
-    func description() -> String {
-        return __syx_value_description(self)
-    }
+    // 运算符仍然是 Intrinsic
+    let sum = a + b                               // 8（Intrinsic）
+    let ok = a < b                                // false（Intrinsic）
+    print(sum)
+    print(ok)
 }
-
-// 用户代码
-let a: Int8 = 5i8
-let b: Int8 = 3i8
-print(Int8.min)                               // -128（类型下界）
-print(Math.min(Int(a), Int(b)))               // 3（二元比较 → Host）
-print(a.description)                          // "5"（走 Host）
-
-// 运算符仍然是 Intrinsic
-let sum = a + b                               // 8（Intrinsic）
-let ok = a < b                                // false（Intrinsic）
 ```
 
 ## 进一步阅读

@@ -546,15 +546,15 @@ async func fetch() -> String {
 let t = Task {
     work()
 }
-__syx_task_join(t)
+await t.join()
 
 // 显式并行
 Task.detached {
-    __syx_task_sleep(50)
+    Concurrency.sleep(50)
 }
 
-// 带参 detach（Concurrency 或 host）
-__syx_task_detach("worker", [42])
+// 带参 detach（产品面 Concurrency facade）
+Concurrency.detach("worker", args: [42])
 ```
 
 `syx.toml` 严格模式：
@@ -564,21 +564,17 @@ __syx_task_detach("worker", [42])
 strict = true   # 启用 C001–C003 等静态检查
 ```
 
-| Host / API | 说明 |
+| API | 说明 |
 |------------|------|
-| `__syx_task_detach(name)` / `Concurrency.detach(name)` | 线程池 detached 任务 |
-| `__syx_task_detach(name, args)` | 带参 spawn |
-| `__syx_task_join` / `cancel` / `sleep` | 任务 join / 取消 / 睡眠 |
-| `__syx_task_group_*` | TaskGroup 创建 / add / wait（按 group id 隔离） |
-| `__syx_channel_create/send/recv` | Phase 8 async channel MVP（VM host） |
-| `__syx_channel_try_recv` | Phase 15 非阻塞 recv（nil = 空）（`p15_channel_try_recv.sy`） |
-| `__syx_channel_create(cap)` / `__syx_channel_try_send` | 有界 channel + 背压（ADR-267 / `m3_a04_backpressure`；满缓冲 trySend→false） |
-| `__syx_channel_select([...])` | 多臂 select + RR 公平（ADR-268 / `m3_a04_fairness`；`select-fair-v1:round-robin`；叶子收口 ADR-269） |
-| `Task { }` / `Task.detached { }` | 语法糖（生成 `__task_body_N`） |
+| `Concurrency.detach(name)` / `detach(name, args:)` | 线程池 detached 任务 |
+| `Concurrency.join` / `cancel` / `sleep` | 任务 join / 取消 / 睡眠 |
+| `Concurrency.taskGroupCreate` / `taskGroupAdd` / `taskGroupWait` | TaskGroup 创建 / add / wait |
+| `Channel`（`import Synchronization`） | 异步 channel MVP（create / send / recv / tryRecv / select） |
+| `Task { }` / `Task.detached { }` / `t.join()` | 语言 Task 面 |
 
 | 限制 | 说明 |
 |------|------|
-| await 状态机 | 多 await 函数插入 `__syx_async_state`；`await __syx_task_sleep` 在 async 内 lowering |
+| await 状态机 | 多 await 函数 lowering 为内部 resume 状态；优先 `Concurrency.sleep` / `await`，勿直接调内部 host |
 | `async let` | `async let x = f()` → detach + 后续 await join（`p7_async_let.sy`） |
 | 作用域 | `await` 仅允许在 `async func` 内 |
 | Lint | async 函数无 await → **L005** |

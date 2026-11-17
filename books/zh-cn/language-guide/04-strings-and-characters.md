@@ -231,22 +231,17 @@ func main() {
 }
 ```
 
-## 内部 API（Core 扩展）
+## Hashable / CustomStringConvertible（产品面）
 
-字符串 witness（`hash` / `description` / `debugDescription`）通过 Core extension → Host 函数实现（详见 [第 32 章 运算符 vs Core Host](32-operators-vs-host.md)）：
+`String` 已遵循 `Hashable` 与 `CustomStringConvertible`。请用产品 API — **不要**在应用代码中直接调用内部 Host 符号（Core 接线见 [第 32 章](32-operators-vs-host.md)）：
 
 ```syx
-extension String {
-    func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
-    }
-    func description() -> String {
-        return __syx_value_description(self)
-    }
+func main() {
+    var h = Hasher()
+    "hello".hash(into: &h)
+    print("hello".description)
 }
 ```
-
-`String` 在 `crates/syx-stdlib/src/builtins/string.sy` 完整注册；用户代码一般无需直接调用 `__syx_*`。
 
 ## 诊断
 

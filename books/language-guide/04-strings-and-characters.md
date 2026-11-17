@@ -230,22 +230,17 @@ func main() {
     print(digits[0])                  // "0"
 }
 ```
-## Internal APIs (Core Extensions)
+## Hashable / CustomStringConvertible (product surface)
 
-The String witnesses (`hash` / `description` / `debugDescription`) are implemented through Core extensions → Host functions (see [Chapter 32, Operators vs Core Host](32-operators-vs-host.md)):
+`String` already conforms to `Hashable` and `CustomStringConvertible`. Prefer the product APIs — do **not** call internal Host symbols from application code (Core wiring lives in [Chapter 32](32-operators-vs-host.md)):
 
 ```syx
-extension String {
-    func hash(into hasher: Hasher) {
-        __syx_hasher_combine(hasher, self)
-    }
-    func description() -> String {
-        return __syx_value_description(self)
-    }
+func main() {
+    var h = Hasher()
+    "hello".hash(into: &h)
+    print("hello".description)
 }
 ```
-
-`String` is fully registered in `crates/syx-stdlib/src/builtins/string.sy`; user code generally need not call `__syx_*` directly.
 
 ## Diagnostics
 

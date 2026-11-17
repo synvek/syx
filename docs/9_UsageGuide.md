@@ -529,7 +529,7 @@ The standard library is exposed via **static type methods** and **instance metho
 func main() {
   do {
     let n = FileHandle.withOpen(path: "/tmp/x.bin", mode: "w", body: { h in
-      return __syx_file_write_chunk(h, [])
+      return FileHandle.write(handle: h, bytes: [])
     })
     print(n)
   } catch (err) {
@@ -691,7 +691,7 @@ Protocol must include `func next`, otherwise error **S006**.`Sequence.makeIterat
 |-----|------|
 | `d.remove(key)` | `[String:Int]` real delete; returns `Bool` |
 | `s.insert(x)` / `s.remove(x)` | `Set<Int>`; returnswhether newly inserted / existed |
-| `a[i] = v` / `__syx_array_set_at` | Array subscript and setAt write-back |
+| `a[i] = v` / `a.setAt(i, v)` | Array subscript and setAt write-back |
 
 ### Deque（`M2-S1-03`）
 
@@ -708,11 +708,12 @@ print(Deque.isEmpty(items: d)) // true; empty pop → nil
 
 ### collection HOF feature-off (`M2-S1-04`)
 
-`Array.map` / `filter` / `reduce` (includes `__syx_array_*` CallHost) at illegal receiver, missing Closure, or interpreter feature-off **fail-closed**: diagnostic code **`U001` / unsupported**, **must not** use empty array `[]` or silent `Nil` as success.
+`Array.map` / `filter` / `reduce` at illegal receiver, missing Closure, or interpreter feature-off **fail-closed**: diagnostic code **`U001` / unsupported**, **must not** use empty array `[]` or silent `Nil` as success.
 
 ```syx
-// Illegal: second arg not Closure → runtime failure (U001), will not print []
-__syx_array_map([1, 2, 3], 0)
+// Illegal: map argument is not a Closure → runtime failure (U001), will not print []
+let xs: Array<Int> = [1, 2, 3]
+print(xs.map(0))
 ```
 
 ---
@@ -1325,7 +1326,7 @@ func adds() {
 }
 
 async func inner() {
-    __syx_task_sleep(0)
+    Concurrency.sleep(0)
 }
 
 @Test

@@ -312,7 +312,7 @@ Concurrency.setMailboxCapacity(256)
 
 ### Task Pool vs. Blocking Pool (ADR-275 / ADR-276 / M3-B01)
 
-`Concurrency.blockingSleep` goes to a separate `blocking_pool` (fingerprint `task-pool+blocking-pool-v1-sized`); `Concurrency.setBlockingPoolSize` / `blockingPoolSize` set a fixed capacity (core=max=n). The existing `Concurrency.sleep` / `__syx_task_sleep` still block on the calling task worker. HostFns such as HTTP/File have **not** been rerouted. The B01 leaf **ADR-277** is signed. **Not** epoll/kqueue reactor GA; **not** EC-M3.
+`Concurrency.blockingSleep` goes to a separate `blocking_pool` (fingerprint `task-pool+blocking-pool-v1-sized`); `Concurrency.setBlockingPoolSize` / `blockingPoolSize` set a fixed capacity (core=max=n). The existing `Concurrency.sleep` still blocks on the calling task worker. HostFns such as HTTP/File have **not** been rerouted. The B01 leaf **ADR-277** is signed. **Not** epoll/kqueue reactor GA; **not** EC-M3.
 
 `File.readAsync` (ADR-278) and `TcpStream.readAsync` (ADR-279) go through `blocking_pool` pending+await (fingerprint in `Concurrency.ioAdapterPolicy`, currently `v1-tcp`); the synchronous `File.read` / `Http.get` / `TcpStream.read` are **not** rerouted. The B02 leaf **ADR-280** is signed. **Not** TcpWrite/Connect async; **not** reactor GA; **not** EC-M3.
 

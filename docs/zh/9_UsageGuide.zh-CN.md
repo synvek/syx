@@ -529,7 +529,7 @@ syx run examples/deps         # 输出 42（local_math.add(10, 32)）
 func main() {
   do {
     let n = FileHandle.withOpen(path: "/tmp/x.bin", mode: "w", body: { (h: Int) -> Int in
-      return __syx_file_write_chunk(h, [])
+      return FileHandle.write(handle: h, bytes: [])
     })
     print(n)
   } catch (err) {
@@ -693,7 +693,7 @@ protocol Iterator {
 |-----|------|
 | `d.remove(key)` | `[String:Int]` 真删除；返回 `Bool` |
 | `s.insert(x)` / `s.remove(x)` | `Set<Int>`；返回是否新插入 / 是否曾存在 |
-| `a[i] = v` / `__syx_array_set_at` | Array 下标与 setAt 写回 |
+| `a[i] = v` / `a.setAt(i, v)` | Array 下标与 setAt 写回 |
 
 
 ### Deque（`M2-S1-03`）
@@ -711,11 +711,12 @@ print(Deque.isEmpty(items: d))   // true；空 pop → nil
 
 ### 集合 HOF feature-off（`M2-S1-04`）
 
-`Array.map` / `filter` / `reduce`（含 `__syx_array_*` CallHost）在非法 receiver、缺 Closure、或 interpreter feature-off 时 **fail-closed**：诊断码 **`U001` / unsupported**，**不得**以空数组 `[]` 或静默 `Nil` 当作成功。
+`Array.map` / `filter` / `reduce` 在非法 receiver、缺 Closure、或 interpreter feature-off 时 **fail-closed**：诊断码 **`U001` / unsupported**，**不得**以空数组 `[]` 或静默 `Nil` 当作成功。
 
 ```syx
-// 非法：第二参不是 Closure → 运行失败（U001），不会打印 []
-__syx_array_map([1, 2, 3], 0)
+// 非法：map 参数不是 Closure → 运行失败（U001），不会打印 []
+let xs: Array<Int> = [1, 2, 3]
+print(xs.map(0))
 ```
 
 ---
@@ -1327,7 +1328,7 @@ func adds() {
 }
 
 async func inner() {
-    __syx_task_sleep(0)
+    Concurrency.sleep(0)
 }
 
 @Test

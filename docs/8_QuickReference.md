@@ -547,15 +547,15 @@ async func fetch() -> String {
 let t = Task {
     work()
 }
-__syx_task_join(t)
+await t.join()
 
 // Explicit parallelism
 Task.detached {
-    __syx_task_sleep(50)
+    Concurrency.sleep(50)
 }
 
-// Detach with args (Concurrency or host)
-__syx_task_detach("worker", [42])
+// Detach with args (named worker; product Concurrency facade)
+Concurrency.detach("worker", args: [42])
 ```
 
 `syx.toml` strict mode:
@@ -565,21 +565,17 @@ __syx_task_detach("worker", [42])
 strict = true   # enable C001–C003 static checks
 ```
 
-| Host / API | Notes |
+| API | Notes |
 |------------|------|
-| `__syx_task_detach(name)` / `Concurrency.detach(name)` | Thread-pool detached task |
-| `__syx_task_detach(name, args)` | Spawn with arguments |
-| `__syx_task_join` / `cancel` / `sleep` | Join / cancel / sleep |
-| `__syx_task_group_*` | TaskGroup create / add / wait (isolated by group id) |
-| `__syx_channel_create/send/recv` | Phase 8 async channel MVP (VM host) |
-| `__syx_channel_try_recv` | Phase 15 non-blocking recv (nil = empty) (`p15_channel_try_recv.sy`) |
-| `__syx_channel_create(cap)` / `__syx_channel_try_send` | Bounded channel + backpressure (ADR-267 / `m3_a04_backpressure`; full buffer trySend→false) |
-| `__syx_channel_select([...])` | Multi-arm select + RR fairness (ADR-268 / `m3_a04_fairness`; `select-fair-v1:round-robin`; leaf ADR-269) |
-| `Task { }` / `Task.detached { }` | Syntax sugar (generates `__task_body_N`) |
+| `Concurrency.detach(name)` / `detach(name, args:)` | Thread-pool detached task |
+| `Concurrency.join` / `cancel` / `sleep` | Join / cancel / sleep |
+| `Concurrency.taskGroupCreate` / `taskGroupAdd` / `taskGroupWait` | TaskGroup create / add / wait |
+| `Channel` (`import Synchronization`) | Async channel MVP (create / send / recv / tryRecv / select) |
+| `Task { }` / `Task.detached { }` / `t.join()` | Language Task surface |
 
 | Limit | Notes |
 |------|------|
-| await state machine | Multi-await functions insert `__syx_async_state`; `await __syx_task_sleep` lowered inside async |
+| await state machine | Multi-await functions lower to an internal resume state; prefer `Concurrency.sleep` / `await` over raw hosts |
 | `async let` | `async let x = f()` → detach + later await join (`p7_async_let.sy`) |
 | Scope | `await` only inside `async func` |
 | Lint | async function with no await → **L005** |

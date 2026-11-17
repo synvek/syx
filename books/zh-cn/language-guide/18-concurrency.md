@@ -311,7 +311,7 @@ Concurrency.setMailboxCapacity(256)
 
 ### Task 池 vs blocking 池（ADR-275 / ADR-276 / M3-B01）
 
-`Concurrency.blockingSleep` 走独立 `blocking_pool`（指纹 `task-pool+blocking-pool-v1-sized`）；`Concurrency.setBlockingPoolSize` / `blockingPoolSize` 可调固定容量（core=max=n）。现有 `Concurrency.sleep` / `__syx_task_sleep` 仍在调用 Task worker 上阻塞。HTTP/File 等 HostFn **未**改道。B01 叶子 **ADR-277** 已签。**非** epoll/kqueue reactor GA；**非** EC-M3。
+`Concurrency.blockingSleep` 走独立 `blocking_pool`（指纹 `task-pool+blocking-pool-v1-sized`）；`Concurrency.setBlockingPoolSize` / `blockingPoolSize` 可调固定容量（core=max=n）。现有 `Concurrency.sleep` 仍在调用 Task worker 上阻塞。HTTP/File 等 HostFn **未**改道。B01 叶子 **ADR-277** 已签。**非** epoll/kqueue reactor GA；**非** EC-M3。
 
 `File.readAsync`（ADR-278）与 `TcpStream.readAsync`（ADR-279）走 `blocking_pool` pending+await（指纹见 `Concurrency.ioAdapterPolicy`，现为 `v1-tcp`）；同步 `File.read` / `Http.get` / `TcpStream.read` **未**改道。B02 叶子 **ADR-280** 已签。**非** TcpWrite/Connect async；**非** reactor GA；**非** EC-M3。
 
