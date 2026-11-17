@@ -816,27 +816,31 @@ impl SemanticAnalyzer {
                     )?;
                 }
                 std::mem::swap(&mut self.scope, &mut closure_scope);
+                // U-32: closures do not inherit the enclosing function's `throws` flag.
+                // Without this, `throw` inside a closure under a `throws` parent check-passes
+                // and dies at run as R007. Restore even when body analysis returns Err.
+                let prev_throws = self.current_function_is_throws;
+                self.current_function_is_throws = false;
                 // Expression type of a closure is its result type (for HOF inference).
                 let result = if let Some(ann) = annotated {
-                    match body {
-                        syx_ast::ClosureBody::Expr(e) => {
-                            let _ = self.analyze_expr(e)?;
-                        }
-                        syx_ast::ClosureBody::Block(stmts) => {
-                            self.analyze_block(stmts)?;
-                        }
+                    let body_res = match body {
+                        syx_ast::ClosureBody::Expr(e) => self.analyze_expr(e).map(|_| ()),
+                        syx_ast::ClosureBody::Block(stmts) => self.analyze_block(stmts),
+                    };
+                    match body_res {
+                        Ok(()) => Ok(ann),
+                        Err(e) => Err(e),
                     }
-                    Ok(ann)
                 } else {
                     match body {
                         syx_ast::ClosureBody::Expr(e) => self.analyze_expr(e),
-                        syx_ast::ClosureBody::Block(stmts) => {
-                            self.analyze_block(stmts)?;
-                            // Unannotated block: no stored result type (use `-> T` or expr body).
-                            Ok(TypeId::Unknown)
-                        }
+                        syx_ast::ClosureBody::Block(stmts) => match self.analyze_block(stmts) {
+                            Ok(()) => Ok(TypeId::Unknown),
+                            Err(e) => Err(e),
+                        },
                     }
                 };
+                self.current_function_is_throws = prev_throws;
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 result
             }

@@ -9,6 +9,7 @@ mod array_subscript_check;
 mod assoc_type;
 mod borrow_strict;
 mod catch_let_dual;
+mod closure_throw_s028;
 mod ch15_ch28_s020_honesty;
 mod check_multi_parse;
 mod check_multi_semantic;
