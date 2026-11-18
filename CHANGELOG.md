@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: map wasm AOT `BindResult` / `ReturnErr` (try expr pads) so `examples/basic_demo.sy --wasm` no longer W001
 - feat: reject Unknown→ground sinks from untyped params / missing members at return/let/assign (C-0a thin gate)
 - fix: `parity/generics.sy` uses `id<T>(x: T) -> T` so C-0a no longer rejects the wasm/native parity fixture
 - feat: reject bare values for `&mut` free-function params at check with S004 (C-0d); require explicit `&mut` borrow AST

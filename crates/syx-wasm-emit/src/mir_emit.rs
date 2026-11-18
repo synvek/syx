@@ -238,6 +238,18 @@ fn collect_used_aot_imports(module: &MirModule) -> BTreeSet<aot::Import> {
                     MirOp::EndTry => {
                         used.insert(aot::Import::EndTry);
                     }
+                    MirOp::BindResult(_) => {
+                        used.insert(aot::Import::BindResult);
+                    }
+                    MirOp::ReturnErr => {
+                        used.insert(aot::Import::ReturnErr);
+                        used.insert(aot::Import::TakeCatchPc);
+                    }
+                    MirOp::Pop => {
+                        // AOT Pop is RT stack_op(POP); guest Drop is handled by
+                        // drop_unused_guest_cond for Call stubs.
+                        used.insert(aot::Import::StackOp);
+                    }
                     MirOp::SimdAdd => {
                         collect_guest_v8_arith_imports(&mut used, aot::Import::SimdAdd)
                     }
@@ -958,7 +970,12 @@ fn needs_cfg_dispatch(func: &MirFunction) -> bool {
         b.instructions.iter().any(|i| {
             matches!(
                 i.op,
-                MirOp::Jump(_) | MirOp::JumpIfFalse(_) | MirOp::JumpIfNil(_) | MirOp::BeginTry(_)
+                MirOp::Jump(_)
+                    | MirOp::JumpIfFalse(_)
+                    | MirOp::JumpIfNil(_)
+                    | MirOp::BeginTry(_)
+                    | MirOp::BindResult(_)
+                    | MirOp::ReturnErr
             )
         })
     })
@@ -1012,11 +1029,10 @@ fn next_is_pop(ops: &[syx_mir::MirInstr], idx: usize) -> bool {
 }
 
 fn drop_unused_guest_cond(body: &mut Function, op: &MirOp, ops: &[syx_mir::MirInstr], idx: usize) {
-    // R-24-02: explicit `Pop` owns cleanup — do not Drop here (ConstNil+Pop,
-    // Print+Pop, Call-stub+Pop all double-Drop otherwise).
-    if next_is_pop(ops, idx) {
-        return;
-    }
+    // Pop is RT `stack_op(POP)` (no guest Drop). Always Drop guest stubs here —
+    // including when the next op is Pop — so Call/Print/ConstNil stubs do not leak,
+    // and a leading Pop after Jump (empty guest stack) stays valid.
+    let _ = next_is_pop(ops, idx);
     if leaves_guest_cond_i32(op) && !next_consumes_guest_cond(ops, idx) {
         emit_wasm_instr(body, &WasmInstr::Drop);
         return;
@@ -1126,7 +1142,10 @@ fn emit_cfg_body(
                     emit_wasm_instr(body, &WasmInstr::Else);
                     idx += 1;
                     while idx < block.instructions.len() {
-                        if matches!(block.instructions[idx].op, MirOp::Jump(_) | MirOp::Return) {
+                        if matches!(
+                            block.instructions[idx].op,
+                            MirOp::Jump(_) | MirOp::Return | MirOp::ReturnErr
+                        ) {
                             ends_with_transfer = true;
                         }
                         stack_tracker::set_mir_context(
@@ -1186,7 +1205,10 @@ fn emit_cfg_body(
                     idx += 1;
                 }
             } else {
-                if matches!(block.instructions[idx].op, MirOp::Jump(_) | MirOp::Return) {
+                if matches!(
+                    block.instructions[idx].op,
+                    MirOp::Jump(_) | MirOp::Return | MirOp::ReturnErr
+                ) {
                     ends_with_transfer = true;
                 }
                 stack_tracker::set_mir_context(
@@ -3853,7 +3875,12 @@ fn emit_mir_instr(
             return;
         }
         if matches!(instr.op, MirOp::Pop) {
-            emit_wasm_instr(body, &WasmInstr::Drop);
+            // RT pop (MIR Pop); guest stubs are Drop'd by drop_unused_guest_cond.
+            emit_wasm_instr(body, &WasmInstr::I32Const(op::POP as i32));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::StackOp)),
+            );
             return;
         }
         if let MirOp::JumpIfNil(target) = &instr.op {
@@ -5427,18 +5454,63 @@ fn emit_mir_instr(
                 body,
                 &WasmInstr::Call(plan.aot_import(aot::Import::BeginTry)),
             );
+            // TYPE_I32_I32_TO_I32 stub — RT owns the handler; discard guest i32.
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::Catch) {
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::Catch)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::Throw) {
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::Throw)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
             return;
         }
         if matches!(instr.op, MirOp::EndTry) {
             emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndTry)));
+            emit_wasm_instr(body, &WasmInstr::Drop);
+            return;
+        }
+        if let MirOp::BindResult(target) = &instr.op {
+            // LLVM: syx_rt_bind_result → nonzero jumps to pad; else fall through.
+            // Host returns MIR block id (or 0); guest remaps via block_pos like Jump.
+            emit_wasm_instr(body, &WasmInstr::I32Const(*target as i32));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::BindResult)),
+            );
+            emit_wasm_instr(body, &WasmInstr::LocalSet(0));
+            emit_wasm_instr(body, &WasmInstr::LocalGet(0));
+            emit_wasm_instr(body, &WasmInstr::If(wasm_encoder::BlockType::Empty));
+            let t = *block_pos.get(target).unwrap_or(&current_block) as i32;
+            emit_wasm_instr(body, &WasmInstr::I32Const(t));
+            emit_wasm_instr(body, &WasmInstr::GlobalSet(0));
+            emit_wasm_instr(body, &WasmInstr::Br(br_to_loop + 1));
+            emit_wasm_instr(body, &WasmInstr::End);
+            return;
+        }
+        if matches!(instr.op, MirOp::ReturnErr) {
+            // LLVM: syx_rt_return_err then take_catch; no outer pad → leave function.
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::ReturnErr)),
+            );
+            emit_wasm_instr(body, &WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(-1));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::TakeCatchPc)),
+            );
+            emit_call_host_take_catch(body, br_to_loop);
+            // take_catch fallthrough restores passthrough i32 — discard before ret.
+            emit_wasm_instr(body, &WasmInstr::Drop);
+            if plan.aot && func_param_count > 0 {
+                emit_wasm_instr(body, &WasmInstr::Call(plan.aot_import(aot::Import::EndFn)));
+            }
+            emit_wasm_instr(body, &WasmInstr::I32Const(0));
+            emit_wasm_instr(body, &WasmInstr::Return);
             return;
         }
         if matches!(instr.op, MirOp::ConcatStr) {
@@ -6235,7 +6307,11 @@ fn emit_mir_instr(
             emit_wasm_instr(body, &WasmInstr::End);
         }
         MirOp::Pop => {
-            emit_wasm_instr(body, &WasmInstr::Drop);
+            emit_wasm_instr(body, &WasmInstr::I32Const(op::POP as i32));
+            emit_wasm_instr(
+                body,
+                &WasmInstr::Call(plan.aot_import(aot::Import::StackOp)),
+            );
         }
         MirOp::Return => {
             if plan.aot && func_param_count > 0 {
@@ -7035,5 +7111,85 @@ mod tests {
         validate_wasm(&emit_wasm_with_options(&module, true).unwrap());
         let wasm = emit_wasm(&module).unwrap();
         syx_wasm_run::run_wasm_with_module(&wasm, "main", Some(&module)).expect("run");
+    }
+
+    #[test]
+    fn try_expr_bind_result_return_err_emits_valid_wasm() {
+        // Mirrors UnaryOp::Try lowering: BeginTry → EndTry → BindResult → Jump / ReturnErr pad.
+        let err_block = 1u32;
+        let after_block = 2u32;
+        let module = MirModule {
+            functions: vec![MirFunction {
+                name: "main".into(),
+                param_count: 0,
+                local_count: 1,
+                entry: 0,
+                blocks: vec![
+                    MirBlock {
+                        id: 0,
+                        instructions: vec![
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::BeginTry(err_block),
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::ConstI32(1),
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::EndTry,
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::BindResult(err_block),
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::Jump(after_block),
+                                span: None,
+                            },
+                        ],
+                        successors: vec![err_block, after_block],
+                    },
+                    MirBlock {
+                        id: err_block,
+                        instructions: vec![MirInstr {
+                            dest: None,
+                            op: MirOp::ReturnErr,
+                            span: None,
+                        }],
+                        successors: vec![after_block],
+                    },
+                    MirBlock {
+                        id: after_block,
+                        instructions: vec![
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::Pop,
+                                span: None,
+                            },
+                            MirInstr {
+                                dest: None,
+                                op: MirOp::Return,
+                                span: None,
+                            },
+                        ],
+                        successors: vec![],
+                    },
+                ],
+                instructions: vec![],
+                local_names: vec![],
+                local_types: vec![],
+                init_body_pc: 0,
+                init_wrap_pc: 0,
+            }],
+            ..Default::default()
+        };
+        validate_wasm(&emit_wasm_with_options(&module, true).unwrap());
     }
 }

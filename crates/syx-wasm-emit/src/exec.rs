@@ -111,6 +111,10 @@ pub mod aot {
     pub const CATCH: &str = "__syx_aot_catch";
     pub const THROW: &str = "__syx_aot_throw";
     pub const END_TRY: &str = "__syx_aot_end_try";
+    /// `try` expr BindResult: take pending_catch → nonzero, else 0 (guest remaps pad PC).
+    pub const BIND_RESULT: &str = "__syx_aot_bind_result";
+    /// `try` expr ReturnErr pad: re-arm pending_catch for outer take_catch.
+    pub const RETURN_ERR: &str = "__syx_aot_return_err";
     pub const SIMD_ADD: &str = "__syx_aot_simd_add";
     pub const SIMD_SUB: &str = "__syx_aot_simd_sub";
     pub const SIMD_MUL: &str = "__syx_aot_simd_mul";
@@ -221,6 +225,8 @@ pub mod aot {
         Catch,
         Throw,
         EndTry,
+        BindResult,
+        ReturnErr,
         SimdAdd,
         SimdSub,
         SimdMul,
@@ -323,6 +329,8 @@ pub mod aot {
                 Self::Catch => CATCH,
                 Self::Throw => THROW,
                 Self::EndTry => END_TRY,
+                Self::BindResult => BIND_RESULT,
+                Self::ReturnErr => RETURN_ERR,
                 Self::SimdAdd => SIMD_ADD,
                 Self::SimdSub => SIMD_SUB,
                 Self::SimdMul => SIMD_MUL,
@@ -396,7 +404,8 @@ pub mod aot {
                 | Self::DictBuild
                 | Self::SetBuild
                 | Self::CallHost
-                | Self::TakeCatchPc => host::TYPE_I32_TO_I32,
+                | Self::TakeCatchPc
+                | Self::BindResult => host::TYPE_I32_TO_I32,
                 Self::LoadLocal
                 | Self::StoreLocal
                 | Self::SetFnIndex
@@ -421,6 +430,7 @@ pub mod aot {
                 | Self::Catch
                 | Self::Throw
                 | Self::EndTry
+                | Self::ReturnErr
                 | Self::SimdAdd
                 | Self::SimdSub
                 | Self::SimdMul

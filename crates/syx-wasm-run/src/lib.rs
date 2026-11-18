@@ -1478,6 +1478,8 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
             aot::CATCH => Some(op::CATCH),
             aot::THROW => Some(op::THROW),
             aot::END_TRY => Some(op::END_TRY),
+            aot::BIND_RESULT => Some(op::BIND_RESULT),
+            aot::RETURN_ERR => Some(op::RETURN_ERR),
             aot::SIMD_ADD => Some(op::SIMD_ADD),
             aot::SIMD_SUB => Some(op::SIMD_SUB),
             aot::SIMD_MUL => Some(op::SIMD_MUL),
@@ -1529,6 +1531,7 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
             | aot::DICT_BUILD
             | aot::SET_BUILD
             | aot::CALL_HOST
+            | aot::BIND_RESULT
             | aot::SIMD_LOAD
             | aot::SIMD_STORE
             | aot::SIMD_SHUFFLE => {
@@ -1868,6 +1871,7 @@ fn link_syx_aot_imports(linker: &mut Linker<WasmStore>, wasm_module: &Module) ->
             | aot::CATCH
             | aot::THROW
             | aot::END_TRY
+            | aot::RETURN_ERR
             | aot::SIMD_ADD
             | aot::SIMD_SUB
             | aot::SIMD_MUL
