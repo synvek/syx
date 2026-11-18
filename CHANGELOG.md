@@ -7,6 +7,7 @@
 - fix: enhance S060 diagnostic for non-mutating self assignments
 - feat: implement comma-separated `while let` desugaring in parser and add tests
 - fix: clear throws flag in closures so nested `throw` is S028
+- feat: apply Bool/String/Int field default literals on empty init and memberwise calls
 - fix: update language guide for Hashable and CustomStringConvertible conformance
 
 ### SYX 0.2.3

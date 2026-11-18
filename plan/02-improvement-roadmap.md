@@ -5,8 +5,8 @@
 > **优先级：** P0 阻断对齐 · P1 重组核心 · P2 文档工具 · P3 收口增强  
 > **活状态：** [`01-project-status.md`](01-project-status.md)  
 > **上期冻结账本：** [`archive/02-improvement-roadmap-credibility-stage-ledger.md`](archive/02-improvement-roadmap-credibility-stage-ledger.md)  
-> **最近更新：** 2026-11-17 · **U-32 闭包 throw→S028 已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-32 账面退出；**诚实：** 闭包不继承父 throws 旗；S060 族含非 mutating self；控制流逗号链对称；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、闭包 throws 语法、字段默认字面量等）。  
-> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面纸面；由 U-15 复落）；**U-13** 逗号 `if let`（账面纸面；由 U-14 复落）；**U-14** 复落逗号 `if let`；**U-15** 复落 `while case`；**U-16** 逗号 `guard let`；**U-17** 裸 `guard`；**U-18** GuardLet else → **S027**；**U-19** Throw → **S028**；**U-20** 方法/Init throws 旗；**U-21** S020 袋→S060/A002；**U-22** let 下标写→S060；**U-23** let struct 成员写→S060；**U-24** 嵌套值类型成员写→S060；**U-25** 嵌套集合下标/append→S060；**U-26** Ch15/Ch28 S020 书诚实；**U-27** let tuple 成员写→S060；**U-28** let enum 关联写→S060；**U-29** 嵌套 enum/tuple 成员写→S060；**U-30** 非 mutating 写 self→S060；**U-31** 逗号 `while let`；**U-32** 闭包 throw→S028。下表只保留 **仍可复现** 或仍挂账的项。
+> **最近更新：** 2026-11-17 · **U-33 字段默认 Bool/String/Int 字面量已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-33 账面退出；**诚实：** Int/Bool/String 字段默认可空 init；闭包不继承父 throws 旗；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、闭包 throws 语法、Float 默认等）。  
+> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面纸面；由 U-15 复落）；**U-13** 逗号 `if let`（账面纸面；由 U-14 复落）；**U-14** 复落逗号 `if let`；**U-15** 复落 `while case`；**U-16** 逗号 `guard let`；**U-17** 裸 `guard`；**U-18** GuardLet else → **S027**；**U-19** Throw → **S028**；**U-20** 方法/Init throws 旗；**U-21** S020 袋→S060/A002；**U-22** let 下标写→S060；**U-23** let struct 成员写→S060；**U-24** 嵌套值类型成员写→S060；**U-25** 嵌套集合下标/append→S060；**U-26** Ch15/Ch28 S020 书诚实；**U-27** let tuple 成员写→S060；**U-28** let enum 关联写→S060；**U-29** 嵌套 enum/tuple 成员写→S060；**U-30** 非 mutating 写 self→S060；**U-31** 逗号 `while let`；**U-32** 闭包 throw→S028；**U-33** 字段默认 Bool/String/Int。下表只保留 **仍可复现** 或仍挂账的项。
 
 ## 进度摘要（本期）
 
@@ -73,6 +73,7 @@
 | **U-30** | 非 mutating 写 self→S060 | `[x]` 退出 | [`u-30`](../docs/census/u-30-mutating-self-assign-s060-census.md) |
 | **U-31** | 逗号 `while let` | `[x]` 退出 | [`u-31`](../docs/census/u-31-while-let-comma-census.md) |
 | **U-32** | 闭包 throw→S028 | `[x]` 退出 | [`u-32`](../docs/census/u-32-closure-throw-s028-census.md) |
+| **U-33** | 字段默认 Bool/String/Int | `[x]` 退出 | [`u-33`](../docs/census/u-33-field-default-literals-census.md) |
 
 ```mermaid
 flowchart LR
@@ -111,7 +112,8 @@ flowchart LR
   u29 --> u30["U-30 nonmutating self S060"]
   u30 --> u31["U-31 comma whileLet"]
   u31 --> u32["U-32 closure throw S028"]
-  u32 --> later["park residual"]
+  u32 --> u33["U-33 field default lits"]
+  u33 --> later["park residual"]
 ```
 
 ---
@@ -238,8 +240,9 @@ flowchart LR
 | **U-30** | **非 mutating 写 self→S060** | `[x]` | 值类型方法体无 `mutating` 写 self/隐式字段→**S060**；census [`u-30`](../docs/census/u-30-mutating-self-assign-s060-census.md)；≠ 逗号 while let / 字段默认 nil / R-50 / JIT | U-29 residual |
 | **U-31** | **逗号 `while let`** | `[x]` | `parse_while` 逗号链→嵌套 IfLet/If + break；census [`u-31`](../docs/census/u-31-while-let-comma-census.md)；≠ 字段默认 nil / 闭包 throws / CST / Break / R-50 / JIT | U-30 residual |
 | **U-32** | **闭包 throw→S028** | `[x]` | 闭包清 `current_function_is_throws`→**S028**；census [`u-32`](../docs/census/u-32-closure-throw-s028-census.md)；≠ 闭包 throws 语法 / 字段默认 / CST / Break / R-50 / JIT | U-31 residual |
+| **U-33** | **字段默认 Bool/String/Int** | `[x]` | MIR `FieldDefaultLit` 空 init/memberwise→ConstBool/Str/I32；census [`u-33`](../docs/census/u-33-field-default-literals-census.md)；≠ Float / Call 默认 / codegen 旁路 / R-50 / JIT | U-32 residual |
 
-**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-32 已退出** — 残余为 **park** / 未编号债（CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程、SyxHost、闭包 throws 语法、字段默认字面量等），**不**新开 R-50。
+**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-33 已退出** — 残余为 **park** / 未编号债（CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程、SyxHost、闭包 throws 语法、Float 字段默认等），**不**新开 R-50。
 
 **退出总则：**  
 - SA-0 → 核心层清单 + 分层命名 ADR 已接受；manifest / prelude / IMPORTABLE 三处 SSOT 自洽。  

@@ -6,7 +6,7 @@ use crate::lower_stmt;
 use crate::mir_local_names_for_slots;
 use crate::mir_local_types_for_slots;
 use crate::mir_lower_ctx::LowerCtx;
-use crate::mir_module_index::ModuleIndex;
+use crate::mir_module_index::{FieldDefaultLit, ModuleIndex};
 use crate::mir_types::{MirFunction, MirInstr, MirModule, MirOp};
 use crate::register_param_local_type;
 use indexmap::IndexSet;
@@ -240,17 +240,22 @@ pub(crate) fn lower_class_init(
                     span: None,
                 },
             );
-        } else if let Some(v) = module_idx
-            .dataclass_field_default_i64
+        } else if let Some(lit) = module_idx
+            .dataclass_field_defaults
             .get(&(type_name.clone(), field.clone()))
-            .copied()
+            .cloned()
         {
-            // R-35: apply `var field: Int = N` when init omits the field.
+            // R-35 / U-33: apply Int / Bool / String defaults when init omits the field.
+            let op = match lit {
+                FieldDefaultLit::Int(v) => MirOp::ConstI32(v as i32),
+                FieldDefaultLit::Bool(b) => MirOp::ConstBool(b),
+                FieldDefaultLit::Str(s) => MirOp::ConstStr(s),
+            };
             ctx.emit(
                 entry,
                 MirInstr {
                     dest: None,
-                    op: MirOp::ConstI32(v as i32),
+                    op,
                     span: None,
                 },
             );

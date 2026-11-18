@@ -3,6 +3,7 @@
 
 use crate::lower_expr;
 use crate::mir_lower_ctx::LowerCtx;
+use crate::mir_module_index::FieldDefaultLit;
 use crate::mir_types::{MirInstr, MirOp};
 use crate::{
     expr_as_i32_literal, expr_is_string_like, infer_generic_arg_type_name,
@@ -533,7 +534,7 @@ pub(crate) fn lower_expr_call_ident(
             .cloned()
             .unwrap_or_default();
         if fields.is_empty() {
-            for (ty, field) in ctx.module.dataclass_field_default_i64.keys() {
+            for (ty, field) in ctx.module.dataclass_field_defaults.keys() {
                 if ty == name && !fields.iter().any(|f| f == field) {
                     fields.push(field.clone());
                 }
@@ -561,17 +562,23 @@ pub(crate) fn lower_expr_call_ident(
                         let r = ctx.fresh_reg();
                         lower_expr(&arg.value, r, ctx, block);
                     }
-                } else if let Some(v) = ctx
+                } else if let Some(lit) = ctx
                     .module
-                    .dataclass_field_default_i64
+                    .dataclass_field_defaults
                     .get(&(name.clone(), field.clone()))
-                    .copied()
+                    .cloned()
                 {
+                    // U-33: pad Int / Bool / String defaults (not ConstNil).
+                    let op = match lit {
+                        FieldDefaultLit::Int(v) => MirOp::ConstI32(v as i32),
+                        FieldDefaultLit::Bool(b) => MirOp::ConstBool(b),
+                        FieldDefaultLit::Str(s) => MirOp::ConstStr(s),
+                    };
                     ctx.emit(
                         block,
                         MirInstr {
                             dest: None,
-                            op: MirOp::ConstI32(v as i32),
+                            op,
                             span: None,
                         },
                     );

@@ -895,10 +895,10 @@ func main() {
         assert_eq!(fields, vec![SmolStr::new("x"), SmolStr::new("y")]);
         assert!(idx.dataclass_names.contains(&SmolStr::new("Point")));
         assert_eq!(
-            idx.dataclass_field_default_i64
+            idx.dataclass_field_defaults
                 .get(&(SmolStr::new("Point"), SmolStr::new("x")))
-                .copied(),
-            Some(0)
+                .cloned(),
+            Some(crate::mir_module_index::FieldDefaultLit::Int(0))
         );
         let mir = lower_module(&module).unwrap();
         // Prefer 0-arg convenience init with literal fields.
@@ -2192,10 +2192,10 @@ func main() {
             .unwrap_or_default();
         assert_eq!(fields, vec![SmolStr::new("value")], "fields={fields:?}");
         assert_eq!(
-            idx.dataclass_field_default_i64
+            idx.dataclass_field_defaults
                 .get(&(SmolStr::new("Counter"), SmolStr::new("value")))
-                .copied(),
-            Some(0)
+                .cloned(),
+            Some(crate::mir_module_index::FieldDefaultLit::Int(0))
         );
         let mut mir = lower_module(&module).unwrap();
         merge_mir_shell_functions(&mut mir, lower_dataclass_shells(&module));

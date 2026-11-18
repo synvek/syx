@@ -1,0 +1,136 @@
+//! U-33: Bool / String / Int field defaults on empty memberwise / init (≠ Float / Call / codegen map).
+
+use std::io::Write;
+
+fn write_temp(src: &str) -> std::path::PathBuf {
+    let mut f = tempfile::NamedTempFile::new().expect("temp");
+    f.write_all(src.as_bytes()).expect("write");
+    f.into_temp_path().keep().expect("keep")
+}
+
+#[test]
+fn u33_struct_bool_string_int_defaults_run() {
+    let path = write_temp(
+        r#"
+struct S {
+    var b: Bool = true
+    var s: String = "hi"
+    var n: Int = 7
+}
+public func main() {
+    let x = S()
+    print(x.b)
+    print(x.s)
+    print(x.n)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("struct defaults must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["true", "hi", "7"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u33_class_empty_init_applies_defaults() {
+    let path = write_temp(
+        r#"
+class Animal {
+    var name: String = "anon"
+    var ok: Bool = false
+    var age: Int = 7
+    init() {}
+}
+public func main() {
+    let a = Animal()
+    print(a.name)
+    print(a.ok)
+    print(a.age)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("class empty init defaults must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["anon", "false", "7"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u33_explicit_label_overrides_default() {
+    let path = write_temp(
+        r#"
+struct Box {
+    var n: Int = 1
+}
+public func main() {
+    let x = Box(n: 3)
+    print(x.n)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("explicit label must override default");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["3"]);
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u33_missing_default_still_nil() {
+    let path = write_temp(
+        r#"
+struct Hole {
+    var s: String
+}
+public func main() {
+    let x = Hole()
+    print(x.s)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("missing default must still be nil");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["nil"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u33_counter_int_default_still_runs() {
+    let path = write_temp(
+        r#"
+struct Counter {
+    var value: Int = 0
+    mutating func increment() {
+        self.value = self.value + 1
+    }
+}
+public func main() {
+    var c = Counter()
+    c.increment()
+    print(c.value)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("Counter Int default must still run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["1"]);
+    let _ = std::fs::remove_file(&path);
+}

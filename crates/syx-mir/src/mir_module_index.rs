@@ -7,6 +7,24 @@ use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr};
 use syx_diagnostics::SourceFile;
 use syx_stdlib::NumericKind;
 
+/// U-33: stored field default literals for memberwise / empty-init pads.
+/// Only bare Integer / Bool / String; other defaults stay absent → ConstNil.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum FieldDefaultLit {
+    Int(i128),
+    Bool(bool),
+    Str(String),
+}
+
+pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLit> {
+    match lit {
+        Literal::Integer { value, .. } => Some(FieldDefaultLit::Int(*value)),
+        Literal::Bool(b) => Some(FieldDefaultLit::Bool(*b)),
+        Literal::String(s) => Some(FieldDefaultLit::Str(s.clone())),
+        _ => None,
+    }
+}
+
 #[derive(Debug, Default, Clone)]
 pub(crate) struct ModuleIndex {
     pub(crate) class_types: IndexMap<SmolStr, Vec<SmolStr>>,
@@ -24,8 +42,8 @@ pub(crate) struct ModuleIndex {
     pub(crate) dataclass_names: IndexSet<SmolStr>,
     /// Field order for DataClass/Struct memberwise init (MIR pads missing args).
     pub(crate) dataclass_fields: IndexMap<SmolStr, Vec<SmolStr>>,
-    /// `(type, field)` → default int literal for omitted memberwise args (Counter value=0).
-    pub(crate) dataclass_field_default_i64: IndexMap<(SmolStr, SmolStr), i128>,
+    /// `(type, field)` → default literal for omitted memberwise / empty-init args (U-33).
+    pub(crate) dataclass_field_defaults: IndexMap<(SmolStr, SmolStr), FieldDefaultLit>,
     pub(crate) enum_classes: IndexSet<SmolStr>,
     pub(crate) final_classes: IndexSet<SmolStr>,
     pub(crate) enum_case_tags: IndexMap<(SmolStr, SmolStr), i64>,
@@ -217,16 +235,15 @@ impl ModuleIndex {
                         }
                         if let Decl::VarGlobal {
                             name: field,
-                            init:
-                                Some(Expr::Literal {
-                                    value: Literal::Integer { value, .. },
-                                    ..
-                                }),
+                            init: Some(Expr::Literal { value, .. }),
                             ..
                         } = member
                         {
-                            idx.dataclass_field_default_i64
-                                .insert((name.clone(), field.clone()), *value);
+                            // U-33: Integer / Bool / String field defaults.
+                            if let Some(lit) = field_default_from_literal(value) {
+                                idx.dataclass_field_defaults
+                                    .insert((name.clone(), field.clone()), lit);
+                            }
                         }
                         if let Decl::Function {
                             name: method,
@@ -354,14 +371,12 @@ impl ModuleIndex {
                                     .or_default()
                                     .insert(key.clone(), ty_name);
                             }
-                            // R-35: `var count: Int = 0` defaults for empty `init() {}`.
-                            if let Some(Expr::Literal {
-                                value: Literal::Integer { value, .. },
-                                ..
-                            }) = init
-                            {
-                                idx.dataclass_field_default_i64
-                                    .insert((name.clone(), key), *value);
+                            // R-35 / U-33: `var count: Int = 0` / Bool / String for empty `init() {}`.
+                            if let Some(Expr::Literal { value, .. }) = init {
+                                if let Some(lit) = field_default_from_literal(value) {
+                                    idx.dataclass_field_defaults
+                                        .insert((name.clone(), key), lit);
+                                }
                             }
                         }
                     }
@@ -612,8 +627,9 @@ pub(crate) fn register_extension_init_literal_defaults(
 ) {
     if let Some(fields) = extension_init_literal_fields(body) {
         for (field, value) in fields {
-            idx.dataclass_field_default_i64
-                .insert((type_name.clone(), field), value);
+            // Extension convenience init stays Integer-only (S1-I7).
+            idx.dataclass_field_defaults
+                .insert((type_name.clone(), field), FieldDefaultLit::Int(value));
         }
     }
 }
