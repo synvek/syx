@@ -697,6 +697,28 @@ impl SemanticAnalyzer {
                 if self.function_param_labels.contains_key(name) {
                     self.check_call_argument_labels(name, args, *span);
                 }
+                // C-0c: non-generic free-function arity (S061). After labels so
+                // Same-label all-positional still surfaces S042 first. Defaults
+                // may be omitted; trailing closures already sit in `args`.
+                if let Some(ref param_tys) = params {
+                    let defaults = self
+                        .function_param_has_default
+                        .get(name)
+                        .cloned()
+                        .unwrap_or_else(|| vec![false; param_tys.len()]);
+                    let max = param_tys.len();
+                    let required = defaults.iter().take(max).filter(|d| !**d).count();
+                    let argc = args.len();
+                    if argc < required || argc > max {
+                        self.errors.push(self.error_at(
+                            format!(
+                                "Call to '{name}' expects {required}..={max} argument(s), found {argc}"
+                            ),
+                            *span,
+                            "S061",
+                        ));
+                    }
+                }
                 if self.class_names.contains(name) {
                     let init_name = SmolStr::new(format!("{name}_init"));
                     self.check_call_argument_labels(&init_name, args, *span);

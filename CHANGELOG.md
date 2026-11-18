@@ -1,3 +1,9 @@
+### SYX 0.4.0
+- feat: reject free-function too-few/too-many args at check with S061 (C-0c); honor trailing param defaults
+- fix: allow bare `Array`/`Dictionary` ↔ typed forms and found-`Object` host façades under return assignability (C-0b fallout)
+- feat: reject wrong-type and bare non-Void `return` at check with S004 (C-0b); wire method mangled return lookup
+- docs: open Convergence era — rewrite `plan/01-project-status` and `plan/02-improvement-roadmap` (C-0…); archive SA/R/U ledger
+
 ### SYX 0.3.0
 - fix: `syx run` / `syx check` without a project now print usage instead of scanning monorepo fixtures
 - fix: enrich bare `syx run` / `syx check` hints with examples and common options

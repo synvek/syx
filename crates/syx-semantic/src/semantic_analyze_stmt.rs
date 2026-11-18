@@ -160,9 +160,10 @@ impl SemanticAnalyzer {
                 }
                 Ok(())
             }
-            Stmt::Return { value, .. } => {
+            Stmt::Return { value, span } => {
+                // C-0b: declared return type must accept the returned expression (S004).
                 if let Some(v) = value {
-                    self.analyze_expr(v)?;
+                    let found = self.analyze_expr(v)?;
                     self.check_return_lifetime(v);
                     if let Expr::Borrow { expr, .. } = v {
                         if let Expr::Ident { name, .. } = expr.as_ref() {
@@ -173,6 +174,29 @@ impl SemanticAnalyzer {
                                     "S011",
                                 ));
                             }
+                        }
+                    }
+                    if let Some(fn_name) = self.current_function.clone() {
+                        if let Some(expected) = self.function_return_types.get(&fn_name).cloned() {
+                            self.check_assignable_with_literal(
+                                expected,
+                                found,
+                                "return",
+                                Some(v),
+                                *span,
+                            )?;
+                        }
+                    }
+                } else if let Some(fn_name) = self.current_function.clone() {
+                    if let Some(expected) = self.function_return_types.get(&fn_name).cloned() {
+                        if !matches!(expected, TypeId::Void) {
+                            self.check_assignable_with_literal(
+                                expected,
+                                TypeId::Void,
+                                "return",
+                                None,
+                                *span,
+                            )?;
                         }
                     }
                 }

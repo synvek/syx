@@ -29,6 +29,7 @@
 | S019 | Sendable channel |
 | S020 | MainActor await 后违规 |
 | S060 | 在不可变（`let`）绑定上调用 `mutating` 方法、下标赋值或 struct/tuple/enum 成员赋值（含嵌套 enum/tuple / 嵌套集合）；以及非 `mutating` 的 struct/enum 方法内写 `self` |
+| S061 | 自由函数调用实参数量不匹配（过少/过多；尾部带默认值的参数可省略） |
 | S027 | `guard let` `else` 未退出（须 `return` / `throw` / `break` / `continue`） |
 | S028 | 非 `throws` 函数内 `throw` |
 | S022 | SIMD 在禁用模式下使用 |

@@ -29,6 +29,7 @@ A user-facing cheat sheet of diagnostic codes. For compiler implementation detai
 | S019 | Sendable channel |
 | S020 | MainActor violation after await |
 | S060 | Calling a `mutating` method, or subscript-/struct-/tuple-/enum-member-assigning (incl. nested enum/tuple / nested collections) through an immutable (`let`) binding; also writing `self` in a non-`mutating` struct/enum method |
+| S061 | Free-function call arity mismatch (too few / too many arguments; trailing defaults may be omitted) |
 | S027 | `guard let` `else` does not exit (must `return` / `throw` / `break` / `continue`) |
 | S028 | `throw` outside a `throws` function |
 | S022 | Using SIMD while it is disabled |

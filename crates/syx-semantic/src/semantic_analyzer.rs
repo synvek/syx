@@ -90,6 +90,8 @@ pub struct SemanticAnalyzer {
     /// External label strategy + internal name for call-site label checking.
     pub(crate) function_param_labels: IndexMap<SmolStr, Vec<(ParamLabel, SmolStr)>>,
     pub(crate) function_return_types: IndexMap<SmolStr, TypeId>,
+    /// C-0c: per-param `default` presence for non-generic free functions (arity).
+    pub(crate) function_param_has_default: IndexMap<SmolStr, Vec<bool>>,
     /// Per-function `sending` param flags (top-level functions).
     pub(crate) function_sending_params: IndexMap<SmolStr, Vec<bool>>,
     /// Actor method `sending` param flags keyed by (actor, method).

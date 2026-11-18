@@ -77,6 +77,7 @@ mod string_subscript_oob;
 mod struct_book_first_slice;
 mod syxhost_compare_and_filepath_exists;
 mod throw_requires_throws;
+mod type_soundness;
 mod value_semantics;
 mod while_case;
 mod while_let;

@@ -30,6 +30,7 @@ impl SemanticAnalyzer {
             // U-20: wire `current_function_is_throws` for type members (U-19 only did top-level).
             // U-30: `mutating` → self mutable; value-type without it → S060 on self writes.
             Decl::Function {
+                name: method,
                 span,
                 params,
                 body,
@@ -39,6 +40,9 @@ impl SemanticAnalyzer {
             } => {
                 let prev_throws = self.current_function_is_throws;
                 let prev_mutating = self.current_function_is_mutating;
+                // C-0b: mangled key matches collect_decls `Type_method` return table.
+                let prev_fn = self.current_function.clone();
+                self.current_function = Some(SmolStr::new(format!("{type_name}_{method}")));
                 self.current_function_is_throws = throws_type.is_some();
                 let is_mutating = attrs.iter().any(|a| a.name.as_str() == "mutating");
                 self.current_function_is_mutating = is_mutating;
@@ -78,6 +82,7 @@ impl SemanticAnalyzer {
                 std::mem::swap(&mut self.scope, &mut fn_scope);
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
+                self.current_function = prev_fn;
                 self.current_function_is_throws = prev_throws;
                 self.current_function_is_mutating = prev_mutating;
                 r

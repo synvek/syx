@@ -254,6 +254,11 @@ impl SemanticAnalyzer {
                                 })
                                 .collect(),
                         );
+                        // C-0c: keep default flags so arity can omit trailing defaults.
+                        self.function_param_has_default.insert(
+                            name.clone(),
+                            params.iter().map(|p| p.default.is_some()).collect(),
+                        );
                         self.function_param_labels.insert(
                             name.clone(),
                             params

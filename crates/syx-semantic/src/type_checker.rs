@@ -15,6 +15,9 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         // this, soga/sgate `jStr(v: Any)` / `encodeJson(value: Object)` / Int
         // params reject `_` and hard-fail tools that previously type-checked green.
         (_, TypeId::Unknown) => true,
+        // C-0b fallout: many HostFn tables still surface `Object` where façades
+        // declare Bool/Int/…; treat found-Object like Unknown until C-0a trichotomy.
+        (_, TypeId::Named(n)) if n.as_str() == "Object" => true,
         // `Any` is the unconstrained top type (soga/sgate `jStr(v: Any)`, books).
         (TypeId::Named(n), _) if n.as_str() == "Any" => true,
         // `Object` JSON/dynamic bag accepts Dictionary (typed bag shares Object ops).
@@ -35,6 +38,12 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         }
         // Bare `Set()` constructor types as `Named("Set")`; allow under `Set<T>`.
         (TypeId::Set(_), TypeId::Named(n)) if n.as_str() == "Set" => true,
+        // C-0b fallout: stdlib façades declare bare `Array` / `Dictionary` while
+        // host returns `Array<T>` / typed Dictionary — allow both directions.
+        (TypeId::Named(n), TypeId::Array(_)) if n.as_str() == "Array" => true,
+        (TypeId::Array(_), TypeId::Named(n)) if n.as_str() == "Array" => true,
+        (TypeId::Named(n), TypeId::Dictionary { .. }) if n.as_str() == "Dictionary" => true,
+        (TypeId::Dictionary { .. }, TypeId::Named(n)) if n.as_str() == "Dictionary" => true,
         (TypeId::Optional(inner), found)
             if is_compatible(inner, found) || inner.as_ref() == found =>
         {
