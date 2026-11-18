@@ -88,7 +88,7 @@ impl SemanticAnalyzer {
     }
 
     /// Peel `Expr::Group` layers so `bump((&mut n))` still counts as a mut borrow.
-    fn peel_expr_groups<'a>(&self, expr: &'a Expr) -> &'a Expr {
+    pub(crate) fn peel_expr_groups<'a>(&self, expr: &'a Expr) -> &'a Expr {
         let mut cur = expr;
         while let Expr::Group { expr: inner, .. } = cur {
             cur = inner.as_ref();
@@ -102,6 +102,56 @@ impl SemanticAnalyzer {
             self.peel_expr_groups(expr),
             Expr::Borrow { mutable: true, .. }
         )
+    }
+
+    /// C-0a: concrete ground types that must not silently accept Unknown sinks.
+    pub(crate) fn is_ground_concrete_type(&self, ty: &TypeId) -> bool {
+        match ty {
+            TypeId::Numeric(_) | TypeId::Bool | TypeId::String => true,
+            TypeId::Named(n) => {
+                let s = n.as_str();
+                s != "Any" && s != "Object"
+            }
+            _ => false,
+        }
+    }
+
+    /// C-0a: source is an untyped param Ident or a Member (missing → Unknown).
+    pub(crate) fn is_unknown_sink_source(&self, expr: &Expr) -> bool {
+        match self.peel_expr_groups(expr) {
+            Expr::Ident { name, .. } => self.current_untyped_params.contains(name),
+            Expr::Member { .. } => true,
+            _ => false,
+        }
+    }
+
+    /// C-0a sink gate: Unknown → ground concrete from untyped param / missing member.
+    pub(crate) fn check_unknown_to_ground_sink(
+        &self,
+        expected: &TypeId,
+        found: &TypeId,
+        source: &Expr,
+        name: &str,
+        span: syx_diagnostics::Span,
+    ) -> SyxResult<()> {
+        if !self.is_ground_concrete_type(expected) {
+            return Ok(());
+        }
+        if !matches!(found, TypeId::Unknown) {
+            return Ok(());
+        }
+        if !self.is_unknown_sink_source(source) {
+            return Ok(());
+        }
+        Err(self.error_at(
+            format!(
+                "Type mismatch for '{name}': expected {}, found {}",
+                type_id_to_diag_name(expected),
+                type_id_to_diag_name(found)
+            ),
+            span,
+            "S004",
+        ))
     }
 
     pub(crate) fn check_prelude_name_shadow(

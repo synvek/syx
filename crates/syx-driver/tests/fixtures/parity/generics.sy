@@ -1,8 +1,7 @@
-func id(x) -> Int {
+func id<T>(x: T) -> T {
     return x
 }
 
 func main() {
     print(id(x: 42))
 }
-

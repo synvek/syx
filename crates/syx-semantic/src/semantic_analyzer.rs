@@ -118,6 +118,8 @@ pub struct SemanticAnalyzer {
     pub(crate) current_equatable_params: HashSet<SmolStr>,
     /// S1-I6: open type params of the function currently under analysis (`T`, `U`, …).
     pub(crate) current_type_params: HashSet<SmolStr>,
+    /// C-0a: parameter names with no type annotation in the current function body.
+    pub(crate) current_untyped_params: HashSet<SmolStr>,
     /// Phase 20: `@MainActor` async mutable locals in scope.
     pub(crate) main_actor_mutable_locals: HashSet<SmolStr>,
     /// Phase 20: snapshot of mutable locals at the last `await` in `@MainActor` async fn.

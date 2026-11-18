@@ -61,7 +61,12 @@ impl SemanticAnalyzer {
                     },
                     *span,
                 )?;
+                let prev_untyped = std::mem::take(&mut self.current_untyped_params);
                 for param in params {
+                    if param.ty.is_none() {
+                        // C-0a: track untyped method params for Unknown→ground sink gate.
+                        self.current_untyped_params.insert(param.name.clone());
+                    }
                     let param_ty = param
                         .ty
                         .as_ref()
@@ -83,6 +88,7 @@ impl SemanticAnalyzer {
                 let r = self.analyze_block(body);
                 self.scope = *self.scope.parent.take().unwrap_or_default();
                 self.current_function = prev_fn;
+                self.current_untyped_params = prev_untyped;
                 self.current_function_is_throws = prev_throws;
                 self.current_function_is_mutating = prev_mutating;
                 r

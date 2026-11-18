@@ -628,14 +628,29 @@ impl SemanticAnalyzer {
                 self.moved_bindings.remove(name);
                 self.mut_borrows.remove(name);
                 if is_enclosing_field {
-                    self.check_assignable_with_literal(expected, ty, name, Some(value), *span)?;
+                    self.check_assignable_with_literal(
+                        expected.clone(),
+                        ty.clone(),
+                        name,
+                        Some(value),
+                        *span,
+                    )?;
+                    self.check_unknown_to_ground_sink(&expected, &ty, value, name, *span)?;
                 } else if matches!(expected, TypeId::Unknown) {
                     if let Some(binding) = self.scope.lookup_mut(name) {
                         binding.ty = ty.clone();
                     }
                     self.track_binding(name.clone(), ty.clone(), span.start);
                 } else {
-                    self.check_assignable_with_literal(expected, ty, name, Some(value), *span)?;
+                    self.check_assignable_with_literal(
+                        expected.clone(),
+                        ty.clone(),
+                        name,
+                        Some(value),
+                        *span,
+                    )?;
+                    // C-0a: reassignment to ground type from Unknown sink sources.
+                    self.check_unknown_to_ground_sink(&expected, &ty, value, name, *span)?;
                 }
                 Ok(TypeId::Void)
             }

@@ -1,4 +1,6 @@
 ### SYX 0.4.0
+- feat: reject Unknown→ground sinks from untyped params / missing members at return/let/assign (C-0a thin gate)
+- fix: `parity/generics.sy` uses `id<T>(x: T) -> T` so C-0a no longer rejects the wasm/native parity fixture
 - feat: reject bare values for `&mut` free-function params at check with S004 (C-0d); require explicit `&mut` borrow AST
 - feat: reject free-function too-few/too-many args at check with S061 (C-0c); honor trailing param defaults
 - fix: allow bare `Array`/`Dictionary` ↔ typed forms and found-`Object` host façades under return assignability (C-0b fallout)

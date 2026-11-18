@@ -121,9 +121,13 @@ impl SemanticAnalyzer {
                         ));
                     }
                 }
+                let prev_untyped = std::mem::take(&mut self.current_untyped_params);
                 for param in &params {
                     if let Some(ty) = &param.ty {
                         self.validate_type_expr(ty, *span);
+                    } else {
+                        // C-0a: track untyped params for Unknown→ground sink gate.
+                        self.current_untyped_params.insert(param.name.clone());
                     }
                     let param_ty = param
                         .ty
@@ -157,6 +161,7 @@ impl SemanticAnalyzer {
                 self.current_function_is_throws = prev_throws;
                 self.current_equatable_params = prev_eq_params;
                 self.current_type_params = prev_type_params;
+                self.current_untyped_params = prev_untyped;
                 self.local_ref_bindings = prev_local_refs;
                 self.main_actor_mutable_locals = prev_main_actor_mutable;
                 self.main_actor_frozen_at_await = prev_main_actor_frozen;

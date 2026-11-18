@@ -58,6 +58,7 @@ impl SemanticAnalyzer {
                 } else {
                     (TypeId::Unknown, TypeId::Unknown)
                 };
+                let has_annotation = annotated.is_some();
                 let final_ty = annotated.unwrap_or(inferred);
                 if matches!(final_ty, TypeId::Void) {
                     self.errors.push(self.error_at(
@@ -66,14 +67,25 @@ impl SemanticAnalyzer {
                         "S024",
                     ));
                 }
-                if init.is_some() {
+                if let Some(init_expr) = init.as_ref() {
                     self.check_assignable_with_literal(
                         final_ty.clone(),
-                        expr_ty,
+                        expr_ty.clone(),
                         name,
-                        init.as_ref(),
+                        Some(init_expr),
                         *span,
                     )?;
+                    // C-0a: annotated ground sink — reject Unknown from
+                    // untyped params / missing members (is_compatible still soft).
+                    if has_annotation {
+                        self.check_unknown_to_ground_sink(
+                            &final_ty,
+                            &expr_ty,
+                            init_expr,
+                            name,
+                            *span,
+                        )?;
+                    }
                 }
                 self.define_symbol(
                     Symbol {
@@ -179,11 +191,19 @@ impl SemanticAnalyzer {
                     if let Some(fn_name) = self.current_function.clone() {
                         if let Some(expected) = self.function_return_types.get(&fn_name).cloned() {
                             self.check_assignable_with_literal(
-                                expected,
-                                found,
+                                expected.clone(),
+                                found.clone(),
                                 "return",
                                 Some(v),
                                 *span,
+                            )?;
+                            // C-0a: Unknown from untyped param / missing member → ground.
+                            self.check_unknown_to_ground_sink(
+                                &expected,
+                                &found,
+                                v,
+                                "return",
+                                expr_span(v),
                             )?;
                         }
                     }
