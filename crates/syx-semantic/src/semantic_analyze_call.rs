@@ -87,6 +87,23 @@ impl SemanticAnalyzer {
             && matches!(ty, TypeId::String | TypeId::Named(_))
     }
 
+    /// Peel `Expr::Group` layers so `bump((&mut n))` still counts as a mut borrow.
+    fn peel_expr_groups<'a>(&self, expr: &'a Expr) -> &'a Expr {
+        let mut cur = expr;
+        while let Expr::Group { expr: inner, .. } = cur {
+            cur = inner.as_ref();
+        }
+        cur
+    }
+
+    /// C-0d: `&mut T` params require an explicit `&mut` borrow AST (not a bare value).
+    fn is_explicit_mut_borrow(&self, expr: &Expr) -> bool {
+        matches!(
+            self.peel_expr_groups(expr),
+            Expr::Borrow { mutable: true, .. }
+        )
+    }
+
     pub(crate) fn check_prelude_name_shadow(
         &mut self,
         name: &SmolStr,
@@ -676,6 +693,21 @@ impl SemanticAnalyzer {
                     let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
                     let found = self.analyze_expr_with_expected(&arg.value, expected)?;
                     if let Some(param_ty) = expected {
+                        // C-0d: reject bare values for `&mut T` (is_compatible would
+                        // accept them via MutReference(_, found) — do not change that arm).
+                        if matches!(param_ty, TypeId::MutReference(_))
+                            && !self.is_explicit_mut_borrow(&arg.value)
+                        {
+                            return Err(self.error_at(
+                                format!(
+                                    "Type mismatch for '{name}': expected {}, found {}",
+                                    type_id_to_diag_name(&param_ty),
+                                    type_id_to_diag_name(&found)
+                                ),
+                                expr_span(&arg.value),
+                                "S004",
+                            ));
+                        }
                         self.check_assignable_with_literal(
                             param_ty.clone(),
                             found,

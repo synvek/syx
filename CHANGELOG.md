@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: reject bare values for `&mut` free-function params at check with S004 (C-0d); require explicit `&mut` borrow AST
 - feat: reject free-function too-few/too-many args at check with S061 (C-0c); honor trailing param defaults
 - fix: allow bare `Array`/`Dictionary` ↔ typed forms and found-`Object` host façades under return assignability (C-0b fallout)
 - feat: reject wrong-type and bare non-Void `return` at check with S004 (C-0b); wire method mangled return lookup

@@ -1,4 +1,6 @@
-//! C-0b: return type assignability (S004). C-0c: free-function arity (S061).
+//! C-0b: return type assignability (S004).
+//! C-0c: free-function arity (S061).
+//! C-0d: `&mut` bare-value args rejected (S004).
 
 fn compile_fail_code(src: &str) -> Option<String> {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -192,6 +194,87 @@ fn c0c_untyped_param_id_still_ok() {
         r#"
 func id(_ x) -> Int { return 1 }
 func main() { let _ = id(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0d_bare_value_to_mut_ref_s004() {
+    let code = compile_fail_code(
+        r#"
+func bump(_ x: &mut Int) { x = x + 1 }
+func main() {
+    var n = 0
+    bump(n)
+}
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func bump(_ x: &mut Int) { x = x + 1 }
+func main() {
+    var n = 0
+    bump(n)
+}
+"#,
+    )
+    .expect("message");
+    assert!(
+        msg.contains("expected &mut Int") && msg.contains("Int"),
+        "msg={msg}"
+    );
+}
+
+#[test]
+fn c0d_explicit_mut_borrow_ok() {
+    compile_ok(
+        r#"
+func bump(_ x: &mut Int) { x = x + 1 }
+func main() {
+    var n = 0
+    bump(&mut n)
+}
+"#,
+    );
+}
+
+#[test]
+fn c0d_shared_borrow_to_mut_ref_s004() {
+    let code = compile_fail_code(
+        r#"
+func bump(_ x: &mut Int) { x = x + 1 }
+func main() {
+    var n = 0
+    bump(&n)
+}
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+}
+
+#[test]
+fn c0d_shared_ref_bare_value_still_ok() {
+    compile_ok(
+        r#"
+func id(_ x: &Int) -> Int { return 1 }
+func main() {
+    var n = 0
+    let _ = id(n)
+}
+"#,
+    );
+}
+
+#[test]
+fn c0d_grouped_mut_borrow_ok() {
+    compile_ok(
+        r#"
+func bump(_ x: &mut Int) { x = x + 1 }
+func main() {
+    var n = 0
+    bump((&mut n))
+}
 "#,
     );
 }

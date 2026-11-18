@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-18 · **C-0c arity `[x]`**（S061）；C-0b `[x]`；默认下一 = **C-0d**（序 b→c→d→a；C-0e park）。
+> **最近更新：** 2026-11-18 · **C-0d `&mut` 裸值 `[x]`**（S004）；C-0b/C-0c `[x]`；默认下一 = **C-0a**（序 b→c→d→a；C-0e park）。
 
 ## 0. 时代切换
 
@@ -44,8 +44,8 @@
 |------|------|------|
 | **C-0b** | `[x]` | wrong-type / 裸非 Void **return** → **S004**；方法 mangled `current_function`；census [`c-0b-return-type-census`](../docs/census/c-0b-return-type-census.md) |
 | **C-0c** | `[x]` | 非泛型自由函数 **arity** → **S061**（计 default；标签仍 S042；类型错仍 S004）；census [`c-0c-call-arity-census`](../docs/census/c-0c-call-arity-census.md) |
-| **C-0d** | `[ ]` **默认下一** | `&mut` 裸值传参拒收（按 `Expr::Borrow`；勿全局改 `deref_type`） |
-| **C-0a** | `[ ]` | `Unknown` / `ErrorType` / `InferenceVar` / 合法 dynamic **三分**（后置；禁一刀关 `(_, Unknown)=>true`） |
+| **C-0d** | `[x]` | `&mut` 裸值传参拒收（AST `Borrow{mutable:true}`；剥 Group；勿改 `deref_type` / is_compatible 臂）；census [`c-0d-mut-ref-arg-census`](../docs/census/c-0d-mut-ref-arg-census.md) |
+| **C-0a** | `[ ]` **默认下一** | `Unknown` / `ErrorType` / `InferenceVar` / 合法 dynamic **三分**（后置；禁一刀关 `(_, Unknown)=>true`） |
 | **C-0e** | `[-]` park | integer narrowing / 书 S008 对齐 |
 
 **验收：** 新负向用例进 gate；正向回归不破硬 KPI；census 写清「拒收面」而非「多了多少通过」。  

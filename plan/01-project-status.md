@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-18 · **C-0c arity `[x]`**（少参/多参 → S061）；C-0b return `[x]`；下一 = **C-0d `&mut`**。
+> **最近更新：** 2026-11-18 · **C-0d `&mut` 裸值 `[x]`**（S004）；C-0b/C-0c `[x]`；下一 = **C-0a Unknown 三分**。
 
 ## 1. 一句话现状
 
@@ -45,7 +45,7 @@ VM / MIR / Wasm / browser 与 LSP 有可重复正向证据；字段默认、继�
 | **SA-0…SA-6** | `[x]` 退出 | Swift 对齐章程期 |
 | **R-0…R-49** | `[x]` 收口 | Object 切片 / wasm 46/46 / browser / 诊断 / docs ADR；**无 R-50** |
 | **U-0…U-40** | `[x]` 收口 | FilePath / credibility MD / parser 双接受 / 循环控制 / S060 / 字段默认链 / extension lit |
-| **收敛期 C-*** | **开账** | C-0b/C-0c `[x]`；活轴见 `02`；下一 C-0d |
+| **收敛期 C-*** | **开账** | C-0b/C-0c/C-0d `[x]`；活轴见 `02`；下一 C-0a |
 
 ```mermaid
 flowchart LR
@@ -116,4 +116,4 @@ flowchart LR
 - SA 退出：[sa-exit](../docs/adr/sa-exit.md)  
 - Stage-2/3/4 退出：`docs/adr/stage*-exit.md`  
 - U/R 详账：[`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
-- 硬 KPI 最近 census：[`docs/census/c-0c-call-arity-census.md`](../docs/census/c-0c-call-arity-census.md) · [`docs/census/c-0b-return-type-census.md`](../docs/census/c-0b-return-type-census.md)
+- 硬 KPI 最近 census：[`docs/census/c-0d-mut-ref-arg-census.md`](../docs/census/c-0d-mut-ref-arg-census.md) · [`docs/census/c-0c-call-arity-census.md`](../docs/census/c-0c-call-arity-census.md)
