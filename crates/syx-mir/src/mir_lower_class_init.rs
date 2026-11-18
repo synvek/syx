@@ -245,20 +245,51 @@ pub(crate) fn lower_class_init(
             .get(&(type_name.clone(), field.clone()))
             .cloned()
         {
-            // R-35 / U-33: apply Int / Bool / String defaults when init omits the field.
-            let op = match lit {
-                FieldDefaultLit::Int(v) => MirOp::ConstI32(v as i32),
-                FieldDefaultLit::Bool(b) => MirOp::ConstBool(b),
-                FieldDefaultLit::Str(s) => MirOp::ConstStr(s),
-            };
-            ctx.emit(
-                entry,
-                MirInstr {
-                    dest: None,
-                    op,
-                    span: None,
-                },
-            );
+            // R-35 / U-33 / U-35: Int / Bool / String / Double when init omits the field.
+            // Num uses dest: Some so mir-run keeps full u64 bits (dest: None truncates).
+            match lit {
+                FieldDefaultLit::Int(v) => {
+                    ctx.emit(
+                        entry,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::ConstI32(v as i32),
+                            span: None,
+                        },
+                    );
+                }
+                FieldDefaultLit::Bool(b) => {
+                    ctx.emit(
+                        entry,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::ConstBool(b),
+                            span: None,
+                        },
+                    );
+                }
+                FieldDefaultLit::Str(s) => {
+                    ctx.emit(
+                        entry,
+                        MirInstr {
+                            dest: None,
+                            op: MirOp::ConstStr(s),
+                            span: None,
+                        },
+                    );
+                }
+                FieldDefaultLit::Num { kind, bits } => {
+                    let r = ctx.fresh_reg();
+                    ctx.emit(
+                        entry,
+                        MirInstr {
+                            dest: Some(r),
+                            op: MirOp::ConstNumeric { kind, bits },
+                            span: None,
+                        },
+                    );
+                }
+            }
         } else {
             ctx.emit(
                 entry,

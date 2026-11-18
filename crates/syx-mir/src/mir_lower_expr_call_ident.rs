@@ -568,20 +568,51 @@ pub(crate) fn lower_expr_call_ident(
                     .get(&(name.clone(), field.clone()))
                     .cloned()
                 {
-                    // U-33: pad Int / Bool / String defaults (not ConstNil).
-                    let op = match lit {
-                        FieldDefaultLit::Int(v) => MirOp::ConstI32(v as i32),
-                        FieldDefaultLit::Bool(b) => MirOp::ConstBool(b),
-                        FieldDefaultLit::Str(s) => MirOp::ConstStr(s),
-                    };
-                    ctx.emit(
-                        block,
-                        MirInstr {
-                            dest: None,
-                            op,
-                            span: None,
-                        },
-                    );
+                    // U-33 / U-35: pad Int / Bool / String / Double defaults (not ConstNil).
+                    // Num uses dest: Some so mir-run keeps full u64 bits (dest: None truncates).
+                    match lit {
+                        FieldDefaultLit::Int(v) => {
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: None,
+                                    op: MirOp::ConstI32(v as i32),
+                                    span: None,
+                                },
+                            );
+                        }
+                        FieldDefaultLit::Bool(b) => {
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: None,
+                                    op: MirOp::ConstBool(b),
+                                    span: None,
+                                },
+                            );
+                        }
+                        FieldDefaultLit::Str(s) => {
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: None,
+                                    op: MirOp::ConstStr(s),
+                                    span: None,
+                                },
+                            );
+                        }
+                        FieldDefaultLit::Num { kind, bits } => {
+                            let r = ctx.fresh_reg();
+                            ctx.emit(
+                                block,
+                                MirInstr {
+                                    dest: Some(r),
+                                    op: MirOp::ConstNumeric { kind, bits },
+                                    span: None,
+                                },
+                            );
+                        }
+                    }
                 } else {
                     ctx.emit(
                         block,

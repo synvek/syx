@@ -5,15 +5,17 @@ use indexmap::{IndexMap, IndexSet};
 use smol_str::SmolStr;
 use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr, UnaryOp};
 use syx_diagnostics::SourceFile;
-use syx_stdlib::NumericKind;
+use syx_stdlib::{default_float_kind, float_literal_bits, from_suffix, NumericKind};
 
-/// U-33 / U-34: stored field default literals for memberwise / empty-init pads.
-/// Bare Integer / Bool / String, plus unary Neg Integer (`-1`); other defaults → ConstNil.
+/// U-33…U-35: stored field default literals for memberwise / empty-init pads.
+/// Bare Integer / Bool / String / Double, plus unary Neg Integer (`-1`); other → ConstNil.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum FieldDefaultLit {
     Int(i128),
     Bool(bool),
     Str(String),
+    /// U-35: float bits as ConstNumeric (kind byte + u64 bits; keeps Eq).
+    Num { kind: u8, bits: u64 },
 }
 
 pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLit> {
@@ -21,6 +23,16 @@ pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLi
         Literal::Integer { value, .. } => Some(FieldDefaultLit::Int(*value)),
         Literal::Bool(b) => Some(FieldDefaultLit::Bool(*b)),
         Literal::String(s) => Some(FieldDefaultLit::Str(s.clone())),
+        Literal::Double { value, suffix } => {
+            let kind = suffix
+                .as_ref()
+                .and_then(|s| from_suffix(s))
+                .unwrap_or(default_float_kind());
+            Some(FieldDefaultLit::Num {
+                kind: kind.to_byte(),
+                bits: float_literal_bits(kind, *value),
+            })
+        }
         _ => None,
     }
 }

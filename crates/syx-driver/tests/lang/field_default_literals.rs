@@ -1,5 +1,5 @@
-//! U-33 / U-34: Bool / String / Int (+ unary Neg Int) field defaults on empty memberwise / init.
-//! ≠ Float / Call / codegen map / deep `-(1)` peel.
+//! U-33…U-35: Bool / String / Int (+ unary Neg) / Double field defaults on empty memberwise / init.
+//! ≠ unary `-1.5` / Call / codegen map / deep `-(1)` peel.
 
 use std::io::Write;
 
@@ -176,5 +176,54 @@ public func main() {
             .expect("class unary -1 default must run");
     assert_eq!(code, 0, "exit {code}, printed={printed:?}");
     assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["-1"]);
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u35_struct_double_default_runs() {
+    let path = write_temp(
+        r#"
+struct S {
+    var x: Double = 1.5
+}
+public func main() {
+    let s = S()
+    print(s.x)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("struct Double default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["1.5"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u35_class_double_default_runs() {
+    let path = write_temp(
+        r#"
+class C {
+    var x: Double = 1.5
+    init() {}
+}
+public func main() {
+    let c = C()
+    print(c.x)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("class Double default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["1.5"]
+    );
     let _ = std::fs::remove_file(&path);
 }
