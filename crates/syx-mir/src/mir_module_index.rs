@@ -3,12 +3,12 @@
 
 use indexmap::{IndexMap, IndexSet};
 use smol_str::SmolStr;
-use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr};
+use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr, UnaryOp};
 use syx_diagnostics::SourceFile;
 use syx_stdlib::NumericKind;
 
-/// U-33: stored field default literals for memberwise / empty-init pads.
-/// Only bare Integer / Bool / String; other defaults stay absent → ConstNil.
+/// U-33 / U-34: stored field default literals for memberwise / empty-init pads.
+/// Bare Integer / Bool / String, plus unary Neg Integer (`-1`); other defaults → ConstNil.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum FieldDefaultLit {
     Int(i128),
@@ -21,6 +21,25 @@ pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLi
         Literal::Integer { value, .. } => Some(FieldDefaultLit::Int(*value)),
         Literal::Bool(b) => Some(FieldDefaultLit::Bool(*b)),
         Literal::String(s) => Some(FieldDefaultLit::Str(s.clone())),
+        _ => None,
+    }
+}
+
+/// U-34: also accept one-layer `Unary Neg` of an integer literal (`var n: Int = -1`).
+pub(crate) fn field_default_from_expr(expr: &Expr) -> Option<FieldDefaultLit> {
+    match expr {
+        Expr::Literal { value, .. } => field_default_from_literal(value),
+        Expr::Unary {
+            op: UnaryOp::Neg,
+            expr: inner,
+            ..
+        } => match inner.as_ref() {
+            Expr::Literal {
+                value: Literal::Integer { value, .. },
+                ..
+            } => Some(FieldDefaultLit::Int(value.wrapping_neg())),
+            _ => None,
+        },
         _ => None,
     }
 }
@@ -235,12 +254,12 @@ impl ModuleIndex {
                         }
                         if let Decl::VarGlobal {
                             name: field,
-                            init: Some(Expr::Literal { value, .. }),
+                            init: Some(init_expr),
                             ..
                         } = member
                         {
-                            // U-33: Integer / Bool / String field defaults.
-                            if let Some(lit) = field_default_from_literal(value) {
+                            // U-33 / U-34: Integer / Bool / String / unary Neg Int defaults.
+                            if let Some(lit) = field_default_from_expr(init_expr) {
                                 idx.dataclass_field_defaults
                                     .insert((name.clone(), field.clone()), lit);
                             }
@@ -371,9 +390,9 @@ impl ModuleIndex {
                                     .or_default()
                                     .insert(key.clone(), ty_name);
                             }
-                            // R-35 / U-33: `var count: Int = 0` / Bool / String for empty `init() {}`.
-                            if let Some(Expr::Literal { value, .. }) = init {
-                                if let Some(lit) = field_default_from_literal(value) {
+                            // R-35 / U-33 / U-34: Int / Bool / String / unary Neg Int for empty `init() {}`.
+                            if let Some(init_expr) = init {
+                                if let Some(lit) = field_default_from_expr(init_expr) {
                                     idx.dataclass_field_defaults
                                         .insert((name.clone(), key), lit);
                                 }

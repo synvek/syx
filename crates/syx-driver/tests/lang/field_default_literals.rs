@@ -1,4 +1,5 @@
-//! U-33: Bool / String / Int field defaults on empty memberwise / init (≠ Float / Call / codegen map).
+//! U-33 / U-34: Bool / String / Int (+ unary Neg Int) field defaults on empty memberwise / init.
+//! ≠ Float / Call / codegen map / deep `-(1)` peel.
 
 use std::io::Write;
 
@@ -132,5 +133,48 @@ public func main() {
             .expect("Counter Int default must still run");
     assert_eq!(code, 0, "exit {code}, printed={printed:?}");
     assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["1"]);
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u34_struct_unary_neg_int_default_runs() {
+    let path = write_temp(
+        r#"
+struct S {
+    var n: Int = -1
+}
+public func main() {
+    let x = S()
+    print(x.n)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("struct unary -1 default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["-1"]);
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u34_class_unary_neg_int_default_runs() {
+    let path = write_temp(
+        r#"
+class C {
+    var n: Int = -1
+    init() {}
+}
+public func main() {
+    let c = C()
+    print(c.n)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("class unary -1 default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(printed.iter().map(|s| s.trim()).collect::<Vec<_>>(), ["-1"]);
     let _ = std::fs::remove_file(&path);
 }

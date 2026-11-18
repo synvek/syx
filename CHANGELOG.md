@@ -8,6 +8,7 @@
 - feat: implement comma-separated `while let` desugaring in parser and add tests
 - fix: clear throws flag in closures so nested `throw` is S028
 - feat: apply Bool/String/Int field default literals on empty init and memberwise calls
+- feat: accept unary negated Int field defaults (`var n: Int = -1`) on empty init
 - fix: update language guide for Hashable and CustomStringConvertible conformance
 
 ### SYX 0.2.3
