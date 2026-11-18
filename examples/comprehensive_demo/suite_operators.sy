@@ -1,0 +1,86 @@
+// suite_operators.sy — operators: arithmetic / comparison / logical / bitwise / compound assignment / ranges / nil coalescing / precedence.
+// Corresponds to chapters 03 and 30 of the language guide. Avoids division by zero (R012 crash) and force unwrap (bug).
+
+var gOpSideEffect = false
+func opSideEffect() -> Bool {
+    gOpSideEffect = true
+    return true
+}
+
+func runOperators() -> (Int, Int, Int) {
+    beginSuite("lang.operators")
+
+    // Arithmetic
+    check("add", 10 + 3 == 13)
+    check("sub", 10 - 3 == 7)
+    check("mul", 10 * 3 == 30)
+    check("int_div", 10 / 3 == 3)
+    check("modulo", 10 % 3 == 1)
+    check("unary_minus", -(10) == -10)
+    check("float_div", 10.0 / 4.0 == 2.5)
+
+    // Precedence and parentheses
+    check("precedence", 2 + 3 * 4 == 14)
+    check("parentheses", (2 + 3) * 4 == 20)
+
+    // Comparison
+    check("eq", 1 == 1)
+    check("neq", 1 != 2)
+    check("lt", 1 < 2)
+    check("lte", 2 <= 2)
+    check("gt", 3 > 2)
+    check("gte", 3 >= 3)
+
+    // Logical (short-circuit)
+    check("and", true && true)
+    check("or", false || true)
+    check("not", !false)
+    var shortCircuit = false
+    gOpSideEffect = false
+    if false && opSideEffect() { shortCircuit = true }
+    check("short_circuit_and", gOpSideEffect == false)
+    gOpSideEffect = false
+    if true || opSideEffect() { shortCircuit = true }
+    check("short_circuit_or", gOpSideEffect == false)
+
+    // Bitwise
+    check("bit_and", 0b1100 & 0b1010 == 0b1000)
+    check("bit_or", 0b1100 | 0b1010 == 0b1110)
+    check("bit_xor", 0b1100 ^ 0b1010 == 0b0110)
+    check("shl", 1 << 4 == 16)
+    check("shr", 16 >> 2 == 4)
+    check("bit_not", ~0 == -1)
+
+    // Compound assignment
+    var x = 1
+    x += 2
+    check("compound_add", x == 3)
+    x -= 1
+    check("compound_sub", x == 2)
+    x *= 3
+    check("compound_mul", x == 6)
+    x /= 2
+    check("compound_div", x == 3)
+    x %= 2
+    check("compound_mod", x == 1)
+
+    // Fixed-width wraparound (two's complement)
+    var w = 120i8
+    w += 10
+    check("int8_wrap", w == -126)
+
+    // Range: half-open
+    var halfSum = 0
+    for i in 0..<5 { halfSum = halfSum + i }
+    check("half_open_range", halfSum == 10)
+
+    // Nil coalescing
+    let opt: Int? = nil
+    check("nil_coalesce", (opt ?? 99) == 99)
+
+    // String equality (value equality)
+    check("string_eq", "abc" == "abc")
+    check("string_neq", "abc" != "abd")
+
+    return endSuite()
+}

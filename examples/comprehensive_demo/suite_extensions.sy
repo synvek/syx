@@ -1,0 +1,64 @@
+// suite_extensions.sy — extensions: adding methods and computed properties via struct/class extensions,
+// extensions on built-in types (Int). Corresponds to chapter 15 of the language guide.
+// Methods from retroactive protocol conformance in extensions are not dispatched (return the default description);
+// nested-type construction fails with C020; recorded as SKIP. Prefix Ex.
+
+struct ExPoint {
+    var x: Int
+    var y: Int
+}
+
+extension ExPoint {
+    func sum() -> Int { return self.x + self.y }
+    var magnitude: Int {
+        get { return self.x * self.x + self.y * self.y }
+    }
+}
+
+class ExWallet {
+    var cents: Int
+    init(cents: Int) { self.cents = cents }
+}
+
+extension ExWallet {
+    func dollars() -> Int { return self.cents / 100 }
+    var doubled: Int {
+        get { return self.cents * 2 }
+    }
+}
+
+extension Int {
+    func exSquared() -> Int { return self * self }
+}
+
+func runExtensions() -> (Int, Int, Int) {
+    beginSuite("lang.extensions")
+
+    // struct extension method
+    let p = ExPoint(x: 3, y: 4)
+    check("struct_ext_method", p.sum() == 7)
+
+    // struct extension computed property
+    check("struct_ext_computed", p.magnitude == 25)
+
+    // class extension method
+    let w = ExWallet(cents: 250)
+    check("class_ext_method", w.dollars() == 2)
+
+    // class extension computed property
+    check("class_ext_computed", w.doubled == 500)
+
+    // Built-in type extension
+    let n: Int = 6
+    check("builtin_ext_int", n.exSquared() == 36)
+
+    // Extension coexists with original members
+    check("ext_and_original", w.cents == 250)
+
+    // Known gaps
+    skipCase("retroactive_conformance", "extension Point: Protocol methods not dispatched (returns the default description)")
+    skipCase("nested_types", "Outer.Inner nested type construction C020 (Outer_Inner_init not generated)")
+    skipCase("opaque_boxed_types", "some/any opaque/boxed types rely on existentials, currently unavailable")
+
+    return endSuite()
+}

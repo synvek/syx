@@ -1,0 +1,63 @@
+// suite_host_net.sy — host networking: HTTP server/client loopback (Task + Http.serve + Http.get + Http.shutdown),
+// routing 404, TCP M0 integer handles (TcpListener.bind/close, TcpSocket.connect), Url.build.
+// Observed: the Object body of Http.response serializes to empty; Url.build drops the query. The FAILs are valid coverage.
+// Backend: vm (loopback relies on host threads; native/wasm currently unavailable). Prefix Hn.
+
+import Networking
+import Concurrency
+import System
+
+func hnHandle(req: Object) -> HTTPResponse {
+    if req.path == "/health" {
+        return Http.response(200, {"status": "ok"})
+    }
+    return Http.response(404, {"error": "nf"})
+}
+
+func runHostNet() -> (Int, Int, Int) {
+    beginSuite("host.net")
+
+    // HTTP loopback: start serve inside a Task, GET from the main flow
+    let t = Task { Http.serve("127.0.0.1", 18765, "hnHandle") }
+    Time.sleepMs(ms: 200)
+
+    let resp = Http.get(url: "http://127.0.0.1:18765/health")
+    check("http_status_200", resp.status == 200)
+
+    // Response body: should contain status ok; observed empty; the FAIL is valid coverage
+    let bodyStr = "\(resp.body)"
+    checkMsg("http_body", bodyStr.count > 0, "body is empty (Object response body not serialized)")
+
+    // Routing 404
+    let nf = Http.get(url: "http://127.0.0.1:18765/nope")
+    check("http_status_404", nf.status == 404)
+
+    Http.shutdown()
+    check("http_shutdown", true)
+
+    // TCP M0: bind returns an integer handle
+    let h = TcpListener.bind(host: "127.0.0.1", port: 18767)
+    check("tcp_bind_handle", h > 0)
+
+    // TCP M0: connect returns a TcpStream (prints as an integer handle, no > operator; observe via interpolation)
+    let st = TcpSocket.connect("127.0.0.1", 18767)
+    let stStr = "\(st)"
+    check("tcp_connect", stStr.count > 0)
+    TcpListener.close(handle: h)
+    check("tcp_close", true)
+
+    // Url.build: base + path
+    let built = Url.build(base: "https://api.example.com", path: "/v1", query: {"q": "syx"})
+    let builtStr = "\(built)"
+    check("url_build_base", builtStr.hasPrefix("https://api.example.com/v1"))
+
+    // Url.build: query should be appended; observed dropped; the FAIL is valid coverage
+    let parts = builtStr.split("?")
+    checkMsg("url_build_query", parts.count == 2, "query dropped: \(builtStr)")
+
+    // Known gaps
+    skipCase("http_post", "Http.post/fetch remote requests not covered by the loopback verification")
+    skipCase("tcp_read_write", "TcpSocket.read/write needs accept, which M0 does not provide")
+
+    return endSuite()
+}

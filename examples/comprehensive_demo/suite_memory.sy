@@ -1,0 +1,98 @@
+// suite_memory.sy — observable memory-management behavior: deinit firing on scope exit, weak references,
+// reclamation of reference cycles. Corresponds to chapters 26/27 of the language guide (ARC/GC).
+// Observed: the VM reclaims strong cycles (GC-style behavior); weak is not auto-nil'd; global weak var fails with S002. Prefix Me.
+
+var gMeFreed = 0
+
+class MeThing {
+    var n: Int
+    init(n: Int) { self.n = n }
+    deinit { gMeFreed = gMeFreed + 1 }
+}
+
+class MeParent {
+    var child: MeChild?
+    init() {}
+    deinit { gMeFreed = gMeFreed + 1 }
+}
+
+class MeChild {
+    weak var parent: MeParent?
+    init() {}
+    deinit { gMeFreed = gMeFreed + 1 }
+}
+
+class MeStrong {
+    var other: MeStrong?
+    init() {}
+    deinit { gMeFreed = gMeFreed + 1 }
+}
+
+class MeWeakTarget {
+    var name: String
+    init(name: String) { self.name = name }
+}
+
+class MeHolder {
+    weak var ref: MeWeakTarget?
+    init() {}
+}
+
+func meScoped() {
+    let t = MeThing(n: 1)
+    print("  (meScoped created \(t.n))")
+}
+
+func meWeakCycle() {
+    let p = MeParent()
+    let c = MeChild()
+    p.child = c
+    c.parent = p
+}
+
+func meStrongCycle() {
+    let a = MeStrong()
+    let b = MeStrong()
+    a.other = b
+    b.other = a
+}
+
+// The target is created inside the function and weakly attached to the holder; after the function returns, the target should be freed.
+func meMakeLinked() -> MeHolder {
+    let h = MeHolder()
+    let n = MeWeakTarget(name: "target")
+    h.ref = n
+    return h
+}
+
+func runMemory() -> (Int, Int, Int) {
+    beginSuite("lang.memory")
+
+    // deinit fires on scope exit
+    gMeFreed = 0
+    meScoped()
+    check("deinit_scope_exit", gMeFreed == 1)
+
+    // weak parent-child link: both are freed when the scope ends
+    gMeFreed = 0
+    meWeakCycle()
+    check("weak_link_released", gMeFreed == 2)
+
+    // Strong reference cycle: observed that the VM reclaims it too (GC-style behavior, not pure-ARC leak semantics)
+    gMeFreed = 0
+    meStrongCycle()
+    check("strong_cycle_reclaimed", gMeFreed == 2)
+
+    // weak auto-nil: after the target is freed, weak should read nil (?? falls back to the sentinel).
+    // Currently weak is not nil'd (still reads the target); the FAIL is valid coverage.
+    let h = meMakeLinked()
+    let sentinel = MeWeakTarget(name: "sentinel")
+    let observed = h.ref ?? sentinel
+    checkMsg("weak_auto_nil", observed.name == "sentinel", "expected sentinel, actual \(observed.name) (weak not auto-nil'd)")
+
+    // Known gaps
+    skipCase("global_weak_var", "global weak var declaration S002 undefined")
+    skipCase("unowned_reference", "unowned reference support unverified")
+
+    return endSuite()
+}

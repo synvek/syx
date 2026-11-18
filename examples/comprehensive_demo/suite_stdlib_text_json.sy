@@ -1,0 +1,87 @@
+// suite_stdlib_text_json.sy — stdlib text and JSON: JSON.encode/decode (Object literals / nesting),
+// Encoding base64/hex/url codecs, Crypto.sha256/sha512, Hasher newHasher/combine/finalize/hash(into:).
+// Observed: Hasher.combine and hash(into:) do not change the finalize result (stuck at the FNV offset basis). Prefix St.
+
+import JSON
+import Text
+import Crypto
+
+func runStdlibTextJson() -> (Int, Int, Int) {
+    beginSuite("stdlib.text_json")
+
+    // JSON: encoding an Object literal
+    var person: Object = {
+        "id": 1,
+        "name": "Alice"
+    }
+    let pj = JSON.encode(value: person)
+    // The encode result is not a compile-time String (direct .hasPrefix yields nil); convert via interpolation
+    let pjStr = "\(pj)"
+    check("json_encode_object", pjStr.hasPrefix("{"))
+
+    // JSON: decode roundtrip and field access
+    let decoded: Object = JSON.decode(text: pj)
+    check("json_decode_name", decoded.name == "Alice")
+    check("json_decode_id", "\(decoded.id)" == "1")
+
+    // JSON: nested objects
+    var addr: Object = {
+        "city": "Shanghai"
+    }
+    var emp: Object = {
+        "name": "Bob"
+    }
+    emp.address = addr
+    let ej = JSON.encode(value: emp)
+    let dec2: Object = JSON.decode(text: ej)
+    check("json_nested_city", dec2.address.city == "Shanghai")
+
+    // Encoding: base64 roundtrip
+    let b64 = Encoding.base64Encode(text: "hi")
+    check("base64_encode", b64 == "aGk=")
+    let b64back = Encoding.base64Decode(text: "aGk=")
+    check("base64_decode", b64back == "hi")
+
+    // Encoding: hex roundtrip
+    let hex = Encoding.hexEncode(text: "hi")
+    check("hex_encode", hex == "6869")
+    let hexback = Encoding.hexDecode(text: "6869")
+    check("hex_decode", hexback == "hi")
+
+    // Encoding: url roundtrip
+    let url = Encoding.urlEncode(text: "a b&c")
+    check("url_encode", url == "a+b%26c")
+    let urlback = Encoding.urlDecode(text: "a+b%26c")
+    check("url_decode", urlback == "a b&c")
+
+    // Crypto: sha256 known vector
+    let sha = Crypto.sha256(text: "abc")
+    check("sha256_vector", sha == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+
+    // Crypto: sha512 output should be 128 hex characters
+    let sha5 = Crypto.sha512(text: "abc")
+    checkMsg("sha512_length", sha5.count == 128, "actual length \(sha5.count)")
+
+    // Hasher: finalize is stable and usable
+    var h1 = Hasher.newHasher()
+    let f1 = Hasher.finalize(h1)
+    check("hasher_finalize_nonzero", f1 != 0)
+
+    // Hasher.combine should change the hash: observed unchanged (stuck at the FNV offset basis); the FAIL is valid coverage
+    var h2 = Hasher.newHasher()
+    Hasher.combine(h2, 42)
+    let f2 = Hasher.finalize(h2)
+    checkMsg("hasher_combine_effect", f1 != f2, "finalize unchanged after combine (\(f2))")
+
+    // hash(into:) witness: should likewise affect the result
+    let witness: Int = 7
+    var h3 = Hasher.newHasher()
+    witness.hash(into: h3)
+    let f3 = Hasher.finalize(h3)
+    checkMsg("hash_into_effect", f1 != f3, "finalize unchanged after hash(into:) (\(f3))")
+
+    // Known gaps
+    skipCase("string_unicode_api", "String.utf8Count/unicodeScalars and similar members currently missing (S002)")
+
+    return endSuite()
+}

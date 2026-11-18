@@ -1,0 +1,236 @@
+// main.sy — entry point and scheduler of the comprehensive test demo.
+// All .sy files in the same package share one namespace: harness.sy provides
+// beginSuite/check/checkMsg/skipCase/endSuite, and each suite_*.sy provides a
+// unique entry runXxx() -> (Int, Int, Int).
+//
+// Usage:
+//   syx run .                          # VM, run all suites
+//   syx run . -- --list                # list suites with backend annotations
+//   syx run . -- --only basics,strings # run selected suites (short/full/group names)
+//   syx run . -- --skip host.net       # skip selected suites
+//   syx run . -- --backend wasm        # declare current backend (vm|native|wasm); mismatched suites SKIP entirely
+//   syx run . -- --force               # ignore backend annotations and force-run
+//   syx run . -- --strict              # exit with code 1 when any FAIL exists
+//
+// Extension convention: new suite = new suite_xxx.sy (defines runXxx) + add the name
+//           to allSuites() + add one branch to dispatch(); if not supported on all
+//           backends, also register it in backendsFor()/reasonFor().
+
+import System
+
+enum SuiteError: Error {
+    case strictFailure
+}
+
+// === Suite registry (names carry group prefixes lang.* / stdlib.* / host.*) ===
+func allSuites() -> Array<String> {
+    return [
+        "lang.basics",
+        "lang.operators",
+        "lang.strings",
+        "lang.control_flow",
+        "lang.functions",
+        "lang.enums",
+        "lang.structs_classes",
+        "lang.properties",
+        "lang.inheritance",
+        "lang.errors",
+        "lang.generics",
+        "lang.protocols",
+        "lang.extensions",
+        "lang.macros",
+        "lang.access_control",
+        "lang.memory",
+        "lang.collections",
+        "stdlib.math",
+        "stdlib.text_json",
+        "stdlib.time_path",
+        "host.concurrency",
+        "host.simd",
+        "host.io",
+        "host.net",
+        "host.services"
+    ]
+}
+
+// Backends supported per suite (comma-separated), annotated from actual testing:
+// only the VM runs fully on the current compiler build.
+// - native: the 17 lang suites build (stdlib/host blocked by MIR001/C020), but runtime
+//   control flow is broken: bodies of `if Bool-var` / `if String==` conditions never run,
+//   `Bool==Bool` conditions and `while Bool` loop forever, `switch` returns the scrutinee.
+//   No valid case results can be produced, so everything is marked unsupported.
+// - wasm: W001 If underflow and if-statement bodies never run; likewise unsupported.
+// Once the compiler is fixed, just flip the strings back to "vm,native" / "vm,native,wasm"
+// (data-driven; no scheduler logic changes needed).
+// Note: on native, String != returns nil, so the scheduler always uses !(x == y) instead.
+func backendsFor(_ name: String) -> String {
+    return "vm"
+}
+
+// SKIP reason when a backend is unsupported (per backend; the native compile-blocker
+// list is kept for reference once the compiler is fixed).
+func reasonFor(_ name: String, _ backend: String) -> String {
+    if backend == "wasm" { return "wasm backend currently unavailable: W001 If underflow, if statement bodies not executed (compiler defect)" }
+    if backend == "native" { return "native runtime control flow broken: if-Bool bodies skipped, Bool==Bool/while-Bool infinite loops (compiler defect)" }
+    if name == "stdlib.math" { return "native MIR001: Double lowering not supported" }
+    if name == "stdlib.text_json" { return "native C020: Int hash(into:) not generated" }
+    if name == "stdlib.time_path" { return "native MIR001: FilePath lowering not supported" }
+    if name == "host.concurrency" { return "native MIR001: Channel; Task/actor host scheduling unverified" }
+    if name == "host.simd" { return "SIMD lowering verified on VM only" }
+    if name == "host.io" { return "native host IO functions return nil" }
+    if name == "host.net" { return "HTTP/TCP loopback depends on VM host threads" }
+    if name == "host.services" { return "Logging/Metrics/Trace host services are VM-only" }
+    return "unannotated"
+}
+
+// Dispatch: call the suite entry matching the name.
+func dispatch(_ name: String) -> (Int, Int, Int) {
+    if name == "lang.basics" { return runBasics() }
+    if name == "lang.operators" { return runOperators() }
+    if name == "lang.strings" { return runStrings() }
+    if name == "lang.control_flow" { return runControlFlow() }
+    if name == "lang.functions" { return runFunctions() }
+    if name == "lang.enums" { return runEnums() }
+    if name == "lang.structs_classes" { return runStructsClasses() }
+    if name == "lang.properties" { return runProperties() }
+    if name == "lang.inheritance" { return runInheritance() }
+    if name == "lang.errors" { return runErrors() }
+    if name == "lang.generics" { return runGenerics() }
+    if name == "lang.protocols" { return runProtocols() }
+    if name == "lang.extensions" { return runExtensions() }
+    if name == "lang.macros" { return runMacros() }
+    if name == "lang.access_control" { return runAccessControl() }
+    if name == "lang.memory" { return runMemory() }
+    if name == "lang.collections" { return runCollections() }
+    if name == "stdlib.math" { return runStdlibMath() }
+    if name == "stdlib.text_json" { return runStdlibTextJson() }
+    if name == "stdlib.time_path" { return runStdlibTimePath() }
+    if name == "host.concurrency" { return runConcurrency() }
+    if name == "host.simd" { return runSimd() }
+    if name == "host.io" { return runHostIo() }
+    if name == "host.net" { return runHostNet() }
+    if name == "host.services" { return runHostServices() }
+    return (0, 0, 0)
+}
+
+// === Selection helpers ===
+// A token matches the full name (lang.basics), short name (basics) or group name (lang).
+func nameMatches(_ name: String, _ tokens: Array<String>) -> Bool {
+    var t = 0
+    while t < tokens.count {
+        let tok = tokens[t]
+        if !(tok == "") {
+            if tok == name { return true }
+            let parts = name.split(".")
+            if parts.count == 2 {
+                if tok == parts[1] { return true }
+                if tok == parts[0] { return true }
+            }
+        }
+        t = t + 1
+    }
+    return false
+}
+
+func containsToken(_ csv: String, _ tok: String) -> Bool {
+    let parts = csv.split(",")
+    var i = 0
+    while i < parts.count {
+        if parts[i] == tok { return true }
+        i = i + 1
+    }
+    return false
+}
+
+func main() throws {
+    let args = Process.args()
+    var only = ""
+    var skip = ""
+    var backend = "vm"
+    var list = false
+    var force = false
+    var strict = false
+
+    var i = 0
+    while i < args.count {
+        let a = args[i]
+        if a == "--only" {
+            i = i + 1
+            if i < args.count { only = args[i] }
+        } else if a == "--skip" {
+            i = i + 1
+            if i < args.count { skip = args[i] }
+        } else if a == "--backend" {
+            i = i + 1
+            if i < args.count { backend = args[i] }
+        } else if a == "--list" {
+            list = true
+        } else if a == "--force" {
+            force = true
+        } else if a == "--strict" {
+            strict = true
+        }
+        i = i + 1
+    }
+
+    let names = allSuites()
+
+    if list {
+        print("== suites ==")
+        var k = 0
+        while k < names.count {
+            print("\(names[k])  [\(backendsFor(names[k]))]")
+            k = k + 1
+        }
+        return
+    }
+
+    let onlyTokens = only.split(",")
+    let skipTokens = skip.split(",")
+
+    var totalPass = 0
+    var totalFail = 0
+    var totalSkip = 0
+    var suitesRun = 0
+    var suitesSkipped = 0
+
+    var j = 0
+    while j < names.count {
+        // Note: String is a move-by-value type; the subscript names[j] returns a fresh
+        // clone each time, so inline names[j] instead of caching it in a local variable;
+        // backend is copied via "\(backend)" when passed as an argument.
+        if !(only == "") && !nameMatches(names[j], onlyTokens) {
+            j = j + 1
+            continue
+        }
+        if !(skip == "") && nameMatches(names[j], skipTokens) {
+            print("[SKIP] \(names[j]) (user skip)")
+            suitesSkipped = suitesSkipped + 1
+            j = j + 1
+            continue
+        }
+        if !force && !containsToken(backendsFor(names[j]), "\(backend)") {
+            let reason = reasonFor(names[j], "\(backend)")
+            print("[SKIP] \(names[j]) (backend \(backend) unsupported: \(reason))")
+            suitesSkipped = suitesSkipped + 1
+            j = j + 1
+            continue
+        }
+        let r = dispatch(names[j])
+        totalPass = totalPass + r.0
+        totalFail = totalFail + r.1
+        totalSkip = totalSkip + r.2
+        suitesRun = suitesRun + 1
+        j = j + 1
+    }
+
+    print("== summary ==")
+    print("suites: \(suitesRun) run, \(suitesSkipped) skipped")
+    print("cases: \(totalPass) pass, \(totalFail) fail, \(totalSkip) skip")
+
+    if strict && totalFail > 0 {
+        print("RESULT: FAIL (strict)")
+        throw SuiteError.strictFailure
+    }
+    print("RESULT: OK")
+}

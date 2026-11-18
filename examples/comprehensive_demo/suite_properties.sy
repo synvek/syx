@@ -1,0 +1,65 @@
+// suite_properties.sy — properties: stored properties, computed properties get/get-set, static var/let,
+// willSet/didSet observers. Corresponds to chapter 11 of the language guide (Class Properties v6 MVP).
+// class subscripts currently return the object itself (broken) and lazy var triggers R003; both recorded as SKIP. Prefix Pr.
+
+var gPrWill = -1
+var gPrDid = -1
+
+class PrBox {
+    var base: Int
+    init(base: Int) { self.base = base }
+    var doubled: Int {
+        get { return self.base * 2 }
+    }
+    var value: Int {
+        get { return self.base }
+        set { self.base = newValue }
+    }
+    static var count: Int = 0
+    static let version: Int = 1
+}
+
+class PrCounter {
+    static var value: Int = 0 {
+        willSet { gPrWill = newValue }
+        didSet { gPrDid = oldValue }
+    }
+}
+
+func runProperties() -> (Int, Int, Int) {
+    beginSuite("lang.properties")
+
+    let b = PrBox(base: 5)
+
+    // Stored property
+    check("stored_property", b.base == 5)
+
+    // Computed property, get-only
+    check("computed_get", b.doubled == 10)
+
+    // Computed property, get/set
+    check("computed_get_value", b.value == 5)
+    b.value = 10
+    check("computed_set", b.base == 10)
+    check("computed_reflects", b.doubled == 20)
+
+    // static var / let
+    PrBox.count = 7
+    check("static_var", PrBox.count == 7)
+    check("static_let", PrBox.version == 1)
+
+    // willSet / didSet observers
+    gPrWill = -1
+    gPrDid = -1
+    PrCounter.value = 7
+    check("will_set", gPrWill == 7)
+    check("did_set", gPrDid == 0)
+    check("observer_value", PrCounter.value == 7)
+
+    // Known gaps
+    skipCase("class_subscript", "class subscript currently returns the object itself")
+    skipCase("lazy_var", "lazy var triggers R003")
+    skipCase("struct_observers", "struct/global observers not GA")
+
+    return endSuite()
+}

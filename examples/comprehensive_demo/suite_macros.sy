@@ -1,0 +1,65 @@
+// suite_macros.sy — built-in derive macros: @Equatable (synthesized ==), @Codable (encode/decode JSON),
+// @Hashable (hash()), @Codable enums with associated values. Corresponds to chapter 24 of the language guide and examples/codable_associated_enum.
+// Note: other suites in this project must not instantiate generic enums or use generic methods map<U>+closure
+// (they conflict with @Equatable/data class synthesized code). Prefix Mc.
+
+@Equatable
+data class McUser(name: String, age: Int)
+
+@Codable
+data class McCfg(host: String, port: Int)
+
+@Hashable
+data class McKey(id: Int)
+
+@Codable
+enum McWire {
+    case ok(code: Int)
+    case err(message: String)
+}
+
+func runMacros() -> (Int, Int, Int) {
+    beginSuite("lang.macros")
+
+    // @Equatable: field-by-field synthesized ==
+    let u1 = McUser(name: "A", age: 30)
+    let u2 = McUser(name: "A", age: 30)
+    check("equatable_equal", u1 == u2)
+    let u3 = McUser(name: "B", age: 30)
+    check("equatable_not_equal", (u1 == u3) == false)
+    let u4 = McUser(name: "A", age: 31)
+    check("equatable_field_diff", (u2 == u4) == false)
+
+    // @Codable: encode produces JSON (String has no contains; use hasPrefix/count)
+    let c = McCfg(host: "localhost", port: 8080)
+    let j = c.encode()
+    check("codable_encode_json", j.hasPrefix("{"))
+    check("codable_encode_nonempty", j.count > 10)
+
+    // @Codable: decode roundtrip
+    let c2 = McCfg.decode(text: j)
+    check("codable_roundtrip_host", c2.host == "localhost")
+    check("codable_roundtrip_port", c2.port == 8080)
+
+    // @Codable enum with associated values: ok branch roundtrip
+    let w = McWire.ok(code: 7)
+    let wj = w.encode()
+    let w2 = McWire.decode(text: wj)
+    check("codable_enum_ok", w2.code == 7)
+
+    // @Codable enum with associated values: err branch roundtrip
+    let e = McWire.err(message: "nope")
+    let ej = e.encode()
+    let e2 = McWire.decode(text: ej)
+    check("codable_enum_err", e2.message == "nope")
+
+    // @Hashable: declaration and construction work; hash() currently returns Void and direct comparison triggers S016; recorded as SKIP
+    let k1 = McKey(id: 1)
+    check("hashable_construct", k1.id == 1)
+    skipCase("hashable_equal_values", "hash() returns Void; == comparison S016 (printable via interpolation but not type-checkable)")
+
+    // Known gaps
+    skipCase("custom_macro", "custom macro/derive extension mechanism not GA")
+
+    return endSuite()
+}

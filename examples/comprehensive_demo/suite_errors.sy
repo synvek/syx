@@ -1,0 +1,88 @@
+// suite_errors.sy — error handling: throws/try/do-catch, error enums (with associated values),
+// error propagation up through throws functions, try! force-success. Corresponds to chapter 17 of the language guide.
+// try? currently triggers an R007 crash and typed catch (catch MyErr.bad) is unsupported (P001); recorded as SKIP. Prefix Er.
+
+enum ErError: Error {
+    case bad
+    case worse(code: Int)
+}
+
+func erRisky(_ x: Int) throws -> Int {
+    if x < 0 { throw ErError.bad }
+    if x == 0 { throw ErError.worse(code: 42) }
+    return x * 2
+}
+
+func erWrap(_ x: Int) throws -> Int {
+    return try erRisky(x)
+}
+
+func runErrors() -> (Int, Int, Int) {
+    beginSuite("lang.errors")
+
+    // try happy path
+    do {
+        let v1 = try erRisky(5)
+        check("try_success", v1 == 10)
+    } catch {
+        check("try_success", false)
+    }
+
+    // throw + generic catch (global flag observes whether catch is entered)
+    var caught1 = false
+    do {
+        let v2 = try erRisky(-1)
+        check("throw_not_reached", v2 == 0)
+    } catch {
+        caught1 = true
+    }
+    check("catch_entered", caught1)
+
+    // Error enums with associated values can also be thrown/caught
+    var caught2 = false
+    do {
+        let v3 = try erRisky(0)
+        check("assoc_throw_not_reached", v3 == 0)
+    } catch {
+        caught2 = true
+    }
+    check("assoc_error_caught", caught2)
+
+    // Error propagation through a throws wrapper: happy path
+    do {
+        let v4 = try erWrap(3)
+        check("propagate_success", v4 == 6)
+    } catch {
+        check("propagate_success", false)
+    }
+
+    // Error propagation through a throws wrapper: throwing path
+    var caught3 = false
+    do {
+        let v5 = try erWrap(-2)
+        check("propagate_not_reached", v5 == 0)
+    } catch {
+        caught3 = true
+    }
+    check("propagated_throw_caught", caught3)
+
+    // try! force-success path
+    let forced = try! erRisky(4)
+    check("try_bang", forced == 8)
+
+    // Error-enum associated-value construction and pattern destructuring
+    let e = ErError.worse(code: 42)
+    switch e {
+    case .bad:
+        check("error_enum_match", false)
+    case .worse(let code):
+        check("error_enum_match", code == 42)
+    }
+
+    // Known gaps
+    skipCase("try_optional", "try? currently triggers an R007 crash")
+    skipCase("typed_catch", "catch ErError.bad form unsupported (P001)")
+    skipCase("catch_binding", "catch let e error-value binding support unverified")
+
+    return endSuite()
+}

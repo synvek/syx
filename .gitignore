@@ -45,6 +45,7 @@ tools/sgate/.tmp_*/
 
 .cursor/
 .kiro/
+.qoder/
 # Local planning dir stays private by default (dual-repo tip/ledger/todos).
 # Ignore contents (not the dir) so negations below can re-include claim SSOT.
 # Credibility nails read plan/01 + plan/02 on clean CI checkouts.

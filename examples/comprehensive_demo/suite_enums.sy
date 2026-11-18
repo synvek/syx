@@ -1,0 +1,70 @@
+// suite_enums.sy — enums: simple enums / tag, associated values (anonymous / named), switch destructuring, if case, generic enums.
+// Corresponds to chapter 09 of the language guide. Enum methods currently return nil (compiler gap); use free-function switch matching instead.
+// indirect enum / String rawValue are not implemented. Type names are globally unique; prefix En.
+
+enum EnStatus {
+    case ok, err, pending
+}
+
+enum EnRes {
+    case success(String)
+    case failure(code: Int, message: String)
+}
+
+enum EnBox<T> {
+    case some(T)
+    case none
+}
+
+func enDescribe(_ r: EnRes) -> String {
+    switch r {
+    case .success(let d) { return "ok:\(d)" }
+    case .failure(code: let c, message: let m) { return "fail:\(c):\(m)" }
+    }
+}
+
+func enBoxValue(_ b: EnBox<Int>) -> Int {
+    switch b {
+    case .some(let v) { return v ?? -1 }
+    case .none { return -1 }
+    }
+}
+
+func runEnums() -> (Int, Int, Int) {
+    beginSuite("lang.enums")
+
+    // Simple enum and tag
+    let s = EnStatus.ok
+    check("simple_tag", s.tag == 0)
+    check("simple_tag_pending", EnStatus.pending.tag == 2)
+
+    // Associated values: anonymous (enum instances are move types; construct fresh each time to avoid reuse)
+    check("assoc_anonymous", enDescribe(EnRes.success("OK")) == "ok:OK")
+
+    // Associated values: named
+    check("assoc_named", enDescribe(EnRes.failure(code: 404, message: "NF")) == "fail:404:NF")
+
+    // switch destructuring branch selection
+    check("switch_branch_success", enDescribe(EnRes.success("X")) == "ok:X")
+    check("switch_branch_failure", enDescribe(EnRes.failure(code: 500, message: "E")) == "fail:500:E")
+
+    // if case
+    var ifCaseOk = false
+    if case .success(let d) = EnRes.success("OK") {
+        ifCaseOk = d == "OK"
+    }
+    check("if_case", ifCaseOk)
+
+    // Generic enum: declaration and matching functions work, but instantiation (monomorphization)
+    // conflicts with the @Equatable macro (Self unresolved), so instantiation cases are skipped
+    // until the compiler is fixed.
+    skipCase("generic_enum_some", "generic enum monomorphization conflicts with the @Equatable macro")
+    skipCase("generic_enum_none", "generic enum monomorphization conflicts with the @Equatable macro")
+
+    // Known gaps
+    skipCase("enum_method", "enum methods currently return nil")
+    skipCase("string_raw_value", "String rawValue not implemented")
+    skipCase("indirect_enum", "indirect enum not implemented")
+
+    return endSuite()
+}

@@ -1,0 +1,63 @@
+// suite_protocols.sy — protocols: definition / struct and class conformance, property requirements { get },
+// multiple conformance, protocol inheritance. Corresponds to chapter 14 of the language guide.
+// Protocols as types (existentials) unsupported (S004); protocol extension default implementations not dispatched (C020); recorded as SKIP. Prefix Pt.
+
+protocol PtGreeter {
+    func greet() -> String
+}
+
+protocol PtLoud: PtGreeter {
+    func volume() -> Int
+}
+
+protocol PtNamed {
+    var name: String { get }
+}
+
+protocol PtAged {
+    func age() -> Int
+}
+
+struct PtEn: PtGreeter {
+    func greet() -> String { return "hello" }
+}
+
+class PtFr: PtLoud {
+    func greet() -> String { return "bonjour" }
+    func volume() -> Int { return 11 }
+}
+
+struct PtPerson: PtNamed, PtAged {
+    var name: String
+    func age() -> Int { return 30 }
+}
+
+func runProtocols() -> (Int, Int, Int) {
+    beginSuite("lang.protocols")
+
+    // struct conforming to a protocol
+    let e = PtEn()
+    check("struct_conformance", e.greet() == "hello")
+
+    // class conforming to a protocol
+    let f = PtFr()
+    check("class_conformance", f.greet() == "bonjour")
+
+    // Protocol inheritance: child requirements + parent requirements
+    check("protocol_inheritance_own", f.volume() == 11)
+    check("protocol_inheritance_parent", f.greet() == "bonjour")
+
+    // Property requirement { get }
+    let p = PtPerson(name: "Ann")
+    check("property_requirement", p.name == "Ann")
+
+    // Multiple conformance
+    check("multi_conformance", p.age() == 30)
+
+    // Known gaps
+    skipCase("protocol_as_type", "let g: Greeter = … / protocol-typed parameters unsupported (S004)")
+    skipCase("protocol_extension_default", "extension protocol default implementation C020 (En_loud not generated)")
+    skipCase("protocol_composition", "P1 & P2 composition relies on existentials, currently unavailable")
+
+    return endSuite()
+}

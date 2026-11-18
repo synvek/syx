@@ -1,0 +1,76 @@
+// suite_collections.sy — collections: Array (append/count/contains/sorted/reverse/subscript/HOF),
+// Dictionary (literal/subscript/containsKey/keys/values/remove), Set (insert dedup/contains/remove/union).
+// Corresponds to chapter 05 of the language guide. Array lacks isEmpty/first/last; see the docs for Dictionary subscript key requirements.
+
+func runCollections() -> (Int, Int, Int) {
+    beginSuite("lang.collections")
+
+    // Array basics
+    var a = [3, 1, 2]
+    check("array_count", a.count == 3)
+    a.append(5)
+    check("array_append", a.count == 4)
+    check("array_contains", a.contains(2))
+    check("array_contains_false", a.contains(99) == false)
+    check("array_subscript", a[1] == 1)
+    a[0] = 9
+    check("array_subscript_assign", a[0] == 9)
+
+    // Array sort/reverse (return new arrays)
+    let sorted = [3, 1, 2].sorted()
+    check("array_sorted", sorted[0] == 1)
+    check("array_sorted_last", sorted[2] == 3)
+    let rev = [1, 2, 3].reverse()
+    check("array_reverse", rev[0] == 3)
+
+    // Array HOF
+    let nums = [1, 2, 3, 4]
+    check("array_map", nums.map({ x in x * 2 })[3] == 8)
+    check("array_filter", nums.filter({ x in x % 2 == 0 }).count == 2)
+    check("array_reduce", nums.reduce(0, { acc, x in acc + x }) == 10)
+
+    // Array string joining
+    check("array_joined", ["a", "b", "c"].joined("-") == "a-b-c")
+
+    // Empty array
+    let empty: Array<Int> = []
+    check("array_empty_count", empty.count == 0)
+
+    // Dictionary literal and access
+    let d = ["a": 1, "b": 2]
+    check("dict_count", d.count == 2)
+    check("dict_subscript", d["a"] == 1)
+    check("dict_contains_key", d.containsKey("b"))
+    check("dict_contains_key_false", d.containsKey("z") == false)
+    check("dict_keys", d.keys().count == 2)
+    check("dict_values", d.values().count == 2)
+
+    // Dictionary mutation and remove
+    var md = ["x": 10]
+    md["y"] = 20
+    check("dict_insert", md.count == 2)
+    check("dict_remove", md.remove("x"))
+    check("dict_after_remove", md.count == 1)
+
+    // Set deduplication
+    var s = Set<Int>()
+    s.insert(1)
+    s.insert(2)
+    s.insert(1)
+    check("set_dedup", s.count == 2)
+    check("set_contains", s.contains(2))
+    check("set_remove", s.remove(1))
+    check("set_after_remove", s.count == 1)
+
+    // Set operations
+    var s1 = Set<Int>()
+    s1.insert(1)
+    s1.insert(2)
+    var s2 = Set<Int>()
+    s2.insert(2)
+    s2.insert(3)
+    check("set_union", s1.union(s2).count == 3)
+    check("set_intersection", s1.intersection(s2).count == 1)
+
+    return endSuite()
+}

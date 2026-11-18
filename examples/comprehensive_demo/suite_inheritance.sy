@@ -1,0 +1,98 @@
+// suite_inheritance.sy — inheritance: multi-level inheritance, override/super chains, super.init initialization chains,
+// base-type polymorphism (vtable dynamic dispatch), is/as? type checks and casts, deinit firing on scope exit.
+// Corresponds to chapter 12 of the language guide. convenience init is currently unsupported (P001); recorded as SKIP. Prefix In.
+
+var gInDeinit = 0
+
+class InBase {
+    var name: String
+    init(name: String) { self.name = name }
+    func speak() -> String { return "base" }
+    func label() -> String { return "animal:" + self.name }
+}
+
+class InMid: InBase {
+    var tag: Int
+    init(name: String, tag: Int) {
+        self.tag = tag
+        super.init(name: name)
+    }
+    override func speak() -> String { return "mid:" + super.speak() }
+    override func label() -> String { return "mid:" + super.label() }
+}
+
+class InLeaf: InMid {
+    override func speak() -> String { return "leaf:" + super.speak() }
+}
+
+class InThing {
+    var n: Int
+    init(n: Int) { self.n = n }
+    deinit { gInDeinit = gInDeinit + 1 }
+}
+
+func inScoped() {
+    let t = InThing(n: 1)
+    print("  (inScoped created \(t.n))")
+}
+
+// Polymorphism: parameter declared as the base type, dispatches to the subclass override.
+func inDescribe(_ a: InBase) -> String {
+    return a.speak()
+}
+
+func runInheritance() -> (Int, Int, Int) {
+    beginSuite("lang.inheritance")
+
+    // Single-level inheritance and inherited fields
+    let m = InMid(name: "m", tag: 3)
+    check("inherited_field", m.name == "m")
+    check("own_field", m.tag == 3)
+
+    // init chain: super.init runs correctly
+    check("init_chain", m.name == "m")
+
+    // override + super call chain
+    check("override_super", m.speak() == "mid:base")
+    check("override_label", m.label() == "mid:animal:m")
+
+    // Multi-level inheritance
+    let l = InLeaf(name: "l", tag: 9)
+    check("multi_level_override", l.speak() == "leaf:mid:base")
+    check("multi_level_field", l.tag == 9)
+
+    // Polymorphism: dynamic dispatch through a base-typed variable
+    let b: InBase = InLeaf(name: "up", tag: 1)
+    check("polymorphic_dispatch", b.speak() == "leaf:mid:base")
+
+    // Function-parameter polymorphism (note: passing a temporary multi-field subclass
+    // object straight into a base-typed parameter corrupts it; bind with let first,
+    // then pass through a base-typed variable)
+    let pm = InMid(name: "p", tag: 0)
+    let pb: InBase = pm
+    check("param_polymorphism", inDescribe(pb) == "mid:base")
+
+    // is type check
+    let c1: InBase = InLeaf(name: "c", tag: 2)
+    check("is_true", c1 is InLeaf)
+    let c2: InBase = InMid(name: "d", tag: 0)
+    check("is_false", (c2 is InLeaf) == false)
+
+    // as? downcast
+    let c3: InBase = InLeaf(name: "e", tag: 7)
+    if let d = c3 as? InLeaf {
+        check("downcast_field", d.tag == 7)
+    } else {
+        check("downcast_field", false)
+    }
+
+    // deinit fires on scope exit (observable ARC)
+    gInDeinit = 0
+    inScoped()
+    check("deinit_on_scope_exit", gInDeinit == 1)
+
+    // Known gaps
+    skipCase("convenience_init", "convenience modifier currently unsupported (P001)")
+
+    return endSuite()
+}

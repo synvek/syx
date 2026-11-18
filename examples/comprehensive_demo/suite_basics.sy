@@ -1,0 +1,85 @@
+// suite_basics.sy — language basics: let/var, literals, type annotations, tuples, multiline strings, ranges, type inference.
+// Corresponds to chapter 02 of the language guide. Files in the same package share a namespace, no import needed; entry function names are globally unique.
+// The suite counts itself (beginSuite/endSuite) and returns (pass, fail, skip).
+
+func runBasics() -> (Int, Int, Int) {
+    beginSuite("lang.basics")
+
+    // let: immutable binding
+    let immutable = 42
+    check("let_binding", immutable == 42)
+
+    // var: mutable binding and reassignment
+    var mutable = 10
+    mutable = 20
+    check("var_reassign", mutable == 20)
+
+    // Explicit type annotations
+    let x: Int = 10
+    let name: String = "SYX"
+    check("type_annotation_int", x == 10)
+    check("type_annotation_string", name == "SYX")
+
+    // Type inference: frozen after the first assignment
+    let n = 10
+    check("type_inference", n + 5 == 15)
+
+    // Numeric literals: radix prefixes and underscore separators
+    check("literal_hex", 0xFF == 255)
+    check("literal_binary", 0b1010 == 10)
+    check("literal_octal", 0o17 == 15)
+    check("literal_underscore", 1_000_000 == 1000000)
+
+    // Fixed-width integer suffixes
+    let small = 100i8
+    let wide = 1000i64
+    check("literal_suffix_i8", small == 100)
+    check("literal_suffix_i64", wide == 1000)
+
+    // Floating point: Double by default, f32 suffix for Float32
+    let d = 3.14
+    let f = 3.14f32
+    check("literal_double", d > 3.0)
+    check("literal_float32", f > 3.0)
+    check("literal_scientific", -2.5e2 == -250.0)
+
+    // Bool and nil / Optional (use ?? coalescing to test nil / some)
+    let ok: Bool = true
+    let maybe: Int? = nil
+    let present: Int? = 7
+    check("bool_true", ok)
+    check("optional_nil", (maybe ?? -1) == -1)
+    check("optional_some", (present ?? 0) == 7)
+
+    // Tuples
+    let pair = (1, "two")
+    check("tuple_access", pair.0 == 1)
+    check("tuple_access_second", pair.1 == "two")
+
+    // Multiline string (current implementation keeps the leading newline: content is "\nline1\nline2\n")
+    let multi = """
+line1
+line2
+"""
+    check("multiline_string", multi.hasPrefix("\nline1"))
+    check("multiline_count", multi.count == 13)
+
+    // Ranges
+    var rangeSum = 0
+    for i in 1...5 {
+        rangeSum = rangeSum + i
+    }
+    check("closed_range", rangeSum == 15)
+
+    // Block-scope shadowing
+    let outer = 1
+    var shadowOk = false
+    if true {
+        let outer = 2
+        shadowOk = outer == 2
+    }
+    check("scope_shadow", shadowOk)
+    check("scope_outer_unchanged", outer == 1)
+
+    return endSuite()
+}

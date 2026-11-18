@@ -1,0 +1,44 @@
+// suite_simd.sy — SIMD: SIMD4<Int32> fromArray construction, per-lane + - * / %, reduceAdd reduction.
+// Corresponds to chapter 31 of the language guide. Observed: % reduction is always 0 (broken); zero/splat/toArray are not public (S005).
+// Backend: vm (native/wasm currently unavailable; see backendsFor in main.sy). Prefix Sd.
+
+import SIMD4
+
+func runSimd() -> (Int, Int, Int) {
+    beginSuite("host.simd")
+
+    let v: SIMD4<Int32> = SIMD4.fromArray([1i32, 2i32, 3i32, 4i32])
+    let w: SIMD4<Int32> = SIMD4.fromArray([10i32, 20i32, 30i32, 40i32])
+
+    // reduceAdd baseline: 1+2+3+4 = 10
+    check("simd_reduce_base", SIMD4.reduceAdd(v) == 10)
+
+    // Per-lane addition: [11,22,33,44] → 110
+    let s = v + w
+    check("simd_add", SIMD4.reduceAdd(s) == 110)
+
+    // Per-lane subtraction: [9,18,27,36] → 90
+    let d = w - v
+    check("simd_sub", SIMD4.reduceAdd(d) == 90)
+
+    // Per-lane multiplication: [10,40,90,160] → 300
+    let m = v * w
+    check("simd_mul", SIMD4.reduceAdd(m) == 300)
+
+    // Per-lane division: w / [3,3,3,3] = [3,6,10,13] → 32
+    let three: SIMD4<Int32> = SIMD4.fromArray([3i32, 3i32, 3i32, 3i32])
+    let q = w / three
+    check("simd_div", SIMD4.reduceAdd(q) == 32)
+
+    // Per-lane modulo: w % 3 = [1,2,0,1] → 4; observed always 0; the FAIL is valid coverage
+    let r = w % three
+    checkMsg("simd_mod", SIMD4.reduceAdd(r) == 4, "actual reduction \(SIMD4.reduceAdd(r)) (appears always 0)")
+
+    // Known gaps
+    skipCase("simd_zero_splat", "SIMD4.zero/splat currently S005 non-public")
+    skipCase("simd_to_array", "SIMD4.toArray currently S005 non-public")
+    skipCase("simd_mask_all_any", "comparison mask all/any not covered in this round")
+    skipCase("simd8_simd16", "SIMD8/SIMD16 wide vectors not covered in this round")
+
+    return endSuite()
+}

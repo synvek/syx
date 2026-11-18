@@ -1,0 +1,122 @@
+// suite_control_flow.sy — control flow: if/else, if expressions, while, repeat-while, for-in,
+// break/continue, labeled loops, switch (value / multi-pattern / range / where / default), guard let.
+// Corresponds to chapter 06 of the language guide. switch uses block-form case v { }; fallthrough is rejected.
+
+func cfGuardUnwrap(_ o: Int?) -> Int {
+    guard let v = o else {
+        return -1
+    }
+    // On the current build guard let does not unwrap the type (v stays Int?); use ?? to get the value.
+    return v ?? -1
+}
+
+func runControlFlow() -> (Int, Int, Int) {
+    beginSuite("lang.control_flow")
+
+    // if / else if / else
+    var branch = ""
+    let x = 0
+    if x > 0 { branch = "pos" } else if x == 0 { branch = "zero" } else { branch = "neg" }
+    check("if_else_chain", branch == "zero")
+
+    // if expression (Phase 100+)
+    let label = if x > 0 { "pos" } else { "non-pos" }
+    check("if_expression", label == "non-pos")
+
+    // while
+    var w = 10
+    var wCount = 0
+    while w > 0 {
+        wCount = wCount + 1
+        w = w - 1
+    }
+    check("while", wCount == 10)
+
+    // repeat-while (runs at least once)
+    var r = 0
+    repeat {
+        r = r + 1
+    } while r < 3
+    check("repeat_while", r == 3)
+
+    // for-in over an array
+    var arrSum = 0
+    for item in [1, 2, 3, 4] { arrSum = arrSum + item }
+    check("for_in_array", arrSum == 10)
+
+    // for-in over a half-open range
+    var rSum = 0
+    for ri in 0..<5 { rSum = rSum + ri }
+    check("for_in_range", rSum == 10)
+
+    // break
+    var bCount = 0
+    for bi in 0..<100 {
+        if bi == 5 { break }
+        bCount = bCount + 1
+    }
+    check("break", bCount == 5)
+
+    // continue
+    var cSum = 0
+    for ci in 0..<10 {
+        if ci % 2 == 0 { continue }
+        cSum = cSum + ci
+    }
+    check("continue", cSum == 25)
+
+    // Labeled break (exit the outer loop)
+    var outerCount = 0
+    outer: for oi in 0..<10 {
+        for oj in 0..<10 {
+            if oj == 2 { break outer }
+            outerCount = outerCount + 1
+        }
+    }
+    check("labeled_break", outerCount == 2)
+
+    // switch value matching (block form)
+    var sw = ""
+    let num = 5
+    switch num {
+    case 1 { sw = "one" }
+    case 2, 3, 5, 7 { sw = "prime" }
+    default { sw = "other" }
+    }
+    check("switch_multi_pattern", sw == "prime")
+
+    // switch range cases
+    var swr = ""
+    let n = 42
+    switch n {
+    case 0..<10 { swr = "single" }
+    case 10..<100 { swr = "two" }
+    default { swr = "large" }
+    }
+    check("switch_range", swr == "two")
+
+    // switch where guards
+    var swg = ""
+    let g = 4
+    switch g {
+    case let v where v < 0 { swg = "neg" }
+    case let v where v % 2 == 0 { swg = "even" }
+    case let v { swg = "odd" }
+    }
+    check("switch_where", swg == "even")
+
+    // switch default
+    var swd = ""
+    let s = "hello"
+    switch s {
+    case "hi" { swd = "hi" }
+    default { swd = "default" }
+    }
+    check("switch_default", swd == "default")
+
+    // guard let (else must exit)
+    check("guard_some", cfGuardUnwrap(7) == 7)
+    check("guard_nil", cfGuardUnwrap(nil) == -1)
+
+    return endSuite()
+}

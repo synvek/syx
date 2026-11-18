@@ -1,0 +1,75 @@
+// suite_functions.sy — functions and closures: named parameters / external labels / positional parameters / default parameters / tuple returns and destructuring /
+// recursion / closure expressions / type annotations / higher-order functions map/filter/reduce / trailing closures / capture.
+// Corresponds to chapters 07 and 08 of the language guide. See the host.concurrency suite for async.
+
+func fnAdd(_ a: Int, _ b: Int) -> Int { return a + b }
+func fnLabeled(name: String) -> String { return "Hi \(name)" }
+func fnExternal(to destination: String) -> String { return destination }
+func fnDefault(_ name: String, greeting: String = "Hello") -> String { return "\(greeting), \(name)" }
+func fnDivMod(_ a: Int, _ b: Int) -> (Int, Int) { return (a / b, a % b) }
+func fnFact(_ n: Int) -> Int {
+    if n <= 1 { return 1 }
+    return n * fnFact(n - 1)
+}
+func fnApply(_ f: (Int) -> Int, _ x: Int) -> Int { return f(x) }
+
+func runFunctions() -> (Int, Int, Int) {
+    beginSuite("lang.functions")
+
+    // Basic function with positional parameters
+    check("positional", fnAdd(1, 2) == 3)
+
+    // Named parameters (labels are mandatory)
+    check("named_label", fnLabeled(name: "SYX") == "Hi SYX")
+
+    // External label to:, internal name destination
+    check("external_label", fnExternal(to: "home") == "home")
+
+    // Default parameters (the current build cannot omit defaulted params; pass explicitly; omission recorded as SKIP)
+    check("default_param", fnDefault("SYX", greeting: "Hello") == "Hello, SYX")
+    check("default_override", fnDefault("SYX", greeting: "Hi") == "Hi, SYX")
+    skipCase("default_omission", "omitting default arguments currently reports S042")
+
+    // Tuple return and destructuring
+    let (q, r) = fnDivMod(17, 5)
+    check("tuple_return_q", q == 3)
+    check("tuple_return_r", r == 2)
+
+    // Recursion
+    check("recursion", fnFact(5) == 120)
+
+    // Closure expressions
+    let inc = { x in x + 1 }
+    check("closure_basic", inc(41) == 42)
+    let sum = { (a, b) in a + b }
+    check("closure_multi", sum(1, 2) == 3)
+
+    // Closure with explicit type annotation
+    let dbl: (Int) -> Int = { x in x * 2 }
+    check("closure_typed", dbl(21) == 42)
+
+    // Closure as an argument
+    check("closure_as_arg", fnApply({ x in x * 3 }, 5) == 15)
+
+    // Higher-order functions map / filter / reduce
+    let nums = [1, 2, 3, 4, 5]
+    let doubled = nums.map({ x in x * 2 })
+    check("hof_map", doubled[2] == 6)
+    let evens = nums.filter({ x in x % 2 == 0 })
+    check("hof_filter", evens.count == 2)
+    let total = nums.reduce(0, { acc, x in acc + x })
+    check("hof_reduce", total == 15)
+
+    // Trailing closure
+    let dbl2 = nums.map { x in x * 2 }
+    check("trailing_closure", dbl2[4] == 10)
+
+    // Closure capture
+    var captured = 10
+    let addCaptured = { x in x + captured }
+    check("closure_capture", addCaptured(5) == 15)
+    captured = 20
+    check("capture_mutable", addCaptured(5) == 25)
+
+    return endSuite()
+}

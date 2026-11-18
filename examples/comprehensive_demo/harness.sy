@@ -1,0 +1,66 @@
+// harness.sy — print-style assertion utilities, shared by all three backends (VM / Native / WASM).
+// Does not depend on import Testing / @Test (that is the VM-only `syx test` path).
+//
+// Design note: module-level global counters + functions (instead of a class instance), because:
+//   1. the current dev-stage compiler has a defect in "init parameter assignment for
+//      classes with multiple stored properties";
+//   2. passing class instances across functions by value triggers a move (S011);
+//      global state sidesteps both issues.
+// All .sy files in the same package share one namespace; the globals below are unique.
+//
+// Suite usage:
+//   func runXxx() -> (Int, Int, Int) {
+//       beginSuite("lang.xxx")
+//       check("case_name", expr)
+//       checkMsg("case2", ok, "expected ..., got ...")
+//       skipCase("case3", "feature not GA yet")
+//       return endSuite()
+//   }
+
+var gSuite = ""
+var gPass = 0
+var gFail = 0
+var gSkip = 0
+
+// Start a suite: reset counters and print the suite header.
+func beginSuite(_ name: String) {
+    gSuite = name
+    gPass = 0
+    gFail = 0
+    gSkip = 0
+    print("== \(name) ==")
+}
+
+// Single-expression assertion: prints [PASS] when ok is true, [FAIL] otherwise.
+func check(_ name: String, _ ok: Bool) {
+    if ok {
+        gPass = gPass + 1
+        print("[PASS] \(gSuite).\(name)")
+    } else {
+        gFail = gFail + 1
+        print("[FAIL] \(gSuite).\(name)")
+    }
+}
+
+// Assertion with details: on FAIL, appends msg (built via string interpolation at the call site).
+func checkMsg(_ name: String, _ ok: Bool, _ msg: String) {
+    if ok {
+        gPass = gPass + 1
+        print("[PASS] \(gSuite).\(name)")
+    } else {
+        gFail = gFail + 1
+        print("[FAIL] \(gSuite).\(name) — \(msg)")
+    }
+}
+
+// Explicitly skip a single case (e.g. a feature not yet implemented on this backend).
+func skipCase(_ name: String, _ reason: String) {
+    gSkip = gSkip + 1
+    print("[SKIP] \(gSuite).\(name) (\(reason))")
+}
+
+// End the suite: print the subtotal and return the (pass, fail, skip) counters.
+func endSuite() -> (Int, Int, Int) {
+    print("-- \(gSuite): \(gPass) pass, \(gFail) fail, \(gSkip) skip")
+    return (gPass, gFail, gSkip)
+}

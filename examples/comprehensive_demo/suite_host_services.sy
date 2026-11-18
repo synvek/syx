@@ -1,0 +1,52 @@
+// suite_host_services.sy — host services: Logging (setMinLevel/info/takeLast/infoFields),
+// Metrics (inc/get/gaugeSet/gaugeGet/reset), Trace (start/end). Corresponds to library-guide 04-logging.
+// Observed: Metrics.inc does not count (get is always 0); gauge truncates decimals. The FAILs are valid coverage. Backend: vm. Prefix Hs.
+
+import Logging
+import Metrics
+import Tracing
+
+func runHostServices() -> (Int, Int, Int) {
+    beginSuite("host.services")
+
+    // Logging: level setting + info + takeLast
+    Log.setMinLevel("INFO")
+    Log.info("hello-log")
+    let last = Log.takeLast()
+    let lastStr = "\(last)"
+    check("log_take_last", lastStr.hasPrefix("[INFO] hello-log"))
+
+    // Logging: structured fields
+    let line = Log.infoFields("ready", {"pkg": "Log"})
+    let lineStr = "\(line)"
+    check("log_fields", lineStr.hasPrefix("[INFO] ready"))
+
+    // Metrics: inc count should be 2; observed always 0; the FAIL is valid coverage
+    Metrics.inc(name: "hits")
+    Metrics.inc(name: "hits")
+    let mv = Metrics.get(name: "hits")
+    checkMsg("metrics_inc", mv == 2, "actual \(mv) (inc did not count)")
+
+    // Metrics: gauge set/get (currently truncates decimals); the FAIL is valid coverage
+    Metrics.gaugeSet(name: "temp", value: 36.6)
+    let gv = Metrics.gaugeGet(name: "temp")
+    checkMsg("metrics_gauge", "\(gv)" == "36.6", "actual \(gv) (decimals truncated)")
+
+    // Metrics: reset clears to zero
+    Metrics.reset(name: "hits")
+    let after = Metrics.get(name: "hits")
+    check("metrics_reset", after == 0)
+
+    // Trace: span start/end are callable
+    let span = Trace.start(name: "op")
+    Trace.end(span: span)
+    check("trace_start_end", true)
+
+    // Known gaps
+    skipCase("log_policy", "Log.policy/minLevel filtering details not covered in this round")
+    skipCase("metrics_labels", "Metrics.incLabels/getLabels/snapshot not covered in this round")
+    skipCase("trace_context", "Trace.current/contextLine context propagation not covered in this round")
+    skipCase("di_container", "DI container (import DI) not covered in this round")
+
+    return endSuite()
+}

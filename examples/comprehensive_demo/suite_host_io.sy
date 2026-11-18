@@ -1,0 +1,58 @@
+// suite_host_io.sy — host IO: File.write/read/exists/delete, FileHandle byte read/write,
+// Env.get/set, Time.sleepMs, Process.args/exec. Corresponds to library-guide 03-system.
+// Observed: Process.exec returns the exit code (not output text); on native, host IO functions return nil. Backend: vm. Prefix Hi.
+
+import System
+
+func runHostIo() -> (Int, Int, Int) {
+    beginSuite("host.io")
+
+    // File: string write/read roundtrip
+    let p = "/tmp/syx_comp_demo_io.txt"
+    File.write(path: p, content: "hello-io")
+    let txt = File.read(path: p)
+    check("file_roundtrip", "\(txt)" == "hello-io")
+    check("file_exists", File.exists(path: p))
+
+    // FileHandle: byte write/read
+    let wh = FileHandle.open(path: p, mode: "w")
+    let _ = FileHandle.write(handle: wh, bytes: [65u8, 66u8, 67u8])
+    FileHandle.close(handle: wh)
+    let rh = FileHandle.open(path: p, mode: "r")
+    let bytes = FileHandle.readAllBytes(handle: rh)
+    FileHandle.close(handle: rh)
+    check("filehandle_count", bytes.count == 3)
+    check("filehandle_byte", bytes[0] == 65)
+
+    // Env: read an existing variable
+    let home = Env.get(key: "HOME")
+    check("env_home", home.count > 0)
+
+    // Env: set/get roundtrip
+    Env.set(key: "SYX_COMP_DEMO", value: "42")
+    let ev = Env.get(key: "SYX_COMP_DEMO")
+    check("env_set_get", "\(ev)" == "42")
+
+    // Time.sleepMs: actually sleeps
+    let t0 = Time.nowMs()
+    Time.sleepMs(ms: 20)
+    check("sleep_elapsed", Time.nowMs() - t0 >= 15)
+
+    // Process.args: callable and returns an array
+    let args = Process.args()
+    check("process_args", args.count >= 0)
+
+    // Process.exec: echo exits with code 0
+    let code = Process.exec(cmd: "echo", args: ["hi"])
+    check("process_exec_exit", code == 0)
+
+    // File.delete: gone after deletion
+    File.delete(path: p)
+    check("file_delete", File.exists(path: p) == false)
+
+    // Known gaps
+    skipCase("process_exec_output", "Process.exec returns the exit code; no execOutput output-capture API")
+    skipCase("file_stat_readlines", "File.stat/readLines/readBytes not covered in this round")
+
+    return endSuite()
+}
