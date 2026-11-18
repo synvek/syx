@@ -10,6 +10,7 @@
 - feat: apply Bool/String/Int field default literals on empty init and memberwise calls
 - feat: accept unary negated Int field defaults (`var n: Int = -1`) on empty init
 - feat: apply Double field default literals (`var x: Double = 1.5`) on empty init and memberwise calls
+- feat: accept unary negated Double field defaults (`var x: Double = -1.5`) on empty init
 - fix: update language guide for Hashable and CustomStringConvertible conformance
 
 ### SYX 0.2.3

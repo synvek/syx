@@ -7,8 +7,8 @@ use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr, UnaryOp};
 use syx_diagnostics::SourceFile;
 use syx_stdlib::{default_float_kind, float_literal_bits, from_suffix, NumericKind};
 
-/// U-33…U-35: stored field default literals for memberwise / empty-init pads.
-/// Bare Integer / Bool / String / Double, plus unary Neg Integer (`-1`); other → ConstNil.
+/// U-33…U-36: stored field default literals for memberwise / empty-init pads.
+/// Bare Integer / Bool / String / Double, plus unary Neg Integer/Double (`-1` / `-1.5`); other → ConstNil.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum FieldDefaultLit {
     Int(i128),
@@ -37,7 +37,7 @@ pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLi
     }
 }
 
-/// U-34: also accept one-layer `Unary Neg` of an integer literal (`var n: Int = -1`).
+/// U-34/U-36: one-layer `Unary Neg` of Integer (`-1`) or Double (`-1.5`).
 pub(crate) fn field_default_from_expr(expr: &Expr) -> Option<FieldDefaultLit> {
     match expr {
         Expr::Literal { value, .. } => field_default_from_literal(value),
@@ -50,6 +50,19 @@ pub(crate) fn field_default_from_expr(expr: &Expr) -> Option<FieldDefaultLit> {
                 value: Literal::Integer { value, .. },
                 ..
             } => Some(FieldDefaultLit::Int(value.wrapping_neg())),
+            Expr::Literal {
+                value: Literal::Double { value, suffix },
+                ..
+            } => {
+                let kind = suffix
+                    .as_ref()
+                    .and_then(|s| from_suffix(s))
+                    .unwrap_or(default_float_kind());
+                Some(FieldDefaultLit::Num {
+                    kind: kind.to_byte(),
+                    bits: float_literal_bits(kind, -*value),
+                })
+            }
             _ => None,
         },
         _ => None,
