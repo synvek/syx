@@ -1,7 +1,7 @@
-//! U-33…U-38: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
-//! Integer→Double / inherited class field-default pad on empty memberwise / init.
-//! ≠ Call / codegen map / deep `-(1)` / `-(1.5)` peel / extension float /
-//! Group peel / true implicit CallSuper.
+//! U-33…U-39: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
+//! Integer→Double / inherited pad / one-layer Group peel on empty memberwise / init.
+//! ≠ Call / codegen map / `((7))` multi-Group / `--1` / `!true` / extension float /
+//! true implicit CallSuper.
 
 use std::io::Write;
 
@@ -381,6 +381,68 @@ public func main() {
     assert_eq!(
         printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
         ["anon", "lab"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// U-39: one-layer Group peel + Neg recurse; `((7))` stays nil.
+#[test]
+fn u39_struct_group_peel_defaults_run() {
+    let path = write_temp(
+        r#"
+struct S {
+    var n: Int = (7)
+    var x: Double = (1.5)
+    var a: Int = -(1)
+    var b: Double = -(1.5)
+    var c: Int = (-1)
+    var z: Int = ((7))
+}
+public func main() {
+    let s = S()
+    print(s.n)
+    print(s.x)
+    print(s.a)
+    print(s.b)
+    print(s.c)
+    print(s.z)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("struct Group peel defaults must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["7", "1.5", "-1", "-1.5", "-1", "nil"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u39_class_group_peel_empty_init_runs() {
+    let path = write_temp(
+        r#"
+class C {
+    var n: Int = (7)
+    var x: Double = -(1.5)
+    init() {}
+}
+public func main() {
+    let c = C()
+    print(c.n)
+    print(c.x)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("class Group peel empty init must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["7", "-1.5"]
     );
     let _ = std::fs::remove_file(&path);
 }

@@ -10,9 +10,9 @@ use syx_stdlib::{
     NumericKind,
 };
 
-/// U-33…U-37: stored field default literals for memberwise / empty-init pads.
-/// Bare Integer / Bool / String / Double, unary Neg Integer/Double, plus Integer→float
-/// when the declared field type is Float/Double; other → ConstNil.
+/// U-33…U-39: stored field default literals for memberwise / empty-init pads.
+/// Bare Integer / Bool / String / Double, unary Neg, one-layer Group peel,
+/// plus Integer→float when the declared field type is Float/Double; other → ConstNil.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum FieldDefaultLit {
     Int(i128),
@@ -58,34 +58,61 @@ pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLi
     }
 }
 
-/// U-34/U-36: one-layer `Unary Neg` of Integer (`-1`) or Double (`-1.5`).
+fn neg_operand_is_nested_neg(expr: &Expr) -> bool {
+    match expr {
+        Expr::Unary {
+            op: UnaryOp::Neg, ..
+        } => true,
+        Expr::Group { expr, .. } => matches!(
+            expr.as_ref(),
+            Expr::Unary {
+                op: UnaryOp::Neg,
+                ..
+            }
+        ),
+        _ => false,
+    }
+}
+
+fn negate_int_or_num(lit: FieldDefaultLit) -> Option<FieldDefaultLit> {
+    match lit {
+        FieldDefaultLit::Int(v) => Some(FieldDefaultLit::Int(v.wrapping_neg())),
+        FieldDefaultLit::Num { kind, bits } => {
+            let k = resolve_alias(NumericKind::from_byte(kind)?);
+            let value = match k {
+                NumericKind::F32 => f32::from_bits(bits as u32) as f64,
+                NumericKind::F64 => f64::from_bits(bits),
+                _ => return None,
+            };
+            Some(FieldDefaultLit::Num {
+                kind: k.to_byte(),
+                bits: float_literal_bits(k, -value),
+            })
+        }
+        FieldDefaultLit::Bool(_) | FieldDefaultLit::Str(_) => None,
+    }
+}
+
+/// U-34/U-36/U-39: bare Neg of Integer/Double, plus one-layer Group peel
+/// so `(7)` / `-(1)` / `(-1)` / `-(1.5)` collect. `((7))` and `--1` stay None.
 pub(crate) fn field_default_from_expr(expr: &Expr) -> Option<FieldDefaultLit> {
+    // U-39: peel exactly one Group; nested `((7))` remains Group → None below.
+    let expr = match expr {
+        Expr::Group { expr, .. } => expr.as_ref(),
+        other => other,
+    };
     match expr {
         Expr::Literal { value, .. } => field_default_from_literal(value),
         Expr::Unary {
             op: UnaryOp::Neg,
             expr: inner,
             ..
-        } => match inner.as_ref() {
-            Expr::Literal {
-                value: Literal::Integer { value, .. },
-                ..
-            } => Some(FieldDefaultLit::Int(value.wrapping_neg())),
-            Expr::Literal {
-                value: Literal::Double { value, suffix },
-                ..
-            } => {
-                let kind = suffix
-                    .as_ref()
-                    .and_then(|s| from_suffix(s))
-                    .unwrap_or(default_float_kind());
-                Some(FieldDefaultLit::Num {
-                    kind: kind.to_byte(),
-                    bits: float_literal_bits(kind, -*value),
-                })
+        } => {
+            if neg_operand_is_nested_neg(inner) {
+                return None;
             }
-            _ => None,
-        },
+            negate_int_or_num(field_default_from_expr(inner)?)
+        }
         _ => None,
     }
 }
