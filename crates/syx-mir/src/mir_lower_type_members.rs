@@ -5,7 +5,7 @@ use crate::extension_init_literal_fields;
 use crate::lower_function_with_params;
 use crate::mir_lower_class_init::lower_class_init;
 use crate::mir_lower_shells::{mir_op, mir_shell_fn};
-use crate::mir_module_index::ModuleIndex;
+use crate::mir_module_index::{FieldDefaultLit, ModuleIndex};
 use crate::mir_types::{MirBlock, MirFunction, MirInstr, MirModule, MirOp};
 use indexmap::IndexSet;
 use smol_str::SmolStr;
@@ -414,19 +414,50 @@ pub(crate) fn self_param_typed(type_name: Option<&SmolStr>) -> syx_ast::Param {
 
 pub(crate) fn lower_extension_convenience_init_shell(
     type_name: &SmolStr,
-    lit_fields: &[(SmolStr, i128)],
+    lit_fields: &[(SmolStr, FieldDefaultLit)],
 ) -> MirFunction {
     let mut ins = Vec::new();
-    for (field, value) in lit_fields {
-        ins.push(mir_op(MirOp::ConstNumeric {
-            kind: PLATFORM_INT.to_byte(),
-            bits: *value as u64,
-        }));
+    let mut next_reg = 0u32;
+    for (field, lit) in lit_fields {
+        match lit {
+            // S1-I7: Integer stays PLATFORM_INT ConstNumeric with dest: None.
+            FieldDefaultLit::Int(value) => {
+                ins.push(mir_op(MirOp::ConstNumeric {
+                    kind: PLATFORM_INT.to_byte(),
+                    bits: *value as u64,
+                }));
+            }
+            FieldDefaultLit::Bool(b) => {
+                ins.push(mir_op(MirOp::ConstBool(*b)));
+            }
+            FieldDefaultLit::Str(s) => {
+                ins.push(mir_op(MirOp::ConstStr(s.clone())));
+            }
+            // U-40: Num needs dest: Some so mir-run keeps full u64 bits.
+            FieldDefaultLit::Num { kind, bits } => {
+                let r = next_reg;
+                next_reg = next_reg.saturating_add(1);
+                ins.push(MirInstr {
+                    dest: Some(r),
+                    op: MirOp::ConstNumeric {
+                        kind: *kind,
+                        bits: *bits,
+                    },
+                    span: None,
+                });
+            }
+        }
         ins.push(mir_op(MirOp::ConstStr(field.to_string())));
     }
     ins.push(mir_op(MirOp::ConstStr(type_name.to_string())));
     ins.push(mir_op(MirOp::ConstStr("__type".to_string())));
     ins.push(mir_op(MirOp::DictBuild((lit_fields.len() + 1) as u32)));
     ins.push(mir_op(MirOp::Return));
-    mir_shell_fn(SmolStr::new(format!("{type_name}_init")), 0, 0, ins)
+    // next_reg counts Num dest slots that need local storage.
+    mir_shell_fn(
+        SmolStr::new(format!("{type_name}_init")),
+        0,
+        next_reg,
+        ins,
+    )
 }

@@ -1,7 +1,8 @@
-//! U-33…U-39: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
-//! Integer→Double / inherited pad / one-layer Group peel on empty memberwise / init.
-//! ≠ Call / codegen map / `((7))` multi-Group / `--1` / `!true` / extension float /
-//! true implicit CallSuper.
+//! U-33…U-40: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
+//! Integer→Double / inherited pad / Group peel / extension self.init non-Int
+//! on empty memberwise / init.
+//! ≠ Call / codegen map / `((7))` / `--1` / `!true` / true implicit CallSuper /
+//! Ch15 MD rewrite.
 
 use std::io::Write;
 
@@ -443,6 +444,66 @@ public func main() {
     assert_eq!(
         printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
         ["7", "-1.5"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// U-40: extension convenience self.init with Double literals.
+#[test]
+fn u40_extension_double_self_init_runs() {
+    let path = write_temp(
+        r#"
+struct Point {
+    var x: Double
+    var y: Double
+}
+extension Point {
+    init() { self.init(x: 1.5, y: 0.0) }
+}
+public func main() {
+    let p = Point()
+    print(p.x)
+    print(p.y)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("extension Double self.init must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["1.5", "0"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// U-40: extension convenience self.init with Bool/String (needs unify widen).
+#[test]
+fn u40_extension_bool_string_self_init_runs() {
+    let path = write_temp(
+        r#"
+struct Flag {
+    var on: Bool
+    var name: String
+}
+extension Flag {
+    init() { self.init(on: true, name: "ok") }
+}
+public func main() {
+    let f = Flag()
+    print(f.on)
+    print(f.name)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("extension Bool/String self.init must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["true", "ok"]
     );
     let _ = std::fs::remove_file(&path);
 }

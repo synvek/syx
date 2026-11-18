@@ -5,8 +5,8 @@
 > **优先级：** P0 阻断对齐 · P1 重组核心 · P2 文档工具 · P3 收口增强  
 > **活状态：** [`01-project-status.md`](01-project-status.md)  
 > **上期冻结账本：** [`archive/02-improvement-roadmap-credibility-stage-ledger.md`](archive/02-improvement-roadmap-credibility-stage-ledger.md)  
-> **最近更新：** 2026-11-18 · **U-39 字段默认 Group 一层剥已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-39 账面退出；**诚实：** `(7)`/`-(1.5)`/`(-1)` 可收集（`((7))` 仍 nil）；本类/继承字段默认路径已闸；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、闭包 throws 语法、extension float、真隐式 super.init、Ch15 MD 等）。  
-> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面纸面；由 U-15 复落）；**U-13** 逗号 `if let`（账面纸面；由 U-14 复落）；**U-14** 复落逗号 `if let`；**U-15** 复落 `while case`；**U-16** 逗号 `guard let`；**U-17** 裸 `guard`；**U-18** GuardLet else → **S027**；**U-19** Throw → **S028**；**U-20** 方法/Init throws 旗；**U-21** S020 袋→S060/A002；**U-22** let 下标写→S060；**U-23** let struct 成员写→S060；**U-24** 嵌套值类型成员写→S060；**U-25** 嵌套集合下标/append→S060；**U-26** Ch15/Ch28 S020 书诚实；**U-27** let tuple 成员写→S060；**U-28** let enum 关联写→S060；**U-29** 嵌套 enum/tuple 成员写→S060；**U-30** 非 mutating 写 self→S060；**U-31** 逗号 `while let`；**U-32** 闭包 throw→S028；**U-33** 字段默认 Bool/String/Int；**U-34** 字段默认一元取负 Int；**U-35** 字段默认 Double 字面量；**U-36** 字段默认一元负 Double；**U-37** 字段默认 Integer→Double；**U-38** 继承字段默认 pad（≠ CallSuper）；**U-39** 字段默认 Group 一层剥。下表只保留 **仍可复现** 或仍挂账的项。
+> **最近更新：** 2026-11-18 · **U-40 extension self.init 非 Int 已退出**；编号账本（SA-0…R-49）仍收口（无 R-50）；U-0…U-40 账面退出；**诚实：** extension `self.init` 可收 Double/Bool/String（Integer S1-I7 仍绿）；本类/继承/Group 字段默认已闸；残余 = park / 未编号债（JIT Suite-1、simd 159、codegen Break、CST postfix、闭包 throws 语法、真隐式 super.init、Ch15 MD 等）。  
+> **对照说明：** `todo-005` 写于提交 `82f207a` / SA-6 附近；其后 **R-0…R-49** 已消化 Object 切片、wasm 46/46、browser、closure/`super.`、`try` 跨函数 catch、struct/Array 赋值隔离、`Int(String)` Optional、自定义 Iterator for-in、`Array<Shape>` witness、书写阻断三件套、诊断质量、CI fmt/soft-fail、书籍 opt-in `sy,output`、full-native hello 链接可跑、冷启动诚实复测（~2.5–3.1 s）、OrderedSet Sendable façade（inventory 180/10）、simd Object 章程（residual 159 禁 wipe）、擦除基类引用虚分派（embed+wasm `woof`）、Int8 wrap、user Comparable `sorted` 顺序钉、Ch17 Error throw/`catch`/`if !x` 中英 fence 同步、System `Env` enum + `FilePath` struct 值类型 + gen-only 边界、credibility MD-only claim 链瘦身、docs **0.2.0** + ADR `current.md` 短表 + scoped 断链门禁；**U-0** 修绿 `FilePath.joining`；**U-1…U-3** 再删纯 MD claim；**U-4** parser 双接受 `func…async`；**U-5** 清扫余 4 纯 MD；**U-6** parser 双接受 `catch let`；**U-7** MIR `repeat`/`break`/`continue`；**U-8** `if let`/`if case` 关 trailing-closure；**U-9** `parse_block_stmts` 可选 `;`；**U-10** `while let` → While+IfLet+Break；**U-11** `RepeatWhile.label` + MIR loop_stack；**U-12** `while case`（账面纸面；由 U-15 复落）；**U-13** 逗号 `if let`（账面纸面；由 U-14 复落）；**U-14** 复落逗号 `if let`；**U-15** 复落 `while case`；**U-16** 逗号 `guard let`；**U-17** 裸 `guard`；**U-18** GuardLet else → **S027**；**U-19** Throw → **S028**；**U-20** 方法/Init throws 旗；**U-21** S020 袋→S060/A002；**U-22** let 下标写→S060；**U-23** let struct 成员写→S060；**U-24** 嵌套值类型成员写→S060；**U-25** 嵌套集合下标/append→S060；**U-26** Ch15/Ch28 S020 书诚实；**U-27** let tuple 成员写→S060；**U-28** let enum 关联写→S060；**U-29** 嵌套 enum/tuple 成员写→S060；**U-30** 非 mutating 写 self→S060；**U-31** 逗号 `while let`；**U-32** 闭包 throw→S028；**U-33** 字段默认 Bool/String/Int；**U-34** 字段默认一元取负 Int；**U-35** 字段默认 Double 字面量；**U-36** 字段默认一元负 Double；**U-37** 字段默认 Integer→Double；**U-38** 继承字段默认 pad（≠ CallSuper）；**U-39** 字段默认 Group 一层剥；**U-40** extension self.init 非 Int。下表只保留 **仍可复现** 或仍挂账的项。
 
 ## 进度摘要（本期）
 
@@ -80,6 +80,7 @@
 | **U-37** | 字段默认 Integer→Double | `[x]` 退出 | [`u-37`](../docs/census/u-37-field-default-int-float-census.md) |
 | **U-38** | 继承字段默认 pad（≠ CallSuper） | `[x]` 退出 | [`u-38`](../docs/census/u-38-inherited-field-default-census.md) |
 | **U-39** | 字段默认 Group 一层剥 | `[x]` 退出 | [`u-39`](../docs/census/u-39-field-default-group-census.md) |
+| **U-40** | extension self.init 非 Int | `[x]` 退出 | [`u-40`](../docs/census/u-40-extension-init-non-int-census.md) |
 
 ```mermaid
 flowchart LR
@@ -125,7 +126,8 @@ flowchart LR
   u36 --> u37["U-37 Int to Double default"]
   u37 --> u38["U-38 inherited field default"]
   u38 --> u39["U-39 Group peel"]
-  u39 --> later["park residual"]
+  u39 --> u40["U-40 extension init lits"]
+  u40 --> later["park residual"]
 ```
 
 ---
@@ -259,8 +261,9 @@ flowchart LR
 | **U-37** | **字段默认 Integer→Double** | `[x]` | 收集期 `Int`+float 字段类型→`Num`；census [`u-37`](../docs/census/u-37-field-default-int-float-census.md)；≠ 继承 pad walk / CallSuper / extension float / R-50 / JIT | U-36 residual |
 | **U-38** | **继承字段默认 pad（≠ CallSuper）** | `[x]` | `lookup_field_default` 祖先 walk；census [`u-38`](../docs/census/u-38-inherited-field-default-census.md)；≠ 真隐式 CallSuper / memberwise arity / Group 剥 / R-50 / JIT | U-37 residual |
 | **U-39** | **字段默认 Group 一层剥** | `[x]` | 入口 `Expr::Group` 剥 + Neg 递归取负；census [`u-39`](../docs/census/u-39-field-default-group-census.md)；≠ `((7))` / `--1` / extension float / R-50 / JIT | U-38 residual |
+| **U-40** | **extension self.init 非 Int** | `[x]` | `FieldDefaultLit` 收集 + shell Bool/Str/Num；census [`u-40`](../docs/census/u-40-extension-init-non-int-census.md)；≠ CallSuper / Ch15 MD / `((7))` / R-50 / JIT | U-39 residual |
 
-**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-39 已退出** — 残余为 **park** / 未编号债（CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程、SyxHost、闭包 throws 语法、extension float、真隐式 `super.init`、Ch15 MD 等），**不**新开 R-50。
+**默认下一动作：编号账本仍收口（无 R-50）+ U-0…U-40 已退出** — 残余为 **park** / 未编号债（CST postfix、codegen Break、JIT Suite-1、simd Object 159 章程、SyxHost、闭包 throws 语法、真隐式 `super.init`、Ch15 MD 等），**不**新开 R-50。
 
 **退出总则：**  
 - SA-0 → 核心层清单 + 分层命名 ADR 已接受；manifest / prelude / IMPORTABLE 三处 SSOT 自洽。  

@@ -770,11 +770,15 @@ pub(crate) fn build_mir_from_graph(
             // ConstNumeric field literals — replace the memberwise shell so `Point()`
             // works. Do NOT replace with Struct's empty 0-arg synthetic init.
             if func.name.ends_with("_init") && func.param_count == 0 {
+                // S1-I7 / U-40: Numeric + Bool/Str convenience shells replace memberwise.
                 let has_lit_fields = func.blocks.iter().any(|b| {
                     b.instructions.iter().any(|i| {
                         matches!(
                             i.op,
-                            syx_mir::MirOp::ConstNumeric { .. } | syx_mir::MirOp::ConstI32(_)
+                            syx_mir::MirOp::ConstNumeric { .. }
+                                | syx_mir::MirOp::ConstI32(_)
+                                | syx_mir::MirOp::ConstBool(_)
+                                | syx_mir::MirOp::ConstStr(_)
                         )
                     })
                 });

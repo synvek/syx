@@ -698,8 +698,11 @@ impl ModuleIndex {
     }
 }
 
-/// S1-I7: `self.init(x: 0, y: 0)` → ordered `(field, value)` pairs.
-pub(crate) fn extension_init_literal_fields(body: &[Stmt]) -> Option<Vec<(SmolStr, i128)>> {
+/// S1-I7 / U-40: `self.init(x: 0, y: 1.5, …)` → ordered `(field, FieldDefaultLit)` pairs.
+/// All-or-nothing: any arg that `field_default_from_expr` rejects drops the whole call.
+pub(crate) fn extension_init_literal_fields(
+    body: &[Stmt],
+) -> Option<Vec<(SmolStr, FieldDefaultLit)>> {
     for stmt in body {
         let Stmt::Expr { expr, .. } = stmt else {
             continue;
@@ -723,14 +726,8 @@ pub(crate) fn extension_init_literal_fields(body: &[Stmt]) -> Option<Vec<(SmolSt
         let mut out = Vec::new();
         for arg in args {
             let label = arg.label.as_ref()?;
-            let Expr::Literal {
-                value: Literal::Integer { value, .. },
-                ..
-            } = &arg.value
-            else {
-                return None;
-            };
-            out.push((label.clone(), *value));
+            let lit = field_default_from_expr(&arg.value)?;
+            out.push((label.clone(), lit));
         }
         if !out.is_empty() {
             return Some(out);
@@ -739,17 +736,16 @@ pub(crate) fn extension_init_literal_fields(body: &[Stmt]) -> Option<Vec<(SmolSt
     None
 }
 
-/// S1-I7: pull `self.init(x: 0, y: 0)` literals into memberwise default pad table.
+/// S1-I7 / U-40: pull `self.init(...)` literals into memberwise default pad table.
 pub(crate) fn register_extension_init_literal_defaults(
     idx: &mut ModuleIndex,
     type_name: &SmolStr,
     body: &[Stmt],
 ) {
     if let Some(fields) = extension_init_literal_fields(body) {
-        for (field, value) in fields {
-            // Extension convenience init stays Integer-only (S1-I7).
+        for (field, lit) in fields {
             idx.dataclass_field_defaults
-                .insert((type_name.clone(), field), FieldDefaultLit::Int(value));
+                .insert((type_name.clone(), field), lit);
         }
     }
 }
