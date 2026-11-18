@@ -1,7 +1,7 @@
-//! U-33…U-37: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
-//! Integer→Double field defaults on empty memberwise / init.
+//! U-33…U-38: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
+//! Integer→Double / inherited class field-default pad on empty memberwise / init.
 //! ≠ Call / codegen map / deep `-(1)` / `-(1.5)` peel / extension float /
-//! inherited pad walk.
+//! Group peel / true implicit CallSuper.
 
 use std::io::Write;
 
@@ -349,6 +349,38 @@ public func main() {
     assert_eq!(
         printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
         ["-0.5"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// U-38: inherited stored literal via ancestor walk in lower_class_init; ≠ CallSuper.
+#[test]
+fn u38_inherited_field_default_on_subclass_init() {
+    let path = write_temp(
+        r#"
+class Animal {
+    var name: String = "anon"
+}
+class Dog: Animal {
+    var breed: String
+    init(breed: String) {
+        self.breed = breed
+    }
+}
+public func main() {
+    let d = Dog(breed: "lab")
+    print(d.name)
+    print(d.breed)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("inherited field default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["anon", "lab"]
     );
     let _ = std::fs::remove_file(&path);
 }

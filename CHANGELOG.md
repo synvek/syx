@@ -12,6 +12,7 @@
 - feat: apply Double field default literals (`var x: Double = 1.5`) on empty init and memberwise calls
 - feat: accept unary negated Double field defaults (`var x: Double = -1.5`) on empty init
 - feat: promote Integer field defaults to Float/Double when the declared field type is floating (`var x: Double = 1`)
+- feat: apply inherited superclass field default literals in subclass empty-init pads (not implicit CallSuper)
 - fix: update language guide for Hashable and CustomStringConvertible conformance
 
 ### SYX 0.2.3

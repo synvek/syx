@@ -240,13 +240,10 @@ pub(crate) fn lower_class_init(
                     span: None,
                 },
             );
-        } else if let Some(lit) = module_idx
-            .dataclass_field_defaults
-            .get(&(type_name.clone(), field.clone()))
-            .cloned()
-        {
-            // R-35 / U-33 / U-35: Int / Bool / String / Double when init omits the field.
+        } else if let Some(lit) = module_idx.lookup_field_default(type_name, field) {
+            // R-35 / U-33…U-38: own or ancestor FieldDefaultLit when init omits the field.
             // Num uses dest: Some so mir-run keeps full u64 bits (dest: None truncates).
+            // U-38: ancestor walk copies the stored literal into the subclass dict; ≠ CallSuper.
             match lit {
                 FieldDefaultLit::Int(v) => {
                     ctx.emit(

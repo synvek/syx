@@ -163,6 +163,23 @@ impl ModuleIndex {
         None
     }
 
+    /// U-38: field default literal on `ty` or an ancestor via `class_superclasses`.
+    /// First hit wins (subclass literal overrides superclass). ≠ implicit CallSuper.
+    pub(crate) fn lookup_field_default(
+        &self,
+        ty: &SmolStr,
+        field: &SmolStr,
+    ) -> Option<FieldDefaultLit> {
+        let mut cur = Some(ty.clone());
+        while let Some(t) = cur {
+            if let Some(lit) = self.dataclass_field_defaults.get(&(t.clone(), field.clone())) {
+                return Some(lit.clone());
+            }
+            cur = self.class_superclasses.get(&t).cloned();
+        }
+        None
+    }
+
     /// Stored property declared on `ty` itself (not inherited).
     pub(crate) fn has_own_stored_field(&self, ty: &SmolStr, field: &SmolStr) -> bool {
         self.dataclass_fields
