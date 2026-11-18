@@ -1,65 +1,64 @@
-// suite_strings.sy — strings and characters: interpolation / concatenation / case / split / join / prefix / count / regex / subscript / for-in.
-// Corresponds to chapter 04 of the language guide. Avoids hasSuffix (R003 crash), repeat (keyword), trim (returns nil on multiline).
-// substring/replacingOccurrences currently return empty strings; kept as FAIL signals for known gaps.
+// suite_strings.sy — 字符串与字符：插值/拼接/大小写/分割/连接/前缀/计数/正则/下标/for-in。
+// 对应语言指南第 04 章。避免 hasSuffix（R003 崩溃）、repeat（关键字）、trim（多行返回 nil）。
+// substring/replacingOccurrences 当前实现返回空串，作为已知缺口保留为 FAIL 信号。
 
 func runStrings() -> (Int, Int, Int) {
     beginSuite("lang.strings")
 
-    // Literals and concatenation
+    // 字面量与拼接
     let a = "Hello"
     let b = ", World"
     check("concat", a + b == "Hello, World")
     check("literal_eq", "syx" == "syx")
 
-    // Interpolation
+    // 插值
     let n = 3
     check("interpolation", "n=\(n)" == "n=3")
     check("interpolation_expr", "sum=\(1 + 2)" == "sum=3")
 
-    // Count (grapheme clusters)
+    // 计数（字素簇）
     check("count", "hello".count == 5)
     check("count_unicode", "你好".count == 2)
 
-    // Case conversion
+    // 大小写
     check("lowercased", "ABC".lowercased() == "abc")
     check("uppercased", "abc".uppercased() == "ABC")
 
-    // Prefix
+    // 前缀
     check("has_prefix", "file.txt".hasPrefix("file"))
     check("has_prefix_false", "file.txt".hasPrefix("txt") == false)
 
-    // Split and join
+    // 分割与连接
     let parts = "a,b,c".split(",")
     check("split_count", parts.count == 3)
     check("split_first", parts[0] == "a")
     check("joined", parts.joined("-") == "a-b-c")
 
-    // Subscript returns Character
+    // 下标返回 Character
     let s = "syx"
     check("subscript", s[0] == "s")
     check("subscript_second", s[1] == "y")
 
-    // for-in over characters
+    // for-in 遍历字符
     var acc = ""
     for ch in "abc" { acc = acc + ch }
     check("for_in_chars", acc == "abc")
 
-    // Regex matching
+    // 正则匹配
     let m = "abc123".matches("\\d+")
     check("regex_count", m.count == 1)
     check("regex_value", m[0] == "123")
 
-    // Escapes
+    // 转义
     check("escape_newline", "a\nb".count == 3)
     check("escape_quote", "a\"b".count == 3)
 
-    // Known gaps: substring / replacingOccurrences currently return empty strings and
-    // trigger type-inference anomalies, so they are not called; only SKIP is recorded
-    // (enable once the compiler is fixed).
-    skipCase("substring", "substring currently returns an empty string and triggers an inference anomaly")
-    skipCase("replacingOccurrences", "replacingOccurrences currently returns an empty string")
-    skipCase("isEmpty", "isEmpty currently returns nil")
-    skipCase("hasSuffix", "hasSuffix triggers an R003 crash")
+    // 已知缺口：substring / replacingOccurrences 当前实现返回空串且会引发类型推断异常，
+    // 故不调用，仅记录 SKIP（待编译器修复后启用）。
+    skipCase("substring", "substring 当前返回空串且触发推断异常")
+    skipCase("replacingOccurrences", "replacingOccurrences 当前返回空串")
+    skipCase("isEmpty", "isEmpty 当前返回 nil")
+    skipCase("hasSuffix", "hasSuffix 触发 R003 崩溃")
 
     return endSuite()
 }

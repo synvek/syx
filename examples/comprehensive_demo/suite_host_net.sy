@@ -1,7 +1,7 @@
-// suite_host_net.sy — host networking: HTTP server/client loopback (Task + Http.serve + Http.get + Http.shutdown),
-// routing 404, TCP M0 integer handles (TcpListener.bind/close, TcpSocket.connect), Url.build.
-// Observed: the Object body of Http.response serializes to empty; Url.build drops the query. The FAILs are valid coverage.
-// Backend: vm (loopback relies on host threads; native/wasm currently unavailable). Prefix Hn.
+// suite_host_net.sy — 宿主网络：HTTP server/client 回环（Task + Http.serve + Http.get + Http.shutdown）、
+// 路由 404、TCP M0 整数句柄（TcpListener.bind/close、TcpSocket.connect）、Url.build。
+// 实测：Http.response 的 Object body 序列化为空；Url.build 丢弃 query。FAIL 为有效覆盖。
+// 后端：vm（回环依赖宿主线程）；native/wasm 视宿主能力。前缀 Hn。
 
 import Networking
 import Concurrency
@@ -17,47 +17,47 @@ func hnHandle(req: Object) -> HTTPResponse {
 func runHostNet() -> (Int, Int, Int) {
     beginSuite("host.net")
 
-    // HTTP loopback: start serve inside a Task, GET from the main flow
+    // HTTP 回环：Task 内启动 serve，主流程 GET
     let t = Task { Http.serve("127.0.0.1", 18765, "hnHandle") }
     Time.sleepMs(ms: 200)
 
     let resp = Http.get(url: "http://127.0.0.1:18765/health")
     check("http_status_200", resp.status == 200)
 
-    // Response body: should contain status ok; observed empty; the FAIL is valid coverage
+    // 响应 body：应含 status ok；当前实测为空，FAIL 为有效覆盖
     let bodyStr = "\(resp.body)"
-    checkMsg("http_body", bodyStr.count > 0, "body is empty (Object response body not serialized)")
+    checkMsg("http_body", bodyStr.count > 0, "body 为空（Object 响应体未序列化）")
 
-    // Routing 404
+    // 路由 404
     let nf = Http.get(url: "http://127.0.0.1:18765/nope")
     check("http_status_404", nf.status == 404)
 
     Http.shutdown()
     check("http_shutdown", true)
 
-    // TCP M0: bind returns an integer handle
+    // TCP M0：bind 返回整数句柄
     let h = TcpListener.bind(host: "127.0.0.1", port: 18767)
     check("tcp_bind_handle", h > 0)
 
-    // TCP M0: connect returns a TcpStream (prints as an integer handle, no > operator; observe via interpolation)
+    // TCP M0：connect 返回 TcpStream（打印为整数句柄，无 > 运算符，经插值观察）
     let st = TcpSocket.connect("127.0.0.1", 18767)
     let stStr = "\(st)"
     check("tcp_connect", stStr.count > 0)
     TcpListener.close(handle: h)
     check("tcp_close", true)
 
-    // Url.build: base + path
+    // Url.build：base + path
     let built = Url.build(base: "https://api.example.com", path: "/v1", query: {"q": "syx"})
     let builtStr = "\(built)"
     check("url_build_base", builtStr.hasPrefix("https://api.example.com/v1"))
 
-    // Url.build: query should be appended; observed dropped; the FAIL is valid coverage
+    // Url.build：query 应拼接；当前实测丢弃，FAIL 为有效覆盖
     let parts = builtStr.split("?")
-    checkMsg("url_build_query", parts.count == 2, "query dropped: \(builtStr)")
+    checkMsg("url_build_query", parts.count == 2, "query 被丢弃：\(builtStr)")
 
-    // Known gaps
-    skipCase("http_post", "Http.post/fetch remote requests not covered by the loopback verification")
-    skipCase("tcp_read_write", "TcpSocket.read/write needs accept, which M0 does not provide")
+    // 已知缺口
+    skipCase("http_post", "Http.post/fetch 远程请求未纳入回环验证")
+    skipCase("tcp_read_write", "TcpSocket.read/write 需 accept 配合，M0 未提供 accept")
 
     return endSuite()
 }

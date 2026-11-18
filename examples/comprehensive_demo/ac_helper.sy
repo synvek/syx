@@ -1,5 +1,5 @@
-// ac_helper.sy — cross-file helper module for the access_control suite:
-// verifies public/private cross-file visibility under the shared package namespace (chapters 28/29).
+// ac_helper.sy — access_control 套件的跨文件辅助模块：
+// 验证同包共享命名空间下 public/private 的跨文件可见性（第 28/29 章）。
 
 public func acHelperPub() -> Int { return 42 }
 

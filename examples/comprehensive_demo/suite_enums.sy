@@ -1,6 +1,6 @@
-// suite_enums.sy — enums: simple enums / tag, associated values (anonymous / named), switch destructuring, if case, generic enums.
-// Corresponds to chapter 09 of the language guide. Enum methods currently return nil (compiler gap); use free-function switch matching instead.
-// indirect enum / String rawValue are not implemented. Type names are globally unique; prefix En.
+// suite_enums.sy — 枚举：简单枚举/tag、关联值（匿名/具名）、switch 解构、if case、泛型枚举。
+// 对应语言指南第 09 章。枚举方法当前返回 nil（编译器缺口），改用自由函数 switch 匹配。
+// indirect enum / String rawValue 未实现。类型名全局唯一，前缀 En。
 
 enum EnStatus {
     case ok, err, pending
@@ -33,18 +33,18 @@ func enBoxValue(_ b: EnBox<Int>) -> Int {
 func runEnums() -> (Int, Int, Int) {
     beginSuite("lang.enums")
 
-    // Simple enum and tag
+    // 简单枚举与 tag
     let s = EnStatus.ok
     check("simple_tag", s.tag == 0)
     check("simple_tag_pending", EnStatus.pending.tag == 2)
 
-    // Associated values: anonymous (enum instances are move types; construct fresh each time to avoid reuse)
+    // 关联值：匿名（enum 实例是 move 类型，每次用新构造避免复用）
     check("assoc_anonymous", enDescribe(EnRes.success("OK")) == "ok:OK")
 
-    // Associated values: named
+    // 关联值：具名
     check("assoc_named", enDescribe(EnRes.failure(code: 404, message: "NF")) == "fail:404:NF")
 
-    // switch destructuring branch selection
+    // switch 解构分支选择
     check("switch_branch_success", enDescribe(EnRes.success("X")) == "ok:X")
     check("switch_branch_failure", enDescribe(EnRes.failure(code: 500, message: "E")) == "fail:500:E")
 
@@ -55,16 +55,15 @@ func runEnums() -> (Int, Int, Int) {
     }
     check("if_case", ifCaseOk)
 
-    // Generic enum: declaration and matching functions work, but instantiation (monomorphization)
-    // conflicts with the @Equatable macro (Self unresolved), so instantiation cases are skipped
-    // until the compiler is fixed.
-    skipCase("generic_enum_some", "generic enum monomorphization conflicts with the @Equatable macro")
-    skipCase("generic_enum_none", "generic enum monomorphization conflicts with the @Equatable macro")
+    // 泛型枚举：声明与匹配函数可用，但实例化（单态化）与 @Equatable 宏冲突（Self 未解析），
+    // 故跳过实例化用例，待编译器修复后启用。
+    skipCase("generic_enum_some", "泛型枚举单态化与 @Equatable 宏冲突")
+    skipCase("generic_enum_none", "泛型枚举单态化与 @Equatable 宏冲突")
 
-    // Known gaps
-    skipCase("enum_method", "enum methods currently return nil")
-    skipCase("string_raw_value", "String rawValue not implemented")
-    skipCase("indirect_enum", "indirect enum not implemented")
+    // 已知缺口
+    skipCase("enum_method", "枚举方法当前返回 nil")
+    skipCase("string_raw_value", "String rawValue 未实现")
+    skipCase("indirect_enum", "indirect enum 未实现")
 
     return endSuite()
 }

@@ -1,12 +1,12 @@
-// suite_control_flow.sy — control flow: if/else, if expressions, while, repeat-while, for-in,
-// break/continue, labeled loops, switch (value / multi-pattern / range / where / default), guard let.
-// Corresponds to chapter 06 of the language guide. switch uses block-form case v { }; fallthrough is rejected.
+// suite_control_flow.sy — 控制流：if/else、if 表达式、while、repeat-while、for-in、
+// break/continue、标签循环、switch（值/多模式/范围/where/default）、guard let。
+// 对应语言指南第 06 章。switch 用块形式 case v { }；fallthrough 被拒绝。
 
 func cfGuardUnwrap(_ o: Int?) -> Int {
     guard let v = o else {
         return -1
     }
-    // On the current build guard let does not unwrap the type (v stays Int?); use ?? to get the value.
+    // 当前构建 guard let 不解包类型（v 仍为 Int?），用 ?? 取具体值。
     return v ?? -1
 }
 
@@ -19,7 +19,7 @@ func runControlFlow() -> (Int, Int, Int) {
     if x > 0 { branch = "pos" } else if x == 0 { branch = "zero" } else { branch = "neg" }
     check("if_else_chain", branch == "zero")
 
-    // if expression (Phase 100+)
+    // if 表达式（Phase 100+）
     let label = if x > 0 { "pos" } else { "non-pos" }
     check("if_expression", label == "non-pos")
 
@@ -32,19 +32,19 @@ func runControlFlow() -> (Int, Int, Int) {
     }
     check("while", wCount == 10)
 
-    // repeat-while (runs at least once)
+    // repeat-while（至少执行一次）
     var r = 0
     repeat {
         r = r + 1
     } while r < 3
     check("repeat_while", r == 3)
 
-    // for-in over an array
+    // for-in 数组
     var arrSum = 0
     for item in [1, 2, 3, 4] { arrSum = arrSum + item }
     check("for_in_array", arrSum == 10)
 
-    // for-in over a half-open range
+    // for-in 半开 range
     var rSum = 0
     for ri in 0..<5 { rSum = rSum + ri }
     check("for_in_range", rSum == 10)
@@ -65,7 +65,7 @@ func runControlFlow() -> (Int, Int, Int) {
     }
     check("continue", cSum == 25)
 
-    // Labeled break (exit the outer loop)
+    // 标签 break（跳出外层循环）
     var outerCount = 0
     outer: for oi in 0..<10 {
         for oj in 0..<10 {
@@ -75,7 +75,7 @@ func runControlFlow() -> (Int, Int, Int) {
     }
     check("labeled_break", outerCount == 2)
 
-    // switch value matching (block form)
+    // switch 值匹配（块形式）
     var sw = ""
     let num = 5
     switch num {
@@ -85,7 +85,7 @@ func runControlFlow() -> (Int, Int, Int) {
     }
     check("switch_multi_pattern", sw == "prime")
 
-    // switch range cases
+    // switch 范围 case
     var swr = ""
     let n = 42
     switch n {
@@ -95,7 +95,7 @@ func runControlFlow() -> (Int, Int, Int) {
     }
     check("switch_range", swr == "two")
 
-    // switch where guards
+    // switch where 守卫
     var swg = ""
     let g = 4
     switch g {
@@ -114,7 +114,7 @@ func runControlFlow() -> (Int, Int, Int) {
     }
     check("switch_default", swd == "default")
 
-    // guard let (else must exit)
+    // guard let（else 必须退出）
     check("guard_some", cfGuardUnwrap(7) == 7)
     check("guard_nil", cfGuardUnwrap(nil) == -1)
 

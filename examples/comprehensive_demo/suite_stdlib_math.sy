@@ -1,7 +1,7 @@
-// suite_stdlib_math.sy — stdlib math and randomness: Math function family, Double.pi/sqrt,
-// numeric conversions Int(String), Int.random(in:), Random.nextInt/nextUInt64.
-// Observed: Double(String)/String(Int)/Int(Double) constructors return empty objects (broken);
-// Random has no seeding API; Random.nextInt is always 0. Prefix Sm.
+// suite_stdlib_math.sy — 标准库数学与随机：Math 函数族、Double.pi/sqrt、
+// 数值转换 Int(String)、Int.random(in:)、Random.nextInt/nextUInt64。
+// 实测：Double(String)/String(Int)/Int(Double) 构造器返回空对象（broken）；
+// Random 无种子 API；Random.nextInt 恒 0。前缀 Sm。
 
 import Math
 import Random
@@ -9,7 +9,7 @@ import Random
 func runStdlibMath() -> (Int, Int, Int) {
     beginSuite("stdlib.math")
 
-    // Math function family (results compared via interpolation to avoid Int64/Double literal type mismatches)
+    // Math 函数族（结果经插值比较，规避 Int64/Double 字面量类型差异）
     let a1 = Math.add(1, 2)
     check("math_add", "\(a1)" == "3")
     let a2 = Math.sqrt(16.0)
@@ -27,37 +27,37 @@ func runStdlibMath() -> (Int, Int, Int) {
     let a8 = Math.ceil(3.2)
     check("math_ceil", "\(a8)" == "4")
 
-    // Double static constants and methods
+    // Double 静态常量与方法
     let pi = Double.pi
     check("double_pi", "\(pi)".hasPrefix("3.14159"))
     let sq = Double.sqrt(x: 9.0)
     check("double_sqrt", "\(sq)" == "3")
 
-    // Numeric conversion: Int(String) works
+    // 数值转换：Int(String) 可用
     let n1 = Int("42")
     check("int_from_string", (n1 ?? -1) == 42)
     let n2 = Int("abc")
     check("int_from_string_invalid", (n2 ?? -1) == -1)
 
-    // Int.random(in:) range
+    // Int.random(in:) 范围
     let r1 = Int.random(in: 100)
     check("int_random_range", r1 >= 0 && r1 < 100)
 
-    // Random.nextUInt64: two calls should differ
+    // Random.nextUInt64：两次调用应不同
     let u1 = Random.nextUInt64()
     let u2 = Random.nextUInt64()
     check("random_uint64_varies", u1 != u2)
 
-    // Random.nextInt: observed to be always 0; the FAIL is valid coverage
+    // Random.nextInt：当前实测恒 0，FAIL 为有效覆盖
     let i1 = Random.nextInt()
     let i2 = Random.nextInt()
-    checkMsg("random_nextInt_varies", i1 != i2, "both nextInt calls returned \(i1) (appears always 0)")
+    checkMsg("random_nextInt_varies", i1 != i2, "两次 nextInt 均为 \(i1)（疑似恒 0）")
 
-    // Known gaps
-    skipCase("random_seed", "Random has no seed-fixing API (no seed beyond nextInt/nextUInt64/nextBytes)")
-    skipCase("double_from_string", "Double(\"3.5\") constructor returns an empty object")
-    skipCase("string_from_int", "String(42) constructor returns an empty object")
-    skipCase("int_from_double", "Int(3.9) constructor returns an empty object")
+    // 已知缺口
+    skipCase("random_seed", "Random 无种子固定 API（nextInt/nextUInt64/nextBytes 之外无 seed）")
+    skipCase("double_from_string", "Double(\"3.5\") 构造器返回空对象")
+    skipCase("string_from_int", "String(42) 构造器返回空对象")
+    skipCase("int_from_double", "Int(3.9) 构造器返回空对象")
 
     return endSuite()
 }

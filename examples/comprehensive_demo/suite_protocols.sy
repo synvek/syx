@@ -1,6 +1,6 @@
-// suite_protocols.sy — protocols: definition / struct and class conformance, property requirements { get },
-// multiple conformance, protocol inheritance. Corresponds to chapter 14 of the language guide.
-// Protocols as types (existentials) unsupported (S004); protocol extension default implementations not dispatched (C020); recorded as SKIP. Prefix Pt.
+// suite_protocols.sy — 协议：定义/struct 与 class 遵循、属性要求 { get }、
+// 多协议遵循、协议继承。对应语言指南第 14 章。
+// 协议作类型（existential）S004 不支持、协议 extension 默认实现 C020 未分发，记 SKIP。前缀 Pt。
 
 protocol PtGreeter {
     func greet() -> String
@@ -35,29 +35,29 @@ struct PtPerson: PtNamed, PtAged {
 func runProtocols() -> (Int, Int, Int) {
     beginSuite("lang.protocols")
 
-    // struct conforming to a protocol
+    // struct 遵循协议
     let e = PtEn()
     check("struct_conformance", e.greet() == "hello")
 
-    // class conforming to a protocol
+    // class 遵循协议
     let f = PtFr()
     check("class_conformance", f.greet() == "bonjour")
 
-    // Protocol inheritance: child requirements + parent requirements
+    // 协议继承：子协议要求 + 父协议要求
     check("protocol_inheritance_own", f.volume() == 11)
     check("protocol_inheritance_parent", f.greet() == "bonjour")
 
-    // Property requirement { get }
+    // 属性要求 { get }
     let p = PtPerson(name: "Ann")
     check("property_requirement", p.name == "Ann")
 
-    // Multiple conformance
+    // 多协议遵循
     check("multi_conformance", p.age() == 30)
 
-    // Known gaps
-    skipCase("protocol_as_type", "let g: Greeter = … / protocol-typed parameters unsupported (S004)")
-    skipCase("protocol_extension_default", "extension protocol default implementation C020 (En_loud not generated)")
-    skipCase("protocol_composition", "P1 & P2 composition relies on existentials, currently unavailable")
+    // 已知缺口
+    skipCase("protocol_as_type", "let g: Greeter = … / 协议形参 S004 不支持")
+    skipCase("protocol_extension_default", "extension 协议默认实现 C020（En_loud 未生成）")
+    skipCase("protocol_composition", "P1 & P2 组合类型依赖 existential，当前不可用")
 
     return endSuite()
 }

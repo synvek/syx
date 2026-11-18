@@ -1,7 +1,7 @@
-// suite_stdlib_time_path.sy — stdlib time and paths: Time.nowMs, Instant.now,
-// DateTime.now/parseIso8601 (ADR-222 narrow calendar core), FilePath pure functions join/normalize/fileExtension/exists.
-// Observed: DateTime.format(ms:) returns the ms string as-is (broken); Instant.now starts from 0. Prefix Sp.
-// Note: the FilePath.exists case assumes running from the repository root (run_all.sh convention).
+// suite_stdlib_time_path.sy — 标准库时间与路径：Time.nowMs、Instant.now、
+// DateTime.now/parseIso8601（ADR-222 窄日历核心）、FilePath 纯函数 join/normalize/fileExtension/exists。
+// 实测：DateTime.format(ms:) 原样返回 ms 字符串（broken）；Instant.now 从 0 起。前缀 Sp。
+// 注意：FilePath.exists 用例假设从仓库根目录运行（run_all.sh 约定）。
 
 import System
 import Text
@@ -9,39 +9,39 @@ import Text
 func runStdlibTimePath() -> (Int, Int, Int) {
     beginSuite("stdlib.time_path")
 
-    // Time.nowMs: wall clock is positive and monotonically non-decreasing
+    // Time.nowMs：墙上时钟为正且单调不减
     let t1 = Time.nowMs()
     check("time_now_positive", t1 > 0)
     let t2 = Time.nowMs()
     check("time_monotonic", t2 >= t1)
 
-    // Instant.now: monotonic ticks (currently starts from 0)
+    // Instant.now：单调 ticks（当前从 0 起）
     let i1 = Instant.now()
     check("instant_nonnegative", i1 >= 0)
     let i2 = Instant.now()
     check("instant_monotonic", i2 >= i1)
 
-    // DateTime.now: returns {iso, ms} (iso converted to String via interpolation before comparing)
+    // DateTime.now：返回 {iso, ms}（iso 经插值转 String 再比较）
     let now = DateTime.now()
     check("datetime_now_ms", now.ms > 0)
     let nowIso = "\(now.iso)"
     check("datetime_now_iso", nowIso.hasPrefix("20"))
 
-    // DateTime.parseIso8601: known instant 2024-01-15T10:30:00Z
+    // DateTime.parseIso8601：已知时刻 2024-01-15T10:30:00Z
     let dt = DateTime.parseIso8601(text: "2024-01-15T10:30:00Z")
     check("datetime_parse_ms", dt.ms == 1705314600000)
     let dtIso = "\(dt.iso)"
     check("datetime_parse_iso", dtIso.hasPrefix("2024-01-15"))
 
-    // DateTime.format: should output ISO text; observed to return ms as-is; the FAIL is valid coverage
+    // DateTime.format：应输出 ISO 文本；当前实测原样返回 ms，FAIL 为有效覆盖
     let fmt = DateTime.format(ms: 1700000000000)
-    checkMsg("datetime_format_iso", fmt.hasPrefix("2023"), "format returned \(fmt) (expected ISO text for 2023-11-14)")
+    checkMsg("datetime_format_iso", fmt.hasPrefix("2023"), "format 返回 \(fmt)（应为 2023-11-14 的 ISO 文本）")
 
     // FilePath.join
     let joined = FilePath.join(a: "/tmp", b: "x.txt")
     check("path_join", joined == "/tmp/x.txt")
 
-    // FilePath.normalize: resolves . and ..
+    // FilePath.normalize：消除 . 与 ..
     let norm = FilePath.normalize(path: "a/./b/../c")
     check("path_normalize", norm == "a/c")
 
@@ -51,15 +51,15 @@ func runStdlibTimePath() -> (Int, Int, Int) {
     let ext2 = FilePath.fileExtension(path: "noext")
     check("path_extension_none", ext2 == "")
 
-    // FilePath.exists: this project's syx.toml (relative to the repo root; bind the Bool result first to avoid String arguments polluting the check name)
+    // FilePath.exists：本项目 syx.toml（相对仓库根目录；先绑定 Bool 结果，避免 String 实参污染 check 名）
     let demoPath = FilePath.join(a: "examples/comprehensive_demo", b: "syx.toml")
     let existsOk = FilePath.exists(path: demoPath)
     check("path_exists", existsOk)
     check("path_exists_false", FilePath.exists(path: "no_such_file_xyz.txt") == false)
 
-    // Known gaps
-    skipCase("datetime_timezone", "formatWithTimezone/timezoneOffset not covered by the narrow calendar core verification")
-    skipCase("datetime_parse_freeform", "DateTime.parse free-form parsing unverified")
+    // 已知缺口
+    skipCase("datetime_timezone", "formatWithTimezone/timezoneOffset 未纳入窄日历核心验证")
+    skipCase("datetime_parse_freeform", "DateTime.parse 自由格式未验证")
 
     return endSuite()
 }

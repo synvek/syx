@@ -1,8 +1,7 @@
-// suite_structs_classes.sy — structs and classes: struct construction / fields / value-semantics copy / mutating,
-// class single-property init / methods / reference semantics, final class, data class + @Equatable.
-// Corresponds to chapter 10 of the language guide. struct construction requires labels; init parameter
-// assignment for classes with multiple stored properties is buggy, so classes are tested with a single
-// property only. Type names are globally unique; prefix Sc.
+// suite_structs_classes.sy — 结构体与类：struct 构造/字段/值语义拷贝/mutating、
+// class 单属性 init/方法/引用语义、final class、data class + @Equatable。
+// 对应语言指南第 10 章。struct 构造须带标签；多存储属性 class 的 init 参数赋值有 bug，
+// 故 class 仅测单属性。类型名全局唯一，前缀 Sc。
 
 struct ScPoint {
     var x: Int
@@ -25,37 +24,36 @@ final class ScToken {
     init(value: String) { self.value = value }
 }
 
-// data class without @Equatable here: on the current build the @Equatable macro conflicts with
-// generic-enum monomorphization (Self unresolved); synthesized == is covered in the macros suite
-// (which avoids generic-enum monomorphization).
+// data class 不加 @Equatable：当前构建中 @Equatable 宏与泛型枚举单态化冲突（Self 未解析），
+// 宏成 == 详见 macros 套件（该套件避免泛型枚举单态化）。
 data class ScUser(name: String, age: Int)
 
 func runStructsClasses() -> (Int, Int, Int) {
     beginSuite("lang.structs_classes")
 
-    // struct construction (labeled) and field access
+    // struct 构造（带标签）与字段访问
     let p = ScPoint(x: 1, y: 2)
     check("struct_field_x", p.x == 1)
     check("struct_field_y", p.y == 2)
 
-    // struct value semantics: assignment copies; mutating the copy leaves the original unchanged
+    // struct 值语义：赋值拷贝，修改副本不影响原值
     var a = ScPoint(x: 1, y: 1)
     var b = a
     b.x = 9
     check("struct_value_copy_orig", a.x == 1)
     check("struct_value_copy_mut", b.x == 9)
 
-    // mutating method
+    // mutating 方法
     var c = ScCounter()
     c.increment()
     c.increment()
     check("mutating_method", c.value == 2)
 
-    // class single-property init and method
+    // class 单属性 init 与方法
     let g = ScGreeter(name: "World")
     check("class_init_method", g.hello() == "Hi World")
 
-    // class reference semantics: shared reference
+    // class 引用语义：共享引用
     let g2 = g
     g2.name = "SYX"
     check("class_reference_semantics", g.name == "SYX")
@@ -64,11 +62,11 @@ func runStructsClasses() -> (Int, Int, Int) {
     let t = ScToken(value: "abc")
     check("final_class", t.value == "abc")
 
-    // data class construction and fields (synthesized == covered in the macros suite)
+    // data class 构造与字段（== 合成见 macros 套件）
     let u1 = ScUser(name: "A", age: 30)
     check("data_class_field", u1.name == "A")
     check("data_class_field_age", u1.age == 30)
-    skipCase("data_class_eq", "@Equatable conflicts with generic enum monomorphization; see the macros suite")
+    skipCase("data_class_eq", "@Equatable 与泛型枚举单态化冲突，见 macros 套件")
 
     return endSuite()
 }

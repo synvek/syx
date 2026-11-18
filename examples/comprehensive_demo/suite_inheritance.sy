@@ -1,6 +1,6 @@
-// suite_inheritance.sy — inheritance: multi-level inheritance, override/super chains, super.init initialization chains,
-// base-type polymorphism (vtable dynamic dispatch), is/as? type checks and casts, deinit firing on scope exit.
-// Corresponds to chapter 12 of the language guide. convenience init is currently unsupported (P001); recorded as SKIP. Prefix In.
+// suite_inheritance.sy — 继承：多级继承、override/super 链、super.init 初始化链、
+// 基类类型多态（vtable 动态分发）、is/as? 类型检查与转换、deinit 作用域触发。
+// 对应语言指南第 12 章。convenience init 当前 P001 不支持，记 SKIP。前缀 In。
 
 var gInDeinit = 0
 
@@ -36,7 +36,7 @@ func inScoped() {
     print("  (inScoped created \(t.n))")
 }
 
-// Polymorphism: parameter declared as the base type, dispatches to the subclass override.
+// 多态：参数声明为基类类型，实际分发到子类 override。
 func inDescribe(_ a: InBase) -> String {
     return a.speak()
 }
@@ -44,41 +44,40 @@ func inDescribe(_ a: InBase) -> String {
 func runInheritance() -> (Int, Int, Int) {
     beginSuite("lang.inheritance")
 
-    // Single-level inheritance and inherited fields
+    // 单级继承与字段继承
     let m = InMid(name: "m", tag: 3)
     check("inherited_field", m.name == "m")
     check("own_field", m.tag == 3)
 
-    // init chain: super.init runs correctly
+    // init 链：super.init 正确执行
     check("init_chain", m.name == "m")
 
-    // override + super call chain
+    // override + super 调用链
     check("override_super", m.speak() == "mid:base")
     check("override_label", m.label() == "mid:animal:m")
 
-    // Multi-level inheritance
+    // 多级继承
     let l = InLeaf(name: "l", tag: 9)
     check("multi_level_override", l.speak() == "leaf:mid:base")
     check("multi_level_field", l.tag == 9)
 
-    // Polymorphism: dynamic dispatch through a base-typed variable
+    // 多态：基类类型变量动态分发
     let b: InBase = InLeaf(name: "up", tag: 1)
     check("polymorphic_dispatch", b.speak() == "leaf:mid:base")
 
-    // Function-parameter polymorphism (note: passing a temporary multi-field subclass
-    // object straight into a base-typed parameter corrupts it; bind with let first,
-    // then pass through a base-typed variable)
+    // 函数参数多态（注意：多字段子类临时对象直接传基类形参会损坏，
+    // 须先 let 绑定再经基类类型变量传入）
     let pm = InMid(name: "p", tag: 0)
     let pb: InBase = pm
     check("param_polymorphism", inDescribe(pb) == "mid:base")
 
-    // is type check
+    // is 类型检查
     let c1: InBase = InLeaf(name: "c", tag: 2)
     check("is_true", c1 is InLeaf)
     let c2: InBase = InMid(name: "d", tag: 0)
     check("is_false", (c2 is InLeaf) == false)
 
-    // as? downcast
+    // as? 向下转换
     let c3: InBase = InLeaf(name: "e", tag: 7)
     if let d = c3 as? InLeaf {
         check("downcast_field", d.tag == 7)
@@ -86,13 +85,13 @@ func runInheritance() -> (Int, Int, Int) {
         check("downcast_field", false)
     }
 
-    // deinit fires on scope exit (observable ARC)
+    // deinit 作用域触发（ARC 可观察）
     gInDeinit = 0
     inScoped()
     check("deinit_on_scope_exit", gInDeinit == 1)
 
-    // Known gaps
-    skipCase("convenience_init", "convenience modifier currently unsupported (P001)")
+    // 已知缺口
+    skipCase("convenience_init", "convenience 修饰符当前 P001 不支持")
 
     return endSuite()
 }

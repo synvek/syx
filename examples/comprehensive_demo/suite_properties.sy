@@ -1,6 +1,6 @@
-// suite_properties.sy — properties: stored properties, computed properties get/get-set, static var/let,
-// willSet/didSet observers. Corresponds to chapter 11 of the language guide (Class Properties v6 MVP).
-// class subscripts currently return the object itself (broken) and lazy var triggers R003; both recorded as SKIP. Prefix Pr.
+// suite_properties.sy — 属性：存储属性、计算属性 get/get-set、static var/let、
+// willSet/didSet 观察器。对应语言指南第 11 章（Class Properties v6 MVP）。
+// class 下标当前返回对象本身（broken）、lazy var 触发 R003，均记为 SKIP。前缀 Pr。
 
 var gPrWill = -1
 var gPrDid = -1
@@ -31,13 +31,13 @@ func runProperties() -> (Int, Int, Int) {
 
     let b = PrBox(base: 5)
 
-    // Stored property
+    // 存储属性
     check("stored_property", b.base == 5)
 
-    // Computed property, get-only
+    // 计算属性 get-only
     check("computed_get", b.doubled == 10)
 
-    // Computed property, get/set
+    // 计算属性 get/set
     check("computed_get_value", b.value == 5)
     b.value = 10
     check("computed_set", b.base == 10)
@@ -48,7 +48,7 @@ func runProperties() -> (Int, Int, Int) {
     check("static_var", PrBox.count == 7)
     check("static_let", PrBox.version == 1)
 
-    // willSet / didSet observers
+    // willSet / didSet 观察器
     gPrWill = -1
     gPrDid = -1
     PrCounter.value = 7
@@ -56,10 +56,10 @@ func runProperties() -> (Int, Int, Int) {
     check("did_set", gPrDid == 0)
     check("observer_value", PrCounter.value == 7)
 
-    // Known gaps
-    skipCase("class_subscript", "class subscript currently returns the object itself")
-    skipCase("lazy_var", "lazy var triggers R003")
-    skipCase("struct_observers", "struct/global observers not GA")
+    // 已知缺口
+    skipCase("class_subscript", "class 下标当前返回对象本身")
+    skipCase("lazy_var", "lazy var 触发 R003")
+    skipCase("struct_observers", "struct/全局观察器未 GA")
 
     return endSuite()
 }

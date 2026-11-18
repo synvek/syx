@@ -1,6 +1,6 @@
-// suite_host_services.sy — host services: Logging (setMinLevel/info/takeLast/infoFields),
-// Metrics (inc/get/gaugeSet/gaugeGet/reset), Trace (start/end). Corresponds to library-guide 04-logging.
-// Observed: Metrics.inc does not count (get is always 0); gauge truncates decimals. The FAILs are valid coverage. Backend: vm. Prefix Hs.
+// suite_host_services.sy — 宿主服务：Logging（setMinLevel/info/takeLast/infoFields）、
+// Metrics（inc/get/gaugeSet/gaugeGet/reset）、Trace（start/end）。对应 library-guide 04-logging。
+// 实测：Metrics.inc 不计数（get 恒 0）；gauge 截断小数。FAIL 为有效覆盖。后端：vm。前缀 Hs。
 
 import Logging
 import Metrics
@@ -9,44 +9,44 @@ import Tracing
 func runHostServices() -> (Int, Int, Int) {
     beginSuite("host.services")
 
-    // Logging: level setting + info + takeLast
+    // Logging：级别设置 + info + takeLast
     Log.setMinLevel("INFO")
     Log.info("hello-log")
     let last = Log.takeLast()
     let lastStr = "\(last)"
     check("log_take_last", lastStr.hasPrefix("[INFO] hello-log"))
 
-    // Logging: structured fields
+    // Logging：结构化字段
     let line = Log.infoFields("ready", {"pkg": "Log"})
     let lineStr = "\(line)"
     check("log_fields", lineStr.hasPrefix("[INFO] ready"))
 
-    // Metrics: inc count should be 2; observed always 0; the FAIL is valid coverage
+    // Metrics：inc 计数应为 2；当前实测恒 0，FAIL 为有效覆盖
     Metrics.inc(name: "hits")
     Metrics.inc(name: "hits")
     let mv = Metrics.get(name: "hits")
-    checkMsg("metrics_inc", mv == 2, "actual \(mv) (inc did not count)")
+    checkMsg("metrics_inc", mv == 2, "实际 \(mv)（inc 未计数）")
 
-    // Metrics: gauge set/get (currently truncates decimals); the FAIL is valid coverage
+    // Metrics：gauge 设置/读取（当前截断小数），FAIL 为有效覆盖
     Metrics.gaugeSet(name: "temp", value: 36.6)
     let gv = Metrics.gaugeGet(name: "temp")
-    checkMsg("metrics_gauge", "\(gv)" == "36.6", "actual \(gv) (decimals truncated)")
+    checkMsg("metrics_gauge", "\(gv)" == "36.6", "实际 \(gv)（小数被截断）")
 
-    // Metrics: reset clears to zero
+    // Metrics：reset 清零
     Metrics.reset(name: "hits")
     let after = Metrics.get(name: "hits")
     check("metrics_reset", after == 0)
 
-    // Trace: span start/end are callable
+    // Trace：span 起止可调用
     let span = Trace.start(name: "op")
     Trace.end(span: span)
     check("trace_start_end", true)
 
-    // Known gaps
-    skipCase("log_policy", "Log.policy/minLevel filtering details not covered in this round")
-    skipCase("metrics_labels", "Metrics.incLabels/getLabels/snapshot not covered in this round")
-    skipCase("trace_context", "Trace.current/contextLine context propagation not covered in this round")
-    skipCase("di_container", "DI container (import DI) not covered in this round")
+    // 已知缺口
+    skipCase("log_policy", "Log.policy/minLevel 过滤细节未纳入本轮验证")
+    skipCase("metrics_labels", "Metrics.incLabels/getLabels/snapshot 未纳入本轮验证")
+    skipCase("trace_context", "Trace.current/contextLine 上下文传播未纳入本轮验证")
+    skipCase("di_container", "DI 容器（import DI）未纳入本轮验证")
 
     return endSuite()
 }

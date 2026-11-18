@@ -1,19 +1,17 @@
-// harness.sy — print-style assertion utilities, shared by all three backends (VM / Native / WASM).
-// Does not depend on import Testing / @Test (that is the VM-only `syx test` path).
+// harness.sy — 打印式断言工具，三后端（VM / Native / WASM）通用。
+// 不依赖 import Testing / @Test（那是 VM-only 的 syx test 路径）。
 //
-// Design note: module-level global counters + functions (instead of a class instance), because:
-//   1. the current dev-stage compiler has a defect in "init parameter assignment for
-//      classes with multiple stored properties";
-//   2. passing class instances across functions by value triggers a move (S011);
-//      global state sidesteps both issues.
-// All .sy files in the same package share one namespace; the globals below are unique.
+// 设计说明：采用模块级全局计数 + 函数（而非 class 实例），原因：
+//   1. 当前开发期编译器对「多存储属性 class 的 init 参数赋值」存在缺陷；
+//   2. class 实例跨函数按值传递会触发 move（S011），全局态规避此问题。
+// 同包所有 .sy 文件共享一个命名空间，下列全局符号全局唯一。
 //
-// Suite usage:
+// 套件用法：
 //   func runXxx() -> (Int, Int, Int) {
 //       beginSuite("lang.xxx")
 //       check("case_name", expr)
 //       checkMsg("case2", ok, "expected ..., got ...")
-//       skipCase("case3", "feature not GA yet")
+//       skipCase("case3", "特性未 GA")
 //       return endSuite()
 //   }
 
@@ -22,7 +20,7 @@ var gPass = 0
 var gFail = 0
 var gSkip = 0
 
-// Start a suite: reset counters and print the suite header.
+// 开始一个套件：重置计数并打印套件头。
 func beginSuite(_ name: String) {
     gSuite = name
     gPass = 0
@@ -31,7 +29,7 @@ func beginSuite(_ name: String) {
     print("== \(name) ==")
 }
 
-// Single-expression assertion: prints [PASS] when ok is true, [FAIL] otherwise.
+// 单表达式断言：ok 为 true 打印 [PASS]，否则 [FAIL]。
 func check(_ name: String, _ ok: Bool) {
     if ok {
         gPass = gPass + 1
@@ -42,7 +40,7 @@ func check(_ name: String, _ ok: Bool) {
     }
 }
 
-// Assertion with details: on FAIL, appends msg (built via string interpolation at the call site).
+// 带详情断言：FAIL 时附带 msg（调用侧用字符串插值构造期望/实际）。
 func checkMsg(_ name: String, _ ok: Bool, _ msg: String) {
     if ok {
         gPass = gPass + 1
@@ -53,13 +51,13 @@ func checkMsg(_ name: String, _ ok: Bool, _ msg: String) {
     }
 }
 
-// Explicitly skip a single case (e.g. a feature not yet implemented on this backend).
+// 主动跳过单个用例（例如某特性在当前后端未实现）。
 func skipCase(_ name: String, _ reason: String) {
     gSkip = gSkip + 1
     print("[SKIP] \(gSuite).\(name) (\(reason))")
 }
 
-// End the suite: print the subtotal and return the (pass, fail, skip) counters.
+// 结束套件：打印小计并返回 (pass, fail, skip) 计数。
 func endSuite() -> (Int, Int, Int) {
     print("-- \(gSuite): \(gPass) pass, \(gFail) fail, \(gSkip) skip")
     return (gPass, gFail, gSkip)

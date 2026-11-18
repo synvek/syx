@@ -1,6 +1,6 @@
-// suite_errors.sy — error handling: throws/try/do-catch, error enums (with associated values),
-// error propagation up through throws functions, try! force-success. Corresponds to chapter 17 of the language guide.
-// try? currently triggers an R007 crash and typed catch (catch MyErr.bad) is unsupported (P001); recorded as SKIP. Prefix Er.
+// suite_errors.sy — 错误处理：throws/try/do-catch、错误枚举（含关联值）、
+// 错误经 throws 函数向上传播、try! 强制解包。对应语言指南第 17 章。
+// try? 当前触发 R007 崩溃、typed catch（catch MyErr.bad）P001 不支持，记 SKIP。前缀 Er。
 
 enum ErError: Error {
     case bad
@@ -20,7 +20,7 @@ func erWrap(_ x: Int) throws -> Int {
 func runErrors() -> (Int, Int, Int) {
     beginSuite("lang.errors")
 
-    // try happy path
+    // try 正常路径
     do {
         let v1 = try erRisky(5)
         check("try_success", v1 == 10)
@@ -28,7 +28,7 @@ func runErrors() -> (Int, Int, Int) {
         check("try_success", false)
     }
 
-    // throw + generic catch (global flag observes whether catch is entered)
+    // throw + 通用 catch（全局 flag 观察是否进入 catch）
     var caught1 = false
     do {
         let v2 = try erRisky(-1)
@@ -38,7 +38,7 @@ func runErrors() -> (Int, Int, Int) {
     }
     check("catch_entered", caught1)
 
-    // Error enums with associated values can also be thrown/caught
+    // 关联值错误枚举也可 throw/catch
     var caught2 = false
     do {
         let v3 = try erRisky(0)
@@ -48,7 +48,7 @@ func runErrors() -> (Int, Int, Int) {
     }
     check("assoc_error_caught", caught2)
 
-    // Error propagation through a throws wrapper: happy path
+    // 错误经 throws 包装函数传播：正常路径
     do {
         let v4 = try erWrap(3)
         check("propagate_success", v4 == 6)
@@ -56,7 +56,7 @@ func runErrors() -> (Int, Int, Int) {
         check("propagate_success", false)
     }
 
-    // Error propagation through a throws wrapper: throwing path
+    // 错误经 throws 包装函数传播：异常路径
     var caught3 = false
     do {
         let v5 = try erWrap(-2)
@@ -66,11 +66,11 @@ func runErrors() -> (Int, Int, Int) {
     }
     check("propagated_throw_caught", caught3)
 
-    // try! force-success path
+    // try! 强制成功路径
     let forced = try! erRisky(4)
     check("try_bang", forced == 8)
 
-    // Error-enum associated-value construction and pattern destructuring
+    // 错误枚举关联值构造与模式解构
     let e = ErError.worse(code: 42)
     switch e {
     case .bad:
@@ -79,10 +79,10 @@ func runErrors() -> (Int, Int, Int) {
         check("error_enum_match", code == 42)
     }
 
-    // Known gaps
-    skipCase("try_optional", "try? currently triggers an R007 crash")
-    skipCase("typed_catch", "catch ErError.bad form unsupported (P001)")
-    skipCase("catch_binding", "catch let e error-value binding support unverified")
+    // 已知缺口
+    skipCase("try_optional", "try? 当前触发 R007 崩溃")
+    skipCase("typed_catch", "catch ErError.bad 形式 P001 不支持")
+    skipCase("catch_binding", "catch let e 绑定错误值未验证支持")
 
     return endSuite()
 }

@@ -1,20 +1,20 @@
-// suite_host_io.sy — host IO: File.write/read/exists/delete, FileHandle byte read/write,
-// Env.get/set, Time.sleepMs, Process.args/exec. Corresponds to library-guide 03-system.
-// Observed: Process.exec returns the exit code (not output text); on native, host IO functions return nil. Backend: vm. Prefix Hi.
+// suite_host_io.sy — 宿主 IO：File.write/read/exists/delete、FileHandle 字节读写、
+// Env.get/set、Time.sleepMs、Process.args/exec。对应 library-guide 03-system。
+// 实测：Process.exec 返回退出码（非输出文本）；native 下宿主 IO 函数返回 nil。后端：vm。前缀 Hi。
 
 import System
 
 func runHostIo() -> (Int, Int, Int) {
     beginSuite("host.io")
 
-    // File: string write/read roundtrip
+    // File：字符串写入/读取往返
     let p = "/tmp/syx_comp_demo_io.txt"
     File.write(path: p, content: "hello-io")
     let txt = File.read(path: p)
     check("file_roundtrip", "\(txt)" == "hello-io")
     check("file_exists", File.exists(path: p))
 
-    // FileHandle: byte write/read
+    // FileHandle：字节写入/读取
     let wh = FileHandle.open(path: p, mode: "w")
     let _ = FileHandle.write(handle: wh, bytes: [65u8, 66u8, 67u8])
     FileHandle.close(handle: wh)
@@ -24,35 +24,35 @@ func runHostIo() -> (Int, Int, Int) {
     check("filehandle_count", bytes.count == 3)
     check("filehandle_byte", bytes[0] == 65)
 
-    // Env: read an existing variable
+    // Env：读取已有变量
     let home = Env.get(key: "HOME")
     check("env_home", home.count > 0)
 
-    // Env: set/get roundtrip
+    // Env：设置/读取往返
     Env.set(key: "SYX_COMP_DEMO", value: "42")
     let ev = Env.get(key: "SYX_COMP_DEMO")
     check("env_set_get", "\(ev)" == "42")
 
-    // Time.sleepMs: actually sleeps
+    // Time.sleepMs：实际休眠
     let t0 = Time.nowMs()
     Time.sleepMs(ms: 20)
     check("sleep_elapsed", Time.nowMs() - t0 >= 15)
 
-    // Process.args: callable and returns an array
+    // Process.args：可调用且返回数组
     let args = Process.args()
     check("process_args", args.count >= 0)
 
-    // Process.exec: echo exits with code 0
+    // Process.exec：echo 退出码 0
     let code = Process.exec(cmd: "echo", args: ["hi"])
     check("process_exec_exit", code == 0)
 
-    // File.delete: gone after deletion
+    // File.delete：删除后不存在
     File.delete(path: p)
     check("file_delete", File.exists(path: p) == false)
 
-    // Known gaps
-    skipCase("process_exec_output", "Process.exec returns the exit code; no execOutput output-capture API")
-    skipCase("file_stat_readlines", "File.stat/readLines/readBytes not covered in this round")
+    // 已知缺口
+    skipCase("process_exec_output", "Process.exec 返回退出码，无 execOutput 输出捕获 API")
+    skipCase("file_stat_readlines", "File.stat/readLines/readBytes 未纳入本轮验证")
 
     return endSuite()
 }

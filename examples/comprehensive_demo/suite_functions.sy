@@ -1,6 +1,6 @@
-// suite_functions.sy — functions and closures: named parameters / external labels / positional parameters / default parameters / tuple returns and destructuring /
-// recursion / closure expressions / type annotations / higher-order functions map/filter/reduce / trailing closures / capture.
-// Corresponds to chapters 07 and 08 of the language guide. See the host.concurrency suite for async.
+// suite_functions.sy — 函数与闭包：命名参数/外部标签/位置参数/默认参数/元组返回与解构/
+// 递归/闭包表达式/类型标注/高阶函数 map/filter/reduce/尾随闭包/捕获。
+// 对应语言指南第 07、08 章。async 见 host.concurrency 套件。
 
 func fnAdd(_ a: Int, _ b: Int) -> Int { return a + b }
 func fnLabeled(name: String) -> String { return "Hi \(name)" }
@@ -16,42 +16,42 @@ func fnApply(_ f: (Int) -> Int, _ x: Int) -> Int { return f(x) }
 func runFunctions() -> (Int, Int, Int) {
     beginSuite("lang.functions")
 
-    // Basic function with positional parameters
+    // 基本函数与位置参数
     check("positional", fnAdd(1, 2) == 3)
 
-    // Named parameters (labels are mandatory)
+    // 命名参数（必须带标签）
     check("named_label", fnLabeled(name: "SYX") == "Hi SYX")
 
-    // External label to:, internal name destination
+    // 外部标签 to:，内部名 destination
     check("external_label", fnExternal(to: "home") == "home")
 
-    // Default parameters (the current build cannot omit defaulted params; pass explicitly; omission recorded as SKIP)
+    // 默认参数（当前构建不支持省略默认参，须显式传值；省略能力记为 SKIP）
     check("default_param", fnDefault("SYX", greeting: "Hello") == "Hello, SYX")
     check("default_override", fnDefault("SYX", greeting: "Hi") == "Hi, SYX")
-    skipCase("default_omission", "omitting default arguments currently reports S042")
+    skipCase("default_omission", "省略默认参数当前报 S042")
 
-    // Tuple return and destructuring
+    // 元组返回与解构
     let (q, r) = fnDivMod(17, 5)
     check("tuple_return_q", q == 3)
     check("tuple_return_r", r == 2)
 
-    // Recursion
+    // 递归
     check("recursion", fnFact(5) == 120)
 
-    // Closure expressions
+    // 闭包表达式
     let inc = { x in x + 1 }
     check("closure_basic", inc(41) == 42)
     let sum = { (a, b) in a + b }
     check("closure_multi", sum(1, 2) == 3)
 
-    // Closure with explicit type annotation
+    // 显式类型标注闭包
     let dbl: (Int) -> Int = { x in x * 2 }
     check("closure_typed", dbl(21) == 42)
 
-    // Closure as an argument
+    // 闭包作参数
     check("closure_as_arg", fnApply({ x in x * 3 }, 5) == 15)
 
-    // Higher-order functions map / filter / reduce
+    // 高阶函数 map / filter / reduce
     let nums = [1, 2, 3, 4, 5]
     let doubled = nums.map({ x in x * 2 })
     check("hof_map", doubled[2] == 6)
@@ -60,11 +60,11 @@ func runFunctions() -> (Int, Int, Int) {
     let total = nums.reduce(0, { acc, x in acc + x })
     check("hof_reduce", total == 15)
 
-    // Trailing closure
+    // 尾随闭包
     let dbl2 = nums.map { x in x * 2 }
     check("trailing_closure", dbl2[4] == 10)
 
-    // Closure capture
+    // 闭包捕获
     var captured = 10
     let addCaptured = { x in x + captured }
     check("closure_capture", addCaptured(5) == 15)

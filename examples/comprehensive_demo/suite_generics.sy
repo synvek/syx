@@ -1,10 +1,10 @@
-// suite_generics.sy — generics: generic functions (single / multiple type parameters), generic structs, generic methods,
-// method-level second type parameter + closure parameter, tuple returns. Corresponds to chapter 16 of the language guide.
-// Constrained generics (T: Equatable/Comparable) currently fail monomorphization with C020 (Int→Int64 bodies not generated);
-// generic-enum instantiation conflicts with the @Equatable macro (S002 Self); generic method map<U>+closure conflicts with
-// data class synthesized init (returns an empty data class instance). All recorded as SKIP. Prefix Ge.
-// Note: integer literals infer as Int64, so generic calls always pass explicit Int variables;
-// generic calls must not be embedded directly in string interpolation (misinfers Int64) — bind with let first, then interpolate and compare.
+// suite_generics.sy — 泛型：泛型函数（单/多类型参数）、泛型 struct、泛型方法、
+// 方法级第二类型参数 + 闭包参数、元组返回。对应语言指南第 16 章。
+// 约束泛型（T: Equatable/Comparable）当前单态化 C020（Int→Int64 未生成函数体），
+// 泛型枚举实例化与 @Equatable 宏冲突（S002 Self），泛型方法 map<U>+闭包与 data class
+// 合成 init 冲突（返回 data class 空实例），均记 SKIP。前缀 Ge。
+// 注意：整数字面量推断为 Int64，泛型调用一律传显式 Int 变量；
+// 泛型调用不可直接嵌在字符串插值内（误推断 Int64），须先 let 绑定再插值比较。
 
 func geIdentity<T>(_ x: T) -> T { return x }
 
@@ -20,42 +20,42 @@ struct GeBox<T> {
 func runGenerics() -> (Int, Int, Int) {
     beginSuite("lang.generics")
 
-    // Generic functions: Int / String monomorphization (generic returns are not Equatable; bind first, then compare via interpolation)
+    // 泛型函数：Int / String 单态化（泛型返回值非 Equatable，先绑定再经插值比较）
     let n: Int = 7
     let r1 = geIdentity(n)
     check("generic_fn_int", "\(r1)" == "7")
     let s = geIdentity("hi")
     check("generic_fn_string", "\(s)" == "hi")
 
-    // Multiple type parameters (no nested string literals inside interpolation; bind first)
+    // 多类型参数（插值内不能嵌套字符串字面量，先绑定）
     let m: Int = 3
     let fst = geFirst(m, "x")
     check("generic_two_params", "\(fst)" == "3")
 
-    // Generic tuple return (generic types are not Equatable; convert to String via interpolation to compare)
+    // 泛型元组返回（泛型类型非 Equatable，经插值转 String 比较）
     let k: Int = 5
     let t = geFlip(k, "z")
     check("generic_tuple_return", "\(t.0)" == "z")
     check("generic_tuple_return_int", "\(t.1)" == "5")
 
-    // Generic struct: Int / String instantiation and field access (field type T is not Equatable; compare via interpolation)
+    // 泛型 struct：Int / String 实例化与字段访问（字段类型 T 非 Equatable，经插值比较）
     let bi = GeBox<Int>(v: 4)
     check("generic_struct_int", "\(bi.v)" == "4")
     let bs = GeBox<String>(v: "ok")
     check("generic_struct_string", "\(bs.v)" == "ok")
 
-    // Generic method
+    // 泛型方法
     let g1 = bi.get()
     check("generic_method", "\(g1)" == "4")
 
-    // Method-level second type parameter + closure: conflicts with @Equatable data class synthesized init; recorded as SKIP
-    skipCase("generic_method_map", "map<U> + closure monomorphization conflicts with data class synthesized init (returns an empty instance)")
-    skipCase("generic_method_map_str", "same as above")
+    // 方法级第二类型参数 + 闭包：与 @Equatable data class 合成 init 冲突，记 SKIP
+    skipCase("generic_method_map", "map<U>+闭包单态化与 data class 合成 init 冲突（返回空实例）")
+    skipCase("generic_method_map_str", "同上")
 
-    // Known gaps
-    skipCase("constrained_generics", "T: Equatable/Comparable monomorphization C020 (eq_Int64 not generated)")
-    skipCase("generic_enum", "generic enum instantiation conflicts with the @Equatable macro (S002 Self)")
-    skipCase("where_clause", "where clauses depend on constrained generics, currently unavailable")
+    // 已知缺口
+    skipCase("constrained_generics", "T: Equatable/Comparable 单态化 C020（eq_Int64 未生成）")
+    skipCase("generic_enum", "泛型枚举实例化与 @Equatable 宏冲突（S002 Self）")
+    skipCase("where_clause", "where 子句依赖约束泛型，当前不可用")
 
     return endSuite()
 }

@@ -1,7 +1,7 @@
-// suite_macros.sy — built-in derive macros: @Equatable (synthesized ==), @Codable (encode/decode JSON),
-// @Hashable (hash()), @Codable enums with associated values. Corresponds to chapter 24 of the language guide and examples/codable_associated_enum.
-// Note: other suites in this project must not instantiate generic enums or use generic methods map<U>+closure
-// (they conflict with @Equatable/data class synthesized code). Prefix Mc.
+// suite_macros.sy — 内置 derive 宏：@Equatable（合成 ==）、@Codable（encode/decode JSON）、
+// @Hashable（hash()）、@Codable 关联值枚举。对应语言指南第 24 章与 examples/codable_associated_enum。
+// 注意：本项目其他套件不得实例化泛型枚举、不得用泛型方法 map<U>+闭包
+// （与 @Equatable/data class 合成代码冲突）。前缀 Mc。
 
 @Equatable
 data class McUser(name: String, age: Int)
@@ -21,7 +21,7 @@ enum McWire {
 func runMacros() -> (Int, Int, Int) {
     beginSuite("lang.macros")
 
-    // @Equatable: field-by-field synthesized ==
+    // @Equatable：逐字段合成 ==
     let u1 = McUser(name: "A", age: 30)
     let u2 = McUser(name: "A", age: 30)
     check("equatable_equal", u1 == u2)
@@ -30,36 +30,36 @@ func runMacros() -> (Int, Int, Int) {
     let u4 = McUser(name: "A", age: 31)
     check("equatable_field_diff", (u2 == u4) == false)
 
-    // @Codable: encode produces JSON (String has no contains; use hasPrefix/count)
+    // @Codable：encode 产出 JSON（String 无 contains，用 hasPrefix/count）
     let c = McCfg(host: "localhost", port: 8080)
     let j = c.encode()
     check("codable_encode_json", j.hasPrefix("{"))
     check("codable_encode_nonempty", j.count > 10)
 
-    // @Codable: decode roundtrip
+    // @Codable：decode 往返
     let c2 = McCfg.decode(text: j)
     check("codable_roundtrip_host", c2.host == "localhost")
     check("codable_roundtrip_port", c2.port == 8080)
 
-    // @Codable enum with associated values: ok branch roundtrip
+    // @Codable 关联值枚举：ok 分支往返
     let w = McWire.ok(code: 7)
     let wj = w.encode()
     let w2 = McWire.decode(text: wj)
     check("codable_enum_ok", w2.code == 7)
 
-    // @Codable enum with associated values: err branch roundtrip
+    // @Codable 关联值枚举：err 分支往返
     let e = McWire.err(message: "nope")
     let ej = e.encode()
     let e2 = McWire.decode(text: ej)
     check("codable_enum_err", e2.message == "nope")
 
-    // @Hashable: declaration and construction work; hash() currently returns Void and direct comparison triggers S016; recorded as SKIP
+    // @Hashable：声明与构造可用；hash() 当前返回 Void，直接比较触发 S016，记 SKIP
     let k1 = McKey(id: 1)
     check("hashable_construct", k1.id == 1)
-    skipCase("hashable_equal_values", "hash() returns Void; == comparison S016 (printable via interpolation but not type-checkable)")
+    skipCase("hashable_equal_values", "hash() 返回 Void，== 比较 S016（插值内可打印但不可类型检查）")
 
-    // Known gaps
-    skipCase("custom_macro", "custom macro/derive extension mechanism not GA")
+    // 已知缺口
+    skipCase("custom_macro", "自定义宏/derive 扩展机制未 GA")
 
     return endSuite()
 }

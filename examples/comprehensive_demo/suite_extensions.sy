@@ -1,7 +1,6 @@
-// suite_extensions.sy — extensions: adding methods and computed properties via struct/class extensions,
-// extensions on built-in types (Int). Corresponds to chapter 15 of the language guide.
-// Methods from retroactive protocol conformance in extensions are not dispatched (return the default description);
-// nested-type construction fails with C020; recorded as SKIP. Prefix Ex.
+// suite_extensions.sy — 扩展：struct/class extension 加方法与计算属性、
+// 内置类型（Int）extension。对应语言指南第 15 章。
+// extension 追溯协议遵循的方法不分发（返回默认描述）、嵌套类型构造 C020，记 SKIP。前缀 Ex。
 
 struct ExPoint {
     var x: Int
@@ -34,31 +33,31 @@ extension Int {
 func runExtensions() -> (Int, Int, Int) {
     beginSuite("lang.extensions")
 
-    // struct extension method
+    // struct extension 方法
     let p = ExPoint(x: 3, y: 4)
     check("struct_ext_method", p.sum() == 7)
 
-    // struct extension computed property
+    // struct extension 计算属性
     check("struct_ext_computed", p.magnitude == 25)
 
-    // class extension method
+    // class extension 方法
     let w = ExWallet(cents: 250)
     check("class_ext_method", w.dollars() == 2)
 
-    // class extension computed property
+    // class extension 计算属性
     check("class_ext_computed", w.doubled == 500)
 
-    // Built-in type extension
+    // 内置类型 extension
     let n: Int = 6
     check("builtin_ext_int", n.exSquared() == 36)
 
-    // Extension coexists with original members
+    // extension 与原方法共存
     check("ext_and_original", w.cents == 250)
 
-    // Known gaps
-    skipCase("retroactive_conformance", "extension Point: Protocol methods not dispatched (returns the default description)")
-    skipCase("nested_types", "Outer.Inner nested type construction C020 (Outer_Inner_init not generated)")
-    skipCase("opaque_boxed_types", "some/any opaque/boxed types rely on existentials, currently unavailable")
+    // 已知缺口
+    skipCase("retroactive_conformance", "extension Point: Protocol 的方法不分发（返回默认描述）")
+    skipCase("nested_types", "Outer.Inner 嵌套类型构造 C020（Outer_Inner_init 未生成）")
+    skipCase("opaque_boxed_types", "some/any  opaque/boxed 类型依赖 existential，当前不可用")
 
     return endSuite()
 }

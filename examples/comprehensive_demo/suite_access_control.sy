@@ -1,6 +1,6 @@
-// suite_access_control.sy — access control: public/internal/private modifiers,
-// public class members, cross-file shared-namespace access (ac_helper.sy). Corresponds to chapters 28/29 of the language guide.
-// Observed: modifiers parse, but private is not enforced across files (still callable); the FAIL is valid coverage. Prefix Ac.
+// suite_access_control.sy — 访问控制：public/internal/private 修饰符、
+// public class 成员、跨文件共享命名空间访问（ac_helper.sy）。对应语言指南第 28/29 章。
+// 实测：修饰符可解析，但 private 跨文件未强制（仍可调用），FAIL 为有效覆盖。前缀 Ac。
 
 public func acPubFn() -> Int { return 1 }
 
@@ -17,30 +17,29 @@ public class AcBox {
 func runAccessControl() -> (Int, Int, Int) {
     beginSuite("lang.access_control")
 
-    // Modifier declarations and same-file calls
+    // 修饰符声明与同文件调用
     check("public_func", acPubFn() == 1)
     check("private_func_same_file", acPrivFn() == 2)
     check("internal_func", acIntFn() == 3)
 
-    // public class: construction / field / method
+    // public class：构造/字段/方法
     let b = AcBox(v: 3)
     check("public_class_field", b.v == 3)
     check("public_class_method", b.twice() == 6)
 
-    // Cross-file public access (ac_helper.sy; shared package namespace, no import needed)
+    // 跨文件 public 访问（ac_helper.sy，同包共享命名空间，无需 import）
     check("cross_file_public", acHelperPub() == 42)
 
-    // Cross-file private enforcement: acHelperPriv is declared private in ac_helper.sy,
-    // so calling it from this file should be rejected; it is currently still callable
-    // (not enforced) — the FAIL is valid coverage.
+    // 跨文件 private 强制：acHelperPriv 在 ac_helper.sy 中声明为 private，
+    // 本文件调用应被拒绝；当前实测仍可调用（未强制），FAIL 为有效覆盖。
     let leaked = acHelperPriv()
-    checkMsg("private_cross_file_enforcement", leaked != 7, "private still callable across files, returned \(leaked)")
+    checkMsg("private_cross_file_enforcement", leaked != 7, "private 跨文件仍可调用，返回 \(leaked)")
 
-    // This suite's entry runAccessControl is called cross-file from main.sy, which itself verifies the module mechanism
+    // 本套件入口 runAccessControl 由 main.sy 跨文件调用，本身即模块机制验证
     check("module_dispatch_works", true)
 
-    // Known gaps
-    skipCase("compile_negative_cases", "compile-time negatives such as cross-file private rejection cannot be part of a runnable suite")
+    // 已知缺口
+    skipCase("compile_negative_cases", "private 跨文件拒绝等编译期负例无法纳入可运行套件")
 
     return endSuite()
 }

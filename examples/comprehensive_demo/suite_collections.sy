@@ -1,11 +1,11 @@
-// suite_collections.sy — collections: Array (append/count/contains/sorted/reverse/subscript/HOF),
-// Dictionary (literal/subscript/containsKey/keys/values/remove), Set (insert dedup/contains/remove/union).
-// Corresponds to chapter 05 of the language guide. Array lacks isEmpty/first/last; see the docs for Dictionary subscript key requirements.
+// suite_collections.sy — 集合：Array（append/count/contains/sorted/reverse/下标/HOF）、
+// Dictionary（字面量/下标/containsKey/keys/values/remove）、Set（insert 去重/contains/remove/union）。
+// 对应语言指南第 05 章。Array 无 isEmpty/first/last；Dictionary 下标须 Int 键壳见文档。
 
 func runCollections() -> (Int, Int, Int) {
     beginSuite("lang.collections")
 
-    // Array basics
+    // Array 基本
     var a = [3, 1, 2]
     check("array_count", a.count == 3)
     a.append(5)
@@ -16,7 +16,7 @@ func runCollections() -> (Int, Int, Int) {
     a[0] = 9
     check("array_subscript_assign", a[0] == 9)
 
-    // Array sort/reverse (return new arrays)
+    // Array 排序/反转（返回新数组）
     let sorted = [3, 1, 2].sorted()
     check("array_sorted", sorted[0] == 1)
     check("array_sorted_last", sorted[2] == 3)
@@ -29,14 +29,14 @@ func runCollections() -> (Int, Int, Int) {
     check("array_filter", nums.filter({ x in x % 2 == 0 }).count == 2)
     check("array_reduce", nums.reduce(0, { acc, x in acc + x }) == 10)
 
-    // Array string joining
+    // Array 字素拼接
     check("array_joined", ["a", "b", "c"].joined("-") == "a-b-c")
 
-    // Empty array
+    // 空数组
     let empty: Array<Int> = []
     check("array_empty_count", empty.count == 0)
 
-    // Dictionary literal and access
+    // Dictionary 字面量与访问
     let d = ["a": 1, "b": 2]
     check("dict_count", d.count == 2)
     check("dict_subscript", d["a"] == 1)
@@ -45,14 +45,14 @@ func runCollections() -> (Int, Int, Int) {
     check("dict_keys", d.keys().count == 2)
     check("dict_values", d.values().count == 2)
 
-    // Dictionary mutation and remove
+    // Dictionary 可变与 remove
     var md = ["x": 10]
     md["y"] = 20
     check("dict_insert", md.count == 2)
     check("dict_remove", md.remove("x"))
     check("dict_after_remove", md.count == 1)
 
-    // Set deduplication
+    // Set 去重
     var s = Set<Int>()
     s.insert(1)
     s.insert(2)
@@ -62,7 +62,7 @@ func runCollections() -> (Int, Int, Int) {
     check("set_remove", s.remove(1))
     check("set_after_remove", s.count == 1)
 
-    // Set operations
+    // Set 运算
     var s1 = Set<Int>()
     s1.insert(1)
     s1.insert(2)

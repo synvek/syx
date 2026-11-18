@@ -1,20 +1,18 @@
-// main.sy — entry point and scheduler of the comprehensive test demo.
-// All .sy files in the same package share one namespace: harness.sy provides
-// beginSuite/check/checkMsg/skipCase/endSuite, and each suite_*.sy provides a
-// unique entry runXxx() -> (Int, Int, Int).
+// main.sy — 综合测试范例入口与调度器。
+// 同包所有 .sy 共享命名空间：harness.sy 提供 beginSuite/check/checkMsg/skipCase/endSuite，
+// 各 suite_*.sy 提供唯一入口 runXxx() -> (Int, Int, Int)。
 //
-// Usage:
-//   syx run .                          # VM, run all suites
-//   syx run . -- --list                # list suites with backend annotations
-//   syx run . -- --only basics,strings # run selected suites (short/full/group names)
-//   syx run . -- --skip host.net       # skip selected suites
-//   syx run . -- --backend wasm        # declare current backend (vm|native|wasm); mismatched suites SKIP entirely
-//   syx run . -- --force               # ignore backend annotations and force-run
-//   syx run . -- --strict              # exit with code 1 when any FAIL exists
+// 运行：
+//   syx run .                          # VM，跑全部套件
+//   syx run . -- --list                # 列出套件与后端标注
+//   syx run . -- --only basics,strings # 仅跑指定套件（短名/全名/组名均可）
+//   syx run . -- --skip host.net       # 跳过指定套件
+//   syx run . -- --backend wasm        # 声明当前后端（vm|native|wasm），不符的套件整套 SKIP
+//   syx run . -- --force               # 忽略后端标注强制运行
+//   syx run . -- --strict              # 有 FAIL 时以退出码 1 结束
 //
-// Extension convention: new suite = new suite_xxx.sy (defines runXxx) + add the name
-//           to allSuites() + add one branch to dispatch(); if not supported on all
-//           backends, also register it in backendsFor()/reasonFor().
+// 扩展约定：新增套件 = 新建 suite_xxx.sy（定义 runXxx）+ 在 allSuites() 加名称
+//           + 在 dispatch() 加一个分支；如非全后端支持，再在 backendsFor()/reasonFor() 登记。
 
 import System
 
@@ -22,7 +20,7 @@ enum SuiteError: Error {
     case strictFailure
 }
 
-// === Suite registry (names carry group prefixes lang.* / stdlib.* / host.*) ===
+// === 套件注册表（名称含分组前缀 lang.* / stdlib.* / host.*）===
 func allSuites() -> Array<String> {
     return [
         "lang.basics",
@@ -53,37 +51,33 @@ func allSuites() -> Array<String> {
     ]
 }
 
-// Backends supported per suite (comma-separated), annotated from actual testing:
-// only the VM runs fully on the current compiler build.
-// - native: the 17 lang suites build (stdlib/host blocked by MIR001/C020), but runtime
-//   control flow is broken: bodies of `if Bool-var` / `if String==` conditions never run,
-//   `Bool==Bool` conditions and `while Bool` loop forever, `switch` returns the scrutinee.
-//   No valid case results can be produced, so everything is marked unsupported.
-// - wasm: W001 If underflow and if-statement bodies never run; likewise unsupported.
-// Once the compiler is fixed, just flip the strings back to "vm,native" / "vm,native,wasm"
-// (data-driven; no scheduler logic changes needed).
-// Note: on native, String != returns nil, so the scheduler always uses !(x == y) instead.
+// 套件支持的后端（逗号分隔），按实测标注：当前编译器 build 仅 VM 可完整运行。
+// - native：17 个 lang 套件可构建（stdlib/host 阻塞于 MIR001/C020），但运行时控制流损坏：
+//   if Bool 变量/String== 条件体不执行、Bool==Bool 条件与 while Bool 死循环、switch 返回 scrutinee，
+//   无法产出有效用例结果，故全部标注不支持。
+// - wasm：W001 If underflow、if 语句体不执行，同样全部不支持。
+// 编译器修复后，将对应套件改回 "vm,native" / "vm,native,wasm" 即可（数据驱动，无需改调度逻辑）。
+// 注意：native 后端 String != 返回 nil，调度器一律用 !(x == y) 等价写法。
 func backendsFor(_ name: String) -> String {
     return "vm"
 }
 
-// SKIP reason when a backend is unsupported (per backend; the native compile-blocker
-// list is kept for reference once the compiler is fixed).
+// 后端不支持时的 SKIP 原因（按后端区分；native 编译阻塞清单保留供编译器修复后参考）。
 func reasonFor(_ name: String, _ backend: String) -> String {
-    if backend == "wasm" { return "wasm backend currently unavailable: W001 If underflow, if statement bodies not executed (compiler defect)" }
-    if backend == "native" { return "native runtime control flow broken: if-Bool bodies skipped, Bool==Bool/while-Bool infinite loops (compiler defect)" }
-    if name == "stdlib.math" { return "native MIR001: Double lowering not supported" }
-    if name == "stdlib.text_json" { return "native C020: Int hash(into:) not generated" }
-    if name == "stdlib.time_path" { return "native MIR001: FilePath lowering not supported" }
-    if name == "host.concurrency" { return "native MIR001: Channel; Task/actor host scheduling unverified" }
-    if name == "host.simd" { return "SIMD lowering verified on VM only" }
-    if name == "host.io" { return "native host IO functions return nil" }
-    if name == "host.net" { return "HTTP/TCP loopback depends on VM host threads" }
-    if name == "host.services" { return "Logging/Metrics/Trace host services are VM-only" }
-    return "unannotated"
+    if backend == "wasm" { return "wasm 后端当前不可用：W001 If underflow，if 语句体不执行（编译器缺陷）" }
+    if backend == "native" { return "native 运行时控制流损坏：if Bool 条件体不执行、Bool==Bool/while Bool 死循环（编译器缺陷）" }
+    if name == "stdlib.math" { return "native MIR001：Double lowering 未支持" }
+    if name == "stdlib.text_json" { return "native C020：Int hash(into:) 未生成" }
+    if name == "stdlib.time_path" { return "native MIR001：FilePath lowering 未支持" }
+    if name == "host.concurrency" { return "native MIR001：Channel；Task/actor 宿主调度未验证" }
+    if name == "host.simd" { return "SIMD lowering 仅 VM 验证" }
+    if name == "host.io" { return "native 宿主 IO 函数返回 nil" }
+    if name == "host.net" { return "HTTP/TCP 回环依赖 VM 宿主线程" }
+    if name == "host.services" { return "Logging/Metrics/Trace 宿主服务仅 VM" }
+    return "未标注"
 }
 
-// Dispatch: call the suite entry matching the name.
+// 调度：按名称调用对应套件入口。
 func dispatch(_ name: String) -> (Int, Int, Int) {
     if name == "lang.basics" { return runBasics() }
     if name == "lang.operators" { return runOperators() }
@@ -113,8 +107,8 @@ func dispatch(_ name: String) -> (Int, Int, Int) {
     return (0, 0, 0)
 }
 
-// === Selection helpers ===
-// A token matches the full name (lang.basics), short name (basics) or group name (lang).
+// === 选择辅助 ===
+// token 可匹配全名（lang.basics）、短名（basics）或组名（lang）。
 func nameMatches(_ name: String, _ tokens: Array<String>) -> Bool {
     var t = 0
     while t < tokens.count {
@@ -196,9 +190,8 @@ func main() throws {
 
     var j = 0
     while j < names.count {
-        // Note: String is a move-by-value type; the subscript names[j] returns a fresh
-        // clone each time, so inline names[j] instead of caching it in a local variable;
-        // backend is copied via "\(backend)" when passed as an argument.
+        // 注意：String 是按值 move 类型，数组下标 names[j] 每次返回新克隆，
+        // 故直接内联 names[j] 而不缓存为局部变量；backend 用 "\(backend)" 复制传参。
         if !(only == "") && !nameMatches(names[j], onlyTokens) {
             j = j + 1
             continue

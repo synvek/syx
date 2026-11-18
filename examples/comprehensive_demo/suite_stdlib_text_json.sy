@@ -1,6 +1,6 @@
-// suite_stdlib_text_json.sy — stdlib text and JSON: JSON.encode/decode (Object literals / nesting),
-// Encoding base64/hex/url codecs, Crypto.sha256/sha512, Hasher newHasher/combine/finalize/hash(into:).
-// Observed: Hasher.combine and hash(into:) do not change the finalize result (stuck at the FNV offset basis). Prefix St.
+// suite_stdlib_text_json.sy — 标准库文本与 JSON：JSON.encode/decode（Object 字面量/嵌套）、
+// Encoding base64/hex/url 编解码、Crypto.sha256/sha512、Hasher newHasher/combine/finalize/hash(into:)。
+// 实测：Hasher.combine 与 hash(into:) 不改变 finalize 结果（恒 FNV 偏移基）。前缀 St。
 
 import JSON
 import Text
@@ -9,22 +9,22 @@ import Crypto
 func runStdlibTextJson() -> (Int, Int, Int) {
     beginSuite("stdlib.text_json")
 
-    // JSON: encoding an Object literal
+    // JSON：Object 字面量编码
     var person: Object = {
         "id": 1,
         "name": "Alice"
     }
     let pj = JSON.encode(value: person)
-    // The encode result is not a compile-time String (direct .hasPrefix yields nil); convert via interpolation
+    // encode 返回值非编译期 String（直接 .hasPrefix 得 nil），经插值转 String
     let pjStr = "\(pj)"
     check("json_encode_object", pjStr.hasPrefix("{"))
 
-    // JSON: decode roundtrip and field access
+    // JSON：解码往返与字段访问
     let decoded: Object = JSON.decode(text: pj)
     check("json_decode_name", decoded.name == "Alice")
     check("json_decode_id", "\(decoded.id)" == "1")
 
-    // JSON: nested objects
+    // JSON：嵌套对象
     var addr: Object = {
         "city": "Shanghai"
     }
@@ -36,52 +36,52 @@ func runStdlibTextJson() -> (Int, Int, Int) {
     let dec2: Object = JSON.decode(text: ej)
     check("json_nested_city", dec2.address.city == "Shanghai")
 
-    // Encoding: base64 roundtrip
+    // Encoding：base64 往返
     let b64 = Encoding.base64Encode(text: "hi")
     check("base64_encode", b64 == "aGk=")
     let b64back = Encoding.base64Decode(text: "aGk=")
     check("base64_decode", b64back == "hi")
 
-    // Encoding: hex roundtrip
+    // Encoding：hex 往返
     let hex = Encoding.hexEncode(text: "hi")
     check("hex_encode", hex == "6869")
     let hexback = Encoding.hexDecode(text: "6869")
     check("hex_decode", hexback == "hi")
 
-    // Encoding: url roundtrip
+    // Encoding：url 往返
     let url = Encoding.urlEncode(text: "a b&c")
     check("url_encode", url == "a+b%26c")
     let urlback = Encoding.urlDecode(text: "a+b%26c")
     check("url_decode", urlback == "a b&c")
 
-    // Crypto: sha256 known vector
+    // Crypto：sha256 已知向量
     let sha = Crypto.sha256(text: "abc")
     check("sha256_vector", sha == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
 
-    // Crypto: sha512 output should be 128 hex characters
+    // Crypto：sha512 输出长度应为 128 hex 字符
     let sha5 = Crypto.sha512(text: "abc")
-    checkMsg("sha512_length", sha5.count == 128, "actual length \(sha5.count)")
+    checkMsg("sha512_length", sha5.count == 128, "实际长度 \(sha5.count)")
 
-    // Hasher: finalize is stable and usable
+    // Hasher：finalize 稳定可用
     var h1 = Hasher.newHasher()
     let f1 = Hasher.finalize(h1)
     check("hasher_finalize_nonzero", f1 != 0)
 
-    // Hasher.combine should change the hash: observed unchanged (stuck at the FNV offset basis); the FAIL is valid coverage
+    // Hasher.combine 应改变哈希：当前实测不变（恒 FNV 偏移基），FAIL 为有效覆盖
     var h2 = Hasher.newHasher()
     Hasher.combine(h2, 42)
     let f2 = Hasher.finalize(h2)
-    checkMsg("hasher_combine_effect", f1 != f2, "finalize unchanged after combine (\(f2))")
+    checkMsg("hasher_combine_effect", f1 != f2, "combine 后 finalize 不变（\(f2)）")
 
-    // hash(into:) witness: should likewise affect the result
+    // hash(into:) witness：同样应影响结果
     let witness: Int = 7
     var h3 = Hasher.newHasher()
     witness.hash(into: h3)
     let f3 = Hasher.finalize(h3)
-    checkMsg("hash_into_effect", f1 != f3, "finalize unchanged after hash(into:) (\(f3))")
+    checkMsg("hash_into_effect", f1 != f3, "hash(into:) 后 finalize 不变（\(f3)）")
 
-    // Known gaps
-    skipCase("string_unicode_api", "String.utf8Count/unicodeScalars and similar members currently missing (S002)")
+    // 已知缺口
+    skipCase("string_unicode_api", "String.utf8Count/unicodeScalars 等成员当前 S002 不存在")
 
     return endSuite()
 }

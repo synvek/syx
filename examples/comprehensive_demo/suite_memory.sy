@@ -1,6 +1,6 @@
-// suite_memory.sy — observable memory-management behavior: deinit firing on scope exit, weak references,
-// reclamation of reference cycles. Corresponds to chapters 26/27 of the language guide (ARC/GC).
-// Observed: the VM reclaims strong cycles (GC-style behavior); weak is not auto-nil'd; global weak var fails with S002. Prefix Me.
+// suite_memory.sy — 内存管理可观察行为：deinit 作用域触发、weak 引用、
+// 循环引用回收观察。对应语言指南第 26/27 章（ARC/GC）。
+// 实测：VM 会回收强循环（GC 式行为）；weak 不自动置 nil；全局 weak var S002。前缀 Me。
 
 var gMeFreed = 0
 
@@ -57,7 +57,7 @@ func meStrongCycle() {
     b.other = a
 }
 
-// The target is created inside the function and weakly attached to the holder; after the function returns, the target should be freed.
+// target 在函数内创建并经 weak 挂到 holder，函数返回后 target 应已释放。
 func meMakeLinked() -> MeHolder {
     let h = MeHolder()
     let n = MeWeakTarget(name: "target")
@@ -68,31 +68,31 @@ func meMakeLinked() -> MeHolder {
 func runMemory() -> (Int, Int, Int) {
     beginSuite("lang.memory")
 
-    // deinit fires on scope exit
+    // deinit 作用域触发
     gMeFreed = 0
     meScoped()
     check("deinit_scope_exit", gMeFreed == 1)
 
-    // weak parent-child link: both are freed when the scope ends
+    // weak 父子链接：作用域结束两者均释放
     gMeFreed = 0
     meWeakCycle()
     check("weak_link_released", gMeFreed == 2)
 
-    // Strong reference cycle: observed that the VM reclaims it too (GC-style behavior, not pure-ARC leak semantics)
+    // 强循环引用：实测 VM 同样回收（GC 式行为，非纯 ARC 泄漏语义）
     gMeFreed = 0
     meStrongCycle()
     check("strong_cycle_reclaimed", gMeFreed == 2)
 
-    // weak auto-nil: after the target is freed, weak should read nil (?? falls back to the sentinel).
-    // Currently weak is not nil'd (still reads the target); the FAIL is valid coverage.
+    // weak 自动置 nil：target 释放后 weak 应读到 nil（?? 落到 sentinel）。
+    // 当前实测 weak 不置 nil（仍读到 target），FAIL 为有效覆盖。
     let h = meMakeLinked()
     let sentinel = MeWeakTarget(name: "sentinel")
     let observed = h.ref ?? sentinel
-    checkMsg("weak_auto_nil", observed.name == "sentinel", "expected sentinel, actual \(observed.name) (weak not auto-nil'd)")
+    checkMsg("weak_auto_nil", observed.name == "sentinel", "期望 sentinel，实际 \(observed.name)（weak 未自动置 nil）")
 
-    // Known gaps
-    skipCase("global_weak_var", "global weak var declaration S002 undefined")
-    skipCase("unowned_reference", "unowned reference support unverified")
+    // 已知缺口
+    skipCase("global_weak_var", "全局 weak var 声明 S002 未定义")
+    skipCase("unowned_reference", "unowned 引用未验证支持")
 
     return endSuite()
 }

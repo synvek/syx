@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
-# run_all.sh — verify the comprehensive test suites on the VM / native / wasm backends in order.
+# run_all.sh — 依次在 VM / native / wasm 三后端验证综合测试套件。
 #
-# Usage:
-#   bash examples/comprehensive_demo/run_all.sh              # all three backends, full run
-#   bash examples/comprehensive_demo/run_all.sh --only lang  # pass through VM CLI args (--only/--skip/--strict/--force)
-#   SYX=/path/to/syx bash run_all.sh                         # choose the compiler binary
+# 用法：
+#   bash examples/comprehensive_demo/run_all.sh              # 三后端全量
+#   bash examples/comprehensive_demo/run_all.sh --only lang  # 透传 VM CLI 参数（--only/--skip/--strict/--force）
+#   SYX=/path/to/syx bash run_all.sh                         # 指定编译器
 #
-# Backend status (observed; see the backend matrix in README):
-# - VM: syx run in place; full report for all 25 suites.
-# - native: the whole-project build is blocked by MIR001/C020 in stdlib/host suites, so the
-#   project is copied into a temporary staging directory, the blocked suites are removed and
-#   their registry lines are filtered out of main.sy before building (17 lang suites build).
-#   However, the native runtime control flow is broken (if-Bool bodies silently skipped,
-#   Bool==Bool/while-Bool infinite loops, switch returns the scrutinee); running cases yields
-#   no valid results and may hang, so only the build is verified, not execution.
-# - wasm: the compiler build control flow is broken (MIR001 Channel / W001 If underflow /
-#   if bodies not executed); attempt to run and record the failure without blocking the rest.
-# - The working directory is fixed to the repo root: the FilePath.exists case in
-#   stdlib.time_path assumes it.
+# 后端现状（实测，详见 README 后端矩阵）：
+# - VM：原地 syx run，全部 25 套件完整报告。
+# - native：整项目构建阻塞于 stdlib/host 的 MIR001/C020，故复制到临时 staging 目录，
+#   剔除阻塞套件并同步过滤 main.sy 注册表行后构建（17 个 lang 套件可构建）。
+#   但 native 运行时控制流损坏（if Bool 条件体不执行、Bool==Bool/while Bool 死循环、
+#   switch 返回 scrutinee），执行用例无有效结果且可能挂起，故只验证构建、不运行。
+# - wasm：编译器 build 控制流损坏（MIR001 Channel / W001 If underflow / if 体不执行），
+#   尝试运行并记录失败，不阻塞整体。
+# - 工作目录固定为仓库根：stdlib.time_path 的 FilePath.exists 用例以此为前提。
 
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -29,10 +26,10 @@ echo "===== VM ====="
 "$SYX" run "$HERE" -- --backend vm "$@"
 echo
 
-# Native compile-blocked suites (file names): the 3 stdlib suites + the 5 host suites.
-# Observed evidence: stdlib.math=MIR001 Double; stdlib.text_json=C020 hash(into:);
-# stdlib.time_path=MIR001 FilePath; host.concurrency=MIR001 Channel;
-# host.io=host functions return nil; simd/net/services depend on the VM host.
+# native 编译阻塞套件（文件名）：stdlib 三套件 + host 五套件。
+# 实测依据：stdlib.math=MIR001 Double；stdlib.text_json=C020 hash(into:)；
+# stdlib.time_path=MIR001 FilePath；host.concurrency=MIR001 Channel；
+# host.io=宿主函数返回 nil；simd/net/services 依赖 VM 宿主。
 NATIVE_EXCLUDE_FILES="suite_stdlib_math.sy suite_stdlib_text_json.sy suite_stdlib_time_path.sy suite_concurrency.sy suite_simd.sy suite_host_io.sy suite_host_net.sy suite_host_services.sy"
 NATIVE_EXCLUDE_NAMES="stdlib.math stdlib.text_json stdlib.time_path host.concurrency host.simd host.io host.net host.services"
 
@@ -47,8 +44,8 @@ for f in "$HERE"/suite_*.sy; do
     if [ "$excluded" = "0" ]; then cp "$f" "$STAGE/"; fi
 done
 
-# Filter out main.sy lines containing an excluded suite name (registry / backend annotation /
-# dispatch each take one line), then clean up trailing array commas (syx disallows them).
+# 过滤 main.sy 中含被剔除套件名的行（注册表/后端标注/dispatch 各占一行），
+# 并清理数组尾逗号（syx 不允许尾逗号）。
 python3 - "$HERE/main.sy" "$STAGE/main.sy" $NATIVE_EXCLUDE_NAMES <<'PYEOF'
 import re, sys
 src, dst = sys.argv[1], sys.argv[2]
@@ -61,10 +58,10 @@ PYEOF
 
 echo "===== native (staging: $STAGE) ====="
 if "$SYX" build --native "$STAGE" >"$STAGE/build.log" 2>&1; then
-    echo "[NOTE] native build succeeded (17 lang suites; artifact $STAGE/target/debug/app)."
-    echo "[NOTE] native runtime control flow is broken (if-Bool bodies skipped, Bool==Bool/while-Bool infinite loops); cases are not executed. Once the compiler is fixed, run the artifact directly with --backend native."
+    echo "[NOTE] native 构建成功（17 个 lang 套件，产物 $STAGE/target/debug/app）。"
+    echo "[NOTE] native 运行时控制流损坏（if Bool 条件体不执行、Bool==Bool/while Bool 死循环），不执行用例；编译器修复后可直接运行该产物 --backend native。"
 else
-    echo "[SKIP] native build failed (see $STAGE/build.log); does not block the rest"
+    echo "[SKIP] native 构建失败（详见 $STAGE/build.log），不阻塞整体"
     tail -5 "$STAGE/build.log"
 fi
 echo
@@ -73,5 +70,5 @@ echo "===== wasm ====="
 if "$SYX" run --wasm "$HERE" -- --backend wasm "$@"; then
     :
 else
-    echo "[NOTE] wasm backend currently unavailable (compiler defects: MIR001 Channel / W001 If underflow / if statement bodies not executed); recorded, does not block the rest"
+    echo "[NOTE] wasm 后端当前不可用（编译器缺陷：MIR001 Channel / W001 If underflow / if 语句体不执行），已记录，不阻塞整体"
 fi

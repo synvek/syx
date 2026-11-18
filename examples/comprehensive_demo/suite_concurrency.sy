@@ -1,7 +1,7 @@
-// suite_concurrency.sy — concurrency: Task/Task.detached + Concurrency.join, actor-isolated state,
-// Channel (import Synchronization) send/recv/trySend/tryRecv/close/count/capacity.
-// Corresponds to chapter 18 of the language guide. Observed: awaiting an async function inside a Task loses the result (returns nil / global not written); the FAIL is valid coverage.
-// Backend: vm (native/wasm currently unavailable; see backendsFor in main.sy). Prefix Cc.
+// suite_concurrency.sy — 并发：Task/Task.detached + Concurrency.join、actor 隔离状态、
+// Channel（import Synchronization）send/recv/trySend/tryRecv/close/count/capacity。
+// 对应语言指南第 18 章。实测：Task 内 await async 函数结果丢失（返回 nil/全局未写），FAIL 为有效覆盖。
+// 后端：vm 为主；native/wasm 标 partial。前缀 Cc。
 
 import Concurrency
 import Synchronization
@@ -21,7 +21,7 @@ actor CcCounter {
 func runConcurrency() -> (Int, Int, Int) {
     beginSuite("host.concurrency")
 
-    // Task: closure side effects visible after join
+    // Task：闭包副作用经 join 后可见
     gCcA = 0
     let t1 = Task { gCcA = 7 }
     Concurrency.join(t1)
@@ -32,56 +32,56 @@ func runConcurrency() -> (Int, Int, Int) {
     Concurrency.join(t2)
     check("task_detached", gCcA == 11)
 
-    // actor: construction and isolated state
+    // actor：构造与隔离状态
     let c = CcCounter(value: 5)
     check("actor_init", c.current() == 5)
     c.increment()
     c.increment()
     check("actor_increment", c.current() == 7)
 
-    // Channel.create: bounded channel count/capacity
+    // Channel.create：有界通道 count/capacity
     let ch = Channel.create(2)
     ch.send(1)
     ch.send(2)
     check("channel_count", ch.count() == 2)
     check("channel_capacity", ch.capacity() == 2)
 
-    // Channel: FIFO receive
+    // Channel：FIFO 接收
     let x1 = ch.recv()
     check("channel_fifo", "\(x1)" == "1")
     let x2 = ch.recv()
     check("channel_fifo_second", "\(x2)" == "2")
     ch.close()
 
-    // Channel(): unbounded by default (capacity 0)
+    // Channel()：默认无界（capacity 0）
     let ch2 = Channel()
     check("channel_default_capacity", ch2.capacity() == 0)
     ch2.send(5)
     let a = ch2.tryRecv()
     check("channel_try_recv", "\(a)" == "5")
 
-    // tryRecv on an empty channel returns nil
+    // tryRecv 空通道返回 nil
     let b = ch2.tryRecv()
     check("channel_try_recv_empty", "\(b)" == "nil")
 
-    // trySend returns true on success
+    // trySend 成功返回 true
     let ok = ch2.trySend(9)
     check("channel_try_send", ok)
     ch2.close()
 
-    // async/await: awaiting an async function inside a Task currently loses the result; the FAIL is valid coverage
+    // async/await：Task 内 await async 函数，当前结果丢失，FAIL 为有效覆盖
     gCcB = 0
     let t3 = Task {
         let v = await ccFetch()
         gCcB = v
     }
     Concurrency.join(t3)
-    checkMsg("async_await_result", gCcB == 42, "await result not propagated back (gCcB=\(gCcB))")
+    checkMsg("async_await_result", gCcB == 42, "await 结果未传回（gCcB=\(gCcB)）")
 
-    // Known gaps
-    skipCase("task_group", "TaskGroup add/waitAll not covered in this round")
-    skipCase("select", "Select.select/orDefault/timeout not covered in this round")
-    skipCase("async_let", "async let parallel child tasks not covered in this round")
+    // 已知缺口
+    skipCase("task_group", "TaskGroup add/waitAll 未纳入本轮验证")
+    skipCase("select", "Select.select/orDefault/timeout 未纳入本轮验证")
+    skipCase("async_let", "async let 并行子任务未纳入本轮验证")
 
     return endSuite()
 }
