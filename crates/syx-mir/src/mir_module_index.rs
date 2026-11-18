@@ -5,10 +5,14 @@ use indexmap::{IndexMap, IndexSet};
 use smol_str::SmolStr;
 use syx_ast::{Decl, Expr, Literal, Module, Stmt, TypeExpr, UnaryOp};
 use syx_diagnostics::SourceFile;
-use syx_stdlib::{default_float_kind, float_literal_bits, from_suffix, NumericKind};
+use syx_stdlib::{
+    default_float_kind, float_literal_bits, from_suffix, from_type_name, is_float, resolve_alias,
+    NumericKind,
+};
 
-/// U-33…U-36: stored field default literals for memberwise / empty-init pads.
-/// Bare Integer / Bool / String / Double, plus unary Neg Integer/Double (`-1` / `-1.5`); other → ConstNil.
+/// U-33…U-37: stored field default literals for memberwise / empty-init pads.
+/// Bare Integer / Bool / String / Double, unary Neg Integer/Double, plus Integer→float
+/// when the declared field type is Float/Double; other → ConstNil.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum FieldDefaultLit {
     Int(i128),
@@ -16,6 +20,23 @@ pub(crate) enum FieldDefaultLit {
     Str(String),
     /// U-35: float bits as ConstNumeric (kind byte + u64 bits; keeps Eq).
     Num { kind: u8, bits: u64 },
+}
+
+/// U-37: `var x: Double = 1` / `= -1` → Num so pad emits ConstNumeric (not ConstI32).
+pub(crate) fn promote_int_default_for_float_field(
+    lit: FieldDefaultLit,
+    field_ty_name: Option<&str>,
+) -> FieldDefaultLit {
+    match (&lit, field_ty_name.and_then(from_type_name)) {
+        (FieldDefaultLit::Int(v), Some(kind)) if is_float(kind) => {
+            let k = resolve_alias(kind);
+            FieldDefaultLit::Num {
+                kind: k.to_byte(),
+                bits: float_literal_bits(k, *v as f64),
+            }
+        }
+        _ => lit,
+    }
 }
 
 pub(crate) fn field_default_from_literal(lit: &Literal) -> Option<FieldDefaultLit> {
@@ -279,12 +300,18 @@ impl ModuleIndex {
                         }
                         if let Decl::VarGlobal {
                             name: field,
+                            ty,
                             init: Some(init_expr),
                             ..
                         } = member
                         {
-                            // U-33 / U-34: Integer / Bool / String / unary Neg Int defaults.
+                            // U-33…U-37: Integer / Bool / String / Double / unary Neg + Int→float.
                             if let Some(lit) = field_default_from_expr(init_expr) {
+                                let ty_name = ty.as_ref().and_then(mir_type_expr_name);
+                                let lit = promote_int_default_for_float_field(
+                                    lit,
+                                    ty_name.as_ref().map(|s| s.as_str()),
+                                );
                                 idx.dataclass_field_defaults
                                     .insert((name.clone(), field.clone()), lit);
                             }
@@ -415,9 +442,14 @@ impl ModuleIndex {
                                     .or_default()
                                     .insert(key.clone(), ty_name);
                             }
-                            // R-35 / U-33 / U-34: Int / Bool / String / unary Neg Int for empty `init() {}`.
+                            // R-35 / U-33…U-37: Int / Bool / String / Double / unary Neg + Int→float.
                             if let Some(init_expr) = init {
                                 if let Some(lit) = field_default_from_expr(init_expr) {
+                                    let ty_name = mir_type_expr_name(field_ty);
+                                    let lit = promote_int_default_for_float_field(
+                                        lit,
+                                        ty_name.as_ref().map(|s| s.as_str()),
+                                    );
                                     idx.dataclass_field_defaults
                                         .insert((name.clone(), key), lit);
                                 }

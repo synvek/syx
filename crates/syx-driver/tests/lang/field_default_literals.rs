@@ -1,6 +1,7 @@
-//! U-33…U-36: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) field defaults
-//! on empty memberwise / init. ≠ Call / codegen map / deep `-(1)` / `-(1.5)` peel /
-//! Integer→Double / extension float.
+//! U-33…U-37: Bool / String / Int (+ unary Neg) / Double (+ unary Neg) /
+//! Integer→Double field defaults on empty memberwise / init.
+//! ≠ Call / codegen map / deep `-(1)` / `-(1.5)` peel / extension float /
+//! inherited pad walk.
 
 use std::io::Write;
 
@@ -274,6 +275,80 @@ public func main() {
     assert_eq!(
         printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
         ["-1.5"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// `/ 2` distinguishes I32 (→0) from F64 (→0.5); bare `print` / `+ 0.5` do not.
+#[test]
+fn u37_struct_int_to_double_default_runs() {
+    let path = write_temp(
+        r#"
+struct S {
+    var x: Double = 1
+}
+public func main() {
+    let s = S()
+    print(s.x / 2)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("struct Int→Double default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["0.5"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u37_class_int_to_double_default_runs() {
+    let path = write_temp(
+        r#"
+class C {
+    var x: Double = 1
+    init() {}
+}
+public func main() {
+    let c = C()
+    print(c.x / 2)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("class Int→Double default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["0.5"]
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn u37_struct_neg_int_to_double_default_runs() {
+    let path = write_temp(
+        r#"
+struct S {
+    var x: Double = -1
+}
+public func main() {
+    let s = S()
+    print(s.x / 2)
+}
+"#,
+    );
+    let (code, printed) =
+        syx_driver::run_file_printed(&path, &syx_driver::DriverOptions::default())
+            .expect("struct Neg Int→Double default must run");
+    assert_eq!(code, 0, "exit {code}, printed={printed:?}");
+    assert_eq!(
+        printed.iter().map(|s| s.trim()).collect::<Vec<_>>(),
+        ["-0.5"]
     );
     let _ = std::fs::remove_file(&path);
 }
