@@ -564,6 +564,12 @@ jobs:
         run: |
           set -euo pipefail
           cargo test -p syx-driver --features full-native --test backends path_file_native_wasm_ga -- --test-threads=1
+      - name: TCP native GA (C-2b-4)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test backends tcp_native_wasm_ga -- --test-threads=1
 
   native-linux:
     name: Native link (Linux)

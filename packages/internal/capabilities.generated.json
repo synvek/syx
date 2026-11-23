@@ -122,7 +122,7 @@
       "status": "partial",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -142,7 +142,7 @@
         "ec_m2_4_tcp_native_wasm_ga3",
         "ec_m2_4_tcp_native_wasm_ga4"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-635 / W291: native=partial→real (reuse qs1_tcp + tcp_native_wasm_ga dual-backend nails; status still partial); ADR-623 / W279 wasm=real + W274 Tcp* HostFn wasm; ADR-188 EC-M2-4 Tcp HostFn availability first nail (facade core; ≠ TLS GA / ≠ listen-accept / ≠ status=implemented / ≠ Wave A exit / ≠ websocket / ≠ other native=partial rows).",
+      "notes": "C-2b-4: paid native=real via full-native-linux tcp_native_wasm_ga; ADR-635 / W291 lineage (reuse qs1_tcp + tcp_native_wasm_ga dual-backend nails; status still partial); ADR-623 / W279 wasm=real + W274 Tcp* HostFn wasm; ADR-188 EC-M2-4 Tcp HostFn availability first nail (facade core; ≠ TLS GA / ≠ listen-accept / ≠ status=implemented / ≠ Wave A exit / ≠ websocket / ≠ other native=partial rows).",
       "since": "M0-B02"
     },
     {
@@ -152,7 +152,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -168,7 +168,7 @@
         "qs1_tcp_listener_accept_native_llvm",
         "qs1_tcp_listener_accept_wasm"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-255 / EC-M2-3-H: bind/close session only; ≠ accept GA / ≠ TLS / ≠ EC-M2-3 total.; ADR-719 / W375: product dual-backend raise (native+wasm=real; status=implemented); residual product 4/4; still ≠ accept / ≠ TLS / ≠ website met; ADR-720 / W376: website thin inventory signed; ADR-721 / W377: website deepen; ADR-722 / W378: website product met exit scope narrow (≠ hosted full site); ADR-723 / W379: hosted full-site thin inventory signed (≠ hosted met); ADR-724 / W380: hosted same-source deepen (Deployable partial met; ≠ hosted met); ADR-725 / W381: hosted product met exit scope narrow (≠ marketing full site); ADR-726 / W382: accept GA thin inventory signed (≠ accept GA); ADR-727 / W383: accept HostFn llvm first-slice partial; ADR-728 / W384: accept HostFn wasm first-slice; ADR-729 / W385: accept GA met exit scope narrow (≠ TLS / ≠ status raise); ADR-730 / W386: TLS server inventory thin signed; ADR-731 / W387: HostFn-gap deepen partial; ADR-732 / W388: honesty floor exit (≠ TLS GA); ADR-733 / W389: marketing deploy inventory thin signed (≠ marketing met); ADR-734 / W390: marketing same-source deepen (Static partial met; ≠ marketing met); ADR-735 / W391: marketing product met exit scope narrow (≠ full site)",
+      "notes": "C-2b-4: paid native=real via full-native-linux tcp_native_wasm_ga; ADR-255 / EC-M2-3-H: bind/close session only; ≠ accept GA / ≠ TLS / ≠ EC-M2-3 total.; ADR-719 / W375: product dual-backend raise (native+wasm=real; status=implemented); residual product 4/4; still ≠ accept / ≠ TLS / ≠ website met; ADR-720 / W376: website thin inventory signed; ADR-721 / W377: website deepen; ADR-722 / W378: website product met exit scope narrow (≠ hosted full site); ADR-723 / W379: hosted full-site thin inventory signed (≠ hosted met); ADR-724 / W380: hosted same-source deepen (Deployable partial met; ≠ hosted met); ADR-725 / W381: hosted product met exit scope narrow (≠ marketing full site); ADR-726 / W382: accept GA thin inventory signed (≠ accept GA); ADR-727 / W383: accept HostFn llvm first-slice partial; ADR-728 / W384: accept HostFn wasm first-slice; ADR-729 / W385: accept GA met exit scope narrow (≠ TLS / ≠ status raise); ADR-730 / W386: TLS server inventory thin signed; ADR-731 / W387: HostFn-gap deepen partial; ADR-732 / W388: honesty floor exit (≠ TLS GA); ADR-733 / W389: marketing deploy inventory thin signed (≠ marketing met); ADR-734 / W390: marketing same-source deepen (Static partial met; ≠ marketing met); ADR-735 / W391: marketing product met exit scope narrow (≠ full site)",
       "since": "M2-W111"
     },
     {

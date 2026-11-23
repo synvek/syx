@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- ci/docs: tcp GA on `full-native-linux`; raise `net.tcp` + `net.tcp.listener` to `native=real` (C-2b-4)
 - ci/docs: path_file GA on `full-native-linux`; raise `io.path` + `io.file.read_all_bytes` to `native=real` (C-2b-3)
 - ci: required `full-native-linux` job (LLVM 21.1.6 + hello `--native`); extract `scripts/ci_install_llvm.sh` (C-2b++)
 - docs/ci: demote unpaid capability `native=real`→`partial`; ban L006 soft-skip exit 0 (C-2b+)

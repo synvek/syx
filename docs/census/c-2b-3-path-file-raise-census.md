@@ -12,7 +12,7 @@
 |-------|--------|
 | **C-2a…C-2b-2** | **exited** |
 | **C-2b-3** path_file raise | **exited** |
-| Open | 默认下一 **C-2b-4**；C-2c/d · C-0a+/e park |
+| Open | C-2b-4 exited → 默认下一 **C-2b-5**；C-2c/d · C-0a+/e park |
 
 ## Root cause
 
