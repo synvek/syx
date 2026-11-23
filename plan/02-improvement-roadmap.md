@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-23 · **C-1b weak identity `[x]`**；C-1a 默认降级 `[x]`；C-0 薄闸 `[x]`；默认下一 = **C-1c**（C-1d · C-0a+/e park）。
+> **最近更新：** 2026-11-23 · **C-1c immutable 写拒收 `[x]`**；C-1a/b `[x]`；C-0 薄闸 `[x]`；默认下一 = **C-1d**（C-0a+/e park）。
 
 ## 0. 时代切换
 
@@ -52,7 +52,7 @@
 **验收：** 新负向用例进 gate；正向回归不破硬 KPI；census 写清「拒收面」而非「多了多少通过」。  
 **不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG。
 
-### C-1 · ManagedHeap 安全默认（P0） — `[~]` 默认降级+identity / c·d 余
+### C-1 · ManagedHeap 安全默认（P0） — `[~]` 默认降级+identity+immutable / d 余
 
 **目标：** 默认路径不再依赖已知危险的 generational/compact；weak / immutable 语义可测。
 
@@ -60,10 +60,10 @@
 |------|------|------|
 | **C-1a** | `[x]` | 默认堆策略降级（v9/v10/v11/v13/compact opt-in；churn stdout 门闩）；census [`c-1a-heap-default-degrade-census`](../docs/census/c-1a-heap-default-degrade-census.md) |
 | **C-1b** | `[x]` | weak load 存活保 canonical identity；死后 / mark_dead 仅 Nil；census [`c-1b-weak-identity-census`](../docs/census/c-1b-weak-identity-census.md) |
-| **C-1c** | `[ ]` **默认下一** | immutable 写拒收 |
-| **C-1d** | `[ ]` | 禁「stdout churn = GC 成功」叙事；测例改断言语义（用户 stdout 已门闩；Host/文档余项） |
+| **C-1c** | `[x]` | `mutable=false` ObjectRef 写拒收（不 insert、返回原 handle）；census [`c-1c-immutable-write-census`](../docs/census/c-1c-immutable-write-census.md) |
+| **C-1d** | `[ ]` **默认下一** | 禁「stdout churn = GC 成功」叙事；测例改断言语义（用户 stdout 已门闩；Host/文档余项） |
 
-**验收（C-1b）：** 存活 `weak_load` identity == 源；死后仅 Nil；硬 KPI 不破。
+**验收（C-1c）：** `mutable=false` / `weak_load` 后再 set 字段不变；mutable 路径仍可写；硬 KPI 不破。
 
 ### C-2 · Backend / CI 支持矩阵诚实（P0） — `[ ]`
 

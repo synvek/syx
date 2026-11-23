@@ -11,7 +11,7 @@
 |-------|--------|
 | **C-1a** 默认降级 | **exited** |
 | **C-1b** weak identity | **exited** |
-| Open | 默认下一 **C-1c**；C-1d · C-0a+/e park |
+| Open | C-1c `[x]`；默认下一 **C-1d**；C-0a+/e park |
 
 ## Root cause
 

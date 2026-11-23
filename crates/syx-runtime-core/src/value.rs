@@ -713,11 +713,19 @@ impl Value {
             }
             Value::ObjectRef {
                 inner,
-                mutable: _,
+                mutable,
                 deiniting,
             } => {
-                // Always allow field writes on live ObjectRef handles (call-site unwrap
-                // and DI boot assign rely on mutating the shared map).
+                // C-1c: immutable ObjectRef refuses field writes (no insert; return
+                // same handle). Mutable path keeps shared-map mutation for DI /
+                // call-site unwrap; do not force mutable:true on success.
+                if !mutable {
+                    return Value::ObjectRef {
+                        inner,
+                        mutable: false,
+                        deiniting,
+                    };
+                }
                 if let Ok(mut map) = inner.0.lock() {
                     map.insert(key.to_string(), val);
                 }
@@ -826,6 +834,70 @@ mod phase125_mutref_field_tests {
         let _ = updated;
         let got = caller.mut_ref_cell_get_field("logger");
         assert_eq!(got.as_str(), "fast", "got={got:?}");
+    }
+}
+
+#[cfg(test)]
+mod c1c_immutable_write_tests {
+    use super::*;
+
+    fn object_ref_mutable(v: &Value) -> Option<bool> {
+        match v {
+            Value::ObjectRef { mutable, .. } => Some(*mutable),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn c1c_immutable_object_ref_set_field_refused() {
+        let o = Value::object_ref_from_map(
+            HashMap::from([("n".into(), Value::I64(1))]),
+            false,
+        );
+        let returned = Value::mut_ref_cell_set_field(o.clone(), "n", Value::I64(99));
+        assert_eq!(
+            object_ref_mutable(&returned),
+            Some(false),
+            "C-1c: refuse must keep mutable=false (not Nil, not force true)"
+        );
+        assert_eq!(
+            Value::object_ref_identity(&returned),
+            Value::object_ref_identity(&o),
+            "C-1c: refuse returns same SharedCell handle"
+        );
+        assert_eq!(
+            o.mut_ref_cell_get_field("n"),
+            Value::I64(1),
+            "C-1c: field must stay unchanged"
+        );
+    }
+
+    #[test]
+    fn c1c_weak_load_result_set_field_refused() {
+        let o = Value::object_ref_from_map(
+            HashMap::from([("n".into(), Value::I64(7))]),
+            true,
+        );
+        let w = Value::weak_from_object_ref(&o);
+        let loaded = Value::weak_load(&w);
+        assert_eq!(object_ref_mutable(&loaded), Some(false));
+        let _ = Value::mut_ref_cell_set_field(loaded, "n", Value::I64(0));
+        assert_eq!(
+            o.mut_ref_cell_get_field("n"),
+            Value::I64(7),
+            "C-1c: weak_load handle must not mutate source map"
+        );
+    }
+
+    #[test]
+    fn c1c_mutable_object_ref_set_field_still_writes() {
+        let o = Value::object_ref_from_map(
+            HashMap::from([("n".into(), Value::I64(1))]),
+            true,
+        );
+        let returned = Value::mut_ref_cell_set_field(o.clone(), "n", Value::I64(42));
+        assert_eq!(object_ref_mutable(&returned), Some(true));
+        assert_eq!(o.mut_ref_cell_get_field("n"), Value::I64(42));
     }
 }
 
