@@ -105,14 +105,15 @@ id = "net.http.types"
 feature = "net.http.types"
 surface = "HTTPResponse / Url / HttpRequest / HttpHeaders / HttpBody"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s4_01_http_types",
   "m2_s4_01_make_response_accessors_native_mir",
   "m2_s4_01_url_parse_fields_native_mir",
+  "m2_s4_01_response_accessors_native_llvm",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-560 / W216: Http.response+Url.parse offline narrow native+wasm=real (mir-run + wasm nails + W64/W65 VM + W148 llvm + differential 16/16); ≠ loopback Http.get wasm GA; ≠ net.http/server/stream/TLS; HostFn inventory still partial"
+notes = "C-2b-8: paid native=real via full-native-linux m2_s4_01_response_accessors_native_llvm; ADR-593 / W249 + ADR-560 / W216 lineage (Http.response accessors + Url.parse offline narrow); ≠ loopback Http.get wasm GA; ≠ net.http.server / stream / timeout_tls / TLS; HostFn inventory still partial"
 since = "ADR-236"
 
 [[capability]]

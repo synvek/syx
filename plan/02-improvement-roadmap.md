@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-23 · **C-2b-7 pool/row 付费升格 `[x]`**；C-2b-6 http `[x]`；默认下一 = **C-2b-8**（C-2c/d · C-0a+/e park）。
+> **最近更新：** 2026-11-23 · **C-2b-8 http.types 付费升格 `[x]`**；C-2b-7 pool/row `[x]`；默认下一 = **C-2b-9**（C-2c/d · C-0a+/e park）。
 
 ## 0. 时代切换
 
@@ -65,7 +65,7 @@
 
 **验收（C-1d）：** 测例/文档不再把 print/`gc:churn:` 回显冒充 GC 绿；C-1a 门闩不破；硬 KPI 不破。
 
-### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor / b-8·c·d 余
+### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor / b-9·c·d 余
 
 **命名：** `-N` = N 个历史 `+`（`C-2b-1`≈`C-2b+`，`C-2b-2`≈`C-2b++`，`C-2b-3`≈旧 `C-2b+++`）。新默认下一禁止写 `+++`。
 
@@ -83,11 +83,12 @@
 | **C-2b-5** | `[x]` | sql GA 进 paid job；`data.sqlite` → `native=real`（≠ pool/row）；census [`c-2b-5-sql-raise-census`](../docs/census/c-2b-5-sql-raise-census.md) |
 | **C-2b-6** | `[x]` | http GA 进 paid job；`net.http` → `native=real`（≠ server/types/stream/timeout_tls）；census [`c-2b-6-http-raise-census`](../docs/census/c-2b-6-http-raise-census.md) |
 | **C-2b-7** | `[x]` | pool/row llvm 进 paid job；`data.sqlite.pool` + `data.sqlite.row` → `native=real`；census [`c-2b-7-pool-row-raise-census`](../docs/census/c-2b-7-pool-row-raise-census.md) |
-| **C-2b-8** | `[ ]` **默认下一** | 下一批选择性 `native=real`（http 余债 / 其余 io.file.*） |
+| **C-2b-8** | `[x]` | types llvm 进 paid job；`net.http.types` → `native=real`（≠ server/stream/timeout_tls）；census [`c-2b-8-http-types-raise-census`](../docs/census/c-2b-8-http-types-raise-census.md) |
+| **C-2b-9** | `[ ]` **默认下一** | 下一批选择性 `native=real`（http.server/stream/timeout_tls / 其余 io.file.*） |
 | **C-2c** | `[ ]` | JIT / experimental backends 明确 `experimental`；非默认 KPI |
 | **C-2d** | `[ ]` | CI job 矩阵与 `01`/`capability` 文案对齐 |
 
-**验收（C-2b-7）：** paid job 含 pool+row llvm；恰好 8× 产品 `native=real`；http/io.file 余债仍 partial；硬 KPI 不破。
+**验收（C-2b-8）：** paid job 含 types llvm；恰好 9× 产品 `native=real`；http/io 余债仍 partial；硬 KPI 不破。
 
 ### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]`
 
