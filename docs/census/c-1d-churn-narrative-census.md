@@ -12,7 +12,7 @@
 | **C-1a/b/c** | **exited** |
 | **C-1d** churn 叙事 | **exited** |
 | **C-1 轴** | **exited** |
-| Open | 默认下一 **C-2**；C-0a+/e park |
+| Open | C-2a `[x]`；默认下一 **C-2b**；C-0a+/e park |
 
 ## Root cause
 

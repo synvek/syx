@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- docs: Backend/CI matrix SSOT — default_hard VM+MIR+Wasm46/46+browser0; native L006/JIT soft·experimental (C-2a)
 - docs/test: reframe Host `gc:churn:{label}` print as label echo ≠ GC KPI; scrub churn=success narrative (C-1d)
 - fix: `mutable=false` ObjectRef field writes refused (no insert; return same handle) (C-1c)
 - fix: `weak_load` reuses SharedCell Arc (canonical identity); Nil after drop / `__syx_weak_dead` (C-1b)

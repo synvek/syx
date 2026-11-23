@@ -3,6 +3,8 @@
 **Role:** Wave / ADR / inventory first-slice contracts.  
 **Not** end-user language manuals (those stay under [`../lang/`](../lang/)).
 
+**Convergence C-2a SSOT:** [`backend-ci-matrix.md`](backend-ci-matrix.md) — default_hard vs soft_non_default vs experimental (native L006 / JIT ≠ default KPI).
+
 Moved from `docs/lang/b0*.md` in **W560 / ADR-904** (Wave F **F-04**).  
 Historical ADR Decision text may still mention `docs/lang/b0*` or pre-rename paths; live paths and `include_str` nails use **`docs/gates/`** from W560 onward.
 
