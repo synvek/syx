@@ -443,7 +443,7 @@
       "status": "partial",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -462,7 +462,7 @@
         "ec_m2_4_sql_native_wasm_ga2",
         "ec_m2_4_sql_native_wasm_ga3"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-636 / W292: native=partial→real (reuse qs1_sql + sql_native_wasm_ga dual-backend nails; status still partial); ADR-624 / W280: wasm=real + W272/W273 Sql* HostFn wasm; In-process rusqlite; Suite-4 differential VM+MIR exact (M0-D05). ADR-187 EC-M2-4 Sql HostFn availability first nail (facade core; not Orm GA / not full EC-M2-4). Instant microbench ADR-190; native/WASM matrix first deepening ADR-201; SqlOpen llvm GA first deepening ADR-206; SqlClose llvm GA second deepening ADR-211; SqlExecOn llvm GA third deepening ADR-216 (≠ full Sql GA / ≠ Orm GA / ≠ status=implemented / ≠ Wave A exit / ≠ pool/row / ≠ other native=partial rows). Pool slice → data.sqlite.pool (ADR-245).",
+      "notes": "C-2b-5: paid native=real via full-native-linux sql_native_wasm_ga; ADR-636 / W292 lineage (reuse qs1_sql + sql_native_wasm_ga dual-backend nails; status still partial); ADR-624 / W280: wasm=real + W272/W273 Sql* HostFn wasm; In-process rusqlite; Suite-4 differential VM+MIR exact (M0-D05). ADR-187 EC-M2-4 Sql HostFn availability first nail (facade core; not Orm GA / not full EC-M2-4). Instant microbench ADR-190; native/WASM matrix first deepening ADR-201; SqlOpen llvm GA first deepening ADR-206; SqlClose llvm GA second deepening ADR-211; SqlExecOn llvm GA third deepening ADR-216 (≠ full Sql GA / ≠ Orm GA / ≠ status=implemented / ≠ Wave A exit / ≠ pool/row / ≠ other native=partial rows). Pool slice → data.sqlite.pool (ADR-245).",
       "since": "pre-M0"
     },
     {

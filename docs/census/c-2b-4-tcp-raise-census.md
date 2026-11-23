@@ -12,7 +12,7 @@
 |-------|--------|
 | **C-2a…C-2b-3** | **exited** |
 | **C-2b-4** tcp raise | **exited** |
-| Open | 默认下一 **C-2b-5**；C-2c/d · C-0a+/e park |
+| Open | C-2b-5 exited → 默认下一 **C-2b-6**；C-2c/d · C-0a+/e park |
 
 ## Root cause
 
