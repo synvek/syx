@@ -539,8 +539,16 @@ fn m2_s4_05_docs_and_capability() {
         "net.tls.client must declare wasm=real (ADR-626): {block}"
     );
     assert!(
-        block.contains("native = \"partial\""),
-        "net.tls.client must declare native=partial (C-2b+ unpaid ≠ full-native GA; ADR-687 lineage): {block}"
+        block.contains("native = \"real\""),
+        "net.tls.client must declare native=real (C-2b-13 paid full-native; ADR-687 lineage): {block}"
+    );
+    assert!(
+        block.contains("C-2b-13"),
+        "net.tls.client notes must cite C-2b-13 paid raise: {block}"
+    );
+    assert!(
+        !block.contains("unpaid ≠ full-native GA"),
+        "net.tls.client must not retain unpaid note after C-2b-13: {block}"
     );
     assert!(
         block.contains("ADR-626") && block.contains("W282"),

@@ -346,7 +346,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -365,7 +365,7 @@
         "ec_m2_4_http_native_wasm_matrix",
         "ec_m2_4_http_native_wasm_ga"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-687 / W343: native=partial→real (reuse EXTRA_ROOT HTTPS + self-signed dual-backend + native AOT nails; status remains implemented); ADR-686 / W342: native AOT EXTRA_ROOT HTTPS + self-signed fail-closed nails; ADR-626 / W282: wasm=real + EXTRA_ROOT HTTPS + self-signed fail-closed wasm AOT + W270 HttpGet HostFn wasm; ADR-237 / M2-S4-05: HTTPS client real path; diagnostic SYX_HTTP_EXTRA_ROOT_PEM appends trust anchors (≠ skip-verify / ≠ danger_accept_invalid_certs); 02b bad-cert fail-closed still holds; ≠ server TLS GA / ≠ EC-M2-4-Z / ≠ Wave A exit / ≠ A-06/Q-S2 `[x]`; ADR-730 / W386: TLS server inventory thin signed; ADR-731 / W387: HostFn-gap deepen partial; ADR-732 / W388: honesty floor exit (server still unmet)",
+      "notes": "C-2b-13: paid native=real via full-native-linux m2_s4_05_https_loopback_ok_with_extra_root_native_aot + m2_s4_05_self_signed_fail_closed_native_aot; ADR-687 / W343 + ADR-686 / W342 lineage (EXTRA_ROOT HTTPS + self-signed dual-backend + native AOT; status remains implemented); ADR-626 / W282: wasm=real + EXTRA_ROOT HTTPS + self-signed fail-closed wasm AOT + W270 HttpGet HostFn wasm; ADR-237 / M2-S4-05: HTTPS client real path; diagnostic SYX_HTTP_EXTRA_ROOT_PEM appends trust anchors (≠ skip-verify / ≠ danger_accept_invalid_certs); 02b bad-cert fail-closed still holds; ≠ server TLS GA / ≠ net.tls.server / ≠ daemon GA / ≠ EC-M2-4-Z / ≠ Wave A exit / ≠ A-06/Q-S2 `[x]`; ADR-730 / W386: TLS server inventory thin signed; ADR-731 / W387: HostFn-gap deepen partial; ADR-732 / W388: honesty floor exit (server still unmet)",
       "since": "ADR-237"
     },
     {

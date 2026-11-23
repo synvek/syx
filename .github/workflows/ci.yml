@@ -636,6 +636,18 @@ jobs:
         run: |
           set -euo pipefail
           cargo test -p syx-driver --features full-native --test stdlib m2_s3_03_file_watcher_native_llvm -- --exact --test-threads=1
+      - name: TLS client EXTRA_ROOT aot (C-2b-13)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test stdlib m2_s4_05_https_loopback_ok_with_extra_root_native_aot -- --exact --test-threads=1
+      - name: TLS client self-signed fail-closed aot (C-2b-13)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test stdlib m2_s4_05_self_signed_fail_closed_native_aot -- --exact --test-threads=1
 
   native-linux:
     name: Native link (Linux)

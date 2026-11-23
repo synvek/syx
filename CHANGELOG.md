@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- ci/docs: tls.client aot on `full-native-linux`; raise `net.tls.client` to `native=real` (≠ server/daemon) (C-2b-13)
 - ci/docs: file raii/stream/watch llvm on `full-native-linux`; raise `io.file.raii`+`stream`+`watch` to `native=real` (≠ tls) (C-2b-12)
 - ci/docs: http.timeout llvm on `full-native-linux`; raise `net.http.timeout_tls` to `native=real` (≠ tls.client) (C-2b-11)
 - ci/docs: http.stream llvm on `full-native-linux`; raise `net.http.stream` to `native=real` (≠ timeout_tls) (C-2b-10)
