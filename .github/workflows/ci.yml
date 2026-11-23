@@ -7,6 +7,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  LLVM_VERSION: "21.1.6"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -531,6 +532,33 @@ jobs:
           timeout 15m cargo test -p syx-driver --test browser -- --test-threads=1
           exit 0
 
+  # C-2b++: required paid full-native floor (Linux). ≠ product native=real raise (C-2b+++).
+  # No continue-on-error — merge-hard. Soft native-linux job below stays advisory.
+  full-native-linux:
+    name: Full-native (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install host libs for llvm-sys
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libffi-dev zlib1g-dev libxml2-dev libzstd-dev
+      - name: Install LLVM ${{ env.LLVM_VERSION }} (full-native)
+        env:
+          LLVM_ASSET: LLVM-21.1.6-Linux-X64.tar.xz
+        run: bash scripts/ci_install_llvm.sh
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: full-native-linux-llvm${{ env.LLVM_VERSION }}
+      - name: Build syx-cli with full-native
+        run: cargo build -p syx-cli --features full-native
+      - name: Native hello smoke
+        run: |
+          set -euo pipefail
+          ./target/debug/syx build --native examples/hello.sy
+
   native-linux:
     name: Native link (Linux)
     continue-on-error: true
@@ -598,6 +626,7 @@ jobs:
       - name: Native host-shake hello size
         run: |
           set +e
+          # Soft advisory job may fall back; paid floor is full-native-linux (C-2b++).
           cargo build -p syx-cli --features full-native --release || cargo build -p syx-cli --release
           bash scripts/native_host_shake_size.sh
           ec=$?

@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-23 · **C-2b+ unpaid native=real demote + 禁 L006→0 `[x]`**；下一 = **C-2b++** CI LLVM / required full-native。
+> **最近更新：** 2026-11-23 · **C-2b++ required full-native-linux `[x]`**；下一 = **C-2b+++** 选择性 `native=real` 升格。
 
 ## 1. 一句话现状
 
@@ -45,7 +45,7 @@ VM / MIR / Wasm / browser 与 LSP 有可重复正向证据；字段默认、继�
 | **SA-0…SA-6** | `[x]` 退出 | Swift 对齐章程期 |
 | **R-0…R-49** | `[x]` 收口 | Object 切片 / wasm 46/46 / browser / 诊断 / docs ADR；**无 R-50** |
 | **U-0…U-40** | `[x]` 收口 | FilePath / credibility MD / parser 双接受 / 循环控制 / S060 / 字段默认链 / extension lit |
-| **收敛期 C-*** | **开账** | C-0 / C-1 `[x]`；C-2a/b/b+ `[x]`；活轴见 `02`；下一 **C-2b++**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
+| **收敛期 C-*** | **开账** | C-0 / C-1 `[x]`；C-2a/b/b+/b++ `[x]`；活轴见 `02`；下一 **C-2b+++**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
 
 ```mermaid
 flowchart LR
@@ -66,7 +66,7 @@ flowchart LR
 | 语义 / 泛型 / 引用 | **2.0** | **P0**：`Unknown` 可穿过 check；arity/return/`&mut` 不完整 |
 | MIR / VM | 3.0 | 窄切片可用；缺 verifier / 稳定 identity |
 | Wasm | 3.5 | 46/46 + AOT ratio 1.0；host-assisted ≠ portable sandbox |
-| Native LLVM | 2.0 | 本机可建；full-native suite 仍有真实失败；CI soft |
+| Native LLVM | 2.2 | CI 已付 Linux full-native 薄冒烟（C-2b++）；suite/产品 `native=real` 仍未 GA |
 | JIT | 1.5 | Suite-1 pilot；非生产默认 |
 | stdlib / HostFn | 3.0 / 2.0 | 表面大；稳定 ABI 与 HostFn 膨胀风险 |
 | package / security | 2.5 | 归档/签名好；git/lock 默认可复现不足 |
@@ -81,7 +81,7 @@ flowchart LR
 
 1. **类型 soundness**：`ErrorType` / `InferenceVar` / 合法 dynamic 三分；return、arity、`&mut`、narrowing 负向闸  
 2. **ManagedHeap**：C-1 轴已退出（默认降级 · weak identity · immutable 拒写 · churn 叙事清扫）；算法厚修仍 park（C-1a+）  
-3. **Backend 支持矩阵**：C-2a/b/b+ 已钉 SSOT + 禁 mirror + demote unpaid `native=real` + 禁 L006→0；余 **C-2b++** CI LLVM / required full-native
+3. **Backend 支持矩阵**：C-2a…b++ 已钉 SSOT + 禁 mirror + demote unpaid + 禁 L006→0 + required `full-native-linux`；余 **C-2b+++** 选择性升 `native=real`
 
 ### P1 — 架构 / 包 / 隔离 / SSOT
 

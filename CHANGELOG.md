@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- ci: required `full-native-linux` job (LLVM 21.1.6 + hello `--native`); extract `scripts/ci_install_llvm.sh` (C-2b++)
 - docs/ci: demote unpaid capability `native=real`→`partial`; ban L006 soft-skip exit 0 (C-2b+)
 - test: remove `run_native_strict_or_mirror_vm`; native GA skips without full-native AOT (C-2b)
 - docs: Backend/CI matrix SSOT — default_hard VM+MIR+Wasm46/46+browser0; native L006/JIT soft·experimental (C-2a)

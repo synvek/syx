@@ -5,7 +5,7 @@
 **Status snapshot:** [`plan/01-project-status.md`](../../plan/01-project-status.md) · Native 2.0 / CI soft  
 **Census:** [`docs/census/c-2a-backend-ci-matrix-census.md`](../census/c-2a-backend-ci-matrix-census.md)
 
-**Date:** 2026-11-23 · **C-2a / C-2b / C-2b+**
+**Date:** 2026-11-23 · **C-2a / C-2b / C-2b+ / C-2b++**
 
 ## Contract
 
@@ -32,8 +32,9 @@ LLVM refuse-without-`full-native` uses diagnostic code **L006** (toolchain gate;
 | **Browser** | **0** failed | `--test browser` (census); note: CI job `browser-e2e` is still **soft** |
 | **Book output** | `sy,output` **12/12** | `scripts/book_pass_rate.py` (census) |
 | **Object / simd residual** | **≤180/≤10** · **≥159** | packages scan (census) |
+| **Native paid floor** | required `full-native-linux` hello smoke | `.github/workflows/ci.yml` · LLVM 21.1.6 via `scripts/ci_install_llvm.sh` · `--features full-native` · **no** `continue-on-error` (C-2b++) |
 
-These are the **default support claims** for SYX as research beta. Do not advertise Native AOT or JIT as default-supported on the strength of soft CI alone.
+These are the **default support claims** for SYX as research beta. Do not advertise product-wide Native AOT GA or JIT as default-supported on soft CI alone; paid floor ≠ bulk `native=real` (C-2b+++).
 
 ---
 
@@ -48,7 +49,7 @@ These are the **default support claims** for SYX as research beta. Do not advert
 | `scripts/s0_backend_smoke.sh` | L006 **FAIL-CLOSED** counts as pass on required lint | Toolchain honesty, not native GA |
 | ~~`run_native_strict_or_mirror_vm`~~ | **C-2b exited** — helper **removed**; GA uses `try_run_native_strict` + **skip** (≠ VM mirror) | Forbidden: mirror VM stdout as native GA |
 
-**Capability (C-2b+ exited):** unpaid product rows demoted `native="real"` → `"partial"` (notes `C-2b+: unpaid ≠ full-native GA`). Re-raising `native=real` requires paid full-native evidence (**C-2b++**).
+**Capability (C-2b+ exited):** unpaid product rows demoted `native="real"` → `"partial"` (notes `C-2b+: unpaid ≠ full-native GA`). Selective re-raise after paid evidence = **C-2b+++** (this window raised **0** rows).
 
 ---
 
@@ -77,8 +78,14 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 - **Banned** L006 soft-skip → step success (`return`/`exit` 0); jobs stay `continue-on-error`
 - **Hard rule:** unpaid `native=real` = **forbidden** until paid full-native evidence
 
-### Still park → **C-2b++** / C-2c / C-2d
-- ≠ CI install LLVM / required full-native job / re-raise paid `native=real` (**C-2b++**)
+### C-2b++ (done · paid full-native floor)
+- **Required** job `full-native-linux`: install LLVM 21.1.6 (`scripts/ci_install_llvm.sh`) → `cargo build -p syx-cli --features full-native` → `syx build --native examples/hello.sy`
+- **No** `continue-on-error` on that job; **no** `full-native || release` fallback on that job
+- **0** product `native=real` re-raises this window
+
+### Still park → **C-2b+++** / C-2c / C-2d
+- ≠ selective re-raise product `native=real` (**C-2b+++**)
+- ≠ macOS required full-native
 - ≠ full FeaturePriority JIT Stub scrub (**C-2c**)
 - ≠ rename every capability `ci.job.*` to match yaml (**C-2d**)
 - ≠ R-50
@@ -87,4 +94,4 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 
 ## Next
 
-Default next after C-2b+ exit: **C-2b++** — CI install LLVM · required full-native · re-allow evidence-backed `native=real`.
+Default next after C-2b++ exit: **C-2b+++** — selective evidence-backed `native=real` re-raise (hello floor already paid).

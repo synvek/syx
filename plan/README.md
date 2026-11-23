@@ -9,7 +9,7 @@
 | 文件 | 用途 |
 |------|------|
 | [01-project-status.md](01-project-status.md) | **当前整体状态**（收敛期；~2.5/5 研究型 beta） |
-| [02-improvement-roadmap.md](02-improvement-roadmap.md) | **活 backlog**（C-0 / C-1 `[x]`；**C-2a/b/b+** `[x]`；默认下一 = **C-2b++**） |
+| [02-improvement-roadmap.md](02-improvement-roadmap.md) | **活 backlog**（C-0 / C-1 `[x]`；**C-2a…b++** `[x]`；默认下一 = **C-2b+++**） |
 | [syx-status-final-report.md](syx-status-final-report.md) | 外部只读审计输入（2026-11） |
 | [todo-003.md](todo-003.md) | Swift 对齐分析底稿（历史输入） |
 | [topics/](topics/) | 短专题：JIT、MIR/AOT、GC、profiles、HostFn、LLVM、插件 ABI v2 |
@@ -42,4 +42,4 @@
 5. **不要**在 `archive/*-ledger.md` 上继续当 backlog 打勾。  
 6. 开新窗口：引用 `02` 的 **C-*** ID；需要施工步骤时再建 `.cursor/plans/*.plan.md`。
 
-**当前提示：** SA / R / U 编号账本已收口（详账见 [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)）。活施工轴 = **C-2b++**（CI LLVM / required full-native；C-2a/b/b+ 已退出；C-2c/d · C-0a+/e park）。U-41+ / JIT / SyxHost / 真隐式 `CallSuper` / 产品伞 / Foundation 命名仍 park。
+**当前提示：** SA / R / U 编号账本已收口（详账见 [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)）。活施工轴 = **C-2b+++**（选择性 `native=real`；C-2a…b++ 已退出；C-2c/d · C-0a+/e park）。U-41+ / JIT / SyxHost / 真隐式 `CallSuper` / 产品伞 / Foundation 命名仍 park。

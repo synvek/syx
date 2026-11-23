@@ -13,7 +13,7 @@
 | **C-2a** SSOT | **exited** |
 | **C-2b** mirror honesty | **exited** |
 | **C-2b+** native honesty | **exited** |
-| Open | 默认下一 **C-2b++**；C-2c/d · C-0a+/e park |
+| Open | C-2b++ exited → 默认下一 **C-2b+++**；C-2c/d · C-0a+/e park |
 
 ## Root cause
 
