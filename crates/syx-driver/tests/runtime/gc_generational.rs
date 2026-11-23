@@ -8,17 +8,23 @@ use syx_runtime_core::{
     reset_gc_gen_compact_cycles,
 };
 
+// C-1a / driver_gate honesty: `__syx_gc_collect` is undefined (S002);
+// use the registered VM native collect host.
 const GC_SRC: &str = r#"func main() {
     let s = __syx_array_sort_by([3, 1, 2], { (a: Int, b: Int) -> Int in return a - b })
     print(s[0])
-    __syx_gc_collect()
+    print(__syx_vm_native_gc_collect())
     print("gc-done")
 }"#;
 
 #[test]
-fn p98_gc_v13_generational_default_on() {
+fn p98_gc_v13_generational_default_off_c1a() {
+    // C-1a: dangerous generational/compact layers are opt-in.
     std::env::remove_var("SYX_HEAP_V13_GENERATIONAL");
+    assert!(!heap_v13_generational());
+    std::env::set_var("SYX_HEAP_V13_GENERATIONAL", "1");
     assert!(heap_v13_generational());
+    std::env::remove_var("SYX_HEAP_V13_GENERATIONAL");
 }
 
 #[test]

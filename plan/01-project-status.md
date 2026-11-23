@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-18 · **C-0a Unknown 汇点薄闸 `[x]`**；C-0 薄闸完成；下一 = **C-1 ManagedHeap**。
+> **最近更新：** 2026-11-23 · **C-1a ManagedHeap 默认降级 `[x]`**；C-0 薄闸完成；下一 = **C-1b** weak identity。
 
 ## 1. 一句话现状
 
@@ -45,7 +45,7 @@ VM / MIR / Wasm / browser 与 LSP 有可重复正向证据；字段默认、继�
 | **SA-0…SA-6** | `[x]` 退出 | Swift 对齐章程期 |
 | **R-0…R-49** | `[x]` 收口 | Object 切片 / wasm 46/46 / browser / 诊断 / docs ADR；**无 R-50** |
 | **U-0…U-40** | `[x]` 收口 | FilePath / credibility MD / parser 双接受 / 循环控制 / S060 / 字段默认链 / extension lit |
-| **收敛期 C-*** | **开账** | C-0 薄闸 `[x]`；活轴见 `02`；下一 C-1 |
+| **收敛期 C-*** | **开账** | C-0 薄闸 `[x]`；C-1a `[x]`；活轴见 `02`；下一 **C-1b** |
 
 ```mermaid
 flowchart LR
@@ -80,7 +80,7 @@ flowchart LR
 ### P0 — 正确性与安全边界（默认下一）
 
 1. **类型 soundness**：`ErrorType` / `InferenceVar` / 合法 dynamic 三分；return、arity、`&mut`、narrowing 负向闸  
-2. **ManagedHeap**：默认 generational/compact 降级或修；weak identity / immutable 写；禁 stdout churn  
+2. **ManagedHeap**：C-1a 已降级危险默认；余 **weak identity / immutable 写**；churn 用户 stdout 已门闩（C-1d 余 Host/文档）  
 3. **Backend 支持矩阵**：VM/MIR/Wasm 为默认硬闸；native=`real` 必须同 full-native 验证，禁 L006 soft-skip 冒充绿
 
 ### P1 — 架构 / 包 / 隔离 / SSOT

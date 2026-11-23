@@ -34,36 +34,37 @@ impl ManagedHeap {
     }
 
     pub fn compact_enabled() -> bool {
+        // C-1a: compact opt-in (was default on; dangerous with generational).
         std::env::var("SYX_HEAP_COMPACT")
-            .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
-            .unwrap_or(true)
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
     }
 
-    /// Phase 80: Heap v9 young/old generational GC (default on).
+    /// Phase 80: Heap v9 young/old generational GC (C-1a: opt-in; was default on).
     pub fn heap_v9_generational_enabled() -> bool {
         std::env::var("SYX_HEAP_V9_GENERATIONAL")
-            .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
-            .unwrap_or(true)
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
     }
 
-    /// Phase 81: Heap v10 true promotion + cross-process bridge (default on).
+    /// Phase 81: Heap v10 true promotion + cross-process bridge (opt-in; follows v9 when unset).
     pub fn heap_v10_enabled() -> bool {
         std::env::var("SYX_HEAP_V10")
-            .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(Self::heap_v9_generational_enabled())
     }
 
-    /// Phase 82: Heap v11 prod bridge + complete string offheap (default on).
+    /// Phase 82: Heap v11 prod bridge + complete string offheap (opt-in; follows v10 when unset).
     pub fn heap_v11_enabled() -> bool {
         std::env::var("SYX_HEAP_V11")
-            .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(Self::heap_v10_enabled())
     }
 
-    /// Phase 82: cross-process shared arena bridge prod default.
+    /// Phase 82: cross-process shared arena bridge (opt-in; follows v11 when unset).
     pub fn heap_v11_bridge_prod_enabled() -> bool {
         std::env::var("SYX_HEAP_V11_BRIDGE_PROD")
-            .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(Self::heap_v11_enabled())
     }
 
@@ -371,14 +372,23 @@ static RELOCATE_COUNT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU
 
 static GC_CHURN_STDOUT: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
-/// Phase 95: emit `gc:churn:{reason}` to stdout for quad parity gates.
+/// Phase 95 / C-1a: record GC churn telemetry.
+/// User stdout only when `SYX_GC_CHURN_STDOUT=1`; in-memory lines always for tests.
 pub fn record_gc_churn_stdout(reason: &str) {
     let line = format!("gc:churn:{reason}");
-    let _ = writeln!(std::io::stdout(), "{line}");
-    let _ = std::io::stdout().flush();
+    if gc_churn_stdout_enabled() {
+        let _ = writeln!(std::io::stdout(), "{line}");
+        let _ = std::io::stdout().flush();
+    }
     if let Ok(mut g) = GC_CHURN_STDOUT.lock() {
         g.push(line);
     }
+}
+
+fn gc_churn_stdout_enabled() -> bool {
+    std::env::var("SYX_GC_CHURN_STDOUT")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
 }
 
 pub fn gc_churn_stdout_lines() -> Vec<String> {
@@ -465,11 +475,9 @@ pub fn heap_root_bridge_attach_count() -> u64 {
     BRIDGE_ATTACH_COUNT.load(std::sync::atomic::Ordering::Relaxed)
 }
 
-/// Phase 82: Heap v11 cross-process bridge prod (default on).
+/// Phase 82 / C-1a: Heap v11 cross-process bridge (opt-in).
 pub fn heap_v11_bridge_prod_enabled() -> bool {
-    std::env::var("SYX_HEAP_V11_BRIDGE_PROD")
-        .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
-        .unwrap_or(heap_root_bridge_enabled())
+    ManagedHeap::heap_v11_bridge_prod_enabled()
 }
 
 /// Phase 81: peek latest bridged heap root (cross-process actor extern ref).
@@ -485,11 +493,11 @@ pub fn heap_root_bridge_enabled() -> bool {
     ManagedHeap::heap_v10_enabled()
 }
 
-/// Phase 90: Heap v13 young/old generational compact (default on).
+/// Phase 90 / C-1a: Heap v13 young/old generational compact (opt-in; was default on).
 pub fn heap_v13_generational() -> bool {
     std::env::var("SYX_HEAP_V13_GENERATIONAL")
-        .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
-        .unwrap_or(true)
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
 }
 
 /// Phase 90: generational compact cycle count for doctor `--gc-gen-report`.
@@ -505,6 +513,76 @@ pub fn gc_gen_compact_record() {
 
 pub fn reset_gc_gen_compact_cycles() {
     GC_GEN_COMPACT_CYCLES.store(0, std::sync::atomic::Ordering::Relaxed);
+}
+
+#[cfg(test)]
+mod c1a_default_degrade_tests {
+    use super::*;
+    use crate::Value;
+    use std::collections::HashMap;
+
+    fn clear_heap_env() {
+        for k in [
+            "SYX_HEAP_V9_GENERATIONAL",
+            "SYX_HEAP_V10",
+            "SYX_HEAP_V11",
+            "SYX_HEAP_V11_BRIDGE_PROD",
+            "SYX_HEAP_V13_GENERATIONAL",
+            "SYX_HEAP_COMPACT",
+            "SYX_GC_CHURN_STDOUT",
+        ] {
+            std::env::remove_var(k);
+        }
+    }
+
+    #[test]
+    fn c1a_dangerous_layers_default_off() {
+        clear_heap_env();
+        assert!(!ManagedHeap::heap_v9_generational_enabled());
+        assert!(!ManagedHeap::heap_v10_enabled());
+        assert!(!ManagedHeap::heap_v11_enabled());
+        assert!(!ManagedHeap::heap_v11_bridge_prod_enabled());
+        assert!(!ManagedHeap::compact_enabled());
+        assert!(!heap_v13_generational());
+        // Mark-sweep baseline stays available.
+        assert!(ManagedHeap::enabled());
+    }
+
+    #[test]
+    fn c1a_default_collect_no_user_stdout_churn() {
+        clear_heap_env();
+        reset_gc_churn_stdout();
+        let mut heap = ManagedHeap::default();
+        let v = Value::object_ref_from_map(HashMap::from([("n".into(), Value::I64(1))]), true);
+        let _ = heap.alloc(v.clone());
+        let _ = heap.collect(&[v]);
+        // Direct collect on local heap does not call record_gc_churn_stdout;
+        // exercise the global path which always did.
+        let _ = collect_global(&[]);
+        // In-memory telemetry may record; user stdout gate is the contract —
+        // with SYX_GC_CHURN_STDOUT unset, we only assert the gate helper.
+        assert!(!gc_churn_stdout_enabled());
+    }
+
+    #[test]
+    fn c1a_default_path_128_alloc_collect_no_overflow() {
+        clear_heap_env();
+        let mut heap = ManagedHeap::default();
+        let mut roots = Vec::new();
+        for i in 0..128 {
+            let v = Value::object_ref_from_map(
+                HashMap::from([("i".into(), Value::I64(i))]),
+                true,
+            );
+            let _ = heap.alloc(v.clone());
+            if i % 8 == 0 {
+                roots.push(v);
+            }
+        }
+        let _ = heap.collect(&roots);
+        let _ = heap.collect(&[]);
+        assert!(heap.slot_count() >= 1 || heap.collect_cycles() >= 1);
+    }
 }
 
 #[cfg(test)]
