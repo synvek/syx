@@ -531,7 +531,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -540,7 +540,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-546 / W202: FileHandle.withOpen RAII narrow subset native+wasm=real; W48/W49/W91 VM exact; File HostFn llvm/wasm W18-W21+W192-W194; ≠ EC-M2-3 total; stream/watcher → io.file.stream/io.file.watch; mmap → ADR-241",
+      "notes": "C-2b-12: paid native=real via full-native-linux m2_s3_02b_with_open_native_llvm; ADR-546 / W202 lineage FileHandle.withOpen RAII narrow; W48/W49/W91 VM exact; File HostFn llvm/wasm W18-W21+W192-W194; ≠ EC-M2-3 total; ≠ net.tls.*; stream/watcher → sibling caps; mmap → ADR-241",
       "since": "ADR-234"
     },
     {
@@ -550,7 +550,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -559,7 +559,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-548 / W204: FileStream open/readChunk/close narrow subset native+wasm=real; W50/W71/W136 VM exact + native/wasm nails; ≠ FileWatcher; ≠ mmap; ≠ EC-M2-3 total",
+      "notes": "C-2b-12: paid native=real via full-native-linux m2_s3_03_file_stream_read_chunk_native_llvm; ADR-548 / W204 lineage FileStream open/readChunk/close narrow; W50/W71/W136 VM exact + native/wasm nails; ≠ FileWatcher recursive/async GA; ≠ mmap; ≠ net.tls.*; ≠ EC-M2-3 total",
       "since": "ADR-240"
     },
     {
@@ -569,7 +569,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -578,7 +578,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-555 / W211: FileWatcher open/poll/close mir=real (mir-run narrow nail + W206 native/wasm + differential 16/16); W72/W103/W138 VM exact; ≠ recursive/async notify GA; ≠ File.watch one-shot; ≠ llvm FileWatcher GA",
+      "notes": "C-2b-12: paid native=real via full-native-linux m2_s3_03_file_watcher_native_llvm; ADR-555 / W211 lineage FileWatcher open/poll/close narrow (mir-run + W206 native/wasm + differential 16/16); W72/W103/W138 VM exact; ≠ recursive/async notify GA; ≠ File.watch one-shot; ≠ net.tls.*",
       "since": "ADR-240"
     },
     {

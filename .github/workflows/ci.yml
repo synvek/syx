@@ -618,6 +618,24 @@ jobs:
         run: |
           set -euo pipefail
           cargo test -p syx-driver --features full-native --test stdlib m2_s4_02b_timeout_hang_loopback_native_aot -- --exact --test-threads=1
+      - name: File RAII llvm (C-2b-12)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test stdlib m2_s3_02b_with_open_native_llvm -- --exact --test-threads=1
+      - name: File stream llvm (C-2b-12)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test stdlib m2_s3_03_file_stream_read_chunk_native_llvm -- --exact --test-threads=1
+      - name: File watcher llvm (C-2b-12)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test stdlib m2_s3_03_file_watcher_native_llvm -- --exact --test-threads=1
 
   native-linux:
     name: Native link (Linux)

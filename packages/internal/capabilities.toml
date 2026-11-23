@@ -278,15 +278,16 @@ id = "io.file.raii"
 feature = "io.file.raii"
 surface = "FileHandle.withOpen / openResource→FileResource + Reader/Writer/Seekable/Closeable"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s3_02b_filehandle_raii_with",
   "m2_s3_02b_with_open_success_live_count_native",
   "m2_s3_02b_with_open_throw_live_count_native",
   "m2_s3_02b_host_inject_fail_live_count_native",
+  "m2_s3_02b_with_open_native_llvm",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-546 / W202: FileHandle.withOpen RAII narrow subset native+wasm=real; W48/W49/W91 VM exact; File HostFn llvm/wasm W18-W21+W192-W194; ≠ EC-M2-3 total; stream/watcher → io.file.stream/io.file.watch; mmap → ADR-241"
+notes = "C-2b-12: paid native=real via full-native-linux m2_s3_02b_with_open_native_llvm; ADR-546 / W202 lineage FileHandle.withOpen RAII narrow; W48/W49/W91 VM exact; File HostFn llvm/wasm W18-W21+W192-W194; ≠ EC-M2-3 total; ≠ net.tls.*; stream/watcher → sibling caps; mmap → ADR-241"
 since = "ADR-234"
 
 [[capability]]
@@ -294,14 +295,15 @@ id = "io.file.stream"
 feature = "io.file.stream"
 surface = "FileStream.open/readChunk/close"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s3_03_file_stream_watcher",
   "m2_s3_03_file_stream_facade_native",
   "m2_s3_03_file_stream_chunk_close_fail_native",
+  "m2_s3_03_file_stream_read_chunk_native_llvm",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-548 / W204: FileStream open/readChunk/close narrow subset native+wasm=real; W50/W71/W136 VM exact + native/wasm nails; ≠ FileWatcher; ≠ mmap; ≠ EC-M2-3 total"
+notes = "C-2b-12: paid native=real via full-native-linux m2_s3_03_file_stream_read_chunk_native_llvm; ADR-548 / W204 lineage FileStream open/readChunk/close narrow; W50/W71/W136 VM exact + native/wasm nails; ≠ FileWatcher recursive/async GA; ≠ mmap; ≠ net.tls.*; ≠ EC-M2-3 total"
 since = "ADR-240"
 
 [[capability]]
@@ -309,14 +311,15 @@ id = "io.file.watch"
 feature = "io.file.watch"
 surface = "FileWatcher.open/poll/close"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s3_03_file_stream_watcher",
   "m2_s3_03_file_watcher_poll_close_fail_native",
   "m2_s3_03_file_watcher_poll_close_fail_mir",
+  "m2_s3_03_file_watcher_native_llvm",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-555 / W211: FileWatcher open/poll/close mir=real (mir-run narrow nail + W206 native/wasm + differential 16/16); W72/W103/W138 VM exact; ≠ recursive/async notify GA; ≠ File.watch one-shot; ≠ llvm FileWatcher GA"
+notes = "C-2b-12: paid native=real via full-native-linux m2_s3_03_file_watcher_native_llvm; ADR-555 / W211 lineage FileWatcher open/poll/close narrow (mir-run + W206 native/wasm + differential 16/16); W72/W103/W138 VM exact; ≠ recursive/async notify GA; ≠ File.watch one-shot; ≠ net.tls.*"
 since = "ADR-240"
 
 [[capability]]

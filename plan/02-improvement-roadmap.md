@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-23 · **C-2b-11 timeout_tls 付费升格 `[x]`**；C-2b-10 http.stream `[x]`；默认下一 = **C-2b-12**（C-2c/d · C-0a+/e park）。
+> **最近更新：** 2026-11-24 · **C-2b-12 io.file.raii·stream·watch 付费升格 `[x]`**；C-2b-11 timeout_tls `[x]`；默认下一 = **C-2b-13**（C-2c/d · C-0a+/e park）。
 
 ## 0. 时代切换
 
@@ -65,7 +65,7 @@
 
 **验收（C-1d）：** 测例/文档不再把 print/`gc:churn:` 回显冒充 GC 绿；C-1a 门闩不破；硬 KPI 不破。
 
-### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor / b-12·c·d 余
+### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor / b-13·c·d 余
 
 **命名：** `-N` = N 个历史 `+`（`C-2b-1`≈`C-2b+`，`C-2b-2`≈`C-2b++`，`C-2b-3`≈旧 `C-2b+++`）。新默认下一禁止写 `+++`。
 
@@ -87,11 +87,12 @@
 | **C-2b-9** | `[x]` | server llvm 进 paid job；`net.http.server` → `native=real`（≠ stream/timeout_tls）；census [`c-2b-9-http-server-raise-census`](../docs/census/c-2b-9-http-server-raise-census.md) |
 | **C-2b-10** | `[x]` | stream llvm 进 paid job；`net.http.stream` → `native=real`（≠ timeout_tls）；census [`c-2b-10-http-stream-raise-census`](../docs/census/c-2b-10-http-stream-raise-census.md) |
 | **C-2b-11** | `[x]` | timeout llvm 进 paid job；`net.http.timeout_tls` → `native=real`（≠ tls.client）；census [`c-2b-11-timeout-tls-raise-census`](../docs/census/c-2b-11-timeout-tls-raise-census.md) |
-| **C-2b-12** | `[ ]` **默认下一** | 下一批选择性 `native=real`（io.file.raii·stream·watch） |
+| **C-2b-12** | `[x]` | raii/stream/watch llvm 进 paid job；`io.file.raii`+`stream`+`watch` → `native=real`（≠ tls）；census [`c-2b-12-io-file-raise-census`](../docs/census/c-2b-12-io-file-raise-census.md) |
+| **C-2b-13** | `[ ]` **默认下一** | 下一批选择性 `native=real`（`net.tls.client`） |
 | **C-2c** | `[ ]` | JIT / experimental backends 明确 `experimental`；非默认 KPI |
 | **C-2d** | `[ ]` | CI job 矩阵与 `01`/`capability` 文案对齐 |
 
-**验收（C-2b-11）：** paid job 含 timeout llvm；恰好 12× 产品 `native=real`；io/tls 余债仍 partial；硬 KPI 不破。
+**验收（C-2b-12）：** paid job 含三条 file llvm；恰好 15× 产品 `native=real`；tls 仍 partial；硬 KPI 不破。
 
 ### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]`
 
