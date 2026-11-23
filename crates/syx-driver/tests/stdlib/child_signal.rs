@@ -150,9 +150,9 @@ fn m2_s6_03_docs_and_capability() {
     // Honesty: wasm=unsupported keeps overall status=partial (≠ product implemented).
     assert!(
         block.contains("status = \"partial\"")
-            && block.contains("native = \"real\"")
+            && block.contains("native = \"partial\"")
             && block.contains("wasm = \"unsupported\""),
-        "os.process.signal must stay partial/native=real/wasm=unsupported: {block}"
+        "os.process.signal must stay partial/native=partial/wasm=unsupported (C-2b+): {block}"
     );
     assert!(
         (block.contains("ADR-602") || block.contains("ADR-244")) && block.contains("W258"),

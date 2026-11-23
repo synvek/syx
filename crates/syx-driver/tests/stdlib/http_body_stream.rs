@@ -299,8 +299,8 @@ fn m2_s4_04_docs_and_capability() {
         "net.http.stream must be implemented: {block}"
     );
     assert!(
-        block.contains("native = \"real\""),
-        "net.http.stream must declare native=real (ADR-601): {block}"
+        block.contains("native = \"partial\""),
+        "net.http.stream must declare native=partial (C-2b+ unpaid ≠ full-native GA; ADR-601 lineage): {block}"
     );
     assert!(
         block.contains("wasm = \"real\""),

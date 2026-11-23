@@ -18,7 +18,7 @@ fn hosted_site_deepen_nail_behavior() {
     let row = capabilities_for_hosted(Some("datetime.calendar"));
     assert_eq!(row["id"], "datetime.calendar");
     assert_eq!(row["status"], "implemented");
-    assert_eq!(row["native"], "real");
+    assert_eq!(row["native"], "partial"); // C-2b+: unpaid ≠ full-native GA
     let html = render_hosted_capabilities_page(Some("datetime.calendar"));
     assert!(
         html.contains("<html>")

@@ -18,7 +18,7 @@ fn website_capability_deepen_nail_behavior() {
     let row = capabilities_for_website(Some("datetime.calendar"));
     assert_eq!(row["id"], "datetime.calendar");
     assert_eq!(row["status"], "implemented");
-    assert_eq!(row["native"], "real");
+    assert_eq!(row["native"], "partial"); // C-2b+: unpaid ≠ full-native GA
     let html = render_capabilities_html_snippet(Some("datetime.calendar"));
     assert!(
         html.contains("syx-capability-v0") && html.contains("datetime.calendar"),

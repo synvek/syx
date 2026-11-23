@@ -19,7 +19,7 @@ fn marketing_deploy_deepen_nail_behavior() {
     let row = capabilities_for_marketing(Some("datetime.calendar"));
     assert_eq!(row["id"], "datetime.calendar");
     assert_eq!(row["status"], "implemented");
-    assert_eq!(row["native"], "real");
+    assert_eq!(row["native"], "partial"); // C-2b+: unpaid ≠ full-native GA
     let html = render_marketing_capabilities_page(Some("datetime.calendar"));
     assert!(
         html.contains("<html>")

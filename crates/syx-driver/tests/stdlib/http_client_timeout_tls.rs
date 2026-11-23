@@ -508,8 +508,8 @@ fn m2_s4_02b_docs_and_capability() {
         "net.http.timeout_tls must declare wasm=real (ADR-626): {block}"
     );
     assert!(
-        block.contains("native = \"real\""),
-        "net.http.timeout_tls must declare native=real (ADR-687): {block}"
+        block.contains("native = \"partial\""),
+        "net.http.timeout_tls must declare native=partial (C-2b+ unpaid ≠ full-native GA; ADR-687 lineage): {block}"
     );
     assert!(
         block.contains("ADR-626") && block.contains("W282"),

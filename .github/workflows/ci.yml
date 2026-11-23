@@ -564,7 +564,8 @@ jobs:
             tail -40 /tmp/evergreen-parity.out || true
           fi
           cargo build -p syx-cli
-          # Default CI CLI lacks `--features full-native` (L006). Soft-skip AOT emit.
+          # C-2b+: default CLI lacks `--features full-native` (L006).
+          # L006 must NOT soft-skip to step success; job stays continue-on-error.
           soft_native() {
             local src="$1"
             local err
@@ -575,20 +576,23 @@ jobs:
               return 0
             fi
             if grep -Eq 'L006|full-native' "$err"; then
-              echo "soft-skip native AOT ($src): toolchain without --features full-native"
+              echo "::warning title=native-linux::L006 without full-native ($src) — unpaid (C-2b+)"
               cat "$err"
               rm -f "$err"
-              return 0
+              return 1
             fi
             cat "$err" >&2
             rm -f "$err"
             return 1
           }
-          soft_native examples/hello.sy || true
-          soft_native examples/main_sync.sy || true
-          # Soft job: report parity failures but do not block later soft steps.
+          soft_ec=0
+          soft_native examples/hello.sy || soft_ec=1
+          soft_native examples/main_sync.sy || soft_ec=1
           if [ "$ec1" -ne 0 ] || [ "$ec2" -ne 0 ]; then
-            echo "::warning title=native-parity::strict=$ec1 evergreen=$ec2 (soft-continue)"
+            echo "::warning title=native-parity::strict=$ec1 evergreen=$ec2"
+          fi
+          if [ "$ec1" -ne 0 ] || [ "$ec2" -ne 0 ] || [ "$soft_ec" -ne 0 ]; then
+            exit 1
           fi
           exit 0
       - name: Native host-shake hello size
@@ -645,21 +649,22 @@ jobs:
           printf 'func main() { print("hi") }\n' > "$dir/main.sy"
           printf 'name = "hello"\nmain = "main.sy"\n' > "$dir/syx.toml"
           err="$(mktemp)"
+          # C-2b+: L006 must NOT soft-skip to step success; job stays continue-on-error.
           # miette diagnostics go to stdout; capture both streams for L006 detect.
           if ./target/debug/syx build --native -o "$dir/app" "$dir" >"$err" 2>&1; then
             rm -f "$err"
             exit 0
           fi
           if grep -Eq 'L006|full-native' "$err"; then
-            echo "soft-skip native AOT (macos hello): toolchain without --features full-native"
+            echo "::warning title=native-macos::L006 without full-native — unpaid (C-2b+)"
             cat "$err"
             rm -f "$err"
-            exit 0
+            exit 1
           fi
           echo "::warning title=native-macos::non-L006 build failure (soft)"
           cat "$err" || true
           rm -f "$err"
-          exit 0
+          exit 1
 
   gui-xvfb:
     name: GUI tests (xvfb)

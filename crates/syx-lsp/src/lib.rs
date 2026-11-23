@@ -7710,7 +7710,7 @@ func main() {
         let row = capabilities_for_lsp(Some("datetime.calendar"));
         assert_eq!(row["id"], "datetime.calendar");
         assert_eq!(row["status"], "implemented");
-        assert_eq!(row["native"], "real");
+        assert_eq!(row["native"], "partial"); // C-2b+: unpaid ≠ full-native GA
     }
 
     #[test]

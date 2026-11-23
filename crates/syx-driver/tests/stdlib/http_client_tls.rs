@@ -539,8 +539,8 @@ fn m2_s4_05_docs_and_capability() {
         "net.tls.client must declare wasm=real (ADR-626): {block}"
     );
     assert!(
-        block.contains("native = \"real\""),
-        "net.tls.client must declare native=real (ADR-687): {block}"
+        block.contains("native = \"partial\""),
+        "net.tls.client must declare native=partial (C-2b+ unpaid ≠ full-native GA; ADR-687 lineage): {block}"
     );
     assert!(
         block.contains("ADR-626") && block.contains("W282"),
