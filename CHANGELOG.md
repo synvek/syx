@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- ci/docs: pool/row llvm on `full-native-linux`; raise `data.sqlite.pool` + `data.sqlite.row` to `native=real` (C-2b-7)
 - ci/docs: http GA on `full-native-linux`; raise `net.http` to `native=real` (≠ server/types/stream/timeout_tls) (C-2b-6)
 - ci/docs: sql GA on `full-native-linux`; raise `data.sqlite` to `native=real` (≠ pool/row) (C-2b-5)
 - ci/docs: tcp GA on `full-native-linux`; raise `net.tcp` + `net.tcp.listener` to `native=real` (C-2b-4)

@@ -230,15 +230,15 @@ id = "data.sqlite.pool"
 feature = "data.sqlite.pool"
 surface = "Sql.poolCreate/poolAcquire/poolRelease/poolClose"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s8_01c_connection_pool",
   "m2_s8_03b_pool_txn",
-  "qs1_sql_pool_lifecycle_native_llvm",
-  "qs1_sql_pool_lifecycle_wasm",
+  "hostfn_sql_pool_lifecycle_native_llvm",
+  "hostfn_sql_pool_lifecycle_wasm",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-717 / W373 residual product raise: dual-backend real (qs1_sql_pool_lifecycle native+wasm); ADR-245 / M2-S8-01c + ADR-247 / M2-S8-03b retained; HostFn SqlPool* wasm complete (ADR-716); ≠ live Statement / ≠ EC-M2-4-Z; ≠ listener residual clear"
+notes = "C-2b-7: paid native=real via full-native-linux hostfn_sql_pool_lifecycle_native_llvm; ADR-717 / W373 + ADR-596 / W252 lineage (pool create/acquire/release/close dual-backend); ADR-245 / M2-S8-01c + ADR-247 / M2-S8-03b retained; HostFn SqlPool* wasm complete (ADR-716); ≠ live Statement / ≠ EC-M2-4-Z; ≠ http residual / ≠ io.file.raii|stream|watch"
 since = "ADR-245"
 
 [[capability]]
@@ -246,16 +246,16 @@ id = "data.sqlite.row"
 feature = "data.sqlite.row"
 surface = "SqlRow.getString/getInt/getFloat/getBlob/isNull/columnNames"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s8_02b_typed_row",
-  "qs1_sql_row_accessors_native_llvm",
-  "qs1_sql_row_accessors_wasm",
+  "hostfn_sql_row_accessors_native_llvm",
+  "hostfn_sql_row_accessors_wasm",
   "qs1_sql_prepare_bind_row_get_int_native_llvm",
   "qs1_sql_prepare_bind_row_get_int_wasm",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-715 / W371 residual product raise: dual-backend real (qs1_sql_row_accessors + GetInt native+wasm); ADR-246 / M2-S8-02b typed SqlRow retained; HostFn SqlRow* wasm complete (ADR-713/714); ≠ query builder / ≠ Orm GA / ≠ EC-M2-4-Z; ≠ pool/listener residual clear"
+notes = "C-2b-7: paid native=real via full-native-linux hostfn_sql_row_accessors_native_llvm; ADR-715 / W371 + ADR-597 / W253 lineage (SqlRow accessors dual-backend); ADR-246 / M2-S8-02b typed SqlRow retained; HostFn SqlRow* wasm complete (ADR-713/714); ≠ query builder / ≠ Orm GA / ≠ EC-M2-4-Z; ≠ http residual / ≠ io.file.raii|stream|watch"
 since = "ADR-246"
 
 [[capability]]

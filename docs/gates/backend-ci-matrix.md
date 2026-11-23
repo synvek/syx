@@ -5,7 +5,7 @@
 **Status snapshot:** [`plan/01-project-status.md`](../../plan/01-project-status.md) · Native 2.0 / CI soft  
 **Census:** [`docs/census/c-2a-backend-ci-matrix-census.md`](../census/c-2a-backend-ci-matrix-census.md)
 
-**Date:** 2026-11-23 · **C-2a…C-2b-6**（`-N` = N×历史 `+`）
+**Date:** 2026-11-23 · **C-2a…C-2b-7**（`-N` = N×历史 `+`）
 
 ## Contract
 
@@ -32,9 +32,9 @@ LLVM refuse-without-`full-native` uses diagnostic code **L006** (toolchain gate;
 | **Browser** | **0** failed | `--test browser` (census); note: CI job `browser-e2e` is still **soft** |
 | **Book output** | `sy,output` **12/12** | `scripts/book_pass_rate.py` (census) |
 | **Object / simd residual** | **≤180/≤10** · **≥159** | packages scan (census) |
-| **Native paid floor** | required `full-native-linux` hello + path_file + tcp + sql + http GA | `.github/workflows/ci.yml` · LLVM 21.1.6 · `--features full-native` · **no** `continue-on-error` (C-2b-2…6) |
+| **Native paid floor** | required `full-native-linux` hello + path_file + tcp + sql + http GA + pool/row llvm | `.github/workflows/ci.yml` · LLVM 21.1.6 · `--features full-native` · **no** `continue-on-error` (C-2b-2…7) |
 
-These are the **default support claims** for SYX as research beta. Do not advertise product-wide Native AOT GA or JIT as default-supported on soft CI alone; paid raises ≠ bulk `native=real` (**C-2b-7**).
+These are the **default support claims** for SYX as research beta. Do not advertise product-wide Native AOT GA or JIT as default-supported on soft CI alone; paid raises ≠ bulk `native=real` (**C-2b-8**).
 
 ---
 
@@ -49,7 +49,7 @@ These are the **default support claims** for SYX as research beta. Do not advert
 | `scripts/s0_backend_smoke.sh` | L006 **FAIL-CLOSED** counts as pass on required lint | Toolchain honesty, not native GA |
 | ~~`run_native_strict_or_mirror_vm`~~ | **C-2b exited** — helper **removed**; GA uses `try_run_native_strict` + **skip** (≠ VM mirror) | Forbidden: mirror VM stdout as native GA |
 
-**Capability:** C-2b-1 demoted unpaid → `partial`. Raised: path×2 (C-2b-3) · tcp×2 (C-2b-4) · `data.sqlite` (C-2b-5) · `net.http` (C-2b-6). Remaining product rows stay `partial` until **C-2b-7** (incl. sqlite pool/row · http residual · other io.file.*).
+**Capability:** C-2b-1 demoted unpaid → `partial`. Raised: path×2 (C-2b-3) · tcp×2 (C-2b-4) · `data.sqlite` (C-2b-5) · `net.http` (C-2b-6) · pool+row (C-2b-7). Remaining product rows stay `partial` until **C-2b-8** (incl. http residual · other io.file.*).
 
 ---
 
@@ -100,8 +100,13 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 - **Raised** `net.http` → `native=real` (notes cite C-2b-6；≠ server / types / stream / timeout_tls)
 - Product `native=real` total = **6**
 
-### Still park → **C-2b-7** / C-2c / C-2d
-- ≠ more selective `native=real` (http residual / sqlite pool·row / other io.file.*) (**C-2b-7**)
+### C-2b-7 (done · pool/row paid raise)
+- `full-native-linux` also runs `hostfn_sql_pool_lifecycle_native_llvm` + `hostfn_sql_row_accessors_native_llvm` (`--test stdlib`)
+- **Raised** `data.sqlite.pool` + `data.sqlite.row` → `native=real` (notes cite C-2b-7)
+- Product `native=real` total = **8**
+
+### Still park → **C-2b-8** / C-2c / C-2d
+- ≠ more selective `native=real` (http residual / other io.file.*) (**C-2b-8**)
 - ≠ macOS required full-native
 - ≠ full FeaturePriority JIT Stub scrub (**C-2c**)
 - ≠ rename every capability `ci.job.*` to match yaml (**C-2d**)
@@ -111,4 +116,4 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 
 ## Next
 
-Default next after C-2b-6 exit: **C-2b-7** — next selective evidence-backed `native=real` batch (pool/row or remaining io.file.* or http residual).
+Default next after C-2b-7 exit: **C-2b-8** — next selective evidence-backed `native=real` batch (http residual or remaining io.file.*).
