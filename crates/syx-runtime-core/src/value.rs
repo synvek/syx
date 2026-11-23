@@ -141,15 +141,23 @@ impl Value {
         }
     }
 
-    /// Phase 103: upgrade weak to a strong `ObjectRef`, or `Nil` when dead.
+    /// Phase 103 / C-1b: upgrade weak to a strong `ObjectRef`, or `Nil` when dead.
+    /// Reuses the upgraded Arc so `object_ref_identity` / `class_instance_identity`
+    /// stay canonical with the source (≠ `object_ref_from_map` clone → new Arc).
     pub fn weak_load(v: &Value) -> Value {
         match v {
             Value::WeakRef(WeakCell(w)) => w.upgrade().map_or(Value::Nil, |arc| {
-                let map = arc.lock().ok().map(|g| g.clone()).unwrap_or_default();
-                if matches!(map.get("__syx_weak_dead"), Some(Value::Bool(true))) {
+                let dead = arc.lock().ok().is_some_and(|map| {
+                    matches!(map.get("__syx_weak_dead"), Some(Value::Bool(true)))
+                });
+                if dead {
                     return Value::Nil;
                 }
-                Value::object_ref_from_map(map, false)
+                Value::ObjectRef {
+                    inner: SharedCell(arc),
+                    mutable: false,
+                    deiniting: false,
+                }
             }),
             _ => Value::Nil,
         }
@@ -833,6 +841,45 @@ mod weak_ref_tests {
         assert!(!matches!(Value::weak_load(&w), Value::Nil));
         drop(o);
         assert!(!Value::weak_is_alive(&w), "dead after drop");
+        assert!(
+            matches!(Value::weak_load(&w), Value::Nil),
+            "C-1b: weak_load is Nil after strong drop"
+        );
+    }
+
+    #[test]
+    fn c1b_weak_load_preserves_canonical_identity() {
+        let o = Value::object_ref_from_map(HashMap::from([("n".into(), Value::I64(1))]), true);
+        let w = Value::weak_from_object_ref(&o);
+        let loaded = Value::weak_load(&w);
+        assert_eq!(
+            Value::object_ref_identity(&loaded),
+            Value::object_ref_identity(&o),
+            "C-1b: weak_load must reuse SharedCell Arc"
+        );
+        assert_eq!(
+            Value::class_instance_identity(&loaded),
+            Value::class_instance_identity(&o),
+            "C-1b: class_instance_identity must match source"
+        );
+    }
+
+    #[test]
+    fn c1b_weak_load_nil_after_mark_object_weak_dead() {
+        let o = Value::object_ref_from_map(HashMap::from([("n".into(), Value::I64(1))]), true);
+        let w = Value::weak_from_object_ref(&o);
+        assert!(Value::weak_is_alive(&w));
+        Value::mark_object_weak_dead(&o);
+        assert!(
+            !Value::weak_is_alive(&w),
+            "C-1b: marked dead ⇒ !weak_is_alive (Arc may linger)"
+        );
+        assert!(
+            matches!(Value::weak_load(&w), Value::Nil),
+            "C-1b: weak_load is Nil after mark_object_weak_dead"
+        );
+        // strong still held — identity nail only applies while live
+        let _keep = o;
     }
 
     #[test]
@@ -846,5 +893,9 @@ mod weak_ref_tests {
         assert!(Value::weak_is_alive(&w), "alive via MutRefCell wrapper");
         drop(cell);
         assert!(!Value::weak_is_alive(&w), "dead after MutRefCell drop");
+        assert!(
+            matches!(Value::weak_load(&w), Value::Nil),
+            "C-1b: weak_load Nil after MutRefCell drop"
+        );
     }
 }

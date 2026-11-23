@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: `weak_load` reuses SharedCell Arc (canonical identity); Nil after drop / `__syx_weak_dead` (C-1b)
 - fix: ManagedHeap generational/v10–v13/compact default off (opt-in); gate `gc:churn:` user stdout behind `SYX_GC_CHURN_STDOUT` (C-1a)
 - fix: map wasm AOT `BindResult` / `ReturnErr` (try expr pads) so `examples/basic_demo.sy --wasm` no longer W001
 - feat: reject Unknown→ground sinks from untyped params / missing members at return/let/assign (C-0a thin gate)

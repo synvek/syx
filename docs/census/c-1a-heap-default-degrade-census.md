@@ -11,7 +11,7 @@
 |-------|--------|
 | **C-0** 薄闸 | **exited** |
 | **C-1a** 默认降级 | **exited** |
-| Open | 默认下一 **C-1b**；C-1c/d · C-1a+ 算法修 park |
+| Open | C-1b `[x]`；默认下一 **C-1c**；C-1d · C-1a+ 算法修 park |
 
 ## Root cause
 
