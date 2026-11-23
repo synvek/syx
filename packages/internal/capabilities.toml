@@ -263,13 +263,13 @@ id = "io.file.read_all_bytes"
 feature = "io.file.read_all_bytes"
 surface = "FileHandle.readAllBytes"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "m2_s3_04_mmap_rename",
   "ec_m2_4_path_file_native_wasm_ga_read_all_bytes_native_mir",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-558 / W214: read_to_end narrow native+wasm=real (mir-run + wasm nails + W64 VM + W194 llvm + differential 16/16); historical FileMmapRead alias; behavior ≠ OS mmap; HostFn inventory still partial"
+notes = "C-2b-3: paid native=real via full-native-linux path_file_native_wasm_ga; ADR-558 / W214: read_to_end narrow native+wasm=real (mir-run + wasm nails + W64 VM + W194 llvm + differential 16/16); historical FileMmapRead alias; behavior ≠ OS mmap; HostFn inventory still partial"
 since = "M0-B07"
 
 [[capability]]
@@ -323,7 +323,7 @@ id = "io.path"
 feature = "io.path"
 surface = "Path.join/normalize/exists/fileExtension"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = [
   "ec_m2_1_path_contract",
@@ -342,7 +342,7 @@ tests = [
   "ec_m2_4_path_file_native_wasm_ga_path_normalize_native_mir",
   "ec_m2_4_path_file_native_wasm_ga_path_extension_native_mir",
 ]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-559 / W215: PathJoin+PathExists+PathNormalize+PathExtension narrow native+wasm=real (mir-run + wasm nails + W146/W147/W70 llvm + W213 + differential 16/16); status implemented ≠ full Path GA / ≠ UNC/drive / ≠ HostFn inventory real; HostFn Path* still partial"
+notes = "C-2b-3: paid native=real via full-native-linux path_file_native_wasm_ga; ADR-559 / W215: PathJoin+PathExists+PathNormalize+PathExtension narrow native+wasm=real (mir-run + wasm nails + W146/W147/W70 llvm + W213 + differential 16/16); status implemented ≠ full Path GA / ≠ UNC/drive / ≠ HostFn inventory real; HostFn Path* still partial"
 since = "ADR-184"
 
 [[capability]]

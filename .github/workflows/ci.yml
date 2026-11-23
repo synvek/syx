@@ -532,12 +532,12 @@ jobs:
           timeout 15m cargo test -p syx-driver --test browser -- --test-threads=1
           exit 0
 
-  # C-2b++: required paid full-native floor (Linux). ≠ product native=real raise (C-2b+++).
+  # C-2b-2 floor + C-2b-3 path_file paid raise (Linux).
   # No continue-on-error — merge-hard. Soft native-linux job below stays advisory.
   full-native-linux:
     name: Full-native (Linux)
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -558,6 +558,12 @@ jobs:
         run: |
           set -euo pipefail
           ./target/debug/syx build --native examples/hello.sy
+      - name: Path/file native GA (C-2b-3)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test backends path_file_native_wasm_ga -- --test-threads=1
 
   native-linux:
     name: Native link (Linux)

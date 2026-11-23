@@ -510,7 +510,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -519,7 +519,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-558 / W214: read_to_end narrow native+wasm=real (mir-run + wasm nails + W64 VM + W194 llvm + differential 16/16); historical FileMmapRead alias; behavior ≠ OS mmap; HostFn inventory still partial",
+      "notes": "C-2b-3: paid native=real via full-native-linux path_file_native_wasm_ga; ADR-558 / W214: read_to_end narrow native+wasm=real (mir-run + wasm nails + W64 VM + W194 llvm + differential 16/16); historical FileMmapRead alias; behavior ≠ OS mmap; HostFn inventory still partial",
       "since": "M0-B07"
     },
     {
@@ -586,7 +586,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -595,7 +595,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-559 / W215: PathJoin+PathExists+PathNormalize+PathExtension narrow native+wasm=real (mir-run + wasm nails + W146/W147/W70 llvm + W213 + differential 16/16); status implemented ≠ full Path GA / ≠ UNC/drive / ≠ HostFn inventory real; HostFn Path* still partial",
+      "notes": "C-2b-3: paid native=real via full-native-linux path_file_native_wasm_ga; ADR-559 / W215: PathJoin+PathExists+PathNormalize+PathExtension narrow native+wasm=real (mir-run + wasm nails + W146/W147/W70 llvm + W213 + differential 16/16); status implemented ≠ full Path GA / ≠ UNC/drive / ≠ HostFn inventory real; HostFn Path* still partial",
       "since": "ADR-184"
     },
     {

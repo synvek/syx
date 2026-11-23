@@ -13,7 +13,7 @@
 |-------|--------|
 | **C-2a…C-2b+** | **exited** |
 | **C-2b++** paid full-native floor | **exited** |
-| Open | 默认下一 **C-2b+++**；C-2c/d · C-0a+/e park |
+| Open | C-2b-3 exited → 默认下一 **C-2b-4**；C-2c/d · C-0a+/e park |
 
 ## Root cause
 

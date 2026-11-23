@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-23 · **C-2b++ required full-native-linux `[x]`**；C-2b+ honesty `[x]`；默认下一 = **C-2b+++**（C-2c/d · C-0a+/e park）。
+> **最近更新：** 2026-11-23 · **C-2b-3 path_file 付费升格 `[x]`**（旧称 C-2b+++；-N=N×+）；默认下一 = **C-2b-4**（C-2c/d · C-0a+/e park）。
 
 ## 0. 时代切换
 
@@ -65,7 +65,9 @@
 
 **验收（C-1d）：** 测例/文档不再把 print/`gc:churn:` 回显冒充 GC 绿；C-1a 门闩不破；硬 KPI 不破。
 
-### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor / b+++·c·d 余
+### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor / b-4·c·d 余
+
+**命名：** `-N` = N 个历史 `+`（`C-2b-1`≈`C-2b+`，`C-2b-2`≈`C-2b++`，`C-2b-3`≈旧 `C-2b+++`）。新默认下一禁止写 `+++`。
 
 **目标：** 文档与 CI 对 VM / MIR / Wasm / Native / JIT 的「支持」说法与真实证据一致。  
 **SSOT：** [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md)
@@ -74,13 +76,14 @@
 |------|------|------|
 | **C-2a** | `[x]` | 默认硬闸 = VM + MIR + Wasm（46/46）+ browser 0；native L006 / JIT = soft·experimental·非默认 KPI；census [`c-2a-backend-ci-matrix-census`](../docs/census/c-2a-backend-ci-matrix-census.md) |
 | **C-2b** | `[x]` | 禁 `run_native_strict_or_mirror_vm` 假绿；GA 无 AOT → skip；census [`c-2b-mirror-vm-honesty-census`](../docs/census/c-2b-mirror-vm-honesty-census.md) |
-| **C-2b+** | `[x]` | unpaid `native=real`→`partial`；禁 soft_native L006→exit 0；census [`c-2b-plus-native-real-honesty-census`](../docs/census/c-2b-plus-native-real-honesty-census.md) |
-| **C-2b++** | `[x]` | required `full-native-linux`（LLVM 21.1.6 + hello `--native`）；census [`c-2b-plusplus-full-native-ci-census`](../docs/census/c-2b-plusplus-full-native-ci-census.md) |
-| **C-2b+++** | `[ ]` **默认下一** | 有冒烟证据的选择性 `native=real` 升格 |
+| **C-2b+** / **C-2b-1** | `[x]` | unpaid `native=real`→`partial`；禁 soft_native L006→exit 0；census [`c-2b-plus-native-real-honesty-census`](../docs/census/c-2b-plus-native-real-honesty-census.md) |
+| **C-2b++** / **C-2b-2** | `[x]` | required `full-native-linux`（LLVM 21.1.6 + hello `--native`）；census [`c-2b-plusplus-full-native-ci-census`](../docs/census/c-2b-plusplus-full-native-ci-census.md) |
+| **C-2b-3** | `[x]` | path_file GA 进 paid job；`io.path` + `io.file.read_all_bytes` → `native=real`；census [`c-2b-3-path-file-raise-census`](../docs/census/c-2b-3-path-file-raise-census.md) |
+| **C-2b-4** | `[ ]` **默认下一** | 下一批选择性 `native=real`（更多 io.file.* / http/sql/tcp） |
 | **C-2c** | `[ ]` | JIT / experimental backends 明确 `experimental`；非默认 KPI |
 | **C-2d** | `[ ]` | CI job 矩阵与 `01`/`capability` 文案对齐 |
 
-**验收（C-2b++）：** required full-native job 无 soft；hello native 硬绿契约写入 SSOT；本窗 **0**× 升 `native=real`；硬 KPI 不破。
+**验收（C-2b-3）：** paid job 含 path_file；仅 2× 产品 `native=real`；硬 KPI 不破。
 
 ### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]`
 
