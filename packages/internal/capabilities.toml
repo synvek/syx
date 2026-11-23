@@ -143,10 +143,10 @@ id = "net.http.server"
 feature = "net.http.server"
 surface = "Http.serve/response/shutdown"
 status = "partial"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
-tests = ["m2_s4_03b_server_graceful_shutdown", "ec_m2_1_http_server", "ec_m2_4_http_availability", "ec_m2_4_http_native_wasm_matrix", "ec_m2_4_http_native_wasm_ga", "ec_m2_4_http_native_wasm_ga2", "ec_m2_4_http_native_wasm_ga3"]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-638 / W294: native=partial→real (reuse graceful shutdown dual-backend nails; status still partial); ADR-624 / W280: wasm=real + W271 HttpServe/Shutdown HostFn wasm; ADR-238 / M2-S4-03b: Http.shutdown → tiny_http Server::unblock (finish in-flight; ≠ SYX_HTTP_SERVE_MAX_REQUESTS); ADR-177 server slice + ADR-186 availability + matrix/GA deepen; status remains partial — not full Http GA / not TLS server GA / not streaming S4-04 / ≠ status=implemented / ≠ Wave A exit / ≠ timeout_tls / ≠ tls.client / ≠ other native=partial rows"
+tests = ["m2_s4_03b_server_graceful_shutdown", "m2_s4_03b_graceful_shutdown_native_llvm", "ec_m2_1_http_server", "ec_m2_4_http_availability", "ec_m2_4_http_native_wasm_matrix", "ec_m2_4_http_native_wasm_ga", "ec_m2_4_http_native_wasm_ga2", "ec_m2_4_http_native_wasm_ga3"]
+notes = "C-2b-9: paid native=real via full-native-linux m2_s4_03b_graceful_shutdown_native_llvm; ADR-638 / W294 + ADR-592 / W248 lineage (HttpServe/Shutdown graceful dual-backend; status still partial); ADR-624 / W280: wasm=real + W271 HttpServe/Shutdown HostFn wasm; ADR-238 / M2-S4-03b: Http.shutdown → tiny_http Server::unblock (finish in-flight; ≠ SYX_HTTP_SERVE_MAX_REQUESTS); ≠ stream / ≠ timeout_tls / ≠ TLS server GA / ≠ status=implemented / ≠ Wave A exit"
 since = "ADR-186"
 
 [[capability]]
