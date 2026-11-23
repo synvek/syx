@@ -132,10 +132,10 @@ id = "net.http.timeout_tls"
 feature = "net.http.timeout_tls"
 surface = "Http.fetch timeout_ms + HTTPS verify fail-closed"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = ["m2_s4_02b_client_timeout_tls", "m2_s4_02b_timeout_hang_loopback_wasm", "m2_s4_02b_timeout_hang_loopback_native_aot", "ec_m2_4_http_native_wasm_matrix", "ec_m2_4_http_native_wasm_ga"]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-687 / W343: native=partial→real (reuse hang R012 dual-backend + native AOT nails; status remains implemented); ADR-686 / W342: native AOT hang timeout R012 nail; ADR-626 / W282: wasm=real + hang timeout R012 wasm AOT + W271 HttpRequest HostFn wasm; ADR-235 / M2-S4-02b: hang loopback timeout_ms → R012; self-signed HTTPS → verify fail; ≠ S4-05 TLS client GA / ≠ skip-verify / ≠ server TLS / ≠ EC-M2-4-Z / ≠ Wave A exit / ≠ A-06/Q-S2 `[x]`"
+notes = "C-2b-11: paid native=real via full-native-linux m2_s4_02b_timeout_hang_loopback_native_aot; ADR-687 / W343 + ADR-686 / W342 lineage (hang R012 dual-backend + native AOT; status remains implemented); ADR-626 / W282: wasm=real + hang timeout R012 wasm AOT + W271 HttpRequest HostFn wasm; ADR-235 / M2-S4-02b: hang loopback timeout_ms → R012; self-signed HTTPS → verify fail; ≠ S4-05 TLS client GA / ≠ skip-verify / ≠ server TLS / ≠ net.tls.client / ≠ EC-M2-4-Z / ≠ Wave A exit"
 since = "ADR-235"
 
 [[capability]]

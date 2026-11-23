@@ -178,7 +178,7 @@
       "status": "partial",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -199,7 +199,7 @@
         "m2_s4_01_http_types",
         "m2_s4_05_client_tls"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-637 / W293: native=partial→real client-only (reuse qs1_http refuse+loopback dual-backend nails; status still partial); ADR-623 / W279: wasm=real + W270/W271 Http* HostFn wasm; Transport failure must not return status=0 success (M0-B06); Suite-3 loopback + refused (M0-D04); HostFn availability honesty ADR-186; Instant microbench ADR-189; native/WASM matrix first deepening ADR-200; timeout+bad-cert nails ADR-235; named HTTPResponse/Url types ADR-236; TLS client real path ADR-237 (≠ server / ≠ timeout_tls / ≠ tls.client / ≠ status=implemented / ≠ Wave A exit / ≠ other native=partial rows).",
+      "notes": "C-2b-6: paid native=real via full-native-linux http_native_wasm_ga; ADR-637 / W293 lineage client-only (reuse ResponseText/status/make_response dual-backend nails; status still partial); ADR-623 / W279: wasm=real + W270/W271 Http* HostFn wasm; Transport failure must not return status=0 success (M0-B06); Suite-3 loopback + refused (M0-D04); HostFn availability honesty ADR-186; Instant microbench ADR-189; native/WASM matrix first deepening ADR-200; timeout+bad-cert nails ADR-235; named HTTPResponse/Url types ADR-236; TLS client real path ADR-237 (≠ server / ≠ types / ≠ stream / ≠ timeout_tls / ≠ tls.client / ≠ status=implemented / ≠ Wave A exit / ≠ other native=partial rows).",
       "since": "M0-B06"
     },
     {
@@ -209,7 +209,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -218,7 +218,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-560 / W216: Http.response+Url.parse offline narrow native+wasm=real (mir-run + wasm nails + W64/W65 VM + W148 llvm + differential 16/16); ≠ loopback Http.get wasm GA; ≠ net.http/server/stream/TLS; HostFn inventory still partial",
+      "notes": "C-2b-8: paid native=real via full-native-linux m2_s4_01_response_accessors_native_llvm; ADR-593 / W249 + ADR-560 / W216 lineage (Http.response accessors + Url.parse offline narrow); ≠ loopback Http.get wasm GA; ≠ net.http.server / stream / timeout_tls / TLS; HostFn inventory still partial",
       "since": "ADR-236"
     },
     {
@@ -228,7 +228,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -238,9 +238,10 @@
         "windows"
       ],
       "tests": [
-        "m2_s4_04_http_body_stream"
+        "m2_s4_04_http_body_stream",
+        "m2_s4_04_http_body_stream_native_llvm"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-622 / W278: wasm=real + ADR-601 native; ADR-601 / W257: native=real HttpBodyStream open/readChunk/close offline narrow native AOT + ADR-239/W242; HttpBodyStream* HostFn wasm=real (W271); ≠ TLS / ≠ Wave A exit",
+      "notes": "C-2b-10: paid native=real via full-native-linux m2_s4_04_http_body_stream_native_llvm; ADR-622 / W278 + ADR-601 / W257 lineage (HttpBodyStream open/readChunk/close offline narrow native AOT + ADR-239/W242); HttpBodyStream* HostFn wasm=real (W271); ≠ timeout_tls / ≠ TLS / ≠ Wave A exit",
       "since": "ADR-239"
     },
     {
@@ -250,7 +251,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -266,7 +267,7 @@
         "ec_m2_4_http_native_wasm_matrix",
         "ec_m2_4_http_native_wasm_ga"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-687 / W343: native=partial→real (reuse hang R012 dual-backend + native AOT nails; status remains implemented); ADR-686 / W342: native AOT hang timeout R012 nail; ADR-626 / W282: wasm=real + hang timeout R012 wasm AOT + W271 HttpRequest HostFn wasm; ADR-235 / M2-S4-02b: hang loopback timeout_ms → R012; self-signed HTTPS → verify fail; ≠ S4-05 TLS client GA / ≠ skip-verify / ≠ server TLS / ≠ EC-M2-4-Z / ≠ Wave A exit / ≠ A-06/Q-S2 `[x]`",
+      "notes": "C-2b-11: paid native=real via full-native-linux m2_s4_02b_timeout_hang_loopback_native_aot; ADR-687 / W343 + ADR-686 / W342 lineage (hang R012 dual-backend + native AOT; status remains implemented); ADR-626 / W282: wasm=real + hang timeout R012 wasm AOT + W271 HttpRequest HostFn wasm; ADR-235 / M2-S4-02b: hang loopback timeout_ms → R012; self-signed HTTPS → verify fail; ≠ S4-05 TLS client GA / ≠ skip-verify / ≠ server TLS / ≠ net.tls.client / ≠ EC-M2-4-Z / ≠ Wave A exit",
       "since": "ADR-235"
     },
     {
@@ -276,7 +277,7 @@
       "status": "partial",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -287,6 +288,7 @@
       ],
       "tests": [
         "m2_s4_03b_server_graceful_shutdown",
+        "m2_s4_03b_graceful_shutdown_native_llvm",
         "ec_m2_1_http_server",
         "ec_m2_4_http_availability",
         "ec_m2_4_http_native_wasm_matrix",
@@ -294,7 +296,7 @@
         "ec_m2_4_http_native_wasm_ga2",
         "ec_m2_4_http_native_wasm_ga3"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-638 / W294: native=partial→real (reuse graceful shutdown dual-backend nails; status still partial); ADR-624 / W280: wasm=real + W271 HttpServe/Shutdown HostFn wasm; ADR-238 / M2-S4-03b: Http.shutdown → tiny_http Server::unblock (finish in-flight; ≠ SYX_HTTP_SERVE_MAX_REQUESTS); ADR-177 server slice + ADR-186 availability + matrix/GA deepen; status remains partial — not full Http GA / not TLS server GA / not streaming S4-04 / ≠ status=implemented / ≠ Wave A exit / ≠ timeout_tls / ≠ tls.client / ≠ other native=partial rows",
+      "notes": "C-2b-9: paid native=real via full-native-linux m2_s4_03b_graceful_shutdown_native_llvm; ADR-638 / W294 + ADR-592 / W248 lineage (HttpServe/Shutdown graceful dual-backend; status still partial); ADR-624 / W280: wasm=real + W271 HttpServe/Shutdown HostFn wasm; ADR-238 / M2-S4-03b: Http.shutdown → tiny_http Server::unblock (finish in-flight; ≠ SYX_HTTP_SERVE_MAX_REQUESTS); ≠ stream / ≠ timeout_tls / ≠ TLS server GA / ≠ status=implemented / ≠ Wave A exit",
       "since": "ADR-186"
     },
     {
@@ -472,7 +474,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -481,7 +483,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-717 / W373 residual product raise: dual-backend real (qs1_sql_pool_lifecycle native+wasm); ADR-245 / M2-S8-01c + ADR-247 / M2-S8-03b retained; HostFn SqlPool* wasm complete (ADR-716); ≠ live Statement / ≠ EC-M2-4-Z; ≠ listener residual clear",
+      "notes": "C-2b-7: paid native=real via full-native-linux hostfn_sql_pool_lifecycle_native_llvm; ADR-717 / W373 + ADR-596 / W252 lineage (pool create/acquire/release/close dual-backend); ADR-245 / M2-S8-01c + ADR-247 / M2-S8-03b retained; HostFn SqlPool* wasm complete (ADR-716); ≠ live Statement / ≠ EC-M2-4-Z; ≠ http residual / ≠ io.file.raii|stream|watch",
       "since": "ADR-245"
     },
     {
@@ -491,7 +493,7 @@
       "status": "implemented",
       "backends": {
         "vm": "real",
-        "native": "partial",
+        "native": "real",
         "wasm": "real",
         "mir": "real"
       },
@@ -500,7 +502,7 @@
         "linux",
         "windows"
       ],
-      "notes": "C-2b+: unpaid ≠ full-native GA; ADR-715 / W371 residual product raise: dual-backend real (qs1_sql_row_accessors + GetInt native+wasm); ADR-246 / M2-S8-02b typed SqlRow retained; HostFn SqlRow* wasm complete (ADR-713/714); ≠ query builder / ≠ Orm GA / ≠ EC-M2-4-Z; ≠ pool/listener residual clear",
+      "notes": "C-2b-7: paid native=real via full-native-linux hostfn_sql_row_accessors_native_llvm; ADR-715 / W371 + ADR-597 / W253 lineage (SqlRow accessors dual-backend); ADR-246 / M2-S8-02b typed SqlRow retained; HostFn SqlRow* wasm complete (ADR-713/714); ≠ query builder / ≠ Orm GA / ≠ EC-M2-4-Z; ≠ http residual / ≠ io.file.raii|stream|watch",
       "since": "ADR-246"
     },
     {
