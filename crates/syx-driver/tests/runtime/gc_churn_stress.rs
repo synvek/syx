@@ -1,4 +1,5 @@
-//! Phase 98: GC churn stress — multi-round stdout on VM/MIR/wasm/native.
+//! Phase 98 / C-1d: Host label-echo stress (multi-round print) on VM/MIR/wasm/native.
+//! Asserts returned `gc:churn:{label}` echo lines — **≠ GC health KPI**.
 
 use std::fs;
 use std::process::Command;
@@ -19,7 +20,7 @@ fn opts() -> DriverOptions {
     DriverOptions::default()
 }
 
-fn churn_lines(lines: &[String]) -> usize {
+fn host_echo_lines(lines: &[String]) -> usize {
     lines.iter().filter(|l| l.contains("gc:churn:")).count()
 }
 
@@ -30,10 +31,11 @@ fn enable_compact_for_churn_host() {
 
 #[test]
 fn p98_gc_churn_stress_quad_two_plus_lines() {
+    // C-1d: ≥2 Host label-echo prints — not "GC stdout success".
     enable_compact_for_churn_host();
     syx_host_plugin::register_echo_plugin_in_process();
     let vm = compile_and_run_embedded(SRC, &opts()).unwrap().printed;
-    assert!(churn_lines(&vm) >= 2, "vm: {vm:?}");
+    assert!(host_echo_lines(&vm) >= 2, "C-1d host echo (vm): {vm:?}");
 
     let dir = std::env::temp_dir().join(format!("syx_p98_gc_stress_{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
@@ -43,10 +45,10 @@ fn p98_gc_churn_stress_quad_two_plus_lines() {
     let path = dir.join("main.sy");
 
     let (_, mir) = run_native_mir_file_printed(&path, &opts()).unwrap();
-    assert!(churn_lines(&mir) >= 2, "mir: {mir:?}");
+    assert!(host_echo_lines(&mir) >= 2, "C-1d host echo (mir): {mir:?}");
 
     let (_, wasm) = run_wasm_source_printed(&path, "main", &opts()).unwrap();
-    assert!(churn_lines(&wasm) >= 2, "wasm: {wasm:?}");
+    assert!(host_echo_lines(&wasm) >= 2, "C-1d host echo (wasm): {wasm:?}");
 
     std::env::set_var("SYX_NATIVE_STRICT", "1");
     std::env::remove_var("SYX_NATIVE_C_STUB");
@@ -56,11 +58,14 @@ fn p98_gc_churn_stress_quad_two_plus_lines() {
             let output = Command::new(&exe).output().unwrap();
             let native = String::from_utf8_lossy(&output.stdout);
             let native_lines: Vec<String> = native.lines().map(|s| s.to_string()).collect();
-            assert!(churn_lines(&native_lines) >= 2, "native: {native}");
+            assert!(
+                host_echo_lines(&native_lines) >= 2,
+                "C-1d host echo (native): {native}"
+            );
             assert!(native.contains("done"));
         }
         Err(e) if e.code.as_deref() == Some("L006") => {
-            eprintln!("native churn soft-skip L006: {e}");
+            eprintln!("native host-echo soft-skip L006: {e}");
         }
         Err(e) => panic!("native build: {e}"),
     }

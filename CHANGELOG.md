@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- docs/test: reframe Host `gc:churn:{label}` print as label echo ≠ GC KPI; scrub churn=success narrative (C-1d)
 - fix: `mutable=false` ObjectRef field writes refused (no insert; return same handle) (C-1c)
 - fix: `weak_load` reuses SharedCell Arc (canonical identity); Nil after drop / `__syx_weak_dead` (C-1b)
 - fix: ManagedHeap generational/v10–v13/compact default off (opt-in); gate `gc:churn:` user stdout behind `SYX_GC_CHURN_STDOUT` (C-1a)

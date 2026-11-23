@@ -372,8 +372,9 @@ static RELOCATE_COUNT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU
 
 static GC_CHURN_STDOUT: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
-/// Phase 95 / C-1a: record GC churn telemetry.
+/// Phase 95 / C-1a / C-1d: record GC churn telemetry.
 /// User stdout only when `SYX_GC_CHURN_STDOUT=1`; in-memory lines always for tests.
+/// Presence of `gc:churn:` in Host/`print` label echo is **≠ GC health KPI** (C-1d).
 pub fn record_gc_churn_stdout(reason: &str) {
     let line = format!("gc:churn:{reason}");
     if gc_churn_stdout_enabled() {

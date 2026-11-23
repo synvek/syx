@@ -4775,7 +4775,7 @@
 
 ### Wave A W158 正确性地板加深（ADR-502 · 已交）
 
-- **主轴：** A-03 driver_gate `lib.rs contains` 清债第八片（`gc-churn-stress-v1` → `gc:churn:stress-a\ngc:churn:stress-b\ndone`（`__syx_gc_churn_heap`）；`farm-tcp-3node-v2` → 三节点 bytes `node-{i}`（lease + `fetch_cache_remote`；非 VM `run()`））· A-05 矩阵指纹加深（`qs1-platform-gate-v0:driver-gate-exec-eighth`；无新 HostFn 行）· A-02 **本窗跳过** · **无 runtime/registry/vm/capability 变更**
+- **主轴：** A-03 driver_gate `lib.rs contains` 清债第八片（`gc-churn-stress-v1` → Host label echo `gc:churn:stress-a\ngc:churn:stress-b\ndone`（`__syx_gc_churn_heap` print；**C-1d**：≠ GC KPI）；`farm-tcp-3node-v2` → 三节点 bytes `node-{i}`（lease + `fetch_cache_remote`；非 VM `run()`））· A-05 矩阵指纹加深（`qs1-platform-gate-v0:driver-gate-exec-eighth`；无新 HostFn 行）· A-02 **本窗跳过** · **无 runtime/registry/vm/capability 变更**
 - **证据：** `driver_gate.rs`（2 exec 钉新建）· `hostfn_qs1_matrix.toml` · `ga-evidence-audit.md` W158
 - **非目标：** `net-h2-alpn` / `gui-dlopen-*` / `wasm-guidemo-zero` · meta 三钉改写 · 其余 31 处 `lib.rs contains` · 分散 fingerprint 收紧 · GA exec closeout meta · HttpBodyStream close Display · product `native=real` / `wasm=real` · parity/stdlib 变更 · Wave B
 - **下一窗：** Wave A W159（ADR-503）→ **已交**

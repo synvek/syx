@@ -11,7 +11,7 @@
 |-------|--------|
 | **C-1a/b** | **exited** |
 | **C-1c** immutable 写拒收 | **exited** |
-| Open | 默认下一 **C-1d**；C-0a+/e park |
+| Open | C-1d / C-1 `[x]`；默认下一 **C-2**；C-0a+/e park |
 
 ## Root cause
 

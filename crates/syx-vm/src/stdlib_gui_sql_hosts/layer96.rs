@@ -114,7 +114,10 @@ pub fn gui_dlopen_loaded() -> bool {
     }
 }
 
-/// Phase 96: trigger managed_heap churn and return stdout line for SYX program print.
+/// Phase 96 / C-1d: run compact loops and return `gc:churn:{label}` **Host label echo**
+/// for program `print`. This string is **≠ GC health KPI**.
+/// OS user stdout telemetry still requires `SYX_GC_CHURN_STDOUT=1` (C-1a gate);
+/// `record_gc_churn_stdout` always appends the in-memory buffer for tests.
 pub fn host_gc_churn_heap(stack: &mut Vec<Value>) -> SyxResult<()> {
     let label = pop_str(stack);
     let line = format!("gc:churn:{label}");

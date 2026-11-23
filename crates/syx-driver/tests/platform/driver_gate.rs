@@ -853,8 +853,9 @@ fn p98_driver_wasm_guidemo_hard_zero_exact_exec() {
 #[test]
 fn p98_driver_gc_churn_stress_exact_exec() {
     // Wave A W158 / ADR-502 / A-03 — gc-churn-stress-v1 product exec
-    // C-1a: compact is opt-in; keep SYX_GC_CHURN_STDOUT unset so print lines stay exact
-    // (host returns the churn string; user stdout telemetry is gated).
+    // C-1d: exact lines are Host `__syx_gc_churn_heap` label echo via `print` —
+    // **≠ GC health KPI**. C-1a: compact opt-in; SYX_GC_CHURN_STDOUT unset
+    // (user OS stdout telemetry gated; these lines come from Host Str return).
     std::env::set_var("SYX_HEAP_COMPACT", "1");
     let out = run(r#"func main() {
     print(__syx_gc_churn_heap("stress-a"))
@@ -863,7 +864,7 @@ fn p98_driver_gc_churn_stress_exact_exec() {
 }"#);
     assert_eq!(
         out, "gc:churn:stress-a\ngc:churn:stress-b\ndone",
-        "gc churn stress must exact: {out}"
+        "C-1d Host label-echo exact (≠ GC KPI): {out}"
     );
 }
 

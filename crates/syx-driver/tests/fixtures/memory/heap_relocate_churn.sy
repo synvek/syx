@@ -1,5 +1,6 @@
+// C-1d: print Host `__syx_gc_churn_heap` label echo — ≠ GC health KPI.
+// OS user-stdout telemetry remains gated (SYX_GC_CHURN_STDOUT; C-1a).
 func main() {
     print(__syx_gc_churn_heap("quad"))
     print("done")
 }
-
