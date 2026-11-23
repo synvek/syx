@@ -606,6 +606,12 @@ jobs:
         run: |
           set -euo pipefail
           cargo test -p syx-driver --features full-native --test stdlib m2_s4_03b_graceful_shutdown_native_llvm -- --exact --test-threads=1
+      - name: HTTP stream llvm (C-2b-10)
+        env:
+          SYX_NATIVE_STRICT: "1"
+        run: |
+          set -euo pipefail
+          cargo test -p syx-driver --features full-native --test stdlib m2_s4_04_http_body_stream_native_llvm -- --exact --test-threads=1
 
   native-linux:
     name: Native link (Linux)

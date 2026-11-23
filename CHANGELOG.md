@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- ci/docs: http.stream llvm on `full-native-linux`; raise `net.http.stream` to `native=real` (≠ timeout_tls) (C-2b-10)
 - ci/docs: http.server llvm on `full-native-linux`; raise `net.http.server` to `native=real` (≠ stream/timeout_tls) (C-2b-9)
 - ci/docs: http.types llvm on `full-native-linux`; raise `net.http.types` to `native=real` (≠ server/stream/timeout_tls) (C-2b-8)
 - ci/docs: pool/row llvm on `full-native-linux`; raise `data.sqlite.pool` + `data.sqlite.row` to `native=real` (C-2b-7)

@@ -121,10 +121,10 @@ id = "net.http.stream"
 feature = "net.http.stream"
 surface = "HttpBodyStream.open/openWithOptions/readChunk/close"
 status = "implemented"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
-tests = ["m2_s4_04_http_body_stream"]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-622 / W278: wasm=real + ADR-601 native; ADR-601 / W257: native=real HttpBodyStream open/readChunk/close offline narrow native AOT + ADR-239/W242; HttpBodyStream* HostFn wasm=real (W271); ≠ TLS / ≠ Wave A exit"
+tests = ["m2_s4_04_http_body_stream", "m2_s4_04_http_body_stream_native_llvm"]
+notes = "C-2b-10: paid native=real via full-native-linux m2_s4_04_http_body_stream_native_llvm; ADR-622 / W278 + ADR-601 / W257 lineage (HttpBodyStream open/readChunk/close offline narrow native AOT + ADR-239/W242); HttpBodyStream* HostFn wasm=real (W271); ≠ timeout_tls / ≠ TLS / ≠ Wave A exit"
 since = "ADR-239"
 
 [[capability]]
