@@ -47,11 +47,6 @@ pub fn try_run_native_strict(src: &str, label: &str) -> Option<(i32, String)> {
     ))
 }
 
-/// Like [`try_run_native_strict`], but mirrors `vm_out` when AOT is unavailable so
-/// VM-vs-native parity nails stay green on default (non-full-native) CI builds.
-pub fn run_native_strict_or_mirror_vm(src: &str, vm_out: &str, label: &str) -> (i32, String) {
-    match try_run_native_strict(src, label) {
-        Some(pair) => pair,
-        None => (0, vm_out.to_string()),
-    }
-}
+// C-2b: `run_native_strict_or_mirror_vm` removed — mirroring VM stdout as
+// "native" parity was soft-green on default CI. Callers must use
+// `try_run_native_strict` and skip when `None` (default CI ≠ native GA).

@@ -4,11 +4,12 @@
 //! Wave A W282 / ADR-626: net.http.timeout_tls + net.tls.client product wasm=real.
 //! Wave A W293 / ADR-637: net.http product native=real (status still partial; client-only).
 //! Wave A W294 / ADR-638: net.http.server product native=real (status still partial).
+//! C-2b: native parity only when `try_run_native_strict` returns Some; no VM mirror.
 // was: ec_m2_4_http_native_wasm_ga3
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-use crate::native_strict::run_native_strict_or_mirror_vm;
+use crate::native_strict::try_run_native_strict;
 
 #[test]
 fn ec_m2_4_http_native_wasm_ga3_native_response_text_exec() {
@@ -21,7 +22,10 @@ fn ec_m2_4_http_native_wasm_ga3_native_response_text_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "http_ga");
+    // C-2b: default CI ≠ native GA — skip when full-native AOT unavailable.
+    let Some((code, native_out)) = try_run_native_strict(src, "http_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -43,7 +47,9 @@ fn ec_m2_4_http_native_wasm_ga_native_http_response_status_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "http_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "http_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -64,7 +70,9 @@ fn ec_m2_4_http_native_wasm_ga_native_http_make_response_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "http_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "http_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();

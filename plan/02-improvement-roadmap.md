@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-23 · **C-2a Backend/CI 矩阵 SSOT `[x]`**；C-0 / C-1 `[x]`；默认下一 = **C-2b**（C-2c/d · C-0a+/e park）。
+> **最近更新：** 2026-11-23 · **C-2b 禁 mirror-VM 假绿 `[x]`**；C-2a SSOT `[x]`；默认下一 = **C-2b+**（C-2c/d · C-0a+/e park）。
 
 ## 0. 时代切换
 
@@ -65,7 +65,7 @@
 
 **验收（C-1d）：** 测例/文档不再把 print/`gc:churn:` 回显冒充 GC 绿；C-1a 门闩不破；硬 KPI 不破。
 
-### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT 硬/软分栏 / b·c·d 余
+### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror 假绿灭 / b+·c·d 余
 
 **目标：** 文档与 CI 对 VM / MIR / Wasm / Native / JIT 的「支持」说法与真实证据一致。  
 **SSOT：** [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md)
@@ -73,11 +73,12 @@
 | 子项 | 状态 | 内容 |
 |------|------|------|
 | **C-2a** | `[x]` | 默认硬闸 = VM + MIR + Wasm（46/46）+ browser 0；native L006 / JIT = soft·experimental·非默认 KPI；census [`c-2a-backend-ci-matrix-census`](../docs/census/c-2a-backend-ci-matrix-census.md) |
-| **C-2b** | `[ ]` **默认下一** | `native=real` 必须跑 full-native；失败 = 红，禁 L006 soft-skip 冒充 |
+| **C-2b** | `[x]` | 禁 `run_native_strict_or_mirror_vm` 假绿；GA 无 AOT → skip；census [`c-2b-mirror-vm-honesty-census`](../docs/census/c-2b-mirror-vm-honesty-census.md) |
+| **C-2b+** | `[ ]` **默认下一** | `native=real` demote / soft_native 禁 exit 0 / full-native 硬闸 |
 | **C-2c** | `[ ]` | JIT / experimental backends 明确 `experimental`；非默认 KPI |
 | **C-2d** | `[ ]` | CI job 矩阵与 `01`/`capability` 文案对齐 |
 
-**验收（C-2a）：** SSOT 硬/软分栏可核对；禁「L006 skip = native supported」；硬 KPI 不破。
+**验收（C-2b）：** 仓库 0× `mirror_vm`；无 AOT 不假 parity；硬 KPI 不破。
 
 ### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]`
 

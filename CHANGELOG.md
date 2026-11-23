@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- test: remove `run_native_strict_or_mirror_vm`; native GA skips without full-native AOT (C-2b)
 - docs: Backend/CI matrix SSOT — default_hard VM+MIR+Wasm46/46+browser0; native L006/JIT soft·experimental (C-2a)
 - docs/test: reframe Host `gc:churn:{label}` print as label echo ≠ GC KPI; scrub churn=success narrative (C-1d)
 - fix: `mutable=false` ObjectRef field writes refused (no insert; return same handle) (C-1c)

@@ -2,11 +2,12 @@
 //! Wave A W272 / ADR-616: Sql core HostFn wasm8 (Open/Close/Exec/Query/Prepare/Bind+ExecOn/QueryOn).
 //! Wave A W273 / ADR-617: Sql residual HostFn wasm9 收官 (PrepareOn/Bind*On+txn×3/+On×3).
 //! Wave A W292 / ADR-636: data.sqlite product native=real (status still partial).
+//! C-2b: native parity only when `try_run_native_strict` returns Some; no VM mirror.
 // was: ec_m2_4_sql_native_wasm_ga3
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-use crate::native_strict::run_native_strict_or_mirror_vm;
+use crate::native_strict::try_run_native_strict;
 use syx_vm::reset_rusqlite_store;
 
 #[test]
@@ -24,7 +25,10 @@ fn ec_m2_4_sql_native_wasm_ga3_native_sql_exec_on_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "sql_ga");
+    // C-2b: default CI ≠ native GA — skip when full-native AOT unavailable.
+    let Some((code, native_out)) = try_run_native_strict(src, "sql_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -50,7 +54,9 @@ fn ec_m2_4_sql_native_wasm_ga_native_sql_open_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "sql_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "sql_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -75,7 +81,9 @@ fn ec_m2_4_sql_native_wasm_ga_native_sql_close_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "sql_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "sql_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();

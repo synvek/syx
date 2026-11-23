@@ -13,7 +13,7 @@ use syx_driver::{
     compile_and_run_embedded, run_native_mir_file_printed, run_wasm_source_printed, DriverOptions,
 };
 
-use crate::native_strict::run_native_strict_or_mirror_vm;
+use crate::native_strict::try_run_native_strict;
 use syx_vm::reset_file_handles_for_tests;
 
 const OTHER_PATH_FILE_HOSTS: &[&str] = &[
@@ -185,7 +185,10 @@ fn ec_m2_4_path_file_native_wasm_ga3_native_path_normalize_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    // C-2b: default CI ≠ native GA — skip when full-native AOT unavailable.
+    let Some((code, native_out)) = try_run_native_strict(src, "path_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -215,7 +218,9 @@ fn ec_m2_4_path_file_native_wasm_ga_native_path_join_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "path_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -242,7 +247,9 @@ fn ec_m2_4_path_file_native_wasm_ga_native_path_extension_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "path_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -262,16 +269,17 @@ fn syx_path_literal(path: &std::path::Path) -> String {
         .replace('"', "\\\"")
 }
 
-fn run_path_exists_exec(src: &str) -> (String, String) {
+/// C-2b: `None` when full-native AOT unavailable (skip; ≠ mirror VM).
+fn run_path_exists_exec(src: &str) -> Option<(String, String)> {
     let vm_out = compile_and_run_embedded(src, &DriverOptions::default())
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    let (code, native_out) = try_run_native_strict(src, "path_ga")?;
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim().to_string();
     let native_line = native_out.lines().next().unwrap_or("").trim().to_string();
-    (vm_line, native_line)
+    Some((vm_line, native_line))
 }
 
 #[test]
@@ -295,7 +303,10 @@ fn ec_m2_4_path_file_native_wasm_ga4_native_path_exists_true_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_path_exists_exec(&src);
+    let Some((vm_line, native_line)) = run_path_exists_exec(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native PathExists must match VM; vm={vm_line:?} native={native_line:?}"
@@ -324,7 +335,10 @@ fn ec_m2_4_path_file_native_wasm_ga4_native_path_exists_false_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_path_exists_exec(&src);
+    let Some((vm_line, native_line)) = run_path_exists_exec(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native PathExists must match VM; vm={vm_line:?} native={native_line:?}"
@@ -336,17 +350,17 @@ fn ec_m2_4_path_file_native_wasm_ga4_native_path_exists_false_exec() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-fn run_file_open_close_exec(src: &str) -> (String, String) {
+fn run_file_open_close_exec(src: &str) -> Option<(String, String)> {
     reset_file_handles_for_tests();
     let vm_out = compile_and_run_embedded(src, &DriverOptions::default())
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    let (code, native_out) = try_run_native_strict(src, "path_ga")?;
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim().to_string();
     let native_line = native_out.lines().next().unwrap_or("").trim().to_string();
-    (vm_line, native_line)
+    Some((vm_line, native_line))
 }
 
 #[test]
@@ -370,7 +384,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_open_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_file_open_close_exec(&src);
+    let Some((vm_line, native_line)) = run_file_open_close_exec(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native FileOpen must match VM; vm={vm_line:?} native={native_line:?}"
@@ -404,7 +421,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_close_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_file_open_close_exec(&src);
+    let Some((vm_line, native_line)) = run_file_open_close_exec(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native FileClose must match VM; vm={vm_line:?} native={native_line:?}"
@@ -413,16 +433,16 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_close_exec() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-fn run_file_read_write_exec(src: &str) -> (String, String) {
+fn run_file_read_write_exec(src: &str) -> Option<(String, String)> {
     let vm_out = compile_and_run_embedded(src, &DriverOptions::default())
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    let (code, native_out) = try_run_native_strict(src, "path_ga")?;
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim().to_string();
     let native_line = native_out.lines().next().unwrap_or("").trim().to_string();
-    (vm_line, native_line)
+    Some((vm_line, native_line))
 }
 
 #[test]
@@ -446,7 +466,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_write_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_file_read_write_exec(&src);
+    let Some((vm_line, native_line)) = run_file_read_write_exec(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native FileWrite must match VM; vm={vm_line:?} native={native_line:?}"
@@ -476,7 +499,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_read_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_file_read_write_exec(&src);
+    let Some((vm_line, native_line)) = run_file_read_write_exec(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native FileRead must match VM; vm={vm_line:?} native={native_line:?}"
@@ -488,17 +514,17 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_read_exec() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-fn run_file_handle_exec_stdout(src: &str) -> (String, String) {
+fn run_file_handle_exec_stdout(src: &str) -> Option<(String, String)> {
     reset_file_handles_for_tests();
     let vm_out = compile_and_run_embedded(src, &DriverOptions::default())
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "path_ga");
+    let (code, native_out) = try_run_native_strict(src, "path_ga")?;
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_text = vm_out.trim().to_string();
     let native_text = native_out.trim().to_string();
-    (vm_text, native_text)
+    Some((vm_text, native_text))
 }
 
 #[test]
@@ -524,7 +550,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_seek_exec() {
     return 0
 }}"#
     );
-    let (vm_line, native_line) = run_file_handle_exec_stdout(&src);
+    let Some((vm_line, native_line)) = run_file_handle_exec_stdout(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_line, vm_line,
         "native FileSeek must match VM; vm={vm_line:?} native={native_line:?}"
@@ -585,7 +614,10 @@ fn ec_m2_4_path_file_native_wasm_ga_native_file_mmap_read_exec() {
     return 0
 }}"#
     );
-    let (vm_text, native_text) = run_file_handle_exec_stdout(&src);
+    let Some((vm_text, native_text)) = run_file_handle_exec_stdout(&src) else {
+        let _ = fs::remove_dir_all(&dir);
+        return;
+    };
     assert_eq!(
         native_text, vm_text,
         "native FileMmapRead must match VM; vm={vm_text:?} native={native_text:?}"

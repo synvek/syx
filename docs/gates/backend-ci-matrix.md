@@ -46,9 +46,9 @@ These are the **default support claims** for SYX as research beta. Do not advert
 | `browser-e2e` | `continue-on-error: true` | Soft e2e wall; hard browser floor is census `browser_failed=0` |
 | Extended / differential soft walls | `continue-on-error` | Unpaid vs default_hard |
 | `scripts/s0_backend_smoke.sh` | L006 **FAIL-CLOSED** counts as pass on required lint | Toolchain honesty, not native GA |
-| `run_native_strict_or_mirror_vm` | [`native_strict.rs`](../../crates/syx-driver/tests/backends/native_strict.rs) | No AOT → **mirrors VM** (still green) — **C-2b** to hard-fail |
+| ~~`run_native_strict_or_mirror_vm`~~ | **C-2b exited** — helper **removed**; GA uses `try_run_native_strict` + **skip** (≠ VM mirror) | Forbidden: mirror VM stdout as native GA |
 
-**Capability split (registered, not fixed here):** many product rows `backends.native = "real"` while `ci.job.native-*` notes unpaid / ≠ full-native GA. Demoting `native=real` en masse = **C-2b**.
+**Capability split (registered, not fixed here):** many product rows `backends.native = "real"` while `ci.job.native-*` notes unpaid / ≠ full-native GA. Demoting `native=real` en masse = **C-2b+**.
 
 ---
 
@@ -63,11 +63,18 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 
 ---
 
-## Non-claims (C-2a)
+## Non-claims
 
-- ≠ CI install LLVM / required full-native / ban `soft_native` exit 0 (**C-2b**)
-- ≠ delete `run_native_strict_or_mirror_vm` or fix GA mirror (**C-2b**)
-- ≠ bulk demote capability `native=real` (**C-2b**)
+### C-2a (done)
+- Documented hard/soft/experimental split; L006 skip ≠ native supported
+
+### C-2b (done · mirror honesty)
+- **Removed** `run_native_strict_or_mirror_vm`; GA nails skip without full-native AOT
+- **Hard rule:** mirror VM stdout as native parity = **forbidden**
+
+### Still park → **C-2b+**
+- ≠ CI install LLVM / required full-native / ban `soft_native` exit 0
+- ≠ bulk demote capability `native=real` (38 rows)
 - ≠ full FeaturePriority JIT Stub scrub (**C-2c**)
 - ≠ rename every capability `ci.job.*` to match yaml (**C-2d**)
 - ≠ R-50
@@ -76,4 +83,4 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 
 ## Next
 
-Default next after C-2a exit: **C-2b** — `native=real` must share full-native toolchain; failure = red; ban L006 soft-skip masquerading as native green.
+Default next after C-2b exit: **C-2b+** — `native=real` must share full-native toolchain; failure = red; ban L006 soft-skip exit-0 / demote unpaid `native=real`.

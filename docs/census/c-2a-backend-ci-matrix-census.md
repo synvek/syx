@@ -12,7 +12,7 @@
 |-------|--------|
 | **C-0 / C-1** | **exited** |
 | **C-2a** matrix SSOT | **exited** |
-| Open | 默认下一 **C-2b**；C-2c/d · C-0a+/e park |
+| Open | C-2b `[x]`；默认下一 **C-2b+**；C-2c/d · C-0a+/e park |
 
 ## Root cause
 

@@ -11,7 +11,7 @@ use std::time::Duration;
 
 use syx_driver::{compile_and_run_embedded, DriverOptions};
 
-use crate::native_strict::run_native_strict_or_mirror_vm;
+use crate::native_strict::try_run_native_strict;
 
 /// Accept connections until stop; write fixed payload on each (VM + native both connect).
 fn start_send_loopback() -> (u16, Arc<AtomicBool>, thread::JoinHandle<()>) {
@@ -60,7 +60,12 @@ fn ec_m2_4_tcp_native_wasm_ga4_native_tcp_read_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(&src, &vm_out, "tcp_ga");
+    // C-2b: default CI ≠ native GA — skip when full-native AOT unavailable.
+    let Some((code, native_out)) = try_run_native_strict(&src, "tcp_ga") else {
+        stop.store(true, Ordering::Relaxed);
+        let _ = join.join();
+        return;
+    };
     stop.store(true, Ordering::Relaxed);
     let _ = join.join();
 
@@ -98,7 +103,9 @@ fn ec_m2_4_tcp_native_wasm_ga_native_tcp_connect_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(src, &vm_out, "tcp_ga");
+    let Some((code, native_out)) = try_run_native_strict(src, "tcp_ga") else {
+        return;
+    };
     assert_eq!(code, 0, "native exit nonzero; stdout={native_out}");
     let vm_line = vm_out.lines().next().unwrap_or("").trim();
     let native_line = native_out.lines().next().unwrap_or("").trim();
@@ -129,7 +136,11 @@ fn ec_m2_4_tcp_native_wasm_ga_native_tcp_handle_release_exec() {
         .expect("vm run")
         .printed
         .join("\n");
-    let (code, native_out) = run_native_strict_or_mirror_vm(&src, &vm_out, "tcp_ga");
+    let Some((code, native_out)) = try_run_native_strict(&src, "tcp_ga") else {
+        stop.store(true, Ordering::Relaxed);
+        let _ = join.join();
+        return;
+    };
     stop.store(true, Ordering::Relaxed);
     let _ = join.join();
 
