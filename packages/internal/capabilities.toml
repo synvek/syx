@@ -94,10 +94,10 @@ id = "net.http"
 feature = "net.http.client"
 surface = "HttpClient"
 status = "partial"
-backends = { vm = "real", native = "partial", wasm = "real", mir = "real" }
+backends = { vm = "real", native = "real", wasm = "real", mir = "real" }
 platforms = ["macos", "linux", "windows"]
 tests = ["http_transport_fail", "differential suite3", "ec_m2_1_http_client", "ec_m2_4_http_availability", "ec_m2_4_http_microbench", "ec_m2_4_http_native_wasm_matrix", "ec_m2_4_http_native_wasm_ga", "m2_s4_02b_client_timeout_tls", "m2_s4_01_http_types", "m2_s4_05_client_tls"]
-notes = "C-2b+: unpaid ≠ full-native GA; ADR-637 / W293: native=partial→real client-only (reuse qs1_http refuse+loopback dual-backend nails; status still partial); ADR-623 / W279: wasm=real + W270/W271 Http* HostFn wasm; Transport failure must not return status=0 success (M0-B06); Suite-3 loopback + refused (M0-D04); HostFn availability honesty ADR-186; Instant microbench ADR-189; native/WASM matrix first deepening ADR-200; timeout+bad-cert nails ADR-235; named HTTPResponse/Url types ADR-236; TLS client real path ADR-237 (≠ server / ≠ timeout_tls / ≠ tls.client / ≠ status=implemented / ≠ Wave A exit / ≠ other native=partial rows)."
+notes = "C-2b-6: paid native=real via full-native-linux http_native_wasm_ga; ADR-637 / W293 lineage client-only (reuse ResponseText/status/make_response dual-backend nails; status still partial); ADR-623 / W279: wasm=real + W270/W271 Http* HostFn wasm; Transport failure must not return status=0 success (M0-B06); Suite-3 loopback + refused (M0-D04); HostFn availability honesty ADR-186; Instant microbench ADR-189; native/WASM matrix first deepening ADR-200; timeout+bad-cert nails ADR-235; named HTTPResponse/Url types ADR-236; TLS client real path ADR-237 (≠ server / ≠ types / ≠ stream / ≠ timeout_tls / ≠ tls.client / ≠ status=implemented / ≠ Wave A exit / ≠ other native=partial rows)."
 since = "M0-B06"
 
 [[capability]]
