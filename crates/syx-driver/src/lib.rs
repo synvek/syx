@@ -230,10 +230,10 @@ use syx_vm::WasmVM;
 pub use syx_vm::{current_process_argv, set_process_argv};
 
 pub use syx_pkg::{
-    add_dependency, default_registry_url, install_project, load_lockfile, load_manifest,
-    load_resolved_packages, save_lockfile, update_dependencies, DependencyAddSpec, DependencySpec,
-    InstallReport, InstalledPackage, LockPackage, PackageSource, RegistryConfig, ResolvedGraph,
-    SyxLockfile, SyxManifest,
+    add_dependency, default_registry_url, install_project, install_project_with_mode,
+    load_lockfile, load_manifest, load_resolved_packages, save_lockfile, update_dependencies,
+    DependencyAddSpec, DependencySpec, InstallMode, InstallReport, InstalledPackage, LockPackage,
+    PackageSource, RegistryConfig, ResolvedGraph, SyxLockfile, SyxManifest,
 };
 pub use unified_compile::{compile_entry_with_unified_mir, UnifiedCompileArtifact};
 

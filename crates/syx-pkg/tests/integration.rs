@@ -1745,8 +1745,8 @@ rev = "{tip}"
         std::env::remove_var("SYX_INSTALL_LOCKED");
     }
 
-    // Restore via unlocked reinstall.
-    install_project(&app).expect("restore lock");
+    // Restore via unlocked reinstall (C-4b: Auto would stay locked while lock exists).
+    syx_pkg::update_dependencies(&app).expect("restore lock");
 
     // Case 2: wrong OID in lock → P014 (checkout fail or HEAD mismatch)
     {
@@ -1782,4 +1782,172 @@ rev = "{tip}"
         assert!(msg.contains("P014"), "wrong pin got: {msg}");
         std::env::remove_var("SYX_INSTALL_LOCKED");
     }
+}
+
+#[test]
+fn c4b_install_defaults_locked_when_lock_exists() {
+    pin_test_trust_root();
+    let root = tempfile::tempdir().unwrap();
+    let registry_dir = root.path().join("registry");
+    std::fs::create_dir_all(&registry_dir).unwrap();
+    let registry_url = format!(
+        "file://{}",
+        registry_dir.canonicalize().unwrap().to_string_lossy()
+    );
+
+    let pkg = root.path().join("defpkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"defpkg\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 9 }").unwrap();
+    publish_signed(&pkg, &registry_url);
+
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        format!(
+            "name = \"app\"\nversion = \"0.1.0\"\nmain = \"main.sy\"\n\n[dependencies.defpkg]\nversion = \"1.0.0\"\nregistry = \"{registry_url}\"\n"
+        ),
+    )
+    .unwrap();
+    std::fs::write(app.join("main.sy"), "import defpkg\nfunc main() {}").unwrap();
+    // Ensure env cannot force unlock/lock for this default-path pin.
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+
+    install_project(&app).expect("seed install writes lock");
+    let lock_path = app.join("syx.lock");
+    let before = std::fs::read(&lock_path).unwrap();
+
+    install_project(&app).expect("second install Auto must lock when syx.lock exists");
+    let after = std::fs::read(&lock_path).unwrap();
+    assert_eq!(
+        before, after,
+        "C-4b: Auto install with existing lock must not rewrite syx.lock"
+    );
+    unpin_test_trust_root();
+}
+
+#[test]
+fn c4b_first_install_without_lock_writes_lock() {
+    pin_test_trust_root();
+    let root = tempfile::tempdir().unwrap();
+    let registry_dir = root.path().join("registry");
+    std::fs::create_dir_all(&registry_dir).unwrap();
+    let registry_url = format!(
+        "file://{}",
+        registry_dir.canonicalize().unwrap().to_string_lossy()
+    );
+
+    let pkg = root.path().join("newpkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"newpkg\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 10 }").unwrap();
+    publish_signed(&pkg, &registry_url);
+
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        format!(
+            "name = \"app\"\nversion = \"0.1.0\"\nmain = \"main.sy\"\n\n[dependencies.newpkg]\nversion = \"1.0.0\"\nregistry = \"{registry_url}\"\n"
+        ),
+    )
+    .unwrap();
+    std::fs::write(app.join("main.sy"), "import newpkg\nfunc main() {}").unwrap();
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+    assert!(!app.join("syx.lock").exists());
+
+    install_project(&app).expect("first install");
+    assert!(
+        app.join("syx.lock").exists(),
+        "first Auto install must write syx.lock"
+    );
+    unpin_test_trust_root();
+}
+
+#[test]
+fn c4b_update_rewrites_lock() {
+    use syx_pkg::update_dependencies;
+
+    pin_test_trust_root();
+    let root = tempfile::tempdir().unwrap();
+    let registry_dir = root.path().join("registry");
+    std::fs::create_dir_all(&registry_dir).unwrap();
+    let registry_url = format!(
+        "file://{}",
+        registry_dir.canonicalize().unwrap().to_string_lossy()
+    );
+
+    let pkg = root.path().join("updpkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"updpkg\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 11 }").unwrap();
+    publish_signed(&pkg, &registry_url);
+
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        format!(
+            "name = \"app\"\nversion = \"0.1.0\"\nmain = \"main.sy\"\n\n[dependencies.updpkg]\nversion = \"1.0.0\"\nregistry = \"{registry_url}\"\n"
+        ),
+    )
+    .unwrap();
+    std::fs::write(app.join("main.sy"), "import updpkg\nfunc main() {}").unwrap();
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+
+    install_project(&app).expect("seed");
+    let lock_path = app.join("syx.lock");
+    let before = std::fs::read(&lock_path).unwrap();
+
+    // resolved_at changes on Unlocked rewrite even with same pins.
+    std::thread::sleep(std::time::Duration::from_millis(1100));
+    update_dependencies(&app).expect("update must unlock and rewrite");
+    let after = std::fs::read(&lock_path).unwrap();
+    assert_ne!(
+        before, after,
+        "C-4b: update_dependencies must rewrite syx.lock"
+    );
+    unpin_test_trust_root();
+}
+
+#[test]
+fn c4b_locked_mode_requires_lock() {
+    use syx_pkg::{install_project_with_mode, InstallMode};
+
+    let root = tempfile::tempdir().unwrap();
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        r#"name = "app"
+version = "0.1.0"
+main = "main.sy"
+"#,
+    )
+    .unwrap();
+    std::fs::write(app.join("main.sy"), "func main() {}").unwrap();
+    assert!(!app.join("syx.lock").exists());
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+
+    let err = install_project_with_mode(&app, InstallMode::Locked).unwrap_err();
+    let msg = format!("{err}");
+    assert!(msg.contains("P014"), "got: {msg}");
+    assert!(msg.contains("C-4b"), "got: {msg}");
 }

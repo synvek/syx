@@ -16,7 +16,8 @@ mod resolver;
 mod sources;
 
 pub use installer::{
-    farm_billing_ledger_settlement, farm_billing_meter, farm_billing_settlement, InstallReport,
+    farm_billing_ledger_settlement, farm_billing_meter, farm_billing_settlement, InstallMode,
+    InstallReport,
 };
 pub use lockfile::{
     load_lockfile, save_lockfile, InstalledPackage, LockPackage, LockPluginEntry, PackageSource,
@@ -71,11 +72,38 @@ pub fn registry_allow_unsigned() -> bool {
         .unwrap_or(false)
 }
 
-/// Wave C W680 / C-04: when set, registry install must pin version+checksum from `syx.lock`.
-pub fn install_locked() -> bool {
-    std::env::var("SYX_INSTALL_LOCKED")
+// C-4b: install session override for registry/git pin paths (set by installer).
+thread_local! {
+    static INSTALL_LOCKED_SESSION: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
+}
+
+pub(crate) fn set_install_locked_session(locked: Option<bool>) {
+    INSTALL_LOCKED_SESSION.with(|c| c.set(locked));
+}
+
+fn env_flag_true(name: &str) -> bool {
+    std::env::var(name)
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false)
+}
+
+/// Wave C W680 / C-04 + C-4b: true when the active install session is locked,
+/// or (outside a session) when `SYX_INSTALL_LOCKED=1|true`.
+pub fn install_locked() -> bool {
+    if let Some(v) = INSTALL_LOCKED_SESSION.with(|c| c.get()) {
+        return v;
+    }
+    env_flag_true("SYX_INSTALL_LOCKED")
+}
+
+/// C-4b: script escape hatch — Auto mode treats install as Unlocked.
+pub fn install_unlocked_env() -> bool {
+    env_flag_true("SYX_INSTALL_UNLOCKED")
+}
+
+/// C-4b: env force-locked (raises Auto → Locked).
+pub fn install_locked_env() -> bool {
+    env_flag_true("SYX_INSTALL_LOCKED")
 }
 
 pub fn registry_allow_stub() -> bool {
@@ -588,22 +616,29 @@ pub fn publish_package_with_token(
     package::publish_package(root, registry, token, None)
 }
 
-/// Install all dependencies for a project and write `syx.lock`.
+/// Install all dependencies (`InstallMode::Auto`: lock present → locked).
 pub fn install_project(root: &Path) -> SyxResult<InstallReport> {
     installer::install_project(root)
 }
+
+/// C-4b: install with explicit [`InstallMode`].
+pub fn install_project_with_mode(root: &Path, mode: InstallMode) -> SyxResult<InstallReport> {
+    installer::install_project_with_mode(root, mode)
+}
+
 pub fn add_dependency(root: &Path, name: &str, spec: DependencyAddSpec) -> SyxResult<()> {
     let mut manifest = load_manifest(root)?;
     let dep = spec.into_dependency_spec();
     manifest.dependencies.insert(name.to_string(), dep);
     save_manifest(root, &manifest)?;
-    install_project(root)?;
+    // New deps must rewrite syx.lock — always Unlocked.
+    installer::install_project_with_mode(root, InstallMode::Unlocked)?;
     Ok(())
 }
 
-/// Re-resolve and reinstall all dependencies.
+/// Re-resolve and reinstall all dependencies, rewriting `syx.lock`.
 pub fn update_dependencies(root: &Path) -> SyxResult<InstallReport> {
-    install_project(root)
+    installer::install_project_with_mode(root, InstallMode::Unlocked)
 }
 
 /// Load installed packages from `syx.lock` for compile-time module resolution.

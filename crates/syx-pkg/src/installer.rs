@@ -7,10 +7,48 @@ use crate::lockfile::save_lockfile;
 use crate::manifest::load_manifest;
 use crate::pkg_error_at;
 use crate::resolver::{graph_to_lockfile, resolve_dependencies};
+use crate::set_install_locked_session;
 
 #[derive(Debug, Clone, Default)]
 pub struct InstallReport {
     pub package_count: usize,
+}
+
+/// C-4b install lock policy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum InstallMode {
+    /// Have `syx.lock` → locked; else unlocked write. Env may raise/lower.
+    #[default]
+    Auto,
+    /// Require existing lock; pin; never rewrite.
+    Locked,
+    /// Always re-resolve and rewrite lock (update / add).
+    Unlocked,
+}
+
+struct InstallLockGuard;
+
+impl Drop for InstallLockGuard {
+    fn drop(&mut self) {
+        set_install_locked_session(None);
+    }
+}
+
+/// Resolve Auto/Locked/Unlocked + env into an effective locked bit.
+fn effective_locked(mode: InstallMode, has_lock: bool) -> bool {
+    match mode {
+        InstallMode::Locked => true,
+        InstallMode::Unlocked => false,
+        InstallMode::Auto => {
+            if crate::install_locked_env() {
+                true
+            } else if crate::install_unlocked_env() {
+                false
+            } else {
+                has_lock
+            }
+        }
+    }
 }
 
 /// Phase 80: per-tenant compile-minute billing meter stub (enforce on install).
@@ -82,14 +120,22 @@ pub fn farm_billing_ledger_settlement(lock: &crate::lockfile::SyxLockfile) -> Sy
     Ok(())
 }
 
+/// C-4b: default install uses [`InstallMode::Auto`].
 pub fn install_project(root: &Path) -> SyxResult<InstallReport> {
+    install_project_with_mode(root, InstallMode::Auto)
+}
+
+/// C-4b: install with explicit lock policy.
+pub fn install_project_with_mode(root: &Path, mode: InstallMode) -> SyxResult<InstallReport> {
     let manifest = load_manifest(root)?;
     let existing = crate::lockfile::try_load_lockfile(root)?;
-    let locked = crate::install_locked();
+    let has_lock = existing.is_some();
+    let locked = effective_locked(mode, has_lock);
+
     if locked {
         let Some(ref lock) = existing else {
             return Err(pkg_error_at(
-                "SYX_INSTALL_LOCKED requires an existing syx.lock",
+                "locked install requires an existing syx.lock (C-4b)",
                 None,
                 Span::DUMMY,
                 "P014",
@@ -99,10 +145,15 @@ pub fn install_project(root: &Path) -> SyxResult<InstallReport> {
     } else if let Some(ref lock) = existing {
         enforce_lock_v16(lock)?;
     }
+
+    // Inject session so registry/git `install_locked()` sees the effective bit.
+    set_install_locked_session(Some(locked));
+    let _guard = InstallLockGuard;
+
     let graph = resolve_dependencies(root)?;
-    // Wave C W681 / C-04: locked install must not rewrite syx.lock.
+    // Locked install must not rewrite syx.lock (C-04 / C-4b).
     if locked {
-        let lock = existing.expect("SYX_INSTALL_LOCKED checked above");
+        let lock = existing.expect("locked path checked above");
         farm_billing_ledger_settlement(&lock)?;
         return Ok(InstallReport {
             package_count: graph.packages.len(),

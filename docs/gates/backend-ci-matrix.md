@@ -184,6 +184,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 Manifest git dependencies require explicit `rev` (missing → **P043**); never default to `main`. Under `SYX_INSTALL_LOCKED`, Git pins are read from `syx.lock` (URL/rev; missing/wrong → **P014**); lock bytes not rewritten. Census: [`c-4a-git-rev-pin-census`](../census/c-4a-git-rev-pin-census.md). **≠** default-locked install / publish-requires-lock / lock v16 trim (C-4b+).
 
+### C-4b (done · locked-by-default install)
+
+`InstallMode::{Auto,Locked,Unlocked}`: Auto locks when `syx.lock` exists (no rewrite); first install without lock still writes; `syx update` / `add` use Unlocked; CLI `syx install --locked` requires lock (**P014**). Env `SYX_INSTALL_LOCKED` / `SYX_INSTALL_UNLOCKED` retained. Census: [`c-4b-locked-default-census`](../census/c-4b-locked-default-census.md). **≠** publish-requires-lock / lock v16 trim / path content hash (C-4c+).
+
 ## Next
 
-Default next after C-4a: **C-4b** — install defaults to locked when `syx.lock` exists (or formal `syx install --locked`). C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-4b: **C-4c** — `syx publish` requires a usable `syx.lock` (fail-closed). C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).

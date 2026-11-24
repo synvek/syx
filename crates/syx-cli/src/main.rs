@@ -18,11 +18,11 @@ use syx_driver::{
     compile_project_with_options, debug_dap, debug_interactive, default_emit_output,
     default_emit_stem, default_native_executable, default_native_executable_for_source,
     default_native_object, default_native_object_for_source, doc_project, emit_with_options,
-    format_check_path, format_project, install_project, lint_project, parse_module_dirs,
+    format_check_path, format_project, install_project_with_mode, lint_project, parse_module_dirs,
     project_root_for, publish_package_with_token, repl_eval, resolve_native_backend,
     run_file_with_options, run_project_with_options, run_wasm_file, run_wasm_project_with_options,
     run_wasm_source_with_options, update_dependencies, write_emit_all, BuildProfile,
-    DependencyAddSpec, DriverOptions, EmitFormat, NativeBackend,
+    DependencyAddSpec, DriverOptions, EmitFormat, InstallMode, NativeBackend,
 };
 
 #[derive(Parser)]
@@ -231,7 +231,12 @@ Examples:\n  \
     #[command(hide = true)]
     Prop,
     /// Install project packages into the local toolchain
-    Install { path: Option<PathBuf> },
+    Install {
+        path: Option<PathBuf>,
+        /// Require existing syx.lock and pin from it (fail-closed)
+        #[arg(long)]
+        locked: bool,
+    },
     /// Format `.sy` source files
     Format {
         path: Option<PathBuf>,
@@ -904,9 +909,14 @@ fn run() -> miette::Result<()> {
                 process::exit(status.code().unwrap_or(1));
             }
         }
-        Commands::Install { path } => {
+        Commands::Install { path, locked } => {
             let path = resolve_path(path);
-            let report = install_project(&path).into_diagnostic()?;
+            let mode = if locked {
+                InstallMode::Locked
+            } else {
+                InstallMode::Auto
+            };
+            let report = install_project_with_mode(&path, mode).into_diagnostic()?;
             println!(
                 "Installed {} package(s) for {}",
                 report.package_count,
