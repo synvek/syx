@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: MIR CFG/terminator floor fail-closed (MIR002) on unify + codegen paths (C-3b)
 - fix: MIR same-name bodies fail-closed (MIR001); demote quality heuristic; arity-unique overloads (C-3a)
 - docs: align `ci.job.*` surfaces to live yaml job ids; close C-2 axis (C-2d)
 - docs: scrub JIT Stub/default-on → experimental-real-subset · default off · non_default_kpi (C-2c)

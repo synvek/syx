@@ -734,6 +734,8 @@ impl CodeGenerator {
                 .map(String::from)
                 .collect();
         }
+        // C-3b: thin CFG / terminator floor before body selection / emit.
+        syx_mir::verify_mir_cfg_floor(mir)?;
         // C-3a: fail-closed on conflicting same-name MIR bodies (no silent quality pick).
         let best_by_name = Self::unique_mir_functions_by_name(&mir.functions)?;
         for func in best_by_name.values() {

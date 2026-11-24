@@ -12,6 +12,8 @@ pub use mir_types::{
 
 mod mir_codec;
 mod mir_diag;
+mod mir_verify_floor;
+pub use mir_verify_floor::verify_mir_cfg_floor;
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

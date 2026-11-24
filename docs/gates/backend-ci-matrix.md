@@ -156,6 +156,10 @@ These are the **default support claims** for SYX as research beta. Do not advert
 
 Codegen no longer silently picks a higher-`mir_function_quality` body for duplicate MIR names. Conflicting fingerprints → **MIR001** fail-closed; identical fingerprints keep first. Same-type overloads get arity-qualified MIR names upstream (`__a{N}`). Census: [`c-3a-mir-quality-demote-census`](../census/c-3a-mir-quality-demote-census.md). **≠** C-3 full exit / DefId / full verifier.
 
+### C-3b (done · MIR CFG / terminator floor)
+
+`verify_mir_cfg_floor` fail-closes on bad entry, OOB jump/successor, or missing terminator (**MIR002**). Hooked at `build_unified_mir` and `compile_from_mir_with_source`. Census: [`c-3b-mir-cfg-floor-census`](../census/c-3b-mir-cfg-floor-census.md). **≠** C-3 full exit / DefId / full MirOp stack·type verifier.
+
 ## Next
 
-Default next after C-3a: **C-3b** — thin MIR verifier floor (entry CFG / terminator bounds). C-3 remains `[~]` until DefId + fuller verifier.
+Default next after C-3b: **C-3c** — thin DefId / stable FuncId table (name→id). C-3 remains `[~]` until DefId + fuller verifier.
