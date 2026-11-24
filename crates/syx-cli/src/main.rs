@@ -1016,6 +1016,7 @@ fn run() -> miette::Result<()> {
                 .or_else(|| std::env::var("SYX_REGISTRY").ok())
                 .unwrap_or_else(|| "https://packages.sy.dev".into());
             if dry_run {
+                syx_pkg::require_publish_lock(&path).into_diagnostic()?;
                 let manifest = syx_pkg::load_manifest(&path).into_diagnostic()?;
                 println!(
                     "dry-run publish {}@{} -> {}",

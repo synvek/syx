@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: syx publish requires usable syx.lock (P014 + enforce_lock_v16); dry-run same gate (C-4c)
 - feat: install defaults to locked when syx.lock exists; `syx install --locked`; update/add unlock rewrite (C-4b)
 - fix: git deps require explicit rev (P043); SYX_INSTALL_LOCKED pins Git from syx.lock (P014) (C-4a)
 - fix: MIR JumpIfNil condition tag floor fail-closed (MIR007) on unify + codegen paths (C-3g)

@@ -188,6 +188,10 @@ Manifest git dependencies require explicit `rev` (missing → **P043**); never d
 
 `InstallMode::{Auto,Locked,Unlocked}`: Auto locks when `syx.lock` exists (no rewrite); first install without lock still writes; `syx update` / `add` use Unlocked; CLI `syx install --locked` requires lock (**P014**). Env `SYX_INSTALL_LOCKED` / `SYX_INSTALL_UNLOCKED` retained. Census: [`c-4b-locked-default-census`](../census/c-4b-locked-default-census.md). **≠** publish-requires-lock / lock v16 trim / path content hash (C-4c+).
 
+### C-4c (done · publish requires usable lock)
+
+`require_publish_lock` / `publish_package`: missing `syx.lock` → **P014** (C-4c); present → `enforce_lock_v16`. CLI `syx publish --dry-run` uses the same gate. Empty `packages` OK for zero-dep libs after install. Census: [`c-4c-publish-lock-census`](../census/c-4c-publish-lock-census.md). **≠** lock v16 field trim / path content hash (C-4d+).
+
 ## Next
 
-Default next after C-4b: **C-4c** — `syx publish` requires a usable `syx.lock` (fail-closed). C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-4c: **C-4d** — trim lock v16 CDN/farm/billing env fields from default lock schema. C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).

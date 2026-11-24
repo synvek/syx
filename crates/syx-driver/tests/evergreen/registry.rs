@@ -24,8 +24,16 @@ fn pin_test_trust_root() {
     );
 }
 
+fn ensure_publish_lock(pkg: &Path) {
+    if !pkg.join("syx.lock").exists() {
+        // Usable empty lock is enough for the C-4c publish gate (no dep pin required).
+        save_lockfile(pkg, &SyxLockfile::default()).expect("seed syx.lock for publish (C-4c)");
+    }
+}
+
 fn publish_signed(pkg: &Path, reg: &str) {
     pin_test_trust_root();
+    ensure_publish_lock(pkg);
     publish_package_signed(pkg, reg, &test_signing_key()).expect("publish signed");
 }
 
@@ -816,6 +824,7 @@ fn registry_unsigned_publish_rejected() {
     std::env::remove_var("SYX_PUBLISHER_SIGNING_KEY");
     let pkg = temp_pkg("unsigned69", r#"func main() { print("x") }"#);
     let reg = file_registry();
+    ensure_publish_lock(&pkg);
     let err = publish_package(&pkg, &reg).unwrap_err();
     let msg = format!("{err}");
     assert!(
@@ -843,6 +852,7 @@ fn registry_signed_hard_e2e() {
     )
     .unwrap();
     pin_test_trust_root();
+    ensure_publish_lock(&lib);
     publish_package_signed(&lib, &reg, &signing_key).expect("publish signed");
 
     let app = temp_pkg("signedapp69", "");
@@ -927,6 +937,7 @@ fn registry_cdn_hard() {
     )
     .unwrap();
     pin_test_trust_root();
+    ensure_publish_lock(&lib);
     publish_package_signed(&lib, &reg, &signing_key).expect("publish signed");
 
     let pkg_download = PathBuf::from(reg.strip_prefix("file://").unwrap())

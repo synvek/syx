@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-24 · **C-4b 默认锁定安装 `[x]`**；C-4 `[~]`（C-4a/C-4b `[x]`）；C-3 `[~]`；下一 = **C-4c**。
+> **最近更新：** 2026-11-24 · **C-4c publish 强制 lock `[x]`**；C-4 `[~]`（C-4a…C-4c `[x]`）；C-3 `[~]`；下一 = **C-4d**。
 
 ## 1. 一句话现状
 
@@ -45,7 +45,7 @@ VM / MIR / Wasm / browser 与 LSP 有可重复正向证据；字段默认、继�
 | **SA-0…SA-6** | `[x]` 退出 | Swift 对齐章程期 |
 | **R-0…R-49** | `[x]` 收口 | Object 切片 / wasm 46/46 / browser / 诊断 / docs ADR；**无 R-50** |
 | **U-0…U-40** | `[x]` 收口 | FilePath / credibility MD / parser 双接受 / 循环控制 / S060 / 字段默认链 / extension lit |
-| **收敛期 C-*** | **开账** | C-0 / C-1 / C-2 `[x]`；C-3 `[~]`（C-3a…C-3g `[x]`）；C-4 `[~]`（C-4a/C-4b `[x]`）；活轴见 `02`；下一 **C-4c**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
+| **收敛期 C-*** | **开账** | C-0 / C-1 / C-2 `[x]`；C-3 `[~]`（C-3a…C-3g `[x]`）；C-4 `[~]`（C-4a…C-4c `[x]`）；活轴见 `02`；下一 **C-4d**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
 
 ```mermaid
 flowchart LR
@@ -87,7 +87,7 @@ flowchart LR
 ### P1 — 架构 / 包 / 隔离 / SSOT
 
 - MIR 唯一可验证后端输入（C-3 `[~]`：C-3a…C-3g done；ModuleId/全量 verifier/exception park）
-- lock/git 默认可复现（C-4 `[~]`：C-4a/C-4b done；**下一 C-4c** publish 强锁）；package 测试与 publish 顺序对齐
+- lock/git 默认可复现（C-4 `[~]`：C-4a…C-4c done；**下一 C-4d** lock v16 裁剪）；package 测试与 publish 顺序对齐
 - 宏/embed「sandbox」去安全承诺或真隔离
 - 单一 capability/version 生成源（消掉 0.1.3/0.2.x/0.3.0 多源）
 

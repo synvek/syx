@@ -593,6 +593,11 @@ fn resolve_publish_signature(
     Ok(None)
 }
 
+/// C-4c: require a usable `syx.lock` before publish (also used by CLI `--dry-run`).
+pub fn require_publish_lock(root: &Path) -> SyxResult<SyxLockfile> {
+    package::require_publish_lock(root)
+}
+
 /// Publish the package at `root` to a registry.
 pub fn publish_package(root: &Path, registry: &str) -> SyxResult<()> {
     package::publish_package(root, registry, None, None)

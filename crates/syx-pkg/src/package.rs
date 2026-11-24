@@ -2,9 +2,25 @@ use std::path::Path;
 
 use syx_diagnostics::{Span, SyxResult};
 
+use crate::lock_enforce::enforce_lock_v16;
+use crate::lockfile::{try_load_lockfile, SyxLockfile};
 use crate::pkg_error_at;
 use crate::registry::RegistryClient;
 use crate::sources::registry::{create_tar_gz, tarball_checksum, validate_package_layout};
+
+/// C-4c: publish requires an existing, enforceable `syx.lock`.
+pub fn require_publish_lock(root: &Path) -> SyxResult<SyxLockfile> {
+    let Some(lock) = try_load_lockfile(root)? else {
+        return Err(pkg_error_at(
+            "publish requires an existing syx.lock (C-4c); run syx install",
+            None,
+            Span::DUMMY,
+            "P014",
+        ));
+    };
+    enforce_lock_v16(&lock)?;
+    Ok(lock)
+}
 
 pub fn publish_package(
     root: &Path,
@@ -21,6 +37,7 @@ pub fn publish_package(
             "P042",
         ));
     }
+    let _lock = require_publish_lock(root)?;
     let registry = registry.to_string();
     let tarball = create_tar_gz(root)?;
     let checksum = tarball_checksum(&tarball);

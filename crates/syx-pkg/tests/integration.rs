@@ -5,8 +5,8 @@ use std::time::Duration;
 
 use ed25519_dalek::SigningKey;
 use syx_pkg::{
-    add_dependency, install_project, load_resolved_packages, publish_package_signed,
-    verifying_key_hex, DependencyAddSpec,
+    add_dependency, install_project, load_resolved_packages, publish_package_signed, save_lockfile,
+    verifying_key_hex, DependencyAddSpec, SyxLockfile,
 };
 
 const TEST_SIGNING_SEED: [u8; 32] = [0x42; 32];
@@ -26,7 +26,16 @@ fn unpin_test_trust_root() {
     std::env::remove_var("SYX_REGISTRY_VERIFY_KEY");
 }
 
+fn ensure_publish_lock(root: &std::path::Path) {
+    if !root.join("syx.lock").exists() {
+        // C-4c publish gate needs a loadable lock + enforce_lock_v16; empty packages OK.
+        // Prefer Default over install_project so library pkgs with deps do not hit remote registries.
+        save_lockfile(root, &SyxLockfile::default()).expect("seed syx.lock for publish (C-4c)");
+    }
+}
+
 fn publish_signed(root: &std::path::Path, registry: &str) {
+    ensure_publish_lock(root);
     publish_package_signed(root, registry, &test_signing_key()).unwrap();
 }
 
@@ -108,9 +117,14 @@ fn http_publish_requires_registry_token() {
     )
     .unwrap();
     std::fs::write(pkg.join("main.sy"), "func main() { return 0 }").unwrap();
+    ensure_publish_lock(&pkg);
+    // Satisfy signature policy so the token gate (P010) is reachable.
+    let seed_hex: String = TEST_SIGNING_SEED.iter().map(|b| format!("{b:02x}")).collect();
+    std::env::set_var("SYX_PUBLISHER_SIGNING_KEY", &seed_hex);
     std::env::remove_var("SYX_REGISTRY_TOKEN");
     let err =
         syx_pkg::publish_package_with_token(&pkg, "https://packages.sy.dev", None).unwrap_err();
+    std::env::remove_var("SYX_PUBLISHER_SIGNING_KEY");
     let msg = format!("{err}");
     assert!(
         msg.contains("P010") || msg.contains("SYX_REGISTRY_TOKEN"),
@@ -1950,4 +1964,108 @@ main = "main.sy"
     let msg = format!("{err}");
     assert!(msg.contains("P014"), "got: {msg}");
     assert!(msg.contains("C-4b"), "got: {msg}");
+}
+
+#[test]
+fn c4c_publish_without_lock_rejected() {
+    pin_test_trust_root();
+    let root = tempfile::tempdir().unwrap();
+    let pkg = root.path().join("pkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"nolockpub\"\nversion = \"1.0.0\"\nmain = \"main.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("main.sy"), "func main() {}").unwrap();
+    assert!(!pkg.join("syx.lock").exists());
+
+    let registry_dir = root.path().join("registry");
+    std::fs::create_dir_all(&registry_dir).unwrap();
+    let registry_url = format!(
+        "file://{}",
+        registry_dir.canonicalize().unwrap().to_string_lossy()
+    );
+
+    let err = publish_package_signed(&pkg, &registry_url, &test_signing_key()).unwrap_err();
+    let msg = format!("{err}");
+    assert!(msg.contains("P014"), "got: {msg}");
+    assert!(msg.contains("C-4c"), "got: {msg}");
+    unpin_test_trust_root();
+}
+
+#[test]
+fn c4c_publish_after_install_ok() {
+    pin_test_trust_root();
+    let root = tempfile::tempdir().unwrap();
+    let registry_dir = root.path().join("registry");
+    std::fs::create_dir_all(&registry_dir).unwrap();
+    let registry_url = format!(
+        "file://{}",
+        registry_dir.canonicalize().unwrap().to_string_lossy()
+    );
+
+    let pkg = root.path().join("pkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"lockpub\"\nversion = \"1.0.0\"\nmain = \"lib.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("lib.sy"), "public func ping() -> Int { return 1 }").unwrap();
+
+    install_project(&pkg).expect("seed lock");
+    assert!(pkg.join("syx.lock").exists());
+    publish_package_signed(&pkg, &registry_url, &test_signing_key()).expect("publish with lock");
+    unpin_test_trust_root();
+}
+
+#[test]
+fn c4c_publish_rejects_corrupt_lock() {
+    pin_test_trust_root();
+    let root = tempfile::tempdir().unwrap();
+    let pkg = root.path().join("pkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"badlock\"\nversion = \"1.0.0\"\nmain = \"main.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("main.sy"), "func main() {}").unwrap();
+    std::fs::write(pkg.join("syx.lock"), "not = [[[valid toml").unwrap();
+
+    let registry_dir = root.path().join("registry");
+    std::fs::create_dir_all(&registry_dir).unwrap();
+    let registry_url = format!(
+        "file://{}",
+        registry_dir.canonicalize().unwrap().to_string_lossy()
+    );
+
+    let err = publish_package_signed(&pkg, &registry_url, &test_signing_key()).unwrap_err();
+    let msg = format!("{err}");
+    assert!(
+        msg.contains("P001") || msg.contains("P014") || msg.contains("P039"),
+        "corrupt lock must fail-closed, got: {msg}"
+    );
+    unpin_test_trust_root();
+}
+
+#[test]
+fn c4c_require_publish_lock_api() {
+    let root = tempfile::tempdir().unwrap();
+    let pkg = root.path().join("pkg");
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("syx.toml"),
+        "name = \"apilock\"\nversion = \"1.0.0\"\nmain = \"main.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(pkg.join("main.sy"), "func main() {}").unwrap();
+
+    let err = syx_pkg::require_publish_lock(&pkg).unwrap_err();
+    let msg = format!("{err}");
+    assert!(msg.contains("P014") && msg.contains("C-4c"), "got: {msg}");
+
+    install_project(&pkg).expect("seed");
+    syx_pkg::require_publish_lock(&pkg).expect("usable lock after install");
 }

@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-4b 默认锁定安装 `[x]`**；C-4 `[~]`（C-4a/C-4b `[x]`）；C-3 `[~]`；默认下一 = **C-4c**（`syx publish` 强制可用 lock）。
+> **最近更新：** 2026-11-24 · **C-4c publish 强制 lock `[x]`**；C-4 `[~]`（C-4a…C-4c `[x]`）；C-3 `[~]`；默认下一 = **C-4d**（lock v16 字段裁剪）。
 
 ## 0. 时代切换
 
@@ -118,9 +118,10 @@ lockfile / git 依赖默认钉死；publish 与测试顺序一致；失败路径
 |------|------|------|
 | **C-4a** | `[x]` | Manifest git **强制 `rev`**（缺 → **P043**）；`SYX_INSTALL_LOCKED` 下 Git 从 `syx.lock` 钉死（缺/错 pin → **P014**；不重写 lock）；census [`c-4a-git-rev-pin-census`](../docs/census/c-4a-git-rev-pin-census.md) |
 | **C-4b** | `[x]` | 有 `syx.lock` 时 `install` **默认锁定**；`InstallMode::{Auto,Locked,Unlocked}`；CLI `syx install --locked`；`update`/`add` → Unlocked；census [`c-4b-locked-default-census`](../docs/census/c-4b-locked-default-census.md) |
-| **C-4c** | `[ ]` | **默认下一**：`syx publish` 强制带可用 lock（fail-closed） |
+| **C-4c** | `[x]` | `syx publish` 强制可用 `syx.lock`（缺 → **P014**；`enforce_lock_v16`）；CLI `--dry-run` 同闸；census [`c-4c-publish-lock-census`](../docs/census/c-4c-publish-lock-census.md) |
+| **C-4d** | `[ ]` | **默认下一**：lock v16 CDN/farm/billing 等 env 字段裁剪 |
 
-**验收（C-4b）：** 有 lock 无 env 二次 install 不重写；无 lock 首装仍写 lock；update/add 可重写；`--locked` 缺锁 → P014；c04/c4a 回归绿；硬 KPI 不破；**不**宣称 C-4 `[x]`。publish 强锁 / lock v16 裁剪 / path hash → C-4c+ park。
+**验收（C-4c）：** 无 lock publish → P014；有合法 lock publish 成功；dry-run 同闸；夹具绿；硬 KPI 不破；**不**宣称 C-4 `[x]`。lock v16 裁剪 / path hash → C-4d+ park。
 
 ### C-5 · 宏 / embed 隔离诚实（P1） — `[ ]`
 
