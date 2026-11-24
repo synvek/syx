@@ -160,6 +160,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `verify_mir_cfg_floor` fail-closes on bad entry, OOB jump/successor, or missing terminator (**MIR002**). Hooked at `build_unified_mir` and `compile_from_mir_with_source`. Census: [`c-3b-mir-cfg-floor-census`](../census/c-3b-mir-cfg-floor-census.md). **≠** C-3 full exit / DefId / full MirOp stack·type verifier.
 
+### C-3c (done · MirFnIndex / FuncId)
+
+`FuncId` + `MirFnIndex::build/require` — dense name→id table; duplicate name / unknown Call callee → **MIR003**. Hooked after CFG floor on unify + codegen; Call resolve fail-closed (no fn-0 bind). Census: [`c-3c-mir-fn-index-census`](../census/c-3c-mir-fn-index-census.md). **≠** ModuleId graph / Call(FuncId) IR rewrite / full MirOp verifier.
+
 ## Next
 
-Default next after C-3b: **C-3c** — thin DefId / stable FuncId table (name→id). C-3 remains `[~]` until DefId + fuller verifier.
+Default next after C-3c: **C-3d** — thin stack-height floor (suite1/pilot MirOp subset). C-3 remains `[~]` until fuller verifier.

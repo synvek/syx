@@ -613,6 +613,9 @@ pub fn build_unified_mir(
     finalize_unified_mir(&mut mir);
     // C-3b: thin CFG / terminator floor before any backend consumes MIR.
     syx_mir::verify_mir_cfg_floor(&mir)?;
+    // C-3c: name → FuncId table after finalize + CFG floor (order == functions).
+    // Table is rebuilt by consumers; build here fail-closes duplicate names.
+    let _fn_index = syx_mir::MirFnIndex::build(&mir)?;
     Ok(mir)
 }
 

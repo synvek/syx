@@ -738,6 +738,9 @@ impl CodeGenerator {
         syx_mir::verify_mir_cfg_floor(mir)?;
         // C-3a: fail-closed on conflicting same-name MIR bodies (no silent quality pick).
         let best_by_name = Self::unique_mir_functions_by_name(&mir.functions)?;
+        // C-3c: identity table over unique MIR bodies (name → dense FuncId).
+        let _mir_fn_index =
+            syx_mir::MirFnIndex::build_from_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
@@ -756,6 +759,10 @@ impl CodeGenerator {
                 });
             }
         }
+        // Program-slot identity (Call indices bind into CompiledProgram.functions).
+        let _program_fn_index = syx_mir::MirFnIndex::build_from_names(
+            program.functions.iter().map(|f| &f.name),
+        )?;
         // First pass may bind Call indices before later shells exist. Second pass
         // re-emits from MIR against the final name table (W1059 / ADR-1404).
         for force in [false, true] {
@@ -1053,6 +1060,7 @@ impl CodeGenerator {
         name: &SmolStr,
         span: Span,
     ) -> SyxResult<u32> {
+        // C-3c: fail-closed identity resolve (MIR003); no silent bind to fn 0.
         program
             .functions
             .iter()
@@ -1070,14 +1078,19 @@ impl CodeGenerator {
                             "type '{type_name}' has no '{op_sym}' operator; \
                              define `func {op_sym}(lhs: {type_name}, rhs: {type_name})` \
                              or remove the operator (only '==' and '!=' are synthesized \
-                             for structs and data classes)"
+                             for structs and data classes) (C-3c)"
                         ),
                         source,
                         span,
-                        "C020",
+                        "MIR003",
                     );
                 }
-                codegen_error_at(format!("Unknown function '{name}'"), source, span, "C020")
+                codegen_error_at(
+                    format!("MIR fn index: unknown callee '{name}'; C-3c"),
+                    source,
+                    span,
+                    "MIR003",
+                )
             })
     }
 
@@ -1389,9 +1402,10 @@ impl CodeGenerator {
             }
             MirOp::CallIndirect(n) => Instruction::CallIndirect(*n),
             MirOp::ConstFnIndex(name) => {
-                // R-33: real fn → ConstFnIndex (trim keeps/remaps). Missing prelude
+                // R-33 / C-3c: real fn → ConstFnIndex. Missing optional prelude
                 // Equatable/Comparable shells (e.g. Int8_equals) → ConstI32(-1) so
                 // MakeIterator ignores the slot (never silent bind to fn 0).
+                // Call/MakeClosure/etc. still fail-closed via resolve_fn_index (MIR003).
                 match program.functions.iter().position(|f| f.name == *name) {
                     Some(idx) => Instruction::ConstFnIndex(idx as u32),
                     None => Instruction::ConstI32(-1),

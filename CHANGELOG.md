@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MirFnIndex / FuncId name→id table; Call resolve MIR003 fail-closed (C-3c)
 - fix: MIR CFG/terminator floor fail-closed (MIR002) on unify + codegen paths (C-3b)
 - fix: MIR same-name bodies fail-closed (MIR001); demote quality heuristic; arity-unique overloads (C-3a)
 - docs: align `ci.job.*` surfaces to live yaml job ids; close C-2 axis (C-2d)
