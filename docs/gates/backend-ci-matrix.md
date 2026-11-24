@@ -168,6 +168,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `verify_mir_stack_floor` / `verify_mir_stack_floor_functions` — suite1/pilot value-stack height; underflow → **MIR004**. Hooked after CFG + FnIndex on unify + codegen (post-unique bodies). CallHost / non-pilot abandon stream; Return empty = mir-run Nil pad. Census: [`c-3d-mir-stack-floor-census`](../census/c-3d-mir-stack-floor-census.md). **≠** cross-block join φ / full type / exception verifier.
 
+### C-3e (done · MIR type-tag floor)
+
+`verify_mir_type_floor` / `verify_mir_type_floor_functions` — suite1/pilot coarse tags; Nil on Add / non-numeric on Sub·Mul·Div → **MIR005**. Hooked after stack floor on unify + codegen. Add string concat allowed (mir-run). Census: [`c-3e-mir-type-floor-census`](../census/c-3e-mir-type-floor-census.md). **≠** locals slot types / cross-block φ / full semantic types.
+
 ## Next
 
-Default next after C-3d: **C-3e** — thin type-tag floor (suite1 Const/arith kinds). C-3 remains `[~]` until fuller verifier.
+Default next after C-3e: **C-3f** — thin JumpIfFalse condition tag (Bool|Unknown only). C-3 remains `[~]` until fuller verifier.

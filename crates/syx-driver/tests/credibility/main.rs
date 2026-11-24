@@ -9,6 +9,7 @@ mod c3a_mir_quality_demote_contract;
 mod c3b_mir_cfg_floor_contract;
 mod c3c_mir_fn_index_contract;
 mod c3d_mir_stack_floor_contract;
+mod c3e_mir_type_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;

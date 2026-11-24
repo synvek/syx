@@ -618,6 +618,8 @@ pub fn build_unified_mir(
     let _fn_index = syx_mir::MirFnIndex::build(&mir)?;
     // C-3d: pilot value-stack height floor (MIR004) after CFG + FnIndex.
     syx_mir::verify_mir_stack_floor(&mir)?;
+    // C-3e: pilot coarse type-tag floor (MIR005) after stack floor.
+    syx_mir::verify_mir_type_floor(&mir)?;
     Ok(mir)
 }
 

@@ -743,6 +743,8 @@ impl CodeGenerator {
             syx_mir::MirFnIndex::build_from_functions(best_by_name.values().copied())?;
         // C-3d: pilot stack-height floor on post-unique bodies (MIR004).
         syx_mir::verify_mir_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3e: pilot type-tag floor on post-unique bodies (MIR005).
+        syx_mir::verify_mir_type_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

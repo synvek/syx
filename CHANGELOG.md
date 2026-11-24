@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: MIR pilot type-tag floor fail-closed (MIR005) on unify + codegen paths (C-3e)
 - fix: MIR pilot stack-height floor fail-closed (MIR004) on unify + codegen paths (C-3d)
 - feat: MirFnIndex / FuncId name→id table; Call resolve MIR003 fail-closed (C-3c)
 - fix: MIR CFG/terminator floor fail-closed (MIR002) on unify + codegen paths (C-3b)
