@@ -3,11 +3,11 @@ use std::process::Command;
 
 use syx_diagnostics::{Span, SyxResult};
 
-use crate::lockfile::{LockPackage, PackageSource};
+use crate::lockfile::{try_load_lockfile, LockPackage, PackageSource};
 use crate::manifest::{check_version_req, DependencySpec};
 use crate::pkg_error_at;
 use crate::sources::path::path_relative_to_project;
-use crate::vendor_dir;
+use crate::{install_locked, vendor_dir};
 
 pub fn resolve_git_dependency(
     project_root: &Path,
@@ -22,7 +22,21 @@ pub fn resolve_git_dependency(
             "P031",
         )
     })?;
-    let rev = spec.resolve_rev().unwrap_or("main");
+
+    // C-4a: locked install pins Git from syx.lock (symmetric with registry P014).
+    if install_locked() {
+        return resolve_git_dependency_locked(project_root, dep_name, spec, url);
+    }
+
+    // C-4a: manifest git rev is mandatory — never default to "main".
+    let rev = spec.resolve_rev().ok_or_else(|| {
+        pkg_error_at(
+            format!("Git dependency '{dep_name}': git rev required (C-4a)"),
+            None,
+            Span::DUMMY,
+            "P043",
+        )
+    })?;
     let req = spec.version_req()?.ok_or_else(|| {
         pkg_error_at(
             format!("Git dependency '{dep_name}' needs version"),
@@ -63,9 +77,162 @@ pub fn resolve_git_dependency(
     })
 }
 
+/// SYX_INSTALL_LOCKED: checkout the lock-pinned Git rev; do not re-resolve floating refs.
+fn resolve_git_dependency_locked(
+    project_root: &Path,
+    dep_name: &str,
+    spec: &DependencySpec,
+    url: &str,
+) -> SyxResult<LockPackage> {
+    // Manifest still requires an explicit rev (fail-closed C-4a contract).
+    let _manifest_rev = spec.resolve_rev().ok_or_else(|| {
+        pkg_error_at(
+            format!("Git dependency '{dep_name}': git rev required (C-4a)"),
+            None,
+            Span::DUMMY,
+            "P043",
+        )
+    })?;
+    let req = spec.version_req()?.ok_or_else(|| {
+        pkg_error_at(
+            format!("Git dependency '{dep_name}' needs version"),
+            None,
+            Span::DUMMY,
+            "P031",
+        )
+    })?;
+
+    let lock = try_load_lockfile(project_root).ok().flatten().ok_or_else(|| {
+        pkg_error_at(
+            "SYX_INSTALL_LOCKED requires an existing syx.lock",
+            None,
+            Span::DUMMY,
+            "P014",
+        )
+    })?;
+    let locked = lock.packages.get(dep_name).ok_or_else(|| {
+        pkg_error_at(
+            format!("SYX_INSTALL_LOCKED: package '{dep_name}' missing from syx.lock"),
+            None,
+            Span::DUMMY,
+            "P014",
+        )
+    })?;
+
+    let (lock_git, lock_rev, lock_dir) = match &locked.source {
+        PackageSource::Git { git, rev, dir } => (git.clone(), rev.clone(), dir.clone()),
+        _ => {
+            return Err(pkg_error_at(
+                format!("SYX_INSTALL_LOCKED: '{dep_name}' is not a git pin in syx.lock"),
+                None,
+                Span::DUMMY,
+                "P014",
+            ));
+        }
+    };
+
+    if lock_git != url {
+        return Err(pkg_error_at(
+            format!(
+                "SYX_INSTALL_LOCKED: git URL mismatch for '{dep_name}': lock={lock_git} manifest={url}"
+            ),
+            None,
+            Span::DUMMY,
+            "P014",
+        ));
+    }
+
+    let dest = project_root.join(&lock_dir);
+    if let Some(parent) = dest.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| {
+            pkg_error_at(
+                format!("Failed to create vendor dir: {e}"),
+                None,
+                Span::DUMMY,
+                "P032",
+            )
+        })?;
+    }
+
+    // Checkout the lock pin only — never re-resolve a floating branch from the manifest.
+    // Checkout/clone failures under locked mode are P014 (pin unusable), not floating-resolve codes.
+    let resolved_rev = {
+        let result = if dest.join(".git").exists() || dest.join("syx.toml").exists() {
+            checkout_existing(&dest, &lock_rev)
+        } else {
+            if dest.exists() {
+                std::fs::remove_dir_all(&dest).ok();
+            }
+            clone_repo(&lock_git, &dest, &lock_rev)
+        };
+        result.map_err(|_| {
+            pkg_error_at(
+                format!(
+                    "SYX_INSTALL_LOCKED: failed to checkout locked git rev '{lock_rev}' for '{dep_name}'"
+                ),
+                None,
+                Span::DUMMY,
+                "P014",
+            )
+        })?
+    };
+
+    if !revs_equal(&resolved_rev, &lock_rev) {
+        return Err(pkg_error_at(
+            format!(
+                "SYX_INSTALL_LOCKED: git HEAD mismatch for '{dep_name}': HEAD={resolved_rev} lock={lock_rev}"
+            ),
+            None,
+            Span::DUMMY,
+            "P014",
+        ));
+    }
+
+    let _version = check_version_req(&dest, &req, dep_name)?;
+    Ok(LockPackage {
+        source: PackageSource::Git {
+            git: lock_git,
+            rev: lock_rev,
+            dir: lock_dir,
+        },
+    })
+}
+
+/// Compare git revs: trim; for hex OIDs compare case-insensitively; allow prefix match
+/// when one side is a shortened OID of the other.
+fn revs_equal(a: &str, b: &str) -> bool {
+    let a = a.trim();
+    let b = b.trim();
+    if a == b {
+        return true;
+    }
+    let a_hex = is_hex_oid(a);
+    let b_hex = is_hex_oid(b);
+    if a_hex && b_hex {
+        let al = a.to_ascii_lowercase();
+        let bl = b.to_ascii_lowercase();
+        return al == bl || al.starts_with(&bl) || bl.starts_with(&al);
+    }
+    false
+}
+
+fn is_hex_oid(s: &str) -> bool {
+    let len = s.len();
+    (4..=40).contains(&len) && s.bytes().all(|c| c.is_ascii_hexdigit())
+}
+
 fn clone_repo(url: &str, dest: &Path, rev: &str) -> SyxResult<String> {
     let status = Command::new("git")
-        .args(["clone", "--depth", "1", url, &dest.to_string_lossy()])
+        .args([
+            "clone",
+            "-q",
+            "--depth",
+            "1",
+            url,
+            &dest.to_string_lossy(),
+        ])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
         .status()
         .map_err(|e| {
             pkg_error_at(
@@ -95,21 +262,31 @@ fn checkout_existing(dest: &Path, rev: &str) -> SyxResult<String> {
 }
 
 fn checkout_rev(dest: &Path, rev: &str) -> SyxResult<String> {
-    let fetch = Command::new("git")
+    let _ = Command::new("git")
         .args([
             "-C",
             &dest.to_string_lossy(),
             "fetch",
+            "-q",
             "--depth",
             "1",
             "origin",
             rev,
         ])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
         .status();
-    let _ = fetch;
 
     let status = Command::new("git")
-        .args(["-C", &dest.to_string_lossy(), "checkout", rev])
+        .args([
+            "-C",
+            &dest.to_string_lossy(),
+            "checkout",
+            "-q",
+            rev,
+        ])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
         .status()
         .map_err(|e| {
             pkg_error_at(
@@ -148,6 +325,8 @@ fn checkout_rev(dest: &Path, rev: &str) -> SyxResult<String> {
 pub fn git_available() -> bool {
     Command::new("git")
         .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
         .status()
         .map(|s| s.success())
         .unwrap_or(false)

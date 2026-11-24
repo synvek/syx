@@ -1515,3 +1515,271 @@ path = "../mixpkg"
     std::env::remove_var("SYX_INSTALL_LOCKED");
     unpin_test_trust_root();
 }
+
+/// Build an in-tree bare git repo fixture; returns (temp root, file:// bare URL, tip OID).
+fn c4a_make_git_fixture() -> (tempfile::TempDir, String, String) {
+    use std::process::{Command, Stdio};
+
+    let root = tempfile::tempdir().unwrap();
+    let src = root.path().join("demo-src");
+    std::fs::create_dir_all(&src).unwrap();
+    std::fs::write(
+        src.join("syx.toml"),
+        "name = \"demo\"\nversion = \"0.1.0\"\nmain = \"demo.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        src.join("demo.sy"),
+        "public func greet() -> Int { return 7 }",
+    )
+    .unwrap();
+    let quiet_git = |args: &[&str]| {
+        let status = Command::new("git")
+            .args(args)
+            .current_dir(&src)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .expect("git");
+        assert!(status.success(), "git {:?} failed", args);
+    };
+    quiet_git(&["init", "-q"]);
+    quiet_git(&["add", "."]);
+    quiet_git(&[
+        "-c",
+        "user.email=syx@test",
+        "-c",
+        "user.name=syx",
+        "commit",
+        "-q",
+        "-m",
+        "init",
+    ]);
+    let tip = String::from_utf8(
+        Command::new("git")
+            .args(["rev-parse", "HEAD"])
+            .current_dir(&src)
+            .output()
+            .expect("rev-parse")
+            .stdout,
+    )
+    .unwrap()
+    .trim()
+    .to_string();
+    let bare = root.path().join("demo.git");
+    let bare_status = Command::new("git")
+        .args([
+            "clone",
+            "-q",
+            "--bare",
+            src.to_str().unwrap(),
+            bare.to_str().unwrap(),
+        ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .expect("git clone --bare");
+    assert!(bare_status.success(), "git clone --bare failed");
+    let git_url = format!("file://{}", bare.canonicalize().unwrap().to_string_lossy());
+    (root, git_url, tip)
+}
+
+#[test]
+fn c4a_git_manifest_missing_rev_rejected() {
+    if !syx_pkg::git_available() {
+        eprintln!("git not available, skipping");
+        return;
+    }
+    let (root, git_url, _tip) = c4a_make_git_fixture();
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        format!(
+            r#"name = "app"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.demo]
+version = "0.1.0"
+git = "{git_url}"
+"#
+        ),
+    )
+    .unwrap();
+    std::fs::write(app.join("main.sy"), "import demo\nfunc main() {}").unwrap();
+    let err = install_project(&app).unwrap_err();
+    let msg = format!("{err}");
+    assert!(msg.contains("P043"), "got: {msg}");
+    assert!(msg.contains("git rev required"), "got: {msg}");
+    assert!(msg.contains("C-4a"), "got: {msg}");
+}
+
+#[test]
+fn c4a_locked_git_reuses_pin() {
+    if !syx_pkg::git_available() {
+        eprintln!("git not available, skipping");
+        return;
+    }
+    use std::process::Command;
+    use syx_pkg::{load_lockfile, PackageSource};
+
+    let (root, git_url, tip) = c4a_make_git_fixture();
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        format!(
+            r#"name = "app"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.demo]
+version = "0.1.0"
+git = "{git_url}"
+rev = "{tip}"
+"#
+        ),
+    )
+    .unwrap();
+    std::fs::write(
+        app.join("main.sy"),
+        "import demo\nfunc main() { print(demo.greet()) }",
+    )
+    .unwrap();
+    install_project(&app).expect("seed git install");
+
+    let lock_path = app.join("syx.lock");
+    let before_bytes = std::fs::read(&lock_path).unwrap();
+    let before = load_lockfile(&app).unwrap();
+    let lock_rev = match &before.packages["demo"].source {
+        PackageSource::Git { rev, .. } => rev.clone(),
+        other => panic!("expected git pin, got {other:?}"),
+    };
+
+    std::env::set_var("SYX_INSTALL_LOCKED", "1");
+    install_project(&app).expect("locked git reinstall");
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+
+    let after_bytes = std::fs::read(&lock_path).unwrap();
+    assert_eq!(
+        before_bytes, after_bytes,
+        "SYX_INSTALL_LOCKED must not rewrite syx.lock"
+    );
+
+    let after = load_lockfile(&app).unwrap();
+    let vendor_rel = match &after.packages["demo"].source {
+        PackageSource::Git { dir, .. } => dir.clone(),
+        other => panic!("expected git pin, got {other:?}"),
+    };
+    let vendor_path = app.join(&vendor_rel);
+    let vendor_out = Command::new("git")
+        .args(["-C", vendor_path.to_str().unwrap(), "rev-parse", "HEAD"])
+        .output()
+        .expect("vendor rev-parse");
+    assert!(
+        vendor_out.status.success(),
+        "rev-parse failed in {}: {}",
+        vendor_path.display(),
+        String::from_utf8_lossy(&vendor_out.stderr)
+    );
+    let vendor_head = String::from_utf8(vendor_out.stdout)
+        .unwrap()
+        .trim()
+        .to_string();
+    assert_eq!(
+        vendor_head, lock_rev,
+        "vendor HEAD must equal lock rev under locked install"
+    );
+}
+
+#[test]
+fn c4a_locked_git_rejects_missing_or_wrong_pin() {
+    if !syx_pkg::git_available() {
+        eprintln!("git not available, skipping");
+        return;
+    }
+    use syx_pkg::PackageSource;
+
+    let (root, git_url, tip) = c4a_make_git_fixture();
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        format!(
+            r#"name = "app"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.demo]
+version = "0.1.0"
+git = "{git_url}"
+rev = "{tip}"
+"#
+        ),
+    )
+    .unwrap();
+    std::fs::write(app.join("main.sy"), "import demo\nfunc main() {}").unwrap();
+    install_project(&app).expect("seed git install");
+
+    // Case 1: missing package in lock → P014
+    {
+        let lock_path = app.join("syx.lock");
+        let lock_text = std::fs::read_to_string(&lock_path).unwrap();
+        let marker = "[packages.demo]";
+        let Some(start) = lock_text.find(marker) else {
+            panic!("packages.demo missing");
+        };
+        let after = &lock_text[start..];
+        let next = after[marker.len()..]
+            .find("\n[")
+            .map(|i| start + marker.len() + i);
+        let end = next.unwrap_or(lock_text.len());
+        let mutated = format!("{}{}", &lock_text[..start], &lock_text[end..]);
+        std::fs::write(&lock_path, mutated).unwrap();
+
+        std::env::set_var("SYX_INSTALL_LOCKED", "1");
+        let err = install_project(&app).unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("P014"), "missing pin got: {msg}");
+        std::env::remove_var("SYX_INSTALL_LOCKED");
+    }
+
+    // Restore via unlocked reinstall.
+    install_project(&app).expect("restore lock");
+
+    // Case 2: wrong OID in lock → P014 (checkout fail or HEAD mismatch)
+    {
+        let lock = syx_pkg::load_lockfile(&app).unwrap();
+        let (git, dir) = match &lock.packages["demo"].source {
+            PackageSource::Git { git, dir, .. } => (git.clone(), dir.clone()),
+            other => panic!("expected git pin, got {other:?}"),
+        };
+        let lock_path = app.join("syx.lock");
+        let lock_text = std::fs::read_to_string(&lock_path).unwrap();
+        let bad_rev = "0000000000000000000000000000000000000000";
+        let mutated = lock_text
+            .lines()
+            .map(|l| {
+                let t = l.trim();
+                if t.starts_with("rev") && t.contains('=') {
+                    format!("rev = \"{bad_rev}\"")
+                } else {
+                    l.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(
+            mutated.contains(&git) && mutated.contains(&dir),
+            "mutated lock must retain git url/dir"
+        );
+        std::fs::write(&lock_path, mutated).unwrap();
+
+        std::env::set_var("SYX_INSTALL_LOCKED", "1");
+        let err = install_project(&app).unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("P014"), "wrong pin got: {msg}");
+        std::env::remove_var("SYX_INSTALL_LOCKED");
+    }
+}

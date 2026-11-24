@@ -180,6 +180,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `verify_mir_nil_branch_floor` / `verify_mir_nil_branch_floor_functions` — JumpIfNil condition must be Nil|Unknown; concrete Bool|Str|I32 → **MIR007**. Nil pops; Unknown left on stack (mir-run non-Nil path). Hooked after branch floor. Census: [`c-3g-mir-nil-branch-floor-census`](../census/c-3g-mir-nil-branch-floor-census.md). **≠** BeginTry/Throw pairing / ModuleId / full MirOp verifier.
 
+### C-4a (done · git rev pin + locked git install)
+
+Manifest git dependencies require explicit `rev` (missing → **P043**); never default to `main`. Under `SYX_INSTALL_LOCKED`, Git pins are read from `syx.lock` (URL/rev; missing/wrong → **P014**); lock bytes not rewritten. Census: [`c-4a-git-rev-pin-census`](../census/c-4a-git-rev-pin-census.md). **≠** default-locked install / publish-requires-lock / lock v16 trim (C-4b+).
+
 ## Next
 
-Default next after C-3g: **C-4** — Package default reproducibility (lockfile/git pin). C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-4a: **C-4b** — install defaults to locked when `syx.lock` exists (or formal `syx install --locked`). C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).

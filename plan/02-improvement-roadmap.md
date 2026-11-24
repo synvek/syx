@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-3g MIR JumpIfNil 条件 tag `[x]`**；C-3 `[~]`；默认下一 = **C-4**（Package 默认可复现）。
+> **最近更新：** 2026-11-24 · **C-4a git rev 钉死 + 锁定安装 `[x]`**；C-4 `[~]`；C-3 `[~]`；默认下一 = **C-4b**（有 lock 时 install 默认锁定 / `--locked`）。
 
 ## 0. 时代切换
 
@@ -110,9 +110,16 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 
 **验收（C-3g）：** concrete 非 optional 条件 → MIR007；合法 if-let/?? 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。ModuleId / 全量 MirOp / exception 继续 park。
 
-### C-4 · Package 默认可复现（P1） — `[ ]` **默认下一**
+### C-4 · Package 默认可复现（P1） — `[~]`
 
-lockfile / git 依赖默认钉死；publish 与测试顺序一致；失败路径可诊断。
+lockfile / git 依赖默认钉死；publish 与测试顺序一致；失败路径可诊断。**不**宣称 C-4 `[x]`。
+
+| 子项 | 状态 | 说明 |
+|------|------|------|
+| **C-4a** | `[x]` | Manifest git **强制 `rev`**（缺 → **P043**）；`SYX_INSTALL_LOCKED` 下 Git 从 `syx.lock` 钉死（缺/错 pin → **P014**；不重写 lock）；census [`c-4a-git-rev-pin-census`](../docs/census/c-4a-git-rev-pin-census.md) |
+| **C-4b** | `[ ]` | **默认下一**：有 `syx.lock` 时 install 默认等价锁定，或正式 `syx install --locked` 旗标（≠ 仅 env） |
+
+**验收（C-4a）：** 无 rev → P043；锁定 git 读 lock 且不漂；负向测绿；registry c04 回归绿；硬 KPI 不破；**不**宣称 C-4 `[x]`。默认全局锁定 / publish 强锁 / lock v16 裁剪 → C-4b+ park。
 
 ### C-5 · 宏 / embed 隔离诚实（P1） — `[ ]`
 
