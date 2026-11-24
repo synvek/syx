@@ -7,6 +7,7 @@
 //! Phase 20: Embed v6 — Linux wasmtime subprocess **real run** with fuel/timeout (ADR-014).
 //! Phase 21: Embed v7 — macOS wasmtime real run + `SYX_EMBED_CAPABILITIES` whitelist MVP (ADR-006 v7).
 //! Phase 22: Embed v8 — Windows wasmtime real run + `SYX_EMBED_DENY_UNKNOWN=1` capability hardening (ADR-006 v8).
+//! C-5b: when `SYX_EMBED_WASM_SANDBOX=1`, wasm failure/unavailable → null (no silent in-process).
 
 #![allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI entrypoints take raw pointers by design
 
@@ -100,10 +101,16 @@ fn embed_wasm_sandbox_wasmtime_available() -> bool {
         .unwrap_or(false)
 }
 
-/// Kept for ABI/tests: always allows in-process fallback when wasmtime is absent or blocked.
+/// C-5b: in-process fallback is allowed only when wasm sandbox is **not** requested.
+/// When `SYX_EMBED_WASM_SANDBOX=1`, callers must fail-closed (no silent in-process).
+pub fn embed_wasm_inprocess_fallback_allowed() -> bool {
+    !embed_wasm_sandbox_enabled()
+}
+
+/// Legacy name: whether in-process fallback is allowed (≠ “sandbox available”).
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 fn embed_wasm_sandbox_probe() -> bool {
-    true
+    embed_wasm_inprocess_fallback_allowed()
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -158,7 +165,7 @@ fn embed_wasmtime_real_run(source: &str) -> Option<EmbedResult> {
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 fn embed_wasm_sandbox_probe() -> bool {
-    true
+    embed_wasm_inprocess_fallback_allowed()
 }
 
 fn embed_timeout_ms() -> Option<u64> {
@@ -259,23 +266,30 @@ pub extern "C" fn syx_embed_v2_run(source: *const c_char) -> *mut SyxEmbedV2Resu
         Err(_) => return std::ptr::null_mut(),
     };
     let compile_ok = compile_file_from_source("embed_v2.sy", src).is_ok() as i32;
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    if embed_wasm_sandbox_wasmtime_available() {
-        if let Some(result) = embed_wasmtime_real_run(src) {
-            let mut line_ptrs: Vec<*mut c_char> = result
-                .printed
-                .into_iter()
-                .filter_map(|s| CString::new(s).ok().map(|c| c.into_raw()))
-                .collect();
-            let out = Box::new(SyxEmbedV2Result {
-                exit_code: result.exit_code,
-                line_count: line_ptrs.len() as i32,
-                lines: line_ptrs.as_mut_ptr(),
-                compile_ok,
-            });
-            std::mem::forget(line_ptrs);
-            return Box::into_raw(out);
+    // C-5b: opt-in wasm sandbox must not silently fall back to in-process.
+    if embed_wasm_sandbox_enabled() {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            if embed_wasm_sandbox_wasmtime_available() {
+                if let Some(result) = embed_wasmtime_real_run(src) {
+                    let mut line_ptrs: Vec<*mut c_char> = result
+                        .printed
+                        .into_iter()
+                        .filter_map(|s| CString::new(s).ok().map(|c| c.into_raw()))
+                        .collect();
+                    let out = Box::new(SyxEmbedV2Result {
+                        exit_code: result.exit_code,
+                        line_count: line_ptrs.len() as i32,
+                        lines: line_ptrs.as_mut_ptr(),
+                        compile_ok,
+                    });
+                    std::mem::forget(line_ptrs);
+                    return Box::into_raw(out);
+                }
+            }
         }
+        let _ = compile_ok;
+        return std::ptr::null_mut();
     }
     let result = if let Some(ms) = embed_timeout_ms() {
         let (tx, rx) = mpsc::channel();

@@ -8,6 +8,7 @@ Audit of `SYX_*` variables after GB config LTS. Status: **cli** (replaced by fla
 | `SYX_JIT_FASTPATH` | deprecated | `syx --jit-fastpath` |
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox` (soft HTTP deny; **not** OS isolation — [threat-model](adr/macro-embed-threat-model.md)) |
+| `SYX_EMBED_WASM_SANDBOX` | opt-in | wasmtime path; failure/unavailable → `syx_embed_v2_run` **null** (C-5b; ≠ OS isolation) |
 | `SYX_EMBED_SECCOMP` | probe | label/probe only until wired; ≠ hardening GA |
 | `SYX_MACRO_SECCOMP` | probe | mode → `seccomp-label-unwired`; ≠ seccomp GA |
 | `SYX_EMBED_TIMEOUT_MS` | deprecated | `syx --embed-timeout-ms` |

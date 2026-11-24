@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: SYX_EMBED_WASM_SANDBOX=1 fail-closed on wasm miss/fail (no silent in-process) (C-5b)
 - docs: macro/embed threat-model ADR; scrub false sandbox isolation claims; seccomp-label-unwired (C-5a)
 - feat: path deps write directory content hash; Locked install mismatch → P014 (C-4e); C-4 exited
 - fix: graph_to_lockfile omits CDN/farm/billing env snapshots from default syx.lock (C-4d)

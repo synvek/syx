@@ -204,6 +204,10 @@ Manifest git dependencies require explicit `rev` (missing → **P043**); never d
 
 ADR [`macro-embed-threat-model.md`](../adr/macro-embed-threat-model.md): macro = reexec-only; embed flags = soft/HTTP deny; permission-sandbox = HostFn S024; `*SECCOMP*` = label/probe. Public claim scrub + `macro_sandbox_mode` → `seccomp-label-unwired`. Census: [`c-5a-threat-model-census`](../census/c-5a-threat-model-census.md). C-5 remains `[~]` (≠ `[x]`). **≠** embed wasm fail-closed / real seccomp (C-5b+).
 
+### C-5b (done · embed wasm fail-closed)
+
+When `SYX_EMBED_WASM_SANDBOX=1`, `syx_embed_v2_run` returns **null** if wasmtime is unavailable or the wasm run fails — **no** silent `compile_and_run_embedded` fallback. Unset env keeps default in-process. Census: [`c-5b-embed-wasm-fail-closed-census`](../census/c-5b-embed-wasm-fail-closed-census.md). C-5 remains `[~]`. **≠** timeout wire / real seccomp (C-5c+) / C-5 `[x]`.
+
 ## Next
 
-Default next after C-5a: **C-5b** — embed wasm failure fail-closed (no silent in-process fallback). C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-5b: **C-6** — version/capability single SSOT. C-5 remains `[~]` (C-5a…C-5b; timeout/seccomp → C-5c+ park). **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).

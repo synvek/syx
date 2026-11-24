@@ -87,6 +87,60 @@ fn seccomp_no_fallback() {
 }
 
 #[test]
+fn c5b_wasm_sandbox_fail_closed_without_wasmtime() {
+    use std::ffi::CString;
+    use syx_driver::embed_v2::{
+        embed_wasm_inprocess_fallback_allowed, syx_embed_v2_free, syx_embed_v2_run,
+    };
+
+    // Deny wasmtime via capability list so fail-closed does not depend on PATH.
+    std::env::set_var("SYX_EMBED_WASM_SANDBOX", "1");
+    std::env::set_var("SYX_EMBED_CAPABILITIES", "print");
+    std::env::remove_var("SYX_EMBED_DENY_UNKNOWN");
+
+    assert!(
+        !embed_wasm_inprocess_fallback_allowed(),
+        "C-5b: WASM_SANDBOX=1 must forbid in-process fallback"
+    );
+
+    let src = CString::new("func main() { print(1) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    assert!(
+        ptr.is_null(),
+        "C-5b: SYX_EMBED_WASM_SANDBOX=1 with wasmtime unavailable must return null"
+    );
+    syx_embed_v2_free(ptr);
+
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_CAPABILITIES");
+}
+
+#[test]
+fn c5b_default_still_inprocess() {
+    use std::ffi::CString;
+    use syx_driver::embed_v2::{
+        embed_wasm_inprocess_fallback_allowed, syx_embed_v2_free, syx_embed_v2_run,
+    };
+
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_CAPABILITIES");
+    assert!(
+        embed_wasm_inprocess_fallback_allowed(),
+        "default must allow in-process"
+    );
+
+    let src = CString::new("func main() { print(42) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    assert!(
+        !ptr.is_null(),
+        "C-5b: without WASM_SANDBOX, in-process embed must still succeed"
+    );
+    let result = unsafe { &*ptr };
+    assert_eq!(result.exit_code, 0);
+    syx_embed_v2_free(ptr);
+}
+
+#[test]
 fn object_drop_llvm_abi() {
     let src = std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../syx-llvm/src/lib.rs"),

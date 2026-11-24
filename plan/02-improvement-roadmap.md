@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-5a threat-model `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-5b**（embed wasm 禁静默回退）。
+> **最近更新：** 2026-11-24 · **C-5b embed wasm fail-closed `[x]`**；C-5 `[~]`（C-5a…C-5b）；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-6**（version/capability SSOT）。
 
 ## 0. 时代切换
 
@@ -131,9 +131,9 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 | 子项 | 状态 | 说明 |
 |------|------|------|
 | **C-5a** | `[x]` | threat-model ADR + 公开面假 sandbox 降级；`macro_sandbox_mode` → `seccomp-label-unwired`；census [`c-5a-threat-model-census`](../docs/census/c-5a-threat-model-census.md) |
-| **C-5b** | `[ ]` | **默认下一**：embed wasm 失败 **fail-closed**（禁静默 in-process） |
+| **C-5b** | `[x]` | `SYX_EMBED_WASM_SANDBOX=1` 时 wasm 失败/不可用 → `syx_embed_v2_run` **null**（禁静默 in-process）；census [`c-5b-embed-wasm-fail-closed-census`](../docs/census/c-5b-embed-wasm-fail-closed-census.md) |
 
-**验收（C-5a）：** 公开面不再把 reexec / embed flag 写成 security isolation；ADR 为 SSOT；mode 无假 `"seccomp"`；硬 KPI 不破；**不**宣称 C-5 `[x]`。真 seccomp / WASI → park。
+**验收（C-5b）：** WASM_SANDBOX=1 且 wasmtime 不可用 → null；未设 env → in-process 仍绿；ADR/env-registry 对齐；硬 KPI 不破；**不**宣称 C-5 `[x]`。timeout/seccomp 真接线 → **C-5c+** park。默认下一 → **C-6**。
 
 ### C-6 · Version / capability 单一 SSOT（P1） — `[ ]`
 
