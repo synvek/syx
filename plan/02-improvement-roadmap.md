@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-3c MirFnIndex / FuncId `[x]`**；C-3 `[~]`；默认下一 = **C-3d**（薄 stack-height 地板）。
+> **最近更新：** 2026-11-24 · **C-3d MIR stack-height floor `[x]`**；C-3 `[~]`；默认下一 = **C-3e**（薄 type-tag 地板）。
 
 ## 0. 时代切换
 
@@ -103,9 +103,10 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3a** | `[x]` | 禁止 codegen 静默 quality 选同名 MIR body → MIR001 fail-closed；同名 overload 上游 arity 唯一化；census [`c-3a-mir-quality-demote-census`](../docs/census/c-3a-mir-quality-demote-census.md) |
 | **C-3b** | `[x]` | 薄 verifier 地板：`verify_mir_cfg_floor` → MIR002（entry / OOB jump·successor / missing terminator）；挂钩 unify + codegen；census [`c-3b-mir-cfg-floor-census`](../docs/census/c-3b-mir-cfg-floor-census.md) |
 | **C-3c** | `[x]` | 薄 `FuncId` / `MirFnIndex`（按名→稠密 id）→ MIR003；挂钩 unify + codegen；Call 缺名 fail-closed；census [`c-3c-mir-fn-index-census`](../docs/census/c-3c-mir-fn-index-census.md) |
-| **C-3d** | `[ ]` **默认下一** | 薄 stack-height 地板：suite1/pilot MirOp 子集有界栈深（≠ 全量 type/exception verifier） |
+| **C-3d** | `[x]` | 薄 stack-height 地板：`verify_mir_stack_floor` → MIR004（suite1/pilot 子集；CallHost/非 pilot 放弃该流）；挂钩 unify + codegen（CFG+FnIndex 之后）；census [`c-3d-mir-stack-floor-census`](../docs/census/c-3d-mir-stack-floor-census.md) |
+| **C-3e** | `[ ]` **默认下一** | 薄 type-tag 地板：suite1 Const/算术结果种类有界（≠ 全语义类型系统） |
 
-**验收（C-3c）：** name→FuncId 可建可查；重复名/缺 callee → MIR003；合法流水线不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。
+**验收（C-3d）：** pilot 子集 underflow → MIR004；合法流水线不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。
 
 ### C-4 · Package 默认可复现（P1） — `[ ]`
 

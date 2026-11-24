@@ -164,6 +164,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `FuncId` + `MirFnIndex::build/require` — dense name→id table; duplicate name / unknown Call callee → **MIR003**. Hooked after CFG floor on unify + codegen; Call resolve fail-closed (no fn-0 bind). Census: [`c-3c-mir-fn-index-census`](../census/c-3c-mir-fn-index-census.md). **≠** ModuleId graph / Call(FuncId) IR rewrite / full MirOp verifier.
 
+### C-3d (done · MIR stack-height floor)
+
+`verify_mir_stack_floor` / `verify_mir_stack_floor_functions` — suite1/pilot value-stack height; underflow → **MIR004**. Hooked after CFG + FnIndex on unify + codegen (post-unique bodies). CallHost / non-pilot abandon stream; Return empty = mir-run Nil pad. Census: [`c-3d-mir-stack-floor-census`](../census/c-3d-mir-stack-floor-census.md). **≠** cross-block join φ / full type / exception verifier.
+
 ## Next
 
-Default next after C-3c: **C-3d** — thin stack-height floor (suite1/pilot MirOp subset). C-3 remains `[~]` until fuller verifier.
+Default next after C-3d: **C-3e** — thin type-tag floor (suite1 Const/arith kinds). C-3 remains `[~]` until fuller verifier.

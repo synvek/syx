@@ -741,6 +741,8 @@ impl CodeGenerator {
         // C-3c: identity table over unique MIR bodies (name → dense FuncId).
         let _mir_fn_index =
             syx_mir::MirFnIndex::build_from_functions(best_by_name.values().copied())?;
+        // C-3d: pilot stack-height floor on post-unique bodies (MIR004).
+        syx_mir::verify_mir_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

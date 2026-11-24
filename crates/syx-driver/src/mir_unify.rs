@@ -616,6 +616,8 @@ pub fn build_unified_mir(
     // C-3c: name → FuncId table after finalize + CFG floor (order == functions).
     // Table is rebuilt by consumers; build here fail-closes duplicate names.
     let _fn_index = syx_mir::MirFnIndex::build(&mir)?;
+    // C-3d: pilot value-stack height floor (MIR004) after CFG + FnIndex.
+    syx_mir::verify_mir_stack_floor(&mir)?;
     Ok(mir)
 }
 
