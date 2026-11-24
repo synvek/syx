@@ -65,9 +65,11 @@ fn s2_07_plan_claim_locked() {
         "claim evidence: build.rs must still inject CARGO_PKG_VERSION"
     );
 
+    let v = env!("CARGO_PKG_VERSION");
     let manifest = repo_file("packages/internal/manifest.json");
+    let want = format!("\"version\": \"{v}\"");
     assert!(
-        manifest.contains("\"version\": \"0.2.3\"") || manifest.contains("\"version\":\"0.2.3\""),
-        "claim evidence: manifest version must remain 0.2.3"
+        manifest.contains(&want) || manifest.contains(&format!("\"version\":\"{v}\"")),
+        "claim evidence: manifest version must match CARGO_PKG_VERSION ({v})"
     );
 }

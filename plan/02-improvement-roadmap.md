@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-5b embed wasm fail-closed `[x]`**；C-5 `[~]`（C-5a…C-5b）；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-6**（version/capability SSOT）。
+> **最近更新：** 2026-11-24 · **C-6a version SSOT `[x]`**；C-6 `[~]`；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-6b**（gen 从 Cargo 读 syx_version）。
 
 ## 0. 时代切换
 
@@ -135,9 +135,16 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 
 **验收（C-5b）：** WASM_SANDBOX=1 且 wasmtime 不可用 → null；未设 env → in-process 仍绿；ADR/env-registry 对齐；硬 KPI 不破；**不**宣称 C-5 `[x]`。timeout/seccomp 真接线 → **C-5c+** park。默认下一 → **C-6**。
 
-### C-6 · Version / capability 单一 SSOT（P1） — `[ ]`
+### C-6 · Version / capability 单一 SSOT（P1） — `[~]`
 
-消除 0.1.3 / 0.2.x / 0.3.0 多源漂移；生成 `capability` / banner / crate version 同源。
+消除多源漂移；`capability` / banner / crate version 同源。**不**宣称 C-6 `[x]`。
+
+| 子项 | 状态 | 说明 |
+|------|------|------|
+| **C-6a** | `[x]` | Cargo `[workspace.package].version` = 公开 SSOT；对齐 banner / plan/01 / capability `syx_version`；credibility+R-49 跟 `V`；census [`c-6a-version-ssot-census`](../docs/census/c-6a-version-ssot-census.md) |
+| **C-6b** | `[ ]` | **默认下一**：`gen_capabilities.py` / IR gen 从 Cargo 读 `syx_version`；扩面自动对齐 |
+
+**验收（C-6a）：** 公开 banner / capability / plan/01 / manifest = Cargo `V`；旧 0.2.x 反闸已改；硬 KPI 不破；**不**宣称 C-6 `[x]`。
 
 ### C-7 · 测试信号与维护成本（P2） — `[ ]`
 

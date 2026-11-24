@@ -40,10 +40,12 @@ fn s2_07_inject_cargo_pkg_version_locked() {
         "build.rs must not hardcode marketing 117.0 version"
     );
 
+    let v = env!("CARGO_PKG_VERSION");
     let manifest = repo_file("packages/internal/manifest.json");
+    let want_manifest = format!("\"version\": \"{v}\"");
     assert!(
-        manifest.contains("\"version\": \"0.2.3\"") || manifest.contains("\"version\":\"0.2.3\""),
-        "checked-in manifest version must be 0.2.3"
+        manifest.contains(&want_manifest) || manifest.contains(&format!("\"version\":\"{v}\"")),
+        "checked-in manifest version must match CARGO_PKG_VERSION ({v})"
     );
     assert!(
         !manifest.contains("\"version\": \"117.0\""),
@@ -52,8 +54,8 @@ fn s2_07_inject_cargo_pkg_version_locked() {
 
     let caps = repo_file("packages/internal/capabilities.toml");
     assert!(
-        caps.contains("syx_version = \"0.2.3\""),
-        "capabilities syx_version must be 0.2.3"
+        caps.contains(&format!("syx_version = \"{v}\"")),
+        "capabilities syx_version must match CARGO_PKG_VERSION ({v})"
     );
 
     let smoke = repo_file("crates/syx-driver/tests/evergreen/smoke.rs");
@@ -68,10 +70,12 @@ fn s2_07_inject_cargo_pkg_version_locked() {
         "version census Current must name S2-I264"
     );
 
-    // Plan S2-07 status is owned by s2_07_claim_contract after S2-I265.
+    // C-6a: live roadmap cites version SSOT; historical S2-I264 remains in ADR.
     let plan02 = repo_file("plan/02-improvement-roadmap.md");
     assert!(
-        plan02.contains("S2-I264") || plan02.contains("stage2-s2-07-inject-cargo-pkg-version"),
-        "plan/02 must cite S2-I264 inject"
+        plan02.contains("C-6a")
+            || plan02.contains("S2-I264")
+            || plan02.contains("stage2-s2-07-inject-cargo-pkg-version"),
+        "plan/02 must cite C-6a version SSOT or historical S2-I264 inject"
     );
 }

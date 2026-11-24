@@ -2,7 +2,7 @@
 
 # Capability matrix (generated · schema syx-capability-v0)
 
-> SYX **0.2.3** · phase **139** · manifest v0.1
+> SYX **0.4.0** · phase **139** · manifest v0.1
 
 | ID | Feature | Status | VM | MIR | Native | WASM | Notes |
 |----|---------|--------|----|-----|--------|------|-------|

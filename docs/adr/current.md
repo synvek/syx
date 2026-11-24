@@ -2,7 +2,7 @@
 
 **Living decisions for open-source readers.** Prefer this list over the historical mega-ledger [`architecture-decisions.md`](architecture-decisions.md) (transition only; many retired `native/` / `lang/` links unrepaired by design).
 
-Crate / docs banner version: **0.2.0**.
+Crate / docs banner version: **0.4.0** (Cargo workspace SSOT · C-6a).
 
 | # | Doc | Role |
 |---|-----|------|

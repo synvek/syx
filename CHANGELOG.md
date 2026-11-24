@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- docs: Cargo workspace version as public SSOT; align banners/capability/plan (C-6a)
 - fix: SYX_EMBED_WASM_SANDBOX=1 fail-closed on wasm miss/fail (no silent in-process) (C-5b)
 - docs: macro/embed threat-model ADR; scrub false sandbox isolation claims; seccomp-label-unwired (C-5a)
 - feat: path deps write directory content hash; Locked install mismatch → P014 (C-4e); C-4 exited

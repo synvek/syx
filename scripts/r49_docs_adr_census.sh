@@ -16,10 +16,16 @@ python3 - <<'PY' || die "version / shortlist gate failed"
 from pathlib import Path
 import re
 
+cargo = Path("Cargo.toml").read_text(encoding="utf-8")
+m = re.search(r'\[workspace\.package\][\s\S]*?^version\s*=\s*"([^"]+)"', cargo, re.M)
+if not m:
+    raise SystemExit("missing workspace.package version")
+V = m.group(1)
+
 for p in (Path("docs/README.md"), Path("docs/zh/README.zh-CN.md"), Path("books/README.md")):
     t = p.read_text(encoding="utf-8")
-    if "0.2.0" not in t:
-        raise SystemExit(f"{p}: missing 0.2.0")
+    if V not in t:
+        raise SystemExit(f"{p}: missing workspace version {V}")
     # forbid current-banner lies (allow quoting obsolete in architecture-decisions only)
     if "117.0" in t or "Phase 139" in t or "Phase **139**" in t:
         raise SystemExit(f"{p}: still contains 117.0 / Phase 139")
@@ -54,7 +60,7 @@ census = Path("docs/census/r-49-docs-adr-census.md")
 if not census.is_file():
     raise SystemExit("missing docs/census/r-49-docs-adr-census.md")
 ct = census.read_text(encoding="utf-8")
-for needle in ("R-49", "0.2.0", "current.md", "scoped", "≠", "15", "JIT"):
+for needle in ("R-49", "current.md", "scoped", "≠", "15", "JIT"):
     if needle not in ct:
         raise SystemExit(f"r-49 census missing {needle}")
 print("r49_census_doc=1")

@@ -8,9 +8,9 @@ This directory contains three English Markdown eBooks for SYX language users and
 | **SYX Language Reference** | [language-reference/](language-reference/) | Formal reference for lexical structure, syntax, types, declarations, patterns and attributes |
 | **SYX Standard Library Guide** | [library-guide/](library-guide/) | The embedded-package user surface: `import Numerics` / `Os` / `Log` / `IO`, …; honest boundaries and repository examples |
 
-Shared resource: [shared/implementation-status.md](shared/implementation-status.md) — the **current** master feature implementation status table (SYX **0.2.0**).
+Shared resource: [shared/implementation-status.md](shared/implementation-status.md) — the **current** master feature implementation status table (SYX **0.4.0**).
 
-**Version alignment:** SYX **0.2.0** · cache `syx-cache-v1` · audit 2600/3050 · current ADRs in [docs/adr/current.md](../docs/adr/current.md) · historical ledger [docs/adr/architecture-decisions.md](../docs/adr/architecture-decisions.md)
+**Version alignment:** SYX **0.4.0** (Cargo workspace SSOT) · cache `syx-cache-v1` · audit 2600/3050 · current ADRs in [docs/adr/current.md](../docs/adr/current.md) · historical ledger [docs/adr/architecture-decisions.md](../docs/adr/architecture-decisions.md)
 
 ## Reading Recommendations
 
@@ -83,9 +83,9 @@ Items prefixed with "**partial GA**" delivered a minimal working subset in that 
 | `docs/1–5_*.md` | Compiler implementation technical documentation (in 1→2→3→4→5 order) |
 | `packages/README.md` | Embedded standard library (`import DI` / `import System` / `import UI`, …) |
 
-## Current capability summary (SYX 0.2.0)
+## Current capability summary (SYX 0.4.0)
 
-- **Gate0:** audit **2600/3050**; crate **0.2.0**; EXCLUDE historical behavioral fill
+- **Gate0:** audit **2600/3050**; crate **0.4.0**; EXCLUDE historical behavioral fill
 - **Language surface:** multiline / tuple / nested path / closed range / Character / call labels (see status for details)
 - **GUI:** SynUI deferred (not GA)
 - **Farm/Dist:** frozen at v19

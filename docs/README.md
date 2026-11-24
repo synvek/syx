@@ -4,7 +4,7 @@
 
 Docs for the **Rust SYX compiler toolchain** (`crates/`). For install / CLI / stdlib, prefer [9_UsageGuide.md](./9_UsageGuide.md) and [books/](../books/).
 
-> **Current version:** SYX **0.2.0** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · license [Apache-2.0](../LICENSE)  
+> **Current version:** SYX **0.4.0** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥3050 · license [Apache-2.0](../LICENSE)  
 > **Native AOT:** LLVM sole · **Implementation status SSOT:** [books/shared/implementation-status.md](../books/shared/implementation-status.md)  
 > **Architecture (current):** [adr/current.md](./adr/current.md) · historical ledger: [adr/architecture-decisions.md](./adr/architecture-decisions.md)
 
@@ -80,9 +80,9 @@ examples/            # sample programs
 
 - Rust 1.85+ · Cargo workspace · macOS / Linux / Windows
 
-## Current version (SYX 0.2.0)
+## Current version (SYX 0.4.0)
 
-- **Language / crate:** **0.2.0** (Cargo workspace) · MIR cache `syx-cache-v1`
+- **Language / crate:** **0.4.0** (Cargo workspace SSOT) · MIR cache `syx-cache-v1`
 - **Current ADRs:** [adr/current.md](./adr/current.md) · historical: [adr/architecture-decisions.md](./adr/architecture-decisions.md)
 - **Native:** LLVM only
 - **Audit:** driver ≥2600 · LSP ≥3050 (see `scripts/audit_behavioral_tests.sh`)

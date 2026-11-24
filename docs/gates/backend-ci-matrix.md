@@ -208,6 +208,10 @@ ADR [`macro-embed-threat-model.md`](../adr/macro-embed-threat-model.md): macro =
 
 When `SYX_EMBED_WASM_SANDBOX=1`, `syx_embed_v2_run` returns **null** if wasmtime is unavailable or the wasm run fails — **no** silent `compile_and_run_embedded` fallback. Unset env keeps default in-process. Census: [`c-5b-embed-wasm-fail-closed-census`](../census/c-5b-embed-wasm-fail-closed-census.md). C-5 remains `[~]`. **≠** timeout wire / real seccomp (C-5c+) / C-5 `[x]`.
 
+### C-6a (done · version SSOT align)
+
+Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md). C-6 remains `[~]` (≠ `[x]`). **≠** gen scripts auto-read Cargo (C-6b).
+
 ## Next
 
-Default next after C-5b: **C-6** — version/capability single SSOT. C-5 remains `[~]` (C-5a…C-5b; timeout/seccomp → C-5c+ park). **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-6a: **C-6b** — capability gen scripts read `syx_version` from Cargo / expand auto-align. C-6 remains `[~]`. C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).
