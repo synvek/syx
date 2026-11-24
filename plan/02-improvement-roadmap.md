@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-6b gen-from-Cargo `[x]`**；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-7**（测试信号与维护成本）。
+> **最近更新：** 2026-11-24 · **C-7a fuzz honesty `[x]`**；C-7 `[~]`；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-7b**（soft step `exit 0` → fail-closed）。
 
 ## 0. 时代切换
 
@@ -147,9 +147,17 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 **验收（C-6a）：** 公开 banner / capability / plan/01 / manifest = Cargo `V`；旧 0.2.x 反闸已改；硬 KPI 不破。  
 **验收（C-6b）：** 改 Cargo 后跑 gen → TOML+generated 跟新 `V`；`--check` 在 TOML/生成物漂移时 fail；无 `117.0` 缺省；硬 KPI 不破；**C-6 `[x]`**。默认下一 → **C-7**。
 
-### C-7 · 测试信号与维护成本（P2） — `[ ]`
+### C-7 · 测试信号与维护成本（P2） — `[~]`
 
-矩阵分 shard；fuzz/benchmark 真失败信号；巨型模块拆分；实验 scaffold 移出 stable。
+矩阵分 shard；fuzz/benchmark 真失败信号；巨型模块拆分；实验 scaffold 移出 stable。**不**宣称 C-7 `[x]`。
+
+| 子项 | 状态 | 说明 |
+|------|------|------|
+| **C-7a** | `[x]` | `syx_smoke` 经 `syx-lexer` 真消费；required CI `fuzz-smoke` `-runs=1`；UsageGuide CI met 对齐；census [`c-7a-fuzz-honesty-census`](../docs/census/c-7a-fuzz-honesty-census.md) |
+| **C-7b** | `[ ]` | **默认下一**：soft job 内失败后 `exit 0` → fail-closed（job 仍 soft） |
+| **C-7c+** | `[-]` park | count-gate 三套地板对齐；Farm/CDN scaffold 外移；多 fuzz target |
+
+**验收（C-7a）：** target 消费输入；`ci.yml` 含 `cargo fuzz` + `syx_smoke` + `-runs=1`；UsageGuide「CI met」与 yaml 一致；硬 KPI 不破；**不**宣称 C-7 `[x]`。默认下一 → **C-7b**。
 
 ### C-8 · 反馈质量 / 文档诚实（P2–P3） — `[ ]`
 

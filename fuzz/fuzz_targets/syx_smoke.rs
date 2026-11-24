@@ -1,10 +1,16 @@
-//! W948 / ADR-1292: C-09 fuzz scaffold first-slice — minimal `syx_smoke` target.
-//! Accepts bytes and never panics. ≠ language-guided fuzz / ≠ CI fuzz / ≠ scaffold GA.
+//! C-7a / W948 lineage: `syx_smoke` fuzz target.
+//! Consumes input via `syx-lexer` (UTF-8 → `scan_all`).
+//! ≠ language-guided fuzz / ≠ unbounded fuzz GA / ≠ multi-target suite.
 
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
+use syx_lexer::Lexer;
 
-fuzz_target!(|_data: &[u8]| {
-    // Smoke-only: accept input, no crash. Full compiler/driver fuzz is a later window.
+fuzz_target!(|data: &[u8]| {
+    let Ok(s) = std::str::from_utf8(data) else {
+        return;
+    };
+    // Lexer returns SyxResult on lexical errors — do not unwrap/panic on Err.
+    let _ = Lexer::from_str("<fuzz>", s).scan_all();
 });

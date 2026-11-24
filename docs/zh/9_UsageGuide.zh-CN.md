@@ -164,7 +164,7 @@ syx init my-app          # 生成 main.sy + build.syb + syx.toml
 | `syx test [path]` | 运行 `tests/**/*.sy`（递归；`--filter` / `--format human\|json\|tap\|junit`）；或单个 `.sy` | `syx test . --format junit` |
 | `syx bench` / `cargo bench -p syx-driver --bench …` | C-09 窄 `[x]`：薄 allowlist CLI + Criterion / `compile_bench`（≠ coverage gate / fuzz / SLA） | `syx bench --list` · `syx bench path_join_criterion` |
 | `syx cov` / `cargo llvm-cov -p syx-driver --test native --no-report` | C-09 coverage 窄 claimed（；文档 + CLI；≠ % gate / ≠ CI fail / ≠ fuzz） | `syx cov`（需本机 `cargo-llvm-cov`） |
-| `syx fuzz` / `cargo fuzz run syx_smoke` | C-09 fuzz 窄 claimed + scaffold + CI `-runs=1` + C-09/平台维护地板（；≠ scaffold GA / ≠ 无界 fuzz） | `syx fuzz`（需 cargo-fuzz；CI **met** ；维护 **met**） |
+| `syx fuzz` / `cargo fuzz run syx_smoke` | C-7a：`syx_smoke` lexer 真消费 + required CI job `fuzz-smoke`（`-runs=1`；≠ scaffold GA / ≠ 无界 fuzz / ≠ 多 target） | `syx fuzz`（需 cargo-fuzz；CI **met** = `fuzz-smoke`） |
 | `syx prop` / `cargo test -p syx-driver --test property_smoke` | C-09 property 窄 claimed + `property_smoke` + CI first-slice + C-09/平台维护地板（；≠ proptestest GA / ≠ `c09_property_ci_ga`） | `syx prop` |
 | `syx format [path]` | 格式化入口文件 | `syx format .` |
 | `syx format --check [path]` | dry-run：递归检查 `.sy` 幂等（不写盘；C-06） | `syx format --check .` |
@@ -1373,18 +1373,18 @@ cargo llvm-cov -p syx-driver --test native --no-report
 
 详见 [plan/topics/syx-coverage.md](../../plan/topics/syx-coverage.md) 与 [docs/lang/c09-syx-coverage-stub-first-slice.md](../lang/c09-syx-coverage-stub-first-slice.md)。
 
-### Fuzz 入口（C-09 residual · CI + / 维护）
+### Fuzz 入口（C-7a · 真消费 + 有界 CI）
 
-产品 CLI 与等价 cargo（`fuzz/` scaffold **已交**；PR CI **有界钉** `-runs=1`； C-09 维护 + 平台维护地板 **已签**；**≠** scaffold GA **≠** 无界 fuzz）：
+产品 CLI / cargo（`syx_smoke` 经 `syx-lexer` **真消费** UTF-8；PR required job **`fuzz-smoke`** 跑 `cargo +nightly fuzz run syx_smoke -- -runs=1`；**≠** scaffold GA **≠** 无界 fuzz **≠** 多 target）：
 
 ```bash
 syx fuzz
 
-# 等价（需本机 cargo-fuzz）
-cargo fuzz run syx_smoke
+# 等价（需本机 cargo-fuzz + nightly）
+cargo +nightly fuzz run syx_smoke
 
-# 有界 smoke（PR CI 硬门；）
-cargo fuzz run syx_smoke -- -runs=1
+# 有界 smoke（PR CI 硬门：fuzz-smoke）
+cargo +nightly fuzz run syx_smoke -- -runs=1
 ```
 
 详见 [plan/topics/syx-fuzz.md](../../plan/topics/syx-fuzz.md)、[docs/lang/c09-syx-fuzz-stub-first-slice.md](../lang/c09-syx-fuzz-stub-first-slice.md)、[docs/lang/c09-syx-residual-maintenance-first-slice.md](../lang/c09-syx-residual-maintenance-first-slice.md) 与 [docs/lang/platform-residual-maintenance-first-slice.md](../lang/platform-residual-maintenance-first-slice.md)。

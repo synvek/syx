@@ -9,6 +9,10 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
+syx-lexer = { path = "../crates/syx-lexer" }
+
+[workspace]
+members = ["."]
 
 [[bin]]
 name = "syx_smoke"

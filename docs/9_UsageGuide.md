@@ -164,7 +164,7 @@ syx init my-app          # generates main.sy + build.syb + syx.toml
 | `syx test [path]` | Run `tests/**/*.sy` (recursive; `--filter` / `--format human\|json\|tap\|junit`); or a single `.sy` | `syx test . --format junit` |
 | `syx bench` / `cargo bench -p syx-driver --bench …` | C-09 narrow `[x]`: thin allowlist CLI + Criterion / `compile_bench` (≠ coverage gate / fuzz / SLA) | `syx bench --list` · `syx bench path_join_criterion` |
 | `syx cov` / `cargo llvm-cov -p syx-driver --test native --no-report` | C-09 coverage narrow claimed (docs + CLI; ≠ % gate / ≠ CI fail / ≠ fuzz) | `syx cov` (requires local `cargo-llvm-cov`) |
-| `syx fuzz` / `cargo fuzz run syx_smoke` | C-09 fuzz narrow claimed + scaffold + CI `-runs=1` + C-09/platform maintenance floor (≠ scaffold GA / ≠ unbounded fuzz) | `syx fuzz` (requires cargo-fuzz; CI **met**; maintenance **met**) |
+| `syx fuzz` / `cargo fuzz run syx_smoke` | C-7a: lexer-consume `syx_smoke` + required CI job `fuzz-smoke` (`-runs=1`; ≠ scaffold GA / ≠ unbounded fuzz / ≠ multi-target) | `syx fuzz` (requires cargo-fuzz; CI **met** via `fuzz-smoke`) |
 | `syx prop` / `cargo test -p syx-driver --test property_smoke` | C-09 property narrow claimed + `property_smoke` + CI first-slice + C-09/platform maintenance floor (≠ proptestest GA / ≠ `c09_property_ci_ga`) | `syx prop` |
 | `syx format [path]` | Format the entry file | `syx format .` |
 | `syx format --check [path]` | dry-run: recursively check `.sy` idempotence (no disk writes; C-06) | `syx format --check .` |
@@ -1371,18 +1371,18 @@ cargo llvm-cov -p syx-driver --test native --no-report
 
 See [plan/topics/syx-coverage.md](../plan/topics/syx-coverage.md) with [docs/lang/c09-syx-coverage-stub-first-slice.md](lang/c09-syx-coverage-stub-first-slice.md).
 
-### Fuzz entry (C-09 residual · CI + / maintenance)
+### Fuzz entry (C-7a · consume + bounded CI)
 
-product CLI withEquivalent cargo (`fuzz/` scaffold **delivered**; PR CI **bounded pin** `-runs=1`; C-09 maintenance + platform maintenance floor **signed**; **≠** scaffold GA **≠** unbounded fuzz): 
+product CLI / cargo (`syx_smoke` **consumes** UTF-8 via `syx-lexer`; PR required job **`fuzz-smoke`** runs `cargo +nightly fuzz run syx_smoke -- -runs=1`; **≠** scaffold GA **≠** unbounded fuzz **≠** multi-target):
 
 ```bash
 syx fuzz
 
-# etc. (requires local cargo-fuzz)
-cargo fuzz run syx_smoke
+# equivalent (requires local cargo-fuzz + nightly)
+cargo +nightly fuzz run syx_smoke
 
-# bounded smoke (PR CI hard gate;)
-cargo fuzz run syx_smoke -- -runs=1
+# bounded smoke (PR CI hard gate: fuzz-smoke)
+cargo +nightly fuzz run syx_smoke -- -runs=1
 ```
 
 See [plan/topics/syx-fuzz.md](../plan/topics/syx-fuzz.md), [docs/lang/c09-syx-fuzz-stub-first-slice.md](lang/c09-syx-fuzz-stub-first-slice.md), [docs/lang/c09-syx-residual-maintenance-first-slice.md](lang/c09-syx-residual-maintenance-first-slice.md) with [docs/lang/platform-residual-maintenance-first-slice.md](lang/platform-residual-maintenance-first-slice.md).

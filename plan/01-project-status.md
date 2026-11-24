@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-24 · **C-6b gen-from-Cargo `[x]`**；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；下一 = **C-7**。
+> **最近更新：** 2026-11-24 · **C-7a fuzz honesty `[x]`**；C-7 `[~]`；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；下一 = **C-7b**。
 
 ## 1. 一句话现状
 
@@ -45,7 +45,7 @@ VM / MIR / Wasm / browser 与 LSP 有可重复正向证据；字段默认、继�
 | **SA-0…SA-6** | `[x]` 退出 | Swift 对齐章程期 |
 | **R-0…R-49** | `[x]` 收口 | Object 切片 / wasm 46/46 / browser / 诊断 / docs ADR；**无 R-50** |
 | **U-0…U-40** | `[x]` 收口 | FilePath / credibility MD / parser 双接受 / 循环控制 / S060 / 字段默认链 / extension lit |
-| **收敛期 C-*** | **开账** | C-0 / C-1 / C-2 / **C-4** / **C-6** `[x]`；C-3 `[~]`；C-5 `[~]`；活轴见 `02`；下一 **C-7**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
+| **收敛期 C-*** | **开账** | C-0 / C-1 / C-2 / **C-4** / **C-6** `[x]`；C-3 `[~]`；C-5 `[~]`；C-7 `[~]`（C-7a `[x]`）；活轴见 `02`；下一 **C-7b**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
 
 ```mermaid
 flowchart LR
@@ -70,7 +70,7 @@ flowchart LR
 | JIT | 1.5 | Suite-1 pilot；非生产默认 |
 | stdlib / HostFn | 3.0 / 2.0 | 表面大；稳定 ABI 与 HostFn 膨胀风险 |
 | package / security | 2.9 | 归档/签名好；C-4 默认可复现；C-5a 假 sandbox 承诺已降级（真隔离仍缺） |
-| CI / docs / release | 2.8 | C-2 矩阵诚实；C-6 `[x]`：公开面 + gen 从 Cargo 注入 `syx_version`；`--check` 反闸 |
+| CI / docs / release | 2.9 | C-6 `[x]` version SSOT；C-7a：`syx_smoke` 真消费 + required `fuzz-smoke`；soft `exit 0` / count-gate 仍余 |
 | LSP / DX | 3.5+ | 1788 lib tests；编辑器面强 |
 
 **综合：约 2.6/5 — 研究型 beta / 受控实验工具链，≠ 生产级 Swift-like 语言。**
@@ -91,9 +91,9 @@ flowchart LR
 - 宏/embed 隔离诚实（C-5 `[~]`：C-5a…C-5b done；timeout/seccomp → C-5c+ park）
 - 单一 capability/version SSOT（**C-6 `[x]`**：C-6a 对齐 + C-6b gen-from-Cargo）
 
-### P2 / P3 — 反馈质量与维护成本（默认下一 **C-7**）
+### P2 / P3 — 反馈质量与维护成本（默认下一 **C-7b**）
 
-- 测试矩阵分 shard；fuzz/benchmark 真信号  
+- 测试矩阵 / fuzz 信号（C-7 `[~]`：C-7a consume+CI done；**下一 C-7b** soft `exit 0`）  
 - formatter CST lossless；Ch15 隐式 `super.init` MD 诚实  
 - 巨型模块拆分；实验 scaffold 移出 stable
 

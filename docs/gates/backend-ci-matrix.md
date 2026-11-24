@@ -216,6 +216,10 @@ Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently 
 
 `gen_capabilities.py` / `gen_ir_capabilities.py` parse Cargo `V`, force `meta.syx_version = V`, rewrite stale TOML on write, `--check` fail-closed when TOML≠`V` or outputs stale; IR `"117.0"` fallback removed. Shared helper [`scripts/syx_cargo_ssot.py`](../../scripts/syx_cargo_ssot.py). Census: [`c-6b-gen-from-cargo-census`](../census/c-6b-gen-from-cargo-census.md). **C-6 `[x]`**.
 
+### C-7a (done · fuzz-signal honesty)
+
+`syx_smoke` consumes UTF-8 via `syx-lexer::Lexer::scan_all` (invalid UTF-8 early-return; no deliberate panic). Required CI job **`fuzz-smoke`**: `cargo +nightly fuzz run syx_smoke -- -runs=1`. UsageGuide CI **met** aligns with yaml. Census: [`c-7a-fuzz-honesty-census`](../census/c-7a-fuzz-honesty-census.md). C-7 remains `[~]` (≠ `[x]`). **≠** soft `exit 0` scrub (C-7b) / multi-target / fuzz GA.
+
 ## Next
 
-Default next after C-6b: **C-7** — test-signal / maintenance hygiene (shard matrix · fuzz/benchmark honesty · module split). **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-7a: **C-7b** — soft-job failure steps stop using `exit 0` (job stays `continue-on-error`). C-7 remains `[~]`. **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).

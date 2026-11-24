@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: syx_smoke consumes lexer input; required CI fuzz-smoke -runs=1 (C-7a)
 - feat: capability gen injects syx_version from Cargo; --check fail-closed on TOML drift (C-6b); C-6 exited
 - docs: Cargo workspace version as public SSOT; align banners/capability/plan (C-6a)
 - fix: SYX_EMBED_WASM_SANDBOX=1 fail-closed on wasm miss/fail (no silent in-process) (C-5b)

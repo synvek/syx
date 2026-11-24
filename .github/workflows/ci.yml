@@ -108,6 +108,25 @@ jobs:
         # syx-lsp has ~1.8k unit nails; keep serial for stability, fail closed.
         run: cargo test -p syx-lsp --lib -- --test-threads=1
 
+  # C-7a: bounded fuzz smoke — consume via syx-lexer; ≠ fuzz GA / ≠ multi-target.
+  fuzz-smoke:
+    name: Fuzz smoke (bounded)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [fmt]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "fuzz -> fuzz/target"
+      - name: Install clang (libFuzzer link)
+        run: sudo apt-get update && sudo apt-get install -y clang
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: Bounded syx_smoke (-runs=1)
+        run: cargo +nightly fuzz run syx_smoke -- -runs=1
+
   # Split from former monolithic Core tests: `--workspace --lib --bins` compiled
   # llvm/wasm/async/hosts and burned the full 60m before driver suites started.
   test-libs:
@@ -743,10 +762,10 @@ jobs:
           name: differential-failures
           path: target/differential-failures/
           if-no-files-found: ignore
-      # Domain/property/fuzz duplicate Core/Extended and hang/flake on Linux soft matrix.
-      - name: Domain / property / fuzz (skipped on soft native)
+      # Domain/property duplicate Core/Extended; bounded fuzz lives in required fuzz-smoke (C-7a).
+      - name: Domain / property (skipped on soft native)
         run: |
-          echo "::notice title=native-linux::domain/property/fuzz deferred to Core/Extended/nightly"
+          echo "::notice title=native-linux::domain/property deferred to Core/Extended/nightly; fuzz → required fuzz-smoke job"
           exit 0
 
   native-macos:
