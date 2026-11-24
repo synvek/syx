@@ -31,7 +31,7 @@
 | `@attached` member/peer/accessor/extension/deinit | **部分** | 真 AST `parse_fragment`；非全 Swift 角色面 |
 | `@Equatable` / `@Hashable` / `@Codable` L1 | **GA** | stored `data class` |
 | **`@Codable` L2 associated-value enum 全自动** | **部分 GA** | 关联值 enum `encode`/`decode` 往返（指纹 `macro-codable-l2:associated-enum-auto`）；**非**泛型关联值全集 / 任意嵌套深度 / 自定义 coding keys DSL |
-| `#externalMacro` plugin-prod | **部分** | cdylib JSON 生产路径；Linux seccomp 硬闸 / Darwin `reexec-only` 诚实标签 |
+| `#externalMacro` plugin-prod | **部分** | cdylib JSON 生产路径；默认 **reexec-only**（≠ OS 沙箱；`SYX_MACRO_SECCOMP` → `seccomp-label-unwired`） |
 | `@resultBuilder` | **GA** | engine 固定点管线第六 pass；literal+for-in 与 **HostCall+Closure** 混用 **可编译运行**（`macro-pipeline-v6:rb-hostcall-closure-fixed`） |
 | 宏包 `[macros].exports` | **GA** | Phase 120 schema 与 `SyxManifest` 对齐 |
 | `@Service` / `@Component` + `@Inject` ctor + 字段 `@Autowired` | **GA** | **多包 workspace 扫描**（仅 `resolved_packages`）+ 真实 ctor resolve；singleton 默认（M14 继承） |
@@ -237,7 +237,7 @@ func main() {
 
 - **跨模块 import**：依赖 crate 的 `MacroDecl` 经 `register_imported_external_macros` 注册
 - **WASM**：`SYX_TARGET_WASM=1` 时 external 宏 compile-time E004
-- **生产**：cdylib JSON 协议真实类型；子进程沙箱默认 on；**无 seccomp 不得冒充 hard-fail GA**（Linux 有则硬闸，Darwin 诚实 `sandbox-reexec-only`）
+- **生产**：cdylib JSON 协议真实类型；子进程默认 **reexec-only**（崩溃隔离 ≠ OS 沙箱）。**不得**冒充 hard-fail / seccomp GA；Linux `SYX_MACRO_SECCOMP=1` 为 `seccomp-label-unwired`（过滤器未接线）——见 [macro-embed-threat-model](../../docs/adr/macro-embed-threat-model.md)
 
 测试：`fixtures/lsp/freestanding_decl.sy`、`fixtures/macros/json_plugin_prod.sy`、`fixtures/macros/json_plugin_prod.sy`
 

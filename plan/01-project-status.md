@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-24 · **C-4e path content hash `[x]`**；**C-4 `[x]`**（C-4a…C-4e）；C-3 `[~]`；下一 = **C-5**。
+> **最近更新：** 2026-11-24 · **C-5a threat-model `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；下一 = **C-5b**。
 
 ## 1. 一句话现状
 
@@ -45,7 +45,7 @@ VM / MIR / Wasm / browser 与 LSP 有可重复正向证据；字段默认、继�
 | **SA-0…SA-6** | `[x]` 退出 | Swift 对齐章程期 |
 | **R-0…R-49** | `[x]` 收口 | Object 切片 / wasm 46/46 / browser / 诊断 / docs ADR；**无 R-50** |
 | **U-0…U-40** | `[x]` 收口 | FilePath / credibility MD / parser 双接受 / 循环控制 / S060 / 字段默认链 / extension lit |
-| **收敛期 C-*** | **开账** | C-0 / C-1 / C-2 / **C-4** `[x]`；C-3 `[~]`（C-3a…C-3g `[x]`）；活轴见 `02`；下一 **C-5**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
+| **收敛期 C-*** | **开账** | C-0 / C-1 / C-2 / **C-4** `[x]`；C-3 `[~]`；C-5 `[~]`（C-5a `[x]`）；活轴见 `02`；下一 **C-5b**；矩阵 SSOT [`docs/gates/backend-ci-matrix.md`](../docs/gates/backend-ci-matrix.md) |
 
 ```mermaid
 flowchart LR
@@ -69,7 +69,7 @@ flowchart LR
 | Native LLVM | 2.9 | CI paid hello+path+tcp+sql+http(+types/server/stream/timeout)+pool/row+file×3+tls.client（C-2b-2…13）；16 行产品 `native=real` |
 | JIT | 1.5 | Suite-1 pilot；非生产默认 |
 | stdlib / HostFn | 3.0 / 2.0 | 表面大；稳定 ABI 与 HostFn 膨胀风险 |
-| package / security | 2.9 | 归档/签名好；C-4 默认可复现（git/path/registry + locked install/publish） |
+| package / security | 2.9 | 归档/签名好；C-4 默认可复现；C-5a 假 sandbox 承诺已降级（真隔离仍缺） |
 | CI / docs / release | 2.7 | C-2 矩阵诚实收口；version 多源漂移仍余 C-6 |
 | LSP / DX | 3.5+ | 1788 lib tests；编辑器面强 |
 
@@ -88,7 +88,7 @@ flowchart LR
 
 - MIR 唯一可验证后端输入（C-3 `[~]`：C-3a…C-3g done；ModuleId/全量 verifier/exception park）
 - lock/git/path 默认可复现（**C-4 `[x]`**：C-4a…C-4e）；manifest↔lock 全量对账仍 park
-- 宏/embed「sandbox」去安全承诺或真隔离（**下一 C-5**）
+- 宏/embed 隔离诚实（C-5 `[~]`：C-5a threat-model done；**下一 C-5b** embed wasm fail-closed）
 - 单一 capability/version 生成源（消掉 0.1.3/0.2.x/0.3.0 多源）
 
 ### P2 / P3 — 反馈质量与维护成本

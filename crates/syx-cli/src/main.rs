@@ -64,7 +64,7 @@ struct Cli {
     #[arg(long = "mir-exec-only", global = true, action = clap::ArgAction::SetTrue)]
     wasm_mir_exec_only: bool,
 
-    /// Enable embed sandbox isolation
+    /// Deny host HTTP in embed opts (soft; not OS isolation — see macro-embed-threat-model)
     #[arg(long = "embed-sandbox", global = true, action = clap::ArgAction::SetTrue)]
     embed_sandbox: bool,
 

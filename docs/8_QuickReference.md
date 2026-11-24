@@ -733,7 +733,7 @@ syx repl
 | `SYX_WASI_GC_PHASE22=1` | WASI GC Phase 22: `syx_gc.alloc` noop arena host hook |
 | `SYX_WASI_GC_PHASE23=1` | WASI GC Phase 23: bump arena + mark-clear smoke |
 | `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6: staging signed URL install |
-| `SYX_EMBED_SECCOMP=1` | Embed v9: seccomp/Job Object MVP hardening |
+| `SYX_EMBED_SECCOMP=1` | Embed: seccomp/Job Object **label/probe only** (unwired; ≠ hardening GA) |
 | `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 templates (`{type}:{name}`) |
 | `SYX_LLVM_RELEASE_BLOCKER=1` | Optional LLVM strict parity PR release blocker (ADR-019) |
 | `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 promotion counter (≥4 green weeks for promotion) |

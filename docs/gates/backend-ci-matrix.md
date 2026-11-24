@@ -200,6 +200,10 @@ Manifest git dependencies require explicit `rev` (missing → **P043**); never d
 
 `PackageSource::Path` records `checksum = sha256:…` (directory tree hash; excludes `.git` / `target` / `.DS_Store`). Unlocked resolve writes it; Locked install recomputes and fail-closes on missing/mismatch (**P014**, C-4e). Legacy path locks without checksum require Unlocked rewrite. Census: [`c-4e-path-content-hash-census`](../census/c-4e-path-content-hash-census.md). **C-4 `[x]`**. **≠** manifest↔lock full reconcile / delete SyxLockfile infra fields / C-5.
 
+### C-5a (done · threat-model honesty)
+
+ADR [`macro-embed-threat-model.md`](../adr/macro-embed-threat-model.md): macro = reexec-only; embed flags = soft/HTTP deny; permission-sandbox = HostFn S024; `*SECCOMP*` = label/probe. Public claim scrub + `macro_sandbox_mode` → `seccomp-label-unwired`. Census: [`c-5a-threat-model-census`](../census/c-5a-threat-model-census.md). C-5 remains `[~]` (≠ `[x]`). **≠** embed wasm fail-closed / real seccomp (C-5b+).
+
 ## Next
 
-Default next after C-4e: **C-5** — macro/embed isolation honesty (drop false sandbox claims or land real boundary). **C-4 `[x]`** (C-4a…C-4e). C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-5a: **C-5b** — embed wasm failure fail-closed (no silent in-process fallback). C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).

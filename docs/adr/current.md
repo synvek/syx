@@ -21,5 +21,6 @@ Crate / docs banner version: **0.2.0**.
 | 13 | [stage4-exit.md](stage4-exit.md) | Stage-4 exit |
 | 14 | [r-42-simd-object-charter.md](r-42-simd-object-charter.md) | R-42: simd Object residual charter (no wipe) |
 | 15 | [stage1-exit-examples-leg.md](stage1-exit-examples-leg.md) | Stage-1 exit examples leg |
+| 16 | [macro-embed-threat-model.md](macro-embed-threat-model.md) | C-5a: macro/embed threat model (≠ OS isolation) |
 
 **Index:** [README.md](README.md) · **Historical full stream:** [architecture-decisions.md](architecture-decisions.md)

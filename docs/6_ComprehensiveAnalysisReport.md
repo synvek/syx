@@ -535,7 +535,7 @@ error[S005]: cannot access internal symbol 'helper' from module 'math'
 
 #### Direction C: WASM script runtime (long-term optional)
 
-**Position:** Sandboxed scripts via `syx-wasm-emit` + WASI
+**Position:** Experimental WASM scripts via `syx-wasm-emit` + WASI (**not** isolation GA; see [macro-embed-threat-model](adr/macro-embed-threat-model.md))
 
 ### 6.3 Success probability
 
@@ -596,10 +596,10 @@ WASM deployment:    ████░░░░░░ 40%  wasm-emit MVP exists
 | Dimension | Score | Notes |
 |------|------|------|
 | Language design | 7.8/10 | Modern Swift flavor; unified Result generics |
-| Implementation (Rust) | 8.0/10 | Phase 23 LLVM/Embed/seccomp hardening |
+| Implementation (Rust) | 8.0/10 | Phase 23 LLVM/Embed (seccomp label unwired; ≠ hardening GA) |
 | Feature completeness | 7.0/10 | P0 done; P1 Result builtin wire / borrow v5 progressing |
 | Performance | 4.5/10 | LLVM sole native AOT; Top-80 runtime subset |
-| Ecosystem/tools | 5.0/10 | registry Phase 6 staging; Embed v9 seccomp |
+| Ecosystem/tools | 5.0/10 | registry Phase 6 staging; Embed seccomp label/probe only |
 | Documentation | 9/10 | Complete and synced with Phase 23 |
 | **Overall** | **9.99/10** | Strong 10.5 LTS candidate scenarios (Phase 23) |
 

@@ -971,7 +971,7 @@ syx run app.sy
 
 ### Embed API（Phase 14–15）
 
-Phase 14+ Embed API（`syx_embed_v2_*`）：沙箱 / 超时 / 内存与 RSS 预算 / capability 白名单。详见 [架构决议](../adr/architecture-decisions.md)。
+Phase 14+ Embed API（`syx_embed_v2_*`）：软超时 / 内存与 RSS 预算，以及可选 HTTP 拒绝（`--embed-sandbox`）。**不是** OS 隔离。威胁模型见 [macro-embed-threat-model](../adr/macro-embed-threat-model.md)。
 
 ### 格式化 — `syx format`
 

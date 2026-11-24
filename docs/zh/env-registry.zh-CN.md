@@ -9,7 +9,9 @@ GB 配置 LTS 之后对 `SYX_*` 变量的清点。状态含义：**cli**（已�
 | `SYX_JIT_TIER2` | deprecated | `syx --jit` / `--no-jit`（opt-in；**默认关闭**；experimental Suite-1） |
 | `SYX_JIT_FASTPATH` | deprecated | `syx --jit-fastpath` |
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
-| `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox` |
+| `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox`（软 HTTP 拒绝；**不是** OS 隔离 — [威胁模型](../adr/macro-embed-threat-model.md)） |
+| `SYX_EMBED_SECCOMP` | probe | 仅标签/探针，未接线；≠ hardening GA |
+| `SYX_MACRO_SECCOMP` | probe | mode → `seccomp-label-unwired`；≠ seccomp GA |
 | `SYX_EMBED_TIMEOUT_MS` | deprecated | `syx --embed-timeout-ms` |
 | `SYX_EMBED_MEMORY_MB` | deprecated | `syx --embed-memory-mb` |
 | `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox`（M3-E02 / ADR-310） |

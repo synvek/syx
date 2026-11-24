@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-4e path content hash `[x]`**；**C-4 `[x]`**（C-4a…C-4e）；C-3 `[~]`；默认下一 = **C-5**（宏/embed 隔离诚实）。
+> **最近更新：** 2026-11-24 · **C-5a threat-model `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-5b**（embed wasm 禁静默回退）。
 
 ## 0. 时代切换
 
@@ -124,9 +124,16 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 
 **验收（C-4e）：** 新 path lock 含 `sha256:`；Locked 改文件或旧无 checksum → **P014**；Unlocked 可重写；硬 KPI 不破；**C-4 `[x]`**。manifest↔lock 全量对账 / 删 infra 字段仍 park。默认下一 → **C-5**。
 
-### C-5 · 宏 / embed 隔离诚实（P1） — `[ ]`
+### C-5 · 宏 / embed 隔离诚实（P1） — `[~]`
 
-去掉虚假「sandbox」安全承诺，或落地真隔离边界；文档降级到 threat model。
+去掉虚假「sandbox」安全承诺，或落地真隔离边界；文档降级到 threat model。**不**宣称 C-5 `[x]`。
+
+| 子项 | 状态 | 说明 |
+|------|------|------|
+| **C-5a** | `[x]` | threat-model ADR + 公开面假 sandbox 降级；`macro_sandbox_mode` → `seccomp-label-unwired`；census [`c-5a-threat-model-census`](../docs/census/c-5a-threat-model-census.md) |
+| **C-5b** | `[ ]` | **默认下一**：embed wasm 失败 **fail-closed**（禁静默 in-process） |
+
+**验收（C-5a）：** 公开面不再把 reexec / embed flag 写成 security isolation；ADR 为 SSOT；mode 无假 `"seccomp"`；硬 KPI 不破；**不**宣称 C-5 `[x]`。真 seccomp / WASI → park。
 
 ### C-6 · Version / capability 单一 SSOT（P1） — `[ ]`
 

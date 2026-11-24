@@ -5312,7 +5312,7 @@
 | `@attached` 真 AST | **部分实现** | Phase 50 `parse_fragment`；conformance 未知协议不得静默忽略（M9） |
 | `@Equatable` / `@Hashable` / `@Codable` L1 | **GA** | stored `data class` only |
 | `@Codable` L2（enum + generic witness） | **部分实现** | Phase 129 associated-value enum 全自动合成 **GA**；泛型关联值全集 / 任意嵌套 / coding keys DSL **131+** |
-| `#externalMacro` plugin-prod | **部分实现** | cdylib JSON 生产路径；Linux seccomp / Darwin reexec-only 诚实标签 |
+| `#externalMacro` plugin-prod | **部分实现** | cdylib JSON 生产路径；默认 reexec-only（≠ OS sandbox）；`SYX_MACRO_SECCOMP` → `seccomp-label-unwired` |
 | `@propertyWrapper` | **已实现** | Phase 40 GA |
 | `@resultBuilder` | **GA** | engine 固定点管线第六 pass；`buildOptional` + multi-stmt |
 | 宏包 `[macros].exports` | **GA** | Phase 120 schema 与 `SyxManifest` 对齐 |
@@ -5355,7 +5355,7 @@
 | 分布式 cache push | **已实现** | Phase 76 · `push_cache_remote` + `SYX_CACHE_REMOTE_NODES` |
 | VM HeapSlot parity | **已实现** | Phase 76 · VM ArrayBuild/HeapCompact slot-backed |
 | inkwell crate IR | **已实现** | Phase 76 · `emit_inkwell_crate_module` + optional `inkwell` dep |
-| Crypto（`import Crypto`） | **已实现** | Phase 38 · SHA-256/512、HMAC；embed sandbox S021 |
+| Crypto（`import Crypto`） | **已实现** | Phase 38 · SHA-256/512、HMAC；embed soft HTTP-deny flag S021（≠ OS isolation） |
 | 访问控制 public/internal/private/fileprivate | **已实现** | S005 跨模块；fileprivate 同文件 |
 | `build.syb` Task DAG 执行器 | **部分实现** | Phase 65 · mir/wasm/native/link/test runner MVP；Phase 66 LSP cycle/unknown 诊断 |
 | WASM AOT tier-1 直发 | **已实现** | Phase 65–69 · hot_loop ≥95%；strict matrix ≥99% |

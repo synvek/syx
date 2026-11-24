@@ -134,7 +134,7 @@ project/
 | Proof macros | `@Equatable` `@Hashable` `@Codable` L1 · **L2 associated-enum auto** (Phase 129) |
 | Service DI | `@Service` / `@Component` · **`@Lazy` + cycle lazy-proxy** · **`@Bean` param `@Autowired` MVP** · `@Around` proceed · polymorphic inject · `import DI` |
 | Result builders | `@resultBuilder` in **engine** · `buildOptional` |
-| External | `#externalMacro` · plugin-prod cdylib · sandbox default on |
+| External | `#externalMacro` · plugin-prod cdylib · **reexec-only** default（≠ OS sandbox；见 [`macro-embed-threat-model.md`](macro-embed-threat-model.md)） |
 | Package exports | `[macros].exports` schema aligned with `SyxManifest` |
 | Hygiene | `MacroParamId` · Hygiene v2 |
 

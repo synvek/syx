@@ -1,4 +1,5 @@
-//! Phase 57: seccomp subprocess sandbox for external macro expansion.
+//! External macro expansion: crash-containment reexec only (C-5a).
+//! ≠ OS/seccomp sandbox — see `docs/adr/macro-embed-threat-model.md`.
 
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
@@ -18,15 +19,16 @@ pub fn macro_in_process_enabled() -> bool {
         .unwrap_or(false)
 }
 
-/// Phase 119 honesty: sandbox is re-exec by default; Linux seccomp hard-fail only when enabled.
-/// Fingerprint claim: `macro-external-v2:plugin-prod` must not advertise seccomp GA on Darwin.
+/// C-5a honesty: default is re-exec only. `SYX_MACRO_SECCOMP=1` is a label/probe until
+/// filters are wired — never advertise `"seccomp"` as an enforced mode.
+/// Fingerprint claim: `macro-external-v2:plugin-prod` must not advertise seccomp GA.
 pub fn macro_sandbox_mode() -> &'static str {
     if cfg!(target_os = "linux")
         && std::env::var("SYX_MACRO_SECCOMP")
             .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
             .unwrap_or(false)
     {
-        "seccomp"
+        "seccomp-label-unwired"
     } else {
         "sandbox-reexec-only"
     }

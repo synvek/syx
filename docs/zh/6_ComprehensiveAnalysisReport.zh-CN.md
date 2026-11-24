@@ -536,7 +536,7 @@ error[S005]: cannot access internal symbol 'helper' from module 'math'
 
 #### 方向 C：WASM 脚本运行时（长期可选）
 
-**定位：** 通过 `syx-wasm-emit` + WASI 提供沙箱脚本
+**定位：** 通过 `syx-wasm-emit` + WASI 提供实验性 WASM 脚本（**不是**隔离 GA；见 [macro-embed-threat-model](../adr/macro-embed-threat-model.md)）
 
 ### 6.3 成功概率评估
 
@@ -597,10 +597,10 @@ WASM 部署:    ████░░░░░░ 40%  wasm-emit MVP 已有基础
 | 维度 | 评分 | 说明 |
 |------|------|------|
 | 语言设计 | 7.8/10 | Swift 风格现代，Result 泛型统一 |
-| 实现质量（Rust） | 8.0/10 | Phase 23 LLVM/Embed/seccomp 硬化 |
+| 实现质量（Rust） | 8.0/10 | Phase 23 LLVM/Embed（seccomp 标签未接线；≠ hardening GA） |
 | 功能完整度 | 7.0/10 | P0 完成，P1 Result builtin wire / 借用 v5 推进 |
 | 性能表现 | 4.5/10 | Cranelift P19 < 2.6MB，LLVM Top-80 运行时 |
-| 生态工具 | 5.0/10 | registry Phase 6 staging、Embed v9 seccomp |
+| 生态工具 | 5.0/10 | registry Phase 6 staging、Embed seccomp 仅标签/探针 |
 | 文档质量 | 9/10 | 完整且与 Phase 23 实现同步 |
 | **综合** | **9.99/10** | 10.5 LTS 候选场景价值突出（Phase 23） |
 

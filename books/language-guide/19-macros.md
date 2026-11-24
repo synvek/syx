@@ -31,7 +31,7 @@
 | `@attached` member/peer/accessor/extension/deinit | **partial** | Real AST `parse_fragment`; not the full Swift role surface |
 | `@Equatable` / `@Hashable` / `@Codable` L1 | **GA** | stored `data class` |
 | **`@Codable` L2 associated-value enum fully automatic** | **partial GA** | Associated-value enum `encode`/`decode` round-tripping (fingerprint `macro-codable-l2:associated-enum-auto`); **not** the full set of generic associated values / arbitrary nesting depth / a custom coding keys DSL |
-| `#externalMacro` plugin-prod | **partial** | cdylib JSON production path; Linux seccomp hard gate / Darwin `reexec-only` honest label |
+| `#externalMacro` plugin-prod | **partial** | cdylib JSON production path; default **reexec-only** (≠ OS sandbox; `SYX_MACRO_SECCOMP` → `seccomp-label-unwired`) |
 | `@resultBuilder` | **GA** | Sixth pass of the engine fixed-point pipeline; literal+for-in mixed with **HostCall+Closure** **compiles and runs** (`macro-pipeline-v6:rb-hostcall-closure-fixed`) |
 | Macro package `[macros].exports` | **GA** | Phase 120 schema aligned with `SyxManifest` |
 | `@Service` / `@Component` + `@Inject` ctor + field `@Autowired` | **GA** | **Multi-package workspace scanning** (only `resolved_packages`) + real ctor resolve; singleton by default (inherited from M14) |
@@ -237,7 +237,7 @@ func main() {
 
 - **Cross-module import**: a dependency crate's `MacroDecl` is registered through `register_imported_external_macros`
 - **WASM**: with `SYX_TARGET_WASM=1`, external macros raise compile-time E004
-- **Production**: cdylib JSON protocol with real types; the subprocess sandbox is on by default; **without seccomp you must not claim hard-fail GA** (Linux has a hard gate when available, Darwin is honestly `sandbox-reexec-only`)
+- **Production**: cdylib JSON protocol with real types; subprocess **reexec-only** is on by default (crash containment ≠ OS sandbox). Do **not** claim hard-fail / seccomp GA; Linux `SYX_MACRO_SECCOMP=1` is `seccomp-label-unwired` until filters land — see [macro-embed-threat-model](../../docs/adr/macro-embed-threat-model.md)
 
 Tests: `fixtures/lsp/freestanding_decl.sy`, `fixtures/macros/json_plugin_prod.sy`, `fixtures/macros/json_plugin_prod.sy`
 

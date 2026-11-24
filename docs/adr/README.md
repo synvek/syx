@@ -19,6 +19,7 @@
 | [stage1-exit.md](stage1-exit.md) | **阶段1退出（S1-I27）**：三件套证据齐；S1-04/05 等为退出后余项；≠ 产品 GA | 公开 |
 | [stage2-open.md](stage2-open.md) | **阶段2开工（S2-I1）**：S2-01…07 轴；首刀 = 治理面普查基线；≠ S2-01 满勾 / ≠ 阶段2退出 | 公开 |
 | [r-42-simd-object-charter.md](r-42-simd-object-charter.md) | **R-42**：simd Object residual 章程（禁 wipe） | 公开 |
+| [macro-embed-threat-model.md](macro-embed-threat-model.md) | **C-5a**：macro/embed 威胁模型（reexec-only / soft embed；≠ OS isolation） | 公开 |
 | [architecture-decisions.md](architecture-decisions.md) | 历史全量决议（**过渡**；非现行主叙事；native/lang 断链不修） | 公开过渡 |
 | 私有仓 `ledger/adr-window-stream.md` | 窗级 Decision 流水 | **仅内部** |
 | 私有仓 `ledger/architecture-decisions.full.md` | ADR 全量副本 | **仅内部** |

@@ -970,7 +970,7 @@ syx run app.sy
 
 ### Embed API（Phase 14–15）
 
-Phase 14+ Embed API (`syx_embed_v2_*`): sandbox / timeout / memory & RSS budget / capability allowlist.See [architecture decision](adr/architecture-decisions.md).
+Phase 14+ Embed API (`syx_embed_v2_*`): soft timeout / memory & RSS budgets and optional HTTP deny (`--embed-sandbox`). **Not** OS isolation. Threat model: [macro-embed-threat-model](adr/macro-embed-threat-model.md).
 
 ### Formatting — `syx format`
 
