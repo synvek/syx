@@ -5,6 +5,7 @@
 
 mod begintry_cache_contract;
 mod cache_roundtrip_contract;
+mod c3a_mir_quality_demote_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;

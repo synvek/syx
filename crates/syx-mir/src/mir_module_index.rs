@@ -148,6 +148,8 @@ pub(crate) struct ModuleIndex {
     /// Extension method return type names for local inference (`Person.decode` → `Person`).
     pub(crate) extension_method_returns: IndexMap<(SmolStr, SmolStr), SmolStr>,
     pub(crate) static_class_methods: IndexSet<(SmolStr, SmolStr)>,
+    /// C-3a: `(Type, method)` with multiple same-staticness bodies → arity-qualified MIR names.
+    pub(crate) arity_overload_methods: IndexSet<(SmolStr, SmolStr)>,
     /// Phase 47: merged extension symbols available for `Call` (e.g. `Array_description`).
     pub(crate) callable_extensions: IndexSet<SmolStr>,
     /// Phase 126: declared protocol names for virtual instance dispatch on protocol-typed refs.
@@ -270,6 +272,25 @@ impl ModuleIndex {
         self.types_with_deinit.contains(type_name)
     }
 
+    /// C-3a: mark `(type, method)` pairs that have multiple same-staticness bodies.
+    pub(crate) fn register_arity_overloads(&mut self, type_name: &SmolStr, members: &[Decl]) {
+        let mut counts: IndexMap<(bool, SmolStr), usize> = IndexMap::new();
+        for member in members {
+            if let Decl::Function { name, attrs, .. } = member {
+                let is_static = attrs.iter().any(|a| a.name.as_str() == "static");
+                *counts
+                    .entry((is_static, name.clone()))
+                    .or_insert(0) += 1;
+            }
+        }
+        for ((_, method), n) in counts {
+            if n > 1 {
+                self.arity_overload_methods
+                    .insert((type_name.clone(), method));
+            }
+        }
+    }
+
     fn register_nested_type(&mut self, outer: &SmolStr, decl: &Decl) {
         match decl {
             Decl::Class { name, members, .. } => {
@@ -380,6 +401,7 @@ impl ModuleIndex {
                         }
                     }
                     idx.dataclass_fields.insert(name.clone(), field_names);
+                    idx.register_arity_overloads(name, members);
                 }
                 Decl::VarGlobal {
                     attrs,
@@ -573,6 +595,7 @@ impl ModuleIndex {
                             idx.register_nested_type(name, member);
                         }
                     }
+                    idx.register_arity_overloads(name, members);
                 }
                 Decl::Enum { name, cases, .. } => {
                     idx.enum_classes.insert(name.clone());
@@ -653,6 +676,9 @@ impl ModuleIndex {
                                 register_extension_init_literal_defaults(&mut idx, type_name, body);
                             }
                         }
+                    }
+                    for ty_alias in platform_int_extension_aliases(type_name) {
+                        idx.register_arity_overloads(&ty_alias, methods);
                     }
                 }
                 _ => {}

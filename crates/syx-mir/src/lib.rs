@@ -99,6 +99,7 @@ pub use mir_lower_shells::{
 };
 mod mir_lower_type_members;
 use mir_lower_type_members::lower_type_members;
+pub use mir_lower_type_members::collect_arity_overload_mir_names;
 
 mod mir_host_cast_helpers;
 mod mir_lower_class_init;

@@ -380,6 +380,10 @@ fn lower_stdlib_modules_to_functions(
 ) -> SyxResult<Vec<MirFunction>> {
     let mut out = Vec::new();
     let mut seen = std::collections::HashSet::<SmolStr>::new();
+    // C-3a: pre-advertise arity-qualified overload MIR names so cross-module Calls
+    // (e.g. Concurrency → SyxHost.task_detach) resolve before bodies are merged.
+    let mut arity_callables: indexmap::IndexSet<SmolStr> = indexmap::IndexSet::new();
+    let mut prepared: Vec<(PathBuf, syx_ast::Module, IndexMap<SmolStr, TypeId>)> = Vec::new();
     for (path, dep) in &graph.modules {
         if !is_stdlib_module_path(path) {
             continue;
@@ -397,6 +401,10 @@ fn lower_stdlib_modules_to_functions(
             .unwrap_or_else(|| export_symbols(&dep.source));
         let mut dep_mono = monomorphize_module(&dep_module, instantiations);
         inject_virtual_prelude_imports(&mut dep_mono, options);
+        arity_callables.extend(syx_mir::collect_arity_overload_mir_names(&dep_mono));
+        prepared.push((path.clone(), dep_mono, dep_exports));
+    }
+    for (path, dep_mono, dep_exports) in prepared {
         // Shells are merged unfiltered (same as the historical unify path).
         let mut shell = syx_mir::MirModule::default();
         syx_mir::merge_mir_shell_functions(&mut shell, syx_mir::lower_dataclass_shells(&dep_mono));
@@ -406,13 +414,18 @@ fn lower_stdlib_modules_to_functions(
                 out.push(func);
             }
         }
-        let dep_mir = lower_module(&dep_mono)?;
+        let dep_mir = syx_mir::lower_module_with_extra_extensions(
+            &dep_mono,
+            &indexmap::IndexSet::new(),
+            &arity_callables,
+            &indexmap::IndexSet::new(),
+        )?;
         let module_stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
         for mut func in dep_mir.functions {
             if !mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports) {
                 continue;
             }
-            func.name = cross_module_function_name(path, module_stem, func.name);
+            func.name = cross_module_function_name(&path, module_stem, func.name);
             if seen.insert(func.name.clone()) {
                 out.push(func);
             }

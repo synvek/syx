@@ -1153,18 +1153,36 @@ pub(crate) fn lower_expr_call_member(
                 lower_expr(&arg.value, ctx.fresh_reg(), ctx, block);
             }
             // R-47: instance twin of a static same-name method is `{Type}__{name}`.
-            let mut call_name = if !is_type_name_call
+            // C-3a: same-staticness overloads use `{stem}__a{arity}` (callable may pre-advertise).
+            let instance_twin = !is_type_name_call
                 && ctx
                     .module
                     .static_class_methods
-                    .contains(&(base.clone(), name.clone()))
-            {
-                SmolStr::new(format!("{base}__{name}"))
+                    .contains(&(base.clone(), name.clone()));
+            let arity = if is_type_name_call {
+                args.len()
             } else {
-                ext_name.clone()
+                args.len().saturating_add(1)
             };
+            let is_overload = ctx
+                .module
+                .arity_overload_methods
+                .contains(&(base.clone(), name.clone()));
+            let mut call_name = crate::mir_lower_type_members::resolve_type_method_call_name(
+                &base,
+                name,
+                arity,
+                instance_twin,
+                is_overload,
+                &ctx.module.callable_extensions,
+            );
             if !ctx.module.callable_extensions.contains(&call_name) {
                 for imp in &ctx.imports {
+                    let prefixed_a = SmolStr::new(format!("{imp}_{base}_{name}__a{arity}"));
+                    if ctx.module.callable_extensions.contains(&prefixed_a) {
+                        call_name = prefixed_a;
+                        break;
+                    }
                     let prefixed = SmolStr::new(format!("{imp}_{base}_{name}"));
                     if ctx.module.callable_extensions.contains(&prefixed) {
                         call_name = prefixed;

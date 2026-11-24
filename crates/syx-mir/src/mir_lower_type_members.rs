@@ -87,11 +87,23 @@ pub(crate) fn lower_type_members(
                             } if n == name && a.iter().any(|attr| attr.name.as_str() == "static")
                         )
                     });
-                let method_name = if has_static_twin {
-                    SmolStr::new(format!("{type_name}__{name}"))
-                } else {
-                    SmolStr::new(format!("{type_name}_{name}"))
-                };
+                // C-3a: same-staticness overloads (e.g. SyxHost.task_detach 1-arg vs 2-arg)
+                // must not share a MIR name — codegen fail-closes on conflicting fingerprints.
+                // Arity-qualified form: `{Type}_{name}__a{N}` (or `{Type}__{name}__a{N}` for R-47).
+                let overload_count = members
+                    .iter()
+                    .filter(|m| {
+                        matches!(
+                            m,
+                            Decl::Function {
+                                name: n,
+                                attrs: a,
+                                ..
+                            } if n == name
+                                && a.iter().any(|attr| attr.name.as_str() == "static") == is_static
+                        )
+                    })
+                    .count();
                 let mut all_params = if is_static {
                     Vec::new()
                 } else {
@@ -103,6 +115,17 @@ pub(crate) fn lower_type_members(
                     vec![self_param_typed(typed_self.then_some(type_name))]
                 };
                 all_params.extend_from_slice(params);
+                let arity = all_params.len();
+                let method_name = uniquify_method_name_against_existing(
+                    mir,
+                    mangle_type_method_name(
+                        type_name,
+                        name,
+                        has_static_twin,
+                        overload_count > 1,
+                        arity,
+                    ),
+                );
                 let (func, closures) = lower_function_with_params(
                     &method_name,
                     &all_params,
@@ -460,4 +483,92 @@ pub(crate) fn lower_extension_convenience_init_shell(
         next_reg,
         ins,
     )
+}
+
+/// C-3a: predicted arity-qualified MIR names for overloaded type methods in `module`.
+/// Used to pre-advertise callables so cross-module lowers resolve `__a{N}` before merge.
+pub fn collect_arity_overload_mir_names(module: &syx_ast::Module) -> IndexSet<SmolStr> {
+    let idx = ModuleIndex::from_module(module);
+    let mut out = IndexSet::new();
+    for (type_name, method) in &idx.arity_overload_methods {
+        // Advertise a generous arity band; real lowers emit exact `__a{N}`.
+        for arity in 0usize..=8 {
+            out.insert(mangle_type_method_name(
+                type_name,
+                method,
+                false,
+                true,
+                arity,
+            ));
+            out.insert(mangle_type_method_name(
+                type_name,
+                method,
+                true,
+                true,
+                arity,
+            ));
+        }
+    }
+    out
+}
+
+/// R-47 / C-3a: MIR symbol for a type method.
+/// Overloads → `{stem}__a{arity}`; R-47 instance twin stem uses `{Type}__{name}`.
+pub(crate) fn mangle_type_method_name(
+    type_name: &SmolStr,
+    name: &SmolStr,
+    has_static_twin: bool,
+    is_overload: bool,
+    arity: usize,
+) -> SmolStr {
+    let stem = if has_static_twin {
+        format!("{type_name}__{name}")
+    } else {
+        format!("{type_name}_{name}")
+    };
+    if is_overload {
+        SmolStr::new(format!("{stem}__a{arity}"))
+    } else {
+        SmolStr::new(stem)
+    }
+}
+
+/// C-3a: prefer arity-qualified MIR name when advertised in `callable` or `is_overload`.
+pub(crate) fn resolve_type_method_call_name(
+    base: &SmolStr,
+    name: &SmolStr,
+    arity: usize,
+    instance_twin: bool,
+    is_overload: bool,
+    callable: &IndexSet<SmolStr>,
+) -> SmolStr {
+    let stem = if instance_twin {
+        format!("{base}__{name}")
+    } else {
+        format!("{base}_{name}")
+    };
+    let arity_name = SmolStr::new(format!("{stem}__a{arity}"));
+    if is_overload || callable.contains(&arity_name) {
+        arity_name
+    } else {
+        SmolStr::new(stem)
+    }
+}
+
+/// Unique MIR name when same-arity type overloads share `__a{N}` (C-3a).
+pub(crate) fn uniquify_method_name_against_existing(
+    mir: &MirModule,
+    method_name: SmolStr,
+) -> SmolStr {
+    if !mir.functions.iter().any(|f| f.name == method_name) {
+        return method_name;
+    }
+    let mut seq = 1usize;
+    loop {
+        let candidate = SmolStr::new(format!("{method_name}__o{seq}"));
+        if !mir.functions.iter().any(|f| f.name == candidate) {
+            return candidate;
+        }
+        seq = seq.saturating_add(1);
+    }
 }

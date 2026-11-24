@@ -617,9 +617,76 @@ impl CodeGenerator {
         }
     }
 
-    fn mir_function_quality(func: &MirFunction) -> u32 {
-        let ins = Self::mir_function_instruction_count(func) as u32;
-        func.param_count.saturating_mul(1000).saturating_add(ins)
+    /// Body identity for duplicate-name detection (C-3a). Not a quality/score gate.
+    fn mir_function_fingerprint(func: &MirFunction) -> (u32, usize) {
+        (
+            func.param_count,
+            Self::mir_function_instruction_count(func),
+        )
+    }
+
+    /// C-3a: same-name MIR bodies must not be silently quality-selected.
+    /// Identical fingerprints keep the first; conflicting fingerprints fail closed.
+    fn unique_mir_functions_by_name<'a>(
+        functions: impl IntoIterator<Item = &'a MirFunction>,
+    ) -> SyxResult<indexmap::IndexMap<SmolStr, &'a MirFunction>> {
+        let mut by_name: indexmap::IndexMap<SmolStr, &'a MirFunction> = indexmap::IndexMap::new();
+        for func in functions {
+            match by_name.entry(func.name.clone()) {
+                indexmap::map::Entry::Vacant(slot) => {
+                    slot.insert(func);
+                }
+                indexmap::map::Entry::Occupied(slot) => {
+                    let prev = *slot.get();
+                    if Self::mir_function_fingerprint(prev) != Self::mir_function_fingerprint(func)
+                    {
+                        return Err(codegen_error_at(
+                            format!(
+                                "duplicate MIR body for '{}'; quality heuristic forbidden (C-3a)",
+                                func.name
+                            ),
+                            None,
+                            Span::DUMMY,
+                            "MIR001",
+                        ));
+                    }
+                }
+            }
+        }
+        Ok(by_name)
+    }
+
+    fn unique_owned_mir_functions_by_name(
+        functions: &[MirFunction],
+        min_instruction_count: usize,
+    ) -> SyxResult<indexmap::IndexMap<SmolStr, MirFunction>> {
+        let mut by_name: indexmap::IndexMap<SmolStr, MirFunction> = indexmap::IndexMap::new();
+        for func in functions {
+            if Self::mir_function_instruction_count(func) < min_instruction_count {
+                continue;
+            }
+            match by_name.entry(func.name.clone()) {
+                indexmap::map::Entry::Vacant(slot) => {
+                    slot.insert(func.clone());
+                }
+                indexmap::map::Entry::Occupied(slot) => {
+                    let prev = slot.get();
+                    if Self::mir_function_fingerprint(prev) != Self::mir_function_fingerprint(func)
+                    {
+                        return Err(codegen_error_at(
+                            format!(
+                                "duplicate MIR body for '{}'; quality heuristic forbidden (C-3a)",
+                                func.name
+                            ),
+                            None,
+                            Span::DUMMY,
+                            "MIR001",
+                        ));
+                    }
+                }
+            }
+        }
+        Ok(by_name)
     }
 
     fn should_replace_bytecode_from_mir(
@@ -628,7 +695,7 @@ impl CodeGenerator {
         new_instruction_count: usize,
     ) -> bool {
         // Phase 125: MIR `lower_class_init` is the authoritative init body; codegen shells
-        // include vtable setup that inflates the quality score and must not block replacement.
+        // include vtable setup that inflates instruction count and must not block replacement.
         if existing.name.ends_with("_init") && new_instruction_count > 0 {
             return true;
         }
@@ -667,18 +734,8 @@ impl CodeGenerator {
                 .map(String::from)
                 .collect();
         }
-        // Apply highest-quality MIR body per function name (extension shells must not clobber class inits).
-        let mut best_by_name: indexmap::IndexMap<SmolStr, &MirFunction> = indexmap::IndexMap::new();
-        for func in &mir.functions {
-            best_by_name
-                .entry(func.name.clone())
-                .and_modify(|prev| {
-                    if Self::mir_function_quality(func) > Self::mir_function_quality(prev) {
-                        *prev = func;
-                    }
-                })
-                .or_insert(func);
-        }
+        // C-3a: fail-closed on conflicting same-name MIR bodies (no silent quality pick).
+        let best_by_name = Self::unique_mir_functions_by_name(&mir.functions)?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
@@ -955,22 +1012,8 @@ impl CodeGenerator {
             &mut gen.program,
             gen.source_name.as_str(),
         )?;
-        let mut best_mir: indexmap::IndexMap<SmolStr, syx_mir::MirFunction> =
-            indexmap::IndexMap::new();
-        for f in &mir_work.functions {
-            let ins_len = Self::mir_function_instruction_count(f);
-            if ins_len < 4 {
-                continue;
-            }
-            best_mir
-                .entry(f.name.clone())
-                .and_modify(|prev| {
-                    if Self::mir_function_quality(f) > Self::mir_function_quality(prev) {
-                        *prev = f.clone();
-                    }
-                })
-                .or_insert_with(|| f.clone());
-        }
+        // C-3a: same fail-closed uniqueness for program.mir_functions (skip thin stubs < 4).
+        let best_mir = Self::unique_owned_mir_functions_by_name(&mir_work.functions, 4)?;
         gen.program.mir_functions.extend(best_mir);
         gen.tag_untagged_functions_source();
         *program = gen.program;

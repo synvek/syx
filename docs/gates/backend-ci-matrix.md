@@ -152,6 +152,10 @@ These are the **default support claims** for SYX as research beta. Do not advert
 
 ---
 
+### C-3a (done · MIR quality demote)
+
+Codegen no longer silently picks a higher-`mir_function_quality` body for duplicate MIR names. Conflicting fingerprints → **MIR001** fail-closed; identical fingerprints keep first. Same-type overloads get arity-qualified MIR names upstream (`__a{N}`). Census: [`c-3a-mir-quality-demote-census`](../census/c-3a-mir-quality-demote-census.md). **≠** C-3 full exit / DefId / full verifier.
+
 ## Next
 
-Default next after C-2d / C-2 exit: **C-3** — MIR as sole verifiable backend input (DefId / verifier; demote quality heuristic).
+Default next after C-3a: **C-3b** — thin MIR verifier floor (entry CFG / terminator bounds). C-3 remains `[~]` until DefId + fuller verifier.

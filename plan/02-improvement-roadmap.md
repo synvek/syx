@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-2d ci.job.* 文案对齐 `[x]`**；C-2 轴收口；默认下一 = **C-3**（C-0a+/e · tls.server park）。
+> **最近更新：** 2026-11-24 · **C-3a MIR quality fail-closed `[x]`**；C-3 `[~]`；默认下一 = **C-3b**（薄 verifier 地板）。
 
 ## 0. 时代切换
 
@@ -94,9 +94,16 @@
 
 **验收（C-2d）：** surface 与 yaml 对齐；soft/hard 不变；16× `native=real` 不动；C-2 `[x]`；硬 KPI 不破。
 
-### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]` **默认下一**
+### C-3 · MIR 为唯一可验证后端输入（P1） — `[~]`
 
-DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作为正确性闸。
+DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作为正确性闸。子项：
+
+| 子项 | 状态 | 说明 |
+|------|------|------|
+| **C-3a** | `[x]` | 禁止 codegen 静默 quality 选同名 MIR body → MIR001 fail-closed；同名 overload 上游 arity 唯一化；census [`c-3a-mir-quality-demote-census`](../docs/census/c-3a-mir-quality-demote-census.md) |
+| **C-3b** | `[ ]` **默认下一** | 薄 verifier 地板：入口 CFG / terminator 有界检查（≠ 全量 MirOp / DefId） |
+
+**验收（C-3a）：** 同名冲突 fail-closed；无静默 quality 覆盖；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。
 
 ### C-4 · Package 默认可复现（P1） — `[ ]`
 
