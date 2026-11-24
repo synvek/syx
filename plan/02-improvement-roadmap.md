@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-2c JIT experimental 文案 `[x]`**；C-2b-13 tls.client `[x]`；默认下一 = **C-2d**（C-0a+/e · tls.server park）。
+> **最近更新：** 2026-11-24 · **C-2d ci.job.* 文案对齐 `[x]`**；C-2 轴收口；默认下一 = **C-3**（C-0a+/e · tls.server park）。
 
 ## 0. 时代切换
 
@@ -65,7 +65,7 @@
 
 **验收（C-1d）：** 测例/文档不再把 print/`gc:churn:` 回显冒充 GC 绿；C-1a 门闩不破；硬 KPI 不破。
 
-### C-2 · Backend / CI 支持矩阵诚实（P0） — `[~]` SSOT + mirror + unpaid demote + paid floor + JIT label / d 余
+### C-2 · Backend / CI 支持矩阵诚实（P0） — `[x]` SSOT + mirror + unpaid demote + paid floor + JIT label + ci.job 对齐
 
 **命名：** `-N` = N 个历史 `+`（`C-2b-1`≈`C-2b+`，`C-2b-2`≈`C-2b++`，`C-2b-3`≈旧 `C-2b+++`）。新默认下一禁止写 `+++`。
 
@@ -90,11 +90,11 @@
 | **C-2b-12** | `[x]` | raii/stream/watch llvm 进 paid job；`io.file.raii`+`stream`+`watch` → `native=real`（≠ tls）；census [`c-2b-12-io-file-raise-census`](../docs/census/c-2b-12-io-file-raise-census.md) |
 | **C-2b-13** | `[x]` | tls.client aot 进 paid job；`net.tls.client` → `native=real`（≠ server/daemon）；census [`c-2b-13-tls-client-raise-census`](../docs/census/c-2b-13-tls-client-raise-census.md) |
 | **C-2c** | `[x]` | JIT 公开 Stub/default-on → experimental-real-subset · default off · non_default_kpi；census [`c-2c-jit-experimental-label-census`](../docs/census/c-2c-jit-experimental-label-census.md) |
-| **C-2d** | `[ ]` **默认下一** | CI job 矩阵与 `01`/`capability` 文案对齐 |
+| **C-2d** | `[x]` | 8× `ci.job.*` surface 对齐 yaml job；census [`c-2d-ci-job-align-census`](../docs/census/c-2d-ci-job-align-census.md) |
 
-**验收（C-2c）：** 公开面无 JIT Stub / default-on；`jit` 仍 soft；16× `native=real` 不动；硬 KPI 不破。
+**验收（C-2d）：** surface 与 yaml 对齐；soft/hard 不变；16× `native=real` 不动；C-2 `[x]`；硬 KPI 不破。
 
-### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]`
+### C-3 · MIR 为唯一可验证后端输入（P1） — `[ ]` **默认下一**
 
 DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作为正确性闸。
 

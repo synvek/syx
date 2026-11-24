@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- docs: align `ci.job.*` surfaces to live yaml job ids; close C-2 axis (C-2d)
 - docs: scrub JIT Stub/default-on → experimental-real-subset · default off · non_default_kpi (C-2c)
 - ci/docs: tls.client aot on `full-native-linux`; raise `net.tls.client` to `native=real` (≠ server/daemon) (C-2b-13)
 - ci/docs: file raii/stream/watch llvm on `full-native-linux`; raise `io.file.raii`+`stream`+`watch` to `native=real` (≠ tls) (C-2b-12)

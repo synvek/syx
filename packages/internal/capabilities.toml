@@ -581,87 +581,87 @@ since = "ADR-131"
 [[capability]]
 id = "ci.job.native-strict-main"
 feature = "ci.job.native-strict-main"
-surface = "GitHub Actions job native-strict-main"
+surface = "GitHub Actions job native-linux (soft; ≠ full-native-linux)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["linux"]
 tests = []
-notes = "R-37: continue-on-error; native LLVM strict unpaid → R-39; ≠ full-native GA"
+notes = "C-2d: surface cites yaml job native-linux; R-37 continue-on-error soft; unpaid ≠ full-native GA (paid floor is full-native-linux)"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.native-macos"
 feature = "ci.job.native-macos"
-surface = "GitHub Actions job native-macos"
+surface = "GitHub Actions job native-macos (soft)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["macos"]
 tests = []
-notes = "R-37: continue-on-error; native link E2E unpaid → R-39"
+notes = "C-2d: surface cites yaml job native-macos; R-37 continue-on-error soft; unpaid ≠ macOS required full-native"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.parity-gate"
 feature = "ci.job.parity-gate"
-surface = "GitHub Actions job parity-gate"
+surface = "GitHub Actions job extended-suites (soft megagate)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["linux"]
 tests = []
-notes = "R-37: continue-on-error; broad parity megagate unpaid (lang/native parks)"
+notes = "C-2d: surface cites yaml job extended-suites (no parity-gate job); R-37 continue-on-error soft; unpaid megagate"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.jit-tier2-default"
 feature = "ci.job.jit-tier2-default"
-surface = "GitHub Actions job jit-tier2-default"
+surface = "GitHub Actions job jit (soft)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["linux"]
 tests = ["jit_suite1_differential"]
-notes = "R-37: continue-on-error; Suite-1 / tier-2 unpaid park (≠ production JIT GA)"
+notes = "C-2d: surface cites yaml job jit; R-37 continue-on-error soft; Suite-1 unpaid park (≠ production JIT GA / ≠ default KPI)"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.phase125-gui-xvfb"
 feature = "ci.job.phase125-gui-xvfb"
-surface = "GitHub Actions job phase125-gui-xvfb"
+surface = "GitHub Actions job gui-xvfb (soft)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["linux"]
 tests = []
-notes = "R-37: continue-on-error; gui/xvfb unpaid park"
+notes = "C-2d: surface cites yaml job gui-xvfb; R-37 continue-on-error soft; unpaid park"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.phase125-driver-gates"
 feature = "ci.job.phase125-driver-gates"
-surface = "GitHub Actions job phase125-driver-gates"
+surface = "GitHub Actions job extended-suites (soft; driver hard gates split to test-driver*)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["linux"]
 tests = []
-notes = "R-37: continue-on-error; phase125 driver megagate unpaid park"
+notes = "C-2d: surface cites yaml job extended-suites (no dedicated phase125-driver job; hard shards are test-driver*); R-37 continue-on-error soft"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.windows-smoke"
 feature = "ci.job.windows-smoke"
-surface = "GitHub Actions job windows-smoke"
+surface = "GitHub Actions job windows-smoke (soft)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["windows"]
 tests = []
-notes = "R-37: continue-on-error; Build CLI green, evergreen smoke unpaid thin fix"
+notes = "C-2d: surface cites yaml job windows-smoke; R-37 continue-on-error soft; unpaid thin smoke"
 since = "R-37"
 
 [[capability]]
 id = "ci.job.book-pass"
 feature = "ci.job.book-pass"
-surface = "GitHub Actions job book-pass"
+surface = "GitHub Actions job book-doctest (soft)"
 status = "partial"
 backends = { vm = "partial", native = "unsupported", wasm = "unsupported", mir = "partial" }
 platforms = ["linux"]
 tests = []
-notes = "R-37: continue-on-error; S1-09 check 100% residual → R-38 (≠ book run+stdout GA); hard Format/build remain trunk gates"
+notes = "C-2d: surface cites yaml job book-doctest; R-37 continue-on-error soft; ≠ book run+stdout GA; hard Format/build remain trunk gates"
 since = "R-37"

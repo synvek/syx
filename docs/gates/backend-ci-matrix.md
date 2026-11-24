@@ -5,7 +5,7 @@
 **Status snapshot:** [`plan/01-project-status.md`](../../plan/01-project-status.md) · Native 2.0 / CI soft  
 **Census:** [`docs/census/c-2a-backend-ci-matrix-census.md`](../census/c-2a-backend-ci-matrix-census.md)
 
-**Date:** 2026-11-24 · **C-2a…C-2c**（`-N` = N×历史 `+`）
+**Date:** 2026-11-24 · **C-2a…C-2d**（`-N` = N×历史 `+`；C-2 轴收口）
 
 ## Contract
 
@@ -49,7 +49,7 @@ These are the **default support claims** for SYX as research beta. Do not advert
 | `scripts/s0_backend_smoke.sh` | L006 **FAIL-CLOSED** counts as pass on required lint | Toolchain honesty, not native GA |
 | ~~`run_native_strict_or_mirror_vm`~~ | **C-2b exited** — helper **removed**; GA uses `try_run_native_strict` + **skip** (≠ VM mirror) | Forbidden: mirror VM stdout as native GA |
 
-**Capability:** C-2b-1 demoted unpaid → `partial`. Raised: path×2 (C-2b-3) · tcp×2 (C-2b-4) · `data.sqlite` (C-2b-5) · `net.http` (C-2b-6) · pool+row (C-2b-7) · `net.http.types` (C-2b-8) · `net.http.server` (C-2b-9) · `net.http.stream` (C-2b-10) · `net.http.timeout_tls` (C-2b-11) · io.file.raii·stream·watch (C-2b-12) · `net.tls.client` (C-2b-13). Remaining product rows stay `partial` (incl. `net.tls.server`). JIT public labels scrubbed (**C-2c**); next axis **C-2d**.
+**Capability:** C-2b-1 demoted unpaid → `partial`. Raised: path×2 (C-2b-3) · tcp×2 (C-2b-4) · `data.sqlite` (C-2b-5) · `net.http` (C-2b-6) · pool+row (C-2b-7) · `net.http.types` (C-2b-8) · `net.http.server` (C-2b-9) · `net.http.stream` (C-2b-10) · `net.http.timeout_tls` (C-2b-11) · io.file.raii·stream·watch (C-2b-12) · `net.tls.client` (C-2b-13). Remaining product rows stay `partial` (incl. `net.tls.server`). JIT labels scrubbed (**C-2c**). `ci.job.*` surfaces cite live yaml job ids (**C-2d**). C-2 axis **closed**.
 
 ---
 
@@ -140,14 +140,18 @@ These are the **default support claims** for SYX as research beta. Do not advert
 - CI job `jit` stays `continue-on-error`; product `native=real` count unchanged (**16**)
 - ≠ JIT Suite-1 expand / ≠ default-on JIT / ≠ hard KPI
 
-### Still park → **C-2d**
+### C-2d (done · ci.job.* surface align)
+- 8× `ci.job.*` `surface`/`notes` cite live yaml ids: `native-linux` · `native-macos` · `extended-suites` · `jit` · `gui-xvfb` · `windows-smoke` · `book-doctest`
+- Capability `id`/`feature` unchanged; yaml job names unchanged; soft `continue-on-error` unchanged
+- ≠ soft→hard · ≠ yaml rename · ≠ R-37/R-39 fossil script rewrite
+
+### Still park (post C-2)
 - ≠ `net.tls.server` paid raise (park；≠ daemon GA)
 - ≠ macOS required full-native
-- ≠ rename every capability `ci.job.*` to match yaml (**C-2d**)
 - ≠ R-50
 
 ---
 
 ## Next
 
-Default next after C-2c exit: **C-2d** — align `ci.job.*` capability surface names with yaml job ids.
+Default next after C-2d / C-2 exit: **C-3** — MIR as sole verifiable backend input (DefId / verifier; demote quality heuristic).
