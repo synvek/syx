@@ -192,6 +192,10 @@ Manifest git dependencies require explicit `rev` (missing → **P043**); never d
 
 `require_publish_lock` / `publish_package`: missing `syx.lock` → **P014** (C-4c); present → `enforce_lock_v16`. CLI `syx publish --dry-run` uses the same gate. Empty `packages` OK for zero-dep libs after install. Census: [`c-4c-publish-lock-census`](../census/c-4c-publish-lock-census.md). **≠** lock v16 field trim / path content hash (C-4d+).
 
+### C-4d (done · lock v16 infra trim)
+
+`graph_to_lockfile` no longer stamps CDN/farm/billing/marketplace env snapshots (or hard-coded phase8 CDN regions) into fresh `syx.lock`. Schema + `enforce_lock_v12…v16` retained for old/manual locks. Runtime CDN still reads process env. Census: [`c-4d-lock-trim-census`](../census/c-4d-lock-trim-census.md). **≠** path content hash / delete SyxLockfile fields (C-4e+).
+
 ## Next
 
-Default next after C-4c: **C-4d** — trim lock v16 CDN/farm/billing env fields from default lock schema. C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-4d: **C-4e** — path dependency content hash. C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).

@@ -691,8 +691,11 @@ fn graph_to_lockfile_v6_fields() {
     };
     let lock = graph_to_lockfile(&graph, &syx_pkg::SyxManifest::default());
     assert_eq!(lock.version, 16);
-    assert_eq!(lock.syx_version, "58.0");
+    assert_eq!(lock.syx_version, "60.0");
     assert!(!lock.resolved_at.is_empty());
+    // C-4d: default lock omits infra CDN/farm snapshots.
+    assert!(lock.artifact_cdn_base.is_none());
+    assert!(lock.artifact_cdn_regions.is_empty());
 }
 
 #[test]
@@ -976,7 +979,12 @@ func main() { print(cdnlib70.answer()) }"#,
     install_project(&app).expect("install from CDN mirror");
     let lock = syx_pkg::load_lockfile(&app).unwrap();
     assert_eq!(lock.version, 16);
-    assert_eq!(lock.artifact_cdn_base.as_deref(), Some(cdn_url.as_str()));
+    // C-4d: CDN is env-driven at install time; lock must not snapshot artifact_cdn_base.
+    assert!(
+        lock.artifact_cdn_base.is_none(),
+        "C-4d: graph_to_lockfile must not stamp SYX_REGISTRY_CDN into syx.lock"
+    );
+    assert!(lock.artifact_cdn_regions.is_empty());
     assert!(lock.tarball_sha256.contains_key("cdnlib70"));
 
     syx_driver::compile_project(&app).expect("compile");

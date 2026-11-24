@@ -104,6 +104,9 @@ fn resolve_one(
     }
 }
 
+/// C-4d: default locks carry dependency reproducibility only — no CDN/farm/billing
+/// env snapshots. Infra fields stay on `SyxLockfile` for old locks + enforce_*; runtime
+/// CDN/farm continue to read process env directly.
 pub fn graph_to_lockfile(graph: &ResolvedGraph, manifest: &SyxManifest) -> SyxLockfile {
     let mut tarball_sha256 = IndexMap::new();
     for (name, pkg) in &graph.packages {
@@ -120,47 +123,6 @@ pub fn graph_to_lockfile(graph: &ResolvedGraph, manifest: &SyxManifest) -> SyxLo
         .into_iter()
         .filter(|url| url != &registry)
         .collect();
-    let artifact_cdn_base = std::env::var("SYX_REGISTRY_CDN")
-        .ok()
-        .filter(|value| !value.is_empty());
-    let artifact_cdn_regions: Vec<String> = crate::registry_cdn_phase8_regions()
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-    let resolved_region = artifact_cdn_regions.first().cloned().unwrap_or_default();
-    let cache_remote_nodes: Vec<String> = std::env::var("SYX_CACHE_REMOTE_NODES")
-        .ok()
-        .map(|s| {
-            s.split(',')
-                .map(|n| n.trim().to_string())
-                .filter(|n| !n.is_empty())
-                .collect()
-        })
-        .filter(|v: &Vec<String>| !v.is_empty())
-        .unwrap_or_else(|| {
-            std::env::var("SYX_CACHE_REMOTE")
-                .ok()
-                .filter(|s| !s.is_empty())
-                .into_iter()
-                .collect()
-        });
-    let farm_queue_url = std::env::var("SYX_BUILD_FARM_QUEUE")
-        .ok()
-        .filter(|s| !s.is_empty());
-    let marketplace_cdn_base = std::env::var("SYX_MARKETPLACE_CDN")
-        .ok()
-        .filter(|s| !s.is_empty());
-    let plugin_unload_epoch = std::env::var("SYX_PLUGIN_UNLOAD_EPOCH")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0);
-    let publisher_key_rotation = std::env::var("SYX_PUBLISHER_KEY_ROTATION")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0);
-    let farm_worker_id = std::env::var("SYX_FARM_WORKER_ID")
-        .ok()
-        .filter(|s| !s.is_empty());
     SyxLockfile {
         version: 16,
         syx_version: "60.0".into(),
@@ -168,47 +130,12 @@ pub fn graph_to_lockfile(graph: &ResolvedGraph, manifest: &SyxManifest) -> SyxLo
         resolved_at,
         registry,
         registry_mirrors,
-        artifact_cdn_base,
-        artifact_cdn_regions,
-        resolved_region,
-        cache_remote_nodes,
-        plugin_unload_epoch,
-        marketplace_cdn_base,
-        farm_queue_url,
-        publisher_key_rotation,
-        farm_worker_id,
-        plugin_bundle_sha256: IndexMap::new(),
-        tenant_id: None,
-        rotation_cron_spec: None,
-        farm_lease_ttl_secs: 300,
-        farm_worker_pool: Vec::new(),
-        hsm_key_ref: std::env::var("SYX_HSM_KEY_REF")
-            .ok()
-            .filter(|s| !s.is_empty()),
-        billing_meter_id: std::env::var("SYX_BILLING_METER_ID")
-            .ok()
-            .filter(|s| !s.is_empty()),
-        hsm_rotation_cron_job: std::env::var("SYX_HSM_ROTATION_CRON_JOB")
-            .ok()
-            .filter(|s| !s.is_empty()),
-        billing_settlement_id: std::env::var("SYX_BILLING_SETTLEMENT_ID")
-            .ok()
-            .filter(|s| !s.is_empty()),
-        marketplace_plugin_epoch: std::env::var("SYX_MARKETPLACE_PLUGIN_EPOCH")
-            .ok()
-            .and_then(|s| s.parse().ok())
-            .unwrap_or(0),
-        marketplace_publish_epoch: std::env::var("SYX_MARKETPLACE_PUBLISH_EPOCH")
-            .ok()
-            .and_then(|s| s.parse().ok())
-            .unwrap_or(0),
-        extension_signing_key_id: std::env::var("SYX_EXTENSION_SIGNING_KEY_ID")
-            .ok()
-            .filter(|s| !s.is_empty()),
         publisher_key_id: std::env::var("SYX_PUBLISHER_KEY_ID").unwrap_or_default(),
         signature_policy: crate::lockfile::SignaturePolicy::Mandatory,
         tarball_sha256,
         packages: graph.packages.clone(),
         plugins: vec![],
+        // C-4d: leave CDN/farm/billing/marketplace infra at Default (empty).
+        ..SyxLockfile::default()
     }
 }

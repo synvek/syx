@@ -2069,3 +2069,70 @@ fn c4c_require_publish_lock_api() {
     install_project(&pkg).expect("seed");
     syx_pkg::require_publish_lock(&pkg).expect("usable lock after install");
 }
+
+#[test]
+fn c4d_graph_to_lockfile_omits_infra_env() {
+    use syx_pkg::{graph_to_lockfile, ResolvedGraph, SyxManifest};
+
+    std::env::set_var("SYX_REGISTRY_CDN", "https://cdn.example/v1");
+    std::env::set_var("SYX_BUILD_FARM_QUEUE", "https://farm.example/q");
+    std::env::set_var("SYX_MARKETPLACE_CDN", "https://mp.example");
+    std::env::set_var("SYX_CACHE_REMOTE", "https://cache.example");
+    std::env::set_var("SYX_BILLING_METER_ID", "meter-1");
+    std::env::set_var("SYX_BILLING_SETTLEMENT_ID", "settle-1");
+    std::env::set_var("SYX_HSM_KEY_REF", "hsm://k1");
+    std::env::set_var("SYX_PLUGIN_UNLOAD_EPOCH", "9");
+    std::env::set_var("SYX_MARKETPLACE_PUBLISH_EPOCH", "3");
+    std::env::set_var("SYX_FARM_WORKER_ID", "worker-a");
+
+    let lock = graph_to_lockfile(&ResolvedGraph::default(), &SyxManifest::default());
+
+    assert!(
+        lock.artifact_cdn_base.is_none(),
+        "must not stamp SYX_REGISTRY_CDN"
+    );
+    assert!(
+        lock.artifact_cdn_regions.is_empty(),
+        "must not stamp phase8 CDN regions"
+    );
+    assert!(lock.resolved_region.is_empty());
+    assert!(lock.cache_remote_nodes.is_empty());
+    assert!(lock.farm_queue_url.is_none());
+    assert!(lock.marketplace_cdn_base.is_none());
+    assert_eq!(lock.plugin_unload_epoch, 0);
+    assert!(lock.farm_worker_id.is_none());
+    assert!(lock.hsm_key_ref.is_none());
+    assert!(lock.billing_meter_id.is_none());
+    assert!(lock.billing_settlement_id.is_none());
+    assert_eq!(lock.marketplace_publish_epoch, 0);
+    assert_eq!(lock.marketplace_plugin_epoch, 0);
+
+    let text = toml::to_string(&lock).unwrap();
+    assert!(
+        !text.contains("artifact_cdn_regions"),
+        "serialized lock must omit CDN regions noise"
+    );
+    assert!(
+        !text.contains("farm_queue_url"),
+        "serialized lock must omit farm_queue_url"
+    );
+    assert!(
+        !text.contains("billing_meter_id"),
+        "serialized lock must omit billing_meter_id"
+    );
+
+    for key in [
+        "SYX_REGISTRY_CDN",
+        "SYX_BUILD_FARM_QUEUE",
+        "SYX_MARKETPLACE_CDN",
+        "SYX_CACHE_REMOTE",
+        "SYX_BILLING_METER_ID",
+        "SYX_BILLING_SETTLEMENT_ID",
+        "SYX_HSM_KEY_REF",
+        "SYX_PLUGIN_UNLOAD_EPOCH",
+        "SYX_MARKETPLACE_PUBLISH_EPOCH",
+        "SYX_FARM_WORKER_ID",
+    ] {
+        std::env::remove_var(key);
+    }
+}
