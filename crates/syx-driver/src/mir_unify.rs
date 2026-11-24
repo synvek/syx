@@ -622,6 +622,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_type_floor(&mir)?;
     // C-3f: JumpIfFalse condition tag floor (MIR006) after type floor.
     syx_mir::verify_mir_branch_floor(&mir)?;
+    // C-3g: JumpIfNil condition tag floor (MIR007) after branch floor.
+    syx_mir::verify_mir_nil_branch_floor(&mir)?;
     Ok(mir)
 }
 

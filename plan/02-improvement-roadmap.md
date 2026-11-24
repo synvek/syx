@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-3f MIR JumpIfFalse 条件 tag `[x]`**；C-3 `[~]`；默认下一 = **C-3g**（薄 JumpIfNil 条件 tag）。
+> **最近更新：** 2026-11-24 · **C-3g MIR JumpIfNil 条件 tag `[x]`**；C-3 `[~]`；默认下一 = **C-4**（Package 默认可复现）。
 
 ## 0. 时代切换
 
@@ -106,11 +106,11 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3d** | `[x]` | 薄 stack-height 地板：`verify_mir_stack_floor` → MIR004（suite1/pilot 子集；CallHost/非 pilot 放弃该流）；挂钩 unify + codegen（CFG+FnIndex 之后）；census [`c-3d-mir-stack-floor-census`](../docs/census/c-3d-mir-stack-floor-census.md) |
 | **C-3e** | `[x]` | 薄 type-tag 地板：`verify_mir_type_floor` → MIR005（Const/算术粗 tag；Add 拼接合法；Nil/非数值 Sub·Mul·Div 拒）；挂钩 stack 之后；census [`c-3e-mir-type-floor-census`](../docs/census/c-3e-mir-type-floor-census.md) |
 | **C-3f** | `[x]` | 薄 `JumpIfFalse` 条件 tag：`verify_mir_branch_floor` → MIR006（仅 `Bool|Unknown`；比较/逻辑作 Bool 生产者）；挂钩 type 之后；census [`c-3f-mir-branch-floor-census`](../docs/census/c-3f-mir-branch-floor-census.md) |
-| **C-3g** | `[ ]` **默认下一** | 薄 `JumpIfNil` 条件 tag：仅 `Nil|Unknown`；concrete `Bool|Str|I32` → MIR007（≠ 全 exception 配对） |
+| **C-3g** | `[x]` | 薄 `JumpIfNil` 条件 tag：`verify_mir_nil_branch_floor` → MIR007（仅 `Nil|Unknown`；Nil pop / Unknown 留栈）；挂钩 branch 之后；census [`c-3g-mir-nil-branch-floor-census`](../docs/census/c-3g-mir-nil-branch-floor-census.md) |
 
-**验收（C-3f）：** concrete 非 Bool 条件 → MIR006；含比较的合法 if 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。
+**验收（C-3g）：** concrete 非 optional 条件 → MIR007；合法 if-let/?? 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。ModuleId / 全量 MirOp / exception 继续 park。
 
-### C-4 · Package 默认可复现（P1） — `[ ]`
+### C-4 · Package 默认可复现（P1） — `[ ]` **默认下一**
 
 lockfile / git 依赖默认钉死；publish 与测试顺序一致；失败路径可诊断。
 

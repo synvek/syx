@@ -176,6 +176,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `verify_mir_branch_floor` / `verify_mir_branch_floor_functions` — JumpIfFalse condition must be Bool|Unknown; concrete I32|Str|Nil → **MIR006**. Cmp/logic ops treated as Bool producers (without expanding suite1 pilot predicate). Hooked after type floor. Census: [`c-3f-mir-branch-floor-census`](../census/c-3f-mir-branch-floor-census.md). **≠** JumpIfNil / dominators / exception pairing.
 
+### C-3g (done · MIR JumpIfNil condition tag)
+
+`verify_mir_nil_branch_floor` / `verify_mir_nil_branch_floor_functions` — JumpIfNil condition must be Nil|Unknown; concrete Bool|Str|I32 → **MIR007**. Nil pops; Unknown left on stack (mir-run non-Nil path). Hooked after branch floor. Census: [`c-3g-mir-nil-branch-floor-census`](../census/c-3g-mir-nil-branch-floor-census.md). **≠** BeginTry/Throw pairing / ModuleId / full MirOp verifier.
+
 ## Next
 
-Default next after C-3f: **C-3g** — thin JumpIfNil condition tag (Nil|Unknown only). C-3 remains `[~]` until fuller verifier.
+Default next after C-3g: **C-4** — Package default reproducibility (lockfile/git pin). C-3 remains `[~]` (ModuleId / full MirOp / exception park).

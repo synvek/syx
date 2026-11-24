@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- fix: MIR JumpIfNil condition tag floor fail-closed (MIR007) on unify + codegen paths (C-3g)
 - fix: MIR JumpIfFalse condition tag floor fail-closed (MIR006) on unify + codegen paths (C-3f)
 - fix: MIR pilot type-tag floor fail-closed (MIR005) on unify + codegen paths (C-3e)
 - fix: MIR pilot stack-height floor fail-closed (MIR004) on unify + codegen paths (C-3d)
