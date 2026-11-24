@@ -773,6 +773,7 @@ fn graph_to_lockfile_preserves_packages() {
             source: PackageSource::Path {
                 version: "1.0.0".into(),
                 path: "vendor/demo".into(),
+                checksum: String::new(),
             },
         },
     );

@@ -196,6 +196,10 @@ Manifest git dependencies require explicit `rev` (missing → **P043**); never d
 
 `graph_to_lockfile` no longer stamps CDN/farm/billing/marketplace env snapshots (or hard-coded phase8 CDN regions) into fresh `syx.lock`. Schema + `enforce_lock_v12…v16` retained for old/manual locks. Runtime CDN still reads process env. Census: [`c-4d-lock-trim-census`](../census/c-4d-lock-trim-census.md). **≠** path content hash / delete SyxLockfile fields (C-4e+).
 
+### C-4e (done · path content hash)
+
+`PackageSource::Path` records `checksum = sha256:…` (directory tree hash; excludes `.git` / `target` / `.DS_Store`). Unlocked resolve writes it; Locked install recomputes and fail-closes on missing/mismatch (**P014**, C-4e). Legacy path locks without checksum require Unlocked rewrite. Census: [`c-4e-path-content-hash-census`](../census/c-4e-path-content-hash-census.md). **C-4 `[x]`**. **≠** manifest↔lock full reconcile / delete SyxLockfile infra fields / C-5.
+
 ## Next
 
-Default next after C-4d: **C-4e** — path dependency content hash. C-4 remains `[~]` (≠ `[x]`). C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-4e: **C-5** — macro/embed isolation honesty (drop false sandbox claims or land real boundary). **C-4 `[x]`** (C-4a…C-4e). C-3 remains `[~]` (ModuleId / full MirOp / exception park).

@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-4d lock v16 字段裁剪 `[x]`**；C-4 `[~]`（C-4a…C-4d `[x]`）；C-3 `[~]`；默认下一 = **C-4e**（path content hash）。
+> **最近更新：** 2026-11-24 · **C-4e path content hash `[x]`**；**C-4 `[x]`**（C-4a…C-4e）；C-3 `[~]`；默认下一 = **C-5**（宏/embed 隔离诚实）。
 
 ## 0. 时代切换
 
@@ -110,9 +110,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 
 **验收（C-3g）：** concrete 非 optional 条件 → MIR007；合法 if-let/?? 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。ModuleId / 全量 MirOp / exception 继续 park。
 
-### C-4 · Package 默认可复现（P1） — `[~]`
+### C-4 · Package 默认可复现（P1） — `[x]`
 
-lockfile / git 依赖默认钉死；publish 与测试顺序一致；失败路径可诊断。**不**宣称 C-4 `[x]`。
+lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失败路径可诊断。清单 **C-4a…C-4e** 收齐。
 
 | 子项 | 状态 | 说明 |
 |------|------|------|
@@ -120,9 +120,9 @@ lockfile / git 依赖默认钉死；publish 与测试顺序一致；失败路径
 | **C-4b** | `[x]` | 有 `syx.lock` 时 `install` **默认锁定**；`InstallMode::{Auto,Locked,Unlocked}`；CLI `syx install --locked`；`update`/`add` → Unlocked；census [`c-4b-locked-default-census`](../docs/census/c-4b-locked-default-census.md) |
 | **C-4c** | `[x]` | `syx publish` 强制可用 `syx.lock`（缺 → **P014**；`enforce_lock_v16`）；CLI `--dry-run` 同闸；census [`c-4c-publish-lock-census`](../docs/census/c-4c-publish-lock-census.md) |
 | **C-4d** | `[x]` | `graph_to_lockfile` 默认停写 CDN/farm/billing/marketplace env 快照（保留 schema+enforce）；census [`c-4d-lock-trim-census`](../docs/census/c-4d-lock-trim-census.md) |
-| **C-4e** | `[ ]` | **默认下一**：path 依赖 content hash |
+| **C-4e** | `[x]` | path 依赖 **content hash**（`PackageSource::Path.checksum`）；Locked 缺/错 → **P014**；census [`c-4e-path-content-hash-census`](../docs/census/c-4e-path-content-hash-census.md) |
 
-**验收（C-4d）：** 设 infra env 后新 lock 仍无 CDN regions/farm/billing 烙印；CDN install 靠 env 仍绿；enforce 旧夹具绿；硬 KPI 不破；**不**宣称 C-4 `[x]`。path content hash → C-4e park。
+**验收（C-4e）：** 新 path lock 含 `sha256:`；Locked 改文件或旧无 checksum → **P014**；Unlocked 可重写；硬 KPI 不破；**C-4 `[x]`**。manifest↔lock 全量对账 / 删 infra 字段仍 park。默认下一 → **C-5**。
 
 ### C-5 · 宏 / embed 隔离诚实（P1） — `[ ]`
 

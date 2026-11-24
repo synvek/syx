@@ -12,6 +12,9 @@ pub enum PackageSource {
     Path {
         version: String,
         path: String,
+        /// Directory content hash (`sha256:…`). C-4e; empty on legacy locks.
+        #[serde(default)]
+        checksum: String,
     },
     Git {
         git: String,
@@ -205,7 +208,7 @@ pub struct InstalledPackage {
 impl LockPackage {
     pub fn to_installed(&self, project_root: &Path) -> SyxResult<InstalledPackage> {
         match &self.source {
-            PackageSource::Path { version, path } => Ok(InstalledPackage {
+            PackageSource::Path { version, path, .. } => Ok(InstalledPackage {
                 name: String::new(),
                 version: version.clone(),
                 root: project_root.join(path),

@@ -308,6 +308,7 @@ Generated after `syx install` / `syx add` / `syx update`. **Run install before c
 source = "path"
 version = "1.0.0"
 path = "../deps_math"
+checksum = "sha256:..."
 
 [packages.lib]
 source = "git"
@@ -323,7 +324,7 @@ checksum = "sha256:..."
 dir = ".sy/vendor/http-client-1.0.3"
 ```
 
-Git / registry packages install to `.sy/vendor/` (listed in `.gitignore`). Path dependencies record the path only; source is not copied.
+Git / registry packages install to `.sy/vendor/` (listed in `.gitignore`). Path dependencies record the path plus a directory content `checksum` (C-4e); source is not copied.
 
 ### Incremental compile cache
 

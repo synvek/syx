@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: path deps write directory content hash; Locked install mismatch → P014 (C-4e); C-4 exited
 - fix: graph_to_lockfile omits CDN/farm/billing env snapshots from default syx.lock (C-4d)
 - fix: syx publish requires usable syx.lock (P014 + enforce_lock_v16); dry-run same gate (C-4c)
 - feat: install defaults to locked when syx.lock exists; `syx install --locked`; update/add unlock rewrite (C-4b)

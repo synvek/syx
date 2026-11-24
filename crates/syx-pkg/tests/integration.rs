@@ -2136,3 +2136,112 @@ fn c4d_graph_to_lockfile_omits_infra_env() {
         std::env::remove_var(key);
     }
 }
+
+fn c4e_path_fixture() -> (tempfile::TempDir, std::path::PathBuf, std::path::PathBuf) {
+    let root = tempfile::tempdir().unwrap();
+    let math_dir = root.path().join("math_pkg");
+    std::fs::create_dir_all(&math_dir).unwrap();
+    std::fs::write(
+        math_dir.join("syx.toml"),
+        "name = \"helper\"\nversion = \"1.0.0\"\nmain = \"helper.sy\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        math_dir.join("helper.sy"),
+        "public func add(a: Int, b: Int) -> Int { return a + b }",
+    )
+    .unwrap();
+
+    let app = root.path().join("app");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(
+        app.join("syx.toml"),
+        r#"name = "app"
+version = "0.1.0"
+main = "main.sy"
+
+[dependencies.helper]
+version = "1.0.0"
+path = "../math_pkg"
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        app.join("main.sy"),
+        "import helper\nfunc main() { print(helper.add(1, 2)) }",
+    )
+    .unwrap();
+    (root, app, math_dir)
+}
+
+#[test]
+fn c4e_path_lock_writes_checksum() {
+    use syx_pkg::{install_project_with_mode, load_lockfile, InstallMode, PackageSource};
+
+    let (_root, app, _math) = c4e_path_fixture();
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+
+    install_project_with_mode(&app, InstallMode::Unlocked).expect("unlocked path install");
+    let lock = load_lockfile(&app).expect("load lock");
+    let pkg = lock.packages.get("helper").expect("helper pin");
+    match &pkg.source {
+        PackageSource::Path { checksum, .. } => {
+            assert!(
+                checksum.starts_with("sha256:") && checksum.len() > "sha256:".len(),
+                "C-4e: path lock must write sha256 checksum, got {checksum:?}"
+            );
+        }
+        other => panic!("expected Path source, got {other:?}"),
+    }
+}
+
+#[test]
+fn c4e_locked_path_rejects_content_drift() {
+    use syx_pkg::{install_project_with_mode, InstallMode};
+
+    let (_root, app, math_dir) = c4e_path_fixture();
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+
+    install_project_with_mode(&app, InstallMode::Unlocked).expect("seed lock");
+    std::fs::write(
+        math_dir.join("helper.sy"),
+        "public func add(a: Int, b: Int) -> Int { return a + b + 1 }",
+    )
+    .unwrap();
+
+    let err = install_project_with_mode(&app, InstallMode::Locked).unwrap_err();
+    let msg = format!("{err}");
+    assert!(msg.contains("P014"), "got: {msg}");
+    assert!(msg.contains("C-4e"), "got: {msg}");
+}
+
+#[test]
+fn c4e_locked_path_rejects_missing_checksum() {
+    use syx_pkg::{install_project_with_mode, InstallMode};
+
+    let (_root, app, _math) = c4e_path_fixture();
+    std::env::remove_var("SYX_INSTALL_LOCKED");
+    std::env::remove_var("SYX_INSTALL_UNLOCKED");
+
+    install_project_with_mode(&app, InstallMode::Unlocked).expect("seed lock");
+
+    let lock_path = app.join("syx.lock");
+    let text = std::fs::read_to_string(&lock_path).unwrap();
+    // Drop the checksum line so the pin looks like a pre-C-4e path lock.
+    let stripped: String = text
+        .lines()
+        .filter(|l| !l.trim_start().starts_with("checksum"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    std::fs::write(&lock_path, stripped).unwrap();
+
+    let err = install_project_with_mode(&app, InstallMode::Locked).unwrap_err();
+    let msg = format!("{err}");
+    assert!(msg.contains("P014"), "got: {msg}");
+    assert!(
+        msg.contains("C-4e") && msg.contains("missing checksum"),
+        "got: {msg}"
+    );
+}

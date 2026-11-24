@@ -310,6 +310,7 @@ build {
 source = "path"
 version = "1.0.0"
 path = "../deps_math"
+checksum = "sha256:..."
 
 [packages.lib]
 source = "git"
@@ -325,7 +326,7 @@ checksum = "sha256:..."
 dir = ".sy/vendor/http-client-1.0.3"
 ```
 
-Git / registry 包安装到 `.sy/vendor/`（已加入 `.gitignore`）。path 依赖仅记录路径，不复制源码。
+Git / registry 包安装到 `.sy/vendor/`（已加入 `.gitignore`）。path 依赖记录路径与目录内容 `checksum`（C-4e），不复制源码。
 
 ### 增量编译缓存
 
