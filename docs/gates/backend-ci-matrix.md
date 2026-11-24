@@ -172,6 +172,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `verify_mir_type_floor` / `verify_mir_type_floor_functions` — suite1/pilot coarse tags; Nil on Add / non-numeric on Sub·Mul·Div → **MIR005**. Hooked after stack floor on unify + codegen. Add string concat allowed (mir-run). Census: [`c-3e-mir-type-floor-census`](../census/c-3e-mir-type-floor-census.md). **≠** locals slot types / cross-block φ / full semantic types.
 
+### C-3f (done · MIR JumpIfFalse condition tag)
+
+`verify_mir_branch_floor` / `verify_mir_branch_floor_functions` — JumpIfFalse condition must be Bool|Unknown; concrete I32|Str|Nil → **MIR006**. Cmp/logic ops treated as Bool producers (without expanding suite1 pilot predicate). Hooked after type floor. Census: [`c-3f-mir-branch-floor-census`](../census/c-3f-mir-branch-floor-census.md). **≠** JumpIfNil / dominators / exception pairing.
+
 ## Next
 
-Default next after C-3e: **C-3f** — thin JumpIfFalse condition tag (Bool|Unknown only). C-3 remains `[~]` until fuller verifier.
+Default next after C-3f: **C-3g** — thin JumpIfNil condition tag (Nil|Unknown only). C-3 remains `[~]` until fuller verifier.

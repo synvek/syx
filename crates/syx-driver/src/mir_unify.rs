@@ -620,6 +620,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_stack_floor(&mir)?;
     // C-3e: pilot coarse type-tag floor (MIR005) after stack floor.
     syx_mir::verify_mir_type_floor(&mir)?;
+    // C-3f: JumpIfFalse condition tag floor (MIR006) after type floor.
+    syx_mir::verify_mir_branch_floor(&mir)?;
     Ok(mir)
 }
 

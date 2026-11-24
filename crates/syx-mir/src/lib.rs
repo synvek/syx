@@ -20,6 +20,8 @@ mod mir_stack_floor;
 pub use mir_stack_floor::{verify_mir_stack_floor, verify_mir_stack_floor_functions};
 mod mir_type_floor;
 pub use mir_type_floor::{verify_mir_type_floor, verify_mir_type_floor_functions};
+mod mir_branch_floor;
+pub use mir_branch_floor::{verify_mir_branch_floor, verify_mir_branch_floor_functions};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
