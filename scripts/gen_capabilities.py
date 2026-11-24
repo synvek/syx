@@ -16,6 +16,14 @@ import re
 import sys
 from pathlib import Path
 
+# C-6b: Cargo workspace version injects meta.syx_version
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from syx_cargo_ssot import (  # noqa: E402
+    read_toml_syx_version,
+    read_workspace_semver,
+    rewrite_toml_syx_version,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "packages" / "internal" / "capabilities.toml"
 OUT_MD = ROOT / "books" / "shared" / "capabilities-generated.md"
@@ -191,7 +199,21 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="Fail if generated outputs differ")
     args = ap.parse_args()
+    v = read_workspace_semver(ROOT)
+    toml_v = read_toml_syx_version(SRC)
+    if args.check:
+        if toml_v != v:
+            print(
+                f"FAIL: {SRC.relative_to(ROOT)} syx_version={toml_v!r} != Cargo V={v!r}",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        if toml_v != v:
+            rewrite_toml_syx_version(SRC, v)
+            print(f"rewrote {SRC.relative_to(ROOT)} syx_version={v}")
     data = load_capabilities(SRC)
+    data["meta"]["syx_version"] = v
     errors = validate_capabilities(data)
     if errors:
         for e in errors:

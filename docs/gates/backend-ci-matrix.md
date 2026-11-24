@@ -210,8 +210,12 @@ When `SYX_EMBED_WASM_SANDBOX=1`, `syx_embed_v2_run` returns **null** if wasmtime
 
 ### C-6a (done · version SSOT align)
 
-Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md). C-6 remains `[~]` (≠ `[x]`). **≠** gen scripts auto-read Cargo (C-6b).
+Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md).
+
+### C-6b (done · gen-from-Cargo)
+
+`gen_capabilities.py` / `gen_ir_capabilities.py` parse Cargo `V`, force `meta.syx_version = V`, rewrite stale TOML on write, `--check` fail-closed when TOML≠`V` or outputs stale; IR `"117.0"` fallback removed. Shared helper [`scripts/syx_cargo_ssot.py`](../../scripts/syx_cargo_ssot.py). Census: [`c-6b-gen-from-cargo-census`](../census/c-6b-gen-from-cargo-census.md). **C-6 `[x]`**.
 
 ## Next
 
-Default next after C-6a: **C-6b** — capability gen scripts read `syx_version` from Cargo / expand auto-align. C-6 remains `[~]`. C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-6b: **C-7** — test-signal / maintenance hygiene (shard matrix · fuzz/benchmark honesty · module split). **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).

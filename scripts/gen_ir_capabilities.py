@@ -18,6 +18,14 @@ import re
 import sys
 from pathlib import Path
 
+# C-6b: Cargo workspace version injects meta.syx_version (no 117.0 fossil)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from syx_cargo_ssot import (  # noqa: E402
+    read_toml_syx_version,
+    read_workspace_semver,
+    rewrite_toml_syx_version,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 MIR_RS = ROOT / "crates" / "syx-mir" / "src" / "mir_types.rs"
 HOST_RS = ROOT / "crates" / "syx-stdlib" / "src" / "registry.rs"
@@ -138,6 +146,7 @@ def build_table(
     inventory: list[str],
     meta: dict,
     overrides: dict[str, dict],
+    syx_version: str,
 ) -> dict:
     unknown_override = sorted(set(overrides) - set(inventory))
     if unknown_override:
@@ -195,7 +204,7 @@ def build_table(
     return {
         "meta": {
             "version": meta.get("version", "0.1"),
-            "syx_version": meta.get("syx_version", "117.0"),
+            "syx_version": syx_version,
             "phase": int(meta.get("phase", 139)) if str(meta.get("phase", "139")).isdigit() else 139,
             "schema": meta.get("schema", f"syx-{kind}-capability-v0"),
             "kind": kind,
@@ -255,18 +264,42 @@ def write_or_check(path: Path, content: str, check: bool) -> bool:
     return True
 
 
+def _assert_or_rewrite_toml(path: Path, v: str, check: bool) -> int:
+    """Return 0 if ok; 1 if --check drift. Rewrite when not check."""
+    toml_v = read_toml_syx_version(path)
+    if check:
+        if toml_v != v:
+            print(
+                f"FAIL: {path.relative_to(ROOT)} syx_version={toml_v!r} != Cargo V={v!r}",
+                file=sys.stderr,
+            )
+            return 1
+        return 0
+    if toml_v != v:
+        rewrite_toml_syx_version(path, v)
+        print(f"rewrote {path.relative_to(ROOT)} syx_version={v}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
+
+    v = read_workspace_semver(ROOT)
+    drift = 0
+    drift |= _assert_or_rewrite_toml(MIR_TOML, v, args.check)
+    drift |= _assert_or_rewrite_toml(HOST_TOML, v, args.check)
+    if args.check and drift:
+        return 1
 
     mir_names = parse_enum_variants(MIR_RS, "MirOp")
     host_names = parse_enum_variants(HOST_RS, "HostFnId")
     mir_meta, mir_ov = load_overrides(MIR_TOML, "op")
     host_meta, host_ov = load_overrides(HOST_TOML, "host")
 
-    mir_data = build_table("mir_op", mir_names, mir_meta, mir_ov)
-    host_data = build_table("host_fn", host_names, host_meta, host_ov)
+    mir_data = build_table("mir_op", mir_names, mir_meta, mir_ov, v)
+    host_data = build_table("host_fn", host_names, host_meta, host_ov, v)
 
     ok = True
     ok &= write_or_check(

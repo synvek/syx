@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: capability gen injects syx_version from Cargo; --check fail-closed on TOML drift (C-6b); C-6 exited
 - docs: Cargo workspace version as public SSOT; align banners/capability/plan (C-6a)
 - fix: SYX_EMBED_WASM_SANDBOX=1 fail-closed on wasm miss/fail (no silent in-process) (C-5b)
 - docs: macro/embed threat-model ADR; scrub false sandbox isolation claims; seccomp-label-unwired (C-5a)
