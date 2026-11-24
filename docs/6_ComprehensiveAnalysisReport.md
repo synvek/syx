@@ -192,7 +192,7 @@ This report evaluates the **Rust-implemented SYX toolchain** (Cargo workspace, 1
 | async/await checks | `syx-async` | ⚠️ MVP | Task syntax + async state machine + `async let` |
 | Debug sessions | `syx-debug` | ⚠️ MVP | DAP 3.0: watch, conditional breakpoints, async frames |
 | LSP | `syx-lsp` | ⚠️ MVP | diagnostic spans + incremental didChange + completion/definition |
-| JIT hot-path counting | `syx-vm/jit` | ⚠️ Scaffolding | Still interprets after threshold |
+| JIT Suite-1 pilot | `syx-vm/jit` | ⚠️ experimental-real-subset | Cranelift Suite-1 opt-in; default off; ≠ GA |
 
 #### P3 — Lower priority (scaffolding + MVP)
 
@@ -390,7 +390,7 @@ The SYX compiler is written in Rust — implementation language vs target langua
 
 | Feature | Current | Effort | Difficulty |
 |------|----------|--------|------|
-| Real JIT | Hot-path counter stub | 2 months | High |
+| Real JIT | experimental-real-subset (Suite-1 Cranelift; default off; ≠ GA) | 2 months | High |
 | WASM WASI | Bare WASM MVP | 1 month | Medium |
 | Full effect system | Function-level Pure/IO | 1 month | Medium |
 | Full DAP debugger | Stepping stubs | 2 months | High |

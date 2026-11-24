@@ -489,9 +489,9 @@ syx test .
 
 ---
 
-### 23. JIT compilation ❌ / ⚠️ Stub
+### 23. JIT compilation ⚠️ experimental-real-subset
 
-**Status:** `syx-vm` `JitCompiler` hot-path counter stub; tiered compilation off by default.
+**Status:** Suite-1 / Cranelift pilot (`runtime.jit.tier2` = `experimental-real-subset`). Opt-in via `SYX_JIT_TIER2=1` or `syx --jit`; **default off**. Soft CI job `jit` (`continue-on-error`); **non-default KPI**. ≠ production JIT GA / ≠ full MirOp.
 
 ---
 

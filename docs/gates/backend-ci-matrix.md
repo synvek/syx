@@ -5,7 +5,7 @@
 **Status snapshot:** [`plan/01-project-status.md`](../../plan/01-project-status.md) · Native 2.0 / CI soft  
 **Census:** [`docs/census/c-2a-backend-ci-matrix-census.md`](../census/c-2a-backend-ci-matrix-census.md)
 
-**Date:** 2026-11-24 · **C-2a…C-2b-13**（`-N` = N×历史 `+`）
+**Date:** 2026-11-24 · **C-2a…C-2c**（`-N` = N×历史 `+`）
 
 ## Contract
 
@@ -34,7 +34,7 @@ LLVM refuse-without-`full-native` uses diagnostic code **L006** (toolchain gate;
 | **Object / simd residual** | **≤180/≤10** · **≥159** | packages scan (census) |
 | **Native paid floor** | required `full-native-linux` hello + path_file + tcp + sql + http GA + pool/row llvm + http.types/server/stream/timeout llvm + file raii/stream/watch llvm + tls.client aot | `.github/workflows/ci.yml` · LLVM 21.1.6 · `--features full-native` · **no** `continue-on-error` (C-2b-2…13) |
 
-These are the **default support claims** for SYX as research beta. Do not advertise product-wide Native AOT GA or JIT as default-supported on soft CI alone; paid raises ≠ bulk `native=real` (**C-2c**).
+These are the **default support claims** for SYX as research beta. Do not advertise product-wide Native AOT GA or JIT as default-supported on soft CI alone; paid raises ≠ bulk `native=real`; JIT remains experimental (**C-2c**).
 
 ---
 
@@ -49,7 +49,7 @@ These are the **default support claims** for SYX as research beta. Do not advert
 | `scripts/s0_backend_smoke.sh` | L006 **FAIL-CLOSED** counts as pass on required lint | Toolchain honesty, not native GA |
 | ~~`run_native_strict_or_mirror_vm`~~ | **C-2b exited** — helper **removed**; GA uses `try_run_native_strict` + **skip** (≠ VM mirror) | Forbidden: mirror VM stdout as native GA |
 
-**Capability:** C-2b-1 demoted unpaid → `partial`. Raised: path×2 (C-2b-3) · tcp×2 (C-2b-4) · `data.sqlite` (C-2b-5) · `net.http` (C-2b-6) · pool+row (C-2b-7) · `net.http.types` (C-2b-8) · `net.http.server` (C-2b-9) · `net.http.stream` (C-2b-10) · `net.http.timeout_tls` (C-2b-11) · io.file.raii·stream·watch (C-2b-12) · `net.tls.client` (C-2b-13). Remaining product rows stay `partial` (incl. `net.tls.server`); next axis **C-2c**.
+**Capability:** C-2b-1 demoted unpaid → `partial`. Raised: path×2 (C-2b-3) · tcp×2 (C-2b-4) · `data.sqlite` (C-2b-5) · `net.http` (C-2b-6) · pool+row (C-2b-7) · `net.http.types` (C-2b-8) · `net.http.server` (C-2b-9) · `net.http.stream` (C-2b-10) · `net.http.timeout_tls` (C-2b-11) · io.file.raii·stream·watch (C-2b-12) · `net.tls.client` (C-2b-13). Remaining product rows stay `partial` (incl. `net.tls.server`). JIT public labels scrubbed (**C-2c**); next axis **C-2d**.
 
 ---
 
@@ -60,7 +60,7 @@ These are the **default support claims** for SYX as research beta. Do not advert
 | **JIT** (Suite-1 / Cranelift) | experimental / unpaid | CI job `jit` · `continue-on-error`; **non_default_kpi** |
 | SyxHost / CST deep / true implicit `CallSuper` | park | Not default next |
 
-C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT already marks JIT **experimental**.
+**C-2c (done):** public FeaturePriority / env-registry / AnalysisReport wording unified to **experimental-real-subset · default off · non_default_kpi** (≠ Stub / ≠ default-on).
 
 ---
 
@@ -135,10 +135,14 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 - **Raised** `net.tls.client` → `native=real` (notes cite C-2b-13；≠ skip-verify / server TLS / daemon / `net.tls.server`)
 - Product `native=real` total = **16**
 
-### Still park → **C-2c** / C-2d
+### C-2c (done · JIT experimental label scrub)
+- Public FeaturePriority §23 / env-registry `SYX_JIT_TIER2` / AnalysisReport JIT rows → **experimental-real-subset · default off · non_default_kpi**
+- CI job `jit` stays `continue-on-error`; product `native=real` count unchanged (**16**)
+- ≠ JIT Suite-1 expand / ≠ default-on JIT / ≠ hard KPI
+
+### Still park → **C-2d**
 - ≠ `net.tls.server` paid raise (park；≠ daemon GA)
 - ≠ macOS required full-native
-- ≠ full FeaturePriority JIT Stub scrub (**C-2c**)
 - ≠ rename every capability `ci.job.*` to match yaml (**C-2d**)
 - ≠ R-50
 
@@ -146,4 +150,4 @@ C-2c will unify public “Stub vs experimental-real-subset” wording; this SSOT
 
 ## Next
 
-Default next after C-2b-13 exit: **C-2c** — JIT / experimental backends labeled `experimental`; non-default KPI.
+Default next after C-2c exit: **C-2d** — align `ci.job.*` capability surface names with yaml job ids.

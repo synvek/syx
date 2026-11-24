@@ -193,7 +193,7 @@
 | async/await 语法校验 | `syx-async` | ⚠️ MVP | Task 语法 + async 状态机标注 + `async let` |
 | 调试会话 | `syx-debug` | ⚠️ MVP | DAP 3.0：watch、条件断点、async 栈帧 |
 | LSP | `syx-lsp` | ⚠️ MVP | diagnostics span + 增量 didChange + completion/definition |
-| JIT 热路径计数 | `syx-vm/jit` | ⚠️ 脚手架 | 计数达标仍解释执行 |
+| JIT Suite-1 pilot | `syx-vm/jit` | ⚠️ experimental-real-subset | Cranelift Suite-1 opt-in；默认关闭；≠ GA |
 
 #### P3 — 低优先级（脚手架 + MVP）
 
@@ -391,7 +391,7 @@ SYX 编译器本身用 Rust 编写，与 Rust 语言形成「实现语言 vs 目
 
 | 功能 | 当前状态 | 工作量 | 难度 |
 |------|----------|--------|------|
-| 真正 JIT 编译 | 热路径计数桩 | 2 月 | 高 |
+| 真正 JIT 编译 | experimental-real-subset（Suite-1 Cranelift；默认关闭；≠ GA） | 2 月 | 高 |
 | WASM WASI 集成 | 裸 WASM MVP | 1 月 | 中 |
 | 效果系统（完整） | 函数级 Pure/IO | 1 月 | 中 |
 | 调试器 DAP 完整实现 | 步进桩 | 2 月 | 高 |

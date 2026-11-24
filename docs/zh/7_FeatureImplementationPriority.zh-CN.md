@@ -492,9 +492,9 @@ syx test .
 
 ---
 
-### 23. JIT 编译 ❌ / ⚠️ Stub
+### 23. JIT 编译 ⚠️ experimental-real-subset
 
-**现状：** `syx-vm` 中 `JitCompiler` 为热路径计数 stub，默认未启用 tiered compilation。
+**现状：** Suite-1 / Cranelift pilot（`runtime.jit.tier2` = `experimental-real-subset`）。经 `SYX_JIT_TIER2=1` 或 `syx --jit` **opt-in**；**默认关闭**。CI job `jit` 为 soft（`continue-on-error`）；**非默认 KPI**。≠ 生产 JIT GA / ≠ 全 MirOp。
 
 ---
 

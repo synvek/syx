@@ -4,7 +4,7 @@ Audit of `SYX_*` variables after GB config LTS. Status: **cli** (replaced by fla
 
 | Variable | Status | Replacement / notes |
 |----------|--------|---------------------|
-| `SYX_JIT_TIER2` | deprecated | `syx --jit` / `--no-jit` (default on) |
+| `SYX_JIT_TIER2` | deprecated | `syx --jit` / `--no-jit` (opt-in; **default off**; experimental Suite-1) |
 | `SYX_JIT_FASTPATH` | deprecated | `syx --jit-fastpath` |
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox` |

@@ -6,7 +6,7 @@ GB 配置 LTS 之后对 `SYX_*` 变量的清点。状态含义：**cli**（已�
 
 | 变量 | 状态 | 替代 / 说明 |
 |------|------|-------------|
-| `SYX_JIT_TIER2` | deprecated | `syx --jit` / `--no-jit`（默认开启） |
+| `SYX_JIT_TIER2` | deprecated | `syx --jit` / `--no-jit`（opt-in；**默认关闭**；experimental Suite-1） |
 | `SYX_JIT_FASTPATH` | deprecated | `syx --jit-fastpath` |
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox` |
