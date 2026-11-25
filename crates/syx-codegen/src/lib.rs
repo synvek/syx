@@ -787,6 +787,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_local_debug_floor_functions(best_by_name.values().copied())?;
         // C-3s: aot_export_roots names must resolve to functions[].name (MIR019) after local-debug.
         syx_mir::verify_mir_aot_export_floor(mir)?;
+        // C-3t: init_body_pc/init_wrap_pc bounds on post-unique bodies (MIR020) after aot-export.
+        syx_mir::verify_mir_init_pc_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

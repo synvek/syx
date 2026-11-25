@@ -61,6 +61,8 @@ pub use mir_local_debug_floor::{
 };
 mod mir_aot_export_floor;
 pub use mir_aot_export_floor::verify_mir_aot_export_floor;
+mod mir_init_pc_floor;
+pub use mir_init_pc_floor::{verify_mir_init_pc_floor, verify_mir_init_pc_floor_functions};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
