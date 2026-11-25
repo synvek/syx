@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR aot_export_roots name-resolve floor → MIR019 (empty OK; unknown root fail-closed) (C-3s; ≠ C-3 `[x]`)
 - feat: MIR local debug metadata floor → MIR018 (non-empty local_names/local_types len == local_count; empty OK) (C-3r; ≠ C-3 `[x]`)
 - feat: MIR Build stack-height floor → MIR017 (Array/Dict/SetBuild; ≠ expand pilot set; ≠ MIR004) (C-3q; ≠ C-3 `[x]`)
 - feat: MIR named-callee resolve floor → MIR016 (Call/CallSuper/ActorCall/ActorSend/MakeClosure/TaskSpawn; ≠ ConstFnIndex R-33) (C-3p; ≠ C-3 `[x]`)

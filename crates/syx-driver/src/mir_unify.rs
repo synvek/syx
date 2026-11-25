@@ -670,6 +670,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_build_stack_floor(&mir)?;
     // C-3r: non-empty local_names/local_types length vs local_count (MIR018) after build-stack.
     syx_mir::verify_mir_local_debug_floor(&mir)?;
+    // C-3s: aot_export_roots names must resolve to functions[].name (MIR019) after local-debug.
+    syx_mir::verify_mir_aot_export_floor(&mir)?;
     Ok(mir)
 }
 
