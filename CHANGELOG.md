@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR locals slot OOB floor → MIR011 (LoadLocal/StoreLocal vs local_count; ≠ locals type/φ) (C-3k; ≠ C-3 `[x]`)
 - feat: optional MirFunction.owner_module + Def floor → MIR010 (OOB owner; dup (owner,name); ≠ DefId graph) (C-3j; ≠ C-3 `[x]`)
 - feat: call-arg Unknown→ground concrete param → S004 (reuse C-0a sink; ≠ close soft arm) (C-0f; C-0a+ still park)
 - feat: MIR try/catch pairing floor → MIR009 (BeginTry/EndTry depth; orphan/excess Catch; ≠ full exception) (C-3i; ≠ C-3 `[x]`)

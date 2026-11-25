@@ -643,6 +643,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_try_floor(&mir)?;
     // C-3j: optional owner_module Def floor (MIR010) after try.
     syx_mir::verify_mir_def_floor(&mir)?;
+    // C-3k: LoadLocal/StoreLocal slot OOB floor (MIR011) after Def.
+    syx_mir::verify_mir_local_floor(&mir)?;
     Ok(mir)
 }
 

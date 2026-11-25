@@ -282,4 +282,4 @@ UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **loss
 
 ## Next
 
-Default next after C-3j: **跨轴** — 全量 MirOp / 或 P0 余债（C-0a+/C-0e）（**不**宣称 C-3/C-5 `[x]`）。C-0 remains `[x]` thin (C-0a…d + **C-0f** done; C-0a+/C-0e park). C-3 remains `[~]` (C-3a…**j** done; full MirOp/Call(ModuleId) IR/完整 DefId/完整 exception park). C-5 remains `[~]` (C-5a…**h** done; true full syscall GA park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.
+Default next after C-3k: **跨轴** — 全量 MirOp 余片 / 或 P0 余债（C-0a+/C-0e）（**不**宣称 C-3/C-5 `[x]`）。C-0 remains `[x]` thin (C-0a…d + **C-0f** done; C-0a+/C-0e park). C-3 remains `[~]` (C-3a…**k** done; full MirOp/Call(ModuleId) IR/locals type·φ/完整 DefId/完整 exception park). C-5 remains `[~]` (C-5a…**h** done; true full syscall GA park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.

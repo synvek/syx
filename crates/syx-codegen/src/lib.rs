@@ -758,6 +758,8 @@ impl CodeGenerator {
             mir.module_names.len(),
             best_by_name.values().copied(),
         )?;
+        // C-3k: LoadLocal/StoreLocal slot OOB floor on post-unique bodies (MIR011).
+        syx_mir::verify_mir_local_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
