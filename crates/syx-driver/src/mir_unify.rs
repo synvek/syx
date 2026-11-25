@@ -674,6 +674,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_aot_export_floor(&mir)?;
     // C-3t: init_body_pc/init_wrap_pc bounds (MIR020) after aot-export.
     syx_mir::verify_mir_init_pc_floor(&mir)?;
+    // C-3u: MirBlock.id uniqueness (MIR021) after init-pc.
+    syx_mir::verify_mir_block_id_floor(&mir)?;
     Ok(mir)
 }
 

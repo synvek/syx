@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-25 · **C-3t init_pc 有界薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…t）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-25 · **C-3u MirBlock.id 唯一薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…u）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -122,6 +122,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3r** | `[x]` | 薄 local debug 元数据：`verify_mir_local_debug_floor` → **MIR018**（非空 `local_names`/`local_types` 须 `len == local_count`；空 OK）；挂钩 build-stack 之后；census [`c-3r-mir-local-debug-floor-census`](../docs/census/c-3r-mir-local-debug-floor-census.md) |
 | **C-3s** | `[x]` | 薄 aot_export_roots 名解析：`verify_mir_aot_export_floor` → **MIR019**（空 OK；未知 root fail-closed）；挂钩 local-debug 之后；census [`c-3s-mir-aot-export-floor-census`](../docs/census/c-3s-mir-aot-export-floor-census.md) |
 | **C-3t** | `[x]` | 薄 init_pc 有界：`verify_mir_init_pc_floor` → **MIR020**（双 0 OK；否则 `body ≤ wrap ≤ instructions.len()`）；挂钩 aot-export 之后；census [`c-3t-mir-init-pc-floor-census`](../docs/census/c-3t-mir-init-pc-floor-census.md) |
+| **C-3u** | `[x]` | 薄 MirBlock.id 唯一：`verify_mir_block_id_floor` → **MIR021**（空 blocks OK；重复 id fail-closed）；挂钩 init-pc 之后；census [`c-3u-mir-block-id-floor-census`](../docs/census/c-3u-mir-block-id-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -135,7 +136,8 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3q）：** Build 立即数导致栈 underflow → **MIR017**；合法 Build 流与无 Build 不破；硬 KPI 不破；**C-3q `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3r）：** 非空 `local_names`/`local_types` 与 `local_count` 不等长 → **MIR018**；空与等长不破；硬 KPI 不破；**C-3r `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3s）：** 未知 `aot_export_roots` 名 → **MIR019**；空与可解析名不破；硬 KPI 不破；**C-3s `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
-**验收（C-3t）：** `body > wrap` 或 `wrap > instructions.len()` → **MIR020**；双 0 与合法有序不破；硬 KPI 不破；**C-3t `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3t）：** `body > wrap` 或 `wrap > instructions.len()` → **MIR020**；双 0 与合法有序不破；硬 KPI 不破；**C-3t `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-3u）：** 重复 `MirBlock.id` → **MIR021**；空 blocks 与唯一 id 不破；硬 KPI 不破；**C-3u `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
