@@ -1,4 +1,6 @@
 ### SYX 0.4.0
+- feat: MIR named-callee resolve floor → MIR016 (Call/CallSuper/ActorCall/ActorSend/MakeClosure/TaskSpawn; ≠ ConstFnIndex R-33) (C-3p; ≠ C-3 `[x]`)
+- feat: MIR fn-index literal OOB floor → MIR015 (CallWitness / AwaitSuspend.resume_fn; ≠ ConstFnIndex R-33; ≠ CallIndirect arity) (C-3o; ≠ C-3 `[x]`)
 - feat: MIR param_count ≤ local_count metadata floor → MIR014 (≠ locals type/φ) (C-3n; ≠ C-3 `[x]`)
 - feat: MIR CallHost absolute-index floor → MIR013 (host_fn_name_for_index; ≠ trim dense remap) (C-3m; ≠ C-3 `[x]`)
 - feat: MirModule.global_count + MIR globals OOB floor → MIR012 (LoadGlobal/StoreGlobal; ≠ name table/remap) (C-3l; ≠ C-3 `[x]`)

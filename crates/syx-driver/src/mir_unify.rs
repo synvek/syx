@@ -638,8 +638,8 @@ pub fn build_unified_mir(
     // C-3b: thin CFG / terminator floor before any backend consumes MIR.
     syx_mir::verify_mir_cfg_floor(&mir)?;
     // C-3c: name → FuncId table after finalize + CFG floor (order == functions).
-    // Table is rebuilt by consumers; build here fail-closes duplicate names.
-    let _fn_index = syx_mir::MirFnIndex::build(&mir)?;
+    // Table is reused by C-3p named-callee floor; build here fail-closes duplicate names.
+    let fn_index = syx_mir::MirFnIndex::build(&mir)?;
     // C-3d: pilot value-stack height floor (MIR004) after CFG + FnIndex.
     syx_mir::verify_mir_stack_floor(&mir)?;
     // C-3e: pilot coarse type-tag floor (MIR005) after stack floor.
@@ -662,6 +662,10 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_call_host_floor(&mir)?;
     // C-3n: param_count ≤ local_count metadata floor (MIR014) after CallHost.
     syx_mir::verify_mir_param_local_floor(&mir)?;
+    // C-3o: CallWitness / AwaitSuspend.resume_fn fn-lit OOB floor (MIR015) after param-local.
+    syx_mir::verify_mir_fn_lit_floor(&mir)?;
+    // C-3p: named callee resolve floor (MIR016) after fn-lit; ConstFnIndex not scanned.
+    syx_mir::verify_mir_named_callee_floor_functions(&fn_index, mir.functions.iter())?;
     Ok(mir)
 }
 

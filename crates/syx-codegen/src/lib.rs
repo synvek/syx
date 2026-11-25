@@ -739,7 +739,8 @@ impl CodeGenerator {
         // C-3a: fail-closed on conflicting same-name MIR bodies (no silent quality pick).
         let best_by_name = Self::unique_mir_functions_by_name(&mir.functions)?;
         // C-3c: identity table over unique MIR bodies (name → dense FuncId).
-        let _mir_fn_index =
+        // Reused by C-3p named-callee floor.
+        let mir_fn_index =
             syx_mir::MirFnIndex::build_from_functions(best_by_name.values().copied())?;
         // C-3d: pilot stack-height floor on post-unique bodies (MIR004).
         syx_mir::verify_mir_stack_floor_functions(best_by_name.values().copied())?;
@@ -769,6 +770,17 @@ impl CodeGenerator {
         syx_mir::verify_mir_call_host_floor_functions(best_by_name.values().copied())?;
         // C-3n: param_count ≤ local_count metadata floor on post-unique bodies (MIR014).
         syx_mir::verify_mir_param_local_floor_functions(best_by_name.values().copied())?;
+        // C-3o: CallWitness / AwaitSuspend.resume_fn fn-lit OOB on post-unique bodies (MIR015).
+        // Bound = full module function count (indices relative to mir, not best_by_name).
+        syx_mir::verify_mir_fn_lit_floor_functions(
+            mir.functions.len() as u32,
+            best_by_name.values().copied(),
+        )?;
+        // C-3p: named callee resolve on post-unique bodies (MIR016); ConstFnIndex not scanned.
+        syx_mir::verify_mir_named_callee_floor_functions(
+            &mir_fn_index,
+            best_by_name.values().copied(),
+        )?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

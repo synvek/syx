@@ -45,6 +45,12 @@ mod mir_param_local_floor;
 pub use mir_param_local_floor::{
     verify_mir_param_local_floor, verify_mir_param_local_floor_functions,
 };
+mod mir_fn_lit_floor;
+pub use mir_fn_lit_floor::{verify_mir_fn_lit_floor, verify_mir_fn_lit_floor_functions};
+mod mir_named_callee_floor;
+pub use mir_named_callee_floor::{
+    verify_mir_named_callee_floor, verify_mir_named_callee_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
