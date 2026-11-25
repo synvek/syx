@@ -1,6 +1,6 @@
 # Control Flow
 
-**Implementation status:** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / labeled `break`/`continue` / `switch` / `where` guards / `if case` / `if let` / `guard let` are **all Implemented**; fallthrough **Rejected**
+**Implementation status:** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / `switch` / `where` guards / `if case` / `if let` / `guard let` are **Implemented**; labeled `break`/`continue` **Partially implemented**; fallthrough **Rejected**
 
 SYX control flow follows the Swift style: blocks are wrapped in `{ }`, and pattern matching is done with `switch` + `where`. This chapter explains each control structure by category.
 
@@ -121,10 +121,12 @@ while true {
 |------|------|
 | `break` | Exits the **innermost** loop or `switch` |
 | `continue` | Jumps to the next round of the **innermost** loop |
-| `break label` | Exits the loop with the given label (**Implemented**) |
-| `continue label` | Jumps to the next round of the labeled loop (**Implemented**) |
+| `break label` | Exits the loop with the given label (**Partially implemented**) |
+| `continue label` | Jumps to the next round of the labeled loop (**Partially implemented**) |
 
 > **Labels:** the syntax is `label: while (cond) { … break label … }`; SYX recognizes labels in nested loops, but recognition across functions / closures is still evolving.
+>
+> **Honesty (C-8d):** nested-loop labels work; cross-function / closure recognition is still evolving — **≠** full **Implemented** / GA for labeled `break`/`continue`.
 
 ## switch
 

@@ -166,8 +166,9 @@ syx init my-app          # generates main.sy + build.syb + syx.toml
 | `syx cov` / `cargo llvm-cov -p syx-driver --test native --no-report` | C-09 coverage narrow claimed (docs + CLI; ≠ % gate / ≠ CI fail / ≠ fuzz) | `syx cov` (requires local `cargo-llvm-cov`) |
 | `syx fuzz` / `cargo fuzz run syx_smoke` | C-7a: lexer-consume `syx_smoke` + required CI job `fuzz-smoke` (`-runs=1`; ≠ scaffold GA / ≠ unbounded fuzz / ≠ multi-target) | `syx fuzz` (requires cargo-fuzz; CI **met** via `fuzz-smoke`) |
 | `syx prop` / `cargo test -p syx-driver --test property_smoke` | C-09 property narrow claimed + `property_smoke` + CI first-slice + C-09/platform maintenance floor (≠ proptestest GA / ≠ `c09_property_ci_ga`) | `syx prop` |
-| `syx format [path]` | Format the entry file | `syx format .` |
-| `syx format --check [path]` | dry-run: recursively check `.sy` idempotence (no disk writes; C-06) | `syx format --check .` |
+| `syx format [path]` | Format the entry file (CST-first; CST001 → refuse write unless `--allow-lossy`; ≠ lossless GA) | `syx format .` |
+| `syx format --check [path]` | dry-run: recursively check `.sy` idempotence (no disk writes; C-06; same refuse-lossy default) | `syx format --check .` |
+| `syx format --allow-lossy [path]` | Explicit consent for CST001→AST rewrite (may drop comments/trivia; ≠ default) | `syx format --allow-lossy .` |
 | `syx lint [path]` | Static analysis | `syx lint .` |
 | `syx doc [path]` | Generate API docs | `syx doc .` → `docs/api.md` |
 | `syx debug [path]` | Start debug session summary | `syx debug .` |
@@ -974,13 +975,16 @@ Phase 14+ Embed API (`syx_embed_v2_*`): soft timeout / memory & RSS budgets and 
 
 ### Formatting — `syx format`
 
-Format project entry file (`syx.toml` in `main` specify): 
+Format project entry file (`syx.toml` `main`). **CST-first** (trivia-preserving reindent when the file is inside the CST subset).
 
 ```bash
 syx format .
+syx format --check .
 ```
 
-override: Functions, Variables, if/while/for-in, expression, array/subscript, Dictionaryliterals, struct declarations etc. (AST path; unsupported → F001).
+If the CST subset rejects the file (`CST001`), the default path **refuses** to write / fails `--check` with **`F003`** (no silent AST rewrite that drops comments). Pass **`--allow-lossy`** only when you explicitly consent to the AST fallback (may drop comments/trivia). `SYX_FMT_AST=1` is an internal rollback hatch — **not** a substitute for `--allow-lossy`. LSP formatting always refuses lossy. Unsupported AST constructs still → **F001**.
+
+> **Honesty (C-8f):** Default refuse-lossy (`F003`) is fail-closed against silent AST comment-drop — **≠** claiming format **lossless GA** or a full-language trivia-preserving formatter. Lossless reindent holds only **inside the CST subset**; expanding that subset / true lossless GA remains parked (no formatter deep cut in this window).
 
 ### Static analysis — `syx lint`
 

@@ -1,6 +1,6 @@
 # 构造过程
 
-**实现状态：** `init` / 默认构造 / `init?` 失败构造 **已实现**；两段式构造 **已实现**（Phase 51+ 链式校验）；`required init` / `convenience init` **部分实现** / **未实现**；`throws init` **部分实现**
+**实现状态：** `init` / 默认构造 / `init?` 失败构造 **已实现**；两段式构造 **已实现**（Phase 51+ 链式校验）；`required init` / `convenience init` **未实现**；`throws init` **部分实现**
 
 构造器在创建实例时初始化所有 stored 属性。SYX 构造器分两类：**指定构造器**（designated init，初始化所有 stored 字段）和 **便利构造器**（convenience init，调用其他 init）。本章覆盖语法、链式校验、失败构造与继承。
 
@@ -88,7 +88,9 @@ class Dog: Animal {
 
 > **顺序错误**（在 `super.init` 之前读 `self` 或未初始化字段）是语言规则目标，**尚未诊断**。此处**不要**期待 **S020** — appendix-B 中 **S020** 仅表示 await 后的 MainActor 违规。
 
-### super.init 可省（当父类有默认构造）
+### 省略 `super.init`（继承字段默认 · U-38）
+
+当父类每个 stored 属性都有默认值时，子类 `init` 可以省略显式 `super.init(...)` 仍能构造。**这不是**隐式插入 `CallSuper`。
 
 ```syx
 class Animal {
@@ -100,12 +102,13 @@ class Dog: Animal {
 
     init(breed: String) {
         self.breed = breed
-        // super.init() 隐式调用（Animal 有默认构造）
+        // 此处无 super.init()：继承字段 `name` 由字段默认值垫入（U-38）。
+        // ≠ CallSuper 合成路径（真隐式 CallSuper 未实现 / park）。
     }
 }
 ```
 
-> **隐式 super.init：** 父类所有 stored 属性有默认值时，子类可省略 `super.init`（编译器自动插入）。
+> **诚实（C-8a）：** 父类 stored 均有默认值时可省略 `super.init`，机制是 **继承字段默认字面量垫（U-38）**——运行时把这些字面量写入实例 dict。机制 = 字段垫 **≠ CallSuper**。**真隐式 `CallSuper` = 未实现**（park；需独立 ADR）。
 
 ## 失败构造 init?
 
@@ -335,6 +338,7 @@ func main() {
 | 两段式构造 | **已实现**（Phase 51 链式校验） |
 | `convenience init` | **未实现**（规划中） |
 | `required init` | **未实现** |
+| 隐式 `super.init` / 编译器插入 `CallSuper` | **未实现**（省略路径 = U-38 字段垫 ≠ `CallSuper`） |
 | `init?` / `init!` | `init?` **已实现**；`init!` 未实现 |
 | `throws init` | **部分实现** |
 | `defer` in init | **未实现** |

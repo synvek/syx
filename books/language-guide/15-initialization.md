@@ -1,6 +1,6 @@
 # Initialization
 
-**Implementation status:** `init` / default initialization / `init?` failable initialization **Implemented**; two-phase initialization **Implemented** (Phase 51+ chain checking); `required init` / `convenience init` **Partially implemented** / **Not implemented**; `throws init` **Partially implemented**
+**Implementation status:** `init` / default initialization / `init?` failable initialization **Implemented**; two-phase initialization **Implemented** (Phase 51+ chain checking); `required init` / `convenience init` **Not implemented**; `throws init` **Partially implemented**
 
 An initializer initializes all stored properties when an instance is created. SYX has two kinds of initializer: **designated initializers** (initializing all stored fields) and **convenience initializers** (calling another `init`). This chapter covers syntax, chain checking, failable initialization, and inheritance.
 
@@ -88,7 +88,9 @@ class Dog: Animal {
 
 > **Wrong order** (reading `self` before `super.init`, or reading an uninitialized field) is a language-rule goal; **not yet diagnosed**. Do **not** expect **S020** here — appendix-B reserves **S020** for MainActor-after-await only.
 
-### super.init May Be Omitted (When the Superclass Has a Default Initializer)
+### Omitting `super.init` (Inherited Field Defaults · U-38)
+
+When every superclass stored property has a default value, a subclass `init` may omit an explicit `super.init(...)` call and still construct. **This is not** an implicit `CallSuper` insert.
 
 ```syx
 class Animal {
@@ -100,12 +102,13 @@ class Dog: Animal {
 
     init(breed: String) {
         self.breed = breed
-        // super.init() is called implicitly (Animal has a default initializer)
+        // No super.init() here: inherited `name` is filled from the field default (U-38).
+        // ≠ compiler-inserted CallSuper (that path is not implemented / park).
     }
 }
 ```
 
-> **Implicit super.init:** when all superclass stored properties have default values, the subclass may omit `super.init` (the compiler inserts it).
+> **Honesty (C-8a):** omitting `super.init` when the superclass has defaulted stored properties works via **inherited field defaults (U-38)** — the runtime pads the instance dict from those literals. Mechanism = field defaults **≠ CallSuper**. **True implicit `CallSuper` = not implemented** (parked; needs a separate ADR).
 
 ## Failable Initialization `init?`
 
@@ -335,6 +338,7 @@ func main() {
 | Two-phase initialization | **Implemented** (Phase 51 chain checking) |
 | `convenience init` | **Not implemented** (planned) |
 | `required init` | **Not implemented** |
+| Implicit `super.init` / compiler-inserted `CallSuper` | **Not implemented** (omit path = U-38 field defaults ≠ `CallSuper`) |
 | `init?` / `init!` | `init?` **Implemented**; `init!` not implemented |
 | `throws init` | **Partially implemented** |
 | `defer` in init | **Not implemented** |

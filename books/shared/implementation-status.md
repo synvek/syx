@@ -89,7 +89,7 @@
 | 语言 / 营销版本 | **SYX 117.0** |
 | Manifest phase | **139** |
 | MIR / 增量缓存 | **`syx-cache-v1`** |
-| 行为化 audit 下限 | driver **≥2600** · LSP **≥3050** — **smoke / anti-delete only**（Wave A W1 / ADR-345 / C-10；**非**覆盖率或 release KPI） |
+| 行为化 audit 下限 | driver **≥2600** · LSP **≥1700** — **smoke / anti-delete only**（Wave A W1 / ADR-345 / C-10 / C-7c；**非**覆盖率或 release KPI） |
 | 架构决议 | [architecture-decisions.md](../../docs/adr/architecture-decisions.md) |
 | 特性总表 ground truth | 本文件 + `crates/syx-driver/tests/` · `cargo test -p syx-lsp` |
 

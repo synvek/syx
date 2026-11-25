@@ -116,8 +116,8 @@ fn s2_04_cst_reindent_func_body() {
         .expect("format_file must exist");
     let write_chunk = &driver[write_idx..write_idx + 1200.min(driver.len() - write_idx)];
     assert!(
-        write_chunk.contains("format_dry_run("),
-        "format_file must call format_dry_run after I151 write migration"
+        write_chunk.contains("format_dry_run_with("),
+        "format_file must call format_dry_run_with after I151 write migration"
     );
     assert!(
         !write_chunk.contains("format_source(&source)"),

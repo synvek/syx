@@ -1,5 +1,5 @@
 //! S2-I144 / S2-I151 S2-04 fmt convergence-strategy contracts.
-//! Nails: write = format_dry_run → format_source_auto; --check = same SSOT.
+//! Nails: write = format_dry_run_with (C-8b refuse-lossy default); --check = same SSOT.
 //! ≠ S2-04 [x] / ≠ Stage-2 exit.
 //! See docs/adr/stage2-s2-04-convergence-strategy.md · stage2-s2-04-fmt-write-migration.md.
 
@@ -37,14 +37,14 @@ fn s2_04_fmt_write_check_strategy() {
     );
 
     let driver = repo_file("crates/syx-driver/src/format_lint.rs");
-    // Write path: format_dry_run (→ format_source_auto), aligned with --check.
+    // Write path: format_dry_run_with (C-8b refuse-lossy), aligned with --check.
     let write_idx = driver
         .find("fn format_file(")
         .expect("format_file must exist");
     let write_chunk = &driver[write_idx..write_idx + 1200.min(driver.len() - write_idx)];
     assert!(
-        write_chunk.contains("format_dry_run("),
-        "format_file must call format_dry_run (write/`--check` SSOT)"
+        write_chunk.contains("format_dry_run_with("),
+        "format_file must call format_dry_run_with (write/`--check` SSOT)"
     );
     assert!(
         !write_chunk.contains("format_source(&source)"),
@@ -55,10 +55,14 @@ fn s2_04_fmt_write_check_strategy() {
         "format_file must document S2-I151 write migration"
     );
 
-    // --check default: format_dry_run → format_source_auto.
+    // --check default: format_dry_run (refuse-lossy); policy path for --allow-lossy.
     assert!(
-        driver.contains("format_check_path_with(path, syx_fmt::format_dry_run)"),
+        driver.contains("format_check_path_with(path, format_dry_run)"),
         "format_check_path must use format_dry_run"
+    );
+    assert!(
+        driver.contains("format_check_path_with_policy"),
+        "driver must expose format_check_path_with_policy for --allow-lossy"
     );
     let fmt = repo_file("crates/syx-fmt/src/lib.rs");
     let dry = fmt
@@ -66,8 +70,12 @@ fn s2_04_fmt_write_check_strategy() {
         .expect("format_dry_run must exist");
     let dry_chunk = &fmt[dry..dry + 800.min(fmt.len() - dry)];
     assert!(
-        dry_chunk.contains("format_source_auto"),
-        "format_dry_run must call format_source_auto (CST-first check path)"
+        dry_chunk.contains("format_dry_run_with") && dry_chunk.contains("FormatPolicy::default"),
+        "format_dry_run must default to refuse-lossy FormatPolicy"
+    );
+    assert!(
+        fmt.contains("\"F003\"") && fmt.contains("allow_lossy"),
+        "syx-fmt must define F003 refuse-lossy + FormatPolicy.allow_lossy"
     );
 
     let census = repo_file("docs/census/stage2-parser-census.md");

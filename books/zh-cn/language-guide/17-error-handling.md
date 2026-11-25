@@ -114,6 +114,8 @@ func parseInt(s: String) throws -> Int {
 | `throws E -> T` | typed throws（**部分实现**）抛 `E` |
 | `async throws -> T` | async 且 throws |
 
+> **诚实（C-8d）：** typed throws（`throws E -> T`）为 **部分实现** residual — **≠** GA / 全量 **已实现**。`rethrows` 仍 **未实现**（park）。
+
 ## try 表达式
 
 调用 `throws` 函数的三种形式：

@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-24 · **C-7a fuzz honesty `[x]`**；C-7 `[~]`；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-7b**（soft step `exit 0` → fail-closed）。
+> **最近更新：** 2026-11-25 · **C-8f CST residual note `[x]`**；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-3h**（ModuleId 薄闸）。
 
 ## 0. 时代切换
 
@@ -107,8 +107,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3e** | `[x]` | 薄 type-tag 地板：`verify_mir_type_floor` → MIR005（Const/算术粗 tag；Add 拼接合法；Nil/非数值 Sub·Mul·Div 拒）；挂钩 stack 之后；census [`c-3e-mir-type-floor-census`](../docs/census/c-3e-mir-type-floor-census.md) |
 | **C-3f** | `[x]` | 薄 `JumpIfFalse` 条件 tag：`verify_mir_branch_floor` → MIR006（仅 `Bool|Unknown`；比较/逻辑作 Bool 生产者）；挂钩 type 之后；census [`c-3f-mir-branch-floor-census`](../docs/census/c-3f-mir-branch-floor-census.md) |
 | **C-3g** | `[x]` | 薄 `JumpIfNil` 条件 tag：`verify_mir_nil_branch_floor` → MIR007（仅 `Nil|Unknown`；Nil pop / Unknown 留栈）；挂钩 branch 之后；census [`c-3g-mir-nil-branch-floor-census`](../docs/census/c-3g-mir-nil-branch-floor-census.md) |
+| **C-3h** | `[ ]` | **默认下一**：ModuleId 薄闸开账（稳定 module identity；≠ 全量 MirOp / exception） |
 
-**验收（C-3g）：** concrete 非 optional 条件 → MIR007；合法 if-let/?? 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。ModuleId / 全量 MirOp / exception 继续 park。
+**验收（C-3g）：** concrete 非 optional 条件 → MIR007；合法 if-let/?? 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。ModuleId / 全量 MirOp / exception 继续 park（ModuleId → **C-3h**）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
@@ -154,14 +155,33 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 | 子项 | 状态 | 说明 |
 |------|------|------|
 | **C-7a** | `[x]` | `syx_smoke` 经 `syx-lexer` 真消费；required CI `fuzz-smoke` `-runs=1`；UsageGuide CI met 对齐；census [`c-7a-fuzz-honesty-census`](../docs/census/c-7a-fuzz-honesty-census.md) |
-| **C-7b** | `[ ]` | **默认下一**：soft job 内失败后 `exit 0` → fail-closed（job 仍 soft） |
-| **C-7c+** | `[-]` park | count-gate 三套地板对齐；Farm/CDN scaffold 外移；多 fuzz target |
+| **C-7b** | `[x]` | soft job 内吞错 `exit 0` → fail-closed（job 仍 soft）；白名单：空 plugin / 无 book JSON / domain notice；census [`c-7b-soft-exit0-census`](../docs/census/c-7b-soft-exit0-census.md) |
+| **C-7c** | `[x]` | count-gate SSOT **2600/1700**：脚本默认 = CI = nightly；活公开面 LSP ≥1700；census [`c-7c-count-gate-census`](../docs/census/c-7c-count-gate-census.md) |
+| **C-7c+** | `[-]` park | Farm/CDN scaffold 外移；多 fuzz target；soft→required |
 
-**验收（C-7a）：** target 消费输入；`ci.yml` 含 `cargo fuzz` + `syx_smoke` + `-runs=1`；UsageGuide「CI met」与 yaml 一致；硬 KPI 不破；**不**宣称 C-7 `[x]`。默认下一 → **C-7b**。
+**验收（C-7a）：** target 消费输入；`ci.yml` 含 `cargo fuzz` + `syx_smoke` + `-runs=1`；UsageGuide「CI met」与 yaml 一致；硬 KPI 不破。  
+**验收（C-7b）：** gui/jit/extended/native-shake+diff/browser/windows-plugin/book-rate 测败传播真实 exit；白名单三处仍 `exit 0`；不升 required；硬 KPI 不破。  
+**验收（C-7c）：** 脚本/CI/nightly 同为 2600/1700；活公开面无 LSP ≥3050；anti-delete only；硬 KPI 不破；**不**宣称 C-7 `[x]`（C-7c+ park）。默认下一 → **C-8**。
 
-### C-8 · 反馈质量 / 文档诚实（P2–P3） — `[ ]`
+### C-8 · 反馈质量 / 文档诚实（P2–P3） — `[~]`
 
-formatter CST lossless（若开刀则独立窗）；Ch15 隐式 `super.init` MD 与实现对齐或标未实现；语言书与 parser 分叉清单收敛。
+formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parser 分叉清单。**不**宣称 C-8 `[x]`。
+
+| 子项 | 状态 | 说明 |
+|------|------|------|
+| **C-8a** | `[x]` | Ch15 en+zh：省略 `super.init` = U-38 字段垫 **≠ CallSuper**；真隐式 CallSuper **未实现**；census [`c-8a-ch15-implicit-super-md-census`](../docs/census/c-8a-ch15-implicit-super-md-census.md) |
+| **C-8b** | `[x]` | format 默认拒 CST001→AST 丢注释写盘（`F003`）；显式 `--allow-lossy` 才放行；LSP 硬拒；census [`c-8b-fmt-refuse-lossy-census`](../docs/census/c-8b-fmt-refuse-lossy-census.md) |
+| **C-8c** | `[x]` | 语言书 ↔ parser 分叉活清单开账（≥20 行 + class）；census [`c-8c-book-parser-fork-census`](../docs/census/c-8c-book-parser-fork-census.md) |
+| **C-8d** | `[x]` | 清 F20–F23 `doc_debt`/`book_ahead` en+zh MD 诚实对齐；census [`c-8d-book-md-honesty-census`](../docs/census/c-8d-book-md-honesty-census.md) |
+| **C-8e** | `[x]` | F18/F19 Ch10 en+zh Compatibility 注；inventory 无活 `legacy_accept`；census [`c-8e-legacy-compat-notes-census`](../docs/census/c-8e-legacy-compat-notes-census.md) |
+| **C-8f** | `[x]` | UsageGuide en+zh：refuse-lossy **≠** format lossless GA；census [`c-8f-cst-residual-note-census`](../docs/census/c-8f-cst-residual-note-census.md) |
+
+**验收（C-8a）：** en+zh 无「compiler inserts / 自动插入」现行宣称；有未实现 / `≠ CallSuper`；薄钉绿；硬 KPI 不破；**不**宣称 C-8 `[x]`。  
+**验收（C-8b）：** 默认 write/`--check` 在 CST001→AST 时 fail-closed（`F003`）；`--allow-lossy` 显式放行；LSP 拒 lossy；UsageGuide 对齐；硬 KPI 不破；**不**宣称 C-8 `[x]`。  
+**验收（C-8c）：** 活清单 ≥20 行且 class/evidence 完整；开账时四 class 均出现；薄钉 + census 绿；硬 KPI 不破；**不**宣称 C-8 `[x]` / 分叉已收敛。  
+**验收（C-8d）：** F20–F23 en+zh 状态词一致 + Honesty；inventory 无活 `doc_debt`/`book_ahead`；硬 KPI 不破；**不**宣称 C-8 `[x]`。  
+**验收（C-8e）：** Ch10 en+zh Compatibility（C-8e）×2；inventory 无活 `legacy_accept`；硬 KPI 不破；**不**宣称 C-8 `[x]` / 去 parser legacy。  
+**验收（C-8f）：** UsageGuide en+zh Honesty ≠ lossless GA；薄钉绿；硬 KPI 不破；**不**宣称 C-8 `[x]` / CST 扩面。默认下一 → **C-3h**（ModuleId）。Soft park：CST lossless 实现 · 真 CallSuper · 去 parser legacy。
 
 ## 3. 显式 park（非默认下一）
 

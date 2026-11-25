@@ -38,10 +38,18 @@ fn s2_04_lsp_document_formatting() {
     let idx = driver
         .find("pub fn format_document_for_lsp(")
         .expect("format_document_for_lsp must exist");
-    let chunk = &driver[idx..idx + 500.min(driver.len() - idx)];
+    let chunk = &driver[idx..idx + 800.min(driver.len() - idx)];
     assert!(
-        chunk.contains("format_dry_run("),
-        "format_document_for_lsp must call format_dry_run"
+        chunk.contains("format_dry_run_with("),
+        "format_document_for_lsp must call format_dry_run_with"
+    );
+    assert!(
+        chunk.contains("allow_lossy: false"),
+        "LSP format must hard-refuse lossy (allow_lossy=false)"
+    );
+    assert!(
+        !chunk.contains("allow_lossy: true"),
+        "LSP format must never set allow_lossy=true"
     );
 
     let lsp = repo_file("crates/syx-lsp/src/lib.rs");

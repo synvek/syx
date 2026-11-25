@@ -214,7 +214,6 @@ use syx_async::SyxRuntime;
 use syx_codegen::{CodeGenerator, CompiledProgram};
 use syx_debug::DebugSession;
 use syx_diagnostics::{SourceFile, Span, SyxDiagnostic, SyxResult};
-use syx_fmt::format_dry_run;
 pub use syx_frontend::{
     apply_meta_passes, desugar_top_level_stmts, diagnostic_codes, expand_macros, mir_module_hash,
     prepare_async_module, FrontendArtifact, FrontendOptions, FrontendPipeline, StopAfter,
@@ -273,8 +272,9 @@ pub use doc_project::doc_project;
 pub(crate) use format_lint::collect_sy_files;
 /// Format a single `.sy` file or a project directory (manifest `main` entry).
 pub use format_lint::{
-    format_check_path, format_check_path_cst, format_document_for_lsp, format_project,
-    lint_document_for_lsp, lint_project, FormatCheckReport,
+    format_check_path, format_check_path_cst, format_check_path_with_policy,
+    format_document_for_lsp, format_project, format_project_with, lint_document_for_lsp,
+    lint_project, FormatCheckReport,
 };
 
 pub use debug_repl::{

@@ -29,6 +29,8 @@ func main() {
 | 值类型完整拷贝 | **部分实现**（深拷贝边界演进中） |
 | `Codable` 合成 | 通过 `@Codable` 宏（`data class` 优先） |
 
+> **兼容（C-8e）：** 书形 SSOT 为 `var` / `let` + 类型（见 [language-book-ssot](../../docs/adr/language-book-ssot.md)）。parser 仍接受 legacy 裸字段 `name: Type`（**一个发布周期**）— **≠** 推荐写法；新示例勿再教裸字段。去掉该兼容面仍 park（≠ 本窗）。
+
 ```syx
 struct Counter {
     var value: Int = 0
@@ -41,6 +43,8 @@ print(c.value)                             // 1
 ```
 
 > **`mutating`：** 标记会修改 `self` 的方法；调用方必须用 `var`（不能 `let`）。`mutating` 方法在 `let` 上调用 → **S060**。通过 `let` 绑定写 `struct` 字段（`p.x = …`、嵌套 `o.inner.x = …`）→ **S060**；`class` / `actor` 在 `let` 上写字段仍合法（含经 struct 持有的 class 引用）。
+>
+> **兼容（C-8e）：** 值类型方法写 `self` 时书形为 `mutating func`。无标记却突变属 [language-book-ssot](../../docs/adr/language-book-ssot.md) 的 **legacy / 一周期** 面（deprecation deepen 仍 park）— 请优先标 `mutating`。struct/enum 上无 `mutating` 却写入 → **S060**（U-30）。**≠** 本窗去掉兼容接受面。
 
 ### 值语义：struct 赋值拷贝（R-38 · SEM-STRUCT）
 
@@ -264,7 +268,7 @@ func main() {
 | Swift struct | SYX |
 |--------------|-----|
 | 完整值语义拷贝 | **部分实现** |
-| `mutating func` | **已实现**（Phase 60+） |
+| `mutating func` | **部分实现**（Phase 60+ 可用；深拷贝 / mutating 边仍演进） |
 | 完整 `class` 单继承 + `final` | **已实现** |
 | `actor` 隔离 | **已实现** |
 | `data class` 自动 `==`/`hash`/`encode` | **GA**（L1 stored） |
@@ -272,6 +276,8 @@ func main() {
 | `isolated deinit` | **未实现**（class 显式 deinit 已实现） |
 | `inout` 形参 | **未实现**；用 `&mut T` 借用（部分实现） |
 | 嵌套类型 | **部分实现**（见 [第 21 章](21-nested-types.md)） |
+
+> **诚实（C-8d）：** `mutating func` 自 Phase 60+ 可用，但深拷贝 / mutating 边仍演进 — **≠** 全量 **已实现** / GA。与上文功能表同一 verdict。
 
 ---
 

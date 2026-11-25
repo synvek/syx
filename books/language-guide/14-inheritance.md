@@ -129,7 +129,7 @@ class Dog: Animal {
 }
 ```
 
-See [Chapter 15, Initialization](15-initialization.md).
+See [Chapter 15, Initialization](15-initialization.md). When the superclass stored properties all have defaults, omitting `super.init` is allowed via **U-38 field defaults** — **not** a compiler-inserted `CallSuper` (see Ch15 honesty note).
 
 ## Multi-Level Inheritance
 
@@ -318,7 +318,7 @@ func main() {
 | Multiple inheritance | **Not implemented** (use protocols) |
 | `final class` / `final func` | **Implemented** (the lexer has no `sealed`) |
 | Protocol composition (`protocol<A, B>`) | Partially implemented (use `&` / `where`) |
-| `convenience init` | **Partially implemented** |
+| `convenience init` | **Not implemented** |
 | `required init` | **Not implemented** (constructor chains check `super.init`) |
 
 ---

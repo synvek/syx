@@ -1,4 +1,12 @@
 ### SYX 0.4.0
+- docs: refuse-lossy ≠ format lossless GA (CST residual note; C-8f)
+- docs: Ch10 Compatibility notes for legacy bare fields / unmarked mutating (C-8e)
+- docs: clear book MD doc_debt/book_ahead (F20–F23 en+zh honesty; C-8d)
+- docs: open book↔parser fork live inventory (≥20 classified rows; C-8c)
+- fix: format defaults refuse CST001→AST lossy write (F003); `--allow-lossy` opt-in; LSP hard-refuse (C-8b)
+- docs: Ch15 omit-super.init = U-38 field defaults ≠ CallSuper; mark implicit CallSuper unimplemented (C-8a)
+- docs: align count-gate floors to 2600/1700 (script=CI=nightly; anti-delete only) (C-7c)
+- fix: soft CI steps propagate real exit codes (job stays continue-on-error) (C-7b)
 - feat: syx_smoke consumes lexer input; required CI fuzz-smoke -runs=1 (C-7a)
 - feat: capability gen injects syx_version from Cargo; --check fail-closed on TOML drift (C-6b); C-6 exited
 - docs: Cargo workspace version as public SSOT; align banners/capability/plan (C-6a)

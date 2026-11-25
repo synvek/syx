@@ -166,8 +166,9 @@ syx init my-app          # 生成 main.sy + build.syb + syx.toml
 | `syx cov` / `cargo llvm-cov -p syx-driver --test native --no-report` | C-09 coverage 窄 claimed（；文档 + CLI；≠ % gate / ≠ CI fail / ≠ fuzz） | `syx cov`（需本机 `cargo-llvm-cov`） |
 | `syx fuzz` / `cargo fuzz run syx_smoke` | C-7a：`syx_smoke` lexer 真消费 + required CI job `fuzz-smoke`（`-runs=1`；≠ scaffold GA / ≠ 无界 fuzz / ≠ 多 target） | `syx fuzz`（需 cargo-fuzz；CI **met** = `fuzz-smoke`） |
 | `syx prop` / `cargo test -p syx-driver --test property_smoke` | C-09 property 窄 claimed + `property_smoke` + CI first-slice + C-09/平台维护地板（；≠ proptestest GA / ≠ `c09_property_ci_ga`） | `syx prop` |
-| `syx format [path]` | 格式化入口文件 | `syx format .` |
-| `syx format --check [path]` | dry-run：递归检查 `.sy` 幂等（不写盘；C-06） | `syx format --check .` |
+| `syx format [path]` | 格式化入口文件（CST-first；CST001 默认拒写，除非 `--allow-lossy`；≠ lossless GA） | `syx format .` |
+| `syx format --check [path]` | dry-run：递归检查 `.sy` 幂等（不写盘；C-06；同 refuse-lossy 默认） | `syx format --check .` |
+| `syx format --allow-lossy [path]` | 显式同意 CST001→AST 改写（可能丢注释/trivia；≠ 默认） | `syx format --allow-lossy .` |
 | `syx lint [path]` | 静态检查 | `syx lint .` |
 | `syx doc [path]` | 生成 API 文档 | `syx doc .` → `docs/api.md` |
 | `syx debug [path]` | 启动调试会话摘要 | `syx debug .` |
@@ -975,13 +976,16 @@ Phase 14+ Embed API（`syx_embed_v2_*`）：软超时 / 内存与 RSS 预算，�
 
 ### 格式化 — `syx format`
 
-格式化项目入口文件（`syx.toml` 中 `main` 指定）：
+格式化项目入口文件（`syx.toml` 的 `main`）。**CST-first**（落在 CST 子集内时 trivia 保真 reindent）。
 
 ```bash
 syx format .
+syx format --check .
 ```
 
-覆盖：函数、变量、if/while/for-in、表达式、数组/下标、字典字面量、结构体声明等（AST 路径；unsupported → F001）。
+若 CST 子集拒识（`CST001`），默认路径 **拒写** / `--check` 失败并报 **`F003`**（不会静默走 AST 丢注释）。仅在显式同意 AST 回退（可能丢注释/trivia）时传 **`--allow-lossy`**。`SYX_FMT_AST=1` 是内部回滚舱口——**不能**代替 `--allow-lossy`。LSP 格式化永不允许 lossy。AST 仍不支持的构造 → **F001**。
+
+> **诚实（C-8f）：** 默认 refuse-lossy（`F003`）只是禁止静默 AST 丢注释写盘 — **≠** 宣称 format **lossless GA**，也 **≠** 全语言 trivia 保真。保真 reindent 仅在 **CST 子集内**成立；子集扩面 / 真 lossless GA 仍 park（本窗不改 formatter 深刀）。
 
 ### 静态检查 — `syx lint`
 

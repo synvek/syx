@@ -33,6 +33,10 @@ pub fn format_source_cst(source: &SourceFile) -> SyxResult<String> {
 /// - else try CST; on `CST001` fall back to AST; other errors propagate.
 /// - `SYX_FMT_CST` is ignored (superseded by default CST-first).
 /// - CST success path uses reindent GA via [`format_source_cst`] (S2-I150).
+///
+/// C-8b: this is the **explicit lossy** path. Default write/`--check`/LSP use
+/// [`format_dry_run`] / [`format_dry_run_with`] with [`FormatPolicy::allow_lossy`]
+/// = `false` (CST001 → `F003`, no silent comment-dropping write).
 pub fn format_source_auto(source: &SourceFile) -> SyxResult<String> {
     match std::env::var("SYX_FMT_AST") {
         Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => return format_source(source),
@@ -41,6 +45,38 @@ pub fn format_source_auto(source: &SourceFile) -> SyxResult<String> {
     match format_source_cst(source) {
         Ok(s) => Ok(s),
         Err(e) if e.code.as_deref() == Some("CST001") => format_source(source),
+        Err(e) => Err(e),
+    }
+}
+
+/// C-8b: formatter write/check policy.
+///
+/// Default (`allow_lossy = false`): CST001 refuses with `F003` (no AST rewrite).
+/// `allow_lossy = true`: today's [`format_source_auto`] (CST001→AST; may drop trivia).
+/// ≠ format lossless GA (C-8f) — refuse-lossy is fail-closed, not a GA claim.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct FormatPolicy {
+    pub allow_lossy: bool,
+}
+
+/// Format under [`FormatPolicy`]. Prefer [`format_dry_run_with`] for write/check SSOT.
+pub fn format_with_policy(source: &SourceFile, policy: FormatPolicy) -> SyxResult<String> {
+    if policy.allow_lossy {
+        return format_source_auto(source);
+    }
+    // Refuse-lossy default. Internal rollback hatch only — ≠ user `--allow-lossy` consent.
+    match std::env::var("SYX_FMT_AST") {
+        Ok(v) if v == "1" || v.eq_ignore_ascii_case("true") => return format_source(source),
+        _ => {}
+    }
+    match format_source_cst(source) {
+        Ok(s) => Ok(s),
+        Err(e) if e.code.as_deref() == Some("CST001") => Err(fmt_error_at(
+            "syx-fmt: CST subset unsupported (CST001); refusing lossy AST rewrite that drops comments/trivia. Pass --allow-lossy to consent, or stay within the CST subset.",
+            None,
+            Span::DUMMY,
+            "F003",
+        )),
         Err(e) => Err(e),
     }
 }
@@ -55,12 +91,17 @@ pub struct DryRunReport {
 
 /// Format without writing; assert idempotency `format(format(x)) == format(x)`.
 ///
-/// Uses [`format_source_auto`] (W873: CST-first + CST001→AST).
-/// Failures (F001 / parse) return `Err` — caller must not write.
+/// C-8b default: refuse-lossy ([`FormatPolicy::default`]) — CST001 → `F003`.
+/// Failures (F001 / F003 / parse) return `Err` — caller must not write.
 pub fn format_dry_run(source: &SourceFile) -> SyxResult<DryRunReport> {
-    let once = format_source_auto(source)?;
+    format_dry_run_with(source, FormatPolicy::default())
+}
+
+/// C-8b: dry-run with explicit [`FormatPolicy`] (`allow_lossy` → [`format_source_auto`]).
+pub fn format_dry_run_with(source: &SourceFile, policy: FormatPolicy) -> SyxResult<DryRunReport> {
+    let once = format_with_policy(source, policy)?;
     let again_src = SourceFile::new(source.name.clone(), once.as_str());
-    let twice = format_source_auto(&again_src)?;
+    let twice = format_with_policy(&again_src, policy)?;
     if once != twice {
         return Err(fmt_error_at(
             "syx-fmt: dry-run idempotency failed (format(format(x)) != format(x))",

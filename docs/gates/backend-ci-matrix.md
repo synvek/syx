@@ -218,8 +218,40 @@ Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently 
 
 ### C-7a (done · fuzz-signal honesty)
 
-`syx_smoke` consumes UTF-8 via `syx-lexer::Lexer::scan_all` (invalid UTF-8 early-return; no deliberate panic). Required CI job **`fuzz-smoke`**: `cargo +nightly fuzz run syx_smoke -- -runs=1`. UsageGuide CI **met** aligns with yaml. Census: [`c-7a-fuzz-honesty-census`](../census/c-7a-fuzz-honesty-census.md). C-7 remains `[~]` (≠ `[x]`). **≠** soft `exit 0` scrub (C-7b) / multi-target / fuzz GA.
+`syx_smoke` consumes UTF-8 via `syx-lexer::Lexer::scan_all` (invalid UTF-8 early-return; no deliberate panic). Required CI job **`fuzz-smoke`**: `cargo +nightly fuzz run syx_smoke -- -runs=1`. UsageGuide CI **met** aligns with yaml. Census: [`c-7a-fuzz-honesty-census`](../census/c-7a-fuzz-honesty-census.md).
+
+### C-7b (done · soft-step fail-closed)
+
+Soft-job steps that previously swallowed test failures with `exit 0` now propagate `exit "$ec"` / `exit 1` (gui · jit · extended · native host-shake/differential · browser-e2e · windows plugin fail · book rate≠100). Jobs stay `continue-on-error`. Whitelist keep `exit 0`: empty plugin list · missing book JSON · domain/property defer notice. Census: [`c-7b-soft-exit0-census`](../census/c-7b-soft-exit0-census.md).
+
+### C-7c (done · count-gate align)
+
+SSOT = `scripts/audit_behavioral_tests.sh` defaults **2600 / 1700** (anti-delete only ≠ maturity KPI). Aligned: CI lint · nightly · docs/books README · implementation-status · ADR charter · site about. Census: [`c-7c-count-gate-census`](../census/c-7c-count-gate-census.md). C-7 remains `[~]` (≠ `[x]`). **≠** scaffold/multi-fuzz/soft→required (C-7c+ park).
+
+### C-8a (done · Ch15 implicit-super MD honesty)
+
+Ch15 en+zh: omitting `super.init` = **U-38 inherited field defaults ≠ CallSuper**; true implicit `CallSuper` marked **not implemented**. Lang honesty nails + census [`c-8a-ch15-implicit-super-md-census`](../census/c-8a-ch15-implicit-super-md-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** implement CallSuper / formatter `--allow-lossy` (C-8b).
+
+### C-8b (done · formatter refuse-lossy)
+
+Default `syx format` / `--check` / LSP: CST001 → **`F003`** refuse (no silent AST comment-dropping write). Explicit CLI `--allow-lossy` restores CST001→AST auto. LSP hard `allow_lossy=false`. Census [`c-8b-fmt-refuse-lossy-census`](../census/c-8b-fmt-refuse-lossy-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** CST expand / lossless GA / book↔parser fork list (C-8c).
+
+### C-8c (done · book↔parser fork inventory)
+
+Live fork ledger ≥20 rows with closed classes (`parked_honest` · `book_ahead` · `legacy_accept` · `doc_debt`). Census [`c-8c-book-parser-fork-census`](../census/c-8c-book-parser-fork-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** fork converged · parser surface changes · CST lossless (C-8d+ park).
+
+### C-8d (done · book MD honesty)
+
+Cleared inventory `doc_debt`/`book_ahead` (F20–F23) en+zh: labeled break Partial honesty; convenience/required Not; mutating Partial; typed-throws ≠ GA. Census [`c-8d-book-md-honesty-census`](../census/c-8d-book-md-honesty-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** F18/F19 legacy parser remove · CST lossless (C-8e+ park).
+
+### C-8e (done · legacy compat notes)
+
+Ch10 en+zh **Compatibility (C-8e)** for F18 bare fields + F19 unmarked mutating (ADR one-cycle; ≠ remove parser accept). Inventory F18/F19 → `parked_honest`. Census [`c-8e-legacy-compat-notes-census`](../census/c-8e-legacy-compat-notes-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** CST lossless GA · remove legacy parser (C-8f+ park).
+
+### C-8f (done · CST residual note)
+
+UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **lossless GA** / full-language trivia formatter; lossless reindent only inside CST subset. Census [`c-8f-cst-residual-note-census`](../census/c-8f-cst-residual-note-census.md). C-8 remains `[~]` (≠ `[x]`). Soft park: CST lossless implementation · CallSuper · remove parser legacy.
 
 ## Next
 
-Default next after C-7a: **C-7b** — soft-job failure steps stop using `exit 0` (job stays `continue-on-error`). C-7 remains `[~]`. **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**. C-3 remains `[~]` (ModuleId / full MirOp / exception park).
+Default next after C-8f: **C-3h** — ModuleId thin gate open (stable module identity; ≠ full MirOp / exception). C-3 remains `[~]`. C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**.

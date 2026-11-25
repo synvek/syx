@@ -129,7 +129,7 @@ class Dog: Animal {
 }
 ```
 
-详见 [第 15 章 构造过程](15-initialization.md)。
+详见 [第 15 章 构造过程](15-initialization.md)。父类 stored 均有默认值时可省略 `super.init`，机制是 **U-38 字段默认垫**——**不是**编译器插入的 `CallSuper`（见 Ch15 诚实说明）。
 
 ## 多层继承
 
@@ -318,7 +318,7 @@ func main() {
 | 多继承 | **未实现**（用 protocol） |
 | `final class` / `final func` | **已实现**（lexer 无 `sealed`） |
 | 协议组合（`protocol<A, B>`） | 部分实现（用 `&` / `where`） |
-| `convenience init` | **部分实现** |
+| `convenience init` | **未实现** |
 | `required init` | **未实现**（构造链 `super.init` 校验） |
 
 ---

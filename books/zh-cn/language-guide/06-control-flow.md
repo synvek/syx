@@ -1,6 +1,6 @@
 # 控制流
 
-**实现状态：** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / 标签 `break`/`continue` / `switch` / `where 守卫` / `if case` / `if let` / `guard let` **全部已实现**；fallthrough **拒绝**
+**实现状态：** `if` / `else` / `while` / `repeat while` / `for-in` / `for await in` / `break` / `continue` / `switch` / `where 守卫` / `if case` / `if let` / `guard let` **已实现**；标签 `break`/`continue` **部分实现**；fallthrough **拒绝**
 
 SYX 控制流与 Swift 风格一致：块用 `{ }` 包裹，模式匹配靠 `switch` + `where` 完成。本章按控制结构分类讲解。
 
@@ -121,10 +121,12 @@ while true {
 |------|------|
 | `break` | 跳出 **最近一层** 循环或 `switch` |
 | `continue` | 跳到 **最近一层** 循环下一轮 |
-| `break label` | 跳出指定标签的循环（**已实现**） |
-| `continue label` | 跳到指定标签的循环下一轮（**已实现**） |
+| `break label` | 跳出指定标签的循环（**部分实现**） |
+| `continue label` | 跳到指定标签的循环下一轮（**部分实现**） |
 
 > **标签（label）：** 语法 `label: while (cond) { … break label … }`；SYX 标签在嵌套循环里识别，但跨函数 / 闭包识别仍演进中。
+>
+> **诚实（C-8d）：** 嵌套循环标签可用；跨函数 / 闭包识别仍演进中 — **≠** 标签 `break`/`continue` 全量 **已实现** / GA。
 
 ## switch
 

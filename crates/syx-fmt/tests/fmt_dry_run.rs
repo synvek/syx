@@ -2010,12 +2010,22 @@ fn fmt_default_cst_preserves_comments() {
 
 #[test]
 fn fmt_default_cst_fallback_ast_f001() {
-    // W873 face2 + W874: CST001 → AST; if-case KeyPath still F001; caps still reject on pure CST.
+    // C-8b: default dry-run refuses CST001→AST (F003). allow_lossy restores W873 auto.
+    use syx_fmt::{format_dry_run_with, FormatPolicy};
+
     let case_pat = SourceFile::new(
         "case.sy",
         "func main() {\n    if case \\Foo.bar = x {\n        print(1)\n    }\n}\n",
     );
-    let err = format_dry_run(&case_pat).expect_err("if case KeyPath must F001 via AST fallback");
+    let refuse = format_dry_run(&case_pat).expect_err("default must refuse lossy CST001");
+    assert_eq!(refuse.code.as_deref(), Some("F003"));
+    assert!(
+        refuse.message.contains("lossy") && refuse.message.contains("--allow-lossy"),
+        "F003 must mention lossy / --allow-lossy; got {refuse:?}"
+    );
+
+    let err = format_dry_run_with(&case_pat, FormatPolicy { allow_lossy: true })
+        .expect_err("if case KeyPath must F001 via allow_lossy AST");
     assert_eq!(err.code.as_deref(), Some("F001"));
     assert!(
         err.message.contains("if case pattern"),
@@ -2046,8 +2056,11 @@ fn fmt_default_cst_fallback_ast_f001() {
         Some("CST001")
     );
 
-    // Default dry-run on out-of-subset paren nest falls back to AST (must not CST001).
-    let deep_auto = format_dry_run(&deep).expect("paren4 must AST-fallback");
+    // Default refuse; --allow-lossy restores AST fallback.
+    let deep_refuse = format_dry_run(&deep).expect_err("paren4 default must F003");
+    assert_eq!(deep_refuse.code.as_deref(), Some("F003"));
+    let deep_auto = format_dry_run_with(&deep, FormatPolicy { allow_lossy: true })
+        .expect("paren4 allow_lossy must AST-fallback");
     assert!(deep_auto.formatted.contains("while"));
 }
 

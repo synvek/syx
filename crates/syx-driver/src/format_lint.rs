@@ -4,21 +4,27 @@
 use crate::driver_error_at;
 use std::path::Path;
 use syx_diagnostics::{SourceFile, Span, SyxResult};
-use syx_fmt::format_dry_run;
+use syx_fmt::{format_dry_run, format_dry_run_with, FormatPolicy};
 use syx_lint::lint_source_auto;
 use syx_pkg::load_manifest;
 
+/// Format project entry (default refuse-lossy; C-8b).
 pub fn format_project(path: &Path) -> SyxResult<()> {
+    format_project_with(path, false)
+}
+
+/// C-8b: format with explicit `allow_lossy` (CLI `--allow-lossy`).
+pub fn format_project_with(path: &Path, allow_lossy: bool) -> SyxResult<()> {
     if path.is_file() {
-        return format_file(path);
+        return format_file(path, allow_lossy);
     }
     let root = path;
     let manifest = load_manifest(root)?;
     let entry = root.join(&manifest.main);
-    format_file(&entry)
+    format_file(&entry, allow_lossy)
 }
 
-fn format_file(path: &Path) -> SyxResult<()> {
+fn format_file(path: &Path, allow_lossy: bool) -> SyxResult<()> {
     if path.extension().and_then(|e| e.to_str()) != Some("sy") {
         return Err(driver_error_at(
             format!(
@@ -40,8 +46,13 @@ fn format_file(path: &Path) -> SyxResult<()> {
     })?;
     let source = SourceFile::new(path.display().to_string(), text);
     // S2-I151 / ADR stage2-s2-04-fmt-write-migration: write shares `--check` SSOT
-    // (`format_dry_run` → `format_source_auto`; CST reindent GA + fail-closed).
-    let report = format_dry_run(&source)?;
+    // (`format_dry_run` / `format_dry_run_with`; C-8b refuse-lossy default).
+    let report = format_dry_run_with(
+        &source,
+        FormatPolicy {
+            allow_lossy,
+        },
+    )?;
     std::fs::write(path, report.formatted).map_err(|e| {
         driver_error_at(
             format!("Failed to write {}: {e}", path.display()),
@@ -53,10 +64,11 @@ fn format_file(path: &Path) -> SyxResult<()> {
 }
 
 /// S2-I152 / ADR stage2-s2-04-lsp-document-formatting: buffer format for LSP
-/// (`textDocument/formatting`) — same SSOT as CLI write/`--check` (`format_dry_run`).
+/// (`textDocument/formatting`) — C-8b: **hard** refuse-lossy (`allow_lossy=false`).
 pub fn format_document_for_lsp(name: &str, contents: &str) -> SyxResult<String> {
     let source = SourceFile::new(name, contents);
-    let report = format_dry_run(&source)?;
+    // LSP never allows lossy AST fallback (C-8b).
+    let report = format_dry_run_with(&source, FormatPolicy { allow_lossy: false })?;
     Ok(report.formatted)
 }
 
@@ -135,7 +147,7 @@ pub(crate) fn collect_sy_files(path: &Path) -> SyxResult<Vec<std::path::PathBuf>
 
 fn format_check_path_with(
     path: &Path,
-    dry_run: fn(&SourceFile) -> SyxResult<syx_fmt::DryRunReport>,
+    dry_run: impl Fn(&SourceFile) -> SyxResult<syx_fmt::DryRunReport>,
 ) -> SyxResult<FormatCheckReport> {
     let files = collect_sy_files(path)?;
     let mut report = FormatCheckReport::default();
@@ -177,8 +189,21 @@ fn format_check_path_with(
 }
 
 /// Recursively dry-run format under `path` (file or directory). Does **not** write.
+/// C-8b default: refuse-lossy (`format_dry_run`).
 pub fn format_check_path(path: &Path) -> SyxResult<FormatCheckReport> {
-    format_check_path_with(path, syx_fmt::format_dry_run)
+    format_check_path_with(path, format_dry_run)
+}
+
+/// C-8b: `--check` with explicit `allow_lossy` (CLI `--allow-lossy`).
+pub fn format_check_path_with_policy(path: &Path, allow_lossy: bool) -> SyxResult<FormatCheckReport> {
+    format_check_path_with(path, |source| {
+        format_dry_run_with(
+            source,
+            FormatPolicy {
+                allow_lossy,
+            },
+        )
+    })
 }
 
 /// W872 / ADR-1216: CST-only `--check` aggregate (no env).

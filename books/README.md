@@ -10,7 +10,7 @@ This directory contains three English Markdown eBooks for SYX language users and
 
 Shared resource: [shared/implementation-status.md](shared/implementation-status.md) — the **current** master feature implementation status table (SYX **0.4.0**).
 
-**Version alignment:** SYX **0.4.0** (Cargo workspace SSOT) · cache `syx-cache-v1` · audit 2600/3050 · current ADRs in [docs/adr/current.md](../docs/adr/current.md) · historical ledger [docs/adr/architecture-decisions.md](../docs/adr/architecture-decisions.md)
+**Version alignment:** SYX **0.4.0** (Cargo workspace SSOT) · cache `syx-cache-v1` · audit 2600/1700 · current ADRs in [docs/adr/current.md](../docs/adr/current.md) · historical ledger [docs/adr/architecture-decisions.md](../docs/adr/architecture-decisions.md)
 
 ## Reading Recommendations
 
@@ -85,7 +85,7 @@ Items prefixed with "**partial GA**" delivered a minimal working subset in that 
 
 ## Current capability summary (SYX 0.4.0)
 
-- **Gate0:** audit **2600/3050**; crate **0.4.0**; EXCLUDE historical behavioral fill
+- **Gate0:** audit **2600/1700** (anti-delete only); crate **0.4.0**; EXCLUDE historical behavioral fill
 - **Language surface:** multiline / tuple / nested path / closed range / Character / call labels (see status for details)
 - **GUI:** SynUI deferred (not GA)
 - **Farm/Dist:** frozen at v19

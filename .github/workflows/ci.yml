@@ -456,14 +456,17 @@ jobs:
             tests+=("$line")
           done < <(cargo test -p syx-driver --test evergreen -- --list \
             | awk -F': ' '/^plugin_smoke::/{print $1}')
+          # C-7b whitelist: empty plugin list = advisory skip, not a test failure.
           if [ "${#tests[@]}" -eq 0 ]; then
             echo "::warning title=windows-plugin-smoke::no plugin_smoke:: tests"
             exit 0
           fi
           cargo test -p syx-driver --test evergreen -- --test-threads=1 "${tests[@]}"
           ec=$?
+          # C-7b: step fail-closed; job/step remains continue-on-error
           if [ "$ec" -ne 0 ]; then
             echo "::warning title=windows-plugin-smoke::exit=$ec (soft)"
+            exit "$ec"
           fi
           exit 0
 
@@ -486,10 +489,12 @@ jobs:
           timeout 15m python3 scripts/book_pass_rate.py --syx ./target/debug/syx --json "$OUT"
           ec=$?
           set -e
+          # C-7b whitelist: missing JSON = soft-skip (timeout/flake), not a rate fail.
           if [ ! -f "$OUT" ]; then
             echo "::warning title=book::no book_pass.json (timeout/exit=$ec); soft-skip"
             exit 0
           fi
+          # C-7b: step fail-closed when JSON present but rate ≠ 100%; job remains soft.
           python3 - "$OUT" <<'PY'
           import json, sys
           d = json.load(open(sys.argv[1]))
@@ -505,8 +510,8 @@ jobs:
           )
           if not ok:
               print(f"::warning title=book-gate::rate={rate} passed={passed}/{total} (soft)")
-          else:
-              print("book doctest gate PASS")
+              sys.exit(1)
+          print("book doctest gate PASS")
           PY
       - name: Upload book_pass JSON
         if: always()
@@ -537,6 +542,7 @@ jobs:
       - name: Playwright (Chromium only; soft)
         run: |
           set +e
+          # C-7b: step fail-closed; job remains continue-on-error
           if [ -f examples/wasm_web/playwright.config.js ]; then
             cd examples/wasm_web
             if [ -f package-lock.json ]; then npm ci; else npm install; fi
@@ -545,10 +551,16 @@ jobs:
             ec=$?
             if [ "$ec" -ne 0 ]; then
               echo "::warning title=browser-e2e::chromium exit=$ec (soft)"
+              exit "$ec"
             fi
             exit 0
           fi
           timeout 15m cargo test -p syx-driver --test browser -- --test-threads=1
+          ec=$?
+          if [ "$ec" -ne 0 ]; then
+            echo "::warning title=browser-e2e::cargo-browser exit=$ec (soft)"
+            exit "$ec"
+          fi
           exit 0
 
   # C-2b-2 floor + C-2b-3 path_file paid raise (Linux).
@@ -736,11 +748,13 @@ jobs:
         run: |
           set +e
           # Soft advisory job may fall back; paid floor is full-native-linux (C-2b++).
+          # C-7b: step fail-closed; job remains continue-on-error
           cargo build -p syx-cli --features full-native --release || cargo build -p syx-cli --release
           bash scripts/native_host_shake_size.sh
           ec=$?
           if [ "$ec" -ne 0 ]; then
             echo "::warning title=native-host-shake::exit=$ec (soft)"
+            exit "$ec"
           fi
           exit 0
       - name: Differential suite (advisory)
@@ -749,10 +763,12 @@ jobs:
           SYX_NATIVE_STRICT: "1"
         run: |
           set +e
+          # C-7b: step fail-closed; job remains continue-on-error
           timeout 18m cargo test -p syx-driver --test differential -- --test-threads=1
           ec=$?
           if [ "$ec" -ne 0 ]; then
             echo "::warning title=native-differential::exit=$ec (soft)"
+            exit "$ec"
           fi
           exit 0
       - name: Upload differential failures
@@ -762,6 +778,7 @@ jobs:
           name: differential-failures
           path: target/differential-failures/
           if-no-files-found: ignore
+      # C-7b whitelist: deferred notice — not a test failure swallow.
       # Domain/property duplicate Core/Extended; bounded fuzz lives in required fuzz-smoke (C-7a).
       - name: Domain / property (skipped on soft native)
         run: |
@@ -822,11 +839,13 @@ jobs:
       - name: Driver GUI suite under xvfb
         run: |
           set +e
+          # C-7b: step fail-closed; job remains continue-on-error
           export SYX_GUI_DYLIB=target/debug/libsyx_gui.so
           timeout 15m xvfb-run -a cargo test -p syx-driver --test gui -- --test-threads=1
           ec=$?
           if [ "$ec" -ne 0 ]; then
             echo "::warning title=gui::exit=$ec (soft)"
+            exit "$ec"
           fi
           exit 0
 
@@ -908,8 +927,10 @@ jobs:
               grep -E 'test result:' /tmp/syx-ext-one.out | tee -a /tmp/syx-extended.out || true
             fi
           done
+          # C-7b: step fail-closed; job remains continue-on-error
           if [ "$fail" -ne 0 ]; then
             echo "::warning title=extended::some modules soft-failed (see hangs file)"
+            exit 1
           fi
           exit 0
       - name: Summarize extended soft failures
@@ -958,20 +979,24 @@ jobs:
             "env SYX_JIT_TIER2=1 cargo test -p syx-driver --test lang -- jit_suite1_differential --test-threads=1 --nocapture --include-ignored --color=never" \
             /tmp/jit-diff.out
           ec=$?
+          # C-7b: step fail-closed; job remains continue-on-error
           if [ "$ec" -ne 0 ]; then
             echo "::warning title=jit-differential::exit=$ec (soft)"
             grep -E 'FAILED|panicked|test result:' /tmp/jit-diff.out | tail -30 || true
             tail -40 /tmp/jit-diff.out || true
+            exit "$ec"
           fi
           exit 0
       - name: JIT opt-out smoke
         # Avoid evergreen integration:: (Linux hang). Exact smoke nail; quote for YAML.
         run: |
           set +e
+          # C-7b: step fail-closed; job remains continue-on-error
           timeout 3m env SYX_JIT_TIER2=0 cargo test -p syx-driver --test evergreen \
             -- --exact smoke::manifest_current --test-threads=1 --color=never
           ec=$?
           if [ "$ec" -ne 0 ]; then
             echo "::warning title=jit-optout::exit=$ec (soft)"
+            exit "$ec"
           fi
           exit 0

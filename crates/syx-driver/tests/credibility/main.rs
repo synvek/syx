@@ -36,6 +36,7 @@ mod driver_production_closeout_batch_contract;
 mod dual_grammar_freeze_contract;
 mod file_split_census_contract;
 mod file_split_claim_contract;
+mod fmt_refuse_lossy_contract;
 mod fmt_strategy_contract;
 mod frame_swap_contract;
 mod inject_cargo_pkg_version_contract;

@@ -114,6 +114,8 @@ func parseInt(s: String) throws -> Int {
 | `throws E -> T` | Typed throws (**Partially implemented**), throws `E` |
 | `async throws -> T` | async and throws |
 
+> **Honesty (C-8d):** typed throws (`throws E -> T`) is **Partially implemented** residual — **≠** GA / full **Implemented**. `rethrows` remains **Not implemented** (park).
+
 ## try Expressions
 
 Three forms for calling `throws` functions:

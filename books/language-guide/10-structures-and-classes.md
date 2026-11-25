@@ -29,6 +29,8 @@ func main() {
 | Full value-type copy | **Partially implemented** (deep-copy boundaries still evolving) |
 | `Codable` synthesis | Through the `@Codable` macro (`data class` preferred) |
 
+> **Compatibility (C-8e):** book SSOT is `var` / `let` + type (see [language-book-ssot](../../docs/adr/language-book-ssot.md)). Parser still accepts legacy bare `name: Type` for **one release cycle** — **≠** preferred form; do not teach bare fields in new examples. Removing the legacy accept path is parked (≠ this window).
+
 ```syx
 struct Counter {
     var value: Int = 0
@@ -41,6 +43,8 @@ print(c.value)                             // 1
 ```
 
 > **`mutating`:** marks methods that modify `self`; the caller must use `var` (not `let`). Calling a `mutating` method on a `let` → **S060**. Assigning a `struct` field through a `let` binding (`p.x = …`, nested `o.inner.x = …`) → **S060**; `class` / `actor` field writes on `let` stay legal (including via a struct that holds a class reference).
+>
+> **Compatibility (C-8e):** book form is `mutating func` when a value-type method writes `self`. Unmarked methods that mutate are a **legacy / one-cycle** surface per [language-book-ssot](../../docs/adr/language-book-ssot.md) (deprecation deepen parked) — prefer marking `mutating`. Writes without `mutating` on struct/enum → **S060** (U-30). **≠** removing the legacy accept path in this window.
 
 ### Value semantics: struct assign copies (R-38 · SEM-STRUCT)
 
@@ -264,7 +268,7 @@ func main() {
 | Swift struct | SYX |
 |--------------|-----|
 | Full value-semantics copy | **Partially implemented** |
-| `mutating func` | **Implemented** (Phase 60+) |
+| `mutating func` | **Partially implemented** (Phase 60+ usable; deep-copy / mutating edges still evolving) |
 | Full `class` single inheritance + `final` | **Implemented** |
 | `actor` isolation | **Implemented** |
 | `data class` automatic `==`/`hash`/`encode` | **GA** (L1 stored) |
@@ -272,6 +276,8 @@ func main() {
 | `isolated deinit` | **Not implemented** (an explicit class `deinit` is implemented) |
 | `inout` parameters | **Not implemented**; borrow with `&mut T` (partially implemented) |
 | Nested types | **Partially implemented** (see [Chapter 21](21-nested-types.md)) |
+
+> **Honesty (C-8d):** `mutating func` is usable since Phase 60+, but deep-copy / mutating edges still evolve — **≠** full **Implemented** / GA. Same verdict as the feature table above.
 
 ---
 
