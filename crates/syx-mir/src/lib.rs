@@ -65,6 +65,10 @@ mod mir_init_pc_floor;
 pub use mir_init_pc_floor::{verify_mir_init_pc_floor, verify_mir_init_pc_floor_functions};
 mod mir_block_id_floor;
 pub use mir_block_id_floor::{verify_mir_block_id_floor, verify_mir_block_id_floor_functions};
+mod mir_flat_blocks_floor;
+pub use mir_flat_blocks_floor::{
+    verify_mir_flat_blocks_floor, verify_mir_flat_blocks_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

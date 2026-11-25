@@ -676,6 +676,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_init_pc_floor(&mir)?;
     // C-3u: MirBlock.id uniqueness (MIR021) after init-pc.
     syx_mir::verify_mir_block_id_floor(&mir)?;
+    // C-3v: flat↔blocks instruction-count (MIR022) after block-id.
+    syx_mir::verify_mir_flat_blocks_floor(&mir)?;
     Ok(mir)
 }
 

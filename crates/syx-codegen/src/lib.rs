@@ -791,6 +791,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_init_pc_floor_functions(best_by_name.values().copied())?;
         // C-3u: MirBlock.id uniqueness on post-unique bodies (MIR021) after init-pc.
         syx_mir::verify_mir_block_id_floor_functions(best_by_name.values().copied())?;
+        // C-3v: flat↔blocks instruction-count on post-unique bodies (MIR022) after block-id.
+        syx_mir::verify_mir_flat_blocks_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

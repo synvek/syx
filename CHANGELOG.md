@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR flat↔blocks instruction-count floor → MIR022 (either empty OK; both non-empty must match) (C-3v; ≠ C-3 `[x]`)
 - feat: MIR MirBlock.id uniqueness floor → MIR021 (empty blocks OK; duplicate id fail-closed) (C-3u; ≠ C-3 `[x]`)
 - feat: MIR init_body_pc/init_wrap_pc bounds floor → MIR020 (dual 0 OK; else body ≤ wrap ≤ len) (C-3t; ≠ C-3 `[x]`)
 - feat: MIR aot_export_roots name-resolve floor → MIR019 (empty OK; unknown root fail-closed) (C-3s; ≠ C-3 `[x]`)
