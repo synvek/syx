@@ -795,6 +795,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_flat_blocks_floor_functions(best_by_name.values().copied())?;
         // C-3w: terminator Jump* target ∈ successors on post-unique bodies (MIR023) after flat-blocks.
         syx_mir::verify_mir_succ_term_floor_functions(best_by_name.values().copied())?;
+        // C-3x: Pop stack-height on post-unique bodies (MIR024) after succ-term.
+        syx_mir::verify_mir_pop_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

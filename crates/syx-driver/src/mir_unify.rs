@@ -680,6 +680,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_flat_blocks_floor(&mir)?;
     // C-3w: terminator Jump* target ∈ successors (MIR023) after flat-blocks.
     syx_mir::verify_mir_succ_term_floor(&mir)?;
+    // C-3x: Pop stack-height floor (MIR024) after succ-term.
+    syx_mir::verify_mir_pop_stack_floor(&mir)?;
     Ok(mir)
 }
 

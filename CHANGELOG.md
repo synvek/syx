@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR Pop stack-height floor → MIR024 (pilot∪Pop; only Pop underflow; ≠ expand pilot) (C-3x; ≠ C-3 `[x]`)
 - feat: MIR successor⊇terminator Jump* target floor → MIR023 (Return/Throw extra edges OK) (C-3w; ≠ C-3 `[x]`)
 - feat: MIR flat↔blocks instruction-count floor → MIR022 (either empty OK; both non-empty must match) (C-3v; ≠ C-3 `[x]`)
 - feat: MIR MirBlock.id uniqueness floor → MIR021 (empty blocks OK; duplicate id fail-closed) (C-3u; ≠ C-3 `[x]`)
