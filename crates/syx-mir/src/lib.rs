@@ -51,6 +51,10 @@ mod mir_named_callee_floor;
 pub use mir_named_callee_floor::{
     verify_mir_named_callee_floor, verify_mir_named_callee_floor_functions,
 };
+mod mir_build_stack_floor;
+pub use mir_build_stack_floor::{
+    verify_mir_build_stack_floor, verify_mir_build_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

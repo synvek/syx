@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR Build stack-height floor → MIR017 (Array/Dict/SetBuild; ≠ expand pilot set; ≠ MIR004) (C-3q; ≠ C-3 `[x]`)
 - feat: MIR named-callee resolve floor → MIR016 (Call/CallSuper/ActorCall/ActorSend/MakeClosure/TaskSpawn; ≠ ConstFnIndex R-33) (C-3p; ≠ C-3 `[x]`)
 - feat: MIR fn-index literal OOB floor → MIR015 (CallWitness / AwaitSuspend.resume_fn; ≠ ConstFnIndex R-33; ≠ CallIndirect arity) (C-3o; ≠ C-3 `[x]`)
 - feat: MIR param_count ≤ local_count metadata floor → MIR014 (≠ locals type/φ) (C-3n; ≠ C-3 `[x]`)

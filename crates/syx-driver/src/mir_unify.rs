@@ -666,6 +666,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_fn_lit_floor(&mir)?;
     // C-3p: named callee resolve floor (MIR016) after fn-lit; ConstFnIndex not scanned.
     syx_mir::verify_mir_named_callee_floor_functions(&fn_index, mir.functions.iter())?;
+    // C-3q: Array/Dict/SetBuild stack-height floor (MIR017) after named-callee.
+    syx_mir::verify_mir_build_stack_floor(&mir)?;
     Ok(mir)
 }
 
