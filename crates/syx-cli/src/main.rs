@@ -69,9 +69,18 @@ struct Cli {
     #[arg(long = "embed-sandbox", global = true, action = clap::ArgAction::SetTrue)]
     embed_sandbox: bool,
 
-    /// Opt-in permission sandbox; un-granted domains fail closed
+    /// Keep permission sandbox on (default); un-granted domains fail closed (C-5h)
     #[arg(long = "permission-sandbox", global = true, action = clap::ArgAction::SetTrue)]
     permission_sandbox: bool,
+
+    /// Opt out of permission sandbox (C-5h; overrides default-on)
+    #[arg(
+        long = "no-permission-sandbox",
+        global = true,
+        action = clap::ArgAction::SetTrue,
+        conflicts_with = "permission_sandbox"
+    )]
+    no_permission_sandbox: bool,
 
     /// Grant `net` domain under permission sandbox (TCP/HTTP HostFns)
     #[arg(long = "allow-net", global = true, action = clap::ArgAction::SetTrue)]
@@ -432,8 +441,11 @@ fn run() -> miette::Result<()> {
             None
         },
         Some(backend_choice),
+        // C-5h three-state: --permission-sandbox → true; --no-permission-sandbox → false; else Default.
         if cli.permission_sandbox {
             Some(true)
+        } else if cli.no_permission_sandbox {
+            Some(false)
         } else {
             None
         },

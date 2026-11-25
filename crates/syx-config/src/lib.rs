@@ -105,10 +105,11 @@ impl Default for CraneliftConfig {
     }
 }
 
-/// M3-E02 / ADR-310–311 + W1035 / ADR-1379 + W1036 / ADR-1380: opt-in permission sandbox + domain grants.
+/// M3-E02 / ADR-310–311 + W1035 / ADR-1379 + W1036 / ADR-1380 + C-5h:
+/// permission sandbox **default-on** + domain grants (opt-out via env/CLI).
 #[derive(Debug, Clone)]
 pub struct PermissionGrants {
-    /// When true, un-granted domains fail closed at semantic check.
+    /// When true, un-granted domains fail closed at semantic check (C-5h: default on).
     pub sandbox: bool,
     /// Blanket grant for the `net` domain (TcpConnect / HttpGet thin slice).
     pub allow_net: bool,
@@ -125,7 +126,8 @@ pub struct PermissionGrants {
 impl Default for PermissionGrants {
     fn default() -> Self {
         Self {
-            sandbox: env_truthy("SYX_PERMISSION_SANDBOX"),
+            // C-5h: default **on**; opt out with SYX_PERMISSION_SANDBOX=0/false.
+            sandbox: env_falsey_opt_out("SYX_PERMISSION_SANDBOX", true),
             allow_net: env_truthy("SYX_ALLOW_NET"),
             allow_fs: env_truthy("SYX_ALLOW_FS"),
             allow_env: env_truthy("SYX_ALLOW_ENV"),
@@ -176,7 +178,7 @@ pub struct SyxRuntimeConfig {
     pub llvm: LlvmConfig,
     pub cranelift: CraneliftConfig,
     pub native_backend: NativeBackendChoice,
-    /// M3-E02 permission grants (default off / env-backed).
+    /// M3-E02 / C-5h permission grants (sandbox default **on** / env-backed; opt-out `=0`).
     pub permission: PermissionGrants,
     /// M3-E03 / ADR-313: opt-in HostFn capability-table compile gate (`unsupported` → S026).
     pub ir_capability_gate: bool,
@@ -481,6 +483,28 @@ mod tests {
         let cfg = SyxRuntimeConfig::default();
         assert!(cfg.enable_crypto);
         assert!(cfg.enable_simd);
+    }
+
+    #[test]
+    fn config_permission_sandbox_default_on_c5h() {
+        // Isolate from ambient SYX_PERMISSION_SANDBOX / cargo [env] allows.
+        let prev = std::env::var("SYX_PERMISSION_SANDBOX").ok();
+        std::env::remove_var("SYX_PERMISSION_SANDBOX");
+        let cfg = SyxRuntimeConfig::default();
+        assert!(
+            cfg.permission.sandbox,
+            "C-5h: permission.sandbox must default on when env unset"
+        );
+        std::env::set_var("SYX_PERMISSION_SANDBOX", "0");
+        let off = SyxRuntimeConfig::default();
+        assert!(
+            !off.permission.sandbox,
+            "C-5h: SYX_PERMISSION_SANDBOX=0 must opt out"
+        );
+        match prev {
+            Some(v) => std::env::set_var("SYX_PERMISSION_SANDBOX", v),
+            None => std::env::remove_var("SYX_PERMISSION_SANDBOX"),
+        }
     }
 
     #[test]

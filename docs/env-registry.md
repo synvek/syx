@@ -9,8 +9,10 @@ Audit of `SYX_*` variables after GB config LTS. Status: **cli** (replaced by fla
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox` (soft HTTP deny; **not** OS isolation — [threat-model](adr/macro-embed-threat-model.md)) |
 | `SYX_EMBED_WASM_SANDBOX` | opt-in | wasmtime path; failure/unavailable → `syx_embed_v2_run` **null** (C-5b; ≠ OS isolation) |
-| `SYX_EMBED_SECCOMP` | wired-subset-linux | Linux net-deny BPF in worker; non-Linux → null (C-5c-2); ≠ full sandbox GA |
-| `SYX_MACRO_SECCOMP` | wired-subset-linux | Linux child net-deny BPF; mode `seccomp-netdeny-wired`; non-Linux → M040 (C-5c-2) |
+| `SYX_EMBED_SECCOMP` | wired-subset-linux | Linux net-deny BPF in worker; non-Linux → null (C-5c-2); mutually exclusive with `SYX_EMBED_SECCOMP_ALLOWLIST` |
+| `SYX_MACRO_SECCOMP` | wired-subset-linux | Linux child net-deny BPF; mode `seccomp-netdeny-wired`; non-Linux → M040 (C-5c-2); mutually exclusive with ALLOWLIST |
+| `SYX_EMBED_SECCOMP_ALLOWLIST` | wired-subset-linux | Linux default-deny allowlist BPF (v11+supplements) in worker; non-Linux → null; mutex with SECCOMP (C-5g); ≠ full syscall GA |
+| `SYX_MACRO_SECCOMP_ALLOWLIST` | wired-subset-linux | Linux child default-deny allowlist; non-Linux → M040; mutex with SECCOMP (C-5g) |
 | `SYX_EMBED_TIMEOUT_MS` | enforced-when-set | hard wall (env wins over `syx --embed-timeout-ms`); in-process null / wasmtime kill (C-5c-1) |
 | `SYX_MACRO_TIMEOUT_MS` | opt-in | macro subprocess wall clock; timeout → kill + M040 (C-5c-1); unset = no limit |
 | `SYX_EMBED_MEMORY_MB` | soft-when-set | env wins over `syx --embed-memory-mb`; stdout-sum soft gate (C-5d honest; ≠ true heap) |
@@ -18,7 +20,7 @@ Audit of `SYX_*` variables after GB config LTS. Status: **cli** (replaced by fla
 | `SYX_MACRO_RSS_MB` | wired-subset | Linux child `prlimit` · Windows parent Job Object assign; over-limit → M040; macOS/other → M040 (C-5d/C-5e) |
 | `SYX_EMBED_MACOS_SANDBOX` | wired-subset-macos | macOS: wasmtime under `sandbox-exec -n no-network`; in-process → null; non-macOS → null (C-5f); ≠ App Sandbox GA |
 | `SYX_MACRO_MACOS_SANDBOX` | wired-subset-macos | macOS child `sandbox_init(SANDBOX_NAMED, no-network)`; non-macOS → M040 (C-5f) |
-| `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox` (M3-E02 / ADR-310) |
+| `SYX_PERMISSION_SANDBOX` | default-on (C-5h) | unset/`1` → sandbox **on**; `0`/`false` → opt-out (`--no-permission-sandbox`); still ≠ OS isolation |
 | `SYX_ALLOW_NET` | deprecated | `syx --allow-net` (M3-E02 / ADR-310) |
 | `SYX_ALLOW_FS` | deprecated | `syx --allow-fs` (M3-E02 / ADR-311) |
 | `SYX_ALLOW_ENV` | deprecated | `syx --allow-env` (W1035 / ADR-1379) |

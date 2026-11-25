@@ -972,7 +972,7 @@ syx run app.sy
 
 ### Embed API（Phase 14–15）
 
-Phase 14+ Embed API（`syx_embed_v2_*`）：可选 HTTP 拒绝；**C-5c-1** 可选硬超时；**C-5c-2** 可选 `SYX_EMBED_SECCOMP=1` Linux net-deny BPF；**C-5d/C-5e** 可选 `SYX_EMBED_RSS_MB` Linux `prlimit` · Windows Job Object；**C-5f** 可选 `SYX_EMBED_MACOS_SANDBOX=1` Seatbelt net-deny（wasmtime 经 `sandbox-exec`；in-process → null）；MEMORY env∪CLI 仍为 stdout 事后软闸。宏：`SYX_MACRO_TIMEOUT_MS`；`SYX_MACRO_SECCOMP=1`；`SYX_MACRO_RSS_MB`；`SYX_MACRO_MACOS_SANDBOX=1` child Seatbelt。**不是** 全量 OS / App Sandbox / Job Object GA。威胁模型见 [macro-embed-threat-model](../adr/macro-embed-threat-model.md)。
+Phase 14+ Embed API（`syx_embed_v2_*`）：可选 HTTP 拒绝；**C-5c-1** 超时；**C-5c-2** `SYX_EMBED_SECCOMP=1` Linux net-deny；**C-5g** `SYX_EMBED_SECCOMP_ALLOWLIST=1` Linux default-deny allowlist（与 SECCOMP 互斥）；**C-5d/C-5e** `SYX_EMBED_RSS_MB`；**C-5f** `SYX_EMBED_MACOS_SANDBOX=1`；MEMORY 软闸。宏：timeout / SECCOMP / SECCOMP_ALLOWLIST / RSS / MACOS_SANDBOX。**C-5h：** permission sandbox **默认开**（HostFn 域 S024）；退出 `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0`；grant `--allow-*`。**不是** 全量 OS / App Sandbox / 全量 syscall GA / C-5 `[x]`。威胁模型见 [macro-embed-threat-model](../adr/macro-embed-threat-model.md)。
 
 ### 格式化 — `syx format`
 

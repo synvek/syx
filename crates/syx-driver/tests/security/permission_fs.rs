@@ -49,6 +49,25 @@ func main() {
 }
 
 #[test]
+fn c5h_permission_default_on_fs_s024() {
+    // C-5h: sandbox on + no fs grant → S024 FileRead.
+    let src = r#"
+func main() {
+  let s = __syx_file_read("/tmp/syx-c5h-missing.txt")
+  print(s)
+  return 0
+}
+"#;
+    with_permission(true, false, false, || {
+        match compile_and_run_embedded(src, &DriverOptions::default()) {
+            Err(e) if e.code.as_deref() == Some("S024") => {}
+            Err(e) => panic!("expected S024 default-on ungated fs, got: {e:?}"),
+            Ok(r) => panic!("expected S024 default-on ungated fs, ran: {:?}", r.printed),
+        }
+    });
+}
+
+#[test]
 fn m3_e02_permission_fs_allow_fs_positive() {
     let src = r#"
 func main() {

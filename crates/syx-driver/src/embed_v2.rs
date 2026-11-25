@@ -10,6 +10,7 @@
 //! C-5b: when `SYX_EMBED_WASM_SANDBOX=1`, wasm failure/unavailable → null (no silent in-process).
 //! C-5c-1: opt-in timeout hard wall — env∪CLI + wasmtime kill; in-process recv_timeout (≠ OS sandbox).
 //! C-5c-2: opt-in `SYX_EMBED_SECCOMP=1` → Linux net-deny BPF in worker thread; else null.
+//! C-5g: opt-in `SYX_EMBED_SECCOMP_ALLOWLIST=1` → Linux default-deny allowlist; mutually exclusive with SECCOMP.
 //! C-5d: opt-in `SYX_EMBED_RSS_MB` → Linux `prlimit(RLIMIT_AS)` hard kill; MEMORY env∪CLI.
 //! C-5e: same env → Windows Job Object `PROCESS_MEMORY_LIMIT`; macOS/other → null.
 //! C-5f: opt-in `SYX_EMBED_MACOS_SANDBOX=1` → macOS Seatbelt net-deny via sandbox-exec on
@@ -360,11 +361,12 @@ fn embed_result_to_c(result: EmbedResult, compile_ok: i32) -> *mut SyxEmbedV2Res
     Box::into_raw(out)
 }
 
-/// Run guest in a worker: optional seccomp + optional RSS hard wall (C-5c-2 / C-5d / C-5e).
+/// Run guest in a worker: optional seccomp (net-deny or allowlist) + optional RSS hard wall.
 /// Channel disconnect / install failure / timeout → null.
 fn embed_run_worker_hardened(
     src: &str,
-    install_seccomp: bool,
+    install_seccomp_netdeny: bool,
+    install_seccomp_allowlist: bool,
     rss_limit: Option<usize>,
 ) -> Option<EmbedResult> {
     let (tx, rx) = mpsc::channel();
@@ -372,7 +374,12 @@ fn embed_run_worker_hardened(
     let opts = embed_driver_options();
     let timeout = embed_timeout_ms();
     thread::spawn(move || {
-        if install_seccomp && syx_macro::try_install_seccomp_netdeny().is_err() {
+        // C-5c-2 / C-5g: install seccomp before RSS (order fixed).
+        if install_seccomp_netdeny && syx_macro::try_install_seccomp_netdeny().is_err() {
+            let _ = tx.send(None);
+            return;
+        }
+        if install_seccomp_allowlist && syx_macro::try_install_seccomp_allowlist().is_err() {
             let _ = tx.send(None);
             return;
         }
@@ -445,12 +452,17 @@ pub extern "C" fn syx_embed_v2_run(source: *const c_char) -> *mut SyxEmbedV2Resu
         return std::ptr::null_mut();
     }
     let want_seccomp = embed_seccomp_mvp_enabled();
-    // C-5c-2 / C-5d: hardened worker when seccomp and/or RSS hard wall opted in.
-    if want_seccomp || rss_limit.is_some() {
-        if want_seccomp && !cfg!(target_os = "linux") {
+    let want_allowlist = embed_seccomp_allowlist_enabled();
+    // C-5g: SECCOMP and SECCOMP_ALLOWLIST are mutually exclusive.
+    if want_seccomp && want_allowlist {
+        return std::ptr::null_mut();
+    }
+    // C-5c-2 / C-5d / C-5g: hardened worker when seccomp and/or RSS hard wall opted in.
+    if want_seccomp || want_allowlist || rss_limit.is_some() {
+        if (want_seccomp || want_allowlist) && !cfg!(target_os = "linux") {
             return std::ptr::null_mut();
         }
-        return match embed_run_worker_hardened(src, want_seccomp, rss_limit) {
+        return match embed_run_worker_hardened(src, want_seccomp, want_allowlist, rss_limit) {
             Some(r) => embed_result_to_c(r, compile_ok),
             None => std::ptr::null_mut(),
         };
@@ -519,6 +531,13 @@ pub fn embed_seccomp_mvp_enabled() -> bool {
         .unwrap_or(false)
 }
 
+/// C-5g: opt-in Linux default-deny seccomp allowlist (`SYX_EMBED_SECCOMP_ALLOWLIST=1`).
+pub fn embed_seccomp_allowlist_enabled() -> bool {
+    std::env::var("SYX_EMBED_SECCOMP_ALLOWLIST")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
 /// Phase 24 Embed v10: extended seccomp allowlist probe string.
 pub fn embed_v10_seccomp_probe() -> &'static str {
     if cfg!(target_os = "linux") {
@@ -558,6 +577,7 @@ pub fn embed_v11_seccomp_probe() -> &'static str {
 }
 
 /// Phase 25 DN4: v11 allowlist extends v10 with mmap/brk for RSS tracking scaffold.
+/// C-5g: base names are wired via `syx_macro::try_install_seccomp_allowlist` (+ runnable supplements).
 pub fn embed_v11_seccomp_allowlist() -> &'static [&'static str] {
     &[
         "read",

@@ -172,11 +172,11 @@ impl SemanticAnalyzer {
                 "S022",
             ));
         }
-        // M3-E02 / ADR-310–311: opt-in permission sandbox — net + fs domains.
+        // M3-E02 / ADR-310–311 / C-5h: permission sandbox default-on — net + fs domains.
         let net_host = matches!(id, HostFnId::TcpConnect | HostFnId::HttpGet);
         if net_host && cfg.permission.sandbox && !cfg.permission.allow_net {
             self.errors.push(self.error_at(
-                "net Host functions require permission grant; pass --allow-net (or SYX_ALLOW_NET=1) under --permission-sandbox",
+                "net Host functions require permission grant; pass --allow-net (or SYX_ALLOW_NET=1), or opt out with --no-permission-sandbox",
                 span,
                 "S024",
             ));
@@ -184,7 +184,7 @@ impl SemanticAnalyzer {
         let fs_host = matches!(id, HostFnId::FileRead | HostFnId::FileWrite);
         if fs_host && cfg.permission.sandbox && !cfg.permission.allow_fs {
             self.errors.push(self.error_at(
-                "fs Host functions require permission grant; pass --allow-fs (or SYX_ALLOW_FS=1) under --permission-sandbox",
+                "fs Host functions require permission grant; pass --allow-fs (or SYX_ALLOW_FS=1), or opt out with --no-permission-sandbox",
                 span,
                 "S024",
             ));
@@ -192,7 +192,7 @@ impl SemanticAnalyzer {
         let env_host = matches!(id, HostFnId::EnvGet | HostFnId::EnvSet);
         if env_host && cfg.permission.sandbox && !cfg.permission.allow_env {
             self.errors.push(self.error_at(
-                "env Host functions require permission grant; pass --allow-env (or SYX_ALLOW_ENV=1) under --permission-sandbox",
+                "env Host functions require permission grant; pass --allow-env (or SYX_ALLOW_ENV=1), or opt out with --no-permission-sandbox",
                 span,
                 "S024",
             ));
@@ -200,7 +200,7 @@ impl SemanticAnalyzer {
         let process_host = matches!(id, HostFnId::ProcessExec | HostFnId::ProcessSpawn);
         if process_host && cfg.permission.sandbox && !cfg.permission.allow_process {
             self.errors.push(self.error_at(
-                "process Host functions require permission grant; pass --allow-process (or SYX_ALLOW_PROCESS=1) under --permission-sandbox",
+                "process Host functions require permission grant; pass --allow-process (or SYX_ALLOW_PROCESS=1), or opt out with --no-permission-sandbox",
                 span,
                 "S024",
             ));

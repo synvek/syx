@@ -1,4 +1,6 @@
 ### SYX 0.4.0
+- feat: permission-sandbox default-on + `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0` opt-out; ungated HostFn → S024 (C-5h; ≠ C-5 `[x]`)
+- feat: Linux opt-in default-deny seccomp allowlist (v11+supplements); mutex with SYX_*_SECCOMP; non-Linux fail-closed (C-5g)
 - feat: macOS opt-in Seatbelt net-deny (sandbox_init / sandbox-exec); in-process embed null; non-macOS fail-closed (C-5f)
 - feat: Windows opt-in Job Object PROCESS_MEMORY_LIMIT via SYX_*_RSS_MB; macOS fail-closed; Linux prlimit held (C-5e)
 - feat: Linux opt-in prlimit(RLIMIT_AS) hard wall for embed/macro/wasmtime; MEMORY env∪CLI; non-Linux fail-closed (C-5d)

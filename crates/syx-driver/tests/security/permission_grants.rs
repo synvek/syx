@@ -70,7 +70,27 @@ func main() {
 }
 
 #[test]
-fn m3_e02_permission_grants_default_off_unchanged() {
+fn m3_e02_permission_grants_default_on_s024() {
+    // C-5h: sandbox default-on + no grant → S024 (retired prior default-off pin).
+    let src = r#"
+func main() {
+  let h = __syx_tcp_connect("127.0.0.1", 9)
+  print(h)
+  return 0
+}
+"#;
+    with_permission(true, false, || {
+        match compile_and_run_embedded(src, &DriverOptions::default()) {
+            Err(e) if e.code.as_deref() == Some("S024") => {}
+            Err(e) => panic!("expected S024 default-on ungated net, got: {e:?}"),
+            Ok(r) => panic!("expected S024 default-on ungated net, ran: {:?}", r.printed),
+        }
+    });
+}
+
+#[test]
+fn c5h_permission_sandbox_opt_out_allows_tcp() {
+    // C-5h: --no-permission-sandbox / sandbox=false recovers TcpConnect compile.
     let src = r#"
 func main() {
   let h = __syx_tcp_connect("127.0.0.1", 9)
@@ -80,12 +100,12 @@ func main() {
 "#;
     with_permission(false, false, || {
         let out = compile_and_run_embedded(src, &DriverOptions::default())
-            .expect("default sandbox off must not gate net")
+            .expect("opt-out sandbox must not gate net")
             .printed
             .join("\n");
         assert!(
             out.contains("-1") || !out.is_empty(),
-            "default path must still compile TcpConnect: {out}"
+            "opt-out path must still compile TcpConnect: {out}"
         );
     });
 }

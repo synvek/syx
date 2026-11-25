@@ -117,13 +117,23 @@ def normalize_stdout(s: str) -> str:
     return s.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
 
 
+# C-5h: permission.sandbox defaults on; book KPI snippets may touch HostFn slices.
+_BOOK_ALLOW_FLAGS = (
+    "--allow-net",
+    "--allow-fs",
+    "--allow-env",
+    "--allow-process",
+    "--allow-plugin",
+)
+
+
 def run_check(syx: str, source: str, timeout: float) -> tuple[bool, str]:
     with tempfile.TemporaryDirectory(prefix="syx-book-") as td:
         path = Path(td) / "snippet.sy"
         path.write_text(source, encoding="utf-8")
         try:
             proc = subprocess.run(
-                [syx, "check", str(path)],
+                [syx, "check", *_BOOK_ALLOW_FLAGS, str(path)],
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -147,7 +157,7 @@ def run_and_compare(
         path.write_text(source, encoding="utf-8")
         try:
             proc = subprocess.run(
-                [syx, "run", str(path)],
+                [syx, "run", *_BOOK_ALLOW_FLAGS, str(path)],
                 capture_output=True,
                 text=True,
                 timeout=timeout,

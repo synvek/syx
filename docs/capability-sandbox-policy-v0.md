@@ -37,13 +37,14 @@ Define default policy for five domains, the grant surface, and the HostFn capabi
 
 **Product intent:** operations in these domains are **default deny** (or available only after an explicit grant). Un-granted attempts must **fail closed** (typed error), never silent success.
 
-## Grants v0 (M3-E02 thin + deepen + closeout)
+## Grants v0 (M3-E02 thin + deepen + closeout · **C-5h default-on**)
 
-Opt-in only (default sandbox **off** — existing toolchain unchanged):
+**C-5h:** permission sandbox **default on** (no env / no CLI → `sandbox=true`). Opt-out honest; five-domain grants unchanged:
 
 | Surface | Flag / env / TOML | Effect |
 |---------|-------------------|--------|
-| Enable sandbox | `--permission-sandbox` / `SYX_PERMISSION_SANDBOX=1` / `[permissions].sandbox` | Un-granted domain HostFns fail with **`S024`** |
+| Sandbox on (default) | unset / `--permission-sandbox` / `SYX_PERMISSION_SANDBOX=1` / `[permissions].sandbox` | Un-granted domain HostFns fail with **`S024`** |
+| Sandbox opt-out | `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0\|false` | Disables S024 domain gate |
 | Grant net | `--allow-net` / `SYX_ALLOW_NET=1` / `[permissions].allow_net` | Allows `TcpConnect` / `HttpGet` |
 | Grant fs | `--allow-fs` / `SYX_ALLOW_FS=1` / `[permissions].allow_fs` | Allows `FileRead` / `FileWrite` |
 | Grant env | `--allow-env` / `SYX_ALLOW_ENV=1` / `[permissions].allow_env` | Allows `EnvGet` / `EnvSet` (W1035 thin) |
@@ -79,9 +80,9 @@ Opt-in only (default gate **off**):
 ## Honesty (this window)
 
 - E01 five-domain default-deny intent remains **docs-only** for **plugin-id allowlist / five-domain GA / true default-on execute** except opt-in `net`/`fs`/`env`/`process`/`plugin` thin gates (≠ five-domain runtime GA).
-- **W1038 / ADR-1382 default-on product decision** = **remain opt-in** (sandbox stays off unless `--permission-sandbox` / `SYX_PERMISSION_SANDBOX` / `[permissions].sandbox`); default-on **deferred** to an explicit execute window (**docs-only** until then).
-- **W1039 / ADR-1383 D-04 `[x]`** = **opt-in written narrowed-domain** (five-domain thin gates). **docs-only** remains for **plugin-id allowlist / five-domain default-on GA / true default-on execute**.
-- **No** five-domain runtime default-deny GA (opt-in `net` + `fs` + `env` + `process` + `plugin` thin slices).
+- **C-5h / W1038 follow-through:** permission sandbox is **default-on** with `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0` opt-out. Still ≠ OS isolation / full HostFn GA / C-5 `[x]`.
+- **W1039 / ADR-1383 D-04 `[x]`** = narrowed-domain thin gates. **docs-only** remains for **plugin-id allowlist / five-domain runtime GA / true OS sandbox**.
+- **No** five-domain runtime GA beyond the existing thin HostFn slices (still need `--allow-*` under default-on sandbox).
 - **No** path-granular fs allowlist.
 - HostFn capability-table compile gate is **opt-in unsupported-only** (≠ default global; ≠ backend-column GA; ≠ load-time).
 - **No** EC-M3-3 checkbox; **no** M3 exit claim; E03 leaf signed under narrowed acceptance.

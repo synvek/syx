@@ -2,6 +2,7 @@
 //! ≠ OS/seccomp sandbox GA — see `docs/adr/macro-embed-threat-model.md`.
 //! C-5c-1: opt-in `SYX_MACRO_TIMEOUT_MS` wall clock on subprocess (kill → M040).
 //! C-5c-2: opt-in `SYX_MACRO_SECCOMP=1` → Linux net-deny BPF in child; non-Linux fail-closed.
+//! C-5g: opt-in `SYX_MACRO_SECCOMP_ALLOWLIST=1` → Linux default-deny allowlist; mutually exclusive with SECCOMP.
 //! C-5d: opt-in `SYX_MACRO_RSS_MB` → Linux `prlimit(RLIMIT_AS)` in child.
 //! C-5e: same env → Windows Job Object `PROCESS_MEMORY_LIMIT` (parent assign); else → M040.
 //! C-5f: opt-in `SYX_MACRO_MACOS_SANDBOX=1` → macOS Seatbelt net-deny in child; else → M040.
@@ -22,7 +23,8 @@ use crate::macos_sandbox::try_install_seatbelt_netdeny;
 use crate::macro_error_at;
 use crate::rlimit_linux::try_set_as_limit_bytes;
 use crate::seccomp_linux::{
-    try_install_seccomp_netdeny, MODE_SECCOMP_NETDENY_WIRED, MODE_SECCOMP_UNSUPPORTED,
+    try_install_seccomp_allowlist, try_install_seccomp_netdeny, MODE_SECCOMP_NETDENY_WIRED,
+    MODE_SECCOMP_UNSUPPORTED,
 };
 
 /// When true, external macros expand in-process (dev/test only).
@@ -34,6 +36,12 @@ pub fn macro_in_process_enabled() -> bool {
 
 fn macro_seccomp_requested() -> bool {
     std::env::var("SYX_MACRO_SECCOMP")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
+fn macro_seccomp_allowlist_requested() -> bool {
+    std::env::var("SYX_MACRO_SECCOMP_ALLOWLIST")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false)
 }
@@ -89,6 +97,25 @@ impl ExternalMacroExpander for SandboxMacroExpander {
                 Span::DUMMY,
                 "M040",
             ));
+        }
+        // C-5g: allowlist opt-in; mutually exclusive with net-deny SECCOMP.
+        if macro_seccomp_allowlist_requested() {
+            if macro_seccomp_requested() {
+                return Err(macro_error_at(
+                    "macro SECCOMP and SECCOMP_ALLOWLIST are mutually exclusive (C-5g fail-closed)",
+                    None,
+                    Span::DUMMY,
+                    "M040",
+                ));
+            }
+            if !cfg!(target_os = "linux") {
+                return Err(macro_error_at(
+                    "macro seccomp allowlist requested but unsupported on this OS (C-5g fail-closed)",
+                    None,
+                    Span::DUMMY,
+                    "M040",
+                ));
+            }
         }
         // C-5d/C-5e: RSS hard wall only on Linux (prlimit) or Windows (Job Object).
         if macro_rss_limit_bytes().is_some()
@@ -240,12 +267,22 @@ fn wait_child_output_deadline(
 
 /// Child entry for subprocess macro expansion (`syx __macro_sandbox_expand__`).
 pub fn macro_sandbox_child_main() -> SyxResult<()> {
-    // C-5c-2: install net-deny BPF before expand when opted in (Linux only reaches here
-    // with env set from a successful parent path; still fail-closed on install error).
+    // C-5c-2: install net-deny BPF before expand when opted in.
     if macro_seccomp_requested() {
         try_install_seccomp_netdeny().map_err(|e| {
             macro_error_at(
                 format!("macro seccomp install failed: {e}"),
+                None,
+                Span::DUMMY,
+                "M040",
+            )
+        })?;
+    }
+    // C-5g: install default-deny allowlist (mutually exclusive with net-deny at parent).
+    if macro_seccomp_allowlist_requested() {
+        try_install_seccomp_allowlist().map_err(|e| {
+            macro_error_at(
+                format!("macro seccomp allowlist install failed: {e}"),
                 None,
                 Span::DUMMY,
                 "M040",

@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-25 · **C-5f macOS Seatbelt `[x]`**；C-5 `[~]`；C-3 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **C-5g**（全量 Linux seccomp allowlist 薄闸）。
+> **最近更新：** 2026-11-25 · **C-5h permission default-on `[x]`**；C-5 `[~]`（不宣称 `[x]`）；C-3 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-3 全量 MirOp / 或 P0 余债；不自动 C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -135,18 +135,16 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 | **C-5b** | `[x]` | `SYX_EMBED_WASM_SANDBOX=1` 时 wasm 失败/不可用 → `syx_embed_v2_run` **null**（禁静默 in-process）；census [`c-5b-embed-wasm-fail-closed-census`](../docs/census/c-5b-embed-wasm-fail-closed-census.md) |
 | **C-5c-1** | `[x]` | embed/macro **timeout 硬闸**：env∪CLI、wasmtime kill、`SYX_MACRO_TIMEOUT_MS`→M040；census [`c-5c-1-embed-macro-timeout-census`](../docs/census/c-5c-1-embed-macro-timeout-census.md) |
 | **C-5c-2** | `[x]` | Linux **net-deny seccomp-BPF**（macro child + embed worker）；非 Linux fail-closed；census [`c-5c-2-seccomp-wire-census`](../docs/census/c-5c-2-seccomp-wire-census.md) |
-| **C-5c+** | `[~]` | 伞：timeout+seccomp+RSS+Seatbelt 子集 done；全量 filter 仍 park |
-| **C-5d** | `[x]` | Linux **`prlimit(RLIMIT_AS)`** 硬杀（embed worker / wasmtime child / macro child）；MEMORY env∪CLI；非 Linux fail-closed；census [`c-5d-embed-rss-hard-census`](../docs/census/c-5d-embed-rss-hard-census.md) |
-| **C-5e** | `[x]` | Windows **Job Object `PROCESS_MEMORY_LIMIT`**（复用 `SYX_*_RSS_MB`）；Linux prlimit 不破；macOS fail-closed；census [`c-5e-jobobject-thin-census`](../docs/census/c-5e-jobobject-thin-census.md) |
-| **C-5f** | `[x]` | macOS **Seatbelt net-deny**（`sandbox_init` / `sandbox-exec -n no-network`）；in-process embed → null；census [`c-5f-macos-sandbox-thin-census`](../docs/census/c-5f-macos-sandbox-thin-census.md) |
-| **C-5g** | `[ ]` | **默认下一**：全量 Linux seccomp allowlist 薄闸（≠ 宣称 C-5 `[x]`） |
+| **C-5c+** | `[~]` | 伞：timeout+netdeny+allowlist+RSS+Seatbelt+permission default-on 子集 done；真全量 syscall GA / C-5 `[x]` 仍 park |
+| **C-5d** | `[x]` | Linux **`prlimit(RLIMIT_AS)`** 硬杀；MEMORY env∪CLI；census [`c-5d-embed-rss-hard-census`](../docs/census/c-5d-embed-rss-hard-census.md) |
+| **C-5e** | `[x]` | Windows **Job Object `PROCESS_MEMORY_LIMIT`**；census [`c-5e-jobobject-thin-census`](../docs/census/c-5e-jobobject-thin-census.md) |
+| **C-5f** | `[x]` | macOS **Seatbelt net-deny**；census [`c-5f-macos-sandbox-thin-census`](../docs/census/c-5f-macos-sandbox-thin-census.md) |
+| **C-5g** | `[x]` | Linux **default-deny seccomp allowlist**（v11+补项；`SYX_*_SECCOMP_ALLOWLIST`；与 SECCOMP 互斥）；census [`c-5g-seccomp-allowlist-census`](../docs/census/c-5g-seccomp-allowlist-census.md) |
+| **C-5h** | `[x]` | permission-sandbox **default-on** + `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0` opt-out；census [`c-5h-permission-default-on-census`](../docs/census/c-5h-permission-default-on-census.md) |
 
-**验收（C-5b）：** WASM_SANDBOX=1 且 wasmtime 不可用 → null；未设 env → in-process 仍绿；ADR/env-registry 对齐；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
-**验收（C-5c-1）：** 短超时 hang → null/M040；未设 env 不破；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
-**验收（C-5c-2）：** Linux opt-in 装滤镜或 fail-closed；非 Linux + env → null/M040；未设 env 不破；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
-**验收（C-5d）：** Linux 超限→null/M040；非 Linux + RSS env → fail-closed；未设 env 不破；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
-**验收（C-5e）：** Windows + RSS → Job Object 硬墙；macOS + RSS 仍 fail-closed；Linux prlimit 不破；未设 env 不破；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
-**验收（C-5f）：** macOS + env → Seatbelt net-deny（macro/wasmtime）；非 macOS + env → null/M040；in-process embed + env → null；硬 KPI 不破；**不**宣称 C-5 `[x]`。默认下一 → **C-5g**。
+**验收（C-5b…C-5f）：** 见各子窗；**不**宣称 C-5 `[x]`。  
+**验收（C-5g）：** Linux + ALLOWLIST → default-deny 装闸；与 SECCOMP 同开 fail-closed；非 Linux + env → null/M040；net-deny 路径不破；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
+**验收（C-5h）：** 默认无 grant → net/fs HostFn **S024**；`--no-permission-sandbox` / `=0` 恢复可编；硬 KPI 不破（allow 注入）；**C-5h `[x]`**；**C-5 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（C-3 全量 MirOp / 或 P0 余债；**不**自动 C-5 `[x]`）。
 
 ### C-6 · Version / capability 单一 SSOT（P1） — `[x]`
 

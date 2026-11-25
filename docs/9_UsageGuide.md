@@ -971,7 +971,7 @@ syx run app.sy
 
 ### Embed API（Phase 14–15）
 
-Phase 14+ Embed API (`syx_embed_v2_*`): optional HTTP deny (`--embed-sandbox`); **C-5c-1** opt-in hard timeout; **C-5c-2** opt-in `SYX_EMBED_SECCOMP=1` Linux net-deny BPF; **C-5d/C-5e** opt-in `SYX_EMBED_RSS_MB` Linux `prlimit` · Windows Job Object; **C-5f** opt-in `SYX_EMBED_MACOS_SANDBOX=1` Seatbelt net-deny via `sandbox-exec` on wasmtime (in-process → null); MEMORY env∪CLI remains stdout-sum soft. Macro: `SYX_MACRO_TIMEOUT_MS`; `SYX_MACRO_SECCOMP=1`; `SYX_MACRO_RSS_MB`; `SYX_MACRO_MACOS_SANDBOX=1` Seatbelt in child. **Not** full OS / App Sandbox / Job Object GA. Threat model: [macro-embed-threat-model](adr/macro-embed-threat-model.md).
+Phase 14+ Embed API (`syx_embed_v2_*`): optional HTTP deny; **C-5c-1** timeout; **C-5c-2** `SYX_EMBED_SECCOMP=1` Linux net-deny; **C-5g** `SYX_EMBED_SECCOMP_ALLOWLIST=1` Linux default-deny allowlist (mutex with SECCOMP); **C-5d/C-5e** `SYX_EMBED_RSS_MB`; **C-5f** `SYX_EMBED_MACOS_SANDBOX=1`; MEMORY soft. Macro: timeout / SECCOMP / SECCOMP_ALLOWLIST / RSS / MACOS_SANDBOX. **C-5h:** permission sandbox **default on** (HostFn domain S024); opt out `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0`; grants `--allow-*`. **Not** full OS / App Sandbox / full syscall GA / C-5 `[x]`. Threat model: [macro-embed-threat-model](adr/macro-embed-threat-model.md).
 
 ### Formatting — `syx format`
 

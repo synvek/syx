@@ -27,7 +27,9 @@ pub use rlimit_linux::{
 };
 mod seccomp_linux;
 pub use seccomp_linux::{
-    try_install_seccomp_netdeny, MODE_SECCOMP_NETDENY_WIRED, MODE_SECCOMP_UNSUPPORTED,
+    try_install_seccomp_allowlist, try_install_seccomp_netdeny, MODE_SECCOMP_ALLOWLIST_UNSUPPORTED,
+    MODE_SECCOMP_ALLOWLIST_WIRED, MODE_SECCOMP_NETDENY_WIRED, MODE_SECCOMP_UNSUPPORTED,
+    SECCOMP_ALLOWLIST_SYSCALL_NAMES,
 };
 mod hygiene;
 mod macro_diag;

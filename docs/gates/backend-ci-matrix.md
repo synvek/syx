@@ -232,6 +232,10 @@ Same `SYX_*_RSS_MB` env: **Windows** Job Object **`PROCESS_MEMORY_LIMIT`** on em
 
 Opt-in `SYX_EMBED_MACOS_SANDBOX` / `SYX_MACRO_MACOS_SANDBOX`: **macOS** Seatbelt **net-deny** via `sandbox_init(SANDBOX_NAMED, "no-network")` in macro child and `sandbox-exec -n no-network` around wasmtime; **in-process embed → null**. Non-macOS + env → **null** / **M040**. Census: [`c-5f-macos-sandbox-thin-census`](../census/c-5f-macos-sandbox-thin-census.md). C-5 remains `[~]`. **≠** App Sandbox GA / full filter / C-5 `[x]` (→ **C-5g**).
 
+### C-5g (done · Linux seccomp allowlist thin gate)
+
+Opt-in `SYX_EMBED_SECCOMP_ALLOWLIST` / `SYX_MACRO_SECCOMP_ALLOWLIST`: **Linux** **default-deny** BPF allowlist (v11 base + futex/brk/openat/close/mprotect[/arch_prctl]); mutually exclusive with `SYX_*_SECCOMP` net-deny. Non-Linux + env → **null** / **M040**. Census: [`c-5g-seccomp-allowlist-census`](../census/c-5g-seccomp-allowlist-census.md). C-5 remains `[~]`. **≠** full syscall GA / permission-sandbox default-on / C-5 `[x]` (→ **C-5h**).
+
 ### C-6a (done · version SSOT align)
 
 Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md).
@@ -278,4 +282,4 @@ UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **loss
 
 ## Next
 
-Default next after C-5f: **C-5g** — full Linux seccomp allowlist thin gate (≠ claim C-5 `[x]`). C-5 remains `[~]` (C-5a/b/c-1/c-2/d/e/f done; full filter park). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.
+Default next after C-5h: **跨轴** — C-3 全量 MirOp / exception / DefId，或 P0 余债首项（**不**宣称 / 不自动 C-5 `[x]`）。C-5 remains `[~]` (C-5a…**h** done; true full syscall GA park). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.

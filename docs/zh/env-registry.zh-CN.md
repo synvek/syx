@@ -11,8 +11,10 @@ GB 配置 LTS 之后对 `SYX_*` 变量的清点。状态含义：**cli**（已�
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox`（软 HTTP 拒绝；**不是** OS 隔离 — [威胁模型](../adr/macro-embed-threat-model.md)） |
 | `SYX_EMBED_WASM_SANDBOX` | opt-in | wasmtime 路径；失败/不可用 → `syx_embed_v2_run` **null**（C-5b；≠ OS 隔离） |
-| `SYX_EMBED_SECCOMP` | wired-subset-linux | Linux worker 装 net-deny BPF；非 Linux → null（C-5c-2）；≠ 全量 sandbox GA |
-| `SYX_MACRO_SECCOMP` | wired-subset-linux | Linux child net-deny BPF；mode `seccomp-netdeny-wired`；非 Linux → M040（C-5c-2） |
+| `SYX_EMBED_SECCOMP` | wired-subset-linux | Linux worker 装 net-deny BPF；非 Linux → null（C-5c-2）；与 `SYX_EMBED_SECCOMP_ALLOWLIST` 互斥 |
+| `SYX_MACRO_SECCOMP` | wired-subset-linux | Linux child net-deny BPF；mode `seccomp-netdeny-wired`；非 Linux → M040（C-5c-2）；与 ALLOWLIST 互斥 |
+| `SYX_EMBED_SECCOMP_ALLOWLIST` | wired-subset-linux | Linux default-deny allowlist BPF（v11+补项）worker；非 Linux → null；与 SECCOMP 互斥（C-5g）；≠ 全量 syscall GA |
+| `SYX_MACRO_SECCOMP_ALLOWLIST` | wired-subset-linux | Linux child default-deny allowlist；非 Linux → M040；与 SECCOMP 互斥（C-5g） |
 | `SYX_EMBED_TIMEOUT_MS` | enforced-when-set | 硬墙钟（env 优先于 `syx --embed-timeout-ms`）；in-process null / wasmtime kill（C-5c-1） |
 | `SYX_MACRO_TIMEOUT_MS` | opt-in | 宏子进程墙钟；超时 → kill + M040（C-5c-1）；未设 = 无上限 |
 | `SYX_EMBED_MEMORY_MB` | soft-when-set | env 优先于 `syx --embed-memory-mb`；stdout 长度事后闸（C-5d 诚实；≠ 真堆计量） |
@@ -21,7 +23,7 @@ GB 配置 LTS 之后对 `SYX_*` 变量的清点。状态含义：**cli**（已�
 | `SYX_EMBED_MACOS_SANDBOX` | wired-subset-macos | macOS：wasmtime 经 `sandbox-exec -n no-network`；in-process → null；非 macOS → null（C-5f）；≠ App Sandbox GA |
 | `SYX_MACRO_MACOS_SANDBOX` | wired-subset-macos | macOS child `sandbox_init(SANDBOX_NAMED, no-network)`；非 macOS → M040（C-5f） |
 
-| `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox`（M3-E02 / ADR-310） |
+| `SYX_PERMISSION_SANDBOX` | default-on（C-5h） | 未设/`1` → sandbox **开**；`0`/`false` → 退出（`--no-permission-sandbox`）；仍 ≠ OS 隔离 |
 | `SYX_ALLOW_NET` | deprecated | `syx --allow-net`（M3-E02 / ADR-310） |
 | `SYX_ALLOW_FS` | deprecated | `syx --allow-fs`（M3-E02 / ADR-311） |
 | `SYX_ALLOW_ENV` | deprecated | `syx --allow-env`（W1035 / ADR-1379） |

@@ -733,10 +733,15 @@ syx repl
 | `SYX_WASI_GC_PHASE22=1` | WASI GC Phase 22：`syx_gc.alloc` 使用 noop arena host hook |
 | `SYX_WASI_GC_PHASE23=1` | WASI GC Phase 23：bump arena + mark 清除 smoke |
 | `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6：staging signed URL install |
-| `SYX_EMBED_SECCOMP=1` | Embed：Linux **net-deny seccomp-BPF**（C-5c-2）；非 Linux → null；≠ 全量 sandbox GA |
+| `SYX_EMBED_SECCOMP=1` | Embed：Linux **net-deny seccomp-BPF**（C-5c-2）；非 Linux → null；与 ALLOWLIST 互斥 |
+| `SYX_EMBED_SECCOMP_ALLOWLIST=1` | Embed：Linux **default-deny** allowlist BPF（C-5g）；非 Linux → null；与 SECCOMP 互斥 |
+| `SYX_MACRO_SECCOMP_ALLOWLIST=1` | 宏：Linux child default-deny allowlist（C-5g）；非 Linux → M040 |
 | `SYX_EMBED_RSS_MB` | Embed：Linux `prlimit` · Windows Job Object 内存硬墙（C-5d/C-5e）；macOS → null |
 | `SYX_EMBED_MACOS_SANDBOX=1` | Embed：macOS Seatbelt net-deny（wasmtime `sandbox-exec`）；in-process → null（C-5f） |
 | `SYX_MACRO_MACOS_SANDBOX=1` | 宏：macOS child `sandbox_init(no-network)`；非 macOS → M040（C-5f） |
+| `SYX_PERMISSION_SANDBOX` | Permission HostFn S024 沙箱（**默认开**，C-5h）；`=0`/`false` 退出 |
+| `--no-permission-sandbox` | CLI 退出 permission sandbox（C-5h） |
+| `--allow-net` / `--allow-fs` / … | permission sandbox 下五域 grant（不变） |
 | `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 模板（`{type}:{name}`） |
 | `SYX_LLVM_RELEASE_BLOCKER=1` | LLVM strict parity 可选 PR release blocker（ADR-019） |
 | `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 晋升计数（≥4 周绿可 promotion） |

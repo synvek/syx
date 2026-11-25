@@ -9,3 +9,11 @@
 # builds pass those flags via `--config` (see scripts/build-full-native and CI).
 [env]
 LLVM_SYS_211_PREFIX = { value = "../llvm", relative = true }
+# C-5h: permission.sandbox defaults on. Cargo-local unit/integration tests that
+# exercise HostFn slices inherit domain grants so KPI nails do not mass-S024.
+# Product `./target/debug/syx` outside cargo still denies un-granted domains.
+SYX_ALLOW_NET = "1"
+SYX_ALLOW_FS = "1"
+SYX_ALLOW_ENV = "1"
+SYX_ALLOW_PROCESS = "1"
+SYX_ALLOW_PLUGIN = "1"

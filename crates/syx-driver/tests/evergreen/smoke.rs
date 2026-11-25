@@ -430,6 +430,135 @@ fn c5f_macos_seatbelt_hooks_and_fail_closed() {
 }
 
 #[test]
+fn c5h_permission_sandbox_default_on_and_opt_out() {
+    use std::sync::Mutex;
+    use syx_config::{PermissionGrants, SyxRuntimeConfig};
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let cfg_src = std::fs::read_to_string(root.join("crates/syx-config/src/lib.rs")).expect("config");
+    assert!(
+        cfg_src.contains("env_falsey_opt_out(\"SYX_PERMISSION_SANDBOX\", true)")
+            && cfg_src.contains("C-5h"),
+        "PermissionGrants must default-on via env_falsey_opt_out (C-5h)"
+    );
+    let cli = std::fs::read_to_string(root.join("crates/syx-cli/src/main.rs")).expect("cli");
+    assert!(
+        cli.contains("no-permission-sandbox")
+            && cli.contains("no_permission_sandbox")
+            && cli.contains("C-5h"),
+        "CLI must expose --no-permission-sandbox three-state (C-5h)"
+    );
+
+    let prev_env = std::env::var("SYX_PERMISSION_SANDBOX").ok();
+    std::env::remove_var("SYX_PERMISSION_SANDBOX");
+    let def = PermissionGrants::default();
+    assert!(def.sandbox, "C-5h: Default sandbox must be on when env unset");
+    std::env::set_var("SYX_PERMISSION_SANDBOX", "0");
+    let off = PermissionGrants::default();
+    assert!(!off.sandbox, "C-5h: SYX_PERMISSION_SANDBOX=0 must opt out");
+    match prev_env {
+        Some(v) => std::env::set_var("SYX_PERMISSION_SANDBOX", v),
+        None => std::env::remove_var("SYX_PERMISSION_SANDBOX"),
+    }
+
+    // from_cli three-state: Some(false) forces off even if Default would be on.
+    let cfg = SyxRuntimeConfig::from_cli(
+        None, None, true, None, None, None, None, None, None, None, None, None, None, None,
+        Some(false),
+        None, None, None, None, None, None,
+    );
+    assert!(!cfg.permission.sandbox, "C-5h: from_cli(Some(false)) must opt out");
+}
+
+#[test]
+fn c5g_seccomp_allowlist_hooks_and_mutex() {
+    use std::ffi::CString;
+    use std::sync::Mutex;
+    use syx_driver::embed_v2::syx_embed_v2_run;
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let filt = std::fs::read_to_string(root.join("crates/syx-macro/src/seccomp_linux.rs"))
+        .expect("seccomp_linux");
+    assert!(
+        filt.contains("try_install_seccomp_allowlist")
+            && filt.contains("SECCOMP_RET_ALLOW")
+            && filt.contains("seccomp-allowlist-wired")
+            && filt.contains("SECCOMP_ALLOWLIST_SYSCALL_NAMES")
+            && filt.contains("C-5g")
+            && filt.contains("futex"),
+        "seccomp_linux must wire default-deny allowlist"
+    );
+    let embed = std::fs::read_to_string(root.join("crates/syx-driver/src/embed_v2.rs"))
+        .expect("embed_v2");
+    assert!(
+        embed.contains("embed_seccomp_allowlist_enabled")
+            && embed.contains("SYX_EMBED_SECCOMP_ALLOWLIST")
+            && embed.contains("try_install_seccomp_allowlist")
+            && embed.contains("C-5g"),
+        "embed must wire SECCOMP_ALLOWLIST"
+    );
+    let mac = std::fs::read_to_string(root.join("crates/syx-macro/src/external_sandbox.rs"))
+        .expect("sandbox");
+    assert!(
+        mac.contains("SYX_MACRO_SECCOMP_ALLOWLIST")
+            && mac.contains("try_install_seccomp_allowlist")
+            && mac.contains("mutually exclusive")
+            && mac.contains("C-5g"),
+        "macro must wire allowlist + mutex with SECCOMP"
+    );
+
+    // Mutual exclusion: both SECCOMP and ALLOWLIST → null.
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_RSS_MB");
+    std::env::remove_var("SYX_EMBED_MACOS_SANDBOX");
+    std::env::set_var("SYX_EMBED_SECCOMP", "1");
+    std::env::set_var("SYX_EMBED_SECCOMP_ALLOWLIST", "1");
+    let src = CString::new("func main() { print(1) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    assert!(
+        ptr.is_null(),
+        "C-5g: SECCOMP + SECCOMP_ALLOWLIST must fail-closed null"
+    );
+    std::env::remove_var("SYX_EMBED_SECCOMP");
+
+    // Non-Linux: ALLOWLIST alone → null.
+    std::env::set_var("SYX_EMBED_SECCOMP_ALLOWLIST", "1");
+    let ptr2 = syx_embed_v2_run(src.as_ptr());
+    #[cfg(not(target_os = "linux"))]
+    assert!(
+        ptr2.is_null(),
+        "C-5g: non-Linux SECCOMP_ALLOWLIST must null"
+    );
+    #[cfg(target_os = "linux")]
+    {
+        // Linux: allowlist may kill worker on missing syscalls for full compile path —
+        // either null or success is acceptable; must not panic. Free if non-null.
+        use syx_driver::embed_v2::syx_embed_v2_free;
+        if !ptr2.is_null() {
+            syx_embed_v2_free(ptr2);
+        }
+    }
+    std::env::remove_var("SYX_EMBED_SECCOMP_ALLOWLIST");
+
+    assert_eq!(
+        syx_macro::MODE_SECCOMP_ALLOWLIST_WIRED,
+        "seccomp-allowlist-wired"
+    );
+    assert_eq!(
+        syx_macro::MODE_SECCOMP_ALLOWLIST_UNSUPPORTED,
+        "seccomp-allowlist-unsupported-fail-closed"
+    );
+    assert!(syx_macro::SECCOMP_ALLOWLIST_SYSCALL_NAMES.contains(&"read"));
+    assert!(syx_macro::SECCOMP_ALLOWLIST_SYSCALL_NAMES.contains(&"futex"));
+}
+
+#[test]
 fn c5d_memory_cli_merge_and_hooks() {
     use std::sync::Mutex;
     use syx_config::{EmbedConfig, SyxRuntimeConfig};

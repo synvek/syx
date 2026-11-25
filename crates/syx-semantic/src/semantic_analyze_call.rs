@@ -837,7 +837,7 @@ impl SemanticAnalyzer {
                     let cfg = syx_config::runtime_config();
                     if cfg.permission.sandbox && !cfg.permission.allow_plugin {
                         return Err(self.error_at(
-                            "plugin Host functions require permission grant; pass --allow-plugin (or SYX_ALLOW_PLUGIN=1) under --permission-sandbox",
+                            "plugin Host functions require permission grant; pass --allow-plugin (or SYX_ALLOW_PLUGIN=1), or opt out with --no-permission-sandbox",
                             *span,
                             "S024",
                         ));
